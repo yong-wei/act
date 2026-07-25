@@ -39,6 +39,10 @@ import {
 } from '@/features/arena/domain';
 import { getArenaChallengeObject } from '@/features/arena/data/seed-challenges';
 import { buildArenaWorkbenchPreviewSummary } from '@/features/arena/workbench/metric-mapping';
+import {
+  getRestoredPointIdentityCounters,
+  type MultiRepresentationDesignState,
+} from './design-snapshots';
 
 export interface MultiRepresentationInitialParams {
   courseMode?: boolean;
@@ -651,6 +655,9 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
 
   const [modelPoles, setModelPoles] = useState(() => toPoleZeroPoints(effectiveSeed.poles, 'p'));
   const [modelZeros, setModelZeros] = useState(() => toPoleZeroPoints(effectiveSeed.zeros, 'z'));
+  const [selectedObjectId, setSelectedObjectId] = useState<string | null>(
+    arenaContext?.object.id ?? configuredPlantModel?.objectId ?? configuredPlantModel?.id ?? null,
+  );
   const [gain, setGain] = useState(isArenaChallengeMode || hasConfiguredPlantModel ? 1 : effectiveSeed.gain);
   const [closedLoopGain, setClosedLoopGain] = useState(isArenaChallengeMode || hasConfiguredPlantModel ? 1 : effectiveSeed.gain);
   const [courseControlMode, setCourseControlMode] = useState<CruiseControllerMode>(initialControlMode);
@@ -678,6 +685,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     const nextGain = isArenaChallengeMode || hasConfiguredPlantModel ? 1 : effectiveSeed.gain;
     setModelPoles(toPoleZeroPoints(effectiveSeed.poles, 'p'));
     setModelZeros(toPoleZeroPoints(effectiveSeed.zeros, 'z'));
+    setSelectedObjectId(arenaContext?.object.id ?? configuredPlantModel?.objectId ?? configuredPlantModel?.id ?? null);
     setGain(nextGain);
     setClosedLoopGain(nextGain);
     setCourseControlMode(initialControlMode);
@@ -696,6 +704,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     isArenaChallengeMode,
     routeCorrectionEnabled,
     routeResetKey,
+    arenaContext?.object.id,
   ]);
 
   const idRef = useRef(100);
@@ -949,6 +958,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     if (!seed) return;
     const nextPoles = toPoleZeroPoints(seed.poles, 'p');
     const nextZeros = toPoleZeroPoints(seed.zeros, 'z');
+    setSelectedObjectId(object.id);
     setModelPoles(nextPoles);
     setModelZeros(nextZeros);
     setGain(seed.gain);
@@ -960,6 +970,69 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
       enabled: false,
     });
   }, []);
+
+  const exportDesignState = useCallback((): MultiRepresentationDesignState => ({
+    objectId: selectedObjectId,
+    modelPoles: modelPoles.map((point) => ({ ...point })),
+    modelZeros: modelZeros.map((point) => ({ ...point })),
+    gain,
+    closedLoopGain,
+    responseType,
+    showMargins,
+    correctionState: { ...correctionState },
+    timeRange: { ...timeRange },
+    frequencyRange: { ...frequencyRange },
+  }), [
+    closedLoopGain,
+    correctionState,
+    frequencyRange,
+    gain,
+    modelPoles,
+    modelZeros,
+    responseType,
+    selectedObjectId,
+    showMargins,
+    timeRange,
+  ]);
+
+  const restoreDesignState = useCallback((state: MultiRepresentationDesignState) => {
+    if (isCourseMode) return;
+    const counters = getRestoredPointIdentityCounters(state);
+    idRef.current = counters.id;
+    pairRef.current = counters.pair;
+    setSelectedObjectId(isArenaChallengeMode ? arenaContext?.object.id ?? null : state.objectId);
+    setModelPoles(state.modelPoles.map((point) => ({ ...point })));
+    setModelZeros(state.modelZeros.map((point) => ({ ...point })));
+    setGain(state.gain);
+    setClosedLoopGain(state.closedLoopGain);
+    setResponseType(state.responseType);
+    setShowMargins(state.showMargins);
+    setCorrectionState({ ...state.correctionState });
+    setTimeRange({ ...state.timeRange });
+    setFrequencyRange({ ...state.frequencyRange });
+  }, [arenaContext?.object.id, isArenaChallengeMode, isCourseMode]);
+
+  const buildSnapshotAnalysisRequest = useCallback((state: MultiRepresentationDesignState) => {
+    const snapshotCorrectionStructures = correctionToStructures(
+      state.correctionState,
+      isCourseMode,
+      { includeControllerGain: false },
+    );
+    const snapshotCorrectionEnabled = !isCourseMode && snapshotCorrectionStructures.length > 0;
+    const snapshotGain = snapshotCorrectionEnabled ? state.correctionState.controllerGain : state.gain;
+    return buildLinkageAnalysisRequest({
+      poles: state.modelPoles.map(toComplex),
+      zeros: state.modelZeros.map(toComplex),
+      gain: snapshotGain,
+      rootLocusGain: snapshotGain,
+      correctionStructures: snapshotCorrectionStructures,
+      plant: configuredPlant,
+      caseId: analysisCaseId,
+      responseType: state.responseType,
+      timeRange: state.timeRange,
+      frequencyRange: state.frequencyRange,
+    });
+  }, [analysisCaseId, configuredPlant, isCourseMode]);
 
   const reset = useCallback(() => {
     const fallbackModel = isArenaChallengeMode && arenaSeed
@@ -1189,6 +1262,9 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     removePole,
     removeZero,
     selectArenaObjectForExploration,
+    exportDesignState,
+    restoreDesignState,
+    buildSnapshotAnalysisRequest,
 
     reset,
   };

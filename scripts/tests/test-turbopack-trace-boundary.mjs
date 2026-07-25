@@ -7,6 +7,7 @@ const standaloneRoot = path.join(root, '.next', 'standalone');
 const maxTraceFiles = Number(process.env.TRACE_BOUNDARY_MAX_NFT_FILES ?? 5000);
 
 const unexpectedStandaloneEntries = [
+  'artifacts',
   'docs',
   'generated-images',
   'openspec',
@@ -39,6 +40,7 @@ const requiredStandaloneFiles = [
 const externalRuntimeMountPoint = path.join('course-content', 'runtime');
 
 const unexpectedTraceFragments = [
+  'artifacts/',
   'course-content/.codex/',
   'course-content/authoring/knowledge/',
   'course-content/authoring/lessons/',

@@ -184,7 +184,7 @@ function evaluateWithRustRuntime(
 /**
  * 评估参数组合的得分
  */
-function evaluateParams(
+export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
   logic: ScenarioLogic,
   simConfig: SimpleSimConfig,

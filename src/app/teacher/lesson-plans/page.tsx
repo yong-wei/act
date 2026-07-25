@@ -63,6 +63,7 @@ export default async function TeacherLessonPlansPage() {
           basePath="/teacher/lesson-plans"
           currentUserId={session.user.id}
           returnTo="/teacher/lesson-plans"
+          launchActor="teacher"
         />
 
         {plans.length === 0 && (

@@ -1081,8 +1081,10 @@ describe('math-document grading retention lifecycle', () => {
     const pseudoRun: any = { id: 'run-pseudo-lineage', answerAttemptId: 'attempt-pseudo-lineage', answerEvidenceId: 'evidence-pseudo-lineage', questionId: 'question-pseudo-lineage', inputHash: 'sha256:pseudo', modelInputObjectKey: null, modelOutputObjectKey: null, limitations: [], state: 'AWAITING_REVIEW', tombstonedAt: null };
     const updates: any[] = [];
     const deletedFactPrefixes: string[] = [];
-    const invalidatedUsers: string[][] = [];
+    const invalidatedUsers: string[] = [];
     const tombstones: any[] = [];
+    const transitions: any[] = [];
+    let transitionSequence = BigInt(0);
     const db: any = {
       answerEvidence: { findMany: async () => [], findUnique: async () => null },
       documentConversion: { findMany: async () => [] },
@@ -1096,10 +1098,47 @@ describe('math-document grading retention lifecycle', () => {
       gradingCriterionAssessment: { updateMany: async ({ data }: any) => { updates.push({ assessment: true, data }); return { count: 1 }; } },
       gradingAnnotation: { updateMany: async () => ({ count: 1 }) },
       learningFact: {
-        findMany: async () => [{ userId: 'student-derived', contextJson: { classId: 'class-derived' } }],
+        findMany: async ({ where }: any) => [{
+          id: `fact-${where.sourceEventId.startsWith}`,
+          userId: 'student-derived',
+          startedAt: new Date('2026-07-22T00:00:00Z'),
+          outcome: 'success',
+          score: 1,
+          competencyContribution: { controlModeling: 1 },
+          contextJson: { classId: 'class-derived' },
+          createdAt: new Date('2026-07-22T00:00:01Z'),
+        }],
         deleteMany: async ({ where }: any) => { deletedFactPrefixes.push(where.sourceEventId.startsWith); return { count: 1 }; },
       },
-      studentEvidenceFeatureCache: { deleteMany: async ({ where }: any) => { invalidatedUsers.push(where.userId.in); return { count: 1 }; } },
+      learnerFactTransition: {
+        findFirst: async ({ where }: any) =>
+          [...transitions].reverse().find((row: any) => row.factId === where.factId) ?? null,
+        create: async ({ data }: any) => {
+          const row = { id: `transition-${data.sequence}`, createdAt: now, ...data };
+          transitions.push(row);
+          return row;
+        },
+      },
+      learnerFactTransitionSequence: {
+        upsert: async () => undefined,
+        update: async () => ({ lastSequence: ++transitionSequence }),
+      },
+      studentEvidenceFeatureCache: { deleteMany: async ({ where }: any) => { invalidatedUsers.push(where.userId); return { count: 1 }; } },
+      cumulativePortraitCutoverFence: {
+        findUnique: async () => ({
+          calculationVersion: 'portrait-v2.cumulative.v2',
+          learnerGeneration: BigInt(3),
+          classGeneration: BigInt(5),
+          queueGeneration: BigInt(7),
+          fence: BigInt(11),
+          activeMigrationRunId: 'migration-989',
+        }),
+      },
+      learningMaterializationRebuildRequest: {
+        findUnique: async () => null,
+        create: async ({ data }: any) => data,
+        updateMany: async () => ({ count: 1 }),
+      },
       studentCompetencySnapshot: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
       studentProfileSummary: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
       studentRiskFlag: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
@@ -1133,14 +1172,19 @@ describe('math-document grading retention lifecycle', () => {
     expect(deleteRun).toEqual(expect.objectContaining({ questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, policySnapshot: null, answerAttemptId: null, answerEvidenceId: null, questionId: null, rubricId: null, batchId: null }));
     expect(pseudoRun).toEqual(expect.objectContaining({ questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, policySnapshot: null, answerAttemptId: null, answerEvidenceId: null, questionId: null, rubricId: null, batchId: null }));
     expect(updates).toEqual(expect.arrayContaining([expect.objectContaining({ assessment: true, data: expect.objectContaining({ teacherComment: null, teacherLevelId: null, teacherScore: null, teacherReviewedAt: null }) })]));
-    expect(deletedFactPrefixes).toEqual(expect.arrayContaining([`adaptive-assessment:document-rubric-grading:${encodeURIComponent(deleteRun.id)}:`, `adaptive-assessment:document-rubric-grading:${encodeURIComponent(pseudoRun.id)}:`]));
-    expect(invalidatedUsers).toEqual([['student-derived'], ['student-derived']]);
+    expect(deletedFactPrefixes).toEqual([]);
+    expect(invalidatedUsers).toEqual(['student-derived', 'student-derived']);
+    expect(transitions.filter((row) => row.operation === 'REVOKE')).toHaveLength(2);
+    expect(transitions.filter((row) => row.operation === 'REVOKE')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ correctionOfSequence: BigInt(1), occurredAt: now }),
+        expect.objectContaining({ correctionOfSequence: BigInt(3), occurredAt: now }),
+      ]),
+    );
     expect(db.studentCompetencySnapshot.deleteMany).not.toHaveBeenCalled();
-    expect(db.studentProfileSummary.deleteMany).toHaveBeenCalledWith({ where: { userId: { in: ['student-derived'] } } });
+    expect(db.studentProfileSummary.deleteMany).not.toHaveBeenCalled();
     expect(db.studentRiskFlag.deleteMany).not.toHaveBeenCalled();
-    expect(db.growthRecord.deleteMany).toHaveBeenCalledWith({ where: {
-      userId: { in: ['student-derived'] }, recordType: 'competency_evaluation', courseId: 'profile:growth-evaluation',
-    } });
+    expect(db.growthRecord.deleteMany).not.toHaveBeenCalled();
     expect(db.learningRecommendation.deleteMany).not.toHaveBeenCalled();
     expect(db.classCompetencySnapshot.deleteMany).not.toHaveBeenCalled();
     const deleteTombstone = tombstones.find((row) => row.resourceType === 'GradingRun' && row.lineageRetained === false);
@@ -1506,6 +1550,8 @@ describe('math-document grading retention lifecycle', () => {
   it('fences and redacts a grading run before deleting its model artifacts', async () => {
     const events: string[] = [];
     const tombstones: any[] = [];
+    const transitions: any[] = [];
+    let lastSequence = BigInt(0);
     const store = new MemorySubmissionObjectStore();
     store.put({ key: 'grading-model/run-1', ownerId: 'worker', answerId: 'answer-1', sizeBytes: 3, mimeType: 'application/json', checksum: 'sha256:model', scanState: 'CLEAN' });
     const deleteObject = store.delete.bind(store);
@@ -1521,8 +1567,51 @@ describe('math-document grading retention lifecycle', () => {
       gradingJob: { updateMany: async () => { events.push('job-fenced'); return { count: 1 }; } },
       gradingCriterionAssessment: { updateMany: async () => { events.push('assessment-redacted'); return { count: 1 }; } },
       gradingAnnotation: { updateMany: async () => { events.push('annotation-redacted'); return { count: 1 }; } },
-      learningFact: { findMany: async () => [{ userId: 'student-1' }], deleteMany: async () => { events.push('facts-deleted'); return { count: 1 }; } },
+      learningFact: {
+        findMany: async () => [{
+          id: 'fact-1',
+          userId: 'student-1',
+          startedAt: new Date('2026-07-22T00:00:00Z'),
+          outcome: 'success',
+          score: 1,
+          competencyContribution: { controlModeling: 1 },
+          contextJson: { classId: 'class-1' },
+          createdAt: new Date('2026-07-22T00:00:01Z'),
+        }],
+        deleteMany: vi.fn(),
+      },
+      learnerFactTransition: {
+        findFirst: async () => transitions.at(-1) ?? null,
+        create: async ({ data }: any) => {
+          const transition = { id: `transition-${data.sequence}`, createdAt: now, ...data };
+          transitions.push(transition);
+          events.push(`transition:${data.operation}`);
+          return transition;
+        },
+      },
+      learnerFactTransitionSequence: {
+        upsert: async () => undefined,
+        update: async () => ({ lastSequence: ++lastSequence }),
+      },
       studentEvidenceFeatureCache: { deleteMany: async () => { events.push('cache-invalidated'); return { count: 1 }; } },
+      cumulativePortraitCutoverFence: {
+        findUnique: async () => ({
+          calculationVersion: 'portrait-v2.cumulative.v2',
+          learnerGeneration: BigInt(3),
+          classGeneration: BigInt(5),
+          queueGeneration: BigInt(7),
+          fence: BigInt(11),
+          activeMigrationRunId: 'migration-989',
+        }),
+      },
+      learningMaterializationRebuildRequest: {
+        findUnique: async () => null,
+        create: async ({ data }: any) => {
+          events.push('reconciliation-requested');
+          return data;
+        },
+        updateMany: async () => ({ count: 1 }),
+      },
       gradingTombstone: {
         findUnique: async ({ where }: any) => tombstones.find((row) => row.resourceKey === where.resourceKey) ?? null,
         create: async ({ data }: any) => { events.push('tombstone-created'); tombstones.push(data); return data; },
@@ -1537,8 +1626,20 @@ describe('math-document grading retention lifecycle', () => {
     expect(result).toEqual({ scanned: 1, deleted: 1, held: 0, blocked: 0, tombstones: 1 });
     expect(events.indexOf('tombstone-created')).toBeLessThan(events.findIndex((event) => event.startsWith('delete:')));
     expect(events.findIndex((event) => event.startsWith('run-cas:'))).toBeLessThan(events.indexOf('assessment-redacted'));
-    expect(events.indexOf('annotation-redacted')).toBeLessThan(events.indexOf('facts-deleted'));
-    expect(events.indexOf('facts-deleted')).toBeLessThan(events.indexOf('cache-invalidated'));
+    expect(events.indexOf('annotation-redacted')).toBeLessThan(events.indexOf('transition:REVOKE'));
+    expect(events.indexOf('transition:REVOKE')).toBeLessThan(events.indexOf('cache-invalidated'));
+    expect(db.learningFact.deleteMany).not.toHaveBeenCalled();
+    expect(transitions).toEqual([
+      expect.objectContaining({ factId: 'fact-1', operation: 'UPSERT', sequence: BigInt(1) }),
+      expect.objectContaining({
+        factId: 'fact-1',
+        operation: 'REVOKE',
+        sequence: BigInt(2),
+        correctionOfSequence: BigInt(1),
+        occurredAt: now,
+      }),
+    ]);
+    expect(events).toContain('reconciliation-requested');
     expect(tombstones[0]).toEqual(expect.objectContaining({ resourceType: 'GradingRun', contentDeletedAt: now }));
     expect(await store.head('grading-model/run-1')).toBeNull();
   });

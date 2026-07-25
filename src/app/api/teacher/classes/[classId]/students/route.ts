@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,19 +69,37 @@ export async function POST(
       return NextResponse.json({ error: '该学生已在此班级中' }, { status: 400 });
     }
 
-    // 更新学生的班级信息
-    await prisma.studentProfile.upsert({
-      where: { userId },
-      update: {
-        classId,
-        className: classInfo.name,
-      },
-      create: {
+    const added = await prisma.$transaction(async (tx) => {
+      const currentProfile = await tx.studentProfile.findUnique({
+        where: { userId },
+        select: { classId: true },
+      });
+      if (currentProfile?.classId === classId) return false;
+
+      await tx.studentProfile.upsert({
+        where: { userId },
+        update: {
+          classId,
+          className: classInfo.name,
+        },
+        create: {
+          userId,
+          classId,
+          className: classInfo.name,
+        },
+      });
+      await requestCumulativeLearnerReconciliation(tx, {
         userId,
-        classId,
-        className: classInfo.name,
-      },
+        classIds: [currentProfile?.classId, classId].filter(
+          (candidate): candidate is string => typeof candidate === 'string',
+        ),
+        reason: 'class-membership:teacher-add',
+      });
+      return true;
     });
+    if (!added) {
+      return NextResponse.json({ error: '该学生已在此班级中' }, { status: 400 });
+    }
 
     return NextResponse.json({
       success: true,
@@ -145,14 +164,29 @@ export async function DELETE(
       return NextResponse.json({ error: '该学生不在此班级中' }, { status: 400 });
     }
 
-    // 移除学生的班级关联
-    await prisma.studentProfile.update({
-      where: { userId },
-      data: {
-        classId: null,
-        className: null,
-      },
+    const removed = await prisma.$transaction(async (tx) => {
+      const currentProfile = await tx.studentProfile.findFirst({
+        where: { userId, classId },
+      });
+      if (!currentProfile) return false;
+
+      await tx.studentProfile.update({
+        where: { userId },
+        data: {
+          classId: null,
+          className: null,
+        },
+      });
+      await requestCumulativeLearnerReconciliation(tx, {
+        userId,
+        classIds: [classId],
+        reason: 'class-membership:teacher-remove',
+      });
+      return true;
     });
+    if (!removed) {
+      return NextResponse.json({ error: '该学生不在此班级中' }, { status: 400 });
+    }
 
     return NextResponse.json({
       success: true,

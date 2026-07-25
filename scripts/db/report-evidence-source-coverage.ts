@@ -58,6 +58,7 @@ async function collectRows() {
     interactionLogs,
     studentStepResponses,
     simulationSessions,
+    simulationRuns,
     simulationLogs,
     userAnswers,
     abilityAssessments,
@@ -95,6 +96,19 @@ async function collectRows() {
         inputParams: true,
         artifacts: true,
         createdAt: true,
+      },
+    }),
+    prisma.simulationRun.findMany({
+      select: {
+        id: true,
+        ownerUserId: true,
+        resourceId: true,
+        taskSpecId: true,
+        taskSpecSnapshot: true,
+        sourceDomain: true,
+        sourceRefId: true,
+        summary: true,
+        completedAt: true,
       },
     }),
     prisma.simulationLog.findMany({
@@ -230,6 +244,18 @@ async function collectRows() {
         row.module,
         row.simType,
       ),
+    })),
+    SimulationRun: simulationRuns.map((row): EvidenceCoverageRow => ({
+      id: row.id,
+      userId: row.ownerUserId,
+      occurredAt: row.completedAt,
+      eventData: {
+        resourceId: row.resourceId,
+        taskSpecId: row.taskSpecId,
+        taskSpecSnapshot: row.taskSpecSnapshot,
+        summary: row.summary,
+      },
+      sourceLabel: compactSourceLabel(row.sourceDomain, row.sourceRefId, row.resourceId),
     })),
     SimulationLog: simulationLogs.map((row): EvidenceCoverageRow => ({
       id: row.id,

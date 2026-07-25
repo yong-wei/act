@@ -6,16 +6,34 @@ export interface EventIngestionJob {
 export interface StudentSnapshotJob {
   userId?: string;
   coordinator?: boolean;
+  simulationTaskCatalogRefresh?: boolean;
   fullRebuild?: boolean;
+  /** @deprecated Ignored by the cumulative worker; retained until old producers are removed. */
   rebuildGeneration?: number;
-  growthRecomputeForSnapshot?: string;
+  calculationVersion?: string;
+  learnerGeneration?: string;
+  queueGeneration?: string;
+  cutoverFence?: string;
+  migrationRunId?: string;
+  reconciliationRequestGeneration?: number;
+  reconciliationClaimToken?: string;
+  reconciliationClassIds?: string[];
+  simulationTaskExpectedInputDigest?: string;
 }
 
 export interface ClassSnapshotJob {
   classId?: string;
   coordinator?: boolean;
-  scope?: 'recent' | 'cumulative';
+  scope?: 'cumulative';
+  calculationVersion?: string;
+  learnerGeneration?: string;
+  classGeneration?: string;
+  queueGeneration?: string;
+  cutoverFence?: string;
+  migrationRunId?: string;
+  /** @deprecated Ignored by the cumulative worker; retained until old producers are removed. */
   requestedAfter?: string;
+  /** @deprecated Ignored by the cumulative worker; retained until old producers are removed. */
   runRef?: string;
 }
 

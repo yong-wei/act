@@ -302,30 +302,30 @@ function assertActivityTeacherEvidence(
   metadata: CoursewareModuleMetadataInput[],
 ) {
   const metadataById = new Map(metadata.map((item) => [item.moduleId, item]));
-  for (const module of manifest.stages.flatMap((stage) => stage.steps.flatMap((step) => step.modules))) {
-    const teacherFields = metadataById.get(module.id)!.teacherFields;
-    if (module.canonicalClass !== 'activity.panel') {
+  for (const runtimeModule of manifest.stages.flatMap((stage) => stage.steps.flatMap((step) => step.modules))) {
+    const teacherFields = metadataById.get(runtimeModule.id)!.teacherFields;
+    if (runtimeModule.canonicalClass !== 'activity.panel') {
       if (hasAnyTeacherField(teacherFields, ['referenceAnswer', 'explanation', 'scoring', 'expectedOutput', 'reviewPoints'])) {
-        throw new SmartCoursewareError(`content-module-teacher-evidence-forbidden:${module.id}`, 409);
+        throw new SmartCoursewareError(`content-module-teacher-evidence-forbidden:${runtimeModule.id}`, 409);
       }
       continue;
     }
-    if (isObjectiveInteractiveResponseKind(module.responseKind)) {
+    if (isObjectiveInteractiveResponseKind(runtimeModule.responseKind)) {
       if (hasAnyTeacherField(teacherFields, ['expectedOutput', 'reviewPoints'])) {
-        throw new SmartCoursewareError(`objective-activity-open-evidence-forbidden:${module.id}`, 409);
+        throw new SmartCoursewareError(`objective-activity-open-evidence-forbidden:${runtimeModule.id}`, 409);
       }
       if (teacherFields.referenceAnswer === undefined || !teacherFields.explanation || !teacherFields.scoring) {
-        throw new SmartCoursewareError(`objective-activity-teacher-evidence-required:${module.id}`, 409);
+        throw new SmartCoursewareError(`objective-activity-teacher-evidence-required:${runtimeModule.id}`, 409);
       }
-      assertObjectiveReferenceSemantics(module, teacherFields.referenceAnswer);
+      assertObjectiveReferenceSemantics(runtimeModule, teacherFields.referenceAnswer);
       continue;
     }
-    if (isSubjectiveInteractiveResponseKind(module.responseKind)) {
+    if (isSubjectiveInteractiveResponseKind(runtimeModule.responseKind)) {
       if (hasAnyTeacherField(teacherFields, ['referenceAnswer', 'explanation', 'scoring'])) {
-        throw new SmartCoursewareError(`open-activity-objective-evidence-forbidden:${module.id}`, 409);
+        throw new SmartCoursewareError(`open-activity-objective-evidence-forbidden:${runtimeModule.id}`, 409);
       }
       if (!teacherFields.expectedOutput || !teacherFields.reviewPoints?.length) {
-        throw new SmartCoursewareError(`open-activity-teacher-evidence-required:${module.id}`, 409);
+        throw new SmartCoursewareError(`open-activity-teacher-evidence-required:${runtimeModule.id}`, 409);
       }
     }
   }

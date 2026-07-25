@@ -158,7 +158,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/MATLAB控制系统工具箱_1_e058c580.md"
+    ],
     "tags": [
       "MATLAB",
       "控制系统工具箱",
@@ -372,7 +374,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/主反馈通路_1_99af5204.md"
+    ],
     "tags": [
       "反馈",
       "输出到输入",
@@ -700,7 +704,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/准确性_1_ce1787e5.md"
+    ],
     "tags": [
       "稳态误差",
       "控制精度",
@@ -746,7 +752,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/函数记录仪_1_d6ebddbd.md"
+    ],
     "tags": [
       "自动记录",
       "负反馈",
@@ -957,7 +965,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/反馈控制_1_516da087.md"
+    ],
     "tags": [
       "反馈",
       "偏差",
@@ -1004,7 +1014,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/反馈控制系统_1_98dc667a.md"
+    ],
     "tags": [
       "反馈",
       "闭环",
@@ -1051,7 +1063,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/发动机转速控制系统_1_36574985.md"
+    ],
     "tags": [
       "发动机",
       "转速控制",
@@ -1155,7 +1169,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/垂直陀螺仪_1_60caa85c.md"
+    ],
     "tags": [
       "垂直陀螺仪",
       "测量元件",
@@ -1258,7 +1274,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/复合控制方式_1_393383be.md"
+    ],
     "tags": [
       "结合",
       "偏差控制",
@@ -1592,7 +1610,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环控制方式_1_83eddb40.md"
+    ],
     "tags": [
       "无反馈",
       "前向控制",
@@ -1694,7 +1714,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/快速性_1_0fbb74b1.md"
+    ],
     "tags": [
       "动态性能",
       "过渡过程时间",
@@ -1802,7 +1824,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/恒值控制系统_1_1d05cbfa.md"
+    ],
     "tags": [
       "恒值控制",
       "调节器",
@@ -1849,7 +1873,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/执行元件_1_c14acc57.md"
+    ],
     "tags": [
       "推动",
       "被控对象",
@@ -1895,7 +1921,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/扰动_1_1cebf383.md"
+    ],
     "tags": [
       "干扰",
       "外作用",
@@ -2000,7 +2028,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/按扰动控制_1_a8ad6818.md"
+    ],
     "tags": [
       "顺馈控制",
       "补偿",
@@ -2107,7 +2137,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/控制装置_1_bb10d32b.md"
+    ],
     "tags": [
       "控制器",
       "测量元件",
@@ -2154,7 +2186,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/放大元件_1_e35bf328.md"
+    ],
     "tags": [
       "放大",
       "偏差信号",
@@ -2255,7 +2289,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/斜坡函数_1_692966f5.md"
+    ],
     "tags": [
       "典型外作用",
       "恒定速率",
@@ -2301,7 +2337,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/方块图_1_dbd6301e.md"
+    ],
     "tags": [
       "方块",
       "信号线",
@@ -2525,7 +2563,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/有静差系统_1_87d824b5.md"
+    ],
     "tags": [
       "稳态误差",
       "差值",
@@ -2809,7 +2849,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/校正元件_1_99f830b7.md"
+    ],
     "tags": [
       "补偿",
       "改善性能",
@@ -3200,7 +3242,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/比较元件_1_ec1f7070.md"
+    ],
     "tags": [
       "比较",
       "偏差",
@@ -3247,7 +3291,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/气动调节阀_1_7de5589c.md"
+    ],
     "tags": [
       "气动调节阀",
       "气开阀",
@@ -3295,7 +3341,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/测速发电机_1_4d9cbf7a.md"
+    ],
     "tags": [
       "测速发电机",
       "反馈",
@@ -3342,7 +3390,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/测量元件_1_ad76ac2b.md"
+    ],
     "tags": [
       "检测",
       "转换",
@@ -3389,7 +3439,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/液位自动控制系统_1_2e861a33.md"
+    ],
     "tags": [
       "液位",
       "反馈控制",
@@ -3543,7 +3595,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态空间表达式_1_6a8a62c1.md"
+    ],
     "tags": [
       "状态变量",
       "输入",
@@ -3591,7 +3645,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/现代控制论_1_65006d62.md"
+    ],
     "tags": [
       "状态空间法",
       "多变量系统",
@@ -3639,7 +3695,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/电阻炉温度微分计算机控制系统_1_9590f54e.md"
+    ],
     "tags": [
       "电阻炉",
       "温度控制",
@@ -3687,7 +3745,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/磁盘驱动器_1_3567060d.md"
+    ],
     "tags": [
       "磁盘驱动器",
       "磁头",
@@ -3735,7 +3795,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/程序控制系统_1_37d0412b.md"
+    ],
     "tags": [
       "程序控制",
       "预定规律",
@@ -3837,7 +3899,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳定性_1_7288b4ea.md"
+    ],
     "tags": [
       "稳定",
       "过渡过程",
@@ -4007,7 +4071,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳态误差_1_a34b94a7.md"
+    ],
     "tags": [
       "有静差系统",
       "稳态性能",
@@ -4057,7 +4123,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统模型转换_1_18f4b178.md"
+    ],
     "tags": [
       "状态空间",
       "传递函数",
@@ -4108,7 +4176,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统离散化与连续化_1_b84de362.md"
+    ],
     "tags": [
       "连续系统",
       "离散系统",
@@ -4219,7 +4289,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统辨识工具箱_1_fbd46ce7.md"
+    ],
     "tags": [
       "系统辨识",
       "参数估计",
@@ -4271,7 +4343,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统连接_1_33268e75.md"
+    ],
     "tags": [
       "串联",
       "并联",
@@ -4321,7 +4395,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性定常离散控制系统_1_be44ef12.md"
+    ],
     "tags": [
       "离散系统",
       "差分方程",
@@ -4373,7 +4449,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性定常连续系统_1_582c2d71.md"
+    ],
     "tags": [
       "线性定常",
       "连续系统",
@@ -4421,7 +4499,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性控制系统_1_8d8590e2.md"
+    ],
     "tags": [
       "线性",
       "微分方程",
@@ -4469,7 +4549,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/经典控制理论_1_80e67a68.md"
+    ],
     "tags": [
       "传递函数",
       "单输入单输出",
@@ -4516,7 +4598,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/给定元件_1_0d79d460.md"
+    ],
     "tags": [
       "输入量",
       "期望值",
@@ -4566,7 +4650,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/脉冲函数_1_0ac696f2.md"
+    ],
     "tags": [
       "δ函数",
       "单位脉冲函数",
@@ -4617,7 +4703,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/自动控制_1_4661a945.md"
+    ],
     "tags": [
       "控制装置",
       "被控对象",
@@ -4665,7 +4753,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/自动控制系统_1_9678f418.md"
+    ],
     "tags": [
       "系统组成",
       "反馈",
@@ -4712,7 +4802,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/自动控制系统分类_1_11c3110f.md"
+    ],
     "tags": [
       "自动控制",
       "分类",
@@ -4760,7 +4852,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/自动驾驶仪_1_bb8e72b4.md"
+    ],
     "tags": [
       "自动驾驶仪",
       "自动装置",
@@ -4866,7 +4960,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/被控对象_1_d156fc34.md"
+    ],
     "tags": [
       "机器",
       "设备",
@@ -4916,7 +5012,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/被控量_1_464448ba.md"
+    ],
     "tags": [
       "输出量",
       "物理量",
@@ -5085,7 +5183,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/调节器_1_4ecc4bfb.md"
+    ],
     "tags": [
       "调节器",
       "控制器",
@@ -5132,7 +5232,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/负反馈_1_0cffeeab.md"
+    ],
     "tags": [
       "偏差减小",
       "系统稳定",
@@ -5178,7 +5280,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/负反馈控制原理_1_5a06114b.md"
+    ],
     "tags": [
       "负反馈",
       "偏差",
@@ -5280,7 +5384,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/锅炉液位控制系统_1_8c0e47df.md"
+    ],
     "tags": [
       "锅炉",
       "液位控制",
@@ -5567,7 +5673,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/阶跃函数_1_8d0028b4.md"
+    ],
     "tags": [
       "典型外作用",
       "单位阶跃函数",
@@ -5615,7 +5723,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/随动系统_1_853ffc1e.md"
+    ],
     "tags": [
       "随动系统",
       "跟踪系统",
@@ -5666,7 +5776,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/零极点增益模型_1_4c7d1489.md"
+    ],
     "tags": [
       "零点",
       "极点",
@@ -5722,7 +5834,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非线性控制系统_1_1345e52b.md"
+    ],
     "tags": [
       "非线性",
       "微分方程",
@@ -5833,7 +5947,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/飞机-自动驾驶仪系统_1_158687e2.md"
+    ],
     "tags": [
       "自动驾驶仪",
       "飞机",
@@ -5881,7 +5997,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/LTI观测器_2_460d2933.md"
+    ],
     "tags": [
       "图形界面",
       "系统分析",
@@ -5933,7 +6051,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/两相伺服电动机_2_98395a60.md"
+    ],
     "tags": [
       "交流执行机构",
       "线性化",
@@ -6050,7 +6170,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/传递函数_2_2c5e2589.md"
+    ],
     "tags": [
       "复数域",
       "拉氏变换",
@@ -6113,7 +6235,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/传递函数标准形式_2_11003.md"
+    ],
     "tags": [
       "首一形式",
       "尾一形式",
@@ -6159,7 +6283,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/传递函数的零点和极点_2_638a0ea8.md"
+    ],
     "tags": [
       "根轨迹",
       "系统特性",
@@ -6382,7 +6508,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/克莱姆法则_2_74306854.md"
+    ],
     "tags": [
       "线性方程组",
       "系数行列式",
@@ -6490,7 +6618,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/分析法_2_bc08248e.md"
+    ],
     "tags": [
       "运动机理",
       "物理规律",
@@ -6541,7 +6671,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/前向通路_2_1f0b4ba2.md"
+    ],
     "tags": [
       "输入节点",
       "输出节点",
@@ -6589,7 +6721,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/动态数学模型_2_b7f98344.md"
+    ],
     "tags": [
       "微分方程",
       "导数",
@@ -6636,7 +6770,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位脉冲响应_2_e56a0360.md"
+    ],
     "tags": [
       "脉冲输入",
       "传递函数",
@@ -6734,7 +6870,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单容水槽_2_4c95c12b.md"
+    ],
     "tags": [
       "水槽",
       "水位",
@@ -6784,7 +6922,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/双容水槽_2_45df7392.md"
+    ],
     "tags": [
       "串联",
       "水槽",
@@ -6888,7 +7028,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/叠加原理_2_dda8499e.md"
+    ],
     "tags": [
       "可叠加性",
       "均匀性",
@@ -6987,7 +7129,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/实验法_系统辨识__2_b07364ee.md"
+    ],
     "tags": [
       "测试信号",
       "输出响应",
@@ -7035,7 +7179,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/小偏差线性化_2_277afa67.md"
+    ],
     "tags": [
       "线性化",
       "工作点",
@@ -7083,7 +7229,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/并联方框等效传递函数_2_de49a646.md"
+    ],
     "tags": [
       "并联连接",
       "等效传递函数",
@@ -7181,7 +7329,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环传递函数_2_ee6bdacf.md"
+    ],
     "tags": [
       "主反馈断开",
       "前向通路",
@@ -7296,7 +7446,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/微分定理_2_11002.md"
+    ],
     "tags": [
       "微分定理",
       "微分变乘法",
@@ -7574,7 +7726,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/拉普拉斯变换法_2_8c311472.md"
+    ],
     "tags": [
       "求解微分方程",
       "拉氏变换",
@@ -7622,7 +7776,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/拉氏变换_2_243496d4.md"
+    ],
     "tags": [
       "积分变换",
       "复频域",
@@ -7727,7 +7883,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/支路_2_ca25ecd7.md"
+    ],
     "tags": [
       "定向线段",
       "支路增益",
@@ -7774,7 +7932,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/数学模型_2_b21e01f6.md"
+    ],
     "tags": [
       "控制系统",
       "数学表达式",
@@ -7823,7 +7983,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/无源网络_2_71a8b325.md"
+    ],
     "tags": [
       "校正元件",
       "网络阻抗",
@@ -7976,7 +8138,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/极点_2_cc79a4c5.md"
+    ],
     "tags": [
       "分母多项式",
       "特征根",
@@ -8197,7 +8361,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/流图特征式_2_ce0bf70b.md"
+    ],
     "tags": [
       "特征式",
       "Δ",
@@ -8249,7 +8415,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/测速发电机_2_72c35f81.md"
+    ],
     "tags": [
       "角速度测量",
       "电压输出",
@@ -8297,7 +8465,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/液阻_2_ab3b068b.md"
+    ],
     "tags": [
       "阻力",
       "阀门",
@@ -8348,7 +8518,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/电位器_2_e0660dc1.md"
+    ],
     "tags": [
       "位移转换",
       "误差检测",
@@ -8399,7 +8571,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/电加热炉_2_5b28fbc0.md"
+    ],
     "tags": [
       "加热炉",
       "温度",
@@ -8446,7 +8620,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/电枢控制直流伺服电动机_2_a6732886.md"
+    ],
     "tags": [
       "执行机构",
       "电枢电压控制",
@@ -8494,7 +8670,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/电枢控制直流电机_2_af1f8c56.md"
+    ],
     "tags": [
       "电枢控制",
       "直流电机",
@@ -8540,7 +8718,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/相似系统_2_5477df89.md"
+    ],
     "tags": [
       "相同模型",
       "物理相似",
@@ -8586,7 +8766,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/磁盘驱动读取系统_2_df9b7c79.md"
+    ],
     "tags": [
       "永磁直流电机",
       "读取手臂",
@@ -8758,7 +8940,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/纯延迟_2_8f4165fd.md"
+    ],
     "tags": [
       "延迟时间",
       "传输滞后",
@@ -8805,7 +8989,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性系统_2_a76a79ac.md"
+    ],
     "tags": [
       "线性微分方程",
       "叠加原理",
@@ -9080,7 +9266,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/节点_2_1d010af8.md"
+    ],
     "tags": [
       "变量",
       "代数和",
@@ -9198,7 +9386,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/负载效应_2_d3d1b883.md"
+    ],
     "tags": [
       "线性关系",
       "负载阻抗",
@@ -9244,7 +9434,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/输入阻抗_2_89f36856.md"
+    ],
     "tags": [
       "阻抗",
       "网络",
@@ -9290,7 +9482,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/输出阻抗_2_40ac1773.md"
+    ],
     "tags": [
       "阻抗",
       "网络",
@@ -9405,7 +9599,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/隔离放大器_2_86322876.md"
+    ],
     "tags": [
       "放大器",
       "隔离",
@@ -9510,7 +9706,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/零初始条件响应_2_fce2116f.md"
+    ],
     "tags": [
       "零状态响应",
       "输入作用",
@@ -9555,7 +9753,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/零极点分布图_2_2fd76677.md"
+    ],
     "tags": [
       "复平面",
       "图形表示",
@@ -9604,7 +9804,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/零点_2_c29600a1.md"
+    ],
     "tags": [
       "分子多项式",
       "根",
@@ -9649,7 +9851,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/零输入响应_2_ee4b953b.md"
+    ],
     "tags": [
       "初始条件",
       "自由响应",
@@ -9692,7 +9896,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/静态数学模型_2_51dad80b.md"
+    ],
     "tags": [
       "静态条件",
       "代数方程",
@@ -9862,7 +10068,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/LQ_LQG最优控制_3_c6c6d6bb.md"
+    ],
     "tags": [
       "线性二次型",
       "最优控制",
@@ -10075,7 +10283,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/SISO系统设计工具_3_6cd03118.md"
+    ],
     "tags": [
       "单输入单输出",
       "补偿器",
@@ -10315,7 +10525,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/串级控制_3_7f0b9f1d.md"
+    ],
     "tags": [
       "主回路",
       "副回路",
@@ -10362,7 +10574,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/临界稳定_3_ca03ed18.md"
+    ],
     "tags": [
       "零实部根",
       "等幅振荡",
@@ -10523,7 +10737,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/二阶系统_3_3a0af45b.md"
+    ],
     "tags": [
       "二阶系统",
       "阻尼比",
@@ -10711,7 +10927,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/传递函数_3_92e14aa2.md"
+    ],
     "tags": [
       "传递函数",
       "系统模型",
@@ -10905,7 +11123,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/典型输入信号_3_897a572d.md"
+    ],
     "tags": [
       "输入信号",
       "理想化",
@@ -10953,7 +11173,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/减小或消除稳态误差的措施_3_475da835.md"
+    ],
     "tags": [
       "增大增益",
       "积分环节",
@@ -11000,7 +11222,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/力反馈_3_5d804559.md"
+    ],
     "tags": [
       "力传感器",
       "反馈",
@@ -11109,7 +11333,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/动态误差系数_3_b5d0306a.md"
+    ],
     "tags": [
       "动态",
       "误差系数",
@@ -11159,7 +11385,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/动态过程_3_8a8051ec.md"
+    ],
     "tags": [
       "过渡过程",
       "瞬态",
@@ -11209,7 +11437,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/劳斯-赫尔维茨稳定判据_3_34d8fbe7.md"
+    ],
     "tags": [
       "特征方程系数",
       "代数判据",
@@ -11322,7 +11552,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/劳斯稳定判据_3_b135de9c.md"
+    ],
     "tags": [
       "稳定性",
       "特征方程",
@@ -11428,7 +11660,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位加速度响应_3_5ae8db8b.md"
+    ],
     "tags": [
       "加速度响应",
       "跟踪能力",
@@ -11484,7 +11718,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位斜坡响应_3_2d06d057.md"
+    ],
     "tags": [
       "斜坡函数",
       "稳态误差",
@@ -11533,7 +11769,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位脉冲函数_3_8a68d227.md"
+    ],
     "tags": [
       "脉冲函数",
       "理想模型",
@@ -11580,7 +11818,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位脉冲响应_3_a67aa116.md"
+    ],
     "tags": [
       "脉冲响应",
       "指数曲线",
@@ -11628,7 +11868,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位阶跃函数_3_c077ea6e.md"
+    ],
     "tags": [
       "阶跃",
       "输入",
@@ -11687,7 +11929,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_3_04fc55dc.md"
+    ],
     "tags": [
       "指数规律",
       "终值",
@@ -11996,7 +12240,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/复合控制_3_a1570156.md"
+    ],
     "tags": [
       "前馈控制",
       "反馈控制",
@@ -12040,7 +12286,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/大范围稳定_3_8effa6f3.md"
+    ],
     "tags": [
       "有界扰动",
       "初始偏移",
@@ -12232,7 +12480,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/小范围稳定_3_75738794.md"
+    ],
     "tags": [
       "有界扰动",
       "初始偏移",
@@ -12485,7 +12735,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环增益_3_d73dc120.md"
+    ],
     "tags": [
       "增益",
       "稳态误差",
@@ -12661,7 +12913,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/时域分析法_3_0f0489e0.md"
+    ],
     "tags": [
       "时域",
       "时间响应",
@@ -12910,7 +13164,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/时间常数_3_17162973.md"
+    ],
     "tags": [
       "惯性",
       "响应速度",
@@ -13021,7 +13277,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/极点配置_3_d367ec42.md"
+    ],
     "tags": [
       "状态反馈",
       "闭环极点",
@@ -13282,7 +13540,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/梅森增益公式_3_22626435.md"
+    ],
     "tags": [
       "信号流图",
       "传递函数",
@@ -13413,7 +13673,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/欠阻尼二阶系统_3_242477a2.md"
+    ],
     "tags": [
       "欠阻尼",
       "衰减振荡",
@@ -13522,7 +13784,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/比例-微分控制_3_8428a70d.md"
+    ],
     "tags": [
       "比例-微分控制",
       "早期控制",
@@ -13574,7 +13838,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/比例-微分控制器_3_3b512e79.md"
+    ],
     "tags": [
       "PD控制器",
       "系统阻尼",
@@ -13693,7 +13959,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/测速反馈控制_3_4c2ec80f.md"
+    ],
     "tags": [
       "测速发电机",
       "反馈系数",
@@ -13738,7 +14006,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/渐近稳定_3_1696d639.md"
+    ],
     "tags": [
       "动态过程",
       "衰减",
@@ -13786,7 +14056,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/特征根_3_2854c0a1.md"
+    ],
     "tags": [
       "闭环极点",
       "稳定性",
@@ -14298,7 +14570,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳态误差_3_c0207063.md"
+    ],
     "tags": [
       "控制精度",
       "抗扰动能力",
@@ -14440,7 +14714,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳态跟踪误差_3_48c882fd.md"
+    ],
     "tags": [
       "稳态误差",
       "跟踪",
@@ -14486,7 +14762,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳态过程_3_6d95ec21.md"
+    ],
     "tags": [
       "稳态响应",
       "稳态误差",
@@ -14614,7 +14892,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统实现_3_0316ea00.md"
+    ],
     "tags": [
       "可控标准型",
       "可观测标准型",
@@ -14665,7 +14945,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统特性计算_3_caa236ab.md"
+    ],
     "tags": [
       "可控性",
       "可观测性",
@@ -14715,7 +14997,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统稳定性_3_96818bd5.md"
+    ],
     "tags": [
       "稳定性",
       "劳斯判据",
@@ -14761,7 +15045,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性定常系统_3_20563796.md"
+    ],
     "tags": [
       "线性",
       "定常",
@@ -14810,7 +15096,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性系统稳定的充分必要条件_3_530c07d0.md"
+    ],
     "tags": [
       "特征根",
       "负实部",
@@ -15175,7 +15463,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/自然频率_3_ab7d6dc0.md"
+    ],
     "tags": [
       "自然频率",
       "ω_n",
@@ -15232,7 +15522,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/调节时间_3_bc329c21.md"
+    ],
     "tags": [
       "调节时间",
       "误差带",
@@ -15284,7 +15576,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/辅助方程_3_af25ae3e.md"
+    ],
     "tags": [
       "全零行",
       "对称根",
@@ -15391,7 +15685,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/过阻尼二阶系统_3_e7258e8f.md"
+    ],
     "tags": [
       "过阻尼",
       "无超调",
@@ -15487,7 +15783,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/运动稳定性_3_df61e98d.md"
+    ],
     "tags": [
       "系统方程",
       "渐近行为",
@@ -15535,7 +15833,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/速度反馈_3_2374effc.md"
+    ],
     "tags": [
       "测速反馈",
       "阻尼比",
@@ -15737,7 +16037,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环零点_3_d83660dd.md"
+    ],
     "tags": [
       "零点",
       "传递函数",
@@ -15923,7 +16225,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/阻尼角_3_2bd66a36.md"
+    ],
     "tags": [
       "阻尼角",
       "闭环极点",
@@ -16116,7 +16420,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/静态位置误差系数_3_58c09499.md"
+    ],
     "tags": [
       "阶跃输入",
       "稳态精度",
@@ -16166,7 +16472,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/静态加速度误差系数_3_74752b9d.md"
+    ],
     "tags": [
       "加速度",
       "误差系数",
@@ -16516,7 +16824,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/高阶系统_3_34693f44.md"
+    ],
     "tags": [
       "高阶微分方程",
       "闭环主导极点",
@@ -16563,7 +16873,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/鲁棒控制_3_a7fa1491.md"
+    ],
     "tags": [
       "不确定性",
       "鲁棒稳定性",
@@ -16687,7 +16999,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/I型系统_4_451d47aa.md"
+    ],
     "tags": [
       "积分环节",
       "无静差",
@@ -16735,7 +17049,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PI控制_4_d0d2c836.md"
+    ],
     "tags": [
       "稳态误差",
       "积分控制",
@@ -16858,7 +17174,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/V-22鱼鹰倾斜旋翼飞机高度控制系统_4_851af05a.md"
+    ],
     "tags": [
       "倾斜旋翼",
       "高度控制",
@@ -16984,7 +17302,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/主导极点_4_7b49c6c5.md"
+    ],
     "tags": [
       "极点",
       "时间响应",
@@ -17484,7 +17804,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/偶极子_4_31cbd0b7.md"
+    ],
     "tags": [
       "零点",
       "极点",
@@ -17729,7 +18051,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位反馈控制系统_4_f1a4f937.md"
+    ],
     "tags": [
       "反馈",
       "闭环",
@@ -18083,7 +18407,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/参数根轨迹_4_faab3aea.md"
+    ],
     "tags": [
       "可变参数",
       "等效开环传递函数",
@@ -18882,7 +19208,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/实轴上的根轨迹_4_af9cbf0a.md"
+    ],
     "tags": [
       "实轴",
       "奇数个",
@@ -19205,7 +19533,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环传递函数_4_5b19827b.md"
+    ],
     "tags": [
       "传递函数",
       "开环",
@@ -19254,7 +19584,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环零极点_4_9418d0c7.md"
+    ],
     "tags": [
       "开环传递函数",
       "零点",
@@ -19301,7 +19633,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环零点_4_95d21eca.md"
+    ],
     "tags": [
       "零点",
       "开环传递函数",
@@ -19951,7 +20285,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/智能汽车-高速公路系统车辆间距控制系统_4_0ea9ee04.md"
+    ],
     "tags": [
       "车辆间距",
       "位置控制",
@@ -20213,7 +20549,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹与虚轴交点_4_65c288cc.md"
+    ],
     "tags": [
       "虚轴交点",
       "临界稳定",
@@ -20265,7 +20603,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹与虚轴的交点_4_33b9d0e6.md"
+    ],
     "tags": [
       "根轨迹",
       "虚轴",
@@ -20314,7 +20654,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹分支数_4_6a4bb718.md"
+    ],
     "tags": [
       "分支数",
       "闭环特征方程",
@@ -20362,7 +20704,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹分离点_4_0e97795c.md"
+    ],
     "tags": [
       "分离点",
       "重根",
@@ -20410,7 +20754,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹图_4_290e12b6.md"
+    ],
     "tags": [
       "根轨迹",
       "闭环极点",
@@ -20455,7 +20801,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹对称性_4_d0013af5.md"
+    ],
     "tags": [
       "实轴对称",
       "共轭复根",
@@ -20505,7 +20853,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹方程_4_bc893f65.md"
+    ],
     "tags": [
       "相角条件",
       "模值条件",
@@ -20565,7 +20915,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹法_4_4e598387.md"
+    ],
     "tags": [
       "根轨迹",
       "闭环极点",
@@ -20620,7 +20972,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹渐近线_4_6d89a195.md"
+    ],
     "tags": [
       "渐近线",
       "无穷远处",
@@ -20674,7 +21028,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹绘制法则_4_f0ea9a49.md"
+    ],
     "tags": [
       "起点终点",
       "分支数",
@@ -20730,7 +21086,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹绘制法则_零度__4_205342a7.md"
+    ],
     "tags": [
       "绘制法则",
       "渐近线",
@@ -20777,7 +21135,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/根轨迹连续性_4_d0bf7881.md"
+    ],
     "tags": [
       "连续变化",
       "根轨迹增益",
@@ -20824,7 +21184,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/模值条件_4_b121af05.md"
+    ],
     "tags": [
       "根轨迹增益",
       "参数确定",
@@ -20873,7 +21235,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/模型预测控制_4_f3d4a099.md"
+    ],
     "tags": [
       "滚动优化",
       "预测模型",
@@ -20920,7 +21284,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/正反馈系统_4_3cfad7f8.md"
+    ],
     "tags": [
       "正反馈",
       "内回路",
@@ -21041,7 +21407,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/环轮_张力控制系统__4_20e95c78.md"
+    ],
     "tags": [
       "张力控制",
       "带钢热轧",
@@ -21211,7 +21579,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳定性_4_b56bde88.md"
+    ],
     "tags": [
       "s左半平面",
       "闭环极点",
@@ -21262,7 +21632,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳态误差_4_ef410c98.md"
+    ],
     "tags": [
       "系统类型",
       "输入信号",
@@ -22061,7 +22433,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/自动飞行控制系统_4_c8feac9a.md"
+    ],
     "tags": [
       "飞行控制",
       "自动驾驶",
@@ -22345,7 +22719,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/起始角与终止角_4_31e345da.md"
+    ],
     "tags": [
       "起始角",
       "终止角",
@@ -22394,7 +22770,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/超前补偿_4_3d4fc55d.md"
+    ],
     "tags": [
       "校正",
       "阻尼比",
@@ -22445,7 +22823,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/超调量_4_bad49999.md"
+    ],
     "tags": [
       "衰减率",
       "复数极点",
@@ -22794,7 +23174,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环主导极点_4_0f26f554.md"
+    ],
     "tags": [
       "动态响应",
       "二阶近似",
@@ -22842,7 +23224,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环传递函数_4_8325ffbe.md"
+    ],
     "tags": [
       "反馈",
       "系统响应",
@@ -22888,7 +23272,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环实数极点_4_c20d612b.md"
+    ],
     "tags": [
       "阻尼",
       "超调量",
@@ -22938,7 +23324,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环极点_4_f359fb50.md"
+    ],
     "tags": [
       "特征方程",
       "稳定性",
@@ -22988,7 +23376,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环特征方程_4_455ce3a5.md"
+    ],
     "tags": [
       "特征方程",
       "闭环极点",
@@ -23035,7 +23425,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环零点_4_949a3b23.md"
+    ],
     "tags": [
       "零点",
       "闭环传递函数",
@@ -23163,7 +23555,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/阻尼比_4_bf7557b3.md"
+    ],
     "tags": [
       "振荡衰减",
       "射线角度",
@@ -23216,7 +23610,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/附加开环零点_4_afb2b8a4.md"
+    ],
     "tags": [
       "系统设计",
       "稳定性改善",
@@ -23266,7 +23662,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/零度根轨迹_4_2cfd7e23.md"
+    ],
     "tags": [
       "根轨迹",
       "相角条件",
@@ -23313,7 +23711,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非最小相位系统_4_65f682ce.md"
+    ],
     "tags": [
       "非最小相位",
       "右半平面",
@@ -23736,7 +24136,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/ANFIS_5_448b947a.md"
+    ],
     "tags": [
       "神经网络",
       "模糊推理",
@@ -23991,7 +24393,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/MATLAB频域分析_5_17c85a0c.md"
+    ],
     "tags": [
       "伯德图",
       "仿真",
@@ -24591,7 +24995,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/主导极点_5_5a720cf2.md"
+    ],
     "tags": [
       "闭环极点",
       "二阶近似",
@@ -24714,7 +25120,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/二阶微分环节_5_ea6094df.md"
+    ],
     "tags": [
       "二阶微分",
       "倒数",
@@ -24812,7 +25220,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/传递函数互为倒数_5_bef118e3.md"
+    ],
     "tags": [
       "倒数",
       "传递函数",
@@ -25259,7 +25669,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/奈奎斯特曲线_5_deaa0845.md"
+    ],
     "tags": [
       "奈奎斯特曲线",
       "半闭合曲线",
@@ -25382,7 +25794,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/奈奎斯特稳定判据_奈氏判据__5_0355b06b.md"
+    ],
     "tags": [
       "奈奎斯特",
       "稳定判据",
@@ -25427,7 +25841,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/对数幅相曲线_5_891ca8c5.md"
+    ],
     "tags": [
       "尼科尔斯图",
       "对数幅相",
@@ -25528,7 +25944,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/对数幅频渐近特性曲线_5_61c26fcf.md"
+    ],
     "tags": [
       "渐近线",
       "近似",
@@ -25578,7 +25996,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/对数相频曲线_5_ac0666e1.md"
+    ],
     "tags": [
       "对数相频",
       "相角",
@@ -25791,7 +26211,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/对数频率稳定判据_5_d5020562.md"
+    ],
     "tags": [
       "对数判据",
       "伯德图",
@@ -25990,7 +26412,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/带宽_5_58d2afcc.md"
+    ],
     "tags": [
       "3dB衰减",
       "频率范围",
@@ -26299,7 +26723,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/幅相频率特性曲线_5_018eef00.md"
+    ],
     "tags": [
       "极坐标图",
       "幅相曲线",
@@ -26462,7 +26888,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/延迟环节_5_a2771a34.md"
+    ],
     "tags": [
       "延迟",
       "时滞",
@@ -26510,7 +26938,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环传递函数_5_4c26df45.md"
+    ],
     "tags": [
       "开环",
       "传递函数",
@@ -26608,7 +27038,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环频率特性_5_39fb8a54.md"
+    ],
     "tags": [
       "开环传递函数",
       "合成",
@@ -26782,7 +27214,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/截止频率ωc_5_c67064fa.md"
+    ],
     "tags": [
       "响应速度",
       "开环幅频特性",
@@ -27591,7 +28025,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/最小相位典型环节_5_2a7020fd.md"
+    ],
     "tags": [
       "最小相位",
       "典型环节",
@@ -27640,7 +28076,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/最小相位环节_5_b749dc72.md"
+    ],
     "tags": [
       "左半平面",
       "零点",
@@ -27690,7 +28128,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/最小相位系统_5_89cbd2f0.md"
+    ],
     "tags": [
       "最小相位",
       "非最小相位",
@@ -27741,7 +28181,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/条件稳定系统_5_dfd0b994.md"
+    ],
     "tags": [
       "条件稳定",
       "开环增益",
@@ -27939,7 +28381,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/模糊逻辑控制_5_ce08975f.md"
+    ],
     "tags": [
       "模糊集合",
       "隶属度函数",
@@ -28249,7 +28693,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/相角裕度γ_5_68528f7d.md"
+    ],
     "tags": [
       "稳定性",
       "截止频率",
@@ -28397,7 +28843,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/穿越_5_43ef2b4d.md"
+    ],
     "tags": [
       "正穿越",
       "负穿越",
@@ -28705,7 +29153,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统型别_5_13c42c40.md"
+    ],
     "tags": [
       "型别",
       "积分环节",
@@ -28752,7 +29202,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统带宽_5_eaed82b2.md"
+    ],
     "tags": [
       "带宽频率",
       "跟踪能力",
@@ -29025,7 +29477,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/结构不稳定系统_5_ebb91c84.md"
+    ],
     "tags": [
       "系数变化",
       "总是不稳定",
@@ -29283,7 +29737,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/虚轴极点_5_b001c849.md"
+    ],
     "tags": [
       "虚轴极点",
       "积分环节",
@@ -29541,7 +29997,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/谐振峰值_5_aa4903ab.md"
+    ],
     "tags": [
       "闭环频率特性",
       "阻尼比",
@@ -29727,7 +30185,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/辅助函数F_s__5_8d95a593.md"
+    ],
     "tags": [
       "辅助函数",
       "F(s)",
@@ -29924,7 +30384,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环频率特性_5_ddae5c9e.md"
+    ],
     "tags": [
       "闭环系统",
       "伯德图",
@@ -30025,7 +30487,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非最小相位环节_5_f40c2785.md"
+    ],
     "tags": [
       "右半平面",
       "不稳定",
@@ -30073,7 +30537,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非最小相位系统_5_02634a20.md"
+    ],
     "tags": [
       "非最小相位",
       "右半平面",
@@ -30198,7 +30664,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/频域分析法_5_e5f3e350.md"
+    ],
     "tags": [
       "频率特性",
       "线性系统",
@@ -30309,7 +30777,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/频域指标与时域指标转换_5_799f0d40.md"
+    ],
     "tags": [
       "超调量",
       "调节时间",
@@ -30357,7 +30827,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/频域设计_5_290a37a4.md"
+    ],
     "tags": [
       "控制器增益",
       "频率响应法",
@@ -30460,7 +30932,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/频率响应实验_5_90116afd.md"
+    ],
     "tags": [
       "频率响应",
       "实验确定",
@@ -30513,7 +30987,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/频率响应法_5_1c7f0705.md"
+    ],
     "tags": [
       "频率特性",
       "增益",
@@ -30688,7 +31164,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/I控制器_6_f0772f17.md"
+    ],
     "tags": [
       "积分控制",
       "稳态性能",
@@ -30742,7 +31220,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PD控制器_6_3eb1a935.md"
+    ],
     "tags": [
       "比例-微分",
       "阻尼",
@@ -30806,7 +31286,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PID控制器_6_656b8b52.md"
+    ],
     "tags": [
       "比例-积分-微分",
       "组合控制",
@@ -30869,7 +31351,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PI控制器_6_29ebe858.md"
+    ],
     "tags": [
       "比例积分",
       "稳态误差",
@@ -30920,7 +31404,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/P控制器_6_63f2f5eb.md"
+    ],
     "tags": [
       "比例控制",
       "增益",
@@ -31088,7 +31574,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/串联滞后-超前校正_6_23ee8cb9.md"
+    ],
     "tags": [
       "滞后网络",
       "超前网络",
@@ -31195,7 +31683,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/前置滤波器_6_15e51383.md"
+    ],
     "tags": [
       "闭环零点",
       "动态性能",
@@ -31245,7 +31735,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/前馈校正_6_40284f13.md"
+    ],
     "tags": [
       "主反馈回路",
       "补偿",
@@ -31295,7 +31787,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/前馈补偿_6_3bd3eb3b.md"
+    ],
     "tags": [
       "误差全补偿",
       "部分补偿",
@@ -31339,7 +31833,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/反馈校正_6_c96d771b.md"
+    ],
     "tags": [
       "局部反馈",
       "反馈信号",
@@ -31390,7 +31886,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/复合控制_6_31b7c736.md"
+    ],
     "tags": [
       "前馈控制",
       "反馈控制",
@@ -31441,7 +31939,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/复合控制系统_6_cd8f5178.md"
+    ],
     "tags": [
       "前馈补偿",
       "反馈控制",
@@ -31488,7 +31988,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/复合校正_6_b2a1b4b1.md"
+    ],
     "tags": [
       "反馈控制",
       "前馈通路",
@@ -31534,7 +32036,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/带宽频率_6_8857a560.md"
+    ],
     "tags": [
       "频率范围",
       "动态性能",
@@ -31582,7 +32086,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/幅值裕度_6_29a8a2e1.md"
+    ],
     "tags": [
       "稳定性",
       "奈奎斯特判据",
@@ -31630,7 +32136,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环增益_6_9a930dd7.md"
+    ],
     "tags": [
       "稳态误差",
       "静态速度误差系数",
@@ -31678,7 +32186,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/微分控制规律_6_ddd5d58f.md"
+    ],
     "tags": [
       "微分作用",
       "动态过程",
@@ -31727,7 +32237,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/性能指标_6_6af5c715.md"
+    ],
     "tags": [
       "控制精度",
       "阻尼",
@@ -31775,7 +32287,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/截止频率_6_d39c12b0.md"
+    ],
     "tags": [
       "伯德图",
       "快速性",
@@ -31822,7 +32336,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/控制系统设计_6_34928691.md"
+    ],
     "tags": [
       "技术指标",
       "元件选择",
@@ -31871,7 +32387,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/无源滞后-超前网络_6_66afb311.md"
+    ],
     "tags": [
       "组合校正",
       "滞后部分",
@@ -31920,7 +32438,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/无源滞后网络_6_3ce25985.md"
+    ],
     "tags": [
       "相位滞后",
       "高频衰减",
@@ -31970,7 +32490,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/无源超前网络_6_f044ba0d.md"
+    ],
     "tags": [
       "相位超前",
       "分度系数",
@@ -32017,7 +32539,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/最小相位系统_6_d74d6ebe.md"
+    ],
     "tags": [
       "零点",
       "极点",
@@ -32063,7 +32587,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/最小节拍响应_6_24fab382.md"
+    ],
     "tags": [
       "快速响应",
       "最小超调",
@@ -32112,7 +32638,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/最小节拍响应系统_6_3e2a1672.md"
+    ],
     "tags": [
       "标准化传递函数",
       "PD控制器",
@@ -32160,7 +32688,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/有源校正网络_6_ecdaf8d9.md"
+    ],
     "tags": [
       "运算放大器",
       "反馈通路",
@@ -32208,7 +32738,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/标准化闭环传递函数_6_85e3731d.md"
+    ],
     "tags": [
       "最小节拍系统",
       "典型系数",
@@ -32254,7 +32786,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/校正_6_7c7a7d38.md"
+    ],
     "tags": [
       "系统特性",
       "性能指标",
@@ -32302,7 +32836,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/测速发电机与无源网络组合_6_2c5f7e42.md"
+    ],
     "tags": [
       "物理实现",
       "近似补偿",
@@ -32351,7 +32887,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/滞后网络_6_89977f28.md"
+    ],
     "tags": [
       "高频衰减",
       "串联校正",
@@ -32403,7 +32941,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/相角裕度_6_b44a6a10.md"
+    ],
     "tags": [
       "截止频率",
       "相对稳定性",
@@ -32454,7 +32994,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/积分控制规律_6_01aa3db3.md"
+    ],
     "tags": [
       "积分作用",
       "稳态误差",
@@ -32502,7 +33044,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/等效开环传递函数_6_4575b989.md"
+    ],
     "tags": [
       "等效系统",
       "稳定性分析",
@@ -32549,7 +33093,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统型别_6_be6e63a4.md"
+    ],
     "tags": [
       "I型系统",
       "II型系统",
@@ -32598,7 +33144,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/误差全补偿条件_6_e4f909f0.md"
+    ],
     "tags": [
       "全补偿",
       "零误差",
@@ -32646,7 +33194,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/调节时间_6_c53f6314.md"
+    ],
     "tags": [
       "动态性能指标",
       "误差带",
@@ -32696,7 +33246,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/超前网络_6_9cc2ad14.md"
+    ],
     "tags": [
       "相角超前",
       "串联校正",
@@ -32744,7 +33296,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/超调量_6_f91c1939.md"
+    ],
     "tags": [
       "动态性能指标",
       "阻尼",
@@ -32791,7 +33345,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非线性控制系统设计_6_c93a7459.md"
+    ],
     "tags": [
       "非线性系统",
       "优化设计",
@@ -32843,7 +33399,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/频域校正_6_f5beed50.md"
+    ],
     "tags": [
       "串联校正",
       "相角裕度",
@@ -32895,7 +33453,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/A_D转换器_7_6737a1b5.md"
+    ],
     "tags": [
       "模数转换",
       "数字信号",
@@ -32948,7 +33508,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/D_A转换器_7_c1e11ea9.md"
+    ],
     "tags": [
       "数模转换",
       "模拟信号",
@@ -33001,7 +33563,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PID数字控制器_7_b8b65663.md"
+    ],
     "tags": [
       "比例",
       "积分",
@@ -33054,7 +33618,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/s域到z域的映射_7_354b13d7.md"
+    ],
     "tags": [
       "稳定性",
       "映射",
@@ -33110,7 +33676,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/s平面到z平面的映射_7_23640e77.md"
+    ],
     "tags": [
       "映射",
       "z变换",
@@ -33158,7 +33726,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/z反变换_7_7959c077.md"
+    ],
     "tags": [
       "部分分式法",
       "幂级数法",
@@ -33227,7 +33797,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/z变换_7_a1bd3fba.md"
+    ],
     "tags": [
       "离散系统分析",
       "传递函数",
@@ -33281,7 +33853,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/z变换法解差分方程_7_d89294cb.md"
+    ],
     "tags": [
       "z变换",
       "代数方程",
@@ -33329,7 +33903,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/z变换的收敛区间_7_a42f0c82.md"
+    ],
     "tags": [
       "无穷级数",
       "绝对收敛",
@@ -33375,7 +33951,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/z变换的非唯一性_7_374b54fa.md"
+    ],
     "tags": [
       "采样信号",
       "连续函数",
@@ -33423,7 +34001,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/z变换终值定理_7_872e9def.md"
+    ],
     "tags": [
       "终值定理",
       "稳态值",
@@ -33474,7 +34054,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/保持器_7_d88a8cd7.md"
+    ],
     "tags": [
       "信号复现",
       "滤波器",
@@ -33524,7 +34106,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/加权序列_7_2ee1d35c.md"
+    ],
     "tags": [
       "单位脉冲响应",
       "记忆",
@@ -33574,7 +34158,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/劳斯稳定判据_离散系统__7_5daeb4eb.md"
+    ],
     "tags": [
       "w变换",
       "双线性变换",
@@ -33620,7 +34206,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/卷积定理_7_ddb93e59.md"
+    ],
     "tags": [
       "离散卷积",
       "时域与z域",
@@ -33668,7 +34256,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/反z变换_7_e1c6664a.md"
+    ],
     "tags": [
       "逆变换",
       "部分分式法",
@@ -33717,7 +34307,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/反演积分公式_7_20412604.md"
+    ],
     "tags": [
       "柯西留数定理",
       "极点",
@@ -33765,7 +34357,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/反演积分法_留数法__7_43eb59ef.md"
+    ],
     "tags": [
       "留数定理",
       "围道积分",
@@ -33812,7 +34406,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/复数位移定理_7_420e2b7a.md"
+    ],
     "tags": [
       "指数序列",
       "变量置换",
@@ -33860,7 +34456,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/实数位移定理_7_2be5f0ca.md"
+    ],
     "tags": [
       "滞后定理",
       "超前定理",
@@ -33912,7 +34510,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/差分方程_7_d5d70f63.md"
+    ],
     "tags": [
       "递推关系",
       "阶数",
@@ -33962,7 +34562,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/幂级数法_综合除法__7_6ea44fb9.md"
+    ],
     "tags": [
       "综合除法",
       "幂级数展开",
@@ -34012,7 +34614,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环系统脉冲传递函数_7_5b93a64d.md"
+    ],
     "tags": [
       "开环系统",
       "串联环节",
@@ -34064,7 +34668,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/数字控制器_7_e5157978.md"
+    ],
     "tags": [
       "控制律",
       "数字校正",
@@ -34113,7 +34719,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/数字控制系统_7_6c20d251.md"
+    ],
     "tags": [
       "数字序列",
       "计算机",
@@ -34161,7 +34769,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/数字控制系统设计_7_b6487789.md"
+    ],
     "tags": [
       "控制器设计",
       "性能指标",
@@ -34215,7 +34825,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/无纹波最少拍系统_7_27f572f3.md"
+    ],
     "tags": [
       "无纹波",
       "平滑输出",
@@ -34275,7 +34887,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/最少拍系统_7_1342a072.md"
+    ],
     "tags": [
       "有限拍",
       "无稳态误差",
@@ -34329,7 +34943,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/朱利判据_7_bfd80014.md"
+    ],
     "tags": [
       "朱利阵列",
       "约束条件",
@@ -34378,7 +34994,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/柯西留数定理_7_e68a7b32.md"
+    ],
     "tags": [
       "解析函数",
       "闭合路径",
@@ -34425,7 +35043,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/模拟化设计方法_7_37aca6d8.md"
+    ],
     "tags": [
       "连续系统设计",
       "数字化",
@@ -34473,7 +35093,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/理想单位脉冲序列_7_1a39ff2a.md"
+    ],
     "tags": [
       "采样",
       "脉冲序列",
@@ -34521,7 +35143,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/由传递函数求脉冲传递函数_7_3ac1388b.md"
+    ],
     "tags": [
       "拉氏反变换",
       "离散化",
@@ -34570,7 +35194,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/留数_7_408b216c.md"
+    ],
     "tags": [
       "极点",
       "洛朗展开",
@@ -34616,7 +35242,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/直接数字设计法_7_fb353ae6.md"
+    ],
     "tags": [
       "离散化设计",
       "数字控制器设计",
@@ -34662,7 +35290,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/离散控制系统_7_639d6c3e.md"
+    ],
     "tags": [
       "采样系统",
       "数字控制系统",
@@ -34719,7 +35349,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/离散系统_7_4417a456.md"
+    ],
     "tags": [
       "离散信号",
       "脉冲序列",
@@ -34774,7 +35406,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/离散系统动态性能分析_7_3916646e.md"
+    ],
     "tags": [
       "动态性能",
       "时间响应",
@@ -34821,7 +35455,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/离散系统型别_7_5ff04ce5.md"
+    ],
     "tags": [
       "系统型别",
       "开环脉冲传递函数",
@@ -34876,7 +35512,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/离散系统稳定性_7_a363792d.md"
+    ],
     "tags": [
       "有界输入有界输出",
       "特征根",
@@ -34928,7 +35566,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/离散系统稳态误差_7_970a882f.md"
+    ],
     "tags": [
       "稳态误差",
       "终值定理",
@@ -34976,7 +35616,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳定性_7_2e521218.md"
+    ],
     "tags": [
       "朱利判据",
       "特征方程",
@@ -35024,7 +35666,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳态误差_7_18e1e095.md"
+    ],
     "tags": [
       "终值定理",
       "误差系数",
@@ -35073,7 +35717,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳态跟踪误差_7_222f853d.md"
+    ],
     "tags": [
       "稳态性能",
       "误差系数",
@@ -35121,7 +35767,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/级数求和法_7_938aebad.md"
+    ],
     "tags": [
       "无穷级数",
       "闭合形式",
@@ -35169,7 +35817,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性定常离散系统_7_f8c8b1ec.md"
+    ],
     "tags": [
       "叠加原理",
       "常系数",
@@ -35215,7 +35865,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性采样系统_7_394ede2b.md"
+    ],
     "tags": [
       "线性",
       "传递函数",
@@ -35267,7 +35919,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/终值定理_7_0adf63db.md"
+    ],
     "tags": [
       "序列终值",
       "稳态误差",
@@ -35329,7 +35983,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/脉冲传递函数_7_0e24c8e5.md"
+    ],
     "tags": [
       "零初始条件",
       "z变换比",
@@ -35382,7 +36038,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/脉冲序列_7_fbedc238.md"
+    ],
     "tags": [
       "离散脉冲",
       "序列",
@@ -35430,7 +36088,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/误差脉冲传递函数_7_c7b5d7a9.md"
+    ],
     "tags": [
       "误差",
       "脉冲传递函数",
@@ -35476,7 +36136,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/连续系统_7_d8fcd592.md"
+    ],
     "tags": [
       "连续信号",
       "模拟信号",
@@ -35522,7 +36184,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/迭代法解差分方程_7_68008fc3.md"
+    ],
     "tags": [
       "递推",
       "初始条件",
@@ -35570,7 +36234,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/部分分式展开_7_d822352e.md"
+    ],
     "tags": [
       "分式展开",
       "拉普拉斯变换",
@@ -35616,7 +36282,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/部分分式法_7_4b3b9405.md"
+    ],
     "tags": [
       "拉氏变换",
       "部分分式展开",
@@ -35664,7 +36332,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/部分分式法_z反变换__7_3647d9e3.md"
+    ],
     "tags": [
       "查表法",
       "留数",
@@ -35717,7 +36387,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/采样_7_7857c391.md"
+    ],
     "tags": [
       "采样器",
       "采样周期",
@@ -35773,7 +36445,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/采样信号频谱_7_0e232b7e.md"
+    ],
     "tags": [
       "频谱混叠",
       "香农定理",
@@ -35835,7 +36509,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/采样周期_7_196865cd.md"
+    ],
     "tags": [
       "周期采样",
       "时间间隔",
@@ -35891,7 +36567,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/采样周期与开环增益对稳定性的影响_7_4feee1b5.md"
+    ],
     "tags": [
       "采样周期",
       "开环增益",
@@ -35940,7 +36618,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/采样器_7_302bf8a3.md"
+    ],
     "tags": [
       "采样",
       "离散化",
@@ -35995,7 +36675,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/采样拉氏变换_7_0a56fa8d.md"
+    ],
     "tags": [
       "采样信号",
       "拉氏变换",
@@ -36044,7 +36726,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/采样控制系统_7_33262788.md"
+    ],
     "tags": [
       "脉冲序列",
       "采样",
@@ -36092,7 +36776,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/采样角频率_7_21a01940.md"
+    ],
     "tags": [
       "采样",
       "频率",
@@ -36138,7 +36824,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/量化_7_6cb6511b.md"
+    ],
     "tags": [
       "编码",
       "数字信号",
@@ -36188,7 +36876,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环系统脉冲传递函数_7_22031c5e.md"
+    ],
     "tags": [
       "闭环系统",
       "误差",
@@ -36246,7 +36936,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环脉冲传递函数_7_ecc403ec.md"
+    ],
     "tags": [
       "闭环系统",
       "脉冲传递函数",
@@ -36315,7 +37007,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/零阶保持器_7_ddb4bb56.md"
+    ],
     "tags": [
       "保持器",
       "信号重建",
@@ -36374,7 +37068,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/静态误差系数_7_6ff45c3e.md"
+    ],
     "tags": [
       "静态误差系数",
       "K_p",
@@ -36424,7 +37120,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/香农采样定理_7_7a859e46.md"
+    ],
     "tags": [
       "采样定理",
       "无失真恢复",
@@ -36470,7 +37168,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/MATLAB法_8_ec0adc88.md"
+    ],
     "tags": [
       "数值解",
       "绘图",
@@ -36519,7 +37219,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PID控制器_8_34f1aeb5.md"
+    ],
     "tags": [
       "反馈控制",
       "比例积分微分",
@@ -36568,7 +37270,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PI控制器_8_50f96fae.md"
+    ],
     "tags": [
       "比例积分",
       "稳态误差",
@@ -36613,7 +37317,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/不稳定的极限环_8_2f352f72.md"
+    ],
     "tags": [
       "不稳定区域",
       "发散",
@@ -36660,7 +37366,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/串联超前校正_8_5d889b7d.md"
+    ],
     "tags": [
       "相位超前",
       "校正网络",
@@ -36706,7 +37414,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/伪线性系统_8_d4551efc.md"
+    ],
     "tags": [
       "复合系统",
       "积分逆系统",
@@ -36752,7 +37462,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/催化式排气净化器_8_30ba5c12.md"
+    ],
     "tags": [
       "尾气处理",
       "三用催化剂",
@@ -36797,7 +37509,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/半稳定极限环_8_8ed583b7.md"
+    ],
     "tags": [
       "混合稳定",
       "周期运动",
@@ -36845,7 +37559,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/反馈线性化_8_a1d489f6.md"
+    ],
     "tags": [
       "非线性状态反馈",
       "线性系统",
@@ -36897,7 +37613,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/周期运动稳定性判据_8_bff94bd2.md"
+    ],
     "tags": [
       "周期运动稳定性",
       "交点分析",
@@ -36951,7 +37669,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/周期运动_极限环__8_e89ff8ed.md"
+    ],
     "tags": [
       "等幅振荡",
       "极限环",
@@ -37000,7 +37720,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/增量线性化_8_9ba8e3a5.md"
+    ],
     "tags": [
       "泰勒展开",
       "线性近似",
@@ -37054,7 +37776,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/奇点_8_f6da1cbb.md"
+    ],
     "tags": [
       "平衡点",
       "相轨迹",
@@ -37105,7 +37829,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/奇点_平衡点__8_7e8e9880.md"
+    ],
     "tags": [
       "平衡状态",
       "相平面",
@@ -37153,7 +37879,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/奈奎斯特曲线_8_6ac36648.md"
+    ],
     "tags": [
       "频率特性",
       "复平面",
@@ -37198,7 +37926,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/实奇点_8_daa87444.md"
+    ],
     "tags": [
       "本区域",
       "线性微分方程",
@@ -37245,7 +37975,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/小偏差线性化_8_a82063b7.md"
+    ],
     "tags": [
       "泰勒展开",
       "线性近似",
@@ -37293,7 +38025,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/平衡状态_8_87899074.md"
+    ],
     "tags": [
       "稳定性",
       "初始条件",
@@ -37340,7 +38074,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开关线_8_fff1000a.md"
+    ],
     "tags": [
       "分界线",
       "区域划分",
@@ -37493,7 +38229,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/摩擦特性_8_76db8f5b.md"
+    ],
     "tags": [
       "静摩擦",
       "动摩擦",
@@ -37550,7 +38288,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/极限环_8_146dec32.md"
+    ],
     "tags": [
       "自振荡",
       "封闭曲线",
@@ -37607,7 +38347,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/死区与滞环继电非线性_8_ecef008c.md"
+    ],
     "tags": [
       "继电特性",
       "死区",
@@ -37657,7 +38399,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/死区特性_8_9ed850fc.md"
+    ],
     "tags": [
       "不灵敏区",
       "电动机",
@@ -37707,7 +38451,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/死区继电特性_8_5761c303.md"
+    ],
     "tags": [
       "非线性环节",
       "描述函数",
@@ -37758,7 +38504,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/死区饱和非线性_8_e04bd4bd.md"
+    ],
     "tags": [
       "分段线性",
       "死区",
@@ -37807,7 +38555,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/滞后继电特性_8_0764b0a8.md"
+    ],
     "tags": [
       "开关线",
       "控制滞后",
@@ -37854,7 +38604,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/焦点_8_8ef51c1c.md"
+    ],
     "tags": [
       "共轭复根",
       "螺旋线",
@@ -37903,7 +38655,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/相平面分析_8_13cc8148.md"
+    ],
     "tags": [
       "相轨迹",
       "稳定性",
@@ -38026,7 +38780,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/相平面法_8_b1b8091e.md"
+    ],
     "tags": [
       "相轨迹",
       "图解分析",
@@ -38077,7 +38833,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/相轨迹_8_5fb81b03.md"
+    ],
     "tags": [
       "相平面",
       "状态",
@@ -38123,7 +38881,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/积分器抗饱和_8_6c243633.md"
+    ],
     "tags": [
       "执行器饱和",
       "积分漂移",
@@ -38170,7 +38930,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/积分器抗饱和漂移控制_8_57a1d428.md"
+    ],
     "tags": [
       "抗漂移",
       "积分器",
@@ -38217,7 +38979,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳定的极限环_8_0a23bf90.md"
+    ],
     "tags": [
       "自振荡",
       "稳定区域",
@@ -38269,7 +39033,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/等倾线法_8_97c16d2e.md"
+    ],
     "tags": [
       "等倾线",
       "切线方向场",
@@ -38324,7 +39090,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/等效增益_8_7913d7f5.md"
+    ],
     "tags": [
       "变增益",
       "比例环节",
@@ -38375,7 +39143,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性一阶系统_8_f46183aa.md"
+    ],
     "tags": [
       "一阶微分方程",
       "相轨迹",
@@ -38423,7 +39193,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性二阶系统_8_46c94353.md"
+    ],
     "tags": [
       "二阶微分方程",
       "特征根",
@@ -38472,7 +39244,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性系统_8_4cd9d56f.md"
+    ],
     "tags": [
       "线性叠加原理",
       "线性微分方程",
@@ -38518,7 +39292,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/继电特性_8_0676d186.md"
+    ],
     "tags": [
       "开关速度",
       "高频振荡",
@@ -38572,7 +39348,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/自振_8_3ed83301.md"
+    ],
     "tags": [
       "非线性系统",
       "等幅振荡",
@@ -38621,7 +39399,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/自振荡_8_e3ee2aef.md"
+    ],
     "tags": [
       "周期运动",
       "稳定性",
@@ -38669,7 +39449,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/自激振荡_8_711ef8ef.md"
+    ],
     "tags": [
       "稳定周期运动",
       "范德波尔方程",
@@ -38715,7 +39497,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/节点_8_add13ae5.md"
+    ],
     "tags": [
       "实根",
       "非振荡",
@@ -38760,7 +39544,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/虚奇点_8_e5cac44f.md"
+    ],
     "tags": [
       "其他区域",
       "不影响",
@@ -38882,7 +39668,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/逆系统方法_8_c27084ec.md"
+    ],
     "tags": [
       "反馈线性化",
       "伪线性系统",
@@ -38926,7 +39714,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/逆系统法_8_e2f332e3.md"
+    ],
     "tags": [
       "伪线性系统",
       "非线性反馈",
@@ -38974,7 +39764,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/速度反馈_8_c94fe545.md"
+    ],
     "tags": [
       "反馈控制",
       "超调量",
@@ -39021,7 +39813,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/铬氧化物传感器_8_85478043.md"
+    ],
     "tags": [
       "氧传感器",
       "非线性特性",
@@ -39072,7 +39866,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/间隙特性_8_51523138.md"
+    ],
     "tags": [
       "齿轮传动",
       "齿隙",
@@ -39121,7 +39917,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非线性环节的串联_8_e8b2d001.md"
+    ],
     "tags": [
       "串联",
       "图解法",
@@ -39170,7 +39968,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非线性环节的串联与并联_8_fcfa0683.md"
+    ],
     "tags": [
       "等效变换",
       "并联叠加",
@@ -39219,7 +40019,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非线性环节的并联_8_a5cbd082.md"
+    ],
     "tags": [
       "并联",
       "等效特性",
@@ -39269,7 +40071,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非线性系统_8_4ccc0148.md"
+    ],
     "tags": [
       "非线性特性",
       "非线性微分方程",
@@ -39315,7 +40119,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非线性系统稳定性判据_描述函数法__8_2d9b3f16.md"
+    ],
     "tags": [
       "稳定性判据",
       "曲线包围",
@@ -39361,7 +40167,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/鞍点_8_292242f6.md"
+    ],
     "tags": [
       "互异实根",
       "不稳定",
@@ -39407,7 +40215,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/饱和效应_8_c8c67f8e.md"
+    ],
     "tags": [
       "饱和",
       "极限",
@@ -39458,7 +40268,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/饱和特性_8_e55b1fb5.md"
+    ],
     "tags": [
       "放大器",
       "电动机",
@@ -39509,7 +40321,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/饱和非线性_8_deec42d7.md"
+    ],
     "tags": [
       "饱和特性",
       "描述函数",
@@ -39558,7 +40372,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PBH秩判据_9_bdf533f4.md"
+    ],
     "tags": [
       "特征值",
       "秩条件",
@@ -39604,7 +40420,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/不稳定平衡状态_9_fd808ed7.md"
+    ],
     "tags": [
       "不稳定",
       "平衡状态",
@@ -39652,7 +40470,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/串联补偿器_9_e0444c1f.md"
+    ],
     "tags": [
       "解耦",
       "开环传递矩阵",
@@ -39700,7 +40520,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/传递函数_9_a86a3adf.md"
+    ],
     "tags": [
       "拉普拉斯变换",
       "零初始条件",
@@ -39748,7 +40570,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/传递函数矩阵_9_a5fa7369.md"
+    ],
     "tags": [
       "多输入多输出",
       "拉氏变换",
@@ -39797,7 +40621,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/全维状态观测器_9_43aece41.md"
+    ],
     "tags": [
       "状态估计",
       "可观测性",
@@ -39850,7 +40676,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/内模控制器_9_b2d43456.md"
+    ],
     "tags": [
       "零稳态误差",
       "参考输入",
@@ -39898,7 +40726,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/内模控制系统_9_5b487b71.md"
+    ],
     "tags": [
       "内模原理",
       "稳态跟踪误差",
@@ -39947,7 +40777,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/凯莱-哈密顿定理_9_a977f273.md"
+    ],
     "tags": [
       "特征多项式",
       "矩阵指数",
@@ -39993,7 +40825,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/分离定理_9_3fdb2441.md"
+    ],
     "tags": [
       "状态反馈",
       "状态观测器",
@@ -40039,7 +40873,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/加速度扰动_9_c0d83f5b.md"
+    ],
     "tags": [
       "高阶扰动",
       "扰动抑制",
@@ -40085,7 +40921,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位斜坡内模控制系统_9_42a20cfc.md"
+    ],
     "tags": [
       "斜坡输入",
       "内模原理",
@@ -40131,7 +40969,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位斜坡响应_9_df1a312f.md"
+    ],
     "tags": [
       "斜坡跟踪",
       "响应曲线",
@@ -40177,7 +41017,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_9_dd4abbe1.md"
+    ],
     "tags": [
       "动态性能",
       "响应曲线",
@@ -40225,7 +41067,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/反馈补偿器_9_217ce75d.md"
+    ],
     "tags": [
       "解耦",
       "反馈",
@@ -40287,7 +41131,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可控性_9_b22a45c8.md"
+    ],
     "tags": [
       "状态完全可控",
       "输入影响",
@@ -40344,7 +41190,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可控性与可达性等价条件_9_339619c0.md"
+    ],
     "tags": [
       "等价条件",
       "非奇异矩阵",
@@ -40394,7 +41242,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可控性判据_9_34386ac6.md"
+    ],
     "tags": [
       "可控性矩阵",
       "满秩",
@@ -40443,7 +41293,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可控标准型_9_6be59243.md"
+    ],
     "tags": [
       "友矩阵",
       "状态变量图",
@@ -40510,7 +41362,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可观测性_9_b26c542c.md"
+    ],
     "tags": [
       "状态完全可观测",
       "输出反映",
@@ -40566,7 +41420,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可观测性PBH秩判据_9_3ad87876.md"
+    ],
     "tags": [
       "特征值",
       "秩条件",
@@ -40615,7 +41471,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可观测性对角线规范型判据_9_12b8f833.md"
+    ],
     "tags": [
       "对角线规范型",
       "特征值",
@@ -40661,7 +41519,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可观测性格拉姆矩阵判据_9_13a109b3.md"
+    ],
     "tags": [
       "格拉姆矩阵",
       "完全可观测",
@@ -40709,7 +41569,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可观测性秩判据_9_92339d2c.md"
+    ],
     "tags": [
       "可观测性矩阵",
       "完全可观测",
@@ -40758,7 +41620,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可观测标准型_9_0c258b61.md"
+    ],
     "tags": [
       "友矩阵转置",
       "对偶关系",
@@ -40805,7 +41669,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/大范围_全局_渐近稳定性_9_679fa60d.md"
+    ],
     "tags": [
       "大范围",
       "全局",
@@ -40854,7 +41720,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/完全可控_9_adc17f89.md"
+    ],
     "tags": [
       "可控性",
       "状态转移",
@@ -40902,7 +41770,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/完全可达_9_f0aa6191.md"
+    ],
     "tags": [
       "可达性",
       "状态转移",
@@ -40951,7 +41821,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/对偶原理_9_7bb1d46e.md"
+    ],
     "tags": [
       "对偶系统",
       "可控性",
@@ -40999,7 +41871,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/对偶系统_9_7dae5273.md"
+    ],
     "tags": [
       "对偶原理",
       "可控性",
@@ -41048,7 +41922,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/对角线规范型判据_9_db607dca.md"
+    ],
     "tags": [
       "对角线规范型",
       "特征值",
@@ -41096,7 +41972,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/差分方程_9_a3850cbb.md"
+    ],
     "tags": [
       "离散系统",
       "脉冲传递函数",
@@ -41142,7 +42020,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/扰动内模控制器_9_f6e80161.md"
+    ],
     "tags": [
       "扰动抑制",
       "内模原理",
@@ -41191,7 +42071,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/李雅普诺夫函数_9_e025365f.md"
+    ],
     "tags": [
       "李雅普诺夫函数",
       "正定",
@@ -41237,7 +42119,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/李雅普诺夫意义下的稳定性_9_9aaf4cd8.md"
+    ],
     "tags": [
       "李雅普诺夫",
       "稳定性",
@@ -41286,7 +42170,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/李雅普诺夫方程_9_f0c05fe2.md"
+    ],
     "tags": [
       "矩阵方程",
       "稳定性判据",
@@ -41337,7 +42223,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/李雅普诺夫稳定性_9_de195f1c.md"
+    ],
     "tags": [
       "平衡状态",
       "数学定义",
@@ -41386,7 +42274,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/李雅普诺夫第一法_间接法__9_c1a86802.md"
+    ],
     "tags": [
       "李雅普诺夫第一法",
       "间接法",
@@ -41437,7 +42327,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/李雅普诺夫第二法_直接法__9_0bb46ecb.md"
+    ],
     "tags": [
       "李雅普诺夫第二法",
       "直接法",
@@ -41493,7 +42385,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/极点配置_9_b5578c51.md"
+    ],
     "tags": [
       "极点",
       "反馈",
@@ -41547,7 +42441,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/格拉姆矩阵判据_9_a745338c.md"
+    ],
     "tags": [
       "可控性判据",
       "格拉姆矩阵",
@@ -41596,7 +42492,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/正定函数_9_5f312b41.md"
+    ],
     "tags": [
       "正定",
       "标量函数",
@@ -41645,7 +42543,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/渐近稳定_9_1ef1aa94.md"
+    ],
     "tags": [
       "李雅普诺夫方程",
       "特征值",
@@ -41693,7 +42593,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/渐近稳定性_9_4fd2e991.md"
+    ],
     "tags": [
       "渐近稳定",
       "收敛",
@@ -41739,7 +42641,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态_9_279b716f.md"
+    ],
     "tags": [
       "系统行为",
       "信息集合",
@@ -41799,7 +42703,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态反馈_9_ccacb9f8.md"
+    ],
     "tags": [
       "反馈增益",
       "极点配置",
@@ -41852,7 +42758,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态反馈可镇定_9_5b2d62b5.md"
+    ],
     "tags": [
       "镇定",
       "稳定性",
@@ -41898,7 +42806,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态反馈增益_9_b1d734d5.md"
+    ],
     "tags": [
       "状态反馈",
       "增益向量",
@@ -41944,7 +42854,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态变量_9_2dedb9d8.md"
+    ],
     "tags": [
       "独立变量",
       "最小数目",
@@ -41992,7 +42904,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态向量_9_a19c08fc.md"
+    ],
     "tags": [
       "n维向量",
       "分量",
@@ -42038,7 +42952,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态空间_9_98b2feda.md"
+    ],
     "tags": [
       "n维空间",
       "基底",
@@ -42087,7 +43003,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态空间法_9_ae805a74.md"
+    ],
     "tags": [
       "状态方程",
       "输出方程",
@@ -42144,7 +43062,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态空间表达式_9_477dfe0d.md"
+    ],
     "tags": [
       "动态方程",
       "状态方程",
@@ -42195,7 +43115,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态观测器_9_3e80b75f.md"
+    ],
     "tags": [
       "状态估计",
       "观测器增益",
@@ -42241,7 +43163,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态轨迹_9_f787a0a5.md"
+    ],
     "tags": [
       "轨线",
       "路径",
@@ -42291,7 +43215,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态转移矩阵_9_dca84f8f.md"
+    ],
     "tags": [
       "矩阵指数",
       "齐次方程",
@@ -42338,7 +43264,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/现代控制理论_9_0b54b9a0.md"
+    ],
     "tags": [
       "状态空间",
       "多输入多输出",
@@ -42387,7 +43315,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/皮带驱动器_9_b9c436fb.md"
+    ],
     "tags": [
       "弹性系数",
       "状态空间模型",
@@ -42435,7 +43365,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/秩判据_9_daff6c3c.md"
+    ],
     "tags": [
       "可控性矩阵",
       "完全可控",
@@ -42481,7 +43413,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳态跟踪误差_9_73c6314b.md"
+    ],
     "tags": [
       "跟踪性能",
       "零误差",
@@ -42527,7 +43461,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统内部描述_9_b036c510.md"
+    ],
     "tags": [
       "状态空间",
       "完全描述",
@@ -42573,7 +43509,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统外部描述_9_50ce9387.md"
+    ],
     "tags": [
       "输入输出",
       "黑箱",
@@ -42624,7 +43562,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性变换_9_18891967.md"
+    ],
     "tags": [
       "非奇异变换",
       "等价变换",
@@ -42673,7 +43613,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性定常系统_9_c8573c66.md"
+    ],
     "tags": [
       "常数矩阵",
       "时不变",
@@ -42722,7 +43664,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性定常系统的李雅普诺夫方程_9_9adc77ff.md"
+    ],
     "tags": [
       "李雅普诺夫方程",
       "线性定常系统",
@@ -42772,7 +43716,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性离散系统_9_11314927.md"
+    ],
     "tags": [
       "离散时间",
       "状态空间",
@@ -42822,7 +43768,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性离散系统的可控性与可达性_9_f33bba9e.md"
+    ],
     "tags": [
       "离散系统",
       "可控性",
@@ -42869,7 +43817,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/经典线性系统理论_9_6eecbcd5.md"
+    ],
     "tags": [
       "单输入-单输出",
       "线性定常",
@@ -42919,7 +43869,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/结构分解_9_d577f4cd.md"
+    ],
     "tags": [
       "规范分解",
       "可控子系统",
@@ -42968,7 +43920,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/脉冲传递函数_9_f3a85367.md"
+    ],
     "tags": [
       "Z变换",
       "离散系统",
@@ -43017,7 +43971,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/解耦控制_9_0a618e9b.md"
+    ],
     "tags": [
       "耦合系统",
       "对角阵",
@@ -43073,7 +44029,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/输出反馈_9_7331cfb8.md"
+    ],
     "tags": [
       "输出反馈增益",
       "稳定性",
@@ -43124,7 +44082,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/输出反馈增益矩阵_9_dd759938.md"
+    ],
     "tags": [
       "增益",
       "矩阵",
@@ -43172,7 +44132,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/输出可控性_9_7c4fb777.md"
+    ],
     "tags": [
       "输出可控性矩阵",
       "输出向量维数",
@@ -43221,7 +44183,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/连续系统离散化_9_bc326de8.md"
+    ],
     "tags": [
       "采样周期",
       "状态转移矩阵",
@@ -43267,7 +44231,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环极点_9_a8bbda51.md"
+    ],
     "tags": [
       "系统稳定性",
       "动态响应",
@@ -43313,7 +44279,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环零点_9_2ab177de.md"
+    ],
     "tags": [
       "动态性能",
       "传递函数",
@@ -43359,7 +44327,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/阶跃扰动_9_295d811e.md"
+    ],
     "tags": [
       "扰动信号",
       "恒定扰动",
@@ -43408,7 +44378,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非奇异线性变换_9_b4fe754e.md"
+    ],
     "tags": [
       "坐标变换",
       "不变特性",
@@ -43456,7 +44428,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/ITAE性能指标_10_16ea2a23.md"
+    ],
     "tags": [
       "优化设计",
       "误差积分",
@@ -43504,7 +44478,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/ITAE最优性能_10_35da202b.md"
+    ],
     "tags": [
       "性能指标",
       "最优控制",
@@ -43558,7 +44534,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PID控制器_10_cfaedf40.md"
+    ],
     "tags": [
       "控制器",
       "参数整定",
@@ -43611,7 +44589,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/传递函数_10_6c2d17e5.md"
+    ],
     "tags": [
       "拉普拉斯变换",
       "系统模型",
@@ -43664,7 +44644,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/前置滤波器_10_56e8171d.md"
+    ],
     "tags": [
       "滤波器",
       "闭环传递函数",
@@ -43712,7 +44694,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/动态规划_10_711d4211.md"
+    ],
     "tags": [
       "贝尔曼",
       "最优性原理",
@@ -43758,7 +44742,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/变分法_10_e81c09db.md"
+    ],
     "tags": [
       "经典变分理论",
       "泛函极值",
@@ -43807,7 +44793,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/变分预备定理_10_cb8dfc71.md"
+    ],
     "tags": [
       "连续向量函数",
       "积分条件",
@@ -43862,7 +44850,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/哈密顿函数_10_8cd65735.md"
+    ],
     "tags": [
       "庞特里亚金",
       "协态变量",
@@ -43914,7 +44904,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/复合型性能指标_10_4d0dad37.md"
+    ],
     "tags": [
       "性能指标",
       "末值项",
@@ -43962,7 +44954,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/定常系统_10_8d739a5c.md"
+    ],
     "tags": [
       "时不变",
       "系统方程",
@@ -44009,7 +45003,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/容许控制_10_cbc0aa55.md"
+    ],
     "tags": [
       "控制域",
       "分段连续",
@@ -44055,7 +45051,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/庞特里亚金原理_10_03d7d109.md"
+    ],
     "tags": [
       "极小值原理",
       "最优控制",
@@ -44102,7 +45100,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开关曲线_10_07cee039.md"
+    ],
     "tags": [
       "Bang-Bang控制",
       "相平面",
@@ -44151,7 +45151,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/拉格朗日乘子法_10_adf4c52e.md"
+    ],
     "tags": [
       "条件极值",
       "广义泛函",
@@ -44201,7 +45203,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/无限时间定常状态调节器_10_93c59c51.md"
+    ],
     "tags": [
       "定常系统",
       "渐近稳定",
@@ -44249,7 +45253,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/无限时间状态调节器_10_710d9a0c.md"
+    ],
     "tags": [
       "最优控制",
       "性能指标",
@@ -44296,7 +45302,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/时变系统_10_cf3b254e.md"
+    ],
     "tags": [
       "时变",
       "系统方程",
@@ -44347,7 +45355,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/时间最优控制_10_d007c504.md"
+    ],
     "tags": [
       "最小时间",
       "Bang-Bang控制",
@@ -44403,7 +45413,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/最优控制_10_65717117.md"
+    ],
     "tags": [
       "现代控制理论",
       "性能指标",
@@ -44456,7 +45468,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/最优闭环系统渐近稳定性_10_897d7b2f.md"
+    ],
     "tags": [
       "李雅普诺夫函数",
       "渐近稳定",
@@ -44506,7 +45520,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/有限时间时变状态调节器_10_419f426c.md"
+    ],
     "tags": [
       "时变系统",
       "里卡蒂方程",
@@ -44557,7 +45573,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/末值型性能指标_10_da3f7c76.md"
+    ],
     "tags": [
       "性能指标",
       "末态",
@@ -44616,7 +45634,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/极小值原理_10_fa5b8689.md"
+    ],
     "tags": [
       "庞特里亚金",
       "哈密顿原理",
@@ -44676,7 +45696,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/横截条件_10_3e909369.md"
+    ],
     "tags": [
       "边界条件",
       "末端时刻",
@@ -44727,7 +45749,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/欧拉方程_10_3e6cf2c0.md"
+    ],
     "tags": [
       "必要条件",
       "极值轨迹",
@@ -44776,7 +45800,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/正常系统与奇异系统_10_7ad953bc.md"
+    ],
     "tags": [
       "奇异性",
       "可控性",
@@ -44826,7 +45852,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/泛函_10_84a795b2.md"
+    ],
     "tags": [
       "函数的函数",
       "标量",
@@ -44875,7 +45903,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/泛函极值_10_ffed7b21.md"
+    ],
     "tags": [
       "极小值",
       "极大值",
@@ -44925,7 +45955,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/泛函的变分_10_ad519d9f.md"
+    ],
     "tags": [
       "线性主部",
       "增量",
@@ -44973,7 +46005,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/泛函算子_10_95156847.md"
+    ],
     "tags": [
       "映射算子",
       "线性赋范空间",
@@ -45019,7 +46053,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/渐近稳定性_10_2b9c49d0.md"
+    ],
     "tags": [
       "稳定性",
       "平衡点",
@@ -45067,7 +46103,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态方程_10_db4e2dd7.md"
+    ],
     "tags": [
       "状态变量",
       "微分方程",
@@ -45117,7 +46155,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态调节器_10_2756a7c0.md"
+    ],
     "tags": [
       "线性控制系统",
       "二次型",
@@ -45167,7 +46207,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/状态调节器问题_10_712c0b62.md"
+    ],
     "tags": [
       "LQR",
       "平衡状态",
@@ -45214,7 +46256,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/目标集_10_61fff14d.md"
+    ],
     "tags": [
       "末端状态",
       "末端时刻",
@@ -45267,7 +46311,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/离散极小值原理_10_2c7fd6f8.md"
+    ],
     "tags": [
       "离散系统",
       "最优控制",
@@ -45318,7 +46364,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/离散系统极小值原理_10_8c259baa.md"
+    ],
     "tags": [
       "离散时间",
       "差分方程",
@@ -45374,7 +46422,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/积分型性能指标_10_9ae43b2c.md"
+    ],
     "tags": [
       "性能指标",
       "控制过程",
@@ -45428,7 +46478,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性二次型最优控制_10_b693d571.md"
+    ],
     "tags": [
       "LQR",
       "状态调节器",
@@ -45478,7 +46530,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性二次型最优控制问题_10_1ffa9fde.md"
+    ],
     "tags": [
       "性能指标",
       "最优控制",
@@ -45526,7 +46580,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/线性泛函_10_18d1014b.md"
+    ],
     "tags": [
       "齐次性",
       "可加性",
@@ -45574,7 +46630,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/终端约束_10_acf7fbf0.md"
+    ],
     "tags": [
       "目标集",
       "边界条件",
@@ -45670,7 +46728,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/输出调节器问题_10_382ae930.md"
+    ],
     "tags": [
       "输出向量",
       "平衡状态",
@@ -45718,7 +46778,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/输出跟踪系统问题_10_5e19cec8.md"
+    ],
     "tags": [
       "跟踪",
       "理想输出",
@@ -45766,7 +46828,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/连续泛函_10_b9ae0066.md"
+    ],
     "tags": [
       "连续性",
       "点列收敛",
@@ -45819,7 +46883,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/里卡蒂矩阵代数方程_10_3151e9e1.md"
+    ],
     "tags": [
       "代数方程",
       "对称正定",
@@ -45870,7 +46936,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/里卡蒂矩阵微分方程_10_36f0560d.md"
+    ],
     "tags": [
       "矩阵微分方程",
       "非线性",
@@ -45966,7 +47034,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/鲁棒性_10_f5336265.md"
+    ],
     "tags": [
       "参数变化",
       "性能保持",
@@ -46012,7 +47082,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/鲁棒最优系统_10_763bdd82.md"
+    ],
     "tags": [
       "鲁棒性",
       "参数变化",
@@ -46068,7 +47140,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/任务通道变化下的代价函数改写_4_44007.md"
+    ],
     "tags": [
       "代价函数改写",
       "任务通道",
@@ -46126,7 +47200,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/冲突指标下的经典试凑空可行域_4_44001.md"
+    ],
     "tags": [
       "空可行域",
       "经典试凑",
@@ -46184,7 +47260,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/固定结构优化中的指标分层_4_44002.md"
+    ],
     "tags": [
       "指标分层",
       "硬约束",
@@ -46241,7 +47319,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/局部优化问题四要素_4_44005.md"
+    ],
     "tags": [
       "四要素",
       "局部优化",
@@ -46298,7 +47378,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/目标函数与罚项表达_4_44004.md"
+    ],
     "tags": [
       "目标函数",
       "罚项",

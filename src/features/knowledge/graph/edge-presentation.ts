@@ -1,4 +1,4 @@
-import type { KnowledgeGraphEdgeFocusState, KnowledgeGraphPresentationFamily } from './visual-config';
+import type { KnowledgeConceptNodeShape, KnowledgeGraphEdgeFocusState, KnowledgeGraphPresentationFamily } from './visual-config';
 import {
   getKnowledgeGraphFamilyPresentationStyle,
   getNodeTypeConfig,
@@ -16,6 +16,7 @@ import { getKnowledgeGraphRelationContract } from './relation-contract';
 export type KnowledgeGraphEdgeRendererMode = '2d' | '3d';
 
 export interface KnowledgeGraphPresentationLink {
+  evidenceState?: 'available' | 'unavailable';
   id?: string;
   sourceId: string;
   targetId: string;
@@ -97,24 +98,40 @@ export function buildKnowledgeGraphEdgeLaneCurvatures(
   return result;
 }
 
+const CONCEPT_SHAPE_2D_BOUNDARY: Record<KnowledgeConceptNodeShape, KnowledgeGraphNodeBoundary['shape']> = {
+  circle: 'circle',
+  square: 'square',
+  hexagon: 'regular-hexagon',
+  triangle: 'regular-triangle',
+  diamond: 'regular-diamond',
+  pentagon: 'regular-pentagon',
+};
+
+const CONCEPT_SHAPE_3D_BOUNDARY: Record<KnowledgeConceptNodeShape, KnowledgeGraphNodeBoundary['shape']> = {
+  circle: 'sphere',
+  square: 'box',
+  hexagon: 'icosahedron',
+  triangle: 'tetrahedron',
+  diamond: 'octahedron',
+  pentagon: 'pentagonal-prism',
+};
+
 export function getKnowledgeGraphRendererNodeBoundary({
   renderer,
   nodeType,
+  shape,
   presentationRadius,
 }: {
   renderer: KnowledgeGraphEdgeRendererMode;
   nodeType?: string;
+  shape?: KnowledgeConceptNodeShape;
   presentationRadius: number;
 }): KnowledgeGraphNodeBoundary {
-  const shape = getNodeTypeConfig(nodeType).shape;
+  const resolvedShape = shape ?? getNodeTypeConfig(nodeType).shape;
   if (renderer === '3d') {
-    if (shape === 'square') return { shape: 'box', presentationRadius };
-    if (shape === 'hexagon') return { shape: 'icosahedron', presentationRadius };
-    return { shape: 'sphere', presentationRadius };
+    return { shape: CONCEPT_SHAPE_3D_BOUNDARY[resolvedShape], presentationRadius };
   }
-  if (shape === 'square') return { shape: 'square', presentationRadius };
-  if (shape === 'hexagon') return { shape: 'regular-hexagon', presentationRadius };
-  return { shape: 'circle', presentationRadius };
+  return { shape: CONCEPT_SHAPE_2D_BOUNDARY[resolvedShape], presentationRadius };
 }
 
 export function createKnowledgeGraphRendererEdgePath({
@@ -124,6 +141,8 @@ export function createKnowledgeGraphRendererEdgePath({
   target,
   sourceNodeType,
   targetNodeType,
+  sourceShape,
+  targetShape,
   sourcePresentationRadius,
   targetPresentationRadius,
   laneCurvature,
@@ -134,6 +153,8 @@ export function createKnowledgeGraphRendererEdgePath({
   target: KnowledgeGraphPointInput;
   sourceNodeType?: string;
   targetNodeType?: string;
+  sourceShape?: KnowledgeConceptNodeShape;
+  targetShape?: KnowledgeConceptNodeShape;
   sourcePresentationRadius: number;
   targetPresentationRadius: number;
   laneCurvature: number;
@@ -146,11 +167,13 @@ export function createKnowledgeGraphRendererEdgePath({
     sourceBoundary: getKnowledgeGraphRendererNodeBoundary({
       renderer,
       nodeType: sourceNodeType,
+      shape: sourceShape,
       presentationRadius: sourcePresentationRadius,
     }),
     targetBoundary: getKnowledgeGraphRendererNodeBoundary({
       renderer,
       nodeType: targetNodeType,
+      shape: targetShape,
       presentationRadius: targetPresentationRadius,
     }),
     laneCurvature,

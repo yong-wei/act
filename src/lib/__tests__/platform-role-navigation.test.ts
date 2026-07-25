@@ -1326,7 +1326,8 @@ describe('platform role navigation', () => {
 
     expect(teacherNewClassSource).toContain('useSearchParams');
     expect(teacherNewClassSource).toContain('resolveScopedReturnTarget(');
-    expect(teacherClassDetailSource).toContain('returnTo=${encodeURIComponent(`/teacher/classes/${classId}`)}');
+    expect(teacherClassDetailSource).toContain('currentClassId: classId');
+    expect(teacherClassDetailSource).toContain('router.push(`/classroom/teacher/${sessionId}`)');
     expect(teacherLessonPlansSource).toContain('/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans');
     expect(teacherNewLessonPlanSource).toContain('returnPath={returnTarget}');
     expect(teacherNewLessonPlanSource).toContain('workbenchReturnLabel={getTeacherReturnLabel(returnTarget)}');
@@ -1359,7 +1360,7 @@ describe('platform role navigation', () => {
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-panel-toggle="true"');
     expect(knowledgeGraphSource).toContain('{mobileToolPanelOpen && (');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-tool-panel={mobileActiveTool}');
-    expect(knowledgeGraphSource).toContain('data-knowledge-relation-family-control="compact-bottom-left"');
+    expect(knowledgeGraphSource).toContain('<RelationFamilyControl');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="view-layout"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-panel="view-layout-controls"');
   });

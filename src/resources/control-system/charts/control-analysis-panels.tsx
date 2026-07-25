@@ -49,6 +49,12 @@ import {
 export { buildBodeTurnFrequencySeries };
 export const CONTROL_SIGNAL_CURVE_STYLES = SHARED_CONTROL_SIGNAL_CURVE_STYLES;
 
+export interface ControlComparisonSeries {
+  label: string;
+  color: string;
+  result: ControlAnalysisResult;
+}
+
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
 type ChartSeriesArray = ChartSeriesItem[];
@@ -593,11 +599,32 @@ function formatFixed(value: number | null | undefined, suffix = ''): string {
   return `${value.toFixed(2)}${suffix}`;
 }
 
-function formatGainMargin(value: number | null | undefined): string {
-  if (value === Number.POSITIVE_INFINITY) {
-    return 'GM ∞';
+function hasFrequencyResponseData(result: ControlAnalysisResult): boolean {
+  return result.magnitude.points.some((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+    && result.phase.points.some((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+}
+
+function getGainMarginPresentation(result: ControlAnalysisResult): {
+  gainMargin: string;
+  phaseCrossover: string;
+} {
+  if (!hasFrequencyResponseData(result)) {
+    return {
+      gainMargin: '--',
+      phaseCrossover: '--',
+    };
   }
-  return `GM ${formatFixed(value, ' dB')}`;
+
+  const { gainMarginDb, phaseCrossoverRadPerSec, phaseCrossoverStatus } = result.metrics;
+  const hasFiniteCrossover = phaseCrossoverStatus === 'finite'
+    || (phaseCrossoverStatus == null && phaseCrossoverRadPerSec != null);
+
+  return {
+    gainMargin: hasFiniteCrossover ? formatFixed(gainMarginDb, ' dB') : '--',
+    phaseCrossover: hasFiniteCrossover
+      ? formatFixed(phaseCrossoverRadPerSec, ' rad/s')
+      : '未在当前频率范围内观测到',
+  };
 }
 
 function formatComplex(point: ComplexPoint): string {
@@ -645,12 +672,14 @@ function buildMetricText(metrics: ControlMetrics): ReactNode {
   ].join(' | ');
 }
 
-function buildMarginText(metrics: ControlMetrics): ReactNode {
+function buildMarginText(result: ControlAnalysisResult): ReactNode {
+  const { metrics } = result;
+  const gainMargin = getGainMarginPresentation(result);
   return [
     `PM ${formatFixed(metrics.phaseMarginDeg, '°')}`,
-    formatGainMargin(metrics.gainMarginDb),
+    `GM ${gainMargin.gainMargin}`,
     `ωc ${formatFixed(metrics.gainCrossoverRadPerSec, ' rad/s')}`,
-    `ωg ${formatFixed(metrics.phaseCrossoverRadPerSec, ' rad/s')}`,
+    `ωg ${gainMargin.phaseCrossover}`,
   ].join(' | ');
 }
 
@@ -690,7 +719,7 @@ function buildNyquistCriterionText(result: ControlAnalysisResult): string | null
 }
 
 function buildNyquistMetaText(result: ControlAnalysisResult): ReactNode {
-  return [buildMarginText(result.metrics), buildNyquistCriterionText(result)]
+  return [buildMarginText(result), buildNyquistCriterionText(result)]
     .filter((item): item is string => Boolean(item))
     .join(' | ');
 }
@@ -1052,6 +1081,7 @@ export function buildRootLocusOption(
   mode: RootLocusMode = 'default',
   axisPresetOverride?: AxisPreset,
   correctionHandles: RootLocusInteractiveHandle[] = [],
+  comparisonSeries: ControlComparisonSeries[] = [],
 ): EChartsCoreOption {
   const autoView = mode === 'full' ? rootLocus.views?.full : rootLocus.views?.feature;
   const caseAxisPreset = getControlAxisPreset(caseId, getRootLocusAxisKey(mode));
@@ -1113,6 +1143,63 @@ export function buildRootLocusOption(
           } satisfies ChartSeriesItem;
         }),
       ];
+  const staticComparisonSeries = comparisonSeries.flatMap((comparison) => {
+    const branches = (mode === 'full' && comparison.result.rootLocus.fullBranches
+      ? comparison.result.rootLocus.fullBranches
+      : comparison.result.rootLocus.branches).map((branch) => branch.map(snapRootPoint));
+    return branches.map((branch, index) => ({
+      name: index === 0 ? comparison.label : '',
+      type: 'line',
+      silent: true,
+      showSymbol: false,
+      lineStyle: { color: comparison.color, type: 'dashed', width: CONTROL_CHART_MAIN_LINE_WIDTH },
+      data: branch.map((point) => [point.re, point.im, point.gain ?? null]),
+    } satisfies ChartSeriesItem));
+  });
+  const staticComparisonMarkerSeries = comparisonSeries.flatMap((comparison) => {
+    const snapshotRootLocus = comparison.result.rootLocus;
+    const snapshotOpenLoopPoles = normalizeConjugatePointSet(snapshotRootLocus.openLoopPoles);
+    const snapshotOpenLoopZeros = normalizeConjugatePointSet(snapshotRootLocus.openLoopZeros);
+    const snapshotCurrentPoles = normalizeConjugatePointSet(snapshotRootLocus.currentPoles);
+    return [
+      {
+        type: 'scatter',
+        silent: true,
+        showSymbol: false,
+        ...getInteractiveSvgEChartsPointMarker('pole-cross', {
+          size: 11,
+          color: comparison.color,
+          strokeWidth: 1.4,
+        }),
+        z: 8,
+        data: snapshotOpenLoopPoles.map((pole) => [pole.re, pole.im]),
+      },
+      {
+        type: 'scatter',
+        silent: true,
+        showSymbol: false,
+        ...getInteractiveSvgEChartsPointMarker('dot-hollow', {
+          size: 13,
+          color: comparison.color,
+          fillColor: 'rgba(255, 255, 255, 0)',
+          strokeWidth: ROOT_LOCUS_OPEN_ZERO_STROKE_WIDTH,
+        }),
+        z: 8,
+        data: snapshotOpenLoopZeros.map((zero) => [zero.re, zero.im]),
+      },
+      {
+        type: 'scatter',
+        silent: true,
+        showSymbol: false,
+        ...getInteractiveSvgEChartsPointMarker('dot-filled', {
+          size: 13,
+          color: comparison.color,
+        }),
+        z: 9,
+        data: snapshotCurrentPoles.map((pole) => [pole.re, pole.im]),
+      },
+    ] satisfies ChartSeriesItem[];
+  });
   const series: ChartSeriesArray = [
     {
       name: '实轴',
@@ -1132,6 +1219,8 @@ export function buildRootLocusOption(
     },
     ...(showFeasible ? buildFeasibleRegionSeries(rootLocus, axisPreset) : []),
     ...rootLineSegments,
+    ...staticComparisonSeries,
+    ...staticComparisonMarkerSeries,
     ...((rootLocus.stationaryPoints?.length ?? 0) > 0
       ? [{
           name: '分离/会合点',
@@ -1498,6 +1587,7 @@ export function buildNyquistOption(
   caseId?: string,
   axisPresetOverride?: AxisPreset,
   showFrequencyReadings = true,
+  comparisonSeries: ControlComparisonSeries[] = [],
 ): EChartsCoreOption {
   const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, 'nyquist');
   const positivePoints = result.nyquist.positiveSamples ?? result.nyquist.positivePoints ?? result.nyquist.points;
@@ -1516,6 +1606,24 @@ export function buildNyquistOption(
   const yMin = axisPreset?.y[0] ?? -2;
   const yMax = axisPreset?.y[1] ?? 2;
   const span = Math.max(1, xMax - xMin, yMax - yMin);
+  const staticComparisonSeries = comparisonSeries.flatMap((comparison) => {
+    const positive = comparison.result.nyquist.positiveSamples
+      ?? comparison.result.nyquist.positivePoints
+      ?? comparison.result.nyquist.points;
+    const negative = comparison.result.nyquist.negativeSamples
+      ?? comparison.result.nyquist.negativePoints
+      ?? [];
+    return [positive, negative]
+      .filter((points) => points.length > 0)
+      .map((points, index) => ({
+        name: index === 0 ? comparison.label : '',
+        type: 'line',
+        silent: true,
+        showSymbol: false,
+        lineStyle: { color: comparison.color, type: 'dashed', width: CONTROL_CHART_MAIN_LINE_WIDTH },
+        data: points.map((point) => [point.re, point.im]),
+      } satisfies ChartSeriesItem));
+  });
   return {
     animation: false,
     grid: { top: 18, right: 18, bottom: 42, left: 58 },
@@ -1574,6 +1682,7 @@ export function buildNyquistOption(
         data: buildNyquistUnitCircleData(),
       },
       ...contourSeries,
+      ...staticComparisonSeries,
       ...(keyPoints.length > 0
         ? [
             {
@@ -1971,7 +2080,7 @@ export function MagnitudePanel({
   return (
     <ControlChartPanel
       title="幅频特性"
-      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result.metrics)) : buildMarginText(result.metrics)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result)) : buildMarginText(result)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -2007,7 +2116,7 @@ export function PhasePanel({
   return (
     <ControlChartPanel
       title="相频特性"
-      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result.metrics)) : buildMarginText(result.metrics)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result)) : buildMarginText(result)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -2034,10 +2143,12 @@ export function NyquistPanel({
   result,
   caseId,
   showFrequencyReadings = true,
+  comparisonSeries = [],
 }: {
   result: ControlAnalysisResult;
   caseId?: string;
   showFrequencyReadings?: boolean;
+  comparisonSeries?: ControlComparisonSeries[];
 }) {
   const axisPreset = getControlAxisPreset(caseId, 'nyquist');
   const chartRef = useRef<ECharts | null>(null);
@@ -2058,8 +2169,8 @@ export function NyquistPanel({
   }
   const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;
   const option = useMemo(
-    () => buildNyquistOption(result, caseId, displayedAxisPreset, showFrequencyReadings),
-    [displayedAxisPreset, caseId, result, showFrequencyReadings],
+    () => buildNyquistOption(result, caseId, displayedAxisPreset, showFrequencyReadings, comparisonSeries),
+    [comparisonSeries, displayedAxisPreset, caseId, result, showFrequencyReadings],
   );
   const scheduleNyquistEqualAspect = useCallback((chart: ECharts | null = chartRef.current) => {
     if (!chart || typeof window === 'undefined') {
@@ -2131,6 +2242,7 @@ export function RootLocusPanel({
   className,
   chartClassName,
   axisPresetOverride,
+  comparisonSeries = [],
 }: {
   result: ControlAnalysisResult;
   caseId?: string;
@@ -2145,6 +2257,7 @@ export function RootLocusPanel({
   className?: string;
   chartClassName?: string;
   axisPresetOverride?: AxisPreset;
+  comparisonSeries?: ControlComparisonSeries[];
 }) {
   const title = mode === 'full' ? '根轨迹全览' : mode === 'zoom' ? '根轨迹区域放大' : '根轨迹';
   const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, getRootLocusAxisKey(mode));
@@ -2168,8 +2281,15 @@ export function RootLocusPanel({
   }
   const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;
   const option = useMemo(
-    () => buildRootLocusOption(result.rootLocus, caseId, mode, displayedAxisPreset, interactiveHandles ?? []),
-    [displayedAxisPreset, caseId, mode, result.rootLocus, interactiveHandles],
+    () => buildRootLocusOption(
+      result.rootLocus,
+      caseId,
+      mode,
+      displayedAxisPreset,
+      interactiveHandles ?? [],
+      comparisonSeries,
+    ),
+    [comparisonSeries, displayedAxisPreset, caseId, mode, result.rootLocus, interactiveHandles],
   );
   const [dragPreviewHandle, setDragPreviewHandle] = useState<{ id: string; point: ComplexPoint } | null>(null);
   const [overlayVersion, setOverlayVersion] = useState(0);
@@ -2504,7 +2624,7 @@ export function BodePanel({
   return (
     <ControlChartPanel
       title="组合 Bode 图"
-      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result.metrics)) : buildMarginText(result.metrics)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result)) : buildMarginText(result)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -2591,18 +2711,19 @@ export function ControlPerformanceBar({ result }: { result: ControlAnalysisResul
       : Math.abs(maxClosedLoopPoleRealPart) <= 1e-4
         ? '临界稳定'
         : '稳定';
+  const gainMargin = getGainMarginPresentation(result);
   const items = [
     ['Mp', formatFixed(metrics.overshootPct, '%')],
     ['tr', formatFixed(metrics.riseTimeSec, ' s')],
     ['ts', formatFixed(metrics.settlingTimeSec, ' s')],
     ['ess', formatFixed(Math.abs(1 - metrics.finalValue))],
     ['PM', formatFixed(metrics.phaseMarginDeg, '°')],
-    ['GM', metrics.gainMarginDb === Number.POSITIVE_INFINITY ? '∞' : formatFixed(metrics.gainMarginDb, ' dB')],
+    ['GM', gainMargin.gainMargin],
     ['N', result.nyquist.criterion ? String(result.nyquist.criterion.n) : '--'],
     ['P', result.nyquist.criterion ? String(result.nyquist.criterion.p) : '--'],
     ['Z', result.nyquist.criterion ? String(result.nyquist.criterion.z) : '--'],
     ['ωc', formatFixed(metrics.gainCrossoverRadPerSec, ' rad/s')],
-    ['ωg', formatFixed(metrics.phaseCrossoverRadPerSec, ' rad/s')],
+    ['ωg', gainMargin.phaseCrossover],
     ['闭环稳定性', closedLoopStability],
   ];
 

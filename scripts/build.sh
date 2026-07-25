@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
-IMAGE_TAG="${IMAGE_TAG:-act-obe-platform:20260301-amd64}"
+IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:20260301-amd64}"
 OUTPUT_TAR="${OUTPUT_TAR:-deploy/images/act-obe.tar}"
 PLATFORM="${PLATFORM:-linux/amd64}"
 NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"
@@ -24,7 +24,7 @@ if ! grep -qx "${EXTERNAL_RUNTIME_DIR}" .dockerignore; then
   echo "ERROR: .dockerignore 必须排除 ${EXTERNAL_RUNTIME_DIR}，避免运行时资源进入镜像构建上下文。" >&2
   exit 1
 fi
-for required_script in scripts/build-next-with-trace-check.mjs scripts/prune-next-trace-boundary.mjs; do
+for required_script in scripts/build-next-with-trace-check.mjs scripts/prune-next-trace-boundary.mjs scripts/assets/validate-optimized-models.mjs; do
   if ! grep -qx "!${required_script}" .dockerignore; then
     echo "ERROR: .dockerignore 必须放行 ${required_script}，否则 Docker builder 阶段 npm run build 会缺少构建脚本。" >&2
     exit 1

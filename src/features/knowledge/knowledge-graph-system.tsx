@@ -38,6 +38,10 @@ import {
   toggleRelationFamily,
 } from './graph/relation-family-controls';
 import type { KnowledgeGraphRelationFamily } from './graph/relation-contract';
+import {
+  filterKnowledgeGraphCandidateSnapshot,
+  isKnowledgeGraphTeacherReviewRole,
+} from './graph/candidate-visibility';
 import { RelationFamilyControl, resolveRelationFamilyControlPlacement } from './graph/relation-family-control';
 import {
   clearKnowledgeGraphLayoutPins,
@@ -134,6 +138,15 @@ export interface KnowledgeNodeData {
   graphDegree?: number;
   graphImportanceScore?: number;
   importance?: number;
+  /**
+   * Projection-shaped governance attributes (ActKG adapter). Absent means
+   * "unknown"; `candidate: true` marks a governance candidate that
+   * learner-facing views exclude by default.
+   */
+  semanticName?: string;
+  conceptKind?: string;
+  candidate?: boolean;
+  sourceCoverageCount?: number;
   expansion?: {
     state: 'expandable' | 'leaf' | 'unknown';
     revealableNeighborCount?: number;
@@ -148,6 +161,8 @@ export interface KnowledgeLinkData {
   relation: string;
   relationType?: string;
   strength?: number;
+  /** Derived at projection time; absent means "unknown", never "unavailable". */
+  evidenceState?: 'available' | 'unavailable';
 }
 
 interface KnowledgeGraphSystemProps {
@@ -207,25 +222,34 @@ export function KnowledgeGraphSystem({
     () => selectKnowledgeNavigationSnapshot(graphCache, navigation.view),
     [graphCache, navigation.view]
   );
-  const nodes = navigationSnapshot.nodes;
-  const links = navigationSnapshot.links;
-  const corridorLinks = navigationSnapshot.corridorLinks;
-  const corridorCycleEdgeIds = navigationSnapshot.corridorCycleEdgeIds;
-  const membershipLinks = navigationSnapshot.membershipLinks;
+  // Candidate 治理：学习者视图在视图模型层排除候选节点与关联边，
+  // 布局、标签碰撞、密度逻辑永远看不到它们；teacher/review 原样保留。
+  const candidateScopedSnapshot = useMemo(
+    () => filterKnowledgeGraphCandidateSnapshot(navigationSnapshot, viewerRole),
+    [navigationSnapshot, viewerRole]
+  );
+  const hiddenCandidateNodeCount = candidateScopedSnapshot.hiddenCandidateNodeCount;
+  const nodes = candidateScopedSnapshot.nodes;
+  const links = candidateScopedSnapshot.links;
+  const corridorLinks = candidateScopedSnapshot.corridorLinks;
+  const corridorCycleEdgeIds = candidateScopedSnapshot.corridorCycleEdgeIds;
+  const membershipLinks = candidateScopedSnapshot.membershipLinks;
   const rootCatalogNodes = useMemo<KnowledgeNodeData[]>(() => (
-    Object.values(graphCache.rootCatalogByNodeId).map((entry) => ({
-      id: entry.nodeId,
-      name: entry.nodeName,
-      nodeType: entry.nodeType,
-      description: '',
-      positionX: 0,
-      positionY: 0,
-      positionZ: 0,
-      chapterName: entry.chapterName,
-      metadata: { chapterName: entry.chapterName },
-      expansion: { state: 'leaf' },
-    }))
-  ), [graphCache.rootCatalogByNodeId]);
+    Object.values(graphCache.rootCatalogByNodeId)
+      .filter((entry) => isKnowledgeGraphTeacherReviewRole(viewerRole) || entry.candidate !== true)
+      .map((entry) => ({
+        id: entry.nodeId,
+        name: entry.nodeName,
+        nodeType: entry.nodeType,
+        description: '',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        chapterName: entry.chapterName,
+        metadata: { chapterName: entry.chapterName },
+        expansion: { state: 'leaf' },
+      }))
+  ), [graphCache.rootCatalogByNodeId, viewerRole]);
 
   const [requestedNodeId, setRequestedNodeId] = useState<string | null>(initialRequestedNodeId);
   const initialLessonLocationRef = useRef(
@@ -569,7 +593,7 @@ export function KnowledgeGraphSystem({
     } finally {
       clearOwnedLoadingShard(expectedShardKey, requestId);
     }
-  }, [clearOwnedLoadingShard, fetchGraphPayload, graphCache.domainShardKeysByDomainId, graphCache.graphVersion, graphCache.loadedShardKeys, graphCache.nodesById, inspection.pendingNavigationTarget?.nodeId, navigation.view, registerLoadingShard, rootCatalogNodes]);
+  }, [clearOwnedLoadingShard, fetchGraphPayload, graphCache.domainShardKeysByDomainId, graphCache.graphVersion, graphCache.loadedShardKeys, graphCache.nodesById, inspection.pendingNavigationTarget?.nodeId, navigation.view, registerLoadingShard]);
 
   const returnToRoot = useCallback(() => {
     navigationRequestSequenceRef.current += 1;
@@ -806,6 +830,7 @@ export function KnowledgeGraphSystem({
     relation: edge.relationType,
     relationType: edge.relationType,
     strength: edge.strength ?? undefined,
+    ...(edge.evidenceState ? { evidenceState: edge.evidenceState } : {}),
   })), [domainMemberNodeIdSet, eligibleLinks, enabledRelationFamilies, selectedNode?.id]);
 
   const canonicalPresentationLinks = useMemo(() => selectCanonicalDomainRelationEdges({
@@ -818,6 +843,7 @@ export function KnowledgeGraphSystem({
     relation: edge.relationType,
     relationType: edge.relationType,
     strength: edge.strength ?? undefined,
+    ...(edge.evidenceState ? { evidenceState: edge.evidenceState } : {}),
   })), [domainMemberNodeIdSet, eligibleLinks]);
 
   const graphWithChapterNodes = useMemo(() => {
@@ -1318,7 +1344,7 @@ export function KnowledgeGraphSystem({
         )}
         {navigation.view.kind === 'domain' && (teachingOrderLayout?.unorderedNodeIds.length ?? 0) > 0 && (
           <div
-            className="pointer-events-none absolute bottom-4 right-4 z-20 rounded-md border border-slate-700/70 bg-slate-950/75 px-2.5 py-1.5 text-xs text-slate-300"
+            className="pointer-events-none absolute bottom-4 right-4 z-20 rounded-md border border-platform-border bg-platform-surface/95 px-2.5 py-1.5 text-xs text-platform-fg-secondary shadow-sm backdrop-blur"
             data-knowledge-layout-region="unordered"
           >
             尚无可验证的先后关系 · {teachingOrderLayout?.unorderedNodeIds.length}
@@ -1436,6 +1462,7 @@ export function KnowledgeGraphSystem({
                         <div className="font-semibold text-platform-fg-primary">节点筛选</div>
                         <div className="text-[11px] text-platform-fg-muted">
                           当前显示节点 {filteredNodes.length} / {nodes.length}
+                          {hiddenCandidateNodeCount > 0 && ` · 已隐藏 ${hiddenCandidateNodeCount} 个候选`}
                         </div>
                       </div>
                     </div>
@@ -1725,7 +1752,10 @@ export function KnowledgeGraphSystem({
 
             {mobileActiveTool === 'node-filters' && (
               <div className="space-y-2" data-knowledge-mobile-drawer="node-filters" data-knowledge-local-tool="node-filters" data-state="open">
-                <p className="text-platform-fg-secondary">节点 {filteredNodes.length} / {nodes.length}</p>
+                <p className="text-platform-fg-secondary">
+                  节点 {filteredNodes.length} / {nodes.length}
+                  {hiddenCandidateNodeCount > 0 && ` · 已隐藏 ${hiddenCandidateNodeCount} 个候选`}
+                </p>
                 <p className="text-[11px] text-platform-fg-muted" data-knowledge-clarity-summary="mobile">
                   {claritySummary}
                 </p>
@@ -1873,11 +1903,12 @@ export function KnowledgeGraphSystem({
           </div>
         )}
 
-        {!mobileInspectorControlVisible && !mobileToolControlVisible && (
+        {!mobileKonlingModalOpen && !mobileInspectorControlVisible && !mobileToolControlVisible && (
           <RelationFamilyControl
             enabledFamilies={enabledRelationFamilies}
             isLightTheme={isLightTheme}
             placement="canvas"
+            avoidExpandedKonling={aiSidebarOpen}
             onToggleAll={toggleAllFamilies}
             onToggleFamily={toggleFamily}
           />
@@ -2107,10 +2138,14 @@ export function KnowledgeGraphSystem({
         selectedNode={inspectorSelectedNode}
         onClose={handleClosePanel}
         onNodeClick={activateNodeById}
-        adjacentDomainNavigations={(selectedCorridor?.adjacentDomainNavigations ?? []).map((navigation) => ({
-          ...navigation,
-          nodeName: graphCache.rootCatalogByNodeId[navigation.nodeId]?.nodeName ?? navigation.nodeId,
-        }))}
+        adjacentDomainNavigations={(selectedCorridor?.adjacentDomainNavigations ?? [])
+          .filter((navigation) => isKnowledgeGraphTeacherReviewRole(viewerRole)
+            || (graphCache.rootCatalogByNodeId[navigation.nodeId]?.candidate !== true
+              && graphCache.nodesById[navigation.nodeId]?.candidate !== true))
+          .map((navigation) => ({
+            ...navigation,
+            nodeName: graphCache.rootCatalogByNodeId[navigation.nodeId]?.nodeName ?? navigation.nodeId,
+          }))}
         canonicalCorridor={selectedCorridor ? {
           ancestors: selectedCorridor.ancestorNodeIds.map((nodeId) => ({
             id: nodeId,
@@ -2129,6 +2164,7 @@ export function KnowledgeGraphSystem({
             : {}),
         } : null}
         viewerRole={viewerRole}
+        isLightTheme={isLightTheme}
         mobileToolPanelOpen={mobileToolPanelOpen}
         mobileHeaderControl={mobileInspectorControlVisible ? (
           <RelationFamilyControl

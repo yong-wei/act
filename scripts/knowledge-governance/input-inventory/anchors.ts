@@ -87,8 +87,8 @@ function scopeFromText(value: string, subjectOnly: boolean): { scope: AnchorScop
   const modulePattern = subjectOnly
     ? /^(?:[#>*+\-\s|]*)(?:\*\*)?模块\s*`?([1-5])`?/u
     : /模块\s*`?([1-5])`?/u;
-  const module = modulePattern.exec(value);
-  return module ? { scope: 'module', module: module[1]!, lesson: null } : null;
+  const moduleMatch = modulePattern.exec(value);
+  return moduleMatch ? { scope: 'module', module: moduleMatch[1]!, lesson: null } : null;
 }
 
 function explicitScope(line: string, stack: Array<{ level: number; text: string; line: number }>): { scope: AnchorScope; module: string | null; lesson: string | null } | null {

@@ -49,6 +49,7 @@ describe('Arena workspace routing', () => {
 
     expect(url.pathname).toBe('/interactive-learning/control-odyssey');
     expect(url.searchParams.get('arenaTask')).toBe('task-odyssey-level-one-growth');
+    expect(url.searchParams.get('odysseyLevelId')).toBe('level-1');
     expect(url.searchParams.get('publicationId')).toBe('publication-odyssey');
     expect(url.searchParams.get('preset')).toBeNull();
   });

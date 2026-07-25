@@ -2,7 +2,9 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
+import { getRelationLabel } from '@/lib/knowledge-labels';
 import {
+  deriveKnowledgeGraphRelationEvidenceState,
   getKnowledgeGraphRelationContract,
   KNOWLEDGE_GRAPH_RELATION_CONTRACTS,
   projectKnowledgeGraphRelations,
@@ -709,5 +711,152 @@ describe('knowledge graph relation contract', () => {
       'post|a|b',
       'association|a|b',
     ]);
+  });
+});
+
+describe('shared evidence availability derivation', () => {
+  it('derives availability from evidence-bearing fields through one shared helper', () => {
+    const base = { id: 'relation', sourceId: 'a', targetId: 'b', type: 'related' };
+
+    expect(deriveKnowledgeGraphRelationEvidenceState({ ...base, rationale: '作者依据' })).toBe('available');
+    expect(deriveKnowledgeGraphRelationEvidenceState(base)).toBe('unavailable');
+  });
+
+  it('honors an authoritative evidence_state declared by a governed projection', () => {
+    const base = { id: 'relation', sourceId: 'a', targetId: 'b', type: 'related' };
+
+    expect(deriveKnowledgeGraphRelationEvidenceState({ ...base, evidence_state: 'available' })).toBe('available');
+    expect(
+      deriveKnowledgeGraphRelationEvidenceState({ ...base, rationale: '作者依据', evidence_state: 'unavailable' })
+    ).toBe('unavailable');
+  });
+
+  it('ignores invalid declared states instead of trusting them', () => {
+    const base = { id: 'relation', sourceId: 'a', targetId: 'b', type: 'related' };
+
+    expect(deriveKnowledgeGraphRelationEvidenceState({ ...base, evidence_state: 'bogus' })).toBe('unavailable');
+    expect(
+      deriveKnowledgeGraphRelationEvidenceState({ ...base, rationale: '作者依据', evidence_state: 42 })
+    ).toBe('available');
+  });
+
+  it('keeps projection evidence states on the shared helper', () => {
+    const result = projectKnowledgeGraphRelations([
+      { id: 'declared-available', sourceId: 'a', targetId: 'b', type: 'related', evidence_state: 'available' },
+      { id: 'declared-unavailable', sourceId: 'c', targetId: 'd', type: 'related', evidence_state: 'unavailable', rationale: '作者依据' },
+    ]);
+
+    expect(result.contributingRelations.map((relation) => relation.evidenceState)).toEqual([
+      'available',
+      'unavailable',
+    ]);
+  });
+});
+
+describe('canonical association relation type', () => {
+  it('registers association with unordered association-family semantics and a label', () => {
+    expect(getKnowledgeGraphRelationContract('association')).toMatchObject({
+      canonicalType: 'association',
+      family: 'association',
+      direction: 'unordered',
+      densityPolicy: expect.objectContaining({ scope: 'selected-one-hop' }),
+      detailSentence: {
+        source: '本节点与目标节点存在语义关联',
+        target: '本节点与来源节点存在语义关联',
+      },
+    });
+    expect(getRelationLabel('association')).toBe('语义关联');
+  });
+
+  it('round-trips the three-value projected relation vocabulary without contract violations', () => {
+    const result = projectKnowledgeGraphRelations([
+      { id: 'projected-contains', sourceId: 'a', targetId: 'b', type: 'contains' },
+      { id: 'projected-prerequisite', sourceId: 'b', targetId: 'c', type: 'prerequisite' },
+      { id: 'projected-association', sourceId: 'c', targetId: 'a', type: 'association' },
+    ]);
+
+    expect(result.blocked).toBe(false);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.contributingRelations.map((relation) => [
+      relation.canonicalType,
+      relation.family,
+      relation.direction,
+    ])).toEqual([
+      ['contains', 'child', 'parent-to-child'],
+      ['prerequisite', 'post-requisite', 'earlier-to-later'],
+      ['association', 'association', 'unordered'],
+    ]);
+  });
+
+  it('deduplicates canonical association edges with unordered reverse identity', () => {
+    const result = projectKnowledgeGraphRelations([
+      { id: 'association-forward', sourceId: 'a', targetId: 'b', type: 'association' },
+      { id: 'association-reverse', sourceId: 'b', targetId: 'a', type: 'association' },
+    ]);
+
+    expect(result.blocked).toBe(false);
+    expect(result.visualEdges).toHaveLength(1);
+    expect(result.visualEdges[0]).toMatchObject({
+      key: 'association|a|b',
+      family: 'association',
+      direction: 'unordered',
+    });
+    expect(result.visualEdges[0].contributingRelations.map((relation) => relation.relationId)).toEqual([
+      'association-forward',
+      'association-reverse',
+    ]);
+  });
+
+  it('keeps every previously registered canonical type unchanged', () => {
+    const previouslyRegistered = {
+      contains: ['child', 'parent-to-child'],
+      prerequisite: ['post-requisite', 'earlier-to-later'],
+      provides_foundation: ['post-requisite', 'earlier-to-later'],
+      follows: ['post-requisite', 'earlier-to-later'],
+      leads_to: ['post-requisite', 'earlier-to-later'],
+      applies_to: ['association', 'unordered'],
+      opposite: ['association', 'unordered'],
+      related: ['association', 'unordered'],
+      cross_domain: ['association', 'unordered'],
+      generalizes: ['association', 'unordered'],
+      instance_of: ['association', 'unordered'],
+      supports: ['association', 'unordered'],
+      enables: ['association', 'unordered'],
+      complements: ['association', 'unordered'],
+      contrasts_with: ['association', 'unordered'],
+      derives: ['association', 'unordered'],
+      describes_migration_of: ['association', 'unordered'],
+      determines: ['association', 'unordered'],
+      embodies: ['association', 'unordered'],
+      informs: ['association', 'unordered'],
+      quantified_by: ['association', 'unordered'],
+      uses: ['association', 'unordered'],
+      visualized_by: ['association', 'unordered'],
+      causes: ['association', 'unordered'],
+      demonstrates: ['association', 'unordered'],
+      equivalent_to: ['association', 'unordered'],
+      exemplifies: ['association', 'unordered'],
+      extends: ['association', 'unordered'],
+      has_stage: ['association', 'unordered'],
+      precedes: ['association', 'unordered'],
+      produces: ['association', 'unordered'],
+      provides_context: ['association', 'unordered'],
+      refined_by: ['association', 'unordered'],
+      refines: ['association', 'unordered'],
+    } as const;
+
+    expect(Object.keys(previouslyRegistered)).toHaveLength(34);
+    expect(
+      KNOWLEDGE_GRAPH_RELATION_CONTRACTS
+        .map((contract) => contract.canonicalType)
+        .filter((canonicalType) => !(canonicalType in previouslyRegistered))
+    ).toEqual(['association']);
+    for (const [canonicalType, [family, direction]] of Object.entries(previouslyRegistered)) {
+      expect(getKnowledgeGraphRelationContract(canonicalType)).toMatchObject({
+        canonicalType,
+        family,
+        direction,
+      });
+    }
   });
 });

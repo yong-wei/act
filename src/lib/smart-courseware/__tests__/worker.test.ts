@@ -120,14 +120,27 @@ describe('smart courseware generation worker', () => {
     }));
     expect(runtime.generate).toHaveBeenCalledWith(expect.objectContaining({
       schemaVersion: 'smart-courseware-stage-bridge-in.v2',
-      system: expect.stringContaining('approvedPlanAlignment'),
-      prompt: expect.stringContaining(JSON.stringify(output.approvedPlanAlignment)),
+      system: expect.stringContaining('按批准纲要的数量和顺序生成 stage.steps'),
+      prompt: expect.stringContaining(JSON.stringify([
+        { approvedTitle: '导入', approvedDurationSeconds: 300 },
+      ])),
     }));
-    expect(runtime.generate.mock.calls[0][0].prompt).toContain(JSON.stringify(
-      output.stepPlanBindings.map(({ generatedStepId: _stepId, ...expectation }) => expectation),
-    ));
+    expect(runtime.generate.mock.calls[0][0].system).toContain('数学表达使用纯文本');
+    expect(runtime.generate.mock.calls[0][0].system).not.toContain('approvedPlanAlignment');
+    expect(runtime.generate.mock.calls[0][0].prompt).not.toContain('goalSetHash');
     expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      unitKey: 'bridge-in', output,
+      unitKey: 'bridge-in',
+      output: expect.objectContaining({
+        approvedPlanAlignment: output.approvedPlanAlignment,
+        stepPlanBindings: [expect.objectContaining({ generatedStepId: 'generated-bridge-in-step-1' })],
+        stage: expect.objectContaining({
+          steps: [expect.objectContaining({ id: 'generated-bridge-in-step-1' })],
+        }),
+        moduleMetadata: [expect.objectContaining({
+          moduleId: 'generated-bridge-in-module-1-1', sourceState: 'verified', sourceBindings: [sourceBindingFixture],
+          teacherFields: { inclusionRationale: expect.any(String) },
+        })],
+      }),
     }));
     expect(mocks.failUnit).not.toHaveBeenCalled();
   });
@@ -182,87 +195,56 @@ describe('smart courseware generation worker', () => {
     expect(mocks.failUnit).not.toHaveBeenCalled();
   });
 
-  it('rejects provider-claimed verified output with no binding when the server allowlist is empty', async () => {
+  it('writes activity answers into server-owned teacher metadata', async () => {
     const plan = validPlanFixture();
     plan.sources = [];
-    Object.assign(plan.knowledgePoints[0], {
-      sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [],
-      gapIdentity: `smart-knowledge-gap:${'d'.repeat(64)}`,
-    });
     const context = {
-      id: 'job-false-verified', ownerId: 'teacher-1', draftId: 'draft-false-verified', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
+      id: 'job-activity-evidence', ownerId: 'teacher-1', draftId: 'draft-activity-evidence', state: 'QUEUED', firstIncompleteUnitKey: 'pre-assessment',
       deliveryGeneration: 1,
-      draft: { id: 'draft-false-verified', planRevision: { content: plan } },
-      units: [{ id: 'unit-false-verified', unitKey: 'bridge-in', state: 'PENDING', output: null, orderIndex: 0, attemptGeneration: 0 }],
+      draft: { id: 'draft-activity-evidence', planRevision: { content: plan } },
+      units: [{ id: 'unit-activity-evidence', unitKey: 'pre-assessment', state: 'PENDING', output: null, orderIndex: 0, attemptGeneration: 0 }],
     };
     const db = { smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) } };
     mocks.beginAttempt.mockResolvedValue({
-      claimed: true, claimToken: 'claim-false-verified',
-      attempt: { id: 'attempt-false-verified', idempotencyKey: 'attempt-false-verified-key' },
+      claimed: true, claimToken: 'claim-activity-evidence', attempt: { id: 'attempt-activity-evidence', idempotencyKey: 'attempt-activity-evidence-key' },
     });
-    mocks.failUnit.mockResolvedValue({ state: 'FAILED' });
+    mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
     const output = createDeterministicCoursewareStage({
-      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan,
+      unitKey: 'pre-assessment', durationSeconds: 300, approvedPlan: plan,
     });
-    output.moduleMetadata.forEach((metadata) => {
-      metadata.sourceState = 'verified';
-      metadata.sourceBindings = [];
-      metadata.teacherFields.inclusionRationale = '伪造的已验证声明';
-    });
+    const providerOutput = {
+      stage: output.stage,
+      teacherActivityEvidence: [{
+        moduleId: output.stage.steps[0].modules[0].id,
+        referenceAnswer: 'b', explanation: '教师讲解依据。', scoring: { strategy: 'exact-match', maxPoints: 1 },
+      }],
+    };
     const runtime = {
       serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
       generate: vi.fn().mockResolvedValue({
-        output, normalizedResponseId: 'false-verified-response', inputTokens: 0, outputTokens: 0, costMicros: null,
+        output: providerOutput, normalizedResponseId: 'activity-response', inputTokens: 0, outputTokens: 0, costMicros: null,
       }),
     };
 
     await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never))
-      .rejects.toMatchObject({ code: 'verified-source-binding-required', status: 409 });
-    expect(mocks.buildSar).not.toHaveBeenCalled();
-    expect(mocks.buildSourcePack).not.toHaveBeenCalled();
-    expect(mocks.completeUnit).not.toHaveBeenCalled();
-    expect(mocks.failUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      jobId: context.id, unitKey: 'bridge-in', failureCode: 'verified-source-binding-required', retryable: false,
+      .resolves.toEqual({ jobId: context.id, state: 'COMPLETED' });
+    expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      output: expect.objectContaining({
+        stage: expect.objectContaining({ steps: [expect.objectContaining({
+          modules: [expect.objectContaining({ id: 'generated-pre-assessment-module-1-1', evidencePath: 'responses.pre-assessment.generated-pre-assessment-module-1-1' })],
+        })] }),
+        moduleMetadata: [expect.objectContaining({
+          moduleId: 'generated-pre-assessment-module-1-1',
+          teacherFields: expect.objectContaining({ referenceAnswer: 'b', explanation: '教师讲解依据。', scoring: { strategy: 'exact-match', maxPoints: 1 } }),
+        })],
+      }),
     }));
   });
 
-  it.each([
-    ['an unrelated goal id', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
-      output.approvedPlanAlignment.goalIds.push('goal-unrelated');
-    }, 'generated-courseware-plan-alignment-changed'],
-    ['a mutated goal set hash', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
-      output.approvedPlanAlignment.goalSetHash = 'b'.repeat(64);
-    }, 'generated-courseware-plan-alignment-changed'],
-    ['a mutated stage content hash', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
-      output.approvedPlanAlignment.stageContentHash = 'c'.repeat(64);
-    }, 'generated-courseware-plan-alignment-changed'],
-    ['a changed approved outline title', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
-      output.approvedPlanAlignment.stageOutlineTitles = ['未批准的标题'];
-    }, 'generated-courseware-plan-alignment-changed'],
-    ['an omitted goal id', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
-      output.approvedPlanAlignment.goalIds = [];
-    }, 'generated-courseware-schema-invalid'],
-    ['a mutated actual step title', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
-      output.stage.steps[0].title = '未批准的标题';
-    }, 'generated-courseware-step-plan-binding-changed'],
-    ['a mutated actual step identity', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
-      output.stage.steps[0].id = 'generated-step-mutated';
-    }, 'generated-courseware-step-plan-binding-changed'],
-    ['an additional actual step', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
-      const step = structuredClone(output.stage.steps[0]);
-      step.id = `${step.id}-extra`;
-      step.modules[0].id = `${step.modules[0].id}-extra`;
-      if (step.modules[0].evidencePath) step.modules[0].evidencePath = `${step.modules[0].evidencePath}-extra`;
-      output.stage.steps.push(step);
-      output.moduleMetadata.push({ ...structuredClone(output.moduleMetadata[0]), moduleId: step.modules[0].id });
-    }, 'generated-courseware-step-plan-binding-changed'],
-    ['a mutated step goal binding', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
-      output.stepPlanBindings[0].goalIds = ['goal-unrelated'];
-    }, 'generated-courseware-step-plan-binding-changed'],
-  ])('rejects provider output with %s before unit completion', async (_label, mutate, failureCode) => {
+  it('reconstructs server-owned plan bindings and ignores superfluous activity evidence in a non-activity stage', async () => {
     const plan = validPlanFixture();
     const context = {
-      id: 'job-plan-alignment', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
+      id: 'job-server-owned-bindings', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
       deliveryGeneration: 1,
       draft: { id: 'draft-1', planRevision: { content: plan } },
       units: [{ id: 'unit-1', unitKey: 'bridge-in', state: 'PENDING', output: null, orderIndex: 0, attemptGeneration: 0 }],
@@ -278,25 +260,52 @@ describe('smart courseware generation worker', () => {
       },
     }] } } });
     mocks.beginAttempt.mockResolvedValue({
-      claimed: true, claimToken: 'claim-alignment', attempt: { id: 'attempt-alignment', idempotencyKey: 'attempt-alignment-key' },
+      claimed: true, claimToken: 'claim-server-owned', attempt: { id: 'attempt-server-owned', idempotencyKey: 'attempt-server-owned-key' },
     });
+    mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
     mocks.failUnit.mockResolvedValue({ state: 'FAILED' });
     const output = createDeterministicCoursewareStage({
       unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture,
     });
-    mutate(output);
+    output.approvedPlanAlignment.goalIds = ['model-invented-goal'];
+    output.stepPlanBindings[0].goalIds = ['model-invented-goal'];
+    output.stage.stage = 'objective';
+    output.stage.durationSeconds = 60;
+    output.stage.steps[0].title = '模型改写的标题';
+    output.stage.steps[0].durationSeconds = 60;
+    const providerOutput = {
+      ...output,
+      teacherActivityEvidence: [{
+        moduleId: 'provider-extra-evidence',
+        referenceAnswer: 'b',
+        explanation: '非互动阶段不消费教师作答证据。',
+        scoring: { strategy: 'exact-match', maxPoints: 1 },
+      }],
+    };
     const runtime = {
       serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
       generate: vi.fn().mockResolvedValue({
-        output, normalizedResponseId: 'fixture-response', inputTokens: 0, outputTokens: 0, costMicros: null,
+        output: providerOutput, normalizedResponseId: 'fixture-response', inputTokens: 0, outputTokens: 0, costMicros: null,
       }),
     };
 
-    await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never)).rejects.toBeDefined();
-    expect(mocks.completeUnit).not.toHaveBeenCalled();
-    expect(mocks.failUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      failureCode, retryable: false,
+    await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never))
+      .resolves.toEqual({ jobId: context.id, state: 'COMPLETED' });
+    expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      output: expect.objectContaining({
+        approvedPlanAlignment: expect.objectContaining({ goalIds: ['goal-1'] }),
+        stepPlanBindings: [expect.objectContaining({ goalIds: ['goal-1'] })],
+        stage: expect.objectContaining({
+          stage: 'bridge-in', durationSeconds: 300,
+          steps: [expect.objectContaining({
+            id: 'generated-bridge-in-step-1', title: '导入', durationSeconds: 300,
+            modules: [expect.objectContaining({ id: 'generated-bridge-in-module-1-1' })],
+          })],
+        }),
+      }),
     }));
+    const completedOutput = mocks.completeUnit.mock.calls[0]?.[1].output;
+    expect(completedOutput.moduleMetadata[0].teacherFields.referenceAnswer).toBeUndefined();
   });
 
   it('assembles a summary after resuming with persisted v1 completed units', async () => {
@@ -401,7 +410,7 @@ describe('smart courseware generation worker', () => {
     expect(runtime.generate).not.toHaveBeenCalled();
   });
 
-  it('rejects an initial provider unit that mislabels AI output as teacher-created pending', async () => {
+  it('derives verified source state from the server Source Pack rather than provider metadata', async () => {
     const plan = validPlanFixture();
     const context = {
       id: 'job-invalid-source-state', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
@@ -424,7 +433,7 @@ describe('smart courseware generation worker', () => {
     mocks.beginAttempt.mockResolvedValue({
       claimed: true, claimToken: 'claim-invalid', attempt: { id: 'attempt-invalid', idempotencyKey: 'attempt-invalid-key' },
     });
-    mocks.failUnit.mockResolvedValue({ state: 'FAILED' });
+    mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
     const output = createDeterministicCoursewareStage({
       unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture,
     });
@@ -437,12 +446,15 @@ describe('smart courseware generation worker', () => {
     };
 
     await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never))
-      .rejects.toMatchObject({ code: 'ai-generated-courseware-source-state-invalid' });
-    expect(mocks.completeUnit).not.toHaveBeenCalled();
-    expect(mocks.failUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      failureCode: 'ai-generated-courseware-source-state-invalid',
-      retryable: false,
+      .resolves.toEqual({ jobId: context.id, state: 'COMPLETED' });
+    expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      output: expect.objectContaining({
+        moduleMetadata: [expect.objectContaining({
+          sourceState: 'verified', sourceBindings: [sourceBindingFixture],
+        })],
+      }),
     }));
+    expect(mocks.failUnit).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid early-stage layout before completion and accepts a corrected retry', async () => {
@@ -473,15 +485,23 @@ describe('smart courseware generation worker', () => {
     };
 
     await expect(processCoursewareGenerationJob(db as never, pending.id, async () => runtime as never))
-      .rejects.toMatchObject({ code: 'runtime-stage-invalid:layout.unregistered-template' });
+      .rejects.toBeDefined();
     expect(mocks.completeUnit).not.toHaveBeenCalled();
     expect(mocks.failUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      unitKey: 'bridge-in', failureCode: 'runtime-stage-invalid:layout.unregistered-template', retryable: false,
+      unitKey: 'bridge-in', failureCode: 'generated-courseware-schema-invalid', retryable: false,
     }));
 
     await expect(processCoursewareGenerationJob(db as never, pending.id, async () => runtime as never))
       .resolves.toEqual({ jobId: pending.id, state: 'COMPLETED' });
-    expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ unitKey: 'bridge-in', output: corrected }));
+    expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      unitKey: 'bridge-in',
+      output: expect.objectContaining({
+        stage: expect.objectContaining({
+          steps: [expect.objectContaining({ id: 'generated-bridge-in-step-1' })],
+        }),
+        moduleMetadata: [expect.objectContaining({ teacherFields: { inclusionRationale: expect.any(String) } })],
+      }),
+    }));
   });
 
   it('fails a crash redelivery with a live unit lease and processes a later reclaimed delivery', async () => {

@@ -207,6 +207,7 @@ const CONTRACTS = [
     },
   }),
   ...([
+    ['association', '本节点与目标节点存在语义关联', '本节点与来源节点存在语义关联'],
     ['applies_to', '本节点可应用于目标', '本节点可接受来源方法的应用'],
     ['opposite', '本节点与另一节点语义相反', '本节点与另一节点语义相反'],
     ['related', '本节点与另一节点相关', '本节点与另一节点相关'],
@@ -338,6 +339,23 @@ function hasMeaningfulValue(value: unknown): boolean {
 function hasAvailableEvidence(relation: RawKnowledgeGraphRelation): boolean {
   return ['rationale', 'evidence', 'sourceDocument', 'sourceMetadata', 'provenance']
     .some((key) => hasMeaningfulValue(relation[key]));
+}
+
+export type KnowledgeGraphRelationEvidenceState = 'available' | 'unavailable';
+
+/**
+ * The single evidence-availability rule shared by the payload-building coverage
+ * pipeline and the inspector relation runtime. An authoritative `evidence_state`
+ * declared by a governed projection document wins; otherwise availability is
+ * derived from the relation's evidence-bearing fields (rationale, evidence,
+ * sourceDocument, sourceMetadata, provenance) and is never fabricated.
+ */
+export function deriveKnowledgeGraphRelationEvidenceState(
+  relation: RawKnowledgeGraphRelation
+): KnowledgeGraphRelationEvidenceState {
+  const declared = relation.evidence_state;
+  if (declared === 'available' || declared === 'unavailable') return declared;
+  return hasAvailableEvidence(relation) ? 'available' : 'unavailable';
 }
 
 function encodeKeyPart(value: string): string {
@@ -476,13 +494,13 @@ export function projectKnowledgeGraphRelations<T extends RawKnowledgeGraphRelati
       return;
     }
 
-    const evidenceAvailable = hasAvailableEvidence(rawRelation);
+    const evidenceState = deriveKnowledgeGraphRelationEvidenceState(rawRelation);
     contributingRelations.push({
       canonicalType: contract.canonicalType,
       detailSentence: contract.detailSentence,
       direction: contract.direction,
-      evidenceState: evidenceAvailable ? 'available' : 'unavailable',
-      evidenceText: evidenceAvailable ? '关系依据可用' : '关系依据未提供',
+      evidenceState,
+      evidenceText: evidenceState === 'available' ? '关系依据可用' : '关系依据未提供',
       family: contract.family,
       rawRelation,
       rawType,

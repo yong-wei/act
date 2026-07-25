@@ -11,21 +11,12 @@ import { createPrismaClient } from '../../src/lib/prisma-client';
  */
 
 import fs from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 import { Job, Queue, Worker } from 'bullmq';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { Redis } from 'ioredis';
-import {
-  calculateCompetencyVector,
-  calculateTrendVector,
-  generateEvidenceSummary,
-  identifyStrengths,
-  identifyWeaknesses,
-} from '@/lib/data-governance/competency-engine';
-import { deleteExpiredGrowthEvaluations, preparedGrowthEvaluationMatches, prepareGrowthEvaluationDescription, refreshStudentGrowthEvaluation } from '@/lib/data-governance/growth-evaluation';
 import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance/event-buffer';
 import {
   eventToLearningFactInput,
@@ -35,54 +26,28 @@ import {
   rebuildStudentEvidenceFeatureCache,
   refreshStudentEvidenceFeatureCache,
 } from '@/lib/data-governance/student-evidence-feature-cache';
-import { materializeIncrementalPortraitV2 } from '@/lib/data-governance/portrait-v2-materialization';
 import {
-  claimLearningMaterializationRebuild,
-  appendEmptyStudentCompatibilitySnapshot,
-  appendNoRecentEvidenceCompatibilitySnapshot,
-  completeLearningMaterializationRebuild,
-  dispatchClassSnapshotOutbox,
-  dispatchGrowthRecomputeOutbox,
-  failLearningMaterializationRebuild,
-  resolveCompatibilityNoFactsAction,
-  revokeDerivedLearningMaterializations,
-  readLearningMaterializationGeneration,
-  runClaimedLearningMaterializationStage,
-  runLearningMaterializationBarrierStage,
-  selectCurrentClassCompetencySnapshots,
-  isSameClassPopulationSignature,
-  stageClassSnapshotOutbox,
-  stageGrowthRecomputeOutbox,
-} from '@/lib/data-governance/derived-learning-materialization';
-// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vectors are non-authoritative inputs to v2 projection only.
-import type { CompetencyVector } from '@/lib/data-governance/competency-model';
+  materializeIncrementalPortraitV2,
+  type PortraitV2PublicationExpectation,
+} from '@/lib/data-governance/portrait-v2-materialization';
 import {
-  aggregatePortraitV2,
-  hasPortraitV2Evidence,
-  isSamePortraitV2ClassSnapshot,
-  summarizePortraitV2,
-} from '@/lib/data-governance/portrait-v2-consumer';
-import type {
-  PortraitV2ClassAggregate,
-} from '@/lib/data-governance/portrait-v2-consumer';
+  materializeCumulativeClassPortrait,
+  type CumulativeClassPublicationExpectation,
+} from '@/lib/data-governance/cumulative-class-materialization';
 import {
-  derivePortraitV2Compatibility,
-  projectPortraitV2ForConsumer,
-  readLatestValidNativePortraitV2Snapshots,
-  type PortraitV2PayloadShape,
-} from '@/lib/data-governance/portrait-v2-model';
+  claimCumulativeLearnerReconciliations,
+  completeCumulativeLearnerReconciliation,
+  enqueueCumulativeClassReconciliation,
+  failCumulativeLearnerReconciliation,
+  readActiveCumulativePublicationFence as readActiveCumulativePublicationFenceOrNull,
+  renewCumulativeLearnerReconciliation,
+  requestCumulativeLearnerReconciliation,
+  type ActiveCumulativePublicationFence,
+  type CumulativeLearnerReconciliationClaim,
+} from '@/lib/data-governance/cumulative-snapshot-jobs';
+import { SimulationTaskInputDriftError } from '@/lib/data-governance/simulation-task-portrait-projection';
+import { scheduleSimulationTaskCatalogRefresh } from '@/lib/data-governance/simulation-task-reconciliation';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
-import {
-  detectRisks,
-  getRecommendedScaffolding,
-  getRiskLevelDescription,
-} from '@/lib/data-governance/risk-detector';
-import { buildTeacherScopedLearningFactScopeFilters } from '@/lib/data-governance/teacher-evidence-governance';
-import {
-  buildClassScopedStudentProjections,
-  CLASS_COMPETENCY_MATERIALIZATION_VERSION,
-  CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
-} from '@/lib/data-governance/class-scoped-learning-materialization';
 import type {
   ClassSnapshotJob,
   EventIngestionJob,
@@ -238,6 +203,30 @@ function formatError(error: unknown): string {
   }
 }
 
+type JsonSafe<T> =
+  T extends bigint ? string :
+  T extends Date ? string :
+  T extends readonly (infer Item)[] ? Array<JsonSafe<Item>> :
+  T extends object ? { [Key in keyof T]: JsonSafe<T[Key]> } :
+  T;
+
+function toJsonSafeWorkerResult<T>(value: T): JsonSafe<T> {
+  if (typeof value === 'bigint') return value.toString() as JsonSafe<T>;
+  if (value instanceof Date) return value.toISOString() as JsonSafe<T>;
+  if (Array.isArray(value)) {
+    return value.map((item) => toJsonSafeWorkerResult(item)) as JsonSafe<T>;
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        toJsonSafeWorkerResult(item),
+      ]),
+    ) as JsonSafe<T>;
+  }
+  return value as JsonSafe<T>;
+}
+
 function isInfrastructureError(error: unknown): boolean {
   const message = formatError(error).toLowerCase();
 
@@ -374,14 +363,60 @@ async function scheduleEventIngestionBatch(date: string, batchIndex: number, tri
   );
 }
 
-async function enqueueStudentSnapshot(userId: string, triggerId: string) {
+async function readActiveCumulativePublicationFence(
+  db: PrismaClient,
+): Promise<ActiveCumulativePublicationFence> {
+  const fence = await readActiveCumulativePublicationFenceOrNull(db);
+  if (!fence) {
+    throw new Error('No active cumulative portrait publication fence is available.');
+  }
+  return fence;
+}
+
+function studentPublicationJobData(
+  userId: string,
+  fence: ActiveCumulativePublicationFence,
+  options: {
+    fullRebuild?: boolean;
+    reconciliationClaim?: CumulativeLearnerReconciliationClaim;
+  } = {},
+): StudentSnapshotJob {
+  return {
+    userId,
+    ...(options.fullRebuild ? { fullRebuild: true } : {}),
+    calculationVersion: fence.calculationVersion,
+    learnerGeneration: fence.learnerGeneration.toString(),
+    queueGeneration: fence.queueGeneration.toString(),
+    cutoverFence: fence.fence.toString(),
+    migrationRunId: fence.activeMigrationRunId,
+    ...(options.reconciliationClaim ? {
+      reconciliationRequestGeneration: options.reconciliationClaim.generation,
+      reconciliationClaimToken: options.reconciliationClaim.claimToken,
+      reconciliationClassIds: options.reconciliationClaim.classIds,
+      ...(options.reconciliationClaim.simulationTaskInput ? {
+        simulationTaskExpectedInputDigest:
+          options.reconciliationClaim.simulationTaskInput.inputDigest,
+      } : {}),
+    } : {}),
+  };
+}
+
+async function enqueueStudentSnapshot(
+  userId: string,
+  triggerId: string,
+  fence: ActiveCumulativePublicationFence,
+  options: {
+    fullRebuild?: boolean;
+    reconciliationClaim?: CumulativeLearnerReconciliationClaim;
+  } = {},
+) {
   if (!studentQueue) {
     throw new Error('student queue is not initialized');
   }
 
   await studentQueue.add(
     `student-snapshot-${userId}`,
-    { userId },
+    studentPublicationJobData(userId, fence, options),
     {
       attempts: 2,
       backoff: { type: 'exponential', delay: 10000 },
@@ -391,32 +426,57 @@ async function enqueueStudentSnapshot(userId: string, triggerId: string) {
   );
 }
 
-async function enqueueClassSnapshot(classId: string, triggerId: string) {
+function reconciliationClaimFromJob(
+  data: StudentSnapshotJob,
+  fence: ActiveCumulativePublicationFence,
+): CumulativeLearnerReconciliationClaim | null {
+  if (
+    !data.userId ||
+    !Number.isInteger(data.reconciliationRequestGeneration) ||
+    !data.reconciliationClaimToken
+  ) return null;
+  return {
+    userId: data.userId,
+    classIds: Array.isArray(data.reconciliationClassIds)
+      ? [...new Set(data.reconciliationClassIds.filter(Boolean))]
+      : [],
+    generation: data.reconciliationRequestGeneration!,
+    claimToken: data.reconciliationClaimToken,
+    fence,
+  };
+}
+
+async function enqueueClassSnapshot(
+  classId: string,
+  triggerId: string,
+  fence: ActiveCumulativePublicationFence,
+) {
   if (!classQueue) {
     throw new Error('class queue is not initialized');
   }
-
-  await classQueue.add(
-    `class-snapshot-${classId}`,
-    { classId },
-    {
-      attempts: 2,
-      backoff: { type: 'exponential', delay: 15000 },
-      jobId: `class-snapshot-${classId}-${triggerId}`,
-      ...JOB_HISTORY_OPTIONS,
-    },
-  );
+  await enqueueCumulativeClassReconciliation({
+    classIds: [classId],
+    mutationIdentity: `coordinator:${triggerId}`,
+    db: getPrismaClient(),
+    queue: classQueue,
+    fence,
+  });
 }
 
-async function enqueueClassSnapshotOutbox(classId: string, jobId: string) {
+async function enqueueClassSnapshotForStudent(
+  classId: string,
+  userId: string,
+  sourceJobId: string,
+  fence: ActiveCumulativePublicationFence,
+) {
   if (!classQueue) throw new Error('class queue is not initialized');
-  const queueJobId = `learning-materialization-outbox-${createHash('sha256').update(jobId).digest('hex')}`;
-  await classQueue.add(`class-snapshot-${classId}`, { classId }, { attempts: 2, backoff: { type: 'exponential', delay: 15000 }, jobId: queueJobId, ...JOB_HISTORY_OPTIONS });
-}
-
-async function enqueueGrowthRecomputeOutbox(userId: string, snapshotId: string, jobId: string) {
-  if (!studentQueue) throw new Error('student queue is not initialized');
-  await studentQueue.add(`growth-recompute-${userId}`, { userId, growthRecomputeForSnapshot: snapshotId }, { attempts: 3, backoff: { type: 'exponential', delay: 10000 }, jobId, ...JOB_HISTORY_OPTIONS });
+  await enqueueCumulativeClassReconciliation({
+    classIds: [classId],
+    mutationIdentity: `student:${userId}:${sourceJobId}`,
+    db: getPrismaClient(),
+    queue: classQueue,
+    fence,
+  });
 }
 
 async function listBufferedDates(): Promise<Array<{ date: string; count: number }>> {
@@ -535,8 +595,9 @@ export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
     });
     factsCreated = result.count;
     const triggerId = String(job.id ?? batchDate);
+    const fence = await readActiveCumulativePublicationFence(db);
     for (const userId of new Set(facts.map((fact) => fact.userId))) {
-      await enqueueStudentSnapshot(userId, triggerId);
+      await enqueueStudentSnapshot(userId, triggerId, fence);
     }
   }
 
@@ -556,90 +617,141 @@ function resolveBatchDate(batchDate?: string, now = new Date()): string {
   return now.toISOString().split('T')[0];
 }
 
-function readRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
-}
-
-function readString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
-}
-
-function readQuestionSummaries(value: unknown) {
-  return Array.isArray(value)
-    ? value
-        .filter((item) => item && typeof item === 'object' && !Array.isArray(item))
-        .map((item) => item as Record<string, unknown>)
-    : undefined;
-}
-
-async function loadEvidenceDetails(
-  db: PrismaClient,
-  facts: Array<{ sourceLogId: string | null }>,
-) {
-  const sourceLogIds = Array.from(new Set(
-    facts
-      .map((fact) => fact.sourceLogId)
-      .filter((value): value is string => typeof value === 'string' && value.length > 0),
-  ));
-  if (sourceLogIds.length === 0) {
-    return {};
+function parseJobBigInt(value: string | undefined): bigint | null {
+  if (!value || !/^\d+$/.test(value)) return null;
+  try {
+    return BigInt(value);
+  } catch {
+    return null;
   }
+}
 
-  const logs = await db.interactionLog.findMany({
-    where: { id: { in: sourceLogIds } },
-    select: {
-      id: true,
-      stepId: true,
-      eventData: true,
-    },
-  });
+function readStudentPublicationExpectation(
+  data: StudentSnapshotJob,
+): PortraitV2PublicationExpectation | null {
+  const generation = parseJobBigInt(data.learnerGeneration);
+  const queueGeneration = parseJobBigInt(data.queueGeneration);
+  const cutoverFence = parseJobBigInt(data.cutoverFence);
+  if (
+    !data.calculationVersion ||
+    generation === null ||
+    queueGeneration === null ||
+    cutoverFence === null ||
+    !data.migrationRunId
+  ) return null;
+  return {
+    calculationVersion: data.calculationVersion,
+    generation,
+    queueGeneration,
+    cutoverFence,
+    migrationRunId: data.migrationRunId,
+  };
+}
 
-  return Object.fromEntries(logs.map((log) => {
-    const eventData = readRecord(log.eventData);
-    return [log.id, {
-      evidenceTitle: readString(eventData.evidenceTitle),
-      stepId: log.stepId ?? readString(eventData.stepId),
-      questionSummaries: readQuestionSummaries(eventData.questionSummaries),
-    }];
-  }));
+function readClassPublicationExpectation(
+  data: ClassSnapshotJob,
+): CumulativeClassPublicationExpectation | null {
+  const learnerGeneration = parseJobBigInt(data.learnerGeneration);
+  const generation = parseJobBigInt(data.classGeneration);
+  const queueGeneration = parseJobBigInt(data.queueGeneration);
+  const cutoverFence = parseJobBigInt(data.cutoverFence);
+  if (
+    !data.calculationVersion ||
+    learnerGeneration === null ||
+    generation === null ||
+    queueGeneration === null ||
+    cutoverFence === null ||
+    !data.migrationRunId
+  ) return null;
+  return {
+    calculationVersion: data.calculationVersion,
+    learnerGeneration,
+    generation,
+    queueGeneration,
+    cutoverFence,
+    migrationRunId: data.migrationRunId,
+  };
+}
+
+function matchesStudentFence(
+  expectation: PortraitV2PublicationExpectation,
+  fence: ActiveCumulativePublicationFence,
+): boolean {
+  return (
+    expectation.calculationVersion === fence.calculationVersion &&
+    expectation.generation === fence.learnerGeneration &&
+    expectation.queueGeneration === fence.queueGeneration &&
+    expectation.cutoverFence === fence.fence &&
+    expectation.migrationRunId === fence.activeMigrationRunId
+  );
+}
+
+function matchesClassFence(
+  expectation: CumulativeClassPublicationExpectation,
+  fence: ActiveCumulativePublicationFence,
+): boolean {
+  return (
+    expectation.calculationVersion === fence.calculationVersion &&
+    expectation.learnerGeneration === fence.learnerGeneration &&
+    expectation.generation === fence.classGeneration &&
+    expectation.queueGeneration === fence.queueGeneration &&
+    expectation.cutoverFence === fence.fence &&
+    expectation.migrationRunId === fence.activeMigrationRunId
+  );
 }
 
 export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   if (job.data.coordinator) {
     const db = getPrismaClient();
-    const coordinatorAt = new Date();
-    await dispatchClassSnapshotOutbox(db, enqueueClassSnapshotOutbox, coordinatorAt);
-    await dispatchGrowthRecomputeOutbox(db, enqueueGrowthRecomputeOutbox, coordinatorAt);
-    await deleteExpiredGrowthEvaluations(db, coordinatorAt);
-    const rebuilds = await db.learningMaterializationRebuildRequest.findMany({
-      where: { OR: [{ status: 'PENDING' }, { status: 'CLAIMED', claimExpiresAt: { lte: coordinatorAt } }] },
-      select: { userId: true, generation: true },
-      take: 500,
-    });
-    for (const request of rebuilds) {
-      const leaseEpoch = Math.floor(coordinatorAt.getTime() / (10 * 60_000));
-      await studentQueue!.add(`student-full-rebuild-${request.userId}`, { userId: request.userId, fullRebuild: true, rebuildGeneration: request.generation }, { attempts: 2, backoff: { type: 'exponential', delay: 10000 }, jobId: `student-full-rebuild-${request.userId}-${request.generation}-${leaseEpoch}`, ...JOB_HISTORY_OPTIONS });
+    const fence = await readActiveCumulativePublicationFence(db);
+    const catalogRefresh = job.data.simulationTaskCatalogRefresh
+      ? await scheduleSimulationTaskCatalogRefresh(db as any)
+      : null;
+    const claims = await claimCumulativeLearnerReconciliations(db as any, fence);
+    let requestFailed = 0;
+    for (const claim of claims) {
+      try {
+        await enqueueStudentSnapshot(
+          claim.userId,
+          `reconcile-${claim.generation}-${fence.fence}`,
+          fence,
+          { fullRebuild: true, reconciliationClaim: claim },
+        );
+      } catch {
+        requestFailed += 1;
+        await failCumulativeLearnerReconciliation(
+          db as any,
+          claim,
+          'learner-queue-unavailable',
+        );
+      }
     }
+
     const activeStudentIds = await getActiveStudentIds();
-    if (activeStudentIds.length === 0 && rebuilds.length === 0) {
+    const claimedUserIds = new Set(claims.map((claim) => claim.userId));
+    const regularStudentIds = activeStudentIds.filter((userId) => !claimedUserIds.has(userId));
+    if (regularStudentIds.length === 0 && claims.length === 0) {
       logWithThrottle('student-snapshot:coordinator', 'info', '[StudentSnapshot] No active students in the last 90 minutes');
-      return { scheduled: 0 };
+      return { scheduled: 0, reconciliationScheduled: 0, reconciliationFailed: 0 };
     }
 
     const triggerId = new Date().toISOString().slice(0, 13);
-    for (const userId of activeStudentIds) {
-      await enqueueStudentSnapshot(userId, triggerId);
+    for (const userId of regularStudentIds) {
+      await enqueueStudentSnapshot(userId, triggerId, fence);
     }
 
     logWithThrottle(
       'student-snapshot:coordinator',
       'info',
-      `[StudentSnapshot] Scheduled ${activeStudentIds.length} active student snapshot jobs`,
+      `[StudentSnapshot] Scheduled ${regularStudentIds.length} active and ${claims.length - requestFailed} reconciliation jobs`,
     );
 
-    return { scheduled: activeStudentIds.length + rebuilds.length };
+    return {
+      scheduled: regularStudentIds.length + claims.length - requestFailed,
+      reconciliationScheduled: claims.length - requestFailed,
+      reconciliationFailed: requestFailed,
+      catalogRefresh,
+    };
   }
 
   if (!job.data.userId) {
@@ -648,415 +760,116 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
 
   const db = getPrismaClient();
   const { userId } = job.data;
-  const snapshotAt = new Date();
-  if (job.data.growthRecomputeForSnapshot) {
-    const growthSnapshot = await db.studentCompetencySnapshot.findFirst({
-      where: { id: job.data.growthRecomputeForSnapshot, userId },
-    });
-    if (!growthSnapshot) {
-      return { skipped: true, reason: 'stale_growth_recompute_snapshot', userId, featureCacheRefreshed: false };
-    }
-    const latestGrowthSnapshot = await db.studentCompetencySnapshot.findFirst({
-      where: { userId },
-      orderBy: { snapshotAt: 'desc' },
-    });
-    if (!latestGrowthSnapshot || latestGrowthSnapshot.id !== growthSnapshot.id) {
-      return { skipped: true, reason: 'stale_growth_recompute_snapshot', userId, featureCacheRefreshed: false };
-    }
+  const expectation = readStudentPublicationExpectation(job.data);
+  if (!expectation) {
+    return { skipped: true, reason: 'missing_cumulative_publication_fence', userId };
+  }
+  const fence = await readActiveCumulativePublicationFence(db);
+  if (!matchesStudentFence(expectation, fence)) {
+    return { skipped: true, reason: 'stale_cumulative_publication_fence', userId };
+  }
 
-    const growthTargetProfile = await db.studentProfile.findUnique({ where: { userId }, select: { classId: true } });
-    const preparedGrowthDescription = await prepareGrowthEvaluationDescription(db as any, {
-      snapshot: growthSnapshot,
-      targetContext: { classId: growthTargetProfile?.classId ?? null, institutionId: process.env.ACT_INSTITUTION_ID?.trim() || null },
-    });
-    if (!preparedGrowthDescription) {
-      return { skipped: true, reason: 'growth_no_evidence', userId, snapshotId: growthSnapshot.id, featureCacheRefreshed: false };
-    }
-    const observedGeneration = await readLearningMaterializationGeneration(db, userId);
-    return runLearningMaterializationBarrierStage(db, { userId, observedGeneration }, async (tx) => {
-      const currentSnapshot = await tx.studentCompetencySnapshot.findFirst({
-        where: { userId },
-        orderBy: { snapshotAt: 'desc' },
-      });
-      if (!currentSnapshot || currentSnapshot.id !== growthSnapshot.id) {
-        return { skipped: true, reason: 'stale_growth_recompute_snapshot', userId, featureCacheRefreshed: false };
-      }
-      const growthEvaluation = await refreshStudentGrowthEvaluation(tx as any, {
-        snapshot: growthSnapshot,
-        preparedDescription: preparedGrowthDescription,
-      });
-      return {
-        skipped: growthEvaluation.action.startsWith('skipped'),
-        reason: `growth_${growthEvaluation.action}`,
-        userId,
-        snapshotId: growthSnapshot.id,
-        featureCacheRefreshed: false,
-        growthEvaluation,
-      };
-    });
+  const reconciliationClaim = reconciliationClaimFromJob(job.data, fence);
+  if (job.data.reconciliationRequestGeneration !== undefined && !reconciliationClaim) {
+    return { skipped: true, reason: 'invalid_reconciliation_claim', userId };
   }
-  const rebuildClaim = job.data.fullRebuild && job.data.rebuildGeneration
-    ? await claimLearningMaterializationRebuild(db, { userId, expectedGeneration: job.data.rebuildGeneration, now: snapshotAt })
-    : null;
-  if (job.data.fullRebuild && !rebuildClaim) {
-    return { skipped: true, reason: 'stale_rebuild_generation', userId };
+  if (
+    reconciliationClaim &&
+    !await renewCumulativeLearnerReconciliation(db as any, reconciliationClaim)
+  ) {
+    return { skipped: true, reason: 'stale_reconciliation_claim', userId };
   }
-  const observedGeneration = rebuildClaim ? rebuildClaim.generation : await readLearningMaterializationGeneration(db, userId);
-  const portraitPreflight = await materializeIncrementalPortraitV2(db as any, userId, {
-    now: snapshotAt,
-    fullRebuild: job.data.fullRebuild,
-    dryRun: true,
-  });
-  if (!job.data.fullRebuild && !portraitPreflight.written) {
-    if (portraitPreflight.mappingIssues.length > 0) {
+
+  try {
+    const portraitV2 = await materializeIncrementalPortraitV2(db as any, userId, {
+      now: new Date(),
+      fullRebuild: reconciliationClaim ? true : job.data.fullRebuild,
+      publication: expectation,
+      simulationTaskInput: job.data.simulationTaskExpectedInputDigest ? {
+        expectedInputDigest: job.data.simulationTaskExpectedInputDigest,
+      } : undefined,
+    });
+    if (portraitV2.mappingIssues.length > 0) {
       logWithThrottle(
         `student-snapshot:${userId}:portrait-v2-mapping`,
         'warn',
-        `[StudentSnapshot] Portrait v2 mapping issues for ${userId}: ${portraitPreflight.mappingIssues.join(', ')}`,
+        `[StudentSnapshot] Portrait v2 mapping issues for ${userId}: ${portraitV2.mappingIssues.join(', ')}`,
       );
     }
-    return { skipped: true, reason: 'no_portrait_state_change', userId, featureCacheRefreshed: false, portraitV2: portraitPreflight };
-  }
-  const growthWindowStart = new Date(snapshotAt.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const growthPreparationFacts = await db.learningFact.findMany({ where: { userId, startedAt: { gte: growthWindowStart } }, orderBy: { startedAt: 'desc' } });
-  const growthPreparationVector = calculateCompetencyVector(growthPreparationFacts, '1m');
-  const growthPreparationFactDigest = createHash('sha256').update(JSON.stringify(growthPreparationFacts.map((fact) => [fact.id, fact.createdAt]))).digest('hex');
-  const growthPreparationEvidenceDetails = await loadEvidenceDetails(db, growthPreparationFacts);
-  const growthPreparationEvidenceSummary = generateEvidenceSummary(growthPreparationFacts, 3, growthPreparationEvidenceDetails);
-  const growthTargetProfile = await db.studentProfile.findUnique({ where: { userId }, select: { classId: true } });
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: growth evaluation consumes this vector as non-authoritative compatibility data.
-  const preparedGrowthDescription = growthPreparationFacts.length > 0
-    ? await prepareGrowthEvaluationDescription(db as any, { snapshot: {
-      id: `pending:${userId}:${snapshotAt.getTime()}`,
-      userId,
-      snapshotAt,
-      factCount: growthPreparationFacts.length,
-      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative compatibility input.
-      competencyVector: growthPreparationVector,
-      evidenceSummary: growthPreparationEvidenceSummary,
-      factInputDigest: growthPreparationFactDigest,
-    }, targetContext: { classId: growthTargetProfile?.classId ?? null, institutionId: process.env.ACT_INSTITUTION_ID?.trim() || null } })
-    : null;
-
-  const materialize = async (materializationDb: any, barrierHeld: boolean) => {
-  const executeStage = async <T>(action: (tx: any) => Promise<T>): Promise<T> => {
-    if (barrierHeld) return action(materializationDb);
-    if (rebuildClaim) return runClaimedLearningMaterializationStage(db, rebuildClaim, action as any) as Promise<T>;
-    return runLearningMaterializationBarrierStage(db, { userId, observedGeneration }, action as any) as Promise<T>;
-  };
-  const portraitV2 = await executeStage((tx) => materializeIncrementalPortraitV2(tx, userId, { now: snapshotAt, fullRebuild: job.data.fullRebuild }));
-  if (portraitV2.mappingIssues.length > 0) {
-    logWithThrottle(
-      `student-snapshot:${userId}:portrait-v2-mapping`,
-      'warn',
-      `[StudentSnapshot] Portrait v2 mapping issues for ${userId}: ${portraitV2.mappingIssues.join(', ')}`,
-    );
-  }
-  if (!job.data.fullRebuild && !portraitV2.written) {
-    return { skipped: true, reason: 'no_portrait_state_change', userId, featureCacheRefreshed: false, portraitV2 };
-  }
-  if (job.data.fullRebuild && !portraitV2.written) {
-    const emptySnapshot = await executeStage(async (tx) => {
-      await revokeDerivedLearningMaterializations(tx, {
-        userIds: [userId],
-        classIds: [],
-        scheduleRebuild: false,
-      });
-      const snapshot = await appendEmptyStudentCompatibilitySnapshot(tx, userId, snapshotAt, {
-        state: 'no-evidence-after-revocation',
-        reason: 'no-governed-portrait-contribution',
-      });
-      return snapshot;
+    const profile = await db.studentProfile.findUnique({
+      where: { userId },
+      select: { classId: true },
     });
-    return { skipped: false, reason: 'no_portrait_evidence', userId, snapshotId: emptySnapshot.id, featureCacheRefreshed: false, portraitV2 };
-  }
-
-  const thirtyDaysAgo = new Date(snapshotAt.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const facts = await executeStage<any[]>((tx) => tx.learningFact.findMany({
-    where: {
-      userId,
-      startedAt: { gte: thirtyDaysAgo },
-    },
-    orderBy: { startedAt: 'desc' },
-  }));
-
-  const previousSnapshot = await materializationDb.studentCompetencySnapshot.findFirst({
-    where: { userId },
-    orderBy: { snapshotAt: 'desc' },
-  });
-  const latestFactCreatedAt = facts.reduce<Date | null>((latest, fact) => {
-    if (!latest || fact.createdAt.getTime() > latest.getTime()) {
-      return fact.createdAt;
-    }
-    return latest;
-  }, null);
-
-  if (facts.length === 0) {
-    if (!job.data.fullRebuild) {
-      const historicalFacts = previousSnapshot ? [] : await executeStage<any[]>((tx) => tx.learningFact.findMany({ where: { userId }, orderBy: { startedAt: 'desc' } }));
-      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: historical vectors only seed a no-recent-evidence compatibility snapshot.
-      const historicalVector = previousSnapshot?.competencyVector ?? calculateCompetencyVector(historicalFacts, 'all');
-      const memberships = await executeStage<Array<{ classId: string }>>((tx) => tx.studentProfile.findMany({ where: { userId }, select: { classId: true } }));
-      const emptySnapshot = await executeStage(async (tx) => {
-        const emptySnapshot = await appendNoRecentEvidenceCompatibilitySnapshot(tx, userId, historicalVector, snapshotAt);
-        await tx.studentRiskFlag.updateMany({ where: { userId, isResolved: false }, data: { isResolved: true, resolvedAt: snapshotAt, resolutionNote: 'No governed facts in current compatibility window' } });
-        for (const membership of memberships) await stageClassSnapshotOutbox(tx, { userId, classId: membership.classId, generation: observedGeneration, snapshotId: emptySnapshot.id, now: snapshotAt });
-        return emptySnapshot;
-      });
-      return { skipped: false, reason: 'no_recent_evidence', userId, snapshotId: emptySnapshot.id, featureCacheRefreshed: false, portraitV2 };
-    }
-    const anyRemainingFact = await executeStage<{ id: string } | null>((tx) => tx.learningFact.findFirst({ where: { userId }, select: { id: true } }));
-    if (resolveCompatibilityNoFactsAction({ fullRebuild: true, hasAnyRemainingFact: Boolean(anyRemainingFact) }) === 'revoke') {
-      const memberships = await executeStage<Array<{ classId: string }>>((tx) => tx.studentProfile.findMany({ where: { userId }, select: { classId: true } }));
-      await executeStage(async (tx) => {
-        await appendEmptyStudentCompatibilitySnapshot(tx, userId, snapshotAt);
-        await tx.studentRiskFlag.updateMany({ where: { userId, isResolved: false }, data: { isResolved: true, resolvedAt: snapshotAt, resolutionNote: 'Superseded by empty full rebuild snapshot' } });
-        await revokeDerivedLearningMaterializations(tx, { userIds: [userId], classIds: memberships.map((row: { classId: string }) => row.classId), scheduleRebuild: false });
-      });
-      return { skipped: false, reason: 'no_facts_revoked', userId, featureCacheRefreshed: false, portraitV2 };
-    }
-    if (anyRemainingFact) {
-      const historicalFacts = previousSnapshot ? [] : await executeStage<any[]>((tx) => tx.learningFact.findMany({ where: { userId }, orderBy: { startedAt: 'desc' } }));
-      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: historical vectors only seed a no-recent-evidence compatibility snapshot.
-      const historicalVector = previousSnapshot?.competencyVector ?? calculateCompetencyVector(historicalFacts, 'all');
-      await executeStage(async (tx) => {
-        await appendNoRecentEvidenceCompatibilitySnapshot(tx, userId, historicalVector, snapshotAt);
-        await tx.studentRiskFlag.updateMany({ where: { userId, isResolved: false }, data: { isResolved: true, resolvedAt: snapshotAt, resolutionNote: 'No governed facts in current compatibility window' } });
-      });
-      return { skipped: false, reason: 'no_recent_evidence', userId, featureCacheRefreshed: false, portraitV2 };
-    }
-  }
-
-  if (!job.data.fullRebuild &&
-    previousSnapshot &&
-    previousSnapshot.factCount === facts.length &&
-    latestFactCreatedAt &&
-    latestFactCreatedAt.getTime() <= previousSnapshot.snapshotAt.getTime()
-  ) {
-    const currentFactDigest = createHash('sha256').update(JSON.stringify(facts.map((fact) => [fact.id, fact.createdAt]))).digest('hex');
-    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: growth snapshots retain the legacy vector as non-authoritative input.
-    const growthSnapshot = { id: previousSnapshot.id, userId, snapshotAt: previousSnapshot.snapshotAt, factCount: previousSnapshot.factCount, competencyVector: previousSnapshot.competencyVector, evidenceSummary: previousSnapshot.evidenceSummary, factInputDigest: currentFactDigest };
-    await executeStage(async (tx) => {
-      if (preparedGrowthEvaluationMatches(preparedGrowthDescription, growthSnapshot)) {
-        await refreshStudentGrowthEvaluation(tx, { snapshot: growthSnapshot, preparedDescription: preparedGrowthDescription! });
-      } else {
-        await stageGrowthRecomputeOutbox(tx, { userId, generation: observedGeneration, snapshotId: previousSnapshot.id, now: snapshotAt });
-      }
-      await refreshStudentEvidenceFeatureCache(tx, userId, { now: snapshotAt });
-    });
-    logWithThrottle(`student-snapshot:${userId}:unchanged`, 'info', `[StudentSnapshot] Skip ${userId}: no new facts since latest snapshot`);
-    return { skipped: true, reason: 'unchanged_facts', userId, featureCacheRefreshed: true, portraitV2 };
-  }
-
-  const evidenceDetails = await loadEvidenceDetails(materializationDb, facts);
-
-  const competencyVector = calculateCompetencyVector(facts, '1m');
-
-  if (previousSnapshot) {
-    const previousVector = previousSnapshot.competencyVector as unknown as CompetencyVector;
-    const trendVector = calculateTrendVector(competencyVector, previousVector);
-
-    for (const dimension of Object.keys(trendVector)) {
-      competencyVector[dimension as keyof CompetencyVector].trend =
-        trendVector[dimension as keyof CompetencyVector];
-    }
-  }
-
-  const risks = detectRisks({
-    userId,
-    facts,
-    competencyVector,
-    previousSnapshot: previousSnapshot?.competencyVector as unknown as CompetencyVector,
-  });
-
-  const snapshot = await executeStage(async (tx) => {
-  const currentFactDigest = createHash('sha256').update(JSON.stringify(facts.map((fact) => [fact.id, fact.createdAt]))).digest('hex');
-  const created = await tx.studentCompetencySnapshot.create({
-    data: {
-      userId,
-      snapshotAt,
-      competencyVector: competencyVector as unknown as Prisma.InputJsonValue,
-      evidenceSummary: generateEvidenceSummary(facts, 3, evidenceDetails) as unknown as Prisma.InputJsonValue,
-      riskFlags: risks.map((risk) => risk.type),
-      factCount: facts.length,
-    },
-  });
-
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: profile and growth writes retain legacy vectors as compatibility artifacts.
-  await updateProfileSummary(tx, userId, competencyVector, risks, facts);
-  const growthSnapshot = {
-      id: created.id,
-      userId,
-      snapshotAt,
-      factCount: facts.length,
-      competencyVector,
-      evidenceSummary: created.evidenceSummary,
-      factInputDigest: currentFactDigest,
-    };
-  if (preparedGrowthEvaluationMatches(preparedGrowthDescription, growthSnapshot)) {
-    await refreshStudentGrowthEvaluation(tx, { snapshot: growthSnapshot, preparedDescription: preparedGrowthDescription! });
-  } else {
-    await stageGrowthRecomputeOutbox(tx, { userId, generation: observedGeneration, snapshotId: created.id, now: snapshotAt });
-  }
-  await refreshStudentEvidenceFeatureCache(tx, userId, { now: snapshotAt });
-
-  await tx.studentRiskFlag.updateMany({
-    where: {
-      userId,
-      isResolved: false,
-    },
-    data: {
-      isResolved: true,
-      resolvedAt: snapshotAt,
-      resolutionNote: 'Superseded by latest competency snapshot',
-    },
-  });
-
-  if (risks.length > 0) {
-    await tx.studentRiskFlag.createMany({
-      data: risks.map((risk) => ({
+    const classIds = reconciliationClaim
+      ? [...new Set([
+          ...reconciliationClaim.classIds,
+          ...(profile?.classId ? [profile.classId] : []),
+        ])]
+      : profile?.classId ? [profile.classId] : [];
+    for (const classId of classIds) {
+      await enqueueClassSnapshotForStudent(
+        classId,
         userId,
-        flagType: risk.type,
-        severity: risk.severity,
-        description: risk.description,
-        evidenceJson: risk.evidence as Prisma.InputJsonValue,
-        triggeredAt: risk.triggeredAt,
-      })),
-    });
-  }
-  return created;
-  });
-  return {
-    snapshotId: snapshot.id,
-    factCount: facts.length,
-    riskCount: risks.length,
-    featureCacheRefreshed: true,
-    portraitV2,
-  };
-  };
-  if (rebuildClaim) {
-    try {
-      return await runClaimedLearningMaterializationStage(db, rebuildClaim, async (tx) => {
-        const result = await materialize(tx, true);
-        for (const classId of rebuildClaim.classIds) await stageClassSnapshotOutbox(tx, { userId, classId, generation: rebuildClaim.generation, now: snapshotAt });
-        if (!(await completeLearningMaterializationRebuild(tx, rebuildClaim))) throw new Error('learning-materialization-rebuild-fenced');
-        return result.portraitV2.written
-          ? { ...result, attainmentOutcome: 'portrait' as const }
-          : { ...result, attainmentOutcome: 'no-evidence' as const };
-      });
-    } catch (error) {
-      await failLearningMaterializationRebuild(db, rebuildClaim, 'student-materialization-failed');
-      throw error;
+        String(job.id ?? portraitV2.stateVersionId ?? `manual:${userId}`),
+        fence,
+      );
     }
-  }
-  const result = await runLearningMaterializationBarrierStage(db, { userId, observedGeneration }, async (tx) => {
-    const materialized = await materialize(tx, true);
-    if (!materialized.snapshotId || !materialized.portraitV2.written) return materialized;
-    const profile = await tx.studentProfile.findUnique({ where: { userId }, select: { classId: true } });
-    if (!profile?.classId) return materialized;
-    const outbox = await stageClassSnapshotOutbox(tx, {
+    if (
+      reconciliationClaim &&
+      !await completeCumulativeLearnerReconciliation(db as any, reconciliationClaim)
+    ) {
+      return {
+        skipped: true,
+        reason: 'stale_reconciliation_claim',
+        userId,
+        portraitV2: toJsonSafeWorkerResult(portraitV2),
+      };
+    }
+    return {
+      skipped: !portraitV2.written,
+      reason: portraitV2.written ? 'cumulative_portrait_materialized' : 'no_portrait_state_change',
       userId,
-      classId: profile.classId,
-      generation: observedGeneration,
-      snapshotId: materialized.snapshotId,
-      now: snapshotAt,
-    });
-    return { ...materialized, classSnapshot: { classId: profile.classId, outboxId: outbox.id } };
-  });
-  if ('classSnapshot' in result && result.classSnapshot) {
-    await enqueueClassSnapshotOutbox(result.classSnapshot.classId, result.classSnapshot.outboxId);
-    await db.learningMaterializationOutbox.updateMany({
-      where: { id: result.classSnapshot.outboxId, status: 'PENDING' },
-      data: { status: 'DELIVERED', deliveredAt: new Date(), lastErrorCode: null, updatedAt: new Date() },
-    });
+      portraitV2: toJsonSafeWorkerResult(portraitV2),
+    };
+  } catch (error) {
+    if (reconciliationClaim && error instanceof SimulationTaskInputDriftError) {
+      try {
+        const generation = await requestCumulativeLearnerReconciliation(db as any, {
+          userId,
+          classIds: reconciliationClaim.classIds,
+          reason: 'simulation-task-input-drift',
+          simulationTaskInput: error.actualInput,
+        });
+        return {
+          skipped: true,
+          reason: 'simulation_task_input_drift_requeued',
+          userId,
+          reconciliationRequestGeneration: generation,
+        };
+      } catch (rescheduleError) {
+        await failCumulativeLearnerReconciliation(
+          db as any,
+          reconciliationClaim,
+          'simulation-task-input-drift-reschedule-failed',
+        );
+        throw rescheduleError;
+      }
+    }
+    if (reconciliationClaim) {
+      await failCumulativeLearnerReconciliation(
+        db as any,
+        reconciliationClaim,
+        'learner-materialization-or-class-enqueue-failed',
+      );
+    }
+    throw error;
   }
-  return result;
-}
-
-async function updateProfileSummary(
-  db: PrismaClient,
-  userId: string,
-  vector: CompetencyVector,
-  risks: ReturnType<typeof detectRisks>,
-  facts: Array<{ factType: string; outcome: string; startedAt: Date }>,
-) {
-  const strengths = identifyStrengths(vector);
-  const weaknesses = identifyWeaknesses(vector);
-  const riskLevel = getRiskLevelDescription(risks.length);
-
-  const recentActivity = facts.slice(0, 5).map((fact) => ({
-    type: fact.factType,
-    outcome: fact.outcome,
-    date: fact.startedAt.toISOString(),
-  }));
-
-  const trendDirection = calculateOverallTrend(vector);
-  const trendDescriptions: Record<string, string> = {
-    up: '近两周稳步提升',
-    stable: '近期表现平稳',
-    down: '近期出现下滑',
-  };
-
-  await db.studentProfileSummary.upsert({
-    where: { userId },
-    update: {
-      overallLevel: getOverallLevel(vector),
-      overallScore: calculateOverallScore(vector),
-      strengthsJson: strengths as Prisma.InputJsonValue,
-      weaknessesJson: weaknesses as Prisma.InputJsonValue,
-      recentTrend: trendDescriptions[trendDirection],
-      trendDirection,
-      riskFlagsJson: risks.map((risk) => risk.description) as Prisma.InputJsonValue,
-      riskLevel,
-      recommendedScaffolding: getRecommendedScaffolding(risks),
-      recentActivityJson: recentActivity as Prisma.InputJsonValue,
-      cacheExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
-    },
-    create: {
-      userId,
-      overallLevel: getOverallLevel(vector),
-      overallScore: calculateOverallScore(vector),
-      strengthsJson: strengths as Prisma.InputJsonValue,
-      weaknessesJson: weaknesses as Prisma.InputJsonValue,
-      recentTrend: trendDescriptions[trendDirection],
-      trendDirection,
-      riskFlagsJson: risks.map((risk) => risk.description) as Prisma.InputJsonValue,
-      riskLevel,
-      recommendedScaffolding: getRecommendedScaffolding(risks),
-      recentActivityJson: recentActivity as Prisma.InputJsonValue,
-      cacheExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
-    },
-  });
-}
-
-function getOverallLevel(vector: CompetencyVector): string {
-  const avg = calculateOverallScore(vector);
-  if (avg >= 85) return '优秀';
-  if (avg >= 70) return '良好';
-  if (avg >= 55) return '中等偏上';
-  if (avg >= 40) return '需提升';
-  return '需关注';
-}
-
-function calculateOverallScore(vector: CompetencyVector): number {
-  const scores = Object.values(vector).map((value) => value.score);
-  return Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10;
-}
-
-function calculateOverallTrend(vector: CompetencyVector): 'up' | 'stable' | 'down' {
-  const trends = Object.values(vector).map((value) => value.trend);
-  const upCount = trends.filter((item) => item === 'up').length;
-  const downCount = trends.filter((item) => item === 'down').length;
-
-  if (upCount > downCount + 1) return 'up';
-  if (downCount > upCount + 1) return 'down';
-  return 'stable';
 }
 
 export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
   if (job.data.coordinator) {
     const db = getPrismaClient();
-    await dispatchClassSnapshotOutbox(db, enqueueClassSnapshotOutbox);
+    const fence = await readActiveCumulativePublicationFence(db);
     const classes = await db.class.findMany({
       where: { isActive: true },
       select: { id: true },
@@ -1064,7 +877,7 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
 
     const triggerId = new Date().toISOString().slice(0, 10);
     for (const cls of classes) {
-      await enqueueClassSnapshot(cls.id, triggerId);
+      await enqueueClassSnapshot(cls.id, triggerId, fence);
     }
 
     logWithThrottle(
@@ -1082,257 +895,23 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
 
   const db = getPrismaClient();
   const { classId } = job.data;
-
-  const students = await db.studentProfile.findMany({
-    where: { classId },
-    select: { userId: true },
-  });
-
-  if (job.data.scope === 'cumulative') {
-    return materializeCumulativeClassSnapshot(db, classId, students.map((student) => student.userId), {
-      runRef: job.data.runRef,
-      requestedAfter: job.data.requestedAfter,
-    });
+  const requestedScope = (job.data as { scope?: string }).scope;
+  if (requestedScope && requestedScope !== 'cumulative') {
+    return { skipped: true, reason: 'unsupported_scope', classId, scope: requestedScope };
   }
-
-  const classSessionIds = (await db.classSession.findMany({
-    where: { classId },
-    select: { id: true },
-  })).map((row) => row.id);
-  const scopedFacts = await db.learningFact.findMany({
-    where: {
-      userId: { in: students.map((student) => student.userId) },
-      startedAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60_000) },
-      OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
-    },
-  });
-  const scopedProjections = [...buildClassScopedStudentProjections(
-    students.map((student) => student.userId),
-    scopedFacts,
-  ).values()];
-  const previousClassSnapshot = await db.classCompetencySnapshot.findFirst({
-    where: { classId, materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION },
-    orderBy: { snapshotAt: 'desc' },
-  });
-  const distributionEmpty = { excellent: 0, good: 0, average: 0, needsImprovement: 0, atRisk: 0 };
-
-  if (scopedProjections.length === 0) {
-    await revokeDerivedLearningMaterializations(db, { userIds: [], classIds: [classId] });
-    const aggregate = aggregatePortraitV2([]);
-    if (previousClassSnapshot
-      && isSamePortraitV2ClassSnapshot(
-        aggregate,
-        distributionEmpty,
-        previousClassSnapshot.aggregateJson,
-        previousClassSnapshot.distributionJson,
-      )
-      && previousClassSnapshot.activeStudentCount === 0
-      && previousClassSnapshot.totalStudentCount === students.length
-    ) {
-      return { studentCount: 0, snapshotId: previousClassSnapshot.id, revoked: true, skipped: true };
-    }
-    const snapshot = await db.classCompetencySnapshot.create({
-      data: {
-        classId,
-        materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION,
-        snapshotAt: new Date(),
-        aggregateJson: aggregate as unknown as Prisma.InputJsonValue,
-        distributionJson: distributionEmpty,
-        trendJson: { _derivation: { state: 'no-evidence', reason: 'no-active-student-evidence' } },
-        riskSummaryJson: {},
-        levelDistribution: distributionEmpty,
-        activeStudentCount: 0,
-        totalStudentCount: students.length,
-      },
-    });
-    return { studentCount: 0, snapshotId: snapshot.id, revoked: true };
+  const expectation = readClassPublicationExpectation(job.data);
+  if (!expectation) {
+    return { skipped: true, reason: 'missing_cumulative_publication_fence', classId };
   }
-
-  const portraitRows = scopedProjections.map((projection) => {
-    const projectionFacts = scopedFacts.filter((fact) => fact.userId === projection.userId);
-    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector clocks only bound compatibility provenance.
-    const candidateTimes = [
-      ...projectionFacts.map((fact) => (fact.finishedAt ?? fact.startedAt).getTime()),
-      ...Object.values(projection.competencyVector).map((dimension) => Date.parse(dimension.lastUpdated)),
-    ].filter(Number.isFinite);
-    const snapshotTime = Math.max(...candidateTimes);
-    const snapshotAt = new Date(snapshotTime);
-    const projectionNow = new Date(Math.max(Date.now(), snapshotTime));
-    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: normalize the non-authoritative legacy vector before projection.
-    const compatibilityVector = Object.fromEntries(Object.entries(projection.competencyVector).map(([dimension, value]) => {
-      const lastUpdated = Date.parse(value.lastUpdated);
-      return [dimension, {
-        ...value,
-        lastUpdated: Number.isFinite(lastUpdated) && lastUpdated <= projectionNow.getTime()
-          ? value.lastUpdated
-          : snapshotAt.toISOString(),
-      }];
-    })) as CompetencyVector;
-    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the legacy snapshot source identifies compatibility provenance only.
-    return {
-      projection,
-      payload: projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
-        userId: projection.userId,
-        snapshotAt: snapshotAt.toISOString(),
-        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source and vector are compatibility-only.
-        sourceFamily: 'StudentCompetencySnapshot',
-        vector: compatibilityVector,
-        now: projectionNow,
-      }), 'reviewer'),
-    };
-  }).filter(({ payload }) => hasPortraitV2Evidence(payload));
-  const aggregate = aggregatePortraitV2(portraitRows.map((row) => row.payload));
-  const distribution = calculatePortraitLevelDistribution(portraitRows.map((row) => row.payload));
-  const riskSummary = calculateRiskSummary(portraitRows.map((row) => row.projection));
-  if (previousClassSnapshot && isSamePortraitV2ClassSnapshot(
-    aggregate,
-    distribution,
-    previousClassSnapshot.aggregateJson,
-    previousClassSnapshot.distributionJson,
-  ) && previousClassSnapshot.activeStudentCount === portraitRows.length
-    && previousClassSnapshot.totalStudentCount === students.length) {
-    return {
-      snapshotId: previousClassSnapshot.id,
-      studentCount: portraitRows.length,
-      skipped: true,
-      reason: 'unchanged_aggregate',
-    };
+  const fence = await readActiveCumulativePublicationFence(db);
+  if (!matchesClassFence(expectation, fence)) {
+    return { skipped: true, reason: 'stale_cumulative_publication_fence', classId };
   }
-  const trend = calculateClassTrend(aggregate, previousClassSnapshot?.aggregateJson);
-
-  const snapshot = await db.classCompetencySnapshot.create({
-    data: {
-      classId,
-      materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION,
-      snapshotAt: new Date(),
-      aggregateJson: aggregate as unknown as Prisma.InputJsonValue,
-      distributionJson: distribution as unknown as Prisma.InputJsonValue,
-      trendJson: trend as Prisma.InputJsonValue,
-      riskSummaryJson: riskSummary as unknown as Prisma.InputJsonValue,
-      levelDistribution: distribution as unknown as Prisma.InputJsonValue,
-      activeStudentCount: portraitRows.length,
-      totalStudentCount: students.length,
-    },
+  const result = await materializeCumulativeClassPortrait(db as any, classId, {
+    now: new Date(),
+    publication: expectation,
   });
-
-  return {
-    snapshotId: snapshot.id,
-    studentCount: portraitRows.length,
-  };
-}
-
-async function materializeCumulativeClassSnapshot(
-  db: PrismaClient,
-  classId: string,
-  rosterUserIds: string[],
-  marker: { runRef?: string; requestedAfter?: string } = {},
-) {
-  const now = new Date();
-  const portraitsByUser = await readLatestValidNativePortraitV2Snapshots(
-    db,
-    rosterUserIds,
-    'reviewer',
-    { now },
-  );
-  const portraits = rosterUserIds.flatMap((userId) => {
-    const payload = portraitsByUser.get(userId);
-    return payload && hasPortraitV2Evidence(payload) ? [payload] : [];
-  });
-  const aggregate = aggregatePortraitV2(portraits);
-  const coverage = {
-    validNativePortraits: portraits.length,
-    totalRoster: rosterUserIds.length,
-    ratio: rosterUserIds.length === 0 ? 0 : portraits.length / rosterUserIds.length,
-  };
-  const aggregateJson = {
-    ...aggregate,
-    scope: 'cumulative',
-    coverage,
-    ...(marker.runRef ? {
-      _materialization: {
-        runRef: marker.runRef,
-        requestedAfter: marker.requestedAfter ?? null,
-      },
-    } : {}),
-  };
-  const distribution = calculatePortraitLevelDistribution(portraits);
-  const snapshot = await db.classCompetencySnapshot.create({
-    data: {
-      classId,
-      materializationVersion: CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
-      snapshotAt: now,
-      aggregateJson: aggregateJson as unknown as Prisma.InputJsonValue,
-      distributionJson: distribution as unknown as Prisma.InputJsonValue,
-      trendJson: {
-        _derivation: {
-          state: 'not-applicable',
-          reason: 'cumulative-attainment-has-no-near-stage-comparison',
-        },
-      },
-      riskSummaryJson: {
-        _derivation: {
-          state: 'not-applicable',
-          reason: 'recent-risk-is-not-cumulative-attainment',
-        },
-      },
-      levelDistribution: distribution as unknown as Prisma.InputJsonValue,
-      activeStudentCount: portraits.length,
-      totalStudentCount: rosterUserIds.length,
-    },
-  });
-  return {
-    snapshotId: snapshot.id,
-    studentCount: portraits.length,
-    totalStudentCount: rosterUserIds.length,
-    scope: 'cumulative' as const,
-  };
-}
-
-function calculatePortraitLevelDistribution(payloads: PortraitV2PayloadShape[]) {
-  const levels = { excellent: 0, good: 0, average: 0, needsImprovement: 0, atRisk: 0 };
-
-  for (const payload of payloads) {
-    const overallScore = summarizePortraitV2(payload).overallScore;
-    if (overallScore >= 85) levels.excellent += 1;
-    else if (overallScore >= 70) levels.good += 1;
-    else if (overallScore >= 55) levels.average += 1;
-    else if (overallScore >= 40) levels.needsImprovement += 1;
-    else levels.atRisk += 1;
-  }
-
-  return levels;
-}
-
-function calculateRiskSummary(snapshots: Array<{ riskFlags: unknown }>) {
-  const allFlags = snapshots.flatMap((snapshot) => snapshot.riskFlags as string[]);
-  const summary: Record<string, number> = {};
-
-  for (const flag of allFlags) {
-    summary[flag] = (summary[flag] || 0) + 1;
-  }
-
-  return summary;
-}
-
-function calculateClassTrend(
-  current: PortraitV2ClassAggregate,
-  previous: unknown,
-) {
-  const previousAggregate = readRecord(previous);
-  const previousDimensions = Object.keys(readRecord(previousAggregate.dimensions)).length > 0
-    ? readRecord(previousAggregate.dimensions)
-    : previousAggregate;
-  return Object.fromEntries(Object.entries(current.dimensions).map(([dimension, value]) => {
-    const previousValue = readRecord(previousDimensions[dimension]);
-    const previousMean = typeof previousValue.mean === 'number' ? previousValue.mean : value.mean;
-    const delta = Math.round((value.mean - previousMean) * 10) / 10;
-    return [dimension, {
-      previousMean,
-      currentMean: value.mean,
-      delta,
-      direction: delta > 3 ? 'up' : delta < -3 ? 'down' : 'stable',
-    }];
-  }));
+  return toJsonSafeWorkerResult(result);
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {

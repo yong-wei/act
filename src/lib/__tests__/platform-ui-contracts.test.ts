@@ -621,9 +621,7 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource).toContain('data-simulation-local-workspace={template.id}');
     expect(simulationLocalToolsSource).toContain('data-simulation-theme-template="local-tools"');
     expect(simulationLocalToolsSource).toContain('data-simulation-state-role="hint"');
-    expect(simulationLocalToolsSource).toContain('data-simulation-state-role="replay"');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-panel-layout={panelLayout}');
-    expect(simulationLocalToolsSource).toContain('data-simulation-local-bottom-toolbar');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-hint-strip');
     expect(simulationLocalToolsSource).toContain('data-simulation-panel-collapsible="true"');
     expect(simulationLocalToolsSource).toContain('data-simulation-mobile-secondary-controls="stacked-sheets"');
@@ -640,7 +638,8 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource).toContain('focus-visible:ring-2 focus-visible:ring-platform-action-primary');
     expect(simulationLocalToolsSource).not.toContain('platform-action-ring');
     expect(simulationLocalToolsSource).not.toContain('platform-fg-tertiary');
-    expect(simulationLocalToolsSource).not.toContain('<button');
+    // 唯一的按钮是提示条关闭钮（占位命令条已移除，其余均为非交互结构）。
+    expect(simulationLocalToolsSource.match(/<button/g)?.length ?? 0).toBe(1);
     expect(simulationLocalToolsSource).not.toContain('sticky bottom-3');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-panel-zone={side ===');
     expect(simulationLocalToolsSource).toContain('data-task-workspace-zone={side ===');
@@ -702,7 +701,7 @@ describe('platform UI contracts', () => {
     expect(teacherDashboardSource).toContain('data-report-ledger-surface="assistant-effect-report-export"');
     expect(teacherGradingSource).toContain('data-report-ledger-surface="document-grading-workbench-ledger"');
     expect(teacherGradingSource).toContain('data-report-ledger-privacy-scope="teacher-review"');
-    expect(teacherGradingSource).toContain('状态图例：草稿需人工审批');
+    expect(teacherGradingSource).toContain('状态图例：等待选择');
     expect(teacherGradingPageSource).toContain(
       'session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN',
     );
@@ -824,7 +823,7 @@ describe('platform UI contracts', () => {
     expect(knowledgeSidebarSource).not.toContain('w-[240px]');
     expect(knowledgeSidebarSource).not.toContain('bg-[#091540]');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-filters"');
-    expect(knowledgeSystemSource).toContain('data-knowledge-relation-family-control="compact-bottom-left"');
+    expect(knowledgeSystemSource).toContain('<RelationFamilyControl');
     expect(knowledgeSystemSource).toContain('data-knowledge-desktop-command-system="compact"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="view-layout-controls"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-hover-preview"');
@@ -914,7 +913,9 @@ describe('platform UI contracts', () => {
     );
     expect(courseEntryShellSource).toContain('data-course-entry-shell="app-shell"');
     expect(courseEntryShellSource).toContain('data-commercial-workspace="interactive-learning"');
-    expect(courseEntryShellSource).toContain('data-course-entry-role-panel="teacher"');
+    expect(courseEntryShellSource).toContain(
+      "data-course-entry-role-panel={isAdministrator ? 'admin-temporary' : 'teacher'}",
+    );
     expect(courseEntryShellSource).toContain('data-course-entry-role-panel="teacher-sign-in"');
     expect(courseEntryShellSource).toContain('data-course-entry-role-panel="student"');
     expect(courseEntryShellSource).toContain('data-course-entry-role-panel="guest-demo"');
@@ -1852,7 +1853,6 @@ describe('platform UI contracts', () => {
     expect(simulationShellSource).toContain('data-simulation-dock-collision-policy="avoid-local-tools"');
     expect(simulationShellSource).not.toContain('KonlingEntryPointButton');
     expect(simulationShellSource).not.toContain('fixed bottom-');
-    expect(simulationLocalToolsSource).toContain('data-simulation-dock-offset-anchor="bottom-toolbar"');
     expect(simulationLocalToolsSource).toContain('data-simulation-dock-offset-anchor="hint-strip"');
     expect(pageFloatingControlsSource).toContain('data-platform-floating-dock-safe-area="bottom-right"');
     expect(pageFloatingControlsSource).toContain('data-platform-floating-dock-expanded-panel');

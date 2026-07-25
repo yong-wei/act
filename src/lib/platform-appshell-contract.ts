@@ -92,6 +92,9 @@ export const APP_SHELL_GOVERNANCE_CHANGE_ID = 'enforce-appshell-route-coverage-g
 export const LEGACY_LESSON_RUNTIME_ROUTE_SLUGS = [
   'cruise-comfort-boppps',
   'unit-1-2-modeling-from-object-to-system',
+  'unit-1-3-parameter-pole-migration',
+  'unit-1-4-time-frequency-views',
+  'unit-1-5-three-domain-gain-sweep',
   'unit-2-1-modeling-language',
   'unit-2-2-time-domain-response',
   'unit-2-3-frequency-response-bode-intro',
@@ -674,6 +677,15 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
     removalCondition: 'Citation source inspection is embedded into a shell-covered reader surface.',
   },
   ...LEGACY_LESSON_RUNTIME_ROUTE_EXCEPTIONS,
+  {
+    routePattern: '/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo',
+    category: 'legacy-lesson-runtime',
+    type: 'migration-temporary',
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
+    reason: 'This lesson demo still renders the course-specific student runtime before LessonRuntimeShell migration.',
+    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
+    removalCondition: 'This demo adopts LessonRuntimeShell or is retired after the canonical lesson runtime is registered.',
+  },
   {
     routePattern: '/interactive-learning/resources/control-odyssey-v1/ship',
     category: 'embed-surface',

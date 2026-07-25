@@ -4,11 +4,10 @@ import type { CreatePersistedArenaSubmissionInput } from '../submissions/persist
 import { createPersistedArenaSubmission } from '../submissions/persistence';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { ControllerArtifact } from '../types';
+import { getArenaTaskForOdysseyLevel } from './assignment';
 import { normalizeOdysseyOfficialTelemetry } from './telemetry';
 
-export const ODYSSEY_ARENA_TASK_BY_LEVEL: Record<string, string> = {
-  'level-1': 'task-odyssey-level-one-growth',
-};
+export { getArenaTaskForOdysseyLevel } from './assignment';
 
 export interface BuildOdysseyArenaArtifactInput {
   runId: string;
@@ -48,10 +47,6 @@ export type BridgeOdysseyRunResult =
 
 function finiteNumber(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
-}
-
-export function getArenaTaskForOdysseyLevel(levelId: string): string | undefined {
-  return ODYSSEY_ARENA_TASK_BY_LEVEL[levelId];
 }
 
 export function isEligibleOdysseyArenaLevel(levelId: string, tier: string): boolean {

@@ -3,14 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import {
-  resolveSessionClassContext,
-  shouldPersistInferredClassAttribution,
-  type SessionClassInfo,
-} from '@/lib/data-governance/class-session-attribution';
-import {
   enqueueSessionFinalizationEvidenceFeatureCacheRefresh,
   enqueueSessionFinalizationEventIngestion,
-  enqueueSessionFinalizationSnapshots,
   enqueueSessionSummaryReportRefresh,
 } from '@/lib/data-governance/session-finalization-snapshots';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
@@ -71,80 +65,6 @@ function normalizeClassroomEvent(
     sourceLogId: typeof event.sourceLogId === 'string' ? event.sourceLogId : null,
     clientEventAt,
   }), error: null };
-}
-
-async function inferAndPersistSessionClass(sessionId: string, teacherId: string) {
-  const session = await prisma.classSession.findUnique({
-    where: { id: sessionId },
-    select: {
-      classId: true,
-      studentStates: {
-        select: {
-          user: {
-            select: {
-              profile: {
-                select: {
-                  classId: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!session || session.classId) {
-    return session?.classId ?? null;
-  }
-
-  const participantClassIds = session.studentStates.map((state) => state.user.profile?.classId);
-  const classIds = Array.from(
-    new Set(
-      participantClassIds.filter((value): value is string => typeof value === 'string' && value.length > 0),
-    ),
-  );
-  const classes = classIds.length
-    ? await prisma.class.findMany({
-        where: { id: { in: classIds } },
-        select: {
-          id: true,
-          name: true,
-          code: true,
-          teacherId: true,
-        },
-      })
-    : [];
-  const classesById = new Map<string, SessionClassInfo>(
-    classes.map((item) => [item.id, { id: item.id, name: item.name, code: item.code }]),
-  );
-  const classTeacherById = new Map(classes.map((item) => [item.id, item.teacherId]));
-  const context = resolveSessionClassContext({
-    sessionClassId: null,
-    sessionClass: null,
-    participantClassIds,
-    classesById,
-  });
-
-  if (
-    !context.classId
-    || classTeacherById.get(context.classId) !== teacherId
-    || !shouldPersistInferredClassAttribution({ attribution: context.attribution })
-  ) {
-    return null;
-  }
-
-  const updated = await prisma.classSession.updateMany({
-    where: {
-      id: sessionId,
-      classId: null,
-    },
-    data: {
-      classId: context.classId,
-    },
-  });
-
-  return updated.count > 0 ? context.classId : null;
 }
 
 async function generateSessionSummaryReportsSafely(sessionId: string) {
@@ -259,16 +179,6 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
       },
     });
 
-    if (status === 'FINISHED' && !updatedSession.classId) {
-      const inferredClassId = await inferAndPersistSessionClass(sessionId, updatedSession.teacherId);
-      if (inferredClassId) {
-        updatedSession = {
-          ...updatedSession,
-          classId: inferredClassId,
-        };
-      }
-    }
-
     // 同步到 Redis 用于快速读取和 SSE 广播
     if (redisClient.isReady()) {
       const redisState = {
@@ -310,7 +220,6 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
     if (status === 'FINISHED') {
       await Promise.all([
         enqueueSessionFinalizationEventIngestion(sessionId),
-        enqueueSessionFinalizationSnapshots(sessionId, updatedSession.classId),
         enqueueSessionFinalizationEvidenceFeatureCacheRefresh(sessionId),
         enqueueSessionSummaryReportRefresh(sessionId),
         generateSessionSummaryReportsSafely(sessionId),

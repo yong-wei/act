@@ -201,10 +201,36 @@ export type KonlingTeachingAssistantContextKey =
 export type KonlingTeachingAssistantStatus = 'ready' | 'degraded' | 'unavailable';
 export type KonlingAnswerIntent =
   | 'fact-explanation'
+  | 'formula-derivation'
+  | 'code-debugging'
+  | 'concept-comparison'
+  | 'normative-content'
+  | 'open-ended-explanation'
   | 'personalized-diagnosis'
   | 'path-advice'
   | 'grading-explanation'
   | 'media-guidance';
+
+export interface KonlingStudyAnswerPreferences {
+  depth: 'concise' | 'standard' | 'detailed';
+  format: 'default' | 'steps' | 'table' | 'code-first';
+  hintStrength: 'full-answer' | 'guided';
+  exampleContext: string | null;
+}
+
+export interface KonlingStudyQuestionContract {
+  intent: Extract<KonlingAnswerIntent, 'fact-explanation' | 'formula-derivation' | 'code-debugging' | 'concept-comparison' | 'normative-content' | 'open-ended-explanation'>;
+  requiredSections: string[];
+  normativeGuidance: 'not-applicable' | 'verified' | 'verification-required';
+  preferences: KonlingStudyAnswerPreferences;
+}
+
+export interface KonlingAnswerUnitCitationBinding {
+  unit: string;
+  citationId: string;
+  citationTargetId: string | null;
+  limitation: string | null;
+}
 
 export interface KonlingTeachingAssistantModeContract {
   id: KonlingTeachingAssistantModeId;
@@ -238,6 +264,7 @@ export interface KonlingTeachingAssistantMountContract {
 export interface KonlingTeachingAssistantRuntimeContract {
   mode: KonlingTeachingAssistantModeContract;
   answerIntent: KonlingAnswerIntent;
+  studyQuestion: KonlingStudyQuestionContract | null;
   status: KonlingTeachingAssistantStatus;
   unavailableReasons: string[];
   degradedReasons: string[];
@@ -721,11 +748,25 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   scope: KonlingRuntimeScope;
   serverModeContext?: KonlingTeachingAssistantServerModeContext | null;
   clientContextHints?: Record<string, unknown> | null;
+  currentUserQuery?: string | null;
+  studyAnswerPreferences?: unknown;
 }): KonlingTeachingAssistantRuntimeContract {
   const normalizedModeId = normalizeKonlingTeachingAssistantModeId(input.modeId);
   const mode = resolveKonlingTeachingAssistantMode(input.modeId);
   const clientHintsRejected = Object.keys(input.clientContextHints ?? {});
-  const answerIntent = classifyKonlingAnswerIntent(mode, input.runtimeContext, input.scope, input.serverModeContext);
+  const answerIntent = classifyKonlingAnswerIntent(
+    mode,
+    input.runtimeContext,
+    input.scope,
+    input.serverModeContext,
+    input.currentUserQuery,
+  );
+  const studyQuestion = buildKonlingStudyQuestionContract({
+    answerIntent,
+    citationContext: input.runtimeContext.citationContext,
+    preferences: input.studyAnswerPreferences,
+    currentUserQuery: input.currentUserQuery,
+  });
   const groundingContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: input.runtimeContext,
     scope: input.scope,
@@ -832,6 +873,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   return {
     mode,
     answerIntent,
+    studyQuestion,
     status,
     unavailableReasons,
     degradedReasons,
@@ -890,6 +932,7 @@ function classifyKonlingAnswerIntent(
   runtimeContext: KonlingRuntimeContext,
   scope: KonlingRuntimeScope,
   serverModeContext?: KonlingTeachingAssistantServerModeContext | null,
+  currentUserQuery?: string | null,
 ): KonlingAnswerIntent {
   if (mode.id === 'diagnosis-explainer' || mode.id === 'class-summarizer') return 'personalized-diagnosis';
   if (mode.id === 'path-advisor') return 'path-advice';
@@ -898,9 +941,128 @@ function classifyKonlingAnswerIntent(
     return serverModeContext?.['media-resource'] === true ? 'media-guidance' : 'fact-explanation';
   }
   if (mode.id === 'generic-chat') {
-    return isKonlingMediaGuidanceScope(runtimeContext) ? 'media-guidance' : 'fact-explanation';
+    if (isKonlingMediaGuidanceScope(runtimeContext)) return 'media-guidance';
+    return classifyGenericStudyQuestionIntent(currentUserQuery);
   }
   return 'fact-explanation';
+}
+
+function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {
+  const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
+  if (!normalized) return 'fact-explanation';
+  if (includesAny(normalized, ['法律', '法条', '法规', '官方规定', '国家标准', '行业标准', '标准格式', '规范书写', '规范格式', '化学方程式', 'official rule', 'legal requirement', 'standard format'])) {
+    return 'normative-content';
+  }
+  if (includesAny(normalized, ['推导', '证明', '演算', 'derive', 'derivation', 'prove'])) {
+    return 'formula-derivation';
+  }
+  if (includesAny(normalized, ['报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback'])) {
+    return 'code-debugging';
+  }
+  if (includesAny(normalized, ['区别', '辨析', '比较', '联系与区别', 'difference', 'compare', 'versus', ' vs '])) {
+    return 'concept-comparison';
+  }
+  if (includesAny(normalized, ['举例', '换一种说法', '换一种格式', '自定义', 'example', 'explain in'])) {
+    return 'open-ended-explanation';
+  }
+  return 'fact-explanation';
+}
+
+function includesAny(value: string, markers: readonly string[]): boolean {
+  return markers.some((marker) => value.includes(marker));
+}
+
+function buildKonlingStudyQuestionContract(input: {
+  answerIntent: KonlingAnswerIntent;
+  citationContext: KonlingCitationContext | null | undefined;
+  preferences: unknown;
+  currentUserQuery?: string | null;
+}): KonlingStudyQuestionContract | null {
+  if (!isStudyQuestionIntent(input.answerIntent)) return null;
+  const preferences = normalizeKonlingStudyAnswerPreferences(input.preferences, input.currentUserQuery);
+  const normativeGuidance = input.answerIntent === 'normative-content'
+    ? hasVerifiedNormativeCitation(input.citationContext?.contentCitations ?? [])
+      ? 'verified'
+      : 'verification-required'
+    : 'not-applicable';
+  return {
+    intent: input.answerIntent,
+    requiredSections: studyQuestionRequiredSections(input.answerIntent),
+    normativeGuidance,
+    preferences,
+  };
+}
+
+function isStudyQuestionIntent(answerIntent: KonlingAnswerIntent): answerIntent is KonlingStudyQuestionContract['intent'] {
+  return answerIntent === 'fact-explanation'
+    || answerIntent === 'formula-derivation'
+    || answerIntent === 'code-debugging'
+    || answerIntent === 'concept-comparison'
+    || answerIntent === 'normative-content'
+    || answerIntent === 'open-ended-explanation';
+}
+
+function studyQuestionRequiredSections(intent: KonlingStudyQuestionContract['intent']): string[] {
+  switch (intent) {
+    case 'formula-derivation':
+      return ['前提与符号', '关键变形', '适用条件', '结果校验'];
+    case 'code-debugging':
+      return ['故障定位', '原因', '最小修复', '验证方法'];
+    case 'concept-comparison':
+      return ['判别维度', '联系与差异', '边界或反例'];
+    case 'normative-content':
+      return ['适用范围', '规范结论', '核验来源'];
+    case 'open-ended-explanation':
+      return ['核心结论', '定制化讲解', '适用边界'];
+    default:
+      return ['核心结论', '解释', '适用边界'];
+  }
+}
+
+function normalizeKonlingStudyAnswerPreferences(
+  value: unknown,
+  currentUserQuery?: string | null,
+): KonlingStudyAnswerPreferences {
+  const source = readRecord(value);
+  const query = currentUserQuery?.trim().toLowerCase().normalize('NFKC') ?? '';
+  const depth = getString(source, 'depth');
+  const format = getString(source, 'format');
+  const hintStrength = getString(source, 'hintStrength');
+  const exampleContext = getString(source, 'exampleContext').trim().slice(0, 120);
+  return {
+    depth: depth === 'concise' || depth === 'detailed'
+      ? depth
+      : includesAny(query, ['简洁', '概述', '要点', 'concise', 'brief'])
+        ? 'concise'
+        : includesAny(query, ['详细', '深入', '完整推导', 'detailed', 'in depth'])
+          ? 'detailed'
+          : 'standard',
+    format: format === 'steps' || format === 'table' || format === 'code-first'
+      ? format
+      : includesAny(query, ['表格', '对照表', 'table'])
+        ? 'table'
+        : includesAny(query, ['分步骤', '一步一步', '逐步', 'step by step'])
+          ? 'steps'
+          : includesAny(query, ['先给代码', '代码优先', 'code first'])
+            ? 'code-first'
+            : 'default',
+    hintStrength: hintStrength === 'guided'
+      ? 'guided'
+      : includesAny(query, ['循序渐进', '逐步提示', '只给提示', '不要直接给答案', 'guided hint'])
+        ? 'guided'
+        : 'full-answer',
+    exampleContext: exampleContext || null,
+  };
+}
+
+function hasVerifiedNormativeCitation(citations: readonly KonlingCitation[]): boolean {
+  return citations.some((citation) => (
+    citation.verified === true
+    && citation.resolver === 'official-reference'
+    && citation.confidence === 'high'
+    && Boolean(citation.citationTargetId)
+    && Boolean(citation.href)
+  ));
 }
 
 function supportsLimitedPersonalizationAnswerIntent(answerIntent: KonlingAnswerIntent): boolean {
@@ -1393,6 +1555,8 @@ export interface KonlingCitation {
   answerRelevanceMatch?: string | null;
   answerRelevanceQueryHash?: string | null;
   omittedCitationReason?: string | null;
+  verified?: boolean;
+  resolver?: string | null;
 }
 
 export interface KonlingCitationContext {
@@ -1434,6 +1598,8 @@ export interface KonlingCitationGuard {
     missingCitationClasses: string[];
     lowConfidenceReasons: string[];
   };
+  studyQuestion?: KonlingStudyQuestionContract | null;
+  answerUnits?: KonlingAnswerUnitCitationBinding[];
 }
 
 export function buildKonlingCitationRetrievalSources(guard: KonlingCitationGuard) {
@@ -1456,6 +1622,8 @@ export function serializeKonlingCitationMetadata(citation: KonlingCitation) {
     answerRelevanceMatch: citation.answerRelevanceMatch ?? null,
     answerRelevanceQueryHash: citation.answerRelevanceQueryHash ?? null,
     omittedCitationReason: citation.omittedCitationReason ?? null,
+    verified: citation.verified === true,
+    resolver: citation.resolver ?? null,
     citationChip: jsonSafe(citation.citationChip),
   };
 }
@@ -1850,32 +2018,98 @@ const smartLessonCollectionPatch = z.discriminatedUnion('operation', [
   }).strict(),
 ]);
 
-const proposeSmartLessonTaskChangeParameters = z.object({
-  operation: z.enum(['bootstrap', 'revise']).optional(),
-  taskId: z.string().min(1).max(200).optional(),
-  expectedRevision: z.number().int().min(1).optional(),
-  proposedTask: z.record(z.string(), z.unknown()).optional(),
-  knowledgePointPatches: z.array(smartLessonCollectionPatch).optional(),
-  goalPatches: z.array(smartLessonCollectionPatch).optional(),
-  clarification: z.object({
-    question: z.string().min(1).max(1000),
-    alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
-  }).strict().optional(),
-}).strict().refine((value) => Boolean(
-  value.proposedTask || value.knowledgePointPatches?.length || value.goalPatches?.length,
-) !== Boolean(value.clarification), {
-  message: '必须且只能提供 proposedTask 或 clarification。',
-}).refine((value) => value.operation === 'bootstrap' || Boolean(value.taskId && value.expectedRevision), {
-  message: '修订建议必须绑定任务及其预期修订号。',
-}).superRefine((value, context) => {
-  const hasPatches = Boolean(value.knowledgePointPatches?.length || value.goalPatches?.length);
-  if (value.clarification && hasPatches) {
-    context.addIssue({ code: 'custom', message: '澄清请求不能携带任务集合补丁。' });
-  }
-  if (value.operation === 'bootstrap' && hasPatches) {
-    context.addIssue({ code: 'custom', message: '新建任务必须提交完整 knowledgePoints 和 goals。' });
-  }
-});
+function smartLessonTaskChangeParameters(proposedTask: z.ZodTypeAny) {
+  return z.object({
+    operation: z.enum(['bootstrap', 'revise']).optional(),
+    taskId: z.string().min(1).max(200).optional(),
+    expectedRevision: z.number().int().min(1).optional(),
+    proposedTask: proposedTask.optional(),
+    knowledgePointPatches: z.array(smartLessonCollectionPatch).optional(),
+    goalPatches: z.array(smartLessonCollectionPatch).optional(),
+    clarification: z.object({
+      question: z.string().min(1).max(1000),
+      alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
+    }).strict().optional(),
+  }).strict().refine((value) => Boolean(
+    value.proposedTask || value.knowledgePointPatches?.length || value.goalPatches?.length,
+  ) !== Boolean(value.clarification), {
+    message: '必须且只能提供 proposedTask 或 clarification。',
+  }).refine((value) => value.operation === 'bootstrap' || Boolean(value.taskId && value.expectedRevision), {
+    message: '修订建议必须绑定任务及其预期修订号。',
+  }).superRefine((value, context) => {
+    const hasPatches = Boolean(value.knowledgePointPatches?.length || value.goalPatches?.length);
+    if (value.clarification && hasPatches) {
+      context.addIssue({ code: 'custom', message: '澄清请求不能携带任务集合补丁。' });
+    }
+    if (value.operation === 'bootstrap' && hasPatches) {
+      context.addIssue({ code: 'custom', message: '新建任务必须提交完整 knowledgePoints 和 goals。' });
+    }
+  });
+}
+
+const proposeSmartLessonTaskChangeParameters = smartLessonTaskChangeParameters(z.record(z.string(), z.unknown()));
+const proposedSmartLessonRevisionParameters = z.object({
+  topic: z.string().min(1).max(500).optional(),
+  audience: z.string().min(1).max(1000).optional(),
+  prerequisites: z.string().max(5000).optional(),
+  durationMinutes: z.number().int().min(30).max(120).optional(),
+  outlineConfirmationRequired: z.boolean().optional(),
+  confirmScope: z.boolean().optional(),
+  confirmGoals: z.boolean().optional(),
+}).strict();
+
+const smartLessonToolCollectionPatch = z.discriminatedUnion('operation', [
+  z.object({
+    operation: z.literal('update'),
+    id: z.string().min(1).max(200),
+    changes: z.object({
+      content: z.string().min(1).max(2000).optional(),
+      title: z.string().min(1).max(500).optional(),
+      sourceState: z.enum(['verified', 'ai_generated_source_pending', 'teacher_created_source_pending']).optional(),
+      origin: z.enum(['SUGGESTED', 'TEACHER_CREATED', 'ai_generated']).optional(),
+    }).strict(),
+  }).strict(),
+  z.object({
+    operation: z.literal('remove'),
+    id: z.string().min(1).max(200),
+  }).strict(),
+  z.object({
+    operation: z.literal('add'),
+    item: z.object({
+      content: z.string().min(1).max(2000),
+      sourceState: z.enum(['verified', 'ai_generated_source_pending', 'teacher_created_source_pending']),
+      sourceBindings: z.array(z.unknown()).max(100),
+      title: z.string().min(1).max(500).optional(),
+      origin: z.enum(['SUGGESTED', 'TEACHER_CREATED', 'ai_generated']).optional(),
+    }).strict(),
+  }).strict(),
+]);
+
+// This schema is emitted to the provider. It distinguishes a complete
+// bootstrap task from a revision, so a revision cannot be expressed with
+// lesson-plan-only fields or by retransmitting the task collections.
+const proposeSmartLessonTaskChangeToolParameters = z.discriminatedUnion('operation', [
+  z.object({
+    operation: z.literal('bootstrap'),
+    proposedTask: createTaskSchema.optional(),
+    clarification: z.object({
+      question: z.string().min(1).max(1000),
+      alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
+    }).strict().optional(),
+  }).strict(),
+  z.object({
+    operation: z.literal('revise'),
+    taskId: z.string().min(1).max(200),
+    expectedRevision: z.number().int().min(1),
+    proposedTask: proposedSmartLessonRevisionParameters.optional(),
+    knowledgePointPatches: z.array(smartLessonToolCollectionPatch).optional(),
+    goalPatches: z.array(smartLessonToolCollectionPatch).optional(),
+    clarification: z.object({
+      question: z.string().min(1).max(1000),
+      alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
+    }).strict().optional(),
+  }).strict(),
+]);
 
 const runVirtualSimulationParameters = z.object({
   idempotencyKey: KONLING_REQUIRED_IDEMPOTENCY_KEY_PARAMETER,
@@ -2207,6 +2441,7 @@ export async function buildKonlingRuntimeContext(
     preCitationRuntimeContext,
     scope,
     input.teachingAssistantServerModeContext,
+    input.currentUserQuery,
   );
   const preCitationGroundingContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: preCitationRuntimeContext,
@@ -2468,7 +2703,7 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       const { knowledgePointPatches, goalPatches, ...proposalArgs } = args;
       const boundArgs = {
         ...proposalArgs,
-        proposedTask: normalizeSuggestedSmartLessonTask(args.proposedTask, smartPreparation, {
+        proposedTask: normalizeSuggestedSmartLessonTask(args.proposedTask as Record<string, unknown> | undefined, smartPreparation, {
           knowledgePoints: knowledgePointPatches,
           goals: goalPatches,
         }),
@@ -5181,8 +5416,8 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       execute: (args) => runtime.recordPathAdjustmentOutcome(args),
     }),
     propose_smart_lesson_task_change: tool({
-      description: '将教师本轮自然语言投影为完整结构化单课任务建议。无任务时使用 bootstrap，已有任务时使用 revise 并携带当前 revision；信息不唯一时先提出澄清选项。只保存待确认建议，不直接创建或修改任务。',
-      inputSchema: proposeSmartLessonTaskChangeParameters,
+      description: '将教师本轮自然语言投影为完整结构化单课任务建议。无任务时使用 bootstrap，已有任务时使用 revise 并携带当前 revision。信息不唯一时只提交 clarification，且不得同时提交 proposedTask、knowledgePointPatches 或 goalPatches；范围已明确时提交 proposedTask 或补丁，且不得携带 clarification。只保存待确认建议，不直接创建或修改任务。',
+      inputSchema: proposeSmartLessonTaskChangeToolParameters,
       execute: (args) => runtime.proposeSmartLessonTaskChange(args),
     }),
     analyze_attempt: tool({
@@ -6340,6 +6575,8 @@ function buildSourcePackContentCitation(pack: SourcePack, item: SourcePackItem):
     answerRelevanceMatch: metadataString(item, 'answerRelevanceMatch'),
     answerRelevanceQueryHash: metadataString(item, 'answerRelevanceQueryHash'),
     omittedCitationReason: metadataString(item, 'omittedCitationReason'),
+    verified: citation?.verified === true,
+    resolver: citation?.resolver ?? null,
     citationChip: {
       chunkId: id,
       displayTitle: title,
@@ -6588,6 +6825,9 @@ export function buildKonlingCitationGuard(
     ...citationContext.contentCitations,
     ...citationContext.evidenceCitations,
   ];
+  const answerUnits = assistantMessage === undefined
+    ? []
+    : buildKonlingAnswerUnitCitationBindings(assistantMessage, citations);
   const missingCitationClasses = [...citationContext.missingCitationClasses];
   const lowConfidenceReasons = [...citationContext.lowConfidenceReasons];
   if (modeContract) {
@@ -6608,6 +6848,17 @@ export function buildKonlingCitationGuard(
     }
     for (const intentCitationReason of buildAnswerIntentCitationFallbackReasons(modeContract.answerIntent, citationContext, assistantMessage)) {
       lowConfidenceReasons.push(intentCitationReason);
+    }
+    if (modeContract.studyQuestion?.normativeGuidance === 'verification-required') {
+      lowConfidenceReasons.push('normative-guidance-verification-required');
+    }
+    if (
+      assistantMessage !== undefined
+      && modeContract.studyQuestion
+      && citationContext.contentCitations.some(isBindableAnswerUnitCitation)
+      && answerUnits.length === 0
+    ) {
+      lowConfidenceReasons.push('assistant-answer-unit-citations-missing');
     }
   }
   if (assistantMessage !== undefined && citations.length > 0) {
@@ -6667,7 +6918,39 @@ export function buildKonlingCitationGuard(
       personalizationMissingClasses,
       personalizationLowConfidenceReasons,
     ),
+    studyQuestion: modeContract?.studyQuestion ?? null,
+    answerUnits,
   };
+}
+
+function isBindableAnswerUnitCitation(citation: KonlingCitation): boolean {
+  return citation.verified === true && Boolean(citation.citationTargetId);
+}
+
+function buildKonlingAnswerUnitCitationBindings(
+  assistantMessage: string,
+  citations: readonly KonlingCitation[],
+): KonlingAnswerUnitCitationBinding[] {
+  const bindings: KonlingAnswerUnitCitationBinding[] = [];
+  const marker = /\[证据:\s*([A-Za-z0-9:_-]+)\]/g;
+  for (const match of assistantMessage.matchAll(marker)) {
+    const citation = citations.find((candidate) => candidate.id === match[1]);
+    if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
+    const markerIndex = match.index ?? 0;
+    const lineStart = assistantMessage.lastIndexOf('\n', markerIndex) + 1;
+    const unit = assistantMessage.slice(lineStart, markerIndex)
+      .replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '')
+      .trim()
+      .slice(0, 180);
+    if (!unit || bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) continue;
+    bindings.push({
+      unit,
+      citationId: citation.id,
+      citationTargetId: citation.citationTargetId,
+      limitation: citation.href ? null : 'unavailable-address',
+    });
+  }
+  return bindings;
 }
 
 function isPersonalizationCitationClass(value: string): boolean {
@@ -6745,6 +7028,11 @@ function buildAnswerIntentCitationFallbackReasons(
 
 function requiresContentCitation(answerIntent: KonlingAnswerIntent): boolean {
   return answerIntent === 'fact-explanation'
+    || answerIntent === 'formula-derivation'
+    || answerIntent === 'code-debugging'
+    || answerIntent === 'concept-comparison'
+    || answerIntent === 'normative-content'
+    || answerIntent === 'open-ended-explanation'
     || answerIntent === 'grading-explanation'
     || answerIntent === 'media-guidance'
     || answerIntent === 'path-advice';

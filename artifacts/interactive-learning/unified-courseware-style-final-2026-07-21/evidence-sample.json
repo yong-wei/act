@@ -1,0 +1,25 @@
+{
+  "eventType": "media_submit",
+  "clientEventId": "client-unified-courseware-style-final-001",
+  "attemptKey": "step-11:student-fixture:attempt-1",
+  "sourceLogId": "trusted-unified-courseware-style-final-001",
+  "lessonKey": "unit-1-2-modeling-from-object-to-system-v1",
+  "stepId": "step-11",
+  "moduleId": "three-ships-response-evidence",
+  "componentKind": "visual.annotatedMedia",
+  "componentId": "three-ships-response-evidence",
+  "actorRole": "student",
+  "clientEventAt": "2026-07-21T00:00:00.000Z",
+  "theme": "light",
+  "viewport": "desktop",
+  "schemaVersion": "annotated-media-evidence-v1",
+  "serverRecordedAt": "2026-07-21T00:00:01.000Z",
+  "classification": ["InteractionLog", "StudentStepResponse", "LearningFact"],
+  "payload": {
+    "selectedAnnotationIds": ["input-hotspot"],
+    "teachingLabel": "输入信号"
+  },
+  "affectsTeacherDiagnostics": true,
+  "affectsAbilitySnapshots": true,
+  "affectsRecommendationInputs": true
+}

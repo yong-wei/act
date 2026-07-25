@@ -1,43 +1,31 @@
 /**
  * 用户画像 API
  *
- * 统一返回学生个人中心所需的七维 portrait v2 画像、最近活动和个性化补强信息。
+ * 统一返回学生个人中心所需的累计七维 portrait v2、最新活动和个性化补强信息。
  */
 
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 import { prisma } from '@/lib/prisma';
 import {
   buildAdaptivePracticeSummary,
   buildPortraitV2Dimensions,
   buildProfileActivityFeed,
-  buildStudentProfileEvidenceStatus,
-  dedupeRecommendations,
   getCompetencyLevelLabel,
-  mapRecommendationsToResourceCards,
   summarizePortraitForProfile,
   type AdaptivePracticeSummary,
   type PersonalizedResourceCard,
   type ProfileActivityGroup,
   type ProfileActivityItem,
-  type StudentProfileEvidenceStatus,
 } from '@/lib/data-governance/profile-center';
 import { getCompetencyLevel } from '@/lib/data-governance/competency-model';
-import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
-import { readStudentEvidenceFeatures } from '@/lib/data-governance/student-evidence-feature-cache';
 import {
-  isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState,
-  type AdaptiveLearnerState,
-} from '@/lib/data-governance/adaptive-learner-state-service';
-import { hasPortraitV2Evidence, resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
-import {
-  PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
-  PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS,
-  derivePortraitV2Compatibility,
-  projectPortraitV2ForConsumer,
-} from '@/lib/data-governance/portrait-v2-model';
+  readCurrentCumulativePortrait,
+  type CumulativePortraitAvailabilityReason,
+  type CumulativePortraitReadModel,
+} from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
@@ -74,28 +62,51 @@ export interface UserProfileResponse {
     averageScore: number;
   };
   competency: {
-    model: 'portrait-v2';
-    derivationKind: 'native' | 'migrated' | 'compatibility-derived';
+    model: 'portrait-v2-cumulative';
+    availability: {
+      state: CumulativePortraitReadModel['stateKind'];
+      reason: CumulativePortraitAvailabilityReason;
+    };
     limitations: string[];
-    overallScore: number;
-    level: string;
-    trend: string;
+    overallScore: number | null;
+    level: string | null;
+    confidence: number | null;
+    lastTrend: CumulativePortraitReadModel['lastTrend'];
+    lastRisk: CumulativePortraitReadModel['lastRisk'];
+    evidenceAsOf: string | null;
+    generatedAt: string | null;
     strengths: string[];
-    weaknesses: string[];
+    improvementAreas: string[];
     dimensions: Array<{
       key: string;
       label: string;
       description: string;
-      score: number;
+      score: number | null;
       trend: 'up' | 'stable' | 'down';
-      confidence: number;
+      confidence: number | null;
       evidenceCount: number;
       freshness: { state: string; asOf: string | null; evidenceAgeDays: number | null };
       limitations: string[];
       calculationVersion: string;
+      availabilityReason: 'available' | 'no-eligible-evidence';
+      taskAttainment?: {
+        state: 'EVIDENCE' | 'NO_EVIDENCE';
+        completedTaskCount: number;
+        relatedTaskCount: number;
+        groupedTaskSummary: Array<{
+          source: string;
+          displayGroup: string;
+          completedTaskCount: number;
+          relatedTaskCount: number;
+          tasks: Array<{ taskKey: string; displayName: string; completed: boolean }>;
+        }>;
+        evidenceAsOf: string | null;
+        calculationVersion: string;
+        limitations: string[];
+      };
     }>;
   };
-  recentActivity: {
+  latestActivity: {
     preview: ProfileActivityItem[];
     grouped: ProfileActivityGroup[];
     total: number;
@@ -110,17 +121,8 @@ export interface UserProfileResponse {
     resources: PersonalizedResourceCard[];
     adaptivePractice: AdaptivePracticeSummary;
   };
-  evidenceStatus: StudentProfileEvidenceStatus;
-  adaptiveLearnerState: AdaptiveLearnerState | null;
   arenaPortfolio: ArenaStudentPortfolio;
   arenaSummary: ArenaStudentEvidenceSummary;
-}
-
-function parseStringList(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
-  }
-  return [];
 }
 
 function describeFactOutcome(outcome: string) {
@@ -282,20 +284,15 @@ export async function GET() {
       ]);
     }
 
-    const adaptiveLearnerStateEnabled = isAdaptiveLearnerStateServiceEnabled();
-
     const [
       profile,
-      latestSnapshot,
-      profileSummary,
+      cumulativePortrait,
       simulationLogs,
       simulationStats,
       ethicalLogs,
       missionProgress,
       interactionLogs,
       learningFacts,
-      studentEvidenceFeatureRead,
-      adaptiveLearnerState,
       studentStates,
       userArenaSubmissions,
     ] = await Promise.all([
@@ -309,13 +306,7 @@ export async function GET() {
           ethicsScore: true,
         },
       }),
-      prisma.studentCompetencySnapshot.findFirst({
-        where: { userId },
-        orderBy: { snapshotAt: 'desc' },
-      }),
-      prisma.studentProfileSummary.findUnique({
-        where: { userId },
-      }),
+      readCurrentCumulativePortrait(prisma, userId, 'student'),
       prisma.simulationLog.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
@@ -386,17 +377,6 @@ export async function GET() {
           contextJson: true,
         },
       }),
-      readStudentEvidenceFeatures(prisma, userId),
-      adaptiveLearnerStateEnabled
-        ? readAdaptiveLearnerState(prisma, {
-            userId,
-            role: 'student',
-            portraitConsumer: 'student',
-          }).catch((error) => {
-            console.error('[UserProfile] Learner state read failed:', error);
-            return null;
-          })
-        : Promise.resolve(null),
       prisma.studentState.findMany({
         where: { userId },
         orderBy: { submittedAt: 'desc' },
@@ -441,40 +421,29 @@ export async function GET() {
         : [];
 
     const sessionMap = new Map(classSessions.map((item) => [item.id, item]));
-    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: direct snapshot/cache reads only feed explicit v2 fallback resolution.
-    const adaptivePortrait = Array.isArray(adaptiveLearnerState?.primaryPortrait?.dimensions)
-      ? adaptiveLearnerState.primaryPortrait
-      : null;
-    const portraitResolution = !adaptivePortrait || !hasPortraitV2Evidence(adaptivePortrait)
-      ? await resolvePrimaryPortraitV2(prisma, userId, 'student', {
-          legacySnapshot: latestSnapshot as Record<string, unknown> | null,
-          featureCache: studentEvidenceFeatureRead.cache as Record<string, unknown> | null,
-        }).catch(() => null)
-      : null;
-    const resolvedPortrait = adaptivePortrait && hasPortraitV2Evidence(adaptivePortrait)
-      ? adaptivePortrait
-      : portraitResolution?.primaryPortrait && hasPortraitV2Evidence(portraitResolution.primaryPortrait)
-        ? portraitResolution.primaryPortrait
-        : portraitResolution && portraitResolution.legacyCompatibility.source !== 'fallback-empty'
-          ? projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
-              userId,
-              snapshotId: portraitResolution.legacyCompatibility.snapshotId ?? undefined,
-              snapshotAt: portraitResolution.legacyCompatibility.snapshotAt,
-              sourceFamily: portraitResolution.legacyCompatibility.source,
-              vector: portraitResolution.legacyCompatibility.vector,
-            }), 'student')
-          : null;
-    const portraitPayload = resolvedPortrait && hasPortraitV2Evidence(resolvedPortrait)
-      ? resolvedPortrait
+    const portraitPayload = cumulativePortrait.stateKind === 'SNAPSHOT'
+      ? cumulativePortrait.payload
       : null;
     const portraitSummary = portraitPayload
       ? summarizePortraitForProfile(portraitPayload)
       : null;
     const competencyDimensions = portraitPayload
-      ? buildPortraitV2Dimensions(portraitPayload)
+      ? buildPortraitV2Dimensions(portraitPayload).map((dimension) => {
+          const available = cumulativePortrait.dimensionCoverage.evidencedDimensionIds.some(
+            (dimensionId) => dimensionId === dimension.key,
+          );
+          return {
+            ...dimension,
+            score: available ? dimension.score : null,
+            confidence: available ? dimension.confidence : null,
+            availabilityReason: available ? 'available' as const : 'no-eligible-evidence' as const,
+          };
+        })
       : [];
-    const overallScore = portraitSummary?.overallScore ?? 0;
-    const level = getCompetencyLevelLabel(getCompetencyLevel(overallScore));
+    const overallScore = cumulativePortrait.overallScore;
+    const level = overallScore === null
+      ? null
+      : getCompetencyLevelLabel(getCompetencyLevel(overallScore));
     const portraitLabels = new Map(
       portraitSummary?.dimensions.map((dimension) => [dimension.id, dimension.label]) ?? []
     );
@@ -554,7 +523,7 @@ export async function GET() {
         dedupeKey: `${fact.factType}|${fact.moduleId ?? ''}|${fact.startedAt.toISOString()}`,
       }));
 
-    const recentActivity = buildProfileActivityFeed([
+    const latestActivity = buildProfileActivityFeed([
       ...classroomActivities,
       ...interactiveActivities,
       ...simulationActivities,
@@ -563,51 +532,6 @@ export async function GET() {
 
     const adaptiveReport = await getAbilityReportWithPersistenceFallback(userId);
     const adaptiveDiagnostic = await getDiagnosticWithPersistenceFallback(userId);
-    const recommendationCards = mapRecommendationsToResourceCards(
-      dedupeRecommendations(await generateRecommendations(userId))
-    ).slice(0, 4);
-    const evidenceStatusFacts = studentEvidenceFeatureRead.cache
-      ? learningFacts
-      : await prisma.learningFact.findMany({
-          where: { userId },
-          orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
-          select: {
-            factType: true,
-            startedAt: true,
-          },
-        });
-    const portraitEvidenceDimensions = portraitSummary?.dimensions.filter((dimension) => dimension.evidenceCount > 0) ?? [];
-    const portraitFreshnessRank = { current: 0, partial: 1, stale: 2, missing: 3 } as const;
-    const portraitEvidenceFreshness = portraitEvidenceDimensions
-      .map((dimension) => {
-        const asOf = Date.parse(dimension.freshness.asOf ?? '');
-        const ageMilliseconds = Date.now() - asOf;
-        if (!Number.isFinite(asOf) || ageMilliseconds < 0) return 'stale' as const;
-        const ageDays = Math.floor(ageMilliseconds / 86_400_000);
-        if (ageDays <= PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS) return 'current' as const;
-        if (ageDays <= PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS) return 'partial' as const;
-        return 'stale' as const;
-      })
-      .sort((left, right) => portraitFreshnessRank[right] - portraitFreshnessRank[left])[0];
-    const evidenceStatus = buildStudentProfileEvidenceStatus({
-      featureRead: studentEvidenceFeatureRead,
-      learningFacts: evidenceStatusFacts,
-      hasLatestSnapshot: Boolean(latestSnapshot),
-      primaryPortraitEvidence: portraitPayload
-        && ['native', 'migrated'].includes(portraitPayload.derivation.kind)
-        && hasPortraitV2Evidence(portraitPayload)
-        ? {
-            snapshotCount: 1,
-            // A single governed fact can contribute to several dimensions; max is a conservative lower bound.
-            evidenceCount: Math.max(...portraitEvidenceDimensions.map((dimension) => dimension.evidenceCount)),
-            refreshedAt: portraitPayload.generatedAt,
-            freshness: portraitEvidenceFreshness === 'current' || portraitEvidenceFreshness === 'partial'
-              ? portraitEvidenceFreshness
-              : 'stale',
-            confidence: Math.min(...portraitEvidenceDimensions.map((dimension) => dimension.confidence)),
-          }
-        : null,
-    });
 
     const response: UserProfileResponse = {
       user: {
@@ -633,17 +557,24 @@ export async function GET() {
         averageScore,
       },
       competency: {
-        model: 'portrait-v2',
-        derivationKind: portraitSummary?.derivationKind ?? 'compatibility-derived',
-        limitations: portraitSummary?.limitations ?? ['missing-native-portrait-v2-evidence'],
+        model: 'portrait-v2-cumulative',
+        availability: {
+          state: cumulativePortrait.stateKind,
+          reason: cumulativePortrait.availabilityReason,
+        },
+        limitations: portraitSummary?.limitations ?? [],
         overallScore,
         level,
-        trend: profileSummary?.recentTrend ?? '近期表现平稳',
+        confidence: cumulativePortrait.confidence,
+        lastTrend: cumulativePortrait.lastTrend,
+        lastRisk: cumulativePortrait.lastRisk,
+        evidenceAsOf: cumulativePortrait.evidenceAsOf,
+        generatedAt: cumulativePortrait.generatedAt,
         strengths: portraitSummary?.strengths.map((id) => portraitLabels.get(id) ?? id) ?? [],
-        weaknesses: portraitSummary?.weaknesses.map((id) => portraitLabels.get(id) ?? id) ?? [],
+        improvementAreas: portraitSummary?.weaknesses.map((id) => portraitLabels.get(id) ?? id) ?? [],
         dimensions: competencyDimensions,
       },
-      recentActivity,
+      latestActivity,
       missionProgress: {
         total: totalMissions,
         completed: completedMissions,
@@ -651,7 +582,7 @@ export async function GET() {
         locked: totalMissions - missionProgress.length,
       },
       personalizedReinforcement: {
-        resources: recommendationCards,
+        resources: [],
         adaptivePractice: buildAdaptivePracticeSummary({
           estimatedAbility: adaptiveReport?.estimatedAbility ?? null,
           confidenceInterval: adaptiveReport?.confidenceInterval ?? null,
@@ -660,8 +591,6 @@ export async function GET() {
           recommendedFocus: adaptiveDiagnostic?.recommendedFocus ?? [],
         }),
       },
-      evidenceStatus,
-      adaptiveLearnerState,
       arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId),
       arenaSummary: buildArenaStudentEvidenceSummary({
         userId,
@@ -697,13 +626,26 @@ export async function PATCH(request: Request) {
     }
 
     if (classId !== undefined) {
-      await prisma.studentProfile.upsert({
-        where: { userId: session.user.id },
-        update: { classId },
-        create: {
+      await prisma.$transaction(async (tx) => {
+        const previousProfile = await tx.studentProfile.findUnique({
+          where: { userId: session.user.id },
+          select: { classId: true },
+        });
+        await tx.studentProfile.upsert({
+          where: { userId: session.user.id },
+          update: { classId },
+          create: {
+            userId: session.user.id,
+            classId,
+          },
+        });
+        await requestCumulativeLearnerReconciliation(tx, {
           userId: session.user.id,
-          classId,
-        },
+          classIds: [previousProfile?.classId, classId].filter(
+            (candidate): candidate is string => typeof candidate === 'string',
+          ),
+          reason: 'class-membership:profile-update',
+        });
       });
     }
 

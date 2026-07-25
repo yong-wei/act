@@ -416,20 +416,20 @@ if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then
 else
   remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^MATH_DOCUMENT_GRADING_WORKER_REQUIRED=(0|false|no)$'"
 fi
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_S3_ENDPOINT='"
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_SCANNER_MODE=s3-object-tag$'"
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_SCANNER_ACCESS_KEY='"
 if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_S3_ENDPOINT='"
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_SCANNER_MODE=s3-object-tag$'"
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_SCANNER_ACCESS_KEY='"
   remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATHPIX_APP_ID='"
   remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATHPIX_APP_KEY='"
   remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^(AI_API_KEY|SILICONFLOW_API_KEY)='"
+  remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
+  remote "podman inspect '${GC_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
+  remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_LIFECYCLE_LOOKUP_SECRET=.+$'"
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_LIFECYCLE_LOOKUP_SECRET=.+$'"
+  remote "podman inspect '${GC_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_LIFECYCLE_LOOKUP_SECRET=.+$'"
 fi
-remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
-remote "podman inspect '${GC_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
-remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_LIFECYCLE_LOOKUP_SECRET=.+$'"
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_LIFECYCLE_LOOKUP_SECRET=.+$'"
-remote "podman inspect '${GC_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_LIFECYCLE_LOOKUP_SECRET=.+$'"
 
 log "- 校验 worker 启动日志"
 remote "podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\[Worker\\] Data governance worker started'"

@@ -1,343 +1,526 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  buildCumulativeClassJobId,
-  buildCumulativeStudentJobId,
+  inventoryCumulativeBackfill,
   parseCumulativeBackfillArgs,
   runCumulativeBackfill,
-  waitForRequestedClasses,
+  type CumulativeBackfillOptions,
 } from '../../../../scripts/db/backfill-cumulative-attainment';
-import {
-  PORTRAIT_V2_CALCULATION_VERSION,
-  PORTRAIT_V2_DIMENSION_IDS,
-  createPortraitV2Payload,
-} from '../portrait-v2-model';
+import { CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION } from '../cumulative-class-materialization';
+import { PORTRAIT_V2_CALCULATION_VERSION } from '../portrait-v2-model';
 
-function backfillDb(input: { withFact?: boolean } = {}) {
-  const requests = new Map<string, any>();
-  const generations = new Map<string, number>();
-  const db: any = {
-    learningFact: {
-      findMany: vi.fn(async () => input.withFact === false ? [] : [{ userId: 'student-with-history' }]),
-    },
-    user: {
-      findMany: vi.fn(async ({ where }: any) => where.id.in.includes('student-with-history')
-        ? [{ id: 'student-with-history', profile: { classId: 'class-current' } }]
-        : []),
-      count: vi.fn(async () => 2),
-    },
-    learningMaterializationGeneration: {
-      upsert: vi.fn(async ({ where }: any) => {
-        const generation = (generations.get(where.userId) ?? 0) + 1;
-        generations.set(where.userId, generation);
-        return { userId: where.userId, generation };
-      }),
-      findUnique: vi.fn(async ({ where }: any) => generations.has(where.userId)
-        ? { generation: generations.get(where.userId) }
-        : null),
-    },
-    learningMaterializationRebuildRequest: {
-      findUnique: vi.fn(async ({ where }: any) => requests.get(where.userId) ?? null),
-      create: vi.fn(async ({ data }: any) => { requests.set(data.userId, { ...data }); return data; }),
-      updateMany: vi.fn(async ({ where, data }: any) => {
-        const current = requests.get(where.userId);
-        if (!current || current.generation !== where.generation) return { count: 0 };
-        requests.set(where.userId, { ...current, ...data });
-        return { count: 1 };
-      }),
-    },
-    studentPortraitV2Snapshot: { findMany: vi.fn(async () => []) },
-    studentCompetencySnapshot: { findFirst: vi.fn(async () => null) },
-    studentProfile: { findMany: vi.fn(async ({ where }: any) => where.userId.in.length > 0 ? [{ classId: 'class-current' }] : []) },
-    classCompetencySnapshot: { findFirst: vi.fn(async () => null) },
+const now = new Date('2026-07-23T00:00:00.000Z');
+
+function options(input: Partial<CumulativeBackfillOptions> = {}): CumulativeBackfillOptions {
+  return {
+    mode: 'dry-run',
+    runId: null,
+    planRunId: null,
+    expectedInputDigest: null,
+    resume: false,
+    wait: false,
+    limit: null,
+    ...input,
   };
-  return { db, requests, generations };
 }
 
-describe('cumulative attainment backfill command', () => {
-  it('defaults to dry run and validates apply run ids and deterministic limits', () => {
-    expect(parseCumulativeBackfillArgs([])).toEqual({ apply: false, runId: null, wait: false, limit: null });
-    expect(parseCumulativeBackfillArgs(['--apply', '--run-id=semester-end-2026', '--limit=5', '--wait']))
-      .toEqual({ apply: true, runId: 'semester-end-2026', wait: true, limit: 5 });
-    expect(() => parseCumulativeBackfillArgs(['--apply'])).toThrow('apply-requires-stable-run-id');
-    expect(() => parseCumulativeBackfillArgs(['--apply', '--run-id=semester-end-2026']))
-      .toThrow('apply-requires-wait');
-    expect(() => parseCumulativeBackfillArgs(['--limit=0'])).toThrow('limit-must-be-a-positive-integer');
-  });
+function createDb(config: { invalidEvidence?: boolean; noFacts?: boolean } = {}) {
+  const facts = config.noFacts ? [] : [{
+    id: 'fact-1',
+    userId: 'student-1',
+    startedAt: new Date('2026-01-01T00:00:00.000Z'),
+    createdAt: new Date('2026-01-01T00:00:01.000Z'),
+    outcome: 'success',
+    score: 1,
+    competencyContribution: config.invalidEvidence ? {} : { controlModeling: 1 },
+    contextJson: { internalMarker: 'raw-fact-must-not-appear' },
+  }];
+  const users = [
+    { id: 'student-1', profile: { classId: 'class-1' } },
+    { id: 'student-no-fact', profile: { classId: 'class-1' } },
+  ];
+  const transitions: any[] = [];
+  const runs = new Map<string, any>();
+  const receipts: any[] = [];
+  const learnerPointers = new Map<string, any>();
+  const classPointers = new Map<string, any>();
+  let fence: any = {
+    id: 'global',
+    fence: BigInt(4),
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    learnerGeneration: BigInt(7),
+    classMaterializationVersion: CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
+    classGeneration: BigInt(8),
+    queueGeneration: BigInt(9),
+    activeMigrationRunId: null,
+    advancedAt: now,
+  };
+  const invalidated = { requests: 0, outbox: 0 };
+  const db: any = {
+    _state: {
+      facts, users, transitions, runs, receipts, learnerPointers, classPointers, invalidated,
+      get fence() { return fence; },
+    },
+    learningFact: {
+      findMany: vi.fn(async (args: any) => {
+        if (args.where?.userId?.in) {
+          return facts.filter((fact) => args.where.userId.in.includes(fact.userId))
+            .map((fact) => args.select?.userId ? { userId: fact.userId } : fact);
+        }
+        return facts;
+      }),
+    },
+    user: {
+      findMany: vi.fn(async () => users),
+    },
+    learnerFactTransition: {
+      findMany: vi.fn(async () => transitions),
+    },
+    cumulativePortraitCutoverFence: {
+      findUnique: vi.fn(async () => fence),
+      upsert: vi.fn(async ({ create, update }: any) => {
+        fence = fence ? { ...fence, ...update } : create;
+        return fence;
+      }),
+    },
+    cumulativePortraitMigrationRun: {
+      findUnique: vi.fn(async ({ where }: any) => runs.get(where.id) ?? null),
+      create: vi.fn(async ({ data }: any) => {
+        const row = { ...data, verificationDigest: data.verificationDigest ?? null };
+        runs.set(data.id, row);
+        return row;
+      }),
+      update: vi.fn(async ({ where, data }: any) => {
+        const row = { ...runs.get(where.id), ...data };
+        runs.set(where.id, row);
+        return row;
+      }),
+    },
+    cumulativePortraitMigrationReceipt: {
+      findFirst: vi.fn(async ({ where, orderBy }: any) => {
+        const matches = receipts.filter((receipt) =>
+          Object.entries(where).every(([key, value]) => receipt[key] === value));
+        return orderBy?.attempt ? matches.sort((a, b) => b.attempt - a.attempt)[0] ?? null : matches[0] ?? null;
+      }),
+      create: vi.fn(async ({ data }: any) => {
+        const row = { id: `receipt-${receipts.length + 1}`, ...data };
+        receipts.push(row);
+        return row;
+      }),
+    },
+    learningMaterializationRebuildRequest: {
+      updateMany: vi.fn(async () => {
+        invalidated.requests++;
+        return { count: 2 };
+      }),
+    },
+    learningMaterializationOutbox: {
+      updateMany: vi.fn(async () => {
+        invalidated.outbox++;
+        return { count: 3 };
+      }),
+    },
+    studentProfile: {
+      findMany: vi.fn(async () => facts.length === 0 ? [] : [{ userId: 'student-1', classId: 'class-1' }]),
+    },
+    learnerPortraitCurrentState: {
+      findUnique: vi.fn(async ({ where }: any) => learnerPointers.get(where.userId) ?? null),
+    },
+    classCumulativePortraitCurrentState: {
+      findUnique: vi.fn(async ({ where }: any) => classPointers.get(where.classId) ?? null),
+    },
+    $executeRawUnsafe: vi.fn(async () => 1),
+    $transaction: vi.fn(async (callback: any) => callback(db)),
+  };
+  return db;
+}
 
-  it('inventories students with historical facts without requesting or queueing writes', async () => {
-    const { db, requests } = backfillDb();
-    const studentAdd = vi.fn();
-    const classAdd = vi.fn();
+function queue(states: Array<'wait' | 'waiting' | 'paused' | 'prioritized' | 'delayed' | 'active'> = []) {
+  const jobs = states.map((state, index) => ({
+    id: `job-${index + 1}`,
+    remove: vi.fn(async () => undefined),
+    getState: vi.fn(async () => state),
+  }));
+  return { facade: { getJobs: vi.fn(async () => jobs) }, jobs };
+}
 
-    const result = await runCumulativeBackfill(
-      db,
-      { student: { add: studentAdd } as any, class: { add: classAdd } as any },
-      { apply: false, runId: null, wait: false, limit: null },
-    );
+function coordinatorQueue(state: 'wait' | 'paused' | 'prioritized' | 'delayed' | 'active' = 'delayed') {
+  const job = {
+    id: 'coordinator-job',
+    data: { coordinator: true },
+    remove: vi.fn(async () => undefined),
+    getState: vi.fn(async () => state),
+  };
+  return { facade: { getJobs: vi.fn(async () => [job]) }, job };
+}
 
-    expect(result).toEqual({
-      mode: 'dry-run', candidateCount: 1, selectedCount: 1, currentClassCount: 1, noEvidenceCount: 1,
-    });
-    expect(requests.size).toBe(0);
-    expect(studentAdd).not.toHaveBeenCalled();
-    expect(classAdd).not.toHaveBeenCalled();
-  });
-
-  it('does not request a portrait for students without any historical fact', async () => {
-    const { db, requests } = backfillDb({ withFact: false });
-    const studentAdd = vi.fn();
-    const result = await runCumulativeBackfill(
-      db,
-      { student: { add: studentAdd } as any, class: { add: vi.fn() } as any },
-      { apply: true, runId: 'semester-end-2026', wait: true, limit: 5 },
-    );
-
-    expect(result).toMatchObject({ candidateCount: 0, selectedCount: 0, learnerJobsEnqueued: 0 });
-    expect(requests.size).toBe(0);
-    expect(studentAdd).not.toHaveBeenCalled();
-  });
-
-  it('preserves an existing pending class refresh when requesting the cumulative generation', async () => {
-    const { db, requests } = backfillDb();
-    requests.set('student-with-history', {
-      userId: 'student-with-history', classIds: ['class-recent'], generation: 0, status: 'PENDING',
-    });
-    const studentAdd = vi.fn(async () => undefined);
-    const classAdd = vi.fn();
-    await expect(runCumulativeBackfill(
-      db,
-      {
-        student: { add: studentAdd, getJob: vi.fn(async () => ({ getState: async () => 'waiting' })) } as any,
-        class: { add: classAdd } as any,
-      },
-      { apply: true, runId: 'semester-end-2026', wait: true, limit: 5 },
-      { waitOptions: { timeoutMs: 0, pollMs: 0, sleep: async () => undefined } },
-    )).rejects.toThrow('learner-rebuild-pending');
-
-    expect(requests.get('student-with-history')).toMatchObject({ classIds: ['class-recent'], generation: 1, status: 'PENDING' });
-    expect(studentAdd).toHaveBeenCalledWith(
-      'cumulative-attainment-full-rebuild',
-      { userId: 'student-with-history', fullRebuild: true, rebuildGeneration: 1 },
-      expect.objectContaining({ jobId: buildCumulativeStudentJobId('semester-end-2026', 'student-with-history', 1) }),
-    );
-    expect(classAdd).not.toHaveBeenCalled();
-  });
-
-  it('keeps the durable request and does not enqueue classes when wait is incomplete', async () => {
-    const { db, requests } = backfillDb();
-    const studentAdd = vi.fn(async () => undefined);
-    const classAdd = vi.fn();
-    await expect(runCumulativeBackfill(
-      db,
-      {
-        student: { add: studentAdd, getJob: vi.fn(async () => ({ getState: async () => 'waiting' })) } as any,
-        class: { add: classAdd } as any,
-      },
-      { apply: true, runId: 'semester-end-2026', wait: true, limit: 5 },
-      { waitOptions: { timeoutMs: 0, pollMs: 0, sleep: async () => undefined } },
-    )).rejects.toThrow('learner-rebuild-pending');
-
-    expect(requests.has('student-with-history')).toBe(true);
-    expect(classAdd).not.toHaveBeenCalled();
-  });
-
-  it('enqueues deduplicated current-class cumulative work only after a valid native portrait completes', async () => {
-    const { db, requests } = backfillDb();
-    const portraitRows: any[] = [];
-    db.studentPortraitV2Snapshot.findMany = vi.fn(async () => portraitRows);
-    const studentAdd = vi.fn(async (_name: string, data: any) => {
-      const generatedAt = new Date().toISOString();
-      const payload = createPortraitV2Payload({
-        userId: data.userId,
-        generatedAt,
-        now: generatedAt,
-        dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
-          id,
-          score: 72,
-          confidence: 0.8,
-          freshness: { state: 'current' as const, asOf: generatedAt, evidenceAgeDays: 0 },
-          evidenceSummary: { totalCount: 1, sourceFamilyCounts: { LearningFact: 1 } },
-          lastPositiveEvidenceAt: generatedAt,
-          lastNegativeEvidenceAt: null,
-          rationale: 'Governed evidence supports the current score.',
-          limitations: [],
-          sourceLineage: [{ kind: 'evidence-family' as const, ref: 'LearningFact', privacyScope: 'student-visible' as const }],
-          calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-        })),
-      });
-      portraitRows.push({
-        id: 'portrait-complete', userId: data.userId, snapshotAt: new Date(generatedAt),
-        payloadVersion: payload.payloadVersion, calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-        migrationVersion: payload.migrationVersion, derivationKind: 'native', payload,
-      });
-      requests.delete(data.userId);
-    });
-    let classRequestedAfter = '';
-    const classAdd = vi.fn(async (_name: string, data: any) => {
-      classRequestedAfter = data.requestedAfter;
-      db.classCompetencySnapshot.findFirst.mockResolvedValue({
-        id: 'class-cumulative-current-run',
-        aggregateJson: { _materialization: { runRef: data.runRef } },
-      });
-    });
-    const classGetJob = vi.fn(async () => ({
-      getState: async () => 'completed',
-      returnvalue: { snapshotId: 'class-cumulative-current-run' },
-    }));
-
-    const result = await runCumulativeBackfill(
-      db,
-      {
-        student: { add: studentAdd, getJob: vi.fn() } as any,
-        class: { add: classAdd, getJob: classGetJob } as any,
-      },
-      { apply: true, runId: 'semester-end-2026', wait: true, limit: 5 },
-      { waitOptions: { timeoutMs: 0 }, classWaitOptions: { timeoutMs: 0 } },
-    );
-
-    expect(result).toMatchObject({ learnerJobsEnqueued: 1, classJobsEnqueued: 1 });
-    expect(classAdd).toHaveBeenCalledWith(
-      'cumulative-class-snapshot',
-      {
-        classId: 'class-current',
-        scope: 'cumulative',
-        requestedAfter: expect.any(String),
-        runRef: expect.stringMatching(/^run-/),
-      },
-      expect.objectContaining({ jobId: buildCumulativeClassJobId('semester-end-2026', 'class-current', [1]) }),
-    );
-    expect(db.classCompetencySnapshot.findFirst).toHaveBeenCalledWith({
-      where: {
-        id: 'class-cumulative-current-run',
-        classId: 'class-current',
-        materializationVersion: 'class-competency.cumulative.v1',
-        snapshotAt: { gte: new Date(classRequestedAfter) },
-      },
-      orderBy: { snapshotAt: 'desc' },
-      select: { id: true, aggregateJson: true },
-    });
-  });
-
-  it('uses durable no-evidence and class markers after completed jobs are trimmed', async () => {
-    const { db, requests } = backfillDb();
-    const studentAdd = vi.fn(async () => {
-      requests.delete('student-with-history');
-      db.studentCompetencySnapshot.findFirst.mockResolvedValue({
-        factCount: 0,
-        snapshotAt: new Date(),
-        evidenceSummary: { _derivation: { state: 'no-evidence-after-revocation' } },
-      });
-    });
-    const studentGetJob = vi.fn(async () => null);
-    const classAdd = vi.fn(async (_name: string, data: any) => {
-      db.classCompetencySnapshot.findFirst.mockResolvedValue({
-        id: 'class-no-evidence-run',
-        aggregateJson: { _materialization: { runRef: data.runRef } },
-      });
-    });
-    const classGetJob = vi.fn(async () => null);
-
-    const result = await runCumulativeBackfill(
-      db,
-      {
-        student: { add: studentAdd, getJob: studentGetJob } as any,
-        class: { add: classAdd, getJob: classGetJob } as any,
-      },
-      { apply: true, runId: 'context-only-2026', wait: true, limit: null },
-      { waitOptions: { timeoutMs: 0 }, classWaitOptions: { timeoutMs: 0 } },
-    );
-
-    expect(result).toMatchObject({ candidateCount: 1, learnerJobsEnqueued: 1, classJobsEnqueued: 1 });
-    expect(classAdd).toHaveBeenCalledWith(
-      'cumulative-class-snapshot',
-      expect.objectContaining({ classId: 'class-current', scope: 'cumulative', runRef: expect.stringMatching(/^run-/) }),
-      expect.any(Object),
-    );
-    expect(db.studentPortraitV2Snapshot.findMany).toHaveBeenCalled();
-  });
-
-  it('does not accept an older cumulative snapshot as completion for the current class job', async () => {
-    const db: any = {
-      classCompetencySnapshot: { findFirst: vi.fn(async () => null) },
+function interruptibleQueue() {
+  let removeAttempts = 0;
+  let failSecondRemoval = true;
+  const jobs = ['first-sensitive-job', 'second-sensitive-job'].map((id) => {
+    const job: any = {
+      id,
+      removed: false,
+      getState: vi.fn(async () => 'waiting'),
     };
-    const requestedAt = new Date('2026-07-22T00:00:00.000Z');
+    job.remove = vi.fn(async () => {
+      removeAttempts++;
+      if (failSecondRemoval && removeAttempts === 2) {
+        failSecondRemoval = false;
+        throw new Error('intentional-queue-invalidation-interruption');
+      }
+      job.removed = true;
+    });
+    return job;
+  });
+  return {
+    facade: {
+      getJobs: vi.fn(async () => jobs.filter((job) => !job.removed)),
+    },
+    jobs,
+  };
+}
 
-    await expect(waitForRequestedClasses(
+function runtime(db: any, calls = { learners: 0, classes: 0 }) {
+  return {
+    now: () => now,
+    materializeLearner: vi.fn(async (_client: any, userId: string, input: any) => {
+      calls.learners++;
+      if (!db._state.transitions.some((transition: any) =>
+        transition.factId === db._state.facts[0]?.id)) {
+        const fact = db._state.facts[0];
+        db._state.transitions.push({
+          id: 'journal-1',
+          userId,
+          sequence: BigInt(1),
+          factId: fact.id,
+          operation: 'UPSERT',
+          occurredAt: fact.startedAt,
+          transitionPayload: null,
+          sourceReference: null,
+          correctionOfSequence: null,
+          createdAt: now,
+        });
+      }
+      const stateKind = db._state.facts[0]?.competencyContribution?.controlModeling ? 'SNAPSHOT' : 'NO_EVIDENCE';
+      const stateVersionId = `learner-version-${calls.learners}`;
+      db._state.learnerPointers.set(userId, {
+        userId,
+        stateVersionId,
+        calculationVersion: input.publication.calculationVersion,
+        generation: input.publication.generation,
+        queueGeneration: input.publication.queueGeneration,
+        cutoverFence: input.publication.cutoverFence,
+        stateWatermark: BigInt(1),
+        stateVersion: {
+          id: stateVersionId,
+          stateKind,
+          migrationRunId: input.publication.migrationRunId,
+        },
+      });
+      return { written: true, evidenceCount: stateKind === 'SNAPSHOT' ? 1 : 0, affectedDimensions: [], mappingIssues: [] };
+    }),
+    materializeClass: vi.fn(async (_client: any, classId: string, input: any) => {
+      calls.classes++;
+      const versionId = `class-version-${calls.classes}`;
+      db._state.classPointers.set(classId, {
+        classId,
+        versionId,
+        materializationVersion: input.publication.materializationVersion,
+        calculationVersion: input.publication.calculationVersion,
+        generation: input.publication.generation,
+        queueGeneration: input.publication.queueGeneration,
+        migrationRunId: input.publication.migrationRunId,
+        inputDigest: `class-input-${calls.classes}`,
+        cutoverFence: input.publication.cutoverFence,
+        version: {
+          id: versionId,
+          migrationRunId: input.publication.migrationRunId,
+          materializationVersion: input.publication.materializationVersion,
+        },
+      });
+      return { written: true, versionId, inputDigest: 'class-input', memberSetDigest: 'members', activeStudentCount: 1, totalStudentCount: 1 };
+    }),
+  };
+}
+
+async function plan(db: any, runId = 'plan-2026') {
+  const result = await runCumulativeBackfill(db, { student: null as never, class: null as never }, options({ runId }), {
+    now: () => now,
+  });
+  return result.inputDigest as string;
+}
+
+async function apply(db: any, digest: string, queues?: any, extra: Partial<CumulativeBackfillOptions> = {}, calls?: any) {
+  const student = queues?.student ?? queue().facade;
+  const classes = queues?.class ?? queue().facade;
+  return runCumulativeBackfill(db, { student, class: classes }, options({
+    mode: 'apply',
+    runId: 'apply-2026',
+    planRunId: 'plan-2026',
+    expectedInputDigest: digest,
+    wait: true,
+    ...extra,
+  }), runtime(db, calls));
+}
+
+describe('cumulative attainment stopped-service migration', () => {
+  it('parses the explicit maintenance modes and apply confirmation gate', () => {
+    expect(parseCumulativeBackfillArgs([]).mode).toBe('dry-run');
+    expect(parseCumulativeBackfillArgs(['--verify', '--run-id=apply-2026']).mode).toBe('verify');
+    expect(() => parseCumulativeBackfillArgs(['--apply', '--run-id=apply-2026']))
+      .toThrow('apply-requires-plan-run-id');
+    expect(() => parseCumulativeBackfillArgs([
+      '--apply', '--run-id=apply-2026', '--plan-run-id=plan-2026',
+      '--expected-input-digest=x',
+    ])).toThrow('apply-requires-wait');
+    expect(() => parseCumulativeBackfillArgs([
+      '--apply', '--run-id=apply-2026', '--plan-run-id=plan-2026',
+      '--expected-input-digest=x', '--wait', '--limit=1',
+    ])).toThrow('apply-forbids-limit');
+  });
+
+  it('builds a stable canonical plan and only persists plan audit rows', async () => {
+    const db = createDb();
+    const first = await inventoryCumulativeBackfill(db, null);
+    const second = await inventoryCumulativeBackfill(db, null);
+    expect(first.inputDigest).toBe(second.inputDigest);
+
+    const digest = await plan(db);
+    expect(digest).toBe(first.inputDigest);
+    expect(db._state.runs.get('plan-2026')).toMatchObject({ mode: 'DRY_RUN', status: 'COMPLETED' });
+    expect(db._state.learnerPointers.size).toBe(0);
+    expect(db._state.classPointers.size).toBe(0);
+    expect(db._state.receipts).toHaveLength(1);
+    expect(JSON.stringify(db._state.receipts)).not.toContain('student-1');
+    expect(JSON.stringify(db._state.receipts)).not.toContain('class-1');
+  });
+
+  it('reports students without facts separately and predicts NO_EVIDENCE state', async () => {
+    const db = createDb({ invalidEvidence: true });
+    const result = await runCumulativeBackfill(db, { student: null as never, class: null as never }, options());
+    expect(result).toMatchObject({
+      candidateCount: 1,
+      noFactCount: 1,
+      noEvidenceStateCount: 1,
+    });
+  });
+
+  it('rejects source drift and does not advance the cutover fence', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    db._state.facts[0].score = 0.5;
+    await expect(apply(db, digest)).rejects.toThrow('plan-input-drift');
+    expect(db._state.fence.fence).toBe(BigInt(4));
+  });
+
+  it('advances the fence, invalidates old work, removes inactive queue jobs and writes v2 pointers directly', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    const student = queue(['waiting', 'active']);
+    const classes = queue(['delayed', 'paused']);
+    const result = await apply(db, digest, { student: student.facade, class: classes.facade });
+
+    expect(result).toMatchObject({
+      mode: 'apply',
+      candidateCount: 1,
+      classCount: 1,
+      queueJobsEnqueued: 0,
+    });
+    expect(db._state.fence).toMatchObject({
+      fence: BigInt(5),
+      learnerGeneration: BigInt(8),
+      classGeneration: BigInt(9),
+      queueGeneration: BigInt(10),
+      activeMigrationRunId: 'apply-2026',
+    });
+    expect(db._state.invalidated).toEqual({ requests: 1, outbox: 1 });
+    expect(db.learningMaterializationRebuildRequest.updateMany).toHaveBeenCalledWith({
+      where: { status: { in: ['PENDING', 'CLAIMED'] } },
+      data: {
+        status: 'INVALIDATED',
+        lastErrorCode: 'cumulative-cutover-fence-advanced',
+        completedAt: now,
+      },
+    });
+    expect(student.jobs[0].remove).toHaveBeenCalledOnce();
+    expect(student.jobs[1].remove).not.toHaveBeenCalled();
+    expect(classes.jobs.every((job) => job.remove.mock.calls.length === 1)).toBe(true);
+    expect(db._state.receipts.find((receipt: any) =>
+      receipt.stage === 'invalidate-queue-work')).toMatchObject({
+      counts: { waiting: 1, paused: 1, prioritized: 0, delayed: 1, active: 1 },
+    });
+    expect(db._state.classPointers.get('class-1')).toMatchObject({
+      materializationVersion: CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
+      migrationRunId: 'apply-2026',
+    });
+    expect(JSON.stringify(db._state.receipts)).not.toContain('student-1');
+    expect(JSON.stringify(db._state.receipts)).not.toContain('class-1');
+    expect(JSON.stringify(db._state.receipts)).not.toContain('raw-fact-must-not-appear');
+  });
+
+  it('keeps recurring coordinator jobs outside the superseded materialization inventory', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    const student = coordinatorQueue();
+    const classes = queue(['wait']);
+
+    await apply(db, digest, { student: student.facade, class: classes.facade });
+
+    expect(student.job.remove).not.toHaveBeenCalled();
+    expect(classes.jobs[0].remove).toHaveBeenCalledOnce();
+    expect(db._state.receipts.find((receipt: any) =>
+      receipt.stage === 'queue-invalidation-inventory')).toMatchObject({
+      counts: { expectedTotal: 1, 'class.wait': 1, 'student.delayed': 0 },
+    });
+  });
+
+  it('publishes an explicit NO_EVIDENCE current state without inventing a snapshot', async () => {
+    const db = createDb({ invalidEvidence: true });
+    const digest = await plan(db);
+    const result = await apply(db, digest);
+    expect(result.noEvidenceStateCount).toBe(1);
+    expect(db._state.learnerPointers.get('student-1').stateVersion.stateKind).toBe('NO_EVIDENCE');
+  });
+
+  it('requires Redis queue access instead of silently skipping invalidation', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    await expect(runCumulativeBackfill(db, { student: null as never, class: null as never }, options({
+      mode: 'apply', runId: 'apply-2026', planRunId: 'plan-2026',
+      expectedInputDigest: digest, wait: true,
+    }), runtime(db))).rejects.toThrow('apply-requires-redis-queues');
+  });
+
+  it('resumes a RUNNING run without advancing generations or duplicating verified learner/class versions', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    const calls = { learners: 0, classes: 0 };
+    await apply(db, digest, undefined, {}, calls);
+    db._state.runs.get('apply-2026').status = 'RUNNING';
+    const beforeFence = db._state.fence.fence;
+    await apply(db, digest, undefined, { resume: true }, calls);
+    expect(db._state.fence.fence).toBe(beforeFence);
+    expect(calls).toEqual({ learners: 1, classes: 1 });
+    expect(db._state.receipts.filter((receipt: any) =>
+      receipt.stage === 'learner' && receipt.status === 'VERIFIED')).toHaveLength(1);
+  });
+
+  it('reuses the durable nonzero queue inventory after interruption and closes every original item', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    const student = interruptibleQueue();
+    const classes = queue();
+
+    await expect(apply(db, digest, {
+      student: student.facade,
+      class: classes.facade,
+    })).rejects.toThrow('intentional-queue-invalidation-interruption');
+
+    const inventoryReceipt = db._state.receipts.find((receipt: any) =>
+      receipt.stage === 'queue-invalidation-inventory');
+    expect(inventoryReceipt).toMatchObject({
+      status: 'RECORDED',
+      counts: { expectedTotal: 2, 'student.wait': 2 },
+    });
+    expect(db._state.receipts.some((receipt: any) =>
+      receipt.stage === 'invalidate-queue-work')).toBe(false);
+    expect(student.jobs.filter((job) => job.removed)).toHaveLength(1);
+    expect(JSON.stringify(inventoryReceipt)).not.toContain('first-sensitive-job');
+    expect(JSON.stringify(inventoryReceipt)).not.toContain('second-sensitive-job');
+
+    await expect(apply(db, digest, {
+      student: student.facade,
+      class: classes.facade,
+    }, { resume: true })).resolves.toMatchObject({ mode: 'apply' });
+
+    const terminalReceipt = db._state.receipts.find((receipt: any) =>
+      receipt.stage === 'invalidate-queue-work');
+    expect(terminalReceipt).toMatchObject({
+      status: 'VERIFIED',
+      counts: {
+        expectedTotal: 2,
+        accountedTotal: 2,
+        removed: 1,
+        absentAfterInterruption: 1,
+      },
+    });
+    expect(terminalReceipt.details.inventoryDigest).toBe(inventoryReceipt.details.inventoryDigest);
+    await expect(runCumulativeBackfill(
       db,
-      {
-        getJob: vi.fn(async () => ({
-          getState: async () => 'completed',
-          returnvalue: { snapshotId: 'old-cumulative-snapshot' },
-        })),
-      } as any,
-      [{ classId: 'class-current', jobId: 'class-job-current-run', requestedAt, runRef: 'run-current' }],
-      { timeoutMs: 0 },
-    )).rejects.toThrow('class-rebuild-failed');
-
-    expect(db.classCompetencySnapshot.findFirst).toHaveBeenCalledWith({
-      where: {
-        id: 'old-cumulative-snapshot',
-        classId: 'class-current',
-        materializationVersion: 'class-competency.cumulative.v1',
-        snapshotAt: { gte: requestedAt },
-      },
-      orderBy: { snapshotAt: 'desc' },
-      select: { id: true, aggregateJson: true },
-    });
+      { student: null as never, class: null as never },
+      options({ mode: 'verify', runId: 'apply-2026' }),
+    )).resolves.toMatchObject({ mode: 'verify' });
   });
 
-  it('finds the current run marker when a later run snapshot exists and its class job was trimmed', async () => {
-    const requestedAt = new Date('2026-07-22T00:00:00.000Z');
-    const snapshots = [
-      {
-        id: 'snapshot-run-a',
-        classId: 'class-current',
-        materializationVersion: 'class-competency.cumulative.v1',
-        snapshotAt: new Date('2026-07-22T00:01:00.000Z'),
-        aggregateJson: { _materialization: { runRef: 'run-a' } },
-      },
-      {
-        id: 'snapshot-run-b',
-        classId: 'class-current',
-        materializationVersion: 'class-competency.cumulative.v1',
-        snapshotAt: new Date('2026-07-22T00:02:00.000Z'),
-        aggregateJson: { _materialization: { runRef: 'run-b' } },
-      },
-    ];
-    const findFirst = vi.fn(async ({ where }: any) => snapshots
-      .filter((snapshot) => snapshot.classId === where.classId
-        && snapshot.materializationVersion === where.materializationVersion
-        && snapshot.snapshotAt >= where.snapshotAt.gte
-        && (!where.id || snapshot.id === where.id)
-        && (!where.aggregateJson
-          || snapshot.aggregateJson._materialization.runRef === where.aggregateJson.equals))
-      .sort((left, right) => right.snapshotAt.getTime() - left.snapshotAt.getTime())[0] ?? null);
+  it('fails verification when queue inventory or terminal receipts are missing or tampered', async () => {
+    async function completedDb() {
+      const db = createDb();
+      const digest = await plan(db);
+      await apply(db, digest, {
+        student: queue(['wait']).facade,
+        class: queue(['delayed']).facade,
+      });
+      return db;
+    }
+    const verify = (db: any) => runCumulativeBackfill(
+      db,
+      { student: null as never, class: null as never },
+      options({ mode: 'verify', runId: 'apply-2026' }),
+    );
 
-    await expect(waitForRequestedClasses(
-      { classCompetencySnapshot: { findFirst } } as any,
-      { getJob: vi.fn(async () => null) } as any,
-      [{ classId: 'class-current', jobId: 'class-job-run-a', requestedAt, runRef: 'run-a' }],
-      { timeoutMs: 0 },
-    )).resolves.toBeUndefined();
+    const missingInventory = await completedDb();
+    missingInventory._state.receipts.splice(
+      missingInventory._state.receipts.findIndex((receipt: any) =>
+        receipt.stage === 'queue-invalidation-inventory'),
+      1,
+    );
+    await expect(verify(missingInventory))
+      .rejects.toThrow('queue-invalidation-inventory-receipt-required');
 
-    expect(findFirst).toHaveBeenCalledWith({
-      where: {
-        classId: 'class-current',
-        materializationVersion: 'class-competency.cumulative.v1',
-        snapshotAt: { gte: requestedAt },
-        aggregateJson: { path: ['_materialization', 'runRef'], equals: 'run-a' },
-      },
-      orderBy: { snapshotAt: 'desc' },
-      select: { id: true, aggregateJson: true },
-    });
+    const tamperedInventory = await completedDb();
+    tamperedInventory._state.receipts.find((receipt: any) =>
+      receipt.stage === 'queue-invalidation-inventory').details.items[0].jobRef = 'tampered';
+    await expect(verify(tamperedInventory))
+      .rejects.toThrow('queue-invalidation-inventory-invalid');
+
+    const missingTerminal = await completedDb();
+    missingTerminal._state.receipts.splice(
+      missingTerminal._state.receipts.findIndex((receipt: any) =>
+        receipt.stage === 'invalidate-queue-work'),
+      1,
+    );
+    await expect(verify(missingTerminal))
+      .rejects.toThrow('queue-invalidation-terminal-receipt-required');
+
+    const tamperedTerminal = await completedDb();
+    tamperedTerminal._state.receipts.find((receipt: any) =>
+      receipt.stage === 'invalidate-queue-work').details.inventoryDigest = 'tampered';
+    await expect(verify(tamperedTerminal))
+      .rejects.toThrow('queue-invalidation-terminal-invalid');
   });
 
-  it('uses stable opaque run, entity, and generation job identities', () => {
-    expect(buildCumulativeStudentJobId('semester-end-2026', 'student-1', 4))
-      .toBe(buildCumulativeStudentJobId('semester-end-2026', 'student-1', 4));
-    expect(buildCumulativeStudentJobId('semester-end-2026', 'student-1', 4)).not.toContain('student-1');
-    expect(buildCumulativeClassJobId('semester-end-2026', 'class-1', [4, 2]))
-      .toBe(buildCumulativeClassJobId('semester-end-2026', 'class-1', [2, 4]));
+  it('verifies only the durable v2 run, fence and current pointers and rejects a missing class pointer', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    await apply(db, digest);
+    await expect(runCumulativeBackfill(db, { student: null as never, class: null as never }, options({
+      mode: 'verify', runId: 'apply-2026',
+    }))).resolves.toMatchObject({ mode: 'verify', candidateCount: 1 });
+
+    db._state.classPointers.clear();
+    await expect(runCumulativeBackfill(db, { student: null as never, class: null as never }, options({
+      mode: 'verify', runId: 'apply-2026',
+    }))).rejects.toThrow('class-current-pointer-verification-failed');
+  });
+
+  it('does not accept a legacy v1 class pointer during durable verification', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    await apply(db, digest);
+    db._state.classPointers.get('class-1').materializationVersion = 'class-competency.cumulative.v1';
+    await expect(runCumulativeBackfill(db, { student: null as never, class: null as never }, options({
+      mode: 'verify', runId: 'apply-2026',
+    }))).rejects.toThrow('class-current-pointer-verification-failed');
   });
 });

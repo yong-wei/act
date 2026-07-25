@@ -94,12 +94,16 @@ interface KonlingPromptRuntimeContext {
   citationContext?: {
     required?: boolean;
     contentCitations?: Array<{
+      id?: string;
       sourceType: string;
       displayTitle: string;
       confidence: string;
       evidenceBasis: string;
+      citationTargetId?: string | null;
+      verified?: boolean;
     }>;
     evidenceCitations?: Array<{
+      id?: string;
       sourceType: string;
       displayTitle: string;
       confidence: string;
@@ -134,6 +138,17 @@ interface KonlingPromptRuntimeContext {
       requiredOwners: string[];
       missingClasses: string[];
     };
+    studyQuestion?: {
+      intent: string;
+      requiredSections: string[];
+      normativeGuidance: 'not-applicable' | 'verified' | 'verification-required';
+      preferences: {
+        depth: string;
+        format: string;
+        hintStrength: string;
+        exampleContext: string | null;
+      };
+    } | null;
     smartPreparation?: unknown;
   };
 }
@@ -322,6 +337,25 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     if (mode.citationRequirements.required) {
       lines.push(`  - 模式引用要求: ${mode.citationRequirements.classes.join(', ')}；责任归属 ${mode.citationRequirements.requiredOwners.join(', ')}`);
     }
+    if (mode.studyQuestion) {
+      const study = mode.studyQuestion;
+      lines.push(`  - 专业问答类型: ${study.intent}`);
+      lines.push(`  - 必须覆盖: ${study.requiredSections.join('、')}`);
+      lines.push(`  - 表达偏好: 深度=${study.preferences.depth}，格式=${study.preferences.format}，引导=${study.preferences.hintStrength}${study.preferences.exampleContext ? `，示例=${study.preferences.exampleContext}` : ''}`);
+      lines.push('  - 每个关键结论、关键推导变形或修复建议后，只能使用可用内容引用的 ID 标注 `[证据: citation-id]`；不得编造 ID、链接或脚注。');
+      const studyCitationIds = runtime.citationContext?.contentCitations
+        ?.filter((citation) => citation.verified === true && Boolean(citation.citationTargetId))
+        ?.map((citation) => citation.id)
+        .filter((id): id is string => Boolean(id));
+      if (studyCitationIds?.length) {
+        lines.push(`  - 可用于步骤证据绑定的内容引用 ID: ${studyCitationIds.slice(0, 6).join(', ')}`);
+      }
+      if (study.normativeGuidance === 'verification-required') {
+        lines.push('  - 当前规范性内容缺少可用的服务端验证权威来源：必须明确标为“需核验”，不得写成确定的官方规则、法定要求或标准格式。');
+      } else if (study.normativeGuidance === 'verified') {
+        lines.push('  - 当前规范性结论只能以可用的服务端验证权威来源为依据，并在结论后标注对应证据 ID。');
+      }
+    }
     if (mode.unavailableReasons.length || mode.degradedReasons.length) {
       lines.push(`  - 模式限制: ${[...mode.unavailableReasons, ...mode.degradedReasons].join(', ')}`);
     }
@@ -350,7 +384,7 @@ function buildSmartPreparationInstructions(value: unknown): string[] {
   if (preparation.bootstrap) {
     lines.push('  - 新建任务的 proposedTask 必填字段为：courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals；可选字段只有 prerequisites、outlineConfirmationRequired、aggregateClassContextRef、confirmScope、confirmGoals。');
     lines.push('  - knowledgePoints 的每项必须含 content、sourceState、sourceBindings、origin、可选 title；goals 的每项必须含 content、sourceState、sourceBindings、可选 standardsMappings。sourceState 只能是 ai_generated_source_pending 或 teacher_created_source_pending。没有服务端提供的完整 citationId、anchor、contentHash 时，sourceBindings 使用 []，不得伪造锚点。');
-    lines.push('  - 当前处于新建单课阶段：信息仍不唯一时，调用该工具并以 bootstrap + clarification 提出一个问题和至少两个选项；教师已明确范围时，调用该工具并以 bootstrap + 完整 proposedTask 形成待确认建议。');
+    lines.push('  - 当前处于新建单课阶段：信息仍不唯一时，只能提交 operation=bootstrap 与 clarification（不得同时提交 proposedTask、knowledgePointPatches 或 goalPatches）；教师已明确范围时，提交 operation=bootstrap 与完整 proposedTask，且不得携带 clarification。');
     const availableCourseBases = array(record(preparation.currentTask).availableCourseBases)
       .map(formatAvailableCourseBasis)
       .filter((item): item is string => Boolean(item));
@@ -364,7 +398,8 @@ function buildSmartPreparationInstructions(value: unknown): string[] {
 
   const taskId = string(preparation.taskId);
   const taskRevision = string(preparation.taskRevision);
-  lines.push(`  - 当前处于既有单课修订阶段：调用该工具时使用 revise、taskId=${taskId ?? 'unknown'}、expectedRevision=${taskRevision ?? 'unknown'}，仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段并形成完整待确认建议。不得提交 courseBasisId 或 sourceVersionIds，服务端始终使用当前任务绑定。`);
+  lines.push(`  - 当前处于既有单课修订阶段：调用该工具时使用 revise、taskId=${taskId ?? 'unknown'}、expectedRevision=${taskRevision ?? 'unknown'}。proposedTask 仅可提交 topic、audience、prerequisites、durationMinutes、outlineConfirmationRequired、confirmScope 或 confirmGoals；服务端会携带其余当前任务字段并形成完整待确认建议。不得提交 courseBasisId 或 sourceVersionIds，服务端始终使用当前任务绑定。`);
+  lines.push('  - 教学活动或流程约束必须转换为对现有目标的 goalPatches.update（例如把“至少20分钟参与式学习并完成判断活动”写入目标内容）；教师给出的量化下限必须逐字保留，不得弱化或省略。不得重传 goals 完整数组，也不得使用 duration、outline、teachingMethods、learningObjectives、references 或其他教案字段。');
   const currentCollections = formatCurrentTaskCollections(preparation.currentTask);
   if (currentCollections) {
     lines.push(`  - 修改 knowledgePoints 或 goals 时，不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches。update 只提交稳定 id 与 changes，且 changes 不得包含 id 或 sourceBindings；remove 只提交稳定 id；add 必须提交不含 id 的完整可确认 item：两类都必须含 content、sourceState、sourceBindings，知识点另须含 origin；无可用来源绑定时使用 sourceBindings=[] 与 sourceState=ai_generated_source_pending。可用现有条目定位清单：${currentCollections}`);
@@ -443,6 +478,7 @@ function normalizeGraphRefType(ref: string): string | null {
 }
 
 function formatCitationHint(citation: {
+  id?: string;
   sourceType: string;
   displayTitle: string;
   confidence: string;

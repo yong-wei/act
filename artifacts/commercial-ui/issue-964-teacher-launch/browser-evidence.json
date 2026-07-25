@@ -1,0 +1,67 @@
+{
+  "change": "add-default-teacher-class-launch-selection",
+  "capturedAt": "2026-07-24T13:48:00+08:00",
+  "server": "http://127.0.0.1:3003",
+  "browser": "agent-browser",
+  "role": "student",
+  "authState": "authenticated",
+  "routes": [
+    {
+      "href": "/playlists",
+      "viewports": [
+        {
+          "width": 1440,
+          "screenshot": "artifacts/commercial-ui/issue-964-teacher-launch/playlists-1440.png",
+          "consoleErrors": [],
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "visibleFocus": true,
+          "buttonTextFits": true
+        },
+        {
+          "width": 320,
+          "screenshot": "artifacts/commercial-ui/issue-964-teacher-launch/playlists-320.png",
+          "focusScreenshot": "artifacts/commercial-ui/issue-964-teacher-launch/playlists-320-focus.png",
+          "consoleErrors": [],
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "visibleFocus": true,
+          "buttonTextFits": true
+        }
+      ]
+    },
+    {
+      "href": "/playlists/[id]/play",
+      "viewports": [
+        {
+          "width": 1440,
+          "screenshot": "artifacts/commercial-ui/issue-964-teacher-launch/playlist-play-1440.png",
+          "focusScreenshot": "artifacts/commercial-ui/issue-964-teacher-launch/playlist-play-1440-focus.png",
+          "consoleErrors": [],
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "visibleFocus": true,
+          "buttonTextFits": true
+        },
+        {
+          "width": 320,
+          "screenshot": "artifacts/commercial-ui/issue-964-teacher-launch/playlist-play-320.png",
+          "focusScreenshot": "artifacts/commercial-ui/issue-964-teacher-launch/playlist-play-320-focus.png",
+          "consoleErrors": [],
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "visibleFocus": true,
+          "buttonTextFits": true
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "The local database has not applied the Issue #964 expand migration, so the authenticated teacher launcher could not be browser-tested in this worktree.",
+    "Teacher dialog focus restoration, alternate-class selection, duplicate recovery, and inactive-class rejection remain covered by component and route tests until a migrated environment is available."
+  ]
+}

@@ -13,6 +13,7 @@ import {
 } from '@/features/classroom/classroom-lifecycle-dialog';
 import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
+import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 
 type NormalizedRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | null;
@@ -68,6 +69,7 @@ export function PremiumLessonEntryPage({
 }) {
   const { data: authSession } = useSession();
   const router = useRouter();
+  const teacherLauncher = useTeacherClassroomLauncher();
   const [joinCode, setJoinCode] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
@@ -79,6 +81,7 @@ export function PremiumLessonEntryPage({
   );
   const canCreateAsTeacher = userRole === 'TEACHER' || userRole === 'ADMIN';
   const canJoinAsStudent = userRole === 'STUDENT';
+  const isAdministrator = userRole === 'ADMIN';
   const roleResolved = Boolean(userRole);
   const showTeacherSection = roleResolved ? canCreateAsTeacher : true;
   const showStudentSection = roleResolved ? canJoinAsStudent : true;
@@ -86,10 +89,31 @@ export function PremiumLessonEntryPage({
   const showMediaHub = config.showMediaHub !== false && Boolean(lessonRuntime);
   const showRuntimeSections = config.showRuntimeSections !== false && Boolean(lessonRuntime);
 
-  const createClassroom = async () => {
+  const createClassroom = async (launchElement: HTMLElement) => {
     setError(null);
     if (!canCreateAsTeacher) {
       setError('请使用教师账号登录后再创建课堂。');
+      return;
+    }
+    if (userRole === 'TEACHER') {
+      teacherLauncher.launch({
+        sourcePresetKey: config.presetKey,
+        preparePlanId: async () => {
+          const cloneRes = await fetch('/api/teacher/preset-lessons/clone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ presetKey: config.presetKey }),
+          });
+          const cloneData = await cloneRes.json();
+          if (!cloneRes.ok || !cloneData.lessonPlanId) {
+            throw new Error(cloneData.error || '预置教案克隆失败');
+          }
+          return cloneData.lessonPlanId as string;
+        },
+        onSessionReady: (sessionId) => {
+          router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${sessionId}`);
+        },
+      }, launchElement);
       return;
     }
 
@@ -204,24 +228,31 @@ export function PremiumLessonEntryPage({
       <main className="premium-lesson-main py-4 sm:py-8">
         <div className="mt-4 grid gap-4 md:grid-cols-3" data-commercial-workspace-zone="command-bar">
           {showTeacherSection ? (
-            <section className="premium-lesson-panel p-5">
+            <section
+              className="premium-lesson-panel p-5"
+              data-course-entry-role-panel={isAdministrator ? 'admin-temporary' : 'teacher'}
+            >
               <div className="premium-lesson-title mb-3 inline-flex items-center gap-2 text-sm">
                 <Presentation className="h-4 w-4" />
-                教师入口
+                {isAdministrator ? '管理员临时课堂' : '教师入口'}
               </div>
-              <h3 className="premium-lesson-title text-xl font-semibold">创建课堂并进入教师端</h3>
+              <h3 className="premium-lesson-title text-xl font-semibold">
+                {isAdministrator ? '创建临时课堂并进入管理端' : '创建课堂并进入教师端'}
+              </h3>
               <p className="premium-lesson-muted mt-2">
-                {config.teacherDescription ?? '自动克隆预置教案，生成课堂码并进入精品课堂。'}
+                {isAdministrator
+                  ? '本次课堂不绑定班级，将以临时课堂创建并生成课堂码。'
+                  : config.teacherDescription ?? '自动克隆预置教案，生成课堂码并进入精品课堂。'}
               </p>
               <button
                 type="button"
-                onClick={() => void createClassroom()}
+                onClick={(event) => void createClassroom(event.currentTarget)}
                 disabled={isCreating}
                 className="premium-lesson-action-primary mt-5 flex w-full"
                 data-course-entry-action="teacher-launch"
               >
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                开始上课（教师）
+                {isAdministrator ? '开始临时课堂' : '开始上课（教师）'}
               </button>
             </section>
           ) : null}
@@ -275,6 +306,7 @@ export function PremiumLessonEntryPage({
         </div>
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mt-4">{error}</div> : null}
+        {teacherLauncher.dialog}
 
         <section className="premium-lesson-panel mt-4 px-5 py-5" data-commercial-workspace-zone="instrument-area">
           <div className="premium-lesson-kicker">{config.overviewKicker ?? config.mediaCourseLabel ?? lessonRuntime?.lesson.lesson_id ?? 'Course Entry'}</div>

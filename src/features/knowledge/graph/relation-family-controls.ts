@@ -18,6 +18,7 @@ export const DEFAULT_KNOWLEDGE_GRAPH_RELATION_FAMILIES = [
 export type RelationFamiliesCheckedState = 'true' | 'mixed' | 'false';
 
 export interface LearnerVisibleRelationEdge {
+  evidenceState?: 'available' | 'unavailable';
   family: KnowledgeGraphRelationFamily;
   key: string;
   relationIds: string[];
@@ -28,6 +29,7 @@ export interface LearnerVisibleRelationEdge {
 }
 
 export interface LearnerRelationLink {
+  evidenceState?: 'available' | 'unavailable';
   id: string;
   relation: string;
   relationType?: string;
@@ -127,6 +129,7 @@ export function selectCanonicalDomainRelationEdges({
     sourceId: link.sourceId,
     strength: link.strength,
     targetId: link.targetId,
+    ...(link.evidenceState ? { evidenceState: link.evidenceState } : {}),
   })));
   if (projection.blocked) return [];
   return projection.visualEdges.map(toLearnerEdge);
@@ -135,7 +138,19 @@ export function selectCanonicalDomainRelationEdges({
 function toLearnerEdge(
   edge: ReturnType<typeof projectKnowledgeGraphRelations>['visualEdges'][number]
 ): LearnerVisibleRelationEdge {
+  // Merge like the server-side runtime links: a merged edge reports available
+  // when any contributing public link has evidence, unavailable when at least
+  // one reports unavailable, and stays absent when every link is unknown.
+  const evidenceStates = edge.contributingRelations.map(
+    (relation) => (relation.rawRelation as { evidenceState?: 'available' | 'unavailable' }).evidenceState
+  );
+  const evidenceState = evidenceStates.some((state) => state === 'available')
+    ? 'available' as const
+    : evidenceStates.some((state) => state === 'unavailable')
+      ? 'unavailable' as const
+      : undefined;
   return {
+    ...(evidenceState ? { evidenceState } : {}),
     family: edge.family,
     key: edge.key,
     relationIds: edge.contributingRelations.map((relation) => relation.relationId).sort(compareStableIds),

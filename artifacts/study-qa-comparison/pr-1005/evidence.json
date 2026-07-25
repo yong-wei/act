@@ -1,0 +1,154 @@
+{
+  "change": "upgrade-konling-traceable-study-qa",
+  "evidenceMode": "route-ui-with-deterministic-server-shaped-chat-stream",
+  "generatedAt": "2026-07-24T06:07:32.283Z",
+  "baseUrl": "http://localhost:3000",
+  "browser": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "evidence": [
+    {
+      "route": "/simulations",
+      "routeName": "generic-chat",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "state": "verified",
+      "screenshot": "artifacts\\study-qa-comparison\\pr-1005\\generic-chat-1440-verified.png",
+      "screenshotSha256": "81b543383dfe7f70824a5f3b666e30ae482d32068894d84e0edc09dc9aa28f06",
+      "internalEvidenceMarkerHidden": true,
+      "citationStatuses": [
+        "verified"
+      ],
+      "normativeVerificationVisible": false,
+      "horizontalOverflow": false
+    },
+    {
+      "route": "/simulations",
+      "routeName": "generic-chat",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "state": "verification-required",
+      "screenshot": "artifacts\\study-qa-comparison\\pr-1005\\generic-chat-1440-verification-required.png",
+      "screenshotSha256": "da9e9eb8e6d04a5dbb780625305d0b8efb9300de1757dbdeaa2cd3f5d92d1b8c",
+      "internalEvidenceMarkerHidden": true,
+      "citationStatuses": [
+        "verified",
+        "missing"
+      ],
+      "normativeVerificationVisible": true,
+      "horizontalOverflow": false,
+      "historyMessagePreserved": true
+    },
+    {
+      "route": "/simulations",
+      "routeName": "generic-chat",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "state": "verified",
+      "screenshot": "artifacts\\study-qa-comparison\\pr-1005\\generic-chat-320-verified.png",
+      "screenshotSha256": "47eb86fb595e439136eb8cb56c1979557d8ffd0b1e8a0f5608323caeaecbf082",
+      "internalEvidenceMarkerHidden": true,
+      "citationStatuses": [
+        "verified"
+      ],
+      "normativeVerificationVisible": false,
+      "horizontalOverflow": false
+    },
+    {
+      "route": "/simulations",
+      "routeName": "generic-chat",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "state": "verification-required",
+      "screenshot": "artifacts\\study-qa-comparison\\pr-1005\\generic-chat-320-verification-required.png",
+      "screenshotSha256": "448cb88dcc8ece1e5da01a2ee420c30f22c4cdacca2536cea50c3b9f2e5f0d66",
+      "internalEvidenceMarkerHidden": true,
+      "citationStatuses": [
+        "verified",
+        "missing"
+      ],
+      "normativeVerificationVisible": true,
+      "horizontalOverflow": false,
+      "historyMessagePreserved": true
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "routeName": "course-question",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "state": "verified",
+      "screenshot": "artifacts\\study-qa-comparison\\pr-1005\\course-question-1440-verified.png",
+      "screenshotSha256": "47183067967494f7ff07e4cdf9d5b850d246250cbd3989cd717e6e3271182c46",
+      "internalEvidenceMarkerHidden": true,
+      "citationStatuses": [
+        "verified"
+      ],
+      "normativeVerificationVisible": false,
+      "horizontalOverflow": false
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "routeName": "course-question",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "state": "verification-required",
+      "screenshot": "artifacts\\study-qa-comparison\\pr-1005\\course-question-1440-verification-required.png",
+      "screenshotSha256": "51ace6f1b1585d4885ddcde94c57f54ce4053bd805f5696fe65e2bf64e6fbbeb",
+      "internalEvidenceMarkerHidden": true,
+      "citationStatuses": [
+        "verified",
+        "missing"
+      ],
+      "normativeVerificationVisible": true,
+      "horizontalOverflow": false,
+      "historyMessagePreserved": true
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "routeName": "course-question",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "state": "verified",
+      "screenshot": "artifacts\\study-qa-comparison\\pr-1005\\course-question-320-verified.png",
+      "screenshotSha256": "255e05359dc8fad76b534674d38c0c54876ee220c0cc19f2fa0d6947db23231f",
+      "internalEvidenceMarkerHidden": true,
+      "citationStatuses": [
+        "verified"
+      ],
+      "normativeVerificationVisible": false,
+      "horizontalOverflow": false
+    },
+    {
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "routeName": "course-question",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "state": "verification-required",
+      "screenshot": "artifacts\\study-qa-comparison\\pr-1005\\course-question-320-verification-required.png",
+      "screenshotSha256": "9fc4f96ba6edd72d40e36b2d3d3ecdbaf8b273ed34d87de66927a2509cf35b80",
+      "internalEvidenceMarkerHidden": true,
+      "citationStatuses": [
+        "verified",
+        "missing"
+      ],
+      "normativeVerificationVisible": true,
+      "horizontalOverflow": false,
+      "historyMessagePreserved": true
+    }
+  ],
+  "failures": []
+}

@@ -14,7 +14,9 @@ vi.mock('@/features/lesson-engine/ContextInjector', () => ({
 vi.mock('@/features/interactive/hooks/useResourceInteractionTracking', () => ({
   useResourceInteractionTracking: () => ({ trackKnowledgeCardOpen: vi.fn() }),
 }));
-vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => <img {...props} /> }));
+vi.mock('next/image', () => ({
+  default: (props: Record<string, unknown>) => <span data-next-image={String(props.src ?? '')} />,
+}));
 
 import { ResourceRenderer } from '@/features/lesson-engine/resource-renderer';
 

@@ -3,7 +3,7 @@
 import React, { forwardRef, StrictMode, useEffect, useImperativeHandle, useRef } from 'react';
 import * as THREE from 'three';
 import { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot as createReactRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const forceGraph = vi.hoisted(() => ({
@@ -18,6 +18,18 @@ const forceGraph = vi.hoisted(() => ({
   threeDTarget: null as THREE.Vector3 | null,
   suppressEngineStop: false,
 }));
+const activeRoots = new Set<Root>();
+
+function createRoot(container: Element | DocumentFragment) {
+  const root = createReactRoot(container);
+  const unmount = root.unmount.bind(root);
+  root.unmount = () => {
+    activeRoots.delete(root);
+    unmount();
+  };
+  activeRoots.add(root);
+  return root;
+}
 
 function forceGraphMock(kind: 'twoD' | 'threeD') {
   return forwardRef(function ForceGraph(props: Record<string, unknown>, ref) {
@@ -31,6 +43,10 @@ function forceGraphMock(kind: 'twoD' | 'threeD') {
       cameraRef.current.updateMatrixWorld();
     }
     const camera = cameraRef.current;
+    if (kind === 'threeD') {
+      camera.aspect = Number(props.width ?? 800) / Math.max(1, Number(props.height ?? 600));
+      camera.updateProjectionMatrix();
+    }
     const target = useRef(new THREE.Vector3());
     if (kind === 'threeD') {
       forceGraph.threeDCamera = camera;
@@ -48,9 +64,20 @@ function forceGraphMock(kind: 'twoD' | 'threeD') {
       zoom: forceGraph.twoDZoom,
       centerAt: forceGraph.twoDCenterAt,
       cameraPosition: (position: THREE.Vector3Like, nextTarget: THREE.Vector3Like) => {
+        camera.position.set(position.x, position.y, position.z);
+        target.current.set(nextTarget.x, nextTarget.y, nextTarget.z);
+        camera.lookAt(target.current);
+        camera.updateProjectionMatrix();
+        camera.updateMatrixWorld(true);
         forceGraph.threeDCameraPosition(position, nextTarget, 0);
       },
-      graph2ScreenCoords: forceGraph.twoDGraph2Screen,
+      graph2ScreenCoords: kind === 'twoD' ? forceGraph.twoDGraph2Screen : (x: number, y: number, z = 0) => {
+        const projected = new THREE.Vector3(x, y, z).project(camera);
+        return {
+          x: (projected.x + 1) * Number(props.width ?? 800) / 2,
+          y: (1 - projected.y) * Number(props.height ?? 600) / 2,
+        };
+      },
       camera: () => camera,
       controls: () => ({
         target: target.current,
@@ -74,6 +101,7 @@ import {
   KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM,
 } from '../graph/knowledge-graph-2d';
 import {
+  getKnowledgeGraphProjectedSphereBounds,
   getKnowledgeGraphNodeVisualDataSignature,
   KnowledgeGraphCanvas,
 } from '../graph/knowledge-graph-canvas';
@@ -81,9 +109,15 @@ import { getEmptyKnowledgeGraphLayoutState } from '../graph/layout-state';
 import {
   getKnowledgeNodeLabelBounds,
   KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+  layoutKnowledgeRootLabel,
 } from '../graph/node-label-layout';
 import type { KnowledgeGraphFitRequest } from '../graph/root-layout';
-import { getKnowledgeGraphViewportFit, getKnowledgeGraphViewportSafeInsets } from '../graph/viewport-fit';
+import {
+  getKnowledgeGraphViewportFit,
+  getKnowledgeGraphViewportSafeInsets,
+  getKnowledgeProjectionScale,
+  projectKnowledgeWorldPoint,
+} from '../graph/viewport-fit';
 import { getKnowledgeNodeMaximumPresentationRadius } from '../graph/visual-config';
 
 const rootNodes = [
@@ -114,6 +148,20 @@ const otherDomainNodes = [
     metadata: { chapterName: '系统模型' },
   },
 ];
+const productionRootNodes = [
+  '前沿拓展', '基本概念', '建模专题速通', '时域分析', '根轨迹分析', '状态空间',
+  '知识边界与方法迁移层', '离散系统', '系统校正', '系统模型', '约束设计层',
+  '结构机理层', '课程全景', '非线性系统', '频域分析',
+].map((name) => ({
+  id: `chapter-node:${name}`,
+  name,
+  nodeType: 'THEORY' as const,
+  description: '',
+  positionX: 0,
+  positionY: 0,
+  positionZ: 0,
+  metadata: { isCollapsedRoot: true },
+}));
 
 function rendererProps(
   nodes: typeof rootNodes | typeof domainNodes | typeof otherDomainNodes,
@@ -147,7 +195,65 @@ beforeEach(() => {
   forceGraph.suppressEngineStop = false;
   forceGraph.twoDGraph2Screen.mockClear();
   Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 1 });
+  vi.stubGlobal('matchMedia', vi.fn(() => ({
+    matches: true,
+    media: '(prefers-reduced-motion: reduce)',
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })));
 });
+
+function expectCompleteRootProjectedBoundsInsideCanvas(width: number, height: number) {
+  const camera = forceGraph.threeDCamera!;
+  const graphData = forceGraph.threeDProps.graphData as {
+    nodes: Array<Record<string, any>>;
+  };
+  const project = (point: { x: number; y: number; z: number }) => {
+    const projected = new THREE.Vector3(point.x, point.y, point.z).project(camera);
+    return { x: projected.x, y: projected.y, z: projected.z };
+  };
+  graphData.nodes.forEach((node) => {
+    const center = projectKnowledgeWorldPoint({
+      x: node.x,
+      y: node.y,
+      z: node.z ?? 0,
+      width,
+      height,
+      project,
+    });
+    const projectedScale = getKnowledgeProjectionScale({
+      center: { x: node.x, y: node.y, z: node.z ?? 0 },
+      right: new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion),
+      up: new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion),
+      width,
+      height,
+      project,
+    });
+    const bodyBounds = getKnowledgeGraphProjectedSphereBounds({
+      camera,
+      center: { x: node.x, y: node.y, z: node.z ?? 0 },
+      radius: node.__knowledgeRootPacking.collisionRadius,
+      width,
+      height,
+    })!;
+    const label = layoutKnowledgeRootLabel(node.name);
+    const fontSize = Math.max(12, label.fontSize * projectedScale);
+    const labelHalfWidth = label.width * fontSize / label.fontSize / 2;
+    const labelHalfHeight = label.height * fontSize / label.fontSize / 2;
+    expect(Math.min(bodyBounds.left, center.x - labelHalfWidth), `${node.name} left projected bound`)
+      .toBeGreaterThanOrEqual(8);
+    expect(Math.max(bodyBounds.right, center.x + labelHalfWidth), `${node.name} right projected bound`)
+      .toBeLessThanOrEqual(width - 8);
+    expect(Math.min(bodyBounds.top, center.y - labelHalfHeight), `${node.name} top projected bound`)
+      .toBeGreaterThanOrEqual(8);
+    expect(Math.max(bodyBounds.bottom, center.y + labelHalfHeight), `${node.name} bottom projected bound`)
+      .toBeLessThanOrEqual(height - 8);
+  });
+}
 
 it('restores the force-graph minZoom default after compact root rerenders as a domain', async () => {
   const container = document.createElement('div');
@@ -256,8 +362,12 @@ it.each([
   await act(async () => root.unmount());
 });
 
-afterEach(() => {
+afterEach(async () => {
+  for (const root of [...activeRoots]) {
+    await act(async () => root.unmount());
+  }
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   vi.useRealTimers();
   document.body.innerHTML = '';
 });
@@ -448,6 +558,34 @@ it('3D auto-fits each ready domain scope once and initializes a new scope lock',
   await act(async () => vi.runAllTimers());
   expect(forceGraph.threeDCameraPosition).toHaveBeenCalledTimes(3);
 
+  await act(async () => root.unmount());
+});
+
+it('3D keeps complete root sphere and label bounds inside the canvas after first fit, explicit fit, and repeated relayout', async () => {
+  const width = 1320;
+  const height = 831;
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  forceGraph.suppressEngineStop = true;
+
+  const renderFitState = async (fitRequestId: number, relayoutVersion: number) => {
+    await act(async () => root.render(React.createElement(KnowledgeGraphCanvas, {
+      ...rendererProps(productionRootNodes, { id: fitRequestId, target: 'root' }),
+      width,
+      height,
+      relayoutVersion,
+    })));
+    await act(async () => (forceGraph.threeDProps.onEngineStop as () => void)());
+    await act(async () => vi.runAllTimers());
+    expectCompleteRootProjectedBoundsInsideCanvas(width, height);
+  };
+
+  await renderFitState(40, 0);
+  await renderFitState(41, 0);
+  await renderFitState(41, 1);
+  await renderFitState(41, 2);
+  expect(forceGraph.threeDCameraPosition).toHaveBeenCalledTimes(4);
   await act(async () => root.unmount());
 });
 
@@ -701,12 +839,14 @@ it.each([
   paint(node, context, 1);
 
   expect(node.__knowledgeRootPacking.collisionRadius).toBeGreaterThanOrEqual(28);
-  expect(context.createRadialGradient).toHaveBeenCalledTimes(1);
-  expect(addColorStop).toHaveBeenCalledTimes(3);
+  expect(context.createRadialGradient).toHaveBeenCalledTimes(2);
+  expect(addColorStop).toHaveBeenCalledTimes(5);
   expect(context.fillStyle).toBe('#f8fafc');
-  expect((context.arc as ReturnType<typeof vi.fn>).mock.calls[0][2]).toBe(
-    node.__knowledgeRootPacking.collisionRadius
-  );
+  const arcRadii = (context.arc as ReturnType<typeof vi.fn>).mock.calls
+    .map(([, , radius]) => radius as number);
+  expect(arcRadii).toContain(node.__knowledgeRootPacking.collisionRadius);
+  expect(arcRadii.some((radius) => radius > node.__knowledgeRootPacking.collisionRadius)).toBe(true);
+  expect(arcRadii.some((radius) => radius < node.__knowledgeRootPacking.collisionRadius)).toBe(true);
   const paintedName = (context.fillText as ReturnType<typeof vi.fn>).mock.calls
     .map(([line]) => line)
     .join('')

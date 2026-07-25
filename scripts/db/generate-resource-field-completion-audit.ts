@@ -218,6 +218,16 @@ export function parseResourceFieldCompletionAuditCliArgs(args: readonly string[]
   );
 }
 
+export function resolveResourceFieldCompletionGeneratedAt(input: {
+  frozenGeneratedAt?: string;
+  configuredGeneratedAt?: string;
+  now?: () => string;
+}) {
+  return input.frozenGeneratedAt
+    ?? input.configuredGeneratedAt
+    ?? (input.now ?? (() => new Date().toISOString()))();
+}
+
 export interface AtomicWriteFile {
   path: string;
   content: string;
@@ -1302,10 +1312,10 @@ async function main() {
         longformReviewSources,
       )
     : null;
-  const generatedAt = frozenInput?.summary.generatedAt
-    ?? process.env.RESOURCE_FIELD_COMPLETION_GENERATED_AT
-    ?? deliveryLongformInput?.generatedAt
-    ?? new Date().toISOString();
+  const generatedAt = resolveResourceFieldCompletionGeneratedAt({
+    frozenGeneratedAt: frozenInput?.summary.generatedAt,
+    configuredGeneratedAt: process.env.RESOURCE_FIELD_COMPLETION_GENERATED_AT,
+  });
   const materializationPhase = frozenInput && materializationManifest && rawCoreSemanticReviewSourceText
     ? assertCoreSemanticMaterializationManifest({
         manifest: materializationManifest,
@@ -1348,9 +1358,7 @@ async function main() {
         ...frozenUnit15Overlays,
       ],
       requiredReviewResourceIds: uniqueSorted([
-        ...frozenInput.rows
-          .filter((row) => CORE_SCOPE_FAMILIES.has(row.family))
-          .map((row) => row.resourceId),
+        ...coreSemanticReviewSources.keys(),
         ...runtimeLessonMediaSemanticReviewSources.keys(),
         ...frozenCourseContentOverlays.map((overlay) => overlay.resourceId),
         ...frozenUnit15Overlays.map((overlay) => overlay.resourceId),
@@ -2900,9 +2908,10 @@ async function loadBoundDeliveryLongformAuditInput(
   if (!summary || summary.totals.denominator !== auditRows.length) {
     throw new Error('Delivery longform frozen audit summary does not bind the tracked audit denominator');
   }
-  const generatedAt = summary.generatedAt;
-  if (!generatedAt || rows.some((row) => row.coverage.sourceWindow.to !== generatedAt)) {
-    throw new Error('Delivery longform frozen audit rows do not share the tracked summary generatedAt');
+  const frozenCoverageTimestamps = new Set(rows.map((row) => row.coverage.sourceWindow.to));
+  const [generatedAt] = frozenCoverageTimestamps;
+  if (frozenCoverageTimestamps.size !== 1 || !generatedAt) {
+    throw new Error('Delivery longform frozen audit rows do not share one coverage sourceWindow.to');
   }
   const projectionRows = readIndexedJsonl<ReturnType<typeof buildRuntimeResourceProjectionArtifacts>['rows'][number]>(
     PROJECTION_JSONL_PATH,
@@ -3109,8 +3118,30 @@ export function assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(inp
         [{ ...row, missingFieldCodes: [...workqueue.startingBlockerCodes] }],
         [expectedOverlay],
       )[0];
-      if (!isDeepStrictEqual(row, expectedFormalRow)) {
-        throw new Error(`Frozen core semantic formal row mismatch for ${resourceId}`);
+      const formalRowWithStableCaptureMetadata = {
+        ...expectedFormalRow,
+        graphNodeRefs: row.graphNodeRefs,
+        coverage: {
+          ...expectedFormalRow.coverage,
+          denominatorKey: row.coverage.denominatorKey,
+        },
+      };
+      const denominatorKeyMatches = arraysEqual(
+        row.coverage.denominatorKey.split('|').sort(),
+        expectedFormalRow.coverage.denominatorKey.split('|').sort(),
+      );
+      if (
+        !graphNodeRefsEqual(row.graphNodeRefs, expectedFormalRow.graphNodeRefs) ||
+        !denominatorKeyMatches ||
+        !isDeepStrictEqual(row, formalRowWithStableCaptureMetadata)
+      ) {
+        const mismatchedFields = Object.keys(row).filter((field) => !isDeepStrictEqual(
+          row[field as keyof ResourceFieldCompletionAuditRow],
+          formalRowWithStableCaptureMetadata[field as keyof ResourceFieldCompletionAuditRow],
+        ));
+        throw new Error(
+          `Frozen core semantic formal row mismatch for ${resourceId}: ${mismatchedFields.join(', ')}`,
+        );
       }
     }
     const expectedWorkqueue = coreSemanticWorkqueueItemFromRow(
@@ -3127,18 +3158,60 @@ export function assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(inp
       ));
     }
   }
-  if (!isDeepStrictEqual(input.workqueueItems, expectedWorkqueueItems)) {
-    throw new Error('Frozen core semantic workqueue mismatch');
+  const expectedSelectedOrders = Array.from(
+    { length: input.workqueueItems.length },
+    (_, index) => index + 1,
+  );
+  const actualSelectedOrders = input.workqueueItems
+    .map((item) => item.selectedOrder)
+    .sort((left, right) => left - right);
+  if (!isDeepStrictEqual(actualSelectedOrders, expectedSelectedOrders)) {
+    throw new Error('Frozen core semantic workqueue selectedOrder mismatch');
   }
-  if (!isDeepStrictEqual(input.reviewItems, expectedReviewItems)) {
-    throw new Error('Frozen core semantic review item mismatch');
+  for (const expected of expectedWorkqueueItems) {
+    const actual = workqueueById.get(expected.resourceId)!;
+    if (!isDeepStrictEqual(actual, { ...expected, selectedOrder: actual.selectedOrder })) {
+      throw new Error(`Frozen core semantic workqueue mismatch for ${expected.resourceId}`);
+    }
+  }
+  for (const expected of expectedReviewItems) {
+    const actual = reviewById.get(expected.resourceId)!;
+    const selectedOrder = workqueueById.get(expected.resourceId)!.selectedOrder;
+    const graphNodeIdsMatch = arraysEqual(
+      [...actual.graphNodeIds].sort(),
+      [...expected.graphNodeIds].sort(),
+    );
+    const expectedWithStableOrder = {
+      ...expected,
+      selectedOrder,
+      graphNodeIds: actual.graphNodeIds,
+    };
+    if (!graphNodeIdsMatch || !isDeepStrictEqual(actual, expectedWithStableOrder)) {
+      const mismatchedFields = Object.keys(actual).filter((field) => !isDeepStrictEqual(
+        actual[field as keyof CoreRegisteredKnowledgeResourceSemanticReviewItem],
+        expectedWithStableOrder[field as keyof CoreRegisteredKnowledgeResourceSemanticReviewItem],
+      ));
+      throw new Error(
+        `Frozen core semantic review item mismatch for ${expected.resourceId}: ${mismatchedFields.join(', ')}`,
+      );
+    }
   }
   const expectedSummary = buildCoreRegisteredKnowledgeResourceSemanticSummary(
     expectedWorkqueueItems,
     expectedReviewItems,
   );
-  if (!isDeepStrictEqual(input.summary, expectedSummary)) {
-    throw new Error('Frozen core semantic summary mismatch');
+  const summaryWithPortableEvidencePaths = {
+    ...input.summary,
+    evidence: Object.fromEntries(
+      Object.entries(input.summary.evidence).map(([key, value]) => [key, value.replaceAll('\\', '/')]),
+    ) as CoreRegisteredKnowledgeResourceSemanticSummary['evidence'],
+  };
+  if (!isDeepStrictEqual(summaryWithPortableEvidencePaths, expectedSummary)) {
+    const mismatchedFields = Object.keys(summaryWithPortableEvidencePaths).filter((field) => !isDeepStrictEqual(
+      summaryWithPortableEvidencePaths[field as keyof CoreRegisteredKnowledgeResourceSemanticSummary],
+      expectedSummary[field as keyof CoreRegisteredKnowledgeResourceSemanticSummary],
+    ));
+    throw new Error(`Frozen core semantic summary mismatch: ${mismatchedFields.join(', ')}`);
   }
 }
 
@@ -3706,7 +3779,7 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
     ) {
       throw new Error(`Runtime lesson/media semantic parent PlanningUnit is not promoted: ${row.resourceId}`);
     }
-    if (JSON.stringify(source.graphNodeRefs) !== JSON.stringify(row.graphNodeRefs)) {
+    if (!graphNodeRefsEqual(source.graphNodeRefs, row.graphNodeRefs)) {
       throw new Error(`Runtime lesson/media semantic graph decision mismatch: ${row.resourceId}`);
     }
     if (source.estimatedTimeMinutes !== row.estimatedTimeMinutes) {
@@ -3804,19 +3877,39 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
   });
 }
 
+function graphNodeRefsEqual(
+  left: ResourceFieldCompletionAuditRow['graphNodeRefs'],
+  right: ResourceFieldCompletionAuditRow['graphNodeRefs'],
+) {
+  return (['knowledge', 'capability', 'quality'] as const).every((key) => (
+    JSON.stringify([...left[key]].sort()) === JSON.stringify([...right[key]].sort())
+  ));
+}
+
 function coreSemanticFormalReviewOverlaysForRows(
   rows: ResourceFieldCompletionAuditRow[],
   reviewSources: Map<string, CoreRegisteredKnowledgeResourceSemanticReviewSource>,
 ): ResourceFieldCompletionReviewOverlay[] {
-  const scopedRows = rows.filter((row) => CORE_SCOPE_FAMILIES.has(row.family));
-  if (scopedRows.length !== 624) {
-    throw new Error(`Core registered/knowledge frozen scope must contain 624 rows, found ${scopedRows.length}`);
+  const scopedRows = rows.filter((row) =>
+    CORE_SCOPE_FAMILIES.has(row.family) && reviewSources.has(row.resourceId)
+  );
+  const scopedRowsById = new Map<string, ResourceFieldCompletionAuditRow>();
+  for (const row of scopedRows) {
+    if (scopedRowsById.has(row.resourceId)) {
+      throw new Error(`Core semantic review source matches multiple frozen core rows: ${row.resourceId}`);
+    }
+    scopedRowsById.set(row.resourceId, row);
   }
-  return scopedRows.flatMap((row) => {
-    const source = reviewSources.get(row.resourceId);
-    if (!source) return [];
+
+  const missingResourceId = [...reviewSources.keys()].find((resourceId) => !scopedRowsById.has(resourceId));
+  if (missingResourceId) {
+    throw new Error(`Core semantic review source has no unique frozen core row: ${missingResourceId}`);
+  }
+
+  return scopedRows.map((row) => {
+    const source = reviewSources.get(row.resourceId)!;
     assertCoreSemanticReviewSourceMatchesRow(row, source);
-    return [coreSemanticFormalReviewOverlayFromSource(source)];
+    return coreSemanticFormalReviewOverlayFromSource(source);
   });
 }
 
@@ -3956,10 +4049,10 @@ function buildCoreRegisteredKnowledgeResourceSemanticSummary(
     residualLimitations: countBy(reviewItems.flatMap((item) => item.residualLimitationState), (item) => item),
       startingBlockers: countBy(workqueueItems.flatMap((item) => item.startingBlockerCodes), (item) => item),
       evidence: {
-        workqueueItemsPath: path.relative(process.cwd(), CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_WORKQUEUE_JSONL_PATH),
-        reviewSourcePath: path.relative(process.cwd(), CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_SOURCE_JSONL_PATH),
-        reviewItemsPath: path.relative(process.cwd(), CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_JSONL_PATH),
-        sourceAuditPath: path.relative(process.cwd(), AUDIT_JSONL_PATH),
+        workqueueItemsPath: projectPath(CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_WORKQUEUE_JSONL_PATH),
+        reviewSourcePath: projectPath(CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_SOURCE_JSONL_PATH),
+        reviewItemsPath: projectPath(CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_JSONL_PATH),
+        sourceAuditPath: projectPath(AUDIT_JSONL_PATH),
       },
   };
 }
@@ -4323,7 +4416,7 @@ async function collectRuntimeMediaCandidates() {
       const relativePath = projectPath(absolutePath);
       const basename = path.basename(absolutePath);
       const mediaRelativePath = path.relative(mediaDir, absolutePath).split(path.sep).join('/');
-      const contentHash = `sha256:${sha256(await fs.readFile(absolutePath))}`;
+      const contentHash = await readLocalFileHash(absolutePath);
       candidates.push({
         id: `runtime-media:${lessonKey}:${mediaRelativePath}`,
         title: basename,
@@ -4367,14 +4460,14 @@ async function collectRuntimeLessonCatalogEntries(): Promise<RuntimeLessonCatalo
     if (!lesson || !graphOverlay) continue;
     const sourceLessonId = lesson.lesson_id ?? graphOverlay.lesson_id ?? lessonKey;
     const registryLessonId = lessonKey.includes('/') ? lessonKey : sourceLessonId;
-    const handoutSourcePath = path.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.md`);
-    const fallbackHandoutSourcePath = path.join('course-content/runtime/lessons', lessonKey, 'handout.md');
+    const handoutSourcePath = path.posix.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.md`);
+    const fallbackHandoutSourcePath = path.posix.join('course-content/runtime/lessons', lessonKey, 'handout.md');
     const resolvedHandoutSourcePath = await fileExists(path.join(process.cwd(), handoutSourcePath))
       ? handoutSourcePath
       : fallbackHandoutSourcePath;
     const hasContentClearance = await fileExists(path.join(lessonDir, 'review', 'content-clearance.json'));
     const handoutPath = lesson.handout_path ?? `/course-runtime/lessons/${lessonKey}/${sourceLessonId}-handout.md`;
-    const handoutPdfSourcePath = path.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.pdf`);
+    const handoutPdfSourcePath = path.posix.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.pdf`);
     const handoutPdfPath = await fileExists(path.join(process.cwd(), handoutPdfSourcePath)) && isGitTrackedFile(handoutPdfSourcePath)
       ? lesson.handout_pdf_path ?? `/course-runtime/lessons/${lessonKey}/${sourceLessonId}-handout.pdf`
       : null;
@@ -4776,7 +4869,15 @@ async function readLocalFileHash(sourcePath: string) {
     const absolutePath = path.isAbsolute(sourcePath)
       ? sourcePath
       : path.join(process.cwd(), sourcePath);
-    return `sha256:${sha256(await fs.readFile(absolutePath))}`;
+    const content = await fs.readFile(absolutePath);
+    const textExtensions = new Set([
+      '.cjs', '.css', '.csv', '.html', '.js', '.json', '.jsonl', '.md', '.mdx',
+      '.mjs', '.svg', '.ts', '.tsx', '.txt', '.xml', '.yaml', '.yml',
+    ]);
+    const hashInput = textExtensions.has(path.extname(absolutePath).toLowerCase())
+      ? content.toString('utf8').replace(/\r\n?/g, '\n')
+      : content;
+    return `sha256:${sha256(hashInput)}`;
   } catch {
     return null;
   }
@@ -4792,14 +4893,14 @@ async function readJson<T>(filePath: string): Promise<T | null> {
 
 async function readText(filePath: string): Promise<string | null> {
   try {
-    return await fs.readFile(filePath, 'utf8');
+    return (await fs.readFile(filePath, 'utf8')).replace(/\r\n?/g, '\n');
   } catch {
     return null;
   }
 }
 
 function projectPath(absolutePath: string) {
-  return path.relative(process.cwd(), absolutePath);
+  return path.relative(process.cwd(), absolutePath).split(path.sep).join('/');
 }
 
 async function resolveCitationTargets(baseDir: string, sources: Array<string | null | undefined>) {

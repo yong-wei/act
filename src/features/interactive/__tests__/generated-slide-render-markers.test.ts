@@ -62,12 +62,12 @@ describe('generated slide render marker contract', () => {
       right: [{ value: '1', label: '一' }, { value: '2', label: '二' }],
     }, ['left.0.label', 'left.1.label', 'right.0.label', 'right.1.label']],
   ])('derives every visible activity option for %s', (responseKind, payload, paths) => {
-    const module = {
+    const activityModule = {
       ...contentModule('activity.panel', payload),
       responseKind,
       evidencePath: 'responses.marker-step.module-a',
     };
-    expect(deriveGeneratedSlideStepRenderContract({ step: stepWith(module), projection: 'student' }).textIds)
+    expect(deriveGeneratedSlideStepRenderContract({ step: stepWith(activityModule), projection: 'student' }).textIds)
       .toEqual(['module-a:payload.prompt:text', ...paths.map((path) => `module-a:payload.${path}:text`)]);
   });
 
@@ -105,11 +105,11 @@ describe('generated slide render marker contract', () => {
   });
 
   it('expects and renders only the first reveal item at revealProgress zero', () => {
-    const module = contentModule('content.reveal', { items: [
+    const revealModule = contentModule('content.reveal', { items: [
       { title: '第一步', body: '先看 $G$', formula: '$H$' },
       { title: '第二步', body: '再看 $K$', formula: '$T$' },
     ] });
-    const step = stepWith(module);
+    const step = stepWith(revealModule);
     const contract = deriveGeneratedSlideStepRenderContract({ step, projection: 'student', revealProgress: 0 });
     expect(contract.textIds).toEqual([
       'module-a:payload.items.0.title:text',
@@ -134,9 +134,9 @@ describe('generated slide render marker contract', () => {
   });
 
   it('excludes teacher-only modules from the student expectation without reading the DOM', () => {
-    const module = contentModule('content.rich', { text: '仅教师可见' });
-    module.roleMetadata = { ...visible, studentVisible: false };
-    expect(deriveGeneratedSlideStepRenderContract({ step: stepWith(module), projection: 'student' }))
+    const teacherOnlyModule = contentModule('content.rich', { text: '仅教师可见' });
+    teacherOnlyModule.roleMetadata = { ...visible, studentVisible: false };
+    expect(deriveGeneratedSlideStepRenderContract({ step: stepWith(teacherOnlyModule), projection: 'student' }))
       .toEqual({ moduleIds: [], textIds: [], formulaIds: [] });
   });
 });

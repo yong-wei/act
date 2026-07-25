@@ -11,6 +11,7 @@ import {
 } from '@/lib/knowledge-graph-source';
 import { RuntimeKnowledgeRelationCoverageError, toPublicRuntimeKnowledgeDiagnostics } from '@/lib/knowledge-graph-relation-runtime';
 import { resolveExactRuntimeLessonContext } from '@/lib/knowledge-lesson-context';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -70,6 +71,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(toPublicKnowledgeGraphPayload(graph));
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     if (error instanceof RuntimeKnowledgeRelationCoverageError) {
       console.error('Knowledge graph relation coverage blocked:', error.report.diagnostics);
       return NextResponse.json({

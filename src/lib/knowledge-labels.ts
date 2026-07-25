@@ -65,6 +65,7 @@ export const RELATION_TYPE_LABELS: Record<string, string> = {
   provides_context: '提供语境',
   refined_by: '被精化',
   refines: '精化概念',
+  association: '语义关联',
   influences: '影响',
   defines: '定义',
   implements: '实现',
