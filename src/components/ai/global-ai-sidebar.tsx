@@ -240,19 +240,29 @@ export function GlobalAISidebar() {
     window.requestAnimationFrame(() => maximizeControlRef.current?.focus());
   }, []);
 
+  const closeMobileHistoryDrawer = useCallback(() => {
+    setLibraryOpen(false);
+    window.requestAnimationFrame(() => historyControlRef.current?.focus());
+  }, []);
+
   const handleClose = useCallback(() => {
     setLibraryOpen(false);
     setIsMaximized(false);
     closeSidebar();
   }, [closeSidebar]);
 
+  useEffect(() => {
+    if (isOpen) return;
+    setIsMaximized(false);
+    setLibraryOpen(false);
+  }, [isOpen]);
+
   // ESC键按当前呈现层级关闭
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || !isOpen) return;
       if (isMobileHistoryDrawerOpen) {
-        setLibraryOpen(false);
-        window.requestAnimationFrame(() => historyControlRef.current?.focus());
+        closeMobileHistoryDrawer();
         return;
       }
       if (isMaximized) {
@@ -263,7 +273,7 @@ export function GlobalAISidebar() {
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [handleClose, handleRestore, isMaximized, isMobileHistoryDrawerOpen, isOpen]);
+  }, [closeMobileHistoryDrawer, handleClose, handleRestore, isMaximized, isMobileHistoryDrawerOpen, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -639,7 +649,7 @@ export function GlobalAISidebar() {
             type="button"
             aria-label="关闭控灵会话库"
             className="absolute inset-0 z-10 bg-black/30 md:hidden"
-            onClick={() => setLibraryOpen(false)}
+            onClick={closeMobileHistoryDrawer}
           />
         )}
         {(libraryOpen || isMaximized) && (

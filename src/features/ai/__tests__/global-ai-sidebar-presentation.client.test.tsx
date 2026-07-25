@@ -335,6 +335,66 @@ describe('GlobalAISidebar presentation continuity', () => {
     opener.remove();
   });
 
+  it('resets externally closed maximized state without remounting conversation hooks', async () => {
+    const opener = document.createElement('button');
+    opener.textContent = '外部页面入口';
+    document.body.appendChild(opener);
+    testState.isOpen = false;
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+    opener.focus();
+    testState.isOpen = true;
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+
+    const input = getByRole(container, 'textbox', { name: '全局 AI 问题输入框' }) as HTMLInputElement;
+    const messageList = container.querySelector('[data-testid="message-list"]');
+    await act(async () => fireEvent.change(input, { target: { value: '外部关闭前的草稿' } }));
+    await act(async () => getByRole(container, 'button', { name: '最大化控灵工作区' }).click());
+    expect(container.querySelector('[data-konling-presentation-mode="maximized"]')).not.toBeNull();
+
+    testState.isOpen = false;
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+    expect(opener).toBe(document.activeElement);
+
+    testState.isOpen = true;
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+
+    expect(container.querySelector('[data-konling-presentation-mode="side"]')).not.toBeNull();
+    expect(getByRole(container, 'textbox', { name: '全局 AI 问题输入框' })).toBe(input);
+    expect(container.querySelector('[data-testid="message-list"]')).toBe(messageList);
+    expect(input.value).toBe('外部关闭前的草稿');
+    expect(testState.chatMounts).toBe(1);
+    expect(testState.libraryMounts).toBe(1);
+    opener.remove();
+  });
+
+  it('returns focus to mobile history after the drawer backdrop closes and keeps Tab inside the dialog', async () => {
+    testState.mediaMatches = true;
+    testState.isOpen = false;
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+    testState.isOpen = true;
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+
+    await act(async () => getByRole(container, 'button', { name: '最大化控灵工作区' }).click());
+    const historyControl = getByRole(container, 'button', { name: '打开控灵会话库' });
+    await act(async () => historyControl.click());
+    expect(container.querySelector('[data-konling-mobile-history-drawer="open"]')).not.toBeNull();
+
+    await act(async () => getByRole(container, 'button', { name: '关闭控灵会话库' }).click());
+    expect(container.querySelector('[data-konling-mobile-history-drawer="open"]')).toBeNull();
+    expect(historyControl).toBe(document.activeElement);
+
+    const dialog = getByRole(container, 'dialog', { name: '控灵全局 AI 侧栏' });
+    await act(async () => fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true }));
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).not.toBe(document.body);
+  });
+
   it('exposes a desktop history rail and overflow-safe active conversation in maximized mode', async () => {
     await act(async () => root.render(<GlobalAISidebar />));
     await flush();
