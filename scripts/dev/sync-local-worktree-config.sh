@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_SOURCE="/Users/YW/Documents/Site/act.just.edu.cn"
 SOURCE="$DEFAULT_SOURCE"
 TARGET=""
@@ -833,81 +834,11 @@ sync_real_file_directory() {
 validate_optimized_model_asset_source() {
   local source_asset_root="$SOURCE/public/assets"
   local optimized_root="$SOURCE/$OPTIMIZED_MODEL_ASSET_ROOT"
-  local failed_manifest="$SOURCE/public/assets/models-opt.failed-manifest.json"
-  local in_progress_marker="$SOURCE/public/assets/models-opt.in-progress.json"
 
-  node - "$source_asset_root" "$optimized_root" "$failed_manifest" "$in_progress_marker" <<'NODE'
-const crypto = require('node:crypto');
-const fs = require('node:fs');
-const path = require('node:path');
-
-const sourceRoot = process.argv[2];
-const optimizedRoot = process.argv[3];
-const failedManifestPath = process.argv[4];
-const inProgressPath = process.argv[5];
-const manifestPath = path.join(optimizedRoot, 'manifest.json');
-
-function fail(message) {
-  console.error(`Invalid optimized model asset set: ${message}`);
-  process.exit(1);
-}
-
-if (fs.existsSync(failedManifestPath)) {
-  fail(`failed production marker exists: ${failedManifestPath}`);
-}
-if (fs.existsSync(inProgressPath)) {
-  fail(`production in-progress marker exists: ${inProgressPath}`);
-}
-if (!fs.existsSync(manifestPath)) {
-  fail(`missing ${manifestPath}`);
-}
-
-let manifest;
-try {
-  manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-} catch (error) {
-  fail(`cannot read manifest: ${error instanceof Error ? error.message : String(error)}`);
-}
-
-const expected = fs.readdirSync(sourceRoot)
-  .filter((name) => name.endsWith('.glb'))
-  .sort();
-const entries = manifest && typeof manifest.models === 'object' && manifest.models
-  ? manifest.models
-  : {};
-const declared = Object.keys(entries).sort();
-const produced = fs.readdirSync(optimizedRoot)
-  .filter((name) => name.endsWith('.glb'))
-  .sort();
-
-if (JSON.stringify(declared) !== JSON.stringify(expected)) {
-  fail('manifest model list does not match source GLBs');
-}
-if (JSON.stringify(produced) !== JSON.stringify(expected)) {
-  fail('optimized GLB list does not match source GLBs');
-}
-
-for (const name of expected) {
-  const record = entries[name];
-  const outputPath = path.join(optimizedRoot, name);
-  if (!record || record.status !== 'meshopt') {
-    fail(`${name} is not marked meshopt`);
-  }
-  if (record.url !== `/assets/models-opt/${name}`) {
-    fail(`${name} has an unexpected runtime URL`);
-  }
-  const sourceSha256 = crypto
-    .createHash('sha256')
-    .update(fs.readFileSync(path.join(sourceRoot, name)))
-    .digest('hex');
-  if (record.sourceSha256 !== sourceSha256) {
-    fail(`${name} source digest does not match`);
-  }
-  if (!fs.statSync(outputPath).isFile() || fs.statSync(outputPath).size === 0) {
-    fail(`${name} is missing or empty`);
-  }
-}
-NODE
+  node "$SCRIPT_DIRECTORY/../assets/validate-optimized-models.mjs" \
+    --source-root "$source_asset_root" \
+    --optimized-root "$optimized_root" \
+    --target-source-root "$TARGET/public/assets"
 }
 
 optimized_model_assets_require_validation() {

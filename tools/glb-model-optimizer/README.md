@@ -22,8 +22,9 @@ begins. A failed model is recorded as `fallback-original` in the sibling
 and preserves the previous complete output set. A successful atomic publication
 removes both markers.
 
-The application build does not install or invoke this tool. Produce the assets
-separately in the primary worktree, then use
+The application build does not install or invoke this tool. It does validate
+that the complete produced set exists and matches the tracked source GLBs before
+Next.js compilation. Produce the assets separately in the primary worktree, then use
 `scripts/dev/sync-local-worktree-config.sh` to copy them as real files into an
 isolated worktree. The synchronization command rejects a missing, incomplete,
-or failed optimized-model manifest.
+failed, or source-drifted optimized-model manifest.

@@ -56,7 +56,10 @@ allowlist.
 The application dependency graph, application build, and Docker context do not
 install or execute the GLB compressor. An explicit resource-production command
 owns its separate lockfile and generates ignored `models-opt` resources in the
-primary worktree. Isolated worktrees receive those resources as real files.
+primary worktree. The application build rejects missing, incomplete, failed, or
+source-drifted optimized resources without invoking the producer. Isolated
+worktrees receive those resources as real files only when their tracked source
+GLBs match the producer worktree.
 Removing compression or producing models during the application build was
 rejected.
 

@@ -97,7 +97,9 @@ describe('model optimization pipeline', () => {
     const pkg = JSON.parse(readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
     const rootDependencies = { ...pkg.dependencies, ...pkg.devDependencies };
     expect(pkg.scripts.build).not.toContain('models:produce');
+    expect(pkg.scripts.build).toContain('models:validate');
     expect(pkg.scripts['models:produce']).toContain('tools/glb-model-optimizer');
+    expect(pkg.scripts['models:validate']).toContain('validate-optimized-models.mjs');
     expect(rootDependencies).not.toHaveProperty('@gltf-transform/core');
     expect(rootDependencies).not.toHaveProperty('@gltf-transform/extensions');
     expect(rootDependencies).not.toHaveProperty('@gltf-transform/functions');

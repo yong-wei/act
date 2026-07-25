@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -1303,6 +1304,63 @@ assert.match(
   inProgressOptimizedAssets.stderr,
   /Invalid optimized model asset set: production in-progress marker exists:/,
   '同步拒绝应指出生产进行中标记',
+);
+
+fs.rmSync(path.join(source, 'public/assets/models-opt.in-progress.json'));
+writeFile('public/assets/models-opt/demo.glb', 'optimized model\n');
+writeFile(
+  'public/assets/models-opt/manifest.json',
+  JSON.stringify({
+    models: {
+      'demo.glb': {
+        status: 'meshopt',
+        url: '/assets/models-opt/demo.glb',
+        sourceSha256: createHash('sha256').update('source model\n').digest('hex'),
+      },
+    },
+  }),
+);
+writeTargetFile('public/assets/demo.glb', 'different target model\n');
+const driftedTargetAssets = spawnSync(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+  ],
+  { cwd: root, encoding: 'utf8' },
+);
+assert.notEqual(
+  driftedTargetAssets.status,
+  0,
+  '目标工作树源 GLB 与生产源不一致时必须拒绝同步',
+);
+assert.match(
+  driftedTargetAssets.stderr,
+  /demo\.glb target source digest does not match producer source/,
+  '同步拒绝应指出目标工作树源模型摘要漂移',
+);
+
+writeTargetFile('public/assets/demo.glb', 'source model\n');
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+  ],
+  root,
+);
+assert.equal(
+  fs.readFileSync(path.join(target, 'public/assets/models-opt/demo.glb'), 'utf8'),
+  'optimized model\n',
+  '目标源模型与生产源一致时应同步优化模型',
 );
 
 const unrelatedTarget = path.join(tmpRoot, 'unrelated-target');
