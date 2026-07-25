@@ -17,6 +17,10 @@ import {
   CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
   type CumulativeClassPortraitProjection,
 } from './cumulative-class-materialization';
+import {
+  computeSimulationTaskCatalogDigest,
+  SIMULATION_TASK_PORTRAIT_CALCULATION_VERSION,
+} from './simulation-task-portrait-projection';
 
 export type CumulativePortraitAvailabilityReason =
   | 'available'
@@ -43,6 +47,7 @@ interface CurrentPortraitStateRow {
   generation: bigint;
   queueGeneration: bigint;
   stateWatermark: bigint;
+  taskInputDigest?: string;
   cutoverFence: bigint;
   stateVersion: {
     id: string;
@@ -51,6 +56,7 @@ interface CurrentPortraitStateRow {
     generation: bigint;
     queueGeneration: bigint;
     stateWatermark: bigint;
+    taskInputDigest?: string;
     stateKind: 'SNAPSHOT' | 'NO_EVIDENCE';
     snapshotId: string | null;
     overallScore: number | null;
@@ -311,6 +317,17 @@ export async function readCurrentCumulativePortrait(
     ) {
       return unavailable('invalid-current-snapshot');
     }
+    const taskAttainment = payload.dimensions.find((dimension) =>
+      dimension.id === 'simulationValidationEvidence')?.taskAttainment;
+    if (
+      taskAttainment
+      && (
+        taskAttainment.calculationVersion !== SIMULATION_TASK_PORTRAIT_CALCULATION_VERSION
+        || taskAttainment.catalogDigest !== computeSimulationTaskCatalogDigest()
+      )
+    ) {
+      return unavailable('current-state-version-mismatch');
+    }
     const projected = projectPortraitV2ForConsumer(payload, consumer);
     const summary = summarizeCumulativePortraitV2(projected);
     return {
@@ -422,7 +439,8 @@ function matchesActiveFence(
     state.queueGeneration === fence.queueGeneration &&
     state.cutoverFence === fence.fence &&
     state.migrationRunId === fence.activeMigrationRunId &&
-    state.stateWatermark === current.stateWatermark;
+    state.stateWatermark === current.stateWatermark &&
+    (state.taskInputDigest ?? '') === (current.taskInputDigest ?? '');
 }
 
 function matchesActiveClassFence(

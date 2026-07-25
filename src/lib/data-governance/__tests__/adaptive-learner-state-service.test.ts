@@ -12,7 +12,10 @@ import {
 import { buildSimulationAgentEvidenceMaterialization } from '../simulation-agent-evidence-materialization';
 import { buildMigratedPortraitPayload } from '../portrait-v2-migration';
 import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
-import { createPortraitV2Payload } from '../portrait-v2-model';
+import {
+  createPortraitV2Payload,
+  PORTRAIT_V2_CALCULATION_VERSION,
+} from '../portrait-v2-model';
 
 const snapshotVector: CompetencyVector = {
   controlModeling: { score: 78, trend: 'up', confidence: 0.82, evidenceCount: 8, lastUpdated: '2026-05-20T00:00:00.000Z' },
@@ -742,7 +745,7 @@ describe('adaptive learner state service', () => {
           { kind: 'hashed' as const, ref: `sar:evidence:sha256:${index.toString(16).padStart(64, '0')}`, privacyScope: 'student-visible' as const },
           { kind: 'aggregate' as const, ref: `aggregate:sha256:${index.toString(16).padStart(64, '0')}`, privacyScope: 'student-visible' as const },
         ],
-        calculationVersion: 'portrait-v2-primary.v1',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
       })),
       derivation: { kind: 'native', limitations: [] },
     });
@@ -763,7 +766,7 @@ describe('adaptive learner state service', () => {
         userId: 'student-v2-only',
         snapshotAt: new Date(portrait.generatedAt),
         payloadVersion: portrait.payloadVersion,
-        calculationVersion: 'portrait-v2-primary.v1',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
         migrationVersion: portrait.migrationVersion,
         derivationKind: portrait.derivation.kind,
         payload: portrait,
@@ -825,7 +828,7 @@ describe('adaptive learner state service', () => {
         userId: 'student-v2-only',
         snapshotAt: now,
         payloadVersion: partiallyCurrentPortrait.payloadVersion,
-        calculationVersion: 'portrait-v2-primary.v1',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
         migrationVersion: partiallyCurrentPortrait.migrationVersion,
         derivationKind: partiallyCurrentPortrait.derivation.kind,
         payload: partiallyCurrentPortrait,
@@ -855,7 +858,7 @@ describe('adaptive learner state service', () => {
         userId: 'student-v2-stale',
         snapshotAt: generatedAt,
         payloadVersion: portrait.payloadVersion,
-        calculationVersion: 'portrait-v2-primary.v1',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
         migrationVersion: portrait.migrationVersion,
         derivationKind: portrait.derivation.kind,
         payload: portrait,

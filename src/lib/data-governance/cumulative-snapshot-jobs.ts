@@ -4,6 +4,10 @@ import { Queue } from 'bullmq';
 
 import { prisma } from '@/lib/prisma';
 import { redisClient } from '@/lib/redis-client';
+import {
+  buildSimulationTaskInputIdentity,
+  type SimulationTaskInputIdentity,
+} from './simulation-task-portrait-projection';
 
 export interface ActiveCumulativePublicationFence {
   calculationVersion: string;
@@ -34,6 +38,7 @@ export interface CumulativeLearnerReconciliationClaim {
   generation: number;
   claimToken: string;
   fence: ActiveCumulativePublicationFence;
+  simulationTaskInput?: SimulationTaskInputIdentity;
 }
 
 interface FenceReader {
@@ -72,6 +77,106 @@ interface LearnerReconciliationDb extends FenceReader {
   };
   learningMaterializationGeneration?: {
     upsert(args: any): PromiseLike<{ generation: number }>;
+  };
+}
+
+export type CumulativeLearnerReconciliationStatus =
+  | {
+      status: 'queued' | 'processing';
+      generation: number;
+      errorCode: null;
+    }
+  | {
+      status: 'completed';
+      generation: number;
+      errorCode: null;
+      completedAt: string | null;
+    }
+  | {
+      status: 'failed' | 'superseded';
+      generation: number;
+      errorCode: string;
+    };
+
+export async function readCumulativeLearnerReconciliationStatus(
+  database: unknown,
+  input: { userId: string; generation: number },
+): Promise<CumulativeLearnerReconciliationStatus> {
+  const db = database as FenceReader & {
+    learningMaterializationRebuildRequest: {
+      findUnique(args: Record<string, unknown>): Promise<any | null>;
+    };
+    learnerPortraitCurrentState: {
+      findUnique(args: Record<string, unknown>): Promise<any | null>;
+    };
+  };
+  const fence = await readActiveCumulativePublicationFence(db);
+  const request = await db.learningMaterializationRebuildRequest.findUnique({
+    where: { userId: input.userId },
+  });
+  if (!fence || !request || request.generation > input.generation) {
+    return {
+      status: 'superseded',
+      generation: input.generation,
+      errorCode: 'reconciliation-request-superseded',
+    };
+  }
+  if (
+    request.generation !== input.generation ||
+    request.kind !== CUMULATIVE_LEARNER_RECONCILIATION_KIND ||
+    request.migrationRunId !== fence.activeMigrationRunId ||
+    request.calculationVersion !== fence.calculationVersion ||
+    request.learnerGeneration !== fence.learnerGeneration ||
+    request.queueGeneration !== fence.queueGeneration ||
+    request.cutoverFence !== fence.fence
+  ) {
+    return {
+      status: 'superseded',
+      generation: input.generation,
+      errorCode: 'reconciliation-request-fence-superseded',
+    };
+  }
+  if (request.status === 'CLAIMED') {
+    return { status: 'processing', generation: input.generation, errorCode: null };
+  }
+  if (request.status === 'PENDING') {
+    return request.lastErrorCode
+      ? { status: 'failed', generation: input.generation, errorCode: request.lastErrorCode }
+      : { status: 'queued', generation: input.generation, errorCode: null };
+  }
+  if (request.status !== 'COMPLETED') {
+    return {
+      status: 'failed',
+      generation: input.generation,
+      errorCode: request.lastErrorCode ?? 'reconciliation-request-failed',
+    };
+  }
+  const expectedTaskInputDigest = request.simulationTaskInput?.inputDigest;
+  const current = await db.learnerPortraitCurrentState.findUnique({
+    where: { userId: input.userId },
+  });
+  if (
+    !current ||
+    current.calculationVersion !== fence.calculationVersion ||
+    current.generation !== fence.learnerGeneration ||
+    current.queueGeneration !== fence.queueGeneration ||
+    current.cutoverFence !== fence.fence ||
+    typeof expectedTaskInputDigest !== 'string' ||
+    current.taskInputDigest !== expectedTaskInputDigest
+  ) {
+    return {
+      status: 'failed',
+      generation: input.generation,
+      errorCode: 'reconciliation-result-input-identity-mismatch',
+    };
+  }
+  return {
+    status: 'completed',
+    generation: input.generation,
+    errorCode: null,
+    completedAt: request.completedAt instanceof Date
+      ? request.completedAt.toISOString()
+      : null,
   };
 }
 
@@ -135,6 +240,24 @@ function reconciliationFenceData(fence: ActiveCumulativePublicationFence) {
   };
 }
 
+function normalizeSimulationTaskInput(
+  value: SimulationTaskInputIdentity | null | undefined,
+): SimulationTaskInputIdentity | undefined {
+  if (!value) return undefined;
+  const rebuilt = buildSimulationTaskInputIdentity({
+    factWatermark: value.factWatermark,
+    catalogDigest: value.catalogDigest,
+    historicalCandidatePlanDigest: value.historicalCandidatePlanDigest,
+  });
+  if (
+    rebuilt.projectionCalculationVersion !== value.projectionCalculationVersion ||
+    rebuilt.inputDigest !== value.inputDigest
+  ) {
+    throw new Error('simulation-task-reconciliation-input-invalid');
+  }
+  return rebuilt;
+}
+
 export async function requestCumulativeLearnerReconciliation(
   db: LearnerReconciliationDb,
   input: {
@@ -142,9 +265,11 @@ export async function requestCumulativeLearnerReconciliation(
     classIds?: string[];
     reason: string;
     now?: Date;
+    simulationTaskInput?: SimulationTaskInputIdentity;
   },
 ): Promise<number> {
   const now = input.now ?? new Date();
+  const simulationTaskInput = normalizeSimulationTaskInput(input.simulationTaskInput);
   const fence = await readActiveCumulativePublicationFence(db);
   if (!fence) {
     throw new Error('No active cumulative portrait publication fence is available.');
@@ -152,6 +277,19 @@ export async function requestCumulativeLearnerReconciliation(
   const requestedClassIds = normalizedClassIds(input.classIds);
   if (typeof db.$queryRaw === 'function') {
     const requestedClassIdsJson = Prisma.sql`${JSON.stringify(requestedClassIds)}::jsonb`;
+    const simulationTaskInputJson = simulationTaskInput
+      ? Prisma.sql`${JSON.stringify(simulationTaskInput)}::jsonb`
+      : Prisma.sql`NULL::jsonb`;
+    const simulationDigestSuffix = simulationTaskInput
+      ? Prisma.sql`|| jsonb_build_array(
+          'simulation-task-input',
+          ${simulationTaskInput.factWatermark}::text,
+          ${simulationTaskInput.catalogDigest}::text,
+          ${simulationTaskInput.projectionCalculationVersion}::text,
+          ${simulationTaskInput.historicalCandidatePlanDigest}::text,
+          ${simulationTaskInput.inputDigest}::text
+        )`
+      : Prisma.empty;
     const mergedClassIds = Prisma.sql`(
       SELECT COALESCE(jsonb_agg(value ORDER BY value), '[]'::jsonb)
       FROM (
@@ -188,6 +326,7 @@ export async function requestCumulativeLearnerReconciliation(
           ${fence.activeMigrationRunId}::text,
           ${generation}
         )
+        ${simulationDigestSuffix}
       ) WITH ORDINALITY AS digest_input(value, ordinal)
     )`;
     const rows = await db.$queryRaw<Array<{ generation: number }>>(Prisma.sql`
@@ -226,7 +365,7 @@ export async function requestCumulativeLearnerReconciliation(
         (
           "userId", "classIds", "reason", "kind", "migrationRunId",
           "calculationVersion", "learnerGeneration", "queueGeneration",
-          "cutoverFence", "inputDigest", "status", "generation",
+          "cutoverFence", "inputDigest", "simulationTaskInput", "status", "generation",
           "claimedGeneration", "claimToken", "claimExpiresAt", "attemptCount",
           "lastErrorCode", "completedAt", "createdAt", "updatedAt"
         )
@@ -241,6 +380,7 @@ export async function requestCumulativeLearnerReconciliation(
         ${fence.queueGeneration},
         ${fence.fence},
         ${digestFor(requestedClassIdsJson, Prisma.sql`next_generation."generation"`)},
+        ${simulationTaskInputJson},
         'PENDING',
         next_generation."generation",
         NULL,
@@ -265,6 +405,7 @@ export async function requestCumulativeLearnerReconciliation(
           mergedClassIds,
           Prisma.sql`EXCLUDED."generation"`,
         )},
+        "simulationTaskInput" = EXCLUDED."simulationTaskInput",
         "status" = 'PENDING',
         "generation" = EXCLUDED."generation",
         "claimedGeneration" = NULL,
@@ -313,6 +454,14 @@ export async function requestCumulativeLearnerReconciliation(
     fence.fence.toString(),
     fence.activeMigrationRunId,
     generation.toString(),
+    ...(simulationTaskInput ? [
+      'simulation-task-input',
+      simulationTaskInput.factWatermark,
+      simulationTaskInput.catalogDigest,
+      simulationTaskInput.projectionCalculationVersion,
+      simulationTaskInput.historicalCandidatePlanDigest,
+      simulationTaskInput.inputDigest,
+    ] : []),
   ].join('\0')).digest('hex');
   const data = {
     userId: input.userId,
@@ -320,6 +469,7 @@ export async function requestCumulativeLearnerReconciliation(
     reason: input.reason,
     ...reconciliationFenceData(fence),
     inputDigest,
+    simulationTaskInput: simulationTaskInput ?? null,
     status: 'PENDING',
     generation,
     claimedGeneration: null,
@@ -392,6 +542,7 @@ export async function claimCumulativeLearnerReconciliations(
         generation: row.generation,
         claimToken,
         fence,
+        simulationTaskInput: normalizeSimulationTaskInput(row.simulationTaskInput),
       });
     }
   }

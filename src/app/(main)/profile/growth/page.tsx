@@ -108,6 +108,8 @@ interface GroupedGrowthRecord extends GrowthRecord {
   groupedRecordIds?: string[];
 }
 
+type PortraitRefreshState = 'idle' | 'submitted' | 'processing' | 'completed' | 'failed';
+
 const learnerDataShell = buildLearnerDataRouteShell('/profile/growth');
 
 function GrowthFallback({
@@ -154,6 +156,9 @@ export default function GrowthPage() {
   const [growthRecords, setGrowthRecords] = useState<GrowthRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [portraitRefreshState, setPortraitRefreshState] = useState<PortraitRefreshState>('idle');
+  const [portraitRefreshGeneration, setPortraitRefreshGeneration] = useState<number | null>(null);
+  const [portraitRefreshError, setPortraitRefreshError] = useState<string | null>(null);
   const localFeedbackContext = buildFeedbackTaskContext({
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
@@ -194,6 +199,60 @@ export default function GrowthPage() {
       setLoading(false);
     }
   }, []);
+
+  const requestPortraitRefresh = useCallback(async () => {
+    try {
+      setPortraitRefreshState('submitted');
+      setPortraitRefreshError(null);
+      const response = await fetch('/api/student/portrait-refresh', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      });
+      const payload = await response.json() as { generation?: number; error?: string };
+      if (!response.ok || !Number.isInteger(payload.generation)) {
+        throw new Error(payload.error || '提交画像更新失败');
+      }
+      setPortraitRefreshGeneration(payload.generation!);
+    } catch (refreshError) {
+      setPortraitRefreshState('failed');
+      setPortraitRefreshError(refreshError instanceof Error ? refreshError.message : '提交画像更新失败');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      portraitRefreshGeneration === null ||
+      (portraitRefreshState !== 'submitted' && portraitRefreshState !== 'processing')
+    ) return;
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/student/portrait-refresh?generation=${portraitRefreshGeneration}`,
+        );
+        const payload = await response.json() as {
+          status?: 'queued' | 'processing' | 'completed' | 'failed' | 'superseded';
+          errorCode?: string | null;
+        };
+        if (!response.ok) throw new Error('读取画像更新状态失败');
+        if (payload.status === 'completed') {
+          setPortraitRefreshState('completed');
+          await fetchData();
+          return;
+        }
+        if (payload.status === 'failed' || payload.status === 'superseded') {
+          setPortraitRefreshState('failed');
+          setPortraitRefreshError(payload.errorCode || '画像更新失败');
+          return;
+        }
+        setPortraitRefreshState(payload.status === 'processing' ? 'processing' : 'submitted');
+      } catch (refreshError) {
+        setPortraitRefreshState('failed');
+        setPortraitRefreshError(refreshError instanceof Error ? refreshError.message : '读取画像更新状态失败');
+      }
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [fetchData, portraitRefreshGeneration, portraitRefreshState]);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.id) {
@@ -276,6 +335,10 @@ export default function GrowthPage() {
   const improvementLabels = portrait?.weaknesses
     .map((id) => portraitDimensions.find((dimension) => dimension.id === id)?.label)
     .filter((label): label is string => Boolean(label)) ?? [];
+  const taskAttainment = portraitDimensions.find((dimension) =>
+    dimension.id === 'simulationValidationEvidence')?.taskAttainment;
+  const portraitRefreshPending =
+    portraitRefreshState === 'submitted' || portraitRefreshState === 'processing';
 
   return (
     <AppShell
@@ -298,6 +361,34 @@ export default function GrowthPage() {
         data-learner-record-missing-source={hasCompetencyChartData ? 'complete' : 'missing-evidence'}
       >
         <StudentFeedbackTaskPanel context={feedbackContext} surface="growth" className="mb-6" />
+        <div className="mb-6 flex flex-wrap items-center gap-3" data-portrait-refresh-actions>
+          <button
+            type="button"
+            onClick={() => void fetchData()}
+            disabled={loading}
+            className="btn-ghost-themed rounded-lg px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            刷新数据
+          </button>
+          <button
+            type="button"
+            onClick={() => void requestPortraitRefresh()}
+            disabled={portraitRefreshPending}
+            className="cta-primary rounded-lg px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {portraitRefreshPending
+              ? portraitRefreshState === 'processing' ? '画像更新处理中' : '画像更新已提交'
+              : portraitRefreshState === 'failed' ? '重试更新画像' : '更新画像'}
+          </button>
+          {portraitRefreshState === 'completed' ? (
+            <p className="text-sm text-emerald-600" role="status">画像更新完成，已读取最新结果。</p>
+          ) : null}
+          {portraitRefreshState === 'failed' ? (
+            <p className="text-sm text-red-500" role="alert">
+              {portraitRefreshError || '画像更新失败，可重试。'}
+            </p>
+          ) : null}
+        </div>
         {!hasPortrait ? (
           <div
             className="mb-8 rounded-xl border border-border bg-muted/40 p-5 text-sm text-subtle"
@@ -445,6 +536,50 @@ export default function GrowthPage() {
             </p>
             {portrait.limitations.length > 0 ? (
               <p className="mt-1">限制：{portrait.limitations.join('；')}</p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {taskAttainment?.state === 'EVIDENCE' ? (
+          <details className="mb-8 surface-card p-5" data-simulation-task-attainment>
+            <summary className="cursor-pointer font-medium text-foreground">
+              仿真任务构成：已完成 {taskAttainment.completedTaskCount} / 相关 {taskAttainment.relatedTaskCount}
+            </summary>
+            <div className="mt-4 space-y-4">
+              {taskAttainment.groupedTaskSummary.map((group) => (
+                <div key={group.source}>
+                  <p className="text-sm font-medium text-foreground">
+                    {group.displayGroup}：{group.completedTaskCount}/{group.relatedTaskCount}
+                  </p>
+                  <ul className="mt-2 grid gap-2 text-sm text-subtle sm:grid-cols-2">
+                    {group.tasks.map((task) => (
+                      <li key={task.taskKey}>
+                        {task.completed ? '已完成' : '未完成'} · {task.displayName}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <p className="text-xs text-subtle">
+                仅显示二元任务完成结论；部分进度和近似得分不计入画像。
+              </p>
+              {taskAttainment.limitations.length > 0 ? (
+                <p className="text-xs text-subtle">
+                  限制：{taskAttainment.limitations.join('；')} · {taskAttainment.calculationVersion}
+                </p>
+              ) : null}
+            </div>
+          </details>
+        ) : taskAttainment?.state === 'NO_EVIDENCE' ? (
+          <div className="mb-8 surface-card p-5" data-simulation-task-no-evidence>
+            <p className="font-medium text-foreground">仿真任务达成暂无合格证据</p>
+            <p className="mt-2 text-sm text-subtle">
+              当前仅保留受治理的审计上下文；部分进度不会形成任务完成结论。
+            </p>
+            {taskAttainment.limitations.length > 0 ? (
+              <p className="mt-2 text-xs text-subtle">
+                限制：{taskAttainment.limitations.join('；')}
+              </p>
             ) : null}
           </div>
         ) : null}

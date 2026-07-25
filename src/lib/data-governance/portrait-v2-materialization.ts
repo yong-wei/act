@@ -20,6 +20,7 @@ import {
 } from './portrait-v2-incremental-update';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,
+  createPortraitV2Payload,
   summarizeCumulativePortraitV2,
   writePortraitV2Snapshot,
   type PortraitV2PayloadShape,
@@ -32,6 +33,13 @@ import {
   type CumulativeRiskType,
   type RiskFlag,
 } from './risk-detector';
+import {
+  assertSimulationTaskInputIdentity,
+  buildSimulationTaskInputIdentity,
+  deriveHistoricalSimulationTaskPlanDigest,
+  projectSimulationTaskAttainment,
+  type SimulationTaskAttainmentProjection,
+} from './simulation-task-portrait-projection';
 
 interface CutoverFenceRow {
   fence: bigint;
@@ -43,6 +51,7 @@ interface CutoverFenceRow {
 
 interface CurrentStateRow {
   stateWatermark: bigint;
+  taskInputDigest?: string;
   calculationVersion: string;
   generation: bigint;
   queueGeneration: bigint;
@@ -137,6 +146,9 @@ export async function materializeIncrementalPortraitV2(
     fullRebuild?: boolean;
     dryRun?: boolean;
     publication?: PortraitV2PublicationExpectation;
+    simulationTaskInput?: {
+      expectedInputDigest?: string;
+    };
   } = {},
 ): Promise<PortraitV2MaterializationResult> {
   const materialize = async (
@@ -187,6 +199,23 @@ export async function materializeIncrementalPortraitV2(
     });
     const expectation = validatePublicationFence(fence, options.publication);
     const currentPayload = readCurrentPayload(current);
+    const taskProjection = projectSimulationTaskAttainment(reduction.activeFacts);
+    const taskProjectionActive = taskProjection.hasGovernedTaskEvidence ||
+      hasPersistedTaskProjection(currentPayload);
+    const taskInputIdentity = buildSimulationTaskInputIdentity({
+      factWatermark: reduction.stateWatermark,
+      catalogDigest: taskProjection.catalogDigest,
+      historicalCandidatePlanDigest:
+        deriveHistoricalSimulationTaskPlanDigest(reduction.activeFacts),
+    });
+    assertSimulationTaskInputIdentity(
+      options.simulationTaskInput?.expectedInputDigest,
+      taskInputIdentity,
+    );
+    const taskInputDigest = taskProjectionActive ||
+      Boolean(options.simulationTaskInput?.expectedInputDigest)
+      ? taskInputIdentity.inputDigest
+      : '';
     const currentReduction = reduceLearnerFactTransitions({
       facts,
       transitions: journal.filter((transition) =>
@@ -218,7 +247,8 @@ export async function materializeIncrementalPortraitV2(
       current.calculationVersion === expectation.calculationVersion &&
       current.generation === expectation.generation &&
       current.queueGeneration === expectation.queueGeneration &&
-      current.cutoverFence === expectation.cutoverFence;
+      current.cutoverFence === expectation.cutoverFence &&
+      (current.taskInputDigest ?? '') === taskInputDigest;
     if (unchanged) {
       return {
         written: false,
@@ -232,7 +262,10 @@ export async function materializeIncrementalPortraitV2(
     if (options.dryRun) {
       return {
         written: true,
-        stateKind: profileEvidence.length > 0 ? 'SNAPSHOT' : 'NO_EVIDENCE',
+        stateKind: profileEvidence.length > 0 ||
+          (taskProjectionActive && taskProjection.state === 'EVIDENCE')
+          ? 'SNAPSHOT'
+          : 'NO_EVIDENCE',
         evidenceCount: profileEvidence.length,
         affectedDimensions: [],
         mappingIssues: mapped.mappingIssues,
@@ -241,7 +274,10 @@ export async function materializeIncrementalPortraitV2(
       };
     }
 
-    if (profileEvidence.length === 0) {
+    if (
+      profileEvidence.length === 0 &&
+      (!taskProjectionActive || taskProjection.state === 'NO_EVIDENCE')
+    ) {
       const lastRisk = await materializeEvidenceRisks(transactionDb, {
         userId,
         expectation,
@@ -259,6 +295,7 @@ export async function materializeIncrementalPortraitV2(
         userId,
         expectation,
         stateWatermark: reduction.stateWatermark,
+        taskInputDigest,
         stateKind: 'NO_EVIDENCE',
         snapshotId: null,
         summary: null,
@@ -276,7 +313,11 @@ export async function materializeIncrementalPortraitV2(
       });
     }
 
-    const evidenceAt = reduction.latestOccurredAt ?? now;
+    const evidenceAt = latestEvidenceDate(
+      reduction.latestOccurredAt,
+      taskProjection.evidenceAsOf,
+      now,
+    );
     const comparisonPayload = rebuildRequired && current
       ? buildPortraitFromFacts(userId, currentReduction.activeFacts as PortraitRiskFactDelta[])
       : currentPayload;
@@ -286,13 +327,16 @@ export async function materializeIncrementalPortraitV2(
       updateEvidence,
       evidenceAt,
     );
+    const projectedPayload = taskProjectionActive
+      ? applySimulationTaskProjection(updated.payload, taskProjection, evidenceAt)
+      : updated.payload;
     const meaningfulStateChange = !comparisonPayload ||
-      portraitStateDigest(updated.payload) !== portraitStateDigest(comparisonPayload);
-    const summary = summarizeCumulativePortraitV2(updated.payload, comparisonPayload);
+      portraitStateDigest(projectedPayload) !== portraitStateDigest(comparisonPayload);
+    const summary = summarizeCumulativePortraitV2(projectedPayload, comparisonPayload);
     const currentRisks = detectCumulativePortraitRisks({
       userId,
       facts: reduction.activeFacts as PortraitRiskFactDelta[],
-      currentPortrait: updated.payload,
+      currentPortrait: projectedPayload,
       previousPortrait: comparisonPayload,
     });
     const lastRisk = await materializeEvidenceRisks(transactionDb, {
@@ -321,12 +365,13 @@ export async function materializeIncrementalPortraitV2(
     }
     const existingSnapshotId = current?.stateVersion.snapshot?.id;
     const persisted = meaningfulStateChange || !existingSnapshotId
-      ? await writePortraitV2Snapshot(transactionDb, updated.payload, { now })
+      ? await writePortraitV2Snapshot(transactionDb, projectedPayload, { now })
       : { id: existingSnapshotId };
     return publishState(transactionDb, {
       userId,
       expectation,
       stateWatermark: reduction.stateWatermark,
+      taskInputDigest,
       stateKind: 'SNAPSHOT',
       snapshotId: persisted.id,
       summary,
@@ -337,7 +382,9 @@ export async function materializeIncrementalPortraitV2(
       availabilityReason: 'available',
       generatedAt: now,
       evidenceCount: profileEvidence.length,
-      affectedDimensions: updated.affectedDimensions,
+      affectedDimensions: taskProjectionActive
+        ? [...new Set([...updated.affectedDimensions, 'simulationValidationEvidence'])]
+        : updated.affectedDimensions,
       mappingIssues: [...new Set([
         ...mapped.mappingIssues,
         ...updateMapped.mappingIssues,
@@ -441,6 +488,7 @@ async function publishState(
     userId: string;
     expectation: PortraitV2PublicationExpectation;
     stateWatermark: bigint;
+    taskInputDigest: string;
     stateKind: 'SNAPSHOT' | 'NO_EVIDENCE';
     snapshotId: string | null;
     summary: ReturnType<typeof summarizeCumulativePortraitV2> | null;
@@ -461,6 +509,7 @@ async function publishState(
       generation: input.expectation.generation,
       queueGeneration: input.expectation.queueGeneration,
       stateWatermark: input.stateWatermark,
+      taskInputDigest: input.taskInputDigest,
       stateKind: input.stateKind,
       snapshotId: input.snapshotId,
       overallScore: input.summary?.overallScore ?? null,
@@ -489,6 +538,7 @@ async function publishState(
       generation: input.expectation.generation,
       queueGeneration: input.expectation.queueGeneration,
       stateWatermark: input.stateWatermark,
+      taskInputDigest: input.taskInputDigest,
       cutoverFence: input.expectation.cutoverFence,
     },
     update: {
@@ -497,6 +547,7 @@ async function publishState(
       generation: input.expectation.generation,
       queueGeneration: input.expectation.queueGeneration,
       stateWatermark: input.stateWatermark,
+      taskInputDigest: input.taskInputDigest,
       cutoverFence: input.expectation.cutoverFence,
     },
   });
@@ -772,7 +823,113 @@ function portraitStateDigest(payload: PortraitV2PayloadShape): string {
     evidenceCount: dimension.evidenceSummary.totalCount,
     lastPositiveEvidenceAt: dimension.lastPositiveEvidenceAt,
     lastNegativeEvidenceAt: dimension.lastNegativeEvidenceAt,
+    taskAttainment: dimension.taskAttainment ?? null,
   })));
+}
+
+function hasPersistedTaskProjection(payload: PortraitV2PayloadShape | null): boolean {
+  return Boolean(payload?.dimensions.find((dimension) =>
+    dimension.id === 'simulationValidationEvidence')?.taskAttainment);
+}
+
+function latestEvidenceDate(
+  factEvidenceAt: Date | null,
+  taskEvidenceAt: string | null,
+  fallback: Date,
+): Date {
+  const candidates = [
+    factEvidenceAt,
+    taskEvidenceAt ? new Date(taskEvidenceAt) : null,
+  ].filter((value): value is Date => value !== null);
+  return candidates.reduce<Date>((latest, value) =>
+    value.getTime() > latest.getTime() ? value : latest, candidates[0] ?? fallback);
+}
+
+function applySimulationTaskProjection(
+  payload: PortraitV2PayloadShape,
+  projection: SimulationTaskAttainmentProjection,
+  generatedAt: Date,
+): ReturnType<typeof createPortraitV2Payload> {
+  const generatedAtIso = generatedAt.toISOString();
+  const dimensions = payload.dimensions.map((rawDimension) => {
+    const dimension = rawDimension.freshness.asOf === null
+      ? rawDimension
+      : {
+          ...rawDimension,
+          freshness: {
+            ...rawDimension.freshness,
+            evidenceAgeDays: Math.max(
+              0,
+              Math.floor(
+                (generatedAt.getTime() - Date.parse(rawDimension.freshness.asOf)) /
+                  86_400_000,
+              ),
+            ),
+          },
+        };
+    if (dimension.id !== 'simulationValidationEvidence') return dimension;
+    if (projection.state === 'NO_EVIDENCE') {
+      return {
+        ...dimension,
+        score: 0,
+        confidence: 0,
+        trend: 'stable' as const,
+        freshness: { state: 'missing' as const, asOf: null, evidenceAgeDays: null },
+        evidenceSummary: { totalCount: 0, sourceFamilyCounts: {} },
+        lastPositiveEvidenceAt: null,
+        lastNegativeEvidenceAt: null,
+        rationale: 'No safe legacy mapping exists.',
+        limitations: ['missing-native-portrait-v2-evidence'],
+        sourceLineage: [],
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        taskAttainment: projection,
+      };
+    }
+    const evidenceAgeDays = Math.max(
+      0,
+      Math.floor(
+        (generatedAt.getTime() - Date.parse(projection.evidenceAsOf!)) / 86_400_000,
+      ),
+    );
+    return {
+      ...dimension,
+      score: projection.score!,
+      confidence: 1,
+      trend: projection.score! > dimension.score
+        ? 'up' as const
+        : projection.score! < dimension.score
+          ? 'down' as const
+          : 'stable' as const,
+      freshness: {
+        state: 'current' as const,
+        asOf: projection.evidenceAsOf,
+        evidenceAgeDays,
+      },
+      evidenceSummary: {
+        totalCount: projection.completedTaskCount,
+        sourceFamilyCounts: { LearningFact: projection.completedTaskCount },
+      },
+      lastPositiveEvidenceAt: projection.evidenceAsOf,
+      lastNegativeEvidenceAt: null,
+      rationale: 'Governed evidence supports the current score.',
+      limitations: [],
+      sourceLineage: [{
+        kind: 'evidence-family' as const,
+        ref: 'LearningFact',
+        privacyScope: 'student-visible' as const,
+      }],
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      taskAttainment: projection,
+    };
+  });
+  return createPortraitV2Payload({
+    userId: payload.userId,
+    generatedAt: generatedAtIso,
+    now: generatedAt,
+    dimensions,
+    derivation: payload.derivation,
+    updateCursor: payload.updateCursor,
+  });
 }
 
 function summarizeActiveRisks(risks: Array<RiskFlag & { type: CumulativeRiskType }>) {

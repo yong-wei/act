@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto';
+import { writeFile } from 'node:fs/promises';
 
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
   runHistoricalTaskEvidenceDryRun,
   type HistoricalRecord,
 } from '../../src/lib/data-governance/simulation-task-historical-dryrun';
+import { buildHistoricalSimulationTaskPlan } from '../../src/lib/data-governance/simulation-task-historical-application';
 import {
   hashSemanticFingerprintValue,
   hashSimulationTaskSpecKeyInputs,
@@ -240,8 +242,34 @@ function sanitizeReport(report: ReturnType<typeof runHistoricalTaskEvidenceDryRu
 
 async function main() {
   const records = await collectHistoricalRecords();
-  const report = sanitizeReport(runHistoricalTaskEvidenceDryRun(records));
+  const dryRun = runHistoricalTaskEvidenceDryRun(records);
+  const planPath = argValue(process.argv.slice(2), '--plan');
+  if (planPath) {
+    const plan = buildHistoricalSimulationTaskPlan(dryRun);
+    await writeFile(planPath, `${JSON.stringify(plan, null, 2)}\n`, {
+      encoding: 'utf8',
+      flag: 'wx',
+      mode: 0o600,
+    });
+    console.log(JSON.stringify({
+      mode: 'dry-run',
+      planWritten: true,
+      planDigest: plan.planDigest,
+      candidateCount: plan.candidates.length,
+      affectedStudents: dryRun.affectedStudents,
+      skipCount: dryRun.skips.length,
+    }));
+    return;
+  }
+  const report = sanitizeReport(dryRun);
   console.log(JSON.stringify(report, null, process.argv.includes('--compact') ? 0 : 2));
+}
+
+function argValue(argv: string[], name: string): string | null {
+  const index = argv.indexOf(name);
+  const value = index >= 0 ? argv[index + 1] ?? null : null;
+  if (value?.startsWith('--')) throw new Error(`missing-required-argument:${name}`);
+  return value;
 }
 
 main()

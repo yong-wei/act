@@ -22,6 +22,7 @@ import { randomUUID } from 'node:crypto';
 import { materializeOdysseyTaskEvidence } from '@/lib/data-governance/simulation-task-materialization';
 import { persistAcceptedSimulationTaskEvidence } from '@/lib/data-governance/simulation-task-learning-fact';
 import { hashSemanticFingerprintValue } from '@/lib/data-governance/simulation-task-evidence';
+import { requestRealtimeSimulationTaskReconciliation } from '@/lib/data-governance/simulation-task-reconciliation';
 
 export interface LeaderboardEntry {
   rank: number;
@@ -235,10 +236,16 @@ async function persistOrdinaryOdysseyTaskEvidence({
       label: 'Odyssey persistent clear',
     },
   });
-  await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
+  const persisted = await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
     userId,
     sourceLogId: `odyssey-simulation-log:${log.id}`,
   });
+  if (persisted) {
+    await requestRealtimeSimulationTaskReconciliation(prisma, {
+      userId,
+      reason: 'odyssey-task-evidence',
+    });
+  }
 }
 
 const defaultUnlocks = (): ControllerId[] => ['P'];

@@ -913,7 +913,9 @@ describe('platform UI contracts', () => {
     );
     expect(courseEntryShellSource).toContain('data-course-entry-shell="app-shell"');
     expect(courseEntryShellSource).toContain('data-commercial-workspace="interactive-learning"');
-    expect(courseEntryShellSource).toContain('data-course-entry-role-panel="teacher"');
+    expect(courseEntryShellSource).toContain(
+      "data-course-entry-role-panel={isAdministrator ? 'admin-temporary' : 'teacher'}",
+    );
     expect(courseEntryShellSource).toContain('data-course-entry-role-panel="teacher-sign-in"');
     expect(courseEntryShellSource).toContain('data-course-entry-role-panel="student"');
     expect(courseEntryShellSource).toContain('data-course-entry-role-panel="guest-demo"');
