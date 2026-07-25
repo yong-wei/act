@@ -72,6 +72,7 @@ export interface SimpleSimConfig {
 
 interface ScenarioLogic {
   scenarioId: string;
+  runtimeVersion: string;
   duration: number;
   referenceCompletedAt: number;
   headingSchedule: Array<{ time: number; headingDeg: number }>;
@@ -100,16 +101,17 @@ const getScheduledHeading = (
   return headingSchedule[headingSchedule.length - 1].headingDeg;
 };
 
-const getScenarioLogic = (_scenario: 'turn90'): ScenarioLogic => {
+const getScenarioLogic = (_scenario: 'turn90', targetHeading: number): ScenarioLogic => {
   const headingSchedule = [
     { time: 0, headingDeg: 0 },
     { time: 60, headingDeg: 0 },
-    { time: 150, headingDeg: 90 },
-    { time: 240, headingDeg: 90 },
+    { time: 150, headingDeg: targetHeading },
+    { time: 240, headingDeg: targetHeading },
   ];
 
   return {
     scenarioId: 'turn90-calibrated-v1',
+    runtimeVersion: 'simulation-optimizer-runtime-v2',
     duration: 240,
     referenceCompletedAt: 150,
     headingSchedule,
@@ -319,19 +321,24 @@ export function optimizePIDParams(
 ): OptimizationResult {
   const startTime = Date.now();
   const convergenceHistory: OptimizationResult['convergenceHistory'] = [];
-  const scenario = getScenarioLogic('turn90');
+  const scenario = getScenarioLogic('turn90', target.targetHeading);
   const replaySeed = normalizeSeed(
     options.seed,
     JSON.stringify({ config, target, constraints, maxIterations, earlyStopThreshold, scenarioId: scenario.scenarioId })
   );
-  const runContext = options.runContext ?? createSimulationRunContext({
+  const baseRunContext = options.runContext ?? createSimulationRunContext({
     runId: `optimizer-${replaySeed.toString(16)}`,
     sceneId: 'simulation/optimizer/nomoto-quick-sim',
     scenarioId: scenario.scenarioId,
     seed: replaySeed,
-    runtimeVersion: 'simulation-optimizer-runtime-v2',
+    runtimeVersion: scenario.runtimeVersion,
     modelVersion: 'nomoto-quick-sim-v1',
   });
+  const runContext: SimulationRunContext = {
+    ...baseRunContext,
+    scenarioId: scenario.scenarioId,
+    runtimeVersion: scenario.runtimeVersion,
+  };
   const rng = createSimulationRng(runContext, 'monte-carlo-search').next;
 
   let bestParams = sampleParams(constraints, rng);
