@@ -74,7 +74,7 @@ try {
 
   assert.match(
     dockerignore,
-    /!scripts\/assets\/\*\*/,
+    /!scripts\/assets\/validate-optimized-models\.mjs/,
     'Docker build context must include the optimized-model validator',
   );
   assert.match(
