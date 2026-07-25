@@ -5,10 +5,16 @@ import {
   materializeCumulativeClassPortrait,
 } from '../cumulative-class-materialization';
 import { PORTRAIT_V2_CALCULATION_VERSION } from '../portrait-v2-model';
+import { computeSimulationTaskCatalogDigest } from '../simulation-task-portrait-projection';
 
 const oldEvidenceAt = new Date('2024-01-01T00:00:00.000Z');
 
-function portrait(userId: string, scores: Array<number | null>, trend = 'stable') {
+function portrait(
+  userId: string,
+  scores: Array<number | null>,
+  trend = 'stable',
+  taskCatalogDigest = computeSimulationTaskCatalogDigest(),
+) {
   return {
     userId,
     stateVersionId: `state-${userId}`,
@@ -59,6 +65,23 @@ function portrait(userId: string, scores: Array<number | null>, trend = 'stable'
             limitations: [],
             sourceLineage: [],
             calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+            ...(id === 'simulationValidationEvidence' && scores[index] !== null
+              ? {
+                  taskAttainment: {
+                    state: 'EVIDENCE',
+                    score: scores[index],
+                    completedTaskCount: Math.round((scores[index] ?? 0) / 25),
+                    relatedTaskCount: 4,
+                    groupedTaskSummary: [],
+                    evidenceAsOf: oldEvidenceAt.toISOString(),
+                    sourceLineage: [],
+                    calculationVersion: 'simulation-task-attainment-portrait.v1',
+                    catalogDigest: taskCatalogDigest,
+                    limitations: [],
+                    hasGovernedTaskEvidence: true,
+                  },
+                }
+              : {}),
           })),
         },
       },
@@ -195,6 +218,56 @@ describe('cumulative class materialization', () => {
     expect(data.aggregateJson.overall).toMatchObject({
       mean: 77.5,
       includedCount: 2,
+    });
+  });
+
+  it('averages only usable current-roster personal task ratios and reports coverage', async () => {
+    const { db, create } = testDb({
+      roster: ['student-1', 'student-2', 'student-3'],
+      states: [
+        portrait('student-1', [null, null, null, 25, null, null, null]),
+        portrait('student-2', [null, null, null, 75, null, null, null]),
+        portrait('student-3', [80, null, null, null, null, null, null]),
+      ],
+    });
+    await materializeCumulativeClassPortrait(db, 'class-1');
+
+    expect((create.mock.calls[0][0].data as any).aggregateJson.taskAttainment).toMatchObject({
+      meanRatio: 0.5,
+      meanScore: 50,
+      usableMemberCount: 2,
+      rosterTotal: 3,
+      missingMemberCount: 1,
+      relatedTaskCount: 4,
+    });
+  });
+
+  it('excludes stale-catalog task projections from the mean and coverage denominator', async () => {
+    const { db, create } = testDb({
+      roster: ['student-current', 'student-stale'],
+      states: [
+        portrait('student-current', [null, null, null, 50, null, null, null]),
+        portrait(
+          'student-stale',
+          [null, null, null, 100, null, null, null],
+          'stable',
+          '0'.repeat(64),
+        ),
+      ],
+    });
+    await materializeCumulativeClassPortrait(db, 'class-1');
+
+    const aggregate = (create.mock.calls[0][0].data as any).aggregateJson;
+    expect(aggregate.taskAttainment).toMatchObject({
+      meanScore: 50,
+      usableMemberCount: 1,
+      rosterTotal: 2,
+      missingMemberCount: 1,
+    });
+    expect(aggregate.dimensions.simulationValidationEvidence).toMatchObject({
+      mean: 50,
+      includedCount: 1,
+      missingCount: 1,
     });
   });
 

@@ -70,6 +70,7 @@ type StageId = typeof BOPPPS_STAGES[number]['id'];
 
 interface LessonItemDraft {
   tempId: string;
+  persistedItemId?: string;
   resourceTitle: string;
   itemType: LessonItemType;
   resourceId?: string | null;
@@ -130,6 +131,7 @@ function createPlanStateFromInitialData(
 
     nextState[stage].push({
       tempId: item.id,
+      persistedItemId: item.id,
       itemType,
       resourceId: itemType === LessonItemType.RESOURCE ? item.resourceId : null,
       resourceTitle,
@@ -441,6 +443,7 @@ function OrchestratorBuilderContent({
       setIsSaving(true);
       
       const itemsToSave: {
+        id?: string;
         itemType: LessonItemType;
         resourceId?: string | null;
         knowledgeNodeId?: string | null;
@@ -453,6 +456,7 @@ function OrchestratorBuilderContent({
           const items = planState[stage as StageId];
           items.forEach((item, idx) => {
               itemsToSave.push({
+                  ...(item.persistedItemId ? { id: item.persistedItemId } : {}),
                   itemType: item.itemType,
                   resourceId: item.itemType === LessonItemType.RESOURCE ? item.resourceId || null : null,
                   knowledgeNodeId: item.itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId || null : null,

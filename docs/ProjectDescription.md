@@ -168,6 +168,8 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 - `LearningEventBatch`：二级事件批处理存储。
 - `EventDictionary`：核心事件词典和能力映射。
 - `LearningFact`：从事件中物化的统一学习事实。
+- 仿真任务证据：虚拟仿真、控制工作台、Arena 与控制奥德赛的合格学生产物按稳定任务键和不透明产物键写入零画像权重的不可变 `LearningFact`；Arena 只接受有效官方提交，其他运行必须绑定学生所有的持久化结果。
+- 仿真任务画像：`simulationValidationEvidence` 以当前发布的全局任务目录为统一分母，只统计带明确完成权威的满分任务；历史候选通过防篡改计划逐学生增量应用，目录变化通过 fenced reconciliation 刷新个人画像和当前 roster 班级均值，无合格证据时保持不可用而不填零。
 - `StudentPortraitV2Snapshot`：学生七维 portrait v2 主画像快照；`StudentCompetencySnapshot` 仅作为历史兼容输入。
 - `StudentEvidenceFeatureCache`：受治理证据缓存，包含带 authority 标记的 portrait v2 主画像和兼容快照。
 - `StudentProfileSummary`：面向 AI 和页面展示的学生画像摘要。

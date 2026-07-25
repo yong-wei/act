@@ -1326,7 +1326,8 @@ describe('platform role navigation', () => {
 
     expect(teacherNewClassSource).toContain('useSearchParams');
     expect(teacherNewClassSource).toContain('resolveScopedReturnTarget(');
-    expect(teacherClassDetailSource).toContain('returnTo=${encodeURIComponent(`/teacher/classes/${classId}`)}');
+    expect(teacherClassDetailSource).toContain('currentClassId: classId');
+    expect(teacherClassDetailSource).toContain('router.push(`/classroom/teacher/${sessionId}`)');
     expect(teacherLessonPlansSource).toContain('/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans');
     expect(teacherNewLessonPlanSource).toContain('returnPath={returnTarget}');
     expect(teacherNewLessonPlanSource).toContain('workbenchReturnLabel={getTeacherReturnLabel(returnTarget)}');

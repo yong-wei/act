@@ -6,6 +6,10 @@ import {
   type PortraitV2DimensionId,
 } from './kaq-objective-taxonomy';
 import type { PortraitV2PayloadShape } from './portrait-v2-model';
+import {
+  computeSimulationTaskCatalogDigest,
+  SIMULATION_TASK_PORTRAIT_CALCULATION_VERSION,
+} from './simulation-task-portrait-projection';
 
 export const CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION =
   'class-competency.cumulative.v2';
@@ -123,6 +127,16 @@ export interface CumulativeClassPortraitProjection {
   aggregate: {
     overall: DimensionAggregate;
     dimensions: Record<PortraitV2DimensionId, DimensionAggregate & { label: string }>;
+    taskAttainment: {
+      meanRatio: number | null;
+      meanScore: number | null;
+      usableMemberCount: number;
+      rosterTotal: number;
+      missingMemberCount: number;
+      relatedTaskCount: number | null;
+      calculationVersion: string | null;
+      limitations: string[];
+    };
   };
   dimensionCoverage: {
     totalMembers: number;
@@ -264,11 +278,23 @@ export function buildCumulativeClassPortraitProjection(
     const payload = readNativePayload(state);
     return state && payload ? [{ userId, state, payload }] : [];
   });
+  const currentCatalogDigest = computeSimulationTaskCatalogDigest();
+  const isCurrentTaskProjection = (payload: PortraitV2PayloadShape): boolean => {
+    const taskAttainment = payload.dimensions.find((dimension) =>
+      dimension.id === 'simulationValidationEvidence')?.taskAttainment;
+    return taskAttainment?.state === 'EVIDENCE'
+      && taskAttainment.relatedTaskCount > 0
+      && taskAttainment.calculationVersion === SIMULATION_TASK_PORTRAIT_CALCULATION_VERSION
+      && taskAttainment.catalogDigest === currentCatalogDigest;
+  };
   const dimensions = Object.fromEntries(PORTRAIT_V2_DIMENSION_IDS.map((id) => {
     const values = portraits.flatMap(({ payload }) => {
       const dimension = payload.dimensions.find((item) =>
         item.id === id && item.evidenceSummary.totalCount > 0);
-      return dimension ? [{ score: dimension.score, confidence: dimension.confidence }] : [];
+      return dimension
+        && (id !== 'simulationValidationEvidence' || isCurrentTaskProjection(payload))
+        ? [{ score: dimension.score, confidence: dimension.confidence }]
+        : [];
     });
     return [id, {
       label: PORTRAIT_V2_DIMENSIONS.find((dimension) => dimension.id === id)?.label ?? id,
@@ -280,7 +306,11 @@ export function buildCumulativeClassPortraitProjection(
   })) as CumulativeClassPortraitProjection['aggregate']['dimensions'];
   const memberOverall = portraits.flatMap(({ payload }) => {
     const evidenced = payload.dimensions.filter((dimension) =>
-      dimension.evidenceSummary.totalCount > 0);
+      dimension.evidenceSummary.totalCount > 0
+      && (
+        dimension.id !== 'simulationValidationEvidence'
+        || isCurrentTaskProjection(payload)
+      ));
     const score = average(evidenced.map((dimension) => dimension.score));
     return score === null ? [] : [{
       score,
@@ -293,6 +323,31 @@ export function buildCumulativeClassPortraitProjection(
       member.confidence === null ? [] : [member.confidence])),
     includedCount: memberOverall.length,
     missingCount: input.members.length - memberOverall.length,
+  };
+  const taskProjections = portraits.flatMap(({ payload }) => {
+    const taskAttainment = payload.dimensions.find((dimension) =>
+      dimension.id === 'simulationValidationEvidence')?.taskAttainment;
+    return taskAttainment && isCurrentTaskProjection(payload)
+      ? [taskAttainment]
+      : [];
+  });
+  const taskRatios = taskProjections.map((projection) =>
+    projection.completedTaskCount / projection.relatedTaskCount);
+  const relatedTaskCounts = [...new Set(taskProjections.map((projection) =>
+    projection.relatedTaskCount))];
+  const taskAttainment = {
+    meanRatio: average(taskRatios),
+    meanScore: average(taskRatios.map((ratio) => ratio * 100)),
+    usableMemberCount: taskProjections.length,
+    rosterTotal: input.members.length,
+    missingMemberCount: input.members.length - taskProjections.length,
+    relatedTaskCount: relatedTaskCounts.length === 1 ? relatedTaskCounts[0] : null,
+    calculationVersion: taskProjections[0]?.calculationVersion ?? null,
+    limitations: [
+      ...(taskProjections.length === 0 ? ['no-current-member-task-attainment'] : []),
+      ...(relatedTaskCounts.length > 1 ? ['inconsistent-current-task-catalog-denominator'] : []),
+      'missing-member-task-attainment-is-not-zero',
+    ],
   };
   const trendDistribution = {
     up: 0,
@@ -338,7 +393,7 @@ export function buildCumulativeClassPortraitProjection(
     risks: input.risks,
   });
   return {
-    aggregate: { overall, dimensions },
+    aggregate: { overall, dimensions, taskAttainment },
     dimensionCoverage: {
       totalMembers: input.members.length,
       portraitMembers: portraits.length,

@@ -53,6 +53,8 @@ scripts/
 scripts/*
 !scripts/build-next-with-trace-check.mjs
 !scripts/prune-next-trace-boundary.mjs
+!scripts/assets/
+!scripts/assets/validate-optimized-models.mjs
 !scripts/wasm/
 !scripts/wasm/**
 !scripts/db/
@@ -61,11 +63,11 @@ scripts/*
 !scripts/knowledge/**
 !scripts/assignments/
 !scripts/assignments/**
-!scripts/build-optimized-models.mjs
 !scripts/lib/
 !scripts/lib/**
 !scripts/workers/
 !scripts/workers/**
+tools/glb-model-optimizer/
 *.tsbuildinfo
 deploy/images
 deploy

@@ -3,7 +3,7 @@
 import React, { forwardRef, StrictMode, useEffect, useImperativeHandle, useRef } from 'react';
 import * as THREE from 'three';
 import { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot as createReactRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const forceGraph = vi.hoisted(() => ({
@@ -18,6 +18,18 @@ const forceGraph = vi.hoisted(() => ({
   threeDTarget: null as THREE.Vector3 | null,
   suppressEngineStop: false,
 }));
+const activeRoots = new Set<Root>();
+
+function createRoot(container: Element | DocumentFragment) {
+  const root = createReactRoot(container);
+  const unmount = root.unmount.bind(root);
+  root.unmount = () => {
+    activeRoots.delete(root);
+    unmount();
+  };
+  activeRoots.add(root);
+  return root;
+}
 
 function forceGraphMock(kind: 'twoD' | 'threeD') {
   return forwardRef(function ForceGraph(props: Record<string, unknown>, ref) {
@@ -183,6 +195,16 @@ beforeEach(() => {
   forceGraph.suppressEngineStop = false;
   forceGraph.twoDGraph2Screen.mockClear();
   Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 1 });
+  vi.stubGlobal('matchMedia', vi.fn(() => ({
+    matches: true,
+    media: '(prefers-reduced-motion: reduce)',
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })));
 });
 
 function expectCompleteRootProjectedBoundsInsideCanvas(width: number, height: number) {
@@ -340,8 +362,12 @@ it.each([
   await act(async () => root.unmount());
 });
 
-afterEach(() => {
+afterEach(async () => {
+  for (const root of [...activeRoots]) {
+    await act(async () => root.unmount());
+  }
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   vi.useRealTimers();
   document.body.innerHTML = '';
 });
@@ -813,12 +839,14 @@ it.each([
   paint(node, context, 1);
 
   expect(node.__knowledgeRootPacking.collisionRadius).toBeGreaterThanOrEqual(28);
-  expect(context.createRadialGradient).toHaveBeenCalledTimes(1);
-  expect(addColorStop).toHaveBeenCalledTimes(3);
+  expect(context.createRadialGradient).toHaveBeenCalledTimes(2);
+  expect(addColorStop).toHaveBeenCalledTimes(5);
   expect(context.fillStyle).toBe('#f8fafc');
-  expect((context.arc as ReturnType<typeof vi.fn>).mock.calls[0][2]).toBe(
-    node.__knowledgeRootPacking.collisionRadius
-  );
+  const arcRadii = (context.arc as ReturnType<typeof vi.fn>).mock.calls
+    .map(([, , radius]) => radius as number);
+  expect(arcRadii).toContain(node.__knowledgeRootPacking.collisionRadius);
+  expect(arcRadii.some((radius) => radius > node.__knowledgeRootPacking.collisionRadius)).toBe(true);
+  expect(arcRadii.some((radius) => radius < node.__knowledgeRootPacking.collisionRadius)).toBe(true);
   const paintedName = (context.fillText as ReturnType<typeof vi.fn>).mock.calls
     .map(([line]) => line)
     .join('')
