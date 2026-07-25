@@ -33,4 +33,4 @@
 - [x] 5.4 Parse Chinese worked examples and explicit solution/proof boundaries as minimal units
 - [x] 5.5 Group numbering samples by parent, kind, and natural prefix and persist review evidence
 - [x] 5.6 Add a reproducible JSON Schema validation CLI and regression coverage
-- [ ] 5.7 Generate and schema-validate the full written runtime from a clean committed revision
+- [x] 5.7 Generate and schema-validate the full written runtime from a clean committed revision
