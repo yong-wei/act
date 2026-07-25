@@ -8,6 +8,7 @@ import {
   enqueueCumulativeClassReconciliation,
   requestCumulativeLearnerReconciliation,
 } from '../cumulative-snapshot-jobs';
+import { buildSimulationTaskInputIdentity } from '../simulation-task-portrait-projection';
 
 const fence = {
   calculationVersion: 'portrait-v2.cumulative.v2',
@@ -204,6 +205,89 @@ describe('cumulative learner reconciliation requests', () => {
     },
   );
 
+  it('advances the request when only the task catalog digest changes', async () => {
+    let request: any = null;
+    let counter = 0;
+    const db: any = {
+      cumulativePortraitCutoverFence: {
+        findUnique: vi.fn(async () => fence),
+      },
+      learningMaterializationGeneration: {
+        upsert: vi.fn(async () => ({ generation: ++counter })),
+      },
+      learningMaterializationRebuildRequest: {
+        findUnique: vi.fn(async () => request),
+        create: vi.fn(async ({ data }) => {
+          request = data;
+          return data;
+        }),
+        updateMany: vi.fn(async ({ where, data }) => {
+          if (!request || request.generation !== where.generation) return { count: 0 };
+          request = { ...request, ...data };
+          return { count: 1 };
+        }),
+      },
+    };
+    const firstInput = buildSimulationTaskInputIdentity({
+      factWatermark: BigInt(9),
+      catalogDigest: 'a'.repeat(64),
+      historicalCandidatePlanDigest: 'plan-1029',
+    });
+    const secondInput = buildSimulationTaskInputIdentity({
+      factWatermark: BigInt(9),
+      catalogDigest: 'b'.repeat(64),
+      historicalCandidatePlanDigest: 'plan-1029',
+    });
+
+    await requestCumulativeLearnerReconciliation(db, {
+      userId: 'student-catalog-drift',
+      reason: 'simulation-task-catalog-refresh',
+      simulationTaskInput: firstInput,
+    });
+    const firstRequestDigest = request.inputDigest;
+    await expect(requestCumulativeLearnerReconciliation(db, {
+      userId: 'student-catalog-drift',
+      reason: 'simulation-task-catalog-refresh',
+      simulationTaskInput: secondInput,
+    })).resolves.toBe(2);
+
+    expect(request.generation).toBe(2);
+    expect(request.inputDigest).not.toBe(firstRequestDigest);
+    expect(request.simulationTaskInput).toEqual(secondInput);
+  });
+
+  it('casts JSON and simulation identity parameters in the PostgreSQL upsert contract', async () => {
+    const queries: any[] = [];
+    const db: any = {
+      cumulativePortraitCutoverFence: {
+        findUnique: vi.fn(async () => fence),
+      },
+      $queryRaw: vi.fn(async (query) => {
+        queries.push(query);
+        return [{ generation: 1 }];
+      }),
+    };
+    const simulationTaskInput = buildSimulationTaskInputIdentity({
+      factWatermark: BigInt(9),
+      catalogDigest: 'a'.repeat(64),
+      historicalCandidatePlanDigest: 'plan-1029',
+    });
+
+    await requestCumulativeLearnerReconciliation(db, {
+      userId: 'student-sql-contract',
+      reason: 'simulation-task-catalog-refresh',
+      simulationTaskInput,
+    });
+    await requestCumulativeLearnerReconciliation(db, {
+      userId: 'student-sql-contract',
+      reason: 'manual-refresh-without-task-input',
+    });
+
+    expect(queries[0].sql).toContain('?::jsonb');
+    expect(queries[0].sql.match(/\?::text/gu)).toHaveLength(24);
+    expect(queries[1].sql).toContain('NULL::jsonb');
+  });
+
   it('creates, claims, and CAS-completes a request bound to the active fence', async () => {
     let request: any = null;
     const db: any = {
@@ -237,11 +321,17 @@ describe('cumulative learner reconciliation requests', () => {
       },
     };
 
+    const simulationTaskInput = buildSimulationTaskInputIdentity({
+      factWatermark: BigInt(9),
+      catalogDigest: 'a'.repeat(64),
+      historicalCandidatePlanDigest: 'plan-1029',
+    });
     await expect(requestCumulativeLearnerReconciliation(db, {
       userId: 'student-1',
       classIds: ['class-1'],
       reason: 'document-rubric-grading-approved',
       now: new Date('2026-07-23T01:00:00Z'),
+      simulationTaskInput,
     })).resolves.toBe(1);
     expect(request).toMatchObject({
       userId: 'student-1',
@@ -254,6 +344,7 @@ describe('cumulative learner reconciliation requests', () => {
       cutoverFence: fence.fence,
       status: 'PENDING',
       generation: 1,
+      simulationTaskInput,
     });
 
     const [claim] = await claimCumulativeLearnerReconciliations(db, fence);
@@ -262,6 +353,7 @@ describe('cumulative learner reconciliation requests', () => {
       classIds: ['class-1'],
       generation: 1,
       fence,
+      simulationTaskInput,
     });
     await expect(completeCumulativeLearnerReconciliation(
       db,
