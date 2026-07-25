@@ -7,8 +7,13 @@ import { authOptions } from '@/lib/auth';
 import { generateUniqueJoinCode } from '@/lib/join-code';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { EMPTY_LESSON_PLAN_MESSAGE } from '@/lib/lesson-plan-readiness';
-import { loadSessionLessonSnapshot } from '@/lib/session-lesson-snapshot';
+import {
+  loadRuntimeLessonManifestSnapshot,
+  loadSessionLessonSnapshot,
+} from '@/lib/session-lesson-snapshot';
 import { ALL_PRESETS } from '@/features/teacher/preset-lessons';
+import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
+import { resolvePlanRuntimeBindings } from '@/lib/lesson-plan-runtime-binding';
 import {
   buildClassroomIdentityPayload,
   buildClassroomLifecycleEvidenceFields,
@@ -169,6 +174,11 @@ export async function POST(request: Request) {
             planRevisionNumber: true,
           },
         },
+        items: {
+          select: {
+            overrideConfig: true,
+          },
+        },
         _count: { select: { items: true } },
       },
     });
@@ -233,11 +243,45 @@ export async function POST(request: Request) {
     }
 
     const joinCode = await generateUniqueJoinCode(prisma);
-    const lessonSnapshot = generatedBinding ? {
-      lessonVersion: generatedBinding.displayName,
-      manifestHash: generatedBinding.manifestHash,
-      totalSteps: plan._count.items,
-    } : loadSessionLessonSnapshot(plan.title);
+    let lessonSnapshot;
+    if (generatedBinding) {
+      lessonSnapshot = {
+        lessonVersion: generatedBinding.displayName,
+        manifestHash: generatedBinding.manifestHash,
+        totalSteps: plan._count.items,
+      };
+    } else {
+      const runtimeBindings = resolvePlanRuntimeBindings(plan.items ?? []);
+      if (runtimeBindings.state === 'invalid') {
+        return NextResponse.json({ error: '教案互动课来源绑定无效' }, { status: 409 });
+      }
+      if (runtimeBindings.state === 'valid') {
+        const preset = ALL_PRESETS.find((candidate) =>
+          candidate.key === runtimeBindings.sourcePresetKey);
+        const presetIdentity = resolveInteractiveLessonIdentity({
+          kind: 'presetKey',
+          value: runtimeBindings.sourcePresetKey,
+        });
+        const runtimeIdentity = resolveInteractiveLessonIdentity({
+          kind: 'runtimeLessonDir',
+          value: runtimeBindings.runtimeLessonId,
+        });
+        const runtimeSnapshot = loadRuntimeLessonManifestSnapshot(runtimeBindings.runtimeLessonId);
+        if (
+          !preset
+          || presetIdentity.status !== 'resolved'
+          || runtimeIdentity.status !== 'resolved'
+          || presetIdentity.record.canonicalId !== runtimeIdentity.record.canonicalId
+          || presetIdentity.record.canonicalId !== runtimeBindings.runtimeLessonId
+          || !runtimeSnapshot
+        ) {
+          return NextResponse.json({ error: '教案互动课来源绑定不可用' }, { status: 409 });
+        }
+        lessonSnapshot = runtimeSnapshot.snapshot;
+      } else {
+        lessonSnapshot = loadSessionLessonSnapshot(plan.title);
+      }
+    }
 
     const createSession = (db: Pick<Prisma.TransactionClient, 'classSession'>) => db.classSession.create({
       data: {

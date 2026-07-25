@@ -41,9 +41,12 @@ import {
   failCumulativeLearnerReconciliation,
   readActiveCumulativePublicationFence as readActiveCumulativePublicationFenceOrNull,
   renewCumulativeLearnerReconciliation,
+  requestCumulativeLearnerReconciliation,
   type ActiveCumulativePublicationFence,
   type CumulativeLearnerReconciliationClaim,
 } from '@/lib/data-governance/cumulative-snapshot-jobs';
+import { SimulationTaskInputDriftError } from '@/lib/data-governance/simulation-task-portrait-projection';
+import { scheduleSimulationTaskCatalogRefresh } from '@/lib/data-governance/simulation-task-reconciliation';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import type {
   ClassSnapshotJob,
@@ -198,6 +201,30 @@ function formatError(error: unknown): string {
   } catch {
     return String(error);
   }
+}
+
+type JsonSafe<T> =
+  T extends bigint ? string :
+  T extends Date ? string :
+  T extends readonly (infer Item)[] ? Array<JsonSafe<Item>> :
+  T extends object ? { [Key in keyof T]: JsonSafe<T[Key]> } :
+  T;
+
+function toJsonSafeWorkerResult<T>(value: T): JsonSafe<T> {
+  if (typeof value === 'bigint') return value.toString() as JsonSafe<T>;
+  if (value instanceof Date) return value.toISOString() as JsonSafe<T>;
+  if (Array.isArray(value)) {
+    return value.map((item) => toJsonSafeWorkerResult(item)) as JsonSafe<T>;
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        toJsonSafeWorkerResult(item),
+      ]),
+    ) as JsonSafe<T>;
+  }
+  return value as JsonSafe<T>;
 }
 
 function isInfrastructureError(error: unknown): boolean {
@@ -366,6 +393,10 @@ function studentPublicationJobData(
       reconciliationRequestGeneration: options.reconciliationClaim.generation,
       reconciliationClaimToken: options.reconciliationClaim.claimToken,
       reconciliationClassIds: options.reconciliationClaim.classIds,
+      ...(options.reconciliationClaim.simulationTaskInput ? {
+        simulationTaskExpectedInputDigest:
+          options.reconciliationClaim.simulationTaskInput.inputDigest,
+      } : {}),
     } : {}),
   };
 }
@@ -673,6 +704,9 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   if (job.data.coordinator) {
     const db = getPrismaClient();
     const fence = await readActiveCumulativePublicationFence(db);
+    const catalogRefresh = job.data.simulationTaskCatalogRefresh
+      ? await scheduleSimulationTaskCatalogRefresh(db as any)
+      : null;
     const claims = await claimCumulativeLearnerReconciliations(db as any, fence);
     let requestFailed = 0;
     for (const claim of claims) {
@@ -716,6 +750,7 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
       scheduled: regularStudentIds.length + claims.length - requestFailed,
       reconciliationScheduled: claims.length - requestFailed,
       reconciliationFailed: requestFailed,
+      catalogRefresh,
     };
   }
 
@@ -750,6 +785,9 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
       now: new Date(),
       fullRebuild: reconciliationClaim ? true : job.data.fullRebuild,
       publication: expectation,
+      simulationTaskInput: job.data.simulationTaskExpectedInputDigest ? {
+        expectedInputDigest: job.data.simulationTaskExpectedInputDigest,
+      } : undefined,
     });
     if (portraitV2.mappingIssues.length > 0) {
       logWithThrottle(
@@ -784,16 +822,39 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
         skipped: true,
         reason: 'stale_reconciliation_claim',
         userId,
-        portraitV2,
+        portraitV2: toJsonSafeWorkerResult(portraitV2),
       };
     }
     return {
       skipped: !portraitV2.written,
       reason: portraitV2.written ? 'cumulative_portrait_materialized' : 'no_portrait_state_change',
       userId,
-      portraitV2,
+      portraitV2: toJsonSafeWorkerResult(portraitV2),
     };
   } catch (error) {
+    if (reconciliationClaim && error instanceof SimulationTaskInputDriftError) {
+      try {
+        const generation = await requestCumulativeLearnerReconciliation(db as any, {
+          userId,
+          classIds: reconciliationClaim.classIds,
+          reason: 'simulation-task-input-drift',
+          simulationTaskInput: error.actualInput,
+        });
+        return {
+          skipped: true,
+          reason: 'simulation_task_input_drift_requeued',
+          userId,
+          reconciliationRequestGeneration: generation,
+        };
+      } catch (rescheduleError) {
+        await failCumulativeLearnerReconciliation(
+          db as any,
+          reconciliationClaim,
+          'simulation-task-input-drift-reschedule-failed',
+        );
+        throw rescheduleError;
+      }
+    }
     if (reconciliationClaim) {
       await failCumulativeLearnerReconciliation(
         db as any,
@@ -846,10 +907,11 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
   if (!matchesClassFence(expectation, fence)) {
     return { skipped: true, reason: 'stale_cumulative_publication_fence', classId };
   }
-  return materializeCumulativeClassPortrait(db as any, classId, {
+  const result = await materializeCumulativeClassPortrait(db as any, classId, {
     now: new Date(),
     publication: expectation,
   });
+  return toJsonSafeWorkerResult(result);
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {

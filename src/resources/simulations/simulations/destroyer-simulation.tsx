@@ -24,7 +24,6 @@ import {
   Timer,
   Video,
   Orbit,
-  Undo2,
   ArrowDownFromLine,
 } from 'lucide-react';
 import { Chart, registerables } from 'chart.js';
@@ -41,27 +40,24 @@ import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
-  EnvironmentPresetSwitcher,
   EnvironmentScene,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
+  useSceneEnvironment,
 } from '../scene/environment';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
-  SoundscapeMuteToggle,
 } from '../scene/audio';
 import {
   ActualPathTrail,
   TeachingAnnotations,
   TeachingAnnotationsProvider,
-  TeachingAnnotationsToggle,
   useTeachingAnnotations,
 } from '../scene/annotations';
 import {
   SceneQualityDriver,
   SceneQualityProvider,
-  SceneQualitySelect,
   useSceneQuality,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
@@ -75,6 +71,7 @@ import {
 } from '../core/constants';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
+import { platformHeadingToSceneRad } from '../scene/heading';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
@@ -162,7 +159,7 @@ const shipDimensions = {
 const CAMERA_SHOT_VIEWS = [
   { id: SCENE_CAMERA_SHOTS.chase.id, label: '跟船', shortLabel: '跟', icon: Video, description: SCENE_CAMERA_SHOTS.chase.description },
   { id: SCENE_CAMERA_SHOTS.orbit.id, label: '环绕', shortLabel: '环', icon: Orbit, description: SCENE_CAMERA_SHOTS.orbit.description },
-  { id: SCENE_CAMERA_SHOTS.retreat.id, label: '退却', shortLabel: '退', icon: Undo2, description: SCENE_CAMERA_SHOTS.retreat.description },
+  { id: SCENE_CAMERA_SHOTS.tactical.id, label: '战术', shortLabel: '战', icon: Compass, description: SCENE_CAMERA_SHOTS.tactical.description },
   { id: SCENE_CAMERA_SHOTS.topDown.id, label: '顶视', shortLabel: '顶', icon: ArrowDownFromLine, description: SCENE_CAMERA_SHOTS.topDown.description },
 ];
 
@@ -303,7 +300,7 @@ function PresetWater({ simRef }: { simRef: React.MutableRefObject<SimulationStat
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
-      foamColor="#f4fbff"
+      foamColor={simulationScenePalette.waterFoam}
     />
   );
 }
@@ -393,7 +390,7 @@ function TeachingAnnotationsGate({
   return (
     <TeachingAnnotations
       positionSampler={() => simRef.current.position}
-      headingSampler={() => simRef.current.headingRad}
+      headingSampler={() => platformHeadingToSceneRad(toDegrees(simRef.current.headingRad))}
       targetHeadingSampler={targetHeadingSampler}
       shipLength={shipDimensions.length}
       label="055型驱逐舰"
@@ -411,18 +408,19 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
 }) {
+  const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const waterYRef = useRef(0);
+  const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
 
   useFrame((state) => {
     const sim = simRef.current;
     transformRef.current.position = [sim.position.x, sim.position.y, sim.position.z];
-    transformRef.current.heading = sim.headingRad;
-    const time = state.clock.getElapsedTime();
-    waterYRef.current = -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], 0, 0, time).y;
+    transformRef.current.heading = platformHeadingToSceneRad(toDegrees(sim.headingRad));
+    timeRef.current = state.clock.getElapsedTime();
   });
 
+  if (!wakeVisible) return null;
   return (
     <WakeTrail
       key={resetToken}
@@ -430,7 +428,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={() => waterYRef.current}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
       worldSpeedSampler={() => simRef.current.speedMps}
     />
   );
@@ -955,7 +953,7 @@ function ControlPanel({
                 暂停
               </Button>
             ) : (
-              <Button variant="default" className={`flex-1 ${simulationUi.buttonPrimary}`} onClick={onStart}>
+              <Button variant="default" data-sound-start className={`flex-1 ${simulationUi.buttonPrimary}`} onClick={onStart}>
                 <Play className="w-4 h-4 mr-2" />
                 开始
               </Button>
@@ -1119,6 +1117,7 @@ export default function DestroyerSimulation() {
   const [controlMode, setControlMode] = useState<ControlMode>('pid');
   const [pidGains, setPidGains] = useState<PIDGains>(DEFAULT_PID_GAINS);
   const [cameraMode, setCameraMode] = useState<string>('chase');
+  const [viewResetCount, setViewResetCount] = useState(0);
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
   const sceneTheme = useSimulationSceneTheme();
@@ -1256,7 +1255,7 @@ export default function DestroyerSimulation() {
         <ActualPathTrail positionSampler={() => simRef.current.position} resetToken={resetToken} />
         <TeachingAnnotationsGate
           simRef={simRef}
-          targetHeadingSampler={() => toRadians(scenarioLogic.getDesiredHeading(hudState.time))}
+          targetHeadingSampler={() => platformHeadingToSceneRad(scenarioLogic.getDesiredHeading(hudState.time))}
         />
         <WakeTrailRig simRef={simRef} playing={isRunning} resetToken={resetToken} />
         <Suspense
@@ -1283,9 +1282,10 @@ export default function DestroyerSimulation() {
         <StayPutCameraController
           view={cameraMode}
           positionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })}
-          headingSampler={() => simRef.current.headingRad}
+          headingSampler={() => platformHeadingToSceneRad(toDegrees(simRef.current.headingRad))}
           shipLength={shipDimensions.length}
           controlsRef={controlsRef}
+          resetSignal={viewResetCount}
         />
         <SimulationEngine
           simRef={simRef}
@@ -1361,6 +1361,7 @@ export default function DestroyerSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        onViewReset={() => setViewResetCount((previous) => previous + 1)}
         views={CAMERA_SHOT_VIEWS}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
@@ -1369,11 +1370,6 @@ export default function DestroyerSimulation() {
         maxSpeedScale={8}
         className={simulationUi.cameraSwitcherPosition}
       />
-
-      <EnvironmentPresetSwitcher className="absolute bottom-32 left-1/2 z-20 flex -translate-x-1/2 gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
-      <SoundscapeMuteToggle className="absolute bottom-32 right-4 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
-      <TeachingAnnotationsToggle className="absolute bottom-32 right-24 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
-      <SceneQualitySelect className="absolute bottom-32 left-4 z-20 flex gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
 
       <SimulationTopBar
         title="055型驱逐舰战术机动仿真"

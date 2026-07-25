@@ -5,11 +5,12 @@ import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
-import { SCENE_CAMERA_SHOTS } from './camera-shots';
+import { orbitFrameAt, ORBIT_PERIOD_SECONDS, SCENE_CAMERA_SHOTS } from './camera-shots';
 import {
   createViewOffsetStore,
   resolveStayPutGoal,
   translateWithShip,
+  ZERO_ORBIT_OFFSET,
   type ShotFrame,
 } from './stay-put';
 
@@ -25,6 +26,8 @@ export interface StayPutCameraControllerProps {
   readonly enabled?: boolean;
   /** 视角切换过渡时长（秒）。 */
   readonly transitionSeconds?: number;
+  /** 显式复位信号：再次点选当前视图时递增，触发清空该视角用户偏移并回到标准机位。 */
+  readonly resetSignal?: number;
 }
 
 interface CameraTransition {
@@ -50,12 +53,15 @@ export function StayPutCameraController({
   controlsRef,
   enabled = true,
   transitionSeconds = 0.7,
+  resetSignal = 0,
 }: StayPutCameraControllerProps) {
   const { camera, gl } = useThree();
   const store = useMemo(() => createViewOffsetStore(), []);
   const transitionRef = useRef<CameraTransition>({ active: false, elapsed: 0, from: null as unknown as ShotFrame, to: null as unknown as ShotFrame });
   const prevViewRef = useRef(view);
   const prevBaseTargetRef = useRef<THREE.Vector3 | null>(null);
+  const prevResetSignalRef = useRef(resetSignal);
+  const orbitAzimuthRef = useRef(0);
   const initializedRef = useRef(false);
   const pointerActiveRef = useRef(false);
   const interactingRef = useRef(false);
@@ -119,6 +125,10 @@ export function StayPutCameraController({
       headingRad: headingSampler(),
       shipLength,
     });
+    if (view === 'orbit') {
+      // 进入环绕时以标准机位方位角为自动圆周起点。
+      orbitAzimuthRef.current = Math.atan2(base.position.z - ship.z, base.position.x - ship.x);
+    }
     const controls = controlsRef.current;
     transitionRef.current = {
       active: true,
@@ -132,6 +142,35 @@ export function StayPutCameraController({
     prevBaseTargetRef.current = null;
     void previousView;
   }, [view, enabled, camera, controlsRef, positionSampler, headingSampler, shipLength, store]);
+
+  // 显式复位：再次点选当前视图 → 清空该视角用户偏移并平滑回到标准机位。
+  useEffect(() => {
+    if (!enabled || prevResetSignalRef.current === resetSignal) return;
+    prevResetSignalRef.current = resetSignal;
+    if (!(view in SCENE_CAMERA_SHOTS)) return;
+    store.clear(view);
+    const ship = positionSampler();
+    const base = SCENE_CAMERA_SHOTS[view as keyof typeof SCENE_CAMERA_SHOTS].frame({
+      shipX: ship.x,
+      shipZ: ship.z,
+      headingRad: headingSampler(),
+      shipLength,
+    });
+    if (view === 'orbit') {
+      orbitAzimuthRef.current = Math.atan2(base.position.z - ship.z, base.position.x - ship.x);
+    }
+    const controls = controlsRef.current;
+    transitionRef.current = {
+      active: true,
+      elapsed: 0,
+      from: {
+        position: camera.position.clone(),
+        target: controls ? controls.target.clone() : base.target.clone(),
+      },
+      to: base,
+    };
+    prevBaseTargetRef.current = null;
+  }, [resetSignal, enabled, view, camera, controlsRef, positionSampler, headingSampler, shipLength, store]);
 
   useFrame((_, delta) => {
     if (!enabled) return;
@@ -165,6 +204,28 @@ export function StayPutCameraController({
     }
 
     if (!isPresetView) return;
+
+    // 环绕自动圆周：无用户偏移且非交互时按周期推进方位角（俯视顺时针）；
+    // 用户拖拽即停（交互结束捕获偏移后不再旋转，取景保留），再次点选环绕经 clear 恢复旋转。
+    // wasInteractingRef 仍置位时（刚松开、尚未捕获偏移）不得进入自动旋转，
+    // 否则会用自动机位覆盖用户取景并在捕获时写回错误偏移。
+    if (view === 'orbit' && initializedRef.current) {
+      const hasUserOffset = store.get('orbit') !== ZERO_ORBIT_OFFSET;
+      if (!hasUserOffset && !interactingRef.current && !pointerActiveRef.current && !wasInteractingRef.current) {
+        orbitAzimuthRef.current += (delta * Math.PI * 2) / ORBIT_PERIOD_SECONDS;
+        const orbitCenter = new THREE.Vector3(ship.x, 0, ship.z);
+        const frame = orbitFrameAt(orbitCenter, orbitAzimuthRef.current, shipLength);
+        camera.position.copy(frame.position);
+        if (controls) {
+          controls.target.copy(frame.target);
+          controls.update();
+        } else {
+          camera.lookAt(frame.target);
+        }
+        prevBaseTargetRef.current = frame.target.clone();
+        return;
+      }
+    }
 
     const base = SCENE_CAMERA_SHOTS[view as keyof typeof SCENE_CAMERA_SHOTS].frame({
       shipX: ship.x,

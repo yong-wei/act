@@ -8,6 +8,7 @@ import type { SceneShipVisualProfile } from '../types';
 import { createWakeTrailBuffer, type WakeAnchorSnapshot } from './wake-buffer';
 import { createWakeTrailGeometry, updateWakeTrailGeometry } from './wake-geometry';
 import { computeWakeSpeedActivity, type WakeTrailStyle } from './wake-physics';
+import { simulationColorWithAlpha, simulationScenePalette } from '../../components/simulation-theme';
 
 /**
  * 尾迹粒子场组件：每帧记录船尾/肩部锚点，驱动环形缓冲发射与淘汰，
@@ -40,8 +41,8 @@ export interface WakeTrailProps {
   readonly worldShipLength?: number;
   /** 水面高度（世界坐标）：默认取船尾锚点世界高度；接入海面模块后可显式传入。 */
   readonly waterY?: number;
-  /** 逐帧采样水面高度的回调（优先级高于 waterY；用于让尾迹随几何涌浪起伏）。 */
-  readonly waterYSampler?: () => number;
+  /** 逐粒子按世界 (x,z) 采样水面高度的回调（优先级高于 waterY；尾迹随涌浪连续贴水）。 */
+  readonly waterYSampler?: (x?: number, z?: number) => number;
   /** 显式航速采样（米/秒，模型语义）：提供时替代位姿差分，保证播放倍率不改变 Froude 活跃度。 */
   readonly worldSpeedSampler?: () => number;
   /** 是否发射开尔文臂粒子（源默认模式为含开尔文）。 */
@@ -59,12 +60,13 @@ const createWakeParticleAlphaTexture = () => {
   if (!ctx) return new THREE.CanvasTexture(canvas);
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const wakeWhite = (alpha: number) => simulationColorWithAlpha(simulationScenePalette.white, alpha);
   const bodyGradient = ctx.createLinearGradient(canvas.width / 2, 0, canvas.width / 2, canvas.height);
-  bodyGradient.addColorStop(0, 'rgba(255,255,255,0)');
-  bodyGradient.addColorStop(0.08, 'rgba(255,255,255,0.2)');
-  bodyGradient.addColorStop(0.34, 'rgba(255,255,255,0.85)');
-  bodyGradient.addColorStop(0.7, 'rgba(255,255,255,0.65)');
-  bodyGradient.addColorStop(1, 'rgba(255,255,255,0)');
+  bodyGradient.addColorStop(0, wakeWhite(0));
+  bodyGradient.addColorStop(0.08, wakeWhite(0.2));
+  bodyGradient.addColorStop(0.34, wakeWhite(0.85));
+  bodyGradient.addColorStop(0.7, wakeWhite(0.65));
+  bodyGradient.addColorStop(1, wakeWhite(0));
   ctx.fillStyle = bodyGradient;
   ctx.beginPath();
   ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width * 0.18, canvas.height * 0.38, 0, 0, Math.PI * 2);
@@ -73,22 +75,22 @@ const createWakeParticleAlphaTexture = () => {
   ctx.save();
   ctx.globalCompositeOperation = 'destination-in';
   const edgeGradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-  edgeGradient.addColorStop(0, 'rgba(255,255,255,0)');
-  edgeGradient.addColorStop(0.28, 'rgba(255,255,255,0.72)');
-  edgeGradient.addColorStop(0.5, 'rgba(255,255,255,1)');
-  edgeGradient.addColorStop(0.72, 'rgba(255,255,255,0.72)');
-  edgeGradient.addColorStop(1, 'rgba(255,255,255,0)');
+  edgeGradient.addColorStop(0, wakeWhite(0));
+  edgeGradient.addColorStop(0.28, wakeWhite(0.72));
+  edgeGradient.addColorStop(0.5, wakeWhite(1));
+  edgeGradient.addColorStop(0.72, wakeWhite(0.72));
+  edgeGradient.addColorStop(1, wakeWhite(0));
   ctx.fillStyle = edgeGradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.restore();
 
   ctx.save();
   ctx.globalCompositeOperation = 'source-atop';
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.strokeStyle = wakeWhite(0.18);
   ctx.lineWidth = 10;
   ctx.lineCap = 'round';
   ctx.shadowBlur = 12;
-  ctx.shadowColor = 'rgba(255,255,255,0.2)';
+  ctx.shadowColor = wakeWhite(0.2);
   for (let index = 0; index < 7; index += 1) {
     const x = canvas.width * (0.34 + (index / 6) * 0.32);
     ctx.beginPath();
@@ -154,7 +156,7 @@ export function WakeTrail({
     () =>
       new THREE.MeshBasicMaterial({
         alphaMap: alphaTexture,
-        color: '#f5fcff',
+        color: simulationScenePalette.wakeFoam,
         vertexColors: true,
         transparent: true,
         opacity: buffer.style.foamOpacity * 0.28,
@@ -226,7 +228,7 @@ export function WakeTrail({
     }
 
     buffer.update(state.simTime, state.pathLength);
-    updateWakeTrailGeometry(handle, buffer, state.simTime);
+    updateWakeTrailGeometry(handle, buffer, state.simTime, waterYSampler);
   });
 
   if (!buffer.style.enabled) {

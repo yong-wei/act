@@ -34,7 +34,7 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/features/teacher/preset-lessons', () => ({
   ALL_PRESETS: [
     {
-      key: 'resource-template',
+      key: 'unit-1-4-time-frequency-views-v1',
       title: '资源模板',
       description: '包含资源与知识节点',
       totalDuration: 12,
@@ -42,6 +42,7 @@ vi.mock('@/features/teacher/preset-lessons', () => ({
       items: [
         {
           itemType: 'RESOURCE',
+          runtimeStepId: 'step-01',
           stage: 'BRIDGE_IN',
           order: 1,
           duration: 5,
@@ -106,7 +107,7 @@ describe('/api/teacher/preset-lessons/clone', () => {
   });
 
   it('materializes registry resources before creating lesson items', async () => {
-    const response = await POST(postRequest({ presetKey: 'resource-template' }));
+    const response = await POST(postRequest({ presetKey: 'unit-1-4-time-frequency-views-v1' }));
     const payload = await response.json();
 
     expect(response.status).toBe(200);
@@ -129,6 +130,14 @@ describe('/api/teacher/preset-lessons/clone', () => {
         resourceId: 'resource-1',
         stage: 'BRIDGE_IN',
         order: 1,
+        overrideConfig: expect.objectContaining({
+          __presetRuntimeBinding: {
+            schemaVersion: 'preset-runtime-step-binding-v1',
+            sourcePresetKey: 'unit-1-4-time-frequency-views-v1',
+            runtimeLessonId: '1-4',
+            runtimeStepId: 'step-01',
+          },
+        }),
       }),
       expect.objectContaining({
         itemType: 'KNOWLEDGE_NODE',

@@ -16,6 +16,7 @@ import {
   resolveAccessibleArenaPublicationForStudent,
 } from '@/features/arena/teacher/publication-store';
 import type { ControllerArtifact } from '@/features/arena/types';
+import { requestRealtimeSimulationTaskReconciliation } from '@/lib/data-governance/simulation-task-reconciliation';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,6 +89,13 @@ export async function POST(request: Request) {
       identificationModelStore: prismaArenaBlackBoxExperimentStore,
     });
     const persistedWriteback = await persistArenaSubmissionEvidenceWriteback(prisma as any, submission);
+    if (persistedWriteback.evidenceWriteback.status === 'accepted') {
+      await requestRealtimeSimulationTaskReconciliation(prisma, {
+        userId: session.user.id,
+        classIds: submission.classId ? [submission.classId] : undefined,
+        reason: 'arena-task-evidence',
+      });
+    }
     const evidenceWriteback = persistedWriteback.evidenceWriteback;
 
     return NextResponse.json({

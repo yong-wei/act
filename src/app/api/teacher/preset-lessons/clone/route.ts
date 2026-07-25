@@ -10,8 +10,15 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { ALL_PRESETS } from '@/features/teacher/preset-lessons';
-import { BopppsStage, LessonItemType, ResourceType } from '@prisma/client';
+import { BopppsStage, LessonItemType, Prisma, ResourceType } from '@prisma/client';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
+import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
+import {
+  createPresetRuntimeStepBinding,
+  withPresetRuntimeStepBinding,
+} from '@/lib/lesson-plan-runtime-binding';
+import { loadRuntimeLessonManifestSnapshot } from '@/lib/session-lesson-snapshot';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,10 +63,50 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Preset not found' }, { status: 404 });
     }
 
+    const hasRuntimeBindings = preset.items.some((item) => item.runtimeStepId);
+    const runtimeIdentity = hasRuntimeBindings
+      ? resolveInteractiveLessonIdentity({ kind: 'presetKey', value: preset.key })
+      : null;
+    const runtimeSnapshot = runtimeIdentity?.status === 'resolved'
+      ? loadRuntimeLessonManifestSnapshot(runtimeIdentity.record.runtimeLessonDir)
+      : null;
+    const runtimeManifest = runtimeSnapshot
+      ? normalizeInteractiveRuntimeManifest(runtimeSnapshot.manifest)
+      : null;
+    if (
+      hasRuntimeBindings
+      && (
+        runtimeIdentity?.status !== 'resolved'
+        || !runtimeManifest
+        || runtimeManifest.lessonId !== runtimeIdentity.record.canonicalId
+      )
+    ) {
+      throw new Error(`Runtime lesson identity invalid for preset: ${preset.key}`);
+    }
+    const runtimeStepIds = new Set(runtimeManifest?.steps.map((step) => step.id) ?? []);
+
     // 为每个环节查找或创建 TeachingResource
     const itemsToCreate = [];
 
     for (const item of preset.items) {
+      const runtimeBinding = item.runtimeStepId && runtimeManifest
+        ? createPresetRuntimeStepBinding({
+          sourcePresetKey: preset.key,
+          runtimeLessonId: runtimeManifest.lessonId,
+          runtimeStepId: item.runtimeStepId,
+        })
+        : null;
+      if (item.runtimeStepId && !runtimeStepIds.has(item.runtimeStepId)) {
+        throw new Error(`Runtime step not found for preset item: ${item.runtimeStepId}`);
+      }
+      const overrideConfig = {
+        titleOverride: item.title,
+        descriptionOverride: item.description,
+        ...((item.config || {}) as object),
+      };
+      const persistedOverrideConfig = runtimeBinding
+        ? withPresetRuntimeStepBinding(overrideConfig, runtimeBinding)
+        : overrideConfig;
       const isKnowledgeNode = item.itemType === LessonItemType.KNOWLEDGE_NODE || !!item.knowledgeNodeId;
 
       if (isKnowledgeNode) {
@@ -80,11 +127,7 @@ export async function POST(request: Request) {
           stage: item.stage as BopppsStage,
           order: item.order,
           duration: item.duration,
-          overrideConfig: {
-            titleOverride: item.title,
-            descriptionOverride: item.description,
-            ...((item.config || {}) as object),
-          },
+          overrideConfig: persistedOverrideConfig as Prisma.InputJsonValue,
         });
         continue;
       }
@@ -118,11 +161,7 @@ export async function POST(request: Request) {
         stage: item.stage as BopppsStage,
         order: item.order,
         duration: item.duration,
-        overrideConfig: {
-          titleOverride: item.title,
-          descriptionOverride: item.description,
-          ...((item.config || {}) as object),
-        },
+        overrideConfig: persistedOverrideConfig as Prisma.InputJsonValue,
       });
     }
 

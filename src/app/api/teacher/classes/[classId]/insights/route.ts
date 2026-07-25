@@ -104,6 +104,7 @@ export interface TeacherClassInsightsPayload {
       includedCount: number;
       missingCount: number;
     }>;
+    taskAttainment: NonNullable<CumulativeClassPortraitReadModel['aggregate']>['taskAttainment'] | null;
     levelDistribution: LevelDistribution;
   };
   trendDistribution: CumulativeClassPortraitReadModel['trendDistribution'];
@@ -262,6 +263,7 @@ export async function GET(
           ? 'unavailable'
           : classPortrait.activeStudentCount > 0 ? 'ready' : 'no-evidence',
         dimensions: abilityDimensions,
+        taskAttainment: classPortrait.aggregate?.taskAttainment ?? null,
         levelDistribution: students.reduce<LevelDistribution>((distribution, student) => {
           if (student.overallScore !== null) {
             distribution[getCompetencyLevelKey(student.overallScore)] += 1;

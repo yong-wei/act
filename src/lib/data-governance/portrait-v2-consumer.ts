@@ -23,6 +23,7 @@ import {
   type PortraitV2ProjectedPayload,
   type PortraitV2SnapshotReadDb,
 } from './portrait-v2-model';
+import type { SimulationTaskGroupSummary } from './simulation-task-portrait-projection';
 
 export type { PortraitV2Consumer } from './portrait-v2-model';
 
@@ -75,6 +76,15 @@ export interface PortraitV2ConsumerSummary {
     evidenceCount: number;
     limitations: string[];
     calculationVersion: string;
+    taskAttainment?: {
+      state: 'EVIDENCE' | 'NO_EVIDENCE';
+      completedTaskCount: number;
+      relatedTaskCount: number;
+      groupedTaskSummary: SimulationTaskGroupSummary[];
+      evidenceAsOf: string | null;
+      calculationVersion: string;
+      limitations: string[];
+    };
   }>;
   strengths: PortraitV2DimensionId[];
   weaknesses: PortraitV2DimensionId[];
@@ -279,6 +289,19 @@ export function summarizePortraitV2(payload: PortraitV2PayloadShape): PortraitV2
       evidenceCount: source?.evidenceSummary.totalCount ?? 0,
       limitations: [...(source?.limitations ?? [])],
       calculationVersion: source?.calculationVersion ?? 'unknown',
+      ...(source?.taskAttainment
+        ? {
+            taskAttainment: {
+              state: source.taskAttainment.state,
+              completedTaskCount: source.taskAttainment.completedTaskCount,
+              relatedTaskCount: source.taskAttainment.relatedTaskCount,
+              groupedTaskSummary: structuredClone(source.taskAttainment.groupedTaskSummary),
+              evidenceAsOf: source.taskAttainment.evidenceAsOf,
+              calculationVersion: source.taskAttainment.calculationVersion,
+              limitations: [...source.taskAttainment.limitations],
+            },
+          }
+        : {}),
     };
   });
   const ranked = [...dimensions].sort((left, right) => right.score - left.score);

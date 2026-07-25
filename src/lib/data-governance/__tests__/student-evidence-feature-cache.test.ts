@@ -4,7 +4,11 @@ import { createEmptyCompetencyVector } from '../competency-model';
 import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
 import type { LearningEvent } from '../event-protocol';
 import { eventToLearningFactInput } from '../learning-fact-materialization';
-import { createPortraitV2Payload, derivePortraitV2Compatibility } from '../portrait-v2-model';
+import {
+  createPortraitV2Payload,
+  derivePortraitV2Compatibility,
+  PORTRAIT_V2_CALCULATION_VERSION,
+} from '../portrait-v2-model';
 import {
   buildStudentEvidenceFeaturePayload,
   getStudentEvidenceFeatureCacheAdminSummary,
@@ -127,7 +131,7 @@ describe('buildStudentEvidenceFeaturePayload', () => {
         rationale: 'No safe legacy mapping exists.',
         limitations: ['missing-native-portrait-v2-evidence'],
         sourceLineage: [],
-        calculationVersion: 'portrait-v2-primary.v1',
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
       })),
     });
 

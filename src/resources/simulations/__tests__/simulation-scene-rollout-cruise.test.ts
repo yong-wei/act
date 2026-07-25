@@ -32,10 +32,6 @@ describe('cruise pipeline integration', () => {
       'SceneQualityProvider',
       '<ScenePostEffects',
       'SceneQualityAttributes',
-      'EnvironmentPresetSwitcher',
-      'SoundscapeMuteToggle',
-      'TeachingAnnotationsToggle',
-      'SceneQualitySelect',
     ]) {
       expect(source, `missing ${marker}`).toContain(marker);
     }

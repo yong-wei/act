@@ -39,8 +39,10 @@ export interface SoundscapeAudioContextLike {
 }
 
 export type AmbienceKey = 'calm-sea' | 'dawn-harbor' | 'sunset-coast' | 'overcast-wind' | 'storm';
-export type FeedbackKind = 'camera-switch' | 'button';
+export type FeedbackKind = 'camera-switch' | 'button' | 'start';
 export type AlertKind = 'warning';
+/** 音效通道：场景（环境声+告警）与界面（按钮点击）独立开关。 */
+export type SoundChannel = 'scene' | 'ui';
 
 export interface AmbienceProgram {
   /** 低通截止（浪声厚度）。 */
@@ -62,23 +64,34 @@ export const AMBIENCE_PROGRAMS: Record<AmbienceKey, AmbienceProgram> = {
 const FEEDBACK_PROGRAMS: Record<FeedbackKind, { frequencyHz: number; durationSeconds: number }> = {
   'camera-switch': { frequencyHz: 880, durationSeconds: 0.06 },
   button: { frequencyHz: 660, durationSeconds: 0.04 },
+  // 「开始」专属音效：更低的基频 + 更长的音头，与普通点击可辨（ADR：开始动作独立音效）。
+  start: { frequencyHz: 392, durationSeconds: 0.16 },
 };
 
 const ALERT_PROGRAM: Record<AlertKind, readonly number[]> = {
   warning: [520, 780],
 };
 
-const MUTED_STORAGE_KEY = 'scene-soundscape-muted';
+const CHANNEL_STORAGE_KEYS: Record<SoundChannel, string> = {
+  scene: 'scene-soundscape-scene-enabled',
+  ui: 'scene-soundscape-ui-enabled',
+};
 
-export function readSoundscapeMutedPreference(storage: Pick<Storage, 'getItem'>): boolean {
-  return storage.getItem(MUTED_STORAGE_KEY) === 'true';
+/** 读取分通道开关偏好；新用户（无记录）返回 null，由调用方按默认关处理。 */
+export function readSoundChannelPreference(
+  storage: Pick<Storage, 'getItem'>,
+  channel: SoundChannel
+): boolean | null {
+  const raw = storage.getItem(CHANNEL_STORAGE_KEYS[channel]);
+  return raw === null ? null : raw === 'true';
 }
 
-export function writeSoundscapeMutedPreference(
+export function writeSoundChannelPreference(
   storage: Pick<Storage, 'setItem'>,
-  muted: boolean
+  channel: SoundChannel,
+  enabled: boolean
 ): void {
-  storage.setItem(MUTED_STORAGE_KEY, muted ? 'true' : 'false');
+  storage.setItem(CHANNEL_STORAGE_KEYS[channel], enabled ? 'true' : 'false');
 }
 
 /** 确定性 brown 噪声（LCG 种子，禁止 Math.random：保持场景随机性可重放）。 */
@@ -104,13 +117,14 @@ interface AmbienceChain {
 
 export function createSoundscapeBus(context: SoundscapeAudioContextLike) {
   let state: 'locked' | 'unlocked' = 'locked';
-  let muted = false;
+  const channelEnabled: Record<SoundChannel, boolean> = { scene: false, ui: false };
   let ambienceKey: AmbienceKey | null = null;
   let ambienceChain: AmbienceChain | null = null;
-  let masterGain: ReturnType<SoundscapeAudioContextLike['createGain']> | null = null;
+  let sceneGain: ReturnType<SoundscapeAudioContextLike['createGain']> | null = null;
+  let uiGain: ReturnType<SoundscapeAudioContextLike['createGain']> | null = null;
 
   const startAmbience = () => {
-    if (!ambienceKey || !masterGain) return;
+    if (!ambienceKey || !sceneGain) return;
     ambienceChain?.source.stop();
     const program = AMBIENCE_PROGRAMS[ambienceKey];
     const source = context.createBufferSource();
@@ -123,7 +137,7 @@ export function createSoundscapeBus(context: SoundscapeAudioContextLike) {
     gain.gain.value = program.baseGain;
     source.connect(filter);
     filter.connect(gain);
-    gain.connect(masterGain);
+    gain.connect(sceneGain);
     source.start();
     ambienceChain = { source, gain };
   };
@@ -138,9 +152,12 @@ export function createSoundscapeBus(context: SoundscapeAudioContextLike) {
     unlock() {
       if (state === 'unlocked') return;
       context.resume();
-      masterGain = context.createGain();
-      masterGain.gain.value = muted ? 0 : 1;
-      masterGain.connect(context.destination);
+      sceneGain = context.createGain();
+      sceneGain.gain.value = channelEnabled.scene ? 1 : 0;
+      sceneGain.connect(context.destination);
+      uiGain = context.createGain();
+      uiGain.gain.value = channelEnabled.ui ? 1 : 0;
+      uiGain.connect(context.destination);
       state = 'unlocked';
       startAmbience();
     },
@@ -148,41 +165,40 @@ export function createSoundscapeBus(context: SoundscapeAudioContextLike) {
       ambienceKey = key;
       if (state === 'unlocked') startAmbience();
     },
+    /** 分通道开关：场景（环境声+告警）或界面（按钮点击）。 */
+    setChannelEnabled(channel: SoundChannel, enabled: boolean) {
+      channelEnabled[channel] = enabled;
+      const gain = channel === 'scene' ? sceneGain : uiGain;
+      gain?.gain.setTargetAtTime(enabled ? 1 : 0, context.currentTime, 0.02);
+    },
     playFeedback(kind: FeedbackKind) {
-      if (state !== 'unlocked' || !masterGain) return;
+      if (state !== 'unlocked' || !uiGain) return;
       const program = FEEDBACK_PROGRAMS[kind];
       const oscillator = context.createOscillator();
       oscillator.type = 'sine';
       oscillator.frequency.value = program.frequencyHz;
-      oscillator.connect(masterGain);
+      oscillator.connect(uiGain);
       oscillator.start();
       oscillator.stop(context.currentTime + program.durationSeconds);
     },
     playAlert(kind: AlertKind) {
-      if (state !== 'unlocked' || !masterGain) return;
+      if (state !== 'unlocked' || !sceneGain) return;
       for (const frequency of ALERT_PROGRAM[kind]) {
         const oscillator = context.createOscillator();
         oscillator.type = 'triangle';
         oscillator.frequency.value = frequency;
-        oscillator.connect(masterGain);
+        oscillator.connect(sceneGain);
         oscillator.start();
         oscillator.stop(context.currentTime + 0.18);
       }
-    },
-    mute() {
-      muted = true;
-      masterGain?.gain.setTargetAtTime(0, context.currentTime, 0.02);
-    },
-    unmute() {
-      muted = false;
-      masterGain?.gain.setTargetAtTime(1, context.currentTime, 0.02);
     },
     /** 释放环境声源与音频上下文（provider 卸载时调用；释放后回到未解锁态）。 */
     dispose() {
       ambienceChain?.source.stop();
       ambienceChain = null;
       ambienceKey = null;
-      masterGain = null;
+      sceneGain = null;
+      uiGain = null;
       (context as SoundscapeAudioContextLike & { close?: () => void }).close?.();
       state = 'locked';
     },

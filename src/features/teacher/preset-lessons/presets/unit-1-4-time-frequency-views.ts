@@ -16,6 +16,7 @@ export const UNIT_1_4_TIME_FREQUENCY_VIEWS_PRESET: PresetLessonConfig = {
   totalDuration: 90,
   tags: ['精品课程', '模块1', '时域响应', '频率响应', 'Bode 图', 'Nyquist 图'],
   items: UNIT_1_4_LESSON_STEPS.map((step, index) => ({
+    runtimeStepId: step.id,
     stage: UNIT_1_4_STAGE_MAP[step.stage],
     order: index + 1,
     registryId: isUNIT_1_4InteractivePageType(step.pageType) ? 'classroom-assessment' : 'classroom-objective',

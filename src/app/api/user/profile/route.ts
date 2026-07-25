@@ -89,6 +89,21 @@ export interface UserProfileResponse {
       limitations: string[];
       calculationVersion: string;
       availabilityReason: 'available' | 'no-eligible-evidence';
+      taskAttainment?: {
+        state: 'EVIDENCE' | 'NO_EVIDENCE';
+        completedTaskCount: number;
+        relatedTaskCount: number;
+        groupedTaskSummary: Array<{
+          source: string;
+          displayGroup: string;
+          completedTaskCount: number;
+          relatedTaskCount: number;
+          tasks: Array<{ taskKey: string; displayName: string; completed: boolean }>;
+        }>;
+        evidenceAsOf: string | null;
+        calculationVersion: string;
+        limitations: string[];
+      };
     }>;
   };
   latestActivity: {

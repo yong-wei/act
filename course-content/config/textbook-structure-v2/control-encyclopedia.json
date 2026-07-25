@@ -1,0 +1,25 @@
+{
+  "configVersion": "textbook-structure-parser.v2",
+  "resourceId": "control-encyclopedia",
+  "sourceKind": "reference-collection",
+  "edition": "2015",
+  "markdownHeadingLevels": { "1": 1, "2": 2, "3": 3, "4": 2, "5": 5, "6": 6 },
+  "enabledNumberingRules": ["english-chapter", "arabic-compound", "english-example", "parenthesized"],
+  "allowLevelSkips": false,
+  "unnumberedHeadingPolicy": "ordinal-within-parent",
+  "atomicRegions": ["fenced-code", "display-math"],
+  "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
+  "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
+  "reviewLedger": "review-ledgers/control-encyclopedia.json",
+  "reviewSourceDigest": "sha256:b4a4f7a253cf5fc8ec692457a751d39819a216babd8b4abf4d853e2742df2d19",
+  "overrides": [
+    {
+      "selector": {
+        "sourcePath": "references/control-encyclopedia/section-a/reference.md",
+        "line": 9
+      },
+      "action": "allow-level-skip",
+      "reason": "The source uses an h4 Abstract directly below the h2 article title; the missing h3 is intentional article formatting."
+    }
+  ]
+}

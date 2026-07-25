@@ -498,7 +498,9 @@ describe('multi representation linkage analysis adapter', () => {
     expect(pageSource).toContain('rootLocusSourceOptions');
     expect(pageSource).toContain('nyquistSourceOptions');
     expect(pageSource).toContain("selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []");
-    expect(pageSource).toContain('selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} />');
+    expect(pageSource).toContain(
+      'selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} comparisonSeries={visibleSnapshotSeries} />',
+    );
     expect(pageSource).not.toContain('<NyquistPanel result={panel.result} />');
   });
 
