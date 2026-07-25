@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -564,8 +564,8 @@ function ResourcePanelContent({
   const launchAction = resolveKnowledgeResourceLaunch(displayNode);
   const returnHref = `/knowledge?node=${encodeURIComponent(displayNode.id)}`;
   const evidenceHref = launchAction.lessonId
-    ? `/profile/evidence?lessonId=${encodeURIComponent(launchAction.lessonId)}`
-    : '/profile/evidence';
+    ? `/profile/evidence?lessonId=${encodeURIComponent(launchAction.lessonId)}&node=${encodeURIComponent(displayNode.id)}`
+    : `/profile/evidence?node=${encodeURIComponent(displayNode.id)}`;
   const addToPlaylistHref = `/playlists/new?nodeId=${encodeURIComponent(displayNode.id)}`;
   const learningTaskHref = `/assessment/adaptive-practice?nodeId=${encodeURIComponent(displayNode.id)}&intent=contextual-recommendation`;
   const canAddToCourseFlow = viewerRole === 'teacher' || viewerRole === 'admin';
@@ -1000,6 +1000,8 @@ function ResourcePanelContent({
                 </a>
                 <a
                   href={evidenceHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
                   data-resource-node-action="review-evidence"
                 >

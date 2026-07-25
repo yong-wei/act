@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+﻿import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -376,6 +376,8 @@ describe('resource node knowledge workspace UI contracts', () => {
     expect(source).toContain('resolveKnowledgeResourceLaunch');
     expect(source).toContain('evidenceHref = launchAction.lessonId');
     expect(source).toContain('/profile/evidence');
+    expect(source).toContain('target="_blank"');
+    expect(source).toContain('node=');
     expect(graphSource).toContain('initialSelectedNodeId');
     expect(resolveInitialKnowledgeNodeId('?node=kn-bode', 'kn-initial')).toBe('kn-bode');
     expect(resolveInitialKnowledgeNodeId('?nodeId=kn-legacy', 'kn-initial')).toBe('kn-legacy');
