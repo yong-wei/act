@@ -85,6 +85,7 @@ export function GlobalAISidebar() {
     isMutating: isConversationMutating,
     error: conversationError,
     refreshConversations,
+    refreshActiveConversation,
     createConversation,
     ensureConversation,
     selectConversation,
@@ -171,7 +172,10 @@ export function GlobalAISidebar() {
       console.error('Global AI chat error:', err);
     },
     onFinish: () => {
-      void refreshConversations().catch(() => undefined);
+      void Promise.all([
+        refreshConversations(),
+        refreshActiveConversation(),
+      ]).catch(() => undefined);
       if (assistantEntryPoint?.mode === 'path-advisor') {
         window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
           detail: {
@@ -186,9 +190,9 @@ export function GlobalAISidebar() {
   });
 
   useEffect(() => {
-    if (!activeConversation || activeConversation.id !== activeConversationId || isLoading) return;
+    if (!activeConversation || activeConversation.id !== activeConversationId) return;
     setMessages(visibleKonlingMessages(activeConversation.messages));
-  }, [activeConversation, activeConversationId, isLoading, setMessages]);
+  }, [activeConversation, activeConversationId, setMessages]);
 
   // 自动滚动到底部
   useEffect(() => {

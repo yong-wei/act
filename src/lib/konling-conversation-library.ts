@@ -282,9 +282,9 @@ export async function completeKonlingConversationTurn(
   }
 
   const firstUserMessage = currentMessages.find((message) => message.role === 'user');
-  const nextTitle = current.titleIsManual || !firstUserMessage
-    ? current.title
-    : deriveKonlingConversationTitle(getMessageContent(firstUserMessage));
+  const nextTitle = firstUserMessage
+    ? deriveKonlingConversationTitle(getMessageContent(firstUserMessage))
+    : null;
   const updated = await db.konlingSession.updateMany({
     where: {
       id: current.id,
@@ -296,7 +296,6 @@ export async function completeKonlingConversationTurn(
         ...currentMessages,
         tagKonlingTurnMessage(assistantMessage, input.turnId),
       ] as unknown as Prisma.InputJsonValue,
-      title: nextTitle,
       activeTurnId: null,
       activeTurnClaimedAt: null,
       lastActivityAt: now,
@@ -305,6 +304,18 @@ export async function completeKonlingConversationTurn(
   });
   if (updated.count !== 1) {
     throw new KonlingConversationTurnConflictError('Conversation turn lease is no longer owned by this request.');
+  }
+  if (nextTitle) {
+    await db.konlingSession.updateMany({
+      where: {
+        id: current.id,
+        userId: input.ownerUserId,
+        titleIsManual: false,
+      },
+      data: {
+        title: nextTitle,
+      },
+    });
   }
   return db.konlingSession.findUnique({ where: { id: current.id } });
 }

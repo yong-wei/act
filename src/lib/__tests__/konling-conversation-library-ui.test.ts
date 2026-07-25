@@ -52,7 +52,22 @@ describe('Konling conversation library UI contracts', () => {
     expect(sidebarSource).toContain('{ ...chatBody, conversationId: conversation.id }');
     expect(sidebarSource).toContain('agentSessionId: agentSessionId ?? undefined');
     expect(sidebarSource).toContain('modeClientContextHints: effectiveServerContext');
+    expect(sidebarSource).toContain('refreshActiveConversation(),');
     expect(legacyChatSource).toContain('{ body: { ...bodyRef.current, ...requestBody } }');
+  });
+
+  it('does not restore a stale conversation snapshot when streaming finishes', () => {
+    const restoreEffectStart = sidebarSource.indexOf(
+      "if (!activeConversation || activeConversation.id !== activeConversationId) return;",
+    );
+    const restoreEffectEnd = sidebarSource.indexOf('// 自动滚动到底部', restoreEffectStart);
+    const restoreEffect = sidebarSource.slice(restoreEffectStart, restoreEffectEnd);
+
+    expect(restoreEffect).toContain('setMessages(visibleKonlingMessages(activeConversation.messages))');
+    expect(restoreEffect).not.toContain('isLoading');
+    expect(restoreEffect).toContain(
+      '[activeConversation, activeConversationId, setMessages]',
+    );
   });
 
   it('clears stale detail immediately and refuses to send it after a delayed selection load', () => {

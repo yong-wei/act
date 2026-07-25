@@ -50,6 +50,7 @@ function statefulConversationDb(initial = conversation()) {
           || where.userId !== state.userId
           || (Object.hasOwn(where, 'updatedAt') && where.updatedAt !== state.updatedAt)
           || (Object.hasOwn(where, 'activeTurnId') && where.activeTurnId !== state.activeTurnId)
+          || (Object.hasOwn(where, 'titleIsManual') && where.titleIsManual !== state.titleIsManual)
         ) {
           return { count: 0 };
         }
@@ -265,6 +266,43 @@ describe('Konling conversation library', () => {
     });
     expect(store.current().messages).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'answer-after-metadata-race' }),
+    ]));
+  });
+
+  it('preserves a manual rename committed after completion reads the conversation', async () => {
+    const store = statefulConversationDb();
+    await claimKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'turn-with-rename-race', role: 'user', content: '自动标题来源' },
+      now,
+    });
+
+    store.db.konlingSession.findFirst.mockImplementationOnce(async () => {
+      const snapshot = { ...store.current() };
+      Object.assign(store.current(), {
+        title: '并发人工重命名',
+        titleIsManual: true,
+      });
+      return snapshot;
+    });
+
+    await completeKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      turnId: 'turn-with-rename-race',
+      assistantMessage: { id: 'answer-after-rename-race', role: 'assistant', content: '答案' },
+      now,
+    });
+
+    expect(store.current()).toMatchObject({
+      title: '并发人工重命名',
+      titleIsManual: true,
+      activeTurnId: null,
+    });
+    expect(store.current().messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'answer-after-rename-race' }),
     ]));
   });
 });

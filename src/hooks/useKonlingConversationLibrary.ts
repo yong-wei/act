@@ -124,6 +124,34 @@ export function useKonlingConversationLibrary({
       });
   }, [activeConversationId, enabled]);
 
+  const refreshActiveConversation = useCallback(async () => {
+    const conversationId = selectedConversationIdRef.current;
+    if (!enabled || !conversationId) return null;
+    const requestId = activeRequestRef.current + 1;
+    activeRequestRef.current = requestId;
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/ai/sessions/${conversationId}`);
+      const conversation = await readJson<KonlingConversation>(response);
+      if (
+        activeRequestRef.current !== requestId
+        || selectedConversationIdRef.current !== conversationId
+      ) {
+        return null;
+      }
+      setActiveConversation(conversation);
+      setError(null);
+      return conversation;
+    } catch (cause) {
+      if (activeRequestRef.current === requestId) {
+        setError(cause instanceof Error ? cause : new Error('控灵会话加载失败'));
+      }
+      throw cause;
+    } finally {
+      if (activeRequestRef.current === requestId) setIsLoading(false);
+    }
+  }, [enabled]);
+
   const createConversation = useCallback(async () => {
     if (!courseId || !pageId) {
       throw new Error('当前页面缺少可用的控灵会话上下文');
@@ -263,6 +291,7 @@ export function useKonlingConversationLibrary({
     isMutating,
     error,
     refreshConversations,
+    refreshActiveConversation,
     createConversation,
     ensureConversation,
     selectConversation,
