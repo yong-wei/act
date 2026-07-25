@@ -31,6 +31,7 @@ const mocks = vi.hoisted(() => ({
   enqueueSessionSummaryReportRefresh: vi.fn(),
   resolveTrustedControlWorkbenchContext: vi.fn(),
   persistedControlWorkbenchRunMatchesContext: vi.fn(),
+  requestRealtimeSimulationTaskReconciliation: vi.fn(),
 }));
 
 vi.mock('next-auth', () => ({
@@ -68,6 +69,10 @@ vi.mock('@/lib/data-governance/session-finalization-snapshots', () => ({
 vi.mock('@/lib/data-governance/control-workbench-run-context', () => ({
   resolveTrustedControlWorkbenchContext: mocks.resolveTrustedControlWorkbenchContext,
   persistedControlWorkbenchRunMatchesContext: mocks.persistedControlWorkbenchRunMatchesContext,
+}));
+
+vi.mock('@/lib/data-governance/simulation-task-reconciliation', () => ({
+  requestRealtimeSimulationTaskReconciliation: mocks.requestRealtimeSimulationTaskReconciliation,
 }));
 
 vi.mock('@/lib/nextjs-dynamic-error', () => ({
@@ -110,6 +115,7 @@ describe('POST /api/interactive/events', () => {
     mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
     mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
+    mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
     mocks.routeEvent.mockResolvedValue({ destination: 'postgresql' });
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 0, actionType: 'page_view' });
     mocks.generateSessionSummaryReports.mockResolvedValue({
@@ -735,6 +741,7 @@ describe('POST /api/interactive/events', () => {
   it('materializes control workbench evidence with trusted source log fields', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-06-18T01:00:00.000Z'));
+    mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 0 });
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
     mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
       { id: 'actual-workbench-log-id', clientEventId: 'client-workbench', eventData: { clientEventId: 'client-workbench' } },
@@ -839,6 +846,14 @@ describe('POST /api/interactive/events', () => {
       ],
     }));
     expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledTimes(2);
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).toHaveBeenCalledTimes(1);
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        userId: 'student-1',
+        reason: 'control-workbench-task-evidence',
+      },
+    );
     expect(mocks.prisma.learningFact.createMany.mock.calls.map(
       ([call]) => call.data[0].contextJson.simulationTaskEvidence.summary.sourceRef,
     )).toEqual([
@@ -997,6 +1012,13 @@ describe('POST /api/interactive/events', () => {
       },
       label: 'Virtual simulation completed run',
     });
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        userId: 'student-1',
+        reason: 'virtual-simulation-task-evidence',
+      },
+    );
   });
 
   it('repairs virtual-simulation task evidence from an existing interaction log on retry', async () => {
@@ -1004,6 +1026,7 @@ describe('POST /api/interactive/events', () => {
       { id: 'existing-simulation-log', clientEventId: 'retry-simulation-finish' },
     ]);
     mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([]);
+    mocks.prisma.learningFact.createMany.mockResolvedValueOnce({ count: 0 });
     mocks.prisma.simulationRun.findFirst.mockResolvedValue({
       id: 'canonical-existing-run',
       resourceId: 'sim-pid-v1',
@@ -1045,6 +1068,13 @@ describe('POST /api/interactive/events', () => {
       ],
       skipDuplicates: true,
     }));
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        userId: 'student-1',
+        reason: 'virtual-simulation-task-evidence',
+      },
+    );
   });
 
   it('does not reuse a completed simulation run in a different classroom session', async () => {

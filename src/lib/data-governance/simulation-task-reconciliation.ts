@@ -1,6 +1,9 @@
 import { Prisma } from '@prisma/client';
 
-import { requestCumulativeLearnerReconciliation } from './cumulative-snapshot-jobs';
+import {
+  readActiveCumulativePublicationFence,
+  requestCumulativeLearnerReconciliation,
+} from './cumulative-snapshot-jobs';
 import {
   buildSimulationTaskInputIdentityFromFactJournal,
   computeSimulationTaskCatalogDigest,
@@ -40,6 +43,26 @@ interface SimulationTaskCatalogRefreshDb extends SimulationTaskSchedulingDb {
   $executeRaw?(query: Prisma.Sql): Promise<unknown>;
 }
 
+interface RealtimeSimulationTaskReconciliationTx extends SimulationTaskSchedulingDb {
+  cumulativePortraitCutoverFence: {
+    findUnique(args: Record<string, unknown>): PromiseLike<any>;
+  };
+  learningMaterializationRebuildRequest: {
+    findUnique(args: Record<string, unknown>): PromiseLike<any>;
+  };
+  learnerPortraitCurrentState: {
+    findUnique(args: Record<string, unknown>): PromiseLike<any>;
+  };
+  $executeRaw?(query: Prisma.Sql): Promise<unknown>;
+}
+
+interface RealtimeSimulationTaskReconciliationDb {
+  $transaction<T>(
+    operation: (tx: RealtimeSimulationTaskReconciliationTx) => Promise<T>,
+    options?: { timeout?: number },
+  ): Promise<T>;
+}
+
 export async function readSimulationTaskInputIdentityForScheduling(
   db: SimulationTaskSchedulingDb,
   input: {
@@ -66,6 +89,91 @@ export async function readSimulationTaskInputIdentityForScheduling(
     transitions,
     catalogDigest: computeSimulationTaskCatalogDigest(),
   });
+}
+
+export async function requestRealtimeSimulationTaskReconciliation(
+  database: unknown,
+  input: {
+    userId: string;
+    classIds?: string[];
+    reason: string;
+  },
+): Promise<number | null> {
+  const db = database as RealtimeSimulationTaskReconciliationDb;
+  return db.$transaction(async (tx) => {
+    if (typeof tx.$executeRaw === 'function') {
+      await tx.$executeRaw(
+        Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${'portrait-v2:' + input.userId}))`,
+      );
+    }
+    const simulationTaskInput = await readSimulationTaskInputIdentityForScheduling(tx, {
+      userId: input.userId,
+    });
+    const [fence, request, current] = await Promise.all([
+      readActiveCumulativePublicationFence(tx as never),
+      tx.learningMaterializationRebuildRequest.findUnique({
+        where: { userId: input.userId },
+        select: {
+          status: true,
+          migrationRunId: true,
+          calculationVersion: true,
+          learnerGeneration: true,
+          queueGeneration: true,
+          cutoverFence: true,
+          simulationTaskInput: true,
+        },
+      }),
+      tx.learnerPortraitCurrentState.findUnique({
+        where: { userId: input.userId },
+        select: {
+          calculationVersion: true,
+          generation: true,
+          queueGeneration: true,
+          taskInputDigest: true,
+          cutoverFence: true,
+        },
+      }),
+    ]);
+    const requestInput = request?.simulationTaskInput;
+    const requestInputDigest = (
+      requestInput
+      && typeof requestInput === 'object'
+      && !Array.isArray(requestInput)
+      && typeof requestInput.inputDigest === 'string'
+    )
+      ? requestInput.inputDigest
+      : null;
+    const requestCoversInput = (
+      fence
+      && requestInputDigest === simulationTaskInput.inputDigest
+      && (request.status === 'PENDING' || request.status === 'CLAIMED')
+      && request.migrationRunId === fence.activeMigrationRunId
+      && request.calculationVersion === fence.calculationVersion
+      && request.learnerGeneration === fence.learnerGeneration
+      && request.queueGeneration === fence.queueGeneration
+      && request.cutoverFence === fence.fence
+    );
+    const currentCoversInput = Boolean(
+      fence
+      && current?.calculationVersion === fence.calculationVersion
+      && current?.generation === fence.learnerGeneration
+      && current?.queueGeneration === fence.queueGeneration
+      && current?.cutoverFence === fence.fence
+      && current?.taskInputDigest === simulationTaskInput.inputDigest
+    );
+    if (
+      requestCoversInput
+      || currentCoversInput
+    ) {
+      return null;
+    }
+    return requestCumulativeLearnerReconciliation(tx as never, {
+      userId: input.userId,
+      classIds: input.classIds,
+      reason: input.reason,
+      simulationTaskInput,
+    });
+  }, { timeout: 120_000 });
 }
 
 export async function scheduleSimulationTaskCatalogRefresh(

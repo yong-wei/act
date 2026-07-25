@@ -41,6 +41,7 @@ import {
   materializeVirtualSimulationTaskEvidence,
 } from '@/lib/data-governance/simulation-task-materialization';
 import { persistAcceptedSimulationTaskEvidence } from '@/lib/data-governance/simulation-task-learning-fact';
+import { requestRealtimeSimulationTaskReconciliation } from '@/lib/data-governance/simulation-task-reconciliation';
 import {
   hashSemanticFingerprintValue,
   hashSimulationTaskSpecKeyInputs,
@@ -462,6 +463,7 @@ async function persistControlWorkbenchTaskEvidenceRows(
   actorRole: 'student' | 'teacher' | 'admin' | 'guest',
 ) {
   if (actorRole !== 'student') return;
+  let acceptedTaskEvidence = false;
 
   for (const row of rows) {
     const responseData = readRecord(row.responseData);
@@ -566,13 +568,22 @@ async function persistControlWorkbenchTaskEvidenceRows(
         meetsQualityTarget: quality.meetsQualityTarget,
         capabilityMappingTags: capabilityId ? [capabilityId] : [],
       });
-      await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
+      const persisted = await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
         userId,
         sourceLogId,
         sessionId: row.sessionId,
         lessonId: row.lessonKey ?? null,
       });
+      if (persisted) {
+        acceptedTaskEvidence = true;
+      }
     }
+  }
+  if (acceptedTaskEvidence) {
+    await requestRealtimeSimulationTaskReconciliation(prisma, {
+      userId,
+      reason: 'control-workbench-task-evidence',
+    });
   }
 }
 
@@ -609,6 +620,7 @@ async function persistVirtualSimulationTaskEvidenceEvents(
   serverRecordedAt: Date,
 ) {
   if (actorRole !== 'student') return;
+  let acceptedTaskEvidence = false;
 
   for (const eventData of events) {
     const payload = readRecord(eventData.event.data);
@@ -676,11 +688,20 @@ async function persistVirtualSimulationTaskEvidenceEvents(
         label: 'Virtual simulation completed run',
       },
     });
-    await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
+    const persisted = await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
       userId,
       sourceLogId,
       sessionId: eventData.sessionId,
       lessonId: eventData.event.lessonKey ?? null,
+    });
+    if (persisted) {
+      acceptedTaskEvidence = true;
+    }
+  }
+  if (acceptedTaskEvidence) {
+    await requestRealtimeSimulationTaskReconciliation(prisma, {
+      userId,
+      reason: 'virtual-simulation-task-evidence',
     });
   }
 }

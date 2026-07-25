@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   createPersistedArenaSubmission: vi.fn(),
   persistArenaSubmissionEvidenceWriteback: vi.fn(),
+  requestRealtimeSimulationTaskReconciliation: vi.fn(),
   getArenaPlantAdapterForOfficialEvaluationTaskId: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
 }));
@@ -23,6 +24,10 @@ vi.mock('@/features/arena/submissions/prisma-store', () => ({
 
 vi.mock('@/features/arena/evidence-writeback-persistence', () => ({
   persistArenaSubmissionEvidenceWriteback: mocks.persistArenaSubmissionEvidenceWriteback,
+}));
+
+vi.mock('@/lib/data-governance/simulation-task-reconciliation', () => ({
+  requestRealtimeSimulationTaskReconciliation: mocks.requestRealtimeSimulationTaskReconciliation,
 }));
 
 vi.mock('@/features/arena/teacher/publication-store', () => ({
@@ -105,6 +110,10 @@ describe('POST /api/arena/evaluate', () => {
       id: `submission-${input.artifact.id}`,
       taskId: input.taskId,
       userId: input.userId,
+      publicationId: input.publicationId,
+      classId: input.classId,
+      seasonId: input.seasonId,
+      isLate: input.isLate,
       studentLabel: input.studentLabel,
       artifactHash: 'artifact-route-hash',
       artifact: input.artifact,
@@ -129,6 +138,7 @@ describe('POST /api/arena/evaluate', () => {
       dedupeKey: `dedupe-${submission.id}`,
       learningFactCreated: !submission.reusedEvaluation,
     }));
+    mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
   });
 
   it('requires an authenticated user', async () => {
@@ -149,6 +159,68 @@ describe('POST /api/arena/evaluate', () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('Unknown arena task');
+  });
+
+  it('requests realtime reconciliation for new and duplicate accepted Arena evidence', async () => {
+    mocks.persistArenaSubmissionEvidenceWriteback
+      .mockResolvedValueOnce({
+        evidenceWriteback: acceptedWriteback('submission-artifact-route-a'),
+        dedupeKey: 'dedupe-submission-artifact-route-a',
+        learningFactCreated: true,
+      })
+      .mockResolvedValueOnce({
+        evidenceWriteback: acceptedWriteback('submission-artifact-route-b'),
+        dedupeKey: 'dedupe-submission-artifact-route-b',
+        learningFactCreated: false,
+      });
+    const first = await postJson({
+      taskId: artifact.taskId,
+      artifact,
+      publicationId: 'publication-a',
+    });
+    const duplicateArtifact = { ...artifact, id: 'artifact-route-b' };
+    const duplicate = await postJson({
+      taskId: artifact.taskId,
+      artifact: duplicateArtifact,
+      publicationId: 'publication-a',
+    });
+
+    expect(first.status).toBe(200);
+    expect(duplicate.status).toBe(200);
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).toHaveBeenCalledTimes(2);
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        userId: 'student-1',
+        classIds: ['class-a'],
+        reason: 'arena-task-evidence',
+      },
+    );
+  });
+
+  it('retries reconciliation after an accepted Arena writeback outlives request persistence failure', async () => {
+    mocks.requestRealtimeSimulationTaskReconciliation.mockRejectedValueOnce(
+      new Error('reconciliation request unavailable'),
+    );
+    mocks.persistArenaSubmissionEvidenceWriteback
+      .mockResolvedValueOnce({
+        evidenceWriteback: acceptedWriteback('submission-artifact-route-a'),
+        dedupeKey: 'dedupe-submission-artifact-route-a',
+        learningFactCreated: true,
+      })
+      .mockResolvedValueOnce({
+        evidenceWriteback: acceptedWriteback('submission-artifact-route-a'),
+        dedupeKey: 'dedupe-submission-artifact-route-a',
+        learningFactCreated: false,
+      });
+
+    const first = await postJson({ taskId: artifact.taskId, artifact });
+    const retry = await postJson({ taskId: artifact.taskId, artifact });
+
+    expect(first.status).toBe(500);
+    expect(retry.status).toBe(200);
+    expect(mocks.persistArenaSubmissionEvidenceWriteback).toHaveBeenCalledTimes(2);
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).toHaveBeenCalledTimes(2);
   });
 
   it('rejects non-student submissions before persistence', async () => {
