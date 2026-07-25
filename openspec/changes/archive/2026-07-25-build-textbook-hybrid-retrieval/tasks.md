@@ -29,4 +29,4 @@
 
 - [x] 5.1 Add index-format, cache-reuse, retrieval, rerank-fallback, and memory-budget tests
 - [x] 5.2 Measure external retrieval latency and establish the background wait limit from observed P95
-- [x] 5.3 Verify 11/11 Recall@10 on the fixed acceptance split, including the known failure hit, and valid runtime unit resolution for every returned candidate
+- [x] 5.3 Verify Recall@10 on the fixed acceptance split through `retrieveTextbookHybrid`, including the known failure hit and valid runtime unit resolution for every returned candidate

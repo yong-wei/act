@@ -23,10 +23,15 @@ const HELP = `Usage:
     --index-dir <dir> --benchmark <jsonl> --split-file <json> \\
     --embedding-model <model> --rerank-model <model> [--concurrency 1,4,8] \\
     --embedding-timeout <ms> --rerank-timeout <ms> --output <json>
+  node --import tsx course-content/scripts/benchmark_textbook_hybrid_runtime.mjs acceptance \\
+    --index-dir <dir> --benchmark <jsonl> --split-file <json> \\
+    --benchmark-lock <json> --locked-config <json> --selection-report <json> \\
+    --output <json>
 
 Commands:
   memory   Measure fresh-process resident memory after loading a real index.
   latency  Measure all tuning queries without reading acceptance query content.
+  acceptance  Run the locked acceptance split through the real retrieval runtime.
 
 Options:
   --help   Show this help.
@@ -88,6 +93,21 @@ function parseJson(bytes, name) {
 
 function sha256(bytes) {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => canonicalJson(item)).join(',')}]`;
+  }
+  if (isRecord(value)) {
+    return `{${Object.keys(value).sort().map((key) =>
+      `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function canonicalHash(value) {
+  return sha256(Buffer.from(canonicalJson(value), 'utf8'));
 }
 
 function percentile(values, fraction) {
@@ -361,6 +381,295 @@ async function loadTuningQueries(benchmarkPath, splitPath) {
   };
 }
 
+function validateSplit(split) {
+  if (
+    !isRecord(split)
+    || !exactKeys(split, [
+      'schemaVersion', 'strategy', 'lockedAt', 'tuningQueryIds',
+      'acceptanceQueryIds',
+    ])
+    || split.schemaVersion !== 'textbook-retrieval-benchmark-split.v1'
+    || !Array.isArray(split.tuningQueryIds)
+    || split.tuningQueryIds.length === 0
+    || !Array.isArray(split.acceptanceQueryIds)
+    || split.acceptanceQueryIds.length === 0
+  ) fail('split file shape is invalid');
+  const allIds = [...split.tuningQueryIds, ...split.acceptanceQueryIds];
+  if (
+    new Set(allIds).size !== allIds.length
+    || allIds.some((id) => typeof id !== 'string' || !QUERY_ID_PATTERN.test(id))
+  ) fail('split query IDs contain duplicates or invalid IDs');
+  return split;
+}
+
+function validateBenchmarkLock(lock, benchmarkHash, splitHash, split, benchmarkIds) {
+  if (
+    !isRecord(lock)
+    || lock.recordType !== 'benchmark-lock'
+    || lock.lockVersion !== 'textbook-hybrid-retrieval-benchmark-lock.v1'
+    || lock.benchmarkHash !== benchmarkHash
+    || lock.splitHash !== splitHash
+    || lock.queryCount !== benchmarkIds.length
+    || lock.tuningQueryCount !== split.tuningQueryIds.length
+    || lock.acceptanceQueryCount !== split.acceptanceQueryIds.length
+    || lock.tuningQueryIdsHash !== canonicalHash(split.tuningQueryIds)
+    || lock.acceptanceQueryIdsHash !== canonicalHash(split.acceptanceQueryIds)
+  ) fail('benchmark lock does not match benchmark inputs');
+}
+
+function loadAcceptanceRows(benchmarkBytes, split) {
+  const acceptanceSet = new Set(split.acceptanceQueryIds);
+  const benchmarkIds = [];
+  const rows = new Map();
+  const lines = benchmarkBytes.toString('utf8').split(/\r?\n/u);
+  lines.forEach((line, index) => {
+    if (!line.trim()) return;
+    const queryIdMatch = /"queryId"\s*:\s*"([a-z0-9][a-z0-9-]{0,199})"/u.exec(line);
+    if (!queryIdMatch) fail(`benchmark line ${index + 1} has no valid queryId`);
+    const queryId = queryIdMatch[1];
+    if (benchmarkIds.includes(queryId)) fail(`duplicate benchmark queryId: ${queryId}`);
+    benchmarkIds.push(queryId);
+    if (!acceptanceSet.has(queryId)) return;
+    let parsed;
+    try {
+      parsed = JSON.parse(line);
+    } catch {
+      fail(`acceptance benchmark line ${index + 1} is not valid JSON`);
+    }
+    const row = validateBenchmarkRow(parsed, index + 1);
+    rows.set(queryId, row);
+  });
+  const splitIds = new Set([...split.tuningQueryIds, ...split.acceptanceQueryIds]);
+  if (
+    benchmarkIds.length !== splitIds.size
+    || benchmarkIds.some((id) => !splitIds.has(id))
+  ) fail('benchmark split inventory is invalid');
+  return {
+    benchmarkIds,
+    acceptance: split.acceptanceQueryIds.map((queryId) => {
+      const row = rows.get(queryId);
+      if (!row) fail(`acceptance query ID does not resolve: ${queryId}`);
+      return row;
+    }),
+  };
+}
+
+function validateLockedAcceptance(config, selection, hashes, index) {
+  const runtime = config.runtimeAcceptance;
+  if (
+    !isRecord(config)
+    || config.recordType !== 'textbook-hybrid-retrieval-config'
+    || config.formatVersion !== 'textbook-hybrid-retrieval.v1'
+    || config.locked !== true
+    || !isRecord(runtime)
+    || !exactKeys(runtime, [
+      'runtimeEntry', 'topK', 'candidateCount', 'recallAt10Threshold',
+      'knownFailureQueryId',
+    ])
+    || runtime.runtimeEntry
+      !== 'src/lib/textbook-retrieval/retrieval.ts#retrieveTextbookHybrid'
+    || runtime.topK !== 10
+    || runtime.candidateCount !== 24
+    || runtime.recallAt10Threshold !== 0.8
+    || typeof runtime.knownFailureQueryId !== 'string'
+    || !QUERY_ID_PATTERN.test(runtime.knownFailureQueryId)
+    || config.embeddingTimeoutMs !== 1000
+    || config.rerankTimeoutMs !== 2000
+    || config.selectionReportHash !== hashes.selectionReportHash
+    || config.benchmarkHash !== hashes.benchmarkHash
+    || config.splitHash !== hashes.splitHash
+    || config.benchmarkLockHash !== hashes.benchmarkLockHash
+    || config.selectedIndexManifestHash !== index.manifestHash
+    || config.selectedModel !== index.manifest.model
+    || config.selectedObservedDimension !== index.manifest.observedDimension
+    || config.selectedNormalizationVersion !== index.manifest.normalizationVersion
+    || index.manifest.vectorNormalization !== 'l2'
+    || selection.recordType !== 'selection-report'
+    || selection.acceptanceEvaluated !== false
+    || selection.benchmarkHash !== hashes.benchmarkHash
+    || selection.splitHash !== hashes.splitHash
+    || selection.benchmarkLockHash !== hashes.benchmarkLockHash
+    || selection.selectedIndexManifestHash !== index.manifestHash
+    || selection.selectedModel !== index.manifest.model
+    || selection.selectedObservedDimension !== index.manifest.observedDimension
+    || selection.selectedNormalizationVersion !== index.manifest.normalizationVersion
+  ) fail('locked runtime acceptance configuration does not match inputs');
+  return runtime;
+}
+
+function safeProviderFailures(diagnostics) {
+  return diagnostics.map(({ stage, code, latencyMs, traceId }) => ({
+    stage,
+    code,
+    latencyMs,
+    ...(traceId && SAFE_TRACE_ID_PATTERN.test(traceId) ? { traceId } : {}),
+  }));
+}
+
+export async function runAcceptance(argv, retrievalOverride) {
+  const args = parseArgs(
+    argv,
+    new Set([
+      'index-dir', 'benchmark', 'split-file', 'benchmark-lock',
+      'locked-config', 'selection-report', 'output',
+    ]),
+    [
+      'index-dir', 'benchmark', 'split-file', 'benchmark-lock',
+      'locked-config', 'selection-report', 'output',
+    ],
+  );
+  const [
+    benchmarkBytes,
+    splitBytes,
+    benchmarkLockBytes,
+    configBytes,
+    selectionBytes,
+  ] = await Promise.all([
+    readFile(args.benchmark),
+    readFile(args['split-file']),
+    readFile(args['benchmark-lock']),
+    readFile(args['locked-config']),
+    readFile(args['selection-report']),
+  ]);
+  const split = validateSplit(parseJson(splitBytes, 'split file'));
+  const benchmarkLock = parseJson(benchmarkLockBytes, 'benchmark lock');
+  const config = parseJson(configBytes, 'locked config');
+  const selection = parseJson(selectionBytes, 'selection report');
+  const { benchmarkIds, acceptance } = loadAcceptanceRows(benchmarkBytes, split);
+  const hashes = {
+    benchmarkHash: sha256(benchmarkBytes),
+    splitHash: sha256(splitBytes),
+    benchmarkLockHash: canonicalHash(benchmarkLock),
+    benchmarkLockFileHash: sha256(benchmarkLockBytes),
+    configHash: sha256(configBytes),
+    selectionReportHash: sha256(selectionBytes),
+  };
+  validateBenchmarkLock(
+    benchmarkLock,
+    hashes.benchmarkHash,
+    hashes.splitHash,
+    split,
+    benchmarkIds,
+  );
+  process.env.NODE_ENV = 'development';
+  const retrieval = retrievalOverride ?? await importRetrieval();
+  const index = await retrieval.loadTextbookRetrievalIndex(args['index-dir']);
+  try {
+    const runtime = validateLockedAcceptance(config, selection, hashes, index);
+    if (!split.acceptanceQueryIds.includes(runtime.knownFailureQueryId)) {
+      fail('known failure query is not in the acceptance split');
+    }
+    const indexedWindows = new Map(index.windows.map((window) => [window.id, window]));
+    const queries = [];
+    for (const benchmarkRow of acceptance) {
+      const sample = { traceIds: [] };
+      const embeddingClient = new TimedEmbeddingClient(
+        new retrieval.SiliconFlowTextbookEmbeddingClient(),
+        sample,
+      );
+      const rerankClient = new TimedRerankClient(
+        new retrieval.SiliconFlowTextbookRerankClient(),
+        sample,
+      );
+      const started = performance.now();
+      try {
+        const response = await retrieval.retrieveTextbookHybrid(benchmarkRow.query, {
+          indexRoot: args['index-dir'],
+          topK: runtime.topK,
+          candidateCount: runtime.candidateCount,
+          embeddingClient,
+          embeddingTimeoutMs: config.embeddingTimeoutMs,
+          rerankClient,
+          rerankModel: config.rerankerModel,
+          rerankTimeoutMs: config.rerankTimeoutMs,
+        });
+        const returned = response.results.map((result) => {
+          const indexed = indexedWindows.get(result.windowId);
+          const validResolution = indexed !== undefined
+            && result.primaryUnitId === indexed.primaryUnitId
+            && JSON.stringify(result.owningUnitIds)
+              === JSON.stringify(indexed.owningUnitIds);
+          return {
+            windowId: result.windowId,
+            primaryUnitId: result.primaryUnitId,
+            owningUnitIds: result.owningUnitIds,
+            validResolution,
+          };
+        });
+        const returnedUnitIds = new Set(returned.flatMap((result) => [
+          result.primaryUnitId,
+          ...result.owningUnitIds,
+        ]));
+        const diagnostics = response.diagnostics ?? [];
+        queries.push({
+          queryId: benchmarkRow.queryId,
+          hit: benchmarkRow.acceptableUnitIds.some((id) => returnedUnitIds.has(id)),
+          outcome: diagnostics.length === 0 ? 'success' : 'fallback',
+          providerFailures: safeProviderFailures(diagnostics),
+          traceIds: sample.traceIds,
+          latencyMs: elapsed(started),
+          returned,
+          validResolution: returned.length > 0
+            && returned.length <= runtime.topK
+            && returned.every((result) => result.validResolution),
+        });
+      } catch (error) {
+        queries.push({
+          queryId: benchmarkRow.queryId,
+          hit: false,
+          outcome: 'failed',
+          providerFailures: [],
+          traceIds: sample.traceIds,
+          latencyMs: elapsed(started),
+          returned: [],
+          validResolution: false,
+          errorCode: error?.name === 'TextbookRetrievalContractError'
+            ? 'contract-error'
+            : 'retrieval-error',
+        });
+      }
+    }
+    const hitsAt10 = queries.filter((query) => query.hit).length;
+    const recallAt10 = hitsAt10 / queries.length;
+    const knownFailure = queries.find(
+      (query) => query.queryId === runtime.knownFailureQueryId,
+    );
+    const allResultsResolved = queries.every((query) => query.validResolution);
+    const passed = recallAt10 >= runtime.recallAt10Threshold
+      && knownFailure?.hit === true
+      && allResultsResolved
+      && queries.every((query) => query.outcome !== 'failed');
+    const report = {
+      recordType: 'textbook-hybrid-runtime-acceptance-report',
+      formatVersion: 'textbook-hybrid-runtime-acceptance.v1',
+      hashes: {
+        config: hashes.configHash,
+        benchmark: hashes.benchmarkHash,
+        split: hashes.splitHash,
+        benchmarkLock: hashes.benchmarkLockHash,
+        benchmarkLockFile: hashes.benchmarkLockFileHash,
+        selectionReport: hashes.selectionReportHash,
+        indexManifest: index.manifestHash,
+      },
+      evaluatedQueries: queries.length,
+      hitsAt10,
+      recallAt10,
+      threshold: runtime.recallAt10Threshold,
+      knownFailureQueryId: runtime.knownFailureQueryId,
+      knownFailureHit: knownFailure?.hit === true,
+      allResultsResolved,
+      queries,
+      passed,
+    };
+    await atomicWrite(args.output, report);
+    process.stdout.write(`${JSON.stringify(report)}\n`);
+    if (!report.passed) process.exitCode = 1;
+    return report;
+  } finally {
+    await retrieval.closeTextbookRetrievalIndex(index);
+  }
+}
+
 class TimedEmbeddingClient {
   constructor(delegate, sample) {
     this.delegate = delegate;
@@ -606,10 +915,13 @@ async function main() {
   if (command === '__memory-child') return memoryChild(argv);
   if (command === 'memory') return runMemory(argv);
   if (command === 'latency') return runLatency(argv);
+  if (command === 'acceptance') return runAcceptance(argv);
   fail(`unknown command: ${command}`);
 }
 
-main().catch((error) => {
-  process.stderr.write(`benchmark_textbook_hybrid_runtime: ${error.message}\n`);
-  process.exitCode = 1;
-});
+if (path.resolve(process.argv[1] ?? '') === SCRIPT_PATH) {
+  main().catch((error) => {
+    process.stderr.write(`benchmark_textbook_hybrid_runtime: ${error.message}\n`);
+    process.exitCode = 1;
+  });
+}

@@ -23,9 +23,197 @@ import type {
   TextbookEmbeddingClient,
   TextbookRerankClient,
 } from '@/lib/textbook-retrieval';
+import { runAcceptance } from '../../../course-content/scripts/benchmark_textbook_hybrid_runtime.mjs';
 
 const sha256 = (value: Uint8Array | string) =>
   `sha256:${createHash('sha256').update(value).digest('hex')}`;
+
+const canonicalJson = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => canonicalJson(item)).join(',')}]`;
+  }
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).sort().map((key) =>
+      `${JSON.stringify(key)}:${canonicalJson(record[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+};
+
+interface RuntimeAcceptanceFixture {
+  args: string[];
+  configPath: string;
+  index: {
+    manifestHash: string;
+    manifest: {
+      model: string;
+      observedDimension: number;
+      normalizationVersion: string;
+      vectorNormalization: 'l2';
+    };
+    windows: Array<{
+      id: string;
+      primaryUnitId: string;
+      owningUnitIds: string[];
+    }>;
+  };
+  outputPath: string;
+}
+
+async function buildRuntimeAcceptanceFixture(): Promise<RuntimeAcceptanceFixture> {
+  const root = await mkdtemp(path.join(tmpdir(), 'textbook-runtime-acceptance-'));
+  const paths = {
+    benchmark: path.join(root, 'benchmark.jsonl'),
+    split: path.join(root, 'split.json'),
+    lock: path.join(root, 'benchmark-lock.json'),
+    config: path.join(root, 'config.json'),
+    selection: path.join(root, 'selection-report.json'),
+    output: path.join(root, 'runtime-acceptance.json'),
+  };
+  const rows = [
+    {
+      schemaVersion: 'textbook-retrieval-benchmark-entry.v1',
+      queryId: 'tuning-private-query',
+      query: 'TUNING_QUERY_MUST_NOT_LOAD',
+      category: 'concept',
+      language: 'zh',
+      acceptableUnitIds: ['textbook-unit:fixture/tuning'],
+      preferredUnitId: 'textbook-unit:fixture/tuning',
+      sourceBookIds: ['fixture-book'],
+      rationale: 'tuning only',
+      labelingVersion: 'fixture-v1',
+    },
+    {
+      schemaVersion: 'textbook-retrieval-benchmark-entry.v1',
+      queryId: 'known-failure-first-order-unit-step-response',
+      query: 'SECRET_KNOWN_FAILURE_QUERY',
+      category: 'formula',
+      language: 'zh',
+      acceptableUnitIds: ['textbook-unit:fixture/known'],
+      preferredUnitId: 'textbook-unit:fixture/known',
+      sourceBookIds: ['fixture-book'],
+      rationale: 'known failure',
+      labelingVersion: 'fixture-v1',
+    },
+    {
+      schemaVersion: 'textbook-retrieval-benchmark-entry.v1',
+      queryId: 'blind-runtime-fallback',
+      query: 'SECRET_FALLBACK_QUERY',
+      category: 'concept',
+      language: 'zh',
+      acceptableUnitIds: ['textbook-unit:fixture/fallback'],
+      preferredUnitId: 'textbook-unit:fixture/fallback',
+      sourceBookIds: ['fixture-book'],
+      rationale: 'fallback',
+      labelingVersion: 'fixture-v1',
+    },
+  ];
+  const benchmarkBytes = Buffer.from(
+    `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`,
+  );
+  const split = {
+    schemaVersion: 'textbook-retrieval-benchmark-split.v1',
+    strategy: 'fixture',
+    lockedAt: '2026-07-25T15:29:42Z',
+    tuningQueryIds: ['tuning-private-query'],
+    acceptanceQueryIds: [
+      'known-failure-first-order-unit-step-response',
+      'blind-runtime-fallback',
+    ],
+  };
+  const splitBytes = Buffer.from(`${JSON.stringify(split, null, 2)}\n`);
+  const lock = {
+    recordType: 'benchmark-lock',
+    lockVersion: 'textbook-hybrid-retrieval-benchmark-lock.v1',
+    benchmarkHash: sha256(benchmarkBytes),
+    splitHash: sha256(splitBytes),
+    queryCount: rows.length,
+    tuningQueryCount: split.tuningQueryIds.length,
+    acceptanceQueryCount: split.acceptanceQueryIds.length,
+    tuningQueryIdsHash: sha256(canonicalJson(split.tuningQueryIds)),
+    acceptanceQueryIdsHash: sha256(canonicalJson(split.acceptanceQueryIds)),
+    candidateModels: ['BAAI/bge-m3'],
+    pricing: {},
+  };
+  const lockBytes = Buffer.from(`${JSON.stringify(lock, null, 2)}\n`);
+  const manifestHash = sha256('fixture-index-manifest');
+  const selection = {
+    recordType: 'selection-report',
+    acceptanceEvaluated: false,
+    benchmarkHash: lock.benchmarkHash,
+    splitHash: lock.splitHash,
+    benchmarkLockHash: sha256(canonicalJson(lock)),
+    selectedIndexManifestHash: manifestHash,
+    selectedModel: 'BAAI/bge-m3',
+    selectedObservedDimension: 1024,
+    selectedNormalizationVersion: TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
+  };
+  const selectionBytes = Buffer.from(`${JSON.stringify(selection, null, 2)}\n`);
+  const config = {
+    recordType: 'textbook-hybrid-retrieval-config',
+    formatVersion: 'textbook-hybrid-retrieval.v1',
+    locked: true,
+    selectionReportHash: sha256(selectionBytes),
+    selectedModel: 'BAAI/bge-m3',
+    selectedObservedDimension: 1024,
+    selectedNormalizationVersion: TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
+    selectedIndexManifestHash: manifestHash,
+    rerankerModel: 'BAAI/bge-reranker-v2-m3',
+    embeddingTimeoutMs: 1000,
+    rerankTimeoutMs: 2000,
+    benchmarkHash: lock.benchmarkHash,
+    splitHash: lock.splitHash,
+    benchmarkLockHash: sha256(canonicalJson(lock)),
+    runtimeAcceptance: {
+      runtimeEntry: 'src/lib/textbook-retrieval/retrieval.ts#retrieveTextbookHybrid',
+      topK: 10,
+      candidateCount: 24,
+      recallAt10Threshold: 0.8,
+      knownFailureQueryId: 'known-failure-first-order-unit-step-response',
+    },
+  };
+  await Promise.all([
+    writeFile(paths.benchmark, benchmarkBytes),
+    writeFile(paths.split, splitBytes),
+    writeFile(paths.lock, lockBytes),
+    writeFile(paths.config, `${JSON.stringify(config, null, 2)}\n`),
+    writeFile(paths.selection, selectionBytes),
+  ]);
+  return {
+    args: [
+      '--index-dir', path.join(root, 'selected-index'),
+      '--benchmark', paths.benchmark,
+      '--split-file', paths.split,
+      '--benchmark-lock', paths.lock,
+      '--locked-config', paths.config,
+      '--selection-report', paths.selection,
+      '--output', paths.output,
+    ],
+    configPath: paths.config,
+    index: {
+      manifestHash,
+      manifest: {
+        model: 'BAAI/bge-m3',
+        observedDimension: 1024,
+        normalizationVersion: TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
+        vectorNormalization: 'l2',
+      },
+      windows: [
+        {
+          id: 'textbook-window:fixture/known',
+          primaryUnitId: 'textbook-unit:fixture/known',
+          owningUnitIds: ['textbook-unit:fixture/known'],
+        },
+        {
+          id: 'textbook-window:fixture/fallback',
+          primaryUnitId: 'textbook-unit:fixture/fallback',
+          owningUnitIds: ['textbook-unit:fixture/fallback'],
+        },
+      ],
+    },
+    outputPath: paths.output,
+  };
+}
 
 function encodeUnsignedVarint(value: number): Buffer {
   const bytes: number[] = [];
@@ -853,5 +1041,178 @@ describe('textbook hybrid retrieval runtime', () => {
     });
     expect(response.diagnostics).toBeUndefined();
     expect(JSON.stringify(response)).not.toContain('vendor body');
+  });
+
+  it('scores only final runtime Top-10 results and records lexical fallback safely', async () => {
+    const fixture = await buildRuntimeAcceptanceFixture();
+    const embeddingCalls = vi.fn(async (request: { input: string }) => {
+      if (request.input === 'SECRET_FALLBACK_QUERY') {
+        const error = new Error('PRIVATE_PROVIDER_BODY');
+        Object.assign(error, { traceId: 'embedding-timeout-trace' });
+        throw error;
+      }
+      return {
+        embedding: Array.from({ length: 1024 }, (_, index) => index === 0 ? 1 : 0),
+        model: 'BAAI/bge-m3',
+        traceId: 'embedding-success-trace',
+      };
+    });
+    const rerankCalls = vi.fn(async () => ({
+      results: [{ index: 1, score: 1 }],
+      traceId: 'rerank-changed-top10-trace',
+    }));
+    class MockEmbeddingClient {
+      embed = embeddingCalls;
+    }
+    class MockRerankClient {
+      rerank = rerankCalls;
+    }
+    const finalResult = (
+      windowId: string,
+      unitId: string,
+      body: string,
+    ) => ({
+      windowId,
+      primaryUnitId: unitId,
+      owningUnitIds: [unitId],
+      bookId: 'fixture-book',
+      sourcePaths: ['/PRIVATE/PHYSICAL/PATH.md'],
+      body,
+      scores: { fused: 1 },
+    });
+    const retrieveTextbookHybrid = vi.fn(async (
+      query: string,
+      options: {
+        embeddingClient: { embed(request: { input: string }): Promise<unknown> };
+        rerankClient: { rerank(request: unknown): Promise<{ results: Array<{ index: number }> }> };
+      },
+    ) => {
+      try {
+        await options.embeddingClient.embed({ input: query });
+      } catch {
+        return {
+          mode: 'lexical',
+          results: [
+            finalResult(
+              'textbook-window:fixture/fallback',
+              'textbook-unit:fixture/fallback',
+              'PRIVATE_LEXICAL_BODY',
+            ),
+          ],
+          diagnostics: [{
+            stage: 'embedding',
+            code: 'timeout',
+            latencyMs: 1000,
+            traceId: 'embedding-timeout-trace',
+          }],
+        };
+      }
+      const reranked = await options.rerankClient.rerank({
+        documents: Array.from({ length: 24 }, (_, index) => ({
+          index,
+          text: `PRIVATE_CANDIDATE_BODY_${index}`,
+        })),
+      });
+      return {
+        mode: 'lexical-vector',
+        results: reranked.results[0].index === 1
+          ? [
+            finalResult(
+              'textbook-window:fixture/known',
+              'textbook-unit:fixture/known',
+              'PRIVATE_RERANKED_BODY',
+            ),
+          ]
+          : [
+            finalResult(
+              'textbook-window:fixture/fallback',
+              'textbook-unit:fixture/fallback',
+              'PRIVATE_LOCAL_FUSION_BODY',
+            ),
+          ],
+      };
+    });
+    const closeTextbookRetrievalIndex = vi.fn(async () => undefined);
+    const stdout = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    try {
+      const report = await runAcceptance(fixture.args, {
+        loadTextbookRetrievalIndex: vi.fn(async () => fixture.index),
+        closeTextbookRetrievalIndex,
+        retrieveTextbookHybrid,
+        SiliconFlowTextbookEmbeddingClient: MockEmbeddingClient,
+        SiliconFlowTextbookRerankClient: MockRerankClient,
+      });
+      expect(retrieveTextbookHybrid).toHaveBeenCalledTimes(2);
+      expect(retrieveTextbookHybrid.mock.calls.map(([query]) => query)).toEqual([
+        'SECRET_KNOWN_FAILURE_QUERY',
+        'SECRET_FALLBACK_QUERY',
+      ]);
+      expect(retrieveTextbookHybrid).not.toHaveBeenCalledWith(
+        'TUNING_QUERY_MUST_NOT_LOAD',
+        expect.anything(),
+      );
+      expect(retrieveTextbookHybrid.mock.calls[0][1]).toMatchObject({
+        topK: 10,
+        candidateCount: 24,
+        embeddingTimeoutMs: 1000,
+        rerankModel: 'BAAI/bge-reranker-v2-m3',
+        rerankTimeoutMs: 2000,
+      });
+      expect(rerankCalls).toHaveBeenCalledTimes(1);
+      expect(report).toMatchObject({
+        evaluatedQueries: 2,
+        hitsAt10: 2,
+        recallAt10: 1,
+        threshold: 0.8,
+        knownFailureHit: true,
+        allResultsResolved: true,
+        passed: true,
+        queries: [
+          {
+            queryId: 'known-failure-first-order-unit-step-response',
+            hit: true,
+            outcome: 'success',
+          },
+          {
+            queryId: 'blind-runtime-fallback',
+            hit: true,
+            outcome: 'fallback',
+            providerFailures: [
+              expect.objectContaining({
+                stage: 'embedding',
+                code: 'timeout',
+                traceId: 'embedding-timeout-trace',
+              }),
+            ],
+          },
+        ],
+      });
+      const written = await readFile(fixture.outputPath, 'utf8');
+      expect(written).not.toMatch(
+        /SECRET_|PRIVATE_|textbook-runtime-acceptance-|selected-index/u,
+      );
+      expect(written).not.toContain('TUNING_QUERY_MUST_NOT_LOAD');
+      expect(closeTextbookRetrievalIndex).toHaveBeenCalledWith(fixture.index);
+    } finally {
+      stdout.mockRestore();
+    }
+  });
+
+  it('fails closed before retrieval when the locked config identity drifts', async () => {
+    const fixture = await buildRuntimeAcceptanceFixture();
+    const config = JSON.parse(await readFile(fixture.configPath, 'utf8'));
+    config.selectedModel = 'Qwen/Qwen3-Embedding-0.6B';
+    await writeFile(fixture.configPath, `${JSON.stringify(config, null, 2)}\n`);
+    const retrieveTextbookHybrid = vi.fn();
+    const closeTextbookRetrievalIndex = vi.fn(async () => undefined);
+    await expect(runAcceptance(fixture.args, {
+      loadTextbookRetrievalIndex: vi.fn(async () => fixture.index),
+      closeTextbookRetrievalIndex,
+      retrieveTextbookHybrid,
+      SiliconFlowTextbookEmbeddingClient: class {},
+      SiliconFlowTextbookRerankClient: class {},
+    })).rejects.toThrow(/locked runtime acceptance configuration/u);
+    expect(retrieveTextbookHybrid).not.toHaveBeenCalled();
+    expect(closeTextbookRetrievalIndex).toHaveBeenCalledWith(fixture.index);
   });
 });

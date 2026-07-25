@@ -6,7 +6,7 @@
     "formatVersion": "textbook-hybrid-retrieval.v1",
     "locked": true,
     "sourceRevision": "0cc4edc7fdc22976b9e3d399263876bfbf9a977c",
-    "configFileSha256": "sha256:6b7dc57dbcab504ffb310a823181dae240ea9c76e89be0f3ce15b6b9f5d31ba3"
+    "configFileSha256": "sha256:9fd87aea6c7427c2f2499d11f5206398a227bebd46e8c6dd315ef1ffb7a926f0"
   },
   "benchmarkIdentity": {
     "benchmarkHash": "sha256:14bcd6350d51b554327cc9a93d21f479398303e6696985dd1f5429403f471028",
@@ -106,13 +106,12 @@
     ],
     "passed": true
   },
-  "acceptanceV2": {
-    "oneShot": true,
-    "acceptanceEvaluated": true,
+  "localFusionDiagnostic": {
+    "acceptanceEvidence": false,
+    "runtimeEntryEvaluated": false,
     "hitsAt10": 11,
     "evaluatedQueries": 11,
     "recallAt10": 1.0,
-    "passed": true,
     "knownFailureHit": true,
     "returnedCandidateIds": 110,
     "uniqueReturnedCandidateIds": 100,
@@ -120,14 +119,43 @@
     "allReturnedCandidatesHavePrimaryAndOwningUnitIds": true,
     "providerTraceCount": 1
   },
+  "runtimeAcceptance": {
+    "status": "complete",
+    "report": "runtime-acceptance-report.json",
+    "reportSha256": "sha256:f1598e11219acc08cc5bbb41dd5c75b70704f8d70f77bbca535e317d469d9741",
+    "recordType": "textbook-hybrid-runtime-acceptance-report",
+    "runtimeEntry": "src/lib/textbook-retrieval/retrieval.ts#retrieveTextbookHybrid",
+    "oneShot": true,
+    "evaluatedQueries": 11,
+    "hitsAt10": 11,
+    "recallAt10": 1.0,
+    "threshold": 0.8,
+    "knownFailureHit": true,
+    "allResultsResolved": true,
+    "outcomes": {
+      "success": 11,
+      "fallback": 0,
+      "failed": 0
+    },
+    "providerFailures": 0,
+    "traceIds": 22,
+    "passed": true,
+    "task": "5.3"
+  },
   "sourceReportHashes": {
     "selection-report.json": {
       "sha256": "sha256:beb6972a9f9badd3c8632699975dd40300324d2340260bd7d0d41045df50e02c",
       "archivedVerbatim": true
     },
-    "acceptance-report.json": {
+    "local-fusion-diagnostic.json": {
       "sha256": "sha256:ae1115b6a02bebe11cf3b26e9717977790d6aa34dccb16ea38d83ff90d2ddb58",
-      "archivedVerbatim": true
+      "archivedVerbatim": true,
+      "acceptanceEvidence": false
+    },
+    "runtime-acceptance-report.json": {
+      "sha256": "sha256:f1598e11219acc08cc5bbb41dd5c75b70704f8d70f77bbca535e317d469d9741",
+      "archivedVerbatim": true,
+      "acceptanceEvidence": true
     },
     "runtime-memory-report.json": {
       "sha256": "sha256:a9b376943cfb8c82a0d0d82c31cbf099ee4654e21f6c505eb148d1d2088b9e39",

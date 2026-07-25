@@ -36,7 +36,7 @@ v1 holdout 的 5/7 失败归档后，排序修复只读取 tuning 查询。最�
 
 ### v2 acceptance 使用一次性盲测
 
-v2 在任何检索前固定为 39 条 tuning 和 11 条 acceptance，其中 10 条为新增盲题，另含已知的单位阶跃响应失败题。模型、维度、索引 manifest、超时和后台等待上限锁定后，acceptance 只运行一次；验收同时检查 Recall@10、已知失败题命中，以及每个返回窗口 ID 对运行态窗口与 owning unit 的解析有效性。最终结果为 11/11，已知失败题命中，110 个返回候选均可解析。
+v2 在任何检索前固定为 39 条 tuning 和 11 条 acceptance，其中 10 条为新增盲题，另含已知的单位阶跃响应失败题。模型、维度、索引 manifest、超时和后台等待上限锁定后，acceptance 只运行一次；验收同时检查 Recall@10、已知失败题命中，以及每个返回窗口 ID 对运行态窗口与 owning unit 的解析有效性。Python 11/11 报告仅保留为 local-fusion diagnostic，不作为 acceptance 证据。最终一次性验收通过 Node `retrieveTextbookHybrid`、锁定的 SiliconFlow embedding/rerank clients、24 个外部重排候选及 1000/2000 ms 超时合同执行；真实运行态报告为 11/11、Recall@10=1、已知失败题命中、全部结果可解析、11 个查询均成功且无 provider failure，该报告是最终 acceptance 真源。
 
 ### 文件索引按进程共享
 
