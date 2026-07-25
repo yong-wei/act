@@ -57,7 +57,6 @@ export const GENERIC_TASK_DISTINCT_RUNS_REQUIRED = 3;
 
 function buildOdysseyEntries(): SimulationTaskCatalogEntry[] {
   return CONTROL_ODYSSEY_LEVELS
-    .filter((level) => level.unlocked)
     .map((level) => ({
       taskKey: `odyssey:${level.id}`,
       source: 'odyssey' as const,

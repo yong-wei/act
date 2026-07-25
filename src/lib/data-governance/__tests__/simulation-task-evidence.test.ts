@@ -51,10 +51,11 @@ describe('simulation-task-catalog', () => {
     expect(Object.isFrozen(catalog)).toBe(true);
   });
 
-  it('includes odyssey levels that are unlocked', () => {
+  it('includes every published odyssey level, including dynamically unlocked levels', () => {
     const catalog = getSimulationTaskCatalog();
     const odysseyEntries = catalog.filter((e) => e.source === 'odyssey');
-    expect(odysseyEntries.length).toBeGreaterThanOrEqual(3);
+    expect(odysseyEntries).toHaveLength(15);
+    expect(odysseyEntries.some((entry) => entry.taskKey === 'odyssey:level-15')).toBe(true);
     for (const entry of odysseyEntries) {
       expect(entry.taskKey).toMatch(/^odyssey:level-/);
       expect(entry.completionRule.kind).toBe('odyssey-persistent-clear');
