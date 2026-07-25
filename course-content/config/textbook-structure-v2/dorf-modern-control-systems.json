@@ -1,0 +1,33 @@
+{
+  "configVersion": "textbook-structure-parser.v2",
+  "resourceId": "dorf-modern-control-systems",
+  "sourceKind": "textbook",
+  "edition": "14th Global Edition",
+  "markdownHeadingLevels": { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6 },
+  "enabledNumberingRules": ["english-chapter", "arabic-compound", "english-example", "parenthesized"],
+  "allowLevelSkips": false,
+  "unnumberedHeadingPolicy": "ordinal-within-parent",
+  "atomicRegions": ["fenced-code", "display-math"],
+  "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
+  "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
+  "reviewLedger": "review-ledgers/dorf-modern-control-systems.json",
+  "reviewSourceDigest": "sha256:f51b324e3894a274902b553194f56d243f23aadb7937217e3bf680adfc5d62c7",
+  "overrides": [
+    {
+      "selector": {
+        "sourcePath": "textbooks/dorf-modern-control-systems/chapter-01/textbook.md",
+        "line": 4
+      },
+      "action": "ignore-boundary",
+      "reason": "This line is a table-of-contents entry; the canonical section begins at the later Markdown heading."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/dorf-modern-control-systems/chapter-09/textbook.md",
+        "line": 470
+      },
+      "action": "ignore-boundary",
+      "reason": "This sentence is a backward reference to Example 9.2 inside Example 9.3, not a new example boundary."
+    }
+  ]
+}

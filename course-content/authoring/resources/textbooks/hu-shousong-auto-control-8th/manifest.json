@@ -1,23 +1,25 @@
 {
-  "bookId": "hu-shousong-exercise-analysis-3rd",
-  "title": "自动控制原理习题解析",
+  "bookId": "hu-shousong-auto-control-8th",
+  "title": "自动控制原理",
   "authors": [
-    "胡寿松"
+    "胡寿松",
+    "姜斌",
+    "张绍杰"
   ],
-  "edition": "第三版",
+  "edition": "第八版",
   "formatVersion": 1,
-  "updatedAt": "2026-06-21T06:45:12+00:00",
+  "updatedAt": "2026-07-21T07:44:14+00:00",
   "storageLayout": {
-    "root": "course-content/authoring/resources/textbooks/hu-shousong-exercise-analysis-3rd/",
+    "root": "course-content/authoring/resources/textbooks/hu-shousong-auto-control-8th/",
     "bookIndex": "textbook.md",
     "chapterPattern": "chapter-XX/textbook.md",
     "chapterAssetPattern": "chapter-XX/assets/<asset-file>"
   },
   "source": {
     "workspace": "DocProcess",
-    "basePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd",
+    "basePath": "document-conversion/outputs/hu-shousong-auto-control-8th",
     "note": "Chapters 1-10 exported from the MathpixPlus pipeline after per-chapter QA passed.",
-    "qaSummary": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/full-book-qa-summary.json"
+    "qaSummary": "document-conversion/outputs/hu-shousong-auto-control-8th/full-book-qa-summary.json"
   },
   "chapters": [
     {
@@ -28,10 +30,10 @@
       "textbookPath": "chapter-01/textbook.md",
       "manifestPath": "chapter-01/manifest.json",
       "assetsPath": "chapter-01/assets/",
-      "sourcePageCount": 7,
-      "imageCount": 15,
-      "figureDescriptionCount": 15,
-      "markdownSha256": "8ec43b23f2f780f34e8d62494ae7c760ab4650f3c7e35c7b5be72d49520818fa"
+      "sourcePageCount": 24,
+      "imageCount": 29,
+      "figureDescriptionCount": 28,
+      "markdownSha256": "1c22c5ef205bec7f08f062e763bcb4bdc4f26777642c81d8a0f81ed825ec3dd5"
     },
     {
       "id": "chapter-02",
@@ -41,10 +43,10 @@
       "textbookPath": "chapter-02/textbook.md",
       "manifestPath": "chapter-02/manifest.json",
       "assetsPath": "chapter-02/assets/",
-      "sourcePageCount": 30,
-      "imageCount": 66,
-      "figureDescriptionCount": 66,
-      "markdownSha256": "701ecc350b5734213c2fb1ca9827e5c22330d8eba2a439ce071f3f197de72b56"
+      "sourcePageCount": 49,
+      "imageCount": 104,
+      "figureDescriptionCount": 61,
+      "markdownSha256": "7ddecbe6b904ecdb8515c68871bf1143ca4927f61372da8867bc8c2203a27d36"
     },
     {
       "id": "chapter-03",
@@ -54,10 +56,10 @@
       "textbookPath": "chapter-03/textbook.md",
       "manifestPath": "chapter-03/manifest.json",
       "assetsPath": "chapter-03/assets/",
-      "sourcePageCount": 45,
-      "imageCount": 58,
-      "figureDescriptionCount": 57,
-      "markdownSha256": "29993bf0e56552434e8f75f2b4ab89a2aedf890a7900dffd2c8ef796f9256494"
+      "sourcePageCount": 78,
+      "imageCount": 83,
+      "figureDescriptionCount": 72,
+      "markdownSha256": "ebc173c6c8f02dbb2ece93a12ab1bd4f652bd7b124f2564881921d9e0713956c"
     },
     {
       "id": "chapter-04",
@@ -67,10 +69,10 @@
       "textbookPath": "chapter-04/textbook.md",
       "manifestPath": "chapter-04/manifest.json",
       "assetsPath": "chapter-04/assets/",
-      "sourcePageCount": 51,
-      "imageCount": 97,
-      "figureDescriptionCount": 95,
-      "markdownSha256": "00aa4e4ea3335b88c8f3cd8fe32f3629bcc20ed5219cb1cd37221e214aabb103"
+      "sourcePageCount": 45,
+      "imageCount": 48,
+      "figureDescriptionCount": 44,
+      "markdownSha256": "fe57e5a95ed00bba6d6f84a993a4fe38fb11bc5c1bc5e27ba0f1b11be8db5d26"
     },
     {
       "id": "chapter-05",
@@ -80,10 +82,10 @@
       "textbookPath": "chapter-05/textbook.md",
       "manifestPath": "chapter-05/manifest.json",
       "assetsPath": "chapter-05/assets/",
-      "sourcePageCount": 43,
-      "imageCount": 53,
-      "figureDescriptionCount": 52,
-      "markdownSha256": "8c869510f2fc86ac22022c3ef1315c154404c464fd090adead0475767281e2a3"
+      "sourcePageCount": 58,
+      "imageCount": 75,
+      "figureDescriptionCount": 68,
+      "markdownSha256": "d91a2b392b989b955414268169a332b14f5aa23903abcab3626f005713816d84"
     },
     {
       "id": "chapter-06",
@@ -93,10 +95,10 @@
       "textbookPath": "chapter-06/textbook.md",
       "manifestPath": "chapter-06/manifest.json",
       "assetsPath": "chapter-06/assets/",
-      "sourcePageCount": 42,
-      "imageCount": 71,
-      "figureDescriptionCount": 70,
-      "markdownSha256": "1e2682782a842515b50f58743f8030477f827f274f2289107591da32515867cf"
+      "sourcePageCount": 49,
+      "imageCount": 86,
+      "figureDescriptionCount": 54,
+      "markdownSha256": "5441d7fcb155ca139625a613ea251a5d0c39d26dbc5c8720279fd05c4ebbb72c"
     },
     {
       "id": "chapter-07",
@@ -106,10 +108,10 @@
       "textbookPath": "chapter-07/textbook.md",
       "manifestPath": "chapter-07/manifest.json",
       "assetsPath": "chapter-07/assets/",
-      "sourcePageCount": 36,
-      "imageCount": 36,
-      "figureDescriptionCount": 36,
-      "markdownSha256": "f5fe322d93ad47312005d9655def253f07f123753c4e96eff369a3c213e92b44"
+      "sourcePageCount": 81,
+      "imageCount": 99,
+      "figureDescriptionCount": 71,
+      "markdownSha256": "7c1c9c5ad46c7551d73359e7be141f9da6a5fd42b6696ae3ea5b3cb1cd49f162"
     },
     {
       "id": "chapter-08",
@@ -119,10 +121,10 @@
       "textbookPath": "chapter-08/textbook.md",
       "manifestPath": "chapter-08/manifest.json",
       "assetsPath": "chapter-08/assets/",
-      "sourcePageCount": 43,
-      "imageCount": 82,
-      "figureDescriptionCount": 81,
-      "markdownSha256": "575cbe766c540c04412a35b0bf11dc9f13959854679dc63c9642dc98c480a037"
+      "sourcePageCount": 62,
+      "imageCount": 107,
+      "figureDescriptionCount": 92,
+      "markdownSha256": "9099b578a62641e4fea099cbbab1feb89fb4332b880f64abfb9f90176742c1a0"
     },
     {
       "id": "chapter-09",
@@ -132,10 +134,10 @@
       "textbookPath": "chapter-09/textbook.md",
       "manifestPath": "chapter-09/manifest.json",
       "assetsPath": "chapter-09/assets/",
-      "sourcePageCount": 58,
-      "imageCount": 30,
-      "figureDescriptionCount": 30,
-      "markdownSha256": "6f9160c310f16080c3fdbbbcee4f2469c368b1e4865c51a93f955875057998db"
+      "sourcePageCount": 106,
+      "imageCount": 56,
+      "figureDescriptionCount": 55,
+      "markdownSha256": "ae50c43cda14a1cd0649ce8f90d3758956e0f990e7352ab3981cee4b250d51a0"
     },
     {
       "id": "chapter-10",
@@ -145,10 +147,10 @@
       "textbookPath": "chapter-10/textbook.md",
       "manifestPath": "chapter-10/manifest.json",
       "assetsPath": "chapter-10/assets/",
-      "sourcePageCount": 35,
+      "sourcePageCount": 74,
       "imageCount": 27,
-      "figureDescriptionCount": 27,
-      "markdownSha256": "7da9cca7bf85bd047fb1ab733890ceae900a233999d86f69902e065c088b3da9"
+      "figureDescriptionCount": 25,
+      "markdownSha256": "d2a02641bf8e5574a0a5f14702bcd42df403189192a375da1ec48b1ead71bc30"
     }
   ]
 }
