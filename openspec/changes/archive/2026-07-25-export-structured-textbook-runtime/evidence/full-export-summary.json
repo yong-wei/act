@@ -1,7 +1,7 @@
 {
   "schemaVersion": "structured-textbook-runtime.v2",
   "configVersion": "textbook-structure-parser.v2",
-  "sourceRevision": "d59503cd7f94a379a1d73ccccb88135fe39346ed",
+  "sourceRevision": "2df3e099c98e5a7dedc60c905592e35a93dc72e6",
   "productionConnected": false,
   "validationMode": "full-written-runtime",
   "runtimeWriteStatus": "written-from-clean-commit",
