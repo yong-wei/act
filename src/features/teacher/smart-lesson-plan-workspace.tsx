@@ -469,6 +469,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     <div className="grid min-w-0 gap-3">{(detailedActiveTask ? [detailedActiveTask] : []).map((task) => {
       const draft = task.drafts?.[0];
       const job = draft?.jobs?.[0];
+      const currentRevision = task.revisions?.find((revision) => revision.taskRevision === task.revision);
       const hasBlockingJob = Boolean(job && !job.supersededAt && !['COMPLETED', 'CANCELLED'].includes(job.state));
       const outline = job?.stages?.find((stage) => stage.kind === 'OUTLINE');
       const stageDetails = (id: string, children: ReactNode) => {
@@ -531,8 +532,8 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
             {task.revisions?.length ? <p className="text-xs text-subtle">最新：{task.revisions[0].displayName}</p> : null}
           </div>)}
           {stageDetails('courseware-generation', <div className="space-y-2">
-            {task.revisions?.[0]
-              ? <button type="button" onClick={() => createCourseware(task.revisions![0].id)} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</button>
+            {currentRevision
+              ? <button type="button" onClick={() => createCourseware(currentRevision.id)} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</button>
               : <p className="text-muted-foreground">批准教案版本后可生成互动课件。</p>}
           </div>)}
         </div>
