@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { getMessageContent, toLegacyMessage, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
 import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
+import { isAdaptivePracticeGoalId } from '@/lib/adaptive-path-goal-options';
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import type { Message } from '@/types/ai-message';
 
@@ -44,7 +45,14 @@ export async function resolveKonlingContextEventScope(
   scope: KonlingAuthorizedPageScope,
 ): Promise<KonlingAuthorizedPageScope | null> {
   const registeredStep = getStepAIContext(scope.courseId, scope.pageId);
+  const authorizedSmartPrepBootstrap = scope.pageId === '/teacher/smart-prep'
+    && (scope.role === 'teacher' || scope.role === 'admin')
+    && scope.courseId === 'smart-prep';
+  const authorizedPathAdvisor = scope.role === 'student'
+    && (scope.pageId === 'adaptive-path-center' || scope.pageId === 'student-path-center')
+    && isAdaptivePracticeGoalId(scope.courseId);
   const smartPrepCourseBasis = !registeredStep
+    && !authorizedSmartPrepBootstrap
     && scope.pageId === '/teacher/smart-prep'
     && (scope.role === 'teacher' || scope.role === 'admin')
     && scope.authenticatedUserId
@@ -60,6 +68,8 @@ export async function resolveKonlingContextEventScope(
     : null;
   if (
     !registeredStep
+    && !authorizedSmartPrepBootstrap
+    && !authorizedPathAdvisor
     && !smartPrepCourseBasis
     && (!registeredRoute || registeredRoute.courseId !== scope.courseId)
   ) {
@@ -69,8 +79,12 @@ export async function resolveKonlingContextEventScope(
   return {
     authenticatedUserId: scope.authenticatedUserId,
     role: scope.role,
-    courseId: registeredStep || smartPrepCourseBasis ? scope.courseId : registeredRoute!.courseId!,
-    pageId: registeredStep || smartPrepCourseBasis ? scope.pageId : registeredRoute!.stepId!,
+    courseId: registeredStep || authorizedSmartPrepBootstrap || authorizedPathAdvisor || smartPrepCourseBasis
+      ? scope.courseId
+      : registeredRoute!.courseId!,
+    pageId: registeredStep || authorizedSmartPrepBootstrap || authorizedPathAdvisor || smartPrepCourseBasis
+      ? scope.pageId
+      : registeredRoute!.stepId!,
     classId: scope.classId ?? null,
     // The current schema has no authoritative page-to-resource or
     // page-to-knowledge-node relation. Fail closed instead of treating a

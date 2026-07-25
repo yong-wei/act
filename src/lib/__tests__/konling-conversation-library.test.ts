@@ -111,6 +111,27 @@ describe('Konling conversation library', () => {
     })).resolves.toBeNull();
   });
 
+  it('authorizes only bounded bootstrap and path-advisor entry contexts', async () => {
+    await expect(resolveKonlingContextEventScope({} as never, {
+      authenticatedUserId: 'teacher-1',
+      role: 'teacher',
+      courseId: 'smart-prep',
+      pageId: '/teacher/smart-prep',
+    })).resolves.toMatchObject({ courseId: 'smart-prep', pageId: '/teacher/smart-prep' });
+    await expect(resolveKonlingContextEventScope({} as never, {
+      authenticatedUserId: 'student-1',
+      role: 'student',
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+    })).resolves.toMatchObject({ courseId: 'control-correction', pageId: 'adaptive-path-center' });
+    await expect(resolveKonlingContextEventScope({} as never, {
+      authenticatedUserId: 'student-1',
+      role: 'student',
+      courseId: 'client-invented-goal',
+      pageId: 'adaptive-path-center',
+    })).resolves.toBeNull();
+  });
+
   it('does not duplicate same-page context and appends cross-page context immediately before the user message', () => {
     const original = conversation();
     const originalSnapshot = JSON.stringify(original.messages);

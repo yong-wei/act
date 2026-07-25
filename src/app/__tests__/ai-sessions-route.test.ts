@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   verifyKonlingRuntimeScope: vi.fn(),
+  getStepAIContext: vi.fn(),
   prisma: {
     konlingSession: {
       findMany: vi.fn(),
@@ -14,6 +15,9 @@ const mocks = vi.hoisted(() => ({
     },
     knowledgeNode: {
       findUnique: vi.fn(),
+    },
+    courseBasis: {
+      findFirst: vi.fn(),
     },
   },
 }));
@@ -39,10 +43,7 @@ vi.mock('@/lib/konling-agent-runtime', () => ({
 }));
 
 vi.mock('@/lib/course-ai-contexts', () => ({
-  getStepAIContext: vi.fn(() => ({
-    courseId: 'course-1',
-    stepId: 'page-1',
-  })),
+  getStepAIContext: mocks.getStepAIContext,
 }));
 
 vi.mock('@/lib/ai-context-resolver', () => ({
@@ -52,11 +53,34 @@ vi.mock('@/lib/ai-context-resolver', () => ({
 import { GET, POST } from '../api/ai/sessions/route';
 
 const createGetRequest = () => new NextRequest('http://localhost/api/ai/sessions');
+const createdAt = new Date('2026-06-12T00:00:00.000Z');
+
+function createdConversation(courseId: string, pageId: string, userId = 'student-1') {
+  return {
+    id: 'session-1',
+    userId,
+    courseId,
+    pageId,
+    title: '新对话',
+    titleIsManual: false,
+    pinnedAt: null,
+    lastActivityAt: createdAt,
+    libraryVisible: true,
+    messages: [{ role: 'system', content: 'server context' }],
+    createdAt,
+    updatedAt: createdAt,
+    expiresAt: new Date('2026-06-19T00:00:00.000Z'),
+  };
+}
 
 describe('/api/ai/sessions route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getServerSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.getStepAIContext.mockReturnValue({
+      courseId: 'course-1',
+      stepId: 'page-1',
+    });
     mocks.verifyKonlingRuntimeScope.mockResolvedValue({
       ok: true,
       scope: {
@@ -90,21 +114,7 @@ describe('/api/ai/sessions route', () => {
   });
 
   it('creates a new blank conversation only through POST', async () => {
-    mocks.prisma.konlingSession.create.mockResolvedValueOnce({
-      id: 'session-1',
-      userId: 'student-1',
-      courseId: 'course-1',
-      pageId: 'page-1',
-      title: '新对话',
-      titleIsManual: false,
-      pinnedAt: null,
-      lastActivityAt: new Date('2026-06-12T00:00:00.000Z'),
-      libraryVisible: true,
-      messages: [{ role: 'system', content: 'server context' }],
-      createdAt: new Date('2026-06-12T00:00:00.000Z'),
-      updatedAt: new Date('2026-06-12T00:00:00.000Z'),
-      expiresAt: new Date('2026-06-19T00:00:00.000Z'),
-    });
+    mocks.prisma.konlingSession.create.mockResolvedValueOnce(createdConversation('course-1', 'page-1'));
 
     const response = await POST(new NextRequest('http://localhost/api/ai/sessions', {
       method: 'POST',
@@ -125,6 +135,60 @@ describe('/api/ai/sessions route', () => {
         messages: [expect.objectContaining({ role: 'system' })],
       }),
     });
+  });
+
+  it('creates conversations for bounded smart-prep bootstrap and path-advisor contexts', async () => {
+    mocks.getStepAIContext.mockReturnValue(null);
+    mocks.getServerSession.mockResolvedValueOnce({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.verifyKonlingRuntimeScope.mockResolvedValueOnce({
+      ok: true,
+      scope: {
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'teacher-1',
+        role: 'teacher',
+        courseId: 'smart-prep',
+        pageId: '/teacher/smart-prep',
+        classId: null,
+        resourceId: null,
+        pathNodeId: null,
+        privacyScopes: ['teacher-scoped'],
+      },
+    });
+    mocks.prisma.konlingSession.create.mockResolvedValueOnce(
+      createdConversation('smart-prep', '/teacher/smart-prep', 'teacher-1'),
+    );
+    const smartPrepResponse = await POST(new NextRequest('http://localhost/api/ai/sessions', {
+      method: 'POST',
+      body: JSON.stringify({ courseId: 'smart-prep', pageId: '/teacher/smart-prep' }),
+    }));
+    expect(smartPrepResponse.status).toBe(201);
+
+    mocks.verifyKonlingRuntimeScope.mockResolvedValueOnce({
+      ok: true,
+      scope: {
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        role: 'student',
+        courseId: 'control-correction',
+        pageId: 'adaptive-path-center',
+        classId: 'class-1',
+        resourceId: null,
+        pathNodeId: null,
+        privacyScopes: ['self'],
+      },
+    });
+    mocks.prisma.konlingSession.create.mockResolvedValueOnce(
+      createdConversation('control-correction', 'adaptive-path-center'),
+    );
+    const pathAdvisorResponse = await POST(new NextRequest('http://localhost/api/ai/sessions', {
+      method: 'POST',
+      body: JSON.stringify({
+        courseId: 'control-correction',
+        pageId: 'adaptive-path-center',
+        classId: 'class-1',
+      }),
+    }));
+    expect(pathAdvisorResponse.status).toBe(201);
   });
 
   it('rejects unregistered page contexts before creating a conversation', async () => {

@@ -99,6 +99,14 @@ const INFERENCE_RULES: InferenceRule[] = [
     tools: ['general_assistance'],
   },
   {
+    pattern: /^\/assessment\/adaptive-practice$/,
+    courseId: 'adaptive-practice',
+    courseTitle: '自适应练习',
+    pageType: 'practice',
+    getTopic: () => '自适应学习路径',
+    tools: ['general_assistance'],
+  },
+  {
     pattern: /\/interactive-learning\//,
     courseId: 'interactive',
     courseTitle: '互动学习',
