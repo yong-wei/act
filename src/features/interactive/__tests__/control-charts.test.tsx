@@ -712,7 +712,7 @@ describe('control chart shared presets and themes', () => {
     expect(turnSeries.map((series) => series.name)).toEqual(['超前零点', '超前极点']);
     expect(turnSeries.every((series) => series.xAxisIndex === 0 && series.yAxisIndex === 0)).toBe(true);
     expect(panelSource).toContain('installBodeFrequencyPanZoom');
-    expect(panelSource).toContain('turnFrequencyHandles,\n      showFrequencyReadings,');
+    expect(panelSource).toMatch(/turnFrequencyHandles,\r?\n\s+showFrequencyReadings,/);
     expect(panelSource).toContain('buildBodeComparisonOption(panels, caseId, displayedFrequencyRange, turnFrequencyHandles)');
     expect(panelSource).toContain('installBodeTurnFrequencyDrag(chart, turnFrequencyHandles, onTurnFrequencyCommit, refreshRange)');
     expect(panelSource).toContain('findBodeTurnHandleAt(chart, turnFrequencyHandles, event)');
@@ -939,7 +939,9 @@ describe('control chart shared presets and themes', () => {
     expect(yAxis.min).toBe(-0.8);
     expect(yAxis.max).toBe(0.8);
     expect(panelSource).toContain('const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;');
-    expect(panelSource).toContain('buildNyquistOption(result, caseId, displayedAxisPreset, showFrequencyReadings)');
+    expect(panelSource).toContain(
+      'buildNyquistOption(result, caseId, displayedAxisPreset, showFrequencyReadings, comparisonSeries)',
+    );
   });
 
   it('renders Nyquist criterion and margin geometry annotations together', () => {
