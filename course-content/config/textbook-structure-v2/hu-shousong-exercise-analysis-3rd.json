@@ -11,6 +11,7 @@
   "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
   "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
   "reviewLedger": "review-ledgers/hu-shousong-exercise-analysis-3rd.json",
+  "reviewSourceDigest": "sha256:bc6145fb0188341fb2c4b0e80fde4a66a0fd2bf24ecb4014500b7d77285f8533",
   "overrides": [
     {
       "selector": {

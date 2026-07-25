@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 from dataclasses import replace
@@ -326,7 +327,7 @@ def test_manifest_and_written_export_round_trip(tmp_path: Path) -> None:
     assert manifest['counts']['structureUnits'] == len(result.units)
 
 
-def test_cli_audit_only_fixture_marks_dirty_revision(tmp_path: Path) -> None:
+def test_cli_audit_only_fixture_reports_revision_without_writing(tmp_path: Path) -> None:
     authoring_root, config_root, runtime_root = create_fixture(tmp_path)
     completed = subprocess.run(
         [
@@ -351,7 +352,14 @@ def test_cli_audit_only_fixture_marks_dirty_revision(tmp_path: Path) -> None:
     report = json.loads(completed.stdout)
     assert report['failures'] == []
     assert report['reports'][0]['bookId'] == 'fixture-book'
-    assert report['reports'][0]['sourceRevision'].endswith('+dirty')
+    revision = subprocess.run(
+        ['git', 'rev-parse', 'HEAD'],
+        cwd=REPO_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    assert report['reports'][0]['sourceRevision'].startswith(revision)
     assert not (runtime_root / 'fixture-book').exists()
 
 
@@ -445,10 +453,306 @@ def test_schema_validation_cli_validates_every_written_record(tmp_path: Path) ->
 ])
 def test_real_chinese_sources_emit_example_or_solution_units(book_id: str) -> None:
     result = runtime.build_export(book_id=book_id, source_revision='test-revision')
-    kinds = {unit.kind for unit in result.units}
-    assert 'solution' in kinds
+    config = runtime.load_parser_config(book_id)
+    ignored_boundaries = {
+        (
+            override['selector']['sourcePath'],
+            override['selector']['line'],
+        )
+        for override in config.get('overrides', [])
+        if (
+            override.get('action') == 'ignore-boundary'
+            and 'sourcePath' in override.get('selector', {})
+            and 'line' in override.get('selector', {})
+        )
+    }
+    source_paths = [
+        runtime.DEFAULT_AUTHORING_ROOT / source_path
+        for source_path in result.manifest['sourceHashes']
+        if source_path.endswith('/textbook.md')
+    ]
+    solution_markers = sum(
+        sum(
+            bool(re.match(
+                r'^(?:解|证明)(?=\s|[：:（(]|$)',
+                re.sub(r'^#{1,6}\s+', '', line.strip()),
+            ))
+            and (
+                path.relative_to(runtime.DEFAULT_AUTHORING_ROOT).as_posix(),
+                line_number,
+            ) not in ignored_boundaries
+            for line_number, line in enumerate(
+                path.read_text(encoding='utf-8').splitlines(),
+                start=1,
+            )
+        )
+        for path in source_paths
+    )
+    assert sum(unit.kind == 'solution' for unit in result.units) == solution_markers
     if book_id != 'hu-shousong-exercise-analysis-3rd':
-        assert 'example' in kinds
+        example_markers = sum(
+            sum(
+                bool(re.match(
+                    r'^例\s*\d+(?:\s*[.．－—–-]\s*\d+)+',
+                    re.sub(r'^#{1,6}\s+', '', line.strip()),
+                ))
+                and (
+                    path.relative_to(runtime.DEFAULT_AUTHORING_ROOT).as_posix(),
+                    line_number,
+                ) not in ignored_boundaries
+                for line_number, line in enumerate(
+                    path.read_text(encoding='utf-8').splitlines(),
+                    start=1,
+                )
+            )
+            for path in source_paths
+        )
+        assert sum(unit.kind == 'example' for unit in result.units) == example_markers
+
+
+def test_solution_units_belong_to_their_exercise_not_the_last_question_item() -> None:
+    result = parse(
+        '# Chapter 3 Exercises\n\n'
+        '3－24 机器人控制系统。要求：\n'
+        '（1）建立模型。\n'
+        '（2）分析稳定性。\n'
+        '解（1）模型如下。\n'
+        '解（2）系统稳定。\n'
+    )
+    exercise = next(unit for unit in result.units if unit.kind == 'exercise')
+    solutions = [unit for unit in result.units if unit.kind == 'solution']
+    assert len(solutions) == 2
+    assert {unit.parentId for unit in solutions} == {exercise.id}
+
+
+def test_exact_parent_line_restores_an_earlier_parent_chain_and_stable_ids() -> None:
+    source_path = 'textbooks/fixture-book/chapter-01/textbook.md'
+    config = parser_config(overrides=[{
+        'action': 'set-boundary',
+        'selector': {'sourcePath': source_path, 'line': 8},
+        'level': 3,
+        'kind': 'exercise',
+        'pathComponent': 'exercise-restored',
+        'parentLine': 3,
+    }])
+    before_markdown = (
+        '# Chapter 1 Basics\n'
+        '\n'
+        '## 1.1 Stable section\n'
+        '\n'
+        '### Example 1.1 Temporary example\n'
+        'Example body.\n'
+        '\n'
+        'Restored exercise\n'
+        '\n'
+        '（1）First item\n'
+        'Item body.\n'
+    )
+    after_markdown = before_markdown.replace(
+        'Example body.',
+        'Edited example body.',
+    ).replace(
+        'Item body.',
+        'Edited item body.',
+    )
+
+    def parse_with_parent_line(markdown: str):
+        return runtime.parse_markdown(
+            book_id='fixture-book',
+            edition='first',
+            chapter_id='chapter-01',
+            markdown=markdown,
+            config=config,
+            source_path=source_path,
+        )
+
+    before = parse_with_parent_line(before_markdown)
+    after = parse_with_parent_line(after_markdown)
+    by_line = {unit.sourceSpan.startLine: unit for unit in before.units}
+
+    assert by_line[8].parentId == by_line[3].id
+    assert by_line[8].ancestorIds == [by_line[1].id, by_line[3].id]
+    assert by_line[10].parentId == by_line[8].id
+    assert {
+        unit.sourceSpan.startLine: (unit.id, unit.parentId, unit.structuralPath)
+        for unit in before.units
+    } == {
+        unit.sourceSpan.startLine: (unit.id, unit.parentId, unit.structuralPath)
+        for unit in after.units
+    }
+
+
+@pytest.mark.parametrize(
+    ('parent_line', 'level', 'message'),
+    [
+        (0, 3, 'parentLine must be a positive integer'),
+        (8, 3, 'must identify an earlier structural boundary'),
+        (7, 3, 'does not identify an earlier structural boundary'),
+        (3, 4, 'does not match parentLine 3 level 2'),
+    ],
+)
+def test_exact_parent_line_fails_closed_for_invalid_targets_or_level(
+    parent_line: int,
+    level: int,
+    message: str,
+) -> None:
+    source_path = 'textbooks/fixture-book/chapter-01/textbook.md'
+    config = parser_config(overrides=[{
+        'action': 'set-boundary',
+        'selector': {'sourcePath': source_path, 'line': 8},
+        'level': level,
+        'kind': 'exercise',
+        'pathComponent': 'exercise-restored',
+        'parentLine': parent_line,
+    }])
+    markdown = (
+        '# Chapter 1 Basics\n'
+        '\n'
+        '## 1.1 Stable section\n'
+        '\n'
+        '### Example 1.1 Temporary example\n'
+        'Example body.\n'
+        '\n'
+        'Restored exercise\n'
+    )
+
+    with pytest.raises(runtime.StructureAmbiguityError, match=message):
+        runtime.parse_markdown(
+            book_id='fixture-book',
+            edition='first',
+            chapter_id='chapter-01',
+            markdown=markdown,
+            config=config,
+            source_path=source_path,
+        )
+
+
+def test_parent_line_config_requires_exact_set_boundary_selector(tmp_path: Path) -> None:
+    write_json(tmp_path / 'fixture-book.json', parser_config(overrides=[{
+        'action': 'set-boundary',
+        'selector': {'title': 'Restored exercise'},
+        'level': 3,
+        'kind': 'exercise',
+        'pathComponent': 'exercise-restored',
+        'parentLine': 3,
+    }]))
+    with pytest.raises(ValueError, match='requires exact sourcePath\\+line'):
+        runtime.load_parser_config('fixture-book', tmp_path)
+
+
+@pytest.mark.parametrize(
+    ('book_id', 'proof_line', 'theorem_line', 'item_three_line', 'item_four_line'),
+    [
+        ('hu-shousong-auto-control-7th', 1774, 1731, 2674, 2795),
+        ('hu-shousong-auto-control-8th', 1720, 1680, 2609, 2730),
+    ],
+)
+def test_real_theorem_proofs_and_following_items_keep_their_semantic_parents(
+    book_id: str,
+    proof_line: int,
+    theorem_line: int,
+    item_three_line: int,
+    item_four_line: int,
+) -> None:
+    result = runtime.build_export(book_id=book_id, source_revision='test-revision')
+    chapter_units = {
+        unit.sourceSpan.startLine: unit
+        for unit in result.units
+        if unit.sourceSpan.sourcePath.endswith('/chapter-10/textbook.md')
+    }
+    assert chapter_units[proof_line].parentId == chapter_units[theorem_line].id
+    assert chapter_units[item_four_line].parentId == chapter_units[item_three_line].parentId
+
+
+@pytest.mark.parametrize(
+    ('book_id', 'chapter_id', 'solution_line', 'example_line'),
+    [
+        ('hu-shousong-auto-control-7th', 'chapter-07', 3903, 3804),
+        ('hu-shousong-auto-control-7th', 'chapter-08', 2492, 2450),
+        ('hu-shousong-auto-control-8th', 'chapter-02', 142, 123),
+    ],
+)
+def test_real_solution_after_figure_heading_restores_its_example_parent(
+    book_id: str,
+    chapter_id: str,
+    solution_line: int,
+    example_line: int,
+) -> None:
+    result = runtime.build_export(book_id=book_id, source_revision='test-revision')
+    chapter_units = {
+        unit.sourceSpan.startLine: unit
+        for unit in result.units
+        if unit.sourceSpan.sourcePath.endswith(f'/{chapter_id}/textbook.md')
+    }
+    assert chapter_units[solution_line].parentId == chapter_units[example_line].id
+
+
+def test_review_ledger_is_invalidated_when_source_content_changes(tmp_path: Path) -> None:
+    authoring_root, config_root, _ = create_fixture(tmp_path)
+    config_path = config_root / 'fixture-book.json'
+    config = parser_config(
+        auditThresholds={'minimumUnitBytes': 1000, 'maximumUnitBytes': 24000},
+    )
+    write_json(config_path, config)
+    initial = runtime.build_export(
+        book_id='fixture-book',
+        authoring_root=authoring_root,
+        config_root=config_root,
+        source_revision='test-revision',
+    )
+    config['reviewSourceDigest'] = runtime.source_hashes_digest(
+        initial.manifest['sourceHashes']
+    )
+    config['reviewLedger'] = 'review-ledgers/fixture-book.json'
+    write_json(config_path, config)
+    write_json(config_root / 'review-ledgers' / 'fixture-book.json', {
+        'resourceId': 'fixture-book',
+        'anomalies': [{
+            'id': anomaly.id,
+            'sourcePath': anomaly.sourceSpan.sourcePath,
+            'line': anomaly.sourceSpan.startLine,
+            'kind': anomaly.kind,
+            'disposition': 'accepted-structure',
+            'reason': 'Reviewed fixture content.',
+        } for anomaly in initial.anomalies],
+        'samples': [{
+            'id': sample.id,
+            'sourcePath': sample.sourceSpan.sourcePath,
+            'line': sample.sourceSpan.startLine,
+            'evidence': 'Reviewed fixture sample.',
+        } for sample in initial.samples],
+    })
+    reviewed = runtime.build_export(
+        book_id='fixture-book',
+        authoring_root=authoring_root,
+        config_root=config_root,
+        source_revision='test-revision',
+    )
+    assert reviewed.manifest['counts']['unresolvedAnomalies'] == 0
+    assert reviewed.manifest['counts']['pendingSamples'] == 0
+
+    markdown_path = (
+        authoring_root
+        / 'textbooks'
+        / 'fixture-book'
+        / 'chapter-01'
+        / 'textbook.md'
+    )
+    markdown_path.write_text(
+        markdown_path.read_text(encoding='utf-8').replace(
+            '正文含有汉字。',
+            '正文已替换为新的待审核结构。',
+        ),
+        encoding='utf-8',
+    )
+    stale = runtime.build_export(
+        book_id='fixture-book',
+        authoring_root=authoring_root,
+        config_root=config_root,
+        source_revision='test-revision',
+    )
+    assert stale.manifest['counts']['unresolvedAnomalies'] > 0
+    assert stale.manifest['counts']['pendingSamples'] > 0
 
 
 def test_global_level_skip_is_rejected(tmp_path: Path) -> None:

@@ -11,6 +11,7 @@
   "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
   "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
   "reviewLedger": "review-ledgers/feedback-control-of-dynamic-systems.json",
+  "reviewSourceDigest": "sha256:a9ea05be703bc61812ec762271bdabc8812415c38b09269517e8167c6950625a",
   "overrides": [
     {
       "selector": {

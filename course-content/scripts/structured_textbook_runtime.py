@@ -165,6 +165,7 @@ class _Boundary:
     natural_number: str | None
     path_component: str
     allow_level_skip: bool = False
+    parent_line: int | None = None
 
 
 def load_parser_config(resource_id: str, config_root: Path = CONFIG_ROOT) -> dict[str, Any]:
@@ -184,6 +185,12 @@ def load_parser_config(resource_id: str, config_root: Path = CONFIG_ROOT) -> dic
         raise ValueError(
             f'{path}: type-level anomalyPolicy is forbidden; use an exact review ledger'
         )
+    review_source_digest = config.get('reviewSourceDigest')
+    if review_source_digest is not None and not re.fullmatch(
+        r'sha256:[0-9a-f]{64}',
+        str(review_source_digest),
+    ):
+        raise ValueError(f'{path}: reviewSourceDigest must be a sha256 digest')
     ledger_path = config.get('reviewLedger')
     if ledger_path is not None:
         if not isinstance(ledger_path, str) or not ledger_path:
@@ -210,6 +217,24 @@ def load_parser_config(resource_id: str, config_root: Path = CONFIG_ROOT) -> dic
             raise ValueError(
                 f'{path}: override {index} must select exact sourcePath+line or title'
             )
+        parent_line = override.get('parentLine')
+        if parent_line is not None:
+            if override.get('action') != 'set-boundary':
+                raise ValueError(
+                    f'{path}: override {index} parentLine requires set-boundary'
+                )
+            if not by_location:
+                raise ValueError(
+                    f'{path}: override {index} parentLine requires exact sourcePath+line'
+                )
+            if type(parent_line) is not int or parent_line <= 0:
+                raise ValueError(
+                    f'{path}: override {index} parentLine must be a positive integer'
+                )
+            if parent_line >= selector['line']:
+                raise ValueError(
+                    f'{path}: override {index} parentLine must precede selector line'
+                )
     return config
 
 
@@ -238,7 +263,7 @@ def _boundary_override(
     level: int,
     kind: str,
     component: str,
-) -> tuple[int, str, str, bool, bool]:
+) -> tuple[int, str, str, bool, bool, int | None]:
     matched: list[dict[str, Any]] = []
     boundary_actions = {
         'allow-level-skip',
@@ -260,13 +285,13 @@ def _boundary_override(
             f'{source_path}:{line}: multiple parser overrides match {title[:120]}'
         )
     if not matched:
-        return level, kind, component, False, False
+        return level, kind, component, False, False, None
     override = matched[0]
     action = override['action']
     if action == 'ignore-boundary':
-        return level, kind, component, False, True
+        return level, kind, component, False, True, None
     if action == 'allow-level-skip':
-        return level, kind, component, True, False
+        return level, kind, component, True, False, None
     updated_level = int(override.get('level', level))
     updated_kind = str(override.get('kind', kind))
     updated_component = str(override.get('pathComponent', component))
@@ -274,7 +299,7 @@ def _boundary_override(
         raise ValueError(f'{source_path}:{line}: invalid set-boundary override')
     return updated_level, updated_kind, updated_component, bool(
         override.get('allowLevelSkip', False)
-    ), False
+    ), False, override.get('parentLine')
 
 
 def _chinese_integer(value: str) -> int:
@@ -343,7 +368,7 @@ def _rule_boundary(text: str, enabled: set[str]) -> tuple[int, str, str, str] | 
             number = _normalize_number(match.group(1))
             return 3, 'example', match.group(2).strip() or stripped, f'example-{number}'
     if 'solution-boundary' in enabled:
-        match = re.match(r'^(解|证明)(?:\s+|[：:]\s*|$)(.*)$', stripped)
+        match = re.match(r'^(解|证明)(?=\s|[：:（(]|$)[：:]?\s*(.*)$', stripped)
         if match:
             return 4, 'solution', match.group(2).strip() or match.group(1), 'solution'
     if 'arabic-compound' in enabled:
@@ -393,6 +418,7 @@ def _collect_boundaries(markdown: str, config: dict[str, Any], source_path: str)
     boundaries: list[_Boundary] = []
     unnumbered_counts: dict[tuple[str, ...], int] = {}
     stack: list[_Boundary] = []
+    boundary_chains: dict[int, list[_Boundary]] = {}
     in_fence = False
     in_display_math = False
 
@@ -410,7 +436,12 @@ def _collect_boundaries(markdown: str, config: dict[str, Any], source_path: str)
         heading = re.match(r'^(#{1,6})\s+(.+?)\s*#*\s*$', stripped)
         visible = heading.group(2).strip() if heading else stripped.strip()
         recognized = _rule_boundary(visible, enabled)
-        if recognized and not heading and len(visible) > 200:
+        if (
+            recognized
+            and not heading
+            and recognized[1] not in {'example', 'solution'}
+            and len(visible) > 200
+        ):
             recognized = None
         if (
             recognized
@@ -429,8 +460,21 @@ def _collect_boundaries(markdown: str, config: dict[str, Any], source_path: str)
         if recognized:
             level, kind, title, component = recognized
             if kind == 'solution' and stack:
-                level = stack[-1].level + 1
-            if kind == 'item' and stack and stack[-1].kind == 'solution':
+                semantic_parent = next(
+                    (
+                        candidate
+                        for candidate in reversed(stack)
+                        if candidate.kind not in {'item', 'solution'}
+                    ),
+                    stack[-1],
+                )
+                level = semantic_parent.level + 1
+            if (
+                kind == 'item'
+                and stack
+                and stack[-1].kind == 'solution'
+                and level > stack[-1].level
+            ):
                 component = f'solution-{component}'
         elif heading:
             level = heading_levels.get(len(heading.group(1)), len(heading.group(1)))
@@ -440,9 +484,40 @@ def _collect_boundaries(markdown: str, config: dict[str, Any], source_path: str)
             unnumbered_counts[parent_key] = unnumbered_counts.get(parent_key, 0) + 1
             component = f'unnumbered-{unnumbered_counts[parent_key]:03d}'
         else:
-            continue
+            explicit_boundaries = [
+                override
+                for override in config.get('overrides', [])
+                if (
+                    override.get('action') == 'set-boundary'
+                    and _selector_matches(
+                        override['selector'],
+                        source_path=source_path,
+                        line=index + 1,
+                        title=visible,
+                    )
+                )
+            ]
+            if len(explicit_boundaries) > 1:
+                raise StructureAmbiguityError(
+                    f'{source_path}:{index + 1}: multiple parser overrides '
+                    f'match {visible[:120]}'
+                )
+            if not explicit_boundaries:
+                continue
+            explicit = explicit_boundaries[0]
+            level = int(explicit.get('level', 0))
+            kind = str(explicit.get('kind', 'unnumbered'))
+            title = visible
+            component = str(explicit.get('pathComponent', ''))
 
-        level, kind, component, allow_level_skip, ignore = _boundary_override(
+        (
+            level,
+            kind,
+            component,
+            allow_level_skip,
+            ignore,
+            parent_line,
+        ) = _boundary_override(
             config=config,
             source_path=source_path,
             line=index + 1,
@@ -453,7 +528,31 @@ def _collect_boundaries(markdown: str, config: dict[str, Any], source_path: str)
         )
         if ignore:
             continue
-        if recognized and stack:
+        if parent_line is not None:
+            if type(parent_line) is not int or parent_line <= 0:
+                raise StructureAmbiguityError(
+                    f'{source_path}:{index + 1}: parentLine must be a positive integer'
+                )
+            if parent_line >= index + 1:
+                raise StructureAmbiguityError(
+                    f'{source_path}:{index + 1}: parentLine {parent_line} '
+                    'must identify an earlier structural boundary'
+                )
+            parent_chain = boundary_chains.get(parent_line)
+            if parent_chain is None:
+                raise StructureAmbiguityError(
+                    f'{source_path}:{index + 1}: parentLine {parent_line} '
+                    'does not identify an earlier structural boundary'
+                )
+            parent_boundary = parent_chain[-1]
+            expected_level = parent_boundary.level + 1
+            if level != expected_level:
+                raise StructureAmbiguityError(
+                    f'{source_path}:{index + 1}: explicit level {level} does not '
+                    f'match parentLine {parent_line} level {parent_boundary.level}'
+                )
+            stack = list(parent_chain)
+        elif recognized and stack:
             if (
                 kind == 'item'
                 and boundaries
@@ -520,11 +619,20 @@ def _collect_boundaries(markdown: str, config: dict[str, Any], source_path: str)
                 f'{source_path}:{index + 1}: hierarchy jumps from level '
                 f'{stack[-1].level} to {level}: {visible[:120]}'
             )
-        boundary = _Boundary(index, offsets[index], level, kind, title, (
-            component.rsplit('-', 1)[-1] if recognized else None
-        ), component, allow_level_skip or inherited_level_skip)
+        boundary = _Boundary(
+            index,
+            offsets[index],
+            level,
+            kind,
+            title,
+            component.rsplit('-', 1)[-1] if recognized else None,
+            component,
+            allow_level_skip or inherited_level_skip,
+            parent_line,
+        )
         boundaries.append(boundary)
         stack.append(boundary)
+        boundary_chains[index + 1] = list(stack)
     return boundaries
 
 
@@ -657,17 +765,36 @@ def parse_markdown(
         sourceSpan=_span(source_path, lines, offsets, 0, root_end),
     )]
     stack: list[StructureUnit] = [units[0]]
+    unit_chains: dict[int, list[StructureUnit]] = {}
+    if root_boundary is not None:
+        unit_chains[root_boundary.line_index + 1] = [units[0]]
 
     seen_ids = {root_id}
     seen_paths = {(book_id, edition, tuple(units[0].structuralPath))}
     repeated_paths: dict[tuple[str, ...], int] = {}
     for index, boundary in enumerate(remaining_boundaries):
-        while len(stack) > 1 and stack[-1].level >= boundary.level:
-            stack.pop()
-        parent = stack[-1]
-        if boundary.level <= parent.level:
-            parent = units[0]
-            stack = [parent]
+        if boundary.parent_line is not None:
+            parent_chain = unit_chains.get(boundary.parent_line)
+            if parent_chain is None:
+                raise StructureAmbiguityError(
+                    f'{source_path}:{boundary.line_index + 1}: parentLine '
+                    f'{boundary.parent_line} has no emitted structural unit'
+                )
+            stack = list(parent_chain)
+            parent = stack[-1]
+            if boundary.level != parent.level + 1:
+                raise StructureAmbiguityError(
+                    f'{source_path}:{boundary.line_index + 1}: explicit level '
+                    f'{boundary.level} does not match parentLine '
+                    f'{boundary.parent_line} level {parent.level}'
+                )
+        else:
+            while len(stack) > 1 and stack[-1].level >= boundary.level:
+                stack.pop()
+            parent = stack[-1]
+            if boundary.level <= parent.level:
+                parent = units[0]
+                stack = [parent]
         path = [*parent.structuralPath, boundary.path_component]
         unit_id = stable_unit_id(book_id, edition, path)
         natural_path = (book_id, edition, tuple(path))
@@ -707,6 +834,7 @@ def parse_markdown(
         )
         units.append(unit)
         stack.append(unit)
+        unit_chains[boundary.line_index + 1] = list(stack)
 
     anchors: list[FragmentAnchor] = []
     for unit in units:
@@ -731,7 +859,25 @@ def _validate_partition(units: list[StructureUnit], total_bytes: int, source_pat
 
 
 def config_digest(config: dict[str, Any]) -> str:
-    payload = json.dumps(config, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+    payload = json.dumps(
+        {
+            key: value
+            for key, value in config.items()
+            if not key.startswith('_')
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(',', ':'),
+    )
+    return f'sha256:{hashlib.sha256(payload.encode("utf-8")).hexdigest()}'
+
+
+def source_hashes_digest(source_hashes: dict[str, str]) -> str:
+    payload = json.dumps(
+        dict(sorted(source_hashes.items())),
+        ensure_ascii=False,
+        separators=(',', ':'),
+    )
     return f'sha256:{hashlib.sha256(payload.encode("utf-8")).hexdigest()}'
 
 
@@ -858,6 +1004,8 @@ def _anomaly_disposition(
     source_path: str,
     line: int,
 ) -> tuple[str, str | None, str | None]:
+    if config.get('_reviewSourceMatches') is False:
+        return 'unresolved', None, None
     ledger_entries = config.get('_reviewLedger', {}).get('anomalies', [])
     matched = [
         entry
@@ -874,9 +1022,13 @@ def _anomaly_disposition(
                 and entry.get('kind') == kind
             )
         ]
-    if len(matched) > 1:
+    decisions = {
+        (entry.get('disposition'), entry.get('reason'))
+        for entry in matched
+    }
+    if len(decisions) > 1:
         raise StructureAmbiguityError(
-            f'{source_path}:{line}: multiple anomaly dispositions match {kind}'
+            f'{source_path}:{line}: conflicting anomaly dispositions match {kind}'
         )
     if not matched:
         return 'unresolved', None, None
@@ -1083,15 +1235,17 @@ def build_distributed_samples(
                 continue
             identity = f'{chapter_id}\0{unit.id}'
             sample_id = f'textbook-sample:{hashlib.sha256(identity.encode()).hexdigest()[:20]}'
-            ledger_entry = next((
-                entry
-                for entry in config.get('_reviewLedger', {}).get('samples', [])
-                if (
-                    entry.get('id') == sample_id
-                    and entry.get('sourcePath') == unit.sourceSpan.sourcePath
-                    and entry.get('line') == unit.sourceSpan.startLine
-                )
-            ), None)
+            ledger_entry = None
+            if config.get('_reviewSourceMatches') is not False:
+                ledger_entry = next((
+                    entry
+                    for entry in config.get('_reviewLedger', {}).get('samples', [])
+                    if (
+                        entry.get('id') == sample_id
+                        and entry.get('sourcePath') == unit.sourceSpan.sourcePath
+                        and entry.get('line') == unit.sourceSpan.startLine
+                    )
+                ), None)
             samples.append(StructureSample(
                 id=sample_id,
                 chapterId=chapter_id,
@@ -1351,6 +1505,15 @@ def build_export(
     if len(natural_paths) != len(set(natural_paths)):
         raise StructureAmbiguityError(f'{book_id}: duplicate natural paths across sources')
 
+    source_hashes = {
+        path.relative_to(authoring_root).as_posix(): _sha256_file(path)
+        for path in sorted(set(source_files))
+    }
+    configured_review_digest = config.get('reviewSourceDigest')
+    config['_reviewSourceMatches'] = (
+        isinstance(configured_review_digest, str)
+        and configured_review_digest == source_hashes_digest(source_hashes)
+    )
     windows = build_retrieval_windows(units, config)
     navigation = build_navigation(units, book_id)
     anomalies = detect_anomalies(
@@ -1359,10 +1522,6 @@ def build_export(
         config=config,
     )
     samples = build_distributed_samples(units, config)
-    source_hashes = {
-        path.relative_to(authoring_root).as_posix(): _sha256_file(path)
-        for path in sorted(set(source_files))
-    }
     by_disposition: dict[str, int] = {}
     for anomaly in anomalies:
         by_disposition[anomaly.disposition] = (

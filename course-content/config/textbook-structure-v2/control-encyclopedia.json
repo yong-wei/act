@@ -11,6 +11,7 @@
   "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
   "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
   "reviewLedger": "review-ledgers/control-encyclopedia.json",
+  "reviewSourceDigest": "sha256:b4a4f7a253cf5fc8ec692457a751d39819a216babd8b4abf4d853e2742df2d19",
   "overrides": [
     {
       "selector": {

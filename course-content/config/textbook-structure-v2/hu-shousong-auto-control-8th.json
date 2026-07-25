@@ -11,6 +11,7 @@
   "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
   "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
   "reviewLedger": "review-ledgers/hu-shousong-auto-control-8th.json",
+  "reviewSourceDigest": "sha256:afde0e8b2f43675d61c96344e8160a4793694a880633ed46e3ad9c24a7fc694e",
   "overrides": [
     {
       "selector": {
@@ -132,6 +133,570 @@
       "kind": "item",
       "pathComponent": "dynamic-metric-rise-time-1",
       "reason": "This starts the dynamic-metric derivation sequence and is distinct from item 1 in the preceding damping classification."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-06/textbook.md",
+        "line": 901
+      },
+      "action": "ignore-boundary",
+      "reason": "This sentence refers back to Example 6-4 while discussing an alternative controller; it is not a new example boundary."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-06/textbook.md",
+        "line": 903
+      },
+      "action": "ignore-boundary",
+      "reason": "This sentence summarizes Example 6-4; it is not a new example boundary."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-10/textbook.md",
+        "line": 1680
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "theorem-10.10",
+      "reason": "This theorem is a section-level structural boundary whose proof must not attach to the preceding example."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-10/textbook.md",
+        "line": 2610
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "subsection",
+      "pathComponent": "theorem-10.15",
+      "reason": "This theorem is nested under minimum-time item 3; its proof must end before item 4."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-02/textbook.md",
+        "line": 572
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-2.8",
+      "reason": "Nest the exact 2.8 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例2－8 试求例2－1 RLC 无源网络的传递函数 $U_{o}(s) / U_{i}(s)$ 。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-03/textbook.md",
+        "line": 1090
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-3.4",
+      "reason": "Nest the exact 3.4 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 3－4 设单位反馈系统开环传递函数为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-03/textbook.md",
+        "line": 1183
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-3.5",
+      "reason": "Nest the exact 3.5 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例3－5 设控制系统如图3－25所示。其中（a）为比例控制系统，（b）为测速反馈控制系统。试确定使系统阻尼比为 0.5 的 $K_{t}$ 值，并计算系统（a）和（b）的各项性能指标。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-03/textbook.md",
+        "line": 1721
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-3.8",
+      "reason": "Nest the exact 3.8 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 3－8 设某单位反馈系统的开环传递函数为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-05/textbook.md",
+        "line": 2168
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-5.15",
+      "reason": "Nest the exact 5.15 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 5－15 设一单位反馈系统的开环传递函数"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-06/textbook.md",
+        "line": 542
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-6.1",
+      "reason": "Nest the exact 6.1 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例6－1 设比例－微分控制系统如图6－14所示，试分析PD控制器对系统性能的影响。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-06/textbook.md",
+        "line": 603
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-6.2",
+      "reason": "Nest the exact 6.2 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 6－2 设比例－积分控制系统如图 6－17所示。其中不可变部分的传递函数为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 282
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.4",
+      "reason": "Nest the exact 7.4 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 7－4 设 $e(t)=\\mathrm{e}^{-a t}, t \\geqslant 0, a$ 为常数，试求 $e^{*}(t)$ 的拉氏变换。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 679
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.6",
+      "reason": "Nest the exact 7.6 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 7－6 设"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 885
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.8",
+      "reason": "Nest the exact 7.8 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 7－8 试用实数位移定理计算滞后一个采样周期的指数函数 $\\mathrm{e}^{-a(t-T)}$ 的 $z$ 变换，其中$a$ 为常数。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 918
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.9",
+      "reason": "Nest the exact 7.9 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 7－9 试用复数位移定理计算函数 $t \\mathrm{e}^{-a T}$ 的 $z$ 变换。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 995
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.10",
+      "reason": "Nest the exact 7.10 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 7－10 设 $z$ 变换函数为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 1123
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.11",
+      "reason": "Nest the exact 7.11 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 7－11 设 $z$ 变换函数为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 1195
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.12",
+      "reason": "Nest the exact 7.12 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 7－12 设 $z$ 变换函数"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 1941
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.18",
+      "reason": "Nest the exact 7.18 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 7－18 设开环离散系统如图7－23（a）及（b）所示，其中 $G_{1}(s)=1 / s, G_{2}(s)=a /(s+a)$ ，输入信号 $r(t)=1(t)$ ，试求系统（a）和（b）的脉冲传递函数 $G(z)$ 和输出的 $z$ 变换 $C(z)$ 。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 2564
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.24",
+      "reason": "Nest the exact 7.24 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 7－24 设闭环离散系统如图 7－35 所示，其中采样周期 $T=0.1 \\mathrm{~s}$ ，试求系统稳定时 $K$的临界值。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+        "line": 1204
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-8.4",
+      "reason": "Nest the exact 8.4 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 8－4 设某非线性元件的特性为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+        "line": 1562
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-8.5",
+      "reason": "Nest the exact 8.5 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 8－5 已知非线性系统结构如图 8－45 所示，试分析系统的稳定性。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 107
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.1",
+      "reason": "Nest the exact 9.1 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 9－1 试列写如图9－4所示 RLC 网络的电路方程，选择几组状态变量并建立相应的状态空间表达式，就所选状态变量间的关系进行讨论。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 542
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.2",
+      "reason": "Nest the exact 9.2 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 9－2 设二阶系统微分方程为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 1341
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.4",
+      "reason": "Nest the exact 9.4 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 9－4 设系统状态方程为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 1620
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.6",
+      "reason": "Nest the exact 9.6 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 9－6 已知系统动态方程为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 3681
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.17",
+      "reason": "Nest the exact 9.17 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 9－17 设单输人线性定常离散系统状态方程为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 3961
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.18",
+      "reason": "Nest the exact 9.18 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 9－18 已知线性定常离散系统的动态方程为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 6289
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.25",
+      "reason": "Nest the exact 9.25 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例 9－25 已知单输人线性定常系统的状态方程为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-10/textbook.md",
+        "line": 367
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-10.1",
+      "reason": "Nest the exact 10.1 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例10－1 已知连续泛函为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-10/textbook.md",
+        "line": 503
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-10.2",
+      "reason": "Nest the exact 10.2 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例10－2 设有泛函"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-10/textbook.md",
+        "line": 1110
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-10.5",
+      "reason": "Nest the exact 10.5 example inside the active textbook subsection so the following textbook sibling leaves example scope.",
+      "validatedSourceText": "例10－5 设系统方程为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-03/textbook.md",
+        "line": 1237
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "performance-topic-7",
+      "reason": "Restore subsection 7 as a section child after the preceding example sequence.",
+      "validatedSourceText": "## 7．非零初始条件下二阶系统的响应过程"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-06/textbook.md",
+        "line": 686
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "pid-tuning-topic-3",
+      "reason": "Restore PID tuning topic 3 as a section child.",
+      "validatedSourceText": "## 3．PID 参数整定方法"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 265
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.3",
+      "reason": "Nest Example 7-3 under sampling topic 1.",
+      "validatedSourceText": "例 7－3 设 $e(t)=1(t)$ ，试求 $e^{*}(t)$ 的拉氏变换。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 379
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "sampling-theorem-3",
+      "reason": "Restore sampling-theorem topic 3 as a section child.",
+      "validatedSourceText": "## 3．香农采样定理"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 661
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.5",
+      "reason": "Nest Example 7-5 under z-transform method 1 so Example 7-6 remains its sibling.",
+      "validatedSourceText": "例 7－5 试求单位阶跃函数 $1(t)$ 的 $z$ 变换。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+        "line": 1266
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "describing-function-topic-2",
+      "reason": "Restore describing-function topic 2 as a section child.",
+      "validatedSourceText": "## 2．典型非线性特性的描述函数"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+        "line": 1433
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "describing-function-topic-3",
+      "reason": "Restore describing-function topic 3 as a section child.",
+      "validatedSourceText": "## 3．非线性系统简化"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 4196
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "state-transform-topic-7",
+      "reason": "Restore state-space transformation topic 7 as a section child.",
+      "validatedSourceText": "## 7．线性定常系统的线性变换"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 6481
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "state-observer-topic-3",
+      "reason": "Restore full-order observer topic 3 as a section child.",
+      "validatedSourceText": "## 3．全维状态观测器及其设计"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-08/textbook.md",
+        "line": 1125
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-8.3",
+      "reason": "Keep the exact Example 8-3 inside describing-function subsection 1 so Example 8-4 and following numbered topics share the intended subsection context.",
+      "validatedSourceText": "例8－3 设继电特性为"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 5686
+      },
+      "action": "set-boundary",
+      "level": 2,
+      "kind": "section",
+      "pathComponent": "section-9.4-feedback",
+      "reason": "Preserve the corrected authoring heading as the stable 9-4 section path."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 5690
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "state-feedback-topic-1",
+      "reason": "Restore the first feedback-structure topic below the synthesized 9-4 section boundary.",
+      "validatedSourceText": "1．线性定常系统常用反馈结构及其对系统特性的影响"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-07/textbook.md",
+        "line": 714
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-7.7",
+      "reason": "Keep the exact Example 7-7 inside z-transform method 2; otherwise it remains a section-level sibling while the method list is restored.",
+      "validatedSourceText": "例 7－7 设 $e(t)=\\sin \\omega t$ ，试求其 $E(z)$ 。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-10/textbook.md",
+        "line": 1972
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-2",
+      "parentLine": 1371,
+      "reason": "末端约束时的极小值原理是连续系统极小值原理的第二个主题；例10-8结束后需恢复到该显式父级。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-09/textbook.md",
+        "line": 6570
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.26",
+      "reason": "Example 9-26 applies subsection 3 full-order observer design and ends before subsection 4."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-02/textbook.md",
+        "line": 142
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "solution",
+      "pathComponent": "solution",
+      "parentLine": 123,
+      "reason": "图2-4标题位于例2-4与解答之间；解答必须显式恢复到例2-4。"
     }
   ]
 }
