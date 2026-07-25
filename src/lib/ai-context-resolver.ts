@@ -103,7 +103,7 @@ export function isPathExcluded(pathname: string): boolean {
 /**
  * 基于路径自动推断页面上下文
  */
-function inferPageContextFromPath(pathname: string): Partial<PageContext> | null {
+export function resolveRegisteredAIContextFromPath(pathname: string): Partial<PageContext> | null {
   for (const rule of INFERENCE_RULES) {
     const match = pathname.match(rule.pattern);
     if (match) {
@@ -130,6 +130,13 @@ function inferPageContextFromPath(pathname: string): Partial<PageContext> | null
       };
     }
   }
+
+  return null;
+}
+
+function inferPageContextFromPath(pathname: string): Partial<PageContext> | null {
+  const registered = resolveRegisteredAIContextFromPath(pathname);
+  if (registered) return registered;
 
   // 默认推断
   if (pathname !== '/') {

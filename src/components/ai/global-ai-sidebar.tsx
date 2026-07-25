@@ -9,13 +9,30 @@
 
 import { useChat } from '@/hooks/useLegacyChat';
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import { X, Send, Sparkles, MessageSquare, Trash2, Loader2 } from 'lucide-react';
+import {
+  Check,
+  History,
+  Loader2,
+  MessageSquare,
+  Pencil,
+  Pin,
+  Plus,
+  Search,
+  Send,
+  Sparkles,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { KonlingAvatar } from './konling-avatar';
 import { KonlingChatMessageList, konlingPromptInputClassName } from './konling-chat-renderer';
 import { useAIThemeStyles, TRANSITION_CLASSES } from '@/lib/ai-theme-styles';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { Button } from '@/components/ui/button';
 import { KONLING_BRAND, getQuickQuestions } from '@/lib/ai-branding';
+import {
+  useKonlingConversationLibrary,
+  visibleKonlingMessages,
+} from '@/hooks/useKonlingConversationLibrary';
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -31,11 +48,13 @@ export function GlobalAISidebar() {
   const wasOpenRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
-  const [sessionId] = useState(() => `global-${Date.now()}`);
   const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
   const [actionStatus, setActionStatus] = useState('AI 侧栏已就绪。');
   const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
   const [smartPrepContext, setSmartPrepContext] = useState<Record<string, string> | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
 
   const {
     pageContext,
@@ -56,6 +75,31 @@ export function GlobalAISidebar() {
 
   // 构建请求体
   const effectiveServerContext = smartPrepContext ?? assistantEntryPoint?.serverContext;
+  const {
+    conversations,
+    activeConversationId,
+    activeConversation,
+    search,
+    setSearch,
+    isLoading: isConversationLoading,
+    isMutating: isConversationMutating,
+    error: conversationError,
+    refreshConversations,
+    createConversation,
+    ensureConversation,
+    selectConversation,
+    renameConversation,
+    setConversationPinned,
+    deleteConversation,
+  } = useKonlingConversationLibrary({
+    enabled: mounted,
+    courseId: pageContext?.courseId,
+    pageId: pageContext?.stepId || pageContext?.courseId,
+    pageContext: pageContext ?? undefined,
+    classId: effectiveServerContext?.classId,
+    resourceId: effectiveServerContext?.resourceId,
+    pathNodeId: effectiveServerContext?.pathNodeId,
+  });
   const agentSessionStorageKey = useMemo(() => {
     if (assistantEntryPoint?.mode !== 'prep-coauthor') return null;
     return `konling:agent-session:smart-prep:${effectiveServerContext?.smartTaskId ?? 'bootstrap'}`;
@@ -96,7 +140,7 @@ export function GlobalAISidebar() {
   const chatBody = useMemo(() => ({
     pageContext,
     userProfile,
-    sessionId,
+    conversationId: activeConversationId ?? undefined,
     courseId: pageContext?.courseId,
     pageId: pageContext?.stepId || pageContext?.courseId,
     resourceId: effectiveServerContext?.resourceId,
@@ -107,7 +151,7 @@ export function GlobalAISidebar() {
     agentSessionId: agentSessionId ?? undefined,
     modeClientContextHints: effectiveServerContext,
     knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? effectiveServerContext,
-  }), [pageContext, userProfile, sessionId, tools, systemPromptExtension, assistantEntryPoint, knowledgeWorkspaceHint, effectiveServerContext, agentSessionId]);
+  }), [pageContext, userProfile, activeConversationId, tools, systemPromptExtension, assistantEntryPoint, knowledgeWorkspaceHint, effectiveServerContext, agentSessionId]);
 
   const {
     messages,
@@ -127,17 +171,24 @@ export function GlobalAISidebar() {
       console.error('Global AI chat error:', err);
     },
     onFinish: () => {
-      if (assistantEntryPoint?.mode !== 'path-advisor') return;
-      window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
-        detail: {
-          mode: assistantEntryPoint.mode,
-          courseId: pageContext?.courseId ?? null,
-          pageId: pageContext?.stepId ?? null,
-        },
-      }));
+      void refreshConversations().catch(() => undefined);
+      if (assistantEntryPoint?.mode === 'path-advisor') {
+        window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
+          detail: {
+            mode: assistantEntryPoint.mode,
+            courseId: pageContext?.courseId ?? null,
+            pageId: pageContext?.stepId ?? null,
+          },
+        }));
+      }
     },
     onResponse: handleChatResponse,
   });
+
+  useEffect(() => {
+    if (!activeConversation || activeConversation.id !== activeConversationId || isLoading) return;
+    setMessages(visibleKonlingMessages(activeConversation.messages));
+  }, [activeConversation, activeConversationId, isLoading, setMessages]);
 
   // 自动滚动到底部
   useEffect(() => {
@@ -251,18 +302,90 @@ export function GlobalAISidebar() {
 
   // 处理快捷问题
   const handleQuickQuestion = useCallback(
-    (question: string) => {
-      append({ role: 'user', content: question });
-      clearUnread();
+    async (question: string) => {
+      if (isLoading || isConversationLoading || isConversationMutating) return;
+      try {
+        const conversation = await ensureConversation();
+        await append(
+          { role: 'user', content: question },
+          { ...chatBody, conversationId: conversation.id },
+        );
+        clearUnread();
+      } catch (cause) {
+        setActionStatus(cause instanceof Error ? cause.message : '无法发送控灵问题。');
+      }
     },
-    [append, clearUnread]
+    [append, chatBody, clearUnread, ensureConversation, isConversationLoading, isConversationMutating, isLoading]
   );
 
-  // 清空对话
-  const handleClear = useCallback(() => {
+  const handleConversationSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isLoading || isConversationLoading || isConversationMutating) return;
+    try {
+      const conversation = await ensureConversation();
+      await handleSubmit(undefined, { ...chatBody, conversationId: conversation.id });
+      clearUnread();
+    } catch (cause) {
+      setActionStatus(cause instanceof Error ? cause.message : '无法发送控灵问题。');
+    }
+  }, [chatBody, clearUnread, ensureConversation, handleSubmit, isConversationLoading, isConversationMutating, isLoading]);
+
+  const handleNewConversation = useCallback(async () => {
+    try {
+      await createConversation();
+      setMessages([]);
+      setEditingConversationId(null);
+      setActionStatus('已新建空白对话。');
+    } catch (cause) {
+      setActionStatus(cause instanceof Error ? cause.message : '新建控灵会话失败。');
+    }
+  }, [createConversation, setMessages]);
+
+  const handleSelectConversation = useCallback((conversationId: string) => {
+    if (isLoading) return;
+    selectConversation(conversationId);
     setMessages([]);
-    setActionStatus('对话已清空。');
-  }, [setMessages]);
+    setEditingConversationId(null);
+    setLibraryOpen(false);
+    setActionStatus('已恢复所选对话。');
+  }, [isLoading, selectConversation, setMessages]);
+
+  const handleRenameConversation = useCallback(async (conversationId: string) => {
+    try {
+      await renameConversation(conversationId, editingTitle);
+      setEditingConversationId(null);
+      setEditingTitle('');
+      setActionStatus('对话标题已更新。');
+    } catch (cause) {
+      setActionStatus(cause instanceof Error ? cause.message : '对话重命名失败。');
+    }
+  }, [editingTitle, renameConversation]);
+
+  const handleToggleConversationPinned = useCallback(async (conversationId: string, pinned: boolean) => {
+    try {
+      await setConversationPinned(conversationId, pinned);
+      setActionStatus(pinned ? '对话已置顶。' : '已取消对话置顶。');
+    } catch (cause) {
+      setActionStatus(cause instanceof Error ? cause.message : '更新对话置顶状态失败。');
+    }
+  }, [setConversationPinned]);
+
+  const handleDeleteConversation = useCallback(async (conversationId: string) => {
+    if (isLoading || !window.confirm('确认删除此对话？此操作无法撤销。')) return;
+    try {
+      const deletedActiveConversation = await deleteConversation(conversationId);
+      if (deletedActiveConversation) {
+        await createConversation();
+        setMessages([]);
+        setLibraryOpen(false);
+        setActionStatus('当前对话已删除，已进入新的空白对话。');
+      } else {
+        setActionStatus('对话已删除。');
+      }
+    } catch (cause) {
+      setActionStatus(cause instanceof Error ? cause.message : '删除控灵会话失败。');
+    }
+  }, [createConversation, deleteConversation, isLoading, setMessages]);
 
   // 构建欢迎消息
   const welcomeMessage = useMemo(() => {
@@ -375,16 +498,26 @@ export function GlobalAISidebar() {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            {messages.length > 0 && (
-              <button type="button"
-                onClick={handleClear}
-                aria-label="清空 AI 对话"
-                className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30`}
-                title="清空对话"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setLibraryOpen((current) => !current)}
+              aria-label="打开控灵会话库"
+              aria-expanded={libraryOpen}
+              className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30`}
+              title="会话库"
+            >
+              <History className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleNewConversation()}
+              aria-label="新建控灵对话"
+              disabled={isLoading || isConversationMutating}
+              className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30 disabled:opacity-40`}
+              title="新建对话"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
             <button type="button"
               onClick={closeSidebar}
               aria-label="关闭 AI 侧栏"
@@ -395,6 +528,121 @@ export function GlobalAISidebar() {
             </button>
           </div>
         </div>
+
+        {libraryOpen && (
+          <section
+            aria-label="控灵会话库"
+            className={`border-b p-3 ${styles.border}`}
+            data-konling-conversation-library
+          >
+            <div className="relative">
+              <Search
+                aria-hidden="true"
+                className={`absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${styles.text.muted}`}
+              />
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                aria-label="搜索对话标题"
+                placeholder="搜索对话标题"
+                className={`w-full rounded-md border py-2 pl-8 pr-3 text-xs focus:outline-none focus:ring-2 ${styles.input}`}
+              />
+            </div>
+            <div className="mt-2 max-h-52 space-y-1 overflow-y-auto">
+              {isConversationLoading && conversations.length === 0 ? (
+                <p className={`px-2 py-3 text-center text-xs ${styles.text.muted}`}>正在加载会话...</p>
+              ) : conversations.length === 0 ? (
+                <p className={`px-2 py-3 text-center text-xs ${styles.text.muted}`}>没有匹配的对话</p>
+              ) : conversations.map((conversation) => {
+                const isActive = conversation.id === activeConversationId;
+                const isEditing = conversation.id === editingConversationId;
+                const actionsDisabled = isLoading || isConversationMutating;
+                return (
+                  <div
+                    key={conversation.id}
+                    className={[
+                      'group flex items-center gap-1 rounded-lg border px-2 py-1.5',
+                      isActive ? 'border-amber-500/50 bg-amber-500/10' : `${styles.border} bg-transparent`,
+                    ].join(' ')}
+                    data-konling-conversation-active={isActive ? 'true' : 'false'}
+                  >
+                    {isEditing ? (
+                      <>
+                        <input
+                          value={editingTitle}
+                          onChange={(event) => setEditingTitle(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') void handleRenameConversation(conversation.id);
+                            if (event.key === 'Escape') setEditingConversationId(null);
+                          }}
+                          aria-label="编辑对话标题"
+                          className={`min-w-0 flex-1 rounded border px-2 py-1 text-xs ${styles.input}`}
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void handleRenameConversation(conversation.id)}
+                          disabled={!editingTitle.trim() || actionsDisabled}
+                          aria-label="保存对话标题"
+                          className={`rounded p-1.5 ${styles.text.secondary} disabled:opacity-40`}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectConversation(conversation.id)}
+                          disabled={actionsDisabled}
+                          className={`min-w-0 flex-1 truncate text-left text-xs ${styles.text.primary} disabled:opacity-40`}
+                          title={conversation.title}
+                        >
+                          {conversation.pinned && <Pin className="mr-1 inline h-3 w-3 fill-current" />}
+                          {conversation.title}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingConversationId(conversation.id);
+                            setEditingTitle(conversation.title);
+                          }}
+                          disabled={actionsDisabled}
+                          aria-label={`重命名对话：${conversation.title}`}
+                          className={`rounded p-1.5 ${styles.text.muted} hover:bg-slate-700/30 disabled:opacity-40`}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleToggleConversationPinned(conversation.id, !conversation.pinned)}
+                          disabled={actionsDisabled}
+                          aria-label={`${conversation.pinned ? '取消置顶' : '置顶'}对话：${conversation.title}`}
+                          className={`rounded p-1.5 ${styles.text.muted} hover:bg-slate-700/30 disabled:opacity-40`}
+                        >
+                          <Pin className={`h-3.5 w-3.5 ${conversation.pinned ? 'fill-current' : ''}`} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteConversation(conversation.id)}
+                          disabled={actionsDisabled}
+                          aria-label={`删除对话：${conversation.title}`}
+                          className="rounded p-1.5 text-red-400 hover:bg-red-500/10 disabled:opacity-40"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {conversationError && (
+              <p className="mt-2 text-xs text-red-400" role="alert">{conversationError.message}</p>
+            )}
+          </section>
+        )}
 
         {/* 消息列表 */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -448,11 +696,12 @@ export function GlobalAISidebar() {
                     <button type="button"
                       key={i}
                       onClick={() => handleQuickQuestion(q.question)}
+                      disabled={isLoading || isConversationLoading || isConversationMutating}
                       className={`
                         rounded-lg px-3 py-2 text-left text-xs transition-all
                         ${styles.buttonSecondary}
                         border
-                        hover:border-amber-500/50
+                        hover:border-amber-500/50 disabled:opacity-40
                       `}
                     >
                       {q.label}
@@ -484,7 +733,7 @@ export function GlobalAISidebar() {
         </div>
 
         {/* 输入区 */}
-        <form onSubmit={handleSubmit} className={`border-t p-4 ${styles.border}`}>
+        <form onSubmit={handleConversationSubmit} className={`border-t p-4 ${styles.border}`}>
           <div className="flex gap-2">
             <input
               type="text"
@@ -498,7 +747,7 @@ export function GlobalAISidebar() {
                 focus:outline-none focus:ring-2
                 ${styles.input}
               `}
-              disabled={isLoading}
+              disabled={isLoading || isConversationLoading || isConversationMutating}
             />
             {isLoading ? (
               <Button
@@ -514,7 +763,7 @@ export function GlobalAISidebar() {
             ) : (
               <Button
                 type="submit"
-                disabled={!input.trim()}
+                disabled={!input.trim() || isConversationLoading || isConversationMutating}
                 size="icon"
                 className={`h-10 w-10 ${styles.button}`}
               >

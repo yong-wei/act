@@ -86,7 +86,7 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('toModelMessages(uiMessages)');
     expect(chatRouteSource).toContain('toUIMessageStream({');
     expect(chatRouteSource).toContain('createUIMessageStreamResponse');
-    expect(chatRouteSource).toContain('const uiMessages = rawMessages.map(toUIMessage)');
+    expect(chatRouteSource).toContain('let uiMessages = rawMessages.map(toUIMessage)');
     expect(chatRouteSource).toContain('originalMessages: uiMessages');
     expect(chatRouteSource).toContain('generateMessageId: () => crypto.randomUUID()');
     expect(chatRouteSource).toContain('consumeSseStream: consumeStream');
@@ -98,6 +98,31 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('toModelMessages(updatedMessages)');
     expect(sessionMessagesRouteSource).toContain('stopWhen: stepCountIs(5)');
     expect(sessionMessagesRouteSource).not.toContain('StreamingTextResponse');
+  });
+
+  it('rejects expired or hidden legacy sessions before agent, tool, or model side effects', () => {
+    const sessionLookup = sessionMessagesRouteSource.indexOf('const konlingSession = await prisma.konlingSession.findFirst');
+    const visibilityGate = sessionMessagesRouteSource.indexOf('libraryVisible: true', sessionLookup);
+    const expiryGate = sessionMessagesRouteSource.indexOf('expiresAt: { gt: new Date() }', sessionLookup);
+    const notFound = sessionMessagesRouteSource.indexOf("error: 'Session not found'", sessionLookup);
+    const agentSession = sessionMessagesRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession');
+    const model = sessionMessagesRouteSource.indexOf('const result = await streamText');
+    expect(sessionLookup).toBeGreaterThanOrEqual(0);
+    expect(visibilityGate).toBeGreaterThan(sessionLookup);
+    expect(expiryGate).toBeGreaterThan(sessionLookup);
+    expect(notFound).toBeLessThan(agentSession);
+    expect(notFound).toBeLessThan(model);
+  });
+
+  it('uses collision-resistant message ids and claims a conversation before model or tool execution', () => {
+    expect(sessionMessagesRouteSource).not.toContain('Date.now()');
+    expect(sessionMessagesRouteSource.match(/createKonlingMessageId\(\)/g)).toHaveLength(2);
+    const claim = sessionMessagesRouteSource.indexOf('await claimKonlingConversationTurn');
+    expect(claim).toBeGreaterThanOrEqual(0);
+    expect(claim).toBeLessThan(sessionMessagesRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession'));
+    expect(claim).toBeLessThan(sessionMessagesRouteSource.indexOf('const result = await streamText'));
+    expect(chatRouteSource.indexOf('await claimKonlingConversationTurn'))
+      .toBeLessThan(chatRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession'));
   });
 
   it('keeps scoped Konling simulation parameter tools available without restoring legacy tools', () => {
@@ -246,8 +271,8 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('{ konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload }');
     expect(chatRouteSource).not.toContain('konlingSarAssociatedGrounding: modeContract.groundingContext.sarAssociatedGrounding');
     expect(chatRouteSource).toContain('AgentSession citation metadata persistence failed');
-    expect(chatRouteSource).toContain('ownerUserId: scope.scope.targetUserId');
-    expect(chatRouteSource).not.toContain('actorUserId: scope.scope.authenticatedUserId');
+    expect(chatRouteSource).toContain('ownerUserId: authorizedScope.targetUserId');
+    expect(chatRouteSource).toContain('actorUserId: authorizedScope.authenticatedUserId');
     expect(chatRouteSource).toContain('messageMetadata: ({ part })');
     expect(chatRouteSource).toContain('konlingCitationGuard');
     expect(chatRouteSource).toContain('appendFinalCitationGuardMetadata');
@@ -273,7 +298,7 @@ describe('AI chat route Konling runtime guard', () => {
     expect(streamingCitationFallbackSource).toContain('retrievalSources?:');
     expect(streamingCitationFallbackSource).toContain('【控灵证据提示】');
     expect(chatRouteSource).toContain('createUIMessageStreamResponse');
-    expect(chatRouteSource).toContain('trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId)');
+    expect(chatRouteSource).toContain('trustedContentContext: Boolean(authorizedScope.courseId && authorizedScope.pageId)');
     expect(chatRouteSource).not.toContain('trustedContentContext: Boolean(courseId && pageId)');
     expect(sessionMessagesRouteSource).toContain('const citationGuard = buildKonlingCitationGuard(modeRuntimeContext, assistantContent)');
     expect(sessionMessagesRouteSource).toContain('const guardedAssistantContent = applyKonlingCitationFallback');
@@ -320,6 +345,17 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('clientHintsRejected: Object.keys(modeClientContextHints ?? {})');
     expect(sessionMessagesRouteSource).toContain('clientContextHints: modeClientContextHints');
     expect(sessionMessagesRouteSource).toContain('permittedTools: modeContract.permittedTools');
+  });
+
+  it('does not promote client page text into server-authored page context', () => {
+    expect(konlingRuntimeSource).toContain('function buildServerOwnedPageContext(scope: KonlingRuntimeScope)');
+    expect(konlingRuntimeSource).not.toContain('hint?.courseTitle');
+    expect(konlingRuntimeSource).not.toContain('hint?.pageType');
+    expect(konlingRuntimeSource).not.toContain('hint?.topic');
+    expect(konlingRuntimeSource).not.toContain('hint?.learningObjectives');
+    expect(konlingRuntimeSource).not.toContain('hint?.knowledgeType');
+    expect(konlingRuntimeSource).not.toContain('stage: hint?.stage');
+    expect(konlingRuntimeSource).not.toContain('url: hint?.url');
   });
 
   it('validates runtime scope before building Konling context and preserves scope error status', () => {

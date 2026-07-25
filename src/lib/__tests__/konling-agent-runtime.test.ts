@@ -4413,7 +4413,7 @@ describe('konling agent runtime', () => {
     });
   });
 
-  it('uses trusted page context as fallback answer relevance for generic user questions', async () => {
+  it('does not use client-authored page text as fallback answer relevance for generic user questions', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -4437,16 +4437,10 @@ describe('konling agent runtime', () => {
       citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
 
-    expect(sourcePackCitations.length).toBeGreaterThan(0);
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        queryText: expect.stringContaining('这里怎么理解？'),
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
-        answerRelevanceBases: expect.arrayContaining(['query-lexical']),
-      }),
-    ]);
-    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(sourcePackCitations).toEqual([]);
+    expect(runtime.pageContext.topic).toBe('student-path-center');
+    expect(runtime.pageContext.courseTitle).toBe('control-correction');
+    expect(JSON.stringify(runtime.pageContext)).not.toContain('Bode 图频域响应');
   });
 
   it('omits unrelated ADVANCED PROBLEMS chunks from konling-answer content citations', async () => {
@@ -11210,6 +11204,75 @@ describe('konling agent runtime', () => {
     expect(db.agentSession.create).not.toHaveBeenCalled();
   });
 
+  it('keeps awaiting approval sessions bound to both the actor and the selected Konling conversation', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'student-1',
+      role: 'teacher',
+      privacyScopes: ['teacher-scoped'],
+    });
+    const sessions = ['conversation-a', 'conversation-b'].map((konlingSessionId) => ({
+      id: `agent-${konlingSessionId}`,
+      konlingSessionId,
+      ownerUserId: 'student-1',
+      actorUserId: 'teacher-1',
+      classId: 'class-1',
+      courseId: 'unit-4-5',
+      pageId: 'step-03',
+      resourceId: 'resource-1',
+      pathNodeId: 'node-1',
+      phase: 'konling-chat-tool-runtime',
+      status: 'awaiting_approval',
+      stateJson: {},
+      permittedTools: ['get_page_context'],
+      pendingApproval: { toolRunId: `tool-${konlingSessionId}` },
+      expiresAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+    const db = {
+      agentSession: {
+        findFirst: vi.fn(async ({ where }) => sessions.find((candidate) =>
+          candidate.konlingSessionId === where.konlingSessionId
+          && candidate.ownerUserId === where.ownerUserId
+          && candidate.actorUserId === where.actorUserId
+          && candidate.status === where.status
+        ) ?? null),
+        create: vi.fn(),
+      },
+    };
+
+    const first = await getOrCreateKonlingAgentSession(db, {
+      scope,
+      konlingSessionId: 'conversation-a',
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+    });
+    const second = await getOrCreateKonlingAgentSession(db, {
+      scope,
+      konlingSessionId: 'conversation-b',
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+    });
+
+    expect(first.id).toBe('agent-conversation-a');
+    expect(second.id).toBe('agent-conversation-b');
+    expect(db.agentSession.findFirst).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: expect.objectContaining({
+        ownerUserId: 'student-1',
+        actorUserId: 'teacher-1',
+        konlingSessionId: 'conversation-a',
+      }),
+    }));
+    expect(db.agentSession.findFirst).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: expect.objectContaining({
+        ownerUserId: 'student-1',
+        actorUserId: 'teacher-1',
+        konlingSessionId: 'conversation-b',
+      }),
+    }));
+  });
+
   it('declares durable AgentSession and AgentToolRun persistence contracts in Prisma', () => {
     const schema = readFileSync(join(process.cwd(), 'prisma/schema.prisma'), 'utf8');
     const scopeIdempotencyMigration = readFileSync(
@@ -11225,6 +11288,7 @@ describe('konling agent runtime', () => {
     expect(schema).toMatch(/agentSessionId\s+String/);
     expect(schema).toMatch(/approvalState\s+String/);
     expect(schema).toMatch(/correlationId\s+String/);
+    expect(schema).toMatch(/konlingSession\s+KonlingSession\?\s+@relation\(fields: \[konlingSessionId\], references: \[id\], onDelete: SetNull\)/);
     expect(schema).toContain('@@unique([agentSessionId, toolName, idempotencyKey])');
     expect(scopeIdempotencyMigration).toContain('BEGIN;');
     expect(scopeIdempotencyMigration).toContain("starts_with(\"idempotencyKey\", '__agent_tool_run_scope_idempotency__:')");

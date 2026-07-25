@@ -1,22 +1,21 @@
-/**
- * 控灵会话 API
- *
- * 管理AI会话的创建和获取
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import {
+  createKonlingContextEvent,
+  KONLING_DEFAULT_CONVERSATION_TITLE,
+  resolveKonlingContextEventScope,
+  serializeKonlingConversation,
+} from '@/lib/konling-conversation-library';
+import { verifyKonlingRuntimeScope } from '@/lib/konling-agent-runtime';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
 const SESSION_EXPIRY_DAYS = 7;
+const SEARCH_MAX_LENGTH = 64;
+
 export const dynamic = 'force-dynamic';
 
-/**
- * GET /api/ai/sessions?courseId=X&pageId=Y
- * 获取现有会话
- */
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -24,61 +23,51 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const courseId = searchParams.get('courseId');
-    const pageId = searchParams.get('pageId');
-
-    if (!courseId || !pageId) {
-      return NextResponse.json(
-        { error: 'Missing courseId or pageId' },
-        { status: 400 }
-      );
-    }
-
-    // 查找现有会话
-    const existingSession = await prisma.konlingSession.findFirst({
+    const search = new URL(request.url).searchParams.get('search')?.trim().slice(0, SEARCH_MAX_LENGTH);
+    const conversations = await prisma.konlingSession.findMany({
       where: {
         userId: session.user.id,
-        courseId,
-        pageId,
-        expiresAt: {
-          gt: new Date(),
-        },
+        libraryVisible: true,
+        expiresAt: { gt: new Date() },
+        ...(search ? {
+          title: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        } : {}),
       },
-      orderBy: {
-        updatedAt: 'desc',
+      select: {
+        id: true,
+        courseId: true,
+        pageId: true,
+        title: true,
+        titleIsManual: true,
+        pinnedAt: true,
+        lastActivityAt: true,
+        createdAt: true,
+        updatedAt: true,
+        expiresAt: true,
       },
+      orderBy: [
+        { pinnedAt: { sort: 'desc', nulls: 'last' } },
+        { lastActivityAt: 'desc' },
+        { id: 'desc' },
+      ],
     });
 
-    if (existingSession) {
-      return NextResponse.json({
-        id: existingSession.id,
-        userId: existingSession.userId,
-        courseId: existingSession.courseId,
-        pageId: existingSession.pageId,
-        title: existingSession.title,
-        messages: existingSession.messages as Record<string, unknown>[],
-        createdAt: existingSession.createdAt,
-        updatedAt: existingSession.updatedAt,
-        expiresAt: existingSession.expiresAt,
-      });
-    }
-
-    return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    return NextResponse.json({
+      conversations: conversations.map((conversation) => ({
+        ...conversation,
+        pinned: Boolean(conversation.pinnedAt),
+      })),
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Error in GET /api/ai/sessions:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-/**
- * POST /api/ai/sessions
- * 创建新会话
- */
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -87,74 +76,54 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { courseId, pageId, title, pageContext } = body;
-
+    const courseId = typeof body.courseId === 'string' ? body.courseId.trim() : '';
+    const pageId = typeof body.pageId === 'string' ? body.pageId.trim() : '';
     if (!courseId || !pageId) {
-      return NextResponse.json(
-        { error: 'Missing courseId or pageId' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing courseId or pageId' }, { status: 400 });
     }
 
-    const existingSession = await prisma.konlingSession.findFirst({
-      where: {
-        userId: session.user.id,
-        courseId,
-        pageId,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-      orderBy: {
-        updatedAt: 'desc',
-      },
+    const scope = await verifyKonlingRuntimeScope(prisma, {
+      authenticatedUserId: session.user.id,
+      role: session.user.role,
+      courseId,
+      pageId,
+      classId: typeof body.classId === 'string' ? body.classId : null,
+      resourceId: typeof body.resourceId === 'string' ? body.resourceId : null,
+      pathNodeId: typeof body.pathNodeId === 'string' ? body.pathNodeId : null,
+      pageContextHint: body.pageContext,
     });
-
-    if (existingSession) {
-      return NextResponse.json({
-        id: existingSession.id,
-        userId: existingSession.userId,
-        courseId: existingSession.courseId,
-        pageId: existingSession.pageId,
-        title: existingSession.title,
-        messages: existingSession.messages as Record<string, unknown>[],
-        createdAt: existingSession.createdAt,
-        updatedAt: existingSession.updatedAt,
-        expiresAt: existingSession.expiresAt,
-      });
+    if (!scope.ok) {
+      return NextResponse.json({ error: scope.error }, { status: scope.status });
+    }
+    const contextEventScope = await resolveKonlingContextEventScope(prisma, scope.scope);
+    if (!contextEventScope) {
+      return NextResponse.json({ error: 'Page context is not registered for Konling.' }, { status: 400 });
     }
 
-    const expiresAt = new Date();
+    const now = new Date();
+    const conversationId = crypto.randomUUID();
+    const expiresAt = new Date(now);
     expiresAt.setDate(expiresAt.getDate() + SESSION_EXPIRY_DAYS);
-
-    const newSession = await prisma.konlingSession.create({
+    const initialContext = createKonlingContextEvent(contextEventScope);
+    const conversation = await prisma.konlingSession.create({
       data: {
+        id: conversationId,
         userId: session.user.id,
-        courseId,
-        pageId,
-        title: title || `${courseId} - ${pageId}`,
-        messages: [],
+        courseId: contextEventScope.courseId,
+        pageId: contextEventScope.pageId,
+        title: KONLING_DEFAULT_CONVERSATION_TITLE,
+        titleIsManual: false,
+        migrationSourceId: `native:${conversationId}`,
+        messages: [initialContext] as unknown as import('@prisma/client').Prisma.InputJsonValue,
+        lastActivityAt: now,
         expiresAt,
       },
     });
 
-    return NextResponse.json({
-      id: newSession.id,
-      userId: newSession.userId,
-      courseId: newSession.courseId,
-      pageId: newSession.pageId,
-      title: newSession.title,
-      messages: [],
-      createdAt: newSession.createdAt,
-      updatedAt: newSession.updatedAt,
-      expiresAt: newSession.expiresAt,
-    });
+    return NextResponse.json(serializeKonlingConversation(conversation), { status: 201 });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Error in POST /api/ai/sessions:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

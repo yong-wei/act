@@ -3951,28 +3951,31 @@ model KonlingMemory {
 }
 
 model AgentSession {
-  id              String    @id @default(cuid())
-  ownerUserId     String
-  actorUserId     String?
-  classId         String?
-  courseId        String
-  pageId          String
-  resourceId      String?
-  pathNodeId      String?
-  phase           String
-  status          String    @default("draft")
-  stateJson       Json      @default("{}")
-  permittedTools  String[]  @default([])
-  pendingApproval Json?
-  expiresAt       DateTime?
-  archivedAt      DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  konlingSessionId String?
+  ownerUserId      String
+  actorUserId      String?
+  classId          String?
+  courseId         String
+  pageId           String
+  resourceId       String?
+  pathNodeId       String?
+  phase            String
+  status           String    @default("draft")
+  stateJson        Json      @default("{}")
+  permittedTools   String[]  @default([])
+  pendingApproval  Json?
+  expiresAt        DateTime?
+  archivedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  ownerUser User           @relation("AgentSessionOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
-  actorUser User?          @relation("AgentSessionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
-  toolRuns  AgentToolRun[]
+  ownerUser      User            @relation("AgentSessionOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  actorUser      User?           @relation("AgentSessionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  konlingSession KonlingSession? @relation(fields: [konlingSessionId], references: [id], onDelete: SetNull)
+  toolRuns       AgentToolRun[]
 
+  @@index([konlingSessionId, updatedAt])
   @@index([ownerUserId, status, updatedAt])
   @@index([ownerUserId, courseId, pageId])
   @@index([classId])
@@ -4074,11 +4077,18 @@ model PlatformSetting {
 // ========== 控灵AI助手会话模型 ==========
 
 model KonlingSession {
-  id       String @id @default(cuid())
-  userId   String
-  courseId String // 课程ID (L-2d, L-sum等)
-  pageId   String // 页面/步骤ID
-  title    String // 会话标题
+  id                  String    @id @default(cuid())
+  userId              String
+  courseId            String // 发起会话时的课程ID
+  pageId              String // 发起会话时的页面/步骤ID
+  title               String
+  titleIsManual       Boolean   @default(false)
+  pinnedAt            DateTime?
+  lastActivityAt      DateTime  @default(now())
+  libraryVisible      Boolean   @default(true)
+  migrationSourceId   String?   @unique
+  activeTurnId        String?
+  activeTurnClaimedAt DateTime?
 
   messages Json // 消息历史数组
 
@@ -4086,11 +4096,13 @@ model KonlingSession {
   updatedAt DateTime @updatedAt
   expiresAt DateTime // 7天后过期
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentSessions AgentSession[]
 
   @@index([userId, courseId, pageId])
   @@index([expiresAt])
   @@index([userId, updatedAt])
+  @@index([userId, libraryVisible, pinnedAt, lastActivityAt])
 }
 
 // ========== Data Governance Tables ==========

@@ -8,7 +8,7 @@
 
 import { consumeStream, createUIMessageStreamResponse, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
-import { toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
+import { getMessageContent, toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
@@ -41,7 +41,16 @@ import {
 } from '@/lib/konling-agent-runtime';
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
 import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
+import {
+  claimKonlingConversationTurn,
+  completeKonlingConversationTurn,
+  KonlingConversationTurnConflictError,
+  prepareKonlingConversationTurn,
+  releaseKonlingConversationTurn,
+  resolveKonlingContextEventScope,
+} from '@/lib/konling-conversation-library';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
+import type { Message } from '@/types/ai-message';
 import type { Prisma } from '@prisma/client';
 
 export const runtime = 'nodejs';
@@ -118,6 +127,11 @@ function asPrismaJsonValue(value: unknown): Prisma.InputJsonValue {
 }
 
 export async function POST(request: Request) {
+  let claimedTurn: {
+    conversationId: string;
+    ownerUserId: string;
+    turnId: string;
+  } | null = null;
   try {
     const body = await request.json();
     const {
@@ -131,6 +145,7 @@ export async function POST(request: Request) {
       classId,
       resourceId,
       pathNodeId,
+      conversationId,
       agentSessionId,
       teachingAssistantModeId,
       modeClientContextHints,
@@ -147,6 +162,7 @@ export async function POST(request: Request) {
       classId?: string;
       resourceId?: string;
       pathNodeId?: string;
+      conversationId?: string;
       agentSessionId?: string;
       teachingAssistantModeId?: string;
       modeClientContextHints?: Record<string, unknown>;
@@ -191,14 +207,37 @@ export async function POST(request: Request) {
       });
     }
 
-    const uiMessages = rawMessages.map(toUIMessage);
-    const messages = uiMessages.map(toLegacyMessage);
-    const ownedTurnIds = messages.filter((message) => message.role === 'user').map((message) => message.id).filter(Boolean).slice(-50);
+    let uiMessages = rawMessages.map(toUIMessage);
+    let messages = uiMessages.map(toLegacyMessage);
+    const requestedUserMessage = [...messages].reverse().find((message) => message.role === 'user');
+    const conversation = conversationId && session?.user?.id
+      ? await prisma.konlingSession.findFirst({
+        where: {
+          id: conversationId,
+          userId: session.user.id,
+          libraryVisible: true,
+          expiresAt: { gt: new Date() },
+        },
+      })
+      : null;
+    if (conversationId && !conversation) {
+      return new Response(JSON.stringify({ error: 'Conversation not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (conversation && !requestedUserMessage) {
+      return new Response(JSON.stringify({ error: 'Conversation turn requires a user message' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    let ownedTurnIds = messages.filter((message) => message.role === 'user').map((message) => message.id).filter(Boolean).slice(-50);
 
     const hasRuntimeContext = Boolean(
       (courseId || pageContext?.courseId) &&
       (pageId || pageContext?.stepId),
-    );
+    ) || Boolean(conversation);
     if (teachingAssistantModeId && !hasRuntimeContext) {
       return new Response(JSON.stringify({
         error: 'KONLING_MODE_UNAVAILABLE',
@@ -253,8 +292,8 @@ export async function POST(request: Request) {
         role: session.user.role,
         targetUserId: runtimeTargetUserId,
         classId: runtimeClassId,
-        courseId: courseId || pageContext?.courseId,
-        pageId: pageId || pageContext?.stepId,
+        courseId: courseId || pageContext?.courseId || conversation?.courseId,
+        pageId: pageId || pageContext?.stepId || conversation?.pageId,
         resourceId,
         pathNodeId,
         pageContextHint: pageContext,
@@ -265,26 +304,51 @@ export async function POST(request: Request) {
           headers: { 'Content-Type': 'application/json' },
         });
       }
+      const contextEventScope = conversation
+        ? await resolveKonlingContextEventScope(prisma, scope.scope)
+        : null;
+      if (conversation && !contextEventScope) {
+        return new Response(JSON.stringify({ error: 'Page context is not registered for Konling.' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      const authorizedScope = contextEventScope
+        ? { ...scope.scope, ...contextEventScope }
+        : scope.scope;
+      if (conversation && requestedUserMessage) {
+        const preparedTurn = prepareKonlingConversationTurn({
+          conversation,
+          currentScope: authorizedScope,
+          userMessage: requestedUserMessage,
+        });
+        messages = preparedTurn.modelMessages;
+        uiMessages = messages.map(toUIMessage);
+        ownedTurnIds = messages
+          .filter((message) => message.role === 'user')
+          .map((message) => message.id)
+          .filter(Boolean)
+          .slice(-50);
+      }
       const runtimeInput = {
         authenticatedUserId: session.user.id,
         authenticatedUserName: session.user.name,
         role: session.user.role,
         targetUserId: runtimeTargetUserId,
         classId: runtimeClassId,
-        courseId: scope.scope.courseId,
-        pageId: scope.scope.pageId,
-        resourceId,
-        pathNodeId,
-        pageContextHint: pageContext,
+        courseId: authorizedScope.courseId,
+        pageId: authorizedScope.pageId,
+        resourceId: authorizedScope.resourceId,
+        pathNodeId: authorizedScope.pathNodeId,
         knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
         teachingAssistantModeId,
         currentUserQuery: messages.at(-1)?.role === 'user' ? messages.at(-1)?.content : null,
-        trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId),
+        trustedContentContext: Boolean(authorizedScope.courseId && authorizedScope.pageId),
       };
       const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext({
         db: prisma,
         modeId: teachingAssistantModeId,
-        scope: scope.scope,
+        scope: authorizedScope,
         clientContextHints: modeClientContextHints,
       });
       const smartPrepBinding = resolveKonlingSmartPrepSessionBinding(serverModeContext);
@@ -295,7 +359,7 @@ export async function POST(request: Request) {
       const modeContract = buildKonlingTeachingAssistantRuntimeContract({
         modeId: teachingAssistantModeId,
         runtimeContext,
-        scope: scope.scope,
+        scope: authorizedScope,
         serverModeContext,
         clientContextHints: modeClientContextHints,
         currentUserQuery: runtimeInput.currentUserQuery,
@@ -367,13 +431,53 @@ export async function POST(request: Request) {
           }
         );
       }
+      if (conversation && requestedUserMessage) {
+        const claimedConversationTurn = await claimKonlingConversationTurn(prisma, {
+          conversationId: conversation.id,
+          ownerUserId: session.user.id,
+          currentScope: authorizedScope,
+          userMessage: requestedUserMessage,
+        });
+        if (!claimedConversationTurn) {
+          return new Response(JSON.stringify({ error: 'Conversation not found' }), {
+            status: 404,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        claimedTurn = {
+          conversationId: conversation.id,
+          ownerUserId: session.user.id,
+          turnId: claimedConversationTurn.turnId,
+        };
+        messages = claimedConversationTurn.modelMessages;
+        uiMessages = messages.map(toUIMessage);
+        ownedTurnIds = messages
+          .filter((message) => message.role === 'user')
+          .map((message) => message.id)
+          .filter(Boolean)
+          .slice(-50);
+      }
       const agentSession = await getOrCreateKonlingAgentSession(prisma, {
-        scope: scope.scope,
-        agentSessionId,
+        scope: authorizedScope,
+        agentSessionId: conversationId && agentSessionId
+          ? (await prisma.agentSession.findFirst({
+            where: {
+              id: agentSessionId,
+              ownerUserId: authorizedScope.targetUserId,
+              actorUserId: authorizedScope.authenticatedUserId,
+              konlingSessionId: conversationId,
+              courseId: authorizedScope.courseId,
+              pageId: authorizedScope.pageId,
+            },
+            select: { id: true },
+          }))?.id
+          : agentSessionId,
+        konlingSessionId: conversationId,
         phase: 'ai-chat-tool-runtime',
         status: 'running',
         state: {
           route: '/api/ai/chat',
+          ...(conversationId ? { conversationId } : {}),
           currentTurnId: messages.at(-1)?.id ?? null,
           ownedTurnIds,
           teachingAssistantMode: modeContract.mode.id,
@@ -387,17 +491,21 @@ export async function POST(request: Request) {
       const agentSessionStateUpdate = await prisma.agentSession.updateMany({
         where: {
           id: agentSession.id,
-          ownerUserId: scope.scope.targetUserId,
-          classId: scope.scope.classId ?? null,
-          courseId: scope.scope.courseId,
-          pageId: scope.scope.pageId,
-          resourceId: scope.scope.resourceId ?? null,
-          pathNodeId: scope.scope.pathNodeId ?? null,
+          ownerUserId: authorizedScope.targetUserId,
+          actorUserId: authorizedScope.authenticatedUserId,
+          classId: authorizedScope.classId ?? null,
+          courseId: authorizedScope.courseId,
+          pageId: authorizedScope.pageId,
+          resourceId: authorizedScope.resourceId ?? null,
+          pathNodeId: authorizedScope.pathNodeId ?? null,
+          ...(conversationId ? { konlingSessionId: conversationId } : {}),
         },
         data: {
+          ...(conversationId ? { konlingSessionId: conversationId } : {}),
           stateJson: {
             ...agentSession.state,
             route: '/api/ai/chat',
+            ...(conversationId ? { conversationId } : {}),
             currentTurnId: messages.at(-1)?.id ?? null,
             ownedTurnIds,
             teachingAssistantMode: modeContract.mode.id,
@@ -408,7 +516,7 @@ export async function POST(request: Request) {
               smartPrepBinding: {
                 taskId: smartPrepBinding.taskId,
                 taskRevision: smartPrepBinding.taskRevision,
-                ownerUserId: scope.scope.targetUserId,
+                ownerUserId: authorizedScope.targetUserId,
               },
             } : {}),
           } as Prisma.InputJsonObject,
@@ -419,7 +527,7 @@ export async function POST(request: Request) {
       }
       const toolRuntime = buildKonlingToolRuntime({
         db: prisma,
-        scope: scope.scope,
+        scope: authorizedScope,
         context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools },
         agentSessionId: agentSession.id,
         permittedTools: modeContract.permittedTools,
@@ -427,6 +535,7 @@ export async function POST(request: Request) {
       });
       agentSessionResponseHeaders = {
         'X-Konling-Agent-Session-Id': agentSession.id,
+        ...(conversationId ? { 'X-Konling-Conversation-Id': conversationId } : {}),
         'X-Konling-Citation-Guard': citationGuardMetadata.status,
         'X-Konling-Assistant-Mode': modeContract.mode.id,
         'X-Konling-Assistant-Mode-Status': modeContract.status,
@@ -483,6 +592,47 @@ export async function POST(request: Request) {
     const uiMessageStream = result.toUIMessageStream({
       originalMessages: uiMessages,
       generateMessageId: () => crypto.randomUUID(),
+      onFinish: async ({ responseMessage, isAborted }) => {
+        if (!claimedTurn) {
+          return;
+        }
+        if (isAborted) {
+          await releaseKonlingConversationTurn(prisma, claimedTurn);
+          claimedTurn = null;
+          return;
+        }
+        const assistantContent = getMessageContent(responseMessage);
+        if (!assistantContent.trim()) {
+          await releaseKonlingConversationTurn(prisma, claimedTurn);
+          claimedTurn = null;
+          return;
+        }
+        const finalCitationMetadata = buildFinalCitationGuardMetadataPayload?.(assistantContent)
+          ?? citationGuardMetadataPayload;
+        const completingTurn = claimedTurn;
+        try {
+          await completeKonlingConversationTurn(prisma, {
+            ...completingTurn,
+            assistantMessage: {
+              ...responseMessage,
+              metadata: {
+                ...(responseMessage.metadata ?? {}),
+                ...(finalCitationMetadata ? {
+                  konlingCitationGuard: finalCitationMetadata,
+                } : {}),
+                ...(sarAssociatedGroundingMetadataPayload ? {
+                  konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+                } : {}),
+              },
+            },
+          });
+          claimedTurn = null;
+        } catch (error) {
+          await releaseKonlingConversationTurn(prisma, completingTurn);
+          claimedTurn = null;
+          throw error;
+        }
+      },
       messageMetadata: ({ part }) => {
         if (!citationGuardMetadataPayload || (part.type !== 'start' && part.type !== 'finish')) return undefined;
         return {
@@ -490,7 +640,14 @@ export async function POST(request: Request) {
           konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
         };
       },
-      onError: getAIStreamErrorMessage,
+      onError: (error) => {
+        if (claimedTurn) {
+          const failedTurn = claimedTurn;
+          claimedTurn = null;
+          void releaseKonlingConversationTurn(prisma, failedTurn);
+        }
+        return getAIStreamErrorMessage(error);
+      },
     });
     const finalCitationUiMessageStream = buildFinalCitationGuardMetadataPayload
       ? appendFinalCitationGuardMetadata(
@@ -511,7 +668,16 @@ export async function POST(request: Request) {
       consumeSseStream: consumeStream,
     });
   } catch (error) {
+    if (claimedTurn) {
+      await releaseKonlingConversationTurn(prisma, claimedTurn).catch(() => undefined);
+    }
     rethrowIfNextDynamicError(error);
+    if (error instanceof KonlingConversationTurnConflictError) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: error.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     if (error instanceof KonlingRuntimeScopeError) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: error.status,
