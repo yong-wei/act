@@ -65,6 +65,13 @@ describe('student response editor interactions', () => {
       status: 'FAILED',
       message: '网络中断。',
     };
+    const terminalFailure: PendingUpload = {
+      ...failed,
+      clientId: 'terminal-1',
+      fileName: '不安全.pdf',
+      retryable: false,
+      message: '附件未通过安全扫描，请更换文件。',
+    };
     await act(async () => {
       root.render(
         <QuestionEditor
@@ -113,12 +120,16 @@ describe('student response editor interactions', () => {
           busyAction={null}
           readOnly={false}
           headingRef={{ current: null }}
-          pendingUploads={[failed]}
+          pendingUploads={[failed, terminalFailure]}
           uploadStatusRef={{ current: null }}
         />,
       );
     });
 
+    expect(container.querySelector('#answer-question-1')?.getAttribute('tabindex'))
+      .toBe('-1');
+    expect(container.querySelector('#upload-terminal-1')?.textContent)
+      .not.toContain('重试');
     await act(async () => {
       fireEvent.click(getByRole(container, 'button', { name: '保存' }));
       fireEvent.click(getByRole(container, 'button', { name: '重试' }));

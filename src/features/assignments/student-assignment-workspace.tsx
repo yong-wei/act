@@ -60,6 +60,7 @@ export type PendingUpload = {
   uploadUrl?: string;
   requiredHeaders?: Record<string, string>;
   uploaded?: boolean;
+  retryable?: boolean;
   status: 'WAITING' | 'UPLOADING' | 'SCANNING' | 'RETRYING' | 'FAILED';
   message: string;
 };
@@ -493,9 +494,12 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
         }
         removeUploadJob(question.id, job.clientId);
       } else {
+        const retryable = !(cause instanceof StudentResponseMutationError)
+          || !['UNSAFE', 'EXPIRED', 'FAILED', 'asset-not-ready'].includes(cause.code);
         updateUploadJob(question.id, job.clientId, {
           status: 'FAILED',
           message,
+          retryable,
         });
       }
       setNotice({
@@ -515,7 +519,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     pending: PendingUpload & { intentId: string; idempotencyKey: string },
   ) {
     type FinalizeResult = StudentUploadErrorPayload & {
-      status?: 'SCANNING' | 'CLEAN' | 'READY' | 'UNSAFE' | 'EXPIRED';
+      status?: 'SCANNING' | 'CLEAN' | 'READY' | 'UNSAFE' | 'EXPIRED' | 'FAILED';
       answerVersion?: number;
       asset?: NonNullable<StudentAssignmentQuestion['assets']>[number];
     };
@@ -1212,7 +1216,11 @@ export function QuestionEditor({
         </span>
       </div>
 
-      <div id={`answer-${question.id}`} className="mt-6 scroll-mt-24">
+      <div
+        id={`answer-${question.id}`}
+        tabIndex={-1}
+        className="mt-6 scroll-mt-24 outline-none"
+      >
         <AssignmentEmbeddedEditor
           hostRole="student"
           field="student-response"
@@ -1361,14 +1369,16 @@ export function QuestionEditor({
                 <p className="mt-1 text-xs">{uploadStatusLabel(pending.status)}：{pending.message}</p>
                 {pending.status === 'FAILED' && (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => onRetryUpload(pending)}
-                      className="btn-ghost-themed inline-flex min-h-10 items-center gap-1 rounded-lg px-3 text-xs"
-                    >
-                      <RefreshCw className="h-3.5 w-3.5" />
-                      重试
-                    </button>
+                    {pending.retryable !== false && (
+                      <button
+                        type="button"
+                        onClick={() => onRetryUpload(pending)}
+                        className="btn-ghost-themed inline-flex min-h-10 items-center gap-1 rounded-lg px-3 text-xs"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        重试
+                      </button>
+                    )}
                     <button
                       type="button"
                       disabled={busy}

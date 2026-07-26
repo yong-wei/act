@@ -447,6 +447,7 @@ test('upload failure is localized, retry reaches ready, and unsafe files remain 
   await page.locator('#file-question-file').setInputFiles({ name: 'unsafe.pdf', mimeType: 'application/pdf', buffer: Buffer.from('unsafe') });
   const unsafe = page.getByRole('status').filter({ hasText: '附件未通过安全扫描' });
   await expect(unsafe).toBeVisible();
+  await expect(unsafe.getByRole('button', { name: '重试' })).toHaveCount(0);
   await unsafe.getByRole('button', { name: '移除失败项' }).click();
   await expect(unsafe).toHaveCount(0);
   expect(discardedIntents).toContain('intent-round3-3');
