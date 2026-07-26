@@ -294,8 +294,7 @@ export function inspectTextbookRuntimeV2(
     sourceRevision,
     runtimeDigest: digest.digest('hex'),
     inputDigest,
-    fileCount: TEXTBOOK_V2_BOOK_IDS.length * TEXTBOOK_V2_REQUIRED_FILES.length
-      + (inputDigest ? 1 : 0),
+    fileCount: TEXTBOOK_V2_BOOK_IDS.length * TEXTBOOK_V2_REQUIRED_FILES.length + 1,
     mediaFileCount: mediaFiles.size,
   };
 }

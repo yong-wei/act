@@ -52,32 +52,6 @@ export function toUIMessage(message: IncomingMessage): UIMessage {
   };
 }
 
-export function replaceMessageTextContent(
-  message: IncomingMessage,
-  content: string,
-  metadata: UIMessage['metadata'],
-): IncomingMessage {
-  const uiMessage = toUIMessage(message);
-  let replaced = false;
-  const parts: UIMessage['parts'] = [];
-  for (const part of uiMessage.parts) {
-    if (part.type !== 'text') {
-      parts.push(part);
-      continue;
-    }
-    if (replaced) continue;
-    replaced = true;
-    parts.push({ ...part, text: content });
-  }
-  if (!replaced) parts.push({ type: 'text', text: content });
-  return {
-    ...uiMessage,
-    content,
-    metadata,
-    parts,
-  };
-}
-
 export function toLegacyMessage(message: IncomingMessage): Message {
   const uiMessage = toUIMessage(message);
   return {

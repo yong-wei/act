@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  replaceMessageTextContent,
-  toLegacyMessage,
-  toModelMessages,
-} from '@/lib/ai-message-compat';
+import { toLegacyMessage, toModelMessages } from '@/lib/ai-message-compat';
 
 describe('AI SDK message compatibility', () => {
   it('normalizes legacy content messages to UIMessage parts', async () => {
@@ -94,35 +90,4 @@ describe('AI SDK message compatibility', () => {
     ]);
   });
 
-  it('replaces normalized text while preserving tool parts', () => {
-    const message = replaceMessageTextContent({
-      id: 'm5',
-      role: 'assistant',
-      parts: [
-        { type: 'text', text: '原始正文' },
-        {
-          type: 'tool-search_textbook',
-          toolCallId: 'tool-1',
-          state: 'output-available',
-          input: { query: '根轨迹' },
-          output: { citations: [1] },
-        } as any,
-        { type: 'text', text: '重复正文' },
-      ],
-    }, '规范化正文 [1]', {
-      konlingMessageRevision: { revision: 2 },
-    });
-
-    expect(message.parts).toEqual([
-      { type: 'text', text: '规范化正文 [1]' },
-      expect.objectContaining({
-        type: 'tool-search_textbook',
-        toolCallId: 'tool-1',
-        state: 'output-available',
-      }),
-    ]);
-    expect(message.metadata).toEqual({
-      konlingMessageRevision: { revision: 2 },
-    });
-  });
 });
