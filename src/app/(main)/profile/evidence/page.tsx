@@ -82,4 +82,3 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
     </AppShell>
   );
 }
-
