@@ -1,10 +1,200 @@
-/** 评估参数组合的得分 */ // 3-parameter legacy overload: scene-trace route compatibility
+/**
+ * Monte Carlo 参数优化器
+ *
+ * 使用随机搜索算法寻找最优 PID 参数
+ */
+
+import { computeVirtualSimulationServerStep } from '../rust/control-engine-server-runtime';
+import {
+  createSimulationRng,
+  createSimulationRunContext,
+  normalizeSeed,
+  type RandomNumberGenerator,
+  type SimulationReplayMetadata,
+  type SimulationRunContext,
+} from '../core/seeded-rng';
+import { buildSimulationReplayMetadata } from './replay-checksum';
+import type { Position } from '../types';
+
+export interface OptimizationTarget {
+  targetHeading: number; // 目标航向
+  maxError: number; // 允许的最大航迹误差
+  maxRudderRate: number; // 允许的最大舵角速度
+  maxOvershoot?: number; // 允许的最大超调量
+  minSettlingTime?: number; // 期望的最小调节时间
+}
+
+export interface OptimizationConstraints {
+  kpRange: [number, number]; // Kp 搜索范围
+  kiRange: [number, number]; // Ki 搜索范围
+  kdRange: [number, number]; // Kd 搜索范围
+}
+
+export interface OptimizationResult {
+  bestParams: {
+    kp: number;
+    ki: number;
+    kd: number;
+  };
+  score: number;
+  metrics: {
+    avgError: number;
+    maxRudderRate: number;
+    settlingTime: number;
+    overshoot: number;
+  };
+  iterations: number;
+  searchTime: number;
+  convergenceHistory: Array<{
+    iteration: number;
+    score: number;
+    params: { kp: number; ki: number; kd: number };
+  }>;
+  replay?: SimulationReplayMetadata;
+}
+
+export interface OptimizePIDParamsOptions {
+  runContext?: SimulationRunContext;
+  scenario?: ScenarioLogic;
+  seed?: number | string;
+}
+
+// 简化的仿真配置
+export interface SimpleSimConfig {
+  nomotoK?: number;
+  nomotoT?: number;
+  shipSpeed?: number;
+  seaState?: {
+    level: number;
+    waveHeight: number;
+    windSpeed: number;
+  };
+}
+
+interface ScenarioLogic {
+  scenarioId: string;
+  runtimeVersion: string;
+  duration: number;
+  referenceCompletedAt: number;
+  headingSchedule: Array<{ time: number; heading: number }>;
+  getDesiredHeading: (time: number) => number;
+  startPos: { x: number; z: number; headingDeg: number };
+}
+
+/**
+ * v1 legacy 场景：120 秒，60 秒时硬切换到目标航向。
+ * 仅在 scene-trace 三参数路径中使用。
+ */
+function getLegacySceneLogic(_scenario: 'turn90', targetHeading: number = 90): ScenarioLogic {
+  return {
+    scenarioId: 'turn90',
+    runtimeVersion: 'simulation-optimizer-runtime-v1',
+    duration: 120,
+    referenceCompletedAt: 60,
+    headingSchedule: [
+      { time: 0, heading: 0 },
+      { time: 60, heading: 0 },
+      { time: 60.01, heading: targetHeading },
+      { time: 120, heading: targetHeading },
+    ],
+    startPos: { x: -6000, z: 0, headingDeg: 0 },
+    getDesiredHeading: (time: number) => (time < 60 ? 0 : targetHeading),
+  };
+}
+
+/**
+ * v2 校准场景：240 秒，60-120 秒线性渐变过渡。
+ * 推荐 API 和四参数优化器默认使用此场景。
+ */
+function getScenarioLogic(_scenario: 'turn90', targetHeading: number = 90): ScenarioLogic {
+  const transitionStart = 60;
+  const transitionEnd = 120;
+  return {
+    scenarioId: 'turn90-calibrated-v1',
+    runtimeVersion: 'simulation-optimizer-runtime-v2',
+    duration: 240,
+    referenceCompletedAt: 120,
+    headingSchedule: [
+      { time: 0, heading: 0 },
+      { time: transitionStart, heading: 0 },
+      { time: transitionEnd, heading: targetHeading },
+      { time: 240, heading: targetHeading },
+    ],
+    startPos: { x: -6000, z: 0, headingDeg: 0 },
+    getDesiredHeading: (time: number) => {
+      if (time < transitionStart) return 0;
+      if (time >= transitionEnd) return targetHeading;
+      const progress = (time - transitionStart) / (transitionEnd - transitionStart);
+      return progress * targetHeading;
+    },
+  };
+}
+
+const generateGuidePath = (logic: ScenarioLogic, duration: number, speed: number): Position[] => {
+  const points: Position[] = [];
+  let x = logic.startPos.x;
+  let z = logic.startPos.z;
+  const dt = 0.5;
+
+  points.push({ x, z });
+  for (let time = 0; time <= duration; time += dt) {
+    const headingRad = (logic.getDesiredHeading(time) * Math.PI) / 180;
+    x += speed * Math.cos(headingRad) * dt;
+    z += speed * Math.sin(headingRad) * dt;
+    if (Math.round(time / dt) % 4 === 0) {
+      points.push({ x, z });
+    }
+  }
+  return points;
+};
+
+interface RustQuickSimResult {
+  trajectory: Array<{ time: number; x: number; z: number; heading: number; rudder: number }>;
+  chartData: {
+    time: number[];
+    desiredHeading: number[];
+    actualHeading: number[];
+    speed: number[];
+    rudder: number[];
+  };
+  metrics: {
+    avgError: number;
+    maxRudderRate: number;
+  };
+}
+
+function evaluateWithRustRuntime(
+  params: { kp: number; ki: number; kd: number },
+  logic: ScenarioLogic,
+  guidePath: Position[],
+  speed: number,
+  simConfig: SimpleSimConfig,
+  target: OptimizationTarget,
+): RustQuickSimResult {
+  return computeVirtualSimulationServerStep<RustQuickSimResult>({
+    modelId: 'nomoto_quick_sim',
+    duration: logic.duration,
+    dt: 0.5,
+    start: { x: 0, z: 0, headingDeg: 0 },
+    targetHeadingDeg: target.targetHeading,
+    targetSwitchTime: 60,
+    pid: params,
+    nomoto: {
+      K: simConfig.nomotoK || 0.08,
+      T: simConfig.nomotoT || 55,
+      speedMps: speed,
+      maxRudderDeg: 35,
+    },
+    guidePath,
+  });
+}
+
+/** 评估参数组合的得分 */
 export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
   simConfig: SimpleSimConfig,
   target: OptimizationTarget,
 ): { score: number; metrics: OptimizationResult['metrics'] };
-// 4-parameter calibrated overload: optimizer and tests
 export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
   logic: ScenarioLogic,
@@ -25,7 +215,7 @@ export function evaluatePIDParams(
     simConfig = simConfigOrTarget as SimpleSimConfig;
     target = maybeTarget;
   } else {
-    // 3-param legacy: (params, simConfig, target)
+    // 3-param legacy: (params, simConfig, target) — 使用 v1 120 秒场景
     simConfig = logicOrSimConfig as SimpleSimConfig;
     target = simConfigOrTarget as OptimizationTarget;
     logic = getLegacySceneLogic('turn90', target.targetHeading);
@@ -34,7 +224,7 @@ export function evaluatePIDParams(
   const guidePath = generateGuidePath(logic, logic.duration, speed);
   const result = evaluateWithRustRuntime(params, logic, guidePath, speed, simConfig, target);
 
-  // 计算超调量和调节时间
+  // 计算超调量和调节时间（持续稳定判定）
   let overshoot = 0;
   let stableSince: number | undefined;
   const targetReached = target.targetHeading;
@@ -47,7 +237,6 @@ export function evaluatePIDParams(
       continue;
     }
 
-    // 计算超调
     const error = heading - targetReached;
     if (error > overshoot) {
       overshoot = error;
@@ -95,14 +284,14 @@ export function evaluatePIDParams(
     score,
     metrics: {
       avgError: result.metrics.avgError,
-      maxRudderRate: result.metrics.maxRudderRate,
+    maxRudderRate: result.metrics.maxRudderRate,
       settlingTime,
       overshoot,
     },
   };
 }
 
-/** 随机采样参数 */
+/** 随机采样参数 */
 function sampleParams(
   constraints: OptimizationConstraints,
   rng: RandomNumberGenerator
@@ -114,7 +303,7 @@ function sampleParams(
   };
 }
 
-/** 在最优解附近采样（局部搜索） */
+/** 在最优解附近采样（局部搜索） */
 function sampleNearby(
   bestParams: { kp: number; ki: number; kd: number },
   constraints: OptimizationConstraints,
@@ -250,7 +439,7 @@ export function optimizePIDParams(
   };
 }
 
-/** 默认优化配置 */
+/** 默认优化配置 */
 export const DEFAULT_CONSTRAINTS: OptimizationConstraints = {
   kpRange: [0.5, 3.0],
   kiRange: [0.001, 0.1],
