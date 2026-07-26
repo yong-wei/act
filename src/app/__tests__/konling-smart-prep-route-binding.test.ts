@@ -57,7 +57,16 @@ vi.mock('@/lib/konling-final-citation-metadata-stream', () => ({
 vi.mock('ai', () => ({
   convertToModelMessages: vi.fn(async (messages) => messages),
   consumeStream: vi.fn(),
-  createUIMessageStreamResponse: vi.fn(({ headers }) => new Response('ok', { status: 200, headers })),
+  createUIMessageStreamResponse: vi.fn(({ headers, stream }) => {
+    void (async () => {
+      const reader = stream.getReader();
+      while (!(await reader.read()).done) {
+        // Drain the stream so final message revision persistence runs.
+      }
+    })();
+    return new Response('ok', { status: 200, headers });
+  }),
+  generateText: vi.fn(async () => ({ text: '[]' })),
   stepCountIs: vi.fn(() => () => false),
   streamText: mocks.streamText,
 }));
@@ -107,7 +116,7 @@ vi.mock('@/lib/konling-agent-runtime', async (importOriginal) => {
       permittedTools: [],
       smartPreparation: { bootstrap: false },
     })),
-    buildKonlingToolRuntime: vi.fn(() => ({})),
+    buildKonlingToolRuntime: vi.fn(() => ({ getAssignedCitations: () => [] })),
     buildScopedKonlingAiTools: vi.fn(() => ({})),
     getOrCreateKonlingAgentSession: mocks.getOrCreateAgentSession,
     normalizeKonlingKnowledgeWorkspaceHint: vi.fn(() => null),
@@ -324,11 +333,30 @@ describe('Konling smart-prep production routes', () => {
             id: 'assistant-1',
             role: 'assistant',
             content: '跨页答案',
-            parts: [{ type: 'text', text: '跨页答案' }],
+            parts: [
+              {
+                type: 'dynamic-tool',
+                toolCallId: 'tool-1',
+                toolName: 'search_textbook',
+                state: 'output-available',
+                input: { query: '跨页' },
+                output: { candidates: ['教材证据'] },
+              },
+              { type: 'text', text: '跨页答案' },
+            ],
           },
           isAborted: false,
         });
-        return new ReadableStream();
+        return new ReadableStream({
+          start(controller) {
+            controller.enqueue({ type: 'start', messageId: 'assistant-1' });
+            controller.enqueue({ type: 'text-start', id: 'text-1' });
+            controller.enqueue({ type: 'text-delta', id: 'text-1', delta: '跨页答案' });
+            controller.enqueue({ type: 'text-end', id: 'text-1' });
+            controller.enqueue({ type: 'finish' });
+            controller.close();
+          },
+        });
       },
     });
 
@@ -344,7 +372,12 @@ describe('Konling smart-prep production routes', () => {
         modeClientContextHints: { smartTaskId: 'client-task', smartTaskRevision: '999' },
       }),
     }));
-    await vi.waitFor(() => expect(mocks.prisma.konlingSession.updateMany).toHaveBeenCalled());
+    await vi.waitFor(() => {
+      const persisted = mocks.prisma.konlingSession.updateMany.mock.calls
+        .filter((call) => Array.isArray(call[0].data.messages))
+        .at(-1)?.[0].data.messages;
+      expect(persisted?.some((message: { role: string }) => message.role === 'assistant')).toBe(true);
+    });
 
     expect(response.status).toBe(200);
     expect(response.headers.get('X-Konling-Conversation-Id')).toBe('conversation-1');
@@ -361,6 +394,17 @@ describe('Konling smart-prep production routes', () => {
       'system',
       'user',
       'assistant',
+    ]);
+    expect(persistedMessages.at(-1)?.parts).toEqual([
+      {
+        type: 'dynamic-tool',
+        toolCallId: 'tool-1',
+        toolName: 'search_textbook',
+        state: 'output-available',
+        input: { query: '跨页' },
+        output: { candidates: ['教材证据'] },
+      },
+      { type: 'text', text: '跨页答案' },
     ]);
     expect(persistedMessages[1]).toMatchObject({
       metadata: {

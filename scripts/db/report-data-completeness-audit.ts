@@ -14,10 +14,10 @@ import {
   type DataCompletenessRuntimeArtifactErrorInput,
 } from '../../src/lib/data-governance/data-completeness-audit';
 import {
-  loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments,
-} from '../../src/lib/textbook-runtime-resources';
-import { textbookSearchDocumentsToLearningEvidenceCorpus } from '../../src/lib/data-governance/graph-center-evidence';
+  loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections,
+} from '../../src/lib/structured-textbook-runtime';
+import { textbookStructureUnitsToLearningEvidenceCorpus } from '../../src/lib/data-governance/graph-center-evidence';
 import { loadAllLessonRuntimeResourceCatalogEntriesForAudit } from './runtime-lesson-catalog';
 
 const prisma = createPrismaClient();
@@ -48,7 +48,7 @@ async function main() {
     runtimeLessons,
     runtimeTextbooks,
     runtimeResourceProjections,
-    textbookDocuments,
+    textbookUnits,
     interactionLogs,
     eventDictionary,
     learningEventBatches,
@@ -98,9 +98,9 @@ async function main() {
       },
     }),
     loadRuntimeLessonsWithArtifactAudit(runtimeArtifactErrors),
-    loadAllTextbookRuntimeResourceCatalogEntries(),
+    loadAllTextbookStructureRuntimeCatalogEntries(),
     loadRuntimeResourceProjectionInputs(),
-    loadAllTextbookRuntimeSearchDocuments(),
+    loadAllTextbookStructureUnitProjections(),
     prisma.interactionLog.findMany({
       select: {
         id: true,
@@ -185,7 +185,7 @@ async function main() {
     })),
     resourceRegistry: registry,
     runtimeArtifactErrors,
-    evidenceCorpus: textbookSearchDocumentsToLearningEvidenceCorpus(textbookDocuments),
+    evidenceCorpus: textbookStructureUnitsToLearningEvidenceCorpus(textbookUnits),
     interactionLogs,
     eventDictionaryTypes: eventDictionary.map((event) => event.eventType),
     learningEventBatches,

@@ -348,6 +348,54 @@ export async function completeKonlingConversationTurn(
   return db.konlingSession.findUnique({ where: { id: current.id } });
 }
 
+export async function replaceKonlingConversationAssistantRevision(
+  db: ConversationDb,
+  input: {
+    conversationId: string;
+    ownerUserId: string;
+    assistantMessage: IncomingMessage;
+    expectedRevision: number;
+    revision: number;
+    now?: Date;
+  },
+) {
+  if (input.revision <= input.expectedRevision) return null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const current = await db.konlingSession.findFirst({
+      where: {
+        id: input.conversationId,
+        userId: input.ownerUserId,
+      },
+    });
+    if (!current) return null;
+    const messages = conversationMessages(current.messages);
+    const index = messages.findIndex((message) => message.id === input.assistantMessage.id);
+    if (index < 0) return null;
+    const existingRevision = readKonlingPersistedMessageRevision(messages[index]);
+    if (existingRevision !== input.expectedRevision || input.revision <= existingRevision) return null;
+    const replacement = toLegacyMessage(input.assistantMessage);
+    const nextMessages = [...messages];
+    nextMessages[index] = replacement;
+    const attemptNow = input.now ?? new Date();
+    const updated = await db.konlingSession.updateMany({
+      where: {
+        id: current.id,
+        userId: input.ownerUserId,
+        updatedAt: current.updatedAt,
+      },
+      data: {
+        messages: nextMessages as unknown as Prisma.InputJsonValue,
+        lastActivityAt: attemptNow,
+        updatedAt: attemptNow,
+      },
+    });
+    if (updated.count === 1) {
+      return db.konlingSession.findUnique({ where: { id: current.id } });
+    }
+  }
+  return null;
+}
+
 export async function releaseKonlingConversationTurn(
   db: ConversationDb,
   input: {
@@ -434,6 +482,15 @@ function tagKonlingTurnMessage<T extends IncomingMessage>(message: T, turnId: st
       konlingTurnId: turnId,
     },
   };
+}
+
+function readKonlingPersistedMessageRevision(message: Message) {
+  const metadata = message.metadata;
+  if (!metadata || typeof metadata !== 'object') return 0;
+  const revision = (metadata as Record<string, unknown>).konlingMessageRevision;
+  if (!revision || typeof revision !== 'object') return 0;
+  const value = (revision as Record<string, unknown>).revision;
+  return Number.isInteger(value) && Number(value) >= 0 ? Number(value) : 0;
 }
 
 function removeKonlingTurnMessages(messages: Message[], turnId: string): Message[] {

@@ -16,6 +16,7 @@ CACHE_FROM_DIR="${CACHE_FROM_DIR:-${CACHE_ROOT}/cache}"
 CACHE_TO_DIR="${CACHE_TO_DIR:-${CACHE_ROOT}/cache-new}"
 EXTERNAL_RUNTIME_DIR="${EXTERNAL_RUNTIME_DIR:-course-content/runtime}"
 TEXTBOOK_V2_RUNTIME_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbooks-v2"
+TEXTBOOK_RETRIEVAL_INDEX_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbook-retrieval"
 PROVENANCE_FILE="${OUTPUT_TAR}.provenance.json"
 DATABASE_URL_FOR_BUILD="${DATABASE_URL:-}"
 if [[ -z "${DATABASE_URL_FOR_BUILD}" && -f .env ]]; then
@@ -47,6 +48,7 @@ fi
 echo "[preflight] 校验七套外置教材 v2 runtime"
 node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
   --runtime-root "${TEXTBOOK_V2_RUNTIME_DIR}" \
+  --index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
   --expected-source-revision "${APP_REVISION}"
 
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
@@ -94,6 +96,7 @@ fi
 
 node "${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs" write-sidecar \
   --runtime-root "${TEXTBOOK_V2_RUNTIME_DIR}" \
+  --index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
   --image-tar "${OUTPUT_TAR}" \
   --app-revision "${APP_REVISION}" \
   --output "${PROVENANCE_FILE}"

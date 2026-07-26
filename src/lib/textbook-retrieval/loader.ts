@@ -215,7 +215,7 @@ async function parseWindows(filePath: string): Promise<LoadedTextbookIndexWindow
       || !hasExactKeys(value, [
         'recordType', 'formatVersion', 'id', 'bookId', 'sourceRevision',
         'sourceWindowId',
-        'primaryUnitId', 'owningUnitIds', 'sourcePaths', 'vectorRow',
+        'primaryUnitId', 'owningUnitIds', 'segments', 'sourcePaths', 'vectorRow',
         'bodyOffset', 'bodyLength', 'bodyHash', 'contentHash', 'tokenCount',
       ])
       || value.recordType !== 'index-window'
@@ -239,6 +239,18 @@ async function parseWindows(filePath: string): Promise<LoadedTextbookIndexWindow
       || value.owningUnitIds.some((id) =>
         !isNonEmptyString(id) || !id.startsWith('textbook-unit:'))
       || !value.owningUnitIds.includes(value.primaryUnitId)
+      || !Array.isArray(value.segments)
+      || value.segments.length === 0
+      || value.segments.some((segment) =>
+        !isRecord(segment)
+        || !hasExactKeys(segment, ['owningUnitId', 'bodyOffset', 'bodyLength'])
+        || !isNonEmptyString(segment.owningUnitId)
+        || !(value.owningUnitIds as unknown[]).includes(segment.owningUnitId)
+        || !Number.isInteger(segment.bodyOffset)
+        || (segment.bodyOffset as number) < 0
+        || !Number.isInteger(segment.bodyLength)
+        || (segment.bodyLength as number) <= 0)
+      || !segmentsCloseBody(value.segments, value.bodyLength)
       || !Array.isArray(value.sourcePaths)
       || value.sourcePaths.length === 0
       || new Set(value.sourcePaths).size !== value.sourcePaths.length
@@ -261,6 +273,7 @@ async function parseWindows(filePath: string): Promise<LoadedTextbookIndexWindow
       sourceRevision: value.sourceRevision,
       primaryUnitId: value.primaryUnitId,
       owningUnitIds: value.owningUnitIds,
+      segments: value.segments,
       sourcePaths: value.sourcePaths,
       bodyOffset: value.bodyOffset,
       bodyLength: value.bodyLength,
@@ -269,6 +282,19 @@ async function parseWindows(filePath: string): Promise<LoadedTextbookIndexWindow
     rowIndex += 1;
   }
   return rows;
+}
+
+function segmentsCloseBody(
+  segments: readonly Record<string, unknown>[],
+  bodyLength: unknown,
+): boolean {
+  if (!Number.isInteger(bodyLength) || (bodyLength as number) < 0) return false;
+  let nextOffset = 0;
+  for (const segment of segments) {
+    if (segment.bodyOffset !== nextOffset || !Number.isInteger(segment.bodyLength)) return false;
+    nextOffset += segment.bodyLength as number;
+  }
+  return nextOffset === bodyLength;
 }
 
 function validateBodyLayout(

@@ -3,42 +3,53 @@ import { describe, expect, it } from 'vitest';
 import { buildTextbookMediaGroundingArtifacts } from '../textbook-media-grounding';
 import { buildKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 import type { RuntimeResourceProjectionArtifactRow } from '../runtime-resource-projections';
-import type { TextbookRuntimeSearchDocument } from '../textbook-runtime-resources';
+import type { TextbookStructureUnitProjection } from '../structured-textbook-runtime';
 
 const versionRefs = buildKaqArtifactVersionRefs({
   resourceProjectionVersion: 'resource-semantic-projection.v1',
 });
 const targetFileHashForHref = () => 'sha256:runtime-target-file';
 
-function textbookDocument(overrides: Partial<TextbookRuntimeSearchDocument> = {}): TextbookRuntimeSearchDocument {
+function textbookUnit(overrides: Partial<TextbookStructureUnitProjection> = {}): TextbookStructureUnitProjection {
   return {
-    id: 'ch04-sec01__chunk-001',
-    kind: 'chunk',
+    id: 'textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-04/section-4.1',
+    kind: 'section',
     title: '第 4 章 根轨迹法',
-    href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
+    href: '/textbooks/hu-shousong-exercise-analysis-3rd/%E7%AC%AC%E4%B8%89%E7%89%88/chapter-chapter-04/section-4.1',
     text: '根轨迹描述闭环极点随增益变化的轨迹。',
-    contentHash: 'sha256:textbook-section',
+    contentHash: 'sha256:textbook-unit',
+    identity: {
+      bookId: 'hu-shousong-exercise-analysis-3rd',
+      edition: '第三版',
+      sourceRevision: 'revision-001',
+      unitId: 'textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-04/section-4.1',
+      fragmentId: null,
+    },
+    fragments: [],
     resourceProjection: {
-      resourceId: 'textbook-section:hu-shousong-exercise-analysis-3rd:ch04-sec01',
-      segmentRef: 'ch04-sec01',
-      citationTargetRef: 'ch04-sec01__chunk-001',
+      resourceId: 'textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-04/section-4.1',
+      segmentRef: 'textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-04/section-4.1',
+      citationTargetRef: 'textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-04/section-4.1',
       knowledgeNodeRefs: ['根轨迹_4_1'],
       capabilityTargetRefs: ['parameterDesign'],
-      contentHash: 'sha256:textbook-section',
+      contentHash: 'sha256:textbook-unit',
       versionRefs,
     },
     citationAddress: {
       kind: 'text',
-      sourceRefId: 'ch04-sec01__chunk-001',
-      href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
-      locator: 'p.42#chunk-001',
-      contentHash: 'sha256:textbook-section',
+      sourceRefId: 'textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-04/section-4.1',
+      href: '/textbooks/hu-shousong-exercise-analysis-3rd/%E7%AC%AC%E4%B8%89%E7%89%88/chapter-chapter-04/section-4.1',
+      locator: 'textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-04/section-4.1',
+      contentHash: 'sha256:textbook-unit',
     },
     metadata: {
       bookId: 'hu-shousong-exercise-analysis-3rd',
-      sectionId: 'ch04-sec01',
+      edition: '第三版',
+      sourceRevision: 'revision-001',
+      unitId: 'textbook-unit:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-04/section-4.1',
       chapterId: 'chapter-04',
-      chapterNumber: 4,
+      naturalNumber: '4.1',
+      structuralPath: ['chapter-chapter-04', 'section-4.1'],
     },
     ...overrides,
   };
@@ -131,35 +142,17 @@ describe('textbook and media grounding artifacts', () => {
       generatedAt: '2026-06-24T00:00:00.000Z',
       reviewBatchId: 'textbook-grounding-2026-06-24',
       targetFileHashForHref,
-      textbookDocuments: [
-        textbookDocument(),
-        textbookDocument({
-          id: 'ch04-sec01__fig-001',
-          kind: 'figure',
-          title: '图 4-1 根轨迹示例',
-          resourceProjection: {
-            ...textbookDocument().resourceProjection,
-            citationTargetRef: 'fig-04-01',
-          },
-          citationAddress: {
-            kind: 'image',
-            sourceRefId: 'fig-04-01',
-            href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#fig-04-01',
-            locator: 'p.43#fig-04-01',
-            contentHash: 'sha256:textbook-section',
-          },
-        }),
-      ],
+      textbookUnits: [textbookUnit()],
       mediaProjections: [mediaProjection()],
     });
 
     expect(artifacts.candidates).toEqual(expect.arrayContaining([
       expect.objectContaining({
         sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
-        candidateId: 'textbook-section:hu-shousong-exercise-analysis-3rd:ch04-sec01:ch04-sec01__chunk-001',
-        sectionId: 'ch04-sec01',
-        pageAnchor: 'p.42#chunk-001',
-        sourceHash: 'sha256:textbook-section',
+        candidateId: `textbook-unit:hu-shousong-exercise-analysis-3rd:${textbookUnit().id}:${textbookUnit().id}`,
+        unitId: textbookUnit().id,
+        pageAnchor: textbookUnit().id,
+        sourceHash: 'sha256:textbook-unit',
         reviewState: 'human-confirmed',
         reviewBatchId: 'textbook-grounding-2026-06-24',
         limitationReason: null,
@@ -168,12 +161,12 @@ describe('textbook and media grounding artifacts', () => {
     ]));
     expect(artifacts.citationTargets).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        citationTargetId: 'citation-target:ch04-sec01__chunk-001',
-        retrievalChunkId: 'retrieval-chunk:ch04-sec01__chunk-001',
+        citationTargetId: `citation-target:${textbookUnit().id}`,
+        retrievalChunkId: `retrieval-chunk:${textbookUnit().id}`,
         address: expect.objectContaining({
           kind: 'text',
-          href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
-          locator: 'p.42#chunk-001',
+          href: textbookUnit().href,
+          locator: textbookUnit().id,
         }),
         targetFileHash: 'sha256:runtime-target-file',
         pathEligibility: {
@@ -183,73 +176,11 @@ describe('textbook and media grounding artifacts', () => {
       }),
     ]));
     expect(artifacts.limitations.denominator).toMatchObject({
-      textbookDocuments: 2,
+      textbookUnits: 1,
       mediaProjectionRows: 1,
-      reviewedTextbookCandidates: 2,
+      reviewedTextbookCandidates: 1,
       reviewedMediaProjections: 0,
     });
-  });
-
-  it('does not expose citation targets when a textbook document lacks citation address metadata', () => {
-    const artifacts = buildTextbookMediaGroundingArtifacts({
-      sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
-      generatedAt: '2026-06-24T00:00:00.000Z',
-      reviewBatchId: 'textbook-grounding-2026-06-24',
-      targetFileHashForHref,
-      textbookDocuments: [
-        textbookDocument({
-          id: 'ch04-sec01__ignored-runtime-resource',
-          href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
-          citationAddress: undefined,
-        }),
-      ],
-      mediaProjections: [],
-    });
-
-    expect(artifacts.citationTargets).toEqual([]);
-    expect(artifacts.candidates).toEqual([
-      expect.objectContaining({
-        documentId: 'ch04-sec01__ignored-runtime-resource',
-        reviewState: 'generated-provisional',
-        limitationReason: 'missing-citation-address',
-      }),
-    ]);
-  });
-
-  it('does not create citation targets for provisional textbook candidates', () => {
-    const artifacts = buildTextbookMediaGroundingArtifacts({
-      sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
-      generatedAt: '2026-06-24T00:00:00.000Z',
-      reviewBatchId: 'textbook-grounding-2026-06-24',
-      targetFileHashForHref,
-      textbookDocuments: [
-        textbookDocument({
-          id: 'ch04-sec01__missing-source-hash',
-          contentHash: null,
-          resourceProjection: {
-            ...textbookDocument().resourceProjection,
-            contentHash: null,
-          },
-          citationAddress: {
-            kind: 'text',
-            sourceRefId: 'ch04-sec01__missing-source-hash',
-            href: '/course-runtime/lessons/unit-4-1/textbook/ch04-sec01.md#chunk-001',
-            locator: 'p.42#chunk-001',
-            contentHash: null,
-          },
-        }),
-      ],
-      mediaProjections: [],
-    });
-
-    expect(artifacts.citationTargets).toEqual([]);
-    expect(artifacts.candidates).toEqual([
-      expect.objectContaining({
-        documentId: 'ch04-sec01__missing-source-hash',
-        reviewState: 'generated-provisional',
-        limitationReason: 'missing-source-hash',
-      }),
-    ]);
   });
 
   it('records media projection limitations without creating private raw-media ingestion results', () => {
@@ -258,19 +189,7 @@ describe('textbook and media grounding artifacts', () => {
       generatedAt: '2026-06-24T00:00:00.000Z',
       reviewBatchId: 'textbook-grounding-2026-06-24',
       targetFileHashForHref,
-      textbookDocuments: [
-        textbookDocument({
-          id: 'unsafe-doc',
-          href: 'file:///tmp/raw.md',
-          citationAddress: {
-            kind: 'text',
-            sourceRefId: 'unsafe-doc',
-            href: 'file:///tmp/raw.md',
-            locator: 'raw',
-            contentHash: 'sha256:textbook-section',
-          },
-        }),
-      ],
+      textbookUnits: [],
       mediaProjections: [
         mediaProjection({
           citationTargets: ['https://signed.example.com/raw-video.mp4?token=secret'],
@@ -358,11 +277,6 @@ describe('textbook and media grounding artifacts', () => {
     });
     expect(artifacts.limitations.limitations).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        id: 'unsafe-doc',
-        sourceKind: 'textbook-section',
-        reason: 'unsafe-citation-address',
-      }),
-      expect.objectContaining({
         id: 'runtime-media:unit-4-1:lead-correction-video',
         sourceKind: 'media-projection',
         reason: 'unsafe-citation-address',
@@ -404,7 +318,7 @@ describe('textbook and media grounding artifacts', () => {
       generatedAt: '2026-06-24T00:00:00.000Z',
       reviewBatchId: 'textbook-grounding-2026-06-24',
       targetFileHashForHref,
-      textbookDocuments: [],
+      textbookUnits: [],
       mediaProjections: [
         mediaProjection({
           id: 'runtime-media:unit-4-1:stale-human-review',

@@ -31,9 +31,9 @@ import {
 } from '@/lib/control-correction-path-rounds';
 import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-runtime';
 import {
-  loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments,
-} from '@/lib/textbook-runtime-resources';
+  loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections,
+} from '@/lib/structured-textbook-runtime';
 import {
   buildAdaptiveLearningPathPlan,
   getRegisteredAdaptiveLearningPathGoal,
@@ -51,7 +51,7 @@ import {
   type KonlingKaqGraphContext,
 } from '@/lib/konling-kaq-graph-context';
 import {
-  adaptTextbookSearchDocument,
+  adaptTextbookStructureUnit,
   retrieveSourcePack,
   type SourcePack,
   type SourcePackCallerRole,
@@ -60,6 +60,17 @@ import {
   type SourcePackModality,
   type SourcePackSourceKind,
 } from '@/lib/source-pack';
+import {
+  retrieveTextbookSourcePackV2Progressive,
+  type TextbookV2OptimizationResult,
+  type TextbookV2ToolResult,
+} from '@/lib/source-pack/textbook-v2-adapter';
+import {
+  assignKonlingCitationDisplayNumbers,
+  buildKonlingCitationCanonicalKey,
+  createKonlingCitationAllocator,
+  type KonlingCitationIdentity,
+} from '@/lib/konling-citation-protocol';
 import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-resource-baseline-runtime';
 import { getLearningGoalAssessmentCoverageForPlanner } from '@/lib/learning-goal-assessment-coverage-runtime';
 import { createTaskSchema, updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
@@ -73,7 +84,7 @@ import {
   buildResourceCandidatePoolDiagnostics,
   buildResourceNodeRegistryFromTeachingResources,
   loadRuntimeResourceProjectionInputs,
-  toTextbookSectionNodeInputs,
+  toTextbookUnitNodeInputs,
   type ResourceCandidatePoolDiagnostics,
   type ResourceCandidatePoolSourceStatus,
 } from '@/lib/teacher-resource-node-data';
@@ -113,6 +124,7 @@ export const KONLING_STRATEGY_MEMORY_FEATURE_FLAG = 'KONLING_STRATEGY_MEMORY_ENA
 
 export type KonlingToolName =
   | 'get_page_context'
+  | 'search_textbook'
   | 'get_learner_state'
   | 'get_plan_context'
   | 'search_learning_memory'
@@ -352,6 +364,9 @@ export interface KonlingRuntimeContext {
   pageContext: PageContext;
   userProfile: UserProfile;
   learnerState: AdaptiveLearnerState | null;
+  textbookRetrievalContext?: Readonly<{
+    externalQuery: string | null;
+  }>;
   planContext: KonlingPlanContext;
   memory: KonlingMemoryView[];
   knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
@@ -578,6 +593,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     optionalContext: ['learner-state-summary', 'evidence-citations'],
     permittedTools: [
       'get_page_context',
+      'search_textbook',
       'get_learner_state',
       'get_plan_context',
       'search_learning_memory',
@@ -607,7 +623,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['student-learning-overview'],
     requiredContext: ['diagnosis-view', 'learner-state-summary', 'evidence-citations'],
     optionalContext: ['path-execution-context'],
-    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
     citationClasses: ['learner-state', 'path-execution', 'content'],
     payload: 'aggregate-and-redacted-only',
     outputStatus: 'advisory-only',
@@ -622,6 +638,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     optionalContext: ['path-execution-context', 'diagnosis-view', 'resource-node'],
     permittedTools: [
       'get_page_context',
+      'search_textbook',
       'get_learner_state',
       'get_plan_context',
       'search_knowledge_graph',
@@ -645,7 +662,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['resource-node-launch'],
     requiredContext: ['resource-node', 'path-execution-context', 'evidence-citations'],
     optionalContext: ['learner-state-summary'],
-    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action', 'analyze_attempt'],
+    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action', 'analyze_attempt'],
     citationClasses: ['content', 'path-execution', 'learner-state'],
     payload: 'student-visible-summary',
     outputStatus: 'advisory-only',
@@ -658,7 +675,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['teacher-grading-workbench'],
     requiredContext: ['rubric', 'converted-document', 'draft-grading-state', 'teacher-review-state', 'evidence-citations'],
     optionalContext: ['learner-state-summary'],
-    permittedTools: ['get_page_context', 'search_knowledge_graph'],
+    permittedTools: ['get_page_context', 'search_textbook', 'search_knowledge_graph'],
     citationClasses: ['content', 'learner-state'],
     payload: 'teacher-scoped-summary',
     outputStatus: 'draft-only',
@@ -672,7 +689,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['student-feedback'],
     requiredContext: ['student-feedback', 'evidence-citations'],
     optionalContext: ['rubric', 'learner-state-summary'],
-    permittedTools: ['get_page_context', 'get_learner_state', 'search_knowledge_graph', 'recommend_next_action'],
+    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'search_knowledge_graph', 'recommend_next_action'],
     citationClasses: ['content', 'learner-state'],
     payload: 'student-visible-summary',
     outputStatus: 'advisory-only',
@@ -698,7 +715,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['teacher-prep-pack'],
     requiredContext: ['prep-pack', 'diagnosis-view', 'evidence-citations', 'teacher-review-state'],
     optionalContext: ['class-report', 'resource-node'],
-    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'propose_smart_lesson_task_change'],
+    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'propose_smart_lesson_task_change'],
     citationClasses: ['learner-state', 'path-execution', 'content', 'intervention'],
     payload: 'teacher-scoped-summary',
     outputStatus: 'draft-only',
@@ -1557,6 +1574,9 @@ export interface KonlingCitation {
   omittedCitationReason?: string | null;
   verified?: boolean;
   resolver?: string | null;
+  displayNumber?: number;
+  canonicalKey?: string;
+  identity?: KonlingCitationIdentity;
 }
 
 export interface KonlingCitationContext {
@@ -1624,6 +1644,8 @@ export function serializeKonlingCitationMetadata(citation: KonlingCitation) {
     omittedCitationReason: citation.omittedCitationReason ?? null,
     verified: citation.verified === true,
     resolver: citation.resolver ?? null,
+    displayNumber: citation.displayNumber ?? null,
+    canonicalKey: citation.canonicalKey ?? null,
     citationChip: jsonSafe(citation.citationChip),
   };
 }
@@ -1926,6 +1948,7 @@ export const KONLING_TOOL_PERMISSION_TIERS: KonlingToolPermissionTier[] = ['read
 
 export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryEntry> = {
   get_page_context: toolRegistryEntry('get_page_context', 'read'),
+  search_textbook: toolRegistryEntry('search_textbook', 'read'),
   get_learner_state: toolRegistryEntry('get_learner_state', 'read'),
   get_plan_context: toolRegistryEntry('get_plan_context', 'read'),
   search_learning_memory: toolRegistryEntry('search_learning_memory', 'read'),
@@ -2418,14 +2441,24 @@ export async function buildKonlingRuntimeContext(
     name: input.authenticatedUserName || '同学',
     learnerState,
   });
+  const textbookRetrievalContext = Object.freeze({
+    externalQuery: buildServerOwnedTextbookRetrievalQuery({
+      pageContext,
+    }),
+  });
   const citationMode = resolveKonlingTeachingAssistantMode(input.teachingAssistantModeId);
+  const registeredPageContext = getStepAIContext(scope.courseId, scope.pageId);
+  const permitsTextbookRetrieval = Boolean(registeredPageContext)
+    && citationMode.supportedRoles.includes(scope.role)
+    && citationMode.citationClasses.includes('content');
   const runtimePermittedTools: KonlingToolName[] = citationMode.id === 'prep-coauthor'
-    ? [...DEFAULT_TOOLS, 'propose_smart_lesson_task_change']
-    : DEFAULT_TOOLS;
+    ? [...DEFAULT_TOOLS, ...(permitsTextbookRetrieval ? ['search_textbook' as const] : []), 'propose_smart_lesson_task_change']
+    : [...DEFAULT_TOOLS, ...(permitsTextbookRetrieval ? ['search_textbook' as const] : [])];
   const preCitationRuntimeContext: KonlingRuntimeContext = {
     pageContext,
     userProfile,
     learnerState,
+    textbookRetrievalContext,
     planContext,
     memory,
     knowledgeWorkspace,
@@ -2466,6 +2499,7 @@ export async function buildKonlingRuntimeContext(
     pageContext,
     userProfile,
     learnerState,
+    textbookRetrievalContext,
     planContext,
     memory,
     knowledgeWorkspace,
@@ -2502,6 +2536,7 @@ export async function buildKonlingRuntimeContext(
     pageContext,
     userProfile,
     learnerState,
+    textbookRetrievalContext,
     planContext,
     memory,
     knowledgeWorkspace,
@@ -2547,7 +2582,42 @@ export function buildKonlingRuntimeGraphContext(input: {
 }
 
 export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
+  const citationAllocator = createKonlingCitationAllocator([
+    ...(input.context.citationContext?.contentCitations ?? []),
+    ...(input.context.citationContext?.evidenceCitations ?? []),
+  ].map(toAssignableRuntimeCitation));
+  const textbookOptimizations = new Map<string, {
+    toolCallId: string;
+    foreground: TextbookV2ToolResult;
+    continuation: Promise<TextbookV2OptimizationResult>;
+  }>();
+  const assignTextbookCitations = (result: TextbookV2ToolResult): TextbookV2ToolResult => ({
+    ...result,
+    candidates: result.candidates.map((candidate) => ({
+      ...candidate,
+      displayNumber: citationAllocator.assign({
+        id: candidate.identity.fragmentId ?? candidate.identity.unitId,
+        sourceType: 'textbook',
+        displayTitle: candidate.title,
+        href: candidate.href,
+        confidence: 'high',
+        evidenceBasis: 'source-pack:textbook-v2',
+        limitation: candidate.limitation,
+        identity: {
+          kind: 'textbook',
+          bookId: candidate.identity.bookId,
+          edition: candidate.identity.edition,
+          sourceRevision: candidate.identity.sourceRevision,
+          unitId: candidate.identity.unitId,
+          fragmentId: candidate.identity.fragmentId,
+        },
+      }).displayNumber,
+    })),
+  });
   return {
+    getAssignedCitations: citationAllocator.assigned,
+    getTextbookOptimizations: () => [...textbookOptimizations.values()]
+      .sort((left, right) => left.toolCallId.localeCompare(right.toolCallId)),
     permittedTools: normalizeKonlingToolNames(input.permittedTools ?? input.context.permittedTools),
     getPageContext: async () => runKonlingRuntimeTool(input, 'get_page_context', {}, async () => ({
       pageContext: input.context.pageContext,
@@ -2565,6 +2635,40 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         })
       ),
     })),
+    searchTextbook: async (
+      args: { query: string },
+      execution: { toolCallId?: string; abortSignal?: AbortSignal } = {},
+    ) =>
+      runKonlingRuntimeTool(input, 'search_textbook', args, async () => {
+        const progressive = await retrieveTextbookSourcePackV2Progressive({
+          query: args.query,
+          externalQuery: input.context.textbookRetrievalContext?.externalQuery
+            ?? [input.context.pageContext.courseTitle, input.context.pageContext.topic]
+              .filter(Boolean)
+              .join(' '),
+          graphNodeRefs: input.context.knowledgeCapabilityContext?.knowledgeNodeRefs ?? [],
+          abortSignal: execution.abortSignal,
+        }).catch(() => {
+          throw new Error('教材检索暂不可用。');
+        });
+        const result = assignTextbookCitations(progressive.foreground);
+        if (progressive.optimizationPending && progressive.continuation) {
+          const toolCallId = execution.toolCallId ?? crypto.randomUUID();
+          textbookOptimizations.set(toolCallId, {
+            toolCallId,
+            foreground: result,
+            continuation: progressive.continuation.then((outcome): TextbookV2OptimizationResult => (
+              outcome.status === 'complete'
+                ? { status: 'complete', result: assignTextbookCitations(outcome.result) }
+                : outcome
+            )).catch((): TextbookV2OptimizationResult => ({ status: 'failed' })),
+          });
+        }
+        return {
+          ...result,
+          optimizationPending: progressive.optimizationPending,
+        };
+      }),
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
     getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
     searchLearningMemory: async (args: { query?: string; limit?: number } = {}) =>
@@ -3444,7 +3548,7 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
   const [teachingResourcesSource, runtimeLessonsSource, runtimeTextbooksSource, runtimeResourceProjectionsSource] = await Promise.all([
     loadCandidateSourceFamily('teaching-resources', () => loadAdaptivePathTeachingResources(input.db)),
     loadCandidateSourceFamily('runtime-lessons', () => loadAllLessonRuntimeResourceCatalogEntries()),
-    loadCandidateSourceFamily('runtime-textbooks', () => loadAllTextbookRuntimeResourceCatalogEntries()),
+    loadCandidateSourceFamily('runtime-textbooks', () => loadAllTextbookStructureRuntimeCatalogEntries()),
     loadCandidateSourceFamily('runtime-resource-projections', () => loadRuntimeResourceProjectionInputs({ allowMissing: false })),
   ]);
   const teachingResources = teachingResourcesSource.items;
@@ -3460,7 +3564,7 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
   const registeredResources = getAllRegisteredResourceMetadata();
   const runtimeTextbookInput = {
     textbooks: runtimeTextbooks.map((entry) => entry.textbook),
-    textbookSections: runtimeTextbooks.flatMap(toTextbookSectionNodeInputs),
+    textbookSections: runtimeTextbooks.flatMap(toTextbookUnitNodeInputs),
   };
   const withDiagnostics = (registry: ResourceNodeRegistry) => ({
     registry,
@@ -3573,8 +3677,8 @@ async function buildAdaptivePathSourcePackCandidates(
   registry: ResourceNodeRegistry,
 ): Promise<{ items: SourcePackItem[]; limitations: SourcePackLimitation[] }> {
   const resourceNodeCandidates = registry.nodes.map(buildResourceNodeSourcePackCandidate);
-  const textbookAdapted = await loadAllTextbookRuntimeSearchDocuments()
-    .then((documents) => documents.map(adaptTextbookSearchDocument))
+  const textbookAdapted = await loadAllTextbookStructureUnitProjections()
+    .then((units) => units.map(adaptTextbookStructureUnit))
     .catch(() => []);
   return {
     items: [
@@ -3858,6 +3962,9 @@ function isKonlingStudentPathCenterScope(scope: KonlingRuntimeScope) {
 }
 
 function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown) {
+  if (toolName === 'search_textbook') {
+    return summarizeTextbookSearchQuery(getString(readRecord(input), 'query'));
+  }
   if (!isKonlingAdaptivePathTool(toolName)) {
     return redactSensitivePayload(input ?? {});
   }
@@ -3913,6 +4020,21 @@ function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown)
     styleId: getString(record, 'styleId') || null,
     compareWithStyleId: getString(record, 'compareWithStyleId') || null,
   });
+}
+
+function summarizeTextbookSearchQuery(query: string) {
+  const normalized = query.normalize('NFKC').trim();
+  return {
+    queryHash: createHash('sha256').update(normalized).digest('hex'),
+    queryLength: normalized.length,
+    queryCategory: normalized.length === 0
+      ? 'empty'
+      : normalized.length <= 40
+        ? 'short-course-query'
+        : normalized.length <= 200
+          ? 'course-query'
+          : 'long-course-query',
+  };
 }
 
 export async function createKonlingAgentSession(
@@ -5305,12 +5427,83 @@ function hashSimulationValue(value: unknown) {
   return `sha256:${createHash('sha256').update(JSON.stringify(value)).digest('hex')}`;
 }
 
+export interface KonlingTextbookModelToolResult {
+  mode: TextbookV2ToolResult['mode'];
+  optimizationPending: boolean;
+  candidates: Array<{
+    displayNumber: number;
+    title: string;
+    text: string;
+    limitation: string | null;
+  }>;
+}
+
+const KONLING_TEXTBOOK_MODEL_INTERNAL_FIELD =
+  /["']?(?:canonicalKey|bookId|edition|sourceRevision|unitId|fragmentId|structuralPath|identity)["']?\s*[:=]\s*(?:\{[^}\n]*\}|\[[^\]\n]*\]|"[^"\n]*"|'[^'\n]*'|[^\s,，。；;)\]}]+)/gi;
+const KONLING_TEXTBOOK_MODEL_INTERNAL_ID =
+  /\b(?:textbook-(?:unit|fragment|window)|textbook):[^\s,，。；;)\]}]+/gi;
+const KONLING_TEXTBOOK_MODEL_SOURCE_SLUG =
+  /\b(?:hu-shousong-auto-control-(?:7th|8th)|liu-sheng-auto-control-2015|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-exercise-analysis-3rd|control-encyclopedia)\b/gi;
+const KONLING_TEXTBOOK_MODEL_STRUCTURE_PATH = /\b(?:chapter|section)-[a-z0-9._-]+\b/gi;
+const KONLING_TEXTBOOK_MODEL_LOCAL_PATH =
+  /(?:file:\/\/|\/(?:Users|home|workspace|course-content|src|var|tmp)\/)[^\s)\]}]+/gi;
+const KONLING_TEXTBOOK_MODEL_URL = /https?:\/\/[^\s)\]}，。；、]+/gi;
+
+function sanitizeKonlingTextbookModelText(value: string) {
+  return value
+    .replace(KONLING_TEXTBOOK_MODEL_INTERNAL_FIELD, '')
+    .replace(KONLING_TEXTBOOK_MODEL_INTERNAL_ID, '')
+    .replace(KONLING_TEXTBOOK_MODEL_SOURCE_SLUG, '')
+    .replace(KONLING_TEXTBOOK_MODEL_STRUCTURE_PATH, '')
+    .replace(KONLING_TEXTBOOK_MODEL_LOCAL_PATH, '')
+    .replace(KONLING_TEXTBOOK_MODEL_URL, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+export function projectKonlingTextbookModelToolResult(
+  result: unknown,
+): KonlingTextbookModelToolResult {
+  const record = readRecord(result);
+  const mode = getString(record, 'mode');
+  const rawCandidates = Array.isArray(record.candidates) ? record.candidates : [];
+  return {
+    mode: mode === 'lexical-vector' ? 'lexical-vector' : 'lexical',
+    optimizationPending: record.optimizationPending === true,
+    candidates: rawCandidates.flatMap((value) => {
+      const candidate = readRecord(value);
+      const displayNumber = getNumber(candidate, 'displayNumber');
+      const title = getString(candidate, 'title');
+      const text = getString(candidate, 'text');
+      if (!Number.isInteger(displayNumber) || displayNumber < 1 || !title || !text) return [];
+      return [{
+        displayNumber,
+        title: sanitizeKonlingTextbookModelText(title),
+        text: sanitizeKonlingTextbookModelText(text),
+        limitation: getString(candidate, 'limitation') || null,
+      }];
+    }),
+  };
+}
+
 export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlingToolRuntime>) {
   const tools = {
     get_page_context: tool({
       description: '读取服务端确认的当前页面上下文。',
       inputSchema: z.object({}),
       execute: () => runtime.getPageContext(),
+    }),
+    search_textbook: tool({
+      description: '按当前问题检索授权教材正文。只在课程知识支撑确有必要时调用；导航、状态或普通操作问题无需调用。',
+      inputSchema: z.object({
+        query: z.string().trim().min(1).max(500),
+      }),
+      execute: async (args, options) => projectKonlingTextbookModelToolResult(
+        await runtime.searchTextbook(args, {
+          toolCallId: options.toolCallId,
+          abortSignal: options.abortSignal,
+        }),
+      ),
     }),
     get_learner_state: tool({
       description: '读取服务端学习者状态，包含能力、知识掌握、风险与证据置信度。',
@@ -6207,20 +6400,10 @@ async function buildKonlingCitationContext(
     currentUserQuery?: string | null;
   },
 ): Promise<KonlingCitationContext> {
-  const sourcePackContent = input.trustedContentContext
-    ? await buildKonlingSourcePackContentCitations({
-        scope: input.scope,
-        pageContext: input.pageContext,
-        knowledgeWorkspace: input.knowledgeWorkspace,
-        sarAssociatedGrounding: input.sarAssociatedGrounding,
-        currentUserQuery: input.currentUserQuery,
-      })
-    : { citations: [], sourcePack: null };
   const contentCitations = input.trustedContentContext
     ? [
         ...buildContentCitations(input.pageContext),
         ...buildKnowledgeWorkspaceContentCitations(input.knowledgeWorkspace),
-        ...sourcePackContent.citations,
       ]
     : [];
   const evidenceCitations: KonlingCitation[] = [];
@@ -6304,11 +6487,16 @@ async function buildKonlingCitationContext(
       .map((citation) => `low-confidence-${citation.sourceType}`),
   ];
 
+  const {
+    contentCitations: assignedContentCitations,
+    evidenceCitations: assignedEvidenceCitations,
+  } = assignKonlingRuntimeCitationDisplayNumbers(contentCitations, evidenceCitations);
+
   return {
     required: true,
-    contentCitations,
-    evidenceCitations,
-    sourcePacks: sourcePackContent.sourcePack ? [sourcePackContent.sourcePack] : [],
+    contentCitations: assignedContentCitations,
+    evidenceCitations: assignedEvidenceCitations,
+    sourcePacks: [],
     missingCitationClasses,
     lowConfidenceReasons: [...new Set(lowConfidenceReasons)],
     responseProtocol: {
@@ -6320,6 +6508,76 @@ async function buildKonlingCitationContext(
       fallbackWhenMissing: 'low-confidence',
     },
   };
+}
+
+export function assignKonlingRuntimeCitationDisplayNumbers(
+  contentCitations: readonly KonlingCitation[],
+  evidenceCitations: readonly KonlingCitation[],
+) {
+  const allCitations = [...contentCitations, ...evidenceCitations];
+  const assignable = allCitations.map(toAssignableRuntimeCitation);
+  const assignedCitations = assignKonlingCitationDisplayNumbers(assignable);
+  const assignedByCanonicalKey = new Map(
+    assignedCitations.map((citation) => [citation.canonicalKey, citation]),
+  );
+  const hydrate = (citation: KonlingCitation): KonlingCitation | null => {
+    const canonicalKey = buildKonlingCitationCanonicalKey(
+      toAssignableRuntimeCitation(citation).identity,
+    );
+    const assigned = assignedByCanonicalKey.get(canonicalKey);
+    return assigned ? {
+      ...citation,
+      displayNumber: assigned.displayNumber,
+      canonicalKey: assigned.canonicalKey,
+      identity: assigned.identity,
+    } : null;
+  };
+  return {
+    contentCitations: contentCitations.flatMap((citation) => {
+      const hydrated = hydrate(citation);
+      return hydrated ? [hydrated] : [];
+    }),
+    evidenceCitations: evidenceCitations.flatMap((citation) => {
+      const hydrated = hydrate(citation);
+      return hydrated ? [hydrated] : [];
+    }),
+  };
+}
+
+function toAssignableRuntimeCitation(citation: KonlingCitation) {
+  const identity = citation.identity ?? (
+    citation.sourceType === 'content'
+      ? {
+          kind: 'content' as const,
+          sourceType: 'content' as const,
+          contentId: citation.citationTargetId ?? citation.id,
+        }
+      : {
+          kind: 'evidence' as const,
+          sourceType: citation.sourceType,
+          evidenceId: citation.id,
+          timeSemantic: readCitationTimeSemantic(citation),
+        }
+  );
+  return {
+    id: citation.id,
+    sourceType: citation.sourceType,
+    displayTitle: citation.displayTitle,
+    href: citation.displayHref ?? citation.href,
+    identity,
+    confidence: citation.confidence,
+    evidenceBasis: citation.evidenceBasis,
+    limitation: citation.omittedCitationReason ?? null,
+  };
+}
+
+function readCitationTimeSemantic(citation: KonlingCitation) {
+  const chip = citation.citationChip as unknown as Record<string, unknown> | undefined;
+  for (const key of ['evidenceTimestamp', 'observedAt', 'stateCommittedAt', 'sourceWindow']) {
+    const value = chip?.[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return null;
 }
 
 function buildContentCitations(pageContext: PageContext): KonlingCitation[] {
@@ -6397,8 +6655,8 @@ async function buildKonlingSourcePackContentCitations(input: {
   sarAssociatedGrounding?: KonlingSarAssociatedGroundingContext | null;
   currentUserQuery?: string | null;
 }): Promise<{ citations: KonlingCitation[]; sourcePack: KonlingSourcePackCitationSummary | null }> {
-  const documents = await loadAllTextbookRuntimeSearchDocuments().catch(() => []);
-  const adapted = documents.map(adaptTextbookSearchDocument);
+  const units = await loadAllTextbookStructureUnitProjections().catch(() => []);
+  const adapted = units.map(adaptTextbookStructureUnit);
   const query = buildKonlingSourcePackQuery(
     input.pageContext,
     input.knowledgeWorkspace,
@@ -6951,9 +7209,9 @@ function buildKonlingAnswerUnitCitationBindings(
   citations: readonly KonlingCitation[],
 ): KonlingAnswerUnitCitationBinding[] {
   const bindings: KonlingAnswerUnitCitationBinding[] = [];
-  const marker = /\[证据:\s*([A-Za-z0-9:_-]+)\]/g;
+  const marker = /\[(\d+)\]/g;
   for (const match of assistantMessage.matchAll(marker)) {
-    const citation = citations.find((candidate) => candidate.id === match[1]);
+    const citation = citations.find((candidate) => candidate.displayNumber === Number(match[1]));
     if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
     const markerIndex = match.index ?? 0;
     const lineStart = assistantMessage.lastIndexOf('\n', markerIndex) + 1;
@@ -7095,7 +7353,10 @@ export function applyKonlingCitationFallback(
 
 function assistantMentionsCitation(message: string, citations: KonlingCitation[]): boolean {
   return citations.some((citation) => (
-    message.includes(citation.id) ||
+    (
+      Number.isInteger(citation.displayNumber)
+      && message.includes(`[${citation.displayNumber}]`)
+    ) ||
     (
       message.includes(citation.sourceType) &&
       message.includes(citation.displayTitle) &&
@@ -7357,6 +7618,17 @@ function buildServerOwnedPageContext(scope: KonlingRuntimeScope): PageContext {
     knowledgeType: stepContext?.knowledgeType || 'C',
     ...simulationContext,
   };
+}
+
+function buildServerOwnedTextbookRetrievalQuery(input: {
+  pageContext: PageContext;
+}): string | null {
+  const query = uniqueStrings([
+    input.pageContext.courseTitle,
+    input.pageContext.topic,
+    ...input.pageContext.learningObjectives,
+  ]).join(' ').replace(/\s+/g, ' ').trim().slice(0, 1_000);
+  return query || null;
 }
 
 function buildServerOwnedSimulationPageContext(scope: KonlingRuntimeScope): Partial<PageContext> {

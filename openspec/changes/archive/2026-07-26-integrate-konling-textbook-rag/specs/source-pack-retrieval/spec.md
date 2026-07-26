@@ -3,6 +3,11 @@
 ### Requirement: Konling uses Source Packs for query-aware content citations
 Konling SHALL expose Source Pack textbook retrieval as a shared read-only tool only through page contracts that permit course-knowledge retrieval.
 
+#### Scenario: Concept explanation is requested from a graph context
+- **WHEN** a learner asks Konling to explain a selected concept, resource, or page context
+- **THEN** Konling SHALL expose the permitted textbook retrieval tool with the question and existing server-owned context
+- **AND** any graph refs SHALL remain candidate-expansion signals rather than verified evidence.
+
 #### Scenario: Scoped learning question needs textbook evidence
 - **WHEN** the model calls the permitted textbook retrieval tool for a selected concept, resource, page context, or other content-grounded question
 - **THEN** Konling SHALL build a `konling-answer` Source Pack using the question and existing server-owned page context
@@ -34,7 +39,7 @@ Source Pack SHALL preserve canonical structural-unit and fragment addresses sepa
 - **THEN** reader href generation SHALL NOT convert that item into a high-confidence student-visible citation
 - **AND** the relevance audit and limitation SHALL remain available for downstream diagnostics.
 
-#### Scenario: Raw runtime asset remains the machine boundary
+#### Scenario: Raw runtime asset route remains the machine boundary
 - **WHEN** a Source Pack item reads v2 body or index assets from the textbook runtime
 - **THEN** those physical assets SHALL remain server-side machine addresses
 - **AND** clients SHALL receive only authorized reader routes and citation metadata.

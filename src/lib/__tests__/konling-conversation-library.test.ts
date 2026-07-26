@@ -9,6 +9,7 @@ import {
   KonlingConversationTurnConflictError,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
+  replaceKonlingConversationAssistantRevision,
   resolveKonlingContextEventScope,
 } from '@/lib/konling-conversation-library';
 
@@ -212,6 +213,97 @@ describe('Konling conversation library', () => {
 
   it('keeps title derivation bounded by Unicode characters', () => {
     expect(Array.from(deriveKonlingConversationTitle('控'.repeat(100)))).toHaveLength(64);
+  });
+
+  it('CAS-replaces the same assistant message revision without appending a second message', async () => {
+    const initial = conversation({
+      messages: [
+        createKonlingContextEvent({ courseId: 'course-a', pageId: 'page-a' }, 'context-a'),
+        {
+          id: 'assistant-1',
+          role: 'assistant',
+          content: '初始正文',
+          metadata: { konlingMessageRevision: { revision: 1 } },
+        },
+      ],
+    });
+    const store = statefulConversationDb(initial);
+    await replaceKonlingConversationAssistantRevision(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      assistantMessage: {
+        id: 'assistant-1',
+        role: 'assistant',
+        content: '修复后正文 [1]',
+        metadata: { konlingMessageRevision: { revision: 2 } },
+      },
+      expectedRevision: 1,
+      revision: 2,
+      now,
+    });
+
+    const assistants = (store.current().messages as unknown as Array<Record<string, unknown>>)
+      .filter((message) => message.role === 'assistant');
+    expect(assistants).toHaveLength(1);
+    expect(assistants[0]).toMatchObject({
+      id: 'assistant-1',
+      content: '修复后正文 [1]',
+      metadata: { konlingMessageRevision: { revision: 2 } },
+    });
+  });
+
+  it('retries a bounded CAS conflict and gives up without replacing after three conflicts', async () => {
+    const initial = conversation({
+      messages: [{
+        id: 'assistant-1',
+        role: 'assistant',
+        content: '初始正文',
+        metadata: { konlingMessageRevision: { revision: 1 } },
+      }],
+    });
+    const retrying = statefulConversationDb(initial);
+    const update = retrying.db.konlingSession.updateMany.getMockImplementation()!;
+    let conflicts = 0;
+    retrying.db.konlingSession.updateMany.mockImplementation(async (args) => {
+      if (conflicts < 2) {
+        conflicts += 1;
+        return { count: 0 };
+      }
+      return update(args);
+    });
+    await expect(replaceKonlingConversationAssistantRevision(retrying.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      assistantMessage: {
+        id: 'assistant-1',
+        role: 'assistant',
+        content: '最终正文',
+        metadata: { konlingMessageRevision: { revision: 2 } },
+      },
+      expectedRevision: 1,
+      revision: 2,
+      now,
+    })).resolves.not.toBeNull();
+    expect(retrying.db.konlingSession.updateMany).toHaveBeenCalledTimes(3);
+
+    const exhausted = statefulConversationDb(initial);
+    exhausted.db.konlingSession.updateMany.mockResolvedValue({ count: 0 });
+    await expect(replaceKonlingConversationAssistantRevision(exhausted.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      assistantMessage: {
+        id: 'assistant-1',
+        role: 'assistant',
+        content: '不应写入',
+        metadata: { konlingMessageRevision: { revision: 2 } },
+      },
+      expectedRevision: 1,
+      revision: 2,
+      now,
+    })).resolves.toBeNull();
+    expect(exhausted.db.konlingSession.updateMany).toHaveBeenCalledTimes(3);
+    expect((exhausted.current().messages as unknown as Array<{ content: string }>)[0].content)
+      .toBe('初始正文');
   });
 
   it('generates unique message ids for concurrent turns created in the same millisecond', () => {

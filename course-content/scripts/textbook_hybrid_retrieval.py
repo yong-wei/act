@@ -475,21 +475,24 @@ def _derive_embedding_chunks(
 ) -> list[dict[str, Any]]:
     packed: list[dict[str, Any]] = []
     current_parts: list[str] = []
+    current_segments: list[dict[str, str]] = []
     current_owning_ids: list[str] = []
     current_source_paths: list[str] = []
     current_length = 0
 
     def flush() -> None:
-        nonlocal current_parts, current_owning_ids, current_source_paths
+        nonlocal current_parts, current_segments, current_owning_ids, current_source_paths
         nonlocal current_length
         if not current_parts:
             return
         packed.append({
             'body': ''.join(current_parts),
+            'segments': current_segments,
             'owningUnitIds': current_owning_ids,
             'sourcePaths': current_source_paths,
         })
         current_parts = []
+        current_segments = []
         current_owning_ids = []
         current_source_paths = []
         current_length = 0
@@ -506,6 +509,16 @@ def _derive_embedding_chunks(
                 ):
                     flush()
                 current_parts.append(piece)
+                if (
+                    current_segments
+                    and current_segments[-1]['owningUnitId'] == segment['owningUnitId']
+                ):
+                    current_segments[-1]['markdown'] += piece
+                else:
+                    current_segments.append({
+                        'owningUnitId': segment['owningUnitId'],
+                        'markdown': piece,
+                    })
                 current_length += len(piece)
                 if segment['owningUnitId'] not in current_owning_ids:
                     current_owning_ids.append(segment['owningUnitId'])
@@ -535,6 +548,7 @@ def _derive_embedding_chunks(
             'sourceRevision': source_window['sourceRevision'],
             'primaryUnitId': primary_unit_id,
             'owningUnitIds': owning_ids,
+            'segments': packed_chunk['segments'],
             'sourcePaths': packed_chunk['sourcePaths'],
             'body': packed_chunk['body'],
         })
@@ -854,6 +868,18 @@ def _write_core_index(
     postings: dict[str, dict[int, int]] = defaultdict(dict)
     for row, (window, vector) in enumerate(zip(windows, vectors)):
         body = window['body'].encode('utf-8')
+        segment_offset = 0
+        segments = []
+        for segment in window['segments']:
+            segment_body = segment['markdown'].encode('utf-8')
+            segments.append({
+                'owningUnitId': segment['owningUnitId'],
+                'bodyOffset': segment_offset,
+                'bodyLength': len(segment_body),
+            })
+            segment_offset += len(segment_body)
+        if segment_offset != len(body):
+            raise RetrievalContractError('window segments do not close over the body')
         offset = len(bodies)
         bodies.extend(body)
         token_counts = Counter(lexical_tokens(window['body']))
@@ -868,6 +894,7 @@ def _write_core_index(
             'sourceRevision': window['sourceRevision'],
             'primaryUnitId': window['primaryUnitId'],
             'owningUnitIds': window['owningUnitIds'],
+            'segments': segments,
             'sourcePaths': window['sourcePaths'],
             'vectorRow': row,
             'bodyOffset': offset,
@@ -1163,6 +1190,17 @@ def verify_index(
             or row.get('sourceRevision') != source_revision
             or row.get('primaryUnitId') != source['primaryUnitId']
             or row.get('owningUnitIds') != source['owningUnitIds']
+            or row.get('segments') != [
+                {
+                    'owningUnitId': segment['owningUnitId'],
+                    'bodyOffset': sum(
+                        len(previous['markdown'].encode('utf-8'))
+                        for previous in source['segments'][:segment_index]
+                    ),
+                    'bodyLength': len(segment['markdown'].encode('utf-8')),
+                }
+                for segment_index, segment in enumerate(source['segments'])
+            ]
             or row.get('sourcePaths') != source['sourcePaths']
             or text != source['body']
             or row.get('bodyHash') != sha256_bytes(body)

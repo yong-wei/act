@@ -16,6 +16,8 @@ import type {
   RetrievalDiagnostic,
   RetrievalDiagnosticCode,
   RetrievalOptions,
+  TextbookProgressiveRetrievalResponse,
+  TextbookRetrievalContinuationResult,
   TextbookRetrievalResult,
   TextbookRetrievalScoreBases,
   TextbookRetrievalResponse,
@@ -25,6 +27,8 @@ const DEFAULT_CANDIDATE_COUNT = 24;
 const DEFAULT_TOP_K = 10;
 const DEFAULT_EMBEDDING_TIMEOUT_MS = 5_000;
 const DEFAULT_RERANK_TIMEOUT_MS = 8_000;
+const DEFAULT_FOREGROUND_WAIT_MS = 2_000;
+const DEFAULT_BACKGROUND_WAIT_LIMIT_MS = 2_500;
 const RRF_K = 60;
 const BM25_K1 = 1.2;
 const BM25_B = 0.75;
@@ -47,11 +51,18 @@ class TimeoutError extends Error {}
 async function withTimeout<T>(
   timeoutMs: number,
   operation: (signal: AbortSignal) => Promise<T>,
+  parentSignal?: AbortSignal,
 ): Promise<T> {
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
     throw new TextbookRetrievalContractError('timeout must be a positive number');
   }
   const controller = new AbortController();
+  const abort = () => controller.abort(parentSignal?.reason);
+  if (parentSignal?.aborted) {
+    abort();
+    throw new DOMException('Aborted', 'AbortError');
+  }
+  parentSignal?.addEventListener('abort', abort, { once: true });
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
@@ -65,6 +76,7 @@ async function withTimeout<T>(
     ]);
   } finally {
     if (timer) clearTimeout(timer);
+    parentSignal?.removeEventListener('abort', abort);
   }
 }
 
@@ -93,6 +105,8 @@ function validateOptions(options: RetrievalOptions): {
   candidateCount: number;
   embeddingTimeoutMs: number;
   rerankTimeoutMs: number;
+  foregroundWaitMs: number;
+  backgroundWaitLimitMs: number;
 } {
   const topK = options.topK ?? DEFAULT_TOP_K;
   const candidateCount = options.candidateCount ?? DEFAULT_CANDIDATE_COUNT;
@@ -109,12 +123,27 @@ function validateOptions(options: RetrievalOptions): {
       'candidateCount must be an integer from 20 to 30 and at least topK',
     );
   }
+  const foregroundWaitMs = options.foregroundWaitMs ?? DEFAULT_FOREGROUND_WAIT_MS;
+  const backgroundWaitLimitMs = options.backgroundWaitLimitMs
+    ?? DEFAULT_BACKGROUND_WAIT_LIMIT_MS;
+  if (
+    !Number.isFinite(foregroundWaitMs)
+    || foregroundWaitMs <= 0
+    || !Number.isFinite(backgroundWaitLimitMs)
+    || backgroundWaitLimitMs <= foregroundWaitMs
+  ) {
+    throw new TextbookRetrievalContractError(
+      'background wait limit must be greater than the positive foreground wait',
+    );
+  }
   return {
     topK,
     candidateCount,
     embeddingTimeoutMs:
       options.embeddingTimeoutMs ?? DEFAULT_EMBEDDING_TIMEOUT_MS,
     rerankTimeoutMs: options.rerankTimeoutMs ?? DEFAULT_RERANK_TIMEOUT_MS,
+    foregroundWaitMs,
+    backgroundWaitLimitMs,
   };
 }
 
@@ -329,7 +358,7 @@ async function embedQuery(
     model: index.manifest.model,
     input: query,
     signal,
-  }));
+  }), options.abortSignal);
   if (response.model !== undefined && response.model !== index.manifest.model) {
     throw new TextbookRetrievalProviderError(
       'embedding',
@@ -386,7 +415,7 @@ async function rerankCandidates(
       text: candidate.body as string,
     })),
     signal,
-  }));
+  }), options.abortSignal);
   const results = validateRerankResults(response.results, rerankable.length);
   const returned = new Set(results.map((result) => result.index));
   const ranked = [...results].sort((left, right) =>
@@ -412,6 +441,12 @@ function publicResults(
       windowId: window.id,
       primaryUnitId: window.primaryUnitId,
       owningUnitIds: [...window.owningUnitIds],
+      segments: window.segments.map((segment) => ({
+        owningUnitId: segment.owningUnitId,
+        body: Buffer.from(candidate.body as string, 'utf8')
+          .subarray(segment.bodyOffset, segment.bodyOffset + segment.bodyLength)
+          .toString('utf8'),
+      })),
       bookId: window.bookId,
       sourcePaths: [...window.sourcePaths],
       body: candidate.body as string,
@@ -431,6 +466,13 @@ export async function retrieveTextbookHybrid(
   if (!normalizedQuery.trim()) {
     throw new TextbookRetrievalContractError('query must not be empty');
   }
+  const externalRetrievalEnabled = options.externalQuery !== null;
+  const normalizedExternalQuery = externalRetrievalEnabled
+    ? normalizeText(options.externalQuery ?? query)
+    : '';
+  if (externalRetrievalEnabled && !normalizedExternalQuery.trim()) {
+    throw new TextbookRetrievalContractError('external query must not be empty');
+  }
   const resolved = validateOptions(options);
   const index = await loadTextbookRetrievalIndex(options.indexRoot);
   if (index.closed) throw new TextbookRetrievalContractError('index is closed');
@@ -440,26 +482,28 @@ export async function retrieveTextbookHybrid(
   let vector: Array<{ row: number; score: number }> = [];
   let mode: TextbookRetrievalResponse['mode'] = 'lexical';
 
-  const embeddingStarted = performance.now();
-  try {
-    const queryVector = await embedQuery(
-      index,
-      normalizedQuery,
-      options,
-      resolved.embeddingTimeoutMs,
-    );
-    vector = vectorRank(index, queryVector);
-    mode = 'lexical-vector';
-  } catch (error) {
-    const traceId = error instanceof TextbookRetrievalProviderError
-      ? error.traceId
-      : undefined;
-    diagnostics.push(diagnostic(
-      'embedding',
-      providerCode(error),
-      embeddingStarted,
-      traceId,
-    ));
+  if (externalRetrievalEnabled) {
+    const embeddingStarted = performance.now();
+    try {
+      const queryVector = await embedQuery(
+        index,
+        normalizedExternalQuery,
+        options,
+        resolved.embeddingTimeoutMs,
+      );
+      vector = vectorRank(index, queryVector);
+      mode = 'lexical-vector';
+    } catch (error) {
+      const traceId = error instanceof TextbookRetrievalProviderError
+        ? error.traceId
+        : undefined;
+      diagnostics.push(diagnostic(
+        'embedding',
+        providerCode(error),
+        embeddingStarted,
+        traceId,
+      ));
+    }
   }
 
   const fused = fuseRanks(
@@ -475,11 +519,11 @@ export async function retrieveTextbookHybrid(
   }));
 
   let ordered = fused;
-  if (options.rerankModel) {
+  if (externalRetrievalEnabled && options.rerankModel && vector.length > 0) {
     const rerankStarted = performance.now();
     try {
       ordered = await rerankCandidates(
-        normalizedQuery,
+        normalizedExternalQuery,
         fused,
         options,
         resolved.rerankTimeoutMs,
@@ -504,6 +548,203 @@ export async function retrieveTextbookHybrid(
     ...(process.env.NODE_ENV !== 'production' && diagnostics.length > 0
       ? { diagnostics }
       : {}),
+  };
+}
+
+function remainingMs(deadline: number, now: () => number): number {
+  return Math.max(0, deadline - now());
+}
+
+async function waitUntil(
+  deadline: number,
+  now: () => number,
+  signal?: AbortSignal,
+): Promise<'elapsed' | 'aborted'> {
+  const delay = remainingMs(deadline, now);
+  if (delay <= 0) return 'elapsed';
+  if (signal?.aborted) return 'aborted';
+  return new Promise((resolve) => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const abort = () => {
+      if (timer) clearTimeout(timer);
+      resolve('aborted');
+    };
+    signal?.addEventListener('abort', abort, { once: true });
+    timer = setTimeout(() => {
+      signal?.removeEventListener('abort', abort);
+      resolve('elapsed');
+    }, delay);
+  });
+}
+
+export async function retrieveTextbookHybridProgressive(
+  query: string,
+  options: RetrievalOptions,
+): Promise<TextbookProgressiveRetrievalResponse> {
+  if (typeof query !== 'string') {
+    throw new TypeError('textbook retrieval query must be a string');
+  }
+  const normalizedQuery = normalizeText(query);
+  if (!normalizedQuery.trim()) {
+    throw new TextbookRetrievalContractError('query must not be empty');
+  }
+  const externalRetrievalEnabled = options.externalQuery !== null;
+  const normalizedExternalQuery = externalRetrievalEnabled
+    ? normalizeText(options.externalQuery ?? query)
+    : '';
+  if (externalRetrievalEnabled && !normalizedExternalQuery.trim()) {
+    throw new TextbookRetrievalContractError('external query must not be empty');
+  }
+  const now = options.now ?? (() => performance.now());
+  const started = now();
+  const resolved = validateOptions(options);
+  const foregroundDeadline = started + resolved.foregroundWaitMs;
+  const absoluteDeadline = started + resolved.backgroundWaitLimitMs;
+  const index = await loadTextbookRetrievalIndex(options.indexRoot);
+  if (index.closed) throw new TextbookRetrievalContractError('index is closed');
+
+  const lexical = lexicalRank(index, normalizedQuery);
+  const bm25 = bm25Rank(index, normalizedQuery);
+  const foregroundCandidates = fuseRanks(
+    index,
+    lexical,
+    [],
+    bm25,
+    [],
+    resolved.candidateCount,
+  );
+  await Promise.all(foregroundCandidates.map(async (candidate) => {
+    candidate.body = await readBody(index, index.windows[candidate.row]);
+  }));
+  const foreground: TextbookRetrievalResponse = {
+    mode: 'lexical',
+    results: publicResults(index, foregroundCandidates.slice(0, resolved.topK)),
+  };
+  if (!externalRetrievalEnabled) {
+    return {
+      foreground,
+      optimizationPending: false,
+      continuation: null,
+    };
+  }
+
+  const external = (async (): Promise<TextbookRetrievalContinuationResult> => {
+    const diagnostics: RetrievalDiagnostic[] = [];
+    if (options.abortSignal?.aborted) return { status: 'aborted' };
+    if (remainingMs(absoluteDeadline, now) <= 0) return { status: 'capped' };
+
+    let vector: Array<{ row: number; score: number }> = [];
+    const embeddingStarted = performance.now();
+    try {
+      const queryVector = await embedQuery(
+        index,
+        normalizedExternalQuery,
+        options,
+        Math.max(1, Math.min(
+          resolved.embeddingTimeoutMs,
+          remainingMs(absoluteDeadline, now),
+        )),
+      );
+      vector = vectorRank(index, queryVector);
+    } catch (error) {
+      if (options.abortSignal?.aborted) return { status: 'aborted' };
+      const traceId = error instanceof TextbookRetrievalProviderError
+        ? error.traceId
+        : undefined;
+      diagnostics.push(diagnostic(
+        'embedding',
+        providerCode(error),
+        embeddingStarted,
+        traceId,
+      ));
+    }
+    if (remainingMs(absoluteDeadline, now) <= 0) return { status: 'capped' };
+
+    const fused = fuseRanks(
+      index,
+      lexical,
+      vector,
+      bm25,
+      sourceLocalVectorRank(index, normalizedQuery, vector),
+      resolved.candidateCount,
+    );
+    await Promise.all(fused.map(async (candidate) => {
+      candidate.body = await readBody(index, index.windows[candidate.row]);
+    }));
+    let ordered = fused;
+    if (options.rerankModel && vector.length > 0) {
+      const rerankStarted = performance.now();
+      try {
+        ordered = await rerankCandidates(
+          normalizedExternalQuery,
+          fused,
+          options,
+          Math.max(1, Math.min(
+            resolved.rerankTimeoutMs,
+            remainingMs(absoluteDeadline, now),
+          )),
+        );
+      } catch (error) {
+        if (options.abortSignal?.aborted) return { status: 'aborted' };
+        const traceId = error instanceof TextbookRetrievalProviderError
+          ? error.traceId
+          : undefined;
+        diagnostics.push(diagnostic(
+          'rerank',
+          providerCode(error),
+          rerankStarted,
+          traceId,
+        ));
+        ordered = fused;
+      }
+    }
+    if (remainingMs(absoluteDeadline, now) <= 0) return { status: 'capped' };
+    return {
+      status: 'complete',
+      response: {
+        mode: vector.length > 0 ? 'lexical-vector' : 'lexical',
+        results: publicResults(index, ordered.slice(0, resolved.topK)),
+        ...(process.env.NODE_ENV !== 'production' && diagnostics.length > 0
+          ? { diagnostics }
+          : {}),
+      },
+    };
+  })().catch((): TextbookRetrievalContinuationResult => ({ status: 'failed' }));
+
+  const raced = await Promise.race([
+    external.then((result) => ({ type: 'external' as const, result })),
+    waitUntil(foregroundDeadline, now, options.abortSignal)
+      .then((status) => ({ type: status as 'elapsed' | 'aborted' })),
+  ]);
+  if (raced.type === 'aborted') {
+    return {
+      foreground,
+      optimizationPending: false,
+      continuation: Promise.resolve({ status: 'aborted' }),
+    };
+  }
+  if (
+    raced.type === 'external'
+    && now() < foregroundDeadline
+    && raced.result.status === 'complete'
+  ) {
+    return {
+      foreground: raced.result.response,
+      optimizationPending: false,
+      continuation: null,
+    };
+  }
+  if (raced.type === 'external' && raced.result.status !== 'complete') {
+    return {
+      foreground,
+      optimizationPending: false,
+      continuation: null,
+    };
+  }
+  return {
+    foreground,
+    optimizationPending: true,
+    continuation: external,
   };
 }
 

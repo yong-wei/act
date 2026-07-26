@@ -6,9 +6,15 @@
  * 支持控灵上下文感知系统提示词
  */
 
-import { consumeStream, createUIMessageStreamResponse, streamText, stepCountIs } from 'ai';
+import { consumeStream, createUIMessageStreamResponse, generateText, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
-import { getMessageContent, toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
+import {
+  getMessageContent,
+  toLegacyMessage,
+  toModelMessages,
+  toUIMessage,
+  type IncomingMessage,
+} from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
@@ -47,15 +53,31 @@ import {
   KonlingConversationTurnConflictError,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
+  replaceKonlingConversationAssistantRevision,
   resolveKonlingContextEventScope,
 } from '@/lib/konling-conversation-library';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
 import type { Prisma } from '@prisma/client';
+import {
+  normalizeAndRepairKonlingCitations,
+  type KonlingCitationRepairRequest,
+  type KonlingCitationRepairMapping,
+} from '@/lib/konling-citation-repair';
+import type { KonlingAssignedCitation } from '@/lib/konling-citation-protocol';
+import { createKonlingMessageRevisionStream } from '@/lib/konling-message-revision-stream';
+import { resolveKonlingTextbookOptimizations } from '@/lib/konling-textbook-background-optimization';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
+
+const CITATION_REPAIR_SYSTEM_PROMPT = [
+  '你只执行引用标记映射，不回答原问题，不改写回答正文。',
+  '只能把 unresolvedMarkers 映射到 assignedCitations 中已有的 displayNumber。',
+  '不得增加来源、URL、正文、解释或其他字段。',
+  '仅返回 JSON 数组，元素格式为 {"marker":"原始标记","displayNumber":1}。',
+].join('\n');
 
 function sanitizeAIErrorMessage(error: unknown) {
   return redactProviderError(error);
@@ -124,6 +146,25 @@ function buildCitationGuardMetadataPayload(
 
 function asPrismaJsonValue(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
+
+function parseCitationRepairMappings(text: string): KonlingCitationRepairMapping[] {
+  const match = text.match(/\[[\s\S]*\]/);
+  if (!match) return [];
+  try {
+    const value = JSON.parse(match[0]);
+    if (!Array.isArray(value)) return [];
+    return value.flatMap((entry) => {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return [];
+      const marker = (entry as Record<string, unknown>).marker;
+      const displayNumber = (entry as Record<string, unknown>).displayNumber;
+      return typeof marker === 'string' && Number.isInteger(displayNumber) && Number(displayNumber) > 0
+        ? [{ marker, displayNumber: Number(displayNumber) }]
+        : [];
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function POST(request: Request) {
@@ -271,6 +312,13 @@ export async function POST(request: Request) {
     let citationGuardMetadataPayload: ReturnType<typeof buildCitationGuardMetadataPayload> | null = null;
     let sarAssociatedGroundingMetadataPayload: ReturnType<typeof buildKonlingSarAssociatedGroundingMetadataPayload> | null = null;
     let buildFinalCitationGuardMetadataPayload: ((assistantContent: string) => ReturnType<typeof buildCitationGuardMetadataPayload>) | null = null;
+    let getAssignedCitationTable: (() => KonlingAssignedCitation[]) | null = null;
+    let getTextbookOptimizations:
+      | ReturnType<typeof buildKonlingToolRuntime>['getTextbookOptimizations']
+      | null = null;
+    let citationRepairUsed = false;
+    let citationRepairServerContext: KonlingCitationRepairRequest['serverContext'] | null = null;
+    let citationRepairPrivateValues: readonly string[] = [];
     let forceStructuredSmartPrepTool = false;
     let modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
@@ -389,6 +437,20 @@ export async function POST(request: Request) {
         knowledgeCapabilityContext: modeContract.groundingContext,
         teachingAssistantMode: modeContract,
       };
+      citationRepairServerContext = Object.freeze({
+        role: authorizedScope.role,
+        topic: runtimeContext.pageContext.topic,
+        courseTitle: runtimeContext.pageContext.courseTitle,
+      });
+      citationRepairPrivateValues = Object.freeze([
+        session.user.id,
+        session.user.name ?? '',
+        authorizedScope.authenticatedUserId,
+        authorizedScope.targetUserId,
+        authorizedScope.classId ?? '',
+        authorizedScope.resourceId ?? '',
+        authorizedScope.pathNodeId ?? '',
+      ].filter(Boolean));
       const aiContext: AIContext = {
         page: runtimeContext.pageContext,
         user: runtimeContext.userProfile,
@@ -533,6 +595,8 @@ export async function POST(request: Request) {
         permittedTools: modeContract.permittedTools,
         scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
       });
+      getAssignedCitationTable = toolRuntime.getAssignedCitations;
+      getTextbookOptimizations = toolRuntime.getTextbookOptimizations;
       agentSessionResponseHeaders = {
         'X-Konling-Agent-Session-Id': agentSession.id,
         ...(conversationId ? { 'X-Konling-Conversation-Id': conversationId } : {}),
@@ -568,10 +632,12 @@ export async function POST(request: Request) {
     }
 
     // 使用 Vercel AI SDK 生成流式响应
+    const responseModel = await getConfiguredAIModel(undefined, modelRequirements);
+    const frozenModelMessages = await toModelMessages(uiMessages);
     const result = await streamText({
-      model: await getConfiguredAIModel(undefined, modelRequirements),
+      model: responseModel,
       system: systemPrompt,
-      messages: await toModelMessages(uiMessages),
+      messages: frozenModelMessages,
       tools,
       ...(forceStructuredSmartPrepTool ? {
         stopWhen: stepCountIs(2),
@@ -589,6 +655,33 @@ export async function POST(request: Request) {
       maxOutputTokens: 2000,
     });
 
+    let completedResponseMessage: Message | null = null;
+    const buildPersistedAssistantRevision = (
+      messageId: string,
+      body: string,
+      metadata: Record<string, unknown>,
+    ): Message => {
+      let textPartReplaced = false;
+      const parts = (completedResponseMessage?.parts ?? []).flatMap((part): Message['parts'] => {
+        if (part.type !== 'text') return [part];
+        if (textPartReplaced) return [];
+        textPartReplaced = true;
+        return [{ ...part, text: body }];
+      });
+      if (!textPartReplaced) parts.push({ type: 'text', text: body });
+      const existingMetadata = completedResponseMessage?.metadata
+        && typeof completedResponseMessage.metadata === 'object'
+        ? completedResponseMessage.metadata as Record<string, unknown>
+        : {};
+      return toLegacyMessage({
+        ...(completedResponseMessage ?? {}),
+        id: messageId,
+        role: 'assistant',
+        content: body,
+        parts,
+        metadata: { ...existingMetadata, ...metadata },
+      });
+    };
     const uiMessageStream = result.toUIMessageStream({
       originalMessages: uiMessages,
       generateMessageId: () => crypto.randomUUID(),
@@ -601,36 +694,11 @@ export async function POST(request: Request) {
           claimedTurn = null;
           return;
         }
-        const assistantContent = getMessageContent(responseMessage);
-        if (!assistantContent.trim()) {
+        completedResponseMessage = toLegacyMessage(responseMessage);
+        if (!getMessageContent(responseMessage).trim()) {
           await releaseKonlingConversationTurn(prisma, claimedTurn);
           claimedTurn = null;
           return;
-        }
-        const finalCitationMetadata = buildFinalCitationGuardMetadataPayload?.(assistantContent)
-          ?? citationGuardMetadataPayload;
-        const completingTurn = claimedTurn;
-        try {
-          await completeKonlingConversationTurn(prisma, {
-            ...completingTurn,
-            assistantMessage: {
-              ...responseMessage,
-              metadata: {
-                ...(responseMessage.metadata ?? {}),
-                ...(finalCitationMetadata ? {
-                  konlingCitationGuard: finalCitationMetadata,
-                } : {}),
-                ...(sarAssociatedGroundingMetadataPayload ? {
-                  konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
-                } : {}),
-              },
-            },
-          });
-          claimedTurn = null;
-        } catch (error) {
-          await releaseKonlingConversationTurn(prisma, completingTurn);
-          claimedTurn = null;
-          throw error;
         }
       },
       messageMetadata: ({ part }) => {
@@ -649,16 +717,218 @@ export async function POST(request: Request) {
         return getAIStreamErrorMessage(error);
       },
     });
-    const finalCitationUiMessageStream = buildFinalCitationGuardMetadataPayload
+    const metadataStream = buildFinalCitationGuardMetadataPayload
       ? appendFinalCitationGuardMetadata(
-        uiMessageStream,
-        buildFinalCitationGuardMetadataPayload,
-        { konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload },
-      )
+          uiMessageStream,
+          buildFinalCitationGuardMetadataPayload,
+          { konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload },
+        )
       : uiMessageStream;
+    const finalCitationUiMessageStream = buildFinalCitationGuardMetadataPayload && getAssignedCitationTable
+      ? createKonlingMessageRevisionStream({
+          stream: metadataStream,
+          hasPendingOptimization: () =>
+            (getTextbookOptimizations?.().length ?? 0) > 0,
+          finalize: async ({ messageId, body: assistantBody }) => {
+            const assignedCitations = getAssignedCitationTable?.() ?? [];
+            const normalized = await normalizeAndRepairKonlingCitations({
+              answer: assistantBody,
+              assignedCitations,
+              originalQuestion: requestedUserMessage?.content ?? '',
+              serverContext: citationRepairServerContext as KonlingCitationRepairRequest['serverContext'],
+              privateValues: citationRepairPrivateValues,
+              repair: async (repairRequest) => {
+                citationRepairUsed = true;
+                const repaired = await generateText({
+                  model: responseModel,
+                  system: CITATION_REPAIR_SYSTEM_PROMPT,
+                  prompt: JSON.stringify(repairRequest),
+                  temperature: 0,
+                  maxOutputTokens: 500,
+                });
+                return parseCitationRepairMappings(repaired.text);
+              },
+            });
+            const baseMetadata = buildFinalCitationGuardMetadataPayload(normalized.body);
+            const finalCitationMetadata = {
+              ...baseMetadata,
+              status: baseMetadata.status === 'verified' && normalized.verificationStatus === 'verified'
+                ? 'verified'
+                : 'low-confidence',
+              verificationStatus: normalized.verificationStatus,
+              userNotice: normalized.userNotice,
+              citations: normalized.citations,
+              retrievalSources: normalized.citations,
+              diagnosticReasons: process.env.NODE_ENV === 'production'
+                ? []
+                : [...new Set([
+                    ...(baseMetadata.diagnosticReasons ?? []),
+                    ...normalized.diagnostics,
+                  ])],
+            };
+            const metadata = {
+              konlingCitationGuard: finalCitationMetadata,
+              ...(sarAssociatedGroundingMetadataPayload ? {
+                konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+              } : {}),
+              konlingMessageRevision: {
+                revision: 1,
+                status: normalized.verificationStatus,
+                userNotice: normalized.userNotice,
+              },
+            };
+            if (claimedTurn) {
+              const completingTurn = claimedTurn;
+              try {
+                await completeKonlingConversationTurn(prisma, {
+                  ...completingTurn,
+                  assistantMessage: buildPersistedAssistantRevision(
+                    messageId,
+                    normalized.body,
+                    metadata,
+                  ),
+                });
+                claimedTurn = null;
+              } catch (error) {
+                await releaseKonlingConversationTurn(prisma, completingTurn);
+                claimedTurn = null;
+                throw error;
+              }
+            }
+            return {
+              body: normalized.body,
+              citations: normalized.citations,
+              status: normalized.verificationStatus,
+              userNotice: normalized.userNotice,
+              metadata,
+            };
+          },
+          finalizeOptimization: async ({ messageId, revision }) => {
+            const optimizations = getTextbookOptimizations?.() ?? [];
+            if (optimizations.length === 0) return null;
+            const decision = await resolveKonlingTextbookOptimizations({
+              optimizations,
+              assignedCitations: () => getAssignedCitationTable?.() ?? [],
+              usedTextbookCanonicalKeys: revision.citations
+                .filter((citation) => citation.sourceType === 'textbook')
+                .map((citation) => citation.canonicalKey),
+            });
+            if (!decision.material) return null;
+
+            const finalCitationTable = [
+              ...(getAssignedCitationTable?.() ?? [])
+                .filter((citation) => citation.sourceType !== 'textbook'),
+              ...decision.finalTextbookCitations,
+            ];
+            const response = await result.response;
+            const optimized = await generateText({
+              model: responseModel,
+              system: systemPrompt,
+              messages: [
+                ...frozenModelMessages,
+                ...response.messages,
+                {
+                  role: 'user',
+                  content: [
+                    '请依据以下最终教材证据重新生成同一条回答。',
+                    '只能使用服务器编号 [n]，不得创建链接或新编号。',
+                    JSON.stringify(decision.finalResults.map(({ toolCallId, result: finalResult }) => ({
+                      toolCallId,
+                      candidates: finalResult.candidates.map((candidate) => ({
+                        displayNumber: candidate.displayNumber,
+                        title: candidate.title,
+                        text: candidate.text,
+                        limitation: candidate.limitation,
+                      })),
+                    }))),
+                  ].join('\n'),
+                },
+              ],
+              temperature: 0.7,
+              maxOutputTokens: 2000,
+              abortSignal: request.signal,
+            });
+            if (!optimized.text.trim()) return null;
+            const normalized = await normalizeAndRepairKonlingCitations({
+              answer: optimized.text,
+              assignedCitations: finalCitationTable,
+              originalQuestion: requestedUserMessage?.content ?? '',
+              serverContext: citationRepairServerContext as KonlingCitationRepairRequest['serverContext'],
+              privateValues: citationRepairPrivateValues,
+              repair: citationRepairUsed
+                ? undefined
+                : async (repairRequest) => {
+                    citationRepairUsed = true;
+                    const repaired = await generateText({
+                      model: responseModel,
+                      system: CITATION_REPAIR_SYSTEM_PROMPT,
+                      prompt: JSON.stringify(repairRequest),
+                      temperature: 0,
+                      maxOutputTokens: 500,
+                      abortSignal: request.signal,
+                    });
+                    return parseCitationRepairMappings(repaired.text);
+                  },
+            });
+            const baseMetadata = buildFinalCitationGuardMetadataPayload(normalized.body);
+            const finalCitationMetadata = {
+              ...baseMetadata,
+              status: baseMetadata.status === 'verified' && normalized.verificationStatus === 'verified'
+                ? 'verified'
+                : 'low-confidence',
+              verificationStatus: normalized.verificationStatus,
+              userNotice: normalized.userNotice,
+              citations: normalized.citations,
+              retrievalSources: normalized.citations,
+              diagnosticReasons: process.env.NODE_ENV === 'production'
+                ? []
+                : [...new Set([
+                    ...(baseMetadata.diagnosticReasons ?? []),
+                    ...normalized.diagnostics,
+                  ])],
+            };
+            const metadata = {
+              konlingCitationGuard: finalCitationMetadata,
+              ...(sarAssociatedGroundingMetadataPayload ? {
+                konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+              } : {}),
+              konlingMessageRevision: {
+                revision: 2,
+                status: normalized.verificationStatus,
+                userNotice: normalized.userNotice,
+              },
+            };
+            if (conversationId && session?.user?.id) {
+              const replaced = await replaceKonlingConversationAssistantRevision(prisma, {
+                conversationId,
+                ownerUserId: session.user.id,
+                assistantMessage: buildPersistedAssistantRevision(
+                  messageId,
+                  normalized.body,
+                  metadata,
+                ),
+                expectedRevision: 1,
+                revision: 2,
+              });
+              if (!replaced) return null;
+            }
+            return {
+              messageId,
+              revision: 2,
+              body: normalized.body,
+              citations: normalized.citations,
+              status: normalized.verificationStatus,
+              userNotice: normalized.userNotice,
+              metadata,
+            };
+          },
+        })
+      : metadataStream;
     const guardedUiMessageStream = insertStreamingCitationFallbackNotice(
       finalCitationUiMessageStream,
-      buildStreamingCitationFallbackNotice(citationGuardMetadataPayload),
+      process.env.NODE_ENV === 'production'
+        ? null
+        : buildStreamingCitationFallbackNotice(citationGuardMetadataPayload),
     );
 
     // 返回流式响应

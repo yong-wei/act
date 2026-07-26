@@ -11,9 +11,10 @@ const mocks = vi.hoisted(() => ({
   getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
   getLearningGoalResourceBaselineForPlanner: vi.fn(),
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
-  loadAllTextbookRuntimeResourceCatalogEntries: vi.fn(),
-  loadAllTextbookRuntimeSearchDocuments: vi.fn(),
+  loadAllTextbookStructureRuntimeCatalogEntries: vi.fn(),
+  loadAllTextbookStructureUnitProjections: vi.fn(),
   loadRuntimeResourceProjectionInputs: vi.fn(),
+  retrieveTextbookSourcePackV2Progressive: vi.fn(),
 }));
 
 vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
@@ -50,9 +51,13 @@ vi.mock('@/lib/learning-goal-resource-baseline-runtime', async () => {
   };
 });
 
-vi.mock('@/lib/textbook-runtime-resources', () => ({
-  loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments: mocks.loadAllTextbookRuntimeSearchDocuments,
+vi.mock('@/lib/structured-textbook-runtime', () => ({
+  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections: mocks.loadAllTextbookStructureUnitProjections,
+}));
+
+vi.mock('@/lib/source-pack/textbook-v2-adapter', () => ({
+  retrieveTextbookSourcePackV2Progressive: mocks.retrieveTextbookSourcePackV2Progressive,
 }));
 
 vi.mock('@/lib/course-runtime', () => ({
@@ -80,6 +85,7 @@ import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-p
 import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
 import {
   applyKonlingCitationFallback,
+  assignKonlingRuntimeCitationDisplayNumbers,
   buildKonlingCitationGuard,
   buildResourceNodeSourcePackCandidate,
   buildKonlingSarAssociatedGroundingMetadataPayload,
@@ -99,6 +105,7 @@ import {
   KONLING_TOOL_REGISTRY,
   KONLING_TEACHING_ASSISTANT_MODE_REGISTRY,
   persistKonlingSessionMemories,
+  projectKonlingTextbookModelToolResult,
   recordKonlingInterventionFeedback,
   resolveKonlingTeachingAssistantMode,
   resumeKonlingAgentSession,
@@ -461,97 +468,84 @@ function textbookRuntimeCatalogFixture() {
       bookId: 'dorf-modern-control-systems',
       title: 'Modern Control Systems',
     },
-    sections: [
+    units: [
       {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch08-example-0801',
+        unitId: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-08/example-8.1',
         title: 'Bode 图频域响应示例',
-        citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md',
+        citationHref: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-08/example-8.1',
+        sourceHash: 'sha-textbook-unit',
+        sourceVersionRef: 'structured-textbook-runtime.v2:revision-001',
         knowledgeNodeIds: ['Bode图_1_1', '频域响应_1_1', '正弦稳态响应_5_b6dc1100'],
         capabilityTargetIds: ['controlModeling', 'parameterDesign'],
         estimatedTimeMinutes: 8,
-        planningOverride: {
-          readiness: {
-            minimumCompetency: { controlModeling: 0.1, parameterDesign: 0.1 },
-            minimumEvidenceCount: 1,
-            requiredCompletedNodeIds: [],
-            requiredOutcomeRefs: [],
-            unlockMessage: 'Reviewed textbook section fixture is ready for path planning.',
-            fallbackNodeIds: [],
-          },
-          pathDisposition: {
-            kind: 'path-plannable',
-            reviewStatus: 'human-confirmed',
-            rationale: 'Reviewed textbook section fixture for Konling path generation tests.',
-            sourceFamily: 'textbook_section',
-            stableSourceRef: 'dorf-modern-control-systems:ch08-example-0801',
-            sourceVersionRef: 'resource-node-registry.v1',
-            parentResourceNodeId: null,
-            reviewedAt: '2026-07-03T00:00:00.000Z',
-            reviewerId: 'konling-runtime-test-review',
-          },
-        },
       },
     ],
   }];
 }
 
-function textbookRuntimeSearchDocumentFixture() {
+function textbookStructureUnitFixture() {
+  const unitId = 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-08/example-8.1';
   return [
     {
-      id: 'ch08-example-0801__chunk-001',
-      kind: 'chunk',
+      id: unitId,
+      kind: 'example',
       title: 'Bode 图频域响应示例',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#chunk-001',
+      href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-08/example-8.1',
       text: 'Bode 图用于观察频域响应。',
-      contentHash: 'sha-textbook-chunk',
+      contentHash: 'sha-textbook-unit',
+      identity: {
+        bookId: 'dorf-modern-control-systems',
+        edition: '14th Global Edition',
+        sourceRevision: 'revision-001',
+        unitId,
+        fragmentId: null,
+      },
+      fragments: [{
+        id: `${unitId}#figure-8.1`,
+        owningUnitId: unitId,
+        kind: 'figure',
+        naturalNumber: '8.1',
+        ordinal: 1,
+        sourceSpan: {
+          sourcePath: 'textbooks/dorf-modern-control-systems/chapter-08/textbook.md',
+          startLine: 12,
+          endLine: 12,
+          startByte: 120,
+          endByte: 150,
+        },
+        recordType: 'fragment-anchor',
+        schemaVersion: 'structured-textbook-runtime.v2',
+      }],
       resourceProjection: {
-        resourceId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
-        segmentRef: 'ch08-example-0801',
-        citationTargetRef: 'ch08-example-0801',
+        resourceId: unitId,
+        segmentRef: unitId,
+        citationTargetRef: unitId,
         knowledgeNodeRefs: ['Bode图_1_1', '频域响应_1_1'],
         capabilityTargetRefs: ['controlModeling'],
+        contentHash: 'sha-textbook-unit',
+        versionRefs: {
+          artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+          graphCatalogVersion: 'graph-catalog.v1',
+          resourceProjectionVersion: 'structured-textbook-runtime.v2',
+          resourceRegistryVersion: 'revision-001',
+          citationVersion: 'structured-textbook-runtime.v2',
+        },
       },
       citationAddress: {
         kind: 'text',
-        sourceRefId: 'ch08-example-0801__chunk-001',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#chunk-001',
-        locator: 'chunk-001',
-        contentHash: 'sha-textbook-chunk',
+        sourceRefId: unitId,
+        href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-08/example-8.1',
+        locator: unitId,
+        contentHash: 'sha-textbook-unit',
       },
       metadata: {
         bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch08-example-0801',
-        chapterId: 'ch08',
-        chapterNumber: 8,
-      },
-    },
-    {
-      id: 'fig-08-01__figure',
-      kind: 'figure',
-      title: 'Bode 图示意图',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#fig-08-01',
-      text: '图像描述：幅频与相频曲线。',
-      contentHash: 'sha-textbook-figure',
-      resourceProjection: {
-        resourceId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
-        segmentRef: 'ch08-example-0801',
-        citationTargetRef: 'fig-08-01',
-        knowledgeNodeRefs: ['Bode图_1_1'],
-        capabilityTargetRefs: ['controlModeling'],
-      },
-      citationAddress: {
-        kind: 'image',
-        sourceRefId: 'fig-08-01',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#fig-08-01',
-        locator: 'fig-08-01',
-        contentHash: 'sha-textbook-figure',
-      },
-      metadata: {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch08-example-0801',
-        chapterId: 'ch08',
-        chapterNumber: 8,
+        edition: '14th Global Edition',
+        sourceRevision: 'revision-001',
+        unitId,
+        chapterId: 'chapter-08',
+        naturalNumber: '8.1',
+        structuralPath: ['chapter-chapter-08', 'example-8.1'],
       },
     },
   ];
@@ -643,12 +637,57 @@ function reviewedPathPlanningOverride(sourceFamily: string, stableSourceRef: str
 }
 
 describe('konling agent runtime', () => {
+  it('preserves distinct typed identities and display numbers when source types share a raw id', () => {
+    const rawId = 'shared-raw-id';
+    const assigned = assignKonlingRuntimeCitationDisplayNumbers(
+      [{
+        id: rawId,
+        sourceType: 'content',
+        displayTitle: '课程正文',
+        href: '/textbooks/book-a/e8/unit-a',
+        confidence: 'high',
+        evidenceBasis: 'course-content',
+        owner: 'answer',
+      }],
+      [{
+        id: rawId,
+        sourceType: 'learner-state',
+        displayTitle: '学习证据',
+        href: null,
+        confidence: 'medium',
+        evidenceBasis: 'learner-state',
+        owner: 'recommendation',
+      }],
+    );
+
+    expect(assigned.contentCitations[0]).toMatchObject({
+      displayNumber: 1,
+      identity: { kind: 'content', sourceType: 'content' },
+    });
+    expect(assigned.evidenceCitations[0]).toMatchObject({
+      displayNumber: 2,
+      identity: { kind: 'evidence', sourceType: 'learner-state' },
+    });
+    expect(assigned.contentCitations[0]?.canonicalKey)
+      .not.toBe(assigned.evidenceCitations[0]?.canonicalKey);
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
-    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue(textbookRuntimeSearchDocumentFixture());
+    mocks.loadAllTextbookStructureRuntimeCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue(textbookStructureUnitFixture());
     mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: {
+        mode: 'lexical',
+        candidates: [],
+        limitations: ['no-directly-supporting-textbook-unit'],
+        diagnostics: [],
+      },
+      optimizationPending: false,
+      continuation: null,
+    });
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
     delete process.env.KONLING_SEMANTIC_MEMORY_ENABLED;
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
@@ -782,6 +821,254 @@ describe('konling agent runtime', () => {
         requiredContext: expect.arrayContaining(['resource-node', 'path-execution-context']),
       }),
     ]));
+  });
+
+  it('exposes textbook retrieval only for registered pages and content-capable modes without autonomous prefetch', async () => {
+    expect(KONLING_TOOL_REGISTRY.search_textbook).toMatchObject({
+      permissionTier: 'read',
+      approvalPolicy: 'none',
+    });
+    expect(resolveKonlingTeachingAssistantMode('generic-chat').permittedTools)
+      .toContain('search_textbook');
+    expect(resolveKonlingTeachingAssistantMode('class-summarizer').permittedTools)
+      .not.toContain('search_textbook');
+
+    const registered = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
+      pageId: 'step-03',
+      currentUserQuery: '我的答案是 K=37，请解释约束参数优化。张三的掌握度、risk 和 student-1 学习记录如何？',
+      trustedContentContext: true,
+    });
+    expect(registered.permittedTools).toContain('search_textbook');
+    expect(Object.isFrozen(registered.textbookRetrievalContext)).toBe(true);
+    expect(registered.textbookRetrievalContext?.externalQuery).toContain('约束下的优化设计实践');
+    for (const forbidden of ['K=37', '张三', 'student-1', '掌握度', 'risk', '学习记录']) {
+      expect(registered.textbookRetrievalContext?.externalQuery).not.toContain(forbidden);
+    }
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).not.toHaveBeenCalled();
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
+
+    const unregistered = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'unknown-course',
+      pageId: 'unknown-page',
+      currentUserQuery: '解释单位阶跃响应。',
+      trustedContentContext: true,
+    });
+    expect(unregistered.permittedTools).not.toContain('search_textbook');
+  });
+
+  it('returns the textbook allowlist DTO only after an authorized model tool call and surfaces failures', async () => {
+    const expected = {
+      mode: 'lexical' as const,
+      candidates: [{
+        displayNumber: 1,
+        title: '单位阶跃响应',
+        text: '一阶系统单位阶跃响应为指数形式。',
+        identity: {
+          kind: 'unit' as const,
+          unitId: 'textbook-unit:hu8/direct',
+          fragmentId: null,
+          bookId: 'hu-shousong-auto-control-8th',
+          edition: '第八版',
+          sourceRevision: 'revision-hu8',
+          structuralPath: ['chapter-3', 'section-3.2'],
+        },
+        href: '/textbooks/hu-shousong-auto-control-8th/%E7%AC%AC%E5%85%AB%E7%89%88/chapter-3/section-3.2',
+        priority: 0,
+        limitation: null,
+      }],
+      limitations: [],
+      diagnostics: [],
+    };
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValueOnce({
+      foreground: expected,
+      optimizationPending: false,
+      continuation: null,
+    });
+    const session = {
+      id: 'agent-session-textbook',
+      permittedTools: ['search_textbook'],
+    };
+    let createdRun: Record<string, unknown> | null = null;
+    const db = {
+      agentSession: { findFirst: vi.fn(async () => session) },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          createdRun = {
+            id: 'textbook-run-1',
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          return createdRun;
+        }),
+        findFirst: vi.fn(async () => createdRun),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope(),
+      agentSessionId: session.id,
+      context: createRuntimeContext({
+        permittedTools: ['search_textbook'],
+        textbookRetrievalContext: Object.freeze({
+          externalQuery: '自动控制原理 单位阶跃响应',
+        }),
+        knowledgeCapabilityContext: {
+          source: 'server-owned',
+          answerIntent: 'fact-explanation',
+          knowledgeNodeRefs: ['knowledge-node:step-response'],
+          capabilityTargetRefs: [],
+          resourceRefs: [],
+          pathNodeRefs: [],
+          citationRefs: [],
+          scope: createScope(),
+          missingContext: [],
+        },
+      }),
+      permittedTools: session.permittedTools,
+    });
+    const tools = buildScopedKonlingAiTools(runtime);
+    expect(Object.keys(tools)).toEqual(['search_textbook']);
+    const internalResult = await runtime.searchTextbook({ query: '单位阶跃响应' }) as
+      typeof expected & { optimizationPending: boolean };
+    expect(internalResult).toEqual({
+      ...expected,
+      optimizationPending: false,
+    });
+    const modelResult = projectKonlingTextbookModelToolResult(internalResult);
+    expect(modelResult).toEqual({
+      mode: 'lexical',
+      optimizationPending: false,
+      candidates: [{
+        displayNumber: 1,
+        title: '单位阶跃响应',
+        text: '一阶系统单位阶跃响应为指数形式。',
+        limitation: null,
+      }],
+    });
+    expect(Object.keys(modelResult).sort()).toEqual([
+      'candidates',
+      'mode',
+      'optimizationPending',
+    ]);
+    expect(Object.keys(modelResult.candidates[0]).sort()).toEqual([
+      'displayNumber',
+      'limitation',
+      'text',
+      'title',
+    ]);
+    const serializedModelResult = JSON.stringify(modelResult);
+    for (const forbidden of [
+      'bookId',
+      'edition',
+      'sourceRevision',
+      'unitId',
+      'fragmentId',
+      'structuralPath',
+      'identity',
+      'href',
+      'canonicalKey',
+      'window',
+      'rank',
+      'score',
+      'knowledge-node',
+      'chapter-3',
+    ]) {
+      expect(serializedModelResult).not.toContain(forbidden);
+    }
+    const sanitizedModelResult = projectKonlingTextbookModelToolResult({
+      ...internalResult,
+      candidates: internalResult.candidates.map((candidate) => ({
+        ...candidate,
+        title: `${candidate.title} bookId=hu-shousong-auto-control-8th`,
+        text: [
+          candidate.text,
+          'identity={"kind":"textbook"} edition=第八版',
+          'structuralPath=["chapter-3","section-3.2"]',
+          'unitId=textbook-unit:hu8/direct /Users/a/private.md',
+        ].join(' '),
+      })),
+    });
+    const sanitizedPayload = JSON.stringify(sanitizedModelResult);
+    expect(sanitizedPayload).toContain('一阶系统单位阶跃响应为指数形式');
+    for (const forbidden of [
+      'bookId',
+      'hu-shousong-auto-control-8th',
+      'identity',
+      'edition',
+      'structuralPath',
+      'chapter-3',
+      'section-3.2',
+      'unitId',
+      'textbook-unit:',
+      '/Users/',
+    ]) {
+      expect(sanitizedPayload).not.toContain(forbidden);
+    }
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).toHaveBeenCalledWith({
+      query: '单位阶跃响应',
+      externalQuery: '自动控制原理 单位阶跃响应',
+      graphNodeRefs: ['knowledge-node:step-response'],
+      abortSignal: undefined,
+    });
+    await runtime.searchTextbook({ query: '我的答案是 K=37，请解释单位阶跃响应' });
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).toHaveBeenLastCalledWith({
+      query: '我的答案是 K=37，请解释单位阶跃响应',
+      externalQuery: '自动控制原理 单位阶跃响应',
+      graphNodeRefs: ['knowledge-node:step-response'],
+      abortSignal: undefined,
+    });
+    const textbookRunInputSummary = (
+      createdRun as Record<string, unknown> | null
+    )?.inputSummary;
+    expect(textbookRunInputSummary).toMatchObject({
+      queryHash: expect.stringMatching(/^[0-9a-f]{64}$/u),
+      queryLength: expect.any(Number),
+      queryCategory: expect.any(String),
+    });
+    expect(JSON.stringify(textbookRunInputSummary)).not.toContain('K=37');
+
+    mocks.retrieveTextbookSourcePackV2Progressive.mockRejectedValueOnce(new Error('private index path'));
+    await expect(runtime.searchTextbook({ query: '单位阶跃响应' }))
+      .rejects.toThrow('教材检索暂不可用');
+    expect(JSON.stringify(db.agentToolRun.updateMany.mock.calls)).not.toContain('private index path');
+
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: expected,
+      optimizationPending: true,
+      continuation: Promise.resolve({
+        status: 'complete',
+        result: expected,
+      }),
+    });
+    await Promise.all([
+      runtime.searchTextbook(
+        { query: '单位阶跃响应 工具一' },
+        { toolCallId: 'tool-call-1' },
+      ),
+      runtime.searchTextbook(
+        { query: '单位阶跃响应 工具二' },
+        { toolCallId: 'tool-call-2' },
+      ),
+    ]);
+    expect(runtime.getTextbookOptimizations().map((item) => item.toolCallId))
+      .toEqual(['tool-call-1', 'tool-call-2']);
+    const isolatedRuntime = buildKonlingToolRuntime({
+      db,
+      scope: createScope(),
+      agentSessionId: session.id,
+      context: createRuntimeContext({ permittedTools: ['search_textbook'] }),
+      permittedTools: session.permittedTools,
+    });
+    expect(isolatedRuntime.getTextbookOptimizations()).toEqual([]);
   });
 
   it('exposes server-owned smart-preparation state as a teacher-only draft contract', () => {
@@ -1782,7 +2069,7 @@ describe('konling agent runtime', () => {
     expect(runtime.userProfile.cognitiveLevel).toBe(5);
   });
 
-  it('records disabled learner-state service as operational missing context while preserving content citations', async () => {
+  it('records disabled learner-state service without eagerly retrieving textbook content', async () => {
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'false';
 
     const runtime = await buildKonlingRuntimeContext({
@@ -1822,12 +2109,14 @@ describe('konling agent runtime', () => {
       'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED',
       'citation-learner-state-missing',
     ]));
-    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(runtime.citationContext?.missingCitationClasses).toContain('content');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     const guard = buildKonlingCitationGuard(runtime, '根据 citation(content:step-03, content, 根轨迹校正, high, page-context) 解释根轨迹校正。');
-    expect(guard.missingCitationClasses).not.toContain('content');
+    expect(guard.missingCitationClasses).toContain('content');
   });
 
-  it('keeps citation context available when the feature-cache delegate is absent', async () => {
+  it('keeps citation diagnostics available when the feature-cache delegate is absent', async () => {
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
         findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
@@ -1859,8 +2148,9 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
-    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(runtime.citationContext?.missingCitationClasses).toContain('content');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
   });
 
   it('adds learner-state citation metadata when learner-state is available', async () => {
@@ -1910,7 +2200,7 @@ describe('konling agent runtime', () => {
     ]));
   });
 
-  it('keeps content citations available when learner-state feature-cache reads fail', async () => {
+  it('keeps textbook retrieval independent from learner-state feature-cache failures', async () => {
     mocks.readAdaptiveLearnerState.mockRejectedValueOnce(new Error('feature cache read failed'));
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
@@ -1948,9 +2238,10 @@ describe('konling agent runtime', () => {
 
     expect(runtime.learnerState).toBeNull();
     expect(runtime.missingContext).toContain('learner-state-read-failed');
-    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     const guard = buildKonlingCitationGuard(runtime, '根据 citation(content:step-03, content, 根轨迹校正, high, page-context) 解释根轨迹校正。');
-    expect(guard.missingCitationClasses).not.toContain('content');
+    expect(guard.missingCitationClasses).toContain('content');
     expect(guard.personalizationAvailability).toMatchObject({
       status: 'limited',
       missingCitationClasses: expect.arrayContaining(['learner-state', 'path-execution', 'evidence']),
@@ -3178,7 +3469,7 @@ describe('konling agent runtime', () => {
       adaptiveRuntime: runtime,
     });
     expect(prompt).toContain('引用协议');
-    expect(prompt).toContain('sourceType、displayTitle、href、confidence、evidenceBasis');
+    expect(prompt).toContain('只能使用服务器已分配的 `[n]` 引用编号');
 
     const toolRuntime = buildKonlingToolRuntime({
       db,
@@ -4322,7 +4613,7 @@ describe('konling agent runtime', () => {
     });
   });
 
-  it('builds Konling content citations through verified konling-answer Source Packs', async () => {
+  it('does not build textbook Source Packs before the model calls the tool', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -4337,43 +4628,20 @@ describe('konling agent runtime', () => {
       citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
 
-    expect(sourcePackCitations.length).toBeGreaterThan(0);
-    expect(sourcePackCitations[0]).toMatchObject({
-      sourceType: 'content',
-      href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-      canonicalHref: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-      displayHref: expect.stringContaining('/textbook-citations/resources/textbooks/dorf-modern-control-systems/'),
-      confidence: 'high',
-      owner: 'answer',
-      citationChip: expect.objectContaining({
-        displayHref: expect.stringContaining('/textbook-citations/resources/textbooks/dorf-modern-control-systems/'),
-        citationAddress: expect.objectContaining({
-          href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-        }),
-        sourceType: 'course-content',
-        authorityLevel: 'canonical',
-        privacyVisibility: 'public',
-      }),
-    });
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        citationTargetIds: expect.arrayContaining(['textbook-citation:ch08-example-0801']),
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
-        answerRelevanceBases: expect.arrayContaining(['query-lexical']),
-      }),
-    ]);
-    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(sourcePackCitations).toEqual([]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
   });
 
   it('serializes Konling citation metadata without dropping rendered and audit fields', () => {
+    const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-2/section-2.1#figure-02-37';
     const metadata = serializeKonlingCitationMetadata({
       id: 'content:textbook:fig-02-37',
       sourceType: 'content',
       displayTitle: 'Fluid flow reservoir figure',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      href: textbookHref,
+      canonicalHref: textbookHref,
+      displayHref: textbookHref,
       confidence: 'high',
       evidenceBasis: 'source-pack:konling-answer:pack-1',
       owner: 'answer',
@@ -4386,7 +4654,7 @@ describe('konling agent runtime', () => {
       citationChip: {
         chunkId: 'content:textbook:fig-02-37',
         displayTitle: 'Fluid flow reservoir figure',
-        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+        displayHref: textbookHref,
         sourceType: 'course-content',
         authorityLevel: 'canonical',
         confidence: 'high',
@@ -4398,9 +4666,9 @@ describe('konling agent runtime', () => {
 
     expect(metadata).toMatchObject({
       id: 'content:textbook:fig-02-37',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      href: textbookHref,
+      canonicalHref: textbookHref,
+      displayHref: textbookHref,
       citationTargetId: 'textbook:fig-02-37',
       retrievalChunkId: 'textbook-search:ch02-example-0212',
       answerRelevanceBasis: 'query-lexical',
@@ -4408,7 +4676,7 @@ describe('konling agent runtime', () => {
       answerRelevanceQueryHash: 'hash-1',
       omittedCitationReason: 'not-omitted',
       citationChip: expect.objectContaining({
-        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+        displayHref: textbookHref,
       }),
     });
   });
@@ -4444,7 +4712,7 @@ describe('konling agent runtime', () => {
   });
 
   it('omits unrelated ADVANCED PROBLEMS chunks from konling-answer content citations', async () => {
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
       {
         id: 'ch01-advanced-problems-031__chunk-001',
         kind: 'chunk',
@@ -4545,17 +4813,8 @@ describe('konling agent runtime', () => {
       citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
     expect(sourcePackCitations).toEqual([]);
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: [],
-        citationTargetIds: [],
-        limitationCodes: expect.arrayContaining([
-          'answer-citation-insufficient-relevance',
-          'coverage-missing-answer-context',
-        ]),
-      }),
-    ]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(runtime.citationContext?.lowConfidenceReasons).not.toEqual(expect.arrayContaining([
       'source-pack-answer-citation-insufficient-relevance',
       'source-pack-coverage-missing-answer-context',
@@ -4571,7 +4830,7 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps selected-node relevant Source Pack citations with bounded relevance metadata', async () => {
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
       {
         id: 'ch01-advanced-problems-031__chunk-001',
         kind: 'chunk',
@@ -4660,20 +4919,8 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:root-locus-selected-node__chunk-001']),
-        answerRelevanceBases: expect.arrayContaining(['selected-node-ref']),
-        limitationCodes: expect.arrayContaining(['answer-citation-insufficient-relevance']),
-      }),
-    ]);
-    expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'content:textbook-citation:root-locus-selected-node__chunk-001',
-        evidenceBasis: expect.stringMatching(/^source-pack:konling-answer:/),
-      }),
-    ]));
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('answer-relevance:');
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch01-advanced-problems-031__chunk-001');
   });
@@ -4695,22 +4942,14 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        queryText: expect.stringContaining(querySnippet),
-        retrievalChunkIds: [],
-        limitationCodes: expect.arrayContaining([
-          'answer-citation-insufficient-relevance',
-          'coverage-missing-answer-context',
-        ]),
-      }),
-    ]);
+    expect(querySnippet).toBeTruthy();
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch08-example-0801');
   });
 
   it('uses path-advisor SAR candidate refs to guide verified Source Pack retrieval', async () => {
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
       {
         id: 'generic-context',
         kind: 'chunk',
@@ -4784,19 +5023,8 @@ describe('konling agent runtime', () => {
         resourceNodeIds: expect.arrayContaining(['resource:path-sar']),
       }),
     });
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:sar-path-resource']),
-        citationTargetIds: expect.arrayContaining(['textbook-citation:sar-path-resource']),
-      }),
-    ]);
-    expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'content:textbook-citation:sar-path-resource',
-        evidenceBasis: expect.stringMatching(/^source-pack:konling-answer:/),
-      }),
-    ]));
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
   });
 
   it('builds diagnostic SAR trace metadata for diagnosis explainer scope', async () => {
@@ -4850,7 +5078,7 @@ describe('konling agent runtime', () => {
     });
   });
 
-  it('keeps Source Pack retrieval available when pre-citation SAR has no scope seed refs', async () => {
+  it('keeps pre-citation SAR independent from the on-demand textbook tool', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -4862,12 +5090,8 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
-      }),
-    ]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(runtime.knowledgeCapabilityContext?.sarAssociatedGrounding).toMatchObject({
       useCase: 'path-planning',
       candidateRefs: expect.objectContaining({
@@ -5031,13 +5255,13 @@ describe('konling agent runtime', () => {
     expect(sar?.traceSummary.limitationCodes).toEqual(['no-expansion-hop-selected', 'event-budget:12']);
   });
 
-  it('keeps Source Pack content citations when learner personalization evidence is missing', async () => {
+  it('keeps registered content and textbook tool availability when learner personalization is missing', async () => {
     mocks.readAdaptiveLearnerState.mockResolvedValue(null);
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
       role: 'STUDENT',
-      courseId: 'control-correction',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
       pageId: 'step-03',
       currentUserQuery: 'Bode 图频域响应怎么理解？',
       trustedContentContext: true,
@@ -5045,8 +5269,10 @@ describe('konling agent runtime', () => {
 
     expect(runtime.learnerState).toBeNull();
     expect(runtime.citationContext?.contentCitations.some((citation) =>
-      citation.evidenceBasis.startsWith('source-pack:konling-answer:')
+      citation.evidenceBasis === 'course-ai-context'
     )).toBe(true);
+    expect(runtime.permittedTools).toContain('search_textbook');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
     expect(runtime.citationContext?.missingCitationClasses).toContain('learner-state');
   });
@@ -9670,9 +9896,9 @@ describe('konling agent runtime', () => {
         ]),
       },
     };
-    const [safeTextbookDocument] = textbookRuntimeSearchDocumentFixture();
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
-      ...textbookRuntimeSearchDocumentFixture(),
+    const [safeTextbookDocument] = textbookStructureUnitFixture();
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
+      ...textbookStructureUnitFixture(),
       {
         ...safeTextbookDocument,
         id: 'unsafe-path-planning-doc',
@@ -9739,7 +9965,9 @@ describe('konling agent runtime', () => {
       ]),
     });
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.itemRefs.length).toBeGreaterThan(0);
-    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.citationOnlyItemRefs).toContain('fig-08-01__figure');
+    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.citationOnlyItemRefs).toContain(
+      'resource-node:knowledge-card:kn-bode',
+    );
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.limitationCodes).toContain('upstream-limitations-redacted');
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
       db.learningPath.upsert.mock.invocationCallOrder[0],
@@ -11960,6 +12188,7 @@ describe('konling agent runtime', () => {
         citationTargetId: 'formula:derivation',
         verified: true,
         resolver: 'course-runtime',
+        displayNumber: 1,
       }, {
         id: 'content:unverified:related',
         sourceType: 'content',
@@ -11968,6 +12197,7 @@ describe('konling agent runtime', () => {
         confidence: 'high',
         evidenceBasis: 'source-pack:konling-answer:test',
         owner: 'answer',
+        displayNumber: 2,
       }],
       evidenceCitations: [],
       missingCitationClasses: [],
@@ -11995,13 +12225,14 @@ describe('konling agent runtime', () => {
         teachingAssistantMode: modeContract,
       },
     });
-    expect(prompt).toContain('content:formula:derivation');
+    expect(prompt).toContain('闭环传递函数教材片段');
+    expect(prompt).not.toContain('content:formula:derivation');
     expect(prompt).not.toContain('content:unverified:related');
 
     const guarded = buildKonlingCitationGuard(runtime, [
-      '关键变形：分母为 1 + G(s)H(s) [证据: content:formula:derivation]',
-      '不应绑定的相关结论 [证据: content:unverified:related]',
-      '伪造来源 [证据: content:unknown]',
+      '关键变形：分母为 1 + G(s)H(s) [1]',
+      '不应绑定的相关结论 [2]',
+      '伪造来源 [99]',
     ].join('\n'));
 
     expect(guarded.answerUnits).toEqual([{

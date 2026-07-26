@@ -26,8 +26,20 @@ export const TEXTBOOK_V2_REQUIRED_FILES = [
   'samples.jsonl',
 ];
 
+export const TEXTBOOK_RETRIEVAL_REQUIRED_FILES = [
+  'manifest.json',
+  'windows.jsonl',
+  'bodies.utf8',
+  'vectors.f32',
+  'lexical-terms.jsonl',
+  'lexical-postings.bin',
+  'build-report.json',
+];
+
 export const TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION =
-  'act.textbook-runtime-release-provenance.v1';
+  'act.textbook-runtime-release-provenance.v2';
+const TEXTBOOK_INPUT_PROVENANCE_FILE = 'input-provenance.json';
+const TEXTBOOK_INPUT_PROVENANCE_SCHEMA = 'act.textbook-runtime-input-provenance.v1';
 
 const REVISION_PATTERN = /^[0-9a-f]{40}$/u;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
@@ -115,7 +127,7 @@ function markdownImageHrefs(markdown) {
   return hrefs;
 }
 
-function resolveLegacyMediaFile({ legacyRoot, bookId, chapterId, href }) {
+function resolveRuntimeMediaFile({ assetsRoot, bookId, chapterId, href }) {
   const trimmed = href.trim();
   if (
     !trimmed
@@ -146,8 +158,8 @@ function resolveLegacyMediaFile({ legacyRoot, bookId, chapterId, href }) {
     throw new Error(`textbook-v2-media-href-invalid:${bookId}:${chapterId}:${href}`);
   }
   const relativePath = path.posix.join(bookId, 'assets', chapterId, assetRelative);
-  const filePath = path.resolve(legacyRoot, ...relativePath.split('/'));
-  const expectedRoot = path.resolve(legacyRoot, bookId, 'assets', chapterId);
+  const filePath = path.resolve(assetsRoot, ...relativePath.split('/'));
+  const expectedRoot = path.resolve(assetsRoot, bookId, 'assets', chapterId);
   if (!filePath.startsWith(`${expectedRoot}${path.sep}`)) {
     throw new Error(`textbook-v2-media-href-escape:${bookId}:${chapterId}:${href}`);
   }
@@ -156,7 +168,7 @@ function resolveLegacyMediaFile({ legacyRoot, bookId, chapterId, href }) {
 
 export function inspectTextbookRuntimeV2(
   runtimeRoot,
-  { expectedSourceRevision, legacyRoot = path.join(path.dirname(runtimeRoot), 'textbooks') } = {},
+  { expectedSourceRevision, assetsRoot = path.join(path.dirname(runtimeRoot), 'textbooks') } = {},
 ) {
   if (expectedSourceRevision !== undefined) {
     assertRevision(expectedSourceRevision, 'expected-source-revision');
@@ -189,6 +201,12 @@ export function inspectTextbookRuntimeV2(
       });
     }
     const manifest = JSON.parse(fs.readFileSync(path.join(bookRoot, 'manifest.json'), 'utf8'));
+    if (
+      manifest.recordType !== 'export-manifest'
+      || manifest.schemaVersion !== 'structured-textbook-runtime.v2'
+    ) {
+      throw new Error(`textbook-v2-manifest-schema-invalid:${bookId}`);
+    }
     assertRevision(manifest.sourceRevision, `source-revision:${bookId}`);
     if (sourceRevision === null) {
       sourceRevision = manifest.sourceRevision;
@@ -202,8 +220,8 @@ export function inspectTextbookRuntimeV2(
       const unit = JSON.parse(line);
       if (typeof unit.markdown !== 'string') continue;
       for (const href of markdownImageHrefs(unit.markdown)) {
-        const mediaFile = resolveLegacyMediaFile({
-          legacyRoot,
+        const mediaFile = resolveRuntimeMediaFile({
+          assetsRoot,
           bookId,
           chapterId: unit.chapterId,
           href,
@@ -212,7 +230,7 @@ export function inspectTextbookRuntimeV2(
       }
     }
   }
-  let legacyRootRealPath = null;
+  let assetsRootRealPath = null;
   for (const mediaFile of mediaFiles.values()) {
     let stat;
     try {
@@ -226,9 +244,9 @@ export function inspectTextbookRuntimeV2(
     if (!stat.isFile() || stat.isSymbolicLink()) {
       throw new Error(`textbook-v2-media-file-invalid:${mediaFile.relativePath}`);
     }
-    legacyRootRealPath ??= fs.realpathSync(legacyRoot);
+    assetsRootRealPath ??= fs.realpathSync(assetsRoot);
     const mediaRealPath = fs.realpathSync(mediaFile.filePath);
-    const relativeRealPath = path.relative(legacyRootRealPath, mediaRealPath);
+    const relativeRealPath = path.relative(assetsRootRealPath, mediaRealPath);
     if (
       relativeRealPath === '..'
       || relativeRealPath.startsWith(`..${path.sep}`)
@@ -238,6 +256,26 @@ export function inspectTextbookRuntimeV2(
     }
     runtimeFiles.push(mediaFile);
   }
+  const inputProvenancePath = path.join(runtimeRoot, TEXTBOOK_INPUT_PROVENANCE_FILE);
+  if (!fs.existsSync(inputProvenancePath)) {
+    throw new Error('textbook-v2-input-provenance-missing');
+  }
+  const inputProvenance = JSON.parse(fs.readFileSync(inputProvenancePath, 'utf8'));
+  if (
+    inputProvenance.schemaVersion !== TEXTBOOK_INPUT_PROVENANCE_SCHEMA
+    || inputProvenance.sourceRevision !== sourceRevision
+    || typeof inputProvenance.inputDigest !== 'string'
+    || !SHA256_PATTERN.test(inputProvenance.inputDigest)
+    || !Number.isSafeInteger(inputProvenance.inputFileCount)
+    || inputProvenance.inputFileCount < 1
+  ) {
+    throw new Error('textbook-v2-input-provenance-invalid');
+  }
+  const inputDigest = inputProvenance.inputDigest;
+  runtimeFiles.push({
+    relativePath: TEXTBOOK_INPUT_PROVENANCE_FILE,
+    filePath: inputProvenancePath,
+  });
   const digest = createHash('sha256');
   for (const runtimeFile of runtimeFiles.sort((left, right) => (
     left.relativePath < right.relativePath ? -1 : left.relativePath > right.relativePath ? 1 : 0
@@ -255,8 +293,53 @@ export function inspectTextbookRuntimeV2(
   return {
     sourceRevision,
     runtimeDigest: digest.digest('hex'),
-    fileCount: TEXTBOOK_V2_BOOK_IDS.length * TEXTBOOK_V2_REQUIRED_FILES.length,
+    inputDigest,
+    fileCount: TEXTBOOK_V2_BOOK_IDS.length * TEXTBOOK_V2_REQUIRED_FILES.length + 1,
     mediaFileCount: mediaFiles.size,
+  };
+}
+
+export function inspectTextbookRetrievalIndex(
+  indexRoot,
+  { expectedSourceRevision } = {},
+) {
+  if (expectedSourceRevision !== undefined) {
+    assertRevision(expectedSourceRevision, 'expected-index-source-revision');
+  }
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(indexRoot, 'manifest.json'), 'utf8'),
+  );
+  if (
+    manifest.recordType !== 'index-manifest'
+    || manifest.formatVersion !== 'textbook-hybrid-retrieval.v1'
+  ) {
+    throw new Error('textbook-retrieval-manifest-schema-invalid');
+  }
+  assertRevision(manifest.sourceRevision, 'index-source-revision');
+  if (
+    expectedSourceRevision !== undefined
+    && manifest.sourceRevision !== expectedSourceRevision
+  ) {
+    throw new Error(
+      `textbook-retrieval-expected-source-revision-mismatch:expected=${expectedSourceRevision} actual=${manifest.sourceRevision}`,
+    );
+  }
+  const digest = createHash('sha256');
+  for (const fileName of TEXTBOOK_RETRIEVAL_REQUIRED_FILES) {
+    const filePath = path.join(indexRoot, fileName);
+    const stat = fs.lstatSync(filePath);
+    if (!stat.isFile() || stat.isSymbolicLink()) {
+      throw new Error(`textbook-retrieval-file-invalid:${fileName}`);
+    }
+    digest.update(fileName);
+    digest.update('\0');
+    digest.update(sha256File(filePath));
+    digest.update('\n');
+  }
+  return {
+    sourceRevision: manifest.sourceRevision,
+    indexDigest: digest.digest('hex'),
+    fileCount: TEXTBOOK_RETRIEVAL_REQUIRED_FILES.length,
   };
 }
 
@@ -267,9 +350,15 @@ function readSidecar(sidecarPath) {
   }
   assertRevision(sidecar.appRevision, 'provenance-app-revision');
   assertRevision(sidecar.runtimeSourceRevision, 'provenance-runtime-source-revision');
+  assertRevision(sidecar.indexSourceRevision, 'provenance-index-source-revision');
   if (sidecar.runtimeSourceRevision !== sidecar.appRevision) {
     throw new Error(
       `textbook-v2-provenance-revision-mismatch:app=${sidecar.appRevision} runtime=${sidecar.runtimeSourceRevision}`,
+    );
+  }
+  if (sidecar.indexSourceRevision !== sidecar.appRevision) {
+    throw new Error(
+      `textbook-v2-provenance-index-revision-mismatch:app=${sidecar.appRevision} index=${sidecar.indexSourceRevision}`,
     );
   }
   if (typeof sidecar.imageTarSha256 !== 'string' || !SHA256_PATTERN.test(sidecar.imageTarSha256)) {
@@ -277,6 +366,17 @@ function readSidecar(sidecarPath) {
   }
   if (typeof sidecar.runtimeDigest !== 'string' || !SHA256_PATTERN.test(sidecar.runtimeDigest)) {
     throw new Error(`textbook-v2-provenance-runtime-digest-invalid:${String(sidecar.runtimeDigest)}`);
+  }
+  if (typeof sidecar.indexDigest !== 'string' || !SHA256_PATTERN.test(sidecar.indexDigest)) {
+    throw new Error(`textbook-v2-provenance-index-digest-invalid:${String(sidecar.indexDigest)}`);
+  }
+  if (
+    typeof sidecar.runtimeInputDigest !== 'string'
+    || !SHA256_PATTERN.test(sidecar.runtimeInputDigest)
+  ) {
+    throw new Error(
+      `textbook-v2-provenance-input-digest-invalid:${String(sidecar.runtimeInputDigest)}`,
+    );
   }
   return sidecar;
 }
@@ -302,15 +402,19 @@ function requireOption(options, name) {
 
 function writeSidecar(options) {
   const runtimeRoot = path.resolve(requireOption(options, 'runtime-root'));
+  const indexRoot = path.resolve(requireOption(options, 'index-dir'));
   const imageTar = path.resolve(requireOption(options, 'image-tar'));
   const output = path.resolve(requireOption(options, 'output'));
   const appRevision = requireOption(options, 'app-revision');
   assertRevision(appRevision, 'app-revision');
   const runtime = inspectTextbookRuntimeV2(runtimeRoot, {
     expectedSourceRevision: appRevision,
-    legacyRoot: options['legacy-root']
-      ? path.resolve(options['legacy-root'])
+    assetsRoot: options['assets-root']
+      ? path.resolve(options['assets-root'])
       : undefined,
+  });
+  const index = inspectTextbookRetrievalIndex(indexRoot, {
+    expectedSourceRevision: appRevision,
   });
   const sidecar = {
     schemaVersion: TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION,
@@ -318,6 +422,9 @@ function writeSidecar(options) {
     imageTarSha256: sha256File(imageTar),
     runtimeSourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
+    runtimeInputDigest: runtime.inputDigest,
+    indexSourceRevision: index.sourceRevision,
+    indexDigest: index.indexDigest,
   };
   const temporary = `${output}.tmp-${process.pid}`;
   fs.writeFileSync(temporary, `${JSON.stringify(sidecar, null, 2)}\n`, { flag: 'wx' });
@@ -345,27 +452,51 @@ function verifyRuntime(options) {
     path.resolve(requireOption(options, 'runtime-root')),
     {
       expectedSourceRevision: sidecar.runtimeSourceRevision,
-      legacyRoot: options['legacy-root']
-        ? path.resolve(options['legacy-root'])
+      assetsRoot: options['assets-root']
+        ? path.resolve(options['assets-root'])
         : undefined,
     },
+  );
+  const index = inspectTextbookRetrievalIndex(
+    path.resolve(requireOption(options, 'index-dir')),
+    { expectedSourceRevision: sidecar.indexSourceRevision },
   );
   if (runtime.runtimeDigest !== sidecar.runtimeDigest) {
     throw new Error(
       `textbook-v2-runtime-digest-mismatch:expected=${sidecar.runtimeDigest} actual=${runtime.runtimeDigest}`,
     );
   }
+  if (runtime.inputDigest !== sidecar.runtimeInputDigest) {
+    throw new Error(
+      `textbook-v2-input-digest-mismatch:expected=${sidecar.runtimeInputDigest}`
+      + ` actual=${String(runtime.inputDigest)}`,
+    );
+  }
+  if (index.indexDigest !== sidecar.indexDigest) {
+    throw new Error(
+      `textbook-v2-index-digest-mismatch:expected=${sidecar.indexDigest} actual=${index.indexDigest}`,
+    );
+  }
   process.stdout.write(`${JSON.stringify({
     runtimeSourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
     mediaFileCount: runtime.mediaFileCount,
+    indexSourceRevision: index.sourceRevision,
+    indexDigest: index.indexDigest,
   })}\n`);
 }
 
 function printField(options) {
   const sidecar = readSidecar(path.resolve(requireOption(options, 'sidecar')));
   const field = requireOption(options, 'field');
-  if (!['appRevision', 'imageTarSha256', 'runtimeSourceRevision', 'runtimeDigest'].includes(field)) {
+  if (![
+    'appRevision',
+    'imageTarSha256',
+    'runtimeSourceRevision',
+    'runtimeDigest',
+    'indexSourceRevision',
+    'indexDigest',
+  ].includes(field)) {
     throw new Error(`unsupported provenance field:${field}`);
   }
   process.stdout.write(`${sidecar[field]}\n`);

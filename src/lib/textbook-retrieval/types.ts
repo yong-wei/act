@@ -92,6 +92,7 @@ export interface TextbookIndexWindow {
   sourceRevision: string;
   primaryUnitId: string;
   owningUnitIds: string[];
+  segments: TextbookIndexWindowSegment[];
   sourcePaths: string[];
   vectorRow: number;
   bodyOffset: number;
@@ -101,6 +102,12 @@ export interface TextbookIndexWindow {
   tokenCount: number;
 }
 
+export interface TextbookIndexWindowSegment {
+  owningUnitId: string;
+  bodyOffset: number;
+  bodyLength: number;
+}
+
 export interface LoadedTextbookIndexWindow {
   id: string;
   sourceWindowId: string;
@@ -108,6 +115,7 @@ export interface LoadedTextbookIndexWindow {
   sourceRevision: string;
   primaryUnitId: string;
   owningUnitIds: string[];
+  segments: TextbookIndexWindowSegment[];
   sourcePaths: string[];
   bodyOffset: number;
   bodyLength: number;
@@ -127,6 +135,10 @@ export interface TextbookRetrievalResult {
   windowId: string;
   primaryUnitId: string;
   owningUnitIds: string[];
+  segments: Array<{
+    owningUnitId: string;
+    body: string;
+  }>;
   bookId: string;
   sourcePaths: string[];
   body: string;
@@ -139,8 +151,24 @@ export interface TextbookRetrievalResponse {
   diagnostics?: RetrievalDiagnostic[];
 }
 
+export type TextbookRetrievalContinuationResult =
+  | {
+      status: 'complete';
+      response: TextbookRetrievalResponse;
+    }
+  | {
+      status: 'aborted' | 'capped' | 'failed';
+    };
+
+export interface TextbookProgressiveRetrievalResponse {
+  foreground: TextbookRetrievalResponse;
+  optimizationPending: boolean;
+  continuation: Promise<TextbookRetrievalContinuationResult> | null;
+}
+
 export interface RetrievalOptions {
   indexRoot: string;
+  externalQuery?: string | null;
   topK?: number;
   candidateCount?: number;
   embeddingClient?: TextbookEmbeddingClient;
@@ -148,6 +176,10 @@ export interface RetrievalOptions {
   rerankClient?: TextbookRerankClient;
   rerankModel?: string;
   rerankTimeoutMs?: number;
+  foregroundWaitMs?: number;
+  backgroundWaitLimitMs?: number;
+  abortSignal?: AbortSignal;
+  now?: () => number;
 }
 
 export interface TextbookRetrievalIndexStats {

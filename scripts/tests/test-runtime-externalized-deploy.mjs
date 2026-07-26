@@ -3,8 +3,151 @@ import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import {
+  captureCleanTextbookInputRevision,
+  captureTextbookInputSnapshot,
+  replaceRuntimeDirectories,
+} from '../release/export-textbook-runtime-v2.mjs';
 
 const root = process.cwd();
+const authoringInputRoot = path.join(root, 'course-content/authoring/resources');
+
+{
+  const calls = [];
+  const revision = captureCleanTextbookInputRevision({
+    repositoryRoot: root,
+    authoringInputRoot,
+    runGit(args) {
+      calls.push(args);
+      return args[0] === 'status' ? '' : 'a'.repeat(40);
+    },
+  });
+  assert.equal(revision, 'a'.repeat(40));
+  assert.equal(calls[0].includes('course-content/authoring/resources'), true);
+  assert.equal(calls[0].includes('course-content/scripts/textbook_hybrid_retrieval.py'), true);
+  assert.equal(calls[0].includes('course-content/config/textbook-structure-v2'), true);
+}
+
+assert.throws(
+  () => captureCleanTextbookInputRevision({
+    repositoryRoot: root,
+    authoringInputRoot,
+    runGit(args) {
+      return args[0] === 'status'
+        ? ' M course-content/scripts/textbook_hybrid_retrieval.py'
+        : 'a'.repeat(40);
+    },
+  }),
+  /textbook-runtime-v2-dirty-inputs/u,
+  '生产导出入口必须拒绝生成器、配置或教材输入的未提交改动',
+);
+
+for (const dirtyInput of [
+  'course-content/scripts/validate_written_textbook_runtime_v2.py',
+  'course-content/config/textbook-structure-v2/hu-shousong-auto-control-8th.json',
+  'course-content/authoring/resources/textbooks/hu-shousong-auto-control-8th/chapter-03/assets/figure.png',
+]) {
+  assert.throws(
+    () => captureCleanTextbookInputRevision({
+      repositoryRoot: root,
+      authoringInputRoot,
+      runGit(args) {
+        return args[0] === 'status' ? ` M ${dirtyInput}` : 'a'.repeat(40);
+      },
+    }),
+    /textbook-runtime-v2-dirty-inputs/u,
+    `生产导出入口必须拒绝脏输入 ${dirtyInput}`,
+  );
+}
+
+assert.throws(
+  () => captureCleanTextbookInputRevision({
+    repositoryRoot: root,
+    authoringInputRoot,
+    expectedRevision: 'a'.repeat(40),
+    runGit(args) {
+      return args[0] === 'status' ? '' : 'b'.repeat(40);
+    },
+  }),
+  /textbook-runtime-v2-input-revision-drift/u,
+  '生产导出入口必须拒绝生成期间发生的 HEAD 漂移',
+);
+
+assert.throws(
+  () => captureCleanTextbookInputRevision({
+    repositoryRoot: root,
+    authoringInputRoot: path.dirname(root),
+    runGit() {
+      return '';
+    },
+  }),
+  /textbook-runtime-v2-input-outside-repository/u,
+  '无法绑定当前 Git 修订的仓库外教材输入必须 fail closed',
+);
+
+{
+  const snapshotRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'textbook-runtime-input-snapshot-'),
+  );
+  try {
+    const repositoryRoot = path.join(snapshotRoot, 'repo');
+    const authoringInputRoot = path.join(
+      repositoryRoot,
+      'course-content/authoring/resources',
+    );
+    fs.mkdirSync(authoringInputRoot, { recursive: true });
+    for (const relativeInput of [
+      'scripts/release/export-textbook-runtime-v2.mjs',
+      'scripts/release/validate-textbook-runtime-v2.mjs',
+      'scripts/release/textbook-runtime-v2-provenance.mjs',
+      'course-content/scripts/export_structured_textbook_runtime_v2.py',
+      'course-content/scripts/structured_textbook_runtime.py',
+      'course-content/scripts/validate_structured_textbook_runtime_v2.mjs',
+      'course-content/scripts/validate_written_textbook_runtime_v2.py',
+      'course-content/scripts/textbook_hybrid_retrieval.py',
+      'course-content/scripts/validate_textbook_hybrid_retrieval.mjs',
+      'course-content/scripts/export_textbook_runtime_assets.py',
+      'course-content/contracts/structured-textbook-runtime-v2.schema.json',
+      'course-content/contracts/textbook-hybrid-retrieval-v1.schema.json',
+      'course-content/config/textbook-hybrid-retrieval.json',
+    ]) {
+      const filePath = path.join(repositoryRoot, relativeInput);
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(filePath, relativeInput);
+    }
+    fs.mkdirSync(
+      path.join(repositoryRoot, 'course-content/config/textbook-structure-v2'),
+      { recursive: true },
+    );
+    fs.writeFileSync(
+      path.join(repositoryRoot, 'course-content/config/textbook-structure-v2/book.json'),
+      '{}',
+    );
+    const ignoredAuthoringInput = path.join(
+      authoringInputRoot,
+      'textbooks/book/chapter-01/textbook.md',
+    );
+    fs.mkdirSync(path.dirname(ignoredAuthoringInput), { recursive: true });
+    fs.writeFileSync(ignoredAuthoringInput, 'version one');
+    const before = captureTextbookInputSnapshot({
+      repositoryRoot,
+      authoringInputRoot,
+    });
+    fs.writeFileSync(ignoredAuthoringInput, 'version two');
+    const after = captureTextbookInputSnapshot({
+      repositoryRoot,
+      authoringInputRoot,
+    });
+    assert.notEqual(
+      after.digest,
+      before.digest,
+      '输入内容指纹必须覆盖 Git 忽略且未跟踪的真实教材正文',
+    );
+    assert.equal(after.fileCount, before.fileCount);
+  } finally {
+    fs.rmSync(snapshotRoot, { recursive: true, force: true });
+  }
+}
 
 function read(file) {
   return fs.readFileSync(path.join(root, file), 'utf8');
@@ -71,6 +214,82 @@ const textbookV2RequiredFiles = [
   'anomalies.jsonl',
   'samples.jsonl',
 ];
+const textbookRetrievalRequiredFiles = [
+  'manifest.json',
+  'windows.jsonl',
+  'bodies.utf8',
+  'vectors.f32',
+  'lexical-terms.jsonl',
+  'lexical-postings.bin',
+  'build-report.json',
+];
+
+function createIndexFixture(indexRoot, revision) {
+  fs.mkdirSync(indexRoot, { recursive: true });
+  for (const fileName of textbookRetrievalRequiredFiles) {
+    fs.writeFileSync(
+      path.join(indexRoot, fileName),
+      fileName === 'manifest.json'
+        ? `${JSON.stringify({
+          recordType: 'index-manifest',
+          formatVersion: 'textbook-hybrid-retrieval.v1',
+          sourceRevision: revision,
+        })}\n`
+        : '',
+    );
+  }
+}
+
+for (const failAtInstall of [2, 3]) {
+  const transactionRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), `textbook-runtime-transaction-${failAtInstall}-`),
+  );
+  try {
+    const replacements = [
+      ['textbooks-v2', 'runtime'],
+      ['textbook-retrieval', 'index'],
+      ['textbooks', 'assets'],
+    ].map(([directoryName, label]) => {
+      const target = path.join(transactionRoot, 'current', directoryName);
+      const staged = path.join(transactionRoot, 'staged', directoryName);
+      fs.mkdirSync(target, { recursive: true });
+      fs.mkdirSync(staged, { recursive: true });
+      fs.writeFileSync(path.join(target, 'revision.txt'), `old-${label}`);
+      fs.writeFileSync(path.join(staged, 'revision.txt'), `new-${label}`);
+      return { target, staged, label };
+    });
+    let installCount = 0;
+    assert.throws(
+      () => replaceRuntimeDirectories(replacements, {
+        renameSync(source, destination) {
+          if (source.startsWith(path.join(transactionRoot, 'staged'))) {
+            installCount += 1;
+            if (installCount === failAtInstall) {
+              throw new Error(`injected-install-rename-${failAtInstall}`);
+            }
+          }
+          fs.renameSync(source, destination);
+        },
+      }),
+      new RegExp(`injected-install-rename-${failAtInstall}`, 'u'),
+      `第 ${failAtInstall} 个 staged 安装 rename 失败时必须向调用者报告失败`,
+    );
+    for (const replacement of replacements) {
+      assert.equal(
+        fs.readFileSync(path.join(replacement.target, 'revision.txt'), 'utf8'),
+        `old-${replacement.label}`,
+        `第 ${failAtInstall} 个安装失败后 ${replacement.label} 必须恢复旧修订`,
+      );
+      assert.equal(
+        fs.existsSync(`${replacement.target}.previous-${process.pid}`),
+        false,
+        `第 ${failAtInstall} 个安装失败后不得遗留 ${replacement.label} previous 目录`,
+      );
+    }
+  } finally {
+    fs.rmSync(transactionRoot, { recursive: true, force: true });
+  }
+}
 
 assert.equal(
   textbookV2BookIds.every((bookId) => textbookV2ProvenanceHelper.includes(`'${bookId}'`)) &&
@@ -100,6 +319,8 @@ try {
     for (const fileName of textbookV2RequiredFiles) {
       const content = fileName === 'manifest.json'
         ? `${JSON.stringify({
+          recordType: 'export-manifest',
+          schemaVersion: 'structured-textbook-runtime.v2',
           sourceRevision: index === textbookV2BookIds.length - 1
             ? mismatchedRevision
             : sharedRevision,
@@ -135,7 +356,8 @@ try {
 const mediaFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-media-'));
 try {
   const runtimeRoot = path.join(mediaFixtureRoot, 'textbooks-v2');
-  const legacyRoot = path.join(mediaFixtureRoot, 'textbooks');
+  const indexRoot = path.join(mediaFixtureRoot, 'textbook-retrieval');
+  const assetsRoot = path.join(mediaFixtureRoot, 'textbooks');
   const revision = '1111111111111111111111111111111111111111';
   for (const [index, bookId] of textbookV2BookIds.entries()) {
     const bookRoot = path.join(runtimeRoot, bookId);
@@ -143,7 +365,11 @@ try {
     for (const fileName of textbookV2RequiredFiles) {
       let content = '';
       if (fileName === 'manifest.json') {
-        content = `${JSON.stringify({ sourceRevision: revision })}\n`;
+        content = `${JSON.stringify({
+          recordType: 'export-manifest',
+          schemaVersion: 'structured-textbook-runtime.v2',
+          sourceRevision: revision,
+        })}\n`;
       } else if (fileName === 'units.jsonl' && index === 0) {
         content = `${JSON.stringify({
           chapterId: 'chapter-01',
@@ -153,12 +379,24 @@ try {
       fs.writeFileSync(path.join(bookRoot, fileName), content);
     }
   }
+  createIndexFixture(indexRoot, revision);
+  const inputProvenancePath = path.join(runtimeRoot, 'input-provenance.json');
+  const writeInputProvenance = () => fs.writeFileSync(
+    inputProvenancePath,
+    `${JSON.stringify({
+      schemaVersion: 'act.textbook-runtime-input-provenance.v1',
+      sourceRevision: revision,
+      inputDigest: 'a'.repeat(64),
+      inputFileCount: 1,
+    })}\n`,
+  );
+  writeInputProvenance();
   const preflightArgs = [
     path.join(root, 'scripts/release/validate-textbook-runtime-v2.mjs'),
     '--runtime-root',
     runtimeRoot,
-    '--legacy-root',
-    legacyRoot,
+    '--assets-root',
+    assetsRoot,
     '--files-only',
   ];
   const missingMediaResult = spawnSync(process.execPath, preflightArgs, {
@@ -168,7 +406,7 @@ try {
   assert.notEqual(
     missingMediaResult.status,
     0,
-    'units Markdown 引用的 legacy 教材媒体缺失时必须 fail closed',
+    'units Markdown 引用的教材媒体缺失时必须 fail closed',
   );
   assert.match(
     missingMediaResult.stderr,
@@ -177,7 +415,7 @@ try {
   );
 
   const mediaPath = path.join(
-    legacyRoot,
+    assetsRoot,
     'control-encyclopedia',
     'assets',
     'chapter-01',
@@ -192,6 +430,22 @@ try {
   assert.equal(initialInspect.status, 0, initialInspect.stderr);
   const initialSummary = JSON.parse(initialInspect.stdout);
   assert.equal(initialSummary.mediaFileCount, 1, 'preflight 应报告去重后的引用媒体文件数');
+  fs.rmSync(inputProvenancePath);
+  const missingInputProvenanceResult = spawnSync(process.execPath, preflightArgs, {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.notEqual(
+    missingInputProvenanceResult.status,
+    0,
+    '缺少输入溯源文件时 release preflight 必须 fail closed',
+  );
+  assert.match(
+    missingInputProvenanceResult.stderr,
+    /textbook-v2-input-provenance-missing/u,
+    'preflight 应明确报告输入溯源文件缺失',
+  );
+  writeInputProvenance();
 
   const imageTar = path.join(mediaFixtureRoot, 'image.tar');
   const sidecar = `${imageTar}.provenance.json`;
@@ -203,8 +457,10 @@ try {
       'write-sidecar',
       '--runtime-root',
       runtimeRoot,
-      '--legacy-root',
-      legacyRoot,
+      '--index-dir',
+      indexRoot,
+      '--assets-root',
+      assetsRoot,
       '--image-tar',
       imageTar,
       '--app-revision',
@@ -215,6 +471,11 @@ try {
     { cwd: root, encoding: 'utf8' },
   );
   assert.equal(writeSidecarResult.status, 0, writeSidecarResult.stderr);
+  assert.equal(
+    JSON.parse(fs.readFileSync(sidecar, 'utf8')).runtimeInputDigest,
+    'a'.repeat(64),
+    'sidecar 必须绑定 runtime 输入摘要',
+  );
 
   fs.writeFileSync(mediaPath, 'fixture-v2-tampered');
   const tamperedInspect = spawnSync(process.execPath, preflightArgs, {
@@ -234,8 +495,10 @@ try {
       'verify-runtime',
       '--runtime-root',
       runtimeRoot,
-      '--legacy-root',
-      legacyRoot,
+      '--index-dir',
+      indexRoot,
+      '--assets-root',
+      assetsRoot,
       '--sidecar',
       sidecar,
     ],
@@ -256,7 +519,7 @@ try {
   const externalChapterRoot = path.join(mediaFixtureRoot, 'external-chapter');
   fs.rmSync(chapterRoot, { recursive: true, force: true });
   fs.mkdirSync(externalChapterRoot, { recursive: true });
-  fs.writeFileSync(path.join(externalChapterRoot, 'fixture.png'), 'outside legacy root');
+  fs.writeFileSync(path.join(externalChapterRoot, 'fixture.png'), 'outside assets root');
   fs.symlinkSync(externalChapterRoot, chapterRoot, 'dir');
   const ancestorSymlinkResult = spawnSync(process.execPath, preflightArgs, {
     cwd: root,
@@ -265,7 +528,7 @@ try {
   assert.notEqual(
     ancestorSymlinkResult.status,
     0,
-    '媒体祖先目录 symlink 指向 legacy root 外时必须 fail closed',
+    '媒体祖先目录 symlink 指向 assets root 外时必须 fail closed',
   );
   assert.match(
     ancestorSymlinkResult.stderr,
@@ -282,11 +545,14 @@ try {
   const sidecar = path.join(tarMismatchRoot, 'image.tar.provenance.json');
   fs.writeFileSync(imageTar, 'tampered image payload');
   fs.writeFileSync(sidecar, `${JSON.stringify({
-    schemaVersion: 'act.textbook-runtime-release-provenance.v1',
+    schemaVersion: 'act.textbook-runtime-release-provenance.v2',
     appRevision: '1111111111111111111111111111111111111111',
     imageTarSha256: '0'.repeat(64),
     runtimeSourceRevision: '1111111111111111111111111111111111111111',
     runtimeDigest: '1'.repeat(64),
+    runtimeInputDigest: '3'.repeat(64),
+    indexSourceRevision: '1111111111111111111111111111111111111111',
+    indexDigest: '2'.repeat(64),
   })}\n`);
   const tarMismatchResult = spawnSync(
     process.execPath,
@@ -311,11 +577,14 @@ try {
     '镜像校验应明确报告 tar SHA256 不一致',
   );
   fs.writeFileSync(sidecar, `${JSON.stringify({
-    schemaVersion: 'act.textbook-runtime-release-provenance.v1',
+    schemaVersion: 'act.textbook-runtime-release-provenance.v2',
     appRevision: '1111111111111111111111111111111111111111',
     imageTarSha256: '0'.repeat(64),
     runtimeSourceRevision: '2222222222222222222222222222222222222222',
     runtimeDigest: '1'.repeat(64),
+    runtimeInputDigest: '3'.repeat(64),
+    indexSourceRevision: '1111111111111111111111111111111111111111',
+    indexDigest: '2'.repeat(64),
   })}\n`);
   const revisionMismatchResult = spawnSync(
     process.execPath,
@@ -364,23 +633,23 @@ assert.equal(
 
 assert.equal(
   packageJson.scripts['db:export-textbook-resources'] ===
-    'python3 course-content/scripts/export_textbook_resources.py --book hu-shousong-exercise-analysis-3rd',
+    'node ./scripts/release/export-textbook-runtime-v2.mjs',
   true,
-  'package.json 必须提供可复现的教材 runtime 导出脚本',
+  'package.json 的生产教材导出入口必须只调用 v2 runtime/index/assets 原子导出器',
 );
 
 assert.equal(
-  packageJson.scripts.build.includes('npm run db:export-textbook-resources') &&
-    packageJson.scripts.build.indexOf('npm run db:export-textbook-resources') <
-      packageJson.scripts.build.indexOf('node ./scripts/build-next-with-trace-check.mjs'),
-  true,
-  'npm run build 必须在 Next 构建前导出教材 runtime 资源',
+  packageJson.scripts.build.includes('db:export-textbook-resources'),
+  false,
+  'Docker/Next build 不得在镜像构建上下文生成外置教材 runtime',
 );
 
 assert.equal(
-  packageJson.scripts['db:textbook-media-grounding'].startsWith('npm run db:export-textbook-resources &&'),
+  packageJson.scripts['db:textbook-media-grounding'].startsWith('npm run db:validate-textbook-runtime-v2 &&') &&
+    packageJson.scripts['db:rag-citation-anchor-coverage'] ===
+      'tsx ./scripts/db/generate-rag-citation-anchor-coverage.ts',
   true,
-  '教材 media grounding 生成必须先刷新教材 runtime 导出',
+  'v2 media grounding 必须验证当前 runtime，历史旧 coverage 不得覆盖 v2 unit 产物',
 );
 
 assert.equal(
@@ -427,17 +696,23 @@ assert.equal(
 
 assert.equal(
   remoteDeployScript.includes('rsync -az --delete') &&
+    remoteDeployScript.includes('REMOTE_RUNTIME_STAGING_DIR') &&
+    remoteDeployScript.includes('stop_remote_runtime_consumers') &&
     remoteDeployScript.includes('course-content/runtime') &&
     (remoteDeployScript.includes('${REMOTE_PROJECT_DIR}/course-content/runtime') ||
       remoteDeployScript.includes('${REMOTE_RUNTIME_DIR}/')),
   true,
-  '远端部署脚本应使用 rsync 将本地 course-content/runtime 同步到服务器同名目录',
+  '远端部署脚本应先停消费者，再将 runtime 同步到 staging 并替换正式目录',
 );
 
 const remotePreflightIndex = remoteDeployScript.indexOf(
   'scripts/release/validate-textbook-runtime-v2.mjs',
 );
 const runtimeRsyncIndex = remoteDeployScript.indexOf('rsync -az --delete');
+const runtimeStopIndex = remoteDeployScript.indexOf(
+  'stop_remote_runtime_consumers',
+  remotePreflightIndex,
+);
 const remoteHostCheckIndex = remoteDeployScript.indexOf(
   'check_remote_textbook_v2_files',
   runtimeRsyncIndex,
@@ -445,6 +720,8 @@ const remoteHostCheckIndex = remoteDeployScript.indexOf(
 assert.equal(
   remotePreflightIndex >= 0 &&
     remotePreflightIndex < runtimeRsyncIndex &&
+    runtimeStopIndex > remotePreflightIndex &&
+    runtimeStopIndex < runtimeRsyncIndex &&
     remoteHostCheckIndex > runtimeRsyncIndex,
   true,
   '远端部署即使 skip-build 也必须在 rsync 前执行本地 preflight，并在 rsync 后检查远端宿主文件集',
@@ -468,9 +745,10 @@ assert.equal(
     textbookV2RequiredFiles.every((fileName) => remoteDeployScript.includes(fileName)) &&
     remoteDeployScript.includes('check_container_textbook_v2_files') &&
     remoteDeployScript.includes('/app/course-content/runtime/resources/textbooks-v2') &&
+    remoteDeployScript.includes('/app/course-content/runtime/resources/textbook-retrieval') &&
     (remoteDeployScript.match(/-eq 7/g)?.length ?? 0) >= 2,
   true,
-  '远端宿主与已启动 app 容器必须逐书校验精确七目录和完整 v2 文件集',
+  '远端宿主与已启动 app 容器必须校验七书 v2 与固定检索索引',
 );
 
 assert.equal(
@@ -514,13 +792,21 @@ assert.equal(
 );
 
 assert.equal(
-  remoteDeployScript.includes('TEXTBOOK_RUNTIME_BOOK_ID') &&
-    remoteDeployScript.includes('LOCAL_TEXTBOOK_RUNTIME_DIR') &&
-    remoteDeployScript.includes('REMOTE_TEXTBOOK_RUNTIME_DIR') &&
-    remoteDeployScript.includes('manifest.json') &&
-    remoteDeployScript.includes('search-documents.jsonl'),
+  remoteDeployScript.includes('TEXTBOOK_RUNTIME_BOOK_ID') ||
+    remoteDeployScript.includes('search-documents.jsonl') ||
+    remoteDeployScript.includes('citation-map.json'),
+  false,
+  '远端生产部署不得保留旧教材 runtime 文件或单书特殊入口',
+);
+
+assert.equal(
+  textbookRetrievalRequiredFiles.every((fileName) =>
+    textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&
+    buildScript.includes('--index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}"') &&
+    remoteDeployScript.includes('--index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}"') &&
+    remoteDeployScript.includes('--index-dir \'${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}\''),
   true,
-  '远端部署脚本应校验教材 runtime 导出文件已同步',
+  'build、skip-build 与远端验证必须把固定 index 纳入同一 revision/digest 合同',
 );
 
 console.log('runtime externalized deploy test passed');

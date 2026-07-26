@@ -23,6 +23,7 @@ export {
 export {
   retrieve,
   retrieveTextbookHybrid,
+  retrieveTextbookHybridProgressive,
 } from './retrieval';
 export type {
   EmbeddingRequest,
@@ -32,6 +33,8 @@ export type {
   RerankResponse,
   RetrievalDiagnostic,
   RetrievalOptions,
+  TextbookProgressiveRetrievalResponse,
+  TextbookRetrievalContinuationResult,
   TextbookEmbeddingClient,
   TextbookIndexManifest,
   TextbookIndexWindow,

@@ -7,7 +7,7 @@ The system SHALL verify citations independently from model generation before fin
 - **WHEN** a generated answer references a server-assigned citation visible to the current role and scope
 - **THEN** the verifier SHALL confirm source existence, accessibility, source-type compatibility, structural-unit or evidence identity, and privacy visibility.
 
-#### Scenario: Some citations are fake or inaccessible
+#### Scenario: Citation is fake or inaccessible
 - **WHEN** a generated answer contains missing, inaccessible, unsupported, ambiguous, or privacy-violating citation markers
 - **THEN** invalid markers and links SHALL be removed from production prose while valid citations remain
 - **AND** the final citation area SHALL show `部分引用未能核验`.
@@ -20,7 +20,7 @@ The system SHALL verify citations independently from model generation before fin
 ### Requirement: Textbook and reviewed media projections enter the governed RAG corpus
 The governed RAG corpus SHALL support structured textbook units, retrieval windows, and reviewed media projections without creating a separate unmanaged corpus.
 
-#### Scenario: Grounded textbook unit is indexed
+#### Scenario: Grounded textbook chunk is indexed
 - **WHEN** a reviewed textbook structural unit, fragment, or retrieval window is indexed
 - **THEN** it SHALL include owning unit id, stable structure path, fragment or page anchor where applicable, source version, authority, graph refs, citation target, privacy scope, and content hash
 - **AND** retrieval windows SHALL NOT become verified citation identities.

@@ -668,15 +668,6 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
     removalCondition: 'Print rendering is exposed from a shell-covered lesson route instead of a standalone page.',
   },
   {
-    routePattern: '/textbook-citations/**',
-    category: 'embed-surface',
-    type: 'embed-only',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Textbook citation readers are launched from governed runtime citations and intentionally use a measured source-inspection frame.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'Citation source inspection is embedded into a shell-covered reader surface.',
-  },
-  {
     routePattern: '/textbooks/**',
     category: 'embed-surface',
     type: 'embed-only',
