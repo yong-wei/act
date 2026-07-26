@@ -70,7 +70,7 @@ export interface SimpleSimConfig {
   };
 }
 
-interface ScenarioLogic {
+export interface ScenarioLogic {
   scenarioId: string;
   runtimeVersion: string;
   duration: number;
@@ -101,7 +101,7 @@ const getScheduledHeading = (
   return headingSchedule[headingSchedule.length - 1].headingDeg;
 };
 
-const getScenarioLogic = (_scenario: 'turn90', targetHeading: number): ScenarioLogic => {
+export const getScenarioLogic = (_scenario: 'turn90', targetHeading: number): ScenarioLogic => {
   const headingSchedule = [
     { time: 0, headingDeg: 0 },
     { time: 60, headingDeg: 0 },
@@ -184,12 +184,38 @@ function evaluateWithRustRuntime(
 /**
  * 评估参数组合的得分
  */
+// 3-parameter legacy overload: scene-trace route compatibility
+export function evaluatePIDParams(
+  params: { kp: number; ki: number; kd: number },
+  simConfig: SimpleSimConfig,
+  target: OptimizationTarget,
+): { score: number; metrics: OptimizationResult['metrics'] };
+// 4-parameter calibrated overload: optimizer and tests
 export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
   logic: ScenarioLogic,
   simConfig: SimpleSimConfig,
-  target: OptimizationTarget
+  target: OptimizationTarget,
+): { score: number; metrics: OptimizationResult['metrics'] };
+export function evaluatePIDParams(
+  params: { kp: number; ki: number; kd: number },
+  logicOrSimConfig: ScenarioLogic | SimpleSimConfig,
+  simConfigOrTarget: SimpleSimConfig | OptimizationTarget,
+  maybeTarget?: OptimizationTarget,
 ): { score: number; metrics: OptimizationResult['metrics'] } {
+  let logic: ScenarioLogic;
+  let simConfig: SimpleSimConfig;
+  let target: OptimizationTarget;
+  if (maybeTarget !== undefined) {
+    logic = logicOrSimConfig as ScenarioLogic;
+    simConfig = simConfigOrTarget as SimpleSimConfig;
+    target = maybeTarget;
+  } else {
+    // 3-param legacy: (params, simConfig, target)
+    simConfig = logicOrSimConfig as SimpleSimConfig;
+    target = simConfigOrTarget as OptimizationTarget;
+    logic = getScenarioLogic('turn90', target.targetHeading);
+  }
   const speed = simConfig.shipSpeed || 15;
   const guidePath = generateGuidePath(logic, logic.duration, speed);
   const result = evaluateWithRustRuntime(params, logic, guidePath, speed, simConfig, target);
