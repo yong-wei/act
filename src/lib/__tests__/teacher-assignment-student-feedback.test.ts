@@ -169,6 +169,7 @@ describe('student assignment approved feedback projection', () => {
         assets: [
           { id: 'historical-asset', attemptId: 'attempt-1', originalName: 'old.pdf', mimeType: 'application/pdf', sizeBytes: 10, state: 'FINALIZED' },
           { id: 'new-asset', attemptId: null, originalName: 'new.pdf', mimeType: 'application/pdf', sizeBytes: 20, state: 'FINALIZED' },
+          { id: 'removed-asset', attemptId: null, originalName: 'removed.pdf', mimeType: 'application/pdf', sizeBytes: 30, state: 'REVOKED' },
         ],
       }],
       resubmissionGrants: [{ questionId: 'question-1', state: 'ACTIVE', reason: '请重新上传文档', allowedResponseType: 'SUBJECTIVE_FILE', newDeadlineAt: new Date('2026-07-20T00:00:00Z'), expiresAt: new Date('2026-07-20T00:00:00Z') }],

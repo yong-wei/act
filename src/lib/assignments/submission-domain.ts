@@ -8,6 +8,16 @@ export const SUBMISSION_LIMITS = {
   name: 240,
   assets: 10,
 } as const;
+export const ALLOWED_ASSIGNMENT_ASSET_FORMATS = [
+  'PDF',
+  'DOC',
+  'DOCX',
+  'PPTX',
+  'PNG',
+  'JPEG',
+  'Markdown',
+  '纯文本',
+] as const;
 export const checksumSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
 export const embeddedAssetReferenceSchema = z.object({
   assetId: z.string().min(1).max(120),

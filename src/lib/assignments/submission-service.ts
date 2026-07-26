@@ -1310,7 +1310,7 @@ export function presentRevision(revision: any, audience: any, submission: any, c
             })),
         })),
         assets: (answer?.assets ?? [])
-          .filter((asset: any) => !grant || asset.attemptId == null)
+          .filter((asset: any) => asset.state !== 'REVOKED' && (!grant || asset.attemptId == null))
           .sort(compareSubmissionAssetOrder)
           .map((asset: any) => ({
             id: asset.id,
@@ -1324,7 +1324,9 @@ export function presentRevision(revision: any, audience: any, submission: any, c
             embeddedPosition: asset.embeddedPosition,
           })),
         attachmentOrderProvenance: answer?.attachmentOrderProvenance
-          ?? ((answer?.assets?.length ?? 0) > 0 ? 'legacy-fallback' : null),
+          ?? ((answer?.assets ?? []).some((asset: any) => asset.state !== 'REVOKED')
+            ? 'legacy-fallback'
+            : null),
         resubmission: grant ? { state: grant.state, reason: grant.reason, allowedResponseType: grant.allowedResponseType, deadlineAt: grant.newDeadlineAt } : null,
       };
     }),

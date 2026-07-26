@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { SUBMISSION_LIMITS, SubmissionError } from './submission-domain';
+import {
+  ALLOWED_ASSIGNMENT_ASSET_FORMATS,
+  SUBMISSION_LIMITS,
+  SubmissionError,
+} from './submission-domain';
 
 export async function requireStudentActor() {
   const session = await getServerAuthSession();
@@ -35,17 +39,24 @@ export async function readBoundedSubmissionJson(request: Request) {
 }
 
 export function submissionErrorResponse(error: unknown) {
+  const allowedFormats = [...ALLOWED_ASSIGNMENT_ASSET_FORMATS];
   if (error instanceof SubmissionError) return NextResponse.json({
     error: error.code,
     message: submissionErrorMessage(error.code),
-    metadata: error.metadata ?? {},
+    metadata: error.code === 'unsupported-assignment-asset-format'
+      ? { ...error.metadata, allowedFormats }
+      : error.metadata ?? {},
   }, { status: error.status });
   if (error && typeof error === 'object' && 'issues' in error) {
     const issues = (error as { issues?: Array<{ path?: PropertyKey[]; message?: string }> }).issues ?? [];
+    const hasFormatIssue = issues.some((issue) =>
+      ['fileName', 'mimeType'].includes(String(issue.path?.[0] ?? ''))
+      || issue.message === 'unsupported-assignment-asset-format');
     return NextResponse.json({
       error: 'invalid-payload',
       message: '提交内容不符合要求。',
       metadata: {
+        ...(hasFormatIssue ? { allowedFormats } : {}),
         fields: issues.map((issue) => ({
           field: issue.path?.map(String).join('.') ?? '',
           code: issue.message ?? 'invalid',
