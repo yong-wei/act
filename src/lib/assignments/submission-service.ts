@@ -295,6 +295,7 @@ export async function finalizeQuestionAsset(prisma: PrismaClient, store: Submiss
   const replay = await prisma.submissionAsset.findUnique({ where: { finalizationKey: `${input.studentId}:${input.idempotencyKey}` } });
   if (replay) {
     if (replay.id !== input.intentId || replay.answerId !== context.answer.id) throw new SubmissionError('idempotency-key-conflict', 409);
+    if (replay.state !== 'FINALIZED') return { status: 'UNSAFE' as const, intentId: replay.id };
     return { status: 'READY' as const, asset: replay, answerVersion: context.answer.version };
   }
   const existing = await prisma.submissionAsset.findUnique({ where: { id: input.intentId } });
@@ -387,6 +388,67 @@ export async function reorderQuestionAssets(prisma: PrismaClient, input: {
         version: { increment: 1 },
       },
     });
+  }, { isolationLevel: 'Serializable' }));
+}
+
+export async function removeQuestionAsset(prisma: PrismaClient, input: {
+  studentId: string;
+  assignmentId: string;
+  questionId: string;
+  assetId: string;
+  answerVersion: number;
+  now?: Date;
+}) {
+  return withSerializableRetry(() => prisma.$transaction(async (tx) => {
+    const context = await requireMutableQuestion(tx as never, input, input.now ?? new Date());
+    if (!context.answer) throw new SubmissionError('answer-not-found', 404);
+    if (context.answer.state === 'SUBMITTED' && !context.resubmissionGrant) {
+      throw new SubmissionError('answer-already-submitted', 409);
+    }
+    if (context.answer.version !== input.answerVersion) {
+      throw new SubmissionError('answer-version-conflict', 409);
+    }
+    const asset = await tx.submissionAsset.findFirst({
+      where: {
+        id: input.assetId,
+        answerId: context.answer.id,
+        attemptId: null,
+        state: { in: ['QUARANTINED', 'FINALIZED'] },
+      },
+      select: { id: true },
+    });
+    if (!asset) throw new SubmissionError('answer-asset-not-found', 404);
+    const removed = await tx.submissionAsset.updateMany({
+      where: {
+        id: asset.id,
+        answerId: context.answer.id,
+        attemptId: null,
+        state: { in: ['QUARANTINED', 'FINALIZED'] },
+      },
+      data: { state: 'REVOKED' },
+    });
+    if (removed.count !== 1) throw new SubmissionError('answer-version-conflict', 409);
+    await removeSubmissionAssetAccessTokens(tx, asset.id);
+    const remainingAssets = await tx.submissionAsset.count({
+      where: { answerId: context.answer.id, attemptId: null, state: 'FINALIZED' },
+    });
+    const updated = await tx.submissionAnswer.updateMany({
+      where: {
+        id: context.answer.id,
+        version: input.answerVersion,
+        state: context.answer.state,
+      },
+      data: {
+        state: context.answer.textDraft?.trim() || remainingAssets > 0 ? 'READY' : 'DRAFT',
+        answerContractVersion: 'assignment-response.v2',
+        version: { increment: 1 },
+      },
+    });
+    if (updated.count !== 1) throw new SubmissionError('answer-version-conflict', 409);
+    return {
+      assetId: asset.id,
+      answer: await tx.submissionAnswer.findUniqueOrThrow({ where: { id: context.answer.id } }),
+    };
   }, { isolationLevel: 'Serializable' }));
 }
 

@@ -55,6 +55,9 @@ export const reorderAssetsSchema = z.object({
   assetIds: z.array(z.string().min(1).max(120)).max(SUBMISSION_LIMITS.assets)
     .refine((ids) => new Set(ids).size === ids.length, 'duplicate-asset-reference'),
 }).strict();
+export const removeAssetSchema = z.object({
+  answerVersion: z.number().int().positive(),
+}).strict();
 
 export class SubmissionError extends Error {
   constructor(

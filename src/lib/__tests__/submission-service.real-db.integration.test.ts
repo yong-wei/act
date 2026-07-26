@@ -45,7 +45,7 @@ describe.runIf(enabled)('student assignment isolated PostgreSQL integration', ()
   });
 
   it('finalizes one file idempotently, enforces path binding, and seals questions independently', async () => {
-    const uploadedBytes = new Uint8Array(12).fill(1); const checksum = `sha256:${createHash('sha256').update(uploadedBytes).digest('hex')}`;
+    const uploadedBytes = new TextEncoder().encode('%PDF-1.7\nEOF'); const checksum = `sha256:${createHash('sha256').update(uploadedBytes).digest('hex')}`;
     const missingSigned = await signQuestionUpload(prisma, store, { studentId, assignmentId, questionId: fileQuestionId, fileName: 'not-uploaded.pdf', mimeType: 'application/pdf', sizeBytes: 12, checksum });
     const [signed, raceSigned] = await Promise.all([
       signQuestionUpload(prisma, store, { studentId, assignmentId, questionId: fileQuestionId, fileName: 'q2.pdf', mimeType: 'application/pdf', sizeBytes: 12, checksum }),

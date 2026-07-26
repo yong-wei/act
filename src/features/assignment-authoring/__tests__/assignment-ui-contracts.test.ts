@@ -62,6 +62,9 @@ describe('teacher assignment workspace contracts', () => {
     expect(student).toContain('Markdown 正文');
     expect(student).toContain('.pdf,.doc,.docx,.pptx,.png,.jpg,.jpeg,.md,.markdown,.txt');
     expect(student).toContain('合计最多 10 个');
+    expect(student).toContain("method: 'DELETE'");
+    expect(student).toContain('提交前保存正文失败');
+    expect(student).toContain('附件已从本题草稿中移除');
   });
 
   it('publishes only an explicit saved baseline and exposes decimal input constraints', () => {

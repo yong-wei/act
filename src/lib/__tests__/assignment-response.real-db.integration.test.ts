@@ -5,6 +5,7 @@ import { Pool } from 'pg';
 
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import {
+  removeQuestionAsset,
   reorderQuestionAssets,
   saveQuestionDraft,
   signQuestionUpload,
@@ -276,7 +277,7 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
       answerVersion: attachmentOnly.version,
       idempotencyKey: 'response-empty-rejected',
     })).rejects.toMatchObject({ code: 'answer-evidence-required' });
-    await prisma.submissionAsset.create({ data: {
+    const removableAsset = await prisma.submissionAsset.create({ data: {
       answerId: attachmentOnly.id,
       version: 1,
       objectKey: 'response-attachment-only',
@@ -289,11 +290,39 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
       assetRole: 'ATTACHMENT',
       orderIndex: 0,
     } });
+    const afterRemoval = await removeQuestionAsset(prisma, {
+      studentId: 'response-student',
+      assignmentId,
+      questionId: attachmentOnlyQuestionId,
+      assetId: removableAsset.id,
+      answerVersion: attachmentOnly.version,
+    });
+    expect(afterRemoval.answer).toMatchObject({ state: 'DRAFT', version: attachmentOnly.version + 1 });
+    await expect(submitQuestionAnswer(prisma, {
+      studentId: 'response-student',
+      assignmentId,
+      questionId: attachmentOnlyQuestionId,
+      answerVersion: afterRemoval.answer.version,
+      idempotencyKey: 'response-removed-asset-rejected',
+    })).rejects.toMatchObject({ code: 'answer-evidence-required' });
+    await prisma.submissionAsset.create({ data: {
+      answerId: attachmentOnly.id,
+      version: 2,
+      objectKey: 'response-attachment-only-replacement',
+      originalName: 'attachment-only-replacement.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 12,
+      checksum: `sha256:${'c'.repeat(64)}`,
+      state: 'FINALIZED',
+      scanState: 'CLEAN',
+      assetRole: 'ATTACHMENT',
+      orderIndex: 0,
+    } });
     const attachmentOnlyAttempt = await submitQuestionAnswer(prisma, {
       studentId: 'response-student',
       assignmentId,
       questionId: attachmentOnlyQuestionId,
-      answerVersion: attachmentOnly.version,
+      answerVersion: afterRemoval.answer.version,
       idempotencyKey: 'response-attachment-only-submit',
     });
     expect(attachmentOnlyAttempt.aggregate.state).toBe('SUBMITTED');
