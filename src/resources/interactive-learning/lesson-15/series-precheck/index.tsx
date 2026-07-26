@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import { CheckCircle2, XCircle, RotateCcw, ChevronRight } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
+import { AlertCircle, CheckCircle2, XCircle, RotateCcw, ChevronRight, Loader2 } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
@@ -82,14 +82,11 @@ export default function SeriesPrecheck({ onComplete, onStateChange }: SeriesPrec
   const [selected, setSelected] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
   const [score, setScore] = useState(0);
+  const [completionStatus, setCompletionStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const completionInFlight = useRef(false);
 
   const current = QUIZ_ITEMS[currentIndex];
   const isLast = currentIndex === QUIZ_ITEMS.length - 1;
-  const progress = useMemo(
-    () => Math.round(((currentIndex + (checked ? 1 : 0)) / QUIZ_ITEMS.length) * 100),
-    [currentIndex, checked]
-  );
-
   const handleCheck = useCallback(() => {
     if (!selected || checked) return;
     const isCorrect = selected === current.answerId;
@@ -99,25 +96,41 @@ export default function SeriesPrecheck({ onComplete, onStateChange }: SeriesPrec
     setChecked(true);
 
     const nextScore = isCorrect ? score + 1 : score;
+    const answeredProgress = Math.round(((currentIndex + 1) / QUIZ_ITEMS.length) * 100);
     const snapshot = {
-      progress,
+      progress: answeredProgress,
       data: { questionId: current.id, selected, isCorrect, score: nextScore },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
-    interactive?.progress.setProgress(progress);
+    interactive?.progress.setProgress(answeredProgress);
     interactive?.tracking.emit('submit', snapshot.data);
+  }, [checked, selected, current.answerId, current.id, currentIndex, onStateChange, score, interactive]);
 
-    if (isLast) {
-      const result: WidgetResult = {
-        success: true,
-        score: Math.round((nextScore / QUIZ_ITEMS.length) * 100),
-        data: { correct: nextScore, total: QUIZ_ITEMS.length },
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
+  const handleComplete = useCallback(async () => {
+    if (!checked || !isLast || completionInFlight.current || completionStatus === 'success') return;
+
+    completionInFlight.current = true;
+    setCompletionStatus('submitting');
+    const result: WidgetResult = {
+      success: true,
+      score: Math.round((score / QUIZ_ITEMS.length) * 100),
+      data: { correct: score, total: QUIZ_ITEMS.length },
+    };
+
+    try {
+      if (onComplete) {
+        await onComplete(result);
+      } else {
+        await interactive?.progress.markComplete(result);
+      }
+      setCompletionStatus('success');
+    } catch (error) {
+      console.error('Failed to complete series precheck', error);
+      completionInFlight.current = false;
+      setCompletionStatus('error');
     }
-  }, [checked, selected, current.answerId, current.id, isLast, onComplete, onStateChange, score, progress, interactive]);
+  }, [checked, completionStatus, interactive, isLast, onComplete, score]);
 
   const handleNext = useCallback(() => {
     if (!checked || isLast) return;
@@ -132,6 +145,8 @@ export default function SeriesPrecheck({ onComplete, onStateChange }: SeriesPrec
     setSelected(null);
     setChecked(false);
     setScore(0);
+    setCompletionStatus('idle');
+    completionInFlight.current = false;
     onStateChange?.({
       progress: 0,
       data: { action: 'reset' },
@@ -191,33 +206,67 @@ export default function SeriesPrecheck({ onComplete, onStateChange }: SeriesPrec
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <button type="button"
             onClick={handleReset}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-xs text-slate-500 hover:text-slate-700"
+            disabled={completionStatus === 'submitting'}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-xs text-slate-500 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RotateCcw className="h-4 w-4" />
             重新开始
           </button>
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500">当前得分 {score}/{QUIZ_ITEMS.length}</span>
-            <button type="button"
-              onClick={handleCheck}
-              className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs text-white"
-            >
-              检查
-            </button>
-            <button type="button"
-              onClick={handleNext}
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${
-                checked && !isLast
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-slate-200 text-slate-500'
-              }`}
-              disabled={!checked || isLast}
-            >
-              下一题
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            {!checked ? (
+              <button type="button"
+                onClick={handleCheck}
+                disabled={!selected}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs text-white disabled:bg-slate-200 disabled:text-slate-500"
+              >
+                检查
+              </button>
+            ) : isLast ? (
+              <button type="button"
+                onClick={handleComplete}
+                disabled={completionStatus === 'submitting' || completionStatus === 'success'}
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs text-white disabled:bg-slate-200 disabled:text-slate-500"
+              >
+                {completionStatus === 'submitting' && <Loader2 className="h-4 w-4 animate-spin" />}
+                {completionStatus === 'submitting'
+                  ? '正在提交'
+                  : completionStatus === 'error'
+                    ? '重试完成检测'
+                    : completionStatus === 'success'
+                      ? '检测已完成'
+                      : '完成检测'}
+              </button>
+            ) : (
+              <button type="button"
+                onClick={handleNext}
+                className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs text-white"
+              >
+                下一题
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
+
+        {completionStatus === 'success' && (
+          <div role="status" className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <div className="flex items-center gap-2 font-medium">
+              <CheckCircle2 className="h-4 w-4" />
+              检测结果已保存
+            </div>
+            <p className="mt-1">本次得分 {score}/{QUIZ_ITEMS.length}，可以返回学习路径继续学习。</p>
+          </div>
+        )}
+        {completionStatus === 'error' && (
+          <div role="alert" className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+            <div className="flex items-center gap-2 font-medium">
+              <AlertCircle className="h-4 w-4" />
+              检测结果提交失败
+            </div>
+            <p className="mt-1">请检查网络后点击“重试完成检测”。</p>
+          </div>
+        )}
       </div>
     </div>
   );

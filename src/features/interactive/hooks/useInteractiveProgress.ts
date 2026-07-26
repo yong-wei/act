@@ -6,7 +6,7 @@ import type { InteractiveProgressContextValue } from '../types';
 
 interface UseInteractiveProgressOptions {
   initialProgress?: number;
-  onComplete?: (result?: WidgetResult) => void;
+  onComplete?: (result?: WidgetResult) => void | Promise<void>;
   onProgressChange?: (progress: number) => void;
 }
 
@@ -31,10 +31,10 @@ export function useInteractiveProgress(
   }, [onProgressChange]);
 
   // 标记完成
-  const markComplete = useCallback((result?: WidgetResult) => {
+  const markComplete = useCallback(async (result?: WidgetResult) => {
+    await onComplete?.(result);
     setIsComplete(true);
     setProgressState(100);
-    onComplete?.(result);
   }, [onComplete]);
 
   // 重置

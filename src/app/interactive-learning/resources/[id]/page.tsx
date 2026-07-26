@@ -18,6 +18,7 @@ import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verifi
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 import type { WidgetResult } from '@/resources/widgets/widget-props';
+import { selectResourceCompletionHandler } from './completion-boundary';
 
 export default function InteractiveResourcePage() {
   const params = useParams() as { id?: string } | null;
@@ -99,7 +100,7 @@ export default function InteractiveResourcePage() {
     fetchResource();
   }, [resourceId]);
 
-  const handlePathResourceComplete = async (result?: WidgetResult) => {
+  const completePathResource = async (result?: WidgetResult) => {
     if (!pathLaunchContext && feedbackContext) {
       window.location.assign(buildFeedbackTaskHref(feedbackContext.returnHref, feedbackContext, {
         status: 'completed',
@@ -114,20 +115,30 @@ export default function InteractiveResourcePage() {
     });
     if (!request) return;
 
+    const response = await fetch(request.href, {
+      method: request.method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request.body),
+    });
+    if (!response.ok) {
+      throw new Error(`Path resource completion rejected with status ${response.status}`);
+    }
+    publishAdaptivePathJourneyResponse(await response.json().catch(() => null));
+  };
+
+  const handlePathResourceComplete = async (result?: WidgetResult) => {
     try {
-      const response = await fetch(request.href, {
-        method: request.method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request.body),
-      });
-      if (!response.ok) {
-        throw new Error(`Path resource completion rejected with status ${response.status}`);
-      }
-      publishAdaptivePathJourneyResponse(await response.json().catch(() => null));
+      await completePathResource(result);
     } catch (completionError) {
       console.error('Failed to write path resource completion', completionError);
     }
   };
+
+  const resourceCompletionHandler = selectResourceCompletionHandler(
+    resource?.registryId,
+    completePathResource,
+    handlePathResourceComplete,
+  );
 
   return (
     <InteractiveLearningShell
@@ -178,7 +189,7 @@ export default function InteractiveResourcePage() {
             />
           </div>
         ) : resource ? (
-          <ResourceRenderer resource={resource} onComplete={handlePathResourceComplete} />
+          <ResourceRenderer resource={resource} onComplete={resourceCompletionHandler} />
         ) : (
           <div className="flex h-full min-h-[20rem] items-center justify-center text-platform-fg-secondary">
             资源未加载
