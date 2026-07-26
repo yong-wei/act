@@ -395,6 +395,18 @@ describe('preparation document editor interactions', () => {
       root.render(createElement(LessonDocumentEditor, { kind: 'draft', documentId: 'draft-1' }));
       await Promise.resolve();
     });
+    expect(container.textContent).toContain('学习目标');
+    expect(container.textContent).toContain('判断闭环系统稳定性');
+    expect(container.textContent).toContain('知识点');
+    expect([...container.querySelectorAll('input')].some((input) => input.value === '稳定性判据')).toBe(true);
+    expect(container.textContent).toContain('教案来源');
+    expect(container.textContent).toContain('citation-1');
+    const keyContent = [...container.querySelectorAll('textarea')]
+      .find((textarea) => textarea.parentElement?.textContent?.startsWith('重点内容'))!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(keyContent, '闭环稳定裕度');
+      keyContent.dispatchEvent(new Event('input', { bubbles: true }));
+    });
 
     const acceptButtons = [...container.querySelectorAll('button')].filter((button) => button.textContent === '接受');
     expect(acceptButtons).toHaveLength(2);
@@ -407,6 +419,7 @@ describe('preparation document editor interactions', () => {
     await act(async () => ignore.click());
 
     const documentDraft = JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!);
+    expect(documentDraft.content.keyContent).toEqual(['闭环稳定裕度']);
     expect(documentDraft.content.boppps.bridgeIn.steps[0].teacherActivity).toBe('展示真实航向偏差案例');
     expect(documentDraft.content.boppps.bridgeIn.teacherActivity).toBe('展示真实航向偏差案例');
     expect(documentDraft.content.limitations[0]).toBe('需要补充课堂观测证据');

@@ -270,12 +270,45 @@ function OutlineForm({ value, onChange }: { value: RecordValue; onChange: (value
 }
 
 function LessonForm({ value, onChange }: { value: RecordValue; onChange: (value: RecordValue) => void }) {
+  const goals = recordArray(value.goals);
+  const knowledgePoints = recordArray(value.knowledgePoints);
   return <div className="mx-auto max-w-5xl space-y-6">
     <section className="grid gap-3 rounded-xl border border-border p-4 sm:grid-cols-2">
       <ReadOnlyField label="课程" value={String(value.course ?? '')} />
       <ReadOnlyField label="主题" value={String(value.topic ?? '')} />
       <ReadOnlyField label="授课对象" value={String(value.audience ?? '')} />
       <ReadOnlyField label="先修要求" value={String(value.prerequisites ?? '')} />
+    </section>
+    <section className="grid gap-4 rounded-xl border border-border p-4 md:grid-cols-2">
+      <LineList label="重点内容" values={stringArray(value.keyContent)} onChange={(keyContent) => onChange({ ...value, keyContent })} />
+      <LineList label="难点内容" values={stringArray(value.difficultContent)} onChange={(difficultContent) => onChange({ ...value, difficultContent })} />
+    </section>
+    <section className="space-y-3 rounded-xl border border-border p-4">
+      <h2 className="font-semibold">学习目标</h2>
+      {goals.map((goal, index) => <article key={String(goal.id ?? index)} className="space-y-3 rounded-lg bg-muted/30 p-3">
+        <TextArea label={`目标 ${index + 1}`} value={String(goal.content ?? '')} onChange={(content) => onChange({ ...value, goals: updateAt(goals, index, { ...goal, content }) })} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ReadOnlyField label="目标标识" value={String(goal.id ?? '—')} />
+          <ReadOnlyField label="来源状态" value={String(goal.sourceState ?? '—')} />
+        </div>
+        <ReadOnlyStructure label="目标来源绑定" value={goal.sourceBindings} />
+        <ReadOnlyStructure label="课程标准映射" value={goal.standardsMappings} />
+      </article>)}
+    </section>
+    <section className="space-y-3 rounded-xl border border-border p-4">
+      <h2 className="font-semibold">知识点</h2>
+      {knowledgePoints.map((knowledgePoint, index) => <article key={String(knowledgePoint.id ?? index)} className="space-y-3 rounded-lg bg-muted/30 p-3">
+        <TextField label={`知识点 ${index + 1}`} value={String(knowledgePoint.title ?? '')} onChange={(title) => onChange({ ...value, knowledgePoints: updateAt(knowledgePoints, index, { ...knowledgePoint, title }) })} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ReadOnlyField label="知识点标识" value={String(knowledgePoint.id ?? '—')} />
+          <ReadOnlyField label="来源状态" value={String(knowledgePoint.sourceState ?? '—')} />
+        </div>
+        <ReadOnlyStructure label="知识点来源绑定" value={knowledgePoint.sourceBindings} />
+      </article>)}
+    </section>
+    <section className="grid gap-4 rounded-xl border border-border p-4 lg:grid-cols-2">
+      <ReadOnlyStructure label="教案来源" value={value.sources} />
+      <ReadOnlyStructure label="班级适配" value={value.classAdaptation} />
     </section>
     {STAGES.map(([stageId, title]) => {
       const stage = lessonDocumentStage(value, stageId);
@@ -423,6 +456,41 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return <div className="grid gap-1 text-sm"><span>{label}</span><p className="min-h-10 rounded border border-border bg-muted/40 px-3 py-2">{value}</p></div>;
 }
 
+function ReadOnlyStructure({ label, value }: { label: string; value: unknown }) {
+  return <div className="space-y-2 text-sm">
+    <h3 className="font-medium">{label}</h3>
+    <div className="space-y-2 rounded border border-border bg-muted/40 p-3">
+      <ReadableValue value={value} />
+    </div>
+  </div>;
+}
+
+function ReadableValue({ value }: { value: unknown }) {
+  if (value === null || value === undefined) return <p className="text-muted-foreground">未提供</p>;
+  if (Array.isArray(value)) {
+    if (value.length === 0) return <p className="text-muted-foreground">无</p>;
+    return <div className="space-y-2">{value.map((item, index) => <div key={index} className="rounded bg-background/70 p-2"><ReadableValue value={item} /></div>)}</div>;
+  }
+  if (typeof value === 'object') {
+    return <dl className="grid gap-2">{Object.entries(value as Record<string, unknown>).map(([key, item]) => <div key={key} className="grid gap-1 sm:grid-cols-[8rem_1fr]">
+      <dt className="text-muted-foreground">{readableFieldLabel(key)}</dt>
+      <dd className="break-words"><ReadableValue value={item} /></dd>
+    </div>)}</dl>;
+  }
+  return <p className="whitespace-pre-wrap break-words">{String(value)}</p>;
+}
+
+function readableFieldLabel(key: string) {
+  return ({
+    id: '标识',
+    citationId: '引用标识',
+    sourceVersionId: '来源版本',
+    anchor: '来源位置',
+    contentHash: '内容摘要',
+    gapIdentity: '待补证据标识',
+  } as Record<string, string>)[key] ?? key;
+}
+
 function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
   return <label className="grid gap-1 text-sm"><span>{label}</span><input type="number" min={1} max={120} value={value} onChange={(event) => onChange(Number(event.target.value))} className="rounded border border-border bg-background px-3 py-2" /></label>;
 }
@@ -465,6 +533,10 @@ function moved<T>(values: T[], index: number, offset: -1 | 1) {
 
 function stringArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function recordArray(value: unknown) {
+  return Array.isArray(value) ? value.map(preparationRecord) : [];
 }
 
 function writeLocalDraft(key: string, content: RecordValue, baseRevision: string | number | null) {
