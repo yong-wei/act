@@ -166,7 +166,7 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
     ]);
     saved = await prisma.submissionAnswer.findUniqueOrThrow({ where: { id: saved.id } });
     const assetIds: string[] = [];
-    for (let index = 0; index < 10; index += 1) {
+    for (let index = 0; index < 9; index += 1) {
       const asset = await prisma.submissionAsset.create({ data: {
         answerId: saved.id,
         version: index + 1,
@@ -182,6 +182,20 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
       } });
       assetIds.push(asset.id);
     }
+    const embeddedAsset = await prisma.submissionAsset.create({ data: {
+      answerId: saved.id,
+      version: 10,
+      objectKey: 'response-embedded-figure',
+      originalName: 'figure.png',
+      mimeType: 'image/png',
+      sizeBytes: 12,
+      checksum: `sha256:${'e'.repeat(64)}`,
+      state: 'FINALIZED',
+      scanState: 'CLEAN',
+      assetRole: 'EMBEDDED_IMAGE',
+      orderIndex: 9,
+      embeddedPosition: 'md:figure-1',
+    } });
     await expect(signQuestionUpload(prisma, new MemorySubmissionObjectStore(), {
       studentId: 'response-student',
       assignmentId,
@@ -206,7 +220,8 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
         assignmentId,
         questionId,
         version: saved.version,
-        text: '并发后的 Markdown 正文',
+        text: '并发后的 Markdown 正文\n![图](asset:md:figure-1)',
+        embeddedAssets: [{ assetId: embeddedAsset.id, positionRef: 'md:figure-1' }],
       }),
     ]);
     expect(concurrent.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
@@ -228,9 +243,18 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
         assignmentId,
         questionId,
         version: answer.version,
-        text: '并发后的 Markdown 正文',
+        text: '并发后的 Markdown 正文\n![图](asset:md:figure-1)',
+        embeddedAssets: [{ assetId: embeddedAsset.id, positionRef: 'md:figure-1' }],
       });
     }
+    await expect(saveQuestionDraft(prisma, {
+      studentId: 'response-student',
+      assignmentId,
+      questionId,
+      version: answer.version,
+      text: '正文\n![图](asset:md:figure-1)\n![失效](asset:md:missing)',
+      embeddedAssets: [{ assetId: embeddedAsset.id, positionRef: 'md:figure-1' }],
+    })).rejects.toMatchObject({ code: 'invalid-embedded-asset-reference' });
 
     const [left, right] = await Promise.all([
       submitQuestionAnswer(prisma, {
@@ -253,8 +277,8 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
       where: { id: left.attempt!.id },
       include: { assets: { orderBy: { orderIndex: 'asc' } } },
     });
-    expect(attempt.textSnapshot).toBe('并发后的 Markdown 正文');
-    expect(attempt.assets.map((asset) => asset.id)).toEqual(reversed);
+    expect(attempt.textSnapshot).toBe('并发后的 Markdown 正文\n![图](asset:md:figure-1)');
+    expect(attempt.assets.map((asset) => asset.id)).toEqual([...reversed, embeddedAsset.id]);
     expect(attempt.answerSnapshot).toMatchObject({
       schemaVersion: 'assignment-response.v2',
       attachmentOrderProvenance: 'student-arranged',

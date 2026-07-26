@@ -49,6 +49,16 @@ describe('assignment asset content format detection', () => {
     )).resolves.toBe(false);
   });
 
+  it('rejects Office archives whose declared expansion exceeds the scanner budget', async () => {
+    const bomb = new JSZip();
+    bomb.file('word/document.xml', '0'.repeat(2 * 1024 * 1024));
+
+    await expect(matchesDeclaredAssignmentAssetFormat(
+      await bomb.generateAsync({ type: 'uint8array', compression: 'DEFLATE' }),
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    )).resolves.toBe(false);
+  });
+
   it('rejects binary payloads declared as text', async () => {
     await expect(matchesDeclaredAssignmentAssetFormat(
       Buffer.from([0x61, 0x00, 0x62]),

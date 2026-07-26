@@ -29,6 +29,13 @@ import {
 const SUBMISSION_DELETE_LEASE_MS = 5 * 60_000;
 const SUBMISSION_DELETE_HEARTBEAT_MS = 60_000;
 
+function embeddedPositionReferences(text: string | null): string[] {
+  if (!text) return [];
+  return [...new Set(
+    [...text.matchAll(/\basset:(md:[a-zA-Z0-9_-]{1,80})\b/g)].map((match) => match[1]),
+  )];
+}
+
 async function readSubmissionDatabaseNow(db: any, fallback: Date): Promise<Date> {
   if (typeof db.$queryRaw !== 'function') return fallback;
   const rows = await db.$queryRaw(Prisma.sql`SELECT clock_timestamp() AS "now"`);
@@ -173,6 +180,12 @@ export async function saveQuestionDraft(prisma: PrismaClient, input: {
       || new Set(embeddedAssets.map((asset) => asset.positionRef)).size !== embeddedAssets.length) {
       throw new SubmissionError('duplicate-asset-reference');
     }
+    const textPositionRefs = embeddedPositionReferences(input.text).sort();
+    const requestedPositionRefs = embeddedAssets.map((asset) => asset.positionRef).sort();
+    if (textPositionRefs.length !== requestedPositionRefs.length
+      || textPositionRefs.some((position, index) => position !== requestedPositionRefs[index])) {
+      throw new SubmissionError('invalid-embedded-asset-reference', 409);
+    }
     const finalizedAssets = await tx.submissionAsset.findMany({
       where: { answerId: answer.id, state: 'FINALIZED', attemptId: null },
       orderBy: [{ orderIndex: 'asc' }, { version: 'asc' }, { id: 'asc' }],
@@ -245,7 +258,9 @@ export async function signQuestionUpload(prisma: PrismaClient, store: Submission
       state: 'DRAFT',
       attachmentOrderProvenance: 'student-arranged',
     }, update: { answerContractVersion: 'assignment-response.v2' } });
-    if (answer.state === 'SUBMITTED') throw new SubmissionError('answer-already-submitted', 409);
+    if (answer.state === 'SUBMITTED' && !context.resubmissionGrant) {
+      throw new SubmissionError('answer-already-submitted', 409);
+    }
     const activeAssetCount = await tx.submissionAsset.count({
       where: {
         answerId: answer.id,
@@ -366,7 +381,12 @@ export async function reorderQuestionAssets(prisma: PrismaClient, input: {
     if (context.answer.state === 'SUBMITTED' && !context.resubmissionGrant) throw new SubmissionError('answer-already-submitted', 409);
     if (context.answer.version !== input.answerVersion) throw new SubmissionError('answer-version-conflict', 409);
     const assets = await tx.submissionAsset.findMany({
-      where: { answerId: context.answer.id, state: 'FINALIZED', attemptId: null },
+      where: {
+        answerId: context.answer.id,
+        state: 'FINALIZED',
+        attemptId: null,
+        assetRole: 'ATTACHMENT',
+      },
       select: { id: true },
     });
     const persistedIds = assets.map((asset) => asset.id).sort();
@@ -376,7 +396,13 @@ export async function reorderQuestionAssets(prisma: PrismaClient, input: {
     }
     for (const [orderIndex, id] of input.assetIds.entries()) {
       await tx.submissionAsset.updateMany({
-        where: { id, answerId: context.answer.id, state: 'FINALIZED', attemptId: null },
+        where: {
+          id,
+          answerId: context.answer.id,
+          state: 'FINALIZED',
+          attemptId: null,
+          assetRole: 'ATTACHMENT',
+        },
         data: { orderIndex },
       });
     }
@@ -1123,9 +1149,12 @@ export async function submitQuestionAnswer(prisma: PrismaClient, input: { studen
     const embeddedPositions = assets
       .filter((asset) => asset.assetRole === 'EMBEDDED_IMAGE')
       .map((asset) => asset.embeddedPosition);
+    const referencedEmbeddedPositions = embeddedPositionReferences(text);
     if (embeddedPositions.some((position) => !position)
       || new Set(embeddedPositions).size !== embeddedPositions.length
-      || embeddedPositions.some((position) => !text?.includes(`asset:${position}`))) {
+      || embeddedPositions.length !== referencedEmbeddedPositions.length
+      || [...embeddedPositions].sort()
+        .some((position, index) => position !== [...referencedEmbeddedPositions].sort()[index])) {
       throw new SubmissionError('invalid-embedded-asset-reference', 409);
     }
     const attemptNumber = context.answer.currentAttemptNumber + 1;
