@@ -543,7 +543,8 @@ function validateDocumentGradingEditsAgainstRubric(
     if (!detailed && edit.levelId !== null) {
       return '标准评分项不得指定评价级别';
     }
-    if (!hasAtMostOneDecimal(edit.score)) {
+    if (rubric.schemaVersion === 'assignment-scoring-rubric.v2'
+      && !hasAtMostOneDecimal(edit.score)) {
       return '评分编辑分数必须保留一位小数';
     }
     if (edit.score < 0 || edit.score > (criterion.maxPoints ?? rubric.maxScore)) {

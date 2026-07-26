@@ -1762,6 +1762,45 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.$transaction.mock.calls.at(-1)?.[1]).toEqual({ isolationLevel: 'Serializable' });
   });
 
+  it('approves two-decimal teacher edits against a frozen v1 rubric', async () => {
+    const run = pipelineRun();
+    run.questionSnapshot.rubric.criteria[0].levels[0].minPoints = 0;
+    run.questionSnapshot.rubric.criteria[1].levels[0].minPoints = 0;
+    run.rubricSnapshot.criteria[0].levels[0].minPoints = 0;
+    run.rubricSnapshot.criteria[1].levels[0].minPoints = 0;
+    run.inputHash = sha256(stableStringify({
+      questionSnapshot: run.questionSnapshot,
+      evidence: {
+        id: run.answerEvidence.id,
+        version: run.answerEvidence.version,
+        sourceHash: run.answerEvidence.sourceHash,
+        anchorVersion: run.answerEvidence.anchorVersion,
+      },
+      evaluator: { provider: run.evaluatorId, version: run.evaluatorVersion },
+    }));
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.gradingRun.findUnique.mockResolvedValue(run);
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'profile-1' });
+    mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 2 });
+
+    const response = await postJson({
+      gradingRunId: run.id,
+      decision: 'approved',
+      edits: [
+        { criterionId: 'controlModeling', levelId: 'full-model', score: 3.55, comment: '保留历史精度' },
+        { criterionId: 'custom-proof', levelId: 'full-proof', score: 5.25, comment: '保留历史精度' },
+      ],
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.gradingCriterionAssessment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ teacherScore: 3.55 }),
+    }));
+    expect(mocks.prisma.gradingCriterionAssessment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ teacherScore: 5.25 }),
+    }));
+  });
+
   it('replays the same native approval request and rejects different edits after approval', async () => {
     const run = pipelineRun();
     const edits = [

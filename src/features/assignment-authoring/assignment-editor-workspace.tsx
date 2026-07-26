@@ -671,6 +671,7 @@ export function AssignmentEditorWorkspace({
             </label>
             {question ? (
               <QuestionEditor
+                key={question.stableQuestionId}
                 question={question}
                 questionIndex={activeIndex}
                 registerValidationField={registerValidationField}

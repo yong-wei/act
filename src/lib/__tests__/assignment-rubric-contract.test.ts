@@ -68,6 +68,25 @@ describe('assignment rubric v2 decimal and level contract', () => {
     });
   });
 
+  it('reuses an unoccupied stable id after deleting a non-trailing level', () => {
+    const result = addDetailedRubricLevel({
+      criterionId: 'quality',
+      criterionMaxPoints: 10,
+      levels: [
+        { id: 'quality-level-1', label: '优秀', maxPoints: 10, guideline: 'a' },
+        { id: 'quality-level-2', label: '良好', maxPoints: 9, guideline: 'b' },
+        { id: 'quality-level-4', label: '及格', maxPoints: 8, guideline: 'd' },
+        { id: 'quality-level-5', label: '不及格', maxPoints: 7, guideline: 'e' },
+      ],
+    });
+
+    expect(result.status).toBe('applied');
+    if (result.status === 'applied') {
+      expect(result.levels.at(-1)?.id).toBe('quality-level-3');
+      expect(new Set(result.levels.map((level) => level.id)).size).toBe(result.levels.length);
+    }
+  });
+
   it('sorts complete records and derives boundary ownership without gaps', () => {
     const levels = sortRubricLevels([
       { id: 'mid', label: '良好', maxPoints: 8, guideline: 'mid' },
