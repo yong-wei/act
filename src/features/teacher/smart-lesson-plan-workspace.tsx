@@ -33,7 +33,7 @@ type Task = {
   knowledgePoints?: Array<{ id: string; lineageId: string; title: string; origin: 'SUGGESTED' | 'TEACHER_CREATED'; sourceState: 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending'; sourceBindings: SourceOption['binding'][]; supersedesIds?: string[]; state: string }>;
   goals?: Array<{ id: string; lineageId: string; content: string; sourceState: 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending'; sourceBindings: SourceOption['binding'][]; standardsMappings?: Array<{ standardId: string; label: string }>; state: string }>;
   drafts?: Array<{
-    id: string; state: string; version: number; content?: unknown;
+    id: string; state: string; version: number; content?: unknown; contentHash?: string | null;
     jobs?: Array<{ id: string; state: string; firstIncompleteStage?: string; failureCode?: string | null; supersededAt?: string | null; stages?: Array<{ kind: string; state: string; output?: unknown; outputTruncated?: boolean }> }>;
     reviews?: Array<{ id: string; advisoryOnly: boolean; state?: string; report?: unknown; failureCode?: string | null }>;
   }>;
@@ -371,7 +371,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
 
   function editDraft(task: Task) {
     const draft = task.drafts?.[0];
-    if (!draft) return;
+    if (!draft?.contentHash) return;
     capturePreparationEditorReturnState(`/teacher/smart-prep?taskId=${encodeURIComponent(task.id)}#smart-prep-stage-lesson-generation`);
     window.location.assign(`/teacher/smart-prep/editor/lesson/${encodeURIComponent(draft.id)}?kind=draft&taskId=${encodeURIComponent(task.id)}`);
   }
@@ -495,7 +495,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
               {job?.state === 'PAUSED' && !job.supersededAt ? <button onClick={() => editPausedOutline(task)} className="rounded border border-border px-3 py-1.5 text-sm">编辑提纲</button> : null}
               {job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state) ? <button onClick={() => void runJobAction(task, job.state === 'RETRYABLE' || job.state === 'FAILED' ? 'retry' : 'resume')} className="rounded border border-border px-3 py-1.5 text-sm">{job.state === 'PAUSED' ? '确认当前提纲并继续' : '恢复/重试'}</button> : null}
               {job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state) ? <button onClick={() => void runJobAction(task, 'cancel')} className="rounded border border-border px-3 py-1.5 text-sm">取消</button> : null}
-              <button onClick={() => editDraft(task)} disabled={!draft || task.workspace?.unsupportedPayload || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
+              <button onClick={() => editDraft(task)} disabled={!draft?.contentHash || task.workspace?.unsupportedPayload || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
               <button onClick={() => void requestAdvisoryReview(task)} disabled={!draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
               <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
               {task.revisions?.[0] ? <button onClick={() => void deriveDraft(task, task.revisions![0].id)} className="rounded border border-border px-3 py-1.5 text-sm">基于{task.revisions[0].displayName}继续修订</button> : null}

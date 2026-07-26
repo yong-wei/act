@@ -39,7 +39,7 @@ describe('unified preparation document editor contract', () => {
 
   it('opens dedicated lesson editors without requiring truncated summary payloads', () => {
     expect(workspace).toContain("if (!job || job.state !== 'PAUSED') return;");
-    expect(workspace).toContain('if (!draft) return;');
-    expect(workspace).toContain('disabled={!draft || task.workspace?.unsupportedPayload');
+    expect(workspace).toContain('if (!draft?.contentHash) return;');
+    expect(workspace).toContain('disabled={!draft?.contentHash || task.workspace?.unsupportedPayload');
   });
 });
