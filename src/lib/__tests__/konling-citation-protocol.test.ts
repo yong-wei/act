@@ -210,6 +210,16 @@ describe('Konling citation protocol', () => {
     expect(repair).toHaveBeenCalledTimes(1);
   });
 
+  it('preserves bracketed technical expressions that are not citation ids', () => {
+    const result = normalizeKonlingCitations({
+      answer: '数组切片 x[0:10]，参数写作 [PID: Kp=1]，教材依据 [textbook-unit:one]。',
+      assignedCitations: assignKonlingCitationDisplayNumbers(sources),
+    });
+
+    expect(result.body).toBe('数组切片 x[0:10]，参数写作 [PID: Kp=1]，教材依据 [1]。');
+    expect(result.unresolvedMarkers).toEqual([]);
+  });
+
   it('removes unknown markers, malicious URLs, and internal paths while preserving prose', () => {
     const result = normalizeKonlingCitations({
       answer: [

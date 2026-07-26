@@ -42,7 +42,8 @@ type MarkerOccurrence = {
   value: string;
 };
 
-const CITATION_MARKER = /\[(?:(?:证据|引用|content)\s*:\s*([^\]\n]+)|(\d+)|([A-Za-z0-9_-]+:[^\]\n]+))\]/gi;
+const CITATION_MARKER =
+  /\[(?:(?:证据|引用|content)\s*:\s*([^\]\n]+)|(\d+)|((?:textbook(?:-(?:unit|fragment|window))?|evidence|learner(?:-state)?|content|path|intervention|runtime-projection):[^\]\n]+))\]/gi;
 const MARKDOWN_LINK = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
 const INTERNAL_PATH = /(?:file:\/\/|\/(?:Users|home|workspace|course-content|src|var|tmp)\/)[^\s)\]}]+/gi;
 const BARE_URL = /https?:\/\/[^\s)\]}，。；、]+/gi;

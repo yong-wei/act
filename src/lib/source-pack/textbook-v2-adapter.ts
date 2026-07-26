@@ -314,6 +314,7 @@ async function adaptTextbookRetrievalResult(
       unit,
       supports: (supportsByUnit.get(unit.id) ?? [])
         .filter((support) => support.bookId === unit.bookId)
+        .map((support) => ({ ...support, body: unit.markdown }))
         .filter((support) => directlySupportsQuery(input.evidenceQuery, support.body))
         .sort((left, right) => left.rank - right.rank || right.score - left.score),
     }))
@@ -390,11 +391,12 @@ function toToolCandidate(
   maxTextChars: number,
 ): TextbookV2ToolCandidate {
   const fragment = selectDirectFragment(unit, query);
-  const evidenceText = uniqueStrings(evidenceBodies).join('\n\n');
+  const fullEvidenceText = uniqueStrings(evidenceBodies).join('\n\n');
+  const evidenceText = boundedEvidenceExcerpt(fullEvidenceText, query, maxTextChars);
   return {
     displayNumber,
     title: unit.title,
-    text: evidenceText.slice(0, maxTextChars),
+    text: evidenceText,
     identity: {
       kind: fragment ? 'fragment' : 'unit',
       unitId: unit.id,
@@ -411,8 +413,26 @@ function toToolCandidate(
       fragment: fragment?.id,
     }),
     priority: priorityFor(sourcePriority, unit.bookId),
-    limitation: evidenceText.length > maxTextChars ? 'candidate-text-truncated' : null,
+    limitation: fullEvidenceText.length > maxTextChars ? 'candidate-text-truncated' : null,
   };
+}
+
+function boundedEvidenceExcerpt(text: string, query: string, maxTextChars: number): string {
+  if (text.length <= maxTextChars) return text;
+  const normalizedText = text.normalize('NFKC').toLowerCase();
+  const normalizedQuery = query.normalize('NFKC').toLowerCase();
+  let anchor = normalizedText.indexOf(normalizedQuery);
+  if (anchor < 0) {
+    const matchingToken = lexicalTokens(query)
+      .filter(isEvidenceToken)
+      .find((token) => normalizedText.includes(token));
+    anchor = matchingToken ? normalizedText.indexOf(matchingToken) : 0;
+  }
+  const start = Math.max(
+    0,
+    Math.min(text.length - maxTextChars, anchor - Math.floor(maxTextChars / 3)),
+  );
+  return text.slice(start, start + maxTextChars);
 }
 
 function selectDirectFragment(unit: TextbookCitationUnit, query: string) {
