@@ -154,6 +154,10 @@ async function installArenaFixture(page: Page) {
   };
 }
 
+async function expectAtMostOnePathReturn(page: Page) {
+  expect(await page.getByRole('link', { name: '返回学习路径', exact: true }).count()).toBeLessThanOrEqual(1);
+}
+
 test('Arena path node keeps context through challenge, workbench, submission, and next step', async ({ page }) => {
   const fixture = await installArenaFixture(page);
   await page.goto(
@@ -163,6 +167,7 @@ test('Arena path node keeps context through challenge, workbench, submission, an
 
   const pathNode = page.locator(`[data-adaptive-path-node="${nodeId}"]`);
   await expect(pathNode).toHaveAttribute('data-adaptive-path-node-state', 'current');
+  await expectAtMostOnePathReturn(page);
   await expect(pathNode.locator('[data-adaptive-path-node-detail="inline"]')).toContainText('完成二阶系统校正 Arena 挑战');
   await pathNode.getByRole('button', { name: '开始学习' }).click();
   await expect(page).toHaveURL(new RegExp(`/arena/challenges/${taskId}`));
@@ -181,6 +186,7 @@ test('Arena path node keeps context through challenge, workbench, submission, an
 
   await expect(page.locator('[data-commercial-workspace="arena-challenge-detail"]')).toBeVisible();
   await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toContainText('完成工作台官方评测后继续');
+  await expectAtMostOnePathReturn(page);
   expect(fixture.executeRequests()).toBe(0);
 
   const workbenchLink = page.getByRole('link', { name: /进入控制工作台/ }).first();
@@ -210,6 +216,7 @@ test('Arena path node keeps context through challenge, workbench, submission, an
   });
   await expect(page.locator('[data-commercial-workspace="control-workbench"]')).toBeVisible();
   await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toBeVisible();
+  await expectAtMostOnePathReturn(page);
 
   await page.getByRole('button', { name: '提交官方评测' }).click();
   await expect(page.getByText(/官方评测完成/).first()).toBeVisible();
@@ -229,4 +236,87 @@ test('Arena path node keeps context through challenge, workbench, submission, an
   });
   await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toContainText('复盘 Arena 评测证据');
   await expect(page.getByRole('main')).toContainText('知识');
+  await expectAtMostOnePathReturn(page);
+});
+
+test('representative journey surfaces expose one path return action', async ({ page }) => {
+  const surfaces = [
+    {
+      nodeId: 'adaptive-quiz:path-center-checkpoint',
+      resourceType: 'adaptive_quiz',
+      href: '/assessment/adaptive-practice?demo=1',
+    },
+    {
+      nodeId: 'registry:lesson15-series-precheck',
+      resourceType: 'adaptive_quiz',
+      href: '/interactive-learning/resources/lesson15-series-precheck',
+    },
+    {
+      nodeId: 'interactive-lesson:unit-1-1-see-the-full-picture',
+      resourceType: 'interactive_lesson',
+      href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo',
+    },
+    {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      href: '/arena/challenges/task-second-order-lead-pid',
+    },
+    {
+      nodeId: 'control-workbench:lead-pid',
+      resourceType: 'control_workbench',
+      href: '/interactive-learning/control-workbench',
+    },
+    {
+      nodeId: 'knowledge-card:frequency-review',
+      resourceType: 'knowledge_card',
+      href: '/knowledge',
+    },
+  ] as const;
+
+  for (const surface of surfaces) {
+    const surfaceReturnHref = `/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-surface-e2e&nodeId=${encodeURIComponent(surface.nodeId)}`;
+    await page.route('**/api/learning-paths/**/journey?**', async (route) => {
+      await route.fulfill({
+        json: {
+          journey: {
+            path: { id: 'path-surface-e2e', title: '连续学习路径' },
+            goal: { id: 'control-correction' },
+            context: {
+              pathId: 'path-surface-e2e',
+              goalId: 'control-correction',
+              requestedNodeId: surface.nodeId,
+            },
+            current: { nodeId: surface.nodeId, title: '当前学习节点', type: surface.resourceType },
+            progress: { completed: 0, total: 2 },
+            return: { label: '返回学习路径', href: surfaceReturnHref },
+            pathStatus: 'active',
+            nextAction: {
+              state: 'pending-result',
+              nodeId: surface.nodeId,
+              title: '当前学习节点',
+              type: surface.resourceType,
+              href: null,
+              reason: '完成当前节点后继续。',
+              recovery: { label: '刷新结果状态', href: surfaceReturnHref },
+            },
+          },
+        },
+      });
+    });
+
+    const query = new URLSearchParams({
+      source: 'adaptive-path-center',
+      goal: 'control-correction',
+      goalId: 'control-correction',
+      pathId: 'path-surface-e2e',
+      nodeId: surface.nodeId,
+      intent: 'path-execution',
+      returnHref: surfaceReturnHref,
+      resourceType: surface.resourceType,
+    });
+    const separator = surface.href.includes('?') ? '&' : '?';
+    await page.goto(`${surface.href}${separator}${query}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toBeVisible();
+    await expect(page.getByRole('link', { name: '返回学习路径', exact: true })).toHaveCount(1);
+  }
 });

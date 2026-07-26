@@ -75,6 +75,7 @@ export default function InteractiveResourcePage() {
         recoveryAction: `返回${sourceContext.label}并重新选择资源`,
       })
     : null;
+  const showLocalReturnAction = !pathLaunchContext;
 
   useEffect(() => {
     if (!resourceId) return;
@@ -139,7 +140,7 @@ export default function InteractiveResourcePage() {
         { label: sourceContext.label, href: sourceContext.href },
         { label: resource?.title || '互动资源' },
       ]}
-      actions={(
+      actions={showLocalReturnAction ? (
         <Link
           href={sourceContext.href}
           className="inline-flex items-center gap-2 rounded-md border border-platform-border bg-platform-surface px-3 py-2 text-sm text-platform-fg-secondary transition hover:border-platform-border-strong hover:text-platform-action-primary"
@@ -147,7 +148,7 @@ export default function InteractiveResourcePage() {
           <ArrowLeft className="h-4 w-4" />
           返回{sourceContext.label}
         </Link>
-      )}
+      ) : undefined}
     >
       <section
         className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-[1440px] flex-col px-4 py-6"
@@ -167,14 +168,14 @@ export default function InteractiveResourcePage() {
           <div className="flex h-full min-h-[20rem] items-center justify-center p-6">
             <ActionStatusPanel
               state={resourceErrorState}
-              action={(
+              action={showLocalReturnAction ? (
                 <Link
                   href={sourceContext.href}
                   className="inline-flex items-center rounded-md border border-platform-border px-3 py-2 text-xs text-platform-fg-secondary hover:text-platform-action-primary"
                 >
                   返回{sourceContext.label}
                 </Link>
-              )}
+              ) : undefined}
             />
           </div>
         ) : resource ? (
