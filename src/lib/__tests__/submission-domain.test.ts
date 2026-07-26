@@ -7,6 +7,7 @@ import {
   deriveLegacyAssignmentAssetOrder,
   finalizeSchema,
   mayReadSubmission,
+  normalizeAssignmentAssetMimeType,
   reorderAssetsSchema,
   SubmissionError,
   textDraftSchema,
@@ -57,6 +58,14 @@ describe('assignment submission domain', () => {
       sizeBytes: 12,
       checksum: `sha256:${'a'.repeat(64)}`,
     }).success).toBe(true);
+  });
+  it.each([
+    ['answer.docx', 'application/octet-stream', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    ['answer.pptx', 'binary/octet-stream', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+    ['answer.md', 'text/plain', 'text/markdown'],
+    ['answer.jpeg', '', 'image/jpeg'],
+  ])('normalizes browser MIME for supported extension %s', (fileName, declaredMimeType, expected) => {
+    expect(normalizeAssignmentAssetMimeType(fileName, declaredMimeType)).toBe(expected);
   });
   it.each([
     ['answer.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],

@@ -93,6 +93,16 @@ export function isAllowedAssignmentAsset(fileName: string, mimeType: string): bo
   return Boolean(extension && ASSIGNMENT_ASSET_EXTENSIONS[mimeType]?.includes(extension));
 }
 
+export function normalizeAssignmentAssetMimeType(fileName: string, declaredMimeType: string): string {
+  const extension = fileName.trim().toLowerCase().match(/\.([a-z0-9]+)$/)?.[1];
+  if (extension) {
+    for (const [mimeType, extensions] of Object.entries(ASSIGNMENT_ASSET_EXTENSIONS)) {
+      if (extensions.includes(extension)) return mimeType;
+    }
+  }
+  return declaredMimeType || 'application/octet-stream';
+}
+
 export function deriveLegacyAssignmentAssetOrder<T extends {
   id: string;
   version: number;

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { AlertCircle, ArrowLeft, CheckCircle2, Clock3, FileUp, History, Loader2, Paperclip, Save, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
+import { normalizeAssignmentAssetMimeType } from '@/lib/assignments/submission-domain';
 import {
   assignmentStateLabels,
   formatAssignmentDeadline,
@@ -443,21 +444,7 @@ async function checksumFile(file: File): Promise<string> {
 }
 
 function assignmentMimeType(file: File): string {
-  if (file.type) return file.type;
-  const extension = file.name.toLowerCase().split('.').pop();
-  const fallback: Record<string, string> = {
-    pdf: 'application/pdf',
-    doc: 'application/msword',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    png: 'image/png',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    md: 'text/markdown',
-    markdown: 'text/markdown',
-    txt: 'text/plain',
-  };
-  return fallback[extension ?? ''] ?? 'application/octet-stream';
+  return normalizeAssignmentAssetMimeType(file.name, file.type);
 }
 
 function wait(milliseconds: number) {

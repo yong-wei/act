@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Pool } from 'pg';
 
+import { backfillAssignmentAttachmentOrder } from '@/lib/assignments/attachment-order-backfill';
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import {
   removeQuestionAsset,
@@ -368,6 +369,33 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
     expect(runBackfill()).toMatchObject({ mode: 'dry-run', legacyFallbackOrder: 1 });
     expect(await prisma.submissionAnswer.findUniqueOrThrow({ where: { id: saved.id } }))
       .toMatchObject({ attachmentOrderProvenance: null });
+    await backfillAssignmentAttachmentOrder(prisma, 'apply', {
+      beforeApply: async (answerId) => {
+        if (answerId !== saved.id) return;
+        await prisma.submissionAnswer.update({
+          where: { id: answerId },
+          data: { attachmentOrderProvenance: 'student-arranged' },
+        });
+        await prisma.submissionAsset.updateMany({
+          where: { answerId, state: 'FINALIZED' },
+          data: { orderIndex: 42 },
+        });
+      },
+    });
+    expect(await prisma.submissionAnswer.findUniqueOrThrow({ where: { id: saved.id } }))
+      .toMatchObject({ attachmentOrderProvenance: 'student-arranged' });
+    expect((await prisma.submissionAsset.findMany({
+      where: { answerId: saved.id, state: 'FINALIZED' },
+      select: { orderIndex: true },
+    })).every((asset) => asset.orderIndex === 42)).toBe(true);
+    await prisma.submissionAnswer.update({
+      where: { id: saved.id },
+      data: { attachmentOrderProvenance: null },
+    });
+    await prisma.submissionAsset.updateMany({
+      where: { answerId: saved.id, state: 'FINALIZED' },
+      data: { orderIndex: null },
+    });
     expect(runBackfill('--apply')).toMatchObject({ mode: 'apply', legacyFallbackOrder: 1 });
     const firstApplied = await prisma.submissionAsset.findMany({
       where: { answerId: saved.id },

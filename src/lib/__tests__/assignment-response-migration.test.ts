@@ -9,6 +9,10 @@ const backfill = readFileSync(
   'scripts/db/backfill-assignment-attachment-order.ts',
   'utf8',
 );
+const backfillService = readFileSync(
+  'src/lib/assignments/attachment-order-backfill.ts',
+  'utf8',
+);
 
 describe('unified assignment response migration', () => {
   it('adds aggregate revision, asset order, role, position, and provenance fields', () => {
@@ -32,8 +36,10 @@ describe('unified assignment response migration', () => {
     expect(migration).not.toMatch(/UPDATE\s+"AssignmentRevision"/i);
     expect(migration).not.toMatch(/UPDATE\s+"AssignmentQuestion"/i);
     expect(backfill).toContain("process.argv.includes('--apply')");
-    expect(backfill).toContain("mode: Mode = process.argv.includes('--apply') ? 'apply' : 'dry-run'");
-    expect(backfill).toContain("attachmentOrderProvenance === 'student-arranged'");
-    expect(backfill).toContain("attachmentOrderProvenance: 'legacy-fallback'");
+    expect(backfill).toContain('backfillAssignmentAttachmentOrder');
+    expect(backfillService).toContain('FOR UPDATE');
+    expect(backfillService).toContain("attachmentOrderProvenance === 'student-arranged'");
+    expect(backfillService).toContain("attachmentOrderProvenance: 'legacy-fallback'");
+    expect(backfillService).toContain("where: { answerId: answer.id, state: 'FINALIZED' }");
   });
 });
