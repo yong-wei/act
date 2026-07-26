@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
 import { Editor } from '@tiptap/core';
-import { migrateMathStrings } from '@tiptap/extension-mathematics';
 import { describe, expect, it } from 'vitest';
 
 import {
+  migratePreparationMath,
   PREPARATION_EDITOR_DEPENDENCY_DECISION,
   PREPARATION_MARKDOWN_EXTENSIONS,
+  replacePreparationMarkdown,
 } from '../preparation-document-editor/rich-markdown-editor';
 
 const fixture = `# 控制系统教学设计
@@ -43,14 +44,14 @@ describe('preparation rich Markdown adapter', () => {
       content: fixture,
       contentType: 'markdown',
     });
-    migrateMathStrings(first);
+    migratePreparationMath(first);
+    expect(JSON.stringify(first.getJSON())).toContain('"type":"inlineMath"');
     const serialized = first.getMarkdown();
     const second = new Editor({
       extensions: PREPARATION_MARKDOWN_EXTENSIONS,
-      content: serialized,
-      contentType: 'markdown',
     });
-    migrateMathStrings(second);
+    replacePreparationMarkdown(second, serialized);
+    expect(JSON.stringify(second.getJSON())).toContain('"type":"inlineMath"');
     const reopened = second.getMarkdown();
 
     expect(reopened).toContain('# 控制系统教学设计');

@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
+import type { Editor } from '@tiptap/core';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Mathematics } from '@tiptap/extension-mathematics';
+import { Mathematics, migrateMathStrings } from '@tiptap/extension-mathematics';
 import { Markdown } from '@tiptap/markdown';
 import { TableKit } from '@tiptap/extension-table';
 import {
@@ -48,6 +49,7 @@ export function RichMarkdownEditor({
         class: 'min-h-[32rem] max-w-none px-5 py-6 text-[15px] leading-7 outline-none',
       },
     },
+    onCreate: ({ editor: current }) => migratePreparationMath(current),
     onUpdate: ({ editor: current }) => onChange(current.getMarkdown()),
   });
 
@@ -58,7 +60,7 @@ export function RichMarkdownEditor({
 
   useEffect(() => {
     if (!editor || editor.getMarkdown() === value) return;
-    editor.commands.setContent(value, { contentType: 'markdown', emitUpdate: false });
+    replacePreparationMarkdown(editor, value);
   }, [editor, value]);
 
   if (!editor) {
@@ -86,6 +88,15 @@ export function RichMarkdownEditor({
       />
     </div>
   );
+}
+
+export function migratePreparationMath(editor: Editor) {
+  migrateMathStrings(editor);
+}
+
+export function replacePreparationMarkdown(editor: Editor, value: string) {
+  editor.commands.setContent(value, { contentType: 'markdown', emitUpdate: false });
+  migratePreparationMath(editor);
 }
 
 function ToolbarButton({
