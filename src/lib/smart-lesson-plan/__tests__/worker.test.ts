@@ -171,6 +171,35 @@ describe('smart lesson BullMQ worker', () => {
     }));
   });
 
+  it('attributes a correction provider timeout to the running correction attempt', async () => {
+    const context = outlineJobContext();
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: {}, normalizedResponseId: 'invalid-original-response' })
+      .mockRejectedValueOnce(new Error('curl: (28) Operation timed out after 240000 milliseconds with 0 bytes received'));
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-original-1', idempotencyKey: 'attempt-key-1' },
+    });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate })) as never,
+    )).rejects.toThrow(/timed out/);
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      originalAttemptId: 'attempt-original-1',
+    }));
+    expect(serviceMocks.fail).toHaveBeenCalledTimes(1);
+    expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-correction-1',
+      failureCode: 'provider-timeout',
+      retryable: true,
+    }));
+    expect(serviceMocks.fail).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-original-1',
+    }));
+  });
+
   it('persists a corrected valid result from the single linked correction attempt', async () => {
     const context = {
       id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'OUTLINE',

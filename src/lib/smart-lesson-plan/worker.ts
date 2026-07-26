@@ -199,6 +199,8 @@ export async function processSmartLessonGenerationJob(
           outputTokens: original.outputTokens,
           costMicros: original.costMicros,
         });
+        finalAttempt = correctionAttempt;
+        finalAttemptId = correctionAttempt.id;
         finalGenerated = await runtime.generate({
           schema: request.schema,
           schemaVersion: request.schemaVersion,
@@ -225,8 +227,6 @@ export async function processSmartLessonGenerationJob(
           allowedSourceBindings: request.allowedSourceBindings,
           allowedBindingKeys: request.allowedBindingKeys,
         });
-        finalAttempt = correctionAttempt;
-        finalAttemptId = correctionAttempt.id;
         if (!validated.success) {
           validationReceipt = validated.receipt;
           throw new SmartLessonPlanError('provider-output-invalid-after-correction', 409);
