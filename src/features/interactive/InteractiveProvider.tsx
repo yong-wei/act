@@ -88,7 +88,7 @@ export function InteractiveProvider({
           targetLabel: config.title,
         },
       }));
-      onComplete?.(result);
+      return onComplete?.(result);
     },
     onProgressChange: (value) => {
       // 可选：追踪进度变化

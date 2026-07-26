@@ -18,6 +18,7 @@ import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verifi
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 import type { WidgetResult } from '@/resources/widgets/widget-props';
+import { selectResourceCompletionHandler } from './completion-boundary';
 
 export default function InteractiveResourcePage() {
   const params = useParams() as { id?: string } | null;
@@ -133,9 +134,11 @@ export default function InteractiveResourcePage() {
     }
   };
 
-  const resourceCompletionHandler = resourceId === 'lesson15-series-precheck'
-    ? completePathResource
-    : handlePathResourceComplete;
+  const resourceCompletionHandler = selectResourceCompletionHandler(
+    resourceId,
+    completePathResource,
+    handlePathResourceComplete,
+  );
 
   return (
     <InteractiveLearningShell

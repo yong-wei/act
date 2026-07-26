@@ -119,8 +119,11 @@ export default function SeriesPrecheck({ onComplete, onStateChange }: SeriesPrec
     };
 
     try {
-      await onComplete?.(result);
-      interactive?.progress.markComplete(result);
+      if (onComplete) {
+        await onComplete(result);
+      } else {
+        await interactive?.progress.markComplete(result);
+      }
       interactive?.tracking.emit('complete', result.data);
       setCompletionStatus('success');
     } catch (error) {
