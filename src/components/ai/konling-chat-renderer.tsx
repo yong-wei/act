@@ -57,6 +57,7 @@ export function KonlingMessageBubble({
   const tools = message.toolInvocations ?? [];
   const userClassName = styles?.message.user ?? 'bg-amber-600 text-white';
   const assistantClassName = styles?.message.assistant ?? 'bg-slate-800 text-slate-200';
+  const optimizationActive = isKonlingOptimizationActive(message.metadata);
 
   return (
     <div
@@ -80,8 +81,26 @@ export function KonlingMessageBubble({
             {!isUser ? <KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} /> : null}
           </div>
         ) : null}
+        {!isUser && optimizationActive ? (
+          <p
+            className="mt-2 text-xs text-platform-evidence-context"
+            role="status"
+            data-konling-optimization-status
+          >
+            正在后台优化响应
+          </p>
+        ) : null}
       </div>
     </div>
+  );
+}
+
+function isKonlingOptimizationActive(metadata: unknown): boolean {
+  return Boolean(
+    metadata
+    && typeof metadata === 'object'
+    && !Array.isArray(metadata)
+    && (metadata as Record<string, unknown>).konlingOptimizationActive === true,
   );
 }
 

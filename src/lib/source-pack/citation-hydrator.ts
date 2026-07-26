@@ -34,7 +34,7 @@ export type {
 /**
  * Minimal CitationAddress shape accepted by the hydrator.
  * Matches fields from LearningEvidenceCitationAddress and
- * TextbookRuntimeSearchDocument.citationAddress.
+ * TextbookStructureUnitProjection.citationAddress.
  */
 export interface HydratorCitationAddressInput {
   kind?: string;
@@ -160,7 +160,7 @@ export function isSerializableCitationHref(href: string | null | undefined): boo
 function resolverForAddress(address: HydratorCitationAddressInput): string {
   const href = address.href ?? address.externalUrl ?? '';
   if (href.startsWith('/course-runtime') || href.startsWith('#')) return 'course-runtime';
-  if (href.startsWith('/resources')) return 'server-owned-runtime';
+  if (href.startsWith('/resources') || href.startsWith('/textbooks')) return 'server-owned-runtime';
   if (href.startsWith('doi:')) return 'doi';
   return 'server-owned-runtime';
 }
@@ -174,7 +174,9 @@ function isGovernedRelativeCitationHref(href: string): boolean {
     return parsed.pathname === '/course-runtime' ||
       parsed.pathname.startsWith('/course-runtime/') ||
       parsed.pathname === '/resources' ||
-      parsed.pathname.startsWith('/resources/');
+      parsed.pathname.startsWith('/resources/') ||
+      parsed.pathname === '/textbooks' ||
+      parsed.pathname.startsWith('/textbooks/');
   } catch {
     return false;
   }

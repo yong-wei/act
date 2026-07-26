@@ -14,12 +14,16 @@ import {
   normalizeText,
   resetTextbookRetrievalForTests,
   retrieve,
+  retrieveTextbookHybrid,
+  retrieveTextbookHybridProgressive,
   SiliconFlowTextbookEmbeddingClient,
   TEXTBOOK_RETRIEVAL_FORMAT_VERSION,
   TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
   TextbookRetrievalContractError,
 } from '@/lib/textbook-retrieval';
 import type {
+  EmbeddingResponse,
+  RerankResponse,
   TextbookEmbeddingClient,
   TextbookRerankClient,
 } from '@/lib/textbook-retrieval';
@@ -451,11 +455,247 @@ const embedding = (
 });
 
 afterEach(async () => {
+  vi.useRealTimers();
   vi.unstubAllEnvs();
   await resetTextbookRetrievalForTests();
 });
 
 describe('textbook hybrid retrieval runtime', () => {
+  it('uses the server-owned external query for embedding and rerank providers', async () => {
+    const root = await buildIndexFixture();
+    const embeddingClient: TextbookEmbeddingClient = {
+      embed: vi.fn(async () => ({
+        embedding: [1, 0],
+        model: 'fixture/embedding',
+      })),
+    };
+    const rerankClient: TextbookRerankClient = {
+      rerank: vi.fn(async (
+        { documents }: Parameters<TextbookRerankClient['rerank']>[0],
+      ) => ({
+        results: documents.map((document) => ({
+          index: document.index,
+          score: 1 - document.index * 0.01,
+        })),
+      })),
+    };
+
+    await retrieveTextbookHybrid(
+      '反馈控制 张三 student-1 mastery=0.2 risk=high 学习记录=private',
+      {
+        indexRoot: root,
+        externalQuery: '自动控制原理 反馈控制',
+        embeddingClient,
+        rerankClient,
+        rerankModel: 'fixture/reranker',
+      },
+    );
+
+    expect(embeddingClient.embed).toHaveBeenCalledWith(expect.objectContaining({
+      input: '自动控制原理 反馈控制',
+    }));
+    expect(rerankClient.rerank).toHaveBeenCalledWith(expect.objectContaining({
+      query: '自动控制原理 反馈控制',
+    }));
+    const providerPayloads = JSON.stringify([
+      vi.mocked(embeddingClient.embed).mock.calls,
+      vi.mocked(rerankClient.rerank).mock.calls,
+    ]);
+    for (const forbidden of ['张三', 'student-1', 'mastery', 'risk', '学习记录', 'private']) {
+      expect(providerPayloads).not.toContain(forbidden);
+    }
+  });
+
+  it.each([
+    [1_999, false, 'lexical-vector'],
+    [2_000, true, 'lexical'],
+  ] as const)(
+    'uses the external result at %dms only before the 2000ms foreground boundary',
+    async (latencyMs, optimizationPending, foregroundMode) => {
+      const root = await buildIndexFixture();
+      await getSharedTextbookRetrievalIndex(root);
+      vi.useFakeTimers();
+      vi.setSystemTime(0);
+      let markEmbeddingStarted!: () => void;
+      const embeddingStarted = new Promise<void>((resolve) => {
+        markEmbeddingStarted = resolve;
+      });
+      const embeddingClient: TextbookEmbeddingClient = {
+        embed: vi.fn(({ signal }) => new Promise<EmbeddingResponse>((resolve, reject) => {
+          markEmbeddingStarted();
+          const timer = setTimeout(() => resolve({
+            embedding: [1, 0],
+            model: 'fixture/embedding',
+          }), latencyMs);
+          signal.addEventListener('abort', () => {
+            clearTimeout(timer);
+            reject(new DOMException('Aborted', 'AbortError'));
+          }, { once: true });
+        })),
+      };
+      const pending = retrieveTextbookHybridProgressive('反馈控制', {
+        indexRoot: root,
+        embeddingClient,
+        embeddingTimeoutMs: 2_500,
+        foregroundWaitMs: 2_000,
+        backgroundWaitLimitMs: 2_500,
+        now: () => Date.now(),
+      });
+      await embeddingStarted;
+      await vi.advanceTimersByTimeAsync(latencyMs);
+      const result = await pending;
+      expect(result.optimizationPending).toBe(optimizationPending);
+      expect(result.foreground.mode).toBe(foregroundMode);
+      if (optimizationPending) {
+        await expect(result.continuation).resolves.toMatchObject({
+          status: 'complete',
+          response: { mode: 'lexical-vector' },
+        });
+      } else {
+        expect(result.continuation).toBeNull();
+      }
+    },
+  );
+
+  it.each([
+    [2_499, 'complete'],
+    [2_500, 'capped'],
+  ] as const)(
+    'accepts external completion at %dms only before the absolute cap',
+    async (latencyMs, expectedStatus) => {
+      const root = await buildIndexFixture();
+      await getSharedTextbookRetrievalIndex(root);
+      vi.useFakeTimers();
+      vi.setSystemTime(0);
+      let markEmbeddingStarted!: () => void;
+      const embeddingStarted = new Promise<void>((resolve) => {
+        markEmbeddingStarted = resolve;
+      });
+      const embeddingClient: TextbookEmbeddingClient = {
+        embed: vi.fn(({ signal }) => new Promise<EmbeddingResponse>((resolve, reject) => {
+          markEmbeddingStarted();
+          const timer = setTimeout(() => resolve({
+            embedding: [1, 0],
+            model: 'fixture/embedding',
+          }), latencyMs);
+          signal.addEventListener('abort', () => {
+            clearTimeout(timer);
+            reject(new DOMException('Aborted', 'AbortError'));
+          }, { once: true });
+        })),
+      };
+      const pending = retrieveTextbookHybridProgressive('反馈控制', {
+        indexRoot: root,
+        embeddingClient,
+        embeddingTimeoutMs: 2_500,
+        foregroundWaitMs: 2_000,
+        backgroundWaitLimitMs: 2_500,
+        now: () => Date.now(),
+      });
+      await embeddingStarted;
+      await vi.advanceTimersByTimeAsync(2_000);
+      const foreground = await pending;
+      expect(foreground.optimizationPending).toBe(true);
+      await vi.advanceTimersByTimeAsync(latencyMs - 2_000);
+      await expect(foreground.continuation).resolves.toMatchObject({
+        status: expectedStatus,
+      });
+    },
+  );
+
+  it('clips reranking to the remaining absolute budget and aborts cleanly', async () => {
+    const root = await buildIndexFixture();
+    await getSharedTextbookRetrievalIndex(root);
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    let rerankAbortedAt = -1;
+    let markEmbeddingStarted!: () => void;
+    let markRerankStarted!: () => void;
+    const embeddingStarted = new Promise<void>((resolve) => {
+      markEmbeddingStarted = resolve;
+    });
+    const rerankStarted = new Promise<void>((resolve) => {
+      markRerankStarted = resolve;
+    });
+    const embeddingClient: TextbookEmbeddingClient = {
+      embed: vi.fn(() => new Promise<EmbeddingResponse>((resolve) => {
+        markEmbeddingStarted();
+        setTimeout(() => resolve({
+          embedding: [1, 0],
+          model: 'fixture/embedding',
+        }), 2_490);
+      })),
+    };
+    const rerankClient: TextbookRerankClient = {
+      rerank: vi.fn(({ signal }) => new Promise<RerankResponse>((_, reject) => {
+        markRerankStarted();
+        signal.addEventListener('abort', () => {
+          rerankAbortedAt = performance.now();
+          reject(new DOMException('Aborted', 'AbortError'));
+        }, { once: true });
+      })),
+    };
+    const pending = retrieveTextbookHybridProgressive('反馈控制', {
+      indexRoot: root,
+      embeddingClient,
+      embeddingTimeoutMs: 2_500,
+      rerankClient,
+      rerankModel: 'fixture/reranker',
+      rerankTimeoutMs: 2_000,
+      foregroundWaitMs: 2_000,
+      backgroundWaitLimitMs: 2_500,
+      now: () => Date.now(),
+    });
+    await embeddingStarted;
+    await vi.advanceTimersByTimeAsync(2_000);
+    const foreground = await pending;
+    await vi.advanceTimersByTimeAsync(490);
+    await rerankStarted;
+    await vi.advanceTimersByTimeAsync(10);
+    await expect(foreground.continuation).resolves.toMatchObject({
+      status: 'capped',
+    });
+    expect(rerankAbortedAt).toBeGreaterThanOrEqual(2_499);
+    expect(rerankAbortedAt).toBeLessThanOrEqual(2_500);
+  });
+
+  it('settles an in-flight continuation as aborted without an unhandled rejection', async () => {
+    const root = await buildIndexFixture();
+    await getSharedTextbookRetrievalIndex(root);
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const controller = new AbortController();
+    let markEmbeddingStarted!: () => void;
+    const embeddingStarted = new Promise<void>((resolve) => {
+      markEmbeddingStarted = resolve;
+    });
+    const embeddingClient: TextbookEmbeddingClient = {
+      embed: vi.fn(({ signal }) => new Promise<EmbeddingResponse>((_, reject) => {
+        markEmbeddingStarted();
+        signal.addEventListener('abort', () => {
+          reject(new DOMException('Aborted', 'AbortError'));
+        }, { once: true });
+      })),
+    };
+    const pending = retrieveTextbookHybridProgressive('反馈控制', {
+      indexRoot: root,
+      embeddingClient,
+      embeddingTimeoutMs: 2_500,
+      foregroundWaitMs: 2_000,
+      backgroundWaitLimitMs: 2_500,
+      abortSignal: controller.signal,
+      now: () => Date.now(),
+    });
+    await embeddingStarted;
+    await vi.advanceTimersByTimeAsync(2_000);
+    const foreground = await pending;
+    expect(foreground.optimizationPending).toBe(true);
+    controller.abort();
+    await expect(foreground.continuation).resolves.toEqual({
+      status: 'aborted',
+    });
+  });
+
   it('reads the SiliconFlow trace header from embedding responses', async () => {
     vi.stubEnv('SILICONFLOW_API_KEY', 'test-only-key');
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({

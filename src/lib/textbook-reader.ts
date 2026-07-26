@@ -1,21 +1,19 @@
-import { createReadStream } from 'node:fs';
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir } from 'node:fs/promises';
 import path from 'node:path';
-import { createInterface } from 'node:readline';
 
 import { TEXTBOOK_CITATION_MARKDOWN_ANCHOR_PREFIX } from '@/lib/textbook-citation-targets';
+import {
+  loadStructuredTextbookBook,
+  STRUCTURED_TEXTBOOK_TITLES,
+  type StructuredTextbookFragment,
+  type StructuredTextbookManifest,
+  type StructuredTextbookNavigation,
+  type StructuredTextbookUnit,
+} from '@/lib/structured-textbook-runtime';
 
 export const TEXTBOOK_COURSE_ID = 'automatic-control';
 
-export const TEXTBOOK_TITLES: Readonly<Record<string, string>> = {
-  'control-encyclopedia': '控制工程百科全书',
-  'dorf-modern-control-systems': 'Modern Control Systems',
-  'feedback-control-of-dynamic-systems': 'Feedback Control of Dynamic Systems',
-  'hu-shousong-auto-control-7th': '自动控制原理（第七版）',
-  'hu-shousong-auto-control-8th': '自动控制原理（第八版）',
-  'hu-shousong-exercise-analysis-3rd': '自动控制原理题海与考研指导',
-  'liu-sheng-auto-control-2015': '自动控制原理',
-};
+export const TEXTBOOK_TITLES = STRUCTURED_TEXTBOOK_TITLES;
 
 const DEFAULT_RUNTIME_ROOT = path.join(
   process.cwd(),
@@ -28,69 +26,6 @@ const SAFE_BOOK_ID = /^[a-z0-9][a-z0-9-]{0,95}$/;
 const SAFE_UNIT_SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const SAFE_FRAGMENT = /^(?:formula|figure|table)-[A-Za-z0-9][A-Za-z0-9._-]{0,95}$/;
 
-interface RuntimeManifest {
-  recordType: 'export-manifest';
-  schemaVersion: 'structured-textbook-runtime.v2';
-  bookId: string;
-  edition: string;
-  counts: {
-    structureUnits: number;
-    fragmentAnchors: number;
-  };
-}
-
-interface RuntimeUnit {
-  id: string;
-  bookId: string;
-  edition: string;
-  chapterId: string;
-  structuralPath: string[];
-  parentId: string | null;
-  level: number;
-  kind: string;
-  naturalNumber: string | null;
-  title: string;
-  markdown: string;
-  sourceSpan: SourceSpan;
-  fragmentAnchorIds: string[];
-  recordType: 'structure-unit';
-  schemaVersion: 'structured-textbook-runtime.v2';
-}
-
-interface SourceSpan {
-  sourcePath: string;
-  startLine: number;
-  endLine: number;
-  startByte: number;
-  endByte: number;
-}
-
-interface RuntimeAnchor {
-  id: string;
-  owningUnitId: string;
-  kind: 'formula' | 'figure' | 'table';
-  naturalNumber: string | null;
-  ordinal: number;
-  sourceSpan: SourceSpan;
-  recordType: 'fragment-anchor';
-  schemaVersion: 'structured-textbook-runtime.v2';
-}
-
-interface RuntimeNavigation {
-  recordType: 'navigation-index';
-  schemaVersion: 'structured-textbook-runtime.v2';
-  bookId: string;
-  entries: RuntimeNavigationEntry[];
-}
-
-interface RuntimeNavigationEntry {
-  unitId: string;
-  parentId: string | null;
-  childIds: string[];
-  previousUnitId: string | null;
-  nextUnitId: string | null;
-}
-
 interface UnitMetadata {
   id: string;
   chapterId: string;
@@ -102,11 +37,12 @@ interface UnitMetadata {
 }
 
 interface BookIndex {
-  manifest: RuntimeManifest;
-  navigation: RuntimeNavigation;
+  manifest: StructuredTextbookManifest;
+  navigation: StructuredTextbookNavigation;
   unitMetadata: Map<string, UnitMetadata>;
   unitIdByStructuralPath: Map<string, string>;
-  anchorsByUnitId: Map<string, RuntimeAnchor[]>;
+  anchorsByUnitId: Map<string, StructuredTextbookFragment[]>;
+  unitsById: Map<string, StructuredTextbookUnit>;
 }
 
 export interface TextbookCatalogEntry {
@@ -135,9 +71,22 @@ export interface TextbookReaderLocation {
 
 export interface TextbookFragment {
   id: string;
-  kind: RuntimeAnchor['kind'];
+  kind: StructuredTextbookFragment['kind'];
   naturalNumber: string | null;
   ordinal: number;
+}
+
+export interface TextbookCitationUnit {
+  id: string;
+  bookId: string;
+  edition: string;
+  sourceRevision: string;
+  title: string;
+  kind: string;
+  naturalNumber: string | null;
+  structuralPath: string[];
+  markdown: string;
+  fragments: TextbookFragment[];
 }
 
 export interface TextbookReaderProjection {
@@ -165,10 +114,6 @@ export class TextbookReaderError extends Error {
 }
 
 const indexCache = new Map<string, Promise<BookIndex>>();
-
-function runtimeBookRoot(runtimeRoot: string, bookId: string): string {
-  return path.join(runtimeRoot, bookId);
-}
 
 function isSafeRouteText(value: string): boolean {
   return Boolean(value)
@@ -226,63 +171,13 @@ export function authorizeTextbookAccess(input: {
   }
 }
 
-async function readJson<T>(filePath: string): Promise<T> {
-  return JSON.parse(await readFile(filePath, 'utf8')) as T;
-}
-
-async function forEachJsonl<T>(
-  filePath: string,
-  visit: (row: T) => void | boolean,
-): Promise<void> {
-  const lines = createInterface({
-    input: createReadStream(filePath, { encoding: 'utf8' }),
-    crlfDelay: Infinity,
-  });
-  for await (const line of lines) {
-    if (!line.trim()) continue;
-    if (visit(JSON.parse(line) as T) === false) {
-      lines.close();
-      break;
-    }
-  }
-}
-
-function assertManifest(manifest: RuntimeManifest, bookId: string): void {
-  if (
-    manifest.recordType !== 'export-manifest'
-    || manifest.schemaVersion !== 'structured-textbook-runtime.v2'
-    || manifest.bookId !== bookId
-  ) {
-    throw new TextbookReaderError('not-found');
-  }
-}
-
 async function buildBookIndex(runtimeRoot: string, bookId: string): Promise<BookIndex> {
   try {
-    const bookRoot = runtimeBookRoot(runtimeRoot, bookId);
-    const [manifest, navigation] = await Promise.all([
-      readJson<RuntimeManifest>(path.join(bookRoot, 'manifest.json')),
-      readJson<RuntimeNavigation>(path.join(bookRoot, 'navigation.json')),
-    ]);
-    assertManifest(manifest, bookId);
-    if (
-      navigation.recordType !== 'navigation-index'
-      || navigation.schemaVersion !== 'structured-textbook-runtime.v2'
-      || navigation.bookId !== bookId
-    ) {
-      throw new TextbookReaderError('not-found');
-    }
-
+    const book = await loadStructuredTextbookBook(bookId, runtimeRoot);
     const unitMetadata = new Map<string, UnitMetadata>();
     const unitIdByStructuralPath = new Map<string, string>();
-    await forEachJsonl<RuntimeUnit>(path.join(bookRoot, 'units.jsonl'), (unit) => {
-      if (
-        unit.recordType !== 'structure-unit'
-        || unit.schemaVersion !== 'structured-textbook-runtime.v2'
-        || unit.bookId !== bookId
-      ) {
-        throw new TextbookReaderError('not-found');
-      }
+    const unitsById = new Map<string, StructuredTextbookUnit>();
+    for (const unit of book.units) {
       unitMetadata.set(unit.id, {
         id: unit.id,
         chapterId: unit.chapterId,
@@ -293,29 +188,21 @@ async function buildBookIndex(runtimeRoot: string, bookId: string): Promise<Book
         title: unit.title,
       });
       unitIdByStructuralPath.set(unit.structuralPath.join('/'), unit.id);
-    });
-    if (unitMetadata.size !== navigation.entries.length) {
-      throw new TextbookReaderError('not-found');
+      unitsById.set(unit.id, unit);
     }
-    const anchorsByUnitId = new Map<string, RuntimeAnchor[]>();
-    await forEachJsonl<RuntimeAnchor>(path.join(bookRoot, 'anchors.jsonl'), (anchor) => {
-      if (
-        anchor.recordType !== 'fragment-anchor'
-        || anchor.schemaVersion !== 'structured-textbook-runtime.v2'
-        || !unitMetadata.has(anchor.owningUnitId)
-      ) {
-        throw new TextbookReaderError('not-found');
-      }
+    const anchorsByUnitId = new Map<string, StructuredTextbookFragment[]>();
+    for (const anchor of book.fragments) {
       const anchors = anchorsByUnitId.get(anchor.owningUnitId) ?? [];
       anchors.push(anchor);
       anchorsByUnitId.set(anchor.owningUnitId, anchors);
-    });
+    }
     return {
-      manifest,
-      navigation,
+      manifest: book.manifest,
+      navigation: book.navigation,
       unitMetadata,
       unitIdByStructuralPath,
       anchorsByUnitId,
+      unitsById,
     };
   } catch (error) {
     if (error instanceof TextbookReaderError) throw error;
@@ -339,7 +226,7 @@ export function clearTextbookReaderCache(): void {
   indexCache.clear();
 }
 
-function catalogEntry(manifest: RuntimeManifest): TextbookCatalogEntry {
+function catalogEntry(manifest: StructuredTextbookManifest): TextbookCatalogEntry {
   return {
     bookId: manifest.bookId,
     edition: manifest.edition,
@@ -364,13 +251,9 @@ export async function loadTextbookCatalog(input: {
       ))
       .map((entry) => entry.name)
       .sort();
-    return await Promise.all(bookIds.map(async (bookId) => {
-      const manifest = await readJson<RuntimeManifest>(
-        path.join(runtimeBookRoot(runtimeRoot, bookId), 'manifest.json'),
-      );
-      assertManifest(manifest, bookId);
-      return catalogEntry(manifest);
-    }));
+    return await Promise.all(bookIds.map(async (bookId) =>
+      catalogEntry((await loadStructuredTextbookBook(bookId, runtimeRoot)).manifest)
+    ));
   } catch (error) {
     if (error instanceof TextbookReaderError) throw error;
     throw new TextbookReaderError('not-found');
@@ -381,21 +264,61 @@ async function loadUnit(
   runtimeRoot: string,
   bookId: string,
   unitId: string,
-): Promise<RuntimeUnit> {
-  let found: RuntimeUnit | null = null;
-  await forEachJsonl<RuntimeUnit>(
-    path.join(runtimeBookRoot(runtimeRoot, bookId), 'units.jsonl'),
-    (unit) => {
-      if (unit.id !== unitId) return;
-      found = unit;
-      return false;
-    },
-  );
+): Promise<StructuredTextbookUnit> {
+  const found = (await getBookIndex(runtimeRoot, bookId)).unitsById.get(unitId);
   if (!found) throw new TextbookReaderError('not-found');
   return found;
 }
 
-function fragmentId(anchor: RuntimeAnchor): string | null {
+export async function loadTextbookCitationUnits(input: {
+  requests: readonly { bookId: string; unitIds: readonly string[] }[];
+  runtimeRoot?: string;
+}): Promise<TextbookCitationUnit[]> {
+  const runtimeRoot = input.runtimeRoot ?? DEFAULT_RUNTIME_ROOT;
+  const units: TextbookCitationUnit[] = [];
+  for (const request of input.requests) {
+    if (!SAFE_BOOK_ID.test(request.bookId) || !(request.bookId in TEXTBOOK_TITLES)) {
+      throw new TextbookReaderError('not-found');
+    }
+    const requestedIds = new Set(request.unitIds);
+    if (requestedIds.size === 0) continue;
+    const index = await getBookIndex(runtimeRoot, request.bookId);
+    for (const unit of index.unitsById.values()) {
+      if (!requestedIds.has(unit.id)) continue;
+      const metadata = index.unitMetadata.get(unit.id);
+      if (!metadata) throw new TextbookReaderError('not-found');
+      const fragments = (index.anchorsByUnitId.get(unit.id) ?? [])
+        .map((anchor) => {
+          const id = fragmentId(anchor);
+          return id ? {
+            id,
+            kind: anchor.kind,
+            naturalNumber: anchor.naturalNumber,
+            ordinal: anchor.ordinal,
+          } : null;
+        })
+        .filter((fragment): fragment is TextbookFragment => Boolean(fragment));
+      units.push({
+        id: unit.id,
+        bookId: unit.bookId,
+        edition: unit.edition,
+        sourceRevision: index.manifest.sourceRevision,
+        title: unit.title,
+        kind: unit.kind,
+        naturalNumber: unit.naturalNumber,
+        structuralPath: [...unit.structuralPath],
+        markdown: unit.markdown,
+        fragments,
+      });
+      requestedIds.delete(unit.id);
+      if (requestedIds.size === 0) break;
+    }
+    if (requestedIds.size > 0) throw new TextbookReaderError('not-found');
+  }
+  return units;
+}
+
+function fragmentId(anchor: StructuredTextbookFragment): string | null {
   const value = anchor.id.slice(anchor.id.lastIndexOf('#') + 1);
   return SAFE_FRAGMENT.test(value) ? value : null;
 }
@@ -403,7 +326,7 @@ function fragmentId(anchor: RuntimeAnchor): string | null {
 export function insertTextbookFragmentMarkers(
   markdown: string,
   unitStartLine: number,
-  anchors: readonly Pick<RuntimeAnchor, 'id' | 'sourceSpan'>[],
+  anchors: readonly Pick<StructuredTextbookFragment, 'id' | 'sourceSpan'>[],
 ): string {
   const markersByLine = new Map<number, string[]>();
   for (const anchor of anchors) {

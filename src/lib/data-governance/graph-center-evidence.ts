@@ -1,40 +1,40 @@
-import type { TextbookRuntimeSearchDocument } from '@/lib/textbook-runtime-resources';
+import type { TextbookStructureUnitProjection } from '@/lib/structured-textbook-runtime';
 import {
   createLearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusChunk,
 } from './learning-evidence-rag-corpus';
 
-export function textbookSearchDocumentsToLearningEvidenceCorpus(
-  documents: TextbookRuntimeSearchDocument[],
+export function textbookStructureUnitsToLearningEvidenceCorpus(
+  units: TextbookStructureUnitProjection[],
 ): LearningEvidenceCorpusChunk[] {
-  return documents.map((document) => createLearningEvidenceCorpusChunk({
-    id: document.id,
+  return units.map((unit) => createLearningEvidenceCorpusChunk({
+    id: unit.id,
     family: 'course-content',
     sourceType: 'course-content',
     sourceRef: {
-      id: document.id,
+      id: unit.id,
       ownerUserId: null,
       classId: null,
-      goalId: document.metadata.chapterId ?? document.metadata.bookId,
-      resourceId: document.resourceProjection.resourceId,
+      goalId: unit.metadata.chapterId ?? unit.metadata.bookId,
+      resourceId: unit.resourceProjection.resourceId,
     },
     spanRef: {
-      kind: document.kind === 'figure' ? 'node' : 'text-range',
-      locator: document.citationAddress?.locator ?? document.resourceProjection.citationTargetRef ?? document.id,
+      kind: 'text-range',
+      locator: unit.citationAddress.locator ?? unit.resourceProjection.citationTargetRef,
     },
     display: {
-      title: document.title,
-      href: document.href,
-      capsule: document.title,
+      title: unit.title,
+      href: unit.href,
+      capsule: unit.title,
     },
-    citationAddress: document.citationAddress,
+    citationAddress: unit.citationAddress,
     content: {
       text: null,
-      redactedSummary: document.title,
-      hash: document.contentHash ?? document.resourceProjection.contentHash ?? document.id,
+      redactedSummary: unit.title,
+      hash: unit.contentHash,
     },
     resourceProjection: {
-      ...document.resourceProjection,
+      ...unit.resourceProjection,
     },
     privacyClass: 'public',
     confidence: 'high',
@@ -46,8 +46,8 @@ export function textbookSearchDocumentsToLearningEvidenceCorpus(
     },
     authority: {
       level: 'canonical',
-      knowledgeTags: document.resourceProjection.knowledgeNodeRefs,
-      pageAnchor: document.citationAddress?.locator ?? null,
+      knowledgeTags: unit.resourceProjection.knowledgeNodeRefs,
+      pageAnchor: unit.citationAddress.locator,
       freshnessBucket: 'current',
       scopeRule: {
         visibility: 'public',
@@ -58,15 +58,15 @@ export function textbookSearchDocumentsToLearningEvidenceCorpus(
     },
     retrieval: {
       tags: [
-        'textbook-section',
-        document.kind,
-        ...document.resourceProjection.knowledgeNodeRefs,
-        ...document.resourceProjection.capabilityTargetRefs,
+        'textbook-unit',
+        unit.kind,
+        ...unit.resourceProjection.knowledgeNodeRefs,
+        ...unit.resourceProjection.capabilityTargetRefs,
       ],
       goals: [
-        document.metadata.bookId,
-        document.metadata.sectionId,
-        ...(document.metadata.chapterId ? [document.metadata.chapterId] : []),
+        unit.metadata.bookId,
+        unit.metadata.unitId,
+        ...(unit.metadata.chapterId ? [unit.metadata.chapterId] : []),
       ],
       useCases: ['konling', 'recommendation', 'prep-pack'],
     },

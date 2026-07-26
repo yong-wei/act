@@ -139,8 +139,24 @@ export interface TextbookRetrievalResponse {
   diagnostics?: RetrievalDiagnostic[];
 }
 
+export type TextbookRetrievalContinuationResult =
+  | {
+      status: 'complete';
+      response: TextbookRetrievalResponse;
+    }
+  | {
+      status: 'aborted' | 'capped' | 'failed';
+    };
+
+export interface TextbookProgressiveRetrievalResponse {
+  foreground: TextbookRetrievalResponse;
+  optimizationPending: boolean;
+  continuation: Promise<TextbookRetrievalContinuationResult> | null;
+}
+
 export interface RetrievalOptions {
   indexRoot: string;
+  externalQuery?: string;
   topK?: number;
   candidateCount?: number;
   embeddingClient?: TextbookEmbeddingClient;
@@ -148,6 +164,10 @@ export interface RetrievalOptions {
   rerankClient?: TextbookRerankClient;
   rerankModel?: string;
   rerankTimeoutMs?: number;
+  foregroundWaitMs?: number;
+  backgroundWaitLimitMs?: number;
+  abortSignal?: AbortSignal;
+  now?: () => number;
 }
 
 export interface TextbookRetrievalIndexStats {

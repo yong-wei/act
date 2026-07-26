@@ -6,8 +6,12 @@ import {
 import { useChat as useAiSdkChat } from '@ai-sdk/react';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { toLegacyMessage } from '@/lib/ai-message-compat';
-import type { Message } from '@/types/ai-message';
+import { toLegacyMessage, toUIMessage } from '@/lib/ai-message-compat';
+import {
+  applyKonlingMessageRevision,
+  applyKonlingOptimizationStatus,
+} from '@/lib/konling-message-revision-stream';
+import type { KonlingUIMessage, Message } from '@/types/ai-message';
 export type { Message } from '@/types/ai-message';
 
 interface UseLegacyChatOptions {
@@ -21,6 +25,9 @@ interface UseLegacyChatOptions {
 export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyChatOptions) {
   const [input, setInput] = useState('');
   const bodyRef = useRef(body);
+  const setChatMessagesRef = useRef<
+    ReturnType<typeof useAiSdkChat<KonlingUIMessage>>['setMessages'] | null
+  >(null);
 
   useEffect(() => {
     bodyRef.current = body;
@@ -40,11 +47,22 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
     [api, onResponse],
   );
 
-  const chat = useAiSdkChat({
+  const chat = useAiSdkChat<KonlingUIMessage>({
     transport,
     onError,
     onFinish,
+    onData: (part) => {
+      if (part.type === 'data-konling-message-revision') {
+        setChatMessagesRef.current?.((messages) =>
+          applyKonlingMessageRevision(messages, part.data));
+      }
+      if (part.type === 'data-konling-optimization-status') {
+        setChatMessagesRef.current?.((messages) =>
+          applyKonlingOptimizationStatus(messages, part.data));
+      }
+    },
   });
+  setChatMessagesRef.current = chat.setMessages;
 
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
@@ -85,6 +103,16 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
     [chat, input],
   );
 
+  const setMessages = useCallback((
+    next: Message[] | ((messages: Message[]) => Message[]),
+  ) => {
+    setChatMessagesRef.current?.((current) => {
+      const legacyCurrent = current.map(toLegacyMessage);
+      const resolved = typeof next === 'function' ? next(legacyCurrent) : next;
+      return resolved.map((message) => toUIMessage(message) as KonlingUIMessage);
+    });
+  }, []);
+
   return {
     messages: chat.messages.map(toLegacyMessage),
     input,
@@ -95,6 +123,6 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
     reload: chat.regenerate,
     stop: chat.stop,
     append,
-    setMessages: chat.setMessages,
+    setMessages,
   };
 }

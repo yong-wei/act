@@ -64,6 +64,29 @@ describe('Konling shared chat renderer', () => {
     expect(konlingPromptInputClassName).toContain('flex-[0_1_75%]');
   });
 
+  it('renders only the approved background optimization status copy', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(KonlingChatMessageList, {
+        messages: [{
+          id: 'assistant-optimizing',
+          role: 'assistant',
+          content: '基础回答',
+          metadata: {
+            konlingOptimizationActive: true,
+            provider: 'hidden-provider',
+            timeoutMs: 2500,
+            traceId: 'hidden-trace',
+          },
+        }],
+      }),
+    );
+    expect(html).toContain('data-konling-optimization-status');
+    expect(html).toContain('正在后台优化响应');
+    expect(html).not.toContain('hidden-provider');
+    expect(html).not.toContain('2500');
+    expect(html).not.toContain('hidden-trace');
+  });
+
   it('labels citation diagnostics as development-mode diagnostics', () => {
     const html = renderToStaticMarkup(
       React.createElement(KonlingCitationPanel, {

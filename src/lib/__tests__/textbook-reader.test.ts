@@ -144,14 +144,30 @@ async function writeFixtureBook(bookId: string, edition: string) {
       },
     ],
   };
+  const windows = units.map((unit) => ({
+    id: unit.id.replace('textbook-unit:', 'textbook-window:'),
+    primaryUnitId: unit.id,
+    segments: [{
+      owningUnitId: unit.id,
+      markdown: unit.markdown,
+      sourceSpan: unit.sourceSpan,
+    }],
+    citationTarget: false,
+    recordType: 'retrieval-window',
+    schemaVersion: 'structured-textbook-runtime.v2',
+  }));
   const manifest = {
     recordType: 'export-manifest',
     schemaVersion: 'structured-textbook-runtime.v2',
     bookId,
     edition,
+    sourceRevision: `fixture-revision-${bookId}`,
+    sourceHashes: {},
     counts: {
       structureUnits: 2,
       fragmentAnchors: 3,
+      retrievalWindows: 2,
+      navigationEntries: 2,
     },
   };
   await Promise.all([
@@ -159,6 +175,7 @@ async function writeFixtureBook(bookId: string, edition: string) {
     writeFile(path.join(bookRoot, 'navigation.json'), JSON.stringify(navigation)),
     writeFile(path.join(bookRoot, 'units.jsonl'), `${units.map((unit) => JSON.stringify(unit)).join('\n')}\n`),
     writeFile(path.join(bookRoot, 'anchors.jsonl'), `${anchors.map((anchor) => JSON.stringify(anchor)).join('\n')}\n`),
+    writeFile(path.join(bookRoot, 'windows.jsonl'), `${windows.map((window) => JSON.stringify(window)).join('\n')}\n`),
   ]);
 }
 
