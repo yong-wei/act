@@ -93,19 +93,19 @@ export function normalizeKonlingCitations(input: {
     completeId: string,
     offset: number,
   ) => {
-    if (
-      codeRanges.some((range) => offset >= range.start && offset < range.end)
-      || (numericValue && isTechnicalIndexContext(body, offset))
-    ) {
-      return raw;
-    }
-    markerCount += 1;
     const value = prefixed ?? numericValue ?? completeId;
     const normalized = normalizeLookup(value);
     const numeric = /^\d+$/.test(normalized) ? Number(normalized) : null;
     const citation = numeric !== null
       ? byNumber.get(numeric)
       : byId.get(normalized) ?? byTitle.get(normalized);
+    if (
+      codeRanges.some((range) => offset >= range.start && offset < range.end)
+      || (numericValue && isTechnicalIndexContext(body, offset, citation !== undefined))
+    ) {
+      return raw;
+    }
+    markerCount += 1;
     const repairedNumber = repairMap.get(raw);
     const repaired = repairedNumber === undefined ? undefined : byNumber.get(repairedNumber);
     const resolved = citation ?? repaired;
@@ -159,10 +159,18 @@ function markdownCodeRanges(value: string): TextRange[] {
   }));
 }
 
-function isTechnicalIndexContext(value: string, offset: number): boolean {
-  const preceding = Array.from(value.slice(0, offset)).at(-1);
-  return preceding !== undefined
-    && /[\p{Script=Latin}\p{Script=Greek}\p{N}_\])]/u.test(preceding);
+function isTechnicalIndexContext(
+  value: string,
+  offset: number,
+  hasAssignedCitation: boolean,
+): boolean {
+  const precedingToken = value
+    .slice(0, offset)
+    .match(/[\p{L}_][\p{L}\p{N}_]*$/u)?.[0];
+  if (!precedingToken) return false;
+  if (!hasAssignedCitation) return true;
+  return /^[\p{Script=Latin}\p{Script=Greek}]$/u.test(precedingToken)
+    || /^(?:array|data|items?|samples?|values?|vectors?)$/iu.test(precedingToken);
 }
 
 export async function normalizeAndRepairKonlingCitations(input: {

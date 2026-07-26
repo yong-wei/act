@@ -232,6 +232,21 @@ describe('Konling citation protocol', () => {
     expect(result.unresolvedMarkers).toEqual([]);
   });
 
+  it('recognizes assigned citations after prose and formulas without consuming clear indexes', () => {
+    const result = normalizeKonlingCitations({
+      answer: [
+        'response[1]、Nyquist[1] 与 G(s)[1] 均引用教材。',
+        '离散序列 y[1] 与 values[2] 保持下标。',
+      ].join('\n'),
+      assignedCitations: assignKonlingCitationDisplayNumbers(sources),
+    });
+
+    expect(result.body).toContain('response[1]、Nyquist[1] 与 G(s)[1]');
+    expect(result.body).toContain('y[1] 与 values[2]');
+    expect(result.citations.map((citation) => citation.displayNumber)).toEqual([1]);
+    expect(result.verificationStatus).toBe('verified');
+  });
+
   it('removes unknown markers, malicious URLs, and internal paths while preserving prose', () => {
     const result = normalizeKonlingCitations({
       answer: [
