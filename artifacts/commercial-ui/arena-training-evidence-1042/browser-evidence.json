@@ -49,5 +49,5 @@
     "The evidence route is available only when COMMERCIAL_UI_EVIDENCE=1 and renders the production profile client component with deterministic authenticated session and profile API fixtures.",
     "Production database and object storage are not exercised; persistence behavior remains covered by focused route and domain tests."
   ],
-  "headCommit": "ec280eee5f2f5a213343a78bbfe2346f2ad326de"
+  "headCommit": "8851c00aaf0ba95c31f5c1733aba8d6f753aa248"
 }
