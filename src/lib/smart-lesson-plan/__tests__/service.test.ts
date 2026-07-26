@@ -862,13 +862,62 @@ describe('smart lesson aggregate service', () => {
 
   it('binds resume to the persisted task input and advances an independent delivery generation', async () => {
     const fixture = generationTransitionFixture('CANCELLED');
+    const completedOutline = {
+      id: 'stage-1',
+      kind: 'OUTLINE',
+      state: 'COMPLETED',
+      actionState: 'WAITING_CONFIRMATION',
+      output: { outline: [{ title: '稳定性判据' }] },
+    };
+    const incompleteBridgeIn = {
+      id: 'stage-2',
+      kind: 'BRIDGE_IN',
+      state: 'CANCELLED',
+      actionState: 'CANCELLED',
+      output: null,
+    };
+    fixture.tx.smartLessonGenerationStage.findFirst.mockResolvedValue(incompleteBridgeIn as never);
+    fixture.tx.smartLessonGenerationStage.updateMany.mockImplementation(async (...args: unknown[]) => {
+      const { where, data } = args[0] as {
+        where: { state?: string | { in: string[] } };
+        data: Record<string, unknown>;
+      };
+      if (where.state === 'COMPLETED') Object.assign(completedOutline, data);
+      if (typeof where.state === 'object' && where.state.in.includes(incompleteBridgeIn.state)) {
+        Object.assign(incompleteBridgeIn, data);
+      }
+      return { count: 1 };
+    });
     const resumed = await resumeGenerationJob(fixture.db as never, {
       actor: teacher, jobId: 'job-1', idempotencyKey: 'resume-request-001',
     });
 
     expect(resumed).toMatchObject({ state: 'QUEUED', deliveryGeneration: 2 });
+    expect(completedOutline).toEqual({
+      id: 'stage-1',
+      kind: 'OUTLINE',
+      state: 'COMPLETED',
+      actionState: 'COMPLETED',
+      output: { outline: [{ title: '稳定性判据' }] },
+    });
+    expect(incompleteBridgeIn).toMatchObject({
+      state: 'PENDING',
+      actionState: 'WAITING',
+      output: null,
+    });
+    expect(fixture.tx.smartLessonGenerationStage.updateMany).toHaveBeenNthCalledWith(1, {
+      where: { jobId: 'job-1', state: 'COMPLETED' },
+      data: { actionState: 'COMPLETED' },
+    });
+    expect(fixture.tx.smartLessonGenerationStage.updateMany).toHaveBeenNthCalledWith(2, {
+      where: { jobId: 'job-1', state: { in: ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] } },
+      data: { state: 'PENDING', actionState: 'WAITING', startedAt: null },
+    });
     expect(fixture.updateJob).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ deliveryGeneration: { increment: 1 } }),
+      data: expect.objectContaining({
+        deliveryGeneration: { increment: 1 },
+        firstIncompleteStage: 'BRIDGE_IN',
+      }),
     }));
 
     const changed = generationTransitionFixture('CANCELLED', generationTaskFixture({ revision: 2, topic: '已修改主题' }));

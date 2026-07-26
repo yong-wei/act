@@ -239,7 +239,7 @@ export function publicRevision(revision: Record<string, unknown>) {
 
 function publicStage(stage: Record<string, unknown>) {
   const completed = stage.state === 'COMPLETED';
-  const output = completed ? publicJson(stage.output, 64_000) : undefined;
+  const output = completed ? redactPrivateFields(stage.output) : undefined;
   const actionState = generationActionState(stage.actionState, stage.state);
   return compact({
     id: stage.id,

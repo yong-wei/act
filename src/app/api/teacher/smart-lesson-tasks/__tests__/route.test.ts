@@ -166,6 +166,48 @@ describe('smart lesson task routes', () => {
     } });
   });
 
+  it('returns complete redacted output for completed stages above 64 KB', async () => {
+    const longText = '阶段内容'.repeat(20_000);
+    mocks.getTask.mockResolvedValue({
+      id: 'task-1',
+      drafts: [{
+        jobs: [{
+          id: 'job-1',
+          state: 'RUNNING',
+          stages: [
+            {
+              id: 'stage-1',
+              kind: 'OUTLINE',
+              state: 'COMPLETED',
+              output: {
+                outline: [{ title: '稳定性判据', content: longText }],
+                providerAudit: { model: 'private-model' },
+                nested: { request: { prompt: 'private' }, sourceState: 'VERIFIED' },
+              },
+            },
+            {
+              id: 'stage-2',
+              kind: 'BRIDGE_IN',
+              state: 'RUNNING',
+              output: { content: '未完成内容不得公开' },
+            },
+          ],
+        }],
+      }],
+    });
+    const { GET } = await import('../[taskId]/route');
+    const response = await GET(new Request('http://localhost'), taskParams('task-1'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.task.drafts[0].jobs[0].stages[0].output.outline[0].content).toHaveLength(longText.length);
+    expect(body.task.drafts[0].jobs[0].stages[0].output).not.toHaveProperty('providerAudit');
+    expect(body.task.drafts[0].jobs[0].stages[0].output.nested).not.toHaveProperty('request');
+    expect(body.task.drafts[0].jobs[0].stages[0].output.nested.sourceState).toBe('verified');
+    expect(body.task.drafts[0].jobs[0].stages[0].outputTruncated).toBe(false);
+    expect(body.task.drafts[0].jobs[0].stages[1]).not.toHaveProperty('output');
+  });
+
   it('archives and restores an owner-scoped task', async () => {
     mocks.archiveTask.mockResolvedValue({ id: 'task-1', archivedAt: new Date('2026-07-25T00:00:00Z') });
     mocks.getTask.mockResolvedValue({ id: 'task-1', archivedAt: new Date('2026-07-25T00:00:00Z') });

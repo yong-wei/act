@@ -856,6 +856,10 @@ export async function resumeGenerationJob(db: SmartLessonDb, input: JobCommandIn
     });
     if (!firstIncomplete) throw new SmartLessonPlanError('generation-stage-not-found', 409);
     await tx.smartLessonGenerationStage.updateMany({
+      where: { jobId: job.id, state: 'COMPLETED' },
+      data: { actionState: 'COMPLETED' },
+    });
+    await tx.smartLessonGenerationStage.updateMany({
       where: { jobId: job.id, state: { in: ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] } },
       data: { state: 'PENDING', actionState: 'WAITING', startedAt: null },
     });
