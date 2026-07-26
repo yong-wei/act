@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
@@ -18,6 +18,7 @@ import {
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import {
   GENERATED_ACTIVITY_CLASS,
+  GENERATED_ACTIVITY_PAYLOAD_SCHEMAS,
   GENERATED_CONTENT_CLASSES,
   GENERATED_RESPONSE_KINDS,
   GENERATED_SLIDE_LAYOUT_REGISTRY,
@@ -30,6 +31,12 @@ import { renderInteractiveManifestStep } from '@/features/interactive/shared/man
 import { useManifestSubmissionController } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { isObjectiveInteractiveResponseKind, isSubjectiveInteractiveResponseKind } from '@/lib/interactive-response-contracts';
+import {
+  PreparationDocumentEditorShell,
+  type PreparationEditorSaveState,
+  type PreparationEditorSuggestion,
+} from './preparation-document-editor/editor-shell';
+import { returnToPreparationEditorOrigin } from './preparation-document-editor/return-state';
 import { SmartCoursewarePublicationPanel } from './smart-courseware-publication-panel';
 
 export type SmartCoursewareSourceState =
@@ -247,6 +254,7 @@ export function SmartCoursewareProjectionEditor({
   stalePlan,
   initialJob,
   sourceRevisionId,
+  returnTaskId,
 }: {
   teacherProjection: SmartCoursewareTeacherProjectionInput;
   studentProjection: SmartCoursewareStudentProjectionReceipt | null;
@@ -254,6 +262,7 @@ export function SmartCoursewareProjectionEditor({
   stalePlan: boolean;
   initialJob?: SmartCoursewareJobView | null;
   sourceRevisionId?: string | null;
+  returnTaskId?: string | null;
 }) {
   const initialEnvelope = createSmartCoursewareTeacherEnvelopeFromProjection(teacherProjection);
   initialEnvelope.state = state;
@@ -268,6 +277,7 @@ export function SmartCoursewareProjectionEditor({
       initialStudentPreview={initialStudentPreview}
       initialJob={initialJob}
       sourceRevisionId={sourceRevisionId}
+      returnTaskId={returnTaskId}
     />
   );
 }
@@ -356,11 +366,13 @@ export function SmartCoursewareEditor({
   initialStudentPreview,
   initialJob = null,
   sourceRevisionId = null,
+  returnTaskId = null,
 }: {
   initialEnvelope: SmartCoursewareTeacherEnvelope;
   initialStudentPreview?: SmartCoursewareStudentPreviewEnvelope | null;
   initialJob?: SmartCoursewareJobView | null;
   sourceRevisionId?: string | null;
+  returnTaskId?: string | null;
 }) {
   const [envelope, setEnvelope] = useState(initialEnvelope);
   const [previewRole, setPreviewRole] = useState<'teacher' | 'student'>('teacher');
@@ -369,6 +381,14 @@ export function SmartCoursewareEditor({
   const [approvedRevisionId, setApprovedRevisionId] = useState(sourceRevisionId);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [visualSaveState, setVisualSaveState] = useState<PreparationEditorSaveState>('saved');
+  const suggestionStorageKey = `preparation-editor:courseware:${envelope.draftId}:${envelope.version}:suggestions`;
+  const [suggestionStates, setSuggestionStates] = useState<Record<string, 'ignored'>>(
+    () => readCoursewareSuggestionStates(suggestionStorageKey),
+  );
+  const visualDirty = visualSaveState !== 'saved';
+  const visualSaveRef = useRef<() => Promise<void>>(async () => undefined);
+  const visualDiscardRef = useRef<() => void>(() => undefined);
   const [selectedStepId, setSelectedStepId] = useState(initialEnvelope.manifest?.stages[0]?.steps[0]?.id ?? '');
   const [selectedModuleId, setSelectedModuleId] = useState(initialEnvelope.manifest?.stages[0]?.steps[0]?.modules[0]?.id ?? '');
   const [newModuleClass, setNewModuleClass] = useState<string>('content.rich');
@@ -377,6 +397,19 @@ export function SmartCoursewareEditor({
     : null;
   const selectedStep = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((step) => step.id === selectedStepId);
   const selectedModule = selectedStep?.modules.find((module) => module.id === selectedModuleId);
+
+  useEffect(() => {
+    setSuggestionStates(readCoursewareSuggestionStates(suggestionStorageKey));
+  }, [suggestionStorageKey]);
+
+  function confirmVisualDiscard() {
+    if (!visualDirty || window.confirm('所选内容尚未保存。放弃这些修改并切换吗？')) {
+      if (visualDirty) visualDiscardRef.current();
+      setVisualSaveState('saved');
+      return true;
+    }
+    return false;
+  }
 
   async function startGeneration() {
     setBusy(true);
@@ -424,6 +457,8 @@ export function SmartCoursewareEditor({
   async function persistComposition(
     runtimeManifest: GeneratedSlideManifest,
     moduleMetadata: SmartCoursewareCompositionMetadata[] = envelope.compositionMetadata,
+    expectedVersion = envelope.version,
+    onFailure?: (status: number) => void,
   ) {
     setBusy(true);
     try {
@@ -433,14 +468,28 @@ export function SmartCoursewareEditor({
       }) => metadata);
       const response = await fetch(`/api/teacher/smart-courseware/drafts/${envelope.draftId}`, {
         method: 'PATCH', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ expectedVersion: envelope.version, runtimeManifest, moduleMetadata: writableModuleMetadata }),
+        body: JSON.stringify({ expectedVersion, runtimeManifest, moduleMetadata: writableModuleMetadata }),
       });
       const payload = await response.json();
-      if (!response.ok) return setMessage(errorMessage(payload));
+      if (!response.ok) {
+        onFailure?.(response.status);
+        setMessage(errorMessage(payload));
+        return null;
+      }
       const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview, envelope.stalePlan);
       setEnvelope(next);
-      setStudentPreview(await fetchStudentPreview(next));
-      setMessage('组合已保存，并通过服务器共享运行时校验。');
+      try {
+        setStudentPreview(await fetchStudentPreview(next));
+        setMessage('组合已保存，并通过服务器共享运行时校验。');
+      } catch {
+        setStudentPreview(null);
+        setMessage('组合已保存；学生预览暂时无法刷新，可稍后重试。');
+      }
+      return next;
+    } catch {
+      onFailure?.(0);
+      setMessage('保存请求失败，本地修改仍保留，请重试。');
+      return null;
     } finally {
       setBusy(false);
     }
@@ -451,6 +500,37 @@ export function SmartCoursewareEditor({
     if (!response.ok) return null;
     const payload = await response.json();
     return createSmartCoursewareStudentPreviewFromService(next, payload.preview);
+  }
+
+  async function reloadVisualServerBaseline() {
+    setBusy(true);
+    try {
+      const response = await fetch(
+        `/api/teacher/smart-courseware/drafts/${envelope.draftId}/previews/teacher`,
+        { cache: 'no-store' },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        setMessage(errorMessage(payload));
+        return null;
+      }
+      const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview, envelope.stalePlan);
+      const moduleStillExists = next.manifest?.stages.some((stage) => stage.steps.some((step) => (
+        step.id === selectedStepId && step.modules.some((module) => module.id === selectedModuleId)
+      )));
+      if (!moduleStillExists) {
+        setMessage('服务器版本已移除当前步骤或模块；本地修改仍保留，请先另行核对。');
+        return null;
+      }
+      setEnvelope(next);
+      setMessage(`已读取服务器版本 ${next.version} 作为新基线；本地修改仍保留，可重新保存。`);
+      return next.version;
+    } catch {
+      setMessage('服务器版本加载失败；本地修改仍保留，请重试。');
+      return null;
+    } finally {
+      setBusy(false);
+    }
   }
 
   function replaceSelectedStep(change: (step: NonNullable<typeof selectedStep>) => NonNullable<typeof selectedStep>) {
@@ -502,14 +582,6 @@ export function SmartCoursewareEditor({
     await persistComposition(result.manifest, result.moduleMetadata);
   }
 
-  async function editStep() {
-    if (!selectedStep) return;
-    const title = window.prompt('编辑步骤标题', selectedStep.title)?.trim();
-    if (!title) return;
-    const next = replaceSelectedStep((step) => ({ ...step, title }));
-    if (next) await persistComposition(next);
-  }
-
   async function deleteStep() {
     if (!envelope.manifest || !selectedStep) return;
     const result = mergeAndDeleteCoursewareStep({
@@ -540,51 +612,48 @@ export function SmartCoursewareEditor({
     await persistComposition(next);
   }
 
-  async function editSelectedModule() {
-    if (!selectedModule) return;
-    const metadata = envelope.compositionMetadata.find((item) => item.moduleId === selectedModule.id);
-    if (!metadata) return;
-    const activity = selectedModule.canonicalClass === GENERATED_ACTIVITY_CLASS;
-    const edited = window.prompt(
-      activity ? '原子编辑活动 JSON（responseKind、payload、teacherFields）' : '编辑模块 payload JSON',
-      JSON.stringify(activity ? {
-        responseKind: selectedModule.responseKind,
-        payload: selectedModule.payload,
-        teacherFields: metadata.teacherFields,
-      } : selectedModule.payload, null, 2),
-    );
-    if (!edited) return;
-    let payload: Record<string, unknown>;
-    let responseKind = selectedModule.responseKind;
-    let teacherFields = metadata.teacherFields;
-    try {
-      const value = JSON.parse(edited);
-      if (activity) {
-        if (!value || typeof value !== 'object' || Array.isArray(value)
-          || !GENERATED_RESPONSE_KINDS.includes(value.responseKind as GeneratedResponseKind)
-          || !value.payload || typeof value.payload !== 'object' || Array.isArray(value.payload)
-          || !value.teacherFields || typeof value.teacherFields !== 'object' || Array.isArray(value.teacherFields)) {
-          throw new Error('invalid');
-        }
-        responseKind = value.responseKind;
-        payload = value.payload;
-        teacherFields = teacherFieldsForResponseKind(responseKind, value.teacherFields);
-      } else {
-        if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid');
-        payload = value;
-      }
-    } catch {
-      return setMessage(activity ? '活动编辑 JSON 无效。' : '模块 payload JSON 无效。');
+  async function saveSelectedVisual(
+    stepTitle: string,
+    payload: Record<string, unknown>,
+    teacherFields: SmartCoursewareCompositionMetadata['teacherFields'],
+    responseKind = selectedModule?.responseKind,
+    expectedVersion = envelope.version,
+  ) {
+    if (!selectedModule || !selectedStep) return null;
+    if (!stepTitle.trim()) {
+      setMessage('步骤标题不能为空。');
+      setVisualSaveState('failed');
+      return null;
     }
+    const metadata = envelope.compositionMetadata.find((item) => item.moduleId === selectedModule.id);
+    if (!metadata) return null;
+    const activity = selectedModule.canonicalClass === GENERATED_ACTIVITY_CLASS;
+    if (activity && !GENERATED_RESPONSE_KINDS.includes(responseKind as GeneratedResponseKind)) {
+      setMessage('活动响应类型无效。');
+      setVisualSaveState('failed');
+      return null;
+    }
+    const normalizedTeacherFields = activity ? teacherFieldsForResponseKind(responseKind, teacherFields) : teacherFields;
     const next = replaceSelectedStep((step) => ({
       ...step,
+      title: stepTitle.trim(),
       modules: step.modules.map((module) => module.id === selectedModule.id
         ? { ...module, payload, ...(activity ? { responseKind } : {}) }
         : module),
     }));
-    if (next) await persistComposition(next, envelope.compositionMetadata.map((item) => (
-      item.moduleId === selectedModule.id ? { ...item, teacherFields } : item
-    )));
+    if (next) {
+      setVisualSaveState('saving');
+      const saved = await persistComposition(
+        next,
+        envelope.compositionMetadata.map((item) => (
+          item.moduleId === selectedModule.id ? { ...item, teacherFields: normalizedTeacherFields } : item
+        )),
+        expectedVersion,
+        (status) => setVisualSaveState(status === 409 ? 'conflict' : 'failed'),
+      );
+      return saved?.version ?? null;
+    }
+    return null;
   }
 
   async function deleteModule() {
@@ -700,7 +769,53 @@ export function SmartCoursewareEditor({
     }
   }
 
+  const editorSections = envelope.manifest?.stages.flatMap((stage) => stage.steps.map((step) => ({
+    id: step.id,
+    title: step.title,
+    complete: step.modules.length > 0,
+  }))) ?? [];
+  const editorSuggestions: PreparationEditorSuggestion[] = [
+    ...(envelope.aiReview?.findings ?? []).map((finding, index) => ({
+      id: `finding:${index}`,
+      message: finding.message,
+      anchor: finding.path,
+      status: suggestionStates[`finding:${index}`] ?? 'open',
+    })),
+    ...(envelope.aiReview?.suggestions ?? []).map((message, index) => ({
+      id: `suggestion:${index}`,
+      message,
+      anchor: '课件',
+      status: suggestionStates[`suggestion:${index}`] ?? 'open',
+    })),
+  ];
+
   return (
+    <PreparationDocumentEditorShell
+      title={envelope.manifest?.title ?? '互动课件'}
+      subtitle={`草稿 ${envelope.draftId} · 版本 ${envelope.version}`}
+      sections={editorSections}
+      activeSection={selectedStepId}
+      onSelectSection={(stepId) => {
+        if (!confirmVisualDiscard()) return;
+        setSelectedStepId(stepId);
+        const step = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((candidate) => candidate.id === stepId);
+        setSelectedModuleId(step?.modules[0]?.id ?? '');
+      }}
+      suggestions={editorSuggestions}
+      onIgnoreSuggestion={(suggestion) => {
+        setSuggestionStates((current) => {
+          const next = { ...current, [suggestion.id]: 'ignored' as const };
+          window.localStorage.setItem(suggestionStorageKey, JSON.stringify(next));
+          return next;
+        });
+      }}
+      saveState={busy ? 'saving' : visualSaveState}
+      onSave={() => visualSaveRef.current()}
+      onExit={() => {
+        const query = returnTaskId ? `?taskId=${encodeURIComponent(returnTaskId)}` : '';
+        returnToPreparationEditorOrigin(`/teacher/smart-prep${query}#smart-prep-stage-courseware-generation`);
+      }}
+    >
     <main className="space-y-5" data-smart-courseware-editor data-courseware-draft-id={envelope.draftId}>
       <header className="rounded-xl border border-border bg-background p-5">
         <p className="text-sm font-medium text-primary">智能备课 · 互动课件</p>
@@ -738,7 +853,7 @@ export function SmartCoursewareEditor({
             <h2 className="font-semibold">整课批准</h2>
             <p className="text-sm text-subtle">批准冻结当前有效组合；来源待补项保留在版本快照中，不创建已确认记录。</p>
           </div>
-          <button type="button" disabled={busy || envelope.state === 'accepted' || Boolean(validation && !validation.valid)} onClick={() => void approveCourseware()} className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">
+          <button type="button" disabled={busy || visualDirty || envelope.state === 'accepted' || Boolean(validation && !validation.valid)} onClick={() => void approveCourseware()} className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">
             {envelope.state === 'accepted' ? '已批准' : '批准整课版本'}
           </button>
         </section>
@@ -783,29 +898,50 @@ export function SmartCoursewareEditor({
       ) : null}
 
       {envelope.manifest && envelope.state !== 'accepted' ? <CoursewareCompositionControls
-        busy={busy}
+        busy={busy || visualDirty}
         manifest={envelope.manifest}
         selectedStepId={selectedStepId}
         selectedModuleId={selectedModuleId}
         newModuleClass={newModuleClass}
         onSelectStep={(stepId) => {
+          if (!confirmVisualDiscard()) return;
           setSelectedStepId(stepId);
           const step = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((candidate) => candidate.id === stepId);
           setSelectedModuleId(step?.modules[0]?.id ?? '');
         }}
-        onSelectModule={setSelectedModuleId}
+        onSelectModule={(moduleId) => {
+          if (!confirmVisualDiscard()) return;
+          setSelectedModuleId(moduleId);
+        }}
         onNewModuleClass={setNewModuleClass}
         onAdd={addModule}
         onAddStep={splitSelectedStep}
-        onEditStep={editStep}
         onDeleteStep={deleteStep}
         onMoveStep={moveStep}
-        onEdit={editSelectedModule}
         onDelete={deleteModule}
         onMove={moveModule}
         onSlot={updateModuleSlot}
         onLayout={switchLayout}
         onRegenerate={requestModuleRegeneration}
+      /> : null}
+      {envelope.manifest && envelope.state !== 'accepted' && selectedStep && selectedModule ? <CoursewareVisualFields
+        key={`${selectedStep.id}:${selectedModule.id}`}
+        draftId={envelope.draftId}
+        version={envelope.version}
+        step={selectedStep}
+        module={selectedModule}
+        metadata={envelope.compositionMetadata.find((item) => item.moduleId === selectedModule.id)}
+        busy={busy}
+        saveState={visualSaveState}
+        onSaveState={setVisualSaveState}
+        onRegisterSave={(save) => {
+          visualSaveRef.current = save;
+        }}
+        onRegisterDiscard={(discard) => {
+          visualDiscardRef.current = discard;
+        }}
+        onSave={saveSelectedVisual}
+        onReloadServerBaseline={reloadVisualServerBaseline}
       /> : null}
 
       {validation ? (
@@ -820,6 +956,7 @@ export function SmartCoursewareEditor({
         </section>
       ) : null}
     </main>
+    </PreparationDocumentEditorShell>
   );
 }
 
@@ -1004,10 +1141,8 @@ function CoursewareCompositionControls({
   onNewModuleClass,
   onAdd,
   onAddStep,
-  onEditStep,
   onDeleteStep,
   onMoveStep,
-  onEdit,
   onDelete,
   onMove,
   onSlot,
@@ -1024,10 +1159,8 @@ function CoursewareCompositionControls({
   onNewModuleClass: (value: string) => void;
   onAdd: () => Promise<void>;
   onAddStep: () => Promise<void>;
-  onEditStep: () => Promise<void>;
   onDeleteStep: () => Promise<void>;
   onMoveStep: (offset: -1 | 1) => Promise<void>;
-  onEdit: () => Promise<void>;
   onDelete: () => Promise<void>;
   onMove: (offset: -1 | 1) => Promise<void>;
   onSlot: (slotId: string) => Promise<void>;
@@ -1052,18 +1185,359 @@ function CoursewareCompositionControls({
     </div>
     <div className="flex flex-wrap gap-2">
       <button type="button" disabled={busy} onClick={() => void onAddStep()} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">拆分当前步骤</button>
-      <button type="button" disabled={!step || busy} onClick={() => void onEditStep()} className="rounded border border-border px-3 py-1.5 text-sm">编辑步骤</button>
       <button type="button" disabled={!step || busy} onClick={() => void onMoveStep(-1)} className="rounded border border-border px-3 py-1.5 text-sm">步骤前移</button>
       <button type="button" disabled={!step || busy} onClick={() => void onMoveStep(1)} className="rounded border border-border px-3 py-1.5 text-sm">步骤后移</button>
       <button type="button" disabled={!step || busy} onClick={() => void onDeleteStep()} className="rounded border border-destructive px-3 py-1.5 text-sm text-destructive">合并并删除步骤</button>
       <button type="button" disabled={busy} onClick={() => void onAdd()} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">添加模块</button>
-      <button type="button" disabled={!selectedModule || busy} onClick={() => void onEdit()} className="rounded border border-border px-3 py-1.5 text-sm">{selectedModule?.canonicalClass === GENERATED_ACTIVITY_CLASS ? '编辑活动' : '编辑内容'}</button>
       <button type="button" disabled={!selectedModule || busy} onClick={() => void onMove(-1)} className="rounded border border-border px-3 py-1.5 text-sm">前移</button>
       <button type="button" disabled={!selectedModule || busy} onClick={() => void onMove(1)} className="rounded border border-border px-3 py-1.5 text-sm">后移</button>
       <button type="button" disabled={!selectedModule || busy} onClick={() => void onDelete()} className="rounded border border-destructive px-3 py-1.5 text-sm text-destructive">删除模块</button>
       <button type="button" disabled={!selectedModule || busy} onClick={() => void onRegenerate()} className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">重新生成所选模块</button>
     </div>
   </section>;
+}
+
+function CoursewareVisualFields({
+  draftId,
+  version,
+  step,
+  module,
+  metadata,
+  busy,
+  saveState,
+  onSaveState,
+  onRegisterSave,
+  onRegisterDiscard,
+  onSave,
+  onReloadServerBaseline,
+}: {
+  draftId: string;
+  version: number;
+  step: GeneratedSlideManifest['stages'][number]['steps'][number];
+  module: GeneratedSlideModule;
+  metadata?: SmartCoursewareCompositionMetadata;
+  busy: boolean;
+  saveState: PreparationEditorSaveState;
+  onSaveState: (state: PreparationEditorSaveState) => void;
+  onRegisterSave: (save: () => Promise<void>) => void;
+  onRegisterDiscard: (discard: () => void) => void;
+  onSave: (
+    stepTitle: string,
+    payload: Record<string, unknown>,
+    teacherFields: SmartCoursewareCompositionMetadata['teacherFields'],
+    responseKind?: string,
+    expectedVersion?: number,
+  ) => Promise<number | null>;
+  onReloadServerBaseline: () => Promise<number | null>;
+}) {
+  const [stepTitle, setStepTitle] = useState(step.title);
+  const [payload, setPayload] = useState<Record<string, unknown>>({ ...module.payload });
+  const [teacherFields, setTeacherFields] = useState<SmartCoursewareCompositionMetadata['teacherFields']>({ ...(metadata?.teacherFields ?? {}) });
+  const [responseKind, setResponseKind] = useState(module.responseKind ?? 'text.long');
+  const [dirty, setDirty] = useState(false);
+  const dirtyRef = useRef(false);
+  const editGenerationRef = useRef(0);
+  const baseVersionRef = useRef(version);
+  const serverVersionRef = useRef(version);
+  serverVersionRef.current = version;
+  const initializedRef = useRef(false);
+  const localDraftRef = useRef(false);
+  const storageKey = `preparation-editor:courseware:${draftId}:${step.id}:${module.id}`;
+  const latestRef = useRef<CoursewareVisualLocalDraft>({
+    stepTitle,
+    payload,
+    teacherFields,
+    responseKind,
+    baseVersion: version,
+  });
+  latestRef.current = {
+    stepTitle,
+    payload,
+    teacherFields,
+    responseKind,
+    baseVersion: baseVersionRef.current,
+  };
+  const activity = module.canonicalClass === GENERATED_ACTIVITY_CLASS;
+
+  useEffect(() => {
+    const local = readCoursewareVisualDraft(storageKey);
+    initializedRef.current = true;
+    if (!local) return;
+    localDraftRef.current = true;
+    baseVersionRef.current = local.baseVersion;
+    setStepTitle(local.stepTitle);
+    setPayload(local.payload);
+    setTeacherFields(local.teacherFields);
+    setResponseKind(local.responseKind);
+    setDirty(true);
+    dirtyRef.current = true;
+    editGenerationRef.current = 1;
+    onSaveState('dirty');
+  }, [onSaveState, storageKey]);
+
+  useEffect(() => {
+    if (!initializedRef.current || localDraftRef.current || dirtyRef.current) return;
+    baseVersionRef.current = serverVersionRef.current;
+    setStepTitle(step.title);
+    setPayload({ ...module.payload });
+    setTeacherFields({ ...(metadata?.teacherFields ?? {}) });
+    setResponseKind(module.responseKind ?? 'text.long');
+  }, [metadata?.teacherFields, module.payload, module.responseKind, step.title, version]);
+
+  const stageChange = (next: Omit<CoursewareVisualLocalDraft, 'baseVersion'>) => {
+    editGenerationRef.current += 1;
+    const local = { ...next, baseVersion: baseVersionRef.current };
+    latestRef.current = local;
+    writeCoursewareVisualDraft(storageKey, local);
+    localDraftRef.current = true;
+    setDirty(true);
+    dirtyRef.current = true;
+    onSaveState('dirty');
+  };
+
+  const saveCurrent = useCallback(async () => {
+    if (!dirtyRef.current || busy) return;
+    const saveGeneration = editGenerationRef.current;
+    const current = latestRef.current;
+    onSaveState('saving');
+    const nextVersion = await onSave(
+      current.stepTitle,
+      current.payload,
+      current.teacherFields,
+      current.responseKind,
+      current.baseVersion,
+    );
+    if (nextVersion === null) {
+      setDirty(true);
+      dirtyRef.current = true;
+      return;
+    }
+    baseVersionRef.current = nextVersion;
+    if (editGenerationRef.current === saveGeneration) {
+      window.localStorage.removeItem(storageKey);
+      localDraftRef.current = false;
+      setDirty(false);
+      dirtyRef.current = false;
+      onSaveState('saved');
+    } else {
+      const next = { ...latestRef.current, baseVersion: nextVersion };
+      latestRef.current = next;
+      writeCoursewareVisualDraft(storageKey, next);
+      onSaveState('dirty');
+    }
+  }, [busy, onSave, onSaveState, storageKey]);
+
+  const adoptServerBaseline = useCallback(async () => {
+    onSaveState('saving');
+    const nextVersion = await onReloadServerBaseline();
+    if (nextVersion === null) {
+      onSaveState('conflict');
+      return;
+    }
+    baseVersionRef.current = nextVersion;
+    const next = { ...latestRef.current, baseVersion: nextVersion };
+    latestRef.current = next;
+    writeCoursewareVisualDraft(storageKey, next);
+    setDirty(true);
+    dirtyRef.current = true;
+    onSaveState('dirty');
+  }, [onReloadServerBaseline, onSaveState, storageKey]);
+
+  useEffect(() => {
+    onRegisterSave(saveCurrent);
+  }, [onRegisterSave, saveCurrent]);
+
+  const discardCurrent = useCallback(() => {
+    window.localStorage.removeItem(storageKey);
+    localDraftRef.current = false;
+    dirtyRef.current = false;
+    editGenerationRef.current = 0;
+    baseVersionRef.current = serverVersionRef.current;
+    setStepTitle(step.title);
+    setPayload({ ...module.payload });
+    setTeacherFields({ ...(metadata?.teacherFields ?? {}) });
+    setResponseKind(module.responseKind ?? 'text.long');
+    setDirty(false);
+    onSaveState('saved');
+  }, [metadata?.teacherFields, module.payload, module.responseKind, onSaveState, step.title, storageKey]);
+
+  useEffect(() => {
+    onRegisterDiscard(discardCurrent);
+  }, [discardCurrent, onRegisterDiscard]);
+
+  useEffect(() => {
+    if (!dirty || busy || saveState === 'conflict' || saveState === 'failed') return;
+    const timer = window.setTimeout(() => void saveCurrent(), 1000);
+    return () => window.clearTimeout(timer);
+  }, [busy, dirty, payload, responseKind, saveCurrent, saveState, stepTitle, teacherFields]);
+
+  const changeStepTitle = (value: string) => {
+    setStepTitle(value);
+    stageChange({ stepTitle: value, payload, teacherFields, responseKind });
+  };
+  const changePayload = (value: Record<string, unknown>) => {
+    setPayload(value);
+    stageChange({ stepTitle, payload: value, teacherFields, responseKind });
+  };
+  const changeTeacherFields = (value: SmartCoursewareCompositionMetadata['teacherFields']) => {
+    setTeacherFields(value);
+    stageChange({ stepTitle, payload, teacherFields: value, responseKind });
+  };
+  return <section className="space-y-4 rounded-xl border border-border p-4" data-courseware-visual-editor>
+    <div>
+      <h2 className="font-semibold">所选内容可视编辑</h2>
+      <p className="mt-1 text-sm text-subtle">字段按课件领域结构保存；页面不暴露原始 JSON。</p>
+    </div>
+    <label className="grid gap-1 text-sm">步骤标题<input value={stepTitle} onChange={(event) => changeStepTitle(event.target.value)} className="rounded border border-border bg-background px-3 py-2" /></label>
+    {activity ? <label className="grid max-w-sm gap-1 text-sm">作答类型<select value={responseKind} onChange={(event) => {
+      const value = event.target.value as GeneratedResponseKind;
+      const nextPayload = activityPayloadForResponseKind(value, payload);
+      const retainedTeacherFields = teacherFieldsForResponseKind(value, teacherFields);
+      const nextTeacherFields = {
+        ...defaultTeacherFieldsForActivity({ ...module, responseKind: value, payload: nextPayload }),
+        ...retainedTeacherFields,
+      };
+      setResponseKind(value);
+      setPayload(nextPayload);
+      setTeacherFields(nextTeacherFields);
+      stageChange({ stepTitle, payload: nextPayload, teacherFields: nextTeacherFields, responseKind: value });
+    }} className="rounded border border-border bg-background px-3 py-2">{GENERATED_RESPONSE_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}</select></label> : null}
+    <fieldset className="space-y-3 rounded-lg bg-muted/30 p-3">
+      <legend className="px-1 text-sm font-medium">学生可见内容</legend>
+      <VisualObjectEditor value={payload} onChange={changePayload} />
+    </fieldset>
+    {activity ? <fieldset className="space-y-3 rounded-lg bg-muted/30 p-3">
+      <legend className="px-1 text-sm font-medium">教师审阅字段</legend>
+      <VisualObjectEditor value={teacherFields} onChange={changeTeacherFields} />
+    </fieldset> : null}
+    {saveState === 'conflict' ? <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+      <p>服务器版本已变化。本地修改仍保留，可读取最新服务器版本作为比较与保存基线。</p>
+      <button type="button" disabled={busy} onClick={() => void adoptServerBaseline()} className="mt-2 rounded border border-border px-3 py-1.5 disabled:opacity-50">读取服务器新基线并保留本地修改</button>
+    </div> : null}
+    <button type="button" disabled={busy || !stepTitle.trim()} onClick={() => void saveCurrent()} className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">保存所选内容</button>
+  </section>;
+}
+
+type CoursewareVisualLocalDraft = {
+  stepTitle: string;
+  payload: Record<string, unknown>;
+  teacherFields: SmartCoursewareCompositionMetadata['teacherFields'];
+  responseKind: string;
+  baseVersion: number;
+};
+
+function writeCoursewareVisualDraft(key: string, draft: CoursewareVisualLocalDraft) {
+  window.localStorage.setItem(key, JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
+}
+
+function readCoursewareVisualDraft(key: string): CoursewareVisualLocalDraft | null {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(key) ?? 'null');
+    if (!value || typeof value.stepTitle !== 'string' || typeof value.baseVersion !== 'number') return null;
+    if (!value.payload || typeof value.payload !== 'object' || Array.isArray(value.payload)) return null;
+    if (!value.teacherFields || typeof value.teacherFields !== 'object' || Array.isArray(value.teacherFields)) return null;
+    return {
+      stepTitle: value.stepTitle,
+      payload: value.payload,
+      teacherFields: value.teacherFields,
+      responseKind: typeof value.responseKind === 'string' ? value.responseKind : 'text.long',
+      baseVersion: value.baseVersion,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function readCoursewareSuggestionStates(key: string): Record<string, 'ignored'> {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(key) ?? 'null');
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    return Object.fromEntries(Object.entries(value).filter(
+      (entry): entry is [string, 'ignored'] => entry[1] === 'ignored',
+    ));
+  } catch {
+    return {};
+  }
+}
+
+function VisualObjectEditor({
+  value,
+  onChange,
+  path = [],
+}: {
+  value: Record<string, unknown>;
+  onChange: (value: Record<string, unknown>) => void;
+  path?: string[];
+}) {
+  const entries = Object.entries(value);
+  if (!entries.length) {
+    return <p className="text-sm text-muted-foreground">当前类型没有可编辑文本字段。</p>;
+  }
+  return <div className="grid gap-3">{entries.map(([key, child]) => {
+    const label = [...path, key].join(' / ');
+    if (typeof child === 'string') return <label key={key} className="grid gap-1 text-sm"><span>{label}</span><textarea rows={child.length > 100 ? 4 : 2} value={child} onChange={(event) => onChange({ ...value, [key]: event.target.value })} className="rounded border border-border bg-background px-3 py-2" /></label>;
+    if (typeof child === 'number') return <label key={key} className="grid gap-1 text-sm"><span>{label}</span><input type="number" value={child} onChange={(event) => onChange({ ...value, [key]: Number(event.target.value) })} className="rounded border border-border bg-background px-3 py-2" /></label>;
+    if (typeof child === 'boolean') return <label key={key} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={child} onChange={(event) => onChange({ ...value, [key]: event.target.checked })} />{label}</label>;
+    if (Array.isArray(child) && child.every((item) => ['string', 'number'].includes(typeof item))) {
+      const numeric = child.length > 0 && child.every((item) => typeof item === 'number');
+      return <label key={key} className="grid gap-1 text-sm"><span>{label}（每行一项）</span><textarea rows={4} value={child.map(String).join('\n')} onChange={(event) => {
+        const items = event.target.value.split('\n').map((item) => item.trim()).filter(Boolean);
+        onChange({ ...value, [key]: numeric ? items.map(Number) : items });
+      }} className="rounded border border-border bg-background px-3 py-2" /></label>;
+    }
+    if (Array.isArray(child) && child.every((row) => (
+      Array.isArray(row) && row.every(isEditableTableCell)
+    ))) {
+      const rows = child as EditableTableCell[][];
+      return <fieldset key={key} className="min-w-0 rounded border border-border p-3">
+        <legend className="px-1 text-sm">{label}</legend>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse">
+            <tbody>{rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, columnIndex) => <td key={columnIndex} className="border border-border p-1">
+              <input
+                aria-label={`${label} 第${rowIndex + 1}行第${columnIndex + 1}列`}
+                data-table-cell-kind={isMathTableCell(cell) ? 'math' : 'plain'}
+                type={typeof cell === 'number' ? 'number' : 'text'}
+                value={isMathTableCell(cell) ? cell.value : cell}
+                onChange={(event) => onChange({
+                  ...value,
+                  [key]: rows.map((candidate, candidateRowIndex) => candidateRowIndex === rowIndex
+                    ? candidate.map((candidateCell, candidateColumnIndex) => candidateColumnIndex === columnIndex
+                      ? isMathTableCell(candidateCell)
+                        ? { ...candidateCell, value: event.target.value }
+                        : typeof candidateCell === 'number' ? Number(event.target.value) : event.target.value
+                      : candidateCell)
+                    : candidate),
+                })}
+                className="min-w-32 rounded border border-border bg-background px-2 py-1.5"
+              />
+            </td>)}</tr>)}</tbody>
+          </table>
+        </div>
+      </fieldset>;
+    }
+    if (Array.isArray(child) && child.every((item) => item && typeof item === 'object' && !Array.isArray(item))) {
+      return <fieldset key={key} className="space-y-3 rounded border border-border p-3"><legend className="px-1 text-sm">{label}</legend>{child.map((item, index) => <VisualObjectEditor key={index} value={item as Record<string, unknown>} path={[...path, key, String(index + 1)]} onChange={(next) => onChange({ ...value, [key]: child.map((candidate, itemIndex) => itemIndex === index ? next : candidate) })} />)}</fieldset>;
+    }
+    if (child && typeof child === 'object' && !Array.isArray(child)) {
+      return <fieldset key={key} className="rounded border border-border p-3"><legend className="px-1 text-sm">{label}</legend><VisualObjectEditor value={child as Record<string, unknown>} path={[...path, key]} onChange={(next) => onChange({ ...value, [key]: next })} /></fieldset>;
+    }
+    return null;
+  })}</div>;
+}
+
+type EditableTableCell = string | number | { kind: 'math'; value: string };
+
+function isMathTableCell(value: unknown): value is Extract<EditableTableCell, { kind: 'math' }> {
+  return Boolean(value)
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && (value as Record<string, unknown>).kind === 'math'
+    && typeof (value as Record<string, unknown>).value === 'string';
+}
+
+function isEditableTableCell(value: unknown): value is EditableTableCell {
+  return typeof value === 'string' || typeof value === 'number' || isMathTableCell(value);
 }
 
 function CoursewareModuleCandidateDiff({
@@ -1118,6 +1592,40 @@ function defaultGeneratedModule(
             ? { items: [{ body: '请输入内容。' }] }
             : { text: '请输入内容。' };
   return { ...common, payload } as GeneratedSlideModule;
+}
+
+function activityPayloadForResponseKind(
+  responseKind: GeneratedResponseKind,
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  if (GENERATED_ACTIVITY_PAYLOAD_SCHEMAS[responseKind].safeParse(payload).success) return payload;
+  const prompt = typeof payload.prompt === 'string' && payload.prompt.trim()
+    ? payload.prompt
+    : '请输入活动题目。';
+  if (responseKind === 'choice.single' || responseKind === 'choice.multi') {
+    return {
+      prompt,
+      options: [
+        { value: 'option-1', label: '选项 1' },
+        { value: 'option-2', label: '选项 2' },
+      ],
+    };
+  }
+  if (responseKind === 'ordering.sequence') return { prompt, items: ['步骤 1', '步骤 2'] };
+  if (responseKind === 'matching.pairs') {
+    return {
+      prompt,
+      left: [
+        { value: 'left-1', label: '左项 1' },
+        { value: 'left-2', label: '左项 2' },
+      ],
+      right: [
+        { value: 'right-1', label: '右项 1' },
+        { value: 'right-2', label: '右项 2' },
+      ],
+    };
+  }
+  return { prompt };
 }
 
 export function defaultTeacherFieldsForActivity(

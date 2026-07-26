@@ -51,7 +51,8 @@ describe('lesson-design Course Basis Source Pack route', () => {
     expect(findProjections.mock.calls[0][0].where).toEqual({
       versionId: { in: ['version-1'] },
       version: {
-        reviewState: 'CONFIRMED',
+        extractionState: 'EXTRACTED',
+        reviewState: { in: ['PENDING', 'CONFIRMED'] },
         OR: [{ retiredAt: null }, { id: { in: [] } }],
         document: { courseBasis: { ownerId: 'teacher-1' } },
       },

@@ -68,6 +68,18 @@ export async function deleteSmartLessonTask(
 }
 
 async function deleteUnpublishedTaskGraph(tx: Prisma.TransactionClient, taskId: string) {
+  const knowledgePointIds = (await tx.smartLessonKnowledgePoint.findMany({
+    where: { taskId },
+    select: { id: true },
+  })).map((item) => item.id);
+  const goalIds = (await tx.smartLessonGoal.findMany({
+    where: { taskId },
+    select: { id: true },
+  })).map((item) => item.id);
+  const generationJobIds = (await tx.smartLessonGenerationJob.findMany({
+    where: { draft: { taskId } },
+    select: { id: true },
+  })).map((item) => item.id);
   const lessonRevisionIds = (await tx.smartLessonRevision.findMany({
     where: { taskId },
     select: { id: true },
@@ -97,6 +109,17 @@ async function deleteUnpublishedTaskGraph(tx: Prisma.TransactionClient, taskId: 
   `;
   if (fence?.taskId !== taskId) {
     throw new SmartLessonPlanError('smart-lesson-task-delete-fence-failed', 500);
+  }
+
+  const referenceClauses = [
+    referenceIdsClause('SMART_LESSON_KNOWLEDGE_POINT', knowledgePointIds),
+    referenceIdsClause('SMART_LESSON_GOAL', goalIds),
+    referenceIdsClause('GENERATION_JOB', generationJobIds),
+    referenceIdsClause('LESSON_PLAN_REVISION', lessonRevisionIds),
+    referenceIdsClause('COURSEWARE_REVISION', coursewareRevisionIds),
+  ].filter((clause): clause is NonNullable<typeof clause> => clause !== null);
+  if (referenceClauses.length > 0) {
+    await tx.courseBasisReferenceLink.deleteMany({ where: { OR: referenceClauses } });
   }
 
   if (coursewareRevisionIds.length) {
@@ -133,6 +156,13 @@ async function deleteUnpublishedTaskGraph(tx: Prisma.TransactionClient, taskId: 
   await tx.smartLessonSourceSelection.deleteMany({ where: { taskId } });
   await tx.smartCoursewarePublicationSeries.deleteMany({ where: { taskId } });
   await tx.smartLessonTask.delete({ where: { id: taskId } });
+}
+
+function referenceIdsClause(
+  referenceType: Prisma.CourseBasisReferenceLinkWhereInput['referenceType'],
+  referenceIds: string[],
+) {
+  return referenceIds.length > 0 ? { referenceType, referenceId: { in: referenceIds } } : null;
 }
 
 function ownedTaskWhere(actor: SmartLessonActor, taskId: string) {

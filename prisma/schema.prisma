@@ -76,8 +76,14 @@ enum CourseBasisReviewState {
 }
 
 enum CourseBasisReferenceType {
+  SMART_LESSON_KNOWLEDGE_POINT
+  SMART_LESSON_GOAL
+  GENERATION_JOB
   LESSON_PLAN_REVISION
   COURSEWARE_REVISION
+  PUBLICATION_REVISION
+  CLASSROOM_SESSION
+  RESOURCE_PACK
 }
 
 enum SmartLessonSourceSelectionState {
@@ -665,6 +671,8 @@ model CourseBasisReferenceLink {
   versionId     String
   referenceType CourseBasisReferenceType
   referenceId   String
+  contentHash   String
+  anchors       Json
   createdAt     DateTime                 @default(now())
 
   version CourseBasisDocumentVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)

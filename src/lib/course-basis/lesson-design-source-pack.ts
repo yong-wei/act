@@ -63,7 +63,8 @@ export async function buildCourseBasisLessonDesignSar(
     where: {
       versionId: { in: [...input.selectedVersionIds] },
       version: {
-        reviewState: 'CONFIRMED',
+        extractionState: 'EXTRACTED',
+        reviewState: { in: ['PENDING', 'CONFIRMED'] },
         OR: [
           { retiredAt: null },
           { id: { in: [...(input.explicitRetiredVersionIds ?? [])] } },
