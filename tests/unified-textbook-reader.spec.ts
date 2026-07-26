@@ -22,11 +22,19 @@ const TEST_ACCOUNT = {
 interface RuntimeUnit {
   id: string;
   structuralPath: string[];
+  markdown: string;
+  sourceSpan: {
+    startLine: number;
+  };
 }
 
 interface RuntimeAnchor {
   id: string;
   owningUnitId: string;
+  kind: string;
+  sourceSpan: {
+    startLine: number;
+  };
 }
 
 let edition = '';
@@ -55,15 +63,16 @@ async function loadRuntimeFixtures() {
     input: createReadStream(path.join(RUNTIME_ROOT, 'anchors.jsonl'), { encoding: 'utf8' }),
     crlfDelay: Infinity,
   });
-  let firstAnchor: RuntimeAnchor | null = null;
+  const figureAnchorsByUnit = new Map<string, RuntimeAnchor[]>();
   for await (const line of anchorLines) {
     if (!line.trim()) continue;
-    firstAnchor = JSON.parse(line) as RuntimeAnchor;
-    anchorLines.close();
-    break;
+    const anchor = JSON.parse(line) as RuntimeAnchor;
+    if (anchor.kind !== 'figure') continue;
+    const anchors = figureAnchorsByUnit.get(anchor.owningUnitId) ?? [];
+    anchors.push(anchor);
+    figureAnchorsByUnit.set(anchor.owningUnitId, anchors);
   }
-  if (!firstAnchor) throw new Error('Missing textbook fragment fixture');
-  fragment = firstAnchor.id.slice(firstAnchor.id.lastIndexOf('#') + 1);
+  if (figureAnchorsByUnit.size === 0) throw new Error('Missing textbook figure fixture');
 
   const unitLines = createInterface({
     input: createReadStream(path.join(RUNTIME_ROOT, 'units.jsonl'), { encoding: 'utf8' }),
@@ -71,21 +80,32 @@ async function loadRuntimeFixtures() {
   });
   const firstUnits: RuntimeUnit[] = [];
   let matchedAnchorOwner: RuntimeUnit | null = null;
+  let matchedFigureAnchor: RuntimeAnchor | null = null;
   for await (const line of unitLines) {
     if (!line.trim()) continue;
     const unit = JSON.parse(line) as RuntimeUnit;
     if (firstUnits.length < 2) firstUnits.push(unit);
-    if (unit.id === firstAnchor.owningUnitId) matchedAnchorOwner = unit;
-    if (firstUnits.length === 2 && matchedAnchorOwner) {
+    const figureAnchors = figureAnchorsByUnit.get(unit.id) ?? [];
+    const markdownLines = unit.markdown.split(/\r?\n/u);
+    const figureAnchor = figureAnchors.find((anchor) => {
+      const relativeLine = anchor.sourceSpan.startLine - unit.sourceSpan.startLine;
+      return /!\[|<img\b/i.test(markdownLines[relativeLine] ?? '');
+    });
+    if (figureAnchor) {
+      matchedAnchorOwner = unit;
+      matchedFigureAnchor = figureAnchor;
+    }
+    if (firstUnits.length === 2 && matchedAnchorOwner && matchedFigureAnchor) {
       unitLines.close();
       break;
     }
   }
-  if (firstUnits.length < 2 || !matchedAnchorOwner) {
-    throw new Error('Missing textbook unit fixtures');
+  if (firstUnits.length < 2 || !matchedAnchorOwner || !matchedFigureAnchor) {
+    throw new Error('Missing textbook unit or rendered figure fixture');
   }
   [firstUnit, secondUnit] = firstUnits;
   anchoredUnit = matchedAnchorOwner;
+  fragment = matchedFigureAnchor.id.slice(matchedFigureAnchor.id.lastIndexOf('#') + 1);
 }
 
 async function establishAuthenticatedSession(context: BrowserContext, baseURL: string) {
@@ -118,10 +138,21 @@ test.describe('unified textbook reader', () => {
 
   test.beforeAll(loadRuntimeFixtures);
 
-  test('denies anonymous access before rendering textbook content', async ({ page }) => {
-    await page.goto(textbookUrl(firstUnit));
+  test('preserves a shared figure fragment through real UI login', async ({ page }) => {
+    const sharedFigureUrl = textbookUrl(anchoredUnit, fragment);
+    await page.goto(sharedFigureUrl);
     await expect(page).toHaveURL(/\/login\?callbackUrl=/);
+    await expect(page).toHaveURL(new RegExp(`#${fragment}$`));
     await expect(page.locator('[data-textbook-reader="true"]')).toHaveCount(0);
+
+    await page.getByPlaceholder('学号/工号').fill(TEST_ACCOUNT.account);
+    await page.getByPlaceholder('密码').fill(TEST_ACCOUNT.password);
+    await page.getByRole('button', { name: '登录' }).click();
+
+    await expect(page).toHaveURL(sharedFigureUrl);
+    const focusedTarget = page.locator('[data-textbook-fragment-target="true"]');
+    await expect(focusedTarget).toBeFocused();
+    await expect(focusedTarget.locator('img')).toHaveCount(1);
   });
 
   test('supports standalone, refresh, intercepted modal, close, and shared links', async ({
@@ -193,9 +224,9 @@ test.describe('unified textbook reader', () => {
     await page.goto(textbookUrl(anchoredUnit, fragment));
     const fragmentRoot = page.locator('[data-textbook-fragment-state="focused"]');
     await expect(fragmentRoot).toBeVisible();
-    await expect(
-      fragmentRoot.locator('[data-textbook-fragment-target="true"]'),
-    ).toBeFocused();
+    const focusedTarget = fragmentRoot.locator('[data-textbook-fragment-target="true"]');
+    await expect(focusedTarget).toBeFocused();
+    await expect(focusedTarget.locator('img')).toHaveCount(1);
     await expect(page.getByRole('navigation', { name: '教材目录' })).toBeVisible();
 
     await page.locator('[data-textbook-parent-link="true"]:visible').first().click();

@@ -31,6 +31,10 @@ for required_script in scripts/build-next-with-trace-check.mjs scripts/prune-nex
   fi
 done
 
+echo "[preflight] 校验七套外置教材 v2 runtime"
+node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
+  --runtime-root "${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbooks-v2"
+
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
 rm -rf "${ROOT_DIR}/.next"
 npm run build

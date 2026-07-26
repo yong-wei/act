@@ -11,6 +11,7 @@ function read(file) {
 const dockerignore = read('.dockerignore');
 const dockerfile = read('Dockerfile');
 const buildScript = read('scripts/build.sh');
+const textbookV2Preflight = read('scripts/release/validate-textbook-runtime-v2.mjs');
 const packageJson = JSON.parse(read('package.json'));
 const serviceScript = read('deploy/podman/configure-service.sh');
 const deployScript = read('deploy/podman/deploy.sh');
@@ -42,6 +43,43 @@ assert.equal(
   buildScript.includes('course-content/runtime') && buildScript.includes('.dockerignore'),
   true,
   '构建脚本应显式校验 course-content/runtime 已被 .dockerignore 排除',
+);
+
+const textbookV2BookIds = [
+  'control-encyclopedia',
+  'dorf-modern-control-systems',
+  'feedback-control-of-dynamic-systems',
+  'hu-shousong-auto-control-7th',
+  'hu-shousong-auto-control-8th',
+  'hu-shousong-exercise-analysis-3rd',
+  'liu-sheng-auto-control-2015',
+];
+const textbookV2RequiredFiles = [
+  'manifest.json',
+  'navigation.json',
+  'units.jsonl',
+  'anchors.jsonl',
+  'windows.jsonl',
+  'anomalies.jsonl',
+  'samples.jsonl',
+];
+
+assert.equal(
+  textbookV2BookIds.every((bookId) => textbookV2Preflight.includes(`'${bookId}'`)) &&
+    textbookV2RequiredFiles.every((fileName) => textbookV2Preflight.includes(`'${fileName}'`)) &&
+    textbookV2Preflight.includes('validate_structured_textbook_runtime_v2.mjs') &&
+    textbookV2Preflight.includes("'--runtime-dir'") &&
+    textbookV2Preflight.includes('failures.slice(0, 20)') &&
+    textbookV2Preflight.includes('failuresTruncated'),
+  true,
+  '共享 release preflight 应精确校验七本教材的完整 v2 文件集并调用结构化 runtime validator',
+);
+
+assert.equal(
+  buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
+    buildScript.indexOf('\nnpm run build\n'),
+  true,
+  'release build 必须在应用构建前执行七书教材 v2 preflight',
 );
 
 assert.equal(
@@ -114,6 +152,32 @@ assert.equal(
       remoteDeployScript.includes('${REMOTE_RUNTIME_DIR}/')),
   true,
   '远端部署脚本应使用 rsync 将本地 course-content/runtime 同步到服务器同名目录',
+);
+
+const remotePreflightIndex = remoteDeployScript.indexOf(
+  'scripts/release/validate-textbook-runtime-v2.mjs',
+);
+const runtimeRsyncIndex = remoteDeployScript.indexOf('rsync -az --delete');
+const remoteHostCheckIndex = remoteDeployScript.indexOf(
+  'check_remote_textbook_v2_files',
+  runtimeRsyncIndex,
+);
+assert.equal(
+  remotePreflightIndex >= 0 &&
+    remotePreflightIndex < runtimeRsyncIndex &&
+    remoteHostCheckIndex > runtimeRsyncIndex,
+  true,
+  '远端部署即使 skip-build 也必须在 rsync 前执行本地 preflight，并在 rsync 后检查远端宿主文件集',
+);
+
+assert.equal(
+  textbookV2BookIds.every((bookId) => remoteDeployScript.includes(bookId)) &&
+    textbookV2RequiredFiles.every((fileName) => remoteDeployScript.includes(fileName)) &&
+    remoteDeployScript.includes('check_container_textbook_v2_files') &&
+    remoteDeployScript.includes('/app/course-content/runtime/resources/textbooks-v2') &&
+    (remoteDeployScript.match(/-eq 7/g)?.length ?? 0) >= 2,
+  true,
+  '远端宿主与已启动 app 容器必须逐书校验精确七目录和完整 v2 文件集',
 );
 
 assert.equal(

@@ -12,6 +12,10 @@ REMOTE_IMAGES_DIR="${REMOTE_IMAGES_DIR:-${REMOTE_PROJECT_DIR}/images}"
 REMOTE_IMAGE_TAR="${REMOTE_IMAGE_TAR:-${REMOTE_IMAGES_DIR}/act-obe.tar}"
 LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
 REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
+LOCAL_TEXTBOOK_V2_RUNTIME_DIR="${LOCAL_RUNTIME_DIR}/resources/textbooks-v2"
+REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
+TEXTBOOK_V2_BOOK_IDS="control-encyclopedia dorf-modern-control-systems feedback-control-of-dynamic-systems hu-shousong-auto-control-7th hu-shousong-auto-control-8th hu-shousong-exercise-analysis-3rd liu-sheng-auto-control-2015"
+TEXTBOOK_V2_REQUIRED_FILES="manifest.json navigation.json units.jsonl anchors.jsonl windows.jsonl anomalies.jsonl samples.jsonl"
 TEXTBOOK_RUNTIME_BOOK_ID="${TEXTBOOK_RUNTIME_BOOK_ID:-hu-shousong-exercise-analysis-3rd}"
 LOCAL_TEXTBOOK_RUNTIME_DIR="${LOCAL_RUNTIME_DIR}/resources/textbooks/${TEXTBOOK_RUNTIME_BOOK_ID}"
 REMOTE_TEXTBOOK_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks/${TEXTBOOK_RUNTIME_BOOK_ID}"
@@ -100,6 +104,52 @@ remote() {
 
 remote_sha256() {
   remote "if command -v sha256sum >/dev/null 2>&1; then sha256sum '${1}' | awk '{print \$1}'; else shasum -a 256 '${1}' | awk '{print \$1}'; fi"
+}
+
+check_remote_textbook_v2_files() {
+  remote "bash -lc '
+set -euo pipefail
+runtime_root=\"${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}\"
+found=0
+for candidate in \"\${runtime_root}\"/*; do
+  [ -d \"\${candidate}\" ] || continue
+  book_id=\$(basename \"\${candidate}\")
+  case \"\${book_id}\" in
+    control-encyclopedia|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-auto-control-7th|hu-shousong-auto-control-8th|hu-shousong-exercise-analysis-3rd|liu-sheng-auto-control-2015) ;;
+    *) echo \"ERROR: unexpected textbook v2 runtime directory: \${book_id}\" >&2; exit 1 ;;
+  esac
+  found=\$((found + 1))
+done
+[ \"\${found}\" -eq 7 ]
+for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
+  for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
+    test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
+  done
+done
+'"
+}
+
+check_container_textbook_v2_files() {
+  remote "podman exec '${APP_NAME_HINT}' sh -lc '
+set -eu
+runtime_root=/app/course-content/runtime/resources/textbooks-v2
+found=0
+for candidate in \"\${runtime_root}\"/*; do
+  [ -d \"\${candidate}\" ] || continue
+  book_id=\$(basename \"\${candidate}\")
+  case \"\${book_id}\" in
+    control-encyclopedia|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-auto-control-7th|hu-shousong-auto-control-8th|hu-shousong-exercise-analysis-3rd|liu-sheng-auto-control-2015) ;;
+    *) echo \"ERROR: unexpected mounted textbook v2 runtime directory: \${book_id}\" >&2; exit 1 ;;
+  esac
+  found=\$((found + 1))
+done
+[ \"\${found}\" -eq 7 ]
+for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
+  for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
+    test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
+  done
+done
+'"
 }
 
 wait_for_remote_http() {
@@ -231,6 +281,7 @@ require_cmd scp
 require_cmd curl
 require_cmd rsync
 require_cmd python3
+require_cmd node
 
 log "[1/5] 本地构建"
 if [[ "${SKIP_BUILD}" == "1" ]]; then
@@ -238,6 +289,10 @@ if [[ "${SKIP_BUILD}" == "1" ]]; then
 else
   bash "${ROOT_DIR}/scripts/build.sh"
 fi
+
+log "- 校验七套外置教材 v2 runtime"
+node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
+  --runtime-root "${LOCAL_TEXTBOOK_V2_RUNTIME_DIR}"
 
 [[ -s "${LOCAL_IMAGE_TAR}" ]] || fail "本地镜像产物不存在或为空: ${LOCAL_IMAGE_TAR}"
 
@@ -256,6 +311,7 @@ log "[2/5] 同步运行时资源与部署脚本"
 
 remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")'"
 rsync -az --delete -e "ssh -o BatchMode=yes" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_DIR}/"
+check_remote_textbook_v2_files
 
 scp -q "${LOCAL_APP_DEPLOY_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_APP_DEPLOY_SCRIPT}"
 remote "chmod +x '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' && mv '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' '${REMOTE_APP_DEPLOY_SCRIPT}'"
@@ -355,6 +411,9 @@ remote "podman ps --format '{{.Names}}' | grep -qx '${DB_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}' | grep -qx '${REDIS_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}' | grep -qx '${WORKER_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}\t{{.Status}}' | grep -E '^${DB_NAME_HINT}[[:space:]].*healthy'"
+
+log "- 校验应用容器只读挂载中的七套教材 v2 runtime"
+check_container_textbook_v2_files
 
 log "- 校验数据库连通性"
 remote "bash -lc '

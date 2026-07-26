@@ -43,7 +43,10 @@ export function TextbookFragmentFocus({
           element.removeAttribute('tabindex');
         });
       const markerContainer = marker.parentElement;
-      const target = markerContainer?.textContent?.trim()
+      const markerContainerHasAuthoredContent = Boolean(
+        markerContainer?.textContent?.trim() || markerContainer?.querySelector('img'),
+      );
+      const target = markerContainerHasAuthoredContent
         ? markerContainer
         : markerContainer?.nextElementSibling instanceof HTMLElement
           ? markerContainer.nextElementSibling
