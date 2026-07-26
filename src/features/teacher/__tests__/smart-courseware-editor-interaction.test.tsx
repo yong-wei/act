@@ -189,13 +189,29 @@ describe('smart courseware editor activity creation', () => {
       planLimitations: [], aiReview: null, generationAudit: [],
     };
     await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const stepTitle = container.querySelector<HTMLInputElement>('[data-courseware-visual-editor] input')!;
+    const save = [...container.querySelectorAll('button')].find((button) => button.textContent === '保存所选内容')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(stepTitle, '');
+      stepTitle.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain('步骤标题不能为空');
+    expect(container.textContent).toContain('保存失败');
+    expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(0);
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(stepTitle, '恢复后的步骤标题');
+      stepTitle.dispatchEvent(new Event('input', { bubbles: true }));
+    });
     const text = [...container.querySelectorAll('textarea')]
       .find((textarea) => textarea.closest('[data-courseware-visual-editor]'))!;
     await act(async () => {
       Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(text, '断网时保留的课件内容');
       text.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    const save = [...container.querySelectorAll('button')].find((button) => button.textContent === '保存所选内容')!;
     await act(async () => save.click());
 
     expect(container.textContent).toContain('保存请求失败，本地修改仍保留，请重试');
@@ -473,9 +489,17 @@ describe('smart courseware editor activity creation', () => {
 
   it('edits activity responseKind, payload, and teacherFields in one PATCH and clears stale evidence', async () => {
     const composition = validCompositionInput();
-    Object.assign(composition.moduleMetadata[2].teacherFields, {
+    const sourceActivity = composition.runtimeManifest.stages[2].steps[0].modules[0];
+    sourceActivity.responseKind = 'text.long';
+    sourceActivity.payload = { prompt: '说明稳定条件。' };
+    const sourceTeacherFields = composition.moduleMetadata[2].teacherFields as Record<string, unknown>;
+    delete sourceTeacherFields.referenceAnswer;
+    delete sourceTeacherFields.explanation;
+    delete sourceTeacherFields.scoring;
+    Object.assign(sourceTeacherFields, {
       expectedOutput: '旧开放题输出',
       reviewPoints: ['旧开放题标准'],
+      inclusionRationale: '该来源直接支撑本模块的教学内容。',
     });
     let submitted: ReturnType<typeof validCompositionInput> | null = null;
     const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
@@ -526,10 +550,19 @@ describe('smart courseware editor activity creation', () => {
 
     expect(fetch.mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(1);
     const activity = submitted!.runtimeManifest.stages[2].steps[0].modules[0];
-    expect(activity).toMatchObject({ responseKind: 'choice.multi', payload: expect.objectContaining({ prompt: '选择全部稳定条件。' }) });
+    expect(activity).toMatchObject({
+      responseKind: 'choice.multi',
+      payload: {
+        prompt: '选择全部稳定条件。',
+        options: [
+          { value: 'option-1', label: '选项 1' },
+          { value: 'option-2', label: '选项 2' },
+        ],
+      },
+    });
     expect(submitted!.moduleMetadata[2].teacherFields).toEqual({
-      referenceAnswer: 'a',
-      explanation: '教师专用解释',
+      referenceAnswer: 'option-1',
+      explanation: '教师需在授课前核对参考答案与题目内容。',
       scoring: { strategy: 'exact-match', maxPoints: 1 },
       inclusionRationale: '该来源直接支撑本模块的教学内容。',
     });

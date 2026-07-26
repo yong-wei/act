@@ -18,6 +18,7 @@ import {
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import {
   GENERATED_ACTIVITY_CLASS,
+  GENERATED_ACTIVITY_PAYLOAD_SCHEMAS,
   GENERATED_CONTENT_CLASSES,
   GENERATED_RESPONSE_KINDS,
   GENERATED_SLIDE_LAYOUT_REGISTRY,
@@ -618,7 +619,12 @@ export function SmartCoursewareEditor({
     responseKind = selectedModule?.responseKind,
     expectedVersion = envelope.version,
   ) {
-    if (!selectedModule || !selectedStep || !stepTitle.trim()) return null;
+    if (!selectedModule || !selectedStep) return null;
+    if (!stepTitle.trim()) {
+      setMessage('步骤标题不能为空。');
+      setVisualSaveState('failed');
+      return null;
+    }
     const metadata = envelope.compositionMetadata.find((item) => item.moduleId === selectedModule.id);
     if (!metadata) return null;
     const activity = selectedModule.canonicalClass === GENERATED_ACTIVITY_CLASS;
@@ -1384,9 +1390,17 @@ function CoursewareVisualFields({
     </div>
     <label className="grid gap-1 text-sm">步骤标题<input value={stepTitle} onChange={(event) => changeStepTitle(event.target.value)} className="rounded border border-border bg-background px-3 py-2" /></label>
     {activity ? <label className="grid max-w-sm gap-1 text-sm">作答类型<select value={responseKind} onChange={(event) => {
-      const value = event.target.value;
+      const value = event.target.value as GeneratedResponseKind;
+      const nextPayload = activityPayloadForResponseKind(value, payload);
+      const retainedTeacherFields = teacherFieldsForResponseKind(value, teacherFields);
+      const nextTeacherFields = {
+        ...defaultTeacherFieldsForActivity({ ...module, responseKind: value, payload: nextPayload }),
+        ...retainedTeacherFields,
+      };
       setResponseKind(value);
-      stageChange({ stepTitle, payload, teacherFields, responseKind: value });
+      setPayload(nextPayload);
+      setTeacherFields(nextTeacherFields);
+      stageChange({ stepTitle, payload: nextPayload, teacherFields: nextTeacherFields, responseKind: value });
     }} className="rounded border border-border bg-background px-3 py-2">{GENERATED_RESPONSE_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}</select></label> : null}
     <fieldset className="space-y-3 rounded-lg bg-muted/30 p-3">
       <legend className="px-1 text-sm font-medium">学生可见内容</legend>
@@ -1578,6 +1592,40 @@ function defaultGeneratedModule(
             ? { items: [{ body: '请输入内容。' }] }
             : { text: '请输入内容。' };
   return { ...common, payload } as GeneratedSlideModule;
+}
+
+function activityPayloadForResponseKind(
+  responseKind: GeneratedResponseKind,
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  if (GENERATED_ACTIVITY_PAYLOAD_SCHEMAS[responseKind].safeParse(payload).success) return payload;
+  const prompt = typeof payload.prompt === 'string' && payload.prompt.trim()
+    ? payload.prompt
+    : '请输入活动题目。';
+  if (responseKind === 'choice.single' || responseKind === 'choice.multi') {
+    return {
+      prompt,
+      options: [
+        { value: 'option-1', label: '选项 1' },
+        { value: 'option-2', label: '选项 2' },
+      ],
+    };
+  }
+  if (responseKind === 'ordering.sequence') return { prompt, items: ['步骤 1', '步骤 2'] };
+  if (responseKind === 'matching.pairs') {
+    return {
+      prompt,
+      left: [
+        { value: 'left-1', label: '左项 1' },
+        { value: 'left-2', label: '左项 2' },
+      ],
+      right: [
+        { value: 'right-1', label: '右项 1' },
+        { value: 'right-2', label: '右项 2' },
+      ],
+    };
+  }
+  return { prompt };
 }
 
 export function defaultTeacherFieldsForActivity(
