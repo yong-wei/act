@@ -1,7 +1,7 @@
 {
   "evidenceVersion": "smart-lesson-real-provider-e2e.v1",
-  "generatedAt": "2026-07-26T07:50:15.496Z",
-  "sourceRevision": "931bcb452f6a570f3ea2a58d8f27b2bc0eb7192b",
+  "generatedAt": "2026-07-26T09:58:39.335Z",
+  "sourceRevision": "a76b9a952b78886210182355d96d1ee4572f9ce8",
   "providerPolicy": {
     "fixtureTokenPresent": false,
     "allAttemptsUseNonFixtureProvider": true
@@ -44,10 +44,10 @@
         "issues": [],
         "schemaVersion": "smart-lesson-outline.v1"
       },
-      "inputTokens": 2117,
-      "outputTokens": 1422,
+      "inputTokens": 2108,
+      "outputTokens": 3126,
       "costMicros": null,
-      "latencyMs": 171439
+      "latencyMs": 123956
     },
     {
       "stage": "BRIDGE_IN",
@@ -65,10 +65,10 @@
         "issues": [],
         "schemaVersion": "smart-lesson-boppps-bridge_in.v1"
       },
-      "inputTokens": 2432,
-      "outputTokens": 3337,
+      "inputTokens": 2541,
+      "outputTokens": 2181,
       "costMicros": null,
-      "latencyMs": 94740
+      "latencyMs": 31213
     },
     {
       "stage": "OBJECTIVES",
@@ -86,10 +86,10 @@
         "issues": [],
         "schemaVersion": "smart-lesson-boppps-objectives.v1"
       },
-      "inputTokens": 2733,
-      "outputTokens": 1888,
+      "inputTokens": 2795,
+      "outputTokens": 2873,
       "costMicros": null,
-      "latencyMs": 128330
+      "latencyMs": 40148
     },
     {
       "stage": "PRE_ASSESSMENT",
@@ -107,10 +107,10 @@
         "issues": [],
         "schemaVersion": "smart-lesson-boppps-pre_assessment.v1"
       },
-      "inputTokens": 3004,
-      "outputTokens": 1858,
+      "inputTokens": 3137,
+      "outputTokens": 2011,
       "costMicros": null,
-      "latencyMs": 96277
+      "latencyMs": 27410
     },
     {
       "stage": "PARTICIPATORY_LEARNING",
@@ -128,10 +128,10 @@
         "issues": [],
         "schemaVersion": "smart-lesson-boppps-participatory_learning.v1"
       },
-      "inputTokens": 3401,
-      "outputTokens": 6257,
+      "inputTokens": 3442,
+      "outputTokens": 3479,
       "costMicros": null,
-      "latencyMs": 201181
+      "latencyMs": 48742
     },
     {
       "stage": "POST_ASSESSMENT",
@@ -149,10 +149,10 @@
         "issues": [],
         "schemaVersion": "smart-lesson-boppps-post_assessment.v1"
       },
-      "inputTokens": 4306,
-      "outputTokens": 2201,
+      "inputTokens": 4127,
+      "outputTokens": 1815,
       "costMicros": null,
-      "latencyMs": 46019
+      "latencyMs": 27028
     },
     {
       "stage": "SUMMARY",
@@ -170,10 +170,10 @@
         "issues": [],
         "schemaVersion": "smart-lesson-boppps-summary.v1"
       },
-      "inputTokens": 4751,
-      "outputTokens": 3389,
+      "inputTokens": 4477,
+      "outputTokens": 2813,
       "costMicros": null,
-      "latencyMs": 78113
+      "latencyMs": 39012
     }
   ],
   "controlledRecoveryCoverage": {

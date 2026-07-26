@@ -1,6 +1,6 @@
 {
   "evidenceVersion": "smart-lesson-generation-verification.v1",
-  "sourceRevision": "931bcb452f6a570f3ea2a58d8f27b2bc0eb7192b",
+  "sourceRevision": "a76b9a952b78886210182355d96d1ee4572f9ce8",
   "sourceBinding": {
     "workspaceCleanAtRealProviderStart": true,
     "status": "valid"
@@ -33,7 +33,7 @@
       "command": "npx vitest run --config src/lib/smart-lesson-plan/vitest.config.ts",
       "result": "passed",
       "testFiles": 9,
-      "tests": 80
+      "tests": 82
     },
     {
       "command": "npm run test:provider-runtime-smoke",
@@ -45,8 +45,14 @@
       "result": "passed"
     },
     {
-      "command": "openspec validate harden-smart-lesson-generation-experience --type change --strict",
-      "result": "passed"
+      "command": "openspec validate --specs --strict",
+      "result": "passed",
+      "items": 182
+    },
+    {
+      "command": "openspec validate --changes --strict",
+      "result": "passed",
+      "items": 26
     }
   ],
   "privacy": {
