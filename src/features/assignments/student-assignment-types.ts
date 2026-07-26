@@ -14,7 +14,17 @@ export interface StudentAssignmentQuestion {
   version: number;
   currentAttemptNumber?: number | null;
   textDraft?: string | null;
-  assets?: Array<{ id: string; displayName: string; sizeBytes?: number }>;
+  assets?: Array<{
+    id: string;
+    displayName: string;
+    mimeType?: string;
+    sizeBytes?: number;
+    state?: string;
+    finalizedAt?: string | Date | null;
+    role?: string;
+    orderIndex?: number | null;
+    embeddedPosition?: string | null;
+  }>;
   resubmission?: { state: string; reason: string; allowedResponseType: string; deadlineAt: string } | null;
 }
 

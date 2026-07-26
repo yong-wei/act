@@ -49,6 +49,8 @@ export function RichMarkdownEditor({
   uploadImage,
   onUploadPendingChange,
   onUploadError,
+  resolveAssetHref = identityAssetHref,
+  canonicalizeAssetHref = identityAssetHref,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -58,13 +60,16 @@ export function RichMarkdownEditor({
   uploadImage?: ProtectedEditorImageUpload;
   onUploadPendingChange?: (pending: boolean) => void;
   onUploadError?: (message: string | null) => void;
+  resolveAssetHref?: (href: string) => string;
+  canonicalizeAssetHref?: (href: string) => string;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingUploadsRef = useRef(0);
+  const displayValue = mapMarkdownImageHrefs(value, resolveAssetHref);
   const editor = useEditor({
     immediatelyRender: false,
     extensions: PREPARATION_MARKDOWN_EXTENSIONS,
-    content: value,
+    content: displayValue,
     contentType: 'markdown',
     editable: !readOnly,
     editorProps: {
@@ -101,7 +106,11 @@ export function RichMarkdownEditor({
       },
     },
     onCreate: ({ editor: current }) => migratePreparationMath(current),
-    onUpdate: ({ editor: current }) => onChange(current.getMarkdown()),
+    onUpdate: ({ editor: current }) =>
+      onChange(mapMarkdownImageHrefs(
+        current.getMarkdown(),
+        canonicalizeAssetHref,
+      )),
   });
 
   function updatePendingUploads(delta: 1 | -1) {
@@ -115,9 +124,9 @@ export function RichMarkdownEditor({
   }, [editor, readOnly]);
 
   useEffect(() => {
-    if (!editor || editor.getMarkdown() === value) return;
-    replacePreparationMarkdown(editor, value);
-  }, [editor, value]);
+    if (!editor || editor.getMarkdown() === displayValue) return;
+    replacePreparationMarkdown(editor, displayValue);
+  }, [displayValue, editor]);
 
   if (!editor) {
     return <div className="min-h-[32rem] animate-pulse rounded-lg bg-muted" aria-label="编辑器加载中" />;
@@ -175,6 +184,21 @@ export function migratePreparationMath(editor: Editor) {
 export function replacePreparationMarkdown(editor: Editor, value: string) {
   editor.commands.setContent(value, { contentType: 'markdown', emitUpdate: false });
   migratePreparationMath(editor);
+}
+
+export function mapMarkdownImageHrefs(
+  markdown: string,
+  mapHref: (href: string) => string,
+): string {
+  return markdown.replace(
+    /(!\[(?:\\.|[^\]])*\]\()([^\s)]+)([^)]*\))/g,
+    (_match, prefix: string, href: string, suffix: string) =>
+      `${prefix}${mapHref(href)}${suffix}`,
+  );
+}
+
+function identityAssetHref(href: string) {
+  return href;
 }
 
 export function imageFiles(files: FileList | null | undefined): File[] {

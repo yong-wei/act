@@ -70,8 +70,12 @@ describe('teacher assignment workspace contracts', () => {
     expect(student).toContain('提交前保存正文失败');
     expect(student).toContain('附件已从本题草稿中移除');
     expect(student).toContain('disabled={uploadDisabled}');
-    expect(student).toContain('Math.max(candidate.version, result.answerVersion ?? candidate.version)');
-    expect(student).toContain('assets.some((asset) => asset.id === finalizedAsset.id)');
+    expect(student).toMatch(
+      /Math\.max\(\s*candidate\.version,\s*result\.answerVersion \?\? candidate\.version,\s*\)/,
+    );
+    expect(student).toMatch(
+      /assets\.some\(\(asset\) =>\s*asset\.id === finalizedAsset\.id\)/,
+    );
   });
 
   it('publishes only an explicit saved baseline and exposes decimal input constraints', () => {
