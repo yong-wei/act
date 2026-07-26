@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const serviceMocks = vi.hoisted(() => ({
   begin: vi.fn(),
+  beginCorrection: vi.fn(),
   complete: vi.fn(),
   fail: vi.fn(),
+  action: vi.fn(),
 }));
 const sourcePackMocks = vi.hoisted(() => ({
   sar: vi.fn(),
@@ -12,9 +14,11 @@ const sourcePackMocks = vi.hoisted(() => ({
 const adoptionMocks = vi.hoisted(() => ({ adopt: vi.fn() }));
 
 vi.mock('../service', () => ({
+  beginCorrectionAttempt: serviceMocks.beginCorrection,
   beginProviderAttempt: serviceMocks.begin,
   completeGenerationStage: serviceMocks.complete,
   failGenerationStage: serviceMocks.fail,
+  setGenerationStageActionState: serviceMocks.action,
 }));
 vi.mock('../../course-basis/lesson-design-source-pack', () => ({
   buildCourseBasisLessonDesignSar: sourcePackMocks.sar,
@@ -44,6 +48,28 @@ const sourcePackItem = {
   },
 };
 
+function outlineJobContext() {
+  return {
+    id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'OUTLINE',
+    stages: [{ id: 'stage-1', kind: 'OUTLINE', orderIndex: 0, state: 'PENDING', output: null }],
+    draft: { task: {
+      courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+      aggregateClassContext: null, aggregateClassContextRef: null,
+      sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+    } },
+  };
+}
+
+function outlineMissingPostAssessment() {
+  return {
+    keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+    coursewareStepOutline: [
+      ['bridgeIn', 5], ['bridgeIn', 5], ['objectives', 5],
+      ['preAssessment', 5], ['participatoryLearning', 5], ['summary', 5],
+    ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+  };
+}
+
 function persistenceDb(context: object, transitionedCount = 1) {
   const tx = {
     smartLessonGenerationStage: { updateMany: vi.fn(async () => ({ count: 1 })) },
@@ -62,7 +88,12 @@ function persistenceDb(context: object, transitionedCount = 1) {
 describe('smart lesson BullMQ worker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    serviceMocks.fail.mockResolvedValue({});
+    serviceMocks.fail.mockResolvedValue({ state: 'RETRYABLE' });
+    serviceMocks.action.mockResolvedValue(undefined);
+    serviceMocks.beginCorrection.mockResolvedValue({
+      id: 'attempt-correction-1',
+      idempotencyKey: 'attempt-correction-key-1',
+    });
     sourcePackMocks.sar.mockResolvedValue({ candidateRefs: { retrievalChunkIds: ['chunk-1'] } });
     sourcePackMocks.pack.mockResolvedValue({ retrieval: { pack: { items: [sourcePackItem] } } });
   });
@@ -126,7 +157,7 @@ describe('smart lesson BullMQ worker', () => {
     expect(serviceMocks.fail).not.toHaveBeenCalled();
   });
 
-  it('marks schema-invalid provider output as a permanent stage failure', async () => {
+  it('makes exactly one linked correction call and marks a second invalid result retryable', async () => {
     const context = {
       id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'OUTLINE',
       stages: [{ id: 'stage-1', kind: 'OUTLINE', orderIndex: 0, state: 'PENDING', output: null }],
@@ -144,14 +175,158 @@ describe('smart lesson BullMQ worker', () => {
     await expect(processSmartLessonGenerationJob(db as never, 'job-1', vi.fn(async () => ({
       serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1',
       generate: vi.fn(async () => ({ output: {}, normalizedResponseId: 'response-1' })),
-    })) as never)).rejects.toBeTruthy();
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
 
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledTimes(1);
     expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      stage: 'OUTLINE', attemptId: 'attempt-1', retryable: false,
+      stage: 'OUTLINE', attemptId: 'attempt-correction-1', retryable: true,
+      validationReceipt: expect.objectContaining({ valid: false }),
     }));
   });
 
-  it('rejects a generated source binding that is not present in the same source pack', async () => {
+  it('attributes a correction provider timeout to the running correction attempt', async () => {
+    const context = outlineJobContext();
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: {}, normalizedResponseId: 'invalid-original-response' })
+      .mockRejectedValueOnce(new Error('curl: (28) Operation timed out after 240000 milliseconds with 0 bytes received'));
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-original-1', idempotencyKey: 'attempt-key-1' },
+    });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      originalAttemptId: 'attempt-original-1',
+    }));
+    expect(serviceMocks.fail).toHaveBeenCalledTimes(1);
+    expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-correction-1',
+      failureCode: 'provider-timeout',
+      retryable: true,
+    }));
+    expect(serviceMocks.fail).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-original-1',
+    }));
+  });
+
+  it('persists a corrected valid result from the single linked correction attempt', async () => {
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'OUTLINE',
+      stages: [{ id: 'stage-1', kind: 'OUTLINE', orderIndex: 0, state: 'PENDING', output: null }],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5], ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: {}, normalizedResponseId: 'invalid-response' })
+      .mockResolvedValueOnce({ output: outline, normalizedResponseId: 'corrected-response', inputTokens: 2, outputTokens: 3, costMicros: null });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(generate).toHaveBeenCalledTimes(2);
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      originalAttemptId: 'attempt-1',
+      validationReceipt: expect.objectContaining({ valid: false }),
+    }));
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-correction-1',
+      output: outline,
+      validationReceipt: expect.objectContaining({ valid: true }),
+    }));
+  });
+
+  it('routes a schema-valid outline missing post-assessment through the linked correction attempt', async () => {
+    const context = outlineJobContext();
+    const correctedOutline = {
+      ...outlineMissingPostAssessment(),
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: outlineMissingPostAssessment(), normalizedResponseId: 'qwen-outline' })
+      .mockResolvedValueOnce({ output: correctedOutline, normalizedResponseId: 'qwen-outline-corrected' });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      originalAttemptId: 'attempt-1',
+      validationReceipt: {
+        valid: false,
+        schemaVersion: 'smart-lesson-outline.v1',
+        issues: [{
+          code: 'outline-stage-missing',
+          path: ['coursewareStepOutline'],
+          message: '提纲缺少必要的 postAssessment 阶段。',
+        }],
+      },
+    }));
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-correction-1',
+      output: correctedOutline,
+    }));
+  });
+
+  it('marks a corrected schema-valid outline still missing post-assessment as retryable', async () => {
+    const context = outlineJobContext();
+    const generate = vi.fn(async () => ({
+      output: outlineMissingPostAssessment(),
+      normalizedResponseId: 'qwen-outline-still-incomplete',
+    }));
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
+
+    expect(generate).toHaveBeenCalledTimes(2);
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledTimes(1);
+    expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      stage: 'OUTLINE',
+      attemptId: 'attempt-correction-1',
+      failureCode: 'provider-output-invalid-after-correction',
+      retryable: true,
+      validationReceipt: expect.objectContaining({
+        valid: false,
+        issues: [expect.objectContaining({ code: 'outline-stage-missing' })],
+      }),
+    }));
+  });
+
+  it('bounds correction when a generated source binding is not present in the same source pack', async () => {
     const outline = {
       keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
       coursewareStepOutline: [
@@ -189,10 +364,10 @@ describe('smart lesson BullMQ worker', () => {
         },
         normalizedResponseId: 'response-1', inputTokens: 10, outputTokens: 20, costMicros: null,
       })),
-    })) as never)).rejects.toMatchObject({ code: 'generated-source-binding-unverified' });
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
 
     expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      stage: 'BRIDGE_IN', attemptId: 'attempt-1', retryable: false,
+      stage: 'BRIDGE_IN', attemptId: 'attempt-correction-1', retryable: true,
     }));
   });
 
@@ -268,10 +443,35 @@ describe('smart lesson BullMQ worker', () => {
     await expect(processSmartLessonGenerationJob(db as never, 'job-1', vi.fn(async () => ({
       serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1',
       generate: vi.fn(async () => { throw new Error('curl: (28) Operation timed out after 240000 milliseconds with 0 bytes received'); }),
-    })) as never)).rejects.toThrow(/timed out/);
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
 
     expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       failureCode: 'provider-timeout', retryable: true,
+    }));
+  });
+
+  it('rethrows the provider error when persisting the failed stage also fails', async () => {
+    const context = outlineJobContext();
+    const providerError = new Error('provider connection reset');
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.fail.mockRejectedValueOnce(new Error('database temporarily unavailable'));
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({
+        serviceId: 'provider-1',
+        providerKind: 'openai-compatible',
+        model: 'model-1',
+        generate: vi.fn(async () => { throw providerError; }),
+      })) as never,
+    )).rejects.toBe(providerError);
+
+    expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-1',
+      retryable: true,
     }));
   });
 

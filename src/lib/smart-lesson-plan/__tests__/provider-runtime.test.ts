@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { resolveSmartLessonStructuredProvider } from '../provider-runtime';
+import {
+  normalizeSmartLessonProviderOutput,
+  resolveSmartLessonStructuredProvider,
+  validateSmartLessonProviderOutput,
+} from '../provider-runtime';
 import { smartLessonAdvisoryReviewSchema } from '../schema';
 
 const config = {
@@ -18,6 +22,44 @@ const config = {
 };
 
 describe('smart lesson structured provider runtime', () => {
+  it('deterministically normalizes harmless whitespace and numeric minute strings before validation', () => {
+    const schema = smartLessonAdvisoryReviewSchema.pick({ goalCoverage: true, suggestions: true });
+    const normalized = normalizeSmartLessonProviderOutput({
+      goalCoverage: '  完整\r\n ',
+      suggestions: ['  保留教师判断  '],
+      minutes: '5',
+    }) as Record<string, unknown>;
+    expect(normalized).toEqual({
+      goalCoverage: '完整',
+      suggestions: ['保留教师判断'],
+      minutes: 5,
+    });
+    expect(validateSmartLessonProviderOutput(schema, 'review.v1', {
+      goalCoverage: ' 完整 ',
+      suggestions: [' 建议 '],
+    })).toMatchObject({
+      success: true,
+      output: { goalCoverage: '完整', suggestions: ['建议'] },
+      receipt: { valid: true, schemaVersion: 'review.v1', issues: [] },
+    });
+  });
+
+  it('returns a bounded validation receipt instead of throwing away an invalid structured candidate', () => {
+    const result = validateSmartLessonProviderOutput(
+      smartLessonAdvisoryReviewSchema,
+      'review.v1',
+      { goalCoverage: '' },
+    );
+    expect(result).toMatchObject({
+      success: false,
+      receipt: {
+        valid: false,
+        schemaVersion: 'review.v1',
+        issues: expect.arrayContaining([expect.objectContaining({ path: expect.any(Array), message: expect.any(String) })]),
+      },
+    });
+  });
+
   it('selects the configured JSON-schema provider and generates server-owned audit metadata', async () => {
     const resolveConfig = vi.fn(async (_provider, _model, requirements) => {
       expect(requirements).toEqual({ jsonSchema: true });

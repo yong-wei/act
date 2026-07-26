@@ -29,6 +29,7 @@ import {
   recordAdvisoryReview,
   resumeGenerationJob,
   retryGenerationJob,
+  setGenerationStageActionState,
   startGenerationJob,
   updateSmartLessonDraft,
   updatePausedGenerationOutline,
@@ -894,13 +895,62 @@ describe('smart lesson aggregate service', () => {
 
   it('binds resume to the persisted task input and advances an independent delivery generation', async () => {
     const fixture = generationTransitionFixture('CANCELLED');
+    const completedOutline = {
+      id: 'stage-1',
+      kind: 'OUTLINE',
+      state: 'COMPLETED',
+      actionState: 'WAITING_CONFIRMATION',
+      output: { outline: [{ title: '稳定性判据' }] },
+    };
+    const incompleteBridgeIn = {
+      id: 'stage-2',
+      kind: 'BRIDGE_IN',
+      state: 'CANCELLED',
+      actionState: 'CANCELLED',
+      output: null,
+    };
+    fixture.tx.smartLessonGenerationStage.findFirst.mockResolvedValue(incompleteBridgeIn as never);
+    fixture.tx.smartLessonGenerationStage.updateMany.mockImplementation(async (...args: unknown[]) => {
+      const { where, data } = args[0] as {
+        where: { state?: string | { in: string[] } };
+        data: Record<string, unknown>;
+      };
+      if (where.state === 'COMPLETED') Object.assign(completedOutline, data);
+      if (typeof where.state === 'object' && where.state.in.includes(incompleteBridgeIn.state)) {
+        Object.assign(incompleteBridgeIn, data);
+      }
+      return { count: 1 };
+    });
     const resumed = await resumeGenerationJob(fixture.db as never, {
       actor: teacher, jobId: 'job-1', idempotencyKey: 'resume-request-001',
     });
 
     expect(resumed).toMatchObject({ state: 'QUEUED', deliveryGeneration: 2 });
+    expect(completedOutline).toEqual({
+      id: 'stage-1',
+      kind: 'OUTLINE',
+      state: 'COMPLETED',
+      actionState: 'COMPLETED',
+      output: { outline: [{ title: '稳定性判据' }] },
+    });
+    expect(incompleteBridgeIn).toMatchObject({
+      state: 'PENDING',
+      actionState: 'WAITING',
+      output: null,
+    });
+    expect(fixture.tx.smartLessonGenerationStage.updateMany).toHaveBeenNthCalledWith(1, {
+      where: { jobId: 'job-1', state: 'COMPLETED' },
+      data: { actionState: 'COMPLETED' },
+    });
+    expect(fixture.tx.smartLessonGenerationStage.updateMany).toHaveBeenNthCalledWith(2, {
+      where: { jobId: 'job-1', state: { in: ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] } },
+      data: { state: 'PENDING', actionState: 'WAITING', startedAt: null },
+    });
     expect(fixture.updateJob).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ deliveryGeneration: { increment: 1 } }),
+      data: expect.objectContaining({
+        deliveryGeneration: { increment: 1 },
+        firstIncompleteStage: 'BRIDGE_IN',
+      }),
     }));
 
     const changed = generationTransitionFixture('CANCELLED', generationTaskFixture({ revision: 2, topic: '已修改主题' }));
@@ -908,6 +958,32 @@ describe('smart lesson aggregate service', () => {
       actor: teacher, jobId: 'job-1', idempotencyKey: 'resume-request-002',
     })).rejects.toMatchObject({ code: 'generation-input-changed' });
     expect(changed.updateJob).not.toHaveBeenCalled();
+  });
+
+  it('does not let pre-claim evidence preparation overwrite a concurrently cancelled stage', async () => {
+    const updateMany = vi.fn(async ({ where }) => ({
+      count: where.state === 'PENDING'
+        && where.job?.state?.in?.includes('QUEUED')
+        ? 0
+        : 1,
+    }));
+    const db = { smartLessonGenerationStage: { updateMany } };
+
+    await expect(setGenerationStageActionState(db as never, {
+      actor: teacher,
+      jobId: 'job-1',
+      stage: 'OUTLINE',
+      actionState: 'PREPARING_EVIDENCE',
+    })).rejects.toMatchObject({ code: 'generation-stage-action-state-conflict', status: 409 });
+    expect(updateMany).toHaveBeenCalledWith({
+      where: {
+        jobId: 'job-1',
+        kind: 'OUTLINE',
+        state: 'PENDING',
+        job: { ownerId: teacher.id, state: { in: ['QUEUED', 'RUNNING'] } },
+      },
+      data: { actionState: 'PREPARING_EVIDENCE' },
+    });
   });
 
   it('advances delivery generation when retrying a failed stage', async () => {
@@ -919,6 +995,10 @@ describe('smart lesson aggregate service', () => {
     expect(retried).toMatchObject({ state: 'QUEUED', deliveryGeneration: 2, firstIncompleteStage: 'OUTLINE' });
     expect(fixture.updateJob).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ deliveryGeneration: { increment: 1 } }),
+    }));
+    expect(fixture.tx.smartLessonGenerationStage.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'stage-1' },
+      data: expect.objectContaining({ providerAttemptGeneration: { increment: 1 } }),
     }));
   });
 
@@ -962,7 +1042,7 @@ describe('smart lesson aggregate service', () => {
     };
     const first = await beginProviderAttempt(db as never, input);
     const duplicate = await beginProviderAttempt(db as never, input);
-    expect(first).toMatchObject({ claimed: true, attempt: { attemptNumber: 1, idempotencyKey: 'smart-lesson-stage:stage-1:1' } });
+    expect(first).toMatchObject({ claimed: true, attempt: { attemptNumber: 1, idempotencyKey: 'smart-lesson-stage:stage-1:generation:1' } });
     expect(duplicate).toMatchObject({ claimed: false, attempt: { id: 'attempt-1' } });
     expect(tx.smartLessonProviderAttempt.create).toHaveBeenCalledTimes(1);
     expect(tx.smartLessonProviderAttempt.create).toHaveBeenCalledWith({ data: expect.objectContaining({
@@ -979,7 +1059,7 @@ describe('smart lesson aggregate service', () => {
     };
     const attempt: Record<string, any> = {
       id: 'attempt-1', stageId: stage.id, attemptNumber: 1,
-      idempotencyKey: 'smart-lesson-stage:stage-1:1', outcome: 'RETRYABLE_FAILURE',
+      idempotencyKey: 'smart-lesson-stage:stage-1:generation:1', outcome: 'RETRYABLE_FAILURE',
       serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1',
       promptVersion: 'prompt.v1', schemaVersion: 'outline.v1', requestHash: contentHash(request),
       finishedAt: new Date(),
@@ -1010,7 +1090,7 @@ describe('smart lesson aggregate service', () => {
       promptVersion: 'prompt.v1', schemaVersion: 'outline.v1',
     });
 
-    expect(result).toMatchObject({ claimed: true, attempt: { id: 'attempt-1', idempotencyKey: 'smart-lesson-stage:stage-1:1', outcome: 'RUNNING' } });
+    expect(result).toMatchObject({ claimed: true, attempt: { id: 'attempt-1', idempotencyKey: 'smart-lesson-stage:stage-1:generation:1', outcome: 'RUNNING' } });
     expect(stage.attemptGeneration).toBe(2);
     expect(tx.smartLessonProviderAttempt.create).not.toHaveBeenCalled();
   });
