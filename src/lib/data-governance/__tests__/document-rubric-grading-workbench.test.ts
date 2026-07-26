@@ -890,6 +890,35 @@ describe('document rubric grading workbench', () => {
     expect(db.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({ where: { userId: 'student-1' } });
   });
 
+  it('preserves two-decimal teacher edits for historical v1 rubrics', async () => {
+    const converted = await convertSubmissionDocument({
+      asset: asset(),
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        preserveSpanMapping: true,
+        runner: (submission) => textFixtureMarkItDownRunner(submission, true),
+      }),
+      now,
+    });
+    const legacyRubric = rubric();
+    const draft = createDraftRubricGrading({
+      convertedDocument: converted,
+      rubric: legacyRubric,
+      now,
+    });
+    const edited = editCriterionGrade(draft, {
+      criterionId: 'validation',
+      levelId: 'advanced',
+      score: 3.55,
+      comment: '保留历史评分精度。',
+      reviewerId: 'teacher-1',
+      rubric: legacyRubric,
+      now,
+    });
+
+    expect(edited.draftGrades.find((grade) => grade.criterionId === 'validation')?.score).toBe(3.55);
+  });
+
   it('keeps document feedback action source aligned with written learner evidence filters', async () => {
     const submission = asset();
     const converted = await convertSubmissionDocument({

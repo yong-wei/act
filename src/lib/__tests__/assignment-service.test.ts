@@ -9,13 +9,29 @@ import { assignmentPublicationIdempotencyKey, createAssignmentDraft, createNextD
 
 process.env.NEXTAUTH_SECRET ??= 'assignment-test-lineage-secret';
 
-function questionRow(points = 20, rubricPoints = 20) {
+function questionRow(points = 20, rubricPoints = 20, legacy = false) {
   const fixture = createQuestionSnapshot(buildRubricBackedSubjectiveAssignmentFixture().questions[0]);
+  const criterion = fixture.rubric.criteria[0];
   return {
     id: 'question-1', assignmentRevisionId: 'revision-1', stableQuestionId: fixture.stableQuestionId,
     orderIndex: 0, responseType: fixture.responseType, points,
     promptSnapshot: { text: fixture.prompt }, answerSnapshot: { text: fixture.referenceAnswer },
-    rubricSnapshot: { ...fixture.rubric, criteria: [{ ...fixture.rubric.criteria[0], maxPoints: rubricPoints, levels: [{ id: 'valid', label: '有效', minPoints: 0, maxPoints: rubricPoints, description: '可复核。' }] }] },
+    rubricSnapshot: legacy
+      ? { ...fixture.rubric, criteria: [{ ...criterion, maxPoints: rubricPoints, levels: [{ id: 'valid', label: '有效', minPoints: 0, maxPoints: rubricPoints, description: '可复核。' }] }] }
+      : {
+          schemaVersion: 'assignment-scoring-rubric.v2',
+          criteria: [{
+            id: criterion.id,
+            label: criterion.label,
+            maxPoints: rubricPoints,
+            scoringStandard: criterion.evidenceDescription,
+            detailedRubricEnabled: false,
+            evidenceDescription: criterion.evidenceDescription,
+            feedbackGuidance: criterion.feedbackGuidance,
+            studentVisibleGuidance: criterion.studentVisibleGuidance,
+            levels: [],
+          }],
+        },
     sourceFamily: 'MANUAL', sourceId: null, sourceVersion: null,
     sourceHash: stableHash(fixture.source), sourceReviewState: 'author-owned', sourceLineage: { marker: 'assignment-authoring' },
     contentHash: fixture.contentHash,
@@ -161,7 +177,13 @@ describe('assignment authoring persistence service', () => {
   });
 
   it('returns the existing next draft instead of duplicating a revision', async () => {
-    const existing = { id: 'revision-2', assignmentId: 'assignment-1', state: 'DRAFT', revisionNumber: 2 };
+    const existing = {
+      id: 'revision-2',
+      assignmentId: 'assignment-1',
+      state: 'DRAFT',
+      revisionNumber: 2,
+      questions: [],
+    };
     const tx = {
       assignment: { findUnique: vi.fn(async () => ({ authorId: 'teacher-1', archivedAt: null })) },
       assignmentRevision: { findFirst: vi.fn(async () => existing), create: vi.fn() },
@@ -170,8 +192,53 @@ describe('assignment authoring persistence service', () => {
     expect(tx.assignmentRevision.create).not.toHaveBeenCalled();
   });
 
+  it('migrates an existing v1 draft in place before returning it for editing', async () => {
+    const existing = {
+      id: 'revision-2',
+      assignmentId: 'assignment-1',
+      state: 'DRAFT',
+      revisionNumber: 2,
+      version: 3,
+      title: '控制系统校正分析作业',
+      instructions: '依据给定系统参数说明校正目标、设计依据和验证过程。',
+      totalPoints: 20,
+      latePolicy: { version: 1, mode: 'CLOSED' },
+      responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
+      resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
+      solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
+      questions: [questionRow(20, 20, true)],
+    };
+    const migrated = { ...existing, version: 4, questions: [] };
+    const tx = {
+      assignment: { findUnique: vi.fn(async () => ({ authorId: 'teacher-1', archivedAt: null })) },
+      assignmentRevision: {
+        findFirst: vi.fn(async () => existing),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+        findUniqueOrThrow: vi.fn(async () => migrated),
+        create: vi.fn(),
+      },
+      assignmentQuestion: {
+        deleteMany: vi.fn(),
+        createMany: vi.fn(),
+      },
+    };
+
+    await expect(createNextDraftRevision(dbWithTransaction(tx), {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: 'assignment-1',
+    })).resolves.toBe(migrated);
+
+    const rows = tx.assignmentQuestion.createMany.mock.calls[0][0].data;
+    expect(rows[0].rubricSnapshot.schemaVersion).toBe('assignment-scoring-rubric.v2');
+    expect(tx.assignmentRevision.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: 'revision-2', version: 3 }),
+      data: expect.objectContaining({ version: { increment: 1 } }),
+    }));
+    expect(tx.assignmentRevision.create).not.toHaveBeenCalled();
+  });
+
   it('creates a v2 next draft while preserving the published v1 snapshot', async () => {
-    const publishedQuestion = questionRow();
+    const publishedQuestion = questionRow(20, 20, true);
     const latest = {
       id: 'revision-1',
       assignmentId: 'assignment-1',

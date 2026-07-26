@@ -216,7 +216,54 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
       return await db.$transaction(async (tx) => {
         await assertAssignmentOwner(tx, input.assignmentId, input.actor);
         const existingDraft = await tx.assignmentRevision.findFirst({ where: { assignmentId: input.assignmentId, state: 'DRAFT' }, include: { questions: { orderBy: { orderIndex: 'asc' } } } });
-        if (existingDraft) return existingDraft;
+        if (existingDraft) {
+          const hasLegacyRubric = existingDraft.questions.some((question) =>
+            (question.rubricSnapshot as { schemaVersion?: unknown } | null)?.schemaVersion === 'assignment-analytic-rubric.v1'
+          );
+          if (!hasLegacyRubric) return existingDraft;
+          const legacyDraft = assignmentDraftSchema.parse({
+            title: existingDraft.title,
+            instructions: existingDraft.instructions,
+            totalPoints: Number(existingDraft.totalPoints),
+            questions: existingDraft.questions.map((question) => questionFromRow(question as unknown as Record<string, unknown>)),
+            latePolicy: existingDraft.latePolicy,
+            responsePolicy: existingDraft.responsePolicy,
+            resubmissionPolicy: existingDraft.resubmissionPolicy,
+            solutionReleasePolicy: existingDraft.solutionReleasePolicy,
+          });
+          const migratedDraft = requireMigratedDraft(legacyDraft);
+          const migratedSnapshots = migratedQuestionSnapshots(migratedDraft);
+          const updated = await tx.assignmentRevision.updateMany({
+            where: {
+              id: existingDraft.id,
+              assignmentId: input.assignmentId,
+              state: 'DRAFT',
+              version: existingDraft.version,
+            },
+            data: {
+              title: migratedDraft.title,
+              instructions: migratedDraft.instructions,
+              totalPoints: migratedDraft.totalPoints,
+              latePolicy: migratedDraft.latePolicy,
+              responsePolicy: migratedDraft.responsePolicy,
+              resubmissionPolicy: migratedDraft.resubmissionPolicy,
+              solutionReleasePolicy: migratedDraft.solutionReleasePolicy,
+              contentHash: stableHash(draftWithSnapshots(migratedDraft, migratedSnapshots)),
+              version: { increment: 1 },
+            },
+          });
+          if (updated.count !== 1) throw new AssignmentDomainError('version-conflict');
+          await tx.assignmentQuestion.deleteMany({ where: { assignmentRevisionId: existingDraft.id } });
+          await tx.assignmentQuestion.createMany({
+            data: migratedSnapshots.map((question, index) =>
+              questionCreateManyData(existingDraft.id, question, index)
+            ),
+          });
+          return tx.assignmentRevision.findUniqueOrThrow({
+            where: { id: existingDraft.id },
+            include: { questions: { orderBy: { orderIndex: 'asc' } } },
+          });
+        }
         const latest = await tx.assignmentRevision.findFirst({
       where: { assignmentId: input.assignmentId, state: 'PUBLISHED' },
       orderBy: { revisionNumber: 'desc' },
@@ -233,30 +280,8 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
           resubmissionPolicy: latest.resubmissionPolicy,
           solutionReleasePolicy: latest.solutionReleasePolicy,
         });
-        const nextDraftResult = assignmentDraftSchema.safeParse(
-          migrateLegacyAssignmentDraftToRubricV2(legacyDraft),
-        );
-        if (!nextDraftResult.success) {
-          throw new AssignmentDomainError(
-            'legacy-rubric-v2-migration-required',
-            nextDraftResult.error.issues.map((issue) => `${issue.path.join('.')}:${issue.message}`),
-          );
-        }
-        const nextDraft = nextDraftResult.data;
-        const nextSnapshots = nextDraft.questions.map((question) => {
-          if (question.source.family !== 'ASSIGNMENT_DERIVATIVE') return createQuestionSnapshot(question);
-          const contentHash = stableHash({
-            responseType: question.responseType,
-            points: question.points,
-            prompt: question.prompt,
-            referenceAnswer: question.referenceAnswer,
-            rubric: question.rubric,
-          });
-          return createQuestionSnapshot({
-            ...question,
-            source: { ...question.source, contentHash },
-          });
-        });
+        const nextDraft = requireMigratedDraft(legacyDraft);
+        const nextSnapshots = migratedQuestionSnapshots(nextDraft);
         return tx.assignmentRevision.create({
       data: {
         assignmentId: input.assignmentId,
@@ -277,6 +302,36 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
 
 function isRecoverableNextDraftRace(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && (error.code === 'P2002' || error.code === 'P2034');
+}
+
+function requireMigratedDraft(legacyDraft: AssignmentDraftInput): AssignmentDraftInput {
+  const result = assignmentDraftSchema.safeParse(
+    migrateLegacyAssignmentDraftToRubricV2(legacyDraft),
+  );
+  if (!result.success) {
+    throw new AssignmentDomainError(
+      'legacy-rubric-v2-migration-required',
+      result.error.issues.map((issue) => `${issue.path.join('.')}:${issue.message}`),
+    );
+  }
+  return result.data;
+}
+
+function migratedQuestionSnapshots(draft: AssignmentDraftInput): AssignmentQuestionSnapshot[] {
+  return draft.questions.map((question) => {
+    if (question.source.family !== 'ASSIGNMENT_DERIVATIVE') return createQuestionSnapshot(question);
+    const contentHash = stableHash({
+      responseType: question.responseType,
+      points: question.points,
+      prompt: question.prompt,
+      referenceAnswer: question.referenceAnswer,
+      rubric: question.rubric,
+    });
+    return createQuestionSnapshot({
+      ...question,
+      source: { ...question.source, contentHash },
+    });
+  });
 }
 
 export async function publishAssignmentRevision(db: AssignmentDb, input: {
@@ -341,6 +396,11 @@ export async function publishAssignmentRevision(db: AssignmentDb, input: {
           questions: revision.questions.map(questionFromRow),
         });
         const issues = [...validatePublicationScores(draft), ...validatePublicationSchedule(input.audiences, now)];
+        if (draft.questions.some((question) =>
+          question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2'
+        )) {
+          issues.push('legacy-rubric-v2-migration-required');
+        }
         if (draft.solutionReleasePolicy.mode === 'AT_TIME') {
           const publicationAudienceIds = new Set(input.audiences.map((audience) => audience.classId));
           for (const classId of draft.solutionReleasePolicy.audienceClassIds) {

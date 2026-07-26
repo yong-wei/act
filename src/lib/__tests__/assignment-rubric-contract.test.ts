@@ -6,6 +6,7 @@ import {
   clampSuggestedScoreToLevel,
   createInitialDetailedLevel,
   deriveRubricLevelRanges,
+  inferEditedRubricLevelIds,
   roundUpToOneDecimal,
   sortRubricLevels,
   teacherScoreIsValid,
@@ -132,6 +133,37 @@ describe('assignment rubric v2 decimal and level contract', () => {
         expect.objectContaining({ label: '不通过', maxPoints: 4.2 }),
       ],
     });
+  });
+
+  it('distinguishes persisted system defaults from teacher-edited level records', () => {
+    const defaultLevel = createInitialDetailedLevel('quality', 10);
+    const editedLevelIds = inferEditedRubricLevelIds({
+      criterionId: 'quality',
+      criterionMaxPoints: 10,
+      levels: [defaultLevel],
+    });
+    expect(editedLevelIds).toEqual(new Set());
+    expect(applyRubricLevelShortcut({
+      criterionId: 'quality',
+      criterionMaxPoints: 10,
+      levels: [defaultLevel],
+      targetCount: 5,
+      editedLevelIds,
+    })).toEqual({
+      status: 'applied',
+      levels: [
+        expect.objectContaining({ label: '优秀', maxPoints: 10 }),
+        expect.objectContaining({ label: '良好', maxPoints: 9 }),
+        expect.objectContaining({ label: '中等', maxPoints: 8 }),
+        expect.objectContaining({ label: '及格', maxPoints: 7 }),
+        expect.objectContaining({ label: '不及格', maxPoints: 6 }),
+      ],
+    });
+    expect(inferEditedRubricLevelIds({
+      criterionId: 'quality',
+      criterionMaxPoints: 10,
+      levels: [{ ...defaultLevel, label: '教师自定义优秀' }],
+    })).toEqual(new Set([defaultLevel.id]));
   });
 
   it('extends edited shortcut content by the last-two ratio', () => {

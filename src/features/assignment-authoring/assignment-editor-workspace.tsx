@@ -27,6 +27,7 @@ import {
   applyRubricLevelShortcut,
   createInitialDetailedLevel,
   deriveRubricLevelRanges,
+  inferEditedRubricLevelIds,
   sortRubricLevels,
 } from '@/lib/assignments/assignment-rubric-contract';
 import {
@@ -1140,16 +1141,20 @@ function QuestionEditor({
   promptRef: React.RefObject<HTMLTextAreaElement | null>;
   onChange: (question: EditableQuestion) => void;
 }) {
-  const editedLevelIdsRef = useRef(new Map(
-    question.rubric.criteria.map((criterion) => [
-      criterion.id,
-      new Set(criterion.levels.map((level) => level.id)),
-    ]),
-  ));
   const editableQuestion: EditableQuestionV2 = {
     ...question,
     rubric: toScoringRubricV2(question.rubric),
   };
+  const editedLevelIdsRef = useRef(new Map(
+    editableQuestion.rubric.criteria.map((criterion) => [
+      criterion.id,
+      inferEditedRubricLevelIds({
+        criterionId: criterion.id,
+        criterionMaxPoints: criterion.maxPoints,
+        levels: criterion.levels,
+      }),
+    ]),
+  ));
   const updateCriterion = (
     index: number,
     update: (criterion: ScoringCriterionV2) => ScoringCriterionV2,

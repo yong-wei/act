@@ -765,12 +765,19 @@ export function editCriterionGrade(
   },
 ): DocumentRubricGradingRun {
   const criterion = edit.rubric?.criteria.find((item) => item.id === edit.criterionId);
-  if (!hasAtMostOneDecimal(edit.score) || edit.score < 0) {
+  const isV2 = edit.rubric?.schemaVersion === 'assignment-scoring-rubric.v2';
+  const hasValidPrecision = isV2
+    ? hasAtMostOneDecimal(edit.score)
+    : edit.rubric
+      ? Number.isFinite(edit.score) && Math.abs(edit.score * 100 - Math.round(edit.score * 100)) < 1e-8
+      : Number.isFinite(edit.score);
+  if (!hasValidPrecision || edit.score < 0) {
     throw new Error('teacher-score-must-use-0.1-quantum');
   }
   if (criterion) {
     const criterionMax = criterion.maxPoints ?? edit.rubric!.maxScore;
-    if (!teacherScoreIsValid(edit.score, criterionMax)) {
+    if ((isV2 && !teacherScoreIsValid(edit.score, criterionMax))
+      || (!isV2 && edit.score > criterionMax)) {
       throw new Error('teacher-score-out-of-range');
     }
     if (criterion.detailedRubricEnabled === false && edit.levelId !== null) {

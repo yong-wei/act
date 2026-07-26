@@ -238,6 +238,52 @@ export function teacherScoreIsValid(score: number, criterionMaxPoints: number): 
   return hasAtMostOneDecimal(score) && score >= 0 && score <= criterionMaxPoints;
 }
 
+export function inferEditedRubricLevelIds(input: {
+  criterionId: string;
+  criterionMaxPoints: number;
+  levels: readonly AssignmentRubricLevelV2[];
+}): Set<string> {
+  const candidates: AssignmentRubricLevelV2[][] = [];
+  let sequential: AssignmentRubricLevelV2[] = [];
+  while (sequential.length < input.levels.length) {
+    const result = addDetailedRubricLevel({
+      criterionId: input.criterionId,
+      criterionMaxPoints: input.criterionMaxPoints,
+      levels: sequential,
+    });
+    if (result.status !== 'applied') break;
+    sequential = result.levels;
+  }
+  if (sequential.length === input.levels.length) candidates.push(sequential);
+  if (input.levels.length === 2 || input.levels.length === 5) {
+    const shortcut = applyRubricLevelShortcut({
+      criterionId: input.criterionId,
+      criterionMaxPoints: input.criterionMaxPoints,
+      levels: [],
+      targetCount: input.levels.length,
+    });
+    if (shortcut.status === 'applied') candidates.push(shortcut.levels);
+  }
+  if (candidates.some((candidate) => rubricLevelsEqual(candidate, input.levels))) {
+    return new Set();
+  }
+  return new Set(input.levels.map((level) => level.id));
+}
+
+function rubricLevelsEqual(
+  left: readonly AssignmentRubricLevelV2[],
+  right: readonly AssignmentRubricLevelV2[],
+): boolean {
+  return left.length === right.length && left.every((level, index) => {
+    const candidate = right[index];
+    return candidate !== undefined
+      && level.id === candidate.id
+      && level.label === candidate.label
+      && toTenths(level.maxPoints) === toTenths(candidate.maxPoints)
+      && level.guideline === candidate.guideline;
+  });
+}
+
 function toTenths(value: number): number {
   return Math.round(value * 10);
 }
