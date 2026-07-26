@@ -44,6 +44,8 @@ describe('Konling textbook background route contract', () => {
     expect(revisionReturn).toBeGreaterThan(cas);
     expect(optimizationBody).toContain('if (!replaced) return null');
     expect(optimizationBody).toContain('repair: citationRepairUsed');
+    expect(route).toContain('responseAssistantMessage = responseMessage');
+    expect(route.match(/replaceMessageTextContent\(/gu)).toHaveLength(2);
   });
 
   it('uses only the approved production optimization copy', () => {

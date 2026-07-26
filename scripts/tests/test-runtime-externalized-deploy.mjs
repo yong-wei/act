@@ -412,6 +412,26 @@ try {
   );
   fs.mkdirSync(path.dirname(mediaPath), { recursive: true });
   fs.writeFileSync(mediaPath, 'fixture-v1');
+  const missingProvenanceResult = spawnSync(process.execPath, preflightArgs, {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.notEqual(
+    missingProvenanceResult.status,
+    0,
+    '缺少 input-provenance.json 的 runtime 必须 fail closed',
+  );
+  assert.match(
+    missingProvenanceResult.stderr,
+    /textbook-v2-input-provenance-missing/u,
+    'preflight 应明确报告缺少输入溯源文件',
+  );
+  fs.writeFileSync(path.join(runtimeRoot, 'input-provenance.json'), `${JSON.stringify({
+    schemaVersion: 'act.textbook-runtime-input-provenance.v1',
+    sourceRevision: revision,
+    inputDigest: 'a'.repeat(64),
+    inputFileCount: 1,
+  })}\n`);
   const initialInspect = spawnSync(process.execPath, preflightArgs, {
     cwd: root,
     encoding: 'utf8',
@@ -444,6 +464,11 @@ try {
     { cwd: root, encoding: 'utf8' },
   );
   assert.equal(writeSidecarResult.status, 0, writeSidecarResult.stderr);
+  assert.equal(
+    JSON.parse(fs.readFileSync(sidecar, 'utf8')).runtimeInputDigest,
+    'a'.repeat(64),
+    'sidecar 必须绑定 runtime 输入摘要',
+  );
 
   fs.writeFileSync(mediaPath, 'fixture-v2-tampered');
   const tamperedInspect = spawnSync(process.execPath, preflightArgs, {
@@ -518,6 +543,7 @@ try {
     imageTarSha256: '0'.repeat(64),
     runtimeSourceRevision: '1111111111111111111111111111111111111111',
     runtimeDigest: '1'.repeat(64),
+    runtimeInputDigest: '3'.repeat(64),
     indexSourceRevision: '1111111111111111111111111111111111111111',
     indexDigest: '2'.repeat(64),
   })}\n`);
@@ -549,6 +575,7 @@ try {
     imageTarSha256: '0'.repeat(64),
     runtimeSourceRevision: '2222222222222222222222222222222222222222',
     runtimeDigest: '1'.repeat(64),
+    runtimeInputDigest: '3'.repeat(64),
     indexSourceRevision: '1111111111111111111111111111111111111111',
     indexDigest: '2'.repeat(64),
   })}\n`);

@@ -8,7 +8,14 @@
 
 import { consumeStream, createUIMessageStreamResponse, generateText, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
-import { getMessageContent, toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
+import {
+  getMessageContent,
+  replaceMessageTextContent,
+  toLegacyMessage,
+  toModelMessages,
+  toUIMessage,
+  type IncomingMessage,
+} from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
@@ -649,6 +656,8 @@ export async function POST(request: Request) {
       maxOutputTokens: 2000,
     });
 
+    let responseAssistantMessage: IncomingMessage | null = null;
+    let persistedAssistantMessage: IncomingMessage | null = null;
     const uiMessageStream = result.toUIMessageStream({
       originalMessages: uiMessages,
       generateMessageId: () => crypto.randomUUID(),
@@ -664,7 +673,9 @@ export async function POST(request: Request) {
         if (!getMessageContent(responseMessage).trim()) {
           await releaseKonlingConversationTurn(prisma, claimedTurn);
           claimedTurn = null;
+          return;
         }
+        responseAssistantMessage = responseMessage;
       },
       messageMetadata: ({ part }) => {
         if (!citationGuardMetadataPayload || (part.type !== 'start' && part.type !== 'finish')) return undefined;
@@ -744,16 +755,22 @@ export async function POST(request: Request) {
             };
             if (claimedTurn) {
               const completingTurn = claimedTurn;
+              const assistantMessage = replaceMessageTextContent(
+                responseAssistantMessage ?? {
+                  id: messageId,
+                  role: 'assistant',
+                  content: assistantBody,
+                },
+                normalized.body,
+                metadata,
+              );
+              assistantMessage.id = messageId;
               try {
                 await completeKonlingConversationTurn(prisma, {
                   ...completingTurn,
-                  assistantMessage: {
-                    id: messageId,
-                    role: 'assistant',
-                    content: normalized.body,
-                    metadata,
-                  },
+                  assistantMessage,
                 });
+                persistedAssistantMessage = assistantMessage;
                 claimedTurn = null;
               } catch (error) {
                 await releaseKonlingConversationTurn(prisma, completingTurn);
@@ -865,15 +882,20 @@ export async function POST(request: Request) {
               },
             };
             if (conversationId && session?.user?.id) {
+              const assistantMessage = replaceMessageTextContent(
+                persistedAssistantMessage ?? responseAssistantMessage ?? {
+                  id: messageId,
+                  role: 'assistant',
+                  content: revision.body,
+                },
+                normalized.body,
+                metadata,
+              );
+              assistantMessage.id = messageId;
               const replaced = await replaceKonlingConversationAssistantRevision(prisma, {
                 conversationId,
                 ownerUserId: session.user.id,
-                assistantMessage: {
-                  id: messageId,
-                  role: 'assistant',
-                  content: normalized.body,
-                  metadata,
-                },
+                assistantMessage,
                 expectedRevision: 1,
                 revision: 2,
               });
