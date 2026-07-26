@@ -171,5 +171,7 @@ describe('teacher assignment workspace contracts', () => {
     expect(editor).toContain('aria-modal="true"');
     expect(editor).toContain('dialogPrimaryRef.current?.focus()');
     expect(editor).toContain('role="status"');
+    expect(editor).toContain('const requestedCriterionFingerprint = canonicalFingerprint(savedCriterion)');
+    expect(editor).toContain('canonicalFingerprint(latestCriterion) !== requestedCriterionFingerprint');
   });
 });

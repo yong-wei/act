@@ -445,6 +445,7 @@ export function AssignmentEditorWorkspace({
       return { status: 'error', message: '评分项结构已变化，请重新发起生成。' };
     }
     const levelIds = savedCriterion.levels.map((level) => level.id);
+    const requestedCriterionFingerprint = canonicalFingerprint(savedCriterion);
     if (!savedCriterion.scoringStandard.trim() && !savedCriterion.label.trim()) {
       return {
         status: 'error',
@@ -516,7 +517,8 @@ export function AssignmentEditorWorkspace({
     if (latest.version !== generated.revisionVersion
       || generated.revisionId !== latest.revisionId
       || !latestQuestion
-      || !latestCriterion) {
+      || !latestCriterion
+      || canonicalFingerprint(latestCriterion) !== requestedCriterionFingerprint) {
       return { status: 'error', message: '生成期间评分细则已变化，结果未应用。' };
     }
     const nextQuestion = applyGeneratedRubricGuidelines(
