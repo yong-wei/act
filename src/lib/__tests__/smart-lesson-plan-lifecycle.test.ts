@@ -65,6 +65,7 @@ describe('smart lesson task lifecycle', () => {
     const updateMany = vi.fn(async () => ({ count: 0 }));
     const taskDelete = vi.fn(async () => ({ id: 'task-1' }));
     const delegate = { deleteMany, updateMany };
+    const referenceDeleteMany = vi.fn(async () => ({ count: 4 }));
     const tx = new Proxy({
       $executeRaw: vi.fn(async () => [{ set_config: 'task-1' }]),
       $queryRaw: vi.fn(async () => [{ taskId: 'task-1' }]),
@@ -76,9 +77,26 @@ describe('smart lesson task lifecycle', () => {
         delete: taskDelete,
       },
       smartLessonRevision: {
+        findMany: vi.fn(async () => [{ id: 'revision-1' }]),
+        deleteMany,
+      },
+      smartLessonKnowledgePoint: {
+        findMany: vi.fn(async () => [{ id: 'point-1' }]),
+        deleteMany,
+      },
+      smartLessonGoal: {
+        findMany: vi.fn(async () => [{ id: 'goal-1' }]),
+        deleteMany,
+      },
+      smartLessonGenerationJob: {
+        findMany: vi.fn(async () => [{ id: 'job-1' }]),
+        deleteMany,
+      },
+      smartCoursewareDraft: {
         findMany: vi.fn(async () => []),
         deleteMany,
       },
+      courseBasisReferenceLink: { deleteMany: referenceDeleteMany },
     } as Record<string, unknown>, {
       get(target, property) {
         return target[property as string] ?? delegate;
@@ -99,6 +117,16 @@ describe('smart lesson task lifecycle', () => {
     expect(updateMany).toHaveBeenCalledWith({
       where: { taskId: 'task-1' },
       data: { basedOnRevisionId: null },
+    });
+    expect(referenceDeleteMany).toHaveBeenCalledWith({
+      where: {
+        OR: expect.arrayContaining([
+          { referenceType: 'SMART_LESSON_KNOWLEDGE_POINT', referenceId: { in: ['point-1'] } },
+          { referenceType: 'SMART_LESSON_GOAL', referenceId: { in: ['goal-1'] } },
+          { referenceType: 'GENERATION_JOB', referenceId: { in: ['job-1'] } },
+          { referenceType: 'LESSON_PLAN_REVISION', referenceId: { in: ['revision-1'] } },
+        ]),
+      },
     });
   });
 });

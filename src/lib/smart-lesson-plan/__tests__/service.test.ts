@@ -5,7 +5,7 @@ const sourcePackMocks = vi.hoisted(() => ({
   sar: vi.fn(),
   pack: vi.fn(),
 }));
-const adoptionMocks = vi.hoisted(() => ({ adopt: vi.fn() }));
+const adoptionMocks = vi.hoisted(() => ({ adopt: vi.fn(), sync: vi.fn() }));
 
 vi.mock('../../course-basis/lesson-design-source-pack', () => ({
   buildCourseBasisLessonDesignSar: sourcePackMocks.sar,
@@ -13,6 +13,7 @@ vi.mock('../../course-basis/lesson-design-source-pack', () => ({
 }));
 vi.mock('../../course-basis/service', () => ({
   adoptCourseBasisVersion: adoptionMocks.adopt,
+  synchronizeCourseBasisAdopterVersions: adoptionMocks.sync,
 }));
 
 import { contentHash, smartLessonGenerationInputHash } from '../domain';
@@ -323,6 +324,16 @@ describe('smart lesson aggregate service', () => {
       adopter: expect.objectContaining({ referenceType: 'SMART_LESSON_KNOWLEDGE_POINT' }),
       anchors: [{ stableAnchor: binding.anchor, contentHash: binding.contentHash }],
     }));
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(db, {
+      referenceType: 'SMART_LESSON_KNOWLEDGE_POINT',
+      referenceId: expect.any(String),
+      retainedVersionIds: [binding.sourceVersionId],
+    });
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(db, {
+      referenceType: 'SMART_LESSON_GOAL',
+      referenceId: expect.any(String),
+      retainedVersionIds: [],
+    });
   });
 
   it('rejects source versions that are not all eligible for the owning course basis', async () => {
@@ -416,6 +427,16 @@ describe('smart lesson aggregate service', () => {
     expect(recreatedGoal.id).not.toBe('goal-removed');
     expect(recreatedGoal.lineageId).not.toBe('goal-removed-lineage');
     expect(recreatedGoal.gapIdentity).not.toBeNull();
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(tx, {
+      referenceType: 'SMART_LESSON_KNOWLEDGE_POINT',
+      referenceId: 'kp-removed',
+      retainedVersionIds: [],
+    });
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(tx, {
+      referenceType: 'SMART_LESSON_GOAL',
+      referenceId: 'goal-removed',
+      retainedVersionIds: [],
+    });
   });
 
   it('preserves a server-verified item across an unrelated edit without trusting the client state', async () => {

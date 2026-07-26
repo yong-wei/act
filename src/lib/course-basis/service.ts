@@ -609,6 +609,29 @@ export async function adoptCourseBasisVersion(
     : adopt(db);
 }
 
+export async function synchronizeCourseBasisAdopterVersions(
+  db: CourseBasisDb | Prisma.TransactionClient,
+  input: {
+    referenceType: z.infer<typeof courseBasisReferenceTypeSchema>;
+    referenceId: string;
+    retainedVersionIds: string[];
+  },
+) {
+  const referenceType = courseBasisReferenceTypeSchema.safeParse(input.referenceType);
+  if (!referenceType.success) throw new CourseBasisError('reference-type-invalid');
+  const referenceId = validateId(input.referenceId, 'reference-id-invalid');
+  const retainedVersionIds = [...new Set(
+    input.retainedVersionIds.map((versionId) => validateId(versionId, 'version-id-invalid')),
+  )];
+  return db.courseBasisReferenceLink.deleteMany({
+    where: {
+      referenceType: referenceType.data,
+      referenceId,
+      ...(retainedVersionIds.length > 0 ? { versionId: { notIn: retainedVersionIds } } : {}),
+    },
+  });
+}
+
 export async function rejectCourseBasisVersion(db: CourseBasisDb, input: {
   actor: CourseBasisActor;
   versionId: string;

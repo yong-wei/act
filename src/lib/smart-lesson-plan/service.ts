@@ -1,7 +1,10 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 
 import { CourseBasisError } from '../course-basis/domain';
-import { adoptCourseBasisVersion } from '../course-basis/service';
+import {
+  adoptCourseBasisVersion,
+  synchronizeCourseBasisAdopterVersions,
+} from '../course-basis/service';
 import {
   buildCourseBasisLessonDesignSar,
   buildCourseBasisLessonDesignSourcePack,
@@ -596,6 +599,24 @@ export async function updateSmartLessonTask(
         sourceFields.sourceBindings,
       );
       nextGoalIds.add(id);
+    }
+    for (const pointId of existingPoints.keys()) {
+      if (!nextPointIds.has(pointId)) {
+        await synchronizeCourseBasisAdopterVersions(tx, {
+          referenceType: 'SMART_LESSON_KNOWLEDGE_POINT',
+          referenceId: pointId,
+          retainedVersionIds: [],
+        });
+      }
+    }
+    for (const goalId of existingGoals.keys()) {
+      if (!nextGoalIds.has(goalId)) {
+        await synchronizeCourseBasisAdopterVersions(tx, {
+          referenceType: 'SMART_LESSON_GOAL',
+          referenceId: goalId,
+          retainedVersionIds: [],
+        });
+      }
     }
     await tx.smartLessonKnowledgePoint.updateMany({
       where: { taskId: task.id, id: { notIn: [...nextPointIds] }, state: { not: 'REMOVED' } },
@@ -1772,6 +1793,11 @@ async function adoptSourceBindings(
   for (const binding of normalizeSourceBindings(bindings)) {
     byVersion.set(binding.sourceVersionId, [...(byVersion.get(binding.sourceVersionId) ?? []), binding]);
   }
+  await synchronizeCourseBasisAdopterVersions(tx, {
+    referenceType,
+    referenceId,
+    retainedVersionIds: [...byVersion.keys()],
+  });
   for (const [versionId, versionBindings] of byVersion) {
     await adoptCourseBasisVersion(tx, {
       actor,

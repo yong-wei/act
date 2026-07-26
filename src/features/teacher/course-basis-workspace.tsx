@@ -75,6 +75,7 @@ export function CourseBasisWorkspace({
       });
     } else {
       setCourseBases(payload.courseBases);
+      setBaseOffset(payload.courseBases.length);
       setHasMoreBases(payload.pagination?.hasMore ?? false);
     }
     setSelectedId(targetId || payload.courseBases[0]?.id || '');
