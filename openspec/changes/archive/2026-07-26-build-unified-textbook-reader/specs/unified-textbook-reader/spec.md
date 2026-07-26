@@ -53,6 +53,8 @@ The same textbook URL SHALL support an in-application closable modal and a direc
 ### Requirement: Textbook bodies require course authorization
 The reader SHALL verify authentication and applicable course access before returning textbook hierarchy or body content.
 
+For the seven v2 textbooks in this change, the applicable course SHALL be `automatic-control`, and an authenticated ACT platform member SHALL have access to that course. Anonymous visitors SHALL be denied. The implementation SHALL NOT infer course access from `StudentProfile.classId` or introduce a parallel course-enrollment data model.
+
 #### Scenario: Authorized learner or teacher opens a link
 - **WHEN** the authenticated user has the applicable course access
 - **THEN** the requested hierarchy and body SHALL be available according to that role.
@@ -61,6 +63,11 @@ The reader SHALL verify authentication and applicable course access before retur
 - **WHEN** authentication is absent or course access is denied
 - **THEN** the platform SHALL return the governed login or forbidden state
 - **AND** it SHALL NOT disclose textbook body text or physical runtime paths.
+
+#### Scenario: Authenticated platform member opens an automatic-control textbook
+- **WHEN** an authenticated ACT platform member opens one of the seven registered v2 textbooks
+- **THEN** the server SHALL authorize the request for `automatic-control`
+- **AND** it SHALL NOT require or interpret a student class identifier as course enrollment.
 
 ### Requirement: Machine retrieval text stays outside reader prose
 The reader SHALL display authored structural-unit content and approved accessibility descriptions without rendering retrieval-window overlap or machine-only search aids as ordinary textbook prose.

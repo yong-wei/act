@@ -34,6 +34,22 @@ export function resolvePostLoginRedirect({
   return normalizeSafeCallbackPath(callbackUrl, origin) ?? getDefaultPostLoginRedirect(role);
 }
 
+export function appendLoginPageHashToRedirectPath(
+  redirectPath: string,
+  loginPageHash: string,
+) {
+  if (
+    !loginPageHash
+    || loginPageHash === '#'
+    || !loginPageHash.startsWith('#')
+    || /[\s\p{Cc}]/u.test(loginPageHash)
+    || redirectPath.includes('#')
+  ) {
+    return redirectPath;
+  }
+  return `${redirectPath}${loginPageHash}`;
+}
+
 export function buildLoginRedirectForPath(path: string) {
   return `/login?callbackUrl=${encodeURIComponent(path)}`;
 }

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CredentialLoginForm } from '@/components/shared/credential-login-form';
+import { appendLoginPageHashToRedirectPath } from '@/lib/auth-redirect';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 export default function LoginPage() {
@@ -72,7 +73,9 @@ function LoginContent() {
           <CardContent>
             <CredentialLoginForm
               callbackUrl={callbackUrl}
-              onSuccess={({ redirectPath }) => router.push(redirectPath)}
+              onSuccess={({ redirectPath }) => router.push(
+                appendLoginPageHashToRedirectPath(redirectPath, window.location.hash),
+              )}
             />
           </CardContent>
         </Card>
