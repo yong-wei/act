@@ -727,6 +727,26 @@ export async function updateSmartLessonDraft(db: SmartLessonDb, input: {
   }
 }
 
+export async function getSmartLessonDraftForEditing(db: SmartLessonDb, input: {
+  actor: SmartLessonActor;
+  draftId: string;
+}) {
+  const actor = validateActor(input.actor);
+  const draft = await db.smartLessonDraft.findFirst({
+    where: ownedWhere(actor, { id: validateId(input.draftId) }),
+    include: {
+      task: { select: { id: true, topic: true, durationMinutes: true } },
+      reviews: {
+        where: { state: 'COMPLETED' },
+        orderBy: { completedAt: 'desc' },
+        take: 1,
+      },
+    },
+  });
+  if (!draft) throw new SmartLessonPlanError('draft-not-found', 404);
+  return draft;
+}
+
 export async function deriveDraftFromRevision(db: SmartLessonDb, input: {
   actor: SmartLessonActor;
   revisionId: string;
@@ -902,6 +922,7 @@ export async function retryGenerationJob(db: SmartLessonDb, input: JobCommandInp
 export async function updatePausedGenerationOutline(db: SmartLessonDb, input: {
   actor: SmartLessonActor;
   jobId: string;
+  expectedOutputHash?: string;
   output: unknown;
 }) {
   const actor = validateActor(input.actor);
@@ -919,12 +940,16 @@ export async function updatePausedGenerationOutline(db: SmartLessonDb, input: {
     if (job.state !== 'PAUSED' || outline?.state !== 'COMPLETED') {
       throw new SmartLessonPlanError('paused-outline-required', 409);
     }
+    const expectedOutputHash = input.expectedOutputHash ?? outline.outputHash;
+    if (outline.outputHash !== expectedOutputHash) {
+      throw new SmartLessonPlanError('paused-outline-conflict', 409);
+    }
     assertOutlineMatchesTask(output, job.draft.task.durationMinutes, job.draft.task.aggregateClassContextRef);
     const updated = await tx.smartLessonGenerationStage.updateMany({
       where: {
         id: outline.id,
         state: 'COMPLETED',
-        outputHash: outline.outputHash,
+        outputHash: expectedOutputHash,
         job: { id: job.id, state: 'PAUSED' },
       },
       data: { output: asJson(output), outputHash: contentHash(output), updatedAt: new Date() },
@@ -932,6 +957,26 @@ export async function updatePausedGenerationOutline(db: SmartLessonDb, input: {
     if (updated.count !== 1) throw new SmartLessonPlanError('paused-outline-conflict', 409);
     return tx.smartLessonGenerationStage.findUniqueOrThrow({ where: { id: outline.id } });
   });
+}
+
+export async function getPausedGenerationOutlineForEditing(db: SmartLessonDb, input: {
+  actor: SmartLessonActor;
+  jobId: string;
+}) {
+  const actor = validateActor(input.actor);
+  const job = await db.smartLessonGenerationJob.findFirst({
+    where: ownedWhere(actor, { id: validateId(input.jobId) }),
+    include: {
+      stages: { where: { kind: 'OUTLINE' }, take: 1 },
+      draft: { select: { task: { select: { id: true, topic: true, durationMinutes: true } } } },
+    },
+  });
+  const outline = job?.stages[0];
+  if (!job || !outline) throw new SmartLessonPlanError('generation-job-not-found', 404);
+  if (job.state !== 'PAUSED' || outline.state !== 'COMPLETED') {
+    throw new SmartLessonPlanError('paused-outline-required', 409);
+  }
+  return { job, outline };
 }
 
 export async function beginProviderAttempt(db: SmartLessonDb, input: {

@@ -3,6 +3,8 @@
 import { useRef, useState } from 'react';
 import { BookOpen, FileUp, Plus, RefreshCw } from 'lucide-react';
 
+import { capturePreparationEditorReturnState } from './preparation-document-editor/return-state';
+
 type Version = {
   id: string;
   versionNumber: number;
@@ -27,14 +29,21 @@ type CourseBasis = {
 
 export function CourseBasisWorkspace({
   initialCourseBases,
+  initialSelectedId,
+  initialBaseOffset,
+  initialHasMoreBases,
   onChanged,
 }: {
   initialCourseBases: CourseBasis[];
+  initialSelectedId?: string;
+  initialBaseOffset?: number;
+  initialHasMoreBases?: boolean;
   onChanged?: () => void;
 }) {
   const [courseBases, setCourseBases] = useState(initialCourseBases);
-  const [selectedId, setSelectedId] = useState(initialCourseBases[0]?.id ?? '');
-  const [hasMoreBases, setHasMoreBases] = useState(initialCourseBases.length === 50);
+  const [selectedId, setSelectedId] = useState(initialSelectedId ?? initialCourseBases[0]?.id ?? '');
+  const [baseOffset, setBaseOffset] = useState(initialBaseOffset ?? initialCourseBases.length);
+  const [hasMoreBases, setHasMoreBases] = useState(initialHasMoreBases ?? initialCourseBases.length === 50);
   const [message, setMessage] = useState('');
   const inFlightPages = useRef(new Set<string>());
   const selected = courseBases.find((item) => item.id === selectedId) ?? null;
@@ -67,10 +76,11 @@ export function CourseBasisWorkspace({
     if (inFlightPages.current.has(key)) return;
     inFlightPages.current.add(key);
     try {
-      const response = await fetch(`/api/teacher/course-bases?offset=${courseBases.length}&limit=50`, { cache: 'no-store' });
+      const response = await fetch(`/api/teacher/course-bases?offset=${baseOffset}&limit=50`, { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) return setMessage(errorText(payload.error));
       setCourseBases((current) => appendUnique(current, payload.courseBases));
+      setBaseOffset((current) => current + payload.courseBases.length);
       setHasMoreBases(payload.pagination?.hasMore ?? false);
     } finally {
       inFlightPages.current.delete(key);
@@ -217,7 +227,20 @@ export function CourseBasisWorkspace({
   }
 
   return (
-    <main className="space-y-6" data-course-basis-workspace>
+    <main
+      className="space-y-6"
+      data-course-basis-workspace
+      onClickCapture={(event) => {
+        const editorLink = (event.target as HTMLElement).closest<HTMLAnchorElement>(
+          'a[href^="/teacher/smart-prep/editor/course-basis/"]',
+        );
+        if (editorLink && selected) {
+          capturePreparationEditorReturnState(
+            `/teacher/smart-prep?view=basis&courseBasisId=${encodeURIComponent(selected.id)}`,
+          );
+        }
+      }}
+    >
       <header>
         <p className="text-sm font-medium text-primary">智能备课 · 私有课程依据</p>
         <h1 className="mt-1 text-2xl font-semibold text-foreground">Course Basis</h1>
@@ -264,7 +287,7 @@ export function CourseBasisWorkspace({
               <textarea name="content" rows={5} placeholder="粘贴文本或 Markdown；上传 PDF 时可留空" className="rounded-lg border border-border bg-background px-3 py-2" />
               <button className="justify-self-start rounded-lg bg-primary px-4 py-2 text-primary-foreground">导入新版本</button>
             </form>
-            <div className="mt-4 space-y-2">{document.versions.map((version) => <div key={version.id} className="rounded-lg border border-border px-4 py-3 text-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><strong>v{version.versionNumber}</strong> · {version.sourceName}<span className="ml-2 text-subtle">{version.extractionState} / {version.reviewState}{version.retiredAt ? ' / RETIRED' : ''}</span>{version.failureReason ? <p className="mt-1 text-destructive">{errorText(version.failureReason)}</p> : null}</div><div className="flex gap-2">{!version.retiredAt && version.reviewState === 'CONFIRMED' ? <button onClick={() => void buildLessonDesignSourcePack(version)} className="rounded border border-primary px-2 py-1 text-primary">生成备课 Source Pack</button> : null}{!version.retiredAt && version.reviewState === 'PENDING' && version.extractionState === 'EXTRACTED' ? <button onClick={() => void runVersionAction(version.id, 'reject')} className="rounded border border-border px-2 py-1">拒绝</button> : null}{!version.retiredAt && version.extractionState === 'FAILED' ? <button onClick={() => void runVersionAction(version.id, 'retry')} className="rounded border border-border px-2 py-1">重试为新版本</button> : null}{!version.retiredAt ? <button onClick={() => void runVersionAction(version.id, 'retire')} className="rounded border border-border px-2 py-1">停用</button> : null}</div></div>{!version.retiredAt && version.extractionState === 'EXTRACTED' ? <VersionPreview version={version} onConfirm={() => runVersionAction(version.id, 'confirm')} /> : null}</div>)}{document.versionPagination.hasMore ? <button type="button" onClick={() => void loadMoreVersions(document)} className="rounded border border-border px-3 py-2 text-primary">加载更多版本</button> : null}</div>
+            <div className="mt-4 space-y-2">{document.versions.map((version) => <div key={version.id} className="rounded-lg border border-border px-4 py-3 text-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><strong>v{version.versionNumber}</strong> · {version.sourceName}<span className="ml-2 text-subtle">{version.extractionState} / {version.reviewState}{version.retiredAt ? ' / RETIRED' : ''}</span>{version.failureReason ? <p className="mt-1 text-destructive">{errorText(version.failureReason)}</p> : null}</div><div className="flex flex-wrap gap-2">{!version.retiredAt && version.extractionState === 'EXTRACTED' ? <a href={`/teacher/smart-prep/editor/course-basis/${encodeURIComponent(version.id)}`} className="rounded border border-primary px-2 py-1 text-primary">可视编辑</a> : null}{!version.retiredAt && version.reviewState === 'CONFIRMED' ? <button onClick={() => void buildLessonDesignSourcePack(version)} className="rounded border border-primary px-2 py-1 text-primary">生成备课 Source Pack</button> : null}{!version.retiredAt && version.reviewState === 'PENDING' && version.extractionState === 'EXTRACTED' ? <button onClick={() => void runVersionAction(version.id, 'reject')} className="rounded border border-border px-2 py-1">拒绝</button> : null}{!version.retiredAt && version.extractionState === 'FAILED' ? <button onClick={() => void runVersionAction(version.id, 'retry')} className="rounded border border-border px-2 py-1">重试为新版本</button> : null}{!version.retiredAt ? <button onClick={() => void runVersionAction(version.id, 'retire')} className="rounded border border-border px-2 py-1">停用</button> : null}</div></div>{!version.retiredAt && version.extractionState === 'EXTRACTED' ? <VersionPreview version={version} onConfirm={() => runVersionAction(version.id, 'confirm')} /> : null}</div>)}{document.versionPagination.hasMore ? <button type="button" onClick={() => void loadMoreVersions(document)} className="rounded border border-border px-3 py-2 text-primary">加载更多版本</button> : null}</div>
           </article>)}
           {selected.documentPagination.hasMore ? <button type="button" onClick={() => void loadMoreDocuments()} className="rounded-lg border border-border px-3 py-2 text-primary">加载更多文档</button> : null}
         </section> : null}

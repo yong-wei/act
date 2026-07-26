@@ -57,9 +57,10 @@ describe('smart lesson plan workspace request contracts', () => {
     expect(coursewareEditorSource).not.toContain('SMART_COURSEWARE_ORDERING_SECRET');
     expect(coursewareEditorSource).toContain('createSmartCoursewareStudentPreviewFromService(next, payload.preview)');
     expect(coursewareEditorSource).not.toContain('projectSmartCoursewareStudentPreview');
-    for (const label of ['拆分当前步骤', '编辑步骤', '步骤前移', '步骤后移', '合并并删除步骤']) {
+    for (const label of ['拆分当前步骤', '所选内容可视编辑', '步骤前移', '步骤后移', '合并并删除步骤']) {
       expect(coursewareEditorSource).toContain(label);
     }
+    expect(coursewareEditorSource).not.toContain('window.prompt');
     expect(coursewareEditorSource).toContain('renderInteractiveManifestStep');
     expect(coursewareEditorSource).toContain('createManifestStudentActivityRegistry');
     expect(coursewareEditorSource).toContain('renderStudentInteractiveActivity');

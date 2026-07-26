@@ -217,7 +217,8 @@ function deterministicStructuredFixtureRuntime() {
               category: 'CONTENT_QUALITY' as const,
               severity: 'SUGGESTION' as const,
               message: '可在授课后根据形成性评价结果继续修订。',
-              path: null,
+              path: 'boppps.summary.steps.0.assessment',
+              proposedReplacement: '根据形成性评价结果记录本节课的达成情况与后续修订方向。',
             }],
             suggestions: ['保留教师最终判断并记录后续修订。'],
           }
@@ -292,7 +293,7 @@ export async function generateSmartLessonAdvisoryReport(input: {
     schema: smartLessonAdvisoryReviewSchema,
     schemaVersion: 'smart-lesson-advisory-review.v1',
     promptVersion: SMART_LESSON_REVIEW_PROMPT_VERSION,
-    system: '你是教学设计审核助手。仅提供建议，不得给出批准、发布或阻断结论。输出必须符合给定结构。',
+    system: '你是教学设计审核助手。仅提供建议，不得给出批准、发布或阻断结论。可直接应用的 finding 必须把 path 定位到一个可编辑字符串字段，并在 proposedReplacement 中给出该字段的完整替换文本；无法形成确定修改时将 proposedReplacement 设为 null。输出必须符合给定结构。',
     prompt: `请从目标覆盖、来源一致性、BOPPPS 结构和内容质量审核以下教案：\n${JSON.stringify(input.plan)}`,
     idempotencyKey: input.idempotencyKey,
     maxOutputTokens: 4_000,
