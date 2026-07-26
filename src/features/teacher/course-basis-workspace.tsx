@@ -30,15 +30,20 @@ type CourseBasis = {
 export function CourseBasisWorkspace({
   initialCourseBases,
   initialSelectedId,
+  initialBaseOffset,
+  initialHasMoreBases,
   onChanged,
 }: {
   initialCourseBases: CourseBasis[];
   initialSelectedId?: string;
+  initialBaseOffset?: number;
+  initialHasMoreBases?: boolean;
   onChanged?: () => void;
 }) {
   const [courseBases, setCourseBases] = useState(initialCourseBases);
   const [selectedId, setSelectedId] = useState(initialSelectedId ?? initialCourseBases[0]?.id ?? '');
-  const [hasMoreBases, setHasMoreBases] = useState(initialCourseBases.length === 50);
+  const [baseOffset, setBaseOffset] = useState(initialBaseOffset ?? initialCourseBases.length);
+  const [hasMoreBases, setHasMoreBases] = useState(initialHasMoreBases ?? initialCourseBases.length === 50);
   const [message, setMessage] = useState('');
   const inFlightPages = useRef(new Set<string>());
   const selected = courseBases.find((item) => item.id === selectedId) ?? null;
@@ -71,10 +76,11 @@ export function CourseBasisWorkspace({
     if (inFlightPages.current.has(key)) return;
     inFlightPages.current.add(key);
     try {
-      const response = await fetch(`/api/teacher/course-bases?offset=${courseBases.length}&limit=50`, { cache: 'no-store' });
+      const response = await fetch(`/api/teacher/course-bases?offset=${baseOffset}&limit=50`, { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) return setMessage(errorText(payload.error));
       setCourseBases((current) => appendUnique(current, payload.courseBases));
+      setBaseOffset((current) => current + payload.courseBases.length);
       setHasMoreBases(payload.pagination?.hasMore ?? false);
     } finally {
       inFlightPages.current.delete(key);

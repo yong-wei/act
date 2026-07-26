@@ -39,15 +39,28 @@ describe('smart preparation page', () => {
   });
 
   it('loads the complete course-basis list while restoring the requested selection', async () => {
+    const pageBases = Array.from({ length: 50 }, (_, index) => ({ id: `basis-${index + 1}` }));
+    mocks.listCourseBases
+      .mockResolvedValueOnce(pageBases)
+      .mockResolvedValueOnce([{ id: 'basis-75' }]);
     const page = await SmartPrepPage({
-      searchParams: Promise.resolve({ view: 'basis', courseBasisId: 'basis-2' }),
+      searchParams: Promise.resolve({ view: 'basis', courseBasisId: 'basis-75' }),
     });
 
-    expect(mocks.listCourseBases).toHaveBeenCalledWith(
+    expect(mocks.listCourseBases).toHaveBeenNthCalledWith(
+      1,
       expect.anything(),
       { id: 'teacher-1', role: 'TEACHER' },
     );
-    expect(page.props.courseBases).toEqual([{ id: 'basis-1' }, { id: 'basis-2' }]);
-    expect(page.props.initialCourseBasisId).toBe('basis-2');
+    expect(mocks.listCourseBases).toHaveBeenNthCalledWith(
+      2,
+      expect.anything(),
+      { id: 'teacher-1', role: 'TEACHER' },
+      { courseBasisId: 'basis-75' },
+    );
+    expect(page.props.courseBases).toEqual([...pageBases, { id: 'basis-75' }]);
+    expect(page.props.initialCourseBasisId).toBe('basis-75');
+    expect(page.props.initialCourseBasisOffset).toBe(50);
+    expect(page.props.initialHasMoreCourseBases).toBe(true);
   });
 });

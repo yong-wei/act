@@ -22,8 +22,11 @@ export default async function SmartPrepPage({
   const actor = { id: session.user.id, role: 'TEACHER' as const };
   const query = await searchParams;
   const requestedTaskId = query.taskId?.trim() || null;
-  const [courseBases, taskSummaries, classes] = await Promise.all([
+  const [courseBasisPage, selectedCourseBases, taskSummaries, classes] = await Promise.all([
     listCourseBases(prisma, actor),
+    query.courseBasisId
+      ? listCourseBases(prisma, actor, { courseBasisId: query.courseBasisId })
+      : Promise.resolve([]),
     listSmartLessonTaskSummaries(prisma, actor),
     prisma.class.findMany({
       where: { teacherId: session.user.id, isActive: true },
@@ -31,6 +34,10 @@ export default async function SmartPrepPage({
       select: { id: true, name: true },
     }),
   ]);
+  const courseBases = [
+    ...courseBasisPage,
+    ...selectedCourseBases.filter((selected) => !courseBasisPage.some((basis) => basis.id === selected.id)),
+  ];
   const snapshots = classes.length ? await prisma.diagnosisReportSnapshot.findMany({
     where: { classId: { in: classes.map((item) => item.id) }, subjectKind: 'class' },
     orderBy: { generatedAt: 'desc' },
@@ -56,5 +63,7 @@ export default async function SmartPrepPage({
     initialSelectedTaskId={selectedSummary?.id}
     initialView={query.view === 'basis' ? 'basis' : 'tasks'}
     initialCourseBasisId={query.courseBasisId}
+    initialCourseBasisOffset={courseBasisPage.length}
+    initialHasMoreCourseBases={courseBasisPage.length === 50}
   />;
 }

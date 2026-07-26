@@ -69,6 +69,25 @@ describe('CourseBasisWorkspace pagination', () => {
     expect([...container.querySelectorAll('button')].filter((item) => item.textContent?.includes('basis-51'))).toHaveLength(1);
   });
 
+  it('keeps a targeted basis outside the first page without shifting the next page offset', async () => {
+    const firstPage = Array.from({ length: 50 }, (_, index) => basis(`basis-${index + 1}`));
+    const targeted = basis('basis-75');
+    const fetch = vi.fn(() => response([basis('basis-51')]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, {
+      initialCourseBases: [...firstPage, targeted],
+      initialSelectedId: targeted.id,
+      initialBaseOffset: 50,
+      initialHasMoreBases: true,
+    })));
+
+    expect(container.querySelector('[class*="border-primary"]')?.textContent).toContain('basis-75');
+    await act(async () => button('加载更多课程依据').click());
+
+    expect(fetch).toHaveBeenCalledWith('/api/teacher/course-bases?offset=50&limit=50', { cache: 'no-store' });
+    expect(container.textContent).toContain('basis-51');
+  });
+
   it('keeps expanded history when switching away and back', async () => {
     const expanded = basis('basis-1', [basisDocument('document-1'), basisDocument('document-21')]);
     const fetch = vi.fn()
