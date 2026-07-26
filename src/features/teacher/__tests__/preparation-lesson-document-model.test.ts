@@ -123,4 +123,12 @@ describe('preparation lesson document model', () => {
     expect(errors).toContain('授课对象不能为空或长度不足。');
     expect(errors).toContain('导入第 1 个步骤教师活动超过允许长度。');
   });
+
+  it('validates the lowercase source-state representation returned by the editing API', () => {
+    const plan = validPlanFixture();
+    plan.goals[0].sourceState = 'ai_generated_source_pending' as never;
+    plan.knowledgePoints[0].sourceState = 'verified' as never;
+
+    expect(preparationDocumentValidationErrors('draft', plan, plan.durationMinutes)).toEqual([]);
+  });
 });

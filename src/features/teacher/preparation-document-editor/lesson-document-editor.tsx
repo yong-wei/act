@@ -328,7 +328,12 @@ function applySuggestion(document: RecordValue, suggestion: PreparationEditorSug
   if (!suggestion.replacement || !suggestion.anchor) return null;
   const path = suggestion.anchor.split('.').filter(Boolean);
   if (!isEditableSuggestionPath(path)) return null;
-  return replaceStringAtPath(document, path, suggestion.replacement);
+  const replaced = replaceStringAtPath(document, path, suggestion.replacement);
+  if (!replaced) return null;
+  if (path.length === 5 && path[0] === 'boppps' && path[2] === 'steps') {
+    return replaceLessonStageSteps(replaced, path[1], lessonDocumentStage(replaced, path[1]).steps);
+  }
+  return replaced;
 }
 
 function isEditableSuggestionPath(path: string[]) {

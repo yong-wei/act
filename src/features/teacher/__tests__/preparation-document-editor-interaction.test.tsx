@@ -300,6 +300,7 @@ describe('preparation document editor interactions', () => {
 
     const documentDraft = JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!);
     expect(documentDraft.content.boppps.bridgeIn.steps[0].teacherActivity).toBe('展示真实航向偏差案例');
+    expect(documentDraft.content.boppps.bridgeIn.teacherActivity).toBe('展示真实航向偏差案例');
     expect(documentDraft.content.boppps.bridgeIn.steps[0].sourceBindings).toEqual(plan.boppps.bridgeIn.steps[0].sourceBindings);
     expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1:suggestions')!)).toEqual({
       'revision-hash:finding:0': 'accepted',

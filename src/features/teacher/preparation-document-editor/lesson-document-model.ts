@@ -127,12 +127,26 @@ function appendSchemaValidationErrors(
   value: PreparationRecord,
   errors: string[],
 ) {
-  const parsed = (kind === 'outline' ? smartLessonOutlineOutputSchema : smartLessonPlanSchema).safeParse(value);
+  const schemaValue = kind === 'draft' ? normalizePublicSourceStatesForValidation(value) : value;
+  const parsed = (kind === 'outline' ? smartLessonOutlineOutputSchema : smartLessonPlanSchema).safeParse(schemaValue);
   if (parsed.success) return [...new Set(errors)];
   for (const issue of parsed.error.issues) {
     errors.push(`${lessonDocumentFieldLabel(issue.path)}${schemaIssueMessage(issue)}`);
   }
   return [...new Set(errors)];
+}
+
+function normalizePublicSourceStatesForValidation(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(normalizePublicSourceStatesForValidation);
+  if (!value || typeof value !== 'object' || value instanceof Date) return value;
+  return Object.fromEntries(Object.entries(value as PreparationRecord).map(([key, child]) => {
+    if (key !== 'sourceState') return [key, normalizePublicSourceStatesForValidation(child)];
+    return [key, ({
+      verified: 'VERIFIED',
+      ai_generated_source_pending: 'AI_GENERATED_SOURCE_PENDING',
+      teacher_created_source_pending: 'TEACHER_CREATED_SOURCE_PENDING',
+    } as PreparationRecord)[String(child)] ?? child];
+  }));
 }
 
 function lessonDocumentFieldLabel(path: PropertyKey[]) {
