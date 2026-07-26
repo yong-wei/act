@@ -8,6 +8,7 @@ import {
   type PreparationEditorSaveState,
   type PreparationEditorSuggestion,
 } from './editor-shell';
+import { PreparationConflictComparison } from './conflict-comparison';
 import {
   BOPPPS_STAGES as STAGES,
   lessonDocumentStage,
@@ -20,6 +21,7 @@ import {
   type PreparationRecord as RecordValue,
 } from './lesson-document-model';
 import { returnToPreparationEditorOrigin } from './return-state';
+import { usePreparationSaveCoordinator } from './use-save-coordinator';
 
 export function LessonDocumentEditor({
   kind,
@@ -36,8 +38,9 @@ export function LessonDocumentEditor({
   const [suggestions, setSuggestions] = useState<PreparationEditorSuggestion[]>([]);
   const [saveState, setSaveState] = useState<PreparationEditorSaveState>('saved');
   const [message, setMessage] = useState('');
-  const editGenerationRef = useRef(0);
   const documentRef = useRef<RecordValue | null>(null);
+  const [serverComparison, setServerComparison] = useState<{ content: RecordValue; revision: string | number } | null>(null);
+  const saveCoordinator = usePreparationSaveCoordinator();
   const storageKey = `preparation-editor:${kind}:${documentId}`;
   const validationErrors = useMemo(
     () => preparationDocumentValidationErrors(kind, document, task?.durationMinutes ?? 0),
@@ -55,7 +58,13 @@ export function LessonDocumentEditor({
       const serverDocument = kind === 'outline' ? payload.outline.output : payload.draft.content;
       const serverRevision = kind === 'outline' ? payload.outline.outputHash : payload.draft.version;
       const local = !preferServer ? readLocalDraft(storageKey) : null;
-      if (preferServer) window.localStorage.removeItem(storageKey);
+      if (preferServer) {
+        setServerComparison({ content: serverDocument, revision: serverRevision });
+        setTask(kind === 'outline' ? payload.job.task : payload.task);
+        setMessage('已加载服务器修订供比较；本地修改仍完整保留。');
+        setSaveState('conflict');
+        return;
+      }
       const nextDocument = local?.content
         ? kind === 'draft'
           ? restoreLockedLessonFields(local.content, serverDocument)
@@ -73,7 +82,7 @@ export function LessonDocumentEditor({
             .map((item) => ({ ...item, status: readSuggestionStates(suggestionKey)[item.id] ?? item.status }))
         : []);
       setSaveState(local ? local.baseRevision === null ? 'conflict' : 'dirty' : 'saved');
-      editGenerationRef.current = local ? 1 : 0;
+      saveCoordinator.restore(Boolean(local));
       setMessage(local
         ? local.baseRevision === null
           ? '已恢复旧版本地修改，但缺少原始修订基线；请复制内容后重新加载服务器修订。'
@@ -82,22 +91,22 @@ export function LessonDocumentEditor({
     } catch {
       setMessage('文档加载失败，本地修改仍保留，请重试。');
     }
-  }, [documentId, kind, storageKey]);
+  }, [documentId, kind, saveCoordinator, storageKey]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   const change = useCallback((next: RecordValue) => {
-    editGenerationRef.current += 1;
+    const saving = saveCoordinator.markEdited();
     setDocument(next);
     documentRef.current = next;
-    setSaveState(baseRevision === '' ? 'conflict' : 'dirty');
+    setSaveState(baseRevision === '' ? 'conflict' : saving ? 'saving' : 'dirty');
     writeLocalDraft(storageKey, next, baseRevision === '' ? null : baseRevision);
-  }, [baseRevision, storageKey]);
+  }, [baseRevision, saveCoordinator, storageKey]);
 
   const save = useCallback(async () => {
-    if (!document || saveState === 'saving') return;
+    if (!document) return;
     if (baseRevision === '') {
       setSaveState('conflict');
       setMessage('本地修改缺少原始修订基线；请复制内容后重新加载服务器修订。');
@@ -108,7 +117,8 @@ export function LessonDocumentEditor({
       setMessage('请先修正文档中的结构或时长问题。');
       return;
     }
-    const saveGeneration = editGenerationRef.current;
+    const saveGeneration = saveCoordinator.beginSave();
+    if (saveGeneration === null) return;
     setSaveState('saving');
     try {
       const response = await fetch(endpoint(kind, documentId), {
@@ -120,6 +130,7 @@ export function LessonDocumentEditor({
       });
       const payload = await response.json();
       if (!response.ok) {
+        saveCoordinator.finishSave(saveGeneration);
         const conflict = response.status === 409;
         setSaveState(conflict ? 'conflict' : 'failed');
         setMessage(conflict ? '服务器已有较新修订。本地内容仍保留，可复制后重新加载比较。' : errorText(payload));
@@ -127,7 +138,7 @@ export function LessonDocumentEditor({
       }
       const nextRevision = kind === 'outline' ? payload.stage.outputHash : payload.draft.version;
       setBaseRevision(nextRevision);
-      if (editGenerationRef.current === saveGeneration) {
+      if (saveCoordinator.finishSave(saveGeneration)) {
         setSaveState('saved');
         setMessage('修改已可靠保存。');
         window.localStorage.removeItem(storageKey);
@@ -137,10 +148,11 @@ export function LessonDocumentEditor({
         setMessage('较早修改已保存，正在继续保存新的修改。');
       }
     } catch {
+      saveCoordinator.finishSave(saveGeneration);
       setSaveState('failed');
       setMessage('保存请求失败，本地修改仍保留，请重试。');
     }
-  }, [baseRevision, document, documentId, kind, saveState, storageKey, validationErrors]);
+  }, [baseRevision, document, documentId, kind, saveCoordinator, storageKey, validationErrors]);
 
   useEffect(() => {
     if (saveState !== 'dirty') return;
@@ -197,6 +209,32 @@ export function LessonDocumentEditor({
         });
       }}
     >
+      {serverComparison ? <PreparationConflictComparison
+        local={document}
+        server={serverComparison.content}
+        onKeepLocal={() => {
+          const local = kind === 'draft'
+            ? restoreLockedLessonFields(document, serverComparison.content)
+            : document;
+          setDocument(local);
+          documentRef.current = local;
+          setBaseRevision(serverComparison.revision);
+          writeLocalDraft(storageKey, local, serverComparison.revision);
+          setServerComparison(null);
+          setSaveState('dirty');
+          setMessage('已保留本地内容，并改用当前服务器修订作为保存基线。');
+        }}
+        onUseServer={() => {
+          setDocument(serverComparison.content);
+          documentRef.current = serverComparison.content;
+          setBaseRevision(serverComparison.revision);
+          window.localStorage.removeItem(storageKey);
+          saveCoordinator.restore(false);
+          setServerComparison(null);
+          setSaveState('saved');
+          setMessage('已采用服务器修订，本地修改已明确丢弃。');
+        }}
+      /> : null}
       {message ? <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm" role="status"><span>{message}</span>{saveState === 'conflict' ? <button type="button" onClick={() => void load(true)} className="rounded border border-border px-3 py-1.5">重新加载服务器修订</button> : null}</div> : null}
       {validationErrors.length > 0 ? <section className="mb-4 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3" aria-label="文档校验错误">
         <h2 className="text-sm font-medium text-destructive">文档尚不能保存或批准</h2>

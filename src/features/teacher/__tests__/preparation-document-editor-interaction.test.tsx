@@ -171,6 +171,11 @@ describe('preparation document editor interactions', () => {
     await act(async () => save.click());
     await setStepTitle('请求期间的新修改');
     await act(async () => {
+      vi.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+    expect(fetch.mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(1);
+    await act(async () => {
       finishPatch({
         ok: true,
         status: 200,
@@ -183,6 +188,105 @@ describe('preparation document editor interactions', () => {
     expect(container.textContent).toContain('较早修改已保存');
     expect(container.textContent).toContain('尚未保存');
     expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.boppps.bridgeIn.steps[0].title).toBe('请求期间的新修改');
+  });
+
+  it('keeps both lesson versions available during reload-and-compare', async () => {
+    vi.useFakeTimers();
+    const plan = validPlanFixture();
+    const serverPlan = structuredClone(plan);
+    serverPlan.boppps.bridgeIn.steps[0].title = '服务器步骤';
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          draft: { id: 'draft-1', version: 2, content: plan, reviews: [] },
+          task: { id: 'task-1', topic: '稳定性', durationMinutes: plan.durationMinutes },
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 409,
+        json: async () => ({ error: { code: 'draft-version-conflict' } }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          draft: { id: 'draft-1', version: 3, content: serverPlan, reviews: [] },
+          task: { id: 'task-1', topic: '稳定性', durationMinutes: plan.durationMinutes },
+        }),
+      } as Response);
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => {
+      root.render(createElement(LessonDocumentEditor, { kind: 'draft', documentId: 'draft-1' }));
+      await Promise.resolve();
+    });
+    const stepTitle = [...container.querySelectorAll('input')]
+      .find((input) => input.parentElement?.textContent?.startsWith('步骤标题'))!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(stepTitle, '本地步骤');
+      stepTitle.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const button = (name: string) => [...container.querySelectorAll('button')]
+      .find((candidate) => candidate.textContent === name)!;
+    await act(async () => button('保存').click());
+    await act(async () => {
+      button('重新加载服务器修订').click();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain('本地步骤');
+    expect(container.textContent).toContain('服务器步骤');
+    expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.boppps.bridgeIn.steps[0].title).toBe('本地步骤');
+    await act(async () => button('保留本地内容并使用服务器基线').click());
+    expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).baseRevision).toBe(3);
+  });
+
+  it('preserves a course-basis draft while comparing a newer server version', async () => {
+    vi.useFakeTimers();
+    window.localStorage.setItem('preparation-editor:course-basis:version-1', JSON.stringify({
+      markdown: '# 本地课程依据',
+      baseContentHash: 'a'.repeat(64),
+      savedAt: '2026-07-25T00:00:00.000Z',
+    }));
+    const document = {
+      id: 'version-1',
+      documentId: 'document-1',
+      documentTitle: '课程标准',
+      courseBasisId: 'basis-1',
+      versionNumber: 1,
+      sourceName: '课程依据',
+      contentHash: 'a'.repeat(64),
+      markdown: '# 原服务器版本',
+      frozen: false,
+    };
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ document }) } as Response)
+      .mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ error: { code: 'version-edit-conflict' } }) } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ document: { ...document, contentHash: 'b'.repeat(64), markdown: '# 新服务器版本' } }),
+      } as Response);
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => {
+      root.render(createElement(CourseBasisDocumentEditor, { versionId: 'version-1' }));
+      await Promise.resolve();
+    });
+    const button = (name: string) => [...container.querySelectorAll('button')]
+      .find((candidate) => candidate.textContent === name)!;
+    await act(async () => button('保存').click());
+    await act(async () => {
+      button('重新加载服务器版本').click();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain('# 本地课程依据');
+    expect(container.textContent).toContain('# 新服务器版本');
+    expect(JSON.parse(window.localStorage.getItem('preparation-editor:course-basis:version-1')!).markdown).toBe('# 本地课程依据');
+    await act(async () => button('保留本地内容并使用服务器基线').click());
+    expect(JSON.parse(window.localStorage.getItem('preparation-editor:course-basis:version-1')!).baseContentHash).toBe('b'.repeat(64));
   });
 
   it('keeps a lesson draft retryable when the save request throws', async () => {

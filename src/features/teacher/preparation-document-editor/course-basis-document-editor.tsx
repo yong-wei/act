@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { PreparationDocumentEditorShell, type PreparationEditorSaveState } from './editor-shell';
+import { PreparationConflictComparison } from './conflict-comparison';
 import { RichMarkdownEditor } from './rich-markdown-editor';
 import { returnToPreparationEditorOrigin } from './return-state';
+import { usePreparationSaveCoordinator } from './use-save-coordinator';
 
 type EditableCourseBasisDocument = {
   id: string;
@@ -23,9 +25,10 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
   const [markdown, setMarkdown] = useState('');
   const [saveState, setSaveState] = useState<PreparationEditorSaveState>('saved');
   const [message, setMessage] = useState('');
-  const editGenerationRef = useRef(0);
   const markdownRef = useRef('');
   const [baseContentHash, setBaseContentHash] = useState<string | null>(null);
+  const [serverComparison, setServerComparison] = useState<EditableCourseBasisDocument | null>(null);
+  const saveCoordinator = usePreparationSaveCoordinator();
   const storageKey = `preparation-editor:course-basis:${versionId}`;
 
   const load = useCallback(async (preferServer = false) => {
@@ -35,12 +38,17 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
       if (!response.ok) return setMessage(errorText(payload));
       const next = payload.document as EditableCourseBasisDocument;
       const local = !preferServer ? readLocalDraft(storageKey) : null;
-      if (preferServer) window.localStorage.removeItem(storageKey);
+      if (preferServer) {
+        setServerComparison(next);
+        setMessage('已加载服务器版本供比较；本地修改仍完整保留。');
+        setSaveState('conflict');
+        return;
+      }
       setDocument(next);
       setMarkdown(local?.markdown ?? next.markdown);
       markdownRef.current = local?.markdown ?? next.markdown;
       setBaseContentHash(local ? local.baseContentHash : next.contentHash);
-      editGenerationRef.current = local ? 1 : 0;
+      saveCoordinator.restore(Boolean(local));
       setSaveState(local ? local.baseContentHash === null ? 'conflict' : 'dirty' : 'saved');
       setMessage(local
         ? local.baseContentHash === null
@@ -50,28 +58,29 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
     } catch {
       setMessage('文档加载失败，本地修改仍保留，请重试。');
     }
-  }, [storageKey, versionId]);
+  }, [saveCoordinator, storageKey, versionId]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   const change = useCallback((next: string) => {
-    editGenerationRef.current += 1;
+    const saving = saveCoordinator.markEdited();
     markdownRef.current = next;
     setMarkdown(next);
-    setSaveState(baseContentHash === null ? 'conflict' : 'dirty');
+    setSaveState(baseContentHash === null ? 'conflict' : saving ? 'saving' : 'dirty');
     writeLocalDraft(storageKey, next, baseContentHash);
-  }, [baseContentHash, storageKey]);
+  }, [baseContentHash, saveCoordinator, storageKey]);
 
   const save = useCallback(async () => {
-    if (!document || saveState === 'saving') return;
+    if (!document) return;
     if (baseContentHash === null) {
       setSaveState('conflict');
       setMessage('本地修改缺少原始版本基线；请复制内容后重新加载服务器版本。');
       return;
     }
-    const saveGeneration = editGenerationRef.current;
+    const saveGeneration = saveCoordinator.beginSave();
+    if (saveGeneration === null) return;
     setSaveState('saving');
     try {
       const response = await fetch(`/api/teacher/course-bases/versions/${encodeURIComponent(document.id)}`, {
@@ -81,13 +90,15 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
       });
       const payload = await response.json();
       if (!response.ok) {
+        saveCoordinator.finishSave(saveGeneration);
         setSaveState(response.status === 409 ? 'conflict' : 'failed');
         setMessage(response.status === 409 ? '服务器版本已变化。本地文档仍保留，可重新加载后比较。' : errorText(payload));
         return;
       }
       if (payload.createdSuccessor) {
+        const unchanged = saveCoordinator.finishSave(saveGeneration);
         window.localStorage.removeItem(storageKey);
-        if (editGenerationRef.current !== saveGeneration) {
+        if (!unchanged) {
           writeLocalDraft(
             `preparation-editor:course-basis:${payload.version.id}`,
             markdownRef.current,
@@ -100,7 +111,7 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
       }
       setBaseContentHash(payload.version.contentHash);
       setDocument((current) => current ? { ...current, contentHash: payload.version.contentHash, frozen: false } : current);
-      if (editGenerationRef.current === saveGeneration) {
+      if (saveCoordinator.finishSave(saveGeneration)) {
         window.localStorage.removeItem(storageKey);
         setSaveState('saved');
         setMessage('修改已可靠保存。');
@@ -110,10 +121,11 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
         setMessage('较早修改已保存，正在继续保存新的修改。');
       }
     } catch {
+      saveCoordinator.finishSave(saveGeneration);
       setSaveState('failed');
       setMessage('保存请求失败，本地修改仍保留，请重试。');
     }
-  }, [baseContentHash, document, markdown, saveState, storageKey]);
+  }, [baseContentHash, document, markdown, saveCoordinator, storageKey]);
 
   useEffect(() => {
     if (saveState !== 'dirty') return;
@@ -137,6 +149,29 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
       onSelectSection={(id) => window.document.querySelectorAll('[data-preparation-rich-editor] .tiptap h1, [data-preparation-rich-editor] .tiptap h2, [data-preparation-rich-editor] .tiptap h3, [data-preparation-rich-editor] .tiptap h4')[Number(id)]?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
     >
       <div className="mx-auto max-w-5xl">
+        {serverComparison ? <PreparationConflictComparison
+          local={markdown}
+          server={serverComparison.markdown}
+          onKeepLocal={() => {
+            setDocument(serverComparison);
+            setBaseContentHash(serverComparison.contentHash);
+            writeLocalDraft(storageKey, markdownRef.current, serverComparison.contentHash);
+            setServerComparison(null);
+            setSaveState('dirty');
+            setMessage('已保留本地内容，并改用当前服务器版本作为保存基线。');
+          }}
+          onUseServer={() => {
+            setDocument(serverComparison);
+            setMarkdown(serverComparison.markdown);
+            markdownRef.current = serverComparison.markdown;
+            setBaseContentHash(serverComparison.contentHash);
+            window.localStorage.removeItem(storageKey);
+            saveCoordinator.restore(false);
+            setServerComparison(null);
+            setSaveState('saved');
+            setMessage('已采用服务器版本，本地修改已明确丢弃。');
+          }}
+        /> : null}
         {message ? <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm" role="status"><span>{message}</span>{saveState === 'conflict' ? <button type="button" onClick={() => void load(true)} className="rounded border border-border px-3 py-1.5">重新加载服务器版本</button> : null}</div> : null}
         <RichMarkdownEditor value={markdown} onChange={change} ariaLabel={`${document.documentTitle}正文`} />
       </div>
