@@ -25,6 +25,17 @@ const authoringRoot = path.resolve(
   process.env.TEXTBOOK_AUTHORING_ROOT
     ?? 'course-content/authoring/resources',
 );
+const TEXTBOOK_GENERATOR_INPUTS = [
+  'scripts/release/export-textbook-runtime-v2.mjs',
+  'scripts/release/validate-textbook-runtime-v2.mjs',
+  'scripts/release/textbook-runtime-v2-provenance.mjs',
+  'course-content/scripts/export_structured_textbook_runtime_v2.py',
+  'course-content/scripts/structured_textbook_runtime.py',
+  'course-content/scripts/textbook_hybrid_retrieval.py',
+  'course-content/scripts/export_textbook_runtime_assets.py',
+  'course-content/config/textbook-hybrid-retrieval.json',
+  'course-content/config/textbook-structure-v2',
+];
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -38,6 +49,50 @@ function run(command, args) {
     throw new Error(`textbook-runtime-v2-command-failed:${command}:${result.status ?? 'signal'}`);
   }
   return result.stdout;
+}
+
+function toRepoRelativeInput(inputRoot, repositoryRoot) {
+  const canonicalRepositoryRoot = fs.realpathSync(repositoryRoot);
+  const canonicalInputRoot = fs.realpathSync(inputRoot);
+  const relative = path.relative(canonicalRepositoryRoot, canonicalInputRoot);
+  if (
+    relative === ''
+    || relative === '..'
+    || relative.startsWith(`..${path.sep}`)
+    || path.isAbsolute(relative)
+  ) {
+    throw new Error(`textbook-runtime-v2-input-outside-repository:${inputRoot}`);
+  }
+  return relative;
+}
+
+export function captureCleanTextbookInputRevision({
+  repositoryRoot = repoRoot,
+  authoringInputRoot = authoringRoot,
+  expectedRevision,
+  runGit = (args) => run('git', args),
+} = {}) {
+  const inputs = [
+    ...TEXTBOOK_GENERATOR_INPUTS,
+    toRepoRelativeInput(authoringInputRoot, repositoryRoot),
+  ];
+  const dirty = runGit([
+    'status',
+    '--porcelain=v1',
+    '--untracked-files=all',
+    '--',
+    ...inputs,
+  ]).trim();
+  if (dirty) {
+    throw new Error(`textbook-runtime-v2-dirty-inputs:${dirty.replaceAll('\n', ';')}`);
+  }
+  const revision = runGit(['rev-parse', 'HEAD']).trim();
+  if (expectedRevision && revision !== expectedRevision) {
+    throw new Error(
+      `textbook-runtime-v2-input-revision-drift:expected=${expectedRevision}:actual=${revision}`,
+    );
+  }
+  return revision;
 }
 
 export function replaceRuntimeDirectories(
@@ -101,7 +156,7 @@ export function replaceRuntimeDirectories(
 }
 
 function main() {
-  const revision = run('git', ['rev-parse', 'HEAD']).trim();
+  const revision = captureCleanTextbookInputRevision();
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   if (
     config.locked !== true
@@ -163,6 +218,7 @@ function main() {
       '--expected-source-revision',
       revision,
     ]);
+    captureCleanTextbookInputRevision({ expectedRevision: revision });
 
     replaceRuntimeDirectories([
       { staged: stagedRuntime, target: runtimeRoot },

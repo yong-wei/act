@@ -3,9 +3,68 @@ import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { replaceRuntimeDirectories } from '../release/export-textbook-runtime-v2.mjs';
+import {
+  captureCleanTextbookInputRevision,
+  replaceRuntimeDirectories,
+} from '../release/export-textbook-runtime-v2.mjs';
 
 const root = process.cwd();
+const authoringInputRoot = path.join(root, 'course-content/authoring/resources');
+
+{
+  const calls = [];
+  const revision = captureCleanTextbookInputRevision({
+    repositoryRoot: root,
+    authoringInputRoot,
+    runGit(args) {
+      calls.push(args);
+      return args[0] === 'status' ? '' : 'a'.repeat(40);
+    },
+  });
+  assert.equal(revision, 'a'.repeat(40));
+  assert.equal(calls[0].includes('course-content/authoring/resources'), true);
+  assert.equal(calls[0].includes('course-content/scripts/textbook_hybrid_retrieval.py'), true);
+  assert.equal(calls[0].includes('course-content/config/textbook-structure-v2'), true);
+}
+
+assert.throws(
+  () => captureCleanTextbookInputRevision({
+    repositoryRoot: root,
+    authoringInputRoot,
+    runGit(args) {
+      return args[0] === 'status'
+        ? ' M course-content/scripts/textbook_hybrid_retrieval.py'
+        : 'a'.repeat(40);
+    },
+  }),
+  /textbook-runtime-v2-dirty-inputs/u,
+  '生产导出入口必须拒绝生成器、配置或教材输入的未提交改动',
+);
+
+assert.throws(
+  () => captureCleanTextbookInputRevision({
+    repositoryRoot: root,
+    authoringInputRoot,
+    expectedRevision: 'a'.repeat(40),
+    runGit(args) {
+      return args[0] === 'status' ? '' : 'b'.repeat(40);
+    },
+  }),
+  /textbook-runtime-v2-input-revision-drift/u,
+  '生产导出入口必须拒绝生成期间发生的 HEAD 漂移',
+);
+
+assert.throws(
+  () => captureCleanTextbookInputRevision({
+    repositoryRoot: root,
+    authoringInputRoot: path.dirname(root),
+    runGit() {
+      return '';
+    },
+  }),
+  /textbook-runtime-v2-input-outside-repository/u,
+  '无法绑定当前 Git 修订的仓库外教材输入必须 fail closed',
+);
 
 function read(file) {
   return fs.readFileSync(path.join(root, file), 'utf8');

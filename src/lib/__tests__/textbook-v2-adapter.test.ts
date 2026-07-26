@@ -159,6 +159,33 @@ describe('v2 textbook Source Pack adapter', () => {
     expect(result.limitations).toContain('knowledge-graph-candidate-expansion-only');
   });
 
+  it('never promotes a supplemental source to standalone textbook evidence', async () => {
+    const supplementalUnit = units[2];
+    const result = await retrieveTextbookSourcePackV2({
+      query: '单位阶跃响应',
+      indexRoot: '/fixture/index',
+      retrieve: vi.fn().mockResolvedValue({
+        mode: 'lexical',
+        results: [{
+          windowId: 'textbook-window:supplemental-only',
+          primaryUnitId: supplementalUnit.id,
+          owningUnitIds: [supplementalUnit.id],
+          bookId: supplementalUnit.bookId,
+          sourcePaths: ['private/encyclopedia.md'],
+          body: '单位阶跃响应是控制系统在单位阶跃输入下的输出响应。',
+          scores: { fused: 0.99 },
+        }],
+      }),
+      loadIndex: vi.fn().mockResolvedValue({
+        manifest: { sourcePriority: [supplementalUnit.bookId] },
+      } as LoadedTextbookRetrievalIndex),
+      loadUnits: vi.fn().mockResolvedValue([supplementalUnit]),
+    });
+
+    expect(result.candidates).toEqual([]);
+    expect(result.limitations).toContain('no-directly-supporting-textbook-unit');
+  });
+
   it('uses registered fragments as citations only when the query identifies the fragment', async () => {
     const result = await retrieveTextbookSourcePackV2({
       query: '单位阶跃响应 3.2',

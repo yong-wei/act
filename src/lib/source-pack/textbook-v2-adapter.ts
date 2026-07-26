@@ -35,6 +35,11 @@ const APPROVED_SOURCE_PRIORITY = [
   'hu-shousong-exercise-analysis-3rd',
   'control-encyclopedia',
 ] as const;
+const SUPPLEMENTAL_SOURCE_IDS = new Set<string>([
+  'hu-shousong-auto-control-7th',
+  'hu-shousong-exercise-analysis-3rd',
+  'control-encyclopedia',
+]);
 const DEFAULT_INDEX_ROOT = path.join(
   process.cwd(),
   'course-content',
@@ -278,7 +283,7 @@ async function adaptTextbookRetrievalResult(
   const units = await input.loadUnits({ requests, runtimeRoot: input.runtimeRoot });
   const sourcePriority = buildSourcePriority(input.index.manifest.sourcePriority);
   const maxTextChars = clamp(input.maxTextChars ?? DEFAULT_MAX_TEXT_CHARS, 1, DEFAULT_MAX_TEXT_CHARS);
-  const directUnits = units
+  const directlySupportingUnits = units
     .map((unit) => ({
       unit,
       supports: (supportsByUnit.get(unit.id) ?? [])
@@ -292,7 +297,12 @@ async function adaptTextbookRetrievalResult(
       || left.supports[0].rank - right.supports[0].rank
       || right.supports[0].score - left.supports[0].score
       || left.unit.id.localeCompare(right.unit.id)
-    ))
+    ));
+  const hasPrimarySource = directlySupportingUnits.some(
+    ({ unit }) => !SUPPLEMENTAL_SOURCE_IDS.has(unit.bookId),
+  );
+  const directUnits = directlySupportingUnits
+    .filter(({ unit }) => hasPrimarySource || !SUPPLEMENTAL_SOURCE_IDS.has(unit.bookId))
     .slice(0, input.topK ?? DEFAULT_TOP_K);
   const candidates = directUnits.map(({ unit, supports }, indexInResult) =>
     toToolCandidate(
