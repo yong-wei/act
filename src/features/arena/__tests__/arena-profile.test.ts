@@ -390,6 +390,7 @@ describe('arena student portfolio', () => {
     expect(portfolio.trainingSummary).toEqual({
       total: 1,
       recentWindowSize: 5,
+      actualSampleCount: 1,
       recentPreviewCount: 1,
       latestTrainedAt: '2026-05-11T08:45:00.000Z',
       recentAverageQualityScore: 82.4,
@@ -429,6 +430,7 @@ describe('arena student portfolio', () => {
       trainingSummary: {
         total: 0,
         recentWindowSize: 5,
+        actualSampleCount: 0,
         recentPreviewCount: 0,
         recentAverageQualityScore: null,
         recentRuns: [],
