@@ -1,4 +1,4 @@
-﻿import { AppShell } from '@/components/platform/app-shell';
+import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
 import { EvidenceTimelineBrowser } from '@/features/data-governance/evidence-timeline-browser';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';

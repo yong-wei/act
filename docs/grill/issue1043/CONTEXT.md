@@ -1,4 +1,4 @@
-﻿# issue1043 领域语言
+# issue1043 领域语言
 
 ## evidence-link（证据链接）
 知识图谱资源面板底部"查看关联课次证据"或"进入证据浏览器"按钮生成的链接。它指向 `/profile/evidence` 路由，携带可选的 `lessonId` 和 `node` 参数。
