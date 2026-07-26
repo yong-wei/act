@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   migratePreparationMath,
+  insertProtectedEditorImages,
+  isProtectedEditorAssetReference,
   PREPARATION_EDITOR_DEPENDENCY_DECISION,
   PREPARATION_MARKDOWN_EXTENSIONS,
   replacePreparationMarkdown,
@@ -34,7 +36,7 @@ describe('preparation rich Markdown adapter', () => {
       package: '@tiptap/react',
       version: '3.28.0',
       canonicalFormat: 'markdown',
-      supported: ['headings', 'tables', 'inline-math', 'code-blocks', 'lists'],
+      supported: ['headings', 'tables', 'inline-math', 'images', 'code-blocks', 'lists'],
     });
   });
 
@@ -62,5 +64,61 @@ describe('preparation rich Markdown adapter', () => {
 
     first.destroy();
     second.destroy();
+  });
+
+  it('round-trips protected images without allowing inline data URLs', () => {
+    const editor = new Editor({
+      extensions: PREPARATION_MARKDOWN_EXTENSIONS,
+      content: '![结构图](/api/assignment-assets/asset-1 "asset:asset-1")',
+      contentType: 'markdown',
+    });
+
+    expect(editor.getMarkdown()).toContain('/api/assignment-assets/asset-1');
+    expect(editor.getMarkdown()).toContain('asset:asset-1');
+    expect(isProtectedEditorAssetReference({
+      assetId: 'asset-1',
+      href: '/api/assignment-assets/asset-1',
+    })).toBe(true);
+    expect(isProtectedEditorAssetReference({
+      assetId: 'asset-1',
+      href: 'data:image/png;base64,abc',
+    })).toBe(false);
+    expect(isProtectedEditorAssetReference({
+      assetId: 'asset-1") ![外链](https://example.com/image.png',
+      href: '/api/assignment-assets/asset-1)',
+    })).toBe(false);
+    editor.destroy();
+  });
+
+  it('inserts uploaded images through stable protected references and reports failures', async () => {
+    const editor = new Editor({ extensions: PREPARATION_MARKDOWN_EXTENSIONS });
+    const pending: number[] = [];
+    const errors: Array<string | null> = [];
+    const files = [
+      new File(['first'], 'diagram.png', { type: 'image/png' }),
+      new File(['second'], 'broken.png', { type: 'image/png' }),
+    ];
+
+    await insertProtectedEditorImages(
+      editor,
+      files,
+      async (file) => {
+        if (file.name === 'broken.png') throw new Error('upload-failed');
+        return {
+          assetId: 'asset-1',
+          href: '/api/assignment-assets/asset-1',
+          altText: '闭环结构图',
+        };
+      },
+      {
+        onPendingChange: (delta) => pending.push(delta),
+        onError: (message) => errors.push(message),
+      },
+    );
+
+    expect(editor.getMarkdown()).toContain('![闭环结构图](/api/assignment-assets/asset-1 "asset:asset-1")');
+    expect(pending).toEqual([1, 1, -1, -1]);
+    expect(errors.at(-1)).toContain('broken.png');
+    editor.destroy();
   });
 });

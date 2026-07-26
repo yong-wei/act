@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Editor } from '@tiptap/core';
 import { EditorContent, useEditor } from '@tiptap/react';
+import Image from '@tiptap/extension-image';
 import StarterKit from '@tiptap/starter-kit';
 import { Mathematics, migrateMathStrings } from '@tiptap/extension-mathematics';
 import { Markdown } from '@tiptap/markdown';
@@ -15,6 +16,7 @@ import {
   ItalicIcon,
   List,
   ListOrdered,
+  ImagePlus,
   Sigma,
   Table2,
 } from 'lucide-react';
@@ -22,21 +24,42 @@ import {
 export const PREPARATION_MARKDOWN_EXTENSIONS = [
   StarterKit.configure({ heading: { levels: [1, 2, 3, 4] } }),
   TableKit.configure({ table: { resizable: false } }),
+  Image.configure({ allowBase64: false }),
   Mathematics,
   Markdown.configure({ markedOptions: { gfm: true, breaks: false } }),
 ];
+
+export type RichMarkdownEditorMode = 'document' | 'assignment-embedded';
+
+export interface ProtectedEditorAssetReference {
+  assetId: string;
+  href: string;
+  altText?: string;
+}
+
+export type ProtectedEditorImageUpload = (file: File) => Promise<ProtectedEditorAssetReference>;
 
 export function RichMarkdownEditor({
   value,
   onChange,
   readOnly = false,
   ariaLabel = '文档正文',
+  mode = 'document',
+  uploadImage,
+  onUploadPendingChange,
+  onUploadError,
 }: {
   value: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
   ariaLabel?: string;
+  mode?: RichMarkdownEditorMode;
+  uploadImage?: ProtectedEditorImageUpload;
+  onUploadPendingChange?: (pending: boolean) => void;
+  onUploadError?: (message: string | null) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingUploadsRef = useRef(0);
   const editor = useEditor({
     immediatelyRender: false,
     extensions: PREPARATION_MARKDOWN_EXTENSIONS,
@@ -46,12 +69,39 @@ export function RichMarkdownEditor({
     editorProps: {
       attributes: {
         'aria-label': ariaLabel,
-        class: 'min-h-[32rem] max-w-none px-5 py-6 text-[15px] leading-7 outline-none',
+        class: `${mode === 'assignment-embedded' ? 'min-h-44' : 'min-h-[32rem]'} max-w-none px-5 py-6 text-[15px] leading-7 outline-none`,
+      },
+      handleDrop: (_view, event) => {
+        if (mode !== 'assignment-embedded' || !uploadImage || !editor) return false;
+        const files = imageFiles(event.dataTransfer?.files);
+        if (files.length === 0) return false;
+        event.preventDefault();
+        void insertProtectedEditorImages(editor, files, uploadImage, {
+          onPendingChange: updatePendingUploads,
+          onError: onUploadError,
+        });
+        return true;
+      },
+      handlePaste: (_view, event) => {
+        if (mode !== 'assignment-embedded' || !uploadImage || !editor) return false;
+        const files = imageFiles(event.clipboardData?.files);
+        if (files.length === 0) return false;
+        event.preventDefault();
+        void insertProtectedEditorImages(editor, files, uploadImage, {
+          onPendingChange: updatePendingUploads,
+          onError: onUploadError,
+        });
+        return true;
       },
     },
     onCreate: ({ editor: current }) => migratePreparationMath(current),
     onUpdate: ({ editor: current }) => onChange(current.getMarkdown()),
   });
+
+  function updatePendingUploads(delta: 1 | -1) {
+    pendingUploadsRef.current = Math.max(0, pendingUploadsRef.current + delta);
+    onUploadPendingChange?.(pendingUploadsRef.current > 0);
+  }
 
   useEffect(() => {
     if (!editor) return;
@@ -80,6 +130,28 @@ export function RichMarkdownEditor({
           <ToolbarButton label="代码块" active={editor.isActive('codeBlock')} onClick={() => editor.chain().focus().toggleCodeBlock().run()}><Braces /></ToolbarButton>
           <ToolbarButton label="插入表格" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}><Table2 /></ToolbarButton>
           <ToolbarButton label="插入公式" onClick={() => editor.chain().focus().insertInlineMath({ latex: 'x' }).run()}><Sigma /></ToolbarButton>
+          {mode === 'assignment-embedded' && uploadImage ? (
+            <>
+              <ToolbarButton label="插入图片" onClick={() => fileInputRef.current?.click()}><ImagePlus /></ToolbarButton>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="sr-only"
+                aria-label="选择要插入的图片"
+                onChange={(event) => {
+                  const files = imageFiles(event.currentTarget.files);
+                  event.currentTarget.value = '';
+                  if (files.length === 0) return;
+                  void insertProtectedEditorImages(editor, files, uploadImage, {
+                    onPendingChange: updatePendingUploads,
+                    onError: onUploadError,
+                  });
+                }}
+              />
+            </>
+          ) : null}
         </div>
       ) : null}
       <EditorContent
@@ -97,6 +169,47 @@ export function migratePreparationMath(editor: Editor) {
 export function replacePreparationMarkdown(editor: Editor, value: string) {
   editor.commands.setContent(value, { contentType: 'markdown', emitUpdate: false });
   migratePreparationMath(editor);
+}
+
+export function imageFiles(files: FileList | null | undefined): File[] {
+  return files ? Array.from(files).filter((file) => file.type.startsWith('image/')) : [];
+}
+
+export function isProtectedEditorAssetReference(
+  value: ProtectedEditorAssetReference,
+): boolean {
+  return /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(value.assetId)
+    && /^\/api\/[A-Za-z0-9._~:/%+-]+$/.test(value.href);
+}
+
+export async function insertProtectedEditorImages(
+  editor: Pick<Editor, 'chain'>,
+  files: File[],
+  uploadImage: ProtectedEditorImageUpload,
+  callbacks: {
+    onPendingChange?: (delta: 1 | -1) => void;
+    onError?: (message: string | null) => void;
+  } = {},
+): Promise<void> {
+  callbacks.onError?.(null);
+  files.forEach(() => callbacks.onPendingChange?.(1));
+  for (const file of files) {
+    try {
+      const asset = await uploadImage(file);
+      if (!isProtectedEditorAssetReference(asset)) {
+        throw new Error('invalid-protected-asset-reference');
+      }
+      editor.chain().focus().setImage({
+        src: asset.href,
+        alt: asset.altText?.trim() || file.name,
+        title: `asset:${asset.assetId}`,
+      }).run();
+    } catch {
+      callbacks.onError?.(`图片“${file.name}”上传失败，本地内容仍保留。`);
+    } finally {
+      callbacks.onPendingChange?.(-1);
+    }
+  }
 }
 
 function ToolbarButton({
@@ -128,5 +241,5 @@ export const PREPARATION_EDITOR_DEPENDENCY_DECISION = {
   package: '@tiptap/react',
   version: '3.28.0',
   canonicalFormat: 'markdown',
-  supported: ['headings', 'tables', 'inline-math', 'code-blocks', 'lists'],
+  supported: ['headings', 'tables', 'inline-math', 'images', 'code-blocks', 'lists'],
 } as const;
