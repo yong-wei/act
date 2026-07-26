@@ -441,6 +441,12 @@ function publicResults(
       windowId: window.id,
       primaryUnitId: window.primaryUnitId,
       owningUnitIds: [...window.owningUnitIds],
+      segments: window.segments.map((segment) => ({
+        owningUnitId: segment.owningUnitId,
+        body: Buffer.from(candidate.body as string, 'utf8')
+          .subarray(segment.bodyOffset, segment.bodyOffset + segment.bodyLength)
+          .toString('utf8'),
+      })),
       bookId: window.bookId,
       sourcePaths: [...window.sourcePaths],
       body: candidate.body as string,

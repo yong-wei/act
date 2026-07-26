@@ -38,6 +38,7 @@ const TEXTBOOK_GENERATOR_INPUTS = [
   'course-content/scripts/validate_textbook_hybrid_retrieval.mjs',
   'course-content/scripts/export_textbook_runtime_assets.py',
   'course-content/contracts/structured-textbook-runtime-v2.schema.json',
+  'course-content/contracts/textbook-hybrid-retrieval-v1.schema.json',
   'course-content/config/textbook-hybrid-retrieval.json',
   'course-content/config/textbook-structure-v2',
 ];

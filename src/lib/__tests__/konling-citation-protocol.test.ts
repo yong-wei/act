@@ -244,4 +244,26 @@ describe('Konling citation protocol', () => {
     expect(result.body).not.toContain('/Users/');
     expect(result.userNotice).toBe('引用未能核验');
   });
+
+  it('preserves technical bracket expressions that are not supported citation markers', () => {
+    const result = normalizeKonlingCitations({
+      answer: '数组切片 x[0:10]，控制器参数 [PID: Kp=1]。',
+      assignedCitations: assignKonlingCitationDisplayNumbers(sources),
+    });
+
+    expect(result.body).toBe('数组切片 x[0:10]，控制器参数 [PID: Kp=1]。');
+    expect(result.unresolvedMarkers).toEqual([]);
+    expect(result.userNotice).toBeNull();
+  });
+
+  it('still resolves and removes supported internal citation markers', () => {
+    const result = normalizeKonlingCitations({
+      answer: '有效 [textbook-unit:one]，伪造 [content:not-assigned]。',
+      assignedCitations: assignKonlingCitationDisplayNumbers(sources),
+    });
+
+    expect(result.body).toBe('有效 [1]，伪造 。');
+    expect(result.unresolvedMarkers).toEqual(['[content:not-assigned]']);
+    expect(result.userNotice).toBe('部分引用未能核验');
+  });
 });

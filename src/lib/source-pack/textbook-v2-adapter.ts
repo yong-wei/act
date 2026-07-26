@@ -290,11 +290,12 @@ async function adaptTextbookRetrievalResult(
   }>>();
   input.retrieval.results.forEach((result, rank) => {
     owningBookIds.set(result.primaryUnitId, result.bookId);
-    for (const unitId of result.owningUnitIds) {
+    for (const segment of result.segments) {
+      const unitId = segment.owningUnitId;
       if (!owningBookIds.has(unitId)) owningBookIds.set(unitId, result.bookId);
       const supports = supportsByUnit.get(unitId) ?? [];
       supports.push({
-        body: result.body,
+        body: segment.body,
         bookId: result.bookId,
         rank,
         score: result.scores.rerank ?? result.scores.fused,

@@ -42,7 +42,12 @@ type MarkerOccurrence = {
   value: string;
 };
 
-const CITATION_MARKER = /\[(?:(?:证据|引用|content)\s*:\s*([^\]\n]+)|(\d+)|([A-Za-z0-9_-]+:[^\]\n]+))\]/gi;
+const INTERNAL_CITATION_ID_PREFIX =
+  '(?:textbook-unit|content|learner-state|path|memory|simulation|arena|evidence|LearningPathExecution|LearningPathIntervention|LearningPathDeviation|LearningPathEvidence)';
+const CITATION_MARKER = new RegExp(
+  `\\[(?:(?:证据|引用|content)\\s*:\\s*([^\\]\\n]+)|(\\d+)|(${INTERNAL_CITATION_ID_PREFIX}:[A-Za-z0-9][A-Za-z0-9._~:/@%+-]*))\\]`,
+  'gi',
+);
 const MARKDOWN_LINK = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
 const INTERNAL_PATH = /(?:file:\/\/|\/(?:Users|home|workspace|course-content|src|var|tmp)\/)[^\s)\]}]+/gi;
 const BARE_URL = /https?:\/\/[^\s)\]}，。；、]+/gi;

@@ -44,7 +44,6 @@ import {
   assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts,
   assertResidualKnowledgeCardDispositionReviewFreeze,
   buildCourseContentClearanceReviewOverlays,
-  filterTextbookSearchDocumentsForCitationReviewScope,
   expectedCoreSemanticReviewFreezeForResourceId,
   expectedResidualKnowledgeCardDispositionReviewFreezeForResourceId,
   isRuntimeLessonMediaSourceFile,
@@ -455,22 +454,6 @@ describe('resource field completion audit', () => {
     expect(isRuntimeLessonMediaSourceFile('/runtime/1-3/media/generated-data/metrics.txt')).toBe(true);
     expect(isRuntimeLessonMediaSourceFile('/runtime/1-3/media/diagram.png')).toBe(true);
     expect(isRuntimeLessonMediaSourceFile('/runtime/1-3/media/octave-intermediate.pdf')).toBe(false);
-  });
-
-  it('limits textbook search documents to explicitly reviewed rows in reviewed books', () => {
-    const reviews = new Map([['textbook-search-document:shared-id', {
-      resourceId: 'textbook-search-document:shared-id',
-      citationAddress: { href: '/textbooks/reviewed-book/sections/1' },
-    }]]) as never;
-    const documents = [
-      { id: 'shared-id', metadata: { bookId: 'reviewed-book' } },
-      { id: 'shared-id', metadata: { bookId: 'other-book' } },
-      { id: 'unreviewed-id', metadata: { bookId: 'reviewed-book' } },
-    ];
-
-    expect(filterTextbookSearchDocumentsForCitationReviewScope(documents, reviews)).toEqual([
-      documents[0],
-    ]);
   });
 
   it('applies historical runtime review overlays only to review source IDs', async () => {

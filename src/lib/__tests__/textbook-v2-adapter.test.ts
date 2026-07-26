@@ -63,7 +63,11 @@ function response(): TextbookRetrievalResponse {
       {
         windowId: 'textbook-window:overlap-a',
         primaryUnitId: units[1].id,
-        owningUnitIds: [units[1].id, units[0].id],
+        owningUnitIds: [units[1].id],
+        segments: [{
+          owningUnitId: units[1].id,
+          body: '单位阶跃响应 3.2 的英文教材命中窗口。',
+        }],
         bookId: units[1].bookId,
         sourcePaths: ['private/source-a.md'],
         body: '单位阶跃响应 3.2 的英文教材命中窗口。',
@@ -73,6 +77,10 @@ function response(): TextbookRetrievalResponse {
         windowId: 'textbook-window:overlap-b',
         primaryUnitId: units[0].id,
         owningUnitIds: [units[0].id],
+        segments: [{
+          owningUnitId: units[0].id,
+          body: '单位阶跃响应 3.2 的中文教材命中窗口。',
+        }],
         bookId: units[0].bookId,
         sourcePaths: ['private/source-b.md'],
         body: '单位阶跃响应 3.2 的中文教材命中窗口。',
@@ -82,6 +90,10 @@ function response(): TextbookRetrievalResponse {
         windowId: 'textbook-window:indirect',
         primaryUnitId: units[2].id,
         owningUnitIds: [units[2].id],
+        segments: [{
+          owningUnitId: units[2].id,
+          body: 'indirect mention',
+        }],
         bookId: units[2].bookId,
         sourcePaths: ['private/source-c.md'],
         body: 'indirect mention',
@@ -170,6 +182,10 @@ describe('v2 textbook Source Pack adapter', () => {
           windowId: 'textbook-window:supplemental-only',
           primaryUnitId: supplementalUnit.id,
           owningUnitIds: [supplementalUnit.id],
+          segments: [{
+            owningUnitId: supplementalUnit.id,
+            body: '单位阶跃响应是控制系统在单位阶跃输入下的输出响应。',
+          }],
           bookId: supplementalUnit.bookId,
           sourcePaths: ['private/encyclopedia.md'],
           body: '单位阶跃响应是控制系统在单位阶跃输入下的输出响应。',
@@ -206,6 +222,10 @@ describe('v2 textbook Source Pack adapter', () => {
           windowId: `textbook-window:${bookId}`,
           primaryUnitId: supplementalUnit.id,
           owningUnitIds: [supplementalUnit.id],
+          segments: [{
+            owningUnitId: supplementalUnit.id,
+            body: `${query}的直接补充说明。`,
+          }],
           bookId,
           sourcePaths: ['private/supplemental.md'],
           body: `${query}的直接补充说明。`,
@@ -336,6 +356,10 @@ describe('v2 textbook Source Pack adapter', () => {
           windowId: 'textbook-window:late',
           primaryUnitId: lateUnit.id,
           owningUnitIds: [lateUnit.id],
+          segments: [{
+            owningUnitId: lateUnit.id,
+            body: matchedWindow,
+          }],
           bookId: lateUnit.bookId,
           sourcePaths: ['private/late.md'],
           body: matchedWindow,
@@ -352,5 +376,49 @@ describe('v2 textbook Source Pack adapter', () => {
     expect(result.candidates[0].text).toBe(matchedWindow);
     expect(result.candidates[0].text).not.toContain('背景材料');
     expect(result.candidates[0].identity.unitId).toBe(lateUnit.id);
+  });
+
+  it('does not verify an owning unit when only its adjacent window segment supports the query', async () => {
+    const adjacentUnit: TextbookCitationUnit = {
+      ...units[0],
+      id: 'textbook-unit:hu8/adjacent',
+      title: '相邻结构单元',
+      structuralPath: ['chapter-3', 'section-3.3'],
+      markdown: '相邻结构单元讨论稳态误差。',
+      fragments: [],
+    };
+    const result = await retrieveTextbookSourcePackV2({
+      query: '单位阶跃响应',
+      indexRoot: '/fixture/index',
+      retrieve: vi.fn().mockResolvedValue({
+        mode: 'lexical',
+        results: [{
+          windowId: 'textbook-window:overlap-counterexample',
+          primaryUnitId: units[0].id,
+          owningUnitIds: [units[0].id, adjacentUnit.id],
+          segments: [
+            {
+              owningUnitId: units[0].id,
+              body: '单位阶跃响应为指数形式。',
+            },
+            {
+              owningUnitId: adjacentUnit.id,
+              body: '本节只讨论稳态误差。',
+            },
+          ],
+          bookId: units[0].bookId,
+          sourcePaths: ['private/overlap.md'],
+          body: '单位阶跃响应为指数形式。本节只讨论稳态误差。',
+          scores: { fused: 0.95 },
+        }],
+      }),
+      loadIndex: vi.fn().mockResolvedValue({
+        manifest: { sourcePriority: [units[0].bookId] },
+      } as LoadedTextbookRetrievalIndex),
+      loadUnits: vi.fn().mockResolvedValue([units[0], adjacentUnit]),
+    });
+
+    expect(result.candidates.map((candidate) => candidate.identity.unitId)).toEqual([units[0].id]);
+    expect(result.candidates[0].text).toBe('单位阶跃响应为指数形式。');
   });
 });
