@@ -10,6 +10,7 @@ import {
   StudentAssignmentContentEditorExample,
   TeacherAssignmentContentEditorExample,
 } from '../preparation-document-editor/assignment-embedded-editor';
+import { mapMarkdownImageHrefs } from '../preparation-document-editor/rich-markdown-editor';
 
 describe('assignment embedded editor', () => {
   let container: HTMLDivElement;
@@ -26,6 +27,21 @@ describe('assignment embedded editor', () => {
     act(() => root.unmount());
     container.remove();
     vi.restoreAllMocks();
+  });
+
+  it('maps protected image URLs for display and back to their stable Markdown path', () => {
+    const stable = '/api/student/assignments/a/answers/q/assets/i/read';
+    const signed = `${stable}?token=one-time`;
+    const markdown = `正文\n\n![图](${stable} "asset:md:image")`;
+    const displayed = mapMarkdownImageHrefs(
+      markdown,
+      (href) => href === stable ? signed : href,
+    );
+    expect(displayed).toContain(signed);
+    expect(mapMarkdownImageHrefs(
+      displayed,
+      (href) => href === signed ? stable : href,
+    )).toBe(markdown);
   });
 
   it('renders confirmed Markdown with formulas and images without full-screen preparation regions', async () => {

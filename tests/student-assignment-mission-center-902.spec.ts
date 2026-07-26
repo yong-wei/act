@@ -238,6 +238,95 @@ test('keyboard user can save text and upload one question attachment without a w
   await expect(page.getByRole('button', { name: /提交整份|整份提交|封卷/ })).toHaveCount(0);
 });
 
+test('embedded images renew one-time preview authorization across saved and editing states', async ({ page, context }) => {
+  await addStudentSession(context);
+  await mockAssignmentRoutes(page);
+  const stablePath = '/api/student/assignments/assignment-902/answers/question-text/assets/embedded-1/read';
+  const markdown = `正文证据\n\n![正文图](${stablePath} "asset:md:embedded1")`;
+  const detail = assignment({
+    questions: [
+      {
+        id: 'question-text',
+        stableQuestionId: 'stable-text',
+        orderIndex: 0,
+        promptText: '说明系统型别与阶跃输入稳态误差的关系。',
+        responseType: 'SUBJECTIVE_TEXT',
+        points: 10,
+        required: true,
+        state: 'READY',
+        version: 2,
+        currentAttemptNumber: null,
+        textDraft: markdown,
+        assets: [{
+          id: 'embedded-1',
+          displayName: '正文图.png',
+          mimeType: 'image/png',
+          sizeBytes: 68,
+          state: 'FINALIZED',
+          role: 'EMBEDDED_IMAGE',
+          orderIndex: 0,
+          embeddedPosition: 'md:embedded1',
+        }],
+      },
+      assignment().questions[1],
+    ],
+  });
+  await page.unroute('**/api/student/assignments/assignment-902');
+  await page.route('**/api/student/assignments/assignment-902', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ assignment: detail }),
+    }));
+  await page.unroute('**/api/student/assignments/assignment-902/answers/question-text');
+  await page.route('**/api/student/assignments/assignment-902/answers/question-text', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        answer: {
+          id: 'answer-text',
+          state: 'READY',
+          version: 3,
+          textDraft: markdown,
+        },
+      }),
+    }));
+  let previewGrantCount = 0;
+  await page.route(`**${stablePath}**`, (route) => {
+    if (route.request().method() === 'POST') {
+      previewGrantCount += 1;
+      return route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          access: { url: `${stablePath}?token=preview-${previewGrantCount}` },
+        }),
+      });
+    }
+    return route.fulfill({
+      contentType: 'image/png',
+      body: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZQmcAAAAASUVORK5CYII=',
+        'base64',
+      ),
+    });
+  });
+
+  await page.goto('/missions/assignments/assignment-902');
+  const answerEditor = page.getByRole('region', { name: '第 1 题答案正文' });
+  await expect(answerEditor.locator('img[alt="正文图"]'))
+    .toHaveAttribute('src', /token=preview-1/);
+  await answerEditor.getByRole('button', { name: '编辑' }).click();
+  await expect(answerEditor.locator('[data-preparation-rich-editor] img[alt="正文图"]'))
+    .toHaveAttribute('src', /token=preview-2/);
+  await answerEditor.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(answerEditor.locator('[data-assignment-saved-render] img[alt="正文图"]'))
+    .toHaveAttribute('src', /token=preview-3/);
+  await page.getByRole('button', { name: /第 2 题/ }).click();
+  await page.getByRole('button', { name: /第 1 题/ }).click();
+  await expect(answerEditor.locator('[data-assignment-saved-render] img[alt="正文图"]'))
+    .toHaveAttribute('src', /token=preview-4/);
+  expect(previewGrantCount).toBeGreaterThanOrEqual(4);
+});
+
 test('keyboard sorting submits the complete attachment order and remains usable at 320px', async ({ page, context }) => {
   await addStudentSession(context);
   await mockAssignmentRoutes(page);
@@ -295,6 +384,7 @@ test('upload failure is localized, retry reaches ready, and unsafe files remain 
   let mode: 'NETWORK_ERROR' | 'READY' | 'UNSAFE' = 'NETWORK_ERROR';
   let intentCounter = 0;
   const finalizeCalls = new Map<string, number>();
+  const discardedIntents: string[] = [];
   await page.unroute('**/api/student/assignments/assignment-902/answers/question-file/upload-sign');
   await page.unroute('**/api/student/assignments/assignment-902/answers/question-file/finalize**');
   await page.route('**/api/student/assignments/assignment-902/answers/question-file/upload-sign', (route) => {
@@ -313,6 +403,24 @@ test('upload failure is localized, retry reaches ready, and unsafe files remain 
     if (mode === 'NETWORK_ERROR') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'scanner-provider-failed' }) });
     return route.fulfill({ status: mode === 'UNSAFE' ? 422 : 200, contentType: 'application/json', body: JSON.stringify(mode === 'READY' ? { status: 'CLEAN', intentId } : { status: 'UNSAFE', intentId }) });
   });
+  await page.route('**/api/student/assignments/assignment-902/answers/question-file/assets/intent-round3-*', async (route) => {
+    const intentId = new URL(route.request().url()).pathname.split('/').at(-1)!;
+    discardedIntents.push(intentId);
+    if (mode === 'UNSAFE') {
+      return route.fulfill({
+        status: 404,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'answer-asset-not-found' }),
+      });
+    }
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        removedAssetId: intentId,
+        answer: { version: 3, state: 'READY' },
+      }),
+    });
+  });
   await page.goto('/missions/assignments/assignment-902');
   await page.getByRole('button', { name: /第 2 题/ }).click();
   await page.locator('#file-question-file').setInputFiles({ name: 'round3.pdf', mimeType: 'application/pdf', buffer: Buffer.from('round3') });
@@ -327,10 +435,19 @@ test('upload failure is localized, retry reaches ready, and unsafe files remain 
   expect(finalizeCalls.get('intent-round3-1')).toBe(2);
   await expect(page.getByText('round3.pdf', { exact: true })).toBeVisible();
 
+  mode = 'NETWORK_ERROR';
+  await page.locator('#file-question-file').setInputFiles({ name: 'discard.pdf', mimeType: 'application/pdf', buffer: Buffer.from('discard') });
+  const discard = page.getByRole('status').filter({ hasText: '扫描状态查询失败' });
+  await expect(discard).toBeVisible();
+  await discard.getByRole('button', { name: '移除失败项' }).click();
+  await expect(discard).toHaveCount(0);
+  expect(discardedIntents).toContain('intent-round3-2');
+
   mode = 'UNSAFE';
   await page.locator('#file-question-file').setInputFiles({ name: 'unsafe.pdf', mimeType: 'application/pdf', buffer: Buffer.from('unsafe') });
   const unsafe = page.getByRole('status').filter({ hasText: '附件未通过安全扫描' });
   await expect(unsafe).toBeVisible();
   await unsafe.getByRole('button', { name: '移除失败项' }).click();
   await expect(unsafe).toHaveCount(0);
+  expect(discardedIntents).toContain('intent-round3-3');
 });

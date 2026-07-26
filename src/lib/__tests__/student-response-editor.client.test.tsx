@@ -102,6 +102,7 @@ describe('student response editor interactions', () => {
           uploadImage={vi.fn()}
           validateAssetReference={() => true}
           resolveAssetHref={(href) => href}
+          canonicalizeAssetHref={(href) => href}
           onUploadFiles={vi.fn()}
           onRetryUpload={onRetryUpload}
           onDiscardUpload={vi.fn()}

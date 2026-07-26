@@ -49,6 +49,7 @@ function renderQuestion(input?: {
       uploadImage={vi.fn()}
       validateAssetReference={() => true}
       resolveAssetHref={(href) => href}
+      canonicalizeAssetHref={(href) => href}
       onUploadFiles={vi.fn()}
       onRetryUpload={vi.fn()}
       onDiscardUpload={vi.fn()}

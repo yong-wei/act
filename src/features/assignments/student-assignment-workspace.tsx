@@ -57,6 +57,9 @@ export type PendingUpload = {
   role: 'ATTACHMENT' | 'EMBEDDED_IMAGE';
   embeddedPosition?: string;
   idempotencyKey?: string;
+  uploadUrl?: string;
+  requiredHeaders?: Record<string, string>;
+  uploaded?: boolean;
   status: 'WAITING' | 'UPLOADING' | 'SCANNING' | 'RETRYING' | 'FAILED';
   message: string;
 };
@@ -82,6 +85,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
   const historyTriggerRef = useRef<HTMLButtonElement>(null);
   const uploadStatusRef = useRef<HTMLDivElement>(null);
   const previewAuthorizationRef = useRef(new Set<string>());
+  const assetPreviewUrlsRef = useRef<Record<string, string>>({});
 
   const answerPath = useCallback(
     (questionId: string) =>
@@ -102,14 +106,33 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     const payload = await response.json().catch(() => ({})) as {
       access?: { url: string };
     };
-    if (!response.ok || !payload.access?.url) return;
+    if (!response.ok || !payload.access?.url) return null;
     const url = new URL(payload.access.url, window.location.origin);
-    if (url.origin !== window.location.origin) return;
+    if (url.origin !== window.location.origin) return null;
+    const previewUrl = `${url.pathname}${url.search}`;
+    assetPreviewUrlsRef.current[stablePath] = previewUrl;
     setAssetPreviewUrls((current) => ({
       ...current,
-      [stablePath]: `${url.pathname}${url.search}`,
+      [stablePath]: previewUrl,
     }));
+    return previewUrl;
   }, [assetReadPath]);
+  const canonicalizeAssetPreviewHref = useCallback((href: string) => {
+    const entry = Object.entries(assetPreviewUrlsRef.current)
+      .find(([, previewUrl]) => previewUrl === href);
+    return entry?.[0] ?? href;
+  }, []);
+  const refreshQuestionAssetPreviews = useCallback(async (
+    question: StudentAssignmentQuestion,
+    markdown: string,
+  ) => {
+    const references = embeddedAssetReferences(
+      markdown,
+      question.assets ?? [],
+    ) ?? [];
+    await Promise.all(references.map((reference) =>
+      authorizeAssetPreview(question.id, reference.assetId)));
+  }, [authorizeAssetPreview]);
 
   const loadAssignment = useCallback(async (options?: {
     preserveLocalDrafts?: boolean;
@@ -182,6 +205,15 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
   ]);
 
   function selectQuestion(questionId: string) {
+    const question = assignment?.questions.find(
+      (candidate) => candidate.id === questionId,
+    );
+    if (question) {
+      void refreshQuestionAssetPreviews(
+        question,
+        drafts[question.id] ?? '',
+      );
+    }
     setSelectedQuestionId(questionId);
     setHistoryQuestionId(null);
     setNotice(null);
@@ -201,7 +233,9 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     setNotice(null);
     setBodySaveStates((current) => ({ ...current, [question.id]: 'saving' }));
     try {
-      await persistQuestionDraft(question, drafts[question.id] ?? '');
+      const currentDraft = drafts[question.id] ?? '';
+      await persistQuestionDraft(question, currentDraft);
+      await refreshQuestionAssetPreviews(question, currentDraft);
       setBodySaveStates((current) => ({ ...current, [question.id]: 'saved' }));
       setNotice({ kind: 'success', message: '本题草稿已保存。' });
     } catch (cause) {
@@ -361,10 +395,13 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     }));
     const result = await uploadResponseAsset(question, job);
     const stablePath = assetReadPath(question.id, result.asset.id);
-    await authorizeAssetPreview(question.id, result.asset.id);
+    const previewUrl = await authorizeAssetPreview(
+      question.id,
+      result.asset.id,
+    );
     return {
       assetId: embeddedPosition,
-      href: stablePath,
+      href: previewUrl ?? stablePath,
       altText: file.name,
     };
   }
@@ -378,35 +415,49 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       message: job.status === 'FAILED' ? '正在重试上传。' : '正在上传。',
     });
     setNotice(null);
+    let prepared = job;
     try {
-      const checksum = await checksumFile(job.file);
-      const signResponse = await fetch(`${answerPath(question.id)}/upload-sign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName: job.file.name,
-          mimeType: assignmentMimeType(job.file),
-          sizeBytes: job.file.size,
-          checksum,
-          assetRole: job.role,
-          ...(job.embeddedPosition
-            ? { embeddedPosition: job.embeddedPosition }
-            : {}),
-        }),
-      });
-      const signPayload = await signResponse.json().catch(() => ({})) as StudentUploadErrorPayload & {
-        upload?: {
-          intentId: string;
-          url: string;
-          requiredHeaders?: Record<string, string>;
+      if (!job.intentId || !job.uploadUrl || !job.idempotencyKey) {
+        const checksum = await checksumFile(job.file);
+        const signResponse = await fetch(`${answerPath(question.id)}/upload-sign`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: job.file.name,
+            mimeType: assignmentMimeType(job.file),
+            sizeBytes: job.file.size,
+            checksum,
+            assetRole: job.role,
+            ...(job.embeddedPosition
+              ? { embeddedPosition: job.embeddedPosition }
+              : {}),
+          }),
+        });
+        const signPayload = await signResponse.json().catch(() => ({})) as StudentUploadErrorPayload & {
+          upload?: {
+            intentId: string;
+            url: string;
+            requiredHeaders?: Record<string, string>;
+          };
         };
-      };
-      if (!signResponse.ok || !signPayload.upload) {
-        throw mutationError(signPayload, '无法准备附件上传，请重试。');
+        if (!signResponse.ok || !signPayload.upload) {
+          throw mutationError(signPayload, '无法准备附件上传，请重试。');
+        }
+        prepared = {
+          ...job,
+          intentId: signPayload.upload.intentId,
+          idempotencyKey: crypto.randomUUID(),
+          uploadUrl: signPayload.upload.url,
+          requiredHeaders: signPayload.upload.requiredHeaders,
+          uploaded: false,
+          status: 'UPLOADING',
+          message: '正在上传。',
+        };
+        updateUploadJob(question.id, job.clientId, prepared);
       }
-      const uploadResponse = await fetch(signPayload.upload.url, {
+      const uploadResponse = await fetch(prepared.uploadUrl!, {
         method: 'PUT',
-        headers: signPayload.upload.requiredHeaders,
+        headers: prepared.requiredHeaders,
         body: job.file,
       });
       if (!uploadResponse.ok) {
@@ -415,10 +466,14 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
           '附件上传失败，请检查网络后重试。',
         );
       }
-      const pending = {
-        ...job,
-        intentId: signPayload.upload.intentId,
-        idempotencyKey: crypto.randomUUID(),
+      const pending: PendingUpload & {
+        intentId: string;
+        idempotencyKey: string;
+      } = {
+        ...prepared,
+        intentId: prepared.intentId!,
+        idempotencyKey: prepared.idempotencyKey!,
+        uploaded: true,
         status: 'SCANNING' as const,
         message: '附件已上传，正在进行安全扫描。',
       };
@@ -430,6 +485,12 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
         ? cause.message
         : '附件上传失败，请重试。';
       if (job.role === 'EMBEDDED_IMAGE') {
+        if (prepared.intentId) {
+          await revokeUploadIntent(
+            question,
+            prepared.intentId,
+          ).catch(() => undefined);
+        }
         removeUploadJob(question.id, job.clientId);
       } else {
         updateUploadJob(question.id, job.clientId, {
@@ -631,7 +692,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
   }
 
   function retryUpload(question: StudentAssignmentQuestion, job: PendingUpload) {
-    if (job.intentId && job.idempotencyKey) {
+    if (job.intentId && job.idempotencyKey && job.uploaded) {
       updateUploadJob(question.id, job.clientId, {
         status: 'RETRYING',
         message: '正在重新确认上传结果。',
@@ -659,6 +720,70 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       return;
     }
     void uploadResponseAsset(question, job).catch(() => undefined);
+  }
+
+  async function discardUpload(
+    question: StudentAssignmentQuestion,
+    job: PendingUpload,
+  ) {
+    if (!job.intentId) {
+      removeUploadJob(question.id, job.clientId);
+      return;
+    }
+    setBusyAction(`discard:${question.id}:${job.clientId}`);
+    setNotice(null);
+    try {
+      await revokeUploadIntent(question, job.intentId);
+      removeUploadJob(question.id, job.clientId);
+      setNotice({ kind: 'success', message: '失败上传已移除。' });
+    } catch (cause) {
+      if (cause instanceof StudentResponseMutationError
+        && cause.code === 'answer-version-conflict') {
+        await loadAssignment({ preserveLocalDrafts: true });
+      }
+      setNotice({
+        kind: 'error',
+        message: cause instanceof Error
+          ? cause.message
+          : '失败上传移除失败，请重试。',
+        controlId: `upload-${job.clientId}`,
+      });
+    } finally {
+      setBusyAction(null);
+      requestAnimationFrame(() => noticeRef.current?.focus());
+    }
+  }
+
+  async function revokeUploadIntent(
+    question: StudentAssignmentQuestion,
+    intentId: string,
+  ) {
+    const response = await fetch(
+      `${answerPath(question.id)}/assets/${encodeURIComponent(intentId)}`,
+      {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answerVersion: question.version }),
+      },
+    );
+    const payload = await response.json().catch(() => ({})) as StudentUploadErrorPayload & {
+      removedAssetId?: string;
+      answer?: {
+        version: number;
+        state: StudentAssignmentQuestion['state'];
+      };
+    };
+    if (response.status === 404
+      && payload.error === 'answer-asset-not-found') return;
+    if (!response.ok
+      || payload.removedAssetId !== intentId
+      || !payload.answer) {
+      throw mutationError(payload, '失败上传移除失败，请重试。');
+    }
+    updateQuestion(question.id, {
+      version: payload.answer.version,
+      state: payload.answer.state,
+    });
   }
 
   async function submitQuestion(question: StudentAssignmentQuestion) {
@@ -872,10 +997,17 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
                     }));
                   }}
                   bodySaveState={bodySaveStates[selectedQuestion.id] ?? 'editing'}
-                  onEditBody={() => setBodySaveStates((current) => ({
-                    ...current,
-                    [selectedQuestion.id]: 'editing',
-                  }))}
+                  onEditBody={() => {
+                    void refreshQuestionAssetPreviews(
+                      selectedQuestion,
+                      drafts[selectedQuestion.id] ?? '',
+                    ).finally(() => {
+                      setBodySaveStates((current) => ({
+                        ...current,
+                        [selectedQuestion.id]: 'editing',
+                      }));
+                    });
+                  }}
                   onSave={() => void saveDraft(selectedQuestion)}
                   uploadImage={(file) =>
                     uploadEmbeddedImage(selectedQuestion, file)}
@@ -894,10 +1026,11 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
                     );
                   }}
                   resolveAssetHref={(href) => assetPreviewUrls[href] ?? href}
+                  canonicalizeAssetHref={canonicalizeAssetPreviewHref}
                   onUploadFiles={(files) => queueAttachments(selectedQuestion, files)}
                   onRetryUpload={(job) => retryUpload(selectedQuestion, job)}
-                  onDiscardUpload={(clientId) =>
-                    removeUploadJob(selectedQuestion.id, clientId)}
+                  onDiscardUpload={(job) =>
+                    void discardUpload(selectedQuestion, job)}
                   onRemove={(assetId) =>
                     void removeAttachment(selectedQuestion, assetId)}
                   onReorder={(assetId, targetIndex) =>
@@ -975,6 +1108,7 @@ export function QuestionEditor({
   uploadImage,
   validateAssetReference,
   resolveAssetHref,
+  canonicalizeAssetHref,
   onUploadFiles,
   onRetryUpload,
   onDiscardUpload,
@@ -998,9 +1132,10 @@ export function QuestionEditor({
   uploadImage: (file: File) => Promise<ProtectedEditorAssetReference>;
   validateAssetReference: (asset: ProtectedEditorAssetReference) => boolean;
   resolveAssetHref: (href: string) => string;
+  canonicalizeAssetHref: (href: string) => string;
   onUploadFiles: (files: File[]) => void;
   onRetryUpload: (pending: PendingUpload) => void;
-  onDiscardUpload: (clientId: string) => void;
+  onDiscardUpload: (pending: PendingUpload) => void;
   onRemove: (assetId: string) => void;
   onReorder: (assetId: string, targetIndex: number) => void;
   onSubmit: () => void;
@@ -1014,6 +1149,7 @@ export function QuestionEditor({
   const submitted = question.state === 'SUBMITTED';
   const busy = busyAction?.endsWith(`:${question.id}`)
     || busyAction?.startsWith(`remove:${question.id}:`)
+    || busyAction?.startsWith(`discard:${question.id}:`)
     || false;
   const [draggedAssetId, setDraggedAssetId] = useState<string | null>(null);
   const [dropActive, setDropActive] = useState(false);
@@ -1091,6 +1227,7 @@ export function QuestionEditor({
           uploadImage={uploadImage}
           validateAssetReference={validateAssetReference}
           resolveAssetHref={resolveAssetHref}
+          canonicalizeAssetHref={canonicalizeAssetHref}
         />
       </div>
 
@@ -1234,10 +1371,13 @@ export function QuestionEditor({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDiscardUpload(pending.clientId)}
+                      disabled={busy}
+                      onClick={() => onDiscardUpload(pending)}
                       className="btn-ghost-themed min-h-10 rounded-lg px-3 text-xs"
                     >
-                      移除失败项
+                      {busyAction === `discard:${question.id}:${pending.clientId}`
+                        ? '移除中…'
+                        : '移除失败项'}
                     </button>
                   </div>
                 )}

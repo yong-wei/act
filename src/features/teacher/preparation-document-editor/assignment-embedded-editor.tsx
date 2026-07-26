@@ -30,6 +30,7 @@ export interface AssignmentEmbeddedEditorProps {
   uploadImage: ProtectedEditorImageUpload;
   validateAssetReference: ProtectedEditorAssetValidator;
   resolveAssetHref: (href: string) => string;
+  canonicalizeAssetHref?: (href: string) => string;
 }
 
 export function AssignmentEmbeddedEditor({
@@ -46,6 +47,7 @@ export function AssignmentEmbeddedEditor({
   uploadImage,
   validateAssetReference,
   resolveAssetHref,
+  canonicalizeAssetHref,
 }: AssignmentEmbeddedEditorProps) {
   const [uploadPending, setUploadPending] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -87,6 +89,8 @@ export function AssignmentEmbeddedEditor({
             uploadImage={uploadImage}
             onUploadPendingChange={setUploadPending}
             onUploadError={setUploadError}
+            resolveAssetHref={resolveAssetHref}
+            canonicalizeAssetHref={canonicalizeAssetHref}
           />
           {uploadPending ? <p role="status" className="text-sm text-subtle">图片正在安全上传，完成后才能保存。</p> : null}
           {uploadError ? <p role="alert" className="text-sm text-destructive">{uploadError}</p> : null}
