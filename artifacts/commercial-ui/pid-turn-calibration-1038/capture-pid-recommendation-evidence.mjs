@@ -13,16 +13,20 @@ const viewports = [
   { width: 320, height: 900, name: '320' },
 ];
 
-const result = {
-  recommendedParams: { kp: 2.4, ki: 0.05, kd: 1.2 },
-  score: 86,
-  metrics: {
-    avgError: 74.2,
-    maxRudderRate: 4.2,
-    settlingTime: 31,
-    overshoot: 7.5,
+// 模拟真实 /api/simulation/optimize 响应结构：advice 在 result 外部
+const resultBody = {
+  success: true,
+  result: {
+    recommendedParams: { kp: 2.4, ki: 0.05, kd: 1.2 },
+    score: 86,
+    metrics: {
+      avgError: 74.2,
+      maxRudderRate: 4.2,
+      settlingTime: 31,
+      overshoot: 7.5,
+    },
+    searchInfo: { iterations: 50, timeMs: 312 },
   },
-  searchInfo: { iterations: 50, timeMs: 312 },
   advice: '当前推荐针对 90°右转目标；在 5°/s 舵角速度约束下保持稳定余量。',
 };
 
@@ -46,7 +50,7 @@ try {
       requestBody = routeRequest.request().postDataJSON();
       await routeRequest.fulfill({
         contentType: 'application/json',
-        body: JSON.stringify({ result }),
+        body: JSON.stringify(resultBody),
       });
     });
 
@@ -84,7 +88,7 @@ try {
       route,
       viewport,
       requestBody,
-      result,
+      result: resultBody,
       consoleErrors,
       ...metrics,
     }, null, 2)}\n`);
