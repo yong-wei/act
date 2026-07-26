@@ -52,6 +52,7 @@ function assertExactRuntimeFiles(runtimeRoot) {
     );
   }
 
+  let sourceRevision = null;
   for (const bookId of TEXTBOOK_V2_BOOK_IDS) {
     const bookRoot = path.join(runtimeRoot, bookId);
     for (const fileName of TEXTBOOK_V2_REQUIRED_FILES) {
@@ -61,7 +62,21 @@ function assertExactRuntimeFiles(runtimeRoot) {
         throw new Error(`textbook-v2-runtime-file-invalid:${bookId}/${fileName}`);
       }
     }
+    const manifest = JSON.parse(fs.readFileSync(path.join(bookRoot, 'manifest.json'), 'utf8'));
+    if (typeof manifest.sourceRevision !== 'string' || !/^[0-9a-f]{40}$/u.test(manifest.sourceRevision)) {
+      throw new Error(
+        `textbook-v2-source-revision-invalid:${bookId}:${String(manifest.sourceRevision)}`,
+      );
+    }
+    if (sourceRevision === null) {
+      sourceRevision = manifest.sourceRevision;
+    } else if (manifest.sourceRevision !== sourceRevision) {
+      throw new Error(
+        `textbook-v2-source-revision-mismatch:expected=${sourceRevision} actual=${manifest.sourceRevision} book=${bookId}`,
+      );
+    }
   }
+  return sourceRevision;
 }
 
 function validateRecords(runtimeRoot) {
@@ -107,16 +122,45 @@ function validateRecords(runtimeRoot) {
   return summary;
 }
 
+function validateClosure(runtimeRoot) {
+  const validatorPath = path.resolve(
+    'course-content/scripts/validate_written_textbook_runtime_v2.py',
+  );
+  const validatorArgs = [
+    validatorPath,
+    ...TEXTBOOK_V2_BOOK_IDS.flatMap((bookId) => [
+      '--runtime-dir',
+      path.join(runtimeRoot, bookId),
+    ]),
+  ];
+  const result = spawnSync('python3', validatorArgs, {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) {
+    process.stderr.write(result.stderr || 'textbook v2 closure validator failed without output\n');
+    throw new Error(`textbook-v2-closure-validation-failed:${result.status ?? 'signal'}`);
+  }
+  const summary = JSON.parse(result.stdout);
+  if (summary.runtimeDirectories !== TEXTBOOK_V2_BOOK_IDS.length || summary.failures?.length !== 0) {
+    throw new Error('textbook-v2-closure-validation-summary-invalid');
+  }
+  return summary;
+}
+
 function main() {
   const { runtimeRoot, filesOnly } = parseArgs(process.argv.slice(2));
-  assertExactRuntimeFiles(runtimeRoot);
+  const sourceRevision = assertExactRuntimeFiles(runtimeRoot);
   const validation = filesOnly ? null : validateRecords(runtimeRoot);
+  const closureValidation = filesOnly ? null : validateClosure(runtimeRoot);
   process.stdout.write(`${JSON.stringify({
     runtimeRoot,
     bookIds: TEXTBOOK_V2_BOOK_IDS,
     requiredFiles: TEXTBOOK_V2_REQUIRED_FILES,
+    sourceRevision,
     runtimeDirectories: TEXTBOOK_V2_BOOK_IDS.length,
     recordsValidated: validation?.recordsValidated ?? null,
+    closureDirectoriesValidated: closureValidation?.runtimeDirectories ?? null,
     failures: validation?.failures ?? [],
     filesOnly,
   }, null, 2)}\n`);

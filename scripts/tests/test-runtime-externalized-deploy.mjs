@@ -1,6 +1,8 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 
@@ -12,6 +14,9 @@ const dockerignore = read('.dockerignore');
 const dockerfile = read('Dockerfile');
 const buildScript = read('scripts/build.sh');
 const textbookV2Preflight = read('scripts/release/validate-textbook-runtime-v2.mjs');
+const textbookV2ClosureValidator = read(
+  'course-content/scripts/validate_written_textbook_runtime_v2.py',
+);
 const packageJson = JSON.parse(read('package.json'));
 const serviceScript = read('deploy/podman/configure-service.sh');
 const deployScript = read('deploy/podman/deploy.sh');
@@ -68,12 +73,58 @@ assert.equal(
   textbookV2BookIds.every((bookId) => textbookV2Preflight.includes(`'${bookId}'`)) &&
     textbookV2RequiredFiles.every((fileName) => textbookV2Preflight.includes(`'${fileName}'`)) &&
     textbookV2Preflight.includes('validate_structured_textbook_runtime_v2.mjs') &&
+    textbookV2Preflight.includes('validate_written_textbook_runtime_v2.py') &&
     textbookV2Preflight.includes("'--runtime-dir'") &&
     textbookV2Preflight.includes('failures.slice(0, 20)') &&
-    textbookV2Preflight.includes('failuresTruncated'),
+    textbookV2Preflight.includes('failuresTruncated') &&
+    textbookV2ClosureValidator.includes('validate_written_export'),
   true,
-  '共享 release preflight 应精确校验七本教材的完整 v2 文件集并调用结构化 runtime validator',
+  '共享 release preflight 应精确校验七本教材的完整 v2 文件集，并调用 schema 与跨记录闭合校验器',
 );
+
+const mismatchedRuntimeRoot = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'textbook-v2-revision-mismatch-'),
+);
+try {
+  const sharedRevision = '1111111111111111111111111111111111111111';
+  const mismatchedRevision = '2222222222222222222222222222222222222222';
+  for (const [index, bookId] of textbookV2BookIds.entries()) {
+    const bookRoot = path.join(mismatchedRuntimeRoot, bookId);
+    fs.mkdirSync(bookRoot, { recursive: true });
+    for (const fileName of textbookV2RequiredFiles) {
+      const content = fileName === 'manifest.json'
+        ? `${JSON.stringify({
+          sourceRevision: index === textbookV2BookIds.length - 1
+            ? mismatchedRevision
+            : sharedRevision,
+        })}\n`
+        : '';
+      fs.writeFileSync(path.join(bookRoot, fileName), content);
+    }
+  }
+  const mismatchResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/validate-textbook-runtime-v2.mjs'),
+      '--runtime-root',
+      mismatchedRuntimeRoot,
+      '--files-only',
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.notEqual(
+    mismatchResult.status,
+    0,
+    '七书 sourceRevision 不一致时 release preflight 必须 fail closed',
+  );
+  assert.match(
+    mismatchResult.stderr,
+    /textbook-v2-source-revision-mismatch/u,
+    'release preflight 应明确报告 sourceRevision 不一致',
+  );
+} finally {
+  fs.rmSync(mismatchedRuntimeRoot, { recursive: true, force: true });
+}
 
 assert.equal(
   buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
