@@ -69,6 +69,7 @@ function writeModalSession(session: TextbookModalSession): void {
 }
 
 type ReaderLinkProps = Omit<ComponentProps<typeof Link>, 'href'> & { href: string };
+type FragmentLinkProps = Omit<ComponentProps<'a'>, 'href'> & { href: string };
 
 export function TextbookReaderLink({ href, onClick, ...props }: ReaderLinkProps) {
   return (
@@ -94,6 +95,28 @@ export function TextbookReaderNavigationLink({ href, onClick, ...props }: Reader
         if (!document.querySelector('[data-textbook-reader-modal="true"]')) return;
         const session = readModalSession();
         if (session) writeModalSession({ ...session, depth: session.depth + 1 });
+      }}
+      {...props}
+    />
+  );
+}
+
+export function TextbookReaderFragmentLink({
+  href,
+  onClick,
+  ...props
+}: FragmentLinkProps) {
+  return (
+    <a
+      href={href}
+      onClick={(event) => {
+        onClick?.(event);
+        if (!isPlainInternalClick(event)) return;
+        event.preventDefault();
+        const oldURL = window.location.href;
+        const newURL = new URL(href, oldURL).href;
+        window.history.replaceState(window.history.state, '', newURL);
+        window.dispatchEvent(new HashChangeEvent('hashchange', { oldURL, newURL }));
       }}
       {...props}
     />

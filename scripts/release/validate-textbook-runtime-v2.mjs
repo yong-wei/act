@@ -1,82 +1,33 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
-import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
-export const TEXTBOOK_V2_BOOK_IDS = [
-  'control-encyclopedia',
-  'dorf-modern-control-systems',
-  'feedback-control-of-dynamic-systems',
-  'hu-shousong-auto-control-7th',
-  'hu-shousong-auto-control-8th',
-  'hu-shousong-exercise-analysis-3rd',
-  'liu-sheng-auto-control-2015',
-];
+import {
+  inspectTextbookRuntimeV2,
+  TEXTBOOK_V2_BOOK_IDS,
+  TEXTBOOK_V2_REQUIRED_FILES,
+} from './textbook-runtime-v2-provenance.mjs';
 
-export const TEXTBOOK_V2_REQUIRED_FILES = [
-  'manifest.json',
-  'navigation.json',
-  'units.jsonl',
-  'anchors.jsonl',
-  'windows.jsonl',
-  'anomalies.jsonl',
-  'samples.jsonl',
-];
+export { TEXTBOOK_V2_BOOK_IDS, TEXTBOOK_V2_REQUIRED_FILES };
 
 function parseArgs(argv) {
   let runtimeRoot = 'course-content/runtime/resources/textbooks-v2';
   let filesOnly = false;
+  let expectedSourceRevision;
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--runtime-root') {
       runtimeRoot = argv[++index];
+    } else if (argv[index] === '--expected-source-revision') {
+      expectedSourceRevision = argv[++index];
     } else if (argv[index] === '--files-only') {
       filesOnly = true;
     } else {
       throw new Error(`unknown argument: ${argv[index]}`);
     }
   }
-  return { runtimeRoot: path.resolve(runtimeRoot), filesOnly };
-}
-
-function assertExactRuntimeFiles(runtimeRoot) {
-  const actualBookIds = fs.readdirSync(runtimeRoot, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
-  const expectedBookIds = [...TEXTBOOK_V2_BOOK_IDS].sort();
-  if (JSON.stringify(actualBookIds) !== JSON.stringify(expectedBookIds)) {
-    throw new Error(
-      `textbook-v2-book-set-mismatch: expected=${expectedBookIds.join(',')} actual=${actualBookIds.join(',')}`,
-    );
-  }
-
-  let sourceRevision = null;
-  for (const bookId of TEXTBOOK_V2_BOOK_IDS) {
-    const bookRoot = path.join(runtimeRoot, bookId);
-    for (const fileName of TEXTBOOK_V2_REQUIRED_FILES) {
-      const filePath = path.join(bookRoot, fileName);
-      const stat = fs.lstatSync(filePath);
-      if (!stat.isFile() || stat.isSymbolicLink()) {
-        throw new Error(`textbook-v2-runtime-file-invalid:${bookId}/${fileName}`);
-      }
-    }
-    const manifest = JSON.parse(fs.readFileSync(path.join(bookRoot, 'manifest.json'), 'utf8'));
-    if (typeof manifest.sourceRevision !== 'string' || !/^[0-9a-f]{40}$/u.test(manifest.sourceRevision)) {
-      throw new Error(
-        `textbook-v2-source-revision-invalid:${bookId}:${String(manifest.sourceRevision)}`,
-      );
-    }
-    if (sourceRevision === null) {
-      sourceRevision = manifest.sourceRevision;
-    } else if (manifest.sourceRevision !== sourceRevision) {
-      throw new Error(
-        `textbook-v2-source-revision-mismatch:expected=${sourceRevision} actual=${manifest.sourceRevision} book=${bookId}`,
-      );
-    }
-  }
-  return sourceRevision;
+  return { runtimeRoot: path.resolve(runtimeRoot), filesOnly, expectedSourceRevision };
 }
 
 function validateRecords(runtimeRoot) {
@@ -149,15 +100,17 @@ function validateClosure(runtimeRoot) {
 }
 
 function main() {
-  const { runtimeRoot, filesOnly } = parseArgs(process.argv.slice(2));
-  const sourceRevision = assertExactRuntimeFiles(runtimeRoot);
+  const { runtimeRoot, filesOnly, expectedSourceRevision } = parseArgs(process.argv.slice(2));
+  const runtime = inspectTextbookRuntimeV2(runtimeRoot, { expectedSourceRevision });
   const validation = filesOnly ? null : validateRecords(runtimeRoot);
   const closureValidation = filesOnly ? null : validateClosure(runtimeRoot);
   process.stdout.write(`${JSON.stringify({
     runtimeRoot,
     bookIds: TEXTBOOK_V2_BOOK_IDS,
     requiredFiles: TEXTBOOK_V2_REQUIRED_FILES,
-    sourceRevision,
+    sourceRevision: runtime.sourceRevision,
+    runtimeDigest: runtime.runtimeDigest,
+    runtimeFileCount: runtime.fileCount,
     runtimeDirectories: TEXTBOOK_V2_BOOK_IDS.length,
     recordsValidated: validation?.recordsValidated ?? null,
     closureDirectoriesValidated: closureValidation?.runtimeDirectories ?? null,

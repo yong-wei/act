@@ -14,6 +14,9 @@ const dockerignore = read('.dockerignore');
 const dockerfile = read('Dockerfile');
 const buildScript = read('scripts/build.sh');
 const textbookV2Preflight = read('scripts/release/validate-textbook-runtime-v2.mjs');
+const textbookV2ProvenanceHelper = read(
+  'scripts/release/textbook-runtime-v2-provenance.mjs',
+);
 const textbookV2ClosureValidator = read(
   'course-content/scripts/validate_written_textbook_runtime_v2.py',
 );
@@ -70,10 +73,12 @@ const textbookV2RequiredFiles = [
 ];
 
 assert.equal(
-  textbookV2BookIds.every((bookId) => textbookV2Preflight.includes(`'${bookId}'`)) &&
-    textbookV2RequiredFiles.every((fileName) => textbookV2Preflight.includes(`'${fileName}'`)) &&
+  textbookV2BookIds.every((bookId) => textbookV2ProvenanceHelper.includes(`'${bookId}'`)) &&
+    textbookV2RequiredFiles.every((fileName) => textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&
     textbookV2Preflight.includes('validate_structured_textbook_runtime_v2.mjs') &&
     textbookV2Preflight.includes('validate_written_textbook_runtime_v2.py') &&
+    textbookV2Preflight.includes('inspectTextbookRuntimeV2') &&
+    textbookV2Preflight.includes("'--expected-source-revision'") &&
     textbookV2Preflight.includes("'--runtime-dir'") &&
     textbookV2Preflight.includes('failures.slice(0, 20)') &&
     textbookV2Preflight.includes('failuresTruncated') &&
@@ -126,11 +131,90 @@ try {
   fs.rmSync(mismatchedRuntimeRoot, { recursive: true, force: true });
 }
 
+const tarMismatchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-tar-mismatch-'));
+try {
+  const imageTar = path.join(tarMismatchRoot, 'image.tar');
+  const sidecar = path.join(tarMismatchRoot, 'image.tar.provenance.json');
+  fs.writeFileSync(imageTar, 'tampered image payload');
+  fs.writeFileSync(sidecar, `${JSON.stringify({
+    schemaVersion: 'act.textbook-runtime-release-provenance.v1',
+    appRevision: '1111111111111111111111111111111111111111',
+    imageTarSha256: '0'.repeat(64),
+    runtimeSourceRevision: '1111111111111111111111111111111111111111',
+    runtimeDigest: '1'.repeat(64),
+  })}\n`);
+  const tarMismatchResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'verify-image',
+      '--image-tar',
+      imageTar,
+      '--sidecar',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.notEqual(
+    tarMismatchResult.status,
+    0,
+    '镜像 tar 与 sidecar SHA256 不一致时必须 fail closed',
+  );
+  assert.match(
+    tarMismatchResult.stderr,
+    /textbook-v2-image-tar-sha256-mismatch/u,
+    '镜像校验应明确报告 tar SHA256 不一致',
+  );
+  fs.writeFileSync(sidecar, `${JSON.stringify({
+    schemaVersion: 'act.textbook-runtime-release-provenance.v1',
+    appRevision: '1111111111111111111111111111111111111111',
+    imageTarSha256: '0'.repeat(64),
+    runtimeSourceRevision: '2222222222222222222222222222222222222222',
+    runtimeDigest: '1'.repeat(64),
+  })}\n`);
+  const revisionMismatchResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'verify-image',
+      '--image-tar',
+      imageTar,
+      '--sidecar',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.notEqual(
+    revisionMismatchResult.status,
+    0,
+    'sidecar 的应用与 runtime 修订不一致时必须 fail closed',
+  );
+  assert.match(
+    revisionMismatchResult.stderr,
+    /textbook-v2-provenance-revision-mismatch/u,
+    'sidecar 校验应明确报告应用与 runtime 修订不一致',
+  );
+} finally {
+  fs.rmSync(tarMismatchRoot, { recursive: true, force: true });
+}
+
 assert.equal(
   buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
     buildScript.indexOf('\nnpm run build\n'),
   true,
   'release build 必须在应用构建前执行七书教材 v2 preflight',
+);
+
+assert.equal(
+  buildScript.includes('git status --porcelain=v1 --untracked-files=normal') &&
+    buildScript.includes('APP_REVISION="$(git rev-parse HEAD)"') &&
+    buildScript.includes('--expected-source-revision "${APP_REVISION}"') &&
+    buildScript.includes('--label "org.opencontainers.image.revision=${APP_REVISION}"') &&
+    buildScript.includes('textbook-runtime-v2-provenance.mjs" write-sidecar') &&
+    textbookV2ProvenanceHelper.includes('fs.renameSync(temporary, output)') &&
+    textbookV2ProvenanceHelper.includes("digest.update('\\0')"),
+  true,
+  'release build 必须绑定干净 HEAD、教材 runtime digest、镜像 revision label 与原子 provenance sidecar',
 );
 
 assert.equal(
@@ -219,6 +303,19 @@ assert.equal(
     remoteHostCheckIndex > runtimeRsyncIndex,
   true,
   '远端部署即使 skip-build 也必须在 rsync 前执行本地 preflight，并在 rsync 后检查远端宿主文件集',
+);
+
+assert.equal(
+  remoteDeployScript.includes('LOCAL_PROVENANCE_FILE="${LOCAL_PROVENANCE_FILE:-${LOCAL_IMAGE_TAR}.provenance.json}"') &&
+    remoteDeployScript.includes('verify-image') &&
+    remoteDeployScript.includes('verify-runtime') &&
+    remoteDeployScript.includes('REMOTE_PROVENANCE_FILE') &&
+    remoteDeployScript.includes('REMOTE_PROVENANCE_HELPER') &&
+    remoteDeployScript.includes('podman image inspect') &&
+    remoteDeployScript.includes('org.opencontainers.image.revision') &&
+    remoteDeployScript.includes('loaded image revision mismatch'),
+  true,
+  '普通与 skip-build 部署必须验证并上传 sidecar，复核远端 runtime/tar，并在启动应用前核对镜像 revision label',
 );
 
 assert.equal(

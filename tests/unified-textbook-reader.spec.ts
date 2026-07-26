@@ -204,6 +204,23 @@ test.describe('unified textbook reader', () => {
     await page.goBack();
     await expect(page).toHaveURL(sourceUrl);
 
+    await page.locator('[data-textbook-review-entry="true"]').click();
+    await expect(page.locator('[data-textbook-reader-modal="true"]')).toBeVisible();
+    await page.locator('[data-textbook-reader-modal="true"] details').evaluateAll((details) => {
+      details.forEach((detail) => {
+        if (detail instanceof HTMLDetailsElement) detail.open = true;
+      });
+    });
+    await page.locator(`a[href="${textbookUrl(anchoredUnit)}"]:visible`).click();
+    await expect(page).toHaveURL(textbookUrl(anchoredUnit));
+    const fragmentLink = page.locator(`a[href="#${encodeURIComponent(fragment)}"]`);
+    await fragmentLink.click();
+    await expect(page).toHaveURL(textbookUrl(anchoredUnit, fragment));
+    await expect(page.locator('[data-textbook-fragment-target="true"]')).toBeFocused();
+    await page.getByRole('button', { name: 'Close' }).click();
+    await expect(page).toHaveURL(sourceUrl);
+    await expect(page.locator('[data-textbook-reader-modal="true"]')).toHaveCount(0);
+
     const sharedPage = await context.newPage();
     await sharedPage.goto(secondUrl);
     await expect(

@@ -8,7 +8,10 @@ import {
 } from '@/lib/textbook-reader';
 
 import { TextbookFragmentFocus } from './textbook-fragment-focus';
-import { TextbookReaderNavigationLink } from './textbook-reader-link';
+import {
+  TextbookReaderFragmentLink,
+  TextbookReaderNavigationLink,
+} from './textbook-reader-link';
 
 function NavigationBranch({
   node,
@@ -209,12 +212,12 @@ export function TextbookReader({
               <ul className="mt-2 space-y-1.5">
                 {projection.fragments.map((fragment) => (
                   <li key={fragment.id}>
-                    <a
+                    <TextbookReaderFragmentLink
                       href={`#${encodeURIComponent(fragment.id)}`}
                       className="block rounded-md px-2 py-1 text-sm text-sky-700 hover:bg-sky-50 dark:text-sky-300 dark:hover:bg-sky-950/40"
                     >
                       {fragment.kind} {fragment.naturalNumber ?? fragment.ordinal}
-                    </a>
+                    </TextbookReaderFragmentLink>
                   </li>
                 ))}
               </ul>
