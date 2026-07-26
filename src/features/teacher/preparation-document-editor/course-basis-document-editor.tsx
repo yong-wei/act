@@ -18,6 +18,7 @@ type EditableCourseBasisDocument = {
   contentHash: string;
   markdown: string;
   frozen: boolean;
+  lifecycle?: { state: string; label: string };
 };
 
 export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) {
@@ -54,7 +55,9 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
         ? local.baseContentHash === null
           ? '已恢复旧版本地修改，但缺少原始版本基线；请复制内容后重新加载服务器版本。'
           : '已恢复上次未完成的本地修改。'
-        : next.frozen ? '当前版本已被引用；保存时会建立新的可编辑版本。' : '');
+        : next.lifecycle?.state === 'DISABLED'
+          ? '这是已停用的历史版本；内容仍可核查，保存修改时会建立新的可编辑版本。'
+          : next.frozen ? '当前版本已冻结；保存修改时会建立新的可编辑版本。' : '');
     } catch {
       setMessage('文档加载失败，本地修改仍保留，请重试。');
     }
@@ -141,14 +144,14 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
   return (
     <PreparationDocumentEditorShell
       title={document.documentTitle}
-      subtitle={`${document.sourceName} · v${document.versionNumber}${document.frozen ? ' · 已引用版本' : ''}`}
+      subtitle={`${document.sourceName} · v${document.versionNumber} · ${document.lifecycle?.label ?? (document.frozen ? '已冻结' : '可编辑')}`}
       sections={sections}
       saveState={saveState}
       onSave={save}
       onExit={() => returnToPreparationEditorOrigin(`/teacher/smart-prep?view=basis&courseBasisId=${encodeURIComponent(document.courseBasisId)}`)}
       onSelectSection={(id) => window.document.querySelectorAll('[data-preparation-rich-editor] .tiptap h1, [data-preparation-rich-editor] .tiptap h2, [data-preparation-rich-editor] .tiptap h3, [data-preparation-rich-editor] .tiptap h4')[Number(id)]?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
     >
-      <div className="mx-auto max-w-5xl">
+      <div className="w-full">
         {serverComparison ? <PreparationConflictComparison
           local={markdown}
           server={serverComparison.markdown}

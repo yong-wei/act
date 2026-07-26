@@ -145,6 +145,74 @@ describe('CourseBasisWorkspace pagination', () => {
     expect(container.textContent).toContain('version-21.txt');
   });
 
+  it('requires explicit confirmation before a permanent delete request', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockImplementationOnce(() => response([basis('basis-1', [basisDocument('document-1', [])])]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, {
+      initialCourseBases: [basis('basis-1')],
+    })));
+
+    await act(async () => buttonWithin('version-1.txt', '永久删除').click());
+    expect(confirm).toHaveBeenCalledOnce();
+    expect(fetch).not.toHaveBeenCalled();
+
+    confirm.mockReturnValue(true);
+    await act(async () => buttonWithin('version-1.txt', '永久删除').click());
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/teacher/course-bases/versions/version-1', {
+      method: 'DELETE',
+    });
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/teacher/course-bases?courseBasisId=basis-1',
+      { cache: 'no-store' },
+    );
+    expect(container.textContent).not.toContain('version-1.txt');
+  });
+
+  it('reloads the unfiltered collection after deleting the selected course basis', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockImplementationOnce(() => response([basis('basis-2')]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, {
+      initialCourseBases: [basis('basis-1'), basis('basis-2')],
+    })));
+
+    await act(async () => button('删除课程依据').click());
+
+    expect(fetch).toHaveBeenNthCalledWith(2, '/api/teacher/course-bases', { cache: 'no-store' });
+    expect(container.textContent).not.toContain('basis-1');
+    expect(container.textContent).toContain('basis-2');
+  });
+
+  it('resets the pagination offset after an unfiltered delete refresh', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const initial = Array.from({ length: 51 }, (_, index) => basis(`basis-${index + 1}`));
+    const refreshed = Array.from({ length: 50 }, (_, index) => basis(`basis-${index + 2}`));
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ courseBases: refreshed, pagination: { hasMore: true } }),
+      } as Response)
+      .mockImplementationOnce(() => response([basis('basis-52')]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, {
+      initialCourseBases: initial,
+      initialBaseOffset: 51,
+      initialHasMoreBases: true,
+    })));
+
+    await act(async () => button('删除课程依据').click());
+    await act(async () => button('加载更多课程依据').click());
+
+    expect(fetch).toHaveBeenNthCalledWith(3, '/api/teacher/course-bases?offset=50&limit=50', { cache: 'no-store' });
+  });
+
   function button(label: string) {
     const match = [...container.querySelectorAll('button')].find((item) => item.textContent?.includes(label));
     if (!match) throw new Error(`button not found: ${label}`);

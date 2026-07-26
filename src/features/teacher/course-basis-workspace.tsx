@@ -13,7 +13,14 @@ type Version = {
   reviewState: string;
   failureReason: string | null;
   retiredAt: Date | string | null;
+  lifecycle?: { state: string; label: string; editable: boolean; frozen: boolean };
   segments?: Array<{ stableAnchor: string; headingPath: string[]; pageNumber: number | null; text: string }>;
+};
+type ReferenceBlocker = {
+  category: string;
+  referenceId: string;
+  name: string;
+  navigationTarget: string;
 };
 
 type Pagination = { offset: number; limit: number; total: number; hasMore: boolean };
@@ -45,11 +52,12 @@ export function CourseBasisWorkspace({
   const [baseOffset, setBaseOffset] = useState(initialBaseOffset ?? initialCourseBases.length);
   const [hasMoreBases, setHasMoreBases] = useState(initialHasMoreBases ?? initialCourseBases.length === 50);
   const [message, setMessage] = useState('');
+  const [blockers, setBlockers] = useState<ReferenceBlocker[]>([]);
   const inFlightPages = useRef(new Set<string>());
   const selected = courseBases.find((item) => item.id === selectedId) ?? null;
 
-  async function refresh(preferredId = selectedId) {
-    const targetId = preferredId || selectedId;
+  async function refresh(preferredId: string | null = selectedId, preserveLoadedPages = true) {
+    const targetId = preferredId === null ? '' : (preferredId || selectedId);
     const response = await fetch(targetId
       ? `/api/teacher/course-bases?courseBasisId=${encodeURIComponent(targetId)}`
       : '/api/teacher/course-bases', { cache: 'no-store' });
@@ -58,13 +66,16 @@ export function CourseBasisWorkspace({
     if (targetId && payload.courseBases[0]) {
       setCourseBases((current) => {
         const existing = current.find((item) => item.id === targetId);
-        const refreshed = existing ? mergeRefreshedBasis(existing, payload.courseBases[0]) : payload.courseBases[0];
+        const refreshed = existing && preserveLoadedPages
+          ? mergeRefreshedBasis(existing, payload.courseBases[0])
+          : payload.courseBases[0];
         return existing
           ? current.map((item) => item.id === targetId ? refreshed : item)
           : [refreshed, ...current];
       });
     } else {
       setCourseBases(payload.courseBases);
+      setBaseOffset(payload.courseBases.length);
       setHasMoreBases(payload.pagination?.hasMore ?? false);
     }
     setSelectedId(targetId || payload.courseBases[0]?.id || '');
@@ -187,10 +198,10 @@ export function CourseBasisWorkspace({
     const payload = await response.json();
     if (!response.ok) return setMessage(errorText(payload.error));
     await refresh();
-    setMessage(payload.version.extractionState === 'EXTRACTED' ? '版本已提取，请预览后确认。' : errorText(payload.version.failureReason));
+    setMessage(payload.version.extractionState === 'EXTRACTED' ? '版本已提取，可以继续编辑或用于备课。' : errorText(payload.version.failureReason));
   }
 
-  async function runVersionAction(versionId: string, action: 'confirm' | 'reject' | 'retry' | 'retire') {
+  async function runVersionAction(versionId: string, action: 'reject' | 'retry' | 'retire') {
     const response = await fetch(`/api/teacher/course-bases/versions/${versionId}`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
@@ -209,6 +220,32 @@ export function CourseBasisWorkspace({
     })));
     await refresh();
     setMessage('版本状态已更新。');
+  }
+
+  async function deleteSource(path: string, successMessage: string, deletesSelectedBasis = false) {
+    if (!window.confirm('确认永久删除？此操作不可恢复。')) return;
+    setBlockers([]);
+    const response = await fetch(path, { method: 'DELETE' });
+    if (response.ok) {
+      await refresh(deletesSelectedBasis ? null : selectedId, false);
+      setMessage(successMessage);
+      return;
+    }
+    const payload = await response.json();
+    const details = Array.isArray(payload.details)
+      ? payload.details.filter((item: unknown): item is ReferenceBlocker => (
+        Boolean(item)
+        && typeof item === 'object'
+        && typeof (item as ReferenceBlocker).category === 'string'
+        && typeof (item as ReferenceBlocker).referenceId === 'string'
+        && typeof (item as ReferenceBlocker).name === 'string'
+        && typeof (item as ReferenceBlocker).navigationTarget === 'string'
+      ))
+      : [];
+    setBlockers(details);
+    setMessage(details.length > 0
+      ? '该内容仍被备课、课件、发布或课堂记录引用，不能永久删除。可以进入相关内容处理，或停用版本。'
+      : errorText(payload.error));
   }
 
   async function buildLessonDesignSourcePack(version: Version) {
@@ -244,10 +281,11 @@ export function CourseBasisWorkspace({
       <header>
         <p className="text-sm font-medium text-primary">智能备课 · 私有课程依据</p>
         <h1 className="mt-1 text-2xl font-semibold text-foreground">Course Basis</h1>
-        <p className="mt-2 max-w-3xl text-sm text-subtle">导入课程标准、教材或参考资料。只有经教师确认的指定版本才会进入备课检索；扫描版 PDF 不执行 OCR。</p>
+        <p className="mt-2 max-w-3xl text-sm text-subtle">导入课程标准、教材或参考资料。成功提取后可持续编辑，内容首次真正用于备课时自动冻结；扫描版 PDF 不执行 OCR。</p>
       </header>
 
       {message ? <p role="status" className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm">{message}</p> : null}
+      {blockers.length > 0 ? <ReferenceBlockerList blockers={blockers} /> : null}
 
       <section className="grid gap-4 rounded-xl border border-border p-4 lg:grid-cols-[1fr_auto]">
         <form action={createBasis} className="grid gap-3 md:grid-cols-3">
@@ -272,7 +310,10 @@ export function CourseBasisWorkspace({
 
         {selected ? <section className="space-y-5">
           <div className="rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3"><BookOpen className="h-5 w-5 text-primary" /><div><h2 className="font-semibold">{selected.title}</h2><p className="text-sm text-subtle">{selected.description || '暂无说明'}</p></div></div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex items-center gap-3"><BookOpen className="h-5 w-5 text-primary" /><div><h2 className="font-semibold">{selected.title}</h2><p className="text-sm text-subtle">{selected.description || '暂无说明'}</p></div></div>
+              <button type="button" onClick={() => void deleteSource(`/api/teacher/course-bases/${encodeURIComponent(selected.id)}`, '课程依据已永久删除。', true)} className="rounded border border-destructive/50 px-3 py-1.5 text-sm text-destructive">删除课程依据</button>
+            </div>
             <form action={createDocument} className="mt-5 flex flex-wrap gap-3">
               <input name="title" required placeholder="文档名称" className="min-w-56 flex-1 rounded-lg border border-border bg-background px-3 py-2" />
               <select name="kind" className="rounded-lg border border-border bg-background px-3 py-2"><option value="STANDARD">课程标准</option><option value="TEXTBOOK">教材</option><option value="OTHER">其他资料</option></select>
@@ -281,13 +322,16 @@ export function CourseBasisWorkspace({
           </div>
 
           {selected.documents.map((document) => <article key={document.id} className="rounded-xl border border-border p-5">
-            <h3 className="font-semibold">{document.title} <span className="ml-2 text-xs font-normal text-subtle">{document.kind}</span></h3>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-semibold">{document.title} <span className="ml-2 text-xs font-normal text-subtle">{documentKindLabel(document.kind)}</span></h3>
+              <button type="button" onClick={() => void deleteSource(`/api/teacher/course-bases/documents/${encodeURIComponent(document.id)}`, '文档已永久删除。')} className="rounded border border-destructive/50 px-3 py-1.5 text-sm text-destructive">删除文档</button>
+            </div>
             <form action={(data) => importVersion(document.id, data)} className="mt-4 grid gap-3 rounded-lg bg-muted/30 p-4">
               <div className="flex flex-wrap gap-3"><select name="sourceType" className="rounded-lg border border-border bg-background px-3 py-2"><option value="PASTED_TEXT">粘贴文本</option><option value="MARKDOWN">Markdown</option><option value="PLAIN_TEXT">纯文本</option></select><input name="sourceName" placeholder="来源名称" className="flex-1 rounded-lg border border-border bg-background px-3 py-2" /><label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm"><FileUp className="h-4 w-4" />上传 MD、TXT 或可搜索 PDF<input name="file" type="file" accept=".md,.markdown,.txt,text/plain,text/markdown,application/pdf" className="sr-only" /></label></div>
               <textarea name="content" rows={5} placeholder="粘贴文本或 Markdown；上传 PDF 时可留空" className="rounded-lg border border-border bg-background px-3 py-2" />
               <button className="justify-self-start rounded-lg bg-primary px-4 py-2 text-primary-foreground">导入新版本</button>
             </form>
-            <div className="mt-4 space-y-2">{document.versions.map((version) => <div key={version.id} className="rounded-lg border border-border px-4 py-3 text-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><strong>v{version.versionNumber}</strong> · {version.sourceName}<span className="ml-2 text-subtle">{version.extractionState} / {version.reviewState}{version.retiredAt ? ' / RETIRED' : ''}</span>{version.failureReason ? <p className="mt-1 text-destructive">{errorText(version.failureReason)}</p> : null}</div><div className="flex flex-wrap gap-2">{!version.retiredAt && version.extractionState === 'EXTRACTED' ? <a href={`/teacher/smart-prep/editor/course-basis/${encodeURIComponent(version.id)}`} className="rounded border border-primary px-2 py-1 text-primary">可视编辑</a> : null}{!version.retiredAt && version.reviewState === 'CONFIRMED' ? <button onClick={() => void buildLessonDesignSourcePack(version)} className="rounded border border-primary px-2 py-1 text-primary">生成备课 Source Pack</button> : null}{!version.retiredAt && version.reviewState === 'PENDING' && version.extractionState === 'EXTRACTED' ? <button onClick={() => void runVersionAction(version.id, 'reject')} className="rounded border border-border px-2 py-1">拒绝</button> : null}{!version.retiredAt && version.extractionState === 'FAILED' ? <button onClick={() => void runVersionAction(version.id, 'retry')} className="rounded border border-border px-2 py-1">重试为新版本</button> : null}{!version.retiredAt ? <button onClick={() => void runVersionAction(version.id, 'retire')} className="rounded border border-border px-2 py-1">停用</button> : null}</div></div>{!version.retiredAt && version.extractionState === 'EXTRACTED' ? <VersionPreview version={version} onConfirm={() => runVersionAction(version.id, 'confirm')} /> : null}</div>)}{document.versionPagination.hasMore ? <button type="button" onClick={() => void loadMoreVersions(document)} className="rounded border border-border px-3 py-2 text-primary">加载更多版本</button> : null}</div>
+            <div className="mt-4 space-y-2">{document.versions.map((version) => <div key={version.id} className="rounded-lg border border-border px-4 py-3 text-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><strong>v{version.versionNumber}</strong> · {version.sourceName}<span className="ml-2 text-subtle">{version.lifecycle?.label ?? lifecycleLabel(version)}</span>{version.failureReason ? <p className="mt-1 text-destructive">{errorText(version.failureReason)}</p> : null}</div><div className="flex flex-wrap gap-2">{version.extractionState === 'EXTRACTED' ? <a href={`/teacher/smart-prep/editor/course-basis/${encodeURIComponent(version.id)}`} className="rounded border border-primary px-2 py-1 text-primary">{version.retiredAt ? '查看历史内容' : '打开文档'}</a> : null}{!version.retiredAt && version.extractionState === 'EXTRACTED' && version.reviewState !== 'REJECTED' ? <button onClick={() => void buildLessonDesignSourcePack(version)} className="rounded border border-primary px-2 py-1 text-primary">预览备课依据</button> : null}{!version.retiredAt && version.reviewState === 'PENDING' && version.extractionState === 'EXTRACTED' ? <button onClick={() => void runVersionAction(version.id, 'reject')} className="rounded border border-border px-2 py-1">标记不可用</button> : null}{!version.retiredAt && version.extractionState === 'FAILED' ? <button onClick={() => void runVersionAction(version.id, 'retry')} className="rounded border border-border px-2 py-1">重试为新版本</button> : null}{!version.retiredAt ? <button onClick={() => void runVersionAction(version.id, 'retire')} className="rounded border border-border px-2 py-1">停用</button> : null}<button type="button" onClick={() => void deleteSource(`/api/teacher/course-bases/versions/${encodeURIComponent(version.id)}`, '版本已永久删除。')} className="rounded border border-destructive/50 px-2 py-1 text-destructive">永久删除</button></div></div></div>)}{document.versionPagination.hasMore ? <button type="button" onClick={() => void loadMoreVersions(document)} className="rounded border border-border px-3 py-2 text-primary">加载更多版本</button> : null}</div>
           </article>)}
           {selected.documentPagination.hasMore ? <button type="button" onClick={() => void loadMoreDocuments()} className="rounded-lg border border-border px-3 py-2 text-primary">加载更多文档</button> : null}
         </section> : null}
@@ -333,35 +377,43 @@ function mergeRefreshedBasis(existing: CourseBasis, refreshed: CourseBasis): Cou
   };
 }
 
-type PreviewPayload = {
-  page: number;
-  pageCount: number;
-  total: number;
-  segments: Array<{ stableAnchor: string; headingPath: string[]; pageNumber: number | null; paragraphNumber: number; text: string }>;
-};
-
-function VersionPreview({ version, onConfirm }: { version: Version; onConfirm: () => Promise<void> }) {
-  const [preview, setPreview] = useState<PreviewPayload | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function load(page: number) {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/teacher/course-bases/versions/${version.id}?page=${page}&pageSize=20`, { cache: 'no-store' });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error ?? '预览加载失败');
-      setPreview(payload.preview);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (!preview) return <button type="button" onClick={() => void load(1)} className="mt-3 rounded border border-primary px-3 py-1.5 text-primary">{loading ? '加载中…' : '打开完整提取预览'}</button>;
-  return <section className="mt-3 rounded-lg bg-muted/30 p-3" aria-label="完整提取预览">
-    <div className="flex flex-wrap items-center justify-between gap-2"><strong>完整提取预览 · 第 {preview.page}/{preview.pageCount || 1} 页 · 共 {preview.total} 段</strong><div className="flex gap-2"><button type="button" disabled={preview.page <= 1 || loading} onClick={() => void load(preview.page - 1)} className="rounded border border-border px-2 py-1 disabled:opacity-40">上一页</button><button type="button" disabled={preview.page >= preview.pageCount || loading} onClick={() => void load(preview.page + 1)} className="rounded border border-border px-2 py-1 disabled:opacity-40">下一页</button></div></div>
-    <ol className="mt-2 max-h-96 space-y-2 overflow-y-auto">{preview.segments.map((segment) => <li key={segment.stableAnchor} className="rounded bg-background p-3"><p className="text-xs text-subtle">{segment.pageNumber ? `第 ${segment.pageNumber} 页 · ` : ''}{segment.headingPath.join(' / ') || '正文'} · 第 {segment.paragraphNumber} 段 · {segment.stableAnchor}</p><p className="mt-1 whitespace-pre-wrap">{segment.text}</p></li>)}</ol>
-    {version.reviewState === 'PENDING' ? <button type="button" onClick={() => void onConfirm()} className="mt-3 rounded bg-primary px-3 py-1.5 text-primary-foreground">已复核预览，确认此版本</button> : null}
+function ReferenceBlockerList({ blockers }: { blockers: ReferenceBlocker[] }) {
+  return <section className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-foreground" aria-label="删除阻断">
+    <p className="font-medium">仍在使用此内容：</p>
+    <ul className="mt-2 list-disc space-y-1 pl-5">
+      {blockers.map((blocker) => <li key={`${blocker.category}:${blocker.referenceId}`}>
+        <a href={blocker.navigationTarget} className="underline underline-offset-2">
+          {blockerCategoryLabel(blocker.category)}：{blocker.name}
+        </a>
+      </li>)}
+    </ul>
+    <p className="mt-2">可以进入相关内容解除仍可删除的草稿引用，或保留历史并停用版本。</p>
   </section>;
+}
+
+function lifecycleLabel(version: Version) {
+  if (version.retiredAt) return '已停用';
+  if (version.extractionState === 'FAILED' || version.extractionState === 'UNSUPPORTED' || version.reviewState === 'REJECTED') return '处理失败';
+  if (version.extractionState !== 'EXTRACTED') return '正在提取';
+  return version.reviewState === 'CONFIRMED' ? '已冻结' : '可编辑';
+}
+
+function documentKindLabel(kind: string) {
+  return ({ STANDARD: '课程标准', TEXTBOOK: '教材', OTHER: '其他资料' } as Record<string, string>)[kind] ?? '课程资料';
+}
+
+function blockerCategoryLabel(category: string) {
+  return ({
+    SMART_LESSON_TASK: '备课任务',
+    SMART_LESSON_KNOWLEDGE_POINT: '备课知识点',
+    SMART_LESSON_GOAL: '备课目标',
+    RESOURCE_PACK: '备课依据包',
+    GENERATION_JOB: '教案生成记录',
+    LESSON_PLAN_REVISION: '已批准教案',
+    COURSEWARE_REVISION: '已批准课件',
+    PUBLICATION_REVISION: '已发布课件',
+    CLASSROOM_SESSION: '课堂记录',
+  } as Record<string, string>)[category] ?? '历史教学内容';
 }
 
 function errorText(code: unknown) {

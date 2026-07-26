@@ -9,6 +9,7 @@ const sourcePackMocks = vi.hoisted(() => ({
   sar: vi.fn(),
   pack: vi.fn(),
 }));
+const adoptionMocks = vi.hoisted(() => ({ adopt: vi.fn() }));
 
 vi.mock('../service', () => ({
   beginProviderAttempt: serviceMocks.begin,
@@ -18,6 +19,9 @@ vi.mock('../service', () => ({
 vi.mock('../../course-basis/lesson-design-source-pack', () => ({
   buildCourseBasisLessonDesignSar: sourcePackMocks.sar,
   buildCourseBasisLessonDesignSourcePack: sourcePackMocks.pack,
+}));
+vi.mock('../../course-basis/service', () => ({
+  adoptCourseBasisVersion: adoptionMocks.adopt,
 }));
 
 import { processSmartLessonGenerationJob } from '../worker';
@@ -95,6 +99,15 @@ describe('smart lesson BullMQ worker', () => {
     expect(sourcePackMocks.sar).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       selectedVersionIds: ['version-1'], explicitRetiredVersionIds: ['version-1'], query: '稳定性',
     }));
+    expect(adoptionMocks.adopt).toHaveBeenCalledWith(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      versionId: 'version-1',
+      adopter: { referenceType: 'GENERATION_JOB', referenceId: 'job-1' },
+      anchors: [{
+        stableAnchor: sourcePackItem.metadata.stableAnchor,
+        contentHash: sourcePackItem.metadata.contentHash,
+      }],
+    });
     expect(sourcePackMocks.pack).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       explicitRetiredVersionIds: ['version-1'],
       retrieval: { query: '稳定性', topK: 8 },

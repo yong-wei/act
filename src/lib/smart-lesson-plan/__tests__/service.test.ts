@@ -5,10 +5,15 @@ const sourcePackMocks = vi.hoisted(() => ({
   sar: vi.fn(),
   pack: vi.fn(),
 }));
+const adoptionMocks = vi.hoisted(() => ({ adopt: vi.fn(), sync: vi.fn() }));
 
 vi.mock('../../course-basis/lesson-design-source-pack', () => ({
   buildCourseBasisLessonDesignSar: sourcePackMocks.sar,
   buildCourseBasisLessonDesignSourcePack: sourcePackMocks.pack,
+}));
+vi.mock('../../course-basis/service', () => ({
+  adoptCourseBasisVersion: adoptionMocks.adopt,
+  synchronizeCourseBasisAdopterVersions: adoptionMocks.sync,
 }));
 
 import { contentHash, smartLessonGenerationInputHash } from '../domain';
@@ -231,7 +236,8 @@ describe('smart lesson aggregate service', () => {
         findMany: vi.fn(async ({ where }) => {
           expect(where).toMatchObject({
             id: { in: ['version-1'] },
-            reviewState: 'CONFIRMED',
+            extractionState: 'EXTRACTED',
+            reviewState: { in: ['PENDING', 'CONFIRMED'] },
             retiredAt: null,
             document: { courseBasisId: 'basis-1', courseBasis: { ownerId: teacher.id } },
           });
@@ -311,6 +317,22 @@ describe('smart lesson aggregate service', () => {
       sourceState: 'VERIFIED',
       gapIdentity: null,
       sourceBindings: [{ ...binding, citationId: expect.stringContaining('teacher-course-basis-citation:') }],
+    });
+    expect(adoptionMocks.adopt).toHaveBeenCalledWith(db, expect.objectContaining({
+      actor: teacher,
+      versionId: binding.sourceVersionId,
+      adopter: expect.objectContaining({ referenceType: 'SMART_LESSON_KNOWLEDGE_POINT' }),
+      anchors: [{ stableAnchor: binding.anchor, contentHash: binding.contentHash }],
+    }));
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(db, {
+      referenceType: 'SMART_LESSON_KNOWLEDGE_POINT',
+      referenceId: expect.any(String),
+      retainedVersionIds: [binding.sourceVersionId],
+    });
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(db, {
+      referenceType: 'SMART_LESSON_GOAL',
+      referenceId: expect.any(String),
+      retainedVersionIds: [],
     });
   });
 
@@ -405,6 +427,16 @@ describe('smart lesson aggregate service', () => {
     expect(recreatedGoal.id).not.toBe('goal-removed');
     expect(recreatedGoal.lineageId).not.toBe('goal-removed-lineage');
     expect(recreatedGoal.gapIdentity).not.toBeNull();
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(tx, {
+      referenceType: 'SMART_LESSON_KNOWLEDGE_POINT',
+      referenceId: 'kp-removed',
+      retainedVersionIds: [],
+    });
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(tx, {
+      referenceType: 'SMART_LESSON_GOAL',
+      referenceId: 'goal-removed',
+      retainedVersionIds: [],
+    });
   });
 
   it('preserves a server-verified item across an unrelated edit without trusting the client state', async () => {
@@ -425,7 +457,8 @@ describe('smart lesson aggregate service', () => {
     expect(fixture.tx.courseBasisDocumentVersion.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
         id: { in: ['version-1'] },
-        reviewState: 'CONFIRMED',
+        extractionState: 'EXTRACTED',
+        reviewState: { in: ['PENDING', 'CONFIRMED'] },
         OR: [{ retiredAt: null }, { id: { in: ['version-1'] } }],
       }),
     }));
@@ -1032,7 +1065,7 @@ describe('smart lesson aggregate service', () => {
     expect(generate).toHaveBeenCalledTimes(1);
   });
 
-  it('registers every approved source version as a lesson-plan revision reference', async () => {
+  it('registers only actually adopted plan bindings as lesson-plan revision references', async () => {
     const plan = validPlanFixture();
     const canonicalBinding = {
       ...binding,
@@ -1041,7 +1074,6 @@ describe('smart lesson aggregate service', () => {
     plan.sources[0].citationId = canonicalBinding.citationId;
     plan.knowledgePoints[0].sourceBindings[0].citationId = canonicalBinding.citationId;
     for (const stage of Object.values(plan.boppps)) stage.steps[0].sourceBindings[0].citationId = canonicalBinding.citationId;
-    const createReferences = vi.fn(async () => ({ count: 2 }));
     const createRevision = vi.fn(async ({ data }) => ({ id: 'revision-1', ...data }));
     const attempt = {
       id: 'attempt-1', attemptNumber: 1, idempotencyKey: 'provider-attempt-1',
@@ -1073,7 +1105,6 @@ describe('smart lesson aggregate service', () => {
         findFirst: vi.fn(async () => null),
         create: createRevision,
       },
-      courseBasisReferenceLink: { createMany: createReferences },
       courseBasisProjection: { findMany: vi.fn(async () => [{ versionId: 'version-1', segment: { stableAnchor: 'chapter-1', contentHash: 'a'.repeat(64) } }]) },
     };
     const db = {
@@ -1085,13 +1116,13 @@ describe('smart lesson aggregate service', () => {
       actor: teacher, draftId: 'draft-1', idempotencyKey: 'approve-request-001',
     });
 
-    expect(createReferences).toHaveBeenCalledWith({
-      data: [
-        { versionId: 'version-1', referenceType: 'LESSON_PLAN_REVISION', referenceId: 'revision-1' },
-        { versionId: 'version-2', referenceType: 'LESSON_PLAN_REVISION', referenceId: 'revision-1' },
-      ],
-      skipDuplicates: true,
-    });
+    expect(adoptionMocks.adopt).toHaveBeenCalledTimes(1);
+    expect(adoptionMocks.adopt).toHaveBeenCalledWith(tx, expect.objectContaining({
+      actor: teacher,
+      versionId: 'version-1',
+      adopter: { referenceType: 'LESSON_PLAN_REVISION', referenceId: 'revision-1' },
+      anchors: [{ stableAnchor: 'chapter-1', contentHash: 'a'.repeat(64) }],
+    }));
     expect(createRevision).toHaveBeenCalledWith({ data: expect.objectContaining({
       provenanceSnapshot: {
         generationJobId: 'job-1',
