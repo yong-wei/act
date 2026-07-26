@@ -101,6 +101,25 @@ const getScheduledHeading = (
   return headingSchedule[headingSchedule.length - 1].headingDeg;
 };
 
+export const getLegacySceneLogic = (_scenario: 'turn90', targetHeading: number): ScenarioLogic => {
+  const headingSchedule = [
+    { time: 0, headingDeg: 0 },
+    { time: 60, headingDeg: 0 },
+    { time: 60, headingDeg: targetHeading },
+    { time: 120, headingDeg: targetHeading },
+  ];
+
+  return {
+    scenarioId: 'turn90',
+    runtimeVersion: 'simulation-optimizer-runtime-v1',
+    duration: 120,
+    referenceCompletedAt: 60,
+    headingSchedule,
+    startPos: { x: 0, z: 0, headingDeg: 0 },
+    getDesiredHeading: (time: number) => getScheduledHeading(headingSchedule, time),
+  };
+};
+
 export const getScenarioLogic = (_scenario: 'turn90', targetHeading: number): ScenarioLogic => {
   const headingSchedule = [
     { time: 0, headingDeg: 0 },
@@ -214,7 +233,7 @@ export function evaluatePIDParams(
     // 3-param legacy: (params, simConfig, target)
     simConfig = logicOrSimConfig as SimpleSimConfig;
     target = simConfigOrTarget as OptimizationTarget;
-    logic = getScenarioLogic('turn90', target.targetHeading);
+    logic = getLegacySceneLogic('turn90', target.targetHeading);
   }
   const speed = simConfig.shipSpeed || 15;
   const guidePath = generateGuidePath(logic, logic.duration, speed);
