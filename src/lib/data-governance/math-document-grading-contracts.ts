@@ -83,6 +83,8 @@ export interface FrozenRubricCriterion {
   label: string;
   goalDimension: string;
   maxPoints: number;
+  scoringStandard?: string;
+  detailedRubricEnabled?: boolean;
   evidenceDescription: string;
   feedbackGuidance: string;
   levels: FrozenRubricLevel[];
@@ -481,6 +483,17 @@ export function buildScopedGradingPrompt(input: {
   evidence: NormalizedAnswerEvidence;
   evaluator?: { id: string; version: string };
 }): { system: string; user: string; tools: never[]; retrieval: false } {
+  const assessmentContracts = input.question.rubric.criteria.map((criterion) => ({
+    criterionId: criterion.id,
+    schema: input.question.rubric.schemaVersion === 'assignment-analytic-rubric.v1'
+      || criterion.detailedRubricEnabled === true
+      ? 'detailed-rubric'
+      : 'scoring-standard-only',
+    levelId: input.question.rubric.schemaVersion === 'assignment-analytic-rubric.v1'
+      || criterion.detailedRubricEnabled === true
+      ? 'required'
+      : 'forbidden',
+  }));
   return {
     system: [
       'You are a rubric grading adapter. Return only the requested JSON draft.',
@@ -497,7 +510,8 @@ export function buildScopedGradingPrompt(input: {
         limitations: input.evidence.limitations,
         blocks: input.evidence.blocks,
       }), '</answer-evidence>',
-      '<output-contract>Return evaluatorId and evaluatorVersion matching evaluator-identity, plus criterion assessments with criterionId, levelId, score, rationale, confidence, anchors, annotations, limitationState, limitations, and overallComment.</output-contract>',
+      '<assessment-contracts>', JSON.stringify(assessmentContracts), '</assessment-contracts>',
+      '<output-contract>Return evaluatorId and evaluatorVersion matching evaluator-identity, plus criterion assessments with criterionId, score, rationale, confidence, anchors, annotations, limitationState, limitations, and overallComment. Include levelId only where assessment-contracts marks it required; omit it where forbidden.</output-contract>',
     ].join('\n'),
     tools: [],
     retrieval: false,

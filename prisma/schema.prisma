@@ -2379,7 +2379,7 @@ model GradingCriterionAssessment {
   id                String    @id @default(cuid())
   gradingRunId      String
   criterionId       String
-  levelId           String
+  levelId           String?
   score             Float
   rationale         String    @db.Text
   confidence        Float

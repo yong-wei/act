@@ -454,7 +454,29 @@ function isRubricDefinition(value: unknown): value is RubricDefinition {
   if (!hasUniqueIds(rubric.criteria)) {
     return false;
   }
-  return rubric.criteria.every((criterion) => typeof criterion.id === 'string' &&
+  return rubric.criteria.every((criterion) => {
+    const standardV2 = rubric.schemaVersion === 'assignment-scoring-rubric.v2'
+      && criterion.detailedRubricEnabled === false;
+    const validLevels = Array.isArray(criterion.levels)
+      && (standardV2
+        ? criterion.levels.length === 0
+        : criterion.levels.length > 0
+          && hasUniqueIds(criterion.levels)
+          && criterion.levels.every((level) => typeof level.id === 'string' &&
+            typeof level.label === 'string' &&
+            typeof level.score === 'number' &&
+            Number.isFinite(level.score) &&
+            level.score >= 0 &&
+            level.score <= rubric.maxScore &&
+            typeof level.description === 'string'));
+    const validV2Standard = !standardV2 ||
+      (typeof criterion.maxPoints === 'number' &&
+        Number.isFinite(criterion.maxPoints) &&
+        criterion.maxPoints > 0 &&
+        criterion.maxPoints <= rubric.maxScore &&
+        typeof criterion.scoringStandard === 'string' &&
+        criterion.scoringStandard.trim().length > 0);
+    return typeof criterion.id === 'string' &&
       typeof criterion.label === 'string' &&
       typeof criterion.weight === 'number' &&
       Number.isFinite(criterion.weight) &&
@@ -462,16 +484,9 @@ function isRubricDefinition(value: unknown): value is RubricDefinition {
       typeof criterion.evidenceRequirement === 'string' &&
       typeof criterion.goalDimension === 'string' &&
       isSupportedRubricGoalDimension(criterion.goalDimension) &&
-      Array.isArray(criterion.levels) &&
-      criterion.levels.length > 0 &&
-      hasUniqueIds(criterion.levels) &&
-      criterion.levels.every((level) => typeof level.id === 'string' &&
-        typeof level.label === 'string' &&
-        typeof level.score === 'number' &&
-        Number.isFinite(level.score) &&
-        level.score >= 0 &&
-        level.score <= rubric.maxScore &&
-        typeof level.description === 'string'));
+      validLevels &&
+      validV2Standard;
+  });
 }
 
 function hasUniqueIds(items: Array<{ id?: unknown }>): boolean {

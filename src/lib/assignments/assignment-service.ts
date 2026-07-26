@@ -12,6 +12,7 @@ import {
   type AssignmentDraftInput,
   type AssignmentQuestionSnapshot,
 } from './assignment-domain';
+import { migrateLegacyAssignmentDraftToRubricV2 } from './assignment-rubric-migration';
 
 type AssignmentDb = PrismaClient;
 type Actor = { id: string; role: 'TEACHER' | 'ADMIN' };
@@ -215,46 +216,76 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
       return await db.$transaction(async (tx) => {
         await assertAssignmentOwner(tx, input.assignmentId, input.actor);
         const existingDraft = await tx.assignmentRevision.findFirst({ where: { assignmentId: input.assignmentId, state: 'DRAFT' }, include: { questions: { orderBy: { orderIndex: 'asc' } } } });
-        if (existingDraft) return existingDraft;
+        if (existingDraft) {
+          const hasLegacyRubric = existingDraft.questions.some((question) =>
+            (question.rubricSnapshot as { schemaVersion?: unknown } | null)?.schemaVersion === 'assignment-analytic-rubric.v1'
+          );
+          if (!hasLegacyRubric) return existingDraft;
+          const legacyDraft = assignmentDraftSchema.parse({
+            title: existingDraft.title,
+            instructions: existingDraft.instructions,
+            totalPoints: Number(existingDraft.totalPoints),
+            questions: existingDraft.questions.map((question) => questionFromRow(question as unknown as Record<string, unknown>)),
+            latePolicy: existingDraft.latePolicy,
+            responsePolicy: existingDraft.responsePolicy,
+            resubmissionPolicy: existingDraft.resubmissionPolicy,
+            solutionReleasePolicy: existingDraft.solutionReleasePolicy,
+          });
+          const migratedDraft = requireMigratedDraft(legacyDraft);
+          const migratedSnapshots = migratedQuestionSnapshots(migratedDraft);
+          const updated = await tx.assignmentRevision.updateMany({
+            where: {
+              id: existingDraft.id,
+              assignmentId: input.assignmentId,
+              state: 'DRAFT',
+              version: existingDraft.version,
+            },
+            data: {
+              title: migratedDraft.title,
+              instructions: migratedDraft.instructions,
+              totalPoints: migratedDraft.totalPoints,
+              latePolicy: migratedDraft.latePolicy,
+              responsePolicy: migratedDraft.responsePolicy,
+              resubmissionPolicy: migratedDraft.resubmissionPolicy,
+              solutionReleasePolicy: migratedDraft.solutionReleasePolicy,
+              contentHash: stableHash(draftWithSnapshots(migratedDraft, migratedSnapshots)),
+              version: { increment: 1 },
+            },
+          });
+          if (updated.count !== 1) throw new AssignmentDomainError('version-conflict');
+          await tx.assignmentQuestion.deleteMany({ where: { assignmentRevisionId: existingDraft.id } });
+          await tx.assignmentQuestion.createMany({
+            data: migratedSnapshots.map((question, index) =>
+              questionCreateManyData(existingDraft.id, question, index)
+            ),
+          });
+          return tx.assignmentRevision.findUniqueOrThrow({
+            where: { id: existingDraft.id },
+            include: { questions: { orderBy: { orderIndex: 'asc' } } },
+          });
+        }
         const latest = await tx.assignmentRevision.findFirst({
       where: { assignmentId: input.assignmentId, state: 'PUBLISHED' },
       orderBy: { revisionNumber: 'desc' },
       include: { questions: { orderBy: { orderIndex: 'asc' } } },
         });
         if (!latest) throw new AssignmentDomainError('published-revision-not-found');
+        const legacyDraft = assignmentDraftSchema.parse({
+          title: latest.title,
+          instructions: latest.instructions,
+          totalPoints: Number(latest.totalPoints),
+          questions: latest.questions.map((question) => questionFromRow(question as unknown as Record<string, unknown>)),
+          latePolicy: latest.latePolicy,
+          responsePolicy: latest.responsePolicy,
+          resubmissionPolicy: latest.resubmissionPolicy,
+          solutionReleasePolicy: latest.solutionReleasePolicy,
+        });
+        const nextDraft = requireMigratedDraft(legacyDraft);
+        const nextSnapshots = migratedQuestionSnapshots(nextDraft);
         return tx.assignmentRevision.create({
       data: {
         assignmentId: input.assignmentId,
-        revisionNumber: latest.revisionNumber + 1,
-        title: latest.title,
-        instructions: latest.instructions,
-        totalPoints: latest.totalPoints,
-        latePolicy: latest.latePolicy ?? {},
-        responsePolicy: latest.responsePolicy ?? {},
-        resubmissionPolicy: latest.resubmissionPolicy ?? {},
-        solutionReleasePolicy: latest.solutionReleasePolicy ?? {},
-        contentHash: latest.contentHash,
-        questions: {
-          create: latest.questions.map((question) => ({
-            stableQuestionId: question.stableQuestionId,
-            orderIndex: question.orderIndex,
-            responseType: question.responseType,
-            points: question.points,
-            promptSnapshot: question.promptSnapshot as Prisma.InputJsonValue,
-            answerSnapshot: question.answerSnapshot as Prisma.InputJsonValue,
-            rubricSnapshot: question.rubricSnapshot as Prisma.InputJsonValue,
-            sourceFamily: question.sourceFamily,
-            sourceId: question.sourceId,
-            sourceVersion: question.sourceVersion,
-            sourceHash: question.sourceHash,
-            sourceReviewState: question.sourceReviewState,
-            sourceCatalogItemId: question.sourceCatalogItemId,
-            sourceOriginalFamily: question.sourceOriginalFamily,
-            sourceSelectionProof: question.sourceSelectionProof,
-            sourceLineage: question.sourceLineage as Prisma.InputJsonValue,
-            contentHash: question.contentHash,
-          })),
-        },
+        ...revisionCreateData(nextDraft, nextSnapshots, latest.revisionNumber + 1),
       },
       include: { questions: { orderBy: { orderIndex: 'asc' } } },
         });
@@ -271,6 +302,36 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
 
 function isRecoverableNextDraftRace(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && (error.code === 'P2002' || error.code === 'P2034');
+}
+
+function requireMigratedDraft(legacyDraft: AssignmentDraftInput): AssignmentDraftInput {
+  const result = assignmentDraftSchema.safeParse(
+    migrateLegacyAssignmentDraftToRubricV2(legacyDraft),
+  );
+  if (!result.success) {
+    throw new AssignmentDomainError(
+      'legacy-rubric-v2-migration-required',
+      result.error.issues.map((issue) => `${issue.path.join('.')}:${issue.message}`),
+    );
+  }
+  return result.data;
+}
+
+function migratedQuestionSnapshots(draft: AssignmentDraftInput): AssignmentQuestionSnapshot[] {
+  return draft.questions.map((question) => {
+    if (question.source.family !== 'ASSIGNMENT_DERIVATIVE') return createQuestionSnapshot(question);
+    const contentHash = stableHash({
+      responseType: question.responseType,
+      points: question.points,
+      prompt: question.prompt,
+      referenceAnswer: question.referenceAnswer,
+      rubric: question.rubric,
+    });
+    return createQuestionSnapshot({
+      ...question,
+      source: { ...question.source, contentHash },
+    });
+  });
 }
 
 export async function publishAssignmentRevision(db: AssignmentDb, input: {
@@ -335,6 +396,19 @@ export async function publishAssignmentRevision(db: AssignmentDb, input: {
           questions: revision.questions.map(questionFromRow),
         });
         const issues = [...validatePublicationScores(draft), ...validatePublicationSchedule(input.audiences, now)];
+        if (draft.questions.some((question) =>
+          question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2'
+        )) {
+          issues.push('legacy-rubric-v2-migration-required');
+        }
+        for (const question of draft.questions) {
+          if (question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2') continue;
+          for (const criterion of question.rubric.criteria) {
+            if (!criterion.goalDimension) {
+              issues.push(`rubric-goal-dimension-required:${question.stableQuestionId}:${criterion.id}`);
+            }
+          }
+        }
         if (draft.solutionReleasePolicy.mode === 'AT_TIME') {
           const publicationAudienceIds = new Set(input.audiences.map((audience) => audience.classId));
           for (const classId of draft.solutionReleasePolicy.audienceClassIds) {

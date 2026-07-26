@@ -3,6 +3,11 @@
 ### Requirement: Draft rubric grading is anchor-backed
 Draft rubric grading SHALL evaluate document quality through schema-validated scoring-item assessments selected from the frozen rubric version rather than fixed scaffold scores.
 
+#### Scenario: Draft criterion grade is produced
+- **WHEN** a converted document is evaluated against its frozen rubric
+- **THEN** each scoring-item assessment SHALL include the fields required by that rubric version and detailed-rubric mode
+- **AND** its score and optional selected level SHALL be derived from document content, rubric requirements, and evaluator reasoning rather than a fixed scaffold value.
+
 #### Scenario: Scoring-standard-only draft is produced
 - **WHEN** an answer is evaluated against a frozen scoring item whose detailed rubric is disabled
 - **THEN** its assessment SHALL include scoring-item id, one-decimal score within zero and the scoring-item maximum, rationale, confidence, evidence anchors, and limitation state
@@ -21,6 +26,11 @@ Draft rubric grading SHALL evaluate document quality through schema-validated sc
 ### Requirement: Teacher review governs feedback and writeback
 Teacher review SHALL remain the governing step for student feedback and learner-profile writeback.
 
+#### Scenario: Teacher edits a criterion assessment
+- **WHEN** a teacher changes score, rationale, evidence anchor, or an applicable detailed-rubric level before approval
+- **THEN** the system SHALL preserve AI draft values and teacher-approved values
+- **AND** it SHALL record the diff for quality metrics and audit.
+
 #### Scenario: Teacher edits a scoring-item assessment
 - **WHEN** a teacher changes score, rationale, evidence anchor, or an applicable detailed-rubric level before approval
 - **THEN** the teacher score SHALL require one decimal place and remain between zero and the scoring-item maximum
@@ -34,6 +44,10 @@ Teacher review SHALL remain the governing step for student feedback and learner-
 
 ### Requirement: Evaluator drafts are schema-validated and evidence-anchored
 The system SHALL accept an AI grading draft only when every scoring-item assessment and annotation satisfies the schema selected by the frozen rubric version, the applicable score scale, and the conversion anchor schema.
+
+#### Scenario: Evaluator returns a valid draft
+- **WHEN** output satisfies the schema selected by the frozen rubric version and includes supported evidence anchors, rationale, confidence, limitations, and overall comment
+- **THEN** the system SHALL persist the draft as awaiting teacher review.
 
 #### Scenario: Evaluator returns a valid scoring-standard-only draft
 - **WHEN** detailed rubric is disabled and output includes known scoring-item ids, in-range one-decimal scores, rationale, confidence, supported evidence anchors, location-aware annotations, limitations, and overall comment without requiring selected levels

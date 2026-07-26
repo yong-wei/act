@@ -1,4 +1,5 @@
 import { stableStringify, sha256 } from './math-document-grading-contracts';
+import { hasAtMostOneDecimal } from '@/lib/assignments/assignment-rubric-contract';
 
 export type TeacherReviewActor = { id: string; role: 'TEACHER' | 'ADMIN' };
 
@@ -31,7 +32,7 @@ export const TEACHER_ASSIGNMENT_REVIEW_INCLUDE = {
 
 type ReviewCriterionValue = {
   criterionId: string;
-  levelId: string;
+  levelId: string | null;
   score: number;
   comment: string;
 };
@@ -59,8 +60,18 @@ export function deriveTeacherAssignmentReviewTotal(rubric: any, values: ReviewCr
     if (!Number.isFinite(value.score) || value.score < 0 || value.score > Number(criterion.maxPoints)) {
       throw new TeacherAssignmentReviewError('teacher-review-score-out-of-range', 422, { criterionId: criterion.id });
     }
-    const level = Array.isArray(criterion.levels) ? criterion.levels.find((candidate: any) => candidate.id === value.levelId) : null;
-    if (!level || value.score < Number(level.minPoints) || value.score > Number(level.maxPoints)) {
+    const v2 = rubric.schemaVersion === 'assignment-scoring-rubric.v2';
+    const detailed = v2 ? criterion.detailedRubricEnabled === true : true;
+    const level = Array.isArray(criterion.levels) && value.levelId
+      ? criterion.levels.find((candidate: any) => candidate.id === value.levelId)
+      : null;
+    if (v2 && !hasAtMostOneDecimal(value.score)) {
+      throw new TeacherAssignmentReviewError('teacher-review-score-precision-invalid', 422, { criterionId: criterion.id });
+    }
+    if ((detailed && !level) || (!detailed && value.levelId !== null)) {
+      throw new TeacherAssignmentReviewError('teacher-review-level-score-mismatch', 422, { criterionId: criterion.id });
+    }
+    if (!v2 && level && (value.score < Number(level.minPoints) || value.score > Number(level.maxPoints))) {
       throw new TeacherAssignmentReviewError('teacher-review-level-score-mismatch', 422, { criterionId: criterion.id });
     }
     total += value.score;

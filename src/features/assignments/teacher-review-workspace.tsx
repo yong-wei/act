@@ -787,7 +787,7 @@ function CriterionEditor({
           Rubric 档位
           <select
             disabled={readOnly}
-            value={criterion.levelId}
+            value={criterion.levelId ?? ""}
             onChange={(event) => {
               const level = criterion.levels.find(
                 (candidate) => candidate.id === event.target.value,
@@ -796,10 +796,6 @@ function CriterionEditor({
               onChange({
                 ...criterion,
                 levelId: level.id,
-                score: Math.min(
-                  level.maxPoints,
-                  Math.max(level.minPoints, criterion.score),
-                ),
               });
             }}
             className="mt-1 min-h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-2 text-white"
@@ -822,19 +818,16 @@ function CriterionEditor({
         disabled={readOnly}
         id={scoreId}
         type="number"
-        min={selectedLevel?.minPoints ?? 0}
-        max={selectedLevel?.maxPoints ?? criterion.maxPoints}
-        step="0.01"
+        min={0}
+        max={criterion.maxPoints}
+        step={criterion.scoreStep}
         value={criterion.score}
         onChange={(event) =>
           onChange({
             ...criterion,
             score: Math.min(
-              selectedLevel?.maxPoints ?? criterion.maxPoints,
-              Math.max(
-                selectedLevel?.minPoints ?? 0,
-                Number(event.target.value) || 0,
-              ),
+              criterion.maxPoints,
+              Math.max(0, Number(event.target.value) || 0),
             ),
           })
         }

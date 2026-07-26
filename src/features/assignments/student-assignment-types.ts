@@ -50,7 +50,7 @@ export interface StudentAssignmentDetail extends StudentAssignmentSummary {
     questionId: string;
     questionTitle: string;
     questionTotal: number;
-    criteria: Array<{ criterionId?: string; levelId?: string; score?: number; comment?: string }>;
+    criteria: Array<{ criterionId?: string; levelId?: string | null; score?: number; comment?: string }>;
     annotations: Array<{ id?: string; criterionId?: string; status?: string; comment?: string; anchor?: Record<string, unknown> }>;
     overallComment: string;
     approvedAt: string;

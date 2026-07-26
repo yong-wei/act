@@ -13,7 +13,7 @@ const openSchema = z.object({ gradingRunId: z.string().trim().min(1).max(160) })
 
 const criterionSchema = z.object({
   criterionId: z.string().trim().min(1).max(160),
-  levelId: z.string().trim().min(1).max(160),
+  levelId: z.string().trim().min(1).max(160).nullable(),
   score: z.number().finite().min(0).max(100_000),
   comment: z.string().max(2_000),
 }).strict();

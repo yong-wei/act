@@ -63,11 +63,12 @@ export interface TeacherReviewCriterion {
     minPoints: number;
     maxPoints: number;
   }>;
-  levelId: string;
+  levelId: string | null;
   aiScore: number | null;
   aiLevelId: string | null;
   aiComment: string;
   score: number;
+  scoreStep: 0.01 | 0.1;
   comment: string;
 }
 
@@ -398,7 +399,11 @@ export function normalizeTeacherReviewDetail(
     }),
     evidence,
     criteria: rawCriteria.map((entry, index) =>
-      normalizeCriterion(entry, index),
+      normalizeCriterion(
+        entry,
+        index,
+        rubric.schemaVersion === "assignment-scoring-rubric.v2" ? 0.1 : 0.01,
+      ),
     ),
     overallComment: stringFrom(review.overallComment ?? review.comment),
     limitations: arrayFrom(root.limitations ?? review.limitations)
@@ -473,6 +478,7 @@ function normalizeQuestion(
 function normalizeCriterion(
   value: unknown,
   index: number,
+  scoreStep: 0.01 | 0.1,
 ): TeacherReviewCriterion {
   const row = asRecord(value);
   const ai = asRecord(row.aiDraft ?? row.machine);
@@ -492,10 +498,9 @@ function normalizeCriterion(
     };
   });
   const aiLevelId = nullableString(ai.levelId ?? row.aiLevelId);
-  const levelId = stringFrom(
+  const levelId = nullableString(
     teacher.levelId ?? row.levelId ?? aiLevelId,
-    levels[0]?.id ?? "",
-  );
+  ) ?? levels[0]?.id ?? null;
   return {
     id: stringFrom(row.id ?? row.criterionId, `criterion-${index + 1}`),
     label: stringFrom(row.label ?? row.title, `评分项 ${index + 1}`),
@@ -509,6 +514,7 @@ function normalizeCriterion(
       maxPoints,
       Math.max(0, finiteNumber(teacher.score ?? row.score ?? aiScore, 0)),
     ),
+    scoreStep,
     comment: stringFrom(
       teacher.comment ??
         teacher.rationale ??

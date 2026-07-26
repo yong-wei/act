@@ -209,12 +209,20 @@ describe('teacher assignment mutation route', () => {
   it('materializes a complete assignment-owned derivative instead of trusting preview lineage', async () => {
     const response = await SELECT_CATALOG_QUESTION(new Request('https://act.example/api/teacher/assignments/question-catalog', { method: 'POST', headers: { origin: 'https://act.example' }, body: JSON.stringify({ sourceId: 'source-1' }) })) as Response;
     expect(response.status).toBe(200);
-    const payload = await response.json() as { question: Record<string, unknown> & { source: Record<string, unknown> } };
+    const payload = await response.json() as { question: Record<string, unknown> & { source: Record<string, unknown>; rubric: Record<string, unknown> } };
     expect(payload.question.referenceAnswer).toContain('A');
     expect(payload.question.source).toMatchObject({ family: 'ASSIGNMENT_DERIVATIVE', parentSourceId: 'source-1', parentSourceVersion: 'catalog-v1', catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:control-correction-checkpoint-01', originalSourceFamily: 'checkpoint-authored-question', reviewState: 'path-eligible', eligibilityState: 'path-eligible', limitations: [] });
     expect(payload.question.source).toHaveProperty('parentSourceHash');
     expect(payload.question.source).toHaveProperty('contentHash');
     expect(payload.question.source).toHaveProperty('selectionProof');
+    expect(payload.question.rubric).toMatchObject({
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      criteria: [expect.objectContaining({
+        goalDimension: 'engineeringDecision',
+        detailedRubricEnabled: false,
+        levels: [],
+      })],
+    });
   });
 
   it('rejects an imported-unreviewed catalog item server-side', async () => {

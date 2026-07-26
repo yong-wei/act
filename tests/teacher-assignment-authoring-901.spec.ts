@@ -105,6 +105,70 @@ for (const width of mobileWidths) {
   });
 }
 
+test('loading an existing draft always passes through the server-side rubric migration boundary', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let nextDraftCalls = 0;
+  await page.route('**/api/teacher/assignments/legacy-assignment**', async (route) => {
+    if (route.request().url().endsWith('/next-draft')) {
+      nextDraftCalls += 1;
+      return route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          revision: {
+            id: 'legacy-revision',
+            state: 'DRAFT',
+            version: 4,
+            contentHash: savedDigest,
+            title: '已迁移作业',
+            instructions: '完成迁移后的作业。',
+            totalPoints: 10,
+            latePolicy: { version: 1, mode: 'CLOSED' },
+            responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
+            resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
+            solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
+            questions: [{
+              stableQuestionId: 'legacy-question',
+              responseType: 'SUBJECTIVE_TEXT',
+              points: 10,
+              promptSnapshot: { text: '说明迁移后的评分标准。' },
+              answerSnapshot: { text: '给出可复核证据。' },
+              rubricSnapshot: {
+                schemaVersion: 'assignment-scoring-rubric.v2',
+                criteria: [{
+                  id: 'quality',
+                  label: '完成质量',
+                  goalDimension: 'engineeringDecision',
+                  maxPoints: 10,
+                  scoringStandard: '依据证据评分。',
+                  detailedRubricEnabled: false,
+                  levels: [],
+                }],
+              },
+              sourceFamily: 'MANUAL',
+            }],
+          },
+        }),
+      });
+    }
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        assignment: {
+          id: 'legacy-assignment',
+          revisions: [{ id: 'legacy-revision', state: 'DRAFT' }],
+        },
+      }),
+    });
+  });
+
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/legacy-assignment/edit');
+
+  await expect(page.getByLabel('作业标题')).toHaveValue('已迁移作业');
+  await expect(page.getByLabel('启用详细评分细则')).not.toBeChecked();
+  expect(nextDraftCalls).toBe(1);
+});
+
 test('list distinguishes empty, filtered-empty, and recoverable error', async ({ page, context }) => {
   await addTeacherSession(context);
   await page.setViewportSize({ width: 768, height: 800 });
@@ -264,7 +328,14 @@ test('schema blockers focus their exact fields', async ({ page, context }) => {
     { mutate: async () => page.getByLabel('最多提交次数').fill('0'), target: () => page.getByLabel('最多提交次数') },
     { mutate: async () => { await page.getByLabel('迟交策略').selectOption('ALLOW'); await page.getByLabel('每日扣分百分比').fill('101'); }, target: () => page.getByLabel('每日扣分百分比') },
     { mutate: async () => page.getByLabel('评分项 1 名称').fill(''), target: () => page.getByLabel('评分项 1 名称') },
-    { mutate: async () => page.getByLabel('评分项 1 档位 1 最高分').fill('2.555'), target: () => page.getByLabel('评分项 1 档位 1 最高分') },
+    {
+      mutate: async () => {
+        await page.getByLabel('启用详细评分细则').check();
+        await page.getByRole('button', { name: '添加评价级别' }).click();
+        await page.getByLabel('评分项 1 级别 2 分值边界').fill('2.555');
+      },
+      target: () => page.getByLabel('评分项 1 级别 2 分值边界'),
+    },
     { mutate: async () => page.getByLabel('允许作答类型').selectOption('SUBJECTIVE_FILE'), target: () => page.getByLabel('允许作答类型') },
   ];
   for (const item of cases) {
@@ -286,12 +357,14 @@ test('invalid decimal rubric never reaches save or publish', async ({ page, cont
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
-  await page.getByLabel('评分项 1 档位 1 最高分').fill('2.555');
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+  await page.getByLabel('评分项 1 级别 2 分值边界').fill('2.555');
   await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
   expect(mutationCount).toBe(0);
 });
 
-test('rubric band gap never reaches save or publish', async ({ page, context }) => {
+test('rubric boundary conflict never reaches save or publish', async ({ page, context }) => {
   await addTeacherSession(context);
   let mutationCount = 0;
   await page.route('**/api/teacher/assignments**', async (route) => { if (route.request().method() === 'GET') return route.fallback(); mutationCount += 1; await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' }); });
@@ -299,9 +372,158 @@ test('rubric band gap never reaches save or publish', async ({ page, context }) 
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
-  await page.getByLabel('评分项 1 档位 1 最低分').fill('0.01');
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+  await page.getByLabel('评分项 1 级别 2 分值边界').fill('10');
   await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
   expect(mutationCount).toBe(0);
+});
+
+test('five-level shortcut isolates edited state to the current scoring item', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByLabel('评分项 1 档位 1 名称').fill('教师自定义优秀');
+  await page.getByRole('button', { name: '添加评分项' }).click();
+
+  const secondCriterion = page.getByLabel('评分项 2 名称').locator('xpath=ancestor::article');
+  await secondCriterion.getByLabel('启用详细评分细则').check();
+  await secondCriterion.getByRole('button', { name: '五级制' }).click();
+
+  await expect(page.getByLabel('评分项 2 档位 1 名称')).toHaveValue('优秀');
+  await expect(page.getByLabel('评分项 2 档位 2 名称')).toHaveValue('良好');
+  await expect(page.getByLabel('评分项 2 档位 3 名称')).toHaveValue('中等');
+  await expect(page.getByLabel('评分项 2 档位 4 名称')).toHaveValue('及格');
+  await expect(page.getByLabel('评分项 2 档位 5 名称')).toHaveValue('不及格');
+  await expect(page.getByLabel('评分项 2 级别 3 分值边界')).toHaveValue('0.8');
+  await expect(page.getByLabel('评分项 2 级别 4 分值边界')).toHaveValue('0.7');
+  await expect(page.getByLabel('评分项 2 级别 5 分值边界')).toHaveValue('0.6');
+});
+
+test('first input replaces publishable default rubric text and score', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await page.getByLabel('启用详细评分细则').check();
+
+  const label = page.getByLabel('评分项 1 档位 1 名称');
+  await label.click();
+  await page.keyboard.type('卓越');
+  await expect(label).toHaveValue('卓越');
+
+  const guideline = page.getByLabel('评分项 1 级别 1 评分准则');
+  await guideline.click();
+  await page.keyboard.type('证据完整且可复核');
+  await expect(guideline).toHaveValue('证据完整且可复核');
+
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+  const boundary = page.getByLabel('评分项 1 级别 2 分值边界');
+  await boundary.click();
+  await page.keyboard.type('8.5');
+  await expect(boundary).toHaveValue('8.5');
+});
+
+test('moving rubric levels keeps the derived range and highest-score lock with the level identity', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toHaveValue('10');
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toBeDisabled();
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toHaveValue('9');
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toBeEnabled();
+
+  await page.getByRole('button', { name: '下移档位 1' }).click();
+
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toHaveValue('9');
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toBeEnabled();
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toHaveValue('10');
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toBeDisabled();
+});
+
+test('lowering a criterion maximum keeps level boundaries strictly descending', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+
+  await page.getByLabel('最高分').fill('8');
+
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toHaveValue('8');
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toBeDisabled();
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toHaveValue('7.9');
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toBeEnabled();
+});
+
+test('disabling an edited detailed rubric confirms the full deleted content', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  const detailed = page.getByLabel('启用详细评分细则');
+  await detailed.check();
+  await page.getByLabel('评分项 1 档位 1 名称').fill('教师高档');
+  await page.getByLabel('评分项 1 级别 1 评分准则').fill('教师自定义准则');
+
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('教师高档（10 分；教师自定义准则）');
+    await dialog.dismiss();
+  });
+  await detailed.click();
+  await expect(detailed).toBeChecked();
+  await expect(page.getByLabel('评分项 1 档位 1 名称')).toHaveValue('教师高档');
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await detailed.click();
+  await expect(detailed).not.toBeChecked();
+});
+
+test('shortening a rubric confirms every field of the trailing levels', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '五级制' }).click();
+  await page.getByLabel('评分项 1 档位 3 名称').fill('教师中档');
+  await page.getByLabel('评分项 1 级别 3 分值边界').fill('7.5');
+  await page.getByLabel('评分项 1 级别 3 评分准则').fill('教师中档完整准则');
+
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('教师中档（7.5 分；教师中档完整准则）');
+    await dialog.dismiss();
+  });
+  await page.getByRole('button', { name: '两级制' }).click();
+  await expect(page.getByLabel('评分项 1 档位 3 名称')).toHaveValue('教师中档');
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: '两级制' }).click();
+  await expect(page.getByLabel('评分项 1 档位 3 名称')).toHaveCount(0);
+});
+
+test('an edited single level keeps its content while the two-level shortcut uses the 60 percent boundary', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await expect(page.getByLabel('作业总分')).toHaveAttribute('step', '0.1');
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByLabel('评分项 1 档位 1 名称').fill('教师高档');
+
+  await page.getByRole('button', { name: '两级制' }).click();
+
+  await expect(page.getByLabel('评分项 1 档位 1 名称')).toHaveValue('教师高档');
+  await expect(page.getByLabel('评分项 1 档位 2 名称')).toHaveValue('不通过');
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toHaveValue('6');
 });
 
 test('autosave 400 prevents publish and focuses the blocker', async ({ page, context }) => {
