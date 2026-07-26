@@ -398,7 +398,9 @@ describe('preparation document editor interactions', () => {
     expect(container.textContent).toContain('学习目标');
     expect(container.textContent).toContain('判断闭环系统稳定性');
     expect(container.textContent).toContain('知识点');
-    expect([...container.querySelectorAll('input')].some((input) => input.value === '稳定性判据')).toBe(true);
+    expect(container.textContent).toContain('稳定性判据');
+    expect([...container.querySelectorAll('input')].some((input) => input.value === '稳定性判据')).toBe(false);
+    expect([...container.querySelectorAll('textarea')].some((textarea) => textarea.value === '判断闭环系统稳定性')).toBe(false);
     expect(container.textContent).toContain('教案来源');
     expect(container.textContent).toContain('citation-1');
     const keyContent = [...container.querySelectorAll('textarea')]

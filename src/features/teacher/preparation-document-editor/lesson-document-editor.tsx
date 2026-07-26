@@ -12,6 +12,7 @@ import { PreparationConflictComparison } from './conflict-comparison';
 import {
   BOPPPS_STAGES as STAGES,
   lessonDocumentStage,
+  lessonDocumentStageComplete,
   outlineDocumentSteps,
   preparationDocumentValidationErrors,
   preparationRecord,
@@ -164,12 +165,12 @@ export function LessonDocumentEditor({
     ? STAGES.map(([id, title]) => ({
         id,
         title,
-        complete: outlineDocumentSteps(document).some((step) => step.bopppsStage === id && String(step.title ?? '').trim()),
+        complete: lessonDocumentStageComplete(kind, document, id),
       }))
     : STAGES.map(([id, title]) => ({
         id,
         title,
-        complete: lessonDocumentStage(document, id).steps.length > 0,
+        complete: lessonDocumentStageComplete(kind, document, id),
       })), [document, kind]);
 
   if (!document || !task) {
@@ -286,7 +287,7 @@ function LessonForm({ value, onChange }: { value: RecordValue; onChange: (value:
     <section className="space-y-3 rounded-xl border border-border p-4">
       <h2 className="font-semibold">学习目标</h2>
       {goals.map((goal, index) => <article key={String(goal.id ?? index)} className="space-y-3 rounded-lg bg-muted/30 p-3">
-        <TextArea label={`目标 ${index + 1}`} value={String(goal.content ?? '')} onChange={(content) => onChange({ ...value, goals: updateAt(goals, index, { ...goal, content }) })} />
+        <ReadOnlyField label={`目标 ${index + 1}`} value={String(goal.content ?? '')} />
         <div className="grid gap-3 sm:grid-cols-2">
           <ReadOnlyField label="目标标识" value={String(goal.id ?? '—')} />
           <ReadOnlyField label="来源状态" value={String(goal.sourceState ?? '—')} />
@@ -298,7 +299,7 @@ function LessonForm({ value, onChange }: { value: RecordValue; onChange: (value:
     <section className="space-y-3 rounded-xl border border-border p-4">
       <h2 className="font-semibold">知识点</h2>
       {knowledgePoints.map((knowledgePoint, index) => <article key={String(knowledgePoint.id ?? index)} className="space-y-3 rounded-lg bg-muted/30 p-3">
-        <TextField label={`知识点 ${index + 1}`} value={String(knowledgePoint.title ?? '')} onChange={(title) => onChange({ ...value, knowledgePoints: updateAt(knowledgePoints, index, { ...knowledgePoint, title }) })} />
+        <ReadOnlyField label={`知识点 ${index + 1}`} value={String(knowledgePoint.title ?? '')} />
         <div className="grid gap-3 sm:grid-cols-2">
           <ReadOnlyField label="知识点标识" value={String(knowledgePoint.id ?? '—')} />
           <ReadOnlyField label="来源状态" value={String(knowledgePoint.sourceState ?? '—')} />

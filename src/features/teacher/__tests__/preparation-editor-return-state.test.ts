@@ -3,8 +3,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  clearPreparationEditorReturnState,
   capturePreparationEditorReturnState,
-  restorePreparationEditorReturnState,
+  readPreparationEditorReturnState,
 } from '../preparation-document-editor/return-state';
 
 describe('preparation editor return state', () => {
@@ -17,24 +18,18 @@ describe('preparation editor return state', () => {
     `;
   });
 
-  it('restores the originating accordion expansion and exact scroll position', () => {
+  it('retains the originating accordion and scroll state until React completes restoration', () => {
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 428 });
     capturePreparationEditorReturnState('/teacher/smart-prep?taskId=task-1#smart-prep-stage-lesson-generation');
-    const lesson = document.querySelector<HTMLDetailsElement>('#smart-prep-stage-lesson-generation')!;
-    const courseware = document.querySelector<HTMLDetailsElement>('#smart-prep-stage-courseware-generation')!;
-    lesson.open = false;
-    courseware.open = true;
-    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
-      callback(0);
-      return 1;
+
+    expect(readPreparationEditorReturnState()).toEqual({
+      returnUrl: '/teacher/smart-prep?taskId=task-1#smart-prep-stage-lesson-generation',
+      scrollY: 428,
+      expandedStageIds: ['smart-prep-stage-lesson-generation'],
     });
+    expect(window.sessionStorage.getItem('preparation-editor:return-state')).not.toBeNull();
 
-    restorePreparationEditorReturnState();
-
-    expect(lesson.open).toBe(true);
-    expect(courseware.open).toBe(false);
-    expect(scrollTo).toHaveBeenCalledWith({ top: 428 });
+    clearPreparationEditorReturnState();
     expect(window.sessionStorage.getItem('preparation-editor:return-state')).toBeNull();
   });
 });

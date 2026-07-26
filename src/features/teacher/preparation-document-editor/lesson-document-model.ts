@@ -26,6 +26,26 @@ export function lessonDocumentStage(
   return { ...stage, steps: Array.isArray(stage.steps) ? stage.steps.map(preparationRecord) : [] };
 }
 
+export function lessonDocumentStageComplete(
+  kind: LessonEditorDocumentKind,
+  value: PreparationRecord | null,
+  stageId: string,
+) {
+  const steps = kind === 'outline'
+    ? outlineDocumentSteps(value).filter((step) => step.bopppsStage === stageId)
+    : lessonDocumentStage(value, stageId).steps;
+  if (steps.length === 0) return false;
+  const requiredFields = kind === 'outline'
+    ? ['title']
+    : ['title', 'teacherActivity', 'studentActivity', 'assessment'];
+  if (!steps.every((step) => (
+    validMinutes(step.minutes)
+    && requiredFields.every((field) => String(step[field] ?? '').trim())
+  ))) return false;
+  if (kind === 'outline') return true;
+  return Number(lessonDocumentStage(value, stageId).minutes ?? 0) === stepMinutes(steps);
+}
+
 export function replaceOutlineStageSteps(
   value: PreparationRecord,
   stageId: string,

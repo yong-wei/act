@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { Archive, Bot, CheckCircle2, LoaderCircle, Menu, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
 import { capturePreparationEditorReturnState } from './preparation-document-editor/return-state';
+import type { PreparationEditorReturnState } from './preparation-document-editor/return-state';
 
 type SourceOption = {
   courseBasisId: string;
@@ -51,7 +52,21 @@ type ClassDiagnosisOption = { classId: string; className: string; diagnosisRef: 
 type KonlingSuggestion = { id: string; agentSessionId: string; expectedRevision?: number; turnId: string; proposedTask?: unknown; clarification?: { question: string; alternatives: string[] }; confirmedTaskId?: string; createdAt: string };
 type PublicSourceState = 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending';
 
-export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, initialTasks, initialSelectedTaskId }: { courseBases: any[]; classDiagnosisOptions: ClassDiagnosisOption[]; initialTasks: Record<string, unknown>[]; initialSelectedTaskId?: string }) {
+export function SmartLessonPlanWorkspace({
+  courseBases,
+  classDiagnosisOptions,
+  initialTasks,
+  initialSelectedTaskId,
+  preparationReturnState,
+  onPreparationReturnStateRestored,
+}: {
+  courseBases: any[];
+  classDiagnosisOptions: ClassDiagnosisOption[];
+  initialTasks: Record<string, unknown>[];
+  initialSelectedTaskId?: string;
+  preparationReturnState?: PreparationEditorReturnState | null;
+  onPreparationReturnStateRestored?: () => void;
+}) {
   const [tasks, setTasks] = useState(initialTasks as Task[]);
   const [availableCourseBases, setAvailableCourseBases] = useState(courseBases);
   const [selectedTaskId, setSelectedTaskId] = useState(initialSelectedTaskId ?? (initialTasks[0] as Task | undefined)?.id ?? '');
@@ -114,6 +129,15 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
   useEffect(() => {
     if (activeTaskId && !detailedActiveTaskId) void refreshTask(activeTaskId);
   }, [activeTaskId, detailedActiveTaskId]);
+
+  useEffect(() => {
+    if (!preparationReturnState || !detailedActiveTaskId) return;
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: preparationReturnState.scrollY });
+      onPreparationReturnStateRestored?.();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [detailedActiveTaskId, onPreparationReturnStateRestored, preparationReturnState]);
 
   useEffect(() => {
     if (!detailedActiveTaskId || !activeJobState || !['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(activeJobState)) return;
@@ -455,7 +479,12 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
           key={stage.id}
           stage={stage}
           index={task.workspace!.stages.indexOf(stage)}
-          initiallyOpen={stage.id === task.workspace?.currentStage}
+          initiallyOpen={preparationReturnState
+            ? preparationReturnState.expandedStageIds.includes(`smart-prep-stage-${stage.id}`)
+            : stage.id === task.workspace?.currentStage}
+          restoredOpen={preparationReturnState
+            ? preparationReturnState.expandedStageIds.includes(`smart-prep-stage-${stage.id}`)
+            : undefined}
         >
           {children}
         </PreparationStageDetails>;
@@ -552,14 +581,19 @@ function PreparationStageDetails({
   stage,
   index,
   initiallyOpen,
+  restoredOpen,
   children,
 }: {
   stage: NonNullable<Task['workspace']>['stages'][number];
   index: number;
   initiallyOpen: boolean;
+  restoredOpen?: boolean;
   children?: ReactNode;
 }) {
   const [open, setOpen] = useState(initiallyOpen);
+  useEffect(() => {
+    if (restoredOpen !== undefined) setOpen(restoredOpen);
+  }, [restoredOpen]);
   return <details
     id={`smart-prep-stage-${stage.id}`}
     open={open}

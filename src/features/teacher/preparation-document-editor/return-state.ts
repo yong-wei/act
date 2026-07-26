@@ -2,7 +2,7 @@
 
 const RETURN_STATE_KEY = 'preparation-editor:return-state';
 
-type PreparationEditorReturnState = {
+export type PreparationEditorReturnState = {
   returnUrl: string;
   scrollY: number;
   expandedStageIds: string[];
@@ -24,19 +24,11 @@ export function returnToPreparationEditorOrigin(fallback: string) {
   window.location.assign(state?.returnUrl ?? fallback);
 }
 
-export function restorePreparationEditorReturnState() {
-  const state = readPreparationEditorReturnState();
-  if (!state || window.location.pathname !== '/teacher/smart-prep') return;
-  window.requestAnimationFrame(() => {
-    window.document.querySelectorAll<HTMLDetailsElement>('details[id^="smart-prep-stage-"]').forEach((details) => {
-      details.open = state.expandedStageIds.includes(details.id);
-    });
-    window.scrollTo({ top: state.scrollY });
-    window.sessionStorage.removeItem(RETURN_STATE_KEY);
-  });
+export function clearPreparationEditorReturnState() {
+  window.sessionStorage.removeItem(RETURN_STATE_KEY);
 }
 
-function readPreparationEditorReturnState(): PreparationEditorReturnState | null {
+export function readPreparationEditorReturnState(): PreparationEditorReturnState | null {
   try {
     const value = JSON.parse(window.sessionStorage.getItem(RETURN_STATE_KEY) ?? 'null');
     if (!value || typeof value.returnUrl !== 'string' || typeof value.scrollY !== 'number') return null;

@@ -5,6 +5,7 @@ import { validPlanFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures';
 import {
   BOPPPS_STAGES,
   lessonDocumentStage,
+  lessonDocumentStageComplete,
   preparationDocumentValidationErrors,
   replaceLessonStageSteps,
   replaceOutlineStageSteps,
@@ -122,6 +123,26 @@ describe('preparation lesson document model', () => {
     expect(errors).toContain('课程不能为空或长度不足。');
     expect(errors).toContain('授课对象不能为空或长度不足。');
     expect(errors).toContain('导入第 1 个步骤教师活动超过允许长度。');
+  });
+
+  it('marks a lesson stage incomplete when any required step field or duration is invalid', () => {
+    const plan = validPlanFixture();
+    expect(lessonDocumentStageComplete('draft', plan, 'bridgeIn')).toBe(true);
+
+    const bridge = lessonDocumentStage(plan, 'bridgeIn');
+    const missingActivity = replaceLessonStageSteps(
+      plan,
+      'bridgeIn',
+      [{ ...bridge.steps[0], teacherActivity: '' }],
+    );
+    expect(lessonDocumentStageComplete('draft', missingActivity, 'bridgeIn')).toBe(false);
+
+    const invalidDuration = replaceLessonStageSteps(
+      plan,
+      'bridgeIn',
+      [{ ...bridge.steps[0], minutes: 0 }],
+    );
+    expect(lessonDocumentStageComplete('draft', invalidDuration, 'bridgeIn')).toBe(false);
   });
 
   it('validates the lowercase source-state representation returned by the editing API', () => {
