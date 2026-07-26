@@ -1,6 +1,6 @@
 {
   "evidenceVersion": "smart-lesson-generation-verification.v1",
-  "sourceRevision": "0fd55038e0166bece32579a648f57973b5d921e7",
+  "sourceRevision": "3e18888770e8739838ca2236aab6d97ca6bc3ff6",
   "sourceBinding": {
     "workspaceCleanAtRealProviderStart": true,
     "status": "valid"
@@ -33,7 +33,7 @@
       "command": "npx vitest run --config src/lib/smart-lesson-plan/vitest.config.ts",
       "result": "passed",
       "testFiles": 9,
-      "tests": 82
+      "tests": 83
     },
     {
       "command": "npx vitest run src/app/api/teacher/smart-lesson-tasks/__tests__/route.test.ts src/lib/__tests__/smart-lesson-plan-workspace.test.ts src/features/teacher/__tests__/smart-lesson-plan-workspace-contract.test.ts",
