@@ -2,6 +2,7 @@ import { chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execSync } from 'node:child_process';
 
 const baseUrl = process.env.ARENA_UI_EVIDENCE_BASE_URL ?? 'http://localhost:3011';
 const outputDirectory = dirname(fileURLToPath(import.meta.url));
@@ -126,7 +127,7 @@ const expectedLabels = {
 };
 const expectedFragments = [
   '\u5df2\u8bb0\u5f55 6 \u6b21\u8bad\u7ec3',
-  '\u6700\u8fd1 3 \u6b21\u5e73\u5747\u8d28\u91cf 84 \u5206',
+  '\u6700\u8fd1 5 \u6b21\u5e73\u5747\u8d28\u91cf 84 \u5206',
 ];
 
 async function interceptProfileRequests(page) {
@@ -275,7 +276,7 @@ try {
         'The evidence route is available only when COMMERCIAL_UI_EVIDENCE=1 and renders the production profile client component with deterministic authenticated session and profile API fixtures.',
         'Production database and object storage are not exercised; persistence behavior remains covered by focused route and domain tests.',
       ],
-      headCommit: '0f119c47daaab32961a792b1f39825e9c9ceafdf',
+      headCommit: execSync('git rev-parse HEAD').toString().trim(),
     }, null, 2)}\n`,
   );
 } finally {
