@@ -23,7 +23,7 @@ type PendingUpload = {
   message: string;
 };
 
-export function StudentAssignmentWorkspace({ assignmentId }: { assignmentId: string }) {
+export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assignmentId: string; revisionId?: string }) {
   const session = useSession();
   const [assignment, setAssignment] = useState<StudentAssignmentDetail | null>(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
@@ -46,7 +46,8 @@ export function StudentAssignmentWorkspace({ assignmentId }: { assignmentId: str
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/student/assignments/${encodeURIComponent(assignmentId)}`, { cache: 'no-store' });
+      const revisionQuery = revisionId ? `?revisionId=${encodeURIComponent(revisionId)}` : '';
+      const response = await fetch(`/api/student/assignments/${encodeURIComponent(assignmentId)}${revisionQuery}`, { cache: 'no-store' });
       const payload = await response.json().catch(() => ({})) as { assignment?: StudentAssignmentDetail; error?: string };
       if (!response.ok || !payload.assignment) throw new Error(payload.error || '作业暂时无法加载');
       setAssignment(payload.assignment);
@@ -57,7 +58,7 @@ export function StudentAssignmentWorkspace({ assignmentId }: { assignmentId: str
     } finally {
       setLoading(false);
     }
-  }, [assignmentId]);
+  }, [assignmentId, revisionId]);
 
   useEffect(() => {
     if (session.status === 'authenticated') void loadAssignment();
@@ -218,7 +219,8 @@ export function StudentAssignmentWorkspace({ assignmentId }: { assignmentId: str
     setBusyAction(`history:${question.id}`);
     setNotice(null);
     try {
-      const response = await fetch(`${answerPath(question.id)}/history`, { cache: 'no-store' });
+      const revisionQuery = revisionId ? `?revisionId=${encodeURIComponent(revisionId)}` : '';
+      const response = await fetch(`${answerPath(question.id)}/history${revisionQuery}`, { cache: 'no-store' });
       const payload = await response.json().catch(() => ({})) as { attempts?: StudentAnswerAttempt[]; error?: string };
       if (!response.ok) throw new Error(payload.error || '提交历史加载失败');
       setHistory(payload.attempts ?? []);

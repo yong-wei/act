@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
@@ -46,6 +47,7 @@ export function AssignmentEditorWorkspace({
 }: {
   assignmentId?: string;
 }) {
+  const router = useRouter();
   const [document, setDocument] = useState<AssignmentEditorDocument>({
     assignmentId,
     version: 1,
@@ -128,10 +130,12 @@ export function AssignmentEditorWorkspace({
           const loaded = fromApiRevision(assignmentId, nextPayload.revision);
           documentRef.current = loaded;
           setDocument(loaded);
+          setSaveState('saved');
         } else {
           const loaded = fromApiAssignment(payload.assignment);
           documentRef.current = loaded;
           setDocument(loaded);
+          setSaveState('saved');
         }
         setLoadState('ready');
       })
@@ -198,7 +202,11 @@ export function AssignmentEditorWorkspace({
           const next = mergeSaveResponse(current, payload);
           return next;
         });
-        setSaveState('saved');
+        setSaveState(
+          draftFingerprint === canonicalFingerprint(documentRef.current.draft)
+            ? 'saved'
+            : 'dirty',
+        );
         return { document: saved, draftFingerprint };
       } catch {
         setSaveState('error');
@@ -229,6 +237,9 @@ export function AssignmentEditorWorkspace({
   useEffect(() => {
     if (saveState === 'conflict') conflictRef.current?.focus();
   }, [saveState]);
+  useEffect(() => {
+    if (publishMessage) publishMessageRef.current?.focus();
+  }, [publishMessage]);
 
   const blockers = useMemo(() => {
     const parsed = assignmentDraftSchema.safeParse(document.draft);
@@ -266,42 +277,27 @@ export function AssignmentEditorWorkspace({
 
   const publish = async () => {
     if (published || publishing) return;
-    setPublishing(true);
     setPublishMessage('');
-    if (debounceRef.current !== null) {
-      window.clearTimeout(debounceRef.current);
-      debounceRef.current = null;
-    }
     if (
       !assignmentDraftSchema.safeParse(documentRef.current.draft).success ||
       blockers.length
     ) {
       setPublishMessage('发布前请解决所有阻断项。');
       focusBlocker(blockers[0]);
-      setPublishing(false);
       return;
     }
-    let saved: AssignmentEditorDocument | null = null;
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-      const result = await save();
-      if (!result) {
-        setPublishMessage('最新草稿保存失败，未执行发布。');
-        setPublishing(false);
-        return;
-      }
-      if (
-        result.draftFingerprint ===
-        canonicalFingerprint(documentRef.current.draft)
-      ) {
-        saved = result.document;
-        break;
-      }
-    }
-    if (!saved?.assignmentId || !saved.revisionId) {
-      setPublishMessage('草稿持续变化，请停止编辑后重试发布。');
-      setPublishing(false);
+    if (saveState !== 'saved') {
+      setPublishMessage(publicationRecoveryMessage(saveState));
+      window.setTimeout(() => publishMessageRef.current?.focus(), 0);
       return;
     }
+    const saved = documentRef.current;
+    if (!saved.assignmentId || !saved.revisionId || !saved.contentDigest) {
+      setPublishMessage('保存基线不完整，请重新保存后再发布。');
+      window.setTimeout(() => publishMessageRef.current?.focus(), 0);
+      return;
+    }
+    setPublishing(true);
     try {
       const response = await fetch(
         `/api/teacher/assignments/${saved.assignmentId}/publish`,
@@ -311,6 +307,7 @@ export function AssignmentEditorWorkspace({
           body: JSON.stringify({
             revisionId: saved.revisionId,
             expectedVersion: saved.version,
+            contentDigest: saved.contentDigest,
             idempotencyKey: `assignment-ui:${saved.assignmentId}:${saved.revisionId}:${saved.version}`,
             audiences: [
               {
@@ -323,14 +320,21 @@ export function AssignmentEditorWorkspace({
         },
       );
       if (response.ok) {
+        const payload = (await response.json()) as {
+          publication: { assignmentId: string };
+        };
         setPublished(true);
-        setPublishMessage('作业已发布，当前版本已冻结。');
+        setPublishMessage('作业已发布，正在返回作业列表。');
+        router.push(
+          `/teacher/assignments?highlight=${encodeURIComponent(payload.publication.assignmentId)}`,
+        );
       } else {
         const payload = (await response.json().catch(() => ({}))) as {
+          error?: string;
           details?: string[];
         };
         setPublishMessage(
-          payload.details?.join('；') ?? '发布失败，请核对发布计划。',
+          publicationErrorMessage(payload.error, payload.details),
         );
         window.setTimeout(() => publishMessageRef.current?.focus(), 0);
       }
@@ -485,7 +489,8 @@ export function AssignmentEditorWorkspace({
             <button
               type="button"
               onClick={() => void publish()}
-              disabled={published || publishing}
+              disabled={published || publishing || saveState !== 'saved'}
+              aria-describedby="assignment-publication-state"
               aria-busy={publishing}
               className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-cyan-600 px-4 font-medium text-white disabled:opacity-60"
             >
@@ -503,6 +508,16 @@ export function AssignmentEditorWorkspace({
         >
           自动保存：{saveLabel(saveState)}
         </p>
+        <p id="assignment-publication-state" className="sr-only">
+          {saveState === 'saved'
+            ? '当前内容已保存，可以发布'
+            : publicationRecoveryMessage(saveState)}
+        </p>
+        {saveState !== 'saved' && (
+          <p className="mb-4 text-sm text-amber-200">
+            {publicationRecoveryMessage(saveState)}
+          </p>
+        )}
         {saveState === 'conflict' && (
           <div
             ref={conflictRef}
@@ -1653,10 +1668,21 @@ function mergeSaveResponse(
       ...current,
       assignmentId: String(assignment.id),
       revisionId: String(created.id),
+      contentDigest:
+        typeof created.contentHash === 'string' ? created.contentHash : undefined,
       version: Number(created.version),
     };
   }
-  return revision ? { ...current, version: Number(revision.version) } : current;
+  return revision
+    ? {
+        ...current,
+        contentDigest:
+          typeof revision.contentHash === 'string'
+            ? revision.contentHash
+            : undefined,
+        version: Number(revision.version),
+      }
+    : current;
 }
 function fromApiAssignment(
   assignment: Record<string, unknown>,
@@ -1682,6 +1708,10 @@ function fromApiAssignment(
   return {
     assignmentId: String(assignment.id),
     revisionId: String(revision.id),
+    contentDigest:
+      typeof revision.contentHash === 'string'
+        ? revision.contentHash
+        : undefined,
     version: Number(revision.version),
     draft: {
       title: String(revision.title),
@@ -1752,4 +1782,25 @@ function canonicalFingerprint(value: unknown): string {
       )
       .join(',')}}`;
   return JSON.stringify(value);
+}
+
+function publicationRecoveryMessage(state: SaveState): string {
+  if (state === 'saving') return '正在保存，请等待“已保存”后再发布。';
+  if (state === 'error') return '保存失败，请重试保存后再发布。';
+  if (state === 'conflict') return '存在版本冲突，请重新加载并解决冲突后再发布。';
+  if (state === 'dirty') return '当前修改尚未保存，请先保存后再发布。';
+  return '请先保存当前作业，再执行发布。';
+}
+
+function publicationErrorMessage(error: string | undefined, details: string[] | undefined): string {
+  if (error === 'version-conflict' || error === 'publication-content-digest-mismatch') {
+    return '保存基线已过期，请重新加载并确认最新内容后再发布。';
+  }
+  if (error === 'publication-baseline-already-published') {
+    return '该保存基线已经发布，请返回作业列表查看结果。';
+  }
+  if (error === 'publication-conflict-retryable') {
+    return '发布并发冲突，请保持当前已保存内容并重试。';
+  }
+  return details?.join('；') ?? '发布失败，请核对发布计划。';
 }

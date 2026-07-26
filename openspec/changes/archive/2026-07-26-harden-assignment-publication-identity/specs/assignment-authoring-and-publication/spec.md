@@ -8,12 +8,12 @@ The system SHALL persist assignments as first-class records with stable identity
 - **THEN** every save, publication operation, and resulting revision SHALL remain bound to the same stable assignment identity
 - **AND** repeated publication SHALL NOT create a second student-visible assignment identity.
 
-#### Scenario: Teacher publishes a saved baseline
+#### Scenario: Teacher publishes a draft revision
 - **WHEN** an authorized teacher publishes a valid draft whose current content is successfully saved, matches the teacher's current editor content, and has no version conflict
 - **THEN** the system SHALL atomically create or return the immutable numbered published revision for that saved baseline
 - **AND** the publication operation SHALL NOT perform an additional draft save.
 
-#### Scenario: Publication baseline is not ready
+#### Scenario: Teacher publishes while a local save is pending
 - **WHEN** the current content is saving, save-failed, conflicted, or differs from the last successfully saved draft revision
 - **THEN** publication SHALL remain unavailable and no published revision or audience SHALL be created
 - **AND** the editor SHALL identify the save or conflict recovery action.
@@ -54,4 +54,3 @@ The system SHALL provide an auditable and idempotent repair for historical dupli
 - **WHEN** duplicate versions for one provable stable assignment have been classified
 - **THEN** exactly one current published version SHALL enter the student assignment list
 - **AND** ambiguous identity groups SHALL remain unchanged and be reported for manual resolution.
-

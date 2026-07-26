@@ -9,6 +9,15 @@ const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/teacher-assignm
 const desktopWidths = [768, 1024, 1440] as const;
 const mobileWidths = [320, 375] as const;
 const evidenceEntries: Array<{ name: string; viewport: number; screenshot: string; widthEvidence: string }> = [];
+const savedDigest = `sha256:${'d'.repeat(64)}`;
+
+function publicationResult(assignmentId: string, revisionId: string) {
+  return {
+    revision: { id: revisionId, state: 'PUBLISHED' },
+    publication: { assignmentId, publishedRevisionId: revisionId, location: { assignmentId }, classes: [{ id: 'class-901', name: '自控 2401' }] },
+    idempotentReplay: false,
+  };
+}
 
 test.describe.configure({ timeout: 120_000, mode: 'serial' });
 test.afterAll(() => {
@@ -24,10 +33,10 @@ async function addTeacherSession(context: BrowserContext) {
 
 async function mockList(page: Page, mode: 'ready' | 'empty' | 'error' = 'ready') {
   await page.route('**/api/teacher/assignments', async (route) => {
-    if (route.request().method() === 'POST') return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'assignment-created-901', revisions: [{ id: 'revision-created-901', version: 1 }] } }) });
+    if (route.request().method() === 'POST') return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'assignment-created-901', revisions: [{ id: 'revision-created-901', version: 1, contentHash: savedDigest }] } }) });
     if (route.request().method() !== 'GET') return route.fallback();
     if (mode === 'error') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'temporary' }) });
-    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ assignments: mode === 'empty' ? [] : [{ id: 'assignment-901', state: 'DRAFT', updatedAt: '2026-07-11T00:00:00.000Z', revisions: [{ id: 'revision-901', revisionNumber: 1, version: 3, title: '控制系统分析作业', state: 'DRAFT', audiences: [{ classId: '自控 2401', availableAt: '2026-07-12T00:00:00.000Z', dueAt: '2026-07-19T00:00:00.000Z' }] }] }] }) });
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ assignments: mode === 'empty' ? [] : [{ id: 'assignment-901', state: 'DRAFT', updatedAt: '2026-07-11T00:00:00.000Z', revisions: [{ id: 'revision-901', revisionNumber: 1, version: 3, title: '控制系统分析作业', state: 'DRAFT', audiences: [{ classId: 'class-901', class: { name: '自控 2401' }, availableAt: '2026-07-12T00:00:00.000Z', dueAt: '2026-07-19T00:00:00.000Z' }] }] }] }) });
   });
 }
 
@@ -50,8 +59,8 @@ for (const width of desktopWidths) {
     await addTeacherSession(context);
     await mockList(page);
     await mockCatalog(page);
-    await page.route('**/api/teacher/assignments/assignment-created-901', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'revision-created-901', version: 2 } }) }));
-    await page.route('**/api/teacher/assignments/assignment-created-901/publish', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'revision-created-901', state: 'PUBLISHED' } }) }));
+    await page.route('**/api/teacher/assignments/assignment-created-901', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'revision-created-901', version: 2, contentHash: savedDigest } }) }));
+    await page.route('**/api/teacher/assignments/assignment-created-901/publish', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(publicationResult('assignment-created-901', 'revision-created-901')) }));
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/teacher/assignments');
     await expect(page.getByRole('heading', { name: '作业', exact: true })).toBeVisible();
@@ -68,9 +77,10 @@ for (const width of desktopWidths) {
     await expect(page.getByText('可选，发布前必须补全参考答案与评分标准')).toBeVisible();
     await page.getByRole('button', { name: '关闭受治理题库' }).click();
     await expect(page.getByRole('button', { name: '从题库选择' })).toBeFocused();
-    await page.getByRole('button', { name: '发布' }).click();
-    await expect(page.getByText('发布前请解决所有阻断项。')).toBeVisible();
+    await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
+    await page.locator('#assignment-validation-errors button').first().click();
     await expect(page.locator('[tabindex="-1"]').filter({ hasText: '发布阻断项' })).toBeFocused();
+    await capture(page, `editor-${width}`);
     if (width === 768) {
       await page.getByLabel('发布班级').selectOption('class-901');
       await page.getByLabel('开放时间').fill('2026-07-12T09:00');
@@ -78,13 +88,8 @@ for (const width of desktopWidths) {
       await page.getByRole('button', { name: '保存', exact: true }).click();
       await expect(page.getByText('自动保存：已保存')).toBeVisible();
       await page.getByRole('button', { name: '发布' }).click();
-      await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
-      await expect(page.locator('main[aria-readonly="true"]')).toHaveAttribute('data-operations-status-semantics', 'published-frozen');
-      const frozenTitle = await page.getByLabel('作业标题').inputValue();
-      await page.getByLabel('作业标题').fill('不应写入冻结版本');
-      await expect(page.getByLabel('作业标题')).toHaveValue(frozenTitle);
+      await expect(page).toHaveURL(/\/teacher\/assignments\?highlight=assignment-created-901$/);
     }
-    await capture(page, `editor-${width}`);
   });
 }
 
@@ -120,6 +125,18 @@ test('list distinguishes empty, filtered-empty, and recoverable error', async ({
   await expect(page.getByRole('button', { name: '重试' })).toBeVisible();
 });
 
+test('list resolves the published assignment location with teacher-visible class names', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await mockList(page);
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.goto('/teacher/assignments?highlight=assignment-901');
+
+  await expect(page.locator('#assignment-assignment-901')).toHaveAttribute('aria-current', 'true');
+  await expect(page.locator('#assignment-assignment-901')).toContainText('自控 2401');
+  await expect(page.getByLabel('按班级筛选').locator('option:checked')).toHaveText('全部班级');
+  await expect(page.getByLabel('按班级筛选').locator('option')).toContainText(['全部班级', '自控 2401']);
+});
+
 test('409 save conflict restores focus to the recovery alert', async ({ page, context }) => {
   await addTeacherSession(context);
   await mockList(page);
@@ -137,50 +154,55 @@ test('409 save conflict restores focus to the recovery alert', async ({ page, co
   const alert = page.getByRole('alert').filter({ hasText: '检测到新版本' });
   await expect(alert).toBeVisible();
   await expect(alert).toBeFocused();
-  await page.getByRole('button', { name: '发布' }).click();
-  await expect(page.getByText('最新草稿保存失败，未执行发布。')).toBeVisible();
+  await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
+  await expect(page.locator('#assignment-publication-state')).toContainText('存在版本冲突');
   expect(publishCount).toBe(0);
 });
 
-test('rapid edit immediately before publish saves and publishes the latest draft', async ({ page, context }) => {
+test('publication waits for an explicit saved baseline after a rapid edit', async ({ page, context }) => {
   await addTeacherSession(context);
   let savedTitle = '';
   let publishVersion = 0;
   await page.route('**/api/teacher/assignments', async (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ contentType: 'application/json', body: '{"assignments":[]}' });
     const body = route.request().postDataJSON() as { draft: { title: string } };
     savedTitle = body.draft.title;
-    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'latest-assignment', revisions: [{ id: 'latest-revision', version: 1 }] } }) });
+    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'latest-assignment', revisions: [{ id: 'latest-revision', version: 1, contentHash: savedDigest }] } }) });
   });
   await page.route('**/api/teacher/assignments/latest-assignment/publish', async (route) => {
     publishVersion = (route.request().postDataJSON() as { expectedVersion: number }).expectedVersion;
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'latest-revision', state: 'PUBLISHED' } }) });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(publicationResult('latest-assignment', 'latest-revision')) });
   });
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
   await page.getByLabel('作业标题').fill('发布前最后一刻的新标题');
+  await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(page.getByText('自动保存：已保存')).toBeVisible();
   await page.getByRole('button', { name: '发布' }).click();
-  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+  await expect(page).toHaveURL(/highlight=latest-assignment/);
   expect(savedTitle).toBe('发布前最后一刻的新标题');
   expect(publishVersion).toBe(1);
 });
 
-test('publish waits for an in-flight autosave then saves the newer draft', async ({ page, context }) => {
+test('publication remains unavailable until queued autosaves finish', async ({ page, context }) => {
   await addTeacherSession(context);
   let patchedTitle = '';
   let publishVersion = 0;
   await page.route('**/api/teacher/assignments', async (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ contentType: 'application/json', body: '{"assignments":[]}' });
     await new Promise((resolve) => setTimeout(resolve, 350));
-    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'queued-assignment', revisions: [{ id: 'queued-revision', version: 1 }] } }) });
+    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'queued-assignment', revisions: [{ id: 'queued-revision', version: 1, contentHash: savedDigest }] } }) });
   });
   await page.route('**/api/teacher/assignments/queued-assignment', async (route) => {
     patchedTitle = (route.request().postDataJSON() as { draft: { title: string } }).draft.title;
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'queued-revision', version: 2 } }) });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'queued-revision', version: 2, contentHash: savedDigest } }) });
   });
   await page.route('**/api/teacher/assignments/queued-assignment/publish', async (route) => {
     publishVersion = (route.request().postDataJSON() as { expectedVersion: number }).expectedVersion;
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { state: 'PUBLISHED' } }) });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(publicationResult('queued-assignment', 'queued-revision')) });
   });
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
@@ -188,13 +210,15 @@ test('publish waits for an in-flight autosave then saves the newer draft', async
   await fillPublicationSchedule(page);
   await expect(page.getByText('自动保存：保存中……')).toBeVisible({ timeout: 5_000 });
   await page.getByLabel('作业标题').fill('排队期间的新标题');
+  await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
+  await expect(page.getByText('自动保存：已保存')).toBeVisible({ timeout: 5_000 });
   await page.getByRole('button', { name: '发布' }).click();
-  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+  await expect(page).toHaveURL(/highlight=queued-assignment/);
   expect(patchedTitle).toBe('排队期间的新标题');
   expect(publishVersion).toBe(2);
 });
 
-test('publish repeats save when the draft changes during its PATCH', async ({ page, context }) => {
+test('publication waits for a second save when the draft changes during PATCH', async ({ page, context }) => {
   await addTeacherSession(context);
   let patchCount = 0;
   let releaseFirstPatch!: () => void;
@@ -203,14 +227,16 @@ test('publish repeats save when the draft changes during its PATCH', async ({ pa
   const firstPatchGate = new Promise<void>((resolve) => { unblockFirstPatch = resolve; });
   let finalPatchedTitle = '';
   let publishVersion = 0;
-  await page.route('**/api/teacher/assignments', (route) => route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'stable-assignment', revisions: [{ id: 'stable-revision', version: 1 }] } }) }));
+  await page.route('**/api/teacher/assignments', (route) => route.request().method() === 'GET'
+    ? route.fulfill({ contentType: 'application/json', body: '{"assignments":[]}' })
+    : route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'stable-assignment', revisions: [{ id: 'stable-revision', version: 1, contentHash: savedDigest }] } }) }));
   await page.route('**/api/teacher/assignments/stable-assignment', async (route) => {
     patchCount += 1;
     const title = (route.request().postDataJSON() as { draft: { title: string } }).draft.title;
     if (patchCount === 1) { releaseFirstPatch(); await firstPatchGate; } else { finalPatchedTitle = title; }
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'stable-revision', version: patchCount + 1 } }) });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'stable-revision', version: patchCount + 1, contentHash: savedDigest } }) });
   });
-  await page.route('**/api/teacher/assignments/stable-assignment/publish', async (route) => { publishVersion = (route.request().postDataJSON() as { expectedVersion: number }).expectedVersion; await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { state: 'PUBLISHED' } }) }); });
+  await page.route('**/api/teacher/assignments/stable-assignment/publish', async (route) => { publishVersion = (route.request().postDataJSON() as { expectedVersion: number }).expectedVersion; await route.fulfill({ contentType: 'application/json', body: JSON.stringify(publicationResult('stable-assignment', 'stable-revision')) }); });
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
@@ -218,11 +244,13 @@ test('publish repeats save when the draft changes during its PATCH', async ({ pa
   await page.getByRole('button', { name: '保存', exact: true }).click();
   await expect(page.getByText('自动保存：已保存')).toBeVisible();
   await page.getByLabel('作业标题').fill('发布点击时标题');
-  await page.getByRole('button', { name: '发布' }).click();
   await firstPatchStarted;
+  await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
   await page.getByLabel('作业标题').fill('PATCH 在途编辑后的最终标题');
   unblockFirstPatch();
-  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+  await expect(page.getByText('自动保存：已保存')).toBeVisible({ timeout: 5_000 });
+  await page.getByRole('button', { name: '发布' }).click();
+  await expect(page).toHaveURL(/highlight=stable-assignment/);
   expect(patchCount).toBe(2);
   expect(finalPatchedTitle).toBe('PATCH 在途编辑后的最终标题');
   expect(publishVersion).toBe(3);
@@ -244,7 +272,7 @@ test('schema blockers focus their exact fields', async ({ page, context }) => {
     await page.getByRole('button', { name: '新建题目' }).click();
     await fillPublicationSchedule(page);
     await item.mutate();
-    await page.getByRole('button', { name: '发布' }).click();
+    await page.locator('#assignment-validation-errors button').first().click();
     await expect(item.target()).toBeFocused();
     await expect(item.target()).toHaveAttribute('aria-describedby', 'assignment-validation-errors');
   }
@@ -259,9 +287,7 @@ test('invalid decimal rubric never reaches save or publish', async ({ page, cont
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
   await page.getByLabel('评分项 1 档位 1 最高分').fill('2.555');
-  await page.getByRole('button', { name: '发布' }).click();
-  await expect(page.getByText('发布前请解决所有阻断项。')).toBeVisible();
-  await expect(page.getByLabel('评分项 1 档位 1 最高分')).toBeFocused();
+  await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
   expect(mutationCount).toBe(0);
 });
 
@@ -274,8 +300,7 @@ test('rubric band gap never reaches save or publish', async ({ page, context }) 
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
   await page.getByLabel('评分项 1 档位 1 最低分').fill('0.01');
-  await page.getByRole('button', { name: '发布' }).click();
-  await expect(page.getByText('发布前请解决所有阻断项。')).toBeVisible();
+  await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
   expect(mutationCount).toBe(0);
 });
 
@@ -289,64 +314,65 @@ test('autosave 400 prevents publish and focuses the blocker', async ({ page, con
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
   await expect(page.getByText('自动保存：保存失败')).toBeVisible({ timeout: 5_000 });
-  await page.getByRole('button', { name: '发布' }).click();
-  await expect(page.getByText('最新草稿保存失败，未执行发布。')).toBeVisible();
-  await expect(page.locator('[tabindex="-1"]').filter({ hasText: '发布阻断项' })).toBeFocused();
+  await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
+  await expect(page.locator('#assignment-publication-state')).toContainText('保存失败');
   expect(publishCount).toBe(0);
 });
 
 test('aborted publish is recoverable and retry succeeds', async ({ page, context }) => {
   await addTeacherSession(context);
   let publishCount = 0;
-  await page.route('**/api/teacher/assignments', (route) => route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'retry-assignment', revisions: [{ id: 'retry-revision', version: 1 }] } }) }));
-  await page.route('**/api/teacher/assignments/retry-assignment', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'retry-revision', version: 2 } }) }));
+  await page.route('**/api/teacher/assignments', (route) => route.request().method() === 'GET'
+    ? route.fulfill({ contentType: 'application/json', body: '{"assignments":[]}' })
+    : route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'retry-assignment', revisions: [{ id: 'retry-revision', version: 1, contentHash: savedDigest }] } }) }));
+  await page.route('**/api/teacher/assignments/retry-assignment', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'retry-revision', version: 2, contentHash: savedDigest } }) }));
   await page.route('**/api/teacher/assignments/retry-assignment/publish', async (route) => {
     publishCount += 1;
     if (publishCount === 1) return route.abort('failed');
-    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { state: 'PUBLISHED' } }) });
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify(publicationResult('retry-assignment', 'retry-revision')) });
   });
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(page.getByText('自动保存：已保存')).toBeVisible();
   await page.getByRole('button', { name: '发布' }).click();
   const error = page.getByRole('alert').filter({ hasText: '发布请求失败，请检查网络后重试。' });
   await expect(error).toBeVisible();
   await expect(error).toBeFocused();
   await expect(page.getByRole('button', { name: '发布' })).toBeEnabled();
   await page.getByRole('button', { name: '发布' }).click();
-  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+  await expect(page).toHaveURL(/highlight=retry-assignment/);
   expect(publishCount).toBe(2);
 });
 
-test('successful publication freezes all save and publish entrypoints', async ({ page, context }) => {
+test('successful publication leaves the editor through one completion flow', async ({ page, context }) => {
   await addTeacherSession(context);
   let saveCount = 0;
   let publishCount = 0;
-  await page.route('**/api/teacher/assignments', (route) => { saveCount += 1; return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'frozen-assignment', revisions: [{ id: 'frozen-revision', version: 1 }] } }) }); });
-  await page.route('**/api/teacher/assignments/frozen-assignment', (route) => { saveCount += 1; return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'frozen-revision', version: 2 } }) }); });
-  await page.route('**/api/teacher/assignments/frozen-assignment/publish', (route) => { publishCount += 1; return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { state: 'PUBLISHED' } }) }); });
+  await page.route('**/api/teacher/assignments', (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ contentType: 'application/json', body: '{"assignments":[]}' });
+    saveCount += 1;
+    return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'frozen-assignment', revisions: [{ id: 'frozen-revision', version: 1, contentHash: savedDigest }] } }) });
+  });
+  await page.route('**/api/teacher/assignments/frozen-assignment', (route) => { saveCount += 1; return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'frozen-revision', version: 2, contentHash: savedDigest } }) }); });
+  await page.route('**/api/teacher/assignments/frozen-assignment/publish', (route) => { publishCount += 1; return route.fulfill({ contentType: 'application/json', body: JSON.stringify(publicationResult('frozen-assignment', 'frozen-revision')) }); });
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(page.getByText('自动保存：已保存')).toBeVisible();
   await page.getByRole('button', { name: '发布' }).click();
-  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
-  const frozenTitle = await page.getByLabel('作业标题').inputValue();
-  await expect(page.getByRole('button', { name: '保存', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
-  await page.getByLabel('作业标题').fill('冻结后不得写入');
-  await expect(page.getByLabel('作业标题')).toHaveValue(frozenTitle);
-  await page.getByRole('button', { name: '保存', exact: true }).dispatchEvent('click');
-  await page.getByRole('button', { name: '发布' }).dispatchEvent('click');
-  await page.waitForTimeout(1_300);
+  await expect(page).toHaveURL(/highlight=frozen-assignment/);
   expect(saveCount).toBe(1);
   expect(publishCount).toBe(1);
 });
 
 test('autosave completion preserves the active input focus', async ({ page, context }) => {
   await addTeacherSession(context);
-  await page.route('**/api/teacher/assignments', (route) => route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'focus-assignment', revisions: [{ id: 'focus-revision', version: 1 }] } }) }));
+  await page.route('**/api/teacher/assignments', (route) => route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'focus-assignment', revisions: [{ id: 'focus-revision', version: 1, contentHash: savedDigest }] } }) }));
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();

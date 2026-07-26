@@ -20,6 +20,7 @@ export interface StudentAssignmentQuestion {
 
 export interface StudentAssignmentSummary {
   id: string;
+  revisionId: string;
   title: string;
   instructions: string;
   availableAt: string;

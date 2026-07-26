@@ -31,7 +31,16 @@ export async function listTeacherAssignments(db: AssignmentDb, actor: Actor, now
       revisions: {
         orderBy: { revisionNumber: 'desc' },
         take: 1,
-        include: { audiences: { select: { classId: true, availableAt: true, dueAt: true } } },
+        include: {
+          audiences: {
+            select: {
+              classId: true,
+              availableAt: true,
+              dueAt: true,
+              class: { select: { name: true } },
+            },
+          },
+        },
       },
     },
   });
@@ -269,86 +278,172 @@ export async function publishAssignmentRevision(db: AssignmentDb, input: {
   assignmentId: string;
   revisionId: string;
   expectedVersion: number;
+  contentDigest: string;
   idempotencyKey: string;
   audiences: AssignmentAudienceInput[];
   now?: Date;
 }) {
   const now = input.now ?? new Date();
+  if (input.idempotencyKey !== assignmentPublicationIdempotencyKey(input)) {
+    throw new AssignmentDomainError('invalid-publication-idempotency-key');
+  }
   const requestHash = stableHash({
     assignmentId: input.assignmentId,
     revisionId: input.revisionId,
     expectedVersion: input.expectedVersion,
+    contentDigest: input.contentDigest,
     audiences: input.audiences,
   });
-  return db.$transaction(async (tx) => {
-    await assertAssignmentOwner(tx, input.assignmentId, input.actor);
-    const replay = await tx.assignmentPublicationOperation.findUnique({
-      where: { assignmentId_idempotencyKey: { assignmentId: input.assignmentId, idempotencyKey: input.idempotencyKey } },
-    });
-    if (replay) {
-      if (replay.requestHash !== requestHash) throw new AssignmentDomainError('idempotency-key-reused');
-      return tx.assignmentRevision.findUniqueOrThrow({ where: { id: replay.revisionId }, include: { audiences: true, questions: true } });
-    }
-    const revision = await tx.assignmentRevision.findUnique({
-      where: { id: input.revisionId },
-      include: { questions: { orderBy: { orderIndex: 'asc' } } },
-    });
-    if (!revision || revision.assignmentId !== input.assignmentId) throw new AssignmentDomainError('draft-not-found');
-    if (revision.state !== 'DRAFT' || revision.frozenAt) throw new AssignmentDomainError('published-revision-immutable');
-    if (revision.version !== input.expectedVersion) throw new AssignmentDomainError('version-conflict');
-    const draft = assignmentDraftSchema.parse({
-      title: revision.title,
-      instructions: revision.instructions,
-      totalPoints: Number(revision.totalPoints),
-      latePolicy: revision.latePolicy,
-      responsePolicy: revision.responsePolicy,
-      resubmissionPolicy: revision.resubmissionPolicy,
-      solutionReleasePolicy: revision.solutionReleasePolicy,
-      questions: revision.questions.map(questionFromRow),
-    });
-    const issues = [...validatePublicationScores(draft), ...validatePublicationSchedule(input.audiences, now)];
-    if (draft.solutionReleasePolicy.mode === 'AT_TIME') {
-      const publicationAudienceIds = new Set(input.audiences.map((audience) => audience.classId));
-      for (const classId of draft.solutionReleasePolicy.audienceClassIds) {
-        if (!publicationAudienceIds.has(classId)) issues.push(`solution-release-audience-not-published:${classId}`);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await db.$transaction(async (tx) => {
+        await assertAssignmentOwner(tx, input.assignmentId, input.actor);
+        const baselineReplay = await tx.assignmentPublicationOperation.findUnique({
+          where: { revisionId: input.revisionId },
+        });
+        if (baselineReplay) {
+          if (baselineReplay.requestHash !== requestHash) {
+            throw new AssignmentDomainError('publication-baseline-already-published');
+          }
+          return publicationCompletion(tx, input.assignmentId, baselineReplay.revisionId, true);
+        }
+        const keyReplay = await tx.assignmentPublicationOperation.findUnique({
+          where: { assignmentId_idempotencyKey: { assignmentId: input.assignmentId, idempotencyKey: input.idempotencyKey } },
+        });
+        if (keyReplay) {
+          if (keyReplay.requestHash !== requestHash) throw new AssignmentDomainError('idempotency-key-reused');
+          return publicationCompletion(tx, input.assignmentId, keyReplay.revisionId, true);
+        }
+        const revision = await tx.assignmentRevision.findUnique({
+          where: { id: input.revisionId },
+          include: { questions: { orderBy: { orderIndex: 'asc' } } },
+        });
+        if (!revision || revision.assignmentId !== input.assignmentId) throw new AssignmentDomainError('draft-not-found');
+        if (revision.state !== 'DRAFT' || revision.frozenAt) throw new AssignmentDomainError('published-revision-immutable');
+        if (revision.version !== input.expectedVersion) throw new AssignmentDomainError('version-conflict');
+        if (!revision.contentHash || revision.contentHash !== input.contentDigest) {
+          throw new AssignmentDomainError('publication-content-digest-mismatch');
+        }
+        const draft = assignmentDraftSchema.parse({
+          title: revision.title,
+          instructions: revision.instructions,
+          totalPoints: Number(revision.totalPoints),
+          latePolicy: revision.latePolicy,
+          responsePolicy: revision.responsePolicy,
+          resubmissionPolicy: revision.resubmissionPolicy,
+          solutionReleasePolicy: revision.solutionReleasePolicy,
+          questions: revision.questions.map(questionFromRow),
+        });
+        const issues = [...validatePublicationScores(draft), ...validatePublicationSchedule(input.audiences, now)];
+        if (draft.solutionReleasePolicy.mode === 'AT_TIME') {
+          const publicationAudienceIds = new Set(input.audiences.map((audience) => audience.classId));
+          for (const classId of draft.solutionReleasePolicy.audienceClassIds) {
+            if (!publicationAudienceIds.has(classId)) issues.push(`solution-release-audience-not-published:${classId}`);
+          }
+        }
+        if (draft.questions.length === 0) issues.push('assignment-has-no-questions');
+        const managedClasses = await tx.class.findMany({
+          where: input.actor.role === 'ADMIN' ? { id: { in: input.audiences.map((item) => item.classId) }, isActive: true } : {
+            id: { in: input.audiences.map((item) => item.classId) }, teacherId: input.actor.id, isActive: true,
+          },
+          select: { id: true },
+        });
+        const managedIds = new Set(managedClasses.map((item) => item.id));
+        for (const audience of input.audiences) if (!managedIds.has(audience.classId)) issues.push(`unauthorized-audience:${audience.classId}`);
+        if (issues.length) throw new AssignmentDomainError('publication-blocked', issues);
+        if (stableHash(draft) !== input.contentDigest) {
+          throw new AssignmentDomainError('publication-content-digest-mismatch');
+        }
+        const frozen = await tx.assignmentRevision.updateMany({
+          where: {
+            id: input.revisionId,
+            assignmentId: input.assignmentId,
+            state: 'DRAFT',
+            frozenAt: null,
+            version: input.expectedVersion,
+            contentHash: input.contentDigest,
+          },
+          data: { state: 'PUBLISHED', frozenAt: now, publishedAt: now, version: { increment: 1 } },
+        });
+        if (frozen.count !== 1) throw new AssignmentDomainError('version-conflict');
+        await tx.assignmentAudience.createMany({ data: input.audiences.map((audience) => ({
+          assignmentRevisionId: input.revisionId,
+          classId: audience.classId,
+          availableAt: new Date(audience.availableAt),
+          dueAt: new Date(audience.dueAt),
+          policySnapshot: {
+            latePolicy: draft.latePolicy,
+            responsePolicy: draft.responsePolicy,
+            resubmissionPolicy: draft.resubmissionPolicy,
+            solutionReleasePolicy: draft.solutionReleasePolicy,
+          },
+        })) });
+        await tx.assignment.update({ where: { id: input.assignmentId }, data: { state: 'PUBLISHED' } });
+        await tx.assignmentPublicationOperation.create({ data: {
+          assignmentId: input.assignmentId,
+          idempotencyKey: input.idempotencyKey,
+          requestHash,
+          revisionId: input.revisionId,
+        } });
+        return publicationCompletion(tx, input.assignmentId, input.revisionId, false);
+      }, { isolationLevel: 'Serializable' });
+    } catch (error) {
+      if (!isRecoverablePublicationRace(error)) throw error;
+      const replay = await db.assignmentPublicationOperation.findUnique({
+        where: { revisionId: input.revisionId },
+      });
+      if (replay) {
+        if (replay.requestHash !== requestHash) {
+          throw new AssignmentDomainError('publication-baseline-already-published');
+        }
+        return publicationCompletion(db, input.assignmentId, replay.revisionId, true);
       }
+      if (attempt === 2) throw new AssignmentDomainError('publication-conflict-retryable');
     }
-    if (draft.questions.length === 0) issues.push('assignment-has-no-questions');
-    const managedClasses = await tx.class.findMany({
-      where: input.actor.role === 'ADMIN' ? { id: { in: input.audiences.map((item) => item.classId) }, isActive: true } : {
-        id: { in: input.audiences.map((item) => item.classId) }, teacherId: input.actor.id, isActive: true,
+  }
+  throw new AssignmentDomainError('publication-conflict-retryable');
+}
+
+export function assignmentPublicationIdempotencyKey(input: {
+  assignmentId: string;
+  revisionId: string;
+  expectedVersion: number;
+}) {
+  return `assignment-ui:${input.assignmentId}:${input.revisionId}:${input.expectedVersion}`;
+}
+
+function isRecoverablePublicationRace(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && (error.code === 'P2002' || error.code === 'P2034');
+}
+
+async function publicationCompletion(
+  db: Pick<AssignmentDb, 'assignmentRevision'>,
+  assignmentId: string,
+  revisionId: string,
+  idempotentReplay: boolean,
+) {
+  const revision = await db.assignmentRevision.findUniqueOrThrow({
+    where: { id: revisionId },
+    include: {
+      audiences: {
+        include: { class: { select: { id: true, name: true } } },
       },
-      select: { id: true },
-    });
-    const managedIds = new Set(managedClasses.map((item) => item.id));
-    for (const audience of input.audiences) if (!managedIds.has(audience.classId)) issues.push(`unauthorized-audience:${audience.classId}`);
-    if (issues.length) throw new AssignmentDomainError('publication-blocked', issues);
-    const contentHash = stableHash(draft);
-    await tx.assignmentRevision.update({
-      where: { id: input.revisionId },
-      data: { state: 'PUBLISHED', frozenAt: now, publishedAt: now, contentHash, version: { increment: 1 } },
-    });
-    await tx.assignmentAudience.createMany({ data: input.audiences.map((audience) => ({
-      assignmentRevisionId: input.revisionId,
-      classId: audience.classId,
-      availableAt: new Date(audience.availableAt),
-      dueAt: new Date(audience.dueAt),
-      policySnapshot: {
-        latePolicy: draft.latePolicy,
-        responsePolicy: draft.responsePolicy,
-        resubmissionPolicy: draft.resubmissionPolicy,
-        solutionReleasePolicy: draft.solutionReleasePolicy,
-      },
-    })) });
-    await tx.assignment.update({ where: { id: input.assignmentId }, data: { state: 'PUBLISHED' } });
-    await tx.assignmentPublicationOperation.create({ data: {
-      assignmentId: input.assignmentId,
-      idempotencyKey: input.idempotencyKey,
-      requestHash,
-      revisionId: input.revisionId,
-    } });
-    return tx.assignmentRevision.findUniqueOrThrow({ where: { id: input.revisionId }, include: { audiences: true, questions: true } });
-  }, { isolationLevel: 'Serializable' });
+      questions: true,
+    },
+  });
+  return {
+    revision,
+    publication: {
+      assignmentId,
+      publishedRevisionId: revision.id,
+      location: { assignmentId },
+      classes: revision.audiences.map((audience) => ({
+        id: audience.class.id,
+        name: audience.class.name,
+      })),
+    },
+    idempotentReplay,
+  };
 }
 
 async function assertAssignmentOwner(tx: Omit<AssignmentDb, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>, assignmentId: string, actor: Actor) {

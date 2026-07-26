@@ -22,6 +22,7 @@ async function addStudentSession(context: BrowserContext) {
 function assignment(overrides: Record<string, unknown> = {}) {
   return {
     id: 'assignment-902',
+    revisionId: 'revision-902',
     title: '闭环系统稳态误差分析',
     instructions: '逐题完成分析。文本与附件仅绑定当前题目。',
     availableAt: '2026-07-10T00:00:00.000Z',
@@ -135,6 +136,19 @@ test('task center distinguishes loading, empty, filtered-empty, error recovery, 
   await expect(page.getByRole('alert').filter({ hasText: '服务暂不可用' })).toContainText('服务暂不可用');
   await page.getByRole('button', { name: '重试' }).click();
   await expect(page.getByText('闭环系统稳态误差分析')).toBeVisible();
+});
+
+test('historical submission keeps an exact read-only revision link', async ({ page, context }) => {
+  await addStudentSession(context);
+  await mockAssignmentRoutes(page, [assignment({
+    revisionId: 'revision/history-902',
+    contextStatus: 'HISTORICAL',
+    historicalOnly: true,
+    canMutate: false,
+  })]);
+  await page.goto('/missions');
+  await expect(page.getByRole('link', { name: '查看历史提交' }))
+    .toHaveAttribute('href', '/missions/assignments/assignment-902?revisionId=revision%2Fhistory-902');
 });
 
 test('question change, submit result, retry, and history return restore exact focus', async ({ page, context }) => {

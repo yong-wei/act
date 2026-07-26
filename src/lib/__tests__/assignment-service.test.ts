@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { AssignmentDomainError, createQuestionSnapshot, signCatalogSelectionIdentity, stableHash } from '../assignments/assignment-domain';
 import { buildRubricBackedSubjectiveAssignmentFixture } from '../assignments/assignment-fixtures';
-import { createAssignmentDraft, createNextDraftRevision, publishAssignmentRevision, updateAssignmentDraft } from '../assignments/assignment-service';
+import { assignmentPublicationIdempotencyKey, createAssignmentDraft, createNextDraftRevision, publishAssignmentRevision, updateAssignmentDraft } from '../assignments/assignment-service';
 
 process.env.NEXTAUTH_SECRET ??= 'assignment-test-lineage-secret';
 
@@ -88,7 +88,7 @@ describe('assignment authoring persistence service', () => {
       code: 'publication-blocked',
       details: expect.arrayContaining(['assignment-total-mismatch:10:20', 'question-rubric-total-mismatch:control-correction-analysis:20:25']),
     });
-    expect(tx.assignmentRevision.update).not.toHaveBeenCalled();
+    expect(tx.assignmentRevision.updateMany).not.toHaveBeenCalled();
     expect(tx.assignmentAudience.createMany).not.toHaveBeenCalled();
   });
 
@@ -112,7 +112,7 @@ describe('assignment authoring persistence service', () => {
   it('freezes a valid revision transactionally and replays the same idempotency key without duplicate writes', async () => {
     const tx = publicationTx({ totalPoints: 20, questionPoints: 20, rubricPoints: 20 });
     await publishAssignmentRevision(dbWithTransaction(tx), publicationInput());
-    expect(tx.assignmentRevision.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ state: 'PUBLISHED' }) }));
+    expect(tx.assignmentRevision.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ state: 'PUBLISHED' }) }));
     expect(tx.assignmentAudience.createMany).toHaveBeenCalledTimes(1);
     expect(tx.assignmentPublicationOperation.create).toHaveBeenCalledTimes(1);
 
@@ -122,10 +122,42 @@ describe('assignment authoring persistence service', () => {
     expect(tx.assignmentAudience.createMany).toHaveBeenCalledTimes(1);
   });
 
-  it('rejects reuse of an idempotency key for a different request', async () => {
+  it('returns the committed publication after a concurrent unique race', async () => {
+    const tx = publicationTx({ totalPoints: 20, questionPoints: 20, rubricPoints: 20 });
+    await publishAssignmentRevision(dbWithTransaction(tx), publicationInput());
+    const operation = (tx.assignmentPublicationOperation.create as ReturnType<typeof vi.fn>).mock.calls[0]?.[0]?.data;
+    const race = new Prisma.PrismaClientKnownRequestError('publication race', {
+      code: 'P2002',
+      clientVersion: 'test',
+    });
+    const db = {
+      $transaction: vi.fn(async () => { throw race; }),
+      assignmentPublicationOperation: { findUnique: vi.fn(async () => operation) },
+      assignmentRevision: {
+        findUniqueOrThrow: vi.fn(async () => ({ id: 'revision-1', audiences: [], questions: [] })),
+      },
+    } as never;
+
+    await expect(publishAssignmentRevision(db, publicationInput())).resolves.toMatchObject({
+      idempotentReplay: true,
+      publication: { assignmentId: 'assignment-1', publishedRevisionId: 'revision-1' },
+    });
+  });
+
+  it('rejects a stale or forged saved-content digest before freezing', async () => {
+    const tx = publicationTx({ totalPoints: 20, questionPoints: 20, rubricPoints: 20 });
+    const input = publicationInput();
+    await expect(publishAssignmentRevision(dbWithTransaction(tx), {
+      ...input,
+      contentDigest: `sha256:${'f'.repeat(64)}`,
+    })).rejects.toMatchObject({ code: 'publication-content-digest-mismatch' });
+    expect(tx.assignmentRevision.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects a second publication shape for an already published baseline', async () => {
     const tx = publicationTx({ totalPoints: 20, questionPoints: 20, rubricPoints: 20 });
     tx.assignmentPublicationOperation.findUnique.mockImplementation(async () => ({ requestHash: 'sha256:different', revisionId: 'revision-1' }));
-    await expect(publishAssignmentRevision(dbWithTransaction(tx), { ...publicationInput(), expectedVersion: 2 })).rejects.toEqual(new AssignmentDomainError('idempotency-key-reused'));
+    await expect(publishAssignmentRevision(dbWithTransaction(tx), publicationInput())).rejects.toEqual(new AssignmentDomainError('publication-baseline-already-published'));
   });
 
   it('returns the existing next draft instead of duplicating a revision', async () => {
@@ -189,11 +221,13 @@ describe('assignment authoring persistence service', () => {
 });
 
 function publicationInput() {
-  return {
+  const input = {
     actor: { id: 'teacher-1', role: 'TEACHER' as const }, assignmentId: 'assignment-1', revisionId: 'revision-1', expectedVersion: 1,
-    idempotencyKey: 'publish-assignment-0001', now: new Date('2026-07-11T00:00:00Z'),
+    contentDigest: publicationContentDigest(),
+    idempotencyKey: '', now: new Date('2026-07-11T00:00:00Z'),
     audiences: [{ classId: 'class-1', availableAt: '2026-07-12T00:00:00Z', dueAt: '2026-07-13T00:00:00Z' }],
   };
+  return { ...input, idempotencyKey: assignmentPublicationIdempotencyKey(input) };
 }
 
 function publicationTx(input: { totalPoints: number; questionPoints: number; rubricPoints: number }) {
@@ -206,11 +240,12 @@ function publicationTx(input: { totalPoints: number; questionPoints: number; rub
     assignmentRevision: {
       findUnique: vi.fn(async () => ({
         id: 'revision-1', assignmentId: 'assignment-1', state: 'DRAFT', frozenAt: null, version: 1,
+        contentHash: publicationContentDigest(),
         title: '作业', instructions: '', totalPoints: input.totalPoints, solutionReleasePolicy: { version: 1, mode: 'PRIVATE' }, questions: [row],
         latePolicy: { version: 1, mode: 'CLOSED' }, responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
         resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
       })),
-      update: vi.fn(async () => ({})),
+      updateMany: vi.fn(async () => ({ count: 1 })),
       findUniqueOrThrow: vi.fn(async () => ({ id: 'revision-1', audiences: [], questions: [row] })),
     },
     assignmentPublicationOperation: {
@@ -220,4 +255,26 @@ function publicationTx(input: { totalPoints: number; questionPoints: number; rub
     assignmentAudience: { createMany: vi.fn(async () => ({ count: 1 })) },
     class: { findMany: vi.fn(async () => [{ id: 'class-1' }]) },
   };
+}
+
+function publicationContentDigest() {
+  const row = questionRow(20, 20);
+  return stableHash({
+    title: '作业',
+    instructions: '',
+    totalPoints: 20,
+    solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
+    latePolicy: { version: 1, mode: 'CLOSED' },
+    responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
+    resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
+    questions: [{
+      stableQuestionId: row.stableQuestionId,
+      responseType: row.responseType,
+      points: row.points,
+      prompt: (row.promptSnapshot as { text: string }).text,
+      referenceAnswer: (row.answerSnapshot as { text: string }).text,
+      rubric: row.rubricSnapshot,
+      source: { family: 'MANUAL', authoringMarker: 'assignment-authoring' },
+    }],
+  });
 }

@@ -2494,7 +2494,7 @@ model AssignmentPublicationOperation {
   revision   AssignmentRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict)
 
   @@unique([assignmentId, idempotencyKey])
-  @@index([revisionId])
+  @@unique([revisionId])
 }
 
 model AssignmentHistoricalOwnership {
