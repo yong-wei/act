@@ -58,9 +58,26 @@ export function replaceLessonStageSteps(
   });
   return {
     ...value,
-    boppps: { ...boppps, [stageId]: { ...current, minutes, steps } },
+    boppps: {
+      ...boppps,
+      [stageId]: {
+        ...current,
+        minutes,
+        teacherActivity: combinedStepText(steps, 'teacherActivity'),
+        studentActivity: combinedStepText(steps, 'studentActivity'),
+        assessment: combinedStepText(steps, 'assessment'),
+        steps,
+      },
+    },
     coursewareStepOutline,
   };
+}
+
+function combinedStepText(steps: PreparationRecord[], field: string) {
+  return steps
+    .map((step) => String(step[field] ?? '').trim())
+    .filter(Boolean)
+    .join('\n');
 }
 
 export function preparationDocumentValidationErrors(

@@ -114,12 +114,14 @@ describe('preparation document editor interactions', () => {
       await Promise.resolve();
     });
     expect(container.textContent).toContain('已恢复上次未完成的本地修改');
-    const topic = [...container.querySelectorAll('input')]
-      .find((input) => input.parentElement?.textContent?.startsWith('主题'))!;
-    expect(topic.value).toBe('本地恢复主题');
+    expect(container.textContent).not.toContain('本地恢复主题');
+    expect([...container.querySelectorAll('input')]
+      .some((input) => input.parentElement?.textContent?.startsWith('主题'))).toBe(false);
+    const stepTitle = [...container.querySelectorAll('input')]
+      .find((input) => input.parentElement?.textContent?.startsWith('步骤标题'))!;
     await act(async () => {
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(topic, '冲突中的本地主题');
-      topic.dispatchEvent(new Event('input', { bubbles: true }));
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(stepTitle, '冲突中的本地步骤');
+      stepTitle.dispatchEvent(new Event('input', { bubbles: true }));
       vi.advanceTimersByTime(1000);
       await Promise.resolve();
       await Promise.resolve();
@@ -128,7 +130,7 @@ describe('preparation document editor interactions', () => {
     expect(fetch.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true);
     expect(container.textContent).toContain('服务器已有较新修订');
     expect(container.textContent).toContain('存在版本冲突');
-    expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.topic).toBe('冲突中的本地主题');
+    expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.boppps.bridgeIn.steps[0].title).toBe('冲突中的本地步骤');
   });
 
   it('does not mark a newer lesson edit saved when an older request finishes', async () => {
@@ -156,18 +158,18 @@ describe('preparation document editor interactions', () => {
       root.render(createElement(LessonDocumentEditor, { kind: 'draft', documentId: 'draft-1' }));
       await Promise.resolve();
     });
-    const topic = [...container.querySelectorAll('input')]
-      .find((input) => input.parentElement?.textContent?.startsWith('主题'))!;
-    const setTopic = async (value: string) => {
+    const stepTitle = [...container.querySelectorAll('input')]
+      .find((input) => input.parentElement?.textContent?.startsWith('步骤标题'))!;
+    const setStepTitle = async (value: string) => {
       await act(async () => {
-        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(topic, value);
-        topic.dispatchEvent(new Event('input', { bubbles: true }));
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(stepTitle, value);
+        stepTitle.dispatchEvent(new Event('input', { bubbles: true }));
       });
     };
-    await setTopic('先提交的修改');
+    await setStepTitle('先提交的修改');
     const save = [...container.querySelectorAll('button')].find((button) => button.textContent === '保存')!;
     await act(async () => save.click());
-    await setTopic('请求期间的新修改');
+    await setStepTitle('请求期间的新修改');
     await act(async () => {
       finishPatch({
         ok: true,
@@ -180,7 +182,7 @@ describe('preparation document editor interactions', () => {
 
     expect(container.textContent).toContain('较早修改已保存');
     expect(container.textContent).toContain('尚未保存');
-    expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.topic).toBe('请求期间的新修改');
+    expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.boppps.bridgeIn.steps[0].title).toBe('请求期间的新修改');
   });
 
   it('keeps a lesson draft retryable when the save request throws', async () => {
@@ -201,11 +203,11 @@ describe('preparation document editor interactions', () => {
       root.render(createElement(LessonDocumentEditor, { kind: 'draft', documentId: 'draft-1' }));
       await Promise.resolve();
     });
-    const topic = [...container.querySelectorAll('input')]
-      .find((input) => input.parentElement?.textContent?.startsWith('主题'))!;
+    const stepTitle = [...container.querySelectorAll('input')]
+      .find((input) => input.parentElement?.textContent?.startsWith('步骤标题'))!;
     await act(async () => {
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(topic, '断网时保留的主题');
-      topic.dispatchEvent(new Event('input', { bubbles: true }));
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(stepTitle, '断网时保留的步骤');
+      stepTitle.dispatchEvent(new Event('input', { bubbles: true }));
     });
     const save = [...container.querySelectorAll('button')].find((button) => button.textContent === '保存')!;
     await act(async () => save.click());
@@ -213,7 +215,7 @@ describe('preparation document editor interactions', () => {
     expect(container.textContent).toContain('保存请求失败，本地修改仍保留，请重试');
     expect(container.textContent).toContain('保存失败');
     expect(save.disabled).toBe(false);
-    expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.topic).toBe('断网时保留的主题');
+    expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.boppps.bridgeIn.steps[0].title).toBe('断网时保留的步骤');
   });
 
   it('retains local lesson and course-basis drafts when initial loading throws', async () => {

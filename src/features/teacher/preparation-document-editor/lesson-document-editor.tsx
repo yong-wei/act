@@ -56,7 +56,11 @@ export function LessonDocumentEditor({
       const serverRevision = kind === 'outline' ? payload.outline.outputHash : payload.draft.version;
       const local = !preferServer ? readLocalDraft(storageKey) : null;
       if (preferServer) window.localStorage.removeItem(storageKey);
-      const nextDocument = local?.content ?? serverDocument;
+      const nextDocument = local?.content
+        ? kind === 'draft'
+          ? restoreLockedLessonFields(local.content, serverDocument)
+          : local.content
+        : serverDocument;
       const nextRevision = local ? local.baseRevision : serverRevision;
       setDocument(nextDocument);
       documentRef.current = nextDocument;
@@ -230,10 +234,10 @@ function OutlineForm({ value, onChange }: { value: RecordValue; onChange: (value
 function LessonForm({ value, onChange }: { value: RecordValue; onChange: (value: RecordValue) => void }) {
   return <div className="mx-auto max-w-5xl space-y-6">
     <section className="grid gap-3 rounded-xl border border-border p-4 sm:grid-cols-2">
-      <TextField label="课程" value={String(value.course ?? '')} onChange={(course) => onChange({ ...value, course })} />
-      <TextField label="主题" value={String(value.topic ?? '')} onChange={(topic) => onChange({ ...value, topic })} />
-      <TextField label="授课对象" value={String(value.audience ?? '')} onChange={(audience) => onChange({ ...value, audience })} />
-      <TextField label="先修要求" value={String(value.prerequisites ?? '')} onChange={(prerequisites) => onChange({ ...value, prerequisites })} />
+      <ReadOnlyField label="课程" value={String(value.course ?? '')} />
+      <ReadOnlyField label="主题" value={String(value.topic ?? '')} />
+      <ReadOnlyField label="授课对象" value={String(value.audience ?? '')} />
+      <ReadOnlyField label="先修要求" value={String(value.prerequisites ?? '')} />
     </section>
     {STAGES.map(([stageId, title]) => {
       const stage = lessonDocumentStage(value, stageId);
@@ -328,7 +332,6 @@ function applySuggestion(document: RecordValue, suggestion: PreparationEditorSug
 }
 
 function isEditableSuggestionPath(path: string[]) {
-  if (path.length === 1) return ['course', 'topic', 'audience', 'prerequisites'].includes(path[0]);
   if (path.length === 2 && path[0] === 'limitations') return validArrayIndex(path[1]);
   if (path.length === 3 && path[0] === 'coursewareStepOutline') {
     return validArrayIndex(path[1]) && path[2] === 'title';
@@ -370,6 +373,10 @@ function TextField({ label, value, onChange }: { label: string; value: string; o
   return <label className="grid gap-1 text-sm"><span>{label}</span><input value={value} onChange={(event) => onChange(event.target.value)} className="rounded border border-border bg-background px-3 py-2" /></label>;
 }
 
+function ReadOnlyField({ label, value }: { label: string; value: string }) {
+  return <div className="grid gap-1 text-sm"><span>{label}</span><p className="min-h-10 rounded border border-border bg-muted/40 px-3 py-2">{value}</p></div>;
+}
+
 function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
   return <label className="grid gap-1 text-sm"><span>{label}</span><input type="number" min={1} max={120} value={value} onChange={(event) => onChange(Number(event.target.value))} className="rounded border border-border bg-background px-3 py-2" /></label>;
 }
@@ -386,6 +393,16 @@ function endpoint(kind: LessonEditorKind, id: string) {
   return kind === 'outline'
     ? `/api/teacher/smart-lesson-tasks/jobs/${encodeURIComponent(id)}/outline`
     : `/api/teacher/smart-lesson-tasks/drafts/${encodeURIComponent(id)}`;
+}
+
+function restoreLockedLessonFields(local: RecordValue, server: RecordValue) {
+  return {
+    ...local,
+    course: server.course,
+    topic: server.topic,
+    audience: server.audience,
+    prerequisites: server.prerequisites,
+  };
 }
 
 function updateAt<T>(values: T[], index: number, value: T) {

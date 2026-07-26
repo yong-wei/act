@@ -74,13 +74,33 @@ describe('preparation lesson document model', () => {
     const plan = validPlanFixture();
     const current = lessonDocumentStage(plan, 'bridgeIn');
     const steps = [
-      { ...current.steps[0], title: '问题情境', minutes: 2 },
-      { ...current.steps[0], title: '追问', minutes: 3 },
+      {
+        ...current.steps[0],
+        title: '问题情境',
+        minutes: 2,
+        teacherActivity: '展示情境',
+        studentActivity: '观察现象',
+        assessment: '记录判断',
+      },
+      {
+        ...current.steps[0],
+        title: '追问',
+        minutes: 3,
+        teacherActivity: '提出追问',
+        studentActivity: '解释原因',
+        assessment: '核对依据',
+      },
     ];
 
     const updated = replaceLessonStageSteps(plan, 'bridgeIn', steps);
 
-    expect(lessonDocumentStage(updated, 'bridgeIn')).toMatchObject({ minutes: 5, steps });
+    expect(lessonDocumentStage(updated, 'bridgeIn')).toMatchObject({
+      minutes: 5,
+      teacherActivity: '展示情境\n提出追问',
+      studentActivity: '观察现象\n解释原因',
+      assessment: '记录判断\n核对依据',
+      steps,
+    });
     expect(updated.coursewareStepOutline).toEqual(expect.arrayContaining([
       { title: '问题情境', bopppsStage: 'bridgeIn', minutes: 2 },
       { title: '追问', bopppsStage: 'bridgeIn', minutes: 3 },
