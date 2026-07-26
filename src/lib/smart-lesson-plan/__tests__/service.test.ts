@@ -24,6 +24,7 @@ import {
   recordAdvisoryReview,
   resumeGenerationJob,
   retryGenerationJob,
+  setGenerationStageActionState,
   startGenerationJob,
   updateSmartLessonDraft,
   updatePausedGenerationOutline,
@@ -877,6 +878,32 @@ describe('smart lesson aggregate service', () => {
     expect(changed.updateJob).not.toHaveBeenCalled();
   });
 
+  it('does not let pre-claim evidence preparation overwrite a concurrently cancelled stage', async () => {
+    const updateMany = vi.fn(async ({ where }) => ({
+      count: where.state === 'PENDING'
+        && where.job?.state?.in?.includes('QUEUED')
+        ? 0
+        : 1,
+    }));
+    const db = { smartLessonGenerationStage: { updateMany } };
+
+    await expect(setGenerationStageActionState(db as never, {
+      actor: teacher,
+      jobId: 'job-1',
+      stage: 'OUTLINE',
+      actionState: 'PREPARING_EVIDENCE',
+    })).rejects.toMatchObject({ code: 'generation-stage-action-state-conflict', status: 409 });
+    expect(updateMany).toHaveBeenCalledWith({
+      where: {
+        jobId: 'job-1',
+        kind: 'OUTLINE',
+        state: 'PENDING',
+        job: { ownerId: teacher.id, state: { in: ['QUEUED', 'RUNNING'] } },
+      },
+      data: { actionState: 'PREPARING_EVIDENCE' },
+    });
+  });
+
   it('advances delivery generation when retrying a failed stage', async () => {
     const fixture = generationTransitionFixture('RETRYABLE');
     const retried = await retryGenerationJob(fixture.db as never, {
@@ -886,6 +913,10 @@ describe('smart lesson aggregate service', () => {
     expect(retried).toMatchObject({ state: 'QUEUED', deliveryGeneration: 2, firstIncompleteStage: 'OUTLINE' });
     expect(fixture.updateJob).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ deliveryGeneration: { increment: 1 } }),
+    }));
+    expect(fixture.tx.smartLessonGenerationStage.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'stage-1' },
+      data: expect.objectContaining({ providerAttemptGeneration: { increment: 1 } }),
     }));
   });
 
@@ -929,7 +960,7 @@ describe('smart lesson aggregate service', () => {
     };
     const first = await beginProviderAttempt(db as never, input);
     const duplicate = await beginProviderAttempt(db as never, input);
-    expect(first).toMatchObject({ claimed: true, attempt: { attemptNumber: 1, idempotencyKey: 'smart-lesson-stage:stage-1:1' } });
+    expect(first).toMatchObject({ claimed: true, attempt: { attemptNumber: 1, idempotencyKey: 'smart-lesson-stage:stage-1:generation:1' } });
     expect(duplicate).toMatchObject({ claimed: false, attempt: { id: 'attempt-1' } });
     expect(tx.smartLessonProviderAttempt.create).toHaveBeenCalledTimes(1);
     expect(tx.smartLessonProviderAttempt.create).toHaveBeenCalledWith({ data: expect.objectContaining({
@@ -946,7 +977,7 @@ describe('smart lesson aggregate service', () => {
     };
     const attempt: Record<string, any> = {
       id: 'attempt-1', stageId: stage.id, attemptNumber: 1,
-      idempotencyKey: 'smart-lesson-stage:stage-1:1', outcome: 'RETRYABLE_FAILURE',
+      idempotencyKey: 'smart-lesson-stage:stage-1:generation:1', outcome: 'RETRYABLE_FAILURE',
       serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1',
       promptVersion: 'prompt.v1', schemaVersion: 'outline.v1', requestHash: contentHash(request),
       finishedAt: new Date(),
@@ -977,7 +1008,7 @@ describe('smart lesson aggregate service', () => {
       promptVersion: 'prompt.v1', schemaVersion: 'outline.v1',
     });
 
-    expect(result).toMatchObject({ claimed: true, attempt: { id: 'attempt-1', idempotencyKey: 'smart-lesson-stage:stage-1:1', outcome: 'RUNNING' } });
+    expect(result).toMatchObject({ claimed: true, attempt: { id: 'attempt-1', idempotencyKey: 'smart-lesson-stage:stage-1:generation:1', outcome: 'RUNNING' } });
     expect(stage.attemptGeneration).toBe(2);
     expect(tx.smartLessonProviderAttempt.create).not.toHaveBeenCalled();
   });

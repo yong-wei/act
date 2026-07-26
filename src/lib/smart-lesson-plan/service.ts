@@ -830,15 +830,25 @@ export async function startGenerationJob(db: SmartLessonDb, input: {
 export async function resumeGenerationJob(db: SmartLessonDb, input: JobCommandInput) {
   return transitionGenerationJob(db, input, 'RESUME', ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'], async (tx, job, now) => {
     await assertGenerationInputUnchanged(tx, job);
+    const firstIncomplete = await tx.smartLessonGenerationStage.findFirst({
+      where: { jobId: job.id, state: { not: 'COMPLETED' } },
+      orderBy: { orderIndex: 'asc' },
+    });
+    if (!firstIncomplete) throw new SmartLessonPlanError('generation-stage-not-found', 409);
     await tx.smartLessonGenerationStage.updateMany({
       where: { jobId: job.id, state: { in: ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] } },
-      data: { state: 'PENDING', startedAt: null },
+      data: { state: 'PENDING', actionState: 'WAITING', startedAt: null },
+    });
+    await tx.smartLessonGenerationStage.update({
+      where: { id: firstIncomplete.id },
+      data: { providerAttemptGeneration: { increment: 1 } },
     });
     await tx.smartLessonDraft.update({ where: { id: job.draftId }, data: { state: 'GENERATING' } });
     return tx.smartLessonGenerationJob.update({
       where: { id: job.id },
       data: {
         state: 'QUEUED', activeIdentity: `draft:${job.draftId}`, failureCode: null,
+        firstIncompleteStage: firstIncomplete.kind,
         cancelledAt: null, completedAt: null, deliveryGeneration: { increment: 1 }, updatedAt: now,
       },
     });
@@ -849,7 +859,7 @@ export async function cancelGenerationJob(db: SmartLessonDb, input: JobCommandIn
   return transitionGenerationJob(db, input, 'CANCEL', ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'], async (tx, job, now) => {
     await tx.smartLessonGenerationStage.updateMany({
       where: { jobId: job.id, state: { in: ['PENDING', 'RUNNING', 'PAUSED', 'RETRYABLE'] } },
-      data: { state: 'CANCELLED' },
+      data: { state: 'CANCELLED', actionState: 'CANCELLED', claimToken: null, claimExpiresAt: null },
     });
     await tx.smartLessonDraft.update({ where: { id: job.draftId }, data: { state: 'EDITABLE' } });
     return tx.smartLessonGenerationJob.update({
@@ -864,11 +874,20 @@ export async function retryGenerationJob(db: SmartLessonDb, input: JobCommandInp
   return transitionGenerationJob(db, input, 'RETRY', ['RETRYABLE', 'FAILED'], async (tx, job) => {
     await assertGenerationInputUnchanged(tx, job);
     const failedStage = await tx.smartLessonGenerationStage.findFirst({
-      where: { jobId: job.id, ...(stage ? { kind: stage } : {}), state: { in: ['RETRYABLE', 'FAILED'] } },
+      where: { jobId: job.id, state: { in: ['RETRYABLE', 'FAILED'] } },
       orderBy: { orderIndex: 'asc' },
     });
     if (!failedStage) throw new SmartLessonPlanError('retryable-stage-not-found', 409);
-    await tx.smartLessonGenerationStage.update({ where: { id: failedStage.id }, data: { state: 'PENDING', startedAt: null } });
+    if (stage && stage !== failedStage.kind) throw new SmartLessonPlanError('retry-must-target-first-incomplete-stage', 409);
+    await tx.smartLessonGenerationStage.update({
+      where: { id: failedStage.id },
+      data: {
+        state: 'PENDING',
+        actionState: 'WAITING',
+        startedAt: null,
+        providerAttemptGeneration: { increment: 1 },
+      },
+    });
     await tx.smartLessonDraft.update({ where: { id: job.draftId }, data: { state: 'GENERATING' } });
     return tx.smartLessonGenerationJob.update({
       where: { id: job.id },
@@ -949,7 +968,7 @@ export async function beginProviderAttempt(db: SmartLessonDb, input: {
     if (stage.kind !== job.firstIncompleteStage) throw new SmartLessonPlanError('generation-stage-out-of-order', 409);
     if (stage.state === 'RUNNING' && stage.claimExpiresAt && stage.claimExpiresAt > now) {
       const activeAttempt = await tx.smartLessonProviderAttempt.findFirst({
-        where: { stageId: stage.id, outcome: 'RUNNING' },
+        where: { stageId: stage.id, outcome: 'RUNNING', kind: 'ORIGINAL' },
         orderBy: { attemptNumber: 'desc' },
       });
       return { claimed: false as const, claimToken: null, attempt: activeAttempt };
@@ -957,20 +976,35 @@ export async function beginProviderAttempt(db: SmartLessonDb, input: {
     if (stage.state === 'RUNNING') {
       await tx.smartLessonGenerationStage.updateMany({
         where: { id: stage.id, state: 'RUNNING', claimToken: stage.claimToken },
-        data: { state: 'RETRYABLE', claimToken: null, claimExpiresAt: null },
+        data: { state: 'RETRYABLE', actionState: 'RETRYABLE', claimToken: null, claimExpiresAt: null },
+      });
+      await tx.smartLessonProviderAttempt.updateMany({
+        where: { stageId: stage.id, outcome: 'RUNNING' },
+        data: { outcome: 'RETRYABLE_FAILURE', finishedAt: now },
       });
       stage = await tx.smartLessonGenerationStage.findUnique({ where: { id: stage.id } });
       if (!stage) throw new SmartLessonPlanError('generation-stage-not-found', 404);
     }
+    const generationAttempt = await tx.smartLessonProviderAttempt.findFirst({
+      where: {
+        stageId: stage.id,
+        kind: 'ORIGINAL',
+        providerAttemptGeneration: stage.providerAttemptGeneration ?? 1,
+      },
+      orderBy: { attemptNumber: 'desc' },
+    });
     const latestAttempt = await tx.smartLessonProviderAttempt.findFirst({
       where: { stageId: stage.id },
       orderBy: { attemptNumber: 'desc' },
     });
-    const reusableAttempt = latestAttempt
-      && ['RUNNING', 'RETRYABLE_FAILURE'].includes(latestAttempt.outcome)
-      && providerAttemptMatches(latestAttempt, identity)
-      ? latestAttempt
+    const reusableAttempt = generationAttempt
+      && ['RUNNING', 'RETRYABLE_FAILURE'].includes(generationAttempt.outcome)
+      && providerAttemptMatches(generationAttempt, identity)
+      ? generationAttempt
       : null;
+    if (generationAttempt && !reusableAttempt) {
+      throw new SmartLessonPlanError('provider-attempt-identity-changed', 409);
+    }
     const attemptNumber = reusableAttempt ? reusableAttempt.attemptNumber : (latestAttempt?.attemptNumber ?? 0) + 1;
     const claimed = await tx.smartLessonGenerationStage.updateMany({
       where: {
@@ -980,6 +1014,7 @@ export async function beginProviderAttempt(db: SmartLessonDb, input: {
       },
       data: {
         state: 'RUNNING',
+        actionState: 'GENERATING',
         attemptGeneration: { increment: 1 },
         claimToken,
         claimExpiresAt,
@@ -988,7 +1023,7 @@ export async function beginProviderAttempt(db: SmartLessonDb, input: {
     });
     if (claimed.count !== 1) {
       const activeAttempt = await tx.smartLessonProviderAttempt.findFirst({
-        where: { stageId: stage.id, outcome: 'RUNNING' },
+        where: { stageId: stage.id, outcome: 'RUNNING', kind: 'ORIGINAL' },
         orderBy: { attemptNumber: 'desc' },
       });
       return { claimed: false as const, claimToken: null, attempt: activeAttempt };
@@ -1008,7 +1043,10 @@ export async function beginProviderAttempt(db: SmartLessonDb, input: {
           ownerId: job.ownerId,
           stageId: stage.id,
           attemptNumber,
-          idempotencyKey: `smart-lesson-stage:${stage.id}:${attemptNumber}`,
+          kind: 'ORIGINAL',
+          providerAttemptGeneration: stage.providerAttemptGeneration ?? 1,
+          deliveryGeneration: job.deliveryGeneration ?? 1,
+          idempotencyKey: `smart-lesson-stage:${stage.id}:generation:${stage.providerAttemptGeneration ?? 1}`,
           ...identity,
           requestSnapshot: asJson(input.request),
         },
@@ -1028,6 +1066,124 @@ function providerAttemptMatches(
     && attempt.promptVersion === identity.promptVersion
     && attempt.schemaVersion === identity.schemaVersion
     && attempt.requestHash === identity.requestHash;
+}
+
+export async function setGenerationStageActionState(db: SmartLessonDb, input: {
+  actor: SmartLessonActor;
+  jobId: string;
+  stage: GenerationStageKind;
+  actionState: 'WAITING' | 'PREPARING_EVIDENCE' | 'GENERATING' | 'VALIDATING' | 'AUTO_FIXING' | 'WAITING_CONFIRMATION' | 'RETRYABLE' | 'COMPLETED' | 'CANCELLED';
+  claimToken?: string;
+}) {
+  const actor = validateActor(input.actor);
+  const runnableState: Prisma.SmartLessonGenerationStageWhereInput = input.claimToken
+    ? {
+        claimToken: validateId(input.claimToken),
+        state: 'RUNNING',
+        job: { ownerId: actor.id, state: 'RUNNING' },
+      }
+    : {
+        state: 'PENDING',
+        job: { ownerId: actor.id, state: { in: ['QUEUED', 'RUNNING'] } },
+      };
+  const updated = await db.smartLessonGenerationStage.updateMany({
+    where: {
+      jobId: validateId(input.jobId),
+      kind: input.stage,
+      ...runnableState,
+    },
+    data: { actionState: input.actionState },
+  });
+  if (updated.count !== 1) throw new SmartLessonPlanError('generation-stage-action-state-conflict', 409);
+}
+
+export async function beginCorrectionAttempt(db: SmartLessonDb, input: {
+  actor: SmartLessonActor;
+  jobId: string;
+  stage: GenerationStageKind;
+  claimToken: string;
+  originalAttemptId: string;
+  request: unknown;
+  validationReceipt: unknown;
+  normalizedResponseId?: string | null;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  costMicros?: bigint | null;
+}) {
+  const actor = validateActor(input.actor);
+  return db.$transaction(async (tx) => {
+    const job = await tx.smartLessonGenerationJob.findFirst({ where: ownedWhere(actor, { id: validateId(input.jobId) }) });
+    if (!job || job.state !== 'RUNNING') throw new SmartLessonPlanError('generation-job-not-runnable', 409);
+    const stage = await tx.smartLessonGenerationStage.findUnique({
+      where: { jobId_kind: { jobId: job.id, kind: input.stage } },
+    });
+    if (!stage || stage.state !== 'RUNNING' || stage.claimToken !== validateId(input.claimToken)) {
+      throw new SmartLessonPlanError('generation-stage-claim-lost', 409);
+    }
+    const original = await tx.smartLessonProviderAttempt.findFirst({
+      where: {
+        id: validateId(input.originalAttemptId),
+        stageId: stage.id,
+        kind: 'ORIGINAL',
+        providerAttemptGeneration: stage.providerAttemptGeneration,
+      },
+    });
+    if (!original) throw new SmartLessonPlanError('provider-attempt-not-found', 404);
+    const existing = await tx.smartLessonProviderAttempt.findFirst({
+      where: {
+        stageId: stage.id,
+        kind: 'CORRECTION',
+        providerAttemptGeneration: stage.providerAttemptGeneration,
+      },
+    });
+    await tx.smartLessonProviderAttempt.update({
+      where: { id: original.id },
+      data: {
+        outcome: 'RETRYABLE_FAILURE',
+        validationReceipt: asJson(input.validationReceipt),
+        normalizedResponseId: optionalText(input.normalizedResponseId, 300) || null,
+        inputTokens: optionalNonNegativeInteger(input.inputTokens),
+        outputTokens: optionalNonNegativeInteger(input.outputTokens),
+        costMicros: optionalNonNegativeBigInt(input.costMicros),
+        finishedAt: new Date(),
+      },
+    });
+    await tx.smartLessonGenerationStage.update({
+      where: { id: stage.id },
+      data: { actionState: 'AUTO_FIXING' },
+    });
+    if (existing) {
+      const resumed = await tx.smartLessonProviderAttempt.updateMany({
+        where: { id: existing.id, outcome: { in: ['RUNNING', 'RETRYABLE_FAILURE'] } },
+        data: { outcome: 'RUNNING', finishedAt: null },
+      });
+      if (resumed.count !== 1) throw new SmartLessonPlanError('provider-attempt-claim-conflict', 409);
+      return { ...existing, outcome: 'RUNNING' as const, finishedAt: null };
+    }
+    const latest = await tx.smartLessonProviderAttempt.findFirst({
+      where: { stageId: stage.id },
+      orderBy: { attemptNumber: 'desc' },
+    });
+    return tx.smartLessonProviderAttempt.create({
+      data: {
+        ownerId: job.ownerId,
+        stageId: stage.id,
+        attemptNumber: (latest?.attemptNumber ?? original.attemptNumber) + 1,
+        kind: 'CORRECTION',
+        providerAttemptGeneration: stage.providerAttemptGeneration,
+        deliveryGeneration: job.deliveryGeneration,
+        idempotencyKey: `smart-lesson-stage:${stage.id}:generation:${stage.providerAttemptGeneration}:correction`,
+        serviceId: original.serviceId,
+        providerKind: original.providerKind,
+        model: original.model,
+        promptVersion: original.promptVersion,
+        schemaVersion: original.schemaVersion,
+        requestHash: contentHash(input.request),
+        requestSnapshot: asJson(input.request),
+        correctsAttemptId: original.id,
+      },
+    });
+  });
 }
 
 export async function finishProviderAttempt(db: SmartLessonDb, input: {
@@ -1071,6 +1227,7 @@ export async function completeGenerationStage(db: SmartLessonDb, input: {
   inputTokens?: number | null;
   outputTokens?: number | null;
   costMicros?: bigint | null;
+  validationReceipt?: unknown;
 }) {
   const actor = validateActor(input.actor);
   return db.$transaction(async (tx) => {
@@ -1108,6 +1265,7 @@ export async function completeGenerationStage(db: SmartLessonDb, input: {
       where: { id: stage.id, state: 'RUNNING', claimToken: validateId(input.claimToken) },
       data: {
         state: 'COMPLETED',
+        actionState: 'COMPLETED',
         output: asJson(input.output),
         outputHash,
         completedAt: new Date(),
@@ -1124,6 +1282,7 @@ export async function completeGenerationStage(db: SmartLessonDb, input: {
         inputTokens: optionalNonNegativeInteger(input.inputTokens),
         outputTokens: optionalNonNegativeInteger(input.outputTokens),
         costMicros: optionalNonNegativeBigInt(input.costMicros),
+        validationReceipt: input.validationReceipt === undefined ? undefined : asJson(input.validationReceipt),
         finishedAt: new Date(),
       },
     });
@@ -1132,6 +1291,10 @@ export async function completeGenerationStage(db: SmartLessonDb, input: {
       orderBy: { orderIndex: 'asc' },
     });
     if (input.stage === 'OUTLINE' && job.outlineConfirmation) {
+      await tx.smartLessonGenerationStage.update({
+        where: { id: stage.id },
+        data: { actionState: 'WAITING_CONFIRMATION' },
+      });
       return tx.smartLessonGenerationJob.update({
         where: { id: job.id },
         data: { state: 'PAUSED', firstIncompleteStage: next?.kind ?? 'BRIDGE_IN' },
@@ -1164,6 +1327,7 @@ export async function failGenerationStage(db: SmartLessonDb, input: {
   attemptId: string;
   failureCode: string;
   retryable: boolean;
+  validationReceipt?: unknown;
 }) {
   const actor = validateActor(input.actor);
   return db.$transaction(async (tx) => {
@@ -1178,12 +1342,16 @@ export async function failGenerationStage(db: SmartLessonDb, input: {
     if (!attempt) throw new SmartLessonPlanError('provider-attempt-not-running', 409);
     const failed = await tx.smartLessonGenerationStage.updateMany({
       where: { id: stage.id, state: 'RUNNING', claimToken: validateId(input.claimToken) },
-      data: { state: stageState, claimToken: null, claimExpiresAt: null },
+      data: { state: stageState, actionState: 'RETRYABLE', claimToken: null, claimExpiresAt: null },
     });
     if (failed.count !== 1) throw new SmartLessonPlanError('generation-stage-claim-lost', 409);
     await tx.smartLessonProviderAttempt.update({
       where: { id: attempt.id },
-      data: { outcome: input.retryable ? 'RETRYABLE_FAILURE' : 'PERMANENT_FAILURE', finishedAt: new Date() },
+      data: {
+        outcome: input.retryable ? 'RETRYABLE_FAILURE' : 'PERMANENT_FAILURE',
+        validationReceipt: input.validationReceipt === undefined ? undefined : asJson(input.validationReceipt),
+        finishedAt: new Date(),
+      },
     });
     await tx.smartLessonDraft.update({ where: { id: job.draftId }, data: { state: 'EDITABLE' } });
     return tx.smartLessonGenerationJob.update({

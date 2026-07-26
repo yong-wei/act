@@ -134,6 +134,23 @@ enum SmartLessonGenerationStageState {
   COMPLETED
 }
 
+enum SmartLessonGenerationActionState {
+  WAITING
+  PREPARING_EVIDENCE
+  GENERATING
+  VALIDATING
+  AUTO_FIXING
+  WAITING_CONFIRMATION
+  RETRYABLE
+  COMPLETED
+  CANCELLED
+}
+
+enum SmartLessonProviderAttemptKind {
+  ORIGINAL
+  CORRECTION
+}
+
 enum SmartLessonProviderAttemptOutcome {
   RUNNING
   SUCCEEDED
@@ -861,7 +878,9 @@ model SmartLessonGenerationStage {
   kind              SmartLessonGenerationStageKind
   orderIndex        Int
   state             SmartLessonGenerationStageState @default(PENDING)
+  actionState       SmartLessonGenerationActionState @default(WAITING)
   attemptGeneration Int                             @default(0)
+  providerAttemptGeneration Int                     @default(1)
   claimToken        String?
   claimExpiresAt    DateTime?
   output            Json?
@@ -884,6 +903,9 @@ model SmartLessonProviderAttempt {
   ownerId              String
   stageId              String
   attemptNumber        Int
+  kind                 SmartLessonProviderAttemptKind @default(ORIGINAL)
+  providerAttemptGeneration Int                       @default(1)
+  deliveryGeneration   Int
   idempotencyKey       String
   serviceId            String
   providerKind         String
@@ -892,6 +914,8 @@ model SmartLessonProviderAttempt {
   schemaVersion        String
   requestHash          String
   requestSnapshot      Json
+  validationReceipt    Json?
+  correctsAttemptId    String?
   normalizedResponseId String?
   outcome              SmartLessonProviderAttemptOutcome @default(RUNNING)
   inputTokens          Int?
@@ -900,10 +924,13 @@ model SmartLessonProviderAttempt {
   startedAt            DateTime                          @default(now())
   finishedAt           DateTime?
 
-  stage SmartLessonGenerationStage @relation(fields: [stageId], references: [id], onDelete: Restrict)
+  stage             SmartLessonGenerationStage  @relation(fields: [stageId], references: [id], onDelete: Restrict)
+  correctsAttempt   SmartLessonProviderAttempt?  @relation("SmartLessonProviderAttemptCorrection", fields: [correctsAttemptId], references: [id], onDelete: Restrict)
+  correctionAttempt SmartLessonProviderAttempt[] @relation("SmartLessonProviderAttemptCorrection")
 
   @@unique([ownerId, idempotencyKey])
   @@unique([stageId, attemptNumber])
+  @@unique([stageId, providerAttemptGeneration, kind])
   @@index([ownerId, stageId, startedAt])
 }
 

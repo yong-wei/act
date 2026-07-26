@@ -1,4 +1,5 @@
 import type { PrismaClient, SmartLessonGenerationStageKind } from '@prisma/client';
+import { zodSchema } from 'ai';
 import { Worker, type Job } from 'bullmq';
 import type { Redis } from 'ioredis';
 import { ZodError, type z } from 'zod';
@@ -11,7 +12,12 @@ import {
 import { CourseBasisError } from '../course-basis/domain';
 
 import { SmartLessonPlanError } from './domain';
-import { resolveSmartLessonStructuredProvider, SMART_LESSON_PROMPT_VERSION } from './provider-runtime';
+import {
+  resolveSmartLessonStructuredProvider,
+  SMART_LESSON_PROMPT_VERSION,
+  validateSmartLessonProviderOutput,
+  type SmartLessonValidationReceipt,
+} from './provider-runtime';
 import {
   BOPPPS_STAGE_KEYS,
   SMART_LESSON_PLAN_SCHEMA_VERSION,
@@ -20,7 +26,13 @@ import {
   smartLessonOutlineOutputSchema,
   sourceBindingSchema,
 } from './schema';
-import { beginProviderAttempt, completeGenerationStage, failGenerationStage } from './service';
+import {
+  beginCorrectionAttempt,
+  beginProviderAttempt,
+  completeGenerationStage,
+  failGenerationStage,
+  setGenerationStageActionState,
+} from './service';
 
 export const SMART_LESSON_GENERATION_QUEUE = 'smart-lesson-generation';
 
@@ -107,6 +119,14 @@ export async function processSmartLessonGenerationJob(
     let claim;
     try {
       runtime = await resolveProvider();
+      if (stage.state !== 'RUNNING') {
+        await setGenerationStageActionState(db, {
+          actor: { id: context.ownerId, role: 'TEACHER' },
+          jobId: context.id,
+          stage: stage.kind,
+          actionState: 'PREPARING_EVIDENCE',
+        });
+      }
       request = await buildStageRequest(db, context, stage.kind);
       claim = await beginProviderAttempt(db, {
         actor: { id: context.ownerId, role: 'TEACHER' },
@@ -124,11 +144,13 @@ export async function processSmartLessonGenerationJob(
       return { jobId, state };
     }
     if (!claim.claimed || !claim.attempt || !claim.claimToken) {
-      return { jobId, state: 'RUNNING' as const };
+      throw new Error('generation-stage-lease-active');
     }
 
+    let validationReceipt: SmartLessonValidationReceipt | undefined;
+    let finalAttemptId = claim.attempt.id;
     try {
-      const generated = await runtime.generate({
+      const original = await runtime.generate({
         schema: request.schema,
         schemaVersion: request.schemaVersion,
         promptVersion: SMART_LESSON_PROMPT_VERSION,
@@ -136,9 +158,82 @@ export async function processSmartLessonGenerationJob(
         prompt: request.prompt,
         idempotencyKey: claim.attempt.idempotencyKey,
         maxOutputTokens: request.maxOutputTokens,
+        deferValidation: true,
       });
-      const output = canonicalizeGeneratedStageOutput(stage.kind, generated.output, request.allowedSourceBindings);
-      validateGeneratedStage(context, stage.kind, output, request.allowedBindingKeys);
+      await setGenerationStageActionState(db, {
+        actor: { id: context.ownerId, role: 'TEACHER' },
+        jobId: context.id,
+        stage: stage.kind,
+        actionState: 'VALIDATING',
+        claimToken: claim.claimToken,
+      });
+      let validated = validateStageCandidate({
+        context,
+        stage: stage.kind,
+        schema: request.schema,
+        schemaVersion: request.schemaVersion,
+        output: original.output,
+        allowedSourceBindings: request.allowedSourceBindings,
+        allowedBindingKeys: request.allowedBindingKeys,
+      });
+      let finalAttempt = claim.attempt;
+      let finalGenerated = original;
+      if (!validated.success) {
+        const correctionRequest = {
+          stablePromptPrefix: request.system,
+          originalStructuredResult: validated.output,
+          validationErrors: validated.receipt.issues,
+          requiredSchema: zodSchema(request.schema).jsonSchema,
+          schemaVersion: request.schemaVersion,
+        };
+        const correctionAttempt = await beginCorrectionAttempt(db, {
+          actor: { id: context.ownerId, role: 'TEACHER' },
+          jobId: context.id,
+          stage: stage.kind,
+          claimToken: claim.claimToken,
+          originalAttemptId: claim.attempt.id,
+          request: correctionRequest,
+          validationReceipt: validated.receipt,
+          normalizedResponseId: original.normalizedResponseId,
+          inputTokens: original.inputTokens,
+          outputTokens: original.outputTokens,
+          costMicros: original.costMicros,
+        });
+        finalGenerated = await runtime.generate({
+          schema: request.schema,
+          schemaVersion: request.schemaVersion,
+          promptVersion: SMART_LESSON_PROMPT_VERSION,
+          system: request.system,
+          prompt: `仅修正下列结构化结果，使其符合给定 schema；不得扩展教学语义：${JSON.stringify(correctionRequest)}`,
+          idempotencyKey: correctionAttempt.idempotencyKey,
+          maxOutputTokens: request.maxOutputTokens,
+          deferValidation: true,
+        });
+        await setGenerationStageActionState(db, {
+          actor: { id: context.ownerId, role: 'TEACHER' },
+          jobId: context.id,
+          stage: stage.kind,
+          actionState: 'VALIDATING',
+          claimToken: claim.claimToken,
+        });
+        validated = validateStageCandidate({
+          context,
+          stage: stage.kind,
+          schema: request.schema,
+          schemaVersion: request.schemaVersion,
+          output: finalGenerated.output,
+          allowedSourceBindings: request.allowedSourceBindings,
+          allowedBindingKeys: request.allowedBindingKeys,
+        });
+        finalAttempt = correctionAttempt;
+        finalAttemptId = correctionAttempt.id;
+        if (!validated.success) {
+          validationReceipt = validated.receipt;
+          throw new SmartLessonPlanError('provider-output-invalid-after-correction', 409);
+        }
+      }
+      validationReceipt = validated.receipt;
+      const output = validated.output;
       const completedPlan = stage.kind === 'SUMMARY'
         ? assembleCompletedPlan(context, output)
         : undefined;
@@ -147,13 +242,14 @@ export async function processSmartLessonGenerationJob(
         jobId: context.id,
         stage: stage.kind,
         claimToken: claim.claimToken,
-        attemptId: claim.attempt.id,
+        attemptId: finalAttempt.id,
         output,
         completedPlan,
-        normalizedResponseId: generated.normalizedResponseId,
-        inputTokens: generated.inputTokens,
-        outputTokens: generated.outputTokens,
-        costMicros: generated.costMicros,
+        normalizedResponseId: finalGenerated.normalizedResponseId,
+        inputTokens: finalGenerated.inputTokens,
+        outputTokens: finalGenerated.outputTokens,
+        costMicros: finalGenerated.costMicros,
+        validationReceipt,
       });
       if (['PAUSED', 'COMPLETED'].includes(updated.state)) return { jobId, state: updated.state };
     } catch (error) {
@@ -163,9 +259,10 @@ export async function processSmartLessonGenerationJob(
         jobId: context.id,
         stage: stage.kind,
         claimToken: claim.claimToken,
-        attemptId: claim.attempt.id,
+        attemptId: finalAttemptId,
         failureCode: errorCode(error),
         retryable,
+        validationReceipt,
       }).catch(() => undefined);
       throw error;
     }
@@ -260,6 +357,105 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
 }
 
 type SourceBinding = z.infer<typeof sourceBindingSchema>;
+
+function validateStageCandidate(input: {
+  context: NonNullable<JobContext>;
+  stage: SmartLessonGenerationStageKind;
+  schema: z.ZodType<unknown>;
+  schemaVersion: string;
+  output: unknown;
+  allowedSourceBindings: SourceBinding[];
+  allowedBindingKeys: ReadonlySet<string>;
+}): { success: true; output: unknown; receipt: SmartLessonValidationReceipt }
+  | { success: false; output: unknown; receipt: SmartLessonValidationReceipt } {
+  const schemaValidated = validateSmartLessonProviderOutput(
+    input.schema,
+    input.schemaVersion,
+    normalizeCandidateSourceBindings(input.stage, input.output, input.allowedSourceBindings),
+  );
+  if (!schemaValidated.success) return schemaValidated;
+  try {
+    const output = canonicalizeGeneratedStageOutput(
+      input.stage,
+      schemaValidated.output,
+      input.allowedSourceBindings,
+    );
+    validateGeneratedStage(input.context, input.stage, output, input.allowedBindingKeys);
+    return { success: true, output, receipt: schemaValidated.receipt };
+  } catch (error) {
+    const receipt = stageGateValidationReceipt(error, input.schemaVersion);
+    if (!receipt) throw error;
+    return { success: false, output: schemaValidated.output, receipt };
+  }
+}
+
+function stageGateValidationReceipt(
+  error: unknown,
+  schemaVersion: string,
+): SmartLessonValidationReceipt | null {
+  if (error instanceof ZodError) {
+    return {
+      valid: false,
+      schemaVersion,
+      issues: error.issues.slice(0, 50).map((issue) => ({
+        code: issue.code,
+        path: issue.path,
+        message: '候选内容未通过结构校验。',
+      })),
+    };
+  }
+  if (!(error instanceof SmartLessonPlanError)) return null;
+  const stageMissing = /^outline-stage-missing:(bridgeIn|objectives|preAssessment|participatoryLearning|postAssessment|summary)$/.exec(error.code);
+  if (stageMissing) {
+    return {
+      valid: false,
+      schemaVersion,
+      issues: [{
+        code: 'outline-stage-missing',
+        path: ['coursewareStepOutline'],
+        message: `提纲缺少必要的 ${stageMissing[1]} 阶段。`,
+      }],
+    };
+  }
+  const issue = ({
+    'outline-duration-mismatch': {
+      path: ['coursewareStepOutline'],
+      message: '提纲各阶段时长总和与课程时长不一致。',
+    },
+    'aggregate-context-ref-changed': {
+      path: ['classAdaptation', 'aggregateContextRef'],
+      message: '班级学情引用与任务上下文不一致。',
+    },
+    'generated-source-binding-unverified': {
+      path: ['steps', 'sourceBindings'],
+      message: '生成内容包含未验证的来源绑定。',
+    },
+    'stage-duration-mismatch': {
+      path: ['minutes'],
+      message: '阶段时长与已确认提纲不一致。',
+    },
+  } as const)[error.code as 'outline-duration-mismatch'
+    | 'aggregate-context-ref-changed'
+    | 'generated-source-binding-unverified'
+    | 'stage-duration-mismatch'];
+  return issue ? {
+    valid: false,
+    schemaVersion,
+    issues: [{ code: error.code, path: [...issue.path], message: issue.message }],
+  } : null;
+}
+
+function normalizeCandidateSourceBindings(
+  stage: SmartLessonGenerationStageKind,
+  output: unknown,
+  allowedSourceBindings: SourceBinding[],
+) {
+  if (stage === 'OUTLINE') return output;
+  const parsed = bopppsStageSchema.safeParse(output);
+  return parsed.success
+    ? canonicalizeGeneratedStageOutput(stage, parsed.data, allowedSourceBindings)
+    : output;
+}
 
 function canonicalizeGeneratedStageOutput(
   stage: SmartLessonGenerationStageKind,
@@ -396,7 +592,7 @@ async function markPreProviderFailure(
     if (transitioned.count !== 1) return;
     await tx.smartLessonGenerationStage.updateMany({
       where: { jobId: context.id, kind: stage, state: { in: ['PENDING', 'RETRYABLE'] } },
-      data: { state, claimToken: null, claimExpiresAt: null },
+      data: { state, actionState: 'RETRYABLE', claimToken: null, claimExpiresAt: null },
     });
     await tx.smartLessonDraft.updateMany({
       where: { id: context.draftId, state: 'GENERATING' },
@@ -417,6 +613,7 @@ function errorCode(error: unknown) {
 }
 
 function isRetryableStageError(error: unknown) {
+  if (error instanceof SmartLessonPlanError && error.code === 'provider-output-invalid-after-correction') return true;
   return !(error instanceof SmartLessonPlanError)
     && !(error instanceof CourseBasisError)
     && !(error instanceof ZodError);

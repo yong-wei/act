@@ -160,13 +160,17 @@ function publicSourceState(value: unknown) {
 }
 
 export function publicJob(job: Record<string, unknown>) {
+  const failureCode = publicGenerationFailureCode(job.failureCode);
   return compact({
     id: job.id,
     draftId: job.draftId,
     state: job.state,
     outlineConfirmation: job.outlineConfirmation,
     firstIncompleteStage: job.firstIncompleteStage,
-    failureCode: job.failureCode,
+    failureCode,
+    failureMessage: typeof job.failureCode === 'string'
+      ? localizedGenerationFailure(failureCode ?? 'unknown-generation-failure')
+      : undefined,
     startedAt: job.startedAt,
     completedAt: job.completedAt,
     cancelledAt: job.cancelledAt,
@@ -175,6 +179,19 @@ export function publicJob(job: Record<string, unknown>) {
     updatedAt: job.updatedAt,
     stages: optionalArray(job.stages, (stage) => publicStage(recordValue(stage))),
   });
+}
+
+const PUBLIC_GENERATION_FAILURE_CODES = new Set([
+  'provider-timeout',
+  'provider-output-invalid-after-correction',
+  'queue-unavailable',
+  'governed-source-evidence-unavailable',
+]);
+
+function publicGenerationFailureCode(value: unknown) {
+  return typeof value === 'string' && PUBLIC_GENERATION_FAILURE_CODES.has(value)
+    ? value
+    : undefined;
 }
 
 export function publicDraft(draft: Record<string, unknown>) {
@@ -213,18 +230,64 @@ export function publicRevision(revision: Record<string, unknown>) {
 }
 
 function publicStage(stage: Record<string, unknown>) {
-  const output = publicJson(stage.output, 64_000);
+  const completed = stage.state === 'COMPLETED';
+  const output = completed ? publicJson(stage.output, 64_000) : undefined;
+  const actionState = generationActionState(stage.actionState, stage.state);
   return compact({
     id: stage.id,
     kind: stage.kind,
     orderIndex: stage.orderIndex,
     state: stage.state,
+    title: GENERATION_STAGE_TITLES[String(stage.kind)] ?? '未知阶段',
+    actionState,
+    actionLabel: GENERATION_ACTION_LABELS[actionState],
     output,
-    outputTruncated: stage.output != null && output == null,
+    outputTruncated: completed && stage.output != null && output == null,
     startedAt: stage.startedAt,
     completedAt: stage.completedAt,
     updatedAt: stage.updatedAt,
   });
+}
+
+const GENERATION_STAGE_TITLES: Record<string, string> = {
+  OUTLINE: '提纲',
+  BRIDGE_IN: '导入',
+  OBJECTIVES: '学习目标',
+  PRE_ASSESSMENT: '前测',
+  PARTICIPATORY_LEARNING: '参与式学习',
+  POST_ASSESSMENT: '后测',
+  SUMMARY: '总结',
+};
+
+const GENERATION_ACTION_LABELS: Record<string, string> = {
+  WAITING: '等待开始',
+  PREPARING_EVIDENCE: '正在准备依据',
+  GENERATING: '正在生成',
+  VALIDATING: '正在校验',
+  AUTO_FIXING: '正在自动修正',
+  WAITING_CONFIRMATION: '等待教师确认',
+  RETRYABLE: '可重试',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消',
+};
+
+function generationActionState(actionState: unknown, stageState: unknown) {
+  if (typeof actionState === 'string' && GENERATION_ACTION_LABELS[actionState]) return actionState;
+  if (stageState === 'RUNNING') return 'GENERATING';
+  if (stageState === 'PAUSED') return 'WAITING_CONFIRMATION';
+  if (stageState === 'RETRYABLE' || stageState === 'FAILED') return 'RETRYABLE';
+  if (stageState === 'COMPLETED') return 'COMPLETED';
+  if (stageState === 'CANCELLED') return 'CANCELLED';
+  return 'WAITING';
+}
+
+function localizedGenerationFailure(code: string | undefined) {
+  if (!code) return undefined;
+  if (code === 'provider-timeout') return '生成服务响应超时，请重试当前阶段。';
+  if (code === 'provider-output-invalid-after-correction') return '自动修正后内容仍未通过校验，请重试当前阶段。';
+  if (code === 'queue-unavailable') return '生成队列暂不可用，请稍后重试。';
+  if (code === 'governed-source-evidence-unavailable') return '当前课程依据不可用，请检查依据后重试。';
+  return '当前阶段未能完成，请重试；若问题持续存在，请联系管理员。';
 }
 
 function publicKnowledgePoint(value: unknown) {

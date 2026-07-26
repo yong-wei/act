@@ -33,7 +33,10 @@ type Task = {
   goals?: Array<{ id: string; lineageId: string; content: string; sourceState: 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending'; sourceBindings: SourceOption['binding'][]; standardsMappings?: Array<{ standardId: string; label: string }>; state: string }>;
   drafts?: Array<{
     id: string; state: string; version: number; content?: unknown;
-    jobs?: Array<{ id: string; state: string; firstIncompleteStage?: string; failureCode?: string | null; supersededAt?: string | null; stages?: Array<{ kind: string; state: string; output?: unknown; outputTruncated?: boolean }> }>;
+    jobs?: Array<{
+      id: string; state: string; firstIncompleteStage?: string; failureCode?: string | null; failureMessage?: string; supersededAt?: string | null;
+      stages?: Array<{ kind: string; title?: string; state: string; actionState?: string; actionLabel?: string; output?: unknown; outputTruncated?: boolean }>;
+    }>;
     reviews?: Array<{ id: string; advisoryOnly: boolean; state?: string; report?: unknown; failureCode?: string | null }>;
   }>;
   revisions?: Array<{ id: string; displayName: string; revisionNumber: number; taskRevision: number; coursewareDrafts?: Array<{ state: string }> }>;
@@ -115,7 +118,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
   }, [activeTaskId, detailedActiveTaskId]);
 
   useEffect(() => {
-    if (!detailedActiveTaskId || !activeJobState || !['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(activeJobState)) return;
+    if (!detailedActiveTaskId || !activeJobState || !['QUEUED', 'RUNNING'].includes(activeJobState)) return;
     const timer = window.setInterval(() => void refreshTask(detailedActiveTaskId), 2500);
     return () => window.clearInterval(timer);
   }, [detailedActiveTaskId, activeJobState]);
@@ -524,9 +527,19 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
               <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
               {task.revisions?.[0] ? <button onClick={() => void deriveDraft(task, task.revisions![0].id)} className="rounded border border-border px-3 py-1.5 text-sm">基于{task.revisions[0].displayName}继续修订</button> : null}
             </div>
-            {job?.stages?.length ? <div className="space-y-2">{job.stages.map((stage) => <div key={stage.kind} className="rounded bg-muted px-3 py-2 text-xs"><strong>{generationStageLabel(stage.kind)}：{generationStateLabel(stage.state)}</strong>{stage.output ? <p className="mt-1 text-muted-foreground">该阶段结果已保存，可在教案文档中查看。</p> : null}{stage.outputTruncated ? <p>阶段输出较大，请在完整教案中查看。</p> : null}</div>)}</div> : null}
+            {job?.stages?.length ? <div className="space-y-2">{job.stages.map((stage) => {
+              const active = ['PREPARING_EVIDENCE', 'GENERATING', 'VALIDATING', 'AUTO_FIXING'].includes(stage.actionState ?? '');
+              return <div key={stage.kind} className="rounded bg-muted px-3 py-2 text-xs" data-generation-stage={stage.kind} data-generation-action={stage.actionState}>
+                <strong className="inline-flex items-center gap-1.5">
+                  {active ? <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" /> : null}
+                  {stage.title ?? generationStageLabel(stage.kind)}：{stage.actionLabel ?? generationStateLabel(stage.state)}
+                </strong>
+                {stage.output ? <GeneratedStageContent title={stage.title ?? generationStageLabel(stage.kind)} value={stage.output} /> : null}
+                {stage.outputTruncated ? <p>阶段输出较大，请在完整教案中查看。</p> : null}
+              </div>;
+            })}</div> : null}
             {job?.state === 'PAUSED' && outline?.output ? <p className="text-sm">提纲已持久化。可先编辑，或明确确认当前提纲后继续生成。</p> : null}
-            {job?.failureCode ? <p className="text-sm text-destructive">生成未完成，请使用恢复或重试操作。</p> : null}
+            {job?.failureMessage ? <p className="text-sm text-destructive">{job.failureMessage}</p> : null}
             {draft?.content ? <details><summary className="cursor-pointer text-sm font-medium">查看完整教案</summary><TeachingDocument value={draft.content} unsupported={task.workspace?.unsupportedPayload} /></details> : null}
             {draft?.reviews?.length ? <div className="space-y-2"><h4 className="text-sm font-medium">AI 审核报告（仅建议）</h4>{draft.reviews.map((review) => <div key={review.id} className="rounded bg-muted p-3 text-sm"><p>{review.state === 'COMPLETED' ? '审核建议已生成' : review.failureCode ? '审核未完成，请稍后重试。' : '审核处理中'}</p>{review.state === 'COMPLETED' ? <AdvisoryReviewSummary value={review.report} /> : null}</div>)}</div> : null}
             {task.revisions?.length ? <p className="text-xs text-subtle">最新：{task.revisions[0].displayName}</p> : null}
@@ -643,6 +656,66 @@ function TeachingDocument({ value, unsupported }: { value: unknown; unsupported?
   </div>;
 }
 
+export function GeneratedStageContent({ title, value }: { title: string; value: unknown }) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const output = value as Record<string, unknown>;
+  const isOutline = Array.isArray(output.coursewareStepOutline);
+  const rawSections = Array.isArray(output.coursewareStepOutline)
+    ? output.coursewareStepOutline
+    : Array.isArray(output.steps)
+      ? output.steps
+      : [];
+  return <div className="mt-2 space-y-2 border-t border-border/60 pt-2 text-sm">
+    {!isOutline && typeof output.minutes === 'number' ? <p className="text-xs text-subtle">阶段总时长：{output.minutes} 分钟</p> : null}
+    {!isOutline ? <TeachingActivityDetails value={output} /> : null}
+    {rawSections.map((section, index) => {
+      const item = section && typeof section === 'object' && !Array.isArray(section)
+        ? section as Record<string, unknown>
+        : {};
+      return <section key={String(item.title ?? index)} className="rounded border border-border bg-background p-2">
+        <h5 className="font-medium">{String(item.title ?? `${title} ${index + 1}`)}</h5>
+        {typeof item.bopppsStage === 'string' ? <p className="mt-1 text-xs text-subtle">BOPPPS 阶段：{bopppsStageLabel(item.bopppsStage)}</p> : null}
+        {typeof item.minutes === 'number' ? <p className="mt-1 text-xs text-subtle">{item.minutes} 分钟</p> : null}
+        <TeachingActivityDetails value={item} />
+        {citationIds(item.sourceBindings).length ? <p className="mt-1 text-xs text-subtle">依据：{citationIds(item.sourceBindings).join('、')}</p> : null}
+      </section>;
+    })}
+    {stringList(output.keyContent).length ? <p><span className="font-medium">核心内容：</span>{stringList(output.keyContent).join('、')}</p> : null}
+    {stringList(output.difficultContent).length ? <p><span className="font-medium">难点：</span>{stringList(output.difficultContent).join('、')}</p> : null}
+    {stringList(output.limitations).length ? <p><span className="font-medium">限制与待补信息：</span>{stringList(output.limitations).join('、')}</p> : null}
+    {classAdaptationEmphasis(output.classAdaptation).length ? <p><span className="font-medium">班级学情侧重：</span>{classAdaptationEmphasis(output.classAdaptation).join('、')}</p> : null}
+  </div>;
+}
+
+function TeachingActivityDetails({ value }: { value: Record<string, unknown> }) {
+  const fields = [
+    ['教师活动', value.teacherActivity],
+    ['学生活动', value.studentActivity],
+    ['评价方式', value.assessment],
+  ] as const;
+  return <div className="mt-1 space-y-1 text-muted-foreground">
+    {fields.map(([label, content]) => (
+      typeof content === 'string' && content.trim()
+        ? <p key={label} className="whitespace-pre-wrap"><span className="font-medium text-foreground">{label}：</span>{content}</p>
+        : null
+    ))}
+  </div>;
+}
+
+function classAdaptationEmphasis(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return [];
+  return stringList((value as Record<string, unknown>).emphasis);
+}
+
+function citationIds(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((binding) => {
+    if (!binding || typeof binding !== 'object' || Array.isArray(binding)) return [];
+    const citationId = (binding as Record<string, unknown>).citationId;
+    return typeof citationId === 'string' && citationId.trim() ? [citationId] : [];
+  });
+}
+
 function AdvisoryReviewSummary({ value }: { value: unknown }) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const review = value as Record<string, unknown>;
@@ -694,7 +767,7 @@ function splitLines(value: string) {
 
 function generationStageLabel(value: string) {
   return ({
-    OUTLINE: '教学提纲',
+    OUTLINE: '提纲',
     BRIDGE_IN: '导入',
     OBJECTIVES: '学习目标',
     PRE_ASSESSMENT: '前测',
