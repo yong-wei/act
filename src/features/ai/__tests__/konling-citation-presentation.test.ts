@@ -98,6 +98,7 @@ describe('Konling verified citation presentation', () => {
   });
 
   it('uses rendered textbook display hrefs without discarding canonical citation metadata', () => {
+    const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-2/section-2.1#figure-02-01';
     const presentation = normalizeKonlingCitationPresentation({
       konlingCitationGuard: {
         status: 'verified',
@@ -105,9 +106,9 @@ describe('Konling verified citation presentation', () => {
           id: 'content:textbook:fig-02-01',
           sourceType: 'content',
           displayTitle: 'Root locus figure',
-          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
-          canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
-          displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+          href: textbookHref,
+          canonicalHref: textbookHref,
+          displayHref: textbookHref,
           confidence: 'high',
           evidenceBasis: 'source-pack:konling-answer:pack-1',
           citationTargetId: 'textbook:fig-02-01',
@@ -117,13 +118,13 @@ describe('Konling verified citation presentation', () => {
           citationChip: {
             chunkId: 'content:textbook:fig-02-01',
             displayTitle: 'Root locus figure',
-            displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+            displayHref: textbookHref,
             sourceType: 'course-content',
             addressKind: 'image',
             citationAddress: {
               kind: 'image',
               sourceRefId: 'textbook:fig-02-01',
-              href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+              href: textbookHref,
               locator: 'fig-02-01',
               contentHash: 'sha256:abc',
             },
@@ -140,7 +141,7 @@ describe('Konling verified citation presentation', () => {
     });
 
     expect(presentation.summary.status).toBe('verified');
-    expect(presentation.items[0]?.href).toBe('/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01');
+    expect(presentation.items[0]?.href).toBe(textbookHref);
     expect(presentation.items[0]?.confidence).toBe('high');
   });
 

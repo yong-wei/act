@@ -21,8 +21,6 @@ import type {
   SourcePackCitation,
   SourcePackLimitation,
 } from './types';
-import { resolveTextbookCitationHref } from '../textbook-citation-targets';
-
 // Re-export for convenience
 export type {
   SourcePackCitation,
@@ -83,6 +81,8 @@ const governedExternalCitationResolvers = new Set([
   'official-reference',
 ]);
 const rawVerifiedHrefPattern = /(course-content\/authoring|#L\d+\b)/i;
+const legacyTextbookHrefPattern =
+  /^\/(?:course-runtime\/resources\/textbooks|textbook-citations)(?:\/|$)/i;
 
 /**
  * Validate whether an href is safe for citation use.
@@ -165,6 +165,29 @@ function resolverForAddress(address: HydratorCitationAddressInput): string {
   return 'server-owned-runtime';
 }
 
+function isLegacyTextbookHref(href: string | null | undefined): boolean {
+  return Boolean(href && legacyTextbookHrefPattern.test(href));
+}
+
+function textbookDisplayHref(href: string | null | undefined): string | undefined {
+  if (!href || !isGovernedRelativeCitationHref(href)) return undefined;
+  return href.startsWith('/textbooks/') ? href : undefined;
+}
+
+function addLegacyTextbookHrefLimitation(
+  limitations: SourcePackLimitation[],
+  href: string | null | undefined,
+): void {
+  if (!isLegacyTextbookHref(href)) return;
+  limitations.push({
+    code: 'citation-legacy-textbook-href',
+    severity: 'blocking',
+    message: 'Legacy textbook runtime and redirect citation hrefs are no longer supported.',
+    source: 'citation-hydrator',
+    recoverable: false,
+  });
+}
+
 function isGovernedRelativeCitationHref(href: string): boolean {
   if (localAnchorHrefPattern.test(href)) return true;
   if (/\s/.test(href) || !href.startsWith('/')) return false;
@@ -239,6 +262,7 @@ export function hydrateCitationFromAddress(
       recoverable: false,
     });
   }
+  addLegacyTextbookHrefLimitation(limitations, rawHref);
 
   if (!address.sourceRefId) {
     limitations.push({
@@ -256,13 +280,15 @@ export function hydrateCitationFromAddress(
     && Boolean(address.sourceRefId)
     && limitations.every((limitation) => limitation.severity !== 'blocking');
 
+  const hrefSerializable = !isLegacyTextbookHref(rawHref)
+    && isSerializableCitationHref(rawHref);
   const citation: SourcePackCitation = {
     citationTargetId,
     sourceId,
     displayTitle,
-    canonicalHref: isSerializableCitationHref(rawHref) ? rawHref ?? undefined : undefined,
-    displayHref: resolveTextbookCitationHref(rawHref)?.displayHref,
-    href: isSerializableCitationHref(rawHref) ? rawHref ?? undefined : undefined,
+    canonicalHref: hrefSerializable ? rawHref ?? undefined : undefined,
+    displayHref: textbookDisplayHref(rawHref),
+    href: hrefSerializable ? rawHref ?? undefined : undefined,
     resolver,
     verified,
   };
@@ -352,12 +378,15 @@ export function hydrateCitationFromTarget(
       recoverable: false,
     });
   }
+  addLegacyTextbookHrefLimitation(limitations, rawHref);
 
   const externallyVerified = target.verified === true &&
     !target.stale &&
     !target.restricted &&
     !target.provisional;
-  const hrefSafe = rawHref !== null && isSerializableCitationHref(rawHref);
+  const hrefSafe = rawHref !== null
+    && !isLegacyTextbookHref(rawHref)
+    && isSerializableCitationHref(rawHref);
   const notBlocked = limitations.every((l) => l.severity !== 'blocking');
 
   const citation: SourcePackCitation = {
@@ -365,7 +394,7 @@ export function hydrateCitationFromTarget(
     sourceId,
     displayTitle: target.label ?? target.id,
     canonicalHref: hrefSafe ? rawHref : undefined,
-    displayHref: resolveTextbookCitationHref(rawHref)?.displayHref,
+    displayHref: textbookDisplayHref(rawHref),
     href: hrefSafe ? rawHref : undefined,
     resolver,
     verified: externallyVerified && isVerifiedCitationHref(rawHref, resolver) && notBlocked,

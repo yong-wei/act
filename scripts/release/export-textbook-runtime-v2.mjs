@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -31,11 +32,17 @@ const TEXTBOOK_GENERATOR_INPUTS = [
   'scripts/release/textbook-runtime-v2-provenance.mjs',
   'course-content/scripts/export_structured_textbook_runtime_v2.py',
   'course-content/scripts/structured_textbook_runtime.py',
+  'course-content/scripts/validate_structured_textbook_runtime_v2.mjs',
+  'course-content/scripts/validate_written_textbook_runtime_v2.py',
   'course-content/scripts/textbook_hybrid_retrieval.py',
+  'course-content/scripts/validate_textbook_hybrid_retrieval.mjs',
   'course-content/scripts/export_textbook_runtime_assets.py',
+  'course-content/contracts/structured-textbook-runtime-v2.schema.json',
   'course-content/config/textbook-hybrid-retrieval.json',
   'course-content/config/textbook-structure-v2',
 ];
+const INPUT_PROVENANCE_FILE = 'input-provenance.json';
+const INPUT_PROVENANCE_SCHEMA = 'act.textbook-runtime-input-provenance.v1';
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -66,16 +73,59 @@ function toRepoRelativeInput(inputRoot, repositoryRoot) {
   return relative;
 }
 
+function textbookInputPaths(repositoryRoot, authoringInputRoot) {
+  return [
+    ...TEXTBOOK_GENERATOR_INPUTS,
+    toRepoRelativeInput(authoringInputRoot, repositoryRoot),
+  ];
+}
+
+function collectInputFiles(inputPath, files) {
+  const stat = fs.lstatSync(inputPath);
+  if (stat.isSymbolicLink()) {
+    throw new Error(`textbook-runtime-v2-input-symlink:${inputPath}`);
+  }
+  if (stat.isFile()) {
+    files.push(inputPath);
+    return;
+  }
+  if (!stat.isDirectory()) {
+    throw new Error(`textbook-runtime-v2-input-invalid:${inputPath}`);
+  }
+  for (const entry of fs.readdirSync(inputPath).sort()) {
+    collectInputFiles(path.join(inputPath, entry), files);
+  }
+}
+
+export function captureTextbookInputSnapshot({
+  repositoryRoot = repoRoot,
+  authoringInputRoot = authoringRoot,
+} = {}) {
+  const files = [];
+  for (const relativeInput of textbookInputPaths(repositoryRoot, authoringInputRoot)) {
+    collectInputFiles(path.resolve(repositoryRoot, relativeInput), files);
+  }
+  const digest = createHash('sha256');
+  for (const filePath of files.sort()) {
+    const relativePath = path.relative(repositoryRoot, filePath).split(path.sep).join('/');
+    digest.update(relativePath);
+    digest.update('\0');
+    digest.update(createHash('sha256').update(fs.readFileSync(filePath)).digest('hex'));
+    digest.update('\n');
+  }
+  return {
+    digest: digest.digest('hex'),
+    fileCount: files.length,
+  };
+}
+
 export function captureCleanTextbookInputRevision({
   repositoryRoot = repoRoot,
   authoringInputRoot = authoringRoot,
   expectedRevision,
   runGit = (args) => run('git', args),
 } = {}) {
-  const inputs = [
-    ...TEXTBOOK_GENERATOR_INPUTS,
-    toRepoRelativeInput(authoringInputRoot, repositoryRoot),
-  ];
+  const inputs = textbookInputPaths(repositoryRoot, authoringInputRoot);
   const dirty = runGit([
     'status',
     '--porcelain=v1',
@@ -157,6 +207,7 @@ export function replaceRuntimeDirectories(
 
 function main() {
   const revision = captureCleanTextbookInputRevision();
+  const inputSnapshot = captureTextbookInputSnapshot();
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   if (
     config.locked !== true
@@ -207,6 +258,16 @@ function main() {
       '--output-root',
       stagedAssets,
     ]);
+    fs.writeFileSync(
+      path.join(stagedRuntime, INPUT_PROVENANCE_FILE),
+      `${JSON.stringify({
+        schemaVersion: INPUT_PROVENANCE_SCHEMA,
+        sourceRevision: revision,
+        inputDigest: inputSnapshot.digest,
+        inputFileCount: inputSnapshot.fileCount,
+      }, null, 2)}\n`,
+      { flag: 'wx' },
+    );
     run(process.execPath, [
       'scripts/release/validate-textbook-runtime-v2.mjs',
       '--runtime-root',
@@ -219,6 +280,16 @@ function main() {
       revision,
     ]);
     captureCleanTextbookInputRevision({ expectedRevision: revision });
+    const finalInputSnapshot = captureTextbookInputSnapshot();
+    if (
+      finalInputSnapshot.digest !== inputSnapshot.digest
+      || finalInputSnapshot.fileCount !== inputSnapshot.fileCount
+    ) {
+      throw new Error(
+        `textbook-runtime-v2-input-content-drift:expected=${inputSnapshot.digest}:${inputSnapshot.fileCount}`
+        + `:actual=${finalInputSnapshot.digest}:${finalInputSnapshot.fileCount}`,
+      );
+    }
 
     replaceRuntimeDirectories([
       { staged: stagedRuntime, target: runtimeRoot },
@@ -228,6 +299,8 @@ function main() {
     fs.rmSync(stagingRoot, { recursive: true, force: true });
     process.stdout.write(`${JSON.stringify({
       sourceRevision: revision,
+      inputDigest: inputSnapshot.digest,
+      inputFileCount: inputSnapshot.fileCount,
       runtimeRoot,
       indexRoot,
       assetsRoot,

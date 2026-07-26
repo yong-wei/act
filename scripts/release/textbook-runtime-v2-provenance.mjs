@@ -38,6 +38,8 @@ export const TEXTBOOK_RETRIEVAL_REQUIRED_FILES = [
 
 export const TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION =
   'act.textbook-runtime-release-provenance.v2';
+const TEXTBOOK_INPUT_PROVENANCE_FILE = 'input-provenance.json';
+const TEXTBOOK_INPUT_PROVENANCE_SCHEMA = 'act.textbook-runtime-input-provenance.v1';
 
 const REVISION_PATTERN = /^[0-9a-f]{40}$/u;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
@@ -254,6 +256,26 @@ export function inspectTextbookRuntimeV2(
     }
     runtimeFiles.push(mediaFile);
   }
+  let inputDigest = null;
+  const inputProvenancePath = path.join(runtimeRoot, TEXTBOOK_INPUT_PROVENANCE_FILE);
+  if (fs.existsSync(inputProvenancePath)) {
+    const inputProvenance = JSON.parse(fs.readFileSync(inputProvenancePath, 'utf8'));
+    if (
+      inputProvenance.schemaVersion !== TEXTBOOK_INPUT_PROVENANCE_SCHEMA
+      || inputProvenance.sourceRevision !== sourceRevision
+      || typeof inputProvenance.inputDigest !== 'string'
+      || !SHA256_PATTERN.test(inputProvenance.inputDigest)
+      || !Number.isSafeInteger(inputProvenance.inputFileCount)
+      || inputProvenance.inputFileCount < 1
+    ) {
+      throw new Error('textbook-v2-input-provenance-invalid');
+    }
+    inputDigest = inputProvenance.inputDigest;
+    runtimeFiles.push({
+      relativePath: TEXTBOOK_INPUT_PROVENANCE_FILE,
+      filePath: inputProvenancePath,
+    });
+  }
   const digest = createHash('sha256');
   for (const runtimeFile of runtimeFiles.sort((left, right) => (
     left.relativePath < right.relativePath ? -1 : left.relativePath > right.relativePath ? 1 : 0
@@ -271,7 +293,9 @@ export function inspectTextbookRuntimeV2(
   return {
     sourceRevision,
     runtimeDigest: digest.digest('hex'),
-    fileCount: TEXTBOOK_V2_BOOK_IDS.length * TEXTBOOK_V2_REQUIRED_FILES.length,
+    inputDigest,
+    fileCount: TEXTBOOK_V2_BOOK_IDS.length * TEXTBOOK_V2_REQUIRED_FILES.length
+      + (inputDigest ? 1 : 0),
     mediaFileCount: mediaFiles.size,
   };
 }
@@ -347,6 +371,15 @@ function readSidecar(sidecarPath) {
   if (typeof sidecar.indexDigest !== 'string' || !SHA256_PATTERN.test(sidecar.indexDigest)) {
     throw new Error(`textbook-v2-provenance-index-digest-invalid:${String(sidecar.indexDigest)}`);
   }
+  if (
+    sidecar.runtimeInputDigest !== undefined
+    && (typeof sidecar.runtimeInputDigest !== 'string'
+      || !SHA256_PATTERN.test(sidecar.runtimeInputDigest))
+  ) {
+    throw new Error(
+      `textbook-v2-provenance-input-digest-invalid:${String(sidecar.runtimeInputDigest)}`,
+    );
+  }
   return sidecar;
 }
 
@@ -391,6 +424,7 @@ function writeSidecar(options) {
     imageTarSha256: sha256File(imageTar),
     runtimeSourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
+    ...(runtime.inputDigest ? { runtimeInputDigest: runtime.inputDigest } : {}),
     indexSourceRevision: index.sourceRevision,
     indexDigest: index.indexDigest,
   };
@@ -432,6 +466,15 @@ function verifyRuntime(options) {
   if (runtime.runtimeDigest !== sidecar.runtimeDigest) {
     throw new Error(
       `textbook-v2-runtime-digest-mismatch:expected=${sidecar.runtimeDigest} actual=${runtime.runtimeDigest}`,
+    );
+  }
+  if (
+    sidecar.runtimeInputDigest !== undefined
+    && runtime.inputDigest !== sidecar.runtimeInputDigest
+  ) {
+    throw new Error(
+      `textbook-v2-input-digest-mismatch:expected=${sidecar.runtimeInputDigest}`
+      + ` actual=${String(runtime.inputDigest)}`,
     );
   }
   if (index.indexDigest !== sidecar.indexDigest) {

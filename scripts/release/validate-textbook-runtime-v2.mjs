@@ -181,6 +181,7 @@ function main() {
     requiredFiles: TEXTBOOK_V2_REQUIRED_FILES,
     sourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
+    inputDigest: runtime.inputDigest,
     runtimeFileCount: runtime.fileCount,
     mediaFileCount: runtime.mediaFileCount,
     indexRoot: filesOnly ? null : indexDir,

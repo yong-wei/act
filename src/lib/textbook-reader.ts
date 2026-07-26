@@ -1,7 +1,7 @@
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
-import { TEXTBOOK_CITATION_MARKDOWN_ANCHOR_PREFIX } from '@/lib/textbook-citation-targets';
+import { TEXTBOOK_READER_MARKDOWN_ANCHOR_PREFIX } from '@/lib/textbook-reader-markdown';
 import {
   loadStructuredTextbookBook,
   STRUCTURED_TEXTBOOK_TITLES,
@@ -334,7 +334,7 @@ export function insertTextbookFragmentMarkers(
     if (!SAFE_FRAGMENT.test(id)) continue;
     const lineIndex = Math.max(0, anchor.sourceSpan.startLine - unitStartLine);
     const markers = markersByLine.get(lineIndex) ?? [];
-    markers.push(`[[${TEXTBOOK_CITATION_MARKDOWN_ANCHOR_PREFIX}${id}]]`);
+    markers.push(`[[${TEXTBOOK_READER_MARKDOWN_ANCHOR_PREFIX}${id}]]`);
     markersByLine.set(lineIndex, markers);
   }
   const lines = markdown.split(/\r?\n/);

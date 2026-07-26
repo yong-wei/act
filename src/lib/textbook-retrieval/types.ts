@@ -156,7 +156,7 @@ export interface TextbookProgressiveRetrievalResponse {
 
 export interface RetrievalOptions {
   indexRoot: string;
-  externalQuery?: string;
+  externalQuery?: string | null;
   topK?: number;
   candidateCount?: number;
   embeddingClient?: TextbookEmbeddingClient;

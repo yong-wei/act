@@ -365,7 +365,7 @@ export interface KonlingRuntimeContext {
   userProfile: UserProfile;
   learnerState: AdaptiveLearnerState | null;
   textbookRetrievalContext?: Readonly<{
-    externalQuery: string;
+    externalQuery: string | null;
   }>;
   planContext: KonlingPlanContext;
   memory: KonlingMemoryView[];
@@ -2443,11 +2443,7 @@ export async function buildKonlingRuntimeContext(
   });
   const textbookRetrievalContext = Object.freeze({
     externalQuery: buildServerOwnedTextbookRetrievalQuery({
-      currentUserQuery: input.currentUserQuery,
       pageContext,
-      scope,
-      userProfile,
-      learnerState,
     }),
   });
   const citationMode = resolveKonlingTeachingAssistantMode(input.teachingAssistantModeId);
@@ -3966,6 +3962,9 @@ function isKonlingStudentPathCenterScope(scope: KonlingRuntimeScope) {
 }
 
 function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown) {
+  if (toolName === 'search_textbook') {
+    return summarizeTextbookSearchQuery(getString(readRecord(input), 'query'));
+  }
   if (!isKonlingAdaptivePathTool(toolName)) {
     return redactSensitivePayload(input ?? {});
   }
@@ -4021,6 +4020,21 @@ function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown)
     styleId: getString(record, 'styleId') || null,
     compareWithStyleId: getString(record, 'compareWithStyleId') || null,
   });
+}
+
+function summarizeTextbookSearchQuery(query: string) {
+  const normalized = query.normalize('NFKC').trim();
+  return {
+    queryHash: createHash('sha256').update(normalized).digest('hex'),
+    queryLength: normalized.length,
+    queryCategory: normalized.length === 0
+      ? 'empty'
+      : normalized.length <= 40
+        ? 'short-course-query'
+        : normalized.length <= 200
+          ? 'course-query'
+          : 'long-course-query',
+  };
 }
 
 export async function createKonlingAgentSession(
@@ -7607,58 +7621,14 @@ function buildServerOwnedPageContext(scope: KonlingRuntimeScope): PageContext {
 }
 
 function buildServerOwnedTextbookRetrievalQuery(input: {
-  currentUserQuery?: string | null;
   pageContext: PageContext;
-  scope: KonlingRuntimeScope;
-  userProfile: UserProfile;
-  learnerState: AdaptiveLearnerState | null;
-}): string {
-  const privateValues = new Set<string>([
-    input.scope.authenticatedUserId,
-    input.scope.targetUserId,
-    input.scope.classId ?? '',
-    input.scope.resourceId ?? '',
-    input.scope.pathNodeId ?? '',
-    input.userProfile.id,
-    input.userProfile.name,
-    ...collectPrivateTextValues(input.learnerState),
-  ].map((value) => value.normalize('NFKC').trim()).filter((value) => value.length >= 2));
-  const safeQuestionClauses = (input.currentUserQuery ?? '')
-    .normalize('NFKC')
-    .split(/(?<=[。！？!?；;\n])/u)
-    .map((clause) => clause.trim())
-    .filter(Boolean)
-    .filter((clause) => !KONLING_PRIVATE_QUERY_SCOPE.test(clause))
-    .filter((clause) => ![...privateValues].some((value) => clause.includes(value)))
-    .map((clause) => clause
-      .replace(KONLING_QUERY_URL_OR_EMAIL, ' ')
-      .replace(KONLING_QUERY_PHONE_OR_ID, ' ')
-      .replace(/\s+/g, ' ')
-      .trim())
-    .filter(Boolean);
-  return uniqueStrings([
+}): string | null {
+  const query = uniqueStrings([
     input.pageContext.courseTitle,
     input.pageContext.topic,
-    ...safeQuestionClauses,
-  ]).join(' ').slice(0, 1_000);
-}
-
-const KONLING_PRIVATE_QUERY_SCOPE =
-  /(?:姓名|学号|用户(?:id)?|学习者|掌握度|风险|薄弱|画像|能力向量|学习记录|作答记录|成绩|尝试记录|learner|mastery|risk|user\s*id|attempt\s*history)/iu;
-const KONLING_QUERY_URL_OR_EMAIL =
-  /(?:https?:\/\/\S+|[\w.+-]+@[\w.-]+\.[a-z]{2,})/giu;
-const KONLING_QUERY_PHONE_OR_ID =
-  /(?:\b1[3-9]\d{9}\b|\b[0-9a-f]{8}-[0-9a-f-]{27,}\b)/giu;
-
-function collectPrivateTextValues(value: unknown, depth = 0): string[] {
-  if (depth > 5 || value === null || value === undefined) return [];
-  if (typeof value === 'string') return value.length >= 2 ? [value] : [];
-  if (Array.isArray(value)) {
-    return value.flatMap((item) => collectPrivateTextValues(item, depth + 1));
-  }
-  if (typeof value !== 'object') return [];
-  return Object.values(value as Record<string, unknown>)
-    .flatMap((item) => collectPrivateTextValues(item, depth + 1));
+    ...input.pageContext.learningObjectives,
+  ]).join(' ').replace(/\s+/g, ' ').trim().slice(0, 1_000);
+  return query || null;
 }
 
 function buildServerOwnedSimulationPageContext(scope: KonlingRuntimeScope): Partial<PageContext> {

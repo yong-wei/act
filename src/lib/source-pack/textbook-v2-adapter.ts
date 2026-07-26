@@ -35,11 +35,33 @@ const APPROVED_SOURCE_PRIORITY = [
   'hu-shousong-exercise-analysis-3rd',
   'control-encyclopedia',
 ] as const;
-const SUPPLEMENTAL_SOURCE_IDS = new Set<string>([
-  'hu-shousong-auto-control-7th',
-  'hu-shousong-exercise-analysis-3rd',
-  'control-encyclopedia',
-]);
+const SUPPLEMENTAL_SOURCE_QUERY_MARKERS: Readonly<Record<string, readonly string[]>> = {
+  'hu-shousong-auto-control-7th': [
+    '第七版',
+    '7th edition',
+    '版本对比',
+    '版本差异',
+  ],
+  'hu-shousong-exercise-analysis-3rd': [
+    '习题',
+    '练习',
+    '例题',
+    '解题',
+    '题解',
+    '作业',
+    'exercise',
+    'problem',
+    'solution',
+  ],
+  'control-encyclopedia': [
+    '控制百科',
+    '百科词条',
+    '术语表',
+    '辞典',
+    'encyclopedia',
+    'reference entry',
+  ],
+};
 const DEFAULT_INDEX_ROOT = path.join(
   process.cwd(),
   'course-content',
@@ -109,7 +131,7 @@ export interface TextbookV2ProgressiveToolResult {
 
 export interface RetrieveTextbookSourcePackV2Input {
   query: string;
-  externalQuery?: string;
+  externalQuery?: string | null;
   graphNodeRefs?: readonly string[];
   indexRoot?: string;
   runtimeRoot?: string;
@@ -135,7 +157,9 @@ export async function retrieveTextbookSourcePackV2(
   const retrievalQuery = graphNodeRefs.length > 0
     ? `${query}\n${graphNodeRefs.join(' ')}`
     : query;
-  const externalQuery = input.externalQuery?.trim() || query;
+  const externalQuery = input.externalQuery === null
+    ? null
+    : input.externalQuery?.trim() || query;
   const indexRoot = input.indexRoot
     ?? process.env.ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT
     ?? DEFAULT_INDEX_ROOT;
@@ -173,7 +197,9 @@ export async function retrieveTextbookSourcePackV2Progressive(
   const retrievalQuery = graphNodeRefs.length > 0
     ? `${query}\n${graphNodeRefs.join(' ')}`
     : query;
-  const externalQuery = input.externalQuery?.trim() || query;
+  const externalQuery = input.externalQuery === null
+    ? null
+    : input.externalQuery?.trim() || query;
   const indexRoot = input.indexRoot
     ?? process.env.ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT
     ?? DEFAULT_INDEX_ROOT;
@@ -292,17 +318,14 @@ async function adaptTextbookRetrievalResult(
         .sort((left, right) => left.rank - right.rank || right.score - left.score),
     }))
     .filter(({ supports }) => supports.length > 0)
+    .filter(({ unit }) => supplementalSourcePermitted(unit.bookId, input.query))
     .sort((left, right) => (
       priorityFor(sourcePriority, left.unit.bookId) - priorityFor(sourcePriority, right.unit.bookId)
       || left.supports[0].rank - right.supports[0].rank
       || right.supports[0].score - left.supports[0].score
       || left.unit.id.localeCompare(right.unit.id)
     ));
-  const hasPrimarySource = directlySupportingUnits.some(
-    ({ unit }) => !SUPPLEMENTAL_SOURCE_IDS.has(unit.bookId),
-  );
   const directUnits = directlySupportingUnits
-    .filter(({ unit }) => hasPrimarySource || !SUPPLEMENTAL_SOURCE_IDS.has(unit.bookId))
     .slice(0, input.topK ?? DEFAULT_TOP_K);
   const candidates = directUnits.map(({ unit, supports }, indexInResult) =>
     toToolCandidate(
@@ -325,6 +348,13 @@ async function adaptTextbookRetrievalResult(
     ],
     diagnostics: (input.retrieval.diagnostics ?? []).map(({ stage, code }) => ({ stage, code })),
   };
+}
+
+function supplementalSourcePermitted(bookId: string, query: string): boolean {
+  const markers = SUPPLEMENTAL_SOURCE_QUERY_MARKERS[bookId];
+  if (!markers) return true;
+  const normalizedQuery = query.normalize('NFKC').toLowerCase();
+  return markers.some((marker) => normalizedQuery.includes(marker));
 }
 
 function groupUnitIdsByBook(

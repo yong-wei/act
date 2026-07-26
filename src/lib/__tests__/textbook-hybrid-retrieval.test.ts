@@ -481,7 +481,7 @@ describe('textbook hybrid retrieval runtime', () => {
     };
 
     await retrieveTextbookHybrid(
-      '反馈控制 张三 student-1 mastery=0.2 risk=high 学习记录=private',
+      '反馈控制 我的答案是 K=37 张三 student-1 mastery=0.2 risk=high 学习记录=private',
       {
         indexRoot: root,
         externalQuery: '自动控制原理 反馈控制',
@@ -501,9 +501,32 @@ describe('textbook hybrid retrieval runtime', () => {
       vi.mocked(embeddingClient.embed).mock.calls,
       vi.mocked(rerankClient.rerank).mock.calls,
     ]);
-    for (const forbidden of ['张三', 'student-1', 'mastery', 'risk', '学习记录', 'private']) {
+    for (const forbidden of ['K=37', '张三', 'student-1', 'mastery', 'risk', '学习记录', 'private']) {
       expect(providerPayloads).not.toContain(forbidden);
     }
+  });
+
+  it('keeps local lexical retrieval but disables embedding and rerank without a safe external query', async () => {
+    const root = await buildIndexFixture();
+    const embeddingClient = embedding([1, 0]);
+    const rerankClient: TextbookRerankClient = {
+      rerank: vi.fn(async () => ({ results: [] })),
+    };
+
+    const result = await retrieveTextbookHybrid(
+      '我的答案是 K=37，请解释反馈控制',
+      {
+        indexRoot: root,
+        externalQuery: null,
+        embeddingClient,
+        rerankClient,
+        rerankModel: 'fixture/reranker',
+      },
+    );
+
+    expect(result.mode).toBe('lexical');
+    expect(embeddingClient.embed).not.toHaveBeenCalled();
+    expect(rerankClient.rerank).not.toHaveBeenCalled();
   });
 
   it.each([

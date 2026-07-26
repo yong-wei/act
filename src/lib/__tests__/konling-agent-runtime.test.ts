@@ -839,13 +839,13 @@ describe('konling agent runtime', () => {
       role: 'STUDENT',
       courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
       pageId: 'step-03',
-      currentUserQuery: '解释约束参数优化。张三的掌握度、risk 和 student-1 学习记录如何？',
+      currentUserQuery: '我的答案是 K=37，请解释约束参数优化。张三的掌握度、risk 和 student-1 学习记录如何？',
       trustedContentContext: true,
     });
     expect(registered.permittedTools).toContain('search_textbook');
     expect(Object.isFrozen(registered.textbookRetrievalContext)).toBe(true);
-    expect(registered.textbookRetrievalContext?.externalQuery).toContain('解释约束参数优化');
-    for (const forbidden of ['张三', 'student-1', '掌握度', 'risk', '学习记录']) {
+    expect(registered.textbookRetrievalContext?.externalQuery).toContain('约束下的优化设计实践');
+    for (const forbidden of ['K=37', '张三', 'student-1', '掌握度', 'risk', '学习记录']) {
       expect(registered.textbookRetrievalContext?.externalQuery).not.toContain(forbidden);
     }
     expect(mocks.retrieveTextbookSourcePackV2Progressive).not.toHaveBeenCalled();
@@ -1019,6 +1019,22 @@ describe('konling agent runtime', () => {
       graphNodeRefs: ['knowledge-node:step-response'],
       abortSignal: undefined,
     });
+    await runtime.searchTextbook({ query: '我的答案是 K=37，请解释单位阶跃响应' });
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).toHaveBeenLastCalledWith({
+      query: '我的答案是 K=37，请解释单位阶跃响应',
+      externalQuery: '自动控制原理 单位阶跃响应',
+      graphNodeRefs: ['knowledge-node:step-response'],
+      abortSignal: undefined,
+    });
+    const textbookRunInputSummary = (
+      createdRun as Record<string, unknown> | null
+    )?.inputSummary;
+    expect(textbookRunInputSummary).toMatchObject({
+      queryHash: expect.stringMatching(/^[0-9a-f]{64}$/u),
+      queryLength: expect.any(Number),
+      queryCategory: expect.any(String),
+    });
+    expect(JSON.stringify(textbookRunInputSummary)).not.toContain('K=37');
 
     mocks.retrieveTextbookSourcePackV2Progressive.mockRejectedValueOnce(new Error('private index path'));
     await expect(runtime.searchTextbook({ query: '单位阶跃响应' }))
@@ -4618,13 +4634,14 @@ describe('konling agent runtime', () => {
   });
 
   it('serializes Konling citation metadata without dropping rendered and audit fields', () => {
+    const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-2/section-2.1#figure-02-37';
     const metadata = serializeKonlingCitationMetadata({
       id: 'content:textbook:fig-02-37',
       sourceType: 'content',
       displayTitle: 'Fluid flow reservoir figure',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      href: textbookHref,
+      canonicalHref: textbookHref,
+      displayHref: textbookHref,
       confidence: 'high',
       evidenceBasis: 'source-pack:konling-answer:pack-1',
       owner: 'answer',
@@ -4637,7 +4654,7 @@ describe('konling agent runtime', () => {
       citationChip: {
         chunkId: 'content:textbook:fig-02-37',
         displayTitle: 'Fluid flow reservoir figure',
-        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+        displayHref: textbookHref,
         sourceType: 'course-content',
         authorityLevel: 'canonical',
         confidence: 'high',
@@ -4649,9 +4666,9 @@ describe('konling agent runtime', () => {
 
     expect(metadata).toMatchObject({
       id: 'content:textbook:fig-02-37',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      href: textbookHref,
+      canonicalHref: textbookHref,
+      displayHref: textbookHref,
       citationTargetId: 'textbook:fig-02-37',
       retrievalChunkId: 'textbook-search:ch02-example-0212',
       answerRelevanceBasis: 'query-lexical',
@@ -4659,7 +4676,7 @@ describe('konling agent runtime', () => {
       answerRelevanceQueryHash: 'hash-1',
       omittedCitationReason: 'not-omitted',
       citationChip: expect.objectContaining({
-        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+        displayHref: textbookHref,
       }),
     });
   });

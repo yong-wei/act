@@ -460,8 +460,11 @@ export async function retrieveTextbookHybrid(
   if (!normalizedQuery.trim()) {
     throw new TextbookRetrievalContractError('query must not be empty');
   }
-  const normalizedExternalQuery = normalizeText(options.externalQuery ?? query);
-  if (!normalizedExternalQuery.trim()) {
+  const externalRetrievalEnabled = options.externalQuery !== null;
+  const normalizedExternalQuery = externalRetrievalEnabled
+    ? normalizeText(options.externalQuery ?? query)
+    : '';
+  if (externalRetrievalEnabled && !normalizedExternalQuery.trim()) {
     throw new TextbookRetrievalContractError('external query must not be empty');
   }
   const resolved = validateOptions(options);
@@ -473,26 +476,28 @@ export async function retrieveTextbookHybrid(
   let vector: Array<{ row: number; score: number }> = [];
   let mode: TextbookRetrievalResponse['mode'] = 'lexical';
 
-  const embeddingStarted = performance.now();
-  try {
-    const queryVector = await embedQuery(
-      index,
-      normalizedExternalQuery,
-      options,
-      resolved.embeddingTimeoutMs,
-    );
-    vector = vectorRank(index, queryVector);
-    mode = 'lexical-vector';
-  } catch (error) {
-    const traceId = error instanceof TextbookRetrievalProviderError
-      ? error.traceId
-      : undefined;
-    diagnostics.push(diagnostic(
-      'embedding',
-      providerCode(error),
-      embeddingStarted,
-      traceId,
-    ));
+  if (externalRetrievalEnabled) {
+    const embeddingStarted = performance.now();
+    try {
+      const queryVector = await embedQuery(
+        index,
+        normalizedExternalQuery,
+        options,
+        resolved.embeddingTimeoutMs,
+      );
+      vector = vectorRank(index, queryVector);
+      mode = 'lexical-vector';
+    } catch (error) {
+      const traceId = error instanceof TextbookRetrievalProviderError
+        ? error.traceId
+        : undefined;
+      diagnostics.push(diagnostic(
+        'embedding',
+        providerCode(error),
+        embeddingStarted,
+        traceId,
+      ));
+    }
   }
 
   const fused = fuseRanks(
@@ -508,7 +513,7 @@ export async function retrieveTextbookHybrid(
   }));
 
   let ordered = fused;
-  if (options.rerankModel) {
+  if (externalRetrievalEnabled && options.rerankModel && vector.length > 0) {
     const rerankStarted = performance.now();
     try {
       ordered = await rerankCandidates(
@@ -577,8 +582,11 @@ export async function retrieveTextbookHybridProgressive(
   if (!normalizedQuery.trim()) {
     throw new TextbookRetrievalContractError('query must not be empty');
   }
-  const normalizedExternalQuery = normalizeText(options.externalQuery ?? query);
-  if (!normalizedExternalQuery.trim()) {
+  const externalRetrievalEnabled = options.externalQuery !== null;
+  const normalizedExternalQuery = externalRetrievalEnabled
+    ? normalizeText(options.externalQuery ?? query)
+    : '';
+  if (externalRetrievalEnabled && !normalizedExternalQuery.trim()) {
     throw new TextbookRetrievalContractError('external query must not be empty');
   }
   const now = options.now ?? (() => performance.now());
@@ -606,6 +614,13 @@ export async function retrieveTextbookHybridProgressive(
     mode: 'lexical',
     results: publicResults(index, foregroundCandidates.slice(0, resolved.topK)),
   };
+  if (!externalRetrievalEnabled) {
+    return {
+      foreground,
+      optimizationPending: false,
+      continuation: null,
+    };
+  }
 
   const external = (async (): Promise<TextbookRetrievalContinuationResult> => {
     const diagnostics: RetrievalDiagnostic[] = [];

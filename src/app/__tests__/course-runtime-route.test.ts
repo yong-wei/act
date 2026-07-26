@@ -21,9 +21,7 @@ describe('course-runtime asset route', () => {
     mockedReadFile.mockReset();
   });
 
-  it('serves textbook section markdown with a text markdown content type', async () => {
-    mockedReadFile.mockResolvedValueOnce(Buffer.from('# Bode 图频域响应示例', 'utf-8'));
-
+  it('does not serve removed textbook section markdown', async () => {
     const response = await requestRuntimeAsset([
       'resources',
       'textbooks',
@@ -32,12 +30,8 @@ describe('course-runtime asset route', () => {
       'ch08-example-0801.md',
     ]);
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('text/markdown; charset=utf-8');
-    await expect(response.text()).resolves.toContain('Bode 图频域响应示例');
-    expect(mockedReadFile).toHaveBeenCalledWith(expect.stringContaining(
-      'course-content/runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md'
-    ));
+    expect(response.status).toBe(404);
+    expect(mockedReadFile).not.toHaveBeenCalled();
   });
 
   it('serves textbook image assets with an image content type', async () => {

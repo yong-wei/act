@@ -186,6 +186,41 @@ describe('v2 textbook Source Pack adapter', () => {
     expect(result.limitations).toContain('no-directly-supporting-textbook-unit');
   });
 
+  it.each([
+    ['hu-shousong-auto-control-7th', '第七版 单位阶跃响应'],
+    ['hu-shousong-exercise-analysis-3rd', '习题 单位阶跃响应'],
+    ['control-encyclopedia', '控制百科 单位阶跃响应'],
+  ])('retains %s only for its declared supplemental purpose', async (bookId, query) => {
+    const supplementalUnit: TextbookCitationUnit = {
+      ...units[2],
+      id: `textbook-unit:${bookId}/supplemental`,
+      bookId,
+      title: `${query}补充`,
+    };
+    const result = await retrieveTextbookSourcePackV2({
+      query,
+      indexRoot: '/fixture/index',
+      retrieve: vi.fn().mockResolvedValue({
+        mode: 'lexical',
+        results: [{
+          windowId: `textbook-window:${bookId}`,
+          primaryUnitId: supplementalUnit.id,
+          owningUnitIds: [supplementalUnit.id],
+          bookId,
+          sourcePaths: ['private/supplemental.md'],
+          body: `${query}的直接补充说明。`,
+          scores: { fused: 0.9 },
+        }],
+      }),
+      loadIndex: vi.fn().mockResolvedValue({
+        manifest: { sourcePriority: [bookId] },
+      } as LoadedTextbookRetrievalIndex),
+      loadUnits: vi.fn().mockResolvedValue([supplementalUnit]),
+    });
+
+    expect(result.candidates.map((candidate) => candidate.identity.bookId)).toEqual([bookId]);
+  });
+
   it('uses registered fragments as citations only when the query identifies the fragment', async () => {
     const result = await retrieveTextbookSourcePackV2({
       query: '单位阶跃响应 3.2',

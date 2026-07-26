@@ -322,6 +322,47 @@ describe('buildUnsafeHrefLimitation', () => {
 // ─── Citation Hydrator ──────────────────────────────────────────────────────
 
 describe('hydrateCitationFromAddress', () => {
+  it('accepts current v2 textbook reader hrefs without redirect mapping', () => {
+    const href = '/textbooks/hu-shousong-auto-control-8th/%E7%AC%AC%E5%85%AB%E7%89%88/chapter-3/section-3.2';
+    const { citation, limitations } = hydrateCitationFromAddress(
+      'source-pack-citation:textbook-v2',
+      'source-pack-source:textbook-v2',
+      { kind: 'textbook', sourceRefId: 'textbook-unit:hu8/direct', href },
+      '单位阶跃响应',
+    );
+
+    expect(citation).toMatchObject({
+      canonicalHref: href,
+      displayHref: href,
+      href,
+      verified: true,
+    });
+    expect(limitations).toEqual([]);
+  });
+
+  it.each([
+    '/course-runtime/resources/textbooks/book/sections/ch01.md',
+    '/course-runtime/resources/textbooks/book/chunks/ch01__chunk-001.md',
+    '/textbook-citations/resources/textbooks/book/sections/ch01.md',
+  ])('fails closed for removed textbook citation href %s', (href) => {
+    const { citation, limitations } = hydrateCitationFromAddress(
+      'source-pack-citation:legacy-textbook',
+      'source-pack-source:legacy-textbook',
+      { kind: 'textbook', sourceRefId: 'legacy-unit', href },
+      'Legacy textbook target',
+    );
+
+    expect(citation.verified).toBe(false);
+    expect(citation.href).toBeUndefined();
+    expect(citation.displayHref).toBeUndefined();
+    expect(limitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'citation-legacy-textbook-href',
+        severity: 'blocking',
+      }),
+    ]));
+  });
+
   it('produces a verified citation for safe href', () => {
     const { citation, limitations } = hydrateCitationFromAddress(
       'source-pack-citation:ct-001',

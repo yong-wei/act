@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
   captureCleanTextbookInputRevision,
+  captureTextbookInputSnapshot,
   replaceRuntimeDirectories,
 } from '../release/export-textbook-runtime-v2.mjs';
 
@@ -41,6 +42,24 @@ assert.throws(
   '生产导出入口必须拒绝生成器、配置或教材输入的未提交改动',
 );
 
+for (const dirtyInput of [
+  'course-content/scripts/validate_written_textbook_runtime_v2.py',
+  'course-content/config/textbook-structure-v2/hu-shousong-auto-control-8th.json',
+  'course-content/authoring/resources/textbooks/hu-shousong-auto-control-8th/chapter-03/assets/figure.png',
+]) {
+  assert.throws(
+    () => captureCleanTextbookInputRevision({
+      repositoryRoot: root,
+      authoringInputRoot,
+      runGit(args) {
+        return args[0] === 'status' ? ` M ${dirtyInput}` : 'a'.repeat(40);
+      },
+    }),
+    /textbook-runtime-v2-dirty-inputs/u,
+    `生产导出入口必须拒绝脏输入 ${dirtyInput}`,
+  );
+}
+
 assert.throws(
   () => captureCleanTextbookInputRevision({
     repositoryRoot: root,
@@ -65,6 +84,69 @@ assert.throws(
   /textbook-runtime-v2-input-outside-repository/u,
   '无法绑定当前 Git 修订的仓库外教材输入必须 fail closed',
 );
+
+{
+  const snapshotRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'textbook-runtime-input-snapshot-'),
+  );
+  try {
+    const repositoryRoot = path.join(snapshotRoot, 'repo');
+    const authoringInputRoot = path.join(
+      repositoryRoot,
+      'course-content/authoring/resources',
+    );
+    fs.mkdirSync(authoringInputRoot, { recursive: true });
+    for (const relativeInput of [
+      'scripts/release/export-textbook-runtime-v2.mjs',
+      'scripts/release/validate-textbook-runtime-v2.mjs',
+      'scripts/release/textbook-runtime-v2-provenance.mjs',
+      'course-content/scripts/export_structured_textbook_runtime_v2.py',
+      'course-content/scripts/structured_textbook_runtime.py',
+      'course-content/scripts/validate_structured_textbook_runtime_v2.mjs',
+      'course-content/scripts/validate_written_textbook_runtime_v2.py',
+      'course-content/scripts/textbook_hybrid_retrieval.py',
+      'course-content/scripts/validate_textbook_hybrid_retrieval.mjs',
+      'course-content/scripts/export_textbook_runtime_assets.py',
+      'course-content/contracts/structured-textbook-runtime-v2.schema.json',
+      'course-content/config/textbook-hybrid-retrieval.json',
+    ]) {
+      const filePath = path.join(repositoryRoot, relativeInput);
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(filePath, relativeInput);
+    }
+    fs.mkdirSync(
+      path.join(repositoryRoot, 'course-content/config/textbook-structure-v2'),
+      { recursive: true },
+    );
+    fs.writeFileSync(
+      path.join(repositoryRoot, 'course-content/config/textbook-structure-v2/book.json'),
+      '{}',
+    );
+    const ignoredAuthoringInput = path.join(
+      authoringInputRoot,
+      'textbooks/book/chapter-01/textbook.md',
+    );
+    fs.mkdirSync(path.dirname(ignoredAuthoringInput), { recursive: true });
+    fs.writeFileSync(ignoredAuthoringInput, 'version one');
+    const before = captureTextbookInputSnapshot({
+      repositoryRoot,
+      authoringInputRoot,
+    });
+    fs.writeFileSync(ignoredAuthoringInput, 'version two');
+    const after = captureTextbookInputSnapshot({
+      repositoryRoot,
+      authoringInputRoot,
+    });
+    assert.notEqual(
+      after.digest,
+      before.digest,
+      '输入内容指纹必须覆盖 Git 忽略且未跟踪的真实教材正文',
+    );
+    assert.equal(after.fileCount, before.fileCount);
+  } finally {
+    fs.rmSync(snapshotRoot, { recursive: true, force: true });
+  }
+}
 
 function read(file) {
   return fs.readFileSync(path.join(root, file), 'utf8');
