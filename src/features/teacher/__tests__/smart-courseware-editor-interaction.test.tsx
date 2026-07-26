@@ -112,6 +112,11 @@ describe('smart courseware editor activity creation', () => {
     expect(JSON.parse(String(patch?.[1]?.body)).expectedVersion).toBe(1);
     expect(container.textContent).toContain('存在版本冲突');
     expect(window.localStorage.getItem(`preparation-editor:courseware:draft-1:${step.id}:${selectedModule.id}`)).not.toBeNull();
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+      await Promise.resolve();
+    });
+    expect(fetch.mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(1);
 
     const adopt = [...container.querySelectorAll('button')]
       .find((button) => button.textContent === '读取服务器新基线并保留本地修改')!;
@@ -169,6 +174,7 @@ describe('smart courseware editor activity creation', () => {
   });
 
   it('keeps a local module draft retryable when the PATCH request throws', async () => {
+    vi.useFakeTimers();
     const composition = validCompositionInput();
     const step = composition.runtimeManifest.stages[0].steps[0];
     const selectedModule = step.modules[0];
@@ -197,6 +203,11 @@ describe('smart courseware editor activity creation', () => {
     expect(window.localStorage.getItem(
       `preparation-editor:courseware:draft-1:${step.id}:${selectedModule.id}`,
     )).not.toBeNull();
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+      await Promise.resolve();
+    });
+    expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(1);
   });
 
   it('commits a saved module revision even when student preview refresh throws', async () => {

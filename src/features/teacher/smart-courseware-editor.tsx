@@ -1360,10 +1360,10 @@ function CoursewareVisualFields({
   }, [discardCurrent, onRegisterDiscard]);
 
   useEffect(() => {
-    if (!dirty || busy) return;
+    if (!dirty || busy || saveState === 'conflict' || saveState === 'failed') return;
     const timer = window.setTimeout(() => void saveCurrent(), 1000);
     return () => window.clearTimeout(timer);
-  }, [busy, dirty, payload, responseKind, saveCurrent, stepTitle, teacherFields]);
+  }, [busy, dirty, payload, responseKind, saveCurrent, saveState, stepTitle, teacherFields]);
 
   const changeStepTitle = (value: string) => {
     setStepTitle(value);
