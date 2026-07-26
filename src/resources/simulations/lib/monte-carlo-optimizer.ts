@@ -248,7 +248,7 @@ export function evaluatePIDParams(
   // Calculate settling time: scan from referenceCompletedAt for sustained heading stability
   const headingTolerance = 5;
   const validationWindow = logic.duration - logic.referenceCompletedAt;
-  let settlingTime = validationWindow; // default: not settled within window
+  let settlingTime = logic.duration; // default: not settled within full scenario duration
 
   for (let i = 0; i < result.chartData.time.length; i++) {
     const time = result.chartData.time[i];
@@ -272,10 +272,15 @@ export function evaluatePIDParams(
 
   // Scoring
   const errorScore = Math.max(0, 100 * (1 - result.metrics.avgError / target.maxError));
-  const rudderScore = Math.max(0, 100 * (1 - result.metrics.maxRudderRate / target.maxRudderRate));
-  const overshootScore = Math.max(0, 100 - (overshoot / (target.maxOvershoot ?? 20)) * 100);
-  let settlingScore = 100;
-  if (target.minSettlingTime && settlingTime > target.minSettlingTime) {
+  const rudderScore = result.metrics.maxRudderRate <= target.maxRudderRate
+    ? 100
+    : Math.max(0, 100 * (1 - (result.metrics.maxRudderRate - target.maxRudderRate) / target.maxRudderRate));
+  const overshootScore = overshoot <= (target.maxOvershoot ?? 20)
+    ? 100
+    : Math.max(0, 100 - ((overshoot - (target.maxOvershoot ?? 20)) / (target.maxOvershoot ?? 20)) * 100);
+  const settled = settlingTime < logic.duration;
+  let settlingScore = settled ? 100 : 0;
+  if (settled && target.minSettlingTime && settlingTime > target.minSettlingTime) {
     settlingScore = Math.max(0, 100 - ((settlingTime - target.minSettlingTime) / target.minSettlingTime) * 50);
   }
 
