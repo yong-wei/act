@@ -16,18 +16,26 @@ function parseArgs(argv) {
   let runtimeRoot = 'course-content/runtime/resources/textbooks-v2';
   let filesOnly = false;
   let expectedSourceRevision;
+  let legacyRoot;
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--runtime-root') {
       runtimeRoot = argv[++index];
     } else if (argv[index] === '--expected-source-revision') {
       expectedSourceRevision = argv[++index];
+    } else if (argv[index] === '--legacy-root') {
+      legacyRoot = argv[++index];
     } else if (argv[index] === '--files-only') {
       filesOnly = true;
     } else {
       throw new Error(`unknown argument: ${argv[index]}`);
     }
   }
-  return { runtimeRoot: path.resolve(runtimeRoot), filesOnly, expectedSourceRevision };
+  return {
+    runtimeRoot: path.resolve(runtimeRoot),
+    filesOnly,
+    expectedSourceRevision,
+    legacyRoot: legacyRoot ? path.resolve(legacyRoot) : undefined,
+  };
 }
 
 function validateRecords(runtimeRoot) {
@@ -100,8 +108,16 @@ function validateClosure(runtimeRoot) {
 }
 
 function main() {
-  const { runtimeRoot, filesOnly, expectedSourceRevision } = parseArgs(process.argv.slice(2));
-  const runtime = inspectTextbookRuntimeV2(runtimeRoot, { expectedSourceRevision });
+  const {
+    runtimeRoot,
+    filesOnly,
+    expectedSourceRevision,
+    legacyRoot,
+  } = parseArgs(process.argv.slice(2));
+  const runtime = inspectTextbookRuntimeV2(runtimeRoot, {
+    expectedSourceRevision,
+    legacyRoot,
+  });
   const validation = filesOnly ? null : validateRecords(runtimeRoot);
   const closureValidation = filesOnly ? null : validateClosure(runtimeRoot);
   process.stdout.write(`${JSON.stringify({
@@ -111,6 +127,7 @@ function main() {
     sourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
     runtimeFileCount: runtime.fileCount,
+    mediaFileCount: runtime.mediaFileCount,
     runtimeDirectories: TEXTBOOK_V2_BOOK_IDS.length,
     recordsValidated: validation?.recordsValidated ?? null,
     closureDirectoriesValidated: closureValidation?.runtimeDirectories ?? null,

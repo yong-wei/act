@@ -78,13 +78,14 @@ assert.equal(
     textbookV2Preflight.includes('validate_structured_textbook_runtime_v2.mjs') &&
     textbookV2Preflight.includes('validate_written_textbook_runtime_v2.py') &&
     textbookV2Preflight.includes('inspectTextbookRuntimeV2') &&
+    textbookV2Preflight.includes('mediaFileCount') &&
     textbookV2Preflight.includes("'--expected-source-revision'") &&
     textbookV2Preflight.includes("'--runtime-dir'") &&
     textbookV2Preflight.includes('failures.slice(0, 20)') &&
     textbookV2Preflight.includes('failuresTruncated') &&
     textbookV2ClosureValidator.includes('validate_written_export'),
   true,
-  '共享 release preflight 应精确校验七本教材的完整 v2 文件集，并调用 schema 与跨记录闭合校验器',
+  '共享 release preflight 应校验七本教材的完整 v2 文件集、引用媒体、schema 与跨记录闭合',
 );
 
 const mismatchedRuntimeRoot = fs.mkdtempSync(
@@ -129,6 +130,150 @@ try {
   );
 } finally {
   fs.rmSync(mismatchedRuntimeRoot, { recursive: true, force: true });
+}
+
+const mediaFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-media-'));
+try {
+  const runtimeRoot = path.join(mediaFixtureRoot, 'textbooks-v2');
+  const legacyRoot = path.join(mediaFixtureRoot, 'textbooks');
+  const revision = '1111111111111111111111111111111111111111';
+  for (const [index, bookId] of textbookV2BookIds.entries()) {
+    const bookRoot = path.join(runtimeRoot, bookId);
+    fs.mkdirSync(bookRoot, { recursive: true });
+    for (const fileName of textbookV2RequiredFiles) {
+      let content = '';
+      if (fileName === 'manifest.json') {
+        content = `${JSON.stringify({ sourceRevision: revision })}\n`;
+      } else if (fileName === 'units.jsonl' && index === 0) {
+        content = `${JSON.stringify({
+          chapterId: 'chapter-01',
+          markdown: '![fixture](assets/fixture.png)',
+        })}\n`;
+      }
+      fs.writeFileSync(path.join(bookRoot, fileName), content);
+    }
+  }
+  const preflightArgs = [
+    path.join(root, 'scripts/release/validate-textbook-runtime-v2.mjs'),
+    '--runtime-root',
+    runtimeRoot,
+    '--legacy-root',
+    legacyRoot,
+    '--files-only',
+  ];
+  const missingMediaResult = spawnSync(process.execPath, preflightArgs, {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.notEqual(
+    missingMediaResult.status,
+    0,
+    'units Markdown 引用的 legacy 教材媒体缺失时必须 fail closed',
+  );
+  assert.match(
+    missingMediaResult.stderr,
+    /textbook-v2-media-file-missing:control-encyclopedia\/assets\/chapter-01\/fixture\.png/u,
+    'preflight 应明确报告缺失的引用媒体相对路径',
+  );
+
+  const mediaPath = path.join(
+    legacyRoot,
+    'control-encyclopedia',
+    'assets',
+    'chapter-01',
+    'fixture.png',
+  );
+  fs.mkdirSync(path.dirname(mediaPath), { recursive: true });
+  fs.writeFileSync(mediaPath, 'fixture-v1');
+  const initialInspect = spawnSync(process.execPath, preflightArgs, {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.equal(initialInspect.status, 0, initialInspect.stderr);
+  const initialSummary = JSON.parse(initialInspect.stdout);
+  assert.equal(initialSummary.mediaFileCount, 1, 'preflight 应报告去重后的引用媒体文件数');
+
+  const imageTar = path.join(mediaFixtureRoot, 'image.tar');
+  const sidecar = `${imageTar}.provenance.json`;
+  fs.writeFileSync(imageTar, 'image payload');
+  const writeSidecarResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'write-sidecar',
+      '--runtime-root',
+      runtimeRoot,
+      '--legacy-root',
+      legacyRoot,
+      '--image-tar',
+      imageTar,
+      '--app-revision',
+      revision,
+      '--output',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(writeSidecarResult.status, 0, writeSidecarResult.stderr);
+
+  fs.writeFileSync(mediaPath, 'fixture-v2-tampered');
+  const tamperedInspect = spawnSync(process.execPath, preflightArgs, {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.equal(tamperedInspect.status, 0, tamperedInspect.stderr);
+  assert.notEqual(
+    JSON.parse(tamperedInspect.stdout).runtimeDigest,
+    initialSummary.runtimeDigest,
+    '篡改被引用媒体必须改变 runtimeDigest',
+  );
+  const verifyTamperedResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'verify-runtime',
+      '--runtime-root',
+      runtimeRoot,
+      '--legacy-root',
+      legacyRoot,
+      '--sidecar',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.notEqual(
+    verifyTamperedResult.status,
+    0,
+    'sidecar 生成后篡改引用媒体必须使 verify-runtime fail closed',
+  );
+  assert.match(
+    verifyTamperedResult.stderr,
+    /textbook-v2-runtime-digest-mismatch/u,
+    'verify-runtime 应明确报告媒体篡改造成的 digest 不一致',
+  );
+
+  const chapterRoot = path.dirname(mediaPath);
+  const externalChapterRoot = path.join(mediaFixtureRoot, 'external-chapter');
+  fs.rmSync(chapterRoot, { recursive: true, force: true });
+  fs.mkdirSync(externalChapterRoot, { recursive: true });
+  fs.writeFileSync(path.join(externalChapterRoot, 'fixture.png'), 'outside legacy root');
+  fs.symlinkSync(externalChapterRoot, chapterRoot, 'dir');
+  const ancestorSymlinkResult = spawnSync(process.execPath, preflightArgs, {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.notEqual(
+    ancestorSymlinkResult.status,
+    0,
+    '媒体祖先目录 symlink 指向 legacy root 外时必须 fail closed',
+  );
+  assert.match(
+    ancestorSymlinkResult.stderr,
+    /textbook-v2-media-file-escape:control-encyclopedia\/assets\/chapter-01\/fixture\.png/u,
+    'preflight 应明确报告祖先 symlink 造成的媒体路径逃逸',
+  );
+} finally {
+  fs.rmSync(mediaFixtureRoot, { recursive: true, force: true });
 }
 
 const tarMismatchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-tar-mismatch-'));

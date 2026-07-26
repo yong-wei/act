@@ -42,7 +42,122 @@ function assertRevision(value, fieldName) {
   }
 }
 
-export function inspectTextbookRuntimeV2(runtimeRoot, { expectedSourceRevision } = {}) {
+function markdownImageHrefs(markdown) {
+  const hrefs = [];
+  let index = 0;
+  while (index < markdown.length) {
+    const start = markdown.indexOf('![', index);
+    if (start === -1) break;
+    let precedingBackslashes = 0;
+    for (let cursor = start - 1; cursor >= 0 && markdown[cursor] === '\\'; cursor -= 1) {
+      precedingBackslashes += 1;
+    }
+    if (precedingBackslashes % 2 === 1) {
+      index = start + 2;
+      continue;
+    }
+    let cursor = start + 2;
+    let bracketDepth = 1;
+    while (cursor < markdown.length && bracketDepth > 0) {
+      if (markdown[cursor] === '\\') {
+        cursor += 2;
+        continue;
+      }
+      if (markdown[cursor] === '[') bracketDepth += 1;
+      if (markdown[cursor] === ']') bracketDepth -= 1;
+      cursor += 1;
+    }
+    if (bracketDepth !== 0 || markdown[cursor] !== '(') {
+      index = start + 2;
+      continue;
+    }
+    cursor += 1;
+    while (/\s/u.test(markdown[cursor] ?? '')) cursor += 1;
+    let href = '';
+    if (markdown[cursor] === '<') {
+      const hrefStart = ++cursor;
+      while (cursor < markdown.length && markdown[cursor] !== '>') cursor += 1;
+      if (cursor >= markdown.length) {
+        index = start + 2;
+        continue;
+      }
+      href = markdown.slice(hrefStart, cursor);
+      cursor += 1;
+    } else {
+      const hrefStart = cursor;
+      let parenthesisDepth = 0;
+      while (cursor < markdown.length) {
+        const character = markdown[cursor];
+        if (character === '\\') {
+          cursor += 2;
+          continue;
+        }
+        if (character === '(') {
+          parenthesisDepth += 1;
+        } else if (character === ')') {
+          if (parenthesisDepth === 0) break;
+          parenthesisDepth -= 1;
+        } else if (/\s/u.test(character) && parenthesisDepth === 0) {
+          break;
+        }
+        cursor += 1;
+      }
+      href = markdown.slice(hrefStart, cursor);
+    }
+    const close = markdown.indexOf(')', cursor);
+    if (close === -1) {
+      index = start + 2;
+      continue;
+    }
+    hrefs.push(href);
+    index = close + 1;
+  }
+  return hrefs;
+}
+
+function resolveLegacyMediaFile({ legacyRoot, bookId, chapterId, href }) {
+  const trimmed = href.trim();
+  if (
+    !trimmed
+    || trimmed.startsWith('/')
+    || /^[a-z][a-z0-9+.-]*:/iu.test(trimmed)
+    || trimmed.includes('\\')
+  ) {
+    throw new Error(`textbook-v2-media-href-invalid:${bookId}:${chapterId}:${href}`);
+  }
+  if (
+    typeof chapterId !== 'string'
+    || !chapterId
+    || chapterId.includes('/')
+    || chapterId.includes('\\')
+    || chapterId === '.'
+    || chapterId === '..'
+  ) {
+    throw new Error(`textbook-v2-media-chapter-invalid:${bookId}:${String(chapterId)}`);
+  }
+  const relative = path.posix.normalize(trimmed);
+  if (relative === '..' || relative.startsWith('../')) {
+    throw new Error(`textbook-v2-media-href-escape:${bookId}:${chapterId}:${href}`);
+  }
+  const assetRelative = relative.startsWith('assets/')
+    ? relative.slice('assets/'.length)
+    : relative;
+  if (!assetRelative || assetRelative === '..' || assetRelative.startsWith('../')) {
+    throw new Error(`textbook-v2-media-href-invalid:${bookId}:${chapterId}:${href}`);
+  }
+  const relativePath = path.posix.join(bookId, 'assets', chapterId, assetRelative);
+  const filePath = path.resolve(legacyRoot, ...relativePath.split('/'));
+  const expectedRoot = path.resolve(legacyRoot, bookId, 'assets', chapterId);
+  if (!filePath.startsWith(`${expectedRoot}${path.sep}`)) {
+    throw new Error(`textbook-v2-media-href-escape:${bookId}:${chapterId}:${href}`);
+  }
+  return { relativePath, filePath };
+}
+
+export function inspectTextbookRuntimeV2(
+  runtimeRoot,
+  { expectedSourceRevision, legacyRoot = path.join(path.dirname(runtimeRoot), 'textbooks') } = {},
+) {
   if (expectedSourceRevision !== undefined) {
     assertRevision(expectedSourceRevision, 'expected-source-revision');
   }
@@ -59,6 +174,7 @@ export function inspectTextbookRuntimeV2(runtimeRoot, { expectedSourceRevision }
 
   let sourceRevision = null;
   const runtimeFiles = [];
+  const mediaFiles = new Map();
   for (const bookId of TEXTBOOK_V2_BOOK_IDS) {
     const bookRoot = path.join(runtimeRoot, bookId);
     for (const fileName of TEXTBOOK_V2_REQUIRED_FILES) {
@@ -81,6 +197,46 @@ export function inspectTextbookRuntimeV2(runtimeRoot, { expectedSourceRevision }
         `textbook-v2-source-revision-mismatch:expected=${sourceRevision} actual=${manifest.sourceRevision} book=${bookId}`,
       );
     }
+    for (const line of fs.readFileSync(path.join(bookRoot, 'units.jsonl'), 'utf8').split(/\r?\n/u)) {
+      if (!line.trim()) continue;
+      const unit = JSON.parse(line);
+      if (typeof unit.markdown !== 'string') continue;
+      for (const href of markdownImageHrefs(unit.markdown)) {
+        const mediaFile = resolveLegacyMediaFile({
+          legacyRoot,
+          bookId,
+          chapterId: unit.chapterId,
+          href,
+        });
+        mediaFiles.set(mediaFile.relativePath, mediaFile);
+      }
+    }
+  }
+  let legacyRootRealPath = null;
+  for (const mediaFile of mediaFiles.values()) {
+    let stat;
+    try {
+      stat = fs.lstatSync(mediaFile.filePath);
+    } catch (error) {
+      if (error && error.code === 'ENOENT') {
+        throw new Error(`textbook-v2-media-file-missing:${mediaFile.relativePath}`);
+      }
+      throw error;
+    }
+    if (!stat.isFile() || stat.isSymbolicLink()) {
+      throw new Error(`textbook-v2-media-file-invalid:${mediaFile.relativePath}`);
+    }
+    legacyRootRealPath ??= fs.realpathSync(legacyRoot);
+    const mediaRealPath = fs.realpathSync(mediaFile.filePath);
+    const relativeRealPath = path.relative(legacyRootRealPath, mediaRealPath);
+    if (
+      relativeRealPath === '..'
+      || relativeRealPath.startsWith(`..${path.sep}`)
+      || path.isAbsolute(relativeRealPath)
+    ) {
+      throw new Error(`textbook-v2-media-file-escape:${mediaFile.relativePath}`);
+    }
+    runtimeFiles.push(mediaFile);
   }
   const digest = createHash('sha256');
   for (const runtimeFile of runtimeFiles.sort((left, right) => (
@@ -100,6 +256,7 @@ export function inspectTextbookRuntimeV2(runtimeRoot, { expectedSourceRevision }
     sourceRevision,
     runtimeDigest: digest.digest('hex'),
     fileCount: TEXTBOOK_V2_BOOK_IDS.length * TEXTBOOK_V2_REQUIRED_FILES.length,
+    mediaFileCount: mediaFiles.size,
   };
 }
 
@@ -151,6 +308,9 @@ function writeSidecar(options) {
   assertRevision(appRevision, 'app-revision');
   const runtime = inspectTextbookRuntimeV2(runtimeRoot, {
     expectedSourceRevision: appRevision,
+    legacyRoot: options['legacy-root']
+      ? path.resolve(options['legacy-root'])
+      : undefined,
   });
   const sidecar = {
     schemaVersion: TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION,
@@ -183,7 +343,12 @@ function verifyRuntime(options) {
   const sidecar = readSidecar(path.resolve(requireOption(options, 'sidecar')));
   const runtime = inspectTextbookRuntimeV2(
     path.resolve(requireOption(options, 'runtime-root')),
-    { expectedSourceRevision: sidecar.runtimeSourceRevision },
+    {
+      expectedSourceRevision: sidecar.runtimeSourceRevision,
+      legacyRoot: options['legacy-root']
+        ? path.resolve(options['legacy-root'])
+        : undefined,
+    },
   );
   if (runtime.runtimeDigest !== sidecar.runtimeDigest) {
     throw new Error(
@@ -193,6 +358,7 @@ function verifyRuntime(options) {
   process.stdout.write(`${JSON.stringify({
     runtimeSourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
+    mediaFileCount: runtime.mediaFileCount,
   })}\n`);
 }
 
