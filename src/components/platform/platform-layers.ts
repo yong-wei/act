@@ -4,6 +4,7 @@ export const PLATFORM_LAYERS = {
   floatingDock: 120,
   konlingSide: 130,
   konlingWorkspace: 140,
+  textbookWorkspace: 150,
 } as const;
 
 export type PlatformLayer = keyof typeof PLATFORM_LAYERS;
