@@ -36,15 +36,22 @@ SET "providerAttemptGeneration" = GREATEST(
   ), 1)
 );
 
-UPDATE "SmartLessonGenerationStage"
+UPDATE "SmartLessonGenerationStage" AS stage
 SET "actionState" = CASE
-  WHEN "state" = 'RUNNING' THEN 'GENERATING'::"SmartLessonGenerationActionState"
-  WHEN "state" = 'PAUSED' THEN 'WAITING_CONFIRMATION'::"SmartLessonGenerationActionState"
-  WHEN "state" IN ('RETRYABLE', 'FAILED') THEN 'RETRYABLE'::"SmartLessonGenerationActionState"
-  WHEN "state" = 'COMPLETED' THEN 'COMPLETED'::"SmartLessonGenerationActionState"
-  WHEN "state" = 'CANCELLED' THEN 'CANCELLED'::"SmartLessonGenerationActionState"
+  WHEN job."state" = 'PAUSED'
+    AND job."outlineConfirmation" = true
+    AND stage."kind" = 'OUTLINE'
+    AND stage."state" = 'COMPLETED'
+    THEN 'WAITING_CONFIRMATION'::"SmartLessonGenerationActionState"
+  WHEN stage."state" = 'RUNNING' THEN 'GENERATING'::"SmartLessonGenerationActionState"
+  WHEN stage."state" = 'PAUSED' THEN 'WAITING_CONFIRMATION'::"SmartLessonGenerationActionState"
+  WHEN stage."state" IN ('RETRYABLE', 'FAILED') THEN 'RETRYABLE'::"SmartLessonGenerationActionState"
+  WHEN stage."state" = 'COMPLETED' THEN 'COMPLETED'::"SmartLessonGenerationActionState"
+  WHEN stage."state" = 'CANCELLED' THEN 'CANCELLED'::"SmartLessonGenerationActionState"
   ELSE 'WAITING'::"SmartLessonGenerationActionState"
-END;
+END
+FROM "SmartLessonGenerationJob" AS job
+WHERE job."id" = stage."jobId";
 
 ALTER TABLE "SmartLessonProviderAttempt"
   ADD CONSTRAINT "SmartLessonProviderAttempt_correctsAttemptId_fkey"

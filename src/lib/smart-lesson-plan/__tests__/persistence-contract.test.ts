@@ -60,6 +60,20 @@ describe('smart lesson persistence contract', () => {
     expect(generationExperienceMigration).toContain('SmartLessonProviderAttempt_stageId_providerAttemptGeneration_kind_key');
   });
 
+  it('migrates only the completed outline of a paused confirmation job to waiting confirmation', () => {
+    expect(generationExperienceMigration).toContain('FROM "SmartLessonGenerationJob" AS job');
+    expect(generationExperienceMigration).toContain('WHERE job."id" = stage."jobId"');
+
+    const pausedOutlineBranch = generationExperienceMigration.indexOf('WHEN job."state" = \'PAUSED\'');
+    const completedStageBranch = generationExperienceMigration.indexOf('WHEN stage."state" = \'COMPLETED\'');
+    expect(pausedOutlineBranch).toBeGreaterThan(-1);
+    expect(completedStageBranch).toBeGreaterThan(pausedOutlineBranch);
+
+    expect(generationExperienceMigration).toMatch(
+      /job\."state" = 'PAUSED'[\s\S]*job\."outlineConfirmation" = true[\s\S]*stage\."kind" = 'OUTLINE'[\s\S]*stage\."state" = 'COMPLETED'[\s\S]*THEN 'WAITING_CONFIRMATION'/,
+    );
+  });
+
   it('protects approved revisions from mutation and enforces sequential uniqueness', () => {
     expect(schema).toContain('@@unique([taskId, revisionNumber])');
     expect(schema).toContain('@@unique([ownerId, approvalIdempotencyKey])');
