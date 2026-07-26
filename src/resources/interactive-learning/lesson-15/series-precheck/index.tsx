@@ -124,7 +124,6 @@ export default function SeriesPrecheck({ onComplete, onStateChange }: SeriesPrec
       } else {
         await interactive?.progress.markComplete(result);
       }
-      interactive?.tracking.emit('complete', result.data);
       setCompletionStatus('success');
     } catch (error) {
       console.error('Failed to complete series precheck', error);

@@ -135,7 +135,7 @@ export default function InteractiveResourcePage() {
   };
 
   const resourceCompletionHandler = selectResourceCompletionHandler(
-    resourceId,
+    resource?.registryId,
     completePathResource,
     handlePathResourceComplete,
   );

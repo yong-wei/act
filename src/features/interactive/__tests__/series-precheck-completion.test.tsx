@@ -6,8 +6,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import SeriesPrecheck from '@/resources/interactive-learning/lesson-15/series-precheck';
 
+const interactive = vi.hoisted(() => ({
+  progress: {
+    setProgress: vi.fn(),
+    markComplete: vi.fn(),
+  },
+  tracking: {
+    emit: vi.fn(),
+  },
+}));
+
 vi.mock('@/features/interactive', () => ({
-  useOptionalInteractiveContext: () => undefined,
+  useOptionalInteractiveContext: () => interactive,
 }));
 
 describe('series precheck completion flow', () => {
@@ -19,6 +29,9 @@ describe('series precheck completion flow', () => {
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
+    interactive.progress.setProgress.mockClear();
+    interactive.progress.markComplete.mockClear();
+    interactive.tracking.emit.mockClear();
   });
 
   afterEach(async () => {
@@ -51,7 +64,10 @@ describe('series precheck completion flow', () => {
     const pendingCompletion = new Promise<void>((resolve) => {
       resolveCompletion = resolve;
     });
-    const onComplete = vi.fn(() => pendingCompletion);
+    const onComplete = vi.fn(() => {
+      interactive.tracking.emit('complete', { source: 'provider' });
+      return pendingCompletion;
+    });
     await act(async () => root.render(<SeriesPrecheck onComplete={onComplete} />));
 
     await reachLastQuestion();
@@ -69,12 +85,19 @@ describe('series precheck completion flow', () => {
     await act(async () => resolveCompletion());
     expect(container.textContent).toContain('检测结果已保存');
     expect(container.textContent).toContain('可以返回学习路径继续学习');
+    expect(interactive.tracking.emit.mock.calls.filter(([event]) => event === 'complete')).toHaveLength(1);
   });
 
   it('shows a visible failure and allows one retry', async () => {
     const onComplete = vi.fn()
-      .mockRejectedValueOnce(new Error('network failure'))
-      .mockResolvedValueOnce(undefined);
+      .mockImplementationOnce(() => {
+        interactive.tracking.emit('complete', { source: 'provider' });
+        return Promise.reject(new Error('network failure'));
+      })
+      .mockImplementationOnce(() => {
+        interactive.tracking.emit('complete', { source: 'provider' });
+        return Promise.resolve();
+      });
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     await act(async () => root.render(<SeriesPrecheck onComplete={onComplete} />));
 
@@ -87,5 +110,6 @@ describe('series precheck completion flow', () => {
     await act(async () => button('重试完成检测')?.click());
     expect(onComplete).toHaveBeenCalledTimes(2);
     expect(container.querySelector('[role="status"]')?.textContent).toContain('检测结果已保存');
+    expect(interactive.tracking.emit.mock.calls.filter(([event]) => event === 'complete')).toHaveLength(2);
   });
 });
