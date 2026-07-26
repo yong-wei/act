@@ -72,14 +72,14 @@ export function TextbookFragmentFocus({
       {locationState === 'missing' ? (
         <div
           role="status"
-          className="mb-4 rounded-lg border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-100"
+          className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-foreground"
           data-textbook-fragment-unavailable="true"
         >
           当前单元可正常阅读，但请求的公式、插图或表格位置不可用。
         </div>
       ) : null}
       <div
-        className="[&_[data-textbook-fragment-target=true]]:rounded-lg [&_[data-textbook-fragment-target=true]]:outline [&_[data-textbook-fragment-target=true]]:outline-2 [&_[data-textbook-fragment-target=true]]:outline-offset-4 [&_[data-textbook-fragment-target=true]]:outline-sky-500"
+        className="[&_[data-textbook-fragment-target=true]]:rounded-lg [&_[data-textbook-fragment-target=true]]:outline [&_[data-textbook-fragment-target=true]]:outline-2 [&_[data-textbook-fragment-target=true]]:outline-offset-4 [&_[data-textbook-fragment-target=true]]:outline-primary"
         data-textbook-fragment-state={locationState}
       >
         {children}

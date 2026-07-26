@@ -39,12 +39,12 @@ export function TextbookReaderModal({ children }: { children: React.ReactNode })
     }}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
-          className="fixed inset-0 bg-black/80"
+          className="fixed inset-0 bg-foreground/80 backdrop-blur-sm dark:bg-foreground/20"
           style={platformLayerStyle('textbookWorkspace')}
           data-platform-layer="textbookWorkspace"
         />
         <DialogPrimitive.Content
-          className="fixed left-1/2 top-1/2 h-[min(92vh,980px)] w-full max-w-[min(96vw,1600px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950 shadow-2xl focus:outline-none"
+          className="fixed left-1/2 top-1/2 h-[min(92vh,980px)] w-full max-w-[min(96vw,1600px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-background shadow-2xl focus:outline-none"
           style={platformLayerStyle('textbookWorkspace')}
           data-platform-layer="textbookWorkspace"
           data-textbook-reader-modal="true"
@@ -54,7 +54,7 @@ export function TextbookReaderModal({ children }: { children: React.ReactNode })
             阅读当前教材结构单元，可使用目录、面包屑和相邻单元链接继续浏览。
           </DialogPrimitive.Description>
           {children}
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md bg-zinc-950/80 p-2 text-zinc-300 shadow ring-1 ring-zinc-700 transition hover:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md bg-background/80 p-2 text-muted-foreground shadow ring-1 ring-border transition hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
             <X className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
