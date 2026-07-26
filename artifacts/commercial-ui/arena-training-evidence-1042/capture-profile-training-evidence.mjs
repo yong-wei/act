@@ -78,6 +78,7 @@ const profileFixture = {
     trainingSummary: {
       total: 6,
       recentWindowSize: 5,
+      actualSampleCount: 3,
       recentPreviewCount: 3,
       latestTrainedAt: '2026-07-25T00:00:00.000Z',
       recentAverageQualityScore: 84,
@@ -127,7 +128,7 @@ const expectedLabels = {
 };
 const expectedFragments = [
   '\u5df2\u8bb0\u5f55 6 \u6b21\u8bad\u7ec3',
-  '\u6700\u8fd1 5 \u6b21\u5e73\u5747\u8d28\u91cf 84 \u5206',
+  '\u6700\u8fd1 3 \u6b21\u5e73\u5747\u8d28\u91cf 84 \u5206',
 ];
 
 async function interceptProfileRequests(page) {
