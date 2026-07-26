@@ -1,4 +1,4 @@
-import { generateObject } from 'ai';
+import { generateText, Output, zodSchema } from 'ai';
 import type { z } from 'zod';
 
 import { createAIProviderFromConfig } from '../ai/provider-registry';
@@ -56,22 +56,35 @@ export async function resolveSmartLessonStructuredProvider(dependencies: Runtime
         prompt: string;
         idempotencyKey: string;
         maxOutputTokens?: number;
+        deferValidation?: boolean;
       }) {
-        const generator = dependencies.generate ?? (generateObject as unknown as RuntimeDependencies['generate']);
-        const result = await generator!({
-          model: adapter.getModel(),
-          schema: input.schema,
-          schemaName: input.schemaVersion.replace(/[^A-Za-z0-9_-]/g, '_'),
-          system: input.system,
-          prompt: input.prompt,
-          temperature: 0.1,
-          maxRetries: 0,
-          maxOutputTokens: input.maxOutputTokens ?? 8_000,
-          headers: { 'Idempotency-Key': input.idempotencyKey },
-        }) as GenerateObjectResult<T>;
+        const schemaName = input.schemaVersion.replace(/[^A-Za-z0-9_-]/g, '_');
+        const result = dependencies.generate
+          ? await dependencies.generate({
+              model: adapter.getModel(),
+              schema: input.schema,
+              schemaName,
+              system: input.system,
+              prompt: input.prompt,
+              temperature: 0.1,
+              maxRetries: 0,
+              maxOutputTokens: input.maxOutputTokens ?? 8_000,
+              headers: { 'Idempotency-Key': input.idempotencyKey },
+            })
+          : await generateUnvalidatedJson({
+              model: adapter.getModel(),
+              schema: input.schema,
+              schemaName,
+              system: input.system,
+              prompt: input.prompt,
+              idempotencyKey: input.idempotencyKey,
+              maxOutputTokens: input.maxOutputTokens ?? 8_000,
+            });
+        const normalized = normalizeSmartLessonProviderOutput(result.object);
+        const output = input.deferValidation ? normalized : input.schema.parse(normalized);
         return {
-          output: input.schema.parse(result.object),
-          normalizedResponseId: result.response?.id?.trim() || `sha256:${contentHash(result.object)}`,
+          output,
+          normalizedResponseId: result.response?.id?.trim() || `sha256:${contentHash(output)}`,
           inputTokens: result.usage?.inputTokens ?? null,
           outputTokens: result.usage?.outputTokens ?? null,
           costMicros: null,
@@ -96,6 +109,81 @@ export async function resolveSmartLessonStructuredProvider(dependencies: Runtime
     }
     throw error;
   }
+}
+
+async function generateUnvalidatedJson(input: {
+  model: Parameters<typeof generateText>[0]['model'];
+  schema: z.ZodTypeAny;
+  schemaName: string;
+  system: string;
+  prompt: string;
+  idempotencyKey: string;
+  maxOutputTokens: number;
+}): Promise<GenerateObjectResult<unknown>> {
+  const result = await generateText({
+    model: input.model,
+    output: Output.json({ name: input.schemaName }),
+    system: input.system,
+    prompt: `${input.prompt}\n必须遵循的 JSON Schema：${JSON.stringify(zodSchema(input.schema).jsonSchema)}`,
+    temperature: 0.1,
+    maxRetries: 0,
+    maxOutputTokens: input.maxOutputTokens,
+    headers: { 'Idempotency-Key': input.idempotencyKey },
+  });
+  return {
+    object: result.output,
+    usage: {
+      inputTokens: result.usage.inputTokens,
+      outputTokens: result.usage.outputTokens,
+    },
+    response: { id: result.response.id },
+  };
+}
+
+export type SmartLessonValidationReceipt = {
+  valid: boolean;
+  schemaVersion: string;
+  issues: Array<{ code: string; path: Array<string | number>; message: string }>;
+};
+
+export function normalizeSmartLessonProviderOutput(value: unknown, key?: string): unknown {
+  if (Array.isArray(value)) return value.map((item) => normalizeSmartLessonProviderOutput(item));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+      .map(([childKey, child]) => [childKey, normalizeSmartLessonProviderOutput(child, childKey)]));
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().replaceAll(/\r\n?/g, '\n');
+    if (key === 'minutes' && /^\d+$/.test(normalized)) return Number(normalized);
+    return normalized;
+  }
+  return value;
+}
+
+export function validateSmartLessonProviderOutput<T>(
+  schema: z.ZodType<T>,
+  schemaVersion: string,
+  value: unknown,
+): { success: true; output: T; receipt: SmartLessonValidationReceipt }
+  | { success: false; output: unknown; receipt: SmartLessonValidationReceipt } {
+  const output = normalizeSmartLessonProviderOutput(value);
+  const result = schema.safeParse(output);
+  if (result.success) {
+    return { success: true, output: result.data, receipt: { valid: true, schemaVersion, issues: [] } };
+  }
+  return {
+    success: false,
+    output,
+    receipt: {
+      valid: false,
+      schemaVersion,
+      issues: result.error.issues.slice(0, 50).map((issue) => ({
+        code: issue.code,
+        path: issue.path,
+        message: issue.message,
+      })),
+    },
+  };
 }
 
 function smartLessonE2EFixtureRequested() {
