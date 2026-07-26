@@ -124,7 +124,7 @@ const profileFixture = {
 const expectedLabels = {
   training: '\u865a\u62df\u4eff\u771f\u8bad\u7ec3',
   preview: '\u975e\u5b98\u65b9\u9884\u89c8',
-  run: 'Cruise roll black-box identification',
+  run: '\u90ae\u8f6e\u9ed1\u7bb1\u8fa8\u8bc6\u4e0e\u95ed\u73af\u63a7\u5236\u6311\u6218',
 };
 const expectedFragments = [
   '\u5df2\u8bb0\u5f55 6 \u6b21\u8bad\u7ec3',
@@ -231,7 +231,7 @@ await mkdir(outputDirectory, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
 
-  // P2: Pre-capture workspace validation
+  // Pre-capture workspace validation
   const capturedRevision = execSync('git rev-parse HEAD').toString().trim();
   const workspaceStatus = execSync('git status --porcelain').toString().trim();
   if (workspaceStatus.length > 0) {
@@ -251,7 +251,7 @@ try {
   };
   await writeFile(join(outputDirectory, 'screenshots.json'), `${JSON.stringify(screenshots, null, 2)}\n`);
 
-  // P2: Post-capture revision re-check
+  // Post-capture revision re-check
   const finalRevision = execSync('git rev-parse HEAD').toString().trim();
   if (finalRevision !== capturedRevision) {
     throw new Error('Source revision drifted: started ' + capturedRevision + ', now ' + finalRevision);
