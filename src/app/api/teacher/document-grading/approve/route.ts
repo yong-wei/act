@@ -28,6 +28,7 @@ import {
 import { writeGradingAudit } from '@/lib/data-governance/math-document-grading-persistence';
 import { gradingRequestScope, pseudonymousAuditId, sha256, stableStringify } from '@/lib/data-governance/math-document-grading-contracts';
 import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
+import { hasAtMostOneDecimal } from '@/lib/assignments/assignment-rubric-contract';
 import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 
 export const dynamic = 'force-dynamic';
@@ -272,7 +273,7 @@ async function approvePipelineRun(input: {
   reviewerId: string;
   reviewerRole: UserRole;
   decision: 'approved';
-  edits: Array<{ criterionId: string; levelId: string; score: number; comment: string }>;
+  edits: Array<{ criterionId: string; levelId: string | null; score: number; comment: string }>;
   notes?: string;
   idempotencyKey?: string;
 }) {
@@ -431,7 +432,7 @@ async function approvePipelineRun(input: {
   return pipelineApprovalResponse(input.run, input.edits, reviewedAt, result.written);
 }
 
-function buildReviewRequestIdentity(input: { run: any; reviewerId: string; edits: Array<{ criterionId: string; levelId: string; score: number; comment: string }>; notes?: string; idempotencyKey?: string }) {
+function buildReviewRequestIdentity(input: { run: any; reviewerId: string; edits: Array<{ criterionId: string; levelId: string | null; score: number; comment: string }>; notes?: string; idempotencyKey?: string }) {
   const requestHash = sha256(stableStringify({
     gradingRunId: input.run.id,
     reviewerId: input.reviewerId,
@@ -449,7 +450,7 @@ async function findApprovedReviewReplay(runId: string, reviewerId: string, ident
   return row?.requestHash === identity.requestHash && row.idempotencyKey === protectedKey && (!row.expiresAt || new Date(row.expiresAt) > new Date()) ? row : null;
 }
 
-function pipelineApprovalResponse(run: any, edits: Array<{ criterionId: string; levelId: string; score: number; comment: string }>, reviewedAt: Date, written: number) {
+function pipelineApprovalResponse(run: any, edits: Array<{ criterionId: string; levelId: string | null; score: number; comment: string }>, reviewedAt: Date, written: number) {
   const facts = buildPipelineReviewFacts({ run, edits, reviewedAt: new Date(reviewedAt) });
   return NextResponse.json({ status: 'approved', gradingRunId: run.id, createdFacts: written, skippedFacts: Math.max(facts.length - written, 0), blockedFacts: 0, evidenceSourceEventIds: facts.map((fact: any) => fact.sourceEventId) });
 }
@@ -494,7 +495,7 @@ function isDocumentGradingDecision(value: unknown): value is 'approved' | 'retur
 
 function isDocumentGradingEditList(value: unknown): value is Array<{
   criterionId: string;
-  levelId: string;
+  levelId: string | null;
   score: number;
   comment: string;
 }> {
@@ -502,7 +503,7 @@ function isDocumentGradingEditList(value: unknown): value is Array<{
     typeof item === 'object' &&
     !Array.isArray(item) &&
     typeof item.criterionId === 'string' &&
-    typeof item.levelId === 'string' &&
+    (typeof item.levelId === 'string' || item.levelId === null) &&
     typeof item.score === 'number' &&
     Number.isFinite(item.score) &&
     typeof item.comment === 'string' &&
@@ -512,14 +513,17 @@ function isDocumentGradingEditList(value: unknown): value is Array<{
 function validateDocumentGradingEditsAgainstRubric(
   edits: Array<{
     criterionId: string;
-    levelId: string;
+    levelId: string | null;
     score: number;
     comment: string;
   }>,
   rubric: {
     maxScore: number;
+    schemaVersion?: string;
     criteria: Array<{
       id: string;
+      maxPoints?: number;
+      detailedRubricEnabled?: boolean;
       levels: Array<{ id: string; score: number }>;
     }>;
   },
@@ -529,11 +533,20 @@ function validateDocumentGradingEditsAgainstRubric(
     if (!criterion) {
       return '评分编辑指标不存在';
     }
-    const level = criterion.levels.find((item) => item.id === edit.levelId);
-    if (!level) {
+    const detailed = rubric.schemaVersion === 'assignment-scoring-rubric.v2'
+      ? criterion.detailedRubricEnabled === true
+      : true;
+    const level = edit.levelId ? criterion.levels.find((item) => item.id === edit.levelId) : null;
+    if (detailed && !level) {
       return '评分编辑等级不存在';
     }
-    if (edit.score < 0 || edit.score > rubric.maxScore) {
+    if (!detailed && edit.levelId !== null) {
+      return '标准评分项不得指定评价级别';
+    }
+    if (!hasAtMostOneDecimal(edit.score)) {
+      return '评分编辑分数必须保留一位小数';
+    }
+    if (edit.score < 0 || edit.score > (criterion.maxPoints ?? rubric.maxScore)) {
       return '评分编辑分数超出量规范围';
     }
   }

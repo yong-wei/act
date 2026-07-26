@@ -4,6 +4,10 @@
 The system SHALL require each published subjective assignment question to contain one or more ordered scoring items with stable identifiers, names, maximum points, a natural-language scoring standard, and an optional detailed rubric composed of evaluation levels.
 Scoring-item maximums, evaluation-level maximums, AI-suggested scores, teacher-revised scores, and final scores SHALL use one decimal place, and each scoring-item maximum SHALL be at least 1.0 point.
 
+#### Scenario: Teacher defines a rubric
+- **WHEN** a teacher edits a subjective question rubric
+- **THEN** the editor SHALL allow ordered scoring items, maximum points, scoring standards, optional detailed levels, and feedback guidance to be defined and reordered.
+
 #### Scenario: Teacher defines a scoring item without detailed rubric
 - **WHEN** a teacher leaves the optional detailed rubric disabled
 - **THEN** the scoring standard SHALL be required for publication
@@ -30,6 +34,15 @@ Scoring-item maximums, evaluation-level maximums, AI-suggested scores, teacher-r
 
 ### Requirement: Publication validates all score scales without silent rescaling
 The system MUST block assignment publication unless the assignment total, question totals, scoring-item totals, and enabled evaluation-level ranges are internally consistent on a one-decimal score grid.
+
+#### Scenario: Totals agree
+- **WHEN** assignment total equals the sum of question points and every question point value equals the sum of its scoring-item maximums
+- **THEN** score consistency SHALL pass the publication gate if every enabled detailed rubric also forms valid ordered ranges.
+
+#### Scenario: Totals disagree
+- **WHEN** any assignment, question, scoring-item, or evaluation-level score scale conflicts
+- **THEN** publication SHALL fail with a teacher-visible reconciliation result
+- **AND** the system SHALL NOT silently normalize, rescale, or select one source as authoritative.
 
 #### Scenario: Totals and level ranges agree
 - **WHEN** the assignment total equals the sum of question points, each question point value equals the sum of its scoring-item maximums, and every enabled detailed rubric forms valid ordered ranges from the scoring-item maximum to zero

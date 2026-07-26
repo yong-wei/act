@@ -12,6 +12,7 @@ import {
   type AssignmentDraftInput,
   type AssignmentQuestionSnapshot,
 } from './assignment-domain';
+import { migrateLegacyAssignmentDraftToRubricV2 } from './assignment-rubric-migration';
 
 type AssignmentDb = PrismaClient;
 type Actor = { id: string; role: 'TEACHER' | 'ADMIN' };
@@ -222,39 +223,44 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
       include: { questions: { orderBy: { orderIndex: 'asc' } } },
         });
         if (!latest) throw new AssignmentDomainError('published-revision-not-found');
+        const legacyDraft = assignmentDraftSchema.parse({
+          title: latest.title,
+          instructions: latest.instructions,
+          totalPoints: Number(latest.totalPoints),
+          questions: latest.questions.map((question) => questionFromRow(question as unknown as Record<string, unknown>)),
+          latePolicy: latest.latePolicy,
+          responsePolicy: latest.responsePolicy,
+          resubmissionPolicy: latest.resubmissionPolicy,
+          solutionReleasePolicy: latest.solutionReleasePolicy,
+        });
+        const nextDraftResult = assignmentDraftSchema.safeParse(
+          migrateLegacyAssignmentDraftToRubricV2(legacyDraft),
+        );
+        if (!nextDraftResult.success) {
+          throw new AssignmentDomainError(
+            'legacy-rubric-v2-migration-required',
+            nextDraftResult.error.issues.map((issue) => `${issue.path.join('.')}:${issue.message}`),
+          );
+        }
+        const nextDraft = nextDraftResult.data;
+        const nextSnapshots = nextDraft.questions.map((question) => {
+          if (question.source.family !== 'ASSIGNMENT_DERIVATIVE') return createQuestionSnapshot(question);
+          const contentHash = stableHash({
+            responseType: question.responseType,
+            points: question.points,
+            prompt: question.prompt,
+            referenceAnswer: question.referenceAnswer,
+            rubric: question.rubric,
+          });
+          return createQuestionSnapshot({
+            ...question,
+            source: { ...question.source, contentHash },
+          });
+        });
         return tx.assignmentRevision.create({
       data: {
         assignmentId: input.assignmentId,
-        revisionNumber: latest.revisionNumber + 1,
-        title: latest.title,
-        instructions: latest.instructions,
-        totalPoints: latest.totalPoints,
-        latePolicy: latest.latePolicy ?? {},
-        responsePolicy: latest.responsePolicy ?? {},
-        resubmissionPolicy: latest.resubmissionPolicy ?? {},
-        solutionReleasePolicy: latest.solutionReleasePolicy ?? {},
-        contentHash: latest.contentHash,
-        questions: {
-          create: latest.questions.map((question) => ({
-            stableQuestionId: question.stableQuestionId,
-            orderIndex: question.orderIndex,
-            responseType: question.responseType,
-            points: question.points,
-            promptSnapshot: question.promptSnapshot as Prisma.InputJsonValue,
-            answerSnapshot: question.answerSnapshot as Prisma.InputJsonValue,
-            rubricSnapshot: question.rubricSnapshot as Prisma.InputJsonValue,
-            sourceFamily: question.sourceFamily,
-            sourceId: question.sourceId,
-            sourceVersion: question.sourceVersion,
-            sourceHash: question.sourceHash,
-            sourceReviewState: question.sourceReviewState,
-            sourceCatalogItemId: question.sourceCatalogItemId,
-            sourceOriginalFamily: question.sourceOriginalFamily,
-            sourceSelectionProof: question.sourceSelectionProof,
-            sourceLineage: question.sourceLineage as Prisma.InputJsonValue,
-            contentHash: question.contentHash,
-          })),
-        },
+        ...revisionCreateData(nextDraft, nextSnapshots, latest.revisionNumber + 1),
       },
       include: { questions: { orderBy: { orderIndex: 'asc' } } },
         });

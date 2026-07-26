@@ -69,10 +69,11 @@ export async function POST(request: Request) {
     if (!secret) throw new AssignmentDomainError('catalog-lineage-secret-missing');
     const prompt = item.questionRefs.stem?.trim() || '题面待补充';
     const referenceAnswer = item.questionRefs.answerKey?.join('\n') || item.questionRefs.explanation?.trim() || '参考答案待教师补充';
-    const rubric = { schemaVersion: 'assignment-analytic-rubric.v1' as const, criteria: [{
+    const rubric = { schemaVersion: 'assignment-scoring-rubric.v2' as const, criteria: [{
       id: 'criterion-1', label: '完成质量', maxPoints: 10,
-      evidenceDescription: '根据作答中的可复核证据评分。', feedbackGuidance: '指出关键得分证据与改进建议。',
-      levels: [{ id: 'level-1', label: '达成程度', minPoints: 0, maxPoints: 10, description: '依据证据在连续整数分值区间内评分。' }],
+      scoringStandard: '根据作答中的可复核证据、正确性和完整性评分。',
+      detailedRubricEnabled: false,
+      levels: [],
     }] };
     const derivative = { responseType: 'SUBJECTIVE_TEXT' as const, points: 10, prompt, referenceAnswer, rubric };
     return NextResponse.json({ question: {

@@ -26,7 +26,7 @@ import {
 } from '../document-rubric-grading-workbench';
 import { listEvidenceTimeline } from '../evidence-timeline';
 import { buildFeedbackTaskContext } from '../../student-feedback-task-contract';
-import { buildPipelineGradingWorkbenchView, buildPipelineReviewListItem, validatePipelineReviewContract, validatePipelineRuntimeSource } from '../math-document-grading-review';
+import { buildPipelineGradingWorkbenchView, buildPipelineReviewListItem, validatePipelineReviewContract, validatePipelineReviewEdits, validatePipelineRuntimeSource } from '../math-document-grading-review';
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 
 const now = new Date('2026-06-04T08:00:00.000Z');
@@ -212,6 +212,106 @@ describe('document rubric grading workbench', () => {
       confidence: 0,
     })]);
     expect(failed.warnings).toEqual(expect.arrayContaining(['markitdown-conversion-failed', 'retry-fallback']));
+  });
+
+  it('supports v2 scoring-standard-only drafts and independent one-decimal teacher scores', async () => {
+    const converted = await convertSubmissionDocument({
+      asset: asset(),
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        runner: (submission) => textFixtureMarkItDownRunner(submission, true),
+      }),
+      now,
+    });
+    const standardRubric: RubricDefinition = {
+      id: 'rubric-standard-v2',
+      title: '评分标准',
+      version: '2026.07',
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      maxScore: 4,
+      criteria: [{
+        id: 'modeling',
+        label: '模型表达',
+        weight: 1,
+        maxPoints: 4,
+        scoringStandard: '依据阻尼比证据的正确性和完整性评分。',
+        detailedRubricEnabled: false,
+        evidenceRequirement: 'damping ratio',
+        goalDimension: 'controlModeling',
+        levels: [],
+      }],
+    };
+    const run = createDraftRubricGrading({
+      convertedDocument: converted,
+      rubric: standardRubric,
+      evaluatorOutput: {
+        evaluatorId: 'fixture-v2',
+        evaluatorVersion: 'v2',
+        assessments: [{
+          criterionId: 'modeling',
+          levelId: null,
+          score: 3.1,
+          rationale: 'The submitted evidence identifies the damping ratio clearly.',
+          confidence: 0.9,
+          evidenceBlockIds: [converted.blocks[0].id],
+          limitationState: 'none',
+        }],
+      },
+      now,
+    });
+    expect(run.status).toBe('draft');
+    expect(run.draftGrades[0]).toEqual(expect.objectContaining({ levelId: null, score: 3.1 }));
+
+    const edited = editCriterionGrade(run, {
+      criterionId: 'modeling',
+      levelId: null,
+      score: 3.9,
+      comment: '教师根据完整证据调整分数。',
+      reviewerId: 'teacher-1',
+      rubric: standardRubric,
+      now,
+    });
+    expect(edited.draftGrades[0].score).toBe(3.9);
+    expect(() => editCriterionGrade(run, {
+      criterionId: 'modeling',
+      levelId: null,
+      score: 3.95,
+      comment: '非法精度。',
+      reviewerId: 'teacher-1',
+      rubric: standardRubric,
+      now,
+    })).toThrow('teacher-score-must-use-0.1-quantum');
+  });
+
+  it('does not clamp v2 teacher revisions to the selected AI level', () => {
+    const run = {
+      questionSnapshot: {
+        rubric: {
+          schemaVersion: 'assignment-scoring-rubric.v2',
+          criteria: [{
+            id: 'quality',
+            maxPoints: 10,
+            detailedRubricEnabled: true,
+            levels: [
+              { id: 'excellent', minPoints: 8, maxPoints: 10 },
+              { id: 'pass', minPoints: 6, maxPoints: 7.9 },
+            ],
+          }],
+        },
+      },
+    };
+    expect(validatePipelineReviewEdits(run, [{
+      criterionId: 'quality',
+      levelId: 'excellent',
+      score: 6.5,
+      comment: '教师独立评分。',
+    }])).toBeNull();
+    expect(validatePipelineReviewEdits(run, [{
+      criterionId: 'quality',
+      levelId: 'excellent',
+      score: 6.55,
+      comment: '非法精度。',
+    }])).toBe('评分编辑分数必须保留一位小数');
   });
 
   it('keeps failed conversion drafts anchored to an auditable fallback block', async () => {

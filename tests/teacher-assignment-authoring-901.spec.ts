@@ -264,7 +264,14 @@ test('schema blockers focus their exact fields', async ({ page, context }) => {
     { mutate: async () => page.getByLabel('最多提交次数').fill('0'), target: () => page.getByLabel('最多提交次数') },
     { mutate: async () => { await page.getByLabel('迟交策略').selectOption('ALLOW'); await page.getByLabel('每日扣分百分比').fill('101'); }, target: () => page.getByLabel('每日扣分百分比') },
     { mutate: async () => page.getByLabel('评分项 1 名称').fill(''), target: () => page.getByLabel('评分项 1 名称') },
-    { mutate: async () => page.getByLabel('评分项 1 档位 1 最高分').fill('2.555'), target: () => page.getByLabel('评分项 1 档位 1 最高分') },
+    {
+      mutate: async () => {
+        await page.getByLabel('启用详细评分细则').check();
+        await page.getByRole('button', { name: '添加评价级别' }).click();
+        await page.getByLabel('评分项 1 级别 2 分值边界').fill('2.555');
+      },
+      target: () => page.getByLabel('评分项 1 级别 2 分值边界'),
+    },
     { mutate: async () => page.getByLabel('允许作答类型').selectOption('SUBJECTIVE_FILE'), target: () => page.getByLabel('允许作答类型') },
   ];
   for (const item of cases) {
@@ -286,12 +293,14 @@ test('invalid decimal rubric never reaches save or publish', async ({ page, cont
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
-  await page.getByLabel('评分项 1 档位 1 最高分').fill('2.555');
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+  await page.getByLabel('评分项 1 级别 2 分值边界').fill('2.555');
   await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
   expect(mutationCount).toBe(0);
 });
 
-test('rubric band gap never reaches save or publish', async ({ page, context }) => {
+test('rubric boundary conflict never reaches save or publish', async ({ page, context }) => {
   await addTeacherSession(context);
   let mutationCount = 0;
   await page.route('**/api/teacher/assignments**', async (route) => { if (route.request().method() === 'GET') return route.fallback(); mutationCount += 1; await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' }); });
@@ -299,7 +308,9 @@ test('rubric band gap never reaches save or publish', async ({ page, context }) 
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
   await fillPublicationSchedule(page);
-  await page.getByLabel('评分项 1 档位 1 最低分').fill('0.01');
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+  await page.getByLabel('评分项 1 级别 2 分值边界').fill('10');
   await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
   expect(mutationCount).toBe(0);
 });

@@ -23,6 +23,13 @@ import {
   type AssignmentDraftInput,
 } from '@/lib/assignments/assignment-domain';
 import {
+  addDetailedRubricLevel,
+  applyRubricLevelShortcut,
+  createInitialDetailedLevel,
+  deriveRubricLevelRanges,
+  sortRubricLevels,
+} from '@/lib/assignments/assignment-rubric-contract';
+import {
   EMPTY_ASSIGNMENT_DRAFT,
   type AssignmentEditorDocument,
   type GovernedQuestionSummary,
@@ -1109,6 +1116,14 @@ export function AssignmentEditorWorkspace({
 }
 
 type EditableQuestion = AssignmentDraftInput['questions'][number];
+type ScoringRubricV2 = Extract<
+  EditableQuestion['rubric'],
+  { schemaVersion: 'assignment-scoring-rubric.v2' }
+>;
+type EditableQuestionV2 = Omit<EditableQuestion, 'rubric'> & {
+  rubric: ScoringRubricV2;
+};
+type ScoringCriterionV2 = ScoringRubricV2['criteria'][number];
 
 function QuestionEditor({
   question,
@@ -1125,17 +1140,22 @@ function QuestionEditor({
   promptRef: React.RefObject<HTMLTextAreaElement | null>;
   onChange: (question: EditableQuestion) => void;
 }) {
+  const editedLevelIdsRef = useRef(new Set(
+    question.rubric.criteria.flatMap((criterion) => criterion.levels.map((level) => level.id)),
+  ));
+  const editableQuestion: EditableQuestionV2 = {
+    ...question,
+    rubric: toScoringRubricV2(question.rubric),
+  };
   const updateCriterion = (
     index: number,
-    update: (
-      criterion: EditableQuestion['rubric']['criteria'][number],
-    ) => EditableQuestion['rubric']['criteria'][number],
+    update: (criterion: ScoringCriterionV2) => ScoringCriterionV2,
   ) =>
     onChange({
-      ...question,
+      ...editableQuestion,
       rubric: {
-        ...question.rubric,
-        criteria: question.rubric.criteria.map((criterion, itemIndex) =>
+        ...editableQuestion.rubric,
+        criteria: editableQuestion.rubric.criteria.map((criterion, itemIndex) =>
           itemIndex === index ? update(criterion) : criterion,
         ),
       },
@@ -1156,10 +1176,10 @@ function QuestionEditor({
             }
             aria-label="作答类型"
             aria-describedby="assignment-validation-errors"
-            value={question.responseType}
+            value={editableQuestion.responseType}
             onChange={(event) =>
               onChange({
-                ...question,
+                ...editableQuestion,
                 responseType: event.target
                   .value as EditableQuestion['responseType'],
               })
@@ -1173,9 +1193,9 @@ function QuestionEditor({
         <textarea
           ref={promptRef}
           aria-label="题面"
-          value={question.prompt}
+          value={editableQuestion.prompt}
           onChange={(event) =>
-            onChange({ ...question, prompt: event.target.value })
+            onChange({ ...editableQuestion, prompt: event.target.value })
           }
           className="mt-2 min-h-36 w-full rounded-xl border border-slate-700 bg-slate-950 p-3"
         />
@@ -1186,9 +1206,9 @@ function QuestionEditor({
         </h2>
         <textarea
           aria-label="参考答案"
-          value={question.referenceAnswer}
+          value={editableQuestion.referenceAnswer}
           onChange={(event) =>
-            onChange({ ...question, referenceAnswer: event.target.value })
+            onChange({ ...editableQuestion, referenceAnswer: event.target.value })
           }
           className="mt-2 min-h-28 w-full rounded-xl border border-slate-700 bg-slate-950 p-3"
         />
@@ -1200,17 +1220,17 @@ function QuestionEditor({
               评分标准
             </h2>
             <p className="mt-1 text-xs text-slate-400">
-              分值最多保留两位小数；档位按 0.01 分连续覆盖最高分至 0 分。
+              所有分值保留一位小数；评分标准为默认依据，评分细则按需启用。
             </p>
           </div>
           <button
             type="button"
             onClick={() =>
               onChange({
-                ...question,
+                ...editableQuestion,
                 rubric: {
-                  ...question.rubric,
-                  criteria: [...question.rubric.criteria, newCriterion()],
+                  ...editableQuestion.rubric,
+                  criteria: [...editableQuestion.rubric.criteria, newCriterion()],
                 },
               })
             }
@@ -1223,17 +1243,45 @@ function QuestionEditor({
           题目分值
           <input
             type="number"
-            step="0.01"
-            min="0.01"
+            step="0.1"
+            min="1"
             max="10000"
-            value={question.points}
+            value={editableQuestion.points}
             onChange={(event) =>
-              onChange({ ...question, points: Number(event.target.value) })
+              onChange({ ...editableQuestion, points: Number(event.target.value) })
             }
             className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
           />
         </label>
-        {question.rubric.criteria.map((criterion, index) => (
+        {editableQuestion.rubric.criteria.map((criterion, index) => {
+          const ranges = deriveRubricLevelRanges(criterion.levels, criterion.maxPoints);
+          const applyShortcut = (targetCount: 2 | 5) => {
+            let result = applyRubricLevelShortcut({
+              criterionId: criterion.id,
+              criterionMaxPoints: criterion.maxPoints,
+              levels: criterion.levels,
+              targetCount,
+              editedLevelIds: editedLevelIdsRef.current,
+            });
+            if (result.status === 'confirmation-required') {
+              const confirmed = window.confirm(
+                `将删除末尾级别：${result.trailingLevels.map((level) => level.label).join('、')}。是否继续？`,
+              );
+              if (!confirmed) return;
+              result = applyRubricLevelShortcut({
+                criterionId: criterion.id,
+                criterionMaxPoints: criterion.maxPoints,
+                levels: criterion.levels,
+                targetCount,
+                editedLevelIds: editedLevelIdsRef.current,
+                confirmTrailingDeletion: true,
+              });
+            }
+            if (result.status === 'applied') {
+              updateCriterion(index, (item) => ({ ...item, levels: result.levels }));
+            }
+          };
+          return (
           <article
             key={criterion.id}
             className="mt-3 rounded-xl border border-slate-700 p-3"
@@ -1262,10 +1310,10 @@ function QuestionEditor({
                 disabled={index === 0}
                 onClick={() =>
                   onChange({
-                    ...question,
+                    ...editableQuestion,
                     rubric: {
-                      ...question.rubric,
-                      criteria: moveItem(question.rubric.criteria, index, -1),
+                      ...editableQuestion.rubric,
+                      criteria: moveItem(editableQuestion.rubric.criteria, index, -1),
                     },
                   })
                 }
@@ -1275,13 +1323,13 @@ function QuestionEditor({
               <button
                 type="button"
                 aria-label={`下移评分项 ${index + 1}`}
-                disabled={index === question.rubric.criteria.length - 1}
+                disabled={index === editableQuestion.rubric.criteria.length - 1}
                 onClick={() =>
                   onChange({
-                    ...question,
+                    ...editableQuestion,
                     rubric: {
-                      ...question.rubric,
-                      criteria: moveItem(question.rubric.criteria, index, 1),
+                      ...editableQuestion.rubric,
+                      criteria: moveItem(editableQuestion.rubric.criteria, index, 1),
                     },
                   })
                 }
@@ -1291,13 +1339,13 @@ function QuestionEditor({
               <button
                 type="button"
                 aria-label={`删除评分项 ${index + 1}`}
-                disabled={question.rubric.criteria.length === 1}
+                disabled={editableQuestion.rubric.criteria.length === 1}
                 onClick={() =>
                   onChange({
-                    ...question,
+                    ...editableQuestion,
                     rubric: {
-                      ...question.rubric,
-                      criteria: question.rubric.criteria.filter(
+                      ...editableQuestion.rubric,
+                      criteria: editableQuestion.rubric.criteria.filter(
                         (_, itemIndex) => itemIndex !== index,
                       ),
                     },
@@ -1318,15 +1366,19 @@ function QuestionEditor({
                   }
                   type="number"
                   aria-describedby="assignment-validation-errors"
-                  step="0.01"
-                  min="0.01"
+                  step="0.1"
+                  min="1"
                   max="10000"
                   value={criterion.maxPoints}
                   onChange={(event) =>
-                    updateCriterion(index, (item) => ({
-                      ...item,
-                      maxPoints: Number(event.target.value),
-                    }))
+                    updateCriterion(index, (item) => {
+                      const maxPoints = Number(event.target.value);
+                      return {
+                        ...item,
+                        maxPoints,
+                        levels: sortRubricLevels(item.levels, maxPoints),
+                      };
+                    })
                   }
                   className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
                 />
@@ -1346,47 +1398,66 @@ function QuestionEditor({
               </label>
             </div>
             <label className="mt-2 block text-xs text-slate-400">
-              证据描述
+              评分标准
               <textarea
-                value={criterion.evidenceDescription}
+                value={criterion.scoringStandard}
                 onChange={(event) =>
                   updateCriterion(index, (item) => ({
                     ...item,
-                    evidenceDescription: event.target.value,
+                    scoringStandard: event.target.value,
                   }))
                 }
                 className="mt-1 min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"
               />
             </label>
-            <label className="mt-2 block text-xs text-slate-400">
-              反馈指导
-              <textarea
-                value={criterion.feedbackGuidance}
+            <label className="mt-2 flex min-h-11 items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={criterion.detailedRubricEnabled}
                 onChange={(event) =>
                   updateCriterion(index, (item) => ({
                     ...item,
-                    feedbackGuidance: event.target.value,
+                    detailedRubricEnabled: event.target.checked,
+                    levels: event.target.checked
+                      ? item.levels.length > 0
+                        ? item.levels
+                        : [createInitialDetailedLevel(item.id, item.maxPoints)]
+                      : [],
                   }))
                 }
-                className="mt-1 min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"
               />
+              启用详细评分细则
             </label>
-            <button
-              type="button"
-              onClick={() =>
-                updateCriterion(index, (item) => ({
-                  ...item,
-                  levels: [...item.levels, newLevel()],
-                }))
-              }
-              className="mt-2 min-h-10 rounded-lg border border-slate-700 px-3 text-xs"
-            >
-              添加分数档位
-            </button>
-            {criterion.levels.map((level, levelIndex) => (
+            {criterion.detailedRubricEnabled && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button type="button" onClick={() => applyShortcut(5)} className="min-h-10 rounded-lg border border-slate-700 px-3 text-xs">
+                  五级制
+                </button>
+                <button type="button" onClick={() => applyShortcut(2)} className="min-h-10 rounded-lg border border-slate-700 px-3 text-xs">
+                  两级制
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const result = addDetailedRubricLevel({
+                      criterionId: criterion.id,
+                      criterionMaxPoints: criterion.maxPoints,
+                      levels: criterion.levels,
+                    });
+                    if (result.status === 'applied') {
+                      updateCriterion(index, (item) => ({ ...item, levels: result.levels }));
+                    }
+                  }}
+                  className="min-h-10 rounded-lg border border-slate-700 px-3 text-xs"
+                >
+                  添加评价级别
+                </button>
+              </div>
+            )}
+            {criterion.detailedRubricEnabled && criterion.levels.map((level, levelIndex) => (
               <div
                 key={level.id}
-                className="mt-2 grid gap-2 rounded-lg bg-slate-950/60 p-2 md:grid-cols-4"
+                className="mt-2 grid gap-2 rounded-lg bg-slate-950/60 p-2 md:grid-cols-3"
               >
                 <input
                   ref={
@@ -1398,77 +1469,67 @@ function QuestionEditor({
                   aria-describedby="assignment-validation-errors"
                   value={level.label}
                   onChange={(event) =>
-                    updateCriterion(index, (item) => ({
-                      ...item,
-                      levels: item.levels.map((entry, itemIndex) =>
-                        itemIndex === levelIndex
-                          ? { ...entry, label: event.target.value }
-                          : entry,
-                      ),
-                    }))
-                  }
-                />
-                <input
-                  ref={
-                    registerValidationField(
-                      `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.minPoints`,
-                    ) as React.Ref<HTMLInputElement>
-                  }
-                  aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 最低分`}
-                  aria-describedby="assignment-validation-errors"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={criterion.maxPoints}
-                  value={level.minPoints}
-                  onChange={(event) =>
-                    updateCriterion(index, (item) => ({
-                      ...item,
-                      levels: item.levels.map((entry, itemIndex) =>
-                        itemIndex === levelIndex
-                          ? { ...entry, minPoints: Number(event.target.value) }
-                          : entry,
-                      ),
-                    }))
-                  }
-                />
-                <input
-                  ref={
-                    registerValidationField(
-                      `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.maxPoints`,
-                    ) as React.Ref<HTMLInputElement>
-                  }
-                  aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 最高分`}
-                  aria-describedby="assignment-validation-errors"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={criterion.maxPoints}
-                  value={level.maxPoints}
-                  onChange={(event) =>
-                    updateCriterion(index, (item) => ({
-                      ...item,
-                      levels: item.levels.map((entry, itemIndex) =>
-                        itemIndex === levelIndex
-                          ? { ...entry, maxPoints: Number(event.target.value) }
-                          : entry,
-                      ),
-                    }))
-                  }
-                />
-                <div>
-                  <input
-                    aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 描述`}
-                    value={level.description}
-                    onChange={(event) =>
+                    {
+                      editedLevelIdsRef.current.add(level.id);
                       updateCriterion(index, (item) => ({
                         ...item,
                         levels: item.levels.map((entry, itemIndex) =>
                           itemIndex === levelIndex
-                            ? { ...entry, description: event.target.value }
+                            ? { ...entry, label: event.target.value }
                             : entry,
                         ),
-                      }))
+                      }));
+                    }
+                  }
+                />
+                <label className="text-xs text-slate-400">
+                  {levelIndex === 0 ? '最高级别上限（同步满分）' : `区间 ${ranges[levelIndex]?.minPoints ?? 0}–${ranges[levelIndex]?.maxInclusivePoints ?? 0}`}
+                  <input
+                    ref={registerValidationField(
+                      `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.maxPoints`,
+                    ) as React.Ref<HTMLInputElement>}
+                    aria-label={`评分项 ${index + 1} 级别 ${levelIndex + 1} 分值边界`}
+                    aria-describedby="assignment-validation-errors"
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    max={criterion.maxPoints}
+                    disabled={levelIndex === 0}
+                    value={level.maxPoints}
+                    onChange={(event) =>
+                      {
+                        editedLevelIdsRef.current.add(level.id);
+                        updateCriterion(index, (item) => ({
+                          ...item,
+                          levels: sortRubricLevels(
+                            item.levels.map((entry, itemIndex) =>
+                              itemIndex === levelIndex
+                                ? { ...entry, maxPoints: Number(event.target.value) }
+                                : entry,
+                            ),
+                            item.maxPoints,
+                          ),
+                        }));
+                      }
+                    }
+                  />
+                </label>
+                <div>
+                  <input
+                    aria-label={`评分项 ${index + 1} 级别 ${levelIndex + 1} 评分准则`}
+                    value={level.guideline}
+                    onChange={(event) =>
+                      {
+                        editedLevelIdsRef.current.add(level.id);
+                        updateCriterion(index, (item) => ({
+                          ...item,
+                          levels: item.levels.map((entry, itemIndex) =>
+                            itemIndex === levelIndex
+                              ? { ...entry, guideline: event.target.value }
+                              : entry,
+                          ),
+                        }));
+                      }
                     }
                   />
                   <div className="flex gap-2">
@@ -1518,7 +1579,8 @@ function QuestionEditor({
               </div>
             ))}
           </article>
-        ))}
+          );
+        })}
       </section>
     </>
   );
@@ -1532,55 +1594,55 @@ function manualQuestion(index: number): EditableQuestion {
     prompt: '请输入题面',
     referenceAnswer: '请输入参考答案',
     rubric: {
-      schemaVersion: 'assignment-analytic-rubric.v1',
+      schemaVersion: 'assignment-scoring-rubric.v2',
       criteria: [
         {
           id: 'criterion-1',
           label: '完成质量',
           maxPoints: 10,
-          evidenceDescription: '根据作答证据评分',
-          feedbackGuidance: '指出关键得分点与改进建议',
-          levels: [
-            {
-              id: 'level-1',
-              label: '达成',
-              minPoints: 0,
-              maxPoints: 10,
-              description: '按证据判定',
-            },
-          ],
+          scoringStandard: '根据作答证据的正确性、完整性和可复核程度评分。',
+          detailedRubricEnabled: false,
+          levels: [],
         },
       ],
     },
     source: { family: 'MANUAL', authoringMarker: 'assignment-authoring' },
   };
 }
-function newCriterion(): EditableQuestion['rubric']['criteria'][number] {
+function newCriterion(): ScoringCriterionV2 {
   const id = `criterion-${Date.now()}`;
   return {
     id,
     label: '新评分项',
     maxPoints: 1,
-    evidenceDescription: '说明可复核证据。',
-    feedbackGuidance: '说明反馈重点。',
-    levels: [
-      {
-        id: `${id}-level`,
-        label: '达成程度',
-        minPoints: 0,
-        maxPoints: 1,
-        description: '依据证据评分。',
-      },
-    ],
+    scoringStandard: '依据作答证据评分。',
+    detailedRubricEnabled: false,
+    levels: [],
   };
 }
-function newLevel(): EditableQuestion['rubric']['criteria'][number]['levels'][number] {
+
+function toScoringRubricV2(rubric: EditableQuestion['rubric']): ScoringRubricV2 {
+  if (rubric.schemaVersion === 'assignment-scoring-rubric.v2') return rubric;
   return {
-    id: `level-${Date.now()}`,
-    label: '新档位',
-    minPoints: 0,
-    maxPoints: 0,
-    description: '说明该档位的证据要求。',
+    schemaVersion: 'assignment-scoring-rubric.v2',
+    criteria: rubric.criteria.map((criterion) => ({
+      id: criterion.id,
+      label: criterion.label,
+      maxPoints: Math.ceil(criterion.maxPoints * 10) / 10,
+      scoringStandard: criterion.evidenceDescription,
+      detailedRubricEnabled: true,
+      evidenceDescription: criterion.evidenceDescription,
+      feedbackGuidance: criterion.feedbackGuidance,
+      studentVisibleGuidance: criterion.studentVisibleGuidance,
+      levels: criterion.levels.map((level, index) => ({
+        id: level.id,
+        label: level.label,
+        maxPoints: index === 0
+          ? Math.ceil(criterion.maxPoints * 10) / 10
+          : Math.ceil(criterion.levels[index - 1].minPoints * 10) / 10,
+        guideline: level.description,
+      })),
+    })),
   };
 }
 function moveItem<T>(items: T[], index: number, delta: number): T[] {
@@ -1636,11 +1698,11 @@ function blockerLabel(value: string) {
     if (path === 'latePolicy.penaltyPercentPerDay')
       return '迟交扣分比例必须在 0% 至 100% 之间';
     if (path.includes('.rubric.criteria.') && path.includes('.levels.'))
-      return message.includes('0.01') || message.includes('score-bands')
-        ? '评分档位须按 0.01 分连续覆盖且不得重叠'
-        : '补全评分档位字段';
+      return message.includes('0.1') || message.includes('level-maximum')
+        ? '评价级别须使用一位小数并形成有效降序区间'
+        : '补全评价级别字段';
     if (path.includes('.rubric.criteria.'))
-      return '补全评分项名称、分值、证据与反馈指导';
+      return '补全评分项名称、分值与评分标准';
     return `修正字段：${path || '作业草稿'}`;
   }
   if (value.startsWith('assignment-total-mismatch'))

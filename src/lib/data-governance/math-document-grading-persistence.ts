@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { PrismaClient } from '@prisma/client';
 
 import { createSubmissionObjectStore, type SubmissionObjectStore } from '@/lib/assignments/submission-object-store';
+import { deriveRubricLevelRanges } from '@/lib/assignments/assignment-rubric-contract';
 import {
   authorizeGradingScope,
   buildGradingRequestHash,
@@ -1420,17 +1421,46 @@ export function questionContractFromRow(row: any): FrozenQuestionContract {
   const referenceAnswer = readSnapshotText(row.answerSnapshot, 'text');
   const rawRubric = row.rubricSnapshot && typeof row.rubricSnapshot === 'object' ? row.rubricSnapshot : {};
   const rawCriteria = Array.isArray(rawRubric.criteria) ? rawRubric.criteria : [];
-  const criteria = rawCriteria.map((criterion: any) => ({
-    id: String(criterion.id),
-    label: String(criterion.label ?? criterion.id),
-    goalDimension: String(criterion.goalDimension ?? ''),
-    maxPoints: Number(criterion.maxPoints ?? 0),
-    evidenceDescription: String(criterion.evidenceDescription ?? ''),
-    feedbackGuidance: String(criterion.feedbackGuidance ?? ''),
-    levels: (Array.isArray(criterion.levels) ? criterion.levels : []).map((level: any) => ({ id: String(level.id), label: String(level.label ?? level.id), minPoints: Number(level.minPoints ?? 0), maxPoints: Number(level.maxPoints ?? 0), description: String(level.description ?? '') })),
-  }));
+  const schemaVersion = String(rawRubric.schemaVersion ?? 'assignment-analytic-rubric.v1');
+  const criteria = rawCriteria.map((criterion: any) => {
+    const maxPoints = Number(criterion.maxPoints ?? 0);
+    const rawLevels = Array.isArray(criterion.levels) ? criterion.levels : [];
+    const levels = schemaVersion === 'assignment-scoring-rubric.v2'
+      ? deriveRubricLevelRanges(rawLevels.map((level: any) => ({
+          id: String(level.id),
+          label: String(level.label ?? level.id),
+          maxPoints: Number(level.maxPoints ?? 0),
+          guideline: String(level.guideline ?? ''),
+        })), maxPoints).map((level) => ({
+          id: level.id,
+          label: level.label,
+          minPoints: level.minPoints,
+          maxPoints: level.maxInclusivePoints,
+          description: level.guideline,
+        }))
+      : rawLevels.map((level: any) => ({
+          id: String(level.id),
+          label: String(level.label ?? level.id),
+          minPoints: Number(level.minPoints ?? 0),
+          maxPoints: Number(level.maxPoints ?? 0),
+          description: String(level.description ?? ''),
+        }));
+    return {
+      id: String(criterion.id),
+      label: String(criterion.label ?? criterion.id),
+      goalDimension: String(criterion.goalDimension ?? ''),
+      maxPoints,
+      ...(schemaVersion === 'assignment-scoring-rubric.v2' ? {
+        scoringStandard: String(criterion.scoringStandard ?? ''),
+        detailedRubricEnabled: criterion.detailedRubricEnabled === true,
+      } : {}),
+      evidenceDescription: String(criterion.evidenceDescription ?? criterion.scoringStandard ?? ''),
+      feedbackGuidance: String(criterion.feedbackGuidance ?? criterion.scoringStandard ?? ''),
+      levels,
+    };
+  });
   const rubric = {
-    schemaVersion: String(rawRubric.schemaVersion ?? 'assignment-analytic-rubric.v1'),
+    schemaVersion,
     id: `rubric:${row.id}`,
     version: String(row.contentHash ?? row.sourceVersion ?? 'snapshot.v1'),
     maxScore: criteria.reduce((sum: number, criterion: any) => sum + criterion.maxPoints, 0),
@@ -1449,7 +1479,7 @@ export function questionContractFromSnapshot(run: any): FrozenQuestionContract {
       responseType: snapshot.responseType === 'SUBJECTIVE_FILE' ? 'SUBJECTIVE_FILE' : 'SUBJECTIVE_TEXT',
       prompt: snapshot.prompt,
       referenceAnswer: typeof run.referenceAnswer === 'string' ? run.referenceAnswer : String(snapshot.referenceAnswer ?? ''),
-      rubric: snapshot.rubric,
+      rubric: normalizeFrozenRubricSnapshot(snapshot.rubric),
       contentHash: String(snapshot.contentHash ?? run.questionSnapshotHash ?? ''),
     };
   }
@@ -1468,6 +1498,38 @@ export function questionContractFromSnapshot(run: any): FrozenQuestionContract {
     ...fallback,
     referenceAnswer: typeof run.referenceAnswer === 'string' ? run.referenceAnswer : fallback.referenceAnswer,
     contentHash: String(run.questionSnapshotHash ?? fallback.contentHash),
+  };
+}
+
+function normalizeFrozenRubricSnapshot(rubric: any): FrozenQuestionContract['rubric'] {
+  if (rubric.schemaVersion !== 'assignment-scoring-rubric.v2') return rubric;
+  return {
+    ...rubric,
+    criteria: rubric.criteria.map((criterion: any) => {
+      const rawLevels = Array.isArray(criterion.levels) ? criterion.levels : [];
+      const levels = rawLevels.every((level: any) => Number.isFinite(level.minPoints))
+        ? rawLevels
+        : deriveRubricLevelRanges(rawLevels.map((level: any) => ({
+            id: String(level.id),
+            label: String(level.label ?? level.id),
+            maxPoints: Number(level.maxPoints ?? 0),
+            guideline: String(level.guideline ?? level.description ?? ''),
+          })), Number(criterion.maxPoints ?? 0)).map((level) => ({
+            id: level.id,
+            label: level.label,
+            minPoints: level.minPoints,
+            maxPoints: level.maxInclusivePoints,
+            description: level.guideline,
+          }));
+      return {
+        ...criterion,
+        scoringStandard: String(criterion.scoringStandard ?? ''),
+        detailedRubricEnabled: criterion.detailedRubricEnabled === true,
+        evidenceDescription: String(criterion.evidenceDescription ?? criterion.scoringStandard ?? ''),
+        feedbackGuidance: String(criterion.feedbackGuidance ?? criterion.scoringStandard ?? ''),
+        levels,
+      };
+    }),
   };
 }
 

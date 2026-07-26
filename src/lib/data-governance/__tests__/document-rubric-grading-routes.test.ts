@@ -1736,6 +1736,19 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.gradingRun.findUnique).not.toHaveBeenCalled();
   });
 
+  it('accepts a null level identity at the route boundary for standard-only grading edits', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.gradingRun.findUnique.mockResolvedValue(null);
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(null);
+    const response = await postJson({
+      gradingRunId: 'missing-standard-run',
+      edits: [{ criterionId: 'quality', levelId: null, score: 4.1, comment: '依据评分标准确认。' }],
+    });
+    expect(response.status).toBe(404);
+    expect(mocks.prisma.gradingRun.findUnique).toHaveBeenCalled();
+    await expect(response.json()).resolves.toEqual({ error: '评分草稿不存在' });
+  });
+
   it('blocks native writeback for missing governed dimensions or course ownership without clearing cache', async () => {
     const run = pipelineRun();
     delete (run.questionSnapshot.rubric.criteria[1] as any).goalDimension;

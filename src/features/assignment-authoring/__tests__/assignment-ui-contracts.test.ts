@@ -47,7 +47,10 @@ describe('teacher assignment workspace contracts', () => {
     expect(editor).toContain("method: 'POST'");
     expect(editor).not.toContain('prompt: item.stemPreview');
     for (const label of ['作业说明', '作答类型', '迟交策略', '允许作答类型', '最多提交次数', '解答发布时间', '添加评分项', '学生可见指导']) expect(editor).toContain(label);
-    expect(editor).toContain('档位按 0.01 分连续覆盖最高分至 0 分');
+    expect(editor).toContain('所有分值保留一位小数');
+    expect(editor).toContain('启用详细评分细则');
+    expect(editor).toContain('五级制');
+    expect(editor).toContain('两级制');
     expect(editor).toContain('/next-draft');
     expect(editor).toContain("'published-frozen'");
   });
