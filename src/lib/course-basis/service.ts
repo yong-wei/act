@@ -221,14 +221,12 @@ export async function getCourseBasisVersionForEditing(db: CourseBasisDb, input: 
   if (version.extractionState !== 'EXTRACTED' || !version.normalizedText) {
     throw new CourseBasisError('version-not-editable');
   }
-  const [projectionCount, referenceCount, selectionCount] = await Promise.all([
-    db.courseBasisProjection.count({ where: { versionId: version.id } }),
+  const [referenceCount, selectionCount] = await Promise.all([
     db.courseBasisReferenceLink.count({ where: { versionId: version.id } }),
     db.smartLessonSourceSelection.count({ where: { sourceVersionId: version.id, state: 'SELECTED' } }),
   ]);
   const frozen = Boolean(version.retiredAt)
-    || version.reviewState === 'CONFIRMED'
-    || projectionCount > 0
+    || version.reviewState === 'REJECTED'
     || referenceCount > 0
     || selectionCount > 0;
   return {
@@ -261,14 +259,12 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
     mimeType: 'text/markdown',
     content: markdown,
   });
-  const [projectionCount, referenceCount, selectionCount] = await Promise.all([
-    db.courseBasisProjection.count({ where: { versionId } }),
+  const [referenceCount, selectionCount] = await Promise.all([
     db.courseBasisReferenceLink.count({ where: { versionId } }),
     db.smartLessonSourceSelection.count({ where: { sourceVersionId: versionId, state: 'SELECTED' } }),
   ]);
   const frozen = Boolean(current.retiredAt)
-    || current.reviewState === 'CONFIRMED'
-    || projectionCount > 0
+    || current.reviewState === 'REJECTED'
     || referenceCount > 0
     || selectionCount > 0;
   if (frozen) {
@@ -289,9 +285,8 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
       where: {
         id: versionId,
         contentHash: input.expectedContentHash,
-        reviewState: 'PENDING',
+        reviewState: { in: ['PENDING', 'CONFIRMED'] },
         retiredAt: null,
-        projections: { none: {} },
         referenceLinks: { none: {} },
         smartLessonSelections: { none: { state: 'SELECTED' } },
       },
@@ -305,9 +300,13 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
         extractionState: extracted.extractionState,
         extractionVersion: COURSE_BASIS_EXTRACTION_VERSION,
         failureReason: null,
+        reviewState: 'PENDING',
+        reviewedById: null,
+        reviewedAt: null,
       },
     });
     if (updated.count !== 1) throw new CourseBasisError('version-edit-conflict');
+    await tx.courseBasisProjection.deleteMany({ where: { versionId } });
     await tx.courseBasisSegment.deleteMany({ where: { versionId } });
     await tx.courseBasisSegment.createMany({
       data: extracted.segments.map((segment) => ({ ...segment, versionId })),

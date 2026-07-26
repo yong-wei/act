@@ -198,6 +198,13 @@ export function publicDraft(draft: Record<string, unknown>) {
   });
 }
 
+export function publicDraftForEditing(draft: Record<string, unknown>) {
+  return {
+    ...publicDraft(draft),
+    content: redactPrivateFields(draft.content),
+  };
+}
+
 export function publicRevision(revision: Record<string, unknown>) {
   return compact({
     id: revision.id,

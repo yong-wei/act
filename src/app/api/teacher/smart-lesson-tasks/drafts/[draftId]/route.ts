@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSmartLessonDraftForEditing, smartLessonPlanSchema, updateSmartLessonDraft } from '@/lib/smart-lesson-plan';
 
-import { idSchema, normalizeSourceStatesForService, publicDraft, readStrictJson, requireSmartLessonActor, smartLessonErrorResponse } from '../../_shared';
+import { idSchema, normalizeSourceStatesForService, publicDraft, publicDraftForEditing, readStrictJson, requireSmartLessonActor, smartLessonErrorResponse } from '../../_shared';
 
 const updateSchema = z.object({ expectedVersion: z.number().int().nonnegative(), content: smartLessonPlanSchema }).strict();
 
@@ -15,7 +15,7 @@ export async function GET(_request: Request, context: { params: Promise<{ draftI
     const draftId = idSchema.parse((await context.params).draftId);
     const draft = await getSmartLessonDraftForEditing(prisma, { actor: auth.actor, draftId });
     return NextResponse.json({
-      draft: publicDraft(draft as unknown as Record<string, unknown>),
+      draft: publicDraftForEditing(draft as unknown as Record<string, unknown>),
       task: draft.task,
     });
   } catch (error) {

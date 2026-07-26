@@ -524,6 +524,29 @@ describe('smart lesson task routes', () => {
     expect(await outlineResponse.json()).toMatchObject({ outline: { outputHash: 'c'.repeat(64) } });
   });
 
+  it('returns complete redacted draft content to the editor even above the summary size limit', async () => {
+    const longText = 'x'.repeat(512_001);
+    mocks.getDraftForEditing.mockResolvedValue({
+      id: 'draft-1',
+      taskId: 'task-1',
+      version: 3,
+      state: 'EDITABLE',
+      content: {
+        keyContent: [{ title: 'Large section', content: longText }],
+        providerAudit: { request: 'private' },
+      },
+      task: { id: 'task-1', topic: '稳定性' },
+    });
+    const { GET } = await import('../drafts/[draftId]/route');
+
+    const response = await GET(new Request('http://localhost'), draftParams('draft-1'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.draft.content.keyContent[0].content).toHaveLength(longText.length);
+    expect(body.draft.content).not.toHaveProperty('providerAudit');
+  });
+
   it('returns a recoverable 503 instead of leaving a Redis delivery failure queued', async () => {
     mocks.start.mockResolvedValue({ id: 'job-1', draftId: 'draft-1', state: 'QUEUED' });
     mocks.enqueue.mockResolvedValue({
