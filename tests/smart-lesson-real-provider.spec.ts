@@ -4,14 +4,13 @@ import path from 'node:path';
 import { expect, test, type BrowserContext } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
 
+import { resolveSmartLessonEvidenceFile } from '../scripts/tests/smart-lesson-evidence-path';
 import { createPrismaClient } from '../src/lib/prisma-client';
 
 const teacherId = requiredEnv('SMART_LESSON_E2E_TEACHER_ID');
 const topic = requiredEnv('SMART_LESSON_E2E_TOPIC');
 const sourceRevision = requiredEnv('SMART_LESSON_E2E_SOURCE_REVISION');
-const evidencePath = path.resolve(
-  'openspec/changes/harden-smart-lesson-generation-experience/evidence/real-provider-full-boppps.json',
-);
+const evidencePath = resolveSmartLessonEvidenceFile('real-provider-full-boppps.json');
 
 test.describe.configure({ mode: 'serial' });
 

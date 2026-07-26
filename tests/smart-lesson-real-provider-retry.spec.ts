@@ -4,15 +4,14 @@ import path from 'node:path';
 import { expect, test, type BrowserContext } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
 
+import { resolveSmartLessonEvidenceFile } from '../scripts/tests/smart-lesson-evidence-path';
 import { createPrismaClient } from '../src/lib/prisma-client';
 
 const teacherId = requiredEnv('SMART_LESSON_E2E_TEACHER_ID');
 const topic = requiredEnv('SMART_LESSON_E2E_TOPIC');
 const jobId = requiredEnv('SMART_LESSON_E2E_JOB_ID');
 const sourceRevision = requiredEnv('SMART_LESSON_E2E_SOURCE_REVISION');
-const evidencePath = path.resolve(
-  'openspec/changes/harden-smart-lesson-generation-experience/evidence/real-provider-explicit-retry.json',
-);
+const evidencePath = resolveSmartLessonEvidenceFile('real-provider-explicit-retry.json');
 
 test('teacher explicitly retries the preserved real-provider job without changing completed stages', async ({ page, context }) => {
   expect(requiredEnv('SMART_LESSON_REAL_PROVIDER_REQUIRED')).toBe('1');
