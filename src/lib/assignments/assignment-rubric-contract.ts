@@ -181,6 +181,7 @@ export function applyRubricLevelShortcut(input: {
     };
   }
   let levels = ordered.slice(0, input.targetCount).map((level) => ({ ...level }));
+  const useStandardFallback = Boolean(input.editedLevelIds?.size) && ordered.length < 2;
   while (levels.length < input.targetCount) {
     const next = input.editedLevelIds?.size && levels.length >= 2
       ? addRatioExtendedLevel({
@@ -197,7 +198,8 @@ export function applyRubricLevelShortcut(input: {
     levels = next.levels;
   }
   levels = levels.map((level, index) => {
-    if (input.editedLevelIds?.size) return level;
+    if (input.editedLevelIds?.has(level.id)) return level;
+    if (input.editedLevelIds?.size && !useStandardFallback) return level;
     const standard = input.targetCount === 2
       ? [{ label: '通过', ratio: 1 }, { label: '不通过', ratio: 0.6 }][index]
       : STANDARD_RUBRIC_LEVELS[index];

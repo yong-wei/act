@@ -64,6 +64,12 @@ describe('teacher assignment workspace contracts', () => {
     expect(editor).toContain('assignmentDraftSchema.safeParse(documentRef.current.draft)');
     expect(editor).toContain('router.push(');
     expect(editor).toContain('step="0.01"');
+    const totalScoreControl = editor.slice(
+      editor.indexOf('作业总分'),
+      editor.indexOf('发布班级'),
+    );
+    expect(totalScoreControl).toContain('step="0.1"');
+    expect(totalScoreControl).toContain('min="0.1"');
     expect(editor).toContain('max={criterion.maxPoints}');
     expect(editor).toContain('validationFieldRefs.current.get(path)');
     expect(editor).toContain('aria-describedby="assignment-validation-errors"');

@@ -707,8 +707,8 @@ export function AssignmentEditorWorkspace({
               作业总分
               <input
                 type="number"
-                step="0.01"
-                min="0.01"
+                step="0.1"
+                min="0.1"
                 max="10000"
                 value={document.draft.totalPoints}
                 onChange={(event) =>

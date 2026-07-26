@@ -333,6 +333,7 @@ describe("teacher assignment review UI contracts", () => {
       id: "model",
       levelId: "full",
       score: 3.5,
+      scoreStep: 0.01,
       levels: [{ id: "full", minPoints: 3, maxPoints: 4 }],
     });
     expect(
@@ -366,6 +367,7 @@ describe("teacher assignment review UI contracts", () => {
       id: "quality",
       levelId: null,
       score: 8.5,
+      scoreStep: 0.1,
       levels: [],
     });
     expect(
@@ -395,6 +397,10 @@ describe("teacher assignment review UI contracts", () => {
     expect(workspace).toContain("response.status === 409");
     expect(workspace).toContain("重新加载最新版本");
     expect(workspace).toContain('action: "return" | "approve"');
+    expect(workspace).toContain("step={criterion.scoreStep}");
+    expect(workspace).toContain("max={criterion.maxPoints}");
+    expect(workspace).not.toContain("max={selectedLevel?.maxPoints");
+    expect(workspace).not.toContain("Math.max(level.minPoints, criterion.score)");
   });
 
   it("maps the persisted WORKING review state to an editable review detail", () => {

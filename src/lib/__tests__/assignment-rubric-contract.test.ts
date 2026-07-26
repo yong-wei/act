@@ -154,6 +154,33 @@ describe('assignment rubric v2 decimal and level contract', () => {
     });
   });
 
+  it('uses the two-level 60% fallback when only one edited level exists', () => {
+    const result = applyRubricLevelShortcut({
+      criterionId: 'quality',
+      criterionMaxPoints: 10,
+      levels: [{
+        id: 'teacher-high',
+        label: '教师高档',
+        maxPoints: 10,
+        guideline: '教师自定义准则。',
+      }],
+      targetCount: 2,
+      editedLevelIds: new Set(['teacher-high']),
+    });
+    expect(result).toEqual({
+      status: 'applied',
+      levels: [
+        expect.objectContaining({
+          id: 'teacher-high',
+          label: '教师高档',
+          maxPoints: 10,
+          guideline: '教师自定义准则。',
+        }),
+        expect.objectContaining({ label: '不通过', maxPoints: 6 }),
+      ],
+    });
+  });
+
   it('distinguishes persisted system defaults from teacher-edited level records', () => {
     const defaultLevel = createInitialDetailedLevel('quality', 10);
     const editedLevelIds = inferEditedRubricLevelIds({

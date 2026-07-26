@@ -448,6 +448,22 @@ test('moving rubric levels keeps the derived range and highest-score lock with t
   await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toBeDisabled();
 });
 
+test('an edited single level keeps its content while the two-level shortcut uses the 60 percent boundary', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await expect(page.getByLabel('作业总分')).toHaveAttribute('step', '0.1');
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByLabel('评分项 1 档位 1 名称').fill('教师高档');
+
+  await page.getByRole('button', { name: '两级制' }).click();
+
+  await expect(page.getByLabel('评分项 1 档位 1 名称')).toHaveValue('教师高档');
+  await expect(page.getByLabel('评分项 1 档位 2 名称')).toHaveValue('不通过');
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toHaveValue('6');
+});
+
 test('autosave 400 prevents publish and focuses the blocker', async ({ page, context }) => {
   await addTeacherSession(context);
   let publishCount = 0;
