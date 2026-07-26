@@ -77,6 +77,19 @@ describe('course-runtime asset route', () => {
     expect(mockedReadFile).not.toHaveBeenCalled();
   });
 
+  it('does not expose textbook retrieval indexes through the raw asset route', async () => {
+    const [directResponse, caseResponse, backslashResponse] = await Promise.all([
+      requestRuntimeAsset(['resources', 'textbook-retrieval', 'bodies.utf8']),
+      requestRuntimeAsset(['Resources', 'Textbook-Retrieval', 'windows.jsonl']),
+      requestRuntimeAsset(['resources\\textbook-retrieval\\metadata.json']),
+    ]);
+
+    expect(directResponse.status).toBe(404);
+    expect(caseResponse.status).toBe(404);
+    expect(backslashResponse.status).toBe(404);
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
   it('returns 404 when a runtime asset is missing', async () => {
     mockedReadFile.mockRejectedValueOnce(new Error('missing'));
 

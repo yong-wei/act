@@ -138,8 +138,8 @@ describe('v2 textbook Source Pack adapter', () => {
     expect(result.candidates.map((candidate) => candidate.displayNumber)).toEqual([1, 2]);
     expect(JSON.stringify(result.candidates)).not.toContain('textbook-window:');
     expect(JSON.stringify(result.candidates)).not.toContain('private/source');
-    expect(result.candidates[0].text).toBe('单位阶跃响应 3.2 的中文教材命中窗口。');
-    expect(result.candidates[1].text).toBe('单位阶跃响应 3.2 的英文教材命中窗口。');
+    expect(result.candidates[0].text).toBe(units[0].markdown);
+    expect(result.candidates[1].text).toBe(units[1].markdown);
   });
 
   it('uses graph refs only to expand candidates and never as evidence', async () => {
@@ -202,6 +202,57 @@ describe('v2 textbook Source Pack adapter', () => {
     expect(result.limitations).toContain('no-directly-supporting-textbook-unit');
   });
 
+  it('judges overlapping windows against each owning unit body', async () => {
+    const relevant = {
+      ...units[0],
+      id: 'textbook-unit:hu8/relevant',
+      markdown: '单位阶跃响应具有指数形式。',
+      fragments: [],
+    };
+    const adjacent = {
+      ...units[0],
+      id: 'textbook-unit:hu8/adjacent',
+      title: '相邻主题',
+      markdown: '本节只讨论频率响应。',
+      fragments: [],
+    };
+    const result = await retrieveTextbookSourcePackV2({
+      query: '单位阶跃响应',
+      indexRoot: '/fixture/index',
+      retrieve: vi.fn().mockResolvedValue({
+        mode: 'lexical',
+        results: [{
+          windowId: 'textbook-window:overlap',
+          primaryUnitId: relevant.id,
+          owningUnitIds: [relevant.id, adjacent.id],
+          segments: [
+            {
+              owningUnitId: relevant.id,
+              body: relevant.markdown,
+            },
+            {
+              owningUnitId: adjacent.id,
+              body: adjacent.markdown,
+            },
+          ],
+          bookId: relevant.bookId,
+          sourcePaths: ['private/overlap.md'],
+          body: `${relevant.markdown}\n${adjacent.markdown}`,
+          scores: { fused: 0.9 },
+        }],
+      }),
+      loadIndex: vi.fn().mockResolvedValue({
+        manifest: { sourcePriority: [relevant.bookId] },
+      } as LoadedTextbookRetrievalIndex),
+      loadUnits: vi.fn().mockResolvedValue([relevant, adjacent]),
+    });
+
+    expect(result.candidates.map((candidate) => candidate.identity.unitId)).toEqual([
+      relevant.id,
+    ]);
+    expect(result.candidates[0].text).toBe(relevant.markdown);
+  });
+
   it.each([
     ['hu-shousong-auto-control-7th', '第七版 单位阶跃响应'],
     ['hu-shousong-exercise-analysis-3rd', '习题 单位阶跃响应'],
@@ -212,6 +263,7 @@ describe('v2 textbook Source Pack adapter', () => {
       id: `textbook-unit:${bookId}/supplemental`,
       bookId,
       title: `${query}补充`,
+      markdown: `${query}的直接补充说明。`,
     };
     const result = await retrieveTextbookSourcePackV2({
       query,
@@ -373,8 +425,8 @@ describe('v2 textbook Source Pack adapter', () => {
     });
 
     expect(result.candidates).toHaveLength(1);
-    expect(result.candidates[0].text).toBe(matchedWindow);
-    expect(result.candidates[0].text).not.toContain('背景材料');
+    expect(result.candidates[0].text).toContain('单位阶跃响应只出现在 1600 字之后');
+    expect(result.candidates[0].text.length).toBeLessThanOrEqual(1600);
     expect(result.candidates[0].identity.unitId).toBe(lateUnit.id);
   });
 
@@ -419,6 +471,6 @@ describe('v2 textbook Source Pack adapter', () => {
     });
 
     expect(result.candidates.map((candidate) => candidate.identity.unitId)).toEqual([units[0].id]);
-    expect(result.candidates[0].text).toBe('单位阶跃响应为指数形式。');
+    expect(result.candidates[0].text).toBe(units[0].markdown);
   });
 });

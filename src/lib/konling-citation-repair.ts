@@ -42,12 +42,18 @@ type MarkerOccurrence = {
   value: string;
 };
 
+type TextRange = {
+  start: number;
+  end: number;
+};
+
 const INTERNAL_CITATION_ID_PREFIX =
   '(?:textbook-unit|content|learner-state|path|memory|simulation|arena|evidence|LearningPathExecution|LearningPathIntervention|LearningPathDeviation|LearningPathEvidence)';
 const CITATION_MARKER = new RegExp(
   `\\[(?:(?:证据|引用|content)\\s*:\\s*([^\\]\\n]+)|(\\d+)|(${INTERNAL_CITATION_ID_PREFIX}:[A-Za-z0-9][A-Za-z0-9._~:/@%+-]*))\\]`,
   'gi',
 );
+const MARKDOWN_CODE = /```[\s\S]*?```|`[^`\n]*`/g;
 const MARKDOWN_LINK = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
 const INTERNAL_PATH = /(?:file:\/\/|\/(?:Users|home|workspace|course-content|src|var|tmp)\/)[^\s)\]}]+/gi;
 const BARE_URL = /https?:\/\/[^\s)\]}，。；、]+/gi;
@@ -79,7 +85,20 @@ export function normalizeKonlingCitations(input: {
   let markerCount = 0;
 
   let body = input.answer.replace(MARKDOWN_LINK, (_match, label: string) => label);
-  body = body.replace(CITATION_MARKER, (raw, prefixed: string, numericValue: string, completeId: string) => {
+  const codeRanges = markdownCodeRanges(body);
+  body = body.replace(CITATION_MARKER, (
+    raw,
+    prefixed: string,
+    numericValue: string,
+    completeId: string,
+    offset: number,
+  ) => {
+    if (
+      codeRanges.some((range) => offset >= range.start && offset < range.end)
+      || (numericValue && isTechnicalIndexContext(body, offset))
+    ) {
+      return raw;
+    }
     markerCount += 1;
     const value = prefixed ?? numericValue ?? completeId;
     const normalized = normalizeLookup(value);
@@ -131,6 +150,19 @@ export function normalizeKonlingCitations(input: {
     diagnostics: unresolvedMarkers.map((marker) => `unresolved-citation-marker:${marker}`),
     repairCalls: 0,
   };
+}
+
+function markdownCodeRanges(value: string): TextRange[] {
+  return Array.from(value.matchAll(MARKDOWN_CODE), (match) => ({
+    start: match.index,
+    end: match.index + match[0].length,
+  }));
+}
+
+function isTechnicalIndexContext(value: string, offset: number): boolean {
+  const preceding = Array.from(value.slice(0, offset)).at(-1);
+  return preceding !== undefined
+    && /[\p{Script=Latin}\p{Script=Greek}\p{N}_\])]/u.test(preceding);
 }
 
 export async function normalizeAndRepairKonlingCitations(input: {
