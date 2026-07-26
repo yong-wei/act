@@ -175,15 +175,19 @@ function evaluateWithRustRuntime(
     modelId: 'nomoto_quick_sim',
     duration: logic.duration,
     dt: 0.5,
-    start: { x: 0, z: 0, headingDeg: 0 },
+    start: logic.startPos,
     targetHeadingDeg: target.targetHeading,
-    targetSwitchTime: 60,
+    headingSchedule: logic.headingSchedule.map(({ time, heading }) => ({
+      time,
+      headingDeg: heading,
+    })),
     pid: params,
     nomoto: {
       K: simConfig.nomotoK || 0.08,
       T: simConfig.nomotoT || 55,
       speedMps: speed,
       maxRudderDeg: 35,
+      maxRudderRateDegPerSec: 5,
     },
     guidePath,
   });
@@ -203,63 +207,72 @@ export function evaluatePIDParams(
 ): { score: number; metrics: OptimizationResult['metrics'] };
 export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
-  ...args: [SimpleSimConfig, OptimizationTarget] | [ScenarioLogic, SimpleSimConfig, OptimizationTarget]
+  simConfigOrLogic: SimpleSimConfig | ScenarioLogic,
+  simConfigOrTarget: SimpleSimConfig | OptimizationTarget,
+  maybeTarget?: OptimizationTarget,
 ): { score: number; metrics: OptimizationResult['metrics'] } {
+  // Resolve overload:3-param legacy vs 4-param calibrated
   let logic: ScenarioLogic;
   let simConfig: SimpleSimConfig;
   let target: OptimizationTarget;
 
-  if (args.length === 3) {
-    [logic, simConfig, target] = args;
+  if ('referenceCompletedAt' in simConfigOrLogic) {
+    // 4-param overload: (params, logic, simConfig, target)
+    logic = simConfigOrLogic as ScenarioLogic;
+    simConfig = simConfigOrTarget as SimpleSimConfig;
+    target = maybeTarget!;
   } else {
-    [simConfig, target] = args;
-    logic = getLegacySceneLogic('turn90', target.targetHeading);
+    // 3-param legacy overload: (params, simConfig, target)
+    logic = getLegacySceneLogic('turn90');
+    simConfig = simConfigOrLogic as SimpleSimConfig;
+    target = simConfigOrTarget as OptimizationTarget;
   }
 
-  const speed = simConfig.shipSpeed ?? 15;
+  const speed = simConfig.shipSpeed || 15;
   const guidePath = generateGuidePath(logic, logic.duration, speed);
   const result = evaluateWithRustRuntime(params, logic, guidePath, speed, simConfig, target);
 
-  // 解析轨迹，提取稳定时间
-  let stableSince: number | undefined;
-  let hasSustainedSettling = false;
-  let sustainStart: number | undefined;
-  const tolerance = target.maxError;
-
-  for (const point of result.trajectory) {
-    const error = Math.abs(point.x * Math.sin((target.targetHeading * Math.PI) / 180) - point.z * Math.cos((target.targetHeading * Math.PI) / 180));
-    if (error <= tolerance) {
-      if (sustainStart === undefined) {
-        sustainStart = point.time;
-      }
-      if (sustainStart !== undefined && point.time - sustainStart >= 5) {
-        hasSustainedSettling = true;
-        if (stableSince === undefined) {
-          stableSince = point.time;
-        }
-      }
-    } else {
-      sustainStart = undefined;
-    }
-  }
-
-  // 未稳定哨兵：legacy v1 使用 duration，v2 使用 duration
-  const settlingTime = hasSustainedSettling && stableSince !== undefined
-    ? stableSince - logic.referenceCompletedAt
-    : logic.duration;
-
-  // 超调量
+  // Calculate overshoot from referenceCompletedAt
   let overshoot = 0;
-  for (const point of result.trajectory) {
-    if (point.time > logic.referenceCompletedAt) {
-      const headingError = Math.abs(point.heading - target.targetHeading);
-      overshoot = Math.max(overshoot, headingError);
+  for (let i = 0; i < result.chartData.time.length; i++) {
+    const time = result.chartData.time[i];
+    const heading = result.chartData.actualHeading[i];
+    if (time >= logic.referenceCompletedAt) {
+      const error = heading - target.targetHeading;
+      if (error > overshoot) {
+        overshoot = error;
+      }
     }
   }
 
-  // 评分
-  const errorScore = Math.max(0, 100 - (result.metrics.avgError / target.maxError) * 100);
-  const rudderScore = Math.max(0, 100 - (result.metrics.maxRudderRate / (target.maxRudderRate ?? 35)) * 100);
+  // Calculate settling time: scan from referenceCompletedAt for sustained heading stability
+  const headingTolerance = 5;
+  const validationWindow = logic.duration - logic.referenceCompletedAt;
+  let settlingTime = validationWindow; // default: not settled within window
+
+  for (let i = 0; i < result.chartData.time.length; i++) {
+    const time = result.chartData.time[i];
+    if (time < logic.referenceCompletedAt) continue;
+    if (Math.abs(result.chartData.actualHeading[i] - target.targetHeading) > headingTolerance) continue;
+
+    // Check if heading stays within tolerance from this point until the end
+    let sustained = true;
+    for (let j = i; j < result.chartData.time.length; j++) {
+      if (Math.abs(result.chartData.actualHeading[j] - target.targetHeading) > headingTolerance) {
+        sustained = false;
+        break;
+      }
+    }
+
+    if (sustained) {
+      settlingTime = time - logic.referenceCompletedAt;
+      break;
+    }
+  }
+
+  // Scoring
+  const errorScore = Math.max(0, 100 * (1 - result.metrics.avgError / target.maxError));
+  const rudderScore = Math.max(0, 100 * (1 - result.metrics.maxRudderRate / target.maxRudderRate));
   const overshootScore = Math.max(0, 100 - (overshoot / (target.maxOvershoot ?? 20)) * 100);
   let settlingScore = 100;
   if (target.minSettlingTime && settlingTime > target.minSettlingTime) {
