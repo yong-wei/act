@@ -1,0 +1,94 @@
+{
+  "recordType": "visual-inventory-summary",
+  "formatVersion": "textbook-visual-retrieval-evaluation.v1",
+  "physicalImageRecords": 5112,
+  "eligibleRecords": 3375,
+  "rejectedByReason": {
+    "ambiguous-or-missing-v2-join": 1727,
+    "undersized-image": 10
+  },
+  "books": {
+    "control-encyclopedia": {
+      "edition": "2015",
+      "physicalRecords": 496,
+      "eligibleRecords": 493,
+      "v1FigureIndexHash": "sha256:18bc583432ebd4fd80a711b1d8ac36528e57bd91fa7ce52b40ab04e0c297087b",
+      "v2ManifestHash": "sha256:5d0a0cea4d01c8260076b9755506b0311938df5268d571854a4575c7a5672956",
+      "v2UnitsHash": "sha256:ab428782d3f442f2cdfc71ff9f2906ff615e04fa49046b542e287bff043cdc81",
+      "v2AnchorsHash": "sha256:36f66d9b61b7d114c502477441f335ca955f7bd3534f0fad0225b523136c369e"
+    },
+    "dorf-modern-control-systems": {
+      "edition": "14th Global Edition",
+      "physicalRecords": 1402,
+      "eligibleRecords": 830,
+      "v1FigureIndexHash": "sha256:e76559ecd18c770a4b1f88930d54e45bcee8bdfc13351703d82586373e045f85",
+      "v2ManifestHash": "sha256:8c046fb10ea5cf5d66fc9398011041d8427703b145f019efbd546487876cdc22",
+      "v2UnitsHash": "sha256:7c2a6913fe530d31325db54d18738eb813c56806c5db591b332523fd4e9a133e",
+      "v2AnchorsHash": "sha256:c210a0988f1324e95bc6ad2abcb81a55c05e0162d3d0868019d742b2541b4914"
+    },
+    "feedback-control-of-dynamic-systems": {
+      "edition": "7th edition",
+      "physicalRecords": 698,
+      "eligibleRecords": 142,
+      "v1FigureIndexHash": "sha256:5d427ad5a7cdb6f188d64a94391e4f11f56a68764392217ff8eeb03357911bfe",
+      "v2ManifestHash": "sha256:0ee1c786e7f94743198173e6c1b37f8f346c0bfdf6f477bd3b5b316463fcea88",
+      "v2UnitsHash": "sha256:3a49f025207ecc8d81adcb25fc84b3a0a4b75c9643c8583b0141603edf146eba",
+      "v2AnchorsHash": "sha256:585868cfa8776e9bf69c1d7596708876dfec3fd101f9814fdc69b2b0a9c630e0"
+    },
+    "hu-shousong-auto-control-7th": {
+      "edition": "第七版",
+      "physicalRecords": 666,
+      "eligibleRecords": 492,
+      "v1FigureIndexHash": "sha256:3119440c47610260fe7c76e42617371a008c32e5848d13dc4a802d0ea3ab9a5a",
+      "v2ManifestHash": "sha256:21090ace4ec6849e4aafe51e50664a610a21941b5011ba82cb5c7e7c8cc52576",
+      "v2UnitsHash": "sha256:a8bcbe5b820c4523fbf9fb7a14d93e32fc74e22baadda73ee65c437b2656b558",
+      "v2AnchorsHash": "sha256:f1a328841d39c03fea79f413c0ae1b5510d4a85c42fd5789108d154496b33692"
+    },
+    "hu-shousong-auto-control-8th": {
+      "edition": "第八版",
+      "physicalRecords": 714,
+      "eligibleRecords": 528,
+      "v1FigureIndexHash": "sha256:63a1cdcbbd4a7660db865b406a938c6d5d2ab6d22a2b4fa1fe69daaf64c12ef5",
+      "v2ManifestHash": "sha256:c8c9b3a8b4279548c84404c034b82db2a4849f1f5d64367a91491ca5d1dec2d5",
+      "v2UnitsHash": "sha256:f455ce7c9a0003ee40400e630418ae0669f6940da21c38b7005df7bb603b3646",
+      "v2AnchorsHash": "sha256:9f72e3423a3a4e70e631e3e3615f31bad9a59e083dece0e37176340bef8dd053"
+    },
+    "hu-shousong-exercise-analysis-3rd": {
+      "edition": "第三版",
+      "physicalRecords": 535,
+      "eligibleRecords": 333,
+      "v1FigureIndexHash": "sha256:303bf0b0eee8d9faca531af59b53024d875e8d4e4ab46af954f544959aba4055",
+      "v2ManifestHash": "sha256:7be2b6f64c1b350015e3654a1d75a86ee9683947671500df99a179905a02c7aa",
+      "v2UnitsHash": "sha256:67e63bba7eab0215a63b3298874ace714d59b824d0e964a44432520c5b225db2",
+      "v2AnchorsHash": "sha256:20f64852c990e9858fdca630880c598988ca904544f93b6445aa250b9a4097b1"
+    },
+    "liu-sheng-auto-control-2015": {
+      "edition": "2015版",
+      "physicalRecords": 601,
+      "eligibleRecords": 557,
+      "v1FigureIndexHash": "sha256:ed7390db9c31d31439be716cd993974ec70f893a5fd795191b039a3f0f121e35",
+      "v2ManifestHash": "sha256:eec55f4eb0d152467e363ac5304c46d59cd84b892ee5f471a06881239fe69e15",
+      "v2UnitsHash": "sha256:a8cae08a1e0cc4431a8ef25da8ba4b47ec26c7de718a4c2c0b5e3e4b4310565c",
+      "v2AnchorsHash": "sha256:4397631d22ba9f140f70280ef3ad5a7dbc47c12af276507ef4e8a350a34f0496"
+    }
+  },
+  "productionConnected": false,
+  "sampling": {
+    "algorithm": "reviewed-stratification-v1",
+    "perStratum": 20,
+    "reviewFileHash": "sha256:b1168e6bf7ca869578194fbd9b030e31ba272d0baaf449c0c21afed8cd24fd41",
+    "reviewActors": [
+      "codex-course-pedagogy-reviewer+parent-visual-audit"
+    ]
+  },
+  "selectedRecords": 100,
+  "selectedByStratum": {
+    "block-diagram": 20,
+    "frequency-domain": 20,
+    "general": 20,
+    "response-curve": 20,
+    "root-locus": 20
+  },
+  "candidatePopulationHash": "sha256:182ccb9a50ab8a0a64f09f382af3273ddec53c9501e4c6ab705a9b7424989b3f",
+  "sampleFileHash": "sha256:0ebb32b93d39b7754e2faa206bd352700aae203abbd93dfc03ad546361b17d9e"
+}
