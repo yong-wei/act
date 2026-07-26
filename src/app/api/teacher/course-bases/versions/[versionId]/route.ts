@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 const actionSchema = z.object({ action: z.enum(['confirm', 'reject', 'retry', 'retire']) }).strict();
 const editSchema = z.object({
   expectedContentHash: z.string().regex(/^[a-f0-9]{64}$/),
-  markdown: z.string().trim().min(1).max(2_000_000),
+  markdown: z.string().max(2_000_000).refine((value) => value.trim().length > 0),
 }).strict();
 
 export async function GET(request: Request, context: { params: Promise<{ versionId: string }> }) {

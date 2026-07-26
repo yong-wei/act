@@ -333,16 +333,20 @@ describe('course-basis service', () => {
       document: { title: 'Syllabus', courseBasis: { id: 'basis-1', ownerId: teacher.id } },
       segments: [],
     };
-    const create = vi.fn(async ({ data }: any) => ({
-      id: 'version-2',
-      versionNumber: 2,
-      extractionState: data.extractionState,
-      _count: { segments: data.segments.create.length },
-    }));
+    let latest: any = { id: current.id, versionNumber: 1 };
+    const create = vi.fn(async ({ data }: any) => {
+      latest = {
+        id: 'version-2',
+        ...data,
+        versionNumber: 2,
+        _count: { segments: data.segments.create.length },
+      };
+      return latest;
+    });
     const db: any = {
       courseBasisDocument: { findFirst: vi.fn(async () => ({ id: current.documentId })) },
       courseBasisDocumentVersion: {
-        findFirst: vi.fn(async ({ where }: any) => where.id ? current : { versionNumber: 1 }),
+        findFirst: vi.fn(async ({ where }: any) => where.id ? current : latest),
         create,
         updateMany: vi.fn(),
       },
@@ -352,6 +356,12 @@ describe('course-basis service', () => {
     };
     db.$transaction = vi.fn(async (run: (transaction: any) => unknown) => run(db));
 
+    await expect(saveCourseBasisVersionEdit(db, {
+      actor: teacher,
+      versionId: current.id,
+      expectedContentHash: current.contentHash,
+      markdown: '# Successor\n\nRevised content.',
+    })).resolves.toMatchObject({ createdSuccessor: true, version: { id: 'version-2', versionNumber: 2 } });
     await expect(saveCourseBasisVersionEdit(db, {
       actor: teacher,
       versionId: current.id,

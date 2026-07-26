@@ -36,4 +36,10 @@ describe('unified preparation document editor contract', () => {
     expect(courseware).not.toContain('window.prompt');
     expect(lesson).not.toContain('JSON.stringify(document');
   });
+
+  it('opens dedicated lesson editors without requiring truncated summary payloads', () => {
+    expect(workspace).toContain("if (!job || job.state !== 'PAUSED') return;");
+    expect(workspace).toContain('if (!draft) return;');
+    expect(workspace).toContain('disabled={!draft || task.workspace?.unsupportedPayload');
+  });
 });

@@ -250,7 +250,7 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
 }) {
   const actor = validateActor(input.actor);
   const versionId = validateId(input.versionId, 'version-id-invalid');
-  const markdown = requiredText(input.markdown, 'document-content-required', 2_000_000);
+  const markdown = requiredPreservedText(input.markdown, 'document-content-required', 2_000_000);
   const current = await findVersionForActor(db, actor, versionId);
   if (current.contentHash !== input.expectedContentHash) throw new CourseBasisError('version-edit-conflict');
   const extracted = await extractCourseBasisSource({
@@ -271,6 +271,8 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
     const successor = await importCourseBasisVersion(db, {
       actor,
       documentId: current.documentId,
+      expectedLatestVersionId: current.id,
+      expectedLatestVersionNumber: current.versionNumber,
       source: {
         sourceType: 'MARKDOWN',
         sourceName: `${current.sourceName}（编辑）`,
@@ -360,6 +362,8 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
   actor: CourseBasisActor;
   documentId: string;
   source: CourseBasisSource;
+  expectedLatestVersionId?: string;
+  expectedLatestVersionNumber?: number;
 }) {
   const actor = validateActor(input.actor);
   const documentId = validateId(input.documentId, 'document-id-invalid');
@@ -379,8 +383,37 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
         const latest = await tx.courseBasisDocumentVersion.findFirst({
           where: { documentId },
           orderBy: { versionNumber: 'desc' },
-          select: { versionNumber: true },
+          select: {
+            id: true,
+            documentId: true,
+            versionNumber: true,
+            sourceType: true,
+            sourceName: true,
+            mimeType: true,
+            byteSize: true,
+            contentHash: true,
+            extractionState: true,
+            extractionVersion: true,
+            failureReason: true,
+            reviewState: true,
+            reviewedById: true,
+            reviewedAt: true,
+            retiredById: true,
+            retiredAt: true,
+            createdAt: true,
+            _count: { select: { segments: true } },
+          },
         });
+        if (input.expectedLatestVersionId && latest?.id !== input.expectedLatestVersionId) {
+          if (
+            latest?.versionNumber === Number(input.expectedLatestVersionNumber) + 1
+            && latest.contentHash === extracted.contentHash
+          ) {
+            const { _count, ...existing } = latest;
+            return { ...existing, segmentCount: _count.segments };
+          }
+          throw new CourseBasisError('version-edit-conflict');
+        }
         const { _count, ...version } = await tx.courseBasisDocumentVersion.create({
           data: {
             documentId,
@@ -656,6 +689,12 @@ function boundedPageSize(value: number) {
 
 function requiredText(value: string, code: string, maxLength: number) {
   const result = z.string().trim().min(1).max(maxLength).safeParse(value);
+  if (!result.success) throw new CourseBasisError(code);
+  return result.data;
+}
+
+function requiredPreservedText(value: string, code: string, maxLength: number) {
+  const result = z.string().max(maxLength).refine((candidate) => candidate.trim().length > 0).safeParse(value);
   if (!result.success) throw new CourseBasisError(code);
   return result.data;
 }

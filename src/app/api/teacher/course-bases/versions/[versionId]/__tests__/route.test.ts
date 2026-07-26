@@ -77,6 +77,23 @@ describe('course-basis version editor route', () => {
     });
   });
 
+  it('preserves structural leading and trailing whitespace in Markdown edits', async () => {
+    mocks.saveEditorDocument.mockResolvedValue({
+      version: { id: 'version-1', contentHash: 'b'.repeat(64) },
+      createdSuccessor: false,
+    });
+    const { PATCH } = await import('../route');
+    const markdown = '    indented code\\n\\n';
+    const response = await PATCH(new Request('http://localhost', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ expectedContentHash: 'a'.repeat(64), markdown }),
+    }), context);
+
+    expect(response.status).toBe(200);
+    expect(mocks.saveEditorDocument).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ markdown }));
+  });
+
   it('rejects primitive PATCH payloads as invalid input', async () => {
     const { PATCH } = await import('../route');
     const response = await PATCH(new Request('http://localhost', {
