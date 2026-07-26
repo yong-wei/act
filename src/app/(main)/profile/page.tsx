@@ -632,7 +632,7 @@ export default function ProfilePage() {
                           已记录 {profile.arenaPortfolio.trainingSummary.total} 次训练
                           {profile.arenaPortfolio.trainingSummary.recentAverageQualityScore !== null && (
                             <>
-                              {' · '}最近 {profile.arenaPortfolio.trainingSummary.recentWindowSize} 次平均质量{' '}
+                              {' · '}最近 {profile.arenaPortfolio.trainingSummary.actualSampleCount} 次平均质量{' '}
                               {Math.round(profile.arenaPortfolio.trainingSummary.recentAverageQualityScore)} 分
                             </>
                           )}
