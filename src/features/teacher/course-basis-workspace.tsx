@@ -56,8 +56,8 @@ export function CourseBasisWorkspace({
   const inFlightPages = useRef(new Set<string>());
   const selected = courseBases.find((item) => item.id === selectedId) ?? null;
 
-  async function refresh(preferredId = selectedId) {
-    const targetId = preferredId || selectedId;
+  async function refresh(preferredId: string | null = selectedId, preserveLoadedPages = true) {
+    const targetId = preferredId === null ? '' : (preferredId || selectedId);
     const response = await fetch(targetId
       ? `/api/teacher/course-bases?courseBasisId=${encodeURIComponent(targetId)}`
       : '/api/teacher/course-bases', { cache: 'no-store' });
@@ -66,7 +66,9 @@ export function CourseBasisWorkspace({
     if (targetId && payload.courseBases[0]) {
       setCourseBases((current) => {
         const existing = current.find((item) => item.id === targetId);
-        const refreshed = existing ? mergeRefreshedBasis(existing, payload.courseBases[0]) : payload.courseBases[0];
+        const refreshed = existing && preserveLoadedPages
+          ? mergeRefreshedBasis(existing, payload.courseBases[0])
+          : payload.courseBases[0];
         return existing
           ? current.map((item) => item.id === targetId ? refreshed : item)
           : [refreshed, ...current];
@@ -219,12 +221,12 @@ export function CourseBasisWorkspace({
     setMessage('版本状态已更新。');
   }
 
-  async function deleteSource(path: string, successMessage: string) {
+  async function deleteSource(path: string, successMessage: string, deletesSelectedBasis = false) {
     if (!window.confirm('确认永久删除？此操作不可恢复。')) return;
     setBlockers([]);
     const response = await fetch(path, { method: 'DELETE' });
     if (response.ok) {
-      await refresh();
+      await refresh(deletesSelectedBasis ? null : selectedId, false);
       setMessage(successMessage);
       return;
     }
@@ -309,7 +311,7 @@ export function CourseBasisWorkspace({
           <div className="rounded-xl border border-border p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="flex items-center gap-3"><BookOpen className="h-5 w-5 text-primary" /><div><h2 className="font-semibold">{selected.title}</h2><p className="text-sm text-subtle">{selected.description || '暂无说明'}</p></div></div>
-              <button type="button" onClick={() => void deleteSource(`/api/teacher/course-bases/${encodeURIComponent(selected.id)}`, '课程依据已永久删除。')} className="rounded border border-destructive/50 px-3 py-1.5 text-sm text-destructive">删除课程依据</button>
+              <button type="button" onClick={() => void deleteSource(`/api/teacher/course-bases/${encodeURIComponent(selected.id)}`, '课程依据已永久删除。', true)} className="rounded border border-destructive/50 px-3 py-1.5 text-sm text-destructive">删除课程依据</button>
             </div>
             <form action={createDocument} className="mt-5 flex flex-wrap gap-3">
               <input name="title" required placeholder="文档名称" className="min-w-56 flex-1 rounded-lg border border-border bg-background px-3 py-2" />

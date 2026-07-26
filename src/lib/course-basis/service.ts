@@ -547,12 +547,18 @@ export async function adoptCourseBasisVersion(
       },
     });
     if (existing) {
-      if (existing.contentHash !== version.contentHash || !sameAnchorIdentity(existing.anchors, anchors)) {
+      if (existing.contentHash !== version.contentHash) {
         throw new CourseBasisError('adoption-identity-conflict');
       }
+      const referenceLink = sameAnchorIdentity(existing.anchors, anchors)
+        ? existing
+        : await tx.courseBasisReferenceLink.update({
+          where: { id: existing.id },
+          data: { anchors },
+        });
       return {
         version: await selectVersionMutationResult(tx as CourseBasisDb, versionId),
-        referenceLink: existing,
+        referenceLink,
         frozenNow: false,
       };
     }

@@ -85,6 +85,13 @@ SET
 FROM "CourseBasisDocumentVersion" AS version
 WHERE version."id" = link."versionId";
 
+-- Legacy approval created links for selected versions even when no segment from
+-- that version entered the immutable plan/courseware snapshot. Those rows are
+-- selections, not adoption evidence, so remove them instead of inventing anchors.
+DELETE FROM "CourseBasisReferenceLink"
+WHERE jsonb_typeof("anchors") = 'array'
+  AND jsonb_array_length("anchors") = 0;
+
 ALTER TABLE "CourseBasisReferenceLink"
   ALTER COLUMN "contentHash" SET NOT NULL,
   ALTER COLUMN "contentHash" DROP DEFAULT,

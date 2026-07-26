@@ -31,6 +31,7 @@ const legacyPlanDraftId = `legacy-plan-draft-${nonce}`;
 const legacyPlanId = `legacy-plan-${nonce}`;
 const legacyCoursewareDraftId = `legacy-courseware-draft-${nonce}`;
 const legacyCoursewareId = `legacy-courseware-${nonce}`;
+const legacySelectedLinkId = `legacy-selected-link-${nonce}`;
 const confirmedSegmentIds = [`confirmed-segment-a-${nonce}`, `confirmed-segment-b-${nonce}`];
 const pendingSegmentId = `pending-segment-${nonce}`;
 const pendingSegmentBId = `pending-segment-b-${nonce}`;
@@ -69,11 +70,12 @@ async function main() {
       checks: [
         'all-prisma-migrations-applied',
         'legacy-plan-and-courseware-reference-identities-recovered',
+        'legacy-selected-only-reference-removed',
         'pending-extracted-projection-present',
         'selected-source-does-not-freeze',
         'removed-source-history-blocks-delete',
         'concurrent-first-adoption-freezes-once',
-        'adoption-identity-conflict-rejected',
+        'same-adopter-anchor-update-succeeds',
         'referenced-delete-blocked',
         'retired-history-readable',
       ],
@@ -285,6 +287,12 @@ async function seedLegacyCourseBasisFixture(pool: Pool) {
     0,
     { stableAnchor: 'selected/paragraph:1', contentHash: `selected-anchor-${nonce}` },
   );
+  await pool.query(
+    `INSERT INTO "CourseBasisReferenceLink"
+       ("id", "versionId", "referenceType", "referenceId", "createdAt")
+     VALUES ($1, $2, 'LESSON_PLAN_REVISION', $3, $4)`,
+    [legacySelectedLinkId, selectedVersionId, legacyPlanId, now],
+  );
 }
 
 async function insertLegacyVersion(pool: Pool, input: {
@@ -364,6 +372,10 @@ async function verifyMigrationBackfill() {
     'legacy courseware link must recover plan and module anchors without inventing other segments',
   );
   assert(
+    await db.courseBasisReferenceLink.findUnique({ where: { id: legacySelectedLinkId } }) === null,
+    'legacy selected-only links without immutable snapshot anchors must be removed',
+  );
+  assert(
     await db.courseBasisProjection.count({ where: { versionId: confirmedVersionId } }) === 2,
     'migration must project every confirmed extracted segment',
   );
@@ -439,12 +451,16 @@ async function verifyConcurrentAdoptionIdentityAndLifecycle() {
     'concurrent replay must create one reference identity',
   );
 
-  await expectCourseBasisError(
-    adoptCourseBasisVersion(db, {
-      ...input,
-      anchors: [{ stableAnchor: 'pending/paragraph:2', contentHash: `pending-anchor-b-${nonce}` }],
-    }),
-    'adoption-identity-conflict',
+  const updatedAdoption = await adoptCourseBasisVersion(db, {
+    ...input,
+    anchors: [{ stableAnchor: 'pending/paragraph:2', contentHash: `pending-anchor-b-${nonce}` }],
+  });
+  assert(
+    sameAnchors(updatedAdoption.referenceLink.anchors, [{
+      stableAnchor: 'pending/paragraph:2',
+      contentHash: `pending-anchor-b-${nonce}`,
+    }]),
+    'the same adopter must be able to replace its anchor binding on the frozen content identity',
   );
   await expectCourseBasisError(
     adoptCourseBasisVersion(db, {

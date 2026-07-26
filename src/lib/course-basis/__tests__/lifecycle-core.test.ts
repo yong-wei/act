@@ -64,6 +64,10 @@ function adoptionDb() {
         referenceLink = { id: 'reference-1', ...data };
         return referenceLink;
       }),
+      update: vi.fn(async ({ data }: any) => {
+        referenceLink = { ...referenceLink, ...data };
+        return referenceLink;
+      }),
     },
   };
   db.$transaction = vi.fn(async (run: (tx: any) => unknown) => run(db));
@@ -152,6 +156,30 @@ describe('course-basis lifecycle core', () => {
       reviewedAt: input.now,
     });
     expect(db.courseBasisReferenceLink.create).toHaveBeenCalledOnce();
+  });
+
+  it('updates anchors when the same adopting record changes its binding', async () => {
+    const { db, version } = adoptionDb();
+    const adopter = { referenceType: 'SMART_LESSON_GOAL' as const, referenceId: 'goal-1' };
+
+    await adoptCourseBasisVersion(db, {
+      actor: teacher,
+      versionId: version.id,
+      adopter,
+      anchors: [{ stableAnchor: 'root/paragraph:1', contentHash: 'segment-hash-1' }],
+    });
+    await expect(adoptCourseBasisVersion(db, {
+      actor: teacher,
+      versionId: version.id,
+      adopter,
+      anchors: [{ stableAnchor: 'root/paragraph:2', contentHash: 'segment-hash-2' }],
+    })).resolves.toMatchObject({
+      frozenNow: false,
+      referenceLink: {
+        anchors: [{ stableAnchor: 'root/paragraph:2', contentHash: 'segment-hash-2' }],
+      },
+    });
+    expect(db.courseBasisReferenceLink.update).toHaveBeenCalledOnce();
   });
 
   it('rejects a different content identity without freezing it', async () => {
