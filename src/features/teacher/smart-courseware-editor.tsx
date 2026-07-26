@@ -501,6 +501,37 @@ export function SmartCoursewareEditor({
     return createSmartCoursewareStudentPreviewFromService(next, payload.preview);
   }
 
+  async function reloadVisualServerBaseline() {
+    setBusy(true);
+    try {
+      const response = await fetch(
+        `/api/teacher/smart-courseware/drafts/${envelope.draftId}/previews/teacher`,
+        { cache: 'no-store' },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        setMessage(errorMessage(payload));
+        return null;
+      }
+      const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview, envelope.stalePlan);
+      const moduleStillExists = next.manifest?.stages.some((stage) => stage.steps.some((step) => (
+        step.id === selectedStepId && step.modules.some((module) => module.id === selectedModuleId)
+      )));
+      if (!moduleStillExists) {
+        setMessage('服务器版本已移除当前步骤或模块；本地修改仍保留，请先另行核对。');
+        return null;
+      }
+      setEnvelope(next);
+      setMessage(`已读取服务器版本 ${next.version} 作为新基线；本地修改仍保留，可重新保存。`);
+      return next.version;
+    } catch {
+      setMessage('服务器版本加载失败；本地修改仍保留，请重试。');
+      return null;
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function replaceSelectedStep(change: (step: NonNullable<typeof selectedStep>) => NonNullable<typeof selectedStep>) {
     if (!envelope.manifest || !selectedStep) return null;
     return {
@@ -895,6 +926,7 @@ export function SmartCoursewareEditor({
         module={selectedModule}
         metadata={envelope.compositionMetadata.find((item) => item.moduleId === selectedModule.id)}
         busy={busy}
+        saveState={visualSaveState}
         onSaveState={setVisualSaveState}
         onRegisterSave={(save) => {
           visualSaveRef.current = save;
@@ -903,6 +935,7 @@ export function SmartCoursewareEditor({
           visualDiscardRef.current = discard;
         }}
         onSave={saveSelectedVisual}
+        onReloadServerBaseline={reloadVisualServerBaseline}
       /> : null}
 
       {validation ? (
@@ -1165,10 +1198,12 @@ function CoursewareVisualFields({
   module,
   metadata,
   busy,
+  saveState,
   onSaveState,
   onRegisterSave,
   onRegisterDiscard,
   onSave,
+  onReloadServerBaseline,
 }: {
   draftId: string;
   version: number;
@@ -1176,6 +1211,7 @@ function CoursewareVisualFields({
   module: GeneratedSlideModule;
   metadata?: SmartCoursewareCompositionMetadata;
   busy: boolean;
+  saveState: PreparationEditorSaveState;
   onSaveState: (state: PreparationEditorSaveState) => void;
   onRegisterSave: (save: () => Promise<void>) => void;
   onRegisterDiscard: (discard: () => void) => void;
@@ -1186,6 +1222,7 @@ function CoursewareVisualFields({
     responseKind?: string,
     expectedVersion?: number,
   ) => Promise<number | null>;
+  onReloadServerBaseline: () => Promise<number | null>;
 }) {
   const [stepTitle, setStepTitle] = useState(step.title);
   const [payload, setPayload] = useState<Record<string, unknown>>({ ...module.payload });
@@ -1284,6 +1321,22 @@ function CoursewareVisualFields({
     }
   }, [busy, onSave, onSaveState, storageKey]);
 
+  const adoptServerBaseline = useCallback(async () => {
+    onSaveState('saving');
+    const nextVersion = await onReloadServerBaseline();
+    if (nextVersion === null) {
+      onSaveState('conflict');
+      return;
+    }
+    baseVersionRef.current = nextVersion;
+    const next = { ...latestRef.current, baseVersion: nextVersion };
+    latestRef.current = next;
+    writeCoursewareVisualDraft(storageKey, next);
+    setDirty(true);
+    dirtyRef.current = true;
+    onSaveState('dirty');
+  }, [onReloadServerBaseline, onSaveState, storageKey]);
+
   useEffect(() => {
     onRegisterSave(saveCurrent);
   }, [onRegisterSave, saveCurrent]);
@@ -1343,6 +1396,10 @@ function CoursewareVisualFields({
       <legend className="px-1 text-sm font-medium">教师审阅字段</legend>
       <VisualObjectEditor value={teacherFields} onChange={changeTeacherFields} />
     </fieldset> : null}
+    {saveState === 'conflict' ? <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+      <p>服务器版本已变化。本地修改仍保留，可读取最新服务器版本作为比较与保存基线。</p>
+      <button type="button" disabled={busy} onClick={() => void adoptServerBaseline()} className="mt-2 rounded border border-border px-3 py-1.5 disabled:opacity-50">读取服务器新基线并保留本地修改</button>
+    </div> : null}
     <button type="button" disabled={busy || !stepTitle.trim()} onClick={() => void saveCurrent()} className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">保存所选内容</button>
   </section>;
 }
@@ -1415,9 +1472,9 @@ function VisualObjectEditor({
       }} className="rounded border border-border bg-background px-3 py-2" /></label>;
     }
     if (Array.isArray(child) && child.every((row) => (
-      Array.isArray(row) && row.every((cell) => ['string', 'number'].includes(typeof cell))
+      Array.isArray(row) && row.every(isEditableTableCell)
     ))) {
-      const rows = child as Array<Array<string | number>>;
+      const rows = child as EditableTableCell[][];
       return <fieldset key={key} className="min-w-0 rounded border border-border p-3">
         <legend className="px-1 text-sm">{label}</legend>
         <div className="overflow-x-auto">
@@ -1425,13 +1482,16 @@ function VisualObjectEditor({
             <tbody>{rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, columnIndex) => <td key={columnIndex} className="border border-border p-1">
               <input
                 aria-label={`${label} 第${rowIndex + 1}行第${columnIndex + 1}列`}
+                data-table-cell-kind={isMathTableCell(cell) ? 'math' : 'plain'}
                 type={typeof cell === 'number' ? 'number' : 'text'}
-                value={cell}
+                value={isMathTableCell(cell) ? cell.value : cell}
                 onChange={(event) => onChange({
                   ...value,
                   [key]: rows.map((candidate, candidateRowIndex) => candidateRowIndex === rowIndex
                     ? candidate.map((candidateCell, candidateColumnIndex) => candidateColumnIndex === columnIndex
-                      ? typeof candidateCell === 'number' ? Number(event.target.value) : event.target.value
+                      ? isMathTableCell(candidateCell)
+                        ? { ...candidateCell, value: event.target.value }
+                        : typeof candidateCell === 'number' ? Number(event.target.value) : event.target.value
                       : candidateCell)
                     : candidate),
                 })}
@@ -1450,6 +1510,20 @@ function VisualObjectEditor({
     }
     return null;
   })}</div>;
+}
+
+type EditableTableCell = string | number | { kind: 'math'; value: string };
+
+function isMathTableCell(value: unknown): value is Extract<EditableTableCell, { kind: 'math' }> {
+  return Boolean(value)
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && (value as Record<string, unknown>).kind === 'math'
+    && typeof (value as Record<string, unknown>).value === 'string';
+}
+
+function isEditableTableCell(value: unknown): value is EditableTableCell {
+  return typeof value === 'string' || typeof value === 'number' || isMathTableCell(value);
 }
 
 function CoursewareModuleCandidateDiff({

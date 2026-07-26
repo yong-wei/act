@@ -23,7 +23,7 @@ export default async function SmartPrepPage({
   const query = await searchParams;
   const requestedTaskId = query.taskId?.trim() || null;
   const [courseBases, taskSummaries, classes] = await Promise.all([
-    listCourseBases(prisma, actor, query.courseBasisId ? { courseBasisId: query.courseBasisId } : {}),
+    listCourseBases(prisma, actor),
     listSmartLessonTaskSummaries(prisma, actor),
     prisma.class.findMany({
       where: { teacherId: session.user.id, isActive: true },

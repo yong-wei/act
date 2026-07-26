@@ -40,7 +40,7 @@ describe('smart courseware editor activity creation', () => {
     vi.unstubAllGlobals();
   });
 
-  it('restores courseware fields and autosaves against the draft original version', async () => {
+  it('restores courseware fields and adopts a new server baseline after a version conflict', async () => {
     vi.useFakeTimers();
     const composition = validCompositionInput();
     const step = composition.runtimeManifest.stages[0].steps[0];
@@ -49,19 +49,45 @@ describe('smart courseware editor activity creation', () => {
       `preparation-editor:courseware:draft-1:${step.id}:${selectedModule.id}`,
       JSON.stringify({
         stepTitle: '本地恢复步骤',
-        payload: { ...selectedModule.payload, markdown: '本地恢复内容' },
+        payload: { ...selectedModule.payload, text: '本地恢复内容' },
         teacherFields: composition.moduleMetadata[0].teacherFields,
         responseKind: selectedModule.responseKind ?? 'text.long',
         baseVersion: 1,
         savedAt: '2026-07-25T00:00:00.000Z',
       }),
     );
-    const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
+    const validated = validateCoursewareComposition(composition, validPlan());
+    let patchCount = 0;
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
       if (init?.method === 'PATCH') {
+        patchCount += 1;
+        if (patchCount > 1) {
+          const submitted = JSON.parse(String(init.body));
+          return {
+            ok: true,
+            json: async () => ({ preview: {
+              draftId: 'draft-1', version: 3, planRevisionId: 'plan-1',
+              runtimeManifest: submitted.runtimeManifest,
+              moduleMetadata: submitted.moduleMetadata.map((metadata: Record<string, unknown>) => ({ ...metadata, provenance: 'teacher_created' })),
+              planLimitations: [], aiReview: null, generationAudit: [], validation: validated.validation,
+            } }),
+          } as Response;
+        }
         return {
           ok: false,
           status: 409,
           json: async () => ({ error: 'draft-version-conflict' }),
+        } as Response;
+      }
+      if (url.endsWith('/previews/teacher')) {
+        return {
+          ok: true,
+          json: async () => ({ preview: {
+            draftId: 'draft-1', version: 2, planRevisionId: 'plan-1',
+            runtimeManifest: validated.runtimeManifest,
+            moduleMetadata: validated.moduleMetadata.map((metadata) => ({ ...metadata, provenance: 'teacher_created' })),
+            planLimitations: [], aiReview: null, generationAudit: [], validation: validated.validation,
+          } }),
         } as Response;
       }
       return { ok: false, status: 404, json: async () => ({}) } as Response;
@@ -86,6 +112,21 @@ describe('smart courseware editor activity creation', () => {
     expect(JSON.parse(String(patch?.[1]?.body)).expectedVersion).toBe(1);
     expect(container.textContent).toContain('存在版本冲突');
     expect(window.localStorage.getItem(`preparation-editor:courseware:draft-1:${step.id}:${selectedModule.id}`)).not.toBeNull();
+
+    const adopt = [...container.querySelectorAll('button')]
+      .find((button) => button.textContent === '读取服务器新基线并保留本地修改')!;
+    await act(async () => adopt.click());
+    expect(container.textContent).toContain('服务器版本 2');
+    const preserved = [...container.querySelectorAll('input')]
+      .find((input) => input.value === '本地恢复步骤');
+    expect(preserved).toBeTruthy();
+
+    const save = [...container.querySelectorAll('button')]
+      .find((button) => button.textContent === '保存所选内容')!;
+    await act(async () => save.click());
+    const patches = fetch.mock.calls.filter(([, init]) => init?.method === 'PATCH');
+    expect(JSON.parse(String(patches[1][1]?.body)).expectedVersion).toBe(2);
+    expect(window.localStorage.getItem(`preparation-editor:courseware:draft-1:${step.id}:${selectedModule.id}`)).toBeNull();
   });
 
   it('clears a discarded local module draft before switching away', async () => {
@@ -226,6 +267,32 @@ describe('smart courseware editor activity creation', () => {
       `preparation-editor:courseware:draft-1:${composition.runtimeManifest.stages[0].steps[0].id}:${tableModule.id}`,
     )!);
     expect(local.payload.rows).toEqual([['增益', '2']]);
+  });
+
+  it('edits formula table cells without flattening their math structure', async () => {
+    const composition = validCompositionInput();
+    const tableModule = composition.runtimeManifest.stages[0].steps[0].modules[0];
+    tableModule.canonicalClass = 'content.table';
+    tableModule.payload = { columns: ['参数', '公式'], rows: [['增益', { kind: 'math', value: 'K_p' }]] };
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) } as Response)));
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const cell = container.querySelector<HTMLInputElement>('input[aria-label="rows 第1行第2列"]')!;
+    expect(cell.dataset.tableCellKind).toBe('math');
+    expect(cell.value).toBe('K_p');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(cell, 'K_p + K_i/s');
+      cell.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const local = JSON.parse(window.localStorage.getItem(
+      `preparation-editor:courseware:draft-1:${composition.runtimeManifest.stages[0].steps[0].id}:${tableModule.id}`,
+    )!);
+    expect(local.payload.rows).toEqual([['增益', { kind: 'math', value: 'K_p + K_i/s' }]]);
   });
 
   it('persists ignored courseware AI findings for the current revision', async () => {
