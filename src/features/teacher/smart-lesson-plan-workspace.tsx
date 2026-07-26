@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Archive, Bot, CheckCircle2, LoaderCircle, Menu, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
+import { capturePreparationEditorReturnState } from './preparation-document-editor/return-state';
 
 type SourceOption = {
   courseBasisId: string;
@@ -150,9 +151,10 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     };
   }, [query, showArchived]);
 
-  function createCourseware(planRevisionId: string) {
+  function createCourseware(planRevisionId: string, taskId: string) {
     if (coursewareCreationInFlight.current) return;
     coursewareCreationInFlight.current = true;
+    capturePreparationEditorReturnState(`/teacher/smart-prep?taskId=${encodeURIComponent(taskId)}#smart-prep-stage-courseware-generation`);
     const query = new URLSearchParams({ planRevisionId, creationIntentId: crypto.randomUUID() });
     window.location.assign(`/teacher/smart-prep/courseware/new?${query.toString()}`);
   }
@@ -345,6 +347,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     const job = task.drafts?.[0]?.jobs?.[0];
     const outline = job?.stages?.find((stage) => stage.kind === 'OUTLINE')?.output;
     if (!job || job.state !== 'PAUSED' || !outline || typeof outline !== 'object' || Array.isArray(outline)) return;
+    capturePreparationEditorReturnState(`/teacher/smart-prep?taskId=${encodeURIComponent(task.id)}#smart-prep-stage-lesson-generation`);
     window.location.assign(`/teacher/smart-prep/editor/lesson/${encodeURIComponent(job.id)}?kind=outline&taskId=${encodeURIComponent(task.id)}`);
   }
 
@@ -370,6 +373,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
   function editDraft(task: Task) {
     const draft = task.drafts?.[0];
     if (!draft?.content || typeof draft.content !== 'object' || Array.isArray(draft.content)) return;
+    capturePreparationEditorReturnState(`/teacher/smart-prep?taskId=${encodeURIComponent(task.id)}#smart-prep-stage-lesson-generation`);
     window.location.assign(`/teacher/smart-prep/editor/lesson/${encodeURIComponent(draft.id)}?kind=draft&taskId=${encodeURIComponent(task.id)}`);
   }
 
@@ -506,7 +510,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
           </div>)}
           {stageDetails('courseware-generation', <div className="space-y-2">
             {currentRevision
-              ? <button type="button" onClick={() => createCourseware(currentRevision.id)} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</button>
+              ? <button type="button" onClick={() => createCourseware(currentRevision.id, task.id)} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</button>
               : <p className="text-muted-foreground">批准教案版本后可生成互动课件。</p>}
           </div>)}
         </div>

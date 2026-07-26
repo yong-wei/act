@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { validPlanFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures';
 
 import { PreparationDocumentEditorShell } from '../preparation-document-editor/editor-shell';
+import { CourseBasisDocumentEditor } from '../preparation-document-editor/course-basis-document-editor';
 import { LessonDocumentEditor } from '../preparation-document-editor/lesson-document-editor';
 
 describe('preparation document editor interactions', () => {
@@ -180,6 +181,73 @@ describe('preparation document editor interactions', () => {
     expect(container.textContent).toContain('较早修改已保存');
     expect(container.textContent).toContain('尚未保存');
     expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.topic).toBe('请求期间的新修改');
+  });
+
+  it('keeps a lesson draft retryable when the save request throws', async () => {
+    const plan = validPlanFixture();
+    const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') throw new TypeError('network unavailable');
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          draft: { id: 'draft-1', version: 2, content: plan, reviews: [] },
+          task: { id: 'task-1', topic: '稳定性', durationMinutes: plan.durationMinutes },
+        }),
+      } as Response;
+    });
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => {
+      root.render(createElement(LessonDocumentEditor, { kind: 'draft', documentId: 'draft-1' }));
+      await Promise.resolve();
+    });
+    const topic = [...container.querySelectorAll('input')]
+      .find((input) => input.parentElement?.textContent?.startsWith('主题'))!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(topic, '断网时保留的主题');
+      topic.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const save = [...container.querySelectorAll('button')].find((button) => button.textContent === '保存')!;
+    await act(async () => save.click());
+
+    expect(container.textContent).toContain('保存请求失败，本地修改仍保留，请重试');
+    expect(container.textContent).toContain('保存失败');
+    expect(save.disabled).toBe(false);
+    expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!).content.topic).toBe('断网时保留的主题');
+  });
+
+  it('retains local lesson and course-basis drafts when initial loading throws', async () => {
+    window.localStorage.setItem('preparation-editor:draft:draft-1', JSON.stringify({
+      content: validPlanFixture(),
+      baseRevision: 1,
+      savedAt: '2026-07-25T00:00:00.000Z',
+    }));
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      throw new TypeError('network unavailable');
+    }));
+    await act(async () => {
+      root.render(createElement(LessonDocumentEditor, { kind: 'draft', documentId: 'draft-1' }));
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain('文档加载失败，本地修改仍保留，请重试');
+    expect(container.textContent).toContain('重试加载');
+    expect(window.localStorage.getItem('preparation-editor:draft:draft-1')).not.toBeNull();
+
+    await act(async () => root.unmount());
+    container.replaceChildren();
+    root = createRoot(container);
+    window.localStorage.setItem('preparation-editor:course-basis:version-1', JSON.stringify({
+      markdown: '# 本地课程依据',
+      baseContentHash: 'hash-1',
+      savedAt: '2026-07-25T00:00:00.000Z',
+    }));
+    await act(async () => {
+      root.render(createElement(CourseBasisDocumentEditor, { versionId: 'version-1' }));
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain('文档加载失败，本地修改仍保留，请重试');
+    expect(container.textContent).toContain('重试加载');
+    expect(window.localStorage.getItem('preparation-editor:course-basis:version-1')).not.toBeNull();
   });
 
   it('retains per-revision AI accept and ignore states without invoking approval', async () => {

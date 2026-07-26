@@ -127,6 +127,160 @@ describe('smart courseware editor activity creation', () => {
     expect([...container.querySelectorAll('textarea')].some((textarea) => textarea.value === '应当放弃的本地内容')).toBe(false);
   });
 
+  it('keeps a local module draft retryable when the PATCH request throws', async () => {
+    const composition = validCompositionInput();
+    const step = composition.runtimeManifest.stages[0].steps[0];
+    const selectedModule = step.modules[0];
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') throw new TypeError('network unavailable');
+      return { ok: false, status: 404, json: async () => ({}) } as Response;
+    }));
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const text = [...container.querySelectorAll('textarea')]
+      .find((textarea) => textarea.closest('[data-courseware-visual-editor]'))!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(text, '断网时保留的课件内容');
+      text.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const save = [...container.querySelectorAll('button')].find((button) => button.textContent === '保存所选内容')!;
+    await act(async () => save.click());
+
+    expect(container.textContent).toContain('保存请求失败，本地修改仍保留，请重试');
+    expect(container.textContent).toContain('保存失败');
+    expect(window.localStorage.getItem(
+      `preparation-editor:courseware:draft-1:${step.id}:${selectedModule.id}`,
+    )).not.toBeNull();
+  });
+
+  it('commits a saved module revision even when student preview refresh throws', async () => {
+    const composition = validCompositionInput();
+    const step = composition.runtimeManifest.stages[0].steps[0];
+    const selectedModule = step.modules[0];
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') {
+        const submitted = JSON.parse(String(init.body));
+        const validated = validateCoursewareComposition(submitted, validPlan());
+        return {
+          ok: true,
+          json: async () => ({ preview: {
+            draftId: 'draft-1', version: 2, planRevisionId: 'plan-1',
+            runtimeManifest: validated.runtimeManifest,
+            moduleMetadata: validated.moduleMetadata.map((metadata) => ({ ...metadata, provenance: 'teacher_created' })),
+            planLimitations: [], aiReview: null, generationAudit: [], validation: validated.validation,
+          } }),
+        } as Response;
+      }
+      if (url.endsWith('/previews/student')) throw new TypeError('preview unavailable');
+      return { ok: false, status: 404, json: async () => ({}) } as Response;
+    });
+    vi.stubGlobal('fetch', fetch);
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const text = [...container.querySelectorAll('textarea')]
+      .find((textarea) => textarea.closest('[data-courseware-visual-editor]'))!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(text, '已保存但预览失败的内容');
+      text.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const save = [...container.querySelectorAll('button')].find((button) => button.textContent === '保存所选内容')!;
+    await act(async () => save.click());
+
+    expect(container.textContent).toContain('组合已保存；学生预览暂时无法刷新');
+    expect(container.textContent).toContain('已保存');
+    expect(window.localStorage.getItem(
+      `preparation-editor:courseware:draft-1:${step.id}:${selectedModule.id}`,
+    )).toBeNull();
+  });
+
+  it('edits nested table rows through the visual editor', async () => {
+    const composition = validCompositionInput();
+    const tableModule = composition.runtimeManifest.stages[0].steps[0].modules[0];
+    tableModule.canonicalClass = 'content.table';
+    tableModule.payload = { columns: ['参数', '数值'], rows: [['增益', '1']] };
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) } as Response)));
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const cell = container.querySelector<HTMLInputElement>('input[aria-label="rows 第1行第2列"]')!;
+    expect(cell.value).toBe('1');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(cell, '2');
+      cell.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const local = JSON.parse(window.localStorage.getItem(
+      `preparation-editor:courseware:draft-1:${composition.runtimeManifest.stages[0].steps[0].id}:${tableModule.id}`,
+    )!);
+    expect(local.payload.rows).toEqual([['增益', '2']]);
+  });
+
+  it('persists ignored courseware AI findings for the current revision', async () => {
+    const composition = validCompositionInput();
+    const suggestionKey = 'preparation-editor:courseware:draft-1:1:suggestions';
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) } as Response)));
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
+      planLimitations: [],
+      aiReview: {
+        findings: [{ category: 'structure', severity: 'warning', message: '补充课堂小结', path: 'stages.0' }],
+        suggestions: [],
+      },
+      generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const finding = [...container.querySelectorAll('article')]
+      .find((article) => article.textContent?.includes('补充课堂小结'))!;
+    expect(finding.textContent).toContain('该建议未包含可应用的修改');
+    const ignore = [...finding.querySelectorAll('button')].find((button) => button.textContent === '忽略')!;
+    await act(async () => ignore.click());
+
+    expect(finding.textContent).toContain('已忽略');
+    expect(JSON.parse(window.localStorage.getItem(suggestionKey)!)).toEqual({ 'finding:0': 'ignored' });
+  });
+
+  it('rejects forged accepted state for courseware suggestions without replacements', async () => {
+    const composition = validCompositionInput();
+    window.localStorage.setItem(
+      'preparation-editor:courseware:draft-1:1:suggestions',
+      JSON.stringify({ 'finding:0': 'accepted' }),
+    );
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) } as Response)));
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
+      planLimitations: [],
+      aiReview: {
+        findings: [{ category: 'structure', severity: 'warning', message: '不可伪造接受', path: 'stages.0' }],
+        suggestions: [],
+      },
+      generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const finding = [...container.querySelectorAll('article')]
+      .find((article) => article.textContent?.includes('不可伪造接受'))!;
+
+    expect(finding.textContent).not.toContain('已接受');
+    expect(finding.textContent).toContain('该建议未包含可应用的修改');
+    expect([...finding.querySelectorAll('button')].some((button) => button.textContent === '忽略')).toBe(true);
+  });
+
   it('reports a retryable queue delivery failure instead of claiming the task was queued', async () => {
     vi.stubGlobal('crypto', { randomUUID: () => '00000000-0000-4000-8000-000000000001' });
     vi.stubGlobal('fetch', vi.fn(async () => ({

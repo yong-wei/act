@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { PreparationDocumentEditorShell, type PreparationEditorSaveState } from './editor-shell';
 import { RichMarkdownEditor } from './rich-markdown-editor';
+import { returnToPreparationEditorOrigin } from './return-state';
 
 type EditableCourseBasisDocument = {
   id: string;
@@ -28,23 +29,27 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
   const storageKey = `preparation-editor:course-basis:${versionId}`;
 
   const load = useCallback(async (preferServer = false) => {
-    const response = await fetch(`/api/teacher/course-bases/versions/${encodeURIComponent(versionId)}?mode=editor`, { cache: 'no-store' });
-    const payload = await response.json();
-    if (!response.ok) return setMessage(errorText(payload));
-    const next = payload.document as EditableCourseBasisDocument;
-    const local = !preferServer ? readLocalDraft(storageKey) : null;
-    if (preferServer) window.localStorage.removeItem(storageKey);
-    setDocument(next);
-    setMarkdown(local?.markdown ?? next.markdown);
-    markdownRef.current = local?.markdown ?? next.markdown;
-    setBaseContentHash(local ? local.baseContentHash : next.contentHash);
-    editGenerationRef.current = local ? 1 : 0;
-    setSaveState(local ? local.baseContentHash === null ? 'conflict' : 'dirty' : 'saved');
-    setMessage(local
-      ? local.baseContentHash === null
-        ? '已恢复旧版本地修改，但缺少原始版本基线；请复制内容后重新加载服务器版本。'
-        : '已恢复上次未完成的本地修改。'
-      : next.frozen ? '当前版本已被引用；保存时会建立新的可编辑版本。' : '');
+    try {
+      const response = await fetch(`/api/teacher/course-bases/versions/${encodeURIComponent(versionId)}?mode=editor`, { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) return setMessage(errorText(payload));
+      const next = payload.document as EditableCourseBasisDocument;
+      const local = !preferServer ? readLocalDraft(storageKey) : null;
+      if (preferServer) window.localStorage.removeItem(storageKey);
+      setDocument(next);
+      setMarkdown(local?.markdown ?? next.markdown);
+      markdownRef.current = local?.markdown ?? next.markdown;
+      setBaseContentHash(local ? local.baseContentHash : next.contentHash);
+      editGenerationRef.current = local ? 1 : 0;
+      setSaveState(local ? local.baseContentHash === null ? 'conflict' : 'dirty' : 'saved');
+      setMessage(local
+        ? local.baseContentHash === null
+          ? '已恢复旧版本地修改，但缺少原始版本基线；请复制内容后重新加载服务器版本。'
+          : '已恢复上次未完成的本地修改。'
+        : next.frozen ? '当前版本已被引用；保存时会建立新的可编辑版本。' : '');
+    } catch {
+      setMessage('文档加载失败，本地修改仍保留，请重试。');
+    }
   }, [storageKey, versionId]);
 
   useEffect(() => {
@@ -68,40 +73,45 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
     }
     const saveGeneration = editGenerationRef.current;
     setSaveState('saving');
-    const response = await fetch(`/api/teacher/course-bases/versions/${encodeURIComponent(document.id)}`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ expectedContentHash: baseContentHash, markdown }),
-    });
-    const payload = await response.json();
-    if (!response.ok) {
-      setSaveState(response.status === 409 ? 'conflict' : 'failed');
-      setMessage(response.status === 409 ? '服务器版本已变化。本地文档仍保留，可重新加载后比较。' : errorText(payload));
-      return;
-    }
-    if (payload.createdSuccessor) {
-      window.localStorage.removeItem(storageKey);
-      if (editGenerationRef.current !== saveGeneration) {
-        writeLocalDraft(
-          `preparation-editor:course-basis:${payload.version.id}`,
-          markdownRef.current,
-          payload.version.contentHash,
-        );
+    try {
+      const response = await fetch(`/api/teacher/course-bases/versions/${encodeURIComponent(document.id)}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ expectedContentHash: baseContentHash, markdown }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setSaveState(response.status === 409 ? 'conflict' : 'failed');
+        setMessage(response.status === 409 ? '服务器版本已变化。本地文档仍保留，可重新加载后比较。' : errorText(payload));
+        return;
       }
-      setMessage(`原版本保持不变，已建立 v${payload.version.versionNumber} 可编辑版本。`);
-      window.location.replace(`/teacher/smart-prep/editor/course-basis/${encodeURIComponent(payload.version.id)}`);
-      return;
-    }
-    setBaseContentHash(payload.version.contentHash);
-    setDocument((current) => current ? { ...current, contentHash: payload.version.contentHash, frozen: false } : current);
-    if (editGenerationRef.current === saveGeneration) {
-      window.localStorage.removeItem(storageKey);
-      setSaveState('saved');
-      setMessage('修改已可靠保存。');
-    } else {
-      writeLocalDraft(storageKey, markdownRef.current, payload.version.contentHash);
-      setSaveState('dirty');
-      setMessage('较早修改已保存，正在继续保存新的修改。');
+      if (payload.createdSuccessor) {
+        window.localStorage.removeItem(storageKey);
+        if (editGenerationRef.current !== saveGeneration) {
+          writeLocalDraft(
+            `preparation-editor:course-basis:${payload.version.id}`,
+            markdownRef.current,
+            payload.version.contentHash,
+          );
+        }
+        setMessage(`原版本保持不变，已建立 v${payload.version.versionNumber} 可编辑版本。`);
+        window.location.replace(`/teacher/smart-prep/editor/course-basis/${encodeURIComponent(payload.version.id)}`);
+        return;
+      }
+      setBaseContentHash(payload.version.contentHash);
+      setDocument((current) => current ? { ...current, contentHash: payload.version.contentHash, frozen: false } : current);
+      if (editGenerationRef.current === saveGeneration) {
+        window.localStorage.removeItem(storageKey);
+        setSaveState('saved');
+        setMessage('修改已可靠保存。');
+      } else {
+        writeLocalDraft(storageKey, markdownRef.current, payload.version.contentHash);
+        setSaveState('dirty');
+        setMessage('较早修改已保存，正在继续保存新的修改。');
+      }
+    } catch {
+      setSaveState('failed');
+      setMessage('保存请求失败，本地修改仍保留，请重试。');
     }
   }, [baseContentHash, document, markdown, saveState, storageKey]);
 
@@ -113,7 +123,7 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
 
   const sections = useMemo(() => markdownSections(markdown), [markdown]);
   if (!document) {
-    return <main className="grid min-h-screen place-items-center bg-background"><p role="status">{message || '正在加载文档…'}</p></main>;
+    return <main className="grid min-h-screen place-items-center bg-background"><div className="text-center"><p role="status">{message || '正在加载文档…'}</p>{message ? <button type="button" onClick={() => void load()} className="mt-3 rounded border border-border px-3 py-1.5">重试加载</button> : null}</div></main>;
   }
 
   return (
@@ -123,7 +133,7 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
       sections={sections}
       saveState={saveState}
       onSave={save}
-      onExit={() => returnToSmartPrep(`/teacher/smart-prep?view=basis&courseBasisId=${encodeURIComponent(document.courseBasisId)}`)}
+      onExit={() => returnToPreparationEditorOrigin(`/teacher/smart-prep?view=basis&courseBasisId=${encodeURIComponent(document.courseBasisId)}`)}
       onSelectSection={(id) => window.document.querySelectorAll('[data-preparation-rich-editor] .tiptap h1, [data-preparation-rich-editor] .tiptap h2, [data-preparation-rich-editor] .tiptap h3, [data-preparation-rich-editor] .tiptap h4')[Number(id)]?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
     >
       <div className="mx-auto max-w-5xl">
@@ -174,8 +184,4 @@ function readLocalDraft(key: string): { markdown: string; baseContentHash: strin
   } catch {
     return { markdown: raw, baseContentHash: null };
   }
-}
-
-function returnToSmartPrep(fallback: string) {
-  window.location.assign(fallback);
 }

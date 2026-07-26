@@ -3,6 +3,8 @@
 import { useRef, useState } from 'react';
 import { BookOpen, FileUp, Plus, RefreshCw } from 'lucide-react';
 
+import { capturePreparationEditorReturnState } from './preparation-document-editor/return-state';
+
 type Version = {
   id: string;
   versionNumber: number;
@@ -219,7 +221,20 @@ export function CourseBasisWorkspace({
   }
 
   return (
-    <main className="space-y-6" data-course-basis-workspace>
+    <main
+      className="space-y-6"
+      data-course-basis-workspace
+      onClickCapture={(event) => {
+        const editorLink = (event.target as HTMLElement).closest<HTMLAnchorElement>(
+          'a[href^="/teacher/smart-prep/editor/course-basis/"]',
+        );
+        if (editorLink && selected) {
+          capturePreparationEditorReturnState(
+            `/teacher/smart-prep?view=basis&courseBasisId=${encodeURIComponent(selected.id)}`,
+          );
+        }
+      }}
+    >
       <header>
         <p className="text-sm font-medium text-primary">智能备课 · 私有课程依据</p>
         <h1 className="mt-1 text-2xl font-semibold text-foreground">Course Basis</h1>

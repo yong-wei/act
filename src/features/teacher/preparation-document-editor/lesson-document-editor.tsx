@@ -19,6 +19,7 @@ import {
   type LessonEditorDocumentKind as LessonEditorKind,
   type PreparationRecord as RecordValue,
 } from './lesson-document-model';
+import { returnToPreparationEditorOrigin } from './return-state';
 
 export function LessonDocumentEditor({
   kind,
@@ -44,35 +45,39 @@ export function LessonDocumentEditor({
   );
 
   const load = useCallback(async (preferServer = false) => {
-    const response = await fetch(endpoint(kind, documentId), { cache: 'no-store' });
-    const payload = await response.json();
-    if (!response.ok) {
-      setMessage(errorText(payload));
-      return;
+    try {
+      const response = await fetch(endpoint(kind, documentId), { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) {
+        setMessage(errorText(payload));
+        return;
+      }
+      const serverDocument = kind === 'outline' ? payload.outline.output : payload.draft.content;
+      const serverRevision = kind === 'outline' ? payload.outline.outputHash : payload.draft.version;
+      const local = !preferServer ? readLocalDraft(storageKey) : null;
+      if (preferServer) window.localStorage.removeItem(storageKey);
+      const nextDocument = local?.content ?? serverDocument;
+      const nextRevision = local ? local.baseRevision : serverRevision;
+      setDocument(nextDocument);
+      documentRef.current = nextDocument;
+      setBaseRevision(nextRevision ?? '');
+      setTask(kind === 'outline' ? payload.job.task : payload.task);
+      const suggestionKey = `${storageKey}:suggestions`;
+      const currentReview = payload.draft?.reviews?.find?.((review: RecordValue) => review.contentHash === payload.draft.contentHash);
+      setSuggestions(kind === 'draft'
+        ? advisorySuggestions(currentReview?.report, payload.draft.contentHash)
+            .map((item) => ({ ...item, status: readSuggestionStates(suggestionKey)[item.id] ?? item.status }))
+        : []);
+      setSaveState(local ? local.baseRevision === null ? 'conflict' : 'dirty' : 'saved');
+      editGenerationRef.current = local ? 1 : 0;
+      setMessage(local
+        ? local.baseRevision === null
+          ? '已恢复旧版本地修改，但缺少原始修订基线；请复制内容后重新加载服务器修订。'
+          : '已恢复上次未完成的本地修改。'
+        : '');
+    } catch {
+      setMessage('文档加载失败，本地修改仍保留，请重试。');
     }
-    const serverDocument = kind === 'outline' ? payload.outline.output : payload.draft.content;
-    const serverRevision = kind === 'outline' ? payload.outline.outputHash : payload.draft.version;
-    const local = !preferServer ? readLocalDraft(storageKey) : null;
-    if (preferServer) window.localStorage.removeItem(storageKey);
-    const nextDocument = local?.content ?? serverDocument;
-    const nextRevision = local ? local.baseRevision : serverRevision;
-    setDocument(nextDocument);
-    documentRef.current = nextDocument;
-    setBaseRevision(nextRevision ?? '');
-    setTask(kind === 'outline' ? payload.job.task : payload.task);
-    const suggestionKey = `${storageKey}:suggestions`;
-    const currentReview = payload.draft?.reviews?.find?.((review: RecordValue) => review.contentHash === payload.draft.contentHash);
-    setSuggestions(kind === 'draft'
-      ? advisorySuggestions(currentReview?.report, payload.draft.contentHash)
-          .map((item) => ({ ...item, status: readSuggestionStates(suggestionKey)[item.id] ?? item.status }))
-      : []);
-    setSaveState(local ? local.baseRevision === null ? 'conflict' : 'dirty' : 'saved');
-    editGenerationRef.current = local ? 1 : 0;
-    setMessage(local
-      ? local.baseRevision === null
-        ? '已恢复旧版本地修改，但缺少原始修订基线；请复制内容后重新加载服务器修订。'
-        : '已恢复上次未完成的本地修改。'
-      : '');
   }, [documentId, kind, storageKey]);
 
   useEffect(() => {
@@ -101,30 +106,35 @@ export function LessonDocumentEditor({
     }
     const saveGeneration = editGenerationRef.current;
     setSaveState('saving');
-    const response = await fetch(endpoint(kind, documentId), {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(kind === 'outline'
-        ? { expectedOutputHash: baseRevision, output: document }
-        : { expectedVersion: baseRevision, content: document }),
-    });
-    const payload = await response.json();
-    if (!response.ok) {
-      const conflict = response.status === 409;
-      setSaveState(conflict ? 'conflict' : 'failed');
-      setMessage(conflict ? '服务器已有较新修订。本地内容仍保留，可复制后重新加载比较。' : errorText(payload));
-      return;
-    }
-    const nextRevision = kind === 'outline' ? payload.stage.outputHash : payload.draft.version;
-    setBaseRevision(nextRevision);
-    if (editGenerationRef.current === saveGeneration) {
-      setSaveState('saved');
-      setMessage('修改已可靠保存。');
-      window.localStorage.removeItem(storageKey);
-    } else {
-      if (documentRef.current) writeLocalDraft(storageKey, documentRef.current, nextRevision);
-      setSaveState('dirty');
-      setMessage('较早修改已保存，正在继续保存新的修改。');
+    try {
+      const response = await fetch(endpoint(kind, documentId), {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(kind === 'outline'
+          ? { expectedOutputHash: baseRevision, output: document }
+          : { expectedVersion: baseRevision, content: document }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        const conflict = response.status === 409;
+        setSaveState(conflict ? 'conflict' : 'failed');
+        setMessage(conflict ? '服务器已有较新修订。本地内容仍保留，可复制后重新加载比较。' : errorText(payload));
+        return;
+      }
+      const nextRevision = kind === 'outline' ? payload.stage.outputHash : payload.draft.version;
+      setBaseRevision(nextRevision);
+      if (editGenerationRef.current === saveGeneration) {
+        setSaveState('saved');
+        setMessage('修改已可靠保存。');
+        window.localStorage.removeItem(storageKey);
+      } else {
+        if (documentRef.current) writeLocalDraft(storageKey, documentRef.current, nextRevision);
+        setSaveState('dirty');
+        setMessage('较早修改已保存，正在继续保存新的修改。');
+      }
+    } catch {
+      setSaveState('failed');
+      setMessage('保存请求失败，本地修改仍保留，请重试。');
     }
   }, [baseRevision, document, documentId, kind, saveState, storageKey, validationErrors]);
 
@@ -147,12 +157,12 @@ export function LessonDocumentEditor({
       })), [document, kind]);
 
   if (!document || !task) {
-    return <main className="grid min-h-screen place-items-center bg-background"><p role="status">{message || '正在加载文档…'}</p></main>;
+    return <main className="grid min-h-screen place-items-center bg-background"><div className="text-center"><p role="status">{message || '正在加载文档…'}</p>{message ? <button type="button" onClick={() => void load()} className="mt-3 rounded border border-border px-3 py-1.5">重试加载</button> : null}</div></main>;
   }
 
   const exit = () => {
     const target = returnTaskId || task.id;
-    returnToSmartPrep(`/teacher/smart-prep?taskId=${encodeURIComponent(target)}#smart-prep-stage-lesson-generation`);
+    returnToPreparationEditorOrigin(`/teacher/smart-prep?taskId=${encodeURIComponent(target)}#smart-prep-stage-lesson-generation`);
   };
 
   return (
@@ -434,8 +444,4 @@ function errorText(payload: unknown) {
     'paused-outline-conflict': '提纲已有较新修订。',
     'invalid-input': '文档结构或时长不符合要求，请检查标记项。',
   } as Record<string, string>)[code] ?? code;
-}
-
-function returnToSmartPrep(fallback: string) {
-  window.location.assign(fallback);
 }

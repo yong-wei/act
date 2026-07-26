@@ -33,7 +33,9 @@ import { isObjectiveInteractiveResponseKind, isSubjectiveInteractiveResponseKind
 import {
   PreparationDocumentEditorShell,
   type PreparationEditorSaveState,
+  type PreparationEditorSuggestion,
 } from './preparation-document-editor/editor-shell';
+import { returnToPreparationEditorOrigin } from './preparation-document-editor/return-state';
 import { SmartCoursewarePublicationPanel } from './smart-courseware-publication-panel';
 
 export type SmartCoursewareSourceState =
@@ -379,6 +381,10 @@ export function SmartCoursewareEditor({
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [visualSaveState, setVisualSaveState] = useState<PreparationEditorSaveState>('saved');
+  const suggestionStorageKey = `preparation-editor:courseware:${envelope.draftId}:${envelope.version}:suggestions`;
+  const [suggestionStates, setSuggestionStates] = useState<Record<string, 'ignored'>>(
+    () => readCoursewareSuggestionStates(suggestionStorageKey),
+  );
   const visualDirty = visualSaveState !== 'saved';
   const visualSaveRef = useRef<() => Promise<void>>(async () => undefined);
   const visualDiscardRef = useRef<() => void>(() => undefined);
@@ -390,6 +396,10 @@ export function SmartCoursewareEditor({
     : null;
   const selectedStep = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((step) => step.id === selectedStepId);
   const selectedModule = selectedStep?.modules.find((module) => module.id === selectedModuleId);
+
+  useEffect(() => {
+    setSuggestionStates(readCoursewareSuggestionStates(suggestionStorageKey));
+  }, [suggestionStorageKey]);
 
   function confirmVisualDiscard() {
     if (!visualDirty || window.confirm('所选内容尚未保存。放弃这些修改并切换吗？')) {
@@ -467,9 +477,18 @@ export function SmartCoursewareEditor({
       }
       const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview, envelope.stalePlan);
       setEnvelope(next);
-      setStudentPreview(await fetchStudentPreview(next));
-      setMessage('组合已保存，并通过服务器共享运行时校验。');
+      try {
+        setStudentPreview(await fetchStudentPreview(next));
+        setMessage('组合已保存，并通过服务器共享运行时校验。');
+      } catch {
+        setStudentPreview(null);
+        setMessage('组合已保存；学生预览暂时无法刷新，可稍后重试。');
+      }
       return next;
+    } catch {
+      onFailure?.(0);
+      setMessage('保存请求失败，本地修改仍保留，请重试。');
+      return null;
     } finally {
       setBusy(false);
     }
@@ -718,18 +737,18 @@ export function SmartCoursewareEditor({
     title: step.title,
     complete: step.modules.length > 0,
   }))) ?? [];
-  const editorSuggestions = [
+  const editorSuggestions: PreparationEditorSuggestion[] = [
     ...(envelope.aiReview?.findings ?? []).map((finding, index) => ({
       id: `finding:${index}`,
       message: finding.message,
       anchor: finding.path,
-      status: 'open' as const,
+      status: suggestionStates[`finding:${index}`] ?? 'open',
     })),
     ...(envelope.aiReview?.suggestions ?? []).map((message, index) => ({
       id: `suggestion:${index}`,
       message,
       anchor: '课件',
-      status: 'open' as const,
+      status: suggestionStates[`suggestion:${index}`] ?? 'open',
     })),
   ];
 
@@ -746,11 +765,18 @@ export function SmartCoursewareEditor({
         setSelectedModuleId(step?.modules[0]?.id ?? '');
       }}
       suggestions={editorSuggestions}
+      onIgnoreSuggestion={(suggestion) => {
+        setSuggestionStates((current) => {
+          const next = { ...current, [suggestion.id]: 'ignored' as const };
+          window.localStorage.setItem(suggestionStorageKey, JSON.stringify(next));
+          return next;
+        });
+      }}
       saveState={busy ? 'saving' : visualSaveState}
       onSave={() => visualSaveRef.current()}
       onExit={() => {
         const query = returnTaskId ? `?taskId=${encodeURIComponent(returnTaskId)}` : '';
-        window.location.assign(`/teacher/smart-prep${query}#smart-prep-stage-courseware-generation`);
+        returnToPreparationEditorOrigin(`/teacher/smart-prep${query}#smart-prep-stage-courseware-generation`);
       }}
     >
     <main className="space-y-5" data-smart-courseware-editor data-courseware-draft-id={envelope.draftId}>
@@ -1351,6 +1377,18 @@ function readCoursewareVisualDraft(key: string): CoursewareVisualLocalDraft | nu
   }
 }
 
+function readCoursewareSuggestionStates(key: string): Record<string, 'ignored'> {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(key) ?? 'null');
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    return Object.fromEntries(Object.entries(value).filter(
+      (entry): entry is [string, 'ignored'] => entry[1] === 'ignored',
+    ));
+  } catch {
+    return {};
+  }
+}
+
 function VisualObjectEditor({
   value,
   onChange,
@@ -1375,6 +1413,34 @@ function VisualObjectEditor({
         const items = event.target.value.split('\n').map((item) => item.trim()).filter(Boolean);
         onChange({ ...value, [key]: numeric ? items.map(Number) : items });
       }} className="rounded border border-border bg-background px-3 py-2" /></label>;
+    }
+    if (Array.isArray(child) && child.every((row) => (
+      Array.isArray(row) && row.every((cell) => ['string', 'number'].includes(typeof cell))
+    ))) {
+      const rows = child as Array<Array<string | number>>;
+      return <fieldset key={key} className="min-w-0 rounded border border-border p-3">
+        <legend className="px-1 text-sm">{label}</legend>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse">
+            <tbody>{rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, columnIndex) => <td key={columnIndex} className="border border-border p-1">
+              <input
+                aria-label={`${label} 第${rowIndex + 1}行第${columnIndex + 1}列`}
+                type={typeof cell === 'number' ? 'number' : 'text'}
+                value={cell}
+                onChange={(event) => onChange({
+                  ...value,
+                  [key]: rows.map((candidate, candidateRowIndex) => candidateRowIndex === rowIndex
+                    ? candidate.map((candidateCell, candidateColumnIndex) => candidateColumnIndex === columnIndex
+                      ? typeof candidateCell === 'number' ? Number(event.target.value) : event.target.value
+                      : candidateCell)
+                    : candidate),
+                })}
+                className="min-w-32 rounded border border-border bg-background px-2 py-1.5"
+              />
+            </td>)}</tr>)}</tbody>
+          </table>
+        </div>
+      </fieldset>;
     }
     if (Array.isArray(child) && child.every((item) => item && typeof item === 'object' && !Array.isArray(item))) {
       return <fieldset key={key} className="space-y-3 rounded border border-border p-3"><legend className="px-1 text-sm">{label}</legend>{child.map((item, index) => <VisualObjectEditor key={index} value={item as Record<string, unknown>} path={[...path, key, String(index + 1)]} onChange={(next) => onChange({ ...value, [key]: child.map((candidate, itemIndex) => itemIndex === index ? next : candidate) })} />)}</fieldset>;

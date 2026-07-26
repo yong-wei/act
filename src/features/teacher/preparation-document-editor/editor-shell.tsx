@@ -107,8 +107,8 @@ function SuggestionPanel({ suggestions, onAccept, onIgnore, className = '' }: { 
       <p>{suggestion.message}</p>
       {suggestion.status && suggestion.status !== 'open'
         ? <p className="mt-2 text-xs text-muted-foreground">{suggestion.status === 'accepted' ? '已接受' : '已忽略'}</p>
-        : onAccept && onIgnore
-          ? <div className="mt-3 flex flex-wrap items-center gap-2">{suggestion.replacement ? <button type="button" onClick={() => onAccept(suggestion)} className="rounded border border-primary px-2 py-1 text-xs text-primary">接受</button> : <span className="text-xs text-muted-foreground">该建议未包含可应用的修改</span>}<button type="button" onClick={() => onIgnore(suggestion)} className="rounded border border-border px-2 py-1 text-xs">忽略</button></div>
+        : onAccept || onIgnore
+          ? <div className="mt-3 flex flex-wrap items-center gap-2">{suggestion.replacement && onAccept ? <button type="button" onClick={() => onAccept(suggestion)} className="rounded border border-primary px-2 py-1 text-xs text-primary">接受</button> : <span className="text-xs text-muted-foreground">该建议未包含可应用的修改</span>}{onIgnore ? <button type="button" onClick={() => onIgnore(suggestion)} className="rounded border border-border px-2 py-1 text-xs">忽略</button> : null}</div>
           : null}
     </article>) : <p className="text-sm text-muted-foreground">当前修订没有待处理建议。</p>}</div>
   </aside>;

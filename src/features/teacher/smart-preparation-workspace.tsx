@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BookOpen, ClipboardList } from 'lucide-react';
 
 import { CourseBasisWorkspace } from './course-basis-workspace';
+import { restorePreparationEditorReturnState } from './preparation-document-editor/return-state';
 import { SmartLessonPlanWorkspace } from './smart-lesson-plan-workspace';
 
 export function SmartPreparationWorkspace({
@@ -28,6 +29,10 @@ export function SmartPreparationWorkspace({
     const frame = window.requestAnimationFrame(() => window.scrollTo({ top: scrollPositions.current[view] }));
     return () => window.cancelAnimationFrame(frame);
   }, [view]);
+
+  useEffect(() => {
+    restorePreparationEditorReturnState();
+  }, []);
 
   function changeView(next: 'tasks' | 'basis') {
     scrollPositions.current[view] = window.scrollY;
