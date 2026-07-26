@@ -42,8 +42,16 @@ export function sortRubricLevels(
   const ordered = levels
     .map((level) => ({ ...level }))
     .sort((left, right) => toTenths(right.maxPoints) - toTenths(left.maxPoints));
-  if (ordered[0]) ordered[0].maxPoints = criterionMaxPoints;
-  return ordered;
+  let previousMaximum = toTenths(criterionMaxPoints) + 1;
+  return ordered.map((level, index) => {
+    const maximum = index === 0
+      ? criterionMaxPoints
+      : toTenths(level.maxPoints) >= previousMaximum
+        ? fromTenths(previousMaximum - 1)
+        : level.maxPoints;
+    previousMaximum = toTenths(maximum);
+    return { ...level, maxPoints: maximum };
+  });
 }
 
 export function deriveRubricLevelRanges(

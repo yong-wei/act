@@ -101,6 +101,16 @@ describe('assignment rubric v2 decimal and level contract', () => {
     ]);
   });
 
+  it('keeps level records strictly descending when the criterion maximum is lowered', () => {
+    expect(sortRubricLevels([
+      { id: 'high', label: '高档', maxPoints: 10, guideline: '高档准则' },
+      { id: 'low', label: '低档', maxPoints: 9, guideline: '低档准则' },
+    ], 8)).toEqual([
+      expect.objectContaining({ id: 'high', maxPoints: 8 }),
+      expect.objectContaining({ id: 'low', maxPoints: 7.9 }),
+    ]);
+  });
+
   it('clamps detailed AI scores but validates teacher scores only against item bounds', () => {
     const levels = [
       { id: 'high', label: '优秀', maxPoints: 10, guideline: 'high' },

@@ -1452,17 +1452,26 @@ function QuestionEditor({
               <input
                 type="checkbox"
                 checked={criterion.detailedRubricEnabled}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const enabled = event.target.checked;
+                  if (!enabled && criterion.levels.length > 0) {
+                    const deletionSummary = criterion.levels
+                      .map((level) => `${level.label}（${level.maxPoints} 分；${level.guideline}）`)
+                      .join('、');
+                    if (!window.confirm(`将删除全部评价级别：${deletionSummary}。是否继续？`)) {
+                      return;
+                    }
+                  }
                   updateCriterion(index, (item) => ({
                     ...item,
-                    detailedRubricEnabled: event.target.checked,
-                    levels: event.target.checked
+                    detailedRubricEnabled: enabled,
+                    levels: enabled
                       ? item.levels.length > 0
                         ? item.levels
                         : [createInitialDetailedLevel(item.id, item.maxPoints)]
                       : [],
-                  }))
-                }
+                  }));
+                }}
               />
               启用详细评分细则
             </label>

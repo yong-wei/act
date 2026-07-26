@@ -448,6 +448,45 @@ test('moving rubric levels keeps the derived range and highest-score lock with t
   await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toBeDisabled();
 });
 
+test('lowering a criterion maximum keeps level boundaries strictly descending', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+
+  await page.getByLabel('最高分').fill('8');
+
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toHaveValue('8');
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toBeDisabled();
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toHaveValue('7.9');
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toBeEnabled();
+});
+
+test('disabling an edited detailed rubric confirms the full deleted content', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  const detailed = page.getByLabel('启用详细评分细则');
+  await detailed.check();
+  await page.getByLabel('评分项 1 档位 1 名称').fill('教师高档');
+  await page.getByLabel('评分项 1 级别 1 评分准则').fill('教师自定义准则');
+
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('教师高档（10 分；教师自定义准则）');
+    await dialog.dismiss();
+  });
+  await detailed.click();
+  await expect(detailed).toBeChecked();
+  await expect(page.getByLabel('评分项 1 档位 1 名称')).toHaveValue('教师高档');
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await detailed.click();
+  await expect(detailed).not.toBeChecked();
+});
+
 test('an edited single level keeps its content while the two-level shortcut uses the 60 percent boundary', async ({ page, context }) => {
   await addTeacherSession(context);
   await page.setViewportSize({ width: 1024, height: 900 });
