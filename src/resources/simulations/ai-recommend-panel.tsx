@@ -94,7 +94,8 @@ export function AIRecommendPanel({
       }
 
       const data = await response.json();
-      setResult(data.result);
+      // API 返回 { success, result: {...}, advice } 结构，advice 在顶层
+      setResult({ ...data.result, advice: data.advice ?? '' });
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
@@ -110,7 +111,7 @@ export function AIRecommendPanel({
 
   return (
     <div className={`rounded-xl border border-slate-700 bg-slate-900 p-4 ${className}`}>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-content-between">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20">
             <svg className="h-4 w-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
