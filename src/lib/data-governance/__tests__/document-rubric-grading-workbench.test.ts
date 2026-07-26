@@ -281,6 +281,76 @@ describe('document rubric grading workbench', () => {
       rubric: standardRubric,
       now,
     })).toThrow('teacher-score-must-use-0.1-quantum');
+
+    const submission = asset();
+    const persisted = {
+      id: edited.id,
+      ownerUserId: submission.studentId,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(submission, edited),
+      classId: submission.classId,
+      sourceRefs: {
+        asset: submission,
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+      },
+      evidenceRefs: { convertedDocument: converted },
+      summary: { run: edited, rubric: standardRubric },
+    };
+    const parsed = parsePersistedDocumentRubricGradingDraft(persisted);
+    expect(parsed).not.toBeNull();
+    expect(validateDocumentRubricGradingDraftInvariants({
+      draft: persisted,
+      parsed: parsed!,
+    })).toEqual({ valid: true, reasons: [] });
+
+    const approved = approveGradingRun(edited, {
+      reviewerId: 'teacher-1',
+      decision: 'approved',
+      now,
+    });
+    const goalContext = {
+      classId: submission.classId,
+      assignmentId: submission.assignmentId,
+      goalId: 'control-report',
+      targetGoal: 'control-report',
+    };
+    expect(previewApprovedGradingEvidence({
+      run: approved,
+      rubric: standardRubric,
+      studentId: submission.studentId,
+      goalContext,
+      now,
+    })).toEqual(expect.objectContaining({
+      status: 'preview',
+      blocked: 0,
+      facts: [expect.objectContaining({ score: 3.9 })],
+    }));
+    const db = {
+      learningFact: {
+        createMany: vi.fn()
+          .mockResolvedValueOnce({ count: 1 })
+          .mockResolvedValueOnce({ count: 0 }),
+      },
+      studentEvidenceFeatureCache: {
+        deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+    await expect(writeApprovedGradingEvidence({
+      db,
+      run: approved,
+      rubric: standardRubric,
+      studentId: submission.studentId,
+      goalContext,
+      now,
+    })).resolves.toEqual(expect.objectContaining({ created: 1, skipped: 0 }));
+    await expect(writeApprovedGradingEvidence({
+      db,
+      run: approved,
+      rubric: standardRubric,
+      studentId: submission.studentId,
+      goalContext,
+      now,
+    })).resolves.toEqual(expect.objectContaining({ created: 0, skipped: 1 }));
   });
 
   it('does not clamp v2 teacher revisions to the selected AI level', () => {

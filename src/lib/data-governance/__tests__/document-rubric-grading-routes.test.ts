@@ -191,6 +191,70 @@ async function gradingDraft() {
   return persistedDraft({ asset, convertedDocument, run, rubric: rubric() });
 }
 
+async function standardGradingDraft() {
+  const submission = createSubmissionAsset({
+    id: 'asset-standard-1',
+    studentId: 'student-1',
+    classId: 'class-1',
+    assignmentId: 'report-1',
+    fileName: 'standard-report.md',
+    mimeType: 'text/markdown',
+    bytes: 'Root locus design explains damping ratio and settling time.',
+    uploadedAt: now.toISOString(),
+  });
+  const convertedDocument = await convertSubmissionDocument({
+    asset: submission,
+    adapter: createMarkItDownConversionAdapter({
+      now,
+      preserveSpanMapping: true,
+      runner: (asset) => textFixtureMarkItDownRunner(asset, true),
+    }),
+    now,
+  });
+  const standardRubric: RubricDefinition = {
+    id: 'rubric-standard-v2',
+    title: '评分标准',
+    version: '2026.07',
+    schemaVersion: 'assignment-scoring-rubric.v2',
+    maxScore: 4,
+    criteria: [{
+      id: 'modeling',
+      label: '模型表达',
+      weight: 1,
+      maxPoints: 4,
+      scoringStandard: '依据阻尼比证据的正确性和完整性评分。',
+      detailedRubricEnabled: false,
+      evidenceRequirement: 'damping ratio',
+      goalDimension: 'controlModeling',
+      levels: [],
+    }],
+  };
+  const draft = createDraftRubricGrading({
+    convertedDocument,
+    rubric: standardRubric,
+    evaluatorOutput: {
+      evaluatorId: 'fixture-v2',
+      evaluatorVersion: 'v2',
+      assessments: [{
+        criterionId: 'modeling',
+        levelId: null,
+        score: 3.1,
+        rationale: 'The submitted evidence identifies the damping ratio clearly.',
+        confidence: 0.9,
+        evidenceBlockIds: [convertedDocument.blocks[0].id],
+        limitationState: 'none',
+      }],
+    },
+    now,
+  });
+  return persistedDraft({
+    asset: submission,
+    convertedDocument,
+    run: draft,
+    rubric: standardRubric,
+  });
+}
+
 function persistedDraft(input: {
   asset: DocumentSubmissionAsset;
   convertedDocument: ConvertedDocument;
@@ -1747,6 +1811,32 @@ describe('document rubric grading routes', () => {
     expect(response.status).toBe(404);
     expect(mocks.prisma.gradingRun.findUnique).toHaveBeenCalled();
     await expect(response.json()).resolves.toEqual({ error: '评分草稿不存在' });
+  });
+
+  it('previews standard-only grading edits with a null level identity', async () => {
+    const draft = await standardGradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.gradingRun.findUnique.mockResolvedValue(null);
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postPreviewJson({
+      gradingRunId: draft.id,
+      edits: [{
+        criterionId: 'modeling',
+        levelId: null,
+        score: 3.9,
+        comment: '教师依据完整证据调整分数。',
+      }],
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(expect.objectContaining({
+      status: 'preview',
+      wouldCreateFacts: 1,
+      blockedFacts: 0,
+    }));
   });
 
   it('blocks native writeback for missing governed dimensions or course ownership without clearing cache', async () => {

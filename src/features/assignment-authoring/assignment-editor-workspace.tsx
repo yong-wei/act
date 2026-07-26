@@ -1140,8 +1140,11 @@ function QuestionEditor({
   promptRef: React.RefObject<HTMLTextAreaElement | null>;
   onChange: (question: EditableQuestion) => void;
 }) {
-  const editedLevelIdsRef = useRef(new Set(
-    question.rubric.criteria.flatMap((criterion) => criterion.levels.map((level) => level.id)),
+  const editedLevelIdsRef = useRef(new Map(
+    question.rubric.criteria.map((criterion) => [
+      criterion.id,
+      new Set(criterion.levels.map((level) => level.id)),
+    ]),
   ));
   const editableQuestion: EditableQuestionV2 = {
     ...question,
@@ -1255,13 +1258,14 @@ function QuestionEditor({
         </label>
         {editableQuestion.rubric.criteria.map((criterion, index) => {
           const ranges = deriveRubricLevelRanges(criterion.levels, criterion.maxPoints);
+          const editedLevelIds = editedLevelIdsRef.current.get(criterion.id) ?? new Set<string>();
           const applyShortcut = (targetCount: 2 | 5) => {
             let result = applyRubricLevelShortcut({
               criterionId: criterion.id,
               criterionMaxPoints: criterion.maxPoints,
               levels: criterion.levels,
               targetCount,
-              editedLevelIds: editedLevelIdsRef.current,
+              editedLevelIds,
             });
             if (result.status === 'confirmation-required') {
               const confirmed = window.confirm(
@@ -1273,7 +1277,7 @@ function QuestionEditor({
                 criterionMaxPoints: criterion.maxPoints,
                 levels: criterion.levels,
                 targetCount,
-                editedLevelIds: editedLevelIdsRef.current,
+                editedLevelIds,
                 confirmTrailingDeletion: true,
               });
             }
@@ -1470,7 +1474,8 @@ function QuestionEditor({
                   value={level.label}
                   onChange={(event) =>
                     {
-                      editedLevelIdsRef.current.add(level.id);
+                      editedLevelIds.add(level.id);
+                      editedLevelIdsRef.current.set(criterion.id, editedLevelIds);
                       updateCriterion(index, (item) => ({
                         ...item,
                         levels: item.levels.map((entry, itemIndex) =>
@@ -1498,7 +1503,8 @@ function QuestionEditor({
                     value={level.maxPoints}
                     onChange={(event) =>
                       {
-                        editedLevelIdsRef.current.add(level.id);
+                        editedLevelIds.add(level.id);
+                        editedLevelIdsRef.current.set(criterion.id, editedLevelIds);
                         updateCriterion(index, (item) => ({
                           ...item,
                           levels: sortRubricLevels(
@@ -1520,7 +1526,8 @@ function QuestionEditor({
                     value={level.guideline}
                     onChange={(event) =>
                       {
-                        editedLevelIdsRef.current.add(level.id);
+                        editedLevelIds.add(level.id);
+                        editedLevelIdsRef.current.set(criterion.id, editedLevelIds);
                         updateCriterion(index, (item) => ({
                           ...item,
                           levels: item.levels.map((entry, itemIndex) =>

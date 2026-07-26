@@ -1219,10 +1219,13 @@ export function validateDocumentRubricGradingDraftInvariants(input: {
       reasons.push('grade-criterion-mismatch');
       continue;
     }
-    if (!criterion.levels.some((level) => level.id === grade.levelId)) {
+    const detailedRubricEnabled = criterion.detailedRubricEnabled !== false;
+    if ((detailedRubricEnabled && !criterion.levels.some((level) => level.id === grade.levelId))
+      || (!detailedRubricEnabled && grade.levelId !== null)) {
       reasons.push('grade-level-mismatch');
     }
-    if (grade.score < 0 || grade.score > input.parsed.rubric.maxScore) {
+    const criterionMax = criterion.maxPoints ?? input.parsed.rubric.maxScore;
+    if (grade.score < 0 || grade.score > criterionMax) {
       reasons.push('grade-score-out-of-range');
     }
     if (grade.profileWritebackCandidate.goalDimension !== criterion.goalDimension) {

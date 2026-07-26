@@ -315,6 +315,30 @@ test('rubric boundary conflict never reaches save or publish', async ({ page, co
   expect(mutationCount).toBe(0);
 });
 
+test('five-level shortcut isolates edited state to the current scoring item', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByLabel('评分项 1 档位 1 名称').fill('教师自定义优秀');
+  await page.getByRole('button', { name: '添加评分项' }).click();
+
+  const secondCriterion = page.getByLabel('评分项 2 名称').locator('xpath=ancestor::article');
+  await secondCriterion.getByLabel('启用详细评分细则').check();
+  await secondCriterion.getByRole('button', { name: '五级制' }).click();
+
+  await expect(page.getByLabel('评分项 2 档位 1 名称')).toHaveValue('优秀');
+  await expect(page.getByLabel('评分项 2 档位 2 名称')).toHaveValue('良好');
+  await expect(page.getByLabel('评分项 2 档位 3 名称')).toHaveValue('中等');
+  await expect(page.getByLabel('评分项 2 档位 4 名称')).toHaveValue('及格');
+  await expect(page.getByLabel('评分项 2 档位 5 名称')).toHaveValue('不及格');
+  await expect(page.getByLabel('评分项 2 级别 3 分值边界')).toHaveValue('0.8');
+  await expect(page.getByLabel('评分项 2 级别 4 分值边界')).toHaveValue('0.7');
+  await expect(page.getByLabel('评分项 2 级别 5 分值边界')).toHaveValue('0.6');
+});
+
 test('autosave 400 prevents publish and focuses the blocker', async ({ page, context }) => {
   await addTeacherSession(context);
   let publishCount = 0;
