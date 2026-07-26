@@ -363,6 +363,27 @@ test('first input replaces publishable default rubric text and score', async ({ 
   await expect(boundary).toHaveValue('8.5');
 });
 
+test('moving rubric levels keeps the derived range and highest-score lock with the level identity', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toHaveValue('10');
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toBeDisabled();
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toHaveValue('9');
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toBeEnabled();
+
+  await page.getByRole('button', { name: '下移档位 1' }).click();
+
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toHaveValue('9');
+  await expect(page.getByLabel('评分项 1 级别 1 分值边界')).toBeEnabled();
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toHaveValue('10');
+  await expect(page.getByLabel('评分项 1 级别 2 分值边界')).toBeDisabled();
+});
+
 test('autosave 400 prevents publish and focuses the blocker', async ({ page, context }) => {
   await addTeacherSession(context);
   let publishCount = 0;

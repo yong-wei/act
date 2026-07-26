@@ -787,7 +787,7 @@ function CriterionEditor({
           Rubric 档位
           <select
             disabled={readOnly}
-            value={criterion.levelId}
+            value={criterion.levelId ?? ""}
             onChange={(event) => {
               const level = criterion.levels.find(
                 (candidate) => candidate.id === event.target.value,

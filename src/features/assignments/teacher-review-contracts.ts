@@ -63,7 +63,7 @@ export interface TeacherReviewCriterion {
     minPoints: number;
     maxPoints: number;
   }>;
-  levelId: string;
+  levelId: string | null;
   aiScore: number | null;
   aiLevelId: string | null;
   aiComment: string;
@@ -492,10 +492,9 @@ function normalizeCriterion(
     };
   });
   const aiLevelId = nullableString(ai.levelId ?? row.aiLevelId);
-  const levelId = stringFrom(
+  const levelId = nullableString(
     teacher.levelId ?? row.levelId ?? aiLevelId,
-    levels[0]?.id ?? "",
-  );
+  ) ?? levels[0]?.id ?? null;
   return {
     id: stringFrom(row.id ?? row.criterionId, `criterion-${index + 1}`),
     label: stringFrom(row.label ?? row.title, `评分项 ${index + 1}`),

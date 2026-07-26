@@ -179,6 +179,24 @@ describe('teacher assignment review persistence', () => {
     expect(() => deriveTeacherAssignmentReviewTotal(rubric(), [{ ...criteria()[0], levelId: 'c1-low', score: 4 }, criteria()[1]])).toThrow('teacher-review-level-score-mismatch');
   });
 
+  it('derives a one-decimal total for a standard v2 rubric without level identities', () => {
+    expect(deriveTeacherAssignmentReviewTotal({
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      maxScore: 10,
+      criteria: [{
+        id: 'criterion-1',
+        maxPoints: 10,
+        detailedRubricEnabled: false,
+        levels: [],
+      }],
+    }, [{
+      criterionId: 'criterion-1',
+      levelId: null,
+      score: 8.5,
+      comment: '证据完整',
+    }])).toBe(8.5);
+  });
+
   it('withholds the assignment total until every latest required attempt is approved or exempted', () => {
     const base = {
       questions: [{ id: 'question-1' }, { id: 'question-2' }],

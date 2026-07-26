@@ -337,6 +337,39 @@ describe("teacher assignment review UI contracts", () => {
     });
     expect(
       normalizeTeacherReviewDetail({
+        submission: { id: "s1" },
+        question: {
+          id: "q1",
+          rubric: {
+            schemaVersion: "assignment-scoring-rubric.v2",
+            criteria: [{
+              id: "quality",
+              label: "完成质量",
+              maxPoints: 10,
+              detailedRubricEnabled: false,
+              levels: [],
+            }],
+          },
+        },
+        review: {
+          id: "review-1",
+          version: 1,
+          criterionValues: [{
+            criterionId: "quality",
+            levelId: null,
+            score: 8.5,
+            comment: "证据完整",
+          }],
+        },
+      })?.criteria[0],
+    ).toMatchObject({
+      id: "quality",
+      levelId: null,
+      score: 8.5,
+      levels: [],
+    });
+    expect(
+      normalizeTeacherReviewDetail({
         submission: {},
         question: {},
         review: {},

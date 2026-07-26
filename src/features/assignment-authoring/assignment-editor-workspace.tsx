@@ -1505,6 +1505,8 @@ function QuestionEditor({
               </div>
             )}
             {criterion.detailedRubricEnabled && criterion.levels.map((level, levelIndex) => {
+                const range = ranges.find((candidate) => candidate.id === level.id);
+                const isHighestLevel = range?.upperBoundaryInclusive === true;
                 const fieldKey = (field: 'label' | 'maxPoints' | 'guideline') =>
                   `${criterion.id}:${level.id}:${field}`;
                 const preservePristineSelection = (
@@ -1559,7 +1561,7 @@ function QuestionEditor({
                   }
                 />
                 <label className="text-xs text-slate-400">
-                  {levelIndex === 0 ? '最高级别上限（同步满分）' : `区间 ${ranges[levelIndex]?.minPoints ?? 0}–${ranges[levelIndex]?.maxInclusivePoints ?? 0}`}
+                  {isHighestLevel ? '最高级别上限（同步满分）' : `区间 ${range?.minPoints ?? 0}–${range?.maxInclusivePoints ?? 0}`}
                   <input
                     ref={registerValidationField(
                       `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.maxPoints`,
@@ -1570,7 +1572,7 @@ function QuestionEditor({
                     step="0.1"
                     min="0.1"
                     max={criterion.maxPoints}
-                    disabled={levelIndex === 0}
+                    disabled={isHighestLevel}
                     value={level.maxPoints}
                     onFocus={(event) => selectPristineValue(event, 'maxPoints')}
                     onMouseUp={(event) => preservePristineSelection(event, 'maxPoints')}
