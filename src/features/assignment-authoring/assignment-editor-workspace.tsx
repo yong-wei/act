@@ -132,31 +132,19 @@ export function AssignmentEditorWorkspace({
     })
       .then(async (response) => {
         if (!response.ok) throw new Error('load');
-        const payload = (await response.json()) as {
-          assignment: Record<string, unknown>;
+        await response.json();
+        const next = await fetch(
+          `/api/teacher/assignments/${assignmentId}/next-draft`,
+          { method: 'POST' },
+        );
+        if (!next.ok) throw new Error('next-draft');
+        const nextPayload = (await next.json()) as {
+          revision: Record<string, unknown>;
         };
-        const revisions = payload.assignment.revisions as Array<
-          Record<string, unknown>
-        >;
-        if (!revisions.some((revision) => revision.state === 'DRAFT')) {
-          const next = await fetch(
-            `/api/teacher/assignments/${assignmentId}/next-draft`,
-            { method: 'POST' },
-          );
-          if (!next.ok) throw new Error('next-draft');
-          const nextPayload = (await next.json()) as {
-            revision: Record<string, unknown>;
-          };
-          const loaded = fromApiRevision(assignmentId, nextPayload.revision);
-          documentRef.current = loaded;
-          setDocument(loaded);
-          setSaveState('saved');
-        } else {
-          const loaded = fromApiAssignment(payload.assignment);
-          documentRef.current = loaded;
-          setDocument(loaded);
-          setSaveState('saved');
-        }
+        const loaded = fromApiRevision(assignmentId, nextPayload.revision);
+        documentRef.current = loaded;
+        setDocument(loaded);
+        setSaveState('saved');
         setLoadState('ready');
       })
       .catch(() => setLoadState('error'));

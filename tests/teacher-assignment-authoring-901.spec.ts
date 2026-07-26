@@ -105,6 +105,70 @@ for (const width of mobileWidths) {
   });
 }
 
+test('loading an existing draft always passes through the server-side rubric migration boundary', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let nextDraftCalls = 0;
+  await page.route('**/api/teacher/assignments/legacy-assignment**', async (route) => {
+    if (route.request().url().endsWith('/next-draft')) {
+      nextDraftCalls += 1;
+      return route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          revision: {
+            id: 'legacy-revision',
+            state: 'DRAFT',
+            version: 4,
+            contentHash: savedDigest,
+            title: '已迁移作业',
+            instructions: '完成迁移后的作业。',
+            totalPoints: 10,
+            latePolicy: { version: 1, mode: 'CLOSED' },
+            responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
+            resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
+            solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
+            questions: [{
+              stableQuestionId: 'legacy-question',
+              responseType: 'SUBJECTIVE_TEXT',
+              points: 10,
+              promptSnapshot: { text: '说明迁移后的评分标准。' },
+              answerSnapshot: { text: '给出可复核证据。' },
+              rubricSnapshot: {
+                schemaVersion: 'assignment-scoring-rubric.v2',
+                criteria: [{
+                  id: 'quality',
+                  label: '完成质量',
+                  goalDimension: 'engineeringDecision',
+                  maxPoints: 10,
+                  scoringStandard: '依据证据评分。',
+                  detailedRubricEnabled: false,
+                  levels: [],
+                }],
+              },
+              sourceFamily: 'MANUAL',
+            }],
+          },
+        }),
+      });
+    }
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        assignment: {
+          id: 'legacy-assignment',
+          revisions: [{ id: 'legacy-revision', state: 'DRAFT' }],
+        },
+      }),
+    });
+  });
+
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/legacy-assignment/edit');
+
+  await expect(page.getByLabel('作业标题')).toHaveValue('已迁移作业');
+  await expect(page.getByLabel('启用详细评分细则')).not.toBeChecked();
+  expect(nextDraftCalls).toBe(1);
+});
+
 test('list distinguishes empty, filtered-empty, and recoverable error', async ({ page, context }) => {
   await addTeacherSession(context);
   await page.setViewportSize({ width: 768, height: 800 });

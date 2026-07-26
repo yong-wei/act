@@ -159,6 +159,27 @@ function rubric(): RubricDefinition {
   };
 }
 
+function standardRubric(): RubricDefinition {
+  return {
+    id: 'rubric-standard-v2',
+    title: '评分标准',
+    version: '2026.07',
+    schemaVersion: 'assignment-scoring-rubric.v2',
+    maxScore: 4,
+    criteria: [{
+      id: 'modeling',
+      label: '模型表达',
+      weight: 1,
+      maxPoints: 4,
+      scoringStandard: '依据阻尼比证据的正确性和完整性评分。',
+      detailedRubricEnabled: false,
+      evidenceRequirement: 'damping ratio',
+      goalDimension: 'controlModeling',
+      levels: [],
+    }],
+  };
+}
+
 async function gradingDraft() {
   const asset = createSubmissionAsset({
     id: 'asset-1',
@@ -211,27 +232,10 @@ async function standardGradingDraft() {
     }),
     now,
   });
-  const standardRubric: RubricDefinition = {
-    id: 'rubric-standard-v2',
-    title: '评分标准',
-    version: '2026.07',
-    schemaVersion: 'assignment-scoring-rubric.v2',
-    maxScore: 4,
-    criteria: [{
-      id: 'modeling',
-      label: '模型表达',
-      weight: 1,
-      maxPoints: 4,
-      scoringStandard: '依据阻尼比证据的正确性和完整性评分。',
-      detailedRubricEnabled: false,
-      evidenceRequirement: 'damping ratio',
-      goalDimension: 'controlModeling',
-      levels: [],
-    }],
-  };
+  const standardRubricDefinition = standardRubric();
   const draft = createDraftRubricGrading({
     convertedDocument,
-    rubric: standardRubric,
+    rubric: standardRubricDefinition,
     evaluatorOutput: {
       evaluatorId: 'fixture-v2',
       evaluatorVersion: 'v2',
@@ -251,7 +255,7 @@ async function standardGradingDraft() {
     asset: submission,
     convertedDocument,
     run: draft,
-    rubric: standardRubric,
+    rubric: standardRubricDefinition,
   });
 }
 
@@ -526,6 +530,29 @@ describe('document rubric grading routes', () => {
     expect(createInput.data.provenance.conversion).toEqual(expect.objectContaining({
       status: 'converted',
       referencePrecision: 'span',
+    }));
+  });
+
+  it('accepts a standard v2 rubric without detailed levels at the submission boundary', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'standard-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio and settling time.',
+      rubric: standardRubric(),
+    });
+    const createInput = mocks.prisma.learningEvidenceDraft.create.mock.calls[0][0];
+
+    expect(response.status).toBe(201);
+    expect(createInput.data.summary.run.draftGrades[0]).toEqual(expect.objectContaining({
+      criterionId: 'modeling',
+      levelId: null,
     }));
   });
 
