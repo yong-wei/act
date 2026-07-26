@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { AlertCircle, ArrowLeft, CheckCircle2, Clock3, FileUp, History, Loader2, Paperclip, Save } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle2, Clock3, FileUp, History, Loader2, Paperclip, Save, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
+import { normalizeAssignmentAssetMimeType } from '@/lib/assignments/submission-domain';
 import {
   assignmentStateLabels,
   formatAssignmentDeadline,
@@ -107,6 +108,10 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
   }
 
   async function uploadAttachment(question: StudentAssignmentQuestion, file: File) {
+    if ((question.assets?.length ?? 0) >= 10) {
+      setNotice({ kind: 'error', message: '每题最多可包含 10 个图片或附件。', controlId: `file-${question.id}` });
+      return;
+    }
     setBusyAction(`upload:${question.id}`);
     setNotice(null);
     updateQuestion(question.id, { state: 'UPLOADING' });
@@ -115,7 +120,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       const signResponse = await fetch(`${answerPath(question.id)}/upload-sign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, mimeType: file.type || 'application/octet-stream', sizeBytes: file.size, checksum }),
+        body: JSON.stringify({ fileName: file.name, mimeType: assignmentMimeType(file), sizeBytes: file.size, checksum }),
       });
       const signPayload = await signResponse.json().catch(() => ({})) as { upload?: { intentId: string; url: string; requiredHeaders?: Record<string, string> }; error?: string };
       if (!signResponse.ok || !signPayload.upload) throw new Error(signPayload.error || '无法准备附件上传');
@@ -141,7 +146,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     setPendingUploads((current) => ({ ...current, [question.id]: { ...pending, status: 'SCANNING', message: '附件已上传，正在进行安全扫描。' } }));
     updateQuestion(question.id, { state: 'UPLOADING' });
     try {
-      let result: { status?: 'SCANNING' | 'CLEAN' | 'READY' | 'UNSAFE' | 'EXPIRED'; asset?: { id: string; displayName: string; mimeType?: string; sizeBytes?: number }; error?: string } = {};
+      let result: { status?: 'SCANNING' | 'CLEAN' | 'READY' | 'UNSAFE' | 'EXPIRED'; answerVersion?: number; asset?: { id: string; displayName: string; mimeType?: string; sizeBytes?: number }; error?: string } = {};
       if (initial) {
         const response = await fetch(`${answerPath(question.id)}/finalize`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ intentId: pending.intentId, idempotencyKey: pending.idempotencyKey }) });
         result = await response.json().catch(() => ({}));
@@ -164,7 +169,25 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
         if (!finalizeResponse.ok || result.status !== 'READY') throw new Error(result.error || '附件最终确认失败');
       }
       if (result.status === 'READY' && result.asset) {
-        updateQuestion(question.id, { state: 'READY', assets: [...(question.assets ?? []), { ...result.asset, displayName: result.asset.displayName || pending.fileName }] });
+        setAssignment((current) => current ? {
+          ...current,
+          questions: current.questions.map((candidate) => {
+            if (candidate.id !== question.id) return candidate;
+            const finalizedAsset = {
+              ...result.asset!,
+              displayName: result.asset!.displayName || pending.fileName,
+            };
+            const assets = candidate.assets ?? [];
+            return {
+              ...candidate,
+              state: 'READY',
+              version: Math.max(candidate.version, result.answerVersion ?? candidate.version),
+              assets: assets.some((asset) => asset.id === finalizedAsset.id)
+                ? assets.map((asset) => asset.id === finalizedAsset.id ? finalizedAsset : asset)
+                : [...assets, finalizedAsset],
+            };
+          }),
+        } : current);
         setPendingUploads((current) => { const next = { ...current }; delete next[question.id]; return next; });
         setNotice({ kind: 'success', message: `附件“${pending.fileName}”已通过安全扫描并就绪。` });
         requestAnimationFrame(() => noticeRef.current?.focus());
@@ -181,14 +204,67 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     }
   }
 
+  async function removeAttachment(question: StudentAssignmentQuestion, assetId: string) {
+    setBusyAction(`remove:${question.id}`);
+    setNotice(null);
+    try {
+      const response = await fetch(`${answerPath(question.id)}/assets/${encodeURIComponent(assetId)}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answerVersion: question.version }),
+      });
+      const payload = await response.json().catch(() => ({})) as {
+        removedAssetId?: string;
+        answer?: { version: number; state: StudentAssignmentQuestion['state'] };
+        error?: string;
+      };
+      if (!response.ok || !payload.answer || payload.removedAssetId !== assetId) {
+        throw new Error(payload.error || '附件移除失败');
+      }
+      updateQuestion(question.id, {
+        version: payload.answer.version,
+        state: payload.answer.state,
+        assets: (question.assets ?? []).filter((asset) => asset.id !== assetId),
+      });
+      setNotice({ kind: 'success', message: '附件已从本题草稿中移除。' });
+    } catch (cause) {
+      setNotice({ kind: 'error', message: cause instanceof Error ? cause.message : '附件移除失败', controlId: `remove-${assetId}` });
+    } finally {
+      setBusyAction(null);
+      requestAnimationFrame(() => noticeRef.current?.focus());
+    }
+  }
+
   async function submitQuestion(question: StudentAssignmentQuestion) {
     setBusyAction(`submit:${question.id}`);
     setNotice(null);
     try {
+      let answerVersion = question.version;
+      const currentDraft = drafts[question.id] ?? '';
+      if (currentDraft !== (question.textDraft ?? '')) {
+        const saveResponse = await fetch(answerPath(question.id), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ version: question.version, text: currentDraft }),
+        });
+        const savePayload = await saveResponse.json().catch(() => ({})) as {
+          answer?: { version: number; state: StudentAssignmentQuestion['state']; textDraft?: string };
+          error?: string;
+        };
+        if (!saveResponse.ok || !savePayload.answer) {
+          throw new Error(savePayload.error || '提交前保存正文失败');
+        }
+        answerVersion = savePayload.answer.version;
+        updateQuestion(question.id, {
+          version: savePayload.answer.version,
+          state: savePayload.answer.state,
+          textDraft: savePayload.answer.textDraft,
+        });
+      }
       const response = await fetch(`${answerPath(question.id)}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answerVersion: question.version, idempotencyKey: crypto.randomUUID() }),
+        body: JSON.stringify({ answerVersion, idempotencyKey: crypto.randomUUID() }),
       });
       const payload = await response.json().catch(() => ({})) as {
         attempt?: { attemptNumber?: number };
@@ -306,7 +382,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
 
             <main className="min-w-0">
               {selectedQuestion?.resubmission && <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/8 p-4 text-sm text-amber-800 dark:text-amber-200" role="status"><p className="font-medium">本题已由教师退回，请修改后重新提交</p><p className="mt-1">{selectedQuestion.resubmission.reason}</p><p className="mt-1 text-xs">重交截止 {new Date(selectedQuestion.resubmission.deadlineAt).toLocaleString('zh-CN')}</p></div>}
-              {selectedQuestion && <QuestionEditor question={selectedQuestion} index={assignment.questions.indexOf(selectedQuestion)} draft={drafts[selectedQuestion.id] ?? ''} onDraftChange={(value) => setDrafts((current) => ({ ...current, [selectedQuestion.id]: value }))} onSave={() => void saveDraft(selectedQuestion)} onUpload={(file) => void uploadAttachment(selectedQuestion, file)} onSubmit={() => void submitQuestion(selectedQuestion)} onHistory={() => void openHistory(selectedQuestion)} busyAction={busyAction} readOnly={assignment.canMutate === false || assignment.historicalOnly || assignment.contextStatus === 'HISTORICAL'} headingRef={editorHeadingRef} pendingUpload={pendingUploads[selectedQuestion.id]} uploadStatusRef={uploadStatusRef} onRetryConfirm={(pending) => void confirmUploadedAttachment(selectedQuestion, pending, false)} />}
+              {selectedQuestion && <QuestionEditor question={selectedQuestion} index={assignment.questions.indexOf(selectedQuestion)} draft={drafts[selectedQuestion.id] ?? ''} onDraftChange={(value) => setDrafts((current) => ({ ...current, [selectedQuestion.id]: value }))} onSave={() => void saveDraft(selectedQuestion)} onUpload={(file) => void uploadAttachment(selectedQuestion, file)} onRemove={(assetId) => void removeAttachment(selectedQuestion, assetId)} onSubmit={() => void submitQuestion(selectedQuestion)} onHistory={() => void openHistory(selectedQuestion)} busyAction={busyAction} readOnly={assignment.canMutate === false || assignment.historicalOnly || assignment.contextStatus === 'HISTORICAL'} headingRef={editorHeadingRef} pendingUpload={pendingUploads[selectedQuestion.id]} uploadStatusRef={uploadStatusRef} onRetryConfirm={(pending) => void confirmUploadedAttachment(selectedQuestion, pending, false)} />}
               {notice && <div ref={noticeRef} tabIndex={-1} role={notice.kind === 'error' ? 'alert' : 'status'} className={notice.kind === 'success' ? 'mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/8 p-4 text-sm text-emerald-700 outline-none dark:text-emerald-300' : 'mt-4 rounded-xl border border-red-500/25 bg-red-500/8 p-4 text-sm text-red-700 outline-none dark:text-red-300'}>
                 <p>{notice.message}</p>
                 {notice.kind === 'error' && notice.controlId && (
@@ -352,18 +428,17 @@ function StudentApprovedFeedback({ assignment, onSelectQuestion }: { assignment:
   </section>;
 }
 
-function QuestionEditor({ question, index, draft, onDraftChange, onSave, onUpload, onSubmit, onHistory, busyAction, readOnly, headingRef, pendingUpload, uploadStatusRef, onRetryConfirm }: { question: StudentAssignmentQuestion; index: number; draft: string; onDraftChange: (value: string) => void; onSave: () => void; onUpload: (file: File) => void; onSubmit: () => void; onHistory: () => void; busyAction: string | null; readOnly: boolean; headingRef: React.RefObject<HTMLHeadingElement | null>; pendingUpload?: PendingUpload; uploadStatusRef: React.RefObject<HTMLDivElement | null>; onRetryConfirm: (pending: PendingUpload) => void }) {
+function QuestionEditor({ question, index, draft, onDraftChange, onSave, onUpload, onRemove, onSubmit, onHistory, busyAction, readOnly, headingRef, pendingUpload, uploadStatusRef, onRetryConfirm }: { question: StudentAssignmentQuestion; index: number; draft: string; onDraftChange: (value: string) => void; onSave: () => void; onUpload: (file: File) => void; onRemove: (assetId: string) => void; onSubmit: () => void; onHistory: () => void; busyAction: string | null; readOnly: boolean; headingRef: React.RefObject<HTMLHeadingElement | null>; pendingUpload?: PendingUpload; uploadStatusRef: React.RefObject<HTMLDivElement | null>; onRetryConfirm: (pending: PendingUpload) => void }) {
   const submitted = question.state === 'SUBMITTED';
-  const canText = question.responseType === 'SUBJECTIVE_TEXT';
-  const canAttachment = question.responseType === 'SUBJECTIVE_FILE';
   const busy = busyAction?.endsWith(`:${question.id}`) ?? false;
+  const uploadDisabled = busy || pendingUpload?.status === 'SCANNING' || pendingUpload?.status === 'TIMEOUT';
   return (
     <article className="surface-card p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-medium text-primary">第 {index + 1} 题 · {question.points} 分</p><h2 ref={headingRef} tabIndex={-1} className="mt-2 text-lg font-semibold text-foreground outline-none">{question.promptText}</h2></div><span className="rounded-full bg-accent px-3 py-1 text-xs text-subtle">{questionStateLabels[question.state]}</span></div>
-      {canText && <div className="mt-6"><label htmlFor={`answer-${question.id}`} className="text-sm font-medium text-foreground">文本作答</label><textarea id={`answer-${question.id}`} value={draft} disabled={submitted || readOnly} onChange={(event) => onDraftChange(event.target.value)} rows={9} maxLength={20000} className="mt-2 w-full resize-y rounded-xl border border-border bg-background px-4 py-3 text-sm leading-6 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70" placeholder="在这里输入本题答案。草稿只影响当前题目。" /><p className="mt-1 text-right text-xs text-subtle">{draft.length} / 20000</p></div>}
-      {canAttachment && <div className="mt-5 rounded-xl border border-dashed border-border p-4"><p className="text-sm font-medium text-foreground">本题附件</p><p className="mt-1 text-xs text-subtle">附件仅绑定当前题目；不支持上传整份作业文档。</p>{question.assets?.map((asset) => <div key={asset.id} className="mt-3 flex items-center gap-2 text-sm text-foreground"><Paperclip className="h-4 w-4" />{asset.displayName}</div>)}{pendingUpload && <div ref={uploadStatusRef} tabIndex={-1} role="status" className={pendingUpload.status === 'SCANNING' ? 'mt-3 rounded-lg border border-blue-500/25 bg-blue-500/8 p-3 text-sm text-blue-700 outline-none dark:text-blue-300' : 'mt-3 rounded-lg border border-amber-500/25 bg-amber-500/8 p-3 text-sm text-amber-700 outline-none dark:text-amber-300'}><p>{pendingUpload.message}</p><p className="mt-1 text-xs opacity-80">上传意图 {pendingUpload.intentId.slice(0, 8)}… 已保留。</p>{pendingUpload.status !== 'UNSAFE' && pendingUpload.status !== 'EXPIRED' && <button type="button" disabled={busy} onClick={() => onRetryConfirm(pendingUpload)} className="btn-ghost-themed mt-2 rounded-lg px-3 py-2 text-xs">重新检查扫描状态</button>}</div>}{!submitted && !readOnly && <label className="btn-ghost-themed mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm"><FileUp className="h-4 w-4" />选择附件<input id={`file-${question.id}`} type="file" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) onUpload(file); event.currentTarget.value = ''; }} /></label>}</div>}
+      <div className="mt-6"><label htmlFor={`answer-${question.id}`} className="text-sm font-medium text-foreground">Markdown 正文</label><textarea id={`answer-${question.id}`} value={draft} disabled={submitted || readOnly} onChange={(event) => onDraftChange(event.target.value)} rows={9} maxLength={20000} className="mt-2 w-full resize-y rounded-xl border border-border bg-background px-4 py-3 text-sm leading-6 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70" placeholder="可填写正文，也可仅提交附件。" /><p className="mt-1 text-right text-xs text-subtle">{draft.length} / 20000</p></div>
+      <div className="mt-5 rounded-xl border border-dashed border-border p-4"><p className="text-sm font-medium text-foreground">本题图片与附件</p><p className="mt-1 text-xs text-subtle">正文内图片与独立附件合计最多 10 个；支持 PDF、DOC、DOCX、PPTX、PNG、JPEG、Markdown 和纯文本。</p>{question.assets?.map((asset) => <div key={asset.id} className="mt-3 flex items-center justify-between gap-3 text-sm text-foreground"><span className="inline-flex min-w-0 items-center gap-2"><Paperclip className="h-4 w-4 shrink-0" /><span className="truncate">{asset.displayName}</span></span>{!submitted && !readOnly && <button id={`remove-${asset.id}`} type="button" disabled={busy} onClick={() => onRemove(asset.id)} className="btn-ghost-themed inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs"><Trash2 className="h-3.5 w-3.5" />移除</button>}</div>)}{pendingUpload && <div ref={uploadStatusRef} tabIndex={-1} role="status" className={pendingUpload.status === 'SCANNING' ? 'mt-3 rounded-lg border border-blue-500/25 bg-blue-500/8 p-3 text-sm text-blue-700 outline-none dark:text-blue-300' : 'mt-3 rounded-lg border border-amber-500/25 bg-amber-500/8 p-3 text-sm text-amber-700 outline-none dark:text-amber-300'}><p>{pendingUpload.message}</p><p className="mt-1 text-xs opacity-80">上传意图 {pendingUpload.intentId.slice(0, 8)}… 已保留。</p>{pendingUpload.status !== 'UNSAFE' && pendingUpload.status !== 'EXPIRED' && <button type="button" disabled={busy} onClick={() => onRetryConfirm(pendingUpload)} className="btn-ghost-themed mt-2 rounded-lg px-3 py-2 text-xs">重新检查扫描状态</button>}</div>}{!submitted && !readOnly && <label aria-disabled={uploadDisabled} className="btn-ghost-themed mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm aria-disabled:cursor-not-allowed aria-disabled:opacity-60"><FileUp className="h-4 w-4" />选择附件<input id={`file-${question.id}`} type="file" disabled={uploadDisabled} accept=".pdf,.doc,.docx,.pptx,.png,.jpg,.jpeg,.md,.markdown,.txt" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) onUpload(file); event.currentTarget.value = ''; }} /></label>}</div>
       <div className="mt-6 flex flex-wrap gap-3 border-t border-border/70 pt-5">
-        {!submitted && !readOnly && canText && <button type="button" disabled={busy} onClick={onSave} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm"><Save className="h-4 w-4" />保存本题草稿</button>}
+        {!submitted && !readOnly && <button type="button" disabled={busy} onClick={onSave} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm"><Save className="h-4 w-4" />保存本题草稿</button>}
         {!submitted && !readOnly && <button id={`submit-${question.id}`} type="button" disabled={busy || question.state === 'UPLOADING'} onClick={onSubmit} className="cta-primary inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}提交本题</button>}
         <button id={`history-${question.id}`} type="button" disabled={busy} onClick={onHistory} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm"><History className="h-4 w-4" />提交历史</button>
       </div>
@@ -381,6 +456,10 @@ function WorkspaceMessage({ title, description, action, alert = false }: { title
 async function checksumFile(file: File): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
   return `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
+}
+
+function assignmentMimeType(file: File): string {
+  return normalizeAssignmentAssetMimeType(file.name, file.type);
 }
 
 function wait(milliseconds: number) {

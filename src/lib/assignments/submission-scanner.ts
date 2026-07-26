@@ -4,6 +4,7 @@ import type { PrismaClient } from '@prisma/client';
 
 import { SUBMISSION_LIMITS, SubmissionError } from './submission-domain';
 import type { MemorySubmissionObjectStore, SubmissionObjectScanner } from './submission-object-store';
+import { matchesDeclaredAssignmentAssetFormat } from './submission-asset-format';
 import { gradingTombstoneLookupKey } from '@/lib/data-governance/math-document-grading-lifecycle';
 
 export interface SubmissionContentScanner { healthCheck(): Promise<void>; scan(bytes: Uint8Array): Promise<'CLEAN' | 'UNSAFE'> }
@@ -40,6 +41,10 @@ export async function runSubmissionScanBatch(prisma: PrismaClient, objectScanner
         await markIntegrityFailure(prisma, objectScanner, asset);
         unsafe += 1; continue;
       }
+      if (!await matchesDeclaredAssignmentAssetFormat(bytes, asset.mimeType)) {
+        await markFormatFailure(prisma, objectScanner, asset);
+        unsafe += 1; continue;
+      }
       const state = await contentScanner.scan(bytes); await objectScanner.recordTrustedResult(asset.objectKey, state);
       await prisma.submissionAsset.updateMany({ where: { id: asset.id, state: 'QUARANTINED', scanState: 'PENDING' }, data: { scanState: state, scanRetryCount: 0, lastScanErrorCode: null, nextScanAt: null, ...(state === 'UNSAFE' ? { state: 'REVOKED' as const } : {}) } });
       if (state === 'CLEAN') clean += 1; else unsafe += 1;
@@ -72,6 +77,14 @@ async function markIntegrityFailure(prisma: PrismaClient, objectScanner: Submiss
   await prisma.$transaction([
     prisma.submissionAsset.updateMany({ where: { id: asset.id, state: 'QUARANTINED', scanState: 'PENDING' }, data: { state: 'REVOKED', scanState: 'UNSAFE', scanRetryCount: 0, lastScanErrorCode: 'integrity-mismatch', nextScanAt: null } }),
     prisma.submissionObjectTombstone.upsert({ where: { objectKey: asset.objectKey }, create: { objectKey: asset.objectKey, lookupKey: gradingTombstoneLookupKey(`submission-object:${asset.objectKey}`), reason: 'scanner-integrity-mismatch', checksum: asset.checksum }, update: {} }),
+  ]);
+  await objectScanner.recordTrustedResult(asset.objectKey, 'UNSAFE');
+}
+
+async function markFormatFailure(prisma: PrismaClient, objectScanner: SubmissionObjectScanner, asset: { id: string; objectKey: string; checksum: string | null }) {
+  await prisma.$transaction([
+    prisma.submissionAsset.updateMany({ where: { id: asset.id, state: 'QUARANTINED', scanState: 'PENDING' }, data: { state: 'REVOKED', scanState: 'UNSAFE', scanRetryCount: 0, lastScanErrorCode: 'format-mismatch', nextScanAt: null } }),
+    prisma.submissionObjectTombstone.upsert({ where: { objectKey: asset.objectKey }, create: { objectKey: asset.objectKey, lookupKey: gradingTombstoneLookupKey(`submission-object:${asset.objectKey}`), reason: 'scanner-format-mismatch', checksum: asset.checksum }, update: {} }),
   ]);
   await objectScanner.recordTrustedResult(asset.objectKey, 'UNSAFE');
 }

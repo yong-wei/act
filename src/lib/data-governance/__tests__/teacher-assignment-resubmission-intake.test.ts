@@ -211,4 +211,78 @@ describe('teacher assignment resubmission intake', () => {
     }));
     expect(persistence.enqueueDocumentConversion.mock.calls[0]?.[0]).not.toHaveProperty('policyId');
   });
+
+  it('routes an attachment-only resubmission by attempt content even for a legacy text answer', async () => {
+    const now = new Date('2026-07-17T03:00:00.000Z');
+    let claimToken: string | null = null;
+    const db = {
+      teacherAssignmentResubmissionIntake: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce({ id: 'intake-attachment-only', attemptId: 'attempt-new', state: 'PENDING', availableAt: now, createdAt: now, attemptCount: 0 })
+          .mockResolvedValueOnce(null),
+        updateMany: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
+          if (data.state === 'PROCESSING') claimToken = String(data.claimToken);
+          return { count: 1 };
+        }),
+        findUnique: vi.fn(async () => ({
+          id: 'intake-attachment-only', attemptId: 'attempt-new', state: 'PROCESSING', claimToken,
+          grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-1' },
+          attempt: {
+            textSnapshot: null,
+            answer: { responseType: 'SUBJECTIVE_TEXT', assets: [{ id: 'asset-new', mimeType: 'application/pdf' }] },
+          },
+          sourceGradingRun: { policyId: 'grading-policy-1', answerEvidence: null },
+        })),
+      },
+      answerEvidence: { findFirst: vi.fn().mockResolvedValue(null) },
+      documentConversion: { findFirst: vi.fn().mockResolvedValue(null) },
+    };
+
+    await expect(drainTeacherAssignmentResubmissionIntakes({ db, now: () => now }))
+      .resolves.toMatchObject({ waiting: 1, blocked: 0 });
+    expect(persistence.enqueueDocumentConversion).toHaveBeenCalledWith(expect.objectContaining({
+      assetId: 'asset-new',
+      attemptId: 'attempt-new',
+    }));
+    expect(persistence.materializeTextAnswerEvidence).not.toHaveBeenCalled();
+  });
+
+  it('routes a text-only resubmission by attempt content even for a legacy file answer', async () => {
+    const now = new Date('2026-07-17T03:00:00.000Z');
+    let claimToken: string | null = null;
+    const db = {
+      teacherAssignmentResubmissionIntake: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce({ id: 'intake-text-only', attemptId: 'attempt-new', state: 'PENDING', availableAt: now, createdAt: now, attemptCount: 0 })
+          .mockResolvedValueOnce(null),
+        updateMany: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
+          if (data.state === 'PROCESSING') claimToken = String(data.claimToken);
+          return { count: 1 };
+        }),
+        findUnique: vi.fn(async () => ({
+          id: 'intake-text-only', attemptId: 'attempt-new', state: 'PROCESSING', claimToken,
+          grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-1' },
+          attempt: {
+            textSnapshot: '只提交正文',
+            answer: { responseType: 'SUBJECTIVE_FILE', assets: [] },
+          },
+          sourceGradingRun: { policyId: 'grading-policy-1', policySnapshot: null, policySnapshotHash: null, answerEvidence: null },
+        })),
+      },
+      answerEvidence: { findFirst: vi.fn().mockResolvedValue(null) },
+    };
+    persistence.materializeTextAnswerEvidence.mockResolvedValue({
+      evidence: { id: 'text-evidence', readiness: 'READY' },
+    });
+
+    await expect(drainTeacherAssignmentResubmissionIntakes({ db, now: () => now }))
+      .resolves.toMatchObject({ queued: 1, blocked: 0 });
+    expect(persistence.materializeTextAnswerEvidence).toHaveBeenCalledWith(expect.objectContaining({
+      attemptId: 'attempt-new',
+    }));
+    expect(persistence.enqueueDocumentConversion).not.toHaveBeenCalled();
+    expect(persistence.enqueueGradingRun).toHaveBeenCalledWith(expect.objectContaining({
+      evidenceId: 'text-evidence',
+    }));
+  });
 });

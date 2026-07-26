@@ -857,43 +857,9 @@ export function AssignmentEditorWorkspace({
                 />
               </label>
             )}
-            <label className="block text-xs text-slate-400">
-              允许作答类型
-              <select
-                ref={
-                  registerValidationField(
-                    'responsePolicy.allowedResponseTypes',
-                  ) as React.Ref<HTMLSelectElement>
-                }
-                aria-label="允许作答类型"
-                aria-describedby="assignment-validation-errors"
-                value={
-                  document.draft.responsePolicy.allowedResponseTypes.length ===
-                  2
-                    ? 'BOTH'
-                    : document.draft.responsePolicy.allowedResponseTypes[0]
-                }
-                onChange={(event) =>
-                  updateDraft((draft) => ({
-                    ...draft,
-                    responsePolicy: {
-                      version: 1,
-                      allowedResponseTypes:
-                        event.target.value === 'BOTH'
-                          ? ['SUBJECTIVE_TEXT', 'SUBJECTIVE_FILE']
-                          : [
-                              event.target.value as
-                                'SUBJECTIVE_TEXT' | 'SUBJECTIVE_FILE',
-                            ],
-                    },
-                  }))
-                }
-              >
-                <option value="SUBJECTIVE_TEXT">文本</option>
-                <option value="SUBJECTIVE_FILE">文件</option>
-                <option value="BOTH">文本与文件</option>
-              </select>
-            </label>
+            <div className="rounded-lg border border-slate-700 p-3 text-xs text-slate-400">
+              学生可在每题同时提交 Markdown 正文、图片和附件。历史作答类型仅保留在发布快照中供审计。
+            </div>
             <label className="block text-xs text-slate-400">
               最多提交次数
               <input
@@ -1183,30 +1149,9 @@ function QuestionEditor({
         <h2 id="prompt-title" className="text-lg font-semibold text-white">
           题面
         </h2>
-        <label className="mt-2 block text-xs text-slate-400">
-          作答类型
-          <select
-            ref={
-              registerValidationField(
-                `questions.${questionIndex}.responseType`,
-              ) as React.Ref<HTMLSelectElement>
-            }
-            aria-label="作答类型"
-            aria-describedby="assignment-validation-errors"
-            value={editableQuestion.responseType}
-            onChange={(event) =>
-              onChange({
-                ...editableQuestion,
-                responseType: event.target
-                  .value as EditableQuestion['responseType'],
-              })
-            }
-            className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
-          >
-            <option value="SUBJECTIVE_TEXT">文本作答</option>
-            <option value="SUBJECTIVE_FILE">文件作答</option>
-          </select>
-        </label>
+        <p className="mt-2 text-xs text-slate-400">
+          统一作答：学生可提交 Markdown 正文、图片、附件或其组合。
+        </p>
         <textarea
           ref={promptRef}
           aria-label="题面"

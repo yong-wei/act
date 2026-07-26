@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
-import { assertDeliveryWindow, assertSubmissionObjectIntegrity, deriveAggregate, finalizeSchema, mayReadSubmission, SubmissionError, uploadIntentSchema } from '@/lib/assignments/submission-domain';
+import {
+  assertDeliveryWindow,
+  assertSubmissionObjectIntegrity,
+  deriveAggregate,
+  deriveLegacyAssignmentAssetOrder,
+  finalizeSchema,
+  mayReadSubmission,
+  normalizeAssignmentAssetMimeType,
+  reorderAssetsSchema,
+  SubmissionError,
+  textDraftSchema,
+  uploadIntentSchema,
+} from '@/lib/assignments/submission-domain';
 import { deriveStudentAssignmentPresentation, safePromptText } from '@/lib/assignments/submission-dto';
 import { getLocalTestSubmissionObjectStore, MemorySubmissionObjectStore, S3CompatibleSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 
@@ -29,6 +41,84 @@ describe('assignment submission domain', () => {
   it('uses strict response and checksum contracts', () => {
     expect(uploadIntentSchema.safeParse({ fileName: 'all.docx', mimeType: 'application/msword', sizeBytes: 12, checksum: 'abc' }).success).toBe(false);
     expect(uploadIntentSchema.safeParse({ fileName: 'q1.pdf', mimeType: 'application/pdf', sizeBytes: 12, checksum: `sha256:${'a'.repeat(64)}` }).success).toBe(true);
+  });
+  it.each([
+    ['answer.pdf', 'application/pdf'],
+    ['answer.doc', 'application/msword'],
+    ['answer.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    ['answer.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+    ['answer.png', 'image/png'],
+    ['answer.jpeg', 'image/jpeg'],
+    ['answer.md', 'text/markdown'],
+    ['answer.txt', 'text/plain'],
+  ])('accepts the unified attachment format %s', (fileName, mimeType) => {
+    expect(uploadIntentSchema.safeParse({
+      fileName,
+      mimeType,
+      sizeBytes: 12,
+      checksum: `sha256:${'a'.repeat(64)}`,
+    }).success).toBe(true);
+  });
+  it.each([
+    ['answer.docx', 'application/octet-stream', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    ['answer.pptx', 'binary/octet-stream', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+    ['answer.md', 'text/plain', 'text/markdown'],
+    ['answer.jpeg', '', 'image/jpeg'],
+  ])('normalizes browser MIME for supported extension %s', (fileName, declaredMimeType, expected) => {
+    expect(normalizeAssignmentAssetMimeType(fileName, declaredMimeType)).toBe(expected);
+  });
+  it.each([
+    ['answer.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+    ['answer.odt', 'application/vnd.oasis.opendocument.text'],
+    ['answer.pdf', 'image/png'],
+  ])('rejects unsupported or mismatched format %s', (fileName, mimeType) => {
+    expect(uploadIntentSchema.safeParse({
+      fileName,
+      mimeType,
+      sizeBytes: 12,
+      checksum: `sha256:${'a'.repeat(64)}`,
+    }).success).toBe(false);
+  });
+  it('requires embedded images to carry a stable Markdown position', () => {
+    expect(uploadIntentSchema.safeParse({
+      fileName: 'figure.png',
+      mimeType: 'image/png',
+      sizeBytes: 12,
+      checksum: `sha256:${'a'.repeat(64)}`,
+      assetRole: 'EMBEDDED_IMAGE',
+      embeddedPosition: 'md:figure-1',
+    }).success).toBe(true);
+    expect(uploadIntentSchema.safeParse({
+      fileName: 'figure.png',
+      mimeType: 'image/png',
+      sizeBytes: 12,
+      checksum: `sha256:${'a'.repeat(64)}`,
+      assetRole: 'EMBEDDED_IMAGE',
+    }).success).toBe(false);
+  });
+  it('accepts text-only, attachment-only, and mixed draft evidence references', () => {
+    expect(textDraftSchema.safeParse({ version: 1, text: '正文' }).success).toBe(true);
+    expect(textDraftSchema.safeParse({ version: 1, text: '', embeddedAssets: [] }).success).toBe(true);
+    expect(textDraftSchema.safeParse({
+      version: 1,
+      text: '![图](asset:figure)',
+      embeddedAssets: [{ assetId: 'figure', positionRef: 'md:figure-1' }],
+    }).success).toBe(true);
+  });
+  it('enforces ten unique ordered assets', () => {
+    const ten = Array.from({ length: 10 }, (_, index) => `asset-${index}`);
+    expect(reorderAssetsSchema.safeParse({ answerVersion: 1, assetIds: ten }).success).toBe(true);
+    expect(reorderAssetsSchema.safeParse({ answerVersion: 1, assetIds: [...ten, 'asset-10'] }).success).toBe(false);
+    expect(reorderAssetsSchema.safeParse({ answerVersion: 1, assetIds: ['asset-1', 'asset-1'] }).success).toBe(false);
+  });
+  it('derives the same legacy fallback order for repeated historical input', () => {
+    const input = [
+      { id: 'b', version: 2, createdAt: new Date('2026-01-02') },
+      { id: 'c', version: 1, createdAt: new Date('2026-01-02') },
+      { id: 'a', version: 1, createdAt: new Date('2026-01-02') },
+    ];
+    expect(deriveLegacyAssignmentAssetOrder(input).map((asset) => asset.id)).toEqual(['a', 'c', 'b']);
+    expect(deriveLegacyAssignmentAssetOrder([...input].reverse()).map((asset) => asset.id)).toEqual(['a', 'c', 'b']);
   });
   it('rejects same-size object tampering during download', () => {
     expect(() => assertSubmissionObjectIntegrity(new Uint8Array([1]), 1, `sha256:${'a'.repeat(64)}`)).toThrowError(new SubmissionError('asset-integrity-mismatch', 502));

@@ -114,6 +114,7 @@
     "db:repair-class-session-attribution": "tsx ./scripts/db/backfill-class-session-attribution.ts",
     "db:repair-assignment-publication-duplicates": "tsx ./scripts/db/repair-assignment-publication-duplicates.ts",
     "db:report-assignment-rubric-v2-migration": "tsx ./scripts/db/report-assignment-rubric-v2-migration.ts",
+    "db:backfill-assignment-attachment-order": "tsx ./scripts/db/backfill-assignment-attachment-order.ts",
     "test:assignment-rubric-v2-postgres": "tsx ./scripts/tests/test-assignment-rubric-v2-postgres.ts",
     "db:evidence-source-coverage": "tsx ./scripts/db/report-evidence-source-coverage.ts",
     "db:dry-run-simulation-task-evidence": "tsx ./scripts/db/dry-run-simulation-task-evidence.ts",

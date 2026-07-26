@@ -67,12 +67,12 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
   if (intake.grant.state !== 'CONSUMED' || intake.grant.consumedAttemptId !== intake.attemptId) throw new Error('resubmission-intake-lineage-invalid');
   const actor = { id: 'teacher-assignment-resubmission-intake', role: 'SERVICE' as const };
   let evidence = await db.answerEvidence.findFirst({ where: { attemptId: intake.attemptId }, orderBy: { version: 'desc' } });
-  if (!evidence && intake.attempt.answer.responseType === 'SUBJECTIVE_TEXT') {
+  const hasText = Boolean(intake.attempt.textSnapshot?.trim());
+  const asset = intake.attempt.answer.assets[0];
+  if (!evidence && hasText) {
     evidence = (await materializeTextAnswerEvidence({ db, attemptId: intake.attemptId, actor, operation: 'resubmission-answer-evidence', idempotencyKey: `resubmission-evidence:${intake.attemptId}`, now })).evidence;
   }
-  if (!evidence && intake.attempt.answer.responseType === 'SUBJECTIVE_FILE') {
-    const asset = intake.attempt.answer.assets[0];
-    if (!asset) throw new Error('resubmission-intake-source-asset-missing');
+  if (!evidence && asset) {
     const existing = await db.documentConversion.findFirst({ where: { attemptId: intake.attemptId }, orderBy: { version: 'desc' } });
     if (!existing) {
       const sourceConversion = intake.sourceGradingRun.answerEvidence?.conversion;
@@ -91,6 +91,7 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
     }
     return settle(db, claim, 'WAITING_EVIDENCE', now);
   }
+  if (!evidence && !hasText && !asset) throw new Error('resubmission-intake-answer-evidence-missing');
   if (!evidence || evidence.readiness !== 'READY') {
     if (evidence?.readiness === 'BLOCKED') throw new Error('resubmission-intake-evidence-blocked');
     return settle(db, claim, 'WAITING_EVIDENCE', now);
@@ -120,5 +121,5 @@ async function settle(db: any, claim: any, state: 'WAITING_EVIDENCE' | 'QUEUED',
 }
 
 function errorCode(error: unknown) { return error instanceof Error ? error.message.slice(0, 200) : 'resubmission-intake-failed'; }
-function isBlocked(code: string) { return /lineage-invalid|policy-missing|adapter-missing|evidence-blocked|source-asset-missing|content-unavailable|cancelled|conversion-blocked|conversion-failed/.test(code); }
+function isBlocked(code: string) { return /lineage-invalid|policy-missing|adapter-missing|evidence-blocked|answer-evidence-missing|content-unavailable|cancelled|conversion-blocked|conversion-failed/.test(code); }
 function retryDelay(attempt: number) { return Math.min(15 * 60_000, 5_000 * 2 ** Math.max(0, attempt - 1)); }
