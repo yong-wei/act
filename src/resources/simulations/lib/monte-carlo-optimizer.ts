@@ -56,6 +56,7 @@ export interface OptimizationResult {
 export interface OptimizePIDParamsOptions {
   runContext?: SimulationRunContext;
   seed?: number | string;
+  scenario?: ScenarioLogic;
 }
 
 // 简化的仿真配置
@@ -206,89 +207,72 @@ function evaluateWithRustRuntime(
 // 3-parameter legacy overload: scene-trace route compatibility
 export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
-  simConfig: SimpleSimConfig,
-  target: OptimizationTarget,
-): { score: number; metrics: OptimizationResult['metrics'] };
-// 4-parameter calibrated overload: optimizer and tests
-export function evaluatePIDParams(
-  params: { kp: number; ki: number; kd: number },
-  logic: ScenarioLogic,
-  simConfig: SimpleSimConfig,
-  target: OptimizationTarget,
-): { score: number; metrics: OptimizationResult['metrics'] };
-export function evaluatePIDParams(
-  params: { kp: number; ki: number; kd: number },
-  logicOrSimConfig: ScenarioLogic | SimpleSimConfig,
-  simConfigOrTarget: SimpleSimConfig | OptimizationTarget,
+  scenarioOrConfig: ScenarioLogic | SimpleSimConfig,
+  configOrTarget?: SimpleSimConfig | OptimizationTarget,
   maybeTarget?: OptimizationTarget,
-): { score: number; metrics: OptimizationResult['metrics'] } {
-  let logic: ScenarioLogic;
-  let simConfig: SimpleSimConfig;
+): { score: number; metrics: { avgError: number; maxRudderRate: number; settlingTime: number; overshoot: number } } {
+  let scenario: ScenarioLogic;
+  let config: SimpleSimConfig;
   let target: OptimizationTarget;
-  if (maybeTarget !== undefined) {
-    logic = logicOrSimConfig as ScenarioLogic;
-    simConfig = simConfigOrTarget as SimpleSimConfig;
-    target = maybeTarget;
-  } else {
-    // 3-param legacy: (params, simConfig, target)
-    simConfig = logicOrSimConfig as SimpleSimConfig;
-    target = simConfigOrTarget as OptimizationTarget;
-    logic = getLegacySceneLogic('turn90', target.targetHeading);
-  }
-  const speed = simConfig.shipSpeed || 15;
-  const guidePath = generateGuidePath(logic, logic.duration, speed);
-  const result = evaluateWithRustRuntime(params, logic, guidePath, speed, simConfig, target);
 
-  // 计算超调量和调节时间
+  if ('scenarioId' in scenarioOrConfig) {
+    // 4-param overload: (params, scenario, config, target)
+    scenario = scenarioOrConfig as ScenarioLogic;
+    config = configOrTarget as SimpleSimConfig;
+    target = maybeTarget!;
+  } else {
+    // 3-param legacy overload: (params, config, target)
+    config = scenarioOrConfig as SimpleSimConfig;
+    target = configOrTarget as OptimizationTarget;
+    scenario = getLegacySceneLogic('turn90', target.targetHeading);
+  }
+
+  const speed = config.shipSpeed ?? 15;
+  const guidePath = generateGuidePath(scenario, scenario.duration, speed);
+  const result = evaluateWithRustRuntime(params, scenario, guidePath, speed, config, target);
+
+  // 计算稳态时间和超调
+  let settlingTime = scenario.duration;
   let overshoot = 0;
-  let stableSince: number | undefined;
-  const targetReached = target.targetHeading;
+  const targetHeading = target.targetHeading;
   const tolerance = 5;
 
-  for (let i = 0; i < result.chartData.time.length; i++) {
-    const heading = result.chartData.actualHeading[i];
-    const time = result.chartData.time[i];
-    if (time < logic.referenceCompletedAt) {
-      continue;
-    }
-
-    // 计算超调
-    const error = heading - targetReached;
-    if (error > overshoot) {
-      overshoot = error;
-    }
-
-    if (Math.abs(error) <= tolerance) {
-      stableSince ??= time;
-    } else {
-      stableSince = undefined;
+  for (let i = result.trajectory.length - 1; i >= 0; i--) {
+    const error = Math.abs(result.trajectory[i].heading - targetHeading);
+    if (error > tolerance) {
+      settlingTime = result.trajectory[i].time;
+      break;
     }
   }
-  const hasSustainedSettling = stableSince !== undefined && stableSince < logic.duration;
-  const settlingTime = stableSince === undefined
-    ? logic.duration - logic.referenceCompletedAt
-    : stableSince - logic.referenceCompletedAt;
 
-  // 计算各项指标得分
-  const errorScore = Math.max(0, 100 - (result.metrics.avgError / target.maxError) * 100);
-  const rudderScore = result.metrics.maxRudderRate <= target.maxRudderRate
-    ? 100
-    : Math.max(0, 100 - ((result.metrics.maxRudderRate - target.maxRudderRate) / target.maxRudderRate) * 100);
+  // 计算超调
+  let maxHeading = 0;
+  for (const point of result.trajectory) {
+    if (point.heading > maxHeading) maxHeading = point.heading;
+  }
+  if (maxHeading > targetHeading) {
+    overshoot = ((maxHeading - targetHeading) / targetHeading) * 100;
+  }
+
+  // 各项得分
+  let errorScore = Math.max(0, 100 - (result.metrics.avgError / (target.maxError / 100)) * 10);
+  errorScore = Math.min(100, Math.max(0, errorScore));
+
+  let rudderScore = 100;
+  if (result.metrics.maxRudderRate > target.maxRudderRate) {
+    rudderScore = Math.max(0, 100 - ((result.metrics.maxRudderRate - target.maxRudderRate) / target.maxRudderRate) * 100);
+  }
 
   let overshootScore = 100;
-  if (target.maxOvershoot !== undefined) {
-    overshootScore = overshoot <= target.maxOvershoot
-      ? 100
-      : Math.max(0, 100 - ((overshoot - target.maxOvershoot) / target.maxOvershoot) * 100);
+  const maxOvershoot = target.maxOvershoot ?? 20;
+  if (overshoot > maxOvershoot) {
+    overshootScore = Math.max(0, 100 - ((overshoot - maxOvershoot) / maxOvershoot) * 100);
   }
 
   let settlingScore = 100;
-  if (target.minSettlingTime !== undefined) {
-    settlingScore = !hasSustainedSettling
-      ? 0
-      : settlingTime <= target.minSettlingTime
-      ? 100
-      : Math.max(0, 100 - ((settlingTime - target.minSettlingTime) / target.minSettlingTime) * 50);
+  const minSettlingTime = target.minSettlingTime ?? 90;
+  if (settlingTime > minSettlingTime) {
+    settlingScore = Math.max(0, 100 - ((settlingTime - minSettlingTime) / minSettlingTime) * 50);
   }
 
   // 综合得分（加权平均）
@@ -337,18 +321,15 @@ function sampleNearby(
   return {
     kp: clamp(
       bestParams.kp + (rng() * 2 - 1) * radius * (constraints.kpRange[1] - constraints.kpRange[0]),
-      constraints.kpRange[0],
-      constraints.kpRange[1]
+      constraints.kpRange[0], constraints.kpRange[1]
     ),
     ki: clamp(
       bestParams.ki + (rng() * 2 - 1) * radius * (constraints.kiRange[1] - constraints.kiRange[0]),
-      constraints.kiRange[0],
-      constraints.kiRange[1]
+      constraints.kiRange[0], constraints.kiRange[1]
     ),
     kd: clamp(
       bestParams.kd + (rng() * 2 - 1) * radius * (constraints.kdRange[1] - constraints.kdRange[0]),
-      constraints.kdRange[0],
-      constraints.kdRange[1]
+      constraints.kdRange[0], constraints.kdRange[1]
     ),
   };
 }
@@ -366,7 +347,7 @@ export function optimizePIDParams(
 ): OptimizationResult {
   const startTime = Date.now();
   const convergenceHistory: OptimizationResult['convergenceHistory'] = [];
-  const scenario = getScenarioLogic('turn90', target.targetHeading);
+  const scenario = options.scenario ?? getScenarioLogic('turn90', target.targetHeading);
   const replaySeed = normalizeSeed(
     options.seed,
     JSON.stringify({ config, target, constraints, maxIterations, earlyStopThreshold, scenarioId: scenario.scenarioId })
