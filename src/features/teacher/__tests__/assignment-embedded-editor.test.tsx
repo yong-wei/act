@@ -31,7 +31,7 @@ describe('assignment embedded editor', () => {
   it('renders confirmed Markdown with formulas and images without full-screen preparation regions', async () => {
     await act(async () => root.render(
       <AssignmentEmbeddedEditor
-        role="teacher"
+        hostRole="teacher"
         field="reference-answer"
         ariaLabel="参考答案"
         value="本地草稿"
@@ -100,7 +100,7 @@ describe('assignment embedded editor', () => {
     }));
     await act(async () => root.render(
       <AssignmentEmbeddedEditor
-        role="student"
+        hostRole="student"
         field="student-response"
         ariaLabel="作业正文"
         value=""

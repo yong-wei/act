@@ -15,7 +15,7 @@ export type AssignmentEmbeddedHostRole = 'teacher' | 'student';
 export type AssignmentEmbeddedField = 'question-prompt' | 'reference-answer' | 'student-response';
 
 export interface AssignmentEmbeddedEditorProps {
-  role: AssignmentEmbeddedHostRole;
+  hostRole: AssignmentEmbeddedHostRole;
   field: AssignmentEmbeddedField;
   ariaLabel: string;
   value: string;
@@ -29,7 +29,7 @@ export interface AssignmentEmbeddedEditorProps {
 }
 
 export function AssignmentEmbeddedEditor({
-  role,
+  hostRole,
   field,
   ariaLabel,
   value,
@@ -50,7 +50,7 @@ export function AssignmentEmbeddedEditor({
       className="space-y-3 rounded-xl border border-border bg-background p-4"
       aria-label={ariaLabel}
       data-assignment-editor-mode="assignment-embedded"
-      data-assignment-editor-role={role}
+      data-assignment-editor-role={hostRole}
       data-assignment-editor-field={field}
     >
       {rendered ? (
@@ -106,7 +106,7 @@ interface AssignmentEmbeddedHostExampleProps {
 }
 
 function AssignmentEmbeddedHostExample({
-  role,
+  hostRole,
   field,
   ariaLabel,
   initialValue,
@@ -114,7 +114,7 @@ function AssignmentEmbeddedHostExample({
   resolveAssetHref,
   persist,
 }: AssignmentEmbeddedHostExampleProps & {
-  role: AssignmentEmbeddedHostRole;
+  hostRole: AssignmentEmbeddedHostRole;
   field: AssignmentEmbeddedField;
   ariaLabel: string;
 }) {
@@ -124,7 +124,7 @@ function AssignmentEmbeddedHostExample({
 
   return (
     <AssignmentEmbeddedEditor
-      role={role}
+      hostRole={hostRole}
       field={field}
       ariaLabel={ariaLabel}
       value={value}
@@ -152,7 +152,7 @@ export function TeacherAssignmentContentEditorExample(props: AssignmentEmbeddedH
   return (
     <AssignmentEmbeddedHostExample
       {...props}
-      role="teacher"
+      hostRole="teacher"
       field="question-prompt"
       ariaLabel="作业题目内容"
     />
@@ -163,7 +163,7 @@ export function StudentAssignmentContentEditorExample(props: AssignmentEmbeddedH
   return (
     <AssignmentEmbeddedHostExample
       {...props}
-      role="student"
+      hostRole="student"
       field="student-response"
       ariaLabel="作业正文"
     />
