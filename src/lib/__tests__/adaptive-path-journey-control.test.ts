@@ -307,6 +307,7 @@ describe('adaptive path journey control', () => {
     expect(resourcePageSource).toContain('const showLocalReturnAction = !pathLaunchContext;');
     expect(resourcePageSource).toContain('actions={showLocalReturnAction ? (');
     expect(resourcePageSource).toContain('action={showLocalReturnAction ? (');
+    expect(resourcePageSource).toContain("pathLaunchContext\n      ? { label: sourceContext.label }");
   });
 
   it('keeps the resource-page return action for non-path sources', () => {

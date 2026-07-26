@@ -76,6 +76,13 @@ export default function InteractiveResourcePage() {
       })
     : null;
   const showLocalReturnAction = !pathLaunchContext;
+  const breadcrumbs = [
+    { label: '互动学习', href: '/interactive-learning' },
+    pathLaunchContext
+      ? { label: sourceContext.label }
+      : { label: sourceContext.label, href: sourceContext.href },
+    { label: resource?.title || '互动资源' },
+  ];
 
   useEffect(() => {
     if (!resourceId) return;
@@ -135,11 +142,7 @@ export default function InteractiveResourcePage() {
       activeHref={resourceId ? `/interactive-learning/resources/${resourceId}` : '/interactive-learning/resources/[id]'}
       title={resource?.title || '互动资源'}
       subtitle="Interactive resource workspace"
-      breadcrumbs={[
-        { label: '互动学习', href: '/interactive-learning' },
-        { label: sourceContext.label, href: sourceContext.href },
-        { label: resource?.title || '互动资源' },
-      ]}
+      breadcrumbs={breadcrumbs}
       actions={showLocalReturnAction ? (
         <Link
           href={sourceContext.href}
