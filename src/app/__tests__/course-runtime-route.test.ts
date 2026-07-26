@@ -59,6 +59,30 @@ describe('course-runtime asset route', () => {
     ));
   });
 
+  it('does not expose structured textbook v2 records through the raw asset route', async () => {
+    const response = await requestRuntimeAsset([
+      'resources',
+      'textbooks-v2',
+      'dorf-modern-control-systems',
+      'units.jsonl',
+    ]);
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: 'Asset not found' });
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
+  it('does not expose structured textbook v2 records through case or backslash variants', async () => {
+    const [caseResponse, backslashResponse] = await Promise.all([
+      requestRuntimeAsset(['Resources', 'Textbooks-V2', 'dorf-modern-control-systems', 'anchors.jsonl']),
+      requestRuntimeAsset(['resources\\textbooks-v2\\dorf-modern-control-systems\\navigation.json']),
+    ]);
+
+    expect(caseResponse.status).toBe(404);
+    expect(backslashResponse.status).toBe(404);
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
   it('returns 404 when a runtime asset is missing', async () => {
     mockedReadFile.mockRejectedValueOnce(new Error('missing'));
 

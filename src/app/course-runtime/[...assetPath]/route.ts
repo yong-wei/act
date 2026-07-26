@@ -25,7 +25,10 @@ const CONTENT_TYPES: Record<string, string> = {
 
 function isPrivateRuntimeGovernancePath(relativePath: string) {
   const normalizedPath = relativePath.replace(/\\/g, '/').toLowerCase();
-  return normalizedPath === 'resource-governance' || normalizedPath.startsWith('resource-governance/');
+  return normalizedPath === 'resource-governance'
+    || normalizedPath.startsWith('resource-governance/')
+    || normalizedPath === 'resources/textbooks-v2'
+    || normalizedPath.startsWith('resources/textbooks-v2/');
 }
 
 export async function GET(_request: Request, props: { params: Promise<{ assetPath: string[] }> }) {
