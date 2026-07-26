@@ -22,6 +22,16 @@ The platform has Markdown rendering but no reusable rich document editor. Smart 
 
 Implementation SHALL evaluate maintained React editors against Markdown, tables, formulas, code blocks, accessibility, serialization, and bundle cost, then expose only a project-owned adapter. No second editor is introduced for another preparation document.
 
+The selected dependency is Tiptap 3.28.0, exposed only through `RichMarkdownEditor`. Its Markdown manager provides one canonical Markdown boundary, TableKit covers GFM tables, and the mathematics extension preserves inline LaTeX. The complete Tiptap package family is pinned to one version because mixed core and extension minors are not a supported runtime.
+
+| Candidate | Markdown round trip | Tables and formulas | React and accessibility | Decision |
+| --- | --- | --- | --- | --- |
+| Tiptap 3.28.0 | Native Markdown manager with GFM | Maintained table and mathematics extensions | React adapter over ProseMirror semantics | Selected; representative round-trip fixture passes |
+| Lexical | Markdown transformers require additional domain transformers | Tables exist, formulas require a project-defined node and serializer | Strong React integration | Rejected because this change would own more serialization code |
+| Plate | Broad plugin surface with Markdown support | Available through multiple plugins | React-first | Rejected because the integration and dependency surface exceeds the required document contract |
+
+The installed development footprint is approximately 7.5 MB for `@tiptap` plus ProseMirror packages; this is not a browser transfer estimate. Production build verification remains the bundle gate. The adapter loads only on full-screen editor routes, so normal smart-preparation reads do not import the editor.
+
 ### 2. Use one canonical document model per domain
 
 The editor maps lesson content to the existing lesson schema and course-basis content to normalized Markdown. BOPPPS stages are fixed top-level nodes; internal steps are editable ordered children. JSON remains an internal transport.

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Archive, Bot, CheckCircle2, LoaderCircle, Menu, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
+import { capturePreparationEditorReturnState } from './preparation-document-editor/return-state';
+import type { PreparationEditorReturnState } from './preparation-document-editor/return-state';
 
 type SourceOption = {
   courseBasisId: string;
@@ -32,7 +34,7 @@ type Task = {
   knowledgePoints?: Array<{ id: string; lineageId: string; title: string; origin: 'SUGGESTED' | 'TEACHER_CREATED'; sourceState: 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending'; sourceBindings: SourceOption['binding'][]; supersedesIds?: string[]; state: string }>;
   goals?: Array<{ id: string; lineageId: string; content: string; sourceState: 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending'; sourceBindings: SourceOption['binding'][]; standardsMappings?: Array<{ standardId: string; label: string }>; state: string }>;
   drafts?: Array<{
-    id: string; state: string; version: number; content?: unknown;
+    id: string; state: string; version: number; content?: unknown; contentHash?: string | null;
     jobs?: Array<{ id: string; state: string; firstIncompleteStage?: string; failureCode?: string | null; supersededAt?: string | null; stages?: Array<{ kind: string; state: string; output?: unknown; outputTruncated?: boolean }> }>;
     reviews?: Array<{ id: string; advisoryOnly: boolean; state?: string; report?: unknown; failureCode?: string | null }>;
   }>;
@@ -50,10 +52,24 @@ type ClassDiagnosisOption = { classId: string; className: string; diagnosisRef: 
 type KonlingSuggestion = { id: string; agentSessionId: string; expectedRevision?: number; turnId: string; proposedTask?: unknown; clarification?: { question: string; alternatives: string[] }; confirmedTaskId?: string; createdAt: string };
 type PublicSourceState = 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending';
 
-export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, initialTasks }: { courseBases: any[]; classDiagnosisOptions: ClassDiagnosisOption[]; initialTasks: Record<string, unknown>[] }) {
+export function SmartLessonPlanWorkspace({
+  courseBases,
+  classDiagnosisOptions,
+  initialTasks,
+  initialSelectedTaskId,
+  preparationReturnState,
+  onPreparationReturnStateRestored,
+}: {
+  courseBases: any[];
+  classDiagnosisOptions: ClassDiagnosisOption[];
+  initialTasks: Record<string, unknown>[];
+  initialSelectedTaskId?: string;
+  preparationReturnState?: PreparationEditorReturnState | null;
+  onPreparationReturnStateRestored?: () => void;
+}) {
   const [tasks, setTasks] = useState(initialTasks as Task[]);
   const [availableCourseBases, setAvailableCourseBases] = useState(courseBases);
-  const [selectedTaskId, setSelectedTaskId] = useState((initialTasks[0] as Task | undefined)?.id ?? '');
+  const [selectedTaskId, setSelectedTaskId] = useState(initialSelectedTaskId ?? (initialTasks[0] as Task | undefined)?.id ?? '');
   const [query, setQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [taskIndexOpen, setTaskIndexOpen] = useState(false);
@@ -115,6 +131,15 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
   }, [activeTaskId, detailedActiveTaskId]);
 
   useEffect(() => {
+    if (!preparationReturnState || !detailedActiveTaskId) return;
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: preparationReturnState.scrollY });
+      onPreparationReturnStateRestored?.();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [detailedActiveTaskId, onPreparationReturnStateRestored, preparationReturnState]);
+
+  useEffect(() => {
     if (!detailedActiveTaskId || !activeJobState || !['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(activeJobState)) return;
     const timer = window.setInterval(() => void refreshTask(detailedActiveTaskId), 2500);
     return () => window.clearInterval(timer);
@@ -150,9 +175,10 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     };
   }, [query, showArchived]);
 
-  function createCourseware(planRevisionId: string) {
+  function createCourseware(planRevisionId: string, taskId: string) {
     if (coursewareCreationInFlight.current) return;
     coursewareCreationInFlight.current = true;
+    capturePreparationEditorReturnState(`/teacher/smart-prep?taskId=${encodeURIComponent(taskId)}#smart-prep-stage-courseware-generation`);
     const query = new URLSearchParams({ planRevisionId, creationIntentId: crypto.randomUUID() });
     window.location.assign(`/teacher/smart-prep/courseware/new?${query.toString()}`);
   }
@@ -341,26 +367,11 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     }
   }
 
-  async function editPausedOutline(task: Task) {
+  function editPausedOutline(task: Task) {
     const job = task.drafts?.[0]?.jobs?.[0];
-    const outline = job?.stages?.find((stage) => stage.kind === 'OUTLINE')?.output;
-    if (!job || job.state !== 'PAUSED' || !outline || typeof outline !== 'object' || Array.isArray(outline)) return;
-    const current = outline as Record<string, unknown>;
-    const keyContent = window.prompt('重点内容（每行一项）', stringList(current.keyContent).join('\n'));
-    if (keyContent === null) return;
-    const difficultContent = window.prompt('难点内容（每行一项）', stringList(current.difficultContent).join('\n'));
-    if (difficultContent === null) return;
-    const output = {
-      ...current,
-      keyContent: splitLines(keyContent),
-      difficultContent: splitLines(difficultContent),
-    };
-    const response = await fetch(`/api/teacher/smart-lesson-tasks/jobs/${job.id}/outline`, {
-      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ output }),
-    });
-    const payload = await response.json();
-    setMessage(response.ok ? '提纲已保存；请检查后确认继续。' : errorText(payload));
-    await refreshTask(task.id);
+    if (!job || job.state !== 'PAUSED') return;
+    capturePreparationEditorReturnState(`/teacher/smart-prep?taskId=${encodeURIComponent(task.id)}#smart-prep-stage-lesson-generation`);
+    window.location.assign(`/teacher/smart-prep/editor/lesson/${encodeURIComponent(job.id)}?kind=outline&taskId=${encodeURIComponent(task.id)}`);
   }
 
   async function deriveDraft(task: Task, revisionId: string) {
@@ -382,22 +393,11 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     await refreshTask(task.id);
   }
 
-  async function editDraft(task: Task) {
+  function editDraft(task: Task) {
     const draft = task.drafts?.[0];
-    if (!draft?.content || typeof draft.content !== 'object' || Array.isArray(draft.content)) return;
-    const current = draft.content as Record<string, unknown>;
-    const title = window.prompt('教案标题', String(current.title ?? current.topic ?? task.topic));
-    if (title === null || !title.trim()) return;
-    const limitations = window.prompt('教学限制与待补信息（每行一项）', stringList(current.limitations).join('\n'));
-    if (limitations === null) return;
-    const content = { ...current, title: title.trim(), limitations: splitLines(limitations) };
-    const response = await fetch(`/api/teacher/smart-lesson-tasks/drafts/${draft.id}`, {
-      method: 'PATCH', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ expectedVersion: draft.version, content }),
-    });
-    const payload = await response.json();
-    setMessage(response.ok ? '教案草稿已更新并重新执行确定性检查。' : errorText(payload));
-    await refreshTask(task.id);
+    if (!draft?.contentHash) return;
+    capturePreparationEditorReturnState(`/teacher/smart-prep?taskId=${encodeURIComponent(task.id)}#smart-prep-stage-lesson-generation`);
+    window.location.assign(`/teacher/smart-prep/editor/lesson/${encodeURIComponent(draft.id)}?kind=draft&taskId=${encodeURIComponent(task.id)}`);
   }
 
   async function approve(task: Task) {
@@ -479,7 +479,12 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
           key={stage.id}
           stage={stage}
           index={task.workspace!.stages.indexOf(stage)}
-          initiallyOpen={stage.id === task.workspace?.currentStage}
+          initiallyOpen={preparationReturnState
+            ? preparationReturnState.expandedStageIds.includes(`smart-prep-stage-${stage.id}`)
+            : stage.id === task.workspace?.currentStage}
+          restoredOpen={preparationReturnState
+            ? preparationReturnState.expandedStageIds.includes(`smart-prep-stage-${stage.id}`)
+            : undefined}
         >
           {children}
         </PreparationStageDetails>;
@@ -516,10 +521,10 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
             <div className="flex flex-wrap gap-2">
               <button onClick={() => void refreshTask(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">刷新进度</button>
               <button onClick={() => void startGeneration(task)} disabled={!draft || hasBlockingJob || draft.state === 'APPROVED'} className="inline-flex items-center gap-1 rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50"><LoaderCircle className="h-4 w-4" />开始生成</button>
-              {job?.state === 'PAUSED' && !job.supersededAt ? <button onClick={() => void editPausedOutline(task)} className="rounded border border-border px-3 py-1.5 text-sm">编辑提纲</button> : null}
+              {job?.state === 'PAUSED' && !job.supersededAt ? <button onClick={() => editPausedOutline(task)} className="rounded border border-border px-3 py-1.5 text-sm">编辑提纲</button> : null}
               {job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state) ? <button onClick={() => void runJobAction(task, job.state === 'RETRYABLE' || job.state === 'FAILED' ? 'retry' : 'resume')} className="rounded border border-border px-3 py-1.5 text-sm">{job.state === 'PAUSED' ? '确认当前提纲并继续' : '恢复/重试'}</button> : null}
               {job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state) ? <button onClick={() => void runJobAction(task, 'cancel')} className="rounded border border-border px-3 py-1.5 text-sm">取消</button> : null}
-              <button onClick={() => void editDraft(task)} disabled={!draft?.content || task.workspace?.unsupportedPayload || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
+              <button onClick={() => editDraft(task)} disabled={!draft?.contentHash || task.workspace?.unsupportedPayload || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
               <button onClick={() => void requestAdvisoryReview(task)} disabled={!draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
               <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
               {task.revisions?.[0] ? <button onClick={() => void deriveDraft(task, task.revisions![0].id)} className="rounded border border-border px-3 py-1.5 text-sm">基于{task.revisions[0].displayName}继续修订</button> : null}
@@ -533,7 +538,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
           </div>)}
           {stageDetails('courseware-generation', <div className="space-y-2">
             {currentRevision
-              ? <button type="button" onClick={() => createCourseware(currentRevision.id)} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</button>
+              ? <button type="button" onClick={() => createCourseware(currentRevision.id, task.id)} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</button>
               : <p className="text-muted-foreground">批准教案版本后可生成互动课件。</p>}
           </div>)}
         </div>
@@ -576,15 +581,21 @@ function PreparationStageDetails({
   stage,
   index,
   initiallyOpen,
+  restoredOpen,
   children,
 }: {
   stage: NonNullable<Task['workspace']>['stages'][number];
   index: number;
   initiallyOpen: boolean;
+  restoredOpen?: boolean;
   children?: ReactNode;
 }) {
   const [open, setOpen] = useState(initiallyOpen);
+  useEffect(() => {
+    if (restoredOpen !== undefined) setOpen(restoredOpen);
+  }, [restoredOpen]);
   return <details
+    id={`smart-prep-stage-${stage.id}`}
     open={open}
     onToggle={(event) => setOpen(event.currentTarget.open)}
     className="group rounded-lg border border-border bg-card"
@@ -682,14 +693,6 @@ function bopppsStageLabel(value: string) {
     postAssessment: '后测',
     summary: '总结',
   } as Record<string, string>)[value];
-}
-
-function stringList(value: unknown) {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
-}
-
-function splitLines(value: string) {
-  return value.split('\n').map((item) => item.trim()).filter(Boolean);
 }
 
 function generationStageLabel(value: string) {

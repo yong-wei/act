@@ -44,6 +44,7 @@ export const smartLessonAdvisoryReviewSchema = z.object({
     severity: z.enum(['INFO', 'SUGGESTION', 'WARNING']),
     message: z.string().trim().min(1).max(2000),
     path: z.string().trim().min(1).max(500).nullable(),
+    proposedReplacement: z.string().trim().min(1).max(10_000).nullable().optional(),
   }).strict()).max(100),
   suggestions: z.array(z.string().trim().min(1).max(2000)).max(100),
 }).strict();

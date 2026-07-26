@@ -1,27 +1,62 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BookOpen, ClipboardList } from 'lucide-react';
 
 import { CourseBasisWorkspace } from './course-basis-workspace';
+import {
+  clearPreparationEditorReturnState,
+  readPreparationEditorReturnState,
+  type PreparationEditorReturnState,
+} from './preparation-document-editor/return-state';
 import { SmartLessonPlanWorkspace } from './smart-lesson-plan-workspace';
 
 export function SmartPreparationWorkspace({
   courseBases,
   classDiagnosisOptions,
   initialTasks,
+  initialSelectedTaskId,
+  initialView = 'tasks',
+  initialCourseBasisId,
+  initialCourseBasisOffset,
+  initialHasMoreCourseBases,
 }: {
   courseBases: any[];
   classDiagnosisOptions: Array<{ classId: string; className: string; diagnosisRef: string; generatedAt: string }>;
   initialTasks: Record<string, unknown>[];
+  initialSelectedTaskId?: string;
+  initialView?: 'tasks' | 'basis';
+  initialCourseBasisId?: string;
+  initialCourseBasisOffset?: number;
+  initialHasMoreCourseBases?: boolean;
 }) {
-  const [view, setView] = useState<'tasks' | 'basis'>('tasks');
+  const [view, setView] = useState<'tasks' | 'basis'>(initialView);
+  const [returnState, setReturnState] = useState<PreparationEditorReturnState | null>(null);
   const scrollPositions = useRef({ tasks: 0, basis: 0 });
+  const basisReturn = returnState ? new URL(returnState.returnUrl, window.location.origin).searchParams.get('view') === 'basis' : false;
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => window.scrollTo({ top: scrollPositions.current[view] }));
     return () => window.cancelAnimationFrame(frame);
   }, [view]);
+
+  useEffect(() => {
+    setReturnState(readPreparationEditorReturnState());
+  }, []);
+
+  const completeReturnStateRestore = useCallback(() => {
+    clearPreparationEditorReturnState();
+    setReturnState(null);
+  }, []);
+
+  useEffect(() => {
+    if (!returnState || !basisReturn || view !== 'basis') return;
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: returnState.scrollY });
+      completeReturnStateRestore();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [basisReturn, completeReturnStateRestore, returnState, view]);
 
   function changeView(next: 'tasks' | 'basis') {
     scrollPositions.current[view] = window.scrollY;
@@ -41,10 +76,23 @@ export function SmartPreparationWorkspace({
       </nav>
     </header>
     <div className={view === 'basis' ? '' : 'hidden'}>
-      <CourseBasisWorkspace initialCourseBases={courseBases} onChanged={() => window.dispatchEvent(new Event('course-basis:changed'))} />
+      <CourseBasisWorkspace
+        initialCourseBases={courseBases}
+        initialSelectedId={initialCourseBasisId}
+        initialBaseOffset={initialCourseBasisOffset}
+        initialHasMoreBases={initialHasMoreCourseBases}
+        onChanged={() => window.dispatchEvent(new Event('course-basis:changed'))}
+      />
     </div>
     <div className={view === 'tasks' ? '' : 'hidden'}>
-      <SmartLessonPlanWorkspace courseBases={courseBases} classDiagnosisOptions={classDiagnosisOptions} initialTasks={initialTasks} />
+      <SmartLessonPlanWorkspace
+        courseBases={courseBases}
+        classDiagnosisOptions={classDiagnosisOptions}
+        initialTasks={initialTasks}
+        initialSelectedTaskId={initialSelectedTaskId}
+        preparationReturnState={basisReturn ? null : returnState}
+        onPreparationReturnStateRestored={completeReturnStateRestore}
+      />
     </div>
   </main>;
 }

@@ -212,6 +212,127 @@ export async function getCourseBasisVersionExtractionPreview(db: CourseBasisDb, 
   };
 }
 
+export async function getCourseBasisVersionForEditing(db: CourseBasisDb, input: {
+  actor: CourseBasisActor;
+  versionId: string;
+}) {
+  const actor = validateActor(input.actor);
+  const version = await findVersionForActor(db, actor, validateId(input.versionId, 'version-id-invalid'));
+  if (version.extractionState !== 'EXTRACTED' || !version.normalizedText) {
+    throw new CourseBasisError('version-not-editable');
+  }
+  const [referenceCount, selectionCount] = await Promise.all([
+    db.courseBasisReferenceLink.count({ where: { versionId: version.id } }),
+    db.smartLessonSourceSelection.count({ where: { sourceVersionId: version.id, state: 'SELECTED' } }),
+  ]);
+  const frozen = Boolean(version.retiredAt)
+    || version.reviewState === 'REJECTED'
+    || referenceCount > 0
+    || selectionCount > 0;
+  return {
+    id: version.id,
+    documentId: version.documentId,
+    documentTitle: version.document.title,
+    courseBasisId: version.document.courseBasis.id,
+    versionNumber: version.versionNumber,
+    sourceName: version.sourceName,
+    contentHash: version.contentHash,
+    markdown: editableCourseBasisText(version),
+    frozen,
+  };
+}
+
+export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
+  actor: CourseBasisActor;
+  versionId: string;
+  expectedContentHash: string;
+  markdown: string;
+}) {
+  const actor = validateActor(input.actor);
+  const versionId = validateId(input.versionId, 'version-id-invalid');
+  const markdown = requiredPreservedText(input.markdown, 'document-content-required', 2_000_000);
+  const current = await findVersionForActor(db, actor, versionId);
+  if (current.contentHash !== input.expectedContentHash) throw new CourseBasisError('version-edit-conflict');
+  const extracted = await extractCourseBasisSource({
+    sourceType: 'MARKDOWN',
+    sourceName: '可视编辑器',
+    mimeType: 'text/markdown',
+    content: markdown,
+  });
+  const [referenceCount, selectionCount] = await Promise.all([
+    db.courseBasisReferenceLink.count({ where: { versionId } }),
+    db.smartLessonSourceSelection.count({ where: { sourceVersionId: versionId, state: 'SELECTED' } }),
+  ]);
+  const frozen = Boolean(current.retiredAt)
+    || current.reviewState === 'REJECTED'
+    || referenceCount > 0
+    || selectionCount > 0;
+  if (frozen) {
+    const latest = await db.courseBasisDocumentVersion.findFirst({
+      where: { documentId: current.documentId },
+      orderBy: { versionNumber: 'desc' },
+      select: { id: true, versionNumber: true, contentHash: true, reviewState: true, retiredAt: true },
+    });
+    if (!latest) throw new CourseBasisError('version-edit-conflict');
+    if (latest.versionNumber > current.versionNumber && latest.contentHash === extracted.contentHash) {
+      const [latestReferenceCount, latestSelectionCount] = await Promise.all([
+        db.courseBasisReferenceLink.count({ where: { versionId: latest.id } }),
+        db.smartLessonSourceSelection.count({ where: { sourceVersionId: latest.id, state: 'SELECTED' } }),
+      ]);
+      if (!latest.retiredAt && latest.reviewState !== 'REJECTED' && latestReferenceCount === 0 && latestSelectionCount === 0) {
+        return { version: await selectVersionMutationResult(db, latest.id), createdSuccessor: true };
+      }
+    }
+    const successor = await importCourseBasisVersion(db, {
+      actor,
+      documentId: current.documentId,
+      expectedLatestVersionId: latest.id,
+      expectedLatestVersionNumber: latest.versionNumber,
+      source: {
+        sourceType: 'MARKDOWN',
+        sourceName: `${current.sourceName}（编辑）`,
+        mimeType: 'text/markdown',
+        content: markdown,
+      },
+    });
+    return { version: successor, createdSuccessor: true };
+  }
+  const version = await withSerializableRetry(db, async (tx) => {
+    const updated = await tx.courseBasisDocumentVersion.updateMany({
+      where: {
+        id: versionId,
+        contentHash: input.expectedContentHash,
+        reviewState: { in: ['PENDING', 'CONFIRMED'] },
+        retiredAt: null,
+        referenceLinks: { none: {} },
+        smartLessonSelections: { none: { state: 'SELECTED' } },
+      },
+      data: {
+        sourceType: 'MARKDOWN',
+        mimeType: 'text/markdown',
+        byteSize: extracted.byteSize,
+        contentHash: extracted.contentHash,
+        originalContent: extracted.originalContent,
+        normalizedText: extracted.normalizedText,
+        extractionState: extracted.extractionState,
+        extractionVersion: COURSE_BASIS_EXTRACTION_VERSION,
+        failureReason: null,
+        reviewState: 'PENDING',
+        reviewedById: null,
+        reviewedAt: null,
+      },
+    });
+    if (updated.count !== 1) throw new CourseBasisError('version-edit-conflict');
+    await tx.courseBasisProjection.deleteMany({ where: { versionId } });
+    await tx.courseBasisSegment.deleteMany({ where: { versionId } });
+    await tx.courseBasisSegment.createMany({
+      data: extracted.segments.map((segment) => ({ ...segment, versionId })),
+    });
+    return selectVersionMutationResult(tx as unknown as CourseBasisDb, versionId);
+  });
+  return { version, createdSuccessor: false };
+}
+
 export async function getCourseBasis(db: CourseBasisDb, actor: CourseBasisActor, courseBasisId: string) {
   actor = validateActor(actor);
   courseBasisId = validateId(courseBasisId, 'course-basis-id-invalid');
@@ -256,6 +377,8 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
   actor: CourseBasisActor;
   documentId: string;
   source: CourseBasisSource;
+  expectedLatestVersionId?: string;
+  expectedLatestVersionNumber?: number;
 }) {
   const actor = validateActor(input.actor);
   const documentId = validateId(input.documentId, 'document-id-invalid');
@@ -275,8 +398,37 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
         const latest = await tx.courseBasisDocumentVersion.findFirst({
           where: { documentId },
           orderBy: { versionNumber: 'desc' },
-          select: { versionNumber: true },
+          select: {
+            id: true,
+            documentId: true,
+            versionNumber: true,
+            sourceType: true,
+            sourceName: true,
+            mimeType: true,
+            byteSize: true,
+            contentHash: true,
+            extractionState: true,
+            extractionVersion: true,
+            failureReason: true,
+            reviewState: true,
+            reviewedById: true,
+            reviewedAt: true,
+            retiredById: true,
+            retiredAt: true,
+            createdAt: true,
+            _count: { select: { segments: true } },
+          },
         });
+        if (input.expectedLatestVersionId && latest?.id !== input.expectedLatestVersionId) {
+          if (
+            latest?.versionNumber === Number(input.expectedLatestVersionNumber) + 1
+            && latest.contentHash === extracted.contentHash
+          ) {
+            const { _count, ...existing } = latest;
+            return { ...existing, segmentCount: _count.segments };
+          }
+          throw new CourseBasisError('version-edit-conflict');
+        }
         const { _count, ...version } = await tx.courseBasisDocumentVersion.create({
           data: {
             documentId,
@@ -479,6 +631,19 @@ async function findVersionForActor(db: CourseBasisDb, actor: CourseBasisActor, v
   return version;
 }
 
+function editableCourseBasisText(version: {
+  sourceType: string;
+  originalContent: Uint8Array;
+  normalizedText: string | null;
+}) {
+  if (version.sourceType === 'SEARCHABLE_PDF') return version.normalizedText ?? '';
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(version.originalContent);
+  } catch {
+    return version.normalizedText ?? '';
+  }
+}
+
 export function courseBasisProjectionKey(courseBasisId: string, versionId: string, stableAnchor: string) {
   return stableProjectionIdentity('course-basis-projection', courseBasisId, versionId, stableAnchor);
 }
@@ -539,6 +704,12 @@ function boundedPageSize(value: number) {
 
 function requiredText(value: string, code: string, maxLength: number) {
   const result = z.string().trim().min(1).max(maxLength).safeParse(value);
+  if (!result.success) throw new CourseBasisError(code);
+  return result.data;
+}
+
+function requiredPreservedText(value: string, code: string, maxLength: number) {
+  const result = z.string().max(maxLength).refine((candidate) => candidate.trim().length > 0).safeParse(value);
   if (!result.success) throw new CourseBasisError(code);
   return result.data;
 }
