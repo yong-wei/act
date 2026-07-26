@@ -333,7 +333,17 @@ describe('Konling smart-prep production routes', () => {
             id: 'assistant-1',
             role: 'assistant',
             content: '跨页答案',
-            parts: [{ type: 'text', text: '跨页答案' }],
+            parts: [
+              {
+                type: 'dynamic-tool',
+                toolCallId: 'tool-1',
+                toolName: 'search_textbook',
+                state: 'output-available',
+                input: { query: '跨页' },
+                output: { candidates: ['教材证据'] },
+              },
+              { type: 'text', text: '跨页答案' },
+            ],
           },
           isAborted: false,
         });
@@ -384,6 +394,17 @@ describe('Konling smart-prep production routes', () => {
       'system',
       'user',
       'assistant',
+    ]);
+    expect(persistedMessages.at(-1)?.parts).toEqual([
+      {
+        type: 'dynamic-tool',
+        toolCallId: 'tool-1',
+        toolName: 'search_textbook',
+        state: 'output-available',
+        input: { query: '跨页' },
+        output: { candidates: ['教材证据'] },
+      },
+      { type: 'text', text: '跨页答案' },
     ]);
     expect(persistedMessages[1]).toMatchObject({
       metadata: {

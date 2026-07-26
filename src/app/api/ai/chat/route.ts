@@ -649,6 +649,33 @@ export async function POST(request: Request) {
       maxOutputTokens: 2000,
     });
 
+    let completedResponseMessage: Message | null = null;
+    const buildPersistedAssistantRevision = (
+      messageId: string,
+      body: string,
+      metadata: Record<string, unknown>,
+    ): Message => {
+      let textPartReplaced = false;
+      const parts = (completedResponseMessage?.parts ?? []).flatMap((part): Message['parts'] => {
+        if (part.type !== 'text') return [part];
+        if (textPartReplaced) return [];
+        textPartReplaced = true;
+        return [{ ...part, text: body }];
+      });
+      if (!textPartReplaced) parts.push({ type: 'text', text: body });
+      const existingMetadata = completedResponseMessage?.metadata
+        && typeof completedResponseMessage.metadata === 'object'
+        ? completedResponseMessage.metadata as Record<string, unknown>
+        : {};
+      return toLegacyMessage({
+        ...(completedResponseMessage ?? {}),
+        id: messageId,
+        role: 'assistant',
+        content: body,
+        parts,
+        metadata: { ...existingMetadata, ...metadata },
+      });
+    };
     const uiMessageStream = result.toUIMessageStream({
       originalMessages: uiMessages,
       generateMessageId: () => crypto.randomUUID(),
@@ -661,6 +688,7 @@ export async function POST(request: Request) {
           claimedTurn = null;
           return;
         }
+        completedResponseMessage = toLegacyMessage(responseMessage);
         if (!getMessageContent(responseMessage).trim()) {
           await releaseKonlingConversationTurn(prisma, claimedTurn);
           claimedTurn = null;
@@ -747,12 +775,11 @@ export async function POST(request: Request) {
               try {
                 await completeKonlingConversationTurn(prisma, {
                   ...completingTurn,
-                  assistantMessage: {
-                    id: messageId,
-                    role: 'assistant',
-                    content: normalized.body,
+                  assistantMessage: buildPersistedAssistantRevision(
+                    messageId,
+                    normalized.body,
                     metadata,
-                  },
+                  ),
                 });
                 claimedTurn = null;
               } catch (error) {
@@ -868,12 +895,11 @@ export async function POST(request: Request) {
               const replaced = await replaceKonlingConversationAssistantRevision(prisma, {
                 conversationId,
                 ownerUserId: session.user.id,
-                assistantMessage: {
-                  id: messageId,
-                  role: 'assistant',
-                  content: normalized.body,
+                assistantMessage: buildPersistedAssistantRevision(
+                  messageId,
+                  normalized.body,
                   metadata,
-                },
+                ),
                 expectedRevision: 1,
                 revision: 2,
               });

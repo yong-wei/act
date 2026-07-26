@@ -380,6 +380,17 @@ try {
     }
   }
   createIndexFixture(indexRoot, revision);
+  const inputProvenancePath = path.join(runtimeRoot, 'input-provenance.json');
+  const writeInputProvenance = () => fs.writeFileSync(
+    inputProvenancePath,
+    `${JSON.stringify({
+      schemaVersion: 'act.textbook-runtime-input-provenance.v1',
+      sourceRevision: revision,
+      inputDigest: '3'.repeat(64),
+      inputFileCount: 1,
+    })}\n`,
+  );
+  writeInputProvenance();
   const preflightArgs = [
     path.join(root, 'scripts/release/validate-textbook-runtime-v2.mjs'),
     '--runtime-root',
@@ -419,6 +430,22 @@ try {
   assert.equal(initialInspect.status, 0, initialInspect.stderr);
   const initialSummary = JSON.parse(initialInspect.stdout);
   assert.equal(initialSummary.mediaFileCount, 1, 'preflight 应报告去重后的引用媒体文件数');
+  fs.rmSync(inputProvenancePath);
+  const missingInputProvenanceResult = spawnSync(process.execPath, preflightArgs, {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.notEqual(
+    missingInputProvenanceResult.status,
+    0,
+    '缺少输入溯源文件时 release preflight 必须 fail closed',
+  );
+  assert.match(
+    missingInputProvenanceResult.stderr,
+    /textbook-v2-input-provenance-missing/u,
+    'preflight 应明确报告输入溯源文件缺失',
+  );
+  writeInputProvenance();
 
   const imageTar = path.join(mediaFixtureRoot, 'image.tar');
   const sidecar = `${imageTar}.provenance.json`;
@@ -518,6 +545,7 @@ try {
     imageTarSha256: '0'.repeat(64),
     runtimeSourceRevision: '1111111111111111111111111111111111111111',
     runtimeDigest: '1'.repeat(64),
+    runtimeInputDigest: '3'.repeat(64),
     indexSourceRevision: '1111111111111111111111111111111111111111',
     indexDigest: '2'.repeat(64),
   })}\n`);
@@ -549,6 +577,7 @@ try {
     imageTarSha256: '0'.repeat(64),
     runtimeSourceRevision: '2222222222222222222222222222222222222222',
     runtimeDigest: '1'.repeat(64),
+    runtimeInputDigest: '3'.repeat(64),
     indexSourceRevision: '1111111111111111111111111111111111111111',
     indexDigest: '2'.repeat(64),
   })}\n`);
