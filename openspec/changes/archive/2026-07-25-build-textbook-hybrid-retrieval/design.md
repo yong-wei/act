@@ -28,7 +28,15 @@
 
 ### 先测模型，再固定索引合同
 
-正文候选为 Qwen3 Embedding 0.6B/768，基线为 BGE-M3/1024，质量对照为 Qwen3 Embedding 4B/768。选择达到 Top-10 合格单元召回率 80% 且成本最低的方案。索引 manifest 固定模型标识、维度、规范化规则和内容摘要。
+硅基流动实测返回的维度分别为 BGE-M3/1024、Qwen3 Embedding 0.6B/1024 和 Qwen3 Embedding 4B/2560。三者均在 39 条 tuning 查询上达到 Top-10 合格单元召回率 80%：BGE-M3 为 32/39（82.05%），Qwen3 Embedding 0.6B 为 37/39（94.87%），Qwen3 Embedding 4B 为 35/39（89.74%）。选择规则是在达到质量和常驻工件门槛后选择 API 成本最低的方案，因此固定免费 BGE-M3/1024；Qwen3 Embedding 0.6B 的召回质量更高，但不是最低成本方案。索引 manifest 固定模型标识、实测维度、规范化规则和内容摘要。
+
+### 四通道排序修复只使用 tuning 集
+
+v1 holdout 的 5/7 失败归档后，排序修复只读取 tuning 查询。最终候选融合包含词元频次通道、精确向量通道、面向中文术语问法的 BM25 通道，以及命中指定教材来源时的书内向量通道；四个通道统一通过 RRF 合并，来源优先级仅用于同分裁决，不改变直接支撑语义。该修复不读取或反复调整 v2 acceptance。
+
+### v2 acceptance 使用一次性盲测
+
+v2 在任何检索前固定为 39 条 tuning 和 11 条 acceptance，其中 10 条为新增盲题，另含已知的单位阶跃响应失败题。模型、维度、索引 manifest、超时和后台等待上限锁定后，acceptance 只运行一次；验收同时检查 Recall@10、已知失败题命中，以及每个返回窗口 ID 对运行态窗口与 owning unit 的解析有效性。Python 11/11 报告仅保留为 local-fusion diagnostic，不作为 acceptance 证据。最终一次性验收通过 Node `retrieveTextbookHybrid`、锁定的 SiliconFlow embedding/rerank clients、24 个外部重排候选及 1000/2000 ms 超时合同执行；真实运行态报告为 11/11、Recall@10=1、已知失败题命中、全部结果可解析、11 个查询均成功且无 provider failure，该报告是最终 acceptance 真源。
 
 ### 文件索引按进程共享
 
