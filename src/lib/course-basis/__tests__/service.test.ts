@@ -2,12 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   COURSE_BASIS_PREVIEW_MAX_PAGE_SIZE,
-  confirmCourseBasisVersion,
   createCourseBasis,
   createCourseBasisDocument,
   deleteCourseBasisVersion,
   getCourseBasis,
-  getCourseBasisVersionForEditing,
   getCourseBasisVersionExtractionPreview,
   importCourseBasisVersion,
   listCourseBases,
@@ -20,6 +18,17 @@ import {
 const teacher = { id: 'teacher-1', role: 'TEACHER' as const };
 const otherTeacher = { id: 'teacher-2', role: 'TEACHER' as const };
 const admin = { id: 'admin-1', role: 'ADMIN' as const };
+
+function addProjectionMocks(db: any) {
+  db.courseBasisSegment ??= {};
+  db.courseBasisSegment.findMany ??= vi.fn(async () => [{
+    id: 'segment-projected',
+    stableAnchor: 'root/paragraph:1',
+  }]);
+  db.courseBasisProjection ??= {};
+  db.courseBasisProjection.createMany ??= vi.fn(async () => ({ count: 1 }));
+  db.courseBasisProjection.count ??= vi.fn(async () => 1);
+}
 
 describe('course-basis service', () => {
   it('normalizes invalid runtime inputs into stable service errors before persistence', async () => {
@@ -61,6 +70,7 @@ describe('course-basis service', () => {
         }),
       },
     };
+    addProjectionMocks(db);
     db.$transaction = vi.fn((callback: (tx: any) => unknown, options: unknown) => {
       transactionOptions.push(options);
       const result = lock.then(() => callback(db));
@@ -100,6 +110,7 @@ describe('course-basis service', () => {
         }),
       },
     };
+    addProjectionMocks(db);
     db.$transaction = vi.fn(async (callback: (tx: any) => unknown, options: unknown) => {
       expect(options).toEqual({ isolationLevel: 'Serializable' });
       transactionCount += 1;
@@ -127,6 +138,7 @@ describe('course-basis service', () => {
       courseBasisDocument: { findFirst: vi.fn(async () => ({ id: 'document-1' })) },
       courseBasisDocumentVersion: { findFirst: vi.fn(async () => null), create },
     };
+    addProjectionMocks(db);
     db.$transaction = vi.fn(async (callback: (tx: any) => unknown) => callback(db));
 
     await importCourseBasisVersion(db, {
@@ -141,27 +153,6 @@ describe('course-basis service', () => {
     expect(query.select.segments).toBeUndefined();
     expect(query.select._count).toEqual({ select: { segments: true } });
     expect(query.select).toMatchObject({ id: true, extractionState: true, failureReason: true });
-  });
-
-  it('does not allow a rejected version to be confirmed', async () => {
-    const rejected = {
-      id: 'version-1',
-      reviewState: 'REJECTED',
-      extractionState: 'EXTRACTED',
-      normalizedText: 'Rejected text',
-      retiredAt: null,
-      document: { courseBasis: { id: 'basis-1', ownerId: teacher.id } },
-      segments: [{ id: 'segment-1', stableAnchor: 'root/paragraph:1' }],
-    };
-    const db: any = {
-      courseBasisDocumentVersion: { findFirst: vi.fn(async () => rejected) },
-      courseBasisProjection: { createMany: vi.fn(), count: vi.fn() },
-    };
-    db.$transaction = vi.fn(async (callback: (tx: any) => unknown) => callback(db));
-
-    await expect(confirmCourseBasisVersion(db, { actor: teacher, versionId: rejected.id }))
-      .rejects.toMatchObject({ code: 'rejected-version-immutable' });
-    expect(db.courseBasisProjection.createMany).not.toHaveBeenCalled();
   });
 
   it('updates an unfrozen pending version in place through content-hash CAS', async () => {
@@ -186,17 +177,19 @@ describe('course-basis service', () => {
         updateMany: vi.fn(async () => ({ count: 1 })),
         findUniqueOrThrow: vi.fn(async () => ({ ...current, contentHash: 'new-content-hash', _count: { segments: 1, projections: 0 } })),
       },
-      courseBasisProjection: {
-        deleteMany: vi.fn(async () => ({ count: 0 })),
-      },
       courseBasisSegment: {
         deleteMany: vi.fn(async () => ({ count: 0 })),
         createMany: vi.fn(async () => ({ count: 1 })),
+        findMany: vi.fn(async () => [{ id: 'segment-1', stableAnchor: 'root/paragraph:1' }]),
+      },
+      courseBasisProjection: {
+        deleteMany: vi.fn(async () => ({ count: 0 })),
+        createMany: vi.fn(async () => ({ count: 1 })),
+        count: vi.fn(async () => 1),
       },
     };
     const db: any = {
       courseBasisDocumentVersion: { findFirst: vi.fn(async () => current) },
-      courseBasisProjection: { count: vi.fn(async () => 0) },
       courseBasisReferenceLink: { count: vi.fn(async () => 0) },
       smartLessonSourceSelection: { count: vi.fn(async () => 0) },
       $transaction: vi.fn(async (run: (transaction: any) => unknown, options: unknown) => {
@@ -215,7 +208,7 @@ describe('course-basis service', () => {
       where: expect.objectContaining({
         id: current.id,
         contentHash: current.contentHash,
-        reviewState: { in: ['PENDING', 'CONFIRMED'] },
+        reviewState: 'PENDING',
         retiredAt: null,
       }),
       data: expect.objectContaining({
@@ -230,90 +223,6 @@ describe('course-basis service', () => {
     expect(tx.courseBasisProjection.deleteMany).toHaveBeenCalledWith({ where: { versionId: current.id } });
     expect(tx.courseBasisSegment.deleteMany).toHaveBeenCalledWith({ where: { versionId: current.id } });
     expect(tx.courseBasisSegment.createMany).toHaveBeenCalledOnce();
-  });
-
-  it('updates a confirmed but unused version in place and removes its review projections', async () => {
-    const current = {
-      id: 'version-1',
-      documentId: 'document-1',
-      versionNumber: 1,
-      sourceType: 'MARKDOWN',
-      sourceName: 'syllabus.md',
-      mimeType: 'text/markdown',
-      originalContent: new TextEncoder().encode('# Confirmed'),
-      normalizedText: '# Confirmed',
-      contentHash: 'confirmed-content-hash',
-      extractionState: 'EXTRACTED',
-      reviewState: 'CONFIRMED',
-      retiredAt: null,
-      document: { title: 'Syllabus', courseBasis: { id: 'basis-1', ownerId: teacher.id } },
-      segments: [],
-    };
-    const tx: any = {
-      courseBasisDocumentVersion: {
-        updateMany: vi.fn(async () => ({ count: 1 })),
-        findUniqueOrThrow: vi.fn(async () => ({
-          ...current,
-          reviewState: 'PENDING',
-          contentHash: 'new-content-hash',
-          _count: { segments: 1, projections: 0 },
-        })),
-      },
-      courseBasisProjection: {
-        deleteMany: vi.fn(async () => ({ count: 1 })),
-      },
-      courseBasisSegment: {
-        deleteMany: vi.fn(async () => ({ count: 1 })),
-        createMany: vi.fn(async () => ({ count: 1 })),
-      },
-    };
-    const db: any = {
-      courseBasisDocumentVersion: { findFirst: vi.fn(async () => current) },
-      courseBasisReferenceLink: { count: vi.fn(async () => 0) },
-      smartLessonSourceSelection: { count: vi.fn(async () => 0) },
-      $transaction: vi.fn(async (run: (transaction: any) => unknown) => run(tx)),
-    };
-
-    await expect(saveCourseBasisVersionEdit(db, {
-      actor: teacher,
-      versionId: current.id,
-      expectedContentHash: current.contentHash,
-      markdown: '# Revised\n\nUpdated confirmed basis.',
-    })).resolves.toMatchObject({ createdSuccessor: false, version: { id: current.id, reviewState: 'PENDING' } });
-    expect(tx.courseBasisProjection.deleteMany).toHaveBeenCalledWith({ where: { versionId: current.id } });
-    expect(tx.courseBasisDocumentVersion.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        reviewState: 'PENDING',
-        reviewedById: null,
-        reviewedAt: null,
-      }),
-    }));
-  });
-
-  it('reports a confirmed but unused version as editable in place', async () => {
-    const current = {
-      id: 'version-1',
-      documentId: 'document-1',
-      versionNumber: 1,
-      sourceName: 'syllabus.md',
-      normalizedText: '# Confirmed',
-      contentHash: 'confirmed-content-hash',
-      extractionState: 'EXTRACTED',
-      reviewState: 'CONFIRMED',
-      retiredAt: null,
-      document: { title: 'Syllabus', courseBasis: { id: 'basis-1', ownerId: teacher.id } },
-      segments: [],
-    };
-    const db: any = {
-      courseBasisDocumentVersion: { findFirst: vi.fn(async () => current) },
-      courseBasisReferenceLink: { count: vi.fn(async () => 0) },
-      smartLessonSourceSelection: { count: vi.fn(async () => 0) },
-    };
-
-    await expect(getCourseBasisVersionForEditing(db, {
-      actor: teacher,
-      versionId: current.id,
-    })).resolves.toMatchObject({ id: current.id, frozen: false });
   });
 
   it('keeps a used version immutable and creates a successor version', async () => {
@@ -339,6 +248,8 @@ describe('course-basis service', () => {
         id: 'version-2',
         ...data,
         versionNumber: 2,
+        reviewState: 'PENDING',
+        retiredAt: null,
         _count: { segments: data.segments.create.length },
       };
       return latest;
@@ -351,10 +262,11 @@ describe('course-basis service', () => {
         create,
         updateMany: vi.fn(),
       },
-      courseBasisProjection: { count: vi.fn(async () => 0) },
+      courseBasisProjection: {},
       courseBasisReferenceLink: { count: vi.fn(async ({ where }: any) => where.versionId === current.id ? 1 : 0) },
       smartLessonSourceSelection: { count: vi.fn(async () => 0) },
     };
+    addProjectionMocks(db);
     db.$transaction = vi.fn(async (run: (transaction: any) => unknown) => run(db));
 
     await expect(saveCourseBasisVersionEdit(db, {
@@ -402,6 +314,8 @@ describe('course-basis service', () => {
         id: 'version-3',
         ...data,
         versionNumber: 3,
+        reviewState: 'PENDING',
+        retiredAt: null,
         _count: { segments: data.segments.create.length, projections: 0 },
       };
       return latest;
@@ -414,10 +328,11 @@ describe('course-basis service', () => {
         create,
         updateMany: vi.fn(),
       },
-      courseBasisProjection: { count: vi.fn(async () => 0) },
+      courseBasisProjection: {},
       courseBasisReferenceLink: { count: vi.fn(async ({ where }: any) => where.versionId === current.id ? 1 : 0) },
       smartLessonSourceSelection: { count: vi.fn(async () => 0) },
     };
+    addProjectionMocks(db);
     db.$transaction = vi.fn(async (run: (transaction: any) => unknown) => run(db));
 
     const input = {
@@ -477,7 +392,7 @@ describe('course-basis service', () => {
         create,
         updateMany: vi.fn(),
       },
-      courseBasisProjection: { count: vi.fn(async () => 0) },
+      courseBasisProjection: {},
       courseBasisReferenceLink: {
         count: vi.fn(async ({ where }: any) => (
           where.versionId === current.id || where.versionId === frozenVersionId ? 1 : 0
@@ -485,6 +400,7 @@ describe('course-basis service', () => {
       },
       smartLessonSourceSelection: { count: vi.fn(async () => 0) },
     };
+    addProjectionMocks(db);
     db.$transaction = vi.fn(async (run: (transaction: any) => unknown) => run(db));
 
     await expect(saveCourseBasisVersionEdit(db, {
@@ -777,63 +693,6 @@ describe('course-basis service', () => {
       .rejects.toMatchObject({ code: 'confirmed-version-immutable' });
   });
 
-  it('records confirmation and retirement without changing extracted content', async () => {
-    const original = {
-      id: 'version-1',
-      reviewState: 'PENDING',
-      extractionState: 'EXTRACTED',
-      normalizedText: 'Stable extracted text',
-      contentHash: 'content-hash',
-      retiredAt: null,
-      document: { courseBasis: { id: 'basis-1', ownerId: teacher.id } },
-      segments: [{ id: 'segment-1', stableAnchor: 'root/paragraph:1', text: 'Stable extracted text' }],
-    };
-    let stored: any = original;
-    let projections: any[] = [];
-    const db: any = {
-      courseBasisDocumentVersion: {
-        findFirst: vi.fn(async () => stored),
-        update: vi.fn(async ({ data }: any) => {
-          stored = { ...stored, ...data };
-          return stored;
-        }),
-        findUniqueOrThrow: vi.fn(async () => ({ ...stored, projections })),
-      },
-      courseBasisProjection: {
-        createMany: vi.fn(async ({ data }: any) => {
-          projections = data;
-          return { count: data.length };
-        }),
-        count: vi.fn(async () => projections.length),
-      },
-    };
-    db.$transaction = vi.fn(async (callback: (tx: any) => unknown) => callback(db));
-
-    await confirmCourseBasisVersion(db, { actor: teacher, versionId: original.id, now: new Date('2026-07-19T00:00:00Z') });
-    await retireCourseBasisVersion(db, { actor: teacher, versionId: original.id, now: new Date('2026-07-20T00:00:00Z') });
-
-    expect(stored).toMatchObject({
-      reviewState: 'CONFIRMED',
-      reviewedById: teacher.id,
-      retiredById: teacher.id,
-      normalizedText: original.normalizedText,
-      contentHash: original.contentHash,
-      segments: original.segments,
-    });
-    expect(projections).toEqual([expect.objectContaining({
-      versionId: original.id,
-      segmentId: 'segment-1',
-      projectionKey: 'course-basis-projection:basis-1:version-1:root%2Fparagraph%3A1',
-      corpusSourceId: 'teacher-course-basis:basis-1:version-1:root%2Fparagraph%3A1',
-    })]);
-    for (const [query] of db.courseBasisDocumentVersion.findUniqueOrThrow.mock.calls) {
-      expect(query.select.originalContent).toBeUndefined();
-      expect(query.select.normalizedText).toBeUndefined();
-      expect(query.select.segments).toBeUndefined();
-      expect(query.select._count).toEqual({ select: { segments: true, projections: true } });
-    }
-  });
-
   it('retries an unsupported extraction by creating a new sequential version without mutating the old version', async () => {
     const oldVersion = {
       id: 'version-1',
@@ -858,6 +717,7 @@ describe('course-basis service', () => {
       },
       courseBasisSegment: { deleteMany: vi.fn() },
     };
+    addProjectionMocks(db);
     db.$transaction = vi.fn(async (callback: (tx: any) => unknown) => callback(db));
 
     const retried = await retryCourseBasisExtraction(db, { actor: teacher, versionId: oldVersion.id });
@@ -885,6 +745,16 @@ describe('course-basis service', () => {
       courseBasisReferenceLink: {
         findMany: vi.fn(async () => [{ referenceType: 'LESSON_PLAN_REVISION', referenceId: 'lesson-revision-7' }]),
       },
+      smartLessonSourceSelection: { findMany: vi.fn(async () => []) },
+      smartLessonRevision: {
+        findMany: vi.fn(async () => [{
+          id: 'lesson-revision-7',
+          displayName: '教案第7版',
+          taskId: 'task-1',
+        }]),
+      },
+      smartCoursewareRevision: { findMany: vi.fn(async () => []) },
+      smartCoursewarePublicationRevision: { findMany: vi.fn(async () => []) },
       courseBasisProjection: { count: vi.fn(async () => 0) },
       courseBasisSegment: { deleteMany: vi.fn() },
       $transaction: vi.fn(async (callback: (tx: any) => unknown) => callback(db)),
@@ -893,7 +763,11 @@ describe('course-basis service', () => {
     await expect(deleteCourseBasisVersion(db, { actor: teacher, versionId: version.id }))
       .rejects.toMatchObject({
         code: 'version-delete-referenced',
-        details: ['LESSON_PLAN_REVISION:lesson-revision-7'],
+        details: [expect.objectContaining({
+          category: 'LESSON_PLAN_REVISION',
+          referenceId: 'lesson-revision-7',
+          name: '教案第7版',
+        })],
       });
     expect(db.courseBasisSegment.deleteMany).not.toHaveBeenCalled();
   });

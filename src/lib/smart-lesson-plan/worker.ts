@@ -9,6 +9,7 @@ import {
   buildCourseBasisLessonDesignSourcePack,
 } from '../course-basis/lesson-design-source-pack';
 import { CourseBasisError } from '../course-basis/domain';
+import { adoptCourseBasisVersion } from '../course-basis/service';
 
 import { SmartLessonPlanError } from './domain';
 import { resolveSmartLessonStructuredProvider, SMART_LESSON_PROMPT_VERSION } from './provider-runtime';
@@ -231,6 +232,31 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
   })));
   if (!allowedBindings.success) throw new SmartLessonPlanError('governed-source-evidence-invalid', 409);
   const allowedSourceBindings = allowedBindings.data;
+  const freezeGenerationInputs = async (tx: Parameters<typeof adoptCourseBasisVersion>[0]) => {
+    const byVersion = new Map<string, typeof allowedSourceBindings>();
+    for (const binding of allowedSourceBindings) {
+      byVersion.set(binding.sourceVersionId, [...(byVersion.get(binding.sourceVersionId) ?? []), binding]);
+    }
+    for (const [versionId, bindings] of byVersion) {
+      await adoptCourseBasisVersion(tx, {
+        actor: { id: context.ownerId, role: 'TEACHER' },
+        versionId,
+        adopter: { referenceType: 'GENERATION_JOB', referenceId: context.id },
+        anchors: bindings.map((binding) => ({
+          stableAnchor: binding.anchor,
+          contentHash: binding.contentHash,
+        })),
+      });
+    }
+  };
+  if ('$transaction' in db) {
+    await db.$transaction(
+      (tx) => freezeGenerationInputs(tx),
+      { isolationLevel: 'Serializable' },
+    );
+  } else {
+    await freezeGenerationInputs(db);
+  }
   const common = {
     course: task.courseBasis.title,
     topic: task.topic,
@@ -384,6 +410,7 @@ async function markPreProviderFailure(
 ) {
   const retryable = isRetryableStageError(error);
   const state = retryable ? 'RETRYABLE' as const : 'FAILED' as const;
+  if (!('$transaction' in db)) throw error;
   await db.$transaction(async (tx) => {
     const transitioned = await tx.smartLessonGenerationJob.updateMany({
       where: {

@@ -82,6 +82,11 @@ The system SHALL normalize imported text into ordered content with stable anchor
 - **THEN** the version SHALL enter the editable state and MAY participate in authorized preparation candidate retrieval
 - **AND** retrieval, selection, ranking, and preview SHALL NOT confirm or freeze it.
 
+#### Scenario: Teacher confirms extraction
+- **WHEN** a legacy client attempts to confirm a successful extraction manually
+- **THEN** the system SHALL NOT require or accept confirmation as a lifecycle transition
+- **AND** the version SHALL remain editable until an authorized preparation operation actually adopts its content.
+
 #### Scenario: Teacher rejects extraction
 - **WHEN** the owning teacher rejects an extraction preview as unusable
 - **THEN** the version SHALL remain in a rejected or needs-replacement state
@@ -99,6 +104,11 @@ The system SHALL keep a successful submitted version mutable before first actual
 - **WHEN** the teacher changes a frozen document
 - **THEN** the system SHALL create a new positive sequential editable version without changing prior version content, anchors, or hashes
 - **AND** new lesson tasks MAY select the new version independently of prior tasks.
+
+#### Scenario: Teacher replaces a document
+- **WHEN** a teacher imports replacement content for an existing editable document
+- **THEN** the system SHALL update the mutable version when no adopted reference exists, or create a new positive sequential editable version when the current version is frozen
+- **AND** prior frozen content, anchors, and hashes SHALL remain unchanged.
 
 #### Scenario: Referenced source version is retired
 - **WHEN** the teacher disables a document version already referenced by a lesson-plan or courseware revision
@@ -118,10 +128,20 @@ Editable and frozen enabled document versions MAY provide authorized retrieval c
 - **THEN** each candidate SHALL preserve owner scope, course-basis id, document/version id, stable anchor, content hash, title, source type, and lifecycle state
 - **AND** disabled, rejected, processing, failed, and other teachers' versions SHALL be excluded.
 
+#### Scenario: Confirmed version is indexed
+- **WHEN** a frozen course-basis document version is projected for retrieval
+- **THEN** each candidate SHALL preserve owner scope, course-basis id, document/version id, stable anchor, content hash, title, source type, and lifecycle state
+- **AND** the projection SHALL expose server-owned citation metadata usable by the existing citation verifier.
+
 #### Scenario: Retrieved content is accepted
 - **WHEN** a smart lesson operation accepts candidate content into its preparation resource pack
 - **THEN** the accepted evidence SHALL use the `lesson-design` profile and teacher authorization scope
 - **AND** an editable source version SHALL freeze atomically with the accepted binding.
+
+#### Scenario: Lesson task requests evidence
+- **WHEN** a smart lesson task retrieves evidence from selected course-basis versions
+- **THEN** the Source Pack SHALL use the `lesson-design` profile and teacher authorization scope
+- **AND** only accepted content SHALL enter generation context while disabled, rejected, processing, failed, and other teachers' sources remain excluded.
 
 #### Scenario: Candidate content is not accepted
 - **WHEN** candidate content is recalled or previewed but not accepted

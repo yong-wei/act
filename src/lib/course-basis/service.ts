@@ -1,7 +1,13 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 
-import { CourseBasisError, type CourseBasisActor, type CourseBasisSource } from './domain';
+import {
+  CourseBasisError,
+  projectCourseBasisLifecycle,
+  type CourseBasisActor,
+  type CourseBasisReferenceBlocker,
+  type CourseBasisSource,
+} from './domain';
 import {
   COURSE_BASIS_EXTRACTION_VERSION,
   extractCourseBasisSource,
@@ -13,6 +19,16 @@ type CourseBasisDb = PrismaClient;
 const courseBasisActorSchema = z.object({ id: z.string().trim().min(1).max(200), role: z.enum(['TEACHER', 'ADMIN']) }).strict();
 const courseBasisIdSchema = z.string().trim().min(1).max(200);
 const courseBasisDocumentKindSchema = z.enum(['STANDARD', 'TEXTBOOK', 'OTHER']);
+const courseBasisReferenceTypeSchema = z.enum([
+  'SMART_LESSON_KNOWLEDGE_POINT',
+  'SMART_LESSON_GOAL',
+  'GENERATION_JOB',
+  'LESSON_PLAN_REVISION',
+  'COURSEWARE_REVISION',
+  'PUBLICATION_REVISION',
+  'CLASSROOM_SESSION',
+  'RESOURCE_PACK',
+]);
 const COURSE_BASIS_LIST_PREVIEW_SEGMENTS = 3;
 const COURSE_BASIS_LIST_PREVIEW_CHARS = 320;
 const COURSE_BASIS_LIST_LIMIT = 50;
@@ -141,6 +157,7 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
           || segments.some((segment) => segment.text.length > COURSE_BASIS_LIST_PREVIEW_CHARS);
         return {
           ...version,
+          lifecycle: projectCourseBasisLifecycle(version),
           segmentCount: _count.segments,
           previewTruncated,
           segments: segments.map(({ text, ...segment }) => ({
@@ -203,7 +220,7 @@ export async function getCourseBasisVersionExtractionPreview(db: CourseBasisDb, 
     }),
   ]);
   return {
-    version,
+    version: { ...version, lifecycle: projectCourseBasisLifecycle(version) },
     page,
     pageSize,
     total,
@@ -221,14 +238,7 @@ export async function getCourseBasisVersionForEditing(db: CourseBasisDb, input: 
   if (version.extractionState !== 'EXTRACTED' || !version.normalizedText) {
     throw new CourseBasisError('version-not-editable');
   }
-  const [referenceCount, selectionCount] = await Promise.all([
-    db.courseBasisReferenceLink.count({ where: { versionId: version.id } }),
-    db.smartLessonSourceSelection.count({ where: { sourceVersionId: version.id, state: 'SELECTED' } }),
-  ]);
-  const frozen = Boolean(version.retiredAt)
-    || version.reviewState === 'REJECTED'
-    || referenceCount > 0
-    || selectionCount > 0;
+  const lifecycle = projectCourseBasisLifecycle(version);
   return {
     id: version.id,
     documentId: version.documentId,
@@ -238,7 +248,8 @@ export async function getCourseBasisVersionForEditing(db: CourseBasisDb, input: 
     sourceName: version.sourceName,
     contentHash: version.contentHash,
     markdown: editableCourseBasisText(version),
-    frozen,
+    lifecycle,
+    frozen: lifecycle.frozen || lifecycle.state === 'DISABLED' || lifecycle.state === 'FAILED',
   };
 }
 
@@ -259,14 +270,9 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
     mimeType: 'text/markdown',
     content: markdown,
   });
-  const [referenceCount, selectionCount] = await Promise.all([
-    db.courseBasisReferenceLink.count({ where: { versionId } }),
-    db.smartLessonSourceSelection.count({ where: { sourceVersionId: versionId, state: 'SELECTED' } }),
-  ]);
   const frozen = Boolean(current.retiredAt)
     || current.reviewState === 'REJECTED'
-    || referenceCount > 0
-    || selectionCount > 0;
+    || current.reviewState === 'CONFIRMED';
   if (frozen) {
     const latest = await db.courseBasisDocumentVersion.findFirst({
       where: { documentId: current.documentId },
@@ -275,11 +281,7 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
     });
     if (!latest) throw new CourseBasisError('version-edit-conflict');
     if (latest.versionNumber > current.versionNumber && latest.contentHash === extracted.contentHash) {
-      const [latestReferenceCount, latestSelectionCount] = await Promise.all([
-        db.courseBasisReferenceLink.count({ where: { versionId: latest.id } }),
-        db.smartLessonSourceSelection.count({ where: { sourceVersionId: latest.id, state: 'SELECTED' } }),
-      ]);
-      if (!latest.retiredAt && latest.reviewState !== 'REJECTED' && latestReferenceCount === 0 && latestSelectionCount === 0) {
+      if (!latest.retiredAt && latest.reviewState === 'PENDING') {
         return { version: await selectVersionMutationResult(db, latest.id), createdSuccessor: true };
       }
     }
@@ -302,10 +304,8 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
       where: {
         id: versionId,
         contentHash: input.expectedContentHash,
-        reviewState: { in: ['PENDING', 'CONFIRMED'] },
+        reviewState: 'PENDING',
         retiredAt: null,
-        referenceLinks: { none: {} },
-        smartLessonSelections: { none: { state: 'SELECTED' } },
       },
       data: {
         sourceType: 'MARKDOWN',
@@ -327,6 +327,11 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
     await tx.courseBasisSegment.deleteMany({ where: { versionId } });
     await tx.courseBasisSegment.createMany({
       data: extracted.segments.map((segment) => ({ ...segment, versionId })),
+    });
+    await ensureCourseBasisProjection(tx, {
+      courseBasisId: current.document.courseBasis.id,
+      versionId,
+      projectedAt: new Date(),
     });
     return selectVersionMutationResult(tx as unknown as CourseBasisDb, versionId);
   });
@@ -394,7 +399,7 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       return await db.$transaction(async (tx) => {
-        await assertDocumentAccess(tx as CourseBasisDb, actor, documentId);
+        const document = await assertDocumentAccess(tx as CourseBasisDb, actor, documentId);
         const latest = await tx.courseBasisDocumentVersion.findFirst({
           where: { documentId },
           orderBy: { versionNumber: 'desc' },
@@ -466,7 +471,20 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
             _count: { select: { segments: true } },
           },
         });
-        return { ...version, segmentCount: _count?.segments ?? extracted.segments.length };
+        let projectionCount = 0;
+        if (version.extractionState === 'EXTRACTED' && extracted.segments.length > 0) {
+          projectionCount = await ensureCourseBasisProjection(tx, {
+            courseBasisId: document.courseBasisId,
+            versionId: version.id,
+            projectedAt: new Date(),
+          });
+        }
+        return {
+          ...version,
+          lifecycle: projectCourseBasisLifecycle(version),
+          segmentCount: _count?.segments ?? extracted.segments.length,
+          projectionCount,
+        };
       }, { isolationLevel: 'Serializable' });
     } catch (error) {
       if (!isVersionRace(error) || attempt === 2) {
@@ -478,41 +496,111 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
   throw new CourseBasisError('version-conflict-retryable');
 }
 
-export async function confirmCourseBasisVersion(db: CourseBasisDb, input: {
+export type AdoptCourseBasisVersionInput = {
   actor: CourseBasisActor;
   versionId: string;
+  adopter: {
+    referenceType: z.infer<typeof courseBasisReferenceTypeSchema>;
+    referenceId: string;
+  };
+  anchors: Array<{ stableAnchor: string; contentHash: string }>;
   now?: Date;
-}) {
+};
+
+export async function adoptCourseBasisVersion(
+  db: CourseBasisDb | Prisma.TransactionClient,
+  input: AdoptCourseBasisVersionInput,
+) {
   const actor = validateActor(input.actor);
   const versionId = validateId(input.versionId, 'version-id-invalid');
-  return withSerializableRetry(db, async (tx) => {
+  const referenceType = courseBasisReferenceTypeSchema.safeParse(input.adopter.referenceType);
+  if (!referenceType.success) throw new CourseBasisError('reference-type-invalid');
+  const referenceId = validateId(input.adopter.referenceId, 'reference-id-invalid');
+  const anchors = [...new Map(input.anchors.map((anchor) => {
+    const stableAnchor = requiredText(anchor.stableAnchor, 'anchor-invalid', 500);
+    const contentHash = requiredText(anchor.contentHash, 'content-hash-required', 200);
+    return [stableAnchor, { stableAnchor, contentHash }];
+  })).values()].sort((left, right) => left.stableAnchor.localeCompare(right.stableAnchor));
+  if (anchors.length === 0) throw new CourseBasisError('anchors-required');
+
+  const adopt = async (tx: Prisma.TransactionClient) => {
     const version = await findVersionForActor(tx as CourseBasisDb, actor, versionId);
     if (version.retiredAt) throw new CourseBasisError('version-retired');
     if (version.reviewState === 'REJECTED') throw new CourseBasisError('rejected-version-immutable');
     if (version.extractionState !== 'EXTRACTED' || !version.normalizedText || version.segments.length === 0) {
-      throw new CourseBasisError('extraction-not-confirmable');
+      throw new CourseBasisError('extraction-not-adoptable');
     }
-    const courseBasisId = version.document.courseBasis.id;
-    await tx.courseBasisProjection.createMany({
-      data: version.segments.map((segment) => ({
-        versionId: version.id,
-        segmentId: segment.id,
-        projectionKey: courseBasisProjectionKey(courseBasisId, version.id, segment.stableAnchor),
-        corpusSourceId: courseBasisCorpusSourceId(courseBasisId, version.id, segment.stableAnchor),
-        projectedAt: input.now ?? new Date(),
-      })),
-      skipDuplicates: true,
+    const availableAnchors = new Map(
+      version.segments.map((segment) => [segment.stableAnchor, segment.contentHash]),
+    );
+    if (anchors.some((anchor) => availableAnchors.get(anchor.stableAnchor) !== anchor.contentHash)) {
+      throw new CourseBasisError('adoption-anchor-conflict');
+    }
+
+    const existing = await tx.courseBasisReferenceLink.findUnique({
+      where: {
+        versionId_referenceType_referenceId: {
+          versionId,
+          referenceType: referenceType.data,
+          referenceId,
+        },
+      },
     });
-    const projectionCount = await tx.courseBasisProjection.count({ where: { versionId: version.id } });
-    if (projectionCount !== version.segments.length) throw new CourseBasisError('projection-conflict');
-    if (version.reviewState !== 'CONFIRMED') {
-      await tx.courseBasisDocumentVersion.update({
-        where: { id: version.id },
-        data: { reviewState: 'CONFIRMED', reviewedById: actor.id, reviewedAt: input.now ?? new Date() },
-      });
+    if (existing) {
+      if (existing.contentHash !== version.contentHash || !sameAnchorIdentity(existing.anchors, anchors)) {
+        throw new CourseBasisError('adoption-identity-conflict');
+      }
+      return {
+        version: await selectVersionMutationResult(tx as CourseBasisDb, versionId),
+        referenceLink: existing,
+        frozenNow: false,
+      };
     }
-    return selectVersionMutationResult(tx as CourseBasisDb, version.id);
-  });
+
+    await ensureCourseBasisProjection(tx, {
+      courseBasisId: version.document.courseBasis.id,
+      versionId,
+      projectedAt: input.now ?? new Date(),
+      segments: version.segments,
+    });
+
+    let frozenNow = false;
+    if (version.reviewState !== 'CONFIRMED') {
+      const frozen = await tx.courseBasisDocumentVersion.updateMany({
+        where: {
+          id: versionId,
+          contentHash: version.contentHash,
+          reviewState: 'PENDING',
+          retiredAt: null,
+        },
+        data: {
+          reviewState: 'CONFIRMED',
+          reviewedById: actor.id,
+          reviewedAt: input.now ?? new Date(),
+        },
+      });
+      if (frozen.count !== 1) throw new CourseBasisError('adoption-content-conflict');
+      frozenNow = true;
+    }
+
+    const referenceLink = await tx.courseBasisReferenceLink.create({
+      data: {
+        versionId,
+        referenceType: referenceType.data,
+        referenceId,
+        contentHash: version.contentHash,
+        anchors,
+      },
+    });
+    return {
+      version: await selectVersionMutationResult(tx as CourseBasisDb, versionId),
+      referenceLink,
+      frozenNow,
+    };
+  };
+  return '$transaction' in db
+    ? withSerializableRetry(db as CourseBasisDb, adopt)
+    : adopt(db);
 }
 
 export async function rejectCourseBasisVersion(db: CourseBasisDb, input: {
@@ -586,20 +674,62 @@ export async function deleteCourseBasisVersion(db: CourseBasisDb, input: {
   const versionId = validateId(input.versionId, 'version-id-invalid');
   return withSerializableRetry(db, async (tx) => {
     const version = await findVersionForActor(tx as CourseBasisDb, actor, versionId);
-    const [referenceLinks, projectionCount] = await Promise.all([
-      tx.courseBasisReferenceLink.findMany({
-        where: { versionId: version.id },
-        select: { referenceType: true, referenceId: true },
-        orderBy: [{ referenceType: 'asc' }, { referenceId: 'asc' }],
-      }),
-      tx.courseBasisProjection.count({ where: { versionId: version.id } }),
-    ]);
-    if (referenceLinks.length > 0) {
-      throw new CourseBasisError('version-delete-referenced', referenceLinks.map((link) => `${link.referenceType}:${link.referenceId}`));
-    }
-    if (projectionCount > 0) throw new CourseBasisError('version-delete-projected');
+    const blockers = await collectCourseBasisReferenceBlockers(tx, [version.id]);
+    if (blockers.length > 0) throw new CourseBasisError('version-delete-referenced', blockers);
+    await tx.courseBasisProjection.deleteMany({ where: { versionId: version.id } });
     await tx.courseBasisSegment.deleteMany({ where: { versionId: version.id } });
     return tx.courseBasisDocumentVersion.delete({ where: { id: version.id } });
+  });
+}
+
+export async function deleteCourseBasisDocument(db: CourseBasisDb, input: {
+  actor: CourseBasisActor;
+  documentId: string;
+}) {
+  const actor = validateActor(input.actor);
+  const documentId = validateId(input.documentId, 'document-id-invalid');
+  return withSerializableRetry(db, async (tx) => {
+    await assertDocumentAccess(tx as CourseBasisDb, actor, documentId);
+    const versions = await tx.courseBasisDocumentVersion.findMany({
+      where: { documentId },
+      select: { id: true },
+    });
+    const versionIds = versions.map((version) => version.id);
+    const blockers = await collectCourseBasisReferenceBlockers(tx, versionIds);
+    if (blockers.length > 0) throw new CourseBasisError('document-delete-referenced', blockers);
+    await deleteCourseBasisVersionRecords(tx, versionIds);
+    return tx.courseBasisDocument.delete({ where: { id: documentId } });
+  });
+}
+
+export async function deleteCourseBasis(db: CourseBasisDb, input: {
+  actor: CourseBasisActor;
+  courseBasisId: string;
+}) {
+  const actor = validateActor(input.actor);
+  const courseBasisId = validateId(input.courseBasisId, 'course-basis-id-invalid');
+  return withSerializableRetry(db, async (tx) => {
+    await assertCourseBasisAccess(tx as CourseBasisDb, actor, courseBasisId);
+    const [documents, tasks] = await Promise.all([
+      tx.courseBasisDocument.findMany({
+        where: { courseBasisId },
+        select: { id: true, versions: { select: { id: true } } },
+      }),
+      tx.smartLessonTask.findMany({
+        where: { courseBasisId },
+        select: { id: true },
+      }),
+    ]);
+    const versionIds = documents.flatMap((document) => document.versions.map((version) => version.id));
+    const blockers = [
+      ...(await collectCourseBasisReferenceBlockers(tx, versionIds)),
+      ...tasks.map((task) => ({ category: 'SMART_LESSON_TASK', referenceId: task.id })),
+    ];
+    const uniqueBlockers = await enrichReferenceBlockers(tx, uniqueReferenceBlockers(blockers));
+    if (uniqueBlockers.length > 0) throw new CourseBasisError('course-basis-delete-referenced', uniqueBlockers);
+    await deleteCourseBasisVersionRecords(tx, versionIds);
+    await tx.courseBasisDocument.deleteMany({ where: { courseBasisId } });
+    return tx.courseBasis.delete({ where: { id: courseBasisId } });
   });
 }
 
@@ -614,9 +744,214 @@ async function assertCourseBasisAccess(db: CourseBasisDb, actor: CourseBasisActo
 async function assertDocumentAccess(db: CourseBasisDb, actor: CourseBasisActor, documentId: string) {
   const found = await db.courseBasisDocument.findFirst({
     where: actor.role === 'ADMIN' ? { id: documentId } : { id: documentId, courseBasis: { ownerId: actor.id } },
-    select: { id: true },
+    select: { id: true, courseBasisId: true },
   });
   if (!found) throw new CourseBasisError('document-not-found');
+  return found;
+}
+
+async function collectCourseBasisReferenceBlockers(
+  tx: Prisma.TransactionClient,
+  versionIds: string[],
+): Promise<CourseBasisReferenceBlocker[]> {
+  if (versionIds.length === 0) return [];
+  const [selections, links] = await Promise.all([
+    tx.smartLessonSourceSelection.findMany({
+      where: { sourceVersionId: { in: versionIds } },
+      select: { taskId: true },
+    }),
+    tx.courseBasisReferenceLink.findMany({
+      where: { versionId: { in: versionIds } },
+      select: { referenceType: true, referenceId: true },
+      orderBy: [{ referenceType: 'asc' }, { referenceId: 'asc' }],
+    }),
+  ]);
+  const blockers: ReferenceBlockerIdentity[] = [
+    ...selections.map((selection) => ({ category: 'SMART_LESSON_TASK', referenceId: selection.taskId })),
+    ...links.map((link) => ({ category: link.referenceType, referenceId: link.referenceId })),
+  ];
+
+  const planRevisionIds = links
+    .filter((link) => link.referenceType === 'LESSON_PLAN_REVISION')
+    .map((link) => link.referenceId);
+  const directCoursewareIds = links
+    .filter((link) => link.referenceType === 'COURSEWARE_REVISION')
+    .map((link) => link.referenceId);
+  const directPublicationIds = links
+    .filter((link) => link.referenceType === 'PUBLICATION_REVISION')
+    .map((link) => link.referenceId);
+
+  const courseware = planRevisionIds.length === 0
+    ? []
+    : await tx.smartCoursewareRevision.findMany({
+      where: { planRevisionId: { in: planRevisionIds } },
+      select: { id: true },
+    });
+  const coursewareIds = [...new Set([...directCoursewareIds, ...courseware.map((revision) => revision.id)])];
+  blockers.push(...courseware.map((revision) => ({ category: 'COURSEWARE_REVISION', referenceId: revision.id })));
+
+  const publications = planRevisionIds.length === 0 && coursewareIds.length === 0
+    ? []
+    : await tx.smartCoursewarePublicationRevision.findMany({
+      where: {
+        OR: [
+          ...(planRevisionIds.length > 0 ? [{ planRevisionId: { in: planRevisionIds } }] : []),
+          ...(coursewareIds.length > 0 ? [{ sourceRevisionId: { in: coursewareIds } }] : []),
+        ],
+      },
+      select: { id: true },
+    });
+  const publicationIds = [...new Set([...directPublicationIds, ...publications.map((revision) => revision.id)])];
+  blockers.push(...publications.map((revision) => ({ category: 'PUBLICATION_REVISION', referenceId: revision.id })));
+
+  if (publicationIds.length > 0) {
+    const sessions = await tx.classSession.findMany({
+      where: { coursewarePublicationRevisionId: { in: publicationIds } },
+      select: { id: true },
+    });
+    blockers.push(...sessions.map((session) => ({ category: 'CLASSROOM_SESSION', referenceId: session.id })));
+  }
+  return enrichReferenceBlockers(tx, uniqueReferenceBlockers(blockers));
+}
+
+async function deleteCourseBasisVersionRecords(tx: Prisma.TransactionClient, versionIds: string[]) {
+  if (versionIds.length === 0) return;
+  await tx.courseBasisProjection.deleteMany({ where: { versionId: { in: versionIds } } });
+  await tx.courseBasisSegment.deleteMany({ where: { versionId: { in: versionIds } } });
+  await tx.courseBasisDocumentVersion.deleteMany({ where: { id: { in: versionIds } } });
+}
+
+type ReferenceBlockerIdentity = Pick<CourseBasisReferenceBlocker, 'category' | 'referenceId'>;
+
+async function enrichReferenceBlockers(
+  tx: Prisma.TransactionClient,
+  blockers: ReferenceBlockerIdentity[],
+): Promise<CourseBasisReferenceBlocker[]> {
+  const ids = (category: string) => blockers
+    .filter((blocker) => blocker.category === category)
+    .map((blocker) => blocker.referenceId);
+  const taskIds = ids('SMART_LESSON_TASK');
+  const knowledgePointIds = ids('SMART_LESSON_KNOWLEDGE_POINT');
+  const goalIds = ids('SMART_LESSON_GOAL');
+  const generationJobIds = ids('GENERATION_JOB');
+  const planRevisionIds = ids('LESSON_PLAN_REVISION');
+  const coursewareRevisionIds = ids('COURSEWARE_REVISION');
+  const publicationRevisionIds = ids('PUBLICATION_REVISION');
+  const classroomSessionIds = ids('CLASSROOM_SESSION');
+  const [tasks, knowledgePoints, goals, generationJobs, plans, courseware, publications, sessions] = await Promise.all([
+    taskIds.length > 0
+      ? tx.smartLessonTask.findMany({
+        where: { id: { in: taskIds } },
+        select: { id: true, topic: true },
+      })
+      : [],
+    knowledgePointIds.length > 0
+      ? tx.smartLessonKnowledgePoint.findMany({
+        where: { id: { in: knowledgePointIds } },
+        select: { id: true, title: true, taskId: true },
+      })
+      : [],
+    goalIds.length > 0
+      ? tx.smartLessonGoal.findMany({
+        where: { id: { in: goalIds } },
+        select: { id: true, content: true, taskId: true },
+      })
+      : [],
+    generationJobIds.length > 0
+      ? tx.smartLessonGenerationJob.findMany({
+        where: { id: { in: generationJobIds } },
+        select: { id: true, deliveryGeneration: true, draft: { select: { taskId: true, task: { select: { topic: true } } } } },
+      })
+      : [],
+    planRevisionIds.length > 0
+      ? tx.smartLessonRevision.findMany({
+        where: { id: { in: planRevisionIds } },
+        select: { id: true, displayName: true, taskId: true },
+      })
+      : [],
+    coursewareRevisionIds.length > 0
+      ? tx.smartCoursewareRevision.findMany({
+        where: { id: { in: coursewareRevisionIds } },
+        select: { id: true, revisionNumber: true, draftId: true },
+      })
+      : [],
+    publicationRevisionIds.length > 0
+      ? tx.smartCoursewarePublicationRevision.findMany({
+        where: { id: { in: publicationRevisionIds } },
+        select: { id: true, displayName: true, sourceRevision: { select: { draftId: true } } },
+      })
+      : [],
+    classroomSessionIds.length > 0
+      ? tx.classSession.findMany({
+        where: { id: { in: classroomSessionIds } },
+        select: { id: true, coursewareDisplayName: true, lessonVersion: true },
+      })
+      : [],
+  ]);
+  const names = new Map<string, { name: string; navigationTarget: string }>();
+  for (const task of tasks) {
+    names.set(`SMART_LESSON_TASK:${task.id}`, {
+      name: task.topic,
+      navigationTarget: `/teacher/smart-prep?taskId=${encodeURIComponent(task.id)}`,
+    });
+  }
+  for (const point of knowledgePoints) {
+    names.set(`SMART_LESSON_KNOWLEDGE_POINT:${point.id}`, {
+      name: point.title,
+      navigationTarget: `/teacher/smart-prep?taskId=${encodeURIComponent(point.taskId)}`,
+    });
+  }
+  for (const goal of goals) {
+    names.set(`SMART_LESSON_GOAL:${goal.id}`, {
+      name: goal.content,
+      navigationTarget: `/teacher/smart-prep?taskId=${encodeURIComponent(goal.taskId)}`,
+    });
+  }
+  for (const job of generationJobs) {
+    names.set(`GENERATION_JOB:${job.id}`, {
+      name: `${job.draft.task.topic}生成记录（第 ${job.deliveryGeneration} 次）`,
+      navigationTarget: `/teacher/smart-prep?taskId=${encodeURIComponent(job.draft.taskId)}`,
+    });
+  }
+  for (const plan of plans) {
+    names.set(`LESSON_PLAN_REVISION:${plan.id}`, {
+      name: plan.displayName,
+      navigationTarget: `/teacher/smart-prep?taskId=${encodeURIComponent(plan.taskId)}`,
+    });
+  }
+  for (const revision of courseware) {
+    names.set(`COURSEWARE_REVISION:${revision.id}`, {
+      name: `课件第 ${revision.revisionNumber} 版`,
+      navigationTarget: `/teacher/smart-prep/courseware/${encodeURIComponent(revision.draftId)}`,
+    });
+  }
+  for (const publication of publications) {
+    names.set(`PUBLICATION_REVISION:${publication.id}`, {
+      name: publication.displayName,
+      navigationTarget: `/teacher/smart-prep/courseware/${encodeURIComponent(publication.sourceRevision.draftId)}`,
+    });
+  }
+  for (const session of sessions) {
+    names.set(`CLASSROOM_SESSION:${session.id}`, {
+      name: session.coursewareDisplayName ?? session.lessonVersion ?? '课堂记录',
+      navigationTarget: '/teacher/classes',
+    });
+  }
+  return blockers.map((blocker) => ({
+    ...blocker,
+    ...(names.get(`${blocker.category}:${blocker.referenceId}`) ?? {
+      name: blocker.category === 'RESOURCE_PACK' ? '备课依据包' : '历史教学内容',
+      navigationTarget: blocker.category === 'CLASSROOM_SESSION' ? '/teacher/classes' : '/teacher/smart-prep',
+    }),
+  }));
+}
+
+function uniqueReferenceBlockers<T extends ReferenceBlockerIdentity>(blockers: T[]) {
+  return [...new Map(
+    blockers.map((blocker) => [`${blocker.category}:${blocker.referenceId}`, blocker]),
+  ).values()].sort((left, right) => (
+    left.category.localeCompare(right.category) || left.referenceId.localeCompare(right.referenceId)
+  ));
 }
 
 async function findVersionForActor(db: CourseBasisDb, actor: CourseBasisActor, versionId: string) {
@@ -642,6 +977,53 @@ function editableCourseBasisText(version: {
   } catch {
     return version.normalizedText ?? '';
   }
+}
+
+async function ensureCourseBasisProjection(
+  tx: Prisma.TransactionClient,
+  input: {
+    courseBasisId: string;
+    versionId: string;
+    projectedAt: Date;
+    segments?: Array<{ id: string; stableAnchor: string }>;
+  },
+) {
+  const segments = input.segments ?? await tx.courseBasisSegment.findMany({
+    where: { versionId: input.versionId },
+    orderBy: { orderIndex: 'asc' },
+    select: { id: true, stableAnchor: true },
+  });
+  if (segments.length === 0) return 0;
+  await tx.courseBasisProjection.createMany({
+    data: segments.map((segment) => ({
+      versionId: input.versionId,
+      segmentId: segment.id,
+      projectionKey: courseBasisProjectionKey(input.courseBasisId, input.versionId, segment.stableAnchor),
+      corpusSourceId: courseBasisCorpusSourceId(input.courseBasisId, input.versionId, segment.stableAnchor),
+      projectedAt: input.projectedAt,
+    })),
+    skipDuplicates: true,
+  });
+  const projectionCount = await tx.courseBasisProjection.count({ where: { versionId: input.versionId } });
+  if (projectionCount !== segments.length) throw new CourseBasisError('projection-conflict');
+  return projectionCount;
+}
+
+function sameAnchorIdentity(
+  value: Prisma.JsonValue,
+  expected: Array<{ stableAnchor: string; contentHash: string }>,
+) {
+  if (!Array.isArray(value) || value.length !== expected.length) return false;
+  const actual = value.flatMap((item) => {
+    if (item === null || typeof item !== 'object' || Array.isArray(item)) return [];
+    if (typeof item.stableAnchor !== 'string' || typeof item.contentHash !== 'string') return [];
+    return [{ stableAnchor: item.stableAnchor, contentHash: item.contentHash }];
+  }).sort((left, right) => left.stableAnchor.localeCompare(right.stableAnchor));
+  return actual.length === expected.length
+    && actual.every((item, index) => (
+      item.stableAnchor === expected[index]?.stableAnchor
+      && item.contentHash === expected[index]?.contentHash
+    ));
 }
 
 export function courseBasisProjectionKey(courseBasisId: string, versionId: string, stableAnchor: string) {
@@ -754,5 +1136,10 @@ async function selectVersionMutationResult(db: CourseBasisDb, versionId: string)
       _count: { select: { segments: true, projections: true } },
     },
   });
-  return { ...version, segmentCount: _count?.segments ?? 0, projectionCount: _count?.projections ?? 0 };
+  return {
+    ...version,
+    lifecycle: projectCourseBasisLifecycle(version),
+    segmentCount: _count?.segments ?? 0,
+    projectionCount: _count?.projections ?? 0,
+  };
 }

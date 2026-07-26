@@ -82,7 +82,12 @@ export function SmartLessonPlanWorkspace({
   const sourceOptions = useMemo<SourceOption[]>(() => availableCourseBases.flatMap((basis: any) => basis.documents.flatMap((document: any) =>
     document.versions.flatMap((version: any) => {
       const segment = version.segments?.[0];
-      if (version.reviewState !== 'CONFIRMED' || version.retiredAt || !segment) return [];
+      if (
+        version.extractionState !== 'EXTRACTED'
+        || version.reviewState === 'REJECTED'
+        || version.retiredAt
+        || !segment
+      ) return [];
       return [{
         courseBasisId: basis.id,
         courseBasisTitle: basis.title,

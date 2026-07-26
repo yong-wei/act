@@ -72,7 +72,9 @@ export function publicTask(task: Record<string, unknown>) {
         state: item.state,
         sourceValid: sourceVersion.reviewState === undefined
           ? true
-          : sourceVersion.reviewState === 'CONFIRMED' && !sourceVersion.retiredAt,
+          : sourceVersion.extractionState === 'EXTRACTED'
+            && sourceVersion.reviewState !== 'REJECTED'
+            && !sourceVersion.retiredAt,
         selectedAt: item.selectedAt,
         removedAt: item.removedAt,
       });
@@ -96,7 +98,9 @@ export function publicTaskSummary(task: Record<string, unknown>) {
         state: item.state,
         sourceValid: sourceVersion.reviewState === undefined
           ? true
-          : sourceVersion.reviewState === 'CONFIRMED' && !sourceVersion.retiredAt,
+          : sourceVersion.extractionState === 'EXTRACTED'
+            && sourceVersion.reviewState !== 'REJECTED'
+            && !sourceVersion.retiredAt,
       };
     }),
   });

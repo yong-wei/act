@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 
 import { CourseBasisError } from '../course-basis/domain';
+import { adoptCourseBasisVersion } from '../course-basis/service';
 import {
   buildCourseBasisLessonDesignSar,
   buildCourseBasisLessonDesignSourcePack,
@@ -93,7 +94,7 @@ export async function listSmartLessonTasks(
     include: {
       sources: {
         include: {
-          sourceVersion: { select: { reviewState: true, retiredAt: true } },
+          sourceVersion: { select: { extractionState: true, reviewState: true, retiredAt: true } },
         },
       },
       knowledgePoints: { orderBy: { createdAt: 'asc' } },
@@ -144,7 +145,7 @@ export async function listSmartLessonTaskSummaries(
         where: { state: 'SELECTED' },
         select: {
           state: true,
-          sourceVersion: { select: { reviewState: true, retiredAt: true } },
+          sourceVersion: { select: { extractionState: true, reviewState: true, retiredAt: true } },
         },
       },
       knowledgePoints: {
@@ -203,7 +204,7 @@ export async function getSmartLessonTask(db: SmartLessonDb, input: {
     include: {
       sources: {
         include: {
-          sourceVersion: { select: { reviewState: true, retiredAt: true } },
+          sourceVersion: { select: { extractionState: true, reviewState: true, retiredAt: true } },
         },
       },
       knowledgePoints: { orderBy: { createdAt: 'asc' } },
@@ -252,16 +253,18 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
     if (!sourceVersionIds.includes(binding.sourceVersionId)) throw new SmartLessonPlanError('source-binding-not-selected');
   }
 
-  const basis = await db.courseBasis.findFirst({
+  const create = async (tx: Prisma.TransactionClient) => {
+  const basis = await tx.courseBasis.findFirst({
     where: { id: validateId(input.courseBasisId), ownerId: actor.id },
     select: { id: true, ownerId: true },
   });
   if (!basis) throw new SmartLessonPlanError('course-basis-not-found', 404);
   const ownerId = basis.ownerId;
-  const versions = await db.courseBasisDocumentVersion.findMany({
+  const versions = await tx.courseBasisDocumentVersion.findMany({
     where: {
       id: { in: sourceVersionIds },
-      reviewState: 'CONFIRMED',
+      extractionState: 'EXTRACTED',
+      reviewState: { in: ['PENDING', 'CONFIRMED'] },
       retiredAt: null,
       document: { courseBasisId: basis.id, courseBasis: { ownerId } },
     },
@@ -274,12 +277,12 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
       classId: validateId(input.aggregateClassContextRef.classId),
       diagnosisRef: validateId(input.aggregateClassContextRef.diagnosisRef),
     };
-    const ownedClass = await db.class.findFirst({
+    const ownedClass = await tx.class.findFirst({
       where: { id: aggregateRef.classId, teacherId: ownerId },
       select: { id: true, _count: { select: { students: true } } },
     });
     if (!ownedClass) throw new SmartLessonPlanError('aggregate-class-context-not-authorized', 403);
-    const diagnosis = await db.diagnosisReportSnapshot.findFirst({
+    const diagnosis = await tx.diagnosisReportSnapshot.findFirst({
       where: { id: aggregateRef.diagnosisRef, classId: ownedClass.id, subjectKind: 'class' },
       select: { id: true, generatedAt: true, snapshot: true },
     });
@@ -294,13 +297,13 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
     });
   }
   const canonicalBindings = await resolveCanonicalSourceBindings(
-    db,
+    tx as unknown as SmartLessonDb,
     { id: basis.id, ownerId },
     sourceVersionIds,
     [...input.knowledgePoints, ...input.goals].flatMap((item) => item.sourceBindings),
   );
   const verifiedBindingKeys = await resolveSourcePackVerifiedBindingKeys(
-    db,
+    tx as unknown as SmartLessonDb,
     ownerId,
     sourceVersionIds,
     [],
@@ -373,7 +376,7 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
     };
   });
 
-  return db.smartLessonTask.create({
+  const task = await tx.smartLessonTask.create({
     data: {
       id: taskId,
       ownerId,
@@ -395,6 +398,12 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
     },
     include: { sources: true, knowledgePoints: true, goals: true, drafts: true },
   });
+  await adoptTaskBindings(tx, actor, knowledgePoints, goals);
+  return task;
+  };
+  return '$transaction' in db
+    ? db.$transaction(create, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+    : create(db as unknown as Prisma.TransactionClient);
 }
 
 export async function updateSmartLessonTask(
@@ -443,7 +452,8 @@ export async function updateSmartLessonTask(
     const versions = await tx.courseBasisDocumentVersion.findMany({
       where: {
         id: { in: sourceVersionIds },
-        reviewState: 'CONFIRMED',
+        extractionState: 'EXTRACTED',
+        reviewState: { in: ['PENDING', 'CONFIRMED'] },
         OR: [
           { retiredAt: null },
           { id: { in: retainedRetiredVersionIds } },
@@ -541,6 +551,13 @@ export async function updateSmartLessonTask(
           origin: item.origin, supersedesIds: uniqueIds(item.supersedesIds ?? []), confirmedAt: now, removedAt: null,
         },
       });
+      await adoptSourceBindings(
+        tx,
+        actor,
+        'SMART_LESSON_KNOWLEDGE_POINT',
+        id,
+        sourceFields.sourceBindings,
+      );
       nextPointIds.add(id);
     }
     for (const item of input.goals) {
@@ -571,6 +588,13 @@ export async function updateSmartLessonTask(
           standardsMappings: asJson(item.standardsMappings ?? []), confirmedAt: now, removedAt: null,
         },
       });
+      await adoptSourceBindings(
+        tx,
+        actor,
+        'SMART_LESSON_GOAL',
+        id,
+        sourceFields.sourceBindings,
+      );
       nextGoalIds.add(id);
     }
     await tx.smartLessonKnowledgePoint.updateMany({
@@ -1393,14 +1417,24 @@ export async function approveSmartLessonDraft(db: SmartLessonDb, input: {
           approvedById: actor.id,
         },
       });
-      await tx.courseBasisReferenceLink.createMany({
-        data: draft.task.sources.map((source) => ({
-          versionId: source.sourceVersionId,
-          referenceType: 'LESSON_PLAN_REVISION' as const,
-          referenceId: revision.id,
-        })),
-        skipDuplicates: true,
-      });
+      const planBindingsByVersion = new Map<string, SmartLessonSourceBinding[]>();
+      for (const binding of normalizeSourceBindings(plan.sources)) {
+        planBindingsByVersion.set(
+          binding.sourceVersionId,
+          [...(planBindingsByVersion.get(binding.sourceVersionId) ?? []), binding],
+        );
+      }
+      for (const [versionId, bindings] of planBindingsByVersion) {
+        await adoptCourseBasisVersion(tx, {
+          actor,
+          versionId,
+          adopter: { referenceType: 'LESSON_PLAN_REVISION', referenceId: revision.id },
+          anchors: bindings.map((binding) => ({
+            stableAnchor: binding.anchor,
+            contentHash: binding.contentHash,
+          })),
+        });
+      }
       await tx.smartLessonDraft.update({
         where: { id: draft.id },
         data: { state: 'APPROVED', approvedRevisionNumber: revisionNumber },
@@ -1713,6 +1747,44 @@ function canonicalizeItemBindings(
   });
 }
 
+async function adoptTaskBindings(
+  tx: Prisma.TransactionClient,
+  actor: SmartLessonActor,
+  knowledgePoints: Array<{ id: string; sourceBindings: SmartLessonSourceBinding[] }>,
+  goals: Array<{ id: string; sourceBindings: SmartLessonSourceBinding[] }>,
+) {
+  for (const point of knowledgePoints) {
+    await adoptSourceBindings(tx, actor, 'SMART_LESSON_KNOWLEDGE_POINT', point.id, point.sourceBindings);
+  }
+  for (const goal of goals) {
+    await adoptSourceBindings(tx, actor, 'SMART_LESSON_GOAL', goal.id, goal.sourceBindings);
+  }
+}
+
+async function adoptSourceBindings(
+  tx: Prisma.TransactionClient,
+  actor: SmartLessonActor,
+  referenceType: 'SMART_LESSON_KNOWLEDGE_POINT' | 'SMART_LESSON_GOAL' | 'GENERATION_JOB',
+  referenceId: string,
+  bindings: SmartLessonSourceBinding[],
+) {
+  const byVersion = new Map<string, SmartLessonSourceBinding[]>();
+  for (const binding of normalizeSourceBindings(bindings)) {
+    byVersion.set(binding.sourceVersionId, [...(byVersion.get(binding.sourceVersionId) ?? []), binding]);
+  }
+  for (const [versionId, versionBindings] of byVersion) {
+    await adoptCourseBasisVersion(tx, {
+      actor,
+      versionId,
+      adopter: { referenceType, referenceId },
+      anchors: versionBindings.map((binding) => ({
+        stableAnchor: binding.anchor,
+        contentHash: binding.contentHash,
+      })),
+    });
+  }
+}
+
 async function resolveCanonicalSourceBindings(
   db: SmartLessonDb,
   basis: { id: string; ownerId: string },
@@ -1724,7 +1796,8 @@ async function resolveCanonicalSourceBindings(
     where: {
       versionId: { in: sourceVersionIds },
       version: {
-        reviewState: 'CONFIRMED',
+        extractionState: 'EXTRACTED',
+        reviewState: { in: ['PENDING', 'CONFIRMED'] },
         document: { courseBasisId: basis.id, courseBasis: { ownerId: basis.ownerId } },
       },
     },

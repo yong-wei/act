@@ -145,6 +145,27 @@ describe('CourseBasisWorkspace pagination', () => {
     expect(container.textContent).toContain('version-21.txt');
   });
 
+  it('requires explicit confirmation before a permanent delete request', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockImplementationOnce(() => response([basis('basis-1')]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, {
+      initialCourseBases: [basis('basis-1')],
+    })));
+
+    await act(async () => buttonWithin('version-1.txt', '永久删除').click());
+    expect(confirm).toHaveBeenCalledOnce();
+    expect(fetch).not.toHaveBeenCalled();
+
+    confirm.mockReturnValue(true);
+    await act(async () => buttonWithin('version-1.txt', '永久删除').click());
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/teacher/course-bases/versions/version-1', {
+      method: 'DELETE',
+    });
+  });
+
   function button(label: string) {
     const match = [...container.querySelectorAll('button')].find((item) => item.textContent?.includes(label));
     if (!match) throw new Error(`button not found: ${label}`);
