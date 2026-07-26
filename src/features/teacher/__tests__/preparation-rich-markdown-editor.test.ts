@@ -145,5 +145,36 @@ describe('preparation rich Markdown adapter', () => {
       '<img src="https://example.com/image.png" alt="外部图">',
       owned,
     )).toBe(false);
+    expect(validateProtectedEditorMarkdownAssets(
+      '`<img src="https://example.com/image.png">`\n\n```html\n<img src="/demo.png">\n```',
+      owned,
+    )).toBe(true);
+  });
+
+  it('uses the captured drop position instead of the stale text selection', async () => {
+    const editor = new Editor({
+      extensions: PREPARATION_MARKDOWN_EXTENSIONS,
+      content: '第一段\n\n第二段',
+      contentType: 'markdown',
+    });
+    editor.commands.setTextSelection(1);
+    const dropPosition = editor.state.doc.content.size;
+    await insertProtectedEditorImages(
+      editor,
+      [new File(['image'], 'dropped.png', { type: 'image/png' })],
+      async () => ({
+        assetId: 'asset-dropped',
+        href: '/api/assignment-assets/asset-dropped',
+      }),
+      { insertAt: dropPosition },
+    );
+
+    let imagePosition = -1;
+    editor.state.doc.descendants((node, position) => {
+      if (node.type.name === 'image') imagePosition = position;
+    });
+    expect(imagePosition).toBeGreaterThan(1);
+    expect(editor.getMarkdown()).toContain('/api/assignment-assets/asset-dropped');
+    editor.destroy();
   });
 });

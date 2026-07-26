@@ -72,12 +72,17 @@ export function RichMarkdownEditor({
         'aria-label': ariaLabel,
         class: `${mode === 'assignment-embedded' ? 'min-h-44' : 'min-h-[32rem]'} max-w-none px-5 py-6 text-[15px] leading-7 outline-none`,
       },
-      handleDrop: (_view, event) => {
+      handleDrop: (view, event) => {
         if (mode !== 'assignment-embedded' || !uploadImage || !editor) return false;
         const files = imageFiles(event.dataTransfer?.files);
         if (files.length === 0) return false;
+        const insertAt = view.posAtCoords({
+          left: event.clientX,
+          top: event.clientY,
+        })?.pos;
         event.preventDefault();
         void insertProtectedEditorImages(editor, files, uploadImage, {
+          insertAt,
           onPendingChange: updatePendingUploads,
           onError: onUploadError,
         });
@@ -187,7 +192,6 @@ export function validateProtectedEditorMarkdownAssets(
   markdown: string,
   validateAsset: ProtectedEditorAssetValidator,
 ): boolean {
-  if (/<img\b/i.test(markdown)) return false;
   const editor = new Editor({
     extensions: PREPARATION_MARKDOWN_EXTENSIONS,
     content: markdown,
@@ -227,23 +231,35 @@ export async function insertProtectedEditorImages(
   files: File[],
   uploadImage: ProtectedEditorImageUpload,
   callbacks: {
+    insertAt?: number;
     onPendingChange?: (delta: 1 | -1) => void;
     onError?: (message: string | null) => void;
   } = {},
 ): Promise<void> {
   callbacks.onError?.(null);
   files.forEach(() => callbacks.onPendingChange?.(1));
+  let insertedCount = 0;
   for (const file of files) {
     try {
       const asset = await uploadImage(file);
       if (!isProtectedEditorAssetReference(asset)) {
         throw new Error('invalid-protected-asset-reference');
       }
-      editor.chain().focus().setImage({
+      const image = {
         src: asset.href,
         alt: asset.altText?.trim() || file.name,
         title: `asset:${asset.assetId}`,
-      }).run();
+      };
+      const chain = editor.chain().focus();
+      if (callbacks.insertAt === undefined) {
+        chain.setImage(image).run();
+      } else {
+        chain.insertContentAt(callbacks.insertAt + insertedCount, {
+          type: 'image',
+          attrs: image,
+        }).run();
+        insertedCount += 1;
+      }
     } catch {
       callbacks.onError?.(`图片“${file.name}”上传失败，本地内容仍保留。`);
     } finally {
