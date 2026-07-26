@@ -1,6 +1,6 @@
 {
   "evidenceVersion": "smart-lesson-generation-verification.v1",
-  "sourceRevision": "a76b9a952b78886210182355d96d1ee4572f9ce8",
+  "sourceRevision": "0fd55038e0166bece32579a648f57973b5d921e7",
   "sourceBinding": {
     "workspaceCleanAtRealProviderStart": true,
     "status": "valid"
@@ -13,7 +13,7 @@
     "result": "passed",
     "jobState": "COMPLETED",
     "stageCount": 7,
-    "recovery": "outline-confirmation-pause-resume",
+    "recovery": "outline-confirmation-pause-resume-with-completed-action-state-and-api-output",
     "evidenceFile": "real-provider-full-boppps.json"
   },
   "checks": [
@@ -34,6 +34,12 @@
       "result": "passed",
       "testFiles": 9,
       "tests": 82
+    },
+    {
+      "command": "npx vitest run src/app/api/teacher/smart-lesson-tasks/__tests__/route.test.ts src/lib/__tests__/smart-lesson-plan-workspace.test.ts src/features/teacher/__tests__/smart-lesson-plan-workspace-contract.test.ts",
+      "result": "passed",
+      "testFiles": 3,
+      "tests": 41
     },
     {
       "command": "npm run test:provider-runtime-smoke",
