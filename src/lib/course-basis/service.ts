@@ -271,11 +271,17 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
     const latest = await db.courseBasisDocumentVersion.findFirst({
       where: { documentId: current.documentId },
       orderBy: { versionNumber: 'desc' },
-      select: { id: true, versionNumber: true, contentHash: true },
+      select: { id: true, versionNumber: true, contentHash: true, reviewState: true, retiredAt: true },
     });
     if (!latest) throw new CourseBasisError('version-edit-conflict');
     if (latest.versionNumber > current.versionNumber && latest.contentHash === extracted.contentHash) {
-      return { version: await selectVersionMutationResult(db, latest.id), createdSuccessor: true };
+      const [latestReferenceCount, latestSelectionCount] = await Promise.all([
+        db.courseBasisReferenceLink.count({ where: { versionId: latest.id } }),
+        db.smartLessonSourceSelection.count({ where: { sourceVersionId: latest.id, state: 'SELECTED' } }),
+      ]);
+      if (!latest.retiredAt && latest.reviewState !== 'REJECTED' && latestReferenceCount === 0 && latestSelectionCount === 0) {
+        return { version: await selectVersionMutationResult(db, latest.id), createdSuccessor: true };
+      }
     }
     const successor = await importCourseBasisVersion(db, {
       actor,
