@@ -218,9 +218,6 @@ export const assignmentDraftSchema = z.object({
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['questions', index, 'stableQuestionId'], message: 'duplicate-stable-question-id' });
     }
     ids.add(question.stableQuestionId);
-    if (!draft.responsePolicy.allowedResponseTypes.includes(question.responseType)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['responsePolicy', 'allowedResponseTypes'], message: `question-response-type-not-allowed:${question.stableQuestionId}` });
-    }
     if (question.rubric.schemaVersion === 'assignment-scoring-rubric.v2') {
       if (!hasAtMostOneDecimal(question.points)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['questions', index, 'points'], message: 'score-must-use-0.1-quantum' });

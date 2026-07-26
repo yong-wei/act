@@ -146,12 +146,11 @@ describe('assignment authoring domain', () => {
     expect(validatePublicationScores(detailed)).toContain('level-guideline-required:control-correction-analysis:quality');
   });
 
-  it('rejects a question response type outside the assignment response policy', () => {
+  it('retains legacy response fields without restricting the unified answer contract', () => {
     const fixture = buildRubricBackedSubjectiveAssignmentFixture();
     fixture.questions[0] = { ...fixture.questions[0], responseType: 'SUBJECTIVE_FILE' };
     const result = assignmentDraftSchema.safeParse(fixture);
-    expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.issues).toContainEqual(expect.objectContaining({ path: ['responsePolicy', 'allowedResponseTypes'], message: expect.stringContaining('question-response-type-not-allowed') }));
+    expect(result.success).toBe(true);
   });
 
   it.each([

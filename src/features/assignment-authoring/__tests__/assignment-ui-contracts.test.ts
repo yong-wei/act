@@ -46,13 +46,22 @@ describe('teacher assignment workspace contracts', () => {
     const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
     expect(editor).toContain("method: 'POST'");
     expect(editor).not.toContain('prompt: item.stemPreview');
-    for (const label of ['作业说明', '作答类型', '迟交策略', '允许作答类型', '最多提交次数', '解答发布时间', '添加评分项', '学生可见指导']) expect(editor).toContain(label);
+    for (const label of ['作业说明', '统一作答', '迟交策略', '最多提交次数', '解答发布时间', '添加评分项', '学生可见指导']) expect(editor).toContain(label);
     expect(editor).toContain('所有分值保留一位小数');
     expect(editor).toContain('启用详细评分细则');
     expect(editor).toContain('五级制');
     expect(editor).toContain('两级制');
     expect(editor).toContain('/next-draft');
     expect(editor).toContain("'published-frozen'");
+  });
+
+  it('uses one student answer surface for Markdown and all supported attachments', () => {
+    const student = source('src/features/assignments/student-assignment-workspace.tsx');
+    expect(student).not.toContain("question.responseType === 'SUBJECTIVE_TEXT'");
+    expect(student).not.toContain("question.responseType === 'SUBJECTIVE_FILE'");
+    expect(student).toContain('Markdown 正文');
+    expect(student).toContain('.pdf,.doc,.docx,.pptx,.png,.jpg,.jpeg,.md,.markdown,.txt');
+    expect(student).toContain('合计最多 10 个');
   });
 
   it('publishes only an explicit saved baseline and exposes decimal input constraints', () => {

@@ -8,7 +8,7 @@ The system SHALL persist Markdown text, embedded image assets, ordered independe
 - **THEN** only that question answer version SHALL change
 - **AND** other question drafts or submitted answers SHALL remain unchanged.
 
-#### Scenario: Student uploads a supported attachment
+#### Scenario: Student uploads a document answer
 - **WHEN** a student uploads PDF, DOC, DOCX, PPTX, PNG, JPEG, Markdown, or plain text for a question
 - **THEN** the upload SHALL be bound to that question answer with ownership, object reference, MIME, size, checksum, scan state, timestamps, and order
 - **AND** raw attachment bytes SHALL NOT be embedded in generic JSON workflow records or application logs.
@@ -36,7 +36,7 @@ The system SHALL persist Markdown text, embedded image assets, ordered independe
 ### Requirement: Each question is submitted and sealed independently
 The system SHALL provide a question-level submit action that validates and atomically seals one explicit unified answer version into a numbered question attempt.
 
-#### Scenario: Unified question answer is ready
+#### Scenario: One question answer is ready
 - **WHEN** the student submits a response containing non-empty text, at least one eligible attachment, or both before or according to deadline policy
 - **THEN** the system SHALL seal only that question's text snapshot, attachment identities, and attachment order
 - **AND** it SHALL record the attempt and submitted timestamp while leaving other question drafts unchanged.

@@ -1588,7 +1588,9 @@ model SubmissionAnswer {
   state                SubmissionAnswerState @default(DRAFT)
   version              Int                   @default(1)
   responseType         String
+  answerContractVersion String              @default("assignment-response.v2")
   textDraft            String?
+  attachmentOrderProvenance String?
   currentAttemptNumber Int                   @default(0)
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
@@ -1611,6 +1613,7 @@ model SubmissionAttempt {
   attemptNumber                        Int
   answerVersion                        Int
   textSnapshot                         String?
+  answerSnapshot                       Json?
   textSnapshotPolicyId                 String?
   textSnapshotPolicyVersion            String?
   textSnapshotDeleteStrategy           String?
@@ -1651,6 +1654,9 @@ model SubmissionAsset {
   mimeType                String
   sizeBytes               Int
   checksum                String?
+  assetRole               String               @default("ATTACHMENT")
+  orderIndex              Int?
+  embeddedPosition        String?
   state                   SubmissionAssetState @default(QUARANTINED)
   scanState               String               @default("PENDING")
   scanRetryCount          Int                  @default(0)
@@ -1686,6 +1692,8 @@ model SubmissionAsset {
   retentionPolicy     GradingLifecyclePolicy?               @relation("SubmissionAssetRetentionPolicy", fields: [retentionPolicyId], references: [id], onDelete: Restrict)
 
   @@unique([answerId, version])
+  @@index([answerId, state, orderIndex])
+  @@index([attemptId, orderIndex])
   @@index([state, createdAt])
   @@index([state, retentionExpiresAt])
   @@index([deletionLeaseExpiresAt])

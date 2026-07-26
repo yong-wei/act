@@ -205,7 +205,7 @@ test('keyboard user can save text and upload one question attachment without a w
   await addStudentSession(context);
   await mockAssignmentRoutes(page);
   await page.goto('/missions/assignments/assignment-902');
-  await page.getByLabel('文本作答').fill('更新后的草稿');
+  await page.getByLabel('Markdown 正文').fill('更新后的草稿');
   await page.getByRole('button', { name: '保存本题草稿' }).click();
   await expect(page.getByRole('status').filter({ hasText: '本题草稿已保存' })).toContainText('本题草稿已保存');
   await page.getByRole('button', { name: /第 2 题/ }).click();

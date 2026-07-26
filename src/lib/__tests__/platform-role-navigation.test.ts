@@ -1239,7 +1239,8 @@ describe('platform role navigation', () => {
     expect(resourceSource).toContain('data-route-source={sourceContext.href}');
     expect(resourceSource).toContain('resolveAdaptivePathLaunchReturnContext(searchParams)');
     expect(resourceSource).toContain('buildAdaptivePathCompletionRequest');
-    expect(resourceSource).toContain('onComplete={handlePathResourceComplete}');
+    expect(resourceSource).toContain('selectResourceCompletionHandler');
+    expect(resourceSource).toContain('onComplete={resourceCompletionHandler}');
     expect(resourceSource).toContain("label: '学习路径'");
     expect(resourceSource).toContain('breadcrumbs={[');
     expect(resourceSource).toContain('h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)]');
