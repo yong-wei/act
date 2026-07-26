@@ -116,6 +116,7 @@ writeFile('.wolf/config.json', '{ "version": 1 }\n');
 writeFile('.wolf/reframe-frameworks.md', '# Reframe\n');
 writeFile('.wolf/cron-manifest.json', '{ "version": 1, "tasks": [] }\n');
 writeFile('.wolf/anatomy.md', '# anatomy.md\n');
+writeFile('.wolf/STATUS.md', '# Status\n');
 writeFile('.wolf/token-ledger.json', '{ "version": 1 }\n');
 writeFile('.wolf/cron-state.json', '{ "engine_status": "initialized" }\n');
 writeFile('.wolf/designqc-report.json', '{ "captures": [] }\n');
@@ -594,6 +595,7 @@ for (const rel of [
 
 for (const rel of [
   '.wolf/anatomy.md',
+  '.wolf/STATUS.md',
   '.wolf/token-ledger.json',
   '.wolf/cron-state.json',
   '.wolf/designqc-report.json',
@@ -821,6 +823,72 @@ for (const commandName of ['codegraph', 'code-review-graph']) {
   );
   fs.chmodSync(commandPath, 0o755);
 }
+const openwolfPath = path.join(binDir, 'openwolf');
+fs.writeFileSync(
+  openwolfPath,
+  `#!/bin/sh\nprintf 'openwolf cwd=%s args=%s\\n' "$(pwd)" "$*" >> "$GRAPH_CALL_LOG"\nexit "\${OPENWOLF_FAIL_STATUS:-0}"\n`,
+);
+fs.chmodSync(openwolfPath, 0o755);
+
+const openwolfBootstrapTarget = createIsolatedWorktree('openwolf-bootstrap-target');
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    openwolfBootstrapTarget,
+    '--apply',
+    '--link-openwolf-knowledge',
+  ],
+  root,
+  {
+    env: {
+      ...process.env,
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+      GRAPH_CALL_LOG: graphCallLog,
+    },
+  },
+);
+assert.match(
+  fs.readFileSync(graphCallLog, 'utf8'),
+  new RegExp(`openwolf cwd=${fs.realpathSync(openwolfBootstrapTarget).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=scan`),
+  '工作树首次建立 OpenWolf 本地状态时应立即扫描当前工作树',
+);
+
+const openwolfOnlyTarget = createIsolatedWorktree('openwolf-only-target');
+fs.writeFileSync(path.join(openwolfOnlyTarget, 'AGENTS.md'), '# target-only agents\n');
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    openwolfOnlyTarget,
+    '--apply',
+    '--openwolf-only',
+  ],
+  root,
+  {
+    env: {
+      ...process.env,
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+      GRAPH_CALL_LOG: graphCallLog,
+    },
+  },
+);
+assert.equal(
+  fs.readFileSync(path.join(openwolfOnlyTarget, 'AGENTS.md'), 'utf8'),
+  '# target-only agents\n',
+  '--openwolf-only 不应同步无关配置文件',
+);
+assert.match(
+  fs.readFileSync(gitHookPath(openwolfOnlyTarget, 'post-commit'), 'utf8'),
+  /openwolf_run scan/,
+  '--openwolf-only 应安装确定内容变更边界的 OpenWolf 扫描 hook',
+);
 
 run(
   'bash',
@@ -918,6 +986,18 @@ assert.match(
   /codegraph_run sync/,
   'post-commit hook 应在提交成功后同步 CodeGraph',
 );
+assert.match(
+  postCommitHook,
+  /openwolf_run scan/,
+  'post-commit hook 应在提交成功后扫描当前工作树的 OpenWolf anatomy',
+);
+for (const hookName of ['post-checkout', 'post-merge', 'post-rewrite']) {
+  assert.match(
+    fs.readFileSync(gitHookPath(target, hookName), 'utf8'),
+    /openwolf_run scan/,
+    `${hookName} 应在确定的仓库内容变更后扫描当前工作树的 OpenWolf anatomy`,
+  );
+}
 
 const crgHookLib = fs.readFileSync(gitHookPath(target, 'crg-hook-lib.sh'), 'utf8');
 assert.match(
@@ -941,6 +1021,18 @@ assert.match(
   codegraphHookLib,
   /command exit_status=.*signal=/,
   'CodeGraph hook lib 应记录命令退出码和信号',
+);
+
+const openwolfHookLib = fs.readFileSync(gitHookPath(target, 'openwolf-hook-lib.sh'), 'utf8');
+assert.match(
+  openwolfHookLib,
+  /git rev-parse --show-toplevel/,
+  'OpenWolf hook lib 应从当前工作树解析仓库根目录',
+);
+assert.match(
+  openwolfHookLib,
+  /cd "\$repo" && "\$tool_path" scan/,
+  'OpenWolf hook lib 应在当前工作树执行完整扫描',
 );
 
 const preCommitHook = fs.readFileSync(gitHookPath(target, 'pre-commit'), 'utf8');
@@ -973,6 +1065,11 @@ assert.equal(
   false,
   'post-commit 连续运行 CRG 与 CodeGraph 后不应残留 CodeGraph 锁',
 );
+assert.equal(
+  fs.existsSync(path.join(target, '.wolf/scan-hook.lock')),
+  false,
+  'post-commit 扫描 OpenWolf 后不应残留扫描锁',
+);
 
 const crgHookLog = fs.readFileSync(path.join(target, '.code-review-graph/hooks.log'), 'utf8');
 assert.match(
@@ -997,6 +1094,17 @@ assert.match(
   /command exit_status=0:/,
   'CodeGraph hook 日志应记录成功命令退出码',
 );
+const openwolfHookLog = fs.readFileSync(path.join(target, '.wolf/scan-hooks.log'), 'utf8');
+assert.match(
+  openwolfHookLog,
+  new RegExp(`start tool=.*openwolf repo=${canonicalTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+  'OpenWolf hook 日志应记录当前工作树路径',
+);
+assert.match(
+  fs.readFileSync(graphCallLog, 'utf8'),
+  new RegExp(`openwolf cwd=${canonicalTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=scan`),
+  'OpenWolf hook 应在目标工作树而不是来源工作树扫描',
+);
 
 run('sh', [postCommitHookPath], target, {
   env: {
@@ -1004,6 +1112,7 @@ run('sh', [postCommitHookPath], target, {
     PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
     GRAPH_CALL_LOG: graphCallLog,
     GRAPH_FAIL_STATUS: '137',
+    OPENWOLF_FAIL_STATUS: '137',
   },
 });
 
@@ -1026,6 +1135,16 @@ assert.equal(
   fs.existsSync(path.join(target, '.codegraph/hook.lock')),
   false,
   'CodeGraph 命令失败后不应残留 hook 锁',
+);
+assert.match(
+  fs.readFileSync(path.join(target, '.wolf/scan-hooks.log'), 'utf8'),
+  /command exit_status=137 signal=9/,
+  'OpenWolf 扫描失败应记录退出信号且不阻断 Git hook',
+);
+assert.equal(
+  fs.existsSync(path.join(target, '.wolf/scan-hook.lock')),
+  false,
+  'OpenWolf 扫描失败后不应残留扫描锁',
 );
 
 const customPostCommit = '#!/bin/sh\n# custom hook using codegraph but not managed\ncodegraph sync .\n';

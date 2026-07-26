@@ -16,6 +16,7 @@ INSTALL_HOOKS=0
 INSTALL_DEPS=0
 BOOTSTRAP_DEV_ENV=0
 LINK_OPENWOLF_KNOWLEDGE=0
+OPENWOLF_ONLY=0
 GRAPH_ALIAS=""
 ENV_LINKS=()
 RUNTIME_LINK_ROOT="course-content/runtime"
@@ -52,11 +53,14 @@ Options:
                              from source when present.
   --replace-existing         When linking, backup and replace existing target paths.
   --init-graphs              Initialize and build codegraph and code-review-graph for target.
-  --install-hooks            Install or repair managed Git hooks for codegraph and CRG.
+  --install-hooks            Install or repair managed Git hooks for codegraph, CRG,
+                             and OpenWolf anatomy scans.
   --install-deps             Run npm ci, Prisma Client generation, and local
                              Wasm package generation in the target worktree.
   --link-openwolf-knowledge  Link long-lived .wolf knowledge files to the source
                              checkout while keeping runtime files local.
+  --openwolf-only            Only synchronize OpenWolf knowledge/local state and
+                             managed Git hooks; skip unrelated config and runtime files.
   --bootstrap-dev-env        Enable --link-config, --link-env, --install-hooks,
                              --install-deps, --init-graphs, and
                              --link-openwolf-knowledge.
@@ -173,6 +177,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --link-openwolf-knowledge)
       LINK_OPENWOLF_KNOWLEDGE=1
+      shift
+      ;;
+    --openwolf-only)
+      OPENWOLF_ONLY=1
+      LINK_OPENWOLF_KNOWLEDGE=1
+      INSTALL_HOOKS=1
       shift
       ;;
     --bootstrap-dev-env)
@@ -305,10 +315,17 @@ OPENWOLF_KNOWLEDGE_LINKS=(
 
 OPENWOLF_LOCAL_SEED_FILES=(
   ".wolf/anatomy.md"
+  ".wolf/STATUS.md"
   ".wolf/token-ledger.json"
   ".wolf/cron-state.json"
   ".wolf/designqc-report.json"
   ".wolf/suggestions.json"
+)
+
+OPENWOLF_LOCAL_RUNTIME_FILES=(
+  ".wolf/anatomy-index.json"
+  ".wolf/_scan-state.json"
+  ".wolf/scan-hooks.log"
 )
 
 if [[ "$INCLUDE_CODEX_PLANS" -eq 1 ]]; then
@@ -340,8 +357,12 @@ print_mode() {
   if [[ "$LINK_OPENWOLF_KNOWLEDGE" -eq 1 ]]; then
     echo "OpenWolf knowledge links: enabled"
   fi
-  echo "Runtime sync: enabled (untracked paths only)"
-  echo "Optimized model asset sync: enabled (ignored real files)"
+  if [[ "$OPENWOLF_ONLY" -eq 1 ]]; then
+    echo "Other config/runtime sync: disabled"
+  else
+    echo "Runtime sync: enabled (untracked paths only)"
+    echo "Optimized model asset sync: enabled (ignored real files)"
+  fi
 }
 
 sanitize_graph_alias() {
@@ -1087,6 +1108,30 @@ NODE
   echo "installed OpenWolf source stamp Codex hooks"
 }
 
+scan_openwolf_target() {
+  local rel
+
+  for rel in "${OPENWOLF_LOCAL_RUNTIME_FILES[@]}"; do
+    ensure_local_exclude "$rel"
+  done
+
+  if [[ "$APPLY" -ne 1 ]]; then
+    echo "would scan OpenWolf anatomy in target worktree"
+    return
+  fi
+
+  if ! command -v openwolf >/dev/null 2>&1; then
+    echo "skip OpenWolf anatomy scan: openwolf command not found"
+    return
+  fi
+
+  if (cd "$TARGET" && openwolf scan); then
+    echo "scanned OpenWolf anatomy in target worktree"
+  else
+    echo "warning: OpenWolf anatomy scan failed in target worktree" >&2
+  fi
+}
+
 link_openwolf_knowledge() {
   local rel
 
@@ -1133,6 +1178,7 @@ link_openwolf_knowledge() {
   sync_openwolf_hooks_dir
   write_openwolf_source_identity
   install_openwolf_source_stamp_hooks
+  scan_openwolf_target
 }
 
 collect_env_links() {
@@ -1260,6 +1306,7 @@ install_git_hooks() {
   local typecheck_lib
   local crg_lib
   local codegraph_lib
+  local openwolf_lib
 
   echo
   echo "Git hooks:"
@@ -1295,6 +1342,9 @@ crg_run update
 
 . "$(git rev-parse --git-path hooks/codegraph-hook-lib.sh)"
 codegraph_run sync
+
+. "$(git rev-parse --git-path hooks/openwolf-hook-lib.sh)"
+openwolf_run scan
 HOOK
 
   read -r -d '' post_checkout <<'HOOK' || true
@@ -1311,6 +1361,9 @@ crg_run build
 
 . "$(git rev-parse --git-path hooks/codegraph-hook-lib.sh)"
 codegraph_run sync
+
+. "$(git rev-parse --git-path hooks/openwolf-hook-lib.sh)"
+openwolf_run scan
 HOOK
 
   read -r -d '' post_merge <<'HOOK' || true
@@ -1323,6 +1376,9 @@ crg_run build
 
 . "$(git rev-parse --git-path hooks/codegraph-hook-lib.sh)"
 codegraph_run sync
+
+. "$(git rev-parse --git-path hooks/openwolf-hook-lib.sh)"
+openwolf_run scan
 HOOK
 
   read -r -d '' post_rewrite <<'HOOK' || true
@@ -1335,6 +1391,9 @@ crg_run build
 
 . "$(git rev-parse --git-path hooks/codegraph-hook-lib.sh)"
 codegraph_run sync
+
+. "$(git rev-parse --git-path hooks/openwolf-hook-lib.sh)"
+openwolf_run scan
 HOOK
 
   read -r -d '' typecheck_lib <<'HOOK' || true
@@ -1495,6 +1554,62 @@ codegraph_run() {
 }
 HOOK
 
+  read -r -d '' openwolf_lib <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+
+openwolf_repo_root() {
+  git rev-parse --show-toplevel 2>/dev/null
+}
+
+openwolf_run() {
+  mode="$1"
+  repo="$(openwolf_repo_root)"
+  if [ -z "$repo" ] || [ ! -d "$repo/.wolf" ]; then
+    return 0
+  fi
+
+  tool_path="$(command -v openwolf || true)"
+  if [ -z "$tool_path" ]; then
+    return 0
+  fi
+
+  wolf_dir="$repo/.wolf"
+  log_file="$wolf_dir/scan-hooks.log"
+  lock_dir="$wolf_dir/scan-hook.lock"
+
+  if ! mkdir "$lock_dir" 2>/dev/null; then
+    printf '%s [%s] skipped: another OpenWolf scan hook is running\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+    return 0
+  fi
+
+  openwolf_cleanup() {
+    rmdir "$lock_dir" 2>/dev/null || true
+  }
+  trap openwolf_cleanup EXIT INT TERM
+
+  printf '%s [%s] start tool=%s repo=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" "$tool_path" "$repo" >> "$log_file"
+  case "$mode" in
+    scan)
+      (cd "$repo" && "$tool_path" scan) >> "$log_file" 2>&1
+      status="$?"
+      if [ "$status" -ge 128 ]; then
+        printf '%s [%s] command exit_status=%s signal=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" "$status" "$((status - 128))" >> "$log_file"
+      else
+        printf '%s [%s] command exit_status=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" "$status" >> "$log_file"
+      fi
+      ;;
+    *)
+      printf '%s [%s] unknown mode\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+      ;;
+  esac
+  printf '%s [%s] end\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+  openwolf_cleanup
+  trap - EXIT INT TERM
+  return 0
+}
+HOOK
+
   write_managed_hook "pre-commit" "$pre_commit"
   write_managed_hook "pre-push" "$pre_push"
   write_managed_hook "post-commit" "$post_commit"
@@ -1504,6 +1619,7 @@ HOOK
   write_managed_hook "typecheck-hook-lib.sh" "$typecheck_lib"
   write_managed_hook "crg-hook-lib.sh" "$crg_lib"
   write_managed_hook "codegraph-hook-lib.sh" "$codegraph_lib"
+  write_managed_hook "openwolf-hook-lib.sh" "$openwolf_lib"
 }
 
 install_dependencies() {
@@ -1526,7 +1642,13 @@ install_dependencies() {
 }
 
 if [[ "$SAME_WORKTREE" -eq 1 ]]; then
-  if [[ "$INSTALL_HOOKS" -eq 1 && "$LINK_CONFIG" -eq 0 && "$LINK_ENV" -eq 0 && "$INSTALL_DEPS" -eq 0 && "$INIT_GRAPHS" -eq 0 && "$LINK_OPENWOLF_KNOWLEDGE" -eq 0 ]]; then
+  if [[ "$OPENWOLF_ONLY" -eq 1 ]]; then
+    echo "Source: $SOURCE"
+    echo "Target: $TARGET"
+    print_mode
+    install_git_hooks
+    scan_openwolf_target
+  elif [[ "$INSTALL_HOOKS" -eq 1 && "$LINK_CONFIG" -eq 0 && "$LINK_ENV" -eq 0 && "$INSTALL_DEPS" -eq 0 && "$INIT_GRAPHS" -eq 0 && "$LINK_OPENWOLF_KNOWLEDGE" -eq 0 ]]; then
     echo "Source: $SOURCE"
     echo "Target: $TARGET"
     print_mode
@@ -1540,6 +1662,12 @@ fi
 echo "Source: $SOURCE"
 echo "Target: $TARGET"
 print_mode
+
+if [[ "$OPENWOLF_ONLY" -eq 1 ]]; then
+  link_openwolf_knowledge
+  install_git_hooks
+  exit 0
+fi
 
 echo
 echo "Files:"
@@ -1596,7 +1724,7 @@ if [[ ${#ENV_LINKS[@]} -gt 0 ]]; then
   TRACKING_CHECK_PATHS+=("${ENV_LINKS[@]}")
 fi
 if [[ "$LINK_OPENWOLF_KNOWLEDGE" -eq 1 ]]; then
-  TRACKING_CHECK_PATHS+=("${OPENWOLF_KNOWLEDGE_LINKS[@]}" "${OPENWOLF_LOCAL_SEED_FILES[@]}" ".wolf/hooks" ".wolf/worktree-source.json" ".wolf/source-stamp-state.json")
+  TRACKING_CHECK_PATHS+=("${OPENWOLF_KNOWLEDGE_LINKS[@]}" "${OPENWOLF_LOCAL_SEED_FILES[@]}" "${OPENWOLF_LOCAL_RUNTIME_FILES[@]}" ".wolf/hooks" ".wolf/worktree-source.json" ".wolf/source-stamp-state.json")
 fi
 for rel in "${TRACKING_CHECK_PATHS[@]}"; do
   warn_if_not_ignored_or_tracked "$rel"
