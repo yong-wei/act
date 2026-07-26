@@ -84,7 +84,7 @@ function persistenceDb(context: object, transitionedCount = 1) {
 describe('smart lesson BullMQ worker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    serviceMocks.fail.mockResolvedValue({});
+    serviceMocks.fail.mockResolvedValue({ state: 'RETRYABLE' });
     serviceMocks.action.mockResolvedValue(undefined);
     serviceMocks.beginCorrection.mockResolvedValue({
       id: 'attempt-correction-1',
@@ -162,7 +162,7 @@ describe('smart lesson BullMQ worker', () => {
     await expect(processSmartLessonGenerationJob(db as never, 'job-1', vi.fn(async () => ({
       serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1',
       generate: vi.fn(async () => ({ output: {}, normalizedResponseId: 'response-1' })),
-    })) as never)).rejects.toBeTruthy();
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
 
     expect(serviceMocks.beginCorrection).toHaveBeenCalledTimes(1);
     expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
@@ -184,7 +184,7 @@ describe('smart lesson BullMQ worker', () => {
       { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
       'job-1',
       vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate })) as never,
-    )).rejects.toThrow(/timed out/);
+    )).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
 
     expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       originalAttemptId: 'attempt-original-1',
@@ -297,7 +297,7 @@ describe('smart lesson BullMQ worker', () => {
       { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
       'job-1',
       vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
-    )).rejects.toMatchObject({ code: 'provider-output-invalid-after-correction' });
+    )).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
 
     expect(generate).toHaveBeenCalledTimes(2);
     expect(serviceMocks.beginCorrection).toHaveBeenCalledTimes(1);
@@ -351,7 +351,7 @@ describe('smart lesson BullMQ worker', () => {
         },
         normalizedResponseId: 'response-1', inputTokens: 10, outputTokens: 20, costMicros: null,
       })),
-    })) as never)).rejects.toMatchObject({ code: 'provider-output-invalid-after-correction' });
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
 
     expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       stage: 'BRIDGE_IN', attemptId: 'attempt-correction-1', retryable: true,
@@ -430,10 +430,35 @@ describe('smart lesson BullMQ worker', () => {
     await expect(processSmartLessonGenerationJob(db as never, 'job-1', vi.fn(async () => ({
       serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1',
       generate: vi.fn(async () => { throw new Error('curl: (28) Operation timed out after 240000 milliseconds with 0 bytes received'); }),
-    })) as never)).rejects.toThrow(/timed out/);
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
 
     expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       failureCode: 'provider-timeout', retryable: true,
+    }));
+  });
+
+  it('rethrows the provider error when persisting the failed stage also fails', async () => {
+    const context = outlineJobContext();
+    const providerError = new Error('provider connection reset');
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.fail.mockRejectedValueOnce(new Error('database temporarily unavailable'));
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({
+        serviceId: 'provider-1',
+        providerKind: 'openai-compatible',
+        model: 'model-1',
+        generate: vi.fn(async () => { throw providerError; }),
+      })) as never,
+    )).rejects.toBe(providerError);
+
+    expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-1',
+      retryable: true,
     }));
   });
 

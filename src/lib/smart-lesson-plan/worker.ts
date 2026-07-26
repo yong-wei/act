@@ -254,17 +254,21 @@ export async function processSmartLessonGenerationJob(
       if (['PAUSED', 'COMPLETED'].includes(updated.state)) return { jobId, state: updated.state };
     } catch (error) {
       const retryable = isRetryableStageError(error);
-      await failGenerationStage(db, {
-        actor: { id: context.ownerId, role: 'TEACHER' },
-        jobId: context.id,
-        stage: stage.kind,
-        claimToken: claim.claimToken,
-        attemptId: finalAttemptId,
-        failureCode: errorCode(error),
-        retryable,
-        validationReceipt,
-      }).catch(() => undefined);
-      throw error;
+      try {
+        const failed = await failGenerationStage(db, {
+          actor: { id: context.ownerId, role: 'TEACHER' },
+          jobId: context.id,
+          stage: stage.kind,
+          claimToken: claim.claimToken,
+          attemptId: finalAttemptId,
+          failureCode: errorCode(error),
+          retryable,
+          validationReceipt,
+        });
+        return { jobId, state: failed.state };
+      } catch {
+        throw error;
+      }
     }
   }
 }
