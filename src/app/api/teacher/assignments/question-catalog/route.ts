@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     const prompt = item.questionRefs.stem?.trim() || '题面待补充';
     const referenceAnswer = item.questionRefs.answerKey?.join('\n') || item.questionRefs.explanation?.trim() || '参考答案待教师补充';
     const rubric = { schemaVersion: 'assignment-scoring-rubric.v2' as const, criteria: [{
-      id: 'criterion-1', label: '完成质量', maxPoints: 10,
+      id: 'criterion-1', label: '完成质量', goalDimension: 'engineeringDecision' as const, maxPoints: 10,
       scoringStandard: '根据作答中的可复核证据、正确性和完整性评分。',
       detailedRubricEnabled: false,
       levels: [],

@@ -217,7 +217,11 @@ describe('teacher assignment mutation route', () => {
     expect(payload.question.source).toHaveProperty('selectionProof');
     expect(payload.question.rubric).toMatchObject({
       schemaVersion: 'assignment-scoring-rubric.v2',
-      criteria: [expect.objectContaining({ detailedRubricEnabled: false, levels: [] })],
+      criteria: [expect.objectContaining({
+        goalDimension: 'engineeringDecision',
+        detailedRubricEnabled: false,
+        levels: [],
+      })],
     });
   });
 
