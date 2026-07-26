@@ -23,6 +23,7 @@ export interface AssignmentEmbeddedEditorProps {
   value: string;
   savedValue: string;
   saveState: AssignmentEmbeddedSaveState;
+  readOnly?: boolean;
   onChange: (value: string) => void;
   onEdit: () => void;
   onSave: () => void | Promise<void>;
@@ -38,6 +39,7 @@ export function AssignmentEmbeddedEditor({
   value,
   savedValue,
   saveState,
+  readOnly = false,
   onChange,
   onEdit,
   onSave,
@@ -48,7 +50,7 @@ export function AssignmentEmbeddedEditor({
   const [uploadPending, setUploadPending] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const rendered = saveState === 'saved';
+  const rendered = saveState === 'saved' || readOnly;
 
   return (
     <section
@@ -63,14 +65,16 @@ export function AssignmentEmbeddedEditor({
           <div className="prose max-w-none" data-assignment-saved-render>
             <RuntimeMarkdownContent markdown={savedValue} resolveAssetHref={resolveAssetHref} />
           </div>
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm"
-            onClick={onEdit}
-          >
-            <Pencil className="h-4 w-4" />
-            编辑
-          </button>
+          {!readOnly ? (
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm"
+              onClick={onEdit}
+            >
+              <Pencil className="h-4 w-4" />
+              编辑
+            </button>
+          ) : null}
         </>
       ) : (
         <>

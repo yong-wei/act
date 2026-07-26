@@ -76,8 +76,22 @@ function profilePayload() {
     user: { id: 'student-902', name: '任务验收学生', email: 'student-902@example.com', role: 'STUDENT' },
     profile: { studentNumber: 'S902', classId: 'class-902', className: '自控 2402', techScore: 80, ethicsScore: 90 },
     statistics: { totalSimulations: 0, completedMissions: 0, ethicalViolations: 0, totalSimulationTime: 0, averageScore: 0 },
-    competency: { overallScore: 70, level: '成长中', trend: '保持稳定', strengths: [], weaknesses: [], dimensions: [] },
-    recentActivity: { preview: [], grouped: [], total: 0 },
+    competency: {
+      model: 'portrait-v2-cumulative',
+      availability: { state: 'SNAPSHOT', reason: 'available' },
+      limitations: [],
+      overallScore: 70,
+      level: '成长中',
+      confidence: 0.8,
+      lastTrend: null,
+      lastRisk: [],
+      evidenceAsOf: '2026-07-11T08:00:00.000Z',
+      generatedAt: '2026-07-11T08:00:00.000Z',
+      strengths: [],
+      improvementAreas: [],
+      dimensions: [],
+    },
+    latestActivity: { preview: [], grouped: [], total: 0 },
     missionProgress: { total: 0, completed: 0, unlocked: 0, locked: 0 },
     personalizedReinforcement: { resources: [], adaptivePractice: { estimatedAbility: null, confidenceInterval: null, weakAreas: [], recommendedFocus: [], questionCount: 0, actionUrl: '/assessment/adaptive-practice?intent=practice' } },
     evidenceStatus: { state: 'missing', confidence: { state: 'missing', level: 'low', score: 0, evidenceCount: 0, sourceCompleteness: 0 }, evidenceWindow: { daysCovered: 0 }, sourceCounts: {}, statusMarkers: ['missing-source'], restrictedReason: null, staleReason: null, refreshedAt: null, generatedAt: new Date(0).toISOString() },
@@ -156,13 +170,13 @@ test('question change, submit result, retry, and history return restore exact fo
   await mockAssignmentRoutes(page);
   let submitCalls = 0;
   await page.unroute('**/api/student/assignments/assignment-902/answers/question-text/submit');
-  await page.route('**/api/student/assignments/assignment-902/answers/question-text/submit', (route) => { submitCalls += 1; return submitCalls === 1 ? route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: '草稿版本已变化，请保存后重试' }) }) : route.fulfill({ contentType: 'application/json', body: JSON.stringify({ attempt: { id: 'attempt-1', attemptNumber: 1 }, assignmentState: 'IN_PROGRESS', submittedRequiredCount: 1 }) }); });
+  await page.route('**/api/student/assignments/assignment-902/answers/question-text/submit', (route) => { submitCalls += 1; return submitCalls === 1 ? route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: 'answer-version-conflict' }) }) : route.fulfill({ contentType: 'application/json', body: JSON.stringify({ attempt: { id: 'attempt-1', attemptNumber: 1 }, assignmentState: 'IN_PROGRESS', submittedRequiredCount: 1 }) }); });
   await page.goto('/missions/assignments/assignment-902');
   await page.getByRole('button', { name: /第 2 题/ }).click();
   await expect(page.getByRole('heading', { name: '上传本题计算过程，并简述关键结论。' })).toBeFocused();
   await page.getByRole('button', { name: /第 1 题/ }).click();
   await page.getByRole('button', { name: '提交本题' }).click();
-  const error = page.getByRole('alert').filter({ hasText: '草稿版本已变化' });
+  const error = page.getByRole('alert').filter({ hasText: '答案已在其他位置更新' });
   await expect(error).toBeFocused();
   await error.getByRole('link', { name: '前往受影响的控件' }).click();
   await expect(page.getByRole('button', { name: '提交本题' })).toBeFocused();
@@ -205,23 +219,82 @@ test('keyboard user can save text and upload one question attachment without a w
   await addStudentSession(context);
   await mockAssignmentRoutes(page);
   await page.goto('/missions/assignments/assignment-902');
-  await page.getByLabel('Markdown 正文').fill('更新后的草稿');
-  await page.getByRole('button', { name: '保存本题草稿' }).click();
+  const answerEditor = page.getByRole('region', { name: '第 1 题答案正文' });
+  await answerEditor.getByRole('button', { name: '编辑' }).click();
+  await answerEditor.locator('[contenteditable="true"][aria-label="第 1 题答案正文"]')
+    .fill('更新后的草稿');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: '本题草稿已保存' })).toContainText('本题草稿已保存');
   await page.getByRole('button', { name: /第 2 题/ }).click();
-  await page.locator('input[type=file]').setInputFiles({ name: 'calculation.pdf', mimeType: 'application/pdf', buffer: Buffer.from('calculation') });
+  await page.locator('#file-question-file').setInputFiles({
+    name: 'malware.exe',
+    mimeType: 'application/octet-stream',
+    buffer: Buffer.from('unsupported'),
+  });
+  await expect(page.getByRole('alert').filter({ hasText: '格式不受支持' }))
+    .toContainText('允许格式');
+  await page.locator('#file-question-file').setInputFiles({ name: 'calculation.pdf', mimeType: 'application/pdf', buffer: Buffer.from('calculation') });
   await expect(page.getByText('calculation.pdf', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /提交整份|整份提交|封卷/ })).toHaveCount(0);
 });
 
-test('pending scan preserves intent, times out recoverably, retries to ready, and blocks unsafe submission', async ({ page, context }) => {
+test('keyboard sorting submits the complete attachment order and remains usable at 320px', async ({ page, context }) => {
   await addStudentSession(context);
   await mockAssignmentRoutes(page);
-  let mode: 'SCANNING' | 'READY' | 'UNSAFE' = 'SCANNING';
-  let failStatusOnce = false;
+  await page.unroute('**/api/student/assignments/assignment-902');
+  const detail = assignment();
+  const questions = detail.questions as Array<Record<string, unknown>>;
+  questions[1] = {
+    ...questions[1],
+    version: 4,
+    state: 'READY',
+    assets: [
+      { id: 'asset-a', displayName: '主要证据.pdf', role: 'ATTACHMENT', orderIndex: 0, sizeBytes: 100 },
+      { id: 'asset-b', displayName: '补充证据.pdf', role: 'ATTACHMENT', orderIndex: 1, sizeBytes: 100 },
+    ],
+  };
+  await page.route('**/api/student/assignments/assignment-902', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ assignment: detail }),
+    }));
+  let reorderBody: unknown;
+  await page.route('**/api/student/assignments/assignment-902/answers/question-file/reorder', async (route) => {
+    reorderBody = route.request().postDataJSON();
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        answer: {
+          version: 5,
+          attachmentOrderProvenance: 'student-arranged',
+        },
+      }),
+    });
+  });
+  await page.setViewportSize({ width: 320, height: 760 });
+  await page.goto('/missions/assignments/assignment-902');
+  await page.getByRole('button', { name: /第 2 题/ }).click();
+  await page.getByRole('button', { name: '下移附件 1' }).click();
+  await expect(page.getByRole('status').filter({ hasText: '附件顺序已保存' })).toBeFocused();
+  expect(reorderBody).toEqual({
+    answerVersion: 4,
+    assetIds: ['asset-b', 'asset-a'],
+  });
+  const metrics = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    body: document.body.scrollWidth,
+    document: document.documentElement.scrollWidth,
+  }));
+  expect(metrics.body).toBeLessThanOrEqual(metrics.viewport);
+  expect(metrics.document).toBeLessThanOrEqual(metrics.viewport);
+});
+
+test('upload failure is localized, retry reaches ready, and unsafe files remain recoverable', async ({ page, context }) => {
+  await addStudentSession(context);
+  await mockAssignmentRoutes(page);
+  let mode: 'NETWORK_ERROR' | 'READY' | 'UNSAFE' = 'NETWORK_ERROR';
   let intentCounter = 0;
   const finalizeCalls = new Map<string, number>();
-  const finalizeKeys = new Map<string, string[]>();
   await page.unroute('**/api/student/assignments/assignment-902/answers/question-file/upload-sign');
   await page.unroute('**/api/student/assignments/assignment-902/answers/question-file/finalize**');
   await page.route('**/api/student/assignments/assignment-902/answers/question-file/upload-sign', (route) => {
@@ -231,50 +304,33 @@ test('pending scan preserves intent, times out recoverably, retries to ready, an
   await page.route('**/api/student/assignments/assignment-902/answers/question-file/finalize**', (route) => {
     const intentId = `intent-round3-${intentCounter}`;
     if (route.request().method() === 'POST') {
-      const body = route.request().postDataJSON() as { idempotencyKey: string };
-      finalizeKeys.set(intentId, [...(finalizeKeys.get(intentId) ?? []), body.idempotencyKey]);
       const calls = (finalizeCalls.get(intentId) ?? 0) + 1;
       finalizeCalls.set(intentId, calls);
       if (mode === 'UNSAFE') return route.fulfill({ status: 422, contentType: 'application/json', body: JSON.stringify({ status: 'UNSAFE', intentId }) });
-      if (mode === 'READY' && calls > 1) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ status: 'READY', intentId, asset: { id: `asset-${intentId}`, displayName: 'round3.pdf', mimeType: 'application/pdf', sizeBytes: 10, state: 'FINALIZED', finalizedAt: '2026-07-11T08:03:00.000Z' } }) });
+      if (mode === 'READY' && calls > 1) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ status: 'READY', intentId, answerVersion: 2, asset: { id: `asset-${intentId}`, displayName: 'round3.pdf', mimeType: 'application/pdf', sizeBytes: 10, state: 'FINALIZED', finalizedAt: '2026-07-11T08:03:00.000Z', role: 'ATTACHMENT', orderIndex: 0 } }) });
       return route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ status: 'SCANNING', intentId }) });
     }
-    if (failStatusOnce) { failStatusOnce = false; return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: '扫描服务暂不可用' }) }); }
-    return route.fulfill({ status: mode === 'UNSAFE' ? 422 : 200, contentType: 'application/json', body: JSON.stringify(mode === 'READY' ? { status: 'CLEAN', intentId } : { status: mode, intentId }) });
+    if (mode === 'NETWORK_ERROR') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'scanner-provider-failed' }) });
+    return route.fulfill({ status: mode === 'UNSAFE' ? 422 : 200, contentType: 'application/json', body: JSON.stringify(mode === 'READY' ? { status: 'CLEAN', intentId } : { status: 'UNSAFE', intentId }) });
   });
   await page.goto('/missions/assignments/assignment-902');
   await page.getByRole('button', { name: /第 2 题/ }).click();
-  await page.locator('input[type=file]').setInputFiles({ name: 'round3.pdf', mimeType: 'application/pdf', buffer: Buffer.from('round3') });
-  const timeout = page.getByRole('status').filter({ hasText: '安全扫描仍在进行' });
-  await expect(timeout).toBeFocused({ timeout: 8_000 });
-  await expect(timeout).toContainText('intent-r…');
-  await expect(page.getByRole('button', { name: '提交本题' })).toBeDisabled();
+  await page.locator('#file-question-file').setInputFiles({ name: 'round3.pdf', mimeType: 'application/pdf', buffer: Buffer.from('round3') });
+  const failedUpload = page.getByRole('status').filter({ hasText: '扫描状态查询失败' });
+  await expect(failedUpload).toBeVisible();
+  await page.getByRole('button', { name: '提交本题' }).click();
+  await expect(page.getByRole('alert').filter({ hasText: '存在上传失败的附件' })).toBeFocused();
   mode = 'READY';
-  await timeout.getByRole('button', { name: '重新检查扫描状态' }).click();
-  await expect(page.getByRole('status').filter({ hasText: '已通过安全扫描并就绪' })).toBeFocused();
+  await failedUpload.getByRole('button', { name: '重试' }).click();
+  await expect(page.getByRole('status').filter({ hasText: '附件“round3.pdf”已上传完成' })).toBeFocused();
+  expect(intentCounter).toBe(1);
   expect(finalizeCalls.get('intent-round3-1')).toBe(2);
-  expect(new Set(finalizeKeys.get('intent-round3-1')).size).toBe(1);
-  await expect(page.getByRole('button', { name: '提交本题' })).toBeEnabled();
+  await expect(page.getByText('round3.pdf', { exact: true })).toBeVisible();
 
-  await page.reload();
-  await page.getByRole('button', { name: /第 2 题/ }).click();
   mode = 'UNSAFE';
-  await page.locator('input[type=file]').setInputFiles({ name: 'unsafe.pdf', mimeType: 'application/pdf', buffer: Buffer.from('unsafe') });
-  const unsafe = page.getByRole('status').filter({ hasText: '未通过安全扫描' });
-  await expect(unsafe).toBeFocused();
-  await expect(page.getByRole('button', { name: '提交本题' })).toBeDisabled();
-  await expect(unsafe.getByRole('button', { name: '重新检查扫描状态' })).toHaveCount(0);
-
-  await page.reload();
-  await page.getByRole('button', { name: /第 2 题/ }).click();
-  mode = 'READY';
-  failStatusOnce = true;
-  await page.locator('input[type=file]').setInputFiles({ name: 'network-retry.pdf', mimeType: 'application/pdf', buffer: Buffer.from('network') });
-  const networkError = page.getByRole('status').filter({ hasText: '扫描服务暂不可用' });
-  await expect(networkError).toBeFocused();
-  await expect(networkError).toContainText('上传意图');
-  await networkError.getByRole('button', { name: '重新检查扫描状态' }).click();
-  await expect(page.getByRole('status').filter({ hasText: '已通过安全扫描并就绪' })).toBeFocused();
-  expect(finalizeCalls.get('intent-round3-3')).toBe(2);
-  expect(new Set(finalizeKeys.get('intent-round3-3')).size).toBe(1);
+  await page.locator('#file-question-file').setInputFiles({ name: 'unsafe.pdf', mimeType: 'application/pdf', buffer: Buffer.from('unsafe') });
+  const unsafe = page.getByRole('status').filter({ hasText: '附件未通过安全扫描' });
+  await expect(unsafe).toBeVisible();
+  await unsafe.getByRole('button', { name: '移除失败项' }).click();
+  await expect(unsafe).toHaveCount(0);
 });
