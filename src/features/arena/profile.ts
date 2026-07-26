@@ -138,6 +138,7 @@ export interface ArenaPortfolioRecentTrainingRun {
 export interface ArenaPortfolioTrainingSummary {
   total: number;
   recentWindowSize: number;
+  actualSampleCount: number;
   recentPreviewCount: number;
   latestTrainedAt?: string;
   recentAverageQualityScore: number | null;
@@ -239,19 +240,21 @@ function buildTrainingSummary(
       };
     })
     .sort(sortByTrainedAtDesc);
-  const qualityScores = recentRuns
+  const windowRuns = recentRuns.slice(0, PORTFOLIO_RECENT_LIMIT);
+  const qualityScores = windowRuns
     .map((run) => run.qualityScore)
     .filter((score): score is number => score !== null);
 
   return {
     total: stats.total ?? recentRuns.length,
     recentWindowSize: PORTFOLIO_RECENT_LIMIT,
-    recentPreviewCount: recentRuns.filter((run) => run.preview).length,
-    latestTrainedAt: recentRuns[0]?.trainedAt,
+    actualSampleCount: qualityScores.length,
+    recentPreviewCount: windowRuns.filter((run) => run.preview).length,
+    latestTrainedAt: windowRuns[0]?.trainedAt,
     recentAverageQualityScore: qualityScores.length > 0
       ? roundSignal(qualityScores.reduce((sum, score) => sum + score, 0) / qualityScores.length)
       : null,
-    recentRuns: recentRuns.slice(0, PORTFOLIO_RECENT_LIMIT),
+    recentRuns: windowRuns,
   };
 }
 
