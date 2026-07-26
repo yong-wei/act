@@ -29,6 +29,7 @@ test('uses the real browser, API, worker, Source Pack and fixture provider throu
   await page.getByLabel('生成提纲后暂停确认').check();
   await page.getByRole('button', { name: '确认并创建单课任务' }).click();
   await expect(page.getByRole('status').filter({ hasText: '单课任务已确认' })).toBeVisible();
+  await page.reload();
 
   const card = page.locator('article').filter({ has: page.getByRole('heading', { name: topic }) });
   await expect(card).toContainText('教师创建，来源待补');

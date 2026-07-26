@@ -1,0 +1,57 @@
+{
+  "evidenceVersion": "smart-lesson-generation-verification.v1",
+  "sourceRevision": "931bcb452f6a570f3ea2a58d8f27b2bc0eb7192b",
+  "sourceBinding": {
+    "workspaceCleanAtRealProviderStart": true,
+    "status": "valid"
+  },
+  "realProvider": {
+    "provider": "siliconflow",
+    "model": "deepseek-ai/DeepSeek-V4-Flash",
+    "fixtureTokenPresent": false,
+    "routeInterception": false,
+    "result": "passed",
+    "jobState": "COMPLETED",
+    "stageCount": 7,
+    "recovery": "outline-confirmation-pause-resume",
+    "evidenceFile": "real-provider-full-boppps.json"
+  },
+  "checks": [
+    {
+      "command": "node --import tsx scripts/tests/run-smart-lesson-real-e2e.ts --real-provider",
+      "scope": "clean revision, fresh PostgreSQL schema, real browser, public APIs and workers",
+      "result": "passed",
+      "tests": 1
+    },
+    {
+      "command": "node --import tsx scripts/tests/run-smart-lesson-real-e2e.ts",
+      "scope": "fixture browser, API, worker, Source Pack and approval",
+      "result": "passed",
+      "tests": 1
+    },
+    {
+      "command": "npx vitest run --config src/lib/smart-lesson-plan/vitest.config.ts",
+      "result": "passed",
+      "testFiles": 9,
+      "tests": 80
+    },
+    {
+      "command": "npm run test:provider-runtime-smoke",
+      "result": "passed",
+      "checks": 5
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "openspec validate harden-smart-lesson-generation-experience --type change --strict",
+      "result": "passed"
+    }
+  ],
+  "privacy": {
+    "includesProviderSecret": false,
+    "includesRawPromptOrResponse": false,
+    "includesUserPayload": false
+  }
+}

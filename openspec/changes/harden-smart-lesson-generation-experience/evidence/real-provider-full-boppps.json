@@ -1,0 +1,188 @@
+{
+  "evidenceVersion": "smart-lesson-real-provider-e2e.v1",
+  "generatedAt": "2026-07-26T07:50:15.496Z",
+  "sourceRevision": "931bcb452f6a570f3ea2a58d8f27b2bc0eb7192b",
+  "providerPolicy": {
+    "fixtureTokenPresent": false,
+    "allAttemptsUseNonFixtureProvider": true
+  },
+  "result": {
+    "jobState": "COMPLETED",
+    "stageCount": 7,
+    "completedStages": [
+      "OUTLINE",
+      "BRIDGE_IN",
+      "OBJECTIVES",
+      "PRE_ASSESSMENT",
+      "PARTICIPATORY_LEARNING",
+      "POST_ASSESSMENT",
+      "SUMMARY"
+    ],
+    "correctionAttemptCount": 0
+  },
+  "recovery": {
+    "mechanism": "outline-confirmation-pause-resume",
+    "pausedAfterOutline": true,
+    "resumedToFirstIncompleteStage": "BRIDGE_IN",
+    "completedOutlineAttemptIdsPreserved": true,
+    "teacherRetry": null
+  },
+  "attempts": [
+    {
+      "stage": "OUTLINE",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "correctsAttemptId": null,
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-outline.v1",
+      "outcome": "SUCCEEDED",
+      "validationReceipt": {
+        "valid": true,
+        "issues": [],
+        "schemaVersion": "smart-lesson-outline.v1"
+      },
+      "inputTokens": 2117,
+      "outputTokens": 1422,
+      "costMicros": null,
+      "latencyMs": 171439
+    },
+    {
+      "stage": "BRIDGE_IN",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "correctsAttemptId": null,
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-boppps-bridge_in.v1",
+      "outcome": "SUCCEEDED",
+      "validationReceipt": {
+        "valid": true,
+        "issues": [],
+        "schemaVersion": "smart-lesson-boppps-bridge_in.v1"
+      },
+      "inputTokens": 2432,
+      "outputTokens": 3337,
+      "costMicros": null,
+      "latencyMs": 94740
+    },
+    {
+      "stage": "OBJECTIVES",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "correctsAttemptId": null,
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-boppps-objectives.v1",
+      "outcome": "SUCCEEDED",
+      "validationReceipt": {
+        "valid": true,
+        "issues": [],
+        "schemaVersion": "smart-lesson-boppps-objectives.v1"
+      },
+      "inputTokens": 2733,
+      "outputTokens": 1888,
+      "costMicros": null,
+      "latencyMs": 128330
+    },
+    {
+      "stage": "PRE_ASSESSMENT",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "correctsAttemptId": null,
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-boppps-pre_assessment.v1",
+      "outcome": "SUCCEEDED",
+      "validationReceipt": {
+        "valid": true,
+        "issues": [],
+        "schemaVersion": "smart-lesson-boppps-pre_assessment.v1"
+      },
+      "inputTokens": 3004,
+      "outputTokens": 1858,
+      "costMicros": null,
+      "latencyMs": 96277
+    },
+    {
+      "stage": "PARTICIPATORY_LEARNING",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "correctsAttemptId": null,
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-boppps-participatory_learning.v1",
+      "outcome": "SUCCEEDED",
+      "validationReceipt": {
+        "valid": true,
+        "issues": [],
+        "schemaVersion": "smart-lesson-boppps-participatory_learning.v1"
+      },
+      "inputTokens": 3401,
+      "outputTokens": 6257,
+      "costMicros": null,
+      "latencyMs": 201181
+    },
+    {
+      "stage": "POST_ASSESSMENT",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "correctsAttemptId": null,
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-boppps-post_assessment.v1",
+      "outcome": "SUCCEEDED",
+      "validationReceipt": {
+        "valid": true,
+        "issues": [],
+        "schemaVersion": "smart-lesson-boppps-post_assessment.v1"
+      },
+      "inputTokens": 4306,
+      "outputTokens": 2201,
+      "costMicros": null,
+      "latencyMs": 46019
+    },
+    {
+      "stage": "SUMMARY",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "correctsAttemptId": null,
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-boppps-summary.v1",
+      "outcome": "SUCCEEDED",
+      "validationReceipt": {
+        "valid": true,
+        "issues": [],
+        "schemaVersion": "smart-lesson-boppps-summary.v1"
+      },
+      "inputTokens": 4751,
+      "outputTokens": 3389,
+      "costMicros": null,
+      "latencyMs": 78113
+    }
+  ],
+  "controlledRecoveryCoverage": {
+    "command": "npx vitest run --config src/lib/smart-lesson-plan/vitest.config.ts src/lib/smart-lesson-plan/__tests__/worker.test.ts",
+    "purpose": "受控覆盖单次修正、二次非法暂停、显式教师重试与投递幂等；不替代真实提供商结果。"
+  },
+  "privacy": {
+    "includesProviderSecret": false,
+    "includesRawPromptOrResponse": false,
+    "includesUserPayload": false
+  }
+}

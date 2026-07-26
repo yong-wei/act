@@ -16,5 +16,5 @@
 
 - [x] 3.1 Test deterministic normalization, one successful correction, second invalid result, duplicate delivery, and explicit retry.
 - [x] 3.2 Test exact stage and action labels, structure/source/duration completion gates, automatic refresh, completed-stage preservation, cancellation, resume, and no raw JSON.
-- [ ] 3.3 Complete one real-provider full BOPPPS generation and record stage, attempt, validation, latency, and recovery evidence.
-- [ ] 3.4 Run typecheck, provider adapter tests, worker tests, and smart-preparation browser tests.
+- [x] 3.3 Complete one real-provider full BOPPPS generation and record stage, attempt, validation, latency, and recovery evidence.
+- [x] 3.4 Run typecheck, provider adapter tests, worker tests, and smart-preparation browser tests.
