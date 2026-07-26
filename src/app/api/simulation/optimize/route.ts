@@ -13,6 +13,7 @@ import {
 } from '@/resources/simulations/core/seeded-rng';
 import {
   optimizePIDParams,
+  getLegacySceneLogic,
   type OptimizationTarget,
   type OptimizationConstraints,
   type SimpleSimConfig,
@@ -73,6 +74,9 @@ export async function POST(request: Request) {
       JSON.stringify({ config, target, constraints, maxIterations: body.maxIterations ?? 50 })
     );
 
+    // 使用 v1 legacy 场景：120 秒航向日程，与持久化层 scene-runtime-target-v1 契约一致
+    const legacyScenario = getLegacySceneLogic('turn90', target.targetHeading);
+
     // 执行优化
     const result = optimizePIDParams(
       config,
@@ -84,11 +88,12 @@ export async function POST(request: Request) {
         runContext: createSimulationRunContext({
           runId: `optimizer-${session.user.id}-${replaySeed.toString(16)}`,
           sceneId: 'simulation/optimizer/nomoto-quick-sim',
-          scenarioId: 'turn90',
+          scenarioId: legacyScenario.scenarioId,
           seed: replaySeed,
-          runtimeVersion: 'simulation-optimizer-runtime-v1',
+          runtimeVersion: legacyScenario.runtimeVersion,
           modelVersion: 'nomoto-quick-sim-v1',
         }),
+        scenario: legacyScenario,
       }
     );
 
