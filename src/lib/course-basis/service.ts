@@ -268,11 +268,20 @@ export async function saveCourseBasisVersionEdit(db: CourseBasisDb, input: {
     || referenceCount > 0
     || selectionCount > 0;
   if (frozen) {
+    const latest = await db.courseBasisDocumentVersion.findFirst({
+      where: { documentId: current.documentId },
+      orderBy: { versionNumber: 'desc' },
+      select: { id: true, versionNumber: true, contentHash: true },
+    });
+    if (!latest) throw new CourseBasisError('version-edit-conflict');
+    if (latest.versionNumber > current.versionNumber && latest.contentHash === extracted.contentHash) {
+      return { version: await selectVersionMutationResult(db, latest.id), createdSuccessor: true };
+    }
     const successor = await importCourseBasisVersion(db, {
       actor,
       documentId: current.documentId,
-      expectedLatestVersionId: current.id,
-      expectedLatestVersionNumber: current.versionNumber,
+      expectedLatestVersionId: latest.id,
+      expectedLatestVersionNumber: latest.versionNumber,
       source: {
         sourceType: 'MARKDOWN',
         sourceName: `${current.sourceName}（编辑）`,

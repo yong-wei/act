@@ -399,6 +399,9 @@ function replaceStringAtPath(value: RecordValue, path: string[], replacement: st
     const index = Number(tail[0]);
     if (!Number.isInteger(index) || index < 0 || index >= current.length) return null;
     const child = current[index];
+    if (tail.length === 1) {
+      return typeof child === 'string' ? { ...value, [head]: updateAt(current, index, replacement) } : null;
+    }
     if (!child || typeof child !== 'object' || Array.isArray(child)) return null;
     const next = replaceStringAtPath(child as RecordValue, tail.slice(1), replacement);
     return next ? { ...value, [head]: updateAt(current, index, next) } : null;

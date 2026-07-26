@@ -375,6 +375,10 @@ describe('preparation document editor interactions', () => {
                 message: '补充导入案例',
                 proposedReplacement: '展示真实航向偏差案例',
               }, {
+                path: 'limitations.0',
+                message: '更新教学限制',
+                proposedReplacement: '需要补充课堂观测证据',
+              }, {
                 path: 'boppps.bridgeIn.steps.0.sourceBindings.0.contentHash',
                 message: '替换来源摘要',
                 proposedReplacement: 'unsafe-replacement',
@@ -393,21 +397,23 @@ describe('preparation document editor interactions', () => {
     });
 
     const acceptButtons = [...container.querySelectorAll('button')].filter((button) => button.textContent === '接受');
-    expect(acceptButtons).toHaveLength(1);
-    const accept = acceptButtons[0];
+    expect(acceptButtons).toHaveLength(2);
     const genericSuggestion = [...container.querySelectorAll('article')]
       .find((article) => article.textContent?.includes('补充总结问题'))!;
     expect(genericSuggestion.textContent).toContain('该建议未包含可应用的修改');
     const ignore = [...genericSuggestion.querySelectorAll('button')].find((button) => button.textContent === '忽略')!;
-    await act(async () => accept.click());
+    await act(async () => acceptButtons[0].click());
+    await act(async () => acceptButtons[1].click());
     await act(async () => ignore.click());
 
     const documentDraft = JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!);
     expect(documentDraft.content.boppps.bridgeIn.steps[0].teacherActivity).toBe('展示真实航向偏差案例');
     expect(documentDraft.content.boppps.bridgeIn.teacherActivity).toBe('展示真实航向偏差案例');
+    expect(documentDraft.content.limitations[0]).toBe('需要补充课堂观测证据');
     expect(documentDraft.content.boppps.bridgeIn.steps[0].sourceBindings).toEqual(plan.boppps.bridgeIn.steps[0].sourceBindings);
     expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1:suggestions')!)).toEqual({
       'revision-hash:finding:0': 'accepted',
+      'revision-hash:finding:1': 'accepted',
       'revision-hash:suggestion:0': 'ignored',
     });
     expect(fetch.mock.calls.every(([, init]) => !String((init as RequestInit | undefined)?.method).includes('approve'))).toBe(true);
