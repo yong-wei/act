@@ -212,11 +212,23 @@ describe('Konling citation protocol', () => {
 
   it('preserves bracketed technical expressions that are not citation ids', () => {
     const result = normalizeKonlingCitations({
-      answer: '数组切片 x[0:10]，参数写作 [PID: Kp=1]，教材依据 [textbook-unit:one]。',
+      answer: [
+        '离散序列 y[0]，数组切片 x[0:10]，参数写作 [PID: Kp=1]。',
+        '代码 `values[2]` 与：',
+        '```ts',
+        '[1]',
+        '```',
+        '教材依据[1]，完整 ID [textbook-unit:one]。',
+      ].join('\n'),
       assignedCitations: assignKonlingCitationDisplayNumbers(sources),
     });
 
-    expect(result.body).toBe('数组切片 x[0:10]，参数写作 [PID: Kp=1]，教材依据 [1]。');
+    expect(result.body).toContain('y[0]');
+    expect(result.body).toContain('x[0:10]');
+    expect(result.body).toContain('[PID: Kp=1]');
+    expect(result.body).toContain('`values[2]`');
+    expect(result.body).toContain('```ts\n[1]\n```');
+    expect(result.body).toContain('教材依据[1]，完整 ID [1]');
     expect(result.unresolvedMarkers).toEqual([]);
   });
 
