@@ -7,6 +7,8 @@ import { RuntimeMarkdownContent } from '@/components/shared/runtime-markdown';
 
 import {
   RichMarkdownEditor,
+  validateProtectedEditorMarkdownAssets,
+  type ProtectedEditorAssetValidator,
   type ProtectedEditorImageUpload,
 } from './rich-markdown-editor';
 
@@ -25,6 +27,7 @@ export interface AssignmentEmbeddedEditorProps {
   onEdit: () => void;
   onSave: () => void | Promise<void>;
   uploadImage: ProtectedEditorImageUpload;
+  validateAssetReference: ProtectedEditorAssetValidator;
   resolveAssetHref: (href: string) => string;
 }
 
@@ -39,10 +42,12 @@ export function AssignmentEmbeddedEditor({
   onEdit,
   onSave,
   uploadImage,
+  validateAssetReference,
   resolveAssetHref,
 }: AssignmentEmbeddedEditorProps) {
   const [uploadPending, setUploadPending] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const rendered = saveState === 'saved';
 
   return (
@@ -83,11 +88,19 @@ export function AssignmentEmbeddedEditor({
           {uploadError ? <p role="alert" className="text-sm text-destructive">{uploadError}</p> : null}
           {saveState === 'failed' ? <p role="alert" className="text-sm text-destructive">保存失败，本地内容仍保留，请重试。</p> : null}
           {saveState === 'conflict' ? <p role="alert" className="text-sm text-destructive">服务器已有较新修订，本地内容仍保留，请处理冲突后重试。</p> : null}
+          {validationError ? <p role="alert" className="text-sm text-destructive">{validationError}</p> : null}
           <button
             type="button"
             disabled={saveState === 'saving' || uploadPending}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50"
-            onClick={() => void onSave()}
+            onClick={() => {
+              if (!validateProtectedEditorMarkdownAssets(value, validateAssetReference)) {
+                setValidationError('正文包含无效或不属于当前作业字段的图片，请移除后再保存。');
+                return;
+              }
+              setValidationError(null);
+              void onSave();
+            }}
           >
             <Save className="h-4 w-4" />
             {saveState === 'saving' ? '保存中…' : '保存'}
@@ -101,6 +114,7 @@ export function AssignmentEmbeddedEditor({
 interface AssignmentEmbeddedHostExampleProps {
   initialValue: string;
   uploadImage: ProtectedEditorImageUpload;
+  validateAssetReference: ProtectedEditorAssetValidator;
   resolveAssetHref: (href: string) => string;
   persist: (value: string) => Promise<void>;
 }
@@ -111,6 +125,7 @@ function AssignmentEmbeddedHostExample({
   ariaLabel,
   initialValue,
   uploadImage,
+  validateAssetReference,
   resolveAssetHref,
   persist,
 }: AssignmentEmbeddedHostExampleProps & {
@@ -143,6 +158,7 @@ function AssignmentEmbeddedHostExample({
         }
       }}
       uploadImage={uploadImage}
+      validateAssetReference={validateAssetReference}
       resolveAssetHref={resolveAssetHref}
     />
   );

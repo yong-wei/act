@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { Editor } from '@tiptap/core';
+import { Editor } from '@tiptap/core';
 import { EditorContent, useEditor } from '@tiptap/react';
 import Image from '@tiptap/extension-image';
 import StarterKit from '@tiptap/starter-kit';
@@ -38,6 +38,7 @@ export interface ProtectedEditorAssetReference {
 }
 
 export type ProtectedEditorImageUpload = (file: File) => Promise<ProtectedEditorAssetReference>;
+export type ProtectedEditorAssetValidator = (asset: ProtectedEditorAssetReference) => boolean;
 
 export function RichMarkdownEditor({
   value,
@@ -180,6 +181,45 @@ export function isProtectedEditorAssetReference(
 ): boolean {
   return /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(value.assetId)
     && /^\/api\/[A-Za-z0-9._~:/%+-]+$/.test(value.href);
+}
+
+export function validateProtectedEditorMarkdownAssets(
+  markdown: string,
+  validateAsset: ProtectedEditorAssetValidator,
+): boolean {
+  if (/<img\b/i.test(markdown)) return false;
+  const editor = new Editor({
+    extensions: PREPARATION_MARKDOWN_EXTENSIONS,
+    content: markdown,
+    contentType: 'markdown',
+  });
+  let valid = true;
+  editor.state.doc.descendants((node) => {
+    if (node.type.name !== 'image') return true;
+    const title = typeof node.attrs.title === 'string' ? node.attrs.title : '';
+    const assetId = title.startsWith('asset:') ? title.slice('asset:'.length) : '';
+    const asset = {
+      assetId,
+      href: typeof node.attrs.src === 'string' ? node.attrs.src : '',
+      altText: typeof node.attrs.alt === 'string' ? node.attrs.alt : undefined,
+    };
+    if (!isProtectedEditorAssetReference(asset)) {
+      valid = false;
+      return false;
+    }
+    try {
+      if (!validateAsset(asset)) {
+        valid = false;
+        return false;
+      }
+    } catch {
+      valid = false;
+      return false;
+    }
+    return true;
+  });
+  editor.destroy();
+  return valid;
 }
 
 export async function insertProtectedEditorImages(

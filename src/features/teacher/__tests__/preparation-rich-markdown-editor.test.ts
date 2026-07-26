@@ -10,6 +10,7 @@ import {
   PREPARATION_EDITOR_DEPENDENCY_DECISION,
   PREPARATION_MARKDOWN_EXTENSIONS,
   replacePreparationMarkdown,
+  validateProtectedEditorMarkdownAssets,
 } from '../preparation-document-editor/rich-markdown-editor';
 
 const fixture = `# 控制系统教学设计
@@ -120,5 +121,29 @@ describe('preparation rich Markdown adapter', () => {
     expect(pending).toEqual([1, 1, -1, -1]);
     expect(errors.at(-1)).toContain('broken.png');
     editor.destroy();
+  });
+
+  it('rejects external, unidentified, and host-foreign image references before save', () => {
+    const owned = (asset: { assetId: string }) => asset.assetId === 'asset-owned';
+    expect(validateProtectedEditorMarkdownAssets(
+      '![图](/api/assignment-assets/asset-owned "asset:asset-owned")',
+      owned,
+    )).toBe(true);
+    expect(validateProtectedEditorMarkdownAssets(
+      '![图](https://example.com/image.png "asset:asset-owned")',
+      owned,
+    )).toBe(false);
+    expect(validateProtectedEditorMarkdownAssets(
+      '![图](/api/assignment-assets/asset-owned)',
+      owned,
+    )).toBe(false);
+    expect(validateProtectedEditorMarkdownAssets(
+      '![图](/api/assignment-assets/asset-foreign "asset:asset-foreign")',
+      owned,
+    )).toBe(false);
+    expect(validateProtectedEditorMarkdownAssets(
+      '<img src="https://example.com/image.png" alt="外部图">',
+      owned,
+    )).toBe(false);
   });
 });

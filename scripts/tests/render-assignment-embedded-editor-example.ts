@@ -12,6 +12,7 @@ const hostProps = {
     assetId: 'asset-1',
     href: '/api/assignment-assets/asset-1',
   }),
+  validateAssetReference: (asset: { assetId: string }) => asset.assetId === 'asset-1',
   resolveAssetHref: (href: string) => href,
   persist: async () => undefined,
 };

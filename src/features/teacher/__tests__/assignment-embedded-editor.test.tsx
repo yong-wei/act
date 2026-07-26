@@ -41,6 +41,7 @@ describe('assignment embedded editor', () => {
         onEdit={vi.fn()}
         onSave={vi.fn()}
         uploadImage={vi.fn()}
+        validateAssetReference={() => true}
         resolveAssetHref={(href) => href}
       />,
     ));
@@ -61,6 +62,7 @@ describe('assignment embedded editor', () => {
       <Example
         initialValue="已保存内容"
         uploadImage={vi.fn()}
+        validateAssetReference={() => true}
         resolveAssetHref={(href) => href}
         persist={vi.fn(async () => undefined)}
       />,
@@ -80,6 +82,7 @@ describe('assignment embedded editor', () => {
       <TeacherAssignmentContentEditorExample
         initialValue="本地内容"
         uploadImage={vi.fn()}
+        validateAssetReference={() => true}
         resolveAssetHref={(href) => href}
         persist={vi.fn(async () => { throw error; })}
       />,
@@ -110,6 +113,7 @@ describe('assignment embedded editor', () => {
         onEdit={vi.fn()}
         onSave={vi.fn()}
         uploadImage={uploadImage}
+        validateAssetReference={() => true}
         resolveAssetHref={(href) => href}
       />,
     ));
@@ -151,5 +155,31 @@ describe('assignment embedded editor', () => {
     ]);
     expect(drop.defaultPrevented).toBe(true);
     expect(paste.defaultPrevented).toBe(true);
+  });
+
+  it('blocks save when restored Markdown contains a foreign image reference', async () => {
+    const onSave = vi.fn();
+    await act(async () => root.render(
+      <AssignmentEmbeddedEditor
+        hostRole="teacher"
+        field="question-prompt"
+        ariaLabel="作业题目内容"
+        value={'![外部图](https://example.com/image.png "asset:foreign")'}
+        savedValue=""
+        saveState="editing"
+        onChange={vi.fn()}
+        onEdit={vi.fn()}
+        onSave={onSave}
+        uploadImage={vi.fn()}
+        validateAssetReference={() => false}
+        resolveAssetHref={(href) => href}
+      />,
+    ));
+    const save = [...container.querySelectorAll('button')].find((button) => button.textContent === '保存')!;
+    await act(async () => save.click());
+
+    expect(onSave).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('无效或不属于当前作业字段的图片');
+    expect(container.querySelector('[aria-label="作业题目内容"]')).not.toBeNull();
   });
 });
