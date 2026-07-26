@@ -181,11 +181,29 @@ describe('teacher assignment mutation route', () => {
     expect((await PATCH_ASSIGNMENT(patchRequest(), { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response).status).toBe(200);
     updateAssignmentDraft.mockRejectedValueOnce(new (await import('@/lib/assignments/assignment-domain')).AssignmentDomainError('version-conflict'));
     expect((await PATCH_ASSIGNMENT(patchRequest(), { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response).status).toBe(409);
-    const publish = new Request('https://act.example/api/teacher/assignments/assignment-1/publish', { method: 'POST', headers: { origin: 'https://act.example' }, body: JSON.stringify({ revisionId: 'revision-1', expectedVersion: 2, idempotencyKey: 'publish-assignment-route-1', audiences: [{ classId: 'class-1', availableAt: '2026-07-12T00:00:00.000Z', dueAt: '2026-07-13T00:00:00.000Z' }] }) });
+    const publish = new Request('https://act.example/api/teacher/assignments/assignment-1/publish', { method: 'POST', headers: { origin: 'https://act.example' }, body: JSON.stringify({ revisionId: 'revision-1', expectedVersion: 2, contentDigest: `sha256:${'a'.repeat(64)}`, idempotencyKey: 'assignment-ui:assignment-1:revision-1:2', audiences: [{ classId: 'class-1', availableAt: '2026-07-12T00:00:00.000Z', dueAt: '2026-07-13T00:00:00.000Z' }] }) });
     expect((await PUBLISH_ASSIGNMENT(publish, { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response).status).toBe(200);
     const reload = await GET_ASSIGNMENT(new Request('https://act.example/api/teacher/assignments/assignment-1'), { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response;
     expect(reload.status).toBe(200);
     await expect(reload.json()).resolves.toMatchObject({ assignment: { revisions: [{ state: 'PUBLISHED', version: 3, frozenAt: expect.any(String) }] } });
+  });
+
+  it('rejects unsaved content fields from the publication command', async () => {
+    const publish = new Request('https://act.example/api/teacher/assignments/assignment-1/publish', {
+      method: 'POST',
+      headers: { origin: 'https://act.example' },
+      body: JSON.stringify({
+        revisionId: 'revision-1',
+        expectedVersion: 2,
+        contentDigest: `sha256:${'a'.repeat(64)}`,
+        idempotencyKey: 'assignment-ui:assignment-1:revision-1:2',
+        audiences: [{ classId: 'class-1', availableAt: '2026-07-12T00:00:00.000Z', dueAt: '2026-07-13T00:00:00.000Z' }],
+        draft: draft(),
+      }),
+    });
+    const response = await PUBLISH_ASSIGNMENT(publish, { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response;
+    expect(response.status).toBe(400);
+    expect(publishAssignmentRevision).not.toHaveBeenCalled();
   });
 
   it('materializes a complete assignment-owned derivative instead of trusting preview lineage', async () => {

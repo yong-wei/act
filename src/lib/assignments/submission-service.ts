@@ -63,23 +63,69 @@ async function findSubmissionObjectTombstone(db: any, objectKey: string): Promis
 export async function listStudentAssignments(prisma: PrismaClient, studentId: string, now = new Date()) {
   const profile = await prisma.studentProfile.findUnique({ where: { userId: studentId }, select: { classId: true } });
   const currentClassId = profile?.classId ?? null;
-  const revisions = currentClassId ? await prisma.assignmentRevision.findMany({
+  const publishedRevisions = currentClassId ? await prisma.assignmentRevision.findMany({
     where: { state: 'PUBLISHED', audiences: { some: { classId: currentClassId, archivedAt: null, availableAt: { lte: now }, class: { isActive: true } } } },
     include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: true, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } },
-    orderBy: { publishedAt: 'desc' },
+    orderBy: [{ publishedAt: 'desc' }, { revisionNumber: 'desc' }, { id: 'desc' }],
   }) : [];
+  const revisions = selectCurrentPublishedRevisions(publishedRevisions);
   const historical = await prisma.assignmentSubmission.findMany({
-    where: { studentId, answers: { some: { attempts: { some: {} } } }, revision: { id: { notIn: revisions.map((revision) => revision.id) }, historicalOwnerships: { some: { studentId, anonymizedAt: null } } } },
+    where: { studentId, revision: { id: { notIn: revisions.map((revision) => revision.id) }, historicalOwnerships: { some: { studentId, anonymizedAt: null } } } },
     include: { revision: { include: { questions: { orderBy: { orderIndex: 'asc' } } } }, audience: true, answers: true },
   });
   return [...revisions.map((revision) => presentRevision(revision, revision.audiences[0], revision.submissions[0], true, now)), ...historical.map((item) => presentRevision(item.revision, item.audience, item, false, now))];
+}
+
+export function selectCurrentPublishedRevisions<T extends { assignmentId: string }>(
+  revisions: readonly T[],
+): T[] {
+  const current = new Map<string, T>();
+  for (const revision of revisions) {
+    if (!current.has(revision.assignmentId)) current.set(revision.assignmentId, revision);
+  }
+  return [...current.values()];
 }
 
 export async function getStudentAssignment(prisma: PrismaClient, studentId: string, assignmentId: string, now = new Date()) {
   const profile = await prisma.studentProfile.findUnique({ where: { userId: studentId }, select: { classId: true } });
   const revision = profile?.classId ? await prisma.assignmentRevision.findFirst({ where: { assignmentId, state: 'PUBLISHED', audiences: { some: { classId: profile.classId, archivedAt: null, class: { isActive: true } } } }, orderBy: { revisionNumber: 'desc' }, include: { audiences: true, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } } }) : null;
   if (!revision) {
-    const historical = await prisma.assignmentSubmission.findFirst({ where: { studentId, revision: { assignmentId }, answers: { some: { attempts: { some: {} } } } }, orderBy: { updatedAt: 'desc' }, include: { audience: true, revision: { include: { questions: { orderBy: { orderIndex: 'asc' } }, historicalOwnerships: { where: { studentId }, take: 1 } } }, answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } } });
+    const historical = await prisma.assignmentSubmission.findFirst({
+      where: {
+        studentId,
+        revision: {
+          assignmentId,
+          historicalOwnerships: { some: { studentId, anonymizedAt: null } },
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        audience: true,
+        revision: {
+          include: {
+            questions: { orderBy: { orderIndex: 'asc' } },
+            historicalOwnerships: { where: { studentId }, take: 1 },
+          },
+        },
+        answers: {
+          include: {
+            attempts: {
+              orderBy: { attemptNumber: 'desc' },
+              include: { assets: true },
+            },
+            assets: { orderBy: { version: 'desc' } },
+          },
+        },
+        approvalSnapshots: {
+          include: {
+            outboxCommands: true,
+            feedbackRelease: { include: { derivative: true } },
+          },
+          orderBy: { approvedAt: 'asc' },
+        },
+        resubmissionGrants: { orderBy: { grantedAt: 'desc' } },
+      },
+    });
     const ownership = historical?.revision.historicalOwnerships[0];
     if (!historical || !ownership || ownership.anonymizedAt || historical.frozenStudentId !== studentId || historical.frozenAudienceClassId !== historical.audience.classId || ownership.audienceClassId !== historical.frozenAudienceClassId) throw new SubmissionError('assignment-not-found', 404);
     return presentRevision({ ...historical.revision, submissions: [historical] }, historical.audience, historical, false, now);

@@ -52,20 +52,21 @@ describe('teacher assignment workspace contracts', () => {
     expect(editor).toContain("'published-frozen'");
   });
 
-  it('serializes the latest save before publish and exposes decimal input constraints', () => {
+  it('publishes only an explicit saved baseline and exposes decimal input constraints', () => {
     const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
     expect(editor).toContain('saveQueueRef.current.then');
-    expect(editor).toContain('for (let attempt = 0; attempt < 5; attempt += 1)');
-    expect(editor).toContain('result.draftFingerprint ===');
+    expect(editor).not.toContain('const result = await save()');
+    expect(editor).toContain("if (saveState !== 'saved')");
+    expect(editor).toContain('contentDigest: saved.contentDigest');
     expect(editor).toContain('assignmentDraftSchema.safeParse(documentRef.current.draft)');
-    expect(editor).toContain("setPublishMessage('最新草稿保存失败，未执行发布。')");
+    expect(editor).toContain('router.push(');
     expect(editor).toContain('step="0.01"');
     expect(editor).toContain('max={criterion.maxPoints}');
     expect(editor).toContain('validationFieldRefs.current.get(path)');
     expect(editor).toContain('aria-describedby="assignment-validation-errors"');
     expect(editor).toContain("setPublishMessage('发布请求失败，请检查网络后重试。')");
     expect(editor).toContain('finally {');
-    expect(editor).toContain('disabled={published || publishing}');
+    expect(editor).toContain("disabled={published || publishing || saveState !== 'saved'}");
   });
 
   it('preserves focus on successful autosave and provides recoverable governed pickers', () => {

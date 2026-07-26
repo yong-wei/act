@@ -12,13 +12,14 @@ export interface TeacherAssignmentListItem {
     version: number;
     title: string;
     state: 'DRAFT' | 'PUBLISHED';
-    audiences: Array<{ classId: string; availableAt: string; dueAt: string }>;
+    audiences: Array<{ classId: string; className: string; availableAt: string; dueAt: string }>;
   } | null;
 }
 
 export interface AssignmentEditorDocument {
   assignmentId?: string;
   revisionId?: string;
+  contentDigest?: string;
   version: number;
   draft: AssignmentDraftInput;
 }
