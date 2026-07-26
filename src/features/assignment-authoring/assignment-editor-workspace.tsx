@@ -1282,8 +1282,11 @@ function QuestionEditor({
               editedLevelIds,
             });
             if (result.status === 'confirmation-required') {
+              const deletionSummary = result.trailingLevels
+                .map((level) => `${level.label}（${level.maxPoints} 分；${level.guideline}）`)
+                .join('、');
               const confirmed = window.confirm(
-                `将删除末尾级别：${result.trailingLevels.map((level) => level.label).join('、')}。是否继续？`,
+                `将删除末尾级别：${deletionSummary}。是否继续？`,
               );
               if (!confirmed) return;
               result = applyRubricLevelShortcut({

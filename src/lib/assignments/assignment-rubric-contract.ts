@@ -129,6 +129,16 @@ export function createInitialDetailedLevel(
   };
 }
 
+function nextRubricLevelId(
+  criterionId: string,
+  levels: readonly AssignmentRubricLevelV2[],
+): string {
+  const existingIds = new Set(levels.map((level) => level.id));
+  let index = 1;
+  while (existingIds.has(`${criterionId}-level-${index}`)) index += 1;
+  return `${criterionId}-level-${index}`;
+}
+
 export function addDetailedRubricLevel(input: {
   criterionId: string;
   criterionMaxPoints: number;
@@ -159,13 +169,10 @@ export function addDetailedRubricLevel(input: {
     return { status: 'rejected', reason: 'no-0.1-interval-remains' };
   }
   const standard = STANDARD_RUBRIC_LEVELS[index];
-  const existingIds = new Set(ordered.map((level) => level.id));
-  let idIndex = 1;
-  while (existingIds.has(`${input.criterionId}-level-${idIndex}`)) idIndex += 1;
   return {
     status: 'applied',
     levels: [...ordered, {
-      id: `${input.criterionId}-level-${idIndex}`,
+      id: nextRubricLevelId(input.criterionId, ordered),
       label: standard?.label ?? '自定义',
       maxPoints: nextMaximum,
       guideline: standard ? `${standard.label}级别的评分准则。` : '自定义级别的评分准则。',
@@ -239,7 +246,7 @@ function addRatioExtendedLevel(input: {
   return {
     status: 'applied',
     levels: [...ordered, {
-      id: `${input.criterionId}-level-${ordered.length + 1}`,
+      id: nextRubricLevelId(input.criterionId, ordered),
       label: '自定义',
       maxPoints: nextMaximum,
       guideline: '自定义级别的评分准则。',

@@ -487,6 +487,29 @@ test('disabling an edited detailed rubric confirms the full deleted content', as
   await expect(detailed).not.toBeChecked();
 });
 
+test('shortening a rubric confirms every field of the trailing levels', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await page.getByLabel('启用详细评分细则').check();
+  await page.getByRole('button', { name: '五级制' }).click();
+  await page.getByLabel('评分项 1 档位 3 名称').fill('教师中档');
+  await page.getByLabel('评分项 1 级别 3 分值边界').fill('7.5');
+  await page.getByLabel('评分项 1 级别 3 评分准则').fill('教师中档完整准则');
+
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('教师中档（7.5 分；教师中档完整准则）');
+    await dialog.dismiss();
+  });
+  await page.getByRole('button', { name: '两级制' }).click();
+  await expect(page.getByLabel('评分项 1 档位 3 名称')).toHaveValue('教师中档');
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: '两级制' }).click();
+  await expect(page.getByLabel('评分项 1 档位 3 名称')).toHaveCount(0);
+});
+
 test('an edited single level keeps its content while the two-level shortcut uses the 60 percent boundary', async ({ page, context }) => {
   await addTeacherSession(context);
   await page.setViewportSize({ width: 1024, height: 900 });

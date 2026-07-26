@@ -242,4 +242,34 @@ describe('assignment rubric v2 decimal and level contract', () => {
       expect(result.levels[2]).toEqual(expect.objectContaining({ label: '自定义', maxPoints: 4.9 }));
     }
   });
+
+  it('uses an unoccupied stable id when a shortcut fills a deleted middle level', () => {
+    const result = applyRubricLevelShortcut({
+      criterionId: 'quality',
+      criterionMaxPoints: 10,
+      levels: [
+        { id: 'quality-level-1', label: '优秀', maxPoints: 10, guideline: '优秀准则。' },
+        { id: 'quality-level-3', label: '中等', maxPoints: 8, guideline: '中等准则。' },
+        { id: 'quality-level-4', label: '及格', maxPoints: 7, guideline: '及格准则。' },
+        { id: 'quality-level-5', label: '不及格', maxPoints: 6, guideline: '不及格准则。' },
+      ],
+      targetCount: 5,
+      editedLevelIds: new Set([
+        'quality-level-1',
+        'quality-level-3',
+        'quality-level-4',
+        'quality-level-5',
+      ]),
+    });
+    expect(result.status).toBe('applied');
+    if (result.status === 'applied') {
+      expect(result.levels.map((level) => level.id)).toEqual([
+        'quality-level-1',
+        'quality-level-3',
+        'quality-level-4',
+        'quality-level-5',
+        'quality-level-2',
+      ]);
+    }
+  });
 });
