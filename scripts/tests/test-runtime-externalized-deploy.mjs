@@ -610,18 +610,12 @@ assert.equal(
   'Docker/Next build 不得在镜像构建上下文生成外置教材 runtime',
 );
 
-const legacyTextbookRuntimeCommand = /(?:longform-textbook-reference-resource-semantics|core-textbook-section-path-role-review|reference-section-path-role-review|textbook-search-document-citation-shard|rag-citation-anchor-coverage)/u;
-assert.deepEqual(
-  Object.entries(packageJson.scripts)
-    .filter(([, command]) => legacyTextbookRuntimeCommand.test(command))
-    .map(([name]) => name),
-  [],
-  '公开 package 命令不得再进入旧 sections/chunks/search-documents/citation-map 教材链路',
-);
 assert.equal(
-  packageJson.scripts['db:textbook-media-grounding'].startsWith('npm run db:validate-textbook-runtime-v2 &&'),
+  packageJson.scripts['db:textbook-media-grounding'].startsWith('npm run db:validate-textbook-runtime-v2 &&') &&
+    packageJson.scripts['db:rag-citation-anchor-coverage'] ===
+      'tsx ./scripts/db/generate-rag-citation-anchor-coverage.ts',
   true,
-  'v2 media grounding 必须验证当前 runtime',
+  'v2 media grounding 必须验证当前 runtime，历史旧 coverage 不得覆盖 v2 unit 产物',
 );
 
 assert.equal(

@@ -8,6 +8,7 @@ import { isDeepStrictEqual } from 'node:util';
 
 import {
   loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections,
 } from '@/lib/structured-textbook-runtime';
 import type { RuntimeLessonMediaKind } from '@/lib/course-runtime';
 import {
@@ -53,6 +54,12 @@ import {
   type RuntimeLessonSemanticDecisionFacts,
   type RuntimeLessonSemanticReviewEvidence,
 } from './runtime-lesson-semantic-evidence';
+import {
+  loadLongformValidationFacts,
+  loadLongformReviewSource,
+  validateLongformReviewSource,
+  type ReviewSourceRow as LongformReviewSourceRow,
+} from './generate-longform-textbook-reference-resource-semantics';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const AUDIT_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-audit.jsonl');
@@ -77,6 +84,7 @@ const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_SOURCE_JSONL_PATH = pat
 const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-summary.json');
 const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-evidence.md');
 const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_MATERIALIZATION_MANIFEST_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-materialization-manifest.json');
+const TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'textbook-search-document-citation-shard-review-items.jsonl');
 const HUMAN_REVIEW_INTEGRITY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-human-review-integrity-diagnostics.json');
 const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
 const RUNTIME_LESSON_MEDIA_SEMANTIC_REVIEW_SOURCE_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-lesson-media-resource-semantics-review-source.jsonl');
@@ -314,6 +322,41 @@ type ResidualDispositionClassification =
   | 'embedded-asset'
   | 'evidence-producing'
   | 'excluded-with-rationale';
+
+type TextbookSearchDocumentCitationClassification =
+  | 'parent-section-evidence-support'
+  | 'supporting-citation'
+  | 'embedded-asset'
+  | 'excluded-with-rationale';
+
+interface TextbookSearchDocumentCitationReviewItem {
+  resourceId: string;
+  documentId: string;
+  classification: TextbookSearchDocumentCitationClassification;
+  reviewerVisibleRationale: string;
+  reviewerId: string;
+  reviewedAt: string;
+  reviewBatchId: string;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+  privacyScope: ResourceFieldCompletionCandidate['privacyScope'];
+  pathEligible: false;
+  promotedAsPathNode: false;
+  rawContentIncluded: false;
+  citationTargetId?: string;
+  citationAddress?: {
+    href?: string;
+    contentHash?: string;
+    locator?: string;
+  };
+  graphNodeRefs: {
+    knowledge: string[];
+    capability: string[];
+    quality: string[];
+  };
+  parentReviewRef?: string;
+  limitationState?: string[];
+}
 
 interface ResidualDispositionReviewItem {
   artifactVersion: 'resource-disposition-backlog-review.v1';
@@ -1256,6 +1299,19 @@ async function main() {
   );
   const runtimeLessonMediaSemanticReviewSources = await loadRuntimeLessonMediaSemanticReviewMap();
   const unit15RuntimeProjectionReview = await loadUnit15RuntimeProjectionReview();
+  const longformReviewRows = materializeCoreSemanticReview ? [] : await loadLongformReviewSource();
+  const longformReviewSources = new Map(longformReviewRows.map((row) => [row.resourceId, row]));
+  const longformValidationFacts = materializeCoreSemanticReview
+    ? null
+    : await loadLongformValidationFacts();
+  if (longformValidationFacts) {
+    await validateLongformReviewSource(longformReviewRows, longformValidationFacts);
+  }
+  const deliveryLongformInput = longformValidationFacts?.validationMode === 'delivery'
+    ? await loadBoundDeliveryLongformAuditInput(
+        longformReviewSources,
+      )
+    : null;
   const generatedAt = resolveResourceFieldCompletionGeneratedAt({
     frozenGeneratedAt: frozenInput?.summary.generatedAt,
     configuredGeneratedAt: process.env.RESOURCE_FIELD_COMPLETION_GENERATED_AT,
@@ -1313,9 +1369,10 @@ async function main() {
         limitations: frozenInput.summary.limitations,
       });
   } else {
-    const [runtimeLessons, runtimeTextbooks] = await Promise.all([
+    const [runtimeLessons, runtimeTextbooks, textbookUnits] = await Promise.all([
       collectRuntimeLessonCatalogEntries(),
       loadAllTextbookStructureRuntimeCatalogEntries().catch(() => []),
+      loadAllTextbookStructureUnitProjections().catch(() => []),
     ]);
     registry = buildResourceNodeRegistryFromTeachingResources(
       [],
@@ -1325,10 +1382,19 @@ async function main() {
     );
     result = await buildFullResourceFieldCompletionAudit(
       registry,
+      textbookUnits,
       coreSemanticReviewSources,
       runtimeLessonMediaSemanticReviewSources,
       unit15RuntimeProjectionReview,
+      longformReviewSources,
+      deliveryLongformInput,
       generatedAt,
+    );
+  }
+  if (!materializeCoreSemanticReview) {
+    await validateLongformReviewSource(
+      longformReviewRows,
+      await loadLongformValidationFacts(result.rows),
     );
   }
   const knowledgeVisualSemanticReviewItems = materializeCoreSemanticReview
@@ -1633,6 +1699,7 @@ async function loadResidualDispositionReviewSources(generatedAt: string): Promis
     residualRuntimeLessonModule,
     residualRuntimeLessonMedia,
     residualRegisteredResource,
+    textbookSearchDocumentCitation,
     fullResourceClosureReviews,
   ] = await Promise.all([
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'runtime-lesson-planning-unit-review-items.jsonl')),
@@ -1650,6 +1717,7 @@ async function loadResidualDispositionReviewSources(generatedAt: string): Promis
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-module-disposition-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-media-disposition-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-registered-resource-disposition-review-items.jsonl')),
+    loadTextbookSearchDocumentCitationReviews(),
     loadFullResourceClosureReviewSources(generatedAt),
   ]);
   const sources = new Map<string, ResidualDispositionReviewSource>();
@@ -1819,6 +1887,28 @@ async function loadResidualDispositionReviewSources(generatedAt: string): Promis
       sourceVersionRef: item.sourceVersionRef ?? null,
     });
   }
+  for (const item of textbookSearchDocumentCitation.values()) {
+    sources.set(item.resourceId, {
+      classification: residualClassificationForTextbookSearchDocumentCitation(item.classification),
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? item.citationAddress?.contentHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of await loadLongformReviewSource()) {
+    sources.set(item.resourceId, {
+      classification: item.disposition,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash,
+      sourceVersionRef: item.sourceVersionRef,
+    });
+  }
   for (const [resourceId, item] of fullResourceClosureReviews) sources.set(resourceId, item);
   return sources;
 }
@@ -1897,6 +1987,21 @@ async function loadLearningGoalBlockerReviews(
     goalIds.add(row.learningGoalId);
   }
   return rows;
+}
+
+async function loadTextbookSearchDocumentCitationReviews(): Promise<Map<string, TextbookSearchDocumentCitationReviewItem>> {
+  const rows = await readJsonlFile<TextbookSearchDocumentCitationReviewItem>(
+    TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH,
+  );
+  return new Map(rows.map((row) => [row.resourceId, row]));
+}
+
+function residualClassificationForTextbookSearchDocumentCitation(
+  classification: TextbookSearchDocumentCitationClassification,
+): ResidualDispositionClassification {
+  if (classification === 'embedded-asset') return 'embedded-asset';
+  if (classification === 'excluded-with-rationale') return 'excluded-with-rationale';
+  return 'supporting-citation';
 }
 
 function residualDispositionClassificationFor(row: ResourceFieldCompletionAuditRow): ResidualDispositionClassification {
@@ -2700,12 +2805,18 @@ export function refreshFrozenPathGenerationDiagnostics(
 
 async function buildFullResourceFieldCompletionAudit(
   registry: Parameters<typeof buildResourceFieldCompletionAudit>[0]['registry'],
+  textbookUnits: Awaited<ReturnType<typeof loadAllTextbookStructureUnitProjections>>,
   coreSemanticReviewSources: Map<string, CoreRegisteredKnowledgeResourceSemanticReviewSource>,
   runtimeLessonMediaSemanticReviewSources: Map<string, RuntimeLessonMediaSemanticReviewSource>,
   unit15RuntimeProjectionReview: Unit15RuntimeProjectionReview,
+  longformReviewSources: ReadonlyMap<string, LongformReviewSourceRow>,
+  deliveryLongformInput: {
+    rows: readonly ResourceFieldCompletionAuditRow[];
+    limitations: readonly string[];
+  } | null,
   generatedAt: string,
 ) {
-  const { candidates, limitations } = await collectAuditOnlyCandidates();
+  const { candidates, limitations } = await collectAuditOnlyCandidates(textbookUnits, longformReviewSources);
   const sourceResult = buildResourceFieldCompletionAudit({
     registry,
     candidates,
@@ -2728,8 +2839,10 @@ async function buildFullResourceFieldCompletionAudit(
       && contentClearedLessonIds.has(lessonId)
     );
   });
-  const sourceRows = [...liveSourceRows]
-    .sort((left, right) => left.resourceId.localeCompare(right.resourceId));
+  const sourceRows = [
+    ...liveSourceRows.filter((row) => !deliveryLongformInput || !isLongformStageFamily(row.family)),
+    ...(deliveryLongformInput?.rows ?? []),
+  ].sort((left, right) => left.resourceId.localeCompare(right.resourceId));
   const coreOverlays = sourceRows
     .filter((row) => CORE_SCOPE_FAMILIES.has(row.family) && coreSemanticReviewSources.has(row.resourceId))
     .map((row) => coreSemanticFormalReviewOverlayFromSource(coreSemanticReviewSources.get(row.resourceId)!));
@@ -2749,6 +2862,9 @@ async function buildFullResourceFieldCompletionAudit(
   const courseOverlays = candidateCourseOverlays.filter((overlay) => (
     !unit15ResourceIds.has(overlay.resourceId)
   ));
+  const longformOverlays = deliveryLongformInput
+    ? []
+    : longformSemanticReviewOverlaysForRows(sourceRows, longformReviewSources);
   const versionRefs = sourceRows[0]?.versionRefs;
   if (!versionRefs) throw new Error('Runtime resource semantic source audit produced no version refs');
   return buildResourceFieldCompletionAuditFromRows({
@@ -2758,18 +2874,77 @@ async function buildFullResourceFieldCompletionAudit(
       ...runtimeOverlays,
       ...courseOverlays,
       ...unit15Overlays,
+      ...longformOverlays,
     ],
     requiredReviewResourceIds: [
       ...coreOverlays.map((overlay) => overlay.resourceId),
       ...runtimeLessonMediaSemanticReviewSources.keys(),
       ...courseOverlays.map((overlay) => overlay.resourceId),
       ...unit15Overlays.map((overlay) => overlay.resourceId),
+      ...longformOverlays.map((overlay) => overlay.resourceId),
     ],
     generatedAt,
     sourceWindow: { from: null, to: generatedAt },
     versionRefs,
-    limitations,
+    limitations: deliveryLongformInput ? [...deliveryLongformInput.limitations] : limitations,
   });
+}
+
+async function loadBoundDeliveryLongformAuditInput(
+  reviewSources: ReadonlyMap<string, LongformReviewSourceRow>,
+): Promise<{
+  rows: ResourceFieldCompletionAuditRow[];
+  generatedAt: string;
+  limitations: string[];
+}> {
+  const auditRows = readIndexedJsonl<ResourceFieldCompletionAuditRow>(AUDIT_JSONL_PATH);
+  const rows = auditRows
+    .filter((row) => isLongformStageFamily(row.family))
+    .sort((left, right) => left.resourceId.localeCompare(right.resourceId));
+  if (rows.length !== 3082 || reviewSources.size !== 3082) {
+    throw new Error(`Delivery longform frozen denominator must contain 3082 rows; audit=${rows.length}; review=${reviewSources.size}`);
+  }
+  const summary = readIndexedJson<ResourceFieldCompletionAuditSummary>(SUMMARY_JSON_PATH);
+  if (!summary || summary.totals.denominator !== auditRows.length) {
+    throw new Error('Delivery longform frozen audit summary does not bind the tracked audit denominator');
+  }
+  const frozenCoverageTimestamps = new Set(rows.map((row) => row.coverage.sourceWindow.to));
+  const [generatedAt] = frozenCoverageTimestamps;
+  if (frozenCoverageTimestamps.size !== 1 || !generatedAt) {
+    throw new Error('Delivery longform frozen audit rows do not share one coverage sourceWindow.to');
+  }
+  const projectionRows = readIndexedJsonl<ReturnType<typeof buildRuntimeResourceProjectionArtifacts>['rows'][number]>(
+    PROJECTION_JSONL_PATH,
+  );
+  const projectionById = new Map(projectionRows.map((row) => [row.id, row]));
+  const expectedProjectionRows = buildRuntimeResourceProjectionArtifacts({
+    auditRows: rows,
+    generatedAt,
+  }).rows;
+  for (const [index, row] of rows.entries()) {
+    const review = reviewSources.get(row.resourceId);
+    if (!review) throw new Error(`Delivery longform audit row has no sealed review binding: ${row.resourceId}`);
+    if (
+      row.family !== review.sourceFamily ||
+      row.title !== review.title ||
+      row.sourcePathOrUrl !== review.sourcePathOrUrl ||
+      normalizeHash(row.sourceHash) !== normalizeHash(review.sourceHash) ||
+      row.sourceVersionRef !== review.sourceVersionRef ||
+      row.reviewAudit.reviewSourceSha256 !== review.reviewSourceSha256 ||
+      row.reviewAudit.reviewRowHash !== review.reviewRowHash
+    ) {
+      throw new Error(`Delivery longform audit/review binding mismatch: ${row.resourceId}`);
+    }
+    const projection = projectionById.get(row.resourceId);
+    if (!projection || !isDeepStrictEqual(projection, expectedProjectionRows[index])) {
+      throw new Error(`Delivery longform audit/projection binding mismatch: ${row.resourceId}`);
+    }
+  }
+  return {
+    rows,
+    generatedAt,
+    limitations: [...summary.limitations],
+  };
 }
 
 function readIndexedJson<T>(filePath: string): T {
@@ -2795,6 +2970,53 @@ function readIndexedText(filePath: string): string {
     env: environment,
     maxBuffer: 64 * 1024 * 1024,
   });
+}
+
+function longformSemanticReviewOverlaysForRows(
+  rows: readonly ResourceFieldCompletionAuditRow[],
+  sources: ReadonlyMap<string, LongformReviewSourceRow>,
+): ResourceFieldCompletionReviewOverlay[] {
+  const rowsById = new Map(rows.map((row) => [row.resourceId, row]));
+  const overlays = Array.from(sources.values()).map((source): ResourceFieldCompletionReviewOverlay => {
+    const row = rowsById.get(source.resourceId);
+    if (!row) throw new Error(`Longform semantic review source has no audit row: ${source.resourceId}`);
+    if (normalizeHash(row.sourceHash) !== normalizeHash(source.sourceHash)) {
+      throw new Error(`Longform semantic review audit hash mismatch: ${source.resourceId}`);
+    }
+    if (row.sourceVersionRef !== source.sourceVersionRef) {
+      throw new Error(`Longform semantic review audit version mismatch: ${source.resourceId}`);
+    }
+    return {
+      resourceId: source.resourceId,
+      reviewStatus: 'agent-reviewed',
+      semanticConfirmed: source.sourceFamily !== 'textbook-section' ||
+        source.semanticReview?.contentType !== 'insufficient-source',
+      expectedSourceHash: row.sourceHash,
+      expectedSourceVersionRef: row.sourceVersionRef,
+      graphNodeRefs: source.acceptedGraphNodeRefs,
+      pathTarget: null,
+      currentPathEligible: false,
+      reviewAudit: {
+        reviewerId: source.reviewerId,
+        reviewerRole: source.reviewerRole,
+        reviewedAt: source.reviewedAt,
+        reviewBatchId: source.reviewBatchId,
+        reviewedSourceHash: row.sourceHash,
+        reviewedVersionRef: row.sourceVersionRef,
+        generationToolOrModel: null,
+        promptOrManifestHash: null,
+        reviewerVisibleRationale: source.reviewerVisibleRationale,
+        independentEvidenceRef: source.independentEvidenceRef,
+        confidence: 1,
+        staleInvalidationRule: 'stale when source hash, source version, citation address, parent identity, or review-source row changes',
+        reviewArtifactVersion: source.artifactVersion,
+        reviewSourceSha256: source.reviewSourceSha256,
+        reviewRowHash: source.reviewRowHash,
+      },
+    };
+  });
+  if (overlays.length !== sources.size) throw new Error('Longform semantic review overlay denominator mismatch');
+  return overlays.sort((left, right) => left.resourceId.localeCompare(right.resourceId));
 }
 
 async function loadFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(input: {
@@ -3885,7 +4107,10 @@ function renderCoreRegisteredKnowledgeResourceSemanticEvidence(
   return `${lines.join('\n')}\n`;
 }
 
-async function collectAuditOnlyCandidates() {
+async function collectAuditOnlyCandidates(
+  textbookUnits: Awaited<ReturnType<typeof loadAllTextbookStructureUnitProjections>>,
+  longformReviewSources: ReadonlyMap<string, LongformReviewSourceRow>,
+) {
   const knowledgeVisualReviewMap = await loadKnowledgeVisualSemanticReviewMap();
   const [
     runtimeManifestCandidates,
@@ -3893,13 +4118,57 @@ async function collectAuditOnlyCandidates() {
     knowledgeCardCandidates,
     infographCandidates,
     authoringTextbookCandidates,
+    textbookSearchDocumentReviews,
   ] = await Promise.all([
     collectRuntimeManifestCandidates(),
     collectRuntimeMediaCandidates(),
     collectKnowledgeCardCandidates(knowledgeVisualReviewMap),
     collectInfographCandidates(knowledgeVisualReviewMap),
     collectAuthoringTextbookCandidates(),
+    loadTextbookSearchDocumentCitationReviews(),
   ]);
+  const reviewedTextbookDocuments = textbookUnits.filter((document) => (
+    document.metadata.bookId === 'hu-shousong-exercise-analysis-3rd' &&
+    longformReviewSources.has(`textbook-search-document:${document.id}`)
+  ));
+  const textbookDocumentCandidates = reviewedTextbookDocuments.map<ResourceFieldCompletionCandidate>((document) => {
+    const resourceId = `textbook-search-document:${document.id}`;
+    const review = textbookSearchDocumentReviews.get(resourceId);
+    if (review) assertTextbookSearchDocumentCitationReviewIsFresh(review, document.contentHash);
+    return {
+      id: resourceId,
+      title: document.title,
+      family: 'textbook-search-document',
+      sourcePathOrUrl: document.href,
+      sourceRecord: document.metadata.bookId,
+      knowledgeNodeIds: review?.graphNodeRefs.knowledge ?? document.resourceProjection.knowledgeNodeRefs,
+      capabilityTargetIds: review?.graphNodeRefs.capability ?? document.resourceProjection.capabilityTargetRefs,
+      qualityTargetIds: review?.graphNodeRefs.quality,
+      segmentRefs: [document.resourceProjection.segmentRef].filter(Boolean),
+      citationTargets: [review?.citationTargetId ?? document.resourceProjection.citationTargetRef ?? document.href]
+        .filter((value): value is string => Boolean(value)),
+      pathTarget: null,
+      evidenceInstrumentation: ['textbook_search_document_retrieved'],
+      privacyScope: review ? STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE : UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
+      contentHash: document.contentHash,
+      versionRef: 'textbook-runtime-search-documents.v1',
+      humanConfirmed: false,
+      reviewProvenance: review ? 'agent-reviewed' : undefined,
+      currentPathEligible: false,
+      reviewEvidence: review
+        ? {
+          reviewerId: review.reviewerId,
+          reviewerRole: 'implementing-agent',
+          reviewedAt: review.reviewedAt,
+          reviewBatchId: review.reviewBatchId,
+          reviewerVisibleRationale: review.reviewerVisibleRationale,
+          independentEvidenceRef: `${projectPath(TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH)}#${resourceId}`,
+          reviewedSourceHash: review.sourceHash ?? document.contentHash ?? undefined,
+          confidence: 0.91,
+        }
+        : undefined,
+    };
+  });
 
   const limitations = [
     ...runtimeManifestCandidates.limitations,
@@ -3908,6 +4177,9 @@ async function collectAuditOnlyCandidates() {
     ...infographCandidates.limitations,
     ...authoringTextbookCandidates.limitations,
   ];
+  if (textbookDocumentCandidates.length === 0) {
+    limitations.push('No textbook runtime search documents were available for authoring textbook section audit.');
+  }
   limitations.push('No separate quiz/generated-question/checkpoint runtime source files were found; existing ResourceNode registry rows cover registered quiz, simulation, Arena, and checkpoint records where present.');
 
   return {
@@ -3917,9 +4189,45 @@ async function collectAuditOnlyCandidates() {
       ...knowledgeCardCandidates.candidates,
       ...infographCandidates.candidates,
       ...authoringTextbookCandidates.candidates,
-    ],
+      ...textbookDocumentCandidates,
+    ].map((candidate) => {
+      const longform = longformReviewSources.get(candidate.id);
+      if (!longform) return candidate;
+      return {
+        ...candidate,
+        privacyScope: longform.sourceFamily.startsWith('authoring-textbook-')
+          ? 'teacher-scoped' as const
+          : 'student-visible' as const,
+      };
+    }),
     limitations,
   };
+}
+
+export function filterTextbookSearchDocumentsForCitationReviewScope<
+  T extends { id: string; metadata: { bookId: string } },
+>(
+  documents: readonly T[],
+  reviews: ReadonlyMap<string, TextbookSearchDocumentCitationReviewItem>,
+): T[] {
+  const reviewedBookIds = new Set(Array.from(reviews.values()).flatMap((review) => {
+    const match = review.citationAddress?.href?.match(/\/textbooks\/([^/]+)\//);
+    return match?.[1] ? [match[1]] : [];
+  }));
+  if (reviewedBookIds.size === 0) return [];
+  return documents.filter((document) => (
+    reviewedBookIds.has(document.metadata.bookId) &&
+    reviews.has(`textbook-search-document:${document.id}`)
+  ));
+}
+
+function assertTextbookSearchDocumentCitationReviewIsFresh(
+  review: TextbookSearchDocumentCitationReviewItem,
+  documentContentHash: string | null,
+) {
+  if (!hashesMatch(review.sourceHash, documentContentHash)) {
+    throw new Error(`Stale textbook search-document citation review for ${review.resourceId}: review hash ${review.sourceHash ?? 'missing'} does not match current document hash ${documentContentHash ?? 'missing'}`);
+  }
 }
 
 function hashesMatch(left: string | null | undefined, right: string | null | undefined) {
