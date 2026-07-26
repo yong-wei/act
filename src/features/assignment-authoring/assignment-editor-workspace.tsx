@@ -11,9 +11,11 @@ import {
   ChevronUp,
   Eye,
   Library,
+  Loader2,
   Plus,
   Save,
   Send,
+  Sparkles,
   Trash2,
 } from 'lucide-react';
 
@@ -32,6 +34,7 @@ import {
   sortRubricLevels,
 } from '@/lib/assignments/assignment-rubric-contract';
 import {
+  applyGeneratedRubricGuidelines,
   EMPTY_ASSIGNMENT_DRAFT,
   type AssignmentEditorDocument,
   type GovernedQuestionSummary,
@@ -50,6 +53,14 @@ type ManagedClassOption = {
   year: string | null;
   semester: string | null;
 };
+type RubricGenerationBasis = 'scoring-standard' | 'scoring-item-name';
+type RubricGenerationResult =
+  | { status: 'applied' }
+  | {
+      status: 'error';
+      message: string;
+      focus?: 'scoring-item-name' | 'scoring-standard';
+    };
 const RUBRIC_GOAL_DIMENSION_LABELS: Record<
   (typeof ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS)[number],
   string
@@ -384,6 +395,156 @@ export function AssignmentEditorWorkspace({
     }
   };
 
+  const generateRubricGuidelines = async (input: {
+    question: EditableQuestionV2;
+    scoringItemId: string;
+    basis: RubricGenerationBasis;
+  }): Promise<RubricGenerationResult> => {
+    if (published) {
+      return { status: 'error', message: '已发布作业不能生成评分细则。' };
+    }
+    const current = documentRef.current;
+    const questionIndex = current.draft.questions.findIndex(
+      (item) => item.stableQuestionId === input.question.stableQuestionId,
+    );
+    if (questionIndex < 0) {
+      return { status: 'error', message: '当前题目已变化，请重新选择。' };
+    }
+    const preparedDraft = {
+      ...current.draft,
+      questions: current.draft.questions.map((item, index) =>
+        index === questionIndex ? input.question : item,
+      ),
+    };
+    const prepared = { ...current, draft: preparedDraft };
+    documentRef.current = prepared;
+    setDocument(prepared);
+    setSaveState('dirty');
+
+    const saved = await save();
+    if (!saved) {
+      return {
+        status: 'error',
+        message: '生成前保存失败，请先解决保存错误或版本冲突。',
+      };
+    }
+    const baseline = saved.document;
+    if (!baseline.assignmentId || !baseline.revisionId) {
+      return { status: 'error', message: '保存基线不完整，无法生成评分细则。' };
+    }
+    const savedQuestion = baseline.draft.questions.find(
+      (item) => item.stableQuestionId === input.question.stableQuestionId,
+    );
+    const savedRubric = savedQuestion
+      ? toScoringRubricV2(savedQuestion.rubric)
+      : null;
+    const savedCriterion = savedRubric?.criteria.find(
+      (item) => item.id === input.scoringItemId,
+    );
+    if (!savedQuestion || !savedCriterion || !savedCriterion.detailedRubricEnabled) {
+      return { status: 'error', message: '评分项结构已变化，请重新发起生成。' };
+    }
+    const levelIds = savedCriterion.levels.map((level) => level.id);
+    if (!savedCriterion.scoringStandard.trim() && !savedCriterion.label.trim()) {
+      return {
+        status: 'error',
+        message: '请填写评分标准或评分项名称后再生成。',
+        focus: 'scoring-item-name',
+      };
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(
+        `/api/teacher/assignments/${encodeURIComponent(baseline.assignmentId)}/rubric-guidelines/generate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            revisionId: baseline.revisionId,
+            expectedVersion: baseline.version,
+            questionId: savedQuestion.stableQuestionId,
+            scoringItemId: savedCriterion.id,
+            levelIds,
+            basis: input.basis,
+          }),
+        },
+      );
+    } catch {
+      return { status: 'error', message: 'AI 评分细则服务暂时无法连接。' };
+    }
+    const payload = await response.json().catch(() => ({})) as {
+      error?: string;
+      generated?: {
+        revisionId: string;
+        revisionVersion: number;
+        questionId: string;
+        scoringItemId: string;
+        levels: Array<{ levelId: string; guideline: string }>;
+      };
+    };
+    if (!response.ok || !payload.generated) {
+      const message = {
+        'rubric-generation-rate-limited': '生成请求过于频繁，请稍后再试。',
+        'rubric-generation-revision-stale': '草稿版本已变化，未应用生成结果。',
+        'rubric-generation-output-invalid': 'AI 返回的级别集合不完整，未改写现有内容。',
+        'rubric-generation-basis-missing': '请填写评分标准或评分项名称后再生成。',
+        'rubric-generation-basis-mismatch': '评分标准已存在，应以评分标准作为生成依据。',
+        'rubric-generation-unavailable': 'AI 评分细则服务暂时不可用。',
+      }[payload.error ?? ''] ?? '评分细则生成失败，现有内容未改变。';
+      return {
+        status: 'error',
+        message,
+        ...(payload.error === 'rubric-generation-basis-missing'
+          ? { focus: 'scoring-item-name' as const }
+          : {}),
+      };
+    }
+
+    const generated = payload.generated;
+    const latest = documentRef.current;
+    const latestQuestionIndex = latest.draft.questions.findIndex(
+      (item) => item.stableQuestionId === generated.questionId,
+    );
+    const latestQuestion = latest.draft.questions[latestQuestionIndex];
+    const latestRubric = latestQuestion
+      ? toScoringRubricV2(latestQuestion.rubric)
+      : null;
+    const latestCriterion = latestRubric?.criteria.find(
+      (item) => item.id === generated.scoringItemId,
+    );
+    if (latest.version !== generated.revisionVersion
+      || generated.revisionId !== latest.revisionId
+      || !latestQuestion
+      || !latestCriterion) {
+      return { status: 'error', message: '生成期间评分细则已变化，结果未应用。' };
+    }
+    const nextQuestion = applyGeneratedRubricGuidelines(
+      {
+        ...latestQuestion,
+        rubric: latestRubric!,
+      },
+      generated.scoringItemId,
+      generated.levels,
+    );
+    if (!nextQuestion) {
+      return { status: 'error', message: '生成期间评分细则已变化，结果未应用。' };
+    }
+    const nextDocument = {
+      ...latest,
+      draft: {
+        ...latest.draft,
+        questions: latest.draft.questions.map((item, index) =>
+          index === latestQuestionIndex ? nextQuestion : item,
+        ),
+      },
+    };
+    documentRef.current = nextDocument;
+    setDocument(nextDocument);
+    setSaveState('dirty');
+    return { status: 'applied' };
+  };
+
   if (loadState === 'loading')
     return (
       <main className="p-8" data-operations-status-semantics="loading">
@@ -676,6 +837,7 @@ export function AssignmentEditorWorkspace({
                 questionIndex={activeIndex}
                 registerValidationField={registerValidationField}
                 promptRef={promptRef}
+                onGenerateGuidelines={generateRubricGuidelines}
                 onChange={(next) =>
                   updateDraft((draft) => ({
                     ...draft,
@@ -1098,6 +1260,7 @@ function QuestionEditor({
   questionIndex,
   registerValidationField,
   promptRef,
+  onGenerateGuidelines,
   onChange,
 }: {
   question: EditableQuestion;
@@ -1106,12 +1269,38 @@ function QuestionEditor({
     path: string,
   ) => (element: HTMLElement | null) => void;
   promptRef: React.RefObject<HTMLTextAreaElement | null>;
+  onGenerateGuidelines: (input: {
+    question: EditableQuestionV2;
+    scoringItemId: string;
+    basis: RubricGenerationBasis;
+  }) => Promise<RubricGenerationResult>;
   onChange: (question: EditableQuestion) => void;
 }) {
   const editableQuestion: EditableQuestionV2 = {
     ...question,
     rubric: toScoringRubricV2(question.rubric),
   };
+  const [rubricDialog, setRubricDialog] = useState<
+    | {
+        mode: 'missing-standard';
+        criterionIndex: number;
+        standardDraft: string;
+      }
+    | {
+        mode: 'overwrite';
+        criterionIndex: number;
+        basis: RubricGenerationBasis;
+      }
+    | null
+  >(null);
+  const [generatingCriterionId, setGeneratingCriterionId] = useState<string | null>(null);
+  const [rubricGenerationMessage, setRubricGenerationMessage] = useState('');
+  const dialogPrimaryRef = useRef<HTMLTextAreaElement | HTMLButtonElement>(null);
+  const criterionNameRefs = useRef(new Map<number, HTMLInputElement>());
+  const scoringStandardRefs = useRef(new Map<number, HTMLTextAreaElement>());
+  useEffect(() => {
+    if (rubricDialog) window.setTimeout(() => dialogPrimaryRef.current?.focus(), 0);
+  }, [rubricDialog]);
   const editedLevelIdsRef = useRef(new Map(
     editableQuestion.rubric.criteria.map((criterion) => [
       criterion.id,
@@ -1143,6 +1332,78 @@ function QuestionEditor({
         ),
       },
     });
+  const questionWithCriterion = (
+    index: number,
+    update: (criterion: ScoringCriterionV2) => ScoringCriterionV2,
+  ): EditableQuestionV2 => ({
+    ...editableQuestion,
+    rubric: {
+      ...editableQuestion.rubric,
+      criteria: editableQuestion.rubric.criteria.map((criterion, itemIndex) =>
+        itemIndex === index ? update(criterion) : criterion,
+      ),
+    },
+  });
+  const focusGenerationBasis = (
+    index: number,
+    focus: 'scoring-item-name' | 'scoring-standard',
+  ) => {
+    window.setTimeout(() => {
+      if (focus === 'scoring-standard') scoringStandardRefs.current.get(index)?.focus();
+      else criterionNameRefs.current.get(index)?.focus();
+    }, 0);
+  };
+  const runRubricGeneration = async (
+    index: number,
+    basis: RubricGenerationBasis,
+    preparedQuestion = editableQuestion,
+  ) => {
+    const criterion = preparedQuestion.rubric.criteria[index];
+    if (!criterion) return;
+    setRubricDialog(null);
+    setGeneratingCriterionId(criterion.id);
+    setRubricGenerationMessage('正在生成整组评分准则……');
+    const result = await onGenerateGuidelines({
+      question: preparedQuestion,
+      scoringItemId: criterion.id,
+      basis,
+    });
+    setGeneratingCriterionId(null);
+    if (result.status === 'applied') {
+      setRubricGenerationMessage('已填写全部评价级别；结果仍是可编辑草稿。');
+      return;
+    }
+    setRubricGenerationMessage(result.message);
+    if (result.focus) focusGenerationBasis(index, result.focus);
+  };
+  const requestRubricGeneration = (index: number) => {
+    const criterion = editableQuestion.rubric.criteria[index];
+    if (!criterion) return;
+    const standard = criterion.scoringStandard.trim();
+    const name = criterion.label.trim();
+    if (!standard && !name) {
+      setRubricGenerationMessage('请先填写评分标准或评分项名称。');
+      focusGenerationBasis(index, 'scoring-item-name');
+      return;
+    }
+    if (!standard) {
+      setRubricDialog({
+        mode: 'missing-standard',
+        criterionIndex: index,
+        standardDraft: '',
+      });
+      return;
+    }
+    if (criterion.levels.some((level) => level.guideline.trim())) {
+      setRubricDialog({
+        mode: 'overwrite',
+        criterionIndex: index,
+        basis: 'scoring-standard',
+      });
+      return;
+    }
+    void runRubricGeneration(index, 'scoring-standard');
+  };
   return (
     <>
       <section aria-labelledby="prompt-title">
@@ -1254,11 +1515,13 @@ function QuestionEditor({
           >
             <div className="flex gap-2">
               <input
-                ref={
+                ref={(element) => {
                   registerValidationField(
                     `questions.${questionIndex}.rubric.criteria.${index}.label`,
-                  ) as React.Ref<HTMLInputElement>
-                }
+                  )(element);
+                  if (element) criterionNameRefs.current.set(index, element);
+                  else criterionNameRefs.current.delete(index);
+                }}
                 aria-label={`评分项 ${index + 1} 名称`}
                 aria-describedby="assignment-validation-errors"
                 value={criterion.label}
@@ -1386,6 +1649,10 @@ function QuestionEditor({
             <label className="mt-2 block text-xs text-slate-400">
               评分标准
               <textarea
+                ref={(element) => {
+                  if (element) scoringStandardRefs.current.set(index, element);
+                  else scoringStandardRefs.current.delete(index);
+                }}
                 value={criterion.scoringStandard}
                 onChange={(event) =>
                   updateCriterion(index, (item) => ({
@@ -1425,6 +1692,18 @@ function QuestionEditor({
             </label>
             {criterion.detailedRubricEnabled && (
               <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => requestRubricGeneration(index)}
+                  disabled={generatingCriterionId !== null}
+                  aria-describedby="rubric-generation-status"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-violet-600 px-3 text-xs font-medium text-white disabled:opacity-60"
+                >
+                  {generatingCriterionId === criterion.id
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Sparkles className="h-4 w-4" />}
+                  AI 填写全部准则
+                </button>
                 <button type="button" onClick={() => applyShortcut(5)} className="min-h-10 rounded-lg border border-slate-700 px-3 text-xs">
                   五级制
                 </button>
@@ -1610,6 +1889,150 @@ function QuestionEditor({
           );
         })}
       </section>
+      {rubricGenerationMessage && (
+        <p
+          id="rubric-generation-status"
+          role="status"
+          aria-live="polite"
+          className="mt-3 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-sm text-violet-100"
+        >
+          {rubricGenerationMessage}
+        </p>
+      )}
+      {rubricDialog && (() => {
+        const criterion = editableQuestion.rubric.criteria[rubricDialog.criterionIndex];
+        if (!criterion) return null;
+        const hasExistingGuidelines = criterion.levels.some(
+          (level) => level.guideline.trim(),
+        );
+        const isMissingStandard = rubricDialog.mode === 'missing-standard';
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') setRubricDialog(null);
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="rubric-ai-dialog-title"
+              className="w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-5 shadow-2xl"
+            >
+              <h3 id="rubric-ai-dialog-title" className="text-lg font-semibold text-white">
+                {isMissingStandard ? '补充评分标准' : '覆盖全部评分准则？'}
+              </h3>
+              {isMissingStandard ? (
+                <>
+                  <p className="mt-2 text-sm text-slate-300">
+                    AI 优先依据评分标准生成。可以先保存评分标准，也可以明确忽略并使用评分项名称“{criterion.label}”。
+                  </p>
+                  {hasExistingGuidelines && (
+                    <p className="mt-2 text-sm font-medium text-amber-300">
+                      当前已有评分准则；继续生成会一次性替换全部级别的现有准则。
+                    </p>
+                  )}
+                  <label className="mt-4 block text-sm text-slate-200">
+                    评分标准
+                    <textarea
+                      ref={dialogPrimaryRef as React.Ref<HTMLTextAreaElement>}
+                      value={rubricDialog.standardDraft}
+                      onChange={(event) => {
+                        const standardDraft = event.target.value;
+                        setRubricDialog((current) =>
+                          current?.mode === 'missing-standard'
+                            ? { ...current, standardDraft }
+                            : current,
+                        );
+                      }}
+                      rows={4}
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white"
+                    />
+                  </label>
+                  {!criterion.label.trim() && (
+                    <p className="mt-2 text-sm text-amber-300">
+                      评分项名称为空，不能忽略评分标准。
+                    </p>
+                  )}
+                  <div className="mt-5 flex flex-wrap justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRubricDialog(null)}
+                      className="min-h-10 rounded-lg border border-slate-600 px-4 text-sm"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!criterion.label.trim()}
+                      onClick={() => {
+                        void runRubricGeneration(
+                          rubricDialog.criterionIndex,
+                          'scoring-item-name',
+                        );
+                      }}
+                      className="min-h-10 rounded-lg border border-violet-400 px-4 text-sm text-violet-100 disabled:opacity-50"
+                    >
+                      {hasExistingGuidelines
+                        ? '忽略评分标准并覆盖生成'
+                        : '忽略评分标准，使用评分项名称'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!rubricDialog.standardDraft.trim()}
+                      onClick={() => {
+                        const preparedQuestion = questionWithCriterion(
+                          rubricDialog.criterionIndex,
+                          (item) => ({
+                            ...item,
+                            scoringStandard: rubricDialog.standardDraft,
+                          }),
+                        );
+                        void runRubricGeneration(
+                          rubricDialog.criterionIndex,
+                          'scoring-standard',
+                          preparedQuestion,
+                        );
+                      }}
+                      className="min-h-10 rounded-lg bg-violet-600 px-4 text-sm font-medium text-white disabled:opacity-50"
+                    >
+                      {hasExistingGuidelines ? '保存并覆盖生成' : '保存并生成'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="mt-2 text-sm text-slate-300">
+                    当前评分项已有内容。继续后将一次性替换全部评价级别的评分准则；级别名称、分值、数量和顺序不会改变。
+                  </p>
+                  <div className="mt-5 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRubricDialog(null)}
+                      className="min-h-10 rounded-lg border border-slate-600 px-4 text-sm"
+                    >
+                      取消
+                    </button>
+                    <button
+                      ref={dialogPrimaryRef as React.Ref<HTMLButtonElement>}
+                      type="button"
+                      onClick={() => {
+                        void runRubricGeneration(
+                          rubricDialog.criterionIndex,
+                          rubricDialog.basis,
+                        );
+                      }}
+                      className="min-h-10 rounded-lg bg-violet-600 px-4 text-sm font-medium text-white"
+                    >
+                      覆盖全部评分准则
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </>
   );
 }

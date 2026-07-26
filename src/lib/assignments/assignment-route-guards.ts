@@ -51,7 +51,10 @@ export function assignmentErrorResponse(error: unknown): NextResponse {
           'publication-baseline-already-published',
           'idempotency-key-reused',
           'publication-conflict-retryable',
+          'rubric-generation-revision-stale',
         ].includes(error.code) ? 409
+          : error.code === 'rubric-generation-output-invalid' ? 502
+            : error.code === 'rubric-generation-unavailable' ? 503
           : error.code === 'payload-too-large' ? 413
             : 400;
     return NextResponse.json({ error: error.code, details: error.details }, { status });

@@ -2,7 +2,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { assignmentNextAction, EMPTY_ASSIGNMENT_DRAFT } from '../assignment-ui-contracts';
+import {
+  applyGeneratedRubricGuidelines,
+  assignmentNextAction,
+  EMPTY_ASSIGNMENT_DRAFT,
+} from '../assignment-ui-contracts';
 
 const source = (file: string) => readFileSync(path.join(process.cwd(), file), 'utf8');
 
@@ -102,5 +106,70 @@ describe('teacher assignment workspace contracts', () => {
     expect(editor).not.toContain('班级 ID');
     expect(picker).toContain('const selected = await onSelect(item)');
     expect(picker).toContain('题库题目载入失败，请重试。');
+  });
+
+  it('atomically replaces only the generated guidelines for the exact current level set', () => {
+    const question = {
+      stableQuestionId: 'question-1',
+      responseType: 'SUBJECTIVE_TEXT' as const,
+      points: 10,
+      prompt: '题面',
+      referenceAnswer: '答案',
+      rubric: {
+        schemaVersion: 'assignment-scoring-rubric.v2' as const,
+        criteria: [{
+          id: 'criterion-1',
+          label: '证据质量',
+          goalDimension: 'engineeringDecision' as const,
+          maxPoints: 10,
+          scoringStandard: '依据证据评分。',
+          detailedRubricEnabled: true,
+          levels: [
+            { id: 'high', label: '优秀', maxPoints: 10, guideline: '旧高档准则' },
+            { id: 'low', label: '待改进', maxPoints: 5, guideline: '旧低档准则' },
+          ],
+        }],
+      },
+      source: {
+        family: 'MANUAL' as const,
+        authoringMarker: 'assignment-authoring' as const,
+      },
+    };
+    const result = applyGeneratedRubricGuidelines(
+      question,
+      'criterion-1',
+      [
+        { levelId: 'low', guideline: '新低档准则' },
+        { levelId: 'high', guideline: '新高档准则' },
+      ],
+    );
+    expect(result?.rubric).toEqual({
+      ...question.rubric,
+      criteria: [{
+        ...question.rubric.criteria[0],
+        levels: [
+          { ...question.rubric.criteria[0].levels[0], guideline: '新高档准则' },
+          { ...question.rubric.criteria[0].levels[1], guideline: '新低档准则' },
+        ],
+      }],
+    });
+    expect(applyGeneratedRubricGuidelines(
+      question,
+      'criterion-1',
+      [{ levelId: 'high', guideline: '不完整' }],
+    )).toBeNull();
+    expect(question.rubric.criteria[0].levels[0].guideline).toBe('旧高档准则');
+  });
+
+  it('exposes explicit fallback, overwrite cancellation, and dialog keyboard semantics', () => {
+    const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
+    expect(editor).toContain('AI 填写全部准则');
+    expect(editor).toContain('忽略评分标准，使用评分项名称');
+    expect(editor).toContain('覆盖全部评分准则？');
+    expect(editor).toContain('onClick={() => setRubricDialog(null)}');
+    expect(editor).toContain("if (event.key === 'Escape') setRubricDialog(null)");
+    expect(editor).toContain('aria-modal="true"');
+    expect(editor).toContain('dialogPrimaryRef.current?.focus()');
+    expect(editor).toContain('role="status"');
   });
 });
