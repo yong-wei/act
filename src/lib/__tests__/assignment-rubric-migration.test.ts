@@ -63,6 +63,7 @@ describe('assignment rubric v2 migration report', () => {
     expect(migrated.questions[0].rubric.schemaVersion).toBe('assignment-scoring-rubric.v2');
     const rubric = migrated.questions[0].rubric;
     if (rubric.schemaVersion !== 'assignment-scoring-rubric.v2') throw new Error('migration-version');
+    expect(rubric.criteria[0].goalDimension).toBe('engineeringDecision');
     expect(rubric.criteria[0].levels.map((level) => level.maxPoints)).toEqual([8, 7, 3]);
   });
 });

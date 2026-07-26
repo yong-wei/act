@@ -1448,7 +1448,8 @@ export function questionContractFromRow(row: any): FrozenQuestionContract {
     return {
       id: String(criterion.id),
       label: String(criterion.label ?? criterion.id),
-      goalDimension: String(criterion.goalDimension ?? ''),
+      goalDimension: String(criterion.goalDimension
+        ?? (schemaVersion === 'assignment-scoring-rubric.v2' ? 'engineeringDecision' : '')),
       maxPoints,
       ...(schemaVersion === 'assignment-scoring-rubric.v2' ? {
         scoringStandard: String(criterion.scoringStandard ?? ''),

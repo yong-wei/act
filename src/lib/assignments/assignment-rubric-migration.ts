@@ -76,6 +76,7 @@ export function migrateLegacyAssignmentDraftToRubricV2(
           criteria: question.rubric.criteria.map((criterion) => ({
             id: criterion.id,
             label: criterion.label,
+            goalDimension: criterion.goalDimension ?? 'engineeringDecision',
             maxPoints: roundUpToOneDecimal(criterion.maxPoints),
             scoringStandard: criterion.evidenceDescription,
             detailedRubricEnabled: true,

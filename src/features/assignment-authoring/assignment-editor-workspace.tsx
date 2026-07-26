@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import {
+  ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS,
   assignmentDraftSchema,
   validatePublicationScores,
   type AssignmentDraftInput,
@@ -48,6 +49,17 @@ type ManagedClassOption = {
   code: string;
   year: string | null;
   semester: string | null;
+};
+const RUBRIC_GOAL_DIMENSION_LABELS: Record<
+  (typeof ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS)[number],
+  string
+> = {
+  controlModeling: '控制建模',
+  parameterDesign: '参数设计',
+  crossDomainTransfer: '跨域迁移',
+  engineeringDecision: '工程决策',
+  inquiryReflection: '探究反思',
+  selfDirectedLearning: '自主学习',
 };
 
 export function AssignmentEditorWorkspace({
@@ -1156,6 +1168,14 @@ function QuestionEditor({
       }),
     ]),
   ));
+  const editedLevelFieldKeysRef = useRef(new Set(
+    editableQuestion.rubric.criteria.flatMap((criterion) => {
+      const editedIds = editedLevelIdsRef.current.get(criterion.id) ?? new Set<string>();
+      return criterion.levels.flatMap((level) => editedIds.has(level.id)
+        ? ['label', 'maxPoints', 'guideline'].map((field) => `${criterion.id}:${level.id}:${field}`)
+        : []);
+    }),
+  ));
   const updateCriterion = (
     index: number,
     update: (criterion: ScoringCriterionV2) => ScoringCriterionV2,
@@ -1406,6 +1426,26 @@ function QuestionEditor({
                   className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
                 />
               </label>
+              <label className="text-xs text-slate-400">
+                能力维度
+                <select
+                  aria-label={`评分项 ${index + 1} 能力维度`}
+                  value={criterion.goalDimension ?? 'engineeringDecision'}
+                  onChange={(event) =>
+                    updateCriterion(index, (item) => ({
+                      ...item,
+                      goalDimension: event.target.value as ScoringCriterionV2['goalDimension'],
+                    }))
+                  }
+                  className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+                >
+                  {ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS.map((dimension) => (
+                    <option key={dimension} value={dimension}>
+                      {RUBRIC_GOAL_DIMENSION_LABELS[dimension]}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
             <label className="mt-2 block text-xs text-slate-400">
               评分标准
@@ -1464,7 +1504,31 @@ function QuestionEditor({
                 </button>
               </div>
             )}
-            {criterion.detailedRubricEnabled && criterion.levels.map((level, levelIndex) => (
+            {criterion.detailedRubricEnabled && criterion.levels.map((level, levelIndex) => {
+                const fieldKey = (field: 'label' | 'maxPoints' | 'guideline') =>
+                  `${criterion.id}:${level.id}:${field}`;
+                const preservePristineSelection = (
+                  event: React.MouseEvent<HTMLInputElement>,
+                  field: 'label' | 'maxPoints' | 'guideline',
+                ) => {
+                  if (!editedLevelFieldKeysRef.current.has(fieldKey(field))) {
+                    event.preventDefault();
+                  }
+                };
+                const selectPristineValue = (
+                  event: React.FocusEvent<HTMLInputElement>,
+                  field: 'label' | 'maxPoints' | 'guideline',
+                ) => {
+                  if (!editedLevelFieldKeysRef.current.has(fieldKey(field))) {
+                    event.currentTarget.select();
+                  }
+                };
+                const markFieldEdited = (field: 'label' | 'maxPoints' | 'guideline') => {
+                  editedLevelFieldKeysRef.current.add(fieldKey(field));
+                  editedLevelIds.add(level.id);
+                  editedLevelIdsRef.current.set(criterion.id, editedLevelIds);
+                };
+              return (
               <div
                 key={level.id}
                 className="mt-2 grid gap-2 rounded-lg bg-slate-950/60 p-2 md:grid-cols-3"
@@ -1478,10 +1542,11 @@ function QuestionEditor({
                   aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 名称`}
                   aria-describedby="assignment-validation-errors"
                   value={level.label}
+                  onFocus={(event) => selectPristineValue(event, 'label')}
+                  onMouseUp={(event) => preservePristineSelection(event, 'label')}
                   onChange={(event) =>
                     {
-                      editedLevelIds.add(level.id);
-                      editedLevelIdsRef.current.set(criterion.id, editedLevelIds);
+                      markFieldEdited('label');
                       updateCriterion(index, (item) => ({
                         ...item,
                         levels: item.levels.map((entry, itemIndex) =>
@@ -1507,10 +1572,11 @@ function QuestionEditor({
                     max={criterion.maxPoints}
                     disabled={levelIndex === 0}
                     value={level.maxPoints}
+                    onFocus={(event) => selectPristineValue(event, 'maxPoints')}
+                    onMouseUp={(event) => preservePristineSelection(event, 'maxPoints')}
                     onChange={(event) =>
                       {
-                        editedLevelIds.add(level.id);
-                        editedLevelIdsRef.current.set(criterion.id, editedLevelIds);
+                        markFieldEdited('maxPoints');
                         updateCriterion(index, (item) => ({
                           ...item,
                           levels: sortRubricLevels(
@@ -1530,10 +1596,11 @@ function QuestionEditor({
                   <input
                     aria-label={`评分项 ${index + 1} 级别 ${levelIndex + 1} 评分准则`}
                     value={level.guideline}
+                    onFocus={(event) => selectPristineValue(event, 'guideline')}
+                    onMouseUp={(event) => preservePristineSelection(event, 'guideline')}
                     onChange={(event) =>
                       {
-                        editedLevelIds.add(level.id);
-                        editedLevelIdsRef.current.set(criterion.id, editedLevelIds);
+                        markFieldEdited('guideline');
                         updateCriterion(index, (item) => ({
                           ...item,
                           levels: item.levels.map((entry, itemIndex) =>
@@ -1588,9 +1655,10 @@ function QuestionEditor({
                       删除
                     </button>
                   </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </article>
           );
         })}
@@ -1612,6 +1680,7 @@ function manualQuestion(index: number): EditableQuestion {
         {
           id: 'criterion-1',
           label: '完成质量',
+          goalDimension: 'engineeringDecision',
           maxPoints: 10,
           scoringStandard: '根据作答证据的正确性、完整性和可复核程度评分。',
           detailedRubricEnabled: false,
@@ -1627,6 +1696,7 @@ function newCriterion(): ScoringCriterionV2 {
   return {
     id,
     label: '新评分项',
+    goalDimension: 'engineeringDecision',
     maxPoints: 1,
     scoringStandard: '依据作答证据评分。',
     detailedRubricEnabled: false,
@@ -1641,6 +1711,7 @@ function toScoringRubricV2(rubric: EditableQuestion['rubric']): ScoringRubricV2 
     criteria: rubric.criteria.map((criterion) => ({
       id: criterion.id,
       label: criterion.label,
+      goalDimension: criterion.goalDimension ?? 'engineeringDecision',
       maxPoints: Math.ceil(criterion.maxPoints * 10) / 10,
       scoringStandard: criterion.evidenceDescription,
       detailedRubricEnabled: true,

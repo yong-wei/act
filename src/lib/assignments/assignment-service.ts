@@ -401,6 +401,14 @@ export async function publishAssignmentRevision(db: AssignmentDb, input: {
         )) {
           issues.push('legacy-rubric-v2-migration-required');
         }
+        for (const question of draft.questions) {
+          if (question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2') continue;
+          for (const criterion of question.rubric.criteria) {
+            if (!criterion.goalDimension) {
+              issues.push(`rubric-goal-dimension-required:${question.stableQuestionId}:${criterion.id}`);
+            }
+          }
+        }
         if (draft.solutionReleasePolicy.mode === 'AT_TIME') {
           const publicationAudienceIds = new Set(input.audiences.map((audience) => audience.classId));
           for (const classId of draft.solutionReleasePolicy.audienceClassIds) {

@@ -691,6 +691,18 @@ describe('production math-document grading persistence contracts', () => {
 
   it('binds grading runs to the teacher-owned frozen class and replays by dedupe key', async () => {
     const attempt = submittedAttempt();
+    (attempt.answer.question as any).rubricSnapshot = {
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      criteria: [{
+        id: 'criterion-1',
+        label: 'Evidence',
+        goalDimension: 'engineeringDecision',
+        maxPoints: 5,
+        scoringStandard: '依据证据评分。',
+        detailedRubricEnabled: false,
+        levels: [],
+      }],
+    };
     const evidenceRow = {
       id: 'evidence-1',
       attemptId: 'attempt-1',
@@ -746,6 +758,7 @@ describe('production math-document grading persistence contracts', () => {
     expect(first.replay).toBe(false);
     expect(runs).toHaveLength(1);
     expect(jobs).toHaveLength(1);
+    expect(first.run.questionSnapshot.rubric.criteria[0].goalDimension).toBe('engineeringDecision');
 
     replay = { ...first.run, jobs: [first.job] };
     const second = await enqueueGradingRun({

@@ -23,6 +23,7 @@ function questionRow(points = 20, rubricPoints = 20, legacy = false) {
           criteria: [{
             id: criterion.id,
             label: criterion.label,
+            goalDimension: 'engineeringDecision',
             maxPoints: rubricPoints,
             scoringStandard: criterion.evidenceDescription,
             detailedRubricEnabled: false,

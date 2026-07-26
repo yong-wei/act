@@ -339,6 +339,30 @@ test('five-level shortcut isolates edited state to the current scoring item', as
   await expect(page.getByLabel('评分项 2 级别 5 分值边界')).toHaveValue('0.6');
 });
 
+test('first input replaces publishable default rubric text and score', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await page.getByLabel('启用详细评分细则').check();
+
+  const label = page.getByLabel('评分项 1 档位 1 名称');
+  await label.click();
+  await page.keyboard.type('卓越');
+  await expect(label).toHaveValue('卓越');
+
+  const guideline = page.getByLabel('评分项 1 级别 1 评分准则');
+  await guideline.click();
+  await page.keyboard.type('证据完整且可复核');
+  await expect(guideline).toHaveValue('证据完整且可复核');
+
+  await page.getByRole('button', { name: '添加评价级别' }).click();
+  const boundary = page.getByLabel('评分项 1 级别 2 分值边界');
+  await boundary.click();
+  await page.keyboard.type('8.5');
+  await expect(boundary).toHaveValue('8.5');
+});
+
 test('autosave 400 prevents publish and focuses the blocker', async ({ page, context }) => {
   await addTeacherSession(context);
   let publishCount = 0;

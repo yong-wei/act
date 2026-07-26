@@ -17,8 +17,18 @@ export const ASSIGNMENT_LIMITS = {
   audiences: 50,
 } as const;
 
+export const ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS = [
+  'controlModeling',
+  'parameterDesign',
+  'crossDomainTransfer',
+  'engineeringDecision',
+  'inquiryReflection',
+  'selfDirectedLearning',
+] as const;
+
 const boundedText = (max: number) => z.string().trim().min(1).max(max);
 const points = z.number().finite().positive().max(10_000).refine(hasAtMostTwoDecimals, 'score-must-use-0.01-quantum');
+const rubricGoalDimension = z.enum(ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS);
 
 export const rubricLevelSchema = z.object({
   id: boundedText(80),
@@ -31,6 +41,7 @@ export const rubricLevelSchema = z.object({
 export const rubricCriterionSchema = z.object({
   id: boundedText(80),
   label: boundedText(160),
+  goalDimension: rubricGoalDimension.optional(),
   maxPoints: points,
   evidenceDescription: boundedText(2_000),
   feedbackGuidance: boundedText(2_000),
@@ -82,6 +93,7 @@ export const rubricLevelV2Schema = z.object({
 export const rubricCriterionV2Schema = z.object({
   id: boundedText(80),
   label: boundedText(160),
+  goalDimension: rubricGoalDimension.optional(),
   maxPoints: z.number().finite().min(1).max(10_000)
     .refine(hasAtMostOneDecimal, 'score-must-use-0.1-quantum'),
   scoringStandard: z.string().trim().max(2_000),
