@@ -218,7 +218,6 @@ export async function saveQuestionDraft(prisma: PrismaClient, input: {
         textDraft: input.text,
         answerContractVersion: 'assignment-response.v2',
         state: input.text.trim() || finalizedAssets.length > 0 ? 'READY' : 'DRAFT',
-        attachmentOrderProvenance: finalizedAssets.length > 0 ? 'student-arranged' : answer.attachmentOrderProvenance,
         version: { increment: 1 },
       },
     });
@@ -356,7 +355,7 @@ export async function finalizeQuestionAsset(prisma: PrismaClient, store: Submiss
       data: {
         state: 'READY',
         answerContractVersion: 'assignment-response.v2',
-        attachmentOrderProvenance: 'student-arranged',
+        attachmentOrderProvenance: latestContext.answer.attachmentOrderProvenance,
         version: { increment: 1 },
       },
     });

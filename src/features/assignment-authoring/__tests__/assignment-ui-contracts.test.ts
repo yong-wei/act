@@ -65,6 +65,9 @@ describe('teacher assignment workspace contracts', () => {
     expect(student).toContain("method: 'DELETE'");
     expect(student).toContain('提交前保存正文失败');
     expect(student).toContain('附件已从本题草稿中移除');
+    expect(student).toContain('disabled={uploadDisabled}');
+    expect(student).toContain('Math.max(candidate.version, result.answerVersion ?? candidate.version)');
+    expect(student).toContain('assets.some((asset) => asset.id === finalizedAsset.id)');
   });
 
   it('publishes only an explicit saved baseline and exposes decimal input constraints', () => {

@@ -169,11 +169,25 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
         if (!finalizeResponse.ok || result.status !== 'READY') throw new Error(result.error || '附件最终确认失败');
       }
       if (result.status === 'READY' && result.asset) {
-        updateQuestion(question.id, {
-          state: 'READY',
-          version: result.answerVersion ?? question.version,
-          assets: [...(question.assets ?? []), { ...result.asset, displayName: result.asset.displayName || pending.fileName }],
-        });
+        setAssignment((current) => current ? {
+          ...current,
+          questions: current.questions.map((candidate) => {
+            if (candidate.id !== question.id) return candidate;
+            const finalizedAsset = {
+              ...result.asset!,
+              displayName: result.asset!.displayName || pending.fileName,
+            };
+            const assets = candidate.assets ?? [];
+            return {
+              ...candidate,
+              state: 'READY',
+              version: Math.max(candidate.version, result.answerVersion ?? candidate.version),
+              assets: assets.some((asset) => asset.id === finalizedAsset.id)
+                ? assets.map((asset) => asset.id === finalizedAsset.id ? finalizedAsset : asset)
+                : [...assets, finalizedAsset],
+            };
+          }),
+        } : current);
         setPendingUploads((current) => { const next = { ...current }; delete next[question.id]; return next; });
         setNotice({ kind: 'success', message: `附件“${pending.fileName}”已通过安全扫描并就绪。` });
         requestAnimationFrame(() => noticeRef.current?.focus());
@@ -417,11 +431,12 @@ function StudentApprovedFeedback({ assignment, onSelectQuestion }: { assignment:
 function QuestionEditor({ question, index, draft, onDraftChange, onSave, onUpload, onRemove, onSubmit, onHistory, busyAction, readOnly, headingRef, pendingUpload, uploadStatusRef, onRetryConfirm }: { question: StudentAssignmentQuestion; index: number; draft: string; onDraftChange: (value: string) => void; onSave: () => void; onUpload: (file: File) => void; onRemove: (assetId: string) => void; onSubmit: () => void; onHistory: () => void; busyAction: string | null; readOnly: boolean; headingRef: React.RefObject<HTMLHeadingElement | null>; pendingUpload?: PendingUpload; uploadStatusRef: React.RefObject<HTMLDivElement | null>; onRetryConfirm: (pending: PendingUpload) => void }) {
   const submitted = question.state === 'SUBMITTED';
   const busy = busyAction?.endsWith(`:${question.id}`) ?? false;
+  const uploadDisabled = busy || pendingUpload?.status === 'SCANNING' || pendingUpload?.status === 'TIMEOUT';
   return (
     <article className="surface-card p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-medium text-primary">第 {index + 1} 题 · {question.points} 分</p><h2 ref={headingRef} tabIndex={-1} className="mt-2 text-lg font-semibold text-foreground outline-none">{question.promptText}</h2></div><span className="rounded-full bg-accent px-3 py-1 text-xs text-subtle">{questionStateLabels[question.state]}</span></div>
       <div className="mt-6"><label htmlFor={`answer-${question.id}`} className="text-sm font-medium text-foreground">Markdown 正文</label><textarea id={`answer-${question.id}`} value={draft} disabled={submitted || readOnly} onChange={(event) => onDraftChange(event.target.value)} rows={9} maxLength={20000} className="mt-2 w-full resize-y rounded-xl border border-border bg-background px-4 py-3 text-sm leading-6 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70" placeholder="可填写正文，也可仅提交附件。" /><p className="mt-1 text-right text-xs text-subtle">{draft.length} / 20000</p></div>
-      <div className="mt-5 rounded-xl border border-dashed border-border p-4"><p className="text-sm font-medium text-foreground">本题图片与附件</p><p className="mt-1 text-xs text-subtle">正文内图片与独立附件合计最多 10 个；支持 PDF、DOC、DOCX、PPTX、PNG、JPEG、Markdown 和纯文本。</p>{question.assets?.map((asset) => <div key={asset.id} className="mt-3 flex items-center justify-between gap-3 text-sm text-foreground"><span className="inline-flex min-w-0 items-center gap-2"><Paperclip className="h-4 w-4 shrink-0" /><span className="truncate">{asset.displayName}</span></span>{!submitted && !readOnly && <button id={`remove-${asset.id}`} type="button" disabled={busy} onClick={() => onRemove(asset.id)} className="btn-ghost-themed inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs"><Trash2 className="h-3.5 w-3.5" />移除</button>}</div>)}{pendingUpload && <div ref={uploadStatusRef} tabIndex={-1} role="status" className={pendingUpload.status === 'SCANNING' ? 'mt-3 rounded-lg border border-blue-500/25 bg-blue-500/8 p-3 text-sm text-blue-700 outline-none dark:text-blue-300' : 'mt-3 rounded-lg border border-amber-500/25 bg-amber-500/8 p-3 text-sm text-amber-700 outline-none dark:text-amber-300'}><p>{pendingUpload.message}</p><p className="mt-1 text-xs opacity-80">上传意图 {pendingUpload.intentId.slice(0, 8)}… 已保留。</p>{pendingUpload.status !== 'UNSAFE' && pendingUpload.status !== 'EXPIRED' && <button type="button" disabled={busy} onClick={() => onRetryConfirm(pendingUpload)} className="btn-ghost-themed mt-2 rounded-lg px-3 py-2 text-xs">重新检查扫描状态</button>}</div>}{!submitted && !readOnly && <label className="btn-ghost-themed mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm"><FileUp className="h-4 w-4" />选择附件<input id={`file-${question.id}`} type="file" accept=".pdf,.doc,.docx,.pptx,.png,.jpg,.jpeg,.md,.markdown,.txt" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) onUpload(file); event.currentTarget.value = ''; }} /></label>}</div>
+      <div className="mt-5 rounded-xl border border-dashed border-border p-4"><p className="text-sm font-medium text-foreground">本题图片与附件</p><p className="mt-1 text-xs text-subtle">正文内图片与独立附件合计最多 10 个；支持 PDF、DOC、DOCX、PPTX、PNG、JPEG、Markdown 和纯文本。</p>{question.assets?.map((asset) => <div key={asset.id} className="mt-3 flex items-center justify-between gap-3 text-sm text-foreground"><span className="inline-flex min-w-0 items-center gap-2"><Paperclip className="h-4 w-4 shrink-0" /><span className="truncate">{asset.displayName}</span></span>{!submitted && !readOnly && <button id={`remove-${asset.id}`} type="button" disabled={busy} onClick={() => onRemove(asset.id)} className="btn-ghost-themed inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs"><Trash2 className="h-3.5 w-3.5" />移除</button>}</div>)}{pendingUpload && <div ref={uploadStatusRef} tabIndex={-1} role="status" className={pendingUpload.status === 'SCANNING' ? 'mt-3 rounded-lg border border-blue-500/25 bg-blue-500/8 p-3 text-sm text-blue-700 outline-none dark:text-blue-300' : 'mt-3 rounded-lg border border-amber-500/25 bg-amber-500/8 p-3 text-sm text-amber-700 outline-none dark:text-amber-300'}><p>{pendingUpload.message}</p><p className="mt-1 text-xs opacity-80">上传意图 {pendingUpload.intentId.slice(0, 8)}… 已保留。</p>{pendingUpload.status !== 'UNSAFE' && pendingUpload.status !== 'EXPIRED' && <button type="button" disabled={busy} onClick={() => onRetryConfirm(pendingUpload)} className="btn-ghost-themed mt-2 rounded-lg px-3 py-2 text-xs">重新检查扫描状态</button>}</div>}{!submitted && !readOnly && <label aria-disabled={uploadDisabled} className="btn-ghost-themed mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm aria-disabled:cursor-not-allowed aria-disabled:opacity-60"><FileUp className="h-4 w-4" />选择附件<input id={`file-${question.id}`} type="file" disabled={uploadDisabled} accept=".pdf,.doc,.docx,.pptx,.png,.jpg,.jpeg,.md,.markdown,.txt" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) onUpload(file); event.currentTarget.value = ''; }} /></label>}</div>
       <div className="mt-6 flex flex-wrap gap-3 border-t border-border/70 pt-5">
         {!submitted && !readOnly && <button type="button" disabled={busy} onClick={onSave} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm"><Save className="h-4 w-4" />保存本题草稿</button>}
         {!submitted && !readOnly && <button id={`submit-${question.id}`} type="button" disabled={busy || question.state === 'UPLOADING'} onClick={onSubmit} className="cta-primary inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}提交本题</button>}

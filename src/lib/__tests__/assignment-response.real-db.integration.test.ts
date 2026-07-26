@@ -6,6 +6,7 @@ import { Pool } from 'pg';
 import { backfillAssignmentAttachmentOrder } from '@/lib/assignments/attachment-order-backfill';
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import {
+  finalizeQuestionAsset,
   removeQuestionAsset,
   reorderQuestionAssets,
   saveQuestionDraft,
@@ -197,6 +198,19 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
       orderIndex: 9,
       embeddedPosition: 'md:figure-1',
     } });
+    saved = await prisma.submissionAnswer.update({
+      where: { id: saved.id },
+      data: { attachmentOrderProvenance: 'legacy-fallback' },
+    });
+    saved = await saveQuestionDraft(prisma, {
+      studentId: 'response-student',
+      assignmentId,
+      questionId,
+      version: saved.version,
+      text: '迁移后的正文更新\n![图](asset:md:figure-1)',
+      embeddedAssets: [{ assetId: embeddedAsset.id, positionRef: 'md:figure-1' }],
+    });
+    expect(saved.attachmentOrderProvenance).toBe('legacy-fallback');
     await expect(signQuestionUpload(prisma, new MemorySubmissionObjectStore(), {
       studentId: 'response-student',
       assignmentId,
@@ -413,5 +427,39 @@ describe.runIf(enabled)('unified assignment response PostgreSQL integration', ()
     })).toEqual(firstApplied);
     expect((await prisma.submissionAttempt.findUniqueOrThrow({ where: { id: attempt.id } })).answerSnapshot)
       .toEqual(frozenSnapshot);
+
+    const migratedDraft = await prisma.submissionAnswer.update({
+      where: { id: saved.id },
+      data: { state: 'DRAFT', attachmentOrderProvenance: 'legacy-fallback' },
+    });
+    const migratedStore = new MemorySubmissionObjectStore();
+    const migratedChecksum = `sha256:${'d'.repeat(64)}`;
+    const migratedUpload = await signQuestionUpload(prisma, migratedStore, {
+      studentId: 'response-student',
+      assignmentId,
+      questionId,
+      fileName: 'post-migration.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 12,
+      checksum: migratedChecksum,
+    });
+    migratedStore.put({
+      key: migratedUpload.key,
+      ownerId: 'response-student',
+      answerId: migratedDraft.id,
+      sizeBytes: 12,
+      mimeType: 'application/pdf',
+      checksum: migratedChecksum,
+      scanState: 'CLEAN',
+    });
+    await finalizeQuestionAsset(prisma, migratedStore, {
+      studentId: 'response-student',
+      assignmentId,
+      questionId,
+      intentId: migratedUpload.intentId,
+      idempotencyKey: 'post-migration-finalize',
+    });
+    expect(await prisma.submissionAnswer.findUniqueOrThrow({ where: { id: saved.id } }))
+      .toMatchObject({ attachmentOrderProvenance: 'legacy-fallback' });
   });
 });
