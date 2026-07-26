@@ -36,6 +36,7 @@ export function LessonDocumentEditor({
   const [saveState, setSaveState] = useState<PreparationEditorSaveState>('saved');
   const [message, setMessage] = useState('');
   const editGenerationRef = useRef(0);
+  const documentRef = useRef<RecordValue | null>(null);
   const storageKey = `preparation-editor:${kind}:${documentId}`;
   const validationErrors = useMemo(
     () => preparationDocumentValidationErrors(kind, document, task?.durationMinutes ?? 0),
@@ -50,9 +51,14 @@ export function LessonDocumentEditor({
       return;
     }
     const serverDocument = kind === 'outline' ? payload.outline.output : payload.draft.content;
+    const serverRevision = kind === 'outline' ? payload.outline.outputHash : payload.draft.version;
     const local = !preferServer ? readLocalDraft(storageKey) : null;
-    setDocument(local?.content ?? serverDocument);
-    setBaseRevision(kind === 'outline' ? payload.outline.outputHash : payload.draft.version);
+    if (preferServer) window.localStorage.removeItem(storageKey);
+    const nextDocument = local?.content ?? serverDocument;
+    const nextRevision = local ? local.baseRevision : serverRevision;
+    setDocument(nextDocument);
+    documentRef.current = nextDocument;
+    setBaseRevision(nextRevision ?? '');
     setTask(kind === 'outline' ? payload.job.task : payload.task);
     const suggestionKey = `${storageKey}:suggestions`;
     const currentReview = payload.draft?.reviews?.find?.((review: RecordValue) => review.contentHash === payload.draft.contentHash);
@@ -60,9 +66,13 @@ export function LessonDocumentEditor({
       ? advisorySuggestions(currentReview?.report, payload.draft.contentHash)
           .map((item) => ({ ...item, status: readSuggestionStates(suggestionKey)[item.id] ?? item.status }))
       : []);
-    setSaveState(local ? 'dirty' : 'saved');
+    setSaveState(local ? local.baseRevision === null ? 'conflict' : 'dirty' : 'saved');
     editGenerationRef.current = local ? 1 : 0;
-    setMessage(local ? '已恢复上次未完成的本地修改。' : '');
+    setMessage(local
+      ? local.baseRevision === null
+        ? '已恢复旧版本地修改，但缺少原始修订基线；请复制内容后重新加载服务器修订。'
+        : '已恢复上次未完成的本地修改。'
+      : '');
   }, [documentId, kind, storageKey]);
 
   useEffect(() => {
@@ -72,12 +82,18 @@ export function LessonDocumentEditor({
   const change = useCallback((next: RecordValue) => {
     editGenerationRef.current += 1;
     setDocument(next);
-    setSaveState('dirty');
-    writeLocalDraft(storageKey, next);
-  }, [storageKey]);
+    documentRef.current = next;
+    setSaveState(baseRevision === '' ? 'conflict' : 'dirty');
+    writeLocalDraft(storageKey, next, baseRevision === '' ? null : baseRevision);
+  }, [baseRevision, storageKey]);
 
   const save = useCallback(async () => {
     if (!document || saveState === 'saving') return;
+    if (baseRevision === '') {
+      setSaveState('conflict');
+      setMessage('本地修改缺少原始修订基线；请复制内容后重新加载服务器修订。');
+      return;
+    }
     if (validationErrors.length > 0) {
       setSaveState('failed');
       setMessage('请先修正文档中的结构或时长问题。');
@@ -106,6 +122,7 @@ export function LessonDocumentEditor({
       setMessage('修改已可靠保存。');
       window.localStorage.removeItem(storageKey);
     } else {
+      if (documentRef.current) writeLocalDraft(storageKey, documentRef.current, nextRevision);
       setSaveState('dirty');
       setMessage('较早修改已保存，正在继续保存新的修改。');
     }
@@ -149,8 +166,9 @@ export function LessonDocumentEditor({
       suggestions={suggestions}
       onSelectSection={(id) => window.document.getElementById(`document-section-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
       onAcceptSuggestion={(suggestion) => {
-        const limitations = stringArray(document.limitations);
-        change({ ...document, limitations: [...limitations, suggestion.message] });
+        const nextDocument = applySuggestion(document, suggestion);
+        if (!nextDocument) return;
+        change(nextDocument);
         setSuggestions((current) => {
           const next = current.map((item) => item.id === suggestion.id ? { ...item, status: 'accepted' as const } : item);
           writeSuggestionStates(`${storageKey}:suggestions`, next);
@@ -268,9 +286,70 @@ function advisorySuggestions(value: unknown, revision: unknown): PreparationEdit
   const findings = Array.isArray(report.findings) ? report.findings.map(preparationRecord) : [];
   const suggestions = stringArray(report.suggestions);
   return [
-    ...findings.map((finding, index) => ({ id: `${revision}:finding:${index}`, message: String(finding.message ?? ''), anchor: String(finding.path ?? '教案'), status: 'open' as const })),
-    ...suggestions.map((message, index) => ({ id: `${revision}:suggestion:${index}`, message, anchor: '教学限制与待补信息', status: 'open' as const })),
+    ...findings.map((finding, index) => {
+      const anchor = typeof finding.path === 'string' ? finding.path : '';
+      const replacement = typeof finding.proposedReplacement === 'string'
+        && isEditableSuggestionPath(anchor.split('.').filter(Boolean))
+        ? finding.proposedReplacement
+        : null;
+      return {
+        id: `${revision}:finding:${index}`,
+        message: String(finding.message ?? ''),
+        anchor: anchor || '教案',
+        replacement,
+        status: 'open' as const,
+      };
+    }),
+    ...suggestions.map((message, index) => ({
+      id: `${revision}:suggestion:${index}`,
+      message,
+      anchor: '教学限制与待补信息',
+      replacement: null,
+      status: 'open' as const,
+    })),
   ].filter((item) => item.message);
+}
+
+function applySuggestion(document: RecordValue, suggestion: PreparationEditorSuggestion): RecordValue | null {
+  if (!suggestion.replacement || !suggestion.anchor) return null;
+  const path = suggestion.anchor.split('.').filter(Boolean);
+  if (!isEditableSuggestionPath(path)) return null;
+  return replaceStringAtPath(document, path, suggestion.replacement);
+}
+
+function isEditableSuggestionPath(path: string[]) {
+  if (path.length === 1) return ['course', 'topic', 'audience', 'prerequisites'].includes(path[0]);
+  if (path.length === 2 && path[0] === 'limitations') return validArrayIndex(path[1]);
+  if (path.length === 3 && path[0] === 'coursewareStepOutline') {
+    return validArrayIndex(path[1]) && path[2] === 'title';
+  }
+  return path.length === 5
+    && path[0] === 'boppps'
+    && STAGES.some(([stageId]) => stageId === path[1])
+    && path[2] === 'steps'
+    && validArrayIndex(path[3])
+    && ['title', 'teacherActivity', 'studentActivity', 'assessment'].includes(path[4]);
+}
+
+function validArrayIndex(value: string) {
+  return /^(0|[1-9]\d*)$/.test(value);
+}
+
+function replaceStringAtPath(value: RecordValue, path: string[], replacement: string): RecordValue | null {
+  const [head, ...tail] = path;
+  const current = value[head];
+  if (tail.length === 0) return typeof current === 'string' ? { ...value, [head]: replacement } : null;
+  if (Array.isArray(current)) {
+    const index = Number(tail[0]);
+    if (!Number.isInteger(index) || index < 0 || index >= current.length) return null;
+    const child = current[index];
+    if (!child || typeof child !== 'object' || Array.isArray(child)) return null;
+    const next = replaceStringAtPath(child as RecordValue, tail.slice(1), replacement);
+    return next ? { ...value, [head]: updateAt(current, index, next) } : null;
+  }
+  if (!current || typeof current !== 'object') return null;
+  const next = replaceStringAtPath(current as RecordValue, tail, replacement);
+  return next ? { ...value, [head]: next } : null;
 }
 
 function LineList({ label, values, onChange }: { label: string; values: string[]; onChange: (values: string[]) => void }) {
@@ -315,14 +394,20 @@ function stringArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
-function writeLocalDraft(key: string, content: RecordValue) {
-  window.localStorage.setItem(key, JSON.stringify({ content, savedAt: new Date().toISOString() }));
+function writeLocalDraft(key: string, content: RecordValue, baseRevision: string | number | null) {
+  window.localStorage.setItem(key, JSON.stringify({ content, baseRevision, savedAt: new Date().toISOString() }));
 }
 
-function readLocalDraft(key: string): { content: RecordValue } | null {
+function readLocalDraft(key: string): { content: RecordValue; baseRevision: string | number | null } | null {
   try {
     const value = JSON.parse(window.localStorage.getItem(key) ?? 'null');
-    return value?.content && typeof value.content === 'object' ? value : null;
+    if (!value?.content || typeof value.content !== 'object') return null;
+    return {
+      content: value.content,
+      baseRevision: typeof value.baseRevision === 'string' || typeof value.baseRevision === 'number'
+        ? value.baseRevision
+        : null,
+    };
   } catch {
     return null;
   }
@@ -352,14 +437,5 @@ function errorText(payload: unknown) {
 }
 
 function returnToSmartPrep(fallback: string) {
-  try {
-    const referrer = new URL(window.document.referrer);
-    if (referrer.origin === window.location.origin && referrer.pathname === '/teacher/smart-prep') {
-      window.history.back();
-      return;
-    }
-  } catch {
-    // Use the governed fallback when the referrer is absent or invalid.
-  }
   window.location.assign(fallback);
 }

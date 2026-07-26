@@ -47,7 +47,7 @@ describe('preparation document editor interactions', () => {
       <PreparationDocumentEditorShell
         title="教案"
         sections={[{ id: 'bridgeIn', title: '导入', complete: false }]}
-        suggestions={[{ id: 'suggestion-1', message: '补充例题', status: 'open' }]}
+        suggestions={[{ id: 'suggestion-1', message: '补充例题', replacement: '补充例题', status: 'open' }]}
         saveState="dirty"
         onSave={onSave}
         onExit={onExit}
@@ -86,6 +86,7 @@ describe('preparation document editor interactions', () => {
     const plan = validPlanFixture();
     window.localStorage.setItem('preparation-editor:draft:draft-1', JSON.stringify({
       content: { ...plan, topic: '本地恢复主题' },
+      baseRevision: 1,
       savedAt: '2026-07-25T00:00:00.000Z',
     }));
     const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
@@ -195,7 +196,15 @@ describe('preparation document editor interactions', () => {
           reviews: [{
             contentHash: 'revision-hash',
             report: {
-              findings: [{ path: 'boppps.bridgeIn', message: '补充导入案例' }],
+              findings: [{
+                path: 'boppps.bridgeIn.steps.0.teacherActivity',
+                message: '补充导入案例',
+                proposedReplacement: '展示真实航向偏差案例',
+              }, {
+                path: 'boppps.bridgeIn.steps.0.sourceBindings.0.contentHash',
+                message: '替换来源摘要',
+                proposedReplacement: 'unsafe-replacement',
+              }],
               suggestions: ['补充总结问题'],
             },
           }],
@@ -209,13 +218,19 @@ describe('preparation document editor interactions', () => {
       await Promise.resolve();
     });
 
-    const accept = [...container.querySelectorAll('button')].find((button) => button.textContent === '接受')!;
-    const ignore = [...container.querySelectorAll('button')].filter((button) => button.textContent === '忽略')[1]!;
+    const acceptButtons = [...container.querySelectorAll('button')].filter((button) => button.textContent === '接受');
+    expect(acceptButtons).toHaveLength(1);
+    const accept = acceptButtons[0];
+    const genericSuggestion = [...container.querySelectorAll('article')]
+      .find((article) => article.textContent?.includes('补充总结问题'))!;
+    expect(genericSuggestion.textContent).toContain('该建议未包含可应用的修改');
+    const ignore = [...genericSuggestion.querySelectorAll('button')].find((button) => button.textContent === '忽略')!;
     await act(async () => accept.click());
     await act(async () => ignore.click());
 
     const documentDraft = JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1')!);
-    expect(documentDraft.content.limitations).toContain('补充导入案例');
+    expect(documentDraft.content.boppps.bridgeIn.steps[0].teacherActivity).toBe('展示真实航向偏差案例');
+    expect(documentDraft.content.boppps.bridgeIn.steps[0].sourceBindings).toEqual(plan.boppps.bridgeIn.steps[0].sourceBindings);
     expect(JSON.parse(window.localStorage.getItem('preparation-editor:draft:draft-1:suggestions')!)).toEqual({
       'revision-hash:finding:0': 'accepted',
       'revision-hash:suggestion:0': 'ignored',

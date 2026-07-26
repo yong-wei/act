@@ -144,6 +144,7 @@ describe('smart lesson task routes', () => {
       id: 'task-1',
       aggregateClassContext: { learnerTrace: 'private' },
       goals: [{ id: 'goal-1', sourceState: 'AI_GENERATED_SOURCE_PENDING' }],
+      revisions: [{ id: 'revision-1', taskRevision: 3, revisionNumber: 1, displayName: '教案第1版' }],
       drafts: [{ reviews: [{ id: 'review-1', providerAudit: { model: 'private-model' } }], jobs: [{
         id: 'job-1', state: 'RUNNING', activeIdentity: 'private', stages: [{
           id: 'stage-1', kind: 'OUTLINE', state: 'COMPLETED', output: { sourceState: 'VERIFIED' }, claimToken: 'private', attemptGeneration: 3,
@@ -155,6 +156,7 @@ describe('smart lesson task routes', () => {
     expect(await response.json()).toMatchObject({ task: {
       id: 'task-1',
       goals: [{ id: 'goal-1', sourceState: 'ai_generated_source_pending' }],
+      revisions: [{ id: 'revision-1', taskRevision: 3, revisionNumber: 1, displayName: '教案第1版' }],
       drafts: [{ reviews: [{ id: 'review-1' }], jobs: [{ id: 'job-1', state: 'RUNNING', stages: [{ id: 'stage-1', kind: 'OUTLINE', state: 'COMPLETED', output: { sourceState: 'verified' }, outputTruncated: false }] }] }],
       workspace: {
         currentStage: 'course-basis',

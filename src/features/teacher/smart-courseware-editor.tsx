@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
@@ -30,7 +30,10 @@ import { renderInteractiveManifestStep } from '@/features/interactive/shared/man
 import { useManifestSubmissionController } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { isObjectiveInteractiveResponseKind, isSubjectiveInteractiveResponseKind } from '@/lib/interactive-response-contracts';
-import { PreparationDocumentEditorShell } from './preparation-document-editor/editor-shell';
+import {
+  PreparationDocumentEditorShell,
+  type PreparationEditorSaveState,
+} from './preparation-document-editor/editor-shell';
 import { SmartCoursewarePublicationPanel } from './smart-courseware-publication-panel';
 
 export type SmartCoursewareSourceState =
@@ -248,6 +251,7 @@ export function SmartCoursewareProjectionEditor({
   stalePlan,
   initialJob,
   sourceRevisionId,
+  returnTaskId,
 }: {
   teacherProjection: SmartCoursewareTeacherProjectionInput;
   studentProjection: SmartCoursewareStudentProjectionReceipt | null;
@@ -255,6 +259,7 @@ export function SmartCoursewareProjectionEditor({
   stalePlan: boolean;
   initialJob?: SmartCoursewareJobView | null;
   sourceRevisionId?: string | null;
+  returnTaskId?: string | null;
 }) {
   const initialEnvelope = createSmartCoursewareTeacherEnvelopeFromProjection(teacherProjection);
   initialEnvelope.state = state;
@@ -269,6 +274,7 @@ export function SmartCoursewareProjectionEditor({
       initialStudentPreview={initialStudentPreview}
       initialJob={initialJob}
       sourceRevisionId={sourceRevisionId}
+      returnTaskId={returnTaskId}
     />
   );
 }
@@ -357,11 +363,13 @@ export function SmartCoursewareEditor({
   initialStudentPreview,
   initialJob = null,
   sourceRevisionId = null,
+  returnTaskId = null,
 }: {
   initialEnvelope: SmartCoursewareTeacherEnvelope;
   initialStudentPreview?: SmartCoursewareStudentPreviewEnvelope | null;
   initialJob?: SmartCoursewareJobView | null;
   sourceRevisionId?: string | null;
+  returnTaskId?: string | null;
 }) {
   const [envelope, setEnvelope] = useState(initialEnvelope);
   const [previewRole, setPreviewRole] = useState<'teacher' | 'student'>('teacher');
@@ -370,8 +378,10 @@ export function SmartCoursewareEditor({
   const [approvedRevisionId, setApprovedRevisionId] = useState(sourceRevisionId);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const [visualDirty, setVisualDirty] = useState(false);
+  const [visualSaveState, setVisualSaveState] = useState<PreparationEditorSaveState>('saved');
+  const visualDirty = visualSaveState !== 'saved';
   const visualSaveRef = useRef<() => Promise<void>>(async () => undefined);
+  const visualDiscardRef = useRef<() => void>(() => undefined);
   const [selectedStepId, setSelectedStepId] = useState(initialEnvelope.manifest?.stages[0]?.steps[0]?.id ?? '');
   const [selectedModuleId, setSelectedModuleId] = useState(initialEnvelope.manifest?.stages[0]?.steps[0]?.modules[0]?.id ?? '');
   const [newModuleClass, setNewModuleClass] = useState<string>('content.rich');
@@ -383,7 +393,8 @@ export function SmartCoursewareEditor({
 
   function confirmVisualDiscard() {
     if (!visualDirty || window.confirm('所选内容尚未保存。放弃这些修改并切换吗？')) {
-      setVisualDirty(false);
+      if (visualDirty) visualDiscardRef.current();
+      setVisualSaveState('saved');
       return true;
     }
     return false;
@@ -435,6 +446,8 @@ export function SmartCoursewareEditor({
   async function persistComposition(
     runtimeManifest: GeneratedSlideManifest,
     moduleMetadata: SmartCoursewareCompositionMetadata[] = envelope.compositionMetadata,
+    expectedVersion = envelope.version,
+    onFailure?: (status: number) => void,
   ) {
     setBusy(true);
     try {
@@ -444,18 +457,19 @@ export function SmartCoursewareEditor({
       }) => metadata);
       const response = await fetch(`/api/teacher/smart-courseware/drafts/${envelope.draftId}`, {
         method: 'PATCH', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ expectedVersion: envelope.version, runtimeManifest, moduleMetadata: writableModuleMetadata }),
+        body: JSON.stringify({ expectedVersion, runtimeManifest, moduleMetadata: writableModuleMetadata }),
       });
       const payload = await response.json();
       if (!response.ok) {
+        onFailure?.(response.status);
         setMessage(errorMessage(payload));
-        return false;
+        return null;
       }
       const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview, envelope.stalePlan);
       setEnvelope(next);
       setStudentPreview(await fetchStudentPreview(next));
       setMessage('组合已保存，并通过服务器共享运行时校验。');
-      return true;
+      return next;
     } finally {
       setBusy(false);
     }
@@ -552,12 +566,17 @@ export function SmartCoursewareEditor({
     payload: Record<string, unknown>,
     teacherFields: SmartCoursewareCompositionMetadata['teacherFields'],
     responseKind = selectedModule?.responseKind,
+    expectedVersion = envelope.version,
   ) {
-    if (!selectedModule || !selectedStep || !stepTitle.trim()) return;
+    if (!selectedModule || !selectedStep || !stepTitle.trim()) return null;
     const metadata = envelope.compositionMetadata.find((item) => item.moduleId === selectedModule.id);
-    if (!metadata) return;
+    if (!metadata) return null;
     const activity = selectedModule.canonicalClass === GENERATED_ACTIVITY_CLASS;
-    if (activity && !GENERATED_RESPONSE_KINDS.includes(responseKind as GeneratedResponseKind)) return setMessage('活动响应类型无效。');
+    if (activity && !GENERATED_RESPONSE_KINDS.includes(responseKind as GeneratedResponseKind)) {
+      setMessage('活动响应类型无效。');
+      setVisualSaveState('failed');
+      return null;
+    }
     const normalizedTeacherFields = activity ? teacherFieldsForResponseKind(responseKind, teacherFields) : teacherFields;
     const next = replaceSelectedStep((step) => ({
       ...step,
@@ -567,11 +586,18 @@ export function SmartCoursewareEditor({
         : module),
     }));
     if (next) {
-      const saved = await persistComposition(next, envelope.compositionMetadata.map((item) => (
-        item.moduleId === selectedModule.id ? { ...item, teacherFields: normalizedTeacherFields } : item
-      )));
-      if (saved) setVisualDirty(false);
+      setVisualSaveState('saving');
+      const saved = await persistComposition(
+        next,
+        envelope.compositionMetadata.map((item) => (
+          item.moduleId === selectedModule.id ? { ...item, teacherFields: normalizedTeacherFields } : item
+        )),
+        expectedVersion,
+        (status) => setVisualSaveState(status === 409 ? 'conflict' : 'failed'),
+      );
+      return saved?.version ?? null;
     }
+    return null;
   }
 
   async function deleteModule() {
@@ -720,19 +746,11 @@ export function SmartCoursewareEditor({
         setSelectedModuleId(step?.modules[0]?.id ?? '');
       }}
       suggestions={editorSuggestions}
-      saveState={busy ? 'saving' : visualDirty ? 'dirty' : 'saved'}
+      saveState={busy ? 'saving' : visualSaveState}
       onSave={() => visualSaveRef.current()}
       onExit={() => {
-        try {
-          const referrer = new URL(window.document.referrer);
-          if (referrer.origin === window.location.origin && referrer.pathname === '/teacher/smart-prep') {
-            window.history.back();
-            return;
-          }
-        } catch {
-          // Use the governed fallback when the referrer is absent or invalid.
-        }
-        window.location.assign('/teacher/smart-prep');
+        const query = returnTaskId ? `?taskId=${encodeURIComponent(returnTaskId)}` : '';
+        window.location.assign(`/teacher/smart-prep${query}#smart-prep-stage-courseware-generation`);
       }}
     >
     <main className="space-y-5" data-smart-courseware-editor data-courseware-draft-id={envelope.draftId}>
@@ -844,14 +862,19 @@ export function SmartCoursewareEditor({
         onRegenerate={requestModuleRegeneration}
       /> : null}
       {envelope.manifest && envelope.state !== 'accepted' && selectedStep && selectedModule ? <CoursewareVisualFields
-        key={`${selectedStep.id}:${selectedModule.id}:${envelope.version}`}
+        key={`${selectedStep.id}:${selectedModule.id}`}
+        draftId={envelope.draftId}
+        version={envelope.version}
         step={selectedStep}
         module={selectedModule}
         metadata={envelope.compositionMetadata.find((item) => item.moduleId === selectedModule.id)}
         busy={busy}
-        onDirty={() => setVisualDirty(true)}
+        onSaveState={setVisualSaveState}
         onRegisterSave={(save) => {
           visualSaveRef.current = save;
+        }}
+        onRegisterDiscard={(discard) => {
+          visualDiscardRef.current = discard;
         }}
         onSave={saveSelectedVisual}
       /> : null}
@@ -1110,46 +1133,170 @@ function CoursewareCompositionControls({
 }
 
 function CoursewareVisualFields({
+  draftId,
+  version,
   step,
   module,
   metadata,
   busy,
-  onDirty,
+  onSaveState,
   onRegisterSave,
+  onRegisterDiscard,
   onSave,
 }: {
+  draftId: string;
+  version: number;
   step: GeneratedSlideManifest['stages'][number]['steps'][number];
   module: GeneratedSlideModule;
   metadata?: SmartCoursewareCompositionMetadata;
   busy: boolean;
-  onDirty: () => void;
+  onSaveState: (state: PreparationEditorSaveState) => void;
   onRegisterSave: (save: () => Promise<void>) => void;
+  onRegisterDiscard: (discard: () => void) => void;
   onSave: (
     stepTitle: string,
     payload: Record<string, unknown>,
     teacherFields: SmartCoursewareCompositionMetadata['teacherFields'],
     responseKind?: string,
-  ) => Promise<void>;
+    expectedVersion?: number,
+  ) => Promise<number | null>;
 }) {
   const [stepTitle, setStepTitle] = useState(step.title);
   const [payload, setPayload] = useState<Record<string, unknown>>({ ...module.payload });
   const [teacherFields, setTeacherFields] = useState<SmartCoursewareCompositionMetadata['teacherFields']>({ ...(metadata?.teacherFields ?? {}) });
   const [responseKind, setResponseKind] = useState(module.responseKind ?? 'text.long');
+  const [dirty, setDirty] = useState(false);
+  const dirtyRef = useRef(false);
+  const editGenerationRef = useRef(0);
+  const baseVersionRef = useRef(version);
+  const serverVersionRef = useRef(version);
+  serverVersionRef.current = version;
+  const initializedRef = useRef(false);
+  const localDraftRef = useRef(false);
+  const storageKey = `preparation-editor:courseware:${draftId}:${step.id}:${module.id}`;
+  const latestRef = useRef<CoursewareVisualLocalDraft>({
+    stepTitle,
+    payload,
+    teacherFields,
+    responseKind,
+    baseVersion: version,
+  });
+  latestRef.current = {
+    stepTitle,
+    payload,
+    teacherFields,
+    responseKind,
+    baseVersion: baseVersionRef.current,
+  };
   const activity = module.canonicalClass === GENERATED_ACTIVITY_CLASS;
+
   useEffect(() => {
-    onRegisterSave(() => onSave(stepTitle, payload, teacherFields, responseKind));
-  }, [onRegisterSave, onSave, payload, responseKind, stepTitle, teacherFields]);
+    const local = readCoursewareVisualDraft(storageKey);
+    initializedRef.current = true;
+    if (!local) return;
+    localDraftRef.current = true;
+    baseVersionRef.current = local.baseVersion;
+    setStepTitle(local.stepTitle);
+    setPayload(local.payload);
+    setTeacherFields(local.teacherFields);
+    setResponseKind(local.responseKind);
+    setDirty(true);
+    dirtyRef.current = true;
+    editGenerationRef.current = 1;
+    onSaveState('dirty');
+  }, [onSaveState, storageKey]);
+
+  useEffect(() => {
+    if (!initializedRef.current || localDraftRef.current || dirtyRef.current) return;
+    baseVersionRef.current = serverVersionRef.current;
+    setStepTitle(step.title);
+    setPayload({ ...module.payload });
+    setTeacherFields({ ...(metadata?.teacherFields ?? {}) });
+    setResponseKind(module.responseKind ?? 'text.long');
+  }, [metadata?.teacherFields, module.payload, module.responseKind, step.title, version]);
+
+  const stageChange = (next: Omit<CoursewareVisualLocalDraft, 'baseVersion'>) => {
+    editGenerationRef.current += 1;
+    const local = { ...next, baseVersion: baseVersionRef.current };
+    latestRef.current = local;
+    writeCoursewareVisualDraft(storageKey, local);
+    localDraftRef.current = true;
+    setDirty(true);
+    dirtyRef.current = true;
+    onSaveState('dirty');
+  };
+
+  const saveCurrent = useCallback(async () => {
+    if (!dirtyRef.current || busy) return;
+    const saveGeneration = editGenerationRef.current;
+    const current = latestRef.current;
+    onSaveState('saving');
+    const nextVersion = await onSave(
+      current.stepTitle,
+      current.payload,
+      current.teacherFields,
+      current.responseKind,
+      current.baseVersion,
+    );
+    if (nextVersion === null) {
+      setDirty(true);
+      dirtyRef.current = true;
+      return;
+    }
+    baseVersionRef.current = nextVersion;
+    if (editGenerationRef.current === saveGeneration) {
+      window.localStorage.removeItem(storageKey);
+      localDraftRef.current = false;
+      setDirty(false);
+      dirtyRef.current = false;
+      onSaveState('saved');
+    } else {
+      const next = { ...latestRef.current, baseVersion: nextVersion };
+      latestRef.current = next;
+      writeCoursewareVisualDraft(storageKey, next);
+      onSaveState('dirty');
+    }
+  }, [busy, onSave, onSaveState, storageKey]);
+
+  useEffect(() => {
+    onRegisterSave(saveCurrent);
+  }, [onRegisterSave, saveCurrent]);
+
+  const discardCurrent = useCallback(() => {
+    window.localStorage.removeItem(storageKey);
+    localDraftRef.current = false;
+    dirtyRef.current = false;
+    editGenerationRef.current = 0;
+    baseVersionRef.current = serverVersionRef.current;
+    setStepTitle(step.title);
+    setPayload({ ...module.payload });
+    setTeacherFields({ ...(metadata?.teacherFields ?? {}) });
+    setResponseKind(module.responseKind ?? 'text.long');
+    setDirty(false);
+    onSaveState('saved');
+  }, [metadata?.teacherFields, module.payload, module.responseKind, onSaveState, step.title, storageKey]);
+
+  useEffect(() => {
+    onRegisterDiscard(discardCurrent);
+  }, [discardCurrent, onRegisterDiscard]);
+
+  useEffect(() => {
+    if (!dirty || busy) return;
+    const timer = window.setTimeout(() => void saveCurrent(), 1000);
+    return () => window.clearTimeout(timer);
+  }, [busy, dirty, payload, responseKind, saveCurrent, stepTitle, teacherFields]);
+
   const changeStepTitle = (value: string) => {
     setStepTitle(value);
-    onDirty();
+    stageChange({ stepTitle: value, payload, teacherFields, responseKind });
   };
   const changePayload = (value: Record<string, unknown>) => {
     setPayload(value);
-    onDirty();
+    stageChange({ stepTitle, payload: value, teacherFields, responseKind });
   };
   const changeTeacherFields = (value: SmartCoursewareCompositionMetadata['teacherFields']) => {
     setTeacherFields(value);
-    onDirty();
+    stageChange({ stepTitle, payload, teacherFields: value, responseKind });
   };
   return <section className="space-y-4 rounded-xl border border-border p-4" data-courseware-visual-editor>
     <div>
@@ -1157,7 +1304,11 @@ function CoursewareVisualFields({
       <p className="mt-1 text-sm text-subtle">字段按课件领域结构保存；页面不暴露原始 JSON。</p>
     </div>
     <label className="grid gap-1 text-sm">步骤标题<input value={stepTitle} onChange={(event) => changeStepTitle(event.target.value)} className="rounded border border-border bg-background px-3 py-2" /></label>
-    {activity ? <label className="grid max-w-sm gap-1 text-sm">作答类型<select value={responseKind} onChange={(event) => { setResponseKind(event.target.value); onDirty(); }} className="rounded border border-border bg-background px-3 py-2">{GENERATED_RESPONSE_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}</select></label> : null}
+    {activity ? <label className="grid max-w-sm gap-1 text-sm">作答类型<select value={responseKind} onChange={(event) => {
+      const value = event.target.value;
+      setResponseKind(value);
+      stageChange({ stepTitle, payload, teacherFields, responseKind: value });
+    }} className="rounded border border-border bg-background px-3 py-2">{GENERATED_RESPONSE_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}</select></label> : null}
     <fieldset className="space-y-3 rounded-lg bg-muted/30 p-3">
       <legend className="px-1 text-sm font-medium">学生可见内容</legend>
       <VisualObjectEditor value={payload} onChange={changePayload} />
@@ -1166,8 +1317,38 @@ function CoursewareVisualFields({
       <legend className="px-1 text-sm font-medium">教师审阅字段</legend>
       <VisualObjectEditor value={teacherFields} onChange={changeTeacherFields} />
     </fieldset> : null}
-    <button type="button" disabled={busy || !stepTitle.trim()} onClick={() => void onSave(stepTitle, payload, teacherFields, responseKind)} className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">保存所选内容</button>
+    <button type="button" disabled={busy || !stepTitle.trim()} onClick={() => void saveCurrent()} className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">保存所选内容</button>
   </section>;
+}
+
+type CoursewareVisualLocalDraft = {
+  stepTitle: string;
+  payload: Record<string, unknown>;
+  teacherFields: SmartCoursewareCompositionMetadata['teacherFields'];
+  responseKind: string;
+  baseVersion: number;
+};
+
+function writeCoursewareVisualDraft(key: string, draft: CoursewareVisualLocalDraft) {
+  window.localStorage.setItem(key, JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
+}
+
+function readCoursewareVisualDraft(key: string): CoursewareVisualLocalDraft | null {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(key) ?? 'null');
+    if (!value || typeof value.stepTitle !== 'string' || typeof value.baseVersion !== 'number') return null;
+    if (!value.payload || typeof value.payload !== 'object' || Array.isArray(value.payload)) return null;
+    if (!value.teacherFields || typeof value.teacherFields !== 'object' || Array.isArray(value.teacherFields)) return null;
+    return {
+      stepTitle: value.stepTitle,
+      payload: value.payload,
+      teacherFields: value.teacherFields,
+      responseKind: typeof value.responseKind === 'string' ? value.responseKind : 'text.long',
+      baseVersion: value.baseVersion,
+    };
+  } catch {
+    return null;
+  }
 }
 
 function VisualObjectEditor({

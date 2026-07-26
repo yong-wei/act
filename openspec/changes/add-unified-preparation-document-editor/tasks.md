@@ -18,4 +18,4 @@
 - [x] 3.1 Add round-trip fixtures for headings, tables, formulas, code, lists, BOPPPS stages, and nested timing.
 - [x] 3.2 Test autosave, explicit save, revision conflicts, failed saves, exit protection, and reopening.
 - [x] 3.3 Test AI suggestion accept and ignore plus unchanged teacher-approval state.
-- [ ] 3.4 Run typecheck, editor unit tests, and desktop and narrow-screen browser tests for lesson, course-basis, and courseware editing and return navigation.
+- [x] 3.4 Run typecheck, editor unit tests, and desktop and narrow-screen browser tests for lesson, course-basis, and courseware editing and return navigation.

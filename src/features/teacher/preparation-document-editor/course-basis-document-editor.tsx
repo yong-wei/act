@@ -24,6 +24,7 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
   const [message, setMessage] = useState('');
   const editGenerationRef = useRef(0);
   const markdownRef = useRef('');
+  const [baseContentHash, setBaseContentHash] = useState<string | null>(null);
   const storageKey = `preparation-editor:course-basis:${versionId}`;
 
   const load = useCallback(async (preferServer = false) => {
@@ -31,13 +32,19 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
     const payload = await response.json();
     if (!response.ok) return setMessage(errorText(payload));
     const next = payload.document as EditableCourseBasisDocument;
-    const local = !preferServer ? window.localStorage.getItem(storageKey) : null;
+    const local = !preferServer ? readLocalDraft(storageKey) : null;
+    if (preferServer) window.localStorage.removeItem(storageKey);
     setDocument(next);
-    setMarkdown(local ?? next.markdown);
-    markdownRef.current = local ?? next.markdown;
+    setMarkdown(local?.markdown ?? next.markdown);
+    markdownRef.current = local?.markdown ?? next.markdown;
+    setBaseContentHash(local ? local.baseContentHash : next.contentHash);
     editGenerationRef.current = local ? 1 : 0;
-    setSaveState(local ? 'dirty' : 'saved');
-    setMessage(local ? '已恢复上次未完成的本地修改。' : next.frozen ? '当前版本已被引用；保存时会建立新的可编辑版本。' : '');
+    setSaveState(local ? local.baseContentHash === null ? 'conflict' : 'dirty' : 'saved');
+    setMessage(local
+      ? local.baseContentHash === null
+        ? '已恢复旧版本地修改，但缺少原始版本基线；请复制内容后重新加载服务器版本。'
+        : '已恢复上次未完成的本地修改。'
+      : next.frozen ? '当前版本已被引用；保存时会建立新的可编辑版本。' : '');
   }, [storageKey, versionId]);
 
   useEffect(() => {
@@ -48,18 +55,23 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
     editGenerationRef.current += 1;
     markdownRef.current = next;
     setMarkdown(next);
-    setSaveState('dirty');
-    window.localStorage.setItem(storageKey, next);
-  }, [storageKey]);
+    setSaveState(baseContentHash === null ? 'conflict' : 'dirty');
+    writeLocalDraft(storageKey, next, baseContentHash);
+  }, [baseContentHash, storageKey]);
 
   const save = useCallback(async () => {
     if (!document || saveState === 'saving') return;
+    if (baseContentHash === null) {
+      setSaveState('conflict');
+      setMessage('本地修改缺少原始版本基线；请复制内容后重新加载服务器版本。');
+      return;
+    }
     const saveGeneration = editGenerationRef.current;
     setSaveState('saving');
     const response = await fetch(`/api/teacher/course-bases/versions/${encodeURIComponent(document.id)}`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ expectedContentHash: document.contentHash, markdown }),
+      body: JSON.stringify({ expectedContentHash: baseContentHash, markdown }),
     });
     const payload = await response.json();
     if (!response.ok) {
@@ -70,22 +82,28 @@ export function CourseBasisDocumentEditor({ versionId }: { versionId: string }) 
     if (payload.createdSuccessor) {
       window.localStorage.removeItem(storageKey);
       if (editGenerationRef.current !== saveGeneration) {
-        window.localStorage.setItem(`preparation-editor:course-basis:${payload.version.id}`, markdownRef.current);
+        writeLocalDraft(
+          `preparation-editor:course-basis:${payload.version.id}`,
+          markdownRef.current,
+          payload.version.contentHash,
+        );
       }
       setMessage(`原版本保持不变，已建立 v${payload.version.versionNumber} 可编辑版本。`);
       window.location.replace(`/teacher/smart-prep/editor/course-basis/${encodeURIComponent(payload.version.id)}`);
       return;
     }
+    setBaseContentHash(payload.version.contentHash);
     setDocument((current) => current ? { ...current, contentHash: payload.version.contentHash, frozen: false } : current);
     if (editGenerationRef.current === saveGeneration) {
       window.localStorage.removeItem(storageKey);
       setSaveState('saved');
       setMessage('修改已可靠保存。');
     } else {
+      writeLocalDraft(storageKey, markdownRef.current, payload.version.contentHash);
       setSaveState('dirty');
       setMessage('较早修改已保存，正在继续保存新的修改。');
     }
-  }, [document, markdown, saveState, storageKey]);
+  }, [baseContentHash, document, markdown, saveState, storageKey]);
 
   useEffect(() => {
     if (saveState !== 'dirty') return;
@@ -135,15 +153,29 @@ function errorText(payload: unknown) {
   } as Record<string, string>)[code] ?? code;
 }
 
-function returnToSmartPrep(fallback: string) {
+function writeLocalDraft(key: string, markdown: string, baseContentHash: string | null) {
+  window.localStorage.setItem(key, JSON.stringify({
+    markdown,
+    baseContentHash,
+    savedAt: new Date().toISOString(),
+  }));
+}
+
+function readLocalDraft(key: string): { markdown: string; baseContentHash: string | null } | null {
+  const raw = window.localStorage.getItem(key);
+  if (raw === null) return null;
   try {
-    const referrer = new URL(window.document.referrer);
-    if (referrer.origin === window.location.origin && referrer.pathname === '/teacher/smart-prep') {
-      window.history.back();
-      return;
-    }
+    const value = JSON.parse(raw);
+    if (!value || typeof value.markdown !== 'string') return { markdown: raw, baseContentHash: null };
+    return {
+      markdown: value.markdown,
+      baseContentHash: typeof value.baseContentHash === 'string' ? value.baseContentHash : null,
+    };
   } catch {
-    // Use the governed fallback when the referrer is absent or invalid.
+    return { markdown: raw, baseContentHash: null };
   }
+}
+
+function returnToSmartPrep(fallback: string) {
   window.location.assign(fallback);
 }

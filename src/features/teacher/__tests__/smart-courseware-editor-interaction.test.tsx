@@ -18,15 +18,113 @@ describe('smart courseware editor activity creation', () => {
 
   beforeEach(() => {
     (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    const values = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      clear: () => values.clear(),
+      getItem: (key: string) => values.get(key) ?? null,
+      key: (index: number) => [...values.keys()][index] ?? null,
+      get length() { return values.size; },
+      removeItem: (key: string) => values.delete(key),
+      setItem: (key: string, value: string) => values.set(key, String(value)),
+    });
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
+    window.localStorage.clear();
   });
 
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it('restores courseware fields and autosaves against the draft original version', async () => {
+    vi.useFakeTimers();
+    const composition = validCompositionInput();
+    const step = composition.runtimeManifest.stages[0].steps[0];
+    const selectedModule = step.modules[0];
+    window.localStorage.setItem(
+      `preparation-editor:courseware:draft-1:${step.id}:${selectedModule.id}`,
+      JSON.stringify({
+        stepTitle: '本地恢复步骤',
+        payload: { ...selectedModule.payload, markdown: '本地恢复内容' },
+        teacherFields: composition.moduleMetadata[0].teacherFields,
+        responseKind: selectedModule.responseKind ?? 'text.long',
+        baseVersion: 1,
+        savedAt: '2026-07-25T00:00:00.000Z',
+      }),
+    );
+    const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') {
+        return {
+          ok: false,
+          status: 409,
+          json: async () => ({ error: 'draft-version-conflict' }),
+        } as Response;
+      }
+      return { ok: false, status: 404, json: async () => ({}) } as Response;
+    });
+    vi.stubGlobal('fetch', fetch);
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 2,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    expect([...container.querySelectorAll('input')].some((input) => input.value === '本地恢复步骤')).toBe(true);
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const patch = fetch.mock.calls.find(([, init]) => init?.method === 'PATCH');
+    expect(JSON.parse(String(patch?.[1]?.body)).expectedVersion).toBe(1);
+    expect(container.textContent).toContain('存在版本冲突');
+    expect(window.localStorage.getItem(`preparation-editor:courseware:draft-1:${step.id}:${selectedModule.id}`)).not.toBeNull();
+  });
+
+  it('clears a discarded local module draft before switching away', async () => {
+    const composition = validCompositionInput();
+    const firstStep = composition.runtimeManifest.stages[0].steps[0];
+    const firstModule = firstStep.modules[0];
+    const storageKey = `preparation-editor:courseware:draft-1:${firstStep.id}:${firstModule.id}`;
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) } as Response)));
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const text = [...container.querySelectorAll('textarea')]
+      .find((textarea) => textarea.closest('[data-courseware-visual-editor]'))!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(text, '应当放弃的本地内容');
+      text.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(window.localStorage.getItem(storageKey)).not.toBeNull();
+
+    const stepSelect = [...container.querySelectorAll('select')]
+      .find((select) => select.parentElement?.textContent?.startsWith('步骤'))!;
+    const secondStepId = [...stepSelect.options].find((option) => option.value !== firstStep.id)!.value;
+    await act(async () => {
+      stepSelect.value = secondStepId;
+      stepSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect(window.localStorage.getItem(storageKey)).toBeNull();
+
+    await act(async () => {
+      stepSelect.value = firstStep.id;
+      stepSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect([...container.querySelectorAll('textarea')].some((textarea) => textarea.value === '应当放弃的本地内容')).toBe(false);
   });
 
   it('reports a retryable queue delivery failure instead of claiming the task was queued', async () => {

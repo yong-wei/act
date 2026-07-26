@@ -202,6 +202,7 @@ export function publicRevision(revision: Record<string, unknown>) {
   return compact({
     id: revision.id,
     taskId: revision.taskId,
+    taskRevision: revision.taskRevision,
     draftId: revision.draftId,
     revisionNumber: revision.revisionNumber,
     displayName: revision.displayName,
