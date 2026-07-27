@@ -37,6 +37,23 @@ export type KonlingExecutedToolResult = {
   errorText?: string;
 };
 
+type KonlingStructuredToolExecutionStage = 'input-schema' | 'scoped-execute';
+
+class KonlingStructuredToolExecutionError extends Error {
+  constructor(
+    readonly diagnostic: {
+      code: string;
+      stage: KonlingStructuredToolExecutionStage;
+      issues?: Array<{ path: Array<string | number>; code: string }>;
+      scopeStatus?: number;
+      scopeMessage?: string;
+    },
+  ) {
+    super(diagnostic.code);
+    this.name = 'KonlingStructuredToolExecutionError';
+  }
+}
+
 export async function correctKonlingMalformedStructuredResponse(input: {
   generate: (abortSignal: AbortSignal) => Promise<string>;
   abortSignal?: AbortSignal;
@@ -316,7 +333,8 @@ export function createKonlingStructuredActionStream(input: {
                 toolName: call.name,
                 result,
               });
-            } catch {
+            } catch (error) {
+              logKonlingStructuredToolExecutionFailure(call, error);
               input.state.executedToolResults.push({
                 toolCallId: call.id,
                 toolName: call.name,
@@ -435,7 +453,8 @@ export async function executeKonlingDsmlToolCalls(input: {
         toolName: call.name,
         result: await input.executeToolCall(call),
       });
-    } catch {
+    } catch (error) {
+      logKonlingStructuredToolExecutionFailure(call, error);
       results.push({
         toolCallId: call.id,
         toolName: call.name,
@@ -454,17 +473,106 @@ export async function executeKonlingScopedAiTool(input: {
 }) {
   const scopedTool = input.tools[input.call.name];
   if (!scopedTool || typeof scopedTool.execute !== 'function') {
-    throw new Error('structured-tool-not-permitted');
+    throw new KonlingStructuredToolExecutionError({
+      code: 'structured-tool-not-permitted',
+      stage: 'scoped-execute',
+    });
   }
   const parsed = typeof scopedTool.inputSchema?.safeParse === 'function'
     ? scopedTool.inputSchema.safeParse(input.call.input)
     : { success: true, data: input.call.input };
-  if (!parsed.success) throw new Error('structured-tool-input-invalid');
-  return scopedTool.execute(parsed.data, {
-    toolCallId: input.call.id,
-    messages: input.messages ?? [],
-    abortSignal: input.abortSignal,
+  if (!parsed.success) {
+    throw new KonlingStructuredToolExecutionError({
+      code: 'structured-tool-input-invalid',
+      stage: 'input-schema',
+      issues: safeZodIssues(parsed.error?.issues),
+    });
+  }
+  try {
+    return await scopedTool.execute(parsed.data, {
+      toolCallId: input.call.id,
+      messages: input.messages ?? [],
+      abortSignal: input.abortSignal,
+    });
+  } catch (error) {
+    if (error instanceof KonlingStructuredToolExecutionError) throw error;
+    const scopeError = safeKonlingRuntimeScopeError(error);
+    throw new KonlingStructuredToolExecutionError({
+      code: scopeError ? 'structured-tool-scope-rejected' : 'structured-tool-execute-failed',
+      stage: 'scoped-execute',
+      ...(scopeError ? {
+        scopeStatus: scopeError.status,
+        scopeMessage: scopeError.message,
+      } : {}),
+    });
+  }
+}
+
+function logKonlingStructuredToolExecutionFailure(
+  call: KonlingNormalizedToolCall,
+  error: unknown,
+) {
+  if (process.env.NODE_ENV === 'production') return;
+  const diagnostic = error instanceof KonlingStructuredToolExecutionError
+    ? error.diagnostic
+    : {
+        code: 'structured-tool-execute-failed',
+        stage: 'scoped-execute' as const,
+        ...safeKonlingRuntimeScopeError(error),
+      };
+  console.error('[konling-structured-tool-execution]', {
+    toolName: call.name,
+    source: call.source,
+    ...diagnostic,
   });
+}
+
+function safeZodIssues(value: unknown): Array<{ path: Array<string | number>; code: string }> {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 12).map((issue) => {
+    const record = isRecord(issue) ? issue : {};
+    const path = Array.isArray(record.path)
+      ? record.path.slice(0, 12).map((segment) =>
+          typeof segment === 'number'
+            ? segment
+            : typeof segment === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,63}$/u.test(segment)
+              ? segment
+              : '[field]')
+      : [];
+    return {
+      path,
+      code: typeof record.code === 'string' && /^[a-z_]{1,64}$/u.test(record.code)
+        ? record.code
+        : 'validation_error',
+    };
+  });
+}
+
+function safeKonlingRuntimeScopeError(error: unknown): {
+  status: number;
+  message: string;
+} | null {
+  if (
+    !isRecord(error)
+    || error.name !== 'KonlingRuntimeScopeError'
+    || ![400, 403, 404, 409].includes(Number(error.status))
+  ) return null;
+  const safeMessages = new Set([
+    '智能备课建议必须来自已绑定的 prep-coauthor 会话。',
+    '智能备课建议与当前会话阶段不匹配。',
+    '智能备课建议绑定的任务修订已过期。',
+    '智能备课建议的会话、对话轮次或任务绑定无效。',
+    '智能备课建议不符合确认要求。',
+    '智能备课建议引用了不可用的课程依据。',
+    '智能备课建议引用了不属于所选课程依据的版本。',
+    '智能备课会话没有可绑定的当前对话轮次。',
+  ]);
+  return {
+    status: Number(error.status),
+    message: typeof error.message === 'string' && safeMessages.has(error.message)
+      ? error.message
+      : 'Konling runtime scope rejected the tool execution.',
+  };
 }
 
 export function attachKonlingExecutedToolResults(

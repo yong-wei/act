@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   correctKonlingMalformedStructuredResponse,
   createKonlingStructuredActionStream,
+  executeKonlingScopedAiTool,
   normalizeKonlingAssistantMessage,
   normalizeKonlingStructuredText,
   type KonlingStructuredActionStreamState,
@@ -707,6 +708,74 @@ describe('Konling structured action runtime', () => {
     expect(encoded).not.toContain('private-topic');
     expect(encoded).not.toContain('private-suggestion');
     expect(encoded).not.toContain('propose_smart_lesson_task_change');
+  });
+
+  it('logs only safe non-production diagnostics for scoped input validation failures', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-private',
+          delta: '<tool_call>{"id":"private-call-id","name":"propose_smart_lesson_task_change","arguments":{"targetUserId":"private-user-id","proposedTask":{"topic":"private-topic"},"apiKey":"private-key"}}</tool_call>',
+        });
+        controller.enqueue({ type: 'finish' });
+        controller.close();
+      },
+    });
+    await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall: (call) => executeKonlingScopedAiTool({
+        call,
+        tools: {
+          propose_smart_lesson_task_change: {
+            inputSchema: {
+              safeParse: () => ({
+                success: false,
+                error: {
+                  issues: [{
+                    path: ['proposedTask', 'topic'],
+                    code: 'invalid_type',
+                    message: 'private-topic is invalid for private-user-id',
+                  }],
+                },
+              }),
+            },
+            execute: vi.fn(),
+          },
+        },
+      }),
+    }));
+
+    expect(log).toHaveBeenCalledTimes(1);
+    const encodedLog = JSON.stringify(log.mock.calls);
+    expect(encodedLog).toContain('propose_smart_lesson_task_change');
+    expect(encodedLog).toContain('input-schema');
+    expect(encodedLog).toContain('structured-tool-input-invalid');
+    expect(encodedLog).toContain('invalid_type');
+    expect(encodedLog).toContain('proposedTask');
+    for (const privateValue of [
+      'private-call-id',
+      'private-user-id',
+      'private-topic',
+      'private-key',
+    ]) {
+      expect(encodedLog).not.toContain(privateValue);
+    }
+    expect(state.executedToolResults).toEqual([
+      expect.objectContaining({
+        toolName: 'propose_smart_lesson_task_change',
+        errorText: '结构化操作未能安全完成。',
+      }),
+    ]);
+    log.mockRestore();
   });
 
   it('bounds malformed-response correction by the shared absolute deadline', async () => {
