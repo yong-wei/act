@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   getOrCreateAgentSession: vi.fn(),
   resumeAgentSession: vi.fn(),
   streamText: vi.fn(),
+  generateText: vi.fn(async () => ({ text: '[]' })),
   buildScopedTools: vi.fn(),
   emittedChunks: [] as any[],
   useActualResolver: false,
@@ -73,7 +74,7 @@ vi.mock('ai', async (importOriginal) => {
       })();
       return new Response('ok', { status: 200, headers });
     }),
-    generateText: vi.fn(async () => ({ text: '[]' })),
+    generateText: mocks.generateText,
     isToolUIPart: actual.isToolUIPart,
     stepCountIs: vi.fn(() => () => false),
     streamText: mocks.streamText,
@@ -593,6 +594,42 @@ describe('Konling smart-prep production routes', () => {
     expect(response.status).toBe(200);
     expect(payload.assistantMessage.content).toBe('已完成结构化操作。');
     expect(execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('withholds a non-JSON tool envelope and publishes only the bounded correction', async () => {
+    const execute = vi.fn();
+    mocks.buildScopedTools.mockReturnValue({
+      get_page_context: {
+        inputSchema: { safeParse: (value: unknown) => ({ success: true, data: value }) },
+        execute,
+      },
+    });
+    mocks.generateText.mockResolvedValueOnce({ text: '结构化操作未完成，请重新生成建议。' });
+    mockCompletedSessionAssistant([{
+      type: 'text',
+      text: '安全前缀。<tool_call>get_page_context</tool_call>private suffix',
+    }], 'assistant-non-json-envelope');
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+    const encoded = JSON.stringify(payload);
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('结构化操作未完成，请重新生成建议。');
+    expect(encoded).not.toContain('tool_call');
+    expect(encoded).not.toContain('private suffix');
+    expect(execute).not.toHaveBeenCalled();
+    expect(mocks.generateText).toHaveBeenCalledWith(expect.objectContaining({
+      temperature: 0,
+      maxOutputTokens: 500,
+      abortSignal: expect.any(AbortSignal),
+    }));
   });
 
   it('uses the task identity to resolve the current server revision', async () => {

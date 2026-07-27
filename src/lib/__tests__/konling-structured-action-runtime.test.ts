@@ -357,6 +357,25 @@ describe('Konling structured action runtime', () => {
     }
   });
 
+  it('withholds complete non-JSON tool envelopes outside code fences', () => {
+    for (const envelope of [
+      '<tool_call>get_page_context</tool_call>',
+      '<｜tool▁call▁begin｜>get_page_context<｜tool▁sep｜>not-json<｜tool▁call▁end｜>',
+    ]) {
+      expect(normalizeKonlingStructuredText(`安全前缀。${envelope}不可见后缀`)).toEqual({
+        text: '安全前缀。',
+        toolCalls: [],
+        withheldMalformedSyntax: true,
+      });
+    }
+    const fenced = '```text\n<tool_call>get_page_context</tool_call>\n```';
+    expect(normalizeKonlingStructuredText(fenced)).toEqual({
+      text: fenced,
+      toolCalls: [],
+      withheldMalformedSyntax: false,
+    });
+  });
+
   it('keeps ordinary text streaming while withholding split structured syntax', async () => {
     const executeToolCall = vi.fn(async () => ({ page: 'current' }));
     const state: KonlingStructuredActionStreamState = {
@@ -435,13 +454,46 @@ describe('Konling structured action runtime', () => {
     expect(executeToolCall).not.toHaveBeenCalled();
   });
 
+  it('withholds a complete non-JSON envelope from the stream without executing it', async () => {
+    const executeToolCall = vi.fn();
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-non-json-envelope',
+          delta: '安全前缀。<tool_call>get_page_context</tool_call>不可见后缀',
+        });
+        controller.enqueue({ type: 'finish' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+    const encoded = JSON.stringify(chunks);
+
+    expect(chunks.filter((chunk) => chunk.type === 'text-delta').map((chunk) => chunk.delta).join(''))
+      .toBe('安全前缀。');
+    expect(encoded).not.toContain('tool_call');
+    expect(encoded).not.toContain('get_page_context');
+    expect(state.withheldMalformedSyntax).toBe(true);
+    expect(executeToolCall).not.toHaveBeenCalled();
+  });
+
   it('does not treat ordinary XML-like text or fenced examples as structured calls', () => {
     const value = [
       '<invoke>demo</invoke>',
       '<function_call>literal</function_call>',
-      '<tool_call>demo</tool_call>',
       '```xml',
-      '<tool_call>{"name":"get_page_context","arguments":{}}</tool_call>',
+      '<tool_call>get_page_context</tool_call>',
       '```',
     ].join('\n');
     const normalized = normalizeKonlingStructuredText(value);

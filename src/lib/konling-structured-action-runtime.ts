@@ -137,19 +137,19 @@ function normalizeKonlingStructuredTextWithIds(
     return marker;
   });
   const toolCalls: KonlingNormalizedToolCall[] = [];
-  let text = protectedValue.replace(TOOL_CALL_TAG, (envelope, payload: string) => {
+  let text = protectedValue.replace(TOOL_CALL_TAG, (_envelope, payload: string) => {
     const parsed = parseDsmlToolPayload(payload, claimToolCallId);
-    if (!parsed) return isJsonLikePayload(payload) ? MALFORMED_ENVELOPE_MARKER : envelope;
+    if (!parsed) return MALFORMED_ENVELOPE_MARKER;
     toolCalls.push(parsed);
     return '';
   });
   text = text.replace(DEEPSEEK_TOOL_CALL, (
-    envelope,
+    _envelope,
     name: string,
     payload: string,
   ) => {
     const input = parseJsonObject(payload);
-    if (input === null) return isJsonLikePayload(payload) ? MALFORMED_ENVELOPE_MARKER : envelope;
+    if (input === null) return MALFORMED_ENVELOPE_MARKER;
     toolCalls.push({
       id: claimToolCallId(),
       name,
@@ -177,15 +177,6 @@ function normalizeKonlingStructuredTextWithIds(
     .replace(/<｜tool▁calls▁begin｜>/gu, '')
     .replace(/<｜tool▁calls▁end｜>/gu, '');
 
-  const protectedLiterals: string[] = [];
-  text = text.replace(
-    /<tool_call>[\s\S]*?<\/tool_call>|<｜tool▁call▁begin｜>[\s\S]*?<｜tool▁call▁end｜>/giu,
-    (literal) => {
-      const marker = `\u0000konling-literal-${protectedLiterals.length}\u0000`;
-      protectedLiterals.push(literal);
-      return marker;
-    },
-  );
   const suspiciousSyntaxIndex = text.search(SUSPICIOUS_STRUCTURED_SYNTAX);
   const malformedEnvelopeIndex = text.indexOf(MALFORMED_ENVELOPE_MARKER);
   const suspiciousIndexes = [suspiciousSyntaxIndex, malformedEnvelopeIndex]
@@ -193,7 +184,6 @@ function normalizeKonlingStructuredTextWithIds(
   const suspiciousIndex = suspiciousIndexes.length ? Math.min(...suspiciousIndexes) : -1;
   const withheldMalformedSyntax = suspiciousIndex >= 0;
   if (withheldMalformedSyntax) text = text.slice(0, suspiciousIndex);
-  text = restoreProtectedLiterals(text, protectedLiterals);
   text = restoreProtectedCode(text, protectedCode);
 
   return {
@@ -201,10 +191,6 @@ function normalizeKonlingStructuredTextWithIds(
     toolCalls: dedupeToolCalls(toolCalls),
     withheldMalformedSyntax,
   };
-}
-
-function isJsonLikePayload(value: string) {
-  return /^[\s\uFEFF]*[\[{"-]|^[\s\uFEFF]*(?:true|false|null|\d)/u.test(value);
 }
 
 export function normalizeKonlingAssistantMessage(
@@ -916,11 +902,6 @@ function normalizeVisibleText(value: string): string {
 function restoreProtectedCode(value: string, protectedCode: readonly string[]) {
   return value.replace(/\u0000konling-code-(\d+)\u0000/gu, (_marker, index: string) =>
     protectedCode[Number(index)] ?? '');
-}
-
-function restoreProtectedLiterals(value: string, protectedLiterals: readonly string[]) {
-  return value.replace(/\u0000konling-literal-(\d+)\u0000/gu, (_marker, index: string) =>
-    protectedLiterals[Number(index)] ?? '');
 }
 
 function isRecord(value: unknown): value is Record<string, any> {
