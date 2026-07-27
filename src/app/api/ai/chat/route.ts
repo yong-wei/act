@@ -40,7 +40,9 @@ import {
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
   getOrCreateKonlingAgentSession,
+  KONLING_CANDIDATE_READ_TOOLS,
   KonlingRuntimeScopeError,
+  mergeCandidateAssignedCitations,
   normalizeKonlingKnowledgeWorkspaceHint,
   serializeKonlingCitationMetadata,
   verifyKonlingRuntimeScope,
@@ -326,26 +328,56 @@ export async function POST(request: Request) {
     };
 
     if (session?.user?.id && hasRuntimeContext) {
-      const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride({
-        db: prisma,
-        modeId: teachingAssistantModeId,
-        authenticatedUserId: session.user.id,
-        role: session.user.role,
-        clientContextHints: modeClientContextHints,
-      });
-      const runtimeTargetUserId = modeScopeOverride.targetUserId ?? session.user.id;
-      const runtimeClassId = modeScopeOverride.classId ?? classId;
-      const scope = await verifyKonlingRuntimeScope(prisma, {
-        authenticatedUserId: session.user.id,
-        role: session.user.role,
-        targetUserId: runtimeTargetUserId,
-        classId: runtimeClassId,
-        courseId: courseId || pageContext?.courseId || conversation?.courseId,
-        pageId: pageId || pageContext?.stepId || conversation?.pageId,
-        resourceId,
-        pathNodeId,
-        pageContextHint: pageContext,
-      });
+      const candidateScope = pageContext?.candidateGraph
+        ? await verifyKonlingRuntimeScope(prisma, {
+            authenticatedUserId: session.user.id,
+            role: session.user.role,
+            targetUserId: session.user.id,
+            classId: null,
+            courseId: courseId || pageContext.courseId || conversation?.courseId,
+            pageId: pageId || pageContext.stepId || conversation?.pageId,
+            resourceId: null,
+            pathNodeId: null,
+            pageContextHint: pageContext,
+          })
+        : null;
+      if (candidateScope && !candidateScope.ok) {
+        return new Response(JSON.stringify({ error: candidateScope.error }), {
+          status: candidateScope.status,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      const serverCandidateScope = candidateScope?.ok && candidateScope.scope.candidateGraph
+        ? candidateScope.scope
+        : null;
+      const modeScopeOverride = serverCandidateScope
+        ? {}
+        : await resolveKonlingTeachingAssistantScopeOverride({
+            db: prisma,
+            modeId: teachingAssistantModeId,
+            authenticatedUserId: session.user.id,
+            role: session.user.role,
+            clientContextHints: modeClientContextHints,
+          });
+      const runtimeTargetUserId = serverCandidateScope
+        ? session.user.id
+        : modeScopeOverride.targetUserId ?? session.user.id;
+      const runtimeClassId = serverCandidateScope
+        ? null
+        : modeScopeOverride.classId ?? classId;
+      const scope = serverCandidateScope
+        ? { ok: true as const, scope: serverCandidateScope }
+        : await verifyKonlingRuntimeScope(prisma, {
+            authenticatedUserId: session.user.id,
+            role: session.user.role,
+            targetUserId: runtimeTargetUserId,
+            classId: runtimeClassId,
+            courseId: courseId || pageContext?.courseId || conversation?.courseId,
+            pageId: pageId || pageContext?.stepId || conversation?.pageId,
+            resourceId,
+            pathNodeId,
+            pageContextHint: pageContext,
+          });
       if (!scope.ok) {
         return new Response(JSON.stringify({ error: scope.error }), {
           status: scope.status,
@@ -361,9 +393,22 @@ export async function POST(request: Request) {
           headers: { 'Content-Type': 'application/json' },
         });
       }
-      const authorizedScope = contextEventScope
+      const resolvedScope = contextEventScope
         ? { ...scope.scope, ...contextEventScope }
         : scope.scope;
+      const authorizedScope = serverCandidateScope
+        ? {
+            ...resolvedScope,
+            targetUserId: session.user.id,
+            classId: null,
+            resourceId: null,
+            pathNodeId: null,
+            candidateGraph: serverCandidateScope.candidateGraph,
+          }
+        : resolvedScope;
+      const candidateOnly = Boolean(authorizedScope.candidateGraph);
+      const effectiveModeId = candidateOnly ? null : teachingAssistantModeId;
+      const effectiveModeClientContextHints = candidateOnly ? undefined : modeClientContextHints;
       if (conversation && requestedUserMessage) {
         const preparedTurn = prepareKonlingConversationTurn({
           conversation,
@@ -388,30 +433,37 @@ export async function POST(request: Request) {
         pageId: authorizedScope.pageId,
         resourceId: authorizedScope.resourceId,
         pathNodeId: authorizedScope.pathNodeId,
-        knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
-        teachingAssistantModeId,
+        serverAuthorizedCandidateGraph: authorizedScope.candidateGraph,
+        knowledgeWorkspaceHint: candidateOnly
+          ? null
+          : normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
+        teachingAssistantModeId: effectiveModeId,
         currentUserQuery: messages.at(-1)?.role === 'user' ? messages.at(-1)?.content : null,
         trustedContentContext: Boolean(authorizedScope.courseId && authorizedScope.pageId),
       };
-      const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext({
-        db: prisma,
-        modeId: teachingAssistantModeId,
-        scope: authorizedScope,
-        clientContextHints: modeClientContextHints,
-      });
-      const smartPrepBinding = resolveKonlingSmartPrepSessionBinding(serverModeContext);
+      const serverModeContext = candidateOnly
+        ? null
+        : await resolveKonlingTeachingAssistantServerModeContext({
+            db: prisma,
+            modeId: effectiveModeId,
+            scope: authorizedScope,
+            clientContextHints: effectiveModeClientContextHints,
+          });
+      const smartPrepBinding = serverModeContext
+        ? resolveKonlingSmartPrepSessionBinding(serverModeContext)
+        : null;
       const runtimeContext = await buildKonlingRuntimeContext(prisma, {
         ...runtimeInput,
         teachingAssistantServerModeContext: serverModeContext,
       });
       const modeContract = buildKonlingTeachingAssistantRuntimeContract({
-        modeId: teachingAssistantModeId,
+        modeId: effectiveModeId,
         runtimeContext,
         scope: authorizedScope,
         serverModeContext,
-        clientContextHints: modeClientContextHints,
+        clientContextHints: effectiveModeClientContextHints,
         currentUserQuery: runtimeInput.currentUserQuery,
-        studyAnswerPreferences,
+        studyAnswerPreferences: candidateOnly ? undefined : studyAnswerPreferences,
       });
       if (modeContract.status === 'unavailable') {
         return new Response(JSON.stringify({
@@ -430,6 +482,9 @@ export async function POST(request: Request) {
           },
         });
       }
+      const permittedTools = authorizedScope.candidateGraph
+        ? KONLING_CANDIDATE_READ_TOOLS
+        : modeContract.permittedTools;
       forceStructuredSmartPrepTool = modeContract.mode.id === 'prep-coauthor'
         && Boolean(modeContract.smartPreparation);
       const modeRuntimeContext = {
@@ -471,10 +526,16 @@ export async function POST(request: Request) {
       sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
         modeContract.groundingContext.sarAssociatedGrounding,
       );
-      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => buildCitationGuardMetadataPayload(
-        buildKonlingCitationGuard(modeRuntimeContext, assistantContent),
-        citationGuardMetadataContext?.missingContext ?? [],
-      );
+      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => {
+        const finalRuntimeContext = mergeCandidateAssignedCitations(
+          modeRuntimeContext,
+          getAssignedCitationTable?.() ?? [],
+        );
+        return buildCitationGuardMetadataPayload(
+          buildKonlingCitationGuard(finalRuntimeContext, assistantContent),
+          citationGuardMetadataContext?.missingContext ?? [],
+        );
+      };
       modelRequirements = {
         ...modelRequirements,
         tools: true,
@@ -547,7 +608,7 @@ export async function POST(request: Request) {
           konlingCitationGuard: citationGuardMetadataPayload,
           konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
         },
-        permittedTools: modeContract.permittedTools,
+        permittedTools,
         smartPrepBinding,
       });
       const agentSessionStateUpdate = await prisma.agentSession.updateMany({
@@ -590,9 +651,9 @@ export async function POST(request: Request) {
       const toolRuntime = buildKonlingToolRuntime({
         db: prisma,
         scope: authorizedScope,
-        context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools },
+        context: { ...modeRuntimeContext, permittedTools },
         agentSessionId: agentSession.id,
-        permittedTools: modeContract.permittedTools,
+        permittedTools,
         scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
       });
       getAssignedCitationTable = toolRuntime.getAssignedCitations;

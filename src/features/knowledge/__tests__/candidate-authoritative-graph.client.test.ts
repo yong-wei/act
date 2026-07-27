@@ -4,6 +4,15 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const globalAIMocks = vi.hoisted(() => ({
+  updatePageContext: vi.fn(),
+  clearDynamicPageContext: vi.fn(),
+}));
+
+vi.mock('@/components/providers/global-ai-provider', () => ({
+  useGlobalAI: () => globalAIMocks,
+}));
+
 import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
 
 const canvas = {
@@ -137,6 +146,8 @@ describe('candidate authoritative graph client isolation', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    globalAIMocks.updatePageContext.mockClear();
+    globalAIMocks.clearDynamicPageContext.mockClear();
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -171,6 +182,12 @@ describe('candidate authoritative graph client isolation', () => {
 
     expect(container.textContent).toContain('根轨迹局部发布版');
     expect(container.textContent).toContain('教学关系尚未发布');
+    expect(globalAIMocks.updatePageContext).toHaveBeenLastCalledWith(expect.objectContaining({
+      candidateGraph: expect.objectContaining({
+        releaseSetId: 'actkg-authoritative-candidate-v1',
+        coverageStatus: 'ready',
+      }),
+    }));
     expect(container.querySelector('[data-candidate-relation-direction="undirected"]')).not.toBeNull();
     expect(container.textContent).toContain('关联 · 核心 · 无向/双向');
     const concept = [...container.querySelectorAll('button')]
@@ -204,6 +221,12 @@ describe('candidate authoritative graph client isolation', () => {
       .find((button) => button.textContent?.includes('特征方程'))!;
     await act(async () => formula.click());
     await act(async () => Promise.resolve());
+    expect(globalAIMocks.updatePageContext).toHaveBeenLastCalledWith(expect.objectContaining({
+      candidateGraph: expect.objectContaining({
+        selectedCanonicalId: 'formula',
+        selectedCanonicalType: 'Formula',
+      }),
+    }));
     expect(container.querySelector('[data-candidate-detail-direction="undirected"]')?.textContent)
       .toContain('无向/双向');
     expect(container.querySelector('[data-candidate-detail-direction="undirected"]')?.textContent)
@@ -213,6 +236,7 @@ describe('candidate authoritative graph client isolation', () => {
       .find((button) => button.textContent === '旧版 Legacy')!;
     await act(async () => legacy.click());
     expect(container.querySelector('[data-legacy="true"]')).not.toBeNull();
+    expect(globalAIMocks.clearDynamicPageContext).toHaveBeenCalled();
 
     const candidate = [...container.querySelectorAll('button')]
       .find((button) => button.textContent === '新版候选')!;

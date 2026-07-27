@@ -198,7 +198,7 @@ test('ADMIN controlled verification covers navigation, filters, predicates, deta
   await expect(page.getByRole('button', { name: '扩展（含核心）' })).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('ordinary STUDENT remains on Legacy and cannot enter candidate mode while the public gate is closed', async ({
+test('ordinary STUDENT remains on Legacy when acceptance env is absent', async ({
   context,
   page,
 }) => {

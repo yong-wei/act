@@ -170,6 +170,54 @@ describe('Konling conversation library', () => {
     expect(JSON.stringify(original.messages)).toBe(originalSnapshot);
   });
 
+  it('appends candidate selection changes and clears candidate context when continuing on Legacy', () => {
+    const candidateA = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v1',
+      releaseId: 'root-locus-engineering-v0.1',
+      selectedCanonicalId: 'canonical-a',
+      selectedCanonicalType: 'DomainConcept',
+      governanceFilter: 'EXTENSION' as const,
+      canonicalTypeFilter: null,
+      coverageStatus: 'ready' as const,
+      objectCount: 10,
+      relationCount: 12,
+    };
+    const original = conversation({
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      messages: [createKonlingContextEvent({
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        candidateGraph: candidateA,
+      }, 'candidate-a')],
+    });
+    const candidateB = prepareKonlingConversationTurn({
+      conversation: original,
+      currentScope: {
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        candidateGraph: { ...candidateA, selectedCanonicalId: 'canonical-b' },
+      },
+      userMessage: { id: 'user-b', role: 'user', content: '解释 B' },
+    });
+    expect(candidateB.turnMessages.map((message) => message.role)).toEqual(['system', 'user']);
+    expect(candidateB.turnMessages[0]?.content).toContain('selectedCanonicalId=canonical-b');
+
+    const legacy = prepareKonlingConversationTurn({
+      conversation: {
+        ...original,
+        messages: [...(original.messages as never[]), ...candidateB.turnMessages] as never,
+      },
+      currentScope: { courseId: 'knowledge', pageId: '/knowledge' },
+      userMessage: { id: 'user-legacy', role: 'user', content: '回到旧版' },
+    });
+    expect(legacy.turnMessages.map((message) => message.role)).toEqual(['system', 'user']);
+    expect(legacy.turnMessages[0]?.metadata).toMatchObject({
+      konlingContextEvent: { candidateGraph: null },
+    });
+  });
+
   it('claims the user turn before completion, generates a redacted title, and never overwrites a manual title', async () => {
     const automatic = statefulConversationDb();
     const claim = await claimKonlingConversationTurn(automatic.db as never, {

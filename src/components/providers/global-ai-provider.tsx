@@ -65,6 +65,8 @@ interface GlobalAIContextValue {
     assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
     knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
   }) => void;
+  /** 清除同一路由内卸载组件留下的动态上下文 */
+  clearDynamicPageContext: () => void;
   /** 打开指定教学助理模式 */
   openAssistantEntryPoint: (entryPoint: KonlingTeachingAssistantEntryPoint) => void;
   /** 当前路径名 */
@@ -208,6 +210,17 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     });
   }, []);
 
+  const clearDynamicPageContext = useCallback(() => {
+    setDynamicContext({
+      pageContext: null,
+      tools: [],
+      quickQuestions: [],
+      systemPromptExtension: undefined,
+      assistantEntryPoint: null,
+      knowledgeWorkspaceHint: null,
+    });
+  }, []);
+
   const openAssistantEntryPoint = useCallback((entryPoint: KonlingTeachingAssistantEntryPoint) => {
     setDynamicContext((current) => ({
       ...current,
@@ -274,6 +287,7 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     incrementUnread,
     clearUnread,
     updatePageContext,
+    clearDynamicPageContext,
     openAssistantEntryPoint,
     pathname,
     shouldShowButton,

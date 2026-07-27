@@ -310,6 +310,49 @@ describe('bounded authoritative projections', () => {
     )).toThrow(/Unsupported authoritative knowledge role/);
   });
 
+  it('searches Canonical objects without Legacy mapping and returns bounded provenance-preserving neighbors', async () => {
+    const snapshot = fixture();
+    const repository = new AuthoritativeKnowledgeRepository(mockDatabase(snapshot).database);
+    const service = new AuthoritativeKnowledgeProjectionService(repository);
+
+    const search = await service.canonicalSearch(selector, 'STUDENT', '根轨迹', support, {
+      limit: 5,
+      governance: 'CORE',
+    });
+    expect(search).toMatchObject({
+      status: 'available',
+      projection: {
+        source: {
+          authorityState: 'candidate',
+          releaseSetId: 'set-1',
+          releaseId: 'release-1',
+        },
+        results: [{ id: 'node-a', canonicalType: 'DomainConcept' }],
+      },
+    });
+    expect(JSON.stringify(search)).not.toMatch(/legacyId|KnowledgeNode|sourceMapping/);
+
+    const neighbors = await service.boundedNeighbors(selector, 'STUDENT', 'node-a', support, {
+      limit: 1,
+    });
+    expect(neighbors).toMatchObject({
+      status: 'available',
+      projection: {
+        source: { releaseSetId: 'set-1', releaseId: 'release-1' },
+        limit: 1,
+        truncated: false,
+        neighbors: [{
+          predicate: 'prerequisite_of',
+          direction: null,
+          qualityTier: 'GOLD',
+          traversal: 'outgoing',
+          neighbor: { id: 'node-b' },
+          readOnly: true,
+        }],
+      },
+    });
+  });
+
   it('produces an administrator-only, read-only migration review', async () => {
     const snapshot = fixture();
     const projection = buildMigrationReviewProjection(snapshot, []);

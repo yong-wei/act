@@ -4,7 +4,12 @@ import { NextRequest } from 'next/server';
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   getServerSession: vi.fn(),
+  resolveScopeOverride: vi.fn(),
   resolveServerModeContext: vi.fn(),
+  buildPrompt: vi.fn(),
+  buildRuntimeContext: vi.fn(),
+  buildRuntimeContract: vi.fn(),
+  verifyRuntimeScope: vi.fn(),
   getOrCreateAgentSession: vi.fn(),
   resumeAgentSession: vi.fn(),
   streamText: vi.fn(),
@@ -12,6 +17,11 @@ const mocks = vi.hoisted(() => ({
   prisma: {
     agentSession: { findFirst: vi.fn(), updateMany: vi.fn() },
     smartLessonTask: { findFirst: vi.fn() },
+    learningEvidenceDraft: { findMany: vi.fn() },
+    learningFact: { findMany: vi.fn() },
+    studentProfile: { findFirst: vi.fn(), findMany: vi.fn() },
+    teachingResource: { findMany: vi.fn() },
+    class: { findUnique: vi.fn() },
     konlingSession: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),
@@ -34,7 +44,7 @@ vi.mock('@/lib/ai-client', () => ({
   getConfiguredAIModel: vi.fn(async () => ({})),
   isConfiguredAIServiceAvailable: vi.fn(async () => true),
 }));
-vi.mock('@/lib/ai-prompt-builder', () => ({ buildKonlingSystemPrompt: vi.fn(() => 'system') }));
+vi.mock('@/lib/ai-prompt-builder', () => ({ buildKonlingSystemPrompt: mocks.buildPrompt }));
 vi.mock('@/lib/ai-tools', () => ({ aiTools: {}, updateSimulationState: vi.fn() }));
 vi.mock('@/lib/nextjs-dynamic-error', () => ({ rethrowIfNextDynamicError: vi.fn() }));
 vi.mock('@/lib/course-ai-contexts', () => ({
@@ -74,7 +84,7 @@ vi.mock('@/lib/konling-teaching-assistant-server-context', async (importOriginal
   const actual = await importOriginal<typeof import('@/lib/konling-teaching-assistant-server-context')>();
   return {
     ...actual,
-    resolveKonlingTeachingAssistantScopeOverride: vi.fn(async () => ({})),
+    resolveKonlingTeachingAssistantScopeOverride: mocks.resolveScopeOverride,
     resolveKonlingTeachingAssistantServerModeContext: (...args: Parameters<typeof actual.resolveKonlingTeachingAssistantServerModeContext>) => (
       mocks.useActualResolver
         ? actual.resolveKonlingTeachingAssistantServerModeContext(...args)
@@ -96,7 +106,7 @@ vi.mock('@/lib/konling-agent-runtime', async (importOriginal) => {
       citations: [],
     })),
     buildKonlingCitationRetrievalSources: vi.fn(() => []),
-    buildKonlingRuntimeContext: vi.fn(async () => ({ pageContext: {}, userProfile: {}, citationContext: [] })),
+    buildKonlingRuntimeContext: mocks.buildRuntimeContext,
     buildKonlingSarAssociatedGroundingMetadataPayload: vi.fn(() => null),
     buildKonlingStreamingCitationGuard: vi.fn(() => ({
       status: 'grounded',
@@ -106,16 +116,7 @@ vi.mock('@/lib/konling-agent-runtime', async (importOriginal) => {
       personalizationAvailability: 'available',
       citations: [],
     })),
-    buildKonlingTeachingAssistantRuntimeContract: vi.fn(() => ({
-      mode: { id: 'prep-coauthor' },
-      status: 'ready',
-      unavailableReasons: [],
-      degradedReasons: [],
-      clientHintsRejected: [],
-      groundingContext: { missingContext: [], sarAssociatedGrounding: null },
-      permittedTools: [],
-      smartPreparation: { bootstrap: false },
-    })),
+    buildKonlingTeachingAssistantRuntimeContract: mocks.buildRuntimeContract,
     buildKonlingToolRuntime: vi.fn(() => ({ getAssignedCitations: () => [] })),
     buildScopedKonlingAiTools: vi.fn(() => ({})),
     getOrCreateKonlingAgentSession: mocks.getOrCreateAgentSession,
@@ -123,20 +124,7 @@ vi.mock('@/lib/konling-agent-runtime', async (importOriginal) => {
     persistKonlingSessionMemories: vi.fn(async () => undefined),
     resumeKonlingAgentSession: mocks.resumeAgentSession,
     serializeKonlingCitationMetadata: vi.fn((citation) => citation),
-    verifyKonlingRuntimeScope: vi.fn(async (_db, input) => ({
-      ok: true,
-      scope: {
-        authenticatedUserId: input.authenticatedUserId,
-        targetUserId: input.targetUserId,
-        role: 'teacher',
-        classId: input.classId ?? null,
-        courseId: input.courseId,
-        pageId: input.pageId,
-        resourceId: input.resourceId ?? null,
-        pathNodeId: input.pathNodeId ?? null,
-        privacyScopes: ['teacher-scoped'],
-      },
-    })),
+    verifyKonlingRuntimeScope: mocks.verifyRuntimeScope,
   };
 });
 
@@ -178,7 +166,63 @@ describe('Konling smart-prep production routes', () => {
     mocks.useActualResolver = false;
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER', name: 'Teacher' } });
     mocks.getServerSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER', name: 'Teacher' } });
+    mocks.resolveScopeOverride.mockResolvedValue({});
     mocks.resolveServerModeContext.mockResolvedValue(serverContext);
+    mocks.buildPrompt.mockReturnValue('system');
+    mocks.buildRuntimeContext.mockImplementation(async (_db, input) => ({
+      pageContext: {
+        courseId: input.courseId,
+        courseTitle: input.courseId,
+        pageType: 'theory',
+        stepId: input.pageId,
+        topic: input.pageId,
+        learningObjectives: [],
+        knowledgeType: 'C',
+        candidateGraph: input.serverAuthorizedCandidateGraph ?? null,
+      },
+      userProfile: {},
+      citationContext: {
+        required: true,
+        contentCitations: [],
+        evidenceCitations: [],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+      },
+      permittedTools: [],
+    }));
+    mocks.buildRuntimeContract.mockImplementation(({ modeId }) => ({
+      mode: { id: modeId ?? 'generic-chat' },
+      status: 'ready',
+      unavailableReasons: [],
+      degradedReasons: [],
+      clientHintsRejected: [],
+      groundingContext: { missingContext: [], sarAssociatedGrounding: null },
+      permittedTools: [],
+      smartPreparation: modeId === 'prep-coauthor' ? { bootstrap: false } : null,
+    }));
+    mocks.verifyRuntimeScope.mockImplementation(async (_db, input) => ({
+      ok: true,
+      scope: {
+        authenticatedUserId: input.authenticatedUserId,
+        targetUserId: input.targetUserId,
+        role: 'teacher',
+        classId: input.classId ?? null,
+        courseId: input.courseId,
+        pageId: input.pageId,
+        resourceId: input.resourceId ?? null,
+        pathNodeId: input.pathNodeId ?? null,
+        privacyScopes: ['teacher-scoped'],
+        candidateGraph: input.pageContextHint?.candidateGraph
+          ? {
+              ...input.pageContextHint.candidateGraph,
+              selectedCanonicalType: 'Formula',
+              coverageStatus: 'ready',
+              objectCount: 7,
+              relationCount: 9,
+            }
+          : null,
+      },
+    }));
     mocks.getOrCreateAgentSession.mockResolvedValue({ id: 'agent-1', state: {}, pendingApproval: null });
     mocks.resumeAgentSession.mockResolvedValue({ id: 'agent-1', pendingApproval: null });
     mocks.prisma.agentSession.updateMany.mockResolvedValue({ count: 1 });
@@ -251,6 +295,123 @@ describe('Konling smart-prep production routes', () => {
       smartPrepBinding: { taskId: 'server-task', taskRevision: '7' },
     }));
     expectStructuredProposalSteps(mocks.streamText.mock.calls[0]?.[0]);
+  });
+
+  it.each([
+    'grading-assistant',
+    'feedback-explainer',
+    'class-summarizer',
+    'prep-coauthor',
+  ])('keeps candidate routes isolated from %s mode readers and forged hints', async (forgedMode) => {
+    const candidateGraph = {
+      authorityState: 'candidate',
+      releaseSetId: 'actkg-authoritative-candidate-v1',
+      releaseId: 'root-locus-engineering-v0.1',
+      selectedCanonicalId: 'canonical-a',
+      selectedCanonicalType: 'forged-type',
+      governanceFilter: 'CORE',
+      canonicalTypeFilter: 'forged-type',
+      coverageStatus: 'empty',
+      objectCount: 999,
+      relationCount: 999,
+    };
+    const forgedHints = {
+      targetUserId: 'student-victim',
+      classId: 'class-victim',
+      evidenceDraftId: 'draft-victim',
+      assessmentId: 'assessment-victim',
+      resourceId: 'resource-victim',
+      smartTaskId: 'task-victim',
+      smartTaskRevision: '999',
+    };
+    const pageContext = {
+      courseId: 'knowledge',
+      courseTitle: '知识图谱',
+      pageType: 'theory',
+      stepId: '/knowledge',
+      topic: '候选权威图谱',
+      learningObjectives: [],
+      knowledgeType: 'C',
+      candidateGraph,
+    };
+
+    const chatResponse = await chatPOST(new Request('http://localhost/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages: [{ id: 'candidate-chat', role: 'user', content: '解释根轨迹' }],
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        classId: 'class-victim',
+        resourceId: 'resource-victim',
+        teachingAssistantModeId: forgedMode,
+        modeClientContextHints: forgedHints,
+        knowledgeWorkspaceHint: { selected_node: { id: 'legacy-victim' } },
+        pageContext,
+      }),
+    }));
+    expect(chatResponse.status).toBe(200);
+
+    const sessionResponse = await sessionMessagePOST(new NextRequest(
+      'http://localhost/api/ai/sessions/session-1/messages',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          content: '解释根轨迹',
+          classId: 'class-victim',
+          resourceId: 'resource-victim',
+          teachingAssistantModeId: forgedMode,
+          modeClientContextHints: forgedHints,
+          knowledgeWorkspaceHint: { selected_node: { id: 'legacy-victim' } },
+          pageContext,
+        }),
+      },
+    ), { params: Promise.resolve({ id: 'session-1' }) });
+    expect(sessionResponse.status).toBe(200);
+
+    expect(mocks.resolveScopeOverride).not.toHaveBeenCalled();
+    expect(mocks.resolveServerModeContext).not.toHaveBeenCalled();
+    for (const reader of [
+      mocks.prisma.learningEvidenceDraft.findMany,
+      mocks.prisma.learningFact.findMany,
+      mocks.prisma.studentProfile.findFirst,
+      mocks.prisma.studentProfile.findMany,
+      mocks.prisma.teachingResource.findMany,
+      mocks.prisma.class.findUnique,
+      mocks.prisma.smartLessonTask.findFirst,
+    ]) {
+      expect(reader).not.toHaveBeenCalled();
+    }
+    expect(mocks.verifyRuntimeScope).toHaveBeenCalledTimes(2);
+    for (const [, input] of mocks.verifyRuntimeScope.mock.calls) {
+      expect(input).toMatchObject({
+        targetUserId: 'teacher-1',
+        classId: null,
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        resourceId: null,
+        pathNodeId: null,
+      });
+    }
+    for (const [, input] of mocks.buildRuntimeContext.mock.calls) {
+      expect(input).toMatchObject({
+        targetUserId: 'teacher-1',
+        classId: null,
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        resourceId: null,
+        pathNodeId: null,
+        teachingAssistantModeId: null,
+        teachingAssistantServerModeContext: null,
+        knowledgeWorkspaceHint: null,
+      });
+    }
+    for (const input of mocks.buildRuntimeContract.mock.calls.map((call) => call[0])) {
+      expect(input).toMatchObject({
+        modeId: null,
+        serverModeContext: null,
+      });
+      expect(input.clientContextHints).toBeUndefined();
+    }
   });
 
   it('uses the task identity to resolve the current server revision', async () => {
