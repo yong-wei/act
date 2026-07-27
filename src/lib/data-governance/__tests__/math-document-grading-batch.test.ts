@@ -346,6 +346,7 @@ describe('question-scoped grading batch orchestration', () => {
         id: 'conversion-policy-routing',
         state: 'SUCCEEDED',
         canonicalMarkdown: 'converted',
+        normalizedBlocks: evidence.blocks,
         precision: 'PAGE',
         confidence: 0.9,
       },
@@ -360,6 +361,7 @@ describe('question-scoped grading batch orchestration', () => {
     expect(conversion).not.toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-ai' }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ mathpix: expect.anything() }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ writeRendered: expect.any(Function) }));
+    expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ persistEvidence: false }));
     expect(materializeEvidence).toHaveBeenCalledWith(expect.objectContaining({
       normalized: expect.objectContaining({
         blocks: expect.arrayContaining([

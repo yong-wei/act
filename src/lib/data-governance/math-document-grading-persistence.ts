@@ -1065,6 +1065,7 @@ export async function processDocumentConversionJob(input: {
         sourceChecksum: result.sourceChecksum,
         outputChecksum: result.outputChecksum,
         canonicalMarkdown: result.markdown || null,
+        normalizedBlocks: normalized.blocks,
         renderedObjectKey,
         renderedChecksum,
         precision: result.precision.toUpperCase(),

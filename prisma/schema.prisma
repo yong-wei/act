@@ -2132,6 +2132,7 @@ model DocumentConversion {
   sourceChecksum                    String
   outputChecksum                    String?
   canonicalMarkdown                 String?                 @db.Text
+  normalizedBlocks                  Json?
   renderedObjectKey                 String?
   renderedChecksum                  String?
   precision                         GradingPrecision?

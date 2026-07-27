@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 
 import { prisma } from '../../src/lib/prisma';
 import {
+  assembleAssignmentAnswerEvidence,
+} from '../../src/lib/data-governance/assignment-attachment-understanding';
+import {
   materializeAssignmentAnswerEvidence,
 } from '../../src/lib/data-governance/math-document-grading-persistence';
 
@@ -37,12 +40,14 @@ async function main() {
   await createAssignmentAttempt();
   try {
     await verifyConcurrentMaterialization();
+    await verifyMultiAttachmentAggregate();
     await replaceAggregateWithLegacyFixture();
     await verifyLegacyMigration();
     process.stdout.write(
       `${JSON.stringify({
         result: 'passed',
         concurrentEvidenceCount: 1,
+        multiAttachmentAggregate: true,
         approvedHistoryPreserved: true,
         activeRerunBlocked: true,
         parentBatchSettled: true,
@@ -52,6 +57,95 @@ async function main() {
     await cleanup();
     await prisma.$disconnect();
   }
+}
+
+async function verifyMultiAttachmentAggregate() {
+  const existing = await prisma.answerEvidence.findFirstOrThrow({
+    where: { attemptId: ids.attempt },
+  });
+  await prisma.answerEvidenceBlock.deleteMany({
+    where: { evidenceId: existing.id },
+  });
+  await prisma.answerEvidence.delete({ where: { id: existing.id } });
+
+  const assets = [0, 1].map((index) => ({
+    id: `${prefix}:multi-asset-${index}`,
+    answerId: ids.answer,
+    attemptId: ids.attempt,
+    version: index + 1,
+    orderIndex: index,
+    objectKey: `${prefix}:multi-object-${index}`,
+    originalName: `answer-${index}.pdf`,
+    mimeType: 'application/pdf',
+    sizeBytes: 10,
+    checksum: `${prefix}:multi-checksum-${index}`,
+    state: 'FINALIZED' as const,
+    scanState: 'CLEAN' as const,
+  }));
+  await prisma.submissionAsset.createMany({ data: assets });
+  await prisma.documentConversion.createMany({
+    data: assets.map((asset, index) => ({
+      id: `${prefix}:multi-conversion-${index}`,
+      assetId: asset.id,
+      attemptId: ids.attempt,
+      version: 1,
+      dedupeKey: `${prefix}:multi-conversion-dedupe-${index}`,
+      adapter: 'mathpix',
+      adapterVersion: 'assignment-understanding.v1',
+      state: 'SUCCEEDED' as const,
+      sourceChecksum: asset.checksum,
+      canonicalMarkdown: `attachment ${index}`,
+      normalizedBlocks: [{
+        id: `mathpix-${index}`,
+        blockIndex: 0,
+        pageNumber: index + 1,
+        text: `attachment ${index}`,
+        markdown: `attachment ${index}`,
+        precision: 'page',
+        confidence: 0.9,
+      }],
+      precision: 'PAGE' as const,
+      confidence: 0.9,
+    })),
+  });
+  const conversions = await prisma.documentConversion.findMany({
+    where: { id: { startsWith: `${prefix}:multi-conversion-` } },
+    orderBy: { id: 'asc' },
+  });
+  const assembled = assembleAssignmentAnswerEvidence({
+    attemptId: ids.attempt,
+    answerVersion: 1,
+    textSnapshot: 'fixture answer',
+    attachments: conversions.map((conversion, index) => ({
+      assetId: conversion.assetId!,
+      displayName: assets[index].originalName,
+      mimeType: assets[index].mimeType,
+      checksum: conversion.sourceChecksum,
+      role: 'ATTACHMENT',
+      orderIndex: index,
+      route: 'binary-mathpix',
+      state: 'READY',
+      canonicalMarkdown: conversion.canonicalMarkdown,
+      blocks: conversion.normalizedBlocks as any[],
+    })),
+  });
+  const aggregate = await materializeAssignmentAnswerEvidence({
+    db: prisma,
+    attemptId: ids.attempt,
+    answerVersion: 1,
+    normalized: assembled.evidence,
+    sourceManifest: assembled.manifest,
+    actor: { id: 'grading-worker', role: 'SERVICE' },
+  });
+  assert.equal(await prisma.answerEvidence.count({
+    where: { attemptId: ids.attempt, conversionId: { not: null } },
+  }), 0);
+  assert.deepEqual(
+    aggregate.evidence.blocks
+      .filter((block: any) => block.pageNumber !== null)
+      .map((block: any) => block.pageNumber),
+    [1, 2],
+  );
 }
 
 async function createAssignmentAttempt() {
@@ -215,7 +309,7 @@ async function replaceAggregateWithLegacyFixture() {
       id: ids.asset,
       answerId: ids.answer,
       attemptId: ids.attempt,
-      version: 1,
+      version: 3,
       objectKey: `${prefix}:object`,
       originalName: 'legacy.pdf',
       mimeType: 'application/pdf',

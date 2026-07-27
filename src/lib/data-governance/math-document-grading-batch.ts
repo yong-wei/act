@@ -726,7 +726,6 @@ async function processBatchItem(input: {
         await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { conversionId: conversion.conversion.id, updatedAt: input.now });
       }
       let converted = conversion.conversion;
-      let convertedEvidence = null;
       if (conversion.job) {
         const processedConversion = await processDocumentConversionJob({
           db: input.db,
@@ -741,22 +740,19 @@ async function processBatchItem(input: {
             : undefined,
           mathpix: route === 'binary-mathpix' ? input.mathpix : undefined,
           local: undefined,
+          persistEvidence: false,
           parentLeaseLost: input.parentLeaseLost,
           signal: input.signal,
           now: input.now,
         });
         converted = processedConversion.conversion;
-        convertedEvidence = processedConversion.evidence;
         if (processedConversion.conversion.state === 'CANCELLED') throw new Error('batch-cancelled');
       }
       const ready = converted.state === 'SUCCEEDED'
         && Boolean(converted.canonicalMarkdown?.trim());
-      if (ready && !convertedEvidence) {
-        convertedEvidence = await input.db.answerEvidence.findFirst({
-          where: { conversionId: converted.id },
-          include: { blocks: { orderBy: { blockIndex: 'asc' } } },
-        });
-      }
+      const convertedBlocks = Array.isArray(converted.normalizedBlocks)
+        ? converted.normalizedBlocks
+        : [];
       understood.push({
         assetId: asset.id,
         displayName: asset.originalName ?? asset.displayName ?? '未命名附件',
@@ -775,7 +771,7 @@ async function processBatchItem(input: {
             : 'UNDERSTANDING_FAILED',
         canonicalMarkdown: converted.canonicalMarkdown,
         blocks: ready
-          ? (convertedEvidence?.blocks ?? []).map((block: any) => ({
+          ? convertedBlocks.map((block: any) => ({
               id: block.id,
               blockIndex: block.blockIndex,
               pageNumber: block.pageNumber,
