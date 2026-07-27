@@ -96,9 +96,13 @@ describe('teacher assignment review persistence', () => {
     review.gradingRun.answerAttempt = {
       id: 'attempt-1',
       textSnapshot: '# 原始答案\n\n$x^2$',
+      answerSnapshot: {
+        schemaVersion: 'assignment-response.v2',
+        attachmentOrderProvenance: 'legacy-fallback',
+      },
       answer: {
         id: 'answer-1',
-        attachmentOrderProvenance: 'student-frozen-order.v1',
+        attachmentOrderProvenance: 'student-arranged',
       },
       assets: [
         {
@@ -172,7 +176,7 @@ describe('teacher assignment review persistence', () => {
 
     expect(projection.originalResponse).toEqual({
       textSnapshot: '# 原始答案\n\n$x^2$',
-      attachmentOrderProvenance: 'student-frozen-order.v1',
+      attachmentOrderProvenance: 'legacy-fallback',
       assets: [
         expect.objectContaining({
           id: 'asset-image',

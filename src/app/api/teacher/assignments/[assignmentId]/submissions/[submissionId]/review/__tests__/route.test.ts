@@ -96,9 +96,13 @@ describe('teacher assignment review detail route', () => {
         answerAttempt: {
           id: 'attempt-1',
           textSnapshot: '# 原始答案',
+          answerSnapshot: {
+            schemaVersion: 'assignment-response.v2',
+            attachmentOrderProvenance: 'legacy-fallback',
+          },
           answer: {
             id: 'answer-1',
-            attachmentOrderProvenance: 'student-frozen-order.v1',
+            attachmentOrderProvenance: 'student-arranged',
           },
           assets: [{
             id: 'asset-1',
@@ -147,6 +151,7 @@ describe('teacher assignment review detail route', () => {
     expect(response.status).toBe(200);
     expect(body.review.originalResponse).toMatchObject({
       textSnapshot: '# 原始答案',
+      attachmentOrderProvenance: 'legacy-fallback',
       assets: [{
         id: 'asset-1',
         displayName: 'report.pdf',

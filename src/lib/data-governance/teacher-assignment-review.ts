@@ -434,6 +434,11 @@ export type TeacherAssignmentOriginalResponseProjection = {
 
 export function buildTeacherAssignmentReviewApiProjection(review: any) {
   const attempt = review?.gradingRun?.answerAttempt;
+  const answerSnapshot = attempt?.answerSnapshot
+    && typeof attempt.answerSnapshot === 'object'
+    && !Array.isArray(attempt.answerSnapshot)
+    ? attempt.answerSnapshot
+    : null;
   const textSnapshot = typeof attempt?.textSnapshot === 'string'
     ? attempt.textSnapshot
     : null;
@@ -550,8 +555,9 @@ export function buildTeacherAssignmentReviewApiProjection(review: any) {
     originalResponse: {
       textSnapshot,
       attachmentOrderProvenance:
-        typeof attempt?.answer?.attachmentOrderProvenance === 'string'
-          ? attempt.answer.attachmentOrderProvenance
+        answerSnapshot?.attachmentOrderProvenance === 'student-arranged'
+        || answerSnapshot?.attachmentOrderProvenance === 'legacy-fallback'
+          ? answerSnapshot.attachmentOrderProvenance
           : null,
       assets,
     } satisfies TeacherAssignmentOriginalResponseProjection,
