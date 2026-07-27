@@ -278,7 +278,16 @@ function areEquivalentJourneyActions(
 
   return primaryTarget !== null
     && primaryTarget === candidateTarget
-    && primary.label.trim() === candidate.label.trim();
+    && (
+      primary.label.trim() === candidate.label.trim()
+      || (hasJourneyReturnSemantics(primary.label) && hasJourneyReturnSemantics(candidate.label))
+    );
+}
+
+function hasJourneyReturnSemantics(label: string): boolean {
+  const normalizedLabel = label.replace(/\s+/g, '');
+  return normalizedLabel.includes('学习路径')
+    && (normalizedLabel.includes('返回') || normalizedLabel.includes('恢复'));
 }
 
 function normalizeJourneyActionTarget(href: string): string | null {

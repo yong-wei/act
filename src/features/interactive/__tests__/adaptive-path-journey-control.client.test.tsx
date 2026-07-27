@@ -256,6 +256,10 @@ describe('adaptive path journey client behavior', () => {
     expect(container.textContent).not.toContain('完成前动作');
     expect(container.textContent).toContain(title);
     expect(container.querySelector(`[data-adaptive-path-journey-control="${state}"]`)).not.toBeNull();
+    if (state === 'blocked') {
+      expect(container.querySelectorAll(`a[href="${updated.return.href}"]`)).toHaveLength(1);
+      expect(container.textContent).not.toContain('恢复学习路径');
+    }
   });
 
   it('does not mount journey behavior for a non-path route', async () => {
