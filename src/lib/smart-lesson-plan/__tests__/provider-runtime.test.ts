@@ -6,6 +6,7 @@ import {
   resolveSmartLessonStructuredProvider,
   validateSmartLessonProviderOutput,
 } from '../provider-runtime';
+import { AIProviderCapabilityUnavailableError, type AIProviderSettings } from '../../ai/provider-settings';
 import { smartLessonAdvisoryReviewSchema, smartLessonPlanSchema } from '../schema';
 import { validPlanFixture } from './fixtures';
 
@@ -22,6 +23,29 @@ const config = {
   health: 'healthy' as const,
   capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: false, citationNormalization: false },
 };
+
+function providerSettings(
+  models: AIProviderSettings['providers'][number]['models'],
+  selectedModel = 'deepseek-ai/DeepSeek-V4-Flash',
+): AIProviderSettings {
+  return {
+    activeProvider: 'configured-provider',
+    providers: [{
+      id: 'configured-provider',
+      name: 'Configured Provider',
+      providerKind: 'openai-compatible',
+      baseURL: 'https://provider.example/v1',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SERVER_KEY',
+      selectedModel,
+      models,
+      enabled: true,
+      priority: 1,
+      health: 'healthy',
+      capabilities: config.capabilities,
+    }],
+  };
+}
 
 function representativePlanFixture() {
   const plan = smartLessonPlanSchema.parse(validPlanFixture());
@@ -272,6 +296,84 @@ describe('smart lesson structured provider runtime', () => {
     });
   });
 
+  it('prefers a configured non-thinking model for advisory review and audits the actual model', async () => {
+    const settings = providerSettings([
+      { id: 'deepseek', label: 'DeepSeek', model: 'deepseek-ai/DeepSeek-V4-Flash' },
+      { id: 'qwen', label: 'Qwen', model: 'Qwen/Qwen3.6-35B-A3B', options: { enableThinking: false } },
+    ]);
+    const resolveConfig = vi.fn(async (_providerId, modelId) => ({
+      ...config,
+      model: modelId ?? settings.providers[0].selectedModel,
+    }));
+    const generate = vi.fn(async () => ({
+      object: {
+        goalCoverage: '完整',
+        sourceConsistency: '一致',
+        bopppsStructure: '完整',
+        findings: [],
+        suggestions: [],
+      },
+    }));
+
+    const result = await generateSmartLessonAdvisoryReport(
+      { plan: validPlanFixture(), idempotencyKey: 'review-non-thinking' },
+      {
+        resolveConfig: resolveConfig as never,
+        getSettings: vi.fn(async () => settings),
+        generate,
+        advisoryTimeoutMs: 25,
+      },
+    );
+
+    expect(resolveConfig).toHaveBeenNthCalledWith(
+      2,
+      'configured-provider',
+      'Qwen/Qwen3.6-35B-A3B',
+      { jsonSchema: true },
+      settings,
+    );
+    expect(result.audit.model).toBe('Qwen/Qwen3.6-35B-A3B');
+  });
+
+  it('keeps the selected model when advisory has no configured non-thinking candidate', async () => {
+    const settings = providerSettings([
+      { id: 'deepseek', label: 'DeepSeek', model: 'deepseek-ai/DeepSeek-V4-Flash' },
+      { id: 'reasoning', label: 'Reasoning', model: 'vendor/reasoning', options: { enableThinking: true } },
+    ]);
+    const resolveConfig = vi.fn(async (_providerId, modelId) => ({
+      ...config,
+      model: modelId ?? settings.providers[0].selectedModel,
+    }));
+    const generate = vi.fn(async () => ({
+      object: {
+        goalCoverage: '完整',
+        sourceConsistency: '一致',
+        bopppsStructure: '完整',
+        findings: [],
+        suggestions: [],
+      },
+    }));
+
+    const result = await generateSmartLessonAdvisoryReport(
+      { plan: validPlanFixture(), idempotencyKey: 'review-selected-model' },
+      {
+        resolveConfig: resolveConfig as never,
+        getSettings: vi.fn(async () => settings),
+        generate,
+        advisoryTimeoutMs: 25,
+      },
+    );
+
+    expect(resolveConfig).toHaveBeenNthCalledWith(
+      2,
+      'configured-provider',
+      'deepseek-ai/DeepSeek-V4-Flash',
+      { jsonSchema: true },
+      settings,
+    );
+    expect(result.audit.model).toBe('deepseek-ai/DeepSeek-V4-Flash');
+  });
+
   it('classifies a hanging advisory provider as timeout and aborts its signal', async () => {
     let signal: AbortSignal | undefined;
     const generate = vi.fn((input: Record<string, unknown>) => {
@@ -304,10 +406,16 @@ describe('smart lesson structured provider runtime', () => {
   });
 
   it('preserves structured-provider-unavailable for advisory provider selection failures', async () => {
+    const settings = providerSettings([
+      { id: 'deepseek', label: 'DeepSeek', model: 'deepseek-ai/DeepSeek-V4-Flash' },
+    ]);
     await expect(generateSmartLessonAdvisoryReport(
       { plan: validPlanFixture(), idempotencyKey: 'review-unavailable' },
       {
-        resolveConfig: vi.fn(async () => ({ ...config, enabled: false })) as never,
+        resolveConfig: vi.fn(async () => {
+          throw new AIProviderCapabilityUnavailableError('No configured provider is available.');
+        }) as never,
+        getSettings: vi.fn(async () => settings),
         advisoryTimeoutMs: 25,
       },
     )).rejects.toMatchObject({
