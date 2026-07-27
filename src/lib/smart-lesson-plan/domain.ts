@@ -112,7 +112,10 @@ export function projectCurrentCumulativeClassPortrait(input: {
   }).passthrough().safeParse(input.portrait);
   if (!portrait.success) throw new SmartLessonPlanError('aggregate-class-context-invalid');
   const total = portrait.data.totalStudentCount;
-  const bucket = cohortBucket(total);
+  const overallIncludedCount = portrait.data.aggregate.overall.includedCount;
+  const bucket = total < 5 || overallIncludedCount < 5
+    ? total === 0 ? 'none' : 'suppressed-small'
+    : cohortBucket(total);
   const suppressed = {
     classId: input.classId,
     asOf: portrait.data.evidenceAsOf ?? portrait.data.generatedAt,
@@ -121,7 +124,7 @@ export function projectCurrentCumulativeClassPortrait(input: {
       ? { unavailableReason: 'no-active-learners' as const }
       : { suppressionReason: 'cohort-below-five' as const }),
   };
-  if (total < 5) {
+  if (total < 5 || overallIncludedCount < 5) {
     return aggregateClassContextSchema.parse({
       ...suppressed,
       contextRef: `cumulative-class-portrait:${contentHash(suppressed)}`,
@@ -130,6 +133,11 @@ export function projectCurrentCumulativeClassPortrait(input: {
   const coverage = (included: number, missing: number) => included + missing > 0
     ? included / (included + missing)
     : 0;
+  const competencies = Object.entries(portrait.data.aggregate.dimensions)
+    .filter(([, dimension]) => dimension.includedCount >= 5)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .slice(0, 50);
+  const retainedCompetencyIdentities = new Set(competencies.map(([identity]) => identity));
   const projected = {
     classId: input.classId,
     asOf: portrait.data.evidenceAsOf ?? portrait.data.generatedAt,
@@ -142,16 +150,14 @@ export function projectCurrentCumulativeClassPortrait(input: {
       ),
       confidence: portrait.data.aggregate.overall.meanConfidence,
     },
-    competencies: Object.entries(portrait.data.aggregate.dimensions)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .slice(0, 50)
-      .map(([identity, dimension]) => ({
-        identity,
-        attainment: dimension.mean,
-        coverage: coverage(dimension.includedCount, dimension.missingCount),
-        confidence: dimension.meanConfidence,
-      })),
+    competencies: competencies.map(([identity, dimension]) => ({
+      identity,
+      attainment: dimension.mean,
+      coverage: coverage(dimension.includedCount, dimension.missingCount),
+      confidence: dimension.meanConfidence,
+    })),
     gaps: [...new Set(portrait.data.diagnosis.improvementClusters)]
+      .filter((identity) => retainedCompetencyIdentities.has(identity))
       .sort()
       .map((identity) => ({ identity, reason: 'improvement-cluster' as const })),
   };
@@ -173,7 +179,9 @@ export function normalizeSourceMatchingMeaning(value: string): string {
   return value
     .normalize('NFKC')
     .toLocaleLowerCase('zh-CN')
-    .replace(/[\p{P}\p{S}\s]+/gu, '')
+    .replace(/\s+/gu, '')
+    .replace(/[。！？!?，、；：“”‘’"'…]/gu, '')
+    .replace(/(?<!\d)[,.]|[,.](?!\d)/gu, '')
     .trim();
 }
 

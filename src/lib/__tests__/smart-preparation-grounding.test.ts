@@ -213,6 +213,62 @@ describe('smart preparation grounding contracts', () => {
     });
   });
 
+  it('suppresses aggregate metrics when the class has 10 learners but overall includes only 4', () => {
+    const projected = projectCurrentCumulativeClassPortrait({
+      classId: 'class-1',
+      portrait: {
+        stateKind: 'SNAPSHOT',
+        evidenceAsOf: '2026-07-26T10:00:00.000Z',
+        generatedAt: '2026-07-26T10:05:00.000Z',
+        activeStudentCount: 10,
+        totalStudentCount: 10,
+        aggregate: {
+          overall: { mean: 0.4, meanConfidence: 0.5, includedCount: 4, missingCount: 6 },
+          dimensions: {
+            stability: { mean: 0.3, meanConfidence: 0.6, includedCount: 4, missingCount: 6 },
+          },
+        },
+        diagnosis: { improvementClusters: ['stability'] },
+      },
+    });
+
+    expect(projected).toMatchObject({
+      cohortBucket: 'suppressed-small',
+      suppressionReason: 'cohort-below-five',
+    });
+    expect(projected).not.toHaveProperty('overall');
+    expect(projected).not.toHaveProperty('competencies');
+    expect(projected).not.toHaveProperty('gaps');
+  });
+
+  it('filters low-support competency metrics and their gap identities', () => {
+    const projected = projectCurrentCumulativeClassPortrait({
+      classId: 'class-1',
+      portrait: {
+        stateKind: 'SNAPSHOT',
+        evidenceAsOf: '2026-07-26T10:00:00.000Z',
+        generatedAt: '2026-07-26T10:05:00.000Z',
+        activeStudentCount: 10,
+        totalStudentCount: 10,
+        aggregate: {
+          overall: { mean: 0.65, meanConfidence: 0.7, includedCount: 10, missingCount: 0 },
+          dimensions: {
+            lowSupport: { mean: 0.1, meanConfidence: 0.2, includedCount: 1, missingCount: 9 },
+            stability: { mean: 0.6, meanConfidence: 0.8, includedCount: 5, missingCount: 5 },
+          },
+        },
+        diagnosis: { improvementClusters: ['lowSupport', 'stability'] },
+      },
+    });
+
+    expect(projected).toMatchObject({
+      cohortBucket: '10-19',
+      competencies: [{ identity: 'stability', attainment: 0.6, coverage: 0.5, confidence: 0.8 }],
+      gaps: [{ identity: 'stability', reason: 'improvement-cluster' }],
+    });
+    expect(JSON.stringify(projected)).not.toContain('lowSupport');
+  });
+
   it('keeps source decisions for formatting changes and invalidates semantic changes', () => {
     expect(normalizeSourceMatchingMeaning('稳定性 判据！')).toBe(normalizeSourceMatchingMeaning('稳定性判据'));
     const base = canonicalSourceFields({
@@ -242,6 +298,27 @@ describe('smart preparation grounding contracts', () => {
     expect(formattingOnly.contentHash).toBe(base.contentHash);
     expect(formattingOnly.gapIdentity).toBe(base.gapIdentity);
     expect(semanticEdit.gapIdentity).not.toBe(base.gapIdentity);
+  });
+
+  it('preserves mathematical operators, signs, and decimal points in source matching hashes', () => {
+    const semanticPairs = [
+      ['s+1', 's-1'],
+      ['Kp>1', 'Kp<1'],
+      ['ζ=0.7', 'ζ=-0.7'],
+    ] as const;
+
+    for (const [left, right] of semanticPairs) {
+      expect(normalizeSourceMatchingMeaning(left)).not.toBe(normalizeSourceMatchingMeaning(right));
+      const fields = (content: string) => canonicalSourceFields({
+        itemId: 'kp-1',
+        itemLineageId: 'lineage-1',
+        taskLineageId: 'task-lineage',
+        content,
+        sourceState: 'TEACHER_CREATED_SOURCE_PENDING',
+        sourceBindings: [],
+      });
+      expect(fields(left).contentHash).not.toBe(fields(right).contentHash);
+    }
   });
 
   it('requires a short reason for no-source decisions', () => {

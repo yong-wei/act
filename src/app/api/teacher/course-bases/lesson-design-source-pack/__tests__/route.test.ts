@@ -43,7 +43,7 @@ describe('lesson-design Course Basis Source Pack route', () => {
     findProjections.mockImplementation(async (query) => query.select ? [{ corpusSourceId }] : [projection]);
   });
 
-  it('runs the authorized projection through SAR and lesson-design retrieval with a bounded DTO', async () => {
+  it('runs the authorized projection through SAR and smart-preparation retrieval with a bounded DTO', async () => {
     const response = await POST(request({ selectedVersionIds: ['version-1'], query: '闭环控制系统' }));
     const body = await response.json();
 
@@ -58,7 +58,7 @@ describe('lesson-design Course Basis Source Pack route', () => {
       },
     });
     expect(body.sourcePack).toMatchObject({
-      profile: 'lesson-design', itemCount: 1,
+      profile: 'smart-preparation', itemCount: 1,
       retrievalChunkIds: [corpusSourceId],
     });
     expect(Object.keys(body.sourcePack).sort()).toEqual([

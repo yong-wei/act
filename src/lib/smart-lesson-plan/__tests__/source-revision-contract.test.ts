@@ -188,6 +188,10 @@ describe('smart lesson real-provider source revision contract', () => {
       spec.indexOf('function compactGenerationSnapshot'),
       spec.indexOf('async function deletedTaskCount'),
     );
-    expect(compactSnapshot).not.toMatch(/request|response|validationReceipt|idempotencyKey|output:/);
+    expect(compactSnapshot).toContain(
+      'validationReceipt: compactValidationReceipt(attempt.validationReceipt)',
+    );
+    expect(compactSnapshot).toContain('function compactValidationReceipt(value: unknown)');
+    expect(compactSnapshot).not.toMatch(/request|response|idempotencyKey|output:/);
   });
 });
