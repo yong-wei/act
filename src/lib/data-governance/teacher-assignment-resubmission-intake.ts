@@ -107,12 +107,28 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
         orderBy: { version: 'desc' },
       });
       if (!existing) {
+        const conversionPolicy = await db.gradingProviderPolicy.findFirst({
+          where: {
+            provider: 'mathpix',
+            purpose: 'answer-conversion',
+            enabled: true,
+            disabledAt: null,
+            id: {
+              endsWith: asset.mimeType.trim().toLowerCase().startsWith('image/')
+                ? ':image'
+                : ':document',
+            },
+          },
+          orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+          select: { id: true },
+        });
         await enqueueDocumentConversion({
           db,
           assetId: asset.id,
           attemptId: intake.attemptId,
           actor,
           adapterVersion: 'assignment-understanding.v1',
+          policyId: conversionPolicy?.id ?? null,
           allowDefaultPolicyDiscovery: false,
           idempotencyKey: `resubmission-conversion:${intake.attemptId}:${asset.id}`,
           reason: `teacher-return:${intake.grant.sourceReviewId}`,

@@ -168,6 +168,11 @@ describe('teacher assignment resubmission intake', () => {
       },
       answerEvidence: { findFirst: vi.fn().mockResolvedValue(null) },
       documentConversion: { findFirst: vi.fn().mockResolvedValue(null) },
+      gradingProviderPolicy: {
+        findFirst: vi.fn().mockImplementation(async ({ where }: { where: { id: { endsWith: string } } }) => ({
+          id: `grading-provider:mathpix:v2${where.id.endsWith}`,
+        })),
+      },
     };
     persistence.enqueueDocumentConversion.mockResolvedValue({ conversion: { id: 'conversion-new' } });
 
@@ -178,9 +183,22 @@ describe('teacher assignment resubmission intake', () => {
       assetId,
       attemptId: 'attempt-new',
       adapterVersion: 'assignment-understanding.v1',
+      policyId: mimeType.startsWith('image/')
+        ? 'grading-provider:mathpix:v2:image'
+        : 'grading-provider:mathpix:v2:document',
       allowDefaultPolicyDiscovery: false,
     }));
-    expect(persistence.enqueueDocumentConversion.mock.calls[0]?.[0]).not.toHaveProperty('policyId');
+    expect(db.gradingProviderPolicy.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        provider: 'mathpix',
+        purpose: 'answer-conversion',
+        enabled: true,
+        disabledAt: null,
+        id: {
+          endsWith: mimeType.startsWith('image/') ? ':image' : ':document',
+        },
+      }),
+    }));
   });
 
   it('uses governed router lineage when legacy source evidence has no conversion', async () => {
@@ -204,6 +222,9 @@ describe('teacher assignment resubmission intake', () => {
       },
       answerEvidence: { findFirst: vi.fn().mockResolvedValue(null) },
       documentConversion: { findFirst: vi.fn().mockResolvedValue(null) },
+      gradingProviderPolicy: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'grading-provider:mathpix:v2:document' }),
+      },
     };
     persistence.enqueueDocumentConversion.mockResolvedValue({ conversion: { id: 'conversion-new' } });
 
@@ -211,9 +232,9 @@ describe('teacher assignment resubmission intake', () => {
     expect(persistence.enqueueDocumentConversion).toHaveBeenCalledWith(expect.objectContaining({
       assetId: 'asset-new',
       adapterVersion: 'assignment-understanding.v1',
+      policyId: 'grading-provider:mathpix:v2:document',
       allowDefaultPolicyDiscovery: false,
     }));
-    expect(persistence.enqueueDocumentConversion.mock.calls[0]?.[0]).not.toHaveProperty('policyId');
   });
 
   it('routes an attachment-only resubmission by attempt content even for a legacy text answer', async () => {
@@ -240,6 +261,9 @@ describe('teacher assignment resubmission intake', () => {
       },
       answerEvidence: { findFirst: vi.fn().mockResolvedValue(null) },
       documentConversion: { findFirst: vi.fn().mockResolvedValue(null) },
+      gradingProviderPolicy: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'grading-provider:mathpix:v2:document' }),
+      },
     };
 
     await expect(drainTeacherAssignmentResubmissionIntakes({ db, now: () => now }))
