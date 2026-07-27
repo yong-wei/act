@@ -64,7 +64,7 @@ export async function POST(request: Request, context: { params: Promise<{ sugges
     }
     const ignored = await prisma.agentToolRun.updateMany({
       where: {
-        id: suggestionId,
+        id: run.id,
         agentSessionId: run.agentSessionId,
         ownerUserId: auth.actor.id,
         actorUserId: auth.actor.id,

@@ -440,46 +440,57 @@ describe('smart lesson task routes', () => {
     },
   );
 
-  it('atomically ignores an owner-scoped suggestion and replays the terminal result', async () => {
-    const run = {
-      id: 'suggestion-1',
-      agentSessionId: 'agent-session-1',
-      approvalState: 'not_required',
-      outputSummary: { status: 'awaiting_teacher_confirmation' },
-      inputSummary: { operation: 'revise', taskId: 'task-1', turnId: 'turn-9' },
-      agentSession: {
-        ownerUserId: 'teacher-1',
-        actorUserId: 'teacher-1',
-        stateJson: {
-          ownedTurnIds: ['turn-9'],
-          smartPrepBinding: { taskId: 'task-1', ownerUserId: 'teacher-1' },
+  it.each(['bootstrap', 'revise'] as const)(
+    'atomically ignores an owner-scoped %s suggestion addressed by public action ID',
+    async (operation) => {
+      const run = {
+        id: 'suggestion-db-1',
+        agentSessionId: 'agent-session-1',
+        approvalState: 'not_required',
+        outputSummary: { status: 'awaiting_teacher_confirmation' },
+        inputSummary: {
+          operation,
+          publicActionId: 'suggestion-public-1',
+          ...(operation === 'revise' ? { taskId: 'task-1' } : {}),
+          turnId: 'turn-9',
         },
-      },
-    };
-    mocks.toolRunFindFirst.mockResolvedValue(run);
-    const { POST } = await import('../konling-suggestions/[suggestionId]/ignore/route');
-    const request = () => new Request('http://localhost', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({}),
-    });
-    const params = { params: Promise.resolve({ suggestionId: 'suggestion-1' }) };
-    const response = await POST(request(), params);
+        agentSession: {
+          ownerUserId: 'teacher-1',
+          actorUserId: 'teacher-1',
+          stateJson: {
+            ownedTurnIds: ['turn-9'],
+            smartPrepBinding: { taskId: 'task-1', ownerUserId: 'teacher-1' },
+          },
+        },
+      };
+      mocks.toolRunFindFirst.mockResolvedValue(run);
+      mocks.toolRunUpdateMany.mockImplementation(async ({ where }) => ({
+        count: where.id === 'suggestion-db-1' ? 1 : 0,
+      }));
+      const { POST } = await import('../konling-suggestions/[suggestionId]/ignore/route');
+      const request = () => new Request('http://localhost', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const params = { params: Promise.resolve({ suggestionId: 'suggestion-public-1' }) };
+      const response = await POST(request(), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.toolRunUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ approvalState: 'not_required' }),
-      data: {
-        approvalState: 'ignored',
-        outputSummary: expect.objectContaining({ actionState: 'ignored' }),
-      },
-    }));
+      expect(response.status).toBe(200);
+      expect(mocks.toolRunUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({ id: 'suggestion-db-1', approvalState: 'not_required' }),
+        data: {
+          approvalState: 'ignored',
+          outputSummary: expect.objectContaining({ actionState: 'ignored' }),
+        },
+      }));
 
-    mocks.toolRunFindFirst.mockResolvedValueOnce({ ...run, approvalState: 'ignored' });
-    const replay = await POST(request(), params);
-    expect(replay.status).toBe(200);
-    expect(mocks.toolRunUpdateMany).toHaveBeenCalledTimes(1);
-  });
+      mocks.toolRunFindFirst.mockResolvedValueOnce({ ...run, approvalState: 'ignored' });
+      const replay = await POST(request(), params);
+      expect(replay.status).toBe(200);
+      expect(mocks.toolRunUpdateMany).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it.each(['approved', 'conflict', 'action_failed', 'confirmation_in_progress'] as const)(
     'does not overwrite the existing %s terminal or claimed state when ignoring',
