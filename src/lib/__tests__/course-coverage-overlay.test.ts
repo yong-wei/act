@@ -1,5 +1,13 @@
-import { readFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import os from 'node:os';
 import path from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -128,8 +136,24 @@ describe('Course coverage authoring validator', () => {
       schema,
       { captureRevision },
     )).rejects.toThrow(/source hash drift/u);
-    await expect(loadAndValidateCourseCoverageOverlay())
-      .rejects.toThrow(/clean Git HEAD/u);
+    const temporaryRoot = mkdtempSync(path.join(os.tmpdir(), 'act-course-coverage-'));
+    try {
+      for (const sourcePath of [overlayPath, schemaPath]) {
+        const destination = path.join(temporaryRoot, path.relative(root, sourcePath));
+        mkdirSync(path.dirname(destination), { recursive: true });
+        copyFileSync(sourcePath, destination);
+      }
+      const initialized = spawnSync('git', ['init', '--quiet'], {
+        cwd: temporaryRoot,
+        encoding: 'utf8',
+      });
+      expect(initialized.status, initialized.stderr).toBe(0);
+      writeFileSync(path.join(temporaryRoot, 'dirty-marker'), 'dirty\n');
+      await expect(loadAndValidateCourseCoverageOverlay({ root: temporaryRoot }))
+        .rejects.toThrow(/clean Git HEAD/u);
+    } finally {
+      rmSync(temporaryRoot, { recursive: true, force: true });
+    }
     await expect(validateCourseCoverageOverlay(
       source,
       validatedRelease,
