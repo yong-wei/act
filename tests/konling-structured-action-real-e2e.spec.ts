@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -6,6 +7,11 @@ import { encode } from 'next-auth/jwt';
 
 import { createPrismaClient } from '../src/lib/prisma-client';
 import { encodeKonlingE2ESourceBindingsMetadata } from '../src/lib/ai/konling-e2e-chat-model';
+import {
+  claimKonlingConversationTurn,
+  completeKonlingConversationTurn,
+} from '../src/lib/konling-conversation-library';
+import { updateTaskSchema } from '../src/lib/smart-lesson-plan/task-input-schema';
 
 const teacherId = requiredEnv('SMART_LESSON_E2E_TEACHER_ID');
 const sourceRevision = requiredEnv('SMART_LESSON_E2E_SOURCE_REVISION');
@@ -13,6 +19,7 @@ const evidencePath = requiredEnv('SMART_LESSON_E2E_STRUCTURED_ACTION_EVIDENCE_PA
 const realProvider = process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED === '1';
 const providerMode = realProvider ? 'configured-real-provider' : 'deterministic-fixture';
 const MODEL_RESPONSE_TIMEOUT_MS = realProvider ? 6 * 60_000 : 30_000;
+const UI_ACTION_TIMEOUT_MS = 10_000;
 
 test('real provider structured actions persist across desktop, maximized history, reload and mobile', async ({ page, context }) => {
   if (realProvider) {
@@ -26,7 +33,7 @@ test('real provider structured actions persist across desktop, maximized history
   await expect(page.getByRole('heading', { name: '智能教案共创' })).toBeVisible();
 
   const courseBasis = await loadCourseBasisFixture();
-  await page.getByRole('button', { name: '用自然语言创建任务' }).click();
+  await page.getByRole('button', { name: '用自然语言创建任务' }).click({ timeout: UI_ACTION_TIMEOUT_MS });
   const sidebar = page.locator('[data-konling-assistant-surface="global-sidebar"]');
   await expect(sidebar).toHaveAttribute('data-konling-presentation-mode', 'side');
 
@@ -39,7 +46,7 @@ test('real provider structured actions persist across desktop, maximized history
 
   const toolRunsAfterBootstrap = await structuredToolRunCount();
   expect(toolRunsAfterBootstrap).toBe(1);
-  await bootstrapCard.getByRole('button', { name: '应用' }).click();
+  await bootstrapCard.getByRole('button', { name: '应用' }).click({ timeout: UI_ACTION_TIMEOUT_MS });
   await expect(bootstrapCard).toHaveAttribute('data-action-state', 'applied');
   await expect(bootstrapCard.getByRole('status')).toContainText('已创建备课任务');
 
@@ -50,38 +57,42 @@ test('real provider structured actions persist across desktop, maximized history
   await expect(taskCard).toBeVisible();
   await expect(page.locator('[data-konling-highlighted-stage="topic-goals"]')).toBeVisible();
 
-  await page.getByRole('button', { name: '最大化控灵工作区' }).click();
+  await page.getByRole('button', { name: '最大化控灵工作区' }).click({ timeout: UI_ACTION_TIMEOUT_MS });
   await expect(sidebar).toHaveAttribute('data-konling-presentation-mode', 'maximized');
   await expect(sidebar.locator('[data-konling-conversation-library]')).toBeVisible();
   await expect(bootstrapCard).toHaveAttribute('data-action-state', 'applied');
   expect(await structuredToolRunCount()).toBe(toolRunsAfterBootstrap);
-  await page.getByRole('button', { name: '恢复控灵侧栏' }).click();
+  await page.getByRole('button', { name: '恢复控灵侧栏' }).click({ timeout: UI_ACTION_TIMEOUT_MS });
   await expect(sidebar).toHaveAttribute('data-konling-presentation-mode', 'side');
 
   await page.reload();
   await expect(page.getByRole('heading', { name: '智能教案共创' })).toBeVisible();
   const globalKonlingEntry = page.getByRole('button', { name: '打开控灵', exact: true });
-  await expect(globalKonlingEntry).toBeVisible({ timeout: 10_000 });
-  await globalKonlingEntry.click({ timeout: 10_000 });
+  await expect(globalKonlingEntry).toBeVisible({ timeout: UI_ACTION_TIMEOUT_MS });
+  await globalKonlingEntry.click({ timeout: UI_ACTION_TIMEOUT_MS });
   const reloadedSidebar = page.locator('[data-konling-assistant-surface="global-sidebar"]');
-  await expect(reloadedSidebar).toBeVisible({ timeout: 10_000 });
+  await expect(reloadedSidebar).toBeVisible({ timeout: UI_ACTION_TIMEOUT_MS });
   await expect(reloadedSidebar.locator('[data-konling-structured-action-card][data-action-state="applied"]')).toHaveCount(1, {
-    timeout: 10_000,
+    timeout: UI_ACTION_TIMEOUT_MS,
   });
   expect(await structuredToolRunCount()).toBe(toolRunsAfterBootstrap);
 
-  await sendPrompt(page, revisionPrompt(createdTask.id, '请把先修要求改为传递函数与复数基础。'));
+  await seedGovernedRevisionProposal(page, createdTask.id, 'ignore');
+  await reloadAndOpenGlobalKonling(page);
   const ignoredCard = latestActionCard(reloadedSidebar);
-  await expect(ignoredCard).toHaveAttribute('data-action-state', 'pending', { timeout: MODEL_RESPONSE_TIMEOUT_MS });
+  await expect(ignoredCard).toHaveAttribute('data-action-state', 'pending', { timeout: UI_ACTION_TIMEOUT_MS });
   const taskBeforeIgnore = await loadCreatedTask();
-  await ignoredCard.getByRole('button', { name: '忽略' }).click();
+  await ignoredCard.getByRole('button', { name: '忽略' }).click({ timeout: UI_ACTION_TIMEOUT_MS });
   await expect(ignoredCard).toHaveAttribute('data-action-state', 'ignored');
   expect((await loadCreatedTask()).revision).toBe(taskBeforeIgnore.revision);
+  expect(await structuredToolRunCount()).toBe(toolRunsAfterBootstrap + 1);
 
-  await sendPrompt(page, revisionPrompt(createdTask.id, '请把课时调整为六十分钟。'));
+  await seedGovernedRevisionProposal(page, createdTask.id, 'conflict');
+  await reloadAndOpenGlobalKonling(page);
   const conflictCard = latestActionCard(reloadedSidebar);
-  await expect(conflictCard).toHaveAttribute('data-action-state', 'pending', { timeout: MODEL_RESPONSE_TIMEOUT_MS });
+  await expect(conflictCard).toHaveAttribute('data-action-state', 'pending', { timeout: UI_ACTION_TIMEOUT_MS });
   const toolRunsBeforeConflict = await structuredToolRunCount();
+  expect(toolRunsBeforeConflict).toBe(toolRunsAfterBootstrap + 2);
   await advanceTaskRevision(createdTask.id);
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -89,10 +100,10 @@ test('real provider structured actions persist across desktop, maximized history
   await expect(conflictCard.getByRole('button', { name: '应用' })).toBeEnabled();
   await expect(reloadedSidebar.locator('[data-konling-chat-renderer="shared"]')).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
-  await conflictCard.getByRole('button', { name: '应用' }).click();
+  await conflictCard.getByRole('button', { name: '应用' }).click({ timeout: UI_ACTION_TIMEOUT_MS });
   await expect(conflictCard).toHaveAttribute('data-action-state', 'conflict');
   await expect(conflictCard.getByRole('button', { name: '刷新任务' })).toBeEnabled();
-  await conflictCard.getByRole('button', { name: '刷新任务' }).click();
+  await conflictCard.getByRole('button', { name: '刷新任务' }).click({ timeout: UI_ACTION_TIMEOUT_MS });
   await expect(reloadedSidebar.getByRole('status')).toContainText(/已刷新任务和会话状态|任务已发生变化/);
   expect(await structuredToolRunCount()).toBe(toolRunsBeforeConflict);
   await assertNoStructuredMarkupLeak(reloadedSidebar);
@@ -103,6 +114,8 @@ test('real provider structured actions persist across desktop, maximized history
     sourceRevision,
     providerMode,
     routeInterception: false,
+    realProviderStructuredSuccessCount: realProvider ? 1 : 0,
+    secondaryScenarioSource: 'seeded-governed-records',
     desktop: {
       viewport: '1440x1000',
       sideCardReadableAndActionable: true,
@@ -118,6 +131,8 @@ test('real provider structured actions persist across desktop, maximized history
     toolRuns: {
       afterFirstProposal: toolRunsAfterBootstrap,
       final: toolRunsBeforeConflict,
+      realProviderStructuredSuccessCount: realProvider ? 1 : 0,
+      seededGovernedScenarioCount: 2,
       noRerunAfterApplyReloadHistoryOrRefresh: true,
     },
     actions: {
@@ -151,7 +166,20 @@ async function sendPrompt(page: Page, prompt: string) {
   const input = page.getByLabel('全局 AI 问题输入框');
   await expect(input).toBeEnabled();
   await input.fill(prompt);
-  await page.getByRole('button', { name: '发送 AI 问题' }).click();
+  await page.getByRole('button', { name: '发送 AI 问题' }).click({ timeout: UI_ACTION_TIMEOUT_MS });
+}
+
+async function reloadAndOpenGlobalKonling(page: Page) {
+  await page.reload();
+  await expect(page.getByRole('heading', { name: '智能教案共创' })).toBeVisible({
+    timeout: UI_ACTION_TIMEOUT_MS,
+  });
+  const entry = page.getByRole('button', { name: '打开控灵', exact: true });
+  await expect(entry).toBeVisible({ timeout: UI_ACTION_TIMEOUT_MS });
+  await entry.click({ timeout: UI_ACTION_TIMEOUT_MS });
+  await expect(page.locator('[data-konling-assistant-surface="global-sidebar"]')).toBeVisible({
+    timeout: UI_ACTION_TIMEOUT_MS,
+  });
 }
 
 async function assertNoStructuredMarkupLeak(sidebar: Locator) {
@@ -173,10 +201,6 @@ function bootstrapPrompt(courseBasis: Awaited<ReturnType<typeof loadCourseBasisF
     `courseBasisId=${courseBasis.courseBasisId}; sourceVersionId=${courseBasis.versionId}`,
     metadata,
   ].join(' ');
-}
-
-function revisionPrompt(taskId: string, request: string) {
-  return `修订约束 taskId=${taskId}。${request} 请生成一条可确认的结构化修订建议，不要直接修改任务。`;
 }
 
 async function loadCourseBasisFixture() {
@@ -237,6 +261,155 @@ async function loadCreatedTask() {
   }
 }
 
+async function seedGovernedRevisionProposal(page: Page, taskId: string, scenario: 'ignore' | 'conflict') {
+  const prisma = createPrismaClient({ log: ['warn', 'error'] });
+  try {
+    const taskResponse = await page.request.get(
+      `/api/teacher/smart-lesson-tasks/${encodeURIComponent(taskId)}`,
+    );
+    expect(taskResponse.ok()).toBe(true);
+    const task = recordValue(recordValue(await taskResponse.json()).task);
+    const candidateSessions = await prisma.agentSession.findMany({
+      where: {
+        ownerUserId: teacherId,
+        actorUserId: teacherId,
+        konlingSessionId: { not: null },
+        pageId: '/teacher/smart-prep',
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 20,
+    });
+    const agentSession = candidateSessions.find((candidate) =>
+      recordValue(recordValue(candidate.stateJson).smartPrepBinding).taskId === taskId);
+    if (!agentSession?.konlingSessionId) throw new Error('structured-action-agent-session-not-found');
+    const scope = {
+      authenticatedUserId: teacherId,
+      targetUserId: teacherId,
+      role: 'teacher' as const,
+      classId: agentSession.classId,
+      courseId: agentSession.courseId,
+      pageId: agentSession.pageId,
+      resourceId: agentSession.resourceId,
+      pathNodeId: agentSession.pathNodeId,
+      privacyScopes: ['teacher-scoped' as const],
+    };
+    const actionId = `e2e-${scenario}-${randomUUID()}`;
+    const toolRunId = `e2e-tool-run-${randomUUID()}`;
+    const turnId = `e2e-turn-${scenario}-${randomUUID()}`;
+    const now = new Date();
+    const sessionState = recordValue(agentSession.stateJson);
+    const proposedTask = {
+      courseBasisId: stringValue(task.courseBasisId),
+      topic: stringValue(task.topic),
+      audience: stringValue(task.audience),
+      prerequisites: scenario === 'ignore'
+        ? '传递函数与复数基础'
+        : stringValue(task.prerequisites),
+      durationMinutes: scenario === 'conflict' ? 60 : Number(task.durationMinutes),
+      outlineConfirmationRequired: task.outlineConfirmationRequired === true,
+      sourceVersionIds: Array.isArray(task.sources)
+        ? task.sources
+            .map((source) => recordValue(source).sourceVersionId)
+            .filter((value): value is string => typeof value === 'string')
+        : [],
+      textbookRanges: Array.isArray(task.textbookRanges) ? task.textbookRanges : [],
+      selectedClassId: typeof task.selectedClassId === 'string' ? task.selectedClassId : null,
+      knowledgePoints: Array.isArray(task.knowledgePoints) ? task.knowledgePoints : [],
+      goals: Array.isArray(task.goals) ? task.goals : [],
+      confirmScope: Boolean(task.scopeConfirmedAt),
+      confirmGoals: Boolean(task.goalsConfirmedAt),
+    };
+    const expectedRevision = Number(task.revision);
+    updateTaskSchema.parse({
+      ...proposedTask,
+      expectedRevision,
+      confirmingTurnId: turnId,
+      agentSessionId: agentSession.id,
+    });
+    const changedFields = scenario === 'ignore' ? ['prerequisites'] : ['durationMinutes'];
+    const inputSummary = {
+      operation: 'revise',
+      publicActionId: actionId,
+      taskId,
+      expectedRevision,
+      turnId,
+      proposedTask,
+      affectedStageId: 'topic-goals',
+      changedFields,
+    };
+    const outputSummary = {
+      suggestionId: actionId,
+      operation: 'revise',
+      taskId,
+      expectedRevision,
+      turnId,
+      status: 'awaiting_teacher_confirmation',
+    };
+    const ownedTurnIds = Array.isArray(sessionState.ownedTurnIds)
+      ? sessionState.ownedTurnIds.filter((value): value is string => typeof value === 'string')
+      : [];
+    const claimed = await claimKonlingConversationTurn(prisma, {
+      conversationId: agentSession.konlingSessionId,
+      ownerUserId: teacherId,
+      currentScope: scope,
+      userMessage: {
+        id: turnId,
+        role: 'user',
+        content: `验收场景：${scenario === 'ignore' ? '忽略受治理修订建议' : '处理过期受治理修订建议'}。`,
+      },
+      now,
+    });
+    if (!claimed) throw new Error('structured-action-conversation-claim-failed');
+    await prisma.agentSession.update({
+      where: { id: agentSession.id },
+      data: {
+        stateJson: {
+          ...sessionState,
+          currentTurnId: turnId,
+          ownedTurnIds: [...new Set([...ownedTurnIds, turnId])].slice(-50),
+        },
+      },
+    });
+    await prisma.agentToolRun.create({
+      data: {
+        id: toolRunId,
+        agentSessionId: agentSession.id,
+        ownerUserId: teacherId,
+        actorUserId: teacherId,
+        targetUserId: teacherId,
+        classId: agentSession.classId,
+        courseId: agentSession.courseId,
+        pageId: agentSession.pageId,
+        resourceId: agentSession.resourceId,
+        pathNodeId: agentSession.pathNodeId,
+        toolName: 'propose_smart_lesson_task_change',
+        permissionTier: 'write',
+        approvalState: 'not_required',
+        status: 'succeeded',
+        inputSummary,
+        outputSummary,
+        idempotencyKey: `e2e:${actionId}`,
+        correlationId: actionId,
+        completedAt: now,
+        latencyMs: 0,
+      },
+    });
+    await completeKonlingConversationTurn(prisma, {
+      conversationId: agentSession.konlingSessionId,
+      ownerUserId: teacherId,
+      turnId,
+      assistantMessage: {
+        id: `assistant-${actionId}`,
+        role: 'assistant',
+        content: '',
+      },
+      now: new Date(now.getTime() + 1),
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
 async function advanceTaskRevision(taskId: string) {
   const prisma = createPrismaClient({ log: ['warn', 'error'] });
   try {
@@ -280,4 +453,14 @@ function requiredEnv(name: string) {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`${name}-required`);
   return value;
+}
+
+function recordValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function stringValue(value: unknown) {
+  return typeof value === 'string' ? value : '';
 }
