@@ -997,6 +997,45 @@ describe('production math-document grading persistence contracts', () => {
     expect(createJob).not.toHaveBeenCalled();
   });
 
+  it.each(['local-fallback', 'local-markitdown'])(
+    'rejects ready legacy %s evidence before creating a grading run',
+    async (adapter) => {
+      const attempt = submittedAttempt();
+      const createRun = vi.fn();
+      const createJob = vi.fn();
+      const db = {
+        ...lifecyclePolicyRepository(),
+        answerEvidence: {
+          findUnique: async () => ({
+            id: `legacy-${adapter}-evidence`,
+            attemptId: attempt.id,
+            version: 1,
+            sourceHash: `sha256:${adapter}`,
+            anchorVersion: 'document-evidence.v1',
+            readiness: 'READY',
+            blocks: [],
+            conversion: { adapter },
+            attempt,
+          }),
+        },
+        gradingRun: { create: createRun },
+        gradingJob: { create: createJob },
+      };
+
+      await expect(enqueueGradingRun({
+        db,
+        attemptId: attempt.id,
+        evidenceId: `legacy-${adapter}-evidence`,
+        actor: { id: 'teacher-1', role: 'TEACHER' },
+        idempotencyKey: `legacy-${adapter}-grading`,
+        now,
+      })).rejects.toThrow('grading-evidence-legacy-local-binary-ineligible');
+
+      expect(createRun).not.toHaveBeenCalled();
+      expect(createJob).not.toHaveBeenCalled();
+    },
+  );
+
   it('checks grading authorization before exposing missing course context', async () => {
     const attempt = submittedAttempt();
     const createRun = vi.fn();

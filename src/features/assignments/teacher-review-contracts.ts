@@ -360,10 +360,10 @@ export function normalizeTeacherReviewDetail(
           aiDraft: aiValues.get(criterionId),
         };
       });
-  const rawEvidence = asRecord(
-    root.evidence ?? review.evidence ?? gradingRun.answerEvidence,
-  );
-  const evidence = normalizeEvidence(rawEvidence);
+  const rawEvidenceValue =
+    root.evidence ?? review.evidence ?? gradingRun.answerEvidence;
+  const rawEvidence = asRecord(rawEvidenceValue);
+  const evidence = normalizeEvidence(rawEvidenceValue);
   const sourceManifest = asRecord(rawEvidence.sourceManifest);
   const omittedEvidence = arrayFrom(sourceManifest.sources).flatMap((entry) => {
     const source = asRecord(entry);
