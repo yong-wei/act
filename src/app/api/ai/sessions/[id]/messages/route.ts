@@ -72,6 +72,14 @@ const STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT = [
   '只返回面向用户的简洁正文，不得输出工具标记、XML、DSML、JSON 调用封套或链接。',
   '如果无法可靠恢复原意，明确说明结构化操作未完成并请用户重试。',
 ].join('\n');
+const STRUCTURED_ACTION_FAILURE_TEXT = '结构化操作未能安全完成，请重新生成建议。';
+
+function hasTerminalToolFailure(parts: Message['parts']) {
+  return parts.some((part) =>
+    (part.type === 'dynamic-tool' || part.type.startsWith('tool-'))
+    && 'state' in part
+    && (part.state === 'output-error' || part.state === 'output-denied'));
+}
 
 /**
  * POST /api/ai/sessions/[id]/messages
@@ -388,7 +396,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
       assistantContent = correction.text;
       structuredCorrectionStatus = correction.status;
     } else if (executedToolResults.some((result) => result.errorText)) {
-      assistantContent = '结构化操作未能安全完成，请重新生成建议。';
+      assistantContent = STRUCTURED_ACTION_FAILURE_TEXT;
+    } else if (
+      !assistantContent
+      && hasTerminalToolFailure(structuredAssistant.message.parts)
+    ) {
+      assistantContent = STRUCTURED_ACTION_FAILURE_TEXT;
     } else if (!assistantContent && structuredAssistant.toolCalls.length > 0) {
       assistantContent = '已完成结构化操作。';
     }

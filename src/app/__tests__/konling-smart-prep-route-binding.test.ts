@@ -181,6 +181,26 @@ function expectStructuredProposalSteps(streamTextCall: Record<string, unknown>) 
   expect(prepareStep({ stepNumber: 1 })).toEqual({ activeTools: [], toolChoice: 'none' });
 }
 
+function mockCompletedSessionAssistant(parts: any[], id = 'assistant-structured-terminal') {
+  mocks.streamText.mockResolvedValue({
+    toUIMessageStream: (options: {
+      onFinish?: (event: Record<string, unknown>) => Promise<void> | void;
+    }) => new ReadableStream({
+      async start(controller) {
+        await options.onFinish?.({
+          responseMessage: {
+            id,
+            role: 'assistant',
+            parts,
+          },
+          isAborted: false,
+        });
+        controller.close();
+      },
+    }),
+  });
+}
+
 describe('Konling smart-prep production routes', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -441,6 +461,138 @@ describe('Konling smart-prep production routes', () => {
       smartPrepBinding: { taskId: 'server-task', taskRevision: '7' },
     }));
     expectStructuredProposalSteps(mocks.streamText.mock.calls[0]?.[0]);
+  });
+
+  it.each([
+    {
+      label: 'output-error',
+      part: {
+        type: 'dynamic-tool',
+        toolCallId: 'native-error',
+        toolName: 'get_page_context',
+        state: 'output-error',
+        input: {},
+        errorText: 'private provider failure',
+      },
+    },
+    {
+      label: 'output-denied',
+      part: {
+        type: 'tool-get_page_context',
+        toolCallId: 'block-denied',
+        state: 'output-denied',
+        input: {},
+        denialReason: 'private provider denial',
+      },
+    },
+  ])('returns a safe failure body for a bodyless native $label terminal state', async ({ part }) => {
+    const execute = vi.fn();
+    mocks.buildScopedTools.mockReturnValue({
+      get_page_context: {
+        inputSchema: { safeParse: (value: unknown) => ({ success: true, data: value }) },
+        execute,
+      },
+    });
+    mockCompletedSessionAssistant([part]);
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('结构化操作未能安全完成，请重新生成建议。');
+    expect(JSON.stringify(payload)).not.toContain('private provider');
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it('keeps the success fallback for a bodyless successful native tool result', async () => {
+    const execute = vi.fn();
+    mocks.buildScopedTools.mockReturnValue({
+      get_page_context: {
+        inputSchema: { safeParse: (value: unknown) => ({ success: true, data: value }) },
+        execute,
+      },
+    });
+    mockCompletedSessionAssistant([{
+      type: 'dynamic-tool',
+      toolCallId: 'native-success',
+      toolName: 'get_page_context',
+      state: 'output-available',
+      input: {},
+      output: { page: 'current' },
+    }]);
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('已完成结构化操作。');
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it('preserves an existing assistant body when a native tool part failed', async () => {
+    mockCompletedSessionAssistant([
+      {
+        type: 'dynamic-tool',
+        toolCallId: 'native-error-with-body',
+        toolName: 'get_page_context',
+        state: 'output-error',
+        input: {},
+        errorText: 'private provider failure',
+      },
+      { type: 'text', text: '未能读取页面，请稍后重试。' },
+    ]);
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('未能读取页面，请稍后重试。');
+    expect(JSON.stringify(payload)).not.toContain('private provider failure');
+  });
+
+  it('keeps the existing DSML execution path for bodyless structured calls', async () => {
+    const execute = vi.fn(async () => ({ page: 'current' }));
+    mocks.buildScopedTools.mockReturnValue({
+      get_page_context: {
+        inputSchema: { safeParse: (value: unknown) => ({ success: true, data: value }) },
+        execute,
+      },
+    });
+    mockCompletedSessionAssistant([{
+      type: 'text',
+      text: '<tool_call>{"name":"get_page_context","arguments":{}}</tool_call>',
+    }], 'assistant-dsml-success');
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('已完成结构化操作。');
+    expect(execute).toHaveBeenCalledTimes(1);
   });
 
   it('uses the task identity to resolve the current server revision', async () => {
