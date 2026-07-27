@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { toModelMessages } from '@/lib/ai-message-compat';
 import {
   buildKonlingContextIdentity,
   claimKonlingConversationTurn,
@@ -69,6 +70,45 @@ function statefulConversationDb(initial = conversation()) {
 }
 
 describe('Konling conversation library', () => {
+  it('safely compresses an orphaned persisted tool call before a reloaded continuation', async () => {
+    const persisted = conversation({
+      messages: [
+        { id: 'user-bootstrap', role: 'user', content: '创建备课任务。' },
+        {
+          id: 'assistant-bootstrap',
+          role: 'assistant',
+          content: '已生成可确认的备课建议。',
+          parts: [
+            { type: 'text', text: '已生成可确认的备课建议。' },
+            {
+              type: 'dynamic-tool',
+              toolCallId: 'provider-call-private',
+              toolName: 'propose_smart_lesson_task_change',
+              state: 'input-available',
+              input: { privateTaskId: 'private-task-id' },
+            },
+          ],
+        },
+      ],
+    });
+    const prepared = prepareKonlingConversationTurn({
+      conversation: persisted,
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-revision', role: 'user', content: '继续修订课时。' },
+    });
+
+    const modelMessages = await toModelMessages(prepared.modelMessages);
+    const encodedInternalHistory = JSON.stringify(modelMessages);
+    const encodedPublicHistory = JSON.stringify(serializeKonlingConversation(persisted).messages);
+
+    expect(encodedInternalHistory).toContain('已生成可确认的备课建议。');
+    expect(encodedInternalHistory).toContain('继续修订课时。');
+    expect(encodedInternalHistory).not.toContain('provider-call-private');
+    expect(encodedInternalHistory).not.toContain('private-task-id');
+    expect(encodedPublicHistory).not.toContain('provider-call-private');
+    expect(encodedPublicHistory).not.toContain('private-task-id');
+  });
+
   it('serializes structured actions through a bounded public projection', () => {
     const serialized = serializeKonlingConversation(conversation({
       messages: [{
