@@ -88,6 +88,44 @@ function reviewFixture() {
 }
 
 describe('teacher assignment review persistence', () => {
+  it('requires explicit confirmation before approving incomplete evidence', async () => {
+    const review = reviewFixture();
+    review.gradingRun = {
+      ...review.gradingRun,
+      evidenceState: 'EVIDENCE_INCOMPLETE',
+      answerEvidence: {
+        ...review.gradingRun.answerEvidence,
+        limitationState: 'evidence-incomplete',
+        sourceManifest: {
+          sources: [
+            { assetId: 'asset-ready', state: 'READY' },
+            { assetId: 'asset-truncated', state: 'READY', limitations: ['blocks-truncated'] },
+            { assetId: 'asset-missing', state: 'UNDERSTANDING_FAILED' },
+          ],
+        },
+      },
+    } as any;
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      teacherAssignmentApprovalSnapshot: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+    };
+    await expect(approveTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      expectedVersion: review.version,
+      idempotencyKey: 'approve-incomplete',
+      now,
+    })).rejects.toMatchObject({
+      code: 'teacher-review-incomplete-evidence-confirmation-required',
+      details: { omittedAssetIds: ['asset-truncated', 'asset-missing'] },
+    });
+  });
+
   it('resets a terminal reviewed derivative before retrying its outbox command', async () => {
     const review: any = {
       ...reviewFixture(),
@@ -179,6 +217,24 @@ describe('teacher assignment review persistence', () => {
     expect(() => deriveTeacherAssignmentReviewTotal(rubric(), [{ ...criteria()[0], levelId: 'c1-low', score: 4 }, criteria()[1]])).toThrow('teacher-review-level-score-mismatch');
   });
 
+  it('derives a one-decimal total for a standard v2 rubric without level identities', () => {
+    expect(deriveTeacherAssignmentReviewTotal({
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      maxScore: 10,
+      criteria: [{
+        id: 'criterion-1',
+        maxPoints: 10,
+        detailedRubricEnabled: false,
+        levels: [],
+      }],
+    }, [{
+      criterionId: 'criterion-1',
+      levelId: null,
+      score: 8.5,
+      comment: '证据完整',
+    }])).toBe(8.5);
+  });
+
   it('withholds the assignment total until every latest required attempt is approved or exempted', () => {
     const base = {
       questions: [{ id: 'question-1' }, { id: 'question-2' }],
@@ -268,7 +324,19 @@ describe('teacher assignment review persistence', () => {
 
   it('atomically freezes approval and appends exactly three deterministic outbox commands', async () => {
     const review = reviewFixture();
+    review.gradingRun = {
+      ...review.gradingRun,
+      evidenceState: 'EVIDENCE_INCOMPLETE',
+      answerEvidence: {
+        ...review.gradingRun.answerEvidence,
+        limitationState: 'evidence-incomplete',
+        sourceManifest: {
+          sources: [{ assetId: 'asset-missing', state: 'UNDERSTANDING_FAILED' }],
+        },
+      },
+    } as any;
     const snapshotCreate = vi.fn(async ({ data }: any) => ({ ...data, id: 'snapshot-1' }));
+    const auditCreate = vi.fn().mockResolvedValue({});
     const outboxCreateMany = vi.fn().mockResolvedValue({ count: 3 });
     const outboxUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
     const reviewUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
@@ -284,6 +352,7 @@ describe('teacher assignment review persistence', () => {
       teacherAssignmentReviewOutbox: { createMany: outboxCreateMany, updateMany: outboxUpdateMany },
       gradingRun: { updateMany: runUpdateMany },
       gradingCriterionAssessment: { updateMany: assessmentUpdateMany },
+      gradingAuditEvent: { create: auditCreate },
       assignmentSubmission: {
         findUnique: vi.fn().mockResolvedValue({
           revision: { questions: [{ id: 'question-1' }] },
@@ -296,10 +365,18 @@ describe('teacher assignment review persistence', () => {
     };
     const result = await approveTeacherAssignmentReview(db, {
       actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,
-      reviewId: review.id, expectedVersion: 2, idempotencyKey: 'approve-review-1', now,
+      reviewId: review.id, expectedVersion: 2, idempotencyKey: 'approve-review-1',
+      confirmIncompleteEvidence: true, now,
     });
     expect(result).toMatchObject({ snapshot: { id: 'snapshot-1', questionTotal: 9 }, replay: false, assignment: { complete: true, total: 9 } });
-    expect(snapshotCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ reviewVersion: 2, criterionSnapshot: criteria(), questionTotal: 9 }) }));
+    expect(snapshotCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
+      reviewVersion: 2,
+      criterionSnapshot: criteria(),
+      questionTotal: 9,
+      incompleteEvidenceConfirmed: true,
+      omittedAssetIds: ['asset-missing'],
+    }) }));
+    expect(JSON.stringify(auditCreate.mock.calls)).not.toContain('asset-missing');
     expect(outboxCreateMany).toHaveBeenCalledWith({
       data: expect.arrayContaining([
         expect.objectContaining({ command: 'GENERATE_DERIVATIVE', dedupeKey: 'teacher-review:snapshot-1:generate-derivative' }),

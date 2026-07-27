@@ -1,6 +1,11 @@
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 
+import {
+  hasAtMostOneDecimal,
+  validateDetailedRubricLevels,
+} from './assignment-rubric-contract';
+
 export const ASSIGNMENT_LIMITS = {
   title: 160,
   instructions: 20_000,
@@ -12,8 +17,18 @@ export const ASSIGNMENT_LIMITS = {
   audiences: 50,
 } as const;
 
+export const ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS = [
+  'controlModeling',
+  'parameterDesign',
+  'crossDomainTransfer',
+  'engineeringDecision',
+  'inquiryReflection',
+  'selfDirectedLearning',
+] as const;
+
 const boundedText = (max: number) => z.string().trim().min(1).max(max);
 const points = z.number().finite().positive().max(10_000).refine(hasAtMostTwoDecimals, 'score-must-use-0.01-quantum');
+const rubricGoalDimension = z.enum(ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS);
 
 export const rubricLevelSchema = z.object({
   id: boundedText(80),
@@ -26,6 +41,7 @@ export const rubricLevelSchema = z.object({
 export const rubricCriterionSchema = z.object({
   id: boundedText(80),
   label: boundedText(160),
+  goalDimension: rubricGoalDimension.optional(),
   maxPoints: points,
   evidenceDescription: boundedText(2_000),
   feedbackGuidance: boundedText(2_000),
@@ -33,7 +49,7 @@ export const rubricCriterionSchema = z.object({
   levels: z.array(rubricLevelSchema).min(1).max(ASSIGNMENT_LIMITS.levels),
 }).strict();
 
-export const analyticRubricSchema = z.object({
+export const legacyAnalyticRubricSchema = z.object({
   schemaVersion: z.literal('assignment-analytic-rubric.v1'),
   criteria: z.array(rubricCriterionSchema).min(1).max(ASSIGNMENT_LIMITS.criteria),
 }).strict().superRefine((rubric, ctx) => {
@@ -65,6 +81,54 @@ export const analyticRubricSchema = z.object({
     }
   }
 });
+
+export const rubricLevelV2Schema = z.object({
+  id: boundedText(80),
+  label: boundedText(120),
+  maxPoints: z.number().finite().min(0.1).max(10_000)
+    .refine(hasAtMostOneDecimal, 'score-must-use-0.1-quantum'),
+  guideline: z.string().trim().max(2_000),
+}).strict();
+
+export const rubricCriterionV2Schema = z.object({
+  id: boundedText(80),
+  label: boundedText(160),
+  goalDimension: rubricGoalDimension.optional(),
+  maxPoints: z.number().finite().min(1).max(10_000)
+    .refine(hasAtMostOneDecimal, 'score-must-use-0.1-quantum'),
+  scoringStandard: z.string().trim().max(2_000),
+  detailedRubricEnabled: z.boolean(),
+  evidenceDescription: z.string().trim().max(2_000).optional(),
+  feedbackGuidance: z.string().trim().max(2_000).optional(),
+  studentVisibleGuidance: z.string().trim().max(2_000).optional(),
+  levels: z.array(rubricLevelV2Schema).max(ASSIGNMENT_LIMITS.levels),
+}).strict();
+
+export const scoringRubricV2Schema = z.object({
+  schemaVersion: z.literal('assignment-scoring-rubric.v2'),
+  criteria: z.array(rubricCriterionV2Schema).min(1).max(ASSIGNMENT_LIMITS.criteria),
+}).strict().superRefine((rubric, ctx) => {
+  const criterionIds = new Set<string>();
+  for (const [criterionIndex, criterion] of rubric.criteria.entries()) {
+    if (criterionIds.has(criterion.id)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['criteria', criterionIndex, 'id'], message: 'duplicate-criterion-id' });
+    }
+    criterionIds.add(criterion.id);
+    if (!criterion.detailedRubricEnabled && criterion.levels.length > 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['criteria', criterionIndex, 'levels'], message: 'standard-only-rubric-must-not-contain-levels' });
+    }
+    if (criterion.detailedRubricEnabled) {
+      for (const issue of validateDetailedRubricLevels(criterion.levels, criterion.maxPoints)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['criteria', criterionIndex, 'levels'], message: issue });
+      }
+    }
+  }
+});
+
+export const analyticRubricSchema = z.union([
+  legacyAnalyticRubricSchema,
+  scoringRubricV2Schema,
+]);
 
 export type AnalyticRubric = z.infer<typeof analyticRubricSchema>;
 
@@ -154,8 +218,13 @@ export const assignmentDraftSchema = z.object({
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['questions', index, 'stableQuestionId'], message: 'duplicate-stable-question-id' });
     }
     ids.add(question.stableQuestionId);
-    if (!draft.responsePolicy.allowedResponseTypes.includes(question.responseType)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['responsePolicy', 'allowedResponseTypes'], message: `question-response-type-not-allowed:${question.stableQuestionId}` });
+    if (question.rubric.schemaVersion === 'assignment-scoring-rubric.v2') {
+      if (!hasAtMostOneDecimal(question.points)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['questions', index, 'points'], message: 'score-must-use-0.1-quantum' });
+      }
+      if (!hasAtMostOneDecimal(draft.totalPoints)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['totalPoints'], message: 'score-must-use-0.1-quantum' });
+      }
     }
   }
 });
@@ -254,6 +323,21 @@ export function validatePublicationScores(draft: AssignmentDraftInput): string[]
     const criterionTotal = sum(question.rubric.criteria.map((criterion) => criterion.maxPoints));
     if (!sameScore(criterionTotal, question.points)) {
       issues.push(`question-rubric-total-mismatch:${question.stableQuestionId}:${question.points}:${criterionTotal}`);
+    }
+    if (question.rubric.schemaVersion === 'assignment-scoring-rubric.v2') {
+      for (const criterion of question.rubric.criteria) {
+        if (!criterion.detailedRubricEnabled && !criterion.scoringStandard.trim()) {
+          issues.push(`scoring-standard-required:${question.stableQuestionId}:${criterion.id}`);
+        }
+        if (criterion.detailedRubricEnabled) {
+          if (criterion.levels.some((level) => !level.guideline.trim())) {
+            issues.push(`level-guideline-required:${question.stableQuestionId}:${criterion.id}`);
+          }
+          for (const levelIssue of validateDetailedRubricLevels(criterion.levels, criterion.maxPoints)) {
+            issues.push(`invalid-detailed-rubric:${question.stableQuestionId}:${criterion.id}:${levelIssue}`);
+          }
+        }
+      }
     }
   }
   return issues;

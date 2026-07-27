@@ -1,4 +1,6 @@
 import { stableStringify, sha256 } from './math-document-grading-contracts';
+import { hasAtMostOneDecimal } from '@/lib/assignments/assignment-rubric-contract';
+import { writeGradingAudit } from './math-document-grading-persistence';
 
 export type TeacherReviewActor = { id: string; role: 'TEACHER' | 'ADMIN' };
 
@@ -31,7 +33,7 @@ export const TEACHER_ASSIGNMENT_REVIEW_INCLUDE = {
 
 type ReviewCriterionValue = {
   criterionId: string;
-  levelId: string;
+  levelId: string | null;
   score: number;
   comment: string;
 };
@@ -59,8 +61,18 @@ export function deriveTeacherAssignmentReviewTotal(rubric: any, values: ReviewCr
     if (!Number.isFinite(value.score) || value.score < 0 || value.score > Number(criterion.maxPoints)) {
       throw new TeacherAssignmentReviewError('teacher-review-score-out-of-range', 422, { criterionId: criterion.id });
     }
-    const level = Array.isArray(criterion.levels) ? criterion.levels.find((candidate: any) => candidate.id === value.levelId) : null;
-    if (!level || value.score < Number(level.minPoints) || value.score > Number(level.maxPoints)) {
+    const v2 = rubric.schemaVersion === 'assignment-scoring-rubric.v2';
+    const detailed = v2 ? criterion.detailedRubricEnabled === true : true;
+    const level = Array.isArray(criterion.levels) && value.levelId
+      ? criterion.levels.find((candidate: any) => candidate.id === value.levelId)
+      : null;
+    if (v2 && !hasAtMostOneDecimal(value.score)) {
+      throw new TeacherAssignmentReviewError('teacher-review-score-precision-invalid', 422, { criterionId: criterion.id });
+    }
+    if ((detailed && !level) || (!detailed && value.levelId !== null)) {
+      throw new TeacherAssignmentReviewError('teacher-review-level-score-mismatch', 422, { criterionId: criterion.id });
+    }
+    if (!v2 && level && (value.score < Number(level.minPoints) || value.score > Number(level.maxPoints))) {
       throw new TeacherAssignmentReviewError('teacher-review-level-score-mismatch', 422, { criterionId: criterion.id });
     }
     total += value.score;
@@ -201,6 +213,7 @@ export async function approveTeacherAssignmentReview(db: any, input: {
   reviewId: string;
   expectedVersion: number;
   idempotencyKey: string;
+  confirmIncompleteEvidence?: boolean;
   now?: Date;
 }) {
   const now = input.now ?? new Date();
@@ -209,7 +222,14 @@ export async function approveTeacherAssignmentReview(db: any, input: {
     assertReviewPath(review, input.assignmentId, input.submissionId);
     assertReviewRunLineage(review);
     const authorization = resolveTeacherAssignmentReviewAuthorization({ actor: input.actor, review, now });
-    const requestHash = sha256(stableStringify({ reviewId: input.reviewId, expectedVersion: input.expectedVersion, actorId: input.actor.id }));
+    const requestHash = sha256(stableStringify({
+      reviewId: input.reviewId,
+      expectedVersion: input.expectedVersion,
+      actorId: input.actor.id,
+      ...(input.confirmIncompleteEvidence === true
+        ? { confirmIncompleteEvidence: true }
+        : {}),
+    }));
     const replay = await tx.teacherAssignmentApprovalSnapshot.findUnique?.({ where: { reviewId_idempotencyKey: { reviewId: input.reviewId, idempotencyKey: input.idempotencyKey } } });
     if (replay) {
       if (replay.requestHash !== requestHash) throw new TeacherAssignmentReviewError('teacher-review-idempotency-conflict', 409);
@@ -229,6 +249,18 @@ export async function approveTeacherAssignmentReview(db: any, input: {
     }
     if (review.state !== 'WORKING' || review.version !== input.expectedVersion) throw conflict();
     if (review.gradingRun?.state !== 'AWAITING_REVIEW' || review.gradingRun.teacherReviewedAt) throw conflict();
+    const omittedAssetIds = omittedEvidenceAssetIds(
+      review.gradingRun.answerEvidence?.sourceManifest,
+    );
+    const incompleteEvidence = review.gradingRun.evidenceState === 'EVIDENCE_INCOMPLETE'
+      || review.gradingRun.answerEvidence?.limitationState === 'evidence-incomplete';
+    if (incompleteEvidence && input.confirmIncompleteEvidence !== true) {
+      throw new TeacherAssignmentReviewError(
+        'teacher-review-incomplete-evidence-confirmation-required',
+        409,
+        { omittedAssetIds },
+      );
+    }
     const values = asCriterionValues(review.criterionValues);
     const total = deriveTeacherAssignmentReviewTotal(review.gradingRun.questionSnapshot?.rubric, values);
     const byCriterion = new Map(values.map((value) => [value.criterionId, value]));
@@ -279,9 +311,26 @@ export async function approveTeacherAssignmentReview(db: any, input: {
         rubricVersion: review.gradingRun.rubricVersion,
         evaluatorVersion: review.gradingRun.evaluatorVersion,
         lifecyclePolicyVersion: review.lifecyclePolicyVersion ?? review.gradingRun.lifecyclePolicyVersion ?? null,
+        incompleteEvidenceConfirmed: incompleteEvidence,
+        omittedAssetIds,
         approvedAt: now,
       },
     });
+    if (incompleteEvidence) {
+      await writeGradingAudit(tx, {
+        actor: input.actor,
+        action: 'teacher-review.incomplete-evidence-confirmed',
+        purpose: 'teacher-review',
+        resourceType: 'TeacherAssignmentApprovalSnapshot',
+        resourceId: snapshot.id,
+        answerId: review.answerId,
+        classId: review.submission.frozenAudienceClassId,
+        metadata: {
+          omittedAssetTokens: omittedAssetIds.map((assetId) =>
+            sha256(`teacher-review-omitted-asset:${assetId}`)),
+        },
+      });
+    }
     const commands = approvalOutboxRows(snapshot, review, now);
     const appended = await tx.teacherAssignmentReviewOutbox.createMany({ data: commands, skipDuplicates: true });
     if (appended?.count !== commands.length) throw new TeacherAssignmentReviewError('teacher-review-outbox-conflict', 409);
@@ -328,6 +377,23 @@ export async function approveTeacherAssignmentReview(db: any, input: {
     }
     return { snapshot, replay: false, assignment: completion };
   });
+}
+
+function omittedEvidenceAssetIds(value: unknown): string[] {
+  if (!value || typeof value !== 'object') return [];
+  const sources = Array.isArray((value as { sources?: unknown }).sources)
+    ? (value as { sources: unknown[] }).sources
+    : [];
+  return [...new Set(sources.flatMap((source) => {
+    if (!source || typeof source !== 'object') return [];
+    const row = source as { assetId?: unknown; state?: unknown; limitations?: unknown };
+    return typeof row.assetId === 'string'
+      && row.assetId
+      && (row.state !== 'READY'
+        || (Array.isArray(row.limitations) && row.limitations.length > 0))
+      ? [row.assetId]
+      : [];
+  }))];
 }
 
 export async function returnTeacherAssignmentReview(db: any, input: {

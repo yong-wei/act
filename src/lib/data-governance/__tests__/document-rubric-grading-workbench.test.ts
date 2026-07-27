@@ -26,7 +26,7 @@ import {
 } from '../document-rubric-grading-workbench';
 import { listEvidenceTimeline } from '../evidence-timeline';
 import { buildFeedbackTaskContext } from '../../student-feedback-task-contract';
-import { buildPipelineGradingWorkbenchView, buildPipelineReviewListItem, validatePipelineReviewContract, validatePipelineRuntimeSource } from '../math-document-grading-review';
+import { buildPipelineGradingWorkbenchView, buildPipelineReviewListItem, validatePipelineReviewContract, validatePipelineReviewEdits, validatePipelineRuntimeSource } from '../math-document-grading-review';
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 
 const now = new Date('2026-06-04T08:00:00.000Z');
@@ -212,6 +212,176 @@ describe('document rubric grading workbench', () => {
       confidence: 0,
     })]);
     expect(failed.warnings).toEqual(expect.arrayContaining(['markitdown-conversion-failed', 'retry-fallback']));
+  });
+
+  it('supports v2 scoring-standard-only drafts and independent one-decimal teacher scores', async () => {
+    const converted = await convertSubmissionDocument({
+      asset: asset(),
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        runner: (submission) => textFixtureMarkItDownRunner(submission, true),
+      }),
+      now,
+    });
+    const standardRubric: RubricDefinition = {
+      id: 'rubric-standard-v2',
+      title: '评分标准',
+      version: '2026.07',
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      maxScore: 4,
+      criteria: [{
+        id: 'modeling',
+        label: '模型表达',
+        weight: 1,
+        maxPoints: 4,
+        scoringStandard: '依据阻尼比证据的正确性和完整性评分。',
+        detailedRubricEnabled: false,
+        evidenceRequirement: 'damping ratio',
+        goalDimension: 'controlModeling',
+        levels: [],
+      }],
+    };
+    const run = createDraftRubricGrading({
+      convertedDocument: converted,
+      rubric: standardRubric,
+      evaluatorOutput: {
+        evaluatorId: 'fixture-v2',
+        evaluatorVersion: 'v2',
+        assessments: [{
+          criterionId: 'modeling',
+          levelId: null,
+          score: 3.1,
+          rationale: 'The submitted evidence identifies the damping ratio clearly.',
+          confidence: 0.9,
+          evidenceBlockIds: [converted.blocks[0].id],
+          limitationState: 'none',
+        }],
+      },
+      now,
+    });
+    expect(run.status).toBe('draft');
+    expect(run.draftGrades[0]).toEqual(expect.objectContaining({ levelId: null, score: 3.1 }));
+
+    const edited = editCriterionGrade(run, {
+      criterionId: 'modeling',
+      levelId: null,
+      score: 3.9,
+      comment: '教师根据完整证据调整分数。',
+      reviewerId: 'teacher-1',
+      rubric: standardRubric,
+      now,
+    });
+    expect(edited.draftGrades[0].score).toBe(3.9);
+    expect(() => editCriterionGrade(run, {
+      criterionId: 'modeling',
+      levelId: null,
+      score: 3.95,
+      comment: '非法精度。',
+      reviewerId: 'teacher-1',
+      rubric: standardRubric,
+      now,
+    })).toThrow('teacher-score-must-use-0.1-quantum');
+
+    const submission = asset();
+    const persisted = {
+      id: edited.id,
+      ownerUserId: submission.studentId,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(submission, edited),
+      classId: submission.classId,
+      sourceRefs: {
+        asset: submission,
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+      },
+      evidenceRefs: { convertedDocument: converted },
+      summary: { run: edited, rubric: standardRubric },
+    };
+    const parsed = parsePersistedDocumentRubricGradingDraft(persisted);
+    expect(parsed).not.toBeNull();
+    expect(validateDocumentRubricGradingDraftInvariants({
+      draft: persisted,
+      parsed: parsed!,
+    })).toEqual({ valid: true, reasons: [] });
+
+    const approved = approveGradingRun(edited, {
+      reviewerId: 'teacher-1',
+      decision: 'approved',
+      now,
+    });
+    const goalContext = {
+      classId: submission.classId,
+      assignmentId: submission.assignmentId,
+      goalId: 'control-report',
+      targetGoal: 'control-report',
+    };
+    expect(previewApprovedGradingEvidence({
+      run: approved,
+      rubric: standardRubric,
+      studentId: submission.studentId,
+      goalContext,
+      now,
+    })).toEqual(expect.objectContaining({
+      status: 'preview',
+      blocked: 0,
+      facts: [expect.objectContaining({ score: 3.9 })],
+    }));
+    const db = {
+      learningFact: {
+        createMany: vi.fn()
+          .mockResolvedValueOnce({ count: 1 })
+          .mockResolvedValueOnce({ count: 0 }),
+      },
+      studentEvidenceFeatureCache: {
+        deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+    await expect(writeApprovedGradingEvidence({
+      db,
+      run: approved,
+      rubric: standardRubric,
+      studentId: submission.studentId,
+      goalContext,
+      now,
+    })).resolves.toEqual(expect.objectContaining({ created: 1, skipped: 0 }));
+    await expect(writeApprovedGradingEvidence({
+      db,
+      run: approved,
+      rubric: standardRubric,
+      studentId: submission.studentId,
+      goalContext,
+      now,
+    })).resolves.toEqual(expect.objectContaining({ created: 0, skipped: 1 }));
+  });
+
+  it('does not clamp v2 teacher revisions to the selected AI level', () => {
+    const run = {
+      questionSnapshot: {
+        rubric: {
+          schemaVersion: 'assignment-scoring-rubric.v2',
+          criteria: [{
+            id: 'quality',
+            maxPoints: 10,
+            detailedRubricEnabled: true,
+            levels: [
+              { id: 'excellent', minPoints: 8, maxPoints: 10 },
+              { id: 'pass', minPoints: 6, maxPoints: 7.9 },
+            ],
+          }],
+        },
+      },
+    };
+    expect(validatePipelineReviewEdits(run, [{
+      criterionId: 'quality',
+      levelId: 'excellent',
+      score: 6.5,
+      comment: '教师独立评分。',
+    }])).toBeNull();
+    expect(validatePipelineReviewEdits(run, [{
+      criterionId: 'quality',
+      levelId: 'excellent',
+      score: 6.55,
+      comment: '非法精度。',
+    }])).toBe('评分编辑分数必须保留一位小数');
   });
 
   it('keeps failed conversion drafts anchored to an auditable fallback block', async () => {
@@ -718,6 +888,35 @@ describe('document rubric grading workbench', () => {
       ]),
     }));
     expect(db.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({ where: { userId: 'student-1' } });
+  });
+
+  it('preserves two-decimal teacher edits for historical v1 rubrics', async () => {
+    const converted = await convertSubmissionDocument({
+      asset: asset(),
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        preserveSpanMapping: true,
+        runner: (submission) => textFixtureMarkItDownRunner(submission, true),
+      }),
+      now,
+    });
+    const legacyRubric = rubric();
+    const draft = createDraftRubricGrading({
+      convertedDocument: converted,
+      rubric: legacyRubric,
+      now,
+    });
+    const edited = editCriterionGrade(draft, {
+      criterionId: 'validation',
+      levelId: 'advanced',
+      score: 3.55,
+      comment: '保留历史评分精度。',
+      reviewerId: 'teacher-1',
+      rubric: legacyRubric,
+      now,
+    });
+
+    expect(edited.draftGrades.find((grade) => grade.criterionId === 'validation')?.score).toBe(3.55);
   });
 
   it('keeps document feedback action source aligned with written learner evidence filters', async () => {

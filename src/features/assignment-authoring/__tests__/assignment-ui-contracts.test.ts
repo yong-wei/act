@@ -2,7 +2,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { assignmentNextAction, EMPTY_ASSIGNMENT_DRAFT } from '../assignment-ui-contracts';
+import {
+  applyGeneratedRubricGuidelines,
+  assignmentNextAction,
+  EMPTY_ASSIGNMENT_DRAFT,
+} from '../assignment-ui-contracts';
 
 const source = (file: string) => readFileSync(path.join(process.cwd(), file), 'utf8');
 
@@ -46,26 +50,55 @@ describe('teacher assignment workspace contracts', () => {
     const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
     expect(editor).toContain("method: 'POST'");
     expect(editor).not.toContain('prompt: item.stemPreview');
-    for (const label of ['作业说明', '作答类型', '迟交策略', '允许作答类型', '最多提交次数', '解答发布时间', '添加评分项', '学生可见指导']) expect(editor).toContain(label);
-    expect(editor).toContain('档位按 0.01 分连续覆盖最高分至 0 分');
+    for (const label of ['作业说明', '统一作答', '迟交策略', '最多提交次数', '解答发布时间', '添加评分项', '学生可见指导']) expect(editor).toContain(label);
+    expect(editor).toContain('所有分值保留一位小数');
+    expect(editor).toContain('启用详细评分细则');
+    expect(editor).toContain('五级制');
+    expect(editor).toContain('两级制');
     expect(editor).toContain('/next-draft');
     expect(editor).toContain("'published-frozen'");
   });
 
-  it('serializes the latest save before publish and exposes decimal input constraints', () => {
+  it('uses one student answer surface for Markdown and all supported attachments', () => {
+    const student = source('src/features/assignments/student-assignment-workspace.tsx');
+    expect(student).not.toContain("question.responseType === 'SUBJECTIVE_TEXT'");
+    expect(student).not.toContain("question.responseType === 'SUBJECTIVE_FILE'");
+    expect(student).toContain('Markdown 正文');
+    expect(student).toContain('.pdf,.doc,.docx,.pptx,.png,.jpg,.jpeg,.md,.markdown,.txt');
+    expect(student).toContain('合计最多 10 个');
+    expect(student).toContain("method: 'DELETE'");
+    expect(student).toContain('提交前保存正文失败');
+    expect(student).toContain('附件已从本题草稿中移除');
+    expect(student).toContain('disabled={uploadDisabled}');
+    expect(student).toMatch(
+      /Math\.max\(\s*candidate\.version,\s*result\.answerVersion \?\? candidate\.version,\s*\)/,
+    );
+    expect(student).toMatch(
+      /assets\.some\(\(asset\) =>\s*asset\.id === finalizedAsset\.id\)/,
+    );
+  });
+
+  it('publishes only an explicit saved baseline and exposes decimal input constraints', () => {
     const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
     expect(editor).toContain('saveQueueRef.current.then');
-    expect(editor).toContain('for (let attempt = 0; attempt < 5; attempt += 1)');
-    expect(editor).toContain('result.draftFingerprint ===');
+    expect(editor).not.toContain('const result = await save()');
+    expect(editor).toContain("if (saveState !== 'saved')");
+    expect(editor).toContain('contentDigest: saved.contentDigest');
     expect(editor).toContain('assignmentDraftSchema.safeParse(documentRef.current.draft)');
-    expect(editor).toContain("setPublishMessage('最新草稿保存失败，未执行发布。')");
+    expect(editor).toContain('router.push(');
     expect(editor).toContain('step="0.01"');
+    const totalScoreControl = editor.slice(
+      editor.indexOf('作业总分'),
+      editor.indexOf('发布班级'),
+    );
+    expect(totalScoreControl).toContain('step="0.1"');
+    expect(totalScoreControl).toContain('min="0.1"');
     expect(editor).toContain('max={criterion.maxPoints}');
     expect(editor).toContain('validationFieldRefs.current.get(path)');
     expect(editor).toContain('aria-describedby="assignment-validation-errors"');
     expect(editor).toContain("setPublishMessage('发布请求失败，请检查网络后重试。')");
     expect(editor).toContain('finally {');
-    expect(editor).toContain('disabled={published || publishing}');
+    expect(editor).toContain("disabled={published || publishing || saveState !== 'saved'}");
   });
 
   it('preserves focus on successful autosave and provides recoverable governed pickers', () => {
@@ -77,5 +110,72 @@ describe('teacher assignment workspace contracts', () => {
     expect(editor).not.toContain('班级 ID');
     expect(picker).toContain('const selected = await onSelect(item)');
     expect(picker).toContain('题库题目载入失败，请重试。');
+  });
+
+  it('atomically replaces only the generated guidelines for the exact current level set', () => {
+    const question = {
+      stableQuestionId: 'question-1',
+      responseType: 'SUBJECTIVE_TEXT' as const,
+      points: 10,
+      prompt: '题面',
+      referenceAnswer: '答案',
+      rubric: {
+        schemaVersion: 'assignment-scoring-rubric.v2' as const,
+        criteria: [{
+          id: 'criterion-1',
+          label: '证据质量',
+          goalDimension: 'engineeringDecision' as const,
+          maxPoints: 10,
+          scoringStandard: '依据证据评分。',
+          detailedRubricEnabled: true,
+          levels: [
+            { id: 'high', label: '优秀', maxPoints: 10, guideline: '旧高档准则' },
+            { id: 'low', label: '待改进', maxPoints: 5, guideline: '旧低档准则' },
+          ],
+        }],
+      },
+      source: {
+        family: 'MANUAL' as const,
+        authoringMarker: 'assignment-authoring' as const,
+      },
+    };
+    const result = applyGeneratedRubricGuidelines(
+      question,
+      'criterion-1',
+      [
+        { levelId: 'low', guideline: '新低档准则' },
+        { levelId: 'high', guideline: '新高档准则' },
+      ],
+    );
+    expect(result?.rubric).toEqual({
+      ...question.rubric,
+      criteria: [{
+        ...question.rubric.criteria[0],
+        levels: [
+          { ...question.rubric.criteria[0].levels[0], guideline: '新高档准则' },
+          { ...question.rubric.criteria[0].levels[1], guideline: '新低档准则' },
+        ],
+      }],
+    });
+    expect(applyGeneratedRubricGuidelines(
+      question,
+      'criterion-1',
+      [{ levelId: 'high', guideline: '不完整' }],
+    )).toBeNull();
+    expect(question.rubric.criteria[0].levels[0].guideline).toBe('旧高档准则');
+  });
+
+  it('exposes explicit fallback, overwrite cancellation, and dialog keyboard semantics', () => {
+    const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
+    expect(editor).toContain('AI 填写全部准则');
+    expect(editor).toContain('忽略评分标准，使用评分项名称');
+    expect(editor).toContain('覆盖全部评分准则？');
+    expect(editor).toContain('onClick={() => setRubricDialog(null)}');
+    expect(editor).toContain("if (event.key === 'Escape') setRubricDialog(null)");
+    expect(editor).toContain('aria-modal="true"');
+    expect(editor).toContain('dialogPrimaryRef.current?.focus()');
+    expect(editor).toContain('role="status"');
+    expect(editor).toContain('const requestedCriterionFingerprint = canonicalFingerprint(savedCriterion)');
+    expect(editor).toContain('canonicalFingerprint(latestCriterion) !== requestedCriterionFingerprint');
   });
 });

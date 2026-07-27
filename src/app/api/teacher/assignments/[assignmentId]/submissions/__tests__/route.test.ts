@@ -81,6 +81,26 @@ describe('teacher assignment submission review API', () => {
     expect(mocks.save).not.toHaveBeenCalled();
   });
 
+  it('accepts a standard rubric criterion without a detailed level', async () => {
+    mocks.save.mockResolvedValue({ id: 'review-1', version: 2 });
+    const response = await PATCH_REVIEW(request('/api/teacher/assignments/assignment-1/submissions/submission-1/review', 'PATCH', {
+      reviewId: 'review-1',
+      expectedVersion: 1,
+      criteria: [{
+        criterionId: 'criterion-1',
+        levelId: null,
+        score: 8.5,
+        comment: '证据完整',
+      }],
+      annotations: [],
+      overallComment: '',
+    }), reviewContext) as Response;
+    expect(response.status).toBe(200);
+    expect(mocks.save).toHaveBeenCalledWith({ id: 'db' }, expect.objectContaining({
+      criteria: [expect.objectContaining({ criterionId: 'criterion-1', levelId: null, score: 8.5 })],
+    }));
+  });
+
   it('passes current version and idempotency identity to atomic approval', async () => {
     mocks.approve.mockResolvedValue({ snapshot: { id: 'snapshot-1' }, replay: false, assignment: { complete: false, total: null } });
     const response = await APPROVE_REVIEW(request('/api/teacher/assignments/assignment-1/submissions/submission-1/review/approve', 'POST', {

@@ -4,8 +4,9 @@ export type StudentAssignmentNextAction = 'start-answering' | 'continue-answerin
 export interface StudentQuestionDto {
   id: string; stableQuestionId: string; orderIndex: number; responseType: StudentQuestionResponseType; points: number; promptText: string;
   state: 'NOT_STARTED' | 'DRAFT' | 'READY' | 'SUBMITTED'; version: number; currentAttemptNumber: number; textDraft: string | null;
-  history: Array<{ id: string; attemptNumber: number; submittedAt: Date; textSnapshot: string | null; assets: Array<{ id: string; displayName: string; mimeType: string; sizeBytes: number; canDownload: true }> }>;
-  assets: Array<{ id: string; displayName: string; mimeType: string; sizeBytes: number; state: string; finalizedAt: Date | null }>;
+  history: Array<{ id: string; attemptNumber: number; submittedAt: Date; textSnapshot: string | null; assets: Array<{ id: string; displayName: string; mimeType: string; sizeBytes: number; role: string; orderIndex: number | null; embeddedPosition: string | null; canDownload: true }> }>;
+  assets: Array<{ id: string; displayName: string; mimeType: string; sizeBytes: number; state: string; finalizedAt: Date | null; role: string; orderIndex: number | null; embeddedPosition: string | null }>;
+  attachmentOrderProvenance: 'student-arranged' | 'legacy-fallback' | null;
   resubmission: { state: string; reason: string; allowedResponseType: string; deadlineAt: Date } | null;
 }
 export interface StudentAssignmentDto {

@@ -82,12 +82,75 @@ describe('assignment authoring domain', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects a question response type outside the assignment response policy', () => {
+  it('accepts v2 scoring-standard-only items and enforces one-decimal values', () => {
+    const fixture = buildRubricBackedSubjectiveAssignmentFixture();
+    const question = fixture.questions[0];
+    const v2 = {
+      schemaVersion: 'assignment-scoring-rubric.v2' as const,
+      criteria: [{
+        id: 'quality',
+        label: '完成质量',
+        maxPoints: 10,
+        scoringStandard: '依据解题过程的正确性、完整性和可验证证据评分。',
+        detailedRubricEnabled: false,
+        levels: [],
+      }],
+    };
+    expect(assignmentDraftSchema.safeParse({
+      ...fixture,
+      totalPoints: 10,
+      questions: [{ ...question, points: 10, rubric: v2 }],
+    }).success).toBe(true);
+    expect(assignmentDraftSchema.safeParse({
+      ...fixture,
+      totalPoints: 10.01,
+      questions: [{ ...question, points: 10.01, rubric: { ...v2, criteria: [{ ...v2.criteria[0], maxPoints: 10.01 }] } }],
+    }).success).toBe(false);
+  });
+
+  it('enforces the unique v2 publication contract for standard and detailed modes', () => {
+    const fixture = buildRubricBackedSubjectiveAssignmentFixture();
+    const question = fixture.questions[0];
+    const build = (criterion: Record<string, unknown>) => ({
+      ...fixture,
+      totalPoints: 10,
+      questions: [{
+        ...question,
+        points: 10,
+        rubric: {
+          schemaVersion: 'assignment-scoring-rubric.v2' as const,
+          criteria: [{
+            id: 'quality',
+            label: '完成质量',
+            maxPoints: 10,
+            levels: [],
+            ...criterion,
+          }],
+        },
+      }],
+    });
+    const standard = assignmentDraftSchema.parse(build({
+      scoringStandard: '',
+      detailedRubricEnabled: false,
+    }));
+    expect(validatePublicationScores(standard)).toContain('scoring-standard-required:control-correction-analysis:quality');
+
+    const detailed = assignmentDraftSchema.parse(build({
+      scoringStandard: '',
+      detailedRubricEnabled: true,
+      levels: [
+        { id: 'high', label: '优秀', maxPoints: 10, guideline: '完整达到要求。' },
+        { id: 'pass', label: '及格', maxPoints: 6, guideline: '' },
+      ],
+    }));
+    expect(validatePublicationScores(detailed)).toContain('level-guideline-required:control-correction-analysis:quality');
+  });
+
+  it('retains legacy response fields without restricting the unified answer contract', () => {
     const fixture = buildRubricBackedSubjectiveAssignmentFixture();
     fixture.questions[0] = { ...fixture.questions[0], responseType: 'SUBJECTIVE_FILE' };
     const result = assignmentDraftSchema.safeParse(fixture);
-    expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.issues).toContainEqual(expect.objectContaining({ path: ['responsePolicy', 'allowedResponseTypes'], message: expect.stringContaining('question-response-type-not-allowed') }));
+    expect(result.success).toBe(true);
   });
 
   it.each([
@@ -105,13 +168,15 @@ describe('assignment authoring domain', () => {
     { assignment: 25, question: 20, rubric: 10, expected: 'assignment-total-mismatch:25:20' },
   ])('blocks the conflicting 10/20/25 score scales without rescaling', ({ assignment, question, rubric, expected }) => {
     const fixture = buildRubricBackedSubjectiveAssignmentFixture();
+    const legacyRubric = fixture.questions[0].rubric;
+    if (legacyRubric.schemaVersion !== 'assignment-analytic-rubric.v1') throw new Error('fixture-rubric-version');
     fixture.totalPoints = assignment;
     fixture.questions[0] = {
       ...fixture.questions[0],
       points: question,
       rubric: {
-        ...fixture.questions[0].rubric,
-        criteria: [{ ...fixture.questions[0].rubric.criteria[0], maxPoints: rubric, levels: [{ id: 'ok', label: '合格', minPoints: 0, maxPoints: rubric, description: '可复核。' }] }],
+        ...legacyRubric,
+        criteria: [{ ...legacyRubric.criteria[0], maxPoints: rubric, levels: [{ id: 'ok', label: '合格', minPoints: 0, maxPoints: rubric, description: '可复核。' }] }],
       },
     };
     expect(validatePublicationScores(fixture).some((issue) => issue.startsWith(expected))).toBe(true);

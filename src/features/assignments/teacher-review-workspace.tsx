@@ -71,6 +71,8 @@ export function TeacherReviewWorkspace({
     defaultReturnDeadline(),
   );
   const [fallbackAcknowledgement, setFallbackAcknowledgement] = useState("");
+  const [incompleteEvidenceConfirmed, setIncompleteEvidenceConfirmed] =
+    useState(false);
   const [evidenceView, setEvidenceView] = useState<EvidenceView>("source");
 
   const loadQueue = useCallback(async () => {
@@ -142,6 +144,7 @@ export function TeacherReviewWorkspace({
       );
       setQueue(nextQueue);
       setEvidenceView("source");
+      setIncompleteEvidenceConfirmed(false);
       setLoadState("ready");
       requestAnimationFrame(() => headingRef.current?.focus());
     } catch {
@@ -267,7 +270,9 @@ export function TeacherReviewWorkspace({
                     allowedResponseType: returnResponseType,
                     newDeadlineAt: new Date(returnDeadline).toISOString(),
                   }
-                : {}),
+                : detail.incompleteEvidence
+                  ? { confirmIncompleteEvidence: incompleteEvidenceConfirmed }
+                  : {}),
             }),
           },
         );
@@ -295,6 +300,7 @@ export function TeacherReviewWorkspace({
     [
       currentKey,
       detail,
+      incompleteEvidenceConfirmed,
       loadQueue,
       navigateTo,
       queue,
@@ -691,6 +697,33 @@ export function TeacherReviewWorkspace({
                 />
               </label>
             </div>
+            {detail.incompleteEvidence && (
+              <div className="rounded-lg border border-amber-500/70 bg-amber-500/10 p-3">
+                <p className="text-sm font-medium text-amber-100">当前评分证据不完整</p>
+                <p className="mt-1 text-xs text-amber-200/80">
+                  请核对学生原始作答与可用证据后再批准。
+                </p>
+                {detail.omittedEvidence.length > 0 && (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-amber-100">
+                    {detail.omittedEvidence.map((item) => (
+                      <li key={item.assetId}>{item.displayName}</li>
+                    ))}
+                  </ul>
+                )}
+                <label className="mt-3 flex min-h-10 items-center gap-2 text-sm text-amber-50">
+                  <input
+                    type="checkbox"
+                    checked={incompleteEvidenceConfirmed}
+                    onChange={(event) =>
+                      setIncompleteEvidenceConfirmed(event.target.checked)
+                    }
+                    disabled={!reviewMutable}
+                    className="h-4 w-4 rounded border-amber-400 bg-slate-900"
+                  />
+                  我已核对不完整证据并确认当前评分
+                </label>
+              </div>
+            )}
             <MutationMessage
               state={mutationState}
               onReload={() => void load()}
@@ -701,6 +734,7 @@ export function TeacherReviewWorkspace({
                 disabled={
                   !criteria.length ||
                   !reviewMutable ||
+                  (detail.incompleteEvidence && !incompleteEvidenceConfirmed) ||
                   mutationState === "saving" ||
                   mutationState === "acting"
                 }
@@ -787,7 +821,7 @@ function CriterionEditor({
           Rubric 档位
           <select
             disabled={readOnly}
-            value={criterion.levelId}
+            value={criterion.levelId ?? ""}
             onChange={(event) => {
               const level = criterion.levels.find(
                 (candidate) => candidate.id === event.target.value,
@@ -796,10 +830,6 @@ function CriterionEditor({
               onChange({
                 ...criterion,
                 levelId: level.id,
-                score: Math.min(
-                  level.maxPoints,
-                  Math.max(level.minPoints, criterion.score),
-                ),
               });
             }}
             className="mt-1 min-h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-2 text-white"
@@ -822,19 +852,16 @@ function CriterionEditor({
         disabled={readOnly}
         id={scoreId}
         type="number"
-        min={selectedLevel?.minPoints ?? 0}
-        max={selectedLevel?.maxPoints ?? criterion.maxPoints}
-        step="0.01"
+        min={0}
+        max={criterion.maxPoints}
+        step={criterion.scoreStep}
         value={criterion.score}
         onChange={(event) =>
           onChange({
             ...criterion,
             score: Math.min(
-              selectedLevel?.maxPoints ?? criterion.maxPoints,
-              Math.max(
-                selectedLevel?.minPoints ?? 0,
-                Number(event.target.value) || 0,
-              ),
+              criterion.maxPoints,
+              Math.max(0, Number(event.target.value) || 0),
             ),
           })
         }

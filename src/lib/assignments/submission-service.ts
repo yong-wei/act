@@ -1,7 +1,16 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { createHash, randomBytes } from 'node:crypto';
 
-import { assertDeliveryWindow, deriveAggregate, mayReadSubmission, opaqueObjectKey, SubmissionError, submissionHash } from './submission-domain';
+import {
+  assertDeliveryWindow,
+  deriveAggregate,
+  isAllowedAssignmentAsset,
+  mayReadSubmission,
+  opaqueObjectKey,
+  SUBMISSION_LIMITS,
+  SubmissionError,
+  submissionHash,
+} from './submission-domain';
 import type { SubmissionObjectStore } from './submission-object-store';
 import { deriveStudentAssignmentPresentation, safePromptText, type StudentAssignmentDto } from './submission-dto';
 import {
@@ -19,6 +28,13 @@ import {
 
 const SUBMISSION_DELETE_LEASE_MS = 5 * 60_000;
 const SUBMISSION_DELETE_HEARTBEAT_MS = 60_000;
+
+function embeddedPositionReferences(text: string | null): string[] {
+  if (!text) return [];
+  return [...new Set(
+    [...text.matchAll(/\basset:(md:[a-zA-Z0-9_-]{1,80})\b/g)].map((match) => match[1]),
+  )];
+}
 
 async function readSubmissionDatabaseNow(db: any, fallback: Date): Promise<Date> {
   if (typeof db.$queryRaw !== 'function') return fallback;
@@ -63,23 +79,70 @@ async function findSubmissionObjectTombstone(db: any, objectKey: string): Promis
 export async function listStudentAssignments(prisma: PrismaClient, studentId: string, now = new Date()) {
   const profile = await prisma.studentProfile.findUnique({ where: { userId: studentId }, select: { classId: true } });
   const currentClassId = profile?.classId ?? null;
-  const revisions = currentClassId ? await prisma.assignmentRevision.findMany({
+  const publishedRevisions = currentClassId ? await prisma.assignmentRevision.findMany({
     where: { state: 'PUBLISHED', audiences: { some: { classId: currentClassId, archivedAt: null, availableAt: { lte: now }, class: { isActive: true } } } },
     include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: true, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } },
-    orderBy: { publishedAt: 'desc' },
+    orderBy: [{ publishedAt: 'desc' }, { revisionNumber: 'desc' }, { id: 'desc' }],
   }) : [];
+  const revisions = selectCurrentPublishedRevisions(publishedRevisions);
   const historical = await prisma.assignmentSubmission.findMany({
-    where: { studentId, answers: { some: { attempts: { some: {} } } }, revision: { id: { notIn: revisions.map((revision) => revision.id) }, historicalOwnerships: { some: { studentId, anonymizedAt: null } } } },
+    where: { studentId, revision: { id: { notIn: revisions.map((revision) => revision.id) }, historicalOwnerships: { some: { studentId, anonymizedAt: null } } } },
     include: { revision: { include: { questions: { orderBy: { orderIndex: 'asc' } } } }, audience: true, answers: true },
   });
   return [...revisions.map((revision) => presentRevision(revision, revision.audiences[0], revision.submissions[0], true, now)), ...historical.map((item) => presentRevision(item.revision, item.audience, item, false, now))];
 }
 
-export async function getStudentAssignment(prisma: PrismaClient, studentId: string, assignmentId: string, now = new Date()) {
+export function selectCurrentPublishedRevisions<T extends { assignmentId: string }>(
+  revisions: readonly T[],
+): T[] {
+  const current = new Map<string, T>();
+  for (const revision of revisions) {
+    if (!current.has(revision.assignmentId)) current.set(revision.assignmentId, revision);
+  }
+  return [...current.values()];
+}
+
+export async function getStudentAssignment(prisma: PrismaClient, studentId: string, assignmentId: string, now = new Date(), revisionId?: string) {
   const profile = await prisma.studentProfile.findUnique({ where: { userId: studentId }, select: { classId: true } });
-  const revision = profile?.classId ? await prisma.assignmentRevision.findFirst({ where: { assignmentId, state: 'PUBLISHED', audiences: { some: { classId: profile.classId, archivedAt: null, class: { isActive: true } } } }, orderBy: { revisionNumber: 'desc' }, include: { audiences: true, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } } }) : null;
+  const revision = !revisionId && profile?.classId ? await prisma.assignmentRevision.findFirst({ where: { assignmentId, state: 'PUBLISHED', audiences: { some: { classId: profile.classId, archivedAt: null, class: { isActive: true } } } }, orderBy: { revisionNumber: 'desc' }, include: { audiences: true, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } } }) : null;
   if (!revision) {
-    const historical = await prisma.assignmentSubmission.findFirst({ where: { studentId, revision: { assignmentId }, answers: { some: { attempts: { some: {} } } } }, orderBy: { updatedAt: 'desc' }, include: { audience: true, revision: { include: { questions: { orderBy: { orderIndex: 'asc' } }, historicalOwnerships: { where: { studentId }, take: 1 } } }, answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } } });
+    const historical = await prisma.assignmentSubmission.findFirst({
+      where: {
+        studentId,
+        revision: {
+          ...(revisionId ? { id: revisionId } : {}),
+          assignmentId,
+          historicalOwnerships: { some: { studentId, anonymizedAt: null } },
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        audience: true,
+        revision: {
+          include: {
+            questions: { orderBy: { orderIndex: 'asc' } },
+            historicalOwnerships: { where: { studentId }, take: 1 },
+          },
+        },
+        answers: {
+          include: {
+            attempts: {
+              orderBy: { attemptNumber: 'desc' },
+              include: { assets: true },
+            },
+            assets: { orderBy: { version: 'desc' } },
+          },
+        },
+        approvalSnapshots: {
+          include: {
+            outboxCommands: true,
+            feedbackRelease: { include: { derivative: true } },
+          },
+          orderBy: { approvedAt: 'asc' },
+        },
+        resubmissionGrants: { orderBy: { grantedAt: 'desc' } },
+      },
+    });
     const ownership = historical?.revision.historicalOwnerships[0];
     if (!historical || !ownership || ownership.anonymizedAt || historical.frozenStudentId !== studentId || historical.frozenAudienceClassId !== historical.audience.classId || ownership.audienceClassId !== historical.frozenAudienceClassId) throw new SubmissionError('assignment-not-found', 404);
     return presentRevision({ ...historical.revision, submissions: [historical] }, historical.audience, historical, false, now);
@@ -91,27 +154,146 @@ export async function getStudentAssignment(prisma: PrismaClient, studentId: stri
   return presentRevision(revision, audience, submission, audience.classId === profile?.classId && !audience.archivedAt, now);
 }
 
-export async function saveQuestionDraft(prisma: PrismaClient, input: { studentId: string; assignmentId: string; questionId: string; version: number; text: string; now?: Date }) {
+export async function saveQuestionDraft(prisma: PrismaClient, input: {
+  studentId: string;
+  assignmentId: string;
+  questionId: string;
+  version: number;
+  text: string;
+  embeddedAssets?: Array<{ assetId: string; positionRef: string }>;
+  now?: Date;
+}) {
   return prisma.$transaction(async (tx) => {
     const context = await requireMutableQuestion(tx as never, input, input.now ?? new Date());
-    const answer = context.answer ?? await tx.submissionAnswer.create({ data: { submissionId: context.submission.id, assignmentQuestionId: context.question.id, responseType: context.question.responseType, textDraft: '', state: 'DRAFT' } });
-    if (answer.state === 'SUBMITTED') throw new SubmissionError('answer-already-submitted', 409);
+    const answer = context.answer ?? await tx.submissionAnswer.create({ data: {
+      submissionId: context.submission.id,
+      assignmentQuestionId: context.question.id,
+      responseType: context.question.responseType,
+      textDraft: '',
+      state: 'DRAFT',
+      attachmentOrderProvenance: 'student-arranged',
+    } });
+    if (answer.state === 'SUBMITTED' && !context.resubmissionGrant) throw new SubmissionError('answer-already-submitted', 409);
     if (answer.version !== input.version) throw new SubmissionError('answer-version-conflict', 409);
-    return tx.submissionAnswer.update({ where: { id: answer.id }, data: { textDraft: input.text, state: input.text.trim() ? 'READY' : 'DRAFT', version: { increment: 1 } } });
+    const embeddedAssets = input.embeddedAssets ?? [];
+    if (new Set(embeddedAssets.map((asset) => asset.assetId)).size !== embeddedAssets.length
+      || new Set(embeddedAssets.map((asset) => asset.positionRef)).size !== embeddedAssets.length) {
+      throw new SubmissionError('duplicate-asset-reference');
+    }
+    const textPositionRefs = embeddedPositionReferences(input.text).sort();
+    const requestedPositionRefs = embeddedAssets.map((asset) => asset.positionRef).sort();
+    if (textPositionRefs.length !== requestedPositionRefs.length
+      || textPositionRefs.some((position, index) => position !== requestedPositionRefs[index])) {
+      throw new SubmissionError('invalid-embedded-asset-reference', 409);
+    }
+    const finalizedAssets = await tx.submissionAsset.findMany({
+      where: { answerId: answer.id, state: 'FINALIZED', attemptId: null },
+      orderBy: [{ orderIndex: 'asc' }, { version: 'asc' }, { id: 'asc' }],
+    });
+    if (finalizedAssets.length > SUBMISSION_LIMITS.assets) {
+      throw new SubmissionError('answer-asset-limit-exceeded', 409, { limit: SUBMISSION_LIMITS.assets });
+    }
+    const finalizedById = new Map(finalizedAssets.map((asset) => [asset.id, asset]));
+    const finalizedEmbeddedIds = finalizedAssets
+      .filter((asset) => asset.assetRole === 'EMBEDDED_IMAGE')
+      .map((asset) => asset.id)
+      .sort();
+    const referencedEmbeddedIds = embeddedAssets.map((asset) => asset.assetId).sort();
+    if (finalizedEmbeddedIds.length !== referencedEmbeddedIds.length
+      || finalizedEmbeddedIds.some((id, index) => id !== referencedEmbeddedIds[index])) {
+      throw new SubmissionError('invalid-embedded-asset-reference', 409);
+    }
+    for (const reference of embeddedAssets) {
+      const asset = finalizedById.get(reference.assetId);
+      if (!asset
+        || asset.assetRole !== 'EMBEDDED_IMAGE'
+        || asset.embeddedPosition !== reference.positionRef
+        || !input.text.includes(`asset:${reference.positionRef}`)) {
+        throw new SubmissionError('invalid-embedded-asset-reference', 409);
+      }
+    }
+    const updated = await tx.submissionAnswer.updateMany({
+      where: { id: answer.id, version: input.version, state: answer.state },
+      data: {
+        textDraft: input.text,
+        answerContractVersion: 'assignment-response.v2',
+        state: input.text.trim() || finalizedAssets.length > 0 ? 'READY' : 'DRAFT',
+        version: { increment: 1 },
+      },
+    });
+    if (updated.count !== 1) throw new SubmissionError('answer-version-conflict', 409);
+    return tx.submissionAnswer.findUniqueOrThrow({ where: { id: answer.id } });
   });
 }
 
-export async function signQuestionUpload(prisma: PrismaClient, store: SubmissionObjectStore, input: { studentId: string; assignmentId: string; questionId: string; fileName: string; mimeType: string; sizeBytes: number; checksum: string; now?: Date }) {
+export async function signQuestionUpload(prisma: PrismaClient, store: SubmissionObjectStore, input: {
+  studentId: string;
+  assignmentId: string;
+  questionId: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksum: string;
+  assetRole?: 'EMBEDDED_IMAGE' | 'ATTACHMENT';
+  embeddedPosition?: string;
+  now?: Date;
+}) {
+  const assetRole = input.assetRole ?? 'ATTACHMENT';
+  if (!isAllowedAssignmentAsset(input.fileName, input.mimeType)
+    || (assetRole === 'EMBEDDED_IMAGE' && !['image/png', 'image/jpeg'].includes(input.mimeType))
+    || (assetRole === 'EMBEDDED_IMAGE') !== Boolean(input.embeddedPosition)) {
+    throw new SubmissionError('unsupported-assignment-asset-format', 400);
+  }
   const key = opaqueObjectKey();
   const now = input.now ?? new Date();
   const sourceAssetPolicy = await requireSourceAssetLifecyclePolicy(prisma as never);
   const sourceAssetLifecycle = buildSourceAssetLifecycleFields(sourceAssetPolicy, now);
   const { answer } = await withSerializableRetry(() => prisma.$transaction(async (tx) => {
     const context = await requireMutableQuestion(tx as never, input, now);
-    if (context.question.responseType !== 'SUBJECTIVE_FILE') throw new SubmissionError('question-does-not-accept-file');
-    const answer = await tx.submissionAnswer.upsert({ where: { submissionId_assignmentQuestionId: { submissionId: context.submission.id, assignmentQuestionId: context.question.id } }, create: { submissionId: context.submission.id, assignmentQuestionId: context.question.id, responseType: context.question.responseType, state: 'DRAFT' }, update: {} });
+    const answer = await tx.submissionAnswer.upsert({ where: { submissionId_assignmentQuestionId: { submissionId: context.submission.id, assignmentQuestionId: context.question.id } }, create: {
+      submissionId: context.submission.id,
+      assignmentQuestionId: context.question.id,
+      responseType: context.question.responseType,
+      state: 'DRAFT',
+      attachmentOrderProvenance: 'student-arranged',
+    }, update: { answerContractVersion: 'assignment-response.v2' } });
+    if (answer.state === 'SUBMITTED' && !context.resubmissionGrant) {
+      throw new SubmissionError('answer-already-submitted', 409);
+    }
+    const activeAssetCount = await tx.submissionAsset.count({
+      where: {
+        answerId: answer.id,
+        attemptId: null,
+        OR: [
+          { state: 'FINALIZED' },
+          { state: 'QUARANTINED', quarantineExpiresAt: { gt: now } },
+        ],
+      },
+    });
+    if (activeAssetCount >= SUBMISSION_LIMITS.assets) {
+      throw new SubmissionError('answer-asset-limit-exceeded', 409, { limit: SUBMISSION_LIMITS.assets });
+    }
     const version = (await tx.submissionAsset.aggregate({ where: { answerId: answer.id }, _max: { version: true } }))._max.version ?? 0;
-    await tx.submissionAsset.create({ data: { answerId: answer.id, version: version + 1, objectKey: key, originalName: input.fileName, mimeType: input.mimeType, sizeBytes: input.sizeBytes, checksum: input.checksum, state: 'QUARANTINED', scanState: 'PENDING', quarantineExpiresAt: new Date(now.getTime() + 600_000), ...sourceAssetLifecycle } });
+    const orderIndex = (await tx.submissionAsset.aggregate({
+      where: { answerId: answer.id, attemptId: null },
+      _max: { orderIndex: true },
+    }))._max.orderIndex ?? -1;
+    await tx.submissionAsset.create({ data: {
+      answerId: answer.id,
+      version: version + 1,
+      objectKey: key,
+      originalName: input.fileName,
+      mimeType: input.mimeType,
+      sizeBytes: input.sizeBytes,
+      checksum: input.checksum,
+      assetRole,
+      orderIndex: orderIndex + 1,
+      embeddedPosition: input.embeddedPosition,
+      state: 'QUARANTINED',
+      scanState: 'PENDING',
+      quarantineExpiresAt: new Date(now.getTime() + 600_000),
+      ...sourceAssetLifecycle,
+    } });
     return { answer };
   }, { isolationLevel: 'Serializable' }));
   await store.healthCheck();
@@ -123,8 +305,13 @@ export async function signQuestionUpload(prisma: PrismaClient, store: Submission
 export async function finalizeQuestionAsset(prisma: PrismaClient, store: SubmissionObjectStore, input: { studentId: string; assignmentId: string; questionId: string; intentId: string; idempotencyKey: string; now?: Date }) {
   const context = await prisma.$transaction((tx) => requireMutableQuestion(tx as never, input, input.now ?? new Date()));
   if (!context.answer) throw new SubmissionError('answer-not-found', 404);
+  if (context.answer.state === 'SUBMITTED' && !context.resubmissionGrant) throw new SubmissionError('answer-already-submitted', 409);
   const replay = await prisma.submissionAsset.findUnique({ where: { finalizationKey: `${input.studentId}:${input.idempotencyKey}` } });
-  if (replay) { if (replay.id !== input.intentId || replay.answerId !== context.answer.id) throw new SubmissionError('idempotency-key-conflict', 409); return { status: 'READY' as const, asset: replay }; }
+  if (replay) {
+    if (replay.id !== input.intentId || replay.answerId !== context.answer.id) throw new SubmissionError('idempotency-key-conflict', 409);
+    if (replay.state !== 'FINALIZED') return { status: 'UNSAFE' as const, intentId: replay.id };
+    return { status: 'READY' as const, asset: replay, answerVersion: context.answer.version };
+  }
   const existing = await prisma.submissionAsset.findUnique({ where: { id: input.intentId } });
   if (!existing || existing.answerId !== context.answer.id) throw new SubmissionError('upload-intent-not-found', 404);
   if (existing.state === 'FINALIZED') throw new SubmissionError('asset-already-finalized-with-another-key', 409);
@@ -137,13 +324,156 @@ export async function finalizeQuestionAsset(prisma: PrismaClient, store: Submiss
   if (metadata.scanState === 'UNSAFE') { await prisma.submissionAsset.updateMany({ where: { id: existing.id, state: 'QUARANTINED' }, data: { state: 'REVOKED', scanState: 'UNSAFE' } }); return { status: 'UNSAFE' as const, intentId: existing.id }; }
   if (metadata.ownerId !== input.studentId || metadata.answerId !== context.answer.id || metadata.sizeBytes !== existing.sizeBytes || metadata.mimeType !== existing.mimeType || metadata.checksum !== existing.checksum) throw new SubmissionError('asset-finalization-verification-failed', 409);
   return withSerializableRetry(() => prisma.$transaction(async (tx) => {
+    const latestContext = await requireMutableQuestion(tx as never, input, input.now ?? new Date());
+    if (!latestContext.answer || latestContext.answer.id !== context.answer!.id) {
+      throw new SubmissionError('answer-not-found', 404);
+    }
+    if (latestContext.answer.state === 'SUBMITTED' && !latestContext.resubmissionGrant) {
+      throw new SubmissionError('answer-already-submitted', 409);
+    }
     const locked = await tx.submissionAsset.findUniqueOrThrow({ where: { id: existing.id } });
-    if (locked.state === 'FINALIZED' && locked.finalizationKey === `${input.studentId}:${input.idempotencyKey}`) return { status: 'READY' as const, asset: locked };
+    if (locked.state === 'FINALIZED' && locked.finalizationKey === `${input.studentId}:${input.idempotencyKey}`) {
+      return { status: 'READY' as const, asset: locked, answerVersion: latestContext.answer.version };
+    }
     if (locked.state !== 'QUARANTINED') throw new SubmissionError('asset-not-finalizable', 409);
-    await tx.submissionAsset.updateMany({ where: { answerId: context.answer!.id, state: 'FINALIZED', attemptId: null }, data: { state: 'REVOKED' } });
+    const activeAssetCount = await tx.submissionAsset.count({
+      where: {
+        answerId: latestContext.answer.id,
+        attemptId: null,
+        OR: [
+          { state: 'FINALIZED' },
+          { state: 'QUARANTINED', quarantineExpiresAt: { gt: input.now ?? new Date() } },
+        ],
+      },
+    });
+    if (activeAssetCount > SUBMISSION_LIMITS.assets) {
+      throw new SubmissionError('answer-asset-limit-exceeded', 409, { limit: SUBMISSION_LIMITS.assets });
+    }
     const finalized = await tx.submissionAsset.update({ where: { id: existing.id }, data: { scanState: metadata.scanState, state: 'FINALIZED', finalizationKey: `${input.studentId}:${input.idempotencyKey}`, finalizedAt: new Date() } });
-    await tx.submissionAnswer.update({ where: { id: context.answer!.id }, data: { state: 'READY' } });
-    return { status: 'READY' as const, asset: finalized };
+    const answer = await tx.submissionAnswer.update({
+      where: { id: latestContext.answer.id },
+      data: {
+        state: 'READY',
+        answerContractVersion: 'assignment-response.v2',
+        attachmentOrderProvenance: latestContext.answer.attachmentOrderProvenance,
+        version: { increment: 1 },
+      },
+    });
+    return { status: 'READY' as const, asset: finalized, answerVersion: answer.version };
+  }, { isolationLevel: 'Serializable' }));
+}
+
+export async function reorderQuestionAssets(prisma: PrismaClient, input: {
+  studentId: string;
+  assignmentId: string;
+  questionId: string;
+  answerVersion: number;
+  assetIds: string[];
+  now?: Date;
+}) {
+  if (input.assetIds.length > SUBMISSION_LIMITS.assets || new Set(input.assetIds).size !== input.assetIds.length) {
+    throw new SubmissionError('duplicate-asset-reference');
+  }
+  return withSerializableRetry(() => prisma.$transaction(async (tx) => {
+    const context = await requireMutableQuestion(tx as never, input, input.now ?? new Date());
+    if (!context.answer) throw new SubmissionError('answer-not-found', 404);
+    if (context.answer.state === 'SUBMITTED' && !context.resubmissionGrant) throw new SubmissionError('answer-already-submitted', 409);
+    if (context.answer.version !== input.answerVersion) throw new SubmissionError('answer-version-conflict', 409);
+    const assets = await tx.submissionAsset.findMany({
+      where: {
+        answerId: context.answer.id,
+        state: 'FINALIZED',
+        attemptId: null,
+        assetRole: 'ATTACHMENT',
+      },
+      select: { id: true },
+    });
+    const persistedIds = assets.map((asset) => asset.id).sort();
+    if (persistedIds.length !== input.assetIds.length
+      || persistedIds.some((id, index) => id !== [...input.assetIds].sort()[index])) {
+      throw new SubmissionError('asset-order-set-mismatch', 409);
+    }
+    for (const [orderIndex, id] of input.assetIds.entries()) {
+      await tx.submissionAsset.updateMany({
+        where: {
+          id,
+          answerId: context.answer.id,
+          state: 'FINALIZED',
+          attemptId: null,
+          assetRole: 'ATTACHMENT',
+        },
+        data: { orderIndex },
+      });
+    }
+    return tx.submissionAnswer.update({
+      where: { id: context.answer.id },
+      data: {
+        answerContractVersion: 'assignment-response.v2',
+        attachmentOrderProvenance: 'student-arranged',
+        version: { increment: 1 },
+      },
+    });
+  }, { isolationLevel: 'Serializable' }));
+}
+
+export async function removeQuestionAsset(prisma: PrismaClient, input: {
+  studentId: string;
+  assignmentId: string;
+  questionId: string;
+  assetId: string;
+  answerVersion: number;
+  now?: Date;
+}) {
+  return withSerializableRetry(() => prisma.$transaction(async (tx) => {
+    const context = await requireMutableQuestion(tx as never, input, input.now ?? new Date());
+    if (!context.answer) throw new SubmissionError('answer-not-found', 404);
+    if (context.answer.state === 'SUBMITTED' && !context.resubmissionGrant) {
+      throw new SubmissionError('answer-already-submitted', 409);
+    }
+    if (context.answer.version !== input.answerVersion) {
+      throw new SubmissionError('answer-version-conflict', 409);
+    }
+    const asset = await tx.submissionAsset.findFirst({
+      where: {
+        id: input.assetId,
+        answerId: context.answer.id,
+        attemptId: null,
+        state: { in: ['QUARANTINED', 'FINALIZED'] },
+      },
+      select: { id: true },
+    });
+    if (!asset) throw new SubmissionError('answer-asset-not-found', 404);
+    const removed = await tx.submissionAsset.updateMany({
+      where: {
+        id: asset.id,
+        answerId: context.answer.id,
+        attemptId: null,
+        state: { in: ['QUARANTINED', 'FINALIZED'] },
+      },
+      data: { state: 'REVOKED' },
+    });
+    if (removed.count !== 1) throw new SubmissionError('answer-version-conflict', 409);
+    await removeSubmissionAssetAccessTokens(tx, asset.id);
+    const remainingAssets = await tx.submissionAsset.count({
+      where: { answerId: context.answer.id, attemptId: null, state: 'FINALIZED' },
+    });
+    const updated = await tx.submissionAnswer.updateMany({
+      where: {
+        id: context.answer.id,
+        version: input.answerVersion,
+        state: context.answer.state,
+      },
+      data: {
+        state: context.answer.textDraft?.trim() || remainingAssets > 0 ? 'READY' : 'DRAFT',
+        answerContractVersion: 'assignment-response.v2',
+        version: { increment: 1 },
+      },
+    });
+    if (updated.count !== 1) throw new SubmissionError('answer-version-conflict', 409);
+    return {
+      assetId: asset.id,
+      answer: await tx.submissionAnswer.findUniqueOrThrow({ where: { id: context.answer.id } }),
+    };
   }, { isolationLevel: 'Serializable' }));
 }
 
@@ -151,7 +481,12 @@ export async function getQuestionUploadStatus(prisma: PrismaClient, input: { stu
   const context = await requireMutableQuestion(prisma, input, input.now ?? new Date());
   const asset = await prisma.submissionAsset.findUnique({ where: { id: input.intentId } });
   if (!context.answer || !asset || asset.answerId !== context.answer.id) throw new SubmissionError('upload-intent-not-found', 404);
-  if (asset.state === 'FINALIZED') return { status: 'READY' as const, intentId: asset.id, asset };
+  if (asset.state === 'FINALIZED') return {
+    status: 'READY' as const,
+    intentId: asset.id,
+    asset,
+    answerVersion: context.answer.version,
+  };
   if (asset.scanState === 'EXPIRED' || !asset.quarantineExpiresAt || asset.quarantineExpiresAt < (input.now ?? new Date())) return { status: 'EXPIRED' as const, intentId: asset.id };
   if (asset.scanState === 'FAILED' || asset.scanState === 'MISSING') return { status: 'FAILED' as const, intentId: asset.id };
   if (asset.state === 'REVOKED' || asset.scanState === 'UNSAFE') return { status: 'UNSAFE' as const, intentId: asset.id };
@@ -798,18 +1133,48 @@ export async function submitQuestionAnswer(prisma: PrismaClient, input: { studen
     const replay = await tx.submissionIdempotency.findUnique({ where: { studentId_scope_idempotencyKey: { studentId: input.studentId, scope, idempotencyKey: input.idempotencyKey } }, include: { attempt: true } });
     if (replay) { if (replay.requestHash !== requestHash) throw new SubmissionError('idempotency-key-conflict', 409); return { attempt: replay.attempt, aggregate: await aggregateAndUpdate(tx as never, context.submission.id) }; }
     if (context.answer.state === 'SUBMITTED' || context.answer.version !== input.answerVersion) throw new SubmissionError('answer-version-conflict', 409);
-    if (context.question.responseType === 'SUBJECTIVE_TEXT' && !context.answer.textDraft?.trim()) throw new SubmissionError('text-answer-required', 409);
-    const textSnapshotLifecycle = context.question.responseType === 'SUBJECTIVE_TEXT'
+    const text = context.answer.textDraft?.trim() ? context.answer.textDraft : null;
+    const textSnapshotLifecycle = text
       ? freezeLifecyclePolicy((await requireConfiguredLifecyclePolicies(tx as never, ['answer-evidence']))[0], now)
       : null;
-    const assets = await tx.submissionAsset.findMany({ where: { answerId: context.answer.id, state: 'FINALIZED', attemptId: null }, orderBy: { version: 'desc' }, take: 1 });
-    if (context.question.responseType === 'SUBJECTIVE_FILE' && assets.length === 0) throw new SubmissionError('finalized-asset-required', 409);
+    const assets = await tx.submissionAsset.findMany({
+      where: { answerId: context.answer.id, state: 'FINALIZED', attemptId: null },
+      orderBy: [{ orderIndex: 'asc' }, { version: 'asc' }, { id: 'asc' }],
+    });
+    if (!text && assets.length === 0) throw new SubmissionError('answer-evidence-required', 409);
+    if (assets.length > SUBMISSION_LIMITS.assets) {
+      throw new SubmissionError('answer-asset-limit-exceeded', 409, { limit: SUBMISSION_LIMITS.assets });
+    }
+    const embeddedPositions = assets
+      .filter((asset) => asset.assetRole === 'EMBEDDED_IMAGE')
+      .map((asset) => asset.embeddedPosition);
+    const referencedEmbeddedPositions = embeddedPositionReferences(text);
+    if (embeddedPositions.some((position) => !position)
+      || new Set(embeddedPositions).size !== embeddedPositions.length
+      || embeddedPositions.length !== referencedEmbeddedPositions.length
+      || [...embeddedPositions].sort()
+        .some((position, index) => position !== [...referencedEmbeddedPositions].sort()[index])) {
+      throw new SubmissionError('invalid-embedded-asset-reference', 409);
+    }
     const attemptNumber = context.answer.currentAttemptNumber + 1;
     const attempt = await tx.submissionAttempt.create({ data: {
       answerId: context.answer.id,
       attemptNumber,
       answerVersion: context.answer.version,
-      textSnapshot: context.question.responseType === 'SUBJECTIVE_TEXT' ? context.answer.textDraft : null,
+      textSnapshot: text,
+      answerSnapshot: {
+        schemaVersion: 'assignment-response.v2',
+        answerVersion: context.answer.version,
+        textSnapshotHash: text ? submissionHash(text) : null,
+        attachmentOrderProvenance: context.answer.attachmentOrderProvenance
+          ?? (assets.length > 0 ? 'legacy-fallback' : 'student-arranged'),
+        assets: assets.map((asset, index) => ({
+          assetId: asset.id,
+          role: asset.assetRole,
+          orderIndex: index,
+          embeddedPosition: asset.embeddedPosition,
+        })),
+      },
       ...(textSnapshotLifecycle ? {
         textSnapshotPolicyId: textSnapshotLifecycle.lifecyclePolicyId,
         textSnapshotPolicyVersion: textSnapshotLifecycle.lifecyclePolicyVersion,
@@ -821,7 +1186,13 @@ export async function submitQuestionAnswer(prisma: PrismaClient, input: { studen
       } : {}),
     } });
     await tx.submissionAsset.updateMany({ where: { id: { in: assets.map((asset) => asset.id) } }, data: { attemptId: attempt.id } });
-    await tx.submissionAnswer.update({ where: { id: context.answer.id }, data: { state: 'SUBMITTED', currentAttemptNumber: attemptNumber } });
+    await tx.submissionAnswer.update({ where: { id: context.answer.id }, data: {
+      state: 'SUBMITTED',
+      answerContractVersion: 'assignment-response.v2',
+      attachmentOrderProvenance: context.answer.attachmentOrderProvenance
+        ?? (assets.length > 0 ? 'legacy-fallback' : null),
+      currentAttemptNumber: attemptNumber,
+    } });
     if (context.resubmissionGrant) {
       const consumed = await tx.teacherAssignmentResubmissionGrant.updateMany({
         where: { id: context.resubmissionGrant.id, state: 'ACTIVE', expiresAt: { gt: now } },
@@ -919,14 +1290,52 @@ export function presentRevision(revision: any, audience: any, submission: any, c
         version: answer?.version ?? 1,
         currentAttemptNumber: answer?.currentAttemptNumber ?? 0,
         textDraft: answer?.textDraft ?? null,
-        history: (answer?.attempts ?? []).map((attempt: any) => ({ id: attempt.id, attemptNumber: attempt.attemptNumber, submittedAt: attempt.submittedAt, textSnapshot: attempt.textSnapshot, assets: (attempt.assets ?? []).map((asset: any) => ({ id: asset.id, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes, canDownload: true as const })) })),
+        history: (answer?.attempts ?? []).map((attempt: any) => ({
+          id: attempt.id,
+          attemptNumber: attempt.attemptNumber,
+          submittedAt: attempt.submittedAt,
+          textSnapshot: attempt.textSnapshot,
+          assets: (attempt.assets ?? [])
+            .sort(compareSubmissionAssetOrder)
+            .map((asset: any) => ({
+              id: asset.id,
+              displayName: asset.originalName,
+              mimeType: asset.mimeType,
+              sizeBytes: asset.sizeBytes,
+              role: asset.assetRole,
+              orderIndex: asset.orderIndex,
+              embeddedPosition: asset.embeddedPosition,
+              canDownload: true as const,
+            })),
+        })),
         assets: (answer?.assets ?? [])
-          .filter((asset: any) => !grant || asset.attemptId == null)
-          .map((asset: any) => ({ id: asset.id, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes, state: asset.state, finalizedAt: asset.finalizedAt })),
+          .filter((asset: any) => asset.state !== 'REVOKED' && (!grant || asset.attemptId == null))
+          .sort(compareSubmissionAssetOrder)
+          .map((asset: any) => ({
+            id: asset.id,
+            displayName: asset.originalName,
+            mimeType: asset.mimeType,
+            sizeBytes: asset.sizeBytes,
+            state: asset.state,
+            finalizedAt: asset.finalizedAt,
+            role: asset.assetRole,
+            orderIndex: asset.orderIndex,
+            embeddedPosition: asset.embeddedPosition,
+          })),
+        attachmentOrderProvenance: answer?.attachmentOrderProvenance
+          ?? ((answer?.assets ?? []).some((asset: any) => asset.state !== 'REVOKED')
+            ? 'legacy-fallback'
+            : null),
         resubmission: grant ? { state: grant.state, reason: grant.reason, allowedResponseType: grant.allowedResponseType, deadlineAt: grant.newDeadlineAt } : null,
       };
     }),
   };
+}
+
+function compareSubmissionAssetOrder(left: any, right: any): number {
+  const leftOrder = Number.isInteger(left.orderIndex) ? left.orderIndex : left.version;
+  const rightOrder = Number.isInteger(right.orderIndex) ? right.orderIndex : right.version;
+  return leftOrder - rightOrder || String(left.id).localeCompare(String(right.id));
 }
 
 export function presentStudentAssignmentFeedback(submission: any, questions: any[], now: Date) {

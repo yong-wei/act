@@ -14,12 +14,23 @@ export interface StudentAssignmentQuestion {
   version: number;
   currentAttemptNumber?: number | null;
   textDraft?: string | null;
-  assets?: Array<{ id: string; displayName: string; sizeBytes?: number }>;
+  assets?: Array<{
+    id: string;
+    displayName: string;
+    mimeType?: string;
+    sizeBytes?: number;
+    state?: string;
+    finalizedAt?: string | Date | null;
+    role?: string;
+    orderIndex?: number | null;
+    embeddedPosition?: string | null;
+  }>;
   resubmission?: { state: string; reason: string; allowedResponseType: string; deadlineAt: string } | null;
 }
 
 export interface StudentAssignmentSummary {
   id: string;
+  revisionId: string;
   title: string;
   instructions: string;
   availableAt: string;
@@ -49,7 +60,7 @@ export interface StudentAssignmentDetail extends StudentAssignmentSummary {
     questionId: string;
     questionTitle: string;
     questionTotal: number;
-    criteria: Array<{ criterionId?: string; levelId?: string; score?: number; comment?: string }>;
+    criteria: Array<{ criterionId?: string; levelId?: string | null; score?: number; comment?: string }>;
     annotations: Array<{ id?: string; criterionId?: string; status?: string; comment?: string; anchor?: Record<string, unknown> }>;
     overallComment: string;
     approvedAt: string;

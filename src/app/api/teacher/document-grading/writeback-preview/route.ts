@@ -181,7 +181,7 @@ export async function POST(request: Request) {
 
 function isDocumentGradingEditList(value: unknown): value is Array<{
   criterionId: string;
-  levelId: string;
+  levelId: string | null;
   score: number;
   comment: string;
 }> {
@@ -189,7 +189,7 @@ function isDocumentGradingEditList(value: unknown): value is Array<{
     typeof item === 'object' &&
     !Array.isArray(item) &&
     typeof item.criterionId === 'string' &&
-    typeof item.levelId === 'string' &&
+    (item.levelId === null || typeof item.levelId === 'string') &&
     typeof item.score === 'number' &&
     Number.isFinite(item.score) &&
     typeof item.comment === 'string');
@@ -198,14 +198,17 @@ function isDocumentGradingEditList(value: unknown): value is Array<{
 function validateDocumentGradingEditsAgainstRubric(
   edits: Array<{
     criterionId: string;
-    levelId: string;
+    levelId: string | null;
     score: number;
     comment: string;
   }>,
   rubric: {
+    schemaVersion?: string;
     maxScore: number;
     criteria: Array<{
       id: string;
+      maxPoints?: number;
+      detailedRubricEnabled?: boolean;
       levels: Array<{ id: string; score: number }>;
     }>;
   },
@@ -215,12 +218,20 @@ function validateDocumentGradingEditsAgainstRubric(
     if (!criterion) {
       return '评分编辑指标不存在';
     }
-    const level = criterion.levels.find((item) => item.id === edit.levelId);
-    if (!level) {
+    const detailedRubricEnabled = criterion.detailedRubricEnabled !== false;
+    const level = edit.levelId === null
+      ? null
+      : criterion.levels.find((item) => item.id === edit.levelId);
+    if ((detailedRubricEnabled && !level) || (!detailedRubricEnabled && edit.levelId !== null)) {
       return '评分编辑等级不存在';
     }
-    if (edit.score < 0 || edit.score > rubric.maxScore) {
+    const criterionMax = criterion.maxPoints ?? rubric.maxScore;
+    if (edit.score < 0 || edit.score > criterionMax) {
       return '评分编辑分数超出量规范围';
+    }
+    if (rubric.schemaVersion === 'assignment-scoring-rubric.v2'
+      && Math.abs(edit.score * 10 - Math.round(edit.score * 10)) >= 1e-8) {
+      return '评分编辑分数必须保留一位小数';
     }
   }
   return null;

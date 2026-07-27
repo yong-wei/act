@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
@@ -10,18 +11,30 @@ import {
   ChevronUp,
   Eye,
   Library,
+  Loader2,
   Plus,
   Save,
   Send,
+  Sparkles,
   Trash2,
 } from 'lucide-react';
 
 import {
+  ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS,
   assignmentDraftSchema,
   validatePublicationScores,
   type AssignmentDraftInput,
 } from '@/lib/assignments/assignment-domain';
 import {
+  addDetailedRubricLevel,
+  applyRubricLevelShortcut,
+  createInitialDetailedLevel,
+  deriveRubricLevelRanges,
+  inferEditedRubricLevelIds,
+  sortRubricLevels,
+} from '@/lib/assignments/assignment-rubric-contract';
+import {
+  applyGeneratedRubricGuidelines,
   EMPTY_ASSIGNMENT_DRAFT,
   type AssignmentEditorDocument,
   type GovernedQuestionSummary,
@@ -40,12 +53,32 @@ type ManagedClassOption = {
   year: string | null;
   semester: string | null;
 };
+type RubricGenerationBasis = 'scoring-standard' | 'scoring-item-name';
+type RubricGenerationResult =
+  | { status: 'applied' }
+  | {
+      status: 'error';
+      message: string;
+      focus?: 'scoring-item-name' | 'scoring-standard';
+    };
+const RUBRIC_GOAL_DIMENSION_LABELS: Record<
+  (typeof ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS)[number],
+  string
+> = {
+  controlModeling: '控制建模',
+  parameterDesign: '参数设计',
+  crossDomainTransfer: '跨域迁移',
+  engineeringDecision: '工程决策',
+  inquiryReflection: '探究反思',
+  selfDirectedLearning: '自主学习',
+};
 
 export function AssignmentEditorWorkspace({
   assignmentId,
 }: {
   assignmentId?: string;
 }) {
+  const router = useRouter();
   const [document, setDocument] = useState<AssignmentEditorDocument>({
     assignmentId,
     version: 1,
@@ -110,29 +143,19 @@ export function AssignmentEditorWorkspace({
     })
       .then(async (response) => {
         if (!response.ok) throw new Error('load');
-        const payload = (await response.json()) as {
-          assignment: Record<string, unknown>;
+        await response.json();
+        const next = await fetch(
+          `/api/teacher/assignments/${assignmentId}/next-draft`,
+          { method: 'POST' },
+        );
+        if (!next.ok) throw new Error('next-draft');
+        const nextPayload = (await next.json()) as {
+          revision: Record<string, unknown>;
         };
-        const revisions = payload.assignment.revisions as Array<
-          Record<string, unknown>
-        >;
-        if (!revisions.some((revision) => revision.state === 'DRAFT')) {
-          const next = await fetch(
-            `/api/teacher/assignments/${assignmentId}/next-draft`,
-            { method: 'POST' },
-          );
-          if (!next.ok) throw new Error('next-draft');
-          const nextPayload = (await next.json()) as {
-            revision: Record<string, unknown>;
-          };
-          const loaded = fromApiRevision(assignmentId, nextPayload.revision);
-          documentRef.current = loaded;
-          setDocument(loaded);
-        } else {
-          const loaded = fromApiAssignment(payload.assignment);
-          documentRef.current = loaded;
-          setDocument(loaded);
-        }
+        const loaded = fromApiRevision(assignmentId, nextPayload.revision);
+        documentRef.current = loaded;
+        setDocument(loaded);
+        setSaveState('saved');
         setLoadState('ready');
       })
       .catch(() => setLoadState('error'));
@@ -198,7 +221,11 @@ export function AssignmentEditorWorkspace({
           const next = mergeSaveResponse(current, payload);
           return next;
         });
-        setSaveState('saved');
+        setSaveState(
+          draftFingerprint === canonicalFingerprint(documentRef.current.draft)
+            ? 'saved'
+            : 'dirty',
+        );
         return { document: saved, draftFingerprint };
       } catch {
         setSaveState('error');
@@ -229,6 +256,9 @@ export function AssignmentEditorWorkspace({
   useEffect(() => {
     if (saveState === 'conflict') conflictRef.current?.focus();
   }, [saveState]);
+  useEffect(() => {
+    if (publishMessage) publishMessageRef.current?.focus();
+  }, [publishMessage]);
 
   const blockers = useMemo(() => {
     const parsed = assignmentDraftSchema.safeParse(document.draft);
@@ -266,42 +296,27 @@ export function AssignmentEditorWorkspace({
 
   const publish = async () => {
     if (published || publishing) return;
-    setPublishing(true);
     setPublishMessage('');
-    if (debounceRef.current !== null) {
-      window.clearTimeout(debounceRef.current);
-      debounceRef.current = null;
-    }
     if (
       !assignmentDraftSchema.safeParse(documentRef.current.draft).success ||
       blockers.length
     ) {
       setPublishMessage('发布前请解决所有阻断项。');
       focusBlocker(blockers[0]);
-      setPublishing(false);
       return;
     }
-    let saved: AssignmentEditorDocument | null = null;
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-      const result = await save();
-      if (!result) {
-        setPublishMessage('最新草稿保存失败，未执行发布。');
-        setPublishing(false);
-        return;
-      }
-      if (
-        result.draftFingerprint ===
-        canonicalFingerprint(documentRef.current.draft)
-      ) {
-        saved = result.document;
-        break;
-      }
-    }
-    if (!saved?.assignmentId || !saved.revisionId) {
-      setPublishMessage('草稿持续变化，请停止编辑后重试发布。');
-      setPublishing(false);
+    if (saveState !== 'saved') {
+      setPublishMessage(publicationRecoveryMessage(saveState));
+      window.setTimeout(() => publishMessageRef.current?.focus(), 0);
       return;
     }
+    const saved = documentRef.current;
+    if (!saved.assignmentId || !saved.revisionId || !saved.contentDigest) {
+      setPublishMessage('保存基线不完整，请重新保存后再发布。');
+      window.setTimeout(() => publishMessageRef.current?.focus(), 0);
+      return;
+    }
+    setPublishing(true);
     try {
       const response = await fetch(
         `/api/teacher/assignments/${saved.assignmentId}/publish`,
@@ -311,6 +326,7 @@ export function AssignmentEditorWorkspace({
           body: JSON.stringify({
             revisionId: saved.revisionId,
             expectedVersion: saved.version,
+            contentDigest: saved.contentDigest,
             idempotencyKey: `assignment-ui:${saved.assignmentId}:${saved.revisionId}:${saved.version}`,
             audiences: [
               {
@@ -323,14 +339,21 @@ export function AssignmentEditorWorkspace({
         },
       );
       if (response.ok) {
+        const payload = (await response.json()) as {
+          publication: { assignmentId: string };
+        };
         setPublished(true);
-        setPublishMessage('作业已发布，当前版本已冻结。');
+        setPublishMessage('作业已发布，正在返回作业列表。');
+        router.push(
+          `/teacher/assignments?highlight=${encodeURIComponent(payload.publication.assignmentId)}`,
+        );
       } else {
         const payload = (await response.json().catch(() => ({}))) as {
+          error?: string;
           details?: string[];
         };
         setPublishMessage(
-          payload.details?.join('；') ?? '发布失败，请核对发布计划。',
+          publicationErrorMessage(payload.error, payload.details),
         );
         window.setTimeout(() => publishMessageRef.current?.focus(), 0);
       }
@@ -370,6 +393,158 @@ export function AssignmentEditorWorkspace({
     } catch {
       return false;
     }
+  };
+
+  const generateRubricGuidelines = async (input: {
+    question: EditableQuestionV2;
+    scoringItemId: string;
+    basis: RubricGenerationBasis;
+  }): Promise<RubricGenerationResult> => {
+    if (published) {
+      return { status: 'error', message: '已发布作业不能生成评分细则。' };
+    }
+    const current = documentRef.current;
+    const questionIndex = current.draft.questions.findIndex(
+      (item) => item.stableQuestionId === input.question.stableQuestionId,
+    );
+    if (questionIndex < 0) {
+      return { status: 'error', message: '当前题目已变化，请重新选择。' };
+    }
+    const preparedDraft = {
+      ...current.draft,
+      questions: current.draft.questions.map((item, index) =>
+        index === questionIndex ? input.question : item,
+      ),
+    };
+    const prepared = { ...current, draft: preparedDraft };
+    documentRef.current = prepared;
+    setDocument(prepared);
+    setSaveState('dirty');
+
+    const saved = await save();
+    if (!saved) {
+      return {
+        status: 'error',
+        message: '生成前保存失败，请先解决保存错误或版本冲突。',
+      };
+    }
+    const baseline = saved.document;
+    if (!baseline.assignmentId || !baseline.revisionId) {
+      return { status: 'error', message: '保存基线不完整，无法生成评分细则。' };
+    }
+    const savedQuestion = baseline.draft.questions.find(
+      (item) => item.stableQuestionId === input.question.stableQuestionId,
+    );
+    const savedRubric = savedQuestion
+      ? toScoringRubricV2(savedQuestion.rubric)
+      : null;
+    const savedCriterion = savedRubric?.criteria.find(
+      (item) => item.id === input.scoringItemId,
+    );
+    if (!savedQuestion || !savedCriterion || !savedCriterion.detailedRubricEnabled) {
+      return { status: 'error', message: '评分项结构已变化，请重新发起生成。' };
+    }
+    const levelIds = savedCriterion.levels.map((level) => level.id);
+    const requestedCriterionFingerprint = canonicalFingerprint(savedCriterion);
+    if (!savedCriterion.scoringStandard.trim() && !savedCriterion.label.trim()) {
+      return {
+        status: 'error',
+        message: '请填写评分标准或评分项名称后再生成。',
+        focus: 'scoring-item-name',
+      };
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(
+        `/api/teacher/assignments/${encodeURIComponent(baseline.assignmentId)}/rubric-guidelines/generate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            revisionId: baseline.revisionId,
+            expectedVersion: baseline.version,
+            questionId: savedQuestion.stableQuestionId,
+            scoringItemId: savedCriterion.id,
+            levelIds,
+            basis: input.basis,
+          }),
+        },
+      );
+    } catch {
+      return { status: 'error', message: 'AI 评分细则服务暂时无法连接。' };
+    }
+    const payload = await response.json().catch(() => ({})) as {
+      error?: string;
+      generated?: {
+        revisionId: string;
+        revisionVersion: number;
+        questionId: string;
+        scoringItemId: string;
+        levels: Array<{ levelId: string; guideline: string }>;
+      };
+    };
+    if (!response.ok || !payload.generated) {
+      const message = {
+        'rubric-generation-rate-limited': '生成请求过于频繁，请稍后再试。',
+        'rubric-generation-revision-stale': '草稿版本已变化，未应用生成结果。',
+        'rubric-generation-output-invalid': 'AI 返回的级别集合不完整，未改写现有内容。',
+        'rubric-generation-basis-missing': '请填写评分标准或评分项名称后再生成。',
+        'rubric-generation-basis-mismatch': '评分标准已存在，应以评分标准作为生成依据。',
+        'rubric-generation-unavailable': 'AI 评分细则服务暂时不可用。',
+      }[payload.error ?? ''] ?? '评分细则生成失败，现有内容未改变。';
+      return {
+        status: 'error',
+        message,
+        ...(payload.error === 'rubric-generation-basis-missing'
+          ? { focus: 'scoring-item-name' as const }
+          : {}),
+      };
+    }
+
+    const generated = payload.generated;
+    const latest = documentRef.current;
+    const latestQuestionIndex = latest.draft.questions.findIndex(
+      (item) => item.stableQuestionId === generated.questionId,
+    );
+    const latestQuestion = latest.draft.questions[latestQuestionIndex];
+    const latestRubric = latestQuestion
+      ? toScoringRubricV2(latestQuestion.rubric)
+      : null;
+    const latestCriterion = latestRubric?.criteria.find(
+      (item) => item.id === generated.scoringItemId,
+    );
+    if (latest.version !== generated.revisionVersion
+      || generated.revisionId !== latest.revisionId
+      || !latestQuestion
+      || !latestCriterion
+      || canonicalFingerprint(latestCriterion) !== requestedCriterionFingerprint) {
+      return { status: 'error', message: '生成期间评分细则已变化，结果未应用。' };
+    }
+    const nextQuestion = applyGeneratedRubricGuidelines(
+      {
+        ...latestQuestion,
+        rubric: latestRubric!,
+      },
+      generated.scoringItemId,
+      generated.levels,
+    );
+    if (!nextQuestion) {
+      return { status: 'error', message: '生成期间评分细则已变化，结果未应用。' };
+    }
+    const nextDocument = {
+      ...latest,
+      draft: {
+        ...latest.draft,
+        questions: latest.draft.questions.map((item, index) =>
+          index === latestQuestionIndex ? nextQuestion : item,
+        ),
+      },
+    };
+    documentRef.current = nextDocument;
+    setDocument(nextDocument);
+    setSaveState('dirty');
+    return { status: 'applied' };
   };
 
   if (loadState === 'loading')
@@ -485,7 +660,8 @@ export function AssignmentEditorWorkspace({
             <button
               type="button"
               onClick={() => void publish()}
-              disabled={published || publishing}
+              disabled={published || publishing || saveState !== 'saved'}
+              aria-describedby="assignment-publication-state"
               aria-busy={publishing}
               className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-cyan-600 px-4 font-medium text-white disabled:opacity-60"
             >
@@ -503,6 +679,16 @@ export function AssignmentEditorWorkspace({
         >
           自动保存：{saveLabel(saveState)}
         </p>
+        <p id="assignment-publication-state" className="sr-only">
+          {saveState === 'saved'
+            ? '当前内容已保存，可以发布'
+            : publicationRecoveryMessage(saveState)}
+        </p>
+        {saveState !== 'saved' && (
+          <p className="mb-4 text-sm text-amber-200">
+            {publicationRecoveryMessage(saveState)}
+          </p>
+        )}
         {saveState === 'conflict' && (
           <div
             ref={conflictRef}
@@ -648,10 +834,12 @@ export function AssignmentEditorWorkspace({
             </label>
             {question ? (
               <QuestionEditor
+                key={question.stableQuestionId}
                 question={question}
                 questionIndex={activeIndex}
                 registerValidationField={registerValidationField}
                 promptRef={promptRef}
+                onGenerateGuidelines={generateRubricGuidelines}
                 onChange={(next) =>
                   updateDraft((draft) => ({
                     ...draft,
@@ -683,8 +871,8 @@ export function AssignmentEditorWorkspace({
               作业总分
               <input
                 type="number"
-                step="0.01"
-                min="0.01"
+                step="0.1"
+                min="0.1"
                 max="10000"
                 value={document.draft.totalPoints}
                 onChange={(event) =>
@@ -833,43 +1021,9 @@ export function AssignmentEditorWorkspace({
                 />
               </label>
             )}
-            <label className="block text-xs text-slate-400">
-              允许作答类型
-              <select
-                ref={
-                  registerValidationField(
-                    'responsePolicy.allowedResponseTypes',
-                  ) as React.Ref<HTMLSelectElement>
-                }
-                aria-label="允许作答类型"
-                aria-describedby="assignment-validation-errors"
-                value={
-                  document.draft.responsePolicy.allowedResponseTypes.length ===
-                  2
-                    ? 'BOTH'
-                    : document.draft.responsePolicy.allowedResponseTypes[0]
-                }
-                onChange={(event) =>
-                  updateDraft((draft) => ({
-                    ...draft,
-                    responsePolicy: {
-                      version: 1,
-                      allowedResponseTypes:
-                        event.target.value === 'BOTH'
-                          ? ['SUBJECTIVE_TEXT', 'SUBJECTIVE_FILE']
-                          : [
-                              event.target.value as
-                                'SUBJECTIVE_TEXT' | 'SUBJECTIVE_FILE',
-                            ],
-                    },
-                  }))
-                }
-              >
-                <option value="SUBJECTIVE_TEXT">文本</option>
-                <option value="SUBJECTIVE_FILE">文件</option>
-                <option value="BOTH">文本与文件</option>
-              </select>
-            </label>
+            <div className="rounded-lg border border-slate-700 p-3 text-xs text-slate-400">
+              学生可在每题同时提交 Markdown 正文、图片和附件。历史作答类型仅保留在发布快照中供审计。
+            </div>
             <label className="block text-xs text-slate-400">
               最多提交次数
               <input
@@ -1094,12 +1248,21 @@ export function AssignmentEditorWorkspace({
 }
 
 type EditableQuestion = AssignmentDraftInput['questions'][number];
+type ScoringRubricV2 = Extract<
+  EditableQuestion['rubric'],
+  { schemaVersion: 'assignment-scoring-rubric.v2' }
+>;
+type EditableQuestionV2 = Omit<EditableQuestion, 'rubric'> & {
+  rubric: ScoringRubricV2;
+};
+type ScoringCriterionV2 = ScoringRubricV2['criteria'][number];
 
 function QuestionEditor({
   question,
   questionIndex,
   registerValidationField,
   promptRef,
+  onGenerateGuidelines,
   onChange,
 }: {
   question: EditableQuestion;
@@ -1108,59 +1271,156 @@ function QuestionEditor({
     path: string,
   ) => (element: HTMLElement | null) => void;
   promptRef: React.RefObject<HTMLTextAreaElement | null>;
+  onGenerateGuidelines: (input: {
+    question: EditableQuestionV2;
+    scoringItemId: string;
+    basis: RubricGenerationBasis;
+  }) => Promise<RubricGenerationResult>;
   onChange: (question: EditableQuestion) => void;
 }) {
+  const editableQuestion: EditableQuestionV2 = {
+    ...question,
+    rubric: toScoringRubricV2(question.rubric),
+  };
+  const [rubricDialog, setRubricDialog] = useState<
+    | {
+        mode: 'missing-standard';
+        criterionIndex: number;
+        standardDraft: string;
+      }
+    | {
+        mode: 'overwrite';
+        criterionIndex: number;
+        basis: RubricGenerationBasis;
+      }
+    | null
+  >(null);
+  const [generatingCriterionId, setGeneratingCriterionId] = useState<string | null>(null);
+  const [rubricGenerationMessage, setRubricGenerationMessage] = useState('');
+  const dialogPrimaryRef = useRef<HTMLTextAreaElement | HTMLButtonElement>(null);
+  const criterionNameRefs = useRef(new Map<number, HTMLInputElement>());
+  const scoringStandardRefs = useRef(new Map<number, HTMLTextAreaElement>());
+  useEffect(() => {
+    if (rubricDialog) window.setTimeout(() => dialogPrimaryRef.current?.focus(), 0);
+  }, [rubricDialog]);
+  const editedLevelIdsRef = useRef(new Map(
+    editableQuestion.rubric.criteria.map((criterion) => [
+      criterion.id,
+      inferEditedRubricLevelIds({
+        criterionId: criterion.id,
+        criterionMaxPoints: criterion.maxPoints,
+        levels: criterion.levels,
+      }),
+    ]),
+  ));
+  const editedLevelFieldKeysRef = useRef(new Set(
+    editableQuestion.rubric.criteria.flatMap((criterion) => {
+      const editedIds = editedLevelIdsRef.current.get(criterion.id) ?? new Set<string>();
+      return criterion.levels.flatMap((level) => editedIds.has(level.id)
+        ? ['label', 'maxPoints', 'guideline'].map((field) => `${criterion.id}:${level.id}:${field}`)
+        : []);
+    }),
+  ));
   const updateCriterion = (
     index: number,
-    update: (
-      criterion: EditableQuestion['rubric']['criteria'][number],
-    ) => EditableQuestion['rubric']['criteria'][number],
+    update: (criterion: ScoringCriterionV2) => ScoringCriterionV2,
   ) =>
     onChange({
-      ...question,
+      ...editableQuestion,
       rubric: {
-        ...question.rubric,
-        criteria: question.rubric.criteria.map((criterion, itemIndex) =>
+        ...editableQuestion.rubric,
+        criteria: editableQuestion.rubric.criteria.map((criterion, itemIndex) =>
           itemIndex === index ? update(criterion) : criterion,
         ),
       },
     });
+  const questionWithCriterion = (
+    index: number,
+    update: (criterion: ScoringCriterionV2) => ScoringCriterionV2,
+  ): EditableQuestionV2 => ({
+    ...editableQuestion,
+    rubric: {
+      ...editableQuestion.rubric,
+      criteria: editableQuestion.rubric.criteria.map((criterion, itemIndex) =>
+        itemIndex === index ? update(criterion) : criterion,
+      ),
+    },
+  });
+  const focusGenerationBasis = (
+    index: number,
+    focus: 'scoring-item-name' | 'scoring-standard',
+  ) => {
+    window.setTimeout(() => {
+      if (focus === 'scoring-standard') scoringStandardRefs.current.get(index)?.focus();
+      else criterionNameRefs.current.get(index)?.focus();
+    }, 0);
+  };
+  const runRubricGeneration = async (
+    index: number,
+    basis: RubricGenerationBasis,
+    preparedQuestion = editableQuestion,
+  ) => {
+    const criterion = preparedQuestion.rubric.criteria[index];
+    if (!criterion) return;
+    setRubricDialog(null);
+    setGeneratingCriterionId(criterion.id);
+    setRubricGenerationMessage('正在生成整组评分准则……');
+    const result = await onGenerateGuidelines({
+      question: preparedQuestion,
+      scoringItemId: criterion.id,
+      basis,
+    });
+    setGeneratingCriterionId(null);
+    if (result.status === 'applied') {
+      setRubricGenerationMessage('已填写全部评价级别；结果仍是可编辑草稿。');
+      return;
+    }
+    setRubricGenerationMessage(result.message);
+    if (result.focus) focusGenerationBasis(index, result.focus);
+  };
+  const requestRubricGeneration = (index: number) => {
+    const criterion = editableQuestion.rubric.criteria[index];
+    if (!criterion) return;
+    const standard = criterion.scoringStandard.trim();
+    const name = criterion.label.trim();
+    if (!standard && !name) {
+      setRubricGenerationMessage('请先填写评分标准或评分项名称。');
+      focusGenerationBasis(index, 'scoring-item-name');
+      return;
+    }
+    if (!standard) {
+      setRubricDialog({
+        mode: 'missing-standard',
+        criterionIndex: index,
+        standardDraft: '',
+      });
+      return;
+    }
+    if (criterion.levels.some((level) => level.guideline.trim())) {
+      setRubricDialog({
+        mode: 'overwrite',
+        criterionIndex: index,
+        basis: 'scoring-standard',
+      });
+      return;
+    }
+    void runRubricGeneration(index, 'scoring-standard');
+  };
   return (
     <>
       <section aria-labelledby="prompt-title">
         <h2 id="prompt-title" className="text-lg font-semibold text-white">
           题面
         </h2>
-        <label className="mt-2 block text-xs text-slate-400">
-          作答类型
-          <select
-            ref={
-              registerValidationField(
-                `questions.${questionIndex}.responseType`,
-              ) as React.Ref<HTMLSelectElement>
-            }
-            aria-label="作答类型"
-            aria-describedby="assignment-validation-errors"
-            value={question.responseType}
-            onChange={(event) =>
-              onChange({
-                ...question,
-                responseType: event.target
-                  .value as EditableQuestion['responseType'],
-              })
-            }
-            className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
-          >
-            <option value="SUBJECTIVE_TEXT">文本作答</option>
-            <option value="SUBJECTIVE_FILE">文件作答</option>
-          </select>
-        </label>
+        <p className="mt-2 text-xs text-slate-400">
+          统一作答：学生可提交 Markdown 正文、图片、附件或其组合。
+        </p>
         <textarea
           ref={promptRef}
           aria-label="题面"
-          value={question.prompt}
+          value={editableQuestion.prompt}
           onChange={(event) =>
-            onChange({ ...question, prompt: event.target.value })
+            onChange({ ...editableQuestion, prompt: event.target.value })
           }
           className="mt-2 min-h-36 w-full rounded-xl border border-slate-700 bg-slate-950 p-3"
         />
@@ -1171,9 +1431,9 @@ function QuestionEditor({
         </h2>
         <textarea
           aria-label="参考答案"
-          value={question.referenceAnswer}
+          value={editableQuestion.referenceAnswer}
           onChange={(event) =>
-            onChange({ ...question, referenceAnswer: event.target.value })
+            onChange({ ...editableQuestion, referenceAnswer: event.target.value })
           }
           className="mt-2 min-h-28 w-full rounded-xl border border-slate-700 bg-slate-950 p-3"
         />
@@ -1185,17 +1445,17 @@ function QuestionEditor({
               评分标准
             </h2>
             <p className="mt-1 text-xs text-slate-400">
-              分值最多保留两位小数；档位按 0.01 分连续覆盖最高分至 0 分。
+              所有分值保留一位小数；评分标准为默认依据，评分细则按需启用。
             </p>
           </div>
           <button
             type="button"
             onClick={() =>
               onChange({
-                ...question,
+                ...editableQuestion,
                 rubric: {
-                  ...question.rubric,
-                  criteria: [...question.rubric.criteria, newCriterion()],
+                  ...editableQuestion.rubric,
+                  criteria: [...editableQuestion.rubric.criteria, newCriterion()],
                 },
               })
             }
@@ -1208,28 +1468,62 @@ function QuestionEditor({
           题目分值
           <input
             type="number"
-            step="0.01"
-            min="0.01"
+            step="0.1"
+            min="1"
             max="10000"
-            value={question.points}
+            value={editableQuestion.points}
             onChange={(event) =>
-              onChange({ ...question, points: Number(event.target.value) })
+              onChange({ ...editableQuestion, points: Number(event.target.value) })
             }
             className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
           />
         </label>
-        {question.rubric.criteria.map((criterion, index) => (
+        {editableQuestion.rubric.criteria.map((criterion, index) => {
+          const ranges = deriveRubricLevelRanges(criterion.levels, criterion.maxPoints);
+          const editedLevelIds = editedLevelIdsRef.current.get(criterion.id) ?? new Set<string>();
+          const applyShortcut = (targetCount: 2 | 5) => {
+            let result = applyRubricLevelShortcut({
+              criterionId: criterion.id,
+              criterionMaxPoints: criterion.maxPoints,
+              levels: criterion.levels,
+              targetCount,
+              editedLevelIds,
+            });
+            if (result.status === 'confirmation-required') {
+              const deletionSummary = result.trailingLevels
+                .map((level) => `${level.label}（${level.maxPoints} 分；${level.guideline}）`)
+                .join('、');
+              const confirmed = window.confirm(
+                `将删除末尾级别：${deletionSummary}。是否继续？`,
+              );
+              if (!confirmed) return;
+              result = applyRubricLevelShortcut({
+                criterionId: criterion.id,
+                criterionMaxPoints: criterion.maxPoints,
+                levels: criterion.levels,
+                targetCount,
+                editedLevelIds,
+                confirmTrailingDeletion: true,
+              });
+            }
+            if (result.status === 'applied') {
+              updateCriterion(index, (item) => ({ ...item, levels: result.levels }));
+            }
+          };
+          return (
           <article
             key={criterion.id}
             className="mt-3 rounded-xl border border-slate-700 p-3"
           >
             <div className="flex gap-2">
               <input
-                ref={
+                ref={(element) => {
                   registerValidationField(
                     `questions.${questionIndex}.rubric.criteria.${index}.label`,
-                  ) as React.Ref<HTMLInputElement>
-                }
+                  )(element);
+                  if (element) criterionNameRefs.current.set(index, element);
+                  else criterionNameRefs.current.delete(index);
+                }}
                 aria-label={`评分项 ${index + 1} 名称`}
                 aria-describedby="assignment-validation-errors"
                 value={criterion.label}
@@ -1247,10 +1541,10 @@ function QuestionEditor({
                 disabled={index === 0}
                 onClick={() =>
                   onChange({
-                    ...question,
+                    ...editableQuestion,
                     rubric: {
-                      ...question.rubric,
-                      criteria: moveItem(question.rubric.criteria, index, -1),
+                      ...editableQuestion.rubric,
+                      criteria: moveItem(editableQuestion.rubric.criteria, index, -1),
                     },
                   })
                 }
@@ -1260,13 +1554,13 @@ function QuestionEditor({
               <button
                 type="button"
                 aria-label={`下移评分项 ${index + 1}`}
-                disabled={index === question.rubric.criteria.length - 1}
+                disabled={index === editableQuestion.rubric.criteria.length - 1}
                 onClick={() =>
                   onChange({
-                    ...question,
+                    ...editableQuestion,
                     rubric: {
-                      ...question.rubric,
-                      criteria: moveItem(question.rubric.criteria, index, 1),
+                      ...editableQuestion.rubric,
+                      criteria: moveItem(editableQuestion.rubric.criteria, index, 1),
                     },
                   })
                 }
@@ -1276,13 +1570,13 @@ function QuestionEditor({
               <button
                 type="button"
                 aria-label={`删除评分项 ${index + 1}`}
-                disabled={question.rubric.criteria.length === 1}
+                disabled={editableQuestion.rubric.criteria.length === 1}
                 onClick={() =>
                   onChange({
-                    ...question,
+                    ...editableQuestion,
                     rubric: {
-                      ...question.rubric,
-                      criteria: question.rubric.criteria.filter(
+                      ...editableQuestion.rubric,
+                      criteria: editableQuestion.rubric.criteria.filter(
                         (_, itemIndex) => itemIndex !== index,
                       ),
                     },
@@ -1303,15 +1597,19 @@ function QuestionEditor({
                   }
                   type="number"
                   aria-describedby="assignment-validation-errors"
-                  step="0.01"
-                  min="0.01"
+                  step="0.1"
+                  min="1"
                   max="10000"
                   value={criterion.maxPoints}
                   onChange={(event) =>
-                    updateCriterion(index, (item) => ({
-                      ...item,
-                      maxPoints: Number(event.target.value),
-                    }))
+                    updateCriterion(index, (item) => {
+                      const maxPoints = Number(event.target.value);
+                      return {
+                        ...item,
+                        maxPoints,
+                        levels: sortRubricLevels(item.levels, maxPoints),
+                      };
+                    })
                   }
                   className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
                 />
@@ -1329,49 +1627,139 @@ function QuestionEditor({
                   className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
                 />
               </label>
+              <label className="text-xs text-slate-400">
+                能力维度
+                <select
+                  aria-label={`评分项 ${index + 1} 能力维度`}
+                  value={criterion.goalDimension ?? 'engineeringDecision'}
+                  onChange={(event) =>
+                    updateCriterion(index, (item) => ({
+                      ...item,
+                      goalDimension: event.target.value as ScoringCriterionV2['goalDimension'],
+                    }))
+                  }
+                  className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+                >
+                  {ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS.map((dimension) => (
+                    <option key={dimension} value={dimension}>
+                      {RUBRIC_GOAL_DIMENSION_LABELS[dimension]}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
             <label className="mt-2 block text-xs text-slate-400">
-              证据描述
+              评分标准
               <textarea
-                value={criterion.evidenceDescription}
+                ref={(element) => {
+                  if (element) scoringStandardRefs.current.set(index, element);
+                  else scoringStandardRefs.current.delete(index);
+                }}
+                value={criterion.scoringStandard}
                 onChange={(event) =>
                   updateCriterion(index, (item) => ({
                     ...item,
-                    evidenceDescription: event.target.value,
+                    scoringStandard: event.target.value,
                   }))
                 }
                 className="mt-1 min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"
               />
             </label>
-            <label className="mt-2 block text-xs text-slate-400">
-              反馈指导
-              <textarea
-                value={criterion.feedbackGuidance}
-                onChange={(event) =>
+            <label className="mt-2 flex min-h-11 items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={criterion.detailedRubricEnabled}
+                onChange={(event) => {
+                  const enabled = event.target.checked;
+                  if (!enabled && criterion.levels.length > 0) {
+                    const deletionSummary = criterion.levels
+                      .map((level) => `${level.label}（${level.maxPoints} 分；${level.guideline}）`)
+                      .join('、');
+                    if (!window.confirm(`将删除全部评价级别：${deletionSummary}。是否继续？`)) {
+                      return;
+                    }
+                  }
                   updateCriterion(index, (item) => ({
                     ...item,
-                    feedbackGuidance: event.target.value,
-                  }))
-                }
-                className="mt-1 min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"
+                    detailedRubricEnabled: enabled,
+                    levels: enabled
+                      ? item.levels.length > 0
+                        ? item.levels
+                        : [createInitialDetailedLevel(item.id, item.maxPoints)]
+                      : [],
+                  }));
+                }}
               />
+              启用详细评分细则
             </label>
-            <button
-              type="button"
-              onClick={() =>
-                updateCriterion(index, (item) => ({
-                  ...item,
-                  levels: [...item.levels, newLevel()],
-                }))
-              }
-              className="mt-2 min-h-10 rounded-lg border border-slate-700 px-3 text-xs"
-            >
-              添加分数档位
-            </button>
-            {criterion.levels.map((level, levelIndex) => (
+            {criterion.detailedRubricEnabled && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => requestRubricGeneration(index)}
+                  disabled={generatingCriterionId !== null}
+                  aria-describedby="rubric-generation-status"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-violet-600 px-3 text-xs font-medium text-white disabled:opacity-60"
+                >
+                  {generatingCriterionId === criterion.id
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Sparkles className="h-4 w-4" />}
+                  AI 填写全部准则
+                </button>
+                <button type="button" onClick={() => applyShortcut(5)} className="min-h-10 rounded-lg border border-slate-700 px-3 text-xs">
+                  五级制
+                </button>
+                <button type="button" onClick={() => applyShortcut(2)} className="min-h-10 rounded-lg border border-slate-700 px-3 text-xs">
+                  两级制
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const result = addDetailedRubricLevel({
+                      criterionId: criterion.id,
+                      criterionMaxPoints: criterion.maxPoints,
+                      levels: criterion.levels,
+                    });
+                    if (result.status === 'applied') {
+                      updateCriterion(index, (item) => ({ ...item, levels: result.levels }));
+                    }
+                  }}
+                  className="min-h-10 rounded-lg border border-slate-700 px-3 text-xs"
+                >
+                  添加评价级别
+                </button>
+              </div>
+            )}
+            {criterion.detailedRubricEnabled && criterion.levels.map((level, levelIndex) => {
+                const range = ranges.find((candidate) => candidate.id === level.id);
+                const isHighestLevel = range?.upperBoundaryInclusive === true;
+                const fieldKey = (field: 'label' | 'maxPoints' | 'guideline') =>
+                  `${criterion.id}:${level.id}:${field}`;
+                const preservePristineSelection = (
+                  event: React.MouseEvent<HTMLInputElement>,
+                  field: 'label' | 'maxPoints' | 'guideline',
+                ) => {
+                  if (!editedLevelFieldKeysRef.current.has(fieldKey(field))) {
+                    event.preventDefault();
+                  }
+                };
+                const selectPristineValue = (
+                  event: React.FocusEvent<HTMLInputElement>,
+                  field: 'label' | 'maxPoints' | 'guideline',
+                ) => {
+                  if (!editedLevelFieldKeysRef.current.has(fieldKey(field))) {
+                    event.currentTarget.select();
+                  }
+                };
+                const markFieldEdited = (field: 'label' | 'maxPoints' | 'guideline') => {
+                  editedLevelFieldKeysRef.current.add(fieldKey(field));
+                  editedLevelIds.add(level.id);
+                  editedLevelIdsRef.current.set(criterion.id, editedLevelIds);
+                };
+              return (
               <div
                 key={level.id}
-                className="mt-2 grid gap-2 rounded-lg bg-slate-950/60 p-2 md:grid-cols-4"
+                className="mt-2 grid gap-2 rounded-lg bg-slate-950/60 p-2 md:grid-cols-3"
               >
                 <input
                   ref={
@@ -1382,78 +1770,74 @@ function QuestionEditor({
                   aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 名称`}
                   aria-describedby="assignment-validation-errors"
                   value={level.label}
+                  onFocus={(event) => selectPristineValue(event, 'label')}
+                  onMouseUp={(event) => preservePristineSelection(event, 'label')}
                   onChange={(event) =>
-                    updateCriterion(index, (item) => ({
-                      ...item,
-                      levels: item.levels.map((entry, itemIndex) =>
-                        itemIndex === levelIndex
-                          ? { ...entry, label: event.target.value }
-                          : entry,
-                      ),
-                    }))
-                  }
-                />
-                <input
-                  ref={
-                    registerValidationField(
-                      `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.minPoints`,
-                    ) as React.Ref<HTMLInputElement>
-                  }
-                  aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 最低分`}
-                  aria-describedby="assignment-validation-errors"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={criterion.maxPoints}
-                  value={level.minPoints}
-                  onChange={(event) =>
-                    updateCriterion(index, (item) => ({
-                      ...item,
-                      levels: item.levels.map((entry, itemIndex) =>
-                        itemIndex === levelIndex
-                          ? { ...entry, minPoints: Number(event.target.value) }
-                          : entry,
-                      ),
-                    }))
-                  }
-                />
-                <input
-                  ref={
-                    registerValidationField(
-                      `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.maxPoints`,
-                    ) as React.Ref<HTMLInputElement>
-                  }
-                  aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 最高分`}
-                  aria-describedby="assignment-validation-errors"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={criterion.maxPoints}
-                  value={level.maxPoints}
-                  onChange={(event) =>
-                    updateCriterion(index, (item) => ({
-                      ...item,
-                      levels: item.levels.map((entry, itemIndex) =>
-                        itemIndex === levelIndex
-                          ? { ...entry, maxPoints: Number(event.target.value) }
-                          : entry,
-                      ),
-                    }))
-                  }
-                />
-                <div>
-                  <input
-                    aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 描述`}
-                    value={level.description}
-                    onChange={(event) =>
+                    {
+                      markFieldEdited('label');
                       updateCriterion(index, (item) => ({
                         ...item,
                         levels: item.levels.map((entry, itemIndex) =>
                           itemIndex === levelIndex
-                            ? { ...entry, description: event.target.value }
+                            ? { ...entry, label: event.target.value }
                             : entry,
                         ),
-                      }))
+                      }));
+                    }
+                  }
+                />
+                <label className="text-xs text-slate-400">
+                  {isHighestLevel ? '最高级别上限（同步满分）' : `区间 ${range?.minPoints ?? 0}–${range?.maxInclusivePoints ?? 0}`}
+                  <input
+                    ref={registerValidationField(
+                      `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.maxPoints`,
+                    ) as React.Ref<HTMLInputElement>}
+                    aria-label={`评分项 ${index + 1} 级别 ${levelIndex + 1} 分值边界`}
+                    aria-describedby="assignment-validation-errors"
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    max={criterion.maxPoints}
+                    disabled={isHighestLevel}
+                    value={level.maxPoints}
+                    onFocus={(event) => selectPristineValue(event, 'maxPoints')}
+                    onMouseUp={(event) => preservePristineSelection(event, 'maxPoints')}
+                    onChange={(event) =>
+                      {
+                        markFieldEdited('maxPoints');
+                        updateCriterion(index, (item) => ({
+                          ...item,
+                          levels: sortRubricLevels(
+                            item.levels.map((entry, itemIndex) =>
+                              itemIndex === levelIndex
+                                ? { ...entry, maxPoints: Number(event.target.value) }
+                                : entry,
+                            ),
+                            item.maxPoints,
+                          ),
+                        }));
+                      }
+                    }
+                  />
+                </label>
+                <div>
+                  <input
+                    aria-label={`评分项 ${index + 1} 级别 ${levelIndex + 1} 评分准则`}
+                    value={level.guideline}
+                    onFocus={(event) => selectPristineValue(event, 'guideline')}
+                    onMouseUp={(event) => preservePristineSelection(event, 'guideline')}
+                    onChange={(event) =>
+                      {
+                        markFieldEdited('guideline');
+                        updateCriterion(index, (item) => ({
+                          ...item,
+                          levels: item.levels.map((entry, itemIndex) =>
+                            itemIndex === levelIndex
+                              ? { ...entry, guideline: event.target.value }
+                              : entry,
+                          ),
+                        }));
+                      }
                     }
                   />
                   <div className="flex gap-2">
@@ -1499,12 +1883,158 @@ function QuestionEditor({
                       删除
                     </button>
                   </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </article>
-        ))}
+          );
+        })}
       </section>
+      {rubricGenerationMessage && (
+        <p
+          id="rubric-generation-status"
+          role="status"
+          aria-live="polite"
+          className="mt-3 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-sm text-violet-100"
+        >
+          {rubricGenerationMessage}
+        </p>
+      )}
+      {rubricDialog && (() => {
+        const criterion = editableQuestion.rubric.criteria[rubricDialog.criterionIndex];
+        if (!criterion) return null;
+        const hasExistingGuidelines = criterion.levels.some(
+          (level) => level.guideline.trim(),
+        );
+        const isMissingStandard = rubricDialog.mode === 'missing-standard';
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') setRubricDialog(null);
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="rubric-ai-dialog-title"
+              className="w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-5 shadow-2xl"
+            >
+              <h3 id="rubric-ai-dialog-title" className="text-lg font-semibold text-white">
+                {isMissingStandard ? '补充评分标准' : '覆盖全部评分准则？'}
+              </h3>
+              {isMissingStandard ? (
+                <>
+                  <p className="mt-2 text-sm text-slate-300">
+                    AI 优先依据评分标准生成。可以先保存评分标准，也可以明确忽略并使用评分项名称“{criterion.label}”。
+                  </p>
+                  {hasExistingGuidelines && (
+                    <p className="mt-2 text-sm font-medium text-amber-300">
+                      当前已有评分准则；继续生成会一次性替换全部级别的现有准则。
+                    </p>
+                  )}
+                  <label className="mt-4 block text-sm text-slate-200">
+                    评分标准
+                    <textarea
+                      ref={dialogPrimaryRef as React.Ref<HTMLTextAreaElement>}
+                      value={rubricDialog.standardDraft}
+                      onChange={(event) => {
+                        const standardDraft = event.target.value;
+                        setRubricDialog((current) =>
+                          current?.mode === 'missing-standard'
+                            ? { ...current, standardDraft }
+                            : current,
+                        );
+                      }}
+                      rows={4}
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white"
+                    />
+                  </label>
+                  {!criterion.label.trim() && (
+                    <p className="mt-2 text-sm text-amber-300">
+                      评分项名称为空，不能忽略评分标准。
+                    </p>
+                  )}
+                  <div className="mt-5 flex flex-wrap justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRubricDialog(null)}
+                      className="min-h-10 rounded-lg border border-slate-600 px-4 text-sm"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!criterion.label.trim()}
+                      onClick={() => {
+                        void runRubricGeneration(
+                          rubricDialog.criterionIndex,
+                          'scoring-item-name',
+                        );
+                      }}
+                      className="min-h-10 rounded-lg border border-violet-400 px-4 text-sm text-violet-100 disabled:opacity-50"
+                    >
+                      {hasExistingGuidelines
+                        ? '忽略评分标准并覆盖生成'
+                        : '忽略评分标准，使用评分项名称'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!rubricDialog.standardDraft.trim()}
+                      onClick={() => {
+                        const preparedQuestion = questionWithCriterion(
+                          rubricDialog.criterionIndex,
+                          (item) => ({
+                            ...item,
+                            scoringStandard: rubricDialog.standardDraft,
+                          }),
+                        );
+                        void runRubricGeneration(
+                          rubricDialog.criterionIndex,
+                          'scoring-standard',
+                          preparedQuestion,
+                        );
+                      }}
+                      className="min-h-10 rounded-lg bg-violet-600 px-4 text-sm font-medium text-white disabled:opacity-50"
+                    >
+                      {hasExistingGuidelines ? '保存并覆盖生成' : '保存并生成'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="mt-2 text-sm text-slate-300">
+                    当前评分项已有内容。继续后将一次性替换全部评价级别的评分准则；级别名称、分值、数量和顺序不会改变。
+                  </p>
+                  <div className="mt-5 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRubricDialog(null)}
+                      className="min-h-10 rounded-lg border border-slate-600 px-4 text-sm"
+                    >
+                      取消
+                    </button>
+                    <button
+                      ref={dialogPrimaryRef as React.Ref<HTMLButtonElement>}
+                      type="button"
+                      onClick={() => {
+                        void runRubricGeneration(
+                          rubricDialog.criterionIndex,
+                          rubricDialog.basis,
+                        );
+                      }}
+                      className="min-h-10 rounded-lg bg-violet-600 px-4 text-sm font-medium text-white"
+                    >
+                      覆盖全部评分准则
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </>
   );
 }
@@ -1517,55 +2047,58 @@ function manualQuestion(index: number): EditableQuestion {
     prompt: '请输入题面',
     referenceAnswer: '请输入参考答案',
     rubric: {
-      schemaVersion: 'assignment-analytic-rubric.v1',
+      schemaVersion: 'assignment-scoring-rubric.v2',
       criteria: [
         {
           id: 'criterion-1',
           label: '完成质量',
+          goalDimension: 'engineeringDecision',
           maxPoints: 10,
-          evidenceDescription: '根据作答证据评分',
-          feedbackGuidance: '指出关键得分点与改进建议',
-          levels: [
-            {
-              id: 'level-1',
-              label: '达成',
-              minPoints: 0,
-              maxPoints: 10,
-              description: '按证据判定',
-            },
-          ],
+          scoringStandard: '根据作答证据的正确性、完整性和可复核程度评分。',
+          detailedRubricEnabled: false,
+          levels: [],
         },
       ],
     },
     source: { family: 'MANUAL', authoringMarker: 'assignment-authoring' },
   };
 }
-function newCriterion(): EditableQuestion['rubric']['criteria'][number] {
+function newCriterion(): ScoringCriterionV2 {
   const id = `criterion-${Date.now()}`;
   return {
     id,
     label: '新评分项',
+    goalDimension: 'engineeringDecision',
     maxPoints: 1,
-    evidenceDescription: '说明可复核证据。',
-    feedbackGuidance: '说明反馈重点。',
-    levels: [
-      {
-        id: `${id}-level`,
-        label: '达成程度',
-        minPoints: 0,
-        maxPoints: 1,
-        description: '依据证据评分。',
-      },
-    ],
+    scoringStandard: '依据作答证据评分。',
+    detailedRubricEnabled: false,
+    levels: [],
   };
 }
-function newLevel(): EditableQuestion['rubric']['criteria'][number]['levels'][number] {
+
+function toScoringRubricV2(rubric: EditableQuestion['rubric']): ScoringRubricV2 {
+  if (rubric.schemaVersion === 'assignment-scoring-rubric.v2') return rubric;
   return {
-    id: `level-${Date.now()}`,
-    label: '新档位',
-    minPoints: 0,
-    maxPoints: 0,
-    description: '说明该档位的证据要求。',
+    schemaVersion: 'assignment-scoring-rubric.v2',
+    criteria: rubric.criteria.map((criterion) => ({
+      id: criterion.id,
+      label: criterion.label,
+      goalDimension: criterion.goalDimension ?? 'engineeringDecision',
+      maxPoints: Math.ceil(criterion.maxPoints * 10) / 10,
+      scoringStandard: criterion.evidenceDescription,
+      detailedRubricEnabled: true,
+      evidenceDescription: criterion.evidenceDescription,
+      feedbackGuidance: criterion.feedbackGuidance,
+      studentVisibleGuidance: criterion.studentVisibleGuidance,
+      levels: criterion.levels.map((level, index) => ({
+        id: level.id,
+        label: level.label,
+        maxPoints: index === 0
+          ? Math.ceil(criterion.maxPoints * 10) / 10
+          : Math.ceil(criterion.levels[index - 1].minPoints * 10) / 10,
+        guideline: level.description,
+      })),
+    })),
   };
 }
 function moveItem<T>(items: T[], index: number, delta: number): T[] {
@@ -1621,11 +2154,11 @@ function blockerLabel(value: string) {
     if (path === 'latePolicy.penaltyPercentPerDay')
       return '迟交扣分比例必须在 0% 至 100% 之间';
     if (path.includes('.rubric.criteria.') && path.includes('.levels.'))
-      return message.includes('0.01') || message.includes('score-bands')
-        ? '评分档位须按 0.01 分连续覆盖且不得重叠'
-        : '补全评分档位字段';
+      return message.includes('0.1') || message.includes('level-maximum')
+        ? '评价级别须使用一位小数并形成有效降序区间'
+        : '补全评价级别字段';
     if (path.includes('.rubric.criteria.'))
-      return '补全评分项名称、分值、证据与反馈指导';
+      return '补全评分项名称、分值与评分标准';
     return `修正字段：${path || '作业草稿'}`;
   }
   if (value.startsWith('assignment-total-mismatch'))
@@ -1653,10 +2186,21 @@ function mergeSaveResponse(
       ...current,
       assignmentId: String(assignment.id),
       revisionId: String(created.id),
+      contentDigest:
+        typeof created.contentHash === 'string' ? created.contentHash : undefined,
       version: Number(created.version),
     };
   }
-  return revision ? { ...current, version: Number(revision.version) } : current;
+  return revision
+    ? {
+        ...current,
+        contentDigest:
+          typeof revision.contentHash === 'string'
+            ? revision.contentHash
+            : undefined,
+        version: Number(revision.version),
+      }
+    : current;
 }
 function fromApiAssignment(
   assignment: Record<string, unknown>,
@@ -1682,6 +2226,10 @@ function fromApiAssignment(
   return {
     assignmentId: String(assignment.id),
     revisionId: String(revision.id),
+    contentDigest:
+      typeof revision.contentHash === 'string'
+        ? revision.contentHash
+        : undefined,
     version: Number(revision.version),
     draft: {
       title: String(revision.title),
@@ -1752,4 +2300,25 @@ function canonicalFingerprint(value: unknown): string {
       )
       .join(',')}}`;
   return JSON.stringify(value);
+}
+
+function publicationRecoveryMessage(state: SaveState): string {
+  if (state === 'saving') return '正在保存，请等待“已保存”后再发布。';
+  if (state === 'error') return '保存失败，请重试保存后再发布。';
+  if (state === 'conflict') return '存在版本冲突，请重新加载并解决冲突后再发布。';
+  if (state === 'dirty') return '当前修改尚未保存，请先保存后再发布。';
+  return '请先保存当前作业，再执行发布。';
+}
+
+function publicationErrorMessage(error: string | undefined, details: string[] | undefined): string {
+  if (error === 'version-conflict' || error === 'publication-content-digest-mismatch') {
+    return '保存基线已过期，请重新加载并确认最新内容后再发布。';
+  }
+  if (error === 'publication-baseline-already-published') {
+    return '该保存基线已经发布，请返回作业列表查看结果。';
+  }
+  if (error === 'publication-conflict-retryable') {
+    return '发布并发冲突，请保持当前已保存内容并重试。';
+  }
+  return details?.join('；') ?? '发布失败，请核对发布计划。';
 }

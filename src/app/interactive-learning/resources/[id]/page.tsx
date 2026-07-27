@@ -18,6 +18,7 @@ import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verifi
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 import type { WidgetResult } from '@/resources/widgets/widget-props';
+import { selectResourceCompletionHandler } from './completion-boundary';
 
 export default function InteractiveResourcePage() {
   const params = useParams() as { id?: string } | null;
@@ -75,6 +76,14 @@ export default function InteractiveResourcePage() {
         recoveryAction: `返回${sourceContext.label}并重新选择资源`,
       })
     : null;
+  const showLocalReturnAction = !pathLaunchContext;
+  const breadcrumbs = [
+    { label: '互动学习', href: '/interactive-learning' },
+    pathLaunchContext
+      ? { label: sourceContext.label }
+      : { label: sourceContext.label, href: sourceContext.href },
+    { label: resource?.title || '互动资源' },
+  ];
 
   useEffect(() => {
     if (!resourceId) return;
@@ -99,7 +108,7 @@ export default function InteractiveResourcePage() {
     fetchResource();
   }, [resourceId]);
 
-  const handlePathResourceComplete = async (result?: WidgetResult) => {
+  const completePathResource = async (result?: WidgetResult) => {
     if (!pathLaunchContext && feedbackContext) {
       window.location.assign(buildFeedbackTaskHref(feedbackContext.returnHref, feedbackContext, {
         status: 'completed',
@@ -114,32 +123,38 @@ export default function InteractiveResourcePage() {
     });
     if (!request) return;
 
+    const response = await fetch(request.href, {
+      method: request.method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request.body),
+    });
+    if (!response.ok) {
+      throw new Error(`Path resource completion rejected with status ${response.status}`);
+    }
+    publishAdaptivePathJourneyResponse(await response.json().catch(() => null));
+  };
+
+  const handlePathResourceComplete = async (result?: WidgetResult) => {
     try {
-      const response = await fetch(request.href, {
-        method: request.method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request.body),
-      });
-      if (!response.ok) {
-        throw new Error(`Path resource completion rejected with status ${response.status}`);
-      }
-      publishAdaptivePathJourneyResponse(await response.json().catch(() => null));
+      await completePathResource(result);
     } catch (completionError) {
       console.error('Failed to write path resource completion', completionError);
     }
   };
+
+  const resourceCompletionHandler = selectResourceCompletionHandler(
+    resource?.registryId,
+    completePathResource,
+    handlePathResourceComplete,
+  );
 
   return (
     <InteractiveLearningShell
       activeHref={resourceId ? `/interactive-learning/resources/${resourceId}` : '/interactive-learning/resources/[id]'}
       title={resource?.title || '互动资源'}
       subtitle="Interactive resource workspace"
-      breadcrumbs={[
-        { label: '互动学习', href: '/interactive-learning' },
-        { label: sourceContext.label, href: sourceContext.href },
-        { label: resource?.title || '互动资源' },
-      ]}
-      actions={(
+      breadcrumbs={breadcrumbs}
+      actions={showLocalReturnAction ? (
         <Link
           href={sourceContext.href}
           className="inline-flex items-center gap-2 rounded-md border border-platform-border bg-platform-surface px-3 py-2 text-sm text-platform-fg-secondary transition hover:border-platform-border-strong hover:text-platform-action-primary"
@@ -147,7 +162,7 @@ export default function InteractiveResourcePage() {
           <ArrowLeft className="h-4 w-4" />
           返回{sourceContext.label}
         </Link>
-      )}
+      ) : undefined}
     >
       <section
         className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-[1440px] flex-col px-4 py-6"
@@ -167,18 +182,18 @@ export default function InteractiveResourcePage() {
           <div className="flex h-full min-h-[20rem] items-center justify-center p-6">
             <ActionStatusPanel
               state={resourceErrorState}
-              action={(
+              action={showLocalReturnAction ? (
                 <Link
                   href={sourceContext.href}
                   className="inline-flex items-center rounded-md border border-platform-border px-3 py-2 text-xs text-platform-fg-secondary hover:text-platform-action-primary"
                 >
                   返回{sourceContext.label}
                 </Link>
-              )}
+              ) : undefined}
             />
           </div>
         ) : resource ? (
-          <ResourceRenderer resource={resource} onComplete={handlePathResourceComplete} />
+          <ResourceRenderer resource={resource} onComplete={resourceCompletionHandler} />
         ) : (
           <div className="flex h-full min-h-[20rem] items-center justify-center text-platform-fg-secondary">
             资源未加载

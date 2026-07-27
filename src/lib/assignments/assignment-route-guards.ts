@@ -45,7 +45,16 @@ export function assignmentErrorResponse(error: unknown): NextResponse {
   if (error instanceof AssignmentDomainError) {
     const status = error.code.includes('forbidden') || error.code.includes('unauthorized') ? 403
       : error.code === 'assignment-not-found' || error.code === 'draft-not-found' ? 404
-        : error.code === 'version-conflict' ? 409
+        : [
+          'version-conflict',
+          'publication-content-digest-mismatch',
+          'publication-baseline-already-published',
+          'idempotency-key-reused',
+          'publication-conflict-retryable',
+          'rubric-generation-revision-stale',
+        ].includes(error.code) ? 409
+          : error.code === 'rubric-generation-output-invalid' ? 502
+            : error.code === 'rubric-generation-unavailable' ? 503
           : error.code === 'payload-too-large' ? 413
             : 400;
     return NextResponse.json({ error: error.code, details: error.details }, { status });

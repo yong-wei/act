@@ -1,0 +1,51 @@
+{
+  "change": "fix-series-precheck-completion-flow",
+  "capturedAt": "2026-07-26T22:42:00+08:00",
+  "server": "http://127.0.0.1:3200",
+  "browser": "Playwright Chromium",
+  "role": "student",
+  "authState": "authenticated",
+  "database": "local PostgreSQL resource and credentials",
+  "route": "/interactive-learning/resources/lesson15-series-precheck",
+  "completionTransport": "Playwright-intercepted deterministic 503 then pending 200",
+  "command": "$env:PLAYWRIGHT_BASE_URL='http://127.0.0.1:3200'; $env:PLAYWRIGHT_SKIP_WEB_SERVER='1'; $env:UPDATE_VISUAL_EVIDENCE='1'; .\\node_modules\\.bin\\playwright.cmd test tests/series-precheck-commercial-ui.spec.ts --workers=1",
+  "result": "2 passed (6.7s)",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 1000,
+      "screenshots": {
+        "finalAction": "artifacts/commercial-ui/issue-993-series-precheck/desktop-1440-final-action.png",
+        "failureRetry": "artifacts/commercial-ui/issue-993-series-precheck/desktop-1440-failure-retry.png",
+        "submitting": "artifacts/commercial-ui/issue-993-series-precheck/desktop-1440-submitting.png",
+        "success": "artifacts/commercial-ui/issue-993-series-precheck/desktop-1440-success.png"
+      },
+      "noHorizontalOverflow": true,
+      "buttonTextFits": true,
+      "result": "passed"
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "screenshots": {
+        "finalAction": "artifacts/commercial-ui/issue-993-series-precheck/mobile-320-final-action.png",
+        "failureRetry": "artifacts/commercial-ui/issue-993-series-precheck/mobile-320-failure-retry.png",
+        "submitting": "artifacts/commercial-ui/issue-993-series-precheck/mobile-320-submitting.png",
+        "success": "artifacts/commercial-ui/issue-993-series-precheck/mobile-320-success.png"
+      },
+      "noHorizontalOverflow": true,
+      "buttonTextFits": true,
+      "result": "passed"
+    }
+  ],
+  "statesCovered": [
+    "last question",
+    "complete detection action",
+    "submitting",
+    "success",
+    "failure retry"
+  ],
+  "limitations": [
+    "The completion endpoint is intercepted to produce repeatable failure, pending, and success states; the page resource and authenticated student session use the local database."
+  ]
+}

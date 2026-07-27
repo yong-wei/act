@@ -63,11 +63,12 @@ export interface TeacherReviewCriterion {
     minPoints: number;
     maxPoints: number;
   }>;
-  levelId: string;
+  levelId: string | null;
   aiScore: number | null;
   aiLevelId: string | null;
   aiComment: string;
   score: number;
+  scoreStep: 0.01 | 0.1;
   comment: string;
 }
 
@@ -102,6 +103,8 @@ export interface TeacherReviewDetail {
   criteria: TeacherReviewCriterion[];
   overallComment: string;
   limitations: string[];
+  incompleteEvidence: boolean;
+  omittedEvidence: Array<{ assetId: string; displayName: string }>;
   annotations: ReviewAnnotationValue[];
 }
 
@@ -357,9 +360,21 @@ export function normalizeTeacherReviewDetail(
           aiDraft: aiValues.get(criterionId),
         };
       });
-  const evidence = normalizeEvidence(
-    root.evidence ?? review.evidence ?? gradingRun.answerEvidence,
-  );
+  const rawEvidenceValue =
+    root.evidence ?? review.evidence ?? gradingRun.answerEvidence;
+  const rawEvidence = asRecord(rawEvidenceValue);
+  const evidence = normalizeEvidence(rawEvidenceValue);
+  const sourceManifest = asRecord(rawEvidence.sourceManifest);
+  const omittedEvidence = arrayFrom(sourceManifest.sources).flatMap((entry) => {
+    const source = asRecord(entry);
+    const assetId = stringFrom(source.assetId);
+    if (!assetId || (stringFrom(source.state).toUpperCase() === "READY"
+      && arrayFrom(source.limitations).length === 0)) return [];
+    return [{
+      assetId,
+      displayName: stringFrom(source.displayName, "未命名附件"),
+    }];
+  });
   const submissionId = stringFrom(submission.id ?? review.submissionId);
   const questionId = stringFrom(question.id ?? review.questionId);
   const reviewId = stringFrom(review.id ?? root.reviewId);
@@ -398,12 +413,21 @@ export function normalizeTeacherReviewDetail(
     }),
     evidence,
     criteria: rawCriteria.map((entry, index) =>
-      normalizeCriterion(entry, index),
+      normalizeCriterion(
+        entry,
+        index,
+        rubric.schemaVersion === "assignment-scoring-rubric.v2" ? 0.1 : 0.01,
+      ),
     ),
     overallComment: stringFrom(review.overallComment ?? review.comment),
     limitations: arrayFrom(root.limitations ?? review.limitations)
       .map((entry) => stringFrom(entry))
       .filter(Boolean),
+    incompleteEvidence:
+      stringFrom(gradingRun.evidenceState).toUpperCase() === "EVIDENCE_INCOMPLETE" ||
+      stringFrom(rawEvidence.limitationState).toLowerCase() === "evidence-incomplete" ||
+      stringFrom(sourceManifest.state).toUpperCase() === "EVIDENCE_INCOMPLETE",
+    omittedEvidence,
     annotations: normalizeReviewAnnotations(
       review.annotationValues ?? review.annotations,
     ),
@@ -473,6 +497,7 @@ function normalizeQuestion(
 function normalizeCriterion(
   value: unknown,
   index: number,
+  scoreStep: 0.01 | 0.1,
 ): TeacherReviewCriterion {
   const row = asRecord(value);
   const ai = asRecord(row.aiDraft ?? row.machine);
@@ -492,10 +517,9 @@ function normalizeCriterion(
     };
   });
   const aiLevelId = nullableString(ai.levelId ?? row.aiLevelId);
-  const levelId = stringFrom(
+  const levelId = nullableString(
     teacher.levelId ?? row.levelId ?? aiLevelId,
-    levels[0]?.id ?? "",
-  );
+  ) ?? levels[0]?.id ?? null;
   return {
     id: stringFrom(row.id ?? row.criterionId, `criterion-${index + 1}`),
     label: stringFrom(row.label ?? row.title, `评分项 ${index + 1}`),
@@ -509,6 +533,7 @@ function normalizeCriterion(
       maxPoints,
       Math.max(0, finiteNumber(teacher.score ?? row.score ?? aiScore, 0)),
     ),
+    scoreStep,
     comment: stringFrom(
       teacher.comment ??
         teacher.rationale ??
