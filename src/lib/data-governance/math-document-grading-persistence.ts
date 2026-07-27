@@ -658,6 +658,7 @@ export async function enqueueDocumentConversion(input: {
   policyId?: string | null;
   policySnapshot?: ExternalProcessingPolicy | null;
   policySnapshotHash?: string | null;
+  allowDefaultPolicyDiscovery?: boolean;
   idempotencyKey: string;
   reason?: string;
   rerunIdentity?: string | null;
@@ -702,7 +703,7 @@ export async function enqueueDocumentConversion(input: {
   const conversionLifecycle = freezeLifecyclePolicy(lifecyclePolicies.find((policy: any) => policy.dataClass === 'document-conversion'), now);
   const mathpixEnabled = ['1', 'true', 'yes'].includes((process.env.GRADING_MATHPIX_ENABLED ?? '').trim().toLowerCase());
   const seededVersion = (process.env.GRADING_MATHPIX_POLICY_VERSION ?? process.env.MATHPIX_VERSION ?? '').trim();
-  const resolvedPolicyId = input.policyId ?? (!input.policySnapshot && mathpixEnabled && seededVersion
+  const resolvedPolicyId = input.policyId ?? (input.allowDefaultPolicyDiscovery !== false && !input.policySnapshot && mathpixEnabled && seededVersion
     ? gradingMathpixPolicyId(seededVersion, asset.mimeType.trim().toLowerCase().startsWith('image/') ? 'image' : 'document')
     : null);
   const policyRow = resolvedPolicyId

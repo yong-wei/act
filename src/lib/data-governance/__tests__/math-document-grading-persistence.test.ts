@@ -1500,6 +1500,24 @@ describe('production math-document grading persistence contracts', () => {
     });
     vi.unstubAllEnvs();
     expect(autoSelected.conversion).toMatchObject({ policyId: imageConversionPolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/text' }) });
+
+    vi.stubEnv('GRADING_MATHPIX_ENABLED', 'true');
+    vi.stubEnv('GRADING_MATHPIX_POLICY_VERSION', 'mathpix.v1');
+    const frozenWithoutPolicy = await enqueueDocumentConversion({
+      db,
+      assetId: asset.id,
+      attemptId: asset.attemptId,
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      adapterVersion: 'assignment-understanding.v1',
+      allowDefaultPolicyDiscovery: false,
+      idempotencyKey: 'conversion-frozen-without-policy-001',
+      now,
+    });
+    vi.unstubAllEnvs();
+    expect(frozenWithoutPolicy.conversion).toMatchObject({
+      policyId: null,
+      policySnapshot: null,
+    });
   });
 
   it('replays a grading request by actor and key, then conflicts when the evidence payload changes', async () => {

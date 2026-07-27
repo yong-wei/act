@@ -356,8 +356,8 @@ describe('question-scoped grading batch orchestration', () => {
     const grading = vi.spyOn(gradingPersistence, 'enqueueGradingRun').mockResolvedValue({ run: { id: 'run-policy-routing', inputHash: 'sha256:input', state: 'QUEUED' }, job: { id: 'grading-job-policy-routing' }, replay: false } as any);
     vi.spyOn(gradingPersistence, 'processGradingRunJob').mockResolvedValue({ run: { id: 'run-policy-routing', state: 'AWAITING_REVIEW' }, draft: {} } as any);
     await processQuestionGradingBatch({ db, batchId: batch.id, store: {} as any, mathpix: {} as any, now });
-    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: imagePolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/text' }), policySnapshotHash: externalProcessingPolicyHash(imagePolicy) }));
-    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: documentPolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/pdf' }), policySnapshotHash: externalProcessingPolicyHash(documentPolicy) }));
+    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: imagePolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/text' }), policySnapshotHash: externalProcessingPolicyHash(imagePolicy), allowDefaultPolicyDiscovery: false }));
+    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: documentPolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/pdf' }), policySnapshotHash: externalProcessingPolicyHash(documentPolicy), allowDefaultPolicyDiscovery: false }));
     expect(conversion).not.toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-ai' }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ mathpix: expect.anything() }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ writeRendered: expect.any(Function) }));

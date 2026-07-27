@@ -715,6 +715,7 @@ async function processBatchItem(input: {
         policySnapshotHash: route === 'binary-mathpix'
           ? conversionPolicySnapshotHash
           : null,
+        allowDefaultPolicyDiscovery: false,
         idempotencyKey: `batch:${input.batch.id}:${input.item.id}:conversion:${asset.id}${executionSuffix}`,
         rerunIdentity: input.rerunIdentity ?? null,
         reason: input.rerunReason
