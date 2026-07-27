@@ -1366,7 +1366,7 @@ export function KnowledgeGraph2D({
 
     // 重置虚线设置
     ctx.setLineDash([]);
-  }, [hoveredNode?.id, isLightTheme, laneCurvatureByLinkKey, motionEnvironmentActive, motionMarkerEdgeIdSet, presentation, reducedMotion, selectedCorridorEmphasis, selectedNode?.id, structuralForegroundEdgeIdSet]);
+  }, [ambientFlowEdgeIdSet, ambientFlowSelection.phaseOffsetByEdgeId, hoveredNode?.id, isLightTheme, laneCurvatureByLinkKey, motionEnvironmentActive, motionMarkerEdgeIdSet, presentation, reducedMotion, selectedCorridorEmphasis, selectedNode?.id, structuralForegroundEdgeIdSet]);
 
   const handleNodeDragEnd = useCallback((node: any) => {
     labelProjectionRevisionRef.current += 1;
@@ -1764,6 +1764,7 @@ export function KnowledgeGraph2D({
     graphData,
     height,
     hoveredNode?.id,
+    activeMotionMarkerCount,
     motionEnvironmentActive,
     motionMarkerEdgeIds.length,
     reducedMotion,
