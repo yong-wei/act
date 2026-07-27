@@ -307,6 +307,35 @@ describe('bounded authoritative projections', () => {
 });
 
 describe('projection cache and Legacy isolation', () => {
+  it('does not cache drifted canvas or node detail projections while preserving admin audit access', async () => {
+    const drifted = fixture();
+    drifted.receipt = { ...drifted.receipt!, objectCount: 99 };
+    const cache = new AuthoritativeProjectionCache();
+    const repository = new AuthoritativeKnowledgeRepository(mockDatabase(drifted).database);
+    const service = new AuthoritativeKnowledgeProjectionService(repository, cache);
+
+    await expect(service.canvas(selector, support)).resolves.toMatchObject({
+      status: 'drift',
+      diagnostics: [{ code: 'receipt-count-mismatch' }],
+    });
+    await expect(service.nodeDetail(selector, 'ADMIN', 'node-a', support)).resolves.toMatchObject({
+      status: 'drift',
+      diagnostics: [{ code: 'receipt-count-mismatch' }],
+    });
+    expect(cache.size()).toBe(0);
+
+    await expect(service.migrationReview(selector, 'ADMIN', support)).resolves.toMatchObject({
+      status: 'available',
+      projection: {
+        role: 'ADMIN',
+        ingest: {
+          drift: [{ code: 'receipt-count-mismatch' }],
+        },
+      },
+    });
+    expect(cache.size()).toBe(1);
+  });
+
   it('isolates state, role, node, projection version, and semantic support', () => {
     const base = {
       projectionVersion: 'act.node-detail.v2',

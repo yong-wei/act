@@ -393,6 +393,11 @@ export function buildMigrationReviewProjection(
 export type ProjectionResult<T> =
   | { status: 'available'; projection: T; diagnostics: RepositoryDiagnostic[] }
   | {
+      status: 'drift';
+      selector: AuthoritySelector;
+      diagnostics: RepositoryDiagnostic[];
+    }
+  | {
       status: 'unavailable';
       reason: RepositoryUnavailableReason;
       selector: AuthoritySelector;
@@ -415,6 +420,9 @@ export class AuthoritativeKnowledgeProjectionService {
   ): Promise<ProjectionResult<CanvasProjection>> {
     const result = await this.snapshot(selector);
     if (result.status === 'unavailable') return result;
+    if (result.status === 'drift') {
+      return { status: 'drift', selector: result.selector, diagnostics: result.diagnostics };
+    }
     const key = buildProjectionCacheKey({
       projectionVersion: CANVAS_PROJECTION_VERSION,
       authorityState: selector.authorityState,
@@ -438,6 +446,9 @@ export class AuthoritativeKnowledgeProjectionService {
   ): Promise<ProjectionResult<NodeDetailProjection>> {
     const result = await this.snapshot(selector);
     if (result.status === 'unavailable') return result;
+    if (result.status === 'drift') {
+      return { status: 'drift', selector: result.selector, diagnostics: result.diagnostics };
+    }
     const key = buildProjectionCacheKey({
       projectionVersion: NODE_DETAIL_PROJECTION_VERSION,
       authorityState: selector.authorityState,
