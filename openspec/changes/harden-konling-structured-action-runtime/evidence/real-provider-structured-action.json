@@ -1,0 +1,51 @@
+{
+  "evidenceVersion": "konling-structured-action-real-provider-browser.v1",
+  "generatedAt": "2026-07-27T17:17:04.937Z",
+  "sourceRevision": "7ac17aaf34f985db7fcec28166f9c08c10b4e152",
+  "providerMode": "configured-real-provider",
+  "routeInterception": false,
+  "realProviderStructuredSuccessCount": 1,
+  "secondaryScenarioSource": "seeded-governed-records",
+  "desktop": {
+    "viewport": "1440x1000",
+    "sideCardReadableAndActionable": true,
+    "maximizedHistoryRestoredAppliedCard": true,
+    "reloadRestoredAppliedCard": true
+  },
+  "mobile": {
+    "viewport": "390x844",
+    "cardReadableAndActionable": true,
+    "singleSharedRendererMount": true,
+    "noHorizontalOverflow": true
+  },
+  "toolRuns": {
+    "afterFirstProposal": 1,
+    "final": 3,
+    "realProviderStructuredSuccessCount": 1,
+    "seededGovernedScenarioCount": 2,
+    "noRerunAfterApplyReloadHistoryOrRefresh": true
+  },
+  "actions": {
+    "apply": "applied",
+    "ignore": "ignored",
+    "conflict": "conflict",
+    "refresh": "completed"
+  },
+  "persistence": {
+    "taskAndAccordionUpdated": true,
+    "appliedStateRestored": true
+  },
+  "privacy": {
+    "containsUserIdentifiers": false,
+    "containsProviderSecret": false,
+    "containsRawProviderPayload": false,
+    "rawToolMarkupVisible": false
+  },
+  "cleanup": {
+    "completed": true,
+    "temporaryDatabaseSchemaDropped": true,
+    "scopedRedisKeysRemoved": true,
+    "workersClosed": true,
+    "browserServerStopped": true
+  }
+}

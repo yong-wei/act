@@ -19,4 +19,4 @@
 - [x] 3.2 Verify one readable proposal summary plus persistent success, ordinary failure, conflict, ignore, duplicate-action protection, and transient stage highlighting.
 - [x] 3.3 Test native and DSML tool calls, malformed markup, mixed text and tools, reload, idempotent apply, conflict, ignore, and no markup leakage.
 - [x] 3.4 Test one readable conversation across a page transition, maximized history, smart-preparation natural-language creation and revision, persisted action cards, and no repeated tool execution.
-- [ ] 3.5 Preserve at least one real-model structured-action success and run typecheck, provider compatibility tests, Konling runtime tests, smart-preparation tests, and desktop plus mobile browser acceptance.
+- [x] 3.5 Preserve at least one real-model structured-action success and run typecheck, provider compatibility tests, Konling runtime tests, smart-preparation tests, and desktop plus mobile browser acceptance.
