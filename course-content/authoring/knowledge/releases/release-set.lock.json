@@ -1,0 +1,16 @@
+{
+  "lock_version": "actkg-release-set-lock/v1",
+  "release_set_id": "actkg-authoritative-candidate-v1",
+  "releases": [
+    {
+      "release_id": "root-locus-engineering-v0.1",
+      "release_version": "root-locus-engineering-v0.1",
+      "controlled_path": "course-content/authoring/knowledge/releases/root-locus-engineering-v0.1",
+      "contract_hash": "2f12ae211f853737722d89fa407646a40f5e622f58332681f51c9901a5bdbf50",
+      "release_hash": "8b1e3832f10d4142db0c395c3b6b2188af6f400faab56f0870502e39c9493e74",
+      "release_json_raw_sha256": "9a88ce87b4b728c36291b923f69e0647722f1e191501306c33c2c1fed2654eae",
+      "schema_raw_sha256": "71ddacdbd0071a42aa929e10fc6508ed26a6ee03e06c77f9e028e1e4e21b1b3b",
+      "release_notes_raw_sha256": "cfecd53016cd7a229a4095198cfba9e77f0b690b75fd7a73ec9692bb2afb108c"
+    }
+  ]
+}
