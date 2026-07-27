@@ -184,7 +184,7 @@ export function AdaptivePathJourneyControl({
   const recoveryDuplicatesReturn = nextAction?.recovery
     ? areEquivalentJourneyActions(returnAction, nextAction.recovery)
     : false;
-  const refreshLabel = nextAction?.recovery?.label === returnAction.label
+  const refreshLabel = recoveryDuplicatesReturn
     ? '刷新路径状态'
     : nextAction?.recovery?.label ?? '刷新路径状态';
 

@@ -262,6 +262,29 @@ describe('adaptive path journey client behavior', () => {
     }
   });
 
+  it('uses refresh semantics when a pending recovery duplicates the return action', async () => {
+    const updated = journey('path-1', 'node-1', '等待路径结果');
+    updated.nextAction = {
+      state: 'pending-result',
+      nodeId: 'node-1',
+      title: '等待路径结果',
+      type: 'knowledge_card',
+      href: null,
+      reason: '等待路径结果',
+      recovery: { label: '恢复学习路径', href: updated.return.href },
+    };
+    vi.stubGlobal('fetch', vi.fn(() => response({ journey: updated })));
+
+    await act(async () => {
+      root.render(createElement(AdaptivePathJourneyControlFromRoute));
+      await Promise.resolve();
+    });
+
+    expect(container.querySelectorAll(`a[href="${updated.return.href}"]`)).toHaveLength(1);
+    expect(container.textContent).toContain('刷新路径状态');
+    expect(container.textContent).not.toContain('恢复学习路径');
+  });
+
   it('does not mount journey behavior for a non-path route', async () => {
     navigation.search = 'goal=control-correction';
     const fetchMock = vi.fn();
