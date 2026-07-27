@@ -130,4 +130,19 @@ describe('smart lesson real-provider source revision contract', () => {
     expect(spec).toContain('Array.isArray(item.sourceBindings)');
     expect(spec).not.toContain("toContainText('来源已验证')");
   });
+
+  it('bounds real advisory review recovery and requires a completed attempt', () => {
+    const spec = readFileSync(
+      path.join(process.cwd(), 'tests/smart-lesson-real-provider.spec.ts'),
+      'utf8',
+    );
+    expect(spec).toContain("if (advisoryReviews[0].state === 'FAILED')");
+    expect(spec).toContain(
+      "expect(advisoryReviews[0].failureCode).toBe('advisory-provider-failed')",
+    );
+    expect(spec).toContain(
+      "expect(advisoryReviews.at(-1)?.state).toBe('COMPLETED')",
+    );
+    expect(spec).toContain('boundedRetryUsed: advisoryReviews.length === 2');
+  });
 });

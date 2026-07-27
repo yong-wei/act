@@ -71,7 +71,14 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   await expect(page.getByLabel('教师活动').first()).toHaveValue(/教师补充：比较稳定与临界稳定结果。/);
   await page.getByRole('button', { name: '返回备课任务' }).click();
   card = taskCard(page);
-  await card.getByRole('button', { name: 'AI 建议' }).click();
+  const advisoryReviews = [await requestAdvisoryReviewAndWait(page, card)];
+  if (advisoryReviews[0].state === 'FAILED') {
+    expect(advisoryReviews[0].failureCode).toBe('advisory-provider-failed');
+    await expect(smartLessonStatus(page, '审核未完成，请稍后重试')).toBeVisible({ timeout: 30_000 });
+    advisoryReviews.push(await requestAdvisoryReviewAndWait(page, card));
+  }
+  expect(advisoryReviews.at(-1)?.state).toBe('COMPLETED');
+  expect(advisoryReviews.filter((review) => review.state === 'COMPLETED')).toHaveLength(1);
   await expect(smartLessonStatus(page, 'AI 建议已生成')).toBeVisible({ timeout: 8 * 60_000 });
   await page.reload();
   card = taskCard(page);
@@ -136,6 +143,13 @@ test('continuous real-teacher preparation flow uses governed sources, current po
       failedAttemptOutcome: failedBridgeAttempt.outcome,
       retryCreatedNewAttempt: finalBridgeAttempt.id !== failedBridgeAttempt.id,
       completedOutlineAttemptIdsPreserved: true,
+    },
+    advisoryReview: {
+      boundedRetryUsed: advisoryReviews.length === 2,
+      attemptCount: advisoryReviews.length,
+      states: advisoryReviews.map((review) => review.state),
+      failureCodes: advisoryReviews.map((review) => review.failureCode),
+      completedCount: advisoryReviews.filter((review) => review.state === 'COMPLETED').length,
     },
     result: {
       stageCount: snapshot.job.stages.length,
@@ -265,6 +279,7 @@ async function loadPersistedTask(prisma: ReturnType<typeof createPrismaClient>) 
       goals: { orderBy: { createdAt: 'asc' } },
       drafts: {
         include: {
+          reviews: { orderBy: { createdAt: 'asc' } },
           jobs: {
             orderBy: { createdAt: 'desc' },
             include: {
@@ -278,6 +293,29 @@ async function loadPersistedTask(prisma: ReturnType<typeof createPrismaClient>) 
       },
     },
   });
+}
+
+async function requestAdvisoryReviewAndWait(page: Page, card: ReturnType<typeof taskCard>) {
+  const existingIds = new Set((await persistedAdvisoryReviews()).map((review) => review.id));
+  await card.getByRole('button', { name: 'AI 建议' }).click();
+  await expect.poll(async () => {
+    const created = (await persistedAdvisoryReviews()).find((review) => !existingIds.has(review.id));
+    return created && ['COMPLETED', 'FAILED'].includes(created.state);
+  }, { timeout: 6 * 60_000, intervals: [1_000, 2_500, 5_000] }).toBe(true);
+  return (await persistedAdvisoryReviews()).find((review) => !existingIds.has(review.id))!;
+}
+
+async function persistedAdvisoryReviews() {
+  const prisma = createPrismaClient({ log: ['warn', 'error'] });
+  try {
+    return await prisma.smartLessonAdvisoryReview.findMany({
+      where: { draft: { task: { ownerId: teacherId, topic } } },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, state: true, failureCode: true },
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 async function expectPersistedJobState(states: string[], timeout: number) {
