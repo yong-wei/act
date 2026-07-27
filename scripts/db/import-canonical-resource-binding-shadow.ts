@@ -28,7 +28,13 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function booleanValue(...records: Record<string, unknown>[]): (key: string) => boolean {
-  return (key) => records.some((record) => record[key] === true);
+  return (key) => {
+    for (let index = records.length - 1; index >= 0; index -= 1) {
+      const value = records[index]?.[key];
+      if (typeof value === 'boolean') return value;
+    }
+    return false;
+  };
 }
 
 function dispositionSignals(...values: unknown[]) {

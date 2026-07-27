@@ -1367,6 +1367,96 @@ async function main(): Promise<void> {
   });
   assert.equal(humanRejectedReceipt.outcome, 'REJECT');
   assert.equal(humanRejectedReceipt.decisionId, humanRejected.id);
+  const precedenceAuthorId = 'binding-precedence-author';
+  const precedencePlanId = 'binding-precedence-plan';
+  const disabledResourceId = 'binding-precedence-disabled';
+  const enabledResourceId = 'binding-precedence-enabled';
+  const disabledPlacementId = 'binding-precedence-disabled-placement';
+  const enabledPlacementId = 'binding-precedence-enabled-placement';
+  await db.user.create({
+    data: {
+      id: precedenceAuthorId,
+      email: 'binding-precedence@example.test',
+      role: 'TEACHER',
+    },
+  });
+  await db.lessonPlan.create({
+    data: {
+      id: precedencePlanId,
+      title: 'Canonical binding precedence fixture',
+      authorId: precedenceAuthorId,
+    },
+  });
+  await db.teachingResource.createMany({
+    data: [
+      {
+        id: disabledResourceId,
+        title: 'Resource disabled by lesson override',
+        type: 'STATIC_TEXT',
+        config: { resourceNodePlanning: { pathEligible: true } },
+        authorId: precedenceAuthorId,
+      },
+      {
+        id: enabledResourceId,
+        title: 'Resource enabled by lesson override',
+        type: 'STATIC_TEXT',
+        config: { resourceNodePlanning: { pathEligible: false } },
+        authorId: precedenceAuthorId,
+      },
+    ],
+  });
+  await db.lessonItem.createMany({
+    data: [
+      {
+        id: disabledPlacementId,
+        planId: precedencePlanId,
+        resourceId: disabledResourceId,
+        stage: 'PARTICIPATORY',
+        order: 1,
+        overrideConfig: { resourceNodePlanning: { pathEligible: false } },
+      },
+      {
+        id: enabledPlacementId,
+        planId: precedencePlanId,
+        resourceId: enabledResourceId,
+        stage: 'PARTICIPATORY',
+        order: 2,
+        overrideConfig: { resourceNodePlanning: { pathEligible: true } },
+      },
+    ],
+  });
+  const precedenceRevision = 'e'.repeat(40);
+  const precedenceImport = await runConcurrentBindingImport(precedenceRevision);
+  assert.equal(precedenceImport.status, 0, precedenceImport.stderr || precedenceImport.stdout);
+  const precedenceRun = await db.resourceBindingInventoryRun.findFirstOrThrow({
+    where: { captureRevision: precedenceRevision },
+  });
+  const precedenceItems = await db.resourceBindingInventoryItem.findMany({
+    where: {
+      runId: precedenceRun.id,
+      resourceId: { in: [disabledResourceId, enabledResourceId] },
+    },
+    orderBy: { resourceId: 'asc' },
+  });
+  assert.deepEqual(
+    precedenceItems.map((item) => ({
+      resourceId: item.resourceId,
+      structuralUnitId: item.structuralUnitId,
+      disposition: item.disposition,
+    })),
+    [
+      {
+        resourceId: disabledResourceId,
+        structuralUnitId: `lesson-item:${disabledPlacementId}`,
+        disposition: 'UNRESOLVED',
+      },
+      {
+        resourceId: enabledResourceId,
+        structuralUnitId: `lesson-item:${enabledPlacementId}`,
+        disposition: 'INCLUDED',
+      },
+    ],
+  );
   await assert.rejects(
     db.resourceBindingInventoryRun.update({
       where: { id: bindingInventory.id },
