@@ -3,7 +3,8 @@ import type { Message } from '@/types/ai-message';
 
 const TOOL_CALL_TAG = /<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/giu;
 const DEEPSEEK_TOOL_CALL = /<｜tool▁call▁begin｜>\s*([\w.-]+)\s*<｜tool▁sep｜>\s*([\s\S]*?)\s*<｜tool▁call▁end｜>/gu;
-const SUSPICIOUS_STRUCTURED_SYNTAX = /<(?:\/?tool_call\b|｜tool▁(?:calls?|call)▁(?:begin|end)｜)/iu;
+const DSML_INVOKE_TOOL_CALL = /<｜DSML｜tool_calls>\s*<｜DSML｜invoke name="([\w.-]{1,128})">\s*<｜DSML｜parameter name="arguments" string="false">\s*([\s\S]*?)\s*<\/｜DSML｜parameter>\s*<\/｜DSML｜invoke>\s*<\/｜DSML｜tool_calls>/gu;
+const SUSPICIOUS_STRUCTURED_SYNTAX = /<(?:\/?tool_call\b|｜tool▁(?:calls?|call)▁(?:begin|end)｜|\/?｜DSML｜(?:tool_calls|invoke|parameter)\b)/iu;
 const CODE_FENCE = /```[\s\S]*?```/gu;
 const MALFORMED_ENVELOPE_MARKER = '\u0000konling-malformed-envelope\u0000';
 export const KONLING_STRUCTURED_CORRECTION_LIMIT_MS = 2_500;
@@ -95,6 +96,21 @@ export function normalizeKonlingStructuredText(
   ) => {
     const input = parseJsonObject(payload);
     if (input === null) return isJsonLikePayload(payload) ? MALFORMED_ENVELOPE_MARKER : envelope;
+    toolCalls.push({
+      id: `dsml-${toolCalls.length + 1}`,
+      name,
+      input,
+      source: 'dsml',
+    });
+    return '';
+  });
+  text = text.replace(DSML_INVOKE_TOOL_CALL, (
+    _envelope,
+    name: string,
+    payload: string,
+  ) => {
+    const input = parseJsonObject(payload);
+    if (input === null) return MALFORMED_ENVELOPE_MARKER;
     toolCalls.push({
       id: `dsml-${toolCalls.length + 1}`,
       name,

@@ -88,6 +88,60 @@ describe('Konling structured action runtime', () => {
     expect(normalized.withheldMalformedSyntax).toBe(false);
   });
 
+  it('normalizes the provider DSML invoke trace with object arguments', () => {
+    const trace = [
+      '这是教师可见说明。',
+      '<｜DSML｜tool_calls>',
+      '<｜DSML｜invoke name="propose_smart_lesson_task_change">',
+      '<｜DSML｜parameter name="arguments" string="false">',
+      '{"operation":"revise","taskId":"task-1","expectedRevision":3,"proposedTask":{"topic":"闭环稳定性"}}',
+      '</｜DSML｜parameter>',
+      '</｜DSML｜invoke>',
+      '</｜DSML｜tool_calls>',
+    ].join('');
+    const normalized = normalizeKonlingStructuredText(trace);
+
+    expect(normalized).toEqual({
+      text: '这是教师可见说明。',
+      toolCalls: [{
+        id: 'dsml-1',
+        name: 'propose_smart_lesson_task_change',
+        input: {
+          operation: 'revise',
+          taskId: 'task-1',
+          expectedRevision: 3,
+          proposedTask: { topic: '闭环稳定性' },
+        },
+        source: 'dsml',
+      }],
+      withheldMalformedSyntax: false,
+    });
+  });
+
+  it('withholds malformed or incomplete provider DSML while protecting code and ordinary XML', () => {
+    for (const value of [
+      '安全前缀。<｜DSML｜tool_calls><｜DSML｜invoke name="get_page_context"><｜DSML｜parameter name="arguments" string="false">{"pageId":}</｜DSML｜parameter></｜DSML｜invoke></｜DSML｜tool_calls>不可见',
+      '安全前缀。<｜DSML｜tool_calls><｜DSML｜invoke name="get_page_context"><｜DSML｜parameter name="arguments" string="false">{"pageId":"current"}',
+    ]) {
+      const normalized = normalizeKonlingStructuredText(value);
+      expect(normalized.text).toBe('安全前缀。');
+      expect(normalized.toolCalls).toEqual([]);
+      expect(normalized.withheldMalformedSyntax).toBe(true);
+    }
+
+    const literal = [
+      '<invoke name="get_page_context"><parameter name="arguments">{}</parameter></invoke>',
+      '```xml',
+      '<｜DSML｜tool_calls><｜DSML｜invoke name="get_page_context"><｜DSML｜parameter name="arguments" string="false">{}</｜DSML｜parameter></｜DSML｜invoke></｜DSML｜tool_calls>',
+      '```',
+    ].join('\n');
+    expect(normalizeKonlingStructuredText(literal)).toEqual({
+      text: literal,
+      toolCalls: [],
+      withheldMalformedSyntax: false,
+    });
+  });
+
   it('normalizes DeepSeek block syntax and deduplicates mixed native and DSML calls', () => {
     const message = normalizeKonlingAssistantMessage({
       id: 'assistant-1',
@@ -309,6 +363,64 @@ describe('Konling structured action runtime', () => {
       expect.objectContaining({ type: 'tool-input-available', toolName: 'get_page_context' }),
       expect.objectContaining({ type: 'tool-output-available', output: { page: 'current' } }),
     ]));
+    expect(chunks.at(-1)).toEqual({ type: 'finish', finishReason: 'tool-calls' });
+  });
+
+  it('executes a split provider DSML invoke exactly once without leaking its envelope', async () => {
+    const executeToolCall = vi.fn(async () => ({
+      suggestionId: 'internal-suggestion',
+      status: 'awaiting_teacher_confirmation',
+    }));
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-dsml' });
+        controller.enqueue({ type: 'text-start', id: 'text-dsml' });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-dsml',
+          delta: '<｜DSML｜tool_calls><｜DSML｜invoke name="propose_smart_lesson_task_change">',
+        });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-dsml',
+          delta: '<｜DSML｜parameter name="arguments" string="false">{"operation":"revise","taskId":"task-1","expectedRevision":3,"proposedTask":{"topic":"根轨迹"}}',
+        });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-dsml',
+          delta: '</｜DSML｜parameter></｜DSML｜invoke></｜DSML｜tool_calls>',
+        });
+        controller.enqueue({ type: 'text-end', id: 'text-dsml' });
+        controller.enqueue({ type: 'finish', finishReason: 'tool-calls' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+
+    expect(executeToolCall).toHaveBeenCalledTimes(1);
+    expect(executeToolCall).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'propose_smart_lesson_task_change',
+      input: expect.objectContaining({
+        operation: 'revise',
+        taskId: 'task-1',
+        proposedTask: { topic: '根轨迹' },
+      }),
+      source: 'dsml',
+    }));
+    expect(state.toolCalls).toHaveLength(1);
+    expect(state.executedToolResults).toHaveLength(1);
+    expect(JSON.stringify(chunks)).not.toContain('DSML');
+    expect(JSON.stringify(chunks)).not.toContain('根轨迹');
     expect(chunks.at(-1)).toEqual({ type: 'finish', finishReason: 'tool-calls' });
   });
 
