@@ -7,6 +7,7 @@ const DSML_INVOKE_TOOL_CALL = /<｜DSML｜tool_calls>\s*<｜DSML｜invoke name="
 const SUSPICIOUS_STRUCTURED_SYNTAX = /<(?:\/?tool_call\b|｜tool▁(?:calls?|call)▁(?:begin|end)｜|\/?｜DSML｜(?:tool_calls|invoke|parameter)\b)/iu;
 const CODE_FENCE = /```[\s\S]*?```/gu;
 const MALFORMED_ENVELOPE_MARKER = '\u0000konling-malformed-envelope\u0000';
+const KONLING_STRUCTURED_FAILURE_TEXT = '结构化操作未能安全完成，请重新生成建议。';
 export const KONLING_STRUCTURED_CORRECTION_LIMIT_MS = 2_500;
 
 export type KonlingNormalizedToolCall = {
@@ -214,14 +215,52 @@ export function createKonlingStructuredActionStream(input: {
   let messageId = '';
   const nativeCalls: KonlingNormalizedToolCall[] = [];
   const privateActionCallIds = new Set<string>();
+  const availableCallIds = new Set<string>();
+  const malformedFragmentIds = new Set<string>();
+  const fragmentedInputs = new Map<string, { name: string; inputText: string }>();
   return input.stream.pipeThrough(new TransformStream<any, any>({
     async transform(chunk, controller) {
       if (chunk?.type === 'start' && typeof chunk.messageId === 'string') {
         messageId = chunk.messageId;
       }
+      if (chunk?.type === 'tool-input-start') {
+        if (
+          typeof chunk.toolCallId === 'string'
+          && typeof chunk.toolName === 'string'
+          && isBoundedToolName(chunk.toolName)
+        ) {
+          fragmentedInputs.set(chunk.toolCallId, {
+            name: chunk.toolName,
+            inputText: '',
+          });
+          if (chunk.toolName === 'propose_smart_lesson_task_change') {
+            privateActionCallIds.add(chunk.toolCallId);
+            return;
+          }
+        } else if (typeof chunk.toolCallId === 'string') {
+          malformedFragmentIds.add(chunk.toolCallId);
+        }
+        controller.enqueue(chunk);
+        return;
+      }
+      if (chunk?.type === 'tool-input-delta') {
+        const fragmented = typeof chunk.toolCallId === 'string'
+          ? fragmentedInputs.get(chunk.toolCallId)
+          : undefined;
+        if (fragmented && typeof chunk.inputTextDelta === 'string') {
+          fragmented.inputText += chunk.inputTextDelta;
+        } else if (typeof chunk.toolCallId === 'string') {
+          malformedFragmentIds.add(chunk.toolCallId);
+        }
+        if (typeof chunk.toolCallId === 'string' && privateActionCallIds.has(chunk.toolCallId)) return;
+        controller.enqueue(chunk);
+        return;
+      }
       const native = normalizeNativeUiToolChunk(chunk);
       if (native) {
         nativeCalls.push(native);
+        availableCallIds.add(native.id);
+        malformedFragmentIds.delete(native.id);
         if (native.name === 'propose_smart_lesson_task_change') {
           privateActionCallIds.add(native.id);
           return;
@@ -239,9 +278,36 @@ export function createKonlingStructuredActionStream(input: {
       if (chunk?.type !== 'text-delta' || typeof chunk.delta !== 'string') {
         if (chunk?.type === 'finish') {
           const normalized = normalizeKonlingStructuredText(textBuffer);
-          input.state.toolCalls = dedupeToolCalls([...nativeCalls, ...normalized.toolCalls]);
-          const dsmlCalls = input.state.toolCalls.filter((call) => call.source === 'dsml');
-          for (const call of dsmlCalls) {
+          const fragmentedCalls: KonlingNormalizedToolCall[] = [];
+          let fragmentedInputMalformed = malformedFragmentIds.size > 0;
+          for (const [toolCallId, fragmented] of fragmentedInputs) {
+            if (availableCallIds.has(toolCallId)) continue;
+            const parsedInput = parseJsonObject(fragmented.inputText);
+            if (parsedInput === null) {
+              fragmentedInputMalformed = true;
+              continue;
+            }
+            fragmentedCalls.push({
+              id: toolCallId,
+              name: fragmented.name,
+              input: parsedInput,
+              source: 'native',
+            });
+          }
+          const availableCalls = dedupeToolCalls(nativeCalls);
+          const fallbackCalls = dedupeToolCalls([...availableCalls, ...fragmentedCalls])
+            .filter((call) =>
+              fragmentedCalls.some((fragmented) => sameToolCall(fragmented, call))
+              && !availableCalls.some((available) => sameToolCall(available, call)));
+          input.state.toolCalls = dedupeToolCalls([
+            ...availableCalls,
+            ...fragmentedCalls,
+            ...normalized.toolCalls,
+          ]);
+          const executableCalls = input.state.toolCalls.filter((call) =>
+            call.source === 'dsml'
+            || fallbackCalls.some((fallback) => sameToolCall(fallback, call)));
+          for (const call of executableCalls) {
             try {
               if (!input.executeToolCall) throw new Error('structured-tool-execution-unavailable');
               const result = await input.executeToolCall(call);
@@ -258,17 +324,27 @@ export function createKonlingStructuredActionStream(input: {
               });
             }
           }
-          input.state.withheldMalformedSyntax = normalized.withheldMalformedSyntax;
-          input.state.withheldText = normalized.withheldMalformedSyntax ? textBuffer : '';
+          input.state.withheldMalformedSyntax = normalized.withheldMalformedSyntax || fragmentedInputMalformed;
+          input.state.withheldText = fragmentedInputMalformed
+            ? [...fragmentedInputs.values()].map((fragmented) => fragmented.inputText).join('\n')
+            : normalized.withheldMalformedSyntax ? textBuffer : '';
+          const fallbackSucceeded = fallbackCalls.length > 0
+            && !input.state.executedToolResults.some((item) =>
+              item.errorText
+              && fallbackCalls.some((fallback) => fallback.id === item.toolCallId));
+          const normalizedVisibleText = fallbackSucceeded && normalized.text === KONLING_STRUCTURED_FAILURE_TEXT
+            ? ''
+            : normalized.text;
           const visibleText = input.state.executedToolResults.some((item) => item.errorText)
-            ? '结构化操作未能安全完成，请重新生成建议。'
-            : normalized.text
-              || (normalized.withheldMalformedSyntax
+            ? KONLING_STRUCTURED_FAILURE_TEXT
+            : normalizedVisibleText
+              || (input.state.withheldMalformedSyntax
                 ? '工具调用格式未能安全解析，正在尝试修正。'
                 : '');
           enqueueKonlingTextPart(controller, textPartId || messageId, visibleText);
           for (const call of normalized.toolCalls) {
-            if (nativeCalls.some((nativeCall) => sameToolCall(nativeCall, call))) continue;
+            if ([...availableCalls, ...fragmentedCalls]
+              .some((nativeCall) => sameToolCall(nativeCall, call))) continue;
             if (call.name === 'propose_smart_lesson_task_change') continue;
             controller.enqueue({
               type: 'tool-input-available',
@@ -277,6 +353,25 @@ export function createKonlingStructuredActionStream(input: {
               input: call.input,
               dynamic: true,
             });
+            const execution = input.state.executedToolResults.find((item) => item.toolCallId === call.id);
+            if (execution?.errorText) {
+              controller.enqueue({
+                type: 'tool-output-error',
+                toolCallId: call.id,
+                errorText: execution.errorText,
+                dynamic: true,
+              });
+            } else if (execution) {
+              controller.enqueue({
+                type: 'tool-output-available',
+                toolCallId: call.id,
+                output: execution.result,
+                dynamic: true,
+              });
+            }
+          }
+          for (const call of fallbackCalls) {
+            if (call.name === 'propose_smart_lesson_task_change') continue;
             const execution = input.state.executedToolResults.find((item) => item.toolCallId === call.id);
             if (execution?.errorText) {
               controller.enqueue({
@@ -425,6 +520,10 @@ function parseJsonObject(value: string): Record<string, unknown> | null {
   } catch {
     return null;
   }
+}
+
+function isBoundedToolName(value: string) {
+  return /^[\w.-]{1,128}$/u.test(value);
 }
 
 function collectNativeToolCalls(parts: Message['parts']): KonlingNormalizedToolCall[] {

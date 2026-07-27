@@ -424,6 +424,218 @@ describe('Konling structured action runtime', () => {
     expect(chunks.at(-1)).toEqual({ type: 'finish', finishReason: 'tool-calls' });
   });
 
+  it('assembles the provider native fragmented proposal trace and executes it once', async () => {
+    const executeToolCall = vi.fn(async () => ({
+      suggestionId: 'internal-suggestion',
+      status: 'awaiting_teacher_confirmation',
+    }));
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({
+          type: 'tool-input-start',
+          toolCallId: 'provider-call-1',
+          toolName: 'propose_smart_lesson_task_change',
+        });
+        controller.enqueue({
+          type: 'tool-input-delta',
+          toolCallId: 'provider-call-1',
+          inputTextDelta: '{"operation":"revise","taskId":"task-1",',
+        });
+        controller.enqueue({
+          type: 'tool-input-delta',
+          toolCallId: 'provider-call-1',
+          inputTextDelta: '"expectedRevision":3,"proposedTask":{"topic":"根轨迹"}}',
+        });
+        controller.enqueue({ type: 'finish-step' });
+        controller.enqueue({ type: 'text-start', id: 'text-fallback' });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-fallback',
+          delta: '结构化操作未能安全完成，请重新生成建议。',
+        });
+        controller.enqueue({ type: 'text-end', id: 'text-fallback' });
+        controller.enqueue({ type: 'finish', finishReason: 'stop' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+
+    expect(executeToolCall).toHaveBeenCalledTimes(1);
+    expect(executeToolCall).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'provider-call-1',
+      name: 'propose_smart_lesson_task_change',
+      input: expect.objectContaining({
+        operation: 'revise',
+        taskId: 'task-1',
+        proposedTask: { topic: '根轨迹' },
+      }),
+      source: 'native',
+    }));
+    expect(state.toolCalls).toHaveLength(1);
+    expect(state.executedToolResults).toHaveLength(1);
+    expect(chunks).toEqual([
+      { type: 'finish-step' },
+      { type: 'finish', finishReason: 'stop' },
+    ]);
+  });
+
+  it('does not fallback-execute fragmented input after input-available arrives', async () => {
+    const executeToolCall = vi.fn();
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const proposal = { operation: 'bootstrap', proposedTask: { topic: '根轨迹' } };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({
+          type: 'tool-input-start',
+          toolCallId: 'provider-call-available',
+          toolName: 'propose_smart_lesson_task_change',
+        });
+        controller.enqueue({
+          type: 'tool-input-delta',
+          toolCallId: 'provider-call-available',
+          inputTextDelta: JSON.stringify(proposal),
+        });
+        controller.enqueue({
+          type: 'tool-input-available',
+          toolCallId: 'provider-call-available',
+          toolName: 'propose_smart_lesson_task_change',
+          input: proposal,
+          dynamic: true,
+        });
+        controller.enqueue({
+          type: 'tool-output-available',
+          toolCallId: 'provider-call-available',
+          output: { suggestionId: 'internal-suggestion' },
+        });
+        controller.enqueue({ type: 'finish' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+
+    expect(executeToolCall).not.toHaveBeenCalled();
+    expect(state.toolCalls).toHaveLength(1);
+    expect(JSON.stringify(chunks)).not.toContain('propose_smart_lesson_task_change');
+    expect(JSON.stringify(chunks)).not.toContain('internal-suggestion');
+  });
+
+  it('executes only once when fragmented native input is semantically duplicated by DSML', async () => {
+    const executeToolCall = vi.fn(async () => ({ page: 'current' }));
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({
+          type: 'tool-input-start',
+          toolCallId: 'fragment-call',
+          toolName: 'get_page_context',
+        });
+        controller.enqueue({
+          type: 'tool-input-delta',
+          toolCallId: 'fragment-call',
+          inputTextDelta: '{}',
+        });
+        controller.enqueue({ type: 'text-start', id: 'text-duplicate' });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-duplicate',
+          delta: '<tool_call>{"name":"get_page_context","arguments":{}}</tool_call>',
+        });
+        controller.enqueue({ type: 'text-end', id: 'text-duplicate' });
+        controller.enqueue({ type: 'finish' });
+        controller.close();
+      },
+    });
+    await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+
+    expect(executeToolCall).toHaveBeenCalledTimes(1);
+    expect(state.toolCalls).toHaveLength(1);
+    expect(state.executedToolResults).toHaveLength(1);
+  });
+
+  it.each([
+    ['invalid', '{"operation":"revise","proposedTask":}'],
+    ['incomplete', '{"operation":"revise"'],
+  ])('fails closed for %s fragmented native JSON', async (_label, inputTextDelta) => {
+    const executeToolCall = vi.fn();
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({
+          type: 'tool-input-start',
+          toolCallId: 'malformed-call',
+          toolName: 'propose_smart_lesson_task_change',
+        });
+        controller.enqueue({
+          type: 'tool-input-delta',
+          toolCallId: 'malformed-call',
+          inputTextDelta,
+        });
+        controller.enqueue({ type: 'finish-step' });
+        controller.enqueue({ type: 'text-start', id: 'text-failure' });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-failure',
+          delta: '结构化操作未能安全完成，请重新生成建议。',
+        });
+        controller.enqueue({ type: 'text-end', id: 'text-failure' });
+        controller.enqueue({ type: 'finish' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+
+    expect(executeToolCall).not.toHaveBeenCalled();
+    expect(state.toolCalls).toEqual([]);
+    expect(state.withheldMalformedSyntax).toBe(true);
+    expect(JSON.stringify(chunks)).not.toContain(inputTextDelta);
+    expect(chunks).toEqual(expect.arrayContaining([
+      { type: 'text-start', id: 'text-failure' },
+      {
+        type: 'text-delta',
+        id: 'text-failure',
+        delta: '结构化操作未能安全完成，请重新生成建议。',
+      },
+      { type: 'text-end', id: 'text-failure' },
+    ]));
+  });
+
   it('does not execute a DSML duplicate after the native call already ran', async () => {
     const executeToolCall = vi.fn();
     const state: KonlingStructuredActionStreamState = {
