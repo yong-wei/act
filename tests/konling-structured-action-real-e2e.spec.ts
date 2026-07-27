@@ -12,7 +12,7 @@ const sourceRevision = requiredEnv('SMART_LESSON_E2E_SOURCE_REVISION');
 const evidencePath = requiredEnv('SMART_LESSON_E2E_STRUCTURED_ACTION_EVIDENCE_PATH');
 const realProvider = process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED === '1';
 const providerMode = realProvider ? 'configured-real-provider' : 'deterministic-fixture';
-const MODEL_RESPONSE_TIMEOUT_MS = realProvider ? 5 * 60_000 : 30_000;
+const MODEL_RESPONSE_TIMEOUT_MS = realProvider ? 6 * 60_000 : 30_000;
 
 test('real provider structured actions persist across desktop, maximized history, reload and mobile', async ({ page, context }) => {
   if (realProvider) {
