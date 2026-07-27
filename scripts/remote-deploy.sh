@@ -587,6 +587,9 @@ export PGPASSWORD=\"\${DB_PASSWORD_REAL}\"
 podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tAc \"select 1;\" | grep -qx 1
 '"
 
+log "- 核验 ActKG Release 与 CourseCoverage Overlay 部署投影"
+remote "podman exec '${APP_NAME_HINT}' npm run db:verify-authoritative-knowledge-deployment"
+
 log "- 校验 runtime 知识图谱已同步到数据库"
 remote "bash -lc '
 set -euo pipefail

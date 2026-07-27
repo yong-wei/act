@@ -45,6 +45,10 @@ if [[ ! "${APP_REVISION}" =~ ^[0-9a-f]{40}$ ]]; then
   exit 1
 fi
 
+echo "[preflight] 校验 CourseCoverage Overlay"
+APP_REVISION="${APP_REVISION}" ./node_modules/.bin/tsx \
+  scripts/db/import-course-coverage-overlay.ts --validate-only
+
 echo "[preflight] 校验七套外置教材 v2 runtime"
 node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
   --runtime-root "${TEXTBOOK_V2_RUNTIME_DIR}" \
@@ -69,6 +73,7 @@ else
 fi
 
 BUILD_ARGS=(
+  --build-arg "APP_REVISION=${APP_REVISION}"
   --build-arg "NPM_REGISTRY=${NPM_REGISTRY}"
   --build-arg "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}"
 )

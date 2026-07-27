@@ -198,3 +198,76 @@ export interface SemanticSupportMark {
   supported: boolean;
   readOnly: true;
 }
+
+export type CourseCoverageRole =
+  | 'formal_objective'
+  | 'necessary_prerequisite'
+  | 'explicit_extension';
+
+export interface CourseCoverageSelector {
+  courseId: string;
+  overlayId: string;
+  overlayVersion: string;
+  releaseSetId: string;
+  releaseId: string;
+}
+
+export interface CourseCoverageAuditIdentity {
+  courseId: string;
+  overlayId: string;
+  overlayVersion: string;
+  overlayVersionId: string;
+  authoringRevision: string;
+  captureRevision: string;
+  sourceHash: string;
+  releaseSetId: string;
+  releaseId: string;
+  releaseHash: string;
+  lockRawHash: string;
+  productionAuthoritative: false;
+}
+
+export interface CourseCoverageRecord {
+  canonicalId: string;
+  role: CourseCoverageRole;
+  ordinal: number;
+}
+
+export interface CourseCoverageDiagnostic {
+  code:
+    | 'selector-mismatch'
+    | 'receipt-missing'
+    | 'receipt-identity-mismatch'
+    | 'receipt-count-mismatch'
+    | 'release-drift'
+    | 'covered-object-missing'
+    | 'unsupported-role';
+  field: string;
+  expected: string | number;
+  actual: string | number | null;
+}
+
+export type CourseCoverageResult =
+  | {
+      status: 'available';
+      selector: CourseCoverageSelector;
+      audit: CourseCoverageAuditIdentity;
+      entries: CourseCoverageRecord[];
+      diagnostics: [];
+      productionAuthoritative: false;
+    }
+  | {
+      status: 'drift';
+      selector: CourseCoverageSelector;
+      audit: CourseCoverageAuditIdentity;
+      entries: CourseCoverageRecord[];
+      diagnostics: CourseCoverageDiagnostic[];
+      productionAuthoritative: false;
+    }
+  | {
+      status: 'unavailable';
+      selector: CourseCoverageSelector | null;
+      reason: 'missing-selector' | 'coverage-not-found';
+      diagnostics: [];
+      productionAuthoritative: false;
+    };
