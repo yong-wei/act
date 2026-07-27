@@ -1,7 +1,7 @@
 {
   "evidenceVersion": "konling-structured-action-real-provider-browser.v1",
-  "generatedAt": "2026-07-27T17:52:00.474Z",
-  "sourceRevision": "3986c55c0779aa7fcbecbbaed67fc738020bfae8",
+  "generatedAt": "2026-07-27T18:39:31.033Z",
+  "sourceRevision": "7930eba2f4f85256ed3fee84d16d6bad495f8e99",
   "providerMode": "configured-real-provider",
   "routeInterception": false,
   "realProviderStructuredSuccessCount": 1,
