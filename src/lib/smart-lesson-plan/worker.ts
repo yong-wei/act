@@ -27,6 +27,7 @@ import {
   smartLessonOutlineOutputSchema,
   sourceBindingSchema,
 } from './schema';
+import { confirmedTextbookRangeSchema } from './textbook-range';
 import {
   beginCorrectionAttempt,
   beginProviderAttempt,
@@ -324,6 +325,7 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
   const query = [task.topic, ...task.goals.map((goal) => goal.content), ...task.knowledgePoints.map((point) => point.title)]
     .join('\n')
     .slice(0, 4_000);
+  const textbookRanges = confirmedTextbookRangeSchema.array().max(20).parse(task.textbookRanges ?? []);
   let sourcePack;
   try {
     const actor = { id: context.ownerId, role: 'TEACHER' as const };
@@ -347,18 +349,27 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
     throw error;
   }
   const sourcePackItems = sourcePack.retrieval.pack.items;
-  if (sourcePackItems.length === 0) throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
-  const allowedBindings = sourceBindingSchema.array().safeParse(sourcePackItems.map((item) => ({
+  const uploadedBindings = sourceBindingSchema.array().safeParse(sourcePackItems.map((item) => ({
     citationId: item.citationTargetId ?? item.citation?.citationTargetId,
     sourceVersionId: item.metadata?.versionId,
     anchor: item.metadata?.stableAnchor,
     contentHash: item.metadata?.contentHash,
   })));
+  if (!uploadedBindings.success) throw new SmartLessonPlanError('governed-source-evidence-invalid', 409);
+  const { retrieveConfirmedTextbookBindings } = await import('./textbook-resource-pack');
+  const textbookBindings = await retrieveConfirmedTextbookBindings(query, textbookRanges);
+  const allowedBindings = sourceBindingSchema.array().safeParse([
+    ...uploadedBindings.data,
+    ...textbookBindings,
+  ]);
   if (!allowedBindings.success) throw new SmartLessonPlanError('governed-source-evidence-invalid', 409);
   const allowedSourceBindings = allowedBindings.data;
+  if (allowedSourceBindings.length === 0) {
+    throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
+  }
   const freezeGenerationInputs = async (tx: Parameters<typeof adoptCourseBasisVersion>[0]) => {
-    const byVersion = new Map<string, typeof allowedSourceBindings>();
-    for (const binding of allowedSourceBindings) {
+    const byVersion = new Map<string, typeof uploadedBindings.data>();
+    for (const binding of uploadedBindings.data) {
       byVersion.set(binding.sourceVersionId, [...(byVersion.get(binding.sourceVersionId) ?? []), binding]);
     }
     for (const [versionId, bindings] of byVersion) {
@@ -390,7 +401,7 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
     goals: task.goals,
     knowledgePoints: task.knowledgePoints,
     aggregateClassContext: task.aggregateClassContext,
-    sourcePackItems,
+    sourcePackItems: [...sourcePackItems, ...textbookBindings],
   };
   const previous = Object.fromEntries(context.stages
     .filter((item) => item.state === 'COMPLETED' && item.output !== null)

@@ -176,13 +176,30 @@ function cohortBucket(total: number): 'none' | 'suppressed-small' | '5-9' | '10-
 }
 
 export function normalizeSourceMatchingMeaning(value: string): string {
-  return value
+  const compact = value
     .normalize('NFKC')
     .toLocaleLowerCase('zh-CN')
     .replace(/\s+/gu, '')
-    .replace(/[。！？!?，、；：“”‘’"'…]/gu, '')
-    .replace(/(?<!\d)[,.]|[,.](?!\d)/gu, '')
     .trim();
+  const characters = Array.from(compact);
+  return characters.filter((character, index) => {
+    if (!/\p{P}/u.test(character)) return true;
+    const previous = characters[index - 1] ?? '';
+    const next = characters[index + 1] ?? '';
+    if ((character === '.' || character === ',') && /\p{N}/u.test(previous) && /\p{N}/u.test(next)) {
+      return true;
+    }
+    if (character !== '-') return false;
+    const leftToken = compact.slice(0, index).match(/([A-Za-z0-9\u0370-\u03ff]+)$/u)?.[1] ?? '';
+    const rightToken = compact.slice(index + 1).match(/^([A-Za-z0-9\u0370-\u03ff]+)/u)?.[1] ?? '';
+    const unaryContext = previous === '' || '[=<>+*/^('.includes(previous);
+    if (unaryContext) {
+      return next === '(' || /^[0-9]/u.test(rightToken) || Array.from(rightToken).length <= 2;
+    }
+    if (!leftToken || !rightToken) return false;
+    if (/[0-9]/u.test(leftToken) || /[0-9]/u.test(rightToken)) return true;
+    return Array.from(leftToken).length <= 2 && Array.from(rightToken).length <= 2;
+  }).join('');
 }
 
 export function shouldMarkClassContextStale(input: {

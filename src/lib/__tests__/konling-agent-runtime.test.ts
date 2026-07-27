@@ -1176,6 +1176,10 @@ describe('konling agent runtime', () => {
       taskId: 'task-1', taskRevision: '3', currentTask: {
         topic: '旧主题', courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45,
         sourceVersionIds: ['version-1', 'version-2'],
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1', level: 'SECTION', unitId: 'section-1', structuralPath: ['chapter-1', 'section-1'],
+        }],
         knowledgePoints: [
           { id: 'kp-1', content: '幅值条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-1', sourceVersionId: 'version-1', anchor: '幅值条件', contentHash: '1111111111111111' }], origin: 'SUGGESTED' },
           { id: 'kp-2', title: '旧相角条件', content: '旧相角条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-2', sourceVersionId: 'version-1', anchor: '相角条件', contentHash: '2222222222222222' }], origin: 'SUGGESTED' },
@@ -1215,6 +1219,10 @@ describe('konling agent runtime', () => {
       suggestionId: 'suggestion-1', turnId: 'turn-server-1', status: 'awaiting_teacher_confirmation',
       proposedTask: {
         courseBasisId: 'basis-1', sourceVersionIds: ['version-1', 'version-2'],
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1', level: 'SECTION', unitId: 'section-1', structuralPath: ['chapter-1', 'section-1'],
+        }],
         knowledgePoints: [
           { id: 'kp-1', content: '幅值条件', sourceBindings: [{ citationId: 'citation-1' }] },
           { id: 'kp-2', title: '相角条件', content: '相角条件', sourceBindings: [{ citationId: 'citation-2' }] },
@@ -1229,6 +1237,10 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create.mock.calls[0]?.[0].data.inputSummary).toMatchObject({
       proposedTask: {
         courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45, sourceVersionIds: ['version-1', 'version-2'],
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1', level: 'SECTION', unitId: 'section-1', structuralPath: ['chapter-1', 'section-1'],
+        }],
         goals: [{ id: 'goal-1', content: '旧目标' }],
         knowledgePoints: [
           { id: 'kp-1', content: '幅值条件', sourceBindings: [{ citationId: 'citation-1' }] },
@@ -1243,6 +1255,10 @@ describe('konling agent runtime', () => {
     })).resolves.toMatchObject({
       proposedTask: {
         durationMinutes: 90, courseBasisId: 'basis-1', sourceVersionIds: ['version-1', 'version-2'],
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1', level: 'SECTION', unitId: 'section-1', structuralPath: ['chapter-1', 'section-1'],
+        }],
         knowledgePoints: [{ id: 'kp-1' }, { id: 'kp-2' }, { id: 'kp-3' }],
         goals: [{ id: 'goal-1' }],
       },

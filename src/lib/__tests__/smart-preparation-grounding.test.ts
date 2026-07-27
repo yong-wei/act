@@ -300,12 +300,44 @@ describe('smart preparation grounding contracts', () => {
     expect(semanticEdit.gapIdentity).not.toBe(base.gapIdentity);
   });
 
+  it('ignores Unicode prose punctuation while preserving normalized meaning', () => {
+      const variants = [
+        ['（稳定性）：判据；闭环-系统', '(稳定性):判据;闭环系统'],
+        ['稳定性；判据', '稳定性；判据'.normalize('NFKC')],
+        ['稳定性：判据', '稳定性判据'],
+        ['closed-loop control', 'closed loop control'],
+        ['state-space model', 'state space model'],
+        ['P-controller tuning', 'P controller tuning'],
+      ] as const;
+    for (const [left, right] of variants) {
+      expect(normalizeSourceMatchingMeaning(left)).toBe(normalizeSourceMatchingMeaning(right));
+      expect(canonicalSourceFields({
+        itemId: 'kp-1',
+        itemLineageId: 'lineage-1',
+        taskLineageId: 'task-lineage',
+        content: left,
+        sourceState: 'TEACHER_CREATED_SOURCE_PENDING',
+        sourceBindings: [],
+      }).contentHash).toBe(canonicalSourceFields({
+        itemId: 'kp-1',
+        itemLineageId: 'lineage-1',
+        taskLineageId: 'task-lineage',
+        content: right,
+        sourceState: 'TEACHER_CREATED_SOURCE_PENDING',
+        sourceBindings: [],
+      }).contentHash);
+    }
+  });
+
   it('preserves mathematical operators, signs, and decimal points in source matching hashes', () => {
-    const semanticPairs = [
-      ['s+1', 's-1'],
-      ['Kp>1', 'Kp<1'],
-      ['ζ=0.7', 'ζ=-0.7'],
-    ] as const;
+      const semanticPairs = [
+        ['s+1', 's-1'],
+        ['Kp>1', 'Kp<1'],
+        ['ζ=0.7', 'ζ=-0.7'],
+        ['x', '-x'],
+        ['xy', 'x-y'],
+        ['s+1', '-(s+1)'],
+      ] as const;
 
     for (const [left, right] of semanticPairs) {
       expect(normalizeSourceMatchingMeaning(left)).not.toBe(normalizeSourceMatchingMeaning(right));

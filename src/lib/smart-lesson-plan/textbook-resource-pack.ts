@@ -10,6 +10,7 @@ import {
   retrieveTextbookSourcePackV2,
   type TextbookV2ToolCandidate,
 } from '@/lib/source-pack/textbook-v2-adapter';
+import type { TextbookRetrievalScope } from '@/lib/textbook-retrieval';
 
 import { contentHash, type SmartLessonSourceBinding } from './domain';
 import {
@@ -78,15 +79,44 @@ export async function retrieveConfirmedTextbookBindings(
   ranges: ConfirmedTextbookRange[],
 ): Promise<SmartLessonSourceBinding[]> {
   if (ranges.length === 0) return [];
+  const scope = await buildConfirmedTextbookRetrievalScope(ranges);
   const result = await retrieveTextbookSourcePackV2({
     query,
     topK: 8,
     maxTextChars: 340,
+    scope,
   });
   return result.candidates
     .filter((candidate) => ranges.some((range) => rangeMatchesCandidate(range, candidate)))
     .slice(0, 8)
     .map(textbookCandidateBinding);
+}
+
+export async function buildConfirmedTextbookRetrievalScope(
+  ranges: ConfirmedTextbookRange[],
+): Promise<TextbookRetrievalScope[]> {
+  const books = await loadAllStructuredTextbookBooks();
+  const booksById = new Map(books.map((book) => [book.manifest.bookId, book]));
+  const scopedUnitIds = new Map<string, Set<string> | null>();
+  for (const range of ranges) {
+    if (range.level === 'BOOK') {
+      scopedUnitIds.set(range.bookId, null);
+      continue;
+    }
+    if (scopedUnitIds.get(range.bookId) === null) continue;
+    const unitIds = scopedUnitIds.get(range.bookId) ?? new Set<string>();
+    const book = booksById.get(range.bookId);
+    for (const unit of book?.units ?? []) {
+      if (range.structuralPath.every((segment, index) => unit.structuralPath[index] === segment)) {
+        unitIds.add(unit.id);
+      }
+    }
+    scopedUnitIds.set(range.bookId, unitIds);
+  }
+  return [...scopedUnitIds].map(([bookId, unitIds]) => ({
+    bookId,
+    ...(unitIds === null ? {} : { unitIds: [...unitIds] }),
+  }));
 }
 
 export function isTextbookSourceBinding(binding: Pick<SmartLessonSourceBinding, 'sourceVersionId'>) {
