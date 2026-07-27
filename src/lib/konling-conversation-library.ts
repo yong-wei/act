@@ -156,6 +156,7 @@ function projectPublicKonlingMessage(message: Message): Message {
       run.toolName !== 'propose_smart_lesson_task_change'
       || !actionId
       || (input.operation !== 'bootstrap' && input.operation !== 'revise')
+      || Object.keys(recordValue(input.proposedTask)).length === 0
       || projectedActionIds.has(actionId)
     ) return [];
     projectedActionIds.add(actionId);

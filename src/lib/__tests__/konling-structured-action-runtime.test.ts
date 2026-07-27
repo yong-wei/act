@@ -451,6 +451,160 @@ describe('Konling structured action runtime', () => {
     expect(normalized.withheldMalformedSyntax).toBe(false);
   });
 
+  it('streams fenced structured examples as visible text without executing them', async () => {
+    for (const deltas of [
+      ['```json\n<tool_call>{"name":"get_page_context","arguments":{}}</tool_call>\n```'],
+      ['``', '`json\n<tool_call>{"name":"get_page_context",', '"arguments":{}}</tool_call>\n`', '``'],
+      ['```json\n<｜DSML｜tool_calls><｜DSML｜invoke name="get_page_context">', '<｜DSML｜parameter name="arguments" string="false">{}</｜DSML｜parameter></｜DSML｜invoke></｜DSML｜tool_calls>\n```'],
+    ]) {
+      const executeToolCall = vi.fn();
+      const state: KonlingStructuredActionStreamState = {
+        toolCalls: [],
+        executedToolResults: [],
+        withheldMalformedSyntax: false,
+        withheldText: '',
+      };
+      const source = new ReadableStream({
+        start(controller) {
+          for (const delta of deltas) {
+            controller.enqueue({ type: 'text-delta', id: 'text-fenced', delta });
+          }
+          controller.enqueue({ type: 'finish', finishReason: 'stop' });
+          controller.close();
+        },
+      });
+      const chunks = await readChunks(createKonlingStructuredActionStream({
+        stream: source,
+        state,
+        executeToolCall,
+      }));
+
+      expect(chunks.filter((chunk) => chunk.type === 'text-delta').map((chunk) => chunk.delta).join(''))
+        .toBe(deltas.join(''));
+      expect(executeToolCall).not.toHaveBeenCalled();
+      expect(state.toolCalls).toEqual([]);
+      expect(state.withheldMalformedSyntax).toBe(false);
+    }
+  });
+
+  it('flushes an unclosed fenced DSML example as visible text without executing it', async () => {
+    const executeToolCall = vi.fn();
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const deltas = [
+      '```xml\n<｜DSML｜tool_calls><｜DSML｜invoke name="get_page_context">',
+      '<｜DSML｜parameter name="arguments" string="false">{}</｜DSML｜parameter></｜DSML｜invoke></｜DSML｜tool_calls>',
+    ];
+    const source = new ReadableStream({
+      start(controller) {
+        for (const delta of deltas) {
+          controller.enqueue({ type: 'text-delta', id: 'text-unclosed-fence', delta });
+        }
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+
+    expect(chunks.filter((chunk) => chunk.type === 'text-delta').map((chunk) => chunk.delta).join(''))
+      .toBe(deltas.join(''));
+    expect(executeToolCall).not.toHaveBeenCalled();
+    expect(state.toolCalls).toEqual([]);
+    expect(state.withheldMalformedSyntax).toBe(false);
+  });
+
+  it('executes only the real envelope after a fenced example', async () => {
+    const executeToolCall = vi.fn(async (call) => ({ pageId: (call.input as { pageId: string }).pageId }));
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const fencedExample = '```json\n<tool_call>{"name":"get_page_context","arguments":{"pageId":"example"}}</tool_call>\n```\n';
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'text-delta', id: 'text-fenced-real', delta: fencedExample });
+        controller.enqueue({ type: 'text-delta', id: 'text-fenced-real', delta: '<tool_' });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-fenced-real',
+          delta: 'call>{"name":"get_page_context","arguments":{"pageId":"real"}}</tool_call>',
+        });
+        controller.enqueue({ type: 'finish', finishReason: 'tool-calls' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+
+    expect(chunks.filter((chunk) => chunk.type === 'text-delta').map((chunk) => chunk.delta).join(''))
+      .toBe(fencedExample);
+    expect(executeToolCall).toHaveBeenCalledTimes(1);
+    expect(executeToolCall).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'get_page_context',
+      input: { pageId: 'real' },
+    }));
+    expect(state.toolCalls).toEqual([
+      expect.objectContaining({ name: 'get_page_context', input: { pageId: 'real' } }),
+    ]);
+  });
+
+  it('closes a separately streamed fence before executing an adjacent real envelope', async () => {
+    const executeToolCall = vi.fn(async (call) => ({ pageId: (call.input as { pageId: string }).pageId }));
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const fencedExample = [
+      '```json\n',
+      '<tool_call>{"name":"get_page_context","arguments":{"pageId":"example"}}</tool_call>\n',
+      '```',
+    ];
+    const source = new ReadableStream({
+      start(controller) {
+        for (const delta of fencedExample) {
+          controller.enqueue({ type: 'text-delta', id: 'text-separated-fence', delta });
+        }
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-separated-fence',
+          delta: '<tool_call>{"name":"get_page_context","arguments":{"pageId":"real"}}</tool_call>',
+        });
+        controller.enqueue({ type: 'finish', finishReason: 'tool-calls' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+
+    expect(chunks.filter((chunk) => chunk.type === 'text-delta').map((chunk) => chunk.delta).join(''))
+      .toBe(fencedExample.join(''));
+    expect(executeToolCall).toHaveBeenCalledTimes(1);
+    expect(executeToolCall).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'get_page_context',
+      input: { pageId: 'real' },
+    }));
+    expect(state.toolCalls).toEqual([
+      expect.objectContaining({ name: 'get_page_context', input: { pageId: 'real' } }),
+    ]);
+  });
+
   it('fails closed when a recognized DSML call cannot use a permitted scoped tool', async () => {
     const state: KonlingStructuredActionStreamState = {
       toolCalls: [],

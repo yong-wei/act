@@ -207,6 +207,77 @@ describe('Konling conversation library', () => {
     expect(encoded).not.toContain('failed-run-private');
   });
 
+  it('does not project clarification-only runs as action cards before a real proposal', () => {
+    const serialized = serializeKonlingConversation(conversation({
+      messages: [
+        {
+          id: 'assistant-clarification',
+          role: 'assistant',
+          content: '请先选择班级。',
+          metadata: {
+            konlingStructuredActionTurn: {
+              toolRuns: [
+                {
+                  toolRunId: 'clarification-succeeded',
+                  toolName: 'propose_smart_lesson_task_change',
+                  status: 'succeeded',
+                  approvalState: 'not_required',
+                  inputSummary: {
+                    publicActionId: 'clarification-succeeded-public',
+                    operation: 'bootstrap',
+                    clarification: { question: '选择哪个班级？' },
+                  },
+                },
+                {
+                  toolRunId: 'clarification-failed',
+                  toolName: 'propose_smart_lesson_task_change',
+                  status: 'failed',
+                  approvalState: 'not_required',
+                  inputSummary: {
+                    publicActionId: 'clarification-failed-public',
+                    operation: 'revise',
+                    clarification: { question: '补充哪些知识点？' },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        {
+          id: 'assistant-proposal',
+          role: 'assistant',
+          content: '已生成建议。',
+          metadata: {
+            konlingStructuredActionTurn: {
+              toolRuns: [{
+                toolRunId: 'real-proposal-private',
+                toolName: 'propose_smart_lesson_task_change',
+                status: 'succeeded',
+                approvalState: 'not_required',
+                inputSummary: {
+                  publicActionId: 'real-proposal-public',
+                  operation: 'bootstrap',
+                  proposedTask: { topic: '根轨迹' },
+                },
+              }],
+            },
+          },
+        },
+      ],
+    }));
+
+    expect(serialized.messages[0]?.metadata).not.toHaveProperty('konlingSmartPreparationActions');
+    expect(serialized.messages[1]?.metadata).toMatchObject({
+      konlingSmartPreparationActions: [{
+        actionId: 'real-proposal-public',
+        proposal: { topic: '根轨迹' },
+      }],
+    });
+    const encoded = JSON.stringify(serialized.messages);
+    expect(encoded).not.toContain('clarification-succeeded-public');
+    expect(encoded).not.toContain('clarification-failed-public');
+  });
+
   it('removes raw adaptive-path tool data and internal identifiers from the public DTO', () => {
     const serialized = serializeKonlingConversation(conversation({
       messages: [{

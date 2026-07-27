@@ -268,6 +268,7 @@ export function createKonlingStructuredActionStream(input: {
   let outputTextPartId = '';
   let messageId = '';
   let textLifecycleStarted = false;
+  let insideCodeFence = false;
   const nativeCalls: KonlingNormalizedToolCall[] = [];
   const streamedDsmlCalls: KonlingNormalizedToolCall[] = [];
   const privateActionCallIds = new Set<string>();
@@ -549,14 +550,18 @@ export function createKonlingStructuredActionStream(input: {
       const structuredTailIndex = findStructuredStreamTailIndex(
         textBuffer,
         fragmentedInputs.size > 0,
+        insideCodeFence,
       );
       if (structuredTailIndex < 0) {
         enqueueVisibleText(controller, textBuffer, chunk.id);
+        insideCodeFence = codeFenceStateAfter(textBuffer, insideCodeFence);
         textBuffer = '';
         return;
       }
       if (structuredTailIndex > 0) {
-        enqueueVisibleText(controller, textBuffer.slice(0, structuredTailIndex));
+        const visiblePrefix = textBuffer.slice(0, structuredTailIndex);
+        enqueueVisibleText(controller, visiblePrefix);
+        insideCodeFence = codeFenceStateAfter(visiblePrefix, insideCodeFence);
         textBuffer = textBuffer.slice(structuredTailIndex);
       }
       const preparedNormalization = prepareStreamTextNormalization(textBuffer);
@@ -605,23 +610,40 @@ function hasBalancedCodeFences(value: string) {
 function findStructuredStreamTailIndex(
   value: string,
   retainFallbackFailureText: boolean,
+  startsInsideCodeFence: boolean,
 ): number {
   const lower = value.toLocaleLowerCase('en-US');
   const candidates = retainFallbackFailureText
     ? [...STRUCTURED_STREAM_OPENERS, KONLING_STRUCTURED_FAILURE_TEXT]
     : STRUCTURED_STREAM_OPENERS;
-  let earliest = -1;
+  let insideCodeFence = startsInsideCodeFence;
   for (let index = 0; index < lower.length; index += 1) {
+    if (lower.startsWith('```', index)) {
+      insideCodeFence = !insideCodeFence;
+      index += 2;
+      continue;
+    }
+    if (insideCodeFence) continue;
     const suffix = lower.slice(index);
     if (candidates.some((opener) => {
       const normalizedOpener = opener.toLocaleLowerCase('en-US');
       return normalizedOpener.startsWith(suffix) || suffix.startsWith(normalizedOpener);
     })) {
-      earliest = index;
-      break;
+      return index;
     }
   }
-  return earliest;
+  const partialFence = value.match(/(?<!`)`{1,2}$/u);
+  return partialFence ? value.length - partialFence[0].length : -1;
+}
+
+function codeFenceStateAfter(value: string, initialState: boolean) {
+  let insideCodeFence = initialState;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!value.startsWith('```', index)) continue;
+    insideCodeFence = !insideCodeFence;
+    index += 2;
+  }
+  return insideCodeFence;
 }
 
 export async function executeKonlingDsmlToolCalls(input: {
