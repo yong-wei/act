@@ -837,7 +837,9 @@ describe('platform UI contracts', () => {
     expect(knowledgeResourcePanelSource).not.toContain('bg-[#091540]');
     expect(knowledgeResourcePanelSource).not.toContain('bg-[#0c1d4f]');
     expect(adaptivePracticeSource).toContain('data-commercial-entry-intent="practice"');
-    expect(adaptivePracticeSource).toContain('data-learning-path-options-slot="three-style"');
+    expect(adaptivePracticeSource).toContain(
+      "data-learning-path-options-slot={hasGeneratedPathOptions ? 'three-style' : 'starter-examples'}",
+    );
     expect(adaptivePracticeSource).toContain('data-learning-path-history-slot="selection-history"');
     expect(adaptivePracticeSource).toContain('data-konling-citation-slot="cited-explanation"');
     expect(adaptivePracticeSource).toContain('data-adaptive-path-local-command="path-management"');
