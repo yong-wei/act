@@ -222,7 +222,11 @@ describe('Konling smart-prep production routes', () => {
       }) => new ReadableStream({
         async start(controller) {
           controller.enqueue({ type: 'start', messageId: 'assistant-1' });
+          controller.enqueue({ type: 'start-step' });
+          controller.enqueue({ type: 'text-start', id: 'text-1' });
           controller.enqueue({ type: 'text-delta', id: 'text-1', delta: 'answer' });
+          controller.enqueue({ type: 'text-end', id: 'text-1' });
+          controller.enqueue({ type: 'finish-step' });
           await options.onFinish?.({
             responseMessage: {
               id: 'assistant-1',

@@ -336,8 +336,13 @@ export function createKonlingStructuredActionStream(input: {
         && privateActionCallIds.has(chunk.toolCallId)
         && (chunk.type === 'tool-output-available' || chunk.type === 'tool-output-error')
       ) return;
-      if (chunk?.type === 'text-start' || chunk?.type === 'text-end') {
+      if (chunk?.type === 'text-start') {
         rememberTextPartId(chunk.id);
+        return;
+      }
+      if (chunk?.type === 'text-end') {
+        rememberTextPartId(chunk.id);
+        closeVisibleText(controller);
         return;
       }
       if (chunk?.type !== 'text-delta' || typeof chunk.delta !== 'string') {
@@ -462,6 +467,7 @@ export function createKonlingStructuredActionStream(input: {
           textBuffer = '';
           closeVisibleText(controller);
         }
+        if (chunk?.type === 'finish-step') closeVisibleText(controller);
         controller.enqueue(chunk);
         return;
       }

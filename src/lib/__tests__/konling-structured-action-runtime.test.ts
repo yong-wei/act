@@ -109,9 +109,15 @@ describe('Konling structured action runtime', () => {
     const providerStream = new ReadableStream<any>({
       start(controller) {
         controller.enqueue({ type: 'start', messageId: 'assistant-provider-0' });
-        controller.enqueue({ type: 'text-start', id: 0 });
-        controller.enqueue({ type: 'text-delta', id: 0, delta: '真实模型回答' });
+        controller.enqueue({ type: 'start-step' });
+        controller.enqueue({ type: 'text-start', id: '0' });
+        controller.enqueue({ type: 'text-delta', id: '0', delta: '真实模型回答' });
         controller.enqueue({ type: 'text-end', id: '0' });
+        controller.enqueue({ type: 'finish-step' });
+        controller.enqueue({ type: 'start-step' });
+        controller.enqueue({ type: 'text-start', id: '1' });
+        controller.enqueue({ type: 'text-delta', id: '1', delta: '第二步回答' });
+        controller.enqueue({ type: 'finish-step' });
         controller.enqueue({ type: 'finish', finishReason: 'stop' });
         controller.close();
       },
@@ -157,11 +163,29 @@ describe('Konling structured action runtime', () => {
       { type: 'text-start', id: '0' },
       { type: 'text-delta', id: '0', delta: '真实模型回答' },
       { type: 'text-end', id: '0' },
+      { type: 'text-start', id: '0' },
+      { type: 'text-delta', id: '0', delta: '第二步回答' },
+      { type: 'text-end', id: '0' },
     ]);
-    expect(snapshots.at(-1)?.parts).toEqual([
+    const textEndIndexes = downstreamChunks
+      .map((chunk, index) => chunk.type === 'text-end' ? index : -1)
+      .filter((index) => index >= 0);
+    const finishStepIndexes = downstreamChunks
+      .map((chunk, index) => chunk.type === 'finish-step' ? index : -1)
+      .filter((index) => index >= 0);
+    expect(textEndIndexes).toHaveLength(2);
+    expect(finishStepIndexes).toHaveLength(2);
+    expect(textEndIndexes[0]).toBeLessThan(finishStepIndexes[0]);
+    expect(textEndIndexes[1]).toBeLessThan(finishStepIndexes[1]);
+    expect(snapshots.at(-1)?.parts.filter((part) => part.type === 'text')).toEqual([
       expect.objectContaining({
         type: 'text',
         text: '真实模型回答',
+        state: 'done',
+      }),
+      expect.objectContaining({
+        type: 'text',
+        text: '第二步回答',
         state: 'done',
       }),
     ]);
@@ -606,6 +630,8 @@ describe('Konling structured action runtime', () => {
       { type: 'finish-step' },
       { type: 'text-start', id: 'text-fallback' },
       { type: 'text-delta', id: 'text-fallback', delta: '建议已生成。' },
+      { type: 'text-end', id: 'text-fallback' },
+      { type: 'text-start', id: 'text-fallback' },
       { type: 'text-delta', id: 'text-fallback', delta: '请确认下方卡片。' },
       { type: 'text-end', id: 'text-fallback' },
       { type: 'finish', finishReason: 'stop' },
