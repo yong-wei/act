@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import {
+  conversationMessages,
+  konlingStructuredActionToolRunIds,
   normalizeKonlingManualTitle,
+  refreshKonlingStructuredActionToolRuns,
   serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -32,7 +35,25 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     if (!conversation) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
-    return NextResponse.json(serializeKonlingConversation(conversation));
+    const persistedMessages = conversationMessages(conversation.messages);
+    const toolRunIds = konlingStructuredActionToolRunIds(persistedMessages);
+    const toolRuns = toolRunIds.length
+      ? await prisma.agentToolRun.findMany({
+          where: {
+            id: { in: toolRunIds },
+            ownerUserId: session.user.id,
+            agentSession: { konlingSessionId: id },
+          },
+          select: {
+            id: true,
+            approvalState: true,
+            outputSummary: true,
+            errorSummary: true,
+          },
+        })
+      : [];
+    const refreshedMessages = refreshKonlingStructuredActionToolRuns(persistedMessages, toolRuns);
+    return NextResponse.json(serializeKonlingConversation(conversation, refreshedMessages));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Error in GET /api/ai/sessions/[id]:', error);

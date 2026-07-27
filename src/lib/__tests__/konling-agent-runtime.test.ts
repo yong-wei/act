@@ -1232,7 +1232,12 @@ describe('konling agent runtime', () => {
     });
     expect(db.agentToolRun.create).toHaveBeenCalledWith({ data: expect.objectContaining({
       toolName: 'propose_smart_lesson_task_change',
-      inputSummary: expect.objectContaining({ taskId: 'task-1', expectedRevision: 3, turnId: 'turn-server-1' }),
+      inputSummary: expect.objectContaining({
+        taskId: 'task-1',
+        expectedRevision: 3,
+        turnId: 'turn-server-1',
+        publicActionId: expect.any(String),
+      }),
     }) });
     expect(db.agentToolRun.create.mock.calls[0]?.[0].data.inputSummary).toMatchObject({
       proposedTask: {
@@ -1364,8 +1369,8 @@ describe('konling agent runtime', () => {
       taskId: null, taskRevision: null, bootstrap: true,
       currentTask: {
         availableCourseBases: [
-          { id: 'basis-1', documents: [{ versions: [{ id: 'version-1' }] }] },
-          { id: 'basis-2', documents: [{ versions: [{ id: 'version-2' }] }] },
+          { id: 'basis-1', title: '自动控制原理', documents: [{ title: '根轨迹讲义', versions: [{ id: 'version-1', versionNumber: 3 }] }] },
+          { id: 'basis-2', title: '现代控制理论', documents: [{ title: '状态空间讲义', versions: [{ id: 'version-2', versionNumber: 1 }] }] },
         ],
       },
       selectedCourseBasisVersions: [],
@@ -1419,6 +1424,10 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.proposedTask).toMatchObject({
       knowledgePoints: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
       goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+    });
+    expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.publicBasisSummary).toEqual({
+      title: '自动控制原理',
+      sources: ['根轨迹讲义 v3'],
     });
 
     const invalidProposal = (courseBasisId: string, sourceVersionIds: string[]) => runtime.proposeSmartLessonTaskChange({

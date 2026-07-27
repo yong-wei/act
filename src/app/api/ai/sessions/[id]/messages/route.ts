@@ -10,7 +10,7 @@ import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
-import { streamText, stepCountIs } from 'ai';
+import { generateText, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel } from '@/lib/ai-client';
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
 import { toLegacyMessage, toModelMessages } from '@/lib/ai-message-compat';
@@ -48,7 +48,16 @@ import {
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
   resolveKonlingContextEventScope,
+  serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
+import {
+  attachKonlingExecutedToolResults,
+  correctKonlingMalformedStructuredResponse,
+  executeKonlingDsmlToolCalls,
+  executeKonlingScopedAiTool,
+  normalizeKonlingAssistantMessage,
+  normalizeKonlingStructuredText,
+} from '@/lib/konling-structured-action-runtime';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -57,6 +66,12 @@ export const dynamic = 'force-dynamic';
 interface RouteContext {
   params: Promise<{ id: string }>;
 }
+
+const STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT = [
+  '修复一条被安全截留的助手响应。',
+  '只返回面向用户的简洁正文，不得输出工具标记、XML、DSML、JSON 调用封套或链接。',
+  '如果无法可靠恢复原意，明确说明结构化操作未完成并请用户重试。',
+].join('\n');
 
 /**
  * POST /api/ai/sessions/[id]/messages
@@ -294,17 +309,20 @@ export async function POST(request: NextRequest, context: RouteContext) {
       && Boolean(modeContract.smartPreparation);
 
     // 调用AI
+    const responseModel = await getConfiguredAIModel(undefined, modelRequirements);
+    const scopedTools = buildScopedKonlingAiTools(buildKonlingToolRuntime({
+      db: prisma,
+      scope: authorizedScope,
+      context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools },
+      agentSessionId: agentSession.id,
+      permittedTools: modeContract.permittedTools,
+    }));
+    const modelMessages = await toModelMessages(updatedMessages);
     const result = await streamText({
-      model: await getConfiguredAIModel(undefined, modelRequirements),
+      model: responseModel,
       system: systemPrompt,
-      messages: await toModelMessages(updatedMessages),
-      tools: buildScopedKonlingAiTools(buildKonlingToolRuntime({
-        db: prisma,
-        scope: authorizedScope,
-        context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools },
-        agentSessionId: agentSession.id,
-        permittedTools: modeContract.permittedTools,
-      })),
+      messages: modelMessages,
+      tools: scopedTools,
       ...(isStructuredSmartPrepTurn ? {
         stopWhen: stepCountIs(2),
         prepareStep: ({ stepNumber }: { stepNumber: number }) => stepNumber === 0
@@ -320,10 +338,59 @@ export async function POST(request: NextRequest, context: RouteContext) {
       temperature: 0.7,
     });
 
-    // 收集完整回复
-    let assistantContent = '';
-    for await (const chunk of result.textStream) {
-      assistantContent += chunk;
+    let completedResponseMessage: Message | null = null;
+    const responseStream = result.toUIMessageStream({
+      originalMessages: updatedMessages,
+      generateMessageId: () => createKonlingMessageId(),
+      onFinish: ({ responseMessage, isAborted }) => {
+        if (!isAborted) completedResponseMessage = toLegacyMessage(responseMessage);
+      },
+    });
+    const reader = responseStream.getReader();
+    while (!(await reader.read()).done) {
+      // Drain the UI stream so native and block-based tool parts reach onFinish.
+    }
+    if (!completedResponseMessage) {
+      throw new Error('控灵响应未完成。');
+    }
+    const completedAssistant = completedResponseMessage as Message;
+    const structuredAssistant = normalizeKonlingAssistantMessage(completedAssistant);
+    const executedToolResults = await executeKonlingDsmlToolCalls({
+      toolCalls: structuredAssistant.toolCalls,
+      executeToolCall: (call) => executeKonlingScopedAiTool({
+        tools: scopedTools,
+        call,
+        abortSignal: request.signal,
+        messages: modelMessages,
+      }),
+    });
+    structuredAssistant.message = attachKonlingExecutedToolResults(
+      structuredAssistant.message,
+      executedToolResults,
+    );
+    let assistantContent = structuredAssistant.message.content;
+    let structuredCorrectionStatus: 'not-required' | 'corrected' | 'failed' = 'not-required';
+    if (structuredAssistant.withheldMalformedSyntax) {
+      const correction = await correctKonlingMalformedStructuredResponse({
+        abortSignal: request.signal,
+        generate: async (abortSignal) => (await generateText({
+          model: responseModel,
+          system: STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT,
+          prompt: JSON.stringify({
+            question: content,
+            withheldResponse: completedAssistant.content,
+          }),
+          temperature: 0,
+          maxOutputTokens: 500,
+          abortSignal,
+        })).text,
+      });
+      assistantContent = correction.text;
+      structuredCorrectionStatus = correction.status;
+    } else if (executedToolResults.some((result) => result.errorText)) {
+      assistantContent = '结构化操作未能安全完成，请重新生成建议。';
+    } else if (!assistantContent && structuredAssistant.toolCalls.length > 0) {
+      assistantContent = '已完成结构化操作。';
     }
     const citationGuard = buildKonlingCitationGuard(modeRuntimeContext, assistantContent);
     const guardedAssistantContent = applyKonlingCitationFallback(assistantContent, citationGuard);
@@ -332,11 +399,21 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
 
     // 添加助手回复
+    const assistantParts: Message['parts'] = structuredAssistant.message.parts
+      .filter((part) => part.type !== 'text');
+    if (guardedAssistantContent) {
+      assistantParts.push({ type: 'text', text: guardedAssistantContent });
+    }
     const assistantMessage: Message = toLegacyMessage({
-      id: createKonlingMessageId(),
+      ...structuredAssistant.message,
       role: 'assistant',
       content: guardedAssistantContent,
+      parts: assistantParts,
       metadata: {
+        ...(structuredAssistant.message.metadata
+          && typeof structuredAssistant.message.metadata === 'object'
+          ? structuredAssistant.message.metadata
+          : {}),
         konlingCitationGuard: {
           status: citationGuard.status,
           missingCitationClasses: citationGuard.missingCitationClasses,
@@ -348,6 +425,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
           citations: citationGuard.citations.map(serializeKonlingCitationMetadata),
         },
         konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+        konlingStructuredCorrection: {
+          status: structuredCorrectionStatus,
+          attempts: structuredCorrectionStatus === 'not-required' ? 0 : 1,
+        },
       },
     });
 
@@ -360,7 +441,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!persistedConversation) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
-    const finalMessages = ((persistedConversation.messages as unknown as Message[]) || []).map(toLegacyMessage);
+    const serializedConversation = serializeKonlingConversation(persistedConversation);
     await persistKonlingSessionMemories(prisma, {
       userId: konlingSession.userId,
       sessionId,
@@ -372,7 +453,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       userMessage: content,
       assistantMessage: guardedAssistantContent,
     });
-    const refreshedAgentSession = await resumeKonlingAgentSession(prisma, {
+    await resumeKonlingAgentSession(prisma, {
       scope: authorizedScope,
       agentSessionId: agentSession.id,
       konlingSessionId: sessionId,
@@ -381,11 +462,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     });
 
     return NextResponse.json({
-      messages: finalMessages,
-      assistantMessage,
+      messages: serializedConversation.messages,
+      assistantMessage: serializedConversation.messages.at(-1),
       citationGuard,
-      agentSessionId: agentSession.id,
-      pendingApproval: refreshedAgentSession.pendingApproval,
     });
   } catch (error) {
     if (claimedTurn) {

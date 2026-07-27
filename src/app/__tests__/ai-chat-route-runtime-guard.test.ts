@@ -96,8 +96,22 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).not.toContain('convertToCoreMessages');
     expect(chatRouteSource).not.toContain('toDataStreamResponse');
     expect(sessionMessagesRouteSource).toContain('toModelMessages(updatedMessages)');
+    expect(sessionMessagesRouteSource).toContain('result.toUIMessageStream({');
+    expect(sessionMessagesRouteSource).toContain('normalizeKonlingAssistantMessage');
+    expect(sessionMessagesRouteSource).not.toContain('result.textStream');
     expect(sessionMessagesRouteSource).toContain('stopWhen: stepCountIs(5)');
     expect(sessionMessagesRouteSource).not.toContain('StreamingTextResponse');
+  });
+
+  it('normalizes structured action streams before rendering and reuses same-message correction', () => {
+    const normalization = chatRouteSource.indexOf('createKonlingStructuredActionStream({');
+    const response = chatRouteSource.indexOf('createUIMessageStreamResponse({');
+    expect(normalization).toBeGreaterThanOrEqual(0);
+    expect(normalization).toBeLessThan(response);
+    expect(chatRouteSource).toContain('structuredActionState.withheldMalformedSyntax');
+    expect(chatRouteSource).toContain('createKonlingMessageRevisionStream({');
+    expect(chatRouteSource).toContain('STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT');
+    expect(sessionMessagesRouteSource).toContain('normalizeKonlingStructuredText');
   });
 
   it('rejects expired or hidden legacy sessions before agent, tool, or model side effects', () => {
@@ -161,11 +175,12 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('agentSessionId');
     expect(sessionMessagesRouteSource).toContain('agentSessionId: agentSession.id');
     expect(sessionMessagesRouteSource).toContain('permittedTools: modeContract.permittedTools');
-    expect(sessionMessagesRouteSource).toContain('const refreshedAgentSession = await resumeKonlingAgentSession');
+    expect(sessionMessagesRouteSource).toContain('await resumeKonlingAgentSession');
     expect(sessionMessagesRouteSource).toContain("phase: 'konling-chat-tool-runtime'");
-    expect(sessionMessagesRouteSource.indexOf('const refreshedAgentSession = await resumeKonlingAgentSession'))
+    expect(sessionMessagesRouteSource.indexOf('await resumeKonlingAgentSession'))
       .toBeGreaterThan(sessionMessagesRouteSource.indexOf('await persistKonlingSessionMemories'));
-    expect(sessionMessagesRouteSource).toContain('pendingApproval: refreshedAgentSession.pendingApproval');
+    expect(sessionMessagesRouteSource).not.toContain('pendingApproval:');
+    expect(sessionMessagesRouteSource).toContain('messages: serializedConversation.messages');
   });
 
   it('applies Konling teaching-assistant mode contracts before exposing tools', () => {
@@ -302,7 +317,7 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).not.toContain('trustedContentContext: Boolean(courseId && pageId)');
     expect(sessionMessagesRouteSource).toContain('const citationGuard = buildKonlingCitationGuard(modeRuntimeContext, assistantContent)');
     expect(sessionMessagesRouteSource).toContain('const guardedAssistantContent = applyKonlingCitationFallback');
-    expect(sessionMessagesRouteSource).toContain('assistantMessage: guardedAssistantContent');
+    expect(sessionMessagesRouteSource).toContain('assistantMessage: serializedConversation.messages.at(-1)');
     expect(sessionMessagesRouteSource).toContain('metadata: {');
     expect(sessionMessagesRouteSource).toContain('konlingCitationGuard: {');
     expect(sessionMessagesRouteSource).toContain('const sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload');

@@ -93,7 +93,6 @@ type ClassDiagnosisOption = {
   availabilityReason: string;
   asOf: string | null;
 };
-type KonlingSuggestion = { id: string; agentSessionId: string; expectedRevision?: number; turnId: string; proposedTask?: unknown; clarification?: { question: string; alternatives: string[] }; confirmedTaskId?: string; createdAt: string };
 type PublicSourceState = 'verified' | 'no_reliable_source' | 'ai_generated_source_pending' | 'teacher_created_source_pending';
 
 export function SmartLessonPlanWorkspace({
@@ -127,9 +126,9 @@ export function SmartLessonPlanWorkspace({
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [hydrationReady, setHydrationReady] = useState(false);
-  const [suggestions, setSuggestions] = useState<Record<string, KonlingSuggestion[]>>({});
-  const [bootstrapSuggestions, setBootstrapSuggestions] = useState<KonlingSuggestion[]>([]);
+  const [highlightedStageId, setHighlightedStageId] = useState<string | null>(null);
   const coursewareCreationInFlight = useRef(false);
+  const highlightTimer = useRef<number | null>(null);
   const sourceOptions = useMemo<SourceOption[]>(() => availableCourseBases.flatMap((basis: any) => basis.documents.flatMap((document: any) =>
     document.versions.flatMap((version: any) => {
       const segment = version.segments?.[0];
@@ -211,6 +210,46 @@ export function SmartLessonPlanWorkspace({
 
   useEffect(() => {
     setHydrationReady(true);
+  }, []);
+
+  useEffect(() => {
+    const handleConfirmed = async (event: Event) => {
+      const detail = (event as CustomEvent<{ taskId?: string; affectedStageId?: string; task?: Task }>).detail;
+      if (!detail?.taskId) return;
+      let nextTask = detail.task;
+      if (!nextTask) {
+        try {
+          const response = await fetch(`/api/teacher/smart-lesson-tasks/${detail.taskId}`, { cache: 'no-store' });
+          const payload = await response.json();
+          if (!response.ok) return setMessage(`建议已应用，但任务刷新失败：${errorText(payload)}`);
+          nextTask = payload.task;
+        } catch {
+          return setMessage('建议已应用，但任务刷新失败。请使用消息卡中的“刷新任务”。');
+        }
+      }
+      setTasks((current) => current.some((task) => task.id === detail.taskId)
+        ? current.map((task) => task.id === detail.taskId ? nextTask! : task)
+        : [nextTask!, ...current]);
+      setSelectedTaskId(detail.taskId);
+      const stageId = detail.affectedStageId ?? 'topic-goals';
+      setHighlightedStageId(stageId);
+      if (highlightTimer.current) window.clearTimeout(highlightTimer.current);
+      highlightTimer.current = window.setTimeout(() => setHighlightedStageId(null), 2400);
+      window.requestAnimationFrame(() => {
+        document.getElementById(`smart-prep-stage-${stageId}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      });
+    };
+    const handleRefreshRequested = (event: Event) => {
+      const taskId = (event as CustomEvent<{ taskId?: string }>).detail?.taskId;
+      if (taskId) void refreshTask(taskId);
+    };
+    window.addEventListener('konling:smart-task-confirmed', handleConfirmed);
+    window.addEventListener('konling:smart-task-refresh-requested', handleRefreshRequested);
+    return () => {
+      window.removeEventListener('konling:smart-task-confirmed', handleConfirmed);
+      window.removeEventListener('konling:smart-task-refresh-requested', handleRefreshRequested);
+      if (highlightTimer.current) window.clearTimeout(highlightTimer.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -345,10 +384,15 @@ export function SmartLessonPlanWorkspace({
   }
 
   async function refreshTask(taskId: string) {
-    const response = await fetch(`/api/teacher/smart-lesson-tasks/${taskId}`, { cache: 'no-store' });
-    const payload = await response.json();
-    if (!response.ok) return setMessage(errorText(payload));
-    setTasks((current) => current.map((task) => task.id === taskId ? payload.task : task));
+    try {
+      const response = await fetch(`/api/teacher/smart-lesson-tasks/${taskId}`, { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) return setMessage(`任务刷新失败：${errorText(payload)}`);
+      setTasks((current) => current.map((task) => task.id === taskId ? payload.task : task));
+      setMessage('任务状态已刷新。');
+    } catch {
+      setMessage('任务刷新失败，请检查网络后重试。');
+    }
   }
 
   function loadTaskCollection(archived: boolean) {
@@ -476,52 +520,6 @@ export function SmartLessonPlanWorkspace({
     if (response.ok) setTasks((current) => current.map((item) => item.id === task.id ? payload.task : item));
   }
 
-  async function loadKonlingSuggestions(taskId: string) {
-    const response = await fetch(`/api/teacher/smart-lesson-tasks/${taskId}/konling-suggestions`, { cache: 'no-store' });
-    const payload = await response.json();
-    if (!response.ok) return setMessage(errorText(payload));
-    setSuggestions((current) => ({ ...current, [taskId]: payload.suggestions }));
-  }
-
-  async function loadBootstrapSuggestions() {
-    const response = await fetch('/api/teacher/smart-lesson-tasks/konling-suggestions', { cache: 'no-store' });
-    const payload = await response.json();
-    if (!response.ok) return setMessage(errorText(payload));
-    setBootstrapSuggestions(payload.suggestions);
-  }
-
-  async function confirmBootstrapSuggestion(suggestion: KonlingSuggestion) {
-    const response = await fetch(`/api/teacher/smart-lesson-tasks/konling-suggestions/${suggestion.id}/confirm`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ agentSessionId: suggestion.agentSessionId, turnId: suggestion.turnId }),
-    });
-    const payload = await response.json();
-    setMessage(response.ok ? '孔灵已创建单课任务，可在同一会话中继续修订。' : errorText(payload));
-    if (response.ok) {
-      setTasks((current) => current.some((item) => item.id === payload.task.id) ? current : [payload.task, ...current]);
-      window.dispatchEvent(new CustomEvent('konling:smart-task-confirmed', {
-        detail: { taskId: payload.task.id, taskRevision: payload.task.revision, agentSessionId: payload.agentSessionId },
-      }));
-      await loadBootstrapSuggestions();
-    }
-  }
-
-  async function confirmKonlingSuggestion(task: Task, suggestion: KonlingSuggestion) {
-    const response = await fetch(`/api/teacher/smart-lesson-tasks/${task.id}/konling-suggestions/${suggestion.id}/confirm`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ agentSessionId: suggestion.agentSessionId, turnId: suggestion.turnId }),
-    });
-    const payload = await response.json();
-    setMessage(response.ok ? `孔灵建议已确认，当前任务修订 ${payload.task.revision}。` : errorText(payload));
-    if (response.ok) {
-      setTasks((current) => current.map((item) => item.id === task.id ? payload.task : item));
-      window.dispatchEvent(new CustomEvent('konling:smart-task-confirmed', {
-        detail: { taskId: task.id, taskRevision: payload.task.revision, agentSessionId: payload.agentSessionId },
-      }));
-      await loadKonlingSuggestions(task.id);
-    }
-  }
-
   function editPausedOutline(task: Task) {
     const job = task.drafts?.[0]?.jobs?.[0];
     if (!job || job.state !== 'PAUSED') return;
@@ -599,9 +597,7 @@ export function SmartLessonPlanWorkspace({
     <div className="space-y-3 rounded-lg border border-border p-4">
       <div className="flex flex-wrap items-center gap-2">
         <KonlingEntryPointButton entryPoint={{ mode: 'prep-coauthor', promptContext: 'smart-task:bootstrap', serverContext: { smartPrepBootstrap: 'true' } }} label="用自然语言创建任务" />
-        <button type="button" onClick={() => void loadBootstrapSuggestions()} className="rounded border border-border px-3 py-1.5 text-sm">查看待确认创建建议</button>
       </div>
-      {bootstrapSuggestions.length ? <div className="space-y-2">{bootstrapSuggestions.map((suggestion) => <div key={suggestion.id} className="rounded bg-muted/50 p-3 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <SuggestionSummary value={suggestion.proposedTask} />}{suggestion.proposedTask && !suggestion.confirmedTaskId ? <button type="button" onClick={() => void confirmBootstrapSuggestion(suggestion)} className="mt-2 rounded border border-primary px-2 py-1 text-primary">确认并创建任务</button> : null}</div>)}</div> : null}
     </div>
     <form id="smart-preparation-new-task" action={createTask} className="grid min-w-0 max-w-full scroll-mt-24 gap-3 md:grid-cols-2">
       <label className="grid min-w-0 max-w-full gap-1 text-sm md:col-span-2">
@@ -656,6 +652,8 @@ export function SmartLessonPlanWorkspace({
           restoredOpen={preparationReturnState
             ? preparationReturnState.expandedStageIds.includes(`smart-prep-stage-${stage.id}`)
             : undefined}
+          forceOpen={highlightedStageId === stage.id}
+          highlighted={highlightedStageId === stage.id}
         >
           {children}
         </PreparationStageDetails>;
@@ -678,15 +676,13 @@ export function SmartLessonPlanWorkspace({
           </div>)}
           {stageDetails('topic-goals', <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              <KonlingEntryPointButton entryPoint={{ mode: 'prep-coauthor', promptContext: `smart-task:${task.id}`, serverContext: { smartTaskId: task.id, smartTaskRevision: String(task.revision) } }} label="与孔灵共创" />
-              <button onClick={() => void loadKonlingSuggestions(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">查看孔灵建议</button>
+              <KonlingEntryPointButton entryPoint={{ mode: 'prep-coauthor', promptContext: `smart-task:${task.id}`, serverContext: { smartTaskId: task.id, smartTaskRevision: String(task.revision) } }} label="与控灵共创" />
               <button onClick={() => void editTask(task)} disabled={Boolean(job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">修订任务</button>
             </div>
             <div className="grid gap-2 md:grid-cols-2">
               <div><h4 className="text-sm font-medium">知识点与来源</h4>{task.knowledgePoints?.filter((item) => item.state !== 'REMOVED').map((item) => <div key={item.id} className="mt-1 rounded border border-border p-2 text-sm"><p>{item.title} · <SourceStateLabel state={item.sourceState} gapReason={item.gapReason} /></p><SourceBindingDetails bindings={item.sourceBindings} sourceOptions={sourceOptions} gapReason={item.gapReason} onSelect={(binding) => void updateSourceDecision(task, 'knowledgePoint', item.id, 'replace', binding)} /><div className="mt-1 flex gap-2"><button type="button" className="text-xs text-primary" onClick={() => void updateSourceDecision(task, 'knowledgePoint', item.id, 'replace')}>替换</button><button type="button" className="text-xs text-muted-foreground" onClick={() => void updateSourceDecision(task, 'knowledgePoint', item.id, 'remove')}>移除</button></div></div>)}</div>
               <div><h4 className="text-sm font-medium">教学目标与来源</h4>{task.goals?.filter((item) => item.state !== 'REMOVED').map((item) => <div key={item.id} className="mt-1 rounded border border-border p-2 text-sm"><p>{item.content} · <SourceStateLabel state={item.sourceState} gapReason={item.gapReason} /></p><SourceBindingDetails bindings={item.sourceBindings} sourceOptions={sourceOptions} gapReason={item.gapReason} onSelect={(binding) => void updateSourceDecision(task, 'goal', item.id, 'replace', binding)} /><div className="mt-1 flex gap-2"><button type="button" className="text-xs text-primary" onClick={() => void updateSourceDecision(task, 'goal', item.id, 'replace')}>替换</button><button type="button" className="text-xs text-muted-foreground" onClick={() => void updateSourceDecision(task, 'goal', item.id, 'remove')}>移除</button></div></div>)}</div>
             </div>
-            {suggestions[task.id]?.length ? <div className="space-y-2 rounded bg-muted/50 p-3"><h4 className="text-sm font-medium">待确认的孔灵建议</h4>{suggestions[task.id].map((suggestion) => <div key={suggestion.id} className="rounded border border-border bg-background p-2 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <SuggestionSummary value={suggestion.proposedTask} />}{suggestion.proposedTask ? <button onClick={() => void confirmKonlingSuggestion(task, suggestion)} disabled={suggestion.expectedRevision !== task.revision} className="mt-2 rounded border border-primary px-2 py-1 text-primary disabled:opacity-50">确认并应用</button> : null}</div>)}</div> : null}
           </div>)}
           {stageDetails('class-attainment', <div className="min-w-0 space-y-2"><label className="grid min-w-0 max-w-md gap-1 text-sm">班级学情（当前累计画像）<select value={task.selectedClassId ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="w-full min-w-0 max-w-full rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}</select></label>{task.classContextStaleAt ? <p className="text-amber-700">班级选择已改变，已有生成内容已保留；请从提纲确认后重生成。</p> : null}</div>)}
           {stageDetails('lesson-generation', <div className="space-y-3">
@@ -804,23 +800,31 @@ function PreparationStageDetails({
   index,
   initiallyOpen,
   restoredOpen,
+  forceOpen,
+  highlighted,
   children,
 }: {
   stage: NonNullable<Task['workspace']>['stages'][number];
   index: number;
   initiallyOpen: boolean;
   restoredOpen?: boolean;
+  forceOpen?: boolean;
+  highlighted?: boolean;
   children?: ReactNode;
 }) {
   const [open, setOpen] = useState(initiallyOpen);
   useEffect(() => {
     if (restoredOpen !== undefined) setOpen(restoredOpen);
   }, [restoredOpen]);
+  useEffect(() => {
+    if (forceOpen) setOpen(true);
+  }, [forceOpen]);
   return <details
     id={`smart-prep-stage-${stage.id}`}
     open={open}
     onToggle={(event) => setOpen(event.currentTarget.open)}
-    className="group min-w-0 max-w-full rounded-lg border border-border bg-card"
+    className={`group min-w-0 max-w-full rounded-lg border bg-card transition-shadow ${highlighted ? 'border-primary ring-2 ring-primary/40' : 'border-border'}`}
+    data-konling-highlighted-stage={highlighted ? stage.id : undefined}
   >
     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
       <span className="flex items-center gap-2">
@@ -956,22 +960,6 @@ function AdvisoryReviewSummary({ value }: { value: unknown }) {
   return <div className="mt-2 space-y-1 text-muted-foreground">
     {summaries.map((item) => <p key={item}>{item}</p>)}
     {suggestions.map((item) => <p key={item}>建议：{item}</p>)}
-  </div>;
-}
-
-function SuggestionSummary({ value }: { value: unknown }) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return <p className="text-muted-foreground">建议内容暂不可显示。</p>;
-  }
-  const suggestion = value as Record<string, unknown>;
-  const topic = typeof suggestion.topic === 'string' ? suggestion.topic : null;
-  const audience = typeof suggestion.audience === 'string' ? suggestion.audience : null;
-  const duration = typeof suggestion.durationMinutes === 'number' ? suggestion.durationMinutes : null;
-  return <div className="space-y-1">
-    <p className="font-medium">{topic ?? '备课任务调整建议'}</p>
-    {audience ? <p>授课对象：{audience}</p> : null}
-    {duration ? <p>课时长度：{duration} 分钟</p> : null}
-    <p className="text-muted-foreground">确认后将按建议更新已保存的任务字段。</p>
   </div>;
 }
 

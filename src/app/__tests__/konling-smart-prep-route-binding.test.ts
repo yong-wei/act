@@ -205,7 +205,24 @@ describe('Konling smart-prep production routes', () => {
     });
     mocks.streamText.mockResolvedValue({
       textStream: (async function* () { yield 'answer'; })(),
-      toUIMessageStream: () => new ReadableStream(),
+      toUIMessageStream: (options: {
+        onFinish?: (event: Record<string, unknown>) => Promise<void> | void;
+      }) => new ReadableStream({
+        async start(controller) {
+          controller.enqueue({ type: 'start', messageId: 'assistant-1' });
+          controller.enqueue({ type: 'text-delta', id: 'text-1', delta: 'answer' });
+          await options.onFinish?.({
+            responseMessage: {
+              id: 'assistant-1',
+              role: 'assistant',
+              parts: [{ type: 'text', text: 'answer' }],
+            },
+            isAborted: false,
+          });
+          controller.enqueue({ type: 'finish' });
+          controller.close();
+        },
+      }),
     });
   });
 

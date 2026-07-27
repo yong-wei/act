@@ -67,6 +67,14 @@ import {
 import type { KonlingAssignedCitation } from '@/lib/konling-citation-protocol';
 import { createKonlingMessageRevisionStream } from '@/lib/konling-message-revision-stream';
 import { resolveKonlingTextbookOptimizations } from '@/lib/konling-textbook-background-optimization';
+import {
+  correctKonlingMalformedStructuredResponse,
+  createKonlingStructuredActionStream,
+  executeKonlingScopedAiTool,
+  normalizeKonlingAssistantMessage,
+  normalizeKonlingStructuredText,
+  type KonlingStructuredActionStreamState,
+} from '@/lib/konling-structured-action-runtime';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -77,6 +85,11 @@ const CITATION_REPAIR_SYSTEM_PROMPT = [
   '只能把 unresolvedMarkers 映射到 assignedCitations 中已有的 displayNumber。',
   '不得增加来源、URL、正文、解释或其他字段。',
   '仅返回 JSON 数组，元素格式为 {"marker":"原始标记","displayNumber":1}。',
+].join('\n');
+const STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT = [
+  '修复一条被安全截留的助手响应。',
+  '只返回面向用户的简洁正文，不得输出工具标记、XML、DSML、JSON 调用封套或链接。',
+  '如果无法可靠恢复原意，明确说明结构化操作未完成并请用户重试。',
 ].join('\n');
 
 function sanitizeAIErrorMessage(error: unknown) {
@@ -656,6 +669,13 @@ export async function POST(request: Request) {
     });
 
     let completedResponseMessage: Message | null = null;
+    let structuredCorrectionUsed = false;
+    const structuredActionState: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
     const buildPersistedAssistantRevision = (
       messageId: string,
       body: string,
@@ -669,6 +689,27 @@ export async function POST(request: Request) {
         return [{ ...part, text: body }];
       });
       if (!textPartReplaced) parts.push({ type: 'text', text: body });
+      for (const call of structuredActionState.toolCalls) {
+        if (parts.some((part) =>
+          (part.type === 'dynamic-tool' || part.type.startsWith('tool-'))
+          && 'toolCallId' in part
+          && part.toolCallId === call.id
+        )) continue;
+        const execution = structuredActionState.executedToolResults.find((item) =>
+          item.toolCallId === call.id);
+        parts.push({
+          type: 'dynamic-tool',
+          toolCallId: call.id,
+          toolName: call.name,
+          state: execution
+            ? execution.errorText ? 'output-error' : 'output-available'
+            : 'input-available',
+          input: call.input,
+          ...(execution?.errorText
+            ? { errorText: execution.errorText }
+            : execution ? { output: execution.result } : {}),
+        } as Message['parts'][number]);
+      }
       const existingMetadata = completedResponseMessage?.metadata
         && typeof completedResponseMessage.metadata === 'object'
         ? completedResponseMessage.metadata as Record<string, unknown>
@@ -695,7 +736,12 @@ export async function POST(request: Request) {
           return;
         }
         completedResponseMessage = toLegacyMessage(responseMessage);
-        if (!getMessageContent(responseMessage).trim()) {
+        completedResponseMessage = normalizeKonlingAssistantMessage(completedResponseMessage).message;
+        if (
+          !getMessageContent(completedResponseMessage).trim()
+          && !completedResponseMessage.parts.some((part) =>
+            part.type === 'dynamic-tool' || part.type.startsWith('tool-'))
+        ) {
           await releaseKonlingConversationTurn(prisma, claimedTurn);
           claimedTurn = null;
           return;
@@ -724,15 +770,47 @@ export async function POST(request: Request) {
           { konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload },
         )
       : uiMessageStream;
+    const structuredActionStream = createKonlingStructuredActionStream({
+      stream: metadataStream,
+      state: structuredActionState,
+      executeToolCall: (call) => executeKonlingScopedAiTool({
+        tools,
+        call,
+        abortSignal: request.signal,
+        messages: frozenModelMessages,
+      }),
+    });
     const finalCitationUiMessageStream = buildFinalCitationGuardMetadataPayload && getAssignedCitationTable
       ? createKonlingMessageRevisionStream({
-          stream: metadataStream,
+          stream: structuredActionStream,
           hasPendingOptimization: () =>
-            (getTextbookOptimizations?.().length ?? 0) > 0,
+            structuredActionState.withheldMalformedSyntax
+            || (getTextbookOptimizations?.().length ?? 0) > 0,
           finalize: async ({ messageId, body: assistantBody }) => {
+            let correctedAssistantBody = assistantBody;
+            let structuredCorrectionStatus: 'not-required' | 'corrected' | 'failed' = 'not-required';
+            if (structuredActionState.withheldMalformedSyntax && !structuredCorrectionUsed) {
+              structuredCorrectionUsed = true;
+              const correction = await correctKonlingMalformedStructuredResponse({
+                abortSignal: request.signal,
+                generate: async (abortSignal) => (await generateText({
+                  model: responseModel,
+                  system: STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT,
+                  prompt: JSON.stringify({
+                    question: requestedUserMessage?.content ?? '',
+                    withheldResponse: structuredActionState.withheldText,
+                  }),
+                  temperature: 0,
+                  maxOutputTokens: 500,
+                  abortSignal,
+                })).text,
+              });
+              correctedAssistantBody = correction.text;
+              structuredCorrectionStatus = correction.status;
+            }
             const assignedCitations = getAssignedCitationTable?.() ?? [];
             const normalized = await normalizeAndRepairKonlingCitations({
-              answer: assistantBody,
+              answer: correctedAssistantBody,
               assignedCitations,
               originalQuestion: requestedUserMessage?.content ?? '',
               serverContext: citationRepairServerContext as KonlingCitationRepairRequest['serverContext'],
@@ -775,6 +853,10 @@ export async function POST(request: Request) {
                 revision: 1,
                 status: normalized.verificationStatus,
                 userNotice: normalized.userNotice,
+              },
+              konlingStructuredCorrection: {
+                status: structuredCorrectionStatus,
+                attempts: structuredCorrectionStatus === 'not-required' ? 0 : 1,
               },
             };
             if (claimedTurn) {
@@ -923,7 +1005,65 @@ export async function POST(request: Request) {
             };
           },
         })
-      : metadataStream;
+      : createKonlingMessageRevisionStream({
+          stream: structuredActionStream,
+          hasPendingOptimization: () => structuredActionState.withheldMalformedSyntax,
+          finalize: async ({ messageId, body }) => {
+            let finalBody = body;
+            let correctionStatus: 'not-required' | 'corrected' | 'failed' = 'not-required';
+            if (structuredActionState.withheldMalformedSyntax && !structuredCorrectionUsed) {
+              structuredCorrectionUsed = true;
+              const correction = await correctKonlingMalformedStructuredResponse({
+                abortSignal: request.signal,
+                generate: async (abortSignal) => (await generateText({
+                  model: responseModel,
+                  system: STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT,
+                  prompt: JSON.stringify({
+                    question: requestedUserMessage?.content ?? '',
+                    withheldResponse: structuredActionState.withheldText,
+                  }),
+                  temperature: 0,
+                  maxOutputTokens: 500,
+                  abortSignal,
+                })).text,
+              });
+              finalBody = correction.text;
+              correctionStatus = correction.status;
+            }
+            const metadata = {
+              konlingMessageRevision: {
+                revision: 1,
+                status: 'verified',
+                userNotice: null,
+              },
+              konlingStructuredCorrection: {
+                status: correctionStatus,
+                attempts: correctionStatus === 'not-required' ? 0 : 1,
+              },
+            };
+            if (claimedTurn) {
+              const completingTurn = claimedTurn;
+              try {
+                await completeKonlingConversationTurn(prisma, {
+                  ...completingTurn,
+                  assistantMessage: buildPersistedAssistantRevision(messageId, finalBody, metadata),
+                });
+                claimedTurn = null;
+              } catch (error) {
+                await releaseKonlingConversationTurn(prisma, completingTurn);
+                claimedTurn = null;
+                throw error;
+              }
+            }
+            return {
+              body: finalBody,
+              citations: [],
+              status: 'verified',
+              userNotice: null,
+              metadata,
+            };
+          },
+        });
     const guardedUiMessageStream = insertStreamingCitationFallbackNotice(
       finalCitationUiMessageStream,
       process.env.NODE_ENV === 'production'
