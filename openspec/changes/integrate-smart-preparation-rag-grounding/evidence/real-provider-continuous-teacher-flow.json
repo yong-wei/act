@@ -1,0 +1,193 @@
+{
+  "evidenceVersion": "smart-lesson-real-provider-continuous-teacher-flow.v1",
+  "generatedAt": "2026-07-27T11:46:06.194Z",
+  "sourceRevision": "487816c7d4be2ba85eeea2693aeaa48e95a74e12",
+  "providerMode": "configured-real-provider",
+  "routeInterception": false,
+  "acceptance": {
+    "courseBasisCreatedInBrowser": true,
+    "documentUploadedInBrowser": true,
+    "confirmedTextbookRange": true,
+    "currentCumulativeDefaultClassPortrait": true,
+    "fullBopppsCompleted": true,
+    "injectedFailureRecovered": true,
+    "editorSavePersisted": true,
+    "aiSuggestionsPersisted": true,
+    "reopenedTask": true,
+    "deletedUnpublishedTask": true,
+    "desktopViewport": "1440x1000",
+    "narrowViewport": "390x844"
+  },
+  "recovery": {
+    "injectedAtStage": "BRIDGE_IN",
+    "failurePath": "worker-beginProviderAttempt-to-failGenerationStage",
+    "failureCode": "provider-timeout",
+    "failedAttemptOutcome": "RETRYABLE_FAILURE",
+    "retryCreatedNewAttempt": true,
+    "completedOutlineAttemptIdsPreserved": true,
+    "naturalRetryBudget": {
+      "maximumPerStage": 1,
+      "maximumTotal": 2,
+      "used": 1,
+      "events": [
+        {
+          "stage": "PARTICIPATORY_LEARNING",
+          "failureCode": "provider-output-invalid-after-correction"
+        }
+      ]
+    }
+  },
+  "advisoryReview": {
+    "boundedRetryUsed": true,
+    "attemptCount": 2,
+    "states": [
+      "FAILED",
+      "COMPLETED"
+    ],
+    "failureCodes": [
+      "advisory-provider-upstream-failed",
+      null
+    ],
+    "completedCount": 1
+  },
+  "result": {
+    "stageCount": 7,
+    "completedStages": [
+      "OUTLINE",
+      "BRIDGE_IN",
+      "OBJECTIVES",
+      "PRE_ASSESSMENT",
+      "PARTICIPATORY_LEARNING",
+      "POST_ASSESSMENT",
+      "SUMMARY"
+    ],
+    "allAttemptsUseNonFixtureProvider": true
+  },
+  "attempts": [
+    {
+      "stage": "OUTLINE",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "SUCCEEDED",
+      "inputTokens": 2706,
+      "outputTokens": 885,
+      "latencyMs": 18711
+    },
+    {
+      "stage": "BRIDGE_IN",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "RETRYABLE_FAILURE",
+      "inputTokens": null,
+      "outputTokens": null,
+      "latencyMs": 11
+    },
+    {
+      "stage": "BRIDGE_IN",
+      "attemptNumber": 2,
+      "kind": "ORIGINAL",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "SUCCEEDED",
+      "inputTokens": 3498,
+      "outputTokens": 784,
+      "latencyMs": 24487
+    },
+    {
+      "stage": "OBJECTIVES",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "SUCCEEDED",
+      "inputTokens": 4147,
+      "outputTokens": 740,
+      "latencyMs": 10781
+    },
+    {
+      "stage": "PRE_ASSESSMENT",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "SUCCEEDED",
+      "inputTokens": 4813,
+      "outputTokens": 1123,
+      "latencyMs": 14724
+    },
+    {
+      "stage": "PARTICIPATORY_LEARNING",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "RETRYABLE_FAILURE",
+      "inputTokens": 5804,
+      "outputTokens": 1656,
+      "latencyMs": 50338
+    },
+    {
+      "stage": "PARTICIPATORY_LEARNING",
+      "attemptNumber": 2,
+      "kind": "CORRECTION",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "RETRYABLE_FAILURE",
+      "inputTokens": null,
+      "outputTokens": null,
+      "latencyMs": 43996
+    },
+    {
+      "stage": "PARTICIPATORY_LEARNING",
+      "attemptNumber": 3,
+      "kind": "ORIGINAL",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "SUCCEEDED",
+      "inputTokens": 5804,
+      "outputTokens": 1508,
+      "latencyMs": 27280
+    },
+    {
+      "stage": "POST_ASSESSMENT",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "SUCCEEDED",
+      "inputTokens": 7184,
+      "outputTokens": 1469,
+      "latencyMs": 41582
+    },
+    {
+      "stage": "SUMMARY",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "SUCCEEDED",
+      "inputTokens": 8521,
+      "outputTokens": 869,
+      "latencyMs": 25709
+    }
+  ],
+  "privacy": {
+    "includesProviderSecret": false,
+    "includesRawPromptOrResponse": false,
+    "includesPersonalData": false
+  }
+}
