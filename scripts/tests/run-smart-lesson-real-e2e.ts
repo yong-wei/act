@@ -350,18 +350,23 @@ async function seedCurrentCumulativeClassPortrait(
       completedAt: now,
     },
   });
-  await prisma.cumulativePortraitCutoverFence.create({
-    data: {
+  const fenceData = {
+    fence: publication.cutoverFence,
+    calculationVersion: publication.calculationVersion,
+    learnerGeneration: publication.learnerGeneration,
+    classMaterializationVersion: publication.materializationVersion,
+    classGeneration: publication.generation,
+    queueGeneration: publication.queueGeneration,
+    activeMigrationRunId: migrationRunId,
+    advancedAt: now,
+  };
+  await prisma.cumulativePortraitCutoverFence.upsert({
+    where: { id: 'global' },
+    create: {
       id: 'global',
-      fence: publication.cutoverFence,
-      calculationVersion: publication.calculationVersion,
-      learnerGeneration: publication.learnerGeneration,
-      classMaterializationVersion: publication.materializationVersion,
-      classGeneration: publication.generation,
-      queueGeneration: publication.queueGeneration,
-      activeMigrationRunId: migrationRunId,
-      advancedAt: now,
+      ...fenceData,
     },
+    update: fenceData,
   });
   await materializeCumulativeClassPortrait(prisma, classId, { now, publication });
 }

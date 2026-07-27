@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import { assertCleanSourceRevision } from '../../../../scripts/tests/smart-lesson-source-revision';
@@ -39,5 +42,17 @@ describe('smart lesson real-provider source revision contract', () => {
 
     expect(() => assertCleanSourceRevision('/repo', runGit))
       .toThrowError('smart-lesson-e2e-source-revision-invalid');
+  });
+
+  it('reuses the migration-seeded global cumulative portrait fence', () => {
+    const runner = readFileSync(
+      path.join(process.cwd(), 'scripts/tests/run-smart-lesson-real-e2e.ts'),
+      'utf8',
+    );
+    expect(runner).toContain('cumulativePortraitCutoverFence.upsert({');
+    expect(runner).toContain("where: { id: 'global' }");
+    expect(runner).toContain('create: {');
+    expect(runner).toContain('update: fenceData');
+    expect(runner).not.toContain('cumulativePortraitCutoverFence.create({');
   });
 });
