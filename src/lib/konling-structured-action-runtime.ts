@@ -243,6 +243,7 @@ export function createKonlingStructuredActionStream(input: {
 }) {
   let textBuffer = '';
   let textPartId = '';
+  let outputTextPartId = '';
   let messageId = '';
   let textLifecycleStarted = false;
   const nativeCalls: KonlingNormalizedToolCall[] = [];
@@ -254,20 +255,33 @@ export function createKonlingStructuredActionStream(input: {
   const enqueueVisibleText = (
     controller: TransformStreamDefaultController<any>,
     text: string,
+    sourcePartId?: unknown,
   ) => {
     if (!text) return;
-    const id = textPartId || messageId;
+    rememberTextPartId(sourcePartId);
+    const id = outputTextPartId || textPartId || messageId;
     if (!id) return;
     if (!textLifecycleStarted) {
       controller.enqueue({ type: 'text-start', id });
       textLifecycleStarted = true;
+      outputTextPartId = id;
     }
-    controller.enqueue({ type: 'text-delta', id, delta: text });
+    controller.enqueue({ type: 'text-delta', id: outputTextPartId, delta: text });
   };
   const closeVisibleText = (controller: TransformStreamDefaultController<any>) => {
     if (!textLifecycleStarted) return;
-    controller.enqueue({ type: 'text-end', id: textPartId || messageId });
+    controller.enqueue({ type: 'text-end', id: outputTextPartId });
     textLifecycleStarted = false;
+  };
+  const rememberTextPartId = (value: unknown) => {
+    if (textPartId) return;
+    if (typeof value === 'string' && value) {
+      textPartId = value;
+      return;
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      textPartId = String(value);
+    }
   };
   return input.stream.pipeThrough(new TransformStream<any, any>({
     async transform(chunk, controller) {
@@ -323,7 +337,7 @@ export function createKonlingStructuredActionStream(input: {
         && (chunk.type === 'tool-output-available' || chunk.type === 'tool-output-error')
       ) return;
       if (chunk?.type === 'text-start' || chunk?.type === 'text-end') {
-        if (!textPartId && typeof chunk.id === 'string') textPartId = chunk.id;
+        rememberTextPartId(chunk.id);
         return;
       }
       if (chunk?.type !== 'text-delta' || typeof chunk.delta !== 'string') {
@@ -451,14 +465,14 @@ export function createKonlingStructuredActionStream(input: {
         controller.enqueue(chunk);
         return;
       }
-      if (!textPartId && typeof chunk.id === 'string') textPartId = chunk.id;
+      rememberTextPartId(chunk.id);
       textBuffer += chunk.delta;
       const structuredTailIndex = findStructuredStreamTailIndex(
         textBuffer,
         fragmentedInputs.size > 0,
       );
       if (structuredTailIndex < 0) {
-        enqueueVisibleText(controller, textBuffer);
+        enqueueVisibleText(controller, textBuffer, chunk.id);
         textBuffer = '';
         return;
       }

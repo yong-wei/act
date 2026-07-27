@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
+import { readUIMessageStream } from 'ai';
 
+import { appendFinalCitationGuardMetadata } from '@/lib/konling-final-citation-metadata-stream';
+import { createKonlingMessageRevisionStream } from '@/lib/konling-message-revision-stream';
 import {
   correctKonlingMalformedStructuredResponse,
   createKonlingStructuredActionStream,
@@ -94,6 +97,74 @@ describe('Konling structured action runtime', () => {
       value: { type: 'finish', finishReason: 'stop' },
     });
     await expect(reader.read()).resolves.toEqual({ done: true, value: undefined });
+  });
+
+  it('keeps provider text id "0" paired through metadata, revision, and UI SDK consumption', async () => {
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const providerStream = new ReadableStream<any>({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-provider-0' });
+        controller.enqueue({ type: 'text-start', id: 0 });
+        controller.enqueue({ type: 'text-delta', id: 0, delta: '真实模型回答' });
+        controller.enqueue({ type: 'text-end', id: '0' });
+        controller.enqueue({ type: 'finish', finishReason: 'stop' });
+        controller.close();
+      },
+    });
+    const metadataStream = appendFinalCitationGuardMetadata(
+      providerStream,
+      (body) => ({ status: 'verified', body }),
+    );
+    const structuredStream = createKonlingStructuredActionStream({
+      stream: metadataStream,
+      state,
+    });
+    const downstreamChunks: any[] = [];
+    const inspectedStream = structuredStream.pipeThrough(new TransformStream({
+      transform(chunk, controller) {
+        downstreamChunks.push(chunk);
+        controller.enqueue(chunk);
+      },
+    }));
+    const revisionStream = createKonlingMessageRevisionStream({
+      stream: inspectedStream,
+      finalize: async ({ body }) => ({
+        body,
+        citations: [],
+        status: 'verified',
+        userNotice: null,
+        metadata: {},
+      }),
+    });
+    const onError = vi.fn();
+    const snapshots = [];
+
+    for await (const message of readUIMessageStream({
+      stream: revisionStream,
+      onError,
+      terminateOnError: true,
+    })) {
+      snapshots.push(message);
+    }
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(downstreamChunks.filter((chunk) => chunk.type.startsWith('text-'))).toEqual([
+      { type: 'text-start', id: '0' },
+      { type: 'text-delta', id: '0', delta: '真实模型回答' },
+      { type: 'text-end', id: '0' },
+    ]);
+    expect(snapshots.at(-1)?.parts).toEqual([
+      expect.objectContaining({
+        type: 'text',
+        text: '真实模型回答',
+        state: 'done',
+      }),
+    ]);
   });
 
   it('replays a complete text lifecycle from the flush fallback', async () => {
