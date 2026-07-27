@@ -324,49 +324,55 @@ async function seedCurrentCumulativeClassPortrait(
   const { PORTRAIT_V2_CALCULATION_VERSION } = await import('../../src/lib/data-governance/portrait-v2-model');
   const migrationRunId = `smart-lesson-real-migration-${process.pid}`;
   const now = new Date();
-  const publication = {
-    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-    learnerGeneration: 1n,
-    materializationVersion: CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
-    generation: 1n,
-    queueGeneration: 1n,
-    cutoverFence: 1n,
-    migrationRunId,
-  };
-  await prisma.cumulativePortraitMigrationRun.create({
-    data: {
-      id: migrationRunId,
-      mode: 'APPLY',
-      status: 'COMPLETED',
-      calculationVersion: publication.calculationVersion,
-      classMaterializationVersion: publication.materializationVersion,
-      learnerGeneration: publication.learnerGeneration,
-      classGeneration: publication.generation,
-      queueGeneration: publication.queueGeneration,
-      cutoverFence: publication.cutoverFence,
-      inputDigest: 'smart-lesson-real-e2e',
-      verificationDigest: 'smart-lesson-real-e2e',
-      startedAt: now,
-      completedAt: now,
-    },
-  });
-  const fenceData = {
-    fence: publication.cutoverFence,
-    calculationVersion: publication.calculationVersion,
-    learnerGeneration: publication.learnerGeneration,
-    classMaterializationVersion: publication.materializationVersion,
-    classGeneration: publication.generation,
-    queueGeneration: publication.queueGeneration,
-    activeMigrationRunId: migrationRunId,
-    advancedAt: now,
-  };
-  await prisma.cumulativePortraitCutoverFence.upsert({
-    where: { id: 'global' },
-    create: {
-      id: 'global',
-      ...fenceData,
-    },
-    update: fenceData,
+  const publication = await prisma.$transaction(async (tx) => {
+    const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({
+      where: { id: 'global' },
+    });
+    const next = {
+      cutoverFence: BigInt(currentFence?.fence ?? 0) + 1n,
+      learnerGeneration: BigInt(currentFence?.learnerGeneration ?? 0) + 1n,
+      generation: BigInt(currentFence?.classGeneration ?? 0) + 1n,
+      queueGeneration: BigInt(currentFence?.queueGeneration ?? 0) + 1n,
+    };
+    const nextPublication = {
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      materializationVersion: CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
+      migrationRunId,
+      ...next,
+    };
+    await tx.cumulativePortraitMigrationRun.create({
+      data: {
+        id: migrationRunId,
+        mode: 'APPLY',
+        status: 'COMPLETED',
+        calculationVersion: nextPublication.calculationVersion,
+        classMaterializationVersion: nextPublication.materializationVersion,
+        learnerGeneration: nextPublication.learnerGeneration,
+        classGeneration: nextPublication.generation,
+        queueGeneration: nextPublication.queueGeneration,
+        cutoverFence: nextPublication.cutoverFence,
+        inputDigest: 'smart-lesson-real-e2e',
+        verificationDigest: 'smart-lesson-real-e2e',
+        startedAt: now,
+        completedAt: now,
+      },
+    });
+    const fenceData = {
+      fence: nextPublication.cutoverFence,
+      calculationVersion: nextPublication.calculationVersion,
+      learnerGeneration: nextPublication.learnerGeneration,
+      classMaterializationVersion: nextPublication.materializationVersion,
+      classGeneration: nextPublication.generation,
+      queueGeneration: nextPublication.queueGeneration,
+      activeMigrationRunId: migrationRunId,
+      advancedAt: now,
+    };
+    await tx.cumulativePortraitCutoverFence.upsert({
+      where: { id: 'global' },
+      create: { id: 'global', ...fenceData },
+      update: fenceData,
+    });
+    return nextPublication;
   });
   await materializeCumulativeClassPortrait(prisma, classId, { now, publication });
 }

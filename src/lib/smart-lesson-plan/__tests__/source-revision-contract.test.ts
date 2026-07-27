@@ -49,10 +49,32 @@ describe('smart lesson real-provider source revision contract', () => {
       path.join(process.cwd(), 'scripts/tests/run-smart-lesson-real-e2e.ts'),
       'utf8',
     );
+    const migration = readFileSync(
+      path.join(
+        process.cwd(),
+        'prisma/migrations/20260723120000_restore_cumulative_learning_portraits/migration.sql',
+      ),
+      'utf8',
+    );
+    expect(runner).toContain('const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({');
+    expect(runner).toContain('BigInt(currentFence?.fence ?? 0) + 1n');
+    expect(runner).toContain('BigInt(currentFence?.learnerGeneration ?? 0) + 1n');
+    expect(runner).toContain('BigInt(currentFence?.classGeneration ?? 0) + 1n');
+    expect(runner).toContain('BigInt(currentFence?.queueGeneration ?? 0) + 1n');
     expect(runner).toContain('cumulativePortraitCutoverFence.upsert({');
     expect(runner).toContain("where: { id: 'global' }");
-    expect(runner).toContain('create: {');
+    expect(runner).toContain("create: { id: 'global', ...fenceData }");
     expect(runner).toContain('update: fenceData');
     expect(runner).not.toContain('cumulativePortraitCutoverFence.create({');
+    for (const field of [
+      'cutoverFence',
+      'calculationVersion',
+      'classMaterializationVersion',
+      'learnerGeneration',
+      'classGeneration',
+      'queueGeneration',
+    ]) {
+      expect(migration).toContain(`run_row."${field}" IS DISTINCT FROM NEW."${field === 'cutoverFence' ? 'fence' : field}"`);
+    }
   });
 });
