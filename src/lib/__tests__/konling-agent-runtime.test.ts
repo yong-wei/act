@@ -956,7 +956,19 @@ describe('konling agent runtime', () => {
       pageContext: {
         candidateGraph: serverAuthorizedCandidateGraph,
       },
+      citationContext: {
+        contentCitations: [],
+        missingCitationClasses: ['content'],
+        lowConfidenceReasons: ['candidate-tool-citation-required'],
+      },
     });
+    const noToolCitationGuard = buildKonlingCitationGuard(
+      runtime,
+      '根轨迹结论 [1]',
+    );
+    expect(noToolCitationGuard.status).toBe('low-confidence');
+    expect(noToolCitationGuard.fallbackRequired).toBe(true);
+    expect(noToolCitationGuard.citations).toEqual([]);
     expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
     expect(mocks.loadAllLessonRuntimeResourceCatalogEntries).not.toHaveBeenCalled();
     expect(mocks.loadAllTextbookStructureRuntimeCatalogEntries).not.toHaveBeenCalled();
@@ -1277,6 +1289,31 @@ describe('konling agent runtime', () => {
       objectCount: 7,
       relationCount: 9,
     };
+    const candidateRuntimeContext = createRuntimeContext({
+      pageContext: {
+        courseId: 'knowledge',
+        courseTitle: '知识图谱',
+        pageType: 'theory',
+        stepId: '/knowledge',
+        topic: '候选权威图谱',
+        learningObjectives: [],
+        knowledgeType: 'C',
+        candidateGraph,
+      },
+      citationContext: {
+        required: true,
+        contentCitations: [],
+        evidenceCitations: [],
+        missingCitationClasses: ['content'],
+        lowConfidenceReasons: ['candidate-tool-citation-required'],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 0 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    });
     const runtime = buildKonlingToolRuntime({
       db,
       agentSessionId: session.id,
@@ -1292,19 +1329,7 @@ describe('konling agent runtime', () => {
         privacyScopes: ['admin-scoped'],
         candidateGraph,
       }),
-      context: createRuntimeContext({
-        pageContext: {
-          courseId: 'knowledge',
-          courseTitle: '知识图谱',
-          pageType: 'theory',
-          stepId: '/knowledge',
-          topic: '候选权威图谱',
-          learningObjectives: [],
-          knowledgeType: 'C',
-          candidateGraph,
-        },
-        permittedTools: KONLING_CANDIDATE_READ_TOOLS,
-      }),
+      context: candidateRuntimeContext,
       permittedTools: KONLING_CANDIDATE_READ_TOOLS,
     });
 
@@ -1319,6 +1344,35 @@ describe('konling agent runtime', () => {
     expect(learningFactCreateMany).not.toHaveBeenCalled();
     expect(learningEvidenceDraftCreateMany).not.toHaveBeenCalled();
     expect(evidenceOutboxCreateMany).not.toHaveBeenCalled();
+
+    const mergedRuntimeContext = mergeCandidateAssignedCitations(
+      candidateRuntimeContext,
+      runtime.getAssignedCitations(),
+    );
+    expect(mergedRuntimeContext.citationContext).toMatchObject({
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      contentCitations: [
+        expect.objectContaining({
+          displayNumber: 1,
+          citationTargetId: 'canonical-a',
+          verified: true,
+        }),
+        expect.objectContaining({
+          displayNumber: 2,
+          citationTargetId: 'canonical-b',
+          verified: true,
+        }),
+      ],
+    });
+    const successfulToolGuard = buildKonlingCitationGuard(
+      mergedRuntimeContext,
+      '引用 content / 根轨迹幅角条件 / high / candidate-canonical:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1 / /knowledge?canonicalId=canonical-a。',
+    );
+    expect(successfulToolGuard).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+    });
   });
 
   it('exposes textbook retrieval only for registered pages and content-capable modes without autonomous prefetch', async () => {

@@ -198,6 +198,35 @@ test('ADMIN controlled verification covers navigation, filters, predicates, deta
   await expect(page.getByRole('button', { name: '扩展（含核心）' })).toHaveAttribute('aria-pressed', 'true');
 });
 
+test('candidate citation URL restores only a canonical ID from the fixed projection', async ({
+  context,
+  page,
+}) => {
+  await addSession(context, 'ADMIN');
+  await mockCandidateApis(page);
+  const requestedPaths: string[] = [];
+  page.on('request', (request) => {
+    requestedPaths.push(new URL(request.url()).pathname);
+  });
+
+  await page.goto('/knowledge?canonicalId=formula');
+  await expect(page.locator('[data-candidate-node-detail="formula"]')).toBeVisible();
+  await expect(page.locator('[data-candidate-node-detail="formula"]'))
+    .toContainText('dorf-14e · root-locus');
+  const validDetailRequestCount = requestedPaths
+    .filter((path) => path === '/api/knowledge/nodes/v2/formula')
+    .length;
+  expect(validDetailRequestCount).toBeGreaterThan(0);
+  expect(requestedPaths.filter((path) => path === '/api/knowledge/graph')).toHaveLength(0);
+
+  await page.goto('/knowledge?canonicalId=unknown%0Alegacy');
+  await expect(page.locator('[data-candidate-authoritative-graph="true"]')).toBeVisible();
+  await expect(page.locator('[data-candidate-node-detail]')).toHaveCount(0);
+  expect(requestedPaths.filter((path) => path.startsWith('/api/knowledge/nodes/v2/')))
+    .toHaveLength(validDetailRequestCount);
+  expect(requestedPaths.filter((path) => path === '/api/knowledge/graph')).toHaveLength(0);
+});
+
 test('ordinary STUDENT remains on Legacy when acceptance env is absent', async ({
   context,
   page,

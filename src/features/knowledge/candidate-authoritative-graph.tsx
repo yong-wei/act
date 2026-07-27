@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   AlertTriangle,
   ArrowLeftRight,
@@ -252,6 +253,7 @@ export function CandidateAuthoritativeGraph({
   const [canonicalType, setCanonicalType] = useState<string | null>(null);
   const [governance, setGovernance] = useState<CandidateGovernanceFilter>('EXTENSION');
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const requestedCanonicalId = useSearchParams().get('canonicalId');
   const { updatePageContext, clearDynamicPageContext } = useGlobalAI();
 
   const projection = state.status === 'ready' || state.status === 'empty'
@@ -274,6 +276,15 @@ export function CandidateAuthoritativeGraph({
   ), [canonicalType, graph.nodes]);
 
   const selectedNode = projection?.nodes.find((node) => node.id === selectedNodeId) ?? null;
+  useEffect(() => {
+    if (
+      requestedCanonicalId
+      && projection?.nodes.some((node) => node.id === requestedCanonicalId)
+    ) {
+      setSelectedNodeId(requestedCanonicalId);
+    }
+  }, [projection, requestedCanonicalId]);
+
   useEffect(() => {
     updatePageContext({
       candidateGraph: {

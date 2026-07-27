@@ -12,6 +12,9 @@ const globalAIMocks = vi.hoisted(() => ({
 vi.mock('@/components/providers/global-ai-provider', () => ({
   useGlobalAI: () => globalAIMocks,
 }));
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(window.location.search),
+}));
 
 import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
 
@@ -148,6 +151,7 @@ describe('candidate authoritative graph client isolation', () => {
   beforeEach(() => {
     globalAIMocks.updatePageContext.mockClear();
     globalAIMocks.clearDynamicPageContext.mockClear();
+    window.history.replaceState(null, '', '/knowledge');
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -252,6 +256,49 @@ describe('candidate authoritative graph client isolation', () => {
       '/api/knowledge/nodes/v2/formula',
       '/api/knowledge/graph/v2',
     ]);
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/knowledge/graph')).toBe(false);
+  });
+
+  it('restores a fixed-projection canonical selection from the citation URL', async () => {
+    window.history.replaceState(null, '', '/knowledge?canonicalId=formula');
+    await act(async () => {
+      root.render(createElement(KnowledgeGraphWorkspace, {
+        viewerRole: 'student',
+        candidateAllowed: true,
+        controlledVerification: false,
+        legacy: createElement('div', { 'data-legacy': 'true' }, 'Legacy graph'),
+      }));
+    });
+    await act(async () => Promise.resolve());
+
+    expect(container.querySelector('[data-candidate-node-detail="formula"]')).not.toBeNull();
+    expect(container.textContent).toContain('edition-1 · section-1');
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      '/api/knowledge/graph/v2',
+      '/api/knowledge/nodes/v2/formula',
+    ]);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/knowledge/graph'))).toBe(true);
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/knowledge/graph')).toBe(false);
+  });
+
+  it('ignores an unknown canonical citation URL without requesting detail or Legacy', async () => {
+    window.history.replaceState(null, '', '/knowledge?canonicalId=unknown%0Alegacy');
+    await act(async () => {
+      root.render(createElement(KnowledgeGraphWorkspace, {
+        viewerRole: 'student',
+        candidateAllowed: true,
+        controlledVerification: false,
+        legacy: createElement('div', { 'data-legacy': 'true' }, 'Legacy graph'),
+      }));
+    });
+    await act(async () => Promise.resolve());
+
+    expect(container.querySelector('[data-candidate-node-detail]')).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/knowledge/graph/v2',
+      expect.any(Object),
+    );
     expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/knowledge/graph')).toBe(false);
   });
 

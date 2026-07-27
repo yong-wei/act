@@ -2572,26 +2572,13 @@ export async function buildKonlingRuntimeContext(
       completedNodeIds: [],
       status: 'missing',
     };
-    const releaseCitation: KonlingCitation = {
-      id: `candidate-release:${scope.candidateGraph.releaseSetId}:${scope.candidateGraph.releaseId}`,
-      sourceType: 'content',
-      displayTitle: `候选权威图谱 ${scope.candidateGraph.releaseId}`,
-      href: '/knowledge',
-      confidence: 'high',
-      evidenceBasis: `candidate-canonical:${scope.candidateGraph.releaseSetId}:${scope.candidateGraph.releaseId}`,
-      owner: 'answer',
-      citationTargetId: scope.candidateGraph.releaseId,
-      verified: true,
-      resolver: 'candidate-authoritative-repository',
-    };
-    const assigned = assignKonlingRuntimeCitationDisplayNumbers([releaseCitation], []);
     const citationContext: KonlingCitationContext = {
       required: true,
-      contentCitations: assigned.contentCitations,
+      contentCitations: [],
       evidenceCitations: [],
       sourcePacks: [],
-      missingCitationClasses: [],
-      lowConfidenceReasons: [],
+      missingCitationClasses: ['content'],
+      lowConfidenceReasons: ['candidate-tool-citation-required'],
       responseProtocol: {
         requiredOwners: ['answer'],
         minimum: { content: 1, evidenceWhenAvailable: 0 },
@@ -6925,7 +6912,10 @@ export function mergeCandidateAssignedCitations<T extends KonlingRuntimeContext>
       missingCitationClasses: context.citationContext.missingCitationClasses
         .filter((item) => item !== 'content'),
       lowConfidenceReasons: context.citationContext.lowConfidenceReasons
-        .filter((item) => item !== 'missing-content'),
+        .filter((item) => (
+          item !== 'missing-content'
+          && item !== 'candidate-tool-citation-required'
+        )),
     },
   };
 }
