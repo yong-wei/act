@@ -19,6 +19,59 @@ async function readChunks(stream: ReadableStream<any>): Promise<any[]> {
 }
 
 describe('Konling structured action runtime', () => {
+  it('replays a buffered AI SDK text part with its original id before finish', async () => {
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-1' });
+        controller.enqueue({ type: 'text-start', id: 'text-provider-7' });
+        controller.enqueue({ type: 'text-delta', id: 'text-provider-7', delta: '第一段' });
+        controller.enqueue({ type: 'text-delta', id: 'text-provider-7', delta: '第二段' });
+        controller.enqueue({ type: 'text-end', id: 'text-provider-7' });
+        controller.enqueue({ type: 'finish', finishReason: 'stop' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({ stream: source, state }));
+
+    expect(chunks).toEqual([
+      { type: 'start', messageId: 'assistant-1' },
+      { type: 'text-start', id: 'text-provider-7' },
+      { type: 'text-delta', id: 'text-provider-7', delta: '第一段第二段' },
+      { type: 'text-end', id: 'text-provider-7' },
+      { type: 'finish', finishReason: 'stop' },
+    ]);
+  });
+
+  it('replays a complete text lifecycle from the flush fallback', async () => {
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'text-start', id: 'text-flush-1' });
+        controller.enqueue({ type: 'text-delta', id: 'text-flush-1', delta: '流提前结束' });
+        controller.enqueue({ type: 'text-end', id: 'text-flush-1' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({ stream: source, state }));
+
+    expect(chunks).toEqual([
+      { type: 'text-start', id: 'text-flush-1' },
+      { type: 'text-delta', id: 'text-flush-1', delta: '流提前结束' },
+      { type: 'text-end', id: 'text-flush-1' },
+    ]);
+  });
+
   it('normalizes recognized DSML without placing its envelope in prose', () => {
     const normalized = normalizeKonlingStructuredText([
       '我已准备好建议。',
@@ -189,11 +242,13 @@ describe('Konling structured action runtime', () => {
     const source = new ReadableStream({
       start(controller) {
         controller.enqueue({ type: 'start', messageId: 'assistant-1' });
+        controller.enqueue({ type: 'text-start', id: 'text-1' });
         controller.enqueue({
           type: 'text-delta',
           id: 'text-1',
           delta: '<tool_call>{"name":"unknown_tool","arguments":{}}</tool_call>',
         });
+        controller.enqueue({ type: 'text-end', id: 'text-1' });
         controller.enqueue({ type: 'finish' });
         controller.close();
       },
@@ -209,8 +264,52 @@ describe('Konling structured action runtime', () => {
     expect(chunks.filter((chunk) => chunk.type === 'text-delta').map((chunk) => chunk.delta).join(''))
       .toBe('结构化操作未能安全完成，请重新生成建议。');
     expect(chunks).toEqual(expect.arrayContaining([
+      { type: 'text-start', id: 'text-1' },
+      {
+        type: 'text-delta',
+        id: 'text-1',
+        delta: '结构化操作未能安全完成，请重新生成建议。',
+      },
+      { type: 'text-end', id: 'text-1' },
       expect.objectContaining({ type: 'tool-output-error' }),
     ]));
+  });
+
+  it('emits no text part for a successful pure-tool response and executes it once', async () => {
+    const executeToolCall = vi.fn(async () => ({ page: 'current' }));
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-1' });
+        controller.enqueue({ type: 'text-start', id: 'text-tool-only' });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-tool-only',
+          delta: '<tool_call>{"name":"get_page_context","arguments":{}}</tool_call>',
+        });
+        controller.enqueue({ type: 'text-end', id: 'text-tool-only' });
+        controller.enqueue({ type: 'finish', finishReason: 'tool-calls' });
+        controller.close();
+      },
+    });
+    const chunks = await readChunks(createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }));
+
+    expect(chunks.filter((chunk) => chunk.type.startsWith('text-'))).toEqual([]);
+    expect(executeToolCall).toHaveBeenCalledTimes(1);
+    expect(chunks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'tool-input-available', toolName: 'get_page_context' }),
+      expect.objectContaining({ type: 'tool-output-available', output: { page: 'current' } }),
+    ]));
+    expect(chunks.at(-1)).toEqual({ type: 'finish', finishReason: 'tool-calls' });
   });
 
   it('does not execute a DSML duplicate after the native call already ran', async () => {

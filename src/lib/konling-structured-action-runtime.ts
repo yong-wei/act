@@ -194,8 +194,8 @@ export function createKonlingStructuredActionStream(input: {
   executeToolCall?: (call: KonlingNormalizedToolCall) => Promise<unknown>;
 }) {
   let textBuffer = '';
+  let textPartId = '';
   let messageId = '';
-  let visibleTextSent = false;
   const nativeCalls: KonlingNormalizedToolCall[] = [];
   const privateActionCallIds = new Set<string>();
   return input.stream.pipeThrough(new TransformStream<any, any>({
@@ -216,6 +216,10 @@ export function createKonlingStructuredActionStream(input: {
         && privateActionCallIds.has(chunk.toolCallId)
         && (chunk.type === 'tool-output-available' || chunk.type === 'tool-output-error')
       ) return;
+      if (chunk?.type === 'text-start' || chunk?.type === 'text-end') {
+        if (!textPartId && typeof chunk.id === 'string') textPartId = chunk.id;
+        return;
+      }
       if (chunk?.type !== 'text-delta' || typeof chunk.delta !== 'string') {
         if (chunk?.type === 'finish') {
           const normalized = normalizeKonlingStructuredText(textBuffer);
@@ -240,35 +244,13 @@ export function createKonlingStructuredActionStream(input: {
           }
           input.state.withheldMalformedSyntax = normalized.withheldMalformedSyntax;
           input.state.withheldText = normalized.withheldMalformedSyntax ? textBuffer : '';
-          if (input.state.executedToolResults.some((item) => item.errorText)) {
-            controller.enqueue({
-              type: 'text-delta',
-              id: chunk.id ?? messageId,
-              delta: '结构化操作未能安全完成，请重新生成建议。',
-            });
-          } else if (normalized.text) {
-            visibleTextSent = true;
-            controller.enqueue({
-              type: 'text-delta',
-              id: chunk.id ?? messageId,
-              delta: normalized.text,
-            });
-          } else if (normalized.withheldMalformedSyntax) {
-            controller.enqueue({
-              type: 'text-delta',
-              id: chunk.id ?? messageId,
-              delta: '工具调用格式未能安全解析，正在尝试修正。',
-            });
-          } else if (
-            !visibleTextSent
-            && (normalized.toolCalls.length > 0 || nativeCalls.length > 0)
-          ) {
-            controller.enqueue({
-              type: 'text-delta',
-              id: chunk.id ?? messageId,
-              delta: '已完成结构化操作。',
-            });
-          }
+          const visibleText = input.state.executedToolResults.some((item) => item.errorText)
+            ? '结构化操作未能安全完成，请重新生成建议。'
+            : normalized.text
+              || (normalized.withheldMalformedSyntax
+                ? '工具调用格式未能安全解析，正在尝试修正。'
+                : '');
+          enqueueKonlingTextPart(controller, textPartId || messageId, visibleText);
           for (const call of normalized.toolCalls) {
             if (nativeCalls.some((nativeCall) => sameToolCall(nativeCall, call))) continue;
             if (call.name === 'propose_smart_lesson_task_change') continue;
@@ -301,24 +283,33 @@ export function createKonlingStructuredActionStream(input: {
         controller.enqueue(chunk);
         return;
       }
+      if (!textPartId && typeof chunk.id === 'string') textPartId = chunk.id;
       textBuffer += chunk.delta;
     },
     flush(controller) {
       if (!textBuffer) return;
       const normalized = normalizeKonlingStructuredText(textBuffer);
-      if (normalized.text) {
-        visibleTextSent = true;
-        controller.enqueue({
-          type: 'text-delta',
-          id: messageId,
-          delta: normalized.text,
-        });
-      }
+      const visibleText = normalized.text
+        || (normalized.withheldMalformedSyntax
+          ? '工具调用格式未能安全解析，正在尝试修正。'
+          : '');
+      enqueueKonlingTextPart(controller, textPartId || messageId, visibleText);
       input.state.toolCalls = dedupeToolCalls([...nativeCalls, ...normalized.toolCalls]);
       input.state.withheldMalformedSyntax ||= normalized.withheldMalformedSyntax;
       if (normalized.withheldMalformedSyntax) input.state.withheldText = textBuffer;
     },
   }));
+}
+
+function enqueueKonlingTextPart(
+  controller: TransformStreamDefaultController<any>,
+  id: string,
+  text: string,
+) {
+  if (!id || !text) return;
+  controller.enqueue({ type: 'text-start', id });
+  controller.enqueue({ type: 'text-delta', id, delta: text });
+  controller.enqueue({ type: 'text-end', id });
 }
 
 export async function executeKonlingDsmlToolCalls(input: {
