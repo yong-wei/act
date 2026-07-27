@@ -140,7 +140,7 @@ test('continuous real-teacher preparation flow uses governed sources, current po
 
   page.once('dialog', (dialog) => dialog.accept());
   await card.getByRole('button', { name: '永久删除' }).click();
-  await expect(smartLessonStatus(page, '任务已永久删除')).toBeVisible();
+  await expect(smartLessonStatus(page, '任务及未发布内容已永久删除。')).toBeVisible();
   await expect.poll(async () => deletedTaskCount()).toBe(0);
 
   await writeEvidence({
