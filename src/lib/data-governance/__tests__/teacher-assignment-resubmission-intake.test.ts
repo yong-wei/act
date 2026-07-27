@@ -141,9 +141,10 @@ describe('teacher assignment resubmission intake', () => {
   });
 
   it.each([
-    ['image/png', 'asset-image'],
-    ['application/pdf', 'asset-pdf'],
-  ])('uses governed assignment understanding for the new %s asset instead of inheriting the old policy', async (mimeType, assetId) => {
+    ['image/png', 'asset-image', 'grading-provider:mathpix:v2:image', ':image'],
+    ['application/pdf', 'asset-pdf', 'grading-provider:mathpix:v2:document', ':document'],
+    ['text/markdown', 'asset-markdown', null, null],
+  ])('uses governed assignment understanding for the new %s asset instead of inheriting the old policy', async (mimeType, assetId, expectedPolicyId, expectedSuffix) => {
     const now = new Date('2026-07-17T03:00:00.000Z');
     let claimToken: string | null = null;
     const updateMany = vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
@@ -183,22 +184,22 @@ describe('teacher assignment resubmission intake', () => {
       assetId,
       attemptId: 'attempt-new',
       adapterVersion: 'assignment-understanding.v1',
-      policyId: mimeType.startsWith('image/')
-        ? 'grading-provider:mathpix:v2:image'
-        : 'grading-provider:mathpix:v2:document',
+      policyId: expectedPolicyId,
       allowDefaultPolicyDiscovery: false,
     }));
-    expect(db.gradingProviderPolicy.findFirst).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({
-        provider: 'mathpix',
-        purpose: 'answer-conversion',
-        enabled: true,
-        disabledAt: null,
-        id: {
-          endsWith: mimeType.startsWith('image/') ? ':image' : ':document',
-        },
-      }),
-    }));
+    if (expectedSuffix) {
+      expect(db.gradingProviderPolicy.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          provider: 'mathpix',
+          purpose: 'answer-conversion',
+          enabled: true,
+          disabledAt: null,
+          id: { endsWith: expectedSuffix },
+        }),
+      }));
+    } else {
+      expect(db.gradingProviderPolicy.findFirst).not.toHaveBeenCalled();
+    }
   });
 
   it('uses governed router lineage when legacy source evidence has no conversion', async () => {
