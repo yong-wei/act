@@ -181,6 +181,51 @@ describe('Konling message revision reducer', () => {
     expect(skippedChunks.filter((chunk) => chunk.type === 'data-konling-message-revision')).toEqual([]);
   });
 
+  it('runs unfinalized-close cleanup once only when no revision completes', async () => {
+    const cleanup = vi.fn(async () => undefined);
+    const interruptedSource = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-interrupted' });
+        controller.enqueue({ type: 'error', errorText: 'provider failed' });
+        controller.close();
+      },
+    });
+    await readChunks(createKonlingMessageRevisionStream({
+      stream: interruptedSource,
+      finalize: async () => ({
+        body: '',
+        citations: [],
+        status: 'verified',
+        userNotice: null,
+        metadata: {},
+      }),
+      onUnfinalizedClose: cleanup,
+    }));
+    expect(cleanup).toHaveBeenCalledTimes(1);
+
+    cleanup.mockClear();
+    const completedSource = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-completed' });
+        controller.enqueue({ type: 'text-delta', delta: '已完成' });
+        controller.enqueue({ type: 'finish' });
+        controller.close();
+      },
+    });
+    await readChunks(createKonlingMessageRevisionStream({
+      stream: completedSource,
+      finalize: async () => ({
+        body: '已完成',
+        citations: [],
+        status: 'verified',
+        userNotice: null,
+        metadata: {},
+      }),
+      onUnfinalizedClose: cleanup,
+    }));
+    expect(cleanup).not.toHaveBeenCalled();
+  });
+
   it('keeps optimization status transient in the client-only message metadata', () => {
     const message: KonlingUIMessage = {
       id: 'assistant-1',

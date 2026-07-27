@@ -291,6 +291,7 @@ describe('Konling smart-prep production routes', () => {
     mocks.streamText.mockResolvedValue({
       toUIMessageStream: (options: {
         onFinish?: (event: Record<string, unknown>) => Promise<void> | void;
+        onError?: (error: unknown) => string;
       }) => new ReadableStream({
         async start(controller) {
           controller.enqueue({ type: 'start', messageId: 'assistant-tool-only' });
@@ -317,6 +318,10 @@ describe('Konling smart-prep production routes', () => {
             delta: '结构化操作未能安全完成，请重新生成建议。',
           });
           controller.enqueue({ type: 'text-end', id: 'text-failure' });
+          controller.enqueue({
+            type: 'error',
+            errorText: options.onError?.(new Error('provider-native-tool-input-incomplete')),
+          });
           await options.onFinish?.({
             responseMessage: {
               id: 'assistant-tool-only',
@@ -365,6 +370,46 @@ describe('Konling smart-prep production routes', () => {
     expect(persistedMessages?.some((message: { id?: string; role: string }) =>
       message.id === 'assistant-tool-only' && message.role === 'assistant'
     )).toBe(true);
+  });
+
+  it('releases a force-structured turn when the external provider closes without finish', async () => {
+    mocks.streamText.mockResolvedValue({
+      toUIMessageStream: (options: {
+        onError?: (error: unknown) => string;
+      }) => new ReadableStream({
+        start(controller) {
+          controller.enqueue({ type: 'start', messageId: 'assistant-provider-error' });
+          controller.enqueue({
+            type: 'error',
+            errorText: options.onError?.(new Error('provider connection closed')),
+          });
+          controller.close();
+        },
+      }),
+    });
+
+    const response = await chatPOST(new Request('http://localhost/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversationId: 'session-1',
+        messages: [{ id: 'user-provider-error', role: 'user', content: '生成建议' }],
+        courseId: 'course-1',
+        pageId: '/teacher/smart-prep',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    await vi.waitFor(() => {
+      expect(mocks.prisma.konlingSession.updateMany.mock.calls.some((call) =>
+        call[0].data.activeTurnId === null
+        && call[0].data.activeTurnClaimedAt === null
+      )).toBe(true);
+    });
+    expect(mocks.emittedChunks.some((chunk) =>
+      chunk.type === 'data-konling-message-revision'
+      && chunk.data?.messageId === 'assistant-provider-error'
+    )).toBe(false);
   });
 
   it('session message route applies the same server binding to create and resume', async () => {

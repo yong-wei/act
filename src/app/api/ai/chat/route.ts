@@ -749,6 +749,12 @@ export async function POST(request: Request) {
       }
       return false;
     };
+    const releaseUnfinalizedStructuredTurn = async () => {
+      if (!forceStructuredSmartPrepTool || !claimedTurn) return;
+      const unfinalizedTurn = claimedTurn;
+      claimedTurn = null;
+      await releaseKonlingConversationTurn(prisma, unfinalizedTurn);
+    };
     const uiMessageStream = result.toUIMessageStream({
       originalMessages: uiMessages,
       generateMessageId: () => crypto.randomUUID(),
@@ -782,7 +788,7 @@ export async function POST(request: Request) {
         };
       },
       onError: (error) => {
-        if (claimedTurn) {
+        if (claimedTurn && !forceStructuredSmartPrepTool) {
           const failedTurn = claimedTurn;
           claimedTurn = null;
           void releaseKonlingConversationTurn(prisma, failedTurn);
@@ -811,6 +817,7 @@ export async function POST(request: Request) {
       ? createKonlingMessageRevisionStream({
           stream: structuredActionStream,
           shouldFinalizeEmpty: shouldFinalizeEmptyStructuredTurn,
+          onUnfinalizedClose: releaseUnfinalizedStructuredTurn,
           hasPendingOptimization: () =>
             structuredActionState.withheldMalformedSyntax
             || (getTextbookOptimizations?.().length ?? 0) > 0,
@@ -1040,6 +1047,7 @@ export async function POST(request: Request) {
       : createKonlingMessageRevisionStream({
           stream: structuredActionStream,
           shouldFinalizeEmpty: shouldFinalizeEmptyStructuredTurn,
+          onUnfinalizedClose: releaseUnfinalizedStructuredTurn,
           hasPendingOptimization: () => structuredActionState.withheldMalformedSyntax,
           finalize: async ({ messageId, body }) => {
             let finalBody = body;

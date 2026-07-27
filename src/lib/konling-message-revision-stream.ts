@@ -26,6 +26,7 @@ export function createKonlingMessageRevisionStream(input: {
   stream: ReadableStream<any>;
   hasPendingOptimization?: () => boolean;
   shouldFinalizeEmpty?: () => boolean | Promise<boolean>;
+  onUnfinalizedClose?: () => void | Promise<void>;
   finalize: (input: {
     messageId: string;
     body: string;
@@ -39,6 +40,13 @@ export function createKonlingMessageRevisionStream(input: {
   let body = '';
   let optimizationStatusSent = false;
   let optimizationStatusClosed = false;
+  let revisionFinalized = false;
+  let unfinalizedCloseHandled = false;
+  const closeUnfinalized = async () => {
+    if (revisionFinalized || unfinalizedCloseHandled) return;
+    unfinalizedCloseHandled = true;
+    await input.onUnfinalizedClose?.();
+  };
   const statusChunk = (active: boolean) => ({
     type: 'data-konling-optimization-status',
     id: messageId,
@@ -67,7 +75,14 @@ export function createKonlingMessageRevisionStream(input: {
       }
       if (chunk?.type !== 'finish' || !messageId) return;
       if (!body.trim() && !await input.shouldFinalizeEmpty?.()) return;
-      const finalized = await input.finalize({ messageId, body });
+      let finalized: Omit<KonlingMessageRevision, 'messageId' | 'revision'>;
+      try {
+        finalized = await input.finalize({ messageId, body });
+        revisionFinalized = true;
+      } catch (error) {
+        await closeUnfinalized();
+        throw error;
+      }
       const revision = {
         ...finalized,
         messageId,
@@ -98,10 +113,11 @@ export function createKonlingMessageRevisionStream(input: {
         controller.enqueue(statusChunk(false));
       }
     },
-    flush(controller) {
+    async flush(controller) {
       if (optimizationStatusSent && !optimizationStatusClosed) {
         controller.enqueue(statusChunk(false));
       }
+      await closeUnfinalized();
     },
   }));
 }
