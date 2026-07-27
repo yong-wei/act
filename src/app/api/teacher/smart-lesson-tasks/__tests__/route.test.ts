@@ -606,17 +606,24 @@ describe('smart lesson task routes', () => {
     const sessionState = { currentTurnId: 'turn-2', ownedTurnIds: ['turn-1', 'turn-2'], teachingAssistantMode: 'prep-coauthor' };
     mocks.toolRunFindFirst.mockResolvedValue({
       id: 'bootstrap-1', agentSessionId: 'agent-session-1', approvalState: 'not_required', outputSummary: null,
-      inputSummary: { operation: 'bootstrap', turnId: 'turn-2', proposedTask },
+      inputSummary: {
+        operation: 'bootstrap',
+        publicActionId: 'public-bootstrap-action-1',
+        turnId: 'turn-2',
+        proposedTask,
+      },
       agentSession: { ownerUserId: 'teacher-1', actorUserId: 'teacher-1', stateJson: sessionState },
     });
-    mocks.toolRunUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.toolRunUpdateMany.mockImplementation(async ({ where }) => ({
+      count: where.id === 'bootstrap-1' ? 1 : 0,
+    }));
     mocks.createTask.mockResolvedValue({ id: 'task-created', revision: 1, topic: '稳定性' });
     const { POST } = await import('../konling-suggestions/[suggestionId]/confirm/route');
     const request = () => new Request('http://localhost', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({}),
     });
-    const params = { params: Promise.resolve({ suggestionId: 'bootstrap-1' }) };
+    const params = { params: Promise.resolve({ suggestionId: 'public-bootstrap-action-1' }) };
     const response = await POST(request(), params);
     expect(response.status).toBe(201);
     expect(mocks.createTask).toHaveBeenCalledTimes(1);
@@ -628,7 +635,7 @@ describe('smart lesson task routes', () => {
       data: { stateJson: expect.objectContaining({ smartPrepBinding: { taskId: 'task-created', taskRevision: '1', ownerUserId: 'teacher-1' } }) },
     }));
     expect(mocks.toolRunUpdateMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      where: expect.objectContaining({ approvalState: 'not_required' }),
+      where: expect.objectContaining({ id: 'bootstrap-1', approvalState: 'not_required' }),
       data: { approvalState: 'confirmation_in_progress' },
     }));
     expect(mocks.toolRunUpdateMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
@@ -639,7 +646,7 @@ describe('smart lesson task routes', () => {
     mocks.toolRunFindFirst.mockResolvedValueOnce({
       id: 'bootstrap-1', agentSessionId: 'agent-session-1', approvalState: 'approved',
       outputSummary: { confirmedTaskId: 'task-created' },
-      inputSummary: { operation: 'bootstrap', turnId: 'turn-2' },
+      inputSummary: { operation: 'bootstrap', publicActionId: 'public-bootstrap-action-1', turnId: 'turn-2' },
       agentSession: { ownerUserId: 'teacher-1', actorUserId: 'teacher-1', stateJson: sessionState },
     });
     mocks.findFirst.mockResolvedValue({ id: 'task-created', ownerId: 'teacher-1', revision: 1, topic: '稳定性' });

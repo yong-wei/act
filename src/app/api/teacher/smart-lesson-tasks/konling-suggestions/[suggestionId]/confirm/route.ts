@@ -50,7 +50,7 @@ export async function POST(request: Request, context: { params: Promise<{ sugges
     if (typeof existingBinding.taskId === 'string' && existingBinding.taskId) {
       await prisma.agentToolRun.updateMany({
         where: {
-          id: suggestionId,
+          id: existing.id,
           agentSessionId: existing.agentSessionId,
           ownerUserId: auth.actor.id,
           actorUserId: auth.actor.id,
@@ -80,7 +80,7 @@ export async function POST(request: Request, context: { params: Promise<{ sugges
     });
     const claimed = await prisma.agentToolRun.updateMany({
       where: {
-        id: suggestionId,
+        id: existing.id,
         agentSessionId: existing.agentSessionId,
         ownerUserId: auth.actor.id,
         actorUserId: auth.actor.id,
@@ -92,7 +92,7 @@ export async function POST(request: Request, context: { params: Promise<{ sugges
     });
     if (claimed.count !== 1) throw new BootstrapConfirmationConflict();
     failedAction.current = {
-      suggestionId,
+      suggestionId: existing.id,
       agentSessionId: existing.agentSessionId,
       outputSummary: record(existing.outputSummary),
     };
@@ -113,7 +113,7 @@ export async function POST(request: Request, context: { params: Promise<{ sugges
         ...parsed,
       });
       const approved = await tx.agentToolRun.updateMany({
-        where: { id: suggestionId, approvalState: 'confirmation_in_progress' },
+        where: { id: existing.id, approvalState: 'confirmation_in_progress' },
         data: {
           approvalState: 'approved',
           outputSummary: {
