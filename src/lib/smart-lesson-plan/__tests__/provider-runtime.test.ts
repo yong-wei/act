@@ -158,6 +158,8 @@ describe('smart lesson structured provider runtime', () => {
       outputTokens: 8,
       costMicros: null,
     });
+    expect(resolveConfig).toHaveBeenCalledTimes(1);
+    expect(resolveConfig).toHaveBeenCalledWith(undefined, undefined, { jsonSchema: true });
   });
 
   it('keeps the complete plan while applying the advisory-only timeout and narrow response budget', async () => {
@@ -296,7 +298,7 @@ describe('smart lesson structured provider runtime', () => {
     });
   });
 
-  it('prefers a configured non-thinking model for advisory review and audits the actual model', async () => {
+  it('prefers a configured non-thinking model for the shared structured runtime and audits the actual model', async () => {
     const settings = providerSettings([
       { id: 'deepseek', label: 'DeepSeek', model: 'deepseek-ai/DeepSeek-V4-Flash' },
       { id: 'qwen', label: 'Qwen', model: 'Qwen/Qwen3.6-35B-A3B', options: { enableThinking: false } },
@@ -315,16 +317,21 @@ describe('smart lesson structured provider runtime', () => {
       },
     }));
 
-    const result = await generateSmartLessonAdvisoryReport(
-      { plan: validPlanFixture(), idempotencyKey: 'review-non-thinking' },
-      {
-        resolveConfig: resolveConfig as never,
-        getSettings: vi.fn(async () => settings),
-        generate,
-        advisoryTimeoutMs: 25,
-      },
-    );
+    const runtime = await resolveSmartLessonStructuredProvider({
+      resolveConfig: resolveConfig as never,
+      getSettings: vi.fn(async () => settings),
+      generate,
+    });
+    const result = await runtime.generate({
+      schema: smartLessonAdvisoryReviewSchema,
+      schemaVersion: 'smart-lesson-outline.v1',
+      promptVersion: 'smart-lesson-plan.v1',
+      system: 'system',
+      prompt: 'prompt',
+      idempotencyKey: 'stage-attempt-non-thinking',
+    });
 
+    expect(runtime.model).toBe('Qwen/Qwen3.6-35B-A3B');
     expect(resolveConfig).toHaveBeenNthCalledWith(
       2,
       'configured-provider',
@@ -335,7 +342,7 @@ describe('smart lesson structured provider runtime', () => {
     expect(result.audit.model).toBe('Qwen/Qwen3.6-35B-A3B');
   });
 
-  it('keeps the selected model when advisory has no configured non-thinking candidate', async () => {
+  it('keeps the selected model when the shared structured runtime has no non-thinking candidate', async () => {
     const settings = providerSettings([
       { id: 'deepseek', label: 'DeepSeek', model: 'deepseek-ai/DeepSeek-V4-Flash' },
       { id: 'reasoning', label: 'Reasoning', model: 'vendor/reasoning', options: { enableThinking: true } },
@@ -354,23 +361,28 @@ describe('smart lesson structured provider runtime', () => {
       },
     }));
 
-    const result = await generateSmartLessonAdvisoryReport(
-      { plan: validPlanFixture(), idempotencyKey: 'review-selected-model' },
-      {
-        resolveConfig: resolveConfig as never,
-        getSettings: vi.fn(async () => settings),
-        generate,
-        advisoryTimeoutMs: 25,
-      },
-    );
+    const runtime = await resolveSmartLessonStructuredProvider({
+      resolveConfig: resolveConfig as never,
+      getSettings: vi.fn(async () => settings),
+      generate,
+    });
+    const result = await runtime.generate({
+      schema: smartLessonAdvisoryReviewSchema,
+      schemaVersion: 'smart-lesson-outline.v1',
+      promptVersion: 'smart-lesson-plan.v1',
+      system: 'system',
+      prompt: 'prompt',
+      idempotencyKey: 'stage-attempt-selected-model',
+    });
 
-    expect(resolveConfig).toHaveBeenNthCalledWith(
-      2,
-      'configured-provider',
-      'deepseek-ai/DeepSeek-V4-Flash',
+    expect(resolveConfig).toHaveBeenCalledTimes(1);
+    expect(resolveConfig).toHaveBeenCalledWith(
+      undefined,
+      undefined,
       { jsonSchema: true },
       settings,
     );
+    expect(runtime.model).toBe('deepseek-ai/DeepSeek-V4-Flash');
     expect(result.audit.model).toBe('deepseek-ai/DeepSeek-V4-Flash');
   });
 

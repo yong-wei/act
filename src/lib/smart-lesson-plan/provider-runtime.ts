@@ -6,7 +6,6 @@ import {
   AIProviderCapabilityUnavailableError,
   getAIProviderSettings,
   resolveConfiguredAIProviderConfig,
-  type AIProviderSettings,
 } from '../ai/provider-settings';
 
 import {
@@ -54,26 +53,37 @@ type RuntimeDependencies = {
   advisoryTimeoutMs?: number;
 };
 
-type StructuredProviderSelection = {
-  providerId?: string;
-  modelId?: string;
-  settings?: AIProviderSettings;
-};
-
-export async function resolveSmartLessonStructuredProvider(
-  dependencies: RuntimeDependencies = {},
-  selection: StructuredProviderSelection = {},
-) {
+export async function resolveSmartLessonStructuredProvider(dependencies: RuntimeDependencies = {}) {
   try {
     if (!dependencies.resolveConfig && !dependencies.generate && smartLessonE2EFixtureRequested()) {
       return deterministicStructuredFixtureRuntime();
     }
-    const config = await (dependencies.resolveConfig ?? resolveConfiguredAIProviderConfig)(
-      selection.providerId,
-      selection.modelId,
-      { jsonSchema: true },
-      selection.settings,
-    );
+    const resolveConfig = dependencies.resolveConfig ?? resolveConfiguredAIProviderConfig;
+    let config;
+    if (dependencies.resolveConfig && !dependencies.getSettings) {
+      config = await resolveConfig(undefined, undefined, { jsonSchema: true });
+    } else {
+      const settings = await (dependencies.getSettings ?? getAIProviderSettings)();
+      const selectedConfig = await resolveConfig(
+        undefined,
+        undefined,
+        { jsonSchema: true },
+        settings,
+      );
+      if (!selectedConfig.enabled) {
+        throw new SmartLessonPlanError('structured-provider-unavailable', 503);
+      }
+      const provider = settings.providers.find((candidate) => candidate.id === selectedConfig.provider);
+      const preferredModel = provider?.models.find((model) => model.options?.enableThinking === false)?.model;
+      config = preferredModel && preferredModel !== selectedConfig.model
+        ? await resolveConfig(
+            selectedConfig.provider,
+            preferredModel,
+            { jsonSchema: true },
+            settings,
+          )
+        : selectedConfig;
+    }
     if (!config.enabled) throw new SmartLessonPlanError('structured-provider-unavailable', 503);
     const adapter = createAIProviderFromConfig(config);
     return {
@@ -353,7 +363,7 @@ export async function generateSmartLessonAdvisoryReport(input: {
 }, dependencies: RuntimeDependencies = {}) {
   try {
     const reviewProjection = projectSmartLessonPlanForAdvisoryReview(input.plan);
-    const runtime = await resolveSmartLessonAdvisoryProvider(dependencies);
+    const runtime = await resolveSmartLessonStructuredProvider(dependencies);
     const generated = await runtime.generate({
       schema: smartLessonAdvisoryProviderResponseSchema,
       schemaVersion: 'smart-lesson-advisory-review.v1',
@@ -386,39 +396,6 @@ export async function generateSmartLessonAdvisoryReport(input: {
     }
     throw new SmartLessonPlanError('advisory-provider-upstream-failed', 503);
   }
-}
-
-async function resolveSmartLessonAdvisoryProvider(dependencies: RuntimeDependencies) {
-  if (
-    !dependencies.resolveConfig
-    && !dependencies.getSettings
-    && !dependencies.generate
-    && smartLessonE2EFixtureRequested()
-  ) {
-    return resolveSmartLessonStructuredProvider(dependencies);
-  }
-  if (dependencies.resolveConfig && !dependencies.getSettings) {
-    return resolveSmartLessonStructuredProvider(dependencies);
-  }
-  const settings = await (dependencies.getSettings ?? getAIProviderSettings)();
-  const resolveConfig = dependencies.resolveConfig ?? resolveConfiguredAIProviderConfig;
-  const selectedConfig = await resolveConfig(
-    undefined,
-    undefined,
-    { jsonSchema: true },
-    settings,
-  );
-  if (!selectedConfig.enabled) {
-    throw new SmartLessonPlanError('structured-provider-unavailable', 503);
-  }
-  const provider = settings.providers.find((candidate) => candidate.id === selectedConfig.provider);
-  const advisoryModel = provider?.models.find((model) => model.options?.enableThinking === false)?.model
-    ?? selectedConfig.model;
-  return resolveSmartLessonStructuredProvider(dependencies, {
-    providerId: selectedConfig.provider,
-    modelId: advisoryModel,
-    settings,
-  });
 }
 
 function projectSmartLessonPlanForAdvisoryReview(value: unknown) {
