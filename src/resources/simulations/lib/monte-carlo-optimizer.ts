@@ -264,7 +264,7 @@ export function evaluatePIDParams(
       }
     }
 
-    if (sustained) {
+    if (sustained && i < result.chartData.time.length - 1) {
       settlingTime = time - logic.referenceCompletedAt;
       break;
     }
