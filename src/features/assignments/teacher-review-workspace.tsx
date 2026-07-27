@@ -911,6 +911,15 @@ function OriginalAttachmentCard({
 }) {
   const image = isDirectImage(asset.mimeType);
   const pdf = asset.mimeType === "application/pdf";
+  const [accessActionError, setAccessActionError] = useState<
+    "popup-blocked" | "access-failed" | null
+  >(null);
+  const handleOpen = (download: boolean) => {
+    setAccessActionError(null);
+    void openOriginalAsset(asset, download).then((result) => {
+      if (result !== "opened") setAccessActionError(result);
+    });
+  };
   return (
     <section className="rounded-xl border border-slate-800 bg-slate-950 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -931,7 +940,7 @@ function OriginalAttachmentCard({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => void openOriginalAsset(asset, false)}
+            onClick={() => handleOpen(false)}
             className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-slate-700 px-3 text-sm text-slate-200"
           >
             <ExternalLink className="h-4 w-4" />
@@ -939,7 +948,7 @@ function OriginalAttachmentCard({
           </button>
           <button
             type="button"
-            onClick={() => void openOriginalAsset(asset, true)}
+            onClick={() => handleOpen(true)}
             className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-slate-700 px-3 text-sm text-slate-200"
           >
             <Download className="h-4 w-4" />
@@ -947,6 +956,11 @@ function OriginalAttachmentCard({
           </button>
         </div>
       </div>
+      {accessActionError ? (
+        <p role="alert" className="mt-3 text-sm text-rose-300">
+          {originalAssetAccessErrorMessage(accessActionError)}
+        </p>
+      ) : null}
       {image && previewUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -968,6 +982,14 @@ function OriginalAttachmentCard({
   );
 }
 
+export function originalAssetAccessErrorMessage(
+  error: "popup-blocked" | "access-failed",
+) {
+  return error === "popup-blocked"
+    ? "浏览器阻止了新窗口，请允许弹出窗口后重试。"
+    : "原件授权暂时失败，请重试。";
+}
+
 async function requestOriginalAssetAccess(
   asset: TeacherOriginalResponseAsset,
 ) {
@@ -985,15 +1007,45 @@ async function requestOriginalAssetAccess(
     : "";
 }
 
-async function openOriginalAsset(
+export async function openOriginalAsset(
   asset: TeacherOriginalResponseAsset,
   download: boolean,
+  dependencies: {
+    openWindow?: () => {
+      opener: unknown;
+      location: { href: string };
+      close: () => void;
+    } | null;
+    requestAccess?: (
+      asset: TeacherOriginalResponseAsset,
+    ) => Promise<string>;
+    origin?: string;
+  } = {},
 ) {
-  const accessUrl = await requestOriginalAssetAccess(asset);
-  if (!accessUrl) return;
-  const url = new URL(accessUrl, window.location.origin);
-  if (download) url.searchParams.set("download", "1");
-  window.open(`${url.pathname}${url.search}`, "_blank", "noopener,noreferrer");
+  const pendingWindow = dependencies.openWindow
+    ? dependencies.openWindow()
+    : window.open("about:blank", "_blank");
+  if (!pendingWindow) return "popup-blocked" as const;
+  try {
+    pendingWindow.opener = null;
+    const accessUrl = await (
+      dependencies.requestAccess ?? requestOriginalAssetAccess
+    )(asset);
+    if (!accessUrl) {
+      pendingWindow.close();
+      return "access-failed" as const;
+    }
+    const url = new URL(
+      accessUrl,
+      dependencies.origin ?? window.location.origin,
+    );
+    if (download) url.searchParams.set("download", "1");
+    pendingWindow.location.href = `${url.pathname}${url.search}`;
+    return "opened" as const;
+  } catch {
+    pendingWindow.close();
+    return "access-failed" as const;
+  }
 }
 
 function isDirectImage(mimeType: string) {

@@ -25,6 +25,8 @@ import {
 } from "../teacher-assignment-list";
 import {
   CriterionAiSuggestion,
+  openOriginalAsset,
+  originalAssetAccessErrorMessage,
   OriginalResponsePanel,
 } from "../../assignments/teacher-review-workspace";
 
@@ -637,5 +639,71 @@ describe("teacher assignment review UI contracts", () => {
     expect(html).toContain("&lt;script&gt;原始证据摘录&lt;/script&gt;");
     expect(html).not.toContain("<script>");
     expect(html).not.toContain("内部批注不应替代定位");
+  });
+
+  it("pre-opens original-file windows before authorization and closes failed attempts", async () => {
+    const asset = {
+      id: "docx",
+      displayName: "answer.docx",
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      sizeBytes: 30,
+      role: "ATTACHMENT" as const,
+      orderIndex: 0,
+      embeddedPosition: null,
+      accessEndpoint: "/api/teacher/assignments/a/submissions/s/review/assets/docx/read?reviewId=r",
+    };
+    const events: string[] = [];
+    const popup = {
+      opener: {} as unknown,
+      location: { href: "about:blank" },
+      close: () => events.push("close"),
+    };
+
+    await expect(openOriginalAsset(asset, true, {
+      openWindow: () => {
+        events.push("open");
+        return popup;
+      },
+      requestAccess: async () => {
+        events.push("authorize");
+        return "/api/teacher/assignments/a/assets/docx/read?token=short";
+      },
+      origin: "https://act.example",
+    })).resolves.toBe("opened");
+    expect(events).toEqual(["open", "authorize"]);
+    expect(popup.opener).toBeNull();
+    expect(popup.location.href).toBe(
+      "/api/teacher/assignments/a/assets/docx/read?token=short&download=1",
+    );
+
+    const requestAccess = async () => {
+      events.push("unexpected-authorize");
+      return "/unused";
+    };
+    await expect(openOriginalAsset(asset, false, {
+      openWindow: () => null,
+      requestAccess,
+      origin: "https://act.example",
+    })).resolves.toBe("popup-blocked");
+    expect(events).not.toContain("unexpected-authorize");
+
+    const failedPopup = {
+      opener: {} as unknown,
+      location: { href: "about:blank" },
+      close: () => events.push("failed-close"),
+    };
+    await expect(openOriginalAsset(asset, false, {
+      openWindow: () => failedPopup,
+      requestAccess: async () => "",
+      origin: "https://act.example",
+    })).resolves.toBe("access-failed");
+    expect(events).toContain("failed-close");
+    expect(failedPopup.location.href).toBe("about:blank");
+    expect(originalAssetAccessErrorMessage("popup-blocked")).toContain(
+      "允许弹出窗口",
+    );
+    expect(originalAssetAccessErrorMessage("access-failed")).toContain(
+      "原件授权暂时失败",
+    );
   });
 });
