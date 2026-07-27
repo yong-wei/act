@@ -487,6 +487,7 @@ function compactGenerationSnapshot(snapshot?: GenerationSnapshot) {
         attemptNumber: attempt.attemptNumber,
         kind: attempt.kind,
         outcome: attempt.outcome,
+        validationReceipt: compactValidationReceipt(attempt.validationReceipt),
         latencyMs: attempt.finishedAt
           ? attempt.finishedAt.getTime() - attempt.startedAt.getTime()
           : null,
@@ -494,6 +495,29 @@ function compactGenerationSnapshot(snapshot?: GenerationSnapshot) {
           && attempt.serviceId !== 'smart-lesson-fixture',
       })),
     })),
+  };
+}
+
+function compactValidationReceipt(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const receipt = value as Record<string, unknown>;
+  const issues = Array.isArray(receipt.issues) ? receipt.issues : [];
+  return {
+    valid: receipt.valid === true,
+    schemaVersion: typeof receipt.schemaVersion === 'string' ? receipt.schemaVersion : null,
+    issues: issues.slice(0, 10).map((issue) => {
+      if (!issue || typeof issue !== 'object' || Array.isArray(issue)) return null;
+      const item = issue as Record<string, unknown>;
+      return {
+        code: typeof item.code === 'string' ? item.code : null,
+        path: Array.isArray(item.path)
+          ? item.path.filter((segment): segment is string | number => (
+              typeof segment === 'string' || typeof segment === 'number'
+            ))
+          : [],
+        message: typeof item.message === 'string' ? item.message : null,
+      };
+    }).filter((issue) => issue !== null),
   };
 }
 
