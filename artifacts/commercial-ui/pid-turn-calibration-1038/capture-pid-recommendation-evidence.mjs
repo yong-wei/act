@@ -3,6 +3,10 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import {
+  createPidRecommendationEvidenceStorageState,
+  PID_RECOMMENDATION_EVIDENCE_USER_ID,
+} from './pid-recommendation-evidence-session.mjs';
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 const baseUrl = process.env.PID_EVIDENCE_BASE_URL ?? 'http://localhost:3012';
@@ -17,10 +21,11 @@ await mkdir(outputDirectory, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const captures = [];
+const storageState = await createPidRecommendationEvidenceStorageState({ baseUrl });
 
 try {
   for (const viewport of viewports) {
-    const context = await browser.newContext({ viewport });
+    const context = await browser.newContext({ viewport, storageState });
     const page = await context.newPage();
     const consoleErrors = [];
     let requestBody;
@@ -99,6 +104,11 @@ await writeFile(join(outputDirectory, 'browser-evidence.json'), `${JSON.stringif
   server: baseUrl,
   browser: 'Playwright Chromium',
   evidenceMode: 'COMMERCIAL_UI_EVIDENCE=1',
+  authentication: {
+    mechanism: 'NextAuth JWT test fixture',
+    userId: PID_RECOMMENDATION_EVIDENCE_USER_ID,
+    storageState: 'in-memory only; token omitted from evidence',
+  },
   route: {
     productionSurface: 'src/resources/simulations/ai-recommend-panel.tsx',
     testHarnessRoute: route,

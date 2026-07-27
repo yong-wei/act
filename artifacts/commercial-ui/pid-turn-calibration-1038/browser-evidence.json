@@ -1,9 +1,14 @@
 {
   "change": "calibrate-pid-turn-scenario",
-  "capturedAt": "2026-07-25T13:08:26.724Z",
+  "capturedAt": "2026-07-27T10:32:15.964Z",
   "server": "http://localhost:3012",
   "browser": "Playwright Chromium",
   "evidenceMode": "COMMERCIAL_UI_EVIDENCE=1",
+  "authentication": {
+    "mechanism": "NextAuth JWT test fixture",
+    "userId": "commercial-ui-evidence-pid",
+    "storageState": "in-memory only; token omitted from evidence"
+  },
   "route": {
     "productionSurface": "src/resources/simulations/ai-recommend-panel.tsx",
     "testHarnessRoute": "/evidence-pid"
