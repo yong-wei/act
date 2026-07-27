@@ -4,6 +4,18 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const globalAIMocks = vi.hoisted(() => ({
+  updatePageContext: vi.fn(),
+  clearDynamicPageContext: vi.fn(),
+}));
+
+vi.mock('@/components/providers/global-ai-provider', () => ({
+  useGlobalAI: () => globalAIMocks,
+}));
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(window.location.search),
+}));
+
 import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
 
 const canvas = {
@@ -137,6 +149,9 @@ describe('candidate authoritative graph client isolation', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    globalAIMocks.updatePageContext.mockClear();
+    globalAIMocks.clearDynamicPageContext.mockClear();
+    window.history.replaceState(null, '', '/knowledge');
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -171,6 +186,12 @@ describe('candidate authoritative graph client isolation', () => {
 
     expect(container.textContent).toContain('根轨迹局部发布版');
     expect(container.textContent).toContain('教学关系尚未发布');
+    expect(globalAIMocks.updatePageContext).toHaveBeenLastCalledWith(expect.objectContaining({
+      candidateGraph: expect.objectContaining({
+        releaseSetId: 'actkg-authoritative-candidate-v1',
+        coverageStatus: 'ready',
+      }),
+    }));
     expect(container.querySelector('[data-candidate-relation-direction="undirected"]')).not.toBeNull();
     expect(container.textContent).toContain('关联 · 核心 · 无向/双向');
     const concept = [...container.querySelectorAll('button')]
@@ -204,6 +225,12 @@ describe('candidate authoritative graph client isolation', () => {
       .find((button) => button.textContent?.includes('特征方程'))!;
     await act(async () => formula.click());
     await act(async () => Promise.resolve());
+    expect(globalAIMocks.updatePageContext).toHaveBeenLastCalledWith(expect.objectContaining({
+      candidateGraph: expect.objectContaining({
+        selectedCanonicalId: 'formula',
+        selectedCanonicalType: 'Formula',
+      }),
+    }));
     expect(container.querySelector('[data-candidate-detail-direction="undirected"]')?.textContent)
       .toContain('无向/双向');
     expect(container.querySelector('[data-candidate-detail-direction="undirected"]')?.textContent)
@@ -213,6 +240,7 @@ describe('candidate authoritative graph client isolation', () => {
       .find((button) => button.textContent === '旧版 Legacy')!;
     await act(async () => legacy.click());
     expect(container.querySelector('[data-legacy="true"]')).not.toBeNull();
+    expect(globalAIMocks.clearDynamicPageContext).toHaveBeenCalled();
 
     const candidate = [...container.querySelectorAll('button')]
       .find((button) => button.textContent === '新版候选')!;
@@ -228,6 +256,49 @@ describe('candidate authoritative graph client isolation', () => {
       '/api/knowledge/nodes/v2/formula',
       '/api/knowledge/graph/v2',
     ]);
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/knowledge/graph')).toBe(false);
+  });
+
+  it('restores a fixed-projection canonical selection from the citation URL', async () => {
+    window.history.replaceState(null, '', '/knowledge?canonicalId=formula');
+    await act(async () => {
+      root.render(createElement(KnowledgeGraphWorkspace, {
+        viewerRole: 'student',
+        candidateAllowed: true,
+        controlledVerification: false,
+        legacy: createElement('div', { 'data-legacy': 'true' }, 'Legacy graph'),
+      }));
+    });
+    await act(async () => Promise.resolve());
+
+    expect(container.querySelector('[data-candidate-node-detail="formula"]')).not.toBeNull();
+    expect(container.textContent).toContain('edition-1 · section-1');
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      '/api/knowledge/graph/v2',
+      '/api/knowledge/nodes/v2/formula',
+    ]);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/knowledge/graph'))).toBe(true);
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/knowledge/graph')).toBe(false);
+  });
+
+  it('ignores an unknown canonical citation URL without requesting detail or Legacy', async () => {
+    window.history.replaceState(null, '', '/knowledge?canonicalId=unknown%0Alegacy');
+    await act(async () => {
+      root.render(createElement(KnowledgeGraphWorkspace, {
+        viewerRole: 'student',
+        candidateAllowed: true,
+        controlledVerification: false,
+        legacy: createElement('div', { 'data-legacy': 'true' }, 'Legacy graph'),
+      }));
+    });
+    await act(async () => Promise.resolve());
+
+    expect(container.querySelector('[data-candidate-node-detail]')).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/knowledge/graph/v2',
+      expect.any(Object),
+    );
     expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/knowledge/graph')).toBe(false);
   });
 

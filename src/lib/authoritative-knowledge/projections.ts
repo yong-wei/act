@@ -295,6 +295,47 @@ export type NodeDetailProjection =
   | TeacherNodeDetailProjection
   | AdminNodeDetailProjection;
 
+export interface CanonicalSearchProjection {
+  projectionVersion: 'act.canonical-search.v1';
+  source: ProjectionIdentity;
+  role: KnowledgeRole;
+  query: string;
+  results: Array<{
+    id: string;
+    canonicalType: string;
+    label: string;
+    description: string | null;
+    governanceTier: 'CORE' | 'EXTENSION' | 'UNCLASSIFIED';
+    semanticSupport: SemanticSupportMark;
+  }>;
+}
+
+export interface BoundedNeighborProjection {
+  projectionVersion: 'act.bounded-neighbors.v1';
+  source: ProjectionIdentity;
+  role: KnowledgeRole;
+  nodeId: string;
+  limit: number;
+  truncated: boolean;
+  neighbors: Array<{
+    relationId: string;
+    predicate: string;
+    direction: string | null;
+    qualityTier: string;
+    traversal: 'outgoing' | 'incoming';
+    neighbor: {
+      id: string;
+      canonicalType: string;
+      label: string;
+    };
+    governance: {
+      reviewStatus: string | null;
+      publicationStatus: string | null;
+    };
+    readOnly: true;
+  }>;
+}
+
 export function buildNodeDetailProjection(
   snapshot: AuthoritativeKnowledgeSnapshot,
   role: KnowledgeRole,
@@ -529,6 +570,133 @@ export class AuthoritativeKnowledgeProjectionService {
     }
     this.cache.set(key, projection);
     return { status: 'available', projection, diagnostics: result.diagnostics };
+  }
+
+  async canonicalSearch(
+    selector: AuthoritySelector,
+    role: KnowledgeRole,
+    query: string,
+    support: ConsumerSemanticSupport,
+    options: {
+      limit?: number;
+      canonicalType?: string | null;
+      governance?: 'CORE' | 'EXTENSION';
+    } = {},
+  ): Promise<ProjectionResult<CanonicalSearchProjection>> {
+    const result = await this.snapshot(selector);
+    if (result.status === 'unavailable') return result;
+    if (result.status === 'drift') {
+      return { status: 'drift', selector: result.selector, diagnostics: result.diagnostics };
+    }
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    const limit = Math.min(Math.max(options.limit ?? 8, 1), 20);
+    const supportedTypes = new Set(support.supportedObjectTypes);
+    const relationTierByNode = new Map<string, 'CORE' | 'EXTENSION'>();
+    result.snapshot.relations.forEach((relation) => {
+      const tier = relation.qualityTier === 'GOLD' ? 'CORE' : 'EXTENSION';
+      [relation.sourceId, relation.targetId].forEach((nodeId) => {
+        if (relationTierByNode.get(nodeId) !== 'CORE') relationTierByNode.set(nodeId, tier);
+      });
+    });
+    const results = result.snapshot.objects
+      .filter((row) => !options.canonicalType || row.canonicalType === options.canonicalType)
+      .filter((row) => options.governance !== 'CORE' || relationTierByNode.get(row.canonicalId) === 'CORE')
+      .filter((row) => {
+        if (!normalizedQuery) return true;
+        const payload = object(row.payload);
+        return [
+          row.canonicalId,
+          row.semanticName,
+          safeLabel(payload, row.semanticName ?? row.canonicalId),
+          stringOrNull(payload.description),
+        ].some((value) => value?.toLocaleLowerCase().includes(normalizedQuery));
+      })
+      .slice(0, limit)
+      .map((row) => {
+        const payload = object(row.payload);
+        return {
+          id: row.canonicalId,
+          canonicalType: row.canonicalType,
+          label: safeLabel(payload, row.semanticName ?? row.canonicalId),
+          description: stringOrNull(payload.description),
+          governanceTier: relationTierByNode.get(row.canonicalId) ?? 'UNCLASSIFIED' as const,
+          semanticSupport: semanticSupport(supportedTypes.has(row.canonicalType)),
+        };
+      });
+    return {
+      status: 'available',
+      diagnostics: result.diagnostics,
+      projection: {
+        projectionVersion: 'act.canonical-search.v1',
+        source: identity(result.snapshot),
+        role,
+        query,
+        results,
+      },
+    };
+  }
+
+  async boundedNeighbors(
+    selector: AuthoritySelector,
+    role: KnowledgeRole,
+    nodeId: string,
+    support: ConsumerSemanticSupport,
+    options: {
+      limit?: number;
+      governance?: 'CORE' | 'EXTENSION';
+      predicate?: string | null;
+    } = {},
+  ): Promise<ProjectionResult<BoundedNeighborProjection>> {
+    const result = await this.snapshot(selector);
+    if (result.status === 'unavailable') return result;
+    if (result.status === 'drift') {
+      return { status: 'drift', selector: result.selector, diagnostics: result.diagnostics };
+    }
+    if (!result.snapshot.objects.some((row) => row.canonicalId === nodeId)) {
+      return { status: 'unavailable', reason: 'node-not-found', selector, diagnostics: result.diagnostics };
+    }
+    const limit = Math.min(Math.max(options.limit ?? 12, 1), 20);
+    const matches = result.snapshot.relations.filter((relation) => (
+      (relation.sourceId === nodeId || relation.targetId === nodeId)
+      && (!options.predicate || relation.relationType === options.predicate)
+      && (options.governance !== 'CORE' || relation.qualityTier === 'GOLD')
+    ));
+    const neighbors = matches.slice(0, limit).flatMap((relation) => {
+      const neighborId = relation.sourceId === nodeId ? relation.targetId : relation.sourceId;
+      const neighbor = result.snapshot.objects.find((row) => row.canonicalId === neighborId);
+      if (!neighbor) return [];
+      const payload = object(relation.payload);
+      return [{
+        relationId: relation.relationId,
+        predicate: relation.relationType,
+        direction: stringOrNull(payload.direction),
+        qualityTier: relation.qualityTier,
+        traversal: relation.sourceId === nodeId ? 'outgoing' as const : 'incoming' as const,
+        neighbor: {
+          id: neighbor.canonicalId,
+          canonicalType: neighbor.canonicalType,
+          label: safeLabel(object(neighbor.payload), neighbor.semanticName ?? neighbor.canonicalId),
+        },
+        governance: {
+          reviewStatus: relation.reviewStatus,
+          publicationStatus: relation.publicationStatus,
+        },
+        readOnly: true as const,
+      }];
+    });
+    return {
+      status: 'available',
+      diagnostics: result.diagnostics,
+      projection: {
+        projectionVersion: 'act.bounded-neighbors.v1',
+        source: identity(result.snapshot),
+        role,
+        nodeId,
+        limit,
+        truncated: matches.length > limit,
+        neighbors,
+      },
+    };
   }
 
   async migrationReview(

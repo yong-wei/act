@@ -233,13 +233,37 @@ describe('candidate authoritative graph contracts', () => {
 });
 
 describe('candidate graph activation policy', () => {
-  it('keeps public activation closed unless the private server variable is exactly true', () => {
+  it('requires V2 and Konling acceptance on the same fixed ReleaseSet', () => {
     expect(isCandidateGraphPubliclyActivated({})).toBe(false);
     expect(isCandidateGraphPubliclyActivated({
-      AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION: 'TRUE',
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION: 'false',
     })).toBe(false);
     expect(isCandidateGraphPubliclyActivated({
       AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION: 'true',
+    })).toBe(false);
+    expect(isCandidateGraphPubliclyActivated({
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION: 'TRUE',
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID: CANDIDATE_RELEASE_SELECTOR.releaseSetId,
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID: CANDIDATE_RELEASE_SELECTOR.releaseSetId,
+    })).toBe(false);
+    expect(isCandidateGraphPubliclyActivated({
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION: 'true',
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID: CANDIDATE_RELEASE_SELECTOR.releaseSetId,
+    })).toBe(false);
+    expect(isCandidateGraphPubliclyActivated({
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION: 'true',
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID: 'different-release-set',
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID: CANDIDATE_RELEASE_SELECTOR.releaseSetId,
+    })).toBe(false);
+    expect(isCandidateGraphPubliclyActivated({
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION: 'true',
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID: CANDIDATE_RELEASE_SELECTOR.releaseSetId,
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID: 'different-release-set',
+    })).toBe(false);
+    expect(isCandidateGraphPubliclyActivated({
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION: 'true',
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID: CANDIDATE_RELEASE_SELECTOR.releaseSetId,
+      AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID: CANDIDATE_RELEASE_SELECTOR.releaseSetId,
     })).toBe(true);
   });
 

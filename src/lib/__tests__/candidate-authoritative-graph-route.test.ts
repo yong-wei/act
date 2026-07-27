@@ -19,6 +19,14 @@ import { GET as getCanvas } from '@/app/api/knowledge/graph/v2/route';
 import { GET as getNode } from '@/app/api/knowledge/nodes/v2/[id]/route';
 
 const originalActivation = process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION;
+const originalV2Acceptance = process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID;
+const originalKonlingAcceptance = process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID;
+
+function activateCandidateRelease() {
+  process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION = 'true';
+  process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID = 'actkg-authoritative-candidate-v1';
+  process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID = 'actkg-authoritative-candidate-v1';
+}
 
 function session(role: string) {
   return { user: { id: 'user-1', role } };
@@ -46,7 +54,9 @@ function availableProjection(role?: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  delete process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION;
+  process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION = 'false';
+  delete process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID;
+  delete process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID;
   mocks.canvas.mockResolvedValue(availableProjection());
   mocks.nodeDetail.mockResolvedValue(availableProjection('ADMIN'));
 });
@@ -93,7 +103,7 @@ describe('candidate authoritative V2 routes', () => {
   });
 
   it('allows each known authenticated role after activation and rejects unknown roles', async () => {
-    process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION = 'true';
+    activateCandidateRelease();
     for (const role of ['STUDENT', 'TEACHER', 'ADMIN']) {
       mocks.getServerSession.mockResolvedValue(session(role));
       const response = await getCanvas(new Request('http://localhost/api/knowledge/graph/v2'));
@@ -133,7 +143,7 @@ describe('candidate authoritative V2 routes', () => {
   });
 
   it('returns 404 for an absent node and passes the authenticated role to detail projection', async () => {
-    process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION = 'true';
+    activateCandidateRelease();
     mocks.getServerSession.mockResolvedValue(session('STUDENT'));
     mocks.nodeDetail.mockResolvedValueOnce({
       status: 'unavailable',
@@ -172,4 +182,8 @@ afterAll(() => {
   } else {
     process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION = originalActivation;
   }
+  if (originalV2Acceptance === undefined) delete process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID;
+  else process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID = originalV2Acceptance;
+  if (originalKonlingAcceptance === undefined) delete process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID;
+  else process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID = originalKonlingAcceptance;
 });

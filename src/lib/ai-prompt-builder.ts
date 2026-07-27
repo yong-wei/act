@@ -167,6 +167,15 @@ export function buildKonlingSystemPrompt(
   const { page, user } = context;
   const { wordLimit = 150, enableLatex = true } = options;
 
+  if (page.candidateGraph) {
+    return buildCandidateOnlySystemPrompt(
+      page,
+      context.adaptiveRuntime,
+      wordLimit,
+      enableLatex,
+    );
+  }
+
   const sections: string[] = [];
 
   // 基础角色声明
@@ -186,6 +195,61 @@ export function buildKonlingSystemPrompt(
   sections.push(buildFormatRequirements(wordLimit, enableLatex));
 
   return sections.filter(Boolean).join('\n\n');
+}
+
+function buildCandidateOnlySystemPrompt(
+  page: PageContext,
+  runtime: KonlingPromptRuntimeContext | undefined,
+  wordLimit: number,
+  enableLatex: boolean,
+): string {
+  const candidate = page.candidateGraph!;
+  const lines = [
+    `你是AI-OBE平台的智能学习助手「${KONLING_BRAND.name}」。`,
+    '',
+    '**服务端候选权威投影**:',
+    `- Authority: ${candidate.authorityState}`,
+    `- ReleaseSet: ${candidate.releaseSetId}`,
+    `- Release: ${candidate.releaseId}`,
+    `- 页面: ${page.topic} (${page.courseId}/${page.stepId})`,
+  ];
+  if (candidate.selectedCanonicalId) {
+    lines.push(`- 选中 Canonical Object: ${candidate.selectedCanonicalId}`);
+    if (candidate.selectedCanonicalType) {
+      lines.push(`- Canonical 类型: ${candidate.selectedCanonicalType}`);
+    }
+  }
+  lines.push(`- Governance 筛选: ${candidate.governanceFilter}`);
+  if (candidate.canonicalTypeFilter) {
+    lines.push(`- Canonical 类型筛选: ${candidate.canonicalTypeFilter}`);
+  }
+  lines.push(`- 投影诊断: coverage=${candidate.coverageStatus}, objects=${candidate.objectCount}, relations=${candidate.relationCount}`);
+  lines.push('- Provenance: server-owned fixed-selector projection；只读，不进行跨权威状态映射或推断。');
+
+  const candidateCitations = runtime?.citationContext?.contentCitations
+    ?.filter((citation) => citation.evidenceBasis.startsWith('candidate-canonical:'))
+    ?? [];
+  if (candidateCitations.length) {
+    lines.push(`- 可用 Provenance 引用: ${candidateCitations.slice(0, 3).map(formatCitationHint).join('；')}`);
+  }
+
+  lines.push('');
+  lines.push('**执行边界**:');
+  lines.push(`- 仅可调用: ${[
+    'search_candidate_canonical',
+    'get_candidate_canonical_detail',
+    'get_candidate_canonical_neighbors',
+  ].join(', ')}`);
+  lines.push('- 只能依据工具返回的 Canonical ID、类型、关系方向、治理等级、Provenance 和 diagnostics 作答。');
+  lines.push('- 正文只能使用服务器已分配的 `[n]` 引用编号；不得自行创建编号、URL 或映射。');
+  lines.push('');
+  lines.push('**回答格式**:');
+  lines.push(`- 回答控制在${wordLimit}字以内，除非用户明确要求详细说明`);
+  lines.push('- 使用 Markdown 清晰组织内容');
+  if (enableLatex) {
+    lines.push('- 公式使用 LaTeX：行内公式用 `$...$`，块级公式用 `$$...$$`');
+  }
+  return lines.join('\n');
 }
 
 function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): string {
@@ -515,6 +579,17 @@ function buildCourseSection(page: PageContext): string {
 
   if (page.knowledgeType) {
     lines.push(`**知识类型**: ${getKnowledgeTypeLabel(page.knowledgeType)}`);
+  }
+
+  if (page.candidateGraph) {
+    lines.push('**候选权威图谱**: 只读候选上下文');
+    lines.push(`- ReleaseSet: ${page.candidateGraph.releaseSetId}`);
+    lines.push(`- Release: ${page.candidateGraph.releaseId}`);
+    lines.push(`- 选中 Canonical Object: ${page.candidateGraph.selectedCanonicalId ?? '无'}`);
+    lines.push(`- Canonical 类型: ${page.candidateGraph.selectedCanonicalType ?? '无'}`);
+    lines.push(`- 筛选: governance=${page.candidateGraph.governanceFilter}, type=${page.candidateGraph.canonicalTypeFilter ?? '全部'}`);
+    lines.push(`- 覆盖状态: ${page.candidateGraph.coverageStatus} (${page.candidateGraph.objectCount ?? 'unknown'} objects, ${page.candidateGraph.relationCount ?? 'unknown'} relations)`);
+    lines.push('- 只能调用三项 candidate Canonical 只读工具；不得按名称推断 Legacy 映射，不得读取或写入学习事实、画像、推荐、路径、干预、仿真、控制器或持久学习记忆。');
   }
 
   return lines.join('\n');

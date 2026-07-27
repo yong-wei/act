@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   AlertTriangle,
   ArrowLeftRight,
@@ -13,8 +14,10 @@ import {
 } from 'lucide-react';
 
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
+import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import type { CandidateNodeDetailResponse } from './candidate-graph-contracts';
 import {
+  CANDIDATE_RELEASE_SELECTOR,
   getCandidatePredicatePresentation,
   getCandidateDetailDirectionLabel,
   getCandidateTypePresentation,
@@ -250,6 +253,8 @@ export function CandidateAuthoritativeGraph({
   const [canonicalType, setCanonicalType] = useState<string | null>(null);
   const [governance, setGovernance] = useState<CandidateGovernanceFilter>('EXTENSION');
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const requestedCanonicalId = useSearchParams().get('canonicalId');
+  const { updatePageContext, clearDynamicPageContext } = useGlobalAI();
 
   const projection = state.status === 'ready' || state.status === 'empty'
     ? state.projection
@@ -269,6 +274,44 @@ export function CandidateAuthoritativeGraph({
       ? graph.nodes.filter((node) => node.canonicalType === canonicalType).map((node) => node.id)
       : graph.nodes.map((node) => node.id),
   ), [canonicalType, graph.nodes]);
+
+  const selectedNode = projection?.nodes.find((node) => node.id === selectedNodeId) ?? null;
+  useEffect(() => {
+    if (
+      requestedCanonicalId
+      && projection?.nodes.some((node) => node.id === requestedCanonicalId)
+    ) {
+      setSelectedNodeId(requestedCanonicalId);
+    }
+  }, [projection, requestedCanonicalId]);
+
+  useEffect(() => {
+    updatePageContext({
+      candidateGraph: {
+        ...CANDIDATE_RELEASE_SELECTOR,
+        selectedCanonicalId: selectedNode?.id ?? null,
+        selectedCanonicalType: selectedNode?.canonicalType ?? null,
+        governanceFilter: governance,
+        canonicalTypeFilter: canonicalType,
+        coverageStatus: state.status,
+        objectCount: projection?.coverage.objectCount ?? null,
+        relationCount: projection?.coverage.relationCount ?? null,
+      },
+      tools: [],
+      systemPromptExtension: '当前为固定 ReleaseSet 的候选权威图谱。只能使用候选 Canonical 只读工具，不得推断 Legacy 对应项或产生学习状态副作用。',
+    });
+  }, [
+    canonicalType,
+    governance,
+    projection?.coverage.objectCount,
+    projection?.coverage.relationCount,
+    selectedNode?.canonicalType,
+    selectedNode?.id,
+    state.status,
+    updatePageContext,
+  ]);
+
+  useEffect(() => () => clearDynamicPageContext(), [clearDynamicPageContext]);
 
   return (
     <div

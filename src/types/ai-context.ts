@@ -66,6 +66,21 @@ export interface PageContext {
   routeProvenance?: 'simulation-route';
   /** 运行摘要可用性 */
   runSummaryAvailability?: 'unavailable-until-runtime-run' | 'available';
+  /** 服务端固定的候选权威图谱上下文；不得用于推断 Legacy 对应项 */
+  candidateGraph?: CandidateGraphPageContext | null;
+}
+
+export interface CandidateGraphPageContext {
+  authorityState: 'candidate';
+  releaseSetId: string;
+  releaseId: string;
+  selectedCanonicalId: string | null;
+  selectedCanonicalType: string | null;
+  governanceFilter: 'CORE' | 'EXTENSION';
+  canonicalTypeFilter: string | null;
+  coverageStatus: 'loading' | 'ready' | 'empty' | 'error';
+  objectCount: number | null;
+  relationCount: number | null;
 }
 
 /**
