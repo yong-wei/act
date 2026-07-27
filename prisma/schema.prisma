@@ -735,6 +735,7 @@ model SmartLessonTask {
   @@index([ownerId, updatedAt])
   @@index([ownerId, archivedAt, updatedAt])
   @@index([ownerId, courseBasisId])
+  @@index([ownerId, selectedClassId])
 }
 
 model SmartLessonSourceSelection {
