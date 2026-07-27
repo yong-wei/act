@@ -57,24 +57,28 @@ vi.mock('@/lib/konling-streaming-citation-fallback', () => ({
 vi.mock('@/lib/konling-final-citation-metadata-stream', () => ({
   appendFinalCitationGuardMetadata: vi.fn((stream) => stream),
 }));
-vi.mock('ai', () => ({
-  convertToModelMessages: vi.fn(async (messages) => messages),
-  consumeStream: vi.fn(),
-  createUIMessageStreamResponse: vi.fn(({ headers, stream }) => {
-    void (async () => {
-      const reader = stream.getReader();
-      while (true) {
-        const next = await reader.read();
-        if (next.done) break;
-        mocks.emittedChunks.push(next.value);
-      }
-    })();
-    return new Response('ok', { status: 200, headers });
-  }),
-  generateText: vi.fn(async () => ({ text: '[]' })),
-  stepCountIs: vi.fn(() => () => false),
-  streamText: mocks.streamText,
-}));
+vi.mock('ai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('ai')>();
+  return {
+    convertToModelMessages: vi.fn(async (messages) => messages),
+    consumeStream: vi.fn(),
+    createUIMessageStreamResponse: vi.fn(({ headers, stream }) => {
+      void (async () => {
+        const reader = stream.getReader();
+        while (true) {
+          const next = await reader.read();
+          if (next.done) break;
+          mocks.emittedChunks.push(next.value);
+        }
+      })();
+      return new Response('ok', { status: 200, headers });
+    }),
+    generateText: vi.fn(async () => ({ text: '[]' })),
+    isToolUIPart: actual.isToolUIPart,
+    stepCountIs: vi.fn(() => () => false),
+    streamText: mocks.streamText,
+  };
+});
 vi.mock('@/lib/konling-teaching-assistant-server-context', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/konling-teaching-assistant-server-context')>();
   return {
