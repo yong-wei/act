@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import "katex/dist/katex.min.css";
 import {
   AlertCircle,
   ArrowLeft,
   Check,
   ChevronLeft,
   ChevronRight,
+  Download,
+  ExternalLink,
+  FileText,
   RefreshCw,
   RotateCcw,
   Save,
@@ -16,6 +24,7 @@ import {
 
 import {
   buildDeterministicReviewQueue,
+  buildTeacherReviewApprovalPayload,
   buildTeacherReviewApiUrl,
   buildTeacherReviewHref,
   buildTeacherSubmissionQueueUrl,
@@ -25,6 +34,10 @@ import {
   normalizeTeacherReviewDetail,
   normalizeTeacherSubmissionQueue,
   responseKindToSubmissionResponseType,
+  teacherReviewConflictMutationState,
+  type ReviewAnnotationValue,
+  type TeacherOriginalResponse,
+  type TeacherOriginalResponseAsset,
   type TeacherReviewCriterion,
   type TeacherReviewDetail,
   type TeacherReviewQueueItem,
@@ -34,8 +47,13 @@ import { StatusBadge } from "./teacher-review-queue";
 
 type LoadState = "loading" | "ready" | "error" | "missing";
 type MutationState =
-  "idle" | "saving" | "acting" | "conflict" | "error" | "saved";
-type EvidenceView = "source" | "markdown";
+  | "idle"
+  | "saving"
+  | "acting"
+  | "conflict"
+  | "confirmation-required"
+  | "error"
+  | "saved";
 
 interface TeacherReviewWorkspaceProps {
   assignmentId: string;
@@ -73,7 +91,6 @@ export function TeacherReviewWorkspace({
   const [fallbackAcknowledgement, setFallbackAcknowledgement] = useState("");
   const [incompleteEvidenceConfirmed, setIncompleteEvidenceConfirmed] =
     useState(false);
-  const [evidenceView, setEvidenceView] = useState<EvidenceView>("source");
 
   const loadQueue = useCallback(async () => {
     const response = await fetch(
@@ -143,7 +160,6 @@ export function TeacherReviewWorkspace({
         responseKindToSubmissionResponseType(normalized.responseKind),
       );
       setQueue(nextQueue);
-      setEvidenceView("source");
       setIncompleteEvidenceConfirmed(false);
       setLoadState("ready");
       requestAnimationFrame(() => headingRef.current?.focus());
@@ -261,23 +277,26 @@ export function TeacherReviewWorkspace({
               "idempotency-key": idempotencyKey,
             },
             body: JSON.stringify({
-              reviewId: detail.reviewId,
-              expectedVersion: actionVersion,
-              idempotencyKey,
               ...(action === "return"
                 ? {
+                    reviewId: detail.reviewId,
+                    expectedVersion: actionVersion,
+                    idempotencyKey,
                     reason: returnReason.trim(),
                     allowedResponseType: returnResponseType,
                     newDeadlineAt: new Date(returnDeadline).toISOString(),
                   }
-                : detail.incompleteEvidence
-                  ? { confirmIncompleteEvidence: incompleteEvidenceConfirmed }
-                  : {}),
+                : buildTeacherReviewApprovalPayload(detail, {
+                    expectedVersion: actionVersion,
+                    idempotencyKey,
+                    confirmIncompleteEvidence: incompleteEvidenceConfirmed,
+                  })),
             }),
           },
         );
         if (response.status === 409) {
-          setMutationState("conflict");
+          const payload = await response.json().catch(() => ({}));
+          setMutationState(teacherReviewConflictMutationState(payload));
           return;
         }
         if (!response.ok)
@@ -509,85 +528,14 @@ export function TeacherReviewWorkspace({
               </p>
             ) : null}
           </div>
-          {detail.limitations.length ? (
-            <div
-              role="status"
-              className="mb-4 rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-sm text-amber-200"
-            >
-              {detail.limitations.join("；")}
-            </div>
-          ) : null}
-          {!detail.evidence ? (
+          {!detail.originalResponse ? (
             <StatePanel
               kind="empty"
-              title="暂无可批阅证据"
-              detail="作答可能仍在处理，或证据授权上下文不完整。"
+              title="暂无原始作答"
+              detail="当前封存提交中没有正文或附件。"
             />
           ) : (
-            <>
-              <div
-                className="mb-3 flex items-center gap-2"
-                role="group"
-                aria-label="证据显示方式"
-              >
-                <TabButton
-                  active={evidenceView === "source"}
-                  onClick={() => setEvidenceView("source")}
-                >
-                  {detail.evidence.kind === "DOCUMENT"
-                    ? "原始文档"
-                    : "规范文本"}
-                </TabButton>
-                {detail.evidence.markdown ? (
-                  <TabButton
-                    active={evidenceView === "markdown"}
-                    onClick={() => setEvidenceView("markdown")}
-                  >
-                    Markdown
-                  </TabButton>
-                ) : null}
-              </div>
-              <article className="min-h-[28rem] rounded-xl border border-slate-800 bg-slate-950 p-5">
-                {evidenceView === "source" &&
-                detail.evidence.kind === "DOCUMENT" &&
-                detail.evidence.originalUrl ? (
-                  <iframe
-                    title={detail.evidence.fileName ?? "学生提交文档"}
-                    src={detail.evidence.originalUrl}
-                    className="h-[65vh] w-full rounded-lg bg-white"
-                  />
-                ) : (
-                  <pre className="whitespace-pre-wrap font-sans text-sm leading-7 text-slate-200">
-                    {evidenceView === "markdown"
-                      ? detail.evidence.markdown
-                      : detail.evidence.canonicalText || "证据正文为空"}
-                  </pre>
-                )}
-              </article>
-              {detail.evidence.anchors.length ? (
-                <section className="mt-4" aria-label="证据锚点">
-                  <h3 className="text-sm font-medium text-white">证据锚点</h3>
-                  <ul className="mt-2 grid gap-2 lg:grid-cols-2">
-                    {detail.evidence.anchors.map((anchor) => (
-                      <li
-                        key={anchor.id}
-                        id={`anchor-${anchor.id}`}
-                        tabIndex={-1}
-                        className="rounded-lg border border-slate-800 bg-slate-950 p-3 text-sm"
-                      >
-                        <div className="flex justify-between gap-2">
-                          <span className="text-cyan-300">{anchor.label}</span>
-                          <span className="text-xs text-slate-500">
-                            {anchor.precision}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-slate-300">{anchor.excerpt}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
-            </>
+            <OriginalResponsePanel response={detail.originalResponse} />
           )}
         </section>
 
@@ -614,6 +562,32 @@ export function TeacherReviewWorkspace({
               </div>
               <span className="text-xs text-slate-500">仅由评分项求和</span>
             </div>
+            {detail.incompleteEvidence && (
+              <div className="rounded-lg border border-amber-500/70 bg-amber-500/10 p-3">
+                <p className="text-sm font-medium text-amber-100">
+                  部分附件未纳入本次建议，请结合原件核对
+                </p>
+                {detail.omittedEvidence.length > 0 && (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-amber-100">
+                    {detail.omittedEvidence.map((item) => (
+                      <li key={item.assetId}>{item.displayName}</li>
+                    ))}
+                  </ul>
+                )}
+                <label className="mt-3 flex min-h-10 items-center gap-2 text-sm text-amber-50">
+                  <input
+                    type="checkbox"
+                    checked={incompleteEvidenceConfirmed}
+                    onChange={(event) =>
+                      setIncompleteEvidenceConfirmed(event.target.checked)
+                    }
+                    disabled={!reviewMutable}
+                    className="h-4 w-4 rounded border-amber-400 bg-slate-900"
+                  />
+                  我已结合原件核对并确认当前评分
+                </label>
+              </div>
+            )}
             {criteria.length === 0 ? (
               <StatePanel
                 kind="empty"
@@ -626,6 +600,12 @@ export function TeacherReviewWorkspace({
                   <CriterionEditor
                     key={criterion.id}
                     criterion={criterion}
+                    evidenceAnchors={detail.aiAnnotations.filter(
+                      (annotation) =>
+                        annotation.criterionId === criterion.id &&
+                        annotation.status === "ACTIVE" &&
+                        annotation.origin === "AI_DRAFT",
+                    )}
                     readOnly={!reviewMutable}
                     onChange={(next) => {
                       setCriteria((current) =>
@@ -697,33 +677,6 @@ export function TeacherReviewWorkspace({
                 />
               </label>
             </div>
-            {detail.incompleteEvidence && (
-              <div className="rounded-lg border border-amber-500/70 bg-amber-500/10 p-3">
-                <p className="text-sm font-medium text-amber-100">当前评分证据不完整</p>
-                <p className="mt-1 text-xs text-amber-200/80">
-                  请核对学生原始作答与可用证据后再批准。
-                </p>
-                {detail.omittedEvidence.length > 0 && (
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-amber-100">
-                    {detail.omittedEvidence.map((item) => (
-                      <li key={item.assetId}>{item.displayName}</li>
-                    ))}
-                  </ul>
-                )}
-                <label className="mt-3 flex min-h-10 items-center gap-2 text-sm text-amber-50">
-                  <input
-                    type="checkbox"
-                    checked={incompleteEvidenceConfirmed}
-                    onChange={(event) =>
-                      setIncompleteEvidenceConfirmed(event.target.checked)
-                    }
-                    disabled={!reviewMutable}
-                    className="h-4 w-4 rounded border-amber-400 bg-slate-900"
-                  />
-                  我已核对不完整证据并确认当前评分
-                </label>
-              </div>
-            )}
             <MutationMessage
               state={mutationState}
               onReload={() => void load()}
@@ -734,7 +687,6 @@ export function TeacherReviewWorkspace({
                 disabled={
                   !criteria.length ||
                   !reviewMutable ||
-                  (detail.incompleteEvidence && !incompleteEvidenceConfirmed) ||
                   mutationState === "saving" ||
                   mutationState === "acting"
                 }
@@ -765,6 +717,7 @@ export function TeacherReviewWorkspace({
                 disabled={
                   !criteria.length ||
                   !reviewMutable ||
+                  (detail.incompleteEvidence && !incompleteEvidenceConfirmed) ||
                   mutationState === "saving" ||
                   mutationState === "acting"
                 }
@@ -788,12 +741,341 @@ export function TeacherReviewWorkspace({
   );
 }
 
+export function OriginalResponsePanel({
+  response,
+  initialAccessUrls = {},
+}: {
+  response: TeacherOriginalResponse;
+  initialAccessUrls?: Record<string, string>;
+}) {
+  const [accessUrls, setAccessUrls] =
+    useState<Record<string, string>>(initialAccessUrls);
+  const [accessErrors, setAccessErrors] =
+    useState<Record<string, boolean>>({});
+  const requestedAssetIds = useRef(new Set<string>());
+  const previewAssets = useMemo(
+    () => response.assets.filter((asset) =>
+      asset.role === "EMBEDDED_IMAGE" ||
+      isDirectImage(asset.mimeType) ||
+      asset.mimeType === "application/pdf"),
+    [response.assets],
+  );
+
+  const loadAssetAccess = useCallback(
+    async (asset: TeacherOriginalResponseAsset) => {
+      if (requestedAssetIds.current.has(asset.id)) return;
+      requestedAssetIds.current.add(asset.id);
+      setAccessErrors((current) => ({ ...current, [asset.id]: false }));
+      try {
+        const url = await requestOriginalAssetAccess(asset);
+        if (url) {
+          setAccessUrls((current) => ({ ...current, [asset.id]: url }));
+        } else {
+          setAccessErrors((current) => ({ ...current, [asset.id]: true }));
+        }
+      } catch {
+        setAccessErrors((current) => ({ ...current, [asset.id]: true }));
+      } finally {
+        requestedAssetIds.current.delete(asset.id);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const missing = previewAssets.filter(
+      (asset) =>
+        !accessUrls[asset.id] &&
+        !accessErrors[asset.id] &&
+        !requestedAssetIds.current.has(asset.id),
+    );
+    if (missing.length === 0) return;
+    missing.forEach((asset) => void loadAssetAccess(asset));
+  }, [accessErrors, accessUrls, loadAssetAccess, previewAssets]);
+
+  const assetByMarkdownReference = useMemo(
+    () => new Map<string, TeacherOriginalResponseAsset>(
+      response.assets.flatMap((asset) =>
+        asset.role === "EMBEDDED_IMAGE" && asset.embeddedPosition
+          ? [[`asset:${asset.embeddedPosition}`, asset] as const]
+          : []),
+    ),
+    [response.assets],
+  );
+  const attachments = response.assets.filter(
+    (asset) => asset.role === "ATTACHMENT",
+  );
+  const resolveMarkdownAsset = (src: string, title?: string) => {
+    const titledReference = title?.startsWith("asset:md:") ? title : null;
+    const directReference = src.startsWith("asset:md:") ? src : null;
+    return assetByMarkdownReference.get(titledReference ?? directReference ?? "");
+  };
+
+  return (
+    <div className="space-y-4" data-original-assignment-response>
+      {response.textSnapshot ? (
+        <article className="rounded-xl border border-slate-800 bg-white p-5 text-slate-900">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+            urlTransform={(url, key) =>
+              key === "src" && url.startsWith("asset:md:")
+                ? url
+                : key === "href"
+                  ? "#"
+                  : ""}
+            components={{
+              h1: ({ children }) => (
+                <h3 className="mt-5 text-xl font-semibold">{children}</h3>
+              ),
+              h2: ({ children }) => (
+                <h4 className="mt-4 text-lg font-semibold">{children}</h4>
+              ),
+              h3: ({ children }) => (
+                <h5 className="mt-4 font-semibold">{children}</h5>
+              ),
+              h4: ({ children }) => <h6 className="mt-3 font-semibold">{children}</h6>,
+              h5: ({ children }) => <h6 className="mt-3 font-semibold">{children}</h6>,
+              h6: ({ children }) => <h6 className="mt-3 font-semibold">{children}</h6>,
+              img: ({ src = "", alt = "", title }) => {
+                const asset = resolveMarkdownAsset(
+                  typeof src === "string" ? src : "",
+                  typeof title === "string" ? title : undefined,
+                );
+                const resolved = asset ? accessUrls[asset.id] ?? "" : "";
+                return resolved ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={resolved}
+                    alt={alt}
+                    className="my-4 max-h-[36rem] w-full rounded-lg border border-slate-200 object-contain"
+                  />
+                ) : asset && accessErrors[asset.id] ? (
+                  <button
+                    type="button"
+                    onClick={() => void loadAssetAccess(asset)}
+                    className="my-4 block w-full rounded-lg border border-dashed border-amber-400 p-4 text-sm text-amber-700"
+                  >
+                    嵌入图片载入失败，重试
+                  </button>
+                ) : (
+                  <span
+                    role="status"
+                    className="my-4 block rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500"
+                  >
+                    正在载入嵌入图片
+                  </span>
+                );
+              },
+              a: ({ children }) => <span>{children}</span>,
+              p: ({ children }) => (
+                <p className="my-3 text-sm leading-7">{children}</p>
+              ),
+              ul: ({ children }) => (
+                <ul className="my-3 ml-6 list-disc space-y-1">{children}</ul>
+              ),
+              ol: ({ children }) => (
+                <ol className="my-3 ml-6 list-decimal space-y-1">{children}</ol>
+              ),
+            }}
+          >
+            {response.textSnapshot}
+          </ReactMarkdown>
+        </article>
+      ) : null}
+      {attachments.length ? (
+        <ol className="space-y-3" aria-label="原始附件">
+          {attachments.map((asset, index) => (
+            <li key={asset.id}>
+              <OriginalAttachmentCard
+                asset={asset}
+                number={index + 1}
+                previewUrl={accessUrls[asset.id] ?? null}
+              />
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </div>
+  );
+}
+
+function OriginalAttachmentCard({
+  asset,
+  number,
+  previewUrl,
+}: {
+  asset: TeacherOriginalResponseAsset;
+  number: number;
+  previewUrl: string | null;
+}) {
+  const image = isDirectImage(asset.mimeType);
+  const pdf = asset.mimeType === "application/pdf";
+  const [accessActionError, setAccessActionError] = useState<
+    "popup-blocked" | "access-failed" | null
+  >(null);
+  const handleOpen = (download: boolean) => {
+    setAccessActionError(null);
+    void openOriginalAsset(asset, download).then((result) => {
+      if (result !== "opened") setAccessActionError(result);
+    });
+  };
+  return (
+    <section className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm text-cyan-200">
+            {number}
+          </span>
+          <FileText className="h-5 w-5 shrink-0 text-slate-400" />
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-medium text-white">
+              {asset.displayName}
+            </h3>
+            <p className="text-xs text-slate-500">
+              {formatOriginalAssetKind(asset.mimeType)}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => handleOpen(false)}
+            className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-slate-700 px-3 text-sm text-slate-200"
+          >
+            <ExternalLink className="h-4 w-4" />
+            打开
+          </button>
+          <button
+            type="button"
+            onClick={() => handleOpen(true)}
+            className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-slate-700 px-3 text-sm text-slate-200"
+          >
+            <Download className="h-4 w-4" />
+            下载
+          </button>
+        </div>
+      </div>
+      {accessActionError ? (
+        <p role="alert" className="mt-3 text-sm text-rose-300">
+          {originalAssetAccessErrorMessage(accessActionError)}
+        </p>
+      ) : null}
+      {image && previewUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={previewUrl}
+          alt={asset.displayName}
+          className="mt-4 max-h-[36rem] w-full rounded-lg bg-white object-contain"
+        />
+      ) : null}
+      {pdf && previewUrl ? (
+        <iframe
+          title={`${asset.displayName} PDF 阅读器`}
+          src={previewUrl}
+          sandbox=""
+          referrerPolicy="no-referrer"
+          className="mt-4 h-[65vh] w-full rounded-lg bg-white"
+        />
+      ) : null}
+    </section>
+  );
+}
+
+export function originalAssetAccessErrorMessage(
+  error: "popup-blocked" | "access-failed",
+) {
+  return error === "popup-blocked"
+    ? "浏览器阻止了新窗口，请允许弹出窗口后重试。"
+    : "原件授权暂时失败，请重试。";
+}
+
+async function requestOriginalAssetAccess(
+  asset: TeacherOriginalResponseAsset,
+) {
+  const response = await fetch(asset.accessEndpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+  });
+  if (!response.ok) return "";
+  const payload = await response.json().catch(() => null);
+  if (typeof payload?.access?.url !== "string") return "";
+  const url = new URL(payload.access.url, window.location.origin);
+  return url.origin === window.location.origin
+    && url.pathname.startsWith("/api/teacher/assignments/")
+    ? `${url.pathname}${url.search}`
+    : "";
+}
+
+export async function openOriginalAsset(
+  asset: TeacherOriginalResponseAsset,
+  download: boolean,
+  dependencies: {
+    openWindow?: () => {
+      opener: unknown;
+      location: { href: string };
+      close: () => void;
+    } | null;
+    requestAccess?: (
+      asset: TeacherOriginalResponseAsset,
+    ) => Promise<string>;
+    origin?: string;
+  } = {},
+) {
+  const pendingWindow = dependencies.openWindow
+    ? dependencies.openWindow()
+    : window.open("about:blank", "_blank");
+  if (!pendingWindow) return "popup-blocked" as const;
+  try {
+    pendingWindow.opener = null;
+    const accessUrl = await (
+      dependencies.requestAccess ?? requestOriginalAssetAccess
+    )(asset);
+    if (!accessUrl) {
+      pendingWindow.close();
+      return "access-failed" as const;
+    }
+    const url = new URL(
+      accessUrl,
+      dependencies.origin ?? window.location.origin,
+    );
+    if (download) url.searchParams.set("download", "1");
+    pendingWindow.location.href = `${url.pathname}${url.search}`;
+    return "opened" as const;
+  } catch {
+    pendingWindow.close();
+    return "access-failed" as const;
+  }
+}
+
+function isDirectImage(mimeType: string) {
+  return mimeType === "image/png" || mimeType === "image/jpeg";
+}
+
+function formatOriginalAssetKind(mimeType: string) {
+  const labels: Record<string, string> = {
+    "application/pdf": "PDF 原件",
+    "application/msword": "DOC 原件",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+      "DOCX 原件",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+      "PPTX 原件",
+    "image/png": "PNG 原图",
+    "image/jpeg": "JPEG 原图",
+    "text/markdown": "Markdown 原件",
+    "text/plain": "纯文本原件",
+  };
+  return labels[mimeType] ?? "原始文件";
+}
+
 function CriterionEditor({
   criterion,
+  evidenceAnchors,
   onChange,
   readOnly,
 }: {
   criterion: TeacherReviewCriterion;
+  evidenceAnchors: ReviewAnnotationValue[];
   onChange: (criterion: TeacherReviewCriterion) => void;
   readOnly: boolean;
 }) {
@@ -806,16 +1088,10 @@ function CriterionEditor({
       <legend className="px-1 text-sm font-medium text-white">
         {criterion.label}
       </legend>
-      {criterion.aiScore !== null ? (
-        <div className="mb-2 rounded bg-slate-950 p-2 text-xs text-slate-400">
-          <span>
-            AI 草评：{criterion.aiScore} / {criterion.maxPoints}
-          </span>
-          {criterion.aiComment ? (
-            <p className="mt-1">{criterion.aiComment}</p>
-          ) : null}
-        </div>
-      ) : null}
+      <CriterionAiSuggestion
+        criterion={criterion}
+        evidenceAnchors={evidenceAnchors}
+      />
       {criterion.levels.length ? (
         <label className="mb-2 block text-xs text-slate-400">
           Rubric 档位
@@ -884,6 +1160,64 @@ function CriterionEditor({
   );
 }
 
+export function CriterionAiSuggestion({
+  criterion,
+  evidenceAnchors,
+}: {
+  criterion: TeacherReviewCriterion;
+  evidenceAnchors: ReviewAnnotationValue[];
+}) {
+  if (criterion.aiScore === null && evidenceAnchors.length === 0) return null;
+  return (
+    <div
+      className="mb-2 rounded bg-slate-950 p-2 text-xs text-slate-400"
+      data-ai-criterion-suggestion
+    >
+      {criterion.aiScore !== null ? (
+        <span>
+          AI 草评：{criterion.aiScore} / {criterion.maxPoints}
+        </span>
+      ) : null}
+      {criterion.aiComment ? (
+        <p className="mt-1">{criterion.aiComment}</p>
+      ) : null}
+      {evidenceAnchors.length > 0 ? (
+        <div className="mt-2 border-t border-slate-800 pt-2">
+          <p className="font-medium text-slate-300">证据锚点</p>
+          <ul className="mt-1 list-disc space-y-1 pl-4">
+            {evidenceAnchors.map((annotation, index) => (
+              <li key={annotation.id ?? `${annotation.criterionId}-${index}`}>
+                {describeEvidenceAnchor(annotation)}
+                {annotation.anchor.excerpt ? (
+                  <blockquote className="mt-1 border-l border-slate-700 pl-2 text-slate-300">
+                    {annotation.anchor.excerpt}
+                  </blockquote>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function describeEvidenceAnchor(annotation: ReviewAnnotationValue) {
+  const locations = [
+    annotation.anchor.pageNumber
+      ? `第 ${annotation.anchor.pageNumber} 页`
+      : null,
+    annotation.anchor.blockId
+      ? `证据块 ${annotation.anchor.blockId}`
+      : null,
+    annotation.anchor.spanStart !== undefined &&
+    annotation.anchor.spanEnd !== undefined
+      ? `字符 ${annotation.anchor.spanStart}–${annotation.anchor.spanEnd}`
+      : null,
+  ].filter(Boolean);
+  return locations.join(" · ") || "已关联证据位置";
+}
+
 function NavigationButton({
   label,
   item,
@@ -907,26 +1241,6 @@ function NavigationButton({
     </button>
   );
 }
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={`min-h-10 rounded-lg px-3 text-sm ${active ? "bg-cyan-600 text-white" : "border border-slate-700 text-slate-300"}`}
-    >
-      {children}
-    </button>
-  );
-}
 function MutationMessage({
   state,
   onReload,
@@ -945,6 +1259,15 @@ function MutationMessage({
         <button type="button" onClick={onReload} className="ml-2 underline">
           重新加载最新版本
         </button>
+      </div>
+    );
+  if (state === "confirmation-required")
+    return (
+      <div
+        role="alert"
+        className="rounded-lg border border-amber-500/40 bg-amber-950/30 p-3 text-sm text-amber-100"
+      >
+        请先确认已结合原件核对未纳入建议的附件，再重新批准。
       </div>
     );
   if (state === "error")

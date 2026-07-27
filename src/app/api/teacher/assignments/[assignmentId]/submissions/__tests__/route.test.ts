@@ -27,6 +27,7 @@ vi.mock('@/lib/data-governance/teacher-assignment-review', () => ({
   saveTeacherAssignmentReview: mocks.save,
   approveTeacherAssignmentReview: mocks.approve,
   returnTeacherAssignmentReview: mocks.returnReview,
+  buildTeacherAssignmentReviewApiProjection: (review: unknown) => review,
 }));
 
 import { GET as GET_SUBMISSIONS } from '../route';

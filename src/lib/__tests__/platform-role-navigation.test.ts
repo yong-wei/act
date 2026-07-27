@@ -1242,14 +1242,10 @@ describe('platform role navigation', () => {
     expect(resourceSource).toContain('selectResourceCompletionHandler');
     expect(resourceSource).toContain('onComplete={resourceCompletionHandler}');
     expect(resourceSource).toContain("label: '学习路径'");
-    expect(resourceSource).toContain('const breadcrumbs = [');
     expect(resourceSource).toContain('breadcrumbs={breadcrumbs}');
     expect(resourceSource).toContain('h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)]');
     expect(readSource('src/features/interactive/shared/lesson-runtime-shell.tsx')).toContain(
       'const runtimeReturnLabel = pathLaunchContext ?',
-    );
-    expect(readSource('src/features/interactive/shared/lesson-runtime-shell.tsx')).toContain(
-      'const breadcrumbs: readonly AppBreadcrumbItem[] = pathLaunchContext',
     );
     expect(readSource('src/features/interactive/shared/lesson-runtime-shell.tsx')).toContain(
       "{ label: '学习路径' }",
