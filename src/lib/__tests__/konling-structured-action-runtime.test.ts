@@ -457,7 +457,7 @@ describe('Konling structured action runtime', () => {
         controller.enqueue({
           type: 'text-delta',
           id: 'text-fallback',
-          delta: '结构化操作未能安全完成，请重新生成建议。',
+          delta: '建议已生成。结构化操作未能安全完成，请重新生成建议。请确认下方卡片。',
         });
         controller.enqueue({ type: 'text-end', id: 'text-fallback' });
         controller.enqueue({ type: 'finish', finishReason: 'stop' });
@@ -485,6 +485,9 @@ describe('Konling structured action runtime', () => {
     expect(state.executedToolResults).toHaveLength(1);
     expect(chunks).toEqual([
       { type: 'finish-step' },
+      { type: 'text-start', id: 'text-fallback' },
+      { type: 'text-delta', id: 'text-fallback', delta: '建议已生成。请确认下方卡片。' },
+      { type: 'text-end', id: 'text-fallback' },
       { type: 'finish', finishReason: 'stop' },
     ]);
   });

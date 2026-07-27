@@ -55,6 +55,7 @@ import {
   releaseKonlingConversationTurn,
   replaceKonlingConversationAssistantRevision,
   resolveKonlingContextEventScope,
+  serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
@@ -723,6 +724,31 @@ export async function POST(request: Request) {
         metadata: { ...existingMetadata, ...metadata },
       });
     };
+    const publicStructuredActionMetadata = (
+      persistedConversation: Awaited<ReturnType<typeof completeKonlingConversationTurn>>,
+      assistantMessageId: string,
+    ) => {
+      if (!persistedConversation) return {};
+      const publicAssistant = serializeKonlingConversation(persistedConversation).messages
+        .find((message) => message.id === assistantMessageId && message.role === 'assistant');
+      const publicMetadata = publicAssistant?.metadata
+        && typeof publicAssistant.metadata === 'object'
+        && !Array.isArray(publicAssistant.metadata)
+        ? publicAssistant.metadata as Record<string, unknown>
+        : {};
+      return Array.isArray(publicMetadata.konlingSmartPreparationActions)
+        ? { konlingSmartPreparationActions: publicMetadata.konlingSmartPreparationActions }
+        : {};
+    };
+    const shouldFinalizeEmptyStructuredTurn = async () => {
+      if (structuredActionState.toolCalls.length > 0) return true;
+      if (forceStructuredSmartPrepTool && claimedTurn) {
+        const emptyTurn = claimedTurn;
+        claimedTurn = null;
+        await releaseKonlingConversationTurn(prisma, emptyTurn);
+      }
+      return false;
+    };
     const uiMessageStream = result.toUIMessageStream({
       originalMessages: uiMessages,
       generateMessageId: () => crypto.randomUUID(),
@@ -741,6 +767,7 @@ export async function POST(request: Request) {
           !getMessageContent(completedResponseMessage).trim()
           && !completedResponseMessage.parts.some((part) =>
             part.type === 'dynamic-tool' || part.type.startsWith('tool-'))
+          && !forceStructuredSmartPrepTool
         ) {
           await releaseKonlingConversationTurn(prisma, claimedTurn);
           claimedTurn = null;
@@ -783,6 +810,7 @@ export async function POST(request: Request) {
     const finalCitationUiMessageStream = buildFinalCitationGuardMetadataPayload && getAssignedCitationTable
       ? createKonlingMessageRevisionStream({
           stream: structuredActionStream,
+          shouldFinalizeEmpty: shouldFinalizeEmptyStructuredTurn,
           hasPendingOptimization: () =>
             structuredActionState.withheldMalformedSyntax
             || (getTextbookOptimizations?.().length ?? 0) > 0,
@@ -844,7 +872,7 @@ export async function POST(request: Request) {
                     ...normalized.diagnostics,
                   ])],
             };
-            const metadata = {
+            let metadata = {
               konlingCitationGuard: finalCitationMetadata,
               ...(sarAssociatedGroundingMetadataPayload ? {
                 konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
@@ -862,7 +890,7 @@ export async function POST(request: Request) {
             if (claimedTurn) {
               const completingTurn = claimedTurn;
               try {
-                await completeKonlingConversationTurn(prisma, {
+                const persistedConversation = await completeKonlingConversationTurn(prisma, {
                   ...completingTurn,
                   assistantMessage: buildPersistedAssistantRevision(
                     messageId,
@@ -870,6 +898,10 @@ export async function POST(request: Request) {
                     metadata,
                   ),
                 });
+                metadata = {
+                  ...metadata,
+                  ...publicStructuredActionMetadata(persistedConversation, messageId),
+                };
                 claimedTurn = null;
               } catch (error) {
                 await releaseKonlingConversationTurn(prisma, completingTurn);
@@ -1007,6 +1039,7 @@ export async function POST(request: Request) {
         })
       : createKonlingMessageRevisionStream({
           stream: structuredActionStream,
+          shouldFinalizeEmpty: shouldFinalizeEmptyStructuredTurn,
           hasPendingOptimization: () => structuredActionState.withheldMalformedSyntax,
           finalize: async ({ messageId, body }) => {
             let finalBody = body;
@@ -1030,7 +1063,7 @@ export async function POST(request: Request) {
               finalBody = correction.text;
               correctionStatus = correction.status;
             }
-            const metadata = {
+            let metadata = {
               konlingMessageRevision: {
                 revision: 1,
                 status: 'verified',
@@ -1044,10 +1077,14 @@ export async function POST(request: Request) {
             if (claimedTurn) {
               const completingTurn = claimedTurn;
               try {
-                await completeKonlingConversationTurn(prisma, {
+                const persistedConversation = await completeKonlingConversationTurn(prisma, {
                   ...completingTurn,
                   assistantMessage: buildPersistedAssistantRevision(messageId, finalBody, metadata),
                 });
+                metadata = {
+                  ...metadata,
+                  ...publicStructuredActionMetadata(persistedConversation, messageId),
+                };
                 claimedTurn = null;
               } catch (error) {
                 await releaseKonlingConversationTurn(prisma, completingTurn);

@@ -8,9 +8,12 @@ const mocks = vi.hoisted(() => ({
   getOrCreateAgentSession: vi.fn(),
   resumeAgentSession: vi.fn(),
   streamText: vi.fn(),
+  buildScopedTools: vi.fn(),
+  emittedChunks: [] as any[],
   useActualResolver: false,
   prisma: {
     agentSession: { findFirst: vi.fn(), updateMany: vi.fn() },
+    agentToolRun: { findMany: vi.fn() },
     smartLessonTask: { findFirst: vi.fn() },
     konlingSession: {
       findFirst: vi.fn(),
@@ -60,8 +63,10 @@ vi.mock('ai', () => ({
   createUIMessageStreamResponse: vi.fn(({ headers, stream }) => {
     void (async () => {
       const reader = stream.getReader();
-      while (!(await reader.read()).done) {
-        // Drain the stream so final message revision persistence runs.
+      while (true) {
+        const next = await reader.read();
+        if (next.done) break;
+        mocks.emittedChunks.push(next.value);
       }
     })();
     return new Response('ok', { status: 200, headers });
@@ -117,7 +122,7 @@ vi.mock('@/lib/konling-agent-runtime', async (importOriginal) => {
       smartPreparation: { bootstrap: false },
     })),
     buildKonlingToolRuntime: vi.fn(() => ({ getAssignedCitations: () => [] })),
-    buildScopedKonlingAiTools: vi.fn(() => ({})),
+    buildScopedKonlingAiTools: mocks.buildScopedTools,
     getOrCreateKonlingAgentSession: mocks.getOrCreateAgentSession,
     normalizeKonlingKnowledgeWorkspaceHint: vi.fn(() => null),
     persistKonlingSessionMemories: vi.fn(async () => undefined),
@@ -176,6 +181,9 @@ describe('Konling smart-prep production routes', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mocks.useActualResolver = false;
+    mocks.emittedChunks.length = 0;
+    mocks.buildScopedTools.mockReturnValue({});
+    mocks.prisma.agentToolRun.findMany.mockResolvedValue([]);
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER', name: 'Teacher' } });
     mocks.getServerSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER', name: 'Teacher' } });
     mocks.resolveServerModeContext.mockResolvedValue(serverContext);
@@ -245,6 +253,118 @@ describe('Konling smart-prep production routes', () => {
       smartPrepBinding: { taskId: 'server-task', taskRevision: '7' },
     }));
     expectStructuredProposalSteps(mocks.streamText.mock.calls[0]?.[0]);
+  });
+
+  it('persists a fragmented pure-tool proposal and emits its public action metadata immediately', async () => {
+    const executeProposal = vi.fn(async () => ({
+      suggestionId: 'internal-tool-run',
+      status: 'awaiting_teacher_confirmation',
+    }));
+    mocks.buildScopedTools.mockReturnValue({
+      propose_smart_lesson_task_change: {
+        inputSchema: {
+          safeParse: (value: unknown) => ({ success: true, data: value }),
+        },
+        execute: executeProposal,
+      },
+    });
+    mocks.prisma.agentToolRun.findMany.mockResolvedValue([{
+      id: 'internal-tool-run',
+      agentSessionId: 'agent-1',
+      toolName: 'propose_smart_lesson_task_change',
+      status: 'succeeded',
+      approvalState: 'not_required',
+      inputSummary: {
+        publicActionId: 'public-action-1',
+        operation: 'revise',
+        taskId: 'server-task',
+        changedFields: ['topic'],
+        proposedTask: { topic: '根轨迹' },
+      },
+      outputSummary: { status: 'awaiting_teacher_confirmation' },
+      errorSummary: null,
+      idempotencyKey: 'private-idempotency',
+      correlationId: 'private-correlation',
+      startedAt: new Date('2026-07-26T00:00:01.000Z'),
+      completedAt: new Date('2026-07-26T00:00:01.010Z'),
+    }]);
+    mocks.streamText.mockResolvedValue({
+      toUIMessageStream: (options: {
+        onFinish?: (event: Record<string, unknown>) => Promise<void> | void;
+      }) => new ReadableStream({
+        async start(controller) {
+          controller.enqueue({ type: 'start', messageId: 'assistant-tool-only' });
+          controller.enqueue({
+            type: 'tool-input-start',
+            toolCallId: 'provider-call-1',
+            toolName: 'propose_smart_lesson_task_change',
+          });
+          controller.enqueue({
+            type: 'tool-input-delta',
+            toolCallId: 'provider-call-1',
+            inputTextDelta: '{"operation":"revise","taskId":"server-task","expectedRevision":7,',
+          });
+          controller.enqueue({
+            type: 'tool-input-delta',
+            toolCallId: 'provider-call-1',
+            inputTextDelta: '"proposedTask":{"topic":"根轨迹"}}',
+          });
+          controller.enqueue({ type: 'finish-step' });
+          controller.enqueue({ type: 'text-start', id: 'text-failure' });
+          controller.enqueue({
+            type: 'text-delta',
+            id: 'text-failure',
+            delta: '结构化操作未能安全完成，请重新生成建议。',
+          });
+          controller.enqueue({ type: 'text-end', id: 'text-failure' });
+          await options.onFinish?.({
+            responseMessage: {
+              id: 'assistant-tool-only',
+              role: 'assistant',
+              parts: [],
+            },
+            isAborted: false,
+          });
+          controller.enqueue({ type: 'finish' });
+          controller.close();
+        },
+      }),
+    });
+
+    const response = await chatPOST(new Request('http://localhost/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversationId: 'session-1',
+        messages: [{ id: 'user-tool-only', role: 'user', content: '把主题改为根轨迹' }],
+        courseId: 'course-1',
+        pageId: '/teacher/smart-prep',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    await vi.waitFor(() => {
+      expect(mocks.emittedChunks.some((chunk) =>
+        chunk.type === 'data-konling-message-revision'
+        && chunk.data?.metadata?.konlingSmartPreparationActions?.[0]?.actionId === 'public-action-1'
+      )).toBe(true);
+    });
+    expect(executeProposal).toHaveBeenCalledTimes(1);
+    const revision = mocks.emittedChunks.find((chunk) =>
+      chunk.type === 'data-konling-message-revision'
+      && chunk.data?.metadata?.konlingSmartPreparationActions?.[0]?.actionId === 'public-action-1');
+    const encodedRevision = JSON.stringify(revision);
+    expect(encodedRevision).toContain('public-action-1');
+    expect(encodedRevision).toContain('根轨迹');
+    expect(encodedRevision).not.toContain('internal-tool-run');
+    expect(encodedRevision).not.toContain('private-idempotency');
+    expect(encodedRevision).not.toContain('private-correlation');
+    const persistedMessages = mocks.prisma.konlingSession.updateMany.mock.calls
+      .filter((call) => Array.isArray(call[0].data.messages))
+      .at(-1)?.[0].data.messages;
+    expect(persistedMessages?.some((message: { id?: string; role: string }) =>
+      message.id === 'assistant-tool-only' && message.role === 'assistant'
+    )).toBe(true);
   });
 
   it('session message route applies the same server binding to create and resume', async () => {

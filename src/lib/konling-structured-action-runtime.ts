@@ -332,8 +332,8 @@ export function createKonlingStructuredActionStream(input: {
             && !input.state.executedToolResults.some((item) =>
               item.errorText
               && fallbackCalls.some((fallback) => fallback.id === item.toolCallId));
-          const normalizedVisibleText = fallbackSucceeded && normalized.text === KONLING_STRUCTURED_FAILURE_TEXT
-            ? ''
+          const normalizedVisibleText = fallbackSucceeded
+            ? normalizeVisibleText(normalized.text.replaceAll(KONLING_STRUCTURED_FAILURE_TEXT, ''))
             : normalized.text;
           const visibleText = input.state.executedToolResults.some((item) => item.errorText)
             ? KONLING_STRUCTURED_FAILURE_TEXT

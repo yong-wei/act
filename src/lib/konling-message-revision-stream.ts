@@ -25,6 +25,7 @@ export type KonlingOptimizationStatus = {
 export function createKonlingMessageRevisionStream(input: {
   stream: ReadableStream<any>;
   hasPendingOptimization?: () => boolean;
+  shouldFinalizeEmpty?: () => boolean | Promise<boolean>;
   finalize: (input: {
     messageId: string;
     body: string;
@@ -64,7 +65,8 @@ export function createKonlingMessageRevisionStream(input: {
         optimizationStatusSent = true;
         controller.enqueue(statusChunk(true));
       }
-      if (chunk?.type !== 'finish' || !messageId || !body.trim()) return;
+      if (chunk?.type !== 'finish' || !messageId) return;
+      if (!body.trim() && !await input.shouldFinalizeEmpty?.()) return;
       const finalized = await input.finalize({ messageId, body });
       const revision = {
         ...finalized,
