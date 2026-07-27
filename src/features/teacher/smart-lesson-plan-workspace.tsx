@@ -553,8 +553,8 @@ export function SmartLessonPlanWorkspace({
     if (response.ok) await refreshTask(task.id);
   }
 
-  return <section className="space-y-6 rounded-xl border border-border p-5" data-smart-lesson-plan-workspace>
-    <header className="flex items-start gap-3"><Bot className="mt-1 h-5 w-5 text-primary" /><div><h2 className="text-xl font-semibold">智能教案共创</h2><p className="text-sm text-subtle">确认单课范围与目标后，生成可恢复的 BOPPPS 文本教案；AI 审核仅提供建议。</p></div></header>
+  return <section className="min-w-0 max-w-full space-y-6 rounded-xl border border-border p-5" data-smart-lesson-plan-workspace>
+    <header className="flex min-w-0 items-start gap-3"><Bot className="mt-1 h-5 w-5 shrink-0 text-primary" /><div className="min-w-0"><h2 className="text-xl font-semibold">智能教案共创</h2><p className="text-sm text-subtle">确认单课范围与目标后，生成可恢复的 BOPPPS 文本教案；AI 审核仅提供建议。</p></div></header>
     {message ? <p role="status" className="rounded-lg bg-muted/40 px-4 py-3 text-sm">{message}</p> : null}
     <button type="button" onClick={() => setTaskIndexOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm lg:hidden"><Menu className="h-4 w-4" />选择备课任务</button>
     <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
@@ -589,33 +589,33 @@ export function SmartLessonPlanWorkspace({
       </div>
       {bootstrapSuggestions.length ? <div className="space-y-2">{bootstrapSuggestions.map((suggestion) => <div key={suggestion.id} className="rounded bg-muted/50 p-3 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <SuggestionSummary value={suggestion.proposedTask} />}{suggestion.proposedTask && !suggestion.confirmedTaskId ? <button type="button" onClick={() => void confirmBootstrapSuggestion(suggestion)} className="mt-2 rounded border border-primary px-2 py-1 text-primary">确认并创建任务</button> : null}</div>)}</div> : null}
     </div>
-    <form id="smart-preparation-new-task" action={createTask} className="grid scroll-mt-24 gap-3 md:grid-cols-2">
-      <label className="grid gap-1 text-sm md:col-span-2">
+    <form id="smart-preparation-new-task" action={createTask} className="grid min-w-0 max-w-full scroll-mt-24 gap-3 md:grid-cols-2">
+      <label className="grid min-w-0 max-w-full gap-1 text-sm md:col-span-2">
         <span className="font-medium">备课资源包</span>
         <span className="text-xs text-muted-foreground">用于支持当前备课的可编辑或已冻结课程依据；创建任务时默认选中同一课程依据中的全部可用版本。</span>
-        <select value={selected?.versionId ?? ''} onChange={(event) => setSelectedSource(event.target.value)} className="rounded-lg border border-border bg-background px-3 py-2">
+        <select value={selected?.versionId ?? ''} onChange={(event) => setSelectedSource(event.target.value)} className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2">
           {sourceOptions.length ? sourceOptions.map((option) => <option key={option.versionId} value={option.versionId}>{option.label} · {availableCourseBases.flatMap((basis: any) => basis.documents).flatMap((document: any) => document.versions).find((version: any) => version.id === option.versionId)?.reviewState === 'CONFIRMED' ? '已冻结' : '可编辑'}</option>) : <option value="">暂无可用来源版本</option>}
         </select>
         {unavailableSourceLabels.length ? <ul className="space-y-0.5 text-xs text-muted-foreground">{unavailableSourceLabels.map((label) => <li key={label}>{label}</li>)}</ul> : null}
       </label>
-      <input name="topic" required value={newTaskTopic} onChange={(event) => setNewTaskTopic(event.target.value)} placeholder="单课主题" className="rounded-lg border border-border bg-background px-3 py-2" />
-      <input name="audience" required placeholder="授课对象" className="rounded-lg border border-border bg-background px-3 py-2" />
-      <input name="knowledgePoint" required placeholder="确认知识点" className="rounded-lg border border-border bg-background px-3 py-2" />
-      <input name="goal" required placeholder="确认教学目标" className="rounded-lg border border-border bg-background px-3 py-2" />
-      <input name="prerequisites" placeholder="先修要求（可选）" className="rounded-lg border border-border bg-background px-3 py-2" />
-      <label className="grid gap-1 text-sm md:col-span-2">
+      <input name="topic" required value={newTaskTopic} onChange={(event) => setNewTaskTopic(event.target.value)} placeholder="单课主题" className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2" />
+      <input name="audience" required placeholder="授课对象" className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2" />
+      <input name="knowledgePoint" required placeholder="确认知识点" className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2" />
+      <input name="goal" required placeholder="确认教学目标" className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2" />
+      <input name="prerequisites" placeholder="先修要求（可选）" className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2" />
+      <label className="grid min-w-0 max-w-full gap-1 text-sm md:col-span-2">
         <span className="font-medium">平台教材建议范围</span>
         <span className="text-xs text-muted-foreground">建议按课程与主题排序；只有勾选确认后，所选全书、章或节范围才会进入备课资源包。</span>
-        <select value={recommendedTextbookRange?.key ?? ''} onChange={(event) => setSelectedTextbookRange(event.target.value)} className="rounded-lg border border-border bg-background px-3 py-2">
+        <select value={recommendedTextbookRange?.key ?? ''} onChange={(event) => setSelectedTextbookRange(event.target.value)} className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2">
           {textbookRangeOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
         </select>
         <span className="flex items-center gap-2"><input name="confirmTextbookRange" type="checkbox" />确认采用此教材范围</span>
       </label>
-      <select name="selectedClassId" defaultValue={classDiagnosisOptions.find((option) => option.isDefault)?.classId ?? ''} className="rounded-lg border border-border bg-background px-3 py-2">
+      <select name="selectedClassId" defaultValue={classDiagnosisOptions.find((option) => option.isDefault)?.classId ?? ''} className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2">
         <option value="">不使用班级学情</option>
         {classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}
       </select>
-      <select name="durationMinutes" defaultValue="45" className="rounded-lg border border-border bg-background px-3 py-2"><option value="45">45 分钟</option><option value="90">90 分钟</option>{Array.from({ length: 19 }, (_, index) => 30 + index * 5).filter((value) => value !== 45 && value !== 90).map((value) => <option key={value} value={value}>{value} 分钟</option>)}</select>
+      <select name="durationMinutes" defaultValue="45" className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2"><option value="45">45 分钟</option><option value="90">90 分钟</option>{Array.from({ length: 19 }, (_, index) => 30 + index * 5).filter((value) => value !== 45 && value !== 90).map((value) => <option key={value} value={value}>{value} 分钟</option>)}</select>
       <label className="flex items-center gap-2 text-sm"><input name="outlineConfirmationRequired" type="checkbox" />生成提纲后暂停确认</label>
       <button disabled={busy || !selected} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"><Plus className="h-4 w-4" />{busy ? '创建中…' : '确认并创建单课任务'}</button>
     </form>
@@ -671,7 +671,7 @@ export function SmartLessonPlanWorkspace({
             </div>
             {suggestions[task.id]?.length ? <div className="space-y-2 rounded bg-muted/50 p-3"><h4 className="text-sm font-medium">待确认的孔灵建议</h4>{suggestions[task.id].map((suggestion) => <div key={suggestion.id} className="rounded border border-border bg-background p-2 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <SuggestionSummary value={suggestion.proposedTask} />}{suggestion.proposedTask ? <button onClick={() => void confirmKonlingSuggestion(task, suggestion)} disabled={suggestion.expectedRevision !== task.revision} className="mt-2 rounded border border-primary px-2 py-1 text-primary disabled:opacity-50">确认并应用</button> : null}</div>)}</div> : null}
           </div>)}
-          {stageDetails('class-attainment', <div className="space-y-2"><label className="grid max-w-md gap-1 text-sm">班级学情（当前累计画像）<select value={task.selectedClassId ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}</select></label>{task.classContextStaleAt ? <p className="text-amber-700">班级选择已改变，已有生成内容已保留；请从提纲确认后重生成。</p> : null}</div>)}
+          {stageDetails('class-attainment', <div className="min-w-0 space-y-2"><label className="grid min-w-0 max-w-md gap-1 text-sm">班级学情（当前累计画像）<select value={task.selectedClassId ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="w-full min-w-0 max-w-full rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}</select></label>{task.classContextStaleAt ? <p className="text-amber-700">班级选择已改变，已有生成内容已保留；请从提纲确认后重生成。</p> : null}</div>)}
           {stageDetails('lesson-generation', <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               <button onClick={() => void refreshTask(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">刷新进度</button>

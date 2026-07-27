@@ -10,6 +10,8 @@ const courseBasisId = 'smart-lesson-playwright-basis';
 const documentId = 'smart-lesson-playwright-document';
 const versionId = 'smart-lesson-playwright-version';
 const segmentId = 'smart-lesson-playwright-segment';
+const longCourseBasisTitle = 'Modern Control Systems: Robust Stability under Parametric Uncertainty';
+const longDocumentTitle = 'Routh-Hurwitz criterion for P(s)=s^6+12s^5+Ω_n^2s^4+2ζω_ns^3+K_p';
 
 const outline = {
   keyContent: ['闭环特征方程与稳定性判据'],
@@ -58,8 +60,18 @@ test.beforeAll(async () => {
     update: { role: 'TEACHER', name: '智能教案验收教师' },
     create: { id: teacherId, email: 'smart-lesson-playwright@example.com', name: '智能教案验收教师', role: 'TEACHER' },
   });
-  await prisma.courseBasis.create({ data: { id: courseBasisId, ownerId: teacherId, courseIdentity: 'AUTO-CONTROL', title: '自动控制原理' } });
-  await prisma.courseBasisDocument.create({ data: { id: documentId, courseBasisId, title: '课程标准', kind: 'STANDARD' } });
+  await prisma.courseBasis.create({ data: {
+    id: courseBasisId,
+    ownerId: teacherId,
+    courseIdentity: 'AUTO-CONTROL',
+    title: longCourseBasisTitle,
+  } });
+  await prisma.courseBasisDocument.create({ data: {
+    id: documentId,
+    courseBasisId,
+    title: longDocumentTitle,
+    kind: 'STANDARD',
+  } });
   await prisma.courseBasisDocumentVersion.create({ data: {
     id: versionId,
     documentId,
@@ -104,6 +116,29 @@ async function addTeacherSession(context: BrowserContext) {
     token: { id: teacherId, email: 'smart-lesson-playwright@example.com', name: '智能教案验收教师', role: 'TEACHER' },
   });
   await context.addCookies([{ name: 'next-auth.session-token', value: token, domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax', secure: false, expires: Math.floor(Date.now() / 1000) + 3600 }]);
+}
+
+async function horizontalOverflowState(page: Page) {
+  return page.evaluate(() => {
+    const root = document.documentElement;
+    const viewportWidth = root.clientWidth;
+    const offenders = Array.from(document.querySelectorAll<HTMLElement>('body *'))
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          element: element.tagName.toLowerCase(),
+          id: element.id,
+          className: typeof element.className === 'string' ? element.className : '',
+          text: element.textContent?.trim().replace(/\s+/g, ' ').slice(0, 160) ?? '',
+          left: Math.round(rect.left * 100) / 100,
+          right: Math.round(rect.right * 100) / 100,
+          width: Math.round(rect.width * 100) / 100,
+        };
+      })
+      .filter(({ left, right }) => left < -1 || right > viewportWidth + 1)
+      .slice(0, 20);
+    return { clientWidth: viewportWidth, scrollWidth: root.scrollWidth, offenders };
+  });
 }
 
 type FixtureJob = { id: string; state: string; firstIncompleteStage?: string; stages: Array<Record<string, unknown>> };
@@ -219,11 +254,11 @@ test('teacher completes the visible smart lesson authoring flow through version 
   await workspace.getByPlaceholder('确认知识点').fill('稳定性判据');
   await workspace.getByPlaceholder('确认教学目标').fill('判断闭环系统稳定性');
   await workspace.getByPlaceholder('先修要求（可选）').fill('传递函数');
-  await workspace.getByRole('combobox').nth(2).selectOption('30');
+  await workspace.locator('select[name="durationMinutes"]').selectOption('30');
   await workspace.getByLabel('生成提纲后暂停确认').check();
   await workspace.getByRole('button', { name: '确认并创建单课任务' }).click();
 
-  await expect(workspace.getByText('教师创建，来源待补')).toHaveCount(2);
+  await expect(workspace.getByText('需要确认来源')).toHaveCount(2);
   for (const stage of ['课程依据', '主题与目标', '班级学情', '生成与审核教案', '生成课件']) {
     await expect(workspace.getByText(stage, { exact: true })).toBeVisible();
   }
@@ -237,16 +272,18 @@ test('teacher completes the visible smart lesson authoring flow through version 
   await page.getByRole('button', { name: '备课任务' }).click();
   await expect(workspace.getByPlaceholder('搜索任务主题')).toHaveValue('闭环');
   await expect(workspace.getByRole('heading', { name: '闭环稳定性', level: 3 })).toBeVisible();
+  await workspace.getByText('生成与审核教案', { exact: true }).click();
   await workspace.getByRole('button', { name: '开始生成' }).click();
-  await expect(workspace.getByText('教学提纲：已完成')).toBeVisible();
+  await expect(workspace.getByText('提纲：已完成')).toBeVisible();
   await expect(workspace.getByText('提纲已持久化。可先编辑，或明确确认当前提纲后继续生成。')).toBeVisible();
   await workspace.getByRole('button', { name: '确认当前提纲并继续' }).click();
   await expect(workspace.getByText('总结：已完成')).toBeVisible();
   await expect(workspace.getByRole('button', { name: '开始生成' })).toBeEnabled();
 
-  await workspace.getByText('查看完整教案').click();
+  const fullPlan = workspace.getByText('查看完整教案', { exact: true }).locator('..');
+  await fullPlan.getByText('查看完整教案', { exact: true }).click();
   await expect(workspace.getByRole('heading', { name: '闭环稳定性', level: 4 })).toBeVisible();
-  await expect(workspace.getByRole('heading', { name: '总结' })).toBeVisible();
+  await expect(fullPlan.getByRole('heading', { name: '总结' })).toBeVisible();
   await workspace.getByRole('button', { name: 'AI 建议' }).click();
   await expect(workspace.getByRole('heading', { name: 'AI 审核报告（仅建议）' })).toBeVisible();
   await expect(workspace.getByText('目标覆盖完整')).toBeVisible();
@@ -272,12 +309,21 @@ test('teacher completes the visible smart lesson authoring flow through version 
 test('narrow workspace uses a task drawer without horizontal page overflow', async ({ page, context }) => {
   await addTeacherSession(context);
   await installSmartLessonRoutes(page);
-  await page.setViewportSize({ width: 320, height: 844 });
-  await page.goto('/teacher/smart-prep');
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/teacher/smart-prep');
 
-  const workspace = page.locator('[data-smart-lesson-plan-workspace]');
-  await expect(workspace.getByRole('button', { name: '选择备课任务' })).toBeVisible();
-  await workspace.getByRole('button', { name: '选择备课任务' }).click();
-  await expect(workspace.getByRole('complementary', { name: '备课任务列表' })).toBeVisible();
-  await expect.poll(async () => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    const workspace = page.locator('[data-smart-lesson-plan-workspace]');
+    await expect(workspace.getByRole('button', { name: '选择备课任务' })).toBeVisible();
+    await expect(workspace.locator('select').first().locator('option').first()).toContainText(`${longCourseBasisTitle} · ${longDocumentTitle}`);
+    const longestTextbookOption = await workspace.locator('select').nth(1).locator('option').evaluateAll((options) => (
+      options.map((option) => option.textContent?.trim() ?? '').sort((left, right) => right.length - left.length)[0] ?? ''
+    ));
+    expect(longestTextbookOption).toMatch(/[A-Za-z].{60,}/);
+    await workspace.getByRole('button', { name: '选择备课任务' }).click();
+    await expect(workspace.getByRole('complementary', { name: '备课任务列表' })).toBeVisible();
+    await expect.poll(() => horizontalOverflowState(page), {
+      message: `viewport ${width}px should not have horizontal page overflow`,
+    }).toMatchObject({ clientWidth: width, scrollWidth: width });
+  }
 });
