@@ -4,6 +4,7 @@ import { buildRubricBackedSubjectiveAssignmentFixture } from '../assignments/ass
 import {
   AssignmentDomainError,
   analyticRubricSchema,
+  assignmentDraftPersistenceSchema,
   assignmentDraftSchema,
   assertMutationRequest,
   canStudentReadCurrentDelivery,
@@ -22,6 +23,44 @@ describe('assignment authoring domain', () => {
     const fixture = buildRubricBackedSubjectiveAssignmentFixture();
     expect(validatePublicationScores(fixture)).toEqual([]);
     expect(JSON.stringify(fixture)).not.toMatch(/studentId|studentName|submissionContent|email|学号/);
+  });
+
+  it('persists bounded incomplete authoring fields without weakening publication validation', () => {
+    const fixture = buildRubricBackedSubjectiveAssignmentFixture();
+    const question = fixture.questions[0];
+    const incomplete = {
+      ...fixture,
+      title: '',
+      totalPoints: 0,
+      questions: [{
+        ...question,
+        points: 0,
+        prompt: '',
+        referenceAnswer: '',
+        rubric: {
+          schemaVersion: 'assignment-scoring-rubric.v2' as const,
+          criteria: [{
+            id: 'criterion:stable',
+            label: '',
+            maxPoints: 0,
+            scoringStandard: '',
+            detailedRubricEnabled: true,
+            levels: [{
+              id: 'level:stable',
+              label: '',
+              maxPoints: 0,
+              guideline: '',
+            }],
+          }],
+        },
+      }],
+    };
+    expect(assignmentDraftPersistenceSchema.safeParse(incomplete).success).toBe(true);
+    expect(assignmentDraftSchema.safeParse(incomplete).success).toBe(false);
+    expect(assignmentDraftPersistenceSchema.safeParse({
+      ...incomplete,
+      questions: [{ ...incomplete.questions[0], stableQuestionId: '' }],
+    }).success).toBe(false);
   });
 
   it('creates immutable manual and governed catalog snapshots with stable hashes', () => {

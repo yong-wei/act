@@ -693,6 +693,88 @@ test('autosave completion preserves the active input focus', async ({ page, cont
   await expect(title).toHaveValue('持续输入');
 });
 
+test('semantic publication blockers resolve colon ids to exact authoring fields', async ({ page, context }) => {
+  await addTeacherSession(context);
+  const revision = {
+    id: 'semantic-revision',
+    state: 'DRAFT',
+    version: 1,
+    contentHash: savedDigest,
+    title: '语义阻断定位',
+    instructions: '',
+    totalPoints: 10,
+    latePolicy: { version: 1, mode: 'CLOSED' },
+    responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
+    resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
+    solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
+    questions: [{
+      stableQuestionId: 'question:with:colon',
+      orderIndex: 0,
+      responseType: 'SUBJECTIVE_TEXT',
+      points: 10,
+      promptSnapshot: { text: '完整题面' },
+      answerSnapshot: { text: '完整参考答案' },
+      rubricSnapshot: {
+        schemaVersion: 'assignment-scoring-rubric.v2',
+        criteria: [
+          {
+            id: 'standard:criterion',
+            label: '标准评分项',
+            maxPoints: 5,
+            scoringStandard: '',
+            detailedRubricEnabled: false,
+            levels: [],
+          },
+          {
+            id: 'detail:criterion',
+            label: '详细评分项',
+            maxPoints: 4,
+            scoringStandard: '按级别评分',
+            detailedRubricEnabled: true,
+            levels: [{
+              id: 'level:one',
+              label: '达成',
+              maxPoints: 4,
+              guideline: '',
+            }],
+          },
+        ],
+      },
+      sourceFamily: 'MANUAL',
+      sourceHash: `sha256:${'a'.repeat(64)}`,
+      sourceReviewState: 'author-owned',
+      sourceLineage: { marker: 'assignment-authoring' },
+    }],
+  };
+  await page.route('**/api/teacher/assignments/semantic-assignment**', (route) => {
+    if (route.request().url().endsWith('/next-draft')) {
+      return route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ revision }),
+      });
+    }
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ assignment: { id: 'semantic-assignment', revisions: [revision] } }),
+    });
+  });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/semantic-assignment/edit');
+  const settings = page.locator('details[aria-label="发布设置"]');
+  await settings.locator('summary').click();
+
+  await page.getByRole('button', { name: '补全评分标准' }).click();
+  await expect(page.getByLabel('评分项 1 评分标准')).toBeFocused();
+
+  await page.getByRole('button', { name: '补全评价级别评分准则' }).click();
+  await expect(page.getByLabel('评分项 2 级别 1 评分准则')).toBeFocused();
+
+  await page.getByRole('button', {
+    name: '题目分值与评分标准合计不一致',
+  }).click();
+  await expect(page.getByLabel('题目分值')).toBeFocused();
+});
+
 test('catalog selection abort keeps the picker open and retry succeeds', async ({ page, context }) => {
   await addTeacherSession(context);
   let selectionAttempts = 0;

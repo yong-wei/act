@@ -156,6 +156,61 @@ describe('teacher assignment mutation route', () => {
     }));
   });
 
+  it('accepts bounded incomplete authoring content at create and update routes', async () => {
+    const incomplete = {
+      ...draft(),
+      title: '',
+      totalPoints: 0,
+      questions: [{
+        ...draft().questions[0],
+        points: 0,
+        prompt: '',
+        referenceAnswer: '',
+        rubric: {
+          schemaVersion: 'assignment-scoring-rubric.v2',
+          criteria: [{
+            id: 'criterion:stable',
+            label: '',
+            maxPoints: 0,
+            scoringStandard: '',
+            detailedRubricEnabled: true,
+            levels: [{
+              id: 'level:stable',
+              label: '',
+              maxPoints: 0,
+              guideline: '',
+            }],
+          }],
+        },
+      }],
+    };
+    expect((await POST(post({ draft: incomplete })) as Response).status).toBe(201);
+    const patch = new Request(
+      'https://act.example/api/teacher/assignments/assignment-1',
+      {
+        method: 'PATCH',
+        headers: { origin: 'https://act.example' },
+        body: JSON.stringify({
+          revisionId: 'revision-1',
+          expectedVersion: 1,
+          draft: incomplete,
+        }),
+      },
+    );
+    expect((await PATCH_ASSIGNMENT(
+      patch,
+      { params: Promise.resolve({ assignmentId: 'assignment-1' }) },
+    ) as Response).status).toBe(200);
+    expect(createAssignmentDraft).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ draft: expect.objectContaining({ title: '' }) }),
+    );
+    expect(updateAssignmentDraft).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ draft: expect.objectContaining({ totalPoints: 0 }) }),
+    );
+  });
+
   it('enforces the actual UTF-8 body bound without trusting Content-Length', async () => {
     const request = new Request('https://act.example/api/teacher/assignments', {
       method: 'POST', headers: { 'content-type': 'application/json', origin: 'https://act.example' },

@@ -101,7 +101,7 @@ export function AssignmentEmbeddedEditor({
             mode="assignment-embedded"
             value={value}
             onChange={acceptChange}
-            readOnly={saveState === 'saving'}
+            readOnly={readOnly || (!continuousEditing && saveState === 'saving')}
             ariaLabel={ariaLabel}
             uploadImage={uploadImage}
             onUploadPendingChange={setUploadPending}

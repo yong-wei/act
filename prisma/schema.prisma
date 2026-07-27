@@ -242,6 +242,16 @@ enum AssignmentQuestionSourceFamily {
   ASSIGNMENT_DERIVATIVE
 }
 
+enum AssignmentContentAssetState {
+  PENDING
+  AVAILABLE
+}
+
+enum AssignmentContentAssetField {
+  PROMPT
+  REFERENCE_ANSWER
+}
+
 enum AssignmentSolutionReleaseMode {
   PRIVATE
   AT_TIME
@@ -561,6 +571,7 @@ model User {
   simulationRuns                       SimulationRun[]
   arenaChallengePublications           ArenaChallengePublication[]               @relation("ArenaChallengePublications")
   authoredAssignments                  Assignment[]                              @relation("AssignmentAuthor")
+  assignmentContentAssets              AssignmentContentAsset[]                  @relation("AssignmentContentAssetUploader")
   assignmentReviewGrants               AssignmentReviewGrant[]                   @relation("AssignmentReviewGrantee")
   issuedAssignmentReviewGrants         AssignmentReviewGrant[]                   @relation("AssignmentReviewGrantIssuer")
   assignmentHistoricalOwnerships       AssignmentHistoricalOwnership[]
@@ -1452,6 +1463,7 @@ model Assignment {
   approvalSnapshots     TeacherAssignmentApprovalSnapshot[]
   resubmissionGrants    TeacherAssignmentResubmissionGrant[]
   questionExemptions    TeacherAssignmentQuestionExemption[]
+  contentAssets         AssignmentContentAsset[]
 
   @@index([authorId, state, updatedAt])
   @@index([courseContext])
@@ -1489,10 +1501,46 @@ model AssignmentRevision {
   approvalSnapshots     TeacherAssignmentApprovalSnapshot[]
   resubmissionGrants    TeacherAssignmentResubmissionGrant[]
   questionExemptions    TeacherAssignmentQuestionExemption[]
+  assetReferences       AssignmentRevisionAssetReference[]
 
   @@unique([assignmentId, revisionNumber])
   @@index([assignmentId, state, updatedAt])
   @@index([publishedAt])
+}
+
+model AssignmentContentAsset {
+  id           String   @id @default(cuid())
+  assignmentId String
+  uploaderId   String
+  objectKey    String   @unique
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  checksum     String
+  state        AssignmentContentAssetState @default(PENDING)
+  createdAt    DateTime @default(now())
+  availableAt  DateTime?
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  uploader   User       @relation("AssignmentContentAssetUploader", fields: [uploaderId], references: [id], onDelete: Restrict)
+  references AssignmentRevisionAssetReference[]
+
+  @@index([assignmentId, uploaderId, state])
+}
+
+model AssignmentRevisionAssetReference {
+  id               String   @id @default(cuid())
+  revisionId       String
+  assetId          String
+  stableQuestionId String
+  field            AssignmentContentAssetField
+  createdAt        DateTime @default(now())
+
+  revision AssignmentRevision   @relation(fields: [revisionId], references: [id], onDelete: Restrict)
+  asset    AssignmentContentAsset @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@unique([revisionId, stableQuestionId, field, assetId])
+  @@index([assetId, revisionId])
 }
 
 model AssignmentAudience {

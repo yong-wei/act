@@ -46,6 +46,10 @@ import {
   AssignmentEmbeddedEditor,
   type AssignmentEmbeddedSaveState,
 } from '@/features/teacher/preparation-document-editor/assignment-embedded-editor';
+import type {
+  ProtectedEditorAssetReference,
+  ProtectedEditorImageUpload,
+} from '@/features/teacher/preparation-document-editor/rich-markdown-editor';
 
 type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error' | 'conflict';
 type SaveResult = {
@@ -263,6 +267,54 @@ export function AssignmentEditorWorkspace({
     return operation;
   }, [published]);
 
+  const uploadContentImage = useCallback<ProtectedEditorImageUpload>(
+    async (file) => {
+      const assignmentId = documentRef.current.assignmentId;
+      if (!assignmentId) {
+        throw new Error('请先等待草稿完成首次保存，再插入图片。');
+      }
+      if (!['image/png', 'image/jpeg'].includes(file.type)) {
+        throw new Error('仅支持 PNG 或 JPEG 图片。');
+      }
+      const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+      const checksum = `sha256:${Array.from(new Uint8Array(digest))
+        .map((byte) => byte.toString(16).padStart(2, '0'))
+        .join('')}`;
+      const signedResponse = await fetch(
+        `/api/teacher/assignments/${assignmentId}/content-assets/upload-sign`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+            checksum,
+          }),
+        },
+      );
+      if (!signedResponse.ok) throw new Error('图片上传授权失败。');
+      const signed = await signedResponse.json() as {
+        assetId: string;
+        upload: { url: string; requiredHeaders: Record<string, string> };
+      };
+      const uploadResponse = await fetch(signed.upload.url, {
+        method: 'PUT',
+        headers: signed.upload.requiredHeaders,
+        body: file,
+      });
+      if (!uploadResponse.ok) throw new Error('图片上传失败。');
+      const completeResponse = await fetch(
+        `/api/teacher/assignments/${assignmentId}/content-assets/${signed.assetId}/complete`,
+        { method: 'POST' },
+      );
+      if (!completeResponse.ok) throw new Error('图片完整性校验失败。');
+      const completed = await completeResponse.json() as ProtectedEditorAssetReference;
+      return { ...completed, altText: file.name };
+    },
+    [],
+  );
+
   useEffect(() => {
     if (published || saveState !== 'dirty') return;
     debounceRef.current = window.setTimeout(() => {
@@ -309,7 +361,8 @@ export function AssignmentEditorWorkspace({
     return Boolean(target);
   }, []);
   const focusBlocker = (blocker: string) => {
-    const path = validationPath(blocker);
+    const path = validationPath(blocker)
+      ?? semanticBlockerPath(blocker, documentRef.current.draft);
     const questionIndex = path?.match(/^questions\.(\d+)\./)?.[1];
     const resolvedQuestionIndex =
       questionIndex === undefined ? undefined : Number(questionIndex);
@@ -977,6 +1030,8 @@ export function AssignmentEditorWorkspace({
                 promptRef={promptRef}
                 saveState={saveState}
                 readOnly={published}
+                assignmentId={document.assignmentId}
+                uploadImage={uploadContentImage}
                 onSave={() => void save()}
                 onGenerateGuidelines={generateRubricGuidelines}
                 onChange={(next) =>
@@ -1356,7 +1411,7 @@ export function AssignmentEditorWorkspace({
                         onClick={() => focusBlocker(entry)}
                         className="text-left underline"
                       >
-                        {blockerLabel(entry)}
+                        {blockerLabel(entry, document.draft)}
                       </button>
                     </li>
                   ))}
@@ -1432,6 +1487,8 @@ function QuestionEditor({
   promptRef,
   saveState,
   readOnly,
+  assignmentId,
+  uploadImage,
   onSave,
   onGenerateGuidelines,
   onChange,
@@ -1446,6 +1503,8 @@ function QuestionEditor({
   promptRef: React.RefObject<HTMLElement | null>;
   saveState: SaveState;
   readOnly: boolean;
+  assignmentId?: string;
+  uploadImage: ProtectedEditorImageUpload;
   onSave: () => void;
   onGenerateGuidelines: (input: {
     question: EditableQuestionV2;
@@ -1645,8 +1704,12 @@ function QuestionEditor({
           }
           onEdit={() => undefined}
           onSave={onSave}
-          validateAssetReference={rejectTeacherAuthoringAssetReference}
+          uploadImage={uploadImage}
+          validateAssetReference={(asset) =>
+            validateTeacherAuthoringAssetReference(asset, assignmentId)
+          }
           resolveAssetHref={(href) => href}
+          canonicalizeAssetHref={(href) => href}
         />
       </section>
       <section aria-labelledby="answer-title">
@@ -1668,8 +1731,12 @@ function QuestionEditor({
           }
           onEdit={() => undefined}
           onSave={onSave}
-          validateAssetReference={rejectTeacherAuthoringAssetReference}
+          uploadImage={uploadImage}
+          validateAssetReference={(asset) =>
+            validateTeacherAuthoringAssetReference(asset, assignmentId)
+          }
           resolveAssetHref={(href) => href}
+          canonicalizeAssetHref={(href) => href}
         />
       </section>
       <section aria-labelledby="rubric-title">
@@ -1711,7 +1778,13 @@ function QuestionEditor({
         <label className="mt-2 block text-xs text-slate-400">
           题目分值
           <input
+            ref={
+              registerValidationField(
+                `questions.${questionIndex}.points`,
+              ) as React.Ref<HTMLInputElement>
+            }
             type="number"
+            aria-describedby="assignment-validation-errors"
             step="0.1"
             min="1"
             max="10000"
@@ -1947,10 +2020,15 @@ function QuestionEditor({
               评分标准
               <textarea
                 ref={(element) => {
+                  registerValidationField(
+                    `questions.${questionIndex}.rubric.criteria.${index}.scoringStandard`,
+                  )(element);
                   if (element) scoringStandardRefs.current.set(index, element);
                   else scoringStandardRefs.current.delete(index);
                 }}
                 value={criterion.scoringStandard}
+                aria-label={`评分项 ${index + 1} 评分标准`}
+                aria-describedby="assignment-validation-errors"
                 onChange={(event) =>
                   updateCriterion(index, (item) => ({
                     ...item,
@@ -2117,7 +2195,13 @@ function QuestionEditor({
                 </label>
                 <div>
                   <input
+                    ref={
+                      registerValidationField(
+                        `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.guideline`,
+                      ) as React.Ref<HTMLInputElement>
+                    }
                     aria-label={`评分项 ${index + 1} 级别 ${levelIndex + 1} 评分准则`}
+                    aria-describedby="assignment-validation-errors"
                     value={level.guideline}
                     onFocus={(event) => selectPristineValue(event, 'guideline')}
                     onMouseUp={(event) => preservePristineSelection(event, 'guideline')}
@@ -2447,7 +2531,7 @@ function toLocalDateTime(value: string) {
   const offset = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
-function blockerLabel(value: string) {
+function blockerLabel(value: string, draft: AssignmentDraftInput) {
   if (value.startsWith('validation:')) {
     const path = validationPath(value) ?? '';
     const message = value.slice(value.lastIndexOf(':') + 1);
@@ -2470,16 +2554,64 @@ function blockerLabel(value: string) {
     return '作业总分与题目合计不一致';
   if (value.startsWith('question-rubric-total-mismatch'))
     return '题目分值与评分标准合计不一致';
+  if (semanticBlockerPath(value, draft)?.endsWith('.scoringStandard'))
+    return '补全评分标准';
+  if (value.startsWith('level-guideline-required:'))
+    return '补全评价级别评分准则';
+  if (value.startsWith('invalid-detailed-rubric:'))
+    return '修正评价级别分值区间';
   if (value === 'assignment-has-no-questions') return '至少添加一道题';
   return '补全班级与开放、截止时间';
+}
+
+function semanticBlockerPath(
+  blocker: string,
+  draft: AssignmentDraftInput,
+): string | null {
+  for (const [questionIndex, question] of draft.questions.entries()) {
+    const criterionTotal = question.rubric.criteria.reduce(
+      (total, criterion) => total + criterion.maxPoints,
+      0,
+    );
+    if (
+      blocker
+      === `question-rubric-total-mismatch:${question.stableQuestionId}:${question.points}:${criterionTotal}`
+    ) {
+      return `questions.${questionIndex}.points`;
+    }
+    if (question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2') continue;
+    for (const [criterionIndex, criterion] of question.rubric.criteria.entries()) {
+      const prefix = `${question.stableQuestionId}:${criterion.id}`;
+      if (blocker === `scoring-standard-required:${prefix}`) {
+        return `questions.${questionIndex}.rubric.criteria.${criterionIndex}.scoringStandard`;
+      }
+      if (blocker === `level-guideline-required:${prefix}`) {
+        const levelIndex = criterion.levels.findIndex(
+          (level) => !level.guideline.trim(),
+        );
+        return `questions.${questionIndex}.rubric.criteria.${criterionIndex}.levels.${Math.max(levelIndex, 0)}.guideline`;
+      }
+      if (blocker.startsWith(`invalid-detailed-rubric:${prefix}:`)) {
+        return `questions.${questionIndex}.rubric.criteria.${criterionIndex}.maxPoints`;
+      }
+    }
+  }
+  return null;
 }
 function validationPath(value: string): string | null {
   if (!value.startsWith('validation:')) return null;
   const withoutPrefix = value.slice('validation:'.length);
   return withoutPrefix.slice(0, withoutPrefix.indexOf(':'));
 }
-function rejectTeacherAuthoringAssetReference() {
-  return false;
+function validateTeacherAuthoringAssetReference(
+  asset: ProtectedEditorAssetReference,
+  assignmentId?: string,
+) {
+  return Boolean(
+    assignmentId
+    && asset.href
+      === `/api/assignments/${encodeURIComponent(assignmentId)}/content-assets/${encodeURIComponent(asset.assetId)}`,
+  );
 }
 function mergeSaveResponse(
   current: AssignmentEditorDocument,

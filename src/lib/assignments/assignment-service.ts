@@ -2,7 +2,9 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 
 import {
   AssignmentDomainError,
+  assignmentDraftPersistenceSchema,
   assignmentDraftSchema,
+  createDraftQuestionSnapshot,
   createQuestionSnapshot,
   stableHash,
   verifyCatalogSelectionIdentity,
@@ -10,9 +12,14 @@ import {
   validatePublicationScores,
   type AssignmentAudienceInput,
   type AssignmentDraftInput,
+  type AssignmentDraftPersistenceInput,
   type AssignmentQuestionSnapshot,
 } from './assignment-domain';
 import { migrateLegacyAssignmentDraftToRubricV2 } from './assignment-rubric-migration';
+import {
+  assertAssignmentRevisionAssetReferences,
+  replaceAssignmentRevisionAssetReferences,
+} from './assignment-content-assets';
 
 type AssignmentDb = PrismaClient;
 type Actor = { id: string; role: 'TEACHER' | 'ADMIN' };
@@ -129,9 +136,9 @@ function latestReviewRuns(submission: any) {
 export async function createAssignmentDraft(db: AssignmentDb, input: {
   actor: Actor;
   courseContext?: string;
-  draft: AssignmentDraftInput;
+  draft: AssignmentDraftPersistenceInput;
 }) {
-  const draft = assignmentDraftSchema.parse(input.draft);
+  const draft = assignmentDraftPersistenceSchema.parse(input.draft);
   return db.$transaction(async (tx) => {
     const snapshots = await createServerQuestionSnapshots(tx, draft.questions);
     const assignment = await tx.assignment.create({
@@ -153,9 +160,9 @@ export async function updateAssignmentDraft(db: AssignmentDb, input: {
   assignmentId: string;
   revisionId: string;
   expectedVersion: number;
-  draft: AssignmentDraftInput;
+  draft: AssignmentDraftPersistenceInput;
 }) {
-  const draft = assignmentDraftSchema.parse(input.draft);
+  const draft = assignmentDraftPersistenceSchema.parse(input.draft);
   return db.$transaction(async (tx) => {
     await assertAssignmentOwner(tx, input.assignmentId, input.actor);
     const snapshots = await createServerQuestionSnapshots(tx, draft.questions);
@@ -179,6 +186,11 @@ export async function updateAssignmentDraft(db: AssignmentDb, input: {
     if (updated.count !== 1) throw new AssignmentDomainError('version-conflict');
     await tx.assignmentQuestion.deleteMany({ where: { assignmentRevisionId: input.revisionId } });
     await tx.assignmentQuestion.createMany({ data: snapshots.map((question, index) => questionCreateManyData(input.revisionId, question, index)) });
+    await replaceAssignmentRevisionAssetReferences(tx, {
+      assignmentId: input.assignmentId,
+      revisionId: input.revisionId,
+      questions: draft.questions,
+    });
     return tx.assignmentRevision.findUniqueOrThrow({
       where: { id: input.revisionId },
       include: { questions: { orderBy: { orderIndex: 'asc' } } },
@@ -202,6 +214,9 @@ export async function deleteDraftRevision(db: AssignmentDb, input: {
     if (revision.state !== 'DRAFT' || revision.version !== input.expectedVersion || revision.audiences.length || revision.historicalOwnerships.length) {
       throw new AssignmentDomainError('draft-delete-restricted');
     }
+    await tx.assignmentRevisionAssetReference.deleteMany({
+      where: { revisionId: input.revisionId },
+    });
     await tx.assignmentQuestion.deleteMany({ where: { assignmentRevisionId: input.revisionId } });
     await tx.assignmentRevision.delete({ where: { id: input.revisionId } });
   });
@@ -282,13 +297,26 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
         });
         const nextDraft = requireMigratedDraft(legacyDraft);
         const nextSnapshots = migratedQuestionSnapshots(nextDraft);
-        return tx.assignmentRevision.create({
+        const created = await tx.assignmentRevision.create({
       data: {
         assignmentId: input.assignmentId,
         ...revisionCreateData(nextDraft, nextSnapshots, latest.revisionNumber + 1),
       },
       include: { questions: { orderBy: { orderIndex: 'asc' } } },
         });
+        const references = await tx.assignmentRevisionAssetReference.findMany({
+          where: { revisionId: latest.id },
+          select: { assetId: true, stableQuestionId: true, field: true },
+        });
+        if (references.length) {
+          await tx.assignmentRevisionAssetReference.createMany({
+            data: references.map((reference) => ({
+              revisionId: created.id,
+              ...reference,
+            })),
+          });
+        }
+        return created;
       }, { isolationLevel: 'Serializable' });
     } catch (error) {
       if (!isRecoverableNextDraftRace(error)) throw error;
@@ -385,7 +413,7 @@ export async function publishAssignmentRevision(db: AssignmentDb, input: {
         if (!revision.contentHash || revision.contentHash !== input.contentDigest) {
           throw new AssignmentDomainError('publication-content-digest-mismatch');
         }
-        const draft = assignmentDraftSchema.parse({
+        const parsedDraft = assignmentDraftSchema.safeParse({
           title: revision.title,
           instructions: revision.instructions,
           totalPoints: Number(revision.totalPoints),
@@ -394,6 +422,20 @@ export async function publishAssignmentRevision(db: AssignmentDb, input: {
           resubmissionPolicy: revision.resubmissionPolicy,
           solutionReleasePolicy: revision.solutionReleasePolicy,
           questions: revision.questions.map(questionFromRow),
+        });
+        if (!parsedDraft.success) {
+          throw new AssignmentDomainError(
+            'publication-blocked',
+            parsedDraft.error.issues.map(
+              (issue) => `validation:${issue.path.join('.')}:${issue.message}`,
+            ),
+          );
+        }
+        const draft = parsedDraft.data;
+        await assertAssignmentRevisionAssetReferences(tx, {
+          assignmentId: input.assignmentId,
+          revisionId: input.revisionId,
+          questions: draft.questions,
         });
         const issues = [...validatePublicationScores(draft), ...validatePublicationSchedule(input.audiences, now)];
         if (draft.questions.some((question) =>
@@ -529,7 +571,7 @@ async function assertAssignmentOwner(tx: Omit<AssignmentDb, '$connect' | '$disco
 
 async function createServerQuestionSnapshots(
   tx: Omit<AssignmentDb, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>,
-  questions: readonly AssignmentDraftInput['questions'][number][],
+  questions: readonly AssignmentDraftPersistenceInput['questions'][number][],
 ): Promise<AssignmentQuestionSnapshot[]> {
   const directCatalog = questions.filter((question) => question.source.family === 'ADAPTIVE_ASSESSMENT_CATALOG');
   if (directCatalog.length) throw new AssignmentDomainError('direct-catalog-snapshot-not-accepted', directCatalog.map((question) => question.stableQuestionId));
@@ -540,7 +582,7 @@ async function createServerQuestionSnapshots(
   }) : [];
   const byId = new Map(refs.map((ref) => [ref.id, ref]));
   return questions.map((question) => {
-    if (question.source.family !== 'ASSIGNMENT_DERIVATIVE') return createQuestionSnapshot(question);
+    if (question.source.family !== 'ASSIGNMENT_DERIVATIVE') return createDraftQuestionSnapshot(question);
     const ref = byId.get(question.source.parentSourceId);
     const canonicalParentHash = ref?.contentHash.startsWith('sha256:') ? ref.contentHash : ref ? `sha256:${ref.contentHash}` : null;
     const identity = { parentSourceId: question.source.parentSourceId, parentSourceVersion: question.source.parentSourceVersion, parentSourceHash: question.source.parentSourceHash, catalogItemId: question.source.catalogItemId, originalSourceFamily: question.source.originalSourceFamily, reviewState: question.source.reviewState, eligibilityState: question.source.eligibilityState, allowedStages: [...question.source.allowedStages], limitations: [...question.source.limitations] };
@@ -553,11 +595,11 @@ async function createServerQuestionSnapshots(
       throw new AssignmentDomainError('governed-source-mismatch', [question.stableQuestionId, question.source.parentSourceId]);
     }
     const derivativeHash = stableHash({ responseType: question.responseType, points: question.points, prompt: question.prompt, referenceAnswer: question.referenceAnswer, rubric: question.rubric });
-    return createQuestionSnapshot({ ...question, source: { ...question.source, contentHash: derivativeHash } });
+    return createDraftQuestionSnapshot({ ...question, source: { ...question.source, contentHash: derivativeHash } });
   });
 }
 
-function revisionCreateData(draft: AssignmentDraftInput, snapshots: AssignmentQuestionSnapshot[], revisionNumber: number) {
+function revisionCreateData(draft: AssignmentDraftPersistenceInput, snapshots: AssignmentQuestionSnapshot[], revisionNumber: number) {
   return {
     revisionNumber,
     title: draft.title,
@@ -572,7 +614,7 @@ function revisionCreateData(draft: AssignmentDraftInput, snapshots: AssignmentQu
   };
 }
 
-function draftWithSnapshots(draft: AssignmentDraftInput, snapshots: AssignmentQuestionSnapshot[]): AssignmentDraftInput {
+function draftWithSnapshots(draft: AssignmentDraftPersistenceInput, snapshots: AssignmentQuestionSnapshot[]): AssignmentDraftPersistenceInput {
   return { ...draft, questions: snapshots.map(({ contentHash: _contentHash, ...question }) => question) };
 }
 

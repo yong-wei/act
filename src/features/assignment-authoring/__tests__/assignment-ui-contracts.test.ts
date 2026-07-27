@@ -156,6 +156,16 @@ describe('teacher assignment workspace contracts', () => {
     expect(picker).toContain('题库题目载入失败，请重试。');
   });
 
+  it('wires protected teacher images to stable assignment asset markers', () => {
+    const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
+    expect(editor).toContain('/content-assets/upload-sign');
+    expect(editor).toContain('/content-assets/${signed.assetId}/complete');
+    expect(editor).toContain('uploadImage={uploadImage}');
+    expect(editor).toContain('validateTeacherAuthoringAssetReference');
+    expect(editor).toContain('/api/assignments/${encodeURIComponent(assignmentId)}/content-assets/');
+    expect(editor).not.toContain('rejectTeacherAuthoringAssetReference');
+  });
+
   it('atomically replaces only the generated guidelines for the exact current level set', () => {
     const question = {
       stableQuestionId: 'question-1',

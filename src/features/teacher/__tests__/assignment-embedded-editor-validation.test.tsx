@@ -12,10 +12,13 @@ vi.mock('../preparation-document-editor/rich-markdown-editor', async (importOrig
     ...actual,
     RichMarkdownEditor: ({
       onChange,
+      readOnly,
     }: {
       onChange: (value: string) => void;
+      readOnly?: boolean;
     }) => (
       <>
+        <span data-testid="editor-read-only">{String(Boolean(readOnly))}</span>
         <button
           type="button"
           onClick={() =>
@@ -95,5 +98,32 @@ describe('assignment embedded editor continuous validation', () => {
 
     expect(onChange).toHaveBeenCalledOnce();
     expect(onChange).toHaveBeenCalledWith('文本与公式 $G(s)$');
+  });
+
+  it('keeps continuous editing writable during a slow autosave', async () => {
+    const props = {
+      hostRole: 'teacher' as const,
+      field: 'question-prompt' as const,
+      ariaLabel: '题面',
+      value: '继续编辑',
+      savedValue: '旧正文',
+      saveState: 'saving' as const,
+      showSaveAction: false,
+      onChange: vi.fn(),
+      onEdit: () => undefined,
+      onSave: () => undefined,
+      resolveAssetHref: (href: string) => href,
+    };
+    await act(async () => {
+      root.render(<AssignmentEmbeddedEditor {...props} continuousEditing />);
+    });
+    expect(container.querySelector('[data-testid="editor-read-only"]')?.textContent)
+      .toBe('false');
+
+    await act(async () => {
+      root.render(<AssignmentEmbeddedEditor {...props} continuousEditing={false} />);
+    });
+    expect(container.querySelector('[data-testid="editor-read-only"]')?.textContent)
+      .toBe('true');
   });
 });
