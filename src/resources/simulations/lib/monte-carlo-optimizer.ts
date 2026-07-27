@@ -248,7 +248,9 @@ export function evaluatePIDParams(
   // Calculate settling time: scan from referenceCompletedAt for sustained heading stability
   const headingTolerance = 5;
   const validationWindow = logic.duration - logic.referenceCompletedAt;
-  let settlingTime = logic.duration; // default: not settled within full scenario duration
+  const isV1Scenario = logic.runtimeVersion === 'simulation-optimizer-runtime-v1';
+  const unsettledSentinel = isV1Scenario ? logic.duration : validationWindow;
+  let settlingTime = unsettledSentinel; // default: not settled within validation window
 
   for (let i = 0; i < result.chartData.time.length; i++) {
     const time = result.chartData.time[i];
@@ -278,7 +280,7 @@ export function evaluatePIDParams(
   const overshootScore = overshoot <= (target.maxOvershoot ?? 20)
     ? 100
     : Math.max(0, 100 - ((overshoot - (target.maxOvershoot ?? 20)) / (target.maxOvershoot ?? 20)) * 100);
-  const settled = settlingTime < logic.duration;
+  const settled = settlingTime < unsettledSentinel;
   let settlingScore = settled ? 100 : 0;
   if (settled && target.minSettlingTime && settlingTime > target.minSettlingTime) {
     settlingScore = Math.max(0, 100 - ((settlingTime - target.minSettlingTime) / target.minSettlingTime) * 50);
