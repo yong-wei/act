@@ -179,6 +179,17 @@ export function assembleAssignmentAnswerEvidence(input: {
 
   const ordered = [...input.attachments].sort((left, right) => {
     if (left.role !== right.role) return left.role === 'EMBEDDED_IMAGE' ? -1 : 1;
+    if (left.role === 'EMBEDDED_IMAGE' && right.role === 'EMBEDDED_IMAGE') {
+      const leftPosition = embeddedAssetIndex(
+        input.textSnapshot,
+        left.embeddedPosition,
+      );
+      const rightPosition = embeddedAssetIndex(
+        input.textSnapshot,
+        right.embeddedPosition,
+      );
+      if (leftPosition !== rightPosition) return leftPosition - rightPosition;
+    }
     return left.orderIndex - right.orderIndex || left.assetId.localeCompare(right.assetId);
   });
   for (const [attachmentIndex, attachment] of ordered.entries()) {
@@ -427,6 +438,24 @@ function replaceEmbeddedAsset(
   return titleAssetPattern.test(markdown)
     ? markdown.replace(titleAssetPattern, replacement)
     : `${markdown.trim()}${replacement}`;
+}
+
+function embeddedAssetIndex(
+  markdown: string,
+  embeddedPosition: string | null | undefined,
+): number {
+  if (!embeddedPosition) return Number.MAX_SAFE_INTEGER;
+  const escaped = embeddedPosition.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const directAssetPattern = new RegExp(
+    `!\\[[^\\]]*\\]\\(\\s*<?asset:${escaped}>?(?:\\s+["'][^"']*["'])?\\s*\\)`,
+  );
+  const titleAssetPattern = new RegExp(
+    `!\\[[^\\]]*\\]\\([^\\n)]*?\\s+["']asset:${escaped}["']\\)`,
+  );
+  const directIndex = markdown.search(directAssetPattern);
+  const titleIndex = markdown.search(titleAssetPattern);
+  const positions = [directIndex, titleIndex].filter((index) => index >= 0);
+  return positions.length > 0 ? Math.min(...positions) : Number.MAX_SAFE_INTEGER;
 }
 
 function safeAttachmentName(value: string): string {

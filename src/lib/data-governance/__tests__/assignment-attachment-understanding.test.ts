@@ -241,6 +241,52 @@ describe('assignment attachment understanding', () => {
       .toBeLessThan(blockText.findIndex((text) => text.includes('after')));
   });
 
+  it('orders embedded image manifest sources by their text anchors', () => {
+    const assembled = assembleAssignmentAnswerEvidence({
+      attemptId: 'attempt-manifest-anchor-order',
+      answerVersion: 1,
+      textSnapshot: [
+        '![first](asset:md:first)',
+        'between',
+        '![second](asset:md:second)',
+      ].join('\n'),
+      attachments: [
+        {
+          assetId: 'asset-second',
+          displayName: 'second.png',
+          mimeType: 'image/png',
+          checksum: 'sha256:second',
+          role: 'EMBEDDED_IMAGE',
+          orderIndex: 0,
+          embeddedPosition: 'md:second',
+          route: 'binary-mathpix',
+          state: 'READY',
+          canonicalMarkdown: 'SECOND',
+          blocks: [{ id: 'second', blockIndex: 0, text: 'SECOND' }],
+        },
+        {
+          assetId: 'asset-first',
+          displayName: 'first.png',
+          mimeType: 'image/png',
+          checksum: 'sha256:first',
+          role: 'EMBEDDED_IMAGE',
+          orderIndex: 1,
+          embeddedPosition: 'md:first',
+          route: 'binary-mathpix',
+          state: 'READY',
+          canonicalMarkdown: 'FIRST',
+          blocks: [{ id: 'first', blockIndex: 0, text: 'FIRST' }],
+        },
+      ],
+    });
+
+    expect(assembled.manifest.sources.map((source) => source.assetId).filter(Boolean))
+      .toEqual(['asset-first', 'asset-second']);
+    expect(assembled.evidence.blocks.filter((block) => block.id.startsWith('asset:'))
+      .map((block) => block.text))
+      .toEqual(['FIRST', 'SECOND']);
+  });
+
   it('blocks AI grading when every source lacks gradable evidence', () => {
     const assembled = assembleAssignmentAnswerEvidence({
       attemptId: 'attempt-empty',
