@@ -156,7 +156,10 @@ function projectPublicKonlingMessage(message: Message): Message {
       actionId: input.publicActionId,
       operation: input.operation,
       taskId: typeof input.taskId === 'string' ? input.taskId : undefined,
-      state: publicStructuredActionState(run.approvalState),
+      state: publicStructuredActionState(run.approvalState, run.status),
+      ...(run.status === 'failed' ? {
+        errorSummary: '建议生成未完成，请刷新任务或重新生成建议。',
+      } : {}),
       affectedStageId: typeof input.affectedStageId === 'string' ? input.affectedStageId : 'topic-goals',
       proposal: projectPublicSmartPreparationProposal(
         input.proposedTask,
@@ -261,11 +264,12 @@ function boundedPublicText(value: unknown) {
   return typeof value === 'string' ? Array.from(value).slice(0, 240).join('') : undefined;
 }
 
-function publicStructuredActionState(value: unknown) {
-  if (value === 'approved') return 'applied';
-  if (value === 'ignored') return 'ignored';
-  if (value === 'conflict') return 'conflict';
-  if (value === 'action_failed') return 'failed';
+function publicStructuredActionState(approvalState: unknown, status: unknown) {
+  if (status === 'failed') return 'failed';
+  if (approvalState === 'approved') return 'applied';
+  if (approvalState === 'ignored') return 'ignored';
+  if (approvalState === 'conflict') return 'conflict';
+  if (approvalState === 'action_failed') return 'failed';
   return 'pending';
 }
 

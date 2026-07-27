@@ -165,6 +165,47 @@ describe('Konling conversation library', () => {
     expect(encoded).not.toContain('propose_smart_lesson_task_change');
   });
 
+  it('restores failed tool runs as a safe actionable public state', () => {
+    const serialized = serializeKonlingConversation(conversation({
+      messages: [{
+        id: 'assistant-failed-action',
+        role: 'assistant',
+        content: '',
+        metadata: {
+          konlingStructuredActionTurn: {
+            toolRuns: [{
+              toolRunId: 'failed-run-private',
+              toolName: 'propose_smart_lesson_task_change',
+              status: 'failed',
+              approvalState: 'not_required',
+              inputSummary: {
+                publicActionId: 'public-failed-action',
+                operation: 'bootstrap',
+                proposedTask: { topic: '根轨迹' },
+              },
+              errorSummary: {
+                message: 'database connection private-host:5432 failed',
+                correlationId: 'private-correlation',
+              },
+            }],
+          },
+        },
+      }],
+    }));
+
+    expect(serialized.messages[0]?.metadata).toMatchObject({
+      konlingSmartPreparationActions: [{
+        actionId: 'public-failed-action',
+        state: 'failed',
+        errorSummary: '建议生成未完成，请刷新任务或重新生成建议。',
+      }],
+    });
+    const encoded = JSON.stringify(serialized.messages);
+    expect(encoded).not.toContain('private-host');
+    expect(encoded).not.toContain('private-correlation');
+    expect(encoded).not.toContain('failed-run-private');
+  });
+
   it('removes raw adaptive-path tool data and internal identifiers from the public DTO', () => {
     const serialized = serializeKonlingConversation(conversation({
       messages: [{

@@ -35,7 +35,7 @@ const structuredActionMode = process.argv.includes('--structured-action');
 const resumeMode = resumedSchemaName !== undefined;
 const structuredActionEvidencePath = path.join(
   process.cwd(),
-  'openspec/changes/harden-konling-structured-action-runtime/evidence/real-provider-structured-action.json',
+  'openspec/changes/archive/2026-07-27-harden-konling-structured-action-runtime/evidence/real-provider-structured-action.json',
 );
 let nextServer: ChildProcess | undefined;
 let coursewareWorkerConnection: Redis | undefined;
