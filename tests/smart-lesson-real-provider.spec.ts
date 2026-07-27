@@ -185,10 +185,19 @@ async function createTask(page: Page) {
   await page.getByPlaceholder('先修要求（可选）').fill('传递函数与特征方程');
   const textbookRange = page.getByText('平台教材建议范围', { exact: true }).locator('..').locator('select');
   await textbookRange.selectOption({ index: 1 });
-  await page.getByLabel('确认采用此教材范围').check();
+  const newTaskForm = page.locator('form#smart-preparation-new-task');
+  const confirmTextbookRange = newTaskForm.locator(
+    'input[name="confirmTextbookRange"][type="checkbox"]',
+  );
+  await expect(confirmTextbookRange).toBeVisible();
+  await confirmTextbookRange.check();
   await expect(page.locator('select[name="selectedClassId"]')).toHaveValue(classId);
   await page.locator('select[name="durationMinutes"]').selectOption('30');
-  await page.getByLabel('生成提纲后暂停确认').check();
+  const outlineConfirmationRequired = newTaskForm.locator(
+    'input[name="outlineConfirmationRequired"][type="checkbox"]',
+  );
+  await expect(outlineConfirmationRequired).toBeVisible();
+  await outlineConfirmationRequired.check();
   await page.getByRole('button', { name: '确认并创建单课任务' }).click();
   await expect(smartLessonStatus(page, '单课任务已确认')).toBeVisible();
 }

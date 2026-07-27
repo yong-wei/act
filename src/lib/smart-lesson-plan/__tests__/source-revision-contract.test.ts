@@ -94,4 +94,24 @@ describe('smart lesson real-provider source revision contract', () => {
     expect(spec).toContain("page.locator('main').getByRole('status')");
     expect(spec).not.toMatch(/getByRole\\('status'\\)\\.first\\(\\)/);
   });
+
+  it('targets new-task checkboxes by stable business fields', () => {
+    const spec = readFileSync(
+      path.join(process.cwd(), 'tests/smart-lesson-real-provider.spec.ts'),
+      'utf8',
+    );
+    expect(spec).toContain("page.locator('form#smart-preparation-new-task')");
+    expect(spec).toContain(
+      "'input[name=\"confirmTextbookRange\"][type=\"checkbox\"]'",
+    );
+    expect(spec).toContain(
+      "'input[name=\"outlineConfirmationRequired\"][type=\"checkbox\"]'",
+    );
+    expect(spec).not.toContain(
+      "getByLabel('确认采用此教材范围').check()",
+    );
+    expect(spec).not.toContain(
+      "getByLabel('生成提纲后暂停确认').check()",
+    );
+  });
 });
