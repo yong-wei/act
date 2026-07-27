@@ -11,6 +11,10 @@ import { Client } from 'pg';
 
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
+  AuthoritativeKnowledgeRepository,
+  type AuthoritativeKnowledgeDatabase,
+} from '../../src/lib/authoritative-knowledge';
+import {
   canonicalJson,
   importValidatedRelease,
   loadAndValidateRelease,
@@ -153,12 +157,44 @@ async function main(): Promise<void> {
   assert.equal(sha256(canonicalJson(withoutHash)), validated.entry.release_hash);
   assert.equal(canonicalJson(reconstructed), canonicalJson(validated.release));
 
+  const repository = new AuthoritativeKnowledgeRepository(
+    db as unknown as AuthoritativeKnowledgeDatabase,
+  );
+  const candidateSelector = {
+    authorityState: 'candidate' as const,
+    releaseSetId: validated.lock.release_set_id,
+    releaseId: validated.entry.release_id,
+  };
+  const candidate = await repository.read(candidateSelector);
+  assert.equal(candidate.status, 'available');
+  if (candidate.status === 'available') {
+    assert.equal(candidate.snapshot.objects.length, expected.canonicalObjects);
+    assert.equal(candidate.snapshot.relations.length, expected.goldRelations + expected.silverRelations);
+    assert.equal(candidate.snapshot.sourceMappings.length, expected.sourceMappings);
+    assert.equal(candidate.snapshot.sourceObjects.length, expected.sourceObjects);
+    assert.equal(candidate.snapshot.evidence.length, expected.evidenceSegments);
+    assert.equal(candidate.snapshot.productionAuthoritative, false);
+  }
+  assert.deepEqual(await repository.read({ authorityState: 'active' }), {
+    status: 'unavailable',
+    selector: { authorityState: 'active' },
+    reason: 'active-pointer-unavailable',
+    diagnostics: [],
+  });
+
   await db.$executeRawUnsafe('ALTER TABLE "ActkgImportReceipt" DISABLE TRIGGER "ActkgImportReceipt_immutable"');
   await db.$executeRawUnsafe(
     'UPDATE "ActkgImportReceipt" SET "objectCount" = "objectCount" + 1 WHERE "releaseId" = $1',
     validated.entry.release_id,
   );
   await db.$executeRawUnsafe('ALTER TABLE "ActkgImportReceipt" ENABLE TRIGGER "ActkgImportReceipt_immutable"');
+  const drift = await repository.read(candidateSelector);
+  assert.equal(drift.status, 'drift');
+  if (drift.status === 'drift') {
+    assert(drift.diagnostics.some((item) => (
+      item.code === 'receipt-count-mismatch' && item.field === 'receipt.objectCount'
+    )));
+  }
   await assert.rejects(importValidatedRelease(db, validated), /different authoritative content/u);
   await db.$executeRawUnsafe('ALTER TABLE "ActkgImportReceipt" DISABLE TRIGGER "ActkgImportReceipt_immutable"');
   await db.$executeRawUnsafe(
@@ -203,6 +239,9 @@ async function main(): Promise<void> {
     conflictRollback: true,
     roundTripHash: validated.entry.release_hash,
     legacyAuthorityUnchanged: true,
+    repositoryCandidateComplete: true,
+    repositoryActiveUnavailable: true,
+    repositoryDriftDetected: true,
   }));
 }
 
