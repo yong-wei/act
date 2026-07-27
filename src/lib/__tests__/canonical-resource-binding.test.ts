@@ -663,6 +663,69 @@ describe('publication, human, and authority gates', () => {
     });
   });
 
+  it('uses only current shadow publications for readiness coverage', () => {
+    const inventory = buildResourceBindingInventory([observation('resource', {
+      resourceId: 'resource',
+      structuralUnitId: 'structural-unit',
+      segmentId: 'segment',
+      positiveSignals: { published: true },
+      dispositionDeclared: true,
+    })]);
+    const published = acceptedDecision({ publicationState: 'SHADOW_PUBLISHED' });
+    const unpublished = (overrides: Partial<CanonicalResourceBindingDecision>) => acceptedDecision({
+      id: `unpublished-${overrides.reviewState}`,
+      pairId: `unpublished-pair-${overrides.reviewState}`,
+      canonicalId: `unpublished-canonical-${overrides.reviewState}`,
+      ...overrides,
+    });
+
+    expect(evaluateCanonicalResourceCutoverReadiness({
+      inventory,
+      decisions: [
+        published,
+        unpublished({
+          reviewState: 'ACCEPTED',
+          publicationState: 'CANDIDATE',
+        }),
+        unpublished({
+          reviewState: 'REJECTED',
+          publicationState: 'CANDIDATE',
+        }),
+        unpublished({
+          reviewState: 'REVIEW_RETRYABLE',
+          publicationState: 'REVIEW_RETRYABLE',
+        }),
+        unpublished({
+          reviewProvider: 'FIXTURE',
+          reviewState: 'HUMAN_REQUIRED',
+          publicationState: 'HUMAN_REQUIRED',
+        }),
+      ],
+    }).blockers).toEqual([]);
+
+    expect(evaluateCanonicalResourceCutoverReadiness({
+      inventory,
+      decisions: [unpublished({
+        reviewState: 'ACCEPTED',
+        publicationState: 'CANDIDATE',
+      })],
+    }).blockers).toContainEqual({
+      atomicResourceId: 'TeachingResource:resource',
+      code: 'binding-not-shadow-published',
+    });
+
+    expect(evaluateCanonicalResourceCutoverReadiness({
+      inventory,
+      decisions: [{
+        ...published,
+        reviewProvider: 'FIXTURE',
+      }],
+    }).blockers).toContainEqual({
+      atomicResourceId: 'TeachingResource:resource',
+      code: 'fixture-review',
+    });
+  });
+
   it('keeps all formal consumers on Legacy', () => {
     for (const consumer of [
       'FORMAL_RECOMMENDATION',

@@ -60,9 +60,19 @@ export function evaluateCanonicalResourceCutoverReadiness(input: {
       blockers.push({ atomicResourceId: item.atomicResourceId, code: 'binding-missing' });
       continue;
     }
+    const publishedBindings = bindings.filter(
+      (binding) => binding.publicationState === 'SHADOW_PUBLISHED',
+    );
+    if (publishedBindings.length === 0) {
+      blockers.push({
+        atomicResourceId: item.atomicResourceId,
+        code: 'binding-not-shadow-published',
+      });
+      continue;
+    }
     const duplicatePairs = new Set<string>();
     const seenPairs = new Set<string>();
-    for (const binding of bindings) {
+    for (const binding of publishedBindings) {
       const identity = `${binding.pairId}\u001f${binding.role}`;
       if (seenPairs.has(identity)) duplicatePairs.add(identity);
       seenPairs.add(identity);
@@ -71,13 +81,8 @@ export function evaluateCanonicalResourceCutoverReadiness(input: {
       blockers.push({ atomicResourceId: item.atomicResourceId, code: 'binding-non-unique' });
       continue;
     }
-    if (bindings.some((binding) => binding.reviewProvider === 'FIXTURE')) {
+    if (publishedBindings.some((binding) => binding.reviewProvider === 'FIXTURE')) {
       blockers.push({ atomicResourceId: item.atomicResourceId, code: 'fixture-review' });
-    } else if (bindings.some((binding) => binding.publicationState !== 'SHADOW_PUBLISHED')) {
-      blockers.push({
-        atomicResourceId: item.atomicResourceId,
-        code: 'binding-not-shadow-published',
-      });
     }
   }
   return {
