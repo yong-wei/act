@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type Ref } from 'react';
 import { Pencil, Save } from 'lucide-react';
 
 import { RuntimeMarkdownContent } from '@/components/shared/runtime-markdown';
@@ -24,11 +24,14 @@ export interface AssignmentEmbeddedEditorProps {
   savedValue: string;
   saveState: AssignmentEmbeddedSaveState;
   readOnly?: boolean;
+  continuousEditing?: boolean;
+  showSaveAction?: boolean;
+  containerRef?: Ref<HTMLElement>;
   onChange: (value: string) => void;
   onEdit: () => void;
   onSave: () => void | Promise<void>;
-  uploadImage: ProtectedEditorImageUpload;
-  validateAssetReference: ProtectedEditorAssetValidator;
+  uploadImage?: ProtectedEditorImageUpload;
+  validateAssetReference?: ProtectedEditorAssetValidator;
   resolveAssetHref: (href: string) => string;
   canonicalizeAssetHref?: (href: string) => string;
 }
@@ -41,6 +44,9 @@ export function AssignmentEmbeddedEditor({
   savedValue,
   saveState,
   readOnly = false,
+  continuousEditing = false,
+  showSaveAction = true,
+  containerRef,
   onChange,
   onEdit,
   onSave,
@@ -52,10 +58,21 @@ export function AssignmentEmbeddedEditor({
   const [uploadPending, setUploadPending] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const rendered = saveState === 'saved' || readOnly;
+  const rendered = !continuousEditing && (saveState === 'saved' || readOnly);
+  const assetValidator = validateAssetReference ?? rejectAssetReference;
+  const acceptChange = (nextValue: string) => {
+    if (!validateProtectedEditorMarkdownAssets(nextValue, assetValidator)) {
+      setValidationError('正文包含无效或不属于当前作业字段的图片，未写入当前草稿。');
+      return;
+    }
+    setValidationError(null);
+    onChange(nextValue);
+  };
 
   return (
     <section
+      ref={containerRef}
+      tabIndex={-1}
       className="space-y-3 rounded-xl border border-border bg-background p-4"
       aria-label={ariaLabel}
       data-assignment-editor-mode="assignment-embedded"
@@ -83,7 +100,7 @@ export function AssignmentEmbeddedEditor({
           <RichMarkdownEditor
             mode="assignment-embedded"
             value={value}
-            onChange={onChange}
+            onChange={acceptChange}
             readOnly={saveState === 'saving'}
             ariaLabel={ariaLabel}
             uploadImage={uploadImage}
@@ -97,12 +114,12 @@ export function AssignmentEmbeddedEditor({
           {saveState === 'failed' ? <p role="alert" className="text-sm text-destructive">保存失败，本地内容仍保留，请重试。</p> : null}
           {saveState === 'conflict' ? <p role="alert" className="text-sm text-destructive">服务器已有较新修订，本地内容仍保留，请处理冲突后重试。</p> : null}
           {validationError ? <p role="alert" className="text-sm text-destructive">{validationError}</p> : null}
-          <button
+          {showSaveAction ? <button
             type="button"
             disabled={saveState === 'saving' || uploadPending}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50"
             onClick={() => {
-              if (!validateProtectedEditorMarkdownAssets(value, validateAssetReference)) {
+              if (!validateProtectedEditorMarkdownAssets(value, assetValidator)) {
                 setValidationError('正文包含无效或不属于当前作业字段的图片，请移除后再保存。');
                 return;
               }
@@ -112,11 +129,15 @@ export function AssignmentEmbeddedEditor({
           >
             <Save className="h-4 w-4" />
             {saveState === 'saving' ? '保存中…' : '保存'}
-          </button>
+          </button> : null}
         </>
       )}
     </section>
   );
+}
+
+function rejectAssetReference() {
+  return false;
 }
 
 interface AssignmentEmbeddedHostExampleProps {

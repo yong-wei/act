@@ -57,6 +57,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/teacher/classes`：班级管理、学生导入、课堂记录和班级学情入口。
 - `/teacher/classes/[classId]/analytics-v2`：班级学情总览。
 - `/teacher/classes/[classId]/students/[studentId]`：学生个体学情与证据视图。
+- `/teacher/assignments`：作业列表、单页编辑工作台、受治理题库选题、评分项编排、保存状态与发布校验入口。
 - `/teacher/arena`：Arena 任务配置、预览、发布管理和发布报告。
 - `/teacher/grading-workbench`：文档 rubric 批改与反馈工作台。
 
@@ -162,7 +163,7 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 
 教师智能备课以课程依据、六阶段 BOPPPS 教案和互动课件为三个受治理文档域。三类文档共用全屏编辑外壳、保存状态、结构导航和 AI 建议区域，但各自保留原有 schema、校验、版本、批准与发布契约。课程依据以 Markdown 为规范编辑格式，未使用版本可原位更新，已确认、引用或投影的版本通过后继版本继续编辑；教案固定六个顶层 BOPPPS 阶段，只允许编辑内部步骤；互动课件继续由 manifest 和共享 slide runtime 校验。
 
-富文本文档适配器位于 `src/features/teacher/preparation-document-editor/`，当前使用固定版本的 Tiptap 与 Markdown、表格、公式扩展。自动保存和显式保存都携带乐观修订，冲突与失败保留浏览器本地副本。AI 建议的接受与忽略属于普通编辑操作，不会执行教师批准。
+富文本文档适配器位于 `src/features/teacher/preparation-document-editor/`，当前使用固定版本的 Tiptap 与 Markdown、表格、公式扩展，也为作业题面和参考答案提供嵌入模式。自动保存和显式保存都携带乐观修订，冲突与失败保留浏览器本地副本。AI 建议的接受与忽略属于普通编辑操作，不会执行教师批准。
 
 ## 数据治理、学习路径与智能助教
 

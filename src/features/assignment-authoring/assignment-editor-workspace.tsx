@@ -35,11 +35,17 @@ import {
 } from '@/lib/assignments/assignment-rubric-contract';
 import {
   applyGeneratedRubricGuidelines,
+  deriveAssignmentTotal,
   EMPTY_ASSIGNMENT_DRAFT,
+  synchronizeAssignmentTotal,
   type AssignmentEditorDocument,
   type GovernedQuestionSummary,
 } from './assignment-ui-contracts';
 import { GovernedQuestionPicker } from './governed-question-picker';
+import {
+  AssignmentEmbeddedEditor,
+  type AssignmentEmbeddedSaveState,
+} from '@/features/teacher/preparation-document-editor/assignment-embedded-editor';
 
 type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error' | 'conflict';
 type SaveResult = {
@@ -61,6 +67,13 @@ type RubricGenerationResult =
       message: string;
       focus?: 'scoring-item-name' | 'scoring-standard';
     };
+type ValidationFocusRequest = {
+  token: number;
+  path: string;
+  questionIndex?: number;
+  criterionId?: string;
+  publicationSection: boolean;
+};
 const RUBRIC_GOAL_DIMENSION_LABELS: Record<
   (typeof ASSIGNMENT_RUBRIC_GOAL_DIMENSIONS)[number],
   string
@@ -103,8 +116,12 @@ export function AssignmentEditorWorkspace({
   const [publishMessage, setPublishMessage] = useState('');
   const [published, setPublished] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [publicationOpen, setPublicationOpen] = useState(false);
+  const [validationFocusRequest, setValidationFocusRequest] =
+    useState<ValidationFocusRequest | null>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
-  const promptRef = useRef<HTMLTextAreaElement>(null);
+  const promptRef = useRef<HTMLElement>(null);
+  const questionButtonRefs = useRef(new Map<string, HTMLButtonElement>());
   const conflictRef = useRef<HTMLDivElement>(null);
   const blockerRef = useRef<HTMLDivElement>(null);
   const saveStatusRef = useRef<HTMLParagraphElement>(null);
@@ -113,6 +130,7 @@ export function AssignmentEditorWorkspace({
   const debounceRef = useRef<number | null>(null);
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
   const validationFieldRefs = useRef(new Map<string, HTMLElement>());
+  const validationFocusTokenRef = useRef(0);
 
   const loadManagedClasses = useCallback(async () => {
     setManagedClassesState('loading');
@@ -164,11 +182,19 @@ export function AssignmentEditorWorkspace({
   const updateDraft = useCallback(
     (updater: (draft: AssignmentDraftInput) => AssignmentDraftInput) => {
       if (published) return;
-      setDocument((current) => {
-        const next = { ...current, draft: updater(current.draft) };
-        documentRef.current = next;
-        return next;
-      });
+      const current = documentRef.current;
+      const next = {
+        ...current,
+        draft: synchronizeAssignmentTotal(updater(current.draft)),
+      };
+      if (
+        canonicalFingerprint(next.draft)
+        === canonicalFingerprint(current.draft)
+      ) {
+        return;
+      }
+      documentRef.current = next;
+      setDocument(next);
       setSaveState('dirty');
     },
     [published],
@@ -206,12 +232,10 @@ export function AssignmentEditorWorkspace({
         );
         if (response.status === 409) {
           setSaveState('conflict');
-          window.setTimeout(() => conflictRef.current?.focus(), 0);
           return null;
         }
         if (!response.ok) {
           setSaveState('error');
-          window.setTimeout(() => blockerRef.current?.focus(), 0);
           return null;
         }
         const payload = (await response.json()) as Record<string, unknown>;
@@ -229,7 +253,6 @@ export function AssignmentEditorWorkspace({
         return { document: saved, draftFingerprint };
       } catch {
         setSaveState('error');
-        window.setTimeout(() => blockerRef.current?.focus(), 0);
         return null;
       }
     });
@@ -254,9 +277,6 @@ export function AssignmentEditorWorkspace({
   }, [published, save, saveState]);
 
   useEffect(() => {
-    if (saveState === 'conflict') conflictRef.current?.focus();
-  }, [saveState]);
-  useEffect(() => {
     if (publishMessage) publishMessageRef.current?.focus();
   }, [publishMessage]);
 
@@ -279,20 +299,79 @@ export function AssignmentEditorWorkspace({
       if (element) validationFieldRefs.current.set(path, element);
       else validationFieldRefs.current.delete(path);
     };
+  const focusValidationField = useCallback((path: string) => {
+    const exact = validationFieldRefs.current.get(path);
+    const nested = [...validationFieldRefs.current.entries()].find(([key]) =>
+      key.startsWith(`${path}.`),
+    )?.[1];
+    const target = exact ?? nested;
+    target?.focus();
+    return Boolean(target);
+  }, []);
   const focusBlocker = (blocker: string) => {
     const path = validationPath(blocker);
     const questionIndex = path?.match(/^questions\.(\d+)\./)?.[1];
-    if (questionIndex !== undefined) setActiveIndex(Number(questionIndex));
-    window.setTimeout(() => {
-      const exact = path ? validationFieldRefs.current.get(path) : null;
-      const nested = path
-        ? [...validationFieldRefs.current.entries()].find(([key]) =>
-            key.startsWith(`${path}.`),
-          )?.[1]
-        : null;
-      (exact ?? nested ?? blockerRef.current)?.focus();
-    }, 0);
+    const resolvedQuestionIndex =
+      questionIndex === undefined ? undefined : Number(questionIndex);
+    const criterionIndex = path?.match(
+      /^questions\.\d+\.rubric\.criteria\.(\d+)\./,
+    )?.[1];
+    const targetQuestion =
+      resolvedQuestionIndex === undefined
+        ? undefined
+        : documentRef.current.draft.questions[resolvedQuestionIndex];
+    const criterionId =
+      !targetQuestion || criterionIndex === undefined
+        ? undefined
+        : toScoringRubricV2(targetQuestion.rubric)
+            .criteria[Number(criterionIndex)]?.id;
+    const publicationSection =
+      blocker === 'publication-schedule-incomplete'
+      || Boolean(
+        path?.startsWith('latePolicy.')
+        || path?.startsWith('resubmissionPolicy.')
+        || path?.startsWith('solutionReleasePolicy.'),
+      );
+    if (resolvedQuestionIndex !== undefined) {
+      setActiveIndex(resolvedQuestionIndex);
+    }
+    if (publicationSection) setPublicationOpen(true);
+    const targetPath =
+      blocker === 'publication-schedule-incomplete'
+        ? 'publication.classId'
+        : path;
+    if (!targetPath) {
+      blockerRef.current?.focus();
+      return;
+    }
+    setValidationFocusRequest({
+      token: ++validationFocusTokenRef.current,
+      path: targetPath,
+      questionIndex: resolvedQuestionIndex,
+      criterionId,
+      publicationSection,
+    });
   };
+
+  useEffect(() => {
+    if (!validationFocusRequest || validationFocusRequest.criterionId) return;
+    if (
+      validationFocusRequest.questionIndex !== undefined
+      && validationFocusRequest.questionIndex !== activeIndex
+    ) return;
+    if (
+      validationFocusRequest.publicationSection
+      && !publicationOpen
+    ) return;
+    if (!focusValidationField(validationFocusRequest.path)) {
+      blockerRef.current?.focus();
+    }
+  }, [
+    activeIndex,
+    focusValidationField,
+    publicationOpen,
+    validationFocusRequest,
+  ]);
 
   const publish = async () => {
     if (published || publishing) return;
@@ -617,21 +696,7 @@ export function AssignmentEditorWorkspace({
               <ArrowLeft className="h-4 w-4" />
               返回作业
             </Link>
-            <input
-              ref={
-                registerValidationField('title') as React.Ref<HTMLInputElement>
-              }
-              aria-label="作业标题"
-              aria-describedby="assignment-validation-errors"
-              value={document.draft.title}
-              onChange={(event) =>
-                updateDraft((draft) => ({
-                  ...draft,
-                  title: event.target.value,
-                }))
-              }
-              className="mt-2 block w-full max-w-xl bg-transparent text-2xl font-semibold text-white outline-none focus:ring-2 focus:ring-cyan-500"
-            />
+            <h1 className="mt-2 text-2xl font-semibold text-white">编辑作业</h1>
             <p className="mt-1 text-xs text-slate-500">
               版本 v{document.version}·解答发布策略{' '}
               {document.draft.solutionReleasePolicy.mode === 'PRIVATE'
@@ -709,7 +774,7 @@ export function AssignmentEditorWorkspace({
             </button>
           </div>
         )}
-        <div className="grid min-h-[62vh] grid-cols-[13rem_minmax(0,1fr)_18rem] gap-4">
+        <div className="grid min-h-[62vh] grid-cols-[13rem_minmax(0,1fr)] gap-4">
           <aside
             aria-label="题目大纲"
             className="rounded-xl border border-slate-800 bg-slate-900/60 p-3"
@@ -722,7 +787,21 @@ export function AssignmentEditorWorkspace({
                   className={`rounded-lg border p-2 ${index === activeIndex ? 'border-cyan-500 bg-cyan-950/30' : 'border-slate-700'}`}
                 >
                   <button
+                    ref={(element) => {
+                      if (element) {
+                        questionButtonRefs.current.set(
+                          entry.stableQuestionId,
+                          element,
+                        );
+                      } else {
+                        questionButtonRefs.current.delete(
+                          entry.stableQuestionId,
+                        );
+                      }
+                    }}
                     type="button"
+                    data-question-id={entry.stableQuestionId}
+                    aria-current={index === activeIndex ? 'true' : undefined}
                     onClick={() => {
                       setActiveIndex(index);
                       window.setTimeout(() => promptRef.current?.focus(), 0);
@@ -736,15 +815,22 @@ export function AssignmentEditorWorkspace({
                       type="button"
                       aria-label={`上移第 ${index + 1} 题`}
                       disabled={index === 0}
-                      onClick={() =>
+                      onClick={() => {
                         moveQuestion(
                           index,
                           -1,
                           document.draft,
                           updateDraft,
                           setActiveIndex,
-                        )
-                      }
+                        );
+                        window.setTimeout(
+                          () =>
+                            questionButtonRefs.current
+                              .get(entry.stableQuestionId)
+                              ?.focus(),
+                          0,
+                        );
+                      }}
                       className="grid h-10 w-10 place-items-center disabled:opacity-30"
                     >
                       <ChevronUp className="h-4 w-4" />
@@ -753,15 +839,22 @@ export function AssignmentEditorWorkspace({
                       type="button"
                       aria-label={`下移第 ${index + 1} 题`}
                       disabled={index === document.draft.questions.length - 1}
-                      onClick={() =>
+                      onClick={() => {
                         moveQuestion(
                           index,
                           1,
                           document.draft,
                           updateDraft,
                           setActiveIndex,
-                        )
-                      }
+                        );
+                        window.setTimeout(
+                          () =>
+                            questionButtonRefs.current
+                              .get(entry.stableQuestionId)
+                              ?.focus(),
+                          0,
+                        );
+                      }}
                       className="grid h-10 w-10 place-items-center disabled:opacity-30"
                     >
                       <ChevronDown className="h-4 w-4" />
@@ -770,6 +863,11 @@ export function AssignmentEditorWorkspace({
                       type="button"
                       aria-label={`删除第 ${index + 1} 题`}
                       onClick={() => {
+                        const nextFocusId =
+                          document.draft.questions[index + 1]
+                            ?.stableQuestionId
+                          ?? document.draft.questions[index - 1]
+                            ?.stableQuestionId;
                         updateDraft((draft) => ({
                           ...draft,
                           questions: draft.questions.filter(
@@ -777,6 +875,20 @@ export function AssignmentEditorWorkspace({
                           ),
                         }));
                         setActiveIndex(Math.max(0, index - 1));
+                        if (nextFocusId) {
+                          window.setTimeout(
+                            () =>
+                              questionButtonRefs.current
+                                .get(nextFocusId)
+                                ?.focus(),
+                            0,
+                          );
+                        } else {
+                          window.setTimeout(
+                            () => openerRef.current?.focus(),
+                            0,
+                          );
+                        }
                       }}
                       className="grid h-10 w-10 place-items-center text-rose-300"
                     >
@@ -819,9 +931,31 @@ export function AssignmentEditorWorkspace({
             className="space-y-4 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/60 p-5"
           >
             <label className="block text-xs text-slate-400">
+              作业标题
+              <input
+                ref={
+                  registerValidationField(
+                    'title',
+                  ) as React.Ref<HTMLInputElement>
+                }
+                aria-label="作业标题"
+                aria-describedby="assignment-validation-errors"
+                placeholder="例如：第二章控制系统建模作业"
+                value={document.draft.title}
+                onChange={(event) =>
+                  updateDraft((draft) => ({
+                    ...draft,
+                    title: event.target.value,
+                  }))
+                }
+                className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-lg font-semibold text-white"
+              />
+            </label>
+            <label className="block text-xs text-slate-400">
               作业说明
               <textarea
                 aria-label="作业说明"
+                placeholder="说明完成要求、提交范围与注意事项"
                 value={document.draft.instructions}
                 onChange={(event) =>
                   updateDraft((draft) => ({
@@ -838,7 +972,12 @@ export function AssignmentEditorWorkspace({
                 question={question}
                 questionIndex={activeIndex}
                 registerValidationField={registerValidationField}
+                focusRequest={validationFocusRequest}
+                focusValidationField={focusValidationField}
                 promptRef={promptRef}
+                saveState={saveState}
+                readOnly={published}
+                onSave={() => void save()}
                 onGenerateGuidelines={generateRubricGuidelines}
                 onChange={(next) =>
                   updateDraft((draft) => ({
@@ -861,29 +1000,37 @@ export function AssignmentEditorWorkspace({
                 </div>
               </div>
             )}
-          </section>
-          <aside
+          <details
+            open={publicationOpen}
+            onToggle={(event) =>
+              setPublicationOpen(event.currentTarget.open)
+            }
             aria-label="发布设置"
-            className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+            className="rounded-xl border border-slate-800 bg-slate-950/40"
           >
-            <h2 className="font-semibold text-white">发布设置</h2>
-            <label className="block text-xs text-slate-400">
-              作业总分
-              <input
-                type="number"
-                step="0.1"
-                min="0.1"
-                max="10000"
-                value={document.draft.totalPoints}
-                onChange={(event) =>
-                  updateDraft((draft) => ({
-                    ...draft,
-                    totalPoints: Number(event.target.value),
-                  }))
-                }
-                className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
-              />
-            </label>
+            <summary className="cursor-pointer list-none p-4">
+              <span className="font-semibold text-white">发布设置</span>
+              <span className="mt-1 block text-xs text-slate-400">
+                {managedClasses.find((item) => item.id === classId)?.name
+                  ?? '未选择班级'}
+                {' · '}
+                {availableAt
+                  ? `开放 ${new Date(availableAt).toLocaleString('zh-CN')}`
+                  : '未设置开放时间'}
+                {' · '}
+                {dueAt
+                  ? `截止 ${new Date(dueAt).toLocaleString('zh-CN')}`
+                  : '未设置截止时间'}
+              </span>
+            </summary>
+            <div className="space-y-4 border-t border-slate-800 p-4">
+            <p className="text-sm text-slate-300">
+              作业总分：
+              <output aria-label="作业总分">
+                {deriveAssignmentTotal(document.draft.questions).toFixed(1)}
+              </output>
+              {' '}分（由题目分值自动汇总）
+            </p>
             {managedClassesState === 'loading' && (
               <p role="status" className="text-xs text-slate-400">
                 正在加载可管理班级……
@@ -913,6 +1060,11 @@ export function AssignmentEditorWorkspace({
               <label className="block text-xs text-slate-400">
                 发布班级
                 <select
+                  ref={
+                    registerValidationField(
+                      'publication.classId',
+                    ) as React.Ref<HTMLSelectElement>
+                  }
                   aria-label="发布班级"
                   value={classId}
                   onChange={(event) => {
@@ -947,6 +1099,12 @@ export function AssignmentEditorWorkspace({
             <label className="block text-xs text-slate-400">
               开放时间
               <input
+                ref={
+                  registerValidationField(
+                    'publication.availableAt',
+                  ) as React.Ref<HTMLInputElement>
+                }
+                aria-label="开放时间"
                 type="datetime-local"
                 value={availableAt}
                 onChange={(event) => setAvailableAt(event.target.value)}
@@ -956,6 +1114,12 @@ export function AssignmentEditorWorkspace({
             <label className="block text-xs text-slate-400">
               截止时间
               <input
+                ref={
+                  registerValidationField(
+                    'publication.dueAt',
+                  ) as React.Ref<HTMLInputElement>
+                }
+                aria-label="截止时间"
                 type="datetime-local"
                 value={dueAt}
                 onChange={(event) => setDueAt(event.target.value)}
@@ -1214,7 +1378,9 @@ export function AssignmentEditorWorkspace({
                 {publishMessage}
               </p>
             )}
-          </aside>
+            </div>
+          </details>
+          </section>
         </div>
         {previewOpen && (
           <section
@@ -1261,7 +1427,12 @@ function QuestionEditor({
   question,
   questionIndex,
   registerValidationField,
+  focusRequest,
+  focusValidationField,
   promptRef,
+  saveState,
+  readOnly,
+  onSave,
   onGenerateGuidelines,
   onChange,
 }: {
@@ -1270,7 +1441,12 @@ function QuestionEditor({
   registerValidationField: (
     path: string,
   ) => (element: HTMLElement | null) => void;
-  promptRef: React.RefObject<HTMLTextAreaElement | null>;
+  focusRequest: ValidationFocusRequest | null;
+  focusValidationField: (path: string) => boolean;
+  promptRef: React.RefObject<HTMLElement | null>;
+  saveState: SaveState;
+  readOnly: boolean;
+  onSave: () => void;
   onGenerateGuidelines: (input: {
     question: EditableQuestionV2;
     scoringItemId: string;
@@ -1297,9 +1473,47 @@ function QuestionEditor({
   >(null);
   const [generatingCriterionId, setGeneratingCriterionId] = useState<string | null>(null);
   const [rubricGenerationMessage, setRubricGenerationMessage] = useState('');
+  const [expandedCriterionIds, setExpandedCriterionIds] = useState(
+    () => new Set(editableQuestion.rubric.criteria.map((item) => item.id)),
+  );
   const dialogPrimaryRef = useRef<HTMLTextAreaElement | HTMLButtonElement>(null);
+  const criterionToggleRefs = useRef(new Map<string, HTMLButtonElement>());
   const criterionNameRefs = useRef(new Map<number, HTMLInputElement>());
   const scoringStandardRefs = useRef(new Map<number, HTMLTextAreaElement>());
+  const handledValidationFocusTokenRef = useRef(0);
+  useEffect(() => {
+    if (
+      !focusRequest
+      || !focusRequest.criterionId
+      || focusRequest.questionIndex !== questionIndex
+      || handledValidationFocusTokenRef.current === focusRequest.token
+    ) return;
+    const criterionIndex = editableQuestion.rubric.criteria.findIndex(
+      (criterion) => criterion.id === focusRequest.criterionId,
+    );
+    if (criterionIndex < 0) return;
+    if (!expandedCriterionIds.has(focusRequest.criterionId)) {
+      setExpandedCriterionIds((current) => {
+        const next = new Set(current);
+        next.add(focusRequest.criterionId!);
+        return next;
+      });
+      return;
+    }
+    const stablePath = focusRequest.path.replace(
+      /(\.rubric\.criteria\.)\d+/,
+      `$1${criterionIndex}`,
+    );
+    if (focusValidationField(stablePath)) {
+      handledValidationFocusTokenRef.current = focusRequest.token;
+    }
+  }, [
+    editableQuestion.rubric.criteria,
+    expandedCriterionIds,
+    focusRequest,
+    focusValidationField,
+    questionIndex,
+  ]);
   useEffect(() => {
     if (rubricDialog) window.setTimeout(() => dialogPrimaryRef.current?.focus(), 0);
   }, [rubricDialog]);
@@ -1415,27 +1629,47 @@ function QuestionEditor({
         <p className="mt-2 text-xs text-slate-400">
           统一作答：学生可提交 Markdown 正文、图片、附件或其组合。
         </p>
-        <textarea
-          ref={promptRef}
-          aria-label="题面"
+        <AssignmentEmbeddedEditor
+          containerRef={promptRef}
+          hostRole="teacher"
+          field="question-prompt"
+          ariaLabel="题面"
           value={editableQuestion.prompt}
-          onChange={(event) =>
-            onChange({ ...editableQuestion, prompt: event.target.value })
+          savedValue={editableQuestion.prompt}
+          saveState={embeddedSaveState(saveState)}
+          readOnly={readOnly}
+          continuousEditing
+          showSaveAction={false}
+          onChange={(value) =>
+            onChange({ ...editableQuestion, prompt: value })
           }
-          className="mt-2 min-h-36 w-full rounded-xl border border-slate-700 bg-slate-950 p-3"
+          onEdit={() => undefined}
+          onSave={onSave}
+          validateAssetReference={rejectTeacherAuthoringAssetReference}
+          resolveAssetHref={(href) => href}
         />
       </section>
       <section aria-labelledby="answer-title">
         <h2 id="answer-title" className="text-lg font-semibold text-white">
           参考答案
         </h2>
-        <textarea
-          aria-label="参考答案"
+        <AssignmentEmbeddedEditor
+          hostRole="teacher"
+          field="reference-answer"
+          ariaLabel="参考答案"
           value={editableQuestion.referenceAnswer}
-          onChange={(event) =>
-            onChange({ ...editableQuestion, referenceAnswer: event.target.value })
+          savedValue={editableQuestion.referenceAnswer}
+          saveState={embeddedSaveState(saveState)}
+          readOnly={readOnly}
+          continuousEditing
+          showSaveAction={false}
+          onChange={(value) =>
+            onChange({ ...editableQuestion, referenceAnswer: value })
           }
-          className="mt-2 min-h-28 w-full rounded-xl border border-slate-700 bg-slate-950 p-3"
+          onEdit={() => undefined}
+          onSave={onSave}
+          validateAssetReference={rejectTeacherAuthoringAssetReference}
+          resolveAssetHref={(href) => href}
         />
       </section>
       <section aria-labelledby="rubric-title">
@@ -1450,15 +1684,25 @@ function QuestionEditor({
           </div>
           <button
             type="button"
-            onClick={() =>
+            onClick={() => {
+              const criterion = newCriterion();
+              setExpandedCriterionIds((current) => {
+                const next = new Set(current);
+                next.add(criterion.id);
+                return next;
+              });
               onChange({
                 ...editableQuestion,
                 rubric: {
                   ...editableQuestion.rubric,
-                  criteria: [...editableQuestion.rubric.criteria, newCriterion()],
+                  criteria: [...editableQuestion.rubric.criteria, criterion],
                 },
-              })
-            }
+              });
+              window.setTimeout(
+                () => criterionToggleRefs.current.get(criterion.id)?.focus(),
+                0,
+              );
+            }}
             className="min-h-11 rounded-lg border border-slate-700 px-3"
           >
             添加评分项
@@ -1479,6 +1723,7 @@ function QuestionEditor({
           />
         </label>
         {editableQuestion.rubric.criteria.map((criterion, index) => {
+          const expanded = expandedCriterionIds.has(criterion.id);
           const ranges = deriveRubricLevelRanges(criterion.levels, criterion.maxPoints);
           const editedLevelIds = editedLevelIdsRef.current.get(criterion.id) ?? new Set<string>();
           const applyShortcut = (targetCount: 2 | 5) => {
@@ -1516,6 +1761,29 @@ function QuestionEditor({
             className="mt-3 rounded-xl border border-slate-700 p-3"
           >
             <div className="flex gap-2">
+              <button
+                ref={(element) => {
+                  if (element) criterionToggleRefs.current.set(criterion.id, element);
+                  else criterionToggleRefs.current.delete(criterion.id);
+                }}
+                type="button"
+                aria-expanded={expanded}
+                aria-controls={`criterion-fields-${criterion.id}`}
+                aria-label={`${expanded ? '折叠' : '展开'}评分项 ${index + 1}`}
+                onClick={() =>
+                  setExpandedCriterionIds((current) => {
+                    const next = new Set(current);
+                    if (next.has(criterion.id)) next.delete(criterion.id);
+                    else next.add(criterion.id);
+                    return next;
+                  })
+                }
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-slate-700"
+              >
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                />
+              </button>
               <input
                 ref={(element) => {
                   registerValidationField(
@@ -1535,19 +1803,26 @@ function QuestionEditor({
                 }
                 className="min-h-11 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3"
               />
+              <span className="inline-flex min-h-11 items-center whitespace-nowrap text-sm text-slate-300">
+                {criterion.maxPoints} 分
+              </span>
               <button
                 type="button"
                 aria-label={`上移评分项 ${index + 1}`}
                 disabled={index === 0}
-                onClick={() =>
+                onClick={() => {
                   onChange({
                     ...editableQuestion,
                     rubric: {
                       ...editableQuestion.rubric,
                       criteria: moveItem(editableQuestion.rubric.criteria, index, -1),
                     },
-                  })
-                }
+                  });
+                  window.setTimeout(
+                    () => criterionToggleRefs.current.get(criterion.id)?.focus(),
+                    0,
+                  );
+                }}
               >
                 ↑
               </button>
@@ -1555,15 +1830,19 @@ function QuestionEditor({
                 type="button"
                 aria-label={`下移评分项 ${index + 1}`}
                 disabled={index === editableQuestion.rubric.criteria.length - 1}
-                onClick={() =>
+                onClick={() => {
                   onChange({
                     ...editableQuestion,
                     rubric: {
                       ...editableQuestion.rubric,
                       criteria: moveItem(editableQuestion.rubric.criteria, index, 1),
                     },
-                  })
-                }
+                  });
+                  window.setTimeout(
+                    () => criterionToggleRefs.current.get(criterion.id)?.focus(),
+                    0,
+                  );
+                }}
               >
                 ↓
               </button>
@@ -1571,7 +1850,10 @@ function QuestionEditor({
                 type="button"
                 aria-label={`删除评分项 ${index + 1}`}
                 disabled={editableQuestion.rubric.criteria.length === 1}
-                onClick={() =>
+                onClick={() => {
+                  const nextFocusId =
+                    editableQuestion.rubric.criteria[index + 1]?.id
+                    ?? editableQuestion.rubric.criteria[index - 1]?.id;
                   onChange({
                     ...editableQuestion,
                     rubric: {
@@ -1580,12 +1862,25 @@ function QuestionEditor({
                         (_, itemIndex) => itemIndex !== index,
                       ),
                     },
-                  })
-                }
+                  });
+                  setExpandedCriterionIds((current) => {
+                    const next = new Set(current);
+                    next.delete(criterion.id);
+                    return next;
+                  });
+                  if (nextFocusId) {
+                    window.setTimeout(
+                      () => criterionToggleRefs.current.get(nextFocusId)?.focus(),
+                      0,
+                    );
+                  }
+                }}
               >
                 删除
               </button>
             </div>
+            {expanded && (
+            <div id={`criterion-fields-${criterion.id}`}>
             <div className="mt-2 grid gap-2 md:grid-cols-2">
               <label className="text-xs text-slate-400">
                 最高分
@@ -1887,6 +2182,8 @@ function QuestionEditor({
                 </div>
               );
             })}
+            </div>
+            )}
           </article>
           );
         })}
@@ -2044,8 +2341,8 @@ function manualQuestion(index: number): EditableQuestion {
     stableQuestionId: `manual-${Date.now()}-${index}`,
     responseType: 'SUBJECTIVE_TEXT',
     points: 10,
-    prompt: '请输入题面',
-    referenceAnswer: '请输入参考答案',
+    prompt: '',
+    referenceAnswer: '',
     rubric: {
       schemaVersion: 'assignment-scoring-rubric.v2',
       criteria: [
@@ -2130,12 +2427,20 @@ function saveLabel(state: SaveState) {
     {
       idle: '尚未修改',
       dirty: '待保存',
-      saving: '保存中……',
+      saving: '正在保存',
       saved: '已保存',
       error: '保存失败',
-      conflict: '版本冲突',
+      conflict: '存在冲突',
     } as const
   )[state];
+}
+
+function embeddedSaveState(state: SaveState): AssignmentEmbeddedSaveState {
+  if (state === 'saving') return 'saving';
+  if (state === 'saved') return 'saved';
+  if (state === 'error') return 'failed';
+  if (state === 'conflict') return 'conflict';
+  return 'editing';
 }
 function toLocalDateTime(value: string) {
   const date = new Date(value);
@@ -2172,6 +2477,9 @@ function validationPath(value: string): string | null {
   if (!value.startsWith('validation:')) return null;
   const withoutPrefix = value.slice('validation:'.length);
   return withoutPrefix.slice(0, withoutPrefix.indexOf(':'));
+}
+function rejectTeacherAuthoringAssetReference() {
+  return false;
 }
 function mergeSaveResponse(
   current: AssignmentEditorDocument,
