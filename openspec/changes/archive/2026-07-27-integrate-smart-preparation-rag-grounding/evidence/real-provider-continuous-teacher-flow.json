@@ -1,7 +1,7 @@
 {
   "evidenceVersion": "smart-lesson-real-provider-continuous-teacher-flow.v1",
-  "generatedAt": "2026-07-27T07:41:12.010Z",
-  "sourceRevision": "4d99401dca0879046502cd4bcc941aefbb7a1a60",
+  "generatedAt": "2026-07-27T12:32:31.127Z",
+  "sourceRevision": "932970a3b14c385aca515fdf8c116addbc2c2e2a",
   "providerMode": "configured-real-provider",
   "routeInterception": false,
   "acceptance": {
@@ -28,17 +28,8 @@
     "naturalRetryBudget": {
       "maximumPerStage": 1,
       "maximumTotal": 2,
-      "used": 2,
-      "events": [
-        {
-          "stage": "OUTLINE",
-          "failureCode": "provider-output-invalid-after-correction"
-        },
-        {
-          "stage": "BRIDGE_IN",
-          "failureCode": "provider-timeout"
-        }
-      ]
+      "used": 0,
+      "events": []
     }
   },
   "advisoryReview": {
@@ -73,34 +64,10 @@
       "serviceId": "siliconflow",
       "providerKind": "openai-compatible",
       "model": "Qwen/Qwen3.6-35B-A3B",
-      "outcome": "RETRYABLE_FAILURE",
-      "inputTokens": 2689,
-      "outputTokens": 811,
-      "latencyMs": 22686
-    },
-    {
-      "stage": "OUTLINE",
-      "attemptNumber": 2,
-      "kind": "CORRECTION",
-      "serviceId": "siliconflow",
-      "providerKind": "openai-compatible",
-      "model": "Qwen/Qwen3.6-35B-A3B",
-      "outcome": "RETRYABLE_FAILURE",
-      "inputTokens": null,
-      "outputTokens": null,
-      "latencyMs": 19136
-    },
-    {
-      "stage": "OUTLINE",
-      "attemptNumber": 3,
-      "kind": "ORIGINAL",
-      "serviceId": "siliconflow",
-      "providerKind": "openai-compatible",
-      "model": "Qwen/Qwen3.6-35B-A3B",
       "outcome": "SUCCEEDED",
-      "inputTokens": 2689,
-      "outputTokens": 794,
-      "latencyMs": 16740
+      "inputTokens": 2718,
+      "outputTokens": 803,
+      "latencyMs": 38824
     },
     {
       "stage": "BRIDGE_IN",
@@ -112,7 +79,7 @@
       "outcome": "RETRYABLE_FAILURE",
       "inputTokens": null,
       "outputTokens": null,
-      "latencyMs": 3
+      "latencyMs": 7
     },
     {
       "stage": "BRIDGE_IN",
@@ -121,22 +88,10 @@
       "serviceId": "siliconflow",
       "providerKind": "openai-compatible",
       "model": "Qwen/Qwen3.6-35B-A3B",
-      "outcome": "RETRYABLE_FAILURE",
-      "inputTokens": null,
-      "outputTokens": null,
-      "latencyMs": 5
-    },
-    {
-      "stage": "BRIDGE_IN",
-      "attemptNumber": 3,
-      "kind": "ORIGINAL",
-      "serviceId": "siliconflow",
-      "providerKind": "openai-compatible",
-      "model": "Qwen/Qwen3.6-35B-A3B",
       "outcome": "SUCCEEDED",
-      "inputTokens": 3397,
-      "outputTokens": 1154,
-      "latencyMs": 52472
+      "inputTokens": 3436,
+      "outputTokens": 1147,
+      "latencyMs": 76492
     },
     {
       "stage": "OBJECTIVES",
@@ -146,9 +101,9 @@
       "providerKind": "openai-compatible",
       "model": "Qwen/Qwen3.6-35B-A3B",
       "outcome": "SUCCEEDED",
-      "inputTokens": 4366,
-      "outputTokens": 930,
-      "latencyMs": 26751
+      "inputTokens": 4398,
+      "outputTokens": 944,
+      "latencyMs": 12945
     },
     {
       "stage": "PRE_ASSESSMENT",
@@ -158,9 +113,9 @@
       "providerKind": "openai-compatible",
       "model": "Qwen/Qwen3.6-35B-A3B",
       "outcome": "SUCCEEDED",
-      "inputTokens": 5168,
-      "outputTokens": 1140,
-      "latencyMs": 31621
+      "inputTokens": 5213,
+      "outputTokens": 1417,
+      "latencyMs": 20790
     },
     {
       "stage": "PARTICIPATORY_LEARNING",
@@ -169,10 +124,22 @@
       "serviceId": "siliconflow",
       "providerKind": "openai-compatible",
       "model": "Qwen/Qwen3.6-35B-A3B",
+      "outcome": "RETRYABLE_FAILURE",
+      "inputTokens": 6448,
+      "outputTokens": 1703,
+      "latencyMs": 21441
+    },
+    {
+      "stage": "PARTICIPATORY_LEARNING",
+      "attemptNumber": 2,
+      "kind": "CORRECTION",
+      "serviceId": "siliconflow",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.6-35B-A3B",
       "outcome": "SUCCEEDED",
-      "inputTokens": 6180,
-      "outputTokens": 2367,
-      "latencyMs": 64876
+      "inputTokens": 2720,
+      "outputTokens": 1679,
+      "latencyMs": 47007
     },
     {
       "stage": "POST_ASSESSMENT",
@@ -182,9 +149,9 @@
       "providerKind": "openai-compatible",
       "model": "Qwen/Qwen3.6-35B-A3B",
       "outcome": "SUCCEEDED",
-      "inputTokens": 8419,
-      "outputTokens": 1257,
-      "latencyMs": 36534
+      "inputTokens": 7945,
+      "outputTokens": 707,
+      "latencyMs": 10996
     },
     {
       "stage": "SUMMARY",
@@ -194,9 +161,9 @@
       "providerKind": "openai-compatible",
       "model": "Qwen/Qwen3.6-35B-A3B",
       "outcome": "SUCCEEDED",
-      "inputTokens": 9490,
-      "outputTokens": 1349,
-      "latencyMs": 292021
+      "inputTokens": 8574,
+      "outputTokens": 784,
+      "latencyMs": 27186
     }
   ],
   "privacy": {
