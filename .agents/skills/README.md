@@ -24,6 +24,7 @@
 | `openspec-archive-change` | `openspec-archive-change/SKILL.md` | 实现完成后归档 change。 |
 | `openspec-buddy` | `openspec-buddy/SKILL.md` | 显式调用 GitHub Issue 协调的 claim/propose/apply/achieve 流程。 |
 | `openspec-buddy-auto` | `openspec-buddy-auto/SKILL.md` | 自动处理 GitHub Issue-backed 或 local-only OpenSpec changes。 |
+| `use-grill-me` | `use-grill-me/SKILL.md` | 在实施前通过隔离任务目录完成 Grill-with-Docs 决策记录与交付清单。 |
 
 ### 代码理解、调试、重构与审查
 
@@ -114,3 +115,4 @@
 - `skillopt-sleep`
 - `stitch-design-taste`
 - `syllabus-refactor`
+- `use-grill-me`

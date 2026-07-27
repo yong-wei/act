@@ -1,0 +1,4 @@
+interface:
+  display_name: "Use Grill Me"
+  short_description: "任务隔离的 Grill 决策记录"
+  default_prompt: "Use $use-grill-me to interview me and record this task's domain decisions."

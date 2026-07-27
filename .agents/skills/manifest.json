@@ -213,6 +213,12 @@
       "path": "syllabus-refactor/SKILL.md",
       "category": "course-design",
       "description": "Restructure engineering courses, units, lessons, homework architecture, and assessment boundaries."
+    },
+    {
+      "name": "use-grill-me",
+      "path": "use-grill-me/SKILL.md",
+      "category": "decision-governance",
+      "description": "Run Grill-with-Docs with isolated task records, shared decision discovery, and delivery-manifest guidance."
     }
   ]
 }

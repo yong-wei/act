@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "taskId": "issue-995-decision-traceability",
+  "source": {
+    "kind": "github-issue",
+    "number": 995
+  },
+  "grill": {
+    "context": "CONTEXT.md",
+    "adrs": [
+      "adr/0001-deliver-task-decisions-with-implementation.md"
+    ]
+  },
+  "planning": {
+    "kind": "openspec",
+    "change": "enforce-task-decision-traceability"
+  },
+  "implementationScope": [
+    ".agents/skills/README.md",
+    ".agents/skills/manifest.json",
+    ".agents/skills/use-grill-me/",
+    "scripts/governance/verify-task-decision-delivery.mjs",
+    "scripts/tests/test-task-decision-delivery.mjs",
+    "package.json",
+    ".github/workflows/task-decision-delivery.yml"
+  ]
+}
