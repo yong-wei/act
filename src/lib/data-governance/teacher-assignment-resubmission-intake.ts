@@ -68,7 +68,10 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
   const intake = await db.teacherAssignmentResubmissionIntake.findUnique({
     where: { id: claim.id },
     include: {
-      attempt: { include: { answer: { include: { assets: { where: { attemptId: claim.attemptId, state: 'FINALIZED' }, orderBy: [{ orderIndex: 'asc' }, { version: 'asc' }] } } } } },
+      attempt: { include: { answer: { include: {
+        submission: { select: { frozenAudienceClassId: true } },
+        assets: { where: { attemptId: claim.attemptId, state: 'FINALIZED' }, orderBy: [{ orderIndex: 'asc' }, { version: 'asc' }] },
+      } } } },
       grant: true,
       sourceGradingRun: { include: { answerEvidence: { include: { conversion: true } } } },
     },
@@ -114,6 +117,10 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
                 purpose: 'answer-conversion',
                 enabled: true,
                 disabledAt: null,
+                OR: [
+                  { classScope: { has: '*' } },
+                  { classScope: { has: intake.attempt.answer.submission.frozenAudienceClassId } },
+                ],
                 id: {
                   endsWith: asset.mimeType.trim().toLowerCase().startsWith('image/')
                     ? ':image'

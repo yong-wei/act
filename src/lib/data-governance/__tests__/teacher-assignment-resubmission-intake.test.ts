@@ -160,7 +160,11 @@ describe('teacher assignment resubmission intake', () => {
         findUnique: vi.fn(async () => ({
           id: `intake-${assetId}`, attemptId: 'attempt-new', state: 'PROCESSING', claimToken,
           grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-1' },
-          attempt: { answer: { responseType: 'SUBJECTIVE_FILE', assets: [{ id: assetId, mimeType }] } },
+          attempt: { answer: {
+            responseType: 'SUBJECTIVE_FILE',
+            submission: { frozenAudienceClassId: 'class-1' },
+            assets: [{ id: assetId, mimeType }],
+          } },
           sourceGradingRun: {
             policyId: 'grading-policy-1',
             answerEvidence: { conversion: { adapterVersion: 'mathpix.v1', policyId: 'old-opposite-mime-policy' } },
@@ -194,6 +198,10 @@ describe('teacher assignment resubmission intake', () => {
           purpose: 'answer-conversion',
           enabled: true,
           disabledAt: null,
+          OR: [
+            { classScope: { has: '*' } },
+            { classScope: { has: 'class-1' } },
+          ],
           id: { endsWith: expectedSuffix },
         }),
       }));
@@ -217,7 +225,11 @@ describe('teacher assignment resubmission intake', () => {
         findUnique: vi.fn(async () => ({
           id: 'intake-legacy', attemptId: 'attempt-new', state: 'PROCESSING', claimToken,
           grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-legacy' },
-          attempt: { answer: { responseType: 'SUBJECTIVE_FILE', assets: [{ id: 'asset-new', mimeType: 'application/pdf' }] } },
+          attempt: { answer: {
+            responseType: 'SUBJECTIVE_FILE',
+            submission: { frozenAudienceClassId: 'class-1' },
+            assets: [{ id: 'asset-new', mimeType: 'application/pdf' }],
+          } },
           sourceGradingRun: { policyId: 'grading-policy-1', answerEvidence: null },
         })),
       },
@@ -255,7 +267,11 @@ describe('teacher assignment resubmission intake', () => {
           grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-1' },
           attempt: {
             textSnapshot: null,
-            answer: { responseType: 'SUBJECTIVE_TEXT', assets: [{ id: 'asset-new', mimeType: 'application/pdf' }] },
+            answer: {
+              responseType: 'SUBJECTIVE_TEXT',
+              submission: { frozenAudienceClassId: 'class-1' },
+              assets: [{ id: 'asset-new', mimeType: 'application/pdf' }],
+            },
           },
           sourceGradingRun: { policyId: 'grading-policy-1', answerEvidence: null },
         })),

@@ -435,8 +435,12 @@ function replaceEmbeddedAsset(
   const titleAssetPattern = new RegExp(
     `!\\[[^\\]]*\\]\\([^\\n)]*?\\s+["']asset:${escaped}["']\\)`,
   );
-  return titleAssetPattern.test(markdown)
-    ? markdown.replace(titleAssetPattern, replacement)
+  if (titleAssetPattern.test(markdown)) {
+    return markdown.replace(titleAssetPattern, replacement);
+  }
+  const rawAssetPattern = new RegExp(`<?asset:${escaped}>?`);
+  return rawAssetPattern.test(markdown)
+    ? markdown.replace(rawAssetPattern, replacement)
     : `${markdown.trim()}${replacement}`;
 }
 
@@ -452,9 +456,11 @@ function embeddedAssetIndex(
   const titleAssetPattern = new RegExp(
     `!\\[[^\\]]*\\]\\([^\\n)]*?\\s+["']asset:${escaped}["']\\)`,
   );
+  const rawAssetPattern = new RegExp(`<?asset:${escaped}>?`);
   const directIndex = markdown.search(directAssetPattern);
   const titleIndex = markdown.search(titleAssetPattern);
-  const positions = [directIndex, titleIndex].filter((index) => index >= 0);
+  const rawIndex = markdown.search(rawAssetPattern);
+  const positions = [directIndex, titleIndex, rawIndex].filter((index) => index >= 0);
   return positions.length > 0 ? Math.min(...positions) : Number.MAX_SAFE_INTEGER;
 }
 

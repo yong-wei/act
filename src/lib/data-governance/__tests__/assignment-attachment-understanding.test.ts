@@ -241,6 +241,32 @@ describe('assignment attachment understanding', () => {
       .toBeLessThan(blockText.findIndex((text) => text.includes('after')));
   });
 
+  it('replaces raw embedded asset markers at their original positions', () => {
+    const assembled = assembleAssignmentAnswerEvidence({
+      attemptId: 'attempt-raw-marker',
+      answerVersion: 1,
+      textSnapshot: 'before\nasset:md:raw-image\nafter',
+      attachments: [{
+        assetId: 'asset-raw',
+        displayName: 'raw.png',
+        mimeType: 'image/png',
+        checksum: 'sha256:raw',
+        role: 'EMBEDDED_IMAGE',
+        orderIndex: 0,
+        embeddedPosition: 'md:raw-image',
+        route: 'binary-mathpix',
+        state: 'READY',
+        canonicalMarkdown: 'RAW-IMAGE-CONTENT',
+        blocks: [{ id: 'raw-image', blockIndex: 0, text: 'RAW-IMAGE-CONTENT' }],
+      }],
+    });
+
+    const markdown = assembled.evidence.canonicalMarkdown;
+    expect(markdown).not.toContain('asset:md:raw-image');
+    expect(markdown.indexOf('before')).toBeLessThan(markdown.indexOf('RAW-IMAGE-CONTENT'));
+    expect(markdown.indexOf('RAW-IMAGE-CONTENT')).toBeLessThan(markdown.indexOf('after'));
+  });
+
   it('orders embedded image manifest sources by their text anchors', () => {
     const assembled = assembleAssignmentAnswerEvidence({
       attemptId: 'attempt-manifest-anchor-order',
