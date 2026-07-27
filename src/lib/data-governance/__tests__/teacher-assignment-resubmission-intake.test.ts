@@ -143,7 +143,7 @@ describe('teacher assignment resubmission intake', () => {
   it.each([
     ['image/png', 'asset-image'],
     ['application/pdf', 'asset-pdf'],
-  ])('reselects conversion policy from the new %s asset instead of inheriting the old policy', async (mimeType, assetId) => {
+  ])('uses governed assignment understanding for the new %s asset instead of inheriting the old policy', async (mimeType, assetId) => {
     const now = new Date('2026-07-17T03:00:00.000Z');
     let claimToken: string | null = null;
     const updateMany = vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
@@ -177,7 +177,8 @@ describe('teacher assignment resubmission intake', () => {
     expect(persistence.enqueueDocumentConversion).toHaveBeenCalledWith(expect.objectContaining({
       assetId,
       attemptId: 'attempt-new',
-      adapterVersion: 'mathpix.v1',
+      adapterVersion: 'assignment-understanding.v1',
+      allowDefaultPolicyDiscovery: false,
     }));
     expect(persistence.enqueueDocumentConversion.mock.calls[0]?.[0]).not.toHaveProperty('policyId');
   });
@@ -208,7 +209,9 @@ describe('teacher assignment resubmission intake', () => {
 
     await expect(drainTeacherAssignmentResubmissionIntakes({ db, now: () => now })).resolves.toMatchObject({ waiting: 1, blocked: 0 });
     expect(persistence.enqueueDocumentConversion).toHaveBeenCalledWith(expect.objectContaining({
-      assetId: 'asset-new', adapterVersion: 'router.v1',
+      assetId: 'asset-new',
+      adapterVersion: 'assignment-understanding.v1',
+      allowDefaultPolicyDiscovery: false,
     }));
     expect(persistence.enqueueDocumentConversion.mock.calls[0]?.[0]).not.toHaveProperty('policyId');
   });
@@ -324,6 +327,8 @@ describe('teacher assignment resubmission intake', () => {
       documentConversion: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'conversion-resubmitted',
+          adapter: 'mathpix',
+          adapterVersion: 'assignment-understanding.v1',
           state: 'SUCCEEDED',
           canonicalMarkdown: 'converted answer',
           normalizedBlocks: [{ id: 'page-1', blockIndex: 0, pageNumber: 1, text: 'converted answer', precision: 'page' }],

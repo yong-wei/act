@@ -91,7 +91,6 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
     evidence = (await materializeTextAnswerEvidence({ db, attemptId: intake.attemptId, actor, operation: 'resubmission-answer-evidence', idempotencyKey: `resubmission-evidence:${intake.attemptId}`, now })).evidence;
   }
   if (!evidence && assets.length > 0) {
-    const sourceConversion = intake.sourceGradingRun.answerEvidence?.conversion;
     const understood: AssignmentAttachmentUnderstanding[] = [];
     let waitingForConversion = false;
     for (const [assetIndex, asset] of assets.entries()) {
@@ -100,7 +99,11 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
         asset.originalName ?? asset.displayName ?? '',
       );
       const existing = await db.documentConversion.findFirst({
-        where: { attemptId: intake.attemptId, assetId: asset.id },
+        where: {
+          attemptId: intake.attemptId,
+          assetId: asset.id,
+          adapterVersion: 'assignment-understanding.v1',
+        },
         orderBy: { version: 'desc' },
       });
       if (!existing) {
@@ -109,7 +112,8 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
           assetId: asset.id,
           attemptId: intake.attemptId,
           actor,
-          adapterVersion: sourceConversion?.adapterVersion ?? 'router.v1',
+          adapterVersion: 'assignment-understanding.v1',
+          allowDefaultPolicyDiscovery: false,
           idempotencyKey: `resubmission-conversion:${intake.attemptId}:${asset.id}`,
           reason: `teacher-return:${intake.grant.sourceReviewId}`,
           now,
@@ -121,11 +125,14 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
         waitingForConversion = true;
         continue;
       }
-      const ready = existing.state === 'SUCCEEDED'
+      const legacyLocal = ['local-fallback', 'local-markitdown']
+        .includes(existing.adapter);
+      const ready = !legacyLocal && existing.state === 'SUCCEEDED'
         && Boolean(existing.canonicalMarkdown?.trim());
       const limitations = [
         ...(existing.warningCodes ?? []),
         ...(existing.failureCode ? [existing.failureCode] : []),
+        ...(legacyLocal ? ['legacy-local-binary-ineligible'] : []),
       ];
       understood.push({
         assetId: asset.id,
