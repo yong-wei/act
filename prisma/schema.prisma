@@ -518,9 +518,9 @@ model User {
   studentStates    StudentState[]
 
   // 教师班级管理
-  teacherClasses          Class[] @relation("TeacherClasses")
-  defaultTeachingClassId  String? @unique
-  defaultTeachingClass    Class?  @relation("DefaultTeachingClass", fields: [defaultTeachingClassId], references: [id], onDelete: SetNull)
+  teacherClasses         Class[] @relation("TeacherClasses")
+  defaultTeachingClassId String? @unique
+  defaultTeachingClass   Class?  @relation("DefaultTeachingClass", fields: [defaultTeachingClassId], references: [id], onDelete: SetNull)
 
   // 互动埋点日志
   interactionLogs      InteractionLog[]
@@ -880,23 +880,23 @@ model SmartLessonGenerationJob {
 }
 
 model SmartLessonGenerationStage {
-  id                String                          @id @default(cuid())
-  ownerId           String
-  jobId             String
-  kind              SmartLessonGenerationStageKind
-  orderIndex        Int
-  state             SmartLessonGenerationStageState @default(PENDING)
-  actionState       SmartLessonGenerationActionState @default(WAITING)
-  attemptGeneration Int                             @default(0)
-  providerAttemptGeneration Int                     @default(1)
-  claimToken        String?
-  claimExpiresAt    DateTime?
-  output            Json?
-  outputHash        String?
-  startedAt         DateTime?
-  completedAt       DateTime?
-  createdAt         DateTime                        @default(now())
-  updatedAt         DateTime                        @updatedAt
+  id                        String                           @id @default(cuid())
+  ownerId                   String
+  jobId                     String
+  kind                      SmartLessonGenerationStageKind
+  orderIndex                Int
+  state                     SmartLessonGenerationStageState  @default(PENDING)
+  actionState               SmartLessonGenerationActionState @default(WAITING)
+  attemptGeneration         Int                              @default(0)
+  providerAttemptGeneration Int                              @default(1)
+  claimToken                String?
+  claimExpiresAt            DateTime?
+  output                    Json?
+  outputHash                String?
+  startedAt                 DateTime?
+  completedAt               DateTime?
+  createdAt                 DateTime                         @default(now())
+  updatedAt                 DateTime                         @updatedAt
 
   job      SmartLessonGenerationJob     @relation(fields: [jobId], references: [id], onDelete: Restrict)
   attempts SmartLessonProviderAttempt[]
@@ -907,32 +907,32 @@ model SmartLessonGenerationStage {
 }
 
 model SmartLessonProviderAttempt {
-  id                   String                            @id @default(cuid())
-  ownerId              String
-  stageId              String
-  attemptNumber        Int
-  kind                 SmartLessonProviderAttemptKind @default(ORIGINAL)
-  providerAttemptGeneration Int                       @default(1)
-  deliveryGeneration   Int
-  idempotencyKey       String
-  serviceId            String
-  providerKind         String
-  model                String
-  promptVersion        String
-  schemaVersion        String
-  requestHash          String
-  requestSnapshot      Json
-  validationReceipt    Json?
-  correctsAttemptId    String?
-  normalizedResponseId String?
-  outcome              SmartLessonProviderAttemptOutcome @default(RUNNING)
-  inputTokens          Int?
-  outputTokens         Int?
-  costMicros           BigInt?
-  startedAt            DateTime                          @default(now())
-  finishedAt           DateTime?
+  id                        String                            @id @default(cuid())
+  ownerId                   String
+  stageId                   String
+  attemptNumber             Int
+  kind                      SmartLessonProviderAttemptKind    @default(ORIGINAL)
+  providerAttemptGeneration Int                               @default(1)
+  deliveryGeneration        Int
+  idempotencyKey            String
+  serviceId                 String
+  providerKind              String
+  model                     String
+  promptVersion             String
+  schemaVersion             String
+  requestHash               String
+  requestSnapshot           Json
+  validationReceipt         Json?
+  correctsAttemptId         String?
+  normalizedResponseId      String?
+  outcome                   SmartLessonProviderAttemptOutcome @default(RUNNING)
+  inputTokens               Int?
+  outputTokens              Int?
+  costMicros                BigInt?
+  startedAt                 DateTime                          @default(now())
+  finishedAt                DateTime?
 
-  stage             SmartLessonGenerationStage  @relation(fields: [stageId], references: [id], onDelete: Restrict)
+  stage             SmartLessonGenerationStage   @relation(fields: [stageId], references: [id], onDelete: Restrict)
   correctsAttempt   SmartLessonProviderAttempt?  @relation("SmartLessonProviderAttemptCorrection", fields: [correctsAttemptId], references: [id], onDelete: Restrict)
   correctionAttempt SmartLessonProviderAttempt[] @relation("SmartLessonProviderAttemptCorrection")
 
@@ -1193,7 +1193,7 @@ model SmartCoursewarePdfExport {
   createdAt             DateTime @default(now())
 
   publicationRevision SmartCoursewarePublicationRevision @relation(fields: [publicationRevisionId], references: [id], onDelete: Restrict)
-  createdBy          User                                @relation("SmartCoursewarePdfExportActor", fields: [createdById], references: [id], onDelete: Restrict)
+  createdBy           User                               @relation("SmartCoursewarePdfExportActor", fields: [createdById], references: [id], onDelete: Restrict)
 
   @@unique([ownerId, idempotencyKey])
   @@unique([publicationRevisionId, rendererVersion])
@@ -1410,12 +1410,12 @@ model ControlOdysseyAiHistory {
 
 // 班级管理
 model Class {
-  id        String @id @default(cuid())
-  name      String
-  code      String @unique // 6位班级码，学生通过此码加入班级
-  teacherId String
-  teacher   User   @relation("TeacherClasses", fields: [teacherId], references: [id])
-  defaultForTeacher User? @relation("DefaultTeachingClass")
+  id                String @id @default(cuid())
+  name              String
+  code              String @unique // 6位班级码，学生通过此码加入班级
+  teacherId         String
+  teacher           User   @relation("TeacherClasses", fields: [teacherId], references: [id])
+  defaultForTeacher User?  @relation("DefaultTeachingClass")
 
   description String?
   year        String? // 学年
@@ -1582,18 +1582,18 @@ model AssignmentSubmission {
 }
 
 model SubmissionAnswer {
-  id                   String                @id @default(cuid())
-  submissionId         String
-  assignmentQuestionId String
-  state                SubmissionAnswerState @default(DRAFT)
-  version              Int                   @default(1)
-  responseType         String
-  answerContractVersion String              @default("assignment-response.v2")
-  textDraft            String?
+  id                        String                @id @default(cuid())
+  submissionId              String
+  assignmentQuestionId      String
+  state                     SubmissionAnswerState @default(DRAFT)
+  version                   Int                   @default(1)
+  responseType              String
+  answerContractVersion     String                @default("assignment-response.v2")
+  textDraft                 String?
   attachmentOrderProvenance String?
-  currentAttemptNumber Int                   @default(0)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  currentAttemptNumber      Int                   @default(0)
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
 
   submission         AssignmentSubmission                 @relation(fields: [submissionId], references: [id], onDelete: Restrict)
   question           AssignmentQuestion                   @relation(fields: [assignmentQuestionId], references: [id], onDelete: Restrict)
@@ -1792,28 +1792,28 @@ model GradingRequestIdempotency {
 }
 
 model LearningMaterializationRebuildRequest {
-  userId             String    @id
-  classIds           Json
-  reason             String
-  kind               String    @default("LEGACY")
-  migrationRunId     String?
-  calculationVersion String?
-  learnerGeneration  BigInt?
-  queueGeneration    BigInt?
-  cutoverFence       BigInt?
-  inputDigest        String?
+  userId              String    @id
+  classIds            Json
+  reason              String
+  kind                String    @default("LEGACY")
+  migrationRunId      String?
+  calculationVersion  String?
+  learnerGeneration   BigInt?
+  queueGeneration     BigInt?
+  cutoverFence        BigInt?
+  inputDigest         String?
   simulationTaskInput Json?
-  status             String    @default("PENDING")
-  generation         Int       @default(1)
-  claimedGeneration  Int?
-  claimToken         String?
-  claimExpiresAt     DateTime?
-  attemptCount       Int       @default(0)
-  lastErrorCode      String?
-  completedAt        DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status              String    @default("PENDING")
+  generation          Int       @default(1)
+  claimedGeneration   Int?
+  claimToken          String?
+  claimExpiresAt      DateTime?
+  attemptCount        Int       @default(0)
+  lastErrorCode       String?
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status, claimExpiresAt, updatedAt], map: "LMRebuild_status_claim_exp_updated_idx")
   @@index([kind, migrationRunId, cutoverFence], map: "LMRebuild_kind_run_fence_idx")
@@ -2054,6 +2054,7 @@ model AnswerEvidence {
   readiness                         AnswerEvidenceReadiness  @default(PENDING)
   limitationState                   String                   @default("none")
   limitations                       String[]                 @default([])
+  sourceManifest                    Json                     @default("{}")
   lifecyclePolicyId                 String?
   lifecyclePolicyVersion            String?
   lifecycleDeleteStrategy           String?
@@ -2348,6 +2349,7 @@ model GradingRun {
   referenceAnswer                   String?         @db.Text
   limitations                       String[]        @default([])
   blockedReasons                    String[]        @default([])
+  evidenceState                     String          @default("COMPLETE")
   state                             GradingRunState @default(QUEUED)
   draftTotalScore                   Float?
   overallComment                    String?         @db.Text
@@ -2567,31 +2569,33 @@ model TeacherAssignmentReview {
 }
 
 model TeacherAssignmentApprovalSnapshot {
-  id                     String   @id
-  reviewId               String   @unique
-  assignmentId           String
-  assignmentRevisionId   String
-  submissionId           String
-  answerId               String
-  attemptId              String
-  questionId             String
-  gradingRunId           String   @unique
-  answerEvidenceId       String
-  reviewerId             String
-  reviewVersion          Int
-  idempotencyKey         String
-  requestHash            String
-  machineSnapshotHash    String
-  criterionSnapshot      Json
-  annotationSnapshot     Json
-  questionTotal          Decimal  @db.Decimal(10, 4)
-  overallComment         String?  @db.Text
-  authorizationSnapshot  Json
-  rubricVersion          String
-  evaluatorVersion       String
-  lifecyclePolicyVersion String?
-  approvedAt             DateTime
-  createdAt              DateTime @default(now())
+  id                          String   @id
+  reviewId                    String   @unique
+  assignmentId                String
+  assignmentRevisionId        String
+  submissionId                String
+  answerId                    String
+  attemptId                   String
+  questionId                  String
+  gradingRunId                String   @unique
+  answerEvidenceId            String
+  reviewerId                  String
+  reviewVersion               Int
+  idempotencyKey              String
+  requestHash                 String
+  machineSnapshotHash         String
+  criterionSnapshot           Json
+  annotationSnapshot          Json
+  questionTotal               Decimal  @db.Decimal(10, 4)
+  overallComment              String?  @db.Text
+  authorizationSnapshot       Json
+  rubricVersion               String
+  evaluatorVersion            String
+  lifecyclePolicyVersion      String?
+  incompleteEvidenceConfirmed Boolean  @default(false)
+  omittedAssetIds             String[] @default([])
+  approvedAt                  DateTime
+  createdAt                   DateTime @default(now())
 
   review              TeacherAssignmentReview               @relation(fields: [reviewId], references: [id], onDelete: Restrict)
   assignment          Assignment                            @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
@@ -4557,7 +4561,7 @@ model LearnerFactTransition {
   correctionOfSequence BigInt?
   createdAt            DateTime                       @default(now())
 
-  fact                LearningFact                 @relation(fields: [factId], references: [id], onDelete: Restrict)
+  fact                LearningFact               @relation(fields: [factId], references: [id], onDelete: Restrict)
   riskStates          LearnerEvidenceRiskState[]
   growthInvalidations GrowthRecordInvalidation[]
 
@@ -4576,26 +4580,26 @@ model LearnerFactTransitionSequence {
 // Immutable versioned learner state. NO_EVIDENCE rows are current tombstones,
 // not replacements or deletions of prior portrait snapshots.
 model LearnerPortraitStateVersion {
-  id                       String                   @id @default(cuid())
-  userId                   String
-  calculationVersion       String
-  generation               BigInt
-  queueGeneration          BigInt
-  stateWatermark           BigInt
-  taskInputDigest          String                   @default("")
-  stateKind                LearnerPortraitStateKind
-  snapshotId               String?
-  overallScore             Float?
-  dimensionCoverage        Json
-  evidenceAsOf             DateTime?
-  confidence               Float?
-  lastTrend                String?
-  lastRisk                 Json?
-  availabilityReason       String
-  generatedAt              DateTime
-  cutoverFence             BigInt
-  migrationRunId           String?
-  createdAt                DateTime                 @default(now())
+  id                 String                   @id @default(cuid())
+  userId             String
+  calculationVersion String
+  generation         BigInt
+  queueGeneration    BigInt
+  stateWatermark     BigInt
+  taskInputDigest    String                   @default("")
+  stateKind          LearnerPortraitStateKind
+  snapshotId         String?
+  overallScore       Float?
+  dimensionCoverage  Json
+  evidenceAsOf       DateTime?
+  confidence         Float?
+  lastTrend          String?
+  lastRisk           Json?
+  availabilityReason String
+  generatedAt        DateTime
+  cutoverFence       BigInt
+  migrationRunId     String?
+  createdAt          DateTime                 @default(now())
 
   snapshot       StudentPortraitV2Snapshot?      @relation(fields: [snapshotId], references: [id], onDelete: Restrict)
   migrationRun   CumulativePortraitMigrationRun? @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
@@ -4645,7 +4649,7 @@ model CumulativePortraitCutoverFence {
 // Evidence risk history is independent from teacher disposition fields on
 // StudentRiskFlag. Current state is selected by the greatest transition sequence.
 model LearnerEvidenceRiskState {
-  id                       String   @id @default(cuid())
+  id                       String                  @id @default(cuid())
   userId                   String
   riskKey                  String
   riskType                 LearnerEvidenceRiskType
@@ -4656,7 +4660,7 @@ model LearnerEvidenceRiskState {
   stateGeneration          BigInt
   sourceTransitionSequence BigInt
   occurredAt               DateTime
-  createdAt                DateTime @default(now())
+  createdAt                DateTime                @default(now())
 
   sourceTransition LearnerFactTransition @relation(fields: [userId, sourceTransitionSequence], references: [userId, sequence], onDelete: Restrict)
 
@@ -4689,7 +4693,7 @@ model CumulativePortraitMigrationRun {
   learnerStates      LearnerPortraitStateVersion[]
   classVersions      ClassCumulativePortraitVersion[]
   receipts           CumulativePortraitMigrationReceipt[]
-  activeCutoverFence CumulativePortraitCutoverFence?           @relation("ActiveCumulativePortraitMigrationRun")
+  activeCutoverFence CumulativePortraitCutoverFence?      @relation("ActiveCumulativePortraitMigrationRun")
 
   @@index([status, startedAt])
   @@index([sourceDryRunId])
@@ -4698,17 +4702,17 @@ model CumulativePortraitMigrationRun {
 
 // Append-only stage and subject receipts make migration retries auditable.
 model CumulativePortraitMigrationReceipt {
-  id          String                                    @id @default(cuid())
+  id          String                                   @id @default(cuid())
   runId       String
   stage       String
   subjectKind String
   subjectKey  String
-  attempt     Int                                       @default(1)
+  attempt     Int                                      @default(1)
   status      CumulativePortraitMigrationReceiptStatus
   inputDigest String
-  counts      Json                                      @default("{}")
-  details     Json                                      @default("{}")
-  createdAt   DateTime                                  @default(now())
+  counts      Json                                     @default("{}")
+  details     Json                                     @default("{}")
+  createdAt   DateTime                                 @default(now())
 
   run CumulativePortraitMigrationRun @relation(fields: [runId], references: [id], onDelete: Restrict)
 
@@ -4808,7 +4812,7 @@ model ClassCompetencySnapshot {
 // Immutable class-competency.cumulative.v2 history. Legacy v1 rows remain in
 // ClassCompetencySnapshot and are not eligible for this model's current pointer.
 model ClassCumulativePortraitVersion {
-  id                     String   @id @default(cuid())
+  id                     String    @id @default(cuid())
   classId                String
   materializationVersion String
   calculationVersion     String
@@ -4828,9 +4832,9 @@ model ClassCumulativePortraitVersion {
   totalStudentCount      Int
   cutoverFence           BigInt
   generatedAt            DateTime
-  createdAt              DateTime @default(now())
+  createdAt              DateTime  @default(now())
 
-  migrationRun   CumulativePortraitMigrationRun  @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
+  migrationRun   CumulativePortraitMigrationRun       @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
   currentPointer ClassCumulativePortraitCurrentState?
 
   @@unique([classId, migrationRunId, inputDigest], map: "ClassCumulativePortrait_class_run_input_key")
@@ -4884,28 +4888,28 @@ model StudentRiskFlag {
 
 // Growth records for portfolio
 model GrowthRecord {
-  id                 String  @id @default(cuid())
-  userId             String
-  businessKey        String? @unique(map: "GrowthRecord_businessKey_key")
+  id          String  @id @default(cuid())
+  userId      String
+  businessKey String? @unique(map: "GrowthRecord_businessKey_key")
 
-  recordType         String // milestone, breakthrough, remediation, reflection, portfolio
-  title              String
-  description        String
+  recordType  String // milestone, breakthrough, remediation, reflection, portfolio
+  title       String
+  description String
 
-  evidenceJson       Json
-  mediaUrls          String[]
+  evidenceJson Json
+  mediaUrls    String[]
 
-  occurredAt         DateTime
-  courseId           String?
-  isPublic           Boolean  @default(false)
+  occurredAt DateTime
+  courseId   String?
+  isPublic   Boolean  @default(false)
 
   createdAt          DateTime  @default(now())
   sourceSnapshotAt   DateTime?
   sourceInputDigest  String?
   expiresAt          DateTime?
   calculationVersion String?
-  stateGeneration     BigInt?
-  derivedIdentity     String?   @unique
+  stateGeneration    BigInt?
+  derivedIdentity    String?   @unique
 
   invalidations GrowthRecordInvalidation[]
 

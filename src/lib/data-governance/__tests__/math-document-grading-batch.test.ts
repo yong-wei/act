@@ -326,6 +326,7 @@ describe('question-scoped grading batch orchestration', () => {
     };
     const conversion = vi.spyOn(gradingPersistence, 'enqueueDocumentConversion').mockResolvedValue({ conversion: { id: 'conversion-policy-routing', state: 'QUEUED' }, job: { id: 'conversion-job-policy-routing' }, replay: false } as any);
     const conversionWorker = vi.spyOn(gradingPersistence, 'processDocumentConversionJob').mockResolvedValue({ conversion: { id: 'conversion-policy-routing', state: 'SUCCEEDED' }, evidence } as any);
+    vi.spyOn(gradingPersistence, 'materializeAssignmentAnswerEvidence').mockResolvedValue({ evidence, replay: false } as any);
     const grading = vi.spyOn(gradingPersistence, 'enqueueGradingRun').mockResolvedValue({ run: { id: 'run-policy-routing', inputHash: 'sha256:input', state: 'QUEUED' }, job: { id: 'grading-job-policy-routing' }, replay: false } as any);
     vi.spyOn(gradingPersistence, 'processGradingRunJob').mockResolvedValue({ run: { id: 'run-policy-routing', state: 'AWAITING_REVIEW' }, draft: {} } as any);
     await processQuestionGradingBatch({ db, batchId: batch.id, store: {} as any, mathpix: {} as any, now });

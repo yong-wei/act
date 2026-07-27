@@ -3,7 +3,7 @@
 ### Requirement: Documents are converted before grading
 The system SHALL convert uploaded grading documents into analysis-ready artifacts before rubric grading, except that binary attachments bound to unified assignment responses SHALL use the governed Mathpix-only understanding route.
 
-#### Scenario: Non-assignment grading document is converted
+#### Scenario: Document is converted
 - **WHEN** a teacher or authorized service uploads a PDF or supported office document outside the unified assignment-response attachment path
 - **THEN** the system SHALL create a submission asset record, run an eligible governed conversion adapter such as MarkItDown, store Markdown or structured blocks, preserve checksum, page or block references, and report conversion confidence.
 
@@ -35,6 +35,11 @@ The system SHALL normalize each submitted question answer attempt into versioned
 - **THEN** successful canonical content and explicit missing-understanding entries SHALL be appended after the student text in the student's persisted attachment order
 - **AND** the source manifest SHALL bind every segment or limitation to the exact sealed asset identity.
 
+#### Scenario: Submitted document answer is normalized
+- **WHEN** all terminal understanding results for a sealed answer attempt are assembled
+- **THEN** the resulting ordered canonical blocks, source manifest, and anchor map SHALL become a new immutable grading evidence identity for that exact answer attempt
+- **AND** any prior evidence identity SHALL remain unchanged.
+
 #### Scenario: Answer version changes
 - **WHEN** a later answer attempt is submitted
 - **THEN** the system SHALL create a new evidence identity and preserve prior evidence, runs, source order, and review lineage.
@@ -47,6 +52,16 @@ The system SHALL process supported binary question attachments asynchronously th
 - **THEN** the pipeline SHALL invoke Mathpix with the authorized immutable source asset and record provider routing, version, request lineage, and declared limitations
 - **AND** MarkItDown, OOXML extraction, local OCR, or another local semantic result SHALL NOT be used as grading-understanding fallback.
 
+#### Scenario: Formula-heavy DOCX is converted
+- **WHEN** a formula-heavy DOCX is outside the unified assignment-response path
+- **THEN** the canonical document pipeline MAY preserve an authorized rendered representation, extract available structure, invoke Mathpix as policy permits, and record converter routing and versions
+- **AND** a unified assignment-response DOCX SHALL use the Mathpix-only understanding route.
+
+#### Scenario: Local conversion is sufficient
+- **WHEN** a supported document outside the unified assignment-response path can produce reliable canonical content through an approved local adapter
+- **THEN** the pipeline SHALL use the local result and record its adapter id, version, confidence, and limitations
+- **AND** that local result SHALL NOT be reused as unified assignment-response binary evidence.
+
 #### Scenario: Markdown or plain-text attachment is processed
 - **WHEN** a finalized Markdown or plain-text attachment belongs to a submitted question answer
 - **THEN** the pipeline SHALL verify persisted asset integrity and read it directly through the bounded text adapter
@@ -57,10 +72,15 @@ The system SHALL process supported binary question attachments asynchronously th
 - **THEN** the attachment SHALL enter an explicit understanding-unavailable state while preserving the original asset for authorized manual review
 - **AND** the pipeline SHALL NOT claim conversion success or substitute local binary semantic extraction.
 
+#### Scenario: External provider is disabled or fails
+- **WHEN** Mathpix is disabled or finally fails for a unified assignment-response binary attachment
+- **THEN** the attachment SHALL enter an explicit understanding-unavailable state and preserve the original asset for authorized manual review
+- **AND** eligible fallback remains available only to non-assignment canonical document conversion.
+
 ### Requirement: External answer processing is governed by one failure-closed policy
 The system SHALL apply a versioned external-processing policy to Mathpix and AI evaluator providers before any student answer content is sent externally.
 
-#### Scenario: Mathpix processes a student binary attachment
+#### Scenario: Mathpix processes a student document
 - **WHEN** the frozen answer-conversion policy confirms purpose `answer-conversion`, data category, minimized scope, institution/class permission, processing region and agreement version, training-use prohibition, provider retention window, deletion capability, and credential version
 - **THEN** credentials SHALL remain in rotatable server-side secret management, payload SHALL be limited to the selected attachment, and audit SHALL record safe pseudonymous provider/request/policy metadata without answer content, signed URLs, or secret values.
 
@@ -79,6 +99,11 @@ The system SHALL apply a versioned external-processing policy to Mathpix and AI 
 
 ### Requirement: Batch grading is observable, resumable, and failure-isolated
 The system SHALL support question-scoped grading batches with durable progress, per-answer item state, cancellation, retry, deduplication, provider limitation reporting, and source-aware conversion routing.
+
+#### Scenario: Teacher grades one question across a class
+- **WHEN** an authorized teacher starts a batch for eligible submitted answers to one assignment question
+- **THEN** the batch SHALL freeze assignment question, rubric, evaluator, rubric-grading policy, answer-conversion policy state, and independent item states
+- **AND** each unified-response binary attachment SHALL use Mathpix only when the frozen answer-conversion policy permits.
 
 #### Scenario: Teacher grades unified assignment responses across a class
 - **WHEN** an authorized teacher starts a batch for eligible submitted answers to one assignment question

@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
 import {
+  assembleAssignmentAnswerEvidence,
+  assignmentAttachmentRoute,
+  type AssignmentAttachmentUnderstanding,
+} from './assignment-attachment-understanding';
+import {
   buildGradingRequestHash,
   buildPipelineDedupeKey,
   buildRerunIdentity,
@@ -14,6 +19,7 @@ import {
   assertCurrentGradingProviderPolicy,
   enqueueDocumentConversion,
   enqueueGradingRun,
+  materializeAssignmentAnswerEvidence,
   materializeTextAnswerEvidence,
   processDocumentConversionJob,
   processGradingRunJob,
@@ -630,7 +636,21 @@ async function processBatchItem(input: {
   await assertBatchWorkerLease(input);
   await assertBatchNotCancelled(input.db, input.batch.id);
   if (!input.item.attemptId) throw new Error('batch-item-content-unavailable:attempt-missing');
-  const attempt = await input.db.submissionAttempt.findUnique({ where: { id: input.item.attemptId }, include: { answer: { include: { assets: { where: { attemptId: input.item.attemptId, state: 'FINALIZED' }, orderBy: { version: 'desc' }, take: 1 }, submission: true, question: true } } } });
+  const attempt = await input.db.submissionAttempt.findUnique({
+    where: { id: input.item.attemptId },
+    include: {
+      answer: {
+        include: {
+          assets: {
+            where: { attemptId: input.item.attemptId, state: 'FINALIZED' },
+            orderBy: [{ orderIndex: 'asc' }, { version: 'asc' }],
+          },
+          submission: true,
+          question: true,
+        },
+      },
+    },
+  });
   if (!attempt || !attempt.answer) throw new Error('batch-item-content-unavailable:attempt-not-found');
   if (attempt.answer.submission === null || attempt.answer.question === null || attempt.answer.submission?.frozenAudienceClassId === null || attempt.answer.question?.assignmentRevisionId === null) throw new Error('batch-item-content-unavailable:association-missing');
   if (input.item.answerVersion !== undefined && attempt.answerVersion !== input.item.answerVersion) throw new Error('batch-frozen-answer-version-mismatch');
@@ -640,52 +660,148 @@ async function processBatchItem(input: {
   if (typeof input.batch.questionSnapshot?.referenceAnswer === 'string' && input.batch.questionSnapshot.referenceAnswer !== input.batch.referenceAnswer) throw new Error('batch-frozen-reference-answer-mismatch');
   if (input.item.rubricVersion && input.item.rubricVersion !== input.batch.rubricVersion) throw new Error('batch-frozen-rubric-version-mismatch');
   if (input.item.evaluatorVersion && input.item.evaluatorVersion !== input.batch.evaluatorVersion) throw new Error('batch-frozen-evaluator-version-mismatch');
-  let evidence = input.item.evidenceId ? await input.db.answerEvidence.findUnique({ where: { id: input.item.evidenceId }, include: { blocks: true } }) : null;
-  if (!evidence) {
-    if (attempt.textSnapshot?.trim()) {
-      await assertBatchWorkerLease(input);
-      await assertBatchNotCancelled(input.db, input.batch.id);
-      const result = await materializeTextAnswerEvidence({
-        db: input.db,
+  let evidence = input.item.evidenceId
+    ? await input.db.answerEvidence.findUnique({
+        where: { id: input.item.evidenceId },
+        include: { blocks: true, conversion: true },
+      })
+    : null;
+  if (evidence?.conversion
+    && ['local-fallback', 'local-markitdown'].includes(evidence.conversion.adapter)) {
+    throw new Error('batch-evidence-legacy-local-binary-ineligible');
+  }
+  if (!evidence && attempt.answer.assets.length === 0 && attempt.textSnapshot?.trim()) {
+    const result = await materializeTextAnswerEvidence({
+      db: input.db,
+      attemptId: attempt.id,
+      actor: { id: 'grading-worker', role: 'SERVICE' },
+      operation: 'grading-batch-item-evidence',
+      idempotencyKey: `batch:${input.batch.id}:${input.item.id}:evidence`,
+      requestHash: buildGradingRequestHash('grading-batch-item-evidence', {
+        batchId: input.batch.id,
+        batchItemId: input.item.id,
         attemptId: attempt.id,
-        actor: { id: 'grading-worker', role: 'SERVICE' },
-        operation: 'grading-batch-item-evidence',
-        idempotencyKey: `batch:${input.batch.id}:${input.item.id}:evidence`,
-        requestHash: buildGradingRequestHash('grading-batch-item-evidence', {
-          batchId: input.batch.id,
-          batchItemId: input.item.id,
-          attemptId: attempt.id,
-          answerVersion: attempt.answerVersion,
-        }),
-        now: input.now,
-      });
-      evidence = result.evidence;
-    } else {
-      const asset = attempt.answer.assets[0];
-      if (!asset) throw new Error('batch-finalized-asset-missing');
+        answerVersion: attempt.answerVersion,
+      }),
+      now: input.now,
+    });
+    evidence = result.evidence;
+  }
+  if (!evidence) {
+    const understood: AssignmentAttachmentUnderstanding[] = [];
+    for (const [assetIndex, asset] of attempt.answer.assets.entries()) {
       await assertBatchWorkerLease(input);
-      await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { state: 'CONVERTING', progress: 20, conversionId: input.item.conversionId, updatedAt: input.now });
       await assertBatchNotCancelled(input.db, input.batch.id);
-      const routedPolicy = selectConversionPolicyForMime(input.batch.conversionPolicySnapshot, asset.mimeType);
+      await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { state: 'CONVERTING', progress: 20, conversionId: input.item.conversionId, updatedAt: input.now });
+      const route = assignmentAttachmentRoute(
+        asset.mimeType,
+        asset.originalName ?? asset.displayName ?? '',
+      );
+      const routedPolicy = route === 'binary-mathpix'
+        ? selectConversionPolicyForMime(input.batch.conversionPolicySnapshot, asset.mimeType)
+        : null;
       const conversionPolicyId = routedPolicy?.id ?? input.batch.conversionPolicyId ?? null;
       const conversionPolicySnapshot = routedPolicy?.snapshot ?? input.batch.conversionPolicySnapshot ?? null;
       const conversionPolicySnapshotHash = routedPolicy?.snapshotHash ?? input.batch.conversionPolicySnapshotHash ?? null;
       const executionSuffix = input.rerunIdentity ? `:${input.rerunIdentity}` : '';
-      const conversion = await enqueueDocumentConversion({ db: input.db, assetId: asset.id, attemptId: attempt.id, actor: { id: 'grading-worker', role: 'SERVICE' }, adapterVersion: 'router.v1', policyId: conversionPolicyId, policySnapshot: conversionPolicySnapshot, policySnapshotHash: conversionPolicySnapshotHash, idempotencyKey: `batch:${input.batch.id}:${input.item.id}:conversion${executionSuffix}`, rerunIdentity: input.rerunIdentity ?? null, reason: input.rerunReason ? `conversion-rerun:${input.rerunReason}` : 'batch-item-conversion', now: input.now });
-      await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { conversionId: conversion.conversion.id, updatedAt: input.now });
-      if (conversion.job) {
-        const processedConversion = await processDocumentConversionJob({ db: input.db, jobId: conversion.job.id, workerClaimToken: input.workerClaimToken, store: input.store, writeRendered: input.store ? (rendered) => writeRenderedObjectToSubmissionStore({ store: input.store!, ...rendered }) : undefined, mathpix: conversionPolicyId ? input.mathpix : undefined, local: input.local, parentLeaseLost: input.parentLeaseLost, signal: input.signal, now: input.now });
-        if (processedConversion.conversion.state === 'CANCELLED') throw new Error('batch-cancelled');
-        if (processedConversion.conversion.state === 'RETRYABLE') throw new Error('batch-conversion-retryable');
-        if (processedConversion.conversion.state === 'BLOCKED') throw new Error('batch-conversion-blocked');
+      const conversion = await enqueueDocumentConversion({
+        db: input.db,
+        assetId: asset.id,
+        attemptId: attempt.id,
+        actor: { id: 'grading-worker', role: 'SERVICE' },
+        adapterVersion: 'assignment-understanding.v1',
+        policyId: route === 'binary-mathpix' ? conversionPolicyId : null,
+        policySnapshot: route === 'binary-mathpix' ? conversionPolicySnapshot : null,
+        policySnapshotHash: route === 'binary-mathpix'
+          ? conversionPolicySnapshotHash
+          : null,
+        idempotencyKey: `batch:${input.batch.id}:${input.item.id}:conversion:${asset.id}${executionSuffix}`,
+        rerunIdentity: input.rerunIdentity ?? null,
+        reason: input.rerunReason
+          ? `conversion-rerun:${input.rerunReason}`
+          : 'batch-item-assignment-understanding',
+        now: input.now,
+      });
+      if (assetIndex === 0) {
+        await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { conversionId: conversion.conversion.id, updatedAt: input.now });
       }
-      await assertBatchWorkerLease(input);
-      await assertBatchNotCancelled(input.db, input.batch.id);
-      evidence = await input.db.answerEvidence.findFirst({ where: { attemptId: attempt.id, readiness: 'READY' }, include: { blocks: true }, orderBy: { version: 'desc' } });
+      let converted = conversion.conversion;
+      if (conversion.job) {
+        const processedConversion = await processDocumentConversionJob({
+          db: input.db,
+          jobId: conversion.job.id,
+          workerClaimToken: input.workerClaimToken,
+          store: input.store,
+          writeRendered: input.store
+            ? (rendered) => writeRenderedObjectToSubmissionStore({
+                store: input.store!,
+                ...rendered,
+              })
+            : undefined,
+          mathpix: route === 'binary-mathpix' ? input.mathpix : undefined,
+          local: undefined,
+          persistEvidence: false,
+          parentLeaseLost: input.parentLeaseLost,
+          signal: input.signal,
+          now: input.now,
+        });
+        converted = processedConversion.conversion;
+        if (processedConversion.conversion.state === 'CANCELLED') throw new Error('batch-cancelled');
+      }
+      const ready = converted.state === 'SUCCEEDED'
+        && Boolean(converted.canonicalMarkdown?.trim());
+      understood.push({
+        assetId: asset.id,
+        displayName: asset.originalName ?? asset.displayName ?? '未命名附件',
+        mimeType: asset.mimeType,
+        checksum: asset.checksum ?? '',
+        role: asset.assetRole === 'EMBEDDED_IMAGE'
+          ? 'EMBEDDED_IMAGE'
+          : 'ATTACHMENT',
+        orderIndex: asset.orderIndex ?? assetIndex,
+        embeddedPosition: asset.embeddedPosition,
+        route,
+        state: ready
+          ? 'READY'
+          : converted.failureCode === 'understanding-unavailable-policy'
+            ? 'UNDERSTANDING_UNAVAILABLE_POLICY'
+            : 'UNDERSTANDING_FAILED',
+        canonicalMarkdown: converted.canonicalMarkdown,
+        blocks: ready
+          ? [{
+              id: 'content',
+              blockIndex: 0,
+              text: converted.canonicalMarkdown,
+              markdown: converted.canonicalMarkdown,
+              precision: String(converted.precision ?? 'BLOCK').toLowerCase() as 'span' | 'block' | 'page',
+              confidence: converted.confidence ?? 0,
+            }]
+          : [],
+        limitations: [
+          ...(converted.warningCodes ?? []),
+          ...(converted.failureCode ? [converted.failureCode] : []),
+        ],
+      });
     }
+    const assembled = assembleAssignmentAnswerEvidence({
+      attemptId: attempt.id,
+      answerVersion: attempt.answerVersion,
+      textSnapshot: attempt.textSnapshot ?? '',
+      attachments: understood,
+    });
+    const result = await materializeAssignmentAnswerEvidence({
+      db: input.db,
+      attemptId: attempt.id,
+      answerVersion: attempt.answerVersion,
+      normalized: assembled.evidence,
+      sourceManifest: assembled.manifest,
+      actor: { id: 'grading-worker', role: 'SERVICE' },
+      now: input.now,
+    });
+    evidence = result.evidence;
   }
   if (!evidence || evidence.readiness !== 'READY') throw new Error('batch-evidence-not-ready');
-  if (input.item.evidenceVersion !== undefined && evidence.version !== input.item.evidenceVersion) throw new Error('batch-frozen-evidence-version-mismatch');
+  if (input.item.evidenceVersion != null && evidence.version !== input.item.evidenceVersion) throw new Error('batch-frozen-evidence-version-mismatch');
   if (input.item.evidenceHash && evidence.sourceHash !== input.item.evidenceHash) throw new Error('batch-frozen-evidence-hash-mismatch');
   await assertBatchWorkerLease(input);
   await assertBatchNotCancelled(input.db, input.batch.id);

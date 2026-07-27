@@ -14,8 +14,10 @@ import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object
 import { ConversionLeaseLostError, convertProtectedSubmission } from '../math-document-conversion';
 import {
   cancelDocumentConversion,
+  evidenceFromRow,
   enqueueDocumentConversion,
   enqueueGradingRun,
+  materializeAssignmentAnswerEvidence,
   materializeTextAnswerEvidence,
   processDocumentConversionJob,
   processGradingRunJob,
@@ -122,6 +124,136 @@ function lifecyclePolicyRepository() {
 }
 
 describe('production math-document grading persistence contracts', () => {
+  it('preserves namespaced aggregate evidence block ids', () => {
+    const evidenceId = 'evidence:attempt-1:1';
+    const evidence = evidenceFromRow({
+      id: evidenceId,
+      sourceKind: 'DOCUMENT',
+      sourceHash: 'sha256:evidence',
+      canonicalMarkdown: 'aggregate evidence',
+      anchorVersion: 'assignment-answer-evidence.v2',
+      precision: 'HIGH',
+      readiness: 'READY',
+      limitationState: 'none',
+      limitations: [],
+      blocks: [{
+        id: `${evidenceId}:asset:asset-1:content`,
+        blockIndex: 0,
+        pageNumber: 1,
+        text: 'aggregate evidence',
+        markdown: 'aggregate evidence',
+        precision: 'HIGH',
+        confidence: 1,
+      }],
+    });
+
+    expect(evidence.blocks[0]?.id).toBe('asset:asset-1:content');
+  });
+
+  it('persists one versioned assignment evidence manifest with namespaced blocks', async () => {
+    const advisoryLock = vi.fn().mockResolvedValue([{ pg_advisory_xact_lock: '' }]);
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      $queryRawUnsafe: advisoryLock,
+      answerEvidence: {
+        findFirst: async () => null,
+        create: async ({ data }: any) => ({
+          ...data,
+          blocks: data.blocks.create,
+        }),
+      },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+    const result = await materializeAssignmentAnswerEvidence({
+      db,
+      attemptId: 'attempt-aggregate',
+      answerVersion: 2,
+      actor: { id: 'grading-worker', role: 'SERVICE' },
+      sourceManifest: {
+        version: 'assignment-answer-evidence.v2',
+        sources: [{ kind: 'ATTACHMENT', assetId: 'asset-1' }],
+      },
+      normalized: {
+        sourceKind: 'document',
+        sourceHash: 'sha256:aggregate',
+        canonicalMarkdown: 'aggregate evidence',
+        anchorVersion: 'assignment-answer-evidence.v2',
+        precision: 'block',
+        readiness: 'ready',
+        limitationState: 'none',
+        limitations: [],
+        blocks: [{
+          id: 'asset:asset-1:content',
+          blockIndex: 0,
+          text: 'aggregate evidence',
+          markdown: 'aggregate evidence',
+          precision: 'block',
+          confidence: 1,
+        }],
+      },
+      now,
+    });
+
+    expect(result.evidence).toMatchObject({
+      id: 'evidence:attempt-aggregate:2',
+      sourceManifest: {
+        version: 'assignment-answer-evidence.v2',
+      },
+    });
+    expect(result.evidence.blocks[0]?.id)
+      .toBe('evidence:attempt-aggregate:2:asset:asset-1:content');
+    expect(advisoryLock).toHaveBeenCalledWith(
+      'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))::text AS "lock"',
+      'assignment-answer-evidence:attempt-aggregate',
+    );
+  });
+
+  it('creates a later immutable aggregate version instead of replacing prior evidence', async () => {
+    const create = vi.fn(async ({ data }: any) => ({
+      ...data,
+      blocks: data.blocks.create,
+    }));
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      answerEvidence: {
+        findFirst: async ({ where }: any) => where.sourceHash
+          ? null
+          : { version: 2 },
+        create,
+      },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    const result = await materializeAssignmentAnswerEvidence({
+      db,
+      attemptId: 'attempt-history',
+      answerVersion: 1,
+      actor: { id: 'grading-worker', role: 'SERVICE' },
+      sourceManifest: {
+        version: 'assignment-answer-evidence.v2',
+        sources: [],
+      },
+      normalized: {
+        sourceKind: 'document',
+        sourceHash: 'sha256:new-aggregate',
+        canonicalMarkdown: 'new aggregate',
+        anchorVersion: 'assignment-answer-evidence.v2',
+        precision: 'block',
+        readiness: 'ready',
+        limitationState: 'none',
+        limitations: [],
+        blocks: [],
+      },
+      now,
+    });
+
+    expect(result.evidence).toMatchObject({
+      id: 'evidence:attempt-history:3',
+      version: 3,
+    });
+    expect(create).toHaveBeenCalledOnce();
+  });
+
   it('stores text evidence as first-class canonical content and replays the same attempt/version', async () => {
     const created: any[] = [];
     const audits: any[] = [];
