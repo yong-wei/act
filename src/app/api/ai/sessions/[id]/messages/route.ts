@@ -25,7 +25,9 @@ import {
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
   getOrCreateKonlingAgentSession,
+  KONLING_CANDIDATE_READ_TOOLS,
   KonlingRuntimeScopeError,
+  mergeCandidateAssignedCitations,
   normalizeKonlingKnowledgeWorkspaceHint,
   persistKonlingSessionMemories,
   resumeKonlingAgentSession,
@@ -138,27 +140,54 @@ export async function POST(request: NextRequest, context: RouteContext) {
     let updatedMessages = [...existingMessages, userMessage];
     let ownedTurnIds = updatedMessages.filter((message) => message.role === 'user').map((message) => message.id).filter(Boolean).slice(-50);
 
-    const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride({
-      db: prisma,
-      modeId: teachingAssistantModeId,
-      authenticatedUserId: session.user.id,
-      role: session.user.role,
-      clientContextHints: modeClientContextHints,
-    });
-    const runtimeTargetUserId = modeScopeOverride.targetUserId ?? session.user.id;
-    const runtimeClassId = modeScopeOverride.classId ?? classId;
+    const candidateScope = pageContext?.candidateGraph
+      ? await verifyKonlingRuntimeScope(prisma, {
+          authenticatedUserId: session.user.id,
+          role: session.user.role,
+          targetUserId: session.user.id,
+          classId: null,
+          courseId: pageContext.courseId || konlingSession.courseId,
+          pageId: pageContext.stepId || konlingSession.pageId,
+          resourceId: null,
+          pathNodeId: null,
+          pageContextHint: pageContext,
+        })
+      : null;
+    if (candidateScope && !candidateScope.ok) {
+      return NextResponse.json({ error: candidateScope.error }, { status: candidateScope.status });
+    }
+    const serverCandidateScope = candidateScope?.ok && candidateScope.scope.candidateGraph
+      ? candidateScope.scope
+      : null;
+    const modeScopeOverride = serverCandidateScope
+      ? {}
+      : await resolveKonlingTeachingAssistantScopeOverride({
+          db: prisma,
+          modeId: teachingAssistantModeId,
+          authenticatedUserId: session.user.id,
+          role: session.user.role,
+          clientContextHints: modeClientContextHints,
+        });
+    const runtimeTargetUserId = serverCandidateScope
+      ? session.user.id
+      : modeScopeOverride.targetUserId ?? session.user.id;
+    const runtimeClassId = serverCandidateScope
+      ? null
+      : modeScopeOverride.classId ?? classId;
 
-    const scope = await verifyKonlingRuntimeScope(prisma, {
-      authenticatedUserId: session.user.id,
-      role: session.user.role,
-      targetUserId: runtimeTargetUserId,
-      classId: runtimeClassId,
-      courseId: pageContext?.courseId || konlingSession.courseId,
-      pageId: pageContext?.stepId || konlingSession.pageId,
-      resourceId,
-      pathNodeId,
-      pageContextHint: pageContext,
-    });
+    const scope = serverCandidateScope
+      ? { ok: true as const, scope: serverCandidateScope }
+      : await verifyKonlingRuntimeScope(prisma, {
+          authenticatedUserId: session.user.id,
+          role: session.user.role,
+          targetUserId: runtimeTargetUserId,
+          classId: runtimeClassId,
+          courseId: pageContext?.courseId || konlingSession.courseId,
+          pageId: pageContext?.stepId || konlingSession.pageId,
+          resourceId,
+          pathNodeId,
+          pageContextHint: pageContext,
+        });
     if (!scope.ok) {
       return NextResponse.json({ error: scope.error }, { status: scope.status });
     }
@@ -166,7 +195,20 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!contextEventScope) {
       return NextResponse.json({ error: 'Page context is not registered for Konling.' }, { status: 400 });
     }
-    const authorizedScope = { ...scope.scope, ...contextEventScope };
+    const resolvedScope = { ...scope.scope, ...contextEventScope };
+    const authorizedScope = serverCandidateScope
+      ? {
+          ...resolvedScope,
+          targetUserId: session.user.id,
+          classId: null,
+          resourceId: null,
+          pathNodeId: null,
+          candidateGraph: serverCandidateScope.candidateGraph,
+        }
+      : resolvedScope;
+    const candidateOnly = Boolean(authorizedScope.candidateGraph);
+    const effectiveModeId = candidateOnly ? null : teachingAssistantModeId;
+    const effectiveModeClientContextHints = candidateOnly ? undefined : modeClientContextHints;
     const preparedTurn = prepareKonlingConversationTurn({
       conversation: konlingSession,
       currentScope: authorizedScope,
@@ -188,28 +230,35 @@ export async function POST(request: NextRequest, context: RouteContext) {
       pageId: authorizedScope.pageId,
       resourceId: authorizedScope.resourceId,
       pathNodeId: authorizedScope.pathNodeId,
-      knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
-      teachingAssistantModeId,
+      serverAuthorizedCandidateGraph: authorizedScope.candidateGraph,
+      knowledgeWorkspaceHint: candidateOnly
+        ? null
+        : normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
+      teachingAssistantModeId: effectiveModeId,
       currentUserQuery: userMessage.content,
       trustedContentContext: true,
     };
-    const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext({
-      db: prisma,
-      modeId: teachingAssistantModeId,
-      scope: authorizedScope,
-      clientContextHints: modeClientContextHints,
-    });
-    const smartPrepBinding = resolveKonlingSmartPrepSessionBinding(serverModeContext);
+    const serverModeContext = candidateOnly
+      ? null
+      : await resolveKonlingTeachingAssistantServerModeContext({
+          db: prisma,
+          modeId: effectiveModeId,
+          scope: authorizedScope,
+          clientContextHints: effectiveModeClientContextHints,
+        });
+    const smartPrepBinding = serverModeContext
+      ? resolveKonlingSmartPrepSessionBinding(serverModeContext)
+      : null;
     const runtimeContext = await buildKonlingRuntimeContext(prisma, {
       ...runtimeInput,
       teachingAssistantServerModeContext: serverModeContext,
     });
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({
-      modeId: teachingAssistantModeId,
+      modeId: effectiveModeId,
       runtimeContext,
       scope: authorizedScope,
       serverModeContext,
-      clientContextHints: modeClientContextHints,
+      clientContextHints: effectiveModeClientContextHints,
     });
     if (modeContract.status === 'unavailable') {
       return NextResponse.json({
@@ -227,6 +276,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
         },
       });
     }
+    const permittedTools = authorizedScope.candidateGraph
+      ? KONLING_CANDIDATE_READ_TOOLS
+      : modeContract.permittedTools;
     const modeRuntimeContext = {
       ...runtimeContext,
       knowledgeCapabilityContext: modeContract.groundingContext,
@@ -279,7 +331,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         teachingAssistantMode: modeContract.mode.id,
         modeStatus: modeContract.status,
       },
-      permittedTools: modeContract.permittedTools,
+      permittedTools,
       smartPrepBinding,
     });
     const agentSessionStateUpdate = await prisma.agentSession.updateMany({
@@ -315,16 +367,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
     };
     const isStructuredSmartPrepTurn = modeContract.mode.id === 'prep-coauthor'
       && Boolean(modeContract.smartPreparation);
+    const toolRuntime = buildKonlingToolRuntime({
+      db: prisma,
+      scope: authorizedScope,
+      context: { ...modeRuntimeContext, permittedTools },
+      agentSessionId: agentSession.id,
+      permittedTools,
+    });
 
     // 调用AI
     const responseModel = await getConfiguredAIModel(undefined, modelRequirements);
-    const scopedTools = buildScopedKonlingAiTools(buildKonlingToolRuntime({
-      db: prisma,
-      scope: authorizedScope,
-      context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools },
-      agentSessionId: agentSession.id,
-      permittedTools: modeContract.permittedTools,
-    }));
+    const scopedTools = buildScopedKonlingAiTools(toolRuntime);
     const modelMessages = await toModelMessages(updatedMessages);
     const result = await streamText({
       model: responseModel,
@@ -405,7 +458,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
     } else if (!assistantContent && structuredAssistant.toolCalls.length > 0) {
       assistantContent = '已完成结构化操作。';
     }
-    const citationGuard = buildKonlingCitationGuard(modeRuntimeContext, assistantContent);
+    const finalRuntimeContext = mergeCandidateAssignedCitations(
+      modeRuntimeContext,
+      toolRuntime.getAssignedCitations(),
+    );
+    const citationGuard = buildKonlingCitationGuard(finalRuntimeContext, assistantContent);
     const guardedAssistantContent = applyKonlingCitationFallback(assistantContent, citationGuard);
     const sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
       modeContract.groundingContext.sarAssociatedGrounding,
@@ -455,17 +512,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
     const serializedConversation = serializeKonlingConversation(persistedConversation);
-    await persistKonlingSessionMemories(prisma, {
-      userId: konlingSession.userId,
-      sessionId,
-      courseId: authorizedScope.courseId,
-      pageId: authorizedScope.pageId,
-      classId: authorizedScope.classId,
-      resourceId: authorizedScope.resourceId,
-      pathNodeId: authorizedScope.pathNodeId,
-      userMessage: content,
-      assistantMessage: guardedAssistantContent,
-    });
+    if (!authorizedScope.candidateGraph) {
+      await persistKonlingSessionMemories(prisma, {
+        userId: konlingSession.userId,
+        sessionId,
+        courseId: authorizedScope.courseId,
+        pageId: authorizedScope.pageId,
+        classId: authorizedScope.classId,
+        resourceId: authorizedScope.resourceId,
+        pathNodeId: authorizedScope.pathNodeId,
+        userMessage: content,
+        assistantMessage: guardedAssistantContent,
+      });
+    }
     await resumeKonlingAgentSession(prisma, {
       scope: authorizedScope,
       agentSessionId: agentSession.id,

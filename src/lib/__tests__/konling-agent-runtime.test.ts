@@ -75,6 +75,7 @@ vi.mock('@/lib/teacher-resource-node-data', async () => {
 });
 
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import { AuthoritativeKnowledgeProjectionService } from '@/lib/authoritative-knowledge';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
@@ -103,6 +104,8 @@ import {
   buildKonlingTeachingAssistantRuntimeContract,
   getKonlingTeachingAssistantMountContracts,
   KONLING_TOOL_REGISTRY,
+  KONLING_CANDIDATE_READ_TOOLS,
+  mergeCandidateAssignedCitations,
   KONLING_TEACHING_ASSISTANT_MODE_REGISTRY,
   persistKonlingSessionMemories,
   projectKonlingTextbookModelToolResult,
@@ -766,6 +769,286 @@ describe('konling agent runtime', () => {
     expect(foreignClassDb.studentProfile.findFirst).not.toHaveBeenCalled();
   });
 
+  it('authorizes candidate context only for the fixed selector and server-authorized role', async () => {
+    const canvasSpy = vi.spyOn(AuthoritativeKnowledgeProjectionService.prototype, 'canvas')
+      .mockResolvedValue({
+        status: 'available',
+        diagnostics: [],
+        projection: {
+          projectionVersion: 'act.canvas.v2',
+          source: {
+            authorityState: 'candidate',
+            releaseSetId: 'actkg-authoritative-candidate-v1',
+            releaseId: 'root-locus-engineering-v0.1',
+            productionAuthoritative: false,
+          },
+          release: {
+            label: '根轨迹局部发布版',
+            version: 'v0.1',
+            scope: 'root-locus-engineering',
+          },
+          coverage: {
+            status: 'partial',
+            objectCount: 7,
+            relationCount: 9,
+            goldRelationCount: 3,
+            silverRelationCount: 6,
+            sourceObjectCount: 7,
+            evidenceSegmentCount: 4,
+          },
+          teachingSemantics: {
+            status: 'unavailable',
+            message: '教学关系尚未发布',
+          },
+          nodes: [{
+            id: 'canonical-a',
+            canonicalType: 'Formula',
+            label: '根轨迹幅角条件',
+            description: null,
+            governance: {
+              reviewStatus: 'accepted',
+              publicationStatus: null,
+              lifecycleStatus: null,
+            },
+            semanticSupport: { supported: true, readOnly: true },
+          }],
+          relations: [],
+        },
+      });
+    const candidateGraph = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v1',
+      releaseId: 'root-locus-engineering-v0.1',
+      selectedCanonicalId: 'canonical-a',
+      selectedCanonicalType: 'forged\nprompt',
+      governanceFilter: 'forged\nprompt' as never,
+      canonicalTypeFilter: 'forged\nprompt',
+      coverageStatus: 'empty' as const,
+      objectCount: 999,
+      relationCount: 999,
+    };
+    const authorized = await verifyKonlingRuntimeScope({}, {
+      authenticatedUserId: 'admin-1',
+      role: 'ADMIN',
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      pageContextHint: {
+        courseId: 'knowledge',
+        stepId: '/knowledge',
+        candidateGraph,
+      },
+    });
+    expect(authorized).toMatchObject({
+      ok: true,
+      scope: {
+        candidateGraph: {
+          selectedCanonicalId: 'canonical-a',
+          selectedCanonicalType: 'Formula',
+          governanceFilter: 'EXTENSION',
+          canonicalTypeFilter: null,
+          coverageStatus: 'ready',
+          objectCount: 7,
+          relationCount: 9,
+        },
+      },
+    });
+    if (authorized.ok) {
+      expect(JSON.stringify(authorized.scope.candidateGraph)).not.toContain('forged');
+    }
+    await expect(verifyKonlingRuntimeScope({}, {
+      authenticatedUserId: 'admin-1',
+      role: 'ADMIN',
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      pageContextHint: {
+        courseId: 'knowledge',
+        stepId: '/knowledge',
+        candidateGraph: {
+          ...candidateGraph,
+          selectedCanonicalId: 'unknown-canonical',
+          selectedCanonicalType: 'Formula',
+          canonicalTypeFilter: 'Formula',
+        },
+      },
+    })).resolves.toMatchObject({
+      ok: true,
+      scope: {
+        candidateGraph: {
+          selectedCanonicalId: null,
+          selectedCanonicalType: null,
+          canonicalTypeFilter: 'Formula',
+        },
+      },
+    });
+    await expect(verifyKonlingRuntimeScope({}, {
+      authenticatedUserId: 'admin-1',
+      role: 'ADMIN',
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      pageContextHint: {
+        courseId: 'knowledge',
+        stepId: '/knowledge',
+        candidateGraph: { ...candidateGraph, releaseId: 'forged-release' },
+      },
+    })).resolves.toMatchObject({
+      ok: false,
+      status: 403,
+    });
+    canvasSpy.mockRestore();
+  });
+
+  it('builds candidate runtime without loading learner, path, memory, legacy graph, or class overlay data', async () => {
+    const dbReaders = {
+      studentProfile: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      learningPath: { findMany: vi.fn() },
+      konlingMemory: { findMany: vi.fn() },
+      knowledgeNode: { findMany: vi.fn() },
+      studentEvidenceFeatureCache: { findUnique: vi.fn() },
+      learningFact: { findMany: vi.fn() },
+      class: { findUnique: vi.fn() },
+    };
+    const serverAuthorizedCandidateGraph = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v1',
+      releaseId: 'root-locus-engineering-v0.1',
+      selectedCanonicalId: 'canonical-a',
+      selectedCanonicalType: 'Formula',
+      governanceFilter: 'CORE' as const,
+      canonicalTypeFilter: 'Formula',
+      coverageStatus: 'ready' as const,
+      objectCount: 7,
+      relationCount: 9,
+    };
+
+    const runtime = await buildKonlingRuntimeContext(dbReaders, {
+      authenticatedUserId: 'admin-1',
+      authenticatedUserName: '管理员',
+      role: 'ADMIN',
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      pageContextHint: {
+        courseId: 'knowledge',
+        stepId: '/knowledge',
+        candidateGraph: {
+          ...serverAuthorizedCandidateGraph,
+          selectedCanonicalType: 'forged prompt',
+        },
+      },
+      serverAuthorizedCandidateGraph,
+      currentUserQuery: '解释根轨迹幅角条件',
+      trustedContentContext: true,
+    });
+
+    expect(runtime).toMatchObject({
+      learnerState: null,
+      memory: [],
+      knowledgeWorkspace: null,
+      graphContext: null,
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+      featureFlags: {
+        learnerState: false,
+        semanticMemory: false,
+        strategyMemory: false,
+      },
+      pageContext: {
+        candidateGraph: serverAuthorizedCandidateGraph,
+      },
+      citationContext: {
+        contentCitations: [],
+        missingCitationClasses: ['content'],
+        lowConfidenceReasons: ['candidate-tool-citation-required'],
+      },
+    });
+    const noToolCitationGuard = buildKonlingCitationGuard(
+      runtime,
+      '根轨迹结论 [1]',
+    );
+    expect(noToolCitationGuard.status).toBe('low-confidence');
+    expect(noToolCitationGuard.fallbackRequired).toBe(true);
+    expect(noToolCitationGuard.citations).toEqual([]);
+    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.loadAllLessonRuntimeResourceCatalogEntries).not.toHaveBeenCalled();
+    expect(mocks.loadAllTextbookStructureRuntimeCatalogEntries).not.toHaveBeenCalled();
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
+    expect(mocks.loadRuntimeResourceProjectionInputs).not.toHaveBeenCalled();
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).not.toHaveBeenCalled();
+    for (const delegate of Object.values(dbReaders)) {
+      for (const method of Object.values(delegate)) expect(method).not.toHaveBeenCalled();
+    }
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: {
+        ...runtime,
+        learnerState: { marker: 'forged-learner-state' },
+        planContext: {
+          ...runtime.planContext,
+          activeNodeId: 'forged-path-node',
+          nextNodeIds: ['forged-next-node'],
+        },
+        memory: [{ memoryType: 'episodic', summary: 'forged-memory' }],
+        knowledgeWorkspace: {
+          source: 'client',
+          status: 'ready',
+          selected_node: { id: 'legacy-node', name: 'forged-legacy-workspace' },
+        },
+        graphContext: {
+          status: 'ready',
+          selectedGraphNodeIds: ['forged-legacy-graph'],
+        },
+        permittedTools: ['get_learner_state', 'search_textbook'],
+        teachingAssistantMode: {
+          mode: { id: 'grading-assistant', label: 'forged-grading-mode' },
+          status: 'ready',
+          unavailableReasons: [],
+          degradedReasons: [],
+          privacyPolicy: { payload: 'raw', forbiddenContent: [] },
+          outputContract: { status: 'ready', requiredCitationOwners: [], forbiddenActions: [] },
+          citationRequirements: { required: false, classes: [], requiredOwners: [], missingClasses: [] },
+        },
+      },
+    });
+    expect(prompt).toContain('**服务端候选权威投影**');
+    expect(prompt).toContain('search_candidate_canonical');
+    expect(prompt).toContain('get_candidate_canonical_detail');
+    expect(prompt).toContain('get_candidate_canonical_neighbors');
+    expect(prompt).toContain('Provenance');
+    for (const forbidden of [
+      '**学生画像**',
+      '- 姓名:',
+      '学习风格',
+      '互动型',
+      '认知水平',
+      'L3',
+      '能力特点',
+      '综合能力均衡发展',
+      '服务端自适应上下文',
+      '当前路径节点',
+      '建议后续节点',
+      '近期学习记忆',
+      '知识工作区上下文',
+      'K/A/Q 图谱',
+      '控灵教学助理模式',
+      '教材',
+      'Legacy',
+      'forged-learner-state',
+      'forged-path-node',
+      'forged-next-node',
+      'forged-memory',
+      'forged-legacy-workspace',
+      'forged-legacy-graph',
+      'forged-grading-mode',
+      'get_learner_state',
+      'search_textbook',
+    ]) {
+      expect(prompt).not.toContain(forbidden);
+    }
+  });
+
   it('registers teaching-assistant modes with scoped tools, citations, privacy, and mounts', () => {
     expect(Object.keys(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY)).toEqual([
       'generic-chat',
@@ -821,6 +1104,275 @@ describe('konling agent runtime', () => {
         requiredContext: expect.arrayContaining(['resource-node', 'path-execution-context']),
       }),
     ]));
+  });
+
+  it('exposes only the three candidate read tools for a candidate runtime', () => {
+    for (const toolName of KONLING_CANDIDATE_READ_TOOLS) {
+      expect(KONLING_TOOL_REGISTRY[toolName]).toMatchObject({
+        permissionTier: 'read',
+        approvalPolicy: 'none',
+      });
+    }
+    const tools = buildScopedKonlingAiTools({
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    } as ReturnType<typeof buildKonlingToolRuntime>);
+    expect(Object.keys(tools)).toEqual(KONLING_CANDIDATE_READ_TOOLS);
+    for (const forbidden of [
+      'search_knowledge_graph',
+      'get_learner_state',
+      'search_learning_memory',
+      'recommend_next_action',
+      'run_virtual_simulation',
+      'generate_learning_path',
+      'record_intervention_result',
+    ]) {
+      expect(Object.keys(tools)).not.toContain(forbidden);
+    }
+  });
+
+  it('rejects candidate writes and learning-state reads before any producer or mock is reached', async () => {
+    const db = {
+      learningFact: { findMany: vi.fn(), createMany: vi.fn() },
+      learningEvidenceDraft: { createMany: vi.fn() },
+      evidenceOutbox: { createMany: vi.fn() },
+      konlingMemory: { findMany: vi.fn(), create: vi.fn() },
+      simulationRun: { create: vi.fn() },
+    };
+    const candidateGraph = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v1',
+      releaseId: 'root-locus-engineering-v0.1',
+      selectedCanonicalId: null,
+      selectedCanonicalType: null,
+      governanceFilter: 'EXTENSION' as const,
+      canonicalTypeFilter: null,
+      coverageStatus: 'ready' as const,
+      objectCount: 2,
+      relationCount: 1,
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        resourceId: null,
+        pathNodeId: null,
+        candidateGraph,
+      }),
+      context: createRuntimeContext({
+        pageContext: {
+          courseId: 'knowledge',
+          courseTitle: '知识图谱',
+          pageType: 'theory',
+          stepId: '/knowledge',
+          topic: '候选权威图谱',
+          learningObjectives: [],
+          knowledgeType: 'C',
+          candidateGraph,
+        },
+        permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+      }),
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    });
+
+    await expect(runtime.getLearnerState()).rejects.toMatchObject({ status: 403 });
+    await expect(runtime.recommendNextAction()).rejects.toMatchObject({ status: 403 });
+    await expect(runtime.runVirtualSimulation({} as never)).rejects.toMatchObject({ status: 403 });
+    await expect(runtime.searchLearningMemory({ query: '根轨迹' })).rejects.toMatchObject({ status: 403 });
+    for (const delegate of Object.values(db)) {
+      for (const method of Object.values(delegate)) expect(method).not.toHaveBeenCalled();
+    }
+  });
+
+  it('audits all candidate reads in AgentToolRun without materializing learning evidence', async () => {
+    vi.spyOn(AuthoritativeKnowledgeProjectionService.prototype, 'canonicalSearch')
+      .mockResolvedValue({
+        status: 'available',
+        diagnostics: [],
+        projection: {
+          projectionVersion: 'act.canonical-search.v1',
+          source: {},
+          role: 'ADMIN',
+          query: '根轨迹',
+          results: [{
+            id: 'canonical-a',
+            canonicalType: 'Formula',
+            label: '根轨迹幅角条件',
+            description: null,
+            governanceTier: 'CORE',
+            semanticSupport: { supported: true, readOnly: true },
+          }],
+        },
+      } as never);
+    vi.spyOn(AuthoritativeKnowledgeProjectionService.prototype, 'nodeDetail')
+      .mockResolvedValue({
+        status: 'available',
+        diagnostics: [],
+        projection: {
+          projectionVersion: 'act.authoritative-node-detail.v1',
+          source: {},
+          role: 'ADMIN',
+          node: {
+            id: 'canonical-a',
+            canonicalType: 'Formula',
+            label: '根轨迹幅角条件',
+          },
+        },
+      } as never);
+    vi.spyOn(AuthoritativeKnowledgeProjectionService.prototype, 'boundedNeighbors')
+      .mockResolvedValue({
+        status: 'available',
+        diagnostics: [],
+        projection: {
+          projectionVersion: 'act.authoritative-bounded-neighbors.v1',
+          source: {},
+          role: 'ADMIN',
+          nodeId: 'canonical-a',
+          neighbors: [{
+            relationId: 'relation-a-b',
+            predicate: 'depends_on',
+            traversal: 'outgoing',
+            neighbor: {
+              id: 'canonical-b',
+              canonicalType: 'DomainConcept',
+              label: '根轨迹',
+            },
+          }],
+        },
+      } as never);
+
+    const session = {
+      id: 'candidate-agent-session',
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    };
+    const toolRuns: Array<Record<string, unknown>> = [];
+    const learningFactCreateMany = vi.fn();
+    const learningEvidenceDraftCreateMany = vi.fn();
+    const evidenceOutboxCreateMany = vi.fn();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue(session),
+      },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          const run = {
+            id: `candidate-tool-run-${toolRuns.length + 1}`,
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          toolRuns.push(run);
+          return run;
+        }),
+        findFirst: vi.fn(async ({ where }) =>
+          toolRuns.find((run) => run.id === where.id) ?? null),
+        updateMany: vi.fn(async ({ where, data }) => {
+          const run = toolRuns.find((item) => item.id === where.id);
+          if (!run) return { count: 0 };
+          Object.assign(run, data);
+          return { count: 1 };
+        }),
+      },
+      learningFact: { createMany: learningFactCreateMany },
+      learningEvidenceDraft: { createMany: learningEvidenceDraftCreateMany },
+      evidenceOutbox: { createMany: evidenceOutboxCreateMany },
+    };
+    const candidateGraph = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v1',
+      releaseId: 'root-locus-engineering-v0.1',
+      selectedCanonicalId: 'canonical-a',
+      selectedCanonicalType: 'Formula',
+      governanceFilter: 'CORE' as const,
+      canonicalTypeFilter: 'Formula',
+      coverageStatus: 'ready' as const,
+      objectCount: 7,
+      relationCount: 9,
+    };
+    const candidateRuntimeContext = createRuntimeContext({
+      pageContext: {
+        courseId: 'knowledge',
+        courseTitle: '知识图谱',
+        pageType: 'theory',
+        stepId: '/knowledge',
+        topic: '候选权威图谱',
+        learningObjectives: [],
+        knowledgeType: 'C',
+        candidateGraph,
+      },
+      citationContext: {
+        required: true,
+        contentCitations: [],
+        evidenceCitations: [],
+        missingCitationClasses: ['content'],
+        lowConfidenceReasons: ['candidate-tool-citation-required'],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 0 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    });
+    const runtime = buildKonlingToolRuntime({
+      db,
+      agentSessionId: session.id,
+      scope: createScope({
+        authenticatedUserId: 'admin-1',
+        targetUserId: 'admin-1',
+        role: 'admin',
+        classId: null,
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        resourceId: null,
+        pathNodeId: null,
+        privacyScopes: ['admin-scoped'],
+        candidateGraph,
+      }),
+      context: candidateRuntimeContext,
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+    });
+
+    await runtime.searchCandidateCanonical({ query: '根轨迹' });
+    await runtime.getCandidateCanonicalDetail({ canonicalId: 'canonical-a' });
+    await runtime.getCandidateCanonicalNeighbors({ canonicalId: 'canonical-a' });
+
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(3);
+    expect(db.agentToolRun.updateMany).toHaveBeenCalledTimes(3);
+    expect(toolRuns.map((run) => run.toolName)).toEqual(KONLING_CANDIDATE_READ_TOOLS);
+    expect(toolRuns.every((run) => run.status === 'succeeded')).toBe(true);
+    expect(learningFactCreateMany).not.toHaveBeenCalled();
+    expect(learningEvidenceDraftCreateMany).not.toHaveBeenCalled();
+    expect(evidenceOutboxCreateMany).not.toHaveBeenCalled();
+
+    const mergedRuntimeContext = mergeCandidateAssignedCitations(
+      candidateRuntimeContext,
+      runtime.getAssignedCitations(),
+    );
+    expect(mergedRuntimeContext.citationContext).toMatchObject({
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      contentCitations: [
+        expect.objectContaining({
+          displayNumber: 1,
+          citationTargetId: 'canonical-a',
+          verified: true,
+        }),
+        expect.objectContaining({
+          displayNumber: 2,
+          citationTargetId: 'canonical-b',
+          verified: true,
+        }),
+      ],
+    });
+    const successfulToolGuard = buildKonlingCitationGuard(
+      mergedRuntimeContext,
+      '引用 content / 根轨迹幅角条件 / high / candidate-canonical:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1 / /knowledge?canonicalId=canonical-a。',
+    );
+    expect(successfulToolGuard).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+    });
   });
 
   it('exposes textbook retrieval only for registered pages and content-capable modes without autonomous prefetch', async () => {
@@ -4689,6 +5241,87 @@ describe('konling agent runtime', () => {
       status: 'verified',
       fallbackRequired: false,
     });
+  });
+
+  it('merges assigned candidate tool citations into the standard guard and display metadata', () => {
+    const runtime = createRuntimeContext({
+      pageContext: {
+        courseId: 'knowledge',
+        courseTitle: '知识图谱',
+        pageType: 'theory',
+        stepId: '/knowledge',
+        topic: '候选权威图谱',
+        learningObjectives: [],
+        knowledgeType: 'C',
+        candidateGraph: {
+          authorityState: 'candidate',
+          releaseSetId: 'actkg-authoritative-candidate-v1',
+          releaseId: 'root-locus-engineering-v0.1',
+          selectedCanonicalId: 'canonical-a',
+          selectedCanonicalType: 'Formula',
+          governanceFilter: 'CORE',
+          canonicalTypeFilter: 'Formula',
+          coverageStatus: 'ready',
+          objectCount: 7,
+          relationCount: 9,
+        },
+      },
+      citationContext: {
+        required: true,
+        contentCitations: [],
+        evidenceCitations: [],
+        missingCitationClasses: ['content'],
+        lowConfidenceReasons: ['missing-content'],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 0 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+    const href = '/knowledge?canonicalId=canonical-a';
+    const merged = mergeCandidateAssignedCitations(runtime, [{
+      id: 'candidate:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1:canonical-a',
+      sourceType: 'content',
+      displayTitle: '根轨迹幅角条件',
+      displayNumber: 1,
+      canonicalKey: 'content:canonical-a:actkg-authoritative-candidate-v1%2Froot-locus-engineering-v0.1',
+      href,
+      confidence: 'high',
+      evidenceBasis: 'candidate-canonical:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1',
+      limitation: 'candidate-read-only',
+      identity: {
+        kind: 'content',
+        sourceType: 'content',
+        contentId: 'canonical-a',
+        sourceRevision: 'actkg-authoritative-candidate-v1/root-locus-engineering-v0.1',
+      },
+    }]);
+
+    expect(merged.citationContext).toMatchObject({
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      contentCitations: [{
+        displayNumber: 1,
+        citationTargetId: 'canonical-a',
+        resolver: 'candidate-authoritative-repository',
+        evidenceBasis: 'candidate-canonical:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1',
+      }],
+    });
+    const guard = buildKonlingCitationGuard(
+      merged,
+      `引用 content / 根轨迹幅角条件 / high / candidate-canonical:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1 / ${href}。`,
+    );
+    expect(guard).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+    });
+    expect(serializeKonlingCitationMetadata(merged.citationContext!.contentCitations[0]))
+      .toMatchObject({
+        displayNumber: 1,
+        citationTargetId: 'canonical-a',
+        href,
+      });
   });
 
   it('does not build textbook Source Packs before the model calls the tool', async () => {

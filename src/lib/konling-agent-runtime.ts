@@ -2,6 +2,20 @@ import { createHash } from 'node:crypto';
 
 import { z } from 'zod';
 import { tool } from 'ai';
+import {
+  AuthoritativeKnowledgeProjectionService,
+  type KnowledgeRole,
+  type ProjectionResult,
+  type RepositoryDiagnostic,
+} from '@/lib/authoritative-knowledge';
+import {
+  CANDIDATE_GRAPH_SUPPORT,
+  CANDIDATE_RELEASE_SELECTOR,
+} from '@/features/knowledge/candidate-graph-contracts';
+import {
+  isCandidateGraphPubliclyActivated,
+  resolveCandidateGraphAccess,
+} from '@/features/knowledge/candidate-graph-policy';
 
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import {
@@ -69,6 +83,7 @@ import {
   assignKonlingCitationDisplayNumbers,
   buildKonlingCitationCanonicalKey,
   createKonlingCitationAllocator,
+  type KonlingAssignedCitation,
   type KonlingCitationIdentity,
 } from '@/lib/konling-citation-protocol';
 import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-resource-baseline-runtime';
@@ -129,6 +144,9 @@ export type KonlingToolName =
   | 'get_plan_context'
   | 'search_learning_memory'
   | 'search_knowledge_graph'
+  | 'search_candidate_canonical'
+  | 'get_candidate_canonical_detail'
+  | 'get_candidate_canonical_neighbors'
   | 'recommend_next_action'
   | 'get_simulation_status'
   | 'set_simulation_params'
@@ -358,6 +376,7 @@ export interface KonlingRuntimeScope {
   resourceId?: string | null;
   pathNodeId?: string | null;
   privacyScopes: AdaptiveLearnerStatePrivacyScope[];
+  candidateGraph?: PageContext['candidateGraph'];
 }
 
 export interface KonlingRuntimeContext {
@@ -1733,6 +1752,7 @@ interface KonlingRuntimeInput {
   resourceId?: string | null;
   pathNodeId?: string | null;
   pageContextHint?: Partial<PageContext> | null;
+  serverAuthorizedCandidateGraph?: NonNullable<PageContext['candidateGraph']> | null;
   knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
   teachingAssistantModeId?: string | null;
   teachingAssistantServerModeContext?: KonlingTeachingAssistantServerModeContext | null;
@@ -1771,6 +1791,33 @@ interface KonlingToolRuntimeInput {
   agentSessionId?: string | null;
   permittedTools?: string[] | null;
   scopedSimulationState?: Partial<SimulationStateStore> | null;
+}
+
+const candidateKnowledgeProjectionService = new AuthoritativeKnowledgeProjectionService();
+
+function candidateKnowledgeRole(role: AdaptiveLearnerStateRole): KnowledgeRole {
+  if (role === 'student') return 'STUDENT';
+  if (role === 'teacher') return 'TEACHER';
+  return 'ADMIN';
+}
+
+function unwrapCandidateProjection<T>(result: ProjectionResult<T>): {
+  projection: T;
+  diagnostics: RepositoryDiagnostic[];
+} {
+  if (result.status === 'available') {
+    return {
+      projection: result.projection,
+      diagnostics: result.diagnostics,
+    };
+  }
+  if (result.status === 'drift') {
+    throw new KonlingRuntimeScopeError(409, '候选权威图谱 ReleaseSet 证据发生漂移。');
+  }
+  throw new KonlingRuntimeScopeError(
+    result.reason === 'node-not-found' ? 404 : 409,
+    '候选权威图谱数据不可用。',
+  );
 }
 
 type SimulationDbRun = Record<string, unknown>;
@@ -1944,6 +1991,38 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'analyze_attempt',
 ];
 
+export const KONLING_CANDIDATE_READ_TOOLS: KonlingToolName[] = [
+  'search_candidate_canonical',
+  'get_candidate_canonical_detail',
+  'get_candidate_canonical_neighbors',
+];
+const KONLING_CANDIDATE_READ_TOOL_SET = new Set<KonlingToolName>(KONLING_CANDIDATE_READ_TOOLS);
+
+function assertCandidateToolAllowed(scope: KonlingRuntimeScope, toolName: KonlingToolName) {
+  if (scope.candidateGraph && !KONLING_CANDIDATE_READ_TOOL_SET.has(toolName)) {
+    throw new KonlingRuntimeScopeError(
+      403,
+      `候选权威图谱上下文拒绝非候选只读工具：${toolName}`,
+    );
+  }
+}
+
+const candidateCanonicalSearchParameters = z.object({
+  query: z.string().trim().max(500).default(''),
+  limit: z.number().int().min(1).max(20).optional(),
+  canonicalType: z.string().trim().min(1).max(120).optional(),
+  governance: z.enum(['CORE', 'EXTENSION']).optional(),
+});
+const candidateCanonicalDetailParameters = z.object({
+  canonicalId: z.string().trim().min(1).max(300),
+});
+const candidateCanonicalNeighborsParameters = z.object({
+  canonicalId: z.string().trim().min(1).max(300),
+  limit: z.number().int().min(1).max(20).optional(),
+  predicate: z.string().trim().min(1).max(160).optional(),
+  governance: z.enum(['CORE', 'EXTENSION']).optional(),
+});
+
 export const KONLING_TOOL_PERMISSION_TIERS: KonlingToolPermissionTier[] = ['read', 'analyze', 'run', 'write', 'publish'];
 
 export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryEntry> = {
@@ -1953,6 +2032,9 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   get_plan_context: toolRegistryEntry('get_plan_context', 'read'),
   search_learning_memory: toolRegistryEntry('search_learning_memory', 'read'),
   search_knowledge_graph: toolRegistryEntry('search_knowledge_graph', 'read'),
+  search_candidate_canonical: toolRegistryEntry('search_candidate_canonical', 'read'),
+  get_candidate_canonical_detail: toolRegistryEntry('get_candidate_canonical_detail', 'read'),
+  get_candidate_canonical_neighbors: toolRegistryEntry('get_candidate_canonical_neighbors', 'read'),
   recommend_next_action: toolRegistryEntry('recommend_next_action', 'analyze'),
   get_simulation_status: toolRegistryEntry('get_simulation_status', 'read'),
   set_simulation_params: toolRegistryEntry('set_simulation_params', 'write', 'required', 'reuse'),
@@ -2223,6 +2305,42 @@ const recordPathAdjustmentOutcomeParameters = adaptivePathToolBaseParameters.ext
   rejectedStyleIds: z.array(z.string().min(1)).max(8).optional(),
 });
 
+async function resolveServerCandidateGraphContext(
+  claim: NonNullable<PageContext['candidateGraph']>,
+  role: KnowledgeRole | null,
+): Promise<NonNullable<PageContext['candidateGraph']> | null> {
+  if (!role) return null;
+  const result = await candidateKnowledgeProjectionService.canvas(
+    CANDIDATE_RELEASE_SELECTOR,
+    CANDIDATE_GRAPH_SUPPORT,
+  );
+  if (result.status !== 'available') return null;
+  const selectedCanonicalId = typeof claim.selectedCanonicalId === 'string'
+    && result.projection.nodes.some((node) => node.id === claim.selectedCanonicalId)
+    ? claim.selectedCanonicalId
+    : null;
+  const selectedNode = selectedCanonicalId
+    ? result.projection.nodes.find((node) => node.id === selectedCanonicalId) ?? null
+    : null;
+  const actualCanonicalTypes = new Set(
+    result.projection.nodes.map((node) => node.canonicalType),
+  );
+  const canonicalTypeFilter = typeof claim.canonicalTypeFilter === 'string'
+    && actualCanonicalTypes.has(claim.canonicalTypeFilter)
+    ? claim.canonicalTypeFilter
+    : null;
+  return {
+    ...CANDIDATE_RELEASE_SELECTOR,
+    selectedCanonicalId,
+    selectedCanonicalType: selectedNode?.canonicalType ?? null,
+    governanceFilter: claim.governanceFilter === 'CORE' ? 'CORE' : 'EXTENSION',
+    canonicalTypeFilter,
+    coverageStatus: result.projection.nodes.length === 0 ? 'empty' : 'ready',
+    objectCount: result.projection.coverage.objectCount,
+    relationCount: result.projection.coverage.relationCount,
+  };
+}
+
 export async function verifyKonlingRuntimeScope(
   db: KonlingRuntimeDb,
   input: KonlingRuntimeInput,
@@ -2231,6 +2349,40 @@ export async function verifyKonlingRuntimeScope(
   const targetUserId = input.targetUserId || input.authenticatedUserId;
   const courseId = input.courseId || input.pageContextHint?.courseId || 'unknown-course';
   const pageId = input.pageId || input.pageContextHint?.stepId || 'unknown-page';
+  const candidateClaim = input.pageContextHint?.candidateGraph;
+  const candidateRole = role === 'student'
+    ? 'STUDENT'
+    : role === 'teacher'
+      ? 'TEACHER'
+      : role === 'admin'
+        ? 'ADMIN'
+        : null;
+  const candidateAccess = resolveCandidateGraphAccess(
+    candidateRole,
+    isCandidateGraphPubliclyActivated(),
+  );
+  const candidateGraph = input.serverAuthorizedCandidateGraph
+    ?? (candidateClaim
+      && pageId === '/knowledge'
+      && candidateClaim.authorityState === CANDIDATE_RELEASE_SELECTOR.authorityState
+      && candidateClaim.releaseSetId === CANDIDATE_RELEASE_SELECTOR.releaseSetId
+      && candidateClaim.releaseId === CANDIDATE_RELEASE_SELECTOR.releaseId
+      && candidateAccess.allowed
+      ? await resolveServerCandidateGraphContext(candidateClaim, candidateRole)
+      : null);
+  if (candidateClaim && !candidateGraph) {
+    return { ok: false, status: 403, error: '候选权威图谱上下文未获服务端授权。' };
+  }
+  if (
+    input.serverAuthorizedCandidateGraph
+    && (
+      pageId !== '/knowledge'
+      || input.serverAuthorizedCandidateGraph.releaseSetId !== CANDIDATE_RELEASE_SELECTOR.releaseSetId
+      || input.serverAuthorizedCandidateGraph.releaseId !== CANDIDATE_RELEASE_SELECTOR.releaseId
+    )
+  ) {
+    return { ok: false, status: 403, error: '服务端候选权威图谱上下文无效。' };
+  }
 
   if (role === 'student' && targetUserId !== input.authenticatedUserId) {
     return { ok: false, status: 403, error: '学生只能访问自己的 Konling 运行时上下文。' };
@@ -2279,6 +2431,7 @@ export async function verifyKonlingRuntimeScope(
       resourceId: input.resourceId ?? null,
       pathNodeId: input.pathNodeId ?? null,
       privacyScopes: privacyScopesForRole(role),
+      candidateGraph,
     },
   };
 }
@@ -2404,6 +2557,69 @@ export async function buildKonlingRuntimeContext(
   }
 
   const scope = scopeResult.scope;
+  if (scope.candidateGraph) {
+    const pageContext = buildServerOwnedPageContext(scope);
+    const userProfile = buildServerOwnedUserProfile({
+      userId: scope.targetUserId,
+      name: input.authenticatedUserName || '同学',
+      learnerState: null,
+    });
+    const planContext: KonlingPlanContext = {
+      currentPathId: null,
+      activeNodeId: null,
+      nextNodeIds: [],
+      recentPathIds: [],
+      completedNodeIds: [],
+      status: 'missing',
+    };
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [],
+      evidenceCitations: [],
+      sourcePacks: [],
+      missingCitationClasses: ['content'],
+      lowConfidenceReasons: ['candidate-tool-citation-required'],
+      responseProtocol: {
+        requiredOwners: ['answer'],
+        minimum: { content: 1, evidenceWhenAvailable: 0 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const baseRuntimeContext: KonlingRuntimeContext = {
+      pageContext,
+      userProfile,
+      learnerState: null,
+      planContext,
+      memory: [],
+      knowledgeWorkspace: null,
+      graphContext: null,
+      citationContext,
+      permittedTools: KONLING_CANDIDATE_READ_TOOLS,
+      missingContext: [],
+      featureFlags: {
+        learnerState: false,
+        semanticMemory: false,
+        strategyMemory: false,
+      },
+    };
+    const knowledgeCapabilityContext = buildKonlingKnowledgeCapabilityContext({
+      runtimeContext: baseRuntimeContext,
+      scope,
+      answerIntent: classifyKonlingAnswerIntent(
+        resolveKonlingTeachingAssistantMode(input.teachingAssistantModeId),
+        baseRuntimeContext,
+        scope,
+        input.teachingAssistantServerModeContext,
+        input.currentUserQuery,
+      ),
+      modeId: normalizeKonlingTeachingAssistantModeId(input.teachingAssistantModeId) ?? 'generic-chat',
+    });
+    return {
+      ...baseRuntimeContext,
+      knowledgeCapabilityContext,
+      sarAssociatedGrounding: null,
+    };
+  }
   const learnerStateEnabled = isAdaptiveLearnerStateServiceEnabled();
   const learnerStateGoal = resolveAdaptiveLearnerStateGoal(scope.courseId, input.pageContextHint?.courseId);
   const learnerState = learnerStateEnabled
@@ -2614,6 +2830,23 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       }).displayNumber,
     })),
   });
+  const assignCandidateCitation = (canonicalId: string, displayTitle: string) => (
+    citationAllocator.assign({
+      id: `candidate:${CANDIDATE_RELEASE_SELECTOR.releaseSetId}:${CANDIDATE_RELEASE_SELECTOR.releaseId}:${canonicalId}`,
+      sourceType: 'content',
+      displayTitle,
+      href: `/knowledge?canonicalId=${encodeURIComponent(canonicalId)}`,
+      confidence: 'high',
+      evidenceBasis: `candidate-canonical:${CANDIDATE_RELEASE_SELECTOR.releaseSetId}:${CANDIDATE_RELEASE_SELECTOR.releaseId}`,
+      limitation: 'candidate-read-only',
+      identity: {
+        kind: 'content',
+        sourceType: 'content',
+        contentId: canonicalId,
+        sourceRevision: `${CANDIDATE_RELEASE_SELECTOR.releaseSetId}/${CANDIDATE_RELEASE_SELECTOR.releaseId}`,
+      },
+    })
+  );
   return {
     getAssignedCitations: citationAllocator.assigned,
     getTextbookOptimizations: () => [...textbookOptimizations.values()]
@@ -2679,6 +2912,74 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       })),
     searchKnowledgeGraph: async (args: { query?: string; limit?: number } = {}) =>
       runKonlingRuntimeTool(input, 'search_knowledge_graph', args, async () => searchKnowledgeGraph(input.db, args.query ?? '', args.limit ?? 5)),
+    searchCandidateCanonical: async (args: z.infer<typeof candidateCanonicalSearchParameters>) =>
+      runKonlingRuntimeTool(input, 'search_candidate_canonical', args, async () => {
+        if (!input.scope.candidateGraph) {
+          throw new KonlingRuntimeScopeError(403, '当前页面未获候选权威图谱授权。');
+        }
+        const parsed = candidateCanonicalSearchParameters.parse(args);
+        const result = unwrapCandidateProjection(await candidateKnowledgeProjectionService.canonicalSearch(
+          CANDIDATE_RELEASE_SELECTOR,
+          candidateKnowledgeRole(input.scope.role),
+          parsed.query,
+          CANDIDATE_GRAPH_SUPPORT,
+          parsed,
+        ));
+        return {
+          ...result.projection,
+          diagnostics: result.diagnostics,
+          citations: result.projection.results.map((item) => (
+            assignCandidateCitation(item.id, item.label)
+          )),
+        };
+      }),
+    getCandidateCanonicalDetail: async (args: z.infer<typeof candidateCanonicalDetailParameters>) =>
+      runKonlingRuntimeTool(input, 'get_candidate_canonical_detail', args, async () => {
+        if (!input.scope.candidateGraph) {
+          throw new KonlingRuntimeScopeError(403, '当前页面未获候选权威图谱授权。');
+        }
+        const parsed = candidateCanonicalDetailParameters.parse(args);
+        const result = unwrapCandidateProjection(await candidateKnowledgeProjectionService.nodeDetail(
+          CANDIDATE_RELEASE_SELECTOR,
+          candidateKnowledgeRole(input.scope.role),
+          parsed.canonicalId,
+          CANDIDATE_GRAPH_SUPPORT,
+        ));
+        return {
+          ...result.projection,
+          diagnostics: result.diagnostics,
+          citations: [
+            assignCandidateCitation(
+              result.projection.node.id,
+              result.projection.node.label,
+            ),
+          ],
+        };
+      }),
+    getCandidateCanonicalNeighbors: async (args: z.infer<typeof candidateCanonicalNeighborsParameters>) =>
+      runKonlingRuntimeTool(input, 'get_candidate_canonical_neighbors', args, async () => {
+        if (!input.scope.candidateGraph) {
+          throw new KonlingRuntimeScopeError(403, '当前页面未获候选权威图谱授权。');
+        }
+        const parsed = candidateCanonicalNeighborsParameters.parse(args);
+        const result = unwrapCandidateProjection(await candidateKnowledgeProjectionService.boundedNeighbors(
+          CANDIDATE_RELEASE_SELECTOR,
+          candidateKnowledgeRole(input.scope.role),
+          parsed.canonicalId,
+          CANDIDATE_GRAPH_SUPPORT,
+          parsed,
+        ));
+        return {
+          ...result.projection,
+          diagnostics: result.diagnostics,
+          citations: [
+            assignCandidateCitation(parsed.canonicalId, parsed.canonicalId),
+            ...result.projection.neighbors.map((item) => (
+              assignCandidateCitation(item.neighbor.id, item.neighbor.label)
+            )),
+          ],
+        };
+      }),
     recommendNextAction: async () => runKonlingRuntimeTool(input, 'recommend_next_action', {}, async () => recommendNextAction(input.context)),
     getSimulationStatus: async (args: { resourceId?: string | null } = {}) => {
       return runKonlingRuntimeTool(input, 'get_simulation_status', args, async () => {
@@ -2717,6 +3018,7 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         return buildSimulationTaskSpecContextOutput(input.scope, taskSpec);
       }),
     runVirtualSimulation: async (args: RunVirtualSimulationInput) => {
+      assertCandidateToolAllowed(input.scope, 'run_virtual_simulation');
       assertAgentSessionRequiredForPersistentSimulationTool(input, 'run_virtual_simulation');
       assertOwnerSimulationWriteScope(input.scope);
       return runKonlingRuntimeTool(input, 'run_virtual_simulation', args, async (toolRun) => {
@@ -2753,6 +3055,7 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         return buildControllerPatchProposal(input.scope, run, parsed);
       }),
     applyControllerPatch: async (args: ApplyControllerPatchInput) => {
+      assertCandidateToolAllowed(input.scope, 'apply_controller_patch');
       assertAgentSessionRequiredForPersistentSimulationTool(input, 'apply_controller_patch');
       assertOwnerSimulationWriteScope(input.scope);
       return runKonlingRuntimeTool(input, 'apply_controller_patch', args, async () => {
@@ -4391,13 +4694,16 @@ export async function completeKonlingToolRun(
     completedAt: now,
     latencyMs: calculateLatencyMs(getValue(toolRun, 'startedAt'), now),
   });
-  await persistKonlingAgentToolEvidence(db, {
-    ...readRecord(toolRun),
-    status: 'succeeded',
-    outputSummary: redactSensitivePayload(input.output ?? {}),
-    completedAt: now,
-    latencyMs: calculateLatencyMs(getValue(toolRun, 'startedAt'), now),
-  });
+  const toolName = getString(toolRun, 'toolName') as KonlingToolName;
+  if (!(input.scope.candidateGraph && KONLING_CANDIDATE_READ_TOOL_SET.has(toolName))) {
+    await persistKonlingAgentToolEvidence(db, {
+      ...readRecord(toolRun),
+      status: 'succeeded',
+      outputSummary: redactSensitivePayload(input.output ?? {}),
+      completedAt: now,
+      latencyMs: calculateLatencyMs(getValue(toolRun, 'startedAt'), now),
+    });
+  }
   return { success: true, status: 'succeeded' };
 }
 
@@ -4422,6 +4728,7 @@ async function runKonlingRuntimeTool<T>(
   toolInput: unknown,
   effect: (toolRun?: KonlingToolRunView) => Promise<T>,
 ) {
+  assertCandidateToolAllowed(runtimeInput.scope, toolName);
   const agentSessionId = runtimeInput.agentSessionId;
   if (!agentSessionId) {
     if (isKonlingAdaptivePathTool(toolName)) {
@@ -5634,6 +5941,21 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       }),
       execute: (args) => runtime.searchKnowledgeGraph(args),
     }),
+    search_candidate_canonical: tool({
+      description: '在服务端固定 ReleaseSet 中按 Canonical ID、类型和权威字段检索候选对象；禁止推断 Legacy 对应项。',
+      inputSchema: candidateCanonicalSearchParameters,
+      execute: (args) => runtime.searchCandidateCanonical(args),
+    }),
+    get_candidate_canonical_detail: tool({
+      description: '读取服务端固定 ReleaseSet 中的角色安全 Canonical 对象详情。',
+      inputSchema: candidateCanonicalDetailParameters,
+      execute: (args) => runtime.getCandidateCanonicalDetail(args),
+    }),
+    get_candidate_canonical_neighbors: tool({
+      description: '读取服务端固定 ReleaseSet 中的有界一跳邻居，保留谓词、方向、遍历方向和治理等级。',
+      inputSchema: candidateCanonicalNeighborsParameters,
+      execute: (args) => runtime.getCandidateCanonicalNeighbors(args),
+    }),
     recommend_next_action: tool({
       description: '基于学习状态、路径和记忆推荐下一步动作。',
       inputSchema: z.object({}),
@@ -6644,6 +6966,60 @@ export function assignKonlingRuntimeCitationDisplayNumbers(
       const hydrated = hydrate(citation);
       return hydrated ? [hydrated] : [];
     }),
+  };
+}
+
+export function mergeCandidateAssignedCitations<T extends KonlingRuntimeContext>(
+  context: T,
+  assignedCitations: readonly KonlingAssignedCitation[],
+): T {
+  if (!context.pageContext.candidateGraph || !context.citationContext) return context;
+  const candidateCitations: KonlingCitation[] = assignedCitations
+    .filter((citation) => citation.evidenceBasis?.startsWith('candidate-canonical:'))
+    .map((citation) => ({
+      id: citation.id,
+      sourceType: 'content',
+      displayTitle: citation.displayTitle,
+      href: citation.href,
+      confidence: citation.confidence ?? 'high',
+      evidenceBasis: citation.evidenceBasis
+        ?? `candidate-canonical:${context.pageContext.candidateGraph!.releaseSetId}:${context.pageContext.candidateGraph!.releaseId}`,
+      owner: 'answer',
+      citationTargetId: citation.identity.kind === 'content'
+        ? citation.identity.contentId
+        : citation.id,
+      verified: true,
+      resolver: 'candidate-authoritative-repository',
+      displayNumber: citation.displayNumber,
+      canonicalKey: citation.canonicalKey,
+      identity: citation.identity,
+    }));
+  if (candidateCitations.length === 0) return context;
+  const existingByCanonicalKey = new Set(
+    context.citationContext.contentCitations.map((citation) => citation.canonicalKey),
+  );
+  const contentCitations = [
+    ...context.citationContext.contentCitations,
+    ...candidateCitations.filter((citation) => !existingByCanonicalKey.has(citation.canonicalKey)),
+  ];
+  const hydrated = assignKonlingRuntimeCitationDisplayNumbers(
+    contentCitations,
+    context.citationContext.evidenceCitations,
+  );
+  return {
+    ...context,
+    citationContext: {
+      ...context.citationContext,
+      contentCitations: hydrated.contentCitations,
+      evidenceCitations: hydrated.evidenceCitations,
+      missingCitationClasses: context.citationContext.missingCitationClasses
+        .filter((item) => item !== 'content'),
+      lowConfidenceReasons: context.citationContext.lowConfidenceReasons
+        .filter((item) => (
+          item !== 'missing-content'
+          && item !== 'candidate-tool-citation-required'
+        )),
+    },
   };
 }
 
@@ -7719,6 +8095,7 @@ function buildServerOwnedPageContext(scope: KonlingRuntimeScope): PageContext {
     topic: stepContext?.topic || scope.pageId,
     learningObjectives: stepContext?.learningObjectives || [],
     knowledgeType: stepContext?.knowledgeType || 'C',
+    candidateGraph: scope.candidateGraph ?? null,
     ...simulationContext,
   };
 }

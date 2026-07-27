@@ -59,6 +59,10 @@ scripts/*
 !scripts/wasm/**
 !scripts/db/
 !scripts/db/**
+!scripts/actkg-release/
+!scripts/actkg-release/**
+!scripts/course-coverage/
+!scripts/course-coverage/**
 !scripts/knowledge/
 !scripts/knowledge/**
 !scripts/assignments/

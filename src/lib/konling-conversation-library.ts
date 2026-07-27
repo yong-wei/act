@@ -4,6 +4,7 @@ import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
 import { isAdaptivePracticeGoalId } from '@/lib/adaptive-path-goal-options';
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import type { Message } from '@/types/ai-message';
+import type { CandidateGraphPageContext } from '@/types/ai-context';
 
 export const KONLING_DEFAULT_CONVERSATION_TITLE = '新对话';
 export const KONLING_CONVERSATION_TITLE_MAX_LENGTH = 64;
@@ -39,6 +40,7 @@ export interface KonlingAuthorizedPageScope {
   classId?: string | null;
   resourceId?: string | null;
   pathNodeId?: string | null;
+  candidateGraph?: CandidateGraphPageContext | null;
 }
 
 export async function resolveKonlingContextEventScope(
@@ -92,6 +94,7 @@ export async function resolveKonlingContextEventScope(
     // client-supplied existing ID as proof that it belongs to this page.
     resourceId: null,
     pathNodeId: null,
+    candidateGraph: scope.candidateGraph ?? null,
   };
 }
 
@@ -103,6 +106,7 @@ export interface KonlingContextEventMetadata {
   classId: string | null;
   resourceId: string | null;
   pathNodeId: string | null;
+  candidateGraph: CandidateGraphPageContext | null;
 }
 
 export class KonlingConversationTurnConflictError extends Error {
@@ -418,6 +422,20 @@ export function buildKonlingContextIdentity(scope: KonlingAuthorizedPageScope): 
     scope.classId ?? '',
     scope.resourceId ?? '',
     scope.pathNodeId ?? '',
+    scope.candidateGraph
+      ? [
+          scope.candidateGraph.authorityState,
+          scope.candidateGraph.releaseSetId,
+          scope.candidateGraph.releaseId,
+          scope.candidateGraph.selectedCanonicalId ?? '',
+          scope.candidateGraph.selectedCanonicalType ?? '',
+          scope.candidateGraph.governanceFilter,
+          scope.candidateGraph.canonicalTypeFilter ?? '',
+          scope.candidateGraph.coverageStatus,
+          scope.candidateGraph.objectCount ?? '',
+          scope.candidateGraph.relationCount ?? '',
+        ].join('\u001e')
+      : '',
   ].join('\u001f');
 }
 
@@ -433,6 +451,7 @@ export function createKonlingContextEvent(
     classId: scope.classId ?? null,
     resourceId: scope.resourceId ?? null,
     pathNodeId: scope.pathNodeId ?? null,
+    candidateGraph: scope.candidateGraph ?? null,
   };
   const content = [
     '[控灵当前页面上下文]',
@@ -441,6 +460,17 @@ export function createKonlingContextEvent(
     ...(metadata.classId ? [`classId=${metadata.classId}`] : []),
     ...(metadata.resourceId ? [`resourceId=${metadata.resourceId}`] : []),
     ...(metadata.pathNodeId ? [`pathNodeId=${metadata.pathNodeId}`] : []),
+    ...(metadata.candidateGraph ? [
+      `authorityState=${metadata.candidateGraph.authorityState}`,
+      `releaseSetId=${metadata.candidateGraph.releaseSetId}`,
+      `releaseId=${metadata.candidateGraph.releaseId}`,
+      `selectedCanonicalId=${metadata.candidateGraph.selectedCanonicalId ?? 'none'}`,
+      `selectedCanonicalType=${metadata.candidateGraph.selectedCanonicalType ?? 'none'}`,
+      `governanceFilter=${metadata.candidateGraph.governanceFilter}`,
+      `canonicalTypeFilter=${metadata.candidateGraph.canonicalTypeFilter ?? 'all'}`,
+      `coverageStatus=${metadata.candidateGraph.coverageStatus}`,
+      `coverage=${metadata.candidateGraph.objectCount ?? 'unknown'} objects/${metadata.candidateGraph.relationCount ?? 'unknown'} relations`,
+    ] : []),
   ].join('\n');
 
   return toLegacyMessage({

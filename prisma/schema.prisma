@@ -5021,3 +5021,246 @@ model LearningRecommendation {
   @@index([userId, recType])
   @@index([userId, isCompleted])
 }
+
+// Candidate-only, immutable mirror of explicitly locked ActKG Engineering
+// Releases. No production knowledge consumer reads these models.
+model ActkgReleaseSet {
+  id             String   @id
+  controlledPath String   @unique
+  lockVersion    String
+  candidateState String   @default("CANDIDATE")
+  createdAt      DateTime @default(now())
+
+  releases ActkgRelease[]
+  receipt  ActkgImportReceipt?
+  courseCoverageVersions CourseCoverageOverlayVersion[]
+}
+
+model ActkgRelease {
+  id              String   @id
+  releaseSetId    String
+  releaseVersion  String   @unique
+  releaseStatus   String
+  protocol        String
+  authority       String
+  scope           String
+  contractHash    String
+  releaseHash     String   @unique
+  schemaRawHash   String
+  releaseRawHash  String
+  notesRawHash    String
+  captureRevision String
+  lockRawHash     String
+  createdAt       DateTime @default(now())
+
+  releaseSet      ActkgReleaseSet              @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  objects         ActkgAuthoritativeObject[]
+  relations       ActkgAuthoritativeRelation[]
+  sourceMappings  ActkgSourceMapping[]
+  sourceObjects   ActkgSourceObject[]
+  evidence        ActkgEvidenceSegment[]
+  originalPayload ActkgOriginalReleasePayload?
+  receipt         ActkgImportReceipt?
+  courseCoverageVersions CourseCoverageOverlayVersion[]
+
+  @@unique([releaseSetId, releaseVersion])
+  @@index([releaseSetId, releaseStatus])
+}
+
+model ActkgAuthoritativeObject {
+  releaseId         String
+  canonicalId       String
+  ordinal           Int
+  canonicalType     String
+  semanticName      String?
+  reviewStatus      String?
+  publicationStatus String?
+  lifecycleStatus   String?
+  payload           Json
+
+  release        ActkgRelease                 @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  outgoing       ActkgAuthoritativeRelation[] @relation("ActkgRelationSource")
+  incoming       ActkgAuthoritativeRelation[] @relation("ActkgRelationTarget")
+  sourceMappings ActkgSourceMapping[]
+  courseCoverageEntries CourseCoverageOverlayEntry[]
+
+  @@id([releaseId, canonicalId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, canonicalType])
+  @@index([releaseId, semanticName])
+}
+
+model ActkgAuthoritativeRelation {
+  releaseId         String
+  relationId        String
+  ordinal           Int
+  qualityTier       String
+  sourceId          String
+  targetId          String
+  relationType      String
+  reviewStatus      String?
+  publicationStatus String?
+  direct            Boolean?
+  payload           Json
+
+  release ActkgRelease             @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  source  ActkgAuthoritativeObject @relation("ActkgRelationSource", fields: [releaseId, sourceId], references: [releaseId, canonicalId], onDelete: Restrict)
+  target  ActkgAuthoritativeObject @relation("ActkgRelationTarget", fields: [releaseId, targetId], references: [releaseId, canonicalId], onDelete: Restrict)
+
+  @@id([releaseId, relationId])
+  @@unique([releaseId, qualityTier, ordinal])
+  @@unique([releaseId, sourceId, targetId, relationType])
+  @@index([releaseId, relationType, qualityTier])
+  @@index([releaseId, sourceId])
+  @@index([releaseId, targetId])
+}
+
+model ActkgSourceObject {
+  releaseId      String
+  sourceObjectId String
+  ordinal        Int
+  sourceId       String?
+  sectionId      String?
+  nodeType       String?
+  reviewStatus   String?
+  payload        Json
+
+  release  ActkgRelease         @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  mappings ActkgSourceMapping[]
+
+  @@id([releaseId, sourceObjectId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, sourceId, sectionId])
+}
+
+model ActkgSourceMapping {
+  releaseId      String
+  mappingId      String
+  ordinal        Int
+  sourceObjectId String
+  canonicalId    String
+  mappingType    String
+  reviewStatus   String?
+  payload        Json
+
+  release      ActkgRelease             @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  sourceObject ActkgSourceObject        @relation(fields: [releaseId, sourceObjectId], references: [releaseId, sourceObjectId], onDelete: Restrict)
+  canonical    ActkgAuthoritativeObject @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+
+  @@id([releaseId, mappingId])
+  @@unique([releaseId, ordinal])
+  @@unique([releaseId, sourceObjectId, canonicalId, mappingType])
+  @@index([releaseId, canonicalId])
+}
+
+model ActkgEvidenceSegment {
+  releaseId       String
+  evidenceId      String
+  ordinal         Int
+  sourceEditionId String
+  sectionId       String
+  segmentOrdinal  Int
+  segmentType     String
+  contentHash     String
+  payload         Json
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, evidenceId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, sourceEditionId, sectionId, segmentOrdinal])
+}
+
+model ActkgOriginalReleasePayload {
+  releaseId         String @id
+  normalization     String
+  canonicalHash     String
+  normalizedPayload Json
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+}
+
+model ActkgImportReceipt {
+  id                             String   @id
+  releaseSetId                   String   @unique
+  releaseId                      String   @unique
+  sourceRun                      String
+  sourceImplementationCommit     String
+  captureRevision                String
+  lockRawHash                    String
+  ctkgDatasetAvailability        String
+  ctkgDatasetHash                String?
+  ctkgDatasetPublicationIdentity String?
+  ctkgDatasetResolvableLocation  String?
+  revisionRegistryAvailability   String
+  revisionRegistryVersion        String?
+  revisionRegistryHash           String?
+  objectCount                    Int
+  sourceMappingCount             Int
+  goldRelationCount              Int
+  silverRelationCount            Int
+  sourceObjectCount              Int
+  evidenceSegmentCount           Int
+  candidateState                 String   @default("CANDIDATE")
+  importedAt                     DateTime @default(now())
+
+  releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+}
+
+// Git-governed course admission overlay. This is independent from the complete
+// candidate Release mirror and is not wired into production consumers.
+model CourseCoverageOverlayVersion {
+  id                String   @id
+  schemaVersion     String
+  overlayId         String
+  overlayVersion    String
+  courseId          String
+  releaseSetId      String
+  releaseId         String
+  authoringRevision String
+  captureRevision   String
+  sourceHash        String
+  releaseHash       String
+  lockRawHash       String
+  createdAt         DateTime @default(now())
+
+  releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  entries    CourseCoverageOverlayEntry[]
+  receipt    CourseCoverageImportReceipt?
+
+  @@unique([overlayId, overlayVersion])
+  @@unique([courseId, releaseId, overlayVersion])
+  @@unique([id, releaseId])
+  @@index([courseId, releaseSetId, releaseId])
+}
+
+model CourseCoverageOverlayEntry {
+  overlayVersionId String
+  releaseId        String
+  canonicalId      String
+  role             String
+  ordinal          Int
+
+  overlayVersion CourseCoverageOverlayVersion @relation(fields: [overlayVersionId, releaseId], references: [id, releaseId], onDelete: Restrict)
+  canonical      ActkgAuthoritativeObject      @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+
+  @@id([overlayVersionId, canonicalId, role])
+  @@unique([overlayVersionId, ordinal])
+  @@index([releaseId, canonicalId])
+}
+
+model CourseCoverageImportReceipt {
+  id                String   @id
+  overlayVersionId  String   @unique
+  authoringRevision String
+  captureRevision   String
+  sourceHash        String
+  releaseHash       String
+  lockRawHash       String
+  entryCount        Int
+  importedAt        DateTime @default(now())
+
+  overlayVersion CourseCoverageOverlayVersion @relation(fields: [overlayVersionId], references: [id], onDelete: Restrict)
+}

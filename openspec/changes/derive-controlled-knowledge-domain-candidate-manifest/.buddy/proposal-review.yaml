@@ -1,6 +1,0 @@
-# Sources: indexed governance source contract
-split_status: single-change
-vertical_slice_status: valid
-blocking_edges_status: valid
-wide_refactor_strategy: none
-children: []
