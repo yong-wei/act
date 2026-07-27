@@ -37,12 +37,20 @@ function booleanValue(...records: Record<string, unknown>[]): (key: string) => b
   };
 }
 
+function stringValue(...records: Record<string, unknown>[]): (key: string) => string | undefined {
+  return (key) => {
+    for (let index = records.length - 1; index >= 0; index -= 1) {
+      const value = records[index]?.[key];
+      if (typeof value === 'string') return value;
+    }
+    return undefined;
+  };
+}
+
 function dispositionSignals(...values: unknown[]) {
   const records = values.map(asRecord);
   const readBoolean = booleanValue(...records);
-  const availability = records
-    .map((record) => record.availability)
-    .find((value): value is string => typeof value === 'string');
+  const availability = stringValue(...records)('availability');
   const positiveSignals = {
     recommendable: readBoolean('recommendable'),
     pathEligible: readBoolean('pathEligible'),

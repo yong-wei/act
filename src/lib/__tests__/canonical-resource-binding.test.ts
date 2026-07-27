@@ -342,6 +342,118 @@ describe('incremental candidate and review pipeline', () => {
     expect(regenerated.candidates).toHaveLength(1);
   });
 
+  it('keeps same-name Canonical Objects distinct across Releases on resource changes', () => {
+    const secondRelease = {
+      ...canonicalObject,
+      releaseId: 'release-2',
+      objectRevision: 'object-revision-2',
+    };
+    const generated = generateCandidatesForResourceChanges({
+      changedSegments: [resourceSegment],
+      canonicalIndex: [canonicalObject, secondRelease],
+      generatorPromptVersion: 'generator-v1',
+    });
+    expect(generated.candidates
+      .map((row) => [row.releaseId, row.canonicalId])
+      .sort(([left], [right]) => left.localeCompare(right))).toEqual([
+        ['release', 'canonical'],
+        ['release-2', 'canonical'],
+      ]);
+    expect(new Set(generated.candidates.map((row) => row.pairId))).toHaveLength(2);
+  });
+
+  it('reuses decisions only when reviewer prompt and whitelist input identity are unchanged', async () => {
+    const row = candidate();
+    const generated = generatorDecision(row, {
+      proposedRole: 'EXPLAINS',
+      evidenceDigest: sha256('evidence'),
+      evidenceIds: ['evidence'],
+      highImpactReasons: [],
+    });
+    const decision = await runIndependentReview({
+      candidate: row,
+      generatorDecision: generated,
+      canonicalProfile: {
+        canonicalId: 'canonical',
+        canonicalType: 'DomainConcept',
+        semanticProfile: 'profile',
+      },
+      resourceSegment: {
+        structuralUnitId: 'structural-unit',
+        segmentId: 'segment',
+        contentHash: segmentHash,
+        content: 'segment',
+      },
+      reviewerPromptVersion: 'reviewer-v1',
+      review: async () => ({ outcome: 'ACCEPT', provider: 'GPT' }),
+    });
+    const reviewerIdentity = {
+      pairId: row.pairId,
+      reviewerPromptVersion: decision.reviewerPromptVersion,
+      reviewerInputDigest: decision.reviewerInputDigest,
+    };
+    const unchanged = generateCandidatesForCanonicalChanges({
+      changedObjects: [canonicalObject],
+      resourceIndex: [resourceSegment],
+      generatorPromptVersion: 'generator-v1',
+      previousDecisions: [decision],
+      reviewerIdentities: [reviewerIdentity],
+    });
+    expect(unchanged).toEqual({
+      candidates: [],
+      reusedDecisionIds: [decision.id],
+    });
+    const changedPrompt = generateCandidatesForCanonicalChanges({
+      changedObjects: [canonicalObject],
+      resourceIndex: [resourceSegment],
+      generatorPromptVersion: 'generator-v1',
+      previousDecisions: [decision],
+      reviewerIdentities: [{
+        ...reviewerIdentity,
+        reviewerPromptVersion: 'reviewer-v2',
+      }],
+    });
+    expect(changedPrompt.candidates).toHaveLength(1);
+    expect(changedPrompt.reusedDecisionIds).toEqual([]);
+    const changedPromptDecision = await runIndependentReview({
+      candidate: changedPrompt.candidates[0]!,
+      generatorDecision: generatorDecision(changedPrompt.candidates[0]!, {
+        proposedRole: 'EXPLAINS',
+        evidenceDigest: sha256('evidence'),
+        evidenceIds: ['evidence'],
+        highImpactReasons: [],
+      }),
+      canonicalProfile: {
+        canonicalId: 'canonical',
+        canonicalType: 'DomainConcept',
+        semanticProfile: 'profile',
+      },
+      resourceSegment: {
+        structuralUnitId: 'structural-unit',
+        segmentId: 'segment',
+        contentHash: segmentHash,
+        content: 'segment',
+      },
+      reviewerPromptVersion: 'reviewer-v2',
+      supersedesDecisionId: decision.id,
+      review: async () => ({ outcome: 'ACCEPT', provider: 'GPT' }),
+    });
+    expect(changedPromptDecision.id).not.toBe(decision.id);
+    expect(changedPromptDecision.supersedesDecisionId).toBe(decision.id);
+    const changedInput = generateCandidatesForCanonicalChanges({
+      changedObjects: [canonicalObject],
+      resourceIndex: [resourceSegment],
+      generatorPromptVersion: 'generator-v1',
+      previousDecisions: [decision],
+      reviewerIdentities: [{
+        ...reviewerIdentity,
+        reviewerInputDigest: sha256('changed-reviewer-input'),
+      }],
+    });
+    expect(changedInput.candidates).toHaveLength(1);
+    expect(changedInput.reusedDecisionIds).toEqual([]);
+  });
+
   it('rejects extended or cross-candidate reviewer inputs and binds full cache input', async () => {
     const row = candidate();
     const generated = generatorDecision(row, {

@@ -163,6 +163,12 @@ export interface CandidateGenerationOutput {
   reusedDecisionIds: string[];
 }
 
+export interface CandidateReviewerIdentity {
+  pairId: string;
+  reviewerPromptVersion: string;
+  reviewerInputDigest: string;
+}
+
 export type CanonicalBindingReviewState =
   | 'NOT_REQUIRED'
   | 'ACCEPTED'

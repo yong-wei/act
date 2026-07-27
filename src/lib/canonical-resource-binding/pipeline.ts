@@ -2,6 +2,7 @@ import {
   CANONICAL_BINDING_HIGH_IMPACT_POLICY_VERSION,
   CANONICAL_RESOURCE_BINDING_ROLES,
   type CandidateGenerationOutput,
+  type CandidateReviewerIdentity,
   type CanonicalBindingHighImpactReason,
   type CanonicalCandidateIdentity,
   type CanonicalObjectIndexEntry,
@@ -99,14 +100,33 @@ function candidate(
 function generationOutput(
   candidates: CanonicalResourceBindingCandidate[],
   previous: readonly CanonicalResourceBindingDecision[],
+  reviewerIdentities: readonly CandidateReviewerIdentity[],
 ): CandidateGenerationOutput {
+  const reviewerIdentityByPair = new Map(reviewerIdentities.map((identity) => [
+    identity.pairId,
+    identity,
+  ]));
   const previousByKey = new Map(previous
     .filter((row) => row.lifecycleState === 'CURRENT' && row.reviewState !== 'REVIEW_RETRYABLE')
-    .map((row) => [row.generatorCacheKey, row.id]));
+    .map((row) => [
+      canonicalSha256({
+        generatorCacheKey: row.generatorCacheKey,
+        reviewerPromptVersion: row.reviewerPromptVersion,
+        reviewerInputDigest: row.reviewerInputDigest,
+      }),
+      row.id,
+    ]));
   const unique = new Map<string, CanonicalResourceBindingCandidate>();
   const reusedDecisionIds = new Set<string>();
   for (const row of candidates) {
-    const previousId = previousByKey.get(row.generatorCacheKey);
+    const reviewerIdentity = reviewerIdentityByPair.get(row.pairId);
+    const previousId = reviewerIdentity
+      ? previousByKey.get(canonicalSha256({
+          generatorCacheKey: row.generatorCacheKey,
+          reviewerPromptVersion: reviewerIdentity.reviewerPromptVersion,
+          reviewerInputDigest: reviewerIdentity.reviewerInputDigest,
+        }))
+      : undefined;
     if (previousId) reusedDecisionIds.add(previousId);
     else unique.set(row.pairId, row);
   }
@@ -121,6 +141,7 @@ export function generateCandidatesForCanonicalChanges(input: {
   resourceIndex: readonly ResourceSegmentIndexEntry[];
   generatorPromptVersion: string;
   previousDecisions?: readonly CanonicalResourceBindingDecision[];
+  reviewerIdentities?: readonly CandidateReviewerIdentity[];
 }): CandidateGenerationOutput {
   return generationOutput(input.changedObjects.flatMap((object) => input.resourceIndex
     .filter((segment) => segment.candidateCanonicalIds.includes(object.canonicalId))
@@ -129,7 +150,7 @@ export function generateCandidatesForCanonicalChanges(input: {
       segment,
       'CANONICAL_CHANGE',
       input.generatorPromptVersion,
-    ))), input.previousDecisions ?? []);
+    ))), input.previousDecisions ?? [], input.reviewerIdentities ?? []);
 }
 
 export function generateCandidatesForResourceChanges(input: {
@@ -137,16 +158,25 @@ export function generateCandidatesForResourceChanges(input: {
   canonicalIndex: readonly CanonicalObjectIndexEntry[];
   generatorPromptVersion: string;
   previousDecisions?: readonly CanonicalResourceBindingDecision[];
+  reviewerIdentities?: readonly CandidateReviewerIdentity[];
 }): CandidateGenerationOutput {
-  const byId = new Map(input.canonicalIndex.map((object) => [object.canonicalId, object]));
+  const byId = new Map<string, CanonicalObjectIndexEntry[]>();
+  for (const object of input.canonicalIndex) {
+    const matches = byId.get(object.canonicalId) ?? [];
+    matches.push(object);
+    byId.set(object.canonicalId, matches);
+  }
   return generationOutput(input.changedSegments.flatMap((segment) => (
     segment.candidateCanonicalIds.flatMap((canonicalId) => {
-      const object = byId.get(canonicalId);
-      return object
-        ? [candidate(object, segment, 'RESOURCE_CHANGE', input.generatorPromptVersion)]
-        : [];
+      const objects = byId.get(canonicalId) ?? [];
+      return objects.map((object) => candidate(
+        object,
+        segment,
+        'RESOURCE_CHANGE',
+        input.generatorPromptVersion,
+      ));
     })
-  )), input.previousDecisions ?? []);
+  )), input.previousDecisions ?? [], input.reviewerIdentities ?? []);
 }
 
 export function invalidateChangedResourcePairs(

@@ -1739,14 +1739,20 @@ async function main(): Promise<void> {
         id: disabledResourceId,
         title: 'Resource disabled by lesson override',
         type: 'STATIC_TEXT',
-        config: { resourceNodePlanning: { pathEligible: true } },
+        config: {
+          availability: 'available',
+          resourceNodePlanning: { pathEligible: true },
+        },
         authorId: precedenceAuthorId,
       },
       {
         id: enabledResourceId,
         title: 'Resource enabled by lesson override',
         type: 'STATIC_TEXT',
-        config: { resourceNodePlanning: { pathEligible: false } },
+        config: {
+          availability: 'archived',
+          resourceNodePlanning: { pathEligible: false },
+        },
         authorId: precedenceAuthorId,
       },
     ],
@@ -1759,7 +1765,10 @@ async function main(): Promise<void> {
         resourceId: disabledResourceId,
         stage: 'PARTICIPATORY',
         order: 1,
-        overrideConfig: { resourceNodePlanning: { pathEligible: false } },
+        overrideConfig: {
+          availability: 'archived',
+          resourceNodePlanning: { pathEligible: false },
+        },
       },
       {
         id: enabledPlacementId,
@@ -1767,7 +1776,10 @@ async function main(): Promise<void> {
         resourceId: enabledResourceId,
         stage: 'PARTICIPATORY',
         order: 2,
-        overrideConfig: { resourceNodePlanning: { pathEligible: true } },
+        overrideConfig: {
+          availability: 'available',
+          resourceNodePlanning: { pathEligible: true },
+        },
       },
     ],
   });
@@ -1794,7 +1806,7 @@ async function main(): Promise<void> {
       {
         resourceId: disabledResourceId,
         structuralUnitId: `lesson-item:${disabledPlacementId}`,
-        disposition: 'UNRESOLVED',
+        disposition: 'EXCLUDED',
       },
       {
         resourceId: enabledResourceId,
