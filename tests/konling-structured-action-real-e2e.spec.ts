@@ -60,12 +60,14 @@ test('real provider structured actions persist across desktop, maximized history
 
   await page.reload();
   await expect(page.getByRole('heading', { name: '智能教案共创' })).toBeVisible();
-  const reloadedTaskCard = page.locator('article').filter({
-    has: page.getByRole('heading', { name: createdTask.topic }),
-  });
-  await reloadedTaskCard.getByRole('button', { name: '与控灵共创' }).click();
+  const globalKonlingEntry = page.getByRole('button', { name: '打开控灵', exact: true });
+  await expect(globalKonlingEntry).toBeVisible({ timeout: 10_000 });
+  await globalKonlingEntry.click({ timeout: 10_000 });
   const reloadedSidebar = page.locator('[data-konling-assistant-surface="global-sidebar"]');
-  await expect(reloadedSidebar.locator('[data-konling-structured-action-card][data-action-state="applied"]')).toHaveCount(1);
+  await expect(reloadedSidebar).toBeVisible({ timeout: 10_000 });
+  await expect(reloadedSidebar.locator('[data-konling-structured-action-card][data-action-state="applied"]')).toHaveCount(1, {
+    timeout: 10_000,
+  });
   expect(await structuredToolRunCount()).toBe(toolRunsAfterBootstrap);
 
   await sendPrompt(page, revisionPrompt(createdTask.id, '请把先修要求改为传递函数与复数基础。'));
