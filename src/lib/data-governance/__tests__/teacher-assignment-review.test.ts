@@ -99,6 +99,7 @@ describe('teacher assignment review persistence', () => {
         sourceManifest: {
           sources: [
             { assetId: 'asset-ready', state: 'READY' },
+            { assetId: 'asset-truncated', state: 'READY', limitations: ['blocks-truncated'] },
             { assetId: 'asset-missing', state: 'UNDERSTANDING_FAILED' },
           ],
         },
@@ -121,7 +122,7 @@ describe('teacher assignment review persistence', () => {
       now,
     })).rejects.toMatchObject({
       code: 'teacher-review-incomplete-evidence-confirmation-required',
-      details: { omittedAssetIds: ['asset-missing'] },
+      details: { omittedAssetIds: ['asset-truncated', 'asset-missing'] },
     });
   });
 

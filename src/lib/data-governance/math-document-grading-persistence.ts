@@ -921,6 +921,9 @@ export async function retryDocumentConversion(input: {
     actor: input.actor,
     adapterVersion: conversion.adapterVersion,
     policyId: conversion.policyId,
+    policySnapshot: conversion.policySnapshot ?? null,
+    policySnapshotHash: conversion.policySnapshotHash ?? null,
+    allowDefaultPolicyDiscovery: conversion.adapterVersion !== 'assignment-understanding.v1',
     idempotencyKey: input.idempotencyKey,
     rerunIdentity,
     reason: `conversion-rerun:${rerunReason}`,
@@ -1235,12 +1238,16 @@ export async function enqueueGradingRun(input: {
   now?: Date;
 }): Promise<{ run: any; job: any; replay: boolean }> {
   const now = input.now ?? new Date();
-  const row = await input.db.answerEvidence.findUnique({ where: { id: input.evidenceId }, include: { blocks: true, conversion: { select: { adapter: true } }, attempt: { include: { answer: { include: { submission: { include: { audience: { select: { classId: true, class: { select: { teacherId: true } } } } } }, question: true } } } } } });
+  const row = await input.db.answerEvidence.findUnique({ where: { id: input.evidenceId }, include: { blocks: true, conversion: { select: { adapter: true } }, attempt: { include: { answer: { include: { assets: { select: { id: true } }, submission: { include: { audience: { select: { classId: true, class: { select: { teacherId: true } } } } } }, question: true } } } } } });
   if (!row || row.attemptId !== input.attemptId) throw new Error('grading-evidence-not-found');
   if (row.attemptId === null || !row.attempt?.answer || !row.attempt.answer.submission || !row.attempt.answer.question || !row.attempt.answer.submission.audience?.class || !row.attempt.answer.submission.frozenAudienceClassId || !row.attempt.answer.question.assignmentRevisionId) throw new Error('grading-content-unavailable:association-missing');
   if (row.readiness !== 'READY') throw new Error('grading-evidence-not-ready');
   if (row.conversion && ['local-fallback', 'local-markitdown'].includes(row.conversion.adapter)) {
     throw new Error('grading-evidence-legacy-local-binary-ineligible');
+  }
+  if (row.attempt.answer.assets.length > 0
+    && row.anchorVersion !== ASSIGNMENT_ATTACHMENT_MANIFEST_VERSION) {
+    throw new Error('grading-evidence-assignment-aggregate-required');
   }
   const classId = row.attempt.answer.submission.frozenAudienceClassId;
   if (row.attempt.answer.submission.audience.classId !== classId) throw new Error('grading-class-binding-invalid');

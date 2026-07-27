@@ -410,4 +410,29 @@ describe("teacher assignment review UI contracts", () => {
       review: { id: "review-1", submissionId: "submission-1", questionId: "question-1", state: "WORKING", version: 1 },
     })?.status).toBe("IN_REVIEW");
   });
+
+  it("lists ready attachments with truncation limitations for confirmation", () => {
+    const detail = normalizeTeacherReviewDetail({
+      submission: { id: "submission-1" },
+      question: { id: "question-1" },
+      evidence: {
+        limitationState: "evidence-incomplete",
+        sourceManifest: {
+          sources: [{
+            assetId: "asset-truncated",
+            displayName: "large.pdf",
+            state: "READY",
+            limitations: ["blocks-truncated"],
+          }],
+        },
+      },
+      review: { id: "review-1" },
+    });
+
+    expect(detail?.incompleteEvidence).toBe(true);
+    expect(detail?.omittedEvidence).toEqual([{
+      assetId: "asset-truncated",
+      displayName: "large.pdf",
+    }]);
+  });
 });

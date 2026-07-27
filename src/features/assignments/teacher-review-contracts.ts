@@ -368,7 +368,8 @@ export function normalizeTeacherReviewDetail(
   const omittedEvidence = arrayFrom(sourceManifest.sources).flatMap((entry) => {
     const source = asRecord(entry);
     const assetId = stringFrom(source.assetId);
-    if (!assetId || stringFrom(source.state).toUpperCase() === "READY") return [];
+    if (!assetId || (stringFrom(source.state).toUpperCase() === "READY"
+      && arrayFrom(source.limitations).length === 0)) return [];
     return [{
       assetId,
       displayName: stringFrom(source.displayName, "未命名附件"),

@@ -1036,6 +1036,43 @@ describe('production math-document grading persistence contracts', () => {
     },
   );
 
+  it('requires aggregate assignment evidence when an attempt has attachments', async () => {
+    const attempt = submittedAttempt();
+    attempt.answer.assets = [{ id: 'asset-1' }] as any;
+    const createRun = vi.fn();
+    const createJob = vi.fn();
+    const db = {
+      ...lifecyclePolicyRepository(),
+      answerEvidence: {
+        findUnique: async () => ({
+          id: 'single-asset-evidence',
+          attemptId: attempt.id,
+          version: 1,
+          sourceHash: 'sha256:single-asset',
+          anchorVersion: 'mathpix.v1:anchors',
+          readiness: 'READY',
+          blocks: [],
+          conversion: { adapter: 'mathpix' },
+          attempt,
+        }),
+      },
+      gradingRun: { create: createRun },
+      gradingJob: { create: createJob },
+    };
+
+    await expect(enqueueGradingRun({
+      db,
+      attemptId: attempt.id,
+      evidenceId: 'single-asset-evidence',
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      idempotencyKey: 'single-asset-grading',
+      now,
+    })).rejects.toThrow('grading-evidence-assignment-aggregate-required');
+
+    expect(createRun).not.toHaveBeenCalled();
+    expect(createJob).not.toHaveBeenCalled();
+  });
+
   it('checks grading authorization before exposing missing course context', async () => {
     const attempt = submittedAttempt();
     const createRun = vi.fn();
@@ -1772,7 +1809,7 @@ describe('production math-document grading persistence contracts', () => {
       answer: { submission: submittedAttempt().answer.submission, question: submittedAttempt().answer.question },
       attempt: { id: 'attempt-1', answerId: 'answer-1' },
     };
-    const conversion = { id: 'conversion-1', assetId: 'asset-1', attemptId: 'attempt-1', adapterVersion: 'router.v1', policyId: null, version: 1, state: 'FAILED', asset };
+    const conversion = { id: 'conversion-1', assetId: 'asset-1', attemptId: 'attempt-1', adapterVersion: 'assignment-understanding.v1', policyId: null, policySnapshot: null, policySnapshotHash: null, version: 1, state: 'FAILED', asset };
     const updates: any[] = [];
     const db: any = {
       ...lifecyclePolicyRepository(),
@@ -1792,8 +1829,13 @@ describe('production math-document grading persistence contracts', () => {
     };
     const cancelled = await cancelDocumentConversion({ db, conversionId: 'conversion-1', actor: { id: 'teacher-1', role: 'TEACHER' }, now });
     expect(cancelled.cancellationRequestedAt).toBe(now);
+    vi.stubEnv('GRADING_MATHPIX_ENABLED', 'true');
+    vi.stubEnv('GRADING_MATHPIX_POLICY_VERSION', 'mathpix.v1');
     const retried = await retryDocumentConversion({ db, conversionId: 'conversion-1', actor: { id: 'teacher-1', role: 'TEACHER' }, idempotencyKey: 'conversion-retry-001', reason: 'provider timeout', now });
+    vi.unstubAllEnvs();
     expect(retried.conversion.version).toBe(2);
+    expect(retried.conversion.policyId).toBeNull();
+    expect(retried.conversion.policySnapshot).toBeNull();
     expect(retried.job.reason).toBe('conversion-rerun:provider timeout');
     expect(retried.job.rerunIdentity).toContain('rerun:conversion:');
   });

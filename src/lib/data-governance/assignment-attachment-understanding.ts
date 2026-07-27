@@ -242,7 +242,33 @@ export function assembleAssignmentAnswerEvidence(input: {
   }
 
   const omitted = sources.filter((source) =>
-    source.assetId && source.state !== 'READY');
+    source.assetId && (source.state !== 'READY' || source.limitations.length > 0));
+  const rendered = renderOrderedEvidence(markdown, attachmentRenders);
+  const renderedMarkdown = rendered.markdown.trim();
+  const canonicalMarkdown = renderedMarkdown.slice(
+    0,
+    MATH_DOCUMENT_GRADING_LIMITS.markdownCharacters,
+  );
+  if (renderedMarkdown.length > canonicalMarkdown.length) {
+    limitations.push('source-snapshot-truncated');
+  }
+  if (rendered.blocks.length > MATH_DOCUMENT_GRADING_LIMITS.blocks) {
+    limitations.push('blocks-truncated');
+  }
+  if (rendered.blocks.some((block) =>
+    block.text.length > MATH_DOCUMENT_GRADING_LIMITS.blockCharacters
+      || (block.markdown?.length ?? block.text.length)
+        > MATH_DOCUMENT_GRADING_LIMITS.blockCharacters)) {
+    limitations.push('block-content-truncated');
+  }
+  const blocks = rendered.blocks
+    .slice(0, MATH_DOCUMENT_GRADING_LIMITS.blocks)
+    .map((block) => ({
+      ...block,
+      text: block.text.slice(0, MATH_DOCUMENT_GRADING_LIMITS.blockCharacters),
+      markdown: (block.markdown ?? block.text)
+        .slice(0, MATH_DOCUMENT_GRADING_LIMITS.blockCharacters),
+    }));
   const state = !hasGradableEvidence
     ? 'NO_GRADABLE_EVIDENCE'
     : omitted.length > 0 || limitations.length > 0
@@ -255,15 +281,12 @@ export function assembleAssignmentAnswerEvidence(input: {
     state,
     sources,
   };
-  const rendered = renderOrderedEvidence(markdown, attachmentRenders);
-  const canonicalMarkdown = rendered.markdown.trim();
-  const blocks = rendered.blocks;
   return {
     evidence: {
       sourceKind: sources.some((source) => source.assetId)
         ? 'document'
         : 'text-native',
-      sourceHash: sha256(JSON.stringify(manifest)),
+      sourceHash: sha256(JSON.stringify({ manifest, canonicalMarkdown, blocks })),
       canonicalMarkdown,
       anchorVersion: ASSIGNMENT_ATTACHMENT_MANIFEST_VERSION,
       precision: blocks.some((block) => block.precision === 'page')

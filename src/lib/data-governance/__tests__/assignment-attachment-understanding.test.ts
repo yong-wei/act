@@ -7,6 +7,7 @@ import {
 } from '../assignment-attachment-understanding';
 import { convertProtectedSubmission } from '../math-document-conversion';
 import {
+  MATH_DOCUMENT_GRADING_LIMITS,
   sha256,
   type ExternalProcessingPolicy,
 } from '../math-document-grading-contracts';
@@ -313,6 +314,61 @@ describe('assignment attachment understanding', () => {
     expect(assembled.manifest.state).toBe('EVIDENCE_INCOMPLETE');
     expect(assembled.manifest.sources[0]?.limitations).toEqual(normalizationLimitations);
     expect(assembled.evidence.limitations).toEqual(normalizationLimitations);
+  });
+
+  it('reapplies global evidence limits across ordered attachments', () => {
+    const blocks = Array.from(
+      { length: MATH_DOCUMENT_GRADING_LIMITS.blocks + 1 },
+      (_, index) => ({
+        id: `page-${index + 1}`,
+        blockIndex: index,
+        pageNumber: index + 1,
+        text: `evidence-${index + 1}`,
+      }),
+    );
+    const assembled = assembleAssignmentAnswerEvidence({
+      attemptId: 'attempt-global-limits',
+      answerVersion: 1,
+      textSnapshot: '',
+      attachments: [{
+        assetId: 'asset-global-limits',
+        displayName: 'large.pdf',
+        mimeType: 'application/pdf',
+        checksum: 'sha256:global-limits',
+        role: 'ATTACHMENT',
+        orderIndex: 0,
+        route: 'binary-mathpix',
+        state: 'READY',
+        canonicalMarkdown: 'large answer',
+        blocks,
+      }],
+    });
+
+    expect(assembled.evidence.blocks).toHaveLength(MATH_DOCUMENT_GRADING_LIMITS.blocks);
+    expect(assembled.evidence.limitations).toContain('blocks-truncated');
+    expect(assembled.manifest.state).toBe('EVIDENCE_INCOMPLETE');
+  });
+
+  it('binds evidence identity to the normalized anchor map', () => {
+    const assemble = (pageNumber: number) => assembleAssignmentAnswerEvidence({
+      attemptId: 'attempt-anchor-identity',
+      answerVersion: 1,
+      textSnapshot: '',
+      attachments: [{
+        assetId: 'asset-anchor-identity',
+        displayName: 'answer.pdf',
+        mimeType: 'application/pdf',
+        checksum: 'sha256:anchor-identity',
+        role: 'ATTACHMENT',
+        orderIndex: 0,
+        route: 'binary-mathpix',
+        state: 'READY',
+        canonicalMarkdown: 'same markdown',
+        blocks: [{ id: 'anchor', blockIndex: 0, pageNumber, text: 'same markdown' }],
+      }],
+    });
+
+    expect(assemble(1).evidence.sourceHash).not.toBe(assemble(2).evidence.sourceHash);
   });
 });
 

@@ -386,10 +386,11 @@ function omittedEvidenceAssetIds(value: unknown): string[] {
     : [];
   return [...new Set(sources.flatMap((source) => {
     if (!source || typeof source !== 'object') return [];
-    const row = source as { assetId?: unknown; state?: unknown };
+    const row = source as { assetId?: unknown; state?: unknown; limitations?: unknown };
     return typeof row.assetId === 'string'
       && row.assetId
-      && row.state !== 'READY'
+      && (row.state !== 'READY'
+        || (Array.isArray(row.limitations) && row.limitations.length > 0))
       ? [row.assetId]
       : [];
   }))];
