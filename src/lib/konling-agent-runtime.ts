@@ -2957,13 +2957,36 @@ function normalizeSuggestedSmartLessonTask(
     ? proposedTask.knowledgePoints.map((item) => {
       if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
       const point = item as Record<string, unknown>;
-      return point.origin === 'SUGGESTED' || point.origin === 'TEACHER_CREATED' ? point : { ...point, origin: 'SUGGESTED' };
+      const sourceState = normalizeSuggestedSmartLessonSourceState(point.sourceState);
+      const origin = point.origin === 'SUGGESTED' || point.origin === 'TEACHER_CREATED'
+        ? point.origin
+        : 'SUGGESTED';
+      return sourceState === point.sourceState && origin === point.origin
+        ? point
+        : { ...point, sourceState, origin };
     })
     : proposedTask.knowledgePoints;
+  const goals = Array.isArray(proposedTask.goals)
+    ? proposedTask.goals.map((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
+      const goal = item as Record<string, unknown>;
+      const sourceState = normalizeSuggestedSmartLessonSourceState(goal.sourceState);
+      return sourceState === goal.sourceState ? goal : { ...goal, sourceState };
+    })
+    : proposedTask.goals;
   return {
     ...proposedTask,
     ...(knowledgePoints ? { knowledgePoints } : {}),
+    ...(goals ? { goals } : {}),
   };
+}
+
+function normalizeSuggestedSmartLessonSourceState(value: unknown) {
+  if (value === 'VERIFIED') return 'verified';
+  if (value === 'NO_RELIABLE_SOURCE') return 'no_reliable_source';
+  if (value === 'AI_GENERATED_SOURCE_PENDING') return 'ai_generated_source_pending';
+  if (value === 'TEACHER_CREATED_SOURCE_PENDING') return 'teacher_created_source_pending';
+  return value;
 }
 
 function buildPublicSmartPreparationBasisSummary(

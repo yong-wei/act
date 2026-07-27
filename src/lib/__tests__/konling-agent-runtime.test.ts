@@ -1432,30 +1432,56 @@ describe('konling agent runtime', () => {
       proposedTask: {
         courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
         sourceVersionIds: ['version-1'],
-        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [{
-          citationId: 'unselected-version-citation', sourceVersionId: 'version-2', anchor: 'chapter-2', contentHash: '2'.repeat(16),
-        }] }],
-        goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [{
+        knowledgePoints: [
+          { content: '幅值条件', sourceState: 'VERIFIED', sourceBindings: [] },
+          { content: '分离点', sourceState: 'NO_RELIABLE_SOURCE', sourceBindings: [] },
+          { content: '相角条件', sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [{
+            citationId: 'unselected-version-citation', sourceVersionId: 'version-2', anchor: 'chapter-2', contentHash: '2'.repeat(16),
+          }] },
+        ],
+        goals: [{ content: '判断根轨迹', sourceState: 'TEACHER_CREATED_SOURCE_PENDING', sourceBindings: [{
           citationId: 'forged-citation', sourceVersionId: 'version-1', anchor: 'forged-anchor', contentHash: 'f'.repeat(16),
         }] }],
-      },
+      } as never,
     })).resolves.toMatchObject({
       turnId: 'turn-2',
       status: 'awaiting_teacher_confirmation',
       proposedTask: {
-        knowledgePoints: [{ origin: 'SUGGESTED', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-        goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        knowledgePoints: [
+          { origin: 'SUGGESTED', sourceState: 'verified', sourceBindings: [] },
+          { origin: 'SUGGESTED', sourceState: 'no_reliable_source', sourceBindings: [] },
+          { origin: 'SUGGESTED', sourceState: 'ai_generated_source_pending', sourceBindings: [] },
+        ],
+        goals: [{ sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
       },
     });
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
     expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.proposedTask).toMatchObject({
-      knowledgePoints: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-      goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      knowledgePoints: [
+        { sourceState: 'verified', sourceBindings: [] },
+        { sourceState: 'no_reliable_source', sourceBindings: [] },
+        { sourceState: 'ai_generated_source_pending', sourceBindings: [] },
+      ],
+      goals: [{ sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
     });
     expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.publicBasisSummary).toEqual({
       title: '自动控制原理',
       sources: ['根轨迹讲义 v3'],
     });
+
+    const unknownSourceStateLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      await expect(runtime.proposeSmartLessonTaskChange({
+        proposedTask: {
+          courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
+          sourceVersionIds: ['version-1'],
+          knowledgePoints: [{ content: '相角条件', sourceState: 'UNKNOWN_SOURCE_STATE', sourceBindings: [] }],
+          goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        },
+      } as never)).rejects.toThrow('智能备课建议不符合确认要求');
+    } finally {
+      unknownSourceStateLog.mockRestore();
+    }
 
     const invalidProposal = (courseBasisId: string, sourceVersionIds: string[]) => runtime.proposeSmartLessonTaskChange({
       proposedTask: {
