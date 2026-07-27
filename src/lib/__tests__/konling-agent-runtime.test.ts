@@ -1393,13 +1393,39 @@ describe('konling agent runtime', () => {
       operation: 'bootstrap', clarification: { question: '课时是 45 还是 90 分钟？', alternatives: ['45', '90'] },
     })).resolves.toMatchObject({ turnId: 'turn-1', status: 'clarification_required' });
     session.stateJson = { currentTurnId: 'turn-2', ownedTurnIds: ['turn-1', 'turn-2'] };
-    await expect(runtime.proposeSmartLessonTaskChange({
-      operation: 'bootstrap',
-      proposedTask: {
-        topic: '根轨迹', durationMinutes: 45,
-        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-      },
-    })).rejects.toThrow('智能备课建议不符合确认要求');
+    const validationLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      await expect(runtime.proposeSmartLessonTaskChange({
+        operation: 'bootstrap',
+        proposedTask: {
+          topic: '根轨迹', durationMinutes: 45,
+          knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        },
+      })).rejects.toThrow('智能备课建议不符合确认要求');
+      const diagnosticCall = validationLog.mock.calls.find(
+        ([label]) => label === '[konling-smart-preparation-validation]',
+      );
+      expect(diagnosticCall).toBeDefined();
+      const diagnosticPayload = diagnosticCall?.[1] as {
+        issues?: Array<Record<string, unknown>>;
+      };
+      expect(Object.keys(diagnosticPayload)).toEqual(['issues']);
+      expect(diagnosticPayload.issues?.length).toBeGreaterThan(0);
+      for (const issue of diagnosticPayload.issues ?? []) {
+        expect(Object.keys(issue)).toEqual(['path', 'code']);
+      }
+      const encodedDiagnostic = JSON.stringify(diagnosticCall);
+      expect(encodedDiagnostic).toContain('"path"');
+      expect(encodedDiagnostic).toContain('"code"');
+      expect(encodedDiagnostic).not.toContain('根轨迹');
+      expect(encodedDiagnostic).not.toContain('相角条件');
+      expect(encodedDiagnostic).not.toContain('basis-1');
+      expect(encodedDiagnostic).not.toContain('version-1');
+      expect(encodedDiagnostic).not.toContain('teacher-1');
+      expect(encodedDiagnostic).not.toContain('turn-2');
+    } finally {
+      validationLog.mockRestore();
+    }
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(1);
     await expect(runtime.proposeSmartLessonTaskChange({
       proposedTask: {

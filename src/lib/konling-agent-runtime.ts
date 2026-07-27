@@ -2853,7 +2853,10 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
             confirmingTurnId: turnId,
             agentSessionId: input.agentSessionId,
           });
-        if (!validation.success) throw new KonlingRuntimeScopeError(400, '智能备课建议不符合确认要求。');
+        if (!validation.success) {
+          logKonlingSmartPreparationValidationIssues(validation.error.issues);
+          throw new KonlingRuntimeScopeError(400, '智能备课建议不符合确认要求。');
+        }
         if (operation === 'bootstrap') {
           const courseBasisId = getString(proposedTask, 'courseBasisId');
           const availableCourseBases = arrayOfRecords(readRecord(smartPreparation?.currentTask).availableCourseBases);
@@ -2988,6 +2991,28 @@ function buildPublicSmartPreparationBasisSummary(
     title: getString(basis, 'title') ?? '课程依据',
     sources,
   };
+}
+
+function logKonlingSmartPreparationValidationIssues(issues: readonly unknown[]) {
+  if (process.env.NODE_ENV === 'production') return;
+  console.error('[konling-smart-preparation-validation]', {
+    issues: issues.slice(0, 16).map((issue) => {
+      const record = readRecord(issue);
+      return {
+        path: Array.isArray(record.path)
+          ? record.path.slice(0, 12).map((segment) =>
+              typeof segment === 'number'
+                ? segment
+                : typeof segment === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,63}$/u.test(segment)
+                  ? segment
+                  : '[field]')
+          : [],
+        code: typeof record.code === 'string' && /^[a-z_]{1,64}$/u.test(record.code)
+          ? record.code
+          : 'validation_error',
+      };
+    }),
+  });
 }
 
 function applySmartLessonCollectionPatches(
