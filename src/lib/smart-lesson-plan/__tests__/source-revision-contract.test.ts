@@ -86,6 +86,19 @@ describe('smart lesson real-provider source revision contract', () => {
     }
   });
 
+  it('writes structured-action evidence to the archived tracked change', () => {
+    const runner = readFileSync(
+      path.join(process.cwd(), 'scripts/tests/run-smart-lesson-real-e2e.ts'),
+      'utf8',
+    );
+    expect(runner).toContain(
+      'openspec/changes/archive/2026-07-27-harden-konling-structured-action-runtime/evidence/real-provider-structured-action.json',
+    );
+    expect(runner).not.toContain(
+      "'openspec/changes/harden-konling-structured-action-runtime/evidence/real-provider-structured-action.json'",
+    );
+  });
+
   it('scopes real-browser status assertions to their business workspace', () => {
     const spec = readFileSync(
       path.join(process.cwd(), 'tests/smart-lesson-real-provider.spec.ts'),

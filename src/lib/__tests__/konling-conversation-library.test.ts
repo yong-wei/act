@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { toModelMessages } from '@/lib/ai-message-compat';
 import {
   buildKonlingContextIdentity,
   claimKonlingConversationTurn,
@@ -7,10 +8,13 @@ import {
   createKonlingMessageId,
   deriveKonlingConversationTitle,
   KonlingConversationTurnConflictError,
+  mergeLegacyKonlingStructuredActionToolRuns,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
+  refreshKonlingStructuredActionToolRuns,
   replaceKonlingConversationAssistantRevision,
   resolveKonlingContextEventScope,
+  serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
 
 const now = new Date('2026-07-26T00:00:00.000Z');
@@ -67,6 +71,552 @@ function statefulConversationDb(initial = conversation()) {
 }
 
 describe('Konling conversation library', () => {
+  it('safely compresses an orphaned persisted tool call before a reloaded continuation', async () => {
+    const persisted = conversation({
+      messages: [
+        { id: 'user-bootstrap', role: 'user', content: '创建备课任务。' },
+        {
+          id: 'assistant-bootstrap',
+          role: 'assistant',
+          content: '已生成可确认的备课建议。',
+          parts: [
+            { type: 'text', text: '已生成可确认的备课建议。' },
+            {
+              type: 'dynamic-tool',
+              toolCallId: 'provider-call-private',
+              toolName: 'propose_smart_lesson_task_change',
+              state: 'input-available',
+              input: { privateTaskId: 'private-task-id' },
+            },
+          ],
+        },
+      ],
+    });
+    const prepared = prepareKonlingConversationTurn({
+      conversation: persisted,
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-revision', role: 'user', content: '继续修订课时。' },
+    });
+
+    const modelMessages = await toModelMessages(prepared.modelMessages);
+    const encodedInternalHistory = JSON.stringify(modelMessages);
+    const encodedPublicHistory = JSON.stringify(serializeKonlingConversation(persisted).messages);
+
+    expect(encodedInternalHistory).toContain('已生成可确认的备课建议。');
+    expect(encodedInternalHistory).toContain('继续修订课时。');
+    expect(encodedInternalHistory).not.toContain('provider-call-private');
+    expect(encodedInternalHistory).not.toContain('private-task-id');
+    expect(encodedPublicHistory).not.toContain('provider-call-private');
+    expect(encodedPublicHistory).not.toContain('private-task-id');
+  });
+
+  it('serializes structured actions through a bounded public projection', () => {
+    const serialized = serializeKonlingConversation(conversation({
+      messages: [{
+        id: 'assistant-action',
+        role: 'assistant',
+        content: '',
+        parts: [{
+          type: 'dynamic-tool',
+          toolCallId: 'provider-call-private',
+          toolName: 'propose_smart_lesson_task_change',
+          state: 'output-available',
+          input: { raw: 'private-input' },
+          output: { raw: 'private-output' },
+        }],
+        metadata: {
+          konlingStructuredActionTurn: {
+            toolRuns: [{
+              toolRunId: 'action-public',
+              agentSessionId: 'session-private',
+              toolName: 'propose_smart_lesson_task_change',
+              approvalState: 'not_required',
+              inputSummary: {
+                publicActionId: 'public-action',
+                operation: 'revise',
+                taskId: 'task-public',
+                turnId: 'turn-private',
+                proposedTask: {
+                  topic: '闭环稳定性',
+                  knowledgePoints: [{ title: '劳斯判据', sourceBindings: [{ raw: 'private' }] }],
+                  goals: [{ content: '判断闭环稳定性' }],
+                },
+              },
+              outputSummary: { raw: 'private-output-summary' },
+              errorSummary: { raw: 'private-error' },
+              idempotencyKey: 'private-key',
+              correlationId: 'private-correlation',
+            }],
+          },
+        },
+      }],
+    }));
+    const encoded = JSON.stringify(serialized.messages);
+
+    expect(encoded).toContain('public-action');
+    expect(encoded).not.toContain('action-public');
+    expect(encoded).toContain('闭环稳定性');
+    expect(encoded).toContain('劳斯判据');
+    expect(encoded).not.toContain('session-private');
+    expect(encoded).not.toContain('turn-private');
+    expect(encoded).not.toContain('private-output');
+    expect(encoded).not.toContain('private-error');
+    expect(encoded).not.toContain('private-key');
+    expect(encoded).not.toContain('private-correlation');
+    expect(encoded).not.toContain('propose_smart_lesson_task_change');
+  });
+
+  it('restores failed tool runs as a safe actionable public state', () => {
+    const serialized = serializeKonlingConversation(conversation({
+      messages: [{
+        id: 'assistant-failed-action',
+        role: 'assistant',
+        content: '',
+        metadata: {
+          konlingStructuredActionTurn: {
+            toolRuns: [{
+              toolRunId: 'failed-run-private',
+              toolName: 'propose_smart_lesson_task_change',
+              status: 'failed',
+              approvalState: 'not_required',
+              inputSummary: {
+                publicActionId: 'public-failed-action',
+                operation: 'bootstrap',
+                proposedTask: { topic: '根轨迹' },
+              },
+              errorSummary: {
+                message: 'database connection private-host:5432 failed',
+                correlationId: 'private-correlation',
+              },
+            }],
+          },
+        },
+      }],
+    }));
+
+    expect(serialized.messages[0]?.metadata).toMatchObject({
+      konlingSmartPreparationActions: [{
+        actionId: 'public-failed-action',
+        state: 'failed',
+        errorSummary: '建议生成未完成，请刷新任务或重新生成建议。',
+      }],
+    });
+    const encoded = JSON.stringify(serialized.messages);
+    expect(encoded).not.toContain('private-host');
+    expect(encoded).not.toContain('private-correlation');
+    expect(encoded).not.toContain('failed-run-private');
+  });
+
+  it('does not project clarification-only runs as action cards before a real proposal', () => {
+    const serialized = serializeKonlingConversation(conversation({
+      messages: [
+        {
+          id: 'assistant-clarification',
+          role: 'assistant',
+          content: '请先选择班级。',
+          metadata: {
+            konlingStructuredActionTurn: {
+              toolRuns: [
+                {
+                  toolRunId: 'clarification-succeeded',
+                  toolName: 'propose_smart_lesson_task_change',
+                  status: 'succeeded',
+                  approvalState: 'not_required',
+                  inputSummary: {
+                    publicActionId: 'clarification-succeeded-public',
+                    operation: 'bootstrap',
+                    clarification: { question: '选择哪个班级？' },
+                  },
+                },
+                {
+                  toolRunId: 'clarification-failed',
+                  toolName: 'propose_smart_lesson_task_change',
+                  status: 'failed',
+                  approvalState: 'not_required',
+                  inputSummary: {
+                    publicActionId: 'clarification-failed-public',
+                    operation: 'revise',
+                    clarification: { question: '补充哪些知识点？' },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        {
+          id: 'assistant-proposal',
+          role: 'assistant',
+          content: '已生成建议。',
+          metadata: {
+            konlingStructuredActionTurn: {
+              toolRuns: [{
+                toolRunId: 'real-proposal-private',
+                toolName: 'propose_smart_lesson_task_change',
+                status: 'succeeded',
+                approvalState: 'not_required',
+                inputSummary: {
+                  publicActionId: 'real-proposal-public',
+                  operation: 'bootstrap',
+                  proposedTask: { topic: '根轨迹' },
+                },
+              }],
+            },
+          },
+        },
+      ],
+    }));
+
+    expect(serialized.messages[0]?.metadata).not.toHaveProperty('konlingSmartPreparationActions');
+    expect(serialized.messages[1]?.metadata).toMatchObject({
+      konlingSmartPreparationActions: [{
+        actionId: 'real-proposal-public',
+        proposal: { topic: '根轨迹' },
+      }],
+    });
+    const encoded = JSON.stringify(serialized.messages);
+    expect(encoded).not.toContain('clarification-succeeded-public');
+    expect(encoded).not.toContain('clarification-failed-public');
+  });
+
+  it('removes raw adaptive-path tool data and internal identifiers from the public DTO', () => {
+    const serialized = serializeKonlingConversation(conversation({
+      messages: [{
+        id: 'assistant-adaptive',
+        role: 'assistant',
+        content: '已生成学习建议。',
+        parts: [
+          { type: 'text', text: '已生成学习建议。' },
+          {
+            type: 'dynamic-tool',
+            toolCallId: 'stable-tool-call-private',
+            toolName: 'recommend_next_action',
+            state: 'output-error',
+            input: {
+              targetUserId: 'target-user-private',
+              actorUserId: 'actor-user-private',
+              idempotencyKey: 'idempotency-private',
+            },
+            errorText: 'session-private correlation-private',
+          },
+        ],
+        metadata: {
+          agentSessionId: 'session-private',
+          correlationId: 'correlation-private',
+          idempotencyKey: 'idempotency-private',
+          konlingStructuredActionTurn: {
+            toolRuns: [{
+              toolRunId: 'stable-tool-run-private',
+              toolName: 'recommend_next_action',
+              inputSummary: {
+                targetUserId: 'target-user-private',
+                actorUserId: 'actor-user-private',
+              },
+              outputSummary: { targetUserId: 'target-user-private' },
+            }],
+          },
+        },
+      }],
+    }));
+    const encoded = JSON.stringify(serialized.messages);
+
+    expect(encoded).toContain('已生成学习建议。');
+    for (const privateValue of [
+      'target-user-private',
+      'actor-user-private',
+      'stable-tool-call-private',
+      'stable-tool-run-private',
+      'session-private',
+      'correlation-private',
+      'idempotency-private',
+      'recommend_next_action',
+    ]) {
+      expect(encoded).not.toContain(privateValue);
+    }
+  });
+
+  it('projects prerequisite and outline-only revisions as readable differences', () => {
+    const serialized = serializeKonlingConversation(conversation({
+      messages: [{
+        id: 'assistant-action',
+        role: 'assistant',
+        content: '',
+        metadata: {
+          konlingStructuredActionTurn: {
+            toolRuns: [{
+              toolRunId: 'action-public',
+              toolName: 'propose_smart_lesson_task_change',
+              approvalState: 'not_required',
+              inputSummary: {
+                publicActionId: 'public-action',
+                operation: 'revise',
+                taskId: 'task-public',
+                changedFields: ['prerequisites', 'outlineConfirmationRequired'],
+                proposedTask: {
+                  prerequisites: '已掌握拉普拉斯变换',
+                  outlineConfirmationRequired: true,
+                  courseBasisId: 'basis-private',
+                  sourceVersionIds: ['version-private'],
+                },
+              },
+            }],
+          },
+        },
+      }],
+    }));
+    const encoded = JSON.stringify(serialized.messages);
+
+    expect(encoded).toContain('已掌握拉普拉斯变换');
+    expect(encoded).toContain('"outlineConfirmationRequired":true');
+    expect(encoded).not.toContain('basis-private');
+    expect(encoded).not.toContain('version-private');
+  });
+
+  it('projects bootstrap course basis and sources as bounded labels without raw ids', () => {
+    const serialized = serializeKonlingConversation(conversation({
+      messages: [{
+        id: 'assistant-action',
+        role: 'assistant',
+        metadata: {
+          konlingStructuredActionTurn: {
+            toolRuns: [{
+              toolRunId: 'action-public',
+              toolName: 'propose_smart_lesson_task_change',
+              approvalState: 'not_required',
+              inputSummary: {
+                publicActionId: 'public-action',
+                operation: 'bootstrap',
+                proposedTask: {
+                  courseBasisId: 'basis-private',
+                  sourceVersionIds: ['version-private'],
+                  topic: '根轨迹',
+                },
+                publicBasisSummary: {
+                  title: '自动控制原理',
+                  sources: ['根轨迹讲义 v3'],
+                },
+              },
+            }],
+          },
+        },
+      }],
+    }));
+    const encoded = JSON.stringify(serialized.messages);
+
+    expect(encoded).toContain('自动控制原理');
+    expect(encoded).toContain('根轨迹讲义 v3');
+    expect(encoded).not.toContain('basis-private');
+    expect(encoded).not.toContain('version-private');
+  });
+
+  it('refreshes persisted structured-action state without rerunning the tool', () => {
+    const messages = [{
+      id: 'assistant-1',
+      role: 'assistant' as const,
+      content: '',
+      metadata: {
+        konlingStructuredActionTurn: {
+          toolRuns: [{
+            toolRunId: 'tool-run-1',
+            approvalState: 'not_required',
+            outputSummary: { status: 'awaiting_teacher_confirmation' },
+          }],
+        },
+      },
+    }];
+    const refreshed = refreshKonlingStructuredActionToolRuns(messages as never, [{
+      id: 'tool-run-1',
+      approvalState: 'ignored',
+      outputSummary: { actionState: 'ignored' },
+      errorSummary: null,
+    }]);
+
+    expect(refreshed[0]?.metadata).toMatchObject({
+      konlingStructuredActionTurn: {
+        toolRuns: [{
+          toolRunId: 'tool-run-1',
+          approvalState: 'ignored',
+          outputSummary: { actionState: 'ignored' },
+        }],
+      },
+    });
+  });
+
+  it('does not duplicate a structured action already bound to the persisted message', () => {
+    const messages = [{
+      id: 'assistant-1',
+      role: 'assistant' as const,
+      content: '',
+      metadata: {
+        konlingStructuredActionTurn: {
+          toolRuns: [{
+            toolRunId: 'tool-run-1',
+            toolName: 'propose_smart_lesson_task_change',
+            status: 'succeeded',
+            approvalState: 'not_required',
+            inputSummary: {
+              operation: 'bootstrap',
+              proposedTask: { topic: '根轨迹' },
+            },
+          }],
+        },
+      },
+    }];
+    const merged = mergeLegacyKonlingStructuredActionToolRuns(messages as never, [{
+      id: 'tool-run-1',
+      toolName: 'propose_smart_lesson_task_change',
+      status: 'succeeded',
+      approvalState: 'ignored',
+      inputSummary: {
+        operation: 'bootstrap',
+        proposedTask: { topic: '根轨迹' },
+      },
+      outputSummary: null,
+      errorSummary: null,
+    }]);
+    const serialized = serializeKonlingConversation(conversation({ messages: merged as never }));
+    const actions = (
+      serialized.messages[0]?.metadata as {
+        konlingSmartPreparationActions?: unknown[];
+      }
+    ).konlingSmartPreparationActions;
+
+    expect(actions).toHaveLength(1);
+    expect(actions).toEqual([
+      expect.objectContaining({ actionId: 'tool-run-1', state: 'ignored' }),
+    ]);
+  });
+
+  it('attaches legacy runs to their exact assistant turns even when run and message order differ', () => {
+    const messages = [
+      {
+        id: 'assistant-turn-2',
+        role: 'assistant' as const,
+        content: '第二轮',
+        metadata: { konlingTurnId: 'turn-2' },
+      },
+      {
+        id: 'assistant-turn-1',
+        role: 'assistant' as const,
+        content: '第一轮',
+        metadata: { konlingTurnId: 'turn-1' },
+      },
+    ];
+    const merged = mergeLegacyKonlingStructuredActionToolRuns(messages as never, [
+      {
+        id: 'legacy-turn-1',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'not_required',
+        inputSummary: {
+          turnId: 'turn-1',
+          operation: 'bootstrap',
+          proposedTask: { topic: '第一轮主题' },
+        },
+        outputSummary: null,
+        errorSummary: null,
+      },
+      {
+        id: 'legacy-turn-2',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'ignored',
+        inputSummary: {
+          turnId: 'turn-2',
+          operation: 'revise',
+          proposedTask: { topic: '第二轮主题' },
+        },
+        outputSummary: null,
+        errorSummary: null,
+      },
+    ]);
+    const serialized = serializeKonlingConversation(conversation({ messages: merged as never }));
+    const firstMetadata = serialized.messages[0]?.metadata as {
+      konlingSmartPreparationActions?: Array<{ actionId: string; state: string }>;
+    };
+    const secondMetadata = serialized.messages[1]?.metadata as {
+      konlingSmartPreparationActions?: Array<{ actionId: string; state: string }>;
+    };
+
+    expect(firstMetadata.konlingSmartPreparationActions).toEqual([
+      expect.objectContaining({ actionId: 'legacy-turn-2', state: 'ignored' }),
+    ]);
+    expect(secondMetadata.konlingSmartPreparationActions).toEqual([
+      expect.objectContaining({ actionId: 'legacy-turn-1', state: 'pending' }),
+    ]);
+  });
+
+  it('fails closed for legacy runs with missing, unmatched, or ambiguous turn ownership', () => {
+    const messages = [
+      {
+        id: 'assistant-ambiguous-a',
+        role: 'assistant' as const,
+        content: '候选 A',
+        metadata: { konlingTurnId: 'turn-ambiguous' },
+      },
+      {
+        id: 'assistant-ambiguous-b',
+        role: 'assistant' as const,
+        content: '候选 B',
+        metadata: { konlingTurnId: 'turn-ambiguous' },
+      },
+      {
+        id: 'assistant-owned',
+        role: 'assistant' as const,
+        content: '已归属轮次',
+        metadata: { konlingTurnId: 'turn-owned' },
+      },
+    ];
+    const merged = mergeLegacyKonlingStructuredActionToolRuns(messages as never, [
+      {
+        id: 'legacy-missing-turn',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'not_required',
+        inputSummary: {
+          operation: 'bootstrap',
+          proposedTask: { topic: '缺失轮次' },
+        },
+        outputSummary: { private: 'missing' },
+        errorSummary: null,
+      },
+      {
+        id: 'legacy-unmatched-turn',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'not_required',
+        inputSummary: {
+          turnId: 'turn-unknown',
+          operation: 'bootstrap',
+          proposedTask: { topic: '无匹配轮次' },
+        },
+        outputSummary: { private: 'unmatched' },
+        errorSummary: null,
+      },
+      {
+        id: 'legacy-ambiguous-turn',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'not_required',
+        inputSummary: {
+          turnId: 'turn-ambiguous',
+          operation: 'bootstrap',
+          proposedTask: { topic: '歧义轮次' },
+        },
+        outputSummary: { private: 'ambiguous' },
+        errorSummary: null,
+      },
+    ]);
+    const encoded = JSON.stringify(
+      serializeKonlingConversation(conversation({ messages: merged as never })).messages,
+    );
+
+    expect(encoded).not.toContain('konlingSmartPreparationActions');
+    expect(encoded).not.toContain('legacy-');
+    expect(encoded).not.toContain('缺失轮次');
+    expect(encoded).not.toContain('无匹配轮次');
+    expect(encoded).not.toContain('歧义轮次');
+  });
+
   it('authorizes smart-prep conversations against the server-owned course basis', async () => {
     const findFirst = vi.fn(async ({ where }) => (
       where.id === 'basis-1' && where.ownerId === 'teacher-1' ? { id: 'basis-1' } : null
@@ -259,6 +809,87 @@ describe('Konling conversation library', () => {
     expect(manual.current().title).toBe('我的根轨迹复习');
   });
 
+  it('persists current-turn tool-run lineage with a pure-tool assistant message for reload', async () => {
+    const store = statefulConversationDb();
+    const toolRunStartedAt = new Date(now.getTime() + 1);
+    const findToolRuns = vi.fn(async () => [{
+      id: 'tool-run-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'get_plan_context',
+      status: 'succeeded',
+      approvalState: 'not_required',
+      inputSummary: { pathId: '[redacted]' },
+      outputSummary: { readiness: 'ready' },
+      errorSummary: null,
+      idempotencyKey: 'turn-1:get-plan',
+      correlationId: 'agent-session-1:get_plan_context:1',
+      startedAt: toolRunStartedAt,
+      completedAt: new Date(toolRunStartedAt.getTime() + 5),
+    }]);
+    Object.assign(store.db, {
+      agentToolRun: {
+        findMany: findToolRuns,
+      },
+    });
+    await claimKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'turn-with-tool', role: 'user', content: '读取计划' },
+      now,
+    });
+    await completeKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      turnId: 'turn-with-tool',
+      assistantMessage: {
+        id: 'assistant-tool-only',
+        role: 'assistant',
+        parts: [{
+          type: 'dynamic-tool',
+          toolCallId: 'provider-call-1',
+          toolName: 'get_plan_context',
+          state: 'output-available',
+          input: {},
+          output: { readiness: 'ready' },
+        }],
+      },
+      now: new Date(now.getTime() + 10),
+    });
+
+    const assistant = (store.current().messages as unknown as Array<Record<string, any>>)
+      .find((message) => message.id === 'assistant-tool-only');
+    expect(assistant?.content).toBe('');
+    expect(assistant?.parts).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'dynamic-tool',
+        state: 'output-available',
+      }),
+    ]));
+    expect(assistant?.metadata?.konlingStructuredActionTurn).toMatchObject({
+      turnId: 'turn-with-tool',
+      terminal: true,
+      toolRuns: [{
+        toolRunId: 'tool-run-1',
+        toolName: 'get_plan_context',
+        status: 'succeeded',
+        idempotencyKey: 'turn-1:get-plan',
+      }],
+    });
+    expect(findToolRuns).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        ownerUserId: 'user-1',
+        agentSession: {
+          konlingSessionId: 'conversation-1',
+          stateJson: {
+            path: ['currentTurnId'],
+            equals: 'turn-with-tool',
+          },
+        },
+      }),
+    }));
+  });
+
   it('keeps title derivation bounded by Unicode characters', () => {
     expect(Array.from(deriveKonlingConversationTitle('控'.repeat(100)))).toHaveLength(64);
   });
@@ -271,7 +902,12 @@ describe('Konling conversation library', () => {
           id: 'assistant-1',
           role: 'assistant',
           content: '初始正文',
-          metadata: { konlingMessageRevision: { revision: 1 } },
+          metadata: {
+            konlingMessageRevision: { revision: 1 },
+            konlingStructuredActionTurn: {
+              toolRuns: [{ toolRunId: 'tool-run-1', approvalState: 'not_required' }],
+            },
+          },
         },
       ],
     });
@@ -296,7 +932,12 @@ describe('Konling conversation library', () => {
     expect(assistants[0]).toMatchObject({
       id: 'assistant-1',
       content: '修复后正文 [1]',
-      metadata: { konlingMessageRevision: { revision: 2 } },
+      metadata: {
+        konlingMessageRevision: { revision: 2 },
+        konlingStructuredActionTurn: {
+          toolRuns: [{ toolRunId: 'tool-run-1', approvalState: 'not_required' }],
+        },
+      },
     });
   });
 

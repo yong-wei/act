@@ -13,9 +13,13 @@ const mocks = vi.hoisted(() => ({
   getOrCreateAgentSession: vi.fn(),
   resumeAgentSession: vi.fn(),
   streamText: vi.fn(),
+  generateText: vi.fn(async () => ({ text: '[]' })),
+  buildScopedTools: vi.fn(),
+  emittedChunks: [] as any[],
   useActualResolver: false,
   prisma: {
     agentSession: { findFirst: vi.fn(), updateMany: vi.fn() },
+    agentToolRun: { findMany: vi.fn() },
     smartLessonTask: { findFirst: vi.fn() },
     learningEvidenceDraft: { findMany: vi.fn() },
     learningFact: { findMany: vi.fn() },
@@ -64,22 +68,28 @@ vi.mock('@/lib/konling-streaming-citation-fallback', () => ({
 vi.mock('@/lib/konling-final-citation-metadata-stream', () => ({
   appendFinalCitationGuardMetadata: vi.fn((stream) => stream),
 }));
-vi.mock('ai', () => ({
-  convertToModelMessages: vi.fn(async (messages) => messages),
-  consumeStream: vi.fn(),
-  createUIMessageStreamResponse: vi.fn(({ headers, stream }) => {
-    void (async () => {
-      const reader = stream.getReader();
-      while (!(await reader.read()).done) {
-        // Drain the stream so final message revision persistence runs.
-      }
-    })();
-    return new Response('ok', { status: 200, headers });
-  }),
-  generateText: vi.fn(async () => ({ text: '[]' })),
-  stepCountIs: vi.fn(() => () => false),
-  streamText: mocks.streamText,
-}));
+vi.mock('ai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('ai')>();
+  return {
+    convertToModelMessages: vi.fn(async (messages) => messages),
+    consumeStream: vi.fn(),
+    createUIMessageStreamResponse: vi.fn(({ headers, stream }) => {
+      void (async () => {
+        const reader = stream.getReader();
+        while (true) {
+          const next = await reader.read();
+          if (next.done) break;
+          mocks.emittedChunks.push(next.value);
+        }
+      })();
+      return new Response('ok', { status: 200, headers });
+    }),
+    generateText: mocks.generateText,
+    isToolUIPart: actual.isToolUIPart,
+    stepCountIs: vi.fn(() => () => false),
+    streamText: mocks.streamText,
+  };
+});
 vi.mock('@/lib/konling-teaching-assistant-server-context', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/konling-teaching-assistant-server-context')>();
   return {
@@ -118,7 +128,7 @@ vi.mock('@/lib/konling-agent-runtime', async (importOriginal) => {
     })),
     buildKonlingTeachingAssistantRuntimeContract: mocks.buildRuntimeContract,
     buildKonlingToolRuntime: vi.fn(() => ({ getAssignedCitations: () => [] })),
-    buildScopedKonlingAiTools: vi.fn(() => ({})),
+    buildScopedKonlingAiTools: mocks.buildScopedTools,
     getOrCreateKonlingAgentSession: mocks.getOrCreateAgentSession,
     normalizeKonlingKnowledgeWorkspaceHint: vi.fn(() => null),
     persistKonlingSessionMemories: vi.fn(async () => undefined),
@@ -160,10 +170,33 @@ function expectStructuredProposalSteps(streamTextCall: Record<string, unknown>) 
   expect(prepareStep({ stepNumber: 1 })).toEqual({ activeTools: [], toolChoice: 'none' });
 }
 
+function mockCompletedSessionAssistant(parts: any[], id = 'assistant-structured-terminal') {
+  mocks.streamText.mockResolvedValue({
+    toUIMessageStream: (options: {
+      onFinish?: (event: Record<string, unknown>) => Promise<void> | void;
+    }) => new ReadableStream({
+      async start(controller) {
+        await options.onFinish?.({
+          responseMessage: {
+            id,
+            role: 'assistant',
+            parts,
+          },
+          isAborted: false,
+        });
+        controller.close();
+      },
+    }),
+  });
+}
+
 describe('Konling smart-prep production routes', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mocks.useActualResolver = false;
+    mocks.emittedChunks.length = 0;
+    mocks.buildScopedTools.mockReturnValue({});
+    mocks.prisma.agentToolRun.findMany.mockResolvedValue([]);
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER', name: 'Teacher' } });
     mocks.getServerSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER', name: 'Teacher' } });
     mocks.resolveScopeOverride.mockResolvedValue({});
@@ -249,7 +282,28 @@ describe('Konling smart-prep production routes', () => {
     });
     mocks.streamText.mockResolvedValue({
       textStream: (async function* () { yield 'answer'; })(),
-      toUIMessageStream: () => new ReadableStream(),
+      toUIMessageStream: (options: {
+        onFinish?: (event: Record<string, unknown>) => Promise<void> | void;
+      }) => new ReadableStream({
+        async start(controller) {
+          controller.enqueue({ type: 'start', messageId: 'assistant-1' });
+          controller.enqueue({ type: 'start-step' });
+          controller.enqueue({ type: 'text-start', id: 'text-1' });
+          controller.enqueue({ type: 'text-delta', id: 'text-1', delta: 'answer' });
+          controller.enqueue({ type: 'text-end', id: 'text-1' });
+          controller.enqueue({ type: 'finish-step' });
+          await options.onFinish?.({
+            responseMessage: {
+              id: 'assistant-1',
+              role: 'assistant',
+              parts: [{ type: 'text', text: 'answer' }],
+            },
+            isAborted: false,
+          });
+          controller.enqueue({ type: 'finish' });
+          controller.close();
+        },
+      }),
     });
   });
 
@@ -274,6 +328,163 @@ describe('Konling smart-prep production routes', () => {
     expectStructuredProposalSteps(mocks.streamText.mock.calls[0]?.[0]);
   });
 
+  it('persists a fragmented pure-tool proposal and emits its public action metadata immediately', async () => {
+    const executeProposal = vi.fn(async () => ({
+      suggestionId: 'internal-tool-run',
+      status: 'awaiting_teacher_confirmation',
+    }));
+    mocks.buildScopedTools.mockReturnValue({
+      propose_smart_lesson_task_change: {
+        inputSchema: {
+          safeParse: (value: unknown) => ({ success: true, data: value }),
+        },
+        execute: executeProposal,
+      },
+    });
+    mocks.prisma.agentToolRun.findMany.mockResolvedValue([{
+      id: 'internal-tool-run',
+      agentSessionId: 'agent-1',
+      toolName: 'propose_smart_lesson_task_change',
+      status: 'succeeded',
+      approvalState: 'not_required',
+      inputSummary: {
+        publicActionId: 'public-action-1',
+        operation: 'revise',
+        taskId: 'server-task',
+        changedFields: ['topic'],
+        proposedTask: { topic: '根轨迹' },
+      },
+      outputSummary: { status: 'awaiting_teacher_confirmation' },
+      errorSummary: null,
+      idempotencyKey: 'private-idempotency',
+      correlationId: 'private-correlation',
+      startedAt: new Date('2026-07-26T00:00:01.000Z'),
+      completedAt: new Date('2026-07-26T00:00:01.010Z'),
+    }]);
+    mocks.streamText.mockResolvedValue({
+      toUIMessageStream: (options: {
+        onFinish?: (event: Record<string, unknown>) => Promise<void> | void;
+        onError?: (error: unknown) => string;
+      }) => new ReadableStream({
+        async start(controller) {
+          controller.enqueue({ type: 'start', messageId: 'assistant-tool-only' });
+          controller.enqueue({
+            type: 'tool-input-start',
+            toolCallId: 'provider-call-1',
+            toolName: 'propose_smart_lesson_task_change',
+          });
+          controller.enqueue({
+            type: 'tool-input-delta',
+            toolCallId: 'provider-call-1',
+            inputTextDelta: '{"operation":"revise","taskId":"server-task","expectedRevision":7,',
+          });
+          controller.enqueue({
+            type: 'tool-input-delta',
+            toolCallId: 'provider-call-1',
+            inputTextDelta: '"proposedTask":{"topic":"根轨迹"}}',
+          });
+          controller.enqueue({ type: 'finish-step' });
+          controller.enqueue({ type: 'text-start', id: 'text-failure' });
+          controller.enqueue({
+            type: 'text-delta',
+            id: 'text-failure',
+            delta: '结构化操作未能安全完成，请重新生成建议。',
+          });
+          controller.enqueue({ type: 'text-end', id: 'text-failure' });
+          controller.enqueue({
+            type: 'error',
+            errorText: options.onError?.(new Error('provider-native-tool-input-incomplete')),
+          });
+          await options.onFinish?.({
+            responseMessage: {
+              id: 'assistant-tool-only',
+              role: 'assistant',
+              parts: [],
+            },
+            isAborted: false,
+          });
+          controller.enqueue({ type: 'finish' });
+          controller.close();
+        },
+      }),
+    });
+
+    const response = await chatPOST(new Request('http://localhost/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversationId: 'session-1',
+        messages: [{ id: 'user-tool-only', role: 'user', content: '把主题改为根轨迹' }],
+        courseId: 'course-1',
+        pageId: '/teacher/smart-prep',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    await vi.waitFor(() => {
+      expect(mocks.emittedChunks.some((chunk) =>
+        chunk.type === 'data-konling-message-revision'
+        && chunk.data?.metadata?.konlingSmartPreparationActions?.[0]?.actionId === 'public-action-1'
+      )).toBe(true);
+    });
+    expect(executeProposal).toHaveBeenCalledTimes(1);
+    const revision = mocks.emittedChunks.find((chunk) =>
+      chunk.type === 'data-konling-message-revision'
+      && chunk.data?.metadata?.konlingSmartPreparationActions?.[0]?.actionId === 'public-action-1');
+    const encodedRevision = JSON.stringify(revision);
+    expect(encodedRevision).toContain('public-action-1');
+    expect(encodedRevision).toContain('根轨迹');
+    expect(encodedRevision).not.toContain('internal-tool-run');
+    expect(encodedRevision).not.toContain('private-idempotency');
+    expect(encodedRevision).not.toContain('private-correlation');
+    const persistedMessages = mocks.prisma.konlingSession.updateMany.mock.calls
+      .filter((call) => Array.isArray(call[0].data.messages))
+      .at(-1)?.[0].data.messages;
+    expect(persistedMessages?.some((message: { id?: string; role: string }) =>
+      message.id === 'assistant-tool-only' && message.role === 'assistant'
+    )).toBe(true);
+  });
+
+  it('releases a force-structured turn when the external provider closes without finish', async () => {
+    mocks.streamText.mockResolvedValue({
+      toUIMessageStream: (options: {
+        onError?: (error: unknown) => string;
+      }) => new ReadableStream({
+        start(controller) {
+          controller.enqueue({ type: 'start', messageId: 'assistant-provider-error' });
+          controller.enqueue({
+            type: 'error',
+            errorText: options.onError?.(new Error('provider connection closed')),
+          });
+          controller.close();
+        },
+      }),
+    });
+
+    const response = await chatPOST(new Request('http://localhost/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversationId: 'session-1',
+        messages: [{ id: 'user-provider-error', role: 'user', content: '生成建议' }],
+        courseId: 'course-1',
+        pageId: '/teacher/smart-prep',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    await vi.waitFor(() => {
+      expect(mocks.prisma.konlingSession.updateMany.mock.calls.some((call) =>
+        call[0].data.activeTurnId === null
+        && call[0].data.activeTurnClaimedAt === null
+      )).toBe(true);
+    });
+    expect(mocks.emittedChunks.some((chunk) =>
+      chunk.type === 'data-konling-message-revision'
+      && chunk.data?.messageId === 'assistant-provider-error'
+    )).toBe(false);
+  });
+
   it('session message route applies the same server binding to create and resume', async () => {
     const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
       method: 'POST',
@@ -295,6 +506,174 @@ describe('Konling smart-prep production routes', () => {
       smartPrepBinding: { taskId: 'server-task', taskRevision: '7' },
     }));
     expectStructuredProposalSteps(mocks.streamText.mock.calls[0]?.[0]);
+  });
+
+  it.each([
+    {
+      label: 'output-error',
+      part: {
+        type: 'dynamic-tool',
+        toolCallId: 'native-error',
+        toolName: 'get_page_context',
+        state: 'output-error',
+        input: {},
+        errorText: 'private provider failure',
+      },
+    },
+    {
+      label: 'output-denied',
+      part: {
+        type: 'tool-get_page_context',
+        toolCallId: 'block-denied',
+        state: 'output-denied',
+        input: {},
+        denialReason: 'private provider denial',
+      },
+    },
+  ])('returns a safe failure body for a bodyless native $label terminal state', async ({ part }) => {
+    const execute = vi.fn();
+    mocks.buildScopedTools.mockReturnValue({
+      get_page_context: {
+        inputSchema: { safeParse: (value: unknown) => ({ success: true, data: value }) },
+        execute,
+      },
+    });
+    mockCompletedSessionAssistant([part]);
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('结构化操作未能安全完成，请重新生成建议。');
+    expect(JSON.stringify(payload)).not.toContain('private provider');
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it('keeps the success fallback for a bodyless successful native tool result', async () => {
+    const execute = vi.fn();
+    mocks.buildScopedTools.mockReturnValue({
+      get_page_context: {
+        inputSchema: { safeParse: (value: unknown) => ({ success: true, data: value }) },
+        execute,
+      },
+    });
+    mockCompletedSessionAssistant([{
+      type: 'dynamic-tool',
+      toolCallId: 'native-success',
+      toolName: 'get_page_context',
+      state: 'output-available',
+      input: {},
+      output: { page: 'current' },
+    }]);
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('已完成结构化操作。');
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it('preserves an existing assistant body when a native tool part failed', async () => {
+    mockCompletedSessionAssistant([
+      {
+        type: 'dynamic-tool',
+        toolCallId: 'native-error-with-body',
+        toolName: 'get_page_context',
+        state: 'output-error',
+        input: {},
+        errorText: 'private provider failure',
+      },
+      { type: 'text', text: '未能读取页面，请稍后重试。' },
+    ]);
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('未能读取页面，请稍后重试。');
+    expect(JSON.stringify(payload)).not.toContain('private provider failure');
+  });
+
+  it('keeps the existing DSML execution path for bodyless structured calls', async () => {
+    const execute = vi.fn(async () => ({ page: 'current' }));
+    mocks.buildScopedTools.mockReturnValue({
+      get_page_context: {
+        inputSchema: { safeParse: (value: unknown) => ({ success: true, data: value }) },
+        execute,
+      },
+    });
+    mockCompletedSessionAssistant([{
+      type: 'text',
+      text: '<tool_call>{"name":"get_page_context","arguments":{}}</tool_call>',
+    }], 'assistant-dsml-success');
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('已完成结构化操作。');
+    expect(execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('withholds a non-JSON tool envelope and publishes only the bounded correction', async () => {
+    const execute = vi.fn();
+    mocks.buildScopedTools.mockReturnValue({
+      get_page_context: {
+        inputSchema: { safeParse: (value: unknown) => ({ success: true, data: value }) },
+        execute,
+      },
+    });
+    mocks.generateText.mockResolvedValueOnce({ text: '结构化操作未完成，请重新生成建议。' });
+    mockCompletedSessionAssistant([{
+      type: 'text',
+      text: '安全前缀。<tool_call>get_page_context</tool_call>private suffix',
+    }], 'assistant-non-json-envelope');
+
+    const response = await sessionMessagePOST(new NextRequest('http://localhost/api/ai/sessions/session-1/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: '读取当前页面',
+        teachingAssistantModeId: 'prep-coauthor',
+      }),
+    }), { params: Promise.resolve({ id: 'session-1' }) });
+    const payload = await response.json();
+    const encoded = JSON.stringify(payload);
+
+    expect(response.status).toBe(200);
+    expect(payload.assistantMessage.content).toBe('结构化操作未完成，请重新生成建议。');
+    expect(encoded).not.toContain('tool_call');
+    expect(encoded).not.toContain('private suffix');
+    expect(execute).not.toHaveBeenCalled();
+    expect(mocks.generateText).toHaveBeenCalledWith(expect.objectContaining({
+      temperature: 0,
+      maxOutputTokens: 500,
+      abortSignal: expect.any(AbortSignal),
+    }));
   });
 
   it.each([

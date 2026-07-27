@@ -32,6 +32,15 @@ const regenerationRouteSource = readFileSync(
 );
 
 describe('smart lesson plan workspace request contracts', () => {
+  it('keeps structured suggestions inside the shared conversation and refreshes the affected stage', () => {
+    expect(workspaceSource).toContain("window.addEventListener('konling:smart-task-confirmed'");
+    expect(workspaceSource).toContain('data-konling-highlighted-stage');
+    expect(workspaceSource).toContain('label="与控灵共创"');
+    expect(workspaceSource).not.toContain('查看孔灵建议');
+    expect(workspaceSource).not.toContain('待确认的孔灵建议');
+    expect(workspaceSource).not.toContain('/konling-suggestions`, { cache:');
+  });
+
   it('keeps advisory review disabled until hydration completes without relaxing draft readiness', async () => {
     const initialTasks = [{
       id: 'task-1',

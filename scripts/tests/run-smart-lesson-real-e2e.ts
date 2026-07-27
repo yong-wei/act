@@ -2,7 +2,9 @@ import 'dotenv/config';
 
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
+import path from 'node:path';
 import process from 'node:process';
 
 import Redis from 'ioredis';
@@ -29,7 +31,12 @@ const e2eFaultToken = `smart-lesson-e2e-fault-${randomBytes(24).toString('hex')}
 const publicationReviewSecret = `smart-courseware-review-${randomBytes(24).toString('hex')}`;
 const coursewareOrderingSecret = `smart-courseware-ordering-${randomBytes(24).toString('hex')}`;
 const realProviderMode = process.argv.includes('--real-provider');
+const structuredActionMode = process.argv.includes('--structured-action');
 const resumeMode = resumedSchemaName !== undefined;
+const structuredActionEvidencePath = path.join(
+  process.cwd(),
+  'openspec/changes/archive/2026-07-27-harden-konling-structured-action-runtime/evidence/real-provider-structured-action.json',
+);
 let nextServer: ChildProcess | undefined;
 let coursewareWorkerConnection: Redis | undefined;
 let smartLessonWorkerConnection: Redis | undefined;
@@ -47,6 +54,8 @@ async function main() {
   if (!baseDatabaseUrl) throw new Error('smart-lesson-test-database-required');
   assertTemporarySchema(schemaName);
 
+  let playwrightExitCode = 1;
+  let baseURL = '';
   try {
     scopedDatabaseUrl = resumeMode
       ? scopedDatabaseUrlFor(schemaName)
@@ -83,7 +92,7 @@ async function main() {
     smartLessonWorker = await ensureSmartLessonGenerationWorker(smartLessonWorkerConnection);
 
     const port = await availablePort();
-    const baseURL = `http://127.0.0.1:${port}`;
+    baseURL = `http://127.0.0.1:${port}`;
     nextServer = spawn(process.execPath, ['./node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', String(port)], {
     cwd: process.cwd(),
     detached: true,
@@ -107,7 +116,7 @@ async function main() {
     nextServer.stderr?.on('data', (chunk) => process.stderr.write(`[smart-lesson-next] ${chunk}`));
     await waitForServer(`${baseURL}/api/auth/session`, nextServer);
 
-    const playwrightExitCode = await runPlaywright({
+    playwrightExitCode = await runPlaywright({
       env: {
       ...process.env,
       DATABASE_URL: scopedDatabaseUrl,
@@ -121,12 +130,15 @@ async function main() {
       SMART_LESSON_E2E_TOPIC: realProviderTopic,
       SMART_LESSON_E2E_CLASS_ID: classId,
       SMART_LESSON_E2E_SOURCE_REVISION: sourceRevision,
+      SMART_LESSON_E2E_STRUCTURED_ACTION_EVIDENCE_PATH: structuredActionEvidencePath,
       SMART_LESSON_REAL_PROVIDER_REQUIRED: realProviderMode ? '1' : undefined,
-      SMART_LESSON_E2E_SPEC: realProviderMode
-        ? resumeMode
-          ? 'smart-lesson-real-provider-retry.spec.ts'
-          : 'smart-lesson-real-provider.spec.ts'
-        : 'smart-lesson-plan-real-e2e.spec.ts',
+      SMART_LESSON_E2E_SPEC: structuredActionMode
+        ? 'konling-structured-action-real-e2e.spec.ts'
+        : realProviderMode
+          ? resumeMode
+            ? 'smart-lesson-real-provider-retry.spec.ts'
+            : 'smart-lesson-real-provider.spec.ts'
+          : 'smart-lesson-plan-real-e2e.spec.ts',
       NEXTAUTH_SECRET: nextAuthSecret,
       NEXTAUTH_URL: baseURL,
       SMART_COURSEWARE_PUBLICATION_REVIEW_BASE_URL: baseURL,
@@ -137,18 +149,40 @@ async function main() {
       cwd: process.cwd(),
     });
     if (playwrightExitCode !== 0) process.exitCode = playwrightExitCode;
-    else console.log(JSON.stringify({
-      evidence: 'smart-lesson-real-browser-e2e',
+  } finally {
+    await cleanup();
+  }
+  if (playwrightExitCode === 0 && structuredActionMode) {
+    await finalizeStructuredActionEvidence();
+  }
+  if (playwrightExitCode === 0) {
+    console.log(JSON.stringify({
+      evidence: structuredActionMode
+        ? 'konling-structured-action-real-browser-e2e'
+        : 'smart-lesson-real-browser-e2e',
       schema: schemaName,
       redisPrefix,
       server: baseURL,
       routeInterception: false,
       providerMode: realProviderMode ? 'configured-real-provider' : 'deterministic-fixture',
+      cleanup: 'passed',
       result: 'passed',
     }));
-  } finally {
-    await cleanup();
   }
+}
+
+async function finalizeStructuredActionEvidence() {
+  const parsed = JSON.parse(await readFile(structuredActionEvidencePath, 'utf8')) as Record<string, unknown>;
+  await writeFile(structuredActionEvidencePath, `${JSON.stringify({
+    ...parsed,
+    cleanup: {
+      completed: true,
+      temporaryDatabaseSchemaDropped: !resumeMode,
+      scopedRedisKeysRemoved: true,
+      workersClosed: true,
+      browserServerStopped: true,
+    },
+  }, null, 2)}\n`, 'utf8');
 }
 
 async function runPlaywright(options: { cwd: string; env: NodeJS.ProcessEnv; stdio: 'inherit' }) {
@@ -257,7 +291,7 @@ async function seedAcceptanceData() {
       },
     });
     await seedCurrentCumulativeClassPortrait(prisma);
-    if (realProviderMode) return;
+    if (realProviderMode && !structuredActionMode) return;
     await prisma.courseBasis.create({
       data: {
         id: courseBasisId,

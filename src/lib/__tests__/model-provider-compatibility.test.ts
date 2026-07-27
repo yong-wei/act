@@ -4,6 +4,7 @@ import {
   buildModelProviderCompatibilityMatrix,
   normalizeAnthropicCompatibleResponse,
   normalizeOpenAICompatibleResponse,
+  normalizeProviderStructuredText,
   normalizeProviderStreamEvent,
   redactProviderError,
   selectModelProvider,
@@ -235,6 +236,51 @@ describe('model provider compatibility matrix', () => {
         input: { query: 'root locus' },
       },
     });
+  });
+
+  it('normalizes recognized DSML and withholds malformed structured syntax', () => {
+    expect(normalizeProviderStructuredText([
+      '可见说明。',
+      '<tool_call>{"name":"get_plan_context","arguments":{"pathId":"path-1"}}</tool_call>',
+    ].join('\n'))).toEqual({
+      text: '可见说明。',
+      toolCalls: [{
+        id: 'dsml-1',
+        name: 'get_plan_context',
+        input: { pathId: 'path-1' },
+      }],
+      withheldMalformedSyntax: false,
+    });
+
+    expect(normalizeProviderStructuredText(
+      '安全前缀。<tool_call>{"name":"get_plan_context","arguments":',
+    )).toEqual({
+      text: '安全前缀。',
+      toolCalls: [],
+      withheldMalformedSyntax: true,
+    });
+  });
+
+  it('deduplicates a native tool call repeated as recognized DSML', () => {
+    const normalized = normalizeOpenAICompatibleResponse({
+      choices: [{
+        finish_reason: 'tool_calls',
+        message: {
+          content: '<tool_call>{"name":"get_plan_context","arguments":{"pathId":"path-1"}}</tool_call>',
+          tool_calls: [{
+            id: 'native-1',
+            function: {
+              name: 'get_plan_context',
+              arguments: '{"pathId":"path-1"}',
+            },
+          }],
+        },
+      }],
+    });
+
+    expect(normalized.text).toBe('');
+    expect(normalized.toolCalls).toHaveLength(1);
+    expect(normalized.toolCalls[0]?.id).toBe('native-1');
   });
 
   it('redacts provider secrets and raw authorization errors', () => {

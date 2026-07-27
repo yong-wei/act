@@ -1,4 +1,4 @@
-import { convertToModelMessages, type ModelMessage, type UIMessage } from 'ai';
+import { convertToModelMessages, isToolUIPart, type ModelMessage, type UIMessage } from 'ai';
 import type { Message, ToolInvocation } from '@/types/ai-message';
 
 export type IncomingMessage = Partial<UIMessage> & {
@@ -62,5 +62,18 @@ export function toLegacyMessage(message: IncomingMessage): Message {
 }
 
 export async function toModelMessages(messages: IncomingMessage[]): Promise<ModelMessage[]> {
-  return convertToModelMessages(messages.map(toUIMessage));
+  const providerMessages = messages.flatMap((message) => {
+    const uiMessage = toUIMessage(message);
+    // Persisted streams may end after a tool call but before its result. Replaying
+    // that orphaned call makes the next provider request invalid, so retain only
+    // terminal tool parts and preserve the message's ordinary context.
+    const parts = uiMessage.parts.filter((part) => {
+      if (!isToolUIPart(part)) return true;
+      return part.state === 'output-available'
+        || part.state === 'output-error'
+        || part.state === 'output-denied';
+    });
+    return parts.length ? [{ ...uiMessage, parts }] : [];
+  });
+  return convertToModelMessages(providerMessages);
 }

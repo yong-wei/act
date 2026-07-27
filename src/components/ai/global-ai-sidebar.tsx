@@ -26,7 +26,12 @@ import {
   X,
 } from 'lucide-react';
 import { KonlingAvatar } from './konling-avatar';
-import { KonlingChatMessageList, konlingPromptInputClassName } from './konling-chat-renderer';
+import {
+  KonlingChatMessageList,
+  konlingPromptInputClassName,
+  type KonlingStructuredActionRequest,
+  type KonlingStructuredActionResult,
+} from './konling-chat-renderer';
 import { useAIThemeStyles, TRANSITION_CLASSES } from '@/lib/ai-theme-styles';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { Button } from '@/components/ui/button';
@@ -73,7 +78,7 @@ export function GlobalAISidebar() {
   const [mounted, setMounted] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
-  const [actionStatus, setActionStatus] = useState('AI 侧栏已就绪。');
+  const [actionStatus, setActionStatus] = useState('控灵侧栏已就绪。');
   const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
   const [smartPrepContext, setSmartPrepContext] = useState<Record<string, string> | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -155,12 +160,10 @@ export function GlobalAISidebar() {
 
   useEffect(() => {
     const handleConfirmed = (event: Event) => {
-      const detail = (event as CustomEvent<{ taskId?: string; taskRevision?: number; agentSessionId?: string }>).detail;
-      if (!detail?.taskId || !detail.agentSessionId) return;
+      const detail = (event as CustomEvent<{ taskId?: string; taskRevision?: number }>).detail;
+      if (!detail?.taskId) return;
       const nextContext = { smartTaskId: detail.taskId, smartTaskRevision: String(detail.taskRevision ?? 1) };
-      window.localStorage.setItem(`konling:agent-session:smart-prep:${detail.taskId}`, detail.agentSessionId);
       setSmartPrepContext(nextContext);
-      setAgentSessionId(detail.agentSessionId);
     };
     window.addEventListener('konling:smart-task-confirmed', handleConfirmed);
     return () => window.removeEventListener('konling:smart-task-confirmed', handleConfirmed);
@@ -172,6 +175,74 @@ export function GlobalAISidebar() {
     setAgentSessionId(nextAgentSessionId);
     if (agentSessionStorageKey) window.localStorage.setItem(agentSessionStorageKey, nextAgentSessionId);
   }, [agentSessionStorageKey]);
+
+  async function handleStructuredAction(
+    action: KonlingStructuredActionRequest,
+  ): Promise<KonlingStructuredActionResult> {
+    if (action.action === 'refresh') {
+      try {
+        await refreshActiveConversation();
+        if (action.taskId) {
+          window.dispatchEvent(new CustomEvent('konling:smart-task-refresh-requested', {
+            detail: { taskId: action.taskId },
+          }));
+        }
+        setActionStatus('已刷新任务和会话状态。');
+        return { state: 'failed', message: '已刷新任务和会话状态。' };
+      } catch {
+        setActionStatus('刷新失败，请重新打开备课任务。');
+        return { state: 'failed', message: '刷新失败，请重新打开备课任务。' };
+      }
+    }
+    if (action.action === 'regenerate') {
+      await append({
+        role: 'user',
+        content: '请基于当前最新备课任务状态重新生成一条可确认的建议。',
+      });
+      setActionStatus('正在重新生成建议。');
+      return { state: 'failed', message: '正在重新生成建议。' };
+    }
+    const url = action.action === 'ignore'
+      ? `/api/teacher/smart-lesson-tasks/konling-suggestions/${encodeURIComponent(action.suggestionId)}/ignore`
+      : action.operation === 'bootstrap'
+        ? `/api/teacher/smart-lesson-tasks/konling-suggestions/${encodeURIComponent(action.suggestionId)}/confirm`
+        : `/api/teacher/smart-lesson-tasks/${encodeURIComponent(action.taskId ?? '')}/konling-suggestions/${encodeURIComponent(action.suggestionId)}/confirm`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const payload = await response.json();
+    const conversationRefreshed = await refreshActiveConversation().then(() => true).catch(() => false);
+    if (response.ok && action.action === 'ignore') {
+      setActionStatus('已忽略控灵建议。');
+      return { state: 'ignored', message: '已忽略此建议。' };
+    }
+    if (response.ok && payload.task?.id) {
+      const detail = {
+        taskId: payload.task.id,
+        taskRevision: payload.task.revision,
+        affectedStageId: payload.affectedStageId ?? 'topic-goals',
+        task: payload.task,
+      };
+      if (agentSessionId) {
+        window.localStorage.setItem(`konling:agent-session:smart-prep:${payload.task.id}`, agentSessionId);
+      }
+      window.dispatchEvent(new CustomEvent('konling:smart-task-confirmed', { detail }));
+      const message = conversationRefreshed
+        ? action.operation === 'bootstrap' ? '已创建备课任务。' : '建议已应用到备课任务。'
+        : '建议已应用；会话刷新失败，可使用“刷新任务”恢复显示。';
+      setActionStatus(message);
+      return { state: 'applied', message, refreshRecovery: !conversationRefreshed };
+    }
+    const code = typeof payload?.error?.code === 'string' ? payload.error.code : '';
+    const conflict = response.status === 409 || code.includes('conflict') || code.includes('revision');
+    const message = conflict
+      ? '任务已发生变化，此建议无法继续应用。'
+      : '操作未完成，请刷新任务或重新生成建议。';
+    setActionStatus(message);
+    return { state: conflict ? 'conflict' : 'failed', message };
+  }
 
   const chatBody = useMemo(() => ({
     pageContext,
@@ -855,7 +926,7 @@ export function GlobalAISidebar() {
             </div>
           ) : (
             <div className="space-y-4">
-              <KonlingChatMessageList messages={messages} styles={styles} />
+              <KonlingChatMessageList messages={messages} styles={styles} onStructuredAction={handleStructuredAction} />
               {isLoading && (
                 <div className={`flex items-center gap-2 text-sm ${styles.text.muted}`}>
                   <Loader2 className="h-4 w-4 animate-spin" />

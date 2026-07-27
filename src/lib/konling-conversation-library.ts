@@ -10,7 +10,8 @@ export const KONLING_DEFAULT_CONVERSATION_TITLE = '新对话';
 export const KONLING_CONVERSATION_TITLE_MAX_LENGTH = 64;
 export const KONLING_CONVERSATION_TURN_LEASE_MS = 5 * 60 * 1000;
 
-type ConversationDb = Pick<PrismaClient, 'konlingSession' | '$transaction'>;
+type ConversationDb = Pick<PrismaClient, 'konlingSession' | '$transaction'>
+  & Partial<Pick<PrismaClient, 'agentToolRun'>>;
 type ConversationContextDb = Pick<PrismaClient, 'courseBasis' | 'teachingResource' | 'knowledgeNode'>;
 
 type PersistedConversation = {
@@ -121,7 +122,10 @@ export function createKonlingMessageId(): string {
   return crypto.randomUUID();
 }
 
-export function serializeKonlingConversation(conversation: PersistedConversation) {
+export function serializeKonlingConversation(
+  conversation: PersistedConversation,
+  messages = conversationMessages(conversation.messages),
+) {
   return {
     id: conversation.id,
     userId: conversation.userId,
@@ -132,11 +136,283 @@ export function serializeKonlingConversation(conversation: PersistedConversation
     pinned: Boolean(conversation.pinnedAt),
     pinnedAt: conversation.pinnedAt,
     lastActivityAt: conversation.lastActivityAt,
-    messages: conversationMessages(conversation.messages),
+    messages: messages.map(projectPublicKonlingMessage),
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
     expiresAt: conversation.expiresAt,
   };
+}
+
+function projectPublicKonlingMessage(message: Message): Message {
+  const metadata = recordValue(message.metadata);
+  const structuredTurn = recordValue(metadata.konlingStructuredActionTurn);
+  const toolRuns = Array.isArray(structuredTurn.toolRuns) ? structuredTurn.toolRuns : [];
+  const projectedActionIds = new Set<string>();
+  const actions = toolRuns.flatMap((value) => {
+    const run = recordValue(value);
+    const input = recordValue(run.inputSummary);
+    const actionId = typeof input.publicActionId === 'string'
+      ? input.publicActionId
+      : typeof run.toolRunId === 'string'
+        ? run.toolRunId
+        : null;
+    if (
+      run.toolName !== 'propose_smart_lesson_task_change'
+      || !actionId
+      || (input.operation !== 'bootstrap' && input.operation !== 'revise')
+      || Object.keys(recordValue(input.proposedTask)).length === 0
+      || projectedActionIds.has(actionId)
+    ) return [];
+    projectedActionIds.add(actionId);
+    return [{
+      actionId,
+      operation: input.operation,
+      taskId: typeof input.taskId === 'string' ? input.taskId : undefined,
+      state: publicStructuredActionState(run.approvalState, run.status),
+      ...(run.status === 'failed' ? {
+        errorSummary: '建议生成未完成，请刷新任务或重新生成建议。',
+      } : {}),
+      affectedStageId: typeof input.affectedStageId === 'string' ? input.affectedStageId : 'topic-goals',
+      proposal: projectPublicSmartPreparationProposal(
+        input.proposedTask,
+        Array.isArray(input.changedFields) ? input.changedFields : [],
+        input.operation,
+        input.publicBasisSummary,
+      ),
+    }];
+  });
+  const citationGuard = recordValue(metadata.konlingCitationGuard);
+  const revision = recordValue(metadata.konlingMessageRevision);
+  const correction = recordValue(metadata.konlingStructuredCorrection);
+  const publicMetadata = {
+    ...(Object.keys(citationGuard).length ? { konlingCitationGuard: citationGuard } : {}),
+    ...(typeof revision.revision === 'number' ? {
+      konlingMessageRevision: {
+        revision: revision.revision,
+        status: boundedPublicText(revision.status),
+        userNotice: boundedPublicText(revision.userNotice),
+      },
+    } : {}),
+    ...(typeof correction.status === 'string' ? {
+      konlingStructuredCorrection: {
+        status: boundedPublicText(correction.status),
+        attempts: typeof correction.attempts === 'number' ? correction.attempts : 0,
+      },
+    } : {}),
+  };
+  return toLegacyMessage({
+    ...message,
+    parts: message.parts.filter((part) =>
+      part.type !== 'dynamic-tool' && !part.type.startsWith('tool-')),
+    metadata: {
+      ...publicMetadata,
+      ...(actions.length ? { konlingSmartPreparationActions: actions } : {}),
+    },
+  });
+}
+
+function projectPublicSmartPreparationProposal(
+  value: unknown,
+  changedFieldsValue: unknown[],
+  operation: unknown,
+  publicBasisSummaryValue: unknown,
+) {
+  const proposal = recordValue(value);
+  const publicBasisSummary = recordValue(publicBasisSummaryValue);
+  const changedFields = new Set(
+    changedFieldsValue.filter((field): field is string => typeof field === 'string'),
+  );
+  const includesField = (field: string) =>
+    operation === 'bootstrap' || changedFields.size === 0 || changedFields.has(field);
+  const textbookRanges = includesField('textbookRanges') && Array.isArray(proposal.textbookRanges)
+    ? proposal.textbookRanges.slice(0, 8).map((range) => {
+        const item = recordValue(range);
+        return {
+          level: typeof item.level === 'string' ? item.level : undefined,
+          structuralPath: Array.isArray(item.structuralPath)
+            ? item.structuralPath.filter((part): part is string => typeof part === 'string').slice(0, 8)
+            : [],
+        };
+      })
+    : [];
+  const itemText = (item: unknown, fields: string[]) => {
+    const record = recordValue(item);
+    const text = fields.map((field) => record[field]).find((candidate) => typeof candidate === 'string');
+    return typeof text === 'string' ? Array.from(text).slice(0, 240).join('') : '';
+  };
+  return {
+    topic: includesField('topic') ? boundedPublicText(proposal.topic) : undefined,
+    audience: includesField('audience') ? boundedPublicText(proposal.audience) : undefined,
+    prerequisitesChanged: includesField('prerequisites'),
+    prerequisites: includesField('prerequisites') ? boundedPublicText(proposal.prerequisites) ?? '' : undefined,
+    durationMinutes: includesField('durationMinutes') && typeof proposal.durationMinutes === 'number'
+      ? proposal.durationMinutes
+      : undefined,
+    outlineConfirmationRequiredChanged: includesField('outlineConfirmationRequired'),
+    outlineConfirmationRequired: includesField('outlineConfirmationRequired')
+      && typeof proposal.outlineConfirmationRequired === 'boolean'
+      ? proposal.outlineConfirmationRequired
+      : undefined,
+    selectedClassLabel: boundedPublicText(proposal.selectedClassName ?? proposal.selectedClassLabel),
+    selectedClassChanged: includesField('selectedClassId'),
+    textbookRanges,
+    knowledgePoints: includesField('knowledgePoints') && Array.isArray(proposal.knowledgePoints)
+      ? proposal.knowledgePoints.slice(0, 12).map((item) => itemText(item, ['title', 'content'])).filter(Boolean)
+      : [],
+    goals: includesField('goals') && Array.isArray(proposal.goals)
+      ? proposal.goals.slice(0, 12).map((item) => itemText(item, ['content', 'title'])).filter(Boolean)
+      : [],
+    courseBasis: operation === 'bootstrap' ? boundedPublicText(publicBasisSummary.title) : undefined,
+    sources: operation === 'bootstrap' && Array.isArray(publicBasisSummary.sources)
+      ? publicBasisSummary.sources
+          .map(boundedPublicText)
+          .filter((item): item is string => typeof item === 'string' && item.length > 0)
+          .slice(0, 12)
+      : [],
+  };
+}
+
+function boundedPublicText(value: unknown) {
+  return typeof value === 'string' ? Array.from(value).slice(0, 240).join('') : undefined;
+}
+
+function publicStructuredActionState(approvalState: unknown, status: unknown) {
+  if (status === 'failed') return 'failed';
+  if (approvalState === 'approved') return 'applied';
+  if (approvalState === 'ignored') return 'ignored';
+  if (approvalState === 'conflict') return 'conflict';
+  if (approvalState === 'action_failed') return 'failed';
+  return 'pending';
+}
+
+export function refreshKonlingStructuredActionToolRuns(
+  messages: Message[],
+  toolRuns: KonlingStructuredActionToolRunSnapshot[],
+): Message[] {
+  if (toolRuns.length === 0) return messages;
+  const currentById = new Map(toolRuns.map((run) => [run.id, run]));
+  return messages.map((message) => {
+    const metadata = recordValue(message.metadata);
+    const structuredTurn = recordValue(metadata.konlingStructuredActionTurn);
+    const persistedRuns = Array.isArray(structuredTurn.toolRuns) ? structuredTurn.toolRuns : [];
+    if (persistedRuns.length === 0) return message;
+    let changed = false;
+    const nextRuns = persistedRuns.map((persistedRun) => {
+      const run = recordValue(persistedRun);
+      const current = typeof run.toolRunId === 'string' ? currentById.get(run.toolRunId) : undefined;
+      if (!current) return persistedRun;
+      changed = true;
+      return {
+        ...run,
+        status: current.status ?? run.status,
+        approvalState: current.approvalState,
+        outputSummary: current.outputSummary,
+        errorSummary: current.errorSummary,
+      };
+    });
+    if (!changed) return message;
+    return {
+      ...message,
+      metadata: {
+        ...metadata,
+        konlingStructuredActionTurn: {
+          ...structuredTurn,
+          toolRuns: nextRuns,
+        },
+      },
+    };
+  });
+}
+
+export type KonlingStructuredActionToolRunSnapshot = {
+  id: string;
+  toolName?: string;
+  status?: string;
+  approvalState: string;
+  inputSummary?: unknown;
+  outputSummary: unknown;
+  errorSummary: unknown;
+};
+
+export function mergeLegacyKonlingStructuredActionToolRuns(
+  messages: Message[],
+  toolRuns: KonlingStructuredActionToolRunSnapshot[],
+): Message[] {
+  const refreshed = refreshKonlingStructuredActionToolRuns(messages, toolRuns);
+  const persistedIds = new Set(konlingStructuredActionToolRunIds(refreshed));
+  const legacyRuns = toolRuns.filter((run) =>
+    run.toolName === 'propose_smart_lesson_task_change'
+    && !persistedIds.has(run.id)
+    && ['bootstrap', 'revise'].includes(String(recordValue(run.inputSummary).operation))
+  );
+  if (legacyRuns.length === 0) return refreshed;
+
+  const assistantIndexesByTurn = new Map<string, number[]>();
+  for (let index = 0; index < refreshed.length; index += 1) {
+    const message = refreshed[index];
+    if (message.role !== 'assistant') continue;
+    const turnId = recordValue(message.metadata).konlingTurnId;
+    if (typeof turnId !== 'string' || !turnId) continue;
+    const indexes = assistantIndexesByTurn.get(turnId) ?? [];
+    indexes.push(index);
+    assistantIndexesByTurn.set(turnId, indexes);
+  }
+  const next = [...refreshed];
+  const runsByTargetIndex = new Map<number, KonlingStructuredActionToolRunSnapshot[]>();
+  for (const run of legacyRuns) {
+    const turnId = recordValue(run.inputSummary).turnId;
+    if (typeof turnId !== 'string' || !turnId) continue;
+    const targetIndexes = assistantIndexesByTurn.get(turnId);
+    if (targetIndexes?.length !== 1) continue;
+    const targetIndex = targetIndexes[0];
+    const targetRuns = runsByTargetIndex.get(targetIndex) ?? [];
+    targetRuns.push(run);
+    runsByTargetIndex.set(targetIndex, targetRuns);
+  }
+  for (const [targetIndex, targetRuns] of runsByTargetIndex) {
+    const target = next[targetIndex];
+    const metadata = recordValue(target.metadata);
+    const structuredTurn = recordValue(metadata.konlingStructuredActionTurn);
+    const persistedRuns = Array.isArray(structuredTurn.toolRuns) ? structuredTurn.toolRuns : [];
+    next[targetIndex] = {
+      ...target,
+      metadata: {
+        ...metadata,
+        konlingStructuredActionTurn: {
+          ...structuredTurn,
+          version: 1,
+          toolRuns: [
+            ...persistedRuns,
+            ...targetRuns.map((run) => ({
+              toolRunId: run.id,
+              toolName: run.toolName,
+              status: run.status,
+              approvalState: run.approvalState,
+              inputSummary: run.inputSummary,
+              outputSummary: run.outputSummary,
+              errorSummary: run.errorSummary,
+            })),
+          ],
+        },
+      },
+    };
+  }
+  return next;
+}
+
+export function konlingStructuredActionToolRunIds(messages: Message[]): string[] {
+  return [...new Set(messages.flatMap((message) => {
+    const structuredTurn = recordValue(recordValue(message.metadata).konlingStructuredActionTurn);
+    return (Array.isArray(structuredTurn.toolRuns) ? structuredTurn.toolRuns : [])
+      .map((run) => recordValue(run).toolRunId)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0);
+  }))];
+}
+
+function recordValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
 }
 
 export function buildKonlingContextIdentity(scope: KonlingAuthorizedPageScope): string {
@@ -321,7 +597,7 @@ export async function completeKonlingConversationTurn(
   },
 ) {
   const now = input.now ?? new Date();
-  const assistantMessage = toLegacyMessage(input.assistantMessage);
+  let assistantMessage = toLegacyMessage(input.assistantMessage);
 
   const current = await db.konlingSession.findFirst({
     where: {
@@ -338,6 +614,13 @@ export async function completeKonlingConversationTurn(
   if (current.activeTurnId !== input.turnId) {
     throw new KonlingConversationTurnConflictError('Conversation turn lease is no longer owned by this request.');
   }
+  assistantMessage = await attachKonlingTurnToolRuns(db, {
+    conversationId: input.conversationId,
+    ownerUserId: input.ownerUserId,
+    turnId: input.turnId,
+    claimedAt: current.activeTurnClaimedAt,
+    assistantMessage,
+  });
 
   const firstUserMessage = currentMessages.find((message) => message.role === 'user');
   const nextTitle = firstUserMessage
@@ -378,6 +661,82 @@ export async function completeKonlingConversationTurn(
   return db.konlingSession.findUnique({ where: { id: current.id } });
 }
 
+async function attachKonlingTurnToolRuns(
+  db: ConversationDb,
+  input: {
+    conversationId: string;
+    ownerUserId: string;
+    turnId: string;
+    claimedAt: Date | null;
+    assistantMessage: Message;
+  },
+): Promise<Message> {
+  if (!db.agentToolRun?.findMany || !input.claimedAt) return input.assistantMessage;
+  const toolRuns = await db.agentToolRun.findMany({
+    where: {
+      ownerUserId: input.ownerUserId,
+      startedAt: { gte: input.claimedAt },
+      agentSession: {
+        konlingSessionId: input.conversationId,
+        stateJson: {
+          path: ['currentTurnId'],
+          equals: input.turnId,
+        },
+      },
+    },
+    orderBy: [
+      { startedAt: 'asc' },
+      { id: 'asc' },
+    ],
+    select: {
+      id: true,
+      agentSessionId: true,
+      toolName: true,
+      status: true,
+      approvalState: true,
+      inputSummary: true,
+      outputSummary: true,
+      errorSummary: true,
+      idempotencyKey: true,
+      correlationId: true,
+      startedAt: true,
+      completedAt: true,
+    },
+  });
+  if (toolRuns.length === 0) return input.assistantMessage;
+  const existingMetadata = input.assistantMessage.metadata
+    && typeof input.assistantMessage.metadata === 'object'
+    && !Array.isArray(input.assistantMessage.metadata)
+    ? input.assistantMessage.metadata as Record<string, unknown>
+    : {};
+  return toLegacyMessage({
+    ...input.assistantMessage,
+    metadata: {
+      ...existingMetadata,
+      konlingStructuredActionTurn: {
+        version: 1,
+        turnId: input.turnId,
+        terminal: toolRuns.every((run) =>
+          ['succeeded', 'failed', 'cancelled'].includes(run.status)),
+        toolRuns: toolRuns.map((run) => ({
+          toolRunId: run.id,
+          agentSessionId: run.agentSessionId,
+          toolName: run.toolName,
+          status: run.status,
+          approvalState: run.approvalState,
+          inputSummary: run.inputSummary,
+          outputSummary: run.outputSummary,
+          errorSummary: run.errorSummary,
+          idempotencyKey: run.idempotencyKey,
+          correlationId: run.correlationId,
+          startedAt: run.startedAt.toISOString(),
+          completedAt: run.completedAt?.toISOString() ?? null,
+        })),
+      },
+    },
+  });
+}
+
 export async function replaceKonlingConversationAssistantRevision(
   db: ConversationDb,
   input: {
@@ -403,7 +762,15 @@ export async function replaceKonlingConversationAssistantRevision(
     if (index < 0) return null;
     const existingRevision = readKonlingPersistedMessageRevision(messages[index]);
     if (existingRevision !== input.expectedRevision || input.revision <= existingRevision) return null;
-    const replacement = toLegacyMessage(input.assistantMessage);
+    const incomingReplacement = toLegacyMessage(input.assistantMessage);
+    const existingMetadata = recordValue(messages[index].metadata);
+    const replacement = toLegacyMessage({
+      ...incomingReplacement,
+      metadata: {
+        ...existingMetadata,
+        ...recordValue(incomingReplacement.metadata),
+      },
+    });
     const nextMessages = [...messages];
     nextMessages[index] = replacement;
     const attemptNow = input.now ?? new Date();

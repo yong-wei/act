@@ -3109,17 +3109,44 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       const sessionState = readRecord(getValue(session, 'stateJson'));
       const turnId = getString(sessionState, 'currentTurnId');
       if (!turnId) throw new KonlingRuntimeScopeError(409, '智能备课会话没有可绑定的当前对话轮次。');
+      const proposedFieldNames = Object.keys(readRecord(args.proposedTask));
+      const changedFields = [...new Set([
+        ...proposedFieldNames,
+        ...(args.knowledgePointPatches?.length ? ['knowledgePoints'] : []),
+        ...(args.goalPatches?.length ? ['goals'] : []),
+      ])];
+      const affectedStageId = args.operation !== 'bootstrap'
+        && !args.knowledgePointPatches?.length
+        && !args.goalPatches?.length
+        && proposedFieldNames.length === 1
+        && proposedFieldNames[0] === 'selectedClassId'
+        ? 'class-attainment'
+        : 'topic-goals';
       const { knowledgePointPatches, goalPatches, ...proposalArgs } = args;
-      const boundArgs = {
-        ...proposalArgs,
-        proposedTask: normalizeSuggestedSmartLessonTask(args.proposedTask as Record<string, unknown> | undefined, smartPreparation, {
+      const operation = args.operation ?? 'revise';
+      const normalizedProposedTask = normalizeSuggestedSmartLessonTask(
+        args.proposedTask as Record<string, unknown> | undefined,
+        smartPreparation,
+        {
           knowledgePoints: knowledgePointPatches,
           goals: goalPatches,
-        }),
+        },
+      );
+      const boundArgs = {
+        ...proposalArgs,
+        proposedTask: normalizedProposedTask,
+        publicActionId: crypto.randomUUID(),
+        ...(operation === 'bootstrap' ? {
+          publicBasisSummary: buildPublicSmartPreparationBasisSummary(
+            smartPreparation,
+            normalizedProposedTask,
+          ),
+        } : {}),
+        affectedStageId,
+        changedFields,
         turnId,
       };
       const proposedTask = boundArgs.proposedTask;
-      const operation = args.operation ?? 'revise';
       if (!args.clarification && proposedTask) {
         const validation = operation === 'bootstrap'
           ? createTaskSchema.safeParse(proposedTask)
@@ -3129,7 +3156,10 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
             confirmingTurnId: turnId,
             agentSessionId: input.agentSessionId,
           });
-        if (!validation.success) throw new KonlingRuntimeScopeError(400, '智能备课建议不符合确认要求。');
+        if (!validation.success) {
+          logKonlingSmartPreparationValidationIssues(validation.error.issues);
+          throw new KonlingRuntimeScopeError(400, '智能备课建议不符合确认要求。');
+        }
         if (operation === 'bootstrap') {
           const courseBasisId = getString(proposedTask, 'courseBasisId');
           const availableCourseBases = arrayOfRecords(readRecord(smartPreparation?.currentTask).availableCourseBases);
@@ -3230,13 +3260,86 @@ function normalizeSuggestedSmartLessonTask(
     ? proposedTask.knowledgePoints.map((item) => {
       if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
       const point = item as Record<string, unknown>;
-      return point.origin === 'SUGGESTED' || point.origin === 'TEACHER_CREATED' ? point : { ...point, origin: 'SUGGESTED' };
+      const sourceState = normalizeSuggestedSmartLessonSourceState(point.sourceState);
+      const origin = point.origin === 'SUGGESTED' || point.origin === 'TEACHER_CREATED'
+        ? point.origin
+        : 'SUGGESTED';
+      return sourceState === point.sourceState && origin === point.origin
+        ? point
+        : { ...point, sourceState, origin };
     })
     : proposedTask.knowledgePoints;
+  const goals = Array.isArray(proposedTask.goals)
+    ? proposedTask.goals.map((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
+      const goal = item as Record<string, unknown>;
+      const sourceState = normalizeSuggestedSmartLessonSourceState(goal.sourceState);
+      return sourceState === goal.sourceState ? goal : { ...goal, sourceState };
+    })
+    : proposedTask.goals;
   return {
     ...proposedTask,
     ...(knowledgePoints ? { knowledgePoints } : {}),
+    ...(goals ? { goals } : {}),
   };
+}
+
+function normalizeSuggestedSmartLessonSourceState(value: unknown) {
+  if (value === 'VERIFIED') return 'verified';
+  if (value === 'NO_RELIABLE_SOURCE') return 'no_reliable_source';
+  if (value === 'AI_GENERATED_SOURCE_PENDING') return 'ai_generated_source_pending';
+  if (value === 'TEACHER_CREATED_SOURCE_PENDING') return 'teacher_created_source_pending';
+  return value;
+}
+
+function buildPublicSmartPreparationBasisSummary(
+  preparation: KonlingSmartPreparationServerContext | null | undefined,
+  proposedTask: Record<string, unknown> | undefined,
+) {
+  if (!proposedTask) return undefined;
+  const selectedBasisId = getString(proposedTask, 'courseBasisId');
+  const selectedVersionIds = new Set(arrayOfStrings(proposedTask.sourceVersionIds));
+  const availableCourseBases = arrayOfRecords(readRecord(preparation?.currentTask).availableCourseBases);
+  const basis = availableCourseBases.find((candidate) => getString(candidate, 'id') === selectedBasisId);
+  if (!basis) return undefined;
+  const sources = arrayOfRecords(basis.documents).flatMap((document) => {
+    const documentTitle = getString(document, 'title');
+    return arrayOfRecords(document.versions).flatMap((version) => {
+      const versionId = getString(version, 'id');
+      if (!versionId || !selectedVersionIds.has(versionId)) return [];
+      const versionNumber = version.versionNumber;
+      return [typeof versionNumber === 'number'
+        ? `${documentTitle ?? '课程资料'} v${versionNumber}`
+        : documentTitle ?? '课程资料'];
+    });
+  });
+  return {
+    title: getString(basis, 'title') ?? '课程依据',
+    sources,
+  };
+}
+
+function logKonlingSmartPreparationValidationIssues(issues: readonly unknown[]) {
+  if (process.env.NODE_ENV === 'production') return;
+  const payload = {
+    issues: issues.slice(0, 16).map((issue) => {
+      const record = readRecord(issue);
+      return {
+        path: Array.isArray(record.path)
+          ? record.path.slice(0, 12).map((segment) =>
+              typeof segment === 'number'
+                ? segment
+                : typeof segment === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,63}$/u.test(segment)
+                  ? segment
+                  : '[field]')
+          : [],
+        code: typeof record.code === 'string' && /^[a-z_]{1,64}$/u.test(record.code)
+          ? record.code
+          : 'validation_error',
+      };
+    }),
+  };
+  console.error('[konling-smart-preparation-validation]', JSON.stringify(payload));
 }
 
 function applySmartLessonCollectionPatches(

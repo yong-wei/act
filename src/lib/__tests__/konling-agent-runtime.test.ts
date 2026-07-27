@@ -1784,7 +1784,12 @@ describe('konling agent runtime', () => {
     });
     expect(db.agentToolRun.create).toHaveBeenCalledWith({ data: expect.objectContaining({
       toolName: 'propose_smart_lesson_task_change',
-      inputSummary: expect.objectContaining({ taskId: 'task-1', expectedRevision: 3, turnId: 'turn-server-1' }),
+      inputSummary: expect.objectContaining({
+        taskId: 'task-1',
+        expectedRevision: 3,
+        turnId: 'turn-server-1',
+        publicActionId: expect.any(String),
+      }),
     }) });
     expect(db.agentToolRun.create.mock.calls[0]?.[0].data.inputSummary).toMatchObject({
       proposedTask: {
@@ -1916,8 +1921,8 @@ describe('konling agent runtime', () => {
       taskId: null, taskRevision: null, bootstrap: true,
       currentTask: {
         availableCourseBases: [
-          { id: 'basis-1', documents: [{ versions: [{ id: 'version-1' }] }] },
-          { id: 'basis-2', documents: [{ versions: [{ id: 'version-2' }] }] },
+          { id: 'basis-1', title: '自动控制原理', documents: [{ title: '根轨迹讲义', versions: [{ id: 'version-1', versionNumber: 3 }] }] },
+          { id: 'basis-2', title: '现代控制理论', documents: [{ title: '状态空间讲义', versions: [{ id: 'version-2', versionNumber: 1 }] }] },
         ],
       },
       selectedCourseBasisVersions: [],
@@ -1940,38 +1945,95 @@ describe('konling agent runtime', () => {
       operation: 'bootstrap', clarification: { question: '课时是 45 还是 90 分钟？', alternatives: ['45', '90'] },
     })).resolves.toMatchObject({ turnId: 'turn-1', status: 'clarification_required' });
     session.stateJson = { currentTurnId: 'turn-2', ownedTurnIds: ['turn-1', 'turn-2'] };
-    await expect(runtime.proposeSmartLessonTaskChange({
-      operation: 'bootstrap',
-      proposedTask: {
-        topic: '根轨迹', durationMinutes: 45,
-        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-      },
-    })).rejects.toThrow('智能备课建议不符合确认要求');
+    const validationLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      await expect(runtime.proposeSmartLessonTaskChange({
+        operation: 'bootstrap',
+        proposedTask: {
+          topic: '根轨迹', durationMinutes: 45,
+          knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        },
+      })).rejects.toThrow('智能备课建议不符合确认要求');
+      const diagnosticCall = validationLog.mock.calls.find(
+        ([label]) => label === '[konling-smart-preparation-validation]',
+      );
+      expect(diagnosticCall).toBeDefined();
+      expect(typeof diagnosticCall?.[1]).toBe('string');
+      const encodedDiagnostic = diagnosticCall?.[1] as string;
+      const diagnosticPayload = JSON.parse(encodedDiagnostic) as {
+        issues?: Array<Record<string, unknown>>;
+      };
+      expect(Object.keys(diagnosticPayload)).toEqual(['issues']);
+      expect(diagnosticPayload.issues?.length).toBeGreaterThan(0);
+      for (const issue of diagnosticPayload.issues ?? []) {
+        expect(Object.keys(issue)).toEqual(['path', 'code']);
+      }
+      expect(encodedDiagnostic).toContain('"path"');
+      expect(encodedDiagnostic).toContain('"code"');
+      expect(encodedDiagnostic).not.toContain('根轨迹');
+      expect(encodedDiagnostic).not.toContain('相角条件');
+      expect(encodedDiagnostic).not.toContain('basis-1');
+      expect(encodedDiagnostic).not.toContain('version-1');
+      expect(encodedDiagnostic).not.toContain('teacher-1');
+      expect(encodedDiagnostic).not.toContain('turn-2');
+    } finally {
+      validationLog.mockRestore();
+    }
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(1);
     await expect(runtime.proposeSmartLessonTaskChange({
       proposedTask: {
         courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
         sourceVersionIds: ['version-1'],
-        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [{
-          citationId: 'unselected-version-citation', sourceVersionId: 'version-2', anchor: 'chapter-2', contentHash: '2'.repeat(16),
-        }] }],
-        goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [{
+        knowledgePoints: [
+          { content: '幅值条件', sourceState: 'VERIFIED', sourceBindings: [] },
+          { content: '分离点', sourceState: 'NO_RELIABLE_SOURCE', sourceBindings: [] },
+          { content: '相角条件', sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [{
+            citationId: 'unselected-version-citation', sourceVersionId: 'version-2', anchor: 'chapter-2', contentHash: '2'.repeat(16),
+          }] },
+        ],
+        goals: [{ content: '判断根轨迹', sourceState: 'TEACHER_CREATED_SOURCE_PENDING', sourceBindings: [{
           citationId: 'forged-citation', sourceVersionId: 'version-1', anchor: 'forged-anchor', contentHash: 'f'.repeat(16),
         }] }],
-      },
+      } as never,
     })).resolves.toMatchObject({
       turnId: 'turn-2',
       status: 'awaiting_teacher_confirmation',
       proposedTask: {
-        knowledgePoints: [{ origin: 'SUGGESTED', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-        goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        knowledgePoints: [
+          { origin: 'SUGGESTED', sourceState: 'verified', sourceBindings: [] },
+          { origin: 'SUGGESTED', sourceState: 'no_reliable_source', sourceBindings: [] },
+          { origin: 'SUGGESTED', sourceState: 'ai_generated_source_pending', sourceBindings: [] },
+        ],
+        goals: [{ sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
       },
     });
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
     expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.proposedTask).toMatchObject({
-      knowledgePoints: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-      goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      knowledgePoints: [
+        { sourceState: 'verified', sourceBindings: [] },
+        { sourceState: 'no_reliable_source', sourceBindings: [] },
+        { sourceState: 'ai_generated_source_pending', sourceBindings: [] },
+      ],
+      goals: [{ sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
     });
+    expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.publicBasisSummary).toEqual({
+      title: '自动控制原理',
+      sources: ['根轨迹讲义 v3'],
+    });
+
+    const unknownSourceStateLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      await expect(runtime.proposeSmartLessonTaskChange({
+        proposedTask: {
+          courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
+          sourceVersionIds: ['version-1'],
+          knowledgePoints: [{ content: '相角条件', sourceState: 'UNKNOWN_SOURCE_STATE', sourceBindings: [] }],
+          goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        },
+      } as never)).rejects.toThrow('智能备课建议不符合确认要求');
+    } finally {
+      unknownSourceStateLog.mockRestore();
+    }
 
     const invalidProposal = (courseBasisId: string, sourceVersionIds: string[]) => runtime.proposeSmartLessonTaskChange({
       proposedTask: {
