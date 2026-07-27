@@ -14,8 +14,11 @@ import {
   type SmartLessonFixtureStage,
 } from './domain';
 import {
+  BOPPPS_STAGE_KEYS,
   smartLessonAdvisoryReviewSchema,
+  smartLessonPlanSchema,
   smartLessonReviewProviderAuditSchema,
+  type SmartLessonPlan,
 } from './schema';
 
 export const SMART_LESSON_PROMPT_VERSION = 'smart-lesson-plan.v1';
@@ -336,13 +339,14 @@ export async function generateSmartLessonAdvisoryReport(input: {
   idempotencyKey: string;
 }, dependencies: RuntimeDependencies = {}) {
   try {
+    const reviewProjection = projectSmartLessonPlanForAdvisoryReview(input.plan);
     const runtime = await resolveSmartLessonStructuredProvider(dependencies);
     const generated = await runtime.generate({
       schema: smartLessonAdvisoryProviderResponseSchema,
       schemaVersion: 'smart-lesson-advisory-review.v1',
       promptVersion: SMART_LESSON_REVIEW_PROMPT_VERSION,
-      system: '你是教学设计审核助手。仅提供简洁建议，不得给出批准、发布或阻断结论。必须完整审核目标覆盖、来源一致性、BOPPPS 结构、内容质量四类事项。finding 只保留最重要的 8 项，suggestion 最多 6 项。可直接应用的 finding 必须把 path 定位到一个可编辑字符串字段，并在 proposedReplacement 中给出该字段的完整替换文本；无法形成确定修改时将 proposedReplacement 设为 null。输出必须符合给定结构。',
-      prompt: `请审核以下完整教案并简洁作答：\n${JSON.stringify(input.plan)}`,
+      system: '你是教学设计审核助手。仅提供简洁建议，不得给出批准、发布或阻断结论。必须完整审核目标覆盖、来源一致性、BOPPPS 结构、内容质量四类事项。finding 只保留最重要的 8 项，suggestion 最多 6 项。可直接应用的 finding 必须把 path 定位到原教案中的一个可编辑字符串字段，并在 proposedReplacement 中给出该字段的完整替换文本；sourceCatalog 和 sourceCitationIds 仅供来源审核，不得作为 path；无法形成确定修改时将 proposedReplacement 设为 null。输出必须符合给定结构。',
+      prompt: `请审核以下语义完整的教案投影并简洁作答：\n${JSON.stringify(reviewProjection)}`,
       idempotencyKey: input.idempotencyKey,
       maxOutputTokens: 1_600,
       timeoutMs: dependencies.advisoryTimeoutMs ?? SMART_LESSON_ADVISORY_TIMEOUT_MS,
@@ -366,6 +370,84 @@ export async function generateSmartLessonAdvisoryReport(input: {
     }
     throw new SmartLessonPlanError('advisory-provider-upstream-failed', 503);
   }
+}
+
+function projectSmartLessonPlanForAdvisoryReview(value: unknown) {
+  const plan = smartLessonPlanSchema.parse(value);
+  const sourceCatalog = new Map<string, {
+    citationId: string;
+    anchor: string;
+    sourceKind?: 'upload' | 'textbook';
+    title?: string;
+    structuralPath?: string[];
+  }>();
+  const sourceCitationIds = (bindings: SmartLessonPlan['sources']) => {
+    for (const binding of bindings) {
+      const existing = sourceCatalog.get(binding.citationId);
+      sourceCatalog.set(binding.citationId, {
+        citationId: binding.citationId,
+        anchor: existing?.anchor ?? binding.anchor,
+        ...(existing?.sourceKind || binding.sourceKind
+          ? { sourceKind: existing?.sourceKind ?? binding.sourceKind }
+          : {}),
+        ...(existing?.title || binding.title
+          ? { title: existing?.title ?? binding.title }
+          : {}),
+        ...(existing?.structuralPath || binding.structuralPath
+          ? { structuralPath: existing?.structuralPath ?? binding.structuralPath }
+          : {}),
+      });
+    }
+    return [...new Set(bindings.map((binding) => binding.citationId))];
+  };
+
+  sourceCitationIds(plan.sources);
+  return {
+    schemaVersion: plan.schemaVersion,
+    course: plan.course,
+    topic: plan.topic,
+    audience: plan.audience,
+    durationMinutes: plan.durationMinutes,
+    prerequisites: plan.prerequisites,
+    goals: plan.goals.map((goal) => ({
+      id: goal.id,
+      content: goal.content,
+      sourceState: goal.sourceState,
+      sourceCitationIds: sourceCitationIds(goal.sourceBindings),
+      standardsMappings: goal.standardsMappings,
+    })),
+    knowledgePoints: plan.knowledgePoints.map((point) => ({
+      id: point.id,
+      title: point.title,
+      sourceState: point.sourceState,
+      sourceCitationIds: sourceCitationIds(point.sourceBindings),
+    })),
+    keyContent: plan.keyContent,
+    difficultContent: plan.difficultContent,
+    boppps: Object.fromEntries(BOPPPS_STAGE_KEYS.map((stageKey) => {
+      const stage = plan.boppps[stageKey];
+      return [stageKey, {
+        minutes: stage.minutes,
+        teacherActivity: stage.teacherActivity,
+        studentActivity: stage.studentActivity,
+        assessment: stage.assessment,
+        steps: stage.steps.map((step) => ({
+          title: step.title,
+          minutes: step.minutes,
+          teacherActivity: step.teacherActivity,
+          studentActivity: step.studentActivity,
+          assessment: step.assessment,
+          sourceCitationIds: sourceCitationIds(step.sourceBindings),
+        })),
+      }];
+    })),
+    sourceCatalog: [...sourceCatalog.values()],
+    limitations: plan.limitations,
+    classAdaptation: plan.classAdaptation
+      ? { emphasis: plan.classAdaptation.emphasis }
+      : null,
+    coursewareStepOutline: plan.coursewareStepOutline,
+  };
 }
 
 function isTimeoutLikeProviderError(error: unknown): boolean {

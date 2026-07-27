@@ -6,7 +6,8 @@ import {
   resolveSmartLessonStructuredProvider,
   validateSmartLessonProviderOutput,
 } from '../provider-runtime';
-import { smartLessonAdvisoryReviewSchema } from '../schema';
+import { smartLessonAdvisoryReviewSchema, smartLessonPlanSchema } from '../schema';
+import { validPlanFixture } from './fixtures';
 
 const config = {
   provider: 'configured-provider',
@@ -21,6 +22,45 @@ const config = {
   health: 'healthy' as const,
   capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: false, citationNormalization: false },
 };
+
+function representativePlanFixture() {
+  const plan = smartLessonPlanSchema.parse(validPlanFixture());
+  const sourceBinding = {
+    ...plan.sources[0],
+    sourceKind: 'textbook' as const,
+    title: '自动控制原理教材：闭环稳定性',
+    structuralPath: ['第三章 线性系统稳定性', '3.2 闭环稳定判据'],
+    snippet: `审核不需要重复传输的来源摘录：${'稳定性判据说明。'.repeat(80)}`,
+    href: 'https://course-basis.example/private/stability',
+  };
+  plan.sources = [sourceBinding];
+  plan.goals[0] = {
+    ...plan.goals[0],
+    sourceState: 'VERIFIED',
+    sourceBindings: [sourceBinding],
+    gapIdentity: null,
+    standardsMappings: [{ standardId: 'standard-1', label: '能够判断闭环系统稳定性' }],
+  };
+  plan.knowledgePoints[0] = {
+    ...plan.knowledgePoints[0],
+    sourceBindings: [sourceBinding],
+  };
+  for (const stage of Object.values(plan.boppps)) {
+    for (const step of stage.steps) step.sourceBindings = [sourceBinding];
+  }
+  plan.classAdaptation = {
+    aggregateContextRef: 'aggregate-context-private-ref',
+    emphasis: ['加强临界稳定条件辨析'],
+  };
+  return plan;
+}
+
+function collectStrings(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap(collectStrings);
+  if (value && typeof value === 'object') return Object.values(value).flatMap(collectStrings);
+  return [];
+}
 
 describe('smart lesson structured provider runtime', () => {
   it('deterministically normalizes harmless whitespace and numeric minute strings before validation', () => {
@@ -97,16 +137,68 @@ describe('smart lesson structured provider runtime', () => {
   });
 
   it('keeps the complete plan while applying the advisory-only timeout and narrow response budget', async () => {
-    const plan = { topic: '稳定性', nested: { retained: '完整教案内容' } };
+    const plan = representativePlanFixture();
     const generate = vi.fn(async (input) => {
       expect(input).toMatchObject({
         maxOutputTokens: 1_600,
         timeout: 25,
         headers: { 'Idempotency-Key': 'review-1' },
       });
-      expect(input.prompt).toContain(JSON.stringify(plan));
       expect(input.system).toContain('目标覆盖、来源一致性、BOPPPS 结构、内容质量四类事项');
+      expect(input.system).toContain('sourceCatalog 和 sourceCitationIds 仅供来源审核，不得作为 path');
       expect(input.abortSignal).toBeInstanceOf(AbortSignal);
+      const projection = JSON.parse(input.prompt.slice(input.prompt.indexOf('\n') + 1)) as Record<string, any>;
+      const projectionJson = JSON.stringify(projection);
+      const teachingTexts = [
+        plan.course,
+        plan.topic,
+        plan.audience,
+        plan.prerequisites,
+        ...plan.goals.flatMap((goal) => [
+          goal.content,
+          ...goal.standardsMappings.map((mapping) => mapping.label),
+        ]),
+        ...plan.knowledgePoints.map((point) => point.title),
+        ...plan.keyContent,
+        ...plan.difficultContent,
+        ...plan.limitations,
+        ...(plan.classAdaptation?.emphasis ?? []),
+        ...plan.coursewareStepOutline.map((step) => step.title),
+        ...Object.values(plan.boppps).flatMap((stage) => [
+          stage.teacherActivity,
+          stage.studentActivity,
+          stage.assessment,
+          ...stage.steps.flatMap((step) => [
+            step.title,
+            step.teacherActivity,
+            step.studentActivity,
+            step.assessment,
+          ]),
+        ]),
+      ];
+      expect(collectStrings(projection)).toEqual(expect.arrayContaining(teachingTexts));
+      expect(projection.sourceCatalog).toEqual([{
+        citationId: plan.sources[0].citationId,
+        anchor: plan.sources[0].anchor,
+        sourceKind: 'textbook',
+        title: plan.sources[0].title,
+        structuralPath: plan.sources[0].structuralPath,
+      }]);
+      expect(projection.goals[0].sourceCitationIds).toEqual([plan.sources[0].citationId]);
+      expect(projection.knowledgePoints[0].sourceCitationIds).toEqual([plan.sources[0].citationId]);
+      expect(projection.boppps.bridgeIn.steps[0].sourceCitationIds).toEqual([plan.sources[0].citationId]);
+      for (const excludedField of [
+        'contentHash',
+        'sourceVersionId',
+        'href',
+        'snippet',
+        'aggregateContextRef',
+        'gapIdentity',
+        'sourceBindings',
+      ]) {
+        expect(projectionJson).not.toContain(`"${excludedField}"`);
+      }
+      expect(projectionJson.length).toBeLessThanOrEqual(JSON.stringify(plan).length * 0.65);
       const bounded = {
         goalCoverage: '完整',
         sourceConsistency: '一致',
@@ -172,7 +264,7 @@ describe('smart lesson structured provider runtime', () => {
     }));
 
     await expect(generateSmartLessonAdvisoryReport(
-      { plan: { topic: '稳定性' }, idempotencyKey: 'review-invalid' },
+      { plan: validPlanFixture(), idempotencyKey: 'review-invalid' },
       { resolveConfig: vi.fn(async () => config) as never, generate, advisoryTimeoutMs: 25 },
     )).rejects.toMatchObject({
       code: 'advisory-provider-schema-invalid',
@@ -188,7 +280,7 @@ describe('smart lesson structured provider runtime', () => {
     });
 
     await expect(generateSmartLessonAdvisoryReport(
-      { plan: { topic: '稳定性' }, idempotencyKey: 'review-timeout' },
+      { plan: validPlanFixture(), idempotencyKey: 'review-timeout' },
       { resolveConfig: vi.fn(async () => config) as never, generate, advisoryTimeoutMs: 5 },
     )).rejects.toMatchObject({
       code: 'advisory-provider-timeout',
@@ -203,7 +295,7 @@ describe('smart lesson structured provider runtime', () => {
     });
 
     await expect(generateSmartLessonAdvisoryReport(
-      { plan: { topic: '稳定性' }, idempotencyKey: 'review-upstream' },
+      { plan: validPlanFixture(), idempotencyKey: 'review-upstream' },
       { resolveConfig: vi.fn(async () => config) as never, generate, advisoryTimeoutMs: 25 },
     )).rejects.toMatchObject({
       code: 'advisory-provider-upstream-failed',
@@ -213,7 +305,7 @@ describe('smart lesson structured provider runtime', () => {
 
   it('preserves structured-provider-unavailable for advisory provider selection failures', async () => {
     await expect(generateSmartLessonAdvisoryReport(
-      { plan: { topic: '稳定性' }, idempotencyKey: 'review-unavailable' },
+      { plan: validPlanFixture(), idempotencyKey: 'review-unavailable' },
       {
         resolveConfig: vi.fn(async () => ({ ...config, enabled: false })) as never,
         advisoryTimeoutMs: 25,
