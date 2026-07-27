@@ -316,22 +316,23 @@ async function main(): Promise<void> {
       db as unknown as CanonicalResourceBindingDatabase,
     );
     if (verifyOnly) {
-      const revision = await captureRevision();
-      const [latest, crosswalkCount, bindingCount] = await Promise.all([
-        db.resourceBindingInventoryRun.findFirst({
-          where: { captureRevision: revision },
-          orderBy: [{ capturedAt: 'desc' }, { id: 'desc' }],
+      const recomputed = await buildCurrentInventory(db);
+      const [persisted, crosswalkCount, bindingCount] = await Promise.all([
+        db.resourceBindingInventoryRun.findUnique({
+          where: { id: recomputed.runId },
           include: { items: { orderBy: { atomicResourceId: 'asc' } } },
         }),
         db.actkgEvidenceStructuralUnitCrosswalk.count(),
         db.canonicalResourceBindingDecision.count(),
       ]);
-      if (!latest) throw new Error('current APP_REVISION inventory is missing');
+      if (!persisted) {
+        throw new Error(`current resource binding inventory ${recomputed.runId} is missing`);
+      }
       if (
-        !latest.complete
-        || latest.items.length !== latest.itemCount
-        || latest.itemCount !== (
-          latest.includedCount + latest.excludedCount + latest.unresolvedCount
+        !persisted.complete
+        || persisted.items.length !== persisted.itemCount
+        || persisted.itemCount !== (
+          persisted.includedCount + persisted.excludedCount + persisted.unresolvedCount
         )
       ) {
         throw new Error('persisted resource binding inventory is missing or incomplete');
@@ -339,20 +340,16 @@ async function main(): Promise<void> {
       if (crosswalkCount !== 0 || bindingCount !== 0) {
         throw new Error('unexpected formal crosswalk or shadow binding rows in baseline');
       }
-      const recomputed = await buildCurrentInventory(db, {
-        capturedAt: latest.capturedAt.toISOString(),
-        dbWatermark: latest.dbWatermark,
-      });
       const persistedProjection = {
-        runId: latest.id,
-        sourceHash: latest.sourceHash,
+        runId: persisted.id,
+        sourceHash: persisted.sourceHash,
         summary: {
-          itemCount: latest.itemCount,
-          includedCount: latest.includedCount,
-          excludedCount: latest.excludedCount,
-          unresolvedCount: latest.unresolvedCount,
+          itemCount: persisted.itemCount,
+          includedCount: persisted.includedCount,
+          excludedCount: persisted.excludedCount,
+          unresolvedCount: persisted.unresolvedCount,
         },
-        items: latest.items.map((item) => ({
+        items: persisted.items.map((item) => ({
           atomicResourceId: item.atomicResourceId,
           resourceId: item.resourceId,
           structuralUnitId: item.structuralUnitId,
@@ -393,15 +390,15 @@ async function main(): Promise<void> {
       }
       console.log(JSON.stringify({
         mode: 'verify-only',
-        runId: latest.id,
-        complete: latest.complete,
+        runId: persisted.id,
+        complete: persisted.complete,
         cutoverReady: readiness.ready,
         authorityState: 'LEGACY',
         summary: {
-          itemCount: latest.itemCount,
-          includedCount: latest.includedCount,
-          excludedCount: latest.excludedCount,
-          unresolvedCount: latest.unresolvedCount,
+          itemCount: persisted.itemCount,
+          includedCount: persisted.includedCount,
+          excludedCount: persisted.excludedCount,
+          unresolvedCount: persisted.unresolvedCount,
           crosswalkCount,
           bindingCount,
         },

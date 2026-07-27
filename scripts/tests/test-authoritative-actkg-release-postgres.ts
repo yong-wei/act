@@ -364,7 +364,12 @@ async function main(): Promise<void> {
   assert.equal(bindingInventory.authorityState, 'SHADOW');
   assert.equal(bindingInventory.items.length, bindingInventory.itemCount);
   assert(bindingInventory.unresolvedCount > 0);
-  assert.notEqual(runBindingVerify('c'.repeat(40)).status, 0);
+  const missingBindingVerify = runBindingVerify('c'.repeat(40));
+  assert.notEqual(missingBindingVerify.status, 0);
+  assert.match(
+    missingBindingVerify.stderr,
+    /current resource binding inventory .* is missing/u,
+  );
   await db.$executeRawUnsafe(
     'ALTER TABLE "ResourceBindingInventoryRun" DISABLE TRIGGER "ResourceBindingInventoryRun_immutable"',
   );
@@ -372,7 +377,12 @@ async function main(): Promise<void> {
     where: { id: bindingInventory.id },
     data: { complete: false },
   });
-  assert.notEqual(runBindingVerify('b'.repeat(40)).status, 0);
+  const incompleteBindingVerify = runBindingVerify('b'.repeat(40));
+  assert.notEqual(incompleteBindingVerify.status, 0);
+  assert.match(
+    incompleteBindingVerify.stderr,
+    /persisted resource binding inventory is missing or incomplete/u,
+  );
   await db.resourceBindingInventoryRun.update({
     where: { id: bindingInventory.id },
     data: { complete: true },
@@ -380,6 +390,89 @@ async function main(): Promise<void> {
   await db.$executeRawUnsafe(
     'ALTER TABLE "ResourceBindingInventoryRun" ENABLE TRIGGER "ResourceBindingInventoryRun_immutable"',
   );
+
+  const verifyIdentityAuthorId = 'binding-verify-identity-author';
+  const verifyIdentityResourceId = 'binding-verify-identity-resource';
+  const verifyIdentityRevision = '9'.repeat(40);
+  const verifyIdentityConfigA = {
+    resourceNodePlanning: { pathEligible: true },
+    verifyRunIdentity: 'A',
+  };
+  await db.user.create({
+    data: {
+      id: verifyIdentityAuthorId,
+      email: 'binding-verify-identity@example.test',
+      role: 'TEACHER',
+    },
+  });
+  await db.teachingResource.create({
+    data: {
+      id: verifyIdentityResourceId,
+      title: 'Resource binding verify identity fixture',
+      type: 'STATIC_TEXT',
+      config: verifyIdentityConfigA,
+      authorId: verifyIdentityAuthorId,
+    },
+  });
+  const verifyIdentityImportA = await runConcurrentBindingImport(verifyIdentityRevision);
+  assert.equal(
+    verifyIdentityImportA.status,
+    0,
+    verifyIdentityImportA.stderr || verifyIdentityImportA.stdout,
+  );
+  const verifyIdentityOutputA = JSON.parse(verifyIdentityImportA.stdout) as {
+    runId: string;
+  };
+  await db.teachingResource.update({
+    where: { id: verifyIdentityResourceId },
+    data: {
+      config: {
+        resourceNodePlanning: { pathEligible: true },
+        verifyRunIdentity: 'B',
+      },
+    },
+  });
+  const verifyIdentityImportB = await runConcurrentBindingImport(verifyIdentityRevision);
+  assert.equal(
+    verifyIdentityImportB.status,
+    0,
+    verifyIdentityImportB.stderr || verifyIdentityImportB.stdout,
+  );
+  const verifyIdentityOutputB = JSON.parse(verifyIdentityImportB.stdout) as {
+    runId: string;
+  };
+  assert.notEqual(verifyIdentityOutputB.runId, verifyIdentityOutputA.runId);
+  const verifyIdentityRunA = await db.resourceBindingInventoryRun.findUniqueOrThrow({
+    where: { id: verifyIdentityOutputA.runId },
+  });
+  await db.$executeRawUnsafe(
+    'ALTER TABLE "ResourceBindingInventoryRun" DISABLE TRIGGER "ResourceBindingInventoryRun_immutable"',
+  );
+  try {
+    await db.resourceBindingInventoryRun.update({
+      where: { id: verifyIdentityOutputB.runId },
+      data: { capturedAt: new Date(verifyIdentityRunA.capturedAt.getTime() + 60_000) },
+    });
+  } finally {
+    await db.$executeRawUnsafe(
+      'ALTER TABLE "ResourceBindingInventoryRun" ENABLE TRIGGER "ResourceBindingInventoryRun_immutable"',
+    );
+  }
+  await db.teachingResource.update({
+    where: { id: verifyIdentityResourceId },
+    data: { config: verifyIdentityConfigA },
+  });
+  const verifyIdentityResult = runBindingVerify(verifyIdentityRevision);
+  assert.equal(
+    verifyIdentityResult.status,
+    0,
+    verifyIdentityResult.stderr || verifyIdentityResult.stdout,
+  );
+  assert.equal(
+    (JSON.parse(verifyIdentityResult.stdout) as { runId: string }).runId,
+    verifyIdentityOutputA.runId,
+  );
+
   assert.equal(await db.actkgEvidenceStructuralUnitCrosswalk.count(), 0);
   assert.equal(await db.canonicalResourceBindingDecision.count(), 0);
   assert.equal(
