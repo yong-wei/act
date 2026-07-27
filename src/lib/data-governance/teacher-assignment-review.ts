@@ -522,7 +522,22 @@ export function buildTeacherAssignmentReviewApiProjection(review: any) {
         criterionId: assessment.criterionId,
         levelId: assessment.levelId,
         score: assessment.score,
-        aiComment: assessment.rationale ?? '',
+        rationale: assessment.rationale ?? '',
+      })),
+      annotations: (review?.gradingRun?.annotations ?? []).map((annotation: any) => ({
+        id: annotation.id,
+        criterionId: annotation.criterionId,
+        comment: annotation.comment ?? '',
+        origin: annotation.authorRole === 'TEACHER' ? 'TEACHER' : 'AI_DRAFT',
+        anchor: {
+          blockId: annotation.blockId ?? undefined,
+          pageNumber: annotation.pageNumber ?? undefined,
+          spanStart: annotation.spanStart ?? undefined,
+          spanEnd: annotation.spanEnd ?? undefined,
+          bbox: annotation.bbox ?? undefined,
+          precision: String(annotation.precision ?? '').toUpperCase(),
+          excerpt: annotation.excerpt ?? undefined,
+        },
       })),
       question: {
         id: question?.id ?? review.questionId,

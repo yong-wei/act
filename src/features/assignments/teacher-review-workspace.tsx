@@ -35,6 +35,7 @@ import {
   normalizeTeacherSubmissionQueue,
   responseKindToSubmissionResponseType,
   teacherReviewConflictMutationState,
+  type ReviewAnnotationValue,
   type TeacherOriginalResponse,
   type TeacherOriginalResponseAsset,
   type TeacherReviewCriterion,
@@ -599,6 +600,12 @@ export function TeacherReviewWorkspace({
                   <CriterionEditor
                     key={criterion.id}
                     criterion={criterion}
+                    evidenceAnchors={detail.aiAnnotations.filter(
+                      (annotation) =>
+                        annotation.criterionId === criterion.id &&
+                        annotation.status === "ACTIVE" &&
+                        annotation.origin === "AI_DRAFT",
+                    )}
                     readOnly={!reviewMutable}
                     onChange={(next) => {
                       setCriteria((current) =>
@@ -1011,10 +1018,12 @@ function formatOriginalAssetKind(mimeType: string) {
 
 function CriterionEditor({
   criterion,
+  evidenceAnchors,
   onChange,
   readOnly,
 }: {
   criterion: TeacherReviewCriterion;
+  evidenceAnchors: ReviewAnnotationValue[];
   onChange: (criterion: TeacherReviewCriterion) => void;
   readOnly: boolean;
 }) {
@@ -1027,16 +1036,10 @@ function CriterionEditor({
       <legend className="px-1 text-sm font-medium text-white">
         {criterion.label}
       </legend>
-      {criterion.aiScore !== null ? (
-        <div className="mb-2 rounded bg-slate-950 p-2 text-xs text-slate-400">
-          <span>
-            AI 草评：{criterion.aiScore} / {criterion.maxPoints}
-          </span>
-          {criterion.aiComment ? (
-            <p className="mt-1">{criterion.aiComment}</p>
-          ) : null}
-        </div>
-      ) : null}
+      <CriterionAiSuggestion
+        criterion={criterion}
+        evidenceAnchors={evidenceAnchors}
+      />
       {criterion.levels.length ? (
         <label className="mb-2 block text-xs text-slate-400">
           Rubric 档位
@@ -1103,6 +1106,64 @@ function CriterionEditor({
       </label>
     </fieldset>
   );
+}
+
+export function CriterionAiSuggestion({
+  criterion,
+  evidenceAnchors,
+}: {
+  criterion: TeacherReviewCriterion;
+  evidenceAnchors: ReviewAnnotationValue[];
+}) {
+  if (criterion.aiScore === null && evidenceAnchors.length === 0) return null;
+  return (
+    <div
+      className="mb-2 rounded bg-slate-950 p-2 text-xs text-slate-400"
+      data-ai-criterion-suggestion
+    >
+      {criterion.aiScore !== null ? (
+        <span>
+          AI 草评：{criterion.aiScore} / {criterion.maxPoints}
+        </span>
+      ) : null}
+      {criterion.aiComment ? (
+        <p className="mt-1">{criterion.aiComment}</p>
+      ) : null}
+      {evidenceAnchors.length > 0 ? (
+        <div className="mt-2 border-t border-slate-800 pt-2">
+          <p className="font-medium text-slate-300">证据锚点</p>
+          <ul className="mt-1 list-disc space-y-1 pl-4">
+            {evidenceAnchors.map((annotation, index) => (
+              <li key={annotation.id ?? `${annotation.criterionId}-${index}`}>
+                {describeEvidenceAnchor(annotation)}
+                {annotation.anchor.excerpt ? (
+                  <blockquote className="mt-1 border-l border-slate-700 pl-2 text-slate-300">
+                    {annotation.anchor.excerpt}
+                  </blockquote>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function describeEvidenceAnchor(annotation: ReviewAnnotationValue) {
+  const locations = [
+    annotation.anchor.pageNumber
+      ? `第 ${annotation.anchor.pageNumber} 页`
+      : null,
+    annotation.anchor.blockId
+      ? `证据块 ${annotation.anchor.blockId}`
+      : null,
+    annotation.anchor.spanStart !== undefined &&
+    annotation.anchor.spanEnd !== undefined
+      ? `字符 ${annotation.anchor.spanStart}–${annotation.anchor.spanEnd}`
+      : null,
+  ].filter(Boolean);
+  return locations.join(" · ") || "已关联证据位置";
 }
 
 function NavigationButton({

@@ -107,6 +107,7 @@ export interface TeacherReviewDetail {
   overallComment: string;
   incompleteEvidence: boolean;
   omittedEvidence: Array<{ assetId: string; displayName: string }>;
+  aiAnnotations: ReviewAnnotationValue[];
   annotations: ReviewAnnotationValue[];
 }
 
@@ -450,6 +451,7 @@ export function normalizeTeacherReviewDetail(
     overallComment: stringFrom(review.overallComment ?? review.comment),
     incompleteEvidence: review.incompleteEvidence === true,
     omittedEvidence,
+    aiAnnotations: normalizeReviewAnnotations(gradingRun.annotations),
     annotations: normalizeReviewAnnotations(
       review.annotationValues ?? review.annotations,
     ),

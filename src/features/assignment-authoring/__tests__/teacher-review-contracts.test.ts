@@ -23,7 +23,10 @@ import {
   buildTeacherAssignmentReviewHref,
   normalizeTeacherAssignmentListItem,
 } from "../teacher-assignment-list";
-import { OriginalResponsePanel } from "../../assignments/teacher-review-workspace";
+import {
+  CriterionAiSuggestion,
+  OriginalResponsePanel,
+} from "../../assignments/teacher-review-workspace";
 
 const source = (file: string) =>
   readFileSync(path.join(process.cwd(), file), "utf8");
@@ -594,5 +597,45 @@ describe("teacher assignment review UI contracts", () => {
     expect(html).not.toMatch(/converted|provider|errorCode|objectKey|checksum/);
     expect(source("src/features/assignments/teacher-review-workspace.tsx"))
       .toContain("嵌入图片载入失败，重试");
+  });
+
+  it("renders AI rationale and safe evidence-anchor locations beside the criterion suggestion", () => {
+    const html = renderToStaticMarkup(createElement(CriterionAiSuggestion, {
+      criterion: {
+        id: "model",
+        label: "建模",
+        maxPoints: 10,
+        levels: [],
+        levelId: null,
+        aiScore: 8,
+        aiLevelId: null,
+        aiComment: "模型结构与题意一致",
+        score: 8,
+        scoreStep: 0.01,
+        comment: "",
+      },
+      evidenceAnchors: [{
+        id: "annotation-1",
+        criterionId: "model",
+        status: "ACTIVE",
+        comment: "内部批注不应替代定位",
+        origin: "AI_DRAFT",
+        anchor: {
+          pageNumber: 2,
+          blockId: "block-2",
+          precision: "BLOCK",
+          excerpt: "<script>原始证据摘录</script>",
+        },
+      }],
+    }));
+
+    expect(html).toContain("AI 草评：");
+    expect(html).toContain("模型结构与题意一致");
+    expect(html).toContain("证据锚点");
+    expect(html).toContain("第 2 页");
+    expect(html).toContain("证据块 block-2");
+    expect(html).toContain("&lt;script&gt;原始证据摘录&lt;/script&gt;");
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("内部批注不应替代定位");
   });
 });

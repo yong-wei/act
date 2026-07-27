@@ -20,6 +20,7 @@ vi.mock('@/lib/data-governance/teacher-assignment-review', async (importOriginal
 vi.mock('@/lib/prisma', () => ({ prisma: {} }));
 
 import { GET } from '../route';
+import { normalizeTeacherReviewDetail } from '@/features/assignments/teacher-review-contracts';
 
 describe('teacher assignment review detail route', () => {
   beforeEach(() => {
@@ -41,7 +42,12 @@ describe('teacher assignment review detail route', () => {
       gradingRunId: 'run-1',
       state: 'WORKING',
       version: 1,
-      criterionValues: [],
+      criterionValues: [{
+        criterionId: 'criterion-1',
+        levelId: null,
+        score: 8,
+        comment: '',
+      }],
       annotationValues: [],
       assignment: { id: 'assignment-1', title: '控制作业' },
       submission: {
@@ -52,7 +58,36 @@ describe('teacher assignment review detail route', () => {
         id: 'run-1',
         state: 'AWAITING_REVIEW',
         evidenceState: 'EVIDENCE_INCOMPLETE',
-        assessments: [],
+        questionSnapshot: {
+          rubric: {
+            criteria: [{
+              id: 'criterion-1',
+              label: '建模依据',
+              maxPoints: 10,
+              levels: [],
+            }],
+          },
+        },
+        assessments: [{
+          id: 'assessment-1',
+          criterionId: 'criterion-1',
+          levelId: null,
+          score: 8,
+          rationale: '模型结构与题意一致',
+        }],
+        annotations: [{
+          id: 'annotation-1',
+          criterionId: 'criterion-1',
+          comment: '对应建模步骤',
+          authorRole: 'AI',
+          blockId: 'block-2',
+          pageNumber: 2,
+          spanStart: null,
+          spanEnd: null,
+          bbox: null,
+          precision: 'BLOCK',
+          excerpt: '建立对象的微分方程',
+        }],
         question: {
           id: 'question-1',
           responseType: 'SUBJECTIVE_TEXT',
@@ -122,5 +157,23 @@ describe('teacher assignment review detail route', () => {
       /private\/object|checksum|conversion|private-provider|private-error|converted private content/,
     );
     expect(serialized).not.toContain('token=');
+    const detail = normalizeTeacherReviewDetail(body);
+    expect(detail?.criteria[0]).toMatchObject({
+      id: 'criterion-1',
+      aiScore: 8,
+      aiComment: '模型结构与题意一致',
+    });
+    expect(detail?.aiAnnotations).toEqual([
+      expect.objectContaining({
+        id: 'annotation-1',
+        criterionId: 'criterion-1',
+        origin: 'AI_DRAFT',
+        anchor: expect.objectContaining({
+          blockId: 'block-2',
+          pageNumber: 2,
+          precision: 'BLOCK',
+        }),
+      }),
+    ]);
   });
 });
