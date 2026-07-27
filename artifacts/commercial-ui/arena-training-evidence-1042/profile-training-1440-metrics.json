@@ -11,10 +11,10 @@
   "expectedLabels": {
     "training": "虚拟仿真训练",
     "preview": "非官方预览",
-    "run": "Cruise roll black-box identification"
+    "run": "邮轮黑箱辨识与闭环控制挑战"
   },
   "expectedFragments": [
     "已记录 6 次训练",
-    "最近 5 次平均质量 82 分"
+    "最近 3 次平均质量 84 分"
   ]
 }
