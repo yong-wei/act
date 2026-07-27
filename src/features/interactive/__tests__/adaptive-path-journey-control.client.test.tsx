@@ -254,13 +254,43 @@ describe('adaptive path journey client behavior', () => {
     await act(async () => expect(publishAdaptivePathJourneyResponse({ journey: updated })).toBe(true));
 
     expect(container.textContent).not.toContain('完成前动作');
-    expect(container.textContent).toContain(title);
     expect(container.querySelector(`[data-adaptive-path-journey-control="${state}"]`)).not.toBeNull();
     if (state === 'blocked') {
+      expect(container.textContent).toContain(title);
       expect(container.querySelectorAll(`a[href="${updated.return.href}"]`)).toHaveLength(1);
       expect(container.textContent).not.toContain('恢复学习路径');
+    } else {
+      expect(container.textContent).toContain(title);
+      expect(container.textContent).not.toContain('刷新路径状态');
     }
   });
+
+  it.each(['ready', 'path-complete'] as const)(
+    'suppresses a %s action that duplicates the return action',
+    async (state) => {
+      const updated = journey('path-1', 'node-1', '恢复学习路径');
+      updated.nextAction = {
+        state,
+        nodeId: state === 'ready' ? 'node-1-next' : null,
+        title: '恢复学习路径',
+        type: state === 'ready' ? 'knowledge_card' : null,
+        href: updated.return.href,
+        reason: null,
+        recovery: null,
+      };
+      vi.stubGlobal('fetch', vi.fn(() => response({ journey: updated })));
+
+      await act(async () => {
+        root.render(createElement(AdaptivePathJourneyControlFromRoute));
+        await Promise.resolve();
+      });
+
+      expect(container.querySelectorAll(`a[href="${updated.return.href}"]`)).toHaveLength(1);
+      expect(container.querySelector('[data-adaptive-path-next-action="ready"]')).toBeNull();
+      expect(container.textContent).not.toContain('恢复学习路径');
+      expect(container.textContent).not.toContain('刷新路径状态');
+    },
+  );
 
   it('uses refresh semantics when a pending recovery duplicates the return action', async () => {
     const updated = journey('path-1', 'node-1', '等待路径结果');
