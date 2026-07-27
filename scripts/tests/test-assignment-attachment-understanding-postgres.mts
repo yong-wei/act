@@ -48,6 +48,7 @@ async function main() {
         result: 'passed',
         concurrentEvidenceCount: 1,
         multiAttachmentAggregate: true,
+        aggregateAssetAssociation: true,
         approvedHistoryPreserved: true,
         activeRerunBlocked: true,
         parentBatchSettled: true,
@@ -146,6 +147,16 @@ async function verifyMultiAttachmentAggregate() {
       .map((block: any) => block.pageNumber),
     [1, 2],
   );
+  const aggregateBySourceAsset = await prisma.answerEvidence.findMany({
+    where: {
+      sourceManifest: {
+        path: ['sources'],
+        array_contains: [{ assetId: assets[0].id }],
+      },
+    },
+    select: { id: true },
+  });
+  assert.deepEqual(aggregateBySourceAsset.map((row) => row.id), [aggregate.evidence.id]);
 }
 
 async function createAssignmentAttempt() {

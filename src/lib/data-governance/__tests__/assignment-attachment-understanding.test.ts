@@ -349,6 +349,48 @@ describe('assignment attachment understanding', () => {
     expect(assembled.manifest.state).toBe('EVIDENCE_INCOMPLETE');
   });
 
+  it('caps total evaluator block characters across aggregate evidence', () => {
+    const perBlockCharacters = Math.floor(
+      MATH_DOCUMENT_GRADING_LIMITS.markdownCharacters / 4,
+    );
+    const blocks = Array.from({ length: 8 }, (_, index) => ({
+      id: `large-${index}`,
+      blockIndex: index,
+      text: String(index).repeat(perBlockCharacters),
+      markdown: String(index).repeat(perBlockCharacters),
+    }));
+    const assembled = assembleAssignmentAnswerEvidence({
+      attemptId: 'attempt-global-characters',
+      answerVersion: 1,
+      textSnapshot: '',
+      attachments: [{
+        assetId: 'asset-global-characters',
+        displayName: 'large.pdf',
+        mimeType: 'application/pdf',
+        checksum: 'sha256:global-characters',
+        role: 'ATTACHMENT',
+        orderIndex: 0,
+        route: 'binary-mathpix',
+        state: 'READY',
+        canonicalMarkdown: 'large answer',
+        blocks,
+      }],
+    });
+
+    const totalBlockCharacters = assembled.evidence.blocks.reduce(
+      (total, block) => total + block.text.length + (block.markdown?.length ?? 0),
+      0,
+    );
+    expect(totalBlockCharacters)
+      .toBeLessThanOrEqual(MATH_DOCUMENT_GRADING_LIMITS.markdownCharacters);
+    expect(assembled.evidence.blocks.length).toBeLessThan(blocks.length);
+    expect(assembled.evidence.limitations).toEqual(expect.arrayContaining([
+      'blocks-truncated',
+      'block-content-truncated',
+    ]));
+    expect(assembled.manifest.state).toBe('EVIDENCE_INCOMPLETE');
+  });
+
   it('binds evidence identity to the normalized anchor map', () => {
     const assemble = (pageNumber: number) => assembleAssignmentAnswerEvidence({
       attemptId: 'attempt-anchor-identity',

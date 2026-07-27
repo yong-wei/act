@@ -261,14 +261,29 @@ export function assembleAssignmentAnswerEvidence(input: {
         > MATH_DOCUMENT_GRADING_LIMITS.blockCharacters)) {
     limitations.push('block-content-truncated');
   }
-  const blocks = rendered.blocks
-    .slice(0, MATH_DOCUMENT_GRADING_LIMITS.blocks)
-    .map((block) => ({
+  let remainingBlockCharacters = MATH_DOCUMENT_GRADING_LIMITS.markdownCharacters;
+  const blocks: EvidenceBlockInput[] = [];
+  for (const block of rendered.blocks.slice(0, MATH_DOCUMENT_GRADING_LIMITS.blocks)) {
+    const sourceText = block.text.slice(0, MATH_DOCUMENT_GRADING_LIMITS.blockCharacters);
+    const sourceMarkdown = (block.markdown ?? block.text)
+      .slice(0, MATH_DOCUMENT_GRADING_LIMITS.blockCharacters);
+    const text = sourceText.slice(0, remainingBlockCharacters);
+    remainingBlockCharacters -= text.length;
+    const blockMarkdown = sourceMarkdown.slice(0, remainingBlockCharacters);
+    remainingBlockCharacters -= blockMarkdown.length;
+    if (!text && !blockMarkdown) {
+      limitations.push('blocks-truncated', 'block-content-truncated');
+      break;
+    }
+    if (text.length < sourceText.length || blockMarkdown.length < sourceMarkdown.length) {
+      limitations.push('block-content-truncated');
+    }
+    blocks.push({
       ...block,
-      text: block.text.slice(0, MATH_DOCUMENT_GRADING_LIMITS.blockCharacters),
-      markdown: (block.markdown ?? block.text)
-        .slice(0, MATH_DOCUMENT_GRADING_LIMITS.blockCharacters),
-    }));
+      text,
+      markdown: blockMarkdown,
+    });
+  }
   const state = !hasGradableEvidence
     ? 'NO_GRADABLE_EVIDENCE'
     : omitted.length > 0 || limitations.length > 0
