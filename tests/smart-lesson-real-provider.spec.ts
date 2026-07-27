@@ -276,10 +276,17 @@ async function acceptanceSnapshot() {
 }
 
 async function generationSnapshot() {
+  const snapshot = await maybeGenerationSnapshot();
+  if (!snapshot) throw new Error('generation-job-not-created');
+  return snapshot;
+}
+
+async function maybeGenerationSnapshot() {
   const prisma = createPrismaClient({ log: ['warn', 'error'] });
   try {
     const task = await loadPersistedTask(prisma);
-    return { task, job: task.drafts[0].jobs[0] };
+    const job = task.drafts[0].jobs[0];
+    return job ? { task, job } : null;
   } finally {
     await prisma.$disconnect();
   }
@@ -342,10 +349,12 @@ async function persistedAdvisoryReviews() {
 }
 
 async function waitForGenerationOutcome(timeout: number) {
-  let snapshot = await generationSnapshot();
+  let snapshot: GenerationSnapshot | undefined;
   try {
     await expect.poll(async () => {
-      snapshot = await generationSnapshot();
+      const candidate = await maybeGenerationSnapshot();
+      if (!candidate) return false;
+      snapshot = candidate;
       return GENERATION_TERMINAL_STATES.includes(
         snapshot.job.state as (typeof GENERATION_TERMINAL_STATES)[number],
       );
@@ -353,7 +362,7 @@ async function waitForGenerationOutcome(timeout: number) {
   } catch {
     throw new Error(`generation-outcome-timeout:${JSON.stringify(compactGenerationSnapshot(snapshot))}`);
   }
-  return snapshot;
+  return snapshot!;
 }
 
 async function reachGenerationStateWithNaturalRecovery(
@@ -448,7 +457,8 @@ function assertGenerationState(snapshot: GenerationSnapshot, state: string, reas
   }
 }
 
-function compactGenerationSnapshot(snapshot: GenerationSnapshot) {
+function compactGenerationSnapshot(snapshot?: GenerationSnapshot) {
+  if (!snapshot) return { job: null, stages: [] };
   return {
     job: {
       state: snapshot.job.state,

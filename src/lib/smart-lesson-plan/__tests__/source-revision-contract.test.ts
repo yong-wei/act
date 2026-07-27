@@ -168,6 +168,9 @@ describe('smart lesson real-provider source revision contract', () => {
     expect(spec).toContain('retryStageAfter.providerAttemptGeneration > previousGeneration');
     expect(spec).toContain('expectCompletedStagesPreserved(completedBefore, after)');
     expect(spec).toContain('generation-outcome-timeout:');
+    expect(spec).toContain('const candidate = await maybeGenerationSnapshot()');
+    expect(spec).toContain('if (!candidate) return false');
+    expect(spec).toContain('if (!snapshot) return { job: null, stages: [] }');
     expect(spec).toContain('nonFixtureProvider:');
     expect(spec).not.toContain('expectPersistedJobState');
     const compactSnapshot = spec.slice(
