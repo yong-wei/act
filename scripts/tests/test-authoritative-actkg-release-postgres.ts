@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import os from 'node:os';
@@ -28,6 +28,11 @@ import {
   type CourseCoverageOverlay,
 } from '../course-coverage/course-coverage-overlay';
 import { buildCourseCoverageAdmissionProjection } from '../../src/lib/authoritative-knowledge';
+import {
+  CanonicalResourceBindingRepository,
+  canonicalSha256 as bindingDigest,
+  type CanonicalResourceBindingDatabase,
+} from '../../src/lib/canonical-resource-binding';
 
 const sourceUrl = process.env.DATABASE_URL;
 if (!sourceUrl) {
@@ -56,6 +61,27 @@ function migrate(): void {
   assert.equal(result.status, 0, result.stderr || result.stdout);
 }
 
+function assertBindingSchemaMigrationParity(): void {
+  const result = spawnSync(process.execPath, [
+    'node_modules/prisma/build/index.js',
+    'migrate',
+    'diff',
+    '--from-config-datasource',
+    '--to-schema',
+    'prisma/schema.prisma',
+    '--script',
+  ], {
+    cwd: process.cwd(),
+    env: { ...process.env, DATABASE_URL: testUrl.toString() },
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.doesNotMatch(
+    result.stdout,
+    /CanonicalResourceBindingDecision_(?:release_fkey|evidence_fkey|releaseSetId_releaseId_fkey|releaseId_evidenceId_fkey)/u,
+  );
+}
+
 function runDeploymentCli(script: string, mode?: '--verify-only'): string {
   const args = [
     path.join('node_modules', 'tsx', 'dist', 'cli.mjs'),
@@ -74,6 +100,52 @@ function runDeploymentCli(script: string, mode?: '--verify-only'): string {
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
   return result.stdout;
+}
+
+function runBindingVerify(revision: string) {
+  return spawnSync(process.execPath, [
+    path.join('node_modules', 'tsx', 'dist', 'cli.mjs'),
+    'scripts/db/import-canonical-resource-binding-shadow.ts',
+    '--verify-only',
+  ], {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      DATABASE_URL: testUrl.toString(),
+      APP_REVISION: revision,
+      APP_REVISION_FILE: path.join(tempRoot, 'missing-image-revision'),
+    },
+    encoding: 'utf8',
+  });
+}
+
+function runConcurrentBindingImport(revision: string): Promise<{
+  status: number | null;
+  stdout: string;
+  stderr: string;
+}> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [
+      path.join('node_modules', 'tsx', 'dist', 'cli.mjs'),
+      'scripts/db/import-canonical-resource-binding-shadow.ts',
+    ], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        DATABASE_URL: testUrl.toString(),
+        APP_REVISION: revision,
+        APP_REVISION_FILE: path.join(tempRoot, 'missing-image-revision'),
+      },
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk: string) => { stdout += chunk; });
+    child.stderr.on('data', (chunk: string) => { stderr += chunk; });
+    child.once('error', reject);
+    child.once('close', (status) => resolve({ status, stdout, stderr }));
+  });
 }
 
 function availablePort(): Promise<number> {
@@ -120,6 +192,7 @@ async function main(): Promise<void> {
     await admin.query(`CREATE DATABASE "${databaseName}"`);
   }
   migrate();
+  assertBindingSchemaMigrationParity();
   process.env.DATABASE_URL = testUrl.toString();
   db = createPrismaClient({ log: ['warn', 'error'] });
   const validated = await loadAndValidateRelease({ captureRevision: 'a'.repeat(40) });
@@ -223,6 +296,92 @@ async function main(): Promise<void> {
     assert.match(runDeploymentCli(script), /"mode":"import"/u);
     assert.match(runDeploymentCli(script, '--verify-only'), /"mode":"verify-only"/u);
   }
+  const bindingImportOutput = JSON.parse(runDeploymentCli(
+    'scripts/db/import-canonical-resource-binding-shadow.ts',
+  )) as {
+    runId: string;
+    reused: boolean;
+    inventory: {
+      summary: {
+        itemCount: number;
+        includedCount: number;
+        excludedCount: number;
+        unresolvedCount: number;
+      };
+    };
+  };
+  assert.deepEqual(bindingImportOutput.inventory.summary, {
+    itemCount: 7050,
+    includedCount: 489,
+    excludedCount: 3105,
+    unresolvedCount: 3456,
+  });
+  assert.equal(bindingImportOutput.reused, false);
+  const bindingRetryOutput = JSON.parse(runDeploymentCli(
+    'scripts/db/import-canonical-resource-binding-shadow.ts',
+  )) as { runId: string; reused: boolean };
+  assert.equal(bindingRetryOutput.runId, bindingImportOutput.runId);
+  assert.equal(bindingRetryOutput.reused, true);
+  assert.equal(await db.resourceBindingInventoryRun.count({
+    where: { captureRevision: 'b'.repeat(40) },
+  }), 1);
+
+  const concurrentRevision = 'd'.repeat(40);
+  const concurrentImports = await Promise.all([
+    runConcurrentBindingImport(concurrentRevision),
+    runConcurrentBindingImport(concurrentRevision),
+  ]);
+  for (const result of concurrentImports) {
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+  }
+  const concurrentOutputs = concurrentImports.map((result) => (
+    JSON.parse(result.stdout) as { runId: string; reused: boolean; itemCount: number }
+  ));
+  assert.equal(new Set(concurrentOutputs.map((output) => output.runId)).size, 1);
+  assert.deepEqual(
+    concurrentOutputs.map((output) => output.reused).sort(),
+    [false, true],
+  );
+  const concurrentRun = await db.resourceBindingInventoryRun.findFirstOrThrow({
+    where: { captureRevision: concurrentRevision },
+    include: { items: true },
+  });
+  assert.equal(concurrentRun.items.length, 7050);
+  assert.equal(await db.resourceBindingInventoryRun.count({
+    where: { captureRevision: concurrentRevision },
+  }), 1);
+  assert.match(
+    runDeploymentCli('scripts/db/import-canonical-resource-binding-shadow.ts', '--verify-only'),
+    /"mode":"verify-only"/u,
+  );
+  const bindingInventory = await db.resourceBindingInventoryRun.findFirstOrThrow({
+    where: { captureRevision: 'b'.repeat(40) },
+    orderBy: [{ capturedAt: 'desc' }, { id: 'desc' }],
+    include: { items: true },
+  });
+  assert.equal(bindingInventory.complete, true);
+  assert.equal(bindingInventory.cutoverReady, false);
+  assert.equal(bindingInventory.authorityState, 'SHADOW');
+  assert.equal(bindingInventory.items.length, bindingInventory.itemCount);
+  assert(bindingInventory.unresolvedCount > 0);
+  assert.notEqual(runBindingVerify('c'.repeat(40)).status, 0);
+  await db.$executeRawUnsafe(
+    'ALTER TABLE "ResourceBindingInventoryRun" DISABLE TRIGGER "ResourceBindingInventoryRun_immutable"',
+  );
+  await db.resourceBindingInventoryRun.update({
+    where: { id: bindingInventory.id },
+    data: { complete: false },
+  });
+  assert.notEqual(runBindingVerify('b'.repeat(40)).status, 0);
+  await db.resourceBindingInventoryRun.update({
+    where: { id: bindingInventory.id },
+    data: { complete: true },
+  });
+  await db.$executeRawUnsafe(
+    'ALTER TABLE "ResourceBindingInventoryRun" ENABLE TRIGGER "ResourceBindingInventoryRun_immutable"',
+  );
+  assert.equal(await db.actkgEvidenceStructuralUnitCrosswalk.count(), 0);
+  assert.equal(await db.canonicalResourceBindingDecision.count(), 0);
   assert.equal(
     (await db.actkgRelease.findUniqueOrThrow({
       where: { id: validated.entry.release_id },
@@ -477,6 +636,399 @@ async function main(): Promise<void> {
     /sealed by the import receipt/u,
   );
 
+  const includedResource = await db.resourceBindingInventoryItem.findFirstOrThrow({
+    where: { runId: bindingInventory.id, disposition: 'INCLUDED' },
+    orderBy: { atomicResourceId: 'asc' },
+  });
+  const evidence = await db.actkgEvidenceSegment.findFirstOrThrow({
+    where: { releaseId: validated.entry.release_id },
+    orderBy: { ordinal: 'asc' },
+  });
+  const canonicalId = String(
+    (validated.release.canonical_nodes as Array<{ id: string }>)[0]!.id,
+  );
+  const crosswalkProjection = {
+    releaseId: validated.entry.release_id,
+    evidenceId: evidence.evidenceId,
+    evidenceContentHash: evidence.contentHash,
+    inventoryRunId: bindingInventory.id,
+    atomicResourceId: includedResource.atomicResourceId,
+    resourceId: includedResource.resourceId,
+    structuralUnitId: includedResource.structuralUnitId,
+    segmentId: includedResource.segmentId,
+    resourceSegmentHash: includedResource.resourceSegmentHash,
+    captureRevision: bindingInventory.captureRevision,
+    canonicalId,
+  };
+  const crosswalkBase = {
+    ...crosswalkProjection,
+    sourceEditionId: evidence.sourceEditionId,
+    sourceVersion: 'postgres-test/v1',
+    structuralUnitHash: includedResource.resourceSegmentHash,
+    validationState: 'VALIDATED',
+    validationDigest: bindingDigest(crosswalkProjection),
+  };
+  await assert.rejects(db.actkgEvidenceStructuralUnitCrosswalk.create({
+    data: {
+      id: 'postgres-crosswalk-wrong-version',
+      ...crosswalkBase,
+      structuralUnitVersion: 'c'.repeat(40),
+    },
+  }), /invalid or stale/u);
+  await assert.rejects(db.actkgEvidenceStructuralUnitCrosswalk.create({
+    data: {
+      id: 'postgres-crosswalk-wrong-hash',
+      ...crosswalkBase,
+      structuralUnitVersion: bindingInventory.captureRevision,
+      structuralUnitHash: sha256('wrong-structural-unit'),
+    },
+  }), /invalid or stale/u);
+  const crosswalk = await db.actkgEvidenceStructuralUnitCrosswalk.create({
+    data: {
+      id: 'postgres-crosswalk',
+      ...crosswalkBase,
+      structuralUnitVersion: bindingInventory.captureRevision,
+    },
+  });
+  const decisionBase = {
+    pairId: 'postgres-pair',
+    releaseSetId: validated.lock.release_set_id,
+    releaseId: validated.entry.release_id,
+    canonicalId,
+    objectRevision: validated.entry.release_hash,
+    resourceId: includedResource.resourceId,
+    structuralUnitId: includedResource.structuralUnitId,
+    segmentId: includedResource.segmentId,
+    resourceSegmentHash: includedResource.resourceSegmentHash,
+    role: 'EXPLAINS',
+    evidenceId: evidence.evidenceId,
+    evidenceDigest: sha256(evidence.evidenceId),
+    generatorPromptVersion: 'postgres-generator/v1',
+    reviewerPromptVersion: 'postgres-reviewer/v1',
+    generatorCacheKey: sha256('postgres-generator-cache'),
+    reviewerCacheKey: sha256('postgres-reviewer-cache'),
+    reviewerRole: 'INDEPENDENT_REVIEWER',
+    reviewerInputDigest: sha256('postgres-review-input'),
+    candidateDigest: sha256('postgres-candidate'),
+    reviewProvider: 'GPT',
+    reviewState: 'ACCEPTED',
+    lifecycleState: 'CURRENT',
+    attemptSequence: 1,
+    supersedesDecisionId: null,
+    highImpactPolicyVersion: 'binding-impact/v1',
+    highImpactReasons: [],
+  };
+  await assert.rejects(db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-no-crosswalk',
+      ...decisionBase,
+      publicationState: 'SHADOW_PUBLISHED',
+      crosswalkId: null,
+      validationDigest: null,
+    },
+  }), /exact validated crosswalk/u);
+  await assert.rejects(db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-stale-revision',
+      ...decisionBase,
+      objectRevision: sha256('stale-release'),
+      publicationState: 'SHADOW_PUBLISHED',
+      crosswalkId: crosswalk.id,
+      validationDigest: crosswalk.validationDigest,
+    },
+  }), /release revision/u);
+  await assert.rejects(db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-fixture-direct',
+      ...decisionBase,
+      reviewProvider: 'FIXTURE',
+      publicationState: 'SHADOW_PUBLISHED',
+      crosswalkId: crosswalk.id,
+      validationDigest: crosswalk.validationDigest,
+    },
+  }), /review state is not authoritative/u);
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-published',
+      ...decisionBase,
+      publicationState: 'SHADOW_PUBLISHED',
+      crosswalkId: crosswalk.id,
+      validationDigest: crosswalk.validationDigest,
+    },
+  });
+  await assert.rejects(db.canonicalResourceBindingDecision.update({
+    where: { id: 'postgres-published' },
+    data: { lifecycleState: 'SUPERSEDED' },
+  }), /replacement/u);
+  await db.$transaction(async (transaction) => {
+    await transaction.canonicalResourceBindingDecision.create({
+      data: {
+        id: 'postgres-published-replacement',
+        ...decisionBase,
+        reviewerPromptVersion: 'postgres-reviewer/v2',
+        reviewerInputDigest: sha256('postgres-review-input-v2'),
+        attemptSequence: 2,
+        supersedesDecisionId: 'postgres-published',
+        publicationState: 'CANDIDATE',
+        crosswalkId: crosswalk.id,
+        validationDigest: crosswalk.validationDigest,
+      },
+    });
+    await transaction.canonicalResourceBindingDecision.update({
+      where: { id: 'postgres-published' },
+      data: { lifecycleState: 'SUPERSEDED' },
+    });
+    await transaction.canonicalResourceBindingDecision.update({
+      where: { id: 'postgres-published-replacement' },
+      data: { publicationState: 'SHADOW_PUBLISHED' },
+    });
+  });
+  assert.equal(await db.canonicalResourceBindingDecision.count({
+    where: {
+      pairId: decisionBase.pairId,
+      role: decisionBase.role,
+      lifecycleState: 'CURRENT',
+      publicationState: 'SHADOW_PUBLISHED',
+    },
+  }), 1);
+  await assert.rejects(db.canonicalResourceBindingDecision.update({
+    where: { id: 'postgres-published-replacement' },
+    data: { lifecycleState: 'SUPERSEDED' },
+  }), /replacement/u);
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-out-of-transaction-replacement',
+      ...decisionBase,
+      reviewerPromptVersion: 'postgres-reviewer/v3',
+      reviewerInputDigest: sha256('postgres-review-input-v3'),
+      attemptSequence: 3,
+      supersedesDecisionId: 'postgres-published-replacement',
+      publicationState: 'CANDIDATE',
+      crosswalkId: crosswalk.id,
+      validationDigest: crosswalk.validationDigest,
+    },
+  });
+  await assert.rejects(db.canonicalResourceBindingDecision.update({
+    where: { id: 'postgres-published-replacement' },
+    data: { lifecycleState: 'SUPERSEDED' },
+  }), /replacement/u);
+  const repositoryPublished = {
+    ...decisionBase,
+    id: 'postgres-repository-published',
+    pairId: 'postgres-repository-pair',
+    role: 'REFERENCES' as const,
+    trigger: 'RESOURCE_CHANGE' as const,
+    proposedRole: 'REFERENCES' as const,
+    evidenceIds: [evidence.evidenceId],
+    publicationState: 'SHADOW_PUBLISHED' as const,
+    crosswalkId: crosswalk.id,
+    validationDigest: crosswalk.validationDigest,
+  };
+  const {
+    trigger: _repositoryTrigger,
+    proposedRole: _repositoryProposedRole,
+    evidenceIds: _repositoryEvidenceIds,
+    ...repositoryPublishedData
+  } = repositoryPublished;
+  await db.canonicalResourceBindingDecision.create({
+    data: repositoryPublishedData,
+  });
+  const bindingRepository = new CanonicalResourceBindingRepository(
+    db as unknown as CanonicalResourceBindingDatabase,
+  );
+  const repositoryReplacement = {
+    ...repositoryPublished,
+    id: 'postgres-repository-replacement',
+    reviewerPromptVersion: 'postgres-reviewer/v2',
+    reviewerInputDigest: sha256('postgres-repository-input-v2'),
+    attemptSequence: 2,
+    supersedesDecisionId: repositoryPublished.id,
+  };
+  await bindingRepository.persistDecisions([repositoryReplacement], {
+    canonicalObjects: [{
+      releaseSetId: validated.lock.release_set_id,
+      releaseId: validated.entry.release_id,
+      canonicalId,
+      objectRevision: validated.entry.release_hash,
+      canonicalType: 'DomainConcept',
+    }],
+    crosswalks: [crosswalk],
+    evidenceAlignments: [{
+      releaseId: validated.entry.release_id,
+      evidenceId: evidence.evidenceId,
+      canonicalId,
+    }],
+    existingPublished: [repositoryPublished],
+  });
+  assert.equal(
+    (await db.canonicalResourceBindingDecision.findUniqueOrThrow({
+      where: { id: repositoryPublished.id },
+    })).lifecycleState,
+    'SUPERSEDED',
+  );
+  assert.equal(
+    (await db.canonicalResourceBindingDecision.findUniqueOrThrow({
+      where: { id: repositoryReplacement.id },
+    })).publicationState,
+    'SHADOW_PUBLISHED',
+  );
+  assert.notEqual(runBindingVerify('b'.repeat(40)).status, 0);
+
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-retry-1',
+      ...decisionBase,
+      pairId: 'postgres-retry-pair',
+      reviewerInputDigest: sha256('postgres-retry-input'),
+      reviewState: 'REVIEW_RETRYABLE',
+      publicationState: 'REVIEW_RETRYABLE',
+      crosswalkId: null,
+      validationDigest: null,
+    },
+  });
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-retry-2',
+      ...decisionBase,
+      pairId: 'postgres-retry-pair',
+      reviewerInputDigest: sha256('postgres-retry-input'),
+      reviewerPromptVersion: 'postgres-reviewer/v2',
+      attemptSequence: 2,
+      supersedesDecisionId: 'postgres-retry-1',
+      reviewState: 'REVIEW_RETRYABLE',
+      publicationState: 'REVIEW_RETRYABLE',
+      crosswalkId: null,
+      validationDigest: null,
+    },
+  });
+  await db.canonicalResourceBindingDecision.update({
+    where: { id: 'postgres-retry-1' },
+    data: { lifecycleState: 'SUPERSEDED' },
+  });
+  assert.equal(
+    (await db.canonicalResourceBindingDecision.findUniqueOrThrow({
+      where: { id: 'postgres-retry-1' },
+    })).lifecycleState,
+    'SUPERSEDED',
+  );
+  const decisionHistory = await bindingRepository.readShadowRoleBindings(
+    validated.entry.release_id,
+  );
+  assert(decisionHistory.some((row) => (
+    row.id === 'postgres-retry-1' && row.lifecycleState === 'SUPERSEDED'
+  )));
+  assert(decisionHistory.some((row) => (
+    row.id === 'postgres-retry-2' && row.lifecycleState === 'CURRENT'
+  )));
+
+  const humanInputDigest = sha256('postgres-human-input');
+  const humanContextDigest = sha256('postgres-human-context');
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-human-queued',
+      ...decisionBase,
+      pairId: 'postgres-human-pair',
+      role: 'PRACTICES',
+      reviewerInputDigest: humanInputDigest,
+      reviewProvider: 'FIXTURE',
+      reviewState: 'HUMAN_REQUIRED',
+      publicationState: 'HUMAN_REQUIRED',
+      crosswalkId: null,
+      validationDigest: null,
+      highImpactReasons: ['fixture-review-not-authoritative'],
+    },
+  });
+  await db.canonicalResourceBindingHumanQueueItem.create({
+    data: {
+      id: 'postgres-human-queue',
+      bindingDecisionId: 'postgres-human-queued',
+      reasonCodes: ['fixture-review-not-authoritative'],
+      contextDigest: humanContextDigest,
+      inputDigest: humanInputDigest,
+    },
+  });
+  await assert.rejects(db.canonicalResourceBindingHumanQueueItem.update({
+    where: { id: 'postgres-human-queue' },
+    data: { reasonCodes: [] },
+  }), /immutable/u);
+  await assert.rejects(db.canonicalResourceBindingHumanQueueItem.delete({
+    where: { id: 'postgres-human-queue' },
+  }), /immutable/u);
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-human-accepted',
+      ...decisionBase,
+      pairId: 'postgres-human-pair',
+      role: 'PRACTICES',
+      reviewerInputDigest: humanInputDigest,
+      reviewerPromptVersion: 'human-adjudication/v1',
+      reviewProvider: 'HUMAN',
+      attemptSequence: 2,
+      supersedesDecisionId: 'postgres-human-queued',
+      publicationState: 'SHADOW_PUBLISHED',
+      crosswalkId: crosswalk.id,
+      validationDigest: crosswalk.validationDigest,
+      highImpactReasons: ['fixture-review-not-authoritative'],
+    },
+  });
+  await db.canonicalResourceBindingDecision.update({
+    where: { id: 'postgres-human-queued' },
+    data: { lifecycleState: 'SUPERSEDED' },
+  });
+  await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.create({
+    data: {
+      id: 'postgres-human-receipt-contradiction',
+      queueId: 'postgres-human-queue',
+      actorId: 'teacher-reviewer',
+      decidedAt: new Date('2026-07-28T12:29:00.000Z'),
+      outcome: 'REJECT',
+      rationale: '矛盾裁决必须失败。',
+      contextDigest: humanContextDigest,
+      inputDigest: humanInputDigest,
+      decisionId: 'postgres-human-accepted',
+    },
+  }), /does not bind/u);
+  await db.canonicalResourceBindingHumanDecisionReceipt.create({
+    data: {
+      id: 'postgres-human-receipt',
+      queueId: 'postgres-human-queue',
+      actorId: 'teacher-reviewer',
+      decidedAt: new Date('2026-07-28T12:30:00.000Z'),
+      outcome: 'ACCEPT',
+      rationale: '已核对证据与资源端点。',
+      contextDigest: humanContextDigest,
+      inputDigest: humanInputDigest,
+      decisionId: 'postgres-human-accepted',
+    },
+  });
+  await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.create({
+    data: {
+      id: 'postgres-human-receipt-replay',
+      queueId: 'postgres-human-queue',
+      actorId: 'teacher-reviewer',
+      decidedAt: new Date('2026-07-28T12:31:00.000Z'),
+      outcome: 'ACCEPT',
+      rationale: '重复裁决。',
+      contextDigest: humanContextDigest,
+      inputDigest: humanInputDigest,
+      decisionId: 'postgres-human-accepted',
+    },
+  }));
+  await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.update({
+    where: { id: 'postgres-human-receipt' },
+    data: { rationale: '修改后的理由。' },
+  }), /immutable/u);
+  await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.delete({
+    where: { id: 'postgres-human-receipt' },
+  }), /immutable/u);
+  await assert.rejects(
+    db.resourceBindingInventoryRun.update({
+      where: { id: bindingInventory.id },
+      data: { cutoverReady: true },
+    }),
+    /immutable/u,
+  );
+
   console.log(JSON.stringify({
     releaseId: validated.entry.release_id,
     candidateState: 'CANDIDATE',
@@ -495,6 +1047,10 @@ async function main(): Promise<void> {
     courseCoverageReceiptSealed: true,
     courseCoverageAdmissionTargetsBounded: true,
     deploymentCliExistingCaptureRevisionReused: true,
+    resourceBindingInventoryComplete: true,
+    resourceBindingCutoverBlocked: true,
+    resourceBindingAuthorityLegacy: true,
+    resourceBindingInventoryCounts: bindingImportOutput.inventory.summary,
   }));
 }
 

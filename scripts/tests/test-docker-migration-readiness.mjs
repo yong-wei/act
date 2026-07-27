@@ -28,10 +28,12 @@ function main() {
   const appPrismaClientFactory = read('src/lib/prisma-client.ts');
   const scriptPrismaClientFactory = read('scripts/lib/prisma-client.mjs');
   const prismaConfig = read('prisma.config.ts');
+  const prismaSchema = read('prisma/schema.prisma');
   const packageJson = JSON.parse(read('package.json'));
   const entrypointScript = read('docker-entrypoint.sh');
   const releaseImportCli = read('scripts/db/import-authoritative-actkg-release.ts');
   const coverageImportCli = read('scripts/db/import-course-coverage-overlay.ts');
+  const resourceBindingImportCli = read('scripts/db/import-canonical-resource-binding-shadow.ts');
   const remoteDeployScript = read('scripts/remote-deploy.sh');
   const migrationSql = fs
     .readdirSync(path.join(root, 'prisma', 'migrations'), { withFileTypes: true })
@@ -258,9 +260,15 @@ function main() {
   const migrateIndex = entrypointScript.indexOf('migrate deploy --config ./prisma.config.ts');
   const releaseImportIndex = entrypointScript.indexOf('import-authoritative-actkg-release.ts');
   const coverageImportIndex = entrypointScript.indexOf('import-course-coverage-overlay.ts');
+  const resourceBindingImportIndex = entrypointScript.indexOf(
+    'import-canonical-resource-binding-shadow.ts',
+  );
   assert.ok(
-    migrateIndex >= 0 && releaseImportIndex > migrateIndex && coverageImportIndex > releaseImportIndex,
-    'entrypoint 必须仅在启动迁移分支内按 migrate → Release → Overlay 顺序执行',
+    migrateIndex >= 0
+      && releaseImportIndex > migrateIndex
+      && coverageImportIndex > releaseImportIndex
+      && resourceBindingImportIndex > coverageImportIndex,
+    'entrypoint 必须仅在启动迁移分支内按 migrate → Release → Overlay → 资源绑定影子清单顺序执行',
   );
 
   assert.match(
@@ -515,6 +523,36 @@ function main() {
     coverageImportCli,
     /result\.status !== 'available' \|\| result\.diagnostics\.length !== 0/,
     'Overlay CLI 必须要求 available 且无 diagnostics',
+  );
+  assert.match(
+    resourceBindingImportCli,
+    /buildResourceBindingInventory\(observations\)/,
+    '资源绑定 CLI 必须从同一捕获身份的 observation 生成完整逐项清单',
+  );
+  assert.match(
+    prismaSchema,
+    /release\s+ActkgRelease\s+@relation\(fields: \[releaseSetId, releaseId\], references: \[releaseSetId, id\]/,
+    'binding decision 的 Prisma Release relation 必须与迁移中的复合外键一致',
+  );
+  assert.match(
+    prismaSchema,
+    /evidence\s+ActkgEvidenceSegment\?\s+@relation\(fields: \[releaseId, evidenceId\], references: \[releaseId, evidenceId\]/,
+    'binding decision 的 Prisma Evidence relation 必须与迁移中的可选复合外键一致',
+  );
+  assert.match(
+    migrationSql,
+    /"CanonicalResourceBindingDecision_releaseSetId_releaseId_fkey"[\s\S]*FOREIGN KEY \("releaseSetId", "releaseId"\)[\s\S]*REFERENCES "ActkgRelease"\("releaseSetId", "id"\)/,
+    'binding decision migration 必须声明复合 Release 外键',
+  );
+  assert.match(
+    migrationSql,
+    /"CanonicalResourceBindingDecision_releaseId_evidenceId_fkey"[\s\S]*FOREIGN KEY \("releaseId", "evidenceId"\)[\s\S]*REFERENCES "ActkgEvidenceSegment"\("releaseId", "evidenceId"\)/,
+    'binding decision migration 必须声明复合 Evidence 外键',
+  );
+  assert.match(
+    resourceBindingImportCli,
+    /cutoverReady:\s*false/,
+    '资源绑定部署核验必须保持 Canonical cutover fail closed',
   );
   assert.match(
     remoteDeployScript,
