@@ -81,7 +81,9 @@ digest。provider failure 进入 `REVIEW_RETRYABLE`；FIXTURE accept 不构成 r
 高影响 reason 由版本化确定性策略枚举产生，不保存模型自由文本；人工接受保留原 reason。
 
 所有 deterministic、GPT accept 和 human accept 都重新执行 endpoint、revision、role、
-Crosswalk、authoritative Evidence alignment 和 uniqueness gate。最高发布状态是
+Crosswalk、authoritative Evidence alignment 和 uniqueness gate。同一 Release 的一个
+EvidenceSegment 必须经 SourceObject 与 SourceMapping 仅归属一个 distinct Canonical
+Object；零归属、目标不一致或多重归属均拒绝 Crosswalk 与发布。最高发布状态是
 `SHADOW_PUBLISHED`，并绑定已验证 Crosswalk 的 inventory run、atomic resource、
 resource/structural-unit/segment/hash、capture revision 和 validation digest。数据库
 同时要求 Crosswalk structural-unit version/hash 分别等于 inventory capture revision
@@ -97,7 +99,10 @@ Prisma 保存不可变 inventory run/item、Evidence structural-unit Crosswalk�
 binding decision、human queue 与 human decision receipt。receipt 绑定 actor、时间、
 outcome、rationale、context digest 和 input digest；queue identity/reason 不可修改或
 删除，receipt 的 ACCEPT/REJECT 必须分别对应新 decision 的 ACCEPTED/REJECTED review
-state。decision 除上述受控 lifecycle supersession 外不可修改或删除。容器在 Release 和
+state。HUMAN `SHADOW_PUBLISHED` 只能由受控队列裁决事务生成：先持久化 HUMAN
+`ACCEPTED` CANDIDATE，替换原队列 decision，写入匹配 ACCEPT receipt，再晋升为
+`SHADOW_PUBLISHED`；REJECT receipt 对应的 HUMAN decision 保持 CANDIDATE。decision
+除上述受控 lifecycle supersession 和 receipt 绑定的 ACCEPT 晋升外不可修改或删除。容器在 Release 和
 CourseCoverage 导入后生成影子清单；远端
 部署验收按当前 `APP_REVISION` 重算清单并核对完整性、计数和 hash，同时拒绝意外
 Crosswalk/binding 基线。当前预期结果是清单 complete、

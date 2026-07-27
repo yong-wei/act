@@ -231,23 +231,25 @@ export class CanonicalResourceBindingRepository {
           || evidence.sourceEditionId !== row.sourceEditionId
           || evidence.contentHash !== row.evidenceContentHash
         ) throw new Error(`crosswalk evidence identity drift for ${row.id}`);
-        const alignment = await transaction.$queryRawUnsafe<Array<{ aligned: boolean }>>(
-          `SELECT EXISTS (
-             SELECT 1
+        const alignmentCanonicalIds = await transaction.$queryRawUnsafe<Array<{
+          canonicalId: string;
+        }>>(
+          `SELECT DISTINCT mapping."canonicalId" AS "canonicalId"
              FROM "ActkgSourceMapping" mapping
              JOIN "ActkgSourceObject" source_object
                ON source_object."releaseId" = mapping."releaseId"
               AND source_object."sourceObjectId" = mapping."sourceObjectId"
              WHERE mapping."releaseId" = $1
-               AND mapping."canonicalId" = $2
                AND jsonb_typeof(source_object."payload"->'evidence_segment_ids') = 'array'
-               AND (source_object."payload"->'evidence_segment_ids') ? $3
-           ) AS aligned`,
+               AND (source_object."payload"->'evidence_segment_ids') ? $2
+             ORDER BY mapping."canonicalId"`,
           row.releaseId,
-          row.canonicalId,
           row.evidenceId,
         );
-        if (alignment[0]?.aligned !== true) {
+        if (
+          alignmentCanonicalIds.length !== 1
+          || alignmentCanonicalIds[0]?.canonicalId !== row.canonicalId
+        ) {
           throw new Error(`crosswalk authoritative evidence alignment drift for ${row.id}`);
         }
         if (
@@ -331,6 +333,12 @@ export class CanonicalResourceBindingRepository {
           }
           continue;
         }
+        if (
+          decision.reviewProvider === 'HUMAN'
+          && decision.publicationState === 'SHADOW_PUBLISHED'
+        ) {
+          throw new Error('human shadow publication requires controlled queue adjudication');
+        }
         const predecessor = decision.supersedesDecisionId
           ? await transaction.canonicalResourceBindingDecision.findUnique({
               where: { id: decision.supersedesDecisionId },
@@ -411,13 +419,25 @@ export class CanonicalResourceBindingRepository {
       if (queued.contextDigest !== canonicalSha256(input.context)) {
         throw new Error('human adjudication context has drifted');
       }
+      if (queued.inputDigest !== queued.bindingDecision.reviewerInputDigest) {
+        throw new Error('human adjudication input has drifted');
+      }
       const decision = applyHumanDecision({
         decision: queued.bindingDecision,
         outcome: input.outcome,
         context: input.context,
       });
+      if (
+        input.outcome === 'ACCEPT'
+        && decision.publicationState !== 'SHADOW_PUBLISHED'
+      ) {
+        throw new Error('human acceptance failed publication gates');
+      }
       await transaction.canonicalResourceBindingDecision.createMany({
-        data: [decisionData(decision)],
+        data: [{
+          ...decisionData(decision),
+          publicationState: 'CANDIDATE',
+        }],
       });
       await transaction.canonicalResourceBindingDecision.update({
         where: { id: queued.bindingDecision.id },
@@ -436,6 +456,12 @@ export class CanonicalResourceBindingRepository {
           decisionId: decision.id,
         },
       });
+      if (input.outcome === 'ACCEPT') {
+        await transaction.canonicalResourceBindingDecision.update({
+          where: { id: decision.id },
+          data: { publicationState: 'SHADOW_PUBLISHED' },
+        });
+      }
       return decision;
     }, { isolationLevel: 'Serializable' });
   }

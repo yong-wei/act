@@ -355,11 +355,14 @@ export function applyPublicationGates(
     && row.validationState === 'VALIDATED'
   ));
   if (crosswalks.length !== 1) failures.push('crosswalk-not-unique');
-  if (!context.evidenceAlignments.some((row) => (
+  const alignmentCanonicalIds = new Set(context.evidenceAlignments.filter((row) => (
     row.releaseId === decision.releaseId
     && row.evidenceId === decision.evidenceId
-    && row.canonicalId === decision.canonicalId
-  ))) failures.push('evidence-alignment-not-unique');
+  )).map((row) => row.canonicalId));
+  if (
+    alignmentCanonicalIds.size !== 1
+    || !alignmentCanonicalIds.has(decision.canonicalId)
+  ) failures.push('evidence-alignment-not-unique');
   if (context.existingPublished.some((row) => (
     row.id !== decision.id
     && row.id !== decision.supersedesDecisionId

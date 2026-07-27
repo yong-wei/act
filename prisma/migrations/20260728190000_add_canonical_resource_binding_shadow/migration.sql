@@ -253,14 +253,20 @@ BEGIN
   END IF;
   IF NOT EXISTS (
     SELECT 1
-    FROM "ActkgSourceMapping" mapping
-    JOIN "ActkgSourceObject" source_object
-      ON source_object."releaseId" = mapping."releaseId"
-     AND source_object."sourceObjectId" = mapping."sourceObjectId"
-    WHERE mapping."releaseId" = NEW."releaseId"
-      AND mapping."canonicalId" = NEW."canonicalId"
-      AND jsonb_typeof(source_object."payload"->'evidence_segment_ids') = 'array'
-      AND (source_object."payload"->'evidence_segment_ids') ? NEW."evidenceId"
+    FROM (
+      SELECT
+        count(DISTINCT mapping."canonicalId") AS canonical_count,
+        min(mapping."canonicalId") AS canonical_id
+      FROM "ActkgSourceMapping" mapping
+      JOIN "ActkgSourceObject" source_object
+        ON source_object."releaseId" = mapping."releaseId"
+       AND source_object."sourceObjectId" = mapping."sourceObjectId"
+      WHERE mapping."releaseId" = NEW."releaseId"
+        AND jsonb_typeof(source_object."payload"->'evidence_segment_ids') = 'array'
+        AND (source_object."payload"->'evidence_segment_ids') ? NEW."evidenceId"
+    ) alignment
+    WHERE alignment.canonical_count = 1
+      AND alignment.canonical_id = NEW."canonicalId"
   ) THEN
     RAISE EXCEPTION 'crosswalk evidence is not authoritatively mapped to the canonical object';
   END IF;
@@ -280,6 +286,21 @@ BEGIN
     )
   ) THEN
     RAISE EXCEPTION 'shadow publication review state is not authoritative';
+  END IF;
+  IF NEW."publicationState" = 'SHADOW_PUBLISHED'
+     AND NEW."reviewProvider" = 'HUMAN'
+     AND NOT EXISTS (
+       SELECT 1
+       FROM "CanonicalResourceBindingHumanDecisionReceipt" receipt
+       JOIN "CanonicalResourceBindingHumanQueueItem" queue
+         ON queue."id" = receipt."queueId"
+       WHERE receipt."decisionId" = NEW."id"
+         AND receipt."outcome" = 'ACCEPT'
+         AND queue."bindingDecisionId" = NEW."supersedesDecisionId"
+         AND receipt."contextDigest" = queue."contextDigest"
+         AND receipt."inputDigest" = queue."inputDigest"
+     ) THEN
+    RAISE EXCEPTION 'human shadow publication requires a matching accepted queue receipt';
   END IF;
   IF NEW."publicationState" = 'SHADOW_PUBLISHED' AND NOT EXISTS (
     SELECT 1
@@ -372,7 +393,9 @@ BEGIN
     WHERE queue."id" = NEW."queueId"
       AND queue."contextDigest" = NEW."contextDigest"
       AND queue."inputDigest" = NEW."inputDigest"
+      AND old_decision."reviewerInputDigest" = queue."inputDigest"
       AND decision."supersedesDecisionId" = old_decision."id"
+      AND decision."reviewerInputDigest" = queue."inputDigest"
       AND decision."reviewProvider" = 'HUMAN'
       AND (
         (NEW."outcome" = 'ACCEPT' AND decision."reviewState" = 'ACCEPTED')

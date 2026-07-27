@@ -644,25 +644,30 @@ async function main(): Promise<void> {
     canonicalId: string;
     evidenceId: string;
   }>>`
+    WITH evidence_alignments AS (
+      SELECT DISTINCT
+        mapping."canonicalId" AS canonical_id,
+        evidence_id.value AS evidence_id
+      FROM "ActkgSourceMapping" mapping
+      JOIN "ActkgSourceObject" source_object
+        ON source_object."releaseId" = mapping."releaseId"
+       AND source_object."sourceObjectId" = mapping."sourceObjectId"
+      CROSS JOIN LATERAL jsonb_array_elements_text(
+        CASE
+          WHEN jsonb_typeof(source_object."payload"->'evidence_segment_ids') = 'array'
+          THEN source_object."payload"->'evidence_segment_ids'
+          ELSE '[]'::jsonb
+        END
+      ) evidence_id(value)
+      WHERE mapping."releaseId" = ${validated.entry.release_id}
+    )
     SELECT
-      mapping."canonicalId" AS "canonicalId",
-      evidence_id.value AS "evidenceId"
-    FROM "ActkgSourceMapping" mapping
-    JOIN "ActkgSourceObject" source_object
-      ON source_object."releaseId" = mapping."releaseId"
-     AND source_object."sourceObjectId" = mapping."sourceObjectId"
-    CROSS JOIN LATERAL jsonb_array_elements_text(
-      CASE
-        WHEN jsonb_typeof(source_object."payload"->'evidence_segment_ids') = 'array'
-        THEN source_object."payload"->'evidence_segment_ids'
-        ELSE '[]'::jsonb
-      END
-    ) evidence_id(value)
-    JOIN "ActkgEvidenceSegment" evidence
-      ON evidence."releaseId" = mapping."releaseId"
-     AND evidence."evidenceId" = evidence_id.value
-    WHERE mapping."releaseId" = ${validated.entry.release_id}
-    ORDER BY mapping."ordinal", evidence."ordinal"
+      min(canonical_id) AS "canonicalId",
+      evidence_id AS "evidenceId"
+    FROM evidence_alignments
+    GROUP BY evidence_id
+    HAVING count(DISTINCT canonical_id) = 1
+    ORDER BY evidence_id
     LIMIT 1
   `;
   assert.equal(authoritativeAlignment.length, 1);
@@ -682,6 +687,43 @@ async function main(): Promise<void> {
     },
     orderBy: { ordinal: 'asc' },
   });
+  const ambiguousAlignments = await db.$queryRaw<Array<{
+    canonicalId: string;
+    evidenceId: string;
+  }>>`
+    WITH evidence_alignments AS (
+      SELECT DISTINCT
+        mapping."canonicalId" AS canonical_id,
+        evidence_id.value AS evidence_id
+      FROM "ActkgSourceMapping" mapping
+      JOIN "ActkgSourceObject" source_object
+        ON source_object."releaseId" = mapping."releaseId"
+       AND source_object."sourceObjectId" = mapping."sourceObjectId"
+      CROSS JOIN LATERAL jsonb_array_elements_text(
+        CASE
+          WHEN jsonb_typeof(source_object."payload"->'evidence_segment_ids') = 'array'
+          THEN source_object."payload"->'evidence_segment_ids'
+          ELSE '[]'::jsonb
+        END
+      ) evidence_id(value)
+      WHERE mapping."releaseId" = ${validated.entry.release_id}
+    ),
+    ambiguous AS (
+      SELECT evidence_id
+      FROM evidence_alignments
+      GROUP BY evidence_id
+      HAVING count(DISTINCT canonical_id) > 1
+      ORDER BY evidence_id
+      LIMIT 1
+    )
+    SELECT
+      alignment.canonical_id AS "canonicalId",
+      alignment.evidence_id AS "evidenceId"
+    FROM evidence_alignments alignment
+    JOIN ambiguous USING (evidence_id)
+    ORDER BY alignment.canonical_id
+  `;
+  assert(ambiguousAlignments.length > 1);
   const crosswalkProjection = {
     releaseId: validated.entry.release_id,
     evidenceId: evidence.evidenceId,
@@ -740,6 +782,36 @@ async function main(): Promise<void> {
     db.actkgEvidenceStructuralUnitCrosswalk.create({ data: mismatchedCrosswalk }),
     /not authoritatively mapped/u,
   );
+  const ambiguousEvidence = await db.actkgEvidenceSegment.findUniqueOrThrow({
+    where: {
+      releaseId_evidenceId: {
+        releaseId: validated.entry.release_id,
+        evidenceId: ambiguousAlignments[0]!.evidenceId,
+      },
+    },
+  });
+  const ambiguousProjection = {
+    ...crosswalkProjection,
+    evidenceId: ambiguousEvidence.evidenceId,
+    evidenceContentHash: ambiguousEvidence.contentHash,
+    canonicalId: ambiguousAlignments[0]!.canonicalId,
+  };
+  const ambiguousCrosswalk = {
+    id: 'postgres-crosswalk-ambiguous-evidence',
+    ...crosswalkBase,
+    ...ambiguousProjection,
+    sourceEditionId: ambiguousEvidence.sourceEditionId,
+    structuralUnitVersion: bindingInventory.captureRevision,
+    validationDigest: bindingDigest(ambiguousProjection),
+  };
+  await assert.rejects(
+    bindingRepository.persistEvidenceCrosswalks([ambiguousCrosswalk]),
+    /authoritative evidence alignment/u,
+  );
+  await assert.rejects(
+    db.actkgEvidenceStructuralUnitCrosswalk.create({ data: ambiguousCrosswalk }),
+    /not authoritatively mapped/u,
+  );
   await bindingRepository.persistEvidenceCrosswalks([{
     id: 'postgres-crosswalk',
     ...crosswalkBase,
@@ -788,6 +860,19 @@ async function main(): Promise<void> {
       publicationState: 'SHADOW_PUBLISHED',
       crosswalkId: null,
       validationDigest: null,
+    },
+  }), /exact validated crosswalk/u);
+  await assert.rejects(db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-ambiguous-evidence-publication',
+      ...decisionBase,
+      pairId: 'postgres-ambiguous-evidence-pair',
+      canonicalId: ambiguousAlignments[0]!.canonicalId,
+      evidenceId: ambiguousEvidence.evidenceId,
+      evidenceDigest: sha256(ambiguousEvidence.evidenceId),
+      publicationState: 'SHADOW_PUBLISHED',
+      crosswalkId: ambiguousCrosswalk.id,
+      validationDigest: ambiguousCrosswalk.validationDigest,
     },
   }), /exact validated crosswalk/u);
   await assert.rejects(db.canonicalResourceBindingDecision.create({
@@ -1025,7 +1110,37 @@ async function main(): Promise<void> {
   )));
 
   const humanInputDigest = sha256('postgres-human-input');
-  const humanContextDigest = sha256('postgres-human-context');
+  const humanContext = {
+    ...repositoryContext,
+    existingPublished: [repositoryReplacement],
+  };
+  const humanContextDigest = bindingDigest(humanContext);
+  await assert.rejects(bindingRepository.persistDecisions([{
+    ...repositoryReplacement,
+    id: 'postgres-caller-human-publication',
+    pairId: 'postgres-caller-human-pair',
+    role: 'PRACTICES',
+    proposedRole: 'PRACTICES',
+    reviewerPromptVersion: 'human-adjudication/v1',
+    reviewerInputDigest: sha256('postgres-caller-human-input'),
+    reviewProvider: 'HUMAN',
+    attemptSequence: 3,
+    supersedesDecisionId: null,
+  }], humanContext), /controlled queue adjudication/u);
+  await assert.rejects(db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-direct-human-shadow',
+      ...decisionBase,
+      pairId: 'postgres-direct-human-pair',
+      role: 'PRACTICES',
+      reviewerPromptVersion: 'human-adjudication/v1',
+      reviewerInputDigest: sha256('postgres-direct-human-input'),
+      reviewProvider: 'HUMAN',
+      publicationState: 'SHADOW_PUBLISHED',
+      crosswalkId: crosswalk.id,
+      validationDigest: crosswalk.validationDigest,
+    },
+  }), /matching accepted queue receipt/u);
   await db.canonicalResourceBindingDecision.create({
     data: {
       id: 'postgres-human-queued',
@@ -1059,51 +1174,133 @@ async function main(): Promise<void> {
   }), /immutable/u);
   await db.canonicalResourceBindingDecision.create({
     data: {
-      id: 'postgres-human-accepted',
+      id: 'postgres-human-wrong-queue-candidate',
       ...decisionBase,
-      pairId: 'postgres-human-pair',
+      pairId: 'postgres-human-wrong-queue-pair',
       role: 'PRACTICES',
-      reviewerInputDigest: humanInputDigest,
+      reviewerInputDigest: sha256('postgres-human-wrong-queue-input'),
       reviewerPromptVersion: 'human-adjudication/v1',
       reviewProvider: 'HUMAN',
       attemptSequence: 2,
-      supersedesDecisionId: 'postgres-human-queued',
-      publicationState: 'SHADOW_PUBLISHED',
+      supersedesDecisionId: 'postgres-retry-2',
+      publicationState: 'CANDIDATE',
       crosswalkId: crosswalk.id,
       validationDigest: crosswalk.validationDigest,
-      highImpactReasons: ['fixture-review-not-authoritative'],
     },
-  });
-  await db.canonicalResourceBindingDecision.update({
-    where: { id: 'postgres-human-queued' },
-    data: { lifecycleState: 'SUPERSEDED' },
   });
   await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.create({
     data: {
-      id: 'postgres-human-receipt-contradiction',
+      id: 'postgres-human-wrong-queue-receipt',
       queueId: 'postgres-human-queue',
-      actorId: 'teacher-reviewer',
-      decidedAt: new Date('2026-07-28T12:29:00.000Z'),
-      outcome: 'REJECT',
-      rationale: '矛盾裁决必须失败。',
+      actorId: 'forged-reviewer',
+      decidedAt: new Date('2026-07-28T12:28:00.000Z'),
+      outcome: 'ACCEPT',
+      rationale: '错误队列。',
       contextDigest: humanContextDigest,
       inputDigest: humanInputDigest,
-      decisionId: 'postgres-human-accepted',
+      decisionId: 'postgres-human-wrong-queue-candidate',
     },
   }), /does not bind/u);
-  await db.canonicalResourceBindingHumanDecisionReceipt.create({
+  await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.create({
     data: {
-      id: 'postgres-human-receipt',
+      id: 'postgres-fixture-forged-receipt',
       queueId: 'postgres-human-queue',
-      actorId: 'teacher-reviewer',
-      decidedAt: new Date('2026-07-28T12:30:00.000Z'),
+      actorId: 'fixture',
+      decidedAt: new Date('2026-07-28T12:28:30.000Z'),
       outcome: 'ACCEPT',
-      rationale: '已核对证据与资源端点。',
+      rationale: 'Fixture 不能伪造人工裁决。',
       contextDigest: humanContextDigest,
       inputDigest: humanInputDigest,
-      decisionId: 'postgres-human-accepted',
+      decisionId: 'postgres-human-queued',
+    },
+  }), /does not bind/u);
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-human-drifted-queued',
+      ...decisionBase,
+      pairId: 'postgres-human-drifted-pair',
+      role: 'PRACTICES',
+      reviewerInputDigest: sha256('postgres-human-drifted-input'),
+      reviewProvider: 'FIXTURE',
+      reviewState: 'HUMAN_REQUIRED',
+      publicationState: 'HUMAN_REQUIRED',
+      crosswalkId: null,
+      validationDigest: null,
+      highImpactReasons: ['fixture-review-not-authoritative'],
     },
   });
+  await db.canonicalResourceBindingHumanQueueItem.create({
+    data: {
+      id: 'postgres-human-drifted-queue',
+      bindingDecisionId: 'postgres-human-drifted-queued',
+      reasonCodes: ['fixture-review-not-authoritative'],
+      contextDigest: humanContextDigest,
+      inputDigest: sha256('postgres-human-forged-input'),
+    },
+  });
+  await assert.rejects(bindingRepository.adjudicateHumanQueue({
+    queueId: 'postgres-human-drifted-queue',
+    actorId: 'teacher-reviewer',
+    decidedAt: '2026-07-28T12:29:00.000Z',
+    outcome: 'ACCEPT',
+    rationale: '伪造输入不得通过。',
+    context: humanContext,
+  }), /input has drifted/u);
+  await assert.rejects(db.$transaction(async (transaction) => {
+    await transaction.canonicalResourceBindingDecision.create({
+      data: {
+        id: 'postgres-human-drifted-candidate',
+        ...decisionBase,
+        pairId: 'postgres-human-drifted-pair',
+        role: 'PRACTICES',
+        reviewerInputDigest: sha256('postgres-human-drifted-input'),
+        reviewerPromptVersion: 'human-adjudication/v1',
+        reviewProvider: 'HUMAN',
+        attemptSequence: 2,
+        supersedesDecisionId: 'postgres-human-drifted-queued',
+        publicationState: 'CANDIDATE',
+        crosswalkId: crosswalk.id,
+        validationDigest: crosswalk.validationDigest,
+      },
+    });
+    await transaction.canonicalResourceBindingDecision.update({
+      where: { id: 'postgres-human-drifted-queued' },
+      data: { lifecycleState: 'SUPERSEDED' },
+    });
+    await transaction.canonicalResourceBindingHumanDecisionReceipt.create({
+      data: {
+        id: 'postgres-human-drifted-receipt',
+        queueId: 'postgres-human-drifted-queue',
+        actorId: 'teacher-reviewer',
+        decidedAt: new Date('2026-07-28T12:29:30.000Z'),
+        outcome: 'ACCEPT',
+        rationale: '伪造输入不得通过。',
+        contextDigest: humanContextDigest,
+        inputDigest: sha256('postgres-human-forged-input'),
+        decisionId: 'postgres-human-drifted-candidate',
+      },
+    });
+  }), /does not bind/u);
+  const humanAccepted = await bindingRepository.adjudicateHumanQueue({
+    queueId: 'postgres-human-queue',
+    actorId: 'teacher-reviewer',
+    decidedAt: '2026-07-28T12:30:00.000Z',
+    outcome: 'ACCEPT',
+    rationale: '已核对证据与资源端点。',
+    context: humanContext,
+  });
+  assert.equal(humanAccepted.publicationState, 'SHADOW_PUBLISHED');
+  assert.equal(
+    (await db.canonicalResourceBindingDecision.findUniqueOrThrow({
+      where: { id: humanAccepted.id },
+    })).publicationState,
+    'SHADOW_PUBLISHED',
+  );
+  const humanReceipt = await db.canonicalResourceBindingHumanDecisionReceipt.findUniqueOrThrow({
+    where: { queueId: 'postgres-human-queue' },
+  });
+  assert.equal(humanReceipt.outcome, 'ACCEPT');
+  assert.equal(humanReceipt.decisionId, humanAccepted.id);
   await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.create({
     data: {
       id: 'postgres-human-receipt-replay',
@@ -1114,16 +1311,62 @@ async function main(): Promise<void> {
       rationale: '重复裁决。',
       contextDigest: humanContextDigest,
       inputDigest: humanInputDigest,
-      decisionId: 'postgres-human-accepted',
+      decisionId: humanAccepted.id,
     },
   }));
   await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.update({
-    where: { id: 'postgres-human-receipt' },
+    where: { id: humanReceipt.id },
     data: { rationale: '修改后的理由。' },
   }), /immutable/u);
   await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.delete({
-    where: { id: 'postgres-human-receipt' },
+    where: { id: humanReceipt.id },
   }), /immutable/u);
+  const humanRejectedInputDigest = sha256('postgres-human-rejected-input');
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-human-rejected-queued',
+      ...decisionBase,
+      pairId: 'postgres-human-rejected-pair',
+      role: 'PRACTICES',
+      reviewerInputDigest: humanRejectedInputDigest,
+      reviewProvider: 'FIXTURE',
+      reviewState: 'HUMAN_REQUIRED',
+      publicationState: 'HUMAN_REQUIRED',
+      crosswalkId: null,
+      validationDigest: null,
+      highImpactReasons: ['fixture-review-not-authoritative'],
+    },
+  });
+  await db.canonicalResourceBindingHumanQueueItem.create({
+    data: {
+      id: 'postgres-human-rejected-queue',
+      bindingDecisionId: 'postgres-human-rejected-queued',
+      reasonCodes: ['fixture-review-not-authoritative'],
+      contextDigest: humanContextDigest,
+      inputDigest: humanRejectedInputDigest,
+    },
+  });
+  const humanRejected = await bindingRepository.adjudicateHumanQueue({
+    queueId: 'postgres-human-rejected-queue',
+    actorId: 'teacher-reviewer',
+    decidedAt: '2026-07-28T12:32:00.000Z',
+    outcome: 'REJECT',
+    rationale: '证据不足，拒绝发布。',
+    context: humanContext,
+  });
+  assert.equal(humanRejected.reviewState, 'REJECTED');
+  assert.equal(humanRejected.publicationState, 'CANDIDATE');
+  assert.equal(
+    (await db.canonicalResourceBindingDecision.findUniqueOrThrow({
+      where: { id: humanRejected.id },
+    })).publicationState,
+    'CANDIDATE',
+  );
+  const humanRejectedReceipt = await db.canonicalResourceBindingHumanDecisionReceipt.findUniqueOrThrow({
+    where: { queueId: 'postgres-human-rejected-queue' },
+  });
+  assert.equal(humanRejectedReceipt.outcome, 'REJECT');
+  assert.equal(humanRejectedReceipt.decisionId, humanRejected.id);
   await assert.rejects(
     db.resourceBindingInventoryRun.update({
       where: { id: bindingInventory.id },

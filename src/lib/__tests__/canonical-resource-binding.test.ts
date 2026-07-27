@@ -435,6 +435,20 @@ describe('publication, human, and authority gates', () => {
       publicationState: 'HUMAN_REQUIRED',
       highImpactReasons: expect.arrayContaining(['crosswalk-not-unique']),
     });
+    const ambiguous = applyPublicationGates(acceptedDecision(), gateContext({
+      evidenceAlignments: [
+        ...gateContext().evidenceAlignments,
+        {
+          releaseId: 'release',
+          evidenceId: 'evidence',
+          canonicalId: 'other-canonical',
+        },
+      ],
+    }));
+    expect(ambiguous).toMatchObject({
+      publicationState: 'HUMAN_REQUIRED',
+      highImpactReasons: expect.arrayContaining(['evidence-alignment-not-unique']),
+    });
   });
 
   it('retains deterministic reasons in a new human decision attempt', () => {
