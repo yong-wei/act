@@ -3,6 +3,7 @@
 ## Purpose
 Define how simulation and Arena runtime records are cataloged, audited, and materialized as governed learning evidence while preserving source context and keeping high-frequency trace samples out of `LearningFact`.
 ## Requirements
+
 ### Requirement: Simulation and Arena evidence sources are cataloged
 The system SHALL catalog simulation sessions/logs and Arena public experiments, virtual previews, official submissions, and official evaluation runs as governed evidence sources.
 
@@ -14,16 +15,19 @@ The system SHALL catalog simulation sessions/logs and Arena public experiments, 
 - **WHEN** simulation sources are classified
 - **THEN** `SimulationSession` SHALL be treated as the run/session envelope and `SimulationLog` SHALL be treated as attempt or activity detail, with separate readiness and traceability metadata
 
+
 ### Requirement: LearningFact stores compact summaries
-The system SHALL materialize simulation and Arena learning evidence into `LearningFact` using compact summaries and source references rather than high-frequency trace samples.
+The system SHALL materialize simulation and Arena learning evidence into `LearningFact` using compact summaries and source references rather than high-frequency trace samples. Arena virtual training facts SHALL retain the Arena task id, scenario id, preview boundary, official ineligibility, protocol version, trace reference, summary metrics, replay confidence, and governance profile.
 
 #### Scenario: Virtual simulation run becomes learning evidence
-- **WHEN** a virtual simulation run is materialized into a learning fact
-- **THEN** the learning fact SHALL include source id, run id, scene or task id, protocol version, trace reference, summary metrics, and governance profile
+- **WHEN** an Arena virtual simulation run is materialized into a learning fact
+- **THEN** the learning fact SHALL include source id, run id, Arena task id, scene or scenario id, protocol version, trace reference, summary metrics, preview/official boundary, and governance profile
+- **AND** its module attribution SHALL use the Arena task id when available
 
 #### Scenario: High-frequency trace exists
 - **WHEN** high-frequency samples are available for a simulation or Arena preview
 - **THEN** the learning fact SHALL reference or summarize those samples without copying the complete sample array
+
 
 ### Requirement: Course context is preserved
 The system SHALL preserve course, class, session, publication, and standalone launch context when simulation or Arena evidence is generated.
@@ -31,6 +35,7 @@ The system SHALL preserve course, class, session, publication, and standalone la
 #### Scenario: Simulation launches from a lesson
 - **WHEN** a simulation is launched from a DB BOPPPS lesson item
 - **THEN** materialized evidence SHALL include the available course/class/session context
+
 
 ### Requirement: Arena preview evidence uses SimulationRun envelope
 Governed Arena preview evidence SHALL use the canonical SimulationRun envelope as the platform reference while preserving Arena detail lineage.
@@ -44,13 +49,16 @@ Governed Arena preview evidence SHALL use the canonical SimulationRun envelope a
 - **THEN** it SHALL consume the SimulationRun envelope and summary
 - **AND** it MAY follow the Arena detail reference only for authorized preview-specific drilldown.
 
+
 ### Requirement: Preview and official claims remain unmixed
-The system SHALL prevent preview-only Arena runs from being presented as official evaluation or leaderboard evidence.
+The system SHALL prevent preview-only Arena runs from being presented as official evaluation or leaderboard evidence. A completed preview MAY provide a bounded, low-confidence learning-profile contribution only when its governed provenance and replay summary are retained.
 
 #### Scenario: Preview-only evidence reaches LearningFact draft
 - **WHEN** an Arena preview SimulationRun is converted into an evidence draft
-- **THEN** the draft SHALL identify preview-only provenance and official ineligibility
-- **AND** it SHALL NOT use preview metrics as official score, rank, or hard-constraint authority.
+- **THEN** the draft SHALL identify preview-only provenance, task attribution, and official ineligibility
+- **AND** it SHALL apply the preview contribution policy rather than an official submission contribution
+- **AND** it SHALL NOT use preview metrics as official score, rank, hard-constraint authority, or formal capability attainment
+
 
 ### Requirement: Simulation and agent evidence is staged before LearningFact
 The system SHALL stage SimulationRun, Arena preview, and AgentToolRun outputs as governed evidence drafts before creating LearningFact records.
@@ -64,6 +72,7 @@ The system SHALL stage SimulationRun, Arena preview, and AgentToolRun outputs as
 - **THEN** the system SHALL create or enqueue an evidence draft that references the AgentToolRun and any related SimulationRun
 - **AND** model-authored narrative SHALL NOT directly become a high-confidence LearningFact without deterministic metrics or review policy.
 
+
 ### Requirement: Evidence materialization is idempotent
 The system SHALL prevent duplicate evidence drafts and LearningFacts when run, tool, replay, or review events are retried.
 
@@ -72,12 +81,14 @@ The system SHALL prevent duplicate evidence drafts and LearningFacts when run, t
 - **THEN** it SHALL reuse or report the existing draft or fact
 - **AND** it SHALL NOT double-count competency contribution.
 
+
 ### Requirement: Evidence outbox preserves causation
 The system SHALL emit materialization events with correlation id, causation id, source run/tool id, owner user, and provenance metadata.
 
 #### Scenario: Draft is created from agent-assisted simulation
 - **WHEN** a draft is created from a Konling tool-assisted run
 - **THEN** the outbox or event payload SHALL retain AgentSession, AgentToolRun, SimulationRun, owner user, and source provenance references.
+
 
 ### Requirement: Materialized evidence remains user-isolated
 The system SHALL carry owner-user scope from source records into evidence drafts, LearningFacts, and downstream summaries.
@@ -89,6 +100,7 @@ The system SHALL carry owner-user scope from source records into evidence drafts
 #### Scenario: Evidence is aggregated by a teacher
 - **WHEN** a teacher reads class evidence summaries
 - **THEN** the system SHALL aggregate only students within authorized class scope and SHALL NOT expose raw private memory or raw high-frequency traces.
+
 
 ### Requirement: Simulation and Arena evidence supports path terminal validation
 Governed simulation and Arena evidence SHALL expose privacy-safe validation summaries for control-correction learning paths.
@@ -102,6 +114,7 @@ Governed simulation and Arena evidence SHALL expose privacy-safe validation summ
 - **WHEN** a control-correction path evaluates an Arena validation node
 - **THEN** it SHALL distinguish preview, official submission, official evaluation, score, validity, replay confidence, and hidden-internal boundaries
 - **AND** it SHALL NOT expose hidden official evaluation internals through path, student, or Konling payloads.
+
 
 ### Requirement: Simulation and Arena outcomes are linkable from path execution
 Simulation, control workbench, and Arena evidence governance SHALL expose privacy-safe outcome references that adaptive path execution can bind to path nodes.
@@ -118,6 +131,7 @@ Simulation, control workbench, and Arena evidence governance SHALL expose privac
 - **WHEN** a simulation, workbench, or Arena outcome exists but cannot be safely linked to the owning path and student
 - **THEN** the path SHALL treat the result as unbound
 - **AND** the source system SHALL provide a governance-visible reason without exposing private raw payloads to the student UI.
+
 
 ### Requirement: 仿真与 Arena 证据携带任务级来源语义
 受治理的 Simulation、Arena、控制工作台和奥德赛证据 SHALL 携带稳定任务标识、带学生归属命名空间的产物标识、来源层级和可复核摘要，并由同一规范化产物身份约束实时写入和历史物化。ArenaEvaluationRun 只能作为已接受 ArenaSubmission 的关联评测证据，不能独立形成学生任务完成。
@@ -137,3 +151,4 @@ Simulation, control workbench, and Arena evidence governance SHALL expose privac
 - **WHEN** 教师或管理员预览仿真、Arena 或控制工作台
 - **THEN** 系统不得将该操作物化为学生任务证据
 - **AND** 预览记录不得改变任何学生的仿真任务状态
+
