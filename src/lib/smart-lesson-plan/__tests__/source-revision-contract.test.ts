@@ -114,4 +114,17 @@ describe('smart lesson real-provider source revision contract', () => {
       "getByLabel('生成提纲后暂停确认').check()",
     );
   });
+
+  it('accepts the governed source state through its current UI and persisted projection', () => {
+    const spec = readFileSync(
+      path.join(process.cwd(), 'tests/smart-lesson-real-provider.spec.ts'),
+      'utf8',
+    );
+    expect(spec).toContain(
+      "card.getByText('已关联依据', { exact: true })",
+    );
+    expect(spec).toContain("item.sourceState === 'VERIFIED'");
+    expect(spec).toContain('Array.isArray(item.sourceBindings)');
+    expect(spec).not.toContain("toContainText('来源已验证')");
+  });
 });

@@ -29,7 +29,13 @@ test('continuous real-teacher preparation flow uses governed sources, current po
 
   let card = taskCard(page);
   await expect(card).toContainText('已确认 1 个平台教材结构范围');
-  await expect(card).toContainText('来源已验证');
+  await expect(card.getByText('已关联依据', { exact: true })).toHaveCount(2);
+  const createdTask = await persistedTaskSnapshot();
+  expect([
+    ...createdTask.knowledgePoints,
+    ...createdTask.goals,
+  ].every((item) => item.sourceState === 'VERIFIED' && Array.isArray(item.sourceBindings) && item.sourceBindings.length > 0))
+    .toBe(true);
   await card.getByRole('button', { name: '开始生成' }).click();
   await expectPersistedJobState(['PAUSED'], 8 * 60_000);
   await card.getByRole('button', { name: '刷新进度' }).click();
@@ -242,10 +248,21 @@ async function generationSnapshot() {
   }
 }
 
+async function persistedTaskSnapshot() {
+  const prisma = createPrismaClient({ log: ['warn', 'error'] });
+  try {
+    return await loadPersistedTask(prisma);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
 async function loadPersistedTask(prisma: ReturnType<typeof createPrismaClient>) {
   return prisma.smartLessonTask.findFirstOrThrow({
     where: { ownerId: teacherId, topic },
     include: {
+      knowledgePoints: { orderBy: { createdAt: 'asc' } },
+      goals: { orderBy: { createdAt: 'asc' } },
       drafts: {
         include: {
           jobs: {
