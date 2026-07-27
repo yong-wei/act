@@ -14,8 +14,10 @@ import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object
 import { ConversionLeaseLostError, convertProtectedSubmission } from '../math-document-conversion';
 import {
   cancelDocumentConversion,
+  evidenceFromRow,
   enqueueDocumentConversion,
   enqueueGradingRun,
+  materializeAssignmentAnswerEvidence,
   materializeTextAnswerEvidence,
   processDocumentConversionJob,
   processGradingRunJob,
@@ -122,6 +124,136 @@ function lifecyclePolicyRepository() {
 }
 
 describe('production math-document grading persistence contracts', () => {
+  it('preserves namespaced aggregate evidence block ids', () => {
+    const evidenceId = 'evidence:attempt-1:1';
+    const evidence = evidenceFromRow({
+      id: evidenceId,
+      sourceKind: 'DOCUMENT',
+      sourceHash: 'sha256:evidence',
+      canonicalMarkdown: 'aggregate evidence',
+      anchorVersion: 'assignment-answer-evidence.v2',
+      precision: 'HIGH',
+      readiness: 'READY',
+      limitationState: 'none',
+      limitations: [],
+      blocks: [{
+        id: `${evidenceId}:asset:asset-1:content`,
+        blockIndex: 0,
+        pageNumber: 1,
+        text: 'aggregate evidence',
+        markdown: 'aggregate evidence',
+        precision: 'HIGH',
+        confidence: 1,
+      }],
+    });
+
+    expect(evidence.blocks[0]?.id).toBe('asset:asset-1:content');
+  });
+
+  it('persists one versioned assignment evidence manifest with namespaced blocks', async () => {
+    const advisoryLock = vi.fn().mockResolvedValue([{ pg_advisory_xact_lock: '' }]);
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      $queryRawUnsafe: advisoryLock,
+      answerEvidence: {
+        findFirst: async () => null,
+        create: async ({ data }: any) => ({
+          ...data,
+          blocks: data.blocks.create,
+        }),
+      },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+    const result = await materializeAssignmentAnswerEvidence({
+      db,
+      attemptId: 'attempt-aggregate',
+      answerVersion: 2,
+      actor: { id: 'grading-worker', role: 'SERVICE' },
+      sourceManifest: {
+        version: 'assignment-answer-evidence.v2',
+        sources: [{ kind: 'ATTACHMENT', assetId: 'asset-1' }],
+      },
+      normalized: {
+        sourceKind: 'document',
+        sourceHash: 'sha256:aggregate',
+        canonicalMarkdown: 'aggregate evidence',
+        anchorVersion: 'assignment-answer-evidence.v2',
+        precision: 'block',
+        readiness: 'ready',
+        limitationState: 'none',
+        limitations: [],
+        blocks: [{
+          id: 'asset:asset-1:content',
+          blockIndex: 0,
+          text: 'aggregate evidence',
+          markdown: 'aggregate evidence',
+          precision: 'block',
+          confidence: 1,
+        }],
+      },
+      now,
+    });
+
+    expect(result.evidence).toMatchObject({
+      id: 'evidence:attempt-aggregate:2',
+      sourceManifest: {
+        version: 'assignment-answer-evidence.v2',
+      },
+    });
+    expect(result.evidence.blocks[0]?.id)
+      .toBe('evidence:attempt-aggregate:2:asset:asset-1:content');
+    expect(advisoryLock).toHaveBeenCalledWith(
+      'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))::text AS "lock"',
+      'assignment-answer-evidence:attempt-aggregate',
+    );
+  });
+
+  it('creates a later immutable aggregate version instead of replacing prior evidence', async () => {
+    const create = vi.fn(async ({ data }: any) => ({
+      ...data,
+      blocks: data.blocks.create,
+    }));
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      answerEvidence: {
+        findFirst: async ({ where }: any) => where.sourceHash
+          ? null
+          : { version: 2 },
+        create,
+      },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    const result = await materializeAssignmentAnswerEvidence({
+      db,
+      attemptId: 'attempt-history',
+      answerVersion: 1,
+      actor: { id: 'grading-worker', role: 'SERVICE' },
+      sourceManifest: {
+        version: 'assignment-answer-evidence.v2',
+        sources: [],
+      },
+      normalized: {
+        sourceKind: 'document',
+        sourceHash: 'sha256:new-aggregate',
+        canonicalMarkdown: 'new aggregate',
+        anchorVersion: 'assignment-answer-evidence.v2',
+        precision: 'block',
+        readiness: 'ready',
+        limitationState: 'none',
+        limitations: [],
+        blocks: [],
+      },
+      now,
+    });
+
+    expect(result.evidence).toMatchObject({
+      id: 'evidence:attempt-history:3',
+      version: 3,
+    });
+    expect(create).toHaveBeenCalledOnce();
+  });
+
   it('stores text evidence as first-class canonical content and replays the same attempt/version', async () => {
     const created: any[] = [];
     const audits: any[] = [];
@@ -341,6 +473,55 @@ describe('production math-document grading persistence contracts', () => {
     expect(result.conversion.state).toBe('SUCCEEDED');
     expect(result.evidence).toEqual(expect.objectContaining({ id: 'evidence-old', readiness: 'READY' }));
     expect(blockWrites).toEqual(expect.arrayContaining([expect.objectContaining({ evidenceId: 'evidence-old', id: 'conversion-1:block-1' })]));
+  });
+
+  it('persists successful conversion limitations for later evidence assembly', async () => {
+    const bytes = new TextEncoder().encode('answer');
+    const checksum = sha256(bytes);
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'quarantine/limited-answer', ownerId: 'student-1', answerId: 'answer-1', sizeBytes: bytes.byteLength, mimeType: 'text/plain', checksum, scanState: 'CLEAN' });
+    store.payloads.set('quarantine/limited-answer', bytes);
+    const conversion: any = {
+      id: 'conversion-limited', assetId: 'asset-limited', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
+      asset: { id: 'asset-limited', answerId: 'answer-1', objectKey: 'quarantine/limited-answer', originalName: 'answer.txt', mimeType: 'text/plain', sizeBytes: bytes.byteLength, checksum, answer: { submission: { frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1' } } },
+      attempt: { id: 'attempt-1' }, policy: null, answerEvidence: null,
+    };
+    const updates: any[] = [];
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      gradingJob: {
+        findUnique: async () => ({ id: 'job-limited', state: 'QUEUED', cancelRequestedAt: null, conversion }),
+        updateMany: async ({ data }: any) => { updates.push(data); return { count: 1 }; },
+        update: async ({ data }: any) => { updates.push(data); return data; },
+      },
+      documentConversion: {
+        update: async ({ data }: any) => { updates.push(data); return { ...conversion, ...data }; },
+      },
+      gradingConversionWarning: { createMany: async () => undefined },
+      answerEvidence: {
+        findFirst: async () => null,
+        create: async ({ data }: any) => ({ id: 'evidence-limited', ...data }),
+      },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    await processDocumentConversionJob({
+      db,
+      jobId: 'job-limited',
+      store,
+      local: {
+        convert: async () => ({
+          markdown: '部分文本',
+          blocks: [{ id: 'block-1', blockIndex: 0, text: '部分文本', markdown: '部分文本', precision: 'block' as const, confidence: 1 }],
+          limitations: ['direct-text-truncated'],
+        }),
+      },
+      now,
+    });
+
+    expect(updates).toEqual(expect.arrayContaining([
+      expect.objectContaining({ warningCodes: ['direct-text-truncated'] }),
+    ]));
   });
 
   it('does not commit a conversion result after retention fences the worker', async () => {
@@ -816,6 +997,82 @@ describe('production math-document grading persistence contracts', () => {
     expect(createJob).not.toHaveBeenCalled();
   });
 
+  it.each(['local-fallback', 'local-markitdown'])(
+    'rejects ready legacy %s evidence before creating a grading run',
+    async (adapter) => {
+      const attempt = submittedAttempt();
+      const createRun = vi.fn();
+      const createJob = vi.fn();
+      const db = {
+        ...lifecyclePolicyRepository(),
+        answerEvidence: {
+          findUnique: async () => ({
+            id: `legacy-${adapter}-evidence`,
+            attemptId: attempt.id,
+            version: 1,
+            sourceHash: `sha256:${adapter}`,
+            anchorVersion: 'document-evidence.v1',
+            readiness: 'READY',
+            blocks: [],
+            conversion: { adapter },
+            attempt,
+          }),
+        },
+        gradingRun: { create: createRun },
+        gradingJob: { create: createJob },
+      };
+
+      await expect(enqueueGradingRun({
+        db,
+        attemptId: attempt.id,
+        evidenceId: `legacy-${adapter}-evidence`,
+        actor: { id: 'teacher-1', role: 'TEACHER' },
+        idempotencyKey: `legacy-${adapter}-grading`,
+        now,
+      })).rejects.toThrow('grading-evidence-legacy-local-binary-ineligible');
+
+      expect(createRun).not.toHaveBeenCalled();
+      expect(createJob).not.toHaveBeenCalled();
+    },
+  );
+
+  it('requires aggregate assignment evidence when an attempt has attachments', async () => {
+    const attempt = submittedAttempt();
+    attempt.answer.assets = [{ id: 'asset-1' }] as any;
+    const createRun = vi.fn();
+    const createJob = vi.fn();
+    const db = {
+      ...lifecyclePolicyRepository(),
+      answerEvidence: {
+        findUnique: async () => ({
+          id: 'single-asset-evidence',
+          attemptId: attempt.id,
+          version: 1,
+          sourceHash: 'sha256:single-asset',
+          anchorVersion: 'mathpix.v1:anchors',
+          readiness: 'READY',
+          blocks: [],
+          conversion: { adapter: 'mathpix' },
+          attempt,
+        }),
+      },
+      gradingRun: { create: createRun },
+      gradingJob: { create: createJob },
+    };
+
+    await expect(enqueueGradingRun({
+      db,
+      attemptId: attempt.id,
+      evidenceId: 'single-asset-evidence',
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      idempotencyKey: 'single-asset-grading',
+      now,
+    })).rejects.toThrow('grading-evidence-assignment-aggregate-required');
+
+    expect(createRun).not.toHaveBeenCalled();
+    expect(createJob).not.toHaveBeenCalled();
+  });
+
   it('checks grading authorization before exposing missing course context', async () => {
     const attempt = submittedAttempt();
     const createRun = vi.fn();
@@ -1280,6 +1537,24 @@ describe('production math-document grading persistence contracts', () => {
     });
     vi.unstubAllEnvs();
     expect(autoSelected.conversion).toMatchObject({ policyId: imageConversionPolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/text' }) });
+
+    vi.stubEnv('GRADING_MATHPIX_ENABLED', 'true');
+    vi.stubEnv('GRADING_MATHPIX_POLICY_VERSION', 'mathpix.v1');
+    const frozenWithoutPolicy = await enqueueDocumentConversion({
+      db,
+      assetId: asset.id,
+      attemptId: asset.attemptId,
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      adapterVersion: 'assignment-understanding.v1',
+      allowDefaultPolicyDiscovery: false,
+      idempotencyKey: 'conversion-frozen-without-policy-001',
+      now,
+    });
+    vi.unstubAllEnvs();
+    expect(frozenWithoutPolicy.conversion).toMatchObject({
+      policyId: null,
+      policySnapshot: null,
+    });
   });
 
   it('replays a grading request by actor and key, then conflicts when the evidence payload changes', async () => {
@@ -1534,7 +1809,7 @@ describe('production math-document grading persistence contracts', () => {
       answer: { submission: submittedAttempt().answer.submission, question: submittedAttempt().answer.question },
       attempt: { id: 'attempt-1', answerId: 'answer-1' },
     };
-    const conversion = { id: 'conversion-1', assetId: 'asset-1', attemptId: 'attempt-1', adapterVersion: 'router.v1', policyId: null, version: 1, state: 'FAILED', asset };
+    const conversion = { id: 'conversion-1', assetId: 'asset-1', attemptId: 'attempt-1', adapterVersion: 'assignment-understanding.v1', policyId: null, policySnapshot: null, policySnapshotHash: null, version: 1, state: 'FAILED', asset };
     const updates: any[] = [];
     const db: any = {
       ...lifecyclePolicyRepository(),
@@ -1554,8 +1829,13 @@ describe('production math-document grading persistence contracts', () => {
     };
     const cancelled = await cancelDocumentConversion({ db, conversionId: 'conversion-1', actor: { id: 'teacher-1', role: 'TEACHER' }, now });
     expect(cancelled.cancellationRequestedAt).toBe(now);
+    vi.stubEnv('GRADING_MATHPIX_ENABLED', 'true');
+    vi.stubEnv('GRADING_MATHPIX_POLICY_VERSION', 'mathpix.v1');
     const retried = await retryDocumentConversion({ db, conversionId: 'conversion-1', actor: { id: 'teacher-1', role: 'TEACHER' }, idempotencyKey: 'conversion-retry-001', reason: 'provider timeout', now });
+    vi.unstubAllEnvs();
     expect(retried.conversion.version).toBe(2);
+    expect(retried.conversion.policyId).toBeNull();
+    expect(retried.conversion.policySnapshot).toBeNull();
     expect(retried.job.reason).toBe('conversion-rerun:provider timeout');
     expect(retried.job.rerunIdentity).toContain('rerun:conversion:');
   });

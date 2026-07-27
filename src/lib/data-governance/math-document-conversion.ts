@@ -10,6 +10,10 @@ import {
 } from '@/lib/assignments/submission-domain';
 import type { StoredObjectMetadata, SubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import {
+  assignmentAttachmentRoute,
+  readBoundedAssignmentText,
+} from './assignment-attachment-understanding';
+import {
   evaluateExternalProcessingPolicy,
   normalizeDocumentEvidence,
   normalizeCoordinateProvenance,
@@ -400,6 +404,7 @@ export async function convertProtectedSubmission(input: {
   local?: LocalDocumentConverter;
   now?: Date;
   forceExternal?: boolean;
+  assignmentResponse?: boolean;
   isCancellationRequested?: () => Promise<boolean> | boolean;
   isLeaseLost?: () => Promise<boolean> | boolean;
   idempotencyKey?: string;
@@ -415,6 +420,13 @@ export async function convertProtectedSubmission(input: {
   assertSourceMetadata(input.source, object);
   const bytes = await input.store.readObject(input.source.objectKey);
   assertSubmissionObjectIntegrity(bytes, input.source.sizeBytes, input.source.checksum);
+  if (input.assignmentResponse) {
+    return convertAssignmentResponseAttachment({
+      ...input,
+      bytes,
+      ensureNotCancelled,
+    });
+  }
   const local = input.local ?? createLocalDocumentConverter();
   const mathHeavy = await isMathOrImageHeavy(input.source, bytes);
   const warnings: string[] = [];
@@ -505,6 +517,143 @@ export async function convertProtectedSubmission(input: {
     confidence: 0,
     warnings: [...new Set(warnings)],
     limitations: [...new Set(limitations.length > 0 ? limitations : ['no-usable-conversion'])],
+    providerRequestId: null,
+    providerRequestedAt: null,
+    providerProcessedAt: null,
+    renderedBytes: null,
+    renderedMimeType: null,
+  };
+}
+
+async function convertAssignmentResponseAttachment(input: {
+  source: ProtectedSubmissionSource;
+  bytes: Uint8Array;
+  policy?: ExternalProcessingPolicy | null;
+  mathpix?: MathpixClient;
+  idempotencyKey?: string;
+  signal?: AbortSignal;
+  ensureNotCancelled: () => Promise<void>;
+}): Promise<ConversionResult> {
+  const route = assignmentAttachmentRoute(
+    input.source.mimeType,
+    input.source.originalName,
+  );
+  if (route === 'direct-text') {
+    try {
+      const direct = readBoundedAssignmentText(input.bytes);
+      const normalized = normalizeDocumentEvidence({
+        sourceHash: input.source.checksum,
+        markdown: direct.markdown,
+        blocks: direct.blocks,
+        limitations: direct.limitations,
+        anchorVersion: 'assignment-direct-text.v1',
+      });
+      return {
+        adapter: 'assignment-direct-text',
+        adapterVersion: 'assignment-direct-text.v1',
+        state: normalized.readiness === 'ready' ? 'succeeded' : 'blocked',
+        sourceChecksum: input.source.checksum,
+        outputChecksum: normalized.readiness === 'ready'
+          ? sha256(normalized.canonicalMarkdown)
+          : null,
+        markdown: normalized.canonicalMarkdown,
+        blocks: normalized.blocks,
+        precision: normalized.precision,
+        confidence: normalized.readiness === 'ready' ? 1 : 0,
+        warnings: [],
+        limitations: normalized.limitations,
+        providerRequestId: null,
+        providerRequestedAt: null,
+        providerProcessedAt: null,
+        renderedBytes: null,
+        renderedMimeType: null,
+      };
+    } catch (error) {
+      return unavailableAssignmentUnderstanding(
+        input.source.checksum,
+        'assignment-direct-text-decode-failed',
+        safeErrorCode(error),
+      );
+    }
+  }
+
+  const decision = evaluateExternalProcessingPolicy({
+    policy: input.policy,
+    provider: 'mathpix',
+    purpose: 'answer-conversion',
+    classId: input.source.classId,
+  });
+  if (!decision.allowed || !input.mathpix) {
+    return unavailableAssignmentUnderstanding(
+      input.source.checksum,
+      'assignment-mathpix-only',
+      'understanding-unavailable-policy',
+      decision.reasons,
+    );
+  }
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await input.ensureNotCancelled();
+      const providerRequestedAt = new Date();
+      const response = await input.mathpix.convert({
+        bytes: input.bytes,
+        fileName: input.source.originalName,
+        mimeType: input.source.mimeType,
+        policy: input.policy!,
+        classId: input.source.classId,
+        idempotencyKey: input.idempotencyKey,
+        signal: input.signal,
+      });
+      await input.ensureNotCancelled();
+      const result = mathpixToConversionResult(response, input.source.checksum);
+      result.providerRequestedAt = providerRequestedAt;
+      result.providerProcessedAt = new Date();
+      if (result.markdown && result.blocks.length > 0) return result;
+      if (attempt === 2) {
+        return unavailableAssignmentUnderstanding(
+          input.source.checksum,
+          'assignment-mathpix-only',
+          'understanding-failed',
+        );
+      }
+    } catch (error) {
+      if (error instanceof ConversionCancelledError
+        || error instanceof ConversionLeaseLostError
+        || input.signal?.aborted) throw error;
+      if (attempt === 2) {
+        return unavailableAssignmentUnderstanding(
+          input.source.checksum,
+          'assignment-mathpix-only',
+          'understanding-failed',
+        );
+      }
+    }
+  }
+  return unavailableAssignmentUnderstanding(
+    input.source.checksum,
+    'assignment-mathpix-only',
+    'understanding-failed',
+  );
+}
+
+function unavailableAssignmentUnderstanding(
+  sourceChecksum: string,
+  adapter: string,
+  limitation: string,
+  details: string[] = [],
+): ConversionResult {
+  return {
+    adapter,
+    adapterVersion: 'assignment-understanding.v1',
+    state: 'blocked',
+    sourceChecksum,
+    outputChecksum: null,
+    markdown: '',
+    blocks: [],
+    precision: 'page',
+    confidence: 0,
+    warnings: [],
+    limitations: [limitation, ...details.map((detail) => `policy:${detail}`)],
     providerRequestId: null,
     providerRequestedAt: null,
     providerProcessedAt: null,

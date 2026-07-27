@@ -36,6 +36,7 @@ import {
   type GradingProviderRuntime,
   type ValidatedGradingDraft,
 } from './math-document-grading-evaluator';
+import { ASSIGNMENT_ATTACHMENT_MANIFEST_VERSION } from './assignment-attachment-understanding';
 import { freezeLifecyclePolicy, gradingTombstoneLookupKey, requireConfiguredLifecyclePolicies } from './math-document-grading-lifecycle';
 
 type MathGradingDb = PrismaClient | Record<string, any>;
@@ -550,6 +551,104 @@ export async function materializeTextAnswerEvidence(input: {
   return { evidence: requestResult.value, replay: requestResult.replay };
 }
 
+export async function materializeAssignmentAnswerEvidence(input: {
+  db: MathGradingDb;
+  attemptId: string;
+  answerVersion: number;
+  normalized: NormalizedAnswerEvidence;
+  sourceManifest: Record<string, unknown>;
+  actor: PipelineActor;
+  now?: Date;
+}): Promise<EvidencePersistenceResult> {
+  const now = input.now ?? new Date();
+  const lifecycle = freezeLifecyclePolicy(
+    (await requireConfiguredLifecyclePolicies(input.db, ['answer-evidence']))
+      .find((policy: any) => policy.dataClass === 'answer-evidence'),
+    now,
+  );
+  const persist = async (db: MathGradingDb) => {
+    if (typeof db.$queryRawUnsafe === 'function') {
+      await db.$queryRawUnsafe(
+        'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))::text AS "lock"',
+        `assignment-answer-evidence:${input.attemptId}`,
+      );
+    }
+    const existing = await db.answerEvidence.findFirst({
+      where: {
+        attemptId: input.attemptId,
+        sourceHash: input.normalized.sourceHash,
+        anchorVersion: input.normalized.anchorVersion,
+      },
+      include: { blocks: true },
+    });
+    if (existing) return { evidence: existing, replay: true };
+    const latest = await db.answerEvidence.findFirst({
+      where: { attemptId: input.attemptId },
+      orderBy: { version: 'desc' },
+      select: { version: true },
+    });
+    const version = Math.max(
+      input.answerVersion,
+      (latest?.version ?? 0) + 1,
+    );
+    const evidenceId = `evidence:${input.attemptId}:${version}`;
+    const data = {
+      attemptId: input.attemptId,
+      sourceAssetId: null,
+      conversionId: null,
+      version,
+      sourceKind: input.normalized.sourceKind === 'text-native'
+        ? 'TEXT_NATIVE'
+        : 'DOCUMENT',
+      sourceHash: input.normalized.sourceHash,
+      canonicalMarkdown: input.normalized.canonicalMarkdown,
+      anchorVersion: input.normalized.anchorVersion,
+      precision: input.normalized.precision.toUpperCase(),
+      readiness: input.normalized.readiness === 'ready' ? 'READY' : 'BLOCKED',
+      limitationState: input.normalized.limitationState,
+      limitations: input.normalized.limitations,
+      sourceManifest: input.sourceManifest,
+      ...lifecycle,
+      updatedAt: now,
+    };
+    const blocks = buildPersistedAnswerEvidenceBlocks({
+      normalized: input.normalized,
+      conversionId: evidenceId,
+      evidenceId,
+      sourceHash: input.normalized.sourceHash,
+      now,
+    });
+    const evidence = await db.answerEvidence.create({
+      data: {
+        id: evidenceId,
+        ...data,
+        createdAt: now,
+        blocks: { create: nestedAnswerEvidenceBlocks(blocks) },
+      },
+      include: { blocks: true },
+    });
+    await writeGradingAudit(db, {
+      actor: input.actor,
+      action: 'answer-evidence.assignment-manifest-materialized',
+      purpose: 'answer-conversion',
+      resourceType: 'AnswerEvidence',
+      resourceId: evidence.id,
+      metadata: {
+        manifestVersion: input.sourceManifest.version,
+        limitationState: input.normalized.limitationState,
+        sourceCount: Array.isArray(input.sourceManifest.sources)
+          ? input.sourceManifest.sources.length
+          : 0,
+      },
+    });
+    return { evidence, replay: false };
+  };
+  const result = input.db.$transaction
+    ? await input.db.$transaction(persist)
+    : await persist(input.db);
+  return result;
+}
+
 export async function enqueueDocumentConversion(input: {
   db: MathGradingDb;
   assetId: string;
@@ -559,6 +658,7 @@ export async function enqueueDocumentConversion(input: {
   policyId?: string | null;
   policySnapshot?: ExternalProcessingPolicy | null;
   policySnapshotHash?: string | null;
+  allowDefaultPolicyDiscovery?: boolean;
   idempotencyKey: string;
   reason?: string;
   rerunIdentity?: string | null;
@@ -603,7 +703,7 @@ export async function enqueueDocumentConversion(input: {
   const conversionLifecycle = freezeLifecyclePolicy(lifecyclePolicies.find((policy: any) => policy.dataClass === 'document-conversion'), now);
   const mathpixEnabled = ['1', 'true', 'yes'].includes((process.env.GRADING_MATHPIX_ENABLED ?? '').trim().toLowerCase());
   const seededVersion = (process.env.GRADING_MATHPIX_POLICY_VERSION ?? process.env.MATHPIX_VERSION ?? '').trim();
-  const resolvedPolicyId = input.policyId ?? (!input.policySnapshot && mathpixEnabled && seededVersion
+  const resolvedPolicyId = input.policyId ?? (input.allowDefaultPolicyDiscovery !== false && !input.policySnapshot && mathpixEnabled && seededVersion
     ? gradingMathpixPolicyId(seededVersion, asset.mimeType.trim().toLowerCase().startsWith('image/') ? 'image' : 'document')
     : null);
   const policyRow = resolvedPolicyId
@@ -821,6 +921,9 @@ export async function retryDocumentConversion(input: {
     actor: input.actor,
     adapterVersion: conversion.adapterVersion,
     policyId: conversion.policyId,
+    policySnapshot: conversion.policySnapshot ?? null,
+    policySnapshotHash: conversion.policySnapshotHash ?? null,
+    allowDefaultPolicyDiscovery: conversion.adapterVersion !== 'assignment-understanding.v1',
     idempotencyKey: input.idempotencyKey,
     rerunIdentity,
     reason: `conversion-rerun:${rerunReason}`,
@@ -835,6 +938,7 @@ export async function processDocumentConversionJob(input: {
   store?: SubmissionObjectStore;
   mathpix?: MathpixClient;
   local?: LocalDocumentConverter;
+  persistEvidence?: boolean;
   writeRendered?: (input: { key: string; bytes: Uint8Array; mimeType: string; checksum: string; ownerId: string; answerId: string; attemptId: string; workerClaimToken: string; signal?: AbortSignal }) => Promise<string>;
   signal?: AbortSignal;
   parentLeaseLost?: () => Promise<boolean> | boolean;
@@ -912,6 +1016,7 @@ export async function processDocumentConversionJob(input: {
     policy: providerPolicy ?? policy,
     mathpix: input.mathpix,
     local: input.local,
+    assignmentResponse: job.conversion.adapterVersion === 'assignment-understanding.v1',
     now,
     isCancellationRequested: () => isConversionCancellationRequested(input.db, job.id, job.conversion.id, job, job.conversion),
     isLeaseLost: async () => {
@@ -946,7 +1051,10 @@ export async function processDocumentConversionJob(input: {
   const configuredAnswerEvidenceLifecycle = freezeLifecyclePolicy((await requireConfiguredLifecyclePolicies(input.db, ['answer-evidence'])).find((policy: any) => policy.dataClass === 'answer-evidence'), now);
   const conversion = await input.db.$transaction(async (tx: any) => {
     await updateActivePersistedRecord({ model: tx.gradingJob, id: job.id, activeStates: ['RUNNING'], fencedCode: 'conversion-worker-fenced', fallback: job, leaseToken: workerClaimToken, data: { updatedAt: now } });
-    const warningCodes = [...new Set(result.warnings)];
+    const warningCodes = [...new Set([
+      ...result.warnings,
+      ...result.limitations,
+    ])];
     const updated = await updateActivePersistedRecord({
       model: tx.documentConversion,
       id: job.conversion.id,
@@ -961,6 +1069,7 @@ export async function processDocumentConversionJob(input: {
         sourceChecksum: result.sourceChecksum,
         outputChecksum: result.outputChecksum,
         canonicalMarkdown: result.markdown || null,
+        normalizedBlocks: normalized.blocks,
         renderedObjectKey,
         renderedChecksum,
         precision: result.precision.toUpperCase(),
@@ -980,7 +1089,9 @@ export async function processDocumentConversionJob(input: {
       data: warningCodes.map((code) => ({ conversionId: updated.id, code, detail: null, severity: result.state === 'blocked' ? 'blocked' : 'warning' })),
       skipDuplicates: true,
     });
-    const existingEvidence = await tx.answerEvidence.findFirst({ where: { conversionId: updated.id } });
+    const existingEvidence = input.persistEvidence === false
+      ? null
+      : await tx.answerEvidence.findFirst({ where: { conversionId: updated.id } });
     const answerEvidenceLifecycle = existingEvidence?.lifecyclePolicyId && existingEvidence.lifecyclePolicyVersion && existingEvidence.lifecycleDeleteStrategy
       ? {
         lifecyclePolicyId: existingEvidence.lifecyclePolicyId,
@@ -1010,8 +1121,10 @@ export async function processDocumentConversionJob(input: {
     };
     const evidenceId = existingEvidence?.id ?? `evidence:${updated.attemptId}:conversion:${updated.version}`;
     const persistedBlocks = buildPersistedAnswerEvidenceBlocks({ normalized, conversionId: updated.id, evidenceId, sourceHash: result.sourceChecksum, now });
-    let evidence;
-    if (existingEvidence) {
+    let evidence = null;
+    if (input.persistEvidence === false) {
+      evidence = null;
+    } else if (existingEvidence) {
       const refreshed = await tx.answerEvidence.update({ where: { id: existingEvidence.id }, data: evidenceData });
       if (tx.answerEvidenceBlock?.deleteMany && tx.answerEvidenceBlock?.createMany) {
         await tx.answerEvidenceBlock.deleteMany({ where: { evidenceId: existingEvidence.id } });
@@ -1024,7 +1137,7 @@ export async function processDocumentConversionJob(input: {
           id: evidenceId,
           ...evidenceData,
           createdAt: now,
-          blocks: { create: persistedBlocks },
+          blocks: { create: nestedAnswerEvidenceBlocks(persistedBlocks) },
         },
         include: { blocks: true },
       });
@@ -1125,10 +1238,17 @@ export async function enqueueGradingRun(input: {
   now?: Date;
 }): Promise<{ run: any; job: any; replay: boolean }> {
   const now = input.now ?? new Date();
-  const row = await input.db.answerEvidence.findUnique({ where: { id: input.evidenceId }, include: { blocks: true, attempt: { include: { answer: { include: { submission: { include: { audience: { select: { classId: true, class: { select: { teacherId: true } } } } } }, question: true } } } } } });
+  const row = await input.db.answerEvidence.findUnique({ where: { id: input.evidenceId }, include: { blocks: true, conversion: { select: { adapter: true } }, attempt: { include: { answer: { include: { assets: { select: { id: true } }, submission: { include: { audience: { select: { classId: true, class: { select: { teacherId: true } } } } } }, question: true } } } } } });
   if (!row || row.attemptId !== input.attemptId) throw new Error('grading-evidence-not-found');
   if (row.attemptId === null || !row.attempt?.answer || !row.attempt.answer.submission || !row.attempt.answer.question || !row.attempt.answer.submission.audience?.class || !row.attempt.answer.submission.frozenAudienceClassId || !row.attempt.answer.question.assignmentRevisionId) throw new Error('grading-content-unavailable:association-missing');
   if (row.readiness !== 'READY') throw new Error('grading-evidence-not-ready');
+  if (row.conversion && ['local-fallback', 'local-markitdown'].includes(row.conversion.adapter)) {
+    throw new Error('grading-evidence-legacy-local-binary-ineligible');
+  }
+  if (row.attempt.answer.assets.length > 0
+    && row.anchorVersion !== ASSIGNMENT_ATTACHMENT_MANIFEST_VERSION) {
+    throw new Error('grading-evidence-assignment-aggregate-required');
+  }
   const classId = row.attempt.answer.submission.frozenAudienceClassId;
   if (row.attempt.answer.submission.audience.classId !== classId) throw new Error('grading-class-binding-invalid');
   await assertPipelineActorScope({
@@ -1223,6 +1343,10 @@ export async function enqueueGradingRun(input: {
           questionSnapshot: question,
           rubricSnapshot: question.rubric,
           referenceAnswer: question.referenceAnswer,
+          evidenceState: row.limitationState === 'evidence-incomplete'
+            ? 'EVIDENCE_INCOMPLETE'
+            : 'COMPLETE',
+          limitations: row.limitations,
           state: 'QUEUED',
           ...runLifecycle,
           createdAt: now,
@@ -1340,7 +1464,17 @@ export async function processGradingRunJob(input: {
   const providerPolicy = run.policyId
     ? await resolveWorkerGradingProviderPolicy({ db: input.db, policyId: run.policyId, snapshot: run.policySnapshot, snapshotHash: run.policySnapshotHash, fallbackPolicy: run.policy, expectedPurpose: 'rubric-grading' })
     : policy;
-  const draft = await evaluateWithProvider({ question, evidence, classId: run.answerAttempt.answer.submission.frozenAudienceClassId, policy: providerPolicy, provider: input.provider, idempotencyKey: sha256(`grading:${run.id}:${run.evaluatorVersion}`), signal: leaseAbortController.signal });
+  const providerDraft = await evaluateWithProvider({ question, evidence, classId: run.answerAttempt.answer.submission.frozenAudienceClassId, policy: providerPolicy, provider: input.provider, idempotencyKey: sha256(`grading:${run.id}:${run.evaluatorVersion}`), signal: leaseAbortController.signal });
+  const draft = {
+    ...providerDraft,
+    limitations: [...new Set([
+      ...evidence.limitations,
+      ...providerDraft.limitations,
+      ...(run.evidenceState === 'EVIDENCE_INCOMPLETE'
+        ? ['evidence-incomplete']
+        : []),
+    ])],
+  };
   if (input.parentLeaseLost && await input.parentLeaseLost()) throw new Error('grading-worker-fenced');
   await assertGradingJobLease({ db: input.db, jobId: job.id, workerClaimToken, heartbeat: leaseHeartbeat, now });
   const updated = await input.db.$transaction(async (tx: any) => {
@@ -1544,7 +1678,24 @@ export function evidenceFromRow(row: any): NormalizedAnswerEvidence {
     readiness: row.readiness === 'READY' ? 'ready' : 'blocked',
     limitationState: row.limitationState,
     limitations: row.limitations,
-    blocks: row.blocks.map((block: any) => ({ id: block.id.includes(':') ? block.id.split(':').pop() : block.id, blockIndex: block.blockIndex, pageNumber: block.pageNumber, text: block.text, markdown: block.markdown, spanStart: block.spanStart, spanEnd: block.spanEnd, bbox: block.bbox, coordinateProvenance: block.coordinateProvenance ?? null, precision: String(block.precision).toLowerCase(), confidence: block.confidence })),
+    blocks: row.blocks.map((block: any) => ({
+      id: row.anchorVersion === ASSIGNMENT_ATTACHMENT_MANIFEST_VERSION
+        && block.id.startsWith(`${row.id}:`)
+        ? block.id.slice(row.id.length + 1)
+        : block.id.includes(':')
+          ? block.id.split(':').pop()
+          : block.id,
+      blockIndex: block.blockIndex,
+      pageNumber: block.pageNumber,
+      text: block.text,
+      markdown: block.markdown,
+      spanStart: block.spanStart,
+      spanEnd: block.spanEnd,
+      bbox: block.bbox,
+      coordinateProvenance: block.coordinateProvenance ?? null,
+      precision: String(block.precision).toLowerCase(),
+      confidence: block.confidence,
+    })),
   };
 }
 
@@ -1565,6 +1716,12 @@ export function buildPersistedAnswerEvidenceBlocks(input: { normalized: Normaliz
     sourceHash: input.sourceHash,
     createdAt: input.now,
   }));
+}
+
+function nestedAnswerEvidenceBlocks(
+  blocks: ReturnType<typeof buildPersistedAnswerEvidenceBlocks>,
+) {
+  return blocks.map(({ evidenceId: _evidenceId, ...block }) => block);
 }
 
 async function createJob(db: MathGradingDb, input: { kind: 'CONVERSION' | 'GRADING' | 'BATCH' | 'RETRY' | 'RERUN'; dedupeKey: string; idempotencyKey?: string | null; reason?: string | null; rerunIdentity?: string | null; attemptId?: string; conversionId?: string; batchId?: string; batchItemId?: string; gradingRunId?: string; policyId?: string | null; correlationId: string; now: Date }) {

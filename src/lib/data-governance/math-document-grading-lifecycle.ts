@@ -195,6 +195,17 @@ export interface ResolvedGradingLineage {
   classId?: string;
 }
 
+function sourceManifestAssetIds(sourceManifest: unknown): string[] {
+  if (!sourceManifest || typeof sourceManifest !== 'object' || Array.isArray(sourceManifest)) return [];
+  const sources = (sourceManifest as { sources?: unknown }).sources;
+  if (!Array.isArray(sources)) return [];
+  return [...new Set(sources.flatMap((source) => {
+    if (!source || typeof source !== 'object' || Array.isArray(source)) return [];
+    const assetId = (source as { assetId?: unknown }).assetId;
+    return typeof assetId === 'string' && assetId.trim() ? [assetId] : [];
+  }))];
+}
+
 export function pseudonymizeGradingLineage(value: string, field = 'resource'): string {
   return pseudonymousAuditId(`${field}:${value}`, `grading-lineage:${field}`);
 }
@@ -355,6 +366,9 @@ export async function resolveGradingLineage(input: { db: MathGradingDb; resource
   }
 
   add('asset', assetId);
+  for (const manifestAssetId of sourceManifestAssetIds(evidence?.sourceManifest ?? resource.sourceManifest)) {
+    add('asset', manifestAssetId);
+  }
   add('attempt', attemptId);
   add('answer', answerId);
   add('assignment-revision', assignmentRevisionId);
@@ -1182,14 +1196,51 @@ export async function blockLifecycleAssociationsForResource(input: {
     assetConversionIds = input.db.documentConversion?.findMany
       ? (await input.db.documentConversion.findMany({ where: { assetId: input.resourceId }, select: { id: true } })).map((row: any) => row.id)
       : [];
-    assetEvidenceIds = input.db.answerEvidence?.findMany
+    const directAssetEvidenceIds = input.db.answerEvidence?.findMany
       ? (await input.db.answerEvidence.findMany({ where: { sourceAssetId: input.resourceId }, select: { id: true } })).map((row: any) => row.id)
       : [];
+    const aggregateAssetEvidenceIds = input.db.answerEvidence?.findMany
+      ? (await input.db.answerEvidence.findMany({
+          where: {
+            sourceManifest: {
+              path: ['sources'],
+              array_contains: [{ assetId: input.resourceId }],
+            },
+          },
+          select: { id: true },
+        })).map((row: any) => row.id)
+      : [];
+    assetEvidenceIds = [...new Set([...directAssetEvidenceIds, ...aggregateAssetEvidenceIds])];
     relatedConversionIds = assetConversionIds;
     relatedEvidenceIds = assetEvidenceIds;
     relatedRunIds = assetEvidenceIds.length > 0 && input.db.gradingRun?.findMany
       ? (await input.db.gradingRun.findMany({ where: { answerEvidenceId: { in: assetEvidenceIds } }, select: { id: true } })).map((row: any) => row.id)
       : [];
+    if (assetEvidenceIds.length > 0 && input.db.answerEvidence?.updateMany) {
+      await input.db.answerEvidence.updateMany({
+        where: { id: { in: assetEvidenceIds } },
+        data: {
+          readiness: 'BLOCKED',
+          lifecycleBlockedAt: input.now,
+          lifecycleBlockReason: input.reason,
+          updatedAt: input.now,
+        },
+      });
+    }
+    if (relatedRunIds.length > 0 && input.db.gradingRun?.updateMany) {
+      await input.db.gradingRun.updateMany({
+        where: {
+          id: { in: relatedRunIds },
+          state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE', 'AWAITING_REVIEW'] },
+        },
+        data: {
+          state: 'BLOCKED',
+          lifecycleBlockedAt: input.now,
+          lifecycleBlockReason: input.reason,
+          updatedAt: input.now,
+        },
+      });
+    }
   }
   if (!itemRelation && input.resourceType !== 'SubmissionAsset') return;
   const itemRelations: Array<Record<string, unknown>> = [];

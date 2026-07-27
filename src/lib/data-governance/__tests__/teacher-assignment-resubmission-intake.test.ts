@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const persistence = vi.hoisted(() => ({
   enqueueDocumentConversion: vi.fn(),
   enqueueGradingRun: vi.fn(),
+  materializeAssignmentAnswerEvidence: vi.fn(),
   materializeTextAnswerEvidence: vi.fn(),
 }));
 
@@ -140,9 +141,10 @@ describe('teacher assignment resubmission intake', () => {
   });
 
   it.each([
-    ['image/png', 'asset-image'],
-    ['application/pdf', 'asset-pdf'],
-  ])('reselects conversion policy from the new %s asset instead of inheriting the old policy', async (mimeType, assetId) => {
+    ['image/png', 'asset-image', 'grading-provider:mathpix:v2:image', ':image'],
+    ['application/pdf', 'asset-pdf', 'grading-provider:mathpix:v2:document', ':document'],
+    ['text/markdown', 'asset-markdown', null, null],
+  ])('uses governed assignment understanding for the new %s asset instead of inheriting the old policy', async (mimeType, assetId, expectedPolicyId, expectedSuffix) => {
     const now = new Date('2026-07-17T03:00:00.000Z');
     let claimToken: string | null = null;
     const updateMany = vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
@@ -158,7 +160,11 @@ describe('teacher assignment resubmission intake', () => {
         findUnique: vi.fn(async () => ({
           id: `intake-${assetId}`, attemptId: 'attempt-new', state: 'PROCESSING', claimToken,
           grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-1' },
-          attempt: { answer: { responseType: 'SUBJECTIVE_FILE', assets: [{ id: assetId, mimeType }] } },
+          attempt: { answer: {
+            responseType: 'SUBJECTIVE_FILE',
+            submission: { frozenAudienceClassId: 'class-1' },
+            assets: [{ id: assetId, mimeType }],
+          } },
           sourceGradingRun: {
             policyId: 'grading-policy-1',
             answerEvidence: { conversion: { adapterVersion: 'mathpix.v1', policyId: 'old-opposite-mime-policy' } },
@@ -167,6 +173,11 @@ describe('teacher assignment resubmission intake', () => {
       },
       answerEvidence: { findFirst: vi.fn().mockResolvedValue(null) },
       documentConversion: { findFirst: vi.fn().mockResolvedValue(null) },
+      gradingProviderPolicy: {
+        findFirst: vi.fn().mockImplementation(async ({ where }: { where: { id: { endsWith: string } } }) => ({
+          id: `grading-provider:mathpix:v2${where.id.endsWith}`,
+        })),
+      },
     };
     persistence.enqueueDocumentConversion.mockResolvedValue({ conversion: { id: 'conversion-new' } });
 
@@ -176,9 +187,27 @@ describe('teacher assignment resubmission intake', () => {
     expect(persistence.enqueueDocumentConversion).toHaveBeenCalledWith(expect.objectContaining({
       assetId,
       attemptId: 'attempt-new',
-      adapterVersion: 'mathpix.v1',
+      adapterVersion: 'assignment-understanding.v1',
+      policyId: expectedPolicyId,
+      allowDefaultPolicyDiscovery: false,
     }));
-    expect(persistence.enqueueDocumentConversion.mock.calls[0]?.[0]).not.toHaveProperty('policyId');
+    if (expectedSuffix) {
+      expect(db.gradingProviderPolicy.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          provider: 'mathpix',
+          purpose: 'answer-conversion',
+          enabled: true,
+          disabledAt: null,
+          OR: [
+            { classScope: { has: '*' } },
+            { classScope: { has: 'class-1' } },
+          ],
+          id: { endsWith: expectedSuffix },
+        }),
+      }));
+    } else {
+      expect(db.gradingProviderPolicy.findFirst).not.toHaveBeenCalled();
+    }
   });
 
   it('uses governed router lineage when legacy source evidence has no conversion', async () => {
@@ -196,20 +225,29 @@ describe('teacher assignment resubmission intake', () => {
         findUnique: vi.fn(async () => ({
           id: 'intake-legacy', attemptId: 'attempt-new', state: 'PROCESSING', claimToken,
           grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-legacy' },
-          attempt: { answer: { responseType: 'SUBJECTIVE_FILE', assets: [{ id: 'asset-new', mimeType: 'application/pdf' }] } },
+          attempt: { answer: {
+            responseType: 'SUBJECTIVE_FILE',
+            submission: { frozenAudienceClassId: 'class-1' },
+            assets: [{ id: 'asset-new', mimeType: 'application/pdf' }],
+          } },
           sourceGradingRun: { policyId: 'grading-policy-1', answerEvidence: null },
         })),
       },
       answerEvidence: { findFirst: vi.fn().mockResolvedValue(null) },
       documentConversion: { findFirst: vi.fn().mockResolvedValue(null) },
+      gradingProviderPolicy: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'grading-provider:mathpix:v2:document' }),
+      },
     };
     persistence.enqueueDocumentConversion.mockResolvedValue({ conversion: { id: 'conversion-new' } });
 
     await expect(drainTeacherAssignmentResubmissionIntakes({ db, now: () => now })).resolves.toMatchObject({ waiting: 1, blocked: 0 });
     expect(persistence.enqueueDocumentConversion).toHaveBeenCalledWith(expect.objectContaining({
-      assetId: 'asset-new', adapterVersion: 'router.v1',
+      assetId: 'asset-new',
+      adapterVersion: 'assignment-understanding.v1',
+      policyId: 'grading-provider:mathpix:v2:document',
+      allowDefaultPolicyDiscovery: false,
     }));
-    expect(persistence.enqueueDocumentConversion.mock.calls[0]?.[0]).not.toHaveProperty('policyId');
   });
 
   it('routes an attachment-only resubmission by attempt content even for a legacy text answer', async () => {
@@ -229,13 +267,20 @@ describe('teacher assignment resubmission intake', () => {
           grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-1' },
           attempt: {
             textSnapshot: null,
-            answer: { responseType: 'SUBJECTIVE_TEXT', assets: [{ id: 'asset-new', mimeType: 'application/pdf' }] },
+            answer: {
+              responseType: 'SUBJECTIVE_TEXT',
+              submission: { frozenAudienceClassId: 'class-1' },
+              assets: [{ id: 'asset-new', mimeType: 'application/pdf' }],
+            },
           },
           sourceGradingRun: { policyId: 'grading-policy-1', answerEvidence: null },
         })),
       },
       answerEvidence: { findFirst: vi.fn().mockResolvedValue(null) },
       documentConversion: { findFirst: vi.fn().mockResolvedValue(null) },
+      gradingProviderPolicy: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'grading-provider:mathpix:v2:document' }),
+      },
     };
 
     await expect(drainTeacherAssignmentResubmissionIntakes({ db, now: () => now }))
@@ -283,6 +328,79 @@ describe('teacher assignment resubmission intake', () => {
     expect(persistence.enqueueDocumentConversion).not.toHaveBeenCalled();
     expect(persistence.enqueueGradingRun).toHaveBeenCalledWith(expect.objectContaining({
       evidenceId: 'text-evidence',
+    }));
+  });
+
+  it('materializes aggregate v2 evidence before grading an attachment resubmission', async () => {
+    const now = new Date('2026-07-17T03:00:00.000Z');
+    let claimToken: string | null = null;
+    const asset = {
+      id: 'asset-resubmitted',
+      mimeType: 'application/pdf',
+      originalName: 'answer.pdf',
+      checksum: 'sha256:resubmitted',
+      orderIndex: 0,
+      assetRole: 'ATTACHMENT',
+    };
+    const db = {
+      teacherAssignmentResubmissionIntake: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce({ id: 'intake-aggregate', attemptId: 'attempt-new', state: 'PENDING', availableAt: now, createdAt: now, attemptCount: 0 })
+          .mockResolvedValueOnce(null),
+        updateMany: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
+          if (data.state === 'PROCESSING') claimToken = String(data.claimToken);
+          return { count: 1 };
+        }),
+        findUnique: vi.fn(async () => ({
+          id: 'intake-aggregate', attemptId: 'attempt-new', state: 'PROCESSING', claimToken,
+          grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-1' },
+          attempt: {
+            answerVersion: 2,
+            textSnapshot: 'resubmitted explanation',
+            answer: { responseType: 'SUBJECTIVE_FILE', assets: [asset] },
+          },
+          sourceGradingRun: { policyId: 'grading-policy-1', policySnapshot: null, policySnapshotHash: null, answerEvidence: null },
+        })),
+      },
+      answerEvidence: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      documentConversion: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'conversion-resubmitted',
+          adapter: 'mathpix',
+          adapterVersion: 'assignment-understanding.v1',
+          state: 'SUCCEEDED',
+          canonicalMarkdown: 'converted answer',
+          normalizedBlocks: [{ id: 'page-1', blockIndex: 0, pageNumber: 1, text: 'converted answer', precision: 'page' }],
+          warningCodes: [],
+          failureCode: null,
+        }),
+      },
+    };
+    persistence.materializeAssignmentAnswerEvidence.mockResolvedValue({
+      evidence: { id: 'aggregate-v2', readiness: 'READY', anchorVersion: 'assignment-answer-evidence.v2' },
+    });
+    persistence.enqueueGradingRun.mockResolvedValue({ gradingRun: { id: 'run-new' } });
+
+    await expect(drainTeacherAssignmentResubmissionIntakes({ db, now: () => now }))
+      .resolves.toMatchObject({ queued: 1, blocked: 0, retryable: 0 });
+
+    expect(db.answerEvidence.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        attemptId: 'attempt-new',
+        anchorVersion: 'assignment-answer-evidence.v2',
+      }),
+    }));
+    expect(persistence.materializeAssignmentAnswerEvidence).toHaveBeenCalledWith(expect.objectContaining({
+      attemptId: 'attempt-new',
+      answerVersion: 2,
+      sourceManifest: expect.objectContaining({
+        version: 'assignment-answer-evidence.v2',
+      }),
+    }));
+    expect(persistence.enqueueGradingRun).toHaveBeenCalledWith(expect.objectContaining({
+      evidenceId: 'aggregate-v2',
     }));
   });
 });
