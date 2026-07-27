@@ -282,6 +282,18 @@ async function seedGovernedRevisionProposal(page: Page, taskId: string, scenario
     const agentSession = candidateSessions.find((candidate) =>
       recordValue(recordValue(candidate.stateJson).smartPrepBinding).taskId === taskId);
     if (!agentSession?.konlingSessionId) throw new Error('structured-action-agent-session-not-found');
+    const sourceToolRun = await prisma.agentToolRun.findFirst({
+      where: {
+        agentSessionId: agentSession.id,
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    const sourceProposedTask = recordValue(recordValue(sourceToolRun?.inputSummary).proposedTask);
+    if (!sourceToolRun || Object.keys(sourceProposedTask).length === 0) {
+      throw new Error('structured-action-source-proposal-not-found');
+    }
     const scope = {
       authenticatedUserId: teacherId,
       targetUserId: teacherId,
@@ -299,25 +311,13 @@ async function seedGovernedRevisionProposal(page: Page, taskId: string, scenario
     const now = new Date();
     const sessionState = recordValue(agentSession.stateJson);
     const proposedTask = {
-      courseBasisId: stringValue(task.courseBasisId),
-      topic: stringValue(task.topic),
-      audience: stringValue(task.audience),
+      ...sourceProposedTask,
       prerequisites: scenario === 'ignore'
         ? '传递函数与复数基础'
-        : stringValue(task.prerequisites),
-      durationMinutes: scenario === 'conflict' ? 60 : Number(task.durationMinutes),
-      outlineConfirmationRequired: task.outlineConfirmationRequired === true,
-      sourceVersionIds: Array.isArray(task.sources)
-        ? task.sources
-            .map((source) => recordValue(source).sourceVersionId)
-            .filter((value): value is string => typeof value === 'string')
-        : [],
-      textbookRanges: Array.isArray(task.textbookRanges) ? task.textbookRanges : [],
-      selectedClassId: typeof task.selectedClassId === 'string' ? task.selectedClassId : null,
-      knowledgePoints: Array.isArray(task.knowledgePoints) ? task.knowledgePoints : [],
-      goals: Array.isArray(task.goals) ? task.goals : [],
-      confirmScope: Boolean(task.scopeConfirmedAt),
-      confirmGoals: Boolean(task.goalsConfirmedAt),
+        : stringValue(sourceProposedTask.prerequisites),
+      durationMinutes: scenario === 'conflict'
+        ? 60
+        : Number(sourceProposedTask.durationMinutes),
     };
     const expectedRevision = Number(task.revision);
     updateTaskSchema.parse({
