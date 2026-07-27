@@ -5,7 +5,10 @@ import { describe, expect, it } from 'vitest';
 import {
   applyGeneratedRubricGuidelines,
   assignmentNextAction,
+  deriveAssignmentTotal,
   EMPTY_ASSIGNMENT_DRAFT,
+  governedQuestionMetadataLabel,
+  synchronizeAssignmentTotal,
 } from '../assignment-ui-contracts';
 
 const source = (file: string) => readFileSync(path.join(process.cwd(), file), 'utf8');
@@ -34,7 +37,12 @@ describe('teacher assignment workspace contracts', () => {
     expect(text).toContain('id="answer-title"');
     expect(text).toContain('id="rubric-title"');
     expect(text).toContain('status === 409');
-    expect(text).toContain('blockerRef.current?.focus()');
+    expect(text).toContain('validationFieldRefs.current.get');
+    expect(text).toContain('grid-cols-[13rem_minmax(0,1fr)]');
+    expect(text).toContain('AssignmentEmbeddedEditor');
+    expect(text).toContain('学生视图预览');
+    expect(text).toContain('markdown={entry.prompt}');
+    expect(text).toContain('RuntimeMarkdownContent');
   });
 
   it('keeps catalog list projection teacher-safe and supports all seven governed filters', () => {
@@ -43,7 +51,9 @@ describe('teacher assignment workspace contracts', () => {
     const picker = source('src/features/assignment-authoring/governed-question-picker.tsx');
     expect(safeListProjection).not.toContain('answerKey: item.questionRefs.answerKey');
     expect(safeListProjection).not.toContain('feedbackGuidance');
-    for (const label of ['来源', '题型', '知识点', '难度', '审核', '评分标准', '版本']) expect(picker).toContain(`['${label}'`);
+    for (const label of ['来源', '题型', '知识点', '难度', '审核', '评分标准', '版本']) {
+      expect(picker).toContain(`'${label}'`);
+    }
   });
 
   it('materializes catalog selections server-side and exposes complete policy and rubric controls', () => {
@@ -91,14 +101,51 @@ describe('teacher assignment workspace contracts', () => {
       editor.indexOf('作业总分'),
       editor.indexOf('发布班级'),
     );
-    expect(totalScoreControl).toContain('step="0.1"');
-    expect(totalScoreControl).toContain('min="0.1"');
+    expect(totalScoreControl).toContain('<output aria-label="作业总分">');
+    expect(totalScoreControl).toContain('deriveAssignmentTotal');
+    expect(totalScoreControl).not.toContain('<input');
     expect(editor).toContain('max={criterion.maxPoints}');
     expect(editor).toContain('validationFieldRefs.current.get(path)');
     expect(editor).toContain('aria-describedby="assignment-validation-errors"');
     expect(editor).toContain("setPublishMessage('发布请求失败，请检查网络后重试。')");
     expect(editor).toContain('finally {');
     expect(editor).toContain("disabled={published || publishing || saveState !== 'saved'}");
+  });
+
+  it('derives the persisted total from question points and fails closed for unknown metadata', () => {
+    const questions = [
+      { points: 2.3 },
+      { points: 4.2 },
+    ] as unknown as Parameters<typeof deriveAssignmentTotal>[0];
+    expect(deriveAssignmentTotal(questions)).toBe(6.5);
+    expect(
+      synchronizeAssignmentTotal({
+        ...EMPTY_ASSIGNMENT_DRAFT,
+        questions,
+      }).totalPoints,
+    ).toBe(6.5);
+    expect(governedQuestionMetadataLabel('source', 'acq-static-question'))
+      .toBe('自适应评估题库');
+    expect(governedQuestionMetadataLabel('source', 'checkpoint-authored-question'))
+      .toBe('学习检查点题库');
+    expect(governedQuestionMetadataLabel('source', 'icourse-objective-bank'))
+      .toBe('爱课程客观题库');
+    expect(governedQuestionMetadataLabel('source', 'preset-adaptive-question'))
+      .toBe('预设自适应题库');
+    expect(governedQuestionMetadataLabel('questionType', 'choice'))
+      .toBe('选择题');
+    expect(governedQuestionMetadataLabel('reviewState', 'path-eligible'))
+      .toBe('已通过路径审核');
+    expect(governedQuestionMetadataLabel('rubricReadiness', 'ready'))
+      .toBe('评分已就绪');
+    expect(governedQuestionMetadataLabel('version', 'catalog-v1'))
+      .toBe('版本 catalog-v1');
+    expect(() =>
+      governedQuestionMetadataLabel('reviewState', 'internal-state'),
+    ).toThrow('unmapped-governed-question-metadata');
+    expect(() =>
+      governedQuestionMetadataLabel('source', 'unknown-question-source'),
+    ).toThrow('unmapped-governed-question-metadata');
   });
 
   it('preserves focus on successful autosave and provides recoverable governed pickers', () => {
@@ -110,6 +157,16 @@ describe('teacher assignment workspace contracts', () => {
     expect(editor).not.toContain('班级 ID');
     expect(picker).toContain('const selected = await onSelect(item)');
     expect(picker).toContain('题库题目载入失败，请重试。');
+  });
+
+  it('wires protected teacher images to stable assignment asset markers', () => {
+    const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
+    expect(editor).toContain('/content-assets/upload-sign');
+    expect(editor).toContain('/content-assets/${signed.assetId}/complete');
+    expect(editor).toContain('uploadImage={uploadImage}');
+    expect(editor).toContain('validateTeacherAuthoringAssetReference');
+    expect(editor).toContain('/api/assignments/${encodeURIComponent(assignmentId)}/content-assets/');
+    expect(editor).not.toContain('rejectTeacherAuthoringAssetReference');
   });
 
   it('atomically replaces only the generated guidelines for the exact current level set', () => {

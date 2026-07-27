@@ -231,6 +231,91 @@ export const assignmentDraftSchema = z.object({
 
 export type AssignmentDraftInput = z.infer<typeof assignmentDraftSchema>;
 
+const draftText = (max: number) => z.string().trim().max(max);
+const draftPoints = z.number().finite().min(0).max(10_000)
+  .refine(hasAtMostTwoDecimals, 'score-must-use-0.01-quantum');
+const draftRubricLevelV2Schema = z.object({
+  id: boundedText(80),
+  label: draftText(120),
+  maxPoints: z.number().finite().min(0).max(10_000)
+    .refine(hasAtMostOneDecimal, 'score-must-use-0.1-quantum'),
+  guideline: draftText(2_000),
+}).strict();
+const draftRubricCriterionV2Schema = z.object({
+  id: boundedText(80),
+  label: draftText(160),
+  goalDimension: rubricGoalDimension.optional(),
+  maxPoints: z.number().finite().min(0).max(10_000)
+    .refine(hasAtMostOneDecimal, 'score-must-use-0.1-quantum'),
+  scoringStandard: draftText(2_000),
+  detailedRubricEnabled: z.boolean(),
+  evidenceDescription: draftText(2_000).optional(),
+  feedbackGuidance: draftText(2_000).optional(),
+  studentVisibleGuidance: draftText(2_000).optional(),
+  levels: z.array(draftRubricLevelV2Schema).max(ASSIGNMENT_LIMITS.levels),
+}).strict();
+const draftScoringRubricV2Schema = z.object({
+  schemaVersion: z.literal('assignment-scoring-rubric.v2'),
+  criteria: z.array(draftRubricCriterionV2Schema).max(ASSIGNMENT_LIMITS.criteria),
+}).strict();
+
+export const draftQuestionPersistenceSchema = questionSnapshotSchema.extend({
+  points: draftPoints,
+  prompt: draftText(ASSIGNMENT_LIMITS.prompt),
+  referenceAnswer: draftText(ASSIGNMENT_LIMITS.answer),
+  rubric: z.union([legacyAnalyticRubricSchema, draftScoringRubricV2Schema]),
+});
+
+export const assignmentDraftPersistenceSchema = z.object({
+    title: draftText(ASSIGNMENT_LIMITS.title),
+    instructions: z.string().max(ASSIGNMENT_LIMITS.instructions),
+    totalPoints: draftPoints,
+    questions: z.array(draftQuestionPersistenceSchema).max(ASSIGNMENT_LIMITS.questions),
+    latePolicy: latePolicySchema,
+    responsePolicy: responsePolicySchema,
+    resubmissionPolicy: resubmissionPolicySchema,
+    solutionReleasePolicy: solutionReleasePolicySchema,
+  })
+  .strict()
+  .superRefine((draft, ctx) => {
+    const questionIds = new Set<string>();
+    for (const [questionIndex, question] of draft.questions.entries()) {
+      if (questionIds.has(question.stableQuestionId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['questions', questionIndex, 'stableQuestionId'],
+          message: 'duplicate-stable-question-id',
+        });
+      }
+      questionIds.add(question.stableQuestionId);
+      if (question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2') continue;
+      const criterionIds = new Set<string>();
+      for (const [criterionIndex, criterion] of question.rubric.criteria.entries()) {
+        if (criterionIds.has(criterion.id)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['questions', questionIndex, 'rubric', 'criteria', criterionIndex, 'id'],
+            message: 'duplicate-criterion-id',
+          });
+        }
+        criterionIds.add(criterion.id);
+        const levelIds = new Set<string>();
+        for (const [levelIndex, level] of criterion.levels.entries()) {
+          if (levelIds.has(level.id)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['questions', questionIndex, 'rubric', 'criteria', criterionIndex, 'levels', levelIndex, 'id'],
+              message: 'duplicate-level-id',
+            });
+          }
+          levelIds.add(level.id);
+        }
+      }
+    }
+  });
+
+export type AssignmentDraftPersistenceInput = z.infer<typeof assignmentDraftPersistenceSchema>;
+
 export interface AssignmentRevisionRecord extends AssignmentDraftInput {
   id: string;
   assignmentId: string;
@@ -310,6 +395,13 @@ export function verifyCatalogSelectionIdentity(identity: CatalogSelectionIdentit
 
 export function createQuestionSnapshot(input: z.input<typeof questionSnapshotSchema>): AssignmentQuestionSnapshot {
   const parsed = questionSnapshotSchema.parse(input);
+  return deepFreeze({ ...structuredClone(parsed), contentHash: stableHash(parsed) });
+}
+
+export function createDraftQuestionSnapshot(
+  input: z.input<typeof draftQuestionPersistenceSchema>,
+): AssignmentQuestionSnapshot {
+  const parsed = draftQuestionPersistenceSchema.parse(input);
   return deepFreeze({ ...structuredClone(parsed), contentHash: stableHash(parsed) });
 }
 

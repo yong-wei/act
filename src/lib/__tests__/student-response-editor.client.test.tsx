@@ -79,7 +79,7 @@ describe('student response editor interactions', () => {
             id: 'question-1',
             stableQuestionId: 'stable-1',
             orderIndex: 0,
-            promptText: '说明证据。',
+            promptText: '说明证据。\n\n![题图](/api/assignments/assignment-1/content-assets/prompt-1 "asset:prompt-1")',
             responseType: 'SUBJECTIVE_FILE',
             points: 10,
             state: 'DRAFT',
@@ -128,6 +128,10 @@ describe('student response editor interactions', () => {
 
     expect(container.querySelector('#answer-question-1')?.getAttribute('tabindex'))
       .toBe('-1');
+    expect(getByRole(container, 'heading', { level: 2 }).textContent)
+      .toContain('说明证据');
+    expect(getByRole(container, 'img', { name: '题图' }).getAttribute('src'))
+      .toBe('/api/assignments/assignment-1/content-assets/prompt-1');
     expect(container.querySelector('#upload-terminal-1')?.textContent)
       .not.toContain('重试');
     await act(async () => {

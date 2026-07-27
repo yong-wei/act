@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { AssignmentDomainError, createQuestionSnapshot, signCatalogSelectionIdentity, stableHash } from '../assignments/assignment-domain';
 import { buildRubricBackedSubjectiveAssignmentFixture } from '../assignments/assignment-fixtures';
-import { assignmentPublicationIdempotencyKey, createAssignmentDraft, createNextDraftRevision, publishAssignmentRevision, updateAssignmentDraft } from '../assignments/assignment-service';
+import { assignmentPublicationIdempotencyKey, createAssignmentDraft, createNextDraftRevision, deleteDraftRevision, publishAssignmentRevision, updateAssignmentDraft } from '../assignments/assignment-service';
 
 process.env.NEXTAUTH_SECRET ??= 'assignment-test-lineage-secret';
 
@@ -40,7 +40,18 @@ function questionRow(points = 20, rubricPoints = 20, legacy = false) {
 }
 
 function dbWithTransaction(tx: Record<string, unknown>) {
-  return { $transaction: vi.fn(async (callback: (client: typeof tx) => unknown) => callback(tx)) } as never;
+  const client = {
+    assignmentContentAsset: {
+      findMany: vi.fn(async () => []),
+    },
+    assignmentRevisionAssetReference: {
+      findMany: vi.fn(async () => []),
+      deleteMany: vi.fn(async () => ({ count: 0 })),
+      createMany: vi.fn(async () => ({ count: 0 })),
+    },
+    ...tx,
+  };
+  return { $transaction: vi.fn(async (callback: (value: typeof client) => unknown) => callback(client)) } as never;
 }
 
 const lineageSecret = process.env.NEXTAUTH_SECRET ?? 'replace-with-strong-secret';
@@ -86,6 +97,61 @@ describe('assignment authoring persistence service', () => {
     await updateAssignmentDraft(dbWithTransaction(tx), { actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: 'assignment-1', revisionId: 'revision-1', expectedVersion: 1, draft: buildRubricBackedSubjectiveAssignmentFixture() });
     const rows = tx.assignmentQuestion.createMany.mock.calls[0]?.[0]?.data as Array<{ rubricSnapshot: { criteria: unknown[] } }>;
     expect(rows[0].rubricSnapshot.criteria).toHaveLength(2);
+  });
+
+  it('round-trips an incomplete bounded draft through optimistic update', async () => {
+    const fixture = buildRubricBackedSubjectiveAssignmentFixture();
+    const incomplete = {
+      ...fixture,
+      title: '',
+      totalPoints: 0,
+      questions: [{
+        ...fixture.questions[0],
+        points: 0,
+        prompt: '',
+        referenceAnswer: '',
+        rubric: {
+          schemaVersion: 'assignment-scoring-rubric.v2' as const,
+          criteria: [{
+            id: 'criterion:stable',
+            label: '',
+            maxPoints: 0,
+            scoringStandard: '',
+            detailedRubricEnabled: true,
+            levels: [{
+              id: 'level:stable',
+              label: '',
+              maxPoints: 0,
+              guideline: '',
+            }],
+          }],
+        },
+      }],
+    };
+    const tx = {
+      assignment: { findUnique: vi.fn(async () => ({ authorId: 'teacher-1', archivedAt: null })) },
+      assignmentRevision: {
+        findUnique: vi.fn(async () => ({ id: 'revision-1', assignmentId: 'assignment-1', state: 'DRAFT', frozenAt: null })),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+        findUniqueOrThrow: vi.fn(async () => ({ id: 'revision-1', title: '', totalPoints: 0 })),
+      },
+      assignmentQuestion: { deleteMany: vi.fn(), createMany: vi.fn() },
+    };
+    await expect(updateAssignmentDraft(dbWithTransaction(tx), {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: 'assignment-1',
+      revisionId: 'revision-1',
+      expectedVersion: 1,
+      draft: incomplete,
+    })).resolves.toMatchObject({ title: '', totalPoints: 0 });
+    expect(tx.assignmentQuestion.createMany).toHaveBeenCalledWith({
+      data: [expect.objectContaining({
+        stableQuestionId: fixture.questions[0].stableQuestionId,
+        points: 0,
+        promptSnapshot: { text: '' },
+        answerSnapshot: { text: '' },
+      })],
+    });
   });
 
   it('rejects mutation of a frozen published revision', async () => {
@@ -262,6 +328,14 @@ describe('assignment authoring persistence service', () => {
           .mockResolvedValueOnce(latest),
         create: vi.fn(async (input) => ({ id: 'revision-2', ...input.data })),
       },
+      assignmentRevisionAssetReference: {
+        findMany: vi.fn(async () => [{
+          assetId: 'asset-published',
+          stableQuestionId: 'control-correction-analysis',
+          field: 'PROMPT',
+        }]),
+        createMany: vi.fn(async () => ({ count: 1 })),
+      },
     };
     await createNextDraftRevision(dbWithTransaction(tx), {
       actor: { id: 'teacher-1', role: 'TEACHER' },
@@ -270,6 +344,14 @@ describe('assignment authoring persistence service', () => {
     const created = tx.assignmentRevision.create.mock.calls[0][0].data;
     expect(created.questions.create[0].rubricSnapshot.schemaVersion).toBe('assignment-scoring-rubric.v2');
     expect(publishedQuestion.rubricSnapshot.schemaVersion).toBe('assignment-analytic-rubric.v1');
+    expect(tx.assignmentRevisionAssetReference.createMany).toHaveBeenCalledWith({
+      data: [{
+        revisionId: 'revision-2',
+        assetId: 'asset-published',
+        stableQuestionId: 'control-correction-analysis',
+        field: 'PROMPT',
+      }],
+    });
   });
 
   it('returns one fully included draft to two concurrent callers after a unique race', async () => {
@@ -285,6 +367,38 @@ describe('assignment authoring persistence service', () => {
     expect(right).toEqual(existing);
     expect(left.questions).toEqual(right.questions);
     expect((db as { assignmentRevision: { findFirst: ReturnType<typeof vi.fn> } }).assignmentRevision.findFirst).toHaveBeenCalledWith(expect.objectContaining({ include: { questions: { orderBy: { orderIndex: 'asc' } } } }));
+  });
+
+  it('deletes only draft references and leaves shared published asset blobs intact', async () => {
+    const tx = {
+      assignment: { findUnique: vi.fn(async () => ({ authorId: 'teacher-1', archivedAt: null })) },
+      assignmentRevision: {
+        findUnique: vi.fn(async () => ({
+          id: 'revision-draft',
+          assignmentId: 'assignment-1',
+          state: 'DRAFT',
+          version: 2,
+          audiences: [],
+          historicalOwnerships: [],
+        })),
+        delete: vi.fn(async () => ({})),
+      },
+      assignmentRevisionAssetReference: {
+        deleteMany: vi.fn(async () => ({ count: 1 })),
+      },
+      assignmentQuestion: { deleteMany: vi.fn(async () => ({ count: 1 })) },
+      assignmentContentAsset: { deleteMany: vi.fn() },
+    };
+    await deleteDraftRevision(dbWithTransaction(tx), {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: 'assignment-1',
+      revisionId: 'revision-draft',
+      expectedVersion: 2,
+    });
+    expect(tx.assignmentRevisionAssetReference.deleteMany).toHaveBeenCalledWith({
+      where: { revisionId: 'revision-draft' },
+    });
+    expect(tx.assignmentContentAsset.deleteMany).not.toHaveBeenCalled();
   });
 
   it('rejects forged parent lineage on an assignment-owned catalog derivative', async () => {
