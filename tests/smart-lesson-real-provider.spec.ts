@@ -74,7 +74,7 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   const advisoryReviews = [await requestAdvisoryReviewAndWait(page, card)];
   if (advisoryReviews[0].state === 'FAILED') {
     expect(advisoryReviews[0].failureCode).toBe('advisory-provider-failed');
-    await expect(smartLessonStatus(page, '审核未完成，请稍后重试')).toBeVisible({ timeout: 30_000 });
+    await expect(card.getByText('审核未完成，请稍后重试。', { exact: true })).toBeVisible({ timeout: 30_000 });
     advisoryReviews.push(await requestAdvisoryReviewAndWait(page, card));
   }
   expect(advisoryReviews.at(-1)?.state).toBe('COMPLETED');

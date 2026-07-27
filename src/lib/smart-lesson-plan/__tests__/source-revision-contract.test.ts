@@ -141,6 +141,12 @@ describe('smart lesson real-provider source revision contract', () => {
       "expect(advisoryReviews[0].failureCode).toBe('advisory-provider-failed')",
     );
     expect(spec).toContain(
+      "card.getByText('审核未完成，请稍后重试。', { exact: true })",
+    );
+    expect(spec).not.toContain(
+      "smartLessonStatus(page, '审核未完成，请稍后重试')",
+    );
+    expect(spec).toContain(
       "expect(advisoryReviews.at(-1)?.state).toBe('COMPLETED')",
     );
     expect(spec).toContain('boundedRetryUsed: advisoryReviews.length === 2');
