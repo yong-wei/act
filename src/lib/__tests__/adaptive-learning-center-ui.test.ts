@@ -289,6 +289,29 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
 }
 
 describe('adaptive learning center UI contracts', () => {
+  it('projects configuration fulfillment into the current-path panel', () => {
+    const plan = pathPlan();
+    plan.explanations.configurationFulfillment = [{
+      key: 'resource-preferences',
+      status: 'applied',
+      source: 'request',
+      effect: '已优先选择匹配的资源类型。',
+      message: '已优先选择匹配的资源类型。',
+    }];
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: plan,
+    });
+
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    expect(currentPath?.payload).toMatchObject({
+      configurationFulfillment: [
+        expect.objectContaining({ key: 'resource-preferences', status: 'applied' }),
+      ],
+    });
+  });
+
   it('defines the unified center regions and keeps legacy surfaces available when the feature flag is disabled', () => {
     expect(ADAPTIVE_LEARNING_CENTER_REGIONS).toEqual([
       'overview',

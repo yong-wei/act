@@ -7103,6 +7103,7 @@ describe('konling agent runtime', () => {
       generationStatus: string;
       pathId: string | null;
       pathOptions: Array<Record<string, unknown>>;
+      configurationFulfillment: Array<{ key: string; status: string; message: string }>;
       comparison: { optionCount: number; message: string };
       limitations: string[];
       diagnostics: {
@@ -7137,6 +7138,11 @@ describe('konling agent runtime', () => {
       limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
     });
     expect(result.pathOptions.length).toBeGreaterThan(0);
+    expect(result.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'difficulty-rhythm', status: 'applied' }),
+      expect.objectContaining({ key: 'natural-language-intent', status: 'applied' }),
+    ]));
+    expect(JSON.stringify(result.configurationFulfillment)).not.toContain('我想先补相位裕度');
     expect(mocks.loadRuntimeResourceProjectionInputs).toHaveBeenCalled();
     expect(result.diagnostics.candidatePool).toMatchObject({
       registryVersion: 'resource-node-registry.v1',
@@ -7179,6 +7185,9 @@ describe('konling agent runtime', () => {
         }),
       }),
     });
+    expect(createdPath.pathPayload.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'natural-language-intent', status: 'applied' }),
+    ]));
     expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         status: 'succeeded',
@@ -7188,6 +7197,32 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
+
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...createdRun, idempotencyKey: 'path-gen-low-budget' });
+    const lowBudgetResult = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-low-budget',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
+      timeBudgetMinutes: 30,
+    }) as {
+      generationStatus: string;
+      request: {
+        effectiveTimeBudgetMinutes: number;
+        minimumTimeBudgetMinutes: number;
+        timeBudgetInsufficient: boolean;
+      };
+    };
+
+    expect(lowBudgetResult).toMatchObject({
+      generationStatus: 'blocked',
+      request: {
+        effectiveTimeBudgetMinutes: 30,
+        minimumTimeBudgetMinutes: 90,
+        timeBudgetInsufficient: true,
+      },
+    });
     expect(JSON.stringify(result)).not.toMatch(/stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');

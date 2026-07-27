@@ -1297,6 +1297,7 @@ function currentPathPanel(pathPlan: AdaptiveLearningPathPlan | null): AdaptiveLe
           alternatives: pathPlan.alternatives.map(toStudentPathAlternative),
           pathOptions: buildPathOptionSummaries(pathPlan),
           pathOptionFallback: buildPathOptionFallback(pathPlan),
+          configurationFulfillment: pathPlan.explanations.configurationFulfillment,
           selectionHistory: buildPathSelectionHistory(pathPlan),
         }
       : null,

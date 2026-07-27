@@ -37,6 +37,7 @@ import {
   buildAdaptiveLearningPathPlan,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathGraphContextInput,
+  type AdaptiveLearningPathConfigurationRequest,
   type AdaptiveLearningPathPolicyFamily,
   type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
@@ -2325,8 +2326,90 @@ async function buildAdaptivePathToolOutput(
   }
   const { registry, diagnostics: candidatePoolDiagnostics } = await resolveAdaptivePathGenerationRegistry(input, goalId);
   const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
-  const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
+  const intentMapping = mapAdaptivePathNaturalLanguageIntent(args.naturalLanguageIntent);
+  const explicitResourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference);
+  const resourcePreferences = explicitResourcePreferences
+    ?? (intentMapping.resourcePreferences.length > 0 ? intentMapping.resourcePreferences : undefined)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
+  const resourcePreferenceSource = explicitResourcePreferences
+    ? 'request'
+    : intentMapping.resourcePreferences.length > 0
+      ? 'intent'
+      : 'fallback';
+  const difficultyRhythm = args.difficultyRhythm ?? intentMapping.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm;
+  const difficultyRhythmSource = args.difficultyRhythm
+    ? 'request'
+    : intentMapping.difficultyRhythm
+      ? 'intent'
+      : 'fallback';
+  const checkpointPreference = args.checkpointPreference ?? intentMapping.checkpointPreference ?? 'standard';
+  const checkpointPreferenceSource = args.checkpointPreference
+    ? 'request'
+    : intentMapping.checkpointPreference
+      ? 'intent'
+      : 'fallback';
+  const allowExternalResources = args.allowExternalResources
+    ?? intentMapping.allowExternalResources
+    ?? registeredGoal.starterPathPolicy.allowExternalResources;
+  const allowExternalResourcesSource = typeof args.allowExternalResources === 'boolean'
+    ? 'request'
+    : intentMapping.allowExternalResources !== undefined
+      ? 'intent'
+      : 'fallback';
+  const configurationRequests: AdaptiveLearningPathConfigurationRequest[] = [
+    ...(explicitResourcePreferences ? [{
+      key: 'resource-preferences' as const,
+      source: 'request' as const,
+      value: explicitResourcePreferences,
+    }] : intentMapping.resourcePreferences.length > 0 ? [{
+      key: 'resource-preferences' as const,
+      source: 'intent' as const,
+      value: intentMapping.resourcePreferences,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(args.difficultyRhythm ? [{
+      key: 'difficulty-rhythm' as const,
+      source: 'request' as const,
+      value: args.difficultyRhythm,
+    }] : intentMapping.difficultyRhythm ? [{
+      key: 'difficulty-rhythm' as const,
+      source: 'intent' as const,
+      value: intentMapping.difficultyRhythm,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(args.checkpointPreference ? [{
+      key: 'checkpoint-preference' as const,
+      source: 'request' as const,
+      value: args.checkpointPreference,
+    }] : intentMapping.checkpointPreference ? [{
+      key: 'checkpoint-preference' as const,
+      source: 'intent' as const,
+      value: intentMapping.checkpointPreference,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(typeof args.allowExternalResources === 'boolean' ? [{
+      key: 'external-resources' as const,
+      source: 'request' as const,
+      value: args.allowExternalResources,
+    }] : intentMapping.allowExternalResources !== undefined ? [{
+      key: 'external-resources' as const,
+      source: 'intent' as const,
+      value: intentMapping.allowExternalResources,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(typeof args.timeBudgetMinutes === 'number' ? [{
+      key: 'time-budget' as const,
+      source: 'request' as const,
+      value: args.timeBudgetMinutes,
+    }] : []),
+    ...(typeof args.naturalLanguageIntent === 'string' && args.naturalLanguageIntent.trim() ? [{
+      key: 'natural-language-intent' as const,
+      source: 'request' as const,
+      value: 'mapped-intent',
+      mappedTerms: intentMapping.matchedTerms,
+      limitationCode: intentMapping.limitationCode,
+    }] : []),
+  ];
   const plannerRevisionPreference = operation === 'revised'
     ? buildAdaptivePathRevisionPlannerPreference(args, registeredGoal)
     : buildAdaptivePathGenerationPlannerPreference(registeredGoal);
@@ -2345,10 +2428,15 @@ async function buildAdaptivePathToolOutput(
       completedNodeIds: input.context.planContext?.completedNodeIds ?? [],
       currentNodeId: input.context.planContext?.activeNodeId ?? null,
     },
-    difficultyRhythm: args.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm,
+    difficultyRhythm,
+    difficultyRhythmSource,
     resourcePreferences,
-    checkpointPreference: args.checkpointPreference ?? 'standard',
-    allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
+    resourcePreferenceSource,
+    checkpointPreference,
+    checkpointPreferenceSource,
+    allowExternalResources,
+    allowExternalResourcesSource,
+    configurationRequests,
     sourcePackCandidates: sourcePackInput.items,
     sourcePackLimitations: sourcePackInput.limitations,
     candidatePoolDiagnostics,
@@ -2363,10 +2451,12 @@ async function buildAdaptivePathToolOutput(
   const requestSnapshot = redactSensitivePayload({
     requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
     effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
-    difficultyRhythm: args.difficultyRhythm ?? null,
+    minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+    timeBudgetInsufficient: timeBudget.insufficient,
+    difficultyRhythm,
     resourcePreference: resourcePreferences,
-    checkpointPreference: args.checkpointPreference ?? null,
-    allowExternalResources: args.allowExternalResources ?? false,
+    checkpointPreference,
+    allowExternalResources,
     graphNodeId: args.graphNodeId ?? null,
     intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
     excludedNodeIds: args.excludedNodeIds ?? [],
@@ -2400,6 +2490,10 @@ async function buildAdaptivePathToolOutput(
         candidatePoolLimited,
         candidatePoolLimitationCodes,
         candidatePoolStatus,
+        configurationFulfillment: plan.explanations.configurationFulfillment,
+        requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
+        minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+        timeBudgetInsufficient: timeBudget.insufficient,
       },
     });
   }
@@ -2437,10 +2531,12 @@ async function buildAdaptivePathToolOutput(
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
       timeBudgetAdjusted: timeBudget.adjusted,
-      difficultyRhythm: args.difficultyRhythm ?? null,
+      minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+      timeBudgetInsufficient: timeBudget.insufficient,
+      difficultyRhythm,
       resourcePreference: resourcePreferences,
-      checkpointPreference: args.checkpointPreference ?? null,
-      allowExternalResources: args.allowExternalResources ?? false,
+      checkpointPreference,
+      allowExternalResources,
       graphNodeId: args.graphNodeId ?? null,
       intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
       excludedNodeIds: args.excludedNodeIds ?? [],
@@ -2449,6 +2545,7 @@ async function buildAdaptivePathToolOutput(
     },
     pathId: hasPersistablePath ? plan.id : null,
     pathOptions,
+    configurationFulfillment: plan.explanations.configurationFulfillment,
     comparison: {
       optionCount: pathOptions.length,
       message: hasPersistablePath
@@ -2463,7 +2560,7 @@ async function buildAdaptivePathToolOutput(
     studentSafeRationale: [
       '路径会依据你的当前目标、学习证据和可用时间生成。',
       '证据不足时会先给出可开始的基础路径，并提示需要补充的学习记录。',
-      ...(timeBudget.adjusted ? ['当前目标需要包含终端验证，系统已按最小可行学习时长生成路径。'] : []),
+      ...(timeBudget.insufficient ? [`当前学习时长不足以覆盖必需验证，至少需要 ${timeBudget.minimumMinutes} 分钟。`] : []),
     ],
   };
 }
@@ -2583,10 +2680,71 @@ function resolveAdaptivePathTimeBudget(
   requestedMinutes: number | undefined,
 ) {
   const minimumMinutes = registeredGoal.checkpointPolicy.requiresTerminalValidation ? 90 : 45;
-  const effectiveMinutes = Math.max(requestedMinutes ?? minimumMinutes, minimumMinutes);
+  const insufficient = typeof requestedMinutes === 'number' && requestedMinutes < minimumMinutes;
   return {
-    effectiveMinutes,
-    adjusted: typeof requestedMinutes === 'number' && requestedMinutes < minimumMinutes,
+    effectiveMinutes: requestedMinutes ?? minimumMinutes,
+    minimumMinutes,
+    insufficient,
+    adjusted: false,
+  };
+}
+
+interface AdaptivePathIntentMapping {
+  resourcePreferences: ResourceNode['type'][];
+  difficultyRhythm?: 'gentle' | 'steady' | 'challenge';
+  checkpointPreference?: 'light' | 'standard' | 'dense';
+  allowExternalResources?: boolean;
+  matchedTerms: string[];
+  limitationCode?: string;
+}
+
+function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): AdaptivePathIntentMapping {
+  const value = typeof intent === 'string' ? intent.trim().toLowerCase() : '';
+  if (!value) {
+    return { resourcePreferences: [], matchedTerms: [] };
+  }
+  const resourceMappings: Array<{ type: ResourceNode['type']; terms: string[] }> = [
+    { type: 'knowledge_card', terms: ['知识卡', '知识卡片'] },
+    { type: 'textbook_section', terms: ['教材', '课本', '参考章节'] },
+    { type: 'lesson_step', terms: ['互动课', '课程步骤'] },
+    { type: 'quiz', terms: ['测验', '小测'] },
+    { type: 'adaptive_quiz', terms: ['自适应测验', '诊断测验'] },
+    { type: 'simulation', terms: ['仿真', 'simulation'] },
+    { type: 'arena_task', terms: ['arena', '竞技场', '挑战任务'] },
+    { type: 'control_workbench', terms: ['工作台', 'control workbench'] },
+    { type: 'reflection', terms: ['反思', '复盘'] },
+  ];
+  const matchedTerms: string[] = [];
+  const resourcePreferences = resourceMappings.flatMap(({ type, terms }) => {
+    const matched = terms.filter((term) => value.includes(term));
+    matchedTerms.push(...matched);
+    return matched.length > 0 ? [type] : [];
+  });
+  const difficultyRhythm = value.includes('挑战') || value.includes('高难')
+    ? 'challenge'
+    : value.includes('轻松') || value.includes('循序') || value.includes('基础')
+      ? 'gentle'
+      : undefined;
+  if (difficultyRhythm) matchedTerms.push(difficultyRhythm);
+  const checkpointPreference = value.includes('密集检查') || value.includes('多检查点')
+    ? 'dense'
+    : value.includes('少检查') || value.includes('轻量检查')
+      ? 'light'
+      : undefined;
+  if (checkpointPreference) matchedTerms.push(checkpointPreference);
+  const allowExternalResources = value.includes('不使用外部') || value.includes('不要外部')
+    ? false
+    : value.includes('外部资源') || value.includes('参考资料') || value.includes('外部链接')
+      ? true
+      : undefined;
+  if (allowExternalResources !== undefined) matchedTerms.push('external-resources');
+  return {
+    resourcePreferences: Array.from(new Set(resourcePreferences)),
+    difficultyRhythm,
+    checkpointPreference,
+    allowExternalResources,
+    matchedTerms: Array.from(new Set(matchedTerms)),
+    ...(matchedTerms.length === 0 ? { limitationCode: 'natural-language-intent-unsupported' } : {}),
   };
 }
 
@@ -5475,9 +5633,6 @@ async function readPlanContext(db: KonlingRuntimeDb, scope: KonlingRuntimeScope)
 
 function readPathOptionContext(pathPayload: Record<string, unknown>): KonlingPathOptionContext[] {
   const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
-  if (getString(policyBundle, 'status') && getString(policyBundle, 'status') !== 'ready') {
-    return [];
-  }
   const pathOptions = arrayOfRecords(getValue(policyBundle, 'paths')).length > 0
     ? arrayOfRecords(getValue(policyBundle, 'paths'))
     : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
