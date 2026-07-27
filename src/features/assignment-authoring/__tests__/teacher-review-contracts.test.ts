@@ -1,9 +1,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import {
   buildDeterministicReviewQueue,
+  buildTeacherReviewApprovalPayload,
   buildTeacherReviewApiUrl,
   buildTeacherReviewHref,
   buildTeacherSubmissionQueueUrl,
@@ -13,12 +16,14 @@ import {
   normalizeTeacherReviewDetail,
   normalizeTeacherSubmissionQueue,
   responseKindToSubmissionResponseType,
+  teacherReviewConflictMutationState,
   type TeacherReviewSubmissionItem,
 } from "../../assignments/teacher-review-contracts";
 import {
   buildTeacherAssignmentReviewHref,
   normalizeTeacherAssignmentListItem,
 } from "../teacher-assignment-list";
+import { OriginalResponsePanel } from "../../assignments/teacher-review-workspace";
 
 const source = (file: string) =>
   readFileSync(path.join(process.cwd(), file), "utf8");
@@ -297,7 +302,7 @@ describe("teacher assignment review UI contracts", () => {
         question: { id: "q1" },
         review: { id: "review-1", version: 1, criteria: [] },
       }),
-    ).toMatchObject({ submissionId: "s1", questionId: "q1", studentNumber: "2026001", evidence: null });
+    ).toMatchObject({ submissionId: "s1", questionId: "q1", studentNumber: "2026001", originalResponse: null });
     expect(
       normalizeTeacherReviewDetail({
         submission: { id: "s1" },
@@ -415,18 +420,14 @@ describe("teacher assignment review UI contracts", () => {
     const detail = normalizeTeacherReviewDetail({
       submission: { id: "submission-1" },
       question: { id: "question-1" },
-      evidence: {
-        limitationState: "evidence-incomplete",
-        sourceManifest: {
-          sources: [{
-            assetId: "asset-truncated",
-            displayName: "large.pdf",
-            state: "READY",
-            limitations: ["blocks-truncated"],
-          }],
-        },
+      review: {
+        id: "review-1",
+        incompleteEvidence: true,
+        omittedEvidence: [{
+          assetId: "asset-truncated",
+          displayName: "\u061c\u202alarge\u2060\u200b.pdf",
+        }],
       },
-      review: { id: "review-1" },
     });
 
     expect(detail?.incompleteEvidence).toBe(true);
@@ -434,5 +435,164 @@ describe("teacher assignment review UI contracts", () => {
       assetId: "asset-truncated",
       displayName: "large.pdf",
     }]);
+  });
+
+  it("consumes only the safe original-response projection and keeps govern parameters revision-bound", () => {
+    const detail = normalizeTeacherReviewDetail({
+      review: {
+        id: "review-1",
+        version: 3,
+        submissionId: "submission-1",
+        questionId: "question-1",
+        originalResponse: {
+          textSnapshot: "# 解答\n\n$G(s)=1/s$",
+          attachmentOrderProvenance: "student-frozen-order.v1",
+          assets: [
+            {
+              id: "asset-image",
+              displayName: "\u00ad\u180e\u200f\u202e\u206a\u206f\u2069\ufeff\ufff9diagram.png",
+              mimeType: "image/png",
+              sizeBytes: 20,
+              role: "EMBEDDED_IMAGE",
+              orderIndex: null,
+              embeddedPosition: "md:diagram",
+              accessEndpoint: "/api/teacher/assignments/a/submissions/s/review/assets/asset-image/read?reviewId=review-1",
+            },
+            {
+              id: "asset-doc",
+              displayName: "report.docx",
+              mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              sizeBytes: 30,
+              role: "ATTACHMENT",
+              orderIndex: 0,
+              embeddedPosition: null,
+              accessEndpoint: "/api/teacher/assignments/a/submissions/s/review/assets/asset-doc/read?reviewId=review-1",
+            },
+          ],
+        },
+        incompleteEvidence: true,
+        omittedEvidence: [{
+          assetId: "asset-doc",
+          displayName: "\u00ad\u061c\u180e\u202a\u2060\u206a\u206f\u200b\ufff9report.docx",
+        }],
+      },
+      submission: { id: "submission-1" },
+      question: { id: "question-1", responseType: "SUBJECTIVE_FILE" },
+    });
+
+    expect(detail?.originalResponse).toMatchObject({
+      textSnapshot: "# 解答\n\n$G(s)=1/s$",
+      assets: [
+        {
+          id: "asset-image",
+          displayName: "diagram.png",
+          embeddedPosition: "md:diagram",
+        },
+        { id: "asset-doc", orderIndex: 0 },
+      ],
+    });
+
+    const workspace = source("src/features/assignments/teacher-review-workspace.tsx");
+    const contracts = source("src/features/assignments/teacher-review-contracts.ts");
+    expect(workspace).toContain("confirmIncompleteEvidence:");
+    expect(contracts).toContain("omittedAssetIds:");
+    expect(workspace).toContain("部分附件未纳入本次建议，请结合原件核对");
+    expect(workspace).not.toContain("canonicalText");
+    expect(workspace).not.toContain("evidence.anchors");
+
+    expect(buildTeacherReviewApprovalPayload(detail!, {
+      expectedVersion: 4,
+      idempotencyKey: "approval-key",
+      confirmIncompleteEvidence: true,
+    })).toEqual({
+      reviewId: "review-1",
+      expectedVersion: 4,
+      idempotencyKey: "approval-key",
+      confirmIncompleteEvidence: true,
+      omittedAssetIds: ["asset-doc"],
+    });
+    expect(teacherReviewConflictMutationState({
+      error: "teacher-review-incomplete-evidence-confirmation-required",
+    })).toBe("confirmation-required");
+    expect(teacherReviewConflictMutationState({
+      error: "teacher-review-version-conflict",
+    })).toBe("conflict");
+  });
+
+  it("renders sealed Markdown, formulas, embedded images, PDF fallback, and protected original-file cards", () => {
+    const html = renderToStaticMarkup(createElement(OriginalResponsePanel, {
+      response: {
+        textSnapshot: "# 解答\n\n增益为 $K=2$。\n\n![框图](/api/student/assignments/a/assets/embedded-image/read \"asset:md:diagram\")\n\n![兼容图](asset:md:legacy)",
+        attachmentOrderProvenance: "student-frozen-order.v1",
+        assets: [
+          {
+            id: "embedded-image",
+            displayName: "diagram.png",
+            mimeType: "image/png",
+            sizeBytes: 20,
+            role: "EMBEDDED_IMAGE",
+            orderIndex: null,
+            embeddedPosition: "md:diagram",
+            accessEndpoint: "/api/teacher/assignments/a/submissions/s/review/assets/embedded-image/read?reviewId=r",
+          },
+          {
+            id: "legacy-embedded-image",
+            displayName: "legacy.png",
+            mimeType: "image/png",
+            sizeBytes: 21,
+            role: "EMBEDDED_IMAGE",
+            orderIndex: null,
+            embeddedPosition: "md:legacy",
+            accessEndpoint: "/api/teacher/assignments/a/submissions/s/review/assets/legacy-embedded-image/read?reviewId=r",
+          },
+          ...[
+            ["image", "plot.jpeg", "image/jpeg"],
+            ["pdf", "answer.pdf", "application/pdf"],
+            ["doc", "answer.doc", "application/msword"],
+            ["docx", "answer.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+            ["pptx", "answer.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"],
+            ["markdown", "notes.md", "text/markdown"],
+            ["text", "notes.txt", "text/plain"],
+          ].map(([id, displayName, mimeType], index) => ({
+            id,
+            displayName,
+            mimeType,
+            sizeBytes: 30 + index,
+            role: "ATTACHMENT" as const,
+            orderIndex: index,
+            embeddedPosition: null,
+            accessEndpoint: `/api/teacher/assignments/a/submissions/s/review/assets/${id}/read?reviewId=r`,
+          })),
+        ],
+      },
+      initialAccessUrls: {
+        "embedded-image": "/protected/embedded",
+        "legacy-embedded-image": "/protected/legacy-embedded",
+        image: "/protected/image",
+        pdf: "/protected/pdf",
+      },
+    }));
+
+    expect(html).toContain("<h3");
+    expect(html).toContain(">解答</h3>");
+    expect(html).toContain('class="katex"');
+    expect(html).toContain('src="/protected/embedded"');
+    expect(html).toContain('src="/protected/legacy-embedded"');
+    expect(html).not.toContain("/api/student/");
+    expect(html).toContain('src="/protected/image"');
+    expect(html).toContain('sandbox=""');
+    expect(html).toContain('src="/protected/pdf"');
+    for (const name of [
+      "answer.doc",
+      "answer.docx",
+      "answer.pptx",
+      "notes.md",
+      "notes.txt",
+    ]) {
+      expect(html).toContain(name);
+    }
+    expect(html).not.toMatch(/converted|provider|errorCode|objectKey|checksum/);
+    expect(source("src/features/assignments/teacher-review-workspace.tsx"))
+      .toContain("嵌入图片载入失败，重试");
   });
 });

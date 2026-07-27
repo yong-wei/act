@@ -1,3 +1,5 @@
+import { createHash, randomBytes } from 'node:crypto';
+
 import { stableStringify, sha256 } from './math-document-grading-contracts';
 import { hasAtMostOneDecimal } from '@/lib/assignments/assignment-rubric-contract';
 import { writeGradingAudit } from './math-document-grading-persistence';
@@ -23,8 +25,34 @@ export const TEACHER_ASSIGNMENT_REVIEW_INCLUDE = {
     include: {
       assessments: true,
       annotations: true,
-      answerEvidence: { include: { blocks: true, sourceAsset: true, conversion: true } },
-      answerAttempt: { include: { answer: true } },
+      answerEvidence: {
+        select: {
+          id: true,
+          attemptId: true,
+          limitationState: true,
+          sourceManifest: true,
+        },
+      },
+      answerAttempt: {
+        include: {
+          answer: true,
+          assets: {
+            select: {
+              id: true,
+              answerId: true,
+              attemptId: true,
+              originalName: true,
+              mimeType: true,
+              sizeBytes: true,
+              assetRole: true,
+              orderIndex: true,
+              embeddedPosition: true,
+              state: true,
+            },
+            orderBy: [{ orderIndex: 'asc' }, { version: 'asc' }, { id: 'asc' }],
+          },
+        },
+      },
       question: true,
     },
   },
@@ -214,6 +242,7 @@ export async function approveTeacherAssignmentReview(db: any, input: {
   expectedVersion: number;
   idempotencyKey: string;
   confirmIncompleteEvidence?: boolean;
+  omittedAssetIds?: string[];
   now?: Date;
 }) {
   const now = input.now ?? new Date();
@@ -228,6 +257,9 @@ export async function approveTeacherAssignmentReview(db: any, input: {
       actorId: input.actor.id,
       ...(input.confirmIncompleteEvidence === true
         ? { confirmIncompleteEvidence: true }
+        : {}),
+      ...(input.omittedAssetIds
+        ? { omittedAssetIds: [...new Set(input.omittedAssetIds)] }
         : {}),
     }));
     const replay = await tx.teacherAssignmentApprovalSnapshot.findUnique?.({ where: { reviewId_idempotencyKey: { reviewId: input.reviewId, idempotencyKey: input.idempotencyKey } } });
@@ -254,6 +286,10 @@ export async function approveTeacherAssignmentReview(db: any, input: {
     );
     const incompleteEvidence = review.gradingRun.evidenceState === 'EVIDENCE_INCOMPLETE'
       || review.gradingRun.answerEvidence?.limitationState === 'evidence-incomplete';
+    if (input.omittedAssetIds
+      && !sameStringSet(input.omittedAssetIds, omittedAssetIds)) {
+      throw conflict();
+    }
     if (incompleteEvidence && input.confirmIncompleteEvidence !== true) {
       throw new TeacherAssignmentReviewError(
         'teacher-review-incomplete-evidence-confirmation-required',
@@ -379,6 +415,243 @@ export async function approveTeacherAssignmentReview(db: any, input: {
   });
 }
 
+export type TeacherAssignmentOriginalAssetProjection = {
+  id: string;
+  displayName: string;
+  mimeType: string;
+  sizeBytes: number;
+  role: 'EMBEDDED_IMAGE' | 'ATTACHMENT';
+  orderIndex: number | null;
+  embeddedPosition: string | null;
+  accessEndpoint: string;
+};
+
+export type TeacherAssignmentOriginalResponseProjection = {
+  textSnapshot: string | null;
+  attachmentOrderProvenance: string | null;
+  assets: TeacherAssignmentOriginalAssetProjection[];
+};
+
+export function buildTeacherAssignmentReviewApiProjection(review: any) {
+  const attempt = review?.gradingRun?.answerAttempt;
+  const textSnapshot = typeof attempt?.textSnapshot === 'string'
+    ? attempt.textSnapshot
+    : null;
+  const assets: TeacherAssignmentOriginalAssetProjection[] = (
+    Array.isArray(attempt?.assets) ? attempt.assets : []
+  )
+    .filter((asset: any) =>
+      asset?.state === 'FINALIZED'
+      && asset.attemptId === review.attemptId
+      && asset.answerId === review.answerId)
+    .map((asset: any): TeacherAssignmentOriginalAssetProjection => ({
+      id: String(asset.id),
+      displayName: safeOriginalAssetBasename(asset.originalName),
+      mimeType: String(asset.mimeType ?? 'application/octet-stream'),
+      sizeBytes: Number.isInteger(asset.sizeBytes) && asset.sizeBytes >= 0
+        ? asset.sizeBytes
+        : 0,
+      role: asset.assetRole === 'EMBEDDED_IMAGE'
+        ? 'EMBEDDED_IMAGE'
+        : 'ATTACHMENT',
+      orderIndex: Number.isInteger(asset.orderIndex) ? asset.orderIndex : null,
+      embeddedPosition: typeof asset.embeddedPosition === 'string'
+        ? asset.embeddedPosition
+        : null,
+      accessEndpoint: `/api/teacher/assignments/${encodeURIComponent(review.assignmentId)}/submissions/${encodeURIComponent(review.submissionId)}/review/assets/${encodeURIComponent(asset.id)}/read?reviewId=${encodeURIComponent(review.id)}`,
+    }))
+    .sort((
+      left: TeacherAssignmentOriginalAssetProjection,
+      right: TeacherAssignmentOriginalAssetProjection,
+    ) => originalAssetOrder(left, right, textSnapshot));
+  const displayNameByAssetId = new Map(
+    assets.map((asset: TeacherAssignmentOriginalAssetProjection) =>
+      [asset.id, asset.displayName]),
+  );
+  const omittedAssetIds = omittedEvidenceAssetIds(
+    review?.gradingRun?.answerEvidence?.sourceManifest,
+  );
+  const omittedEvidence = omittedAssetIds.flatMap((assetId) => {
+    const displayName = displayNameByAssetId.get(assetId);
+    return displayName ? [{ assetId, displayName }] : [];
+  });
+  const incompleteEvidence =
+    review?.gradingRun?.evidenceState === 'EVIDENCE_INCOMPLETE'
+    || review?.gradingRun?.answerEvidence?.limitationState === 'evidence-incomplete';
+  const question = review?.gradingRun?.question;
+  const submission = review?.submission;
+  const assignment = review?.assignment;
+
+  return {
+    id: review.id,
+    assignmentId: review.assignmentId,
+    assignmentRevisionId: review.assignmentRevisionId,
+    submissionId: review.submissionId,
+    answerId: review.answerId,
+    attemptId: review.attemptId,
+    questionId: review.questionId,
+    gradingRunId: review.gradingRunId,
+    state: review.state,
+    version: review.version,
+    criterionValues: review.criterionValues,
+    annotationValues: review.annotationValues,
+    derivedTotal: review.derivedTotal,
+    overallComment: review.overallComment,
+    approvedAt: review.approvedAt,
+    returnedAt: review.returnedAt,
+    assignment: {
+      id: assignment?.id ?? review.assignmentId,
+      title: assignment?.title ?? review?.revision?.title ?? null,
+    },
+    submission: {
+      id: submission?.id ?? review.submissionId,
+      student: {
+        name: submission?.student?.name ?? null,
+        profile: {
+          studentNumber: submission?.student?.profile?.studentNumber ?? null,
+        },
+      },
+    },
+    gradingRun: {
+      id: review?.gradingRun?.id ?? review.gradingRunId,
+      state: review?.gradingRun?.state ?? null,
+      evidenceState: review?.gradingRun?.evidenceState ?? null,
+      questionSnapshot: review?.gradingRun?.questionSnapshot ?? null,
+      assessments: (review?.gradingRun?.assessments ?? []).map((assessment: any) => ({
+        id: assessment.id,
+        criterionId: assessment.criterionId,
+        levelId: assessment.levelId,
+        score: assessment.score,
+        aiComment: assessment.rationale ?? '',
+      })),
+      question: {
+        id: question?.id ?? review.questionId,
+        stableQuestionId: question?.stableQuestionId ?? null,
+        responseType: question?.responseType ?? null,
+        orderIndex: question?.orderIndex ?? null,
+        promptSnapshot: question?.promptSnapshot ?? null,
+      },
+    },
+    originalResponse: {
+      textSnapshot,
+      attachmentOrderProvenance:
+        typeof attempt?.answer?.attachmentOrderProvenance === 'string'
+          ? attempt.answer.attachmentOrderProvenance
+          : null,
+      assets,
+    } satisfies TeacherAssignmentOriginalResponseProjection,
+    incompleteEvidence,
+    omittedEvidence,
+  };
+}
+
+export function safeOriginalAssetBasename(value: unknown): string {
+  const normalized = typeof value === 'string'
+    ? value.replace(/\\/g, '/').split('/').filter(Boolean).at(-1) ?? ''
+    : '';
+  const safe = normalized
+    .replace(/[\p{Cc}\p{Cf}]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!safe || /^\.+$/.test(safe)) return '未命名附件';
+  if (safe.length <= 180) return safe;
+  const extension = safe.match(/(\.[A-Za-z0-9]{1,12})$/)?.[1] ?? '';
+  return `${safe.slice(0, Math.max(1, 180 - extension.length))}${extension}`;
+}
+
+export async function signTeacherAssignmentOriginalAssetRead(db: any, input: {
+  actor: TeacherReviewActor;
+  assignmentId: string;
+  submissionId: string;
+  reviewId: string;
+  assetId: string;
+  now?: Date;
+}) {
+  const now = input.now ?? new Date();
+  const review = await loadReview(db, input.reviewId);
+  assertReviewPath(review, input.assignmentId, input.submissionId);
+  assertReviewRunLineage(review);
+  resolveTeacherAssignmentReviewAuthorization({
+    actor: input.actor,
+    review,
+    now,
+  });
+  const asset = await loadTeacherOriginalAsset(db, review, input.assetId);
+  if (!asset.checksum) {
+    throw new TeacherAssignmentReviewError(
+      'teacher-review-original-asset-unavailable',
+      410,
+    );
+  }
+  const token = randomBytes(32).toString('base64url');
+  const expiresAt = new Date(now.getTime() + 5 * 60_000);
+  await db.submissionAssetAccessToken.create({
+    data: {
+      tokenHash: createHash('sha256').update(token).digest('hex'),
+      assetId: asset.id,
+      studentId: input.actor.id,
+      purpose: 'teacher-assignment-original-read',
+      expiresAt,
+    },
+  });
+  return {
+    url: `/api/teacher/assignments/${encodeURIComponent(input.assignmentId)}/submissions/${encodeURIComponent(input.submissionId)}/review/assets/${encodeURIComponent(asset.id)}/read?reviewId=${encodeURIComponent(input.reviewId)}&token=${encodeURIComponent(token)}`,
+    expiresAt: expiresAt.toISOString(),
+  };
+}
+
+export async function consumeTeacherAssignmentOriginalAssetRead(db: any, input: {
+  actor: TeacherReviewActor;
+  assignmentId: string;
+  submissionId: string;
+  reviewId: string;
+  assetId: string;
+  token: string;
+  now?: Date;
+}) {
+  const now = input.now ?? new Date();
+  const review = await loadReview(db, input.reviewId);
+  assertReviewPath(review, input.assignmentId, input.submissionId);
+  assertReviewRunLineage(review);
+  resolveTeacherAssignmentReviewAuthorization({
+    actor: input.actor,
+    review,
+    now,
+  });
+  const asset = await loadTeacherOriginalAsset(db, review, input.assetId);
+  const tokenHash = createHash('sha256').update(input.token).digest('hex');
+  const claimed = await db.submissionAssetAccessToken.updateMany({
+    where: {
+      tokenHash,
+      assetId: asset.id,
+      studentId: input.actor.id,
+      purpose: 'teacher-assignment-original-read',
+      expiresAt: { gt: now },
+      usedAt: null,
+    },
+    data: { usedAt: now },
+  });
+  if (claimed?.count !== 1) {
+    throw new TeacherAssignmentReviewError(
+      'teacher-review-original-asset-token-invalid',
+      403,
+    );
+  }
+  if (!asset.checksum) {
+    throw new TeacherAssignmentReviewError(
+      'teacher-review-original-asset-unavailable',
+      410,
+    );
+  }
+  return {
+    objectKey: asset.objectKey,
+    displayName: safeOriginalAssetBasename(asset.originalName),
+    mimeType: asset.mimeType,
+    sizeBytes: asset.sizeBytes,
+    checksum: asset.checksum,
+  };
+}
+
 function omittedEvidenceAssetIds(value: unknown): string[] {
   if (!value || typeof value !== 'object') return [];
   const sources = Array.isArray((value as { sources?: unknown }).sources)
@@ -394,6 +667,50 @@ function omittedEvidenceAssetIds(value: unknown): string[] {
       ? [row.assetId]
       : [];
   }))];
+}
+
+function originalAssetOrder(
+  left: TeacherAssignmentOriginalAssetProjection,
+  right: TeacherAssignmentOriginalAssetProjection,
+  textSnapshot: string | null,
+) {
+  if (left.role === 'EMBEDDED_IMAGE' || right.role === 'EMBEDDED_IMAGE') {
+    const leftPosition = left.embeddedPosition && textSnapshot
+      ? textSnapshot.indexOf(`asset:${left.embeddedPosition}`)
+      : -1;
+    const rightPosition = right.embeddedPosition && textSnapshot
+      ? textSnapshot.indexOf(`asset:${right.embeddedPosition}`)
+      : -1;
+    if (left.role !== right.role) return left.role === 'EMBEDDED_IMAGE' ? -1 : 1;
+    if (leftPosition !== rightPosition) {
+      return (leftPosition < 0 ? Number.MAX_SAFE_INTEGER : leftPosition)
+        - (rightPosition < 0 ? Number.MAX_SAFE_INTEGER : rightPosition);
+    }
+  }
+  return (left.orderIndex ?? Number.MAX_SAFE_INTEGER)
+    - (right.orderIndex ?? Number.MAX_SAFE_INTEGER)
+    || left.id.localeCompare(right.id);
+}
+
+async function loadTeacherOriginalAsset(db: any, review: any, assetId: string) {
+  const asset = await db.submissionAsset.findUnique({ where: { id: assetId } });
+  if (!asset
+    || asset.state !== 'FINALIZED'
+    || asset.attemptId !== review.attemptId
+    || asset.answerId !== review.answerId) {
+    throw new TeacherAssignmentReviewError(
+      'teacher-review-original-asset-forbidden',
+      403,
+    );
+  }
+  return asset;
+}
+
+function sameStringSet(left: string[], right: string[]) {
+  const leftSet = new Set(left);
+  const rightSet = new Set(right);
+  return leftSet.size === rightSet.size
+    && [...leftSet].every((value) => rightSet.has(value));
 }
 
 export async function returnTeacherAssignmentReview(db: any, input: {
