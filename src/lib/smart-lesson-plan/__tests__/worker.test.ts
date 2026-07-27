@@ -307,6 +307,52 @@ describe('smart lesson BullMQ worker', () => {
     expect(adoptionMocks.adopt).toHaveBeenCalledWith(db, expect.objectContaining({ versionId: 'version-1' }));
   });
 
+  it('generates from confirmed textbook evidence when the task has no uploaded versions', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5], ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const textbookRanges = [{
+      bookId: 'book-1', level: 'SECTION', unitId: 'section-3.2', structuralPath: ['chapter-3', 'section-3.2'],
+    }];
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'OUTLINE',
+      stages: [{ id: 'stage-1', kind: 'OUTLINE', orderIndex: 0, state: 'PENDING', output: null }],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null, textbookRanges,
+        sources: [], knowledgePoints: [], goals: [],
+      } },
+    };
+    const db = { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } };
+    textbookMocks.retrieve.mockResolvedValue([textbookBinding]);
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+    const generate = vi.fn(async () => ({
+      output: outline,
+      normalizedResponseId: 'response-1',
+      inputTokens: 10,
+      outputTokens: 20,
+      costMicros: null,
+    }));
+
+    await expect(processSmartLessonGenerationJob(db as never, 'job-1', vi.fn(async () => ({
+      serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate,
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(sourcePackMocks.sar).not.toHaveBeenCalled();
+    expect(sourcePackMocks.pack).not.toHaveBeenCalled();
+    expect(textbookMocks.retrieve).toHaveBeenCalledWith('稳定性', textbookRanges);
+    expect(adoptionMocks.adopt).not.toHaveBeenCalled();
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({
+      prompt: expect.stringContaining(textbookBinding.snippet),
+    }));
+  });
+
   it('makes exactly one linked correction call and marks a second invalid result retryable', async () => {
     const context = {
       id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'OUTLINE',

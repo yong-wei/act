@@ -103,6 +103,45 @@ describe('smart lesson plan workspace request contracts', () => {
     expect(workspaceSource).not.toContain('`smart-prep:${draft.id}:review:${draft.version}`');
   });
 
+  it('enables textbook-only task creation after the teacher confirms the range', async () => {
+    const props = {
+      courseBases: [{ id: 'basis-1', title: '自动控制原理', documents: [] }],
+      classDiagnosisOptions: [],
+      textbookCatalog: [{
+        bookId: 'book-1',
+        title: '自动控制原理',
+        edition: '8',
+        ranges: [{
+          level: 'SECTION' as const,
+          unitId: 'section-1',
+          title: '稳定性判据',
+          naturalNumber: '1.1',
+          structuralPath: ['chapter-1', 'section-1'],
+        }],
+      }],
+      initialTasks: [],
+    };
+    const container = document.createElement('div');
+    document.body.append(container);
+    const root = createRoot(container);
+    await act(async () => root.render(createElement(SmartLessonPlanWorkspace, props)));
+
+    const submit = [...container.querySelectorAll('button')]
+      .find((button) => button.textContent?.includes('确认并创建单课任务'));
+    const textbookConfirmation = container.querySelector<HTMLInputElement>(
+      'input[name="confirmTextbookRange"]',
+    );
+    expect(submit?.disabled).toBe(true);
+
+    await act(async () => {
+      textbookConfirmation?.click();
+    });
+    expect(submit?.disabled).toBe(false);
+
+    act(() => root.unmount());
+    container.remove();
+  });
+
   it('does not offer recovery controls for a superseded generation job', () => {
     expect(workspaceSource).toContain("job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state)");
     expect(workspaceSource).toContain("job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state)");

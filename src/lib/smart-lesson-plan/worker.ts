@@ -333,29 +333,33 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
     .join('\n')
     .slice(0, 4_000);
   const textbookRanges = confirmedTextbookRangeSchema.array().max(20).parse(task.textbookRanges ?? []);
-  let sourcePack;
-  try {
-    const actor = { id: context.ownerId, role: 'TEACHER' as const };
-    const sar = await buildCourseBasisLessonDesignSar(db, {
-      actor,
-      selectedVersionIds,
-      explicitRetiredVersionIds: selectedVersionIds,
-      query,
-    });
-    sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
-      actor,
-      selectedVersionIds,
-      explicitRetiredVersionIds: selectedVersionIds,
-      sar,
-      retrieval: { query, topK: 8 },
-    });
-  } catch (error) {
-    if (error instanceof CourseBasisError) {
-      throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
+  let sourcePackItems: Awaited<ReturnType<
+    typeof buildCourseBasisLessonDesignSourcePack
+  >>['retrieval']['pack']['items'] = [];
+  if (selectedVersionIds.length > 0) {
+    try {
+      const actor = { id: context.ownerId, role: 'TEACHER' as const };
+      const sar = await buildCourseBasisLessonDesignSar(db, {
+        actor,
+        selectedVersionIds,
+        explicitRetiredVersionIds: selectedVersionIds,
+        query,
+      });
+      const sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
+        actor,
+        selectedVersionIds,
+        explicitRetiredVersionIds: selectedVersionIds,
+        sar,
+        retrieval: { query, topK: 8 },
+      });
+      sourcePackItems = sourcePack.retrieval.pack.items;
+    } catch (error) {
+      if (error instanceof CourseBasisError) {
+        throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
+      }
+      throw error;
     }
-    throw error;
   }
-  const sourcePackItems = sourcePack.retrieval.pack.items;
   const uploadedBindings = sourceBindingSchema.array().safeParse(sourcePackItems.map((item) => ({
     citationId: item.citationTargetId ?? item.citation?.citationTargetId,
     sourceVersionId: item.metadata?.versionId,

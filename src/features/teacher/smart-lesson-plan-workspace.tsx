@@ -120,8 +120,10 @@ export function SmartLessonPlanWorkspace({
   const [showArchived, setShowArchived] = useState(false);
   const [taskIndexOpen, setTaskIndexOpen] = useState(false);
   const [selectedSource, setSelectedSource] = useState('');
+  const [selectedCourseBasisId, setSelectedCourseBasisId] = useState(courseBases[0]?.id ?? '');
   const [newTaskTopic, setNewTaskTopic] = useState('');
   const [selectedTextbookRange, setSelectedTextbookRange] = useState('');
+  const [textbookRangeConfirmed, setTextbookRangeConfirmed] = useState(false);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [hydrationReady, setHydrationReady] = useState(false);
@@ -169,7 +171,13 @@ export function SmartLessonPlanWorkspace({
       return reason ? [`${basis.title} · ${document.title} v${version.versionNumber}：${reason}`] : [];
     }))
   )), [availableCourseBases]);
-  const selected = sourceOptions.find((option) => option.versionId === selectedSource) ?? sourceOptions[0];
+  const selectedCourseBasis = availableCourseBases.find((basis: any) => basis.id === selectedCourseBasisId)
+    ?? availableCourseBases[0];
+  const courseBasisSourceOptions = sourceOptions.filter(
+    (option) => option.courseBasisId === selectedCourseBasis?.id,
+  );
+  const selected = courseBasisSourceOptions.find((option) => option.versionId === selectedSource)
+    ?? courseBasisSourceOptions[0];
   const textbookRangeOptions = useMemo(() => {
     const query = normalizeRecommendationText(newTaskTopic);
     return textbookCatalog.flatMap((book) => [
@@ -284,7 +292,12 @@ export function SmartLessonPlanWorkspace({
   }
 
   async function createTask(formData: FormData) {
-    if (!selected) return setMessage('请先在上方确认至少一个可检索的课程依据版本。');
+    const textbookRanges = textbookRangeConfirmed && recommendedTextbookRange
+      ? [recommendedTextbookRange.range]
+      : [];
+    if (!selectedCourseBasis || (!selected && textbookRanges.length === 0)) {
+      return setMessage('请至少确认一个可检索的课程依据版本或平台教材范围。');
+    }
     setBusy(true);
     setMessage('');
     try {
@@ -294,18 +307,14 @@ export function SmartLessonPlanWorkspace({
       const response = await fetch('/api/teacher/smart-lesson-tasks', {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          courseBasisId: selected.courseBasisId,
+          courseBasisId: selectedCourseBasis.id,
           topic,
           audience: formData.get('audience'),
           prerequisites: formData.get('prerequisites') || undefined,
           durationMinutes: Number(formData.get('durationMinutes')),
           outlineConfirmationRequired: formData.get('outlineConfirmationRequired') === 'on',
-          textbookRanges: formData.get('confirmTextbookRange') === 'on' && recommendedTextbookRange
-            ? [recommendedTextbookRange.range]
-            : [],
-          sourceVersionIds: sourceOptions
-            .filter((option) => option.courseBasisId === selected.courseBasisId)
-            .map((option) => option.versionId),
+          textbookRanges,
+          sourceVersionIds: courseBasisSourceOptions.map((option) => option.versionId),
           knowledgePoints: [{ title: knowledgePoint, content: knowledgePoint, origin: 'TEACHER_CREATED', sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
           goals: [{ content: goal, sourceState: 'teacher_created_source_pending', sourceBindings: [], standardsMappings: [] }],
           selectedClassId: String(formData.get('selectedClassId') ?? '') || null,
@@ -598,8 +607,11 @@ export function SmartLessonPlanWorkspace({
       <label className="grid min-w-0 max-w-full gap-1 text-sm md:col-span-2">
         <span className="font-medium">备课资源包</span>
         <span className="text-xs text-muted-foreground">用于支持当前备课的可编辑或已冻结课程依据；创建任务时默认选中同一课程依据中的全部可用版本。</span>
+        <select value={selectedCourseBasis?.id ?? ''} onChange={(event) => { setSelectedCourseBasisId(event.target.value); setSelectedSource(''); }} className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2">
+          {availableCourseBases.map((basis: any) => <option key={basis.id} value={basis.id}>{basis.title}</option>)}
+        </select>
         <select value={selected?.versionId ?? ''} onChange={(event) => setSelectedSource(event.target.value)} className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2">
-          {sourceOptions.length ? sourceOptions.map((option) => <option key={option.versionId} value={option.versionId}>{option.label} · {availableCourseBases.flatMap((basis: any) => basis.documents).flatMap((document: any) => document.versions).find((version: any) => version.id === option.versionId)?.reviewState === 'CONFIRMED' ? '已冻结' : '可编辑'}</option>) : <option value="">暂无可用来源版本</option>}
+          {courseBasisSourceOptions.length ? courseBasisSourceOptions.map((option) => <option key={option.versionId} value={option.versionId}>{option.label} · {availableCourseBases.flatMap((basis: any) => basis.documents).flatMap((document: any) => document.versions).find((version: any) => version.id === option.versionId)?.reviewState === 'CONFIRMED' ? '已冻结' : '可编辑'}</option>) : <option value="">暂无可用来源版本</option>}
         </select>
         {unavailableSourceLabels.length ? <ul className="space-y-0.5 text-xs text-muted-foreground">{unavailableSourceLabels.map((label) => <li key={label}>{label}</li>)}</ul> : null}
       </label>
@@ -614,7 +626,7 @@ export function SmartLessonPlanWorkspace({
         <select value={recommendedTextbookRange?.key ?? ''} onChange={(event) => setSelectedTextbookRange(event.target.value)} className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2">
           {textbookRangeOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
         </select>
-        <span className="flex items-center gap-2"><input name="confirmTextbookRange" type="checkbox" />确认采用此教材范围</span>
+        <span className="flex items-center gap-2"><input name="confirmTextbookRange" type="checkbox" checked={textbookRangeConfirmed} onChange={(event) => setTextbookRangeConfirmed(event.target.checked)} />确认采用此教材范围</span>
       </label>
       <select name="selectedClassId" defaultValue={classDiagnosisOptions.find((option) => option.isDefault)?.classId ?? ''} className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2">
         <option value="">不使用班级学情</option>
@@ -622,7 +634,7 @@ export function SmartLessonPlanWorkspace({
       </select>
       <select name="durationMinutes" defaultValue="45" className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2"><option value="45">45 分钟</option><option value="90">90 分钟</option>{Array.from({ length: 19 }, (_, index) => 30 + index * 5).filter((value) => value !== 45 && value !== 90).map((value) => <option key={value} value={value}>{value} 分钟</option>)}</select>
       <label className="flex items-center gap-2 text-sm"><input name="outlineConfirmationRequired" type="checkbox" />生成提纲后暂停确认</label>
-      <button disabled={busy || !selected} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"><Plus className="h-4 w-4" />{busy ? '创建中…' : '确认并创建单课任务'}</button>
+      <button disabled={busy || (!selected && !textbookRangeConfirmed)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"><Plus className="h-4 w-4" />{busy ? '创建中…' : '确认并创建单课任务'}</button>
     </form>
     {!detailedActiveTask && activeTask ? <p className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">正在载入任务详情…</p> : null}
     <div className="grid min-w-0 gap-3">{(detailedActiveTask ? [detailedActiveTask] : []).map((task) => {

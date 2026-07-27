@@ -258,7 +258,9 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
   const prerequisites = optionalText(input.prerequisites, 5000);
   const sourceVersionIds = uniqueIds(input.sourceVersionIds);
   const textbookRanges = await resolveConfirmedTextbookRanges(input.textbookRanges ?? []);
-  if (sourceVersionIds.length === 0) throw new SmartLessonPlanError('source-version-required');
+  if (sourceVersionIds.length === 0 && textbookRanges.length === 0) {
+    throw new SmartLessonPlanError('source-version-required');
+  }
   if (input.knowledgePoints.length === 0) throw new SmartLessonPlanError('knowledge-point-required');
   if (input.goals.length === 0) throw new SmartLessonPlanError('goal-required');
   assertNoClientVerifiedSourceState([...input.knowledgePoints, ...input.goals]);
@@ -319,6 +321,7 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
       sourceVersionIds,
       canonicalBindings,
       sourceMatches.get(title) ?? [],
+      item.sourceState,
     );
     const sourceFields = canonicalSourceFields({
       itemId: id,
@@ -358,6 +361,7 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
       sourceVersionIds,
       canonicalBindings,
       sourceMatches.get(goalContent) ?? [],
+      item.sourceState,
     );
     const sourceFields = canonicalSourceFields({
       itemId: id,
@@ -436,7 +440,11 @@ export async function updateSmartLessonTask(
   const durationMinutes = assertSingleLessonDuration(input.durationMinutes);
   const sourceVersionIds = uniqueIds(input.sourceVersionIds);
   const textbookRanges = await resolveConfirmedTextbookRanges(input.textbookRanges ?? []);
-  if (sourceVersionIds.length === 0 || input.knowledgePoints.length === 0 || input.goals.length === 0) {
+  if (
+    (sourceVersionIds.length === 0 && textbookRanges.length === 0)
+    || input.knowledgePoints.length === 0
+    || input.goals.length === 0
+  ) {
     throw new SmartLessonPlanError('confirmed-task-scope-required');
   }
   const update = async (tx: Prisma.TransactionClient) => {
@@ -534,6 +542,7 @@ export async function updateSmartLessonTask(
         sourceVersionIds,
         canonicalBindings,
         sourceMatches.get(title) ?? [],
+        item.sourceState,
       );
       const sourceFields = canonicalSourceFields({
         itemId: id,
@@ -582,6 +591,7 @@ export async function updateSmartLessonTask(
         sourceVersionIds,
         canonicalBindings,
         sourceMatches.get(content) ?? [],
+        item.sourceState,
       );
       const sourceFields = canonicalSourceFields({
         itemId: id,
@@ -1772,6 +1782,7 @@ function assertGenerationReady(draft: {
     scopeConfirmedAt: Date | null;
     goalsConfirmedAt: Date | null;
     sources: unknown[];
+    textbookRanges: unknown;
     knowledgePoints: Array<{ sourceState: string; sourceBindings: unknown; gapReason: string | null }>;
     goals: Array<{ sourceState: string; sourceBindings: unknown; gapReason: string | null }>;
   };
@@ -1779,7 +1790,13 @@ function assertGenerationReady(draft: {
   if (draft.state === 'APPROVED') throw new SmartLessonPlanError('approved-draft-immutable', 409);
   if (!draft.task.scopeConfirmedAt) throw new SmartLessonPlanError('scope-confirmation-required', 409);
   if (!draft.task.goalsConfirmedAt || draft.task.goals.length === 0) throw new SmartLessonPlanError('goal-confirmation-required', 409);
-  if (draft.task.sources.length === 0) throw new SmartLessonPlanError('source-version-required', 409);
+  const textbookRanges = confirmedTextbookRangeSchema.array().max(20).safeParse(draft.task.textbookRanges);
+  if (
+    draft.task.sources.length === 0
+    && (!textbookRanges.success || textbookRanges.data.length === 0)
+  ) {
+    throw new SmartLessonPlanError('source-version-required', 409);
+  }
   if (draft.task.knowledgePoints.length === 0) throw new SmartLessonPlanError('knowledge-point-confirmation-required', 409);
   if ([...draft.task.knowledgePoints, ...draft.task.goals].some((item) => !sourceGapDecisionComplete(item))) {
     throw new SmartLessonPlanError('source-gap-reason-required', 409);
@@ -2089,6 +2106,7 @@ function resolveItemBindings(
   selectedSourceVersionIds: string[],
   uploadCanonicalBindings: Map<string, SmartLessonSourceBinding>,
   candidates: SmartLessonSourceBinding[],
+  requestedSourceState?: SmartLessonSourceState,
 ) {
   const canonical = new Map(uploadCanonicalBindings);
   for (const candidate of candidates) {
@@ -2096,7 +2114,9 @@ function resolveItemBindings(
   }
   return requested.length > 0
     ? canonicalizeItemBindings(requested, selectedSourceVersionIds, canonical)
-    : normalizeSourceBindings(candidates);
+    : requestedSourceState === 'NO_RELIABLE_SOURCE'
+      ? []
+      : normalizeSourceBindings(candidates);
 }
 
 async function adoptTaskBindings(
@@ -2208,42 +2228,44 @@ async function resolveSourcePackMatches(
   }
   for (const content of byContent.keys()) {
     let uploadBindings: SmartLessonSourceBinding[] = [];
-    try {
-      const actor = { id: ownerId, role: 'TEACHER' as const };
-      const sar = await buildCourseBasisLessonDesignSar(db, {
-        actor,
-        selectedVersionIds: sourceVersionIds,
-        explicitRetiredVersionIds,
-        query: content,
-      });
-      const sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
-        actor,
-        selectedVersionIds: sourceVersionIds,
-        explicitRetiredVersionIds,
-        sar,
-        retrieval: { query: content, topK: 8 },
-      });
-      uploadBindings = sourcePack.retrieval.pack.items.flatMap((item) => {
-        const versionId = item.metadata?.versionId;
-        const anchor = item.metadata?.stableAnchor;
-        const hash = item.metadata?.contentHash;
-        const citationId = item.citationTargetId;
-        if (
-          typeof versionId !== 'string'
-          || typeof anchor !== 'string'
-          || typeof hash !== 'string'
-          || typeof citationId !== 'string'
-        ) return [];
-        return [{
-          sourceKind: 'upload' as const,
-          sourceVersionId: versionId,
-          anchor,
-          contentHash: hash,
-          citationId,
-        }];
-      });
-    } catch (error) {
-      if (!(error instanceof CourseBasisError)) throw error;
+    if (sourceVersionIds.length > 0) {
+      try {
+        const actor = { id: ownerId, role: 'TEACHER' as const };
+        const sar = await buildCourseBasisLessonDesignSar(db, {
+          actor,
+          selectedVersionIds: sourceVersionIds,
+          explicitRetiredVersionIds,
+          query: content,
+        });
+        const sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
+          actor,
+          selectedVersionIds: sourceVersionIds,
+          explicitRetiredVersionIds,
+          sar,
+          retrieval: { query: content, topK: 8 },
+        });
+        uploadBindings = sourcePack.retrieval.pack.items.flatMap((item) => {
+          const versionId = item.metadata?.versionId;
+          const anchor = item.metadata?.stableAnchor;
+          const hash = item.metadata?.contentHash;
+          const citationId = item.citationTargetId;
+          if (
+            typeof versionId !== 'string'
+            || typeof anchor !== 'string'
+            || typeof hash !== 'string'
+            || typeof citationId !== 'string'
+          ) return [];
+          return [{
+            sourceKind: 'upload' as const,
+            sourceVersionId: versionId,
+            anchor,
+            contentHash: hash,
+            citationId,
+          }];
+        });
+      } catch (error) {
+        if (!(error instanceof CourseBasisError)) throw error;
+      }
     }
     let textbookBindings: SmartLessonSourceBinding[] = [];
     try {

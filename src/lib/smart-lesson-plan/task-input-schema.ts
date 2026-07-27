@@ -34,14 +34,14 @@ const knowledgePointOriginSchema = z.enum(['SUGGESTED', 'TEACHER_CREATED', 'ai_g
   value === 'ai_generated' ? 'SUGGESTED' as const : value
 ));
 
-export const createTaskSchema = z.object({
+const taskInputSchema = z.object({
   courseBasisId: idSchema,
   topic: z.string().trim().min(1).max(500),
   audience: z.string().trim().min(1).max(1000),
   prerequisites: z.string().trim().max(5000).optional(),
   durationMinutes: z.number().int().min(30).max(120).refine((value) => value % 5 === 0),
   outlineConfirmationRequired: z.boolean().optional(),
-  sourceVersionIds: z.array(idSchema).min(1).max(500),
+  sourceVersionIds: z.array(idSchema).max(500),
   textbookRanges: z.array(confirmedTextbookRangeSchema).max(20).optional(),
   knowledgePoints: z.array(canonicalItemSchema.extend({
     title: z.string().trim().min(1).max(500).optional(),
@@ -56,10 +56,23 @@ export const createTaskSchema = z.object({
   confirmGoals: z.boolean().optional(),
 }).strict();
 
-export const updateTaskSchema = createTaskSchema.extend({
+const resourcePackSelected = (input: {
+  sourceVersionIds: string[];
+  textbookRanges?: unknown[];
+}) => input.sourceVersionIds.length > 0 || (input.textbookRanges?.length ?? 0) > 0;
+
+export const createTaskSchema = taskInputSchema.refine(resourcePackSelected, {
+  message: 'source-version-or-textbook-range-required',
+  path: ['sourceVersionIds'],
+});
+
+export const updateTaskSchema = taskInputSchema.extend({
   courseBasisId: idSchema.optional(),
   selectedClassId: idSchema.nullable().optional(),
   expectedRevision: z.number().int().min(1),
   confirmingTurnId: idSchema,
   agentSessionId: idSchema.optional(),
-}).strict();
+}).strict().refine(resourcePackSelected, {
+  message: 'source-version-or-textbook-range-required',
+  path: ['sourceVersionIds'],
+});
