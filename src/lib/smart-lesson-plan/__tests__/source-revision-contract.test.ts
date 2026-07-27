@@ -56,16 +56,18 @@ describe('smart lesson real-provider source revision contract', () => {
       ),
       'utf8',
     );
+    expect(runner).toContain('SET LOCAL search_path TO "${schemaName}", public');
     expect(runner).toContain('const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({');
     expect(runner).toContain('BigInt(currentFence?.fence ?? 0) + 1n');
     expect(runner).toContain('BigInt(currentFence?.learnerGeneration ?? 0) + 1n');
     expect(runner).toContain('BigInt(currentFence?.classGeneration ?? 0) + 1n');
     expect(runner).toContain('BigInt(currentFence?.queueGeneration ?? 0) + 1n');
     expect(runner).toContain('cumulativePortraitCutoverFence.upsert({');
-    expect(runner).toContain("where: { id: 'global' }");
     expect(runner).toContain("create: { id: 'global', ...fenceData }");
     expect(runner).toContain('update: fenceData');
-    expect(runner).not.toContain('cumulativePortraitCutoverFence.create({');
+    expect(migration).toContain(
+      'SELECT * INTO run_row FROM "CumulativePortraitMigrationRun" WHERE "id" = NEW."activeMigrationRunId"',
+    );
     for (const field of [
       'cutoverFence',
       'calculationVersion',

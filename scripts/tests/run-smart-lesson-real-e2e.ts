@@ -325,6 +325,7 @@ async function seedCurrentCumulativeClassPortrait(
   const migrationRunId = `smart-lesson-real-migration-${process.pid}`;
   const now = new Date();
   const publication = await prisma.$transaction(async (tx) => {
+    await tx.$executeRawUnsafe(`SET LOCAL search_path TO "${schemaName}", public`);
     const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({
       where: { id: 'global' },
     });
