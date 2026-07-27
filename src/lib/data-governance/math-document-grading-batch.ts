@@ -754,6 +754,10 @@ async function processBatchItem(input: {
       const convertedBlocks = Array.isArray(converted.normalizedBlocks)
         ? converted.normalizedBlocks
         : [];
+      const conversionLimitations = [
+        ...(converted.warningCodes ?? []),
+        ...(converted.failureCode ? [converted.failureCode] : []),
+      ];
       understood.push({
         assetId: asset.id,
         displayName: asset.originalName ?? asset.displayName ?? '未命名附件',
@@ -767,7 +771,7 @@ async function processBatchItem(input: {
         route,
         state: ready
           ? 'READY'
-          : converted.failureCode === 'understanding-unavailable-policy'
+          : conversionLimitations.includes('understanding-unavailable-policy')
             ? 'UNDERSTANDING_UNAVAILABLE_POLICY'
             : 'UNDERSTANDING_FAILED',
         canonicalMarkdown: converted.canonicalMarkdown,
@@ -786,10 +790,7 @@ async function processBatchItem(input: {
               confidence: block.confidence,
             }))
           : [],
-        limitations: [
-          ...(converted.warningCodes ?? []),
-          ...(converted.failureCode ? [converted.failureCode] : []),
-        ],
+        limitations: conversionLimitations,
       });
     }
     const assembled = assembleAssignmentAnswerEvidence({
