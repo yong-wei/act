@@ -309,6 +309,43 @@ describe('assignment attachment understanding', () => {
     expect(assembled.evidence.limitations).toContain('direct-text-truncated');
   });
 
+  it('downgrades attachment-local span coordinates in aggregate evidence', () => {
+    const assembled = assembleAssignmentAnswerEvidence({
+      attemptId: 'attempt-local-span',
+      answerVersion: 1,
+      textSnapshot: 'student preface',
+      attachments: [{
+        assetId: 'asset-local-span',
+        displayName: 'answer.txt',
+        mimeType: 'text/plain',
+        checksum: 'sha256:local-span',
+        role: 'ATTACHMENT',
+        orderIndex: 0,
+        route: 'direct-text',
+        state: 'READY',
+        canonicalMarkdown: 'attachment answer',
+        blocks: [{
+          id: 'local-span',
+          blockIndex: 0,
+          text: 'attachment answer',
+          markdown: 'attachment answer',
+          spanStart: 0,
+          spanEnd: 17,
+          precision: 'span',
+        }],
+      }],
+    });
+
+    const attachmentBlock = assembled.evidence.blocks.find(
+      (block) => block.id === 'asset:asset-local-span:local-span',
+    );
+    expect(attachmentBlock).toEqual(expect.objectContaining({
+      precision: 'block',
+      spanStart: null,
+      spanEnd: null,
+    }));
+  });
+
   it('preserves safe normalization limitations for ready attachments', () => {
     const normalizationLimitations = [
       'source-snapshot-truncated',

@@ -390,10 +390,16 @@ function renderOrderedEvidence(
           confidence: attachment.ready ? 1 : 0,
         }];
     for (const block of attachmentBlocks) {
+      const hasAttachmentLocalSpan = typeof block.spanStart === 'number'
+        || typeof block.spanEnd === 'number'
+        || block.precision === 'span';
       blocks.push({
         ...block,
         id: `asset:${attachment.assetId}:${block.id ?? blocks.length + 1}`,
         blockIndex: blocks.length,
+        precision: hasAttachmentLocalSpan ? 'block' : block.precision,
+        spanStart: hasAttachmentLocalSpan ? null : block.spanStart,
+        spanEnd: hasAttachmentLocalSpan ? null : block.spanEnd,
       });
     }
     cursor = matchIndex + match[0].length;
