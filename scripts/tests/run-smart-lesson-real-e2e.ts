@@ -174,14 +174,14 @@ async function createIsolatedDatabase() {
   } finally {
     await pool.end();
   }
-  const scoped = new URL(admin.toString());
-  scoped.searchParams.set('schema', schemaName);
-  return scoped.toString();
+  return scopedDatabaseUrlFor(schemaName, admin.toString());
 }
 
-function scopedDatabaseUrlFor(schema: string) {
-  const scoped = new URL(baseDatabaseUrl!);
+function scopedDatabaseUrlFor(schema: string, databaseUrl = baseDatabaseUrl!) {
+  assertTemporarySchema(schema);
+  const scoped = new URL(databaseUrl);
   scoped.searchParams.set('schema', schema);
+  scoped.searchParams.set('options', `-c search_path=${schema},public`);
   return scoped.toString();
 }
 

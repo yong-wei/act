@@ -56,6 +56,9 @@ describe('smart lesson real-provider source revision contract', () => {
       ),
       'utf8',
     );
+    expect(runner).toContain('assertTemporarySchema(schema);');
+    expect(runner).toContain("scoped.searchParams.set('schema', schema);");
+    expect(runner).toContain("scoped.searchParams.set('options', `-c search_path=${schema},public`);");
     expect(runner).toContain('SET LOCAL search_path TO "${schemaName}", public');
     expect(runner).toContain('const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({');
     expect(runner).toContain('BigInt(currentFence?.fence ?? 0) + 1n');
