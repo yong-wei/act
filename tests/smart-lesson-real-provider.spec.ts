@@ -52,7 +52,11 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   const outlineAttemptIds = beforeFailure.job.stages
     .find((stage) => stage.kind === 'OUTLINE')!.attempts.map((attempt) => attempt.id);
   await card.getByRole('button', { name: '确认当前提纲并继续' }).click();
-  const failedSnapshot = await waitForGenerationOutcome(GENERATION_WINDOW_MS);
+  const failedSnapshot = await waitForGenerationOutcome(
+    GENERATION_WINDOW_MS,
+    (snapshot) => snapshot.job.stages
+      .find((stage) => stage.kind === 'BRIDGE_IN')!.attempts.length > 0,
+  );
   assertGenerationState(failedSnapshot, 'RETRYABLE', 'BRIDGE_IN 注入故障未形成可恢复状态');
   expect(failedSnapshot.job.firstIncompleteStage).toBe('BRIDGE_IN');
   const failedBridgeStage = failedSnapshot.job.stages.find((stage) => stage.kind === 'BRIDGE_IN')!;
@@ -348,7 +352,10 @@ async function persistedAdvisoryReviews() {
   }
 }
 
-async function waitForGenerationOutcome(timeout: number) {
+async function waitForGenerationOutcome(
+  timeout: number,
+  acceptSnapshot: (snapshot: GenerationSnapshot) => boolean = () => true,
+) {
   let snapshot: GenerationSnapshot | undefined;
   try {
     await expect.poll(async () => {
@@ -357,7 +364,7 @@ async function waitForGenerationOutcome(timeout: number) {
       snapshot = candidate;
       return GENERATION_TERMINAL_STATES.includes(
         snapshot.job.state as (typeof GENERATION_TERMINAL_STATES)[number],
-      );
+      ) && acceptSnapshot(snapshot);
     }, { timeout, intervals: [1_000, 2_500, 5_000] }).toBe(true);
   } catch {
     throw new Error(`generation-outcome-timeout:${JSON.stringify(compactGenerationSnapshot(snapshot))}`);
