@@ -138,21 +138,16 @@ export function assembleAssignmentAnswerEvidence(input: {
 } {
   const sources: AssignmentEvidenceManifest['sources'] = [];
   const limitations: string[] = [];
-  const blocks: EvidenceBlockInput[] = [];
   let markdown = input.textSnapshot;
+  const attachmentRenders: Array<{
+    marker: string;
+    assetId: string;
+    content: string;
+    blocks: EvidenceBlockInput[];
+    ready: boolean;
+  }> = [];
   let hasGradableEvidence = Boolean(input.textSnapshot.trim());
   if (input.textSnapshot.trim()) {
-    blocks.push({
-      id: 'student-text',
-      blockIndex: 0,
-      pageNumber: null,
-      text: input.textSnapshot,
-      markdown: input.textSnapshot,
-      spanStart: 0,
-      spanEnd: input.textSnapshot.length,
-      precision: 'span',
-      confidence: 1,
-    });
     sources.push({
       kind: 'STUDENT_TEXT',
       assetId: null,
@@ -170,10 +165,11 @@ export function assembleAssignmentAnswerEvidence(input: {
     if (left.role !== right.role) return left.role === 'EMBEDDED_IMAGE' ? -1 : 1;
     return left.orderIndex - right.orderIndex || left.assetId.localeCompare(right.assetId);
   });
-  for (const attachment of ordered) {
+  for (const [attachmentIndex, attachment] of ordered.entries()) {
     const ready = attachment.state === 'READY'
       && Boolean(attachment.canonicalMarkdown?.trim());
     const safeName = safeAttachmentName(attachment.displayName);
+    const marker = `\u0000assignment-attachment-${attachmentIndex}\u0000`;
     const attachmentLimitations = ready
       ? [...new Set((attachment.limitations ?? []).filter((limitation) =>
           ['direct-text-truncated', 'direct-text-blocks-truncated']
@@ -195,34 +191,44 @@ export function assembleAssignmentAnswerEvidence(input: {
     if (!ready) {
       const missing = `attachment-understanding-missing:${attachment.assetId}:${safeName}`;
       limitations.push(missing, ...attachmentLimitations);
+      const content = attachment.role === 'EMBEDDED_IMAGE'
+        ? `[正文图片无法自动理解：${safeName}]`
+        : '[附件无法自动理解]';
+      attachmentRenders.push({
+        marker,
+        assetId: attachment.assetId,
+        content,
+        blocks: [],
+        ready: false,
+      });
       if (attachment.role === 'EMBEDDED_IMAGE' && attachment.embeddedPosition) {
         markdown = replaceEmbeddedAsset(
           markdown,
           attachment.embeddedPosition,
-          `\n\n[正文图片无法自动理解：${safeName}]\n\n`,
+          `\n\n${marker}\n\n`,
         );
       } else {
-        markdown = `${markdown.trim()}\n\n## 附件：${safeName}\n\n[附件无法自动理解]`.trim();
+        markdown = `${markdown.trim()}\n\n## 附件：${safeName}\n\n${marker}`.trim();
       }
       continue;
     }
     hasGradableEvidence = true;
     const content = attachment.canonicalMarkdown!.trim();
+    attachmentRenders.push({
+      marker,
+      assetId: attachment.assetId,
+      content,
+      blocks: attachment.blocks ?? [],
+      ready: true,
+    });
     if (attachment.role === 'EMBEDDED_IMAGE' && attachment.embeddedPosition) {
       markdown = replaceEmbeddedAsset(
         markdown,
         attachment.embeddedPosition,
-        `\n\n${content}\n\n`,
+        `\n\n${marker}\n\n`,
       );
     } else {
-      markdown = `${markdown.trim()}\n\n## 附件：${safeName}\n\n${content}`.trim();
-    }
-    for (const block of attachment.blocks ?? []) {
-      blocks.push({
-        ...block,
-        id: `asset:${attachment.assetId}:${block.id ?? blocks.length + 1}`,
-        blockIndex: blocks.length,
-      });
+      markdown = `${markdown.trim()}\n\n## 附件：${safeName}\n\n${marker}`.trim();
     }
   }
 
@@ -240,7 +246,9 @@ export function assembleAssignmentAnswerEvidence(input: {
     state,
     sources,
   };
-  const canonicalMarkdown = markdown.trim();
+  const rendered = renderOrderedEvidence(markdown, attachmentRenders);
+  const canonicalMarkdown = rendered.markdown.trim();
+  const blocks = rendered.blocks;
   return {
     evidence: {
       sourceKind: sources.some((source) => source.assetId)
@@ -269,6 +277,76 @@ export function assembleAssignmentAnswerEvidence(input: {
     omittedAssetIds: omitted.map((source) => source.assetId!),
     omittedDisplayNames: omitted.map((source) => source.displayName!),
   };
+}
+
+function renderOrderedEvidence(
+  markdownTemplate: string,
+  attachments: Array<{
+    marker: string;
+    assetId: string;
+    content: string;
+    blocks: EvidenceBlockInput[];
+    ready: boolean;
+  }>,
+): { markdown: string; blocks: EvidenceBlockInput[] } {
+  const attachmentByMarker = new Map(
+    attachments.map((attachment) => [attachment.marker, attachment]),
+  );
+  const markerPattern = /\u0000assignment-attachment-\d+\u0000/g;
+  const markdownParts: string[] = [];
+  const blocks: EvidenceBlockInput[] = [];
+  let cursor = 0;
+  let textBlockIndex = 0;
+
+  const pushText = (text: string) => {
+    markdownParts.push(text);
+    const normalized = text.trim();
+    if (!normalized) return;
+    textBlockIndex += 1;
+    blocks.push({
+      id: `student-text-${textBlockIndex}`,
+      blockIndex: blocks.length,
+      pageNumber: null,
+      text: normalized,
+      markdown: normalized,
+      precision: 'block',
+      confidence: 1,
+    });
+  };
+
+  for (const match of markdownTemplate.matchAll(markerPattern)) {
+    const matchIndex = match.index ?? cursor;
+    pushText(markdownTemplate.slice(cursor, matchIndex));
+    const attachment = attachmentByMarker.get(match[0]);
+    if (!attachment) {
+      pushText(match[0]);
+      cursor = matchIndex + match[0].length;
+      continue;
+    }
+    markdownParts.push(attachment.content);
+    const attachmentBlocks = attachment.ready && attachment.blocks.length > 0
+      ? attachment.blocks
+      : [{
+          id: attachment.ready ? 'content' : 'missing',
+          blockIndex: 0,
+          pageNumber: null,
+          text: attachment.content,
+          markdown: attachment.content,
+          precision: 'block' as const,
+          confidence: attachment.ready ? 1 : 0,
+        }];
+    for (const block of attachmentBlocks) {
+      blocks.push({
+        ...block,
+        id: `asset:${attachment.assetId}:${block.id ?? blocks.length + 1}`,
+        blockIndex: blocks.length,
+      });
+    }
+    cursor = matchIndex + match[0].length;
+  }
+  pushText(markdownTemplate.slice(cursor));
+
+  return { markdown: markdownParts.join(''), blocks };
 }
 
 function replaceEmbeddedAsset(

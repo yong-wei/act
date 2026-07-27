@@ -475,6 +475,55 @@ describe('production math-document grading persistence contracts', () => {
     expect(blockWrites).toEqual(expect.arrayContaining([expect.objectContaining({ evidenceId: 'evidence-old', id: 'conversion-1:block-1' })]));
   });
 
+  it('persists successful conversion limitations for later evidence assembly', async () => {
+    const bytes = new TextEncoder().encode('answer');
+    const checksum = sha256(bytes);
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'quarantine/limited-answer', ownerId: 'student-1', answerId: 'answer-1', sizeBytes: bytes.byteLength, mimeType: 'text/plain', checksum, scanState: 'CLEAN' });
+    store.payloads.set('quarantine/limited-answer', bytes);
+    const conversion: any = {
+      id: 'conversion-limited', assetId: 'asset-limited', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
+      asset: { id: 'asset-limited', answerId: 'answer-1', objectKey: 'quarantine/limited-answer', originalName: 'answer.txt', mimeType: 'text/plain', sizeBytes: bytes.byteLength, checksum, answer: { submission: { frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1' } } },
+      attempt: { id: 'attempt-1' }, policy: null, answerEvidence: null,
+    };
+    const updates: any[] = [];
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      gradingJob: {
+        findUnique: async () => ({ id: 'job-limited', state: 'QUEUED', cancelRequestedAt: null, conversion }),
+        updateMany: async ({ data }: any) => { updates.push(data); return { count: 1 }; },
+        update: async ({ data }: any) => { updates.push(data); return data; },
+      },
+      documentConversion: {
+        update: async ({ data }: any) => { updates.push(data); return { ...conversion, ...data }; },
+      },
+      gradingConversionWarning: { createMany: async () => undefined },
+      answerEvidence: {
+        findFirst: async () => null,
+        create: async ({ data }: any) => ({ id: 'evidence-limited', ...data }),
+      },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    await processDocumentConversionJob({
+      db,
+      jobId: 'job-limited',
+      store,
+      local: {
+        convert: async () => ({
+          markdown: '部分文本',
+          blocks: [{ id: 'block-1', blockIndex: 0, text: '部分文本', markdown: '部分文本', precision: 'block' as const, confidence: 1 }],
+          limitations: ['direct-text-truncated'],
+        }),
+      },
+      now,
+    });
+
+    expect(updates).toEqual(expect.arrayContaining([
+      expect.objectContaining({ warningCodes: ['direct-text-truncated'] }),
+    ]));
+  });
+
   it('does not commit a conversion result after retention fences the worker', async () => {
     const bytes = new TextEncoder().encode('answer');
     const checksum = sha256(bytes);

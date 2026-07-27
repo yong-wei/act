@@ -1047,7 +1047,10 @@ export async function processDocumentConversionJob(input: {
   const configuredAnswerEvidenceLifecycle = freezeLifecyclePolicy((await requireConfiguredLifecyclePolicies(input.db, ['answer-evidence'])).find((policy: any) => policy.dataClass === 'answer-evidence'), now);
   const conversion = await input.db.$transaction(async (tx: any) => {
     await updateActivePersistedRecord({ model: tx.gradingJob, id: job.id, activeStates: ['RUNNING'], fencedCode: 'conversion-worker-fenced', fallback: job, leaseToken: workerClaimToken, data: { updatedAt: now } });
-    const warningCodes = [...new Set(result.warnings)];
+    const warningCodes = [...new Set([
+      ...result.warnings,
+      ...result.limitations,
+    ])];
     const updated = await updateActivePersistedRecord({
       model: tx.documentConversion,
       id: job.conversion.id,

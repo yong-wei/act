@@ -229,6 +229,15 @@ describe('assignment attachment understanding', () => {
     expect(positions).toEqual(
       [...positions].sort((left, right) => left - right),
     );
+    const blockText = assembled.evidence.blocks.map((block) => block.text);
+    expect(blockText.findIndex((text) => text.includes('before')))
+      .toBeLessThan(blockText.indexOf('FIRST-IMAGE-CONTENT'));
+    expect(blockText.indexOf('FIRST-IMAGE-CONTENT'))
+      .toBeLessThan(blockText.findIndex((text) => text.includes('middle')));
+    expect(blockText.findIndex((text) => text.includes('middle')))
+      .toBeLessThan(blockText.indexOf('[正文图片无法自动理解：second.png]'));
+    expect(blockText.indexOf('[正文图片无法自动理解：second.png]'))
+      .toBeLessThan(blockText.findIndex((text) => text.includes('after')));
   });
 
   it('blocks AI grading when every source lacks gradable evidence', () => {
