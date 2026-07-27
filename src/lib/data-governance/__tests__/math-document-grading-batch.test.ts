@@ -316,7 +316,23 @@ describe('question-scoped grading batch orchestration', () => {
       conversionPolicyId: null, conversionPolicySnapshot: conversionBundle, conversionPolicySnapshotHash: sha256(stableStringify(conversionBundle)), conversionPolicy: null,
       items: [item, documentItem], question: {},
     };
-    const evidence = { id: 'evidence-policy-routing', version: 1, sourceHash: 'sha256:evidence', readiness: 'READY', blocks: [] };
+    const evidence = {
+      id: 'evidence-policy-routing',
+      version: 1,
+      sourceHash: 'sha256:evidence',
+      readiness: 'READY',
+      blocks: [{
+        id: 'conversion-block',
+        blockIndex: 0,
+        pageNumber: 2,
+        text: 'converted',
+        markdown: 'converted',
+        bbox: [0.1, 0.2, 0.3, 0.4],
+        coordinateProvenance: { origin: 'top-left', unit: 'normalized' },
+        precision: 'PAGE',
+        confidence: 0.9,
+      }],
+    };
     const db: any = {
       gradingBatch: { findUnique: async () => batch, updateMany: async ({ data }: any) => { Object.assign(batch, data); return { count: 1 }; } },
       gradingBatchItem: { updateMany: async ({ where, data }: any) => { const target = where.id === documentItem.id ? documentItem : item; Object.assign(target, data); return { count: 1 }; }, update: async ({ where, data }: any) => { const target = where.id === documentItem.id ? documentItem : item; Object.assign(target, data); return target; }, groupBy: async () => [{ state: 'SUCCEEDED', _count: { _all: 2 } }] },
@@ -325,8 +341,17 @@ describe('question-scoped grading batch orchestration', () => {
       answerEvidence: { findUnique: async () => null, findFirst: async () => evidence },
     };
     const conversion = vi.spyOn(gradingPersistence, 'enqueueDocumentConversion').mockResolvedValue({ conversion: { id: 'conversion-policy-routing', state: 'QUEUED' }, job: { id: 'conversion-job-policy-routing' }, replay: false } as any);
-    const conversionWorker = vi.spyOn(gradingPersistence, 'processDocumentConversionJob').mockResolvedValue({ conversion: { id: 'conversion-policy-routing', state: 'SUCCEEDED' }, evidence } as any);
-    vi.spyOn(gradingPersistence, 'materializeAssignmentAnswerEvidence').mockResolvedValue({ evidence, replay: false } as any);
+    const conversionWorker = vi.spyOn(gradingPersistence, 'processDocumentConversionJob').mockResolvedValue({
+      conversion: {
+        id: 'conversion-policy-routing',
+        state: 'SUCCEEDED',
+        canonicalMarkdown: 'converted',
+        precision: 'PAGE',
+        confidence: 0.9,
+      },
+      evidence,
+    } as any);
+    const materializeEvidence = vi.spyOn(gradingPersistence, 'materializeAssignmentAnswerEvidence').mockResolvedValue({ evidence, replay: false } as any);
     const grading = vi.spyOn(gradingPersistence, 'enqueueGradingRun').mockResolvedValue({ run: { id: 'run-policy-routing', inputHash: 'sha256:input', state: 'QUEUED' }, job: { id: 'grading-job-policy-routing' }, replay: false } as any);
     vi.spyOn(gradingPersistence, 'processGradingRunJob').mockResolvedValue({ run: { id: 'run-policy-routing', state: 'AWAITING_REVIEW' }, draft: {} } as any);
     await processQuestionGradingBatch({ db, batchId: batch.id, store: {} as any, mathpix: {} as any, now });
@@ -335,6 +360,17 @@ describe('question-scoped grading batch orchestration', () => {
     expect(conversion).not.toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-ai' }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ mathpix: expect.anything() }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ writeRendered: expect.any(Function) }));
+    expect(materializeEvidence).toHaveBeenCalledWith(expect.objectContaining({
+      normalized: expect.objectContaining({
+        blocks: expect.arrayContaining([
+          expect.objectContaining({
+            pageNumber: 2,
+            bbox: [0.1, 0.2, 0.3, 0.4],
+            precision: 'page',
+          }),
+        ]),
+      }),
+    }));
     expect(grading).toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-ai', policySnapshotHash: batch.policySnapshotHash }));
   });
 

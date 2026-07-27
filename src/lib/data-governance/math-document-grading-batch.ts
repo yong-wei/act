@@ -726,6 +726,7 @@ async function processBatchItem(input: {
         await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { conversionId: conversion.conversion.id, updatedAt: input.now });
       }
       let converted = conversion.conversion;
+      let convertedEvidence = null;
       if (conversion.job) {
         const processedConversion = await processDocumentConversionJob({
           db: input.db,
@@ -740,16 +741,22 @@ async function processBatchItem(input: {
             : undefined,
           mathpix: route === 'binary-mathpix' ? input.mathpix : undefined,
           local: undefined,
-          persistEvidence: false,
           parentLeaseLost: input.parentLeaseLost,
           signal: input.signal,
           now: input.now,
         });
         converted = processedConversion.conversion;
+        convertedEvidence = processedConversion.evidence;
         if (processedConversion.conversion.state === 'CANCELLED') throw new Error('batch-cancelled');
       }
       const ready = converted.state === 'SUCCEEDED'
         && Boolean(converted.canonicalMarkdown?.trim());
+      if (ready && !convertedEvidence) {
+        convertedEvidence = await input.db.answerEvidence.findFirst({
+          where: { conversionId: converted.id },
+          include: { blocks: { orderBy: { blockIndex: 'asc' } } },
+        });
+      }
       understood.push({
         assetId: asset.id,
         displayName: asset.originalName ?? asset.displayName ?? '未命名附件',
@@ -768,14 +775,19 @@ async function processBatchItem(input: {
             : 'UNDERSTANDING_FAILED',
         canonicalMarkdown: converted.canonicalMarkdown,
         blocks: ready
-          ? [{
-              id: 'content',
-              blockIndex: 0,
-              text: converted.canonicalMarkdown,
-              markdown: converted.canonicalMarkdown,
-              precision: String(converted.precision ?? 'BLOCK').toLowerCase() as 'span' | 'block' | 'page',
-              confidence: converted.confidence ?? 0,
-            }]
+          ? (convertedEvidence?.blocks ?? []).map((block: any) => ({
+              id: block.id,
+              blockIndex: block.blockIndex,
+              pageNumber: block.pageNumber,
+              text: block.text,
+              markdown: block.markdown,
+              spanStart: block.spanStart,
+              spanEnd: block.spanEnd,
+              bbox: block.bbox,
+              coordinateProvenance: block.coordinateProvenance,
+              precision: String(block.precision ?? 'BLOCK').toLowerCase() as 'span' | 'block' | 'page',
+              confidence: block.confidence,
+            }))
           : [],
         limitations: [
           ...(converted.warningCodes ?? []),
