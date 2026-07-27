@@ -231,6 +231,28 @@ describe('Konling structured action runtime', () => {
     expect(normalized.withheldMalformedSyntax).toBe(false);
   });
 
+  it('assigns distinct ids to repeated explicit DSML ids in one normalization', () => {
+    const normalized = normalizeKonlingStructuredText([
+      '<tool_call>{"id":"provider-duplicate","name":"get_page_context","arguments":{"pageId":"first"}}</tool_call>',
+      '<tool_call>{"id":"provider-duplicate","name":"get_page_context","arguments":{"pageId":"second"}}</tool_call>',
+    ].join(''));
+
+    expect(normalized.toolCalls).toEqual([
+      {
+        id: 'provider-duplicate',
+        name: 'get_page_context',
+        input: { pageId: 'first' },
+        source: 'dsml',
+      },
+      {
+        id: 'dsml-2',
+        name: 'get_page_context',
+        input: { pageId: 'second' },
+        source: 'dsml',
+      },
+    ]);
+  });
+
   it('normalizes the provider DSML invoke trace with object arguments', () => {
     const trace = [
       '这是教师可见说明。',
@@ -565,6 +587,186 @@ describe('Konling structured action runtime', () => {
     expect(JSON.stringify(chunks)).not.toContain('DSML');
     expect(JSON.stringify(chunks)).not.toContain('根轨迹');
     expect(chunks.at(-1)).toEqual({ type: 'finish', finishReason: 'tool-calls' });
+  });
+
+  it('keeps DSML ids and client results distinct when envelopes close in separate deltas', async () => {
+    const executeToolCall = vi.fn(async (call) => ({
+      pageId: (call.input as { pageId: string }).pageId,
+    }));
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-multiple-dsml' });
+        controller.enqueue({ type: 'text-start', id: 'text-multiple-dsml' });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-multiple-dsml',
+          delta: '<｜DSML｜tool_calls><｜DSML｜invoke name="get_page_context"><｜DSML｜parameter name="arguments" string="false">{"pageId":"first"}</｜DSML｜parameter></｜DSML｜invoke></｜DSML｜tool_calls>',
+        });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-multiple-dsml',
+          delta: '<｜DSML｜tool_calls><｜DSML｜invoke name="get_page_context"><｜DSML｜parameter name="arguments" string="false">{"pageId":"second"}</｜DSML｜parameter></｜DSML｜invoke></｜DSML｜tool_calls>',
+        });
+        controller.enqueue({ type: 'text-end', id: 'text-multiple-dsml' });
+        controller.enqueue({ type: 'finish', finishReason: 'tool-calls' });
+        controller.close();
+      },
+    });
+    const [inspectionStream, clientStream] = createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }).tee();
+    const onError = vi.fn();
+    const clientSnapshotsPromise = (async () => {
+      const snapshots = [];
+      for await (const message of readUIMessageStream({
+        stream: clientStream,
+        onError,
+        terminateOnError: true,
+      })) {
+        snapshots.push(message);
+      }
+      return snapshots;
+    })();
+    const [chunks, clientSnapshots] = await Promise.all([
+      readChunks(inspectionStream),
+      clientSnapshotsPromise,
+    ]);
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(state.toolCalls.map((call) => call.id)).toEqual(['dsml-1', 'dsml-2']);
+    expect(state.executedToolResults).toEqual([
+      {
+        toolCallId: 'dsml-1',
+        toolName: 'get_page_context',
+        result: { pageId: 'first' },
+      },
+      {
+        toolCallId: 'dsml-2',
+        toolName: 'get_page_context',
+        result: { pageId: 'second' },
+      },
+    ]);
+    expect(chunks.filter((chunk) => chunk.type === 'tool-output-available')).toEqual([
+      expect.objectContaining({
+        toolCallId: 'dsml-1',
+        output: { pageId: 'first' },
+      }),
+      expect.objectContaining({
+        toolCallId: 'dsml-2',
+        output: { pageId: 'second' },
+      }),
+    ]);
+    expect(clientSnapshots.at(-1)?.parts.filter((part) => part.type === 'dynamic-tool')).toEqual([
+      expect.objectContaining({
+        toolCallId: 'dsml-1',
+        state: 'output-available',
+        output: { pageId: 'first' },
+      }),
+      expect.objectContaining({
+        toolCallId: 'dsml-2',
+        state: 'output-available',
+        output: { pageId: 'second' },
+      }),
+    ]);
+  });
+
+  it('keeps native and explicit DSML ids distinct across execution and client parts', async () => {
+    const executeToolCall = vi.fn(async (call) => ({
+      pageId: (call.input as { pageId: string }).pageId,
+    }));
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    const source = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-native-dsml-collision' });
+        controller.enqueue({
+          type: 'tool-input-available',
+          toolCallId: 'shared-provider-id',
+          toolName: 'get_page_context',
+          input: { pageId: 'native' },
+          dynamic: true,
+        });
+        controller.enqueue({
+          type: 'tool-output-available',
+          toolCallId: 'shared-provider-id',
+          output: { pageId: 'native' },
+          dynamic: true,
+        });
+        controller.enqueue({
+          type: 'text-delta',
+          id: 'text-native-dsml-collision',
+          delta: '<tool_call>{"id":"shared-provider-id","name":"get_page_context","arguments":{"pageId":"dsml"}}</tool_call>',
+        });
+        controller.enqueue({ type: 'finish', finishReason: 'tool-calls' });
+        controller.close();
+      },
+    });
+    const [inspectionStream, clientStream] = createKonlingStructuredActionStream({
+      stream: source,
+      state,
+      executeToolCall,
+    }).tee();
+    const onError = vi.fn();
+    const clientSnapshotsPromise = (async () => {
+      const snapshots = [];
+      for await (const message of readUIMessageStream({
+        stream: clientStream,
+        onError,
+        terminateOnError: true,
+      })) {
+        snapshots.push(message);
+      }
+      return snapshots;
+    })();
+    const [chunks, clientSnapshots] = await Promise.all([
+      readChunks(inspectionStream),
+      clientSnapshotsPromise,
+    ]);
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(state.toolCalls.map((call) => call.id)).toEqual([
+      'shared-provider-id',
+      'dsml-1',
+    ]);
+    expect(state.executedToolResults).toEqual([{
+      toolCallId: 'dsml-1',
+      toolName: 'get_page_context',
+      result: { pageId: 'dsml' },
+    }]);
+    expect(chunks.filter((chunk) => chunk.type === 'tool-output-available')).toEqual([
+      expect.objectContaining({
+        toolCallId: 'shared-provider-id',
+        output: { pageId: 'native' },
+      }),
+      expect.objectContaining({
+        toolCallId: 'dsml-1',
+        output: { pageId: 'dsml' },
+      }),
+    ]);
+    expect(clientSnapshots.at(-1)?.parts.filter((part) => part.type === 'dynamic-tool')).toEqual([
+      expect.objectContaining({
+        toolCallId: 'shared-provider-id',
+        state: 'output-available',
+        output: { pageId: 'native' },
+      }),
+      expect.objectContaining({
+        toolCallId: 'dsml-1',
+        state: 'output-available',
+        output: { pageId: 'dsml' },
+      }),
+    ]);
   });
 
   it('assembles the provider native fragmented proposal trace and executes it once', async () => {

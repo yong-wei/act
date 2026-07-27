@@ -108,6 +108,28 @@ export async function correctKonlingMalformedStructuredResponse(input: {
 export function normalizeKonlingStructuredText(
   value: string,
 ): KonlingStructuredTextNormalization {
+  const claimedToolCallIds = new Set<string>();
+  let toolCallOrdinal = 0;
+  return normalizeKonlingStructuredTextWithIds(value, (preferredId) => {
+    toolCallOrdinal += 1;
+    if (preferredId && !claimedToolCallIds.has(preferredId)) {
+      claimedToolCallIds.add(preferredId);
+      return preferredId;
+    }
+    let id = `dsml-${toolCallOrdinal}`;
+    while (claimedToolCallIds.has(id)) {
+      toolCallOrdinal += 1;
+      id = `dsml-${toolCallOrdinal}`;
+    }
+    claimedToolCallIds.add(id);
+    return id;
+  });
+}
+
+function normalizeKonlingStructuredTextWithIds(
+  value: string,
+  claimToolCallId: (preferredId?: string) => string,
+): KonlingStructuredTextNormalization {
   const protectedCode: string[] = [];
   const protectedValue = value.replace(CODE_FENCE, (literal) => {
     const marker = `\u0000konling-code-${protectedCode.length}\u0000`;
@@ -116,7 +138,7 @@ export function normalizeKonlingStructuredText(
   });
   const toolCalls: KonlingNormalizedToolCall[] = [];
   let text = protectedValue.replace(TOOL_CALL_TAG, (envelope, payload: string) => {
-    const parsed = parseDsmlToolPayload(payload, `dsml-${toolCalls.length + 1}`);
+    const parsed = parseDsmlToolPayload(payload, claimToolCallId);
     if (!parsed) return isJsonLikePayload(payload) ? MALFORMED_ENVELOPE_MARKER : envelope;
     toolCalls.push(parsed);
     return '';
@@ -129,7 +151,7 @@ export function normalizeKonlingStructuredText(
     const input = parseJsonObject(payload);
     if (input === null) return isJsonLikePayload(payload) ? MALFORMED_ENVELOPE_MARKER : envelope;
     toolCalls.push({
-      id: `dsml-${toolCalls.length + 1}`,
+      id: claimToolCallId(),
       name,
       input,
       source: 'dsml',
@@ -144,7 +166,7 @@ export function normalizeKonlingStructuredText(
     const input = parseJsonObject(payload);
     if (input === null) return MALFORMED_ENVELOPE_MARKER;
     toolCalls.push({
-      id: `dsml-${toolCalls.length + 1}`,
+      id: claimToolCallId(),
       name,
       input,
       source: 'dsml',
@@ -252,6 +274,48 @@ export function createKonlingStructuredActionStream(input: {
   const availableCallIds = new Set<string>();
   const malformedFragmentIds = new Set<string>();
   const fragmentedInputs = new Map<string, { name: string; inputText: string }>();
+  const claimedToolCallIds = new Set<string>();
+  let dsmlToolCallOrdinal = 0;
+  const claimGeneratedDsmlCallId = () => {
+    dsmlToolCallOrdinal += 1;
+    let id = `dsml-${dsmlToolCallOrdinal}`;
+    while (claimedToolCallIds.has(id)) {
+      dsmlToolCallOrdinal += 1;
+      id = `dsml-${dsmlToolCallOrdinal}`;
+    }
+    claimedToolCallIds.add(id);
+    return id;
+  };
+  const reserveNativeToolCallId = (id: string) => {
+    const collidingDsmlCall = streamedDsmlCalls.find((call) => call.id === id);
+    if (collidingDsmlCall) collidingDsmlCall.id = claimGeneratedDsmlCallId();
+    claimedToolCallIds.add(id);
+  };
+  const prepareStreamTextNormalization = (value: string) => {
+    const candidateIds = new Set(claimedToolCallIds);
+    let candidateOrdinal = dsmlToolCallOrdinal;
+    const normalized = normalizeKonlingStructuredTextWithIds(value, (preferredId) => {
+      candidateOrdinal += 1;
+      if (preferredId && !candidateIds.has(preferredId)) {
+        candidateIds.add(preferredId);
+        return preferredId;
+      }
+      let id = `dsml-${candidateOrdinal}`;
+      while (candidateIds.has(id)) {
+        candidateOrdinal += 1;
+        id = `dsml-${candidateOrdinal}`;
+      }
+      candidateIds.add(id);
+      return id;
+    });
+    return {
+      normalized,
+      commitIds() {
+        dsmlToolCallOrdinal = candidateOrdinal;
+        for (const id of candidateIds) claimedToolCallIds.add(id);
+      },
+    };
+  };
   const enqueueVisibleText = (
     controller: TransformStreamDefaultController<any>,
     text: string,
@@ -289,6 +353,7 @@ export function createKonlingStructuredActionStream(input: {
         messageId = chunk.messageId;
       }
       if (chunk?.type === 'tool-input-start') {
+        if (typeof chunk.toolCallId === 'string') reserveNativeToolCallId(chunk.toolCallId);
         if (
           typeof chunk.toolCallId === 'string'
           && typeof chunk.toolName === 'string'
@@ -321,6 +386,12 @@ export function createKonlingStructuredActionStream(input: {
         controller.enqueue(chunk);
         return;
       }
+      if (
+        chunk?.type === 'tool-input-available'
+        && typeof chunk.toolCallId === 'string'
+      ) {
+        reserveNativeToolCallId(chunk.toolCallId);
+      }
       const native = normalizeNativeUiToolChunk(chunk);
       if (native) {
         nativeCalls.push(native);
@@ -347,7 +418,9 @@ export function createKonlingStructuredActionStream(input: {
       }
       if (chunk?.type !== 'text-delta' || typeof chunk.delta !== 'string') {
         if (chunk?.type === 'finish') {
-          const normalized = normalizeKonlingStructuredText(textBuffer);
+          const preparedNormalization = prepareStreamTextNormalization(textBuffer);
+          const { normalized } = preparedNormalization;
+          preparedNormalization.commitIds();
           const fragmentedCalls: KonlingNormalizedToolCall[] = [];
           let fragmentedInputMalformed = malformedFragmentIds.size > 0;
           for (const [toolCallId, fragmented] of fragmentedInputs) {
@@ -486,8 +559,10 @@ export function createKonlingStructuredActionStream(input: {
         enqueueVisibleText(controller, textBuffer.slice(0, structuredTailIndex));
         textBuffer = textBuffer.slice(structuredTailIndex);
       }
-      const normalizedTail = normalizeKonlingStructuredText(textBuffer);
+      const preparedNormalization = prepareStreamTextNormalization(textBuffer);
+      const { normalized: normalizedTail } = preparedNormalization;
       if (!normalizedTail.withheldMalformedSyntax && normalizedTail.toolCalls.length > 0) {
+        preparedNormalization.commitIds();
         streamedDsmlCalls.push(...normalizedTail.toolCalls);
         enqueueVisibleText(controller, normalizedTail.text);
         textBuffer = '';
@@ -501,7 +576,9 @@ export function createKonlingStructuredActionStream(input: {
     },
     flush(controller) {
       if (textBuffer) {
-        const normalized = normalizeKonlingStructuredText(textBuffer);
+        const preparedNormalization = prepareStreamTextNormalization(textBuffer);
+        const { normalized } = preparedNormalization;
+        preparedNormalization.commitIds();
         const visibleText = normalized.text
           || (normalized.withheldMalformedSyntax
             ? textLifecycleStarted ? '' : '工具调用格式未能安全解析，正在尝试修正。'
@@ -706,7 +783,7 @@ export function attachKonlingExecutedToolResults(
 
 function parseDsmlToolPayload(
   payload: string,
-  fallbackId: string,
+  claimToolCallId: (preferredId?: string) => string,
 ): KonlingNormalizedToolCall | null {
   const parsed = parseJsonObject(payload);
   if (parsed === null) return null;
@@ -720,7 +797,7 @@ function parseDsmlToolPayload(
   if (!name) return null;
   const args = parsed.arguments ?? parsed.input ?? parsed.parameters ?? {};
   return {
-    id: typeof parsed.id === 'string' ? parsed.id : fallbackId,
+    id: claimToolCallId(typeof parsed.id === 'string' ? parsed.id : undefined),
     name,
     input: typeof args === 'string' ? parseJsonObject(args) ?? args : args,
     source: 'dsml',
