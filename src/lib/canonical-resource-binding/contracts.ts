@@ -246,10 +246,20 @@ export interface CanonicalResourceBindingDecision
   lifecycleState: CanonicalBindingLifecycleState;
   supersedesDecisionId: string | null;
   crosswalkId: string | null;
+  inventoryRunId: string | null;
+  captureRevision: string | null;
+  structuralUnitVersion: string | null;
   validationDigest: string | null;
 }
 
+export interface ResourceBindingCaptureIdentity {
+  inventoryRunId: string;
+  captureRevision: string;
+  structuralUnitVersion: string;
+}
+
 export interface PublicationGateContext {
+  captureIdentity: ResourceBindingCaptureIdentity;
   canonicalObjects: CanonicalObjectIndexEntry[];
   crosswalks: EvidenceStructuralUnitCrosswalk[];
   evidenceAlignments: AuthoritativeEvidenceAlignment[];

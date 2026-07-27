@@ -100,13 +100,18 @@ function gateContext(
     canonicalId: 'canonical',
   };
   return {
+    captureIdentity: {
+      inventoryRunId: crosswalkBase.inventoryRunId,
+      captureRevision: crosswalkBase.captureRevision,
+      structuralUnitVersion: crosswalkBase.captureRevision,
+    },
     canonicalObjects: [canonicalObject],
     crosswalks: [{
       id: 'crosswalk',
       ...crosswalkBase,
       sourceEditionId: 'source-edition',
       sourceVersion: 'source-v1',
-      structuralUnitVersion: 'unit-v1',
+      structuralUnitVersion: captureRevision,
       structuralUnitHash: segmentHash,
       validationState: 'VALIDATED',
       validationDigest: canonicalSha256(crosswalkBase),
@@ -423,6 +428,9 @@ describe('publication, human, and authority gates', () => {
     expect(published).toMatchObject({
       publicationState: 'SHADOW_PUBLISHED',
       crosswalkId: 'crosswalk',
+      inventoryRunId: 'inventory-run',
+      captureRevision,
+      structuralUnitVersion: captureRevision,
       validationDigest: expect.stringMatching(/^[a-f0-9]{64}$/u),
     });
     const blocked = applyPublicationGates(acceptedDecision(), gateContext({
@@ -432,6 +440,45 @@ describe('publication, human, and authority gates', () => {
       })),
     }));
     expect(blocked).toMatchObject({
+      publicationState: 'HUMAN_REQUIRED',
+      highImpactReasons: expect.arrayContaining(['crosswalk-not-unique']),
+    });
+    const current = gateContext().crosswalks[0]!;
+    const historical = {
+      ...current,
+      id: 'historical-crosswalk',
+      inventoryRunId: 'historical-inventory-run',
+      captureRevision: 'b'.repeat(40),
+      structuralUnitVersion: 'b'.repeat(40),
+    };
+    const currentCapture = applyPublicationGates(acceptedDecision(), gateContext({
+      crosswalks: [historical, current],
+    }));
+    expect(currentCapture).toMatchObject({
+      publicationState: 'SHADOW_PUBLISHED',
+      crosswalkId: current.id,
+      inventoryRunId: current.inventoryRunId,
+      captureRevision: current.captureRevision,
+      structuralUnitVersion: current.structuralUnitVersion,
+    });
+    const currentAmbiguous = applyPublicationGates(acceptedDecision(), gateContext({
+      crosswalks: [
+        current,
+        {
+          ...current,
+          id: 'current-capture-duplicate',
+          sourceVersion: 'source-v2',
+        },
+      ],
+    }));
+    expect(currentAmbiguous).toMatchObject({
+      publicationState: 'HUMAN_REQUIRED',
+      highImpactReasons: expect.arrayContaining(['crosswalk-not-unique']),
+    });
+    const historicalOnly = applyPublicationGates(acceptedDecision(), gateContext({
+      crosswalks: [historical],
+    }));
+    expect(historicalOnly).toMatchObject({
       publicationState: 'HUMAN_REQUIRED',
       highImpactReasons: expect.arrayContaining(['crosswalk-not-unique']),
     });

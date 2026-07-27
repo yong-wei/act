@@ -80,6 +80,10 @@ function assertBindingSchemaMigrationParity(): void {
     result.stdout,
     /CanonicalResourceBindingDecision_(?:release_fkey|evidence_fkey|releaseSetId_releaseId_fkey|releaseId_evidenceId_fkey)/u,
   );
+  assert.doesNotMatch(
+    result.stdout,
+    /CanonicalResourceBindingDecision_releaseId_crosswalkId_inv_fkey|ActkgEvidenceStructuralUnitCrosswalk_releaseId_id_inventory_key/u,
+  );
 }
 
 function runDeploymentCli(script: string, mode?: '--verify-only'): string {
@@ -918,6 +922,87 @@ async function main(): Promise<void> {
       },
     },
   });
+  const historicalCaptureRevision = 'd'.repeat(40);
+  const historicalInventoryRunId = `${bindingInventory.id}:historical`;
+  await db.resourceBindingInventoryRun.create({
+    data: {
+      id: historicalInventoryRunId,
+      captureRevision: historicalCaptureRevision,
+      capturedAt: new Date('2026-07-28T11:00:00.000Z'),
+      dbWatermark: '0/HISTORICAL',
+      sourceHash: sha256('historical-inventory-source'),
+      itemCount: 1,
+      includedCount: 1,
+      excludedCount: 0,
+      unresolvedCount: 0,
+      complete: true,
+      cutoverReady: false,
+      authorityState: 'SHADOW',
+    },
+  });
+  await db.resourceBindingInventoryItem.create({
+    data: {
+      runId: historicalInventoryRunId,
+      atomicResourceId: includedResource.atomicResourceId,
+      resourceId: includedResource.resourceId,
+      structuralUnitId: includedResource.structuralUnitId,
+      segmentId: includedResource.segmentId,
+      resourceSegmentHash: includedResource.resourceSegmentHash,
+      disposition: 'INCLUDED',
+      reasonCodes: includedResource.reasonCodes,
+      sourceObservations: includedResource.sourceObservations,
+      observationDigest: includedResource.observationDigest,
+    },
+  });
+  const historicalCrosswalkProjection = {
+    ...crosswalkProjection,
+    inventoryRunId: historicalInventoryRunId,
+    captureRevision: historicalCaptureRevision,
+  };
+  await bindingRepository.persistEvidenceCrosswalks([{
+    id: 'postgres-crosswalk-historical-capture',
+    ...crosswalkBase,
+    ...historicalCrosswalkProjection,
+    structuralUnitVersion: historicalCaptureRevision,
+    validationDigest: bindingDigest(historicalCrosswalkProjection),
+  }]);
+  const historicalCrosswalk = await db.actkgEvidenceStructuralUnitCrosswalk.findUniqueOrThrow({
+    where: {
+      releaseId_id: {
+        releaseId: validated.entry.release_id,
+        id: 'postgres-crosswalk-historical-capture',
+      },
+    },
+  });
+  const currentCaptureIdentity = {
+    inventoryRunId: bindingInventory.id,
+    captureRevision: bindingInventory.captureRevision,
+    structuralUnitVersion: bindingInventory.captureRevision,
+  };
+  const unboundDecisionCapture = {
+    crosswalkId: null,
+    inventoryRunId: null,
+    captureRevision: null,
+    structuralUnitVersion: null,
+    validationDigest: null,
+  };
+  const currentCrosswalkBinding = {
+    crosswalkId: crosswalk.id,
+    ...currentCaptureIdentity,
+    validationDigest: crosswalk.validationDigest,
+  };
+  const ambiguousCrosswalkBinding = {
+    crosswalkId: ambiguousCrosswalk.id,
+    inventoryRunId: ambiguousCrosswalk.inventoryRunId,
+    captureRevision: ambiguousCrosswalk.captureRevision,
+    structuralUnitVersion: ambiguousCrosswalk.structuralUnitVersion,
+    validationDigest: ambiguousCrosswalk.validationDigest,
+  };
+  const currentCrosswalks = await bindingRepository.readEvidenceCrosswalks(
+    validated.entry.release_id,
+    currentCaptureIdentity,
+  );
+  assert.deepEqual(currentCrosswalks.map((row) => row.id), [crosswalk.id]);
   const decisionBase = {
     pairId: 'postgres-pair',
     releaseSetId: validated.lock.release_set_id,
@@ -943,6 +1028,7 @@ async function main(): Promise<void> {
     lifecycleState: 'CURRENT',
     attemptSequence: 1,
     supersedesDecisionId: null,
+    ...unboundDecisionCapture,
     highImpactPolicyVersion: 'binding-impact/v1',
     highImpactReasons: [],
   };
@@ -951,8 +1037,7 @@ async function main(): Promise<void> {
       id: 'postgres-no-crosswalk',
       ...decisionBase,
       publicationState: 'SHADOW_PUBLISHED',
-      crosswalkId: null,
-      validationDigest: null,
+      ...unboundDecisionCapture,
     },
   }), /exact validated crosswalk/u);
   await assert.rejects(db.canonicalResourceBindingDecision.create({
@@ -964,8 +1049,7 @@ async function main(): Promise<void> {
       evidenceId: ambiguousEvidence.evidenceId,
       evidenceDigest: sha256(ambiguousEvidence.evidenceId),
       publicationState: 'SHADOW_PUBLISHED',
-      crosswalkId: ambiguousCrosswalk.id,
-      validationDigest: ambiguousCrosswalk.validationDigest,
+      ...ambiguousCrosswalkBinding,
     },
   }), /exact validated crosswalk/u);
   await assert.rejects(db.canonicalResourceBindingDecision.create({
@@ -974,8 +1058,7 @@ async function main(): Promise<void> {
       ...decisionBase,
       objectRevision: sha256('stale-release'),
       publicationState: 'SHADOW_PUBLISHED',
-      crosswalkId: crosswalk.id,
-      validationDigest: crosswalk.validationDigest,
+      ...currentCrosswalkBinding,
     },
   }), /release revision/u);
   await assert.rejects(db.canonicalResourceBindingDecision.create({
@@ -985,8 +1068,7 @@ async function main(): Promise<void> {
       pairId: 'postgres-mismatched-canonical-pair',
       canonicalId: mismatchedCanonical.canonicalId,
       publicationState: 'SHADOW_PUBLISHED',
-      crosswalkId: crosswalk.id,
-      validationDigest: crosswalk.validationDigest,
+      ...currentCrosswalkBinding,
     },
   }), /exact validated crosswalk/u);
   await assert.rejects(db.canonicalResourceBindingDecision.create({
@@ -995,8 +1077,7 @@ async function main(): Promise<void> {
       ...decisionBase,
       reviewProvider: 'FIXTURE',
       publicationState: 'SHADOW_PUBLISHED',
-      crosswalkId: crosswalk.id,
-      validationDigest: crosswalk.validationDigest,
+      ...currentCrosswalkBinding,
     },
   }), /review state is not authoritative/u);
   await db.canonicalResourceBindingDecision.create({
@@ -1004,10 +1085,25 @@ async function main(): Promise<void> {
       id: 'postgres-published',
       ...decisionBase,
       publicationState: 'SHADOW_PUBLISHED',
-      crosswalkId: crosswalk.id,
-      validationDigest: crosswalk.validationDigest,
+      ...currentCrosswalkBinding,
     },
   });
+  await assert.rejects(db.$executeRawUnsafe(`
+    INSERT INTO "CanonicalResourceBindingDecision"
+    SELECT (
+      jsonb_populate_record(
+        NULL::"CanonicalResourceBindingDecision",
+        to_jsonb(source) || jsonb_build_object(
+          'id', 'postgres-partial-crosswalk-capture',
+          'pairId', 'postgres-partial-crosswalk-capture-pair',
+          'publicationState', 'CANDIDATE',
+          'inventoryRunId', NULL
+        )
+      )
+    ).*
+    FROM "CanonicalResourceBindingDecision" source
+    WHERE source."id" = 'postgres-published'
+  `), /crosswalk_identity_check/u);
   await assert.rejects(db.canonicalResourceBindingDecision.update({
     where: { id: 'postgres-published' },
     data: { lifecycleState: 'SUPERSEDED' },
@@ -1022,8 +1118,7 @@ async function main(): Promise<void> {
         attemptSequence: 2,
         supersedesDecisionId: 'postgres-published',
         publicationState: 'CANDIDATE',
-        crosswalkId: crosswalk.id,
-        validationDigest: crosswalk.validationDigest,
+        ...currentCrosswalkBinding,
       },
     });
     await transaction.canonicalResourceBindingDecision.update({
@@ -1057,8 +1152,7 @@ async function main(): Promise<void> {
         attemptSequence: 4,
         supersedesDecisionId: 'postgres-published-replacement',
         publicationState: 'CANDIDATE',
-        crosswalkId: crosswalk.id,
-        validationDigest: crosswalk.validationDigest,
+        ...currentCrosswalkBinding,
       },
     });
     await transaction.canonicalResourceBindingDecision.update({
@@ -1075,8 +1169,7 @@ async function main(): Promise<void> {
       attemptSequence: 3,
       supersedesDecisionId: 'postgres-published-replacement',
       publicationState: 'CANDIDATE',
-      crosswalkId: crosswalk.id,
-      validationDigest: crosswalk.validationDigest,
+      ...currentCrosswalkBinding,
     },
   });
   await assert.rejects(db.canonicalResourceBindingDecision.update({
@@ -1092,8 +1185,7 @@ async function main(): Promise<void> {
     proposedRole: 'REFERENCES' as const,
     evidenceIds: [evidence.evidenceId],
     publicationState: 'SHADOW_PUBLISHED' as const,
-    crosswalkId: crosswalk.id,
-    validationDigest: crosswalk.validationDigest,
+    ...currentCrosswalkBinding,
   };
   const {
     trigger: _repositoryTrigger,
@@ -1113,6 +1205,7 @@ async function main(): Promise<void> {
     supersedesDecisionId: repositoryPublished.id,
   };
   const repositoryContext = {
+    captureIdentity: currentCaptureIdentity,
     canonicalObjects: [{
       releaseSetId: validated.lock.release_set_id,
       releaseId: validated.entry.release_id,
@@ -1120,7 +1213,7 @@ async function main(): Promise<void> {
       objectRevision: validated.entry.release_hash,
       canonicalType: 'DomainConcept',
     }],
-    crosswalks: [crosswalk],
+    crosswalks: [historicalCrosswalk, crosswalk],
     evidenceAlignments: [{
       releaseId: validated.entry.release_id,
       evidenceId: evidence.evidenceId,
@@ -1128,6 +1221,16 @@ async function main(): Promise<void> {
     }],
     existingPublished: [repositoryPublished],
   };
+  await assert.rejects(bindingRepository.persistDecisions([{
+    ...repositoryReplacement,
+    id: 'postgres-repository-partial-crosswalk-capture',
+    pairId: 'postgres-repository-partial-crosswalk-capture-pair',
+    supersedesDecisionId: null,
+    inventoryRunId: null,
+  }], {
+    ...repositoryContext,
+    existingPublished: [],
+  }), /bypasses publication gates/u);
   await bindingRepository.persistDecisions([repositoryReplacement], repositoryContext);
   assert.equal(
     (await db.canonicalResourceBindingDecision.findUniqueOrThrow({
@@ -1230,8 +1333,7 @@ async function main(): Promise<void> {
       reviewerInputDigest: sha256('postgres-direct-human-input'),
       reviewProvider: 'HUMAN',
       publicationState: 'SHADOW_PUBLISHED',
-      crosswalkId: crosswalk.id,
-      validationDigest: crosswalk.validationDigest,
+      ...currentCrosswalkBinding,
     },
   }), /matching accepted queue receipt/u);
   await db.canonicalResourceBindingDecision.create({
@@ -1277,8 +1379,7 @@ async function main(): Promise<void> {
       attemptSequence: 2,
       supersedesDecisionId: 'postgres-retry-2',
       publicationState: 'CANDIDATE',
-      crosswalkId: crosswalk.id,
-      validationDigest: crosswalk.validationDigest,
+      ...currentCrosswalkBinding,
     },
   });
   await assert.rejects(db.canonicalResourceBindingHumanDecisionReceipt.create({
@@ -1352,8 +1453,7 @@ async function main(): Promise<void> {
         attemptSequence: 2,
         supersedesDecisionId: 'postgres-human-drifted-queued',
         publicationState: 'CANDIDATE',
-        crosswalkId: crosswalk.id,
-        validationDigest: crosswalk.validationDigest,
+        ...currentCrosswalkBinding,
       },
     });
     await transaction.canonicalResourceBindingDecision.update({
@@ -1460,6 +1560,159 @@ async function main(): Promise<void> {
   });
   assert.equal(humanRejectedReceipt.outcome, 'REJECT');
   assert.equal(humanRejectedReceipt.decisionId, humanRejected.id);
+  const duplicateCurrentCrosswalk = {
+    id: 'postgres-crosswalk-current-duplicate',
+    ...crosswalkBase,
+    sourceVersion: 'postgres-test/v2',
+    structuralUnitVersion: bindingInventory.captureRevision,
+  };
+  await assert.rejects(
+    bindingRepository.persistEvidenceCrosswalks([duplicateCurrentCrosswalk]),
+    /must remain unique/u,
+  );
+  const duplicateHistoricalCrosswalk = {
+    id: 'postgres-crosswalk-historical-duplicate',
+    ...crosswalkBase,
+    ...historicalCrosswalkProjection,
+    sourceVersion: 'postgres-test/v2',
+    structuralUnitVersion: historicalCaptureRevision,
+    validationDigest: bindingDigest(historicalCrosswalkProjection),
+  };
+  await bindingRepository.persistEvidenceCrosswalks([duplicateHistoricalCrosswalk]);
+  const historicalCaptureIdentity = {
+    inventoryRunId: historicalInventoryRunId,
+    captureRevision: historicalCaptureRevision,
+    structuralUnitVersion: historicalCaptureRevision,
+  };
+  const historicalCrosswalkBinding = {
+    crosswalkId: historicalCrosswalk.id,
+    ...historicalCaptureIdentity,
+    validationDigest: historicalCrosswalk.validationDigest,
+  };
+  const historicalRepositoryContext = {
+    ...repositoryContext,
+    captureIdentity: historicalCaptureIdentity,
+    existingPublished: [],
+    crosswalks: [historicalCrosswalk],
+  };
+  await assert.rejects(bindingRepository.persistDecisions([{
+    ...repositoryReplacement,
+    id: 'postgres-repository-hidden-prepublication-ambiguity',
+    pairId: 'postgres-repository-hidden-prepublication-ambiguity-pair',
+    role: 'PRACTICES',
+    proposedRole: 'PRACTICES',
+    supersedesDecisionId: null,
+    ...historicalCrosswalkBinding,
+  }], historicalRepositoryContext), /bypasses publication gates/u);
+  await assert.rejects(db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-direct-prepublication-ambiguity',
+      ...decisionBase,
+      pairId: 'postgres-direct-prepublication-ambiguity-pair',
+      role: 'ASSESSES',
+      publicationState: 'SHADOW_PUBLISHED',
+      ...historicalCrosswalkBinding,
+    },
+  }), /exact validated crosswalk/u);
+  const concurrentCaptureRevision = 'e'.repeat(40);
+  const concurrentInventoryRunId = `${bindingInventory.id}:concurrent`;
+  await db.resourceBindingInventoryRun.create({
+    data: {
+      id: concurrentInventoryRunId,
+      captureRevision: concurrentCaptureRevision,
+      capturedAt: new Date('2026-07-28T11:30:00.000Z'),
+      dbWatermark: '0/CONCURRENT',
+      sourceHash: sha256('concurrent-inventory-source'),
+      itemCount: 1,
+      includedCount: 1,
+      excludedCount: 0,
+      unresolvedCount: 0,
+      complete: true,
+      cutoverReady: false,
+      authorityState: 'SHADOW',
+    },
+  });
+  await db.resourceBindingInventoryItem.create({
+    data: {
+      runId: concurrentInventoryRunId,
+      atomicResourceId: includedResource.atomicResourceId,
+      resourceId: includedResource.resourceId,
+      structuralUnitId: includedResource.structuralUnitId,
+      segmentId: includedResource.segmentId,
+      resourceSegmentHash: includedResource.resourceSegmentHash,
+      disposition: 'INCLUDED',
+      reasonCodes: includedResource.reasonCodes,
+      sourceObservations: includedResource.sourceObservations,
+      observationDigest: includedResource.observationDigest,
+    },
+  });
+  const concurrentCrosswalkProjection = {
+    ...crosswalkProjection,
+    inventoryRunId: concurrentInventoryRunId,
+    captureRevision: concurrentCaptureRevision,
+  };
+  const concurrentCrosswalk = {
+    id: 'postgres-crosswalk-concurrent-base',
+    ...crosswalkBase,
+    ...concurrentCrosswalkProjection,
+    sourceVersion: 'postgres-concurrent/v1',
+    structuralUnitVersion: concurrentCaptureRevision,
+    validationDigest: bindingDigest(concurrentCrosswalkProjection),
+  };
+  await bindingRepository.persistEvidenceCrosswalks([concurrentCrosswalk]);
+  const concurrentDuplicateCrosswalk = {
+    ...concurrentCrosswalk,
+    id: 'postgres-crosswalk-concurrent-duplicate',
+    sourceVersion: 'postgres-concurrent/v2',
+  };
+  const concurrentDecision = {
+    id: 'postgres-concurrent-publication',
+    ...decisionBase,
+    pairId: 'postgres-concurrent-publication-pair',
+    role: 'REFERENCES',
+    publicationState: 'SHADOW_PUBLISHED',
+    crosswalkId: concurrentCrosswalk.id,
+    inventoryRunId: concurrentInventoryRunId,
+    captureRevision: concurrentCaptureRevision,
+    structuralUnitVersion: concurrentCaptureRevision,
+    validationDigest: concurrentCrosswalk.validationDigest,
+  };
+  const concurrentResults = await Promise.allSettled([
+    db.$transaction((transaction) => (
+      transaction.canonicalResourceBindingDecision.create({ data: concurrentDecision })
+    )),
+    db.$transaction((transaction) => (
+      transaction.actkgEvidenceStructuralUnitCrosswalk.create({
+        data: concurrentDuplicateCrosswalk,
+      })
+    )),
+  ]);
+  assert.equal(
+    concurrentResults.filter((result) => result.status === 'fulfilled').length,
+    1,
+  );
+  const [concurrentCrosswalkCount, concurrentPublishedCount] = await Promise.all([
+    db.actkgEvidenceStructuralUnitCrosswalk.count({
+      where: {
+        releaseId: validated.entry.release_id,
+        evidenceId: evidence.evidenceId,
+        canonicalId,
+        inventoryRunId: concurrentInventoryRunId,
+        captureRevision: concurrentCaptureRevision,
+        structuralUnitVersion: concurrentCaptureRevision,
+      },
+    }),
+    db.canonicalResourceBindingDecision.count({
+      where: {
+        id: concurrentDecision.id,
+        publicationState: 'SHADOW_PUBLISHED',
+      },
+    }),
+  ]);
+  assert(
+    (concurrentPublishedCount === 1 && concurrentCrosswalkCount === 1)
+    || (concurrentPublishedCount === 0 && concurrentCrosswalkCount === 2),
+  );
   const precedenceAuthorId = 'binding-precedence-author';
   const precedencePlanId = 'binding-precedence-plan';
   const disabledResourceId = 'binding-precedence-disabled';

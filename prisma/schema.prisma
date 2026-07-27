@@ -5342,6 +5342,7 @@ model ActkgEvidenceStructuralUnitCrosswalk {
   decisions   CanonicalResourceBindingDecision[]
 
   @@id([releaseId, id])
+  @@unique([releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion])
   @@unique([releaseId, evidenceId, sourceVersion, evidenceContentHash, inventoryRunId, atomicResourceId, resourceSegmentHash, canonicalId])
   @@index([structuralUnitId, structuralUnitVersion, structuralUnitHash])
 }
@@ -5374,6 +5375,9 @@ model CanonicalResourceBindingDecision {
   attemptSequence        Int
   supersedesDecisionId   String?
   crosswalkId            String?
+  inventoryRunId         String?
+  captureRevision        String?
+  structuralUnitVersion  String?
   validationDigest       String?
   highImpactPolicyVersion String
   highImpactReasons      Json
@@ -5383,7 +5387,7 @@ model CanonicalResourceBindingDecision {
   release        ActkgRelease                            @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
   evidence       ActkgEvidenceSegment?                   @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
   canonical      ActkgAuthoritativeObject                @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
-  crosswalk      ActkgEvidenceStructuralUnitCrosswalk?    @relation(fields: [releaseId, crosswalkId], references: [releaseId, id], onDelete: Restrict)
+  crosswalk      ActkgEvidenceStructuralUnitCrosswalk?    @relation(fields: [releaseId, crosswalkId, inventoryRunId, captureRevision, structuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
   supersedes     CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)
   supersededBy   CanonicalResourceBindingDecision[]       @relation("CanonicalBindingSupersession")
   humanQueueItem CanonicalResourceBindingHumanQueueItem?

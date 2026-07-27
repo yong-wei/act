@@ -5,6 +5,7 @@ import type {
   EvidenceStructuralUnitCrosswalk,
   PublicationGateContext,
   ResourceBindingInventory,
+  ResourceBindingCaptureIdentity,
 } from './contracts';
 import { canonicalSha256 } from './inventory';
 import { applyHumanDecision, applyPublicationGates } from './pipeline';
@@ -98,6 +99,9 @@ function decisionData(decision: CanonicalResourceBindingDecision) {
     attemptSequence: decision.attemptSequence,
     supersedesDecisionId: decision.supersedesDecisionId,
     crosswalkId: decision.crosswalkId,
+    inventoryRunId: decision.inventoryRunId,
+    captureRevision: decision.captureRevision,
+    structuralUnitVersion: decision.structuralUnitVersion,
     validationDigest: decision.validationDigest,
     highImpactPolicyVersion: decision.highImpactPolicyVersion,
     highImpactReasons: decision.highImpactReasons,
@@ -181,10 +185,13 @@ export class CanonicalResourceBindingRepository {
     }, { isolationLevel: 'ReadCommitted' });
   }
 
-  async readEvidenceCrosswalks(releaseId: string): Promise<EvidenceStructuralUnitCrosswalk[]> {
+  async readEvidenceCrosswalks(
+    releaseId: string,
+    captureIdentity: ResourceBindingCaptureIdentity,
+  ): Promise<EvidenceStructuralUnitCrosswalk[]> {
     return this.database.$transaction(async (transaction) => (
       transaction.actkgEvidenceStructuralUnitCrosswalk.findMany({
-        where: { releaseId },
+        where: { releaseId, ...captureIdentity },
         orderBy: [{ evidenceId: 'asc' }, { structuralUnitId: 'asc' }, { segmentId: 'asc' }],
       }) as Promise<EvidenceStructuralUnitCrosswalk[]>
     ), { isolationLevel: 'RepeatableRead' });
@@ -309,21 +316,40 @@ export class CanonicalResourceBindingRepository {
     context: PublicationGateContext,
   ): Promise<number> {
     if (decisions.length === 0) return 0;
-    for (const decision of decisions) {
-      const gated = applyPublicationGates(decision, context, {
-        humanApproved: decision.reviewProvider === 'HUMAN',
-      });
-      if (
-        decision.publicationState === 'SHADOW_PUBLISHED'
-        && (
-          gated.publicationState !== 'SHADOW_PUBLISHED'
-          || gated.crosswalkId !== decision.crosswalkId
-          || gated.validationDigest !== decision.validationDigest
-        )
-      ) throw new Error(`binding decision ${decision.id} bypasses publication gates`);
-    }
     return this.database.$transaction(async (transaction) => {
       for (const decision of decisions) {
+        const persistedCrosswalks =
+          await transaction.actkgEvidenceStructuralUnitCrosswalk.findMany({
+            where: {
+              releaseId: decision.releaseId,
+              evidenceId: decision.evidenceId,
+              canonicalId: decision.canonicalId,
+              resourceId: decision.resourceId,
+              structuralUnitId: decision.structuralUnitId,
+              segmentId: decision.segmentId,
+              resourceSegmentHash: decision.resourceSegmentHash,
+              validationState: 'VALIDATED',
+              ...context.captureIdentity,
+            },
+            orderBy: { id: 'asc' },
+          }) as EvidenceStructuralUnitCrosswalk[];
+        const gated = applyPublicationGates(decision, {
+          ...context,
+          crosswalks: persistedCrosswalks,
+        }, {
+          humanApproved: decision.reviewProvider === 'HUMAN',
+        });
+        if (
+          decision.publicationState === 'SHADOW_PUBLISHED'
+          && (
+            gated.publicationState !== 'SHADOW_PUBLISHED'
+            || gated.crosswalkId !== decision.crosswalkId
+            || gated.inventoryRunId !== decision.inventoryRunId
+            || gated.captureRevision !== decision.captureRevision
+            || gated.structuralUnitVersion !== decision.structuralUnitVersion
+            || gated.validationDigest !== decision.validationDigest
+          )
+        ) throw new Error(`binding decision ${decision.id} bypasses publication gates`);
         const existing = await transaction.canonicalResourceBindingDecision.findUnique({
           where: { id: decision.id },
         }) as Record<string, unknown> | null;

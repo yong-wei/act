@@ -91,6 +91,10 @@ CREATE UNIQUE INDEX "ActkgEvidenceStructuralUnitCrosswalk_identity_key"
     "releaseId", "evidenceId", "sourceVersion", "evidenceContentHash",
     "inventoryRunId", "atomicResourceId", "resourceSegmentHash", "canonicalId"
   );
+CREATE UNIQUE INDEX "ActkgEvidenceStructuralUnitCrosswalk_releaseId_id_inventory_key"
+  ON "ActkgEvidenceStructuralUnitCrosswalk"(
+    "releaseId", "id", "inventoryRunId", "captureRevision", "structuralUnitVersion"
+  );
 
 CREATE UNIQUE INDEX "ActkgRelease_releaseSetId_id_key"
   ON "ActkgRelease"("releaseSetId", "id");
@@ -123,6 +127,9 @@ CREATE TABLE "CanonicalResourceBindingDecision" (
     "attemptSequence" INTEGER NOT NULL,
     "supersedesDecisionId" TEXT,
     "crosswalkId" TEXT,
+    "inventoryRunId" TEXT,
+    "captureRevision" TEXT,
+    "structuralUnitVersion" TEXT,
     "validationDigest" TEXT,
     "highImpactPolicyVersion" TEXT NOT NULL,
     "highImpactReasons" JSONB NOT NULL,
@@ -136,7 +143,25 @@ CREATE TABLE "CanonicalResourceBindingDecision" (
         AND "reviewerCacheKey" ~ '^[a-f0-9]{64}$'
         AND "reviewerInputDigest" ~ '^[a-f0-9]{64}$'
         AND "candidateDigest" ~ '^[a-f0-9]{64}$'
+        AND ("captureRevision" IS NULL OR "captureRevision" ~ '^[a-f0-9]{40}$')
         AND ("validationDigest" IS NULL OR "validationDigest" ~ '^[a-f0-9]{64}$')
+      ),
+    CONSTRAINT "CanonicalResourceBindingDecision_crosswalk_identity_check"
+      CHECK (
+        (
+          "crosswalkId" IS NULL
+          AND "inventoryRunId" IS NULL
+          AND "captureRevision" IS NULL
+          AND "structuralUnitVersion" IS NULL
+          AND "validationDigest" IS NULL
+        )
+        OR (
+          "crosswalkId" IS NOT NULL
+          AND "inventoryRunId" IS NOT NULL
+          AND "captureRevision" IS NOT NULL
+          AND "structuralUnitVersion" IS NOT NULL
+          AND "validationDigest" IS NOT NULL
+        )
       ),
     CONSTRAINT "CanonicalResourceBindingDecision_role_check"
       CHECK ("role" IN ('EXPLAINS', 'PRACTICES', 'ASSESSES', 'REFERENCES')),
@@ -156,9 +181,13 @@ CREATE TABLE "CanonicalResourceBindingDecision" (
     CONSTRAINT "CanonicalResourceBindingDecision_releaseId_evidenceId_fkey"
       FOREIGN KEY ("releaseId", "evidenceId")
       REFERENCES "ActkgEvidenceSegment"("releaseId", "evidenceId") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "CanonicalResourceBindingDecision_crosswalk_fkey"
-      FOREIGN KEY ("releaseId", "crosswalkId")
-      REFERENCES "ActkgEvidenceStructuralUnitCrosswalk"("releaseId", "id") ON DELETE RESTRICT,
+    CONSTRAINT "CanonicalResourceBindingDecision_releaseId_crosswalkId_inv_fkey"
+      FOREIGN KEY (
+        "releaseId", "crosswalkId", "inventoryRunId", "captureRevision", "structuralUnitVersion"
+      )
+      REFERENCES "ActkgEvidenceStructuralUnitCrosswalk"(
+        "releaseId", "id", "inventoryRunId", "captureRevision", "structuralUnitVersion"
+      ) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "CanonicalResourceBindingDecision_supersedes_fkey"
       FOREIGN KEY ("supersedesDecisionId") REFERENCES "CanonicalResourceBindingDecision"("id") ON DELETE RESTRICT
 );
@@ -230,9 +259,52 @@ BEGIN
 END;
 $$;
 
+CREATE FUNCTION canonical_resource_crosswalk_endpoint_lock_key(
+  release_id TEXT,
+  evidence_id TEXT,
+  canonical_id TEXT,
+  resource_id TEXT,
+  structural_unit_id TEXT,
+  segment_id TEXT,
+  resource_segment_hash TEXT,
+  inventory_run_id TEXT,
+  capture_revision TEXT,
+  structural_unit_version TEXT
+)
+RETURNS BIGINT
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT hashtextextended(concat_ws(
+    E'\x1f',
+    release_id,
+    evidence_id,
+    canonical_id,
+    resource_id,
+    structural_unit_id,
+    segment_id,
+    resource_segment_hash,
+    inventory_run_id,
+    capture_revision,
+    structural_unit_version
+  ), 0);
+$$;
+
 CREATE FUNCTION validate_canonical_resource_crosswalk()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
+  PERFORM pg_advisory_xact_lock(canonical_resource_crosswalk_endpoint_lock_key(
+    NEW."releaseId",
+    NEW."evidenceId",
+    NEW."canonicalId",
+    NEW."resourceId",
+    NEW."structuralUnitId",
+    NEW."segmentId",
+    NEW."resourceSegmentHash",
+    NEW."inventoryRunId",
+    NEW."captureRevision",
+    NEW."structuralUnitVersion"
+  ));
   IF NOT EXISTS (
     SELECT 1
     FROM "ResourceBindingInventoryItem" item
@@ -270,6 +342,41 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'crosswalk evidence is not authoritatively mapped to the canonical object';
   END IF;
+  IF TG_OP = 'INSERT'
+     AND EXISTS (
+       SELECT 1
+       FROM "CanonicalResourceBindingDecision" decision
+       WHERE decision."releaseId" = NEW."releaseId"
+         AND decision."evidenceId" = NEW."evidenceId"
+         AND decision."canonicalId" = NEW."canonicalId"
+         AND decision."resourceId" = NEW."resourceId"
+         AND decision."structuralUnitId" = NEW."structuralUnitId"
+         AND decision."segmentId" = NEW."segmentId"
+         AND decision."resourceSegmentHash" = NEW."resourceSegmentHash"
+         AND decision."inventoryRunId" = NEW."inventoryRunId"
+         AND decision."captureRevision" = NEW."captureRevision"
+         AND decision."structuralUnitVersion" = NEW."structuralUnitVersion"
+         AND decision."lifecycleState" = 'CURRENT'
+         AND decision."publicationState" = 'SHADOW_PUBLISHED'
+     )
+     AND EXISTS (
+       SELECT 1
+       FROM "ActkgEvidenceStructuralUnitCrosswalk" crosswalk
+       WHERE crosswalk."releaseId" = NEW."releaseId"
+         AND crosswalk."evidenceId" = NEW."evidenceId"
+         AND crosswalk."canonicalId" = NEW."canonicalId"
+         AND crosswalk."resourceId" = NEW."resourceId"
+         AND crosswalk."structuralUnitId" = NEW."structuralUnitId"
+         AND crosswalk."segmentId" = NEW."segmentId"
+         AND crosswalk."resourceSegmentHash" = NEW."resourceSegmentHash"
+         AND crosswalk."inventoryRunId" = NEW."inventoryRunId"
+         AND crosswalk."captureRevision" = NEW."captureRevision"
+         AND crosswalk."structuralUnitVersion" = NEW."structuralUnitVersion"
+         AND crosswalk."validationState" = 'VALIDATED'
+     )
+  THEN
+    RAISE EXCEPTION 'published canonical resource crosswalk endpoint must remain unique';
+  END IF;
   RETURN NEW;
 END;
 $$;
@@ -277,6 +384,20 @@ $$;
 CREATE FUNCTION validate_canonical_resource_binding_publication()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
+  IF NEW."publicationState" = 'SHADOW_PUBLISHED' THEN
+    PERFORM pg_advisory_xact_lock(canonical_resource_crosswalk_endpoint_lock_key(
+      NEW."releaseId",
+      NEW."evidenceId",
+      NEW."canonicalId",
+      NEW."resourceId",
+      NEW."structuralUnitId",
+      NEW."segmentId",
+      NEW."resourceSegmentHash",
+      NEW."inventoryRunId",
+      NEW."captureRevision",
+      NEW."structuralUnitVersion"
+    ));
+  END IF;
   IF NEW."publicationState" = 'SHADOW_PUBLISHED' AND (
     NEW."reviewState" NOT IN ('NOT_REQUIRED', 'ACCEPTED')
     OR NEW."reviewProvider" = 'FIXTURE'
@@ -307,17 +428,21 @@ BEGIN
     FROM "ActkgEvidenceStructuralUnitCrosswalk" crosswalk
     JOIN "ActkgRelease" release ON release."id" = NEW."releaseId"
     WHERE crosswalk."releaseId" = NEW."releaseId"
-      AND crosswalk."id" = NEW."crosswalkId"
       AND crosswalk."evidenceId" = NEW."evidenceId"
       AND crosswalk."canonicalId" = NEW."canonicalId"
       AND crosswalk."resourceId" = NEW."resourceId"
       AND crosswalk."structuralUnitId" = NEW."structuralUnitId"
       AND crosswalk."segmentId" = NEW."segmentId"
       AND crosswalk."resourceSegmentHash" = NEW."resourceSegmentHash"
+      AND crosswalk."inventoryRunId" = NEW."inventoryRunId"
+      AND crosswalk."captureRevision" = NEW."captureRevision"
+      AND crosswalk."structuralUnitVersion" = NEW."structuralUnitVersion"
       AND crosswalk."validationState" = 'VALIDATED'
-      AND crosswalk."validationDigest" = NEW."validationDigest"
       AND release."releaseSetId" = NEW."releaseSetId"
       AND release."releaseHash" = NEW."objectRevision"
+    HAVING count(*) = 1
+      AND min(crosswalk."id") = NEW."crosswalkId"
+      AND min(crosswalk."validationDigest") = NEW."validationDigest"
   ) THEN
     RAISE EXCEPTION 'shadow publication requires an exact validated crosswalk and release revision';
   END IF;
@@ -437,10 +562,10 @@ CREATE TRIGGER "ResourceBindingInventoryRun_immutable"
 CREATE TRIGGER "ResourceBindingInventoryItem_immutable"
   BEFORE UPDATE OR DELETE ON "ResourceBindingInventoryItem"
   FOR EACH ROW EXECUTE FUNCTION reject_canonical_resource_binding_shadow_mutation();
-CREATE TRIGGER "ActkgEvidenceStructuralUnitCrosswalk_validate"
-  BEFORE INSERT ON "ActkgEvidenceStructuralUnitCrosswalk"
+CREATE TRIGGER "ActkgEvidenceStructuralUnitCrosswalk_00_validate"
+  BEFORE INSERT OR UPDATE ON "ActkgEvidenceStructuralUnitCrosswalk"
   FOR EACH ROW EXECUTE FUNCTION validate_canonical_resource_crosswalk();
-CREATE TRIGGER "ActkgEvidenceStructuralUnitCrosswalk_immutable"
+CREATE TRIGGER "ActkgEvidenceStructuralUnitCrosswalk_10_immutable"
   BEFORE UPDATE OR DELETE ON "ActkgEvidenceStructuralUnitCrosswalk"
   FOR EACH ROW EXECUTE FUNCTION reject_canonical_resource_binding_shadow_mutation();
 CREATE TRIGGER "CanonicalResourceBindingDecision_validate_publication"

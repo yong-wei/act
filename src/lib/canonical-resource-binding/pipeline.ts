@@ -264,6 +264,9 @@ function decisionBase(input: {
     lifecycleState: 'CURRENT' as const,
     supersedesDecisionId: input.supersedesDecisionId ?? null,
     crosswalkId: null,
+    inventoryRunId: null,
+    captureRevision: null,
+    structuralUnitVersion: null,
     validationDigest: null,
   };
 }
@@ -352,6 +355,9 @@ export function applyPublicationGates(
     && row.structuralUnitId === decision.structuralUnitId
     && row.segmentId === decision.segmentId
     && row.resourceSegmentHash === decision.resourceSegmentHash
+    && row.inventoryRunId === context.captureIdentity.inventoryRunId
+    && row.captureRevision === context.captureIdentity.captureRevision
+    && row.structuralUnitVersion === context.captureIdentity.structuralUnitVersion
     && row.validationState === 'VALIDATED'
   ));
   if (crosswalks.length !== 1) failures.push('crosswalk-not-unique');
@@ -380,6 +386,9 @@ export function applyPublicationGates(
     ...decision,
     publicationState: 'SHADOW_PUBLISHED',
     crosswalkId: crosswalk.id,
+    inventoryRunId: crosswalk.inventoryRunId,
+    captureRevision: crosswalk.captureRevision,
+    structuralUnitVersion: crosswalk.structuralUnitVersion,
     validationDigest: crosswalk.validationDigest,
   };
 }
@@ -453,6 +462,9 @@ export function applyHumanDecision(input: {
     attemptSequence: input.attemptSequence ?? input.decision.attemptSequence + 1,
     supersedesDecisionId: input.decision.id,
     crosswalkId: null,
+    inventoryRunId: null,
+    captureRevision: null,
+    structuralUnitVersion: null,
     validationDigest: null,
   };
   return input.outcome === 'REJECT'
