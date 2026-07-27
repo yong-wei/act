@@ -3,6 +3,10 @@
 ### Requirement: Grading UI is part of the workflow
 The grading workbench SHALL support professional teacher review states while keeping the student's original response separate from AI-understanding artifacts.
 
+#### Scenario: Teacher opens grading workbench
+- **WHEN** a teacher opens a grading draft
+- **THEN** the UI SHALL show converted document precision, evaluator limitations, criterion-level AI draft, teacher-edit controls, evidence anchors, approval state, and writeback preview.
+
 #### Scenario: Teacher opens assignment grading workbench
 - **WHEN** a teacher opens a grading draft for a question response
 - **THEN** the UI SHALL show the rendered unified sealed-answer text and the exact sealed attachment identities in frozen submission order, the criterion-level AI draft, teacher-edit controls, approval state, and writeback preview

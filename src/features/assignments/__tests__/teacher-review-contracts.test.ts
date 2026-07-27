@@ -14,20 +14,9 @@ describe("teacher review contracts", () => {
         gradingRun: {
           id: "run-1",
           evidenceState: "EVIDENCE_INCOMPLETE",
-          answerEvidence: {
-            sourceKind: "DOCUMENT",
-            canonicalMarkdown: "partial answer",
-            limitationState: "evidence-incomplete",
-            sourceManifest: {
-              state: "EVIDENCE_INCOMPLETE",
-              sources: [{
-                assetId: "asset-1",
-                displayName: "answer.pdf",
-                state: "UNDERSTANDING_FAILED",
-              }],
-            },
-          },
         },
+        incompleteEvidence: true,
+        omittedEvidence: [{ assetId: "asset-1", displayName: "answer.pdf" }],
       },
       submission: { id: "submission-1" },
       question: { id: "question-1", responseType: "SUBJECTIVE_FILE" },

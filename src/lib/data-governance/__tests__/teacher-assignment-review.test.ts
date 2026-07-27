@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   approveTeacherAssignmentReview,
+  buildTeacherAssignmentReviewApiProjection,
+  consumeTeacherAssignmentOriginalAssetRead,
   createTeacherAssignmentReview,
   deriveTeacherAssignmentReviewTotal,
   deriveTeacherReviewQueueStatus,
@@ -12,6 +14,7 @@ import {
   requestTeacherAssignmentFeedbackRelease,
   returnTeacherAssignmentReview,
   saveTeacherAssignmentReview,
+  signTeacherAssignmentOriginalAssetRead,
   TeacherAssignmentReviewError,
 } from '../teacher-assignment-review';
 
@@ -88,6 +91,194 @@ function reviewFixture() {
 }
 
 describe('teacher assignment review persistence', () => {
+  it('projects only the sealed attempt text and safe current-attempt original assets', () => {
+    const review: any = reviewFixture();
+    review.gradingRun.answerAttempt = {
+      id: 'attempt-1',
+      textSnapshot: '# 原始答案\n\n$x^2$',
+      answerSnapshot: {
+        schemaVersion: 'assignment-response.v2',
+        attachmentOrderProvenance: 'legacy-fallback',
+      },
+      answer: {
+        id: 'answer-1',
+        attachmentOrderProvenance: 'student-arranged',
+      },
+      assets: [
+        {
+          id: 'asset-other-attempt',
+          answerId: 'answer-1',
+          attemptId: 'attempt-0',
+          state: 'FINALIZED',
+          originalName: 'old.pdf',
+          mimeType: 'application/pdf',
+          sizeBytes: 10,
+          assetRole: 'ATTACHMENT',
+          orderIndex: 0,
+          objectKey: 'private/old',
+          checksum: 'sha256:old',
+        },
+        {
+          id: 'asset-image',
+          answerId: 'answer-1',
+          attemptId: 'attempt-1',
+          state: 'FINALIZED',
+          originalName: '..\\private\\diagram.png',
+          mimeType: 'image/png',
+          sizeBytes: 20,
+          assetRole: 'EMBEDDED_IMAGE',
+          orderIndex: null,
+          embeddedPosition: 'md:diagram',
+          objectKey: 'private/image',
+          checksum: 'sha256:image',
+        },
+        {
+          id: 'asset-office',
+          answerId: 'answer-1',
+          attemptId: 'attempt-1',
+          state: 'FINALIZED',
+          originalName: '/Users/student/\u00ad\u061c\u180e\u202a\u206a\u206f\u2060\u200b\ufeffreport\ufff9.docx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          sizeBytes: 30,
+          assetRole: 'ATTACHMENT',
+          orderIndex: 2,
+          objectKey: 'private/office',
+          checksum: 'sha256:office',
+        },
+        {
+          id: 'asset-pending',
+          answerId: 'answer-1',
+          attemptId: 'attempt-1',
+          state: 'QUARANTINED',
+          originalName: 'pending.pdf',
+          mimeType: 'application/pdf',
+          sizeBytes: 40,
+          assetRole: 'ATTACHMENT',
+          orderIndex: 1,
+        },
+      ],
+    };
+    review.gradingRun.answerEvidence = {
+      limitationState: 'evidence-incomplete',
+      sourceManifest: {
+        sources: [{
+          assetId: 'asset-office',
+          displayName: '/private/provider/report.docx',
+          state: 'UNDERSTANDING_FAILED',
+          provider: 'private-provider',
+          errorCode: 'private-error',
+        }],
+      },
+      conversion: { canonicalMarkdown: 'converted private answer' },
+    };
+
+    const projection = buildTeacherAssignmentReviewApiProjection(review);
+
+    expect(projection.originalResponse).toEqual({
+      textSnapshot: '# 原始答案\n\n$x^2$',
+      attachmentOrderProvenance: 'legacy-fallback',
+      assets: [
+        expect.objectContaining({
+          id: 'asset-image',
+          displayName: 'diagram.png',
+          embeddedPosition: 'md:diagram',
+        }),
+        expect.objectContaining({
+          id: 'asset-office',
+          displayName: 'report.docx',
+          orderIndex: 2,
+        }),
+      ],
+    });
+    expect(projection.omittedEvidence).toEqual([{
+      assetId: 'asset-office',
+      displayName: 'report.docx',
+    }]);
+    expect(JSON.stringify(projection.originalResponse)).not.toMatch(
+      /objectKey|checksum|conversion|provider|errorCode|QUARANTINED/,
+    );
+    expect(JSON.stringify(projection)).not.toContain('converted private answer');
+  });
+
+  it('uses a distinct one-time teacher purpose and rechecks the current attempt before reading', async () => {
+    const review = reviewFixture();
+    const tokenCreate = vi.fn().mockResolvedValue({ id: 'token-1' });
+    const tokenClaim = vi.fn().mockResolvedValue({ count: 1 });
+    const asset = {
+      id: 'asset-1',
+      answerId: review.answerId,
+      attemptId: review.attemptId,
+      state: 'FINALIZED',
+      objectKey: 'private/original',
+      originalName: '/private/report.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 12,
+      checksum: `sha256:${'1'.repeat(64)}`,
+    };
+    const db: any = {
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      submissionAsset: { findUnique: vi.fn().mockResolvedValue(asset) },
+      submissionAssetAccessToken: {
+        create: tokenCreate,
+        updateMany: tokenClaim,
+      },
+    };
+
+    const signed = await signTeacherAssignmentOriginalAssetRead(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      assetId: asset.id,
+      now,
+    });
+    expect(signed.url).toContain('/api/teacher/assignments/');
+    expect(tokenCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        assetId: asset.id,
+        studentId: 'teacher-1',
+        purpose: 'teacher-assignment-original-read',
+      }),
+    });
+
+    await expect(consumeTeacherAssignmentOriginalAssetRead(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      assetId: asset.id,
+      token: 'one-time-token',
+      now,
+    })).resolves.toMatchObject({
+      objectKey: 'private/original',
+      displayName: 'report.pdf',
+    });
+    expect(tokenClaim).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        studentId: 'teacher-1',
+        purpose: 'teacher-assignment-original-read',
+        usedAt: null,
+      }),
+      data: { usedAt: now },
+    }));
+
+    db.submissionAsset.findUnique.mockResolvedValue({
+      ...asset,
+      attemptId: 'attempt-old',
+    });
+    await expect(signTeacherAssignmentOriginalAssetRead(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      assetId: asset.id,
+      now,
+    })).rejects.toMatchObject({
+      code: 'teacher-review-original-asset-forbidden',
+      status: 403,
+    });
+  });
+
   it('requires explicit confirmation before approving incomplete evidence', async () => {
     const review = reviewFixture();
     review.gradingRun = {
@@ -123,6 +314,20 @@ describe('teacher assignment review persistence', () => {
     })).rejects.toMatchObject({
       code: 'teacher-review-incomplete-evidence-confirmation-required',
       details: { omittedAssetIds: ['asset-truncated', 'asset-missing'] },
+    });
+    await expect(approveTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      expectedVersion: review.version,
+      idempotencyKey: 'approve-stale-omitted-assets',
+      confirmIncompleteEvidence: true,
+      omittedAssetIds: ['asset-missing'],
+      now,
+    })).rejects.toMatchObject({
+      code: 'teacher-review-version-conflict',
+      status: 409,
     });
   });
 
