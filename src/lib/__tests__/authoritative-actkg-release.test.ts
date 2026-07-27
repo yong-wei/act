@@ -172,7 +172,11 @@ describe('authoritative ActKG Release admission', () => {
       path.join(root, 'scripts/db/import-authoritative-actkg-release.ts'),
       'utf8',
     );
-    expect(productionImporter).toContain('loadAndValidateRelease()');
-    expect(productionImporter).not.toMatch(/loadAndValidateRelease\(\{[^}]*captureRevision/u);
+    expect(productionImporter).toContain(
+      'const captureRevision = existing?.captureRevision ?? await imageRevision();',
+    );
+    expect(productionImporter).toContain(
+      'captureRevision ? { captureRevision } : {},',
+    );
   });
 });

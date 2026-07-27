@@ -11,6 +11,12 @@ import type {
   AuthoritativeReleaseSetRecord,
   AuthoritativeSourceMappingRecord,
   AuthoritativeSourceObjectRecord,
+  CourseCoverageAuditIdentity,
+  CourseCoverageDiagnostic,
+  CourseCoverageRecord,
+  CourseCoverageResult,
+  CourseCoverageRole,
+  CourseCoverageSelector,
   RepositoryDiagnostic,
   RepositoryResult,
 } from './contracts';
@@ -29,6 +35,9 @@ export interface AuthoritativeKnowledgeTransaction {
   actkgSourceMapping: Delegate;
   actkgSourceObject: Delegate;
   actkgEvidenceSegment: Delegate;
+  courseCoverageOverlayVersion: Delegate;
+  courseCoverageOverlayEntry: Delegate;
+  courseCoverageImportReceipt: Delegate;
 }
 
 export interface AuthoritativeKnowledgeDatabase {
@@ -259,6 +268,211 @@ export class AuthoritativeKnowledgeRepository {
       return diagnostics.length === 0
         ? { status: 'available', selector, snapshot, diagnostics: [] }
         : { status: 'drift', selector, snapshot, diagnostics };
+    }, { isolationLevel: 'RepeatableRead' });
+  }
+
+  async readCourseCoverage(
+    selector?: CourseCoverageSelector,
+  ): Promise<CourseCoverageResult> {
+    if (!selector) {
+      return {
+        status: 'unavailable',
+        selector: null,
+        reason: 'missing-selector',
+        diagnostics: [],
+        productionAuthoritative: false,
+      };
+    }
+
+    return this.database.$transaction(async (transaction) => {
+      const version = await transaction.courseCoverageOverlayVersion.findUnique({
+        where: {
+          overlayId_overlayVersion: {
+            overlayId: selector.overlayId,
+            overlayVersion: selector.overlayVersion,
+          },
+        },
+      }) as (CourseCoverageAuditIdentity & {
+        id: string;
+        schemaVersion: string;
+      }) | null;
+      if (!version) {
+        return {
+          status: 'unavailable',
+          selector,
+          reason: 'coverage-not-found',
+          diagnostics: [],
+          productionAuthoritative: false,
+        };
+      }
+      const [releaseSet, release, receipt, rawEntries] = await Promise.all([
+        transaction.actkgReleaseSet.findUnique({ where: { id: version.releaseSetId } }),
+        transaction.actkgRelease.findUnique({ where: { id: version.releaseId } }),
+        transaction.courseCoverageImportReceipt.findUnique({
+          where: { overlayVersionId: version.id },
+        }),
+        transaction.courseCoverageOverlayEntry.findMany({
+          where: { overlayVersionId: version.id },
+          orderBy: [{ ordinal: 'asc' }, { canonicalId: 'asc' }, { role: 'asc' }],
+        }),
+      ]);
+      const entries = rawEntries as CourseCoverageRecord[];
+      const coveredObjects = await transaction.actkgAuthoritativeObject.findMany({
+        where: {
+          releaseId: version.releaseId,
+          canonicalId: { in: [...new Set(entries.map((entry) => entry.canonicalId))] },
+        },
+        orderBy: [{ ordinal: 'asc' }, { canonicalId: 'asc' }],
+      }) as AuthoritativeObjectRecord[];
+      const audit: CourseCoverageAuditIdentity = {
+        courseId: version.courseId,
+        overlayId: version.overlayId,
+        overlayVersion: version.overlayVersion,
+        overlayVersionId: version.id,
+        authoringRevision: version.authoringRevision,
+        captureRevision: version.captureRevision,
+        sourceHash: version.sourceHash,
+        releaseSetId: version.releaseSetId,
+        releaseId: version.releaseId,
+        releaseHash: version.releaseHash,
+        lockRawHash: version.lockRawHash,
+        productionAuthoritative: false,
+      };
+      const diagnostics: CourseCoverageDiagnostic[] = [];
+      const compareCoverage = (
+        code: CourseCoverageDiagnostic['code'],
+        field: string,
+        expected: string | number,
+        actual: string | number | null,
+      ): void => {
+        if (expected !== actual) diagnostics.push({ code, field, expected, actual });
+      };
+      compareCoverage('selector-mismatch', 'courseId', selector.courseId, version.courseId);
+      compareCoverage('selector-mismatch', 'overlayId', selector.overlayId, version.overlayId);
+      compareCoverage('selector-mismatch', 'overlayVersion', selector.overlayVersion, version.overlayVersion);
+      compareCoverage('selector-mismatch', 'releaseSetId', selector.releaseSetId, version.releaseSetId);
+      compareCoverage('selector-mismatch', 'releaseId', selector.releaseId, version.releaseId);
+      compareCoverage(
+        'release-drift',
+        'releaseSet.id',
+        version.releaseSetId,
+        (releaseSet as { id?: string } | null)?.id ?? null,
+      );
+      compareCoverage(
+        'release-drift',
+        'releaseSet.candidateState',
+        'CANDIDATE',
+        (releaseSet as { candidateState?: string } | null)?.candidateState ?? null,
+      );
+      compareCoverage(
+        'release-drift',
+        'release.releaseSetId',
+        version.releaseSetId,
+        (release as { releaseSetId?: string } | null)?.releaseSetId ?? null,
+      );
+      compareCoverage(
+        'release-drift',
+        'release.releaseHash',
+        version.releaseHash,
+        (release as { releaseHash?: string } | null)?.releaseHash ?? null,
+      );
+      compareCoverage(
+        'release-drift',
+        'release.lockRawHash',
+        version.lockRawHash,
+        (release as { lockRawHash?: string } | null)?.lockRawHash ?? null,
+      );
+      if (!receipt) {
+        diagnostics.push({
+          code: 'receipt-missing',
+          field: 'receipt',
+          expected: 'present',
+          actual: null,
+        });
+      } else {
+        const typedReceipt = receipt as {
+          authoringRevision: string;
+          captureRevision: string;
+          sourceHash: string;
+          releaseHash: string;
+          lockRawHash: string;
+          entryCount: number;
+        };
+        compareCoverage(
+          'receipt-identity-mismatch',
+          'receipt.authoringRevision',
+          version.authoringRevision,
+          typedReceipt.authoringRevision,
+        );
+        compareCoverage(
+          'receipt-identity-mismatch',
+          'receipt.sourceHash',
+          version.sourceHash,
+          typedReceipt.sourceHash,
+        );
+        compareCoverage(
+          'receipt-identity-mismatch',
+          'receipt.captureRevision',
+          version.captureRevision,
+          typedReceipt.captureRevision,
+        );
+        compareCoverage(
+          'receipt-identity-mismatch',
+          'receipt.releaseHash',
+          version.releaseHash,
+          typedReceipt.releaseHash,
+        );
+        compareCoverage(
+          'receipt-identity-mismatch',
+          'receipt.lockRawHash',
+          version.lockRawHash,
+          typedReceipt.lockRawHash,
+        );
+        compareCoverage(
+          'receipt-count-mismatch',
+          'receipt.entryCount',
+          entries.length,
+          typedReceipt.entryCount,
+        );
+      }
+      compareCoverage(
+        'covered-object-missing',
+        'coveredObjectCount',
+        new Set(entries.map((entry) => entry.canonicalId)).size,
+        coveredObjects.length,
+      );
+      const allowedRoles = new Set<CourseCoverageRole>([
+        'formal_objective',
+        'necessary_prerequisite',
+        'explicit_extension',
+      ]);
+      entries.forEach((entry) => {
+        if (!allowedRoles.has(entry.role)) {
+          diagnostics.push({
+            code: 'unsupported-role',
+            field: `entry.${entry.canonicalId}.role`,
+            expected: 'registered CourseCoverageRole',
+            actual: entry.role,
+          });
+        }
+      });
+      return diagnostics.length === 0
+        ? {
+            status: 'available',
+            selector,
+            audit,
+            entries,
+            diagnostics: [],
+            productionAuthoritative: false,
+          }
+        : {
+            status: 'drift',
+            selector,
+            audit,
+            entries,
+            diagnostics,
+            productionAuthoritative: false,
+          };
     }, { isolationLevel: 'RepeatableRead' });
   }
 }

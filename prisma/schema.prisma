@@ -5033,6 +5033,7 @@ model ActkgReleaseSet {
 
   releases ActkgRelease[]
   receipt  ActkgImportReceipt?
+  courseCoverageVersions CourseCoverageOverlayVersion[]
 }
 
 model ActkgRelease {
@@ -5060,6 +5061,7 @@ model ActkgRelease {
   evidence        ActkgEvidenceSegment[]
   originalPayload ActkgOriginalReleasePayload?
   receipt         ActkgImportReceipt?
+  courseCoverageVersions CourseCoverageOverlayVersion[]
 
   @@unique([releaseSetId, releaseVersion])
   @@index([releaseSetId, releaseStatus])
@@ -5080,6 +5082,7 @@ model ActkgAuthoritativeObject {
   outgoing       ActkgAuthoritativeRelation[] @relation("ActkgRelationSource")
   incoming       ActkgAuthoritativeRelation[] @relation("ActkgRelationTarget")
   sourceMappings ActkgSourceMapping[]
+  courseCoverageEntries CourseCoverageOverlayEntry[]
 
   @@id([releaseId, canonicalId])
   @@unique([releaseId, ordinal])
@@ -5203,4 +5206,61 @@ model ActkgImportReceipt {
 
   releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
   release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+}
+
+// Git-governed course admission overlay. This is independent from the complete
+// candidate Release mirror and is not wired into production consumers.
+model CourseCoverageOverlayVersion {
+  id                String   @id
+  schemaVersion     String
+  overlayId         String
+  overlayVersion    String
+  courseId          String
+  releaseSetId      String
+  releaseId         String
+  authoringRevision String
+  captureRevision   String
+  sourceHash        String
+  releaseHash       String
+  lockRawHash       String
+  createdAt         DateTime @default(now())
+
+  releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  entries    CourseCoverageOverlayEntry[]
+  receipt    CourseCoverageImportReceipt?
+
+  @@unique([overlayId, overlayVersion])
+  @@unique([courseId, releaseId, overlayVersion])
+  @@unique([id, releaseId])
+  @@index([courseId, releaseSetId, releaseId])
+}
+
+model CourseCoverageOverlayEntry {
+  overlayVersionId String
+  releaseId        String
+  canonicalId      String
+  role             String
+  ordinal          Int
+
+  overlayVersion CourseCoverageOverlayVersion @relation(fields: [overlayVersionId, releaseId], references: [id, releaseId], onDelete: Restrict)
+  canonical      ActkgAuthoritativeObject      @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+
+  @@id([overlayVersionId, canonicalId, role])
+  @@unique([overlayVersionId, ordinal])
+  @@index([releaseId, canonicalId])
+}
+
+model CourseCoverageImportReceipt {
+  id                String   @id
+  overlayVersionId  String   @unique
+  authoringRevision String
+  captureRevision   String
+  sourceHash        String
+  releaseHash       String
+  lockRawHash       String
+  entryCount        Int
+  importedAt        DateTime @default(now())
+
+  overlayVersion CourseCoverageOverlayVersion @relation(fields: [overlayVersionId], references: [id], onDelete: Restrict)
 }

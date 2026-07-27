@@ -2,7 +2,7 @@ import 'dotenv/config';
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
@@ -21,6 +21,13 @@ import {
   reconstructRelease,
   sha256,
 } from '../actkg-release/authoritative-release';
+import {
+  computeCourseCoverageSourceHash,
+  importCourseCoverageOverlay,
+  validateCourseCoverageOverlay,
+  type CourseCoverageOverlay,
+} from '../course-coverage/course-coverage-overlay';
+import { buildCourseCoverageAdmissionProjection } from '../../src/lib/authoritative-knowledge';
 
 const sourceUrl = process.env.DATABASE_URL;
 if (!sourceUrl) {
@@ -47,6 +54,26 @@ function migrate(): void {
     encoding: 'utf8',
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
+}
+
+function runDeploymentCli(script: string, mode?: '--verify-only'): string {
+  const args = [
+    path.join('node_modules', 'tsx', 'dist', 'cli.mjs'),
+    script,
+    ...(mode ? [mode] : []),
+  ];
+  const result = spawnSync(process.execPath, args, {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      DATABASE_URL: testUrl.toString(),
+      APP_REVISION: 'b'.repeat(40),
+      APP_REVISION_FILE: path.join(tempRoot, 'missing-image-revision'),
+    },
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  return result.stdout;
 }
 
 function availablePort(): Promise<number> {
@@ -136,6 +163,134 @@ async function main(): Promise<void> {
     links: await db.knowledgeLink.count(),
   }, legacyBefore);
 
+  const coverageSchema = JSON.parse(readFileSync(
+    path.join(
+      process.cwd(),
+      'course-content/authoring/knowledge/course-coverage/course-coverage-overlay.schema.json',
+    ),
+    'utf8',
+  )) as unknown;
+  const coverageSource = JSON.parse(readFileSync(
+    path.join(
+      process.cwd(),
+      'course-content/authoring/knowledge/course-coverage/active/automatic-control.json',
+    ),
+    'utf8',
+  )) as CourseCoverageOverlay;
+  const validatedCoverage = await validateCourseCoverageOverlay(
+    coverageSource,
+    validated,
+    coverageSchema,
+    { captureRevision: validated.captureRevision },
+  );
+  assert.deepEqual(await importCourseCoverageOverlay(db, validatedCoverage), {
+    versionId: 'automatic-control-root-locus-coverage-v1@1',
+    entryCount: 1,
+  });
+  assert.deepEqual(await importCourseCoverageOverlay(db, validatedCoverage), {
+    versionId: 'automatic-control-root-locus-coverage-v1@1',
+    entryCount: 1,
+  });
+
+  const roleFixtureIds = (
+    validated.release.canonical_nodes as Array<{ id: string }>
+  ).slice(0, 3).map((row) => row.id);
+  const threeRoleSource: CourseCoverageOverlay = {
+    ...structuredClone(coverageSource),
+    overlayVersion: '2',
+    entries: [
+      { canonicalId: roleFixtureIds[2]!, role: 'explicit_extension' },
+      { canonicalId: roleFixtureIds[0]!, role: 'formal_objective' },
+      { canonicalId: roleFixtureIds[1]!, role: 'necessary_prerequisite' },
+    ],
+  };
+  threeRoleSource.sourceHash = computeCourseCoverageSourceHash(threeRoleSource);
+  const threeRoleCoverage = await validateCourseCoverageOverlay(
+    threeRoleSource,
+    validated,
+    coverageSchema,
+    { captureRevision: validated.captureRevision },
+  );
+  assert.deepEqual(await importCourseCoverageOverlay(db, threeRoleCoverage), {
+    versionId: 'automatic-control-root-locus-coverage-v1@2',
+    entryCount: 3,
+  });
+
+  for (const script of [
+    'scripts/db/import-authoritative-actkg-release.ts',
+    'scripts/db/import-course-coverage-overlay.ts',
+  ]) {
+    assert.match(runDeploymentCli(script), /"mode":"import"/u);
+    assert.match(runDeploymentCli(script, '--verify-only'), /"mode":"verify-only"/u);
+  }
+  assert.equal(
+    (await db.actkgRelease.findUniqueOrThrow({
+      where: { id: validated.entry.release_id },
+      select: { captureRevision: true },
+    })).captureRevision,
+    validated.captureRevision,
+  );
+  assert.equal(
+    (await db.courseCoverageOverlayVersion.findUniqueOrThrow({
+      where: { id: validatedCoverage.versionId },
+      select: { captureRevision: true },
+    })).captureRevision,
+    validatedCoverage.captureRevision,
+  );
+
+  for (const mutate of [
+    (overlay: CourseCoverageOverlay) => {
+      overlay.entries[0]!.canonicalId = 'ctc:missing-object';
+    },
+    (overlay: CourseCoverageOverlay) => {
+      overlay.entries[0]!.role = 'unsupported' as never;
+    },
+    (overlay: CourseCoverageOverlay) => {
+      overlay.entries.push(structuredClone(overlay.entries[0]!));
+    },
+    (overlay: CourseCoverageOverlay) => {
+      overlay.releaseHash = 'f'.repeat(64);
+    },
+  ]) {
+    const invalid = structuredClone(threeRoleSource);
+    invalid.overlayVersion = '3';
+    mutate(invalid);
+    invalid.sourceHash = computeCourseCoverageSourceHash(invalid);
+    await assert.rejects(
+      validateCourseCoverageOverlay(
+        invalid,
+        validated,
+        coverageSchema,
+        { captureRevision: validated.captureRevision },
+      ),
+    );
+  }
+  assert.equal(await db.courseCoverageOverlayVersion.count(), 2);
+
+  const conflicting = structuredClone(threeRoleSource);
+  conflicting.entries = conflicting.entries.slice(0, 2);
+  conflicting.sourceHash = computeCourseCoverageSourceHash(conflicting);
+  const validatedConflict = await validateCourseCoverageOverlay(
+    conflicting,
+    validated,
+    coverageSchema,
+    { captureRevision: validated.captureRevision },
+  );
+  await assert.rejects(
+    importCourseCoverageOverlay(db, validatedConflict),
+    /already exists with different content/u,
+  );
+  assert.equal(await db.courseCoverageOverlayVersion.count(), 2);
+  assert.equal(await db.courseCoverageOverlayEntry.count(), 4);
+
+  const coverageSelector = {
+    courseId: coverageSource.courseId,
+    overlayId: coverageSource.overlayId,
+    overlayVersion: coverageSource.overlayVersion,
+    releaseSetId: coverageSource.releaseSetId,
+    releaseId: coverageSource.releaseId,
+  };
+
   const receipt = await db.actkgImportReceipt.findUniqueOrThrow({
     where: { releaseId: validated.entry.release_id },
   });
@@ -181,6 +336,31 @@ async function main(): Promise<void> {
     reason: 'active-pointer-unavailable',
     diagnostics: [],
   });
+  assert.equal((await repository.read(candidateSelector)).status, 'available');
+  const coverage = await repository.readCourseCoverage(coverageSelector);
+  assert.equal(coverage.status, 'available');
+  if (coverage.status === 'available') {
+    assert.equal(coverage.entries.length, 1);
+    assert.equal(
+      coverage.entries[0]!.canonicalId,
+      'ctc:v11g-5845390ded447e37f06ea222',
+    );
+    assert.equal(coverage.entries[0]!.role, 'formal_objective');
+    assert.equal(coverage.productionAuthoritative, false);
+    for (const target of ['recommendation', 'kaq', 'path', 'assessment', 'new-fact'] as const) {
+      assert.deepEqual(
+        buildCourseCoverageAdmissionProjection(coverage, target).coveredCanonicalIds,
+        ['ctc:v11g-5845390ded447e37f06ea222'],
+      );
+    }
+  }
+  assert.deepEqual(await repository.readCourseCoverage(), {
+    status: 'unavailable',
+    selector: null,
+    reason: 'missing-selector',
+    diagnostics: [],
+    productionAuthoritative: false,
+  });
 
   await db.$executeRawUnsafe('ALTER TABLE "ActkgImportReceipt" DISABLE TRIGGER "ActkgImportReceipt_immutable"');
   await db.$executeRawUnsafe(
@@ -204,6 +384,34 @@ async function main(): Promise<void> {
   );
   await db.$executeRawUnsafe('ALTER TABLE "ActkgImportReceipt" ENABLE TRIGGER "ActkgImportReceipt_immutable"');
   assert.deepEqual(await importValidatedRelease(db, validated), expected);
+
+  await db.$executeRawUnsafe(
+    'ALTER TABLE "CourseCoverageImportReceipt" DISABLE TRIGGER "CourseCoverageImportReceipt_immutable"',
+  );
+  await db.$executeRawUnsafe(
+    'UPDATE "CourseCoverageImportReceipt" SET "entryCount" = "entryCount" + 1 WHERE "overlayVersionId" = $1',
+    validatedCoverage.versionId,
+  );
+  await db.$executeRawUnsafe(
+    'ALTER TABLE "CourseCoverageImportReceipt" ENABLE TRIGGER "CourseCoverageImportReceipt_immutable"',
+  );
+  const coverageDrift = await repository.readCourseCoverage(coverageSelector);
+  assert.equal(coverageDrift.status, 'drift');
+  assert.deepEqual(
+    buildCourseCoverageAdmissionProjection(coverageDrift, 'assessment').coveredCanonicalIds,
+    [],
+  );
+  await db.$executeRawUnsafe(
+    'ALTER TABLE "CourseCoverageImportReceipt" DISABLE TRIGGER "CourseCoverageImportReceipt_immutable"',
+  );
+  await db.$executeRawUnsafe(
+    'UPDATE "CourseCoverageImportReceipt" SET "entryCount" = $2 WHERE "overlayVersionId" = $1',
+    validatedCoverage.versionId,
+    validatedCoverage.entries.length,
+  );
+  await db.$executeRawUnsafe(
+    'ALTER TABLE "CourseCoverageImportReceipt" ENABLE TRIGGER "CourseCoverageImportReceipt_immutable"',
+  );
 
   for (const table of [
     'ActkgAuthoritativeObject',
@@ -231,6 +439,44 @@ async function main(): Promise<void> {
     /immutable/u,
   );
 
+  await assert.rejects(
+    db.courseCoverageOverlayEntry.create({
+      data: {
+        overlayVersionId: validatedCoverage.versionId,
+        releaseId: validatedCoverage.overlay.releaseId,
+        canonicalId: roleFixtureIds[0]!,
+        role: 'explicit_extension',
+        ordinal: 99,
+      },
+    }),
+    /sealed by the import receipt/u,
+  );
+  await assert.rejects(
+    db.courseCoverageOverlayEntry.update({
+      where: {
+        overlayVersionId_canonicalId_role: {
+          overlayVersionId: validatedCoverage.versionId,
+          canonicalId: validatedCoverage.entries[0]!.canonicalId,
+          role: validatedCoverage.entries[0]!.role,
+        },
+      },
+      data: { ordinal: 99 },
+    }),
+    /sealed by the import receipt/u,
+  );
+  await assert.rejects(
+    db.courseCoverageOverlayEntry.delete({
+      where: {
+        overlayVersionId_canonicalId_role: {
+          overlayVersionId: validatedCoverage.versionId,
+          canonicalId: validatedCoverage.entries[0]!.canonicalId,
+          role: validatedCoverage.entries[0]!.role,
+        },
+      },
+    }),
+    /sealed by the import receipt/u,
+  );
+
   console.log(JSON.stringify({
     releaseId: validated.entry.release_id,
     candidateState: 'CANDIDATE',
@@ -242,6 +488,13 @@ async function main(): Promise<void> {
     repositoryCandidateComplete: true,
     repositoryActiveUnavailable: true,
     repositoryDriftDetected: true,
+    courseCoverageEntryCount: 1,
+    courseCoverageThreeRoleFixture: true,
+    courseCoverageIdempotentReimport: true,
+    courseCoverageConflictRollback: true,
+    courseCoverageReceiptSealed: true,
+    courseCoverageAdmissionTargetsBounded: true,
+    deploymentCliExistingCaptureRevisionReused: true,
   }));
 }
 
