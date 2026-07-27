@@ -17,6 +17,7 @@ import { AuthoritativeKnowledgeRepository } from './repository';
 export const CANVAS_PROJECTION_VERSION = 'act.canvas.v2';
 export const NODE_DETAIL_PROJECTION_VERSION = 'act.node-detail.v2';
 export const MIGRATION_REVIEW_PROJECTION_VERSION = 'act.migration-review.v1';
+export const CANDIDATE_RELEASE_LABEL = '根轨迹局部发布版';
 
 type JsonObject = Record<string, unknown>;
 
@@ -62,6 +63,24 @@ function semanticSupport(supported: boolean): SemanticSupportMark {
 export interface CanvasProjection {
   projectionVersion: typeof CANVAS_PROJECTION_VERSION;
   source: ProjectionIdentity;
+  release: {
+    label: typeof CANDIDATE_RELEASE_LABEL;
+    version: string;
+    scope: string;
+  };
+  coverage: {
+    status: 'partial';
+    objectCount: number;
+    relationCount: number;
+    goldRelationCount: number;
+    silverRelationCount: number;
+    sourceObjectCount: number;
+    evidenceSegmentCount: number;
+  };
+  teachingSemantics: {
+    status: 'unavailable';
+    message: '教学关系尚未发布';
+  };
   nodes: Array<{
     id: string;
     canonicalType: string;
@@ -99,6 +118,24 @@ export function buildCanvasProjection(
   return {
     projectionVersion: CANVAS_PROJECTION_VERSION,
     source: identity(snapshot),
+    release: {
+      label: CANDIDATE_RELEASE_LABEL,
+      version: snapshot.release.releaseVersion,
+      scope: snapshot.release.scope,
+    },
+    coverage: {
+      status: 'partial',
+      objectCount: snapshot.objects.length,
+      relationCount: snapshot.relations.length,
+      goldRelationCount: snapshot.relations.filter((row) => row.qualityTier === 'GOLD').length,
+      silverRelationCount: snapshot.relations.filter((row) => row.qualityTier === 'SILVER').length,
+      sourceObjectCount: snapshot.sourceObjects.length,
+      evidenceSegmentCount: snapshot.evidence.length,
+    },
+    teachingSemantics: {
+      status: 'unavailable',
+      message: '教学关系尚未发布',
+    },
     nodes: snapshot.objects.map((row) => {
       const payload = object(row.payload);
       return {
@@ -159,13 +196,17 @@ function teachingFields(payload: JsonObject): JsonObject {
 function adjacency(snapshot: AuthoritativeKnowledgeSnapshot, nodeId: string) {
   return snapshot.relations
     .filter((relation) => relation.sourceId === nodeId || relation.targetId === nodeId)
-    .map((relation) => ({
-      relationId: relation.relationId,
-      predicate: relation.relationType,
-      neighborId: relation.sourceId === nodeId ? relation.targetId : relation.sourceId,
-      traversal: relation.sourceId === nodeId ? 'outgoing' as const : 'incoming' as const,
-      readOnly: true as const,
-    }));
+    .map((relation) => {
+      const payload = object(relation.payload);
+      return {
+        relationId: relation.relationId,
+        predicate: relation.relationType,
+        direction: stringOrNull(payload.direction),
+        neighborId: relation.sourceId === nodeId ? relation.targetId : relation.sourceId,
+        traversal: relation.sourceId === nodeId ? 'outgoing' as const : 'incoming' as const,
+        readOnly: true as const,
+      };
+    });
 }
 
 export interface StudentNodeDetailProjection {
@@ -178,6 +219,10 @@ export interface StudentNodeDetailProjection {
     label: string;
     description: string | null;
     adjacency: ReturnType<typeof adjacency>;
+    sources: Array<{
+      sourceEditionId: string;
+      sectionId: string;
+    }>;
     semanticSupport: SemanticSupportMark;
   };
 }
@@ -198,6 +243,7 @@ export interface TeacherNodeDetailProjection {
       sourceMappingCount: number;
       evidenceCount: number;
     };
+    governanceTier: 'CORE' | 'EXTENSION' | 'UNCLASSIFIED';
   };
 }
 
@@ -240,6 +286,7 @@ export interface AdminNodeDetailProjection {
     lockRawHash: string;
   } | null;
   diagnostics: RepositoryDiagnostic[];
+  activeConsumerRebinding: 'not-started';
 }
 
 export type NodeDetailProjection =
@@ -260,12 +307,19 @@ export function buildNodeDetailProjection(
   const row = snapshot.objects.find((item) => item.canonicalId === nodeId);
   if (!row) return null;
   const payload = object(row.payload);
+  const evidenceIds = new Set(strings(payload.evidence_segment_ids));
   const baseNode: StudentNodeDetailProjection['node'] = {
     id: row.canonicalId,
     canonicalType: row.canonicalType,
     label: safeLabel(payload, row.semanticName ?? row.canonicalId),
     description: stringOrNull(payload.description),
     adjacency: adjacency(snapshot, row.canonicalId),
+    sources: snapshot.evidence
+      .filter((item) => evidenceIds.has(item.evidenceId))
+      .map((item) => ({
+        sourceEditionId: item.sourceEditionId,
+        sectionId: item.sectionId,
+      })),
     semanticSupport: semanticSupport(support.supportedObjectTypes.includes(row.canonicalType)),
   };
   const base = {
@@ -274,8 +328,10 @@ export function buildNodeDetailProjection(
   } as const;
   if (role === 'STUDENT') return { ...base, role, node: baseNode };
 
-  const evidenceIds = new Set(strings(payload.evidence_segment_ids));
   const mappings = snapshot.sourceMappings.filter((mapping) => mapping.canonicalId === row.canonicalId);
+  const adjacentRelations = snapshot.relations.filter((relation) => (
+    relation.sourceId === row.canonicalId || relation.targetId === row.canonicalId
+  ));
   const teacherNode: TeacherNodeDetailProjection['node'] = {
     ...baseNode,
     aliases: strings(payload.aliases),
@@ -289,6 +345,11 @@ export function buildNodeDetailProjection(
       sourceMappingCount: mappings.length,
       evidenceCount: snapshot.evidence.filter((item) => evidenceIds.has(item.evidenceId)).length,
     },
+    governanceTier: adjacentRelations.some((relation) => relation.qualityTier === 'GOLD')
+      ? 'CORE'
+      : adjacentRelations.some((relation) => relation.qualityTier === 'SILVER')
+        ? 'EXTENSION'
+        : 'UNCLASSIFIED',
   };
   if (role === 'TEACHER') return { ...base, role, node: teacherNode };
 
@@ -337,6 +398,7 @@ export function buildNodeDetailProjection(
       lockRawHash: snapshot.receipt.lockRawHash,
     } : null,
     diagnostics,
+    activeConsumerRebinding: 'not-started',
   };
 }
 

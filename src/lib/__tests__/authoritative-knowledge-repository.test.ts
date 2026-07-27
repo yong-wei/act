@@ -244,6 +244,21 @@ describe('bounded authoritative projections', () => {
   it('keeps valid unsupported semantics generic and read-only on canvas', () => {
     const projection = buildCanvasProjection(fixture(), support);
     expect(projection.source.productionAuthoritative).toBe(false);
+    expect(projection).toMatchObject({
+      projectionVersion: 'act.canvas.v2',
+      release: { label: '根轨迹局部发布版', version: 'v0.1', scope: 'root-locus' },
+      coverage: {
+        status: 'partial',
+        objectCount: 2,
+        relationCount: 1,
+        goldRelationCount: 1,
+        silverRelationCount: 0,
+      },
+      teachingSemantics: {
+        status: 'unavailable',
+        message: '教学关系尚未发布',
+      },
+    });
     expect(projection.nodes[0]).toMatchObject({
       id: 'node-b',
       canonicalType: 'FutureSchemaType',
@@ -267,6 +282,7 @@ describe('bounded authoritative projections', () => {
     expect(student.node).toEqual(expect.objectContaining({
       label: '根轨迹',
       description: '根轨迹描述',
+      sources: [{ sourceEditionId: 'edition', sectionId: 'section' }],
     }));
     expect(JSON.stringify(student)).not.toMatch(/aliases|payload|controlledPath|sourceRun|contentHash/);
     expect(teacher.role).toBe('TEACHER');
@@ -274,9 +290,13 @@ describe('bounded authoritative projections', () => {
       aliases: ['根轨迹'],
       teachingFields: { concept_kind: 'engineering' },
       coverage: { sourceMappingCount: 1, evidenceCount: 1 },
+      governanceTier: 'CORE',
     }));
     expect(JSON.stringify(teacher)).not.toMatch(/payload|controlledPath|sourceRun|contentHash/);
     expect(admin.role).toBe('ADMIN');
+    if (admin.role === 'ADMIN') {
+      expect(admin.activeConsumerRebinding).toBe('not-started');
+    }
     expect(JSON.stringify(admin)).toMatch(/controlledPath|sourceRun|contentHash|payload/);
     expect(() => buildNodeDetailProjection(
       snapshot,
