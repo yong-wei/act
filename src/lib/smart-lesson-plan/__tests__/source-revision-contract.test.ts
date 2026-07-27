@@ -59,6 +59,9 @@ describe('smart lesson real-provider source revision contract', () => {
     expect(runner).toContain('assertTemporarySchema(schema);');
     expect(runner).toContain("scoped.searchParams.set('schema', schema);");
     expect(runner).toContain("scoped.searchParams.set('options', `-c search_path=${schema},public`);");
+    expect(runner).toContain("process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED = '1';");
+    expect(runner.indexOf("process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED = '1';"))
+      .toBeLessThan(runner.indexOf("await import('../../src/lib/smart-lesson-plan/worker')"));
     expect(runner).toContain('SET LOCAL search_path TO "${schemaName}", public');
     expect(runner).toContain('const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({');
     expect(runner).toContain('BigInt(currentFence?.fence ?? 0) + 1n');

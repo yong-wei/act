@@ -55,7 +55,9 @@ async function main() {
     process.env.REDIS_URL = redisUrl;
     process.env.SMART_LESSON_REDIS_PREFIX = redisPrefix;
     process.env.SMART_COURSEWARE_REDIS_PREFIX = redisPrefix;
+    delete process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED;
     if (realProviderMode) {
+      process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED = '1';
       delete process.env.SMART_LESSON_E2E_FIXTURE_TOKEN;
       delete process.env.SMART_LESSON_E2E_FAIL_ONCE_STAGE;
       delete process.env.SMART_LESSON_E2E_FAULT_TOKEN;
