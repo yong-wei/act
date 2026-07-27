@@ -17,10 +17,10 @@ const canvas = {
   release: { label: '根轨迹局部发布版', version: 'v0.1', scope: 'root-locus' },
   coverage: {
     status: 'partial',
-    objectCount: 2,
-    relationCount: 1,
+    objectCount: 3,
+    relationCount: 2,
     goldRelationCount: 1,
-    silverRelationCount: 0,
+    silverRelationCount: 1,
     sourceObjectCount: 1,
     evidenceSegmentCount: 1,
   },
@@ -50,18 +50,43 @@ const canvas = {
       },
       semanticSupport: { supported: true, readOnly: true },
     },
+    {
+      id: 'model',
+      canonicalType: 'SystemModel',
+      label: '闭环模型',
+      description: null,
+      governance: {
+        reviewStatus: 'REVIEWED',
+        publicationStatus: 'PUBLISHED',
+        lifecycleStatus: 'ACTIVE',
+      },
+      semanticSupport: { supported: true, readOnly: true },
+    },
   ],
-  relations: [{
-    id: 'relation',
-    predicate: 'association',
-    sourceId: 'concept',
-    targetId: 'formula',
-    direction: 'unordered',
-    direct: true,
-    qualityTier: 'GOLD',
-    governance: { reviewStatus: 'REVIEWED', publicationStatus: 'PUBLISHED' },
-    semanticSupport: { supported: true, readOnly: true },
-  }],
+  relations: [
+    {
+      id: 'relation',
+      predicate: 'association',
+      sourceId: 'concept',
+      targetId: 'formula',
+      direction: 'unordered',
+      direct: true,
+      qualityTier: 'GOLD',
+      governance: { reviewStatus: 'REVIEWED', publicationStatus: 'PUBLISHED' },
+      semanticSupport: { supported: true, readOnly: true },
+    },
+    {
+      id: 'silver-relation',
+      predicate: 'applies_to',
+      sourceId: 'concept',
+      targetId: 'model',
+      direction: 'source-to-target',
+      direct: true,
+      qualityTier: 'SILVER',
+      governance: { reviewStatus: 'REVIEWED', publicationStatus: 'PUBLISHED' },
+      semanticSupport: { supported: true, readOnly: true },
+    },
+  ],
 };
 
 function detail(nodeId: 'concept' | 'formula') {
@@ -80,14 +105,26 @@ function detail(nodeId: 'concept' | 'formula') {
     canonicalType: incoming ? 'Formula' : 'DomainConcept',
     label: incoming ? '特征方程' : '根轨迹',
     description: incoming ? null : '根轨迹描述',
-    adjacency: [{
-      relationId: 'relation',
-      predicate: 'association',
-      direction: 'unordered',
-      neighborId: incoming ? 'concept' : 'formula',
-      traversal: incoming ? 'incoming' : 'outgoing',
-      readOnly: true,
-    }],
+    adjacency: [
+      {
+        relationId: 'relation',
+        predicate: 'association',
+        direction: 'unordered',
+        qualityTier: 'GOLD',
+        neighborId: incoming ? 'concept' : 'formula',
+        traversal: incoming ? 'incoming' : 'outgoing',
+        readOnly: true,
+      },
+      ...(!incoming ? [{
+        relationId: 'silver-relation',
+        predicate: 'applies_to',
+        direction: 'source-to-target',
+        qualityTier: 'SILVER',
+        neighborId: 'model',
+        traversal: 'outgoing',
+        readOnly: true,
+      }] : []),
+    ],
     sources: [{ sourceEditionId: 'edition-1', sectionId: 'section-1' }],
     semanticSupport: { supported: true, readOnly: true },
   },
@@ -136,11 +173,6 @@ describe('candidate authoritative graph client isolation', () => {
     expect(container.textContent).toContain('教学关系尚未发布');
     expect(container.querySelector('[data-candidate-relation-direction="undirected"]')).not.toBeNull();
     expect(container.textContent).toContain('关联 · 核心 · 无向/双向');
-    const core = [...container.querySelectorAll('button')]
-      .find((button) => button.textContent === '核心')!;
-    await act(async () => core.click());
-    expect(core.getAttribute('aria-pressed')).toBe('true');
-
     const concept = [...container.querySelectorAll('button')]
       .find((button) => button.textContent?.includes('根轨迹描述'))!;
     await act(async () => concept.click());
@@ -150,6 +182,23 @@ describe('candidate authoritative graph client isolation', () => {
       .toContain('无向/双向');
     expect(container.querySelector('[data-candidate-detail-direction="undirected"]')?.textContent)
       .not.toMatch(/出向|入向/);
+    expect(container.querySelector('[data-candidate-detail-quality-tier="GOLD"]')).not.toBeNull();
+    expect(container.querySelector('[data-candidate-detail-quality-tier="SILVER"]')?.textContent)
+      .toContain('适用于');
+
+    const core = [...container.querySelectorAll('button')]
+      .find((button) => button.textContent === '核心')!;
+    await act(async () => core.click());
+    expect(core.getAttribute('aria-pressed')).toBe('true');
+    expect(container.querySelector('[data-candidate-detail-quality-tier="GOLD"]')).not.toBeNull();
+    expect(container.querySelector('[data-candidate-detail-quality-tier="SILVER"]')).toBeNull();
+
+    const extension = [...container.querySelectorAll('button')]
+      .find((button) => button.textContent === '扩展（含核心）')!;
+    await act(async () => extension.click());
+    expect(extension.getAttribute('aria-pressed')).toBe('true');
+    expect(container.querySelector('[data-candidate-detail-quality-tier="SILVER"]')?.textContent)
+      .toContain('适用于');
 
     const formula = [...container.querySelectorAll('button')]
       .find((button) => button.textContent?.includes('特征方程'))!;

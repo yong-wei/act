@@ -284,6 +284,10 @@ describe('bounded authoritative projections', () => {
       description: '根轨迹描述',
       sources: [{ sourceEditionId: 'edition', sectionId: 'section' }],
     }));
+    expect(student.node.adjacency[0]).toMatchObject({
+      relationId: 'relation-1',
+      qualityTier: 'GOLD',
+    });
     expect(JSON.stringify(student)).not.toMatch(/aliases|payload|controlledPath|sourceRun|contentHash/);
     expect(teacher.role).toBe('TEACHER');
     expect(teacher.node).toEqual(expect.objectContaining({

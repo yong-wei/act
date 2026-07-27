@@ -83,9 +83,11 @@ function useCandidateCanvas(retry: number): LoadState {
 }
 
 function CandidateNodeDetail({
+  governance,
   nodeId,
   onClose,
 }: {
+  governance: CandidateGovernanceFilter;
   nodeId: string;
   onClose: () => void;
 }) {
@@ -112,6 +114,10 @@ function CandidateNodeDetail({
       });
     return () => controller.abort();
   }, [nodeId]);
+
+  const visibleAdjacency = detail?.node.adjacency.filter((relation) => (
+    governance === 'EXTENSION' || relation.qualityTier === 'GOLD'
+  )) ?? [];
 
   return (
     <aside
@@ -160,9 +166,9 @@ function CandidateNodeDetail({
               一跳关系
             </h3>
             <div className="mt-2 space-y-2">
-              {detail.node.adjacency.length === 0 ? (
-                <p className="text-sm text-platform-fg-muted">当前 Release 无相邻关系。</p>
-              ) : detail.node.adjacency.map((relation) => {
+              {visibleAdjacency.length === 0 ? (
+                <p className="text-sm text-platform-fg-muted">当前筛选下无相邻关系。</p>
+              ) : visibleAdjacency.map((relation) => {
                 const predicate = getCandidatePredicatePresentation(relation.predicate);
                 const direction = resolveCandidateRelationDirection(
                   predicate,
@@ -173,6 +179,7 @@ function CandidateNodeDetail({
                     key={relation.relationId}
                     className="rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-xs"
                     data-candidate-detail-direction={direction.kind}
+                    data-candidate-detail-quality-tier={relation.qualityTier}
                   >
                     <span className="font-medium text-platform-fg-primary">
                       {predicate.label}
@@ -511,6 +518,7 @@ export function CandidateAuthoritativeGraph({
             {selectedNodeId ? (
               <CandidateNodeDetail
                 key={selectedNodeId}
+                governance={governance}
                 nodeId={selectedNodeId}
                 onClose={() => setSelectedNodeId(null)}
               />

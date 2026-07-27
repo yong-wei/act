@@ -202,6 +202,7 @@ function adjacency(snapshot: AuthoritativeKnowledgeSnapshot, nodeId: string) {
         relationId: relation.relationId,
         predicate: relation.relationType,
         direction: stringOrNull(payload.direction),
+        qualityTier: relation.qualityTier,
         neighborId: relation.sourceId === nodeId ? relation.targetId : relation.sourceId,
         traversal: relation.sourceId === nodeId ? 'outgoing' as const : 'incoming' as const,
         readOnly: true as const,

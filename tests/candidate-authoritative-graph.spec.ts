@@ -130,6 +130,7 @@ async function mockCandidateApis(page: Page) {
           adjacency: [{
             relationId: 'gold',
             predicate: 'represented_by',
+            qualityTier: 'GOLD',
             neighborId: 'formula',
             traversal: 'outgoing',
             readOnly: true,
