@@ -48,7 +48,7 @@ describe('course-basis lesson-design production chain', () => {
 
     expect(sar.candidateRefs.retrievalChunkIds).toEqual([corpusSourceId]);
     expect(result.chunks).toHaveLength(1);
-    expect(result.retrieval.pack.profile).toBe('lesson-design');
+    expect(result.retrieval.pack.profile).toBe('smart-preparation');
     expect(result.retrieval.pack.items).toHaveLength(1);
     expect(result.retrieval.pack.items[0].retrievalChunkId).toBe(corpusSourceId);
     expect(result.chunks[0].sourceRef.lifecycleState).toBe('editable');

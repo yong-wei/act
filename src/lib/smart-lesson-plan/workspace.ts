@@ -66,10 +66,12 @@ export function projectSmartPreparationTask(task: Record<string, unknown>): Smar
     || coursewareDrafts.some((item) => item.state === 'ACCEPTED');
 
   const sourceComplete = sources.length > 0;
+  const sourceDecisionsComplete = [...points, ...goals].every(sourceDecisionComplete);
   const scopeComplete = sourceComplete
     && Boolean(task.topic && task.audience && task.scopeConfirmedAt && task.goalsConfirmedAt)
     && points.length > 0
-    && goals.length > 0;
+    && goals.length > 0
+    && sourceDecisionsComplete;
   const classComplete = scopeComplete && Boolean(task.scopeConfirmedAt);
   const lessonContentAvailable = currentRevisions.length > 0;
   const lessonComplete = classComplete && lessonContentAvailable;
@@ -112,6 +114,15 @@ export function projectSmartPreparationTask(task: Record<string, unknown>): Smar
     unsupportedPayload,
     stages,
   };
+}
+
+function sourceDecisionComplete(item: Record<string, unknown>) {
+  const state = text(item.sourceState);
+  if (state === 'VERIFIED' || state === 'verified') return true;
+  if (state !== 'NO_RELIABLE_SOURCE' && state !== 'no_reliable_source') return false;
+  return Array.isArray(item.sourceBindings)
+    && item.sourceBindings.length === 0
+    && Boolean(text(item.gapReason).trim());
 }
 
 function stage(

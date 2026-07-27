@@ -7,7 +7,7 @@ import {
   createDeterministicFixtureProvider,
   deterministicPlanChecks,
   projectAggregateClassContext,
-  projectPersistedClassDiagnosis,
+  projectCurrentCumulativeClassPortrait,
   selectStructuredProvider,
   SMART_LESSON_FIXTURE_STAGES,
   smartLessonGenerationInputHash,
@@ -45,38 +45,50 @@ describe('smart lesson aggregate domain', () => {
   it('projects aggregate class context and rejects private learner evidence', () => {
     const safe = {
       classId: 'class-1',
-      diagnosisRef: 'diagnosis-2026-07-19',
-      generatedAt: '2026-07-19T00:00:00.000Z',
-      cohortSize: 36,
-      dimensions: [{ key: 'stability', level: 'LOW', confidence: 0.8, summary: '稳定性判据掌握偏弱' }],
-      constraints: ['增加图示与低风险形成性检查'],
+      asOf: '2026-07-19T00:00:00.000Z',
+      contextRef: 'cumulative-class-portrait:abc',
+      cohortBucket: '20-plus',
+      overall: { attainment: 0.6, coverage: 0.8, confidence: 0.7 },
+      competencies: [{ identity: 'stability', attainment: 0.5, coverage: 0.75, confidence: 0.8 }],
+      gaps: [{ identity: 'stability', reason: 'improvement-cluster' }],
     };
     expect(projectAggregateClassContext(safe)).toEqual(safe);
     expect(() => projectAggregateClassContext({ ...safe, rawAnswers: [{ studentId: 'student-1', body: 'private' }] }))
       .toThrowError('aggregate-class-context-invalid');
   });
 
-  it('projects the persisted diagnosis snapshot contract without learner-level evidence', () => {
-    expect(projectPersistedClassDiagnosis({
+  it('projects only the allowlisted current cumulative class portrait aggregate', () => {
+    const projected = projectCurrentCumulativeClassPortrait({
       classId: 'class-1',
-      diagnosisRef: 'diagnosis-1',
-      generatedAt: new Date('2026-07-19T00:00:00.000Z'),
-      cohortSize: 36,
-      snapshot: {
-        dimensions: [{
-          dimensionId: 'time-domain-analysis', judgment: 'insufficient-evidence', confidence: 'none',
-          evidenceRefs: [{ chunkId: 'private-evidence-id' }],
-        }],
-        limitations: [{ reason: 'insufficient-cohort', detail: '有效样本数量不足' }],
+      portrait: {
+        stateKind: 'SNAPSHOT',
+        evidenceAsOf: '2026-07-19T00:00:00.000Z',
+        generatedAt: '2026-07-19T01:00:00.000Z',
+        activeStudentCount: 18,
+        totalStudentCount: 36,
+        aggregate: {
+          overall: { mean: 0.62, meanConfidence: 0.71, includedCount: 30, missingCount: 6 },
+          dimensions: {
+            stability: { mean: 0.55, meanConfidence: 0.8, includedCount: 27, missingCount: 9 },
+          },
+        },
+        diagnosis: {
+          improvementClusters: ['stability'],
+          limitations: ['private free text must not persist'],
+          riskList: [{ studentId: 'student-1' }],
+        },
       },
-    })).toEqual({
-      classId: 'class-1',
-      diagnosisRef: 'diagnosis-1',
-      generatedAt: '2026-07-19T00:00:00.000Z',
-      cohortSize: 36,
-      dimensions: [{ key: 'time-domain-analysis', level: 'UNKNOWN', confidence: null, summary: 'time-domain-analysis:insufficient-evidence' }],
-      constraints: ['有效样本数量不足'],
     });
+    expect(projected).toMatchObject({
+      classId: 'class-1',
+      asOf: '2026-07-19T00:00:00.000Z',
+      cohortBucket: '20-plus',
+      overall: { attainment: 0.62, coverage: 30 / 36, confidence: 0.71 },
+      competencies: [{ identity: 'stability', attainment: 0.55, coverage: 27 / 36, confidence: 0.8 }],
+      gaps: [{ identity: 'stability', reason: 'improvement-cluster' }],
+    });
+    expect(JSON.stringify(projected)).not.toContain('student-1');
+    expect(JSON.stringify(projected)).not.toContain('private free text');
   });
 
   it('keeps pending gap identity stable and changes it only with gap-defining inputs', () => {
@@ -86,6 +98,7 @@ describe('smart lesson aggregate domain', () => {
     expect(pending({ itemId: 'goal-recreated' }).gapIdentity).not.toBe(first.gapIdentity);
     expect(pending({ sourceState: 'TEACHER_CREATED_SOURCE_PENDING' }).gapIdentity).not.toBe(first.gapIdentity);
     expect(pending({ sourceBindings: [binding] }).gapIdentity).not.toBe(first.gapIdentity);
+    expect(pending({ content: '建立闭环系统稳定性的判断能力！  ' }).gapIdentity).toBe(first.gapIdentity);
   });
 
   it('hashes only normalized generation inputs and is sensitive to task revision', () => {

@@ -150,11 +150,13 @@ function validateOptions(options: RetrievalOptions): {
 function lexicalRank(
   index: LoadedTextbookRetrievalIndex,
   query: string,
+  allowedRows?: ReadonlySet<number>,
 ): Array<{ row: number; score: number }> {
   const scores = new Map<number, number>();
   for (const token of lexicalTokens(query)) {
     if (!index.lexicalTerms.has(token)) continue;
     for (const [row, frequency] of index.decodePostings(token)) {
+      if (allowedRows && !allowedRows.has(row)) continue;
       scores.set(row, (scores.get(row) ?? 0) + frequency);
     }
   }
@@ -195,10 +197,12 @@ function normalizeQueryVector(
 function vectorRank(
   index: LoadedTextbookRetrievalIndex,
   queryVector: Float64Array,
+  allowedRows?: ReadonlySet<number>,
 ): Array<{ row: number; score: number }> {
   const dimensions = index.manifest.observedDimension;
   const ranked: Array<{ row: number; score: number }> = [];
   for (let row = 0; row < index.windows.length; row += 1) {
+    if (allowedRows && !allowedRows.has(row)) continue;
     const start = row * dimensions;
     let score = 0;
     for (let column = 0; column < dimensions; column += 1) {
@@ -213,6 +217,7 @@ function vectorRank(
 function bm25Rank(
   index: LoadedTextbookRetrievalIndex,
   query: string,
+  allowedRows?: ReadonlySet<number>,
 ): Array<{ row: number; score: number }> {
   if (!query.includes('中文') && !query.includes('叫什么')) return [];
   const queryTokens = [...new Set(lexicalTokens(query))];
@@ -229,6 +234,7 @@ function bm25Rank(
         / (term.postingCount + 0.5),
     );
     for (const [row, frequency] of index.decodePostings(token)) {
+      if (allowedRows && !allowedRows.has(row)) continue;
       const documentLength = index.windows[row].tokenCount;
       const denominator = frequency + BM25_K1 * (
         1 - BM25_B + BM25_B * documentLength / averageDocumentLength
@@ -240,6 +246,26 @@ function bm25Rank(
   }
   return [...scores].map(([row, score]) => ({ row, score }))
     .sort((left, right) => right.score - left.score || left.row - right.row);
+}
+
+function resolveScopedRows(
+  index: LoadedTextbookRetrievalIndex,
+  options: RetrievalOptions,
+): ReadonlySet<number> | undefined {
+  if (options.scope === undefined) return undefined;
+  const allowedRows = new Set<number>();
+  index.windows.forEach((window, row) => {
+    if (options.scope?.some((scope) => (
+      scope.bookId === window.bookId
+      && (
+        scope.unitIds === undefined
+        || scope.unitIds.some((unitId) => window.owningUnitIds.includes(unitId))
+      )
+    ))) {
+      allowedRows.add(row);
+    }
+  });
+  return allowedRows;
 }
 
 function matchingBookIds(
@@ -476,9 +502,10 @@ export async function retrieveTextbookHybrid(
   const resolved = validateOptions(options);
   const index = await loadTextbookRetrievalIndex(options.indexRoot);
   if (index.closed) throw new TextbookRetrievalContractError('index is closed');
+  const allowedRows = resolveScopedRows(index, options);
   const diagnostics: RetrievalDiagnostic[] = [];
-  const lexical = lexicalRank(index, normalizedQuery);
-  const bm25 = bm25Rank(index, normalizedQuery);
+  const lexical = lexicalRank(index, normalizedQuery, allowedRows);
+  const bm25 = bm25Rank(index, normalizedQuery, allowedRows);
   let vector: Array<{ row: number; score: number }> = [];
   let mode: TextbookRetrievalResponse['mode'] = 'lexical';
 
@@ -491,7 +518,7 @@ export async function retrieveTextbookHybrid(
         options,
         resolved.embeddingTimeoutMs,
       );
-      vector = vectorRank(index, queryVector);
+      vector = vectorRank(index, queryVector, allowedRows);
       mode = 'lexical-vector';
     } catch (error) {
       const traceId = error instanceof TextbookRetrievalProviderError
@@ -602,9 +629,10 @@ export async function retrieveTextbookHybridProgressive(
   const absoluteDeadline = started + resolved.backgroundWaitLimitMs;
   const index = await loadTextbookRetrievalIndex(options.indexRoot);
   if (index.closed) throw new TextbookRetrievalContractError('index is closed');
+  const allowedRows = resolveScopedRows(index, options);
 
-  const lexical = lexicalRank(index, normalizedQuery);
-  const bm25 = bm25Rank(index, normalizedQuery);
+  const lexical = lexicalRank(index, normalizedQuery, allowedRows);
+  const bm25 = bm25Rank(index, normalizedQuery, allowedRows);
   const foregroundCandidates = fuseRanks(
     index,
     lexical,
@@ -645,7 +673,7 @@ export async function retrieveTextbookHybridProgressive(
           remainingMs(absoluteDeadline, now),
         )),
       );
-      vector = vectorRank(index, queryVector);
+      vector = vectorRank(index, queryVector, allowedRows);
     } catch (error) {
       if (options.abortSignal?.aborted) return { status: 'aborted' };
       const traceId = error instanceof TextbookRetrievalProviderError

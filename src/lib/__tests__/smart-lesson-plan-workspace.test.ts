@@ -11,8 +11,8 @@ function taskFixture() {
     scopeConfirmedAt: '2026-07-25T00:00:00.000Z',
     goalsConfirmedAt: '2026-07-25T00:00:00.000Z',
     sources: [{ state: 'SELECTED', sourceVersionId: 'source-1' }],
-    knowledgePoints: [{ state: 'CONFIRMED', title: '稳定性判据' }],
-    goals: [{ state: 'CONFIRMED', content: '判断稳定性' }],
+    knowledgePoints: [{ state: 'CONFIRMED', title: '稳定性判据', sourceState: 'verified' }],
+    goals: [{ state: 'CONFIRMED', content: '判断稳定性', sourceState: 'verified' }],
     drafts: [{ state: 'READY', content: { title: '教案', stages: [] }, jobs: [{ state: 'COMPLETED' }] }],
     revisions: [{ id: 'revision-1', taskRevision: 1, coursewareDrafts: [] }],
   };
@@ -63,6 +63,83 @@ describe('smart preparation task workspace projection', () => {
       state: 'unavailable',
       nextAction: '从首个未完成阶段恢复',
     });
+  });
+
+  it('keeps topic and goals incomplete until every source ambiguity or gap is governed', () => {
+    const ambiguous = projectSmartPreparationTask({
+      ...taskFixture(),
+      knowledgePoints: [{
+        state: 'CONFIRMED',
+        title: '稳定性判据',
+        sourceState: 'ai_generated_source_pending',
+        sourceBindings: [{ citationId: 'a' }, { citationId: 'b' }],
+      }],
+    });
+    expect(ambiguous.stages[1]).toMatchObject({ complete: false, state: 'current' });
+
+    const unexplainedGap = projectSmartPreparationTask({
+      ...taskFixture(),
+      goals: [{ state: 'CONFIRMED', content: '判断稳定性', sourceState: 'teacher_created_source_pending' }],
+    });
+    expect(unexplainedGap.stages[1]).toMatchObject({ complete: false });
+
+    const pendingWithReason = projectSmartPreparationTask({
+      ...taskFixture(),
+      goals: [{
+        state: 'CONFIRMED',
+        content: '判断稳定性',
+        sourceState: 'teacher_created_source_pending',
+        gapReason: '当前资源包没有可靠依据',
+      }],
+    });
+    expect(pendingWithReason.stages[1]).toMatchObject({ complete: false });
+
+    const ambiguousWithReason = projectSmartPreparationTask({
+      ...taskFixture(),
+      goals: [{
+        state: 'CONFIRMED',
+        content: '判断稳定性',
+        sourceState: 'ai_generated_source_pending',
+        sourceBindings: [{ citationId: 'a' }, { citationId: 'b' }],
+        gapReason: '当前资源包没有可靠依据',
+      }],
+    });
+    expect(ambiguousWithReason.stages[1]).toMatchObject({ complete: false });
+
+    const missingReason = projectSmartPreparationTask({
+      ...taskFixture(),
+      goals: [{
+        state: 'CONFIRMED',
+        content: '判断稳定性',
+        sourceState: 'no_reliable_source',
+        sourceBindings: [],
+      }],
+    });
+    expect(missingReason.stages[1]).toMatchObject({ complete: false });
+
+    const noSourceWithBinding = projectSmartPreparationTask({
+      ...taskFixture(),
+      goals: [{
+        state: 'CONFIRMED',
+        content: '判断稳定性',
+        sourceState: 'no_reliable_source',
+        sourceBindings: [{ citationId: 'a' }],
+        gapReason: '当前资源包没有可靠依据',
+      }],
+    });
+    expect(noSourceWithBinding.stages[1]).toMatchObject({ complete: false });
+
+    const governedGap = projectSmartPreparationTask({
+      ...taskFixture(),
+      goals: [{
+        state: 'CONFIRMED',
+        content: '判断稳定性',
+        sourceState: 'no_reliable_source',
+        sourceBindings: [],
+        gapReason: '当前资源包没有可靠依据',
+      }],
+    });
+    expect(governedGap.stages[1]).toMatchObject({ complete: true });
   });
 
   it('recognizes the persisted BOPPPS document shape as renderable', () => {

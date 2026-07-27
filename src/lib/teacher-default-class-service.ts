@@ -136,6 +136,7 @@ export function createTeacherDefaultClassService(
           where: { id: teacherId },
           select: { defaultTeachingClassId: true },
         });
+        await detachSmartLessonTasksForDeletedClass(tx, teacherId, classId);
         await tx.studentProfile.updateMany({
           where: { classId },
           data: { classId: null },
@@ -161,6 +162,63 @@ export function createTeacherDefaultClassService(
 }
 
 export const teacherDefaultClassService = createTeacherDefaultClassService();
+
+export async function detachSmartLessonTasksForDeletedClass(
+  tx: Prisma.TransactionClient,
+  teacherId: string,
+  classId: string,
+) {
+  const tasks = await tx.smartLessonTask.findMany({
+    where: { ownerId: teacherId, selectedClassId: classId },
+    select: {
+      id: true,
+      revision: true,
+      drafts: {
+        select: {
+          contentHash: true,
+          jobs: { select: { stages: { select: { outputHash: true } } } },
+        },
+      },
+    },
+  });
+  const now = new Date();
+  for (const task of tasks) {
+    const hasGeneratedContent = task.drafts.some((draft) => (
+      Boolean(draft.contentHash)
+      || draft.jobs.some((job) => job.stages.some((stage) => Boolean(stage.outputHash)))
+    ));
+    const updated = await tx.smartLessonTask.updateMany({
+      where: {
+        id: task.id,
+        ownerId: teacherId,
+        selectedClassId: classId,
+        revision: task.revision,
+      },
+      data: {
+        selectedClassId: null,
+        revision: { increment: 1 },
+        ...(hasGeneratedContent ? {
+          classContextStaleAt: now,
+          classContextStaleReason: 'CLASS_REMOVED',
+        } : {
+          aggregateClassContext: Prisma.JsonNull,
+          aggregateClassContextRef: null,
+          classContextStaleAt: null,
+          classContextStaleReason: null,
+        }),
+      },
+    });
+    if (updated.count !== 1) {
+      throw Object.assign(new Error('smart lesson task revision changed'), { code: 'P2034' });
+    }
+    if (hasGeneratedContent) {
+      await tx.smartLessonDraft.updateMany({
+        where: { taskId: task.id, state: { not: 'APPROVED' } },
+        data: { staleDownstreamAt: now },
+      });
+    }
+  }
+}
 
 async function withSerializableRetry<T>(
   db: TeacherDefaultClassDb,

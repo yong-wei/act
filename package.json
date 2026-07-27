@@ -104,6 +104,7 @@
     "db:backfill-cumulative-attainment": "tsx ./scripts/db/backfill-cumulative-attainment.ts",
     "db:reconcile-teacher-default-classes": "tsx ./scripts/db/reconcile-teacher-default-classes.ts",
     "test:teacher-default-class-postgres": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=react-server\" tsx ./scripts/tests/test-teacher-default-class-postgres.ts",
+    "test:smart-lesson-real-e2e": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=react-server\" tsx ./scripts/tests/run-smart-lesson-real-e2e.ts",
     "test:teacher-launch-producer-inventory": "vitest run src/features/teacher/__tests__/teacher-launch-producer-inventory.test.ts",
     "test:cumulative-attainment-postgres-redis": "tsx ./scripts/tests/test-cumulative-attainment-postgres-redis.mts",
     "test:simulation-task-portrait-postgres-redis": "tsx ./scripts/tests/test-simulation-task-portrait-postgres-redis.mts",

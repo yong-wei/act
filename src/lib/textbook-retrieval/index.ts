@@ -38,6 +38,7 @@ export type {
   TextbookEmbeddingClient,
   TextbookIndexManifest,
   TextbookIndexWindow,
+  TextbookRetrievalScope,
   TextbookRerankClient,
   TextbookRetrievalResponse,
   TextbookRetrievalResult,
