@@ -251,6 +251,19 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'crosswalk ACT inventory endpoint is invalid or stale';
   END IF;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM "ActkgSourceMapping" mapping
+    JOIN "ActkgSourceObject" source_object
+      ON source_object."releaseId" = mapping."releaseId"
+     AND source_object."sourceObjectId" = mapping."sourceObjectId"
+    WHERE mapping."releaseId" = NEW."releaseId"
+      AND mapping."canonicalId" = NEW."canonicalId"
+      AND jsonb_typeof(source_object."payload"->'evidence_segment_ids') = 'array'
+      AND (source_object."payload"->'evidence_segment_ids') ? NEW."evidenceId"
+  ) THEN
+    RAISE EXCEPTION 'crosswalk evidence is not authoritatively mapped to the canonical object';
+  END IF;
   RETURN NEW;
 END;
 $$;
@@ -372,6 +385,29 @@ BEGIN
 END;
 $$;
 
+CREATE FUNCTION enforce_published_replacement_at_commit()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF (
+    OLD."lifecycleState" = 'CURRENT'
+    AND OLD."publicationState" = 'SHADOW_PUBLISHED'
+    AND NEW."lifecycleState" = 'SUPERSEDED'
+    AND NOT EXISTS (
+      SELECT 1
+      FROM "CanonicalResourceBindingDecision" replacement
+      WHERE replacement."supersedesDecisionId" = OLD."id"
+        AND replacement."pairId" = OLD."pairId"
+        AND replacement."role" = OLD."role"
+        AND replacement."lifecycleState" = 'CURRENT'
+        AND replacement."publicationState" = 'SHADOW_PUBLISHED'
+    )
+  ) THEN
+    RAISE EXCEPTION 'published replacement must be CURRENT SHADOW_PUBLISHED at transaction commit';
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
 CREATE TRIGGER "ResourceBindingInventoryRun_immutable"
   BEFORE UPDATE OR DELETE ON "ResourceBindingInventoryRun"
   FOR EACH ROW EXECUTE FUNCTION reject_canonical_resource_binding_shadow_mutation();
@@ -390,6 +426,10 @@ CREATE TRIGGER "CanonicalResourceBindingDecision_validate_publication"
 CREATE TRIGGER "CanonicalResourceBindingDecision_guarded"
   BEFORE UPDATE OR DELETE ON "CanonicalResourceBindingDecision"
   FOR EACH ROW EXECUTE FUNCTION guard_canonical_resource_binding_decision_mutation();
+CREATE CONSTRAINT TRIGGER "CanonicalResourceBindingDecision_published_replacement_commit"
+  AFTER UPDATE ON "CanonicalResourceBindingDecision"
+  DEFERRABLE INITIALLY DEFERRED
+  FOR EACH ROW EXECUTE FUNCTION enforce_published_replacement_at_commit();
 CREATE TRIGGER "CanonicalResourceBindingHumanQueueItem_immutable"
   BEFORE UPDATE OR DELETE ON "CanonicalResourceBindingHumanQueueItem"
   FOR EACH ROW EXECUTE FUNCTION reject_canonical_resource_binding_shadow_mutation();

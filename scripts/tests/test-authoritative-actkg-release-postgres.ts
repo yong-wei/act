@@ -640,13 +640,48 @@ async function main(): Promise<void> {
     where: { runId: bindingInventory.id, disposition: 'INCLUDED' },
     orderBy: { atomicResourceId: 'asc' },
   });
-  const evidence = await db.actkgEvidenceSegment.findFirstOrThrow({
-    where: { releaseId: validated.entry.release_id },
+  const authoritativeAlignment = await db.$queryRaw<Array<{
+    canonicalId: string;
+    evidenceId: string;
+  }>>`
+    SELECT
+      mapping."canonicalId" AS "canonicalId",
+      evidence_id.value AS "evidenceId"
+    FROM "ActkgSourceMapping" mapping
+    JOIN "ActkgSourceObject" source_object
+      ON source_object."releaseId" = mapping."releaseId"
+     AND source_object."sourceObjectId" = mapping."sourceObjectId"
+    CROSS JOIN LATERAL jsonb_array_elements_text(
+      CASE
+        WHEN jsonb_typeof(source_object."payload"->'evidence_segment_ids') = 'array'
+        THEN source_object."payload"->'evidence_segment_ids'
+        ELSE '[]'::jsonb
+      END
+    ) evidence_id(value)
+    JOIN "ActkgEvidenceSegment" evidence
+      ON evidence."releaseId" = mapping."releaseId"
+     AND evidence."evidenceId" = evidence_id.value
+    WHERE mapping."releaseId" = ${validated.entry.release_id}
+    ORDER BY mapping."ordinal", evidence."ordinal"
+    LIMIT 1
+  `;
+  assert.equal(authoritativeAlignment.length, 1);
+  const canonicalId = authoritativeAlignment[0]!.canonicalId;
+  const evidence = await db.actkgEvidenceSegment.findUniqueOrThrow({
+    where: {
+      releaseId_evidenceId: {
+        releaseId: validated.entry.release_id,
+        evidenceId: authoritativeAlignment[0]!.evidenceId,
+      },
+    },
+  });
+  const mismatchedCanonical = await db.actkgAuthoritativeObject.findFirstOrThrow({
+    where: {
+      releaseId: validated.entry.release_id,
+      canonicalId: { not: canonicalId },
+    },
     orderBy: { ordinal: 'asc' },
   });
-  const canonicalId = String(
-    (validated.release.canonical_nodes as Array<{ id: string }>)[0]!.id,
-  );
   const crosswalkProjection = {
     releaseId: validated.entry.release_id,
     evidenceId: evidence.evidenceId,
@@ -665,7 +700,7 @@ async function main(): Promise<void> {
     sourceEditionId: evidence.sourceEditionId,
     sourceVersion: 'postgres-test/v1',
     structuralUnitHash: includedResource.resourceSegmentHash,
-    validationState: 'VALIDATED',
+    validationState: 'VALIDATED' as const,
     validationDigest: bindingDigest(crosswalkProjection),
   };
   await assert.rejects(db.actkgEvidenceStructuralUnitCrosswalk.create({
@@ -683,11 +718,39 @@ async function main(): Promise<void> {
       structuralUnitHash: sha256('wrong-structural-unit'),
     },
   }), /invalid or stale/u);
-  const crosswalk = await db.actkgEvidenceStructuralUnitCrosswalk.create({
-    data: {
-      id: 'postgres-crosswalk',
-      ...crosswalkBase,
-      structuralUnitVersion: bindingInventory.captureRevision,
+  const bindingRepository = new CanonicalResourceBindingRepository(
+    db as unknown as CanonicalResourceBindingDatabase,
+  );
+  const mismatchedProjection = {
+    ...crosswalkProjection,
+    canonicalId: mismatchedCanonical.canonicalId,
+  };
+  const mismatchedCrosswalk = {
+    id: 'postgres-crosswalk-mismatched-canonical',
+    ...crosswalkBase,
+    ...mismatchedProjection,
+    structuralUnitVersion: bindingInventory.captureRevision,
+    validationDigest: bindingDigest(mismatchedProjection),
+  };
+  await assert.rejects(
+    bindingRepository.persistEvidenceCrosswalks([mismatchedCrosswalk]),
+    /authoritative evidence alignment/u,
+  );
+  await assert.rejects(
+    db.actkgEvidenceStructuralUnitCrosswalk.create({ data: mismatchedCrosswalk }),
+    /not authoritatively mapped/u,
+  );
+  await bindingRepository.persistEvidenceCrosswalks([{
+    id: 'postgres-crosswalk',
+    ...crosswalkBase,
+    structuralUnitVersion: bindingInventory.captureRevision,
+  }]);
+  const crosswalk = await db.actkgEvidenceStructuralUnitCrosswalk.findUniqueOrThrow({
+    where: {
+      releaseId_id: {
+        releaseId: validated.entry.release_id,
+        id: 'postgres-crosswalk',
+      },
     },
   });
   const decisionBase = {
@@ -737,6 +800,17 @@ async function main(): Promise<void> {
       validationDigest: crosswalk.validationDigest,
     },
   }), /release revision/u);
+  await assert.rejects(db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-mismatched-canonical-publication',
+      ...decisionBase,
+      pairId: 'postgres-mismatched-canonical-pair',
+      canonicalId: mismatchedCanonical.canonicalId,
+      publicationState: 'SHADOW_PUBLISHED',
+      crosswalkId: crosswalk.id,
+      validationDigest: crosswalk.validationDigest,
+    },
+  }), /exact validated crosswalk/u);
   await assert.rejects(db.canonicalResourceBindingDecision.create({
     data: {
       id: 'postgres-fixture-direct',
@@ -795,6 +869,25 @@ async function main(): Promise<void> {
     where: { id: 'postgres-published-replacement' },
     data: { lifecycleState: 'SUPERSEDED' },
   }), /replacement/u);
+  await assert.rejects(db.$transaction(async (transaction) => {
+    await transaction.canonicalResourceBindingDecision.create({
+      data: {
+        id: 'postgres-unpromoted-replacement',
+        ...decisionBase,
+        reviewerPromptVersion: 'postgres-reviewer/v4',
+        reviewerInputDigest: sha256('postgres-review-input-v4'),
+        attemptSequence: 4,
+        supersedesDecisionId: 'postgres-published-replacement',
+        publicationState: 'CANDIDATE',
+        crosswalkId: crosswalk.id,
+        validationDigest: crosswalk.validationDigest,
+      },
+    });
+    await transaction.canonicalResourceBindingDecision.update({
+      where: { id: 'postgres-published-replacement' },
+      data: { lifecycleState: 'SUPERSEDED' },
+    });
+  }), /must be CURRENT SHADOW_PUBLISHED at transaction commit/u);
   await db.canonicalResourceBindingDecision.create({
     data: {
       id: 'postgres-out-of-transaction-replacement',
@@ -833,9 +926,6 @@ async function main(): Promise<void> {
   await db.canonicalResourceBindingDecision.create({
     data: repositoryPublishedData,
   });
-  const bindingRepository = new CanonicalResourceBindingRepository(
-    db as unknown as CanonicalResourceBindingDatabase,
-  );
   const repositoryReplacement = {
     ...repositoryPublished,
     id: 'postgres-repository-replacement',
@@ -844,7 +934,7 @@ async function main(): Promise<void> {
     attemptSequence: 2,
     supersedesDecisionId: repositoryPublished.id,
   };
-  await bindingRepository.persistDecisions([repositoryReplacement], {
+  const repositoryContext = {
     canonicalObjects: [{
       releaseSetId: validated.lock.release_set_id,
       releaseId: validated.entry.release_id,
@@ -859,7 +949,8 @@ async function main(): Promise<void> {
       canonicalId,
     }],
     existingPublished: [repositoryPublished],
-  });
+  };
+  await bindingRepository.persistDecisions([repositoryReplacement], repositoryContext);
   assert.equal(
     (await db.canonicalResourceBindingDecision.findUniqueOrThrow({
       where: { id: repositoryPublished.id },
@@ -872,6 +963,18 @@ async function main(): Promise<void> {
     })).publicationState,
     'SHADOW_PUBLISHED',
   );
+  await assert.rejects(bindingRepository.persistDecisions([{
+    ...repositoryReplacement,
+    id: 'postgres-repository-nonpublished-replacement',
+    reviewerPromptVersion: 'postgres-reviewer/v3',
+    reviewerInputDigest: sha256('postgres-repository-input-v3'),
+    attemptSequence: 3,
+    supersedesDecisionId: repositoryReplacement.id,
+    publicationState: 'CANDIDATE',
+  }], {
+    ...repositoryContext,
+    existingPublished: [repositoryReplacement],
+  }), /requires a published replacement/u);
   assert.notEqual(runBindingVerify('b'.repeat(40)).status, 0);
 
   await db.canonicalResourceBindingDecision.create({

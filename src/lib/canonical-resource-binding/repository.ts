@@ -231,6 +231,25 @@ export class CanonicalResourceBindingRepository {
           || evidence.sourceEditionId !== row.sourceEditionId
           || evidence.contentHash !== row.evidenceContentHash
         ) throw new Error(`crosswalk evidence identity drift for ${row.id}`);
+        const alignment = await transaction.$queryRawUnsafe<Array<{ aligned: boolean }>>(
+          `SELECT EXISTS (
+             SELECT 1
+             FROM "ActkgSourceMapping" mapping
+             JOIN "ActkgSourceObject" source_object
+               ON source_object."releaseId" = mapping."releaseId"
+              AND source_object."sourceObjectId" = mapping."sourceObjectId"
+             WHERE mapping."releaseId" = $1
+               AND mapping."canonicalId" = $2
+               AND jsonb_typeof(source_object."payload"->'evidence_segment_ids') = 'array'
+               AND (source_object."payload"->'evidence_segment_ids') ? $3
+           ) AS aligned`,
+          row.releaseId,
+          row.canonicalId,
+          row.evidenceId,
+        );
+        if (alignment[0]?.aligned !== true) {
+          throw new Error(`crosswalk authoritative evidence alignment drift for ${row.id}`);
+        }
         if (
           !inventory
           || !inventory.run.complete
@@ -321,6 +340,14 @@ export class CanonicalResourceBindingRepository {
           decision.publicationState === 'SHADOW_PUBLISHED'
           && predecessor?.publicationState === 'SHADOW_PUBLISHED'
         );
+        if (
+          predecessor?.publicationState === 'SHADOW_PUBLISHED'
+          && decision.publicationState !== 'SHADOW_PUBLISHED'
+        ) {
+          throw new Error(
+            `published decision ${decision.supersedesDecisionId} requires a published replacement`,
+          );
+        }
         await transaction.canonicalResourceBindingDecision.createMany({
           data: [{
             ...decisionData(decision),

@@ -18,7 +18,9 @@ ACT 资源用途和 ActKG 来源证据具有不同权威。现有资源绑定旧
 
 ## Decisions
 
-1. Crosswalk 以来源身份、EvidenceSegment identity、版本和内容哈希定位 ACT 原子片段。
+1. Crosswalk 以来源身份、EvidenceSegment identity、版本和内容哈希定位 ACT 原子片段；
+   Evidence→Canonical 归属必须由同一 Release 的 SourceMapping 及 SourceObject
+   `evidence_segment_ids` 权威载荷证明。
 2. 绑定实体记录 Canonical revision、资源片段 hash、教学角色、来源、审核状态和提示词版本。
 3. 节点变化查询资源索引，资源变化查询 Canonical 索引；相同候选对合同支撑双向增量。
 4. 唯一 EvidenceSegment 与唯一资源类型角色同时成立时可确定性发布。
@@ -85,6 +87,8 @@ resource/structural-unit/segment/hash、capture revision 和 validation digest�
 同时要求 Crosswalk structural-unit version/hash 分别等于 inventory capture revision
 和 resource-segment hash。已发布 decision 只有在同事务先持久化同 pair-role replacement
 后才能转为 `SUPERSEDED`，replacement 随后成为唯一 CURRENT shadow publication。数据库
+deferred commit 门禁要求该 replacement 在事务结束时已经是 CURRENT
+`SHADOW_PUBLISHED`；非发布状态的 decision 不得替代 CURRENT shadow publication。数据库
 约束拒绝缺失 Crosswalk、revision drift、FIXTURE 直发和 `ACTIVE`。
 
 ## Persistence and Deployment
