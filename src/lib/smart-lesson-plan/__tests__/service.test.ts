@@ -20,7 +20,7 @@ vi.mock('../textbook-resource-pack', () => ({
   retrieveConfirmedTextbookBindings: sourcePackMocks.textbookBindings,
 }));
 
-import { contentHash, smartLessonGenerationInputHash } from '../domain';
+import { contentHash, SmartLessonPlanError, smartLessonGenerationInputHash } from '../domain';
 import { teacherCourseBasisCitationTargetId } from '../../source-pack/teacher-course-basis';
 import {
   approveSmartLessonDraft,
@@ -1267,6 +1267,87 @@ describe('smart lesson aggregate service', () => {
     expect(first).toMatchObject({ state: 'COMPLETED', report: { goalCoverage: '完整' }, providerAudit: { serviceId: 'provider-1' } });
     expect(replay).toEqual(first);
     expect(generate).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    'advisory-provider-timeout',
+    'advisory-provider-schema-invalid',
+    'advisory-provider-upstream-failed',
+    'structured-provider-unavailable',
+  ])('persists and returns the advisory failure classification %s', async (failureCode) => {
+    let review: Record<string, any> | null = null;
+    const update = vi.fn(async ({ data }) => {
+      review = { ...review, ...data };
+      return review;
+    });
+    const db = {
+      smartLessonDraft: {
+        findFirst: vi.fn(async () => ({
+          id: 'draft-1',
+          ownerId: teacher.id,
+          contentHash: 'plan-hash',
+          content: { topic: '稳定性' },
+        })),
+      },
+      smartLessonAdvisoryReview: {
+        findFirst: vi.fn(async () => review),
+        create: vi.fn(async ({ data }) => {
+          review = { id: 'review-1', ...data };
+          return review;
+        }),
+        update,
+      },
+    };
+    const generate = vi.fn(async () => {
+      throw new SmartLessonPlanError(failureCode, 503);
+    });
+
+    await expect(recordAdvisoryReview(
+      db as never,
+      { actor: teacher, draftId: 'draft-1', idempotencyKey: `review-${failureCode}` },
+      generate as never,
+    )).rejects.toMatchObject({ code: failureCode, status: 503 });
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ state: 'FAILED', failureCode }),
+    }));
+  });
+
+  it('maps an unclassified advisory provider exception to upstream-failed', async () => {
+    let review: Record<string, any> | null = null;
+    const update = vi.fn(async ({ data }) => {
+      review = { ...review, ...data };
+      return review;
+    });
+    const db = {
+      smartLessonDraft: {
+        findFirst: vi.fn(async () => ({
+          id: 'draft-1',
+          ownerId: teacher.id,
+          contentHash: 'plan-hash',
+          content: { topic: '稳定性' },
+        })),
+      },
+      smartLessonAdvisoryReview: {
+        findFirst: vi.fn(async () => review),
+        create: vi.fn(async ({ data }) => {
+          review = { id: 'review-1', ...data };
+          return review;
+        }),
+        update,
+      },
+    };
+
+    await expect(recordAdvisoryReview(
+      db as never,
+      { actor: teacher, draftId: 'draft-1', idempotencyKey: 'review-unknown-error' },
+      vi.fn(async () => { throw new Error('socket reset'); }) as never,
+    )).rejects.toMatchObject({ code: 'advisory-provider-upstream-failed', status: 503 });
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        failureCode: 'advisory-provider-upstream-failed',
+      }),
+    }));
   });
 
   it('registers only actually adopted plan bindings as lesson-plan revision references', async () => {

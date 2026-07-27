@@ -1561,14 +1561,25 @@ export async function recordAdvisoryReview(db: SmartLessonDb, input: {
       },
     });
   } catch (error) {
-    const failureCode = error instanceof SmartLessonPlanError ? error.code : 'advisory-provider-failed';
+    const failureCode = advisoryProviderFailureCode(error);
     await db.smartLessonAdvisoryReview.update({
       where: { id: reservation.id },
       data: { state: 'FAILED', failureCode, completedAt: new Date() },
     }).catch(() => undefined);
-    if (error instanceof SmartLessonPlanError) throw error;
-    throw new SmartLessonPlanError('advisory-provider-failed', 503);
+    throw new SmartLessonPlanError(failureCode, 503);
   }
+}
+
+function advisoryProviderFailureCode(error: unknown): string {
+  if (error instanceof SmartLessonPlanError && [
+    'advisory-provider-timeout',
+    'advisory-provider-schema-invalid',
+    'advisory-provider-upstream-failed',
+    'structured-provider-unavailable',
+  ].includes(error.code)) {
+    return error.code;
+  }
+  return 'advisory-provider-upstream-failed';
 }
 
 function assertAdvisoryReviewReplay<T extends { requestHash: string; state: string }>(review: T, requestHash: string): T {

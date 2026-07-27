@@ -138,7 +138,16 @@ describe('smart lesson real-provider source revision contract', () => {
     );
     expect(spec).toContain("if (advisoryReviews[0].state === 'FAILED')");
     expect(spec).toContain(
-      "expect(advisoryReviews[0].failureCode).toBe('advisory-provider-failed')",
+      "'advisory-provider-timeout'",
+    );
+    expect(spec).toContain(
+      "'advisory-provider-schema-invalid'",
+    );
+    expect(spec).toContain(
+      "'advisory-provider-upstream-failed'",
+    );
+    expect(spec).toContain(
+      ']).toContain(advisoryReviews[0].failureCode)',
     );
     expect(spec).toContain(
       "card.getByText('审核未完成，请稍后重试。', { exact: true })",

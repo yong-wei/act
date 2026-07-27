@@ -91,7 +91,11 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   card = taskCard(page);
   const advisoryReviews = [await requestAdvisoryReviewAndWait(page, card)];
   if (advisoryReviews[0].state === 'FAILED') {
-    expect(advisoryReviews[0].failureCode).toBe('advisory-provider-failed');
+    expect([
+      'advisory-provider-timeout',
+      'advisory-provider-schema-invalid',
+      'advisory-provider-upstream-failed',
+    ]).toContain(advisoryReviews[0].failureCode);
     await expect(card.getByText('审核未完成，请稍后重试。', { exact: true })).toBeVisible({ timeout: 30_000 });
     advisoryReviews.push(await requestAdvisoryReviewAndWait(page, card));
   }
