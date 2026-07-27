@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const persistence = vi.hoisted(() => ({
   enqueueDocumentConversion: vi.fn(),
   enqueueGradingRun: vi.fn(),
+  materializeAssignmentAnswerEvidence: vi.fn(),
   materializeTextAnswerEvidence: vi.fn(),
 }));
 
@@ -283,6 +284,77 @@ describe('teacher assignment resubmission intake', () => {
     expect(persistence.enqueueDocumentConversion).not.toHaveBeenCalled();
     expect(persistence.enqueueGradingRun).toHaveBeenCalledWith(expect.objectContaining({
       evidenceId: 'text-evidence',
+    }));
+  });
+
+  it('materializes aggregate v2 evidence before grading an attachment resubmission', async () => {
+    const now = new Date('2026-07-17T03:00:00.000Z');
+    let claimToken: string | null = null;
+    const asset = {
+      id: 'asset-resubmitted',
+      mimeType: 'application/pdf',
+      originalName: 'answer.pdf',
+      checksum: 'sha256:resubmitted',
+      orderIndex: 0,
+      assetRole: 'ATTACHMENT',
+    };
+    const db = {
+      teacherAssignmentResubmissionIntake: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce({ id: 'intake-aggregate', attemptId: 'attempt-new', state: 'PENDING', availableAt: now, createdAt: now, attemptCount: 0 })
+          .mockResolvedValueOnce(null),
+        updateMany: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
+          if (data.state === 'PROCESSING') claimToken = String(data.claimToken);
+          return { count: 1 };
+        }),
+        findUnique: vi.fn(async () => ({
+          id: 'intake-aggregate', attemptId: 'attempt-new', state: 'PROCESSING', claimToken,
+          grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-1' },
+          attempt: {
+            answerVersion: 2,
+            textSnapshot: 'resubmitted explanation',
+            answer: { responseType: 'SUBJECTIVE_FILE', assets: [asset] },
+          },
+          sourceGradingRun: { policyId: 'grading-policy-1', policySnapshot: null, policySnapshotHash: null, answerEvidence: null },
+        })),
+      },
+      answerEvidence: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      documentConversion: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'conversion-resubmitted',
+          state: 'SUCCEEDED',
+          canonicalMarkdown: 'converted answer',
+          normalizedBlocks: [{ id: 'page-1', blockIndex: 0, pageNumber: 1, text: 'converted answer', precision: 'page' }],
+          warningCodes: [],
+          failureCode: null,
+        }),
+      },
+    };
+    persistence.materializeAssignmentAnswerEvidence.mockResolvedValue({
+      evidence: { id: 'aggregate-v2', readiness: 'READY', anchorVersion: 'assignment-answer-evidence.v2' },
+    });
+    persistence.enqueueGradingRun.mockResolvedValue({ gradingRun: { id: 'run-new' } });
+
+    await expect(drainTeacherAssignmentResubmissionIntakes({ db, now: () => now }))
+      .resolves.toMatchObject({ queued: 1, blocked: 0, retryable: 0 });
+
+    expect(db.answerEvidence.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        attemptId: 'attempt-new',
+        anchorVersion: 'assignment-answer-evidence.v2',
+      }),
+    }));
+    expect(persistence.materializeAssignmentAnswerEvidence).toHaveBeenCalledWith(expect.objectContaining({
+      attemptId: 'attempt-new',
+      answerVersion: 2,
+      sourceManifest: expect.objectContaining({
+        version: 'assignment-answer-evidence.v2',
+      }),
+    }));
+    expect(persistence.enqueueGradingRun).toHaveBeenCalledWith(expect.objectContaining({
+      evidenceId: 'aggregate-v2',
     }));
   });
 });
