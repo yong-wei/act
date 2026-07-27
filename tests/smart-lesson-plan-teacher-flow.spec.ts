@@ -12,6 +12,7 @@ const versionId = 'smart-lesson-playwright-version';
 const segmentId = 'smart-lesson-playwright-segment';
 const longCourseBasisTitle = 'Modern Control Systems: Robust Stability under Parametric Uncertainty';
 const longDocumentTitle = 'Routh-Hurwitz criterion for P(s)=s^6+12s^5+Ω_n^2s^4+2ζω_ns^3+K_p';
+const longGeneratedCitationId = `teacher-course-basis-citation:${courseBasisId}:${versionId}:root%2Fparagraph%3A1%2Fclosed-loop-stability%2Frouth-hurwitz`;
 
 const outline = {
   keyContent: ['闭环特征方程与稳定性判据'],
@@ -180,7 +181,30 @@ async function installSmartLessonRoutes(page: Page) {
   const completedStages = [
     ...pausedStages,
     ...['BRIDGE_IN', 'OBJECTIVES', 'PRE_ASSESSMENT', 'PARTICIPATORY_LEARNING', 'POST_ASSESSMENT', 'SUMMARY']
-      .map((kind) => ({ id: `stage-${kind}`, kind, state: 'COMPLETED', output: { minutes: 5, teacherActivity: '引导', studentActivity: '练习', assessment: '检查', steps: [] } })),
+      .map((kind) => ({
+        id: `stage-${kind}`,
+        kind,
+        state: 'COMPLETED',
+        output: {
+          minutes: 5,
+          teacherActivity: '引导',
+          studentActivity: '练习',
+          assessment: '检查',
+          steps: [{
+            title: `${kind} 教学步骤`,
+            minutes: 5,
+            teacherActivity: '引导',
+            studentActivity: '练习',
+            assessment: '检查',
+            sourceBindings: [{
+              citationId: longGeneratedCitationId,
+              sourceVersionId: versionId,
+              anchor: 'root/paragraph:1',
+              contentHash: 'a'.repeat(64),
+            }],
+          }],
+        },
+      })),
   ];
   const fulfill = (route: Route, body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
@@ -279,6 +303,11 @@ test('teacher completes the visible smart lesson authoring flow through version 
   await workspace.getByRole('button', { name: '确认当前提纲并继续' }).click();
   await expect(workspace.getByText('总结：已完成')).toBeVisible();
   await expect(workspace.getByRole('button', { name: '开始生成' })).toBeEnabled();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => horizontalOverflowState(page), {
+    message: 'completed generated stages should not create horizontal page overflow',
+  }).toMatchObject({ clientWidth: 390, scrollWidth: 390 });
+  await page.setViewportSize({ width: 1440, height: 1000 });
 
   const fullPlan = workspace.getByText('查看完整教案', { exact: true }).locator('..');
   await fullPlan.getByText('查看完整教案', { exact: true }).click();

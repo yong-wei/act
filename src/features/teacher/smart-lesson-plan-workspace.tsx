@@ -643,7 +643,7 @@ export function SmartLessonPlanWorkspace({
           {children}
         </PreparationStageDetails>;
       };
-      return <article key={task.id} className="space-y-3 rounded-lg border border-border p-4">
+      return <article key={task.id} className="min-w-0 max-w-full space-y-3 rounded-lg border border-border p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div><h3 className="font-medium">{task.topic}</h3><p className="text-sm text-subtle">修订 {task.revision} · {task.audience} · {task.durationMinutes} 分钟 · 草稿 {draftStateLabel(draft?.state)}{job ? ` · 生成 ${generationStateLabel(job.state)}` : ''}</p></div>
           <div className="flex flex-wrap gap-2">
@@ -758,14 +758,14 @@ function SourceBindingDetails({
 }) {
   if (gapReason) return <p className="mt-1 text-xs text-muted-foreground">原因：{gapReason}</p>;
   if (!bindings.length) return <p className="mt-1 text-xs text-muted-foreground">尚未找到唯一可靠依据。</p>;
-  return <details className="mt-1 text-xs text-muted-foreground">
+  return <details className="mt-1 min-w-0 max-w-full text-xs text-muted-foreground">
     <summary className="cursor-pointer">查看依据</summary>
     <ul className="mt-1 list-disc space-y-1 pl-4">
       {bindings.map((binding) => {
         const option = sourceOptions.find((candidate) => candidate.versionId === binding.sourceVersionId);
-        return <li key={`${binding.sourceVersionId}:${binding.anchor}`}>
+        return <li key={`${binding.sourceVersionId}:${binding.anchor}`} className="min-w-0 break-words">
           <span>{binding.title ?? option?.label ?? '课程依据文档'}{binding.structuralPath?.length ? ` · ${binding.structuralPath.join(' / ')}` : binding.anchor ? ` · ${binding.anchor}` : ''}</span>
-          {binding.snippet ?? option?.binding.snippet ? <p className="mt-0.5 whitespace-pre-wrap">{binding.snippet ?? option?.binding.snippet}</p> : null}
+          {binding.snippet ?? option?.binding.snippet ? <p className="mt-0.5 whitespace-pre-wrap break-words">{binding.snippet ?? option?.binding.snippet}</p> : null}
           {binding.href ? <a href={binding.href} className="text-primary underline" target="_blank" rel="noreferrer">在统一教材阅读器中查看</a> : null}
           {bindings.length > 1 && onSelect ? <button type="button" className="ml-2 text-primary underline" onClick={() => onSelect(binding)}>采用此依据</button> : null}
         </li>;
@@ -803,7 +803,7 @@ function PreparationStageDetails({
     id={`smart-prep-stage-${stage.id}`}
     open={open}
     onToggle={(event) => setOpen(event.currentTarget.open)}
-    className="group rounded-lg border border-border bg-card"
+    className="group min-w-0 max-w-full rounded-lg border border-border bg-card"
   >
     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
       <span className="flex items-center gap-2">
@@ -814,7 +814,7 @@ function PreparationStageDetails({
       </span>
       <span className="text-xs text-muted-foreground">{stage.statusLabel}</span>
     </summary>
-    <div className="border-t border-border px-4 py-3 text-sm">
+    <div className="min-w-0 max-w-full border-t border-border px-4 py-3 text-sm">
       {stage.blockingReason ? <p className="text-destructive">{stage.blockingReason}</p> : null}
       {stage.nextAction ? <p className="text-muted-foreground">下一步：{stage.nextAction}</p> : <p className="text-primary">该阶段的持久化数据有效。</p>}
       <div className="mt-3 min-w-0">{children}</div>
@@ -839,7 +839,7 @@ function TeachingDocument({ value, unsupported }: { value: unknown; unsupported?
       : boppps
         ? Object.entries(boppps).map(([stage, content]) => ({ stage, ...(content && typeof content === 'object' && !Array.isArray(content) ? content : {}) }))
         : [];
-  return <div className="mt-2 max-h-[36rem] space-y-4 overflow-auto rounded-lg bg-muted/60 p-4">
+  return <div className="mt-2 min-w-0 max-w-full max-h-[36rem] space-y-4 overflow-auto rounded-lg bg-muted/60 p-4">
     {typeof document.title === 'string' || typeof document.topic === 'string' ? <h4 className="font-semibold">{String(document.title ?? document.topic)}</h4> : null}
     {sections.map((section, index) => {
       const item = section && typeof section === 'object' ? section as Record<string, unknown> : {};
@@ -852,7 +852,7 @@ function TeachingDocument({ value, unsupported }: { value: unknown; unsupported?
             : [item.teacherActivity, item.studentActivity, item.assessment].filter((text): text is string => typeof text === 'string').join('；') || null;
       return <section key={String(item.id ?? item.stage ?? index)} className="rounded-lg border border-border bg-background p-3">
         <h5 className="text-sm font-medium">{String(item.title ?? bopppsStageLabel(String(item.stage ?? '')) ?? `教学环节 ${index + 1}`)}</h5>
-        {body ? <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{body}</p> : <p className="mt-1 text-xs text-muted-foreground">结构化内容已保存，可进入统一编辑器继续查看和编辑。</p>}
+        {body ? <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">{body}</p> : <p className="mt-1 text-xs text-muted-foreground">结构化内容已保存，可进入统一编辑器继续查看和编辑。</p>}
       </section>;
     })}
     {!sections.length && typeof document.title !== 'string' ? <p className="text-sm text-muted-foreground">结构化教案已保存，可进入统一编辑器继续查看。</p> : null}
@@ -876,7 +876,7 @@ export function GeneratedStageContent({ title, value }: { title: string; value: 
         : []
     )),
   ];
-  return <div className="mt-2 space-y-2 border-t border-border/60 pt-2 text-sm">
+  return <div className="mt-2 min-w-0 max-w-full space-y-2 border-t border-border/60 pt-2 text-sm">
     <p><SourceStateLabel state={generatedCitations.length ? 'verified' : 'ai_generated_source_pending'} gapReason={generatedCitations.length ? null : '生成阶段没有返回可展示的引用'} /></p>
     {!isOutline && typeof output.minutes === 'number' ? <p className="text-xs text-subtle">阶段总时长：{output.minutes} 分钟</p> : null}
     {!isOutline ? <TeachingActivityDetails value={output} /> : null}
@@ -889,13 +889,13 @@ export function GeneratedStageContent({ title, value }: { title: string; value: 
         {typeof item.bopppsStage === 'string' ? <p className="mt-1 text-xs text-subtle">BOPPPS 阶段：{bopppsStageLabel(item.bopppsStage)}</p> : null}
         {typeof item.minutes === 'number' ? <p className="mt-1 text-xs text-subtle">{item.minutes} 分钟</p> : null}
         <TeachingActivityDetails value={item} />
-        {citationIds(item.sourceBindings).length ? <p className="mt-1 text-xs text-subtle">依据：{citationIds(item.sourceBindings).join('、')}</p> : null}
+        {citationIds(item.sourceBindings).length ? <p className="mt-1 break-all text-xs text-subtle">依据：{citationIds(item.sourceBindings).join('、')}</p> : null}
       </section>;
     })}
-    {stringList(output.keyContent).length ? <p><span className="font-medium">核心内容：</span>{stringList(output.keyContent).join('、')}</p> : null}
-    {stringList(output.difficultContent).length ? <p><span className="font-medium">难点：</span>{stringList(output.difficultContent).join('、')}</p> : null}
-    {stringList(output.limitations).length ? <p><span className="font-medium">限制与待补信息：</span>{stringList(output.limitations).join('、')}</p> : null}
-    {classAdaptationEmphasis(output.classAdaptation).length ? <p><span className="font-medium">班级学情侧重：</span>{classAdaptationEmphasis(output.classAdaptation).join('、')}</p> : null}
+    {stringList(output.keyContent).length ? <p className="break-words"><span className="font-medium">核心内容：</span>{stringList(output.keyContent).join('、')}</p> : null}
+    {stringList(output.difficultContent).length ? <p className="break-words"><span className="font-medium">难点：</span>{stringList(output.difficultContent).join('、')}</p> : null}
+    {stringList(output.limitations).length ? <p className="break-words"><span className="font-medium">限制与待补信息：</span>{stringList(output.limitations).join('、')}</p> : null}
+    {classAdaptationEmphasis(output.classAdaptation).length ? <p className="break-words"><span className="font-medium">班级学情侧重：</span>{classAdaptationEmphasis(output.classAdaptation).join('、')}</p> : null}
   </div>;
 }
 
@@ -908,7 +908,7 @@ function TeachingActivityDetails({ value }: { value: Record<string, unknown> }) 
   return <div className="mt-1 space-y-1 text-muted-foreground">
     {fields.map(([label, content]) => (
       typeof content === 'string' && content.trim()
-        ? <p key={label} className="whitespace-pre-wrap"><span className="font-medium text-foreground">{label}：</span>{content}</p>
+        ? <p key={label} className="whitespace-pre-wrap break-words"><span className="font-medium text-foreground">{label}：</span>{content}</p>
         : null
     ))}
   </div>;
