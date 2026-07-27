@@ -185,12 +185,19 @@ export async function processSmartLessonGenerationJob(
       let finalAttempt = claim.attempt;
       let finalGenerated = original;
       if (!validated.success) {
+        const correctionContext = buildCorrectionContext(
+          context,
+          stage.kind,
+          validated.output,
+          validated.receipt,
+        );
         const correctionRequest = {
           stablePromptPrefix: request.system,
           originalStructuredResult: validated.output,
           validationErrors: validated.receipt.issues,
           requiredSchema: zodSchema(request.schema).jsonSchema,
           schemaVersion: request.schemaVersion,
+          ...(correctionContext ? { correctionContext } : {}),
         };
         const correctionAttempt = await beginCorrectionAttempt(db, {
           actor: { id: context.ownerId, role: 'TEACHER' },
@@ -570,12 +577,39 @@ function validateGeneratedStage(
   for (const binding of parsed.steps.flatMap((step) => step.sourceBindings)) {
     if (!allowedBindings.has(bindingKey(binding))) throw new SmartLessonPlanError('generated-source-binding-unverified', 409);
   }
+  const expectedMinutes = expectedStageMinutes(context, stage);
+  if (parsed.minutes !== expectedMinutes) throw new SmartLessonPlanError('stage-duration-mismatch', 409);
+}
+
+function buildCorrectionContext(
+  context: NonNullable<JobContext>,
+  stage: SmartLessonGenerationStageKind,
+  output: unknown,
+  receipt: SmartLessonValidationReceipt,
+) {
+  if (
+    stage === 'OUTLINE'
+    || !receipt.issues.some((issue) => issue.code === 'stage-duration-mismatch')
+  ) return null;
+  const parsed = bopppsStageSchema.parse(output);
+  const expectedMinutes = expectedStageMinutes(context, stage);
+  return {
+    stage,
+    expectedMinutes,
+    actualMinutes: parsed.minutes,
+    instruction: `将 minutes 和 steps 时长总和修正为 ${expectedMinutes} 分钟；sourceBindings 仍只能使用 requiredSchema 允许的来源绑定。`,
+  };
+}
+
+function expectedStageMinutes(
+  context: NonNullable<JobContext>,
+  stage: Exclude<SmartLessonGenerationStageKind, 'OUTLINE'>,
+) {
   const outline = smartLessonOutlineOutputSchema.parse(context.stages.find((item) => item.kind === 'OUTLINE')?.output);
-  const planKey = STAGE_TO_PLAN_KEY[stage as keyof typeof STAGE_TO_PLAN_KEY];
-  const expectedMinutes = outline.coursewareStepOutline
+  const planKey = STAGE_TO_PLAN_KEY[stage];
+  return outline.coursewareStepOutline
     .filter((step) => step.bopppsStage === planKey)
     .reduce((total, step) => total + step.minutes, 0);
-  if (parsed.minutes !== expectedMinutes) throw new SmartLessonPlanError('stage-duration-mismatch', 409);
 }
 
 function assembleCompletedPlan(context: NonNullable<JobContext>, summaryOutput: unknown) {

@@ -405,6 +405,77 @@ describe('smart lesson BullMQ worker', () => {
     }));
   });
 
+  it('provides the expected stage minutes to correction without relaxing source bindings', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 10], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteStage: 'PARTICIPATORY_LEARNING',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-participatory', kind: 'PARTICIPATORY_LEARNING', orderIndex: 4, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 35,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const stageOutput = (minutes: number) => ({
+      minutes, teacherActivity: '讲授', studentActivity: '参与', assessment: '观察',
+      steps: [{
+        title: '参与式学习', minutes, teacherActivity: '引导', studentActivity: '练习', assessment: '反馈',
+        sourceBindings: [{
+          citationId: sourcePackItem.citationTargetId,
+          sourceVersionId: sourcePackItem.metadata.versionId,
+          anchor: sourcePackItem.metadata.stableAnchor,
+          contentHash: sourcePackItem.metadata.contentHash,
+        }],
+      }],
+    });
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: stageOutput(5), normalizedResponseId: 'invalid-duration' })
+      .mockResolvedValueOnce({ output: stageOutput(10), normalizedResponseId: 'corrected-duration' });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      request: expect.objectContaining({
+        correctionContext: expect.objectContaining({
+          stage: 'PARTICIPATORY_LEARNING',
+          expectedMinutes: 10,
+          actualMinutes: 5,
+        }),
+      }),
+    }));
+    expect(generate).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      prompt: expect.stringContaining('"expectedMinutes":10'),
+    }));
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      output: expect.objectContaining({
+        minutes: 10,
+        steps: [expect.objectContaining({
+          sourceBindings: [expect.objectContaining({
+            citationId: sourcePackItem.citationTargetId,
+            contentHash: sourcePackItem.metadata.contentHash,
+          })],
+        })],
+      }),
+    }));
+  });
+
   it('routes a schema-valid outline missing post-assessment through the linked correction attempt', async () => {
     const context = outlineJobContext();
     const correctedOutline = {
