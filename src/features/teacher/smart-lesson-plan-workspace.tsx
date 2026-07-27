@@ -124,6 +124,7 @@ export function SmartLessonPlanWorkspace({
   const [selectedTextbookRange, setSelectedTextbookRange] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [hydrationReady, setHydrationReady] = useState(false);
   const [suggestions, setSuggestions] = useState<Record<string, KonlingSuggestion[]>>({});
   const [bootstrapSuggestions, setBootstrapSuggestions] = useState<KonlingSuggestion[]>([]);
   const coursewareCreationInFlight = useRef(false);
@@ -199,6 +200,10 @@ export function SmartLessonPlanWorkspace({
   const activeTaskId = activeTask?.id;
   const detailedActiveTaskId = detailedActiveTask?.id;
   const activeJobState = detailedActiveTask?.drafts?.[0]?.jobs?.[0]?.state;
+
+  useEffect(() => {
+    setHydrationReady(true);
+  }, []);
 
   useEffect(() => {
     const refreshCourseBases = async () => {
@@ -680,7 +685,7 @@ export function SmartLessonPlanWorkspace({
               {job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state) ? <button onClick={() => void runJobAction(task, job.state === 'RETRYABLE' || job.state === 'FAILED' ? 'retry' : 'resume')} className="rounded border border-border px-3 py-1.5 text-sm">{job.state === 'PAUSED' ? '确认当前提纲并继续' : '恢复/重试'}</button> : null}
               {job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state) ? <button onClick={() => void runJobAction(task, 'cancel')} className="rounded border border-border px-3 py-1.5 text-sm">取消</button> : null}
               <button onClick={() => editDraft(task)} disabled={!draft?.contentHash || task.workspace?.unsupportedPayload || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
-              <button onClick={() => void requestAdvisoryReview(task)} disabled={!draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
+              <button onClick={() => void requestAdvisoryReview(task)} disabled={!hydrationReady || !draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
               <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
               {task.revisions?.[0] ? <button onClick={() => void deriveDraft(task, task.revisions![0].id)} className="rounded border border-border px-3 py-1.5 text-sm">基于{task.revisions[0].displayName}继续修订</button> : null}
             </div>

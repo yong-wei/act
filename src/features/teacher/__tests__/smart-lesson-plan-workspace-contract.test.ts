@@ -1,7 +1,18 @@
+// @vitest-environment jsdom
+
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { describe, expect, it } from 'vitest';
+import { act, createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { createRoot } from 'react-dom/client';
+import { describe, expect, it, vi } from 'vitest';
+
+import { SmartLessonPlanWorkspace } from '../smart-lesson-plan-workspace';
+
+vi.mock('@/components/ai/konling-entry-point-button', () => ({
+  KonlingEntryPointButton: ({ label }: { label: string }) => createElement('button', null, label),
+}));
 
 const workspaceSource = readFileSync(
   join(process.cwd(), 'src/features/teacher/smart-lesson-plan-workspace.tsx'),
@@ -21,6 +32,72 @@ const regenerationRouteSource = readFileSync(
 );
 
 describe('smart lesson plan workspace request contracts', () => {
+  it('keeps advisory review disabled until hydration completes without relaxing draft readiness', async () => {
+    const initialTasks = [{
+      id: 'task-1',
+      courseBasisId: 'basis-1',
+      revision: 1,
+      topic: '闭环控制',
+      audience: '本科生',
+      durationMinutes: 45,
+      sources: [],
+      knowledgePoints: [],
+      goals: [],
+      drafts: [{
+        id: 'draft-1',
+        state: 'READY',
+        version: 1,
+        content: { title: '闭环控制教案' },
+        contentHash: 'content-hash',
+        jobs: [],
+        reviews: [],
+      }],
+      revisions: [],
+      workspace: {
+        currentStage: 'lesson-generation',
+        statusLabel: '教案已就绪',
+        resumable: true,
+        unsupportedPayload: false,
+        stages: [
+          'course-basis',
+          'topic-goals',
+          'class-attainment',
+          'lesson-generation',
+          'courseware-generation',
+        ].map((id) => ({
+          id,
+          title: id,
+          state: 'READY',
+          statusLabel: '已就绪',
+          complete: true,
+        })),
+      },
+    }];
+    const props = {
+      courseBases: [],
+      classDiagnosisOptions: [],
+      textbookCatalog: [],
+      initialTasks,
+      initialSelectedTaskId: 'task-1',
+    };
+    const serverHtml = renderToStaticMarkup(createElement(SmartLessonPlanWorkspace, props));
+    expect(serverHtml).toMatch(/<button[^>]*disabled=""[^>]*>AI 建议<\/button>/);
+
+    const container = document.createElement('div');
+    document.body.append(container);
+    const root = createRoot(container);
+    await act(async () => root.render(createElement(SmartLessonPlanWorkspace, props)));
+    const advisoryButton = [...container.querySelectorAll('button')]
+      .find((button) => button.textContent === 'AI 建议');
+    expect(advisoryButton?.disabled).toBe(false);
+
+    act(() => root.unmount());
+    container.remove();
+    expect(workspaceSource).toContain(
+      "disabled={!hydrationReady || !draft?.content || draft.state !== 'READY'}",
+    );
+  });
+
   it('uses a fresh advisory-review idempotency key for each new click intent', () => {
     expect(workspaceSource).toContain('`smart-prep:${draft.id}:review:${crypto.randomUUID()}`');
     expect(workspaceSource).not.toContain('`smart-prep:${draft.id}:review:${draft.version}`');
