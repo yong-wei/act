@@ -1406,7 +1406,9 @@ describe('konling agent runtime', () => {
         ([label]) => label === '[konling-smart-preparation-validation]',
       );
       expect(diagnosticCall).toBeDefined();
-      const diagnosticPayload = diagnosticCall?.[1] as {
+      expect(typeof diagnosticCall?.[1]).toBe('string');
+      const encodedDiagnostic = diagnosticCall?.[1] as string;
+      const diagnosticPayload = JSON.parse(encodedDiagnostic) as {
         issues?: Array<Record<string, unknown>>;
       };
       expect(Object.keys(diagnosticPayload)).toEqual(['issues']);
@@ -1414,7 +1416,6 @@ describe('konling agent runtime', () => {
       for (const issue of diagnosticPayload.issues ?? []) {
         expect(Object.keys(issue)).toEqual(['path', 'code']);
       }
-      const encodedDiagnostic = JSON.stringify(diagnosticCall);
       expect(encodedDiagnostic).toContain('"path"');
       expect(encodedDiagnostic).toContain('"code"');
       expect(encodedDiagnostic).not.toContain('根轨迹');

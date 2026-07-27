@@ -2995,7 +2995,7 @@ function buildPublicSmartPreparationBasisSummary(
 
 function logKonlingSmartPreparationValidationIssues(issues: readonly unknown[]) {
   if (process.env.NODE_ENV === 'production') return;
-  console.error('[konling-smart-preparation-validation]', {
+  const payload = {
     issues: issues.slice(0, 16).map((issue) => {
       const record = readRecord(issue);
       return {
@@ -3012,7 +3012,8 @@ function logKonlingSmartPreparationValidationIssues(issues: readonly unknown[]) 
           : 'validation_error',
       };
     }),
-  });
+  };
+  console.error('[konling-smart-preparation-validation]', JSON.stringify(payload));
 }
 
 function applySmartLessonCollectionPatches(
