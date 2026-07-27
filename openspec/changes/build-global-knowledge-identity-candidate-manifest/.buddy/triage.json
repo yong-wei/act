@@ -1,0 +1,15 @@
+{
+  "subject": { "issue": null, "change_id": "build-global-knowledge-identity-candidate-manifest" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "Source contract: docs/contexts/course-knowledge-base/CONTEXT.md, docs/adr/README.md indexed ADR 0015-0044 files, and docs/knowledge-graph-current-state-audit-2026-07-18.md.",
+      "The dated audit demonstrates exact-name conflict groups, while current component and conflict cardinalities must be derived from the bound inventory snapshot.",
+      "Reviewed aliases are not frozen into hard-equivalence components and near-similar review edges are not yet enumerated.",
+      "ADRs 0015, 0029, 0030, 0034, 0035, and 0040 require candidate evidence and historical mapping ambiguity without automatic merge truth."
+    ]
+  },
+  "duplication": { "existing_implementation": "none", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "The candidate classes, snapshot-derived count rules, pending outcome schema, and no-final-adjudication boundary are explicit after inventory." },
+  "binding": { "issue_updated_at": null, "base_sha": "ce1d37742066038e164f05baa3a2cb077844353c", "generated_at": "2026-07-19T03:20:50Z" }
+}

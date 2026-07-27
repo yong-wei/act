@@ -37,6 +37,7 @@ import {
 } from '../../src/lib/platform-role-navigation';
 import {
   assertRuntimeRelationStyleCoverage,
+  getKnowledgeGraphEffectiveEdgeOpacity,
   getKnowledgeGraphEffectiveEdgeWidth,
   getKnowledgeSemanticRegionStyle,
   getRelationStyle,
@@ -94,6 +95,167 @@ function isAncestorCommit(ancestor: string, descendant: string) {
   } catch {
     return false;
   }
+}
+
+function isAncestorCommitAtRepository(repositoryRoot: string, ancestor: string, descendant: string) {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+      cwd: repositoryRoot,
+      stdio: ['ignore', 'ignore', 'ignore'],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function gitBlobSha256AtRevision(repositoryRoot: string, revision: string, file: string) {
+  try {
+    const entry = execFileSync('git', ['ls-tree', '-z', revision, '--', file], {
+      cwd: repositoryRoot,
+      encoding: null,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const nulIndex = entry.indexOf(0);
+    const tabIndex = entry.indexOf(9);
+    if (nulIndex !== entry.length - 1 || tabIndex < 0) return undefined;
+    const metadata = entry.subarray(0, tabIndex).toString('ascii').split(' ');
+    const entryPath = entry.subarray(tabIndex + 1, nulIndex).toString('utf8');
+    const [, objectType, objectSha] = metadata;
+    if (objectType !== 'blob' || !/^[0-9a-f]{40}$/.test(objectSha ?? '') || entryPath !== file) {
+      return undefined;
+    }
+    const blob = execFileSync('git', ['cat-file', 'blob', objectSha], {
+      cwd: repositoryRoot,
+      encoding: null,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    return createHash('sha256').update(blob).digest('hex');
+  } catch {
+    return undefined;
+  }
+}
+
+export function knowledgeWorkspaceProductQaCaptureRevisionProblems({
+  repositoryRoot,
+  captureCommitSha,
+  captureTreeSha,
+  currentSourceSha256,
+  productQaSourcePaths,
+}: {
+  repositoryRoot: string;
+  captureCommitSha: string;
+  captureTreeSha: string;
+  currentSourceSha256: Record<string, string>;
+  productQaSourcePaths: readonly string[];
+}) {
+  const gitAtRepository = (args: string[]) => {
+    try {
+      return {
+        ok: true as const,
+        output: execFileSync('git', args, {
+          cwd: repositoryRoot,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+        }),
+      };
+    } catch {
+      return { ok: false as const, output: '' };
+    }
+  };
+  const fullGitShaPattern = /^[0-9a-f]{40}$/;
+  const captureCommitResult = fullGitShaPattern.test(captureCommitSha)
+    ? gitAtRepository(['rev-parse', '--verify', `${captureCommitSha}^{commit}`])
+    : { ok: false as const, output: '' };
+  const captureTreeResult = fullGitShaPattern.test(captureTreeSha)
+    ? gitAtRepository(['rev-parse', '--verify', `${captureTreeSha}^{tree}`])
+    : { ok: false as const, output: '' };
+  const captureCommitTreeResult = captureCommitResult.ok
+    ? gitAtRepository(['rev-parse', '--verify', `${captureCommitSha}^{tree}`])
+    : { ok: false as const, output: '' };
+  const currentHeadResult = gitAtRepository(['rev-parse', '--verify', 'HEAD^{commit}']);
+  const captureCommitValid = captureCommitResult.ok
+    && captureCommitResult.output.trim() === captureCommitSha;
+  const captureTreeValid = captureTreeResult.ok
+    && captureTreeResult.output.trim() === captureTreeSha;
+  const captureTreeMatchesCommit = captureCommitTreeResult.ok
+    && captureCommitTreeResult.output.trim() === captureTreeSha;
+  const currentHeadSha = currentHeadResult.output.trim();
+  const captureIsCurrentHeadAncestor = captureCommitValid
+    && currentHeadResult.ok
+    && isAncestorCommitAtRepository(repositoryRoot, captureCommitSha, currentHeadSha);
+  const productQaSourceHistoryResult = captureIsCurrentHeadAncestor
+    ? gitAtRepository([
+      'log',
+      '--format=',
+      '--name-only',
+      '--full-history',
+      `${captureCommitSha}..${currentHeadSha}`,
+      '--',
+      ...productQaSourcePaths,
+    ])
+    : { ok: false as const, output: '' };
+  const productQaSourceChanges = productQaSourceHistoryResult.ok
+    ? lines(productQaSourceHistoryResult.output)
+    : [];
+  const syntheticSourceProblems = captureCommitValid
+    && captureTreeValid
+    && captureTreeMatchesCommit
+    && currentHeadResult.ok
+    && !captureIsCurrentHeadAncestor
+    ? productQaSourcePaths.flatMap((sourcePath) => {
+      const captureBlobSha256 = gitBlobSha256AtRevision(repositoryRoot, captureTreeSha, sourcePath);
+      const headBlobSha256 = gitBlobSha256AtRevision(repositoryRoot, currentHeadSha, sourcePath);
+      const evidenceSha256 = currentSourceSha256[sourcePath];
+      const workingTreePath = path.join(repositoryRoot, sourcePath);
+      const workingTreeSha256 = existsSync(workingTreePath)
+        ? createHash('sha256').update(readFileSync(workingTreePath)).digest('hex')
+        : undefined;
+      return [
+        captureBlobSha256 ? null : `capture-revision:synthetic-capture-blob-missing:${sourcePath}`,
+        headBlobSha256 ? null : `capture-revision:synthetic-head-blob-missing:${sourcePath}`,
+        evidenceSha256 ? null : `capture-revision:synthetic-evidence-sha-missing:${sourcePath}`,
+        workingTreeSha256 ? null : `capture-revision:synthetic-working-tree-source-missing:${sourcePath}`,
+        captureBlobSha256 && evidenceSha256 && captureBlobSha256 !== evidenceSha256
+          ? `capture-revision:synthetic-capture-evidence-mismatch:${sourcePath}`
+          : null,
+        evidenceSha256 && headBlobSha256 && evidenceSha256 !== headBlobSha256
+          ? `capture-revision:synthetic-evidence-head-mismatch:${sourcePath}`
+          : null,
+        headBlobSha256 && workingTreeSha256 && headBlobSha256 !== workingTreeSha256
+          ? `capture-revision:synthetic-head-working-tree-mismatch:${sourcePath}`
+          : null,
+      ].filter((entry): entry is string => Boolean(entry));
+    })
+    : [];
+
+  return [
+    captureCommitSha ? null : 'capture-revision:commit-missing',
+    captureCommitSha && !fullGitShaPattern.test(captureCommitSha)
+      ? 'capture-revision:commit-not-full-sha'
+      : null,
+    captureCommitSha && fullGitShaPattern.test(captureCommitSha) && !captureCommitValid
+      ? 'capture-revision:commit-invalid'
+      : null,
+    captureTreeSha ? null : 'capture-revision:tree-missing',
+    captureTreeSha && !fullGitShaPattern.test(captureTreeSha)
+      ? 'capture-revision:tree-not-full-sha'
+      : null,
+    captureTreeSha && fullGitShaPattern.test(captureTreeSha) && !captureTreeValid
+      ? 'capture-revision:tree-invalid'
+      : null,
+    captureCommitValid && captureTreeValid && !captureTreeMatchesCommit
+      ? 'capture-revision:tree-mismatch'
+      : null,
+    captureCommitValid && !currentHeadResult.ok
+      ? 'capture-revision:current-head-invalid'
+      : null,
+    captureIsCurrentHeadAncestor && !productQaSourceHistoryResult.ok
+      ? 'capture-revision:source-history-failed'
+      : null,
+    ...productQaSourceChanges.map((sourcePath) => `capture-revision:source-changed:${sourcePath}`),
+    ...syntheticSourceProblems,
+  ].filter((entry): entry is string => Boolean(entry));
 }
 
 function latestCommitForPath(file: string) {
@@ -581,6 +743,22 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'textbook citation reader is a source-inspection view launched from registered runtime citations',
   ],
   [
+    'src/app/textbooks/[bookId]/[edition]/[...unitPath]/page.tsx',
+    'standalone textbook reader uses the registered /textbooks/** embed-surface exception with dedicated hierarchy, breadcrumb, and reading workspace instead of an AppShell primary route',
+  ],
+  [
+    'src/app/@textbookModal/(.)textbooks/[bookId]/[edition]/[...unitPath]/page.tsx',
+    'intercepted textbook reader is a parallel-slot overlay covered by the registered /@textbookModal/** embed-surface exception above the originating shell-covered page',
+  ],
+  [
+    'src/app/@textbookModal/[...catchAll]/page.tsx',
+    'textbook parallel-slot fallback belongs to the registered /@textbookModal/** embed-surface exception and does not define an AppShell primary route',
+  ],
+  [
+    'src/app/review/unified-textbook-reader/page.tsx',
+    'unified textbook reader review is an isolated internal visual QA surface covered by the registered /review/** visual-review-only exception',
+  ],
+  [
     'src/app/review/adaptive-assessment-figures/page.tsx',
     'adaptive assessment figures is an internal review preview launched from the review hub',
   ],
@@ -603,6 +781,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
   [
     'src/app/review/annotated-media-activity-564/page.tsx',
     'issue 564 annotated media activity is an internal visual acceptance surface launched from the review hub',
+  ],
+  [
+    'src/app/review/generated-slide-runtime-938/[projection]/page.tsx',
+    'issue 938 generated slide runtime is an authenticated internal validation surface, not a primary product route',
   ],
 ]);
 
@@ -667,6 +849,10 @@ function assertCoveredRouteGlobDoesNotHideStaticPages() {
   const issue562ReviewHref = appPageRouteHref('src/app/review/derivation-stage-runtime-562/page.tsx');
   if (issue562ReviewHref !== undefined) {
     throw new Error('issue 562 review page must remain a non-primary route-ledger exception');
+  }
+  const issue938ReviewHref = appPageRouteHref('src/app/review/generated-slide-runtime-938/[projection]/page.tsx');
+  if (issue938ReviewHref !== undefined) {
+    throw new Error('issue 938 review page must remain a non-primary route-ledger exception');
   }
 }
 
@@ -1734,12 +1920,19 @@ function validateKnowledgeGraphSemanticMapEvidence(): CommercialUiGovernanceViol
     threeDimensionalRendererSource.includes('getKnowledgeGraphEffectiveEdgeWidth')
       ? null
       : '3d-renderer:missing-effective-edge-width-contract',
-    twoDimensionalRendererSource.includes('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity')
+    twoDimensionalRendererSource.includes('getKnowledgeGraphEffectiveEdgeOpacity')
       ? null
-      : '2d-renderer:missing-dimmed-contract',
-    threeDimensionalRendererSource.includes('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity')
+      : '2d-renderer:missing-centralized-edge-opacity',
+    threeDimensionalRendererSource.includes('getKnowledgeGraphEffectiveEdgeOpacity')
       ? null
-      : '3d-renderer:missing-dimmed-contract',
+      : '3d-renderer:missing-centralized-edge-opacity',
+    getKnowledgeGraphEffectiveEdgeOpacity(
+      getRelationStyle('prerequisite'),
+      1,
+      'dimmed',
+    ) === KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity
+      ? null
+      : 'visual-config:dimmed-opacity-not-centralized',
     chapterRegion.enabled && !normalRegion.enabled
       ? null
       : 'semantic-region:not-derived-from-chapter-semantics',
@@ -1756,7 +1949,7 @@ function validateKnowledgeGraphSemanticMapEvidence(): CommercialUiGovernanceViol
   const requiredStates = [
     'defaultSemanticMap',
     'selectedNeighborhood',
-    'denseAllRelations',
+    'allRelationFamilies',
     'lightTheme',
     'darkTheme',
   ];
@@ -1771,7 +1964,8 @@ function validateKnowledgeGraphSemanticMapEvidence(): CommercialUiGovernanceViol
       typeof artifact?.width === 'number' && artifact.width >= 1200 ? null : `${key}:image-width-too-small`,
       typeof artifact?.height === 'number' && artifact.height >= 800 ? null : `${key}:image-height-too-small`,
       state.canvasRendered === true ? null : `${key}:canvas-not-rendered`,
-      state.legendVisible === true ? null : `${key}:legend-not-visible`,
+      state.relationFamilyControlVisible === true ? null : `${key}:relation-family-control-not-visible`,
+      numberFromEvidence(state.relationFamilySamples)! >= 3 ? null : `${key}:relation-family-samples-missing`,
       state.noGlobalEdgeSaturation === true ? null : `${key}:global-edge-saturation`,
       state.nonColorRelationGrammar === true ? null : `${key}:color-only-relations`,
     ].filter((entry): entry is string => Boolean(entry));
@@ -1859,6 +2053,12 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
   ];
   const desktopSections = stringArray(desktopInspectorMarkers.inspectorSections);
   const mobileSections = stringArray(mobileInspectorMarkers.inspectorSections);
+  const desktopAccordion = Array.isArray(desktopInspectorMarkers.inspectorAccordion)
+    ? desktopInspectorMarkers.inspectorAccordion.map((entry) => objectRecord(entry))
+    : [];
+  const mobileAccordion = Array.isArray(mobileInspectorMarkers.inspectorAccordion)
+    ? mobileInspectorMarkers.inspectorAccordion.map((entry) => objectRecord(entry))
+    : [];
   const hasInspectorSections = (sections: string[]) => (
     requiredInspectorSections.every((section) => sections.includes(section))
     || directLeafInspectorSections.every((section) => sections.includes(section))
@@ -1867,12 +2067,12 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
     defaultMarkers.commandSystemState === 'closed' ? null : 'default:command-system-not-closed',
     defaultMarkers.activeDesktopTool === 'closed' ? null : 'default:active-tool-not-closed',
     openFilterMarkers.commandSystemState === 'open' ? null : 'filters:command-system-not-open',
-    openFilterMarkers.activeDesktopTool === 'relation-filters' ? null : 'filters:active-tool-not-relation-filters',
+    openFilterMarkers.activeDesktopTool === 'node-filters' ? null : 'filters:active-tool-not-node-filters',
     desktopInspectorMarkers.inspectorMode === 'floating-right-edge' ? null : 'desktop-inspector:not-floating-right-edge',
     desktopInspectorMarkers.inspectorResponsive === 'desktop-floating-mobile-sheet' ? null : 'desktop-inspector:responsive-contract-missing',
     mobileInspectorMarkers.inspectorMode === 'floating-right-edge' ? null : 'mobile-inspector:not-floating-right-edge',
     mobileInspectorMarkers.inspectorResponsive === 'desktop-floating-mobile-sheet' ? null : 'mobile-inspector:responsive-contract-missing',
-    mobileInspectorMarkers.inspectorFocusContract === 'mobile-trap-escape-return' ? null : 'mobile-inspector:focus-contract-missing',
+    mobileInspectorMarkers.inspectorFocusContract === 'mobile-initial-focus-escape-return' ? null : 'mobile-inspector:focus-contract-missing',
     mobileInspectorMarkers.inspectorDockSafeArea === 'bottom-padding' ? null : 'mobile-inspector:dock-safe-area-missing',
     mobileViewLayoutMarkers.activeMobileTool === 'view-layout' ? null : 'mobile-view-layout:not-active',
     mobileViewLayoutMarkers.mobileToolState === 'open' ? null : 'mobile-view-layout:not-open',
@@ -1881,6 +2081,12 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
       .map((control) => `mobile-view-layout:missing-${control}`),
     hasInspectorSections(desktopSections) ? null : 'desktop-inspector:missing-direct-leaf-section-contract',
     hasInspectorSections(mobileSections) ? null : 'mobile-inspector:missing-direct-leaf-section-contract',
+    desktopAccordion.every((entry) => entry.expanded === 'false')
+      ? null
+      : 'desktop-inspector:accordion-not-initially-collapsed',
+    mobileAccordion.every((entry) => entry.expanded === 'false')
+      ? null
+      : 'mobile-inspector:accordion-not-initially-collapsed',
   ].filter((entry): entry is string => Boolean(entry));
 
   const keyboardVerification = objectRecord(evidence.keyboardVerification);
@@ -1892,7 +2098,7 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
       .map((entry) => [typeof entry.tool === 'string' ? entry.tool : '', entry] as const)
       .filter(([tool]) => tool.length > 0)
   );
-  const requiredDesktopTools = ['chapter-directory', 'relation-filters', 'legend', 'view-layout'];
+  const requiredDesktopTools = ['chapter-directory', 'node-filters', 'view-layout'];
   const keyboardProblems = requiredDesktopTools.flatMap((tool) => {
     const entry = desktopKeyboardByTool.get(tool);
     if (!entry) return [`${tool}:keyboard-path-missing`];
@@ -1918,7 +2124,7 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
       && stringArray(objectRecord(evidence.designSourceOfTruth).concepts).length === 3
       ? null
       : 'design-source:concepts-missing',
-    graphSource.includes("type KnowledgeMobileTool = 'chapter-directory' | 'relation-filters' | 'legend' | 'view-layout';")
+    graphSource.includes("type KnowledgeMobileTool = 'chapter-directory' | 'node-filters' | 'view-layout';")
       ? null
       : 'mobile-tools:view-layout-not-in-tool-type',
     graphSource.includes("['view-layout', '视图']")
@@ -1934,6 +2140,15 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
       && resourcePanelSource.includes('}, [selectedNode.id]);')
       ? null
       : 'mobile-inspector:selection-change-refocus-missing',
+    resourcePanelSource.includes('function InspectorAccordionSection(')
+      && resourcePanelSource.includes('const [activeRelationPathSection, setActiveRelationPathSection]')
+      && resourcePanelSource.includes('setActiveRelationPathSection(null);')
+      && resourcePanelSource.includes('inspectorSection="relation-overview"')
+      && resourcePanelSource.includes('inspectorSection="canonical-corridor"')
+      && resourcePanelSource.includes('inspectorSection="corridor-adjacent-domains"')
+      && resourcePanelSource.includes('inspectorSection="learning-actions"')
+      ? null
+      : 'inspector:single-open-accordion-source-contract-missing',
   ].filter((entry): entry is string => Boolean(entry));
 
   if (screenshotProblems.length > 0 || markerProblems.length > 0 || keyboardProblems.length > 0 || sourceProblems.length > 0) {
@@ -1955,6 +2170,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const knowledgePageSourcePath = 'src/app/knowledge/page.tsx';
   const adaptivePracticePageSourcePath = 'src/app/assessment/adaptive-practice/page.tsx';
   const graph2dSourcePath = 'src/features/knowledge/graph/knowledge-graph-2d.tsx';
+  const graph3dSourcePath = 'src/features/knowledge/graph/knowledge-graph-canvas.tsx';
   const graphVisualConfigSourcePath = 'src/features/knowledge/graph/visual-config.ts';
   const resourcePanelSourcePath = 'src/features/knowledge/resource-panel/resource-panel.tsx';
   const globalAiButtonSourcePath = 'src/components/ai/global-ai-button.tsx';
@@ -1971,6 +2187,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     knowledgePageSourcePath,
     adaptivePracticePageSourcePath,
     graph2dSourcePath,
+    graph3dSourcePath,
     graphVisualConfigSourcePath,
     resourcePanelSourcePath,
     globalAiButtonSourcePath,
@@ -2036,7 +2253,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const requiredStates = [
     ['desktop-default-collapsed-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-expanded-persisted-dark', 'dark', 1440, 'expanded', 'collapsed'],
-    ['desktop-local-tools-legend-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-local-tools-filter-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-local-tools-view-dark', 'dark', 1440, 'collapsed', 'collapsed'],
@@ -2044,6 +2260,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['desktop-hover-click-drag-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-selected-page-tools-menu-dark', 'dark', 1440, 'collapsed', 'expanded'],
     ['desktop-explicit-relayout-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-3d-fit-relayout-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-konling-selected-expanded-dark', 'dark', 1440, 'collapsed', 'expanded'],
     ['desktop-konling-no-selection-dark', 'dark', 1440, 'collapsed', 'expanded'],
     ['desktop-konling-degraded-dark', 'dark', 1440, 'collapsed', 'expanded'],
@@ -2146,7 +2363,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
           )
         : null,
       !isAdaptivePracticeDockState && [
-        'desktop-local-tools-legend-dark',
         'desktop-local-tools-directory-dark',
         'desktop-local-tools-filter-dark',
         'desktop-local-tools-view-dark',
@@ -2202,6 +2418,22 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : (canvas.selectedNodeId === '' ? null : `${name}:unexpected-selected-node`),
       name === 'desktop-hover-click-drag-dark'
         ? (numberFromEvidence(canvas.pinnedNodeCount) === 1 ? null : `${name}:pinned-marker-missing`)
+        : null,
+      name === 'desktop-3d-fit-relayout-dark'
+        ? (
+            objectRecord(state.interactionEvidence).initialFitCompleted === true
+            && objectRecord(state.interactionEvidence).firstFitExactlyOnce === true
+            && objectRecord(state.interactionEvidence).repeatedRelayoutExactlyOnce === true
+            && objectRecord(state.interactionEvidence).repeatedRelayoutIdempotent === true
+            && objectRecord(state.interactionEvidence).canvasStable === true
+            && objectRecord(state.interactionEvidence).noLoadingBlockers === true
+            && objectRecord(state.interactionEvidence).noRendererOcclusion === true
+            && objectRecord(state.interactionEvidence).completeProjectedBoundsInsideCanvas === true
+            && objectRecord(markers.threeDimensionalRenderer).renderer === '3D'
+            && numberFromEvidence(objectRecord(markers.threeDimensionalRenderer).canvasCount) === 1
+              ? null
+              : `${name}:3d-fit-relayout-browser-proof-missing`
+          )
         : null,
       name === 'desktop-hover-click-drag-dark'
         ? (
@@ -2306,6 +2538,16 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const sourceEvidence = objectRecord(evidence.sourceEvidence);
   const sourceHashes = objectRecord(evidence.currentSourceSha256);
   const currentSourceSha256 = stringRecord(evidence.currentSourceSha256);
+  const captureRevision = objectRecord(evidence.captureRevision);
+  const captureCommitSha = typeof captureRevision.commitSha === 'string' ? captureRevision.commitSha : '';
+  const captureTreeSha = typeof captureRevision.treeSha === 'string' ? captureRevision.treeSha : '';
+  const captureRevisionProblems = knowledgeWorkspaceProductQaCaptureRevisionProblems({
+    repositoryRoot: repoRoot,
+    captureCommitSha,
+    captureTreeSha,
+    currentSourceSha256,
+    productQaSourcePaths,
+  });
   const sourceProblems = [
     ...productQaSourcePaths.map((sourcePath) => (
       typeof sourceHashes[sourcePath] === 'string' ? null : `${sourcePath}:sha-missing`
@@ -2318,7 +2560,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     sourceEvidence.sharedAppShell === true ? null : 'source-evidence:shared-app-shell',
     sourceEvidence.noCompetingGlobalNavigation === true ? null : 'source-evidence:no-competing-global-navigation',
     sourceEvidence.compactLocalTools === true ? null : 'source-evidence:compact-local-tools',
-    sourceEvidence.graphicalLegend === true ? null : 'source-evidence:graphical-legend',
+    sourceEvidence.relationFamilyControl === true ? null : 'source-evidence:relation-family-control',
     sourceEvidence.localizedLabels === true ? null : 'source-evidence:localized-labels',
     sourceEvidence.activeSummaries === true ? null : 'source-evidence:active-summaries',
     sourceEvidence.hoverDoesNotRelayout === true ? null : 'source-evidence:hover-does-not-relayout',
@@ -2343,9 +2585,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     graphSource.includes('data-knowledge-desktop-command-system="compact"')
       ? null
       : 'graph-source:compact-command-system-missing',
-    graphSource.includes('data-knowledge-local-panel="relation-legend"')
+    existsSync(path.join(repoRoot, 'src/features/knowledge/graph/relation-family-control.tsx'))
+      && readFileSync(path.join(repoRoot, 'src/features/knowledge/graph/relation-family-control.tsx'), 'utf8')
+        .includes('data-knowledge-relation-family-control=')
       ? null
-      : 'graph-source:relation-legend-panel-missing',
+      : 'graph-source:relation-family-control-missing',
     graphSource.includes('data-knowledge-hover-context-policy="preview-only-not-durable-context"')
       ? null
       : 'graph-source:hover-context-policy-missing',
@@ -2467,6 +2711,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   if (
     designProblems.length > 0
     || stateProblems.length > 0
+    || captureRevisionProblems.length > 0
     || sourceProblems.length > 0
     || focusProblems.length > 0
     || handoffProblems.length > 0
@@ -2476,6 +2721,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     return [knowledgeGraphGovernanceViolation('Knowledge workspace product QA evidence is incomplete.', [
       `design=${designProblems.join(',') || 'none'}`,
       `states=${stateProblems.join(',') || 'none'}`,
+      `captureRevision=${captureRevisionProblems.join(',') || 'none'}`,
       `source=${sourceProblems.join(',') || 'none'}`,
       `focus=${focusProblems.join(',') || 'none'}`,
       `handoff=${handoffProblems.join(',') || 'none'}`,
@@ -2491,9 +2737,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
 function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViolation[] {
   const violations: CommercialUiGovernanceViolation[] = [];
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH);
-  const shellManifest = readJsonFile<{ viewports?: CommercialVisualAcceptanceEvidence['viewports'] }>(
-    'artifacts/commercial-ui/knowledge-map-unified-shell-415/manifest.json',
-  );
   const visualLanguage = readJsonFile<JsonRecord>(
     'artifacts/commercial-ui/knowledge-graph-visual-language-460/evidence.json',
   );
@@ -2521,21 +2764,6 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
   const desktopOpenClose = objectRecord(localToolEvidence.desktopOpenClose);
   const tabletDefault = objectRecord(localToolEvidence.tabletDefault);
   const mobileDefault = objectRecord(localToolEvidence.mobileDefault);
-  const shellViewports = shellManifest?.viewports ?? [];
-  const shellDesktop = shellViewports.find((viewport) => viewport.width === 1440);
-  const shellMobile = shellViewports.find((viewport) => viewport.width === 320);
-  const shellDesktopPanels = objectRecord(shellDesktop?.localPanelEvidence);
-  const shellMobilePanels = objectRecord(shellMobile?.localPanelEvidence);
-  const requiredDesktopPanels = [
-    'chapterDirectory',
-    'relationFilters',
-    'chapterDirectoryOpenClosed',
-    'relationFiltersOpenClosed',
-    'activeFilterSummaryWhenCollapsed',
-    'legend',
-    'viewModeSwitch',
-  ];
-  const missingDesktopPanels = requiredDesktopPanels.filter((key) => shellDesktopPanels[key] !== true);
   const defaultStateProblems = [
     graphSource.includes('const [desktopActiveTool, setDesktopActiveTool] = useState<KnowledgeDesktopTool | null>(null);')
       ? null
@@ -2543,57 +2771,57 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     graphSource.includes('data-knowledge-desktop-command-system="compact"')
       ? null
       : 'desktopCommandSystem:missing',
-    graphSource.includes('const [isPanelOpen, setIsPanelOpen] = useState(false);')
+    graphSource.includes('const [inspection, dispatchInspection] = useReducer(')
+      && graphSource.includes('const isPanelOpen = inspection.isPanelOpen;')
       ? null
-      : 'resourcePanel:not-closed-until-node-selection',
+      : 'resourcePanel:inspection-reducer-contract-missing',
     graphSource.includes("data-state={desktopActiveTool ? 'open' : 'closed'}")
       ? null
       : 'desktopCommandSystem:data-state-missing',
-    graphSource.includes("desktopActiveTool === 'relation-filters'")
+    graphSource.includes("desktopActiveTool === 'node-filters'")
       ? null
-      : 'relationFilters:command-panel-missing',
+      : 'nodeFilters:command-panel-missing',
     graphSource.includes('data-knowledge-node-control={node.id}')
-      && graphSource.includes('resolveKnowledgeNodeActivation')
+      && graphSource.includes('const activateNodeById = useCallback((nodeId: string) =>')
+      && graphSource.includes("dispatchInspection({ type: 'inspect-node', node })")
       && !graphSource.includes('data-knowledge-node-expansion-control')
       ? null
       : 'direct-node-activation:source-contract-missing',
-    graphSource.includes('aria-busy={loadingExpansionNodeIds.includes(node.id)}')
-      && graphSource.includes("data-error={expansionErrorByNodeId[node.id] ? 'true' : 'false'}")
-      && graphSource.includes("data-filtered-empty={filteredEmptyExpansionNodeIds.includes(node.id) ? 'true' : 'false'}")
+    graphSource.includes("aria-busy={isCollapsedRootNode(node) && navigation.view.kind === 'domain'")
+      && graphSource.includes("data-error={isCollapsedRootNode(node) && navigation.view.kind === 'domain'")
+      && graphSource.includes("data-filtered-empty={isCollapsedRootNode(node) && navigation.view.kind === 'domain'")
       ? null
       : 'direct-node-activation:node-state-contract-missing',
-    resourcePanelSource.indexOf('data-knowledge-inspector-section="evidence-sources"')
-      < resourcePanelSource.indexOf('data-knowledge-inspector-section="relation-overview"')
+    resourcePanelSource.includes('const [activeRelationPathSection, setActiveRelationPathSection]')
+      && resourcePanelSource.includes('setActiveRelationPathSection(null);')
+      && resourcePanelSource.indexOf('data-knowledge-inspector-section="evidence-sources"')
+        < resourcePanelSource.indexOf('inspectorSection="relation-overview"')
       ? null
-      : 'inspector:knowledge-card-before-related-missing',
+      : 'inspector:single-open-accordion-contract-missing',
   ].filter((entry): entry is string => Boolean(entry));
   const missingOpenCloseEvidence = [
     'chapterDirectoryOpenClosed',
-    'relationFiltersOpenClosed',
-    'legendOpenClosed',
-    'viewModeSwitchOpenClosed',
+    'nodeFiltersOpenClosed',
+    'viewLayoutOpenClosed',
     'resourcePanelOpenClosed',
     'selectedNodePreserved',
     'activeFiltersPreserved',
-    'densityModePreserved',
-    'legendStatePreserved',
+    'relationFamilyStatePreserved',
     'visibleSummariesPreserved',
   ].filter((key) => desktopOpenClose[key] !== true);
 
   if (
     desktopDefault.canvasPrimary !== true
     || desktopDefault.chapterDirectory !== 'compact'
-    || desktopDefault.relationFilters !== 'compact'
-    || desktopDefault.legend !== 'compact'
-    || desktopDefault.viewModeSwitch !== 'compact'
+    || desktopDefault.nodeFilters !== 'compact'
+    || desktopDefault.relationFamilyControl !== 'compact-bottom-left'
+    || desktopDefault.viewLayout !== 'compact'
     || desktopDefault.resourcePanel !== 'closed-until-node-selection'
     || desktopDefault.activeFilterSummaryWhenCollapsed !== true
-    || missingDesktopPanels.length > 0
     || defaultStateProblems.length > 0
     || missingOpenCloseEvidence.length > 0
   ) {
     violations.push(knowledgeGraphGovernanceViolation('Knowledge graph compact desktop tool evidence is incomplete.', [
-      `missingShellPanels=${missingDesktopPanels.join(',') || 'none'}`,
       `defaultStateProblems=${defaultStateProblems.join(',') || 'none'}`,
       `missingOpenClose=${missingOpenCloseEvidence.join(',') || 'none'}`,
     ]));
@@ -2622,19 +2850,16 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     || mobileDefault.noPersistentSidebar !== true
     || mobileDefault.noPersistentFilter !== true
     || mobileDefault.noPersistentKnowledgeDrawer !== true
-    || shellMobilePanels.mobileSingleToolPanel !== true
-    || shellMobilePanels.mobileCommandSurface !== true
-    || shellMobile?.noPersistentKnowledgeGraphDrawer !== true
   ) {
     violations.push(knowledgeGraphGovernanceViolation('Knowledge graph mobile local-tool evidence is incomplete.', [
       'mobileDefault',
-      'mobileSingleToolPanel',
-      'noPersistentKnowledgeGraphDrawer',
+      'single-tool-panel',
+      'no-persistent-knowledge-drawer',
     ]));
   }
 
   if (
-    !graphSource.includes('data-knowledge-local-tool="legend"')
+    !graphSource.includes('data-knowledge-local-panel="node-filters"')
     || !graphSource.includes('data-knowledge-mobile-drawer="view-layout"')
     || !graphSource.includes('data-knowledge-local-panel="view-layout-controls"')
     || !resourcePanelSource.includes('data-knowledge-local-panel="resource-panel"')
@@ -2643,7 +2868,7 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     || !floatingControlsSource.includes('data-platform-floating-dock-inspector-avoidance')
   ) {
     violations.push(knowledgeGraphGovernanceViolation('Knowledge graph local tool DOM contracts are incomplete.', [
-      'legend',
+      'node-filters',
       'mobile-view-layout',
       'view-layout-controls',
       'resource-panel',
@@ -2665,29 +2890,6 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
       .map((entry) => (typeof entry.type === 'string' ? entry.type : undefined))
       .filter((type): type is string => Boolean(type)),
   );
-  const visualLegend = (Array.isArray(visualLanguage?.relationLegend) ? visualLanguage?.relationLegend : [])
-    .map((entry) => objectRecord(entry));
-  const legendByType = new Map(
-    visualLegend
-      .filter((entry): entry is {
-        type: string;
-        label: string;
-        visualFamily: string;
-        direction: string;
-        density: string;
-        legendExplanation: string;
-        hasNonColorEncoding: boolean;
-      } => (
-        typeof entry.type === 'string'
-        && typeof entry.label === 'string'
-        && typeof entry.visualFamily === 'string'
-        && typeof entry.direction === 'string'
-        && typeof entry.density === 'string'
-        && typeof entry.legendExplanation === 'string'
-        && typeof entry.hasNonColorEncoding === 'boolean'
-      ))
-      .map((entry) => [entry.type, entry] as const),
-  );
   const runtimeRelationTypes = [...runtimeRelationCounts.keys()].sort();
   const currentCoverageGaps = assertRuntimeRelationStyleCoverage(runtimeRelationTypes);
   const currentLegendByType = new Map(getRelationLegendItems().map((item) => [item.type, item]));
@@ -2696,8 +2898,6 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     if (!evidenceTypes.has(type)) missingRelationEvidence.push(`${type}:evidence-sample`);
     const currentLegend = currentLegendByType.get(type);
     if (!currentLegend) missingRelationEvidence.push(`${type}:current-legend`);
-    const evidenceLegend = legendByType.get(type);
-    if (!evidenceLegend) missingRelationEvidence.push(`${type}:screenshot-legend`);
     try {
       const semantic = getRelationSemantic(type);
       if (!/[\u4e00-\u9fff]/.test(semantic.label)) missingRelationEvidence.push(`${type}:localized-label`);
@@ -2711,7 +2911,6 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     if (currentLegend?.sampleStyle.dash.length === 0 && currentLegend.sampleStyle.hasArrow === false && currentLegend.sampleStyle.endpoint === 'none') {
       missingRelationEvidence.push(`${type}:text-or-color-only-encoding`);
     }
-    if (evidenceLegend?.hasNonColorEncoding !== true) missingRelationEvidence.push(`${type}:non-color-encoding`);
   }
   const requiredRelationSamples = [
     'cross_domain',

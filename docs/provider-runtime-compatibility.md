@@ -30,3 +30,5 @@ The smoke command checks:
 - unavailable fallback when only metadata-only Anthropic-compatible providers are present
 
 Failures report provider id and capability category. The command must not print API keys, secret refs, bearer tokens, or raw stack traces.
+
+智能课件真实 provider 演示、fixture 禁用边界和 generation audit 留证要求见 [智能课件发布 P0 运行手册](./operations/smart-courseware-p0-runbook.md)。

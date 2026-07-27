@@ -5,7 +5,7 @@
  * 爱达·魔都号 - 横摇耦合 + 减摇鳍 + 陷波滤波器
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -17,17 +17,40 @@ import {
 import { useSearchParams } from 'next/navigation';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { MaritimeEnvironment } from '../environment/maritime-environment';
+import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
 import { SimulationClock } from '@/lib/simulation';
-import {
-  UnifiedCameraController,
-  RightClickFreeModeBridge,
-  type CameraMode,
-} from '../components/camera-controller';
+import { persistSceneTraceRun } from '../persisted-run-client';
+import { RightClickFreeModeBridge } from '../components/camera-controller';
+import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
+import {
+  EnvironmentScene,
+  SceneEnvironmentProvider,
+  useEnvironmentWaterColors,
+  useSceneEnvironment,
+} from '../scene/environment';
+import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { WakeTrail } from '../scene/wake';
+import {
+  SceneSoundscapeProvider,
+  SoundscapeAmbienceDriver,
+} from '../scene/audio';
+import {
+  TeachingAnnotationsProvider,
+  useTeachingAnnotations,
+} from '../scene/annotations';
+import {
+  SceneQualityDriver,
+  SceneQualityProvider,
+  useSceneQuality,
+} from '../scene/quality';
+import { ScenePostEffects } from '../scene/post';
+import { cruiseAdoraSceneVisual } from '../profiles/cruise-adora-scene';
+import { platformHeadingToSceneRad } from '../scene/heading';
+import { WaterHuggingLine } from '../scene/lines';
 
 import type {
   ControlMode,
@@ -275,16 +298,47 @@ function Ocean({ seaState, sceneTheme }: { seaState: number; sceneTheme: Simulat
 
 // ============ 邮轮模型组件 ============
 
-function CruiseShipModel({
-  position,
-  heading,
-  rollAngle,
-}: {
+const OPTIMIZED_MODEL_URL = '/assets/models-opt/luxury-liner.glb';
+const ORIGINAL_MODEL_URL = '/assets/luxury-liner.glb';
+
+/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
+class ModelAssetErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+function CruiseShipModel(props: {
   position: Vector2;
   heading: number;
   rollAngle: number;
 }) {
-  const { scene } = useGLTF('/assets/luxury-liner.glb');
+  return (
+    <ModelAssetErrorBoundary fallback={<CruiseShipModelScene url={ORIGINAL_MODEL_URL} {...props} />}>
+      <CruiseShipModelScene url={OPTIMIZED_MODEL_URL} {...props} />
+    </ModelAssetErrorBoundary>
+  );
+}
+
+function CruiseShipModelScene({
+  url,
+  position,
+  heading,
+  rollAngle,
+}: {
+  url: string;
+  position: Vector2;
+  heading: number;
+  rollAngle: number;
+}) {
+  const { scene } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
 
   const { model, scale, modelHeight } = useMemo(() => {
@@ -303,6 +357,8 @@ function CruiseShipModel({
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
+        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
+        child.frustumCulled = false;
         if (child.material) {
           // 修复材质可见性问题
           child.material.transparent = false;
@@ -354,48 +410,34 @@ function CruiseShipModel({
   );
 }
 
-// 预加载模型
-useGLTF.preload('/assets/luxury-liner.glb');
+// 预加载模型（仅压缩件，避免双份下载）
+useGLTF.preload(OPTIMIZED_MODEL_URL);
 
 // ============ 航迹线组件 ============
 
 function TrajectoryLine({ points }: { points: Vector2[] }) {
-  const linePoints = useMemo(() => {
-    return points.map((p) => [p.x, 0.5, p.z] as [number, number, number]);
-  }, [points]);
-
-  if (linePoints.length < 2) return null;
-
-  return (
-    <Line
-      points={linePoints}
-      color={CRUISE_HEADING_PRIMARY}
-      lineWidth={2.4}
-      dashed={false}
-    />
-  );
+  if (points.length < 2) return null;
+  return <WaterHuggingLine points={points} color={CRUISE_HEADING_PRIMARY} lineWidth={2.4} />;
 }
 
 function DesiredRouteLine({ points }: { points: Vector2[] }) {
-  const linePoints = useMemo(() => points.map((p) => [p.x, 1.2, p.z] as [number, number, number]), [points]);
-  const arrowStart = linePoints.length > 1 ? linePoints[linePoints.length - 2] : null;
-  const arrowEnd = linePoints.length > 1 ? linePoints[linePoints.length - 1] : null;
-  if (linePoints.length < 2) {
+  const arrowStart = points.length > 1 ? points[points.length - 2] : null;
+  const arrowEnd = points.length > 1 ? points[points.length - 1] : null;
+  if (points.length < 2) {
     return null;
   }
 
   return (
     <>
-      <Line
-        points={linePoints}
-        color={CRUISE_HEADING_SECONDARY}
-        lineWidth={2.2}
-        dashed
-        dashSize={36}
-        gapSize={16}
-      />
+      <WaterHuggingLine points={points} color={CRUISE_HEADING_SECONDARY} lineWidth={2.2} dashed dashSize={36} gapSize={16} />
       {arrowStart && arrowEnd ? (
-        <DirectionArrow start={arrowStart} end={arrowEnd} color={CRUISE_HEADING_SECONDARY} dashed={false} lineWidth={2.2} />
+        <DirectionArrow
+          start={[arrowStart.x, 1.2, arrowStart.z]}
+          end={[arrowEnd.x, 1.2, arrowEnd.z]}
+          color={CRUISE_HEADING_SECONDARY}
+          dashed={false}
+          lineWidth={2.2}
+        />
       ) : null}
     </>
   );
@@ -714,6 +756,7 @@ function ControllerPanel({
       <div className="flex gap-2">
         {!state.isRunning ? (
           <button type="button"
+            data-sound-start
             onClick={onStart}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
           >
@@ -1328,9 +1371,104 @@ function SceneShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+// ============ 管线桥接组件 ============
+
+const CAMERA_SHOT_VIEWS = [
+  { id: SCENE_CAMERA_SHOTS.chase.id, label: '跟船', shortLabel: '跟', icon: Video, description: SCENE_CAMERA_SHOTS.chase.description },
+  { id: SCENE_CAMERA_SHOTS.orbit.id, label: '环绕', shortLabel: '环', icon: Orbit, description: SCENE_CAMERA_SHOTS.orbit.description },
+  { id: SCENE_CAMERA_SHOTS.tactical.id, label: '战术', shortLabel: '战', icon: Compass, description: SCENE_CAMERA_SHOTS.tactical.description },
+  { id: SCENE_CAMERA_SHOTS.topDown.id, label: '顶视', shortLabel: '顶', icon: ArrowDownFromLine, description: SCENE_CAMERA_SHOTS.topDown.description },
+];
+
+/** QA 钩子：把质量档位与派生预算暴露为 DOM 属性（性能 spec 与视觉 QA 消费）。 */
+function SceneQualityAttributes() {
+  const { tier, override, params } = useSceneQuality();
+  return (
+    <span
+      hidden
+      data-scene-quality-tier={tier}
+      data-scene-quality-override={override ?? ''}
+      data-wake-particle-cap={Math.round(2200 * params.particleScale)}
+      data-water-tier={params.waterTier}
+      data-post-enabled={params.postEnabled}
+    />
+  );
+}
+
+/** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
+function CruiseWater({ state }: { state: CruiseSimulationState }) {
+  const water = useEnvironmentWaterColors();
+  const { params } = useSceneQuality();
+  return (
+    <GerstnerWater
+      tier={params.waterTier}
+      positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      waterColor={water.waterColor}
+      deepColor={water.deepColor}
+      horizonColor={water.horizonColor}
+      foamColor={simulationScenePalette.waterFoam}
+    />
+  );
+}
+
+/** 尾迹粒子场桥接：逐帧喂入船位/航向与 Gerstner 波面高度。 */
+function WakeTrailRig({
+  state,
+  playing,
+  resetToken,
+}: {
+  state: CruiseSimulationState;
+  playing: boolean;
+  resetToken: number;
+}) {
+  const { wakeVisible } = useSceneEnvironment();
+  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
+  const timeRef = useRef(0);
+  const { tier, params } = useSceneQuality();
+
+  useFrame((frameState) => {
+    transformRef.current.position = [state.position.x, 0, state.position.z];
+    transformRef.current.heading = platformHeadingToSceneRad(state.heading);
+    timeRef.current = frameState.clock.getElapsedTime();
+  });
+
+  if (!wakeVisible) return null;
+  return (
+    <WakeTrail
+      key={resetToken}
+      profile={cruiseAdoraSceneVisual}
+      shipTransform={transformRef.current}
+      qualityTier={tier}
+      playing={playing}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      worldSpeedSampler={() => state.speed}
+    />
+  );
+}
+
+/** 教学标注开关门控：默认关闭，开启时显示当前/目标航向指示。 */
+function TeachingAnnotationsGate({
+  position,
+  targetHeading,
+  currentHeading,
+}: {
+  position: Vector2;
+  targetHeading: number;
+  currentHeading: number;
+}) {
+  const { showAnnotations } = useTeachingAnnotations();
+  if (!showAnnotations) return null;
+  return (
+    <HeadingIndicator
+      position={position}
+      targetHeading={targetHeading}
+      currentHeading={currentHeading}
+    />
+  );
+}
+
 function VisualizationLayer({
   state,
-  virtualModeEnabled,
   showGrid,
   sceneTheme,
   desiredRoutePoints,
@@ -1338,6 +1476,8 @@ function VisualizationLayer({
   cameraMode,
   controlsRef,
   onRequestFreeMode,
+  resetToken,
+  resetSignal,
 }: {
   state: CruiseSimulationState;
   virtualModeEnabled: boolean;
@@ -1345,19 +1485,22 @@ function VisualizationLayer({
   sceneTheme: SimulationSceneTheme;
   desiredRoutePoints: Vector2[];
   trajectoryPoints: Vector2[];
-  cameraMode: CameraMode;
+  cameraMode: string;
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
   onRequestFreeMode: () => void;
+  resetToken: number;
+  resetSignal: number;
 }) {
   return (
     <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
-      <ambientLight intensity={sceneTheme.ambientLightIntensity} />
-      <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
-      <MaritimeEnvironment
-        shipPosition={state.position}
-        seaState={virtualModeEnabled ? state.seaState : 1}
-        sceneTheme={sceneTheme}
-      />
+      <Suspense fallback={null}>
+        <EnvironmentScene />
+      </Suspense>
+      <SoundscapeAmbienceDriver />
+      <SceneQualityDriver />
+      <Suspense fallback={null}>
+        <CruiseWater state={state} />
+      </Suspense>
       {showGrid ? (
         <Grid
           args={[20000, 20000]}
@@ -1388,11 +1531,12 @@ function VisualizationLayer({
       </Suspense>
       <DesiredRouteLine points={desiredRoutePoints} />
       <TrajectoryLine points={trajectoryPoints} />
-      <HeadingIndicator
+      <TeachingAnnotationsGate
         position={state.position}
         targetHeading={state.targetHeading}
         currentHeading={state.heading}
       />
+      <WakeTrailRig state={state} playing={state.isRunning && !state.isPaused} resetToken={resetToken} />
       <OrbitControls
         ref={controlsRef}
         enablePan
@@ -1403,12 +1547,15 @@ function VisualizationLayer({
         maxDistance={3000}
       />
       <RightClickFreeModeBridge onRequestFreeMode={onRequestFreeMode} />
-      <UnifiedCameraController
-        position={state.position}
-        headingRad={toRadians(state.heading)}
-        cameraMode={cameraMode}
+      <StayPutCameraController
+        view={cameraMode}
+        positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+        headingSampler={() => platformHeadingToSceneRad(state.heading)}
+        shipLength={cruiseAdoraSceneVisual.shipLengthMeters}
         controlsRef={controlsRef}
+      resetSignal={resetSignal}
       />
+      <ScenePostEffects />
     </Canvas>
   );
 }
@@ -1470,6 +1617,32 @@ function TelemetryBridge({
 
     emittedRunIdRef.current = runId;
     window.dispatchEvent(new CustomEvent<CruiseTelemetryBridgeSummary>('simulation:trace-summary', { detail: summary }));
+    const query = new URLSearchParams(window.location.search);
+    void persistSceneTraceRun({
+      traceSummary: summary,
+      launchContext: {
+        classId: query.get('classId') ?? undefined,
+        courseId: query.get('courseId') ?? undefined,
+        lessonId: query.get('lessonPlanId') ?? undefined,
+        publicationId: query.get('publicationId') ?? undefined,
+        registryId: query.get('registryId') ?? undefined,
+        resourceId: query.get('resourceId') ?? undefined,
+        sessionId: query.get('sessionId') ?? undefined,
+      },
+    }).then(({ simulationRunId }) => {
+      const completionChannelId = query.get('completionChannelId');
+      if (!completionChannelId || typeof BroadcastChannel === 'undefined') return;
+      const channel = new BroadcastChannel(`simulation-run:${completionChannelId}`);
+      channel.postMessage({
+        type: 'simulation-run-persisted',
+        sceneId: 'cruise',
+        simulationRunId,
+      });
+      channel.close();
+    }).catch((error) => {
+      emittedRunIdRef.current = null;
+      console.error('[Cruise Simulation] Failed to persist completed run:', error);
+    });
     if (window.parent && window.parent !== window) {
       window.parent.postMessage(
         {
@@ -1518,8 +1691,10 @@ export default function CruiseSimulation() {
   const telemetryRunIdRef = useRef(createCruiseTraceRunId());
   const telemetryStartedAtRef = useRef(new Date().toISOString());
 
-  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [resetCount, setResetCount] = useState(0);
+  const [viewResetCount, setViewResetCount] = useState(0);
   const [speedScale, setSpeedScale] = useState(1);
   const [virtualModeEnabled, setVirtualModeEnabled] = useState(true);
   const sceneTheme = useSimulationSceneTheme();
@@ -1800,6 +1975,7 @@ export default function CruiseSimulation() {
       steadyError: !isCourseMode || courseRole === 'teacher',
       maxLateralAccel: !isCourseMode || courseRole === 'teacher',
     });
+    setResetCount((previous) => previous + 1);
   }, [courseRole, isCourseMode]);
 
   // 处理器
@@ -2061,7 +2237,12 @@ export default function CruiseSimulation() {
   }, [isCourseMode, state.controlMode]);
 
   return (
+    <SceneEnvironmentProvider>
+    <SceneSoundscapeProvider>
+    <TeachingAnnotationsProvider>
+    <SceneQualityProvider>
     <SceneShell>
+      <SceneQualityAttributes />
       <TelemetryBridge
         state={state}
         performance={runtimePerformance}
@@ -2082,11 +2263,15 @@ export default function CruiseSimulation() {
         cameraMode={cameraMode}
         controlsRef={controlsRef}
         onRequestFreeMode={() => setCameraMode('free')}
+        resetToken={resetCount}
+          resetSignal={viewResetCount}
       />
 
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        onViewReset={() => setViewResetCount((previous) => previous + 1)}
+        views={CAMERA_SHOT_VIEWS}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
         speedScale={speedScale}
@@ -2185,5 +2370,9 @@ export default function CruiseSimulation() {
         </div>
       </div>
     </SceneShell>
+    </SceneQualityProvider>
+    </TeachingAnnotationsProvider>
+    </SceneSoundscapeProvider>
+    </SceneEnvironmentProvider>
   );
 }

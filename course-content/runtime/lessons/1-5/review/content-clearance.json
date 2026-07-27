@@ -1,8 +1,8 @@
 {
   "lesson_id": "1-5",
   "reviewer": "course-pedagogy-reviewer",
-  "batch": "unit-1-5-content-clearance-2026-07-14",
-  "time": "2026-07-14T04:30:00.000Z",
+  "batch": "unit-1-5-content-clearance-2026-07-16-1905",
+  "time": "2026-07-16T11:05:14.000Z",
   "model": "gpt-5.6-sol",
   "status": "cleared",
   "review_status": "model-cleared",
@@ -11,7 +11,7 @@
     {
       "resourceId": "runtime-handout:1-5",
       "sourcePath": "course-content/runtime/lessons/1-5/1-5-handout.md",
-      "sourceHash": "sha256:a3cf64c2aa4a7f6e2d56d1e781fb7c203cdb1e3a477ad9ef2f4149ce17f6e743",
+      "sourceHash": "sha256:5c369d346a34ea118e793b05738f2ae5a5b1dd0617023c04c652666873aeb2b3",
       "sourceVersionRef": "runtime-handout.v1",
       "graphNodeRefs": {
         "knowledge": [

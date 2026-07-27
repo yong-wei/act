@@ -1,0 +1,28 @@
+{
+  "recordType": "benchmark-lock",
+  "lockVersion": "textbook-hybrid-retrieval-benchmark-lock.v1",
+  "benchmarkHash": "sha256:14bcd6350d51b554327cc9a93d21f479398303e6696985dd1f5429403f471028",
+  "splitHash": "sha256:50b168cfa236a35166408c0a9d5cc9384e76528277b3a717ddf1fe15dbfbcba8",
+  "queryCount": 50,
+  "tuningQueryCount": 39,
+  "acceptanceQueryCount": 11,
+  "tuningQueryIdsHash": "sha256:9f02c0b1dd9590d1920cbfb7459e6b717279556e13c4d19825cff30fdc7dcf2e",
+  "acceptanceQueryIdsHash": "sha256:1512cd60bd2ed3fc8749aa0a69c9790816c17568d14845daaabc1a873e3e79da",
+  "candidateModels": [
+    "BAAI/bge-m3",
+    "Qwen/Qwen3-Embedding-0.6B",
+    "Qwen/Qwen3-Embedding-4B"
+  ],
+  "pricing": {
+    "currency": "CNY",
+    "unit": "per-million-input-tokens",
+    "version": "siliconflow-public-model-pricing-cny-2026-07-25",
+    "checkedAt": "2026-07-25T00:00:00+08:00",
+    "sourceUrl": "https://siliconflow.cn/pricing",
+    "inputCnyPerMillionTokens": {
+      "BAAI/bge-m3": 0,
+      "Qwen/Qwen3-Embedding-0.6B": 0.07,
+      "Qwen/Qwen3-Embedding-4B": 0.14
+    }
+  }
+}

@@ -138,11 +138,11 @@ describe('authoring resource flow source contracts', () => {
     expect(playSource).toContain('!plan.isPublic && !isAdmin && !isAuthor');
     expect(playSource).toContain('editHref={editHref}');
     expect(playSource).toContain('canStartClass={canStartClass}');
-    expect(graphSource).toContain("params.get('node') ?? params.get('nodeId')");
+    expect(graphSource).toContain('resolveInitialKnowledgeNodeId(window.location.search');
     expect(graphSource).toContain('aria-label={`${item.label}工具`}');
-    expect(graphSource).toContain('data-knowledge-mobile-filter-group="density-mode"');
-    expect(graphSource).toContain('data-knowledge-mobile-filter-group="relation-types"');
-    expect(graphSource).toContain('data-knowledge-mobile-filter-group="advanced-thresholds"');
+    expect(graphSource).toContain('data-knowledge-mobile-tool-sticky-control="relation-family"');
+    expect(graphSource).toContain('data-knowledge-mobile-drawer="node-filters"');
+    expect(graphSource).toContain('data-knowledge-mobile-drawer="view-layout"');
     expect(panelSource).toContain('data-resource-node-action="add-to-course-flow"');
     expect(panelSource).toContain('data-resource-node-action="create-learning-task"');
     expect(panelSource).toContain('intent=contextual-recommendation');

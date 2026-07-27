@@ -17,8 +17,8 @@
 
 ## 判断规则
 
-- 当前工作树是 `act-dev1`、`act-dev2`、`act-resource` 或 Codex 分配的长期子工作树时，直接在该工作树绑定分支上开发。
-- `act-dev1` 绑定 `dev1`，`act-dev2` 绑定 `dev2`，`act-resource` 绑定 `resource`；这些分支按需要与 `integration` 同步。
+- 当前工作树是用户授权的永久工作树或 Codex 分配的长期子工作树时，直接在该工作树绑定分支上开发。
+- 工作树名称、绑定分支和可用范围以当前任务授权与 `git worktree` 实际状态为准；不要从旧文档推断可以访问其他隔离工作树。
 - 在永久子工作树中执行 OpenSpec/Buddy change 时，先确认当前分支、issue claim 和 change 边界，再实施，不要再创建嵌套 worktree。
 - 只有从主协调工作树发起具体实现、需要保护主工作树状态，或用户明确要求额外隔离时，才新建临时 worktree。
 

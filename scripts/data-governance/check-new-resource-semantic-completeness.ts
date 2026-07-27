@@ -6,6 +6,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { resolveOpenSpecChangeEvidencePath } from '@/lib/data-governance/openspec-change-evidence-path';
 import type { RuntimeResourceProjectionFamily } from '@/lib/runtime-resource-projections';
 import { normalizeMediaId } from '../db/runtime-lesson-semantic-evidence';
 import {
@@ -14,7 +15,7 @@ import {
   parseAddedRuntimeProjectionChanges,
   parseChangedRegisteredResourceIds,
   validateChangedRegisteredResources,
-  validateChangedRuntimeResourceProjections,
+  validateChangedRuntimeResourceProjectionChanges,
   type NewResourceGateIssue,
   type NewResourceGateResult,
 } from '@/lib/data-governance/new-resource-semantic-completeness-gate';
@@ -22,6 +23,15 @@ import {
 const REGISTERED_RESOURCE_METADATA_PATH = 'src/lib/resource-registry-metadata.ts';
 const RESOURCE_COMPONENT_REGISTRY_PATH = 'src/lib/resource-registry.tsx';
 const RUNTIME_RESOURCE_PROJECTIONS_PATH = 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl';
+const LONGFORM_REVIEW_SOURCE_PATH = 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl';
+const LONGFORM_CHANGE_ID = 'complete-longform-textbook-reference-resource-semantics';
+const LONGFORM_INPUT_SNAPSHOT_PATH = resolveOpenSpecChangeEvidencePath(
+  process.cwd(), LONGFORM_CHANGE_ID, 'longform-textbook-reference-resource-input-snapshot.jsonl',
+);
+const LONGFORM_INPUT_SNAPSHOT_SEAL_PATH = resolveOpenSpecChangeEvidencePath(
+  process.cwd(), LONGFORM_CHANGE_ID, 'longform-textbook-reference-resource-input-snapshot.seal.json',
+);
+const LONGFORM_INPUT_SNAPSHOT_VERSION = 'longform-textbook-reference-resource-input-snapshot.v1';
 const RUNTIME_LESSON_MANIFEST_DIR = 'course-content/runtime/lessons';
 const RUNTIME_TEXTBOOK_DIR = 'course-content/runtime/resources/textbooks';
 const RUNTIME_KNOWLEDGE_CARD_DIR = 'course-content/runtime/knowledge/cards/nodes';
@@ -29,9 +39,6 @@ const RUNTIME_INFOGRAPH_MANIFEST_PATH = 'course-content/runtime/knowledge/infogr
 const RUNTIME_INFOGRAPH_NODE_DIR = 'course-content/runtime/knowledge/infographs/nodes';
 const QUESTION_BANK_DIR = 'course-content/questions/questions';
 const RUNTIME_ASSESSMENT_CATALOG_PATHS = [
-  'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
-  'course-content/runtime/resource-governance/assessment-item-semantic-review-packets.jsonl',
-  'course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
   'course-content/runtime/resource-governance/kaq-quiz-foundation-reviewed-items.jsonl',
 ];
 const RUNTIME_PROJECTION_SOURCE_PATHS = [
@@ -50,10 +57,17 @@ const TEACHING_RESOURCE_SEED_PATHS = [
 ];
 const TEACHING_RESOURCE_REPAIR_PATH = 'scripts/db/repair-resource-identity-bindings.ts';
 const PRESET_LESSON_RESOURCE_DIR = 'src/features/teacher/preset-lessons/presets';
+const runtimeProjectionTreeContentCache = new Map<string, Buffer | null>();
+const trackedPathCache = new Map<string, boolean>();
+let allTrackedPathsCache: Set<string> | null = null;
+const longformReviewSourceIndexCache = new Map<string, Map<string, Record<string, unknown>> | null>();
+const longformInputSnapshotIndexCache = new Map<string, Map<string, Record<string, unknown>> | null>();
+const runtimeProjectionTreePathsCache = new Map<string, string[]>();
 
 interface CliOptions {
   base: string | null;
   staged: boolean;
+  stagedBase: string | null;
 }
 
 interface DiffLineRange {
@@ -83,6 +97,10 @@ type RuntimeProjectionRow = ReturnType<typeof parseAddedRuntimeProjectionChanges
   reviewAudit?: {
     independentEvidenceRef?: string | null;
     reviewedSourceHash?: string | null;
+    reviewedVersionRef?: string | null;
+    reviewSourceSha256?: string | null;
+    reviewRowHash?: string | null;
+    status?: string | null;
   };
 };
 interface RuntimeMediaIndexAssetState {
@@ -135,6 +153,7 @@ function main() {
   const registeredResourceDiff = gitDiff(options, REGISTERED_RESOURCE_METADATA_PATH);
   const resourceComponentRegistryDiff = gitDiff(options, RESOURCE_COMPONENT_REGISTRY_PATH);
   const runtimeProjectionDiff = gitDiff(options, RUNTIME_RESOURCE_PROJECTIONS_PATH);
+  const longformReviewSourceDiff = gitDiff(options, LONGFORM_REVIEW_SOURCE_PATH);
   const runtimeProjectionSourceChanges = gitChangedRuntimeProjectionSourceChanges(options);
   const runtimeProjectionSourcePaths = uniqueSorted(runtimeProjectionSourceChanges.map(({ filePath }) => filePath));
   const runtimeProjectionSourceRequirements = runtimeProjectionSourceChanges
@@ -148,6 +167,7 @@ function main() {
   const runtimeProjectionRows = runtimeProjectionChanges.rows;
   const deletedRuntimeProjectionRows = runtimeProjectionChanges.deletedRows;
   const finalRuntimeProjectionRowsResult = parseFinalRuntimeProjectionRows(options);
+  const changedLongformReviewSourceIdsResult = parseChangedLongformReviewSourceIds(longformReviewSourceDiff);
   const runtimeProjectionRowSourcePaths = runtimeProjectionRows
     .flatMap((row) => runtimeProjectionRowEvidenceLocalSourcePaths(row));
   const teachingResourceChanges = teachingResourcePaths.map((filePath) => ({
@@ -167,6 +187,7 @@ function main() {
         RUNTIME_RESOURCE_PROJECTIONS_PATH,
         ...runtimeProjectionRowSourcePaths,
       ] : []),
+      ...(hasDiff(longformReviewSourceDiff) ? [LONGFORM_REVIEW_SOURCE_PATH] : []),
       ...(runtimeProjectionSourcePaths.length > 0 ? [
         ...runtimeProjectionSourcePaths,
         RUNTIME_RESOURCE_PROJECTIONS_PATH,
@@ -203,7 +224,7 @@ function main() {
     runtimeProjectionChanges.result,
     validateDeletedRuntimeProjectionRows(
       deletedRuntimeProjectionRows,
-      runtimeProjectionRows,
+      runtimeProjectionChanges.rows,
       runtimeProjectionSourceRequirements,
       options,
     ),
@@ -213,6 +234,12 @@ function main() {
       deletedRuntimeProjectionRows,
     ),
     finalRuntimeProjectionRowsResult.result,
+    changedLongformReviewSourceIdsResult.result,
+    validateChangedLongformReviewSourceBindings(
+      changedLongformReviewSourceIdsResult.resourceIds,
+      finalRuntimeProjectionRowsResult.rows,
+      options,
+    ),
     validateRuntimeLessonMediaStableIdentity(finalRuntimeProjectionRowsResult.rows),
     validateRuntimeMediaIndexEvidenceBindings(finalRuntimeProjectionRowsResult.rows),
     validateRuntimeMediaIndexEvidenceHashClosure(
@@ -222,7 +249,10 @@ function main() {
       options,
     ),
     validateRuntimeProjectionRowSourceEvidence(runtimeProjectionRows, options),
-    validateChangedRuntimeResourceProjections(runtimeProjectionRows),
+    validateChangedRuntimeResourceProjectionChanges(
+      runtimeProjectionRows,
+      deletedRuntimeProjectionRows,
+    ),
   ]);
 
   if (result.passed) {
@@ -235,6 +265,67 @@ function main() {
     console.error(`- ${item.family}:${item.resourceId} ${item.code}: ${item.message}`);
   }
   process.exit(1);
+}
+
+function parseChangedLongformReviewSourceIds(
+  diff: string,
+): { resourceIds: string[]; result: NewResourceGateResult } {
+  const resourceIds: string[] = [];
+  const issues: NewResourceGateIssue[] = [];
+  for (const rawLine of diff.split(/\r?\n/)) {
+    if (!/^[+-](?![+-])/.test(rawLine)) continue;
+    const line = rawLine.slice(1).trim();
+    if (!line) continue;
+    try {
+      const row: unknown = JSON.parse(line);
+      const resourceId = row && typeof row === 'object' && !Array.isArray(row)
+        ? (row as Record<string, unknown>).resourceId
+        : null;
+      if (typeof resourceId !== 'string' || resourceId.trim() === '') {
+        throw new Error('row is missing resourceId');
+      }
+      resourceIds.push(resourceId);
+    } catch (error) {
+      issues.push({
+        family: 'runtime-resource-projection',
+        resourceId: LONGFORM_REVIEW_SOURCE_PATH,
+        code: 'invalid-changed-longform-review-source-row',
+        message: `Changed longform review-source line must be a JSON object with resourceId: ${error instanceof Error ? error.message : 'unknown parse error'}.`,
+      });
+    }
+  }
+  return {
+    resourceIds: uniqueSorted(resourceIds),
+    result: {
+      passed: issues.length === 0,
+      checked: resourceIds.length + issues.length,
+      issues,
+    },
+  };
+}
+
+function validateChangedLongformReviewSourceBindings(
+  resourceIds: readonly string[],
+  finalRows: readonly RuntimeProjectionRow[],
+  options: CliOptions,
+): NewResourceGateResult {
+  const issues = resourceIds.flatMap((resourceId) => {
+    const matchingRows = finalRows.filter((row) => row.id === resourceId && isLongformAuditProjection(row));
+    if (matchingRows.length !== 1) {
+      return [{
+        family: 'runtime-resource-projection' as const,
+        resourceId,
+        code: 'missing-longform-review-source-projection',
+        message: 'Changed longform review-source row must bind to exactly one current agent-reviewed longform runtime projection.',
+      }];
+    }
+    return validateLongformReviewSourceBinding(matchingRows[0], options);
+  });
+  return {
+    passed: issues.length === 0,
+    checked: resourceIds.length,
+    issues,
+  };
 }
 
 function parseFinalRuntimeProjectionRows(
@@ -530,6 +621,9 @@ function validateRuntimeProjectionRowSourceEvidence(
   options: CliOptions,
 ): NewResourceGateResult {
   const issues = rows.flatMap((row) => {
+    if (isLongformAuditProjection(row)) {
+      return validateLongformReviewSourceBinding(row, options);
+    }
     const sourcePathOrUrl = row.sourcePathOrUrl?.trim() ?? '';
     if (!sourcePathOrUrl) {
       return [{
@@ -546,7 +640,7 @@ function validateRuntimeProjectionRowSourceEvidence(
     const evidencePaths = runtimeProjectionRowEvidenceLocalSourcePaths(row);
     const untrackedEvidencePath = options.staged
       ? evidencePaths.find((filePath) => (
-        existsSync(filePath) && gitStatus(['ls-files', '--error-unmatch', '--', filePath]) !== 0
+        existsSync(filePath) && !isTrackedPath(filePath)
       ))
       : undefined;
     if (untrackedEvidencePath) {
@@ -612,6 +706,203 @@ function validateRuntimeProjectionRowSourceEvidence(
     checked: rows.length,
     issues,
   };
+}
+
+function isLongformAuditProjection(row: RuntimeProjectionRow): boolean {
+  return [
+    'authoring-textbook',
+    'authoring-textbook-chapter',
+    'authoring-textbook-section',
+    'authoring-textbook-figure',
+    'authoring-textbook-caption',
+    'textbook',
+    'textbook-section',
+    'textbook-search-document',
+  ].includes(row.family ?? '') && row.reviewAudit?.status === 'agent-reviewed';
+}
+
+function validateLongformReviewSourceBinding(
+  row: RuntimeProjectionRow,
+  options: CliOptions,
+): NewResourceGateIssue[] {
+  const reviewRows = longformReviewSourceIndex(options);
+  const reviewRow = reviewRows?.get(row.id);
+  const sourcePath = projectFilePathForProjectionSource(
+    typeof reviewRow?.independentEvidenceRef === 'string'
+      ? reviewRow.independentEvidenceRef
+      : row.reviewAudit?.independentEvidenceRef,
+  );
+  const reviewMatches = Boolean(
+    reviewRow &&
+    reviewRow.resourceId === row.id &&
+    reviewRow.sourceFamily === row.family &&
+    normalizeProjectionHash(reviewRow.sourceHash) === normalizeProjectionHash(row.sourceHash) &&
+    reviewRow.sourceVersionRef === row.sourceVersionRef &&
+    reviewRow.sourcePathOrUrl === row.sourcePathOrUrl &&
+    reviewRow.reviewRowHash === row.reviewAudit?.reviewRowHash &&
+    reviewRow.reviewSourceSha256 === row.reviewAudit?.reviewSourceSha256 &&
+    reviewRow.reviewStatus === row.reviewAudit?.status &&
+    normalizeProjectionHash(row.reviewAudit?.reviewedSourceHash) === normalizeProjectionHash(row.sourceHash) &&
+    row.reviewAudit?.reviewedVersionRef === row.sourceVersionRef
+  );
+  if (!reviewMatches) {
+    return [{
+      family: 'runtime-resource-projection',
+      resourceId: row.id,
+      code: 'stale-runtime-projection-source-hash',
+      message: 'Longform audit projection must match its sealed staged review-source row and semantic source hash.',
+    }];
+  }
+  if (options.staged) {
+    const snapshotRow = longformInputSnapshotIndex(options)?.get(row.id);
+    const snapshotMatches = Boolean(
+      snapshotRow &&
+      longformInputSnapshotRowMatchesReviewRow(snapshotRow, reviewRow)
+    );
+    if (!snapshotMatches) {
+      return [{
+        family: 'runtime-resource-projection',
+        resourceId: row.id,
+        code: 'stale-runtime-projection-source-hash',
+        message: 'Longform audit projection must match a row-sealed, aggregate-sealed staged input snapshot including citation identity and content hash.',
+      }];
+    }
+    return [];
+  }
+  const sourceExists = sourcePath && Boolean(runtimeProjectionSourceContent(sourcePath, options));
+  if (!sourceExists) {
+    return [{
+      family: 'runtime-resource-projection',
+      resourceId: row.id,
+      code: 'missing-runtime-projection-source-file',
+      message: `Longform audit projection review evidence points to a missing staged source file: ${sourcePath ?? 'unresolved'}.`,
+    }];
+  }
+  return [];
+}
+
+function sameLongformCitationAddress(left: unknown, right: unknown): boolean {
+  if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false;
+  const leftAddress = left as Record<string, unknown>;
+  const rightAddress = right as Record<string, unknown>;
+  return leftAddress.kind === rightAddress.kind &&
+    leftAddress.href === rightAddress.href &&
+    leftAddress.locator === rightAddress.locator &&
+    normalizeProjectionHash(leftAddress.contentHash) === normalizeProjectionHash(rightAddress.contentHash);
+}
+
+export function longformInputSnapshotRowMatchesReviewRow(
+  snapshotRow: Record<string, unknown>,
+  reviewRow: Record<string, unknown>,
+): boolean {
+  return snapshotRow.resourceId === reviewRow.resourceId &&
+    snapshotRow.family === reviewRow.sourceFamily &&
+    snapshotRow.parentResourceId === reviewRow.parentResourceId &&
+    snapshotRow.sourcePathOrUrl === reviewRow.sourcePathOrUrl &&
+    normalizeProjectionHash(snapshotRow.sourceHash) === normalizeProjectionHash(reviewRow.sourceHash) &&
+    snapshotRow.sourceVersionRef === reviewRow.sourceVersionRef &&
+    sameLongformCitationAddress(snapshotRow.citationAddress, reviewRow.citationAddress);
+}
+
+function normalizeProjectionHash(value: unknown): string {
+  return typeof value === 'string' ? value.replace(/^sha256:/, '') : '';
+}
+
+function longformReviewSourceIndex(
+  options: CliOptions,
+): Map<string, Record<string, unknown>> | null {
+  const cacheKey = options.staged ? 'staged' : 'head';
+  const cached = longformReviewSourceIndexCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+  const content = runtimeProjectionSourceContent(LONGFORM_REVIEW_SOURCE_PATH, options);
+  if (!content) {
+    longformReviewSourceIndexCache.set(cacheKey, null);
+    return null;
+  }
+  try {
+    const rows = content.toString('utf8').split(/\r?\n/).filter(Boolean).map((line) => (
+      JSON.parse(line) as Record<string, unknown>
+    ));
+    const expectedSourceSha = createHash('sha256')
+      .update(rows.map((reviewRow) => {
+        const { reviewSourceSha256: _sourceSha, ...rowContent } = reviewRow;
+        return JSON.stringify(rowContent);
+      }).join('\n') + '\n')
+      .digest('hex');
+    for (const reviewRow of rows) {
+      const { reviewSourceSha256: _sourceSha, reviewRowHash: _rowHash, ...rowContent } = reviewRow;
+      const expectedRowHash = `sha256:${createHash('sha256').update(JSON.stringify(rowContent)).digest('hex')}`;
+      if (reviewRow.reviewSourceSha256 !== expectedSourceSha || reviewRow.reviewRowHash !== expectedRowHash) {
+        longformReviewSourceIndexCache.set(cacheKey, null);
+        return null;
+      }
+    }
+    const index = new Map(rows.map((reviewRow) => [String(reviewRow.resourceId), reviewRow]));
+    longformReviewSourceIndexCache.set(cacheKey, index);
+    return index;
+  } catch {
+    longformReviewSourceIndexCache.set(cacheKey, null);
+    return null;
+  }
+}
+
+function longformInputSnapshotIndex(
+  options: CliOptions,
+): Map<string, Record<string, unknown>> | null {
+  const cacheKey = options.staged ? 'staged' : 'head';
+  const cached = longformInputSnapshotIndexCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+  const snapshotContent = runtimeProjectionSourceContent(LONGFORM_INPUT_SNAPSHOT_PATH, options);
+  const sealContent = runtimeProjectionSourceContent(LONGFORM_INPUT_SNAPSHOT_SEAL_PATH, options);
+  if (!snapshotContent || !sealContent) {
+    longformInputSnapshotIndexCache.set(cacheKey, null);
+    return null;
+  }
+  const index = validateLongformInputSnapshotContent(
+    snapshotContent,
+    sealContent,
+    (baselineCommit) => execFileSync('git', ['rev-parse', `${baselineCommit}^{tree}`], { encoding: 'utf8' }).trim(),
+  );
+  longformInputSnapshotIndexCache.set(cacheKey, index);
+  return index;
+}
+
+export function validateLongformInputSnapshotContent(
+  snapshotContent: Buffer,
+  sealContent: Buffer,
+  resolveBaselineTree: (baselineCommit: string) => string,
+): Map<string, Record<string, unknown>> | null {
+  try {
+    const rows = snapshotContent.toString('utf8').split(/\r?\n/).filter(Boolean).map((line) => (
+      JSON.parse(line) as Record<string, unknown>
+    ));
+    const seal = JSON.parse(sealContent.toString('utf8')) as Record<string, unknown>;
+    const baselineCommit = typeof seal.baselineCommit === 'string' ? seal.baselineCommit : '';
+    const baselineTree = typeof seal.baselineTree === 'string' ? seal.baselineTree : '';
+    const resolvedTree = /^[0-9a-f]{40}$/.test(baselineCommit) ? resolveBaselineTree(baselineCommit) : '';
+    const rowSealsMatch = rows.every((row) => {
+      const { inputRowHash, ...rowContent } = row;
+      return row.artifactVersion === LONGFORM_INPUT_SNAPSHOT_VERSION &&
+        inputRowHash === `sha256:${createHash('sha256').update(JSON.stringify(rowContent)).digest('hex')}`;
+    });
+    const rowsSha256 = `sha256:${createHash('sha256')
+      .update(rows.map((row) => JSON.stringify(row)).join('\n') + '\n')
+      .digest('hex')}`;
+    const ids = rows.map((row) => String(row.resourceId));
+    if (
+      seal.artifactVersion !== LONGFORM_INPUT_SNAPSHOT_VERSION ||
+      seal.rowCount !== rows.length ||
+      seal.rowsSha256 !== rowsSha256 ||
+      !rowSealsMatch ||
+      resolvedTree !== baselineTree ||
+      new Set(ids).size !== rows.length
+    ) {
+      return null;
+    }
+    return new Map(rows.map((row) => [String(row.resourceId), row]));
+  } catch {
+    return null;
+  }
 }
 
 function validateDeletedRuntimeProjectionRows(
@@ -751,6 +1042,9 @@ function projectFilePathForProjectionSource(sourcePathOrUrl: string | null | und
   if (sourcePath.startsWith('course-content/')) return sourcePath;
   if (sourcePath.startsWith('/course-runtime/lessons/')) {
     return sourcePath.replace(/^\/course-runtime\/lessons\//, 'course-content/runtime/lessons/');
+  }
+  if (sourcePath.startsWith('/course-runtime/resources/')) {
+    return sourcePath.replace(/^\/course-runtime\/resources\//, 'course-content/runtime/resources/');
   }
   return null;
 }
@@ -1038,6 +1332,7 @@ function runtimeProjectionRowMatchesCurrentSourceHash(
   if (!requirement.sourceHash) return false;
   const audit = row.reviewAudit;
   const knowledgeProjection = isKnowledgeRuntimeProjection(row);
+  const runtimeLessonSemanticProjection = isRuntimeLessonSemanticProjection(row);
   const runtimeSemanticEvidenceHashMatches = runtimeProjectionUsesAssetEvidence(row) &&
     row.runtimeSemanticEvidence?.evidenceFileHash === requirement.sourceHash;
   const coverageHashMatches = row.sourceHash === requirement.sourceHash ||
@@ -1045,10 +1340,22 @@ function runtimeProjectionRowMatchesCurrentSourceHash(
     (knowledgeProjection && audit?.promptOrManifestHash === requirement.sourceHash);
   const reviewHashMatches = knowledgeProjection
     ? audit?.reviewedSourceHash === row.sourceHash
+    : runtimeProjectionUsesAssetEvidence(row)
+      ? runtimeSemanticEvidenceHashMatches
+      : runtimeLessonSemanticProjection
+        ? audit?.reviewedSourceHash === row.sourceHash
     : audit?.promptOrManifestHash
       ? audit.reviewedSourceHash === audit.promptOrManifestHash
       : audit?.reviewedSourceHash === requirement.sourceHash || runtimeSemanticEvidenceHashMatches;
   return coverageHashMatches && reviewHashMatches;
+}
+
+function isRuntimeLessonSemanticProjection(row: RuntimeProjectionRow): boolean {
+  return Boolean(row.runtimeSemanticEvidence) && (
+    row.family === 'runtime-lesson-step' ||
+    row.family === 'runtime-lesson-module' ||
+    row.family === 'runtime-lesson-media'
+  );
 }
 
 function isKnowledgeRuntimeProjection(row: RuntimeProjectionRow): boolean {
@@ -2084,16 +2391,16 @@ function runtimeProjectionSourceHash(filePath: string, options: CliOptions): str
 }
 
 function runtimeProjectionSourceContent(filePath: string, options: CliOptions): Buffer | undefined {
-  if (options.staged) {
-    try {
-      return execFileSync('git', ['show', `:${filePath}`], { maxBuffer: 64 * 1024 * 1024 });
-    } catch {
-      return undefined;
-    }
-  }
+  const objectPath = options.staged ? `:${filePath}` : `HEAD:${filePath}`;
+  const cacheKey = `content:${objectPath}`;
+  const cached = runtimeProjectionTreeContentCache.get(cacheKey);
+  if (cached !== undefined) return cached ?? undefined;
   try {
-    return execFileSync('git', ['show', `HEAD:${filePath}`], { maxBuffer: 64 * 1024 * 1024 });
+    const content = execFileSync('git', ['show', objectPath], { maxBuffer: 64 * 1024 * 1024 });
+    runtimeProjectionTreeContentCache.set(cacheKey, content);
+    return content;
   } catch {
+    runtimeProjectionTreeContentCache.set(cacheKey, null);
     return undefined;
   }
 }
@@ -2106,11 +2413,33 @@ function runtimeProjectionTreeSourceContent(
   if (tree === 'current') return runtimeProjectionSourceContent(filePath, options);
   const revision = runtimeProjectionValidationTreeRevision(options, 'base');
   if (!revision) return undefined;
+  const objectPath = `${revision}:${filePath}`;
+  const cacheKey = `content:${objectPath}`;
+  const cached = runtimeProjectionTreeContentCache.get(cacheKey);
+  if (cached !== undefined) return cached ?? undefined;
   try {
-    return execFileSync('git', ['show', `${revision}:${filePath}`], { maxBuffer: 64 * 1024 * 1024 });
+    const content = execFileSync('git', ['show', objectPath], { maxBuffer: 64 * 1024 * 1024 });
+    runtimeProjectionTreeContentCache.set(cacheKey, content);
+    return content;
   } catch {
+    runtimeProjectionTreeContentCache.set(cacheKey, null);
     return undefined;
   }
+}
+
+function isTrackedPath(filePath: string): boolean {
+  const cached = trackedPathCache.get(filePath);
+  if (cached !== undefined) return cached;
+  if (!allTrackedPathsCache) {
+    const output = execFileSync('git', ['ls-files', '-z'], {
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    allTrackedPathsCache = new Set(output.split('\0').filter(Boolean));
+  }
+  const tracked = allTrackedPathsCache.has(filePath);
+  trackedPathCache.set(filePath, tracked);
+  return tracked;
 }
 
 function runtimeProjectionTreeSourceHash(
@@ -2129,14 +2458,20 @@ function runtimeProjectionTreePaths(
   directory: string,
 ): string[] {
   const revision = runtimeProjectionValidationTreeRevision(options, tree);
+  const cacheKey = `${revision ?? ':index'}:${directory}`;
+  const cached = runtimeProjectionTreePathsCache.get(cacheKey);
+  if (cached) return cached;
   const args = revision
     ? ['ls-tree', '-r', '--name-only', revision, '--', directory]
     : ['ls-files', '--cached', '--', directory];
   try {
-    return execFileSync('git', args, { encoding: 'utf8' })
+    const paths = execFileSync('git', args, { encoding: 'utf8' })
       .split(/\r?\n/)
       .filter(Boolean);
+    runtimeProjectionTreePathsCache.set(cacheKey, paths);
+    return paths;
   } catch {
+    runtimeProjectionTreePathsCache.set(cacheKey, []);
     return [];
   }
 }
@@ -2160,7 +2495,7 @@ function runtimeProjectionValidationTreeRevision(
   tree: 'current' | 'base',
 ): string | null {
   if (tree === 'current') return options.staged ? null : 'HEAD';
-  if (options.staged) return 'HEAD';
+  if (options.staged) return options.stagedBase;
   try {
     return execFileSync('git', ['merge-base', options.base!, 'HEAD'], { encoding: 'utf8' }).trim();
   } catch {
@@ -2186,7 +2521,7 @@ function hasDiff(diff: string): boolean {
 }
 
 function parseArgs(args: string[]): CliOptions {
-  const options: CliOptions = { base: null, staged: true };
+  const options: CliOptions = { base: null, staged: true, stagedBase: null };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === '--base') {
@@ -2209,12 +2544,70 @@ function parseArgs(args: string[]): CliOptions {
   if (options.base !== null && options.base.trim() === '') {
     throw new Error('--base requires a Git ref');
   }
+  options.stagedBase = options.staged ? resolveStagedDiffBase() : null;
   return options;
+}
+
+function resolveStagedDiffBase(): string {
+  try {
+    const mergeHeadPath = execFileSync('git', ['rev-parse', '--git-path', 'MERGE_HEAD'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    const fullMergeHeadPath = path.resolve(process.cwd(), mergeHeadPath);
+    if (!existsSync(fullMergeHeadPath)) return 'HEAD';
+    const mergeHeads = readFileSync(fullMergeHeadPath, 'utf8').trim().split(/\s+/).filter(Boolean);
+    if (mergeHeads.length > 1) {
+      throw new Error('new-resource semantic completeness does not support octopus merge staging');
+    }
+    const incomingHead = resolveCommit(mergeHeads[0]);
+    const integrationHead = resolveCommit('origin/integration');
+    const currentHead = resolveCommit('HEAD');
+    if (
+      incomingHead &&
+      integrationHead &&
+      currentHead &&
+      isAncestor(incomingHead, integrationHead) &&
+      !isAncestor(currentHead, integrationHead)
+    ) {
+      return incomingHead;
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('octopus merge staging')) {
+      throw error;
+    }
+    // Missing or malformed merge metadata conservatively compares the index with HEAD.
+  }
+  return 'HEAD';
+}
+
+function resolveCommit(ref: string | undefined): string | null {
+  if (!ref) return null;
+  try {
+    return execFileSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function isAncestor(candidate: string, descendant: string): boolean {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', candidate, descendant], { stdio: 'ignore' });
+    return true;
+  } catch (error) {
+    if (error && typeof error === 'object' && 'status' in error && error.status === 1) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 function gitDiff(options: CliOptions, filePath: string): string {
   const args = options.staged
-    ? ['diff', '--cached', '--unified=0', '--', filePath]
+    ? ['diff', '--cached', '--unified=0', options.stagedBase!, '--', filePath]
     : ['diff', '--unified=0', `${options.base}...HEAD`, '--', filePath];
   return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 }
@@ -2231,7 +2624,7 @@ function gitChangedPathNames(
   diffOptions: readonly string[] = [],
 ): string {
   const args = options.staged
-    ? ['diff', '--cached', '--name-only', ...diffOptions, '--', ...pathspecs]
+    ? ['diff', '--cached', '--name-only', ...diffOptions, options.stagedBase!, '--', ...pathspecs]
     : ['diff', '--name-only', ...diffOptions, `${options.base}...HEAD`, '--', ...pathspecs];
   return execFileSync('git', args, { encoding: 'utf8' });
 }
@@ -2242,7 +2635,7 @@ function gitChangedPathStatuses(
   diffOptions: readonly string[] = [],
 ): string {
   const args = options.staged
-    ? ['diff', '--cached', '--name-status', '--find-renames', ...diffOptions, '--', ...pathspecs]
+    ? ['diff', '--cached', '--name-status', '--find-renames', ...diffOptions, options.stagedBase!, '--', ...pathspecs]
     : ['diff', '--name-status', '--find-renames', ...diffOptions, `${options.base}...HEAD`, '--', ...pathspecs];
   return execFileSync('git', args, { encoding: 'utf8' });
 }
@@ -2272,4 +2665,6 @@ function uniqueSorted(values: readonly string[]): string[] {
   return Array.from(new Set(values)).sort((left, right) => left.localeCompare(right));
 }
 
-main();
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+  main();
+}

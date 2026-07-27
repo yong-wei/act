@@ -11,9 +11,10 @@ const mocks = vi.hoisted(() => ({
   getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
   getLearningGoalResourceBaselineForPlanner: vi.fn(),
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
-  loadAllTextbookRuntimeResourceCatalogEntries: vi.fn(),
-  loadAllTextbookRuntimeSearchDocuments: vi.fn(),
+  loadAllTextbookStructureRuntimeCatalogEntries: vi.fn(),
+  loadAllTextbookStructureUnitProjections: vi.fn(),
   loadRuntimeResourceProjectionInputs: vi.fn(),
+  retrieveTextbookSourcePackV2Progressive: vi.fn(),
 }));
 
 vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
@@ -50,9 +51,13 @@ vi.mock('@/lib/learning-goal-resource-baseline-runtime', async () => {
   };
 });
 
-vi.mock('@/lib/textbook-runtime-resources', () => ({
-  loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments: mocks.loadAllTextbookRuntimeSearchDocuments,
+vi.mock('@/lib/structured-textbook-runtime', () => ({
+  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections: mocks.loadAllTextbookStructureUnitProjections,
+}));
+
+vi.mock('@/lib/source-pack/textbook-v2-adapter', () => ({
+  retrieveTextbookSourcePackV2Progressive: mocks.retrieveTextbookSourcePackV2Progressive,
 }));
 
 vi.mock('@/lib/course-runtime', () => ({
@@ -77,8 +82,10 @@ import {
 } from '@/lib/data-governance/adaptive-learner-state-service';
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
 import {
   applyKonlingCitationFallback,
+  assignKonlingRuntimeCitationDisplayNumbers,
   buildKonlingCitationGuard,
   buildResourceNodeSourcePackCandidate,
   buildKonlingSarAssociatedGroundingMetadataPayload,
@@ -98,6 +105,7 @@ import {
   KONLING_TOOL_REGISTRY,
   KONLING_TEACHING_ASSISTANT_MODE_REGISTRY,
   persistKonlingSessionMemories,
+  projectKonlingTextbookModelToolResult,
   recordKonlingInterventionFeedback,
   resolveKonlingTeachingAssistantMode,
   resumeKonlingAgentSession,
@@ -110,6 +118,7 @@ import {
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
 import { buildResourceNodeRegistry, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
+import { retrieveSourcePack } from '@/lib/source-pack';
 
 function expectRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
   expect(typeof value, `${label} should be an object`).toBe('object');
@@ -459,97 +468,84 @@ function textbookRuntimeCatalogFixture() {
       bookId: 'dorf-modern-control-systems',
       title: 'Modern Control Systems',
     },
-    sections: [
+    units: [
       {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch08-example-0801',
+        unitId: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-08/example-8.1',
         title: 'Bode 图频域响应示例',
-        citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md',
+        citationHref: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-08/example-8.1',
+        sourceHash: 'sha-textbook-unit',
+        sourceVersionRef: 'structured-textbook-runtime.v2:revision-001',
         knowledgeNodeIds: ['Bode图_1_1', '频域响应_1_1', '正弦稳态响应_5_b6dc1100'],
         capabilityTargetIds: ['controlModeling', 'parameterDesign'],
         estimatedTimeMinutes: 8,
-        planningOverride: {
-          readiness: {
-            minimumCompetency: { controlModeling: 0.1, parameterDesign: 0.1 },
-            minimumEvidenceCount: 1,
-            requiredCompletedNodeIds: [],
-            requiredOutcomeRefs: [],
-            unlockMessage: 'Reviewed textbook section fixture is ready for path planning.',
-            fallbackNodeIds: [],
-          },
-          pathDisposition: {
-            kind: 'path-plannable',
-            reviewStatus: 'human-confirmed',
-            rationale: 'Reviewed textbook section fixture for Konling path generation tests.',
-            sourceFamily: 'textbook_section',
-            stableSourceRef: 'dorf-modern-control-systems:ch08-example-0801',
-            sourceVersionRef: 'resource-node-registry.v1',
-            parentResourceNodeId: null,
-            reviewedAt: '2026-07-03T00:00:00.000Z',
-            reviewerId: 'konling-runtime-test-review',
-          },
-        },
       },
     ],
   }];
 }
 
-function textbookRuntimeSearchDocumentFixture() {
+function textbookStructureUnitFixture() {
+  const unitId = 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-08/example-8.1';
   return [
     {
-      id: 'ch08-example-0801__chunk-001',
-      kind: 'chunk',
+      id: unitId,
+      kind: 'example',
       title: 'Bode 图频域响应示例',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#chunk-001',
+      href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-08/example-8.1',
       text: 'Bode 图用于观察频域响应。',
-      contentHash: 'sha-textbook-chunk',
+      contentHash: 'sha-textbook-unit',
+      identity: {
+        bookId: 'dorf-modern-control-systems',
+        edition: '14th Global Edition',
+        sourceRevision: 'revision-001',
+        unitId,
+        fragmentId: null,
+      },
+      fragments: [{
+        id: `${unitId}#figure-8.1`,
+        owningUnitId: unitId,
+        kind: 'figure',
+        naturalNumber: '8.1',
+        ordinal: 1,
+        sourceSpan: {
+          sourcePath: 'textbooks/dorf-modern-control-systems/chapter-08/textbook.md',
+          startLine: 12,
+          endLine: 12,
+          startByte: 120,
+          endByte: 150,
+        },
+        recordType: 'fragment-anchor',
+        schemaVersion: 'structured-textbook-runtime.v2',
+      }],
       resourceProjection: {
-        resourceId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
-        segmentRef: 'ch08-example-0801',
-        citationTargetRef: 'ch08-example-0801',
+        resourceId: unitId,
+        segmentRef: unitId,
+        citationTargetRef: unitId,
         knowledgeNodeRefs: ['Bode图_1_1', '频域响应_1_1'],
         capabilityTargetRefs: ['controlModeling'],
+        contentHash: 'sha-textbook-unit',
+        versionRefs: {
+          artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+          graphCatalogVersion: 'graph-catalog.v1',
+          resourceProjectionVersion: 'structured-textbook-runtime.v2',
+          resourceRegistryVersion: 'revision-001',
+          citationVersion: 'structured-textbook-runtime.v2',
+        },
       },
       citationAddress: {
         kind: 'text',
-        sourceRefId: 'ch08-example-0801__chunk-001',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#chunk-001',
-        locator: 'chunk-001',
-        contentHash: 'sha-textbook-chunk',
+        sourceRefId: unitId,
+        href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-08/example-8.1',
+        locator: unitId,
+        contentHash: 'sha-textbook-unit',
       },
       metadata: {
         bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch08-example-0801',
-        chapterId: 'ch08',
-        chapterNumber: 8,
-      },
-    },
-    {
-      id: 'fig-08-01__figure',
-      kind: 'figure',
-      title: 'Bode 图示意图',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#fig-08-01',
-      text: '图像描述：幅频与相频曲线。',
-      contentHash: 'sha-textbook-figure',
-      resourceProjection: {
-        resourceId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
-        segmentRef: 'ch08-example-0801',
-        citationTargetRef: 'fig-08-01',
-        knowledgeNodeRefs: ['Bode图_1_1'],
-        capabilityTargetRefs: ['controlModeling'],
-      },
-      citationAddress: {
-        kind: 'image',
-        sourceRefId: 'fig-08-01',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#fig-08-01',
-        locator: 'fig-08-01',
-        contentHash: 'sha-textbook-figure',
-      },
-      metadata: {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch08-example-0801',
-        chapterId: 'ch08',
-        chapterNumber: 8,
+        edition: '14th Global Edition',
+        sourceRevision: 'revision-001',
+        unitId,
+        chapterId: 'chapter-08',
+        naturalNumber: '8.1',
+        structuralPath: ['chapter-chapter-08', 'example-8.1'],
       },
     },
   ];
@@ -641,12 +637,57 @@ function reviewedPathPlanningOverride(sourceFamily: string, stableSourceRef: str
 }
 
 describe('konling agent runtime', () => {
+  it('preserves distinct typed identities and display numbers when source types share a raw id', () => {
+    const rawId = 'shared-raw-id';
+    const assigned = assignKonlingRuntimeCitationDisplayNumbers(
+      [{
+        id: rawId,
+        sourceType: 'content',
+        displayTitle: '课程正文',
+        href: '/textbooks/book-a/e8/unit-a',
+        confidence: 'high',
+        evidenceBasis: 'course-content',
+        owner: 'answer',
+      }],
+      [{
+        id: rawId,
+        sourceType: 'learner-state',
+        displayTitle: '学习证据',
+        href: null,
+        confidence: 'medium',
+        evidenceBasis: 'learner-state',
+        owner: 'recommendation',
+      }],
+    );
+
+    expect(assigned.contentCitations[0]).toMatchObject({
+      displayNumber: 1,
+      identity: { kind: 'content', sourceType: 'content' },
+    });
+    expect(assigned.evidenceCitations[0]).toMatchObject({
+      displayNumber: 2,
+      identity: { kind: 'evidence', sourceType: 'learner-state' },
+    });
+    expect(assigned.contentCitations[0]?.canonicalKey)
+      .not.toBe(assigned.evidenceCitations[0]?.canonicalKey);
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
-    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue(textbookRuntimeSearchDocumentFixture());
+    mocks.loadAllTextbookStructureRuntimeCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue(textbookStructureUnitFixture());
     mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: {
+        mode: 'lexical',
+        candidates: [],
+        limitations: ['no-directly-supporting-textbook-unit'],
+        diagnostics: [],
+      },
+      optimizationPending: false,
+      continuation: null,
+    });
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
     delete process.env.KONLING_SEMANTIC_MEMORY_ENABLED;
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
@@ -758,9 +799,13 @@ describe('konling agent runtime', () => {
 
     const prepCoauthor = resolveKonlingTeachingAssistantMode('prep-coauthor');
     expect(prepCoauthor.outputContract.status).toBe('draft-only');
+    expect(prepCoauthor.permittedTools).toContain('propose_smart_lesson_task_change');
+    expect(KONLING_TOOL_REGISTRY.propose_smart_lesson_task_change).toMatchObject({ permissionTier: 'analyze', approvalPolicy: 'none' });
     expect(prepCoauthor.outputContract.forbiddenActions).toEqual(expect.arrayContaining([
       'publish-prep-item',
       'insert-lesson-item',
+      'apply-smart-task-change',
+      'confirm-smart-task-change',
     ]));
 
     const mounts = getKonlingTeachingAssistantMountContracts();
@@ -776,6 +821,601 @@ describe('konling agent runtime', () => {
         requiredContext: expect.arrayContaining(['resource-node', 'path-execution-context']),
       }),
     ]));
+  });
+
+  it('exposes textbook retrieval only for registered pages and content-capable modes without autonomous prefetch', async () => {
+    expect(KONLING_TOOL_REGISTRY.search_textbook).toMatchObject({
+      permissionTier: 'read',
+      approvalPolicy: 'none',
+    });
+    expect(resolveKonlingTeachingAssistantMode('generic-chat').permittedTools)
+      .toContain('search_textbook');
+    expect(resolveKonlingTeachingAssistantMode('class-summarizer').permittedTools)
+      .not.toContain('search_textbook');
+
+    const registered = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
+      pageId: 'step-03',
+      currentUserQuery: '我的答案是 K=37，请解释约束参数优化。张三的掌握度、risk 和 student-1 学习记录如何？',
+      trustedContentContext: true,
+    });
+    expect(registered.permittedTools).toContain('search_textbook');
+    expect(Object.isFrozen(registered.textbookRetrievalContext)).toBe(true);
+    expect(registered.textbookRetrievalContext?.externalQuery).toContain('约束下的优化设计实践');
+    for (const forbidden of ['K=37', '张三', 'student-1', '掌握度', 'risk', '学习记录']) {
+      expect(registered.textbookRetrievalContext?.externalQuery).not.toContain(forbidden);
+    }
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).not.toHaveBeenCalled();
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
+
+    const unregistered = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'unknown-course',
+      pageId: 'unknown-page',
+      currentUserQuery: '解释单位阶跃响应。',
+      trustedContentContext: true,
+    });
+    expect(unregistered.permittedTools).not.toContain('search_textbook');
+  });
+
+  it('returns the textbook allowlist DTO only after an authorized model tool call and surfaces failures', async () => {
+    const expected = {
+      mode: 'lexical' as const,
+      candidates: [{
+        displayNumber: 1,
+        title: '单位阶跃响应',
+        text: '一阶系统单位阶跃响应为指数形式。',
+        identity: {
+          kind: 'unit' as const,
+          unitId: 'textbook-unit:hu8/direct',
+          fragmentId: null,
+          bookId: 'hu-shousong-auto-control-8th',
+          edition: '第八版',
+          sourceRevision: 'revision-hu8',
+          structuralPath: ['chapter-3', 'section-3.2'],
+        },
+        href: '/textbooks/hu-shousong-auto-control-8th/%E7%AC%AC%E5%85%AB%E7%89%88/chapter-3/section-3.2',
+        priority: 0,
+        limitation: null,
+      }],
+      limitations: [],
+      diagnostics: [],
+    };
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValueOnce({
+      foreground: expected,
+      optimizationPending: false,
+      continuation: null,
+    });
+    const session = {
+      id: 'agent-session-textbook',
+      permittedTools: ['search_textbook'],
+    };
+    let createdRun: Record<string, unknown> | null = null;
+    const db = {
+      agentSession: { findFirst: vi.fn(async () => session) },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          createdRun = {
+            id: 'textbook-run-1',
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          return createdRun;
+        }),
+        findFirst: vi.fn(async () => createdRun),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope(),
+      agentSessionId: session.id,
+      context: createRuntimeContext({
+        permittedTools: ['search_textbook'],
+        textbookRetrievalContext: Object.freeze({
+          externalQuery: '自动控制原理 单位阶跃响应',
+        }),
+        knowledgeCapabilityContext: {
+          source: 'server-owned',
+          answerIntent: 'fact-explanation',
+          knowledgeNodeRefs: ['knowledge-node:step-response'],
+          capabilityTargetRefs: [],
+          resourceRefs: [],
+          pathNodeRefs: [],
+          citationRefs: [],
+          scope: createScope(),
+          missingContext: [],
+        },
+      }),
+      permittedTools: session.permittedTools,
+    });
+    const tools = buildScopedKonlingAiTools(runtime);
+    expect(Object.keys(tools)).toEqual(['search_textbook']);
+    const internalResult = await runtime.searchTextbook({ query: '单位阶跃响应' }) as
+      typeof expected & { optimizationPending: boolean };
+    expect(internalResult).toEqual({
+      ...expected,
+      optimizationPending: false,
+    });
+    const modelResult = projectKonlingTextbookModelToolResult(internalResult);
+    expect(modelResult).toEqual({
+      mode: 'lexical',
+      optimizationPending: false,
+      candidates: [{
+        displayNumber: 1,
+        title: '单位阶跃响应',
+        text: '一阶系统单位阶跃响应为指数形式。',
+        limitation: null,
+      }],
+    });
+    expect(Object.keys(modelResult).sort()).toEqual([
+      'candidates',
+      'mode',
+      'optimizationPending',
+    ]);
+    expect(Object.keys(modelResult.candidates[0]).sort()).toEqual([
+      'displayNumber',
+      'limitation',
+      'text',
+      'title',
+    ]);
+    const serializedModelResult = JSON.stringify(modelResult);
+    for (const forbidden of [
+      'bookId',
+      'edition',
+      'sourceRevision',
+      'unitId',
+      'fragmentId',
+      'structuralPath',
+      'identity',
+      'href',
+      'canonicalKey',
+      'window',
+      'rank',
+      'score',
+      'knowledge-node',
+      'chapter-3',
+    ]) {
+      expect(serializedModelResult).not.toContain(forbidden);
+    }
+    const sanitizedModelResult = projectKonlingTextbookModelToolResult({
+      ...internalResult,
+      candidates: internalResult.candidates.map((candidate) => ({
+        ...candidate,
+        title: `${candidate.title} bookId=hu-shousong-auto-control-8th`,
+        text: [
+          candidate.text,
+          'identity={"kind":"textbook"} edition=第八版',
+          'structuralPath=["chapter-3","section-3.2"]',
+          'unitId=textbook-unit:hu8/direct /Users/a/private.md',
+        ].join(' '),
+      })),
+    });
+    const sanitizedPayload = JSON.stringify(sanitizedModelResult);
+    expect(sanitizedPayload).toContain('一阶系统单位阶跃响应为指数形式');
+    for (const forbidden of [
+      'bookId',
+      'hu-shousong-auto-control-8th',
+      'identity',
+      'edition',
+      'structuralPath',
+      'chapter-3',
+      'section-3.2',
+      'unitId',
+      'textbook-unit:',
+      '/Users/',
+    ]) {
+      expect(sanitizedPayload).not.toContain(forbidden);
+    }
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).toHaveBeenCalledWith({
+      query: '单位阶跃响应',
+      externalQuery: '自动控制原理 单位阶跃响应',
+      graphNodeRefs: ['knowledge-node:step-response'],
+      abortSignal: undefined,
+    });
+    await runtime.searchTextbook({ query: '我的答案是 K=37，请解释单位阶跃响应' });
+    expect(mocks.retrieveTextbookSourcePackV2Progressive).toHaveBeenLastCalledWith({
+      query: '我的答案是 K=37，请解释单位阶跃响应',
+      externalQuery: '自动控制原理 单位阶跃响应',
+      graphNodeRefs: ['knowledge-node:step-response'],
+      abortSignal: undefined,
+    });
+    const textbookRunInputSummary = (
+      createdRun as Record<string, unknown> | null
+    )?.inputSummary;
+    expect(textbookRunInputSummary).toMatchObject({
+      queryHash: expect.stringMatching(/^[0-9a-f]{64}$/u),
+      queryLength: expect.any(Number),
+      queryCategory: expect.any(String),
+    });
+    expect(JSON.stringify(textbookRunInputSummary)).not.toContain('K=37');
+
+    mocks.retrieveTextbookSourcePackV2Progressive.mockRejectedValueOnce(new Error('private index path'));
+    await expect(runtime.searchTextbook({ query: '单位阶跃响应' }))
+      .rejects.toThrow('教材检索暂不可用');
+    expect(JSON.stringify(db.agentToolRun.updateMany.mock.calls)).not.toContain('private index path');
+
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: expected,
+      optimizationPending: true,
+      continuation: Promise.resolve({
+        status: 'complete',
+        result: expected,
+      }),
+    });
+    await Promise.all([
+      runtime.searchTextbook(
+        { query: '单位阶跃响应 工具一' },
+        { toolCallId: 'tool-call-1' },
+      ),
+      runtime.searchTextbook(
+        { query: '单位阶跃响应 工具二' },
+        { toolCallId: 'tool-call-2' },
+      ),
+    ]);
+    expect(runtime.getTextbookOptimizations().map((item) => item.toolCallId))
+      .toEqual(['tool-call-1', 'tool-call-2']);
+    const isolatedRuntime = buildKonlingToolRuntime({
+      db,
+      scope: createScope(),
+      agentSessionId: session.id,
+      context: createRuntimeContext({ permittedTools: ['search_textbook'] }),
+      permittedTools: session.permittedTools,
+    });
+    expect(isolatedRuntime.getTextbookOptimizations()).toEqual([]);
+  });
+
+  it('exposes server-owned smart-preparation state as a teacher-only draft contract', () => {
+    const smartPreparation = {
+      taskId: 'task-1',
+      taskRevision: '7',
+      selectedCourseBasisVersions: [{ versionId: 'basis-version-2', citationState: 'verified', reviewState: 'CONFIRMED' }],
+      unresolvedAmbiguities: [{
+        id: 'ambiguity-duration',
+        field: 'durationMinutes',
+        question: '本课采用 45 分钟还是 90 分钟？',
+        alternatives: [{ id: '45', label: '45 分钟' }, { id: '90', label: '90 分钟' }],
+      }],
+      confirmedDecisions: [{
+        id: 'decision-topic',
+        field: 'topic',
+        value: '根轨迹校正',
+        confirmedAt: '2026-07-19T03:00:00.000Z',
+        confirmedBy: 'teacher-1',
+      }],
+      citationState: 'partially-verified',
+      reviewState: 'teacher-draft',
+      clarificationReadiness: {
+        status: 'clarification-required' as const,
+        canGenerate: false,
+        unresolvedAmbiguityIds: ['ambiguity-duration'],
+      },
+      updatePolicy: {
+        suggestionStatus: 'draft' as const,
+        requiresExplicitTeacherConfirmation: true as const,
+        expectedTaskRevision: '7',
+      },
+    };
+    const flags = {
+      'smart-task': true,
+      'selected-course-basis-versions': true,
+      'task-ambiguities': true,
+      'confirmed-task-decisions': true,
+      'citation-state': true,
+      'teacher-review-state': true,
+      'clarification-readiness': true,
+    };
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'prep-coauthor',
+      runtimeContext: createRuntimeContext({
+        citationContext: {
+          ...createRuntimeContext().citationContext!,
+          lowConfidenceReasons: [],
+        },
+      }),
+      scope: createScope({
+        role: 'teacher',
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'teacher-1',
+        pageId: '/teacher/smart-prep',
+        resourceId: null,
+        pathNodeId: null,
+        privacyScopes: ['teacher-scoped'],
+      }),
+      serverModeContext: { ...flags, smartPreparation },
+      clientContextHints: { reviewState: 'client-approved' },
+    });
+
+    expect(contract.status).toBe('degraded');
+    expect(contract.unavailableReasons).toEqual([]);
+    expect(contract.smartPreparation).toEqual(smartPreparation);
+    expect(contract.citationRequirements.classes).toEqual([]);
+    expect(contract.outputContract.status).toBe('draft-only');
+    expect(contract.outputContract.forbiddenActions).toContain('confirm-smart-task-change');
+    expect(contract.clientHintsAccepted).toEqual([]);
+
+    const studentContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'prep-coauthor',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope({ pageId: '/teacher/smart-prep' }),
+      serverModeContext: { ...flags, smartPreparation },
+    });
+    expect(studentContract.status).toBe('unavailable');
+    expect(studentContract.smartPreparation).toBeNull();
+  });
+
+  it('binds a smart lesson proposal to the server-owned session turn without applying it', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1', targetUserId: 'teacher-1', role: 'teacher',
+      pageId: '/teacher/smart-prep', privacyScopes: ['teacher-scoped'],
+    });
+    const session = {
+      id: 'agent-session-1', ownerUserId: 'teacher-1', actorUserId: 'teacher-1',
+      permittedTools: ['propose_smart_lesson_task_change'],
+      stateJson: { currentTurnId: 'turn-server-1', smartPrepBinding: { taskId: 'task-1', taskRevision: '3', ownerUserId: 'teacher-1' } },
+    };
+    let createdRun: Record<string, unknown> | null = null;
+    const db = {
+      agentSession: { findFirst: vi.fn(async () => session) },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          createdRun = { id: 'suggestion-1', ...data, createdAt: new Date(), updatedAt: new Date() };
+          return createdRun;
+        }),
+        findFirst: vi.fn(async () => createdRun),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+    const smartPreparation = {
+      taskId: 'task-1', taskRevision: '3', currentTask: {
+        topic: '旧主题', courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45,
+        sourceVersionIds: ['version-1', 'version-2'],
+        knowledgePoints: [
+          { id: 'kp-1', content: '幅值条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-1', sourceVersionId: 'version-1', anchor: '幅值条件', contentHash: '1111111111111111' }], origin: 'SUGGESTED' },
+          { id: 'kp-2', title: '旧相角条件', content: '旧相角条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-2', sourceVersionId: 'version-1', anchor: '相角条件', contentHash: '2222222222222222' }], origin: 'SUGGESTED' },
+          { id: 'kp-3', content: '分离点', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-3', sourceVersionId: 'version-2', anchor: '分离点', contentHash: '3333333333333333' }], origin: 'SUGGESTED' },
+        ],
+        goals: [{ id: 'goal-1', content: '旧目标', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      },
+      selectedCourseBasisVersions: [
+        { versionId: 'version-1', citationState: 'verified', reviewState: 'CONFIRMED' },
+        { versionId: 'version-2', citationState: 'verified', reviewState: 'CONFIRMED' },
+      ],
+      unresolvedAmbiguities: [], confirmedDecisions: [], citationState: 'verified', reviewState: 'confirmed',
+      clarificationReadiness: { status: 'ready' as const, canGenerate: true, unresolvedAmbiguityIds: [] },
+      updatePolicy: { suggestionStatus: 'draft' as const, requiresExplicitTeacherConfirmation: true as const, expectedTaskRevision: '3' },
+    };
+    const mode = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'prep-coauthor', runtimeContext: createRuntimeContext(), scope,
+      serverModeContext: {
+        'smart-task': true, 'selected-course-basis-versions': true, 'task-ambiguities': true,
+        'confirmed-task-decisions': true, 'citation-state': true, 'teacher-review-state': true,
+        'clarification-readiness': true, smartPreparation,
+      },
+    });
+    const runtime = buildKonlingToolRuntime({
+      db, scope, agentSessionId: session.id, permittedTools: session.permittedTools,
+      context: { ...createRuntimeContext(), teachingAssistantMode: mode } as never,
+    });
+    const result = await runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {
+        topic: '新主题',
+        courseBasisId: 'foreign-basis',
+        sourceVersionIds: ['foreign-version'],
+      },
+      knowledgePointPatches: [{ operation: 'update', id: 'kp-2', changes: { content: '相角条件' } }],
+    });
+    expect(result).toMatchObject({
+      suggestionId: 'suggestion-1', turnId: 'turn-server-1', status: 'awaiting_teacher_confirmation',
+      proposedTask: {
+        courseBasisId: 'basis-1', sourceVersionIds: ['version-1', 'version-2'],
+        knowledgePoints: [
+          { id: 'kp-1', content: '幅值条件', sourceBindings: [{ citationId: 'citation-1' }] },
+          { id: 'kp-2', title: '相角条件', content: '相角条件', sourceBindings: [{ citationId: 'citation-2' }] },
+          { id: 'kp-3', content: '分离点', sourceBindings: [{ citationId: 'citation-3' }] },
+        ],
+      },
+    });
+    expect(db.agentToolRun.create).toHaveBeenCalledWith({ data: expect.objectContaining({
+      toolName: 'propose_smart_lesson_task_change',
+      inputSummary: expect.objectContaining({ taskId: 'task-1', expectedRevision: 3, turnId: 'turn-server-1' }),
+    }) });
+    expect(db.agentToolRun.create.mock.calls[0]?.[0].data.inputSummary).toMatchObject({
+      proposedTask: {
+        courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45, sourceVersionIds: ['version-1', 'version-2'],
+        goals: [{ id: 'goal-1', content: '旧目标' }],
+        knowledgePoints: [
+          { id: 'kp-1', content: '幅值条件', sourceBindings: [{ citationId: 'citation-1' }] },
+          { id: 'kp-2', content: '相角条件', sourceBindings: [{ citationId: 'citation-2' }] },
+          { id: 'kp-3', content: '分离点', sourceBindings: [{ citationId: 'citation-3' }] },
+        ],
+      },
+    });
+
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: { durationMinutes: 90 },
+    })).resolves.toMatchObject({
+      proposedTask: {
+        durationMinutes: 90, courseBasisId: 'basis-1', sourceVersionIds: ['version-1', 'version-2'],
+        knowledgePoints: [{ id: 'kp-1' }, { id: 'kp-2' }, { id: 'kp-3' }],
+        goals: [{ id: 'goal-1' }],
+      },
+    });
+
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [{ operation: 'update', id: 'kp-unknown', changes: { content: '未知' } }],
+    })).rejects.toThrow('knowledgePoints 补丁引用未知 ID：kp-unknown');
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [
+        { operation: 'update', id: 'kp-1', changes: { content: '修改' } },
+        { operation: 'remove', id: 'kp-1' },
+      ],
+    })).rejects.toThrow('knowledgePoints 补丁包含重复或冲突 ID：kp-1');
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [{ operation: 'update', id: 'kp-1', changes: { id: 'kp-3' } }],
+    })).rejects.toThrow('knowledgePoints 补丁不能修改稳定 ID：kp-1');
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3,
+      proposedTask: { knowledgePoints: [] },
+      knowledgePointPatches: [{ operation: 'remove', id: 'kp-1' }],
+    })).rejects.toThrow('knowledgePoints 完整数组与增量补丁不能同时提交');
+
+    const runCountBeforeRejectedAdds = db.agentToolRun.create.mock.calls.length;
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3,
+    })).rejects.toThrow('必须且只能提供 proposedTask 或 clarification');
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [{ operation: 'add', item: {
+        content: '新增知识点', sourceState: 'ai_generated_source_pending',
+      } }] as never,
+    })).rejects.toThrow();
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      goalPatches: [{ operation: 'add', item: {
+        content: '新增目标', sourceState: 'ai_generated_source_pending',
+      } }] as never,
+    })).rejects.toThrow();
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      goalPatches: [{ operation: 'update', id: 'goal-1', changes: { content: '' } }],
+    })).rejects.toThrow('智能备课建议不符合确认要求');
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      goalPatches: [{ operation: 'remove', id: 'goal-1' }],
+    })).rejects.toThrow('智能备课建议不符合确认要求');
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(runCountBeforeRejectedAdds);
+
+    const additions = await runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [{ operation: 'add', item: {
+        content: '新增知识点', sourceState: 'ai_generated_source_pending', sourceBindings: [], origin: 'ai_generated',
+      } }],
+      goalPatches: [{ operation: 'add', item: {
+        content: '新增目标', sourceState: 'teacher_created_source_pending', sourceBindings: [],
+      } }],
+    });
+    const addedTask = (additions as { proposedTask: { knowledgePoints: unknown[]; goals: unknown[] } }).proposedTask;
+    expect(addedTask.knowledgePoints).toEqual(expect.arrayContaining([
+      expect.objectContaining({ content: '新增知识点', origin: 'SUGGESTED', sourceBindings: [] }),
+    ]));
+    expect(addedTask.goals).toEqual(expect.arrayContaining([
+      expect.objectContaining({ content: '新增目标', sourceBindings: [] }),
+    ]));
+    const proposedTask = db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.proposedTask;
+    expect(updateTaskSchema.safeParse({
+      ...proposedTask,
+      expectedRevision: 3,
+      confirmingTurnId: 'turn-server-1',
+      agentSessionId: session.id,
+    }).success).toBe(true);
+  });
+
+  it('keeps a bootstrap session through clarification and a later create proposal', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1', targetUserId: 'teacher-1', role: 'teacher',
+      pageId: '/teacher/smart-prep', privacyScopes: ['teacher-scoped'],
+    });
+    const session = {
+      id: 'bootstrap-session', ownerUserId: 'teacher-1', actorUserId: 'teacher-1',
+      permittedTools: ['propose_smart_lesson_task_change'],
+      stateJson: { currentTurnId: 'turn-1', ownedTurnIds: ['turn-1'] },
+    };
+    let runNumber = 0;
+    const runs: Array<Record<string, unknown>> = [];
+    const db = {
+      agentSession: { findFirst: vi.fn(async () => session) },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          const run = { id: `bootstrap-suggestion-${++runNumber}`, ...data, createdAt: new Date(), updatedAt: new Date() };
+          runs.push(run);
+          return run;
+        }),
+        findFirst: vi.fn(async ({ where }) => runs.find((run) => run.id === where.id) ?? null),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+    const smartPreparation = {
+      taskId: null, taskRevision: null, bootstrap: true,
+      currentTask: {
+        availableCourseBases: [
+          { id: 'basis-1', documents: [{ versions: [{ id: 'version-1' }] }] },
+          { id: 'basis-2', documents: [{ versions: [{ id: 'version-2' }] }] },
+        ],
+      },
+      selectedCourseBasisVersions: [],
+      unresolvedAmbiguities: [], confirmedDecisions: [], citationState: 'unselected', reviewState: 'draft',
+      clarificationReadiness: { status: 'clarification-required' as const, canGenerate: false, unresolvedAmbiguityIds: [] },
+      updatePolicy: { suggestionStatus: 'draft' as const, requiresExplicitTeacherConfirmation: true as const, expectedTaskRevision: null },
+    };
+    const mode = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'prep-coauthor', runtimeContext: createRuntimeContext(), scope,
+      serverModeContext: {
+        'prep-pack': true, 'task-ambiguities': true, 'teacher-review-state': true,
+        'clarification-readiness': true, smartPreparation,
+      },
+    });
+    const runtime = buildKonlingToolRuntime({
+      db, scope, agentSessionId: session.id, permittedTools: session.permittedTools,
+      context: { ...createRuntimeContext(), teachingAssistantMode: mode } as never,
+    });
+    await expect(runtime.proposeSmartLessonTaskChange({
+      operation: 'bootstrap', clarification: { question: '课时是 45 还是 90 分钟？', alternatives: ['45', '90'] },
+    })).resolves.toMatchObject({ turnId: 'turn-1', status: 'clarification_required' });
+    session.stateJson = { currentTurnId: 'turn-2', ownedTurnIds: ['turn-1', 'turn-2'] };
+    await expect(runtime.proposeSmartLessonTaskChange({
+      operation: 'bootstrap',
+      proposedTask: {
+        topic: '根轨迹', durationMinutes: 45,
+        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      },
+    })).rejects.toThrow('智能备课建议不符合确认要求');
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(1);
+    await expect(runtime.proposeSmartLessonTaskChange({
+      proposedTask: {
+        courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
+        sourceVersionIds: ['version-1'],
+        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [{
+          citationId: 'unselected-version-citation', sourceVersionId: 'version-2', anchor: 'chapter-2', contentHash: '2'.repeat(16),
+        }] }],
+        goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [{
+          citationId: 'forged-citation', sourceVersionId: 'version-1', anchor: 'forged-anchor', contentHash: 'f'.repeat(16),
+        }] }],
+      },
+    })).resolves.toMatchObject({
+      turnId: 'turn-2',
+      status: 'awaiting_teacher_confirmation',
+      proposedTask: {
+        knowledgePoints: [{ origin: 'SUGGESTED', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      },
+    });
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
+    expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.proposedTask).toMatchObject({
+      knowledgePoints: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+    });
+
+    const invalidProposal = (courseBasisId: string, sourceVersionIds: string[]) => runtime.proposeSmartLessonTaskChange({
+      proposedTask: {
+        courseBasisId, topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45, sourceVersionIds,
+        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      },
+    });
+    await expect(invalidProposal('unknown-basis', ['version-1'])).rejects.toThrow('引用了不可用的课程依据');
+    await expect(invalidProposal('basis-1', ['version-2'])).rejects.toThrow('引用了不属于所选课程依据的版本');
+    await expect(invalidProposal('basis-1', ['unknown-version'])).rejects.toThrow('引用了不属于所选课程依据的版本');
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
   });
 
   it('builds explicit mode runtime contracts without allowing client hints to expand scope', () => {
@@ -1337,7 +1977,99 @@ describe('konling agent runtime', () => {
     expect(contract.permittedTools).toContain('generate_learning_path');
   });
 
-  it('records disabled learner-state service as operational missing context while preserving content citations', async () => {
+  it.each([
+    {
+      invalidity: 'missing evidence',
+      invalidate: (dimension: NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']['dimensions'][number]) => ({
+        ...dimension,
+        score: 0,
+        confidence: 0,
+        freshness: { state: 'missing' as const, asOf: null, evidenceAgeDays: null },
+        evidenceSummary: { totalCount: 0, sourceFamilyCounts: {} },
+        lastPositiveEvidenceAt: null,
+        sourceLineage: [],
+      }),
+    },
+    {
+      invalidity: 'stale freshness',
+      invalidate: (dimension: NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']['dimensions'][number]) => ({
+        ...dimension,
+        freshness: { state: 'stale' as const, asOf: '2026-01-01T00:00:00.000Z', evidenceAgeDays: 171 },
+      }),
+    },
+    {
+      invalidity: 'non-finite score',
+      invalidate: (dimension: NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']['dimensions'][number]) => ({
+        ...dimension,
+        score: Number.NaN,
+      }),
+    },
+  ])('falls back to the whole compatibility vector for portrait $invalidity', async ({ invalidate }) => {
+    const learnerState = createGraphLearnerState('student-1', 0.6);
+    learnerState.primaryPortrait = {
+      ...learnerState.primaryPortrait,
+      dimensions: learnerState.primaryPortrait.dimensions.map((dimension, index) => {
+        const highPortraitDimension = {
+          ...dimension,
+          score: 90,
+          confidence: 0.8,
+          freshness: { state: 'current' as const, asOf: '2026-06-21T00:00:00.000Z', evidenceAgeDays: 0 },
+          evidenceSummary: { totalCount: 1, sourceFamilyCounts: { StudentEvidenceFeatureCache: 1 } },
+        };
+        return index === 1 ? invalidate(highPortraitDimension) : highPortraitDimension;
+      }),
+    };
+    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(learnerState);
+
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+    });
+
+    expect(runtime.userProfile.cognitiveLevel).toBe(3);
+  });
+
+  it('uses portrait scores when every portrait dimension is usable', async () => {
+    const learnerState = createGraphLearnerState('student-1', 0.6);
+    learnerState.primaryPortrait = {
+      ...learnerState.primaryPortrait,
+      dimensions: learnerState.primaryPortrait.dimensions.map((dimension) => ({
+        ...dimension,
+        score: 90,
+        confidence: 0.8,
+        freshness: { state: 'current' as const, asOf: '2026-06-21T00:00:00.000Z', evidenceAgeDays: 0 },
+        evidenceSummary: { totalCount: 1, sourceFamilyCounts: { StudentEvidenceFeatureCache: 1 } },
+      })),
+    };
+    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(learnerState);
+
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+    });
+
+    expect(runtime.userProfile.cognitiveLevel).toBe(5);
+  });
+
+  it('records disabled learner-state service without eagerly retrieving textbook content', async () => {
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'false';
 
     const runtime = await buildKonlingRuntimeContext({
@@ -1377,12 +2109,14 @@ describe('konling agent runtime', () => {
       'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED',
       'citation-learner-state-missing',
     ]));
-    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(runtime.citationContext?.missingCitationClasses).toContain('content');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     const guard = buildKonlingCitationGuard(runtime, '根据 citation(content:step-03, content, 根轨迹校正, high, page-context) 解释根轨迹校正。');
-    expect(guard.missingCitationClasses).not.toContain('content');
+    expect(guard.missingCitationClasses).toContain('content');
   });
 
-  it('keeps citation context available when the feature-cache delegate is absent', async () => {
+  it('keeps citation diagnostics available when the feature-cache delegate is absent', async () => {
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
         findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
@@ -1414,8 +2148,9 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
-    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(runtime.citationContext?.missingCitationClasses).toContain('content');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
   });
 
   it('adds learner-state citation metadata when learner-state is available', async () => {
@@ -1465,7 +2200,7 @@ describe('konling agent runtime', () => {
     ]));
   });
 
-  it('keeps content citations available when learner-state feature-cache reads fail', async () => {
+  it('keeps textbook retrieval independent from learner-state feature-cache failures', async () => {
     mocks.readAdaptiveLearnerState.mockRejectedValueOnce(new Error('feature cache read failed'));
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
@@ -1503,9 +2238,10 @@ describe('konling agent runtime', () => {
 
     expect(runtime.learnerState).toBeNull();
     expect(runtime.missingContext).toContain('learner-state-read-failed');
-    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     const guard = buildKonlingCitationGuard(runtime, '根据 citation(content:step-03, content, 根轨迹校正, high, page-context) 解释根轨迹校正。');
-    expect(guard.missingCitationClasses).not.toContain('content');
+    expect(guard.missingCitationClasses).toContain('content');
     expect(guard.personalizationAvailability).toMatchObject({
       status: 'limited',
       missingCitationClasses: expect.arrayContaining(['learner-state', 'path-execution', 'evidence']),
@@ -2733,7 +3469,7 @@ describe('konling agent runtime', () => {
       adaptiveRuntime: runtime,
     });
     expect(prompt).toContain('引用协议');
-    expect(prompt).toContain('sourceType、displayTitle、href、confidence、evidenceBasis');
+    expect(prompt).toContain('只能使用服务器已分配的 `[n]` 引用编号');
 
     const toolRuntime = buildKonlingToolRuntime({
       db,
@@ -2746,6 +3482,120 @@ describe('konling agent runtime', () => {
       expect.objectContaining({ sourceType: 'path-execution' }),
     ]));
     expect(recommendation.citationSupport.readiness).toBe('low-confidence');
+  });
+
+  it('gives prep coauthor a structured task protocol and server-owned source IDs', () => {
+    const prompt = buildKonlingSystemPrompt({
+      page: {
+        courseId: 'basis-root-locus',
+        courseTitle: '自动控制原理',
+        pageType: 'workspace',
+        stepId: 'teacher-smart-prep',
+        topic: '根轨迹',
+        learningObjectives: [],
+        knowledgeType: 'X',
+      },
+      user: {
+        id: 'teacher-1',
+        name: '验收教师',
+        learningStyle: 'TEXTUAL',
+        cognitiveLevel: 3,
+        abilityVector: { computational: 0.5, crossDomain: 0.5, design: 0.5, analysis: 0.5, evaluation: 0.5 },
+      },
+      adaptiveRuntime: {
+        teachingAssistantMode: {
+          mode: { id: 'prep-coauthor', label: '教师备课共创' },
+          status: 'available',
+          unavailableReasons: [],
+          degradedReasons: [],
+          privacyPolicy: { payload: 'teacher-scoped-summary', forbiddenContent: [] },
+          outputContract: { status: 'draft-only', requiredCitationOwners: [], forbiddenActions: [] },
+          citationRequirements: { required: false, classes: [], requiredOwners: [], missingClasses: [] },
+          smartPreparation: {
+            bootstrap: true,
+            currentTask: {
+              availableCourseBases: [{
+                id: 'basis-root-locus',
+                title: '自动控制原理',
+                documents: [{ versions: [{ id: 'version-root-locus', versionNumber: 1 }] }],
+              }],
+            },
+          },
+        },
+      },
+    });
+
+    expect(prompt).toContain('必须调用 propose_smart_lesson_task_change');
+    expect(prompt).toContain('不得仅在文本中声称“已生成”或“已保存”建议');
+    expect(prompt).toContain('courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals');
+    expect(prompt).toContain('不得使用 title、courseId、curriculumBasisId、duration');
+    expect(prompt).toContain('不得同时提交 proposedTask、knowledgePointPatches 或 goalPatches');
+    expect(prompt).toContain('courseBasisId=basis-root-locus；sourceVersionIds=[version-root-locus]');
+    expect(prompt).toContain('basis-root-locus');
+    expect(prompt).toContain('version-root-locus');
+
+    const manyBasesPrompt = buildKonlingSystemPrompt({
+      page: {
+        courseId: 'basis-1', courseTitle: '自动控制原理', pageType: 'workspace', stepId: 'teacher-smart-prep', topic: '根轨迹', learningObjectives: [], knowledgeType: 'X',
+      },
+      user: {
+        id: 'teacher-1', name: '验收教师', learningStyle: 'TEXTUAL', cognitiveLevel: 3,
+        abilityVector: { computational: 0.5, crossDomain: 0.5, design: 0.5, analysis: 0.5, evaluation: 0.5 },
+      },
+      adaptiveRuntime: {
+        teachingAssistantMode: {
+          mode: { id: 'prep-coauthor', label: '教师备课共创' }, status: 'available', unavailableReasons: [], degradedReasons: [],
+          privacyPolicy: { payload: 'teacher-scoped-summary', forbiddenContent: [] }, outputContract: { status: 'draft-only', requiredCitationOwners: [], forbiddenActions: [] },
+          citationRequirements: { required: false, classes: [], requiredOwners: [], missingClasses: [] },
+          smartPreparation: {
+            bootstrap: true,
+            currentTask: {
+              availableCourseBases: Array.from({ length: 6 }, (_, index) => ({
+                id: `basis-${index + 1}`, title: `课程依据${index + 1}`,
+                documents: [{ versions: [{ id: `version-${index + 1}`, versionNumber: 1 }] }],
+              })),
+            },
+          },
+        },
+      },
+    });
+    expect(manyBasesPrompt).toContain('courseBasisId=basis-6；sourceVersionIds=[version-6]');
+
+    const revisionPrompt = buildKonlingSystemPrompt({
+      page: {
+        courseId: 'basis-root-locus', courseTitle: '自动控制原理', pageType: 'workspace', stepId: 'teacher-smart-prep', topic: '根轨迹', learningObjectives: [], knowledgeType: 'X',
+      },
+      user: {
+        id: 'teacher-1', name: '验收教师', learningStyle: 'TEXTUAL', cognitiveLevel: 3,
+        abilityVector: { computational: 0.5, crossDomain: 0.5, design: 0.5, analysis: 0.5, evaluation: 0.5 },
+      },
+      adaptiveRuntime: {
+        teachingAssistantMode: {
+          mode: { id: 'prep-coauthor', label: '教师备课共创' }, status: 'available', unavailableReasons: [], degradedReasons: [],
+          privacyPolicy: { payload: 'teacher-scoped-summary', forbiddenContent: [] },
+          outputContract: { status: 'draft-only', requiredCitationOwners: [], forbiddenActions: [] },
+          citationRequirements: { required: false, classes: [], requiredOwners: [], missingClasses: [] },
+          smartPreparation: {
+            bootstrap: false, taskId: 'task-1', taskRevision: '3',
+            currentTask: {
+              topic: '根轨迹',
+              knowledgePoints: [{ id: 'kp-1', title: '相角条件', content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [{ citationId: 'SECRET-CITATION' }], origin: 'SUGGESTED' }],
+              goals: [{ id: 'goal-1', content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [{ citationId: 'SECRET-CITATION' }] }],
+            },
+            selectedCourseBasisVersions: [],
+          },
+        },
+      },
+    });
+    expect(revisionPrompt).toContain('proposedTask 仅可提交 topic、audience、prerequisites、durationMinutes、outlineConfirmationRequired、confirmScope 或 confirmGoals');
+    expect(revisionPrompt).toContain('教学活动或流程约束必须转换为对现有目标的 goalPatches.update');
+    expect(revisionPrompt).toContain('教师给出的量化下限必须逐字保留，不得弱化或省略');
+    expect(revisionPrompt).toContain('不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches');
+    expect(revisionPrompt).toContain('content、sourceState、sourceBindings，知识点另须含 origin');
+    expect(revisionPrompt).toContain('"knowledgePoints":[{"id":"kp-1","title":"相角条件"}]');
+    expect(revisionPrompt).toContain('"goals":[{"id":"goal-1","content":"判断根轨迹"}]');
+    expect(revisionPrompt).not.toContain('"sourceBindings"');
+    expect(revisionPrompt).not.toContain('SECRET-CITATION');
   });
 
   it('does not turn client-only page hints into high-confidence content citations', async () => {
@@ -3763,7 +4613,7 @@ describe('konling agent runtime', () => {
     });
   });
 
-  it('builds Konling content citations through verified konling-answer Source Packs', async () => {
+  it('does not build textbook Source Packs before the model calls the tool', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -3778,43 +4628,20 @@ describe('konling agent runtime', () => {
       citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
 
-    expect(sourcePackCitations.length).toBeGreaterThan(0);
-    expect(sourcePackCitations[0]).toMatchObject({
-      sourceType: 'content',
-      href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-      canonicalHref: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-      displayHref: expect.stringContaining('/textbook-citations/resources/textbooks/dorf-modern-control-systems/'),
-      confidence: 'high',
-      owner: 'answer',
-      citationChip: expect.objectContaining({
-        displayHref: expect.stringContaining('/textbook-citations/resources/textbooks/dorf-modern-control-systems/'),
-        citationAddress: expect.objectContaining({
-          href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-        }),
-        sourceType: 'course-content',
-        authorityLevel: 'canonical',
-        privacyVisibility: 'public',
-      }),
-    });
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        citationTargetIds: expect.arrayContaining(['textbook-citation:ch08-example-0801']),
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
-        answerRelevanceBases: expect.arrayContaining(['query-lexical']),
-      }),
-    ]);
-    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(sourcePackCitations).toEqual([]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
   });
 
   it('serializes Konling citation metadata without dropping rendered and audit fields', () => {
+    const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-2/section-2.1#figure-02-37';
     const metadata = serializeKonlingCitationMetadata({
       id: 'content:textbook:fig-02-37',
       sourceType: 'content',
       displayTitle: 'Fluid flow reservoir figure',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      href: textbookHref,
+      canonicalHref: textbookHref,
+      displayHref: textbookHref,
       confidence: 'high',
       evidenceBasis: 'source-pack:konling-answer:pack-1',
       owner: 'answer',
@@ -3827,7 +4654,7 @@ describe('konling agent runtime', () => {
       citationChip: {
         chunkId: 'content:textbook:fig-02-37',
         displayTitle: 'Fluid flow reservoir figure',
-        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+        displayHref: textbookHref,
         sourceType: 'course-content',
         authorityLevel: 'canonical',
         confidence: 'high',
@@ -3839,9 +4666,9 @@ describe('konling agent runtime', () => {
 
     expect(metadata).toMatchObject({
       id: 'content:textbook:fig-02-37',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
-      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      href: textbookHref,
+      canonicalHref: textbookHref,
+      displayHref: textbookHref,
       citationTargetId: 'textbook:fig-02-37',
       retrievalChunkId: 'textbook-search:ch02-example-0212',
       answerRelevanceBasis: 'query-lexical',
@@ -3849,12 +4676,12 @@ describe('konling agent runtime', () => {
       answerRelevanceQueryHash: 'hash-1',
       omittedCitationReason: 'not-omitted',
       citationChip: expect.objectContaining({
-        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+        displayHref: textbookHref,
       }),
     });
   });
 
-  it('uses trusted page context as fallback answer relevance for generic user questions', async () => {
+  it('does not use client-authored page text as fallback answer relevance for generic user questions', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -3878,20 +4705,14 @@ describe('konling agent runtime', () => {
       citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
 
-    expect(sourcePackCitations.length).toBeGreaterThan(0);
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        queryText: expect.stringContaining('这里怎么理解？'),
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
-        answerRelevanceBases: expect.arrayContaining(['query-lexical']),
-      }),
-    ]);
-    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(sourcePackCitations).toEqual([]);
+    expect(runtime.pageContext.topic).toBe('student-path-center');
+    expect(runtime.pageContext.courseTitle).toBe('control-correction');
+    expect(JSON.stringify(runtime.pageContext)).not.toContain('Bode 图频域响应');
   });
 
   it('omits unrelated ADVANCED PROBLEMS chunks from konling-answer content citations', async () => {
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
       {
         id: 'ch01-advanced-problems-031__chunk-001',
         kind: 'chunk',
@@ -3992,17 +4813,8 @@ describe('konling agent runtime', () => {
       citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
     expect(sourcePackCitations).toEqual([]);
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: [],
-        citationTargetIds: [],
-        limitationCodes: expect.arrayContaining([
-          'answer-citation-insufficient-relevance',
-          'coverage-missing-answer-context',
-        ]),
-      }),
-    ]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(runtime.citationContext?.lowConfidenceReasons).not.toEqual(expect.arrayContaining([
       'source-pack-answer-citation-insufficient-relevance',
       'source-pack-coverage-missing-answer-context',
@@ -4018,7 +4830,7 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps selected-node relevant Source Pack citations with bounded relevance metadata', async () => {
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
       {
         id: 'ch01-advanced-problems-031__chunk-001',
         kind: 'chunk',
@@ -4107,20 +4919,8 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:root-locus-selected-node__chunk-001']),
-        answerRelevanceBases: expect.arrayContaining(['selected-node-ref']),
-        limitationCodes: expect.arrayContaining(['answer-citation-insufficient-relevance']),
-      }),
-    ]);
-    expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'content:textbook-citation:root-locus-selected-node__chunk-001',
-        evidenceBasis: expect.stringMatching(/^source-pack:konling-answer:/),
-      }),
-    ]));
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('answer-relevance:');
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch01-advanced-problems-031__chunk-001');
   });
@@ -4142,22 +4942,14 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        queryText: expect.stringContaining(querySnippet),
-        retrievalChunkIds: [],
-        limitationCodes: expect.arrayContaining([
-          'answer-citation-insufficient-relevance',
-          'coverage-missing-answer-context',
-        ]),
-      }),
-    ]);
+    expect(querySnippet).toBeTruthy();
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch08-example-0801');
   });
 
   it('uses path-advisor SAR candidate refs to guide verified Source Pack retrieval', async () => {
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
       {
         id: 'generic-context',
         kind: 'chunk',
@@ -4231,19 +5023,8 @@ describe('konling agent runtime', () => {
         resourceNodeIds: expect.arrayContaining(['resource:path-sar']),
       }),
     });
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:sar-path-resource']),
-        citationTargetIds: expect.arrayContaining(['textbook-citation:sar-path-resource']),
-      }),
-    ]);
-    expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'content:textbook-citation:sar-path-resource',
-        evidenceBasis: expect.stringMatching(/^source-pack:konling-answer:/),
-      }),
-    ]));
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
   });
 
   it('builds diagnostic SAR trace metadata for diagnosis explainer scope', async () => {
@@ -4297,7 +5078,7 @@ describe('konling agent runtime', () => {
     });
   });
 
-  it('keeps Source Pack retrieval available when pre-citation SAR has no scope seed refs', async () => {
+  it('keeps pre-citation SAR independent from the on-demand textbook tool', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -4309,12 +5090,8 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(runtime.citationContext?.sourcePacks).toEqual([
-      expect.objectContaining({
-        profile: 'konling-answer',
-        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
-      }),
-    ]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([]);
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(runtime.knowledgeCapabilityContext?.sarAssociatedGrounding).toMatchObject({
       useCase: 'path-planning',
       candidateRefs: expect.objectContaining({
@@ -4478,13 +5255,13 @@ describe('konling agent runtime', () => {
     expect(sar?.traceSummary.limitationCodes).toEqual(['no-expansion-hop-selected', 'event-budget:12']);
   });
 
-  it('keeps Source Pack content citations when learner personalization evidence is missing', async () => {
+  it('keeps registered content and textbook tool availability when learner personalization is missing', async () => {
     mocks.readAdaptiveLearnerState.mockResolvedValue(null);
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
       role: 'STUDENT',
-      courseId: 'control-correction',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
       pageId: 'step-03',
       currentUserQuery: 'Bode 图频域响应怎么理解？',
       trustedContentContext: true,
@@ -4492,8 +5269,10 @@ describe('konling agent runtime', () => {
 
     expect(runtime.learnerState).toBeNull();
     expect(runtime.citationContext?.contentCitations.some((citation) =>
-      citation.evidenceBasis.startsWith('source-pack:konling-answer:')
+      citation.evidenceBasis === 'course-ai-context'
     )).toBe(true);
+    expect(runtime.permittedTools).toContain('search_textbook');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
     expect(runtime.citationContext?.missingCitationClasses).toContain('learner-state');
   });
@@ -6867,6 +7646,28 @@ describe('konling agent runtime', () => {
     expect((tools.record_intervention_result.inputSchema as any).shape).toHaveProperty('idempotencyKey');
   });
 
+  it('exposes only persisted smart-lesson task fields to the coauthor tool', () => {
+    const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
+    const schema = tools.propose_smart_lesson_task_change.inputSchema as any;
+
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      proposedTask: { durationMinutes: 45 },
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      proposedTask: { teachingMethods: '参与式教学' },
+    }).success).toBe(false);
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      proposedTask: { goals: [] },
+    }).success).toBe(false);
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      goalPatches: [{ operation: 'update', id: 'goal-1', changes: { content: '参与式学习至少20分钟' } }],
+    }).success).toBe(true);
+  });
+
   it('exposes governed adaptive path tool schemas with idempotency keys', () => {
     const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
 
@@ -9095,9 +9896,9 @@ describe('konling agent runtime', () => {
         ]),
       },
     };
-    const [safeTextbookDocument] = textbookRuntimeSearchDocumentFixture();
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
-      ...textbookRuntimeSearchDocumentFixture(),
+    const [safeTextbookDocument] = textbookStructureUnitFixture();
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([
+      ...textbookStructureUnitFixture(),
       {
         ...safeTextbookDocument,
         id: 'unsafe-path-planning-doc',
@@ -9164,7 +9965,9 @@ describe('konling agent runtime', () => {
       ]),
     });
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.itemRefs.length).toBeGreaterThan(0);
-    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.citationOnlyItemRefs).toContain('fig-08-01__figure');
+    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.citationOnlyItemRefs).toContain(
+      'resource-node:knowledge-card:kn-bode',
+    );
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.limitationCodes).toContain('upstream-limitations-redacted');
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
       db.learningPath.upsert.mock.invocationCallOrder[0],
@@ -10439,6 +11242,124 @@ describe('konling agent runtime', () => {
     expect(db.konlingSession.findFirst).not.toHaveBeenCalled();
   });
 
+  it('binds smart-prep agent sessions to the owning teacher and stable task identity', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'teacher-1',
+      role: 'teacher',
+      pageId: '/teacher/smart-prep',
+      resourceId: null,
+      pathNodeId: null,
+      privacyScopes: ['teacher-scoped'],
+    });
+    const db = {
+      agentSession: {
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'smart-prep-session-1',
+          ...data,
+          createdAt: new Date('2026-07-19T03:00:00.000Z'),
+          updatedAt: new Date('2026-07-19T03:00:00.000Z'),
+        })),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'smart-prep-session-1',
+          ownerUserId: 'teacher-1',
+          actorUserId: 'teacher-1',
+          phase: 'konling-chat-tool-runtime',
+          status: 'running',
+          stateJson: {
+            smartPrepBinding: { taskId: 'task-1', taskRevision: '7', ownerUserId: 'teacher-1' },
+          },
+          permittedTools: ['get_page_context'],
+          pendingApproval: null,
+          expiresAt: null,
+          createdAt: new Date('2026-07-19T03:00:00.000Z'),
+          updatedAt: new Date('2026-07-19T03:00:00.000Z'),
+        }),
+      },
+    };
+    const smartPrepBinding = { taskId: 'task-1', taskRevision: '7' };
+
+    const created = await createKonlingAgentSession(db, {
+      scope,
+      phase: 'konling-chat-tool-runtime',
+      state: { teachingAssistantMode: 'prep-coauthor' },
+      smartPrepBinding,
+    });
+    await resumeKonlingAgentSession(db, {
+      scope,
+      agentSessionId: created.id,
+      phase: 'konling-chat-tool-runtime',
+      smartPrepBinding,
+    });
+
+    expect(db.agentSession.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        ownerUserId: 'teacher-1',
+        stateJson: expect.objectContaining({
+          smartPrepBinding: { taskId: 'task-1', taskRevision: '7', ownerUserId: 'teacher-1' },
+        }),
+      }),
+    }));
+    expect(db.agentSession.findFirst).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        id: 'smart-prep-session-1',
+        ownerUserId: 'teacher-1',
+        stateJson: { path: ['smartPrepBinding', 'taskId'], equals: 'task-1' },
+      }),
+    });
+
+    await expect(createKonlingAgentSession(db, {
+      scope: createScope({ pageId: '/teacher/smart-prep' }),
+      phase: 'konling-chat-tool-runtime',
+      smartPrepBinding,
+    })).rejects.toMatchObject({ status: 403 });
+  });
+
+  it('rejects cross-task reuse but allows the same smart-prep session after a revision change', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'teacher-1',
+      role: 'teacher',
+      classId: null,
+      pageId: '/teacher/smart-prep',
+    });
+    const session = {
+      id: 'session-for-task-1-revision-7', ownerUserId: 'teacher-1', actorUserId: 'teacher-1',
+      phase: 'konling-chat-tool-runtime', status: 'running', stateJson: { smartPrepBinding: { taskId: 'task-1', taskRevision: '7' } },
+      permittedTools: [], pendingApproval: null, expiresAt: null, createdAt: new Date(), updatedAt: new Date(),
+    };
+    const findFirst = vi.fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(session);
+    const db = { agentSession: { findFirst } };
+
+    await expect(resumeKonlingAgentSession(db, {
+      scope,
+      agentSessionId: 'session-for-task-1-revision-7',
+      phase: 'konling-chat-tool-runtime',
+      smartPrepBinding: { taskId: 'task-2', taskRevision: '7' },
+    })).rejects.toMatchObject({ status: 404 });
+    await expect(resumeKonlingAgentSession(db, {
+      scope,
+      agentSessionId: 'session-for-task-1-revision-7',
+      phase: 'konling-chat-tool-runtime',
+      smartPrepBinding: { taskId: 'task-1', taskRevision: '8' },
+    })).resolves.toMatchObject({ id: 'session-for-task-1-revision-7' });
+
+    expect(findFirst).toHaveBeenNthCalledWith(1, {
+      where: expect.objectContaining({
+        ownerUserId: 'teacher-1',
+        stateJson: { path: ['smartPrepBinding', 'taskId'], equals: 'task-2' },
+      }),
+    });
+    expect(findFirst).toHaveBeenNthCalledWith(2, {
+      where: expect.objectContaining({
+        ownerUserId: 'teacher-1',
+        stateJson: { path: ['smartPrepBinding', 'taskId'], equals: 'task-1' },
+      }),
+    });
+  });
+
   it('scopes explicit agent session resume by phase', async () => {
     const scope = createScope();
     const db = {
@@ -10511,6 +11432,75 @@ describe('konling agent runtime', () => {
     expect(db.agentSession.create).not.toHaveBeenCalled();
   });
 
+  it('keeps awaiting approval sessions bound to both the actor and the selected Konling conversation', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'student-1',
+      role: 'teacher',
+      privacyScopes: ['teacher-scoped'],
+    });
+    const sessions = ['conversation-a', 'conversation-b'].map((konlingSessionId) => ({
+      id: `agent-${konlingSessionId}`,
+      konlingSessionId,
+      ownerUserId: 'student-1',
+      actorUserId: 'teacher-1',
+      classId: 'class-1',
+      courseId: 'unit-4-5',
+      pageId: 'step-03',
+      resourceId: 'resource-1',
+      pathNodeId: 'node-1',
+      phase: 'konling-chat-tool-runtime',
+      status: 'awaiting_approval',
+      stateJson: {},
+      permittedTools: ['get_page_context'],
+      pendingApproval: { toolRunId: `tool-${konlingSessionId}` },
+      expiresAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+    const db = {
+      agentSession: {
+        findFirst: vi.fn(async ({ where }) => sessions.find((candidate) =>
+          candidate.konlingSessionId === where.konlingSessionId
+          && candidate.ownerUserId === where.ownerUserId
+          && candidate.actorUserId === where.actorUserId
+          && candidate.status === where.status
+        ) ?? null),
+        create: vi.fn(),
+      },
+    };
+
+    const first = await getOrCreateKonlingAgentSession(db, {
+      scope,
+      konlingSessionId: 'conversation-a',
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+    });
+    const second = await getOrCreateKonlingAgentSession(db, {
+      scope,
+      konlingSessionId: 'conversation-b',
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+    });
+
+    expect(first.id).toBe('agent-conversation-a');
+    expect(second.id).toBe('agent-conversation-b');
+    expect(db.agentSession.findFirst).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: expect.objectContaining({
+        ownerUserId: 'student-1',
+        actorUserId: 'teacher-1',
+        konlingSessionId: 'conversation-a',
+      }),
+    }));
+    expect(db.agentSession.findFirst).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: expect.objectContaining({
+        ownerUserId: 'student-1',
+        actorUserId: 'teacher-1',
+        konlingSessionId: 'conversation-b',
+      }),
+    }));
+  });
+
   it('declares durable AgentSession and AgentToolRun persistence contracts in Prisma', () => {
     const schema = readFileSync(join(process.cwd(), 'prisma/schema.prisma'), 'utf8');
     const scopeIdempotencyMigration = readFileSync(
@@ -10526,6 +11516,7 @@ describe('konling agent runtime', () => {
     expect(schema).toMatch(/agentSessionId\s+String/);
     expect(schema).toMatch(/approvalState\s+String/);
     expect(schema).toMatch(/correlationId\s+String/);
+    expect(schema).toMatch(/konlingSession\s+KonlingSession\?\s+@relation\(fields: \[konlingSessionId\], references: \[id\], onDelete: SetNull\)/);
     expect(schema).toContain('@@unique([agentSessionId, toolName, idempotencyKey])');
     expect(scopeIdempotencyMigration).toContain('BEGIN;');
     expect(scopeIdempotencyMigration).toContain("starts_with(\"idempotencyKey\", '__agent_tool_run_scope_idempotency__:')");
@@ -11017,5 +12008,248 @@ describe('konling agent runtime', () => {
         resourceType: 'lesson_step',
       },
     });
+  });
+
+  it('keeps a missing local runtime asset unavailable and out of Konling citeable Source Packs', () => {
+    const missingAssetProjection = runtimeResourceProjectionFixture({
+      id: 'runtime-media:unit-demo:missing.png',
+      resourceNodeId: 'runtime-media:unit-demo:missing.png',
+      title: 'Missing runtime figure',
+      resourceType: 'image',
+      sourceKind: 'runtime_lesson_media',
+      sourceRef: 'unit-demo:missing.png',
+      sourceRecord: 'unit-demo:missing.png',
+      projectionLevel: 'ResourceSegment',
+      routeTarget: null,
+      renderTarget: '/course-runtime/lessons/unit-demo/media/missing.png',
+      groundingEligibility: {
+        retrievalReady: true,
+        citationReady: false,
+        authoringTriageReady: true,
+      },
+      runtimeSemanticEvidence: {
+        schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+        sourceFilePath: 'course-content/runtime/lessons/unit-demo/media/missing.png',
+        sourceFileKind: 'missing-local-runtime-asset',
+        sourceFileHash: null,
+        evidenceFilePath: 'course-content/runtime/lessons/unit-demo/media/unit-demo-media.md',
+        evidenceFileHash: 'sha256:media-index',
+        evidenceSelector: 'missing.png',
+        assetStatus: 'missing-local-runtime-asset',
+        assetAvailability: 'not-tracked-in-git-index',
+        externalIdentitySha256: null,
+      },
+    });
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [missingAssetProjection],
+    });
+    const node = registry.nodes.find((item) => item.id === missingAssetProjection.resourceNodeId)!;
+    const candidate = buildResourceNodeSourcePackCandidate(node);
+    const result = retrieveSourcePack({
+      query: 'Missing runtime figure',
+      answerRelevanceQuery: 'Missing runtime figure',
+      profile: 'konling-answer',
+      role: 'student',
+      caller: 'konling-runtime-missing-asset-test',
+      candidates: [candidate],
+    });
+
+    expect(node).toMatchObject({
+      renderTarget: null,
+      launchTarget: null,
+      planningMetadata: { availability: 'draft' },
+      runtimeProjection: {
+        groundingEligibility: { citationReady: false },
+        runtimeSemanticEvidence: { assetStatus: 'missing-local-runtime-asset' },
+      },
+    });
+    expect(candidate.citation).toMatchObject({ verified: false });
+    expect(candidate.citation?.href).toBeUndefined();
+    expect(candidate.metadata).toMatchObject({ availability: 'draft', citationReady: 'false' });
+    expect(result.pack.items).toEqual([]);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('profile-filtered-citation-readiness');
+  });
+
+  it('classifies governed study-question forms and keeps presentation preferences below the answer contract', () => {
+    const runtime = createRuntimeContext();
+    const expectations = [
+      ['请推导闭环传递函数', 'formula-derivation', ['前提与符号', '关键变形']],
+      ['这段 TypeScript 报错，帮我调试', 'code-debugging', ['故障定位', '最小修复']],
+      ['比较开环和闭环控制的区别', 'concept-comparison', ['判别维度', '边界或反例']],
+      ['请用生活化例子解释，并换一种格式', 'open-ended-explanation', ['核心结论', '定制化讲解']],
+    ] as const;
+
+    for (const [currentUserQuery, intent, sections] of expectations) {
+      const contract = buildKonlingTeachingAssistantRuntimeContract({
+        modeId: 'generic-chat',
+        runtimeContext: runtime,
+        scope: createScope(),
+        currentUserQuery,
+        studyAnswerPreferences: {
+          depth: 'detailed',
+          format: 'steps',
+          hintStrength: 'guided',
+          exampleContext: '自动控制系统',
+        },
+      });
+
+      expect(contract.answerIntent).toBe(intent);
+      expect(contract.studyQuestion).toMatchObject({
+        intent,
+        preferences: {
+          depth: 'detailed',
+          format: 'steps',
+          hintStrength: 'guided',
+          exampleContext: '自动控制系统',
+        },
+      });
+      expect(contract.studyQuestion?.requiredSections).toEqual(expect.arrayContaining([...sections]));
+    }
+  });
+
+  it('derives answer presentation preferences from a learner request when no structured preference payload exists', () => {
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope(),
+      currentUserQuery: '请简洁地用表格比较开环与闭环控制，只给我逐步提示。',
+    });
+
+    expect(contract.studyQuestion).toMatchObject({
+      intent: 'concept-comparison',
+      preferences: {
+        depth: 'concise',
+        format: 'table',
+        hintStrength: 'guided',
+      },
+    });
+  });
+
+  it('requires a verified official citation before marking normative guidance as verified', () => {
+    const verifiedRuntime = createRuntimeContext({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:official:chemistry-standard',
+          sourceType: 'content',
+          displayTitle: '化学方程式书写规范',
+          href: 'https://example.gov.cn/chemistry-standard',
+          confidence: 'high',
+          evidenceBasis: 'source-pack:konling-answer:official',
+          owner: 'answer',
+          citationTargetId: 'official:chemistry-standard',
+          verified: true,
+          resolver: 'official-reference',
+        }],
+        evidenceCitations: [],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 0 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+    const verified = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: verifiedRuntime,
+      scope: createScope(),
+      currentUserQuery: '化学方程式的规范书写格式是什么？',
+    });
+    const unverified = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope(),
+      currentUserQuery: '化学方程式的规范书写格式是什么？',
+    });
+
+    expect(verified.studyQuestion).toMatchObject({
+      intent: 'normative-content',
+      normativeGuidance: 'verified',
+    });
+    expect(unverified.studyQuestion).toMatchObject({
+      intent: 'normative-content',
+      normativeGuidance: 'verification-required',
+    });
+  });
+
+  it('binds only server-known citations from material answer markers', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:formula:derivation',
+        sourceType: 'content',
+        displayTitle: '闭环传递函数教材片段',
+        href: '/course-runtime/resources/control.md#closed-loop',
+        confidence: 'high',
+        evidenceBasis: 'source-pack:konling-answer:test',
+        owner: 'answer',
+        citationTargetId: 'formula:derivation',
+        verified: true,
+        resolver: 'course-runtime',
+        displayNumber: 1,
+      }, {
+        id: 'content:unverified:related',
+        sourceType: 'content',
+        displayTitle: '未验证的相关材料',
+        href: '/course-runtime/resources/related.md',
+        confidence: 'high',
+        evidenceBasis: 'source-pack:konling-answer:test',
+        owner: 'answer',
+        displayNumber: 2,
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer'],
+        minimum: { content: 1, evidenceWhenAvailable: 0 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext({ citationContext }),
+      scope: createScope(),
+      currentUserQuery: '请推导闭环传递函数',
+    });
+    const runtime = { citationContext, teachingAssistantMode: modeContract };
+
+    const promptRuntime = createRuntimeContext({ citationContext });
+    const prompt = buildKonlingSystemPrompt({
+      page: promptRuntime.pageContext,
+      user: promptRuntime.userProfile,
+      adaptiveRuntime: {
+        ...promptRuntime,
+        teachingAssistantMode: modeContract,
+      },
+    });
+    expect(prompt).toContain('闭环传递函数教材片段');
+    expect(prompt).not.toContain('content:formula:derivation');
+    expect(prompt).not.toContain('content:unverified:related');
+
+    const guarded = buildKonlingCitationGuard(runtime, [
+      '关键变形：分母为 1 + G(s)H(s) [1]',
+      '不应绑定的相关结论 [2]',
+      '伪造来源 [99]',
+    ].join('\n'));
+
+    expect(guarded.answerUnits).toEqual([{
+      unit: '关键变形：分母为 1 + G(s)H(s)',
+      citationId: 'content:formula:derivation',
+      citationTargetId: 'formula:derivation',
+      limitation: null,
+    }]);
+
+    const missingBinding = buildKonlingCitationGuard(
+      runtime,
+      '关键变形使用闭环传递函数教材片段（content:formula:derivation）。',
+    );
+
+    expect(missingBinding.answerUnits).toEqual([]);
+    expect(missingBinding.status).toBe('low-confidence');
+    expect(missingBinding.fallbackRequired).toBe(true);
+    expect(missingBinding.lowConfidenceReasons).toContain('assistant-answer-unit-citations-missing');
   });
 });

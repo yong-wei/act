@@ -1,0 +1,301 @@
+import { generateText, Output, zodSchema } from 'ai';
+import type { z } from 'zod';
+
+import { createAIProviderFromConfig } from '../ai/provider-registry';
+import {
+  AIProviderCapabilityUnavailableError,
+  resolveConfiguredAIProviderConfig,
+} from '../ai/provider-settings';
+
+import {
+  SmartLessonPlanError,
+  contentHash,
+  createDeterministicFixtureProvider,
+  type SmartLessonFixtureStage,
+} from './domain';
+import {
+  smartLessonAdvisoryReviewSchema,
+  smartLessonReviewProviderAuditSchema,
+} from './schema';
+
+export const SMART_LESSON_PROMPT_VERSION = 'smart-lesson-plan.v1';
+export const SMART_LESSON_REVIEW_PROMPT_VERSION = 'smart-lesson-review.v1';
+
+type GenerateObjectResult<T> = {
+  object: T;
+  usage?: { inputTokens?: number; outputTokens?: number };
+  response?: { id?: string };
+};
+
+type RuntimeDependencies = {
+  resolveConfig?: typeof resolveConfiguredAIProviderConfig;
+  generate?: (input: Record<string, unknown>) => Promise<GenerateObjectResult<unknown>>;
+};
+
+export async function resolveSmartLessonStructuredProvider(dependencies: RuntimeDependencies = {}) {
+  try {
+    if (!dependencies.resolveConfig && !dependencies.generate && smartLessonE2EFixtureRequested()) {
+      return deterministicStructuredFixtureRuntime();
+    }
+    const config = await (dependencies.resolveConfig ?? resolveConfiguredAIProviderConfig)(
+      undefined,
+      undefined,
+      { jsonSchema: true },
+    );
+    if (!config.enabled) throw new SmartLessonPlanError('structured-provider-unavailable', 503);
+    const adapter = createAIProviderFromConfig(config);
+    return {
+      serviceId: config.provider,
+      providerKind: config.providerKind,
+      model: config.model,
+      async generate<T>(input: {
+        schema: z.ZodType<T>;
+        schemaVersion: string;
+        promptVersion: string;
+        system: string;
+        prompt: string;
+        idempotencyKey: string;
+        maxOutputTokens?: number;
+        deferValidation?: boolean;
+      }) {
+        const schemaName = input.schemaVersion.replace(/[^A-Za-z0-9_-]/g, '_');
+        const result = dependencies.generate
+          ? await dependencies.generate({
+              model: adapter.getModel(),
+              schema: input.schema,
+              schemaName,
+              system: input.system,
+              prompt: input.prompt,
+              temperature: 0.1,
+              maxRetries: 0,
+              maxOutputTokens: input.maxOutputTokens ?? 8_000,
+              headers: { 'Idempotency-Key': input.idempotencyKey },
+            })
+          : await generateUnvalidatedJson({
+              model: adapter.getModel(),
+              schema: input.schema,
+              schemaName,
+              system: input.system,
+              prompt: input.prompt,
+              idempotencyKey: input.idempotencyKey,
+              maxOutputTokens: input.maxOutputTokens ?? 8_000,
+            });
+        const normalized = normalizeSmartLessonProviderOutput(result.object);
+        const output = input.deferValidation ? normalized : input.schema.parse(normalized);
+        return {
+          output,
+          normalizedResponseId: result.response?.id?.trim() || `sha256:${contentHash(output)}`,
+          inputTokens: result.usage?.inputTokens ?? null,
+          outputTokens: result.usage?.outputTokens ?? null,
+          costMicros: null,
+          audit: smartLessonReviewProviderAuditSchema.parse({
+            serviceId: config.provider,
+            providerKind: config.providerKind,
+            model: config.model,
+            promptVersion: input.promptVersion,
+            schemaVersion: input.schemaVersion,
+            normalizedResponseId: result.response?.id?.trim() || `sha256:${contentHash(result.object)}`,
+            inputTokens: result.usage?.inputTokens ?? null,
+            outputTokens: result.usage?.outputTokens ?? null,
+            costMicros: null,
+          }),
+        };
+      },
+    };
+  } catch (error) {
+    if (error instanceof SmartLessonPlanError) throw error;
+    if (error instanceof AIProviderCapabilityUnavailableError) {
+      throw new SmartLessonPlanError('structured-provider-unavailable', 503);
+    }
+    throw error;
+  }
+}
+
+async function generateUnvalidatedJson(input: {
+  model: Parameters<typeof generateText>[0]['model'];
+  schema: z.ZodTypeAny;
+  schemaName: string;
+  system: string;
+  prompt: string;
+  idempotencyKey: string;
+  maxOutputTokens: number;
+}): Promise<GenerateObjectResult<unknown>> {
+  const result = await generateText({
+    model: input.model,
+    output: Output.json({ name: input.schemaName }),
+    system: input.system,
+    prompt: `${input.prompt}\n必须遵循的 JSON Schema：${JSON.stringify(zodSchema(input.schema).jsonSchema)}`,
+    temperature: 0.1,
+    maxRetries: 0,
+    maxOutputTokens: input.maxOutputTokens,
+    headers: { 'Idempotency-Key': input.idempotencyKey },
+  });
+  return {
+    object: result.output,
+    usage: {
+      inputTokens: result.usage.inputTokens,
+      outputTokens: result.usage.outputTokens,
+    },
+    response: { id: result.response.id },
+  };
+}
+
+export type SmartLessonValidationReceipt = {
+  valid: boolean;
+  schemaVersion: string;
+  issues: Array<{ code: string; path: Array<string | number>; message: string }>;
+};
+
+export function normalizeSmartLessonProviderOutput(value: unknown, key?: string): unknown {
+  if (Array.isArray(value)) return value.map((item) => normalizeSmartLessonProviderOutput(item));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+      .map(([childKey, child]) => [childKey, normalizeSmartLessonProviderOutput(child, childKey)]));
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().replaceAll(/\r\n?/g, '\n');
+    if (key === 'minutes' && /^\d+$/.test(normalized)) return Number(normalized);
+    return normalized;
+  }
+  return value;
+}
+
+export function validateSmartLessonProviderOutput<T>(
+  schema: z.ZodType<T>,
+  schemaVersion: string,
+  value: unknown,
+): { success: true; output: T; receipt: SmartLessonValidationReceipt }
+  | { success: false; output: unknown; receipt: SmartLessonValidationReceipt } {
+  const output = normalizeSmartLessonProviderOutput(value);
+  const result = schema.safeParse(output);
+  if (result.success) {
+    return { success: true, output: result.data, receipt: { valid: true, schemaVersion, issues: [] } };
+  }
+  return {
+    success: false,
+    output,
+    receipt: {
+      valid: false,
+      schemaVersion,
+      issues: result.error.issues.slice(0, 50).map((issue) => ({
+        code: issue.code,
+        path: issue.path,
+        message: issue.message,
+      })),
+    },
+  };
+}
+
+function smartLessonE2EFixtureRequested() {
+  return process.env.SMART_LESSON_E2E_FIXTURE_TOKEN === 'smart-lesson-real-browser-v1';
+}
+
+function deterministicStructuredFixtureRuntime() {
+  const fixture = createDeterministicFixtureProvider(process.env.NODE_ENV);
+  return {
+    serviceId: fixture.serviceId,
+    providerKind: 'fixture',
+    model: 'deterministic-smart-lesson-v1',
+    async generate<T>(input: {
+      schema: z.ZodType<T>;
+      schemaVersion: string;
+      promptVersion: string;
+      system: string;
+      prompt: string;
+      idempotencyKey: string;
+      maxOutputTokens?: number;
+    }) {
+      const fixtureStage = input.schemaVersion === 'smart-lesson-advisory-review.v1'
+        ? null
+        : fixtureStageFromSchemaVersion(input.schemaVersion);
+      const output = input.schemaVersion === 'smart-lesson-advisory-review.v1'
+        ? {
+            goalCoverage: '教学目标已在完整教案中得到覆盖。',
+            sourceConsistency: '来源状态和引用边界保持一致。',
+            bopppsStructure: 'BOPPPS 六阶段结构完整。',
+            findings: [{
+              category: 'CONTENT_QUALITY' as const,
+              severity: 'SUGGESTION' as const,
+              message: '可在授课后根据形成性评价结果继续修订。',
+              path: 'boppps.summary.steps.0.assessment',
+              proposedReplacement: '根据形成性评价结果记录本节课的达成情况与后续修订方向。',
+            }],
+            suggestions: ['保留教师最终判断并记录后续修订。'],
+          }
+        : adaptFixtureDuration(await fixture.generateStage({
+            mode: 'success',
+            stage: fixtureStage!,
+            seed: input.idempotencyKey,
+          }), fixtureStage!, requestedFixtureDuration(input.prompt));
+      const parsed = input.schema.parse(output);
+      const normalizedResponseId = `fixture:${contentHash({ schemaVersion: input.schemaVersion, output: parsed })}`;
+      return {
+        output: parsed,
+        normalizedResponseId,
+        inputTokens: 0,
+        outputTokens: 0,
+        costMicros: null,
+        audit: smartLessonReviewProviderAuditSchema.parse({
+          serviceId: fixture.serviceId,
+          providerKind: 'fixture',
+          model: 'deterministic-smart-lesson-v1',
+          promptVersion: input.promptVersion,
+          schemaVersion: input.schemaVersion,
+          normalizedResponseId,
+          inputTokens: 0,
+          outputTokens: 0,
+          costMicros: null,
+        }),
+      };
+    },
+  };
+}
+
+function requestedFixtureDuration(prompt: string) {
+  const match = prompt.match(/"durationMinutes"\s*:\s*(\d{2,3})/);
+  return match ? Number(match[1]) : 30;
+}
+
+function adaptFixtureDuration(output: unknown, stage: SmartLessonFixtureStage, durationMinutes: number) {
+  if (durationMinutes === 30) return output;
+  const stageMinutes = stage === 'PARTICIPATORY_LEARNING'
+    ? durationMinutes - 25
+    : 5;
+  if (stage === 'OUTLINE') {
+    const outline = structuredClone(output) as { coursewareStepOutline: Array<{ bopppsStage: string; minutes: number }> };
+    outline.coursewareStepOutline = outline.coursewareStepOutline.map((step) => ({
+      ...step,
+      minutes: step.bopppsStage === 'participatoryLearning' ? durationMinutes - 25 : 5,
+    }));
+    return outline;
+  }
+  const boppps = structuredClone(output) as { minutes: number; steps: Array<{ minutes: number }> };
+  boppps.minutes = stageMinutes;
+  boppps.steps = boppps.steps.map((step, index) => ({ ...step, minutes: index === 0 ? stageMinutes : 0 }));
+  return boppps;
+}
+
+function fixtureStageFromSchemaVersion(schemaVersion: string): SmartLessonFixtureStage {
+  if (schemaVersion === 'smart-lesson-outline.v1') return 'OUTLINE';
+  const suffix = schemaVersion.match(/^smart-lesson-boppps-(.+)\.v1$/)?.[1]?.toUpperCase();
+  if (suffix && ['BRIDGE_IN', 'OBJECTIVES', 'PRE_ASSESSMENT', 'PARTICIPATORY_LEARNING', 'POST_ASSESSMENT', 'SUMMARY'].includes(suffix)) {
+    return suffix as SmartLessonFixtureStage;
+  }
+  throw new SmartLessonPlanError('fixture-schema-version-unsupported', 500);
+}
+
+export async function generateSmartLessonAdvisoryReport(input: {
+  plan: unknown;
+  idempotencyKey: string;
+}, dependencies: RuntimeDependencies = {}) {
+  const runtime = await resolveSmartLessonStructuredProvider(dependencies);
+  return runtime.generate({
+    schema: smartLessonAdvisoryReviewSchema,
+    schemaVersion: 'smart-lesson-advisory-review.v1',
+    promptVersion: SMART_LESSON_REVIEW_PROMPT_VERSION,
+    system: '你是教学设计审核助手。仅提供建议，不得给出批准、发布或阻断结论。可直接应用的 finding 必须把 path 定位到一个可编辑字符串字段，并在 proposedReplacement 中给出该字段的完整替换文本；无法形成确定修改时将 proposedReplacement 设为 null。输出必须符合给定结构。',
+    prompt: `请从目标覆盖、来源一致性、BOPPPS 结构和内容质量审核以下教案：\n${JSON.stringify(input.plan)}`,
+    idempotencyKey: input.idempotencyKey,
+    maxOutputTokens: 4_000,
+  });
+}

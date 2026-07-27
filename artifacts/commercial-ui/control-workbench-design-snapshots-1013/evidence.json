@@ -1,0 +1,27 @@
+{
+  "route": "/interactive-learning/control-workbench",
+  "desktop": {
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "documentWidth": 1440,
+    "snapshotManager": 1,
+    "restoreButton": 1,
+    "canvasCount": 4,
+    "savedGain": "1.00",
+    "restoredGain": "1.00"
+  },
+  "mobile": {
+    "viewport": {
+      "width": 320,
+      "height": 900
+    },
+    "documentWidth": 320,
+    "snapshotManager": 1,
+    "restoreButton": 1,
+    "canvasCount": 4,
+    "savedGain": "1.00",
+    "restoredGain": "1.00"
+  }
+}

@@ -3,13 +3,26 @@ import 'server-only';
 import { createHash } from 'node:crypto';
 import fs from 'fs/promises';
 import path from 'path';
+import Ajv2019, { type AnySchema, type ValidateFunction } from 'ajv/dist/2019';
 import { prisma } from '@/lib/prisma';
-import { CHAPTER_DISPLAY_ORDER, getRelationCategory, resolveChapterName } from '@/lib/knowledge-labels';
+import { CHAPTER_DISPLAY_ORDER, resolveChapterName } from '@/lib/knowledge-labels';
+import actkgProjectionSchema from './knowledge-graph-actkg/ctkg-projection.schema.json';
+import {
+  assertRuntimeKnowledgeRelationCoverage,
+  buildRuntimeKnowledgeRelationInspectionItems,
+  RUNTIME_KNOWLEDGE_RELATION_CONTRACT_COVERAGE,
+  RuntimeKnowledgeRelationCoverageError,
+  type RuntimeKnowledgeRelationLink,
+} from '@/lib/knowledge-graph-relation-runtime';
+import { getKnowledgeGraphRelationContract } from '@/features/knowledge/graph/relation-contract';
+import { findCanonicalPostRequisiteCycleEdgeIds } from '@/features/knowledge/graph/selected-corridor';
 
 type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
 type BloomLevel = 'REMEMBER' | 'UNDERSTAND' | 'APPLY' | 'ANALYZE' | 'EVALUATE' | 'CREATE';
 type KnowledgeDim = 'FACTUAL' | 'CONCEPTUAL' | 'PROCEDURAL' | 'METACOGNITIVE';
-type RelatedCategory = 'prerequisite' | 'follows' | 'related';
+type RelatedCategory = 'membership' | 'prerequisite' | 'follows' | 'related';
+
+export type KnowledgeGraphSourceKind = 'file' | 'database' | 'actkg-projection';
 
 export interface KnowledgeNodeExpansion {
   state: 'expandable' | 'leaf' | 'unknown';
@@ -33,10 +46,22 @@ export interface UnifiedKnowledgeNode {
   chapter?: number;
   chapterName?: string;
   expansion?: KnowledgeNodeExpansion;
+  /**
+   * Projection-shaped governance attributes, populated only by sources that
+   * carry them (ActKG projection). Absent means "unknown"; consumers must not
+   * assume a default classification or coverage weight. `candidate: true`
+   * marks a governance candidate that learner-facing views may exclude.
+   */
+  semanticName?: string;
+  conceptKind?: string;
+  candidate?: boolean;
+  sourceCoverageCount?: number;
 }
 
 export interface UnifiedKnowledgeLink {
   id: string;
+  motionEligible?: boolean;
+  provenance?: RuntimeKnowledgeRelationLink['provenance'];
   sourceId: string;
   targetId: string;
   relation: string;
@@ -44,10 +69,36 @@ export interface UnifiedKnowledgeLink {
   strength: number;
 }
 
+export interface PublicKnowledgeGraphLink {
+  id: string;
+  /**
+   * Evidence availability derived at projection time through the single shared
+   * evidence rule. Present whenever the active source exposes evidence
+   * information; absent means "unknown", never "unavailable".
+   */
+  evidenceState?: 'available' | 'unavailable';
+  motionEligible?: false;
+  relation: string;
+  relationType?: string;
+  sourceId: string;
+  strength?: number;
+  targetId: string;
+}
+
+export interface KnowledgeGraphMembershipLink {
+  id: string;
+  relation: 'contains';
+  relationType: 'contains';
+  sourceId: string;
+  strength: 1;
+  targetId: string;
+}
+
 export interface UnifiedKnowledgeGraphPayload {
   nodes: UnifiedKnowledgeNode[];
   links: UnifiedKnowledgeLink[];
-  source: 'file' | 'database';
+  inspectionLinks?: RuntimeKnowledgeRelationLink[];
+  source: KnowledgeGraphSourceKind;
   versionDigest?: string;
   versionLinkCount?: number;
 }
@@ -63,20 +114,72 @@ export interface KnowledgeGraphRootSummary {
   hasExpansion: boolean;
 }
 
+export interface KnowledgeGraphRootCatalogEntry {
+  nodeId: string;
+  nodeName: string;
+  nodeType: NodeType;
+  domainId: string;
+  chapterName: string;
+  /** Present only when the node is a governance candidate. */
+  candidate?: boolean;
+}
+
 export interface KnowledgeGraphProgressivePayload {
   mode: KnowledgeGraphProgressiveMode;
   graphVersion: string;
   shardKey: string;
   filterSignature: string;
-  nodes: UnifiedKnowledgeNode[];
-  links: UnifiedKnowledgeLink[];
-  source: 'file' | 'database';
+  nodes: PublicKnowledgeGraphNode[];
+  links: PublicKnowledgeGraphLink[];
+  corridorLinks?: PublicKnowledgeGraphLink[];
+  corridorCycleEdgeIds?: string[];
+  membershipLinks?: KnowledgeGraphMembershipLink[];
+  source: KnowledgeGraphSourceKind;
+  truncated: { nodes: boolean; links: boolean; membershipLinks: boolean; corridorLinks?: boolean };
   rootSummaries?: KnowledgeGraphRootSummary[];
+  rootCatalog?: KnowledgeGraphRootCatalogEntry[];
+  domainId?: string;
+}
+
+export interface PublicKnowledgeGraphNode {
+  id: string;
+  name: string;
+  nodeType: NodeType;
+  description: string;
+  positionX: number;
+  positionY: number;
+  positionZ: number;
+  bloomLevel?: BloomLevel;
+  knowledgeDim?: KnowledgeDim;
+  tags?: string[];
+  chapter?: number;
+  chapterName?: string;
+  expansion?: KnowledgeNodeExpansion;
+  importance?: number;
+  /**
+   * Projection-shaped governance attributes, populated only by sources that
+   * carry them (ActKG projection). Absent means "unknown"; consumers must not
+   * assume a default classification or coverage weight. `candidate: true`
+   * marks a governance candidate that learner-facing views may exclude.
+   */
+  semanticName?: string;
+  conceptKind?: string;
+  candidate?: boolean;
+  sourceCoverageCount?: number;
+}
+
+export interface PublicKnowledgeGraphPayload {
+  nodes: PublicKnowledgeGraphNode[];
+  links: PublicKnowledgeGraphLink[];
+  source: KnowledgeGraphSourceKind;
+  versionDigest?: string;
+  versionLinkCount?: number;
+  truncated: { nodes: boolean; links: boolean };
 }
 
 export interface KnowledgeGraphManifestPayload {
   graphVersion: string;
-  source: 'file' | 'database';
+  source: KnowledgeGraphSourceKind;
   nodeCount: number;
   linkCount: number;
   rootShardKey: string;
@@ -84,15 +187,40 @@ export interface KnowledgeGraphManifestPayload {
   remainingShardKey: string;
 }
 
-export interface UnifiedKnowledgeNodeDetail extends UnifiedKnowledgeNode {
+export interface UnifiedKnowledgeNodeDetail extends PublicKnowledgeGraphNode {
+  content?: Record<string, unknown>;
   isActive: boolean;
+  metadata?: Record<string, unknown>;
+  resources?: unknown[];
+  truncated: {
+    content: boolean;
+    metadata: boolean;
+    relatedNodes: boolean;
+    resources: boolean;
+  };
   relatedNodes: Array<{
     id: string;
     name: string;
     nodeType: NodeType;
-    relation: string;
+    canonicalType: string;
+    cycleState?: 'cyclic';
+    relationId: string;
     category: RelatedCategory;
+    direction: 'parent-to-child' | 'earlier-to-later' | 'unordered';
+    family: 'child' | 'post-requisite' | 'association';
+    inspectionSentence: string;
+    evidenceState: 'available' | 'unavailable';
+    rationale?: string;
+    rawType: string;
+    sourceDocument?: string;
+    sourceChapter?: string | number;
+    sourceId: string;
+    sourceMetadata?: Record<string, string | number>;
     strength: number;
+    targetChapter?: string | number;
+    targetId: string;
+    visualMergeCount: number;
+    visualMergeKey: string;
   }>;
 }
 
@@ -115,19 +243,6 @@ interface RawKnowledgeGraphNode {
   updated_at?: string;
 }
 
-interface RawRelationRecord {
-  id?: string;
-  relation_id?: string;
-  source_id?: string;
-  source: string;
-  target_id?: string;
-  target: string;
-  source_chapter?: number;
-  target_chapter?: number;
-  relation_type?: string;
-  strength?: number;
-}
-
 interface DatabaseKnowledgeNodeRow {
   id: string;
   name: string;
@@ -146,6 +261,8 @@ interface DatabaseKnowledgeNodeRow {
 
 interface DatabaseKnowledgeLinkRow {
   id: string;
+  metadata?: unknown;
+  strength?: number;
   sourceId: string;
   targetId: string;
   relation: string;
@@ -158,7 +275,14 @@ interface DatabaseRelationVersionEvidence {
 
 interface FileGraphVersionMetadata {
   digestInput: string;
-  relationFingerprintCount: number;
+  relationCount: number;
+}
+
+interface FileGraphSnapshot {
+  fingerprint: string;
+  rawNodes: string;
+  rawRelations: string;
+  versionMetadata: FileGraphVersionMetadata;
 }
 
 const BLOOM_LEVEL_MAP: Record<string, BloomLevel> = {
@@ -187,44 +311,6 @@ const KNOWLEDGE_DIM_MAP: Record<string, KnowledgeDim> = {
   元认知: 'METACOGNITIVE',
 };
 
-const RELATION_TYPE_MAP: Record<string, string> = {
-  applies_to: 'applies_to',
-  complements: 'complements',
-  contains: 'contains',
-  contrasts_with: 'contrasts_with',
-  cross_domain: 'cross_domain',
-  derives: 'derives',
-  describes_migration_of: 'describes_migration_of',
-  determines: 'determines',
-  embodies: 'embodies',
-  enables: 'enables',
-  follows: 'follows',
-  generalizes: 'generalizes',
-  informs: 'informs',
-  instance_of: 'instance_of',
-  leads_to: 'leads_to',
-  opposite: 'opposite',
-  prerequisite: 'prerequisite',
-  provides_foundation: 'provides_foundation',
-  quantified_by: 'quantified_by',
-  related: 'related',
-  supports: 'supports',
-  uses: 'uses',
-  visualized_by: 'visualized_by',
-  defines: 'related',
-  example: 'instance_of',
-  explains: 'informs',
-  governs: 'related',
-  implements: 'related',
-  influences: 'related',
-  引出机械建模: 'leads_to',
-  引出电路建模: 'leads_to',
-  机电类比: 'cross_domain',
-  非线性扩展: 'generalizes',
-  建模基础: 'provides_foundation',
-  电路应用: 'applies_to',
-};
-
 const FILE_GRAPH_CACHE_TTL_MS = 60_000;
 const CHAPTER_ROOT_NODE_PREFIX = 'chapter-node:';
 const DEFAULT_GRAPH_FILTER_SIGNATURE = 'density=structure;strength=0.8;connected=true;relations=default';
@@ -232,6 +318,7 @@ const DEFAULT_GRAPH_FILTER_SIGNATURE = 'density=structure;strength=0.8;connected
 let graphCache: {
   expiresAt: number;
   data: UnifiedKnowledgeGraphPayload;
+  sourceFingerprint?: string;
 } | null = null;
 
 let rootGraphCache: {
@@ -253,21 +340,6 @@ function normalizeKnowledgeDim(value?: string): KnowledgeDim {
   return mapped ?? 'CONCEPTUAL';
 }
 
-function normalizeRelationType(value?: string): string {
-  if (!value) return 'related';
-  const key = value.trim().toLowerCase();
-  const mapped = RELATION_TYPE_MAP[key];
-  if (!mapped) {
-    throw new Error(`Unknown knowledge graph relation type: ${value}`);
-  }
-  return mapped;
-}
-
-function clampStrength(value?: number): number {
-  if (typeof value !== 'number' || Number.isNaN(value)) return 1;
-  return Math.min(1, Math.max(0, value));
-}
-
 function inferNodeType(node: RawKnowledgeGraphNode): NodeType {
   const text = `${node.name ?? ''} ${node.category ?? ''}`;
   if (text.includes('伦理')) return 'ETHICS';
@@ -275,33 +347,59 @@ function inferNodeType(node: RawKnowledgeGraphNode): NodeType {
   return 'THEORY';
 }
 
-function parseJsonlLines(content: string): RawRelationRecord[] {
-  const records: RawRelationRecord[] = [];
-  const lines = content.split('\n');
-
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    try {
-      const parsed = JSON.parse(line) as RawRelationRecord;
-      records.push(parsed);
-    } catch {
-      // ignore broken lines
+async function readStableFile(filePath: string): Promise<{ content: string; fingerprint: Record<string, unknown> }> {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const before = await fs.stat(filePath);
+    const content = await fs.readFile(filePath, 'utf8');
+    const after = await fs.stat(filePath);
+    if (before.size === after.size && before.mtimeMs === after.mtimeMs) {
+      return {
+        content,
+        fingerprint: {
+          size: after.size,
+          sha256: createHash('sha256').update(content).digest('hex'),
+        },
+      };
     }
   }
-  return records;
+  throw new Error(`Runtime knowledge source changed while being read: ${filePath}`);
 }
 
-async function readFileGraphVersionMetadata(relationsPath: string): Promise<FileGraphVersionMetadata> {
-  const stats = await fs.stat(relationsPath);
-  return {
-    digestInput: stableJson({
-      relations: {
-        size: stats.size,
-        mtimeMs: stats.mtimeMs,
+async function readFileGraphSnapshot(): Promise<FileGraphSnapshot | null> {
+  const runtimeRoot = process.env.KNOWLEDGE_RUNTIME_ROOT
+    ? path.resolve(process.env.KNOWLEDGE_RUNTIME_ROOT)
+    : path.join(process.cwd(), 'course-content', 'runtime', 'knowledge');
+  const graphPath = path.join(runtimeRoot, 'graph', 'nodes.json');
+  const relationsPath = path.join(runtimeRoot, 'graph', 'relations.jsonl');
+  const [nodesResult, relationsResult] = await Promise.allSettled([
+    readStableFile(graphPath),
+    readStableFile(relationsPath),
+  ]);
+  const nodeAbsent = nodesResult.status === 'rejected'
+    && (nodesResult.reason as NodeJS.ErrnoException).code === 'ENOENT';
+  const relationsAbsent = relationsResult.status === 'rejected'
+    && (relationsResult.reason as NodeJS.ErrnoException).code === 'ENOENT';
+  if (nodeAbsent && relationsAbsent) return null;
+  if (nodeAbsent || relationsAbsent) {
+    throw runtimeLoadingError(
+      'INCOMPLETE_RUNTIME_GRAPH_SOURCE',
+      `Canonical runtime graph source is incomplete: ${nodeAbsent ? 'nodes.json' : 'relations.jsonl'} is absent.`,
+    );
+  }
+  if (nodesResult.status === 'rejected') throw nodesResult.reason;
+  if (relationsResult.status === 'rejected') throw relationsResult.reason;
+  const nodes = nodesResult.value;
+  const relations = relationsResult.value;
+    const digestInput = stableJson({ nodes: nodes.fingerprint, relations: relations.fingerprint });
+    return {
+      fingerprint: createHash('sha256').update(digestInput).digest('hex'),
+      rawNodes: nodes.content,
+      rawRelations: relations.content,
+      versionMetadata: {
+        digestInput,
+        relationCount: relations.content.split('\n').filter((line) => line.trim().length > 0).length,
       },
-    }),
-    relationFingerprintCount: stats.size,
-  };
+    };
 }
 
 function buildRawFileGraphVersionDigest(rawNodes: string, versionMetadata: FileGraphVersionMetadata): string {
@@ -338,21 +436,7 @@ function normalizeDatabaseKnowledgeNodes(nodes: DatabaseKnowledgeNodeRow[]): Uni
   });
 }
 
-function normalizeDatabaseKnowledgeLinks(links: DatabaseKnowledgeLinkRow[]): UnifiedKnowledgeLink[] {
-  return links.map((link) => {
-    const relationType = normalizeRelationType(link.relation);
-    return {
-      id: link.id,
-      sourceId: link.sourceId,
-      targetId: link.targetId,
-      relation: relationType,
-      relationType,
-      strength: 1,
-    };
-  });
-}
-
-function buildDatabaseKnowledgeGraphPayload(
+export function buildDatabaseKnowledgeGraphPayload(
   nodes: DatabaseKnowledgeNodeRow[],
   links: DatabaseKnowledgeLinkRow[],
   options: { includeLinks: boolean; relationVersion: DatabaseRelationVersionEvidence }
@@ -361,7 +445,27 @@ function buildDatabaseKnowledgeGraphPayload(
   const stableNodes = [...normalizedNodes].sort((left, right) => (
     left.id < right.id ? -1 : left.id > right.id ? 1 : 0
   ));
-  const normalizedLinks = options.includeLinks ? normalizeDatabaseKnowledgeLinks(links) : [];
+  assertCanonicalGraphIdentity({ nodes: stableNodes, links: [] });
+  const coverage = options.includeLinks
+    ? assertRuntimeKnowledgeRelationCoverage([...links].sort((a, b) => stableStringCompare(a.id, b.id)).map((link) => {
+      const metadata = link.metadata && typeof link.metadata === 'object' && !Array.isArray(link.metadata)
+        ? { ...(link.metadata as Record<string, unknown>) }
+        : {};
+      for (const key of [
+        'id', 'relationId', 'relation_id', 'sourceId', 'source_id', 'targetId', 'target_id',
+        'type', 'relation', 'relationType', 'relation_type', 'strength',
+      ]) delete metadata[key];
+      return JSON.stringify({
+        ...metadata,
+        id: link.id,
+        sourceId: link.sourceId,
+        targetId: link.targetId,
+        type: link.relation,
+        strength: typeof link.strength === 'number' ? link.strength : 1,
+      });
+    }).join('\n'), { nodeIds: new Set(normalizedNodes.map((node) => node.id)) })
+    : null;
+  const normalizedLinks = coverage?.runtimeLinks ?? [];
   const versionLinkCount = options.relationVersion.linkCount;
   const versionDigest = createHash('sha256')
     .update(stableJson({
@@ -373,23 +477,287 @@ function buildDatabaseKnowledgeGraphPayload(
     .digest('hex')
     .slice(0, 16);
 
-  return {
-    nodes: normalizedNodes,
+  const payload: UnifiedKnowledgeGraphPayload = {
+    nodes: stableNodes,
     links: normalizedLinks,
+    inspectionLinks: coverage?.inspectionLinks,
     source: 'database',
     versionDigest,
     versionLinkCount,
   };
+  assertCanonicalGraphIdentity(payload);
+  return payload;
 }
 
-async function loadDatabaseRelationVersionEvidence(): Promise<DatabaseRelationVersionEvidence> {
-  const rows = await prisma.$queryRaw<Array<{ linkCount: bigint; fingerprint: string }>>`
+function toPublicKnowledgeGraphLink(link: UnifiedKnowledgeLink): PublicKnowledgeGraphLink {
+  return {
+    id: link.id.includes('|')
+      ? `visual:${createHash('sha256').update(link.id).digest('hex').slice(0, 16)}`
+      : link.id.length > 200
+        ? `link:${createHash('sha256').update(link.id).digest('hex').slice(0, 32)}`
+        : link.id,
+    relation: link.relation.slice(0, 100),
+    sourceId: link.sourceId,
+    targetId: link.targetId,
+    ...(link.strength !== 1 ? { strength: link.strength } : {}),
+    ...(link.motionEligible === false ? { motionEligible: false as const } : {}),
+    // Evidence state is derived once at projection time (shared rule) and
+    // surfaced verbatim so canvas and inspector never disagree; links without
+    // provenance simply omit it ("unknown").
+    ...(link.provenance ? { evidenceState: link.provenance.evidenceState } : {}),
+  };
+}
+
+const MAX_PUBLIC_NODES = 20_000;
+const MAX_PUBLIC_LINKS = 20_000;
+const MAX_PUBLIC_MEMBERSHIP_LINKS = 20_000;
+export const PUBLIC_GRAPH_BYTE_BUDGET = 4_000_000;
+export const PUBLIC_DETAIL_BYTE_BUDGET = 256_000;
+const MAX_NODE_TEXT = 200;
+const MAX_NODE_DESCRIPTION = 800;
+const MAX_NODE_TAGS = 10;
+const MAX_NODE_TAG_LENGTH = 100;
+
+const MAX_CANONICAL_NODE_ID_LENGTH = 200;
+const MAX_DERIVED_MEMBERSHIP_ID_LENGTH = 500;
+export const RUNTIME_NODE_SOURCE_MARKER = 'course-content/runtime/knowledge/graph/nodes.json';
+export const RUNTIME_RELATION_SOURCE_MARKER = 'course-content/runtime/knowledge/graph/relations.jsonl';
+
+export class InvalidKnowledgeGraphIdentityError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidKnowledgeGraphIdentityError';
+  }
+}
+
+function stableStringCompare(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function assertCanonicalNodeId(id: string): void {
+  if (!id || id.length > MAX_CANONICAL_NODE_ID_LENGTH) {
+    throw new InvalidKnowledgeGraphIdentityError('Knowledge graph node id exceeds the canonical identity boundary.');
+  }
+}
+
+function assertCanonicalGraphIdentity(graph: Pick<UnifiedKnowledgeGraphPayload, 'nodes' | 'links'>): void {
+  const nodeIds = new Set<string>();
+  for (const node of graph.nodes) {
+    assertCanonicalNodeId(node.id);
+    if (nodeIds.has(node.id)) {
+      throw new InvalidKnowledgeGraphIdentityError('Knowledge graph contains a duplicate canonical node id.');
+    }
+    nodeIds.add(node.id);
+  }
+  for (const link of graph.links) {
+    if (link.sourceId.length > MAX_CANONICAL_NODE_ID_LENGTH || link.targetId.length > MAX_CANONICAL_NODE_ID_LENGTH) {
+      throw new InvalidKnowledgeGraphIdentityError('Knowledge graph link endpoint exceeds the canonical identity boundary.');
+    }
+    if (!nodeIds.has(link.sourceId) || !nodeIds.has(link.targetId)) {
+      throw new InvalidKnowledgeGraphIdentityError('Knowledge graph link endpoint is absent from the canonical node set.');
+    }
+  }
+}
+
+export function toPublicKnowledgeGraphNode(node: UnifiedKnowledgeNode): PublicKnowledgeGraphNode {
+  const rawImportance = node.metadata?.importance;
+  const importance = typeof rawImportance === 'number' && Number.isFinite(rawImportance)
+    ? Math.max(0, Math.min(5, rawImportance))
+    : undefined;
+  return {
+    id: node.id,
+    name: node.name.slice(0, MAX_NODE_TEXT),
+    nodeType: node.nodeType,
+    description: node.description.slice(0, MAX_NODE_DESCRIPTION),
+    positionX: node.positionX,
+    positionY: node.positionY,
+    positionZ: node.positionZ,
+    ...(node.bloomLevel ? { bloomLevel: node.bloomLevel } : {}),
+    ...(node.knowledgeDim ? { knowledgeDim: node.knowledgeDim } : {}),
+    ...(node.tags ? { tags: node.tags.slice(0, MAX_NODE_TAGS).map((tag) => tag.slice(0, MAX_NODE_TAG_LENGTH)) } : {}),
+    ...(typeof node.chapter === 'number' ? { chapter: node.chapter } : {}),
+    ...(node.chapterName ? { chapterName: node.chapterName.slice(0, MAX_NODE_TEXT) } : {}),
+    ...(node.expansion ? { expansion: node.expansion } : {}),
+    ...(importance !== undefined ? { importance } : {}),
+    ...(node.semanticName ? { semanticName: node.semanticName.slice(0, MAX_NODE_TEXT) } : {}),
+    ...(node.conceptKind ? { conceptKind: node.conceptKind.slice(0, MAX_NODE_TAG_LENGTH) } : {}),
+    ...(typeof node.candidate === 'boolean' ? { candidate: node.candidate } : {}),
+    ...(typeof node.sourceCoverageCount === 'number' && Number.isFinite(node.sourceCoverageCount)
+      ? { sourceCoverageCount: Math.max(0, Math.floor(node.sourceCoverageCount)) }
+      : {}),
+  };
+}
+
+const SAFE_METADATA_KEYS = new Set([
+  'applications', 'chapter', 'chapterName', 'challengeId', 'content', 'difficulty',
+  'continuous', 'discrete', 'formulas', 'importance', 'launchTarget', 'lessonEntry', 'lessonId', 'nodeCount',
+  'description', 'href', 'label', 'preview', 'previewDescription', 'previewTitle',
+  'renderTarget', 'taskId', 'title', 'type',
+]);
+const SAFE_CONTENT_KEYS = new Set([
+  'applications', 'challenge', 'challengePreview', 'content', 'definition', 'examples',
+  'continuous', 'description', 'discrete', 'formulas', 'href', 'keywords', 'label', 'summary', 'title',
+]);
+const SAFE_RESOURCE_KEYS = new Set([
+  'challengeId', 'lessonId', 'nodeId', 'path', 'registryId', 'taskId', 'title', 'type', 'url',
+]);
+
+function projectSafeValue(value: unknown, allowedKeys: ReadonlySet<string>, depth = 0): unknown {
+  if (typeof value === 'string') return value.slice(0, 500);
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+  if (typeof value === 'boolean') return value;
+  if (depth >= 3) return undefined;
+  if (Array.isArray(value)) return value.slice(0, 10)
+    .map((item) => projectSafeValue(item, allowedKeys, depth + 1))
+    .filter((item) => item !== undefined);
+  if (!value || typeof value !== 'object') return undefined;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+    .filter(([key]) => allowedKeys.has(key))
+    .sort(([left], [right]) => stableStringCompare(left, right))
+    .slice(0, 30)
+    .map(([key, item]) => [key, projectSafeValue(item, allowedKeys, depth + 1)])
+    .filter((entry): entry is [string, unknown] => entry[1] !== undefined));
+}
+
+function projectSafeResources(resources: unknown[] | undefined): unknown[] | undefined {
+  if (!resources) return undefined;
+  const projected = resources.slice(0, 10).map((resource) => (
+    typeof resource === 'string'
+      ? resource.slice(0, 500)
+      : projectSafeValue(resource, SAFE_RESOURCE_KEYS)
+  )).filter((item) => item !== undefined);
+  return projected.length ? projected : undefined;
+}
+
+function utf8Bytes(value: unknown): number {
+  return Buffer.byteLength(JSON.stringify(value), 'utf8');
+}
+
+export function boundKnowledgeGraphCorridorLinks({
+  basePayload,
+  candidates,
+  cycleEdgeIds = new Set<string>(),
+  baseCycleEdgeIds = [],
+  byteBudget = PUBLIC_GRAPH_BYTE_BUDGET,
+}: {
+  basePayload: object;
+  candidates: readonly PublicKnowledgeGraphLink[];
+  cycleEdgeIds?: ReadonlySet<string>;
+  baseCycleEdgeIds?: readonly string[];
+  byteBudget?: number;
+}): {
+  links: PublicKnowledgeGraphLink[];
+  cycleEdgeIds: string[];
+  truncated: boolean;
+  serializedBytes: number;
+} {
+  const emptySerializedBytes = utf8Bytes({
+    ...basePayload,
+    corridorLinks: [],
+    corridorCycleEdgeIds: [...new Set(baseCycleEdgeIds)].sort(stableStringCompare),
+  });
+  if (emptySerializedBytes > byteBudget) {
+    throw new RangeError('Knowledge graph corridor base payload exceeds its byte budget.');
+  }
+  const ordered = [...candidates]
+    .sort((left, right) => stableStringCompare(left.id, right.id))
+    .slice(0, MAX_PUBLIC_LINKS);
+  const links: PublicKnowledgeGraphLink[] = [];
+  let selectedCycleEdgeIds = [...new Set(baseCycleEdgeIds)].sort(stableStringCompare);
+  for (const link of ordered) {
+    const nextLinks = [...links, link];
+    const nextCycleEdgeIds = cycleEdgeIds.has(link.id)
+      ? [...selectedCycleEdgeIds, link.id].sort(stableStringCompare)
+      : selectedCycleEdgeIds;
+    if (utf8Bytes({
+      ...basePayload,
+      corridorLinks: nextLinks,
+      corridorCycleEdgeIds: nextCycleEdgeIds,
+    }) > byteBudget) break;
+    links.push(link);
+    selectedCycleEdgeIds = nextCycleEdgeIds;
+  }
+  const serializedBytes = utf8Bytes({
+    ...basePayload,
+    corridorLinks: links,
+    corridorCycleEdgeIds: selectedCycleEdgeIds,
+  });
+  return {
+    links,
+    cycleEdgeIds: selectedCycleEdgeIds,
+    truncated: links.length < candidates.length,
+    serializedBytes,
+  };
+}
+
+function boundedProgressiveGraph(
+  nodesInput: readonly UnifiedKnowledgeNode[],
+  linksInput: readonly UnifiedKnowledgeLink[],
+  requiredNodeIds: readonly string[] = []
+) {
+  assertCanonicalGraphIdentity({ nodes: [...nodesInput], links: [...linksInput] });
+  const required = new Set(requiredNodeIds);
+  const orderedNodes = [...nodesInput].sort((left, right) => (
+    Number(required.has(right.id)) - Number(required.has(left.id)) || stableStringCompare(left.id, right.id)
+  ));
+  const nodes: PublicKnowledgeGraphNode[] = [];
+  let serializedBytes = 200;
+  for (const node of orderedNodes.slice(0, MAX_PUBLIC_NODES)) {
+    const candidate = toPublicKnowledgeGraphNode(node);
+    const candidateBytes = utf8Bytes(candidate) + 1;
+    if (serializedBytes + candidateBytes > PUBLIC_GRAPH_BYTE_BUDGET - 100_000) break;
+    nodes.push(candidate);
+    serializedBytes += candidateBytes;
+  }
+  const nodeIds = new Set(nodes.map((node) => node.id));
+  const links: PublicKnowledgeGraphLink[] = [];
+  for (const link of [...linksInput].sort((a, b) => stableStringCompare(a.id, b.id)).slice(0, MAX_PUBLIC_LINKS)) {
+    if (!nodeIds.has(link.sourceId) || !nodeIds.has(link.targetId)) continue;
+    const candidate = toPublicKnowledgeGraphLink(link);
+    const candidateBytes = utf8Bytes(candidate) + 1;
+    if (serializedBytes + candidateBytes > PUBLIC_GRAPH_BYTE_BUDGET - 10_000) break;
+    links.push(candidate);
+    serializedBytes += candidateBytes;
+  }
+  return {
+    nodes,
+    links,
+    nodeIds,
+    truncated: {
+      nodes: nodes.length < nodesInput.length,
+      links: links.length < linksInput.length,
+      membershipLinks: false,
+    },
+  };
+}
+
+export function toPublicKnowledgeGraphPayload(
+  graph: UnifiedKnowledgeGraphPayload
+): PublicKnowledgeGraphPayload {
+  assertCanonicalGraphIdentity(graph);
+  const bounded = boundedProgressiveGraph(graph.nodes, graph.links);
+  return {
+    nodes: bounded.nodes,
+    links: bounded.links,
+    source: graph.source,
+    ...(graph.versionDigest ? { versionDigest: graph.versionDigest } : {}),
+    ...(typeof graph.versionLinkCount === 'number' ? { versionLinkCount: graph.versionLinkCount } : {}),
+    truncated: { nodes: bounded.truncated.nodes, links: bounded.truncated.links },
+  };
+}
+
+type KnowledgeGraphReadTransaction = Pick<typeof prisma, 'knowledgeNode' | 'knowledgeLink' | '$queryRaw'>;
+
+async function loadDatabaseRelationVersionEvidence(
+  db: KnowledgeGraphReadTransaction
+): Promise<DatabaseRelationVersionEvidence> {
+  const rows = await db.$queryRaw<Array<{ linkCount: bigint; fingerprint: string }>>`
     SELECT
       COUNT(*)::bigint AS "linkCount",
       md5(
         COALESCE(
           string_agg(
-            concat_ws(chr(31), link."id", link."sourceId", link."targetId", link."relation"),
+            concat_ws(chr(31), link."id", link."sourceId", link."targetId", link."relation", link."strength", link."metadata"::text),
             chr(30)
             ORDER BY link."id", link."sourceId", link."targetId", link."relation"
           ),
@@ -397,9 +765,7 @@ async function loadDatabaseRelationVersionEvidence(): Promise<DatabaseRelationVe
         )
       ) AS "fingerprint"
     FROM "KnowledgeLink" AS link
-    JOIN "KnowledgeNode" AS source_node ON source_node."id" = link."sourceId"
-    JOIN "KnowledgeNode" AS target_node ON target_node."id" = link."targetId"
-    WHERE source_node."isActive" = true AND target_node."isActive" = true
+    WHERE link."metadata"->>'runtimeSource' = ${RUNTIME_RELATION_SOURCE_MARKER}
   `;
   const evidence = rows[0];
   if (!evidence) throw new Error('Knowledge graph relation version evidence is unavailable.');
@@ -407,22 +773,6 @@ async function loadDatabaseRelationVersionEvidence(): Promise<DatabaseRelationVe
     linkCount: Number(evidence.linkCount),
     fingerprint: evidence.fingerprint,
   };
-}
-
-function resolveNodeId(
-  name: string,
-  chapter: number | undefined,
-  byNameChapter: Map<string, string>,
-  byName: Map<string, string[]>
-): string | null {
-  if (typeof chapter === 'number') {
-    const found = byNameChapter.get(`${name}|${chapter}`);
-    if (found) return found;
-  }
-
-  const candidates = byName.get(name);
-  if (candidates && candidates.length === 1) return candidates[0];
-  return null;
 }
 
 function normalizeFileKnowledgeNodes(parsedNodes: UnifiedKnowledgeNode[]): UnifiedKnowledgeNode[] {
@@ -459,161 +809,267 @@ function normalizeFileKnowledgeNodes(parsedNodes: UnifiedKnowledgeNode[]): Unifi
   });
 }
 
-async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPayload | null> {
-  const graphPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'nodes.json');
-  const relationsPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'relations.jsonl');
+function runtimeLoadingError(code: string, message: string): RuntimeKnowledgeRelationCoverageError {
+  return new RuntimeKnowledgeRelationCoverageError({
+    contractCoverage: RUNTIME_KNOWLEDGE_RELATION_CONTRACT_COVERAGE,
+    coverage: [],
+    counts: { inputLines: 0, parsedRelations: 0, projectedRelations: 0, visualEdges: 0 },
+    diagnostics: [{ blocking: true, code, message, relationIds: [], stage: 'loading', stages: ['loading', 'labeling', 'projection', 'inspection'] }],
+    ok: false,
+    stageAgreement: false,
+  });
+}
 
-  let rawNodes: string;
-  let rawRelations: string;
-  let versionMetadata: FileGraphVersionMetadata;
-  try {
-    [rawNodes, rawRelations, versionMetadata] = await Promise.all([
-      fs.readFile(graphPath, 'utf-8'),
-      fs.readFile(relationsPath, 'utf-8'),
-      readFileGraphVersionMetadata(relationsPath),
-    ]);
-  } catch {
-    return null;
-  }
-
+function loadKnowledgeGraphFromFiles(snapshot: FileGraphSnapshot): UnifiedKnowledgeGraphPayload {
+  const { rawNodes, rawRelations, versionMetadata } = snapshot;
   let parsedNodes: UnifiedKnowledgeNode[];
   try {
     parsedNodes = JSON.parse(rawNodes) as UnifiedKnowledgeNode[];
   } catch {
-    return null;
+    throw runtimeLoadingError('MALFORMED_RUNTIME_NODES', 'Runtime knowledge nodes JSON is malformed.');
   }
 
   if (!Array.isArray(parsedNodes) || parsedNodes.length === 0) {
-    return null;
+    throw runtimeLoadingError('EMPTY_RUNTIME_NODES', 'Runtime knowledge nodes must be a non-empty JSON array.');
+  }
+  const nodeIds = new Set<string>();
+  for (const [index, node] of parsedNodes.entries()) {
+    const id = node && typeof node === 'object' ? node.id : undefined;
+    if (typeof id !== 'string' || !id || id.trim() !== id || id.length > MAX_CANONICAL_NODE_ID_LENGTH) {
+      throw runtimeLoadingError('INVALID_RUNTIME_NODE_ID', `Runtime knowledge node at index ${index} has an invalid canonical id.`);
+    }
+    if (nodeIds.has(id)) {
+      throw runtimeLoadingError('DUPLICATE_RUNTIME_NODE_ID', `Runtime knowledge node id is duplicated: ${id}`);
+    }
+    nodeIds.add(id);
   }
 
   const nodes = normalizeFileKnowledgeNodes(parsedNodes);
 
-  const nodeById = new Map(nodes.map((node) => [node.id, node]));
-  const byNameChapter = new Map<string, string>();
-  const byName = new Map<string, string[]>();
-  nodes.forEach((node) => {
-    byNameChapter.set(`${node.name}|${node.chapter ?? -1}`, node.id);
-    const existing = byName.get(node.name) ?? [];
-    existing.push(node.id);
-    byName.set(node.name, existing);
+  const relationCoverage = assertRuntimeKnowledgeRelationCoverage(rawRelations, {
+    nodeIds,
   });
 
-  const relationLines = parseJsonlLines(rawRelations);
-  const linkMap = new Map<string, UnifiedKnowledgeLink>();
-
-  relationLines.forEach((record, index) => {
-    const sourceId = record.source_id && nodeById.has(record.source_id)
-      ? record.source_id
-      : resolveNodeId(record.source, record.source_chapter, byNameChapter, byName);
-    const targetId = record.target_id && nodeById.has(record.target_id)
-      ? record.target_id
-      : resolveNodeId(record.target, record.target_chapter, byNameChapter, byName);
-    if (!sourceId || !targetId || sourceId === targetId) return;
-
-    const relationType = normalizeRelationType(record.relation_type);
-    const strength = clampStrength(record.strength);
-    const dedupeKey = `${sourceId}::${targetId}::${relationType}`;
-    const existing = linkMap.get(dedupeKey);
-
-    if (!existing || strength > existing.strength) {
-      linkMap.set(dedupeKey, {
-        id: record.relation_id ?? `file-link-${index}`,
-        sourceId,
-        targetId,
-        relation: relationType,
-        relationType,
-        strength,
-      });
-    }
-  });
-
-  return {
+  const payload: UnifiedKnowledgeGraphPayload = {
     nodes,
-    links: Array.from(linkMap.values()),
+    links: relationCoverage.runtimeLinks,
+    inspectionLinks: relationCoverage.inspectionLinks,
     source: 'file',
     versionDigest: buildRawFileGraphVersionDigest(rawNodes, versionMetadata),
-    versionLinkCount: versionMetadata.relationFingerprintCount,
+    versionLinkCount: versionMetadata.relationCount,
   };
+  assertCanonicalGraphIdentity(payload);
+  return payload;
 }
 
-async function loadKnowledgeGraphRootFromFiles(): Promise<UnifiedKnowledgeGraphPayload | null> {
-  const graphPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'nodes.json');
-  const relationsPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'relations.jsonl');
+// ========== ActKG GraphProjection source (environment-gated, fail-closed) ==========
 
-  let rawNodes: string;
-  let versionMetadata: FileGraphVersionMetadata;
-  try {
-    [rawNodes, versionMetadata] = await Promise.all([
-      fs.readFile(graphPath, 'utf-8'),
-      readFileGraphVersionMetadata(relationsPath),
-    ]);
-  } catch {
-    return null;
-  }
+const ACTKG_PROJECTION_PATH_ENV = 'KNOWLEDGE_GRAPH_ACTKG_PROJECTION_PATH';
+const MAX_ACTKG_VERSION_DIGEST_LENGTH = 200;
+// Pinned to the vendored schema snapshot (src/lib/knowledge-graph-actkg, ActKG
+// release 3f7c58760aa70011990af28977cd03e51ba7c985). A projection authored
+// against any other schema version fails closed as schema drift.
+const ACTKG_PINNED_SCHEMA_VERSION = '0.1.0';
 
-  let parsedNodes: UnifiedKnowledgeNode[];
-  try {
-    parsedNodes = JSON.parse(rawNodes) as UnifiedKnowledgeNode[];
-  } catch {
-    return null;
-  }
+const ACTKG_DIRECTION_BY_PROJECTION = {
+  parent_to_child: 'parent-to-child',
+  earlier_to_later: 'earlier-to-later',
+  unordered: 'unordered',
+} as const;
 
-  if (!Array.isArray(parsedNodes) || parsedNodes.length === 0) {
-    return null;
-  }
-
-  return {
-    nodes: normalizeFileKnowledgeNodes(parsedNodes),
-    links: [],
-    source: 'file',
-    versionDigest: buildRawFileGraphVersionDigest(rawNodes, versionMetadata),
-    versionLinkCount: versionMetadata.relationFingerprintCount,
-  };
+interface ActkgProjectionSnapshot {
+  content: string;
+  fingerprint: string;
+  projectionPath: string;
 }
 
-async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPayload> {
-  const [nodes, links, relationVersion] = await Promise.all([
-    prisma.knowledgeNode.findMany({
-      where: { isActive: true },
-      select: {
-        id: true,
-        name: true,
-        nodeType: true,
-        description: true,
-        positionX: true,
-        positionY: true,
-        positionZ: true,
-        bloomLevel: true,
-        knowledgeDim: true,
-        metadata: true,
-        content: true,
-        resources: true,
-        tags: true,
-      },
-    }),
-    prisma.knowledgeLink.findMany({
+interface ActkgGraphProjectionDocument {
+  id: string;
+  projection_profile: string;
+  source_dataset_hash: string;
+  version_digest: string;
+  schema_version: string;
+  lifecycle_status: string;
+  source_release?: string | null;
+  nodes?: Array<{
+    id: string;
+    concept_id: string;
+    semantic_name: string;
+    display_name: string;
+    concept_kind: string;
+    source_coverage_count: number;
+    candidate: boolean;
+    description?: string | null;
+  }> | null;
+  links?: Array<{
+    id: string;
+    relation_id: string;
+    source_id: string;
+    target_id: string;
+    relation_type: 'contains' | 'prerequisite' | 'association';
+    relation_family: string;
+    direction: keyof typeof ACTKG_DIRECTION_BY_PROJECTION;
+    evidence_state: 'available' | 'unavailable';
+  }> | null;
+}
+
+let actkgProjectionValidator: ValidateFunction | null = null;
+
+function getActkgProjectionValidator(): ValidateFunction {
+  if (!actkgProjectionValidator) {
+    const schema = actkgProjectionSchema as unknown as { $defs: Record<string, AnySchema> };
+    const ajv = new Ajv2019({
+      allErrors: true,
+      strict: true,
+      strictRequired: false,
+      allowUnionTypes: true,
+      validateFormats: false,
+    });
+    actkgProjectionValidator = ajv.compile({ $ref: '#/$defs/GraphProjection', $defs: schema.$defs });
+  }
+  return actkgProjectionValidator;
+}
+
+function resolveActkgProjectionPathFromEnv(): string | null {
+  const configured = process.env[ACTKG_PROJECTION_PATH_ENV]?.trim();
+  return configured ? path.resolve(configured) : null;
+}
+
+async function readActkgProjectionSnapshot(projectionPath: string): Promise<ActkgProjectionSnapshot> {
+  try {
+    const { content } = await readStableFile(projectionPath);
+    return {
+      content,
+      fingerprint: createHash('sha256').update(content).digest('hex'),
+      projectionPath,
+    };
+  } catch (error) {
+    throw runtimeLoadingError(
+      'ACTKG_PROJECTION_UNAVAILABLE',
+      `ActKG projection document is unavailable at ${projectionPath}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+function parseActkgGraphProjection(snapshot: ActkgProjectionSnapshot): ActkgGraphProjectionDocument {
+  let document: unknown;
+  try {
+    document = JSON.parse(snapshot.content);
+  } catch {
+    throw runtimeLoadingError(
+      'MALFORMED_ACTKG_PROJECTION',
+      `ActKG projection document is not valid JSON: ${snapshot.projectionPath}`
+    );
+  }
+  const validate = getActkgProjectionValidator();
+  if (!validate(document)) {
+    const detail = (validate.errors ?? [])
+      .map((error) => `${error.instancePath || '/'} ${error.keyword} (${error.schemaPath})`)
+      .join('; ');
+    throw runtimeLoadingError(
+      'INVALID_ACTKG_PROJECTION',
+      `ActKG projection failed schema validation at ${snapshot.projectionPath}: ${detail}`
+    );
+  }
+  const projection = document as ActkgGraphProjectionDocument;
+  if (projection.schema_version !== ACTKG_PINNED_SCHEMA_VERSION) {
+    throw runtimeLoadingError(
+      'UNSUPPORTED_ACTKG_SCHEMA_VERSION',
+      `ActKG projection schema_version "${projection.schema_version}" does not match the pinned vendored schema version "${ACTKG_PINNED_SCHEMA_VERSION}": ${snapshot.projectionPath}`
+    );
+  }
+  return projection;
+}
+
+function loadKnowledgeGraphFromActkgProjection(snapshot: ActkgProjectionSnapshot): UnifiedKnowledgeGraphPayload {
+  const projection = parseActkgGraphProjection(snapshot);
+  const projectedNodes = projection.nodes ?? [];
+  const projectedLinks = projection.links ?? [];
+  if (projectedNodes.length === 0) {
+    throw runtimeLoadingError(
+      'EMPTY_ACTKG_PROJECTION_NODES',
+      'ActKG projection must contain at least one projected node.'
+    );
+  }
+
+  const nodes: UnifiedKnowledgeNode[] = projectedNodes.map((node, index) => ({
+    id: node.id,
+    name: node.display_name,
+    // ActKG `concept_kind` is governance vocabulary, not the legacy display
+    // axis; the projection contract maps it to `conceptKind`, so `nodeType`
+    // stays at the neutral default instead of guessing a category.
+    nodeType: 'THEORY',
+    description: node.description?.trim() || `${node.display_name} 的知识节点`,
+    positionX: 0,
+    positionY: 0,
+    positionZ: index + 1,
+    metadata: {},
+    content: {},
+    resources: [],
+    tags: [],
+    semanticName: node.semantic_name,
+    conceptKind: node.concept_kind,
+    candidate: node.candidate,
+    sourceCoverageCount: node.source_coverage_count,
+  }));
+
+  const relationRows = projectedLinks.map((link) => {
+    const row: Record<string, unknown> = {
+      id: link.id,
+      source_id: link.source_id,
+      target_id: link.target_id,
+      relation_type: link.relation_type,
+      evidence_state: link.evidence_state,
+    };
+    // The canonical contract table wins direction conflicts; the overridden
+    // projected direction is carried into provenance via the raw relation so
+    // the disagreement stays inspectable instead of being silently dropped.
+    const contract = getKnowledgeGraphRelationContract(link.relation_type);
+    if (contract && ACTKG_DIRECTION_BY_PROJECTION[link.direction] !== contract.direction) {
+      row.projectedDirection = link.direction;
+    }
+    return row;
+  });
+  const relationCoverage = assertRuntimeKnowledgeRelationCoverage(
+    relationRows.map((row) => JSON.stringify(row)).join('\n'),
+    { nodeIds: new Set(nodes.map((node) => node.id)) }
+  );
+
+  const releaseIdentity = typeof projection.source_release === 'string' && projection.source_release.trim()
+    ? projection.source_release.trim()
+    : `dataset:${projection.source_dataset_hash}`;
+  const versionDigest = `${releaseIdentity}#${projection.version_digest}`
+    .slice(0, MAX_ACTKG_VERSION_DIGEST_LENGTH);
+
+  const payload: UnifiedKnowledgeGraphPayload = {
+    nodes,
+    links: relationCoverage.runtimeLinks,
+    inspectionLinks: relationCoverage.inspectionLinks,
+    source: 'actkg-projection',
+    versionDigest,
+    versionLinkCount: projectedLinks.length,
+  };
+  assertCanonicalGraphIdentity(payload);
+  return payload;
+}
+
+function isRetryableKnowledgeGraphSnapshotError(error: unknown): boolean {
+  const code = (error as { code?: unknown }).code;
+  return code === 'P2034' || code === '40001';
+}
+
+export async function loadKnowledgeGraphFromDatabase(options: {
+  afterNodesRead?: () => Promise<void>;
+} = {}): Promise<UnifiedKnowledgeGraphPayload> {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const db = tx as KnowledgeGraphReadTransaction;
+        const nodes = await db.knowledgeNode.findMany({
       where: {
-        sourceNode: { isActive: true },
-        targetNode: { isActive: true },
+        isActive: true,
+        metadata: { path: ['source'], equals: RUNTIME_NODE_SOURCE_MARKER },
       },
-      select: {
-        id: true,
-        sourceId: true,
-        targetId: true,
-        relation: true,
-      },
-    }),
-    loadDatabaseRelationVersionEvidence(),
-  ]);
-
-  return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: true, relationVersion });
-}
-
-async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGraphPayload> {
-  const [nodes, relationVersion] = await Promise.all([
-    prisma.knowledgeNode.findMany({
-      where: { isActive: true },
       select: {
         id: true,
         name: true,
@@ -629,26 +1085,59 @@ async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGra
         resources: true,
         tags: true,
       },
-    }),
-    loadDatabaseRelationVersionEvidence(),
-  ]);
-
-  return buildDatabaseKnowledgeGraphPayload(nodes, [], { includeLinks: false, relationVersion });
+        });
+        await options.afterNodesRead?.();
+        const [links, relationVersion] = await Promise.all([
+          db.knowledgeLink.findMany({
+            where: { metadata: { path: ['runtimeSource'], equals: RUNTIME_RELATION_SOURCE_MARKER } },
+            select: {
+              id: true,
+              sourceId: true,
+              targetId: true,
+              relation: true,
+              strength: true,
+              metadata: true,
+            },
+          }),
+          loadDatabaseRelationVersionEvidence(db),
+        ]);
+        return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: true, relationVersion });
+      }, {
+        isolationLevel: 'RepeatableRead',
+        maxWait: 5_000,
+        timeout: 15_000,
+      });
+    } catch (error) {
+      if (attempt === 0 && isRetryableKnowledgeGraphSnapshotError(error)) continue;
+      throw error;
+    }
+  }
+  throw new Error('Knowledge graph snapshot retry exhausted.');
 }
 
 export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPayload> {
   const now = Date.now();
-  if (graphCache && sharedGraphCacheExpiresAt > now) {
+  // Selection order: ActKG projection env gate → canonical runtime files → database.
+  // The gate fails closed and never silently falls back to another source.
+  const actkgProjectionPath = resolveActkgProjectionPathFromEnv();
+  const actkgSnapshot = actkgProjectionPath ? await readActkgProjectionSnapshot(actkgProjectionPath) : null;
+  const fileSnapshot = actkgSnapshot ? null : await readFileGraphSnapshot();
+  const sourceFingerprint = actkgSnapshot?.fingerprint ?? fileSnapshot?.fingerprint;
+  if (sourceFingerprint && graphCache?.sourceFingerprint === sourceFingerprint && sharedGraphCacheExpiresAt > now) {
     return graphCache.data;
   }
 
-  const fileGraph = await loadKnowledgeGraphFromFiles();
-  const data = fileGraph && fileGraph.nodes.length > 0 ? fileGraph : await loadKnowledgeGraphFromDatabase();
+  const data = actkgSnapshot
+    ? loadKnowledgeGraphFromActkgProjection(actkgSnapshot)
+    : fileSnapshot
+      ? loadKnowledgeGraphFromFiles(fileSnapshot)
+      : await loadKnowledgeGraphFromDatabase();
   const expiresAt = now + FILE_GRAPH_CACHE_TTL_MS;
 
   graphCache = {
     expiresAt,
     data,
+    ...(sourceFingerprint ? { sourceFingerprint } : {}),
   };
   sharedGraphCacheExpiresAt = expiresAt;
   if (rootGraphCache) {
@@ -664,12 +1153,9 @@ export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPay
 
 export async function loadKnowledgeGraphRootData(): Promise<UnifiedKnowledgeGraphPayload> {
   const now = Date.now();
-  if (rootGraphCache && sharedGraphCacheExpiresAt > now) {
-    return rootGraphCache.data;
-  }
-
-  const fileGraph = await loadKnowledgeGraphRootFromFiles();
-  const data = fileGraph && fileGraph.nodes.length > 0 ? fileGraph : await loadKnowledgeGraphRootFromDatabase();
+  // Root is a presentation projection, not a weaker loading boundary. Always load and
+  // validate the complete canonical relation source before exposing any node summary.
+  const data = await loadKnowledgeGraphData();
   const expiresAt = now + FILE_GRAPH_CACHE_TTL_MS;
 
   rootGraphCache = {
@@ -686,6 +1172,12 @@ export async function loadKnowledgeGraphRootData(): Promise<UnifiedKnowledgeGrap
   }
 
   return data;
+}
+
+export function resetKnowledgeGraphSourceCacheForTests(): void {
+  graphCache = null;
+  rootGraphCache = null;
+  sharedGraphCacheExpiresAt = 0;
 }
 
 function knowledgeGraphLinkKey(link: Pick<UnifiedKnowledgeLink, 'id' | 'sourceId' | 'targetId' | 'relation' | 'relationType'>): string {
@@ -731,7 +1223,7 @@ function stableKnowledgeGraphVersionInput(graph: UnifiedKnowledgeGraphPayload): 
         chapter: node.chapter,
         chapterName: node.chapterName,
       }))
-      .sort((left, right) => left.id.localeCompare(right.id)),
+      .sort((left, right) => stableStringCompare(left.id, right.id)),
     links: graph.links
       .map((link) => ({
         id: link.id,
@@ -741,7 +1233,7 @@ function stableKnowledgeGraphVersionInput(graph: UnifiedKnowledgeGraphPayload): 
         relationType: link.relationType,
         strength: link.strength,
       }))
-      .sort((left, right) => knowledgeGraphLinkKey(left).localeCompare(knowledgeGraphLinkKey(right))),
+      .sort((left, right) => stableStringCompare(knowledgeGraphLinkKey(left), knowledgeGraphLinkKey(right))),
   });
 }
 
@@ -755,8 +1247,10 @@ function chapterNameForNode(node: UnifiedKnowledgeNode): string {
 }
 
 function buildChapterRootNode(chapterName: string, index: number, nodeCount: number): UnifiedKnowledgeNode {
+  const id = `${CHAPTER_ROOT_NODE_PREFIX}${chapterName}`;
+  assertCanonicalNodeId(id);
   return {
-    id: `${CHAPTER_ROOT_NODE_PREFIX}${chapterName}`,
+    id,
     name: chapterName,
     nodeType: 'THEORY',
     description: `${chapterName}（共 ${nodeCount} 个知识点，选择后可展开）`,
@@ -831,7 +1325,7 @@ function groupGraphNodesByChapter(nodes: UnifiedKnowledgeNode[]): Array<{ chapte
   return Array.from(groups.entries())
     .map(([chapterName, chapterNodes]) => ({
       chapterName,
-      nodes: chapterNodes.sort((left, right) => left.name.localeCompare(right.name, 'zh-Hans-CN')),
+      nodes: chapterNodes.sort((left, right) => stableStringCompare(left.name, right.name)),
     }))
     .sort((left, right) => {
       const leftIndex = orderIndex.get(left.chapterName);
@@ -839,19 +1333,27 @@ function groupGraphNodesByChapter(nodes: UnifiedKnowledgeNode[]): Array<{ chapte
       if (typeof leftIndex === 'number' && typeof rightIndex === 'number') return leftIndex - rightIndex;
       if (typeof leftIndex === 'number') return -1;
       if (typeof rightIndex === 'number') return 1;
-      return left.chapterName.localeCompare(right.chapterName, 'zh-Hans-CN');
+      return stableStringCompare(left.chapterName, right.chapterName);
     });
 }
 
-function chapterRootLinks(rootId: string, nodes: UnifiedKnowledgeNode[]): UnifiedKnowledgeLink[] {
-  return nodes.map((node) => ({
-    id: `chapter-link:${rootId}->${node.id}`,
-    sourceId: rootId,
-    targetId: node.id,
-    relation: 'contains',
-    relationType: 'contains',
-    strength: 1,
-  }));
+function chapterRootLinks(rootId: string, nodes: UnifiedKnowledgeNode[]): KnowledgeGraphMembershipLink[] {
+  assertCanonicalNodeId(rootId);
+  return nodes.map((node) => {
+    assertCanonicalNodeId(node.id);
+    const id = `chapter-link:${rootId}->${node.id}`;
+    if (id.length > MAX_DERIVED_MEMBERSHIP_ID_LENGTH) {
+      throw new InvalidKnowledgeGraphIdentityError('Derived chapter membership id exceeds its identity boundary.');
+    }
+    return {
+      id,
+      sourceId: rootId,
+      targetId: node.id,
+      relation: 'contains',
+      relationType: 'contains',
+      strength: 1,
+    };
+  });
 }
 
 function boundedActiveFilterLinks(links: UnifiedKnowledgeLink[]): UnifiedKnowledgeLink[] {
@@ -893,10 +1395,13 @@ function buildEmptyExpansionPayload(graph: UnifiedKnowledgeGraphPayload, nodeId:
     nodes: [],
     links: [],
     source: graph.source,
+    truncated: { nodes: false, links: false, membershipLinks: false },
+    domainId: nodeId.startsWith(CHAPTER_ROOT_NODE_PREFIX) ? nodeId : undefined,
   };
 }
 
 export function buildKnowledgeGraphManifestPayload(graph: UnifiedKnowledgeGraphPayload): KnowledgeGraphManifestPayload {
+  assertCanonicalGraphIdentity(graph);
   const graphVersion = getKnowledgeGraphVersion(graph);
   return {
     graphVersion,
@@ -910,6 +1415,7 @@ export function buildKnowledgeGraphManifestPayload(graph: UnifiedKnowledgeGraphP
 }
 
 export function buildKnowledgeGraphRootPayload(graph: UnifiedKnowledgeGraphPayload): KnowledgeGraphProgressivePayload {
+  assertCanonicalGraphIdentity(graph);
   const graphVersion = getKnowledgeGraphVersion(graph);
   const groups = groupGraphNodesByChapter(graph.nodes);
   const rootSummaries = groups.map((group, index) => {
@@ -925,16 +1431,31 @@ export function buildKnowledgeGraphRootPayload(graph: UnifiedKnowledgeGraphPaylo
       hasExpansion: group.nodes.length > 0,
     };
   });
+  const rootCatalog = groups.flatMap((group) => {
+    const domainId = `${CHAPTER_ROOT_NODE_PREFIX}${group.chapterName}`;
+    return group.nodes.map((node) => ({
+      nodeId: node.id,
+      nodeName: node.name,
+      nodeType: node.nodeType,
+      domainId,
+      chapterName: group.chapterName,
+      ...(node.candidate === true ? { candidate: true as const } : {}),
+    }));
+  });
 
   return {
     mode: 'root',
     graphVersion,
     shardKey: buildProgressiveShardKey('root', graphVersion, 'chapters'),
     filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-    nodes: groups.map((group, index) => buildChapterRootNode(group.chapterName, index, group.nodes.length)),
+    nodes: groups.map((group, index) => toPublicKnowledgeGraphNode(
+      buildChapterRootNode(group.chapterName, index, group.nodes.length)
+    )),
     links: [],
     source: graph.source,
     rootSummaries,
+    rootCatalog,
+    truncated: { nodes: false, links: false, membershipLinks: false },
   };
 }
 
@@ -942,6 +1463,7 @@ export function buildKnowledgeGraphExpansionPayload(
   graph: UnifiedKnowledgeGraphPayload,
   nodeId: string
 ): KnowledgeGraphProgressivePayload {
+  assertCanonicalGraphIdentity(graph);
   const graphVersion = getKnowledgeGraphVersion(graph);
   if (!nodeId) return buildEmptyExpansionPayload(graph, nodeId);
   const targetNode = graph.nodes.find((node) => node.id === nodeId);
@@ -952,18 +1474,21 @@ export function buildKnowledgeGraphExpansionPayload(
       nodeIds.add(link.sourceId);
       nodeIds.add(link.targetId);
     });
+    const bounded = boundedProgressiveGraph(
+      withCanonicalExpansionDescriptors(graph, graph.nodes.filter((node) => nodeIds.has(node.id))),
+      directLinks,
+      [nodeId]
+    );
 
     return {
       mode: 'expansion',
       graphVersion,
       shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId),
       filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-      nodes: withCanonicalExpansionDescriptors(
-        graph,
-        graph.nodes.filter((node) => nodeIds.has(node.id))
-      ),
-      links: directLinks,
+      nodes: bounded.nodes,
+      links: bounded.links,
       source: graph.source,
+      truncated: bounded.truncated,
     };
   }
 
@@ -980,97 +1505,193 @@ export function buildKnowledgeGraphExpansionPayload(
   const rootNode = buildChapterRootNode(group.chapterName, Math.max(0, groupIndex), group.nodes.length);
   const groupNodeIds = new Set(group.nodes.map((node) => node.id));
   const groupLinks = graph.links.filter((link) => groupNodeIds.has(link.sourceId) && groupNodeIds.has(link.targetId));
+  const boundaryCorridorLinks = graph.links
+    .filter((link) => groupNodeIds.has(link.sourceId) !== groupNodeIds.has(link.targetId))
+    .filter((link) => getKnowledgeGraphRelationContract(link.relationType || link.relation)?.family === 'post-requisite')
+    .sort((left, right) => stableStringCompare(left.id, right.id))
+    .map(toPublicKnowledgeGraphLink);
 
-  return {
+  const membershipLinks = chapterRootLinks(rootNode.id, group.nodes);
+  const bounded = boundedProgressiveGraph(
+    [rootNode, ...withCanonicalExpansionDescriptors(graph, group.nodes)],
+    groupLinks,
+    [rootNode.id]
+  );
+  const eligibleMembershipLinks = membershipLinks
+    .filter((link) => bounded.nodeIds.has(link.sourceId) && bounded.nodeIds.has(link.targetId))
+    .sort((left, right) => stableStringCompare(left.id, right.id))
+    .slice(0, MAX_PUBLIC_MEMBERSHIP_LINKS);
+  const boundedMembershipLinks: KnowledgeGraphMembershipLink[] = [];
+  for (const link of eligibleMembershipLinks) {
+    const candidate = [...boundedMembershipLinks, link];
+    if (utf8Bytes({ nodes: bounded.nodes, links: bounded.links, membershipLinks: candidate })
+      > PUBLIC_GRAPH_BYTE_BUDGET - 2_000) break;
+    boundedMembershipLinks.push(link);
+  }
+  const canonicalCycleEdgeIds = new Set(findCanonicalPostRequisiteCycleEdgeIds(graph.links.map((link) => ({
+    id: link.id,
+    relation: link.relation,
+    relationType: link.relationType,
+    sourceId: link.sourceId,
+    strength: link.strength,
+    targetId: link.targetId,
+  }))));
+  const fullGraphCycleEdgeIds = new Set(graph.links
+    .filter((link) => canonicalCycleEdgeIds.has(link.id))
+    .map((link) => toPublicKnowledgeGraphLink(link).id));
+  const internalCycleEdgeIds = bounded.links
+    .filter((link) => fullGraphCycleEdgeIds.has(link.id))
+    .map((link) => link.id)
+    .sort(stableStringCompare);
+  const basePayload: KnowledgeGraphProgressivePayload = {
     mode: 'expansion',
     graphVersion,
     shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId),
     filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-    nodes: [rootNode, ...withCanonicalExpansionDescriptors(graph, group.nodes)],
-    links: [...chapterRootLinks(rootNode.id, group.nodes), ...groupLinks],
+    nodes: bounded.nodes,
+    links: bounded.links,
+    membershipLinks: boundedMembershipLinks,
     source: graph.source,
+    truncated: {
+      nodes: bounded.truncated.nodes,
+      links: bounded.truncated.links,
+      membershipLinks: boundedMembershipLinks.length < membershipLinks.length,
+      corridorLinks: false,
+    },
+    domainId: nodeId,
+  };
+  const boundedCorridor = boundKnowledgeGraphCorridorLinks({
+    basePayload,
+    candidates: boundaryCorridorLinks,
+    cycleEdgeIds: fullGraphCycleEdgeIds,
+    baseCycleEdgeIds: internalCycleEdgeIds,
+    byteBudget: PUBLIC_GRAPH_BYTE_BUDGET - 1_024,
+  });
+  return {
+    ...basePayload,
+    corridorLinks: boundedCorridor.links,
+    corridorCycleEdgeIds: boundedCorridor.cycleEdgeIds,
+    truncated: {
+      ...basePayload.truncated,
+      corridorLinks: boundedCorridor.truncated,
+    },
   };
 }
 
 export function buildKnowledgeGraphActiveFilterPayload(graph: UnifiedKnowledgeGraphPayload): KnowledgeGraphProgressivePayload {
+  assertCanonicalGraphIdentity(graph);
   const graphVersion = getKnowledgeGraphVersion(graph);
+  const bounded = boundedProgressiveGraph(
+    withCanonicalExpansionDescriptors(graph, graph.nodes),
+    boundedActiveFilterLinks(graph.links)
+  );
   return {
     mode: 'active-filter',
     graphVersion,
     shardKey: buildProgressiveShardKey('active-filter', graphVersion, DEFAULT_GRAPH_FILTER_SIGNATURE),
     filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-    nodes: withCanonicalExpansionDescriptors(graph, graph.nodes),
-    links: boundedActiveFilterLinks(graph.links),
+    nodes: bounded.nodes,
+    links: bounded.links,
     source: graph.source,
+    truncated: bounded.truncated,
   };
 }
 
 export function buildKnowledgeGraphRemainingPayload(graph: UnifiedKnowledgeGraphPayload): KnowledgeGraphProgressivePayload {
+  assertCanonicalGraphIdentity(graph);
   const graphVersion = getKnowledgeGraphVersion(graph);
+  const bounded = boundedProgressiveGraph(withCanonicalExpansionDescriptors(graph, graph.nodes), graph.links);
   return {
     mode: 'remaining',
     graphVersion,
     shardKey: buildProgressiveShardKey('remaining', graphVersion, 'all'),
     filterSignature: 'all',
-    nodes: withCanonicalExpansionDescriptors(graph, graph.nodes),
-    links: graph.links,
+    nodes: bounded.nodes,
+    links: bounded.links,
     source: graph.source,
+    truncated: bounded.truncated,
   };
-}
-
-function resolveRelatedCategory(
-  relation: string,
-  isCurrentNodeSource: boolean
-): RelatedCategory {
-  const base = getRelationCategory(relation);
-  if (isCurrentNodeSource && base === 'prerequisite') return 'follows';
-  if (!isCurrentNodeSource && base === 'follows') return 'prerequisite';
-  return base;
 }
 
 export function buildKnowledgeNodeDetailFromGraph(
   graph: UnifiedKnowledgeGraphPayload,
   nodeId: string
 ): UnifiedKnowledgeNodeDetail | null {
+  assertCanonicalGraphIdentity(graph);
   const node = graph.nodes.find((item) => item.id === nodeId);
   if (!node) return null;
 
   const nodeById = new Map(graph.nodes.map((item) => [item.id, item]));
-  const relatedMap = new Map<string, UnifiedKnowledgeNodeDetail['relatedNodes'][number]>();
+  const runtimeLinks = (graph.inspectionLinks ?? graph.links).filter((link): link is RuntimeKnowledgeRelationLink => (
+    Boolean(link.provenance) && typeof link.motionEligible === 'boolean'
+  ));
+  const allRelatedNodes = buildRuntimeKnowledgeRelationInspectionItems(runtimeLinks, nodeById, nodeId)
+    .map((item) => ({
+      ...item,
+      canonicalType: item.canonicalType.slice(0, 100),
+      id: item.id,
+      inspectionSentence: item.inspectionSentence.slice(0, 500),
+      name: item.name.slice(0, 200),
+      nodeType: item.nodeType as NodeType,
+      relationId: item.relationId.length > 200
+        ? `relation:${createHash('sha256').update(item.relationId).digest('hex').slice(0, 32)}`
+        : item.relationId,
+      sourceId: item.sourceId,
+      targetId: item.targetId,
+    }));
+  const metadata = projectSafeValue(node.metadata, SAFE_METADATA_KEYS) as Record<string, unknown> | undefined;
+  const content = projectSafeValue(node.content, SAFE_CONTENT_KEYS) as Record<string, unknown> | undefined;
+  const resources = projectSafeResources(node.resources);
 
-  graph.links.forEach((link) => {
-    const isSource = link.sourceId === nodeId;
-    const isTarget = link.targetId === nodeId;
-    if (!isSource && !isTarget) return;
-
-    const relatedId = isSource ? link.targetId : link.sourceId;
-    const relatedNode = nodeById.get(relatedId);
-    if (!relatedNode) return;
-
-    const item = {
-      id: relatedNode.id,
-      name: relatedNode.name,
-      nodeType: relatedNode.nodeType,
-      relation: link.relationType || link.relation,
-      category: resolveRelatedCategory(link.relationType || link.relation, isSource),
-      strength: link.strength ?? 1,
-    };
-
-    const existing = relatedMap.get(relatedId);
-    if (!existing || item.strength > existing.strength) {
-      relatedMap.set(relatedId, item);
-    }
-  });
-
-  const relatedNodes = Array.from(relatedMap.values())
-    .sort((a, b) => b.strength - a.strength || a.name.localeCompare(b.name, 'zh-Hans-CN'))
-    .slice(0, 40);
-
-  return {
-    ...node,
+  const detail: UnifiedKnowledgeNodeDetail = {
+    ...toPublicKnowledgeGraphNode(node),
     isActive: true,
-    relatedNodes,
+    relatedNodes: [],
+    truncated: {
+      content: false,
+      metadata: false,
+      relatedNodes: false,
+      resources: false,
+    },
   };
+  const addObjectFields = (
+    field: 'metadata' | 'content',
+    value: Record<string, unknown> | undefined
+  ) => {
+    if (!value || Object.keys(value).length === 0) return;
+    const accepted: Record<string, unknown> = {};
+    for (const key of Object.keys(value).sort(stableStringCompare)) {
+      const candidate = { ...accepted, [key]: value[key] };
+      if (utf8Bytes({ ...detail, [field]: candidate }) > PUBLIC_DETAIL_BYTE_BUDGET) {
+        detail.truncated[field] = true;
+        continue;
+      }
+      accepted[key] = value[key];
+    }
+    if (Object.keys(accepted).length) detail[field] = accepted;
+  };
+  addObjectFields('metadata', metadata);
+  addObjectFields('content', content);
+  if (resources) {
+    const accepted: unknown[] = [];
+    for (const resource of resources) {
+      if (utf8Bytes({ ...detail, resources: [...accepted, resource] }) > PUBLIC_DETAIL_BYTE_BUDGET) {
+        detail.truncated.resources = true;
+        continue;
+      }
+      accepted.push(resource);
+    }
+    if (accepted.length) detail.resources = accepted;
+  }
+  for (const relation of allRelatedNodes.slice(0, 40)) {
+    if (utf8Bytes({ ...detail, relatedNodes: [...detail.relatedNodes, relation] }) > PUBLIC_DETAIL_BYTE_BUDGET) {
+      detail.truncated.relatedNodes = true;
+      break;
+    }
+    detail.relatedNodes.push(relation);
+  }
+  if (allRelatedNodes.length > detail.relatedNodes.length) detail.truncated.relatedNodes = true;
+  return detail;
 }
 
 export function filterKnowledgeNodes(
@@ -1098,5 +1719,5 @@ export function filterKnowledgeNodes(
         tagText.includes(search)
       );
     })
-    .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
+    .sort((a, b) => stableStringCompare(a.name, b.name));
 }

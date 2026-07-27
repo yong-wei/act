@@ -41,33 +41,37 @@
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
-  "design_acceptance_summary": [],
-  "design_acceptance_issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/1-3/design/1-3-interactive-design-acceptance.json"
+  "design_acceptance_summary": [
+    "互动设计接受文件已通过校验。"
   ],
-  "implementation_acceptance_summary": [],
+  "design_acceptance_issues": [],
+  "implementation_acceptance_summary": [
+    "互动实现接受文件已通过校验。"
+  ],
   "implementation_acceptance_issues": [],
   "manifest_audit_summary": [],
   "manifest_audit_issues": [],
   "manifest_audit": null,
-  "reviewed_runtime_artifacts": [],
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/1-3/interactive-manifest.json",
+    "course-content/runtime/lessons/1-3/graph-overlay.json",
+    "course-content/runtime/lessons/1-3/review/review-report.md",
+    "course-content/runtime/lessons/1-3/review/interactive-page-check.json"
+  ],
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
-  "blocking_issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/1-3/design/1-3-interactive-design-acceptance.json"
-  ],
+  "blocking_issues": [],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
-  "summary": [],
-  "warnings": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/1-3/design/1-3-interactive-design-acceptance.json"
+  "summary": [
+    "已覆盖讲义中的核心公式与静态承载内容。",
+    "已检测到 `1-3` 的 V2 互动契约，步骤字段完整。",
+    "互动设计接受文件已通过校验。",
+    "互动实现接受文件已通过校验。"
   ],
-  "missing": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/1-3/design/1-3-interactive-design-acceptance.json"
-  ],
-  "issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/1-3/design/1-3-interactive-design-acceptance.json"
-  ]
+  "warnings": [],
+  "missing": [],
+  "issues": []
 }

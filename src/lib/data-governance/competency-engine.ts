@@ -105,7 +105,12 @@ function groupFactsByCompetency(
     if (profileWeight <= 0) continue;
 
     for (const [competency, value] of Object.entries(contribution)) {
-      if (!Number.isFinite(value) || value * profileWeight === 0) {
+      const context = fact.contextJson && typeof fact.contextJson === 'object' && !Array.isArray(fact.contextJson)
+        ? fact.contextJson as Record<string, unknown>
+        : {};
+      const normalizedRubricPerformance = fact.factType === 'document_rubric_grading'
+        && typeof context.rubricWeight === 'number';
+      if (!Number.isFinite(value) || (value * profileWeight === 0 && !normalizedRubricPerformance)) {
         continue;
       }
 
@@ -186,6 +191,14 @@ function calculateFactWeight(fact: LearningFact): number {
 
   // Time spent (more time = more weight, but capped)
   const timeWeight = Math.min((fact.timeSpent || 0) / 300, 1); // Cap at 5 minutes
+
+  const context = fact.contextJson && typeof fact.contextJson === 'object' && !Array.isArray(fact.contextJson)
+    ? fact.contextJson as Record<string, unknown>
+    : {};
+  const rubricWeight = typeof context.rubricWeight === 'number' && Number.isFinite(context.rubricWeight) && context.rubricWeight > 0
+    ? context.rubricWeight
+    : null;
+  if (rubricWeight !== null) return recencyWeight * (0.5 + 0.5 * timeWeight) * rubricWeight;
 
   return recencyWeight * outcomeWeight * (0.5 + 0.5 * timeWeight);
 }

@@ -15,11 +15,11 @@ import {
   type LearningEvidenceCorpusChunk,
 } from '../learning-evidence-rag-corpus';
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
-import { textbookSearchDocumentsToLearningEvidenceCorpus } from '../graph-center-evidence';
+import { textbookStructureUnitsToLearningEvidenceCorpus } from '../graph-center-evidence';
 import { teachingResourceWhereForGraphCenter } from '../graph-center-source-scope';
 import { filterTeacherResourceNodes } from '../../teacher-resource-node-management';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
-import type { TextbookRuntimeSearchDocument } from '../../textbook-runtime-resources';
+import type { TextbookStructureUnitProjection } from '../../structured-textbook-runtime';
 
 const teacherAnalyticsV2Source = readFileSync(
   join(process.cwd(), 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx'),
@@ -1019,7 +1019,7 @@ describe('graph center payload service', () => {
   });
 
   it('projects textbook runtime search documents into citation-verifiable coverage corpus without raw text', () => {
-    const [chunk] = textbookSearchDocumentsToLearningEvidenceCorpus([
+    const [chunk] = textbookStructureUnitsToLearningEvidenceCorpus([
       textbookDocument({
         id: 'dorf-ch10-sec01-chunk-001',
         text: 'Root-locus compensation raw textbook text should not be copied.',
@@ -1042,7 +1042,9 @@ describe('graph center payload service', () => {
     expect(chunk.content.text).toBeNull();
     expect(chunk.display.capsule).toBe('Modern Control Systems 第 10 章 10.1 节');
     expect(chunk.resourceProjection?.knowledgeNodeRefs).toEqual(['PID控制器_6_656b8b52']);
-    expect(chunk.resourceProjection?.versionRefs).toBeUndefined();
+    expect(chunk.resourceProjection?.versionRefs).toEqual({
+      artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+    });
     expect(verification.status).toBe('downgraded');
     expect(verification.limitations).toEqual(expect.arrayContaining([
       expect.objectContaining({ chunkId: chunk.id, reason: 'missing-version-ref' }),
@@ -1397,7 +1399,8 @@ describe('graph center payload service', () => {
     expect(teacherAnalyticsV2Source).toContain("searchParams.get('graphNodeId')");
     expect(teacherAnalyticsV2Source).toContain("searchParams.get('view')");
     expect(teacherAnalyticsV2Source).toContain('data-graph-center-class-action-context');
-    expect(teacherAnalyticsV2Source).toContain("setHeatmapView('risk')");
+    expect(teacherAnalyticsV2Source).toContain('id="graph-center-affected-population"');
+    expect(teacherAnalyticsV2Source).toContain('依据当前累计能力、最后趋势和仍有效的证据风险排序');
     expect(teacherAnalyticsV2Source).toContain('data-graph-center-population-view');
     expect(adminDataGovernancePageSource).toContain('graphNodeId?: string');
     expect(adminDataGovernancePageSource).toContain('audit?: string');
@@ -2352,7 +2355,7 @@ function textbookDocument(input: {
   text: string;
   contentHash: string;
   knowledgeNodeRefs: string[];
-}): TextbookRuntimeSearchDocument {
+}): TextbookStructureUnitProjection {
   return {
     id: input.id,
     kind: 'chunk',
@@ -2360,6 +2363,14 @@ function textbookDocument(input: {
     href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#chunk-001',
     text: input.text,
     contentHash: input.contentHash,
+    identity: {
+      bookId: 'dorf-modern-control-systems',
+      edition: '14th Global Edition',
+      sourceRevision: 'revision-001',
+      unitId: input.id,
+      fragmentId: null,
+    },
+    fragments: [],
     resourceProjection: {
       resourceId: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
       segmentRef: 'ch10-sec01',
@@ -2367,6 +2378,9 @@ function textbookDocument(input: {
       knowledgeNodeRefs: input.knowledgeNodeRefs,
       capabilityTargetRefs: ['parameterDesign'],
       contentHash: input.contentHash,
+      versionRefs: {
+        artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+      },
     },
     citationAddress: {
       kind: 'text',
@@ -2377,9 +2391,12 @@ function textbookDocument(input: {
     },
     metadata: {
       bookId: 'dorf-modern-control-systems',
-      sectionId: 'ch10-sec01',
+      edition: '14th Global Edition',
+      sourceRevision: 'revision-001',
+      unitId: input.id,
       chapterId: 'chapter-10',
-      chapterNumber: 10,
+      naturalNumber: '10.1',
+      structuralPath: ['chapter-chapter-10', 'section-10.1'],
     },
   };
 }

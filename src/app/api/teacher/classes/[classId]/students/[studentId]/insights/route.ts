@@ -1,35 +1,15 @@
 import { NextResponse } from 'next/server';
 
-import {
-  COMPETENCY_DIMENSIONS,
-  calculateOverallScore,
-  calculateTrendDirection,
-  getCompetencyLabel,
-  type CompetencyVector,
-  type TrendVector,
-} from '@/lib/data-governance/competency-model';
-import {
-  generateRecommendations,
-  type RecommendationRationale,
-} from '@/lib/data-governance/recommendation-engine';
 import { getServerAuthSession } from '@/lib/auth';
-import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { prisma } from '@/lib/prisma';
-import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
-import { normalizeInsightRiskLevel, parseStringList } from '@/features/teacher/teacher-insights';
-import { summarizeSubmissionEvidencePayload } from '@/lib/data-governance/submission-evidence-quality';
 import {
-  STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
-  buildStudentEvidenceFeaturePayload,
-  readStudentEvidenceFeatures,
-  type StudentEvidenceFeatureLearningFact,
-} from '@/lib/data-governance/student-evidence-feature-cache';
+  PORTRAIT_V2_DIMENSIONS,
+  type PortraitV2DimensionId,
+} from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
-  buildTeacherScopedLearningFactScopeFilters,
-  buildTeacherStudentEvidenceStatus,
-  type TeacherSessionQualityStatus,
-  type TeacherStudentEvidenceStatus,
-} from '@/lib/data-governance/teacher-evidence-governance';
+  readCurrentCumulativeClassPortrait,
+  readCurrentCumulativePortrait,
+  type CumulativePortraitAvailabilityReason,
+} from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   createPrismaDiagnosisReportSnapshotStore,
   hasDiagnosisReportSnapshotPersistenceTable,
@@ -39,111 +19,35 @@ import {
   materializeRoleBasedLearningDiagnosis,
   type RoleBasedLearningDiagnosis,
 } from '@/lib/data-governance/role-based-learning-diagnosis';
+import { resolveTeacherStudentPortraitAccess } from '@/lib/data-governance/portrait-reconciliation-access';
+import { summarizeSubmissionEvidencePayload } from '@/lib/data-governance/submission-evidence-quality';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { prisma } from '@/lib/prisma';
+import {
+  createDatabaseUnavailableResponse,
+  isDatabaseConnectivityError,
+} from '@/lib/service-availability';
 
 export const dynamic = 'force-dynamic';
 
-type TeacherStudentRiskItem = {
-  type: string;
+type SafeRisk = {
+  type: 'constraint' | 'stagnation' | 'cross_domain';
   severity: 'low' | 'medium' | 'high';
   description: string;
-  triggeredAt: string;
-  occurrenceCount: number;
+  occurredAt: string | null;
 };
 
-type TeacherStudentGrowthItem = {
+type LatestFact = {
   id: string;
-  title: string;
-  description: string;
-  recordType: string;
-  occurredAt: string;
-};
-
-type TeacherStudentRecommendationItem = {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  reason: string;
-  actionLabel: string;
-  actionUrl: string;
-  priority: number;
-  estimatedTime?: string;
-  tags: string[];
-  rationale: RecommendationRationale;
-};
-
-type TeacherStudentEvidenceItem = {
   factType: string;
+  moduleId: string | null;
+  lessonId: string | null;
+  sessionId: string | null;
   outcome: string;
-  score?: number;
-  moduleId?: string | null;
-  lessonId?: string | null;
-  sourceLogId?: string | null;
-  evidenceTitle?: string;
-  stepId?: string;
-  questionSummaries?: Array<{
-    questionId?: string;
-    prompt?: string;
-    studentAnswerRedacted?: boolean;
-    referenceAnswer?: string;
-    isCorrect?: boolean;
-  }>;
-};
-
-type TeacherStudentEvidenceDrawer = {
-  featureCache: TeacherStudentEvidenceStatus & {
-    rawReadExceptions: string[];
-  };
-  recentFacts: Array<{
-    id: string;
-    factType: string;
-    moduleId: string | null;
-    lessonId: string | null;
-    sessionId: string | null;
-    outcome: string;
-    score: number | null;
-    startedAt: string;
-    finishedAt: string | null;
-    timeSpent: number | null;
-  }>;
-  durableSubmissions: Array<{
-    id: string;
-    sessionId: string;
-    lessonKey: string | null;
-    stepId: string;
-    attemptKey: string | null;
-    submittedAt: string;
-    sessionTitle: string;
-    quality: string;
-    reason: string;
-    sourceState: string;
-    schemaVersion: string | null;
-    scoreableObjectiveSubmissions: number;
-    answerCount: number;
-    questionSummaryCount: number;
-    score: number | null;
-  }>;
-  sessionQuality: Array<{
-    sessionId: string;
-    lessonKey: string | null;
-    title: string;
-    startTime: string | null;
-    endTime: string | null;
-    updatedAt: string | null;
-    qualityStatus: TeacherSessionQualityStatus;
-    qualityReasons: string[];
-    summary: string | null;
-    studentReport: {
-      interactionLogs: number;
-      learningFacts: number;
-      durableSubmissions: number;
-    };
-  }>;
-  limits: {
-    recentFacts: number;
-    durableSubmissions: number;
-    sessionQuality: number;
-  };
+  score: number | null;
+  startedAt: string;
+  finishedAt: string | null;
+  timeSpent: number | null;
 };
 
 export interface TeacherStudentInsightsPayload {
@@ -156,55 +60,114 @@ export interface TeacherStudentInsightsPayload {
     className: string;
   };
   overview: {
-    overallScore: number;
-    riskLevel: 'none' | 'low' | 'medium' | 'high';
-    riskLabel: string;
-    latestSnapshotAt: string | null;
-    factCount: number;
-    recommendedScaffolding: string;
-  };
-  snapshot: {
-    current: {
-      vector: CompetencyVector;
-      snapshotAt: string;
-      factCount: number;
-    } | null;
-    previous: {
-      vector: CompetencyVector;
-      snapshotAt: string;
-    } | null;
-    trendVector: TrendVector | null;
-  };
-  profileSummary: {
-    overallLevel: string;
-    recentTrend: string;
-    trendDirection: string;
+    overallScore: number | null;
+    overallLevel: string | null;
+    evidenceState: 'current' | 'no-evidence' | 'unavailable';
+    availabilityReason: CumulativePortraitAvailabilityReason;
+    evidenceAsOf: string | null;
+    generatedAt: string | null;
+    confidence: number | null;
+    evidencedDimensionCount: number;
+    missingDimensionCount: number;
+    lastTrend: 'up' | 'stable' | 'down' | 'not-comparable' | null;
+    lastRisk: SafeRisk[];
     strengths: string[];
-    weaknesses: string[];
-    recentActivities: string[];
-  } | null;
+    improvementAreas: string[];
+  };
+  dimensions: Array<{
+    id: PortraitV2DimensionId;
+    label: string;
+    score: number | null;
+    confidence: number | null;
+    evidenceCount: number;
+    evidenceAsOf: string | null;
+    availabilityReason: 'available' | 'no-eligible-evidence';
+    taskAttainment?: {
+      state: 'EVIDENCE' | 'NO_EVIDENCE';
+      completedTaskCount: number;
+      relatedTaskCount: number;
+      groupedTaskSummary: Array<{
+        source: string;
+        displayGroup: string;
+        completedTaskCount: number;
+        relatedTaskCount: number;
+        tasks: Array<{ taskKey: string; displayName: string; completed: boolean }>;
+      }>;
+      evidenceAsOf: string | null;
+      calculationVersion: string;
+      limitations: string[];
+    };
+  }>;
+  taskAttainment: {
+    personal: TeacherStudentInsightsPayload['dimensions'][number]['taskAttainment'] | null;
+    classAggregate: {
+      meanRatio: number | null;
+      meanScore: number | null;
+      usableMemberCount: number;
+      rosterTotal: number;
+      missingMemberCount: number;
+      relatedTaskCount: number | null;
+      calculationVersion: string | null;
+      limitations: string[];
+    } | null;
+  };
   classComparison: Array<{
-    dimension: string;
+    dimension: PortraitV2DimensionId;
     label: string;
-    studentScore: number;
-    classAverage: number;
-    gap: number;
+    studentScore: number | null;
+    classAverage: number | null;
+    gap: number | null;
+    includedCount: number;
+    missingCount: number;
+    availabilityReason:
+      | 'available'
+      | 'student-no-evidence'
+      | 'class-no-evidence'
+      | 'class-portrait-unavailable';
   }>;
-  riskFlags: TeacherStudentRiskItem[];
-  growthRecords: TeacherStudentGrowthItem[];
-  recommendations: TeacherStudentRecommendationItem[];
-  evidenceSummary: Array<{
-    dimension: string;
-    label: string;
-    items: TeacherStudentEvidenceItem[];
+  growthRecords: Array<{
+    id: string;
+    title: string;
+    description: string;
+    recordType: string;
+    occurredAt: string;
   }>;
-  evidenceDrawer: TeacherStudentEvidenceDrawer;
-  diagnosis: RoleBasedLearningDiagnosis;
+  latestActivity: {
+    facts: LatestFact[];
+    durableSubmissions: Array<{
+      id: string;
+      sessionId: string;
+      lessonKey: string | null;
+      stepId: string;
+      submittedAt: string;
+      sessionTitle: string;
+      quality: string;
+      sourceState: string;
+      answerCount: number;
+      questionSummaryCount: number;
+      score: number | null;
+    }>;
+    sessionReports: Array<{
+      sessionId: string;
+      lessonKey: string | null;
+      title: string;
+      status: string;
+      summary: string | null;
+      updatedAt: string;
+    }>;
+  };
+  overallDiagnosis: {
+    conclusion: string;
+    strengths: string[];
+    improvementAreas: string[];
+    limitations: string[];
+  };
+  goalSpecificDiagnosis: RoleBasedLearningDiagnosis;
 }
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ classId: string; studentId: string }> }
+  { params }: { params: Promise<{ classId: string; studentId: string }> },
 ) {
   try {
     const session = await getServerAuthSession();
@@ -213,212 +176,134 @@ export async function GET(
     }
 
     const { classId, studentId } = await params;
-
-    const classData = await prisma.class.findUnique({
-      where: { id: classId },
-      select: {
-        id: true,
-        name: true,
-        teacherId: true,
-      },
+    const access = await resolveTeacherStudentPortraitAccess(prisma, {
+      actorId: session.user.id,
+      actorRole: session.user.role,
+      classId,
+      studentId,
     });
-
-    if (!classData) {
-      return NextResponse.json({ error: '班级不存在' }, { status: 404 });
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
     }
-
-    if (classData.teacherId !== session.user.id && session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: '权限不足' }, { status: 403 });
-    }
-
-    const studentProfile = await prisma.studentProfile.findFirst({
-      where: {
-        classId,
-        userId: studentId,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-
-    if (!studentProfile) {
-      return NextResponse.json({ error: '学生不在该班级中' }, { status: 404 });
-    }
-
-    const scopedClassSessions = await prisma.classSession.findMany({
-      where: { classId },
-      select: { id: true },
-    });
-    const scopedSessionIds = scopedClassSessions.map((session) => session.id);
+    const { classData, studentProfile } = access;
 
     const [
-      currentSnapshot,
-      previousSnapshot,
-      profileSummary,
-      riskFlags,
-      growthRecords,
-      recommendations,
-      classSnapshot,
-      studentEvidenceFeatureRead,
-      scopedFeatureFacts,
+      portrait,
+      classPortrait,
+      latestFacts,
       durableSubmissions,
-      studentSessionReports,
+      sessionReports,
+      growthRecords,
     ] = await Promise.all([
-      prisma.studentCompetencySnapshot.findFirst({
-        where: { userId: studentId },
-        orderBy: { snapshotAt: 'desc' },
-      }),
-      prisma.studentCompetencySnapshot.findFirst({
-        where: {
-          userId: studentId,
-        },
-        orderBy: { snapshotAt: 'desc' },
-        skip: 1,
-      }),
-      prisma.studentProfileSummary.findUnique({
-        where: { userId: studentId },
-      }),
-      prisma.studentRiskFlag.findMany({
-        where: {
-          userId: studentId,
-          isResolved: false,
-        },
-        orderBy: { triggeredAt: 'desc' },
-      }),
-      prisma.growthRecord.findMany({
-        where: { userId: studentId },
-        orderBy: { occurredAt: 'desc' },
-        take: 12,
-      }),
-      generateRecommendations(studentId),
-      prisma.classCompetencySnapshot.findFirst({
-        where: { classId },
-        orderBy: { snapshotAt: 'desc' },
-      }),
-      readStudentEvidenceFeatures(prisma, studentId),
+      readCurrentCumulativePortrait(prisma, studentId, 'reviewer'),
+      readCurrentCumulativeClassPortrait(prisma, classId),
       prisma.learningFact.findMany({
-        where: {
-          userId: studentId,
-          OR: buildTeacherScopedLearningFactScopeFilters(classId, scopedSessionIds),
+        where: { userId: studentId },
+        orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+        take: 8,
+        select: {
+          id: true,
+          factType: true,
+          moduleId: true,
+          lessonId: true,
+          sessionId: true,
+          outcome: true,
+          score: true,
+          startedAt: true,
+          finishedAt: true,
+          timeSpent: true,
         },
-        orderBy: { startedAt: 'desc' },
-        select: STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
       }),
       prisma.studentStepResponse.findMany({
-        where: {
-          userId: studentId,
-          session: { classId },
-        },
-        orderBy: { submittedAt: 'desc' },
+        where: { userId: studentId },
+        orderBy: [{ submittedAt: 'desc' }, { id: 'desc' }],
         take: 8,
         select: {
           id: true,
           sessionId: true,
           lessonKey: true,
           stepId: true,
-          attemptKey: true,
           submittedAt: true,
           responseData: true,
           session: {
-            select: {
-              id: true,
-              startTime: true,
-              endTime: true,
-              plan: {
-                select: { title: true },
-              },
-            },
+            select: { plan: { select: { title: true } } },
           },
         },
       }),
       prisma.studentSessionReport.findMany({
-        where: {
-          userId: studentId,
-          reportType: 'student-summary',
-          session: { classId },
-        },
-        orderBy: { updatedAt: 'desc' },
+        where: { userId: studentId, reportType: 'student-summary' },
+        orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
         take: 6,
         select: {
           sessionId: true,
           lessonKey: true,
           status: true,
           summary: true,
-          reportData: true,
           updatedAt: true,
           session: {
-            select: {
-              id: true,
-              startTime: true,
-              endTime: true,
-              plan: {
-                select: { title: true },
-              },
-            },
+            select: { plan: { select: { title: true } } },
           },
+        },
+      }),
+      prisma.growthRecord.findMany({
+        where: { userId: studentId, invalidations: { none: {} } },
+        orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
+        take: 12,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          recordType: true,
+          occurredAt: true,
         },
       }),
     ]);
 
-    const currentVector = currentSnapshot?.competencyVector as CompetencyVector | null;
-    const previousVector = previousSnapshot?.competencyVector as CompetencyVector | null;
-    const trendVector = currentVector
-      ? buildTrendVector(currentVector, previousVector)
-      : null;
-    const overallScore = currentVector ? roundTo(calculateOverallScore(currentVector), 1) : 0;
-    const riskLevel = normalizeInsightRiskLevel(
-      profileSummary?.riskLevel ??
-        riskFlags.find((flag) => flag.severity)?.severity ??
-        null
-    );
-    const classAggregate = (classSnapshot?.aggregateJson ?? {}) as Record<string, { mean?: number }>;
-    const evidenceSummary = sanitizeEvidenceSummary(
-      (currentSnapshot?.evidenceSummary ?? {}) as Record<string, TeacherStudentEvidenceItem[]>
-    );
-    const recentFacts = scopedFeatureFacts.slice(0, 8);
-    const drawerSessionIds = Array.from(new Set([
-      ...recentFacts.map((fact) => fact.sessionId).filter(isNonEmptyString),
-      ...durableSubmissions.map((submission) => submission.sessionId),
-      ...studentSessionReports.map((report) => report.sessionId),
-    ]));
-    const classSessionReports = drawerSessionIds.length
-      ? await prisma.classSessionReport.findMany({
-          where: {
-            sessionId: { in: drawerSessionIds },
-            reportType: 'class-summary',
-          },
-          select: {
-            sessionId: true,
-            status: true,
-            summary: true,
-            reportData: true,
-            updatedAt: true,
-          },
-      })
-      : [];
-    const drawerNow = new Date();
-    const scopedFeatureCache = buildTeacherScopedFeatureCacheRecord(
-      studentId,
-      scopedFeatureFacts,
-      drawerNow,
-    );
-    const evidenceDrawer = buildEvidenceDrawer({
-      studentId,
-      featureRead: studentEvidenceFeatureRead,
-      scopedFeatureCache,
-      scopedFeatureState: scopedFeatureFacts.length > 0 ? undefined : 'missing',
-      now: drawerNow,
-      recentFacts,
-      durableSubmissions,
-      studentSessionReports,
-      classSessionReports,
+    const dimensions = PORTRAIT_V2_DIMENSIONS.map(({ id, label }) => {
+      const dimension = portrait.payload?.dimensions.find((item) => item.id === id);
+      const hasEvidence = Boolean(dimension && dimension.evidenceSummary.totalCount > 0);
+      return {
+        id,
+        label,
+        score: hasEvidence ? roundTo(dimension!.score, 1) : null,
+        confidence: hasEvidence ? roundTo(dimension!.confidence, 2) : null,
+        evidenceCount: hasEvidence ? dimension!.evidenceSummary.totalCount : 0,
+        evidenceAsOf: hasEvidence ? dimension!.freshness.asOf : null,
+        availabilityReason: hasEvidence
+          ? 'available' as const
+          : 'no-eligible-evidence' as const,
+        ...(dimension?.taskAttainment
+          ? {
+              taskAttainment: {
+                state: dimension.taskAttainment.state,
+                completedTaskCount: dimension.taskAttainment.completedTaskCount,
+                relatedTaskCount: dimension.taskAttainment.relatedTaskCount,
+                groupedTaskSummary: structuredClone(dimension.taskAttainment.groupedTaskSummary),
+                evidenceAsOf: dimension.taskAttainment.evidenceAsOf,
+                calculationVersion: dimension.taskAttainment.calculationVersion,
+                limitations: [...dimension.taskAttainment.limitations],
+              },
+            }
+          : {}),
+      };
     });
+    const strengths = dimensions
+      .filter((dimension) => dimension.score !== null && dimension.score >= 75)
+      .sort((left, right) => right.score! - left.score!)
+      .slice(0, 3)
+      .map((dimension) => dimension.label);
+    const improvementAreas = dimensions
+      .filter((dimension) => dimension.score !== null && dimension.score < 60)
+      .sort((left, right) => left.score! - right.score!)
+      .slice(0, 3)
+      .map((dimension) => dimension.label);
+    const safeRisks = portrait.lastRisk.map((risk) => ({
+      type: risk.type,
+      severity: risk.severity,
+      description: describeRisk(risk.type),
+      occurredAt: risk.occurredAt,
+    }));
+
     const diagnosisReportSnapshot = await hasDiagnosisReportSnapshotPersistenceTable(prisma)
       ? await readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence(
         createPrismaDiagnosisReportSnapshotStore(prisma.diagnosisReportSnapshot),
@@ -429,25 +314,19 @@ export async function GET(
           targetUserId: studentId,
           classId,
           teacherClassIds: [classId],
-        }
+        },
       )
       : null;
-    const diagnosis = materializeRoleBasedLearningDiagnosis({
+    const goalSpecificDiagnosis = materializeRoleBasedLearningDiagnosis({
       view: 'teacher-student',
       goalId: 'control-correction',
       userId: session.user.id,
       targetUserId: studentId,
       classId,
       teacherClassIds: [classId],
-      learnerState: currentSnapshot
-        ? { generatedAt: currentSnapshot.snapshotAt.toISOString() }
-        : null,
-      featureCache: studentEvidenceFeatureRead.cache,
+      learnerState: portrait.generatedAt ? { generatedAt: portrait.generatedAt } : null,
       teacherReport: {
-        classInfo: {
-          classId,
-          studentCount: 1,
-        },
+        classInfo: { classId, studentCount: 1 },
         studentDrilldowns: [{ userId: studentId }],
       },
       diagnosisReportSnapshot,
@@ -463,52 +342,51 @@ export async function GET(
         className: classData.name,
       },
       overview: {
-        overallScore,
-        riskLevel,
-        riskLabel: getRiskLabel(riskLevel),
-        latestSnapshotAt: currentSnapshot?.snapshotAt.toISOString() ?? null,
-        factCount: currentSnapshot?.factCount ?? 0,
-        recommendedScaffolding:
-          profileSummary?.recommendedScaffolding || '当前暂无自动脚手架建议，可结合课堂观察补充判断。',
+        overallScore: portrait.overallScore === null ? null : roundTo(portrait.overallScore, 1),
+        overallLevel: levelForScore(portrait.overallScore),
+        evidenceState: portrait.stateKind === 'SNAPSHOT'
+          ? 'current'
+          : portrait.stateKind === 'NO_EVIDENCE'
+            ? 'no-evidence'
+            : 'unavailable',
+        availabilityReason: portrait.availabilityReason,
+        evidenceAsOf: portrait.evidenceAsOf,
+        generatedAt: portrait.generatedAt,
+        confidence: portrait.confidence === null ? null : roundTo(portrait.confidence, 2),
+        evidencedDimensionCount: portrait.dimensionCoverage.evidencedDimensionIds.length,
+        missingDimensionCount: portrait.dimensionCoverage.missingDimensionIds.length,
+        lastTrend: portrait.lastTrend,
+        lastRisk: safeRisks,
+        strengths,
+        improvementAreas,
       },
-      snapshot: {
-        current: currentSnapshot
-          ? {
-              vector: currentVector!,
-              snapshotAt: currentSnapshot.snapshotAt.toISOString(),
-              factCount: currentSnapshot.factCount,
-            }
-          : null,
-        previous: previousSnapshot
-          ? {
-              vector: previousVector!,
-              snapshotAt: previousSnapshot.snapshotAt.toISOString(),
-            }
-          : null,
-        trendVector,
+      dimensions,
+      taskAttainment: {
+        personal: dimensions.find((dimension) =>
+          dimension.id === 'simulationValidationEvidence')?.taskAttainment ?? null,
+        classAggregate: classPortrait.aggregate?.taskAttainment ?? null,
       },
-      profileSummary: profileSummary
-        ? {
-            overallLevel: profileSummary.overallLevel,
-            recentTrend: profileSummary.recentTrend,
-            trendDirection: profileSummary.trendDirection,
-            strengths: parseStringList(profileSummary.strengthsJson),
-            weaknesses: parseStringList(profileSummary.weaknessesJson),
-            recentActivities: parseRecentActivities(profileSummary.recentActivityJson),
-          }
-        : null,
-      classComparison: COMPETENCY_DIMENSIONS.map((dimension) => {
-        const studentScore = currentVector?.[dimension]?.score ?? 0;
-        const classAverage = roundTo(classAggregate[dimension]?.mean ?? 0, 1);
+      classComparison: dimensions.map((dimension) => {
+        const classDimension = classPortrait.aggregate?.dimensions[dimension.id] ?? null;
+        const classAverage = classDimension?.mean ?? null;
+        const available = dimension.score !== null && classAverage !== null;
         return {
-          dimension,
-          label: getCompetencyLabel(dimension),
-          studentScore: roundTo(studentScore, 1),
-          classAverage,
-          gap: roundTo(studentScore - classAverage, 1),
+          dimension: dimension.id,
+          label: dimension.label,
+          studentScore: dimension.score,
+          classAverage: classAverage === null ? null : roundTo(classAverage, 1),
+          gap: available ? roundTo(dimension.score! - classAverage, 1) : null,
+          includedCount: classDimension?.includedCount ?? 0,
+          missingCount: classDimension?.missingCount ?? classPortrait.totalStudentCount,
+          availabilityReason: available
+            ? 'available' as const
+            : dimension.score === null
+              ? 'student-no-evidence' as const
+              : classPortrait.stateKind !== 'SNAPSHOT'
+                ? 'class-portrait-unavailable' as const
+                : 'class-no-evidence' as const,
         };
       }),
-      riskFlags: summarizeRiskFlags(riskFlags),
       growthRecords: growthRecords.map((record) => ({
         id: record.id,
         title: record.title,
@@ -516,28 +394,52 @@ export async function GET(
         recordType: record.recordType,
         occurredAt: record.occurredAt.toISOString(),
       })),
-      recommendations: recommendations.map((recommendation) => ({
-        id: recommendation.id,
-        type: recommendation.type,
-        title: recommendation.title,
-        description: recommendation.description,
-        reason: recommendation.reason,
-        actionLabel: recommendation.actionLabel,
-        actionUrl: recommendation.actionUrl,
-        priority: recommendation.priority,
-        estimatedTime: recommendation.estimatedTime,
-        tags: recommendation.tags,
-        rationale: recommendation.rationale,
-      })),
-      evidenceSummary: COMPETENCY_DIMENSIONS.map((dimension) => ({
-        dimension,
-        label: getCompetencyLabel(dimension),
-        items: evidenceSummary[dimension] ?? [],
-      })),
-      evidenceDrawer,
-      diagnosis,
+      latestActivity: {
+        facts: latestFacts.map((fact) => ({
+          ...fact,
+          startedAt: fact.startedAt.toISOString(),
+          finishedAt: fact.finishedAt?.toISOString() ?? null,
+        })),
+        durableSubmissions: durableSubmissions.map((submission) => {
+          const quality = summarizeSubmissionEvidencePayload(submission.responseData);
+          return {
+            id: submission.id,
+            sessionId: submission.sessionId,
+            lessonKey: submission.lessonKey,
+            stepId: submission.stepId,
+            submittedAt: submission.submittedAt.toISOString(),
+            sessionTitle: submission.session.plan.title,
+            quality: quality.quality,
+            sourceState: quality.sourceState,
+            answerCount: quality.answerCount,
+            questionSummaryCount: quality.questionSummaryCount,
+            score: quality.score,
+          };
+        }),
+        sessionReports: sessionReports.map((report) => ({
+          sessionId: report.sessionId,
+          lessonKey: report.lessonKey,
+          title: report.session.plan.title,
+          status: report.status,
+          summary: report.summary,
+          updatedAt: report.updatedAt.toISOString(),
+        })),
+      },
+      overallDiagnosis: {
+        conclusion: overallConclusion(portrait.overallScore, portrait.availabilityReason),
+        strengths,
+        improvementAreas,
+        limitations: [
+          ...dimensions
+            .filter((dimension) => dimension.availabilityReason !== 'available')
+            .map((dimension) => `${dimension.label}缺少合格证据`),
+          ...(classPortrait.stateKind === 'SNAPSHOT'
+            ? []
+            : [`班级累计画像不可用：${classPortrait.availabilityReason}`]),
+        ],
+      },
+      goalSpecificDiagnosis,
     };
-
     return NextResponse.json(payload);
   } catch (error) {
     rethrowIfNextDynamicError(error);
@@ -549,303 +451,29 @@ export async function GET(
   }
 }
 
-function buildTrendVector(current: CompetencyVector, previous: CompetencyVector | null): TrendVector {
-  return COMPETENCY_DIMENSIONS.reduce((accumulator, dimension) => {
-    const currentScore = current[dimension]?.score ?? 0;
-    const previousScore = previous?.[dimension]?.score ?? currentScore;
-    accumulator[dimension] = calculateTrendDirection(currentScore, previousScore, 3);
-    return accumulator;
-  }, {} as TrendVector);
+function levelForScore(score: number | null): string | null {
+  if (score === null) return null;
+  if (score >= 85) return '优秀';
+  if (score >= 75) return '良好';
+  if (score >= 60) return '达标';
+  return '需提升';
 }
 
-function parseRecentActivities(value: unknown) {
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .map((item) => {
-      if (typeof item === 'string') {
-        return item;
-      }
-
-      if (item && typeof item === 'object') {
-        const label =
-          typeof (item as Record<string, unknown>).label === 'string'
-            ? (item as Record<string, string>).label
-            : typeof (item as Record<string, unknown>).title === 'string'
-              ? (item as Record<string, string>).title
-              : '';
-        return label;
-      }
-
-      return '';
-    })
-    .filter((item) => item.length > 0);
+function overallConclusion(
+  score: number | null,
+  availabilityReason: CumulativePortraitAvailabilityReason,
+): string {
+  if (score === null) return `累计能力达成不可用：${availabilityReason}`;
+  return `累计能力达成 ${roundTo(score, 1)}，${levelForScore(score)}。`;
 }
 
-function summarizeRiskFlags(
-  flags: Array<{
-    flagType: string;
-    severity: string;
-    description: string;
-    triggeredAt: Date;
-    evidenceJson: unknown;
-  }>
-): TeacherStudentRiskItem[] {
-  const summaryMap = new Map<string, TeacherStudentRiskItem>();
-
-  for (const flag of flags) {
-    const key = `${flag.flagType}:${flag.severity}:${flag.description}`;
-    const existing = summaryMap.get(key);
-
-    if (!existing) {
-      summaryMap.set(key, {
-        type: flag.flagType,
-        severity: flag.severity as 'low' | 'medium' | 'high',
-        description: flag.description,
-        triggeredAt: flag.triggeredAt.toISOString(),
-        occurrenceCount: 1,
-      });
-      continue;
-    }
-
-    existing.occurrenceCount += 1;
-    if (flag.triggeredAt.getTime() > new Date(existing.triggeredAt).getTime()) {
-      existing.triggeredAt = flag.triggeredAt.toISOString();
-    }
-  }
-
-  return Array.from(summaryMap.values())
-    .sort((left, right) => {
-      const timeDiff =
-        new Date(right.triggeredAt).getTime() - new Date(left.triggeredAt).getTime();
-      if (timeDiff !== 0) return timeDiff;
-      return right.occurrenceCount - left.occurrenceCount;
-    })
-    .slice(0, 6);
+function describeRisk(type: SafeRisk['type']): string {
+  if (type === 'constraint') return '累计证据显示仍存在约束风险。';
+  if (type === 'stagnation') return '连续证据状态显示能力提升停滞。';
+  return '累计证据显示跨域迁移能力存在风险。';
 }
 
-function buildEvidenceDrawer(input: {
-  studentId: string;
-  featureRead: Awaited<ReturnType<typeof readStudentEvidenceFeatures>>;
-  scopedFeatureCache: Record<string, unknown>;
-  scopedFeatureState?: TeacherStudentEvidenceStatus['state'];
-  now: Date;
-  recentFacts: Array<{
-    id: string;
-    factType: string;
-    moduleId: string | null;
-    lessonId: string | null;
-    sessionId: string | null;
-    outcome: string;
-    score: number | null;
-    startedAt: Date;
-    finishedAt: Date | null;
-    timeSpent: number | null;
-  }>;
-  durableSubmissions: Array<{
-    id: string;
-    sessionId: string;
-    lessonKey: string | null;
-    stepId: string;
-    attemptKey: string | null;
-    submittedAt: Date;
-    responseData: unknown;
-    session: {
-      id: string;
-      startTime: Date;
-      endTime: Date | null;
-      plan: { title: string };
-    };
-  }>;
-  studentSessionReports: Array<{
-    sessionId: string;
-    lessonKey: string | null;
-    summary: string | null;
-    reportData: unknown;
-    updatedAt: Date;
-    session: {
-      id: string;
-      startTime: Date;
-      endTime: Date | null;
-      plan: { title: string };
-    };
-  }>;
-  classSessionReports: Array<{
-    sessionId: string;
-    summary: string | null;
-    reportData: unknown;
-    updatedAt: Date;
-  }>;
-}): TeacherStudentEvidenceDrawer {
-  const featureCache = buildTeacherStudentEvidenceStatus(input.studentId, input.scopedFeatureCache, {
-    readState: input.scopedFeatureState,
-    now: input.now,
-  });
-  const classReportMap = new Map(input.classSessionReports.map((report) => [report.sessionId, report]));
-
-  return {
-    featureCache: {
-      ...featureCache,
-      rawReadExceptions: input.featureRead.rawReadExceptions,
-    },
-    recentFacts: input.recentFacts.map((fact) => ({
-      id: fact.id,
-      factType: fact.factType,
-      moduleId: fact.moduleId,
-      lessonId: fact.lessonId,
-      sessionId: fact.sessionId,
-      outcome: fact.outcome,
-      score: fact.score,
-      startedAt: fact.startedAt.toISOString(),
-      finishedAt: fact.finishedAt?.toISOString() ?? null,
-      timeSpent: fact.timeSpent,
-    })),
-    durableSubmissions: input.durableSubmissions.map((submission) => {
-      const quality = summarizeSubmissionEvidencePayload(submission.responseData);
-      return {
-        id: submission.id,
-        sessionId: submission.sessionId,
-        lessonKey: submission.lessonKey,
-        stepId: submission.stepId,
-        attemptKey: submission.attemptKey,
-        submittedAt: submission.submittedAt.toISOString(),
-        sessionTitle: submission.session.plan.title,
-        quality: quality.quality,
-        reason: quality.reason,
-        sourceState: quality.sourceState,
-        schemaVersion: quality.schemaVersion,
-        scoreableObjectiveSubmissions: quality.scoreableObjectiveSubmissions,
-        answerCount: quality.answerCount,
-        questionSummaryCount: quality.questionSummaryCount,
-        score: quality.score,
-      };
-    }),
-    sessionQuality: input.studentSessionReports.map((report) => {
-      const classReport = classReportMap.get(report.sessionId);
-      const classReportData = readObject(classReport?.reportData);
-      const qualityStatus = readObject(classReportData.qualityStatus);
-      const studentReport = readObject(report.reportData);
-
-      return {
-        sessionId: report.sessionId,
-        lessonKey: report.lessonKey,
-        title: report.session.plan.title,
-        startTime: report.session.startTime.toISOString(),
-        endTime: report.session.endTime?.toISOString() ?? null,
-        updatedAt: report.updatedAt.toISOString(),
-        qualityStatus: normalizeSessionQualityStatus(qualityStatus.status),
-        qualityReasons: stringArray(qualityStatus.reasons),
-        summary: classReport?.summary ?? report.summary,
-        studentReport: {
-          interactionLogs: numberValue(studentReport.interactionLogs),
-          learningFacts: numberValue(studentReport.learningFacts),
-          durableSubmissions: numberValue(studentReport.durableSubmissions),
-        },
-      };
-    }),
-    limits: {
-      recentFacts: 8,
-      durableSubmissions: 8,
-      sessionQuality: 6,
-    },
-  };
-}
-
-function buildTeacherScopedFeatureCacheRecord(
-  studentId: string,
-  facts: StudentEvidenceFeatureLearningFact[],
-  now: Date,
-): Record<string, unknown> {
-  const payload = buildStudentEvidenceFeaturePayload({
-    userId: studentId,
-    facts,
-    now,
-  });
-  const lastSourceFactAt = payload.evidenceWindow.lastStartedAt
-    ? new Date(payload.evidenceWindow.lastStartedAt)
-    : null;
-
-  return {
-    userId: studentId,
-    payloadVersion: payload.payloadVersion,
-    refreshedAt: now,
-    lastSourceFactAt,
-    sourceFactCount: payload.sourceCounts.LearningFact,
-    evidenceWindow: payload.evidenceWindow,
-    sourceCounts: payload.sourceCounts,
-    sourceCoverage: payload.sourceCoverage,
-    confidenceMarkers: payload.confidence,
-    statusMarkers: payload.statusMarkers,
-    features: payload.features,
-  };
-}
-
-function sanitizeEvidenceSummary(
-  summary: Record<string, TeacherStudentEvidenceItem[]>
-): Record<string, TeacherStudentEvidenceItem[]> {
-  return Object.fromEntries(
-    Object.entries(summary).map(([dimension, items]) => [
-      dimension,
-      Array.isArray(items)
-        ? items.slice(0, 6).map((item) => ({
-            factType: item.factType,
-            outcome: item.outcome,
-            score: item.score,
-            moduleId: item.moduleId,
-            lessonId: item.lessonId,
-            sourceLogId: item.sourceLogId,
-            evidenceTitle: truncateOptionalText(item.evidenceTitle),
-            stepId: item.stepId,
-            questionSummaries: item.questionSummaries?.slice(0, 3).map((question) => ({
-              questionId: question.questionId,
-              prompt: truncateOptionalText(question.prompt),
-              studentAnswerRedacted: typeof (question as { studentAnswer?: unknown }).studentAnswer === 'string' &&
-                ((question as { studentAnswer?: string }).studentAnswer?.length ?? 0) > 0,
-              referenceAnswer: truncateOptionalText(question.referenceAnswer),
-              isCorrect: question.isCorrect,
-            })),
-          }))
-        : [],
-    ]),
-  );
-}
-
-function truncateOptionalText(value: string | undefined, maxLength: number = 96) {
-  if (typeof value !== 'string') return undefined;
-  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
-}
-
-function normalizeSessionQualityStatus(value: unknown): TeacherSessionQualityStatus {
-  return value === 'green' || value === 'yellow' || value === 'red' ? value : 'unknown';
-}
-
-function isNonEmptyString(value: string | null): value is string {
-  return typeof value === 'string' && value.length > 0;
-}
-
-function readObject(value: unknown): Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
-}
-
-function stringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === 'string' && item.length > 0);
-}
-
-function numberValue(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
-}
-
-function getRiskLabel(level: 'none' | 'low' | 'medium' | 'high') {
-  if (level === 'high') return '高风险';
-  if (level === 'medium') return '中风险';
-  if (level === 'low') return '低风险';
-  return '风险平稳';
-}
-
-function roundTo(value: number, digits: number) {
+function roundTo(value: number, digits: number): number {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
 }

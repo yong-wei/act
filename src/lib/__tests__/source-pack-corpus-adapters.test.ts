@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   adaptLearningEvidenceChunk,
-  adaptTextbookSearchDocument,
+  adaptTextbookStructureUnit,
   adaptResourceProjection,
   adaptLearningEvidenceBatch,
 } from '../source-pack/corpus-adapters';
@@ -39,8 +39,8 @@ import type {
 } from '../data-governance/learning-evidence-rag-corpus';
 
 import type {
-  TextbookRuntimeSearchDocument,
-} from '../textbook-runtime-resources';
+  TextbookStructureUnitProjection,
+} from '../structured-textbook-runtime';
 
 import type {
   RuntimeResourceProjectionArtifactRow,
@@ -145,20 +145,29 @@ function makeScopedChunk(
   };
 }
 
-function makeTextbookDoc(overrides?: Partial<TextbookRuntimeSearchDocument>): TextbookRuntimeSearchDocument {
+function makeTextbookDoc(overrides?: Partial<TextbookStructureUnitProjection>): TextbookStructureUnitProjection {
   return {
-    id: 'doc-001',
-    kind: 'chunk',
+    id: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
+    kind: 'section',
     title: '根轨迹法基础',
-    href: '/course-runtime/textbook/ch02/root-locus',
+    href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-02/section-2.1',
     text: '根轨迹法是分析和设计线性控制系统的重要方法。',
     contentHash: 'sha256:def456',
+    identity: {
+      bookId: 'dorf-modern-control-systems',
+      edition: '14th Global Edition',
+      sourceRevision: 'revision-001',
+      unitId: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
+      fragmentId: null,
+    },
+    fragments: [],
     resourceProjection: {
       resourceId: 'res-002',
       segmentRef: 'seg-002',
       citationTargetRef: 'ct-002',
       knowledgeNodeRefs: ['kn-002'],
       capabilityTargetRefs: ['cap-002'],
+      contentHash: 'sha256:def456',
       versionRefs: {
         artifactVersioningVersion: 'kaq-artifact-versioning.v1',
         graphCatalogVersion: 'graph-catalog.v1',
@@ -170,16 +179,19 @@ function makeTextbookDoc(overrides?: Partial<TextbookRuntimeSearchDocument>): Te
     },
     citationAddress: {
       kind: 'text',
-      sourceRefId: 'textbook:ch02:root-locus',
-      href: '/course-runtime/textbook/ch02/root-locus#sec1',
-      locator: '#sec1',
+      sourceRefId: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
+      href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-02/section-2.1',
+      locator: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
       contentHash: 'sha256:def456',
     },
     metadata: {
       bookId: 'dorf-modern-control-systems',
-      sectionId: 'ch02-sec01',
+      edition: '14th Global Edition',
+      sourceRevision: 'revision-001',
+      unitId: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
       chapterId: 'ch02',
-      chapterNumber: 2,
+      naturalNumber: '2.1',
+      structuralPath: ['chapter-chapter-02', 'section-2.1'],
     },
     ...overrides,
   };
@@ -310,6 +322,47 @@ describe('buildUnsafeHrefLimitation', () => {
 // ─── Citation Hydrator ──────────────────────────────────────────────────────
 
 describe('hydrateCitationFromAddress', () => {
+  it('accepts current v2 textbook reader hrefs without redirect mapping', () => {
+    const href = '/textbooks/hu-shousong-auto-control-8th/%E7%AC%AC%E5%85%AB%E7%89%88/chapter-3/section-3.2';
+    const { citation, limitations } = hydrateCitationFromAddress(
+      'source-pack-citation:textbook-v2',
+      'source-pack-source:textbook-v2',
+      { kind: 'textbook', sourceRefId: 'textbook-unit:hu8/direct', href },
+      '单位阶跃响应',
+    );
+
+    expect(citation).toMatchObject({
+      canonicalHref: href,
+      displayHref: href,
+      href,
+      verified: true,
+    });
+    expect(limitations).toEqual([]);
+  });
+
+  it.each([
+    '/course-runtime/resources/textbooks/book/sections/ch01.md',
+    '/course-runtime/resources/textbooks/book/chunks/ch01__chunk-001.md',
+    '/textbook-citations/resources/textbooks/book/sections/ch01.md',
+  ])('fails closed for removed textbook citation href %s', (href) => {
+    const { citation, limitations } = hydrateCitationFromAddress(
+      'source-pack-citation:legacy-textbook',
+      'source-pack-source:legacy-textbook',
+      { kind: 'textbook', sourceRefId: 'legacy-unit', href },
+      'Legacy textbook target',
+    );
+
+    expect(citation.verified).toBe(false);
+    expect(citation.href).toBeUndefined();
+    expect(citation.displayHref).toBeUndefined();
+    expect(limitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'citation-legacy-textbook-href',
+        severity: 'blocking',
+      }),
+    ]));
+  });
+
   it('produces a verified citation for safe href', () => {
     const { citation, limitations } = hydrateCitationFromAddress(
       'source-pack-citation:ct-001',
@@ -750,7 +803,7 @@ describe('unsafe href rejection', () => {
 
   it('rejects data: href in textbook doc', () => {
     const doc = makeTextbookDoc({ href: 'data:text/html,<h1>hi</h1>' });
-    const { limitations } = adaptTextbookSearchDocument(doc);
+    const { limitations } = adaptTextbookStructureUnit(doc);
     expect(limitations.some((l) => l.code === 'citation-unsafe-href')).toBe(true);
   });
 });
@@ -760,19 +813,21 @@ describe('unsafe href rejection', () => {
 describe('textbook citation preservation', () => {
   it('preserves textbook doc metadata in output', () => {
     const doc = makeTextbookDoc();
-    const { item } = adaptTextbookSearchDocument(doc);
+    const { item } = adaptTextbookStructureUnit(doc);
     expect(item.sourceKind).toBe('textbook');
     expect(item.resourceNodeId).toBeUndefined();
     expect(item.citation).toBeDefined();
-    expect(item.citation?.citationTargetId).toBe('textbook:ch02:root-locus');
+    expect(item.citation?.citationTargetId).toBe(doc.id);
     expect(item.metadata?.resourceId).toBe('res-002');
     expect(item.metadata?.bookId).toBe('dorf-modern-control-systems');
-    expect(item.metadata?.sectionId).toBe('ch02-sec01');
+    expect(item.metadata?.unitId).toBe(doc.id);
+    expect(item.metadata?.edition).toBe('14th Global Edition');
+    expect(item.metadata?.sourceRevision).toBe('revision-001');
     expect(item.metadata?.chapterId).toBe('ch02');
-    expect(item.metadata?.chapterNumber).toBe(2);
+    expect(item.metadata?.naturalNumber).toBe('2.1');
     expect(item.metadata?.segmentRef).toBe('seg-002');
-    expect(item.metadata?.citationLocator).toBe('#sec1');
-    expect(item.metadata?.sourceVersion).toBe('resource-projection.v1');
+    expect(item.metadata?.citationLocator).toBe(doc.id);
+    expect(item.metadata?.sourceVersion).toBe('revision-001');
     expect(item.metadata?.artifactVersioningVersion).toBe('kaq-artifact-versioning.v1');
     expect(item.metadata?.graphCatalogVersion).toBe('graph-catalog.v1');
     expect(item.metadata?.resourceRegistryVersion).toBe('resource-registry.v1');
@@ -787,25 +842,26 @@ describe('textbook citation preservation', () => {
 
   it('derives textbook citation locator from href when locator is missing', () => {
     const doc = makeTextbookDoc({
+      href: `${makeTextbookDoc().href}#sec1`,
       citationAddress: {
         ...makeTextbookDoc().citationAddress!,
-        locator: undefined,
+        locator: null,
       },
     });
-    const { item } = adaptTextbookSearchDocument(doc);
+    const { item } = adaptTextbookStructureUnit(doc);
     expect(item.metadata?.citationLocator).toBe('sec1');
   });
 
   it('derives textbook citation locator from doc href when citation address href has no hash', () => {
     const doc = makeTextbookDoc({
-      href: '/course-runtime/textbook/ch02/root-locus#doc-sec1',
+      href: `${makeTextbookDoc().href}#doc-sec1`,
       citationAddress: {
         ...makeTextbookDoc().citationAddress!,
-        locator: undefined,
-        href: '/course-runtime/textbook/ch02/root-locus',
+        locator: null,
+        href: makeTextbookDoc().href,
       },
     });
-    const { item } = adaptTextbookSearchDocument(doc);
+    const { item } = adaptTextbookStructureUnit(doc);
     expect(item.metadata?.citationLocator).toBe('doc-sec1');
   });
 
@@ -820,8 +876,8 @@ describe('textbook citation preservation', () => {
         sourceRefId: 'https://example.com/textbook-source',
       },
     });
-    const { item, limitations } = adaptTextbookSearchDocument(doc);
-    expect(item.citationTargetId).toBe('textbook-citation:external-https-example.com-textbook-citation');
+    const { item, limitations } = adaptTextbookStructureUnit(doc);
+    expect(item.citationTargetId).toBe(doc.id);
     expect(item.citation?.citationTargetId).toBe(item.citationTargetId);
     expect(item.citationTargetId).not.toContain('https://');
     expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
@@ -835,7 +891,7 @@ describe('textbook citation preservation', () => {
         href: 'https://model.example/textbook.md',
       },
     });
-    const { item } = adaptTextbookSearchDocument(doc);
+    const { item } = adaptTextbookStructureUnit(doc);
     expect(item.citation?.href).toBe('https://model.example/textbook.md');
     expect(item.citation?.resolver).toBe('server-owned-runtime');
     expect(item.citation?.verified).toBe(false);
@@ -852,8 +908,8 @@ describe('textbook citation preservation', () => {
         sourceRefId: 'textbook:ch02#L100',
       },
     });
-    const { item, limitations } = adaptTextbookSearchDocument(doc);
-    expect(item.citationTargetId).toBe('textbook-citation:course-content-authoring-textbook-ch02.md');
+    const { item, limitations } = adaptTextbookStructureUnit(doc);
+    expect(item.citationTargetId).toBe(doc.id);
     expect(item.citationTargetId).not.toContain('course-content/authoring');
     expect(item.citationTargetId).not.toContain('#L100');
     expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
@@ -861,40 +917,13 @@ describe('textbook citation preservation', () => {
 
   it('preserves citation address in textbook output', () => {
     const doc = makeTextbookDoc();
-    const { item } = adaptTextbookSearchDocument(doc);
+    const { item } = adaptTextbookStructureUnit(doc);
     expect(item.citation).toBeDefined();
     expect(item.citation?.verified).toBe(true);
-    expect(item.citation?.href).toBe('/course-runtime/textbook/ch02/root-locus#sec1');
-    expect(item.citation?.canonicalHref).toBe('/course-runtime/textbook/ch02/root-locus#sec1');
+    expect(item.citation?.href).toBe(doc.href);
+    expect(item.citation?.canonicalHref).toBe(doc.href);
   });
 
-  it('adds rendered display hrefs for runtime textbook Markdown citations without replacing canonical href', () => {
-    const href = '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01';
-    const doc = makeTextbookDoc({
-      href,
-      citationAddress: {
-        ...makeTextbookDoc().citationAddress!,
-        href,
-        locator: 'fig-02-01',
-      },
-    });
-    const { item } = adaptTextbookSearchDocument(doc);
-    expect(item.citation?.href).toBe(href);
-    expect(item.citation?.canonicalHref).toBe(href);
-    expect(item.citation?.displayHref).toBe('/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01');
-  });
-
-  it('warns for missing href in textbook doc', () => {
-    const doc = makeTextbookDoc({
-      href: null,
-      citationAddress: {
-        ...makeTextbookDoc().citationAddress!,
-        href: null,
-      },
-    });
-    const { limitations } = adaptTextbookSearchDocument(doc);
-    expect(limitations.some((l) => l.code === 'textbook-missing-href')).toBe(true);
-  });
 });
 
 // ─── Retrieval Chunk Not Path Eligible ───────────────────────────────────────
@@ -1261,8 +1290,8 @@ describe('adapted SourcePackItem structure', () => {
 
   it('textbook doc produces valid SourcePackItem', () => {
     const doc = makeTextbookDoc();
-    const { item } = adaptTextbookSearchDocument(doc);
-    expect(item.id).toBe('doc-001');
+    const { item } = adaptTextbookStructureUnit(doc);
+    expect(item.id).toBe(doc.id);
     expect(item.sourceKind).toBe('textbook');
     expect(item.citation).toBeDefined();
     expect(item.metadata?.bookId).toBeDefined();
@@ -1420,7 +1449,7 @@ describe('path eligibility separation', () => {
 describe('adapter output validates through buildSourcePack', () => {
   it('builds a Source Pack from governed learning evidence, textbook, and projection candidates', () => {
     const chunkResult = adaptLearningEvidenceChunk(makeChunk(), { role: 'teacher' });
-    const textbookResult = adaptTextbookSearchDocument(makeTextbookDoc());
+    const textbookResult = adaptTextbookStructureUnit(makeTextbookDoc());
     const projectionResult = adaptResourceProjectionRow(makeProjectionRow());
     const items = [
       chunkResult.item,
@@ -1442,7 +1471,7 @@ describe('adapter output validates through buildSourcePack', () => {
 
     expect(pack.items).toHaveLength(3);
     expect(pack.audit.retrievalChunkIds).toContain('learning-evidence:chunk-001');
-    expect(pack.audit.retrievalChunkIds).toContain('textbook-search:seg-002');
+    expect(pack.audit.retrievalChunkIds).toContain(makeTextbookDoc().id);
     expect(pack.audit.retrievalChunkIds).toContain('resource-projection-chunk:rc-001');
   });
 });

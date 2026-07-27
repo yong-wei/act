@@ -33,7 +33,7 @@ afterEach(() => {
 
 describe('controlled knowledge graph drag isolation', () => {
   it('keeps every non-dragged coordinate fixed without restarting cooldown', async () => {
-    const onManipulationStart = vi.fn();
+    const onBackgroundClick = vi.fn();
     const container = document.createElement('div');
     document.body.appendChild(container);
     const root = createRoot(container);
@@ -53,10 +53,10 @@ describe('controlled knowledge graph drag isolation', () => {
           onNodeClick: () => undefined,
           onNodeHover: () => undefined,
           onNodeDragEnd: () => undefined,
-          onManipulationStart,
+          onBackgroundClick,
           labelMode: 'focus',
           layoutState: getEmptyKnowledgeGraphLayoutState(),
-          fitViewVersion: 0,
+          fitViewRequest: { id: 0, target: 'root' },
           relayoutVersion: 0,
           expandedNodeIds: [],
           expandedDirectLinks: [],
@@ -73,11 +73,15 @@ describe('controlled knowledge graph drag isolation', () => {
     expect(runtimeNodes[0]).toMatchObject({ x: 70, y: 80, fx: 70, fy: 80 });
     expect(runtimeNodes[1]).toMatchObject(stableBefore);
     expect(rendererProps.cooldownTicks).toBe(0);
-    expect(rendererProps).not.toHaveProperty('onEngineTick');
+    expect(typeof rendererProps.onEngineTick).toBe('function');
+    (rendererProps.onEngineTick as () => void)();
+    expect(runtimeNodes[1]).toMatchObject(stableBefore);
+    expect(rendererProps.cooldownTicks).toBe(0);
     expect(rendererProps).not.toHaveProperty('onZoom');
     expect(typeof rendererProps.onBackgroundClick).toBe('function');
     await act(async () => (rendererProps.onBackgroundClick as () => void)());
-    expect(onManipulationStart).toHaveBeenCalledTimes(2);
+    expect(rendererProps).not.toHaveProperty('onManipulationStart');
+    expect(onBackgroundClick).not.toHaveBeenCalled();
     await act(async () => root.unmount());
   });
 });

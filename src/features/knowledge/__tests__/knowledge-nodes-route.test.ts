@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/lib/knowledge-graph-source', () => ({
   loadKnowledgeGraphData: mocks.loadKnowledgeGraphData,
   filterKnowledgeNodes: mocks.filterKnowledgeNodes,
+  toPublicKnowledgeGraphNode: (node: unknown) => node,
 }));
 
 vi.mock('@/lib/prisma', () => ({
@@ -45,15 +46,13 @@ describe('GET /api/knowledge/nodes', () => {
     expect(mocks.prisma.knowledgeNode.findMany).not.toHaveBeenCalled();
   });
 
-  it('uses database nodes for saveable playlist builder source', async () => {
+  it('does not let the legacy source=db query bypass the canonical graph loader', async () => {
     const response = await GET(new Request('http://localhost/api/knowledge/nodes?source=db'));
     const payload = await response.json();
 
     expect(response.status).toBe(200);
-    expect(payload).toEqual([{ id: 'db-node', name: '数据库节点' }]);
-    expect(mocks.loadKnowledgeGraphData).not.toHaveBeenCalled();
-    expect(mocks.prisma.knowledgeNode.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { isActive: true },
-    }));
+    expect(payload).toEqual([{ id: 'file-node', name: '文件节点' }]);
+    expect(mocks.loadKnowledgeGraphData).toHaveBeenCalled();
+    expect(mocks.prisma.knowledgeNode.findMany).not.toHaveBeenCalled();
   });
 });

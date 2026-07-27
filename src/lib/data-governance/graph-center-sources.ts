@@ -1,5 +1,7 @@
 import 'server-only';
 
+import fs from 'node:fs';
+import path from 'node:path';
 import { prisma } from '@/lib/prisma';
 import {
   loadAllLessonRuntimeResourceCatalogEntries,
@@ -7,11 +9,11 @@ import {
 } from '@/lib/course-runtime';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import {
-  loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments,
-  type TextbookRuntimeResourceCatalogEntry,
-  type TextbookRuntimeSearchDocument,
-} from '@/lib/textbook-runtime-resources';
+  loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections,
+  type TextbookStructureRuntimeCatalogEntry,
+  type TextbookStructureUnitProjection,
+} from '@/lib/structured-textbook-runtime';
 import {
   buildResourceNodeRegistryFromTeachingResources,
   loadRuntimeResourceProjectionInputs,
@@ -23,7 +25,7 @@ import {
   readAdaptiveLearnerState,
   type AdaptiveLearnerStateRole,
 } from './adaptive-learner-state-service';
-import { textbookSearchDocumentsToLearningEvidenceCorpus } from './graph-center-evidence';
+import { textbookStructureUnitsToLearningEvidenceCorpus } from './graph-center-evidence';
 import {
   canReadGraphCenterClassOverlay,
   canReadGraphCenterLearnerOverlay,
@@ -36,7 +38,14 @@ import {
   teachingResourceWhereForGraphCenter,
   type GraphCenterViewerRole,
 } from './graph-center-source-scope';
-import resourceFieldCompletionSummary from '../../../course-content/runtime/resource-governance/resource-field-completion-summary.json';
+
+const RESOURCE_FIELD_COMPLETION_SUMMARY_PATH = path.join(
+  process.cwd(),
+  'course-content',
+  'runtime',
+  'resource-governance',
+  'resource-field-completion-summary.json',
+);
 
 export interface GraphCenterCoverageSources {
   resourceRegistry: ResourceNodeRegistry;
@@ -71,12 +80,12 @@ export async function buildGraphCenterCoverageSources(input: {
   requestedLearnerId?: string | null;
   requestedClassId?: string | null;
 }): Promise<GraphCenterCoverageSources> {
-  const [teachingResources, runtimeLessons, runtimeTextbooks, runtimeResourceProjections, textbookDocuments, overlays] = await Promise.all([
+  const [teachingResources, runtimeLessons, runtimeTextbooks, runtimeResourceProjections, textbookUnits, overlays] = await Promise.all([
     loadTeachingResourcesForGraphCenter(input.viewerRole, input.viewerUserId),
     loadAllLessonRuntimeResourceCatalogEntries().catch((): RuntimeLessonResourceCatalogEntry[] => []),
-    loadAllTextbookRuntimeResourceCatalogEntries().catch((): TextbookRuntimeResourceCatalogEntry[] => []),
+    loadAllTextbookStructureRuntimeCatalogEntries().catch((): TextbookStructureRuntimeCatalogEntry[] => []),
     loadRuntimeResourceProjectionInputs(),
-    loadAllTextbookRuntimeSearchDocuments().catch((): TextbookRuntimeSearchDocument[] => []),
+    loadAllTextbookStructureUnitProjections().catch((): TextbookStructureUnitProjection[] => []),
     buildGraphCenterOverlaySources(input),
   ]);
   const registeredResources = getAllRegisteredResourceMetadata();
@@ -89,10 +98,19 @@ export async function buildGraphCenterCoverageSources(input: {
       runtimeTextbooks,
       runtimeResourceProjections,
     ),
-    evidenceCorpus: textbookSearchDocumentsToLearningEvidenceCorpus(textbookDocuments),
-    resourceFieldCompletionSummary: resourceFieldCompletionSummary as ResourceFieldCompletionGraphSummary,
+    evidenceCorpus: textbookStructureUnitsToLearningEvidenceCorpus(textbookUnits),
+    resourceFieldCompletionSummary: loadResourceFieldCompletionSummary(),
     ...overlays,
   };
+}
+
+function loadResourceFieldCompletionSummary(): ResourceFieldCompletionGraphSummary | undefined {
+  try {
+    if (!fs.existsSync(RESOURCE_FIELD_COMPLETION_SUMMARY_PATH)) return undefined;
+    return JSON.parse(fs.readFileSync(RESOURCE_FIELD_COMPLETION_SUMMARY_PATH, 'utf8')) as ResourceFieldCompletionGraphSummary;
+  } catch {
+    return undefined;
+  }
 }
 
 async function buildGraphCenterOverlaySources(input: {

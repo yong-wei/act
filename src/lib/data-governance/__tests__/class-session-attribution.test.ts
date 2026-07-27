@@ -2,18 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   resolveSessionClassContext,
-  shouldPersistInferredClassAttribution,
 } from '../class-session-attribution';
 
 describe('class session attribution helpers', () => {
-  it('resolves an inferred class context for a direct-start session', () => {
+  it('resolves only the persisted session class context', () => {
     const result = resolveSessionClassContext({
-      sessionClassId: null,
-      sessionClass: null,
-      participantClassIds: ['class-2024', 'class-2024', 'class-2024', null],
-      classesById: new Map([
-        ['class-2024', { id: 'class-2024', name: '2024自动化', code: 'AUTO2024' }],
-      ]),
+      sessionClassId: 'class-2024',
+      sessionClass: { id: 'class-2024', name: '2024自动化', code: 'AUTO2024' },
     });
 
     expect(result).toMatchObject({
@@ -21,38 +16,21 @@ describe('class session attribution helpers', () => {
       class: { id: 'class-2024', name: '2024自动化', code: 'AUTO2024' },
       attribution: {
         classId: 'class-2024',
-        mode: 'inferred',
+        mode: 'explicit',
         confidence: 1,
-        studentCount: 3,
+        studentCount: 0,
       },
     });
   });
 
-  it('only persists inferred attribution when confidence and participant count are sufficient', () => {
-    expect(
-      shouldPersistInferredClassAttribution({
-        attribution: {
-          classId: 'class-2024',
-          mode: 'inferred',
-          confidence: 0.97,
-          studentCount: 73,
-          classCounts: { 'class-2024': 73 },
-        },
-        minStudentCount: 5,
-      })
-    ).toBe(true);
-
-    expect(
-      shouldPersistInferredClassAttribution({
-        attribution: {
-          classId: 'class-2023',
-          mode: 'inferred',
-          confidence: 1,
-          studentCount: 1,
-          classCounts: { 'class-2023': 1 },
-        },
-        minStudentCount: 5,
-      })
-    ).toBe(false);
+  it('keeps a classless session unassigned', () => {
+    expect(resolveSessionClassContext({
+      sessionClassId: null,
+      sessionClass: null,
+    })).toMatchObject({
+      classId: null,
+      class: null,
+      attribution: { mode: 'unassigned' },
+    });
   });
 });

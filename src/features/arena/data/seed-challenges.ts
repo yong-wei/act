@@ -341,7 +341,7 @@ export const ARENA_METRIC_PROFILES: MetricProfile[] = [
     name: '奥德赛成长评分',
     hardConstraints: ['closed_loop_stable', 'finite_response', 'controller_causal'],
     rankingMetrics: [
-      { id: 'settlingTime', label: '通关时间', direction: 'minimize', idealValue: 2.8, unacceptableValue: 9, unit: 's' },
+      { id: 'settlingTime', label: '调节时间', direction: 'minimize', idealValue: 2.8, unacceptableValue: 9, unit: 's' },
       { id: 'overshoot', label: '偏离峰值', direction: 'minimize', idealValue: 6, unacceptableValue: 30, unit: '%' },
       { id: 'steadyStateError', label: '终点误差', direction: 'minimize', idealValue: 0.01, unacceptableValue: 0.12 },
       { id: 'controlEnergy', label: '操作强度', direction: 'minimize', idealValue: 3.5, unacceptableValue: 18 },

@@ -115,6 +115,9 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
             arenaTaskId: 'task-second-order-lead-pid',
             launchMode: 'route',
             telemetryPolicy: 'arena-course-context',
+            sourcePathOrUrl: 'src/lib/arena-path-target-integrity.ts',
+            sourceHash: 'sha256:a6cf058391795bb1519adb2784460dc4ff9ab3d571b617ce404220f538e1ca5e',
+            sourceVersionRef: 'arena-path-target-integrity.v1',
             governanceContext: { source: 'arena-course-resource' }
         }
     },
@@ -130,6 +133,9 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
             routeHref: '/simulations/cruise',
             launchMode: 'route',
             telemetryPolicy: 'arena-course-context',
+            sourcePathOrUrl: 'src/lib/arena-path-target-integrity.ts',
+            sourceHash: 'sha256:a6cf058391795bb1519adb2784460dc4ff9ab3d571b617ce404220f538e1ca5e',
+            sourceVersionRef: 'arena-path-target-integrity.v1',
             governanceContext: { source: 'arena-course-resource' }
         }
     },
@@ -1842,8 +1848,21 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
         planningOverride: {
             estimatedTimeMinutes: 22,
             cognitiveLoad: 'high',
+            privacyLevel: 'student-visible',
             terminalConstraints: ['terminal-validation'],
             evidenceInstrumentation: ['arena_workspace_start', 'arena_evaluation_complete'],
+            pathDisposition: {
+                kind: 'path-plannable',
+                reviewStatus: 'human-confirmed',
+                rationale: '已核验二阶超前校正 Arena 的规范任务身份、启动路由、证据契约与终端校验职责。',
+                sourceFamily: 'arena_task',
+                stableSourceRef: 'task-second-order-lead-pid',
+                sourceVersionRef: 'arena-path-target-integrity.v1',
+                reviewBatchId: 'full-resource-semantic-closure-884.v1',
+                parentResourceNodeId: null,
+                reviewedAt: '2026-07-18T04:30:00.000Z',
+                reviewerId: 'full-resource-semantic-closure-reviewer'
+            },
             readiness: {
                 minimumCompetency: { parameterDesign: 0.3, engineeringDecision: 0.3 },
                 minimumEvidenceCount: 2,
@@ -1869,10 +1888,11 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
                 rationale: '已核验邮轮黑箱 Arena 的规范任务身份、启动路由、证据契约与有界补救入口。',
                 sourceFamily: 'arena_task',
                 stableSourceRef: 'task-cruise-roll-blackbox-identification',
-                sourceVersionRef: 'resource-node-registry.v1',
+                sourceVersionRef: 'arena-path-target-integrity.v1',
+                reviewBatchId: 'full-resource-semantic-closure-884.v1',
                 parentResourceNodeId: null,
-                reviewedAt: '2026-07-03T00:00:00.000Z',
-                reviewerId: 'core-resource-path-readiness-review'
+                reviewedAt: '2026-07-18T04:30:00.000Z',
+                reviewerId: 'full-resource-semantic-closure-reviewer'
             },
             readiness: {
                 minimumCompetency: { controlModeling: 0.3, engineeringDecision: 0.3 },
@@ -2411,6 +2431,17 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             teacherPolicy: 'teacher-only',
             privacyLevel: 'teacher-scoped',
             evidenceInstrumentation: ['classroom_objective_view'],
+            pathDisposition: {
+                kind: 'evidence-producing',
+                reviewStatus: 'human-confirmed',
+                rationale: '既有治理审查确认该教师侧目标展示资源仅产生课堂证据，不作为学生学习路径节点。',
+                sourceFamily: 'registered-resource',
+                stableSourceRef: 'registry:classroom-objective',
+                sourceVersionRef: 'resource-node-registry.v1',
+                parentResourceNodeId: null,
+                reviewedAt: '2026-07-09T16:30:00.000Z',
+                reviewerId: 'core-registered-knowledge-resource-implementing-agent'
+            },
             abilityImpact: { selfDirectedLearning: 0.08 }
         }
     },
@@ -2422,6 +2453,17 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             teacherPolicy: 'teacher-only',
             privacyLevel: 'teacher-scoped',
             evidenceInstrumentation: ['classroom_assessment_submit'],
+            pathDisposition: {
+                kind: 'evidence-producing',
+                reviewStatus: 'human-confirmed',
+                rationale: '既有治理审查确认该教师侧后测资源用于产生诊断证据，不作为学生学习路径节点。',
+                sourceFamily: 'registered-resource',
+                stableSourceRef: 'registry:classroom-assessment',
+                sourceVersionRef: 'resource-node-registry.v1',
+                parentResourceNodeId: null,
+                reviewedAt: '2026-07-09T16:30:00.000Z',
+                reviewerId: 'core-registered-knowledge-resource-implementing-agent'
+            },
             abilityImpact: { diagnosticAssessment: 0.18 }
         }
     },

@@ -5,7 +5,7 @@
  * MSC Tessa 超大型集装箱船 - 变质量 + 风载荷 + 增益调度
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -17,17 +17,39 @@ import {
 } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { MaritimeEnvironment } from '../environment/maritime-environment';
+import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
 import { SimulationClock } from '@/lib/simulation';
-import {
-  UnifiedCameraController,
-  RightClickFreeModeBridge,
-  type CameraMode,
-} from '../components/camera-controller';
+import { RightClickFreeModeBridge } from '../components/camera-controller';
+import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
+import {
+  EnvironmentScene,
+  SceneEnvironmentProvider,
+  useEnvironmentWaterColors,
+  useSceneEnvironment,
+} from '../scene/environment';
+import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { WakeTrail } from '../scene/wake';
+import {
+  SceneSoundscapeProvider,
+  SoundscapeAmbienceDriver,
+} from '../scene/audio';
+import {
+  TeachingAnnotationsProvider,
+  useTeachingAnnotations,
+} from '../scene/annotations';
+import {
+  SceneQualityDriver,
+  SceneQualityProvider,
+  useSceneQuality,
+} from '../scene/quality';
+import { ScenePostEffects } from '../scene/post';
+import { containerMscSceneVisual } from '../profiles/container-msc-scene';
+import { platformHeadingToSceneRad } from '../scene/heading';
+import { WaterHuggingLine } from '../scene/lines';
 
 import type {
   ControlMode,
@@ -133,18 +155,50 @@ function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
 
 // ============ 集装箱船模型组件 ============
 
-function ContainerShipModel({
-  position,
-  heading,
-  rollAngle,
-  loadRatio,
-}: {
+const OPTIMIZED_MODEL_URL = '/assets/models-opt/container.glb';
+const ORIGINAL_MODEL_URL = '/assets/container.glb';
+
+/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
+class ModelAssetErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+function ContainerShipModel(props: {
   position: Vector2;
   heading: number;
   rollAngle: number;
   loadRatio: number;
 }) {
-  const { scene } = useGLTF('/assets/container.glb');
+  return (
+    <ModelAssetErrorBoundary fallback={<ContainerShipModelScene url={ORIGINAL_MODEL_URL} {...props} />}>
+      <ContainerShipModelScene url={OPTIMIZED_MODEL_URL} {...props} />
+    </ModelAssetErrorBoundary>
+  );
+}
+
+function ContainerShipModelScene({
+  url,
+  position,
+  heading,
+  rollAngle,
+  loadRatio,
+}: {
+  url: string;
+  position: Vector2;
+  heading: number;
+  rollAngle: number;
+  loadRatio: number;
+}) {
+  const { scene } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
   const modelYawOffset = 0;
 
@@ -164,6 +218,8 @@ function ContainerShipModel({
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
+        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
+        child.frustumCulled = false;
         if (child.material) {
           child.material.transparent = false;
           child.material.opacity = 1;
@@ -208,26 +264,14 @@ function ContainerShipModel({
   );
 }
 
-// 预加载集装箱船模型
-useGLTF.preload('/assets/container.glb');
+// 预加载集装箱船模型（仅压缩件，避免双份下载）
+useGLTF.preload(OPTIMIZED_MODEL_URL);
 
 // ============ 航迹线组件 ============
 
 function TrajectoryLine({ points }: { points: Vector2[] }) {
-  const linePoints = useMemo(() => {
-    return points.map((p) => [p.x, 0.5, p.z] as [number, number, number]);
-  }, [points]);
-
-  if (linePoints.length < 2) return null;
-
-  return (
-    <Line
-      points={linePoints}
-      color={simulationScenePalette.containerPrimary}
-      lineWidth={2}
-      dashed={false}
-    />
-  );
+  if (points.length < 2) return null;
+  return <WaterHuggingLine points={points} color={simulationScenePalette.containerPrimary} lineWidth={2} />;
 }
 
 // ============ 风向指示器 ============
@@ -359,6 +403,7 @@ function ControlPanel({
       <div className="mb-4 flex gap-2">
         {!state.isRunning ? (
           <button type="button"
+            data-sound-start
             onClick={onStart}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
           >
@@ -550,6 +595,102 @@ function HUD({ state }: { state: ContainerSimulationState }) {
   );
 }
 
+// ============ 管线桥接组件 ============
+
+const CAMERA_SHOT_VIEWS = [
+  { id: SCENE_CAMERA_SHOTS.chase.id, label: '跟船', shortLabel: '跟', icon: Video, description: SCENE_CAMERA_SHOTS.chase.description },
+  { id: SCENE_CAMERA_SHOTS.orbit.id, label: '环绕', shortLabel: '环', icon: Orbit, description: SCENE_CAMERA_SHOTS.orbit.description },
+  { id: SCENE_CAMERA_SHOTS.tactical.id, label: '战术', shortLabel: '战', icon: Compass, description: SCENE_CAMERA_SHOTS.tactical.description },
+  { id: SCENE_CAMERA_SHOTS.topDown.id, label: '顶视', shortLabel: '顶', icon: ArrowDownFromLine, description: SCENE_CAMERA_SHOTS.topDown.description },
+];
+
+/** QA 钩子：把质量档位与派生预算暴露为 DOM 属性（性能 spec 与视觉 QA 消费）。 */
+function SceneQualityAttributes() {
+  const { tier, override, params } = useSceneQuality();
+  return (
+    <span
+      hidden
+      data-scene-quality-tier={tier}
+      data-scene-quality-override={override ?? ''}
+      data-wake-particle-cap={Math.round(2200 * params.particleScale)}
+      data-water-tier={params.waterTier}
+      data-post-enabled={params.postEnabled}
+    />
+  );
+}
+
+/** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
+function ContainerWater({ state }: { state: ContainerSimulationState }) {
+  const water = useEnvironmentWaterColors();
+  const { params } = useSceneQuality();
+  return (
+    <GerstnerWater
+      tier={params.waterTier}
+      positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+      waterColor={water.waterColor}
+      deepColor={water.deepColor}
+      horizonColor={water.horizonColor}
+      foamColor={simulationScenePalette.waterFoam}
+    />
+  );
+}
+
+/** 尾迹粒子场桥接：逐帧喂入船位/航向与 Gerstner 波面高度。 */
+function WakeTrailRig({
+  state,
+  playing,
+  resetToken,
+}: {
+  state: ContainerSimulationState;
+  playing: boolean;
+  resetToken: number;
+}) {
+  const { wakeVisible } = useSceneEnvironment();
+  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
+  const timeRef = useRef(0);
+  const { tier, params } = useSceneQuality();
+
+  useFrame((frameState) => {
+    transformRef.current.position = [state.position.x, 0, state.position.z];
+    transformRef.current.heading = platformHeadingToSceneRad(state.heading);
+    timeRef.current = frameState.clock.getElapsedTime();
+  });
+
+  if (!wakeVisible) return null;
+  return (
+    <WakeTrail
+      key={resetToken}
+      profile={containerMscSceneVisual}
+      shipTransform={transformRef.current}
+      qualityTier={tier}
+      playing={playing}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      worldSpeedSampler={() => state.speed}
+    />
+  );
+}
+
+/** 教学标注开关门控：默认关闭，开启时显示当前/目标航向指示。 */
+function TeachingAnnotationsGate({
+  position,
+  targetHeading,
+  currentHeading,
+}: {
+  position: Vector2;
+  targetHeading: number;
+  currentHeading: number;
+}) {
+  const { showAnnotations } = useTeachingAnnotations();
+  if (!showAnnotations) return null;
+  return (
+    <HeadingIndicator
+      position={position}
+      targetHeading={targetHeading}
+      currentHeading={currentHeading}
+    />
+  );
+}
+
 // ============ 3D 场景组件 ============
 
 function Scene({
@@ -560,25 +701,31 @@ function Scene({
   cameraMode,
   onCameraModeChange,
   controlsRef,
+  resetToken,
+  resetSignal,
 }: {
   state: ContainerSimulationState;
   trajectory: Vector2[];
   showGrid: boolean;
   sceneTheme: SimulationSceneTheme;
-  cameraMode: CameraMode;
-  onCameraModeChange: (mode: CameraMode) => void;
+  cameraMode: string;
+  onCameraModeChange: (mode: string) => void;
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
+  resetToken: number;
+  resetSignal: number;
 }) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[-500, 200, 500]} fov={60} near={1} far={50000} />
 
-      {/* 环境 */}
-      <ambientLight intensity={sceneTheme.ambientLightIntensity} />
-      <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
-
-      {/* 天空+云层+海面 */}
-      <MaritimeEnvironment shipPosition={state.position} seaState={3} sceneTheme={sceneTheme} />
+      <Suspense fallback={null}>
+        <EnvironmentScene />
+      </Suspense>
+      <SoundscapeAmbienceDriver />
+      <SceneQualityDriver />
+      <Suspense fallback={null}>
+        <ContainerWater state={state} />
+      </Suspense>
 
       {/* 参考网格 */}
       {showGrid ? (
@@ -599,15 +746,15 @@ function Scene({
       {/* 航迹线 */}
       <TrajectoryLine points={trajectory} />
 
-      {/* 风向指示器 */}
+      {/* 风向指示器（风场控制联动的实验仪器，常驻） */}
       <WindIndicator
         position={state.position}
         windDirection={toRadians(state.windDirection)}
         windSpeed={state.windSpeed}
       />
 
-      {/* 航向指示器 */}
-      <HeadingIndicator
+      {/* 航向指示器（教学标注门控，默认关闭） */}
+      <TeachingAnnotationsGate
         position={state.position}
         targetHeading={state.targetHeading}
         currentHeading={state.heading}
@@ -630,6 +777,8 @@ function Scene({
         />
       </Suspense>
 
+      <WakeTrailRig state={state} playing={state.isRunning && !state.isPaused} resetToken={resetToken} />
+
       {/* 相机控制 */}
       <OrbitControls
         ref={controlsRef}
@@ -641,12 +790,15 @@ function Scene({
         maxPolarAngle={Math.PI / 2.1}
       />
       <RightClickFreeModeBridge onRequestFreeMode={() => onCameraModeChange('free')} />
-      <UnifiedCameraController
-        position={state.position}
-        headingRad={toRadians(state.heading)}
-        cameraMode={cameraMode}
+      <StayPutCameraController
+        view={cameraMode}
+        positionSampler={() => ({ x: state.position.x, z: state.position.z })}
+        headingSampler={() => platformHeadingToSceneRad(state.heading)}
+        shipLength={containerMscSceneVisual.shipLengthMeters}
         controlsRef={controlsRef}
+      resetSignal={resetSignal}
       />
+      <ScenePostEffects />
     </>
   );
 }
@@ -667,9 +819,11 @@ export default function ContainerSimulation() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   // 相机状态
-  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
+  const [resetCount, setResetCount] = useState(0);
+  const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
 
   // 轨迹记录
@@ -823,6 +977,7 @@ export default function ContainerSimulation() {
       currentK: 0.08,
       currentT: 80,
     });
+    setResetCount((previous) => previous + 1);
   };
 
   const handleTargetHeadingChange = (heading: number) => {
@@ -875,7 +1030,12 @@ export default function ContainerSimulation() {
   };
 
   return (
+    <SceneEnvironmentProvider>
+    <SceneSoundscapeProvider>
+    <TeachingAnnotationsProvider>
+    <SceneQualityProvider>
     <div className={simulationUi.root} data-sim-ui>
+      <SceneQualityAttributes />
       <Canvas shadows={{ type: THREE.PCFShadowMap }} gl={{ antialias: true }}>
         <Scene
           state={simState}
@@ -885,6 +1045,8 @@ export default function ContainerSimulation() {
           cameraMode={cameraMode}
           onCameraModeChange={setCameraMode}
           controlsRef={controlsRef}
+          resetToken={resetCount}
+          resetSignal={viewResetCount}
         />
       </Canvas>
 
@@ -950,6 +1112,8 @@ export default function ContainerSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        onViewReset={() => setViewResetCount((previous) => previous + 1)}
+        views={CAMERA_SHOT_VIEWS}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
         speedScale={speedScale}
@@ -958,5 +1122,9 @@ export default function ContainerSimulation() {
         className={simulationUi.cameraSwitcherPosition}
       />
     </div>
+    </SceneQualityProvider>
+    </TeachingAnnotationsProvider>
+    </SceneSoundscapeProvider>
+    </SceneEnvironmentProvider>
   );
 }

@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 
 import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+import {
+  evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
+  isAssessmentSnapshotBeforeEnforcementEpoch,
+  type AssessmentEvidenceCatalogSnapshot,
+} from '@/features/adaptive-assessment/assessment-evidence-authority';
+import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 import { remapPathNodeId } from '@/lib/path-node-id-alias-remap';
 import { canonicalizeVerifiedLegacyArenaPath } from '@/lib/verified-legacy-arena-path-canonicalization';
@@ -674,6 +680,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
       isCorrect: true,
       score: true,
       abilityEstimate: true,
+      createdAt: true,
       answeredAt: true,
       questionRef: {
         select: {
@@ -722,7 +729,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
         reviewState: firstString(kaqReview.state),
         readinessGateEligible,
         pathCompletionEligible,
-        terminalValidationEligible: readinessGateEligible,
+        terminalValidationEligible: false,
         learningGoalIds: kaqLearningGoalIds.length > 0 ? kaqLearningGoalIds : undefined,
         outcomeRefs: Array.isArray(toRecord(kaqMetadata).outcomeRefs)
           ? toRecord(kaqMetadata).outcomeRefs
@@ -901,16 +908,33 @@ function matchesAdaptiveAssessmentCatalogPathStage(
   const pathExecution = toRecord(toRecord(answer?.abilityEstimateSnapshot?.dimensions).pathExecution);
   const hasCatalogSnapshot = Object.keys(itemRef).length > 0;
   const hasQuestionScope = typeof pathExecution.questionScope === 'string' && pathExecution.questionScope.trim().length > 0;
+  const allowHistoricalIncompleteSnapshotRecovery = isAssessmentSnapshotBeforeEnforcementEpoch(
+    answer?.createdAt,
+    answer?.answeredAt,
+  );
   if (!hasCatalogSnapshot && !hasQuestionScope) {
-    return stage === 'readiness' || stage === 'checkpoint';
+    const isLegacyPresetOrCheckpoint = typeof answer?.questionId === 'string' && (
+      answer.questionId.startsWith('preset-q-') ||
+      answer.questionId.startsWith('checkpoint-authored-question:')
+    );
+    return isLegacyPresetOrCheckpoint &&
+      allowHistoricalIncompleteSnapshotRecovery &&
+      (stage === 'readiness' || stage === 'checkpoint');
   }
-  const learningGoalIds = arrayOfStrings(semanticRefs.learningGoalIds);
+  const authority = evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority(
+    itemRef as unknown as AssessmentEvidenceCatalogSnapshot,
+    findAdaptiveAssessmentCatalogSnapshot(answer?.questionId ?? ''),
+    {
+      learningGoalId: input.goalId,
+      requestedStage: stage,
+      allowHistoricalIncompleteSnapshotRecovery,
+    },
+  );
   return itemRef.catalogBacked === true &&
-    itemRef.reviewState === 'path-eligible' &&
-    itemRef.eligibilityState === 'path-eligible' &&
-    arrayOfStrings(itemRef.allowedStages).includes(stage) &&
+    authority[stage] &&
     pathExecution.questionScope === stage &&
-    (typeof input.goalId !== 'string' || input.goalId.trim().length === 0 || learningGoalIds.includes(input.goalId));
+    (typeof input.goalId !== 'string' || input.goalId.trim().length === 0 ||
+      arrayOfStrings(semanticRefs.learningGoalIds).includes(input.goalId));
 }
 
 async function resolveGovernedControlWorkbenchOutcomeEvidence<T extends {

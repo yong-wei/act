@@ -9,11 +9,15 @@ function readSource(path: string) {
 }
 
 describe('simulation workflow remediation contracts', () => {
-  it('keeps shell-declared local bottom tools visible', () => {
+  it('no longer renders the inert placeholder bottom command strip', () => {
     const source = readSource('src/app/simulations/_components/simulation-local-tools.tsx');
 
-    expect(source).toContain('data-simulation-local-bottom-toolbar-status="visible"');
-    expect(source).toContain('data-task-workspace-zone="bottom-tools"');
+    // 占位命令条（无行为 span）已由 unify-simulation-chrome-and-camera-views 移除，
+    // 底部工具收敛为单排 chrome 家族；提示条保留且可关闭。
+    expect(source).not.toContain('data-simulation-local-bottom-toolbar-status');
+    expect(source).not.toContain('data-task-workspace-zone="bottom-tools"');
+    expect(source).toContain('data-simulation-local-hint-strip');
+    expect(source).toContain('aria-label="关闭提示"');
     expect(source).not.toContain('className="hidden"');
   });
 

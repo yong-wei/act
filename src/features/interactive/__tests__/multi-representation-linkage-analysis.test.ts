@@ -408,6 +408,12 @@ describe('multi representation linkage analysis adapter', () => {
     expect(adapted.stability.hints.length).toBeGreaterThan(0);
   });
 
+  it('preserves unavailable overshoot instead of converting it to zero', () => {
+    const result = makeAnalysisResult();
+    result.metrics.overshootPct = null;
+    expect(adaptLinkageAnalysisResult(result).timeDomain.metrics.overshoot).toBeNull();
+  });
+
   it('fills stability defaults when margins are absent and closed-loop poles cross into the right half plane', () => {
     const adapted = adaptLinkageAnalysisResult(
       makeAnalysisResult({
@@ -492,7 +498,9 @@ describe('multi representation linkage analysis adapter', () => {
     expect(pageSource).toContain('rootLocusSourceOptions');
     expect(pageSource).toContain('nyquistSourceOptions');
     expect(pageSource).toContain("selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []");
-    expect(pageSource).toContain('selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} />');
+    expect(pageSource).toContain(
+      'selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} comparisonSeries={visibleSnapshotSeries} />',
+    );
     expect(pageSource).not.toContain('<NyquistPanel result={panel.result} />');
   });
 
@@ -568,5 +576,49 @@ describe('multi representation linkage analysis adapter', () => {
     expect(drawerSource).toContain('className="block max-w-full truncate" title="校正"');
     expect(drawerSource).toContain('disabled={isCourseMode || Boolean(isLockedOrCourse)}');
     expect(drawerSource).toContain('disabled={disabled || !state.enabled}');
+  });
+
+  it('keeps controlled Radix parameter selects inside the portal theme scope', () => {
+    const drawerSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/parameter-drawer.tsx'),
+      'utf8',
+    );
+    const globalsSource = readFileSync(join(repoRoot, 'src/app/globals.css'), 'utf8');
+    const selectSource = readFileSync(join(repoRoot, 'src/components/ui/select.tsx'), 'utf8');
+
+    expect(drawerSource).toContain('data-parameter-drawer="true"');
+    expect(drawerSource).toContain('premium-lesson-theme-scope');
+    expect(drawerSource).toContain("from '@/components/ui/select'");
+    expect(drawerSource).toContain('data-testid="parameter-drawer-response-select"');
+    expect(drawerSource).toContain('data-testid="parameter-drawer-structure-select"');
+    expect(drawerSource).toContain('htmlFor="parameter-drawer-response-select"');
+    expect(drawerSource).toContain('htmlFor="parameter-drawer-structure-select"');
+    expect(drawerSource).toContain('<SelectItem className="premium-lesson-select-item" value="step">阶跃响应</SelectItem>');
+    expect(drawerSource).toContain('<SelectItem className="premium-lesson-select-item" value="impulse">脉冲响应</SelectItem>');
+    expect(drawerSource).toContain('<SelectItem className="premium-lesson-select-item" value="ramp">斜坡响应</SelectItem>');
+    for (const correctionKind of ['pi', 'pd', 'pid', 'lead', 'lag', 'lead_lag']) {
+      expect(drawerSource).toContain(`value="${correctionKind}"`);
+    }
+    expect(drawerSource).toContain('onResponseTypeChange(value as LinkageResponseType)');
+    expect(drawerSource).toContain('onChange({ kind: value as CorrectionKind })');
+    expect(drawerSource).toContain('disabled={disabled || !state.enabled}');
+    expect(drawerSource).toContain('type SelectLayerLifecycle =');
+    expect(drawerSource).toContain('selectClosingGenerationsRef');
+    expect(drawerSource).toContain("selectLayerLifecycleRef.current.phase !== 'idle'");
+    expect(drawerSource).toContain('onEscapeKeyDown={onSelectEscapeKeyDown}');
+    expect(drawerSource).not.toContain('selectEscapePendingRef');
+    expect(drawerSource).not.toContain('selectLayerOpenRef');
+    expect(drawerSource).not.toContain('}, 500);');
+    expect(selectSource).toContain('<SelectPrimitive.Portal>');
+    expect(selectSource).toContain('SelectPrimitive.ItemIndicator');
+    expect(globalsSource).toContain('.premium-lesson-shell,\n  .premium-lesson-theme-scope');
+    expect(globalsSource).toContain('.premium-lesson-select-content');
+    expect(globalsSource).toContain(".premium-lesson-select-item[data-highlighted]");
+    expect(globalsSource).toContain(".premium-lesson-select-item[data-state='checked']");
+    expect(globalsSource).toContain('.premium-lesson-select-item[data-disabled]');
+    expect(globalsSource).toContain("[data-parameter-drawer='true'] .premium-lesson-select:focus-visible");
+    expect(globalsSource).toContain("[data-parameter-drawer='true'] .premium-lesson-select:disabled");
+    expect(globalsSource).not.toContain(".premium-lesson-select option");
+    expect(globalsSource).not.toContain('color-scheme:');
   });
 });

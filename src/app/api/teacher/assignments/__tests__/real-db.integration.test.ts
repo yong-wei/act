@@ -128,9 +128,14 @@ describe.runIf(enabled)('assignment authoring self-contained isolated database i
     const editedRevisionHash = edited.revision.contentHash;
     expect((await PATCH_ASSIGNMENT(request(`/api/teacher/assignments/${assignmentId}`, 'PATCH', editBody), context(assignmentId)) as Response).status).toBe(409);
 
-    const publishResponse = await PUBLISH_ASSIGNMENT(request(`/api/teacher/assignments/${assignmentId}/publish`, 'POST', {
-      revisionId, expectedVersion: 2, idempotencyKey: 'assignment-real-db-publish-0001', audiences: [{ classId, availableAt: '2099-01-01T00:00:00.000Z', dueAt: '2099-01-02T00:00:00.000Z' }],
-    }), context(assignmentId)) as Response;
+    const publishBody = {
+      revisionId,
+      expectedVersion: 2,
+      contentDigest: editedRevisionHash,
+      idempotencyKey: `assignment-ui:${assignmentId}:${revisionId}:2`,
+      audiences: [{ classId, availableAt: '2099-01-01T00:00:00.000Z', dueAt: '2099-01-02T00:00:00.000Z' }],
+    };
+    const publishResponse = await PUBLISH_ASSIGNMENT(request(`/api/teacher/assignments/${assignmentId}/publish`, 'POST', publishBody), context(assignmentId)) as Response;
     const published = await publishResponse.json();
     expect(publishResponse.status, JSON.stringify(published)).toBe(200);
     assertRevisionDraft(published.revision, editDraft);
@@ -138,6 +143,17 @@ describe.runIf(enabled)('assignment authoring self-contained isolated database i
     expect(published.revision.questions[0].sourceHash).toBe(editedDerivativeHash);
     expect(published.revision.questions[0].contentHash).toBe(editedQuestionHash);
     expect(published.revision.contentHash).toBe(editedRevisionHash);
+    const replayResponses = await Promise.all([
+      PUBLISH_ASSIGNMENT(request(`/api/teacher/assignments/${assignmentId}/publish`, 'POST', publishBody), context(assignmentId)),
+      PUBLISH_ASSIGNMENT(request(`/api/teacher/assignments/${assignmentId}/publish`, 'POST', publishBody), context(assignmentId)),
+    ]) as Response[];
+    expect(replayResponses.map((response) => response.status)).toEqual([200, 200]);
+    await expect(Promise.all(replayResponses.map((response) => response.json()))).resolves.toEqual([
+      expect.objectContaining({ idempotentReplay: true, publication: { assignmentId, publishedRevisionId: revisionId, location: { assignmentId }, classes: expect.any(Array) } }),
+      expect.objectContaining({ idempotentReplay: true, publication: { assignmentId, publishedRevisionId: revisionId, location: { assignmentId }, classes: expect.any(Array) } }),
+    ]);
+    expect(await prisma.assignmentPublicationOperation.count({ where: { revisionId } })).toBe(1);
+    expect(await prisma.assignmentAudience.count({ where: { assignmentRevisionId: revisionId } })).toBe(1);
 
     const reload = await GET_ASSIGNMENT(new Request(`${origin}/api/teacher/assignments/${assignmentId}`), context(assignmentId)) as Response;
     const reloaded = await reload.json();

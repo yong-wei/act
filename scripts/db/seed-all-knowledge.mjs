@@ -1,15 +1,22 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { createPrismaClient } from '../lib/prisma-client.mjs';
 
 const prisma = createPrismaClient();
 
 const ROOT = process.cwd();
-const RUNTIME_KNOWLEDGE_ROOT = path.join(ROOT, 'course-content', 'runtime', 'knowledge');
+const RUNTIME_KNOWLEDGE_ROOT = process.env.KNOWLEDGE_RUNTIME_ROOT
+  ? path.resolve(process.env.KNOWLEDGE_RUNTIME_ROOT)
+  : path.join(ROOT, 'course-content', 'runtime', 'knowledge');
 const RUNTIME_NODES_PATH = path.join(RUNTIME_KNOWLEDGE_ROOT, 'graph', 'nodes.json');
 const RUNTIME_RELS_PATH = path.join(RUNTIME_KNOWLEDGE_ROOT, 'graph', 'relations.jsonl');
+const RELATION_AUDIT_INPUT_PATH = process.env.KNOWLEDGE_RELATION_AUDIT_INPUT
+  ? path.resolve(process.env.KNOWLEDGE_RELATION_AUDIT_INPUT)
+  : path.join(ROOT, 'course-content', 'contracts', 'knowledge-relation-coverage-audit.json');
 const RUNTIME_SOURCE_MARKER = 'course-content/runtime/knowledge/graph/nodes.json';
+const RUNTIME_RELATION_SOURCE_MARKER = 'course-content/runtime/knowledge/graph/relations.jsonl';
 
 const NODE_TYPES = new Set(['THEORY', 'SCENARIO', 'ETHICS']);
 const BLOOM_LEVELS = new Set(['REMEMBER', 'UNDERSTAND', 'APPLY', 'ANALYZE', 'EVALUATE', 'CREATE']);
@@ -73,6 +80,23 @@ async function readJsonl(filePath) {
     .map((line) => JSON.parse(line));
 }
 
+export function validateRelationsStrict(
+  relationsPath = RUNTIME_RELS_PATH,
+  nodesPath = RUNTIME_NODES_PATH,
+  auditInputPath = RELATION_AUDIT_INPUT_PATH,
+) {
+  const result = spawnSync(process.execPath, [
+    path.join(ROOT, 'node_modules', 'tsx', 'dist', 'cli.mjs'),
+    path.join(ROOT, 'scripts', 'knowledge', 'check-runtime-relation-coverage.ts'),
+    '--relations', relationsPath,
+    '--nodes', nodesPath,
+    '--audit-input', auditInputPath,
+  ], { cwd: ROOT, encoding: 'utf8' });
+  if (result.status !== 0) {
+    throw new Error(`Strict runtime relation validation failed before database sync:\n${result.stdout || result.stderr}`);
+  }
+}
+
 export function validateRuntimeNodes(nodes, options = {}) {
   if (!Array.isArray(nodes)) {
     throw new Error('runtime knowledge nodes must be an array');
@@ -94,12 +118,15 @@ function normalizeTags(tags, chapter) {
   return Array.from(new Set(values));
 }
 
-async function upsertNodes(nodes) {
+async function upsertNodes(db, nodes) {
   const nodeIds = nodes.map((node) => node.id);
   for (const node of nodes) {
-    const metadata = node.metadata && typeof node.metadata === 'object' ? node.metadata : {};
+    const metadata = {
+      ...(node.metadata && typeof node.metadata === 'object' && !Array.isArray(node.metadata) ? node.metadata : {}),
+      source: RUNTIME_SOURCE_MARKER,
+    };
     const chapter = typeof node.chapter === 'number' ? node.chapter : metadata.chapter;
-    await prisma.knowledgeNode.upsert({
+    await db.knowledgeNode.upsert({
       where: { id: node.id },
       update: {
         name: asString(node.name, node.id),
@@ -135,7 +162,7 @@ async function upsertNodes(nodes) {
     });
   }
 
-  await prisma.knowledgeNode.updateMany({
+  await db.knowledgeNode.updateMany({
     where: {
       id: { notIn: nodeIds },
       isActive: true,
@@ -149,107 +176,122 @@ async function upsertNodes(nodes) {
 }
 
 export function selectRelationsForDb(relations, nodeIds) {
-  let skipped = 0;
   const selectedRelations = new Map();
-  const relationTypesByPair = new Map();
 
   for (const relation of relations) {
-    const sourceId = asString(relation.source_id ?? relation.sourceId);
-    const targetId = asString(relation.target_id ?? relation.targetId);
-    if (!sourceId || !targetId || !nodeIds.has(sourceId) || !nodeIds.has(targetId)) {
-      skipped += 1;
-      continue;
+    const id = relation.id ?? relation.relation_id ?? relation.relationId;
+    const sourceId = relation.source_id ?? relation.sourceId;
+    const targetId = relation.target_id ?? relation.targetId;
+    const relationType = relation.relation_type ?? relation.relationType ?? relation.type ?? relation.relation;
+    if (typeof id !== 'string' || !id || id.trim() !== id) throw new Error('Invalid runtime relation id');
+    if (typeof sourceId !== 'string' || !sourceId || sourceId.trim() !== sourceId) throw new Error(`Invalid source endpoint for ${id}`);
+    if (typeof targetId !== 'string' || !targetId || targetId.trim() !== targetId) throw new Error(`Invalid target endpoint for ${id}`);
+    if (typeof relationType !== 'string' || !relationType || relationType.trim() !== relationType) throw new Error(`Invalid relation type for ${id}`);
+    if (!nodeIds.has(sourceId) || !nodeIds.has(targetId)) throw new Error(`Unknown relation endpoint for ${id}`);
+    if (selectedRelations.has(id)) {
+      throw new Error(`Duplicate runtime relation id: ${id}`);
     }
-    const key = `${sourceId}::${targetId}`;
-    const relationType = asString(relation.relation_type ?? relation.relation, 'related');
-    const relationTypes = relationTypesByPair.get(key) ?? new Set();
-    relationTypes.add(relationType);
-    relationTypesByPair.set(key, relationTypes);
-    const normalized = {
+    selectedRelations.set(id, {
+      id,
       sourceId,
       targetId,
       relation: relationType,
       strength: asNumber(relation.strength, 1),
-    };
-    const existing = selectedRelations.get(key);
-    if (
-      !existing
-      || normalized.strength > existing.strength
-      || (normalized.strength === existing.strength && normalized.relation.localeCompare(existing.relation) < 0)
-    ) {
-      selectedRelations.set(key, normalized);
-    }
+      metadata: sanitizeRelationMetadata(relation),
+    });
   }
 
-  const collapsed = [...relationTypesByPair.values()].filter((types) => types.size > 1).length;
-  return { selectedRelations, skipped, collapsed };
+  return { selectedRelations };
 }
 
-async function upsertRelations(relations, nodeIds) {
-  let written = 0;
-  const { selectedRelations, skipped, collapsed } = selectRelationsForDb(relations, nodeIds);
-  const activeRelationKeys = new Set();
+const SOURCE_METADATA_KEYS = new Set([
+  'documentId', 'page', 'pageNumber', 'section', 'sectionId', 'sourceType', 'title', 'version',
+]);
 
-  // KnowledgeLink is unique by source/target in the current Prisma schema, so
-  // database sync stores one deterministic representative relation per pair.
-  // The full multi-relation graph remains in runtime relations.jsonl.
-  for (const relation of selectedRelations.values()) {
-    const { sourceId, targetId } = relation;
-    activeRelationKeys.add(`${sourceId}::${targetId}`);
-    await prisma.knowledgeLink.upsert({
-      where: {
-        sourceId_targetId: {
-          sourceId,
-          targetId,
-        },
-      },
+function boundedText(value, maxLength) {
+  return typeof value === 'string' && value.trim() ? value.trim().slice(0, maxLength) : undefined;
+}
+
+function sanitizeSourceMetadata(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const output = {};
+  for (const key of Object.keys(value).sort()) {
+    if (!SOURCE_METADATA_KEYS.has(key)) continue;
+    const item = value[key];
+    if (typeof item === 'number' && Number.isFinite(item)) output[key] = item;
+    else {
+      const text = boundedText(item, 200);
+      if (text) output[key] = text;
+    }
+  }
+  return Object.keys(output).length ? output : undefined;
+}
+
+export function sanitizeRelationMetadata(relation) {
+  const metadata = { runtimeSource: RUNTIME_RELATION_SOURCE_MARKER };
+  const rationale = boundedText(relation.rationale, 500);
+  const sourceDocument = boundedText(relation.sourceDocument, 300);
+  const sourceMetadata = sanitizeSourceMetadata(relation.sourceMetadata);
+  if (rationale) metadata.rationale = rationale;
+  if (sourceDocument) metadata.sourceDocument = sourceDocument;
+  if (sourceMetadata) metadata.sourceMetadata = sourceMetadata;
+  for (const key of ['source_chapter', 'target_chapter', 'sourceChapter', 'targetChapter']) {
+    const value = relation[key];
+    if ((typeof value === 'number' && Number.isFinite(value)) || typeof value === 'string') {
+      metadata[key] = typeof value === 'string' ? value.slice(0, 100) : value;
+    }
+  }
+  return metadata;
+}
+
+export async function upsertRelations(db, relations, nodeIds) {
+  let written = 0;
+  const { selectedRelations } = selectRelationsForDb(relations, nodeIds);
+  const activeRelationIds = new Set();
+
+  for (const relation of [...selectedRelations.values()].sort((left, right) => (
+    left.id < right.id ? -1 : left.id > right.id ? 1 : 0
+  ))) {
+    activeRelationIds.add(relation.id);
+    await db.knowledgeLink.upsert({
+      where: { id: relation.id },
       update: {
         relation: relation.relation,
+        sourceId: relation.sourceId,
+        targetId: relation.targetId,
+        strength: relation.strength,
+        metadata: relation.metadata,
       },
       create: {
-        sourceId,
-        targetId,
+        id: relation.id,
+        sourceId: relation.sourceId,
+        targetId: relation.targetId,
         relation: relation.relation,
+        strength: relation.strength,
+        metadata: relation.metadata,
       },
     });
     written += 1;
   }
 
-  const existingLinks = await prisma.knowledgeLink.findMany({
+  const existingLinks = await db.knowledgeLink.findMany({
     where: {
-      sourceNode: {
-        is: {
-          metadata: {
-            path: ['source'],
-            equals: RUNTIME_SOURCE_MARKER,
-          },
-        },
-      },
-      targetNode: {
-        is: {
-          metadata: {
-            path: ['source'],
-            equals: RUNTIME_SOURCE_MARKER,
-          },
-        },
+      metadata: {
+        path: ['runtimeSource'],
+        equals: RUNTIME_RELATION_SOURCE_MARKER,
       },
     },
-    select: { sourceId: true, targetId: true },
+    select: { id: true },
   });
-  const staleLinks = existingLinks.filter((link) => !activeRelationKeys.has(`${link.sourceId}::${link.targetId}`));
+  const staleLinks = existingLinks.filter((link) => !activeRelationIds.has(link.id));
 
   for (const link of staleLinks) {
-    await prisma.knowledgeLink.delete({
-      where: {
-        sourceId_targetId: {
-          sourceId: link.sourceId,
-          targetId: link.targetId,
-        },
-      },
+    await db.knowledgeLink.delete({
+      where: { id: link.id },
     });
   }
 
-  return { written, skipped, deleted: staleLinks.length, collapsed };
+  return { written, deleted: staleLinks.length };
 }
 
 async function main() {
@@ -258,16 +300,15 @@ async function main() {
 
   const nodes = await readJson(RUNTIME_NODES_PATH);
   validateRuntimeNodes(nodes, args);
+  validateRelationsStrict();
   const relations = await readJsonl(RUNTIME_RELS_PATH);
-
-  await upsertNodes(nodes);
-  const result = await upsertRelations(relations, new Set(nodes.map((node) => node.id)));
+  const result = await prisma.$transaction(async (tx) => {
+    await upsertNodes(tx, nodes);
+    return upsertRelations(tx, relations, new Set(nodes.map((node) => node.id)));
+  }, { timeout: 120_000 });
 
   console.log(`已同步 ${nodes.length} 个知识节点`);
-  console.log(`已同步 ${result.written} 条知识关系，跳过 ${result.skipped} 条缺端点关系，删除 ${result.deleted} 条过期关系`);
-  if (result.collapsed > 0) {
-    console.log(`已按数据库唯一键折叠 ${result.collapsed} 组多类型端点关系；完整关系语义保留在 runtime relations.jsonl`);
-  }
+  console.log(`已同步 ${result.written} 条知识关系，删除 ${result.deleted} 条过期关系`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

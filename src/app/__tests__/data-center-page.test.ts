@@ -41,7 +41,7 @@ describe('DataCenterPage role access', () => {
   it('keeps unauthenticated users on the login callback flow', async () => {
     mocks.getServerAuthSession.mockResolvedValue(null);
 
-    await expect(DataCenterPage()).rejects.toThrow('redirect:/login?callbackUrl=%2Fdata-center');
+    await expect(DataCenterPage({})).rejects.toThrow('redirect:/login?callbackUrl=%2Fdata-center');
 
     expect(mocks.buildLoginRedirectForPath).toHaveBeenCalledWith('/data-center');
     expect(mocks.presentationDataCenter).not.toHaveBeenCalled();
@@ -50,7 +50,7 @@ describe('DataCenterPage role access', () => {
   it('redirects authenticated students to learner evidence instead of rendering data center', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
 
-    await expect(DataCenterPage()).rejects.toThrow(
+    await expect(DataCenterPage({})).rejects.toThrow(
       'redirect:/profile/evidence?origin=%2Fdata-center&reason=student-role-boundary&targetScope=learner-evidence-review&sourceBoundary=teacher-admin-aggregate-only',
     );
 
@@ -98,7 +98,7 @@ describe('DataCenterPage role access', () => {
       mocks.presentationDataCenter.mockClear();
       mocks.getServerAuthSession.mockResolvedValue({ user: { id: `${platformRole}-1`, role } });
 
-      const element = await DataCenterPage();
+      const element = await DataCenterPage({});
 
       expect(element).toMatchObject({
         props: { role: platformRole, showDemoSourceLabels: true },

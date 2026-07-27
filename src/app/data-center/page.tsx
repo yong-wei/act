@@ -49,7 +49,7 @@ function resolveLearnerRedirectTarget(returnTo: string | undefined): string {
   return appendLearnerBoundaryContext(returnTo);
 }
 
-export default async function DataCenterPage({ searchParams }: DataCenterPageProps = {}) {
+export default async function DataCenterPage({ searchParams }: DataCenterPageProps) {
   const session = await getServerAuthSession();
 
   if (!session?.user) {

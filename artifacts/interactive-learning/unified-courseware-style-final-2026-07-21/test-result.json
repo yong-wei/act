@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-07-21T00:00:00.000Z",
+  "change": "unify-interactive-lesson-component-style",
+  "sourceSha256": "d1f089cd2ab727927b05122934d9b762d681b2ab56d6bb0b8ca52be72db0ccde",
+  "commands": [
+    {
+      "command": "npm run test:unit -- src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/unit-1-2-course.test.ts src/lib/__tests__/adaptive-path-journey-control.test.ts",
+      "result": "passed",
+      "summary": "3 test files passed; 121 tests passed"
+    },
+    {
+      "command": "node artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/browser-acceptance.mjs",
+      "result": "passed",
+      "summary": "8 fresh current-revision browser captures passed"
+    }
+  ],
+  "result": "passed"
+}

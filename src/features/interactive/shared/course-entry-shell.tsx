@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
@@ -29,6 +29,7 @@ import {
 } from '@/features/classroom/classroom-lifecycle-dialog';
 import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
+import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 
 type NormalizedRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | null;
@@ -64,6 +65,15 @@ function normalizeRole(raw: string | null | undefined): NormalizedRole {
   if (value === 'TEACHER' || value === '教师') return 'TEACHER';
   if (value === 'ADMIN' || value === '管理员') return 'ADMIN';
   return null;
+}
+
+export function isJoinAuthenticationFailure(status: number) {
+  return status === 401 || status === 403;
+}
+
+export function buildCourseEntryLoginHref(routeSegment: string, joinCode: string) {
+  const callbackUrl = `/interactive-learning/courses/${routeSegment}?code=${encodeURIComponent(joinCode)}`;
+  return `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 }
 
 function getRuntimeTagFallback(runtime: RuntimeLessonEntryBundle | undefined) {
@@ -108,10 +118,14 @@ export function CourseEntryShell({
 }) {
   const { data: authSession } = useSession();
   const router = useRouter();
-  const [joinCode, setJoinCode] = useState('');
+  const teacherLauncher = useTeacherClassroomLauncher();
+  const searchParams = useSearchParams();
+  const restoredJoinCode = searchParams.get('code')?.replace(/\D/g, '').slice(0, 6) ?? '';
+  const [joinCode, setJoinCode] = useState(restoredJoinCode);
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loginRecoveryHref, setLoginRecoveryHref] = useState<string | null>(null);
 
   const activeHref = `/interactive-learning/courses/${config.routeSegment}`;
   const userRole = useMemo(
@@ -120,6 +134,7 @@ export function CourseEntryShell({
   );
   const canCreateAsTeacher = userRole === 'TEACHER' || userRole === 'ADMIN';
   const canJoinAsStudent = userRole === 'STUDENT';
+  const isAdministrator = userRole === 'ADMIN';
   const shellRole = userRole === 'TEACHER' ? 'teacher' : userRole === 'ADMIN' ? 'admin' : 'student';
   const roleResolved = Boolean(userRole);
   const showTeacherSection = canCreateAsTeacher;
@@ -133,10 +148,31 @@ export function CourseEntryShell({
   const routeSteps = manifestSteps.slice(0, 3);
   const bopppsRows = buildBopppsRows(manifestSteps);
 
-  const createClassroom = async () => {
+  const createClassroom = async (launchElement: HTMLElement) => {
     setError(null);
     if (!canCreateAsTeacher) {
       setError('请使用教师账号登录后再创建课堂。');
+      return;
+    }
+    if (userRole === 'TEACHER') {
+      teacherLauncher.launch({
+        sourcePresetKey: config.presetKey,
+        preparePlanId: async () => {
+          const cloneRes = await fetch('/api/teacher/preset-lessons/clone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ presetKey: config.presetKey }),
+          });
+          const cloneData = await cloneRes.json();
+          if (!cloneRes.ok || !cloneData.lessonPlanId) {
+            throw new Error(cloneData.error || '预置教案克隆失败');
+          }
+          return cloneData.lessonPlanId as string;
+        },
+        onSessionReady: (sessionId) => {
+          router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${sessionId}/waiting`);
+        },
+      }, launchElement);
       return;
     }
 
@@ -202,6 +238,7 @@ export function CourseEntryShell({
 
   const joinClassroom = async () => {
     setError(null);
+    setLoginRecoveryHref(null);
     if (joinCode.length !== 6) {
       setError('请输入 6 位课堂码。');
       return;
@@ -212,6 +249,9 @@ export function CourseEntryShell({
       const response = await fetch(`/api/session/join?code=${joinCode}`);
       const data = (await response.json()) as JoinSessionResponse & { error?: string };
       if (!response.ok || !data.id || !data.studentHref) {
+        if (!roleResolved && isJoinAuthenticationFailure(response.status)) {
+          setLoginRecoveryHref(buildCourseEntryLoginHref(config.routeSegment, joinCode));
+        }
         throw new Error(data.error || '课堂码无效');
       }
       router.push(data.studentHref);
@@ -371,24 +411,32 @@ export function CourseEntryShell({
 
         <section className="grid gap-4 lg:grid-cols-3" data-commercial-workspace-zone="command-bar">
           {showTeacherSection ? (
-            <PlatformSurface variant="default" className="p-5" data-course-entry-role-panel="teacher">
+            <PlatformSurface
+              variant="default"
+              className="p-5"
+              data-course-entry-role-panel={isAdministrator ? 'admin-temporary' : 'teacher'}
+            >
               <div className="flex items-center gap-2 text-sm font-semibold text-platform-fg-primary">
                 <Presentation className="h-4 w-4 text-platform-action-primary" />
-                教师入口
+                {isAdministrator ? '管理员临时课堂' : '教师入口'}
               </div>
-              <h3 className="mt-3 text-lg font-semibold text-platform-fg-primary">创建课堂并进入等待页</h3>
+              <h3 className="mt-3 text-lg font-semibold text-platform-fg-primary">
+                {isAdministrator ? '创建临时课堂并进入等待页' : '创建课堂并进入等待页'}
+              </h3>
               <p className="mt-2 text-sm leading-6 text-platform-fg-secondary">
-                {config.teacherDescription ?? '自动克隆预置教案，生成课堂码，等待学生加入后再开始上课。'}
+                {isAdministrator
+                  ? '本次课堂不绑定班级，将以临时课堂创建并生成课堂码。'
+                  : config.teacherDescription ?? '自动克隆预置教案，生成课堂码，等待学生加入后再开始上课。'}
               </p>
               <button
                 type="button"
-                onClick={() => void createClassroom()}
+                onClick={(event) => void createClassroom(event.currentTarget)}
                 disabled={isCreating}
                 className="mt-5 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md bg-platform-action-primary px-4 text-sm font-semibold text-platform-fg-inverse transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 data-course-entry-action="teacher-launch"
               >
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Presentation className="h-4 w-4" />}
-                创建课堂
+                {isAdministrator ? '创建临时课堂' : '创建课堂'}
               </button>
             </PlatformSurface>
           ) : null}
@@ -421,6 +469,9 @@ export function CourseEntryShell({
                 学生入口
               </div>
               <h3 className="mt-3 text-lg font-semibold text-platform-fg-primary">输入课堂码加入课堂</h3>
+              {!roleResolved ? (
+                <p className="mt-2 text-sm leading-6 text-platform-fg-secondary">课堂可能要求登录；访客仍可使用右侧演示入口。</p>
+              ) : null}
               <label className="mt-4 block text-xs font-medium text-platform-fg-muted">
                 课堂码
                 <input
@@ -428,7 +479,10 @@ export function CourseEntryShell({
                   inputMode="numeric"
                   maxLength={6}
                   value={joinCode}
-                  onChange={(event) => setJoinCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(event) => {
+                    setJoinCode(event.target.value.replace(/\D/g, '').slice(0, 6));
+                    setLoginRecoveryHref(null);
+                  }}
                   placeholder="输入 6 位课堂码"
                   className="mt-2 h-11 w-full rounded-md border border-platform-border bg-platform-surface px-3 text-base tracking-[0.24em] text-platform-fg-primary outline-none transition placeholder:text-platform-fg-muted focus:border-platform-action-primary"
                   data-course-entry-action="join-code"
@@ -470,8 +524,18 @@ export function CourseEntryShell({
         {error ? (
           <div className="rounded-md border border-platform-evidence-unsupported bg-platform-evidence-unsupported/10 px-4 py-3 text-sm text-platform-fg-primary">
             {error}
+            {loginRecoveryHref ? (
+              <Link
+                href={loginRecoveryHref}
+                className="ml-3 inline-flex min-h-9 items-center rounded-md border border-platform-border bg-platform-surface px-3 font-semibold text-platform-action-primary"
+                data-course-entry-action="login-to-join"
+              >
+                登录后加入
+              </Link>
+            ) : null}
           </div>
         ) : null}
+        {teacherLauncher.dialog}
 
         {showMediaHub && lessonRuntime ? (
           <section data-commercial-workspace-zone="support-drawer" data-course-entry-region="self-study">

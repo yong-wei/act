@@ -6,7 +6,6 @@ import * as d3 from 'd3';
 import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
 import {
   applyFocusedExpansionLayout,
-  applyRadialLayout,
   calculateFocusedExpansionRevealTranslation,
   commitKnowledgeGraphRelayoutVersion,
   createFocusedExpansionRevealSignature,
@@ -19,30 +18,47 @@ import {
 import {
   getNodeColor,
   getGlowColor,
-  getRelationStyle,
-  getNodeTypeConfig,
+  getKnowledgeConceptNodeShape,
+  getKnowledgeGraphEdgeRenderModulation,
   getKnowledgeNodeScale,
   getKnowledgeSemanticRegionStyle,
+  getKnowledgeNodeMaximumPresentationRadius,
+  getKnowledgeGraphEffectiveEdgeOpacity,
   getKnowledgeGraphEffectiveEdgeWidth,
   hexToRgba,
+  KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION,
   KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT,
+  KNOWLEDGE_ROOT_BUBBLE_VITALITY,
+  type KnowledgeConceptNodeShape,
 } from './visual-config';
 import {
-  shouldRenderKnowledgeNodeLabel,
+  getKnowledgeNodeLabelPresentation,
   type KnowledgeGraphLabelMode,
 } from './label-policy';
-import { getRelationFocusState } from './filter-utils';
 import {
+  createKnowledgeGraphMotionScopeKey,
+  bindKnowledgeGraphMotionEnvironment,
   createKnowledgeGraphRevealPlan,
+  getKnowledgeGraphBreathingIntensity,
+  getKnowledgeGraphEntranceFade,
+  getKnowledgeGraphMotionMarkerFrame,
+  getKnowledgeGraphMotionMarkerPlacement,
+  getKnowledgeGraphMotionPhasedMarkerFrame,
   getKnowledgeGraphPresentationLinkOpacity,
   getKnowledgeGraphPresentationLinkProgress,
   getKnowledgeGraphPresentationNodeScale,
   getKnowledgeGraphPresentationNodeOpacity,
   IDLE_KNOWLEDGE_GRAPH_PRESENTATION,
+  KnowledgeGraphMotionFrameLoop,
   KnowledgeGraphTransitionGate,
+  KNOWLEDGE_GRAPH_FLOW_MARKER_GEOMETRY,
+  KNOWLEDGE_GRAPH_MOTION_TRANSITION_EVENT,
+  resolveFlowMarkerSet,
   type KnowledgeGraphPresentationState,
   KNOWLEDGE_GRAPH_MOTION,
+  KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY,
   prefersReducedKnowledgeGraphMotion,
+  selectKnowledgeGraphMotionMarkerEdgeIds,
 } from './motion';
 import { KnowledgeGraphCameraTransition } from './camera-transition';
 import {
@@ -50,30 +66,89 @@ import {
   syncKnowledgeGraphMutableNodePositions,
   type KnowledgeGraphLayoutState,
 } from './layout-state';
+import {
+  isKnowledgeCanvasPolylineHit,
+  finishKnowledgeCanvasBlankGesture,
+  moveKnowledgeCanvasBlankGesture,
+  shouldDismissKnowledgeCanvasBlankGesture,
+  startKnowledgeCanvasBlankGesture,
+  type KnowledgeCanvasBlankGesture,
+} from './canvas-dismissal';
+import {
+  KNOWLEDGE_ROOT_BUBBLE_STYLE,
+  type KnowledgeGraphFitRequest,
+  isCompactKnowledgeRootSet,
+  packKnowledgeGraphRootNodes,
+} from './root-layout';
+import { buildKnowledgeTeachingOrderLayout } from './teaching-order-layout';
+import {
+  KNOWLEDGE_NODE_LABEL_POLICY,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+  getKnowledgeNodeLabelBounds,
+  getKnowledgeNodeLabelPaintModel,
+  getKnowledgeRootLabelPaintModel,
+  layoutKnowledgeNodeLabel,
+} from './node-label-layout';
+import {
+  getKnowledgeGraphViewportFit,
+  getKnowledgeGraphViewportSafeInsets,
+} from './viewport-fit';
+import { placeKnowledgeGraphLabels } from './viewport-fit';
+import {
+  getKnowledgeGraphEndpointArrow,
+  isKnowledgeGraphPointInsideNodeBoundary,
+  type KnowledgeGraphNodeBoundary,
+} from './edge-geometry';
+import {
+  buildKnowledgeGraphEdgeLaneCurvatures,
+  createKnowledgeGraphRendererEdgePath,
+  getKnowledgeGraphEdgeEmphasisState,
+  getKnowledgeGraphEdgePresentation,
+  getKnowledgeGraphNodeEmphasisOpacity,
+  getKnowledgeGraphPartialEdgePath,
+  getKnowledgeGraphPresentationLinkKey,
+  getKnowledgeGraphPresentationFamily,
+  getKnowledgeGraphRendererNodeBoundary,
+  selectKnowledgeGraphStructuralForegroundEdgeIds,
+  sampleKnowledgeGraphEdgePath,
+  type KnowledgeGraphSelectedCorridorEmphasis,
+} from './edge-presentation';
+import {
+  installKnowledgeGraphTask74Snapshot,
+  isKnowledgeGraphTask74PerformanceQa,
+} from './performance-snapshot';
 
 interface KnowledgeGraph2DProps {
   nodes: KnowledgeNodeData[];
   links: KnowledgeLinkData[];
+  presentationLinks?: readonly KnowledgeLinkData[];
   selectedNode: KnowledgeNodeData | null;
   hoveredNode: KnowledgeNodeData | null;
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
-  onManipulationStart?: () => void;
+  onBackgroundClick?: () => void;
   width?: number;
   height?: number;
   labelMode: KnowledgeGraphLabelMode;
   layoutState: KnowledgeGraphLayoutState;
-  fitViewVersion: number;
+  fitViewRequest: KnowledgeGraphFitRequest;
   relayoutVersion: number;
   expandedNodeIds: readonly string[];
   expandedDirectLinks: readonly KnowledgeLinkData[];
   activationSequenceByCenterId: Readonly<Record<string, number>>;
   materializedNodeIds: readonly string[];
   graphVersion: string | null;
+  lessonOrderNodeIds?: readonly string[];
+  teachingOrderLinks?: readonly KnowledgeLinkData[];
+  selectedCorridorEmphasis?: KnowledgeGraphSelectedCorridorEmphasis | null;
   collapsingNodeId?: string | null;
   onCollapsePresentationComplete?: (nodeId: string) => void;
 }
+
+export const KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM = 0.01;
+
+const EMPTY_LESSON_ORDER_NODE_IDS: readonly string[] = [];
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
   vx?: number;
@@ -134,17 +209,41 @@ function drawHexagon(
 }
 
 /**
- * 根据节点类型选择绘制函数
+ * 绘制正多边形（三角形/菱形/五边形等，canvas y 轴向下，-π/2 即顶点朝上）
+ */
+function drawRegularPolygon(
+  ctx: CanvasRenderingContext2D,
+  sides: number,
+  x: number,
+  y: number,
+  radius: number
+) {
+  ctx.beginPath();
+  for (let i = 0; i < sides; i++) {
+    const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+    const px = x + radius * Math.cos(angle);
+    const py = y + radius * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+/**
+ * 根据概念形状选择绘制函数
  */
 function drawShape(
   ctx: CanvasRenderingContext2D,
-  nodeType: string | undefined,
+  shape: KnowledgeConceptNodeShape,
   x: number,
   y: number,
   size: number
 ) {
-  const config = getNodeTypeConfig(nodeType);
-  switch (config.shape) {
+  switch (shape) {
     case 'circle':
       drawCircle(ctx, x, y, size);
       break;
@@ -154,170 +253,139 @@ function drawShape(
     case 'hexagon':
       drawHexagon(ctx, x, y, size * 1.2);
       break;
+    case 'triangle':
+      drawRegularPolygon(ctx, 3, x, y, size * 1.2);
+      break;
+    case 'diamond':
+      drawRegularPolygon(ctx, 4, x, y, size * 1.2);
+      break;
+    case 'pentagon':
+      drawRegularPolygon(ctx, 5, x, y, size * 1.2);
+      break;
     default:
       drawCircle(ctx, x, y, size);
   }
 }
 
-/**
- * 绘制箭头
- */
-function drawArrow(
+function getNodePointerBoundary(
+  shape: KnowledgeConceptNodeShape,
+  presentationRadius: number,
+): KnowledgeGraphNodeBoundary {
+  return getKnowledgeGraphRendererNodeBoundary({ renderer: '2d', shape, presentationRadius });
+}
+
+function drawNodePointerShape(
   ctx: CanvasRenderingContext2D,
-  fromX: number,
-  fromY: number,
-  toX: number,
-  toY: number,
-  globalScale: number,
-  color: string
-) {
-  const headLength = 8 / globalScale;
-  const dx = toX - fromX;
-  const dy = toY - fromY;
-  const angle = Math.atan2(dy, dx);
-
-  // 箭头位置在线段中点偏后
-  const midX = fromX + dx * 0.65;
-  const midY = fromY + dy * 0.65;
-
-  ctx.save();
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(midX, midY);
-  ctx.lineTo(
-    midX - headLength * Math.cos(angle - Math.PI / 6),
-    midY - headLength * Math.sin(angle - Math.PI / 6)
-  );
-  ctx.lineTo(
-    midX - headLength * Math.cos(angle + Math.PI / 6),
-    midY - headLength * Math.sin(angle + Math.PI / 6)
-  );
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-function getQuadraticPoint(
-  fromX: number,
-  fromY: number,
-  controlX: number,
-  controlY: number,
-  toX: number,
-  toY: number,
-  t: number
-) {
-  const inverseT = 1 - t;
-  return {
-    x: inverseT * inverseT * fromX + 2 * inverseT * t * controlX + t * t * toX,
-    y: inverseT * inverseT * fromY + 2 * inverseT * t * controlY + t * t * toY,
-  };
-}
-
-function getQuadraticTangentAngle(
-  fromX: number,
-  fromY: number,
-  controlX: number,
-  controlY: number,
-  toX: number,
-  toY: number,
-  t: number
-) {
-  const dx = 2 * (1 - t) * (controlX - fromX) + 2 * t * (toX - controlX);
-  const dy = 2 * (1 - t) * (controlY - fromY) + 2 * t * (toY - controlY);
-  return Math.atan2(dy, dx);
-}
-
-function drawArrowHead(
-  ctx: CanvasRenderingContext2D,
+  shape: KnowledgeConceptNodeShape,
   x: number,
   y: number,
-  angle: number,
-  globalScale: number,
-  color: string
+  presentationRadius: number,
+  tolerance: number,
 ) {
-  const headLength = 8 / globalScale;
-
-  ctx.save();
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(
-    x - headLength * Math.cos(angle - Math.PI / 6),
-    y - headLength * Math.sin(angle - Math.PI / 6)
-  );
-  ctx.lineTo(
-    x - headLength * Math.cos(angle + Math.PI / 6),
-    y - headLength * Math.sin(angle + Math.PI / 6)
-  );
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-function drawEndpointMarker(
-  ctx: CanvasRenderingContext2D,
-  endpoint: 'arrow' | 'none' | 'dot' | 'bar' | 'diamond',
-  x: number,
-  y: number,
-  angle: number,
-  globalScale: number,
-  color: string
-) {
-  if (endpoint === 'none' || endpoint === 'arrow') return;
-
-  const size = 4.5 / globalScale;
-  ctx.save();
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.4 / globalScale;
-  if (endpoint === 'dot') {
-    ctx.beginPath();
-    ctx.arc(x, y, size * 0.62, 0, 2 * Math.PI);
-    ctx.fill();
-  } else if (endpoint === 'bar') {
-    const barAngle = angle + Math.PI / 2;
-    ctx.beginPath();
-    ctx.moveTo(x - size * Math.cos(barAngle), y - size * Math.sin(barAngle));
-    ctx.lineTo(x + size * Math.cos(barAngle), y + size * Math.sin(barAngle));
-    ctx.stroke();
-  } else if (endpoint === 'diamond') {
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    ctx.beginPath();
-    ctx.moveTo(size, 0);
-    ctx.lineTo(0, size * 0.72);
-    ctx.lineTo(-size, 0);
-    ctx.lineTo(0, -size * 0.72);
-    ctx.closePath();
-    ctx.fill();
+  switch (shape) {
+    case 'square':
+      drawSquare(ctx, x, y, presentationRadius * 1.6 + tolerance * 2);
+      break;
+    case 'hexagon':
+      drawHexagon(ctx, x, y, presentationRadius * 1.2 + tolerance);
+      break;
+    case 'triangle':
+      drawRegularPolygon(ctx, 3, x, y, presentationRadius * 1.2 + tolerance);
+      break;
+    case 'diamond':
+      drawRegularPolygon(ctx, 4, x, y, presentationRadius * 1.2 + tolerance);
+      break;
+    case 'pentagon':
+      drawRegularPolygon(ctx, 5, x, y, presentationRadius * 1.2 + tolerance);
+      break;
+    default:
+      drawCircle(ctx, x, y, presentationRadius + tolerance);
   }
-  ctx.restore();
+}
+
+function traceNodeShapeOutline(
+  ctx: CanvasRenderingContext2D,
+  shape: KnowledgeConceptNodeShape,
+  x: number,
+  y: number,
+  baseRadius: number
+) {
+  if (shape === 'circle') {
+    ctx.arc(x, y, baseRadius, 0, 2 * Math.PI);
+    return;
+  }
+  if (shape === 'square') {
+    const size = baseRadius * 1.6;
+    ctx.rect(x - size / 2, y - size / 2, size, size);
+    return;
+  }
+  const sides = shape === 'triangle' ? 3 : shape === 'diamond' ? 4 : shape === 'pentagon' ? 5 : 6;
+  const radius = baseRadius * 1.2;
+  for (let i = 0; i < sides; i += 1) {
+    const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+    const px = x + radius * Math.cos(angle);
+    const py = y + radius * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
 }
 
 export function KnowledgeGraph2D({
   nodes,
   links,
+  presentationLinks = links,
   selectedNode,
   hoveredNode,
   onNodeClick,
   onNodeHover,
   onNodeDragEnd,
-  onManipulationStart,
+  onBackgroundClick,
   width,
   height,
   labelMode,
   layoutState,
-  fitViewVersion,
+  fitViewRequest,
   relayoutVersion,
   expandedNodeIds,
   expandedDirectLinks,
   activationSequenceByCenterId,
   materializedNodeIds,
   graphVersion,
+  lessonOrderNodeIds = EMPTY_LESSON_ORDER_NODE_IDS,
+  teachingOrderLinks = links,
+  selectedCorridorEmphasis = selectedNode ? {
+    selectedNodeId: selectedNode.id,
+    nodeIds: [selectedNode.id],
+    edgeIds: [],
+  } : null,
   collapsingNodeId = null,
   onCollapsePresentationComplete,
 }: KnowledgeGraph2DProps) {
+  const compactRootView = isCompactKnowledgeRootSet(nodes);
   const fgRef = useRef<any>(null);
+  const activeCanvasPointerIdsRef = useRef(new Set<number>());
+  const blankGesturesByPointerIdRef = useRef(new Map<number, KnowledgeCanvasBlankGesture>());
+  const completedBlankGestureRef = useRef<KnowledgeCanvasBlankGesture | null>(null);
+  const consumedFitSignatureRef = useRef<string | null>(null);
+  const fitTimerRef = useRef<number | null>(null);
+  const labelPlacementCacheRef = useRef<{
+    nodes: readonly unknown[];
+    scale: number;
+    anchorX: number;
+    anchorY: number;
+    selectedNodeId?: string;
+    hoveredNodeId?: string;
+    labelMode: KnowledgeGraphLabelMode;
+    width: number;
+    height: number;
+    placements: ReturnType<typeof placeKnowledgeGraphLabels>;
+    revision: number;
+  } | null>(null);
+  const labelProjectionRevisionRef = useRef(0);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
   const committedRelayoutVersionRef = useRef(relayoutVersion);
@@ -329,12 +397,29 @@ export function KnowledgeGraph2D({
   const presentationGenerationRef = useRef(0);
   const presentationGateRef = useRef(new KnowledgeGraphTransitionGate());
   const cameraTransitionRef = useRef(new KnowledgeGraphCameraTransition());
+  const motionFrameLoopRef = useRef<KnowledgeGraphMotionFrameLoop | null>(null);
+  const motionElapsedMsRef = useRef(0);
   const [presentation, setPresentation] = useState<KnowledgeGraphPresentationState>(
     IDLE_KNOWLEDGE_GRAPH_PRESENTATION
   );
+  const [viewportRevision, setViewportRevision] = useState(0);
+  const [layoutSettledRevision, setLayoutSettledRevision] = useState(0);
+  const settledLayoutSignatureRef = useRef('');
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [motionEnvironmentActive, setMotionEnvironmentActive] = useState(false);
+  useEffect(() => {
+    const handleResize = () => setViewportRevision((value) => value + 1);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const presentationRef = useRef(IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
   presentationRef.current = presentation;
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const [isLightTheme, setIsLightTheme] = useState(false);
+  const laneCurvatureByLinkKey = useMemo(
+    () => buildKnowledgeGraphEdgeLaneCurvatures(presentationLinks),
+    [presentationLinks],
+  );
   layoutStateRef.current = layoutState;
 
   useEffect(() => {
@@ -374,6 +459,7 @@ export function KnowledgeGraph2D({
   useEffect(() => () => {
     presentationGateRef.current.dispose();
     cameraTransitionRef.current.dispose();
+    motionFrameLoopRef.current?.dispose();
   }, []);
 
   // 1. 处理数据并应用布局
@@ -398,13 +484,24 @@ export function KnowledgeGraph2D({
       target: l.targetId,
     }));
 
-    const layoutRadius = 180 + relayoutVersion * 0;
-    const preserveRuntimeCoordinates = !graphVersionChanged
+    const useCompactRootPacking = isCompactKnowledgeRootSet(clonedNodes);
+    const preserveRuntimeCoordinates = !useCompactRootPacking
+      && !graphVersionChanged
       && committedRelayoutVersionRef.current === relayoutVersion;
 
-    // 应用辐射布局。layoutState.version 变化时重算已展开邻域，确保直接子节点
-    // 随固定中心同步移动；普通运行时坐标仍由下方 preserve gate 保留。
-    const baseLayoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
+    const baseLayoutNodes = useCompactRootPacking
+      ? packKnowledgeGraphRootNodes(clonedNodes, {
+          viewportWidth: width ?? 1280,
+          viewportHeight: height ?? 720,
+          graphVersion,
+        })
+      : buildKnowledgeTeachingOrderLayout({
+          nodes: clonedNodes,
+          links: teachingOrderLinks,
+          lessonOrderNodeIds,
+          viewportWidth: width ?? 1280,
+          viewportHeight: height ?? 720,
+        }).nodes;
     const layoutNodes = resolveKnowledgeGraphRuntimeNodeCoordinates({
       nodes: baseLayoutNodes as RuntimeKnowledgeGraphNode[],
       liveNodes: fgRef.current?.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined,
@@ -425,7 +522,137 @@ export function KnowledgeGraph2D({
       nodes: focusedLayoutNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]);
+  }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);
+  const structuralForegroundEdgeIdSet = useMemo(() => new Set(
+    selectKnowledgeGraphStructuralForegroundEdgeIds(graphData.links),
+  ), [graphData.links]);
+
+  const motionMarkerEdgeIds = useMemo(() => selectKnowledgeGraphMotionMarkerEdgeIds({
+    active: Boolean(selectedCorridorEmphasis?.selectedNodeId),
+    motionEligibleEdgeIds: selectedCorridorEmphasis?.motionEligibleEdgeIds ?? [],
+    motionSuppressedEdgeIds: selectedCorridorEmphasis?.motionSuppressedEdgeIds ?? [],
+    visibleEdgeIds: graphData.links.map((link) => getKnowledgeGraphPresentationLinkKey(link)),
+  }), [graphData.links, selectedCorridorEmphasis]);
+  const motionMarkerEdgeIdSet = useMemo(() => new Set(motionMarkerEdgeIds), [motionMarkerEdgeIds]);
+  // 环境流层：同一可见 post-requisite 结构前景集合上的确定性预算标记。
+  const ambientFlowSelection = useMemo(() => resolveFlowMarkerSet({
+    scope: 'ambient',
+    active: true,
+    motionEligibleEdgeIds: [...structuralForegroundEdgeIdSet],
+    motionSuppressedEdgeIds: [],
+    visibleEdgeIds: graphData.links.map((link) => getKnowledgeGraphPresentationLinkKey(link)),
+  }), [graphData.links, structuralForegroundEdgeIdSet]);
+  const ambientFlowEdgeIdSet = useMemo(() => new Set(ambientFlowSelection.edgeIds), [ambientFlowSelection]);
+  // 并发计数与绘制同口径：环境流层会排除已选走廊边，重叠边只按走廊标记计一次，
+  // 否则快照、属性与性能预算都在高报真实并发标记数。
+  const activeMotionMarkerCount = motionMarkerEdgeIds.length
+    + ambientFlowSelection.edgeIds.filter((edgeId) => !motionMarkerEdgeIdSet.has(edgeId)).length;
+
+  // 根气泡入场错峰：按稳定排序的气泡 id 计算每个气泡的淡入延迟（纯绘制层）。
+  // 必须从打包后的 graphData.nodes 计算——__knowledgeRootPacking 由本组件
+  // packKnowledgeGraphRootNodes 注入，props.nodes 不携带该字段。
+  const rootEntranceDelayByNodeId = useMemo(() => {
+    const rootBubbleIds = graphData.nodes
+      .filter((node: any) => Boolean(node.__knowledgeRootPacking))
+      .map((node: any) => node.id)
+      .sort();
+    const span = KNOWLEDGE_ROOT_BUBBLE_VITALITY.entrance.staggerSpanMs;
+    return new Map(rootBubbleIds.map((nodeId, index) => [
+      nodeId,
+      rootBubbleIds.length > 1 ? (index * span) / (rootBubbleIds.length - 1) : 0,
+    ]));
+  }, [graphData.nodes]);
+  const rootEntranceStartMsRef = useRef<number | null>(null);
+  // 入场结束态用 state 收敛：布防 ref 只服务 paintNode 的淡入采样，
+  // entranceDone 让 entranceActive 在错峰播完后关闭，重绘门控才能随之冻结。
+  const [entranceDone, setEntranceDone] = useState(false);
+  const entranceScopeKey = `${graphVersion}:${[...rootEntranceDelayByNodeId.keys()].join('|')}:${reducedMotion ? 'rm' : 'full'}`;
+  const entranceScopeKeyRef = useRef('');
+  if (entranceScopeKeyRef.current !== entranceScopeKey) {
+    entranceScopeKeyRef.current = entranceScopeKey;
+    setEntranceDone(false);
+    rootEntranceStartMsRef.current = rootEntranceDelayByNodeId.size > 0 && !reducedMotion
+      ? performance.now()
+      : null;
+  }
+  const entranceActive = rootEntranceStartMsRef.current !== null && !entranceDone;
+  const rootBreathingActive = !reducedMotion && graphData.nodes.some((node: any) => (
+    Boolean(node.__knowledgeRootPacking) && (selectedNode?.id === node.id || hoveredNode?.id === node.id)
+  ));
+  // autoPauseRedraw=false 只在运动活动时逐帧重绘（force-graph 的 ref 没有 refresh()，
+  // 默认 autoPauseRedraw=true 会在引擎冷却后冻结一切绘制）；空闲时恢复冻结与指针交互。
+  const motionPaintActive = motionEnvironmentActive && !reducedMotion
+    && (activeMotionMarkerCount > 0 || rootBreathingActive || entranceActive);
+  const motionScopeKey = createKnowledgeGraphMotionScopeKey({
+    graphVersion,
+    selectedNodeId: selectedCorridorEmphasis?.selectedNodeId ?? null,
+    visibleNodeIds: graphData.nodes.map((node) => node.id),
+    motionEligibleEdgeIds: motionMarkerEdgeIds,
+  });
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') {
+      setReducedMotion(false);
+      setMotionEnvironmentActive(true);
+      return;
+    }
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    return bindKnowledgeGraphMotionEnvironment({
+      documentTarget: document,
+      mediaQuery,
+      offscreenTarget: rootRef.current,
+      transitionEvent: {
+        eventTarget: document,
+        isActive: () => presentationRef.current.phase !== 'idle',
+      },
+      suspend: () => {
+        motionFrameLoopRef.current?.stop();
+        motionElapsedMsRef.current = 0;
+        setReducedMotion(mediaQuery.matches);
+        setMotionEnvironmentActive(false);
+        fgRef.current?.refresh?.();
+      },
+      resume: () => {
+        setReducedMotion(false);
+        setMotionEnvironmentActive(true);
+      },
+    });
+  }, []);
+
+  useEffect(() => {
+    document.dispatchEvent(new CustomEvent(KNOWLEDGE_GRAPH_MOTION_TRANSITION_EVENT));
+  }, [presentation.phase]);
+
+  useEffect(() => {
+    const motionDisabled = !motionEnvironmentActive || reducedMotion || prefersReducedKnowledgeGraphMotion();
+    if (motionDisabled || (activeMotionMarkerCount === 0 && !rootBreathingActive && !entranceActive)) {
+      const shouldRefresh = motionElapsedMsRef.current > 0 || activeMotionMarkerCount > 0;
+      motionFrameLoopRef.current?.stop();
+      motionElapsedMsRef.current = 0;
+      if (shouldRefresh) fgRef.current?.refresh?.();
+      return;
+    }
+    const loop = motionFrameLoopRef.current ?? new KnowledgeGraphMotionFrameLoop({
+      now: () => performance.now(),
+      requestFrame: (callback) => window.requestAnimationFrame(callback),
+      cancelFrame: (frameId) => window.cancelAnimationFrame(frameId),
+    });
+    motionFrameLoopRef.current = loop;
+    loop.start(motionScopeKey, (elapsedMs) => {
+      motionElapsedMsRef.current = elapsedMs;
+      fgRef.current?.refresh?.();
+      // 入场结束后且无走廊/环境流/呼吸活动时自动停摆，避免空转。
+      if (activeMotionMarkerCount === 0 && !rootBreathingActive) {
+        const entranceStartMs = rootEntranceStartMsRef.current;
+        if (entranceStartMs === null
+          || performance.now() - entranceStartMs >= KNOWLEDGE_ROOT_BUBBLE_VITALITY.entrance.totalDurationMs) {
+          setEntranceDone(true);
+          motionFrameLoopRef.current?.stop();
+        }
+      }
+    });
+    return () => loop.stop();
+  }, [activeMotionMarkerCount, entranceActive, motionEnvironmentActive, motionScopeKey, reducedMotion, rootBreathingActive]);
 
   useEffect(() => {
     cameraTransitionRef.current.cancel();
@@ -590,10 +817,17 @@ export function KnowledgeGraph2D({
     });
   }, []);
 
+  const layoutSignature = `${graphVersion ?? 'pending'}:${relayoutVersion}:${graphData.nodes.map((node) => node.id).join('|')}`;
   const snapshotRuntimePositions = useCallback(() => {
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     graphNodes.forEach(rememberRuntimeNodePosition);
   }, [graphData.nodes, rememberRuntimeNodePosition]);
+  const handleEngineStop = useCallback(() => {
+    snapshotRuntimePositions();
+    if (settledLayoutSignatureRef.current === layoutSignature) return;
+    settledLayoutSignatureRef.current = layoutSignature;
+    setLayoutSettledRevision((revision) => revision + 1);
+  }, [layoutSignature, snapshotRuntimePositions]);
 
   useEffect(() => {
     const qaWindow = window as Window & {
@@ -696,6 +930,11 @@ export function KnowledgeGraph2D({
         id: node.id,
         anchor: node.__knowledgeAutomaticAnchor ?? null,
       })),
+      edges: graphData.links.map((link: any) => ({
+        id: getKnowledgeGraphPresentationLinkKey(link),
+        curvature: laneCurvatureByLinkKey.get(getKnowledgeGraphPresentationLinkKey(link)) ?? 0,
+        targetArrow: getKnowledgeGraphEdgePresentation(link).directed,
+      })),
     });
     qaWindow.__knowledgeGraphProductQaSelectedNodeDragPoints = () => getNodePoints();
     return () => {
@@ -709,6 +948,7 @@ export function KnowledgeGraph2D({
   }, [
     expandedNodeIds,
     graphData,
+    laneCurvatureByLinkKey,
     materializedNodeIds,
     presentation.animatedNodeIds,
     presentation.animatedRelationIds,
@@ -718,9 +958,63 @@ export function KnowledgeGraph2D({
   ]);
 
   // 2. 自定义节点渲染
+  const getFrameLabelPlacements = useCallback((globalScale: number) => {
+    const projector = fgRef.current?.graph2ScreenCoords as ((x: number, y: number) => { x: number; y: number }) | undefined;
+    const anchorNode = graphData.nodes[0] as any;
+    const anchor = projector && anchorNode
+      ? projector(anchorNode.x ?? 0, anchorNode.y ?? 0)
+      : { x: Number.NaN, y: Number.NaN };
+    const currentWidth = width ?? 800;
+    const currentHeight = height ?? 600;
+    const cached = labelPlacementCacheRef.current;
+    if (cached
+      && cached.nodes === graphData.nodes
+      && cached.scale === globalScale
+      && Object.is(cached.anchorX, anchor.x)
+      && Object.is(cached.anchorY, anchor.y)
+      && cached.selectedNodeId === selectedNode?.id
+      && cached.hoveredNodeId === hoveredNode?.id
+      && cached.labelMode === labelMode
+      && cached.width === currentWidth
+      && cached.height === currentHeight
+      && cached.revision === labelProjectionRevisionRef.current) return cached.placements;
+    const placements = placeKnowledgeGraphLabels({
+      nodes: graphData.nodes.map((candidate: any) => {
+        const screen = projector ? projector(candidate.x ?? 0, candidate.y ?? 0) : null;
+        const rootPacking = candidate.__knowledgeRootPacking;
+        const bodyRadius = rootPacking?.collisionRadius
+          ?? getKnowledgeNodeMaximumPresentationRadius(candidate);
+        return {
+          id: candidate.id, x: candidate.x ?? 0, y: candidate.y ?? 0,
+          ...(screen ? { screenX: screen.x, screenY: screen.y } : {}),
+          projectedScale: globalScale,
+          bodyRadius,
+          isRootBubble: Boolean(rootPacking),
+          importance: candidate.importance,
+          labelBounds: rootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
+            name: candidate.name, bodyRadius,
+          }),
+        };
+      }),
+      scale: globalScale, labelMode,
+      width: currentWidth, height: currentHeight,
+      padding: getKnowledgeGraphViewportSafeInsets({ width: currentWidth, height: currentHeight }),
+      enforceViewport: Boolean(projector),
+      selectedNodeId: selectedNode?.id, hoveredNodeId: hoveredNode?.id,
+    });
+    labelPlacementCacheRef.current = {
+      nodes: graphData.nodes, scale: globalScale, anchorX: anchor.x, anchorY: anchor.y,
+      selectedNodeId: selectedNode?.id, hoveredNodeId: hoveredNode?.id, labelMode,
+      width: currentWidth, height: currentHeight, placements,
+      revision: labelProjectionRevisionRef.current,
+    };
+    return placements;
+  }, [graphData.nodes, height, hoveredNode?.id, labelMode, selectedNode?.id, width]);
+
   const paintNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
     ctx.save();
-    ctx.globalAlpha *= getKnowledgeGraphPresentationNodeOpacity({ ...presentation, nodeId: node.id });
+    ctx.globalAlpha *= getKnowledgeGraphPresentationNodeOpacity({ ...presentation, nodeId: node.id })
+      * getKnowledgeGraphNodeEmphasisOpacity(node.id, selectedCorridorEmphasis);
     // 获取颜色配置
     const fillColor = getNodeColor(node.knowledgeDim);
     const glowColor = getGlowColor(node.bloomLevel);
@@ -728,20 +1022,26 @@ export function KnowledgeGraph2D({
     // 高亮状态
     const isSelected = selectedNode?.id === node.id;
     const isHovered = hoveredNode?.id === node.id;
-    const isActive = isSelected || isHovered;
+    const isActive = isSelected || isHovered
+      || Boolean(selectedCorridorEmphasis?.nodeIds.includes(node.id));
 
-    // 节点尺寸：显式教学重要性优先，连接度只作为封顶的辅助信号。
+    // 节点尺寸：显式教学重要性优先，连接度只作为封顶的辅助信号，覆盖度为第三级封顶信号。
     const nodeScale = getKnowledgeNodeScale({
       metadata: node.metadata,
       degree: node.graphDegree,
       focused: isActive,
+      importanceScore: node.graphImportanceScore,
+      sourceCoverageCount: node.sourceCoverageCount,
     });
+    const nodeShape = getKnowledgeConceptNodeShape(node);
     const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
-    const baseRadius = nodeScale.radius * presentationScale;
+    const rootPacking = node.__knowledgeRootPacking;
+    const isRootBubble = Boolean(rootPacking);
+    const baseRadius = (rootPacking?.collisionRadius ?? nodeScale.radius) * presentationScale;
     const glowRadius = nodeScale.glowRadius * presentationScale;
     const semanticRegionStyle = getKnowledgeSemanticRegionStyle(node, isLightTheme);
 
-    if (semanticRegionStyle.enabled) {
+    if (!isRootBubble && semanticRegionStyle.enabled) {
       const regionRadius = Math.min(
         semanticRegionStyle.maxRadius,
         baseRadius * semanticRegionStyle.radiusMultiplier
@@ -758,87 +1058,161 @@ export function KnowledgeGraph2D({
     }
 
     // 绘制辉光（如果有 bloomLevel）
-    if (glowColor) {
+    if (isRootBubble) {
+      // 入场错峰淡入：只作用于光晕/本体/轮缘，标签契约不受影响。
+      const entranceAlpha = reducedMotion || rootEntranceStartMsRef.current === null
+        ? 1
+        : getKnowledgeGraphEntranceFade(
+          performance.now() - rootEntranceStartMsRef.current,
+          rootEntranceDelayByNodeId.get(node.id) ?? 0,
+          KNOWLEDGE_ROOT_BUBBLE_VITALITY.entrance.fadeDurationMs
+        );
+      ctx.save();
+      ctx.globalAlpha *= entranceAlpha;
+      // 外晕 halo：激活或悬停时按呼吸波脉冲，否则静态弱光。
+      const halo = KNOWLEDGE_ROOT_BUBBLE_VITALITY.halo;
+      const haloAlpha = isActive && !reducedMotion
+        ? halo.alphaMin + (halo.alphaMax - halo.alphaMin)
+          * getKnowledgeGraphBreathingIntensity(motionElapsedMsRef.current, KNOWLEDGE_ROOT_BUBBLE_VITALITY.breathing)
+        : halo.alphaMin;
+      const haloRadius = baseRadius * halo.radiusGain;
+      const haloGradient = ctx.createRadialGradient(node.x, node.y, baseRadius * 0.72, node.x, node.y, haloRadius);
+      haloGradient.addColorStop(0, hexToRgba(halo.color, haloAlpha));
+      haloGradient.addColorStop(1, hexToRgba(halo.color, 0));
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, haloRadius, 0, 2 * Math.PI);
+      ctx.fillStyle = haloGradient;
+      ctx.fill();
+      ctx.shadowColor = hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.glow, isActive ? 0.42 : 0.24);
+      ctx.shadowBlur = (isActive ? 18 : 12) / Math.max(0.0001, globalScale);
+      const gradient = ctx.createRadialGradient(
+        node.x - baseRadius * 0.34,
+        node.y - baseRadius * 0.38,
+        baseRadius * 0.08,
+        node.x,
+        node.y,
+        baseRadius,
+      );
+      gradient.addColorStop(0, hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.highlight, 0.92));
+      gradient.addColorStop(0.24, hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.surface, 0.98));
+      gradient.addColorStop(1, hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.surfaceDepth, 1));
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, baseRadius, 0, 2 * Math.PI);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.rim, isActive ? 0.96 : 0.78);
+      ctx.lineWidth = (isActive ? 2.2 : 1.4) / Math.max(0.0001, globalScale);
+      ctx.stroke();
+      // 轮缘光弧：静态区分激活态，呼吸关闭时仍保持层次。
+      const rimArc = KNOWLEDGE_ROOT_BUBBLE_VITALITY.rimArc;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, baseRadius * rimArc.radiusGain, rimArc.startAngle, rimArc.endAngle);
+      ctx.strokeStyle = hexToRgba(rimArc.color, isActive ? rimArc.activeAlpha : rimArc.inactiveAlpha);
+      ctx.lineWidth = (isActive ? 1.8 : 1.1) / Math.max(0.0001, globalScale);
+      ctx.stroke();
+      ctx.restore();
+    } else if (glowColor) {
       ctx.fillStyle = hexToRgba(glowColor, isActive ? 0.34 : 0.18);
-      drawShape(ctx, node.nodeType, node.x, node.y, glowRadius);
+      drawShape(ctx, nodeShape, node.x, node.y, glowRadius);
     }
 
     // 绘制节点核心
-    ctx.fillStyle = hexToRgba(fillColor, 1);
-    drawShape(ctx, node.nodeType, node.x, node.y, baseRadius);
+    if (!isRootBubble) {
+      ctx.fillStyle = hexToRgba(fillColor, 1);
+      drawShape(ctx, nodeShape, node.x, node.y, baseRadius);
+    }
+
+    // 候选节点：虚线轮廓与候选徽标，绝不被误认为已审知识
+    if (!isRootBubble && node.candidate === true) {
+      ctx.save();
+      ctx.strokeStyle = hexToRgba(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.color, 0.95);
+      ctx.lineWidth = 1.6 / Math.max(0.0001, globalScale);
+      ctx.setLineDash([4 / globalScale, 3 / globalScale]);
+      ctx.beginPath();
+      traceNodeShapeOutline(ctx, nodeShape, node.x, node.y, baseRadius + 3 / globalScale);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = `600 ${10 / Math.max(0.0001, globalScale)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = isLightTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(2, 8, 23, 0.85)';
+      ctx.lineWidth = 2.4 / Math.max(0.0001, globalScale);
+      const badgeX = node.x;
+      const badgeY = node.y - baseRadius - 4 / Math.max(0.0001, globalScale);
+      ctx.strokeText(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.label, badgeX, badgeY);
+      ctx.fillStyle = hexToRgba(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.color, 1);
+      ctx.fillText(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.label, badgeX, badgeY);
+      ctx.restore();
+    }
 
     // 绘制选中环
     if (isSelected) {
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2 / globalScale;
       ctx.beginPath();
-      const config = getNodeTypeConfig(node.nodeType);
-      if (config.shape === 'circle') {
-        ctx.arc(node.x, node.y, baseRadius + 4, 0, 2 * Math.PI);
-      } else if (config.shape === 'square') {
-        const ringSize = baseRadius * 1.6 + 6;
-        ctx.rect(node.x - ringSize / 2, node.y - ringSize / 2, ringSize, ringSize);
-      } else {
-        // hexagon ring
-        const ringRadius = baseRadius * 1.2 + 4;
-        for (let i = 0; i < 6; i++) {
-          const angle = (Math.PI / 3) * i - Math.PI / 2;
-          const px = node.x + ringRadius * Math.cos(angle);
-          const py = node.y + ringRadius * Math.sin(angle);
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-      }
+      traceNodeShapeOutline(ctx, isRootBubble ? 'circle' : nodeShape, node.x, node.y, baseRadius + 4);
       ctx.stroke();
     }
 
-    if (!shouldRenderKnowledgeNodeLabel({
-      labelMode,
-      nodeId: node.id,
-      selectedNodeId: selectedNode?.id,
-      hoveredNodeId: hoveredNode?.id,
-      globalScale,
-    })) {
+    const labelPresentation = getFrameLabelPlacements(globalScale).get(node.id)!;
+    if (!labelPresentation.visible) {
       ctx.restore();
       return;
     }
 
-    const label = node.name;
-    const fontSize = isActive ? 12 / globalScale : 10 / globalScale;
-    const minFontSize = 8 / globalScale;
-    const displayFontSize = Math.max(fontSize, minFontSize);
-
-    ctx.font = `${isActive ? 'bold' : 'normal'} ${displayFontSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+    const labelPaint = isRootBubble
+      ? getKnowledgeRootLabelPaintModel(node.name)
+      : getKnowledgeNodeLabelPaintModel(node.name);
+    ctx.translate(
+      node.x + (isRootBubble ? 0 : labelPresentation.offsetX / globalScale),
+      node.y + (isRootBubble ? 0 : labelPresentation.offsetY / globalScale)
+    );
+    ctx.scale(labelPresentation.scale, labelPresentation.scale);
+    ctx.font = labelPaint.font;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const labelFillColor = isLightTheme
+    // Canvas cannot resolve CSS custom properties; use explicit theme colors for root text.
+    const labelFillColor = isRootBubble
+      ? (isLightTheme ? '#07111f' : '#f8fafc')
+      : isLightTheme
       ? (isActive ? '#0f172a' : 'rgba(15, 23, 42, 0.9)')
       : (isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.85)');
-    const labelStrokeColor = isLightTheme
+    const labelStrokeColor = isRootBubble
+      ? (isLightTheme ? 'rgba(255, 255, 255, 0.92)' : 'rgba(3, 12, 28, 0.9)')
+      : isLightTheme
       ? 'rgba(255, 255, 255, 0.95)'
       : 'rgba(2, 8, 23, 0.82)';
-    // 标签位置：节点下方
-    const labelOffset = (glowColor ? glowRadius : baseRadius) + 8;
     ctx.lineJoin = 'round';
     ctx.strokeStyle = labelStrokeColor;
-    ctx.lineWidth = (isActive ? 3.1 : 2.4) / globalScale;
-    ctx.strokeText(label, node.x, node.y + labelOffset);
+    ctx.lineWidth = isActive ? 3.1 : 2.4;
     ctx.fillStyle = labelFillColor;
-
-    ctx.fillText(label, node.x, node.y + labelOffset);
+    labelPaint.lines.forEach((line) => {
+      ctx.strokeText(line.text, 0, line.y);
+      ctx.fillText(line.text, 0, line.y);
+    });
     ctx.restore();
-  }, [selectedNode, hoveredNode, isLightTheme, labelMode, presentation]);
+  }, [selectedNode, hoveredNode, isLightTheme, presentation, getFrameLabelPlacements, reducedMotion, rootEntranceDelayByNodeId, selectedCorridorEmphasis]);
 
-  const paintNodePointerArea = useCallback((node: any, color: string, ctx: CanvasRenderingContext2D) => {
+  const paintNodePointerArea = useCallback((node: any, color: string, ctx: CanvasRenderingContext2D, globalScale: number) => {
     const nodeScale = getKnowledgeNodeScale({
       metadata: node.metadata,
       degree: node.graphDegree,
       focused: selectedNode?.id === node.id || hoveredNode?.id === node.id,
+      importanceScore: node.graphImportanceScore,
+      sourceCoverageCount: node.sourceCoverageCount,
     });
     const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
     ctx.fillStyle = color;
-    drawShape(ctx, node.nodeType, node.x, node.y, nodeScale.radius * presentationScale + 8);
+    drawNodePointerShape(
+      ctx,
+      node.__knowledgeRootPacking ? 'circle' : getKnowledgeConceptNodeShape(node),
+      node.x,
+      node.y,
+      (node.__knowledgeRootPacking?.collisionRadius ?? nodeScale.radius) * presentationScale,
+      8 / Math.max(0.0001, globalScale),
+    );
   }, [hoveredNode?.id, presentation, selectedNode?.id]);
 
   // 3. 自定义连线渲染
@@ -851,19 +1225,24 @@ export function KnowledgeGraph2D({
     if (source.x === undefined || source.y === undefined) return;
     if (target.x === undefined || target.y === undefined) return;
 
-    const style = getRelationStyle(link.relationType || link.relation);
+    const { style, directed } = getKnowledgeGraphEdgePresentation(link);
     const strokeColor = isLightTheme ? style.lightColor : style.darkColor;
     const strength = typeof link.strength === 'number'
       ? Math.min(1, Math.max(0, link.strength))
       : 1;
-    const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
-    const focusState = getRelationFocusState(source.id, target.id, focusNodeId);
-    const focusOpacity = focusState === 'dimmed'
-      ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity
-      : focusState === 'active'
-        ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeEdgeOpacity
-        : KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.neutralEdgeOpacity;
-    const alpha = (0.16 + strength * 0.44) * focusOpacity * style.opacity
+    const focusState = hoveredNode?.id
+      ? (source.id === hoveredNode.id || target.id === hoveredNode.id ? 'active' : 'dimmed')
+      : getKnowledgeGraphEdgeEmphasisState({
+        link,
+        emphasis: selectedCorridorEmphasis,
+        structuralForegroundEdgeIds: structuralForegroundEdgeIdSet,
+      });
+    const renderModulation = getKnowledgeGraphEdgeRenderModulation({
+      candidate: source.candidate === true || target.candidate === true,
+      evidenceState: link.evidenceState,
+    });
+    const alpha = getKnowledgeGraphEffectiveEdgeOpacity(style, strength, focusState)
+      * renderModulation.opacityFactor
       * getKnowledgeGraphPresentationLinkOpacity({
         ...presentation,
         sourceId: source.id,
@@ -875,33 +1254,42 @@ export function KnowledgeGraph2D({
       targetId: target.id,
     });
     if (linkProgress <= 0) return;
-    const lineWidth = getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '2d');
+    const lineWidth = getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '2d')
+      * renderModulation.widthFactor;
 
-    const dx = target.x - source.x;
-    const dy = target.y - source.y;
-    const distance = Math.hypot(dx, dy) || 1;
-    const controlX = (source.x + target.x) / 2 - (dy / distance) * distance * style.curvature;
-    const controlY = (source.y + target.y) / 2 + (dx / distance) * distance * style.curvature;
-    const isCurved = Math.abs(style.curvature) > 0.001;
-    const drawTarget = isCurved
-      ? getQuadraticPoint(source.x, source.y, controlX, controlY, target.x, target.y, linkProgress)
-      : {
-          x: source.x + (target.x - source.x) * linkProgress,
-          y: source.y + (target.y - source.y) * linkProgress,
-        };
-    const drawControl = isCurved
-      ? {
-          x: source.x + (controlX - source.x) * linkProgress,
-          y: source.y + (controlY - source.y) * linkProgress,
-        }
-      : null;
+    const getPresentationRadius = (node: any) => (
+      node.__knowledgeRootPacking?.collisionRadius ?? getKnowledgeNodeScale({
+        metadata: node.metadata,
+        degree: node.graphDegree,
+        focused: selectedCorridorEmphasis?.nodeIds.includes(node.id)
+          || selectedNode?.id === node.id
+          || hoveredNode?.id === node.id,
+        importanceScore: node.graphImportanceScore,
+        sourceCoverageCount: node.sourceCoverageCount,
+      }).radius
+    ) * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
+    const fullPath = createKnowledgeGraphRendererEdgePath({
+      renderer: '2d',
+      link,
+      source,
+      target,
+      sourceNodeType: source.nodeType,
+      targetNodeType: target.nodeType,
+      sourceShape: getKnowledgeConceptNodeShape(source),
+      targetShape: getKnowledgeConceptNodeShape(target),
+      sourcePresentationRadius: getPresentationRadius(source),
+      targetPresentationRadius: getPresentationRadius(target),
+      laneCurvature: laneCurvatureByLinkKey.get(getKnowledgeGraphPresentationLinkKey(link)) ?? 0,
+    });
+    if (fullPath.hiddenReason) return;
+    const drawPath = getKnowledgeGraphPartialEdgePath(fullPath, linkProgress);
 
     ctx.beginPath();
-    ctx.moveTo(source.x, source.y);
-    if (isCurved) {
-      ctx.quadraticCurveTo(drawControl!.x, drawControl!.y, drawTarget.x, drawTarget.y);
+    ctx.moveTo(drawPath.start.x, drawPath.start.y);
+    if (drawPath.kind === 'quadratic') {
+      ctx.quadraticCurveTo(drawPath.control.x, drawPath.control.y, drawPath.end.x, drawPath.end.y);
     } else {
-      ctx.lineTo(drawTarget.x, drawTarget.y);
+      ctx.lineTo(drawPath.end.x, drawPath.end.y);
     }
 
     ctx.strokeStyle = hexToRgba(strokeColor, alpha);
@@ -909,59 +1297,214 @@ export function KnowledgeGraph2D({
     ctx.lineWidth = lineWidth / globalScale;
     ctx.stroke();
 
-    // 绘制箭头（对于有方向的关系）
-    if (style.hasArrow && linkProgress >= 0.65) {
-      if (isCurved) {
-        const arrowPoint = drawTarget;
-        const arrowAngle = getQuadraticTangentAngle(source.x, source.y, drawControl!.x, drawControl!.y, drawTarget.x, drawTarget.y, 1);
-        drawArrowHead(ctx, arrowPoint.x, arrowPoint.y, arrowAngle, globalScale, hexToRgba(strokeColor, alpha));
-      } else {
-        drawArrow(ctx, source.x, source.y, drawTarget.x, drawTarget.y, globalScale, hexToRgba(strokeColor, alpha));
+    if (directed && linkProgress >= 0.999) {
+      const arrow = getKnowledgeGraphEndpointArrow(fullPath, {
+        length: 8 / globalScale,
+        halfWidth: 4 / globalScale,
+      });
+      ctx.fillStyle = hexToRgba(strokeColor, alpha);
+      ctx.beginPath();
+      ctx.moveTo(arrow.tip.x, arrow.tip.y);
+      ctx.lineTo(arrow.left.x, arrow.left.y);
+      ctx.lineTo(arrow.right.x, arrow.right.y);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    const linkKey = getKnowledgeGraphPresentationLinkKey(link);
+    const motionEdgeEligible = motionMarkerEdgeIdSet.has(linkKey)
+      || (typeof link.id === 'string' && motionMarkerEdgeIdSet.has(link.id));
+    // 环境流层：走廊之外的可见结构前景边渲染弱化的族色方向标记（先于走廊绘制，
+    // 与 3D 同口径排除已选走廊边，避免同边双标记）。
+    const ambientEdgeEligible = !motionEdgeEligible
+      && ambientFlowEdgeIdSet.has(linkKey)
+      && linkProgress >= 0.999
+      && motionEnvironmentActive
+      && !reducedMotion;
+    if (ambientEdgeEligible) {
+      const markerFrame = getKnowledgeGraphMotionPhasedMarkerFrame(
+        motionElapsedMsRef.current,
+        ambientFlowSelection.phaseOffsetByEdgeId[linkKey] ?? 0
+      );
+      if (markerFrame.visible) {
+        const marker = getKnowledgeGraphMotionMarkerPlacement(fullPath, markerFrame.progress, KNOWLEDGE_GRAPH_FLOW_MARKER_GEOMETRY);
+        if (marker.visible) {
+          ctx.save();
+          ctx.translate(marker.point.x, marker.point.y);
+          ctx.rotate(Math.atan2(marker.tangent.y, marker.tangent.x));
+          ctx.fillStyle = hexToRgba(strokeColor, alpha * 0.82);
+          ctx.beginPath();
+          ctx.moveTo(KNOWLEDGE_GRAPH_FLOW_MARKER_GEOMETRY.frontExtent, 0);
+          ctx.lineTo(-KNOWLEDGE_GRAPH_FLOW_MARKER_GEOMETRY.backExtent, KNOWLEDGE_GRAPH_FLOW_MARKER_GEOMETRY.halfWidth);
+          ctx.lineTo(-KNOWLEDGE_GRAPH_FLOW_MARKER_GEOMETRY.backExtent, -KNOWLEDGE_GRAPH_FLOW_MARKER_GEOMETRY.halfWidth);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
       }
     }
 
-    if (linkProgress >= 0.82) {
-      const endpointAngle = isCurved
-        ? getQuadraticTangentAngle(source.x, source.y, drawControl!.x, drawControl!.y, drawTarget.x, drawTarget.y, 1)
-        : Math.atan2(drawTarget.y - source.y, drawTarget.x - source.x);
-      drawEndpointMarker(ctx, style.endpoint, drawTarget.x, drawTarget.y, endpointAngle, globalScale, hexToRgba(strokeColor, alpha));
+    if (motionEdgeEligible && linkProgress >= 0.999 && motionEnvironmentActive && !reducedMotion) {
+      const markerFrame = getKnowledgeGraphMotionMarkerFrame(motionElapsedMsRef.current);
+      if (markerFrame.visible) {
+        const marker = getKnowledgeGraphMotionMarkerPlacement(fullPath, markerFrame.progress);
+        if (marker.visible) {
+          ctx.save();
+          ctx.translate(marker.point.x, marker.point.y);
+          ctx.rotate(Math.atan2(marker.tangent.y, marker.tangent.x));
+          ctx.fillStyle = hexToRgba(strokeColor, Math.max(alpha, 0.82));
+          ctx.beginPath();
+          ctx.moveTo(KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.frontExtent, 0);
+          ctx.lineTo(-KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.backExtent, KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.halfWidth);
+          ctx.lineTo(-KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.backExtent, -KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.halfWidth);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+      }
     }
 
     // 重置虚线设置
     ctx.setLineDash([]);
-  }, [hoveredNode?.id, isLightTheme, presentation, selectedNode?.id]);
+  }, [hoveredNode?.id, isLightTheme, laneCurvatureByLinkKey, motionEnvironmentActive, motionMarkerEdgeIdSet, presentation, reducedMotion, selectedCorridorEmphasis, selectedNode?.id, structuralForegroundEdgeIdSet]);
 
   const handleNodeDragEnd = useCallback((node: any) => {
+    labelProjectionRevisionRef.current += 1;
     rememberRuntimeNodePosition(node as RuntimeKnowledgeGraphNode);
     onNodeDragEnd(node as KnowledgeNodeData);
   }, [onNodeDragEnd, rememberRuntimeNodePosition]);
 
   const handleNodeDrag = useCallback((node: any) => {
-    onManipulationStart?.();
+    labelProjectionRevisionRef.current += 1;
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
-  }, [graphData.nodes, onManipulationStart]);
+  }, [graphData.nodes]);
+
+  const handleEngineTick = useCallback(() => {
+    labelProjectionRevisionRef.current += 1;
+  }, []);
 
   const handleCanvasPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const canvas = event.currentTarget.querySelector<HTMLCanvasElement>('canvas');
+    completedBlankGestureRef.current = null;
+    if (!activeCanvasPointerIdsRef.current.has(event.pointerId)) {
+      if (activeCanvasPointerIdsRef.current.size > 0) {
+        blankGesturesByPointerIdRef.current.clear();
+      }
+      activeCanvasPointerIdsRef.current.add(event.pointerId);
+    }
+    if (event.target !== canvas) return;
     const rect = canvas?.getBoundingClientRect();
     const graph2ScreenCoords = fgRef.current?.graph2ScreenCoords;
-    if (!rect || !graph2ScreenCoords) return;
+    const screen2GraphCoords = fgRef.current?.screen2GraphCoords;
+    if (!rect || !graph2ScreenCoords || !screen2GraphCoords) return;
     const localX = event.clientX - rect.left;
     const localY = event.clientY - rect.top;
+    const graphPoint = screen2GraphCoords(localX, localY);
+    if (![graphPoint?.x, graphPoint?.y].every(Number.isFinite)) return;
+    const tolerancePoints = [
+      screen2GraphCoords(localX + 8, localY),
+      screen2GraphCoords(localX, localY + 8),
+    ];
+    const graphTolerances = tolerancePoints.map((point: { x: number; y: number }) => (
+      Math.hypot(Number(point.x) - Number(graphPoint.x), Number(point.y) - Number(graphPoint.y))
+    )).filter((value: number) => Number.isFinite(value) && value >= 0);
+    if (graphTolerances.length === 0) return;
+    const graphTolerance = Math.max(...graphTolerances);
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    const graphNodeById = new Map(graphNodes.map((node) => [node.id, node]));
     const hitNode = graphNodes.some((node) => {
       if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return false;
-      const point = graph2ScreenCoords(node.x, node.y);
+      const nodeX = Number(node.x);
+      const nodeY = Number(node.y);
       const nodeScale = getKnowledgeNodeScale({
         metadata: node.metadata,
         degree: node.graphDegree,
         focused: selectedNode?.id === node.id || hoveredNode?.id === node.id,
+        importanceScore: node.graphImportanceScore,
+        sourceCoverageCount: node.sourceCoverageCount,
       });
-      return Math.hypot(Number(point?.x) - localX, Number(point?.y) - localY) <= nodeScale.radius + 12;
+      const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
+      return isKnowledgeGraphPointInsideNodeBoundary(
+        graphPoint,
+        { x: nodeX, y: nodeY },
+        getNodePointerBoundary(getKnowledgeConceptNodeShape(node), nodeScale.radius * presentationScale),
+        graphTolerance,
+      );
     });
-    if (!hitNode) onManipulationStart?.();
-  }, [graphData.nodes, hoveredNode?.id, onManipulationStart, selectedNode?.id]);
+    const hitLink = !hitNode && graphData.links.some((link: any) => {
+      const source = typeof link.source === 'object' ? link.source : graphNodeById.get(link.sourceId);
+      const target = typeof link.target === 'object' ? link.target : graphNodeById.get(link.targetId);
+      if (!source || !target || !Number.isFinite(source.x) || !Number.isFinite(source.y)
+        || !Number.isFinite(target.x) || !Number.isFinite(target.y)) return false;
+      const getRadius = (node: RuntimeKnowledgeGraphNode) => getKnowledgeNodeScale({
+        metadata: node.metadata,
+        degree: node.graphDegree,
+        focused: selectedCorridorEmphasis?.nodeIds.includes(node.id)
+          || selectedNode?.id === node.id
+          || hoveredNode?.id === node.id,
+        importanceScore: node.graphImportanceScore,
+        sourceCoverageCount: node.sourceCoverageCount,
+      }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
+      const path = createKnowledgeGraphRendererEdgePath({
+        renderer: '2d',
+        link,
+        source,
+        target,
+        sourceNodeType: source.nodeType,
+        targetNodeType: target.nodeType,
+        sourceShape: getKnowledgeConceptNodeShape(source),
+        targetShape: getKnowledgeConceptNodeShape(target),
+        sourcePresentationRadius: getRadius(source),
+        targetPresentationRadius: getRadius(target),
+        laneCurvature: laneCurvatureByLinkKey.get(getKnowledgeGraphPresentationLinkKey(link)) ?? 0,
+      });
+      if (path.hiddenReason) return false;
+      const points = sampleKnowledgeGraphEdgePath(path, 12).map((point) => {
+        const screenPoint = graph2ScreenCoords(point.x, point.y);
+        return { x: Number(screenPoint?.x), y: Number(screenPoint?.y) };
+      });
+      if (!points.every((point) => Number.isFinite(point.x) && Number.isFinite(point.y))) return false;
+      return isKnowledgeCanvasPolylineHit({ x: localX, y: localY, points, tolerance: 8 });
+    });
+    if (!hitNode && !hitLink) {
+      if (activeCanvasPointerIdsRef.current.size === 1) {
+        blankGesturesByPointerIdRef.current.set(
+          event.pointerId,
+          startKnowledgeCanvasBlankGesture(event)
+        );
+      }
+    }
+  }, [graphData.links, graphData.nodes, hoveredNode?.id, laneCurvatureByLinkKey, presentation, selectedCorridorEmphasis, selectedNode?.id]);
+
+  const handleCanvasPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    const gesture = blankGesturesByPointerIdRef.current.get(event.pointerId) ?? null;
+    const moved = moveKnowledgeCanvasBlankGesture(gesture, event);
+    if (moved) blankGesturesByPointerIdRef.current.set(event.pointerId, moved);
+  }, []);
+
+  const handleCanvasPointerCancel = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (!activeCanvasPointerIdsRef.current.delete(event.pointerId)) return;
+    blankGesturesByPointerIdRef.current.delete(event.pointerId);
+  }, []);
+
+  const handleCanvasLostPointerCapture = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    activeCanvasPointerIdsRef.current.delete(event.pointerId);
+    blankGesturesByPointerIdRef.current.delete(event.pointerId);
+  }, []);
+
+  const handleCanvasPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (!activeCanvasPointerIdsRef.current.delete(event.pointerId)) return;
+    const gesture = blankGesturesByPointerIdRef.current.get(event.pointerId) ?? null;
+    blankGesturesByPointerIdRef.current.delete(event.pointerId);
+    completedBlankGestureRef.current = finishKnowledgeCanvasBlankGesture(gesture, event);
+  }, []);
+
+  const handleBackgroundClick = useCallback(() => {
+    const shouldDismiss = shouldDismissKnowledgeCanvasBlankGesture(completedBlankGestureRef.current);
+    completedBlankGestureRef.current = null;
+    if (shouldDismiss) onBackgroundClick?.();
+  }, [onBackgroundClick]);
 
   // 4. 物理引擎配置
   useEffect(() => {
@@ -976,11 +1519,48 @@ export function KnowledgeGraph2D({
   }, []);
 
   useEffect(() => {
-    if (fitViewVersion === 0 || !fgRef.current?.zoomToFit) return;
-    window.setTimeout(() => {
-      fgRef.current?.zoomToFit?.(320, 48);
+    if (!fgRef.current?.zoom || !fgRef.current?.centerAt) return;
+    if ((width ?? 800) <= 0 || (height ?? 600) <= 0) return;
+    const fitSignature = `${fitViewRequest.id}:${width ?? 800}:${height ?? 600}:${window.devicePixelRatio}:${relayoutVersion}`;
+    if (consumedFitSignatureRef.current === fitSignature) return;
+    if (fitViewRequest.target === 'root' && !compactRootView) return;
+    if (graphData.nodes.length > 1 && settledLayoutSignatureRef.current !== layoutSignature) return;
+    const positionedNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes).map((node: any) => ({
+      id: node.id,
+      x: node.x ?? 0,
+      y: node.y ?? 0,
+      bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      isRootBubble: Boolean(node.__knowledgeRootPacking),
+      importance: node.importance,
+      labelBounds: getKnowledgeNodeLabelBounds({
+        name: node.name,
+        bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      }),
+    }));
+    const fit = getKnowledgeGraphViewportFit({
+      nodes: positionedNodes,
+      width: width ?? 800,
+      height: height ?? 600,
+      padding: getKnowledgeGraphViewportSafeInsets({ width: width ?? 800, height: height ?? 600 }),
+      labelMode,
+      selectedNodeId: selectedNode?.id,
+      hoveredNodeId: hoveredNode?.id,
+    });
+    if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
+    fitTimerRef.current = window.setTimeout(() => {
+      fgRef.current?.centerAt?.(fit.centerX, fit.centerY, 320);
+      fgRef.current?.zoom?.(
+        compactRootView ? Math.max(fit.scale, KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE) : fit.scale,
+        320
+      );
+      consumedFitSignatureRef.current = fitSignature;
+      fitTimerRef.current = null;
     }, 0);
-  }, [fitViewVersion]);
+    return () => {
+      if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
+      fitTimerRef.current = null;
+    };
+  }, [compactRootView, fitViewRequest, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, relayoutVersion, selectedNode?.id, viewportRevision, width]);
 
   useEffect(() => {
     const cameraTransition = cameraTransitionRef.current;
@@ -1101,26 +1681,135 @@ export function KnowledgeGraph2D({
     fgRef.current?.refresh?.();
   }, [graphData, layoutState]);
 
+  useEffect(() => {
+    if (!isKnowledgeGraphTask74PerformanceQa(window.location.search)) return;
+    return installKnowledgeGraphTask74Snapshot(window, () => {
+      const currentWidth = width ?? 800;
+      const currentHeight = height ?? 600;
+      const scale = Number(fgRef.current?.zoom?.() ?? 1);
+      const projector = fgRef.current?.graph2ScreenCoords as ((x: number, y: number) => { x: number; y: number }) | undefined;
+      const nodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as Array<KnowledgeNodeData & {
+        x?: number;
+        y?: number;
+        graphDegree?: number;
+        graphImportanceScore?: number;
+      }>;
+      const placements = getFrameLabelPlacements(scale);
+      const bodyBounds = nodes.flatMap((node) => {
+        const point = projector?.(Number(node.x ?? node.positionX), Number(node.y ?? node.positionY));
+        if (!point || ![point.x, point.y].every(Number.isFinite)) return [];
+        const focused = selectedNode?.id === node.id
+          || hoveredNode?.id === node.id
+          || Boolean(selectedCorridorEmphasis?.nodeIds.includes(node.id));
+        const naturalRadius = getKnowledgeNodeScale({
+          metadata: node.metadata,
+          degree: node.graphDegree,
+          focused,
+          importanceScore: node.graphImportanceScore,
+          sourceCoverageCount: node.sourceCoverageCount,
+        }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentationRef.current, nodeId: node.id });
+        const radius = naturalRadius * scale;
+        if (point.x + radius < 0 || point.x - radius > currentWidth || point.y + radius < 0 || point.y - radius > currentHeight) return [];
+        return [{ id: node.id, x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2, radius }];
+      });
+      const labelBounds = nodes.flatMap((node) => {
+        const point = projector?.(Number(node.x ?? node.positionX), Number(node.y ?? node.positionY));
+        const placement = placements.get(node.id);
+        if (!point || !placement?.visible || ![point.x, point.y].every(Number.isFinite)) return [];
+        const layout = layoutKnowledgeNodeLabel(node.name);
+        const labelWidth = layout.width * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize;
+        const labelHeight = layout.height * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize;
+        const centerX = point.x + placement.offsetX;
+        const centerY = point.y + placement.offsetY;
+        return [{ id: node.id, x: centerX - labelWidth / 2, y: centerY - labelHeight / 2, width: labelWidth, height: labelHeight }];
+      });
+      return {
+        renderMode: '2D',
+        visibleNodeIds: nodes.map((node) => node.id).sort(),
+        bodyIds: bodyBounds.map((bound) => bound.id).sort(),
+        labelIds: labelBounds.map((bound) => bound.id).sort(),
+        visibleLineIds: graphData.links
+          .map((link) => getKnowledgeGraphPresentationLinkKey(link))
+          .sort(),
+        bodyBounds: bodyBounds.sort((left, right) => left.id.localeCompare(right.id)),
+        labelBounds: labelBounds.sort((left, right) => left.id.localeCompare(right.id)),
+        canonicalEdges: graphData.links.map((link: any) => {
+          const family = getKnowledgeGraphPresentationFamily(link);
+          return {
+            id: getKnowledgeGraphPresentationLinkKey(link),
+            family,
+            direction: family === 'association' ? 'unordered' as const : 'source-to-target' as const,
+            sourceId: typeof link.source === 'object' ? link.source.id : link.sourceId,
+            targetId: typeof link.target === 'object' ? link.target.id : link.targetId,
+          };
+        }).sort((left, right) => left.id.localeCompare(right.id)),
+        corridorIds: {
+          nodeIds: [...(selectedCorridorEmphasis?.nodeIds ?? [])].sort(),
+          edgeIds: [...(selectedCorridorEmphasis?.edgeIds ?? [])].sort(),
+        },
+        markerCount: !motionEnvironmentActive || reducedMotion ? 0 : activeMotionMarkerCount,
+        viewportCoverage: {
+          declared: nodes.length,
+          body: bodyBounds.length,
+          label: labelBounds.length,
+          eligible: placements.size,
+          deferred: [...placements.values()].filter((placement) => !placement.visible).length,
+          visibleLine: graphData.links.length,
+        },
+        camera: { mode: 'orthographic-2d', zoom: scale },
+      };
+    });
+  }, [
+    getFrameLabelPlacements,
+    graphData,
+    height,
+    hoveredNode?.id,
+    motionEnvironmentActive,
+    motionMarkerEdgeIds.length,
+    reducedMotion,
+    selectedCorridorEmphasis,
+    selectedNode?.id,
+    width,
+  ]);
+
   return (
     <div
+      ref={rootRef}
       className="relative h-full w-full"
       data-knowledge-graph-renderer="2D"
+      data-knowledge-render-layer-order="edge,node,label"
+      data-knowledge-selected-emphasis-contract="shared-corridor-input"
+      data-knowledge-edge-lanes={JSON.stringify(graphData.links.map((link: any) => ({
+        id: getKnowledgeGraphPresentationLinkKey(link),
+        curvature: laneCurvatureByLinkKey.get(getKnowledgeGraphPresentationLinkKey(link)) ?? 0,
+        targetArrow: getKnowledgeGraphEdgePresentation(link).directed,
+      })))}
+      data-knowledge-label-max-lines={KNOWLEDGE_NODE_LABEL_POLICY.maxLines}
       data-knowledge-graph-presentation-phase={presentation.phase}
       data-knowledge-graph-presentation-elapsed-ms={String(presentation.elapsedMs ?? 0)}
       data-knowledge-graph-animated-node-count={String(presentation.animatedNodeIds?.length ?? 0)}
       data-knowledge-graph-animated-relation-count={String(presentation.animatedRelationIds?.length ?? 0)}
+      data-knowledge-motion-marker-count={!motionEnvironmentActive || reducedMotion ? '0' : String(activeMotionMarkerCount)}
       onPointerDownCapture={handleCanvasPointerDown}
+      onPointerMoveCapture={handleCanvasPointerMove}
+      onPointerUpCapture={handleCanvasPointerUp}
+      onPointerCancelCapture={handleCanvasPointerCancel}
+      onLostPointerCapture={handleCanvasLostPointerCapture}
     >
       <ForceGraph2D
         ref={fgRef}
         width={width}
         height={height}
         graphData={graphData}
+        autoPauseRedraw={!motionPaintActive}
+        minZoom={compactRootView
+          ? KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE
+          : KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM}
 
         // 节点渲染
         nodeCanvasObject={paintNode}
         nodePointerAreaPaint={paintNodePointerArea}
-        nodeLabel="name"
+        nodeLabel={(node: any) => layoutKnowledgeNodeLabel(node.name).accessibleName}
 
         // 连线渲染
         linkCanvasObject={paintLink}
@@ -1134,8 +1823,9 @@ export function KnowledgeGraph2D({
         onNodeHover={onNodeHover}
         onNodeDrag={handleNodeDrag}
         onNodeDragEnd={handleNodeDragEnd}
-        onBackgroundClick={onManipulationStart}
-        onEngineStop={snapshotRuntimePositions}
+        onBackgroundClick={handleBackgroundClick}
+        onEngineStop={handleEngineStop}
+        onEngineTick={handleEngineTick}
         enableNodeDrag={true}
 
         // 物理引擎配置

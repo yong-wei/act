@@ -11,19 +11,12 @@ import { createPrismaClient } from '../../src/lib/prisma-client';
  */
 
 import fs from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 import { Job, Queue, Worker } from 'bullmq';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { Redis } from 'ioredis';
-import {
-  calculateCompetencyVector,
-  calculateTrendVector,
-  generateEvidenceSummary,
-  identifyStrengths,
-  identifyWeaknesses,
-} from '@/lib/data-governance/competency-engine';
-import { refreshStudentGrowthEvaluation } from '@/lib/data-governance/growth-evaluation';
 import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance/event-buffer';
 import {
   eventToLearningFactInput,
@@ -33,14 +26,28 @@ import {
   rebuildStudentEvidenceFeatureCache,
   refreshStudentEvidenceFeatureCache,
 } from '@/lib/data-governance/student-evidence-feature-cache';
-import { materializeIncrementalPortraitV2 } from '@/lib/data-governance/portrait-v2-materialization';
-import type { CompetencyVector } from '@/lib/data-governance/competency-model';
-import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
-  detectRisks,
-  getRecommendedScaffolding,
-  getRiskLevelDescription,
-} from '@/lib/data-governance/risk-detector';
+  materializeIncrementalPortraitV2,
+  type PortraitV2PublicationExpectation,
+} from '@/lib/data-governance/portrait-v2-materialization';
+import {
+  materializeCumulativeClassPortrait,
+  type CumulativeClassPublicationExpectation,
+} from '@/lib/data-governance/cumulative-class-materialization';
+import {
+  claimCumulativeLearnerReconciliations,
+  completeCumulativeLearnerReconciliation,
+  enqueueCumulativeClassReconciliation,
+  failCumulativeLearnerReconciliation,
+  readActiveCumulativePublicationFence as readActiveCumulativePublicationFenceOrNull,
+  renewCumulativeLearnerReconciliation,
+  requestCumulativeLearnerReconciliation,
+  type ActiveCumulativePublicationFence,
+  type CumulativeLearnerReconciliationClaim,
+} from '@/lib/data-governance/cumulative-snapshot-jobs';
+import { SimulationTaskInputDriftError } from '@/lib/data-governance/simulation-task-portrait-projection';
+import { scheduleSimulationTaskCatalogRefresh } from '@/lib/data-governance/simulation-task-reconciliation';
+import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import type {
   ClassSnapshotJob,
   EventIngestionJob,
@@ -48,6 +55,14 @@ import type {
   SessionReportJob,
   StudentSnapshotJob,
 } from './types';
+import { createMathDocumentGradingWorker } from './math-document-grading-worker';
+import { createTeacherAssignmentReviewOutboxWorker } from './teacher-assignment-review-outbox-worker';
+import { createDefaultReviewedDerivativeRenderer } from '@/lib/data-governance/teacher-assignment-review-derivative-storage';
+import { defaultReviewedDerivativeOptions } from '@/lib/data-governance/teacher-assignment-review-derivative';
+import {
+  closeCoursewareGenerationWorker,
+  ensureCoursewareGenerationWorker,
+} from '@/lib/smart-courseware/worker';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const WORKER_CONCURRENCY = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
@@ -84,6 +99,8 @@ let studentSnapshotWorker: Worker<StudentSnapshotJob> | null = null;
 let classSnapshotWorker: Worker<ClassSnapshotJob> | null = null;
 let sessionReportWorker: Worker<SessionReportJob> | null = null;
 let evidenceFeatureCacheWorker: Worker<EvidenceFeatureCacheJob> | null = null;
+let mathDocumentGradingController: Awaited<ReturnType<typeof createMathDocumentGradingWorker>> | null = null;
+let teacherAssignmentReviewController: ReturnType<typeof createTeacherAssignmentReviewOutboxWorker> | null = null;
 let isShuttingDown = false;
 let infrastructureFailureHandled = false;
 
@@ -103,6 +120,16 @@ function getPrismaClient(): PrismaClient {
     throw new Error('Prisma client is not initialized');
   }
   return prisma;
+}
+
+export function configureDataGovernanceWorkerForTest(input: {
+  db: PrismaClient;
+  studentJobQueue?: Pick<Queue<StudentSnapshotJob>, 'add'>;
+  classJobQueue?: Pick<Queue<ClassSnapshotJob>, 'add'>;
+}) {
+  prisma = input.db;
+  studentQueue = input.studentJobQueue ? input.studentJobQueue as Queue<StudentSnapshotJob> : null;
+  classQueue = input.classJobQueue ? input.classJobQueue as Queue<ClassSnapshotJob> : null;
 }
 
 function logWithThrottle(
@@ -174,6 +201,30 @@ function formatError(error: unknown): string {
   } catch {
     return String(error);
   }
+}
+
+type JsonSafe<T> =
+  T extends bigint ? string :
+  T extends Date ? string :
+  T extends readonly (infer Item)[] ? Array<JsonSafe<Item>> :
+  T extends object ? { [Key in keyof T]: JsonSafe<T[Key]> } :
+  T;
+
+function toJsonSafeWorkerResult<T>(value: T): JsonSafe<T> {
+  if (typeof value === 'bigint') return value.toString() as JsonSafe<T>;
+  if (value instanceof Date) return value.toISOString() as JsonSafe<T>;
+  if (Array.isArray(value)) {
+    return value.map((item) => toJsonSafeWorkerResult(item)) as JsonSafe<T>;
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        toJsonSafeWorkerResult(item),
+      ]),
+    ) as JsonSafe<T>;
+  }
+  return value as JsonSafe<T>;
 }
 
 function isInfrastructureError(error: unknown): boolean {
@@ -312,14 +363,60 @@ async function scheduleEventIngestionBatch(date: string, batchIndex: number, tri
   );
 }
 
-async function enqueueStudentSnapshot(userId: string, triggerId: string) {
+async function readActiveCumulativePublicationFence(
+  db: PrismaClient,
+): Promise<ActiveCumulativePublicationFence> {
+  const fence = await readActiveCumulativePublicationFenceOrNull(db);
+  if (!fence) {
+    throw new Error('No active cumulative portrait publication fence is available.');
+  }
+  return fence;
+}
+
+function studentPublicationJobData(
+  userId: string,
+  fence: ActiveCumulativePublicationFence,
+  options: {
+    fullRebuild?: boolean;
+    reconciliationClaim?: CumulativeLearnerReconciliationClaim;
+  } = {},
+): StudentSnapshotJob {
+  return {
+    userId,
+    ...(options.fullRebuild ? { fullRebuild: true } : {}),
+    calculationVersion: fence.calculationVersion,
+    learnerGeneration: fence.learnerGeneration.toString(),
+    queueGeneration: fence.queueGeneration.toString(),
+    cutoverFence: fence.fence.toString(),
+    migrationRunId: fence.activeMigrationRunId,
+    ...(options.reconciliationClaim ? {
+      reconciliationRequestGeneration: options.reconciliationClaim.generation,
+      reconciliationClaimToken: options.reconciliationClaim.claimToken,
+      reconciliationClassIds: options.reconciliationClaim.classIds,
+      ...(options.reconciliationClaim.simulationTaskInput ? {
+        simulationTaskExpectedInputDigest:
+          options.reconciliationClaim.simulationTaskInput.inputDigest,
+      } : {}),
+    } : {}),
+  };
+}
+
+async function enqueueStudentSnapshot(
+  userId: string,
+  triggerId: string,
+  fence: ActiveCumulativePublicationFence,
+  options: {
+    fullRebuild?: boolean;
+    reconciliationClaim?: CumulativeLearnerReconciliationClaim;
+  } = {},
+) {
   if (!studentQueue) {
     throw new Error('student queue is not initialized');
   }
 
   await studentQueue.add(
     `student-snapshot-${userId}`,
-    { userId },
+    studentPublicationJobData(userId, fence, options),
     {
       attempts: 2,
       backoff: { type: 'exponential', delay: 10000 },
@@ -329,21 +426,57 @@ async function enqueueStudentSnapshot(userId: string, triggerId: string) {
   );
 }
 
-async function enqueueClassSnapshot(classId: string, triggerId: string) {
+function reconciliationClaimFromJob(
+  data: StudentSnapshotJob,
+  fence: ActiveCumulativePublicationFence,
+): CumulativeLearnerReconciliationClaim | null {
+  if (
+    !data.userId ||
+    !Number.isInteger(data.reconciliationRequestGeneration) ||
+    !data.reconciliationClaimToken
+  ) return null;
+  return {
+    userId: data.userId,
+    classIds: Array.isArray(data.reconciliationClassIds)
+      ? [...new Set(data.reconciliationClassIds.filter(Boolean))]
+      : [],
+    generation: data.reconciliationRequestGeneration!,
+    claimToken: data.reconciliationClaimToken,
+    fence,
+  };
+}
+
+async function enqueueClassSnapshot(
+  classId: string,
+  triggerId: string,
+  fence: ActiveCumulativePublicationFence,
+) {
   if (!classQueue) {
     throw new Error('class queue is not initialized');
   }
+  await enqueueCumulativeClassReconciliation({
+    classIds: [classId],
+    mutationIdentity: `coordinator:${triggerId}`,
+    db: getPrismaClient(),
+    queue: classQueue,
+    fence,
+  });
+}
 
-  await classQueue.add(
-    `class-snapshot-${classId}`,
-    { classId },
-    {
-      attempts: 2,
-      backoff: { type: 'exponential', delay: 15000 },
-      jobId: `class-snapshot-${classId}-${triggerId}`,
-      ...JOB_HISTORY_OPTIONS,
-    },
-  );
+async function enqueueClassSnapshotForStudent(
+  classId: string,
+  userId: string,
+  sourceJobId: string,
+  fence: ActiveCumulativePublicationFence,
+) {
+  if (!classQueue) throw new Error('class queue is not initialized');
+  await enqueueCumulativeClassReconciliation({
+    classIds: [classId],
+    mutationIdentity: `student:${userId}:${sourceJobId}`,
+    db: getPrismaClient(),
+    queue: classQueue,
+    fence,
+  });
 }
 
 async function listBufferedDates(): Promise<Array<{ date: string; count: number }>> {
@@ -402,7 +535,7 @@ async function getActiveStudentIds(): Promise<string[]> {
   return studentProfiles.map((item) => item.userId);
 }
 
-async function processEventIngestionJob(job: Job<EventIngestionJob>) {
+export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
   if (job.data.coordinator) {
     const bufferedDates = await listBufferedDates();
     if (bufferedDates.length === 0) {
@@ -461,6 +594,11 @@ async function processEventIngestionJob(job: Job<EventIngestionJob>) {
       skipDuplicates: true,
     });
     factsCreated = result.count;
+    const triggerId = String(job.id ?? batchDate);
+    const fence = await readActiveCumulativePublicationFence(db);
+    for (const userId of new Set(facts.map((fact) => fact.userId))) {
+      await enqueueStudentSnapshot(userId, triggerId, fence);
+    }
   }
 
   await markEventsProcessed(events.length, batchDate);
@@ -479,76 +617,141 @@ function resolveBatchDate(batchDate?: string, now = new Date()): string {
   return now.toISOString().split('T')[0];
 }
 
-function readRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
-}
-
-function readString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
-}
-
-function readQuestionSummaries(value: unknown) {
-  return Array.isArray(value)
-    ? value
-        .filter((item) => item && typeof item === 'object' && !Array.isArray(item))
-        .map((item) => item as Record<string, unknown>)
-    : undefined;
-}
-
-async function loadEvidenceDetails(
-  db: PrismaClient,
-  facts: Array<{ sourceLogId: string | null }>,
-) {
-  const sourceLogIds = Array.from(new Set(
-    facts
-      .map((fact) => fact.sourceLogId)
-      .filter((value): value is string => typeof value === 'string' && value.length > 0),
-  ));
-  if (sourceLogIds.length === 0) {
-    return {};
+function parseJobBigInt(value: string | undefined): bigint | null {
+  if (!value || !/^\d+$/.test(value)) return null;
+  try {
+    return BigInt(value);
+  } catch {
+    return null;
   }
-
-  const logs = await db.interactionLog.findMany({
-    where: { id: { in: sourceLogIds } },
-    select: {
-      id: true,
-      stepId: true,
-      eventData: true,
-    },
-  });
-
-  return Object.fromEntries(logs.map((log) => {
-    const eventData = readRecord(log.eventData);
-    return [log.id, {
-      evidenceTitle: readString(eventData.evidenceTitle),
-      stepId: log.stepId ?? readString(eventData.stepId),
-      questionSummaries: readQuestionSummaries(eventData.questionSummaries),
-    }];
-  }));
 }
 
-async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
+function readStudentPublicationExpectation(
+  data: StudentSnapshotJob,
+): PortraitV2PublicationExpectation | null {
+  const generation = parseJobBigInt(data.learnerGeneration);
+  const queueGeneration = parseJobBigInt(data.queueGeneration);
+  const cutoverFence = parseJobBigInt(data.cutoverFence);
+  if (
+    !data.calculationVersion ||
+    generation === null ||
+    queueGeneration === null ||
+    cutoverFence === null ||
+    !data.migrationRunId
+  ) return null;
+  return {
+    calculationVersion: data.calculationVersion,
+    generation,
+    queueGeneration,
+    cutoverFence,
+    migrationRunId: data.migrationRunId,
+  };
+}
+
+function readClassPublicationExpectation(
+  data: ClassSnapshotJob,
+): CumulativeClassPublicationExpectation | null {
+  const learnerGeneration = parseJobBigInt(data.learnerGeneration);
+  const generation = parseJobBigInt(data.classGeneration);
+  const queueGeneration = parseJobBigInt(data.queueGeneration);
+  const cutoverFence = parseJobBigInt(data.cutoverFence);
+  if (
+    !data.calculationVersion ||
+    learnerGeneration === null ||
+    generation === null ||
+    queueGeneration === null ||
+    cutoverFence === null ||
+    !data.migrationRunId
+  ) return null;
+  return {
+    calculationVersion: data.calculationVersion,
+    learnerGeneration,
+    generation,
+    queueGeneration,
+    cutoverFence,
+    migrationRunId: data.migrationRunId,
+  };
+}
+
+function matchesStudentFence(
+  expectation: PortraitV2PublicationExpectation,
+  fence: ActiveCumulativePublicationFence,
+): boolean {
+  return (
+    expectation.calculationVersion === fence.calculationVersion &&
+    expectation.generation === fence.learnerGeneration &&
+    expectation.queueGeneration === fence.queueGeneration &&
+    expectation.cutoverFence === fence.fence &&
+    expectation.migrationRunId === fence.activeMigrationRunId
+  );
+}
+
+function matchesClassFence(
+  expectation: CumulativeClassPublicationExpectation,
+  fence: ActiveCumulativePublicationFence,
+): boolean {
+  return (
+    expectation.calculationVersion === fence.calculationVersion &&
+    expectation.learnerGeneration === fence.learnerGeneration &&
+    expectation.generation === fence.classGeneration &&
+    expectation.queueGeneration === fence.queueGeneration &&
+    expectation.cutoverFence === fence.fence &&
+    expectation.migrationRunId === fence.activeMigrationRunId
+  );
+}
+
+export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   if (job.data.coordinator) {
+    const db = getPrismaClient();
+    const fence = await readActiveCumulativePublicationFence(db);
+    const catalogRefresh = job.data.simulationTaskCatalogRefresh
+      ? await scheduleSimulationTaskCatalogRefresh(db as any)
+      : null;
+    const claims = await claimCumulativeLearnerReconciliations(db as any, fence);
+    let requestFailed = 0;
+    for (const claim of claims) {
+      try {
+        await enqueueStudentSnapshot(
+          claim.userId,
+          `reconcile-${claim.generation}-${fence.fence}`,
+          fence,
+          { fullRebuild: true, reconciliationClaim: claim },
+        );
+      } catch {
+        requestFailed += 1;
+        await failCumulativeLearnerReconciliation(
+          db as any,
+          claim,
+          'learner-queue-unavailable',
+        );
+      }
+    }
+
     const activeStudentIds = await getActiveStudentIds();
-    if (activeStudentIds.length === 0) {
+    const claimedUserIds = new Set(claims.map((claim) => claim.userId));
+    const regularStudentIds = activeStudentIds.filter((userId) => !claimedUserIds.has(userId));
+    if (regularStudentIds.length === 0 && claims.length === 0) {
       logWithThrottle('student-snapshot:coordinator', 'info', '[StudentSnapshot] No active students in the last 90 minutes');
-      return { scheduled: 0 };
+      return { scheduled: 0, reconciliationScheduled: 0, reconciliationFailed: 0 };
     }
 
     const triggerId = new Date().toISOString().slice(0, 13);
-    for (const userId of activeStudentIds) {
-      await enqueueStudentSnapshot(userId, triggerId);
+    for (const userId of regularStudentIds) {
+      await enqueueStudentSnapshot(userId, triggerId, fence);
     }
 
     logWithThrottle(
       'student-snapshot:coordinator',
       'info',
-      `[StudentSnapshot] Scheduled ${activeStudentIds.length} active student snapshot jobs`,
+      `[StudentSnapshot] Scheduled ${regularStudentIds.length} active and ${claims.length - requestFailed} reconciliation jobs`,
     );
 
-    return { scheduled: activeStudentIds.length };
+    return {
+      scheduled: regularStudentIds.length + claims.length - requestFailed,
+      reconciliationScheduled: claims.length - requestFailed,
+      reconciliationFailed: requestFailed,
+      catalogRefresh,
+    };
   }
 
   if (!job.data.userId) {
@@ -557,216 +760,116 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
 
   const db = getPrismaClient();
   const { userId } = job.data;
-  const snapshotAt = new Date();
-
-  const portraitV2 = await materializeIncrementalPortraitV2(db, userId, { now: snapshotAt });
-  if (portraitV2.mappingIssues.length > 0) {
-    logWithThrottle(
-      `student-snapshot:${userId}:portrait-v2-mapping`,
-      'warn',
-      `[StudentSnapshot] Portrait v2 mapping issues for ${userId}: ${portraitV2.mappingIssues.join(', ')}`,
-    );
+  const expectation = readStudentPublicationExpectation(job.data);
+  if (!expectation) {
+    return { skipped: true, reason: 'missing_cumulative_publication_fence', userId };
+  }
+  const fence = await readActiveCumulativePublicationFence(db);
+  if (!matchesStudentFence(expectation, fence)) {
+    return { skipped: true, reason: 'stale_cumulative_publication_fence', userId };
   }
 
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const facts = await db.learningFact.findMany({
-    where: {
-      userId,
-      startedAt: { gte: thirtyDaysAgo },
-    },
-    orderBy: { startedAt: 'desc' },
-  });
-
-  const previousSnapshot = await db.studentCompetencySnapshot.findFirst({
-    where: { userId },
-    orderBy: { snapshotAt: 'desc' },
-  });
-  const latestFactCreatedAt = facts.reduce<Date | null>((latest, fact) => {
-    if (!latest || fact.createdAt.getTime() > latest.getTime()) {
-      return fact.createdAt;
-    }
-    return latest;
-  }, null);
-
-  if (facts.length === 0) {
-    await refreshStudentEvidenceFeatureCache(db, userId, { now: snapshotAt });
-    logWithThrottle(`student-snapshot:${userId}:no-facts`, 'info', `[StudentSnapshot] Skip ${userId}: no learning facts in current window`);
-    return { skipped: true, reason: 'no_facts', userId, featureCacheRefreshed: true, portraitV2 };
+  const reconciliationClaim = reconciliationClaimFromJob(job.data, fence);
+  if (job.data.reconciliationRequestGeneration !== undefined && !reconciliationClaim) {
+    return { skipped: true, reason: 'invalid_reconciliation_claim', userId };
   }
-
   if (
-    previousSnapshot &&
-    previousSnapshot.factCount === facts.length &&
-    latestFactCreatedAt &&
-    latestFactCreatedAt.getTime() <= previousSnapshot.snapshotAt.getTime()
+    reconciliationClaim &&
+    !await renewCumulativeLearnerReconciliation(db as any, reconciliationClaim)
   ) {
-    await refreshStudentEvidenceFeatureCache(db, userId, { now: snapshotAt });
-    logWithThrottle(`student-snapshot:${userId}:unchanged`, 'info', `[StudentSnapshot] Skip ${userId}: no new facts since latest snapshot`);
-    return { skipped: true, reason: 'unchanged_facts', userId, featureCacheRefreshed: true, portraitV2 };
+    return { skipped: true, reason: 'stale_reconciliation_claim', userId };
   }
 
-  const evidenceDetails = await loadEvidenceDetails(db, facts);
-
-  const competencyVector = calculateCompetencyVector(facts, '1m');
-
-  if (previousSnapshot) {
-    const previousVector = previousSnapshot.competencyVector as unknown as CompetencyVector;
-    const trendVector = calculateTrendVector(competencyVector, previousVector);
-
-    for (const dimension of Object.keys(trendVector)) {
-      competencyVector[dimension as keyof CompetencyVector].trend =
-        trendVector[dimension as keyof CompetencyVector];
-    }
-  }
-
-  const risks = detectRisks({
-    userId,
-    facts,
-    competencyVector,
-    previousSnapshot: previousSnapshot?.competencyVector as unknown as CompetencyVector,
-  });
-
-  const snapshot = await db.studentCompetencySnapshot.create({
-    data: {
-      userId,
-      snapshotAt,
-      competencyVector: competencyVector as unknown as Prisma.InputJsonValue,
-      evidenceSummary: generateEvidenceSummary(facts, 3, evidenceDetails) as unknown as Prisma.InputJsonValue,
-      riskFlags: risks.map((risk) => risk.type),
-      factCount: facts.length,
-    },
-  });
-
-  await updateProfileSummary(userId, competencyVector, risks, facts);
-  await refreshStudentGrowthEvaluation(db, {
-    snapshot: {
-      id: snapshot.id,
-      userId,
-      snapshotAt,
-      factCount: facts.length,
-      competencyVector,
-      evidenceSummary: snapshot.evidenceSummary,
-    },
-  });
-  await refreshStudentEvidenceFeatureCache(db, userId, { now: snapshotAt });
-
-  await db.studentRiskFlag.updateMany({
-    where: {
-      userId,
-      isResolved: false,
-    },
-    data: {
-      isResolved: true,
-      resolvedAt: snapshotAt,
-      resolutionNote: 'Superseded by latest competency snapshot',
-    },
-  });
-
-  if (risks.length > 0) {
-    await db.studentRiskFlag.createMany({
-      data: risks.map((risk) => ({
-        userId,
-        flagType: risk.type,
-        severity: risk.severity,
-        description: risk.description,
-        evidenceJson: risk.evidence as Prisma.InputJsonValue,
-        triggeredAt: risk.triggeredAt,
-      })),
+  try {
+    const portraitV2 = await materializeIncrementalPortraitV2(db as any, userId, {
+      now: new Date(),
+      fullRebuild: reconciliationClaim ? true : job.data.fullRebuild,
+      publication: expectation,
+      simulationTaskInput: job.data.simulationTaskExpectedInputDigest ? {
+        expectedInputDigest: job.data.simulationTaskExpectedInputDigest,
+      } : undefined,
     });
-  }
-
-  return {
-    snapshotId: snapshot.id,
-    factCount: facts.length,
-    riskCount: risks.length,
-    featureCacheRefreshed: true,
-    portraitV2,
-  };
-}
-
-async function updateProfileSummary(
-  userId: string,
-  vector: CompetencyVector,
-  risks: ReturnType<typeof detectRisks>,
-  facts: Array<{ factType: string; outcome: string; startedAt: Date }>,
-) {
-  const db = getPrismaClient();
-  const strengths = identifyStrengths(vector);
-  const weaknesses = identifyWeaknesses(vector);
-  const riskLevel = getRiskLevelDescription(risks.length);
-
-  const recentActivity = facts.slice(0, 5).map((fact) => ({
-    type: fact.factType,
-    outcome: fact.outcome,
-    date: fact.startedAt.toISOString(),
-  }));
-
-  const trendDirection = calculateOverallTrend(vector);
-  const trendDescriptions: Record<string, string> = {
-    up: '近两周稳步提升',
-    stable: '近期表现平稳',
-    down: '近期出现下滑',
-  };
-
-  await db.studentProfileSummary.upsert({
-    where: { userId },
-    update: {
-      overallLevel: getOverallLevel(vector),
-      overallScore: calculateOverallScore(vector),
-      strengthsJson: strengths as Prisma.InputJsonValue,
-      weaknessesJson: weaknesses as Prisma.InputJsonValue,
-      recentTrend: trendDescriptions[trendDirection],
-      trendDirection,
-      riskFlagsJson: risks.map((risk) => risk.description) as Prisma.InputJsonValue,
-      riskLevel,
-      recommendedScaffolding: getRecommendedScaffolding(risks),
-      recentActivityJson: recentActivity as Prisma.InputJsonValue,
-      cacheExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
-    },
-    create: {
+    if (portraitV2.mappingIssues.length > 0) {
+      logWithThrottle(
+        `student-snapshot:${userId}:portrait-v2-mapping`,
+        'warn',
+        `[StudentSnapshot] Portrait v2 mapping issues for ${userId}: ${portraitV2.mappingIssues.join(', ')}`,
+      );
+    }
+    const profile = await db.studentProfile.findUnique({
+      where: { userId },
+      select: { classId: true },
+    });
+    const classIds = reconciliationClaim
+      ? [...new Set([
+          ...reconciliationClaim.classIds,
+          ...(profile?.classId ? [profile.classId] : []),
+        ])]
+      : profile?.classId ? [profile.classId] : [];
+    for (const classId of classIds) {
+      await enqueueClassSnapshotForStudent(
+        classId,
+        userId,
+        String(job.id ?? portraitV2.stateVersionId ?? `manual:${userId}`),
+        fence,
+      );
+    }
+    if (
+      reconciliationClaim &&
+      !await completeCumulativeLearnerReconciliation(db as any, reconciliationClaim)
+    ) {
+      return {
+        skipped: true,
+        reason: 'stale_reconciliation_claim',
+        userId,
+        portraitV2: toJsonSafeWorkerResult(portraitV2),
+      };
+    }
+    return {
+      skipped: !portraitV2.written,
+      reason: portraitV2.written ? 'cumulative_portrait_materialized' : 'no_portrait_state_change',
       userId,
-      overallLevel: getOverallLevel(vector),
-      overallScore: calculateOverallScore(vector),
-      strengthsJson: strengths as Prisma.InputJsonValue,
-      weaknessesJson: weaknesses as Prisma.InputJsonValue,
-      recentTrend: trendDescriptions[trendDirection],
-      trendDirection,
-      riskFlagsJson: risks.map((risk) => risk.description) as Prisma.InputJsonValue,
-      riskLevel,
-      recommendedScaffolding: getRecommendedScaffolding(risks),
-      recentActivityJson: recentActivity as Prisma.InputJsonValue,
-      cacheExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
-    },
-  });
+      portraitV2: toJsonSafeWorkerResult(portraitV2),
+    };
+  } catch (error) {
+    if (reconciliationClaim && error instanceof SimulationTaskInputDriftError) {
+      try {
+        const generation = await requestCumulativeLearnerReconciliation(db as any, {
+          userId,
+          classIds: reconciliationClaim.classIds,
+          reason: 'simulation-task-input-drift',
+          simulationTaskInput: error.actualInput,
+        });
+        return {
+          skipped: true,
+          reason: 'simulation_task_input_drift_requeued',
+          userId,
+          reconciliationRequestGeneration: generation,
+        };
+      } catch (rescheduleError) {
+        await failCumulativeLearnerReconciliation(
+          db as any,
+          reconciliationClaim,
+          'simulation-task-input-drift-reschedule-failed',
+        );
+        throw rescheduleError;
+      }
+    }
+    if (reconciliationClaim) {
+      await failCumulativeLearnerReconciliation(
+        db as any,
+        reconciliationClaim,
+        'learner-materialization-or-class-enqueue-failed',
+      );
+    }
+    throw error;
+  }
 }
 
-function getOverallLevel(vector: CompetencyVector): string {
-  const avg = calculateOverallScore(vector);
-  if (avg >= 85) return '优秀';
-  if (avg >= 70) return '良好';
-  if (avg >= 55) return '中等偏上';
-  if (avg >= 40) return '需提升';
-  return '需关注';
-}
-
-function calculateOverallScore(vector: CompetencyVector): number {
-  const scores = Object.values(vector).map((value) => value.score);
-  return Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10;
-}
-
-function calculateOverallTrend(vector: CompetencyVector): 'up' | 'stable' | 'down' {
-  const trends = Object.values(vector).map((value) => value.trend);
-  const upCount = trends.filter((item) => item === 'up').length;
-  const downCount = trends.filter((item) => item === 'down').length;
-
-  if (upCount > downCount + 1) return 'up';
-  if (downCount > upCount + 1) return 'down';
-  return 'stable';
-}
-
-async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
+export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
   if (job.data.coordinator) {
     const db = getPrismaClient();
+    const fence = await readActiveCumulativePublicationFence(db);
     const classes = await db.class.findMany({
       where: { isActive: true },
       select: { id: true },
@@ -774,7 +877,7 @@ async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
 
     const triggerId = new Date().toISOString().slice(0, 10);
     for (const cls of classes) {
-      await enqueueClassSnapshot(cls.id, triggerId);
+      await enqueueClassSnapshot(cls.id, triggerId, fence);
     }
 
     logWithThrottle(
@@ -792,137 +895,23 @@ async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
 
   const db = getPrismaClient();
   const { classId } = job.data;
-
-  const students = await db.studentProfile.findMany({
-    where: { classId },
-    select: { userId: true },
+  const requestedScope = (job.data as { scope?: string }).scope;
+  if (requestedScope && requestedScope !== 'cumulative') {
+    return { skipped: true, reason: 'unsupported_scope', classId, scope: requestedScope };
+  }
+  const expectation = readClassPublicationExpectation(job.data);
+  if (!expectation) {
+    return { skipped: true, reason: 'missing_cumulative_publication_fence', classId };
+  }
+  const fence = await readActiveCumulativePublicationFence(db);
+  if (!matchesClassFence(expectation, fence)) {
+    return { skipped: true, reason: 'stale_cumulative_publication_fence', classId };
+  }
+  const result = await materializeCumulativeClassPortrait(db as any, classId, {
+    now: new Date(),
+    publication: expectation,
   });
-
-  const snapshots = await Promise.all(
-    students.map((student) =>
-      db.studentCompetencySnapshot.findFirst({
-        where: { userId: student.userId },
-        orderBy: { snapshotAt: 'desc' },
-      }),
-    ),
-  );
-
-  const validSnapshots = snapshots.filter((snapshot) => Boolean(snapshot) && snapshot!.factCount > 0);
-  if (validSnapshots.length === 0) {
-    return { studentCount: 0, snapshotId: null };
-  }
-
-  const aggregate = calculateClassAggregate(validSnapshots as Array<{ competencyVector: unknown }>);
-  const distribution = calculateLevelDistribution(validSnapshots as Array<{ competencyVector: unknown }>);
-  const riskSummary = calculateRiskSummary(validSnapshots as Array<{ riskFlags: unknown }>);
-  const previousClassSnapshot = await db.classCompetencySnapshot.findFirst({
-    where: { classId },
-    orderBy: { snapshotAt: 'desc' },
-  });
-  if (previousClassSnapshot && isSameClassAggregate(aggregate, previousClassSnapshot.aggregateJson)) {
-    return {
-      snapshotId: previousClassSnapshot.id,
-      studentCount: validSnapshots.length,
-      skipped: true,
-      reason: 'unchanged_aggregate',
-    };
-  }
-  const trend = calculateClassTrend(aggregate, previousClassSnapshot?.aggregateJson);
-
-  const snapshot = await db.classCompetencySnapshot.create({
-    data: {
-      classId,
-      snapshotAt: new Date(),
-      aggregateJson: aggregate as unknown as Prisma.InputJsonValue,
-      distributionJson: distribution as unknown as Prisma.InputJsonValue,
-      trendJson: trend as Prisma.InputJsonValue,
-      riskSummaryJson: riskSummary as unknown as Prisma.InputJsonValue,
-      levelDistribution: distribution as unknown as Prisma.InputJsonValue,
-      activeStudentCount: validSnapshots.length,
-      totalStudentCount: students.length,
-    },
-  });
-
-  return {
-    snapshotId: snapshot.id,
-    studentCount: validSnapshots.length,
-  };
-}
-
-function calculateClassAggregate(snapshots: Array<{ competencyVector: unknown }>) {
-  const vectors = snapshots.map((snapshot) => snapshot.competencyVector as CompetencyVector);
-  const dimensions = Object.keys(vectors[0]) as Array<keyof CompetencyVector>;
-
-  const aggregate: Record<string, { mean: number; stdDev: number }> = {};
-
-  for (const dimension of dimensions) {
-    const scores = vectors.map((vector) => vector[dimension].score);
-    const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-    const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
-
-    aggregate[dimension] = {
-      mean: Math.round(mean * 10) / 10,
-      stdDev: Math.round(Math.sqrt(variance) * 10) / 10,
-    };
-  }
-
-  return aggregate;
-}
-
-function calculateLevelDistribution(snapshots: Array<{ competencyVector: unknown }>) {
-  const vectors = snapshots.map((snapshot) => snapshot.competencyVector as CompetencyVector);
-  const levels = { excellent: 0, good: 0, average: 0, needsImprovement: 0, atRisk: 0 };
-
-  for (const vector of vectors) {
-    const avg = calculateOverallScore(vector);
-    if (avg >= 85) levels.excellent += 1;
-    else if (avg >= 70) levels.good += 1;
-    else if (avg >= 55) levels.average += 1;
-    else if (avg >= 40) levels.needsImprovement += 1;
-    else levels.atRisk += 1;
-  }
-
-  return levels;
-}
-
-function calculateRiskSummary(snapshots: Array<{ riskFlags: unknown }>) {
-  const allFlags = snapshots.flatMap((snapshot) => snapshot.riskFlags as string[]);
-  const summary: Record<string, number> = {};
-
-  for (const flag of allFlags) {
-    summary[flag] = (summary[flag] || 0) + 1;
-  }
-
-  return summary;
-}
-
-function calculateClassTrend(
-  current: Record<string, { mean: number; stdDev: number }>,
-  previous: unknown,
-) {
-  const previousAggregate = readRecord(previous);
-  return Object.fromEntries(Object.entries(current).map(([dimension, value]) => {
-    const previousValue = readRecord(previousAggregate[dimension]);
-    const previousMean = typeof previousValue.mean === 'number' ? previousValue.mean : value.mean;
-    const delta = Math.round((value.mean - previousMean) * 10) / 10;
-    return [dimension, {
-      previousMean,
-      currentMean: value.mean,
-      delta,
-      direction: delta > 3 ? 'up' : delta < -3 ? 'down' : 'stable',
-    }];
-  }));
-}
-
-function isSameClassAggregate(
-  current: Record<string, { mean: number; stdDev: number }>,
-  previous: unknown,
-) {
-  const previousAggregate = readRecord(previous);
-  return Object.entries(current).every(([dimension, value]) => {
-    const previousValue = readRecord(previousAggregate[dimension]);
-    return previousValue.mean === value.mean && previousValue.stdDev === value.stdDev;
-  });
+  return toJsonSafeWorkerResult(result);
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {
@@ -938,7 +927,7 @@ async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>)
   const db = getPrismaClient();
 
   if (job.data.coordinator || job.data.rebuildAll) {
-    const result = await rebuildStudentEvidenceFeatureCache(db);
+    const result = await rebuildStudentEvidenceFeatureCache(db as any);
     logWithThrottle(
       'evidence-feature-cache:rebuild',
       'info',
@@ -951,7 +940,7 @@ async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>)
     throw new Error('evidence-feature-cache job requires userId unless it is a coordinator rebuild job');
   }
 
-  await refreshStudentEvidenceFeatureCache(db, job.data.userId);
+  await refreshStudentEvidenceFeatureCache(db as any, job.data.userId);
   return { userId: job.data.userId, refreshed: true };
 }
 
@@ -960,6 +949,31 @@ async function startWorkers() {
 
   redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
   prisma = createPrismaClient();
+  await ensureCoursewareGenerationWorker(redis);
+  console.log('[Worker] Smart courseware generation worker started');
+  if (isMathDocumentGradingWorkerRequired()) {
+    mathDocumentGradingController = await createMathDocumentGradingWorker({
+      db: prisma,
+      redis,
+      concurrency: Number(process.env.MATH_DOCUMENT_GRADING_WORKER_CONCURRENCY ?? WORKER_CONCURRENCY),
+    });
+  } else {
+    console.log('[Worker] Math document grading worker disabled by MATH_DOCUMENT_GRADING_WORKER_REQUIRED');
+  }
+  if (isTeacherAssignmentReviewWorkerRequired()) {
+    teacherAssignmentReviewController = createTeacherAssignmentReviewOutboxWorker({
+      db: prisma,
+      handlers: {
+        derivativeRenderer: createDefaultReviewedDerivativeRenderer(),
+        derivativeOptions: defaultReviewedDerivativeOptions({ generatorVersion: process.env.TEACHER_REVIEW_DERIVATIVE_GENERATOR_VERSION, markitdownVersion: process.env.MARKITDOWN_VERSION, mathpixVersion: process.env.MATHPIX_VERSION }),
+      },
+      intervalMs: Number(process.env.TEACHER_REVIEW_OUTBOX_INTERVAL_MS ?? 5_000),
+      limit: Number(process.env.TEACHER_REVIEW_OUTBOX_BATCH_SIZE ?? 25),
+      onError: (error) => logWithThrottle('teacher-review-outbox:error', 'error', '[TeacherReviewOutbox] tick failed', error),
+    });
+  } else {
+    console.log('[Worker] Teacher assignment review outbox disabled by TEACHER_REVIEW_OUTBOX_REQUIRED');
+  }
 
   redis.on('error', (error) => {
     if (isInfrastructureError(error)) {
@@ -1026,6 +1040,14 @@ async function startWorkers() {
   console.log(`[Worker] Concurrency: ${WORKER_CONCURRENCY}`);
 }
 
+function isMathDocumentGradingWorkerRequired(): boolean {
+  return ['1', 'true', 'yes'].includes((process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED ?? 'true').toLowerCase());
+}
+
+function isTeacherAssignmentReviewWorkerRequired(): boolean {
+  return ['1', 'true', 'yes'].includes((process.env.TEACHER_REVIEW_OUTBOX_REQUIRED ?? 'true').toLowerCase());
+}
+
 async function shutdown(exitCode: number) {
   if (isShuttingDown) {
     return;
@@ -1041,6 +1063,9 @@ async function shutdown(exitCode: number) {
   if (classSnapshotWorker) cleanupTasks.push(classSnapshotWorker.close());
   if (sessionReportWorker) cleanupTasks.push(sessionReportWorker.close());
   if (evidenceFeatureCacheWorker) cleanupTasks.push(evidenceFeatureCacheWorker.close());
+  if (mathDocumentGradingController) cleanupTasks.push(mathDocumentGradingController.close());
+  if (teacherAssignmentReviewController) cleanupTasks.push(teacherAssignmentReviewController.close());
+  cleanupTasks.push(closeCoursewareGenerationWorker());
   if (eventQueue) cleanupTasks.push(eventQueue.close());
   if (studentQueue) cleanupTasks.push(studentQueue.close());
   if (classQueue) cleanupTasks.push(classQueue.close());
@@ -1061,12 +1086,13 @@ async function shutdown(exitCode: number) {
   process.exit(exitCode);
 }
 
-startWorkers().catch(async (error) => {
-  if (isInfrastructureError(error)) {
-    await handleInfrastructureFailure('worker:start', error);
-    return;
-  }
-
-  logWithThrottle('worker:start', 'error', '[Worker] Failed to start data governance worker', error);
-  await shutdown(1);
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  startWorkers().catch(async (error) => {
+    if (isInfrastructureError(error)) {
+      await handleInfrastructureFailure('worker:start', error);
+      return;
+    }
+    logWithThrottle('worker:start', 'error', '[Worker] Failed to start data governance worker', error);
+    await shutdown(1);
+  });
+}

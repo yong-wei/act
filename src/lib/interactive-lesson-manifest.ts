@@ -92,6 +92,11 @@ export interface InteractiveRuntimeActivityCardManifest {
   referenceMatches?: InteractiveRuntimeReferenceMatchManifest[];
   structuredFields?: string[];
   parameterFields?: Array<{ key: string; label: string; unit?: string }>;
+  tableColumns?: string[];
+  tableRowKeys?: string[];
+  tableFields?: string[];
+  tableSupplementalFields?: Array<{ key: string; label: string; unit?: string }>;
+  problemSource?: string;
 }
 
 export interface InteractiveRuntimeStepManifest {
@@ -129,6 +134,8 @@ export interface InteractiveRuntimeStepManifest {
   aiContextSpec: {
     pageGoal: string;
     deliveryMode: string;
+    allowedScope?: string[];
+    forbiddenScope?: string[];
   };
   interactiveFigureSpec: Record<string, unknown> & {
     layoutMirror?: string;
@@ -301,6 +308,12 @@ function normalizeActivityCard(value: unknown): InteractiveRuntimeActivityCardMa
     referenceMatches: normalizeReferenceMatches(card.reference_matches ?? card.referenceMatches),
     structuredFields: asStringArray(card.structured_fields ?? card.structuredFields),
     parameterFields: normalizeParameterFields(card.parameter_fields ?? card.parameterFields),
+    tableColumns: asStringArray(card.columns ?? card.table_columns ?? card.tableColumns),
+    tableRowKeys: asStringArray(card.row_keys ?? card.rowKeys ?? card.table_row_keys ?? card.tableRowKeys),
+    tableSupplementalFields: normalizeParameterFields(card.fields ?? card.table_supplemental_fields ?? card.tableSupplementalFields),
+    problemSource: card.problem_source || card.problemSource
+      ? String(card.problem_source ?? card.problemSource)
+      : undefined,
   };
 }
 
@@ -339,7 +352,9 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
       stepRevealPolicy: interactionSpec.step_reveal_policy
         ? asRecord(interactionSpec.step_reveal_policy)
         : undefined,
-      answerReveal: interactionSpec.answer_reveal ? String(interactionSpec.answer_reveal) : undefined,
+      answerReveal: interactionSpec.reveal_answer || interactionSpec.answer_reveal || interactionSpec.answerReveal
+        ? String(interactionSpec.reveal_answer ?? interactionSpec.answer_reveal ?? interactionSpec.answerReveal)
+        : undefined,
     },
     teacherControls: {
       releaseActivity: String(
@@ -372,6 +387,8 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
     aiContextSpec: {
       pageGoal: String(aiContextSpec.page_goal ?? aiContextSpec.pageGoal ?? ''),
       deliveryMode: String(aiContextSpec.delivery_mode ?? aiContextSpec.deliveryMode ?? ''),
+      allowedScope: asStringArray(aiContextSpec.allowed_scope ?? aiContextSpec.allowedScope),
+      forbiddenScope: asStringArray(aiContextSpec.forbidden_scope ?? aiContextSpec.forbiddenScope),
     },
     interactiveFigureSpec: {
       ...interactiveFigureSpec,

@@ -2,12 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 process.env.NEXTAUTH_SECRET ??= 'assignment-route-test-lineage-secret';
 
-const { getServerAuthSession, createAssignmentDraft, createNextDraftRevision, updateAssignmentDraft, publishAssignmentRevision, findFirstAssignment, findCatalogRef, findCatalogRefs, findManagedClasses } = vi.hoisted(() => ({
+const { getServerAuthSession, createAssignmentDraft, createNextDraftRevision, updateAssignmentDraft, publishAssignmentRevision, listTeacherAssignments, findFirstAssignment, findCatalogRef, findCatalogRefs, findManagedClasses } = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   createAssignmentDraft: vi.fn(),
   createNextDraftRevision: vi.fn(),
   updateAssignmentDraft: vi.fn(),
   publishAssignmentRevision: vi.fn(),
+  listTeacherAssignments: vi.fn(),
   findFirstAssignment: vi.fn(),
   findCatalogRef: vi.fn(),
   findCatalogRefs: vi.fn(),
@@ -21,10 +22,11 @@ vi.mock('@/lib/assignments/assignment-service', async (importOriginal) => ({
   createNextDraftRevision,
   updateAssignmentDraft,
   publishAssignmentRevision,
+  listTeacherAssignments,
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: { assignment: { findMany: vi.fn(async () => []), findFirst: findFirstAssignment }, adaptiveAssessmentItemRef: { findUnique: findCatalogRef, findMany: findCatalogRefs }, class: { findMany: findManagedClasses } } }));
 
-import { POST } from '../route';
+import { GET, POST } from '../route';
 import { POST as POST_NEXT_DRAFT } from '../[assignmentId]/next-draft/route';
 import { GET as GET_ASSIGNMENT, PATCH as PATCH_ASSIGNMENT } from '../[assignmentId]/route';
 import { POST as PUBLISH_ASSIGNMENT } from '../[assignmentId]/publish/route';
@@ -64,6 +66,7 @@ describe('teacher assignment mutation route', () => {
     createNextDraftRevision.mockResolvedValue({ id: 'revision-2', state: 'DRAFT', revisionNumber: 2 });
     updateAssignmentDraft.mockResolvedValue({ id: 'revision-1', state: 'DRAFT', version: 2 });
     publishAssignmentRevision.mockResolvedValue({ id: 'revision-1', state: 'PUBLISHED', version: 3, frozenAt: new Date('2026-07-11T00:00:00Z') });
+    listTeacherAssignments.mockResolvedValue([]);
     findFirstAssignment.mockResolvedValue({ id: 'assignment-1', revisions: [{ id: 'revision-1', state: 'PUBLISHED', version: 3, frozenAt: new Date('2026-07-11T00:00:00Z'), questions: [], audiences: [] }] });
     findCatalogRef.mockResolvedValue({ id: 'source-1', questionId: 'control-correction-checkpoint-01', contentHash: '5ae0d4bab205672561a6ea4c82388f21aa876252eeb52e4d71456152c201e1c4', algorithmVersion: 'catalog-v1' });
     findCatalogRefs.mockResolvedValue([
@@ -71,6 +74,50 @@ describe('teacher assignment mutation route', () => {
       { id: 'source-ineligible', questionId: 'AC-Q-0001', contentHash: 'd71f098353d20cf581944978fa5b2883cef1e7ca3fc37653b81b2837cbd5f0ac', algorithmVersion: 'catalog-v1' },
     ]);
     findManagedClasses.mockResolvedValue([{ id: 'class-1', name: '自控 2401', code: 'AC2401', year: '2026', semester: '春' }]);
+  });
+
+  it('returns actor-authorized assignment review summaries from the list service', async () => {
+    listTeacherAssignments.mockResolvedValueOnce([{
+      id: 'assignment-1',
+      state: 'PUBLISHED',
+      updatedAt: new Date('2026-07-17T00:00:00Z'),
+      revisions: [],
+      reviewSummary: {
+        submissionCount: 2,
+        pendingReviewCount: 1,
+        reviewedCount: 1,
+        nextReview: {
+          submissionId: 'submission-1',
+          questionId: 'question-1',
+          reviewId: 'review-1',
+          gradingRunId: 'run-1',
+        },
+      },
+    }]);
+
+    const response = await GET() as Response;
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      assignments: [{
+        id: 'assignment-1',
+        reviewSummary: {
+          submissionCount: 2,
+          pendingReviewCount: 1,
+          reviewedCount: 1,
+          nextReview: {
+            submissionId: 'submission-1',
+            questionId: 'question-1',
+            reviewId: 'review-1',
+            gradingRunId: 'run-1',
+          },
+        },
+      }],
+    });
+    expect(listTeacherAssignments).toHaveBeenCalledWith(expect.anything(), {
+      id: 'teacher-1',
+      role: 'TEACHER',
+    });
   });
 
   it('requires authentication and teacher authorization', async () => {
@@ -134,22 +181,48 @@ describe('teacher assignment mutation route', () => {
     expect((await PATCH_ASSIGNMENT(patchRequest(), { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response).status).toBe(200);
     updateAssignmentDraft.mockRejectedValueOnce(new (await import('@/lib/assignments/assignment-domain')).AssignmentDomainError('version-conflict'));
     expect((await PATCH_ASSIGNMENT(patchRequest(), { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response).status).toBe(409);
-    const publish = new Request('https://act.example/api/teacher/assignments/assignment-1/publish', { method: 'POST', headers: { origin: 'https://act.example' }, body: JSON.stringify({ revisionId: 'revision-1', expectedVersion: 2, idempotencyKey: 'publish-assignment-route-1', audiences: [{ classId: 'class-1', availableAt: '2026-07-12T00:00:00.000Z', dueAt: '2026-07-13T00:00:00.000Z' }] }) });
+    const publish = new Request('https://act.example/api/teacher/assignments/assignment-1/publish', { method: 'POST', headers: { origin: 'https://act.example' }, body: JSON.stringify({ revisionId: 'revision-1', expectedVersion: 2, contentDigest: `sha256:${'a'.repeat(64)}`, idempotencyKey: 'assignment-ui:assignment-1:revision-1:2', audiences: [{ classId: 'class-1', availableAt: '2026-07-12T00:00:00.000Z', dueAt: '2026-07-13T00:00:00.000Z' }] }) });
     expect((await PUBLISH_ASSIGNMENT(publish, { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response).status).toBe(200);
     const reload = await GET_ASSIGNMENT(new Request('https://act.example/api/teacher/assignments/assignment-1'), { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response;
     expect(reload.status).toBe(200);
     await expect(reload.json()).resolves.toMatchObject({ assignment: { revisions: [{ state: 'PUBLISHED', version: 3, frozenAt: expect.any(String) }] } });
   });
 
+  it('rejects unsaved content fields from the publication command', async () => {
+    const publish = new Request('https://act.example/api/teacher/assignments/assignment-1/publish', {
+      method: 'POST',
+      headers: { origin: 'https://act.example' },
+      body: JSON.stringify({
+        revisionId: 'revision-1',
+        expectedVersion: 2,
+        contentDigest: `sha256:${'a'.repeat(64)}`,
+        idempotencyKey: 'assignment-ui:assignment-1:revision-1:2',
+        audiences: [{ classId: 'class-1', availableAt: '2026-07-12T00:00:00.000Z', dueAt: '2026-07-13T00:00:00.000Z' }],
+        draft: draft(),
+      }),
+    });
+    const response = await PUBLISH_ASSIGNMENT(publish, { params: Promise.resolve({ assignmentId: 'assignment-1' }) }) as Response;
+    expect(response.status).toBe(400);
+    expect(publishAssignmentRevision).not.toHaveBeenCalled();
+  });
+
   it('materializes a complete assignment-owned derivative instead of trusting preview lineage', async () => {
     const response = await SELECT_CATALOG_QUESTION(new Request('https://act.example/api/teacher/assignments/question-catalog', { method: 'POST', headers: { origin: 'https://act.example' }, body: JSON.stringify({ sourceId: 'source-1' }) })) as Response;
     expect(response.status).toBe(200);
-    const payload = await response.json() as { question: Record<string, unknown> & { source: Record<string, unknown> } };
+    const payload = await response.json() as { question: Record<string, unknown> & { source: Record<string, unknown>; rubric: Record<string, unknown> } };
     expect(payload.question.referenceAnswer).toContain('A');
     expect(payload.question.source).toMatchObject({ family: 'ASSIGNMENT_DERIVATIVE', parentSourceId: 'source-1', parentSourceVersion: 'catalog-v1', catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:control-correction-checkpoint-01', originalSourceFamily: 'checkpoint-authored-question', reviewState: 'path-eligible', eligibilityState: 'path-eligible', limitations: [] });
     expect(payload.question.source).toHaveProperty('parentSourceHash');
     expect(payload.question.source).toHaveProperty('contentHash');
     expect(payload.question.source).toHaveProperty('selectionProof');
+    expect(payload.question.rubric).toMatchObject({
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      criteria: [expect.objectContaining({
+        goalDimension: 'engineeringDecision',
+        detailedRubricEnabled: false,
+        levels: [],
+      })],
+    });
   });
 
   it('rejects an imported-unreviewed catalog item server-side', async () => {

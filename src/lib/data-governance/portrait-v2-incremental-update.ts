@@ -7,8 +7,6 @@ import {
 } from './kaq-objective-taxonomy';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,
-  PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
-  PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS,
   createPortraitV2Payload,
   type PortraitV2DimensionState,
   type PortraitV2Payload,
@@ -18,7 +16,6 @@ import {
 const DAY_MS = 86_400_000;
 const MAX_SCORE_DELTA_PER_UPDATE = 12;
 const CONFIDENCE_GAIN_PER_EVIDENCE = 0.08;
-const CONFIDENCE_DECAY_PER_DAY = 0.001;
 const MAX_FACT_LINEAGE_REFS = 20;
 const NEGATIVE_RATIONALE = 'Governed negative evidence applied a bounded score correction.';
 const NEGATIVE_LIMITATION = 'bounded-negative-evidence-correction';
@@ -29,6 +26,8 @@ export interface PortraitV2IncrementalEvidence {
   sourceFamily: 'LearningFact';
   outcome: 'positive' | 'partial' | 'negative' | 'context-only';
   contributions: Partial<Record<PortraitV2DimensionId, number>>;
+  rubricWeight?: number;
+  normalizedPerformance?: boolean;
 }
 
 export interface PortraitV2IncrementalResult {
@@ -47,6 +46,11 @@ export interface PortraitLearningFactDelta {
   createdAt: Date;
 }
 
+export function isPortraitV2ProfileEvidence(evidence: PortraitV2IncrementalEvidence): boolean {
+  return evidence.outcome !== 'context-only'
+    && Object.values(evidence.contributions).some((value) => value !== 0 || evidence.normalizedPerformance);
+}
+
 export function updatePortraitV2Incrementally(input: {
   userId: string;
   previous: PortraitV2PayloadShape | null;
@@ -55,21 +59,35 @@ export function updatePortraitV2Incrementally(input: {
   updateCursor?: PortraitV2PayloadShape['updateCursor'];
 }): PortraitV2IncrementalResult {
   const generatedAt = iso(input.generatedAt);
+  const uniqueEvidence = orderAndDedupePortraitV2Evidence(input.evidence);
+  const profileEvidence = uniqueEvidence.filter(isPortraitV2ProfileEvidence);
+  if (input.previous && profileEvidence.length === 0) {
+    return {
+      payload: createPortraitV2Payload({
+        userId: input.previous.userId,
+        generatedAt: input.previous.generatedAt,
+        now: generatedAt,
+        dimensions: input.previous.dimensions,
+        derivation: input.previous.derivation,
+        updateCursor: input.previous.updateCursor,
+      }),
+      mappingIssues: [],
+      affectedDimensions: [],
+    };
+  }
   const previousById = new Map(input.previous?.dimensions.map((dimension) => [dimension.id, dimension]) ?? []);
   const affectedDimensions: PortraitV2DimensionId[] = [];
-  const uniqueEvidence = [...new Map(input.evidence.map((item) => [item.id, item])).values()];
 
   const dimensions = PORTRAIT_V2_DIMENSION_IDS.map((id) => {
     const previous = previousById.get(id) ?? missingDimension(id);
-    const aged = ageDimension(previous, generatedAt, input.previous?.generatedAt ?? generatedAt);
-    const relevant = uniqueEvidence.filter((item) =>
-      item.outcome !== 'context-only' &&
+    const unchanged = preserveDimension(previous, generatedAt);
+    const relevant = profileEvidence.filter((item) =>
       Number.isFinite(item.contributions[id]) &&
-      item.contributions[id] !== 0,
+      (item.contributions[id] !== 0 || item.normalizedPerformance === true),
     );
-    if (relevant.length === 0) return aged;
+    if (relevant.length === 0) return unchanged;
     affectedDimensions.push(id);
-    return applyEvidence(aged, relevant, id, generatedAt);
+    return applyEvidence(unchanged, relevant, id, generatedAt);
   });
 
   return {
@@ -91,12 +109,28 @@ export function mapLearningFactsToPortraitEvidence(facts: PortraitLearningFactDe
   mappingIssues: string[];
 } {
   const mappingIssues = new Set<string>();
-  const evidence = facts.map((fact) => {
+  const orderedFacts = [...new Map(
+    [...facts]
+      .sort((a, b) => compareOccurredAtAndId(
+        a.startedAt.toISOString(),
+        a.id,
+        b.startedAt.toISOString(),
+        b.id,
+      ))
+      .map((fact) => [fact.id, fact]),
+  ).values()];
+  const evidence = orderedFacts.map((fact) => {
     const profileWeight = resolveLearningFactProfileWeight(fact.contextJson);
+    const context = isRecord(fact.contextJson) ? fact.contextJson : {};
+    const rawRubricWeight = context.rubricWeight;
+    const hasRubricWeight = typeof rawRubricWeight === 'number';
+    const validRubricWeight = hasRubricWeight && Number.isFinite(rawRubricWeight) && rawRubricWeight > 0;
+    if (hasRubricWeight && !validRubricWeight) mappingIssues.add(`invalid-rubric-weight:${fact.id}`);
     const contributions: Partial<Record<PortraitV2DimensionId, number>> = {};
     const source = isRecord(fact.competencyContribution) ? fact.competencyContribution : {};
     for (const [legacyDimension, rawValue] of Object.entries(source)) {
-      if (typeof rawValue !== 'number' || !Number.isFinite(rawValue) || rawValue === 0) continue;
+      const normalizedRubricPerformance = hasRubricWeight;
+      if (typeof rawValue !== 'number' || !Number.isFinite(rawValue) || (rawValue === 0 && !normalizedRubricPerformance)) continue;
       const mapping = mapLegacyCompetencyDimensionToPortraitV2(legacyDimension);
       if (mapping.targetDimensions.length === 0) {
         mappingIssues.add(`unknown-portrait-dimension:${legacyDimension}`);
@@ -112,9 +146,21 @@ export function mapLearningFactsToPortraitEvidence(facts: PortraitLearningFactDe
       sourceFamily: 'LearningFact' as const,
       outcome: profileWeight <= 0 ? 'context-only' as const : classifyOutcome(fact.outcome),
       contributions,
+      rubricWeight: hasRubricWeight ? (validRubricWeight ? rawRubricWeight : 1) : undefined,
+      normalizedPerformance: hasRubricWeight,
     };
   });
   return { evidence, mappingIssues: [...mappingIssues] };
+}
+
+export function orderAndDedupePortraitV2Evidence(
+  evidence: PortraitV2IncrementalEvidence[],
+): PortraitV2IncrementalEvidence[] {
+  return [...new Map(
+    [...evidence]
+      .sort((a, b) => compareOccurredAtAndId(a.occurredAt, a.id, b.occurredAt, b.id))
+      .map((item) => [item.id, item]),
+  ).values()];
 }
 
 function applyEvidence(
@@ -123,11 +169,16 @@ function applyEvidence(
   id: PortraitV2DimensionId,
   generatedAt: string,
 ): PortraitV2DimensionState {
-  const ordered = [...evidence].sort((a, b) => Date.parse(a.occurredAt) - Date.parse(b.occurredAt));
+  const ordered = orderAndDedupePortraitV2Evidence(evidence);
   const signals = ordered.map((item) => signedSignal(item, item.contributions[id] ?? 0));
-  const averageSignal = signals.reduce((sum, value) => sum + value, 0) / signals.length;
+  const observationScores = signals.map((signal, index) => ordered[index].normalizedPerformance
+    ? clamp(signal * 100, 0, 100)
+    : clamp(50 + signal * 50, 0, 100));
+  const weights = ordered.map((item) => safeRubricWeight(item.rubricWeight));
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  const averageSignal = signals.reduce((sum, value, index) => sum + value * weights[index], 0) / totalWeight;
   const hadEvidence = previous.evidenceSummary.totalCount > 0;
-  const observation = clamp(50 + averageSignal * 50, 0, 100);
+  const observation = observationScores.reduce((sum, value, index) => sum + value * weights[index], 0) / totalWeight;
   const boundedDelta = clamp(observation - previous.score, -MAX_SCORE_DELTA_PER_UPDATE, MAX_SCORE_DELTA_PER_UPDATE);
   const score = round(hadEvidence ? previous.score + boundedDelta : observation);
   const confidence = round(clamp(
@@ -162,25 +213,31 @@ function applyEvidence(
   };
 }
 
-function ageDimension(
+function preserveDimension(
   previous: PortraitV2DimensionState,
   generatedAt: string,
-  previousGeneratedAt: string,
 ): PortraitV2DimensionState {
-  if (previous.evidenceSummary.totalCount === 0 || previous.freshness.asOf === null) return { ...previous };
-  const elapsedDays = Math.max(0, (Date.parse(generatedAt) - Date.parse(previousGeneratedAt)) / DAY_MS);
-  const confidence = round(clamp(previous.confidence - elapsedDays * CONFIDENCE_DECAY_PER_DAY, 0, 1));
   return {
     ...previous,
-    confidence,
-    trend: 'stable',
-    freshness: freshness(previous.freshness.asOf, generatedAt),
+    freshness: previous.freshness.asOf === null
+      ? { ...previous.freshness }
+      : freshness(previous.freshness.asOf, generatedAt),
     evidenceSummary: {
       totalCount: previous.evidenceSummary.totalCount,
       sourceFamilyCounts: { ...previous.evidenceSummary.sourceFamilyCounts },
     },
     sourceLineage: previous.sourceLineage.map((ref) => ({ ...ref })),
   };
+}
+
+function compareOccurredAtAndId(
+  leftOccurredAt: string,
+  leftId: string,
+  rightOccurredAt: string,
+  rightId: string,
+): number {
+  const occurredAtDifference = Date.parse(leftOccurredAt) - Date.parse(rightOccurredAt);
+  return occurredAtDifference !== 0 ? occurredAtDifference : leftId.localeCompare(rightId);
 }
 
 function missingDimension(id: PortraitV2DimensionId): PortraitV2DimensionState {
@@ -203,9 +260,14 @@ function missingDimension(id: PortraitV2DimensionId): PortraitV2DimensionState {
 
 function signedSignal(evidence: PortraitV2IncrementalEvidence, contribution: number): number {
   const magnitude = Math.abs(clamp(contribution, -1, 1));
+  if (evidence.normalizedPerformance) return clamp(contribution, 0, 1);
   if (evidence.outcome === 'negative') return -magnitude;
   if (evidence.outcome === 'partial') return contribution * 0.45;
   return contribution;
+}
+
+function safeRubricWeight(value: number | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 1;
 }
 
 function classifyOutcome(outcome: string): PortraitV2IncrementalEvidence['outcome'] {
@@ -219,9 +281,7 @@ function freshness(asOf: string, generatedAt: string): PortraitV2DimensionState[
   return {
     asOf,
     evidenceAgeDays,
-    state: evidenceAgeDays <= PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS
-      ? 'current'
-      : evidenceAgeDays <= PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS ? 'partial' : 'stale',
+    state: 'current',
   };
 }
 

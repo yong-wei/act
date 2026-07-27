@@ -110,6 +110,47 @@ describe('control odyssey Rust runtime adapter', () => {
     expect(metrics.controlEnergy).toBeGreaterThanOrEqual(0);
   });
 
+  it('keeps P level 5 settling time independent from 3000-meter completion', () => {
+    const tierConfig = getTierConfig('level-1', 'bronze');
+    const originalDistance = tierConfig.distance;
+    const runPLevelFive = () => computeOfficialOdysseyTelemetry({
+      levelId: 'level-1',
+      tier: 'bronze',
+      controllerId: 'P',
+      controlMode: 'AUTO',
+      pidParams: { kp: 1.6, ki: 0, kd: 0 },
+      controllerLevels: { P: 5, PI: 0, PD: 0, PID: 0, VFB: 0, FF: 0, SMITH: 0 },
+    });
+
+    expect(originalDistance).toBe(3000);
+    try {
+      const standardRoute = runPLevelFive();
+      tierConfig.distance = originalDistance * 2;
+      const extendedRoute = runPLevelFive();
+
+      expect(standardRoute.settlingTime).toBeCloseTo(2.8, 10);
+      expect(extendedRoute.settlingTime).toBeCloseTo(standardRoute.settlingTime, 10);
+    } finally {
+      tierConfig.distance = originalDistance;
+    }
+  });
+
+  it('labels maintained Odyssey settling-time copy as 调节时间', () => {
+    const arenaDocs = readFileSync(
+      path.join(process.cwd(), 'docs/arena/11-odyssey-and-advanced-workbenches.md'),
+      'utf8',
+    );
+    const resultSource = readFileSync(
+      path.join(process.cwd(), 'src/resources/interactive-learning/control-odyssey/index.tsx'),
+      'utf8',
+    );
+
+    expect(arenaDocs).toContain('settlingTime：调节时间；');
+    expect(arenaDocs).not.toContain('settlingTime：通关时间');
+    expect(resultSource).toContain('调节时间 ${metrics.settlingTime.toFixed(1)}s');
+    expect(resultSource).not.toContain('通关时间 ${metrics.settlingTime.toFixed(1)}s');
+  });
+
   it('builds deterministic sequence references for random Odyssey tiers', () => {
     for (const tier of ['silver', 'gold'] as const) {
       const first = buildRuntimeTierConfig(getTierConfig('level-1', tier));

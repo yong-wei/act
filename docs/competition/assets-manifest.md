@@ -70,6 +70,8 @@ All screenshot and browser-evidence references are centralized in `artifacts/com
 
 ## Model And Provider Note
 
+45 分钟根轨迹真实 provider 录制、备份标记和未完成项的声明口径见 [智能课件发布 P0 运行手册](../operations/smart-courseware-p0-runbook.md)。
+
 The demo supports OpenAI-compatible provider configuration through the existing provider runtime. The package stores only environment secret references, requires tools, streaming, and citation support, and does not claim support for any runtime path that has not landed in this repository.
 
 ## Privacy Note

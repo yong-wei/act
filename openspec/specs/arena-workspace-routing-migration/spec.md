@@ -2,7 +2,6 @@
 
 ## Purpose
 TBD - created by archiving change arena-workspace-routing-migration. Update Purpose after archive.
-
 ## Requirements
 ### Requirement: Implemented workspace modes route to unified workbench
 Arena workspace links SHALL route implemented workspace modes to `/interactive-learning/control-workbench` with an explicit preset.
@@ -38,3 +37,12 @@ Challenge detail pages SHALL refer students to the unified control workbench for
 - **WHEN** a student opens a migrated challenge detail page
 - **THEN** the primary entry link SHALL be labeled in Chinese as entering the control workbench
 - **AND** the detail page SHALL still not expose controller submission forms.
+
+### Requirement: Odyssey workspace routes carry assigned level identity
+Arena workspace routing SHALL include the configured Odyssey level identity for a Control Odyssey task.
+
+#### Scenario: Dedicated Odyssey route includes assigned level
+- **WHEN** `getArenaWorkspaceHref` routes a configured Control Odyssey task
+- **THEN** the returned Odyssey URL MUST include `arenaTask` and the configured `odysseyLevelId`
+- **AND** it MUST preserve valid publication and adaptive-path context.
+

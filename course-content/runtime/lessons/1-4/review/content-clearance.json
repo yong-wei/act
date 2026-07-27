@@ -1,8 +1,8 @@
 {
   "lesson_id": "1-4",
   "reviewer": "course-pedagogy-reviewer",
-  "batch": "unit-1-4-content-clearance-2026-07-14",
-  "time": "2026-07-14T04:30:00.000Z",
+  "batch": "unit-1-4-content-clearance-2026-07-17-1023",
+  "time": "2026-07-17T02:23:59.000Z",
   "model": "gpt-5.6-sol",
   "status": "cleared",
   "review_status": "model-cleared",
@@ -121,6 +121,28 @@
       "rationale": "课程领域复审确认单元 1-4 图像 1-4-fig-03-open-loop-bode.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
     },
     {
+      "resourceId": "runtime-media:1-4:1-4-fig-03b-loop-k8-bode.png",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-fig-03b-loop-k8-bode.png",
+      "sourceHash": "sha256:23f817e9487bcbcbbd892e16695bf5c0e1401ce8908a8639708a89621d4773c5",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/1-4-fig-03b-loop-k8-bode.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域模型复审确认后备图对应环路 L(s)=8G0(s)，0 dB 线与增益穿越频率 ωc≈1.820 rad/s 的数学关系和图形标注正确；该媒体保持 model-cleared，currentPathEligible=false，不提升为真实人工审查。"
+    },
+    {
       "resourceId": "runtime-media:1-4:1-4-fig-04-open-loop-nyquist.png",
       "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-fig-04-open-loop-nyquist.png",
       "sourceHash": "sha256:11a0666aa6a2a0cc1937b5508755a871f50abcc88726db5a20273609dcc5af62",
@@ -233,7 +255,7 @@
     {
       "resourceId": "knowledge-card:Bode与Nyquist同源表征_1_4",
       "sourcePath": "course-content/runtime/knowledge/cards/nodes/Bode与Nyquist同源表征_1_4.md",
-      "sourceHash": "sha256:68ac30e01e5a13183e0dbe86ea8a829dec47af92632be683070137abec52bb26",
+      "sourceHash": "sha256:078a176e2c4f88b4621fe6c5cc133ee847c9fd8e98af673f43ae6580078755fd",
       "sourceVersionRef": "runtime-knowledge-card.v1",
       "graphNodeRefs": {
         "knowledge": [
@@ -246,12 +268,12 @@
       },
       "pathTarget": null,
       "currentPathEligible": false,
-      "rationale": "已核对知识卡“Bode 与 Nyquist 的同源表征”的定义、公式、误区说明及其与单元 1-4 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+      "rationale": "模型复审确认 Bode 图与 Nyquist 图同源于同一环路频率响应，但正频率支的幅相轨迹不等于包含负频率支、原点绕避与无穷远闭合段的完整 Nyquist 围线。该卡仅用于知识查阅与引用支持，currentPathEligible=false，不直接产生 mastery evidence；仍为 model-cleared，缺少真实人工 provenance。"
     },
     {
       "resourceId": "knowledge-card:多表征一致性读图_1_4",
       "sourcePath": "course-content/runtime/knowledge/cards/nodes/多表征一致性读图_1_4.md",
-      "sourceHash": "sha256:c11d5a8020da7175024346c6c885922c911d53cfa3e36d55776b1a8a63679c9e",
+      "sourceHash": "sha256:d35f30a63353fdfcc8c5a84860165fd99e5589f8960173f26ee72b78959d5492",
       "sourceVersionRef": "runtime-knowledge-card.v1",
       "graphNodeRefs": {
         "knowledge": [
@@ -264,12 +286,12 @@
       },
       "pathTarget": null,
       "currentPathEligible": false,
-      "rationale": "已核对知识卡“同一系统的多表征一致性读图”的定义、公式、误区说明及其与单元 1-4 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+      "rationale": "模型复审确认多表征一致性判断必须先区分对象：闭环极点与阶跃响应对应闭环传递函数，Bode/Nyquist 与穿越频率通常对应环路传递函数，不能把不同对象的曲线直接混读。该卡仅用于知识查阅与引用支持，currentPathEligible=false，不直接产生 mastery evidence；仍为 model-cleared，缺少真实人工 provenance。"
     },
     {
       "resourceId": "knowledge-card:时域频域通道区分_1_4",
       "sourcePath": "course-content/runtime/knowledge/cards/nodes/时域频域通道区分_1_4.md",
-      "sourceHash": "sha256:4c727126de7576220a5c783cdafe665ef66fccde936d80734c2800a29998e9e0",
+      "sourceHash": "sha256:ee1c50059bb87760f7a82eea838b7238592db0319942e2895a3fd2fd18afbe57",
       "sourceVersionRef": "runtime-knowledge-card.v1",
       "graphNodeRefs": {
         "knowledge": [
@@ -282,12 +304,12 @@
       },
       "pathTarget": null,
       "currentPathEligible": false,
-      "rationale": "已核对知识卡“时域与频域的对象和通道区分 | Domain and Channel Distinction”的定义、公式、误区说明及其与单元 1-4 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+      "rationale": "模型复审确认一般反馈公式必须在方框图连接、信号方向和正负反馈约定明确后使用；负反馈常写 T(s)=G(s)/(1+G(s)H(s))，不能脱离约定机械套用分母符号。该卡仅用于知识查阅与引用支持，currentPathEligible=false，不直接产生 mastery evidence；仍为 model-cleared，缺少真实人工 provenance。"
     },
     {
       "resourceId": "knowledge-card:闭环带宽与环路穿越频率_1_4",
       "sourcePath": "course-content/runtime/knowledge/cards/nodes/闭环带宽与环路穿越频率_1_4.md",
-      "sourceHash": "sha256:93c27446f98d1b93df124545399ba7c7e6499f8632c30725e8ed39edcf3af1a8",
+      "sourceHash": "sha256:cb61e2da2ba79d495a0775f233351971a04c740543dcd6879b284ce30bfd74c1",
       "sourceVersionRef": "runtime-knowledge-card.v1",
       "graphNodeRefs": {
         "knowledge": [
@@ -300,7 +322,7 @@
       },
       "pathTarget": null,
       "currentPathEligible": false,
-      "rationale": "已核对知识卡“闭环带宽与环路增益穿越频率”的定义、公式、误区说明及其与单元 1-4 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+      "rationale": "模型复审确认闭环带宽按闭环低通幅频响应相对低频基准下降 3 dB 判定，环路增益穿越频率按 |L(jω)|=1 判定；非低通闭环以及多交点或无交点情形必须单独说明，二者不能直接等同。该卡仅用于知识查阅与引用支持，currentPathEligible=false，不直接产生 mastery evidence；仍为 model-cleared，缺少真实人工 provenance。"
     }
   ]
 }

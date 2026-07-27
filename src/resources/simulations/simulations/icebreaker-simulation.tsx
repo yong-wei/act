@@ -5,7 +5,7 @@
  * 使用 Azipod 3-DOF 模型和冰阻力 Stick-Slip 模型
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Component, Suspense, useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -17,17 +17,38 @@ import {
 } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { MaritimeEnvironment } from '../environment/maritime-environment';
 import { SimulationClock } from '@/lib/simulation';
-import {
-  UnifiedCameraController,
-  RightClickFreeModeBridge,
-  type CameraMode,
-} from '../components/camera-controller';
+import { RightClickFreeModeBridge } from '../components/camera-controller';
+import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
+import {
+  EnvironmentScene,
+  SceneEnvironmentProvider,
+  useEnvironmentWaterColors,
+  useSceneEnvironment,
+} from '../scene/environment';
+import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { WakeTrail } from '../scene/wake';
+import {
+  SceneSoundscapeProvider,
+  SoundscapeAmbienceDriver,
+} from '../scene/audio';
+import {
+  TeachingAnnotationsProvider,
+  useTeachingAnnotations,
+} from '../scene/annotations';
+import {
+  SceneQualityDriver,
+  SceneQualityProvider,
+  useSceneQuality,
+} from '../scene/quality';
+import { ScenePostEffects } from '../scene/post';
+import { icebreakerXuelongSceneVisual } from '../profiles/icebreaker-xuelong-scene';
+import { platformHeadingToSceneRad } from '../scene/heading';
+import { WaterHuggingLine } from '../scene/lines';
 import {
   Play,
   Pause,
@@ -39,6 +60,10 @@ import {
   Gauge,
   Activity,
   ThermometerSnowflake,
+  Compass,
+  Video,
+  Orbit,
+  ArrowDownFromLine,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -134,111 +159,51 @@ interface RobustResponse {
 
 // ============ 着色器材质 ============
 
-const iceWaterVertexShader = `
-  uniform float time;
-  uniform float iceMode;
-  varying vec2 vUv;
-  varying float vHeight;
+/** 破冰船模型 */
+const OPTIMIZED_MODEL_URL = '/assets/models-opt/icebreaker.glb';
+const ORIGINAL_MODEL_URL = '/assets/icebreaker.glb';
 
-  void main() {
-    vUv = uv;
-    vec3 pos = position;
-
-    // 冰区波浪更小
-    float waveDamping = mix(1.0, 0.2, iceMode);
-    float wave1 = sin(pos.x * 0.02 + time * 0.5) * 0.5 * waveDamping;
-    float wave2 = sin(pos.y * 0.015 + time * 0.3) * 0.3 * waveDamping;
-    float wave3 = sin((pos.x + pos.y) * 0.01 + time * 0.4) * 0.2 * waveDamping;
-
-    pos.z = wave1 + wave2 + wave3;
-    vHeight = pos.z;
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
+class ModelAssetErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
   }
-`;
-
-const iceWaterFragmentShader = `
-  uniform float time;
-  uniform float iceMode;
-  varying vec2 vUv;
-  varying float vHeight;
-
-  void main() {
-    // 统一到平台海洋基色
-    vec3 deepColor = vec3(0.07, 0.25, 0.38);
-    vec3 shallowColor = vec3(0.12, 0.42, 0.63);
-
-    // 冰区颜色仅做轻度冷色偏移，避免与其他仿真风格割裂
-    vec3 iceDeepColor = vec3(0.16, 0.34, 0.52);
-    vec3 iceShallowColor = vec3(0.48, 0.67, 0.80);
-
-    // 根据冰区模式混合颜色
-    vec3 baseDeep = mix(deepColor, iceDeepColor, iceMode);
-    vec3 baseShallow = mix(shallowColor, iceShallowColor, iceMode);
-
-    float depth = smoothstep(-1.0, 1.0, vHeight);
-    vec3 waterColor = mix(baseDeep, baseShallow, depth);
-
-    // 冰块效果 (随机白色斑块)
-    if (iceMode > 0.5) {
-      float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
-      if (noise > 0.7) {
-        waterColor = mix(waterColor, vec3(0.90, 0.95, 1.0), 0.2);
-      }
-    }
-
-    gl_FragColor = vec4(waterColor, 0.35);
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
   }
-`;
-
-// ============ 3D 组件 ============
-
-/** 冰区海面组件 */
-function IceOcean({ iceMode }: { iceMode: boolean }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-
-  useFrame(({ clock }) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.time.value = clock.getElapsedTime();
-      // 平滑过渡冰区效果
-      const targetIce = iceMode ? 1.0 : 0.0;
-      const currentIce = materialRef.current.uniforms.iceMode.value;
-      materialRef.current.uniforms.iceMode.value += (targetIce - currentIce) * 0.05;
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]}>
-      <planeGeometry args={[5000, 5000, 128, 128]} />
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={iceWaterVertexShader}
-        fragmentShader={iceWaterFragmentShader}
-        uniforms={{
-          time: { value: 0 },
-          iceMode: { value: 0 },
-        }}
-        transparent
-        side={THREE.DoubleSide}
-      />
-    </mesh>
-  );
 }
 
-/** 破冰船模型 */
-function IcebreakerModel({
-  position,
-  heading,
-  azimuth1,
-  azimuth2,
-}: {
+function IcebreakerModel(props: {
   position: Vector2;
   heading: number;
   azimuth1: number;
   azimuth2: number;
 }) {
-  const { scene } = useGLTF('/assets/icebreaker.glb');
+  return (
+    <ModelAssetErrorBoundary fallback={<IcebreakerModelScene url={ORIGINAL_MODEL_URL} {...props} />}>
+      <IcebreakerModelScene url={OPTIMIZED_MODEL_URL} {...props} />
+    </ModelAssetErrorBoundary>
+  );
+}
+
+function IcebreakerModelScene({
+  url,
+  position,
+  heading,
+  azimuth1,
+  azimuth2,
+}: {
+  url: string;
+  position: Vector2;
+  heading: number;
+  azimuth1: number;
+  azimuth2: number;
+}) {
+  const { scene } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
 
   const { model, scale, modelHeight } = useMemo(() => {
@@ -257,6 +222,8 @@ function IcebreakerModel({
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
+        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
+        child.frustumCulled = false;
         if (child.material) {
           child.material.transparent = false;
           child.material.opacity = 1;
@@ -312,7 +279,8 @@ function IcebreakerModel({
   );
 }
 
-useGLTF.preload('/assets/icebreaker.glb');
+// 预加载模型（仅压缩件，避免双份下载）
+useGLTF.preload(OPTIMIZED_MODEL_URL);
 
 /** 航向指示器 */
 function HeadingIndicator({
@@ -345,21 +313,102 @@ function HeadingIndicator({
 /** 航迹线 */
 function TrailLine({ points }: { points: Vector2[] }) {
   if (points.length < 2) return null;
+  return <WaterHuggingLine points={points} color={simulationScenePalette.icebreakerPrimary} lineWidth={1} opacity={0.5} transparent />;
+}
 
-  const linePoints = points.map((p) => [p.x, 1, p.z] as [number, number, number]);
+/** 3D 场景 */
+// ============ 管线桥接组件 ============
 
+const CAMERA_SHOT_VIEWS = [
+  { id: SCENE_CAMERA_SHOTS.chase.id, label: '跟船', shortLabel: '跟', icon: Video, description: SCENE_CAMERA_SHOTS.chase.description },
+  { id: SCENE_CAMERA_SHOTS.orbit.id, label: '环绕', shortLabel: '环', icon: Orbit, description: SCENE_CAMERA_SHOTS.orbit.description },
+  { id: SCENE_CAMERA_SHOTS.tactical.id, label: '战术', shortLabel: '战', icon: Compass, description: SCENE_CAMERA_SHOTS.tactical.description },
+  { id: SCENE_CAMERA_SHOTS.topDown.id, label: '顶视', shortLabel: '顶', icon: ArrowDownFromLine, description: SCENE_CAMERA_SHOTS.topDown.description },
+];
+
+/** QA 钩子：把质量档位与派生预算暴露为 DOM 属性（性能 spec 与视觉 QA 消费）。 */
+function SceneQualityAttributes() {
+  const { tier, override, params } = useSceneQuality();
   return (
-    <Line
-      points={linePoints}
-      color={simulationScenePalette.icebreakerPrimary}
-      lineWidth={1}
-      opacity={0.5}
-      transparent
+    <span
+      hidden
+      data-scene-quality-tier={tier}
+      data-scene-quality-override={override ?? ''}
+      data-wake-particle-cap={Math.round(2200 * params.particleScale)}
+      data-water-tier={params.waterTier}
+      data-post-enabled={params.postEnabled}
     />
   );
 }
 
-/** 3D 场景 */
+/** 海面颜色随环境预设、细分随质量档位的桥接组件。 */
+function IcebreakerWater({ position }: { position: Vector2 }) {
+  const water = useEnvironmentWaterColors();
+  const { params } = useSceneQuality();
+  return (
+    <GerstnerWater
+      tier={params.waterTier}
+      positionSampler={() => ({ x: position.x, z: position.z })}
+      waterColor={water.waterColor}
+      deepColor={water.deepColor}
+      horizonColor={water.horizonColor}
+      foamColor={simulationScenePalette.waterFoam}
+    />
+  );
+}
+
+/** 尾迹粒子场桥接：逐帧喂入船位/航向与 Gerstner 波面高度。 */
+function WakeTrailRig({
+  position,
+  heading,
+  speed,
+  playing,
+  resetToken,
+}: {
+  position: Vector2;
+  heading: number;
+  speed: number;
+  playing: boolean;
+  resetToken: number;
+}) {
+  const { wakeVisible } = useSceneEnvironment();
+  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
+  const timeRef = useRef(0);
+  const { tier, params } = useSceneQuality();
+
+  useFrame((frameState) => {
+    transformRef.current.position = [position.x, 0, position.z];
+    transformRef.current.heading = platformHeadingToSceneRad(toDegrees(heading));
+    timeRef.current = frameState.clock.getElapsedTime();
+  });
+
+  if (!wakeVisible) return null;
+  return (
+    <WakeTrail
+      key={resetToken}
+      profile={icebreakerXuelongSceneVisual}
+      shipTransform={transformRef.current}
+      qualityTier={tier}
+      playing={playing}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+      worldSpeedSampler={() => speed}
+    />
+  );
+}
+
+/** 教学标注开关门控：默认关闭，开启时显示目标航向指示。 */
+function TeachingAnnotationsGate({
+  position,
+  targetHeading,
+}: {
+  position: Vector2;
+  targetHeading: number;
+}) {
+  const { showAnnotations } = useTeachingAnnotations();
+  if (!showAnnotations) return null;
+  return <HeadingIndicator position={position} targetHeading={targetHeading} />;
+}
+
 function Scene({
   position,
   heading,
@@ -367,12 +416,15 @@ function Scene({
   azimuth1,
   azimuth2,
   trail,
-  iceMode,
+  speed,
+  playing,
   showGrid,
   sceneTheme,
   controlsRef,
   cameraMode,
   onCameraModeChange,
+  resetToken,
+  resetSignal,
 }: {
   position: Vector2;
   heading: number;
@@ -380,12 +432,15 @@ function Scene({
   azimuth1: number;
   azimuth2: number;
   trail: Vector2[];
-  iceMode: boolean;
+  speed: number;
+  playing: boolean;
   showGrid: boolean;
   sceneTheme: SimulationSceneTheme;
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
-  cameraMode: CameraMode;
-  onCameraModeChange: (mode: CameraMode) => void;
+  cameraMode: string;
+  onCameraModeChange: (mode: string) => void;
+  resetToken: number;
+  resetSignal: number;
 }) {
   return (
     <>
@@ -400,23 +455,23 @@ function Scene({
         enableRotate
       />
       <RightClickFreeModeBridge onRequestFreeMode={() => onCameraModeChange('free')} />
-      <UnifiedCameraController
-        position={position}
-        headingRad={heading}
-        cameraMode={cameraMode}
+      <StayPutCameraController
+        view={cameraMode}
+        positionSampler={() => ({ x: position.x, z: position.z })}
+        headingSampler={() => platformHeadingToSceneRad(toDegrees(heading))}
+        shipLength={icebreakerXuelongSceneVisual.shipLengthMeters}
         controlsRef={controlsRef}
+      resetSignal={resetSignal}
       />
 
-      <ambientLight intensity={sceneTheme.ambientLightIntensity} />
-      <directionalLight
-        position={[100, 200, 100]}
-        intensity={sceneTheme.directionalLightIntensity}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-      />
-
-      <MaritimeEnvironment shipPosition={position} seaState={3} sceneTheme={sceneTheme} />
-      {iceMode && <IceOcean iceMode={iceMode} />}
+      <Suspense fallback={null}>
+        <EnvironmentScene />
+      </Suspense>
+      <SoundscapeAmbienceDriver />
+      <SceneQualityDriver />
+      <Suspense fallback={null}>
+        <IcebreakerWater position={position} />
+      </Suspense>
 
       <Suspense
         fallback={(
@@ -434,8 +489,9 @@ function Scene({
         />
       </Suspense>
 
-      <HeadingIndicator position={position} targetHeading={targetHeading} />
+      <TeachingAnnotationsGate position={position} targetHeading={targetHeading} />
       <TrailLine points={trail} />
+      <WakeTrailRig position={position} heading={heading} speed={speed} playing={playing} resetToken={resetToken} />
 
       {showGrid ? (
         <Grid
@@ -452,6 +508,7 @@ function Scene({
           infiniteGrid
         />
       ) : null}
+      <ScenePostEffects />
     </>
   );
 }
@@ -625,7 +682,7 @@ function ControlPanel({
     <div className="space-y-4">
       {/* 运行控制 */}
       <div className="flex gap-2">
-        <Button
+        <Button data-sound-start
           variant={isRunning ? 'destructive' : 'default'}
           onClick={onToggleRun}
           className={`flex-1 ${isRunning ? simulationUi.buttonSecondary : simulationUi.buttonPrimary}`}
@@ -961,8 +1018,10 @@ export default function IcebreakerSimulation() {
 
   // 相机控制
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [resetCount, setResetCount] = useState(0);
+  const [viewResetCount, setViewResetCount] = useState(0);
   const [speedScale, setSpeedScale] = useState(1);
   const sceneTheme = useSimulationSceneTheme();
 
@@ -1152,6 +1211,7 @@ export default function IcebreakerSimulation() {
       phase: 'none',
       time: 0,
     });
+    setResetCount((previous) => previous + 1);
   }, [config.speed]);
 
   const handleConfigChange = useCallback((updates: Partial<SimulationConfig>) => {
@@ -1159,7 +1219,12 @@ export default function IcebreakerSimulation() {
   }, []);
 
   return (
+    <SceneEnvironmentProvider>
+    <SceneSoundscapeProvider>
+    <TeachingAnnotationsProvider>
+    <SceneQualityProvider>
     <div className={simulationUi.root} data-sim-ui>
+      <SceneQualityAttributes />
       <Canvas shadows={{ type: THREE.PCFShadowMap }}>
         <Scene
           position={position}
@@ -1168,12 +1233,15 @@ export default function IcebreakerSimulation() {
           azimuth1={physicsStateRef.current.azipod1.azimuth}
           azimuth2={physicsStateRef.current.azipod2.azimuth}
           trail={trail}
-          iceMode={config.iceModeEnabled}
+          speed={metrics.speed}
+          playing={isRunning}
           showGrid={showGrid}
           sceneTheme={sceneTheme}
           controlsRef={controlsRef as React.RefObject<OrbitControlsImpl>}
           cameraMode={cameraMode}
           onCameraModeChange={setCameraMode}
+          resetToken={resetCount}
+          resetSignal={viewResetCount}
         />
       </Canvas>
 
@@ -1251,6 +1319,8 @@ export default function IcebreakerSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        onViewReset={() => setViewResetCount((previous) => previous + 1)}
+        views={CAMERA_SHOT_VIEWS}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
         speedScale={speedScale}
@@ -1265,5 +1335,9 @@ export default function IcebreakerSimulation() {
         badge={icebreakerXuelongProfile.name}
       />
     </div>
+    </SceneQualityProvider>
+    </TeachingAnnotationsProvider>
+    </SceneSoundscapeProvider>
+    </SceneEnvironmentProvider>
   );
 }

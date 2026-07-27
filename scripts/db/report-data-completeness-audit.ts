@@ -14,10 +14,10 @@ import {
   type DataCompletenessRuntimeArtifactErrorInput,
 } from '../../src/lib/data-governance/data-completeness-audit';
 import {
-  loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments,
-} from '../../src/lib/textbook-runtime-resources';
-import { textbookSearchDocumentsToLearningEvidenceCorpus } from '../../src/lib/data-governance/graph-center-evidence';
+  loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections,
+} from '../../src/lib/structured-textbook-runtime';
+import { textbookStructureUnitsToLearningEvidenceCorpus } from '../../src/lib/data-governance/graph-center-evidence';
 import { loadAllLessonRuntimeResourceCatalogEntriesForAudit } from './runtime-lesson-catalog';
 
 const prisma = createPrismaClient();
@@ -48,11 +48,12 @@ async function main() {
     runtimeLessons,
     runtimeTextbooks,
     runtimeResourceProjections,
-    textbookDocuments,
+    textbookUnits,
     interactionLogs,
     eventDictionary,
     learningEventBatches,
     learningFacts,
+    documentGradingRuns,
     historicalSimulationLogs,
     historicalUserAnswers,
     historicalAiInterventions,
@@ -97,9 +98,9 @@ async function main() {
       },
     }),
     loadRuntimeLessonsWithArtifactAudit(runtimeArtifactErrors),
-    loadAllTextbookRuntimeResourceCatalogEntries(),
+    loadAllTextbookStructureRuntimeCatalogEntries(),
     loadRuntimeResourceProjectionInputs(),
-    loadAllTextbookRuntimeSearchDocuments(),
+    loadAllTextbookStructureUnitProjections(),
     prisma.interactionLog.findMany({
       select: {
         id: true,
@@ -131,6 +132,10 @@ async function main() {
         startedAt: true,
         contextJson: true,
       },
+    }),
+    prisma.gradingRun.findMany({
+      where: { state: 'APPROVED' },
+      select: { id: true, state: true, rubricVersion: true, assessments: { select: { criterionId: true } }, answerAttempt: { select: { answer: { select: { submission: { select: { frozenStudentId: true } } } } } } },
     }),
     prisma.simulationLog.findMany({ select: { id: true, userId: true } }),
     prisma.userAnswer.findMany({ select: { id: true, userId: true } }),
@@ -180,11 +185,12 @@ async function main() {
     })),
     resourceRegistry: registry,
     runtimeArtifactErrors,
-    evidenceCorpus: textbookSearchDocumentsToLearningEvidenceCorpus(textbookDocuments),
+    evidenceCorpus: textbookStructureUnitsToLearningEvidenceCorpus(textbookUnits),
     interactionLogs,
     eventDictionaryTypes: eventDictionary.map((event) => event.eventType),
     learningEventBatches,
     learningFacts,
+    documentGradingRuns: documentGradingRuns.map((run) => ({ id: run.id, state: run.state, rubricVersion: run.rubricVersion, studentId: run.answerAttempt.answer.submission.frozenStudentId, assessments: run.assessments })),
     historicalSourceLogIds: [
       ...historicalSimulationLogs,
       ...historicalUserAnswers,

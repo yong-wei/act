@@ -55,10 +55,16 @@
   ],
   "sequence": {
     "lesson_id": "1-3",
-    "status": "pre_interactive_design_draft",
+    "note": "本顺序按 1-3 interactive-page 与 interactive-contract 的 11 步互动设计定稿；groups[].step_ids 对应作者态互动步骤归属。",
     "groups": [
       {
         "group_name": "区分增益在开环与闭环中的作用",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03",
+          "step-04"
+        ],
         "node_ids": [
           "开环增益_1_3",
           "闭环特征方程_1_3"
@@ -66,6 +72,13 @@
       },
       {
         "group_name": "追踪极点随参数连续迁移",
+        "step_ids": [
+          "step-05",
+          "step-07",
+          "step-08",
+          "step-09",
+          "step-11"
+        ],
         "node_ids": [
           "极点迁移_1_3",
           "实极点_1_3",
@@ -76,6 +89,10 @@
       },
       {
         "group_name": "联读极点路径与时域行为",
+        "step_ids": [
+          "step-06",
+          "step-10"
+        ],
         "node_ids": [
           "临界阻尼_1_3",
           "衰减振荡_1_3",
@@ -98,19 +115,27 @@
   },
   "handout_path": "/course-runtime/lessons/1-3/1-3-handout.md",
   "handout_source_path": "course-content/runtime/lessons/1-3/1-3-handout.md",
-  "handout_pdf_path": "/course-runtime/lessons/1-3/1-3-handout.pdf",
-  "handout_pdf_source_path": "course-content/runtime/lessons/1-3/1-3-handout.pdf",
   "graph_overlay_path": "/course-runtime/lessons/1-3/graph-overlay.json",
   "media_base_path": "/course-runtime/lessons/1-3/media",
   "media_index_path": "/course-runtime/lessons/1-3/media/1-3-media.md",
   "media_index_source_path": "course-content/runtime/lessons/1-3/media/1-3-media.md",
   "review": {
-    "status": "reviewed",
+    "status": "incomplete",
     "boppps_path": "/course-runtime/lessons/1-3/review/1-3-boppps.md",
+    "missing_assets": [
+      "1-3-slides.pdf",
+      "1-3-intro-video.mp4",
+      "1-3-course.mp4",
+      "1-3-audio.m4a"
+    ],
     "report_path": "/course-runtime/lessons/1-3/review/review-report.md",
     "knowledge_card_check_path": "/course-runtime/lessons/1-3/review/knowledge-card-check.json",
     "interactive_page_check_path": "/course-runtime/lessons/1-3/review/interactive-page-check.json",
     "multimedia_check_path": "/course-runtime/lessons/1-3/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/1-3/review/source-manifest.json"
-  }
+  },
+  "handout_pdf_path": "/course-runtime/lessons/1-3/1-3-handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/1-3/1-3-handout.pdf",
+  "interactive_manifest_path": "/course-runtime/lessons/1-3/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/1-3/interactive-manifest.json"
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Loader2, Play, ArrowLeft, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
 
 interface PlaylistPlayLauncherProps {
   planId: string;
@@ -13,6 +14,7 @@ interface PlaylistPlayLauncherProps {
   intent?: string | null;
   editHref?: string | null;
   canStartClass?: boolean;
+  launchActor?: 'teacher' | 'admin';
 }
 
 export function PlaylistPlayLauncher({
@@ -23,12 +25,14 @@ export function PlaylistPlayLauncher({
   intent,
   editHref,
   canStartClass = false,
+  launchActor = 'admin',
 }: PlaylistPlayLauncherProps) {
   const router = useRouter();
+  const teacherLauncher = useTeacherClassroomLauncher();
   const [status, setStatus] = useState<'idle' | 'starting' | 'error'>('idle');
   const [message, setMessage] = useState<string | null>(null);
 
-  const startClass = async () => {
+  const startTemporaryClass = async () => {
     setStatus('starting');
     setMessage(null);
     try {
@@ -54,8 +58,22 @@ export function PlaylistPlayLauncher({
     }
   };
 
+  const startClass = (launchElement: HTMLElement) => {
+    if (launchActor === 'teacher') {
+      teacherLauncher.launch({
+        planId,
+        onSessionReady: (sessionId) => {
+          router.push(`/classroom/teacher/${sessionId}`);
+          router.refresh();
+        },
+      }, launchElement);
+      return;
+    }
+    void startTemporaryClass();
+  };
+
   return (
-    <section className="mx-auto w-full max-w-5xl text-slate-100">
+    <section className="w-full text-platform-fg-primary">
       <div className="mb-6">
         <Link href="/playlists" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-blue-300">
           <ArrowLeft className="h-4 w-4" />
@@ -85,15 +103,22 @@ export function PlaylistPlayLauncher({
               </Link>
             ) : null}
             {canStartClass ? (
-              <button
-                type="button"
-                onClick={startClass}
-                disabled={status === 'starting' || itemCount === 0}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {status === 'starting' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                开始上课
-              </button>
+              <div className="flex flex-col items-end gap-2">
+                <button
+                  type="button"
+                  onClick={(event) => startClass(event.currentTarget)}
+                  disabled={status === 'starting' || itemCount === 0}
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {status === 'starting' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                  {launchActor === 'admin' ? '开始临时课堂' : '开始上课'}
+                </button>
+                {launchActor === 'admin' ? (
+                  <p className="max-w-56 text-right text-xs leading-5 text-slate-400">
+                    管理员将启动不绑定班级的临时课堂。
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </div>
@@ -116,6 +141,7 @@ export function PlaylistPlayLauncher({
           </div>
         ) : null}
       </section>
+      {teacherLauncher.dialog}
     </section>
   );
 }

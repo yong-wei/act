@@ -2,7 +2,7 @@
 FROM node:20-alpine AS base
 ARG APK_MIRROR=https://mirrors.aliyun.com/alpine
 RUN sed -i "s|https://dl-cdn.alpinelinux.org/alpine|${APK_MIRROR}|g" /etc/apk/repositories \
-  && apk add --no-cache libc6-compat openssl curl
+  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip
 
 # Dependencies stage
 FROM base AS deps
@@ -61,6 +61,8 @@ COPY . .
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS=--max-old-space-size=4096
+ENV NODE_MAX_OLD_SPACE_SIZE=4096
 ENV SKIP_WASM_BUILD=1
 
 # Build the application
@@ -75,8 +77,15 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV RUN_MIGRATIONS_ON_START=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
-RUN apk add --no-cache chromium
+# BuildKit otherwise installs the large browser/office runtime in parallel with
+# the memory-intensive Next.js build. This copy is an explicit stage barrier.
+COPY --from=builder /app/package.json /tmp/builder-package.json
+RUN (apk add --no-cache chromium libreoffice \
+  || (sed -i "s|https://mirrors.aliyun.com/alpine|https://dl-cdn.alpinelinux.org/alpine|g" /etc/apk/repositories \
+    && apk add --no-cache chromium libreoffice)) \
+  && rm /tmp/builder-package.json
 
 # Create nextjs user
 RUN addgroup --system --gid 1001 nodejs
@@ -94,6 +103,8 @@ COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/scripts/db ./scripts/db
+COPY --from=builder /app/scripts/knowledge ./scripts/knowledge
+COPY --from=builder /app/scripts/assignments ./scripts/assignments
 COPY --from=builder /app/scripts/lib ./scripts/lib
 COPY --from=builder /app/scripts/workers ./scripts/workers
 

@@ -28,6 +28,93 @@ vi.mock('server-only', () => ({}));
 const repoRoot = process.cwd();
 
 describe('interactive runtime manifest', () => {
+  it('names short-text and multi-select form controls with their card ids', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'form-control-name-test',
+      steps: {
+        'step-test': {
+          title: '表单字段名称测试',
+          layout: { template: 'stacked_regions', regions: [] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'short-answer-card',
+                prompt: '写出判断依据。',
+                response_kind: 'text.short',
+                submit_scope: 'per_card',
+              },
+              {
+                id: 'multi-select-card',
+                prompt: '选择所有适用项。',
+                response_kind: 'choice.multi',
+                options: ['A', 'B'],
+                submit_scope: 'per_card',
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+    const html = renderToStaticMarkup(renderStudentInteractiveActivity({
+      registry: createManifestStudentActivityRegistry(),
+      step: { id: step.id },
+      stepManifest: step,
+      released: true,
+      browseEnabled: true,
+      answerVisible: false,
+      revealProgress: 0,
+      onSubmit: () => undefined,
+    }));
+
+    expect(html).toContain('<textarea aria-label="写出判断依据。" name="short-answer-card"');
+    expect(html.match(/name="multi-select-card"/g)).toHaveLength(2);
+  });
+
+  it('blocks browse-required non-quiz activities until the teacher opens browse', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-worked-example': {
+          title: '例题显影',
+          layout: { template: 'stacked_regions', regions: [] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'worked_example_reveal',
+            activity_cards: [{
+              id: 'example-answer',
+              title: '例题判断',
+              prompt: '先判断再查看显影。',
+              response_kind: 'choice.single',
+              options: ['A', 'B'],
+              submit_scope: 'per_card',
+              layout_span: 'full',
+            }],
+          },
+          student_access: { browse_required: true },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+    const html = renderToStaticMarkup(renderStudentInteractiveActivity({
+      registry: createManifestStudentActivityRegistry(),
+      step: { id: step.id },
+      stepManifest: step,
+      released: true,
+      browseEnabled: false,
+      answerVisible: false,
+      revealProgress: 0,
+      onSubmit: () => undefined,
+    }));
+
+    expect(html).toContain('教师尚未开放浏览');
+    expect(html).not.toContain('先判断再查看显影');
+  });
+
   it('ships the reviewed 4-3 runtime with an interactive manifest path and loads the manifest into the runtime bundle', async () => {
     const lessonJson = JSON.parse(
       readFileSync(join(repoRoot, 'course-content/runtime/lessons/4-3/lesson.json'), 'utf8'),
@@ -2122,6 +2209,7 @@ describe('interactive runtime manifest', () => {
     expect(studentHtml).toContain('2.14375');
     expect(studentHtml).not.toContain('0.6');
     expect(studentHtml).not.toContain('manifest 未提供');
+    expect(studentHtml).toContain('关注扰动偏移是否下降');
 
     const teacherHtml = renderToStaticMarkup(
       createElement(

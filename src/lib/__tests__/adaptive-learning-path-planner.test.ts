@@ -17,12 +17,20 @@ import {
 import { deterministicPathConstraintRepairAdapter } from '../adaptive-planning/path-constraint-repair';
 import { rankResourceLearnerCandidates } from '../adaptive-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
+import { createEmptyCompetencyVector } from '../data-governance/competency-model';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_GRAPH_VERSION,
   AUTOCONTROL_KAQ_OBJECTIVES,
 } from '../data-governance/autocontrol-kaq-graph-catalog';
 import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-service';
+import {
+  PORTRAIT_V2_CALCULATION_VERSION,
+  PORTRAIT_V2_DIMENSION_IDS,
+  createPortraitV2Payload,
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '../data-governance/portrait-v2-model';
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import {
   applyCoreResourcePathReadinessDispositions,
@@ -397,6 +405,18 @@ function policyFixtureInput(overrides: Partial<AdaptiveLearningPathPlannerInput>
 }
 
 describe('adaptive learning path planner', () => {
+  it('preserves legacy competency scores already normalized to 0-1', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const parameterDeficit = plan.visualization.evidence.learnerStateDeficits.find(
+      (deficit) => deficit.targetId === 'parameterDesign',
+    );
+
+    expect(parameterDeficit).toMatchObject({
+      value: 0.35,
+      reasonCode: 'competency-deficit',
+    });
+  });
+
   it('uses explicit policy families to produce different path emphasis', () => {
     const base = plannerInput({
       constraints: {
@@ -4732,6 +4752,22 @@ describe('adaptive learning path planner', () => {
         },
       }],
     });
+    const portraitVector = createEmptyCompetencyVector();
+    portraitVector.parameterDesign = {
+      score: 20,
+      trend: 'stable',
+      confidence: 0.6,
+      evidenceCount: 2,
+      lastUpdated: '2026-05-27T08:00:00.000Z',
+    };
+    const portraitNow = new Date('2026-05-27T08:00:00.000Z');
+    const primaryPortrait = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotAt: portraitNow.toISOString(),
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector: portraitVector,
+      now: portraitNow,
+    }), 'reviewer', { now: portraitNow });
 
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       registry,
@@ -4752,6 +4788,7 @@ describe('adaptive learning path planner', () => {
             parameterDesign: { score: 0.2, confidence: 0.6, evidenceCount: 1 },
           },
         },
+        primaryPortrait,
         evidence: {
           confidence: {
             level: 'medium',
@@ -4778,6 +4815,172 @@ describe('adaptive learning path planner', () => {
       'knowledge-card:low-risk-prep-card',
       'simulation:locked-validation-lab',
     ]);
+  });
+
+  it('uses native portrait v2 evidence for readiness gates without legacy learner state', () => {
+    const portraitNow = new Date('2026-05-27T08:00:00.000Z');
+    const generatedAt = portraitNow.toISOString();
+    const primaryPortrait = projectPortraitV2ForConsumer(createPortraitV2Payload({
+      userId: 'student-1',
+      generatedAt,
+      now: portraitNow,
+      dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id, index) => ({
+        id,
+        score: 80,
+        confidence: 0.8,
+        freshness: {
+          state: 'current' as const,
+          asOf: generatedAt,
+          evidenceAgeDays: 0,
+        },
+        evidenceSummary: {
+          totalCount: 1,
+          sourceFamilyCounts: { LearningFact: 1 },
+        },
+        lastPositiveEvidenceAt: generatedAt,
+        lastNegativeEvidenceAt: null,
+        rationale: 'Governed evidence supports the current score.',
+        limitations: [],
+        sourceLineage: [
+          { kind: 'evidence-family' as const, ref: 'LearningFact', privacyScope: 'student-visible' as const },
+          {
+            kind: 'citation' as const,
+            ref: `citation-target:sha256:${index.toString(16).padStart(64, '0')}`,
+            privacyScope: 'student-visible' as const,
+          },
+        ],
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      })),
+    }), 'planner', { now: portraitNow });
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'native-portrait-evidence-gated-sim',
+        title: '原生肖像证据门槛仿真',
+        launchTarget: '/simulations/native-portrait-evidence-gated',
+        knowledgeNodeIds: ['kn-native-portrait-evidence'],
+        planningOverride: {
+          estimatedTimeMinutes: 10,
+          abilityImpact: { parameterDesign: 0.4 },
+          evidenceInstrumentation: ['simulation_run'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.7 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '原生肖像证据满足后解锁。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'native-portrait-evidence-gate-goal',
+        title: '原生肖像证据门槛目标',
+        knowledgeTargets: ['kn-native-portrait-evidence'],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: { primaryPortrait },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+    const node = plan.mainPath.find((item) => item.nodeId === 'simulation:native-portrait-evidence-gated-sim');
+
+    expect(node).toEqual(expect.objectContaining({
+      readiness: expect.objectContaining({
+        state: 'ready',
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+      }),
+    }));
+  });
+
+  it('falls back to the compatibility vector when the portrait dimension has no usable evidence', () => {
+    const portraitNow = new Date('2026-05-27T08:00:00.000Z');
+    const primaryPortrait = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotAt: portraitNow.toISOString(),
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector: createEmptyCompetencyVector(),
+      now: portraitNow,
+    }), 'planner', { now: portraitNow });
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'compatibility-readiness-fallback',
+        title: '兼容能力门槛仿真',
+        launchTarget: '/simulations/compatibility-readiness-fallback',
+        knowledgeNodeIds: ['kn-compatibility-readiness'],
+        planningOverride: {
+          estimatedTimeMinutes: 10,
+          abilityImpact: { parameterDesign: 0.4 },
+          evidenceInstrumentation: ['simulation_run'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.7 },
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '兼容能力值满足后解锁。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'compatibility-readiness-goal',
+        title: '兼容能力门槛目标',
+        knowledgeTargets: ['kn-compatibility-readiness'],
+        competencyTargets: ['parameterDesign'],
+        capabilityTargets: [{
+          id: 'compatibility-readiness-capability',
+          knowledgeNodeRef: 'kn-compatibility-readiness',
+          capabilityLevel: 'apply',
+          behaviorVerb: 'apply',
+          successCriteria: ['完成兼容能力门槛仿真。'],
+          observableEvidenceType: 'simulation-run',
+          evaluationMethod: 'simulation',
+          goalSliceId: 'compatibility-readiness',
+          competencyDimensions: ['parameterDesign'],
+          learnerStateFeatureGroups: ['primaryCompetencies'],
+        }],
+      },
+      learnerState: {
+        primaryPortrait,
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.9, confidence: 0.8, evidenceCount: 4 },
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+    const node = plan.mainPath.find((item) => item.nodeId === 'simulation:compatibility-readiness-fallback');
+
+    expect(node?.readiness).toMatchObject({
+      state: 'ready',
+      missingCompetencies: [],
+    });
+    expect(plan.visualization.evidence.learnerStateDeficits).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ targetId: 'parameterDesign' }),
+    ]));
+    expect(plan.visualization.evidence.capabilityEvidence).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({ id: 'compatibility-readiness-capability' }),
+        observedEvidence: expect.objectContaining({
+          competencyScore: 0.9,
+          supportingEvidenceCount: 4,
+        }),
+      }),
+    ]));
   });
 
   it('keeps repaired path nodes when only non-blocking checkpoint infeasibility remains', () => {

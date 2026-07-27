@@ -11,6 +11,7 @@
     "layout_renderer": "src/features/interactive/shared/manifest-runtime/layout-renderer.tsx",
     "content_renderer_kinds": [
       "ai-compare-workspace",
+      "analytics.summary",
       "band-focus-panel",
       "boundary-card",
       "bullet-card",
@@ -19,7 +20,16 @@
       "case-context-card",
       "comparison-graphic",
       "comparison-table",
+      "compute.panel",
       "condition-list",
+      "content.cardSet",
+      "content.code",
+      "content.figure",
+      "content.formula",
+      "content.reveal",
+      "content.rich",
+      "content.stageMap",
+      "content.table",
       "equation-card-row",
       "evidence-bank",
       "example-card",
@@ -35,6 +45,7 @@
       "interactive-figure",
       "interactive-figure-panel",
       "key-task-card",
+      "layout.support",
       "learning-stat-panel",
       "media-card",
       "metric-strip",
@@ -56,6 +67,7 @@
       "reason-record",
       "reference-answer-card",
       "reflection-card",
+      "reveal-chain",
       "revision-note",
       "route-card",
       "row-focus-toggle",
@@ -77,6 +89,12 @@
       "teacher-strip",
       "template-card",
       "title-card",
+      "visual.annotatedMedia",
+      "visual.blockDiagram",
+      "visual.derivationStage",
+      "visual.embedded-activity",
+      "visual.signalFlowGraph",
+      "visual.stage",
       "worked-example-card"
     ],
     "student_activity_kinds": [
@@ -149,29 +167,19 @@
     ],
     "activity_module_kinds": [
       "activity-card",
-      "activity-card-grid",
-      "activity-card-row",
       "activity-card-set",
-      "binary-choice",
-      "card-sort",
-      "drag-match",
-      "hotspot-labeling",
-      "multi-select-matrix",
+      "activity.panel",
+      "activity.workspace",
       "quiz-card",
       "quiz-group",
-      "reason-chain",
-      "single-choice-card",
-      "table-builder",
-      "task-card-workspace",
-      "teacher-reveal-only",
-      "triple-match"
+      "single-choice-card"
     ]
   },
   "entries": [
     {
       "step_id": "step-01",
       "module_id": "intro-question",
-      "kind": "summary-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.intro_question",
       "resolved_content_type": "summary",
@@ -181,7 +189,7 @@
     {
       "step_id": "step-01",
       "module_id": "cover-comic",
-      "kind": "image-panel",
+      "kind": "content.figure",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.cover_comic",
       "resolved_content_type": "image",
@@ -191,7 +199,7 @@
     {
       "step_id": "step-01",
       "module_id": "intro-summary",
-      "kind": "summary-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.intro_summary",
       "resolved_content_type": "summary",
@@ -201,7 +209,7 @@
     {
       "step_id": "step-02",
       "module_id": "lesson-goals",
-      "kind": "goal-card-row",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.lesson_goals",
       "resolved_content_type": "summary",
@@ -211,7 +219,7 @@
     {
       "step_id": "step-03",
       "module_id": "pretest-intro",
-      "kind": "summary-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.pretest_intro",
       "resolved_content_type": "summary",
@@ -221,7 +229,7 @@
     {
       "step_id": "step-03",
       "module_id": "pretest-questions",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
@@ -231,7 +239,7 @@
     {
       "step_id": "step-04",
       "module_id": "review-quantities",
-      "kind": "formula-card",
+      "kind": "content.formula",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.review_quantities",
       "resolved_content_type": "formula",
@@ -241,7 +249,7 @@
     {
       "step_id": "step-04",
       "module_id": "review-questions",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
@@ -251,7 +259,7 @@
     {
       "step_id": "step-05",
       "module_id": "loop-formulas",
-      "kind": "formula-card",
+      "kind": "content.formula",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.loop_formulas",
       "resolved_content_type": "formula",
@@ -261,7 +269,7 @@
     {
       "step_id": "step-05",
       "module_id": "frequency-characteristics",
-      "kind": "image-panel",
+      "kind": "content.figure",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.frequency_media",
       "resolved_content_type": "image",
@@ -271,7 +279,7 @@
     {
       "step_id": "step-05",
       "module_id": "structure-matrix",
-      "kind": "multi-select-matrix",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
@@ -281,7 +289,7 @@
     {
       "step_id": "step-06",
       "module_id": "selection-tree",
-      "kind": "image-panel",
+      "kind": "content.figure",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.selection_tree",
       "resolved_content_type": "image",
@@ -291,7 +299,7 @@
     {
       "step_id": "step-06",
       "module_id": "selection-rules",
-      "kind": "summary-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.selection_rules",
       "resolved_content_type": "summary",
@@ -301,7 +309,7 @@
     {
       "step_id": "step-06",
       "module_id": "evidence-match",
-      "kind": "drag-match",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
@@ -311,7 +319,7 @@
     {
       "step_id": "step-07",
       "module_id": "zn-table",
-      "kind": "table-card",
+      "kind": "content.table",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.zn_table",
       "resolved_content_type": "table",
@@ -321,7 +329,7 @@
     {
       "step_id": "step-07",
       "module_id": "zn-reveal",
-      "kind": "step-reveal",
+      "kind": "content.reveal",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.zn_steps",
       "resolved_content_type": "reveal",
@@ -331,7 +339,7 @@
     {
       "step_id": "step-08",
       "module_id": "pi-lag-formulas",
-      "kind": "formula-card",
+      "kind": "content.formula",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.pi_lag_formulas",
       "resolved_content_type": "formula",
@@ -341,7 +349,7 @@
     {
       "step_id": "step-08",
       "module_id": "pi-lag-reveal",
-      "kind": "step-reveal",
+      "kind": "content.reveal",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.pi_lag_steps",
       "resolved_content_type": "reveal",
@@ -351,7 +359,7 @@
     {
       "step_id": "step-09",
       "module_id": "lead-formulas",
-      "kind": "formula-card",
+      "kind": "content.formula",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.lead_formulas",
       "resolved_content_type": "formula",
@@ -361,7 +369,7 @@
     {
       "step_id": "step-09",
       "module_id": "lead-reveal",
-      "kind": "step-reveal",
+      "kind": "content.reveal",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.lead_steps",
       "resolved_content_type": "reveal",
@@ -371,7 +379,7 @@
     {
       "step_id": "step-10",
       "module_id": "model-feedforward-formulas",
-      "kind": "formula-card",
+      "kind": "content.formula",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.model_feedforward_formulas",
       "resolved_content_type": "formula",
@@ -381,7 +389,7 @@
     {
       "step_id": "step-10",
       "module_id": "model-feedforward-cards",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
@@ -391,7 +399,7 @@
     {
       "step_id": "step-11",
       "module_id": "example-5-1-solution",
-      "kind": "worked-example-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.example_5_1",
       "resolved_content_type": "summary",
@@ -401,17 +409,17 @@
     {
       "step_id": "step-11",
       "module_id": "example-5-1-panel",
-      "kind": "interactive-figure-panel",
+      "kind": "compute.panel",
       "renderer_owner": "content",
       "resolved_content_source": "module.payload",
-      "resolved_content_type": "image",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
     {
       "step_id": "step-11",
       "module_id": "example-5-1-submit",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.submit_fields",
       "resolved_content_type": "activity",
@@ -421,7 +429,7 @@
     {
       "step_id": "step-12",
       "module_id": "example-5-2-solution",
-      "kind": "worked-example-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.example_5_2",
       "resolved_content_type": "summary",
@@ -431,17 +439,17 @@
     {
       "step_id": "step-12",
       "module_id": "example-5-2-panel",
-      "kind": "interactive-figure-panel",
+      "kind": "compute.panel",
       "renderer_owner": "content",
       "resolved_content_source": "module.payload",
-      "resolved_content_type": "image",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
     {
       "step_id": "step-12",
       "module_id": "example-5-2-submit",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.submit_fields",
       "resolved_content_type": "activity",
@@ -451,7 +459,7 @@
     {
       "step_id": "step-13",
       "module_id": "example-5-3-solution",
-      "kind": "worked-example-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.example_5_3",
       "resolved_content_type": "summary",
@@ -461,17 +469,17 @@
     {
       "step_id": "step-13",
       "module_id": "example-5-3-panel",
-      "kind": "interactive-figure-panel",
+      "kind": "compute.panel",
       "renderer_owner": "content",
       "resolved_content_source": "module.payload",
-      "resolved_content_type": "image",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
     {
       "step_id": "step-13",
       "module_id": "example-5-3-submit",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.submit_fields",
       "resolved_content_type": "activity",
@@ -481,7 +489,7 @@
     {
       "step_id": "step-14",
       "module_id": "example-5-4-solution",
-      "kind": "worked-example-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.example_5_4",
       "resolved_content_type": "summary",
@@ -491,7 +499,7 @@
     {
       "step_id": "step-14",
       "module_id": "example-5-4-critical",
-      "kind": "image-panel",
+      "kind": "content.figure",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.example_5_4_critical_media",
       "resolved_content_type": "image",
@@ -501,17 +509,17 @@
     {
       "step_id": "step-14",
       "module_id": "example-5-4-panel",
-      "kind": "interactive-figure-panel",
+      "kind": "compute.panel",
       "renderer_owner": "content",
       "resolved_content_source": "module.payload",
-      "resolved_content_type": "image",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
     {
       "step_id": "step-14",
       "module_id": "example-5-4-submit",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.submit_fields",
       "resolved_content_type": "activity",
@@ -521,7 +529,7 @@
     {
       "step_id": "step-15",
       "module_id": "feedforward-problem",
-      "kind": "summary-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.feedforward_problem",
       "resolved_content_type": "summary",
@@ -531,7 +539,7 @@
     {
       "step_id": "step-15",
       "module_id": "feedforward-reveal",
-      "kind": "step-reveal",
+      "kind": "content.reveal",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.feedforward_steps",
       "resolved_content_type": "reveal",
@@ -541,7 +549,7 @@
     {
       "step_id": "step-15",
       "module_id": "feedforward-media",
-      "kind": "image-panel",
+      "kind": "content.figure",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.feedforward_media",
       "resolved_content_type": "image",
@@ -551,7 +559,7 @@
     {
       "step_id": "step-15",
       "module_id": "feedforward-cards",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
@@ -561,7 +569,7 @@
     {
       "step_id": "step-16",
       "module_id": "ship-setup",
-      "kind": "table-card",
+      "kind": "content.table",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.ship_setup",
       "resolved_content_type": "table",
@@ -571,7 +579,7 @@
     {
       "step_id": "step-16",
       "module_id": "ship-setup-cards",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
@@ -581,7 +589,7 @@
     {
       "step_id": "step-17",
       "module_id": "ship-bode-media",
-      "kind": "image-panel",
+      "kind": "content.figure",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.ship_bode_media",
       "resolved_content_type": "image",
@@ -591,7 +599,7 @@
     {
       "step_id": "step-17",
       "module_id": "ship-time-media",
-      "kind": "image-panel",
+      "kind": "content.figure",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.ship_time_media",
       "resolved_content_type": "image",
@@ -601,7 +609,7 @@
     {
       "step_id": "step-17",
       "module_id": "ship-summary-media",
-      "kind": "image-panel",
+      "kind": "content.figure",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.ship_summary_media",
       "resolved_content_type": "image",
@@ -611,7 +619,7 @@
     {
       "step_id": "step-17",
       "module_id": "ship-candidate-table",
-      "kind": "table-card",
+      "kind": "content.table",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.ship_candidate_table",
       "resolved_content_type": "table",
@@ -621,17 +629,17 @@
     {
       "step_id": "step-17",
       "module_id": "ship-compare-panel",
-      "kind": "interactive-figure-panel",
+      "kind": "compute.panel",
       "renderer_owner": "content",
       "resolved_content_source": "module.payload",
-      "resolved_content_type": "image",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
     {
       "step_id": "step-18",
       "module_id": "practice-prompts",
-      "kind": "summary-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.practice_prompts",
       "resolved_content_type": "summary",
@@ -641,7 +649,7 @@
     {
       "step_id": "step-18",
       "module_id": "start-card-template",
-      "kind": "template-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.start_card_fields",
       "resolved_content_type": "summary",
@@ -651,7 +659,7 @@
     {
       "step_id": "step-18",
       "module_id": "start-card-workspace",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
@@ -661,7 +669,7 @@
     {
       "step_id": "step-19",
       "module_id": "posttest-cards",
-      "kind": "activity-card-set",
+      "kind": "activity.panel",
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
@@ -671,7 +679,7 @@
     {
       "step_id": "step-20",
       "module_id": "summary-infograph",
-      "kind": "image-panel",
+      "kind": "content.figure",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.summary_infograph",
       "resolved_content_type": "image",
@@ -681,7 +689,7 @@
     {
       "step_id": "step-20",
       "module_id": "summary-content",
-      "kind": "summary-card",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.summary_content",
       "resolved_content_type": "summary",
@@ -691,7 +699,7 @@
     {
       "step_id": "step-20",
       "module_id": "performance-stats",
-      "kind": "performance-summary",
+      "kind": "analytics.summary",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.performance_stats",
       "resolved_content_type": "summary",

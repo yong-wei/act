@@ -21,3 +21,4 @@ cd deploy/podman
 ## 迁移说明
 - 应用容器启动时会自动执行 `prisma migrate deploy`（可通过环境变量 `RUN_MIGRATIONS_ON_START=0` 关闭）。
 - 若数据库从旧备份恢复，首次启动会自动补齐缺失表结构（如 `PlatformSetting`）。
+- 智能课件发布所需密钥、固定浏览器回执和部署后验证见 [智能课件发布 P0 运行手册](../../docs/operations/smart-courseware-p0-runbook.md)。

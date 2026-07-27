@@ -134,7 +134,12 @@ export function ControlChartPanel({
         </div>
       </div>
       <div className="relative mt-3 flex-1 overflow-hidden rounded-2xl border border-border/50 bg-background/55">
-        <div ref={containerRef} className={`${chartClassName} w-full`} />
+        <div
+          ref={containerRef}
+          className={`${chartClassName} w-full`}
+          role="img"
+          aria-label={`${title}${meta ? `：${String(meta)}` : ''}`}
+        />
         {overlay ? <div className="pointer-events-none absolute inset-0">{overlay}</div> : null}
         {isFallback && fallback ? (
           <div className="absolute inset-x-0 bottom-0 border-t border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-100">

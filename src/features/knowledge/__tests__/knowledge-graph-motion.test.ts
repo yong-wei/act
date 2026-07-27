@@ -1,17 +1,33 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  createKnowledgeGraphMotionScopeKey,
+  bindKnowledgeGraphMotionEnvironment,
+  getKnowledgeGraphMotionMarkerPlacement,
   createKnowledgeGraphRevealPlan,
+  getKnowledgeGraphMotionMarkerFrame,
+  getKnowledgeGraphMotionMarkerPose,
   getKnowledgeGraphPresentationLinkOpacity,
   getKnowledgeGraphPresentationLinkProgress,
   getKnowledgeGraphPresentationNodeOpacity,
   getKnowledgeGraphPresentationNodeScale,
+  KNOWLEDGE_GRAPH_CORRIDOR_MOTION,
+  KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY,
+  KnowledgeGraphMotionFrameLoop,
   KnowledgeGraphTransitionGate,
+  prefersReducedKnowledgeGraphMotion,
+  selectKnowledgeGraphMotionMarkerEdgeIds,
 } from '../graph/motion';
+import { createKnowledgeGraphEdgePath } from '../graph/edge-geometry';
 
 describe('knowledge graph bounded motion', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
+  it('treats an absent matchMedia API as no reduced-motion preference', () => {
+    vi.stubGlobal('window', {});
+    expect(prefersReducedKnowledgeGraphMotion()).toBe(false);
+    vi.unstubAllGlobals();
+  });
   it('caps individual stagger at 24 and batches the remainder within 360ms', () => {
     const plan = createKnowledgeGraphRevealPlan({
       graphVersion: 'v1',
@@ -152,5 +168,207 @@ describe('knowledge graph bounded motion', () => {
       sourceId: 'center',
       targetId: 'existing-child',
     })).toBe(1);
+  });
+});
+
+describe('selected corridor directional motion', () => {
+  it('consumes only eligible non-SCC edges in stable priority order and caps markers at three', () => {
+    expect(selectKnowledgeGraphMotionMarkerEdgeIds({
+      active: true,
+      motionEligibleEdgeIds: ['edge-d', 'edge-b', 'edge-a', 'edge-c', 'edge-a'],
+      motionSuppressedEdgeIds: ['edge-b'],
+      visibleEdgeIds: ['edge-a', 'edge-b', 'edge-c', 'edge-x'],
+    })).toEqual(['edge-a', 'edge-c']);
+    expect(selectKnowledgeGraphMotionMarkerEdgeIds({
+      active: false,
+      motionEligibleEdgeIds: ['edge-a'],
+      motionSuppressedEdgeIds: [],
+    })).toEqual([]);
+    expect(KNOWLEDGE_GRAPH_CORRIDOR_MOTION.maxMarkers).toBe(3);
+  });
+
+  it('starts at the source boundary, follows straight and curved tangents, and vanishes at target boundary', () => {
+    const line = createKnowledgeGraphEdgePath({
+      source: { x: 0, y: 0 }, target: { x: 100, y: 0 },
+      sourceBoundary: { shape: 'circle', presentationRadius: 10 },
+      targetBoundary: { shape: 'circle', presentationRadius: 10 },
+    });
+    const curve = createKnowledgeGraphEdgePath({
+      source: { x: 0, y: 0 }, target: { x: 100, y: 0 },
+      sourceBoundary: { shape: 'circle', presentationRadius: 10 },
+      targetBoundary: { shape: 'circle', presentationRadius: 10 },
+      sourceKey: 'a', targetKey: 'b', laneCurvature: 0.2,
+    });
+    const start = getKnowledgeGraphMotionMarkerFrame(0);
+    const linePose = getKnowledgeGraphMotionMarkerPose(line, start.progress);
+    const curvePose = getKnowledgeGraphMotionMarkerPose(curve, 0.5);
+    expect(start).toEqual({ visible: true, progress: 0 });
+    expect(linePose.point).toEqual(line.start);
+    expect(linePose.tangent).toEqual({ x: 1, y: 0, z: 0 });
+    expect(curvePose.point.y).not.toBe(0);
+    expect(Math.hypot(curvePose.tangent.x, curvePose.tangent.y, curvePose.tangent.z)).toBeCloseTo(1);
+
+    const terminal = getKnowledgeGraphMotionMarkerFrame(KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs);
+    expect(terminal).toEqual({ visible: false, progress: 1 });
+    expect(getKnowledgeGraphMotionMarkerPose(curve, terminal.progress).point).toEqual(curve.end);
+    expect(getKnowledgeGraphMotionMarkerFrame(
+      KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs + KNOWLEDGE_GRAPH_CORRIDOR_MOTION.pauseDurationMs,
+    )).toEqual({ visible: true, progress: 0 });
+  });
+
+  it.each(['line', 'curve'] as const)('keeps the complete marker footprint inside %s boundaries on every visible frame', (kind) => {
+    const path = createKnowledgeGraphEdgePath({
+      source: { x: 0, y: 0 }, target: { x: 100, y: 24 },
+      sourceBoundary: { shape: 'circle', presentationRadius: 10 },
+      targetBoundary: { shape: 'circle', presentationRadius: 12 },
+      laneCurvature: kind === 'curve' ? 0.25 : 0,
+    });
+    for (let elapsedMs = 0; elapsedMs < KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs; elapsedMs += 16) {
+      const frame = getKnowledgeGraphMotionMarkerFrame(elapsedMs);
+      const placement = getKnowledgeGraphMotionMarkerPlacement(path, frame.progress);
+      expect(placement.visible).toBe(true);
+      expect(placement.centerDistance - KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.backExtent).toBeGreaterThanOrEqual(-1e-8);
+      expect(placement.centerDistance + KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.frontExtent).toBeLessThanOrEqual(placement.pathLength + 1e-8);
+      const normal = { x: -placement.tangent.y, y: placement.tangent.x };
+      const vertices = [
+        {
+          x: placement.point.x + placement.tangent.x * KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.frontExtent,
+          y: placement.point.y + placement.tangent.y * KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.frontExtent,
+        },
+        ...[-1, 1].map((side) => ({
+          x: placement.point.x - placement.tangent.x * KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.backExtent
+            + normal.x * KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.halfWidth * side,
+          y: placement.point.y - placement.tangent.y * KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.backExtent
+            + normal.y * KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.halfWidth * side,
+        })),
+      ];
+      vertices.forEach((vertex) => {
+        const longitudinalExtent = (vertex.x - placement.point.x) * placement.tangent.x
+          + (vertex.y - placement.point.y) * placement.tangent.y;
+        expect(placement.centerDistance + longitudinalExtent).toBeGreaterThanOrEqual(-1e-8);
+        expect(placement.centerDistance + longitudinalExtent).toBeLessThanOrEqual(placement.pathLength + 1e-8);
+      });
+    }
+  });
+
+  it('hides a marker when the edge path is shorter than its complete footprint', () => {
+    const path = createKnowledgeGraphEdgePath({
+      source: { x: 0, y: 0 }, target: { x: 25, y: 0 },
+      sourceBoundary: { shape: 'circle', presentationRadius: 10 },
+      targetBoundary: { shape: 'circle', presentationRadius: 10 },
+    });
+    expect(getKnowledgeGraphMotionMarkerPlacement(path, 0.5).visible).toBe(false);
+  });
+
+  it('uses an equivalent dimension-neutral frame contract for 2D and 3D paths', () => {
+    const twoDimensional = createKnowledgeGraphEdgePath({
+      source: { x: 0, y: 0 }, target: { x: 100, y: 40 },
+      sourceBoundary: { shape: 'circle', presentationRadius: 8 },
+      targetBoundary: { shape: 'circle', presentationRadius: 8 },
+      laneCurvature: -0.18,
+    });
+    const threeDimensional = createKnowledgeGraphEdgePath({
+      source: { x: 0, y: 0, z: 0 }, target: { x: 100, y: 40, z: 30 },
+      sourceBoundary: { shape: 'sphere', presentationRadius: 8 },
+      targetBoundary: { shape: 'sphere', presentationRadius: 8 },
+      laneCurvature: -0.18,
+    });
+    const frame = getKnowledgeGraphMotionMarkerFrame(640);
+    const pose2d = getKnowledgeGraphMotionMarkerPose(twoDimensional, frame.progress);
+    const pose3d = getKnowledgeGraphMotionMarkerPose(threeDimensional, frame.progress);
+    expect(frame.visible).toBe(true);
+    expect(pose2d.point.z).toBe(0);
+    expect(pose3d.point.z).not.toBe(0);
+    expect(Math.hypot(pose2d.tangent.x, pose2d.tangent.y, pose2d.tangent.z)).toBeCloseTo(1);
+    expect(Math.hypot(pose3d.tangent.x, pose3d.tangent.y, pose3d.tangent.z)).toBeCloseTo(1);
+  });
+
+  it('resets the frame origin for selection, filter, or domain scope changes and releases RAF resources', () => {
+    let nextFrameId = 0;
+    const callbacks = new Map<number, FrameRequestCallback>();
+    const cancelled: number[] = [];
+    const loop = new KnowledgeGraphMotionFrameLoop({
+      now: () => 100,
+      requestFrame: (callback) => {
+        const id = ++nextFrameId;
+        callbacks.set(id, callback);
+        return id;
+      },
+      cancelFrame: (id) => {
+        cancelled.push(id);
+        callbacks.delete(id);
+      },
+    });
+    const firstFrames: number[] = [];
+    const secondFrames: number[] = [];
+    const firstKey = createKnowledgeGraphMotionScopeKey({
+      graphVersion: 'v1', selectedNodeId: 'selected-a',
+      visibleNodeIds: ['a', 'b'], motionEligibleEdgeIds: ['edge-a'],
+    });
+    const secondKey = createKnowledgeGraphMotionScopeKey({
+      graphVersion: 'v1', selectedNodeId: 'selected-a',
+      visibleNodeIds: ['a', 'c'], motionEligibleEdgeIds: ['edge-a'],
+    });
+
+    loop.start(firstKey, (elapsedMs) => firstFrames.push(elapsedMs));
+    expect(firstFrames).toEqual([0]);
+    expect(callbacks.size).toBe(1);
+    loop.start(secondKey, (elapsedMs) => secondFrames.push(elapsedMs));
+    expect(secondFrames).toEqual([0]);
+    expect(cancelled).toHaveLength(1);
+    expect(callbacks.size).toBe(1);
+    loop.stop();
+    expect(callbacks.size).toBe(0);
+    expect(loop.isRunning()).toBe(false);
+    expect(loop.pendingFrameCount()).toBe(0);
+  });
+
+  it('cancels immediately while hidden or reduced and restarts from the source with listener cleanup', () => {
+    const listeners = new Map<string, EventListener>();
+    const mediaListeners = new Set<() => void>();
+    const documentTarget = {
+      hidden: false,
+      addEventListener: vi.fn((name: string, listener: EventListener) => listeners.set(name, listener)),
+      removeEventListener: vi.fn((name: string) => listeners.delete(name)),
+    };
+    const mediaQuery = {
+      matches: false,
+      addEventListener: vi.fn((_name: string, listener: () => void) => mediaListeners.add(listener)),
+      removeEventListener: vi.fn((_name: string, listener: () => void) => mediaListeners.delete(listener)),
+    };
+    const suspend = vi.fn();
+    const resume = vi.fn();
+    const cleanup = bindKnowledgeGraphMotionEnvironment({ documentTarget, mediaQuery, suspend, resume });
+    expect(resume).toHaveBeenLastCalledWith();
+
+    documentTarget.hidden = true;
+    listeners.get('visibilitychange')?.(new Event('visibilitychange'));
+    expect(suspend).toHaveBeenCalledOnce();
+    documentTarget.hidden = false;
+    listeners.get('visibilitychange')?.(new Event('visibilitychange'));
+    expect(resume).toHaveBeenCalledTimes(2);
+    mediaQuery.matches = true;
+    mediaListeners.forEach((listener) => listener());
+    expect(suspend).toHaveBeenCalledTimes(2);
+    mediaQuery.matches = false;
+    mediaListeners.forEach((listener) => listener());
+    expect(resume).toHaveBeenCalledTimes(3);
+
+    cleanup();
+    expect(listeners.size).toBe(0);
+    expect(mediaListeners.size).toBe(0);
+  });
+
+  it('keeps bounded-corridor frame calculation below the motion budget', () => {
+    const eligible = Array.from({ length: 96 }, (_, index) => `edge-${String(index).padStart(3, '0')}`);
+    const startedAt = performance.now();
+    for (let index = 0; index < 10_000; index += 1) {
+      selectKnowledgeGraphMotionMarkerEdgeIds({
+        active: true,
+        motionEligibleEdgeIds: eligible,
+        motionSuppressedEdgeIds: [],
+      }).forEach(() => getKnowledgeGraphMotionMarkerFrame(index));
+    }
+    expect(performance.now() - startedAt).toBeLessThan(1_000);
   });
 });

@@ -5,12 +5,15 @@ import {
   PORTRAIT_V2_DIMENSION_IDS,
   type PortraitV2DimensionId,
 } from './kaq-objective-taxonomy';
+import type { SimulationTaskAttainmentProjection } from './simulation-task-portrait-projection';
 
 export { PORTRAIT_V2_DIMENSION_IDS } from './kaq-objective-taxonomy';
 
 export const PORTRAIT_V2_PAYLOAD_VERSION = 'learner-portrait.v2';
-export const PORTRAIT_V2_CALCULATION_VERSION = 'portrait-v2-primary.v1';
-export const PORTRAIT_V2_MIGRATION_VERSION = 'portrait-v2-migration.v1';
+export const PORTRAIT_V2_CALCULATION_VERSION = 'portrait-v2-cumulative.v2';
+export const PORTRAIT_V2_MIGRATION_VERSION: string = 'portrait-v2-cumulative-migration.v2';
+// Compatibility-only thresholds for legacy consumers. Canonical cumulative
+// portrait availability is evidence-backed and does not use calendar age.
 export const PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS = 30;
 export const PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS = 90;
 export const PORTRAIT_V2_MAX_FUTURE_SKEW_MS = 0;
@@ -24,6 +27,7 @@ const PERSISTABLE_PORTRAIT_V2_PAYLOADS = new WeakSet<object>();
 
 export type PortraitV2FreshnessState = 'current' | 'partial' | 'stale' | 'missing';
 export type PortraitV2Trend = 'up' | 'stable' | 'down';
+export type PortraitV2OverallTrend = PortraitV2Trend | 'not-comparable';
 export type PortraitV2DerivationKind = 'native' | 'migrated' | 'compatibility-derived';
 export type PortraitV2Consumer = 'student' | 'konling' | 'planner' | 'reviewer' | 'admin';
 export type PortraitV2CompatibilitySourceFamily =
@@ -72,6 +76,7 @@ export interface PortraitV2DimensionState {
   limitations: string[];
   sourceLineage: PortraitV2SourceLineageRef[];
   calculationVersion: string;
+  taskAttainment?: SimulationTaskAttainmentProjection;
 }
 
 export interface PortraitV2PayloadShape {
@@ -92,6 +97,15 @@ export interface PortraitV2PayloadShape {
     lastFactId: string;
   };
   dimensions: PortraitV2DimensionState[];
+}
+
+export interface PortraitV2CumulativeSummary {
+  overallScore: number | null;
+  confidence: number | null;
+  evidenceAsOf: string | null;
+  trend: PortraitV2OverallTrend;
+  evidencedDimensionIds: PortraitV2DimensionId[];
+  missingDimensionIds: PortraitV2DimensionId[];
 }
 
 export type PortraitV2Payload = PortraitV2PayloadShape & {
@@ -116,6 +130,7 @@ export interface PortraitV2SnapshotRow {
 export interface PortraitV2SnapshotReadDb {
   studentPortraitV2Snapshot?: {
     findFirst?: (args: any) => PromiseLike<unknown | null>;
+    findMany?: (args: any) => PromiseLike<unknown[]>;
   };
 }
 
@@ -224,10 +239,40 @@ export function createPortraitV2Payload(input: {
       freshness: { ...dimension.freshness },
       limitations: [...dimension.limitations],
       sourceLineage: dimension.sourceLineage.map((ref) => ({ ...ref })),
+      ...(dimension.taskAttainment
+        ? { taskAttainment: structuredClone(dimension.taskAttainment) }
+        : {}),
     })),
   };
   validatePortraitV2Payload(payload, { now: input.now });
   return markPersistable(payload);
+}
+
+export function summarizeCumulativePortraitV2(
+  payload: PortraitV2PayloadShape,
+  previous: PortraitV2PayloadShape | null = null,
+): PortraitV2CumulativeSummary {
+  const evidenced = payload.dimensions.filter((dimension) => dimension.evidenceSummary.totalCount > 0);
+  const previousEvidenced = previous?.dimensions.filter((dimension) => dimension.evidenceSummary.totalCount > 0) ?? [];
+  const overallScore = averageOrNull(evidenced.map((dimension) => dimension.score));
+  const previousOverallScore = averageOrNull(previousEvidenced.map((dimension) => dimension.score));
+  return {
+    overallScore,
+    confidence: averageOrNull(evidenced.map((dimension) => dimension.confidence)),
+    evidenceAsOf: latestTimestamp(evidenced
+      .map((dimension) => dimension.freshness.asOf)
+      .filter((value): value is string => value !== null)),
+    trend: overallScore === null || previousOverallScore === null
+      ? 'not-comparable'
+      : overallScore - previousOverallScore > 5
+        ? 'up'
+        : overallScore - previousOverallScore < -5
+          ? 'down'
+          : 'stable',
+    evidencedDimensionIds: evidenced.map((dimension) => dimension.id),
+    missingDimensionIds: PORTRAIT_V2_DIMENSION_IDS.filter((id) =>
+      !evidenced.some((dimension) => dimension.id === id)),
+  };
 }
 
 export function validatePortraitV2Payload(
@@ -370,28 +415,65 @@ export async function readLatestPortraitV2Snapshot(
   });
   if (rawRow === null || rawRow === undefined) return null;
   try {
-    const row = asRecord(rawRow);
-    validatePortraitV2Payload(row.payload, options);
-    const payload = markPersistable(row.payload);
-    const normalizedSnapshotAt = normalizedIsoTimestamp(row.snapshotAt);
-    const normalizedGeneratedAt = normalizedIsoTimestamp(payload.generatedAt);
-    if (
-      row.userId !== userId ||
-      payload.userId !== userId ||
-      normalizedSnapshotAt === null ||
-      !isWithinFutureBoundary(normalizedSnapshotAt, options.now) ||
-      normalizedSnapshotAt !== normalizedGeneratedAt ||
-      row.payloadVersion !== payload.payloadVersion ||
-      row.calculationVersion !== PORTRAIT_V2_CALCULATION_VERSION ||
-      row.migrationVersion !== payload.migrationVersion ||
-      row.derivationKind !== payload.derivation.kind
-    ) {
-      throw new Error('Persisted portrait metadata does not match the requested learner or payload.');
-    }
-    return projectPortraitV2ForConsumer(payload, consumer, options);
+    return projectPersistedPortraitV2Row(rawRow, userId, consumer, options);
   } catch (error) {
     throw new PortraitV2SnapshotValidationError('Invalid persisted portrait v2 snapshot.', { cause: error });
   }
+}
+
+export async function readLatestValidNativePortraitV2Snapshots(
+  db: PortraitV2SnapshotReadDb,
+  userIds: string[],
+  consumer: PortraitV2Consumer,
+  options: PortraitV2ClockOptions = {},
+): Promise<Map<string, PortraitV2ProjectedPayload>> {
+  const findMany = db.studentPortraitV2Snapshot?.findMany;
+  const uniqueUserIds = [...new Set(userIds)].sort();
+  if (!findMany || uniqueUserIds.length === 0) return new Map();
+  const rows = await findMany({
+    where: { userId: { in: uniqueUserIds }, derivationKind: 'native' },
+    orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }, { id: 'desc' }],
+  });
+  const selected = new Map<string, PortraitV2ProjectedPayload>();
+  for (const rawRow of rows) {
+    const row = asRecord(rawRow);
+    const userId = typeof row.userId === 'string' ? row.userId : '';
+    if (!userId || selected.has(userId)) continue;
+    try {
+      const payload = projectPersistedPortraitV2Row(rawRow, userId, consumer, options);
+      if (payload.derivation.kind === 'native') selected.set(userId, payload);
+    } catch {
+      // A corrupt newest row must not hide an older canonical native portrait.
+    }
+  }
+  return selected;
+}
+
+function projectPersistedPortraitV2Row(
+  rawRow: unknown,
+  userId: string,
+  consumer: PortraitV2Consumer,
+  options: PortraitV2ClockOptions,
+): PortraitV2ProjectedPayload {
+  const row = asRecord(rawRow);
+  validatePortraitV2Payload(row.payload, options);
+  const payload = markPersistable(row.payload);
+  const normalizedSnapshotAt = normalizedIsoTimestamp(row.snapshotAt);
+  const normalizedGeneratedAt = normalizedIsoTimestamp(payload.generatedAt);
+  if (
+    row.userId !== userId ||
+    payload.userId !== userId ||
+    normalizedSnapshotAt === null ||
+    !isWithinFutureBoundary(normalizedSnapshotAt, options.now) ||
+    normalizedSnapshotAt !== normalizedGeneratedAt ||
+    row.payloadVersion !== payload.payloadVersion ||
+    row.calculationVersion !== PORTRAIT_V2_CALCULATION_VERSION ||
+    row.migrationVersion !== payload.migrationVersion ||
+    row.derivationKind !== payload.derivation.kind
+  ) {
+    throw new Error('Persisted portrait metadata does not match the requested learner or payload.');
+  }
+  return projectPortraitV2ForConsumer(payload, consumer, options);
 }
 
 export async function readLatestPortraitV2SnapshotForUpdate(
@@ -485,6 +567,15 @@ export function projectPortraitV2ForConsumer(
           privacyScope: ref.privacyScope,
         })),
       calculationVersion: dimension.calculationVersion,
+      ...(dimension.taskAttainment
+        ? {
+            taskAttainment: {
+              ...structuredClone(dimension.taskAttainment),
+              sourceLineage: dimension.taskAttainment.sourceLineage.filter((ref) =>
+                ref.privacyScope === 'student-visible'),
+            },
+          }
+        : {}),
     })),
   };
   validatePortraitV2Projection(projected, consumer, options);
@@ -620,6 +711,7 @@ function validateDimension(
     'limitations',
     'sourceLineage',
     'calculationVersion',
+    'taskAttainment',
   ], 'Portrait v2 dimension');
   const id = dimension.id as PortraitV2DimensionId;
   if (!PORTRAIT_V2_DIMENSION_IDS.includes(id) || dimension.label !== LABELS.get(id)) {
@@ -695,6 +787,81 @@ function validateDimension(
   if (!hasConsistentDimensionSummary(dimension, freshness.state, derivation.kind)) {
     throw new Error(`Portrait v2 dimension ${id} with missing evidence must use the canonical zero-value summary.`);
   }
+  validateSimulationTaskAttainment(dimension, id);
+}
+
+function validateSimulationTaskAttainment(
+  dimension: Record<string, unknown>,
+  id: PortraitV2DimensionId,
+): void {
+  if (dimension.taskAttainment === undefined) return;
+  if (id !== 'simulationValidationEvidence') {
+    throw new Error('Only the simulation validation dimension may contain task attainment.');
+  }
+  const taskAttainment = asRecord(dimension.taskAttainment);
+  assertExactKeys(taskAttainment, [
+    'state',
+    'score',
+    'completedTaskCount',
+    'relatedTaskCount',
+    'groupedTaskSummary',
+    'evidenceAsOf',
+    'sourceLineage',
+    'calculationVersion',
+    'catalogDigest',
+    'limitations',
+    'hasGovernedTaskEvidence',
+  ], 'Simulation task attainment');
+  const completedTaskCount = Number(taskAttainment.completedTaskCount);
+  const relatedTaskCount = Number(taskAttainment.relatedTaskCount);
+  const groups = Array.isArray(taskAttainment.groupedTaskSummary)
+    ? taskAttainment.groupedTaskSummary
+    : [];
+  const groupCountsAreValid = groups.every((value) => {
+    const group = asRecord(value);
+    const tasks = Array.isArray(group.tasks) ? group.tasks : [];
+    return typeof group.source === 'string' &&
+      typeof group.displayGroup === 'string' &&
+      isNonNegativeInteger(group.completedTaskCount) &&
+      isNonNegativeInteger(group.relatedTaskCount) &&
+      Number(group.completedTaskCount) <= Number(group.relatedTaskCount) &&
+      tasks.length === Number(group.relatedTaskCount) &&
+      tasks.every((taskValue) => {
+        const task = asRecord(taskValue);
+        return isNonEmptyString(task.taskKey) &&
+          isNonEmptyString(task.displayName) &&
+          typeof task.completed === 'boolean';
+      });
+  });
+  const completedFromGroups = groups.reduce((sum, value) =>
+    sum + Number(asRecord(value).completedTaskCount), 0);
+  const relatedFromGroups = groups.reduce((sum, value) =>
+    sum + Number(asRecord(value).relatedTaskCount), 0);
+  if (
+    (taskAttainment.state !== 'EVIDENCE' && taskAttainment.state !== 'NO_EVIDENCE') ||
+    !isNonNegativeInteger(completedTaskCount) ||
+    !isNonNegativeInteger(relatedTaskCount) ||
+    completedTaskCount > relatedTaskCount ||
+    completedFromGroups !== completedTaskCount ||
+    relatedFromGroups !== relatedTaskCount ||
+    !groupCountsAreValid ||
+    !isNullableIsoTimestamp(taskAttainment.evidenceAsOf) ||
+    !isStringArray(taskAttainment.limitations) ||
+    !isNonEmptyString(taskAttainment.calculationVersion) ||
+    !/^[0-9a-f]{64}$/u.test(String(taskAttainment.catalogDigest)) ||
+    typeof taskAttainment.hasGovernedTaskEvidence !== 'boolean' ||
+    !Array.isArray(taskAttainment.sourceLineage) ||
+    !taskAttainment.sourceLineage.every(isLineageRef) ||
+    (taskAttainment.state === 'EVIDENCE'
+      ? !inRange(taskAttainment.score, 0, 100) ||
+        completedTaskCount === 0 ||
+        taskAttainment.evidenceAsOf === null
+      : taskAttainment.score !== null ||
+        completedTaskCount !== 0 ||
+        taskAttainment.evidenceAsOf !== null)
+  ) {
+    throw new Error('Simulation task attainment metadata is invalid.');
+  }
 }
 
 function isLineageVisibleToConsumer(
@@ -734,6 +901,10 @@ function isRecord(value: unknown): value is Record<string, any> {
 
 function average(values: number[]): number {
   return values.length === 0 ? 0 : Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) / 100;
+}
+
+function averageOrNull(values: number[]): number | null {
+  return values.length === 0 ? null : average(values);
 }
 
 function clockTimestamp(now: Date | string | undefined): string {
@@ -797,14 +968,11 @@ function hasConsistentFreshness(freshness: Record<string, unknown>, generatedAt:
   const ageMilliseconds = Date.parse(generatedAt) - Date.parse(freshness.asOf);
   if (ageMilliseconds < 0) return false;
   const evidenceAgeDays = Math.floor(ageMilliseconds / 86_400_000);
-  return freshness.evidenceAgeDays === evidenceAgeDays &&
-    freshness.state === freshnessStateForAge(evidenceAgeDays);
+  return freshness.evidenceAgeDays === evidenceAgeDays;
 }
 
-function freshnessStateForAge(evidenceAgeDays: number): Exclude<PortraitV2FreshnessState, 'missing'> {
-  if (evidenceAgeDays <= PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS) return 'current';
-  if (evidenceAgeDays <= PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS) return 'partial';
-  return 'stale';
+function freshnessStateForAge(_evidenceAgeDays: number): Exclude<PortraitV2FreshnessState, 'missing'> {
+  return 'current';
 }
 
 function hasConsistentEvidenceTimestamps(

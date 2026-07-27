@@ -1,0 +1,14 @@
+{
+  "subject": { "issue": null, "change_id": "add-teacher-course-basis-management" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "Teachers currently lack a reusable private course-basis workspace for their own standards and textbook versions.",
+      "Existing lesson-design Source Pack retrieval can be reused but does not provide the requested teacher upload, extraction review, immutable version, and lifecycle workflow.",
+      "The contest demonstration requires the existing Hu Shousong Markdown and a compact course standard to enter the ordinary governed retrieval path."
+    ]
+  },
+  "duplication": { "existing_implementation": "partial", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "Input formats, ownership, version lifecycle, extraction behavior, governed projection, retrieval profile, and demonstration materials are specified." },
+  "binding": { "issue_updated_at": null, "base_sha": "c18e40372e0f444ec3ad08a5385f0ad854825d23", "generated_at": "2026-07-18T15:57:40Z" }
+}

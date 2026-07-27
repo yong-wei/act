@@ -29,6 +29,8 @@ vi.mock('next/cache', () => ({
   revalidatePath: mocks.revalidatePath,
 }));
 
+vi.mock('server-only', () => ({}));
+
 import { POST } from '@/app/teacher/prep-packs/actions/route';
 
 const baseDate = new Date('2026-06-13T00:00:00.000Z');

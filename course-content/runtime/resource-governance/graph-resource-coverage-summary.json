@@ -1,19 +1,16 @@
 {
   "artifactVersion": "graph-resource-coverage-overlay.v1",
-  "generatedAt": "2026-07-05T14:20:00.000Z",
+  "generatedAt": "2026-07-23T08:30:00.000Z",
   "reviewBatchId": "graph-resource-coverage-closure-2026-07-05",
   "totals": {
-    "activeNodes": 937,
-    "beforeGraphNodeResourceMissing": 541,
-    "workqueueItems": 541,
-    "reviewedLimitations": 541,
+    "activeNodes": 838,
+    "beforeGraphNodeResourceMissing": 0,
+    "workqueueItems": 0,
+    "reviewedLimitations": 0,
     "afterGraphNodeResourceMissing": 0,
-    "afterReviewedResourceGaps": 541
+    "afterReviewedResourceGaps": 0
   },
-  "byLimitationCategory": {
-    "simulation-resource-not-yet-authored": 5,
-    "teaching-resource-not-yet-authored": 536
-  },
+  "byLimitationCategory": {},
   "guardrails": {
     "everyMissingNodeReviewed": true,
     "noUnexplainedGraphNodeResourceMissing": true,

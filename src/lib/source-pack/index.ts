@@ -64,7 +64,7 @@ export type {
 export {
   adaptLearningEvidenceChunk,
   adaptLearningEvidenceBatch,
-  adaptTextbookSearchDocument,
+  adaptTextbookStructureUnit,
   adaptResourceProjection,
   type AdaptLearningEvidenceChunkOptions,
   type AdaptCorpusResult,

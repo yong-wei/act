@@ -59,3 +59,95 @@ Teacher-facing report APIs SHALL expose scoped control-correction path outcome m
 - **WHEN** an authorized teacher exports the control-correction report
 - **THEN** the export SHALL include report metrics, chart-ready data, methodology notes, confidence markers, and redaction policy notes
 - **AND** it SHALL preserve the same class-scope authorization as the report API.
+
+### Requirement: Teacher student detail preserves cumulative attainment
+An authorized teacher student detail SHALL use the learner's latest valid
+canonical cumulative portrait as its only primary capability result. Activity,
+trend, risk, diagnosis, and growth summaries SHALL be derived from the same
+cumulative evidence contract and SHALL preserve current-member authorization.
+
+#### Scenario: Learner has no newer evidence
+- **WHEN** an authorized teacher opens a current member with a valid cumulative portrait and no newer eligible evidence
+- **THEN** the response SHALL include that portrait, last evidence-triggered trend and risk, growth summary, and evidence cutoff
+- **AND** it SHALL NOT create an empty calendar-window diagnosis or compatibility portrait.
+
+#### Scenario: Learner has no valid cumulative portrait
+- **WHEN** an authorized teacher opens a current member without a valid cumulative portrait
+- **THEN** the response SHALL remain an explicit no-eligible-evidence result
+- **AND** it SHALL NOT fabricate a zero-valued or compatibility-derived cumulative portrait.
+
+#### Scenario: Revoked evidence suppresses an older portrait
+- **WHEN** the latest learner state records `no-evidence-after-revocation` and an older portrait remains in storage
+- **THEN** the response SHALL remain an explicit no-eligible-evidence result
+- **AND** it SHALL NOT expose the revoked portrait as current cumulative attainment.
+
+### Requirement: Teacher class comparisons preserve missing cumulative values
+Teacher student details SHALL calculate a class comparison only when the
+learner dimension has evidence and the cumulative class aggregate supplies a
+finite mean for that dimension. Missing values SHALL NOT be represented as
+zero scores, zero class means, or leading/lagging conclusions.
+
+#### Scenario: A cumulative class mean is missing
+- **WHEN** a learner has a cumulative portrait dimension but the cumulative
+  class snapshot has no mean for that dimension
+- **THEN** the student score, class mean, and gap for that comparison SHALL be
+  unavailable
+- **AND** the teacher view SHALL NOT report the learner as ahead or behind.
+
+### Requirement: Teacher class insights aggregate current learner portraits
+Teacher class insight APIs SHALL derive the class portrait from the canonical
+cumulative portraits of current class members and SHALL read only immutable
+`class-competency.cumulative.v2` materializations after migration. The API and
+UI SHALL NOT offer a recent scope.
+
+#### Scenario: Class dimension has partial member coverage
+- **WHEN** some current members have valid evidence for a portrait dimension and others do not
+- **THEN** the class mean SHALL give equal weight to each member with valid evidence for that dimension
+- **AND** the response SHALL report included count, missing count, and mean confidence without substituting zero for missing members.
+
+#### Scenario: Membership changes
+- **WHEN** a learner joins, leaves, or transfers into a class
+- **THEN** the class aggregate SHALL add or remove that learner's latest cumulative projection
+- **AND** the learner's portrait and historical facts SHALL NOT be rebuilt, copied, or deleted.
+
+#### Scenario: Class trend and risk are requested
+- **WHEN** an authorized teacher opens class trend or risk summaries
+- **THEN** the response SHALL aggregate current members' last personal trend and last evidence-backed risk states
+- **AND** it SHALL NOT infer trend from changes in the class mean or clear risk because no newer fact exists.
+
+#### Scenario: Removed recent scope is requested
+- **WHEN** a client explicitly requests `scope=recent` or another removed calendar-window portrait scope
+- **THEN** the API SHALL return an explicit unsupported-scope error
+- **AND** it SHALL NOT ignore the parameter, fall back to cumulative, or construct a compatibility portrait.
+
+### Requirement: Teacher student insight exposes cumulative growth history
+Teacher student insight APIs SHALL expose a privacy-safe summary of meaningful
+cumulative growth events for current class members.
+
+#### Scenario: Teacher opens growth history
+- **WHEN** an authorized teacher opens a current member's growth history
+- **THEN** the response SHALL include meaningful level changes, strength changes, evidence-backed risk changes, and important contributed milestones in newest-first order
+- **AND** it SHALL NOT expose a duplicate of every activity or role-restricted raw payload.
+
+#### Scenario: Student leaves the teacher's classes
+- **WHEN** the learner is no longer a current member of any class managed by the teacher
+- **THEN** teacher access to that learner's portrait, evidence, and growth history SHALL end immediately.
+
+### Requirement: Teacher cumulative portraits expose task-attainment composition
+Authorized teacher student-detail and class-attainment responses SHALL expose the task-normalized simulation completion count, current related-task count, and privacy-safe grouped task composition when the personal portrait has an eligible simulation dimension.
+
+#### Scenario: Teacher reads a student's cumulative simulation attainment
+- **WHEN** an authorized teacher opens a current class member with an eligible simulation task projection
+- **THEN** the response includes the student's completed-task count, related-task count, and grouped task summary
+- **AND** it does not expose raw run payloads, answers, hidden scoring details, or unrelated students' task details
+
+#### Scenario: Teacher reads a class simulation aggregate
+- **WHEN** an authorized teacher requests cumulative class attainment
+- **THEN** the class simulation value is aggregated from current members' latest personal task projections
+- **AND** the response uses the arithmetic mean of usable personal task-completion ratios and reports usable-member coverage against the current roster
+- **AND** the response does not treat the class as the owner of learning facts or infer a class-time history
+
+#### Scenario: Class comparison lacks a usable task aggregate
+- **WHEN** a learner or current class aggregate has no usable task-normalized simulation value
+- **THEN** the comparison remains unavailable
+- **AND** the teacher response SHALL NOT emit zero values, ahead-or-behind conclusions, or a synthetic trend

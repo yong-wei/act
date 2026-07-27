@@ -142,7 +142,7 @@ function evaluateWithRustRuntime(
 /**
  * 评估参数组合的得分
  */
-function evaluateParams(
+export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
   simConfig: SimpleSimConfig,
   target: OptimizationTarget
@@ -291,7 +291,7 @@ export function optimizePIDParams(
   const rng = createSimulationRng(runContext, 'monte-carlo-search').next;
 
   let bestParams = sampleParams(constraints, rng);
-  let bestResult = evaluateParams(bestParams, config, target);
+  let bestResult = evaluatePIDParams(bestParams, config, target);
   let noImprovementCount = 0;
   let currentMaxIterations = maxIterations;
 
@@ -308,7 +308,7 @@ export function optimizePIDParams(
       ? sampleNearby(bestParams, constraints, rng, 0.15)
       : sampleParams(constraints, rng);
 
-    const result = evaluateParams(params, config, target);
+    const result = evaluatePIDParams(params, config, target);
 
     if (result.score > bestResult.score) {
       bestParams = params;

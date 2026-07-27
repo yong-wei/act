@@ -85,6 +85,22 @@ function buildClassroomEvidenceWriteback() {
   };
 }
 
+function toStudentTeacherSyncRecord(state: {
+  itemId: string | null;
+  stateKey: string;
+  lessonKey: string | null;
+  submittedAt: Date;
+  data: unknown;
+}) {
+  return {
+    itemId: state.itemId,
+    stateKey: state.stateKey,
+    lessonKey: state.lessonKey,
+    submittedAt: state.submittedAt,
+    data: state.data,
+  };
+}
+
 function appendLifecycleEvent(data: unknown, event: unknown | null): Prisma.InputJsonValue {
   if (!event || typeof data !== 'object' || data === null || Array.isArray(data)) {
     return data as Prisma.InputJsonValue;
@@ -457,12 +473,13 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
         }),
       ]);
 
-      const states = [teacherSyncState, selfState].filter(Boolean);
+      const studentTeacherSyncState = teacherSyncState ? toStudentTeacherSyncRecord(teacherSyncState) : null;
+      const states = [studentTeacherSyncState, selfState].filter(Boolean);
 
       return NextResponse.json({
         states,
         courseStates: selfState ? [selfState] : [],
-        teacherStates: teacherSyncState ? [teacherSyncState] : [],
+        teacherStates: studentTeacherSyncState ? [studentTeacherSyncState] : [],
         evidenceWriteback: buildClassroomEvidenceWriteback(),
         summary: {
           latestUpdate: teacherSyncState?.submittedAt || selfState?.submittedAt || null,

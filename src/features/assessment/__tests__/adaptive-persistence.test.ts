@@ -42,6 +42,14 @@ interface CatalogItemFixture {
   };
 }
 
+const APPROVED_READINESS_GOAL_ID = 'time-domain-response-analysis';
+
+function approvedReadinessQuestion() {
+  const question = PRESET_QUESTIONS.find((candidate) => candidate.id === 'preset-q-05');
+  if (!question) throw new Error('missing approved readiness question preset-q-05');
+  return question;
+}
+
 function readCoverageMatrix(): CoverageMatrix {
   return JSON.parse(
     readFileSync('course-content/runtime/resource-governance/learning-goal-assessment-coverage-matrix.json', 'utf8'),
@@ -185,7 +193,7 @@ function createMockDb() {
 describe('submitAnswerDurably', () => {
   it('persists adaptive submissions with safe references while preserving the response contract', async () => {
     const db = createMockDb();
-    const question = PRESET_QUESTIONS[0];
+    const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -198,7 +206,7 @@ describe('submitAnswerDurably', () => {
       pathContext: {
         pathId: 'path-1',
         nodeId: 'adaptive-quiz:control-target-check',
-        goalId: 'control-correction',
+        goalId: APPROVED_READINESS_GOAL_ID,
         routeIntent: 'path-execution',
       },
     }, db);
@@ -226,7 +234,7 @@ describe('submitAnswerDurably', () => {
           pathExecution: {
             pathId: 'path-1',
             nodeId: 'adaptive-quiz:control-target-check',
-            goalId: 'control-correction',
+            goalId: APPROVED_READINESS_GOAL_ID,
             routeIntent: 'path-execution',
           },
         }),
@@ -301,16 +309,10 @@ describe('submitAnswerDurably', () => {
 
   it('writes path assessment retries to a retry session after a prior answer', async () => {
     const db = createMockDb();
-    const question = PRESET_QUESTIONS.find((candidate) => {
-      const metadata = buildKaqQuizQuestionMetadata(candidate);
-      return metadata.learningGoalIds.includes('control-correction') &&
-        metadata.review.state === 'reviewed' &&
-        metadata.purpose === 'readiness-gate';
-    });
-    expect(question).toBeTruthy();
-    const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
+    const question = approvedReadinessQuestion();
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
-    const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
+    const failedOptionIndex = question.options.findIndex((option) => !option.isCorrect);
     const failedOptionKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[failedOptionIndex];
     expect(failedOptionKey).toBeTruthy();
 
@@ -329,7 +331,7 @@ describe('submitAnswerDurably', () => {
       .mockResolvedValueOnce({
         id: 'answer-old',
         userId: 'student-1',
-        questionId: question!.id,
+        questionId: question.id,
         selectedOptionKey: failedOptionKey,
         isCorrect: false,
         score: 0,
@@ -344,7 +346,7 @@ describe('submitAnswerDurably', () => {
       id: 'answer-retry',
       userId: 'student-1',
       sessionId: 'retry-session',
-      questionId: question!.id,
+      questionId: question.id,
       isCorrect: true,
       score: 100,
       responseTimeSeconds: 42,
@@ -357,13 +359,13 @@ describe('submitAnswerDurably', () => {
     const result = await submitAnswerDurably({
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
-      questionId: question!.id,
+      questionId: question.id,
       selectedOption: correctOptionText!,
       timeSpent: 42,
       pathContext: {
         pathId: 'path-1',
         nodeId: 'adaptive-quiz:control-target-check',
-        goalId: 'control-correction',
+        goalId: APPROVED_READINESS_GOAL_ID,
         routeIntent: 'path-execution',
       },
     }, db);
@@ -382,7 +384,7 @@ describe('submitAnswerDurably', () => {
       where: {
         sessionId_questionId: {
           sessionId: 'retry-session',
-          questionId: question!.id,
+          questionId: question.id,
         },
       },
       create: expect.objectContaining({
@@ -398,7 +400,7 @@ describe('submitAnswerDurably', () => {
           pathExecution: {
             pathId: 'path-1',
             nodeId: 'adaptive-quiz:control-target-check',
-            goalId: 'control-correction',
+            goalId: APPROVED_READINESS_GOAL_ID,
             routeIntent: 'path-execution',
           },
         }),
@@ -838,7 +840,7 @@ describe('submitAnswerDurably', () => {
 
   it('stores immutable item reference snapshots for question metadata', async () => {
     const db = createMockDb();
-    const question = PRESET_QUESTIONS[0];
+    const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -1507,7 +1509,7 @@ describe('submitAnswerDurably', () => {
     const db = createMockDb();
     db.learningFact.createMany.mockRejectedValue(new Error('learning fact unavailable'));
 
-    const question = PRESET_QUESTIONS[0];
+    const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 

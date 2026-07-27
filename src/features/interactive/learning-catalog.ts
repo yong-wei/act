@@ -12,6 +12,9 @@ import {
 
 import { UNIT_1_1_PREMIUM_LESSON_CARD } from '@/lib/unit-1-1-course';
 import { UNIT_1_2_PREMIUM_LESSON_CARD } from '@/lib/unit-1-2-course';
+import { UNIT_1_3_PREMIUM_LESSON_CARD } from '@/lib/unit-1-3-course';
+import { UNIT_1_4_PREMIUM_LESSON_CARD } from '@/lib/unit-1-4-course';
+import { UNIT_1_5_PREMIUM_LESSON_CARD } from '@/lib/unit-1-5-course';
 import { UNIT_2_1_PREMIUM_LESSON_CARD } from '@/lib/unit-2-1-course';
 import { UNIT_2_2_PREMIUM_LESSON_CARD } from '@/lib/unit-2-2-course';
 import { UNIT_2_3_PREMIUM_LESSON_CARD } from '@/lib/unit-2-3-course';
@@ -160,6 +163,9 @@ export const CHAPTER_COMPONENT_CATEGORIES = CATEGORY_ORDER.filter(
 export const FEATURED_LESSONS = [
   UNIT_1_1_PREMIUM_LESSON_CARD,
   UNIT_1_2_PREMIUM_LESSON_CARD,
+  UNIT_1_3_PREMIUM_LESSON_CARD,
+  UNIT_1_4_PREMIUM_LESSON_CARD,
+  UNIT_1_5_PREMIUM_LESSON_CARD,
   UNIT_2_1_PREMIUM_LESSON_CARD,
   UNIT_2_2_PREMIUM_LESSON_CARD,
   UNIT_2_3_PREMIUM_LESSON_CARD,
@@ -201,6 +207,8 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'cruise-comfort-boppps' &&
     lesson.id !== 'unit-1-1-see-the-full-picture' &&
     lesson.id !== 'unit-1-2-modeling-from-object-to-system' &&
+    lesson.id !== 'unit-1-4-time-frequency-views' &&
+    lesson.id !== 'unit-1-5-three-domain-gain-sweep' &&
     lesson.id !== 'unit-2-1-modeling-language' &&
     lesson.id !== 'unit-2-2-time-domain-response' &&
     lesson.id !== 'unit-2-3-frequency-response-bode-intro' &&
@@ -274,6 +282,9 @@ function createModuleLesson(id: string, unitLabel: string, legacySourceLabel?: s
 export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
   lesson.id === 'unit-1-1-see-the-full-picture' ||
   lesson.id === 'unit-1-2-modeling-from-object-to-system' ||
+  lesson.id === 'unit-1-3-parameter-pole-migration' ||
+  lesson.id === 'unit-1-4-time-frequency-views' ||
+  lesson.id === 'unit-1-5-three-domain-gain-sweep' ||
   lesson.id === 'cruise-comfort-boppps'
 ).map((lesson) => createCourseHubLesson(
   lesson,
@@ -281,6 +292,12 @@ export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
     ? '1-1'
     : lesson.id === 'unit-1-2-modeling-from-object-to-system'
       ? '1-2'
+      : lesson.id === 'unit-1-3-parameter-pole-migration'
+        ? '1-3'
+        : lesson.id === 'unit-1-4-time-frequency-views'
+          ? '1-4'
+        : lesson.id === 'unit-1-5-three-domain-gain-sweep'
+          ? '1-5'
       : '邮轮实践'
 ));
 
@@ -288,11 +305,14 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
   {
     id: 'module-1',
     title: '模块1',
-    description: '模块1当前开放 1-1 全景导览与 1-2 建模入口，先用一条船建立控制全景，再从真实对象走向微分方程、传递函数、结构图、信号流图和极点行为地图。',
+    description: '模块1当前开放 1-1 至 1-5，依次建立控制全景、对象建模、参数迁移、双域联读与三域增益扫描视角。',
     chipLabel: '已开放单元',
     lessons: [
       createModuleLesson('unit-1-1-see-the-full-picture', '1-1'),
       createModuleLesson('unit-1-2-modeling-from-object-to-system', '1-2'),
+      createModuleLesson('unit-1-3-parameter-pole-migration', '1-3'),
+      createModuleLesson('unit-1-4-time-frequency-views', '1-4'),
+      createModuleLesson('unit-1-5-three-domain-gain-sweep', '1-5'),
     ],
   },
   {

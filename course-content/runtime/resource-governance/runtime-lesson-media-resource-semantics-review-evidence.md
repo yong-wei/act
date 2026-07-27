@@ -1,32 +1,33 @@
 # Runtime lesson/media resource semantics closure
 
-Review batches: analysis-design-graph-resource-bindings-2026-07-04, foundation-graph-resource-bindings-2026-07-04, residual-runtime-handout-disposition-review-2026-07-05, residual-runtime-lesson-media-disposition-review-2026-07-05, residual-runtime-lesson-module-disposition-review-2026-07-05, residual-runtime-lesson-step-disposition-review-2026-07-05, runtime-lesson-media-asset-canonical-re-review-2026-07-13, runtime-lesson-planning-unit-review-2026-07-05, runtime-media-handout-disposition-review-2026-07-05, simulation-transfer-graph-resource-bindings-2026-07-04
-Scoped audit/projection rows: 2598
-Reviewed rows: 2598
+Review batches: analysis-design-graph-resource-bindings-2026-07-04, foundation-graph-resource-bindings-2026-07-04, residual-runtime-handout-disposition-review-2026-07-05, residual-runtime-lesson-media-disposition-review-2026-07-05, residual-runtime-lesson-module-disposition-review-2026-07-05, residual-runtime-lesson-step-disposition-review-2026-07-05, runtime-lesson-media-asset-canonical-re-review-2026-07-13, runtime-lesson-planning-unit-review-2026-07-05, runtime-media-handout-disposition-review-2026-07-05, simulation-transfer-graph-resource-bindings-2026-07-04, unit-1-4-knowledge-card-manifest-rereview-2026-07-17, unit-1-4-missing-media-current-manifest-rereview-2026-07-17, unit-1-4-semantic-binding-rereview-2026-07-17, units-1-3-1-5-runtime-structure-review-2026-07-17
+Scoped audit/projection rows: 2801
+Human-confirmed rows: 2527
+Pending re-review rows: 274
 Unexplained unreviewed rows: 0
-Promoted PlanningUnits: 16 (runtime lesson steps only)
+Promoted PlanningUnits: 0 (runtime lesson steps only)
 Media/handout/module promotions: 0
 
 ## Family counts
 
-- runtime-handout: 37
-- runtime-lesson-media: 759
-- runtime-lesson-module: 1352
-- runtime-lesson-step: 450
+- runtime-handout: 39
+- runtime-lesson-media: 788
+- runtime-lesson-module: 1487
+- runtime-lesson-step: 487
 
 ## Disposition counts
 
 - embedded-asset: 647
 - evidence-producing: 2
-- excluded-with-rationale: 1769
+- excluded-with-rationale: 1945
 - planning-unit: 16
-- supporting-citation: 164
+- supporting-citation: 163
 
 ## Runtime asset status
 
 - external-http-runtime-asset: 89
-- missing-local-runtime-asset: 23
-- not-applicable: 1839
+- missing-local-runtime-asset: 27
+- not-applicable: 2010
 - tracked-local-runtime-asset: 647
 
 ## Review decision

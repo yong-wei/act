@@ -1,28 +1,26 @@
 import type { RuntimeResourceProjectionArtifactRow } from './runtime-resource-projections';
 import type { RuntimeResourceProjectionReviewStatus } from './resource-node-registry';
-import type { TextbookRuntimeSearchDocument } from './textbook-runtime-resources';
+import type { TextbookStructureUnitProjection } from './structured-textbook-runtime';
 
 export const TEXTBOOK_MEDIA_GROUNDING_ARTIFACT_VERSION = 'textbook-media-grounding.v1';
 
 export type TextbookGroundingReviewState = 'human-confirmed' | 'generated-provisional' | 'blocked';
 
-export interface TextbookSectionGroundingCandidate {
+export interface TextbookUnitGroundingCandidate {
   artifactVersion: typeof TEXTBOOK_MEDIA_GROUNDING_ARTIFACT_VERSION;
   sourcePackageId: string;
   candidateId: string;
-  documentId: string;
+  unitId: string;
   kind: string;
   title: string;
   bookId: string;
   chapterId: string | null;
-  chapterNumber: number | null;
-  sectionId: string;
   pageAnchor: string | null;
   sourceHash: string | null;
   sourceWindow: {
     bookId: string;
     chapterId: string | null;
-    sectionId: string;
+    unitId: string;
   };
   graphNodeRefs: {
     knowledge: string[];
@@ -38,16 +36,17 @@ export interface TextbookSectionGroundingCandidate {
   pathEligible: false;
 }
 
-export interface TextbookSectionCitationTargetArtifact {
+export interface TextbookUnitCitationTargetArtifact {
   artifactVersion: typeof TEXTBOOK_MEDIA_GROUNDING_ARTIFACT_VERSION;
   sourcePackageId: string;
   citationTargetId: string;
   retrievalChunkId: string;
   candidateId: string;
-  documentId: string;
-  address: NonNullable<TextbookRuntimeSearchDocument['citationAddress']>;
+  unitId: string;
+  address: NonNullable<TextbookStructureUnitProjection['citationAddress']>;
   contentHash: string | null;
-  sourceVersionRefs: TextbookRuntimeSearchDocument['resourceProjection']['versionRefs'];
+  targetFileHash: string;
+  sourceVersionRefs: TextbookStructureUnitProjection['resourceProjection']['versionRefs'];
   pathEligibility: {
     eligible: false;
     reason: 'resource-node-planning-audit-required';
@@ -67,7 +66,7 @@ export type TextbookMediaGroundingLimitationReason =
 
 export interface TextbookMediaGroundingLimitation {
   id: string;
-  sourceKind: 'textbook-section' | 'media-projection';
+  sourceKind: 'textbook-unit' | 'media-projection';
   reason: TextbookMediaGroundingLimitationReason;
   sourcePackageId: string;
   reviewBatchId: string | null;
@@ -86,7 +85,7 @@ export interface TextbookMediaGroundingLimitationsArtifact {
   generatedAt: string;
   sourcePackageId: string;
   denominator: {
-    textbookDocuments: number;
+    textbookUnits: number;
     mediaProjectionRows: number;
     reviewedTextbookCandidates: number;
     reviewedMediaProjections: number;
@@ -110,28 +109,34 @@ export interface TextbookMediaGroundingLimitationsArtifact {
 }
 
 export interface TextbookMediaGroundingArtifacts {
-  candidates: TextbookSectionGroundingCandidate[];
-  citationTargets: TextbookSectionCitationTargetArtifact[];
+  candidates: TextbookUnitGroundingCandidate[];
+  citationTargets: TextbookUnitCitationTargetArtifact[];
   limitations: TextbookMediaGroundingLimitationsArtifact;
 }
 
 export function buildTextbookMediaGroundingArtifacts(input: {
   sourcePackageId: string;
-  textbookDocuments: readonly TextbookRuntimeSearchDocument[];
+  textbookUnits: readonly TextbookStructureUnitProjection[];
   mediaProjections: readonly RuntimeResourceProjectionArtifactRow[];
   generatedAt?: string;
   reviewBatchId: string;
+  targetFileHashForHref: (href: string) => string | null;
   maxLimitationRows?: number;
 }): TextbookMediaGroundingArtifacts {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
-  const candidates = input.textbookDocuments
-    .map((document) => buildTextbookCandidate(input.sourcePackageId, input.reviewBatchId, document))
+  const candidates = input.textbookUnits
+    .map((unit) => buildTextbookCandidate(input.sourcePackageId, input.reviewBatchId, unit))
     .sort((left, right) => left.candidateId.localeCompare(right.candidateId));
-  const candidateByDocumentId = new Map(candidates.map((candidate) => [candidate.documentId, candidate]));
-  const citationTargets = input.textbookDocuments
-    .flatMap((document) => {
-      const candidate = candidateByDocumentId.get(document.id);
-      return candidate ? buildTextbookCitationTarget(input.sourcePackageId, document, candidate) : [];
+  const candidateByUnitId = new Map(candidates.map((candidate) => [candidate.unitId, candidate]));
+  const citationTargets = input.textbookUnits
+    .flatMap((unit) => {
+      const candidate = candidateByUnitId.get(unit.id);
+      return candidate ? buildTextbookCitationTarget(
+        input.sourcePackageId,
+        unit,
+        candidate,
+        input.targetFileHashForHref,
+      ) : [];
     })
     .sort((left, right) => left.citationTargetId.localeCompare(right.citationTargetId));
   const mediaReviewStatusCounts = countMediaReviewStatuses(input.mediaProjections);
@@ -153,13 +158,13 @@ export function buildTextbookMediaGroundingArtifacts(input: {
       generatedAt,
       sourcePackageId: input.sourcePackageId,
       denominator: {
-        textbookDocuments: input.textbookDocuments.length,
+        textbookUnits: input.textbookUnits.length,
         mediaProjectionRows: input.mediaProjections.length,
         reviewedTextbookCandidates: candidates.filter((candidate) => candidate.reviewState === 'human-confirmed').length,
         reviewedMediaProjections: input.mediaProjections.filter(hasCurrentHumanMediaProjectionReview).length,
       },
       sourceWindow: {
-        textbookBookIds: uniqueSorted(input.textbookDocuments.map((document) => document.metadata.bookId)),
+        textbookBookIds: uniqueSorted(input.textbookUnits.map((unit) => unit.metadata.bookId)),
         mediaFamilies: uniqueSorted(input.mediaProjections.map((row) => row.family)),
       },
       reviewStatus: {
@@ -181,42 +186,40 @@ export function buildTextbookMediaGroundingArtifacts(input: {
 function buildTextbookCandidate(
   sourcePackageId: string,
   reviewBatchId: string,
-  document: TextbookRuntimeSearchDocument,
-): TextbookSectionGroundingCandidate {
-  const pageAnchor = document.citationAddress?.locator ?? anchorFromHref(document.href);
-  const sourceHash = document.contentHash ?? document.resourceProjection.contentHash ?? document.citationAddress?.contentHash ?? null;
-  const hasGraphBinding = document.resourceProjection.knowledgeNodeRefs.length > 0 ||
-    document.resourceProjection.capabilityTargetRefs.length > 0;
+  unit: TextbookStructureUnitProjection,
+): TextbookUnitGroundingCandidate {
+  const pageAnchor = unit.citationAddress?.locator ?? anchorFromHref(unit.href);
+  const sourceHash = unit.contentHash ?? unit.resourceProjection.contentHash ?? unit.citationAddress?.contentHash ?? null;
+  const hasGraphBinding = unit.resourceProjection.knowledgeNodeRefs.length > 0 ||
+    unit.resourceProjection.capabilityTargetRefs.length > 0;
   const limitationReason = firstLimitation([
     [!pageAnchor, 'missing-page-anchor'],
     [!sourceHash, 'missing-source-hash'],
     [!hasGraphBinding, 'missing-graph-binding'],
-    [!document.citationAddress, 'missing-citation-address'],
-    [Boolean(document.citationAddress && !isSafeServerOwnedAddress(document.citationAddress.href)), 'unsafe-citation-address'],
+    [!unit.citationAddress, 'missing-citation-address'],
+    [Boolean(unit.citationAddress && !isSafeServerOwnedAddress(unit.citationAddress.href)), 'unsafe-citation-address'],
   ]);
   const reviewState: TextbookGroundingReviewState = limitationReason ? 'generated-provisional' : 'human-confirmed';
 
   return {
     artifactVersion: TEXTBOOK_MEDIA_GROUNDING_ARTIFACT_VERSION,
     sourcePackageId,
-    candidateId: `textbook-section:${document.metadata.bookId}:${document.metadata.sectionId}:${document.id}`,
-    documentId: document.id,
-    kind: document.kind,
-    title: document.title,
-    bookId: document.metadata.bookId,
-    chapterId: document.metadata.chapterId ?? null,
-    chapterNumber: document.metadata.chapterNumber ?? null,
-    sectionId: document.metadata.sectionId,
+    candidateId: `textbook-unit:${unit.metadata.bookId}:${unit.metadata.unitId}:${unit.id}`,
+    unitId: unit.metadata.unitId,
+    kind: unit.kind,
+    title: unit.title,
+    bookId: unit.metadata.bookId,
+    chapterId: unit.metadata.chapterId ?? null,
     pageAnchor,
     sourceHash,
     sourceWindow: {
-      bookId: document.metadata.bookId,
-      chapterId: document.metadata.chapterId ?? null,
-      sectionId: document.metadata.sectionId,
+      bookId: unit.metadata.bookId,
+      chapterId: unit.metadata.chapterId ?? null,
+      unitId: unit.metadata.unitId,
     },
     graphNodeRefs: {
-      knowledge: uniqueSorted(document.resourceProjection.knowledgeNodeRefs),
-      capability: uniqueSorted(document.resourceProjection.capabilityTargetRefs),
+      knowledge: uniqueSorted(unit.resourceProjection.knowledgeNodeRefs),
+      capability: uniqueSorted(unit.resourceProjection.capabilityTargetRefs),
       quality: [],
     },
     citationPolicy: 'server-owned-address-required',
@@ -231,21 +234,26 @@ function buildTextbookCandidate(
 
 function buildTextbookCitationTarget(
   sourcePackageId: string,
-  document: TextbookRuntimeSearchDocument,
-  candidate: TextbookSectionGroundingCandidate,
-): TextbookSectionCitationTargetArtifact[] {
+  unit: TextbookStructureUnitProjection,
+  candidate: TextbookUnitGroundingCandidate,
+  targetFileHashForHref: (href: string) => string | null,
+): TextbookUnitCitationTargetArtifact[] {
   if (candidate.reviewState !== 'human-confirmed' || candidate.limitationReason || !candidate.sourceHash) return [];
-  if (!document.citationAddress || !isSafeServerOwnedAddress(document.citationAddress.href)) return [];
+  const href = unit.citationAddress?.href;
+  if (!unit.citationAddress || !href || !isSafeServerOwnedAddress(href)) return [];
+  const targetFileHash = targetFileHashForHref(href);
+  if (!targetFileHash) return [];
   return [{
     artifactVersion: TEXTBOOK_MEDIA_GROUNDING_ARTIFACT_VERSION,
     sourcePackageId,
-    citationTargetId: `citation-target:${document.resourceProjection.citationTargetRef ?? document.id}`,
-    retrievalChunkId: `retrieval-chunk:${document.id}`,
+    citationTargetId: `citation-target:${unit.resourceProjection.citationTargetRef ?? unit.id}`,
+    retrievalChunkId: `retrieval-chunk:${unit.id}`,
     candidateId: candidate.candidateId,
-    documentId: document.id,
-    address: document.citationAddress,
+    unitId: unit.id,
+    address: unit.citationAddress,
     contentHash: candidate.sourceHash,
-    sourceVersionRefs: document.resourceProjection.versionRefs,
+    targetFileHash,
+    sourceVersionRefs: unit.resourceProjection.versionRefs,
     pathEligibility: {
       eligible: false,
       reason: 'resource-node-planning-audit-required',
@@ -256,11 +264,11 @@ function buildTextbookCitationTarget(
 function buildTextbookLimitation(
   sourcePackageId: string,
   reviewBatchId: string,
-  candidate: TextbookSectionGroundingCandidate,
+  candidate: TextbookUnitGroundingCandidate,
 ): TextbookMediaGroundingLimitation {
   return {
-    id: candidate.documentId,
-    sourceKind: 'textbook-section',
+    id: candidate.unitId,
+    sourceKind: 'textbook-unit',
     reason: candidate.limitationReason ?? 'provisional-review-state',
     sourcePackageId,
     reviewBatchId,
@@ -268,7 +276,7 @@ function buildTextbookLimitation(
     sourceHash: candidate.sourceHash,
     toolName: null,
     toolVersion: null,
-    inputScope: candidate.sourceWindow.sectionId,
+    inputScope: candidate.sourceWindow.unitId,
     outputHash: candidate.sourceHash,
     retentionRule: null,
     generatedByPrivateParser: false,
@@ -336,7 +344,7 @@ function isSafeServerOwnedAddress(href: string | null | undefined): boolean {
     href.startsWith('/knowledge?') ||
     href.startsWith('/course-runtime/lessons/') ||
     href.startsWith('/course-runtime/knowledge/') ||
-    href.startsWith('/course-runtime/resources/textbooks/') ||
+    href.startsWith('/textbooks/') ||
     href.startsWith('/interactive-learning/') ||
     href.startsWith('/learning-paths/');
 }

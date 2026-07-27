@@ -12,9 +12,119 @@ import {
   type AssignmentDraftInput,
   type AssignmentQuestionSnapshot,
 } from './assignment-domain';
+import { migrateLegacyAssignmentDraftToRubricV2 } from './assignment-rubric-migration';
 
 type AssignmentDb = PrismaClient;
 type Actor = { id: string; role: 'TEACHER' | 'ADMIN' };
+
+export async function listTeacherAssignments(db: AssignmentDb, actor: Actor, now = new Date()) {
+  const assignments = await db.assignment.findMany({
+    where: actor.role === 'ADMIN' ? {} : {
+      OR: [
+        { authorId: actor.id },
+        { reviewGrants: { some: { teacherId: actor.id, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } } },
+        { revisions: { some: { submissions: { some: { audience: { archivedAt: null, class: { teacherId: actor.id, isActive: true } } } } } } },
+      ],
+    },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      reviewGrants: true,
+      revisions: {
+        orderBy: { revisionNumber: 'desc' },
+        take: 1,
+        include: {
+          audiences: {
+            select: {
+              classId: true,
+              availableAt: true,
+              dueAt: true,
+              class: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (assignments.length === 0) return [];
+
+  const submissions = await db.assignmentSubmission.findMany({
+    where: { revision: { assignmentId: { in: assignments.map((assignment) => assignment.id) } } },
+    include: {
+      revision: { select: { assignmentId: true } },
+      audience: { include: { class: { select: { id: true, teacherId: true, isActive: true } } } },
+      student: { include: { profile: { select: { classId: true } } } },
+      answers: {
+        include: {
+          attempts: {
+            include: {
+              gradingRuns: {
+                include: {
+                  teacherAssignmentReview: { select: { id: true, state: true } },
+                  approvalSnapshot: { select: { id: true } },
+                  question: { select: { orderIndex: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: [{ updatedAt: 'asc' }, { id: 'asc' }],
+  });
+
+  return assignments.map((assignment) => {
+    const assignmentWide = actor.role === 'ADMIN'
+      || assignment.authorId === actor.id
+      || assignment.reviewGrants.some((grant) => grant.teacherId === actor.id
+        && grant.revokedAt == null && (grant.expiresAt == null || grant.expiresAt > now));
+    const visibleSubmissions = submissions.filter((submission) => {
+      if (submission.revision.assignmentId !== assignment.id
+        || submission.studentId !== submission.frozenStudentId
+        || submission.audience.classId !== submission.frozenAudienceClassId) return false;
+      if (assignmentWide) return true;
+      return submission.audience.archivedAt == null
+        && submission.audience.class.isActive
+        && submission.audience.class.teacherId === actor.id
+        && submission.student.profile?.classId === submission.frozenAudienceClassId;
+    });
+    const reviewItems = visibleSubmissions.flatMap((submission) => latestReviewRuns(submission).map((run) => ({ submission, run })));
+    const pending = reviewItems.filter(({ run }) => run.teacherAssignmentReview?.state === 'WORKING'
+      || (run.state === 'AWAITING_REVIEW' && run.teacherReviewedAt == null && !run.approvalSnapshot && !run.teacherAssignmentReview));
+    const reviewedCount = reviewItems.filter(({ run }) => Boolean(run.approvalSnapshot) || run.state === 'APPROVED').length;
+    const next = pending.sort((left, right) => {
+      const submissionOrder = new Date(left.submission.updatedAt).getTime() - new Date(right.submission.updatedAt).getTime()
+        || String(left.submission.id).localeCompare(String(right.submission.id));
+      return submissionOrder || Number(left.run.question?.orderIndex ?? 0) - Number(right.run.question?.orderIndex ?? 0)
+        || String(left.run.questionId).localeCompare(String(right.run.questionId));
+    })[0];
+    const { reviewGrants: _reviewGrants, ...publicAssignment } = assignment;
+    return {
+      ...publicAssignment,
+      reviewSummary: {
+        submissionCount: visibleSubmissions.length,
+        pendingReviewCount: pending.length,
+        reviewedCount,
+        nextReview: next ? {
+          submissionId: next.submission.id,
+          questionId: next.run.questionId,
+          reviewId: next.run.teacherAssignmentReview?.id ?? null,
+          gradingRunId: next.run.id,
+        } : null,
+      },
+    };
+  });
+}
+
+function latestReviewRuns(submission: any) {
+  const byQuestion = new Map<string, any>();
+  for (const run of submission.answers.flatMap((answer: any) => answer.attempts.flatMap((attempt: any) => attempt.gradingRuns))) {
+    const current = byQuestion.get(run.questionId);
+    if (!current || new Date(run.updatedAt ?? run.createdAt).getTime() > new Date(current.updatedAt ?? current.createdAt).getTime()
+      || (new Date(run.updatedAt ?? run.createdAt).getTime() === new Date(current.updatedAt ?? current.createdAt).getTime()
+        && String(run.id).localeCompare(String(current.id)) > 0)) byQuestion.set(run.questionId, run);
+  }
+  return [...byQuestion.values()];
+}
 
 export async function createAssignmentDraft(db: AssignmentDb, input: {
   actor: Actor;
@@ -106,46 +216,76 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
       return await db.$transaction(async (tx) => {
         await assertAssignmentOwner(tx, input.assignmentId, input.actor);
         const existingDraft = await tx.assignmentRevision.findFirst({ where: { assignmentId: input.assignmentId, state: 'DRAFT' }, include: { questions: { orderBy: { orderIndex: 'asc' } } } });
-        if (existingDraft) return existingDraft;
+        if (existingDraft) {
+          const hasLegacyRubric = existingDraft.questions.some((question) =>
+            (question.rubricSnapshot as { schemaVersion?: unknown } | null)?.schemaVersion === 'assignment-analytic-rubric.v1'
+          );
+          if (!hasLegacyRubric) return existingDraft;
+          const legacyDraft = assignmentDraftSchema.parse({
+            title: existingDraft.title,
+            instructions: existingDraft.instructions,
+            totalPoints: Number(existingDraft.totalPoints),
+            questions: existingDraft.questions.map((question) => questionFromRow(question as unknown as Record<string, unknown>)),
+            latePolicy: existingDraft.latePolicy,
+            responsePolicy: existingDraft.responsePolicy,
+            resubmissionPolicy: existingDraft.resubmissionPolicy,
+            solutionReleasePolicy: existingDraft.solutionReleasePolicy,
+          });
+          const migratedDraft = requireMigratedDraft(legacyDraft);
+          const migratedSnapshots = migratedQuestionSnapshots(migratedDraft);
+          const updated = await tx.assignmentRevision.updateMany({
+            where: {
+              id: existingDraft.id,
+              assignmentId: input.assignmentId,
+              state: 'DRAFT',
+              version: existingDraft.version,
+            },
+            data: {
+              title: migratedDraft.title,
+              instructions: migratedDraft.instructions,
+              totalPoints: migratedDraft.totalPoints,
+              latePolicy: migratedDraft.latePolicy,
+              responsePolicy: migratedDraft.responsePolicy,
+              resubmissionPolicy: migratedDraft.resubmissionPolicy,
+              solutionReleasePolicy: migratedDraft.solutionReleasePolicy,
+              contentHash: stableHash(draftWithSnapshots(migratedDraft, migratedSnapshots)),
+              version: { increment: 1 },
+            },
+          });
+          if (updated.count !== 1) throw new AssignmentDomainError('version-conflict');
+          await tx.assignmentQuestion.deleteMany({ where: { assignmentRevisionId: existingDraft.id } });
+          await tx.assignmentQuestion.createMany({
+            data: migratedSnapshots.map((question, index) =>
+              questionCreateManyData(existingDraft.id, question, index)
+            ),
+          });
+          return tx.assignmentRevision.findUniqueOrThrow({
+            where: { id: existingDraft.id },
+            include: { questions: { orderBy: { orderIndex: 'asc' } } },
+          });
+        }
         const latest = await tx.assignmentRevision.findFirst({
       where: { assignmentId: input.assignmentId, state: 'PUBLISHED' },
       orderBy: { revisionNumber: 'desc' },
       include: { questions: { orderBy: { orderIndex: 'asc' } } },
         });
         if (!latest) throw new AssignmentDomainError('published-revision-not-found');
+        const legacyDraft = assignmentDraftSchema.parse({
+          title: latest.title,
+          instructions: latest.instructions,
+          totalPoints: Number(latest.totalPoints),
+          questions: latest.questions.map((question) => questionFromRow(question as unknown as Record<string, unknown>)),
+          latePolicy: latest.latePolicy,
+          responsePolicy: latest.responsePolicy,
+          resubmissionPolicy: latest.resubmissionPolicy,
+          solutionReleasePolicy: latest.solutionReleasePolicy,
+        });
+        const nextDraft = requireMigratedDraft(legacyDraft);
+        const nextSnapshots = migratedQuestionSnapshots(nextDraft);
         return tx.assignmentRevision.create({
       data: {
         assignmentId: input.assignmentId,
-        revisionNumber: latest.revisionNumber + 1,
-        title: latest.title,
-        instructions: latest.instructions,
-        totalPoints: latest.totalPoints,
-        latePolicy: latest.latePolicy ?? {},
-        responsePolicy: latest.responsePolicy ?? {},
-        resubmissionPolicy: latest.resubmissionPolicy ?? {},
-        solutionReleasePolicy: latest.solutionReleasePolicy ?? {},
-        contentHash: latest.contentHash,
-        questions: {
-          create: latest.questions.map((question) => ({
-            stableQuestionId: question.stableQuestionId,
-            orderIndex: question.orderIndex,
-            responseType: question.responseType,
-            points: question.points,
-            promptSnapshot: question.promptSnapshot as Prisma.InputJsonValue,
-            answerSnapshot: question.answerSnapshot as Prisma.InputJsonValue,
-            rubricSnapshot: question.rubricSnapshot as Prisma.InputJsonValue,
-            sourceFamily: question.sourceFamily,
-            sourceId: question.sourceId,
-            sourceVersion: question.sourceVersion,
-            sourceHash: question.sourceHash,
-            sourceReviewState: question.sourceReviewState,
-            sourceCatalogItemId: question.sourceCatalogItemId,
-            sourceOriginalFamily: question.sourceOriginalFamily,
-            sourceSelectionProof: question.sourceSelectionProof,
-            sourceLineage: question.sourceLineage as Prisma.InputJsonValue,
-            contentHash: question.contentHash,
-          })),
-        },
+        ...revisionCreateData(nextDraft, nextSnapshots, latest.revisionNumber + 1),
       },
       include: { questions: { orderBy: { orderIndex: 'asc' } } },
         });
@@ -164,91 +304,220 @@ function isRecoverableNextDraftRace(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && (error.code === 'P2002' || error.code === 'P2034');
 }
 
+function requireMigratedDraft(legacyDraft: AssignmentDraftInput): AssignmentDraftInput {
+  const result = assignmentDraftSchema.safeParse(
+    migrateLegacyAssignmentDraftToRubricV2(legacyDraft),
+  );
+  if (!result.success) {
+    throw new AssignmentDomainError(
+      'legacy-rubric-v2-migration-required',
+      result.error.issues.map((issue) => `${issue.path.join('.')}:${issue.message}`),
+    );
+  }
+  return result.data;
+}
+
+function migratedQuestionSnapshots(draft: AssignmentDraftInput): AssignmentQuestionSnapshot[] {
+  return draft.questions.map((question) => {
+    if (question.source.family !== 'ASSIGNMENT_DERIVATIVE') return createQuestionSnapshot(question);
+    const contentHash = stableHash({
+      responseType: question.responseType,
+      points: question.points,
+      prompt: question.prompt,
+      referenceAnswer: question.referenceAnswer,
+      rubric: question.rubric,
+    });
+    return createQuestionSnapshot({
+      ...question,
+      source: { ...question.source, contentHash },
+    });
+  });
+}
+
 export async function publishAssignmentRevision(db: AssignmentDb, input: {
   actor: Actor;
   assignmentId: string;
   revisionId: string;
   expectedVersion: number;
+  contentDigest: string;
   idempotencyKey: string;
   audiences: AssignmentAudienceInput[];
   now?: Date;
 }) {
   const now = input.now ?? new Date();
+  if (input.idempotencyKey !== assignmentPublicationIdempotencyKey(input)) {
+    throw new AssignmentDomainError('invalid-publication-idempotency-key');
+  }
   const requestHash = stableHash({
     assignmentId: input.assignmentId,
     revisionId: input.revisionId,
     expectedVersion: input.expectedVersion,
+    contentDigest: input.contentDigest,
     audiences: input.audiences,
   });
-  return db.$transaction(async (tx) => {
-    await assertAssignmentOwner(tx, input.assignmentId, input.actor);
-    const replay = await tx.assignmentPublicationOperation.findUnique({
-      where: { assignmentId_idempotencyKey: { assignmentId: input.assignmentId, idempotencyKey: input.idempotencyKey } },
-    });
-    if (replay) {
-      if (replay.requestHash !== requestHash) throw new AssignmentDomainError('idempotency-key-reused');
-      return tx.assignmentRevision.findUniqueOrThrow({ where: { id: replay.revisionId }, include: { audiences: true, questions: true } });
-    }
-    const revision = await tx.assignmentRevision.findUnique({
-      where: { id: input.revisionId },
-      include: { questions: { orderBy: { orderIndex: 'asc' } } },
-    });
-    if (!revision || revision.assignmentId !== input.assignmentId) throw new AssignmentDomainError('draft-not-found');
-    if (revision.state !== 'DRAFT' || revision.frozenAt) throw new AssignmentDomainError('published-revision-immutable');
-    if (revision.version !== input.expectedVersion) throw new AssignmentDomainError('version-conflict');
-    const draft = assignmentDraftSchema.parse({
-      title: revision.title,
-      instructions: revision.instructions,
-      totalPoints: Number(revision.totalPoints),
-      latePolicy: revision.latePolicy,
-      responsePolicy: revision.responsePolicy,
-      resubmissionPolicy: revision.resubmissionPolicy,
-      solutionReleasePolicy: revision.solutionReleasePolicy,
-      questions: revision.questions.map(questionFromRow),
-    });
-    const issues = [...validatePublicationScores(draft), ...validatePublicationSchedule(input.audiences, now)];
-    if (draft.solutionReleasePolicy.mode === 'AT_TIME') {
-      const publicationAudienceIds = new Set(input.audiences.map((audience) => audience.classId));
-      for (const classId of draft.solutionReleasePolicy.audienceClassIds) {
-        if (!publicationAudienceIds.has(classId)) issues.push(`solution-release-audience-not-published:${classId}`);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await db.$transaction(async (tx) => {
+        await assertAssignmentOwner(tx, input.assignmentId, input.actor);
+        const baselineReplay = await tx.assignmentPublicationOperation.findUnique({
+          where: { revisionId: input.revisionId },
+        });
+        if (baselineReplay) {
+          if (baselineReplay.requestHash !== requestHash) {
+            throw new AssignmentDomainError('publication-baseline-already-published');
+          }
+          return publicationCompletion(tx, input.assignmentId, baselineReplay.revisionId, true);
+        }
+        const keyReplay = await tx.assignmentPublicationOperation.findUnique({
+          where: { assignmentId_idempotencyKey: { assignmentId: input.assignmentId, idempotencyKey: input.idempotencyKey } },
+        });
+        if (keyReplay) {
+          if (keyReplay.requestHash !== requestHash) throw new AssignmentDomainError('idempotency-key-reused');
+          return publicationCompletion(tx, input.assignmentId, keyReplay.revisionId, true);
+        }
+        const revision = await tx.assignmentRevision.findUnique({
+          where: { id: input.revisionId },
+          include: { questions: { orderBy: { orderIndex: 'asc' } } },
+        });
+        if (!revision || revision.assignmentId !== input.assignmentId) throw new AssignmentDomainError('draft-not-found');
+        if (revision.state !== 'DRAFT' || revision.frozenAt) throw new AssignmentDomainError('published-revision-immutable');
+        if (revision.version !== input.expectedVersion) throw new AssignmentDomainError('version-conflict');
+        if (!revision.contentHash || revision.contentHash !== input.contentDigest) {
+          throw new AssignmentDomainError('publication-content-digest-mismatch');
+        }
+        const draft = assignmentDraftSchema.parse({
+          title: revision.title,
+          instructions: revision.instructions,
+          totalPoints: Number(revision.totalPoints),
+          latePolicy: revision.latePolicy,
+          responsePolicy: revision.responsePolicy,
+          resubmissionPolicy: revision.resubmissionPolicy,
+          solutionReleasePolicy: revision.solutionReleasePolicy,
+          questions: revision.questions.map(questionFromRow),
+        });
+        const issues = [...validatePublicationScores(draft), ...validatePublicationSchedule(input.audiences, now)];
+        if (draft.questions.some((question) =>
+          question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2'
+        )) {
+          issues.push('legacy-rubric-v2-migration-required');
+        }
+        for (const question of draft.questions) {
+          if (question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2') continue;
+          for (const criterion of question.rubric.criteria) {
+            if (!criterion.goalDimension) {
+              issues.push(`rubric-goal-dimension-required:${question.stableQuestionId}:${criterion.id}`);
+            }
+          }
+        }
+        if (draft.solutionReleasePolicy.mode === 'AT_TIME') {
+          const publicationAudienceIds = new Set(input.audiences.map((audience) => audience.classId));
+          for (const classId of draft.solutionReleasePolicy.audienceClassIds) {
+            if (!publicationAudienceIds.has(classId)) issues.push(`solution-release-audience-not-published:${classId}`);
+          }
+        }
+        if (draft.questions.length === 0) issues.push('assignment-has-no-questions');
+        const managedClasses = await tx.class.findMany({
+          where: input.actor.role === 'ADMIN' ? { id: { in: input.audiences.map((item) => item.classId) }, isActive: true } : {
+            id: { in: input.audiences.map((item) => item.classId) }, teacherId: input.actor.id, isActive: true,
+          },
+          select: { id: true },
+        });
+        const managedIds = new Set(managedClasses.map((item) => item.id));
+        for (const audience of input.audiences) if (!managedIds.has(audience.classId)) issues.push(`unauthorized-audience:${audience.classId}`);
+        if (issues.length) throw new AssignmentDomainError('publication-blocked', issues);
+        if (stableHash(draft) !== input.contentDigest) {
+          throw new AssignmentDomainError('publication-content-digest-mismatch');
+        }
+        const frozen = await tx.assignmentRevision.updateMany({
+          where: {
+            id: input.revisionId,
+            assignmentId: input.assignmentId,
+            state: 'DRAFT',
+            frozenAt: null,
+            version: input.expectedVersion,
+            contentHash: input.contentDigest,
+          },
+          data: { state: 'PUBLISHED', frozenAt: now, publishedAt: now, version: { increment: 1 } },
+        });
+        if (frozen.count !== 1) throw new AssignmentDomainError('version-conflict');
+        await tx.assignmentAudience.createMany({ data: input.audiences.map((audience) => ({
+          assignmentRevisionId: input.revisionId,
+          classId: audience.classId,
+          availableAt: new Date(audience.availableAt),
+          dueAt: new Date(audience.dueAt),
+          policySnapshot: {
+            latePolicy: draft.latePolicy,
+            responsePolicy: draft.responsePolicy,
+            resubmissionPolicy: draft.resubmissionPolicy,
+            solutionReleasePolicy: draft.solutionReleasePolicy,
+          },
+        })) });
+        await tx.assignment.update({ where: { id: input.assignmentId }, data: { state: 'PUBLISHED' } });
+        await tx.assignmentPublicationOperation.create({ data: {
+          assignmentId: input.assignmentId,
+          idempotencyKey: input.idempotencyKey,
+          requestHash,
+          revisionId: input.revisionId,
+        } });
+        return publicationCompletion(tx, input.assignmentId, input.revisionId, false);
+      }, { isolationLevel: 'Serializable' });
+    } catch (error) {
+      if (!isRecoverablePublicationRace(error)) throw error;
+      const replay = await db.assignmentPublicationOperation.findUnique({
+        where: { revisionId: input.revisionId },
+      });
+      if (replay) {
+        if (replay.requestHash !== requestHash) {
+          throw new AssignmentDomainError('publication-baseline-already-published');
+        }
+        return publicationCompletion(db, input.assignmentId, replay.revisionId, true);
       }
+      if (attempt === 2) throw new AssignmentDomainError('publication-conflict-retryable');
     }
-    if (draft.questions.length === 0) issues.push('assignment-has-no-questions');
-    const managedClasses = await tx.class.findMany({
-      where: input.actor.role === 'ADMIN' ? { id: { in: input.audiences.map((item) => item.classId) }, isActive: true } : {
-        id: { in: input.audiences.map((item) => item.classId) }, teacherId: input.actor.id, isActive: true,
+  }
+  throw new AssignmentDomainError('publication-conflict-retryable');
+}
+
+export function assignmentPublicationIdempotencyKey(input: {
+  assignmentId: string;
+  revisionId: string;
+  expectedVersion: number;
+}) {
+  return `assignment-ui:${input.assignmentId}:${input.revisionId}:${input.expectedVersion}`;
+}
+
+function isRecoverablePublicationRace(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && (error.code === 'P2002' || error.code === 'P2034');
+}
+
+async function publicationCompletion(
+  db: Pick<AssignmentDb, 'assignmentRevision'>,
+  assignmentId: string,
+  revisionId: string,
+  idempotentReplay: boolean,
+) {
+  const revision = await db.assignmentRevision.findUniqueOrThrow({
+    where: { id: revisionId },
+    include: {
+      audiences: {
+        include: { class: { select: { id: true, name: true } } },
       },
-      select: { id: true },
-    });
-    const managedIds = new Set(managedClasses.map((item) => item.id));
-    for (const audience of input.audiences) if (!managedIds.has(audience.classId)) issues.push(`unauthorized-audience:${audience.classId}`);
-    if (issues.length) throw new AssignmentDomainError('publication-blocked', issues);
-    const contentHash = stableHash(draft);
-    await tx.assignmentRevision.update({
-      where: { id: input.revisionId },
-      data: { state: 'PUBLISHED', frozenAt: now, publishedAt: now, contentHash, version: { increment: 1 } },
-    });
-    await tx.assignmentAudience.createMany({ data: input.audiences.map((audience) => ({
-      assignmentRevisionId: input.revisionId,
-      classId: audience.classId,
-      availableAt: new Date(audience.availableAt),
-      dueAt: new Date(audience.dueAt),
-      policySnapshot: {
-        latePolicy: draft.latePolicy,
-        responsePolicy: draft.responsePolicy,
-        resubmissionPolicy: draft.resubmissionPolicy,
-        solutionReleasePolicy: draft.solutionReleasePolicy,
-      },
-    })) });
-    await tx.assignment.update({ where: { id: input.assignmentId }, data: { state: 'PUBLISHED' } });
-    await tx.assignmentPublicationOperation.create({ data: {
-      assignmentId: input.assignmentId,
-      idempotencyKey: input.idempotencyKey,
-      requestHash,
-      revisionId: input.revisionId,
-    } });
-    return tx.assignmentRevision.findUniqueOrThrow({ where: { id: input.revisionId }, include: { audiences: true, questions: true } });
-  }, { isolationLevel: 'Serializable' });
+      questions: true,
+    },
+  });
+  return {
+    revision,
+    publication: {
+      assignmentId,
+      publishedRevisionId: revision.id,
+      location: { assignmentId },
+      classes: revision.audiences.map((audience) => ({
+        id: audience.class.id,
+        name: audience.class.name,
+      })),
+    },
+    idempotentReplay,
+  };
 }
 
 async function assertAssignmentOwner(tx: Omit<AssignmentDb, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>, assignmentId: string, actor: Actor) {

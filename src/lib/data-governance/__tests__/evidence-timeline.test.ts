@@ -852,6 +852,10 @@ describe('evidence timeline browser', () => {
             sourceLogId: 'log-b',
             competencyContribution: { engineeringDecision: 0.6 },
           }),
+          fact({
+            id: 'native-v2-contribution',
+            competencyContribution: { controllerDesignSynthesis: 0.6 },
+          }),
         ]),
       },
       studentStepResponse: {
@@ -888,6 +892,14 @@ describe('evidence timeline browser', () => {
       dimension: 'engineeringDecision',
       lessonId: 'unit-5-1-controller-parameter-observation',
     });
+
+    const nativePortraitPage = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 5, dimension: 'controllerDesignSynthesis' },
+    });
+
+    expect(nativePortraitPage.items.map((item) => item.id)).toEqual(['native-v2-contribution']);
   });
 
   it('groups repeated low-signal events while keeping high-signal evidence visible', async () => {

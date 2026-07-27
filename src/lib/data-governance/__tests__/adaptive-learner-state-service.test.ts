@@ -10,6 +10,12 @@ import {
   validateControlCorrectionGoalSliceContract,
 } from '../adaptive-learner-state-service';
 import { buildSimulationAgentEvidenceMaterialization } from '../simulation-agent-evidence-materialization';
+import { buildMigratedPortraitPayload } from '../portrait-v2-migration';
+import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
+import {
+  createPortraitV2Payload,
+  PORTRAIT_V2_CALCULATION_VERSION,
+} from '../portrait-v2-model';
 
 const snapshotVector: CompetencyVector = {
   controlModeling: { score: 78, trend: 'up', confidence: 0.82, evidenceCount: 8, lastUpdated: '2026-05-20T00:00:00.000Z' },
@@ -705,6 +711,167 @@ describe('adaptive learner state service', () => {
       'AdaptiveMasteryUpdate',
       'StudentEvidenceFeatureCache',
     ]));
+  });
+
+  it('derives legacy-shaped learner-state fields from a v2-only portrait', async () => {
+    const now = new Date('2026-05-20T03:00:00.000Z');
+    const scores = {
+      controlModelingRepresentation: 78,
+      systemAnalysisInterpretation: 78,
+      controllerDesignSynthesis: 64,
+      engineeringConstraintSafety: 71,
+      simulationValidationEvidence: 20,
+      transferIntegratedApplication: 58,
+      reflectionImprovementAiCollab: 62,
+    } as const;
+    const portrait = createPortraitV2Payload({
+      userId: 'student-v2-only',
+      generatedAt: now.toISOString(),
+      now,
+      dimensions: PORTRAIT_V2_DIMENSIONS.map(({ id }, index) => ({
+        id,
+        score: scores[id],
+        confidence: 0.1,
+        trend: 'stable' as const,
+        freshness: { state: 'current' as const, asOf: now.toISOString(), evidenceAgeDays: 0 },
+        evidenceSummary: { totalCount: 8, sourceFamilyCounts: { LearningFact: 8 } },
+        lastPositiveEvidenceAt: now.toISOString(),
+        lastNegativeEvidenceAt: null,
+        rationale: 'Governed evidence supports the current score.',
+        limitations: [],
+        sourceLineage: [
+          { kind: 'evidence-family' as const, ref: 'LearningFact', privacyScope: 'student-visible' as const },
+          { kind: 'citation' as const, ref: `citation-target:sha256:${index.toString(16).padStart(64, '0')}`, privacyScope: 'student-visible' as const },
+          { kind: 'hashed' as const, ref: `sar:evidence:sha256:${index.toString(16).padStart(64, '0')}`, privacyScope: 'student-visible' as const },
+          { kind: 'aggregate' as const, ref: `aggregate:sha256:${index.toString(16).padStart(64, '0')}`, privacyScope: 'student-visible' as const },
+        ],
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      })),
+      derivation: { kind: 'native', limitations: [] },
+    });
+    const conflictingLegacyVector = Object.fromEntries(Object.entries(snapshotVector).map(([dimension, value]) => [
+      dimension,
+      { ...value, score: 10 },
+    ])) as unknown as CompetencyVector;
+    const state = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: { findFirst: async () => ({
+        id: 'legacy-conflict',
+        snapshotAt: now,
+        competencyVector: conflictingLegacyVector,
+      }) },
+      studentEvidenceFeatureCache: { findUnique: async () => null },
+      learningFact: { findMany: async () => [controlCorrectionFact('question', '2026-05-20T01:00:00.000Z', 0.8)] },
+      studentPortraitV2Snapshot: { findFirst: async () => ({
+        id: 'portrait-v2-only',
+        userId: 'student-v2-only',
+        snapshotAt: new Date(portrait.generatedAt),
+        payloadVersion: portrait.payloadVersion,
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        migrationVersion: portrait.migrationVersion,
+        derivationKind: portrait.derivation.kind,
+        payload: portrait,
+      }) },
+    }), {
+      userId: 'student-v2-only',
+      role: 'system',
+      now,
+      goal: 'control-correction',
+    });
+
+    expect(state.primaryCompetencies.source).toBe('portrait-v2-derived');
+    expect(state.primaryPortrait?.dimensions.find((dimension) => dimension.id === 'controlModelingRepresentation')?.score).toBe(snapshotVector.controlModeling.score);
+    expect(state.primaryCompetencies.vector.controlModeling.score).toBe(snapshotVector.controlModeling.score);
+    expect(state.primaryCompetencies.vector.controlModeling.confidence).toBeCloseTo(0.1);
+    expect(state.primaryCompetencies.vector.controlModeling.evidenceCount).toBe(snapshotVector.controlModeling.evidenceCount);
+    expect(state.secondaryDimensions.conceptMastery.value).toBe(snapshotVector.controlModeling.score);
+    expect(state.secondaryDimensions.solutionStability.value).toBe(snapshotVector.engineeringDecision.score);
+    expect(state.missingEvidence).not.toEqual(expect.arrayContaining([
+      'StudentCompetencySnapshot',
+      'StudentEvidenceFeatureCache',
+    ]));
+    const goalDimensions = state.goalSlices?.controlCorrection?.dimensions ?? [];
+    expect(goalDimensions.find((dimension) => dimension.id === 'simulation-validation')?.score).toBe(
+      portrait.dimensions.find((dimension) => dimension.id === 'simulationValidationEvidence')?.score,
+    );
+    expect(goalDimensions.find((dimension) => dimension.id === 'frequency-domain-margin-analysis')?.score).toBe(
+      portrait.dimensions.find((dimension) => dimension.id === 'systemAnalysisInterpretation')?.score,
+    );
+    expect(goalDimensions.find((dimension) => dimension.id === 'root-locus-reasoning')?.score).toBe(
+      Math.round(((portrait.dimensions.find((dimension) => dimension.id === 'systemAnalysisInterpretation')?.score ?? 0)
+        + (portrait.dimensions.find((dimension) => dimension.id === 'controllerDesignSynthesis')?.score ?? 0)) / 2),
+    );
+    const tracedCapabilities = Object.values(state.masteryTraceability?.capabilityTargets ?? {})
+      .filter((target) => target.supportingEvidenceRefs.length > 0);
+    expect(tracedCapabilities.length).toBeGreaterThan(0);
+    expect(tracedCapabilities.every((target) => target.confidence <= 0.1)).toBe(true);
+
+    const partiallyCurrentPortrait = structuredClone(portrait);
+    const staleReflection = partiallyCurrentPortrait.dimensions.find(
+      (dimension) => dimension.id === 'reflectionImprovementAiCollab',
+    );
+    if (!staleReflection) throw new Error('expected reflection dimension');
+    staleReflection.freshness = {
+      state: 'partial',
+      asOf: '2026-04-19T03:00:00.000Z',
+      evidenceAgeDays: 31,
+    };
+    staleReflection.lastPositiveEvidenceAt = '2026-04-19T03:00:00.000Z';
+    const partialState = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: { findFirst: async () => ({
+        id: 'legacy-partial-fallback',
+        snapshotAt: now,
+        competencyVector: conflictingLegacyVector,
+      }) },
+      studentEvidenceFeatureCache: { findUnique: async () => null },
+      studentPortraitV2Snapshot: { findFirst: async () => ({
+        id: 'portrait-v2-partial',
+        userId: 'student-v2-only',
+        snapshotAt: now,
+        payloadVersion: partiallyCurrentPortrait.payloadVersion,
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        migrationVersion: partiallyCurrentPortrait.migrationVersion,
+        derivationKind: partiallyCurrentPortrait.derivation.kind,
+        payload: partiallyCurrentPortrait,
+      }) },
+    }), { userId: 'student-v2-only', role: 'system', now, goal: 'control-correction' });
+
+    expect(partialState.primaryCompetencies.source).toBe('portrait-v2-mixed');
+    expect(partialState.secondaryDimensions.conceptMastery.value).toBe(78);
+    expect(partialState.secondaryDimensions.explanationQuality.value).toBe(10);
+    expect(partialState.goalSlices?.controlCorrection?.dimensions
+      .find((dimension) => dimension.id === 'simulation-validation')?.score).toBe(20);
+  });
+
+  it('does not derive legacy-shaped fields from a portrait that has aged out at read time', async () => {
+    const generatedAt = new Date('2026-05-20T03:00:00.000Z');
+    const portrait = buildMigratedPortraitPayload({
+      id: 'legacy-v2-stale-at-read',
+      userId: 'student-v2-stale',
+      snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+      competencyVector: snapshotVector,
+    }, generatedAt);
+    const state = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: { findFirst: async () => null },
+      studentEvidenceFeatureCache: { findUnique: async () => null },
+      studentPortraitV2Snapshot: { findFirst: async () => ({
+        id: 'portrait-v2-stale',
+        userId: 'student-v2-stale',
+        snapshotAt: generatedAt,
+        payloadVersion: portrait.payloadVersion,
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        migrationVersion: portrait.migrationVersion,
+        derivationKind: portrait.derivation.kind,
+        payload: portrait,
+      }) },
+    }), {
+      userId: 'student-v2-stale',
+      role: 'system',
+      now: new Date('2026-07-01T03:00:00.000Z'),
+    });
+
+    expect(state.primaryCompetencies.source).toBe('fallback-empty');
+    expect(state.primaryCompetencies.vector.controlModeling.score).toBe(0);
+    expect(state.secondaryDimensions.conceptMastery.evidenceCount).toBe(0);
   });
 
   it('distinguishes no evidence, no active path, and stale feature-cache states', async () => {
@@ -1730,12 +1897,14 @@ describe('adaptive learner state service', () => {
           },
           sourceCounts: {
             LearningFact: 8,
+            StudentPortraitV2Snapshot: 0,
             StudentCompetencySnapshot: 1,
             StudentProfileSummary: 1,
             byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
           },
           sourceCoverage: {
             LearningFact: 'available',
+            StudentPortraitV2Snapshot: 'missing',
             StudentCompetencySnapshot: 'available',
             StudentProfileSummary: 'available',
           },
@@ -1935,12 +2104,14 @@ describe('adaptive learner state service', () => {
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
             LearningFact: 8,
+            StudentPortraitV2Snapshot: 0,
             StudentCompetencySnapshot: 1,
             StudentProfileSummary: 1,
             byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
           },
           sourceCoverage: {
             LearningFact: 'available',
+            StudentPortraitV2Snapshot: 'missing',
             StudentCompetencySnapshot: 'available',
             StudentProfileSummary: 'available',
           },
@@ -2625,12 +2796,14 @@ describe('adaptive learner state service', () => {
           },
           sourceCounts: {
             LearningFact: 8,
+            StudentPortraitV2Snapshot: 0,
             StudentCompetencySnapshot: 1,
             StudentProfileSummary: 1,
             byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
           },
           sourceCoverage: {
             LearningFact: 'available',
+            StudentPortraitV2Snapshot: 'missing',
             StudentCompetencySnapshot: 'available',
             StudentProfileSummary: 'available',
           },
@@ -2709,12 +2882,14 @@ describe('adaptive learner state service', () => {
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
             LearningFact: 8,
+            StudentPortraitV2Snapshot: 0,
             StudentCompetencySnapshot: 1,
             StudentProfileSummary: 1,
             byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
           },
           sourceCoverage: {
             LearningFact: 'available',
+            StudentPortraitV2Snapshot: 'missing',
             StudentCompetencySnapshot: 'available',
             StudentProfileSummary: 'available',
           },
@@ -2796,12 +2971,14 @@ describe('adaptive learner state service', () => {
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
             LearningFact: 8,
+            StudentPortraitV2Snapshot: 0,
             StudentCompetencySnapshot: 1,
             StudentProfileSummary: 1,
             byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
           },
           sourceCoverage: {
             LearningFact: 'available',
+            StudentPortraitV2Snapshot: 'missing',
             StudentCompetencySnapshot: 'available',
             StudentProfileSummary: 'available',
           },

@@ -16178,11 +16178,11 @@
 {"relation_id": "根轨迹|稳定裕度|new", "source": "根轨迹", "target": "稳定裕度", "source_chapter": 4, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "根轨迹|阻尼比|new", "source": "根轨迹", "target": "阻尼比", "source_chapter": 4, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "相位裕度直觉|相角裕度|new", "source": "相位裕度直觉", "target": "相角裕度", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "相位裕度直觉|超调量|new", "source": "相位裕度直觉", "target": "超调量", "source_chapter": 5, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-7442cec3d3050d07", "source_id": "相位裕度直觉_5_L2c003", "source": "相位裕度直觉", "target_id": "超调量_4_bad49999", "target": "超调量", "source_chapter": 5, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "相位裕度直觉|阻尼比|new", "source": "相位裕度直觉", "target": "阻尼比", "source_chapter": 5, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
 {"relation_id": "自然频率|上升时间|new", "source": "自然频率", "target": "上升时间", "source_chapter": 10, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "自然频率|调节时间|new", "source": "自然频率", "target": "调节时间", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "调节时间|复平面可行域|new", "source": "调节时间", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
+{"relation_id": "rel-8e69c8bcadde04ce", "source_id": "自然频率_3_ab7d6dc0", "source": "自然频率", "target_id": "调节时间_3_bc329c21", "target": "调节时间", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-bbc232259eca7c42", "source_id": "调节时间_3_bc329c21", "source": "调节时间", "target_id": "复平面可行域_4_Lsum001", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
 {"relation_id": "阶跃响应|四种响应家族|new", "source": "阶跃响应", "target": "四种响应家族", "source_chapter": 10, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.85}
 {"relation_id": "阻尼比|复平面可行域|new", "source": "阻尼比", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
 {"relation_id": "阻尼比|最佳阻尼比|new", "source": "阻尼比", "target": "最佳阻尼比", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
@@ -16238,7 +16238,7 @@
 {"relation_id": "rel-0fd24b2406a111dc", "source": "峰值时间", "target": "时域指标到极点参数映射", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "rel-130eb3682404c75b", "source": "伯德图", "target": "Bode首轮骨架", "source_chapter": 6, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "rel-1a472b3c126c275c", "source": "阻尼比", "target": "阻尼振荡频率", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "rel-1a7ab41a342835de", "source": "超调量", "target": "时域指标到极点参数映射", "source_chapter": 4, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "rel-28c96a22359801a0", "source_id": "超调量_4_bad49999", "source": "超调量", "target_id": "时域指标到极点参数映射_3_13003", "target": "时域指标到极点参数映射", "source_chapter": 4, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
 {"relation_id": "rel-20f6eaf73a81c2d4", "source": "时域指标到极点参数映射", "target": "闭环极点", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.98}
 {"relation_id": "rel-23e7944ed75ee57f", "source": "正弦稳态响应", "target": "频率特性", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.97}
 {"relation_id": "rel-2468f5319b1503ac", "source": "阻尼振荡频率", "target": "峰值时间", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.95}
@@ -16270,9 +16270,9 @@
 {"relation_id": "rel-6054b1c998517f40", "source": "梅森增益公式", "target": "余子式接触判定", "source_chapter": 2, "target_chapter": 2, "relation_type": "contains", "strength": 0.92}
 {"relation_id": "rel-606cf797e05daa31", "source": "典型环节对象库", "target": "比例环节", "source_chapter": 2, "target_chapter": 2, "relation_type": "contains", "strength": 0.95}
 {"relation_id": "rel-65114e902e921bbf", "source": "信号流图", "target": "梅森增益公式", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
-{"relation_id": "rel-66570c2ff086f209", "source": "阻尼比", "target": "调节时间", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.86}
+{"relation_id": "rel-ce718c4a5291b4f6", "source_id": "阻尼比_3_b849784e", "source": "阻尼比", "target_id": "调节时间_3_bc329c21", "target": "调节时间", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.86}
 {"relation_id": "rel-697b83c88a845805", "source": "比例环节", "target": "系统结构图", "source_chapter": 2, "target_chapter": 2, "relation_type": "instance_of", "strength": 0.7}
-{"relation_id": "rel-6ab4c0be5e41bb63", "source": "调节时间", "target": "时域指标到极点参数映射", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "rel-016f51d02a8e3ffe", "source_id": "调节时间_3_bc329c21", "source": "调节时间", "target_id": "时域指标到极点参数映射_3_13003", "target": "时域指标到极点参数映射", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
 {"relation_id": "rel-6b5f60e72c5c0f8f", "source": "劳斯判据", "target": "变量平移判稳", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.94}
 {"relation_id": "rel-6cb70242ff621f38", "source": "传递函数", "target": "频率特性", "source_chapter": 1, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.95, "source_id": "传递函数_1_5b0faf8b", "target_id": "频率特性_5_404adfdd"}
 {"relation_id": "rel-7413c9369168dab6", "source": "结构图等效变换", "target": "结构图简化", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
@@ -16286,7 +16286,7 @@
 {"relation_id": "rel-884deb267e552ae6", "source": "三域联动操作体验", "target": "临界增益体验", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 1.0}
 {"relation_id": "rel-897e5745769c97e8", "source": "串联连接", "target": "结构图等效变换", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "rel-89a9dccb1ebe9abe", "source": "传递函数", "target": "典型环节对象库", "source_chapter": 1, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95, "source_id": "传递函数_1_5b0faf8b", "target_id": "典型环节对象库_2_21002"}
-{"relation_id": "rel-8b2033d899c32f9f", "source": "阻尼比", "target": "超调量", "source_chapter": 3, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.98}
+{"relation_id": "rel-5528ea8f39da8b32", "source_id": "阻尼比_3_b849784e", "source": "阻尼比", "target_id": "超调量_4_bad49999", "target": "超调量", "source_chapter": 3, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.98}
 {"relation_id": "rel-8d9f9a56ea764bf5", "source": "稳定可行域", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "rel-925bf2acd0c6995b", "source": "正弦函数", "target": "正弦稳态响应", "source_chapter": 1, "target_chapter": 5, "relation_type": "prerequisite", "strength": 0.95}
 {"relation_id": "rel-956c01e753a0f3a9", "source": "上升时间", "target": "时域指标到极点参数映射", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.88}

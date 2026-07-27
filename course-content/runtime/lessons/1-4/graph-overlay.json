@@ -30,23 +30,49 @@
   ],
   "groups": [
     {
-      "group_name": "先分清对象和通道",
+      "group_name": "区分观察域与输入输出通道",
+      "step_ids": [
+        "step-04"
+      ],
       "node_ids": [
-        "时域响应_1_1",
-        "时域频域通道区分_1_4",
-        "闭环带宽与环路穿越频率_1_4"
+        "时域频域通道区分_1_4"
       ]
     },
     {
-      "group_name": "建立频域双图的共同来源",
+      "group_name": "建立时域响应参照",
+      "step_ids": [
+        "step-05"
+      ],
       "node_ids": [
-        "频域分析_2_2e257d89",
+        "时域响应_1_1"
+      ]
+    },
+    {
+      "group_name": "读取闭环带宽与频率响应",
+      "step_ids": [
+        "step-06"
+      ],
+      "node_ids": [
+        "闭环带宽与环路穿越频率_1_4",
+        "频域分析_2_2e257d89"
+      ]
+    },
+    {
+      "group_name": "联读 Bode 与 Nyquist",
+      "step_ids": [
+        "step-07"
+      ],
+      "node_ids": [
         "Bode与Nyquist同源表征_1_4",
         "开环幅相特性曲线_5_fd86e289"
       ]
     },
     {
       "group_name": "完成多表征联读",
+      "step_ids": [
+        "step-08",
+        "step-12"
+      ],
       "node_ids": [
         "多表征一致性读图_1_4"
       ]
@@ -459,12 +485,28 @@
       "strength": 0.95
     },
     {
+      "id": "rel-155e91500e5d4609",
+      "sourceId": "Bode与Nyquist同源表征_1_4",
+      "targetId": "开环幅相特性曲线_5_fd86e289",
+      "relation": "refined_by",
+      "relationType": "refined_by",
+      "strength": 0.88
+    },
+    {
       "id": "rel-7f37690dcf27b627",
       "sourceId": "时域频域通道区分_1_4",
       "targetId": "闭环带宽与环路穿越频率_1_4",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.98
+    },
+    {
+      "id": "rel-ad48c56150dd9e64",
+      "sourceId": "Bode与Nyquist同源表征_1_4",
+      "targetId": "多表征一致性读图_1_4",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
     },
     {
       "id": "rel-b7185c546c2a0b74",
@@ -475,28 +517,12 @@
       "strength": 0.9
     },
     {
-      "id": "rel-155e91500e5d4609",
-      "sourceId": "Bode与Nyquist同源表征_1_4",
-      "targetId": "开环幅相特性曲线_5_fd86e289",
-      "relation": "refined_by",
-      "relationType": "refined_by",
-      "strength": 0.88
-    },
-    {
       "id": "rel-d96d1e4e8fa80121",
       "sourceId": "闭环带宽与环路穿越频率_1_4",
       "targetId": "多表征一致性读图_1_4",
       "relation": "applies_to",
       "relationType": "applies_to",
       "strength": 0.94
-    },
-    {
-      "id": "rel-ad48c56150dd9e64",
-      "sourceId": "Bode与Nyquist同源表征_1_4",
-      "targetId": "多表征一致性读图_1_4",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.96
     }
   ]
 }

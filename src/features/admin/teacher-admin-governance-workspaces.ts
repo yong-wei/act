@@ -205,6 +205,14 @@ export const TEACHER_OPERATIONS_NAVIGATION: TeacherOperationsNavigationEntry[] =
     statusSemantics: ['available', 'teacher-only', 'path-eligible'],
   },
   {
+    id: 'teacher-operations-smart-prep',
+    label: '智能备课',
+    href: '/teacher/smart-prep',
+    workspace: 'teacher-operations',
+    objectLevelActions: ['管理课程依据', '导入文档', '确认版本'],
+    statusSemantics: ['pending', 'confirmed', 'rejected', 'retired'],
+  },
+  {
     id: 'teacher-operations-prep-packs',
     label: '课前包',
     href: '/teacher/prep-packs',

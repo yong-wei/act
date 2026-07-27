@@ -10,6 +10,10 @@ import type {
   ResourceNodeSourceOwner,
 } from '@/lib/resource-node-registry';
 import { buildResourceNodeHighConfidencePlanningAudit } from '@/lib/resource-node-registry';
+import {
+  configuredLaunchTargetSecurityContext,
+  resolveLaunchTargetSelection,
+} from './launch-target';
 
 export type ResourceNodeWorkspaceRegion =
   | 'graph-stage'
@@ -147,25 +151,30 @@ export function buildResourceNodeDetailView(node: ResourceNode, role: PlatformRo
 }
 
 export function buildResourceNodeLaunchAction(node: ResourceNode): ResourceNodeLaunchAction {
+  const target = resolveLaunchTargetSelection({
+    authoritativeTarget: node.launchTarget,
+    fallbackTargets: [node.renderTarget],
+    context: configuredLaunchTargetSecurityContext(),
+  });
   const registryRef = node.sourceRefs.find((source) => source.kind === 'resource_registry');
   if (registryRef) {
     return {
       kind: 'registry-resource',
       label: `启动 ${node.title}`,
-      href: node.launchTarget ?? node.renderTarget,
+      href: target.href,
       owner: 'resource_registry',
       registryId: registryRef.ref,
-      disabledReason: node.launchTarget || node.renderTarget ? undefined : '等待资源注册入口提供启动路由。',
+      disabledReason: target.reason ?? (target.candidatePresent ? undefined : '等待资源注册入口提供启动路由。'),
     };
   }
 
-  const href = node.launchTarget ?? node.renderTarget;
-  if (href) {
+  if (target.candidatePresent) {
     return {
       kind: isFeatureOwnedSource(node.sourceKind) ? 'feature-owned-launcher' : 'direct-route',
       label: `打开 ${node.title}`,
-      href,
+      href: target.href,
       owner: node.sourceOfRecord.content,
+      disabledReason: target.reason ?? undefined,
     };
   }
 

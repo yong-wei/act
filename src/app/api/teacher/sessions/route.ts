@@ -33,23 +33,7 @@ export async function GET(request: Request) {
       where: {
         teacherId: session.user.id,
         status,
-        ...(classId
-          ? {
-              OR: [
-                { classId },
-                {
-                  classId: null,
-                  studentStates: {
-                    some: {
-                      user: {
-                        profile: { classId },
-                      },
-                    },
-                  },
-                },
-              ],
-            }
-          : {}),
+        ...(classId ? { classId } : {}),
         ...(search
           ? {
               plan: {
@@ -79,19 +63,6 @@ export async function GET(request: Request) {
             studentStates: true,
           },
         },
-        studentStates: {
-          select: {
-            user: {
-              select: {
-                profile: {
-                  select: {
-                    classId: true,
-                  },
-                },
-              },
-            },
-          },
-        },
         classSessionReports: {
           where: {
             reportType: 'class-summary',
@@ -107,42 +78,11 @@ export async function GET(request: Request) {
       },
     });
 
-    const attributionsBySessionId = new Map(
-      sessions.map((item) => [
-        item.id,
-        resolveClassAttribution({
-          sessionClassId: item.classId,
-          participantClassIds: item.studentStates.map((state) => state.user.profile?.classId),
-        }),
-      ])
-    );
-    const inferredClassIds = Array.from(
-      new Set(
-        Array.from(attributionsBySessionId.values())
-          .map((attribution) => attribution.classId)
-          .filter((value): value is string => typeof value === 'string' && value.length > 0)
-      )
-    );
-    const classes = inferredClassIds.length
-      ? await prisma.class.findMany({
-          where: {
-            id: { in: inferredClassIds },
-            ...(session.user.role === 'ADMIN' ? {} : { teacherId: session.user.id }),
-          },
-          select: {
-            id: true,
-            name: true,
-          },
-        })
-      : [];
-    const classNameById = new Map(classes.map((item) => [item.id, item.name]));
-
     return NextResponse.json(
       sessions
         .map((item) => {
-          const classAttribution = attributionsBySessionId.get(item.id) ?? resolveClassAttribution({
+          const classAttribution = resolveClassAttribution({
             sessionClassId: item.classId,
-            participantClassIds: [],
           });
           const statistics = buildClassroomSessionStatistics({
             startTime: item.startTime,
@@ -160,7 +100,7 @@ export async function GET(request: Request) {
             currentStage: item.currentStage,
             classId: classAttribution.classId,
             className: classAttribution.classId
-              ? item.class?.name ?? classNameById.get(classAttribution.classId) ?? null
+              ? item.class?.name ?? null
               : null,
             classAttribution,
             plan: item.plan,

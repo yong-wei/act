@@ -12,6 +12,7 @@ import { useSessionStateChannel } from './use-session-state-channel';
 import { useSessionSSE } from './use-session-sse';
 import { getFetchFailureTelemetry, shouldSurfaceSyncFailure } from './fetch-diagnostics';
 import { shouldRunHiddenAwarePoll } from './polling-visibility';
+import { persistCourseStateUpdate } from '@/features/interactive/shared/confirmed-state';
 
 interface UseStudentLessonSessionOptions<StudentState, TeacherSyncState> {
   sessionId: string;
@@ -27,6 +28,41 @@ interface UseStudentLessonSessionOptions<StudentState, TeacherSyncState> {
    * 当前默认关闭，课堂场景以轮询为主，避免在低配服务器上维护大量长连接。
    */
   enableSSE?: boolean;
+}
+
+function stateUpdatedAt(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const updatedAt = Number((value as Record<string, unknown>).updatedAt);
+  return Number.isFinite(updatedAt) ? updatedAt : null;
+}
+
+export function shouldApplyStudentServerState(input: {
+  localState: unknown;
+  serverState: unknown;
+  hasLocalMutation: boolean;
+  pendingSaves: number;
+}) {
+  if (input.pendingSaves > 0) return false;
+  const localUpdatedAt = stateUpdatedAt(input.localState);
+  const serverUpdatedAt = stateUpdatedAt(input.serverState);
+  if (localUpdatedAt !== null && serverUpdatedAt !== null) return serverUpdatedAt >= localUpdatedAt;
+  return !input.hasLocalMutation;
+}
+
+export function shouldInitializeStudentPresence(input: {
+  isDemo: boolean;
+  loadingSession: boolean;
+  studentViewHydrated: boolean;
+  hasCurrentUser: boolean;
+  hasSelfState: boolean;
+  presenceAlreadySynced: boolean;
+}) {
+  return !input.isDemo
+    && !input.loadingSession
+    && input.studentViewHydrated
+    && input.hasCurrentUser
+    && !input.hasSelfState
+    && !input.presenceAlreadySynced;
 }
 
 export function useStudentLessonSession<StudentState, TeacherSyncState>({
@@ -95,6 +131,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     stateRecords,
     courseStates,
     teacherStates,
+    studentViewHydrated,
     fetchStudentViewStates,
     postState,
   } = useSessionStateChannel({
@@ -103,6 +140,10 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     currentStepId: steps[activeIndex]?.id ?? null,
   });
   const [courseState, setCourseState] = useState<StudentState>(() => adapter.createEmptyStudentState(currentStudentName));
+  const courseStateRef = useRef(courseState);
+  const courseStateSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const pendingCourseStateSavesRef = useRef(0);
+  const hasLocalMutationRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [stateErrorTelemetry, setStateErrorTelemetry] = useState<Record<string, unknown> | null>(null);
   const initialPresenceSyncedRef = useRef(false);
@@ -217,8 +258,14 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   }, [adapter, teacherStates]);
 
   useEffect(() => {
-    if (selfState) {
+    if (selfState && shouldApplyStudentServerState({
+      localState: courseStateRef.current,
+      serverState: selfState,
+      hasLocalMutation: hasLocalMutationRef.current,
+      pendingSaves: pendingCourseStateSavesRef.current,
+    })) {
       initialPresenceSyncedRef.current = true;
+      courseStateRef.current = selfState;
       setCourseState(selfState);
     }
   }, [selfState]);
@@ -241,29 +288,41 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   );
 
   const saveCourseState = useCallback(
-    async (updater: (prev: StudentState) => StudentState) => {
-      let nextState: StudentState | null = null;
-      setCourseState((prev) => {
-        nextState = updater(prev);
-        return nextState;
+    (updater: (prev: StudentState) => StudentState) => {
+      hasLocalMutationRef.current = true;
+      pendingCourseStateSavesRef.current += 1;
+      const run = courseStateSaveQueueRef.current.then(async () => {
+        const nextState = await persistCourseStateUpdate({
+          currentState: courseStateRef.current,
+          update: updater,
+          persist: persistCourseState,
+        });
+        courseStateRef.current = nextState;
+        setCourseState(nextState);
+      }).finally(() => {
+        pendingCourseStateSavesRef.current = Math.max(0, pendingCourseStateSavesRef.current - 1);
       });
-
-      if (nextState) {
-        await persistCourseState(nextState);
-      }
+      courseStateSaveQueueRef.current = run.catch(() => undefined);
+      return run;
     },
     [persistCourseState],
   );
 
   useEffect(() => {
-    if (isDemo || loadingSession || !currentUserId || selfState || initialPresenceSyncedRef.current) {
+    if (!shouldInitializeStudentPresence({
+      isDemo,
+      loadingSession,
+      studentViewHydrated,
+      hasCurrentUser: Boolean(currentUserId),
+      hasSelfState: Boolean(selfState),
+      presenceAlreadySynced: initialPresenceSyncedRef.current,
+    })) {
       return;
     }
 
     initialPresenceSyncedRef.current = true;
-    void persistCourseState(adapter.createEmptyStudentState(currentStudentName));
-    void syncStates();
-  }, [adapter, currentStudentName, currentUserId, isDemo, loadingSession, persistCourseState, selfState, syncStates]);
+    void saveCourseState((current) => current).then(syncStates).catch(() => undefined);
+  }, [currentUserId, isDemo, loadingSession, saveCourseState, selfState, studentViewHydrated, syncStates]);
 
   return useMemo(
     () => ({

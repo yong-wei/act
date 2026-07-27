@@ -1,0 +1,14 @@
+{
+  "subject": { "issue": null, "change_id": "export-smart-courseware-pdf" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "The project has PDF tooling but no revision-bound generated-courseware export with one fixed 16:9 step per page.",
+      "Direct browser printing would preserve workspace chrome and variable page flow rather than the required student slide projection.",
+      "The interview explicitly makes PDF a P1 acceptance item and excludes PPTX."
+    ]
+  },
+  "duplication": { "existing_implementation": "partial", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "Projection, page geometry, role safety, reveal/activity treatment, immutable revision identity, export evidence, failures, and exclusions are specified." },
+  "binding": { "issue_updated_at": null, "base_sha": "c18e40372e0f444ec3ad08a5385f0ad854825d23", "generated_at": "2026-07-18T15:57:40Z" }
+}
