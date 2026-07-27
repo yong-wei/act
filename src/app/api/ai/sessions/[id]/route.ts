@@ -4,8 +4,8 @@ import { authOptions } from '@/lib/auth';
 import {
   conversationMessages,
   konlingStructuredActionToolRunIds,
+  mergeLegacyKonlingStructuredActionToolRuns,
   normalizeKonlingManualTitle,
-  refreshKonlingStructuredActionToolRuns,
   serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -37,7 +37,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     }
     const persistedMessages = conversationMessages(conversation.messages);
     const toolRunIds = konlingStructuredActionToolRunIds(persistedMessages);
-    const toolRuns = toolRunIds.length
+    const referencedToolRuns = toolRunIds.length
       ? await prisma.agentToolRun.findMany({
           where: {
             id: { in: toolRunIds },
@@ -46,13 +46,40 @@ export async function GET(_request: NextRequest, context: RouteContext) {
           },
           select: {
             id: true,
+            toolName: true,
+            status: true,
             approvalState: true,
+            inputSummary: true,
             outputSummary: true,
             errorSummary: true,
           },
         })
       : [];
-    const refreshedMessages = refreshKonlingStructuredActionToolRuns(persistedMessages, toolRuns);
+    const legacyToolRuns = await prisma.agentToolRun.findMany({
+      where: {
+        ownerUserId: session.user.id,
+        agentSession: { konlingSessionId: id },
+        toolName: 'propose_smart_lesson_task_change',
+      },
+      orderBy: [
+        { startedAt: 'desc' },
+        { id: 'desc' },
+      ],
+      take: 100,
+      select: {
+        id: true,
+        toolName: true,
+        status: true,
+        approvalState: true,
+        inputSummary: true,
+        outputSummary: true,
+        errorSummary: true,
+      },
+    });
+    const toolRuns = [...new Map(
+      [...legacyToolRuns, ...referencedToolRuns].map((run) => [run.id, run]),
+    ).values()];
+    const refreshedMessages = mergeLegacyKonlingStructuredActionToolRuns(persistedMessages, toolRuns);
     return NextResponse.json(serializeKonlingConversation(conversation, refreshedMessages));
   } catch (error) {
     rethrowIfNextDynamicError(error);

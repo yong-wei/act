@@ -143,17 +143,24 @@ function projectPublicKonlingMessage(message: Message): Message {
   const metadata = recordValue(message.metadata);
   const structuredTurn = recordValue(metadata.konlingStructuredActionTurn);
   const toolRuns = Array.isArray(structuredTurn.toolRuns) ? structuredTurn.toolRuns : [];
+  const projectedActionIds = new Set<string>();
   const actions = toolRuns.flatMap((value) => {
     const run = recordValue(value);
     const input = recordValue(run.inputSummary);
+    const actionId = typeof input.publicActionId === 'string'
+      ? input.publicActionId
+      : typeof run.toolRunId === 'string'
+        ? run.toolRunId
+        : null;
     if (
       run.toolName !== 'propose_smart_lesson_task_change'
-      || typeof run.toolRunId !== 'string'
-      || typeof input.publicActionId !== 'string'
+      || !actionId
       || (input.operation !== 'bootstrap' && input.operation !== 'revise')
+      || projectedActionIds.has(actionId)
     ) return [];
+    projectedActionIds.add(actionId);
     return [{
-      actionId: input.publicActionId,
+      actionId,
       operation: input.operation,
       taskId: typeof input.taskId === 'string' ? input.taskId : undefined,
       state: publicStructuredActionState(run.approvalState, run.status),
@@ -275,12 +282,7 @@ function publicStructuredActionState(approvalState: unknown, status: unknown) {
 
 export function refreshKonlingStructuredActionToolRuns(
   messages: Message[],
-  toolRuns: Array<{
-    id: string;
-    approvalState: string;
-    outputSummary: unknown;
-    errorSummary: unknown;
-  }>,
+  toolRuns: KonlingStructuredActionToolRunSnapshot[],
 ): Message[] {
   if (toolRuns.length === 0) return messages;
   const currentById = new Map(toolRuns.map((run) => [run.id, run]));
@@ -297,6 +299,7 @@ export function refreshKonlingStructuredActionToolRuns(
       changed = true;
       return {
         ...run,
+        status: current.status ?? run.status,
         approvalState: current.approvalState,
         outputSummary: current.outputSummary,
         errorSummary: current.errorSummary,
@@ -314,6 +317,82 @@ export function refreshKonlingStructuredActionToolRuns(
       },
     };
   });
+}
+
+export type KonlingStructuredActionToolRunSnapshot = {
+  id: string;
+  toolName?: string;
+  status?: string;
+  approvalState: string;
+  inputSummary?: unknown;
+  outputSummary: unknown;
+  errorSummary: unknown;
+};
+
+export function mergeLegacyKonlingStructuredActionToolRuns(
+  messages: Message[],
+  toolRuns: KonlingStructuredActionToolRunSnapshot[],
+): Message[] {
+  const refreshed = refreshKonlingStructuredActionToolRuns(messages, toolRuns);
+  const persistedIds = new Set(konlingStructuredActionToolRunIds(refreshed));
+  const legacyRuns = toolRuns.filter((run) =>
+    run.toolName === 'propose_smart_lesson_task_change'
+    && !persistedIds.has(run.id)
+    && ['bootstrap', 'revise'].includes(String(recordValue(run.inputSummary).operation))
+  );
+  if (legacyRuns.length === 0) return refreshed;
+
+  const assistantIndexesByTurn = new Map<string, number[]>();
+  for (let index = 0; index < refreshed.length; index += 1) {
+    const message = refreshed[index];
+    if (message.role !== 'assistant') continue;
+    const turnId = recordValue(message.metadata).konlingTurnId;
+    if (typeof turnId !== 'string' || !turnId) continue;
+    const indexes = assistantIndexesByTurn.get(turnId) ?? [];
+    indexes.push(index);
+    assistantIndexesByTurn.set(turnId, indexes);
+  }
+  const next = [...refreshed];
+  const runsByTargetIndex = new Map<number, KonlingStructuredActionToolRunSnapshot[]>();
+  for (const run of legacyRuns) {
+    const turnId = recordValue(run.inputSummary).turnId;
+    if (typeof turnId !== 'string' || !turnId) continue;
+    const targetIndexes = assistantIndexesByTurn.get(turnId);
+    if (targetIndexes?.length !== 1) continue;
+    const targetIndex = targetIndexes[0];
+    const targetRuns = runsByTargetIndex.get(targetIndex) ?? [];
+    targetRuns.push(run);
+    runsByTargetIndex.set(targetIndex, targetRuns);
+  }
+  for (const [targetIndex, targetRuns] of runsByTargetIndex) {
+    const target = next[targetIndex];
+    const metadata = recordValue(target.metadata);
+    const structuredTurn = recordValue(metadata.konlingStructuredActionTurn);
+    const persistedRuns = Array.isArray(structuredTurn.toolRuns) ? structuredTurn.toolRuns : [];
+    next[targetIndex] = {
+      ...target,
+      metadata: {
+        ...metadata,
+        konlingStructuredActionTurn: {
+          ...structuredTurn,
+          version: 1,
+          toolRuns: [
+            ...persistedRuns,
+            ...targetRuns.map((run) => ({
+              toolRunId: run.id,
+              toolName: run.toolName,
+              status: run.status,
+              approvalState: run.approvalState,
+              inputSummary: run.inputSummary,
+              outputSummary: run.outputSummary,
+              errorSummary: run.errorSummary,
+            })),
+          ],
+        },
+      },
+    };
+  }
+  return next;
 }
 
 export function konlingStructuredActionToolRunIds(messages: Message[]): string[] {

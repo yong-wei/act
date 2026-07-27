@@ -20,7 +20,7 @@ async function readChunks(stream: ReadableStream<any>): Promise<any[]> {
 }
 
 describe('Konling structured action runtime', () => {
-  it('replays a buffered AI SDK text part with its original id before finish', async () => {
+  it('preserves the provider text lifecycle while forwarding safe deltas', async () => {
     const state: KonlingStructuredActionStreamState = {
       toolCalls: [],
       executedToolResults: [],
@@ -43,10 +43,57 @@ describe('Konling structured action runtime', () => {
     expect(chunks).toEqual([
       { type: 'start', messageId: 'assistant-1' },
       { type: 'text-start', id: 'text-provider-7' },
-      { type: 'text-delta', id: 'text-provider-7', delta: '第一段第二段' },
+      { type: 'text-delta', id: 'text-provider-7', delta: '第一段' },
+      { type: 'text-delta', id: 'text-provider-7', delta: '第二段' },
       { type: 'text-end', id: 'text-provider-7' },
       { type: 'finish', finishReason: 'stop' },
     ]);
+  });
+
+  it('makes the first safe text delta readable before the source finishes', async () => {
+    const state: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
+    let sourceController: ReadableStreamDefaultController<any> | undefined;
+    const source = new ReadableStream({
+      start(controller) {
+        sourceController = controller;
+      },
+    });
+    const reader = createKonlingStructuredActionStream({ stream: source, state }).getReader();
+
+    sourceController!.enqueue({ type: 'start', messageId: 'assistant-live' });
+    sourceController!.enqueue({ type: 'text-start', id: 'text-live' });
+    sourceController!.enqueue({ type: 'text-delta', id: 'text-live', delta: '立即可见' });
+
+    await expect(reader.read()).resolves.toEqual({
+      done: false,
+      value: { type: 'start', messageId: 'assistant-live' },
+    });
+    await expect(reader.read()).resolves.toEqual({
+      done: false,
+      value: { type: 'text-start', id: 'text-live' },
+    });
+    await expect(reader.read()).resolves.toEqual({
+      done: false,
+      value: { type: 'text-delta', id: 'text-live', delta: '立即可见' },
+    });
+
+    sourceController!.enqueue({ type: 'text-end', id: 'text-live' });
+    sourceController!.enqueue({ type: 'finish', finishReason: 'stop' });
+    sourceController!.close();
+    await expect(reader.read()).resolves.toEqual({
+      done: false,
+      value: { type: 'text-end', id: 'text-live' },
+    });
+    await expect(reader.read()).resolves.toEqual({
+      done: false,
+      value: { type: 'finish', finishReason: 'stop' },
+    });
+    await expect(reader.read()).resolves.toEqual({ done: true, value: undefined });
   });
 
   it('replays a complete text lifecycle from the flush fallback', async () => {
@@ -487,7 +534,8 @@ describe('Konling structured action runtime', () => {
     expect(chunks).toEqual([
       { type: 'finish-step' },
       { type: 'text-start', id: 'text-fallback' },
-      { type: 'text-delta', id: 'text-fallback', delta: '建议已生成。请确认下方卡片。' },
+      { type: 'text-delta', id: 'text-fallback', delta: '建议已生成。' },
+      { type: 'text-delta', id: 'text-fallback', delta: '请确认下方卡片。' },
       { type: 'text-end', id: 'text-fallback' },
       { type: 'finish', finishReason: 'stop' },
     ]);

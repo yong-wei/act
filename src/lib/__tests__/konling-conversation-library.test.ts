@@ -8,6 +8,7 @@ import {
   createKonlingMessageId,
   deriveKonlingConversationTitle,
   KonlingConversationTurnConflictError,
+  mergeLegacyKonlingStructuredActionToolRuns,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
   refreshKonlingStructuredActionToolRuns,
@@ -367,6 +368,182 @@ describe('Konling conversation library', () => {
         }],
       },
     });
+  });
+
+  it('does not duplicate a structured action already bound to the persisted message', () => {
+    const messages = [{
+      id: 'assistant-1',
+      role: 'assistant' as const,
+      content: '',
+      metadata: {
+        konlingStructuredActionTurn: {
+          toolRuns: [{
+            toolRunId: 'tool-run-1',
+            toolName: 'propose_smart_lesson_task_change',
+            status: 'succeeded',
+            approvalState: 'not_required',
+            inputSummary: {
+              operation: 'bootstrap',
+              proposedTask: { topic: '根轨迹' },
+            },
+          }],
+        },
+      },
+    }];
+    const merged = mergeLegacyKonlingStructuredActionToolRuns(messages as never, [{
+      id: 'tool-run-1',
+      toolName: 'propose_smart_lesson_task_change',
+      status: 'succeeded',
+      approvalState: 'ignored',
+      inputSummary: {
+        operation: 'bootstrap',
+        proposedTask: { topic: '根轨迹' },
+      },
+      outputSummary: null,
+      errorSummary: null,
+    }]);
+    const serialized = serializeKonlingConversation(conversation({ messages: merged as never }));
+    const actions = (
+      serialized.messages[0]?.metadata as {
+        konlingSmartPreparationActions?: unknown[];
+      }
+    ).konlingSmartPreparationActions;
+
+    expect(actions).toHaveLength(1);
+    expect(actions).toEqual([
+      expect.objectContaining({ actionId: 'tool-run-1', state: 'ignored' }),
+    ]);
+  });
+
+  it('attaches legacy runs to their exact assistant turns even when run and message order differ', () => {
+    const messages = [
+      {
+        id: 'assistant-turn-2',
+        role: 'assistant' as const,
+        content: '第二轮',
+        metadata: { konlingTurnId: 'turn-2' },
+      },
+      {
+        id: 'assistant-turn-1',
+        role: 'assistant' as const,
+        content: '第一轮',
+        metadata: { konlingTurnId: 'turn-1' },
+      },
+    ];
+    const merged = mergeLegacyKonlingStructuredActionToolRuns(messages as never, [
+      {
+        id: 'legacy-turn-1',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'not_required',
+        inputSummary: {
+          turnId: 'turn-1',
+          operation: 'bootstrap',
+          proposedTask: { topic: '第一轮主题' },
+        },
+        outputSummary: null,
+        errorSummary: null,
+      },
+      {
+        id: 'legacy-turn-2',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'ignored',
+        inputSummary: {
+          turnId: 'turn-2',
+          operation: 'revise',
+          proposedTask: { topic: '第二轮主题' },
+        },
+        outputSummary: null,
+        errorSummary: null,
+      },
+    ]);
+    const serialized = serializeKonlingConversation(conversation({ messages: merged as never }));
+    const firstMetadata = serialized.messages[0]?.metadata as {
+      konlingSmartPreparationActions?: Array<{ actionId: string; state: string }>;
+    };
+    const secondMetadata = serialized.messages[1]?.metadata as {
+      konlingSmartPreparationActions?: Array<{ actionId: string; state: string }>;
+    };
+
+    expect(firstMetadata.konlingSmartPreparationActions).toEqual([
+      expect.objectContaining({ actionId: 'legacy-turn-2', state: 'ignored' }),
+    ]);
+    expect(secondMetadata.konlingSmartPreparationActions).toEqual([
+      expect.objectContaining({ actionId: 'legacy-turn-1', state: 'pending' }),
+    ]);
+  });
+
+  it('fails closed for legacy runs with missing, unmatched, or ambiguous turn ownership', () => {
+    const messages = [
+      {
+        id: 'assistant-ambiguous-a',
+        role: 'assistant' as const,
+        content: '候选 A',
+        metadata: { konlingTurnId: 'turn-ambiguous' },
+      },
+      {
+        id: 'assistant-ambiguous-b',
+        role: 'assistant' as const,
+        content: '候选 B',
+        metadata: { konlingTurnId: 'turn-ambiguous' },
+      },
+      {
+        id: 'assistant-owned',
+        role: 'assistant' as const,
+        content: '已归属轮次',
+        metadata: { konlingTurnId: 'turn-owned' },
+      },
+    ];
+    const merged = mergeLegacyKonlingStructuredActionToolRuns(messages as never, [
+      {
+        id: 'legacy-missing-turn',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'not_required',
+        inputSummary: {
+          operation: 'bootstrap',
+          proposedTask: { topic: '缺失轮次' },
+        },
+        outputSummary: { private: 'missing' },
+        errorSummary: null,
+      },
+      {
+        id: 'legacy-unmatched-turn',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'not_required',
+        inputSummary: {
+          turnId: 'turn-unknown',
+          operation: 'bootstrap',
+          proposedTask: { topic: '无匹配轮次' },
+        },
+        outputSummary: { private: 'unmatched' },
+        errorSummary: null,
+      },
+      {
+        id: 'legacy-ambiguous-turn',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'not_required',
+        inputSummary: {
+          turnId: 'turn-ambiguous',
+          operation: 'bootstrap',
+          proposedTask: { topic: '歧义轮次' },
+        },
+        outputSummary: { private: 'ambiguous' },
+        errorSummary: null,
+      },
+    ]);
+    const encoded = JSON.stringify(
+      serializeKonlingConversation(conversation({ messages: merged as never })).messages,
+    );
+
+    expect(encoded).not.toContain('konlingSmartPreparationActions');
+    expect(encoded).not.toContain('legacy-');
+    expect(encoded).not.toContain('缺失轮次');
+    expect(encoded).not.toContain('无匹配轮次');
+    expect(encoded).not.toContain('歧义轮次');
   });
 
   it('authorizes smart-prep conversations against the server-owned course basis', async () => {

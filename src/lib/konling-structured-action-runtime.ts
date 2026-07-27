@@ -8,6 +8,20 @@ const SUSPICIOUS_STRUCTURED_SYNTAX = /<(?:\/?tool_call\b|｜tool▁(?:calls?|cal
 const CODE_FENCE = /```[\s\S]*?```/gu;
 const MALFORMED_ENVELOPE_MARKER = '\u0000konling-malformed-envelope\u0000';
 const KONLING_STRUCTURED_FAILURE_TEXT = '结构化操作未能安全完成，请重新生成建议。';
+const STRUCTURED_STREAM_OPENERS = [
+  '<tool_call',
+  '</tool_call',
+  '<｜tool▁call▁begin｜>',
+  '<｜tool▁call▁end｜>',
+  '<｜tool▁calls▁begin｜>',
+  '<｜tool▁calls▁end｜>',
+  '<｜DSML｜tool_calls>',
+  '</｜DSML｜tool_calls',
+  '<｜DSML｜invoke',
+  '</｜DSML｜invoke',
+  '<｜DSML｜parameter',
+  '</｜DSML｜parameter',
+] as const;
 export const KONLING_STRUCTURED_CORRECTION_LIMIT_MS = 2_500;
 
 export type KonlingNormalizedToolCall = {
@@ -230,11 +244,31 @@ export function createKonlingStructuredActionStream(input: {
   let textBuffer = '';
   let textPartId = '';
   let messageId = '';
+  let textLifecycleStarted = false;
   const nativeCalls: KonlingNormalizedToolCall[] = [];
+  const streamedDsmlCalls: KonlingNormalizedToolCall[] = [];
   const privateActionCallIds = new Set<string>();
   const availableCallIds = new Set<string>();
   const malformedFragmentIds = new Set<string>();
   const fragmentedInputs = new Map<string, { name: string; inputText: string }>();
+  const enqueueVisibleText = (
+    controller: TransformStreamDefaultController<any>,
+    text: string,
+  ) => {
+    if (!text) return;
+    const id = textPartId || messageId;
+    if (!id) return;
+    if (!textLifecycleStarted) {
+      controller.enqueue({ type: 'text-start', id });
+      textLifecycleStarted = true;
+    }
+    controller.enqueue({ type: 'text-delta', id, delta: text });
+  };
+  const closeVisibleText = (controller: TransformStreamDefaultController<any>) => {
+    if (!textLifecycleStarted) return;
+    controller.enqueue({ type: 'text-end', id: textPartId || messageId });
+    textLifecycleStarted = false;
+  };
   return input.stream.pipeThrough(new TransformStream<any, any>({
     async transform(chunk, controller) {
       if (chunk?.type === 'start' && typeof chunk.messageId === 'string') {
@@ -312,6 +346,10 @@ export function createKonlingStructuredActionStream(input: {
             });
           }
           const availableCalls = dedupeToolCalls(nativeCalls);
+          const normalizedCalls = dedupeToolCalls([
+            ...streamedDsmlCalls,
+            ...normalized.toolCalls,
+          ]);
           const fallbackCalls = dedupeToolCalls([...availableCalls, ...fragmentedCalls])
             .filter((call) =>
               fragmentedCalls.some((fragmented) => sameToolCall(fragmented, call))
@@ -319,7 +357,7 @@ export function createKonlingStructuredActionStream(input: {
           input.state.toolCalls = dedupeToolCalls([
             ...availableCalls,
             ...fragmentedCalls,
-            ...normalized.toolCalls,
+            ...normalizedCalls,
           ]);
           const executableCalls = input.state.toolCalls.filter((call) =>
             call.source === 'dsml'
@@ -357,10 +395,10 @@ export function createKonlingStructuredActionStream(input: {
             ? KONLING_STRUCTURED_FAILURE_TEXT
             : normalizedVisibleText
               || (input.state.withheldMalformedSyntax
-                ? '工具调用格式未能安全解析，正在尝试修正。'
+                ? textLifecycleStarted ? '' : '工具调用格式未能安全解析，正在尝试修正。'
                 : '');
-          enqueueKonlingTextPart(controller, textPartId || messageId, visibleText);
-          for (const call of normalized.toolCalls) {
+          enqueueVisibleText(controller, visibleText);
+          for (const call of normalizedCalls) {
             if ([...availableCalls, ...fragmentedCalls]
               .some((nativeCall) => sameToolCall(nativeCall, call))) continue;
             if (call.name === 'propose_smart_lesson_task_change') continue;
@@ -408,37 +446,85 @@ export function createKonlingStructuredActionStream(input: {
             }
           }
           textBuffer = '';
+          closeVisibleText(controller);
         }
         controller.enqueue(chunk);
         return;
       }
       if (!textPartId && typeof chunk.id === 'string') textPartId = chunk.id;
       textBuffer += chunk.delta;
+      const structuredTailIndex = findStructuredStreamTailIndex(
+        textBuffer,
+        fragmentedInputs.size > 0,
+      );
+      if (structuredTailIndex < 0) {
+        enqueueVisibleText(controller, textBuffer);
+        textBuffer = '';
+        return;
+      }
+      if (structuredTailIndex > 0) {
+        enqueueVisibleText(controller, textBuffer.slice(0, structuredTailIndex));
+        textBuffer = textBuffer.slice(structuredTailIndex);
+      }
+      const normalizedTail = normalizeKonlingStructuredText(textBuffer);
+      if (!normalizedTail.withheldMalformedSyntax && normalizedTail.toolCalls.length > 0) {
+        streamedDsmlCalls.push(...normalizedTail.toolCalls);
+        enqueueVisibleText(controller, normalizedTail.text);
+        textBuffer = '';
+      } else if (
+        !normalizedTail.withheldMalformedSyntax
+        && hasBalancedCodeFences(textBuffer)
+      ) {
+        enqueueVisibleText(controller, normalizedTail.text);
+        textBuffer = '';
+      }
     },
     flush(controller) {
-      if (!textBuffer) return;
-      const normalized = normalizeKonlingStructuredText(textBuffer);
-      const visibleText = normalized.text
-        || (normalized.withheldMalformedSyntax
-          ? '工具调用格式未能安全解析，正在尝试修正。'
-          : '');
-      enqueueKonlingTextPart(controller, textPartId || messageId, visibleText);
-      input.state.toolCalls = dedupeToolCalls([...nativeCalls, ...normalized.toolCalls]);
-      input.state.withheldMalformedSyntax ||= normalized.withheldMalformedSyntax;
-      if (normalized.withheldMalformedSyntax) input.state.withheldText = textBuffer;
+      if (textBuffer) {
+        const normalized = normalizeKonlingStructuredText(textBuffer);
+        const visibleText = normalized.text
+          || (normalized.withheldMalformedSyntax
+            ? textLifecycleStarted ? '' : '工具调用格式未能安全解析，正在尝试修正。'
+            : '');
+        enqueueVisibleText(controller, visibleText);
+        input.state.toolCalls = dedupeToolCalls([
+          ...nativeCalls,
+          ...streamedDsmlCalls,
+          ...normalized.toolCalls,
+        ]);
+        input.state.withheldMalformedSyntax ||= normalized.withheldMalformedSyntax;
+        if (normalized.withheldMalformedSyntax) input.state.withheldText = textBuffer;
+      }
+      closeVisibleText(controller);
     },
   }));
 }
 
-function enqueueKonlingTextPart(
-  controller: TransformStreamDefaultController<any>,
-  id: string,
-  text: string,
-) {
-  if (!id || !text) return;
-  controller.enqueue({ type: 'text-start', id });
-  controller.enqueue({ type: 'text-delta', id, delta: text });
-  controller.enqueue({ type: 'text-end', id });
+function hasBalancedCodeFences(value: string) {
+  const fences = value.match(/```/gu);
+  return Boolean(fences && fences.length % 2 === 0);
+}
+
+function findStructuredStreamTailIndex(
+  value: string,
+  retainFallbackFailureText: boolean,
+): number {
+  const lower = value.toLocaleLowerCase('en-US');
+  const candidates = retainFallbackFailureText
+    ? [...STRUCTURED_STREAM_OPENERS, KONLING_STRUCTURED_FAILURE_TEXT]
+    : STRUCTURED_STREAM_OPENERS;
+  let earliest = -1;
+  for (let index = 0; index < lower.length; index += 1) {
+    const suffix = lower.slice(index);
+    if (candidates.some((opener) => {
+      const normalizedOpener = opener.toLocaleLowerCase('en-US');
+      return normalizedOpener.startsWith(suffix) || suffix.startsWith(normalizedOpener);
+    })) {
+      earliest = index;
+      break;
+    }
+  }
+  return earliest;
 }
 
 export async function executeKonlingDsmlToolCalls(input: {
