@@ -104,7 +104,9 @@ test('real provider structured actions persist across desktop, maximized history
   await expect(conflictCard).toHaveAttribute('data-action-state', 'conflict');
   await expect(conflictCard.getByRole('button', { name: '刷新任务' })).toBeEnabled();
   await conflictCard.getByRole('button', { name: '刷新任务' }).click({ timeout: UI_ACTION_TIMEOUT_MS });
-  await expect(reloadedSidebar.getByRole('status')).toContainText(/已刷新任务和会话状态|任务已发生变化/);
+  await expect(reloadedSidebar.locator('[data-ai-task-status="global-sidebar"]')).toContainText(
+    /已刷新任务和会话状态|任务已发生变化/,
+  );
   expect(await structuredToolRunCount()).toBe(toolRunsBeforeConflict);
   await assertNoStructuredMarkupLeak(reloadedSidebar);
 
