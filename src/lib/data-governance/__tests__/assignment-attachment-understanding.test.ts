@@ -259,6 +259,30 @@ describe('assignment attachment understanding', () => {
     expect(assembled.manifest.state).toBe('NO_GRADABLE_EVIDENCE');
     expect(assembled.evidence.readiness).toBe('blocked');
   });
+
+  it('marks bounded direct-text truncation as incomplete grading evidence', () => {
+    const assembled = assembleAssignmentAnswerEvidence({
+      attemptId: 'attempt-truncated-text',
+      answerVersion: 1,
+      textSnapshot: '',
+      attachments: [{
+        assetId: 'asset-truncated-text',
+        displayName: 'answer.txt',
+        mimeType: 'text/plain',
+        checksum: 'sha256:truncated',
+        role: 'ATTACHMENT',
+        orderIndex: 0,
+        route: 'direct-text',
+        state: 'READY',
+        canonicalMarkdown: 'bounded answer',
+        blocks: [{ id: 'text', blockIndex: 0, text: 'bounded answer' }],
+        limitations: ['direct-text-truncated'],
+      }],
+    });
+
+    expect(assembled.manifest.state).toBe('EVIDENCE_INCOMPLETE');
+    expect(assembled.evidence.limitations).toContain('direct-text-truncated');
+  });
 });
 
 function policy(): ExternalProcessingPolicy {

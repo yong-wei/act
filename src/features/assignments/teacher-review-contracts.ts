@@ -103,6 +103,8 @@ export interface TeacherReviewDetail {
   criteria: TeacherReviewCriterion[];
   overallComment: string;
   limitations: string[];
+  incompleteEvidence: boolean;
+  omittedEvidence: Array<{ assetId: string; displayName: string }>;
   annotations: ReviewAnnotationValue[];
 }
 
@@ -358,9 +360,20 @@ export function normalizeTeacherReviewDetail(
           aiDraft: aiValues.get(criterionId),
         };
       });
-  const evidence = normalizeEvidence(
+  const rawEvidence = asRecord(
     root.evidence ?? review.evidence ?? gradingRun.answerEvidence,
   );
+  const evidence = normalizeEvidence(rawEvidence);
+  const sourceManifest = asRecord(rawEvidence.sourceManifest);
+  const omittedEvidence = arrayFrom(sourceManifest.sources).flatMap((entry) => {
+    const source = asRecord(entry);
+    const assetId = stringFrom(source.assetId);
+    if (!assetId || stringFrom(source.state).toUpperCase() === "READY") return [];
+    return [{
+      assetId,
+      displayName: stringFrom(source.displayName, "未命名附件"),
+    }];
+  });
   const submissionId = stringFrom(submission.id ?? review.submissionId);
   const questionId = stringFrom(question.id ?? review.questionId);
   const reviewId = stringFrom(review.id ?? root.reviewId);
@@ -409,6 +422,11 @@ export function normalizeTeacherReviewDetail(
     limitations: arrayFrom(root.limitations ?? review.limitations)
       .map((entry) => stringFrom(entry))
       .filter(Boolean),
+    incompleteEvidence:
+      stringFrom(gradingRun.evidenceState).toUpperCase() === "EVIDENCE_INCOMPLETE" ||
+      stringFrom(rawEvidence.limitationState).toLowerCase() === "evidence-incomplete" ||
+      stringFrom(sourceManifest.state).toUpperCase() === "EVIDENCE_INCOMPLETE",
+    omittedEvidence,
     annotations: normalizeReviewAnnotations(
       review.annotationValues ?? review.annotations,
     ),

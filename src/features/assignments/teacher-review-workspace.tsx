@@ -71,6 +71,8 @@ export function TeacherReviewWorkspace({
     defaultReturnDeadline(),
   );
   const [fallbackAcknowledgement, setFallbackAcknowledgement] = useState("");
+  const [incompleteEvidenceConfirmed, setIncompleteEvidenceConfirmed] =
+    useState(false);
   const [evidenceView, setEvidenceView] = useState<EvidenceView>("source");
 
   const loadQueue = useCallback(async () => {
@@ -142,6 +144,7 @@ export function TeacherReviewWorkspace({
       );
       setQueue(nextQueue);
       setEvidenceView("source");
+      setIncompleteEvidenceConfirmed(false);
       setLoadState("ready");
       requestAnimationFrame(() => headingRef.current?.focus());
     } catch {
@@ -267,7 +270,9 @@ export function TeacherReviewWorkspace({
                     allowedResponseType: returnResponseType,
                     newDeadlineAt: new Date(returnDeadline).toISOString(),
                   }
-                : {}),
+                : detail.incompleteEvidence
+                  ? { confirmIncompleteEvidence: incompleteEvidenceConfirmed }
+                  : {}),
             }),
           },
         );
@@ -295,6 +300,7 @@ export function TeacherReviewWorkspace({
     [
       currentKey,
       detail,
+      incompleteEvidenceConfirmed,
       loadQueue,
       navigateTo,
       queue,
@@ -691,6 +697,33 @@ export function TeacherReviewWorkspace({
                 />
               </label>
             </div>
+            {detail.incompleteEvidence && (
+              <div className="rounded-lg border border-amber-500/70 bg-amber-500/10 p-3">
+                <p className="text-sm font-medium text-amber-100">当前评分证据不完整</p>
+                <p className="mt-1 text-xs text-amber-200/80">
+                  请核对学生原始作答与可用证据后再批准。
+                </p>
+                {detail.omittedEvidence.length > 0 && (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-amber-100">
+                    {detail.omittedEvidence.map((item) => (
+                      <li key={item.assetId}>{item.displayName}</li>
+                    ))}
+                  </ul>
+                )}
+                <label className="mt-3 flex min-h-10 items-center gap-2 text-sm text-amber-50">
+                  <input
+                    type="checkbox"
+                    checked={incompleteEvidenceConfirmed}
+                    onChange={(event) =>
+                      setIncompleteEvidenceConfirmed(event.target.checked)
+                    }
+                    disabled={!reviewMutable}
+                    className="h-4 w-4 rounded border-amber-400 bg-slate-900"
+                  />
+                  我已核对不完整证据并确认当前评分
+                </label>
+              </div>
+            )}
             <MutationMessage
               state={mutationState}
               onReload={() => void load()}
@@ -701,6 +734,7 @@ export function TeacherReviewWorkspace({
                 disabled={
                   !criteria.length ||
                   !reviewMutable ||
+                  (detail.incompleteEvidence && !incompleteEvidenceConfirmed) ||
                   mutationState === "saving" ||
                   mutationState === "acting"
                 }

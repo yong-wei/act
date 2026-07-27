@@ -177,6 +177,7 @@ export function assembleAssignmentAnswerEvidence(input: {
       : [attachment.state === 'UNDERSTANDING_UNAVAILABLE_POLICY'
           ? 'understanding-unavailable-policy'
           : 'understanding-failed'];
+    if (ready) limitations.push(...attachmentLimitations);
     sources.push({
       kind: attachment.role,
       assetId: attachment.assetId,
@@ -236,7 +237,7 @@ export function assembleAssignmentAnswerEvidence(input: {
     source.assetId && source.state !== 'READY');
   const state = !hasGradableEvidence
     ? 'NO_GRADABLE_EVIDENCE'
-    : omitted.length > 0
+    : omitted.length > 0 || limitations.length > 0
       ? 'EVIDENCE_INCOMPLETE'
       : 'COMPLETE';
   const manifest: AssignmentEvidenceManifest = {
