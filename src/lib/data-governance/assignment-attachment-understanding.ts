@@ -76,6 +76,15 @@ const BINARY_EXTENSIONS = new Set([
 
 const DIRECT_TEXT_EXTENSIONS = new Set(['.md', '.markdown', '.txt']);
 
+const SAFE_ATTACHMENT_LIMITATIONS = new Set([
+  'direct-text-truncated',
+  'direct-text-blocks-truncated',
+  'source-snapshot-truncated',
+  'blocks-truncated',
+  'block-content-truncated',
+  'coordinate-provenance-invalid',
+]);
+
 export function assignmentAttachmentRoute(
   mimeType: string,
   fileName: string,
@@ -172,8 +181,7 @@ export function assembleAssignmentAnswerEvidence(input: {
     const marker = `\u0000assignment-attachment-${attachmentIndex}\u0000`;
     const attachmentLimitations = ready
       ? [...new Set((attachment.limitations ?? []).filter((limitation) =>
-          ['direct-text-truncated', 'direct-text-blocks-truncated']
-            .includes(limitation)))]
+          SAFE_ATTACHMENT_LIMITATIONS.has(limitation)))]
       : [attachment.state === 'UNDERSTANDING_UNAVAILABLE_POLICY'
           ? 'understanding-unavailable-policy'
           : 'understanding-failed'];

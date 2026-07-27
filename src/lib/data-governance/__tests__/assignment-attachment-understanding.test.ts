@@ -283,6 +283,37 @@ describe('assignment attachment understanding', () => {
     expect(assembled.manifest.state).toBe('EVIDENCE_INCOMPLETE');
     expect(assembled.evidence.limitations).toContain('direct-text-truncated');
   });
+
+  it('preserves safe normalization limitations for ready attachments', () => {
+    const normalizationLimitations = [
+      'source-snapshot-truncated',
+      'blocks-truncated',
+      'block-content-truncated',
+      'coordinate-provenance-invalid',
+    ];
+    const assembled = assembleAssignmentAnswerEvidence({
+      attemptId: 'attempt-normalized-limits',
+      answerVersion: 1,
+      textSnapshot: '',
+      attachments: [{
+        assetId: 'asset-normalized-limits',
+        displayName: 'answer.pdf',
+        mimeType: 'application/pdf',
+        checksum: 'sha256:normalized-limits',
+        role: 'ATTACHMENT',
+        orderIndex: 0,
+        route: 'binary-mathpix',
+        state: 'READY',
+        canonicalMarkdown: 'bounded mathpix answer',
+        blocks: [{ id: 'page', blockIndex: 0, pageNumber: 1, text: 'bounded mathpix answer' }],
+        limitations: [...normalizationLimitations, 'mathpix-failed:provider-detail'],
+      }],
+    });
+
+    expect(assembled.manifest.state).toBe('EVIDENCE_INCOMPLETE');
+    expect(assembled.manifest.sources[0]?.limitations).toEqual(normalizationLimitations);
+    expect(assembled.evidence.limitations).toEqual(normalizationLimitations);
+  });
 });
 
 function policy(): ExternalProcessingPolicy {
