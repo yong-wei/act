@@ -151,4 +151,29 @@ describe('smart lesson real-provider source revision contract', () => {
     );
     expect(spec).toContain('boundedRetryUsed: advisoryReviews.length === 2');
   });
+
+  it('uses stage-aware bounded generation recovery with privacy-safe diagnostics', () => {
+    const spec = readFileSync(
+      path.join(process.cwd(), 'tests/smart-lesson-real-provider.spec.ts'),
+      'utf8',
+    );
+    expect(spec).toContain('const GENERATION_WINDOW_MS = 11 * 60_000');
+    expect(spec).toContain('const GENERATION_BATCH_WINDOW_MS = 20 * 60_000');
+    expect(spec).toContain(
+      "['PAUSED', 'COMPLETED', 'RETRYABLE', 'FAILED', 'CANCELLED']",
+    );
+    expect(spec).toContain('stageRetries >= 1 || budget.total >= 2');
+    expect(spec).toContain("snapshot.job.state === 'FAILED' || snapshot.job.state === 'CANCELLED'");
+    expect(spec).toContain("getByRole('button', { name: '恢复/重试' }).click()");
+    expect(spec).toContain('retryStageAfter.providerAttemptGeneration > previousGeneration');
+    expect(spec).toContain('expectCompletedStagesPreserved(completedBefore, after)');
+    expect(spec).toContain('generation-outcome-timeout:');
+    expect(spec).toContain('nonFixtureProvider:');
+    expect(spec).not.toContain('expectPersistedJobState');
+    const compactSnapshot = spec.slice(
+      spec.indexOf('function compactGenerationSnapshot'),
+      spec.indexOf('async function deletedTaskCount'),
+    );
+    expect(compactSnapshot).not.toMatch(/request|response|validationReceipt|idempotencyKey|output:/);
+  });
 });

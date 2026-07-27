@@ -14,6 +14,12 @@ const evidencePath = path.join(
   process.cwd(),
   'openspec/changes/integrate-smart-preparation-rag-grounding/evidence/real-provider-continuous-teacher-flow.json',
 );
+const GENERATION_WINDOW_MS = 11 * 60_000;
+const GENERATION_BATCH_WINDOW_MS = 20 * 60_000;
+const GENERATION_TERMINAL_STATES = ['PAUSED', 'COMPLETED', 'RETRYABLE', 'FAILED', 'CANCELLED'] as const;
+type GenerationSnapshot = Awaited<ReturnType<typeof generationSnapshot>>;
+type NaturalRecovery = { stage: string; failureCode: string | null };
+type NaturalRecoveryBudget = { total: number; perStage: Map<string, number>; events: NaturalRecovery[] };
 
 test('continuous real-teacher preparation flow uses governed sources, current portrait and real provider', async ({ page, context }) => {
   expect(requiredEnv('SMART_LESSON_REAL_PROVIDER_REQUIRED')).toBe('1');
@@ -36,8 +42,9 @@ test('continuous real-teacher preparation flow uses governed sources, current po
     ...createdTask.goals,
   ].every((item) => item.sourceState === 'VERIFIED' && Array.isArray(item.sourceBindings) && item.sourceBindings.length > 0))
     .toBe(true);
+  const naturalRecoveryBudget: NaturalRecoveryBudget = { total: 0, perStage: new Map(), events: [] };
   await card.getByRole('button', { name: '开始生成' }).click();
-  await expectPersistedJobState(['PAUSED'], 8 * 60_000);
+  await reachGenerationStateWithNaturalRecovery(page, ['PAUSED'], naturalRecoveryBudget);
   await card.getByRole('button', { name: '刷新进度' }).click();
   await expect(card).toContainText('提纲：等待教师确认');
 
@@ -45,17 +52,24 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   const outlineAttemptIds = beforeFailure.job.stages
     .find((stage) => stage.kind === 'OUTLINE')!.attempts.map((attempt) => attempt.id);
   await card.getByRole('button', { name: '确认当前提纲并继续' }).click();
-  await expectPersistedJobState(['RETRYABLE'], 60_000);
-  const failedSnapshot = await generationSnapshot();
-  const failedBridgeAttempt = failedSnapshot.job.stages
-    .find((stage) => stage.kind === 'BRIDGE_IN')!.attempts.at(-1)!;
+  const failedSnapshot = await waitForGenerationOutcome(GENERATION_WINDOW_MS);
+  assertGenerationState(failedSnapshot, 'RETRYABLE', 'BRIDGE_IN 注入故障未形成可恢复状态');
+  expect(failedSnapshot.job.firstIncompleteStage).toBe('BRIDGE_IN');
+  const failedBridgeStage = failedSnapshot.job.stages.find((stage) => stage.kind === 'BRIDGE_IN')!;
+  expect(failedBridgeStage.attempts).toHaveLength(1);
+  const failedBridgeAttempt = failedBridgeStage.attempts[0];
   expect(failedBridgeAttempt.outcome).toBe('RETRYABLE_FAILURE');
   expect(failedSnapshot.job.failureCode).toBe('provider-timeout');
   await page.reload();
   card = taskCard(page);
   await expect(card).toContainText('生成服务响应超时，请重试当前阶段。');
-  await card.getByRole('button', { name: '恢复/重试' }).click();
-  await expectPersistedJobState(['COMPLETED'], 20 * 60_000);
+  await retryGenerationThroughUi(page, failedSnapshot);
+  await reachGenerationStateWithNaturalRecovery(
+    page,
+    ['COMPLETED'],
+    naturalRecoveryBudget,
+    GENERATION_BATCH_WINDOW_MS,
+  );
   await card.getByRole('button', { name: '刷新进度' }).click();
   await expect(card).toContainText('总结：已完成');
 
@@ -106,6 +120,9 @@ test('continuous real-teacher preparation flow uses governed sources, current po
     .toEqual(outlineAttemptIds);
   const finalBridgeAttempt = snapshot.job.stages
     .find((stage) => stage.kind === 'BRIDGE_IN')!.attempts.at(-1)!;
+  expect(snapshot.job.stages
+    .find((stage) => stage.kind === 'BRIDGE_IN')!.attempts
+    .filter((attempt) => attempt.id === failedBridgeAttempt.id)).toHaveLength(1);
   expect(finalBridgeAttempt.id).not.toBe(failedBridgeAttempt.id);
   expect(finalBridgeAttempt.outcome).toBe('SUCCEEDED');
   const attempts = snapshot.job.stages.flatMap((stage) => stage.attempts);
@@ -143,6 +160,12 @@ test('continuous real-teacher preparation flow uses governed sources, current po
       failedAttemptOutcome: failedBridgeAttempt.outcome,
       retryCreatedNewAttempt: finalBridgeAttempt.id !== failedBridgeAttempt.id,
       completedOutlineAttemptIdsPreserved: true,
+      naturalRetryBudget: {
+        maximumPerStage: 1,
+        maximumTotal: 2,
+        used: naturalRecoveryBudget.total,
+        events: naturalRecoveryBudget.events,
+      },
     },
     advisoryReview: {
       boundedRetryUsed: advisoryReviews.length === 2,
@@ -318,16 +341,139 @@ async function persistedAdvisoryReviews() {
   }
 }
 
-async function expectPersistedJobState(states: string[], timeout: number) {
-  await expect.poll(async () => {
-    const prisma = createPrismaClient({ log: ['warn', 'error'] });
-    try {
-      const task = await loadPersistedTask(prisma);
-      return states.includes(task.drafts[0].jobs[0]?.state ?? '');
-    } finally {
-      await prisma.$disconnect();
+async function waitForGenerationOutcome(timeout: number) {
+  let snapshot = await generationSnapshot();
+  try {
+    await expect.poll(async () => {
+      snapshot = await generationSnapshot();
+      return GENERATION_TERMINAL_STATES.includes(
+        snapshot.job.state as (typeof GENERATION_TERMINAL_STATES)[number],
+      );
+    }, { timeout, intervals: [1_000, 2_500, 5_000] }).toBe(true);
+  } catch {
+    throw new Error(`generation-outcome-timeout:${JSON.stringify(compactGenerationSnapshot(snapshot))}`);
+  }
+  return snapshot;
+}
+
+async function reachGenerationStateWithNaturalRecovery(
+  page: Page,
+  expectedStates: Array<'PAUSED' | 'COMPLETED'>,
+  budget: NaturalRecoveryBudget,
+  timeout = GENERATION_WINDOW_MS,
+) {
+  for (;;) {
+    const snapshot = await waitForGenerationOutcome(timeout);
+    if (expectedStates.includes(snapshot.job.state as 'PAUSED' | 'COMPLETED')) return snapshot;
+    if (snapshot.job.state === 'FAILED' || snapshot.job.state === 'CANCELLED') {
+      throw new Error(`generation-non-recoverable:${JSON.stringify(compactGenerationSnapshot(snapshot))}`);
     }
-  }, { timeout, intervals: [1_000, 2_500, 5_000] }).toBe(true);
+    if (snapshot.job.state !== 'RETRYABLE') {
+      throw new Error(`generation-unexpected-terminal:${JSON.stringify(compactGenerationSnapshot(snapshot))}`);
+    }
+    const stage = snapshot.job.firstIncompleteStage;
+    if (!stage) {
+      throw new Error(`generation-retry-stage-missing:${JSON.stringify(compactGenerationSnapshot(snapshot))}`);
+    }
+    const stageRetries = budget.perStage.get(stage) ?? 0;
+    if (stageRetries >= 1 || budget.total >= 2) {
+      throw new Error(`generation-natural-retry-budget-exhausted:${JSON.stringify(compactGenerationSnapshot(snapshot))}`);
+    }
+    budget.perStage.set(stage, stageRetries + 1);
+    budget.total += 1;
+    budget.events.push({ stage, failureCode: snapshot.job.failureCode });
+    await page.reload();
+    await expect(taskCard(page).getByRole('button', { name: '恢复/重试' })).toBeVisible();
+    await retryGenerationThroughUi(page, snapshot);
+  }
+}
+
+async function retryGenerationThroughUi(page: Page, before: GenerationSnapshot) {
+  const stageKind = before.job.firstIncompleteStage;
+  if (!stageKind) {
+    throw new Error(`generation-retry-stage-missing:${JSON.stringify(compactGenerationSnapshot(before))}`);
+  }
+  const retryStageBefore = before.job.stages.find((stage) => stage.kind === stageKind);
+  if (!retryStageBefore) {
+    throw new Error(`generation-retry-stage-not-found:${JSON.stringify(compactGenerationSnapshot(before))}`);
+  }
+  const previousAttemptIds = new Set(retryStageBefore.attempts.map((attempt) => attempt.id));
+  const previousGeneration = retryStageBefore.providerAttemptGeneration;
+  const completedBefore = completedStageIdentity(before);
+  await taskCard(page).getByRole('button', { name: '恢复/重试' }).click();
+
+  let after = await generationSnapshot();
+  try {
+    await expect.poll(async () => {
+      after = await generationSnapshot();
+      const retryStageAfter = after.job.stages.find((stage) => stage.kind === stageKind);
+      return Boolean(
+        retryStageAfter
+        && retryStageAfter.providerAttemptGeneration > previousGeneration
+        && retryStageAfter.attempts.some((attempt) => !previousAttemptIds.has(attempt.id)),
+      );
+    }, { timeout: 2 * 60_000, intervals: [500, 1_000, 2_500] }).toBe(true);
+  } catch {
+    throw new Error(`generation-retry-attempt-not-created:${JSON.stringify(compactGenerationSnapshot(after))}`);
+  }
+  expectCompletedStagesPreserved(completedBefore, after);
+  return after;
+}
+
+function completedStageIdentity(snapshot: GenerationSnapshot) {
+  return snapshot.job.stages
+    .filter((stage) => stage.state === 'COMPLETED')
+    .map((stage) => ({
+      kind: stage.kind,
+      outputHash: stage.outputHash,
+      attemptIds: stage.attempts.map((attempt) => attempt.id),
+    }));
+}
+
+function expectCompletedStagesPreserved(
+  before: ReturnType<typeof completedStageIdentity>,
+  after: GenerationSnapshot,
+) {
+  for (const expectedStage of before) {
+    const actualStage = after.job.stages.find((stage) => stage.kind === expectedStage.kind);
+    expect(actualStage?.state).toBe('COMPLETED');
+    expect(actualStage?.outputHash).toBe(expectedStage.outputHash);
+    expect(actualStage?.attempts.map((attempt) => attempt.id)).toEqual(expectedStage.attemptIds);
+  }
+}
+
+function assertGenerationState(snapshot: GenerationSnapshot, state: string, reason: string) {
+  if (snapshot.job.state !== state) {
+    throw new Error(`${reason}:${JSON.stringify(compactGenerationSnapshot(snapshot))}`);
+  }
+}
+
+function compactGenerationSnapshot(snapshot: GenerationSnapshot) {
+  return {
+    job: {
+      state: snapshot.job.state,
+      firstIncompleteStage: snapshot.job.firstIncompleteStage,
+      failureCode: snapshot.job.failureCode,
+      deliveryGeneration: snapshot.job.deliveryGeneration,
+    },
+    stages: snapshot.job.stages.map((stage) => ({
+      kind: stage.kind,
+      state: stage.state,
+      actionState: stage.actionState,
+      attemptGeneration: stage.attemptGeneration,
+      providerAttemptGeneration: stage.providerAttemptGeneration,
+      attempts: stage.attempts.map((attempt) => ({
+        attemptNumber: attempt.attemptNumber,
+        kind: attempt.kind,
+        outcome: attempt.outcome,
+        latencyMs: attempt.finishedAt
+          ? attempt.finishedAt.getTime() - attempt.startedAt.getTime()
+          : null,
+        nonFixtureProvider: attempt.providerKind !== 'fixture'
+          && attempt.serviceId !== 'smart-lesson-fixture',
+      })),
+    })),
+  };
 }
 
 async function deletedTaskCount() {
