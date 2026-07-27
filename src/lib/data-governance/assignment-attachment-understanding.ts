@@ -155,8 +155,15 @@ export function assembleAssignmentAnswerEvidence(input: {
     blocks: EvidenceBlockInput[];
     ready: boolean;
   }> = [];
-  let hasGradableEvidence = Boolean(input.textSnapshot.trim());
-  if (input.textSnapshot.trim()) {
+  const substantiveTextSnapshot = input.attachments.reduce(
+    (text, attachment) =>
+      attachment.role === 'EMBEDDED_IMAGE' && attachment.embeddedPosition
+        ? replaceEmbeddedAsset(text, attachment.embeddedPosition, '')
+        : text,
+    input.textSnapshot,
+  );
+  let hasGradableEvidence = Boolean(substantiveTextSnapshot.trim());
+  if (substantiveTextSnapshot.trim()) {
     sources.push({
       kind: 'STUDENT_TEXT',
       assetId: null,
@@ -165,7 +172,7 @@ export function assembleAssignmentAnswerEvidence(input: {
       orderIndex: -1,
       embeddedPosition: null,
       state: 'READY',
-      contentHash: sha256(input.textSnapshot),
+      contentHash: sha256(substantiveTextSnapshot),
       limitations: [],
     });
   }

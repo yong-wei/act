@@ -261,6 +261,30 @@ describe('assignment attachment understanding', () => {
     expect(assembled.evidence.readiness).toBe('blocked');
   });
 
+  it('blocks AI grading when the text snapshot only contains a failed embedded asset marker', () => {
+    const assembled = assembleAssignmentAnswerEvidence({
+      attemptId: 'attempt-failed-embedded-only',
+      answerVersion: 1,
+      textSnapshot: '![student diagram](asset:md:failed-diagram)',
+      attachments: [{
+        assetId: 'asset-failed-embedded-only',
+        displayName: 'diagram.png',
+        mimeType: 'image/png',
+        checksum: 'sha256:failed-embedded-only',
+        role: 'EMBEDDED_IMAGE',
+        orderIndex: 0,
+        embeddedPosition: 'md:failed-diagram',
+        route: 'binary-mathpix',
+        state: 'UNDERSTANDING_FAILED',
+      }],
+    });
+
+    expect(assembled.manifest.state).toBe('NO_GRADABLE_EVIDENCE');
+    expect(assembled.manifest.sources).toHaveLength(1);
+    expect(assembled.manifest.sources[0]?.kind).toBe('EMBEDDED_IMAGE');
+    expect(assembled.evidence.readiness).toBe('blocked');
+  });
+
   it('marks bounded direct-text truncation as incomplete grading evidence', () => {
     const assembled = assembleAssignmentAnswerEvidence({
       attemptId: 'attempt-truncated-text',
