@@ -265,6 +265,9 @@ describe('assignment content assets', () => {
       assignmentRevision: {
         findFirst: vi.fn(async () => ({ id: 'revision-2' })),
       },
+      assignmentSubmission: {
+        findFirst: vi.fn(async () => null),
+      },
     };
     await expect(readAssignmentContentAsset(
       db as never,
@@ -294,6 +297,96 @@ describe('assignment content assets', () => {
       orderBy: { revisionNumber: 'desc' },
       select: { id: true },
     });
+  });
+
+  it('allows a frozen historical prompt revision only when ownership lineage agrees', async () => {
+    const historicalSubmission = {
+      frozenStudentId: 'student-1',
+      frozenAudienceClassId: 'class-old',
+      audience: { classId: 'class-old' },
+      revision: {
+        historicalOwnerships: [{
+          audienceClassId: 'class-old',
+          anonymizedAt: null,
+        }],
+      },
+    };
+    const db = {
+      assignmentContentAsset: {
+        findUnique: vi.fn(async () => ({
+          id: 'asset-1',
+          assignmentId: 'assignment-1',
+          uploaderId: 'teacher-1',
+          objectKey: 'private-key',
+          mimeType: 'image/png',
+          sizeBytes: png.byteLength,
+          checksum,
+          state: 'AVAILABLE',
+          assignment: { authorId: 'teacher-1' },
+          references: [{ revisionId: 'revision-old', field: 'PROMPT' }],
+        })),
+      },
+      studentProfile: {
+        findUnique: vi.fn(async () => ({ classId: 'class-current' })),
+      },
+      assignmentRevision: {
+        findFirst: vi.fn(async () => ({ id: 'revision-current' })),
+      },
+      assignmentSubmission: {
+        findFirst: vi.fn(async () => historicalSubmission),
+      },
+    };
+    await expect(readAssignmentContentAsset(
+      db as never,
+      {
+        actorId: 'student-1',
+        actorRole: 'STUDENT',
+        assignmentId: 'assignment-1',
+        assetId: 'asset-1',
+      },
+      store(),
+    )).resolves.toMatchObject({ mimeType: 'image/png' });
+    expect(db.assignmentSubmission.findFirst).toHaveBeenCalledWith({
+      where: {
+        studentId: 'student-1',
+        frozenStudentId: 'student-1',
+        assignmentRevisionId: { in: ['revision-old'] },
+        revision: {
+          assignmentId: 'assignment-1',
+          historicalOwnerships: {
+            some: { studentId: 'student-1', anonymizedAt: null },
+          },
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        audience: { select: { classId: true } },
+        revision: {
+          select: {
+            historicalOwnerships: {
+              where: { studentId: 'student-1' },
+              take: 1,
+              select: { audienceClassId: true, anonymizedAt: true },
+            },
+          },
+        },
+      },
+    });
+
+    db.assignmentSubmission.findFirst.mockResolvedValueOnce({
+      ...historicalSubmission,
+      frozenAudienceClassId: 'class-forged',
+    });
+    await expect(readAssignmentContentAsset(
+      db as never,
+      {
+        actorId: 'student-1',
+        actorRole: 'STUDENT',
+        assignmentId: 'assignment-1',
+        assetId: 'asset-1',
+      },
+      store(),
+    )).rejects.toMatchObject({ code: 'assignment-content-asset-forbidden' });
   });
 
   it('revalidates object integrity before returning protected bytes', async () => {

@@ -19,6 +19,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
+import { RuntimeMarkdownContent } from '@/components/shared/runtime-markdown';
 import {
   normalizeAssignmentAssetMimeType,
   SUBMISSION_LIMITS,
@@ -80,7 +81,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
   const [nextQuestionId, setNextQuestionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const editorHeadingRef = useRef<HTMLHeadingElement>(null);
+  const editorHeadingRef = useRef<HTMLDivElement>(null);
   const noticeRef = useRef<HTMLDivElement>(null);
   const historyHeadingRef = useRef<HTMLHeadingElement>(null);
   const historyTriggerRef = useRef<HTMLButtonElement>(null);
@@ -1146,7 +1147,7 @@ export function QuestionEditor({
   onHistory: () => void;
   busyAction: string | null;
   readOnly: boolean;
-  headingRef: React.RefObject<HTMLHeadingElement | null>;
+  headingRef: React.RefObject<HTMLDivElement | null>;
   pendingUploads: PendingUpload[];
   uploadStatusRef: React.RefObject<HTMLDivElement | null>;
 }) {
@@ -1199,13 +1200,18 @@ export function QuestionEditor({
           <p className="text-xs font-medium text-primary">
             第 {index + 1} 题 · {question.points} 分
           </p>
-          <h2
+          <div
             ref={headingRef}
             tabIndex={-1}
+            role="heading"
+            aria-level={2}
             className="mt-2 break-words text-lg font-semibold text-foreground outline-none"
           >
-            {question.promptText}
-          </h2>
+            <RuntimeMarkdownContent
+              markdown={question.promptText}
+              resolveAssetHref={(href) => href}
+            />
+          </div>
         </div>
         <span
           role="status"

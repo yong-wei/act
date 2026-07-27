@@ -712,7 +712,9 @@ test('semantic publication blockers resolve colon ids to exact authoring fields'
       orderIndex: 0,
       responseType: 'SUBJECTIVE_TEXT',
       points: 10,
-      promptSnapshot: { text: '完整题面' },
+      promptSnapshot: {
+        text: '完整题面\n\n![受保护题图](/api/assignments/semantic-assignment/content-assets/prompt-asset "asset:prompt-asset")',
+      },
       answerSnapshot: { text: '完整参考答案' },
       rubricSnapshot: {
         schemaVersion: 'assignment-scoring-rubric.v2',
@@ -759,7 +761,24 @@ test('semantic publication blockers resolve colon ids to exact authoring fields'
     });
   });
   await page.setViewportSize({ width: 1024, height: 900 });
+  await page.route(
+    '**/api/assignments/semantic-assignment/content-assets/prompt-asset',
+    (route) => route.fulfill({
+      contentType: 'image/png',
+      body: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        'base64',
+      ),
+    }),
+  );
   await page.goto('/teacher/assignments/semantic-assignment/edit');
+  await page.getByRole('button', { name: '预览' }).click();
+  const preview = page.locator('[aria-label="作业预览"]');
+  await expect(preview.getByRole('img', { name: '受保护题图' })).toBeVisible();
+  await expect(preview.getByRole('img', { name: '受保护题图' })).toHaveAttribute(
+    'src',
+    '/api/assignments/semantic-assignment/content-assets/prompt-asset',
+  );
   const settings = page.locator('details[aria-label="发布设置"]');
   await settings.locator('summary').click();
 

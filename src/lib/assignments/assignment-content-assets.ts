@@ -268,7 +268,46 @@ export async function readAssignmentContentAsset(
   const studentAllowed = Boolean(
     currentRevision && promptRevisionIds.includes(currentRevision.id),
   );
-  if (!teacherAllowed && !studentAllowed) {
+  const historicalSubmission = !studentAllowed
+    && input.actorRole === 'STUDENT'
+    && promptRevisionIds.length > 0
+    ? await db.assignmentSubmission.findFirst({
+        where: {
+          studentId: input.actorId,
+          frozenStudentId: input.actorId,
+          assignmentRevisionId: { in: promptRevisionIds },
+          revision: {
+            assignmentId: input.assignmentId,
+            historicalOwnerships: {
+              some: { studentId: input.actorId, anonymizedAt: null },
+            },
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          audience: { select: { classId: true } },
+          revision: {
+            select: {
+              historicalOwnerships: {
+                where: { studentId: input.actorId },
+                take: 1,
+                select: { audienceClassId: true, anonymizedAt: true },
+              },
+            },
+          },
+        },
+      })
+    : null;
+  const historicalOwnership = historicalSubmission?.revision.historicalOwnerships[0];
+  const historicalAllowed = Boolean(
+    historicalSubmission
+    && historicalOwnership
+    && !historicalOwnership.anonymizedAt
+    && historicalSubmission.frozenStudentId === input.actorId
+    && historicalSubmission.frozenAudienceClassId === historicalSubmission.audience.classId
+    && historicalOwnership.audienceClassId === historicalSubmission.frozenAudienceClassId,
+  );
+  if (!teacherAllowed && !studentAllowed && !historicalAllowed) {
     throw new SubmissionError('assignment-content-asset-forbidden', 403);
   }
   const [metadata, bytes] = await Promise.all([

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { RuntimeMarkdownContent } from '@/components/shared/runtime-markdown';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -1449,7 +1450,11 @@ export function AssignmentEditorWorkspace({
             <ol className="mt-4 list-decimal space-y-3 pl-5">
               {document.draft.questions.map((entry) => (
                 <li key={entry.stableQuestionId}>
-                  {entry.prompt}（{entry.points} 分）
+                  <RuntimeMarkdownContent
+                    markdown={entry.prompt}
+                    resolveAssetHref={(href) => href}
+                  />
+                  <span className="text-sm text-slate-400">（{entry.points} 分）</span>
                 </li>
               ))}
             </ol>

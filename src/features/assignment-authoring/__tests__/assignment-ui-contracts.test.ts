@@ -40,6 +40,9 @@ describe('teacher assignment workspace contracts', () => {
     expect(text).toContain('validationFieldRefs.current.get');
     expect(text).toContain('grid-cols-[13rem_minmax(0,1fr)]');
     expect(text).toContain('AssignmentEmbeddedEditor');
+    expect(text).toContain('学生视图预览');
+    expect(text).toContain('markdown={entry.prompt}');
+    expect(text).toContain('RuntimeMarkdownContent');
   });
 
   it('keeps catalog list projection teacher-safe and supports all seven governed filters', () => {
