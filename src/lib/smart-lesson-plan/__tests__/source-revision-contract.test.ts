@@ -82,4 +82,16 @@ describe('smart lesson real-provider source revision contract', () => {
       expect(migration).toContain(`run_row."${field}" IS DISTINCT FROM NEW."${field === 'cutoverFence' ? 'fence' : field}"`);
     }
   });
+
+  it('scopes real-browser status assertions to their business workspace', () => {
+    const spec = readFileSync(
+      path.join(process.cwd(), 'tests/smart-lesson-real-provider.spec.ts'),
+      'utf8',
+    );
+    expect(spec).not.toContain("page.getByRole('status')");
+    expect(spec).toContain("page.locator('[data-course-basis-workspace]').getByRole('status')");
+    expect(spec).toContain("page.locator('[data-smart-lesson-plan-workspace]').getByRole('status')");
+    expect(spec).toContain("page.locator('main').getByRole('status')");
+    expect(spec).not.toMatch(/getByRole\\('status'\\)\\.first\\(\\)/);
+  });
 });

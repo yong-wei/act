@@ -57,7 +57,7 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   await expect(page.getByText(`${topic} · BOPPPS 教案`)).toBeVisible();
   const teacherActivity = page.getByLabel('教师活动').first();
   await teacherActivity.fill(`${await teacherActivity.inputValue()}\n教师补充：比较稳定与临界稳定结果。`);
-  await expect(page.getByRole('status')).toContainText('修改已可靠保存', { timeout: 30_000 });
+  await expect(editorStatus(page, '修改已可靠保存')).toBeVisible({ timeout: 30_000 });
   await page.getByRole('button', { name: '返回备课任务' }).click();
 
   card = taskCard(page);
@@ -66,7 +66,7 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   await page.getByRole('button', { name: '返回备课任务' }).click();
   card = taskCard(page);
   await card.getByRole('button', { name: 'AI 建议' }).click();
-  await expect(page.getByRole('status')).toContainText('AI 建议已生成', { timeout: 8 * 60_000 });
+  await expect(smartLessonStatus(page, 'AI 建议已生成')).toBeVisible({ timeout: 8 * 60_000 });
   await page.reload();
   card = taskCard(page);
   await expect(card).toContainText('审核建议已生成');
@@ -102,7 +102,7 @@ test('continuous real-teacher preparation flow uses governed sources, current po
 
   page.once('dialog', (dialog) => dialog.accept());
   await card.getByRole('button', { name: '永久删除' }).click();
-  await expect(page.getByRole('status')).toContainText('任务已永久删除');
+  await expect(smartLessonStatus(page, '任务已永久删除')).toBeVisible();
   await expect.poll(async () => deletedTaskCount()).toBe(0);
 
   await writeEvidence({
@@ -163,10 +163,10 @@ async function createCourseBasisAndUpload(page: Page) {
   await page.getByPlaceholder('课程标识，如 AUTO-101').fill(`AUTO-${process.pid}`);
   await page.getByPlaceholder('课程依据名称').fill('自动控制原理真实验收依据');
   await page.getByRole('button', { name: '新建课程依据' }).click();
-  await expect(page.getByRole('status')).toContainText('课程依据已创建');
+  await expect(courseBasisStatus(page, '课程依据已创建')).toBeVisible();
   await page.getByPlaceholder('文档名称').fill('闭环稳定性课程标准');
   await page.getByRole('button', { name: '添加文档' }).click();
-  await expect(page.getByRole('status')).toContainText('文档已创建');
+  await expect(courseBasisStatus(page, '文档已创建')).toBeVisible();
   const documentCard = page.locator('article').filter({ has: page.getByRole('heading', { name: /闭环稳定性课程标准/ }) });
   await documentCard.locator('input[type="file"]').setInputFiles({
     name: 'closed-loop-stability.txt',
@@ -174,7 +174,7 @@ async function createCourseBasisAndUpload(page: Page) {
     buffer: Buffer.from('闭环稳定性判据包括特征方程、劳斯判据、临界稳定与稳定裕度。'),
   });
   await documentCard.getByRole('button', { name: '导入新版本' }).click();
-  await expect(page.getByRole('status')).toContainText('版本已提取');
+  await expect(courseBasisStatus(page, '版本已提取')).toBeVisible();
 }
 
 async function createTask(page: Page) {
@@ -190,11 +190,23 @@ async function createTask(page: Page) {
   await page.locator('select[name="durationMinutes"]').selectOption('30');
   await page.getByLabel('生成提纲后暂停确认').check();
   await page.getByRole('button', { name: '确认并创建单课任务' }).click();
-  await expect(page.getByRole('status')).toContainText('单课任务已确认');
+  await expect(smartLessonStatus(page, '单课任务已确认')).toBeVisible();
 }
 
 function taskCard(page: Page) {
   return page.locator('article').filter({ has: page.getByRole('heading', { name: topic }) });
+}
+
+function courseBasisStatus(page: Page, message: string) {
+  return page.locator('[data-course-basis-workspace]').getByRole('status').filter({ hasText: message });
+}
+
+function smartLessonStatus(page: Page, message: string) {
+  return page.locator('[data-smart-lesson-plan-workspace]').getByRole('status').filter({ hasText: message });
+}
+
+function editorStatus(page: Page, message: string) {
+  return page.locator('main').getByRole('status').filter({ hasText: message });
 }
 
 async function acceptanceSnapshot() {
