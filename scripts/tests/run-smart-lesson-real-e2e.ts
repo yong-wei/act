@@ -20,10 +20,12 @@ const courseBasisId = `smart-lesson-real-basis-${process.pid}`;
 const documentId = `smart-lesson-real-document-${process.pid}`;
 const versionId = `smart-lesson-real-version-${process.pid}`;
 const segmentId = `smart-lesson-real-segment-${process.pid}`;
+const classId = `smart-lesson-real-class-${process.pid}`;
 let realProviderTopic = `闭环稳定性真实提供商验收 ${process.pid}`;
 const baseDatabaseUrl = process.env.SMART_LESSON_TEST_DATABASE_BASE_URL ?? process.env.DATABASE_URL;
 const redisUrl = process.env.SMART_LESSON_TEST_REDIS_URL ?? process.env.REDIS_URL ?? 'redis://127.0.0.1:6379';
 const nextAuthSecret = `smart-lesson-real-e2e-secret-${randomBytes(24).toString('hex')}`;
+const e2eFaultToken = `smart-lesson-e2e-fault-${randomBytes(24).toString('hex')}`;
 const publicationReviewSecret = `smart-courseware-review-${randomBytes(24).toString('hex')}`;
 const coursewareOrderingSecret = `smart-courseware-ordering-${randomBytes(24).toString('hex')}`;
 const realProviderMode = process.argv.includes('--real-provider');
@@ -55,7 +57,15 @@ async function main() {
     process.env.SMART_COURSEWARE_REDIS_PREFIX = redisPrefix;
     if (realProviderMode) {
       delete process.env.SMART_LESSON_E2E_FIXTURE_TOKEN;
+      delete process.env.SMART_LESSON_E2E_FAIL_ONCE_STAGE;
+      delete process.env.SMART_LESSON_E2E_FAULT_TOKEN;
+      delete process.env.SMART_LESSON_E2E_FAULT_SECRET;
       if (!process.env.AI_API_KEY?.trim()) throw new Error('smart-lesson-real-provider-api-key-required');
+      if (!resumeMode) {
+        process.env.SMART_LESSON_E2E_FAIL_ONCE_STAGE = 'BRIDGE_IN';
+        process.env.SMART_LESSON_E2E_FAULT_TOKEN = e2eFaultToken;
+        process.env.SMART_LESSON_E2E_FAULT_SECRET = e2eFaultToken;
+      }
     } else {
       process.env.SMART_LESSON_E2E_FIXTURE_TOKEN = 'smart-lesson-real-browser-v1';
     }
@@ -107,6 +117,7 @@ async function main() {
       SMART_LESSON_E2E_BASE_URL: baseURL,
       SMART_LESSON_E2E_TEACHER_ID: teacherId,
       SMART_LESSON_E2E_TOPIC: realProviderTopic,
+      SMART_LESSON_E2E_CLASS_ID: classId,
       SMART_LESSON_E2E_SOURCE_REVISION: sourceRevision,
       SMART_LESSON_REAL_PROVIDER_REQUIRED: realProviderMode ? '1' : undefined,
       SMART_LESSON_E2E_SPEC: realProviderMode
@@ -211,8 +222,40 @@ async function seedAcceptanceData() {
   const prisma = createPrismaClient({ log: ['warn', 'error'] });
   try {
     await prisma.user.create({
-      data: { id: teacherId, email: 'smart-lesson-real-e2e@example.test', name: '智能教案真实验收教师', role: 'TEACHER' },
+      data: {
+        id: teacherId,
+        email: 'smart-lesson-real-e2e@example.test',
+        name: '智能教案真实验收教师',
+        role: 'TEACHER',
+      },
     });
+    await prisma.class.create({
+      data: {
+        id: classId,
+        teacherId,
+        name: '自动控制原理验收班',
+        code: `E${String(process.pid).slice(-5).padStart(5, '0')}`,
+      },
+    });
+    await prisma.user.update({
+      where: { id: teacherId },
+      data: { defaultTeachingClassId: classId },
+    });
+    await prisma.user.create({
+      data: {
+        id: `smart-lesson-real-student-${process.pid}`,
+        role: 'STUDENT',
+        profile: {
+          create: {
+            studentNumber: `S${process.pid}`,
+            classId,
+            major: '自动化',
+          },
+        },
+      },
+    });
+    await seedCurrentCumulativeClassPortrait(prisma);
+    if (realProviderMode) return;
     await prisma.courseBasis.create({
       data: {
         id: courseBasisId,
@@ -266,51 +309,61 @@ async function seedAcceptanceData() {
         corpusSourceId,
       },
     });
-    if (realProviderMode) {
-      const binding = {
-        citationId: `course-basis:${versionId}:chapter-1-stability`,
-        sourceVersionId: versionId,
-        anchor: 'chapter-1-stability',
-        contentHash: 'b'.repeat(64),
-      };
-      const { createSmartLessonTask } = await import('../../src/lib/smart-lesson-plan/service');
-      const created = await createSmartLessonTask(prisma, {
-        actor: { id: teacherId, role: 'TEACHER' },
-        courseBasisId,
-        topic: realProviderTopic,
-        audience: '自动化专业本科生',
-        prerequisites: '传递函数与特征方程',
-        durationMinutes: 30,
-        outlineConfirmationRequired: true,
-        sourceVersionIds: [versionId],
-        knowledgePoints: [{
-          title: '闭环稳定性判据',
-          content: '闭环稳定性判据',
-          origin: 'TEACHER_CREATED',
-          sourceState: 'teacher_created_source_pending',
-          sourceBindings: [binding],
-        }],
-        goals: [{
-          content: '能够依据特征方程判断闭环系统稳定性',
-          sourceState: 'teacher_created_source_pending',
-          sourceBindings: [binding],
-          standardsMappings: [],
-        }],
-        confirmScope: true,
-        confirmGoals: true,
-      });
-      const verified = await prisma.smartLessonTask.findUniqueOrThrow({
-        where: { id: created.id },
-        include: { knowledgePoints: true, goals: true },
-      });
-      if (!verified.knowledgePoints.every((item) => item.sourceState === 'VERIFIED')
-        || !verified.goals.every((item) => item.sourceState === 'VERIFIED')) {
-        throw new Error('smart-lesson-real-provider-source-verification-required');
-      }
-    }
   } finally {
     await prisma.$disconnect();
   }
+}
+
+async function seedCurrentCumulativeClassPortrait(
+  prisma: ReturnType<typeof createPrismaClient>,
+) {
+  const {
+    CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
+    materializeCumulativeClassPortrait,
+  } = await import('../../src/lib/data-governance/cumulative-class-materialization');
+  const { PORTRAIT_V2_CALCULATION_VERSION } = await import('../../src/lib/data-governance/portrait-v2-model');
+  const migrationRunId = `smart-lesson-real-migration-${process.pid}`;
+  const now = new Date();
+  const publication = {
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    learnerGeneration: 1n,
+    materializationVersion: CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
+    generation: 1n,
+    queueGeneration: 1n,
+    cutoverFence: 1n,
+    migrationRunId,
+  };
+  await prisma.cumulativePortraitMigrationRun.create({
+    data: {
+      id: migrationRunId,
+      mode: 'APPLY',
+      status: 'COMPLETED',
+      calculationVersion: publication.calculationVersion,
+      classMaterializationVersion: publication.materializationVersion,
+      learnerGeneration: publication.learnerGeneration,
+      classGeneration: publication.generation,
+      queueGeneration: publication.queueGeneration,
+      cutoverFence: publication.cutoverFence,
+      inputDigest: 'smart-lesson-real-e2e',
+      verificationDigest: 'smart-lesson-real-e2e',
+      startedAt: now,
+      completedAt: now,
+    },
+  });
+  await prisma.cumulativePortraitCutoverFence.create({
+    data: {
+      id: 'global',
+      fence: publication.cutoverFence,
+      calculationVersion: publication.calculationVersion,
+      learnerGeneration: publication.learnerGeneration,
+      classMaterializationVersion: publication.materializationVersion,
+      classGeneration: publication.generation,
+      queueGeneration: publication.queueGeneration,
+      activeMigrationRunId: migrationRunId,
+      advancedAt: now,
+    },
+  });
+  await materializeCumulativeClassPortrait(prisma, classId, { now, publication });
 }
 
 async function availablePort() {

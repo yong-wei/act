@@ -117,8 +117,8 @@ describe('smart lesson task routes', () => {
       goalsConfirmedAt: new Date(),
       archivedAt: new Date(),
       sources: [{ state: 'SELECTED' }],
-      knowledgePoints: [{ state: 'CONFIRMED' }],
-      goals: [{ state: 'CONFIRMED' }],
+      knowledgePoints: [{ state: 'CONFIRMED', sourceState: 'VERIFIED' }],
+      goals: [{ state: 'CONFIRMED', sourceState: 'VERIFIED' }],
       drafts: [{ state: 'EDITABLE', jobs: [{ state: 'FAILED', supersededAt: null }] }],
       revisions: [],
     }]);
@@ -262,6 +262,39 @@ describe('smart lesson task routes', () => {
     }));
   });
 
+  it('accepts an explicitly confirmed textbook section range and rejects inconsistent bounds', async () => {
+    mocks.updateTask.mockResolvedValue({ id: 'task-1', revision: 4 });
+    const { PATCH } = await import('../[taskId]/route');
+    const base = {
+      expectedRevision: 3, confirmingTurnId: 'turn-textbook', topic: '根轨迹', audience: '本科生',
+      prerequisites: '', durationMinutes: 45, outlineConfirmationRequired: false,
+      sourceVersionIds: ['version-1'],
+      knowledgePoints: [{ id: 'kp-1', content: '根轨迹', title: '根轨迹', origin: 'TEACHER_CREATED', sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
+      goals: [{ id: 'goal-1', content: '绘制根轨迹', sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
+      confirmScope: true, confirmGoals: true,
+    };
+    const accepted = await PATCH(new Request('http://localhost', {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        ...base,
+        textbookRanges: [{ bookId: 'hu-shousong-auto-control-8th', level: 'SECTION', unitId: 'ch05-sec02', structuralPath: ['chapter-5', 'section-2'] }],
+      }),
+    }), taskParams('task-1'));
+    expect(accepted.status).toBe(200);
+    expect(mocks.updateTask).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      textbookRanges: [expect.objectContaining({ level: 'SECTION', unitId: 'ch05-sec02' })],
+    }));
+
+    const rejected = await PATCH(new Request('http://localhost', {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        ...base,
+        textbookRanges: [{ bookId: 'hu-shousong-auto-control-8th', level: 'BOOK', unitId: 'ch05-sec02', structuralPath: [] }],
+      }),
+    }), taskParams('task-1'));
+    expect(rejected.status).toBe(400);
+  });
+
   it('lists owner-scoped Konling task suggestions and preserves clarification alternatives', async () => {
     mocks.findFirst.mockResolvedValue({ id: 'task-1', ownerId: 'teacher-1' });
     mocks.toolRunFindMany.mockResolvedValue([{
@@ -280,7 +313,7 @@ describe('smart lesson task routes', () => {
   it('confirms a Konling suggestion only when owner, session, turn, and revision bindings match', async () => {
     const proposedTask = {
       topic: '新主题', audience: '本科生', prerequisites: '', durationMinutes: 45, outlineConfirmationRequired: false,
-      sourceVersionIds: ['version-1'], aggregateClassContextRef: { classId: 'class-1', diagnosisRef: 'diagnosis-1' },
+      sourceVersionIds: ['version-1'], selectedClassId: 'class-1',
       knowledgePoints: [{ content: '稳定性', title: '稳定性', origin: 'TEACHER_CREATED', sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
       goals: [{ content: '判断稳定性', sourceState: 'teacher_created_source_pending', sourceBindings: [], standardsMappings: [] }],
       confirmScope: false, confirmGoals: false,
@@ -299,7 +332,7 @@ describe('smart lesson task routes', () => {
     expect(response.status).toBe(200);
     expect(mocks.updateTask).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       taskId: 'task-1', expectedRevision: 3, agentSessionId: 'agent-session-1', confirmingTurnId: 'turn-9',
-      aggregateClassContextRef: { classId: 'class-1', diagnosisRef: 'diagnosis-1' },
+      selectedClassId: 'class-1',
       confirmScope: true, confirmGoals: true,
     }));
     expect(mocks.updateTask.mock.calls[0]?.[0]).toMatchObject({

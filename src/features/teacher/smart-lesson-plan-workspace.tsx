@@ -12,8 +12,38 @@ type SourceOption = {
   courseBasisTitle: string;
   versionId: string;
   label: string;
-  binding: { sourceVersionId: string; anchor: string; contentHash: string; citationId: string };
+  binding: {
+    sourceVersionId: string;
+    anchor: string;
+    contentHash: string;
+    citationId: string;
+    sourceKind?: 'upload' | 'textbook';
+    title?: string;
+    structuralPath?: string[];
+    snippet?: string;
+    href?: string;
+  };
 };
+
+type TextbookRange = {
+  bookId: string;
+  level: 'BOOK' | 'CHAPTER' | 'SECTION';
+  unitId: string | null;
+  structuralPath: string[];
+};
+
+type TextbookCatalog = Array<{
+  bookId: string;
+  title: string;
+  edition: string;
+  ranges: Array<{
+    level: 'CHAPTER' | 'SECTION';
+    unitId: string;
+    title: string;
+    naturalNumber: string | null;
+    structuralPath: string[];
+  }>;
+}>;
 
 type Task = {
   id: string;
@@ -29,10 +59,14 @@ type Task = {
   prerequisites?: string;
   durationMinutes: number;
   outlineConfirmationRequired?: boolean;
+  selectedClassId?: string | null;
+  textbookRanges?: TextbookRange[];
   aggregateClassContextRef?: string | null;
+  classContextStaleAt?: string | null;
+  classContextStaleReason?: string | null;
   sources?: Array<{ sourceVersionId: string; state: string; sourceValid?: boolean }>;
-  knowledgePoints?: Array<{ id: string; lineageId: string; title: string; origin: 'SUGGESTED' | 'TEACHER_CREATED'; sourceState: 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending'; sourceBindings: SourceOption['binding'][]; supersedesIds?: string[]; state: string }>;
-  goals?: Array<{ id: string; lineageId: string; content: string; sourceState: 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending'; sourceBindings: SourceOption['binding'][]; standardsMappings?: Array<{ standardId: string; label: string }>; state: string }>;
+  knowledgePoints?: Array<{ id: string; lineageId: string; title: string; origin: 'SUGGESTED' | 'TEACHER_CREATED'; sourceState: PublicSourceState; sourceBindings: SourceOption['binding'][]; gapReason?: string | null; supersedesIds?: string[]; state: string }>;
+  goals?: Array<{ id: string; lineageId: string; content: string; sourceState: PublicSourceState; sourceBindings: SourceOption['binding'][]; gapReason?: string | null; standardsMappings?: Array<{ standardId: string; label: string }>; state: string }>;
   drafts?: Array<{
     id: string; state: string; version: number; content?: unknown; contentHash?: string | null;
     jobs?: Array<{
@@ -51,13 +85,21 @@ type Task = {
   };
 };
 
-type ClassDiagnosisOption = { classId: string; className: string; diagnosisRef: string; generatedAt: string };
+type ClassDiagnosisOption = {
+  classId: string;
+  className: string;
+  isDefault: boolean;
+  available: boolean;
+  availabilityReason: string;
+  asOf: string | null;
+};
 type KonlingSuggestion = { id: string; agentSessionId: string; expectedRevision?: number; turnId: string; proposedTask?: unknown; clarification?: { question: string; alternatives: string[] }; confirmedTaskId?: string; createdAt: string };
-type PublicSourceState = 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending';
+type PublicSourceState = 'verified' | 'no_reliable_source' | 'ai_generated_source_pending' | 'teacher_created_source_pending';
 
 export function SmartLessonPlanWorkspace({
   courseBases,
   classDiagnosisOptions,
+  textbookCatalog,
   initialTasks,
   initialSelectedTaskId,
   preparationReturnState,
@@ -65,6 +107,7 @@ export function SmartLessonPlanWorkspace({
 }: {
   courseBases: any[];
   classDiagnosisOptions: ClassDiagnosisOption[];
+  textbookCatalog: TextbookCatalog;
   initialTasks: Record<string, unknown>[];
   initialSelectedTaskId?: string;
   preparationReturnState?: PreparationEditorReturnState | null;
@@ -77,6 +120,8 @@ export function SmartLessonPlanWorkspace({
   const [showArchived, setShowArchived] = useState(false);
   const [taskIndexOpen, setTaskIndexOpen] = useState(false);
   const [selectedSource, setSelectedSource] = useState('');
+  const [newTaskTopic, setNewTaskTopic] = useState('');
+  const [selectedTextbookRange, setSelectedTextbookRange] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [suggestions, setSuggestions] = useState<Record<string, KonlingSuggestion[]>>({});
@@ -97,15 +142,57 @@ export function SmartLessonPlanWorkspace({
         versionId: version.id,
         label: `${basis.title} · ${document.title} v${version.versionNumber}`,
         binding: {
+          sourceKind: 'upload' as const,
           sourceVersionId: version.id,
           anchor: segment.stableAnchor,
           contentHash: segment.contentHash,
           citationId: `course-basis:${version.id}:${segment.stableAnchor}`,
+          title: document.title,
+          structuralPath: segment.headingPath ?? [],
+          snippet: typeof segment.text === 'string' ? segment.text.slice(0, 340) : undefined,
         },
       }];
     }),
   )), [availableCourseBases]);
+  const unavailableSourceLabels = useMemo(() => availableCourseBases.flatMap((basis: any) => (
+    basis.documents.flatMap((document: any) => document.versions.flatMap((version: any) => {
+      const reason = version.retiredAt
+        ? '已停用'
+        : version.reviewState === 'REJECTED'
+          ? '审核未通过'
+          : version.extractionState !== 'EXTRACTED'
+            ? '尚未完成解析'
+            : !version.segments?.[0]
+              ? '尚无可检索片段'
+              : null;
+      return reason ? [`${basis.title} · ${document.title} v${version.versionNumber}：${reason}`] : [];
+    }))
+  )), [availableCourseBases]);
   const selected = sourceOptions.find((option) => option.versionId === selectedSource) ?? sourceOptions[0];
+  const textbookRangeOptions = useMemo(() => {
+    const query = normalizeRecommendationText(newTaskTopic);
+    return textbookCatalog.flatMap((book) => [
+      {
+        key: `${book.bookId}:BOOK`,
+        label: `${book.title}（全书范围）`,
+        range: { bookId: book.bookId, level: 'BOOK' as const, unitId: null, structuralPath: [] },
+        score: recommendationScore(query, `${book.title} ${book.bookId}`),
+      },
+      ...book.ranges.map((range) => ({
+        key: `${book.bookId}:${range.unitId}`,
+        label: `${book.title} · ${range.naturalNumber ? `${range.naturalNumber} ` : ''}${range.title}`,
+        range: {
+          bookId: book.bookId,
+          level: range.level,
+          unitId: range.unitId,
+          structuralPath: range.structuralPath,
+        },
+        score: recommendationScore(query, `${book.title} ${range.title} ${range.naturalNumber ?? ''}`),
+      })),
+    ]).sort((left, right) => right.score - left.score || left.label.localeCompare(right.label));
+  }, [newTaskTopic, textbookCatalog]);
+  const recommendedTextbookRange = textbookRangeOptions.find((option) => option.key === selectedTextbookRange)
+    ?? textbookRangeOptions[0];
   const visibleTasks = tasks;
   const activeTask = visibleTasks.find((task) => task.id === selectedTaskId) ?? visibleTasks[0] ?? null;
   const detailedActiveTask = activeTask?.workspace?.stages.length === 5 ? activeTask : null;
@@ -208,10 +295,15 @@ export function SmartLessonPlanWorkspace({
           prerequisites: formData.get('prerequisites') || undefined,
           durationMinutes: Number(formData.get('durationMinutes')),
           outlineConfirmationRequired: formData.get('outlineConfirmationRequired') === 'on',
-          sourceVersionIds: [selected.versionId],
+          textbookRanges: formData.get('confirmTextbookRange') === 'on' && recommendedTextbookRange
+            ? [recommendedTextbookRange.range]
+            : [],
+          sourceVersionIds: sourceOptions
+            .filter((option) => option.courseBasisId === selected.courseBasisId)
+            .map((option) => option.versionId),
           knowledgePoints: [{ title: knowledgePoint, content: knowledgePoint, origin: 'TEACHER_CREATED', sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
           goals: [{ content: goal, sourceState: 'teacher_created_source_pending', sourceBindings: [], standardsMappings: [] }],
-          aggregateClassContextRef: formData.get('classDiagnosis') ? JSON.parse(String(formData.get('classDiagnosis'))) : undefined,
+          selectedClassId: String(formData.get('selectedClassId') ?? '') || null,
           confirmScope: true,
           confirmGoals: true,
         }),
@@ -300,9 +392,7 @@ export function SmartLessonPlanWorkspace({
       audience: audience.trim(),
       prerequisites: prerequisites.trim(),
       durationMinutes,
-      aggregateClassContextRef: classDiagnosisOptions.find((option) => option.diagnosisRef === task.aggregateClassContextRef)
-        ? { classId: classDiagnosisOptions.find((option) => option.diagnosisRef === task.aggregateClassContextRef)!.classId, diagnosisRef: task.aggregateClassContextRef }
-        : null,
+      selectedClassId: task.selectedClassId ?? null,
     };
     const response = await fetch(`/api/teacher/smart-lesson-tasks/${task.id}`, {
       method: 'PATCH', headers: { 'content-type': 'application/json' },
@@ -313,19 +403,62 @@ export function SmartLessonPlanWorkspace({
     if (response.ok) setTasks((currentTasks) => currentTasks.map((item) => item.id === task.id ? payload.task : item));
   }
 
-  async function updateClassDiagnosis(task: Task, diagnosisRef: string) {
-    const option = classDiagnosisOptions.find((item) => item.diagnosisRef === diagnosisRef);
+  async function updateClassDiagnosis(task: Task, classId: string) {
+    const option = classDiagnosisOptions.find((item) => item.classId === classId);
     const response = await fetch(`/api/teacher/smart-lesson-tasks/${task.id}`, {
       method: 'PATCH', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         ...taskUpdateInput(task),
-        aggregateClassContextRef: option ? { classId: option.classId, diagnosisRef: option.diagnosisRef } : null,
+        selectedClassId: option?.classId ?? null,
         expectedRevision: task.revision,
         confirmingTurnId: `structured:${crypto.randomUUID()}`,
       }),
     });
     const payload = await response.json();
-    setMessage(response.ok ? '班级学情引用已更新。' : errorText(payload));
+    setMessage(response.ok ? '班级学情选择已更新；已有生成内容会保留并按需标记待重生成。' : errorText(payload));
+    if (response.ok) setTasks((current) => current.map((item) => item.id === task.id ? payload.task : item));
+  }
+
+  async function updateSourceDecision(
+    task: Task,
+    kind: 'knowledgePoint' | 'goal',
+    itemId: string,
+    action: 'replace' | 'remove',
+    requestedBinding?: SourceOption['binding'],
+  ) {
+    const replacement = action === 'replace' ? requestedBinding ?? selected?.binding : undefined;
+    if (action === 'replace' && !replacement) return setMessage('请先选择一个可用的备课资源。');
+    const gapReason = action === 'remove'
+      ? window.prompt('请说明无可靠来源的短原因（必填）', '')
+      : null;
+    if (action === 'remove' && !gapReason?.trim()) return setMessage('确认无可靠来源时必须填写短原因。');
+    const next = taskUpdateInput(task);
+    const patchItem = <T extends { id: string }>(item: T) => item.id === itemId
+      ? {
+          ...item,
+          sourceState: action === 'remove'
+            ? 'no_reliable_source' as const
+            : kind === 'knowledgePoint'
+              ? 'teacher_created_source_pending' as const
+              : 'ai_generated_source_pending' as const,
+          sourceBindings: replacement ? [replacement] : [],
+          sourceConfirmed: Boolean(replacement),
+          gapReason: gapReason?.trim() || null,
+        }
+      : item;
+    const response = await fetch(`/api/teacher/smart-lesson-tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        ...next,
+        knowledgePoints: kind === 'knowledgePoint' ? next.knowledgePoints.map(patchItem) : next.knowledgePoints,
+        goals: kind === 'goal' ? next.goals.map(patchItem) : next.goals,
+        expectedRevision: task.revision,
+        confirmingTurnId: `structured:${crypto.randomUUID()}`,
+      }),
+    });
+    const payload = await response.json();
+    setMessage(response.ok ? '来源决策已保存。' : errorText(payload));
     if (response.ok) setTasks((current) => current.map((item) => item.id === task.id ? payload.task : item));
   }
 
@@ -457,17 +590,30 @@ export function SmartLessonPlanWorkspace({
       {bootstrapSuggestions.length ? <div className="space-y-2">{bootstrapSuggestions.map((suggestion) => <div key={suggestion.id} className="rounded bg-muted/50 p-3 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <SuggestionSummary value={suggestion.proposedTask} />}{suggestion.proposedTask && !suggestion.confirmedTaskId ? <button type="button" onClick={() => void confirmBootstrapSuggestion(suggestion)} className="mt-2 rounded border border-primary px-2 py-1 text-primary">确认并创建任务</button> : null}</div>)}</div> : null}
     </div>
     <form id="smart-preparation-new-task" action={createTask} className="grid scroll-mt-24 gap-3 md:grid-cols-2">
-      <select value={selected?.versionId ?? ''} onChange={(event) => setSelectedSource(event.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 md:col-span-2">
-        {sourceOptions.length ? sourceOptions.map((option) => <option key={option.versionId} value={option.versionId}>{option.label}</option>) : <option value="">暂无已确认来源版本</option>}
-      </select>
-      <input name="topic" required placeholder="单课主题" className="rounded-lg border border-border bg-background px-3 py-2" />
+      <label className="grid gap-1 text-sm md:col-span-2">
+        <span className="font-medium">备课资源包</span>
+        <span className="text-xs text-muted-foreground">用于支持当前备课的可编辑或已冻结课程依据；创建任务时默认选中同一课程依据中的全部可用版本。</span>
+        <select value={selected?.versionId ?? ''} onChange={(event) => setSelectedSource(event.target.value)} className="rounded-lg border border-border bg-background px-3 py-2">
+          {sourceOptions.length ? sourceOptions.map((option) => <option key={option.versionId} value={option.versionId}>{option.label} · {availableCourseBases.flatMap((basis: any) => basis.documents).flatMap((document: any) => document.versions).find((version: any) => version.id === option.versionId)?.reviewState === 'CONFIRMED' ? '已冻结' : '可编辑'}</option>) : <option value="">暂无可用来源版本</option>}
+        </select>
+        {unavailableSourceLabels.length ? <ul className="space-y-0.5 text-xs text-muted-foreground">{unavailableSourceLabels.map((label) => <li key={label}>{label}</li>)}</ul> : null}
+      </label>
+      <input name="topic" required value={newTaskTopic} onChange={(event) => setNewTaskTopic(event.target.value)} placeholder="单课主题" className="rounded-lg border border-border bg-background px-3 py-2" />
       <input name="audience" required placeholder="授课对象" className="rounded-lg border border-border bg-background px-3 py-2" />
       <input name="knowledgePoint" required placeholder="确认知识点" className="rounded-lg border border-border bg-background px-3 py-2" />
       <input name="goal" required placeholder="确认教学目标" className="rounded-lg border border-border bg-background px-3 py-2" />
       <input name="prerequisites" placeholder="先修要求（可选）" className="rounded-lg border border-border bg-background px-3 py-2" />
-      <select name="classDiagnosis" defaultValue="" className="rounded-lg border border-border bg-background px-3 py-2">
+      <label className="grid gap-1 text-sm md:col-span-2">
+        <span className="font-medium">平台教材建议范围</span>
+        <span className="text-xs text-muted-foreground">建议按课程与主题排序；只有勾选确认后，所选全书、章或节范围才会进入备课资源包。</span>
+        <select value={recommendedTextbookRange?.key ?? ''} onChange={(event) => setSelectedTextbookRange(event.target.value)} className="rounded-lg border border-border bg-background px-3 py-2">
+          {textbookRangeOptions.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+        </select>
+        <span className="flex items-center gap-2"><input name="confirmTextbookRange" type="checkbox" />确认采用此教材范围</span>
+      </label>
+      <select name="selectedClassId" defaultValue={classDiagnosisOptions.find((option) => option.isDefault)?.classId ?? ''} className="rounded-lg border border-border bg-background px-3 py-2">
         <option value="">不使用班级学情</option>
-        {classDiagnosisOptions.map((option) => <option key={option.diagnosisRef} value={JSON.stringify({ classId: option.classId, diagnosisRef: option.diagnosisRef })}>{option.className} · {new Date(option.generatedAt).toLocaleDateString()}</option>)}
+        {classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}
       </select>
       <select name="durationMinutes" defaultValue="45" className="rounded-lg border border-border bg-background px-3 py-2"><option value="45">45 分钟</option><option value="90">90 分钟</option>{Array.from({ length: 19 }, (_, index) => 30 + index * 5).filter((value) => value !== 45 && value !== 90).map((value) => <option key={value} value={value}>{value} 分钟</option>)}</select>
       <label className="flex items-center gap-2 text-sm"><input name="outlineConfirmationRequired" type="checkbox" />生成提纲后暂停确认</label>
@@ -510,6 +656,7 @@ export function SmartLessonPlanWorkspace({
         <div className="grid gap-2" aria-label="五阶段备课进度">
           {stageDetails('course-basis', <div className="space-y-2">
             <p>已选择 {task.sources?.filter((source) => source.state === 'SELECTED').length ?? 0} 个课程依据版本。</p>
+            <p>已确认 {task.textbookRanges?.length ?? 0} 个平台教材结构范围。</p>
             <p className="text-muted-foreground">可在上方“课程依据”视图管理文档，返回后本阶段会读取最新持久化状态。</p>
           </div>)}
           {stageDetails('topic-goals', <div className="space-y-3">
@@ -519,12 +666,12 @@ export function SmartLessonPlanWorkspace({
               <button onClick={() => void editTask(task)} disabled={Boolean(job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">修订任务</button>
             </div>
             <div className="grid gap-2 md:grid-cols-2">
-              <div><h4 className="text-sm font-medium">知识点与来源</h4>{task.knowledgePoints?.filter((item) => item.state !== 'REMOVED').map((item) => <p key={item.id} className="text-sm">{item.title} · <SourceStateLabel state={item.sourceState} /></p>)}</div>
-              <div><h4 className="text-sm font-medium">教学目标与来源</h4>{task.goals?.filter((item) => item.state !== 'REMOVED').map((item) => <p key={item.id} className="text-sm">{item.content} · <SourceStateLabel state={item.sourceState} /></p>)}</div>
+              <div><h4 className="text-sm font-medium">知识点与来源</h4>{task.knowledgePoints?.filter((item) => item.state !== 'REMOVED').map((item) => <div key={item.id} className="mt-1 rounded border border-border p-2 text-sm"><p>{item.title} · <SourceStateLabel state={item.sourceState} gapReason={item.gapReason} /></p><SourceBindingDetails bindings={item.sourceBindings} sourceOptions={sourceOptions} gapReason={item.gapReason} onSelect={(binding) => void updateSourceDecision(task, 'knowledgePoint', item.id, 'replace', binding)} /><div className="mt-1 flex gap-2"><button type="button" className="text-xs text-primary" onClick={() => void updateSourceDecision(task, 'knowledgePoint', item.id, 'replace')}>替换</button><button type="button" className="text-xs text-muted-foreground" onClick={() => void updateSourceDecision(task, 'knowledgePoint', item.id, 'remove')}>移除</button></div></div>)}</div>
+              <div><h4 className="text-sm font-medium">教学目标与来源</h4>{task.goals?.filter((item) => item.state !== 'REMOVED').map((item) => <div key={item.id} className="mt-1 rounded border border-border p-2 text-sm"><p>{item.content} · <SourceStateLabel state={item.sourceState} gapReason={item.gapReason} /></p><SourceBindingDetails bindings={item.sourceBindings} sourceOptions={sourceOptions} gapReason={item.gapReason} onSelect={(binding) => void updateSourceDecision(task, 'goal', item.id, 'replace', binding)} /><div className="mt-1 flex gap-2"><button type="button" className="text-xs text-primary" onClick={() => void updateSourceDecision(task, 'goal', item.id, 'replace')}>替换</button><button type="button" className="text-xs text-muted-foreground" onClick={() => void updateSourceDecision(task, 'goal', item.id, 'remove')}>移除</button></div></div>)}</div>
             </div>
             {suggestions[task.id]?.length ? <div className="space-y-2 rounded bg-muted/50 p-3"><h4 className="text-sm font-medium">待确认的孔灵建议</h4>{suggestions[task.id].map((suggestion) => <div key={suggestion.id} className="rounded border border-border bg-background p-2 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <SuggestionSummary value={suggestion.proposedTask} />}{suggestion.proposedTask ? <button onClick={() => void confirmKonlingSuggestion(task, suggestion)} disabled={suggestion.expectedRevision !== task.revision} className="mt-2 rounded border border-primary px-2 py-1 text-primary disabled:opacity-50">确认并应用</button> : null}</div>)}</div> : null}
           </div>)}
-          {stageDetails('class-attainment', <label className="grid max-w-md gap-1 text-sm">班级学情（仅使用治理后的累计聚合诊断）<select value={task.aggregateClassContextRef ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.diagnosisRef} value={option.diagnosisRef}>{option.className} · {new Date(option.generatedAt).toLocaleDateString()}</option>)}</select></label>)}
+          {stageDetails('class-attainment', <div className="space-y-2"><label className="grid max-w-md gap-1 text-sm">班级学情（当前累计画像）<select value={task.selectedClassId ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}</select></label>{task.classContextStaleAt ? <p className="text-amber-700">班级选择已改变，已有生成内容已保留；请从提纲确认后重生成。</p> : null}</div>)}
           {stageDetails('lesson-generation', <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               <button onClick={() => void refreshTask(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">刷新进度</button>
@@ -545,6 +692,7 @@ export function SmartLessonPlanWorkspace({
                   {stage.title ?? generationStageLabel(stage.kind)}：{stage.actionLabel ?? generationStateLabel(stage.state)}
                 </strong>
                 {stage.output ? <GeneratedStageContent title={stage.title ?? generationStageLabel(stage.kind)} value={stage.output} /> : null}
+                {stage.output ? <p className="mt-1 text-xs text-muted-foreground">生成内容的依据由已确认知识点与教学目标继承；如需替换或移除，请在上方修改来源后重新生成。</p> : null}
                 {stage.outputTruncated ? <p>阶段输出较大，请在完整教案中查看。</p> : null}
               </div>;
             })}</div> : null}
@@ -575,24 +723,63 @@ function taskUpdateInput(task: Task) {
     prerequisites: task.prerequisites ?? '',
     durationMinutes: task.durationMinutes,
     outlineConfirmationRequired: Boolean(task.outlineConfirmationRequired),
+    selectedClassId: task.selectedClassId ?? null,
+    textbookRanges: task.textbookRanges ?? [],
     sourceVersionIds: task.sources?.filter((source) => source.state === 'SELECTED').map((source) => source.sourceVersionId) ?? [],
     knowledgePoints: task.knowledgePoints?.filter((item) => item.state !== 'REMOVED').map((item) => ({
       id: item.id, lineageId: item.lineageId, title: item.title, content: item.title, origin: item.origin,
-      sourceState: item.sourceState, sourceBindings: item.sourceBindings, supersedesIds: item.supersedesIds ?? [],
+      sourceState: item.sourceState, sourceBindings: item.sourceBindings, gapReason: item.gapReason ?? null, supersedesIds: item.supersedesIds ?? [],
     })) ?? [],
     goals: task.goals?.filter((item) => item.state !== 'REMOVED').map((item) => ({
       id: item.id, lineageId: item.lineageId, content: item.content, sourceState: item.sourceState,
-      sourceBindings: item.sourceBindings, standardsMappings: item.standardsMappings ?? [],
+      sourceBindings: item.sourceBindings, gapReason: item.gapReason ?? null, standardsMappings: item.standardsMappings ?? [],
     })) ?? [],
     confirmScope: true,
     confirmGoals: true,
   };
 }
 
-function SourceStateLabel({ state }: { state: PublicSourceState }) {
+function SourceStateLabel({ state, gapReason }: { state: PublicSourceState; gapReason?: string | null }) {
   const pending = state !== 'verified';
-  const label = state === 'verified' ? '来源已验证' : state === 'ai_generated_source_pending' ? 'AI 生成，来源待补' : '教师创建，来源待补';
+  const label = state === 'verified' ? '已关联依据' : state === 'no_reliable_source' ? '无可靠来源' : '需要确认来源';
   return <span className={pending ? 'rounded bg-muted px-1.5 py-0.5 text-foreground' : 'text-primary'}>{label}</span>;
+}
+
+function SourceBindingDetails({
+  bindings,
+  sourceOptions,
+  gapReason,
+  onSelect,
+}: {
+  bindings: SourceOption['binding'][];
+  sourceOptions: SourceOption[];
+  gapReason?: string | null;
+  onSelect?: (binding: SourceOption['binding']) => void;
+}) {
+  if (gapReason) return <p className="mt-1 text-xs text-muted-foreground">原因：{gapReason}</p>;
+  if (!bindings.length) return <p className="mt-1 text-xs text-muted-foreground">尚未找到唯一可靠依据。</p>;
+  return <details className="mt-1 text-xs text-muted-foreground">
+    <summary className="cursor-pointer">查看依据</summary>
+    <ul className="mt-1 list-disc space-y-1 pl-4">
+      {bindings.map((binding) => {
+        const option = sourceOptions.find((candidate) => candidate.versionId === binding.sourceVersionId);
+        return <li key={`${binding.sourceVersionId}:${binding.anchor}`}>
+          <span>{binding.title ?? option?.label ?? '课程依据文档'}{binding.structuralPath?.length ? ` · ${binding.structuralPath.join(' / ')}` : binding.anchor ? ` · ${binding.anchor}` : ''}</span>
+          {binding.snippet ?? option?.binding.snippet ? <p className="mt-0.5 whitespace-pre-wrap">{binding.snippet ?? option?.binding.snippet}</p> : null}
+          {binding.href ? <a href={binding.href} className="text-primary underline" target="_blank" rel="noreferrer">在统一教材阅读器中查看</a> : null}
+          {bindings.length > 1 && onSelect ? <button type="button" className="ml-2 text-primary underline" onClick={() => onSelect(binding)}>采用此依据</button> : null}
+        </li>;
+      })}
+    </ul>
+  </details>;
+}
+
+function portraitAvailabilityLabel(reason: string) {
+  if (reason === 'migration-in-progress') return '累计画像迁移中';
+  if (reason === 'reconciliation-pending') return '累计画像对账中';
+  if (reason === 'current-state-version-mismatch') return '累计画像版本不一致';
+  if (reason === 'invalid-current-snapshot') return '累计画像暂不可用';
+  return '暂无累计画像';
 }
 
 function PreparationStageDetails({
@@ -681,7 +868,16 @@ export function GeneratedStageContent({ title, value }: { title: string; value: 
     : Array.isArray(output.steps)
       ? output.steps
       : [];
+  const generatedCitations = [
+    ...citationIds(output.sourceBindings),
+    ...rawSections.flatMap((section) => (
+      section && typeof section === 'object' && !Array.isArray(section)
+        ? citationIds((section as Record<string, unknown>).sourceBindings)
+        : []
+    )),
+  ];
   return <div className="mt-2 space-y-2 border-t border-border/60 pt-2 text-sm">
+    <p><SourceStateLabel state={generatedCitations.length ? 'verified' : 'ai_generated_source_pending'} gapReason={generatedCitations.length ? null : '生成阶段没有返回可展示的引用'} /></p>
     {!isOutline && typeof output.minutes === 'number' ? <p className="text-xs text-subtle">阶段总时长：{output.minutes} 分钟</p> : null}
     {!isOutline ? <TeachingActivityDetails value={output} /> : null}
     {rawSections.map((section, index) => {
@@ -775,6 +971,17 @@ function bopppsStageLabel(value: string) {
 
 function stringList(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function normalizeRecommendationText(value: string) {
+  return value.normalize('NFKC').toLowerCase().replace(/[\p{P}\p{S}\s]+/gu, '');
+}
+
+function recommendationScore(query: string, candidate: string) {
+  if (!query) return 0;
+  const normalizedCandidate = normalizeRecommendationText(candidate);
+  if (normalizedCandidate.includes(query)) return query.length + 100;
+  return [...new Set(query)].filter((character) => normalizedCandidate.includes(character)).length;
 }
 
 function generationStageLabel(value: string) {

@@ -163,6 +163,7 @@ function normalizePublicSourceStatesForValidation(value: unknown): unknown {
     if (key !== 'sourceState') return [key, normalizePublicSourceStatesForValidation(child)];
     return [key, ({
       verified: 'VERIFIED',
+      no_reliable_source: 'NO_RELIABLE_SOURCE',
       ai_generated_source_pending: 'AI_GENERATED_SOURCE_PENDING',
       teacher_created_source_pending: 'TEACHER_CREATED_SOURCE_PENDING',
     } as PreparationRecord)[String(child)] ?? child];

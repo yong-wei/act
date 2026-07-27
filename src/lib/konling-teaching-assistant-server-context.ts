@@ -605,6 +605,7 @@ function projectSmartLessonTaskContext(value: unknown, ownerUserId: string) {
 
 function publicSmartLessonSourceState(value: string) {
   if (value === 'VERIFIED') return 'verified';
+  if (value === 'NO_RELIABLE_SOURCE') return 'no_reliable_source';
   if (value === 'AI_GENERATED_SOURCE_PENDING') return 'ai_generated_source_pending';
   return 'teacher_created_source_pending';
 }

@@ -99,6 +99,7 @@ enum SmartLessonItemState {
 
 enum SmartLessonSourceState {
   VERIFIED
+  NO_RELIABLE_SOURCE
   AI_GENERATED_SOURCE_PENDING
   TEACHER_CREATED_SOURCE_PENDING
 }
@@ -710,8 +711,12 @@ model SmartLessonTask {
   outlineConfirmationRequired Boolean   @default(false)
   scopeConfirmedAt            DateTime?
   goalsConfirmedAt            DateTime?
+  selectedClassId             String?
+  textbookRanges              Json      @default("[]")
   aggregateClassContext       Json?
   aggregateClassContextRef    String?
+  classContextStaleAt         DateTime?
+  classContextStaleReason     String?
   revision                    Int       @default(1)
   archivedAt                  DateTime?
   createdAt                   DateTime  @default(now())
@@ -719,6 +724,7 @@ model SmartLessonTask {
 
   owner                       User                              @relation("SmartLessonTaskOwner", fields: [ownerId], references: [id], onDelete: Restrict)
   courseBasis                 CourseBasis                       @relation(fields: [courseBasisId], references: [id], onDelete: Restrict)
+  selectedClass               Class?                            @relation("SmartLessonTaskSelectedClass", fields: [selectedClassId], references: [id], onDelete: Restrict)
   sources                     SmartLessonSourceSelection[]
   knowledgePoints             SmartLessonKnowledgePoint[]
   goals                       SmartLessonGoal[]
@@ -759,6 +765,7 @@ model SmartLessonKnowledgePoint {
   sourceBindings       Json                   @default("[]")
   sourceBindingSetHash String
   gapIdentity          String?
+  gapReason            String?
   origin               String
   supersedesIds        String[]
   confirmedAt          DateTime?
@@ -784,6 +791,7 @@ model SmartLessonGoal {
   sourceBindings       Json                   @default("[]")
   sourceBindingSetHash String
   gapIdentity          String?
+  gapReason            String?
   standardsMappings    Json                   @default("[]")
   confirmedAt          DateTime?
   removedAt            DateTime?
@@ -1427,6 +1435,7 @@ model Class {
   arenaChallengePublications ArenaChallengePublication[]
   assignmentAudiences        AssignmentAudience[]
   gradingBatches             GradingBatch[]
+  smartLessonTasks           SmartLessonTask[] @relation("SmartLessonTaskSelectedClass")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

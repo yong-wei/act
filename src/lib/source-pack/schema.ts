@@ -47,6 +47,7 @@ export const sourcePackProfileSchema = z.enum([
   'konling-answer',
   'lesson-authoring',
   'lesson-design',
+  'smart-preparation',
   'homework-authoring',
   'konling',
   'path-planning',

@@ -50,6 +50,7 @@ type WorkerDb = PrismaClient;
 type ProviderResolver = typeof resolveSmartLessonStructuredProvider;
 type JobContext = Awaited<ReturnType<typeof loadJobContext>>;
 let worker: Worker<{ jobId: string }> | null = null;
+const consumedE2EFaultTokens = new Set<string>();
 
 export async function ensureSmartLessonGenerationWorker(connection: Redis): Promise<Worker<{ jobId: string }>> {
   if (worker) {
@@ -151,6 +152,9 @@ export async function processSmartLessonGenerationJob(
     let validationReceipt: SmartLessonValidationReceipt | undefined;
     let finalAttemptId = claim.attempt.id;
     try {
+      if (consumeSmartLessonE2EFailOnce(stage.kind)) {
+        throw new Error('curl: (28) Operation timed out during authorized smart-lesson E2E fault');
+      }
       const original = await runtime.generate({
         schema: request.schema,
         schemaVersion: request.schemaVersion,
@@ -272,6 +276,25 @@ export async function processSmartLessonGenerationJob(
       }
     }
   }
+}
+
+export function consumeSmartLessonE2EFailOnce(
+  stage: SmartLessonGenerationStageKind,
+  environment: Record<string, string | undefined> = process.env,
+) {
+  if (environment.SMART_LESSON_REAL_PROVIDER_REQUIRED !== '1') return false;
+  const configuredStage = environment.SMART_LESSON_E2E_FAIL_ONCE_STAGE?.trim();
+  const token = environment.SMART_LESSON_E2E_FAULT_TOKEN?.trim();
+  const secret = environment.SMART_LESSON_E2E_FAULT_SECRET?.trim();
+  if (
+    configuredStage !== stage
+    || !token
+    || token !== secret
+    || !/^smart-lesson-e2e-fault-[a-f0-9]{48}$/.test(token)
+    || consumedE2EFaultTokens.has(token)
+  ) return false;
+  consumedE2EFaultTokens.add(token);
+  return true;
 }
 
 async function loadJobContext(db: WorkerDb, jobId: string) {

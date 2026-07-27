@@ -41,7 +41,7 @@ export async function buildCourseBasisLessonDesignSourcePack(
     chunks: candidates.chunks,
     retrieval: retrieveSourcePack({
       ...input.retrieval,
-      profile: 'lesson-design',
+      profile: 'smart-preparation',
       role: input.actor.role === 'ADMIN' ? 'admin' : 'teacher',
       caller: input.actor.id,
       candidates: candidates.items,

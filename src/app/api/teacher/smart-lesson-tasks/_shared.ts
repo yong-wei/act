@@ -58,7 +58,11 @@ export function publicTask(task: Record<string, unknown>) {
     outlineConfirmationRequired: task.outlineConfirmationRequired,
     scopeConfirmedAt: task.scopeConfirmedAt,
     goalsConfirmedAt: task.goalsConfirmedAt,
+    selectedClassId: task.selectedClassId,
+    textbookRanges: publicJson(task.textbookRanges),
     aggregateClassContextRef: task.aggregateClassContextRef,
+    classContextStaleAt: task.classContextStaleAt,
+    classContextStaleReason: task.classContextStaleReason,
     revision: task.revision,
     archivedAt: task.archivedAt,
     createdAt: task.createdAt,
@@ -129,6 +133,7 @@ export function normalizeSourceStatesForService(value: unknown): unknown {
   return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => {
     if (key !== 'sourceState') return [key, normalizeSourceStatesForService(child)];
     if (child === 'verified') return [key, 'VERIFIED'];
+    if (child === 'no_reliable_source') return [key, 'NO_RELIABLE_SOURCE'];
     if (child === 'ai_generated_source_pending') return [key, 'AI_GENERATED_SOURCE_PENDING'];
     if (child === 'teacher_created_source_pending') return [key, 'TEACHER_CREATED_SOURCE_PENDING'];
     throw new SmartLessonPlanError('invalid-public-source-state', 400);
@@ -158,6 +163,7 @@ function redactPrivateFields(value: unknown): unknown {
 
 function publicSourceState(value: unknown) {
   if (value === 'VERIFIED') return 'verified';
+  if (value === 'NO_RELIABLE_SOURCE') return 'no_reliable_source';
   if (value === 'AI_GENERATED_SOURCE_PENDING') return 'ai_generated_source_pending';
   if (value === 'TEACHER_CREATED_SOURCE_PENDING') return 'teacher_created_source_pending';
   return value;
@@ -307,7 +313,7 @@ function publicKnowledgePoint(value: unknown) {
   return compact({
     id: item.id, lineageId: item.lineageId, state: item.state, title: item.title,
     sourceState: publicSourceState(item.sourceState), sourceBindings: publicJson(item.sourceBindings, 64_000),
-    gapIdentity: item.gapIdentity, origin: item.origin, supersedesIds: item.supersedesIds,
+    gapIdentity: item.gapIdentity, gapReason: item.gapReason, origin: item.origin, supersedesIds: item.supersedesIds,
     confirmedAt: item.confirmedAt, removedAt: item.removedAt, createdAt: item.createdAt, updatedAt: item.updatedAt,
   });
 }
@@ -317,7 +323,7 @@ function publicGoal(value: unknown) {
   return compact({
     id: item.id, lineageId: item.lineageId, state: item.state, content: item.content,
     sourceState: publicSourceState(item.sourceState), sourceBindings: publicJson(item.sourceBindings, 64_000),
-    gapIdentity: item.gapIdentity, standardsMappings: publicJson(item.standardsMappings, 64_000),
+    gapIdentity: item.gapIdentity, gapReason: item.gapReason, standardsMappings: publicJson(item.standardsMappings, 64_000),
     confirmedAt: item.confirmedAt, removedAt: item.removedAt, createdAt: item.createdAt, updatedAt: item.updatedAt,
   });
 }

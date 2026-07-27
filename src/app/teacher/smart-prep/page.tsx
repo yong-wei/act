@@ -7,6 +7,8 @@ import { getServerAuthSession } from '@/lib/auth';
 import { listCourseBases } from '@/lib/course-basis';
 import { prisma } from '@/lib/prisma';
 import { getSmartLessonTask, listSmartLessonTaskSummaries } from '@/lib/smart-lesson-plan';
+import { readCurrentCumulativeClassPortrait } from '@/lib/data-governance/cumulative-portrait-read-model';
+import { loadSmartPreparationTextbookCatalog } from '@/lib/smart-lesson-plan/textbook-resource-pack';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +24,7 @@ export default async function SmartPrepPage({
   const actor = { id: session.user.id, role: 'TEACHER' as const };
   const query = await searchParams;
   const requestedTaskId = query.taskId?.trim() || null;
-  const [courseBasisPage, selectedCourseBases, taskSummaries, classes] = await Promise.all([
+  const [courseBasisPage, selectedCourseBases, taskSummaries, classes, teacher, textbookCatalog] = await Promise.all([
     listCourseBases(prisma, actor),
     query.courseBasisId
       ? listCourseBases(prisma, actor, { courseBasisId: query.courseBasisId })
@@ -33,22 +35,28 @@ export default async function SmartPrepPage({
       orderBy: { name: 'asc' },
       select: { id: true, name: true },
     }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { defaultTeachingClassId: true },
+    }),
+    loadSmartPreparationTextbookCatalog(),
   ]);
   const courseBases = [
     ...courseBasisPage,
     ...selectedCourseBases.filter((selected) => !courseBasisPage.some((basis) => basis.id === selected.id)),
   ];
-  const snapshots = classes.length ? await prisma.diagnosisReportSnapshot.findMany({
-    where: { classId: { in: classes.map((item) => item.id) }, subjectKind: 'class' },
-    orderBy: { generatedAt: 'desc' },
-    select: { id: true, classId: true, generatedAt: true },
-  }) : [];
-  const latestByClass = new Map<string, typeof snapshots[number]>();
-  for (const snapshot of snapshots) if (snapshot.classId && !latestByClass.has(snapshot.classId)) latestByClass.set(snapshot.classId, snapshot);
-  const classDiagnosisOptions = classes.flatMap((item) => {
-    const snapshot = latestByClass.get(item.id);
-    return snapshot ? [{ classId: item.id, className: item.name, diagnosisRef: snapshot.id, generatedAt: snapshot.generatedAt.toISOString() }] : [];
-  });
+  const portraitRows = await Promise.all(classes.map(async (item) => ({
+    item,
+    portrait: await readCurrentCumulativeClassPortrait(prisma, item.id),
+  })));
+  const classDiagnosisOptions = portraitRows.map(({ item, portrait }) => ({
+    classId: item.id,
+    className: item.name,
+    isDefault: teacher?.defaultTeachingClassId === item.id,
+    available: portrait.stateKind === 'SNAPSHOT',
+    availabilityReason: portrait.availabilityReason,
+    asOf: portrait.evidenceAsOf ?? portrait.generatedAt,
+  }));
   const selectedSummary = taskSummaries.find((task) => task.id === requestedTaskId) ?? taskSummaries[0];
   const firstTask = selectedSummary
     ? await getSmartLessonTask(prisma, { actor, taskId: selectedSummary.id })
@@ -59,6 +67,7 @@ export default async function SmartPrepPage({
   return <SmartPreparationWorkspace
     courseBases={courseBases}
     classDiagnosisOptions={classDiagnosisOptions}
+    textbookCatalog={textbookCatalog}
     initialTasks={initialTasks}
     initialSelectedTaskId={selectedSummary?.id}
     initialView={query.view === 'basis' ? 'basis' : 'tasks'}

@@ -28,7 +28,7 @@ vi.mock('../../course-basis/service', () => ({
   adoptCourseBasisVersion: adoptionMocks.adopt,
 }));
 
-import { processSmartLessonGenerationJob } from '../worker';
+import { consumeSmartLessonE2EFailOnce, processSmartLessonGenerationJob } from '../worker';
 
 const sourcePackItem = {
   id: 'item-1',
@@ -87,6 +87,7 @@ function persistenceDb(context: object, transitionedCount = 1) {
 
 describe('smart lesson BullMQ worker', () => {
   beforeEach(() => {
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
     serviceMocks.fail.mockResolvedValue({ state: 'RETRYABLE' });
     serviceMocks.action.mockResolvedValue(undefined);
@@ -96,6 +97,83 @@ describe('smart lesson BullMQ worker', () => {
     });
     sourcePackMocks.sar.mockResolvedValue({ candidateRefs: { retrievalChunkIds: ['chunk-1'] } });
     sourcePackMocks.pack.mockResolvedValue({ retrieval: { pack: { items: [sourcePackItem] } } });
+  });
+
+  it('enables one fail-closed real-provider E2E fault only for the authorized stage and token', () => {
+    const token = `smart-lesson-e2e-fault-${'a'.repeat(48)}`;
+    const authorized = {
+      SMART_LESSON_REAL_PROVIDER_REQUIRED: '1',
+      SMART_LESSON_E2E_FAIL_ONCE_STAGE: 'BRIDGE_IN',
+      SMART_LESSON_E2E_FAULT_TOKEN: token,
+      SMART_LESSON_E2E_FAULT_SECRET: token,
+    };
+    expect(consumeSmartLessonE2EFailOnce('OUTLINE', authorized)).toBe(false);
+    expect(consumeSmartLessonE2EFailOnce('BRIDGE_IN', {
+      ...authorized,
+      SMART_LESSON_E2E_FAULT_SECRET: 'mismatch',
+    })).toBe(false);
+    expect(consumeSmartLessonE2EFailOnce('BRIDGE_IN', authorized)).toBe(true);
+    expect(consumeSmartLessonE2EFailOnce('BRIDGE_IN', authorized)).toBe(false);
+    expect(consumeSmartLessonE2EFailOnce('BRIDGE_IN', {
+      ...authorized,
+      SMART_LESSON_REAL_PROVIDER_REQUIRED: '0',
+      SMART_LESSON_E2E_FAULT_TOKEN: `smart-lesson-e2e-fault-${'b'.repeat(48)}`,
+      SMART_LESSON_E2E_FAULT_SECRET: `smart-lesson-e2e-fault-${'b'.repeat(48)}`,
+    })).toBe(false);
+  });
+
+  it('routes the authorized one-time BRIDGE_IN fault through failGenerationStage', async () => {
+    const token = `smart-lesson-e2e-fault-${'c'.repeat(48)}`;
+    vi.stubEnv('SMART_LESSON_REAL_PROVIDER_REQUIRED', '1');
+    vi.stubEnv('SMART_LESSON_E2E_FAIL_ONCE_STAGE', 'BRIDGE_IN');
+    vi.stubEnv('SMART_LESSON_E2E_FAULT_TOKEN', token);
+    vi.stubEnv('SMART_LESSON_E2E_FAULT_SECRET', token);
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const context = {
+      id: 'job-fault', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'BRIDGE_IN',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-bridge', kind: 'BRIDGE_IN', orderIndex: 1, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const generate = vi.fn();
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true,
+      claimToken: 'claim-fault',
+      attempt: { id: 'attempt-fault', idempotencyKey: 'attempt-fault-key' },
+    });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-fault',
+      vi.fn(async () => ({
+        serviceId: 'provider-1',
+        providerKind: 'openai-compatible',
+        model: 'model-1',
+        generate,
+      })) as never,
+    )).resolves.toEqual({ jobId: 'job-fault', state: 'RETRYABLE' });
+
+    expect(generate).not.toHaveBeenCalled();
+    expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      jobId: 'job-fault',
+      stage: 'BRIDGE_IN',
+      attemptId: 'attempt-fault',
+      claimToken: 'claim-fault',
+      failureCode: 'provider-timeout',
+      retryable: true,
+    }));
   });
 
   it('loads governed evidence, claims before provider use, and persists the stage result', async () => {

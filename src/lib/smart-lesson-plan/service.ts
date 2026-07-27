@@ -10,6 +10,7 @@ import {
   buildCourseBasisLessonDesignSourcePack,
 } from '../course-basis/lesson-design-source-pack';
 import { teacherCourseBasisCitationTargetId } from '../source-pack/teacher-course-basis';
+import { readCurrentCumulativeClassPortrait } from '../data-governance/cumulative-portrait-read-model';
 
 import { generateSmartLessonAdvisoryReport } from './provider-runtime';
 
@@ -21,9 +22,11 @@ import {
   deterministicPlanChecks,
   newAggregateIdentity,
   normalizeSourceBindings,
-  projectPersistedClassDiagnosis,
+  normalizeSourceMatchingMeaning,
+  projectCurrentCumulativeClassPortrait,
+  shouldMarkClassContextStale,
+  sourceGapDecisionComplete,
   smartLessonGenerationInputHash,
-  type AggregateClassContextRef,
   type SmartLessonActor,
   type SmartLessonSourceBinding,
   type SmartLessonSourceState,
@@ -33,6 +36,10 @@ import {
   validateSmartLessonPlan,
   type SmartLessonPlan,
 } from './schema';
+import {
+  confirmedTextbookRangeSchema,
+  type ConfirmedTextbookRange,
+} from './textbook-range';
 
 const GENERATION_STAGES = [
   'OUTLINE',
@@ -53,6 +60,8 @@ type CanonicalItemInput = {
   content: string;
   sourceState?: SmartLessonSourceState;
   sourceBindings: SmartLessonSourceBinding[];
+  sourceConfirmed?: boolean;
+  gapReason?: string | null;
 };
 
 export type CreateSmartLessonTaskInput = {
@@ -64,18 +73,18 @@ export type CreateSmartLessonTaskInput = {
   durationMinutes: number;
   outlineConfirmationRequired?: boolean;
   sourceVersionIds: string[];
+  textbookRanges?: ConfirmedTextbookRange[];
   knowledgePoints: Array<CanonicalItemInput & { title?: string; origin: 'SUGGESTED' | 'TEACHER_CREATED'; supersedesIds?: string[] }>;
   goals: Array<CanonicalItemInput & { origin?: 'SUGGESTED' | 'TEACHER_CREATED'; standardsMappings?: Array<{ standardId: string; label: string }> }>;
-  aggregateClassContextRef?: AggregateClassContextRef;
+  selectedClassId?: string | null;
   confirmScope?: boolean;
   confirmGoals?: boolean;
 };
 
-export type UpdateSmartLessonTaskInput = Omit<CreateSmartLessonTaskInput, 'actor' | 'courseBasisId' | 'aggregateClassContextRef'> & {
+export type UpdateSmartLessonTaskInput = Omit<CreateSmartLessonTaskInput, 'actor' | 'courseBasisId'> & {
   actor: SmartLessonActor;
   taskId: string;
   courseBasisId?: string;
-  aggregateClassContextRef?: AggregateClassContextRef | null;
   expectedRevision: number;
   confirmingTurnId: string;
   agentSessionId?: string;
@@ -248,12 +257,15 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
   const audience = requiredText(input.audience, 'audience-required', 1000);
   const prerequisites = optionalText(input.prerequisites, 5000);
   const sourceVersionIds = uniqueIds(input.sourceVersionIds);
+  const textbookRanges = await resolveConfirmedTextbookRanges(input.textbookRanges ?? []);
   if (sourceVersionIds.length === 0) throw new SmartLessonPlanError('source-version-required');
   if (input.knowledgePoints.length === 0) throw new SmartLessonPlanError('knowledge-point-required');
   if (input.goals.length === 0) throw new SmartLessonPlanError('goal-required');
   assertNoClientVerifiedSourceState([...input.knowledgePoints, ...input.goals]);
   for (const binding of [...input.knowledgePoints, ...input.goals].flatMap((item) => item.sourceBindings)) {
-    if (!sourceVersionIds.includes(binding.sourceVersionId)) throw new SmartLessonPlanError('source-binding-not-selected');
+    if (!sourceVersionIds.includes(binding.sourceVersionId) && !isTextbookSourceBinding(binding)) {
+      throw new SmartLessonPlanError('source-binding-not-selected');
+    }
   }
 
   const create = async (tx: Prisma.TransactionClient) => {
@@ -274,50 +286,25 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
     select: { id: true },
   });
   if (versions.length !== sourceVersionIds.length) throw new SmartLessonPlanError('source-version-ineligible');
-  let aggregateClassContext: ReturnType<typeof projectPersistedClassDiagnosis> | null = null;
-  if (input.aggregateClassContextRef) {
-    const aggregateRef = {
-      classId: validateId(input.aggregateClassContextRef.classId),
-      diagnosisRef: validateId(input.aggregateClassContextRef.diagnosisRef),
-    };
-    const ownedClass = await tx.class.findFirst({
-      where: { id: aggregateRef.classId, teacherId: ownerId },
-      select: { id: true, _count: { select: { students: true } } },
-    });
-    if (!ownedClass) throw new SmartLessonPlanError('aggregate-class-context-not-authorized', 403);
-    const diagnosis = await tx.diagnosisReportSnapshot.findFirst({
-      where: { id: aggregateRef.diagnosisRef, classId: ownedClass.id, subjectKind: 'class' },
-      select: { id: true, generatedAt: true, snapshot: true },
-    });
-    if (!diagnosis) throw new SmartLessonPlanError('aggregate-diagnosis-not-found', 404);
-    if (ownedClass._count.students < 1) throw new SmartLessonPlanError('aggregate-diagnosis-empty-cohort', 409);
-    aggregateClassContext = projectPersistedClassDiagnosis({
-      classId: ownedClass.id,
-      diagnosisRef: diagnosis.id,
-      generatedAt: diagnosis.generatedAt,
-      cohortSize: ownedClass._count.students,
-      snapshot: diagnosis.snapshot,
-    });
-  }
+  const selectedClassId = await resolveSelectedClassId(tx, ownerId, input.selectedClassId);
   const canonicalBindings = await resolveCanonicalSourceBindings(
     tx as unknown as SmartLessonDb,
     { id: basis.id, ownerId },
     sourceVersionIds,
     [...input.knowledgePoints, ...input.goals].flatMap((item) => item.sourceBindings),
   );
-  const verifiedBindingKeys = await resolveSourcePackVerifiedBindingKeys(
+  const sourceMatches = await resolveSourcePackMatches(
     tx as unknown as SmartLessonDb,
     ownerId,
     sourceVersionIds,
     [],
+    textbookRanges,
     [
       ...input.knowledgePoints.map((item) => ({
         content: item.title ?? item.content,
-        bindings: canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings),
       })),
       ...input.goals.map((item) => ({
         content: item.content,
-        bindings: canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings),
       })),
     ],
   );
@@ -327,25 +314,36 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
     const id = item.id ?? newAggregateIdentity();
     const lineageId = item.lineageId ?? newAggregateIdentity();
     const title = requiredText(item.title ?? item.content, 'knowledge-point-title-required', 500);
+    const itemBindings = resolveItemBindings(
+      item.sourceBindings,
+      sourceVersionIds,
+      canonicalBindings,
+      sourceMatches.get(title) ?? [],
+    );
+    const sourceFields = canonicalSourceFields({
+      itemId: id,
+      itemLineageId: lineageId,
+      taskLineageId,
+      content: title,
+      sourceState: deriveSmartLessonSourceState(
+        item.origin,
+        item.sourceState,
+        itemBindings,
+        sourceMatchKeys(sourceMatches.get(title)),
+        undefined,
+        undefined,
+        item.sourceConfirmed,
+      ),
+      sourceBindings: itemBindings,
+    });
     return {
       id,
       ownerId,
       lineageId,
       state: input.confirmScope ? 'CONFIRMED' as const : 'DRAFT' as const,
       title,
-      ...canonicalSourceFields({
-        itemId: id,
-        itemLineageId: lineageId,
-        taskLineageId,
-        content: title,
-        sourceState: serverDerivedSourceState(
-          item.origin,
-          item.sourceState,
-          canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings),
-          verifiedBindingKeys.get(title),
-        ),
-        sourceBindings: canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings),
-      }),
+      ...sourceFields,
+      gapReason: canonicalGapReason(sourceFields.sourceState, sourceFields.sourceBindings, item.gapReason),
       origin: item.origin,
       supersedesIds: uniqueIds(item.supersedesIds ?? []),
       confirmedAt: input.confirmScope ? now : null,
@@ -355,25 +353,36 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
     const id = item.id ?? newAggregateIdentity();
     const lineageId = item.lineageId ?? newAggregateIdentity();
     const goalContent = requiredText(item.content, 'goal-content-required', 2000);
+    const itemBindings = resolveItemBindings(
+      item.sourceBindings,
+      sourceVersionIds,
+      canonicalBindings,
+      sourceMatches.get(goalContent) ?? [],
+    );
+    const sourceFields = canonicalSourceFields({
+      itemId: id,
+      itemLineageId: lineageId,
+      taskLineageId,
+      content: goalContent,
+      sourceState: deriveSmartLessonSourceState(
+        item.origin ?? 'TEACHER_CREATED',
+        item.sourceState,
+        itemBindings,
+        sourceMatchKeys(sourceMatches.get(goalContent)),
+        undefined,
+        undefined,
+        item.sourceConfirmed,
+      ),
+      sourceBindings: itemBindings,
+    });
     return {
       id,
       ownerId,
       lineageId,
       state: input.confirmGoals ? 'CONFIRMED' as const : 'DRAFT' as const,
       content: goalContent,
-      ...canonicalSourceFields({
-        itemId: id,
-        itemLineageId: lineageId,
-        taskLineageId,
-        content: goalContent,
-        sourceState: serverDerivedSourceState(
-          item.origin ?? 'TEACHER_CREATED',
-          item.sourceState,
-          canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings),
-          verifiedBindingKeys.get(item.content),
-        ),
-        sourceBindings: canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings),
-      }),
+      ...sourceFields,
+      gapReason: canonicalGapReason(sourceFields.sourceState, sourceFields.sourceBindings, item.gapReason),
       standardsMappings: item.standardsMappings ?? [],
       confirmedAt: input.confirmGoals ? now : null,
     };
@@ -392,8 +401,10 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
       outlineConfirmationRequired: input.outlineConfirmationRequired ?? false,
       scopeConfirmedAt: input.confirmScope ? now : null,
       goalsConfirmedAt: input.confirmGoals ? now : null,
-      aggregateClassContext: aggregateClassContext ? asJson(aggregateClassContext) : Prisma.JsonNull,
-      aggregateClassContextRef: aggregateClassContext?.diagnosisRef ?? null,
+      selectedClassId,
+      textbookRanges: asJson(textbookRanges),
+      aggregateClassContext: Prisma.JsonNull,
+      aggregateClassContextRef: null,
       sources: { create: sourceVersionIds.map((sourceVersionId) => ({ ownerId, sourceVersionId })) },
       knowledgePoints: { create: knowledgePoints.map((point) => ({ ...point, sourceBindings: asJson(point.sourceBindings) })) },
       goals: { create: goals.map((goal) => ({ ...goal, sourceBindings: asJson(goal.sourceBindings), standardsMappings: asJson(goal.standardsMappings) })) },
@@ -424,6 +435,7 @@ export async function updateSmartLessonTask(
   const prerequisites = optionalText(input.prerequisites, 5000);
   const durationMinutes = assertSingleLessonDuration(input.durationMinutes);
   const sourceVersionIds = uniqueIds(input.sourceVersionIds);
+  const textbookRanges = await resolveConfirmedTextbookRanges(input.textbookRanges ?? []);
   if (sourceVersionIds.length === 0 || input.knowledgePoints.length === 0 || input.goals.length === 0) {
     throw new SmartLessonPlanError('confirmed-task-scope-required');
   }
@@ -434,7 +446,17 @@ export async function updateSmartLessonTask(
         sources: true,
         knowledgePoints: true,
         goals: true,
-        drafts: { include: { jobs: { select: { id: true, state: true } } } },
+        drafts: {
+          include: {
+            jobs: {
+              select: {
+                id: true,
+                state: true,
+                stages: { select: { outputHash: true } },
+              },
+            },
+          },
+        },
       },
     });
     if (!task) throw new SmartLessonPlanError('smart-lesson-task-not-found', 404);
@@ -472,54 +494,28 @@ export async function updateSmartLessonTask(
       sourceVersionIds,
       [...input.knowledgePoints, ...input.goals].flatMap((item) => item.sourceBindings),
     );
-    const verifiedBindingKeys = await resolveSourcePackVerifiedBindingKeys(
+    const sourceMatches = await resolveSourcePackMatches(
       tx as unknown as SmartLessonDb,
       task.ownerId,
       sourceVersionIds,
       retainedRetiredVersionIds,
+      textbookRanges,
       [
         ...input.knowledgePoints.map((item) => ({
           content: item.title ?? item.content,
-          bindings: canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings),
         })),
         ...input.goals.map((item) => ({
           content: item.content,
-          bindings: canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings),
         })),
       ],
     );
-    const aggregateUpdate: {
-      aggregateClassContext?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
-      aggregateClassContextRef?: string | null;
-    } = {};
-    if (input.aggregateClassContextRef === null) {
-      aggregateUpdate.aggregateClassContext = Prisma.JsonNull;
-      aggregateUpdate.aggregateClassContextRef = null;
-    } else if (input.aggregateClassContextRef) {
-      const aggregateRef = {
-        classId: validateId(input.aggregateClassContextRef.classId),
-        diagnosisRef: validateId(input.aggregateClassContextRef.diagnosisRef),
-      };
-      const ownedClass = await tx.class.findFirst({
-        where: { id: aggregateRef.classId, teacherId: task.ownerId },
-        select: { id: true, _count: { select: { students: true } } },
-      });
-      if (!ownedClass) throw new SmartLessonPlanError('aggregate-class-context-not-authorized', 403);
-      const diagnosis = await tx.diagnosisReportSnapshot.findFirst({
-        where: { id: aggregateRef.diagnosisRef, classId: ownedClass.id, subjectKind: 'class' },
-        select: { id: true, generatedAt: true, snapshot: true },
-      });
-      if (!diagnosis) throw new SmartLessonPlanError('aggregate-diagnosis-not-found', 404);
-      if (ownedClass._count.students < 1) throw new SmartLessonPlanError('aggregate-diagnosis-empty-cohort', 409);
-      aggregateUpdate.aggregateClassContext = asJson(projectPersistedClassDiagnosis({
-        classId: ownedClass.id,
-        diagnosisRef: diagnosis.id,
-        generatedAt: diagnosis.generatedAt,
-        cohortSize: ownedClass._count.students,
-        snapshot: diagnosis.snapshot,
-      }));
-      aggregateUpdate.aggregateClassContextRef = diagnosis.id;
-    }
+    const selectedClassId = input.selectedClassId === undefined
+      ? task.selectedClassId
+      : await resolveSelectedClassId(tx, task.ownerId, input.selectedClassId, false);
+    const hasGeneratedContent = task.drafts.some((draft) => (
+      Boolean(draft.contentHash)
+      || draft.jobs.some((job) => job.stages.some((stage) => Boolean(stage.outputHash)))
+    ));
     const now = new Date();
     const existingPoints = new Map(task.knowledgePoints.map((item) => [item.id, item]));
     const existingGoals = new Map(task.goals.map((item) => [item.id, item]));
@@ -533,24 +529,35 @@ export async function updateSmartLessonTask(
       const id = existing?.id ?? newAggregateIdentity();
       const lineageId = existing?.lineageId ?? newAggregateIdentity();
       const title = requiredText(item.title ?? item.content, 'knowledge-point-title-required', 500);
-      const itemBindings = canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings);
+      const itemBindings = resolveItemBindings(
+        item.sourceBindings,
+        sourceVersionIds,
+        canonicalBindings,
+        sourceMatches.get(title) ?? [],
+      );
       const sourceFields = canonicalSourceFields({
         itemId: id,
         itemLineageId: lineageId,
         taskLineageId: task.lineageId,
         content: title,
-        sourceState: serverDerivedSourceState(item.origin, item.sourceState, itemBindings, verifiedBindingKeys.get(title), existing, title),
+        sourceState: deriveSmartLessonSourceState(item.origin, item.sourceState, itemBindings, sourceMatchKeys(sourceMatches.get(title)), existing, title, item.sourceConfirmed),
         sourceBindings: itemBindings,
       });
+      const gapReason = canonicalGapReason(
+        sourceFields.sourceState,
+        sourceFields.sourceBindings,
+        item.gapReason,
+        existing?.contentHash === sourceFields.contentHash ? existing.gapReason : null,
+      );
       await tx.smartLessonKnowledgePoint.upsert({
         where: { id },
         create: {
           id, ownerId: task.ownerId, taskId: task.id, lineageId, state: 'CONFIRMED', title,
-          ...sourceFields, sourceBindings: asJson(sourceFields.sourceBindings), origin: item.origin,
+          ...sourceFields, sourceBindings: asJson(sourceFields.sourceBindings), gapReason, origin: item.origin,
           supersedesIds: uniqueIds(item.supersedesIds ?? []), confirmedAt: now,
         },
         update: {
-          state: 'CONFIRMED', title, ...sourceFields, sourceBindings: asJson(sourceFields.sourceBindings),
+          state: 'CONFIRMED', title, ...sourceFields, sourceBindings: asJson(sourceFields.sourceBindings), gapReason,
           origin: item.origin, supersedesIds: uniqueIds(item.supersedesIds ?? []), confirmedAt: now, removedAt: null,
         },
       });
@@ -559,7 +566,7 @@ export async function updateSmartLessonTask(
         actor,
         'SMART_LESSON_KNOWLEDGE_POINT',
         id,
-        sourceFields.sourceBindings,
+        sourceFields.sourceState === 'VERIFIED' ? sourceFields.sourceBindings : [],
       );
       nextPointIds.add(id);
     }
@@ -570,24 +577,35 @@ export async function updateSmartLessonTask(
       const id = existing?.id ?? newAggregateIdentity();
       const lineageId = existing?.lineageId ?? newAggregateIdentity();
       const content = requiredText(item.content, 'goal-content-required', 2000);
-      const itemBindings = canonicalizeItemBindings(item.sourceBindings, sourceVersionIds, canonicalBindings);
+      const itemBindings = resolveItemBindings(
+        item.sourceBindings,
+        sourceVersionIds,
+        canonicalBindings,
+        sourceMatches.get(content) ?? [],
+      );
       const sourceFields = canonicalSourceFields({
         itemId: id,
         itemLineageId: lineageId,
         taskLineageId: task.lineageId,
         content,
-        sourceState: serverDerivedSourceState(item.origin ?? 'TEACHER_CREATED', item.sourceState, itemBindings, verifiedBindingKeys.get(item.content), existing, content),
+        sourceState: deriveSmartLessonSourceState(item.origin ?? 'TEACHER_CREATED', item.sourceState, itemBindings, sourceMatchKeys(sourceMatches.get(content)), existing, content, item.sourceConfirmed),
         sourceBindings: itemBindings,
       });
+      const gapReason = canonicalGapReason(
+        sourceFields.sourceState,
+        sourceFields.sourceBindings,
+        item.gapReason,
+        existing?.contentHash === sourceFields.contentHash ? existing.gapReason : null,
+      );
       await tx.smartLessonGoal.upsert({
         where: { id },
         create: {
           id, ownerId: task.ownerId, taskId: task.id, lineageId, state: 'CONFIRMED', content,
-          ...sourceFields, sourceBindings: asJson(sourceFields.sourceBindings),
+          ...sourceFields, sourceBindings: asJson(sourceFields.sourceBindings), gapReason,
           standardsMappings: asJson(item.standardsMappings ?? []), confirmedAt: now,
         },
         update: {
-          state: 'CONFIRMED', content, ...sourceFields, sourceBindings: asJson(sourceFields.sourceBindings),
+          state: 'CONFIRMED', content, ...sourceFields, sourceBindings: asJson(sourceFields.sourceBindings), gapReason,
           standardsMappings: asJson(item.standardsMappings ?? []), confirmedAt: now, removedAt: null,
         },
       });
@@ -596,7 +614,7 @@ export async function updateSmartLessonTask(
         actor,
         'SMART_LESSON_GOAL',
         id,
-        sourceFields.sourceBindings,
+        sourceFields.sourceState === 'VERIFIED' ? sourceFields.sourceBindings : [],
       );
       nextGoalIds.add(id);
     }
@@ -643,7 +661,17 @@ export async function updateSmartLessonTask(
       data: {
         courseBasisId: basis.id, topic, audience, prerequisites, durationMinutes,
         outlineConfirmationRequired: input.outlineConfirmationRequired ?? false,
-        ...aggregateUpdate,
+        selectedClassId,
+        textbookRanges: asJson(textbookRanges),
+        ...(shouldMarkClassContextStale({
+          previousClassId: task.selectedClassId,
+          nextClassId: selectedClassId,
+          hasGeneratedContent,
+          staleAt: task.classContextStaleAt,
+        }) ? {
+          classContextStaleAt: now,
+          classContextStaleReason: selectedClassId ? 'selected-class-changed' : 'selected-class-removed',
+        } : {}),
         scopeConfirmedAt: input.confirmScope ? now : null,
         goalsConfirmedAt: input.confirmGoals ? now : null,
         revision: { increment: 1 },
@@ -844,6 +872,23 @@ export async function startGenerationJob(db: SmartLessonDb, input: {
       });
       if (!draft) throw new SmartLessonPlanError('draft-not-found', 404);
       assertGenerationReady(draft);
+      const aggregateClassContext = await readGenerationClassContext(
+        tx,
+        draft.ownerId,
+        draft.task.selectedClassId,
+      );
+      await tx.smartLessonTask.update({
+        where: { id: draft.task.id },
+        data: {
+          aggregateClassContext: aggregateClassContext ? asJson(aggregateClassContext) : Prisma.JsonNull,
+          aggregateClassContextRef: aggregateClassContext?.contextRef ?? null,
+        },
+      });
+      const generationTask = {
+        ...draft.task,
+        aggregateClassContext,
+        aggregateClassContextRef: aggregateClassContext?.contextRef ?? null,
+      };
       const existing = await tx.smartLessonGenerationJob.findFirst({
         where: { draftId: draft.id, activeIdentity: `draft:${draft.id}` },
       });
@@ -852,16 +897,16 @@ export async function startGenerationJob(db: SmartLessonDb, input: {
         return existing;
       }
       const jobId = newAggregateIdentity();
-      const generationInputHash = smartLessonGenerationInputHash(draft.task);
+      const generationInputHash = smartLessonGenerationInputHash(generationTask);
       const job = await tx.smartLessonGenerationJob.create({
         data: {
           id: jobId,
           ownerId: draft.ownerId,
           draftId: draft.id,
-          taskRevision: draft.task.revision,
+          taskRevision: generationTask.revision,
           inputHash: generationInputHash,
           deliveryGeneration: 1,
-          outlineConfirmation: draft.task.outlineConfirmationRequired,
+          outlineConfirmation: generationTask.outlineConfirmationRequired || Boolean(generationTask.classContextStaleAt),
           activeIdentity: `draft:${draft.id}`,
           stages: {
             create: GENERATION_STAGES.map((kind, orderIndex) => ({ ownerId: draft.ownerId, kind, orderIndex })),
@@ -913,6 +958,12 @@ export async function resumeGenerationJob(db: SmartLessonDb, input: JobCommandIn
       data: { providerAttemptGeneration: { increment: 1 } },
     });
     await tx.smartLessonDraft.update({ where: { id: job.draftId }, data: { state: 'GENERATING' } });
+    if (firstIncomplete.kind !== 'OUTLINE') {
+      await tx.smartLessonTask.updateMany({
+        where: { drafts: { some: { id: job.draftId } } },
+        data: { classContextStaleAt: null, classContextStaleReason: null },
+      });
+    }
     return tx.smartLessonGenerationJob.update({
       where: { id: job.id },
       data: {
@@ -1400,6 +1451,7 @@ export async function completeGenerationStage(db: SmartLessonDb, input: {
     if (input.completedPlan === undefined) throw new SmartLessonPlanError('completed-plan-required', 409);
     const plan = validateSmartLessonPlan(input.completedPlan, job.draft.task.durationMinutes);
     assertPlanMatchesConfirmedTask(plan, job.draft.task);
+    await assertPlanSourceBindingsCanonical(tx as unknown as SmartLessonDb, job.draft.task, plan);
     const checks = deterministicPlanChecks(plan);
     if (checks.length > 0) throw new SmartLessonPlanError(`deterministic-check-failed:${checks[0].code}`, 409);
     await tx.smartLessonDraft.update({
@@ -1618,6 +1670,7 @@ export async function approveSmartLessonDraft(db: SmartLessonDb, input: {
         );
       }
       for (const [versionId, bindings] of planBindingsByVersion) {
+        if (isTextbookSourceBinding(bindings[0])) continue;
         await adoptCourseBasisVersion(tx, {
           actor,
           versionId,
@@ -1708,8 +1761,8 @@ function assertGenerationReady(draft: {
     scopeConfirmedAt: Date | null;
     goalsConfirmedAt: Date | null;
     sources: unknown[];
-    knowledgePoints: unknown[];
-    goals: unknown[];
+    knowledgePoints: Array<{ sourceState: string; sourceBindings: unknown; gapReason: string | null }>;
+    goals: Array<{ sourceState: string; sourceBindings: unknown; gapReason: string | null }>;
   };
 }) {
   if (draft.state === 'APPROVED') throw new SmartLessonPlanError('approved-draft-immutable', 409);
@@ -1717,6 +1770,25 @@ function assertGenerationReady(draft: {
   if (!draft.task.goalsConfirmedAt || draft.task.goals.length === 0) throw new SmartLessonPlanError('goal-confirmation-required', 409);
   if (draft.task.sources.length === 0) throw new SmartLessonPlanError('source-version-required', 409);
   if (draft.task.knowledgePoints.length === 0) throw new SmartLessonPlanError('knowledge-point-confirmation-required', 409);
+  if ([...draft.task.knowledgePoints, ...draft.task.goals].some((item) => !sourceGapDecisionComplete(item))) {
+    throw new SmartLessonPlanError('source-gap-reason-required', 409);
+  }
+}
+
+async function readGenerationClassContext(
+  tx: Prisma.TransactionClient,
+  ownerId: string,
+  selectedClassId: string | null,
+) {
+  if (!selectedClassId) return null;
+  const ownedClass = await tx.class.findFirst({
+    where: { id: selectedClassId, teacherId: ownerId, isActive: true },
+    select: { id: true },
+  });
+  if (!ownedClass) throw new SmartLessonPlanError('selected-class-not-authorized', 403);
+  const portrait = await readCurrentCumulativeClassPortrait(tx, ownedClass.id);
+  if (portrait.stateKind !== 'SNAPSHOT') return null;
+  return projectCurrentCumulativeClassPortrait({ classId: ownedClass.id, portrait });
 }
 
 async function assertGenerationInputUnchanged(
@@ -1858,6 +1930,46 @@ function optionalText(value: string | null | undefined, max: number) {
   return normalized;
 }
 
+function normalizedGapReason(value: string | null | undefined, fallback?: string | null) {
+  const normalized = optionalText(value ?? fallback, 500);
+  return normalized || null;
+}
+
+async function resolveConfirmedTextbookRanges(ranges: ConfirmedTextbookRange[]) {
+  if (ranges.length === 0) return [];
+  try {
+    const { validateConfirmedTextbookRanges } = await import('./textbook-resource-pack');
+    return await validateConfirmedTextbookRanges(ranges);
+  } catch {
+    throw new SmartLessonPlanError('textbook-range-invalid');
+  }
+}
+
+function isTextbookSourceBinding(binding: Pick<SmartLessonSourceBinding, 'sourceVersionId'>) {
+  return binding.sourceVersionId.startsWith('textbook-v2:');
+}
+
+async function resolveSelectedClassId(
+  tx: Prisma.TransactionClient,
+  ownerId: string,
+  requested: string | null | undefined,
+  useDefault = true,
+) {
+  const selectedClassId = requested === undefined && useDefault
+    ? (await tx.user.findUnique({
+        where: { id: ownerId },
+        select: { defaultTeachingClassId: true },
+      }))?.defaultTeachingClassId ?? null
+    : requested ?? null;
+  if (!selectedClassId) return null;
+  const ownedClass = await tx.class.findFirst({
+    where: { id: validateId(selectedClassId), teacherId: ownerId, isActive: true },
+    select: { id: true },
+  });
+  if (!ownedClass) throw new SmartLessonPlanError('selected-class-not-authorized', 403);
+  return ownedClass.id;
+}
+
 function validateId(value: string) {
   return requiredText(value, 'id-invalid', 200);
 }
@@ -1883,11 +1995,12 @@ function teacherInputSourceState(
   requested: SmartLessonSourceState | undefined,
 ): SmartLessonSourceState {
   if (requested === 'VERIFIED') throw new SmartLessonPlanError('verified-source-state-server-owned');
+  if (requested === 'NO_RELIABLE_SOURCE') return requested;
   if (origin === 'TEACHER_CREATED') return 'TEACHER_CREATED_SOURCE_PENDING';
   return requested ?? 'AI_GENERATED_SOURCE_PENDING';
 }
 
-function serverDerivedSourceState(
+export function deriveSmartLessonSourceState(
   origin: 'SUGGESTED' | 'TEACHER_CREATED',
   requested: SmartLessonSourceState | undefined,
   bindings: SmartLessonSourceBinding[],
@@ -1898,20 +2011,38 @@ function serverDerivedSourceState(
     sourceBindingSetHash: string;
   },
   content?: string,
+  sourceConfirmed = false,
 ): SmartLessonSourceState {
   const normalizedBindings = normalizeSourceBindings(bindings);
+  if (requested === 'NO_RELIABLE_SOURCE' && normalizedBindings.length > 0) {
+    throw new SmartLessonPlanError('no-reliable-source-bindings-conflict');
+  }
   if (existing?.sourceState === 'VERIFIED'
     && content
-    && existing.contentHash === contentHash(content)
+    && existing.contentHash === contentHash(normalizeSourceMatchingMeaning(content))
     && existing.sourceBindingSetHash === contentHash(normalizedBindings)) {
     return 'VERIFIED';
   }
   if (normalizedBindings.length > 0
     && verifiedBindingKeys
+    && (sourceConfirmed || verifiedBindingKeys.size === 1)
     && normalizedBindings.every((binding) => verifiedBindingKeys.has(sourceBindingEvidenceKey(binding)))) {
     return 'VERIFIED';
   }
   return teacherInputSourceState(origin, requested === 'VERIFIED' ? undefined : requested);
+}
+
+function canonicalGapReason(
+  sourceState: SmartLessonSourceState,
+  sourceBindings: SmartLessonSourceBinding[],
+  requested: string | null | undefined,
+  fallback?: string | null,
+) {
+  if (sourceState !== 'NO_RELIABLE_SOURCE') return null;
+  if (sourceBindings.length > 0) throw new SmartLessonPlanError('no-reliable-source-bindings-conflict');
+  const reason = normalizedGapReason(requested, fallback);
+  if (!reason) throw new SmartLessonPlanError('source-gap-reason-required');
+  return reason;
 }
 
 function optionalNonNegativeInteger(value: number | null | undefined) {
@@ -1933,24 +2064,53 @@ function canonicalizeItemBindings(
 ) {
   const selected = new Set(selectedSourceVersionIds);
   return bindings.map((binding) => {
-    if (!selected.has(binding.sourceVersionId)) throw new SmartLessonPlanError('source-binding-not-selected');
+    if (!selected.has(binding.sourceVersionId) && !isTextbookSourceBinding(binding)) {
+      throw new SmartLessonPlanError('source-binding-not-selected');
+    }
     const canonical = canonicalBindings.get(sourceBindingEvidenceKey(binding));
     if (!canonical) throw new SmartLessonPlanError('source-binding-unverified');
     return canonical;
   });
 }
 
+function resolveItemBindings(
+  requested: SmartLessonSourceBinding[],
+  selectedSourceVersionIds: string[],
+  uploadCanonicalBindings: Map<string, SmartLessonSourceBinding>,
+  candidates: SmartLessonSourceBinding[],
+) {
+  const canonical = new Map(uploadCanonicalBindings);
+  for (const candidate of candidates) {
+    canonical.set(sourceBindingEvidenceKey(candidate), candidate);
+  }
+  return requested.length > 0
+    ? canonicalizeItemBindings(requested, selectedSourceVersionIds, canonical)
+    : normalizeSourceBindings(candidates);
+}
+
 async function adoptTaskBindings(
   tx: Prisma.TransactionClient,
   actor: SmartLessonActor,
-  knowledgePoints: Array<{ id: string; sourceBindings: SmartLessonSourceBinding[] }>,
-  goals: Array<{ id: string; sourceBindings: SmartLessonSourceBinding[] }>,
+  knowledgePoints: Array<{ id: string; sourceState: string; sourceBindings: SmartLessonSourceBinding[] }>,
+  goals: Array<{ id: string; sourceState: string; sourceBindings: SmartLessonSourceBinding[] }>,
 ) {
   for (const point of knowledgePoints) {
-    await adoptSourceBindings(tx, actor, 'SMART_LESSON_KNOWLEDGE_POINT', point.id, point.sourceBindings);
+    await adoptSourceBindings(
+      tx,
+      actor,
+      'SMART_LESSON_KNOWLEDGE_POINT',
+      point.id,
+      point.sourceState === 'VERIFIED' ? point.sourceBindings : [],
+    );
   }
   for (const goal of goals) {
-    await adoptSourceBindings(tx, actor, 'SMART_LESSON_GOAL', goal.id, goal.sourceBindings);
+    await adoptSourceBindings(
+      tx,
+      actor,
+      'SMART_LESSON_GOAL',
+      goal.id,
+      goal.sourceState === 'VERIFIED' ? goal.sourceBindings : [],
+    );
   }
 }
 
@@ -1963,6 +2123,7 @@ async function adoptSourceBindings(
 ) {
   const byVersion = new Map<string, SmartLessonSourceBinding[]>();
   for (const binding of normalizeSourceBindings(bindings)) {
+    if (isTextbookSourceBinding(binding)) continue;
     byVersion.set(binding.sourceVersionId, [...(byVersion.get(binding.sourceVersionId) ?? []), binding]);
   }
   await synchronizeCourseBasisAdopterVersions(tx, {
@@ -2021,19 +2182,21 @@ async function resolveCanonicalSourceBindings(
   return canonical;
 }
 
-async function resolveSourcePackVerifiedBindingKeys(
+async function resolveSourcePackMatches(
   db: SmartLessonDb,
   ownerId: string,
   sourceVersionIds: string[],
   explicitRetiredVersionIds: string[],
-  items: Array<{ content: string; bindings: SmartLessonSourceBinding[] }>,
+  textbookRanges: ConfirmedTextbookRange[],
+  items: Array<{ content: string }>,
 ) {
-  const result = new Map<string, ReadonlySet<string>>();
-  const byContent = new Map<string, SmartLessonSourceBinding[]>();
+  const result = new Map<string, SmartLessonSourceBinding[]>();
+  const byContent = new Map<string, true>();
   for (const item of items) {
-    if (item.bindings.length > 0 && !byContent.has(item.content)) byContent.set(item.content, item.bindings);
+    byContent.set(item.content, true);
   }
-  for (const [content, bindings] of byContent) {
+  for (const content of byContent.keys()) {
+    let uploadBindings: SmartLessonSourceBinding[] = [];
     try {
       const actor = { id: ownerId, role: 'TEACHER' as const };
       const sar = await buildCourseBasisLessonDesignSar(db, {
@@ -2049,23 +2212,45 @@ async function resolveSourcePackVerifiedBindingKeys(
         sar,
         retrieval: { query: content, topK: 8 },
       });
-      const keys = new Set(sourcePack.retrieval.pack.items.flatMap((item) => {
+      uploadBindings = sourcePack.retrieval.pack.items.flatMap((item) => {
         const versionId = item.metadata?.versionId;
         const anchor = item.metadata?.stableAnchor;
         const hash = item.metadata?.contentHash;
-        if (typeof versionId !== 'string' || typeof anchor !== 'string' || typeof hash !== 'string') return [];
-        return [sourceBindingEvidenceKey({ sourceVersionId: versionId, anchor, contentHash: hash })];
-      }));
-      if (bindings.some((binding) => keys.has(sourceBindingEvidenceKey(binding)))) result.set(content, keys);
+        const citationId = item.citationTargetId;
+        if (
+          typeof versionId !== 'string'
+          || typeof anchor !== 'string'
+          || typeof hash !== 'string'
+          || typeof citationId !== 'string'
+        ) return [];
+        return [{
+          sourceKind: 'upload' as const,
+          sourceVersionId: versionId,
+          anchor,
+          contentHash: hash,
+          citationId,
+        }];
+      });
     } catch (error) {
       if (!(error instanceof CourseBasisError)) throw error;
-      result.set(content, new Set());
     }
+    let textbookBindings: SmartLessonSourceBinding[] = [];
+    try {
+      const { retrieveConfirmedTextbookBindings } = await import('./textbook-resource-pack');
+      textbookBindings = await retrieveConfirmedTextbookBindings(content, textbookRanges);
+    } catch {
+      textbookBindings = [];
+    }
+    result.set(content, normalizeSourceBindings([...uploadBindings, ...textbookBindings]));
   }
   return result;
 }
 
-function sourceBindingEvidenceKey(binding: Pick<SmartLessonSourceBinding, 'sourceVersionId' | 'anchor' | 'contentHash'>) {
+function sourceMatchKeys(bindings: SmartLessonSourceBinding[] | undefined) {
+  return new Set((bindings ?? []).map(sourceBindingEvidenceKey));
+}
+
+export function sourceBindingEvidenceKey(binding: Pick<SmartLessonSourceBinding, 'sourceVersionId' | 'anchor' | 'contentHash'>) {
   return `${binding.sourceVersionId}\u0000${binding.anchor}\u0000${binding.contentHash}`;
 }
 
@@ -2118,6 +2303,7 @@ function assertPlanMatchesConfirmedTask(plan: SmartLessonPlan, task: {
   audience: string;
   prerequisites: string;
   aggregateClassContextRef: string | null;
+  textbookRanges?: Prisma.JsonValue;
   courseBasis: { title: string };
   sources: Array<{ sourceVersionId: string }>;
   knowledgePoints: Array<{ id: string; title: string; sourceState: string; sourceBindings: Prisma.JsonValue; gapIdentity: string | null }>;
@@ -2130,7 +2316,13 @@ function assertPlanMatchesConfirmedTask(plan: SmartLessonPlan, task: {
   if ((plan.classAdaptation?.aggregateContextRef ?? null) !== task.aggregateClassContextRef) {
     throw new SmartLessonPlanError('aggregate-context-ref-changed', 409);
   }
-  const selectedSources = new Set(task.sources.map((source) => source.sourceVersionId));
+  const selectedSources = new Set([
+    ...task.sources.map((source) => source.sourceVersionId),
+    ...[...task.knowledgePoints, ...task.goals]
+      .flatMap((item) => normalizeSourceBindings(item.sourceBindings))
+      .filter(isTextbookSourceBinding)
+      .map((binding) => binding.sourceVersionId),
+  ]);
   if (plan.sources.some((source) => !selectedSources.has(source.sourceVersionId))) {
     throw new SmartLessonPlanError('plan-source-not-selected', 409);
   }
@@ -2148,7 +2340,16 @@ function assertPlanMatchesConfirmedTask(plan: SmartLessonPlan, task: {
 
 async function assertPlanSourceBindingsCanonical(
   db: SmartLessonDb,
-  task: { id: string; ownerId: string; courseBasisId: string; sources: Array<{ sourceVersionId: string }> },
+  task: {
+    id: string;
+    ownerId: string;
+    courseBasisId: string;
+    topic: string;
+    textbookRanges?: Prisma.JsonValue;
+    sources: Array<{ sourceVersionId: string }>;
+    knowledgePoints: Array<{ title: string; sourceBindings: Prisma.JsonValue }>;
+    goals: Array<{ content: string; sourceBindings: Prisma.JsonValue }>;
+  },
   plan: SmartLessonPlan,
 ) {
   const bindings = planSourceBindings(plan);
@@ -2159,9 +2360,34 @@ async function assertPlanSourceBindingsCanonical(
     sourceVersionIds,
     bindings,
   );
+  const textbookBindings = bindings.filter(isTextbookSourceBinding);
+  if (textbookBindings.length > 0) {
+    const ranges = confirmedTextbookRangeSchema.array().max(20).safeParse(task.textbookRanges);
+    if (ranges.success && ranges.data.length > 0) {
+      const queries = [...new Set([
+        task.topic,
+        ...task.knowledgePoints.map((point) => point.title),
+        ...task.goals.map((goal) => goal.content),
+      ].map((query) => query.trim()).filter(Boolean))];
+      try {
+        const { retrieveConfirmedTextbookBindings } = await import('./textbook-resource-pack');
+        for (const query of queries) {
+          const candidates = await retrieveConfirmedTextbookBindings(query, ranges.data);
+          for (const candidate of candidates) {
+            canonical.set(sourceBindingEvidenceKey(candidate), candidate);
+          }
+        }
+      } catch {
+        // Fail closed below when no current canonical textbook candidate matches.
+      }
+    }
+  }
   for (const binding of bindings) {
     const resolved = canonical.get(sourceBindingEvidenceKey(binding));
-    if (!resolved || resolved.citationId !== binding.citationId) {
+    const matchesCanonical = isTextbookSourceBinding(binding) || (resolved && isTextbookSourceBinding(resolved))
+      ? Boolean(resolved && isTextbookSourceBinding(resolved) && contentHash(resolved) === contentHash(binding))
+      : Boolean(resolved && resolved.citationId === binding.citationId);
+    if (!matchesCanonical) {
       throw new SmartLessonPlanError('plan-source-binding-unverified', 409);
     }
   }
