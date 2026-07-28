@@ -1,10 +1,7 @@
 {
   "change": "surface-arena-training-evidence",
-  "headCommit": "07ac465b903d9dc4a6305514fab3189a45181a44",
-  "needsRecapture": true,
-  "capturedAt": "2026-07-27T09:43:09.846Z",
-  "recaptureRequired": "Screenshots were captured at an earlier code state. Re-run capture script on current HEAD with Docker to refresh evidence.",
-  "server": "http://localhost:3011",
+  "capturedAt": "2026-07-28T15:32:52.042Z",
+  "server": "http://localhost:3000",
   "browser": "Playwright Chromium",
   "role": "student",
   "authState": "authenticated",
@@ -50,7 +47,7 @@
   ],
   "limitations": [
     "The evidence route is available only when COMMERCIAL_UI_EVIDENCE=1 and renders the production profile client component with deterministic authenticated session and profile API fixtures.",
-    "Production database and object storage are not exercised; persistence behavior remains covered by focused route and domain tests.",
-    "STALE: Screenshots captured at older HEAD. Re-run capture script on current HEAD with Docker to refresh."
-  ]
+    "Production database and object storage are not exercised; persistence behavior remains covered by focused route and domain tests."
+  ],
+  "headCommit": "de46301848ff2d5f0ebda20765f3dda0cfac613c"
 }

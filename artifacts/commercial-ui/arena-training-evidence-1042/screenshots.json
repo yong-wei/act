@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-27T09:43:09.846Z",
+  "generatedAt": "2026-07-28T15:32:52.042Z",
   "route": "/profile",
   "testHarnessRoute": "/evidence-profile/profile",
   "evidenceBoundary": "Authenticated UI with deterministic session and profile API mocks; production database and object store are not exercised.",
