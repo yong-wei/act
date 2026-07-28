@@ -55,6 +55,9 @@ export function evaluateCanonicalResourceCutoverReadiness(input: {
       && decision.structuralUnitId === item.structuralUnitId
       && decision.segmentId === item.segmentId
       && decision.resourceSegmentHash === item.resourceSegmentHash
+      && decision.inventoryRunId === input.inventory.runId
+      && decision.captureRevision === input.inventory.captureRevision
+      && decision.structuralUnitVersion === input.inventory.captureRevision
     ));
     if (bindings.length === 0) {
       blockers.push({ atomicResourceId: item.atomicResourceId, code: 'binding-missing' });

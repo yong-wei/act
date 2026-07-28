@@ -165,6 +165,8 @@ CREATE TABLE "CanonicalResourceBindingDecision" (
       ),
     CONSTRAINT "CanonicalResourceBindingDecision_role_check"
       CHECK ("role" IN ('EXPLAINS', 'PRACTICES', 'ASSESSES', 'REFERENCES')),
+    CONSTRAINT "CanonicalResourceBindingDecision_review_provider_check"
+      CHECK ("reviewProvider" IN ('GPT', 'FIXTURE', 'HUMAN', 'NONE')),
     CONSTRAINT "CanonicalResourceBindingDecision_review_check"
       CHECK ("reviewState" IN ('NOT_REQUIRED', 'ACCEPTED', 'REJECTED', 'DISPUTED', 'REVIEW_RETRYABLE', 'HUMAN_REQUIRED')),
     CONSTRAINT "CanonicalResourceBindingDecision_publication_check"

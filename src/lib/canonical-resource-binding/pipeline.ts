@@ -323,6 +323,9 @@ export async function runIndependentReview(input: {
   try {
     const review = await input.review(reviewerInput);
     assertExactKeys(review as Record<string, unknown>, ['outcome', 'provider'], 'review decision');
+    if (!['GPT', 'FIXTURE'].includes(review.provider)) {
+      throw new Error('review provider is not supported');
+    }
     const reasons = new Set<CanonicalBindingHighImpactReason>(
       input.generatorDecision.highImpactReasons,
     );

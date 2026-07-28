@@ -1131,6 +1131,22 @@ async function main(): Promise<void> {
       jsonb_populate_record(
         NULL::"CanonicalResourceBindingDecision",
         to_jsonb(source) || jsonb_build_object(
+          'id', 'postgres-unknown-review-provider',
+          'pairId', 'postgres-unknown-review-provider-pair',
+          'reviewProvider', 'UNKNOWN',
+          'publicationState', 'CANDIDATE'
+        )
+      )
+    ).*
+    FROM "CanonicalResourceBindingDecision" source
+    WHERE source."id" = 'postgres-published'
+  `), /review_provider_check/u);
+  await assert.rejects(db.$executeRawUnsafe(`
+    INSERT INTO "CanonicalResourceBindingDecision"
+    SELECT (
+      jsonb_populate_record(
+        NULL::"CanonicalResourceBindingDecision",
+        to_jsonb(source) || jsonb_build_object(
           'id', 'postgres-partial-crosswalk-capture',
           'pairId', 'postgres-partial-crosswalk-capture-pair',
           'publicationState', 'CANDIDATE',

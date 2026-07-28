@@ -516,6 +516,38 @@ describe('incremental candidate and review pipeline', () => {
     });
   });
 
+  it('fails closed when the reviewer adapter returns an unknown provider', async () => {
+    const row = candidate();
+    const generated = generatorDecision(row, {
+      proposedRole: 'EXPLAINS',
+      evidenceDigest: sha256('evidence'),
+      evidenceIds: ['evidence'],
+      highImpactReasons: [],
+    });
+    const decision = await runIndependentReview({
+      candidate: row,
+      generatorDecision: generated,
+      canonicalProfile: {
+        canonicalId: 'canonical',
+        canonicalType: 'DomainConcept',
+        semanticProfile: 'profile',
+      },
+      resourceSegment: {
+        structuralUnitId: 'structural-unit',
+        segmentId: 'segment',
+        contentHash: segmentHash,
+        content: 'segment',
+      },
+      reviewerPromptVersion: 'reviewer-v1',
+      review: async () => ({ outcome: 'ACCEPT', provider: 'UNKNOWN' }) as never,
+    });
+    expect(decision).toMatchObject({
+      reviewProvider: 'GPT',
+      reviewState: 'REVIEW_RETRYABLE',
+      publicationState: 'REVIEW_RETRYABLE',
+    });
+  });
+
   it('invalidates only changed resource hashes', () => {
     const unchanged = acceptedDecision();
     const other = acceptedDecision({
@@ -639,7 +671,12 @@ describe('publication, human, and authority gates', () => {
       positiveSignals: { published: true },
       dispositionDeclared: true,
     })]);
-    const first = acceptedDecision({ publicationState: 'SHADOW_PUBLISHED' });
+    const first = acceptedDecision({
+      publicationState: 'SHADOW_PUBLISHED',
+      inventoryRunId: inventory.runId,
+      captureRevision: inventory.captureRevision,
+      structuralUnitVersion: inventory.captureRevision,
+    });
     const second = acceptedDecision({
       id: 'second',
       pairId: 'other-canonical-pair',
@@ -671,11 +708,19 @@ describe('publication, human, and authority gates', () => {
       positiveSignals: { published: true },
       dispositionDeclared: true,
     })]);
-    const published = acceptedDecision({ publicationState: 'SHADOW_PUBLISHED' });
+    const published = acceptedDecision({
+      publicationState: 'SHADOW_PUBLISHED',
+      inventoryRunId: inventory.runId,
+      captureRevision: inventory.captureRevision,
+      structuralUnitVersion: inventory.captureRevision,
+    });
     const unpublished = (overrides: Partial<CanonicalResourceBindingDecision>) => acceptedDecision({
       id: `unpublished-${overrides.reviewState}`,
       pairId: `unpublished-pair-${overrides.reviewState}`,
       canonicalId: `unpublished-canonical-${overrides.reviewState}`,
+      inventoryRunId: inventory.runId,
+      captureRevision: inventory.captureRevision,
+      structuralUnitVersion: inventory.captureRevision,
       ...overrides,
     });
 
@@ -723,6 +768,47 @@ describe('publication, human, and authority gates', () => {
     }).blockers).toContainEqual({
       atomicResourceId: 'TeachingResource:resource',
       code: 'fixture-review',
+    });
+  });
+
+  it('requires readiness decisions to bind the current inventory capture', () => {
+    const currentInventory = buildResourceBindingInventory([observation('resource', {
+      resourceId: 'resource',
+      structuralUnitId: 'structural-unit',
+      segmentId: 'segment',
+      positiveSignals: { published: true },
+      dispositionDeclared: true,
+    })]);
+    const currentDecision = acceptedDecision({
+      publicationState: 'SHADOW_PUBLISHED',
+      inventoryRunId: currentInventory.runId,
+      captureRevision: currentInventory.captureRevision,
+      structuralUnitVersion: currentInventory.captureRevision,
+    });
+    expect(evaluateCanonicalResourceCutoverReadiness({
+      inventory: currentInventory,
+      decisions: [currentDecision],
+    }).ready).toBe(true);
+
+    const nextInventory = buildResourceBindingInventory([observation('resource', {
+      captureRevision: 'b'.repeat(40),
+      resourceId: 'resource',
+      structuralUnitId: 'structural-unit',
+      segmentId: 'segment',
+      positiveSignals: { published: true },
+      dispositionDeclared: true,
+    })]);
+    expect(nextInventory.items[0]?.resourceSegmentHash)
+      .toBe(currentInventory.items[0]?.resourceSegmentHash);
+    expect(evaluateCanonicalResourceCutoverReadiness({
+      inventory: nextInventory,
+      decisions: [currentDecision],
+    })).toMatchObject({
+      ready: false,
+      blockers: [{
+        atomicResourceId: 'TeachingResource:resource',
+        code: 'binding-missing',
+      }],
     });
   });
 
