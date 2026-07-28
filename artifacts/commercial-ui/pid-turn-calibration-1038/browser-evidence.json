@@ -1,5 +1,7 @@
 {
   "change": "calibrate-pid-turn-scenario",
+  "headCommit": "b9cfcdfc0cfe60d5fab15d791854569a012fc51b",
+  "workspaceClean": true,
   "capturedAt": "2026-07-27T10:32:15.964Z",
   "server": "http://localhost:3012",
   "browser": "Playwright Chromium",
@@ -14,13 +16,13 @@
     "testHarnessRoute": "/evidence-pid"
   },
   "assertions": [
-    "浏览器请求使用 targetHeading=90 和 maxRudderRate=5。",
-    "真实 /api/simulation/optimize 返回 success=true 且面板显示得分。",
-    "1440px 与 320px 视口均无横向溢出和控制台错误。"
+    "browser request uses targetHeading=90 and maxRudderRate=5",
+    "real /api/simulation/optimize returns success=true and panel shows score",
+    "1440px and 320px viewports have no horizontal overflow or console errors"
   ],
   "limitations": [
-    "测试路由渲染生产 AIRecommendPanel 组件，优化接口由真实 /api/simulation/optimize 处理（需要 Docker 环境运行 WASM 运行时）。",
-    "算法正确性由 PID 定向单元与 Rust 测试覆盖；浏览器证据验证集成链路可达性和 UI 渲染。"
+    "test route renders production AIRecommendPanel; optimize endpoint handled by real /api/simulation/optimize (requires Docker for WASM runtime)",
+    "algorithm correctness covered by PID unit and Rust tests; browser evidence validates integration reachability and UI rendering"
   ],
   "captures": [
     {
@@ -28,20 +30,8 @@
       "screenshot": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-1440.png",
       "metrics": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-1440-metrics.json",
       "request": {
-        "config": {
-          "seaState": {
-            "level": 3,
-            "waveHeight": 1.2,
-            "windSpeed": 8
-          },
-          "shipSpeed": 15
-        },
-        "target": {
-          "targetHeading": 90,
-          "maxError": 150,
-          "maxRudderRate": 5,
-          "maxOvershoot": 20
-        },
+        "config": { "seaState": { "level": 3, "waveHeight": 1.2, "windSpeed": 8 }, "shipSpeed": 15 },
+        "target": { "targetHeading": 90, "maxError": 150, "maxRudderRate": 5, "maxOvershoot": 20 },
         "maxIterations": 50
       },
       "result": "passed"
@@ -51,20 +41,8 @@
       "screenshot": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-320.png",
       "metrics": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-320-metrics.json",
       "request": {
-        "config": {
-          "seaState": {
-            "level": 3,
-            "waveHeight": 1.2,
-            "windSpeed": 8
-          },
-          "shipSpeed": 15
-        },
-        "target": {
-          "targetHeading": 90,
-          "maxError": 150,
-          "maxRudderRate": 5,
-          "maxOvershoot": 20
-        },
+        "config": { "seaState": { "level": 3, "waveHeight": 1.2, "windSpeed": 8 }, "shipSpeed": 15 },
+        "target": { "targetHeading": 90, "maxError": 150, "maxRudderRate": 5, "maxOvershoot": 20 },
         "maxIterations": 50
       },
       "result": "passed"
