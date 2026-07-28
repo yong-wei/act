@@ -3126,6 +3126,7 @@ function buildConfigurationFulfillment(
   const selectedTypes = new Set(mainPath.map((node) => node.type));
   const selectedReasons = new Set(mainPath.flatMap((node) => node.reasonCodes));
   const checkpointCount = mainPath.filter((node) => node.checkpoint || node.type === 'checkpoint').length;
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
   const fulfillmentByKey = new Map<AdaptiveLearningPathConfigurationKey, AdaptiveLearningPathConfigurationFulfillment>();
 
   for (const request of requests) {
@@ -3145,9 +3146,20 @@ function buildConfigurationFulfillment(
       message = fulfilled ? effect : '当前目标和约束下无法满足所选学习节奏。';
     } else if (request.key === 'checkpoint-preference') {
       const preference = typeof request.value === 'string' ? request.value : 'standard';
-      fulfilled = preference === 'dense' ? checkpointCount >= 2 : mainPath.length > 0;
-      effect = fulfilled ? '已按所选检查点密度编排路径。' : '可用检查点不足以满足所选密度。';
-      message = fulfilled ? effect : '当前资源不足以满足所选检查点密度。';
+      const requiredCheckpoints = registeredGoal?.checkpointPolicy.minCheckpoints ?? 0;
+      if (preference === 'dense') {
+        fulfilled = checkpointCount >= Math.max(requiredCheckpoints, 2);
+        effect = fulfilled ? '已按所选检查点密度编排路径。' : '可用检查点不足以满足所选密度。';
+        message = fulfilled ? effect : '当前资源不足以满足所选检查点密度。';
+      } else if (preference === 'light') {
+        fulfilled = requiredCheckpoints <= 1;
+        effect = fulfilled ? '已按所选检查点密度编排路径。' : '目标要求的必需检查点数量高于轻量设置。';
+        message = fulfilled ? effect : '当前目标要求保留更多必需检查点，因此未按轻量设置减少检查点。';
+      } else {
+        fulfilled = mainPath.length > 0;
+        effect = fulfilled ? '已按所选检查点密度编排路径。' : '可用检查点不足以满足所选密度。';
+        message = fulfilled ? effect : '当前资源不足以满足所选检查点密度。';
+      }
     } else if (request.key === 'external-resources') {
       const allowed = request.value === true;
       fulfilled = allowed || !mainPath.some((node) => node.type === 'external_resource');
@@ -3241,14 +3253,14 @@ function configurationSelectionPriority(
   return priority;
 }
 
-function requiredCheckpointCountForPreference(
+export function requiredCheckpointCountForPreference(
   registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
   preferenceContext: AdaptiveLearningPathPreferenceContext,
 ): number {
   const required = registeredGoal?.checkpointPolicy.minCheckpoints ?? 0;
   if (!preferenceContext.usesExplicitCheckpointPreference) return required;
   if (preferenceContext.checkpointPreference === 'dense') return Math.max(required, 2);
-  if (preferenceContext.checkpointPreference === 'light') return Math.min(required, 1);
+  if (preferenceContext.checkpointPreference === 'light') return required;
   return required;
 }
 

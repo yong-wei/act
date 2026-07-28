@@ -9,6 +9,7 @@ import {
   listLearningGoals,
   normalizeLearningPathPayloadLearningGoal,
   recordLearningPathFeedback,
+  requiredCheckpointCountForPreference,
   serializeLearningPathPlan,
   validateLearningGoal,
   validateLearningGoalCatalog,
@@ -2963,6 +2964,25 @@ describe('adaptive learning path planner', () => {
     expect(denseCheckpoint.explanations.configurationFulfillment).toContainEqual(
       expect.objectContaining({ key: 'checkpoint-preference', status: 'unmet' }),
     );
+  });
+
+  it('does not let a light checkpoint preference lower the registered minimum checkpoint count', () => {
+    const registeredGoal = {
+      ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'],
+      checkpointPolicy: {
+        ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].checkpointPolicy,
+        minCheckpoints: 3,
+      },
+    };
+
+    expect(requiredCheckpointCountForPreference(registeredGoal, {
+      resourceTypes: new Set(),
+      difficultyRhythm: 'steady',
+      checkpointPreference: 'light',
+      usesExplicitResourcePreferences: false,
+      usesExplicitDifficultyRhythm: false,
+      usesExplicitCheckpointPreference: true,
+    })).toBe(3);
   });
 
   it('marks mapped free-text intent unmet when its mapped resource cannot be selected', () => {
