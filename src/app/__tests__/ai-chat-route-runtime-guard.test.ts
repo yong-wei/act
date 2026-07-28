@@ -387,6 +387,12 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('status: error.status');
   });
 
+  it('preserves adaptive attempt context errors across both chat entry points', () => {
+    expect(chatRouteSource).toContain('error instanceof KonlingAdaptiveAttemptContextError');
+    expect(sessionMessagesRouteSource).toContain('error instanceof KonlingAdaptiveAttemptContextError');
+    expect(sessionMessagesRouteSource).toContain('return NextResponse.json({ error: error.message }, { status: error.status })');
+  });
+
   it('hides the public simulation AI companion entry when no user is authenticated', () => {
     expect(aiCompanionPanelSource).toContain('useSession');
     expect(aiCompanionPanelSource).toContain("authStatus !== 'authenticated'");

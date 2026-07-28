@@ -860,7 +860,8 @@ describe('submitAnswerDurably', () => {
           contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         },
       },
-      update: expect.objectContaining({
+      update: {},
+      create: expect.objectContaining({
         metadata: expect.objectContaining({
           kaq: expect.objectContaining({
             immutableContentHash: expect.any(String),
@@ -869,9 +870,29 @@ describe('submitAnswerDurably', () => {
             catalogBacked: expect.any(Boolean),
             snapshotVersion: 'adaptive-assessment-item-ref.v1',
           }),
+          questionSnapshot: {
+            version: 'adaptive-question-snapshot.v1',
+            prompt: question.stem,
+            options: question.options.map((option, index) => ({
+              key: String.fromCharCode(65 + index),
+              label: option.label,
+              text: option.text,
+              explanation: option.explanation,
+            })),
+            correctOptionKey: String.fromCharCode(65 + question.options.findIndex((option) => option.isCorrect)),
+            explanation: question.options.find((option) => option.isCorrect)?.explanation,
+            knowledgeTags: question.knowledgeTags,
+            misconceptionTags: expect.any(Array),
+            remediationResources: expect.arrayContaining([
+              expect.objectContaining({
+                id: expect.any(String),
+                title: expect.any(String),
+                href: expect.stringMatching(/^\/learning\/resources\//),
+                governanceState: 'reviewed',
+              }),
+            ]),
+          },
         }),
-      }),
-      create: expect.objectContaining({
         contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         questionType: question.type,
         domains: question.domains,

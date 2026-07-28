@@ -1507,7 +1507,12 @@ export default function AdaptivePracticePage() {
   const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';
   const feedbackGenericPathGenerationHref = withFeedbackTaskHref(genericPathGenerationHref);
   const entryIntents = getCommercialStudentEntryIntentGroups();
-  const { assistantEntryPoint, openAssistantEntryPoint, updatePageContext } = useGlobalAI();
+  const {
+    assistantEntryPoint,
+    openAssistantEntryPoint,
+    startAssistantConversation,
+    updatePageContext,
+  } = useGlobalAI();
   const searchParamsKey = searchParams.toString();
   const restoredPathGenerationPanel = useMemo(
     () => pathGenerationPanelFromSearchParams(new URLSearchParams(searchParamsKey), activeGoal),
@@ -1524,6 +1529,8 @@ export default function AdaptivePracticePage() {
   const [questionState, setQuestionState] = useState<NextQuestionResponse | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [feedback, setFeedback] = useState<SubmitAnswerResponse | null>(null);
+  const [attemptDiagnosisState, setAttemptDiagnosisState] = useState<'idle' | 'pending' | 'error'>('idle');
+  const [pathAdvisorAssistantEntryPoint, setPathAdvisorAssistantEntryPoint] = useState<NonNullable<typeof assistantEntryPoint> | null>(null);
   const [loading, setLoading] = useState(false);
   const [questionStartAt, setQuestionStartAt] = useState<number>(Date.now());
   const [error, setError] = useState<string | null>(null);
@@ -1642,8 +1649,8 @@ export default function AdaptivePracticePage() {
     : evidenceReadiness?.status === 'degraded'
       ? evidenceReadiness
       : null;
-  const hasPathAdvisorModeContext = assistantEntryPoint?.mode === 'path-advisor' &&
-    Boolean(assistantEntryPoint.serverContext.modeContextToken);
+  const hasPathAdvisorModeContext = pathAdvisorAssistantEntryPoint?.mode === 'path-advisor' &&
+    Boolean(pathAdvisorAssistantEntryPoint.serverContext.modeContextToken);
   const canRetryPathGeneration = pathGenerationReadiness.status === 'retryable' &&
     pathAdvisorReadiness?.status === 'retryable' &&
     !pathGenerationDegradedReadiness &&
@@ -1822,13 +1829,14 @@ export default function AdaptivePracticePage() {
   }, []);
 
   const openPathGenerationAdvisor = useCallback(() => {
-    if (!assistantEntryPoint || assistantEntryPoint.mode !== 'path-advisor') return;
-    openAssistantEntryPoint(assistantEntryPoint);
-  }, [assistantEntryPoint, openAssistantEntryPoint]);
+    if (!pathAdvisorAssistantEntryPoint) return;
+    openAssistantEntryPoint(pathAdvisorAssistantEntryPoint);
+  }, [openAssistantEntryPoint, pathAdvisorAssistantEntryPoint]);
 
   useEffect(() => {
     if (!pathAdvisorContextGoal || isDemoMode) {
       updatePageContext({ assistantEntryPoint: null });
+      setPathAdvisorAssistantEntryPoint(null);
       setPathAdvisorReadiness(null);
       return;
     }
@@ -1838,6 +1846,7 @@ export default function AdaptivePracticePage() {
 
     if (authStatus !== 'authenticated') {
       updatePageContext({ assistantEntryPoint: null });
+      setPathAdvisorAssistantEntryPoint(null);
       setPathAdvisorReadiness(null);
       return;
     }
@@ -1852,6 +1861,7 @@ export default function AdaptivePracticePage() {
           const payload = await response.json().catch(() => ({}));
           if (!cancelled) {
             updatePageContext({ assistantEntryPoint: null });
+            setPathAdvisorAssistantEntryPoint(null);
             setPathAdvisorReadiness(readAdaptiveGenerationReadiness(payload) ?? adaptiveGenerationReadinessFromHttp({
               status: response.status,
               source: 'path-advisor',
@@ -1863,6 +1873,19 @@ export default function AdaptivePracticePage() {
         const payload = (await response.json()) as PathAdvisorContextResponse;
         if (cancelled) return;
         setPathAdvisorReadiness(payload.readiness ?? buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor' }));
+        const pathAdvisorEntryPoint = {
+          mode: 'path-advisor' as const,
+          promptContext: `student-path-center:${payload.goalId}:adaptive-path-center`,
+          serverContext: {
+            classId: payload.classId,
+            courseId: payload.goalId,
+            goalId: payload.goalId,
+            ...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {}),
+            pageId: 'adaptive-path-center',
+            modeContextToken: payload.modeContextToken,
+          },
+        };
+        setPathAdvisorAssistantEntryPoint(pathAdvisorEntryPoint);
         updatePageContext({
           pageType: 'practice',
           stepId: 'adaptive-path-center',
@@ -1884,22 +1907,12 @@ export default function AdaptivePracticePage() {
               question: `我希望在 90 分钟内完成${payload.courseTitle}的关键补强，请调整学习路径。`,
             },
           ],
-          assistantEntryPoint: {
-            mode: 'path-advisor',
-            promptContext: `student-path-center:${payload.goalId}:adaptive-path-center`,
-            serverContext: {
-              classId: payload.classId,
-              courseId: payload.goalId,
-              goalId: payload.goalId,
-              ...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {}),
-              pageId: 'adaptive-path-center',
-              modeContextToken: payload.modeContextToken,
-            },
-          },
+          assistantEntryPoint: pathAdvisorEntryPoint,
         });
       } catch {
         if (!cancelled) {
           updatePageContext({ assistantEntryPoint: null });
+          setPathAdvisorAssistantEntryPoint(null);
           setPathAdvisorReadiness(buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'path-advisor' }));
         }
       }
@@ -1909,6 +1922,7 @@ export default function AdaptivePracticePage() {
     return () => {
       cancelled = true;
       updatePageContext({ assistantEntryPoint: null });
+      setPathAdvisorAssistantEntryPoint(null);
     };
   }, [activeGraphNodeId, authStatus, isDemoMode, pathAdvisorContextGoal, updatePageContext]);
 
@@ -2728,6 +2742,22 @@ export default function AdaptivePracticePage() {
     }
   }, [loadNextQuestion]);
 
+  const requestAttemptDiagnosis = useCallback(async () => {
+    if (!feedback?.durableAnswerId || attemptDiagnosisState === 'pending') return;
+    setAttemptDiagnosisState('pending');
+    const entryPoint = {
+      mode: 'diagnosis-explainer' as const,
+      promptContext: 'adaptive-attempt',
+      serverContext: { answerId: feedback.durableAnswerId },
+    };
+    try {
+      await startAssistantConversation(entryPoint, '请解析本题');
+      setAttemptDiagnosisState('idle');
+    } catch {
+      setAttemptDiagnosisState('error');
+    }
+  }, [attemptDiagnosisState, feedback?.durableAnswerId, startAssistantConversation]);
+
   useEffect(() => {
     if (isDemoMode) {
       applyDemoScene(demoScene);
@@ -2795,6 +2825,7 @@ export default function AdaptivePracticePage() {
 
       const data = (await response.json()) as SubmitAnswerResponse;
       setFeedback(data);
+      setAttemptDiagnosisState('idle');
       await syncAdaptiveAssessmentPathResult(data);
       await loadDiagnostic();
     } catch (submitError) {
@@ -2940,14 +2971,14 @@ export default function AdaptivePracticePage() {
                   <button
                     type="button"
                     onClick={openPathGenerationAdvisor}
-                    disabled={assistantEntryPoint?.mode !== 'path-advisor' || !canSubmitPathGeneration}
+                    disabled={!canSubmitPathGeneration}
                     data-adaptive-path-generation-action="open-in-page-path-advisor"
                     data-adaptive-generation-readiness-status={pathGenerationDisplayReadiness.status}
                     data-adaptive-generation-readiness-reason={pathGenerationDisplayReadiness.reason}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                   >
                     <Sparkles className="size-4" aria-hidden="true" />
-                    {assistantEntryPoint?.mode === 'path-advisor' && canSubmitPathGeneration ? '请控灵生成路径' : '路径顾问准备中'}
+                    {canSubmitPathGeneration ? '请控灵生成路径' : '路径顾问准备中'}
                   </button>
                 ) : (
                   <Link
@@ -3283,7 +3314,7 @@ export default function AdaptivePracticePage() {
                 <button
                   type="button"
                   onClick={openPathGenerationAdvisor}
-                  disabled={assistantEntryPoint?.mode !== 'path-advisor' || !canSubmitPathGeneration}
+                  disabled={!canSubmitPathGeneration}
                   className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary disabled:opacity-60"
                 >
                   <MessageSquare className="size-4" aria-hidden="true" />
@@ -4240,6 +4271,31 @@ export default function AdaptivePracticePage() {
                         <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3 text-sm">
                           <p className="font-medium text-foreground">{feedback.isCorrect ? '回答正确' : '需要复盘'}</p>
                           <p className="mt-1 leading-6 text-subtle">{feedback.explanation}</p>
+                          {feedback.durableAnswerId ? (
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => void requestAttemptDiagnosis()}
+                                disabled={attemptDiagnosisState === 'pending'}
+                                data-adaptive-attempt-diagnosis-action="open-konling"
+                                className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-60 ${
+                                  feedback.isCorrect ? 'border border-border text-foreground hover:border-primary' : 'bg-primary text-primary-foreground hover:opacity-90'
+                                }`}
+                              >
+                                {attemptDiagnosisState === 'pending' ? (
+                                  <RefreshCw className="size-3.5 animate-spin" aria-hidden="true" />
+                                ) : (
+                                  <MessageSquare className="size-3.5" aria-hidden="true" />
+                                )}
+                                {attemptDiagnosisState === 'pending' ? '正在创建解析对话' : '请控灵解析本题'}
+                              </button>
+                              {attemptDiagnosisState === 'error' ? (
+                                <span className="text-xs text-destructive" role="alert">
+                                  解析请求失败，请重试
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : null}
                         </div>
                       ) : null}
                     </div>

@@ -152,6 +152,7 @@ interface KonlingPromptRuntimeContext {
       };
     } | null;
     smartPreparation?: unknown;
+    adaptiveAttempt?: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext | null;
   };
 }
 
@@ -326,6 +327,18 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     if (mode.mode.id === 'path-advisor') {
       lines.push('  - 路径工具调用边界: 只有用户明确要求生成、重建、重新规划或调整学习路径时，才调用 generate_learning_path 或 revise_learning_path_options。解释失败原因、回顾生成依据、咨询生成条件、推荐当前路径下一步、比较既有方案或查看路径状态时，不得调用路径写入工具；应优先使用 get_learner_state、get_plan_context、recommend_next_action 或 explain_learning_path_tradeoff。');
       lines.push('  - 路径工具参数: 调用 generate_learning_path 或 revise_learning_path_options 时，将用户自然语言约束写入 naturalLanguageIntent，并尽量结构化 timeBudgetMinutes、resourcePreference、difficultyRhythm、checkpointPreference 与 allowExternalResources。');
+    }
+    if (mode.mode.id === 'diagnosis-explainer' && mode.adaptiveAttempt) {
+      const attempt = mode.adaptiveAttempt;
+      lines.push('  - 本题解析事实仅采用以下服务端已验证作答快照，不采信用户消息中的题干、答案或作答历史。');
+      lines.push(`  - 题目: ${attempt.question.prompt}`);
+      lines.push(`  - 选项与权威解析: ${attempt.question.options.map((option) => `${option.key}. ${option.text}（${option.explanation}）`).join('；')}`);
+      lines.push(`  - 学生选择: ${attempt.selectedOptionKey}；正确答案: ${attempt.correctOptionKey}；结果: ${attempt.isCorrect ? '答对' : '答错'}`);
+      lines.push(`  - 系统解析: ${attempt.question.explanation}`);
+      lines.push(`  - 知识标签: ${attempt.question.knowledgeTags.join(', ') || '无'}；误区标签: ${attempt.question.misconceptionTags.join(', ') || '无'}`);
+      lines.push(`  - 本会话最近作答（最多3次）: ${attempt.recentAttempts.map((recent) => `${recent.questionId}:${recent.selectedOptionKey}->${recent.correctOptionKey}:${recent.isCorrect ? '答对' : '答错'}`).join('；') || '无'}`);
+      lines.push('  - 必须完整解释正确答案及各选项；答对时追加一道简短自检题，答错时不追加自检题。');
+      lines.push('  - 本次解释不得写入或推断新的学习事实，不得改变能力值、学习路径或自动调用路径调整工具。');
     }
     if (mode.mode.id === 'prep-coauthor') {
       lines.push(...buildSmartPreparationInstructions(mode.smartPreparation));

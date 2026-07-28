@@ -26,6 +26,7 @@ import {
 } from '@/lib/konling-streaming-citation-fallback';
 import { appendFinalCitationGuardMetadata } from '@/lib/konling-final-citation-metadata-stream';
 import {
+  KonlingAdaptiveAttemptContextError,
   resolveKonlingTeachingAssistantScopeOverride,
   resolveKonlingSmartPrepSessionBinding,
   resolveKonlingTeachingAssistantServerModeContext,
@@ -949,6 +950,12 @@ export async function POST(request: Request) {
       });
     }
     if (error instanceof KonlingRuntimeScopeError) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: error.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (error instanceof KonlingAdaptiveAttemptContextError) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: error.status,
         headers: { 'Content-Type': 'application/json' },

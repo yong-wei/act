@@ -96,6 +96,9 @@ export function GlobalAISidebar() {
     quickQuestions,
     clearUnread,
     pathname,
+    pendingAssistantRequest,
+    completeAssistantRequest,
+    failAssistantRequest,
   } = useGlobalAI();
 
   useEffect(() => {
@@ -223,6 +226,41 @@ export function GlobalAISidebar() {
     },
     onResponse: handleChatResponse,
   });
+
+  const handledAssistantRequestIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!pendingAssistantRequest || handledAssistantRequestIdRef.current === pendingAssistantRequest.id) return;
+    if (assistantEntryPoint !== pendingAssistantRequest.entryPoint) return;
+    handledAssistantRequestIdRef.current = pendingAssistantRequest.id;
+
+    void (async () => {
+      try {
+        const conversation = await createConversation();
+        setMessages([]);
+        await append(
+          { role: 'user', content: pendingAssistantRequest.message },
+          {
+            ...chatBody,
+            conversationId: conversation.id,
+            teachingAssistantModeId: pendingAssistantRequest.entryPoint.mode,
+            modeClientContextHints: pendingAssistantRequest.entryPoint.serverContext,
+          },
+        );
+        completeAssistantRequest(pendingAssistantRequest.id);
+      } catch (cause) {
+        failAssistantRequest(pendingAssistantRequest.id, cause);
+      }
+    })();
+  }, [
+    append,
+    assistantEntryPoint,
+    chatBody,
+    completeAssistantRequest,
+    createConversation,
+    failAssistantRequest,
+    pendingAssistantRequest,
+    setMessages,
+  ]);
 
   useEffect(() => {
     if (!activeConversation || activeConversation.id !== activeConversationId) return;

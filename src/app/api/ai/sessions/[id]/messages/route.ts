@@ -33,6 +33,7 @@ import {
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import {
+  KonlingAdaptiveAttemptContextError,
   resolveKonlingTeachingAssistantScopeOverride,
   resolveKonlingSmartPrepSessionBinding,
   resolveKonlingTeachingAssistantServerModeContext,
@@ -396,6 +397,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     if (error instanceof KonlingRuntimeScopeError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    if (error instanceof KonlingAdaptiveAttemptContextError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     if (error instanceof AIProviderCapabilityUnavailableError) {

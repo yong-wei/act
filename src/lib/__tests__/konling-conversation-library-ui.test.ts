@@ -70,6 +70,15 @@ describe('Konling conversation library UI contracts', () => {
     expect(legacyChatSource).toContain('{ body: { ...bodyRef.current, ...requestBody } }');
   });
 
+  it('creates and sends one-shot assistant requests in a separate conversation', () => {
+    expect(providerSource).toContain('startAssistantConversation');
+    expect(providerSource).toContain('pendingAssistantRequest');
+    expect(sidebarSource).toContain('await createConversation()');
+    expect(sidebarSource).toContain("await append(");
+    expect(sidebarSource).toContain('completeAssistantRequest(pendingAssistantRequest.id)');
+    expect(sidebarSource).toContain('failAssistantRequest(pendingAssistantRequest.id, cause)');
+  });
+
   it('does not restore a stale conversation snapshot when streaming finishes', () => {
     const restoreEffectStart = sidebarSource.indexOf(
       "if (!activeConversation || activeConversation.id !== activeConversationId) return;",
