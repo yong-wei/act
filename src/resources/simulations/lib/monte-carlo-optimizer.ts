@@ -177,28 +177,22 @@ function evaluateWithRustRuntime(
     dt: 0.5,
     start: logic.startPos,
     targetHeadingDeg: target.targetHeading,
-    headingSchedule: logic.headingSchedule.map(({ time, heading }) => ({
-      time,
-      headingDeg: heading,
-    })),
+    targetSwitchTime: 60,
+    headingSchedule: logic.headingSchedule,
     pid: params,
     nomoto: {
       K: simConfig.nomotoK || 0.08,
       T: simConfig.nomotoT || 55,
       speedMps: speed,
       maxRudderDeg: 35,
-      maxRudderRateDegPerSec: 5,
     },
     guidePath,
   });
 }
 
-/** 评估参数组合的得分 */
-export function evaluatePIDParams(
-  params: { kp: number; ki: number; kd: number },
-  simConfig: SimpleSimConfig,
-  target: OptimizationTarget,
-): { score: number; metrics: OptimizationResult['metrics'] };
+/**
+ * 评估参数组合的得分
+ */
 export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
   logic: ScenarioLogic,
@@ -211,7 +205,7 @@ export function evaluatePIDParams(
   simConfigOrTarget: SimpleSimConfig | OptimizationTarget,
   maybeTarget?: OptimizationTarget,
 ): { score: number; metrics: OptimizationResult['metrics'] } {
-  // Resolve overload:3-param legacy vs 4-param calibrated
+  // Resolve overload: 3-param legacy vs 4-param calibrated
   let logic: ScenarioLogic;
   let simConfig: SimpleSimConfig;
   let target: OptimizationTarget;
@@ -248,8 +242,10 @@ export function evaluatePIDParams(
   // Calculate settling time: scan from referenceCompletedAt for sustained heading stability
   const headingTolerance = 5;
   const validationWindow = logic.duration - logic.referenceCompletedAt;
-  const isV1Scenario = logic.runtimeVersion === 'simulation-optimizer-runtime-v1';
-  const unsettledSentinel = isV1Scenario ? logic.duration : validationWindow;
+  // v1 unsettled sentinel = full duration (120s); v2 unsettled sentinel = validation window (90s)
+  const unsettledSentinel = logic.runtimeVersion === 'simulation-optimizer-runtime-v2'
+    ? logic.duration - logic.referenceCompletedAt
+    : logic.duration;
   let settlingTime = unsettledSentinel; // default: not settled within validation window
 
   for (let i = 0; i < result.chartData.time.length; i++) {
@@ -287,11 +283,9 @@ export function evaluatePIDParams(
   }
 
   // 综合得分（加权平均）
-  const score =
-    errorScore * 0.4 +
-    rudderScore * 0.3 +
-    overshootScore * 0.2 +
-    settlingScore * 0.1;
+  const score = Math.round(
+    (errorScore * 0.3 + rudderScore * 0.3 + overshootScore * 0.2 + settlingScore * 0.2) * 10
+  ) / 10;
 
   return {
     score,
