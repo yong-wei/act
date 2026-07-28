@@ -44,13 +44,22 @@ function answer(overrides: Record<string, unknown> = {}) {
 describe('readAdaptiveAttemptContext', () => {
   it('returns the owned attempt and the latest three attempts from the same practice session', async () => {
     const current = answer();
+    const repeatedMisconceptionSnapshot = {
+      ...questionSnapshot,
+      misconceptionTags: ['confuses-low-and-high-frequency', 'misses-system-type'],
+    };
     const db = {
       adaptiveAssessmentAnswer: {
         findFirst: vi.fn().mockResolvedValue(current),
         findMany: vi.fn().mockResolvedValue([
           current,
           answer({ id: 'answer-previous-1', questionId: 'question-2', answeredAt: new Date('2026-07-28T08:02:00.000Z') }),
-          answer({ id: 'answer-previous-2', questionId: 'question-3', answeredAt: new Date('2026-07-28T08:01:00.000Z') }),
+          answer({
+            id: 'answer-previous-2',
+            questionId: 'question-3',
+            answeredAt: new Date('2026-07-28T08:01:00.000Z'),
+            questionRef: { knowledgeTags: [], metadata: { questionSnapshot: repeatedMisconceptionSnapshot } },
+          }),
         ]),
       },
     };
@@ -82,6 +91,11 @@ describe('readAdaptiveAttemptContext', () => {
       'answer-current',
       'answer-previous-1',
       'answer-previous-2',
+    ]);
+    expect(context?.recentAttempts.map((attempt) => attempt.misconceptionTags)).toEqual([
+      ['confuses-low-and-high-frequency'],
+      ['confuses-low-and-high-frequency'],
+      ['confuses-low-and-high-frequency', 'misses-system-type'],
     ]);
   });
 
@@ -115,5 +129,47 @@ describe('readAdaptiveAttemptContext', () => {
       answerId: 'answer-current',
     })).resolves.toBeNull();
     expect(db.adaptiveAssessmentAnswer.findMany).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when any recent attempt has an invalid server snapshot', async () => {
+    const current = answer();
+    const db = {
+      adaptiveAssessmentAnswer: {
+        findFirst: vi.fn().mockResolvedValue(current),
+        findMany: vi.fn().mockResolvedValue([
+          current,
+          answer({ id: 'answer-invalid-history', questionRef: { knowledgeTags: [], metadata: {} } }),
+        ]),
+      },
+    };
+
+    await expect(readAdaptiveAttemptContext({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: 'answer-current',
+    })).resolves.toBeNull();
+  });
+
+  it('fails closed if a recent row escapes the authenticated session scope', async () => {
+    const current = answer();
+    const db = {
+      adaptiveAssessmentAnswer: {
+        findFirst: vi.fn().mockResolvedValue(current),
+        findMany: vi.fn().mockResolvedValue([
+          current,
+          answer({
+            id: 'answer-other-student',
+            userId: 'student-2',
+            session: { id: 'session-db-1', userId: 'student-2', sessionKey: 'practice-session-1' },
+          }),
+        ]),
+      },
+    };
+
+    await expect(readAdaptiveAttemptContext({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: 'answer-current',
+    })).resolves.toBeNull();
   });
 });

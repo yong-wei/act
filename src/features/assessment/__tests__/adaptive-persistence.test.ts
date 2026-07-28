@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import * as adaptiveAssessmentCatalogSelector from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import {
   checkpointAuthoredQuestionRuntimeId,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
@@ -10,6 +11,7 @@ import {
 } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
+import * as resourceRegistryMetadata from '@/lib/resource-registry-metadata';
 import { generateQuestion, getAdaptiveQuestionById } from '../adaptive-engine';
 import {
   getAbilityReportWithPersistenceFallback,
@@ -843,6 +845,36 @@ describe('submitAnswerDurably', () => {
     const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
+    const catalogSnapshot = adaptiveAssessmentCatalogSelector.findAdaptiveAssessmentCatalogSnapshot(question.id);
+    expect(catalogSnapshot).toBeTruthy();
+    const catalogSnapshotSpy = vi.spyOn(adaptiveAssessmentCatalogSelector, 'findAdaptiveAssessmentCatalogSnapshot').mockReturnValue({
+      ...catalogSnapshot!,
+      reviewDecision: {
+        ...catalogSnapshot!.reviewDecision,
+        remediationRefs: [
+          'registry:valid-remediation',
+          'registry:unresolvable-remediation',
+          'registry:missing-render-target',
+        ],
+      },
+    });
+    const resourceMetadataSpy = vi.spyOn(resourceRegistryMetadata, 'getRegisteredResourceMetadata').mockImplementation((id) => {
+      if (id === 'valid-remediation') {
+        return {
+          id,
+          label: 'Canonical remediation title',
+          renderTarget: '/interactive-learning/resources/canonical-remediation',
+        } as ReturnType<typeof resourceRegistryMetadata.getRegisteredResourceMetadata>;
+      }
+      if (id === 'missing-render-target') {
+        return {
+          id,
+          label: 'Resource without target',
+          renderTarget: null,
+        } as ReturnType<typeof resourceRegistryMetadata.getRegisteredResourceMetadata>;
+      }
+      return undefined;
+    });
 
     await submitAnswerDurably({
       userId: 'student-snapshot',
@@ -851,6 +883,8 @@ describe('submitAnswerDurably', () => {
       selectedOption: correctOptionText!,
       timeSpent: 24,
     }, db);
+    catalogSnapshotSpy.mockRestore();
+    resourceMetadataSpy.mockRestore();
 
     expect(db.adaptiveAssessmentItemRef.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: {
@@ -883,14 +917,12 @@ describe('submitAnswerDurably', () => {
             explanation: question.options.find((option) => option.isCorrect)?.explanation,
             knowledgeTags: question.knowledgeTags,
             misconceptionTags: expect.any(Array),
-            remediationResources: expect.arrayContaining([
-              expect.objectContaining({
-                id: expect.any(String),
-                title: expect.any(String),
-                href: expect.stringMatching(/^\/learning\/resources\//),
-                governanceState: 'reviewed',
-              }),
-            ]),
+            remediationResources: [{
+              id: 'registry:valid-remediation',
+              title: 'Canonical remediation title',
+              href: '/interactive-learning/resources/canonical-remediation',
+              governanceState: 'reviewed',
+            }],
           },
         }),
         contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),

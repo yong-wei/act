@@ -52,6 +52,7 @@ import {
   claimKonlingConversationTurn,
   completeKonlingConversationTurn,
   KonlingConversationTurnConflictError,
+  normalizeKonlingConversationAssistantBinding,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
   replaceKonlingConversationAssistantRevision,
@@ -400,6 +401,11 @@ export async function POST(request: Request) {
         scope: authorizedScope,
         clientContextHints: modeClientContextHints,
       });
+      const assistantBinding = normalizeKonlingConversationAssistantBinding({
+        modeId: teachingAssistantModeId,
+        clientContextHints: modeClientContextHints,
+        validatedModeContext: serverModeContext,
+      });
       const smartPrepBinding = resolveKonlingSmartPrepSessionBinding(serverModeContext);
       const runtimeContext = await buildKonlingRuntimeContext(prisma, {
         ...runtimeInput,
@@ -500,6 +506,7 @@ export async function POST(request: Request) {
           ownerUserId: session.user.id,
           currentScope: authorizedScope,
           userMessage: requestedUserMessage,
+          assistantBinding,
         });
         if (!claimedConversationTurn) {
           return new Response(JSON.stringify({ error: 'Conversation not found' }), {

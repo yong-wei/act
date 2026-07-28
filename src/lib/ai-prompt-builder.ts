@@ -336,7 +336,8 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       lines.push(`  - 学生选择: ${attempt.selectedOptionKey}；正确答案: ${attempt.correctOptionKey}；结果: ${attempt.isCorrect ? '答对' : '答错'}`);
       lines.push(`  - 系统解析: ${attempt.question.explanation}`);
       lines.push(`  - 知识标签: ${attempt.question.knowledgeTags.join(', ') || '无'}；误区标签: ${attempt.question.misconceptionTags.join(', ') || '无'}`);
-      lines.push(`  - 本会话最近作答（最多3次）: ${attempt.recentAttempts.map((recent) => `${recent.questionId}:${recent.selectedOptionKey}->${recent.correctOptionKey}:${recent.isCorrect ? '答对' : '答错'}`).join('；') || '无'}`);
+      lines.push(`  - 本会话最近作答（最多3次）: ${attempt.recentAttempts.map((recent) => `${recent.questionId}:${recent.selectedOptionKey}->${recent.correctOptionKey}:${recent.isCorrect ? '答对' : '答错'}:误区=${recent.misconceptionTags.join(',') || '无'}`).join('；') || '无'}`);
+      lines.push(`  - 已审核补救资源: ${attempt.question.remediationResources.map((resource) => `${resource.title}（${resource.href}）`).join('；') || '无'}`);
       lines.push('  - 必须完整解释正确答案及各选项；答对时追加一道简短自检题，答错时不追加自检题。');
       lines.push('  - 本次解释不得写入或推断新的学习事实，不得改变能力值、学习路径或自动调用路径调整工具。');
     }

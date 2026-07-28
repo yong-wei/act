@@ -26,6 +26,7 @@ export interface AdaptiveAttemptContextItem {
   correctOptionKey: string;
   isCorrect: boolean;
   answeredAt: string;
+  misconceptionTags: string[];
 }
 
 export interface AdaptiveAttemptContext extends AdaptiveAttemptContextItem {
@@ -125,7 +126,10 @@ function parseQuestionSnapshot(value: unknown): AdaptiveAttemptQuestionSnapshot 
   };
 }
 
-function toContextItem(answer: AdaptiveAttemptAnswerRow): AdaptiveAttemptContextItem {
+function toContextItem(
+  answer: AdaptiveAttemptAnswerRow,
+  question: AdaptiveAttemptQuestionSnapshot,
+): AdaptiveAttemptContextItem {
   return {
     answerId: answer.id,
     questionId: answer.questionId,
@@ -133,6 +137,7 @@ function toContextItem(answer: AdaptiveAttemptAnswerRow): AdaptiveAttemptContext
     correctOptionKey: answer.correctOptionKey,
     isCorrect: answer.isCorrect,
     answeredAt: answer.answeredAt.toISOString(),
+    misconceptionTags: question.misconceptionTags,
   };
 }
 
@@ -167,10 +172,27 @@ export async function readAdaptiveAttemptContext(input: {
     take: 3,
   });
 
+  const recentAttempts = recent.flatMap((answer) => {
+    if (
+      answer.userId !== input.authenticatedUserId ||
+      answer.sessionId !== current.sessionId ||
+      answer.session.userId !== input.authenticatedUserId ||
+      answer.session.id !== current.sessionId
+    ) {
+      return [];
+    }
+    const recentMetadata = record(answer.questionRef.metadata);
+    const recentQuestion = parseQuestionSnapshot(recentMetadata?.questionSnapshot);
+    return recentQuestion && recentQuestion.correctOptionKey === answer.correctOptionKey
+      ? [toContextItem(answer, recentQuestion)]
+      : [];
+  });
+  if (recentAttempts.length !== recent.length) return null;
+
   return {
-    ...toContextItem(current),
+    ...toContextItem(current, question),
     sessionKey: current.session.sessionKey,
     question,
-    recentAttempts: recent.map(toContextItem),
+    recentAttempts,
   };
 }

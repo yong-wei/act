@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { getRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
@@ -265,6 +266,20 @@ function buildAdaptiveQuestionSnapshot(
   catalogSnapshot: AdaptiveAssessmentCatalogSnapshot | null,
 ) {
   const correctOption = details.question.options.find((option) => option.isCorrect);
+  const remediationResources = catalogSnapshot?.reviewDecision.outcome === 'approved'
+    ? catalogSnapshot.reviewDecision.remediationRefs.flatMap((id) => {
+        const resource = getRegisteredResourceMetadata(id.replace(/^registry:/, ''));
+        const href = resource?.renderTarget;
+        return resource && href
+          ? [{
+              id,
+              title: resource.label,
+              href,
+              governanceState: 'reviewed' as const,
+            }]
+          : [];
+      })
+    : [];
   return {
     version: 'adaptive-question-snapshot.v1' as const,
     prompt: details.question.stem,
@@ -278,14 +293,7 @@ function buildAdaptiveQuestionSnapshot(
     explanation: correctOption?.explanation ?? details.result.explanation,
     knowledgeTags: [...details.question.knowledgeTags],
     misconceptionTags: [...kaqMetadata.misconceptionTags],
-    remediationResources: catalogSnapshot?.reviewDecision.outcome === 'approved'
-      ? catalogSnapshot.reviewDecision.remediationRefs.map((id) => ({
-          id,
-          title: id,
-          href: `/learning/resources/${encodeURIComponent(id)}`,
-          governanceState: 'reviewed' as const,
-        }))
-      : [],
+    remediationResources,
   };
 }
 

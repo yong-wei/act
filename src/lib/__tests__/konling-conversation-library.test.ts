@@ -6,11 +6,13 @@ import {
   createKonlingContextEvent,
   createKonlingMessageId,
   deriveKonlingConversationTitle,
+  normalizeKonlingConversationAssistantBinding,
   KonlingConversationTurnConflictError,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
   replaceKonlingConversationAssistantRevision,
   resolveKonlingContextEventScope,
+  serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
 
 const now = new Date('2026-07-26T00:00:00.000Z');
@@ -67,6 +69,79 @@ function statefulConversationDb(initial = conversation()) {
 }
 
 describe('Konling conversation library', () => {
+  it('restores a persisted diagnosis binding in a new client', () => {
+    const binding = normalizeKonlingConversationAssistantBinding({
+      modeId: 'diagnosis-explainer',
+      clientContextHints: { answerId: 'answer-1102', forged: 'discard-me' },
+    });
+    const prepared = prepareKonlingConversationTurn({
+      conversation: conversation(),
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-1', role: 'user', content: '解释这次作答' },
+      assistantBinding: binding,
+    });
+
+    expect(serializeKonlingConversation(conversation({ messages: prepared.modelMessages as never })))
+      .toMatchObject({
+        assistantBinding: {
+          teachingAssistantModeId: 'diagnosis-explainer',
+          modeClientContextHints: { answerId: 'answer-1102' },
+        },
+      });
+  });
+
+  it('does not leak a binding into an ordinary conversation', () => {
+    const diagnosis = prepareKonlingConversationTurn({
+      conversation: conversation(),
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-1', role: 'user', content: '解释' },
+      assistantBinding: normalizeKonlingConversationAssistantBinding({
+        modeId: 'diagnosis-explainer',
+        clientContextHints: { answerId: 'answer-1102' },
+      }),
+    });
+    const ordinary = serializeKonlingConversation(conversation({ id: 'ordinary', messages: [] }));
+
+    expect(serializeKonlingConversation(conversation({ messages: diagnosis.modelMessages as never })).assistantBinding)
+      .not.toBeNull();
+    expect(ordinary.assistantBinding).toBeNull();
+  });
+
+  it('restores only verified, allowlisted path-advisor hints', () => {
+    expect(normalizeKonlingConversationAssistantBinding({
+      modeId: 'path-advisor',
+      clientContextHints: { goalId: 'control-correction', graphNodeId: 'node-1' },
+      validatedModeContext: {},
+    })).toBeNull();
+
+    const binding = normalizeKonlingConversationAssistantBinding({
+      modeId: 'path-advisor',
+      clientContextHints: {
+        goalId: 'control-correction',
+        graphNodeId: 'node-1',
+        modeContextToken: 'signed-token',
+        arbitraryPayload: 'discard-me',
+      },
+      validatedModeContext: { 'student-path-center': true },
+    });
+    const prepared = prepareKonlingConversationTurn({
+      conversation: conversation(),
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-1', role: 'user', content: '规划路径' },
+      assistantBinding: binding,
+    });
+
+    expect(serializeKonlingConversation(conversation({ messages: prepared.modelMessages as never })).assistantBinding)
+      .toEqual({
+        teachingAssistantModeId: 'path-advisor',
+        modeClientContextHints: {
+          goalId: 'control-correction',
+          graphNodeId: 'node-1',
+          modeContextToken: 'signed-token',
+        },
+      });
+  });
+
   it('authorizes smart-prep conversations against the server-owned course basis', async () => {
     const findFirst = vi.fn(async ({ where }) => (
       where.id === 'basis-1' && where.ownerId === 'teacher-1' ? { id: 'basis-1' } : null

@@ -4307,6 +4307,76 @@ describe('konling agent runtime', () => {
     });
   });
 
+  it('grounds diagnosis prompts in canonical remediation resources and per-attempt misconceptions', () => {
+    const adaptiveAttempt = {
+      answerId: 'answer-current',
+      questionId: 'question-current',
+      selectedOptionKey: 'B',
+      correctOptionKey: 'A',
+      isCorrect: false,
+      answeredAt: '2026-07-28T08:03:00.000Z',
+      misconceptionTags: ['confuses-peak-and-settling-time'],
+      sessionKey: 'practice-session-1',
+      question: {
+        version: 'adaptive-question-snapshot.v1' as const,
+        prompt: 'Which response metric is authoritative?',
+        options: [
+          { key: 'A', label: 'Settling time', text: 'Settling time', explanation: 'Uses the final tolerance band.' },
+          { key: 'B', label: 'Peak time', text: 'Peak time', explanation: 'Measures a different event.' },
+        ],
+        correctOptionKey: 'A',
+        explanation: 'Use the final tolerance band.',
+        knowledgeTags: ['time-domain-response'],
+        misconceptionTags: ['confuses-peak-and-settling-time'],
+        remediationResources: [{
+          id: 'registry:semantic-remediation-id',
+          title: 'Canonical response-metrics guide',
+          href: '/interactive-learning/resources/response-metrics-guide',
+          governanceState: 'reviewed' as const,
+        }],
+      },
+      recentAttempts: [
+        {
+          answerId: 'answer-current',
+          questionId: 'question-current',
+          selectedOptionKey: 'B',
+          correctOptionKey: 'A',
+          isCorrect: false,
+          answeredAt: '2026-07-28T08:03:00.000Z',
+          misconceptionTags: ['confuses-peak-and-settling-time'],
+        },
+        {
+          answerId: 'answer-previous',
+          questionId: 'question-previous',
+          selectedOptionKey: 'C',
+          correctOptionKey: 'B',
+          isCorrect: false,
+          answeredAt: '2026-07-28T08:02:00.000Z',
+          misconceptionTags: ['ignores-tolerance-band'],
+        },
+      ],
+    };
+    const runtime = createRuntimeContext();
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'diagnosis-explainer',
+      runtimeContext: runtime,
+      scope: createScope(),
+      serverModeContext: { adaptiveAttempt },
+    });
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: { ...runtime, teachingAssistantMode: modeContract },
+    });
+
+    expect(prompt).toContain('Canonical response-metrics guide');
+    expect(prompt).toContain('/interactive-learning/resources/response-metrics-guide');
+    expect(prompt).toContain('confuses-peak-and-settling-time');
+    expect(prompt).toContain('ignores-tolerance-band');
+    expect(prompt).not.toContain('/interactive-learning/resources/semantic-remediation-id');
+    expect(prompt).not.toContain('registry:semantic-remediation-id');
+  });
+
   it('records missing learner evidence as limited personalization for path advice with content citations', () => {
     const citationContext: KonlingCitationContext = {
       required: true,

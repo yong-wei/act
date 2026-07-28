@@ -4,6 +4,7 @@ import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
 import { isAdaptivePracticeGoalId } from '@/lib/adaptive-path-goal-options';
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import type { Message } from '@/types/ai-message';
+import type { KonlingTeachingAssistantModeId } from '@/lib/konling-agent-runtime';
 
 export const KONLING_DEFAULT_CONVERSATION_TITLE = '新对话';
 export const KONLING_CONVERSATION_TITLE_MAX_LENGTH = 64;
@@ -104,6 +105,28 @@ export interface KonlingContextEventMetadata {
   pathNodeId: string | null;
 }
 
+export interface KonlingConversationAssistantBinding {
+  teachingAssistantModeId: Exclude<KonlingTeachingAssistantModeId, 'generic-chat'>;
+  modeClientContextHints: Record<string, string>;
+}
+
+interface KonlingAssistantBindingEventMetadata extends KonlingConversationAssistantBinding {
+  version: 1;
+}
+
+const KONLING_ASSISTANT_BINDING_HINT_KEYS: Record<
+  Exclude<KonlingTeachingAssistantModeId, 'generic-chat'>,
+  readonly string[]
+> = {
+  'diagnosis-explainer': ['answerId'],
+  'path-advisor': ['classId', 'courseId', 'goalId', 'graphNodeId', 'modeContextToken'],
+  'resource-coach': ['resourceId'],
+  'grading-assistant': ['gradingRunId'],
+  'feedback-explainer': ['gradingRunId'],
+  'class-summarizer': ['goalId', 'classReportId', 'modeContextToken'],
+  'prep-coauthor': ['smartTaskId', 'smartTaskRevision', 'goalId', 'prepPackId', 'modeContextToken'],
+};
+
 export class KonlingConversationTurnConflictError extends Error {
   readonly status = 409;
 
@@ -118,6 +141,7 @@ export function createKonlingMessageId(): string {
 }
 
 export function serializeKonlingConversation(conversation: PersistedConversation) {
+  const messages = conversationMessages(conversation.messages);
   return {
     id: conversation.id,
     userId: conversation.userId,
@@ -128,11 +152,72 @@ export function serializeKonlingConversation(conversation: PersistedConversation
     pinned: Boolean(conversation.pinnedAt),
     pinnedAt: conversation.pinnedAt,
     lastActivityAt: conversation.lastActivityAt,
-    messages: conversationMessages(conversation.messages),
+    messages,
+    assistantBinding: findLatestKonlingAssistantBinding(messages),
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
     expiresAt: conversation.expiresAt,
   };
+}
+
+export function normalizeKonlingConversationAssistantBinding(input: {
+  modeId?: string | null;
+  clientContextHints?: Record<string, unknown> | null;
+  validatedModeContext?: Record<string, unknown> | null;
+}): KonlingConversationAssistantBinding | null {
+  if (!input.modeId || input.modeId === 'generic-chat' || !(input.modeId in KONLING_ASSISTANT_BINDING_HINT_KEYS)) {
+    return null;
+  }
+  if (input.modeId === 'path-advisor' && input.validatedModeContext?.['student-path-center'] !== true) {
+    return null;
+  }
+  const modeId = input.modeId as Exclude<KonlingTeachingAssistantModeId, 'generic-chat'>;
+  const hints = Object.fromEntries(
+    KONLING_ASSISTANT_BINDING_HINT_KEYS[modeId].flatMap((key) => {
+      const value = input.clientContextHints?.[key];
+      return typeof value === 'string' && value.length > 0 && value.length <= 4096
+        ? [[key, value]]
+        : [];
+    }),
+  );
+  return { teachingAssistantModeId: modeId, modeClientContextHints: hints };
+}
+
+export function createKonlingAssistantBindingEvent(
+  binding: KonlingConversationAssistantBinding,
+  id: string = createKonlingMessageId(),
+): Message {
+  const metadata: KonlingAssistantBindingEventMetadata = { version: 1, ...binding };
+  return toLegacyMessage({
+    id,
+    role: 'system',
+    content: `[控灵助手绑定]\nmode=${binding.teachingAssistantModeId}`,
+    metadata: { konlingAssistantBindingEvent: metadata },
+  });
+}
+
+export function findLatestKonlingAssistantBinding(
+  messages: readonly Message[],
+): KonlingConversationAssistantBinding | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const metadata = messages[index].metadata;
+    if (!metadata || typeof metadata !== 'object') continue;
+    const event = (metadata as Record<string, unknown>).konlingAssistantBindingEvent;
+    if (!event || typeof event !== 'object' || Array.isArray(event)) continue;
+    const record = event as Record<string, unknown>;
+    const binding = normalizeKonlingConversationAssistantBinding({
+      modeId: typeof record.teachingAssistantModeId === 'string' ? record.teachingAssistantModeId : null,
+      clientContextHints: record.modeClientContextHints && typeof record.modeClientContextHints === 'object'
+        && !Array.isArray(record.modeClientContextHints)
+        ? record.modeClientContextHints as Record<string, unknown>
+        : null,
+      validatedModeContext: record.teachingAssistantModeId === 'path-advisor'
+        ? { 'student-path-center': true }
+        : null,
+    });
+    if (record.version === 1 && binding) return binding;
+  }
+  return null;
 }
 
 export function buildKonlingContextIdentity(scope: KonlingAuthorizedPageScope): string {
@@ -179,6 +264,7 @@ export function prepareKonlingConversationTurn(input: {
   conversation: Pick<PersistedConversation, 'courseId' | 'pageId' | 'messages'>;
   currentScope: KonlingAuthorizedPageScope;
   userMessage: IncomingMessage;
+  assistantBinding?: KonlingConversationAssistantBinding | null;
 }) {
   const existingMessages = conversationMessages(input.conversation.messages);
   const currentIdentity = buildKonlingContextIdentity(input.currentScope);
@@ -190,8 +276,13 @@ export function prepareKonlingConversationTurn(input: {
   const contextMessage = latestContextIdentity === currentIdentity
     ? null
     : createKonlingContextEvent(input.currentScope);
+  const latestAssistantBinding = findLatestKonlingAssistantBinding(existingMessages);
+  const bindingMessage = input.assistantBinding
+    && JSON.stringify(latestAssistantBinding) !== JSON.stringify(input.assistantBinding)
+    ? createKonlingAssistantBindingEvent(input.assistantBinding)
+    : null;
   const userMessage = toLegacyMessage(input.userMessage);
-  const turnMessages = contextMessage ? [contextMessage, userMessage] : [userMessage];
+  const turnMessages = [contextMessage, bindingMessage, userMessage].filter(Boolean) as Message[];
 
   return {
     existingMessages,
@@ -208,6 +299,7 @@ export async function claimKonlingConversationTurn(
     ownerUserId: string;
     currentScope: KonlingAuthorizedPageScope;
     userMessage: IncomingMessage;
+    assistantBinding?: KonlingConversationAssistantBinding | null;
     now?: Date;
   },
 ) {
@@ -245,6 +337,7 @@ export async function claimKonlingConversationTurn(
       },
       currentScope: input.currentScope,
       userMessage: tagKonlingTurnMessage({ ...userMessage, id: turnId }, turnId),
+      assistantBinding: input.assistantBinding,
     });
     const turnMessages = preparedTurn.turnMessages.map((message) =>
       tagKonlingTurnMessage(message, turnId)
