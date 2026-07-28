@@ -6,6 +6,15 @@ import path from 'node:path';
 import type { Prisma, PrismaClient } from '@prisma/client';
 import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
 
+// Historical CTKG 0.1 adapter. This module validates and imports only the
+// immutable `root-locus-engineering-v0.1` package against its preserved
+// historical ReleaseSet lock fixture. It serves historical reads and
+// regression fixtures (including the legacy CourseCoverage overlay chain) and
+// MUST NOT admit new candidates; the current aggregate candidate contract
+// lives in `./ctkg-0-2-aggregate-release`.
+export const HISTORICAL_RELEASE_SET_LOCK_PATH =
+  'scripts/actkg-release/fixtures/release-set-lock-root-locus-engineering-v0.1.json';
+
 const OUTER_KEYS = [
   'authority',
   'canonical_nodes',
@@ -341,7 +350,7 @@ function resolveCaptureRevision(root: string): string {
   const tracked = spawnSync('git', [
     'ls-files',
     '--error-unmatch',
-    'course-content/authoring/knowledge/releases/release-set.lock.json',
+    HISTORICAL_RELEASE_SET_LOCK_PATH,
     'course-content/authoring/knowledge/releases/root-locus-engineering-v0.1/root-locus-engineering-v0.1.json',
     'course-content/authoring/knowledge/releases/root-locus-engineering-v0.1/ctkg.schema.json',
     'course-content/authoring/knowledge/releases/root-locus-engineering-v0.1/RELEASE-NOTES.md',
@@ -492,7 +501,7 @@ export async function loadAndValidateRelease(options: {
   captureRevision?: string;
 } = {}): Promise<ValidatedRelease> {
   const root = path.resolve(options.root ?? process.cwd());
-  const lockPath = path.join(root, 'course-content/authoring/knowledge/releases/release-set.lock.json');
+  const lockPath = path.join(root, HISTORICAL_RELEASE_SET_LOCK_PATH);
   const lockBytes = await readFile(lockPath);
   const lock = object(JSON.parse(lockBytes.toString('utf8')), 'release-set lock') as unknown as ReleaseSetLock;
   if (lock.lock_version !== 'actkg-release-set-lock/v1' || !Array.isArray(lock.releases)) fail('unsupported ReleaseSet lock');

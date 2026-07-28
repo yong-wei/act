@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock('next-auth', () => ({ getServerSession: mocks.getServerSession }));
 vi.mock('@/lib/auth', () => ({ authOptions: {} }));
 vi.mock('@/lib/authoritative-knowledge', () => ({
+  CURRENT_AGGREGATE_RELEASE_SET_ID: 'actkg-authoritative-candidate-v2',
+  CURRENT_AGGREGATE_RELEASE_ID: 'control-theory-engineering-v0.2',
   AuthoritativeKnowledgeProjectionService: class {
     canvas = mocks.canvas;
     nodeDetail = mocks.nodeDetail;
@@ -24,8 +26,8 @@ const originalKonlingAcceptance = process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_KONL
 
 function activateCandidateRelease() {
   process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_PUBLIC_ACTIVATION = 'true';
-  process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID = 'actkg-authoritative-candidate-v1';
-  process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID = 'actkg-authoritative-candidate-v1';
+  process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_V2_ACCEPTED_RELEASE_SET_ID = 'actkg-authoritative-candidate-v2';
+  process.env.AUTHORITATIVE_KNOWLEDGE_GRAPH_KONLING_ACCEPTED_RELEASE_SET_ID = 'actkg-authoritative-candidate-v2';
 }
 
 function session(role: string) {
@@ -44,8 +46,8 @@ function availableProjection(role?: string) {
       : {
           projectionVersion: 'act.canvas.v2',
           source: {
-            releaseSetId: 'actkg-authoritative-candidate-v1',
-            releaseId: 'root-locus-engineering-v0.1',
+            releaseSetId: 'actkg-authoritative-candidate-v2',
+            releaseId: 'control-theory-engineering-v0.2',
           },
         },
     diagnostics: [],
@@ -93,8 +95,8 @@ describe('candidate authoritative V2 routes', () => {
     expect(mocks.canvas).toHaveBeenCalledWith(
       {
         authorityState: 'candidate',
-        releaseSetId: 'actkg-authoritative-candidate-v1',
-        releaseId: 'root-locus-engineering-v0.1',
+        releaseSetId: 'actkg-authoritative-candidate-v2',
+        releaseId: 'control-theory-engineering-v0.2',
       },
       expect.objectContaining({
         consumerId: 'candidate-authoritative-knowledge-graph',
@@ -166,8 +168,8 @@ describe('candidate authoritative V2 routes', () => {
     await expect(available.json()).resolves.toMatchObject({ role: 'STUDENT' });
     expect(mocks.nodeDetail).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        releaseSetId: 'actkg-authoritative-candidate-v1',
-        releaseId: 'root-locus-engineering-v0.1',
+        releaseSetId: 'actkg-authoritative-candidate-v2',
+        releaseId: 'control-theory-engineering-v0.2',
       }),
       'STUDENT',
       'node-1',

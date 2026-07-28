@@ -619,6 +619,42 @@ function main() {
     'Prisma 迁移必须包含 InteractionLog.resourceKey 可空变更'
   );
 
+  for (const tableName of [
+    'ActkgReleaseArtifact',
+    'ActkgReleaseComponent',
+    'ActkgReleaseEntry',
+    'ActkgProjectionNode',
+    'ActkgProjectionLink',
+    'ActkgUpstreamRagReference',
+  ]) {
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TABLE "${tableName}"`),
+      `Prisma 迁移必须包含 CTKG 0.2 聚合发布表 ${tableName}`
+    );
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TRIGGER "${tableName}_immutable"`),
+      `Prisma 迁移必须为 ${tableName} 声明 immutable 触发器`
+    );
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TRIGGER "${tableName}_sealed_insert"`),
+      `Prisma 迁移必须为 ${tableName} 声明 sealed_insert 触发器`
+    );
+  }
+
+  assert.match(
+    releaseImportCli,
+    /importValidatedAggregateRelease/u,
+    'Release CLI 必须通过聚合 adapter 导入 CTKG 0.2 发布'
+  );
+  assert.match(
+    releaseImportCli,
+    /reconstructAggregateArtifacts/u,
+    'Release CLI 必须核验聚合公开 artifact 的字节级往返',
+  );
+
   console.log('docker migration readiness test passed');
 }
 

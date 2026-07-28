@@ -276,6 +276,22 @@ export function CandidateAuthoritativeGraph({
   ), [canonicalType, graph.nodes]);
 
   const selectedNode = projection?.nodes.find((node) => node.id === selectedNodeId) ?? null;
+  const selectedRelations = useMemo(() => {
+    if (!projection || !selectedNodeId) return [];
+    return projection.relations
+      .filter((relation) => relation.sourceId === selectedNodeId || relation.targetId === selectedNodeId)
+      .slice(0, 12)
+      .map((relation) => ({
+        relationId: relation.id,
+        predicate: relation.predicate,
+        direction: relation.direction,
+        relationFamily: relation.relationFamily ?? null,
+        evidenceState: relation.evidenceState ?? null,
+        releaseTier: relation.releaseTier ?? null,
+        traversal: (relation.sourceId === selectedNodeId ? 'outgoing' : 'incoming') as 'outgoing' | 'incoming',
+        neighborId: relation.sourceId === selectedNodeId ? relation.targetId : relation.sourceId,
+      }));
+  }, [projection, selectedNodeId]);
   useEffect(() => {
     if (
       requestedCanonicalId
@@ -296,6 +312,11 @@ export function CandidateAuthoritativeGraph({
         coverageStatus: state.status,
         objectCount: projection?.coverage.objectCount ?? null,
         relationCount: projection?.coverage.relationCount ?? null,
+        projectionDigest: projection?.source.projectionDigest ?? null,
+        sourceDatasetHash: projection?.source.sourceDatasetHash ?? null,
+        releaseTier: selectedNode?.releaseTier ?? null,
+        selectedRelations,
+        teachingSemanticsAvailability: 'unavailable',
       },
       tools: [],
       systemPromptExtension: '当前为固定 ReleaseSet 的候选权威图谱。只能使用候选 Canonical 只读工具，不得推断 Legacy 对应项或产生学习状态副作用。',
@@ -305,8 +326,12 @@ export function CandidateAuthoritativeGraph({
     governance,
     projection?.coverage.objectCount,
     projection?.coverage.relationCount,
+    projection?.source.projectionDigest,
+    projection?.source.sourceDatasetHash,
     selectedNode?.canonicalType,
     selectedNode?.id,
+    selectedNode?.releaseTier,
+    selectedRelations,
     state.status,
     updatePageContext,
   ]);
@@ -324,7 +349,7 @@ export function CandidateAuthoritativeGraph({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-base font-semibold">
-                {projection?.release.label ?? '根轨迹局部发布版'}
+                {projection?.release.label ?? '控制理论工程聚合发布版'}
               </h2>
               <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[11px] text-amber-100">
                 候选只读
@@ -340,10 +365,20 @@ export function CandidateAuthoritativeGraph({
                 ? `${projection.source.releaseSetId} · ${projection.source.releaseId} · ${projection.projectionVersion}`
                 : '固定 ReleaseSet 与 Release，由服务端选择。'}
             </p>
+            {projection?.source.projectionDigest ? (
+              <p className="mt-1 break-all text-[11px] text-platform-fg-muted">
+                投影摘要：{projection.source.projectionDigest}
+              </p>
+            ) : null}
           </div>
           {projection ? (
             <div className="text-right text-xs text-platform-fg-secondary">
               <div>真实覆盖：{projection.coverage.objectCount} 对象 · {projection.coverage.relationCount} 关系</div>
+              {typeof projection.coverage.releaseEntryCount === 'number' ? (
+                <div className="mt-1">
+                  发布条目 {projection.coverage.releaseEntryCount} · 核心 {projection.coverage.goldNodeCount ?? 0} · 扩展 {projection.coverage.silverNodeCount ?? 0}
+                </div>
+              ) : null}
               <div className="mt-1 text-amber-200">{projection.teachingSemantics.message}</div>
             </div>
           ) : null}

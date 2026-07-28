@@ -1,5 +1,87 @@
 export type AuthorityState = 'candidate' | 'active' | 'legacy';
 
+// Pinned CTKG 0.2 aggregate identity. The aggregate ReleaseSet is the sole
+// current candidate; every prior ReleaseSet is returned as historical only.
+// Values mirror the ingestion adapter in
+// scripts/actkg-release/ctkg-0-2-aggregate-release.ts and are drift-guarded by
+// the Repository test suite.
+export const CURRENT_AGGREGATE_RELEASE_SET_ID = 'actkg-authoritative-candidate-v2';
+export const CURRENT_AGGREGATE_RELEASE_ID = 'control-theory-engineering-v0.2';
+export const CTKG_0_2_AGGREGATE_PROTOCOL = 'ctkg-0.2-aggregate-engineering-release-v1';
+export const CTKG_0_2_SCHEMA_VERSION = '0.2.0';
+export const HISTORICAL_ROOT_LOCUS_RELEASE_SET_ID = 'actkg-authoritative-candidate-v1';
+
+// Pinned GraphProjection V2 consumer contract vocabularies, vendored from the
+// locked CTKG 0.2.0 Schema (SHA-256
+// 3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de).
+export const CTKG_0_2_PROJECTED_ENTITY_TYPES = [
+  'DomainConcept',
+  'Formula',
+  'KnowledgeStatement',
+  'SystemModel',
+  'ModelRepresentation',
+] as const;
+export const CTKG_0_2_RELATION_TYPES = [
+  'contains',
+  'prerequisite',
+  'association',
+  'part_of',
+  'refers_to',
+  'mentions',
+  'has_representation',
+  'has_component',
+  'has_formula',
+  'derived_from',
+  'applies_to',
+  'used_to_analyze',
+  'is_a',
+] as const;
+export const CTKG_0_2_PROJECTION_DIRECTIONS = [
+  'parent_to_child',
+  'earlier_to_later',
+  'source_to_target',
+  'unordered',
+] as const;
+export const CTKG_0_2_RELATION_FAMILIES = [
+  'domain_semantic',
+  'source_organization',
+  'course_sequence',
+  'resource_alignment',
+] as const;
+
+// Pinned CTKG 0.2 predicate → direction → relation_family contract for the
+// aggregate domain projection. Closed table over the nine predicates carried
+// by the locked bundle: association is unordered, every other predicate is
+// source_to_target, and every link is domain_semantic. A link whose fields are
+// individually legal enum values but whose combination is absent from this
+// table (including Schema-legal predicates outside the nine) violates the
+// contract and must fail closed at both import admission and runtime
+// projection loading.
+export const CTKG_0_2_RELATION_SEMANTIC_CONTRACT = {
+  applies_to: { direction: 'source_to_target', relationFamily: 'domain_semantic' },
+  association: { direction: 'unordered', relationFamily: 'domain_semantic' },
+  derived_from: { direction: 'source_to_target', relationFamily: 'domain_semantic' },
+  has_component: { direction: 'source_to_target', relationFamily: 'domain_semantic' },
+  has_formula: { direction: 'source_to_target', relationFamily: 'domain_semantic' },
+  has_representation: { direction: 'source_to_target', relationFamily: 'domain_semantic' },
+  is_a: { direction: 'source_to_target', relationFamily: 'domain_semantic' },
+  part_of: { direction: 'source_to_target', relationFamily: 'domain_semantic' },
+  used_to_analyze: { direction: 'source_to_target', relationFamily: 'domain_semantic' },
+} as const;
+export const CTKG_0_2_EVIDENCE_STATES = [
+  'available',
+  'unavailable',
+] as const;
+export const CTKG_0_2_RELEASE_TIERS = [
+  'gold',
+  'silver',
+  'support',
+] as const;
+
+export function isAggregateReleaseProtocol(protocol: string): boolean {
+  return protocol === CTKG_0_2_AGGREGATE_PROTOCOL;
+}
+
 export type AuthoritySelector =
   | {
       authorityState: 'candidate';
@@ -61,6 +143,14 @@ export interface AuthoritativeReleaseRecord {
   notesRawHash: string;
   captureRevision: string;
   lockRawHash: string;
+  // CTKG 0.2 aggregate identity. Absent for historical CTKG 0.1 releases.
+  schemaVersion?: string | null;
+  upstreamReleaseId?: string | null;
+  projectionId?: string | null;
+  projectionDigest?: string | null;
+  sourceDatasetHash?: string | null;
+  upstreamPublicationCommit?: string | null;
+  upstreamClosedCommit?: string | null;
 }
 
 export interface AuthoritativeObjectRecord {
@@ -123,12 +213,86 @@ export interface AuthoritativeEvidenceRecord {
   payload: unknown;
 }
 
+// CTKG 0.2 aggregate rows. These mirror public release/projection artifacts;
+// they never reconstruct private CTKGDataset content.
+export interface AuthoritativeReleaseEntryRecord {
+  releaseId: string;
+  entityId: string;
+  ordinal: number;
+  releaseTier: string;
+  entityRole: string;
+  inclusionReason: string;
+  payload: unknown;
+}
+
+export interface AuthoritativeProjectionNodeRecord {
+  releaseId: string;
+  nodeId: string;
+  ordinal: number;
+  entityId: string;
+  entityType: string;
+  displayName: string;
+  releaseTier: string;
+  reviewStatus: string;
+  publicationStatus: string;
+  semanticName: string | null;
+  sourceCoverageCount: number;
+  candidate: boolean;
+  payload: unknown;
+}
+
+export interface AuthoritativeProjectionLinkRecord {
+  releaseId: string;
+  linkId: string;
+  ordinal: number;
+  relationId: string;
+  sourceId: string;
+  targetId: string;
+  relationType: string;
+  relationFamily: string;
+  direction: string;
+  evidenceState: string;
+  payload: unknown;
+}
+
+export interface AuthoritativeUpstreamRagReferenceRecord {
+  releaseId: string;
+  ordinal: number;
+  publishedEntityId: string;
+  retrievalChunkId: string;
+  citationTargetId: string;
+}
+
+export interface AuthoritativeReleaseArtifactRecord {
+  releaseId: string;
+  relativePath: string;
+  ordinal: number;
+  mediaType: string;
+  sha256: string;
+  byteLength: number;
+}
+
+export interface AuthoritativeReleaseComponentRecord {
+  releaseId: string;
+  ordinal: number;
+  componentReleaseId: string;
+  releaseVersion: string;
+  protocol: string;
+  controlledPath: string;
+  releaseHash: string;
+  releaseRawSha256: string;
+  sha256sumsSha256: string;
+  payload: unknown;
+}
+
 export interface AuthoritativeImportReceiptRecord {
   id: string;
   releaseSetId: string;
   releaseId: string;
-  sourceRun: string;
-  sourceImplementationCommit: string;
+  // NULL on aggregate receipts: the public bundle carries no upstream run
+  // identity.
+  sourceRun: string | null;
+  sourceImplementationCommit: string | null;
   captureRevision: string;
   lockRawHash: string;
   ctkgDatasetAvailability: string;
@@ -146,11 +310,29 @@ export interface AuthoritativeImportReceiptRecord {
   evidenceSegmentCount: number;
   candidateState: string;
   importedAt: Date;
+  // CTKG 0.2 aggregate receipt identity and counts. Absent for historical
+  // CTKG 0.1 receipts. Aggregate receipts carry no upstream run identity, so
+  // the persisted sourceRun/sourceImplementationCommit columns are NULL there.
+  schemaVersion?: string | null;
+  upstreamReleaseId?: string | null;
+  projectionId?: string | null;
+  projectionDigest?: string | null;
+  sourceDatasetHash?: string | null;
+  upstreamPublicationCommit?: string | null;
+  upstreamClosedCommit?: string | null;
+  releaseEntryCount?: number | null;
+  projectionNodeCount?: number | null;
+  projectionLinkCount?: number | null;
+  upstreamRagReferenceCount?: number | null;
+  artifactCount?: number | null;
+  componentCount?: number | null;
 }
 
 export interface AuthoritativeKnowledgeSnapshot {
   authorityState: 'candidate';
   productionAuthoritative: false;
+  /** True for every ReleaseSet other than the pinned aggregate ReleaseSet. */
+  historical: boolean;
   releaseSet: AuthoritativeReleaseSetRecord;
   release: AuthoritativeReleaseRecord;
   receipt: AuthoritativeImportReceiptRecord | null;
@@ -159,6 +341,14 @@ export interface AuthoritativeKnowledgeSnapshot {
   sourceMappings: AuthoritativeSourceMappingRecord[];
   sourceObjects: AuthoritativeSourceObjectRecord[];
   evidence: AuthoritativeEvidenceRecord[];
+  // CTKG 0.2 aggregate rows; populated only for pinned aggregate releases,
+  // never mixed with the historical CTKG 0.1 rows above.
+  releaseEntries?: AuthoritativeReleaseEntryRecord[];
+  projectionNodes?: AuthoritativeProjectionNodeRecord[];
+  projectionLinks?: AuthoritativeProjectionLinkRecord[];
+  upstreamRagReferences?: AuthoritativeUpstreamRagReferenceRecord[];
+  releaseArtifacts?: AuthoritativeReleaseArtifactRecord[];
+  releaseComponents?: AuthoritativeReleaseComponentRecord[];
 }
 
 export type RepositoryResult =
@@ -192,6 +382,16 @@ export interface ProjectionIdentity {
   releaseSetId: string;
   releaseId: string;
   productionAuthoritative: false;
+  /** True when the source ReleaseSet is not the pinned aggregate ReleaseSet. */
+  historical: boolean;
+  /** Source release hash (SHA-256) of the imported public release. */
+  releaseHash?: string | null;
+  /** CTKG Schema version of the source release; null for CTKG 0.1 history. */
+  schemaVersion?: string | null;
+  /** GraphProjection V2 version_digest; null for CTKG 0.1 history. */
+  projectionDigest?: string | null;
+  /** Upstream source dataset hash; null for CTKG 0.1 history. */
+  sourceDatasetHash?: string | null;
 }
 
 export interface SemanticSupportMark {

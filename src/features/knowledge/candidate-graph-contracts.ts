@@ -1,12 +1,16 @@
+import {
+  CURRENT_AGGREGATE_RELEASE_ID,
+  CURRENT_AGGREGATE_RELEASE_SET_ID,
+} from '@/lib/authoritative-knowledge/contracts';
 import type {
   CanvasProjection,
   NodeDetailProjection,
-} from '@/lib/authoritative-knowledge';
+} from '@/lib/authoritative-knowledge/projections';
 
 export const CANDIDATE_RELEASE_SELECTOR = {
   authorityState: 'candidate',
-  releaseSetId: 'actkg-authoritative-candidate-v1',
-  releaseId: 'root-locus-engineering-v0.1',
+  releaseSetId: CURRENT_AGGREGATE_RELEASE_SET_ID,
+  releaseId: CURRENT_AGGREGATE_RELEASE_ID,
 } as const;
 
 export const CANDIDATE_GRAPH_SUPPORT = {
@@ -19,11 +23,14 @@ export const CANDIDATE_GRAPH_SUPPORT = {
   ],
   supportedPredicates: [
     'association',
-    'represented_by',
     'applies_to',
     'derived_from',
-    'used_to_analyze',
+    'has_component',
+    'has_formula',
+    'has_representation',
     'is_a',
+    'part_of',
+    'used_to_analyze',
   ],
 } as const;
 
@@ -64,12 +71,6 @@ const PREDICATE_VOCABULARY = {
     lineStyle: 'dashed',
     explanation: '两个对象存在已审查的语义关联，不推断先后或包含关系。',
   },
-  represented_by: {
-    label: '表示为',
-    direction: 'source-to-target',
-    lineStyle: 'solid',
-    explanation: '来源对象由目标对象表示。',
-  },
   applies_to: {
     label: '适用于',
     direction: 'source-to-target',
@@ -82,17 +83,41 @@ const PREDICATE_VOCABULARY = {
     lineStyle: 'solid',
     explanation: '来源对象由目标对象推导得到。',
   },
-  used_to_analyze: {
-    label: '用于分析',
+  has_component: {
+    label: '包含组成部分',
     direction: 'source-to-target',
-    lineStyle: 'dotted',
-    explanation: '来源对象用于分析目标对象。',
+    lineStyle: 'solid',
+    explanation: '来源对象包含目标对象作为其组成部分。',
+  },
+  has_formula: {
+    label: '具有公式',
+    direction: 'source-to-target',
+    lineStyle: 'solid',
+    explanation: '来源对象以目标公式作为其公式表达。',
+  },
+  has_representation: {
+    label: '具有表示',
+    direction: 'source-to-target',
+    lineStyle: 'solid',
+    explanation: '来源对象具有目标对象作为其表示形式。',
   },
   is_a: {
     label: '属于',
     direction: 'source-to-target',
     lineStyle: 'solid',
     explanation: '来源对象属于目标类型或上位概念。',
+  },
+  part_of: {
+    label: '组成部分',
+    direction: 'source-to-target',
+    lineStyle: 'solid',
+    explanation: '来源对象是目标对象的组成部分。',
+  },
+  used_to_analyze: {
+    label: '用于分析',
+    direction: 'source-to-target',
+    lineStyle: 'dotted',
+    explanation: '来源对象用于分析目标对象。',
   },
 } as const;
 
@@ -120,32 +145,21 @@ export function resolveCandidateRelationDirection(
   predicate: CandidatePredicatePresentation,
   rawDirection: string | null | undefined,
 ): CandidateRelationDirectionPresentation {
+  // 方向只来自上游 raw direction：已通过固定合同的数据保留原始方向展示，
+  // 本地谓词登记不得静默覆盖；raw 未声明或未知谓词保持 raw fallback，不推断。
+  void predicate;
   const normalizedRawDirection = rawDirection?.trim() || null;
-  if (predicate.direction === 'undirected') {
+  if (normalizedRawDirection === 'unordered' || normalizedRawDirection === 'undirected') {
     return {
       kind: 'undirected',
       label: '无向/双向',
       rawDirection: normalizedRawDirection,
     };
   }
-  if (predicate.direction === 'source-to-target') {
+  if (normalizedRawDirection === 'source-to-target' || normalizedRawDirection === 'source_to_target' || normalizedRawDirection === 'directed') {
     return {
       kind: 'directed',
       label: '来源→目标',
-      rawDirection: normalizedRawDirection,
-    };
-  }
-  if (normalizedRawDirection === 'unordered' || normalizedRawDirection === 'undirected') {
-    return {
-      kind: 'undirected',
-      label: `原始方向：${normalizedRawDirection}`,
-      rawDirection: normalizedRawDirection,
-    };
-  }
-  if (normalizedRawDirection === 'source-to-target' || normalizedRawDirection === 'directed') {
-    return {
-      kind: 'directed',
-      label: `原始方向：${normalizedRawDirection}`,
       rawDirection: normalizedRawDirection,
     };
   }
@@ -180,15 +194,23 @@ export function selectCandidateGraphView(
     governance: CandidateGovernanceFilter;
   },
 ): Pick<CanvasProjection, 'nodes' | 'relations'> {
+  // 核心/扩展只来自聚合 release tier：核心视图仅保留 Gold 节点及两端均可视的
+  // Gold 关系；默认（扩展）视图同时显示 Gold 与 Silver 两层。
+  const tierNodes = input.governance === 'CORE'
+    ? projection.nodes.filter((node) => node.releaseTier === 'gold')
+    : projection.nodes;
+  const tierNodeIds = new Set(tierNodes.map((node) => node.id));
   const tierRelations = projection.relations.filter((relation) => (
-    input.governance === 'EXTENSION' || relation.qualityTier === 'GOLD'
+    (input.governance === 'EXTENSION' || relation.qualityTier === 'GOLD')
+    && tierNodeIds.has(relation.sourceId)
+    && tierNodeIds.has(relation.targetId)
   ));
   if (!input.canonicalType) {
-    return { nodes: projection.nodes, relations: tierRelations };
+    return { nodes: tierNodes, relations: tierRelations };
   }
 
   const centerIds = new Set(
-    projection.nodes
+    tierNodes
       .filter((node) => node.canonicalType === input.canonicalType)
       .map((node) => node.id),
   );
@@ -201,7 +223,7 @@ export function selectCandidateGraphView(
     visibleIds.add(relation.targetId);
   });
   return {
-    nodes: projection.nodes.filter((node) => visibleIds.has(node.id)),
+    nodes: tierNodes.filter((node) => visibleIds.has(node.id)),
     relations: oneHopRelations,
   };
 }

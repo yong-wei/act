@@ -22,8 +22,14 @@ export function buildProjectionCacheKey(input: {
   authorityState: AuthorityState;
   releaseSetId: string;
   releaseId: string;
+  /** Release content hash; binds the key to the exact Release bytes. */
+  releaseHash?: string | null;
+  /** Upstream source dataset hash; binds the key to the exact dataset snapshot. */
+  sourceDatasetHash?: string | null;
   role: KnowledgeRole | 'NONE';
   nodeId?: string;
+  /** GraphProjection V2 version_digest; empty for historical CTKG 0.1 reads. */
+  projectionDigest?: string | null;
   support: ConsumerSemanticSupport;
 }): string {
   return [
@@ -31,6 +37,9 @@ export function buildProjectionCacheKey(input: {
     input.authorityState,
     input.releaseSetId,
     input.releaseId,
+    input.releaseHash ?? '',
+    input.sourceDatasetHash ?? '',
+    input.projectionDigest ?? '',
     input.role,
     input.nodeId ?? '',
     consumerSupportDigest(input.support),

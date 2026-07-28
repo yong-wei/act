@@ -3,7 +3,7 @@
 ### Requirement: Candidate coverage is explicit
 The candidate graph implementation MUST remain behind a public-activation gate until aggregate V2 graph and candidate-aware Konling acceptance pass on the same ReleaseSet. After that gate opens, all current graph users SHALL be able to view the aggregate candidate by default, and the view MUST identify the exact release, projection version, actual object/relation coverage, core/extension scope, and absence of formal teaching semantics.
 
-#### Scenario: Aggregate graph is complete but Konling is not
+#### Scenario: Candidate graph is complete but Konling is not
 - **WHEN** aggregate V2 graph APIs and UI are ready but candidate-aware Konling has not passed acceptance on the same ReleaseSet
 - **THEN** ordinary users SHALL continue receiving the Legacy graph and the aggregate candidate SHALL remain available only to controlled verification
 

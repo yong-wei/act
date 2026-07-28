@@ -22,19 +22,32 @@ const canvas = {
   projectionVersion: 'act.canvas.v2',
   source: {
     authorityState: 'candidate',
-    releaseSetId: 'actkg-authoritative-candidate-v1',
-    releaseId: 'root-locus-engineering-v0.1',
+    releaseSetId: 'actkg-authoritative-candidate-v2',
+    releaseId: 'control-theory-engineering-v0.2',
     productionAuthoritative: false,
+    historical: false,
+    releaseHash: 'b'.repeat(64),
+    schemaVersion: '0.2.0',
+    projectionDigest: 'f324255fd77cf5bf3bacf4cc55a7a082faca3339fff2b8410ddca37a00226255',
+    sourceDatasetHash: 'd'.repeat(64),
   },
-  release: { label: '根轨迹局部发布版', version: 'v0.1', scope: 'root-locus' },
+  release: { label: '控制理论工程聚合发布版', version: 'v0.2', scope: 'control-theory-engineering' },
+  fields: {
+    included: ['node.id', 'relation.direction'],
+    hidden: ['node.payload', 'artifact.bytes'],
+  },
   coverage: {
     status: 'partial',
     objectCount: 3,
     relationCount: 2,
     goldRelationCount: 1,
     silverRelationCount: 1,
-    sourceObjectCount: 1,
-    evidenceSegmentCount: 1,
+    sourceObjectCount: 0,
+    evidenceSegmentCount: 0,
+    releaseEntryCount: 5,
+    goldNodeCount: 2,
+    silverNodeCount: 1,
+    upstreamRagReferenceCount: 1,
   },
   teachingSemantics: { status: 'unavailable', message: '教学关系尚未发布' },
   nodes: [
@@ -44,10 +57,15 @@ const canvas = {
       label: '根轨迹',
       description: '根轨迹描述',
       governance: {
-        reviewStatus: 'REVIEWED',
-        publicationStatus: 'PUBLISHED',
-        lifecycleStatus: 'ACTIVE',
+        reviewStatus: 'approved',
+        publicationStatus: 'published',
+        lifecycleStatus: null,
       },
+      releaseTier: 'gold',
+      candidate: false,
+      semanticName: 'root_locus',
+      sourceCoverageCount: 2,
+      conceptKind: 'analysis_method',
       semanticSupport: { supported: true, readOnly: true },
     },
     {
@@ -56,10 +74,15 @@ const canvas = {
       label: '特征方程',
       description: null,
       governance: {
-        reviewStatus: 'REVIEWED',
-        publicationStatus: 'PUBLISHED',
-        lifecycleStatus: 'ACTIVE',
+        reviewStatus: 'approved',
+        publicationStatus: 'published',
+        lifecycleStatus: null,
       },
+      releaseTier: 'gold',
+      candidate: false,
+      semanticName: 'characteristic_equation',
+      sourceCoverageCount: 1,
+      conceptKind: null,
       semanticSupport: { supported: true, readOnly: true },
     },
     {
@@ -68,10 +91,15 @@ const canvas = {
       label: '闭环模型',
       description: null,
       governance: {
-        reviewStatus: 'REVIEWED',
-        publicationStatus: 'PUBLISHED',
-        lifecycleStatus: 'ACTIVE',
+        reviewStatus: 'approved',
+        publicationStatus: 'published',
+        lifecycleStatus: null,
       },
+      releaseTier: 'silver',
+      candidate: false,
+      semanticName: 'closed_loop_model',
+      sourceCoverageCount: 0,
+      conceptKind: null,
       semanticSupport: { supported: true, readOnly: true },
     },
   ],
@@ -82,9 +110,12 @@ const canvas = {
       sourceId: 'concept',
       targetId: 'formula',
       direction: 'unordered',
-      direct: true,
+      direct: null,
       qualityTier: 'GOLD',
-      governance: { reviewStatus: 'REVIEWED', publicationStatus: 'PUBLISHED' },
+      governance: { reviewStatus: null, publicationStatus: null },
+      relationFamily: 'domain_semantic',
+      evidenceState: 'available',
+      releaseTier: 'gold',
       semanticSupport: { supported: true, readOnly: true },
     },
     {
@@ -92,10 +123,13 @@ const canvas = {
       predicate: 'applies_to',
       sourceId: 'concept',
       targetId: 'model',
-      direction: 'source-to-target',
-      direct: true,
+      direction: 'source_to_target',
+      direct: null,
       qualityTier: 'SILVER',
-      governance: { reviewStatus: 'REVIEWED', publicationStatus: 'PUBLISHED' },
+      governance: { reviewStatus: null, publicationStatus: null },
+      relationFamily: 'domain_semantic',
+      evidenceState: 'available',
+      releaseTier: 'silver',
       semanticSupport: { supported: true, readOnly: true },
     },
   ],
@@ -107,21 +141,34 @@ function detail(nodeId: 'concept' | 'formula') {
   projectionVersion: 'act.node-detail.v2',
   source: {
     authorityState: 'candidate',
-    releaseSetId: 'actkg-authoritative-candidate-v1',
-    releaseId: 'root-locus-engineering-v0.1',
+    releaseSetId: 'actkg-authoritative-candidate-v2',
+    releaseId: 'control-theory-engineering-v0.2',
     productionAuthoritative: false,
+    historical: false,
+    releaseHash: 'b'.repeat(64),
+    schemaVersion: '0.2.0',
+    projectionDigest: 'f324255fd77cf5bf3bacf4cc55a7a082faca3339fff2b8410ddca37a00226255',
+    sourceDatasetHash: 'd'.repeat(64),
   },
   role: 'STUDENT',
+  fields: {
+    included: ['node.id', 'node.adjacency'],
+    hidden: ['node.payload'],
+  },
   node: {
     id: nodeId,
     canonicalType: incoming ? 'Formula' : 'DomainConcept',
     label: incoming ? '特征方程' : '根轨迹',
     description: incoming ? null : '根轨迹描述',
+    releaseTier: 'gold',
     adjacency: [
       {
         relationId: 'relation',
         predicate: 'association',
         direction: 'unordered',
+        relationFamily: 'domain_semantic',
+        evidenceState: 'available',
+        releaseTier: 'gold',
         qualityTier: 'GOLD',
         neighborId: incoming ? 'concept' : 'formula',
         traversal: incoming ? 'incoming' : 'outgoing',
@@ -130,7 +177,10 @@ function detail(nodeId: 'concept' | 'formula') {
       ...(!incoming ? [{
         relationId: 'silver-relation',
         predicate: 'applies_to',
-        direction: 'source-to-target',
+        direction: 'source_to_target',
+        relationFamily: 'domain_semantic',
+        evidenceState: 'available',
+        releaseTier: 'silver',
         qualityTier: 'SILVER',
         neighborId: 'model',
         traversal: 'outgoing',
@@ -184,12 +234,17 @@ describe('candidate authoritative graph client isolation', () => {
     });
     await act(async () => Promise.resolve());
 
-    expect(container.textContent).toContain('根轨迹局部发布版');
+    expect(container.textContent).toContain('控制理论工程聚合发布版');
     expect(container.textContent).toContain('教学关系尚未发布');
+    expect(container.textContent).toContain('f324255fd77cf5bf3bacf4cc55a7a082faca3339fff2b8410ddca37a00226255');
+    expect(container.textContent).toContain('发布条目 5 · 核心 2 · 扩展 1');
     expect(globalAIMocks.updatePageContext).toHaveBeenLastCalledWith(expect.objectContaining({
       candidateGraph: expect.objectContaining({
-        releaseSetId: 'actkg-authoritative-candidate-v1',
+        releaseSetId: 'actkg-authoritative-candidate-v2',
+        releaseId: 'control-theory-engineering-v0.2',
         coverageStatus: 'ready',
+        projectionDigest: 'f324255fd77cf5bf3bacf4cc55a7a082faca3339fff2b8410ddca37a00226255',
+        teachingSemanticsAvailability: 'unavailable',
       }),
     }));
     expect(container.querySelector('[data-candidate-relation-direction="undirected"]')).not.toBeNull();
@@ -229,6 +284,17 @@ describe('candidate authoritative graph client isolation', () => {
       candidateGraph: expect.objectContaining({
         selectedCanonicalId: 'formula',
         selectedCanonicalType: 'Formula',
+        releaseTier: 'gold',
+        selectedRelations: [
+          expect.objectContaining({
+            predicate: 'association',
+            direction: 'unordered',
+            relationFamily: 'domain_semantic',
+            evidenceState: 'available',
+            traversal: 'incoming',
+            neighborId: 'concept',
+          }),
+        ],
       }),
     }));
     expect(container.querySelector('[data-candidate-detail-direction="undirected"]')?.textContent)

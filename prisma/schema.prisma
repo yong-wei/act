@@ -5053,6 +5053,15 @@ model ActkgRelease {
   lockRawHash     String
   createdAt       DateTime @default(now())
 
+  // CTKG 0.2 aggregate identity. NULL for historical CTKG 0.1 releases.
+  schemaVersion             String?
+  upstreamReleaseId         String?
+  projectionId              String?
+  projectionDigest          String?
+  sourceDatasetHash         String?
+  upstreamPublicationCommit String?
+  upstreamClosedCommit      String?
+
   releaseSet               ActkgReleaseSet                        @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
   objects                  ActkgAuthoritativeObject[]
   relations                ActkgAuthoritativeRelation[]
@@ -5061,6 +5070,12 @@ model ActkgRelease {
   evidence                 ActkgEvidenceSegment[]
   originalPayload          ActkgOriginalReleasePayload?
   receipt                  ActkgImportReceipt?
+  artifacts                ActkgReleaseArtifact[]
+  components               ActkgReleaseComponent[]
+  entries                  ActkgReleaseEntry[]
+  projectionNodes          ActkgProjectionNode[]
+  projectionLinks          ActkgProjectionLink[]
+  upstreamRagReferences    ActkgUpstreamRagReference[]
   courseCoverageVersions   CourseCoverageOverlayVersion[]
   resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
   resourceBindingDecisions CanonicalResourceBindingDecision[]
@@ -5191,8 +5206,8 @@ model ActkgImportReceipt {
   id                             String   @id
   releaseSetId                   String   @unique
   releaseId                      String   @unique
-  sourceRun                      String
-  sourceImplementationCommit     String
+  sourceRun                      String?
+  sourceImplementationCommit     String?
   captureRevision                String
   lockRawHash                    String
   ctkgDatasetAvailability        String
@@ -5211,8 +5226,155 @@ model ActkgImportReceipt {
   candidateState                 String   @default("CANDIDATE")
   importedAt                     DateTime @default(now())
 
+  // CTKG 0.2 aggregate receipt identity and counts. NULL for historical CTKG 0.1 receipts.
+  schemaVersion             String?
+  upstreamReleaseId         String?
+  projectionId              String?
+  projectionDigest          String?
+  sourceDatasetHash         String?
+  upstreamPublicationCommit String?
+  upstreamClosedCommit      String?
+  releaseEntryCount         Int?
+  projectionNodeCount       Int?
+  projectionLinkCount       Int?
+  upstreamRagReferenceCount Int?
+  artifactCount             Int?
+  componentCount            Int?
+
   releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
   release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+}
+
+// CTKG 0.2 aggregate public artifacts. Original bytes of the locked public
+// bundle, one row per locked artifact, byte-for-byte reconstructable.
+model ActkgReleaseArtifact {
+  releaseId    String
+  relativePath String
+  ordinal      Int
+  mediaType    String
+  sha256       String
+  byteLength   Int
+  bytes        Bytes
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, relativePath])
+  @@unique([releaseId, ordinal])
+}
+
+// Declared component lineage of the aggregate release. Components are
+// verified immutable lineage inputs, never parallel ReleaseSet members.
+model ActkgReleaseComponent {
+  releaseId          String
+  ordinal            Int
+  componentReleaseId String
+  releaseVersion     String
+  protocol           String
+  controlledPath     String
+  releaseHash        String
+  releaseRawSha256   String
+  sha256sumsSha256   String
+  payload            Json
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, componentReleaseId])
+  @@unique([releaseId, ordinal])
+}
+
+// CTKG 0.2 release membership entries (the public membership authority).
+model ActkgReleaseEntry {
+  releaseId       String
+  entityId        String
+  ordinal         Int
+  releaseTier     String
+  entityRole      String
+  inclusionReason String
+  payload         Json
+
+  release    ActkgRelease               @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  nodes      ActkgProjectionNode[]
+  links      ActkgProjectionLink[]
+  references ActkgUpstreamRagReference[]
+
+  @@id([releaseId, entityId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, releaseTier])
+  @@index([releaseId, entityRole])
+}
+
+// GraphProjection V2 nodes. Consumer-facing projections of public release
+// membership, not reconstructed private CTKGDataset objects.
+model ActkgProjectionNode {
+  releaseId           String
+  nodeId              String
+  ordinal             Int
+  entityId            String
+  entityType          String
+  displayName         String
+  releaseTier         String
+  reviewStatus        String
+  publicationStatus   String
+  semanticName        String?
+  sourceCoverageCount Int
+  candidate           Boolean
+  payload             Json
+
+  release  ActkgRelease          @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  entry    ActkgReleaseEntry     @relation(fields: [releaseId, entityId], references: [releaseId, entityId], onDelete: Restrict)
+  outgoing ActkgProjectionLink[] @relation("ActkgProjectionLinkSource")
+  incoming ActkgProjectionLink[] @relation("ActkgProjectionLinkTarget")
+
+  @@id([releaseId, nodeId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, entityId])
+  @@index([releaseId, entityType])
+  @@index([releaseId, releaseTier])
+}
+
+// GraphProjection V2 links with exact upstream predicates, directions,
+// families and evidence state.
+model ActkgProjectionLink {
+  releaseId      String
+  linkId         String
+  ordinal        Int
+  relationId     String
+  sourceId       String
+  targetId       String
+  relationType   String
+  relationFamily String
+  direction      String
+  evidenceState  String
+  payload        Json
+
+  release  ActkgRelease        @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  relation ActkgReleaseEntry   @relation(fields: [releaseId, relationId], references: [releaseId, entityId], onDelete: Restrict)
+  source   ActkgProjectionNode @relation("ActkgProjectionLinkSource", fields: [releaseId, sourceId], references: [releaseId, nodeId], onDelete: Restrict)
+  target   ActkgProjectionNode @relation("ActkgProjectionLinkTarget", fields: [releaseId, targetId], references: [releaseId, nodeId], onDelete: Restrict)
+
+  @@id([releaseId, linkId])
+  @@unique([releaseId, ordinal])
+  @@unique([releaseId, relationId])
+  @@index([releaseId, sourceId])
+  @@index([releaseId, targetId])
+  @@index([releaseId, relationType])
+}
+
+// Upstream RAG crosswalk triples. retrieval/citation identifiers are opaque
+// values; only published_entity_id is closed over aggregate membership.
+model ActkgUpstreamRagReference {
+  releaseId         String
+  ordinal           Int
+  publishedEntityId String
+  retrievalChunkId  String
+  citationTargetId  String
+
+  release ActkgRelease      @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  entity  ActkgReleaseEntry @relation(fields: [releaseId, publishedEntityId], references: [releaseId, entityId], onDelete: Restrict)
+
+  @@id([releaseId, publishedEntityId, retrievalChunkId, citationTargetId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, publishedEntityId])
 }
 
 // Git-governed course admission overlay. This is independent from the complete

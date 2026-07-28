@@ -3,26 +3,26 @@
 ### Requirement: ActKG graph projection loads as a gated graph source
 The candidate knowledge graph source layer SHALL load the locked CTKG 0.2 `GraphProjection` V2 only through the aggregate Repository candidate selector. The adapter SHALL validate the pinned GraphProjection V2 contract, map every public node and link field without semantic coercion, and apply the existing graph budgets and authorization boundary. The Legacy source selection SHALL remain unchanged for production consumers until final cutover.
 
-#### Scenario: Valid aggregate projection maps into candidate payload
+#### Scenario: Valid projection maps into unified payload
 - **WHEN** the Repository returns the locked `control-theory-engineering-v0.2` projection conforming to the pinned CTKG 0.2 contract
 - **THEN** the adapter SHALL emit a candidate payload containing all 744 nodes and 97 links with their upstream identities, types, tiers, predicates, directions, families, evidence state, and projection provenance
 
-#### Scenario: Candidate projection is unavailable or invalid
+#### Scenario: Malformed projection fails closed
 - **WHEN** the aggregate projection is absent, schema-invalid, hash-invalid, or inconsistent with the selected ReleaseSet
 - **THEN** candidate loading SHALL fail closed with a descriptive error and SHALL NOT fall back to Legacy or emit a partial candidate graph
 
-#### Scenario: Production selector remains Legacy
+#### Scenario: Gate unset keeps default source
 - **WHEN** a formal graph consumer has not explicitly entered the candidate V2 path
 - **THEN** the existing production source selection SHALL remain unchanged
 
 ### Requirement: Projection version binds to graph version identity
 When the CTKG 0.2 candidate adapter is active, the aggregate ReleaseSet identity, source release hash, source dataset hash, and `version_digest` SHALL jointly identify the payload, caches, progressive shards, and stored layout state.
 
-#### Scenario: Aggregate identity binds to shard identity
+#### Scenario: Digest binds to shard identity
 - **WHEN** the adapter loads a projection with version digest D from aggregate ReleaseSet R
 - **THEN** every progressive shard SHALL validate against both R and D and SHALL reject a shard from any prior ReleaseSet or digest
 
-#### Scenario: Release or digest changes
+#### Scenario: Digest change invalidates layout state
 - **WHEN** either the selected aggregate ReleaseSet or its `version_digest` differs from the stored version
 - **THEN** candidate caches and stored runtime coordinates for the prior identity SHALL be invalidated through the existing version-change path
 

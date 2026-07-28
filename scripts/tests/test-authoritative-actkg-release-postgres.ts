@@ -22,6 +22,11 @@ import {
   sha256,
 } from '../actkg-release/authoritative-release';
 import {
+  importValidatedAggregateRelease,
+  loadAndValidateAggregateRelease,
+  reconstructAggregateArtifacts,
+} from '../actkg-release/ctkg-0-2-aggregate-release';
+import {
   computeCourseCoverageSourceHash,
   importCourseCoverageOverlay,
   validateCourseCoverageOverlay,
@@ -218,6 +223,24 @@ async function main(): Promise<void> {
   assert.equal(await db.actkgAuthoritativeObject.count(), 0);
   await db.$executeRawUnsafe('TRUNCATE TABLE "ActkgReleaseSet" CASCADE');
 
+  const validatedAggregate = await loadAndValidateAggregateRelease({ captureRevision: 'b'.repeat(40) });
+  await db.actkgReleaseSet.create({
+    data: {
+      id: validatedAggregate.lock.release_set_id,
+      controlledPath: 'conflicting-aggregate-controlled-path',
+      lockVersion: validatedAggregate.lock.lock_version,
+    },
+  });
+  await assert.rejects(
+    importValidatedAggregateRelease(db, validatedAggregate),
+    /ReleaseSet identity conflicts/u,
+  );
+  assert.equal(await db.actkgRelease.count({
+    where: { releaseSetId: validatedAggregate.lock.release_set_id },
+  }), 0);
+  assert.equal(await db.actkgReleaseArtifact.count(), 0);
+  await db.$executeRawUnsafe('TRUNCATE TABLE "ActkgReleaseSet" CASCADE');
+
   const legacyBefore = {
     nodes: await db.knowledgeNode.count(),
     links: await db.knowledgeLink.count(),
@@ -244,6 +267,152 @@ async function main(): Promise<void> {
     nodes: await db.knowledgeNode.count(),
     links: await db.knowledgeLink.count(),
   }, legacyBefore);
+
+  const expectedAggregate = {
+    releaseEntries: 841,
+    projectionNodes: 744,
+    projectionLinks: 97,
+    upstreamRagReferences: 1302,
+    artifacts: 7,
+    components: 2,
+  };
+  assert.deepEqual(await importValidatedAggregateRelease(db, validatedAggregate), expectedAggregate);
+  assert.deepEqual(await importValidatedAggregateRelease(db, validatedAggregate), expectedAggregate);
+
+  assert.equal(await db.actkgRelease.count(), 2);
+  assert.equal(await db.actkgReleaseEntry.count(), expectedAggregate.releaseEntries);
+  assert.equal(await db.actkgProjectionNode.count(), expectedAggregate.projectionNodes);
+  assert.equal(await db.actkgProjectionLink.count(), expectedAggregate.projectionLinks);
+  assert.equal(await db.actkgUpstreamRagReference.count(), expectedAggregate.upstreamRagReferences);
+  assert.equal(await db.actkgReleaseArtifact.count(), expectedAggregate.artifacts);
+  assert.equal(await db.actkgReleaseComponent.count(), expectedAggregate.components);
+  assert.equal(await db.actkgReleaseEntry.count({
+    where: { releaseId: validatedAggregate.entry.release_id, releaseTier: 'gold' },
+  }), 192);
+  assert.equal(await db.actkgReleaseEntry.count({
+    where: { releaseId: validatedAggregate.entry.release_id, entityRole: 'relation' },
+  }), 97);
+
+  const aggregateReceipt = await db.actkgImportReceipt.findUniqueOrThrow({
+    where: { releaseId: validatedAggregate.entry.release_id },
+  });
+  assert.equal(aggregateReceipt.sourceRun, null);
+  assert.equal(aggregateReceipt.sourceImplementationCommit, null);
+  assert.equal(aggregateReceipt.captureRevision, validatedAggregate.captureRevision);
+  assert.equal(aggregateReceipt.lockRawHash, validatedAggregate.lockRawHash);
+  assert.equal(aggregateReceipt.schemaVersion, '0.2.0');
+  assert.equal(aggregateReceipt.upstreamReleaseId, 'ctr:release:control-theory-engineering-v0.2');
+  assert.equal(
+    aggregateReceipt.projectionId,
+    'ctr:projection:control-theory-engineering-v0.2:domain-v2',
+  );
+  assert.equal(
+    aggregateReceipt.projectionDigest,
+    'f324255fd77cf5bf3bacf4cc55a7a082faca3339fff2b8410ddca37a00226255',
+  );
+  assert.equal(
+    aggregateReceipt.sourceDatasetHash,
+    '0468a685d93ea6a727444ff1464b8c3472dc18014d4c4f6a834e33218c2dae6c',
+  );
+  assert.equal(aggregateReceipt.upstreamPublicationCommit, '7ab6041201f3c23963a8ddb2685256a5418ad532');
+  assert.equal(aggregateReceipt.upstreamClosedCommit, 'f5f442e99324af731e0b5226a22b0973e838621b');
+  assert.equal(aggregateReceipt.ctkgDatasetAvailability, 'UNAVAILABLE');
+  assert.equal(aggregateReceipt.ctkgDatasetHash, null);
+  assert.equal(aggregateReceipt.ctkgDatasetPublicationIdentity, null);
+  assert.equal(aggregateReceipt.ctkgDatasetResolvableLocation, null);
+  assert.equal(aggregateReceipt.revisionRegistryAvailability, 'UNAVAILABLE');
+  assert.equal(aggregateReceipt.revisionRegistryVersion, null);
+  assert.equal(aggregateReceipt.revisionRegistryHash, null);
+  assert.equal(aggregateReceipt.objectCount, 0);
+  assert.equal(aggregateReceipt.sourceMappingCount, 0);
+  assert.equal(aggregateReceipt.goldRelationCount, 0);
+  assert.equal(aggregateReceipt.silverRelationCount, 0);
+  assert.equal(aggregateReceipt.sourceObjectCount, 0);
+  assert.equal(aggregateReceipt.evidenceSegmentCount, 0);
+  assert.equal(aggregateReceipt.releaseEntryCount, expectedAggregate.releaseEntries);
+  assert.equal(aggregateReceipt.projectionNodeCount, expectedAggregate.projectionNodes);
+  assert.equal(aggregateReceipt.projectionLinkCount, expectedAggregate.projectionLinks);
+  assert.equal(aggregateReceipt.upstreamRagReferenceCount, expectedAggregate.upstreamRagReferences);
+  assert.equal(aggregateReceipt.artifactCount, expectedAggregate.artifacts);
+  assert.equal(aggregateReceipt.componentCount, expectedAggregate.components);
+
+  const reconstructedAggregate = await reconstructAggregateArtifacts(
+    db,
+    validatedAggregate.entry.release_id,
+  );
+  assert.equal(reconstructedAggregate.length, validatedAggregate.artifacts.length);
+  for (const [ordinal, artifact] of validatedAggregate.artifacts.entries()) {
+    const reconstructed = reconstructedAggregate[ordinal]!;
+    assert.equal(reconstructed.relativePath, artifact.relativePath);
+    assert.equal(reconstructed.mediaType, artifact.mediaType);
+    assert.equal(reconstructed.sha256, artifact.sha256);
+    assert.equal(reconstructed.bytes.equals(artifact.bytes), true);
+  }
+
+  const aggregateSelector = {
+    authorityState: 'candidate' as const,
+    releaseSetId: validatedAggregate.lock.release_set_id,
+    releaseId: validatedAggregate.entry.release_id,
+  };
+  const aggregateRepository = new AuthoritativeKnowledgeRepository(
+    db as unknown as AuthoritativeKnowledgeDatabase,
+  );
+  const aggregateCandidate = await aggregateRepository.read(aggregateSelector);
+  assert.equal(aggregateCandidate.status, 'available');
+  if (aggregateCandidate.status === 'available') {
+    assert.deepEqual(aggregateCandidate.diagnostics, []);
+    assert.equal(aggregateCandidate.snapshot.objects.length, 0);
+    assert.equal(aggregateCandidate.snapshot.relations.length, 0);
+    assert.equal(aggregateCandidate.snapshot.sourceMappings.length, 0);
+    assert.equal(aggregateCandidate.snapshot.sourceObjects.length, 0);
+    assert.equal(aggregateCandidate.snapshot.evidence.length, 0);
+    assert.equal(aggregateCandidate.snapshot.productionAuthoritative, false);
+  }
+
+  await db.$executeRawUnsafe('ALTER TABLE "ActkgImportReceipt" DISABLE TRIGGER "ActkgImportReceipt_immutable"');
+  await db.$executeRawUnsafe(
+    'UPDATE "ActkgImportReceipt" SET "releaseEntryCount" = "releaseEntryCount" + 1 WHERE "releaseId" = $1',
+    validatedAggregate.entry.release_id,
+  );
+  await db.$executeRawUnsafe('ALTER TABLE "ActkgImportReceipt" ENABLE TRIGGER "ActkgImportReceipt_immutable"');
+  await assert.rejects(
+    importValidatedAggregateRelease(db, validatedAggregate),
+    /different authoritative content/u,
+  );
+  await db.$executeRawUnsafe('ALTER TABLE "ActkgImportReceipt" DISABLE TRIGGER "ActkgImportReceipt_immutable"');
+  await db.$executeRawUnsafe(
+    'UPDATE "ActkgImportReceipt" SET "releaseEntryCount" = $2 WHERE "releaseId" = $1',
+    validatedAggregate.entry.release_id,
+    expectedAggregate.releaseEntries,
+  );
+  await db.$executeRawUnsafe('ALTER TABLE "ActkgImportReceipt" ENABLE TRIGGER "ActkgImportReceipt_immutable"');
+  assert.deepEqual(await importValidatedAggregateRelease(db, validatedAggregate), expectedAggregate);
+
+  for (const table of [
+    'ActkgReleaseArtifact',
+    'ActkgReleaseComponent',
+    'ActkgReleaseEntry',
+    'ActkgProjectionNode',
+    'ActkgProjectionLink',
+    'ActkgUpstreamRagReference',
+  ]) {
+    await assert.rejects(
+      db.$executeRawUnsafe(`INSERT INTO "${table}" SELECT * FROM "${table}" LIMIT 1`),
+      /sealed by its import receipt/u,
+    );
+  }
+  await assert.rejects(
+    db.actkgReleaseEntry.update({
+      where: {
+        releaseId_entityId: {
+          releaseId: validatedAggregate.entry.release_id,
+          entityId: String((validatedAggregate.entries[0] as { entity: string }).entity),
+        },
+      },
+      data: { inclusionReason: 'mutated' },
+    }),
+    /immutable/u,
+  );
 
   const coverageSchema = JSON.parse(readFileSync(
     path.join(
@@ -1989,6 +2158,14 @@ async function main(): Promise<void> {
     repositoryCandidateComplete: true,
     repositoryActiveUnavailable: true,
     repositoryDriftDetected: true,
+    aggregateReleaseId: validatedAggregate.entry.release_id,
+    aggregateCounts: expectedAggregate,
+    aggregateIdempotentReimport: true,
+    aggregateConflictRollback: true,
+    aggregateArtifactRoundTrip: true,
+    aggregateRepositoryAvailable: true,
+    aggregateDriftRejected: true,
+    aggregateTablesSealed: true,
     courseCoverageEntryCount: 1,
     courseCoverageThreeRoleFixture: true,
     courseCoverageIdempotentReimport: true,

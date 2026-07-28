@@ -2329,6 +2329,29 @@ async function resolveServerCandidateGraphContext(
     && actualCanonicalTypes.has(claim.canonicalTypeFilter)
     ? claim.canonicalTypeFilter
     : null;
+  // 聚合身份、release tier、投影摘要与精确关系一律由服务端按投影重算；
+  // 客户端声明的对应字段一律丢弃，不作合并。
+  const selectedRelations = selectedCanonicalId
+    ? result.projection.relations
+        .filter((relation) => (
+          relation.sourceId === selectedCanonicalId || relation.targetId === selectedCanonicalId
+        ))
+        .slice(0, 12)
+        .map((relation) => ({
+          relationId: relation.id,
+          predicate: relation.predicate,
+          direction: relation.direction,
+          relationFamily: relation.relationFamily ?? null,
+          evidenceState: relation.evidenceState ?? null,
+          releaseTier: relation.releaseTier ?? null,
+          traversal: (relation.sourceId === selectedCanonicalId
+            ? 'outgoing'
+            : 'incoming') as 'outgoing' | 'incoming',
+          neighborId: relation.sourceId === selectedCanonicalId
+            ? relation.targetId
+            : relation.sourceId,
+        }))
+    : [];
   return {
     ...CANDIDATE_RELEASE_SELECTOR,
     selectedCanonicalId,
@@ -2338,6 +2361,11 @@ async function resolveServerCandidateGraphContext(
     coverageStatus: result.projection.nodes.length === 0 ? 'empty' : 'ready',
     objectCount: result.projection.coverage.objectCount,
     relationCount: result.projection.coverage.relationCount,
+    projectionDigest: result.projection.source.projectionDigest ?? null,
+    sourceDatasetHash: result.projection.source.sourceDatasetHash ?? null,
+    releaseTier: selectedNode?.releaseTier ?? null,
+    selectedRelations,
+    teachingSemanticsAvailability: 'unavailable',
   };
 }
 

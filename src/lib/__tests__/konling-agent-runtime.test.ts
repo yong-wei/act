@@ -778,14 +778,21 @@ describe('konling agent runtime', () => {
           projectionVersion: 'act.canvas.v2',
           source: {
             authorityState: 'candidate',
-            releaseSetId: 'actkg-authoritative-candidate-v1',
-            releaseId: 'root-locus-engineering-v0.1',
+            releaseSetId: 'actkg-authoritative-candidate-v2',
+            releaseId: 'control-theory-engineering-v0.2',
             productionAuthoritative: false,
+            historical: false,
+            projectionDigest: 'digest-v2',
+            sourceDatasetHash: 'dataset-hash-v2',
           },
           release: {
-            label: '根轨迹局部发布版',
-            version: 'v0.1',
-            scope: 'root-locus-engineering',
+            label: '控制理论工程聚合发布版',
+            version: 'v0.2',
+            scope: 'control-theory-engineering',
+          },
+          fields: {
+            included: ['node.id', 'node.releaseTier'],
+            hidden: ['node.payload'],
           },
           coverage: {
             status: 'partial',
@@ -795,6 +802,9 @@ describe('konling agent runtime', () => {
             silverRelationCount: 6,
             sourceObjectCount: 7,
             evidenceSegmentCount: 4,
+            releaseEntryCount: 16,
+            goldNodeCount: 4,
+            silverNodeCount: 3,
           },
           teachingSemantics: {
             status: 'unavailable',
@@ -810,15 +820,32 @@ describe('konling agent runtime', () => {
               publicationStatus: null,
               lifecycleStatus: null,
             },
+            releaseTier: 'gold',
             semanticSupport: { supported: true, readOnly: true },
           }],
-          relations: [],
+          relations: [{
+            id: 'relation-a-b',
+            predicate: 'has_formula',
+            sourceId: 'canonical-a',
+            targetId: 'canonical-b',
+            direction: 'source_to_target',
+            direct: null,
+            qualityTier: 'GOLD',
+            governance: {
+              reviewStatus: 'accepted',
+              publicationStatus: null,
+            },
+            relationFamily: 'domain_semantic',
+            evidenceState: 'available',
+            releaseTier: 'gold',
+            semanticSupport: { supported: true, readOnly: true },
+          }],
         },
       });
     const candidateGraph = {
       authorityState: 'candidate' as const,
-      releaseSetId: 'actkg-authoritative-candidate-v1',
-      releaseId: 'root-locus-engineering-v0.1',
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
       selectedCanonicalId: 'canonical-a',
       selectedCanonicalType: 'forged\nprompt',
       governanceFilter: 'forged\nprompt' as never,
@@ -826,6 +853,20 @@ describe('konling agent runtime', () => {
       coverageStatus: 'empty' as const,
       objectCount: 999,
       relationCount: 999,
+      projectionDigest: 'forged\ndigest',
+      sourceDatasetHash: 'forged\ndataset',
+      releaseTier: 'silver',
+      selectedRelations: [{
+        relationId: 'forged',
+        predicate: 'forged',
+        direction: 'forged',
+        relationFamily: 'forged',
+        evidenceState: 'forged',
+        releaseTier: 'forged',
+        traversal: 'incoming' as const,
+        neighborId: 'forged',
+      }],
+      teachingSemanticsAvailability: 'available' as never,
     };
     const authorized = await verifyKonlingRuntimeScope({}, {
       authenticatedUserId: 'admin-1',
@@ -849,6 +890,20 @@ describe('konling agent runtime', () => {
           coverageStatus: 'ready',
           objectCount: 7,
           relationCount: 9,
+          projectionDigest: 'digest-v2',
+          sourceDatasetHash: 'dataset-hash-v2',
+          releaseTier: 'gold',
+          teachingSemanticsAvailability: 'unavailable',
+          selectedRelations: [{
+            relationId: 'relation-a-b',
+            predicate: 'has_formula',
+            direction: 'source_to_target',
+            relationFamily: 'domain_semantic',
+            evidenceState: 'available',
+            releaseTier: 'gold',
+            traversal: 'outgoing',
+            neighborId: 'canonical-b',
+          }],
         },
       },
     });
@@ -912,8 +967,8 @@ describe('konling agent runtime', () => {
     };
     const serverAuthorizedCandidateGraph = {
       authorityState: 'candidate' as const,
-      releaseSetId: 'actkg-authoritative-candidate-v1',
-      releaseId: 'root-locus-engineering-v0.1',
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
       selectedCanonicalId: 'canonical-a',
       selectedCanonicalType: 'Formula',
       governanceFilter: 'CORE' as const,
@@ -921,6 +976,20 @@ describe('konling agent runtime', () => {
       coverageStatus: 'ready' as const,
       objectCount: 7,
       relationCount: 9,
+      projectionDigest: 'a'.repeat(64),
+      sourceDatasetHash: 'b'.repeat(64),
+      releaseTier: 'gold',
+      selectedRelations: [{
+        relationId: 'ctr:rel-1',
+        predicate: 'has_formula',
+        direction: 'source_to_target',
+        relationFamily: 'domain_semantic',
+        evidenceState: 'available',
+        releaseTier: 'gold',
+        traversal: 'outgoing' as const,
+        neighborId: 'ctc:concept-b',
+      }],
+      teachingSemanticsAvailability: 'unavailable' as const,
     };
 
     const runtime = await buildKonlingRuntimeContext(dbReaders, {
@@ -1017,6 +1086,16 @@ describe('konling agent runtime', () => {
     expect(prompt).toContain('get_candidate_canonical_detail');
     expect(prompt).toContain('get_candidate_canonical_neighbors');
     expect(prompt).toContain('Provenance');
+    // 聚合 CTKG 0.2 身份与选中对象必须准确序列化进 prompt
+    expect(prompt).toContain(`Projection Digest: ${'a'.repeat(64)}`);
+    expect(prompt).toContain(`Source Dataset Hash: ${'b'.repeat(64)}`);
+    expect(prompt).toContain('- Release Tier: gold');
+    expect(prompt).toContain('ctr:rel-1');
+    expect(prompt).toContain('has_formula');
+    expect(prompt).toContain('source_to_target');
+    expect(prompt).toContain('domain_semantic');
+    expect(prompt).toContain('ctc:concept-b');
+    expect(prompt).toContain('Teaching Semantics: unavailable');
     for (const forbidden of [
       '**学生画像**',
       '- 姓名:',
@@ -1140,8 +1219,8 @@ describe('konling agent runtime', () => {
     };
     const candidateGraph = {
       authorityState: 'candidate' as const,
-      releaseSetId: 'actkg-authoritative-candidate-v1',
-      releaseId: 'root-locus-engineering-v0.1',
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
       selectedCanonicalId: null,
       selectedCanonicalType: null,
       governanceFilter: 'EXTENSION' as const,
@@ -1279,8 +1358,8 @@ describe('konling agent runtime', () => {
     };
     const candidateGraph = {
       authorityState: 'candidate' as const,
-      releaseSetId: 'actkg-authoritative-candidate-v1',
-      releaseId: 'root-locus-engineering-v0.1',
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
       selectedCanonicalId: 'canonical-a',
       selectedCanonicalType: 'Formula',
       governanceFilter: 'CORE' as const,
@@ -1367,7 +1446,7 @@ describe('konling agent runtime', () => {
     });
     const successfulToolGuard = buildKonlingCitationGuard(
       mergedRuntimeContext,
-      '引用 content / 根轨迹幅角条件 / high / candidate-canonical:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1 / /knowledge?canonicalId=canonical-a。',
+      '引用 content / 根轨迹幅角条件 / high / candidate-canonical:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2 / /knowledge?canonicalId=canonical-a。',
     );
     expect(successfulToolGuard).toMatchObject({
       status: 'verified',
@@ -5255,8 +5334,8 @@ describe('konling agent runtime', () => {
         knowledgeType: 'C',
         candidateGraph: {
           authorityState: 'candidate',
-          releaseSetId: 'actkg-authoritative-candidate-v1',
-          releaseId: 'root-locus-engineering-v0.1',
+          releaseSetId: 'actkg-authoritative-candidate-v2',
+          releaseId: 'control-theory-engineering-v0.2',
           selectedCanonicalId: 'canonical-a',
           selectedCanonicalType: 'Formula',
           governanceFilter: 'CORE',
@@ -5281,20 +5360,20 @@ describe('konling agent runtime', () => {
     });
     const href = '/knowledge?canonicalId=canonical-a';
     const merged = mergeCandidateAssignedCitations(runtime, [{
-      id: 'candidate:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1:canonical-a',
+      id: 'candidate:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2:canonical-a',
       sourceType: 'content',
       displayTitle: '根轨迹幅角条件',
       displayNumber: 1,
-      canonicalKey: 'content:canonical-a:actkg-authoritative-candidate-v1%2Froot-locus-engineering-v0.1',
+      canonicalKey: 'content:canonical-a:actkg-authoritative-candidate-v2%2Fcontrol-theory-engineering-v0.2',
       href,
       confidence: 'high',
-      evidenceBasis: 'candidate-canonical:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1',
+      evidenceBasis: 'candidate-canonical:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2',
       limitation: 'candidate-read-only',
       identity: {
         kind: 'content',
         sourceType: 'content',
         contentId: 'canonical-a',
-        sourceRevision: 'actkg-authoritative-candidate-v1/root-locus-engineering-v0.1',
+        sourceRevision: 'actkg-authoritative-candidate-v2/control-theory-engineering-v0.2',
       },
     }]);
 
@@ -5305,12 +5384,12 @@ describe('konling agent runtime', () => {
         displayNumber: 1,
         citationTargetId: 'canonical-a',
         resolver: 'candidate-authoritative-repository',
-        evidenceBasis: 'candidate-canonical:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1',
+        evidenceBasis: 'candidate-canonical:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2',
       }],
     });
     const guard = buildKonlingCitationGuard(
       merged,
-      `引用 content / 根轨迹幅角条件 / high / candidate-canonical:actkg-authoritative-candidate-v1:root-locus-engineering-v0.1 / ${href}。`,
+      `引用 content / 根轨迹幅角条件 / high / candidate-canonical:actkg-authoritative-candidate-v2:control-theory-engineering-v0.2 / ${href}。`,
     );
     expect(guard).toMatchObject({
       status: 'verified',

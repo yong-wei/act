@@ -3,7 +3,7 @@
 ### Requirement: Konling uses candidate Canonical page context
 When Konling is invoked from the candidate graph, it MUST receive the aggregate ReleaseSet identity and projection digest, selected Canonical Object, graph filters, actual candidate coverage, release tier, and explicit teaching-semantics availability state.
 
-#### Scenario: Selected aggregate object is explained
+#### Scenario: Selected candidate object is explained
 - **WHEN** the user asks about a selected Canonical Object in `control-theory-engineering-v0.2`
 - **THEN** Konling SHALL use its Canonical ID, aggregate ReleaseSet, exact typed relations, and available public provenance rather than searching Legacy nodes by label
 

@@ -30,11 +30,20 @@ const canvas = {
   projectionVersion: 'act.canvas.v2',
   source: {
     authorityState: 'candidate',
-    releaseSetId: 'actkg-authoritative-candidate-v1',
-    releaseId: 'root-locus-engineering-v0.1',
+    releaseSetId: 'actkg-authoritative-candidate-v2',
+    releaseId: 'control-theory-engineering-v0.2',
     productionAuthoritative: false,
+    historical: false,
+    releaseHash: 'd'.repeat(64),
+    schemaVersion: '0.2.0',
+    projectionDigest: 'e'.repeat(64),
+    sourceDatasetHash: 'f'.repeat(64),
   },
-  release: { label: '根轨迹局部发布版', version: 'v0.1', scope: 'root-locus' },
+  release: { label: '控制理论工程聚合发布版', version: 'v0.2', scope: 'control-theory-engineering' },
+  fields: {
+    included: ['node.id', 'node.releaseTier', 'relation.relationFamily'],
+    hidden: ['node.payload', 'relation.payload', 'artifact.bytes'],
+  },
   coverage: {
     status: 'partial',
     objectCount: 3,
@@ -43,6 +52,9 @@ const canvas = {
     silverRelationCount: 1,
     sourceObjectCount: 2,
     evidenceSegmentCount: 2,
+    releaseEntryCount: 5,
+    goldNodeCount: 2,
+    silverNodeCount: 1,
   },
   teachingSemantics: { status: 'unavailable', message: '教学关系尚未发布' },
   nodes: [
@@ -56,6 +68,8 @@ const canvas = {
         publicationStatus: 'PUBLISHED',
         lifecycleStatus: 'ACTIVE',
       },
+      releaseTier: 'gold',
+      candidate: true,
       semanticSupport: { supported: true, readOnly: true },
     },
     {
@@ -68,6 +82,8 @@ const canvas = {
         publicationStatus: 'PUBLISHED',
         lifecycleStatus: 'ACTIVE',
       },
+      releaseTier: 'gold',
+      candidate: true,
       semanticSupport: { supported: true, readOnly: true },
     },
     {
@@ -80,19 +96,24 @@ const canvas = {
         publicationStatus: 'PUBLISHED',
         lifecycleStatus: 'ACTIVE',
       },
+      releaseTier: 'silver',
+      candidate: true,
       semanticSupport: { supported: true, readOnly: true },
     },
   ],
   relations: [
     {
       id: 'gold',
-      predicate: 'represented_by',
+      predicate: 'has_formula',
       sourceId: 'concept',
       targetId: 'formula',
-      direction: null,
-      direct: true,
+      direction: 'source_to_target',
+      direct: null,
       qualityTier: 'GOLD',
       governance: { reviewStatus: 'REVIEWED', publicationStatus: 'PUBLISHED' },
+      relationFamily: 'domain_semantic',
+      evidenceState: 'available',
+      releaseTier: 'gold',
       semanticSupport: { supported: true, readOnly: true },
     },
     {
@@ -100,10 +121,13 @@ const canvas = {
       predicate: 'used_to_analyze',
       sourceId: 'formula',
       targetId: 'model',
-      direction: null,
-      direct: true,
+      direction: 'source_to_target',
+      direct: null,
       qualityTier: 'SILVER',
       governance: { reviewStatus: 'REVIEWED', publicationStatus: 'PUBLISHED' },
+      relationFamily: 'domain_semantic',
+      evidenceState: 'available',
+      releaseTier: 'silver',
       semanticSupport: { supported: true, readOnly: true },
     },
   ],
@@ -129,7 +153,11 @@ async function mockCandidateApis(page: Page) {
           ...node,
           adjacency: [{
             relationId: 'gold',
-            predicate: 'represented_by',
+            predicate: 'has_formula',
+            direction: 'source_to_target',
+            relationFamily: 'domain_semantic',
+            evidenceState: 'available',
+            releaseTier: 'gold',
             qualityTier: 'GOLD',
             neighborId: 'formula',
             traversal: 'outgoing',
@@ -167,10 +195,12 @@ test('ADMIN controlled verification covers navigation, filters, predicates, deta
   const candidate = page.locator('[data-candidate-authoritative-graph="true"]');
   await expect(candidate).toBeVisible();
   await expect(candidate).toHaveAttribute('data-candidate-controlled-verification', 'true');
-  await expect(candidate).toContainText('根轨迹局部发布版');
+  await expect(candidate).toContainText('控制理论工程聚合发布版');
+  await expect(candidate).toContainText(`投影摘要：${'e'.repeat(64)}`);
   await expect(candidate).toContainText('真实覆盖：3 对象 · 2 关系');
+  await expect(candidate).toContainText('发布条目 5 · 核心 2 · 扩展 1');
   await expect(candidate).toContainText('教学关系尚未发布');
-  await expect(candidate).toContainText('represented_by · 实线');
+  await expect(candidate).toContainText('has_formula · 实线');
   await expect(candidate).toContainText('used_to_analyze · 点线');
 
   await page.getByRole('button', { name: '领域概念', exact: true }).click();
