@@ -1,8 +1,10 @@
 {
   "change": "calibrate-pid-turn-scenario",
-  "headCommit": "b9cfcdfc0cfe60d5fab15d791854569a012fc51b",
+  "headCommit": "7a9c37feb267219ffcf0f17c747faa664fe476b8",
   "workspaceClean": true,
+  "needsRecapture": true,
   "capturedAt": "2026-07-27T10:32:15.964Z",
+  "recaptureRequired": "Screenshots and metrics were captured at earlier HEAD (b9cfcdfc). Run capture-pid-recommendation-evidence.mjs on current HEAD to regenerate.",
   "server": "http://localhost:3012",
   "browser": "Playwright Chromium",
   "evidenceMode": "COMMERCIAL_UI_EVIDENCE=1",
@@ -22,7 +24,8 @@
   ],
   "limitations": [
     "test route renders production AIRecommendPanel; optimize endpoint handled by real /api/simulation/optimize (requires Docker for WASM runtime)",
-    "algorithm correctness covered by PID unit and Rust tests; browser evidence validates integration reachability and UI rendering"
+    "algorithm correctness covered by PID unit and Rust tests; browser evidence validates integration reachability and UI rendering",
+    "STALE: Screenshots captured at older HEAD. Re-run capture script on current HEAD with Docker to refresh."
   ],
   "captures": [
     {
