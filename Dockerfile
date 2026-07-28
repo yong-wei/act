@@ -119,6 +119,7 @@ COPY --from=builder /app/scripts/lib ./scripts/lib
 COPY --from=builder /app/scripts/workers ./scripts/workers
 COPY --from=builder /app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases
 COPY --from=builder /app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage
+COPY --from=builder /app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl
 COPY --from=builder /app/.app-revision ./.app-revision
 
 # Set the correct permission for prerender cache

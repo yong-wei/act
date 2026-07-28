@@ -52,6 +52,7 @@ function main() {
     '/app/scripts/course-coverage ./scripts/course-coverage',
     '/app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases',
     '/app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage',
+    '/app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
     '/app/.app-revision ./.app-revision',
   ]) {
     assert.ok(
@@ -243,6 +244,7 @@ function main() {
   for (const requiredPath of [
     '!scripts/actkg-release/**',
     '!scripts/course-coverage/**',
+    '!course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
   ]) {
     assert.ok(
       dockerignore.includes(requiredPath),
