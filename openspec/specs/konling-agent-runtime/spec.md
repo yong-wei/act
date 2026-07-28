@@ -854,12 +854,21 @@ Konling tool-call correction SHALL reuse the provisional-message identity, `æ­£å
 - **WHEN** deterministic normalization withholds malformed structured syntax and starts the single permitted correction
 - **THEN** the correction SHALL update the existing provisional message through the shared message-revision contract
 - **AND** this change SHALL NOT create a second visible answer, wait controller, or message replacement implementation.
+
 ### Requirement: Konling uses candidate Canonical page context
-When Konling is invoked from the candidate graph, it MUST receive the current ReleaseSet identity, selected Canonical Object, graph filters, and candidate coverage state.
+When Konling is invoked from the candidate graph, it MUST receive the aggregate ReleaseSet identity and projection digest, selected Canonical Object, graph filters, actual candidate coverage, release tier, and explicit teaching-semantics availability state.
 
 #### Scenario: Selected candidate object is explained
-- **WHEN** the user asks about the selected Canonical Object
-- **THEN** Konling SHALL use its Canonical ID and ReleaseSet rather than searching Legacy nodes by label
+- **WHEN** the user asks about a selected Canonical Object in `control-theory-engineering-v0.2`
+- **THEN** Konling SHALL use its Canonical ID, aggregate ReleaseSet, exact typed relations, and available public provenance rather than searching Legacy nodes by label
+
+#### Scenario: Teaching semantics are unavailable
+- **WHEN** the aggregate release does not yet provide prerequisite, containment, or related formal Teaching Projection semantics required by the request
+- **THEN** Konling SHALL expose that limitation and SHALL NOT infer those relations from display order, Legacy graph, or resource similarity
+
+#### Scenario: Historical candidate context is encountered
+- **WHEN** a stored conversation turn references the prior root-locus ReleaseSet
+- **THEN** the runtime SHALL retain that turn as history but SHALL bind a new candidate-graph turn to the current aggregate ReleaseSet without merging their objects or provenance
 
 ### Requirement: Candidate graph exposes a focused read-only tool set
 The candidate graph context SHALL expose Repository-backed Canonical search, node detail, and bounded neighbor tools, and SHALL exclude state-changing knowledge actions.
@@ -889,3 +898,4 @@ The system MUST keep the candidate graph unavailable to ordinary users until its
 #### Scenario: Candidate Konling acceptance fails
 - **WHEN** any candidate context, provenance, or side-effect test fails
 - **THEN** the public activation gate SHALL remain closed and users SHALL continue on the Legacy graph
+
