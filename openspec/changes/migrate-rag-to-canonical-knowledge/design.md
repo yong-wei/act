@@ -18,7 +18,7 @@
 
 ## Decisions
 
-1. 查询先在 `control-theory-engineering-v0.2` 聚合身份和当前 CourseCoverage 内进行 Canonical 实体对齐，再沿 RAG 显式支持的谓词执行有限关系扩展。
+1. 查询先在当前已接受候选 ReleaseSet 和版本匹配的 CourseCoverage 内进行 Canonical 实体对齐，再沿 RAG 显式支持的谓词执行有限关系扩展。
 2. 上游 RAG reference 只作为候选 seed；只有经治理的 ACT EvidenceStructuralUnitCrosswalk 才能定位 ACT 结构单元、RetrievalChunk 和 CitationTarget。
 3. 词面、向量、重排和证据裁决继续决定最终正文，图谱信号仅影响候选与排序。
 4. 最终 citation owner 必须是可访问的教材结构单元或锚点，不能是图谱对象或存根。
