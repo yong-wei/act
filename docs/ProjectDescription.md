@@ -210,6 +210,16 @@ AI 能力嵌入多个教学场景：
 
 AI 可以解释、提示、总结和建议，但不能伪造学习事实、不能代替官方评测器给出 Arena 成绩、不能跳过课堂契约直接改变课程步骤。未来 Konling 模式需要按诊断、路径建议、资源辅导、批改反馈、班级摘要和备课共创分别声明上下文、工具、引用类别、隐私边界和 fallback。
 
+## 权威知识候选与 ActKG 协议变基
+
+当前候选权威知识底座锁定为 ActKG CTKG 0.2 聚合工程包 `control-theory-engineering-v0.2`：841 个 release entries、744 个投影节点、97 条投影关系和 1302 条唯一上游 RAG crosswalk，谓词词表共九种。两个组件发布只用于校验聚合包声明的血缘与哈希，不作为并列导入项。
+
+公共 bundle 按原始字节完整导入，可逐字节重构并校验 SHA-256；ActKG 私有 CTKGDataset 明确不可用，平台不导入、不推断、不重建其内容。CTKG 0.1 仅保留为历史精确适配器，用于审计与回归，不再参与当前候选准入；Legacy 图谱仍是生产权威，本变更不切换生产 selector。
+
+候选 Repository、三项投影（`act.canvas.v2`、`act.node-detail.v2`、`act.migration-review.v1`）、候选图谱与候选态控灵绑定同一聚合 ReleaseSet、`projectionDigest` 与 `sourceDatasetHash`，不混入旧 root-locus 行；方向或谓词与固定合同冲突时在导入或投影契约处失败关闭，不再运行时改写。旧发布身份下的 inventory、crosswalk、candidate、decision 与 binding 输出只保留为 historical/stale 审计记录，不充当当前 readiness。
+
+下游 CourseCoverage 与 ACT structural-unit crosswalk、资源教学角色、RAG/KAQ/SAR、学习路径、学习事实和最终生产权威切换仍受后续依赖门禁约束，不在本次生成或接线。
+
 ## OpenSpec 与工作树协作
 
 本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，尚未归档的变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。课程知识基座重建准备系列当前采用 ADR 0045 的边界：只治理当前课程真源、发布图谱、审核映射和活跃引用；历史事实与派生状态保留原图谱修订，切换后新事实才绑定唯一活动的新修订。该系列不以历史事件重放、画像对账或全库 writer 闭包作为 readiness 条件。

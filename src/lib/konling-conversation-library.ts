@@ -427,6 +427,11 @@ export function buildKonlingContextIdentity(scope: KonlingAuthorizedPageScope): 
           scope.candidateGraph.authorityState,
           scope.candidateGraph.releaseSetId,
           scope.candidateGraph.releaseId,
+          // 聚合投影 digest 与上游数据集哈希参与上下文身份：同一 ReleaseSet 的
+          // digest 变化必须生成新的上下文事件，旧上下文只作为历史记录保留，
+          // 不与新一轮候选上下文合并对象或旧 provenance。
+          scope.candidateGraph.projectionDigest ?? '',
+          scope.candidateGraph.sourceDatasetHash ?? '',
           scope.candidateGraph.selectedCanonicalId ?? '',
           scope.candidateGraph.selectedCanonicalType ?? '',
           scope.candidateGraph.governanceFilter,
@@ -464,6 +469,12 @@ export function createKonlingContextEvent(
       `authorityState=${metadata.candidateGraph.authorityState}`,
       `releaseSetId=${metadata.candidateGraph.releaseSetId}`,
       `releaseId=${metadata.candidateGraph.releaseId}`,
+      ...(metadata.candidateGraph.projectionDigest
+        ? [`projectionDigest=${metadata.candidateGraph.projectionDigest}`]
+        : []),
+      ...(metadata.candidateGraph.sourceDatasetHash
+        ? [`sourceDatasetHash=${metadata.candidateGraph.sourceDatasetHash}`]
+        : []),
       `selectedCanonicalId=${metadata.candidateGraph.selectedCanonicalId ?? 'none'}`,
       `selectedCanonicalType=${metadata.candidateGraph.selectedCanonicalType ?? 'none'}`,
       `governanceFilter=${metadata.candidateGraph.governanceFilter}`,

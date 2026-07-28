@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-07-18
-摘要: 初始化时优先读取的最近上下文入口。当前平台主线已经覆盖统一壳层、标准互动课、控制工作台、Arena、资源语义治理、知识图谱、数据治理和智能助教；当前 OpenSpec 列表中的四项 change 均已完成任务，下一步应以验收和归档为主。
+最后更新: 2026-07-28
+摘要: 初始化时优先读取的最近上下文入口。当前平台主线已经覆盖统一壳层、标准互动课、控制工作台、Arena、资源语义治理、知识图谱、数据治理和智能助教；Issue #1125 已完成 CTKG 0.2 聚合协议变基的实现与文档同步，候选底座锁定 `control-theory-engineering-v0.2`，Legacy 仍为生产权威。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -15,6 +15,8 @@
 - [docs/ProjectDescription.md](../ProjectDescription.md)
 
 ## 最近最重要的稳定变化
+
+- 2026-07-28 Issue #1125 `adopt-ctkg-0-2-aggregate-release-contract` 已完成实现与文档同步：候选权威知识底座锁定 CTKG 0.2 聚合工程包 `control-theory-engineering-v0.2`（841 release entries、744 投影节点、97 投影关系、1302 条唯一上游 crosswalk、九种谓词），候选 Repository、三项投影、候选图谱与候选态控灵绑定同一聚合 ReleaseSet、`projectionDigest` 与 `sourceDatasetHash`。公共 bundle 字节级往返成立；私有 CTKGDataset 明确不可用且不得重建；CTKG 0.1 仅历史可审计；Legacy 仍是生产权威；旧 inventory/crosswalk/candidate/decision/binding 仅 historical/stale。tasks 5.2 的 PostgreSQL 全流程最后一段要求干净 Git HEAD，提交后才能复跑完成；下游 CourseCoverage/ACT crosswalk、资源教学角色、RAG/KAQ/SAR、路径、学习事实与生产切换仍受后续依赖门禁。
 
 - 2026-07-18 `openspec list --json` 中的四项 change 均已完成任务：知识图谱根节点气泡与 inspector 持久化、评估检查点资源语义、教师审核与学生反馈闭环、互动课组件样式统一。它们尚未全部归档，因此“目录仍在 `openspec/changes/`”不等于仍有未实现任务。
 

@@ -1,24 +1,33 @@
 import { prisma } from '@/lib/prisma';
 
-import type {
-  AuthoritySelector,
-  AuthoritativeEvidenceRecord,
-  AuthoritativeImportReceiptRecord,
-  AuthoritativeKnowledgeSnapshot,
-  AuthoritativeObjectRecord,
-  AuthoritativeRelationRecord,
-  AuthoritativeReleaseRecord,
-  AuthoritativeReleaseSetRecord,
-  AuthoritativeSourceMappingRecord,
-  AuthoritativeSourceObjectRecord,
-  CourseCoverageAuditIdentity,
-  CourseCoverageDiagnostic,
-  CourseCoverageRecord,
-  CourseCoverageResult,
-  CourseCoverageRole,
-  CourseCoverageSelector,
-  RepositoryDiagnostic,
-  RepositoryResult,
+import {
+  CURRENT_AGGREGATE_RELEASE_SET_ID,
+  CTKG_0_2_SCHEMA_VERSION,
+  isAggregateReleaseProtocol,
+  type AuthoritySelector,
+  type AuthoritativeEvidenceRecord,
+  type AuthoritativeImportReceiptRecord,
+  type AuthoritativeKnowledgeSnapshot,
+  type AuthoritativeObjectRecord,
+  type AuthoritativeProjectionLinkRecord,
+  type AuthoritativeProjectionNodeRecord,
+  type AuthoritativeRelationRecord,
+  type AuthoritativeReleaseArtifactRecord,
+  type AuthoritativeReleaseComponentRecord,
+  type AuthoritativeReleaseEntryRecord,
+  type AuthoritativeReleaseRecord,
+  type AuthoritativeReleaseSetRecord,
+  type AuthoritativeSourceMappingRecord,
+  type AuthoritativeSourceObjectRecord,
+  type AuthoritativeUpstreamRagReferenceRecord,
+  type CourseCoverageAuditIdentity,
+  type CourseCoverageDiagnostic,
+  type CourseCoverageRecord,
+  type CourseCoverageResult,
+  type CourseCoverageRole,
+  type CourseCoverageSelector,
+  type RepositoryDiagnostic,
+  type RepositoryResult,
 } from './contracts';
 
 interface Delegate {
@@ -35,6 +44,12 @@ export interface AuthoritativeKnowledgeTransaction {
   actkgSourceMapping: Delegate;
   actkgSourceObject: Delegate;
   actkgEvidenceSegment: Delegate;
+  actkgReleaseArtifact: Delegate;
+  actkgReleaseComponent: Delegate;
+  actkgReleaseEntry: Delegate;
+  actkgProjectionNode: Delegate;
+  actkgProjectionLink: Delegate;
+  actkgUpstreamRagReference: Delegate;
   courseCoverageOverlayVersion: Delegate;
   courseCoverageOverlayEntry: Delegate;
   courseCoverageImportReceipt: Delegate;
@@ -71,9 +86,29 @@ function compare(
   if (input.expected !== input.actual) diagnostics.push(input);
 }
 
+function compareNullable(
+  diagnostics: RepositoryDiagnostic[],
+  input: {
+    code: RepositoryDiagnostic['code'];
+    field: string;
+    expected: string | number | null;
+    actual: string | number | null;
+  },
+): void {
+  if (input.expected !== input.actual) {
+    diagnostics.push({
+      code: input.code,
+      field: input.field,
+      expected: input.expected ?? '(missing)',
+      actual: input.actual,
+    });
+  }
+}
+
 function diagnoseSnapshot(snapshot: AuthoritativeKnowledgeSnapshot): RepositoryDiagnostic[] {
   const diagnostics: RepositoryDiagnostic[] = [];
   const { releaseSet, release, receipt } = snapshot;
+  const aggregate = isAggregateReleaseProtocol(release.protocol);
 
   compare(diagnostics, {
     code: 'candidate-state-mismatch',
@@ -110,6 +145,41 @@ function diagnoseSnapshot(snapshot: AuthoritativeKnowledgeSnapshot): RepositoryD
         expected: '64 lowercase hexadecimal characters',
         actual: value,
       });
+    }
+  }
+
+  if (aggregate) {
+    compareNullable(diagnostics, {
+      code: 'release-identity-mismatch',
+      field: 'release.schemaVersion',
+      expected: CTKG_0_2_SCHEMA_VERSION,
+      actual: release.schemaVersion ?? null,
+    });
+    for (const [field, value] of [
+      ['release.projectionDigest', release.projectionDigest],
+      ['release.sourceDatasetHash', release.sourceDatasetHash],
+    ] as const) {
+      if (typeof value !== 'string' || !SHA256.test(value)) {
+        diagnostics.push({
+          code: 'hash-invalid',
+          field,
+          expected: '64 lowercase hexadecimal characters',
+          actual: value ?? null,
+        });
+      }
+    }
+    for (const [field, value] of [
+      ['release.upstreamPublicationCommit', release.upstreamPublicationCommit],
+      ['release.upstreamClosedCommit', release.upstreamClosedCommit],
+    ] as const) {
+      if (typeof value !== 'string' || !GIT_COMMIT.test(value)) {
+        diagnostics.push({
+          code: 'capture-revision-invalid',
+          field,
+          expected: '40 lowercase hexadecimal characters',
+          actual: value ?? null,
+        });
+      }
     }
   }
 
@@ -170,6 +240,51 @@ function diagnoseSnapshot(snapshot: AuthoritativeKnowledgeSnapshot): RepositoryD
       actual,
     });
   }
+
+  if (aggregate) {
+    for (const [field, expected, actual] of [
+      ['receipt.schemaVersion', release.schemaVersion, receipt.schemaVersion],
+      ['receipt.upstreamReleaseId', release.upstreamReleaseId, receipt.upstreamReleaseId],
+      ['receipt.projectionId', release.projectionId, receipt.projectionId],
+      ['receipt.projectionDigest', release.projectionDigest, receipt.projectionDigest],
+      ['receipt.sourceDatasetHash', release.sourceDatasetHash, receipt.sourceDatasetHash],
+      ['receipt.upstreamPublicationCommit', release.upstreamPublicationCommit, receipt.upstreamPublicationCommit],
+      ['receipt.upstreamClosedCommit', release.upstreamClosedCommit, receipt.upstreamClosedCommit],
+    ] as const) {
+      compareNullable(diagnostics, {
+        code: 'receipt-identity-mismatch',
+        field,
+        expected: expected ?? null,
+        actual: actual ?? null,
+      });
+    }
+    const aggregateCounts = {
+      releaseEntryCount: snapshot.releaseEntries?.length ?? 0,
+      projectionNodeCount: snapshot.projectionNodes?.length ?? 0,
+      projectionLinkCount: snapshot.projectionLinks?.length ?? 0,
+      upstreamRagReferenceCount: snapshot.upstreamRagReferences?.length ?? 0,
+      artifactCount: snapshot.releaseArtifacts?.length ?? 0,
+      componentCount: snapshot.releaseComponents?.length ?? 0,
+    } as const;
+    for (const [field, actual] of Object.entries(aggregateCounts)) {
+      const expected = receipt[field as keyof typeof aggregateCounts];
+      if (typeof expected === 'number') {
+        compare(diagnostics, {
+          code: 'receipt-count-mismatch',
+          field: `receipt.${field}`,
+          expected,
+          actual,
+        });
+      } else {
+        diagnostics.push({
+          code: 'receipt-count-mismatch',
+          field: `receipt.${field}`,
+          expected: 'present',
+          actual: null,
+        });
+      }
+    }
+  }
   return diagnostics;
 }
 
@@ -213,6 +328,98 @@ export class AuthoritativeKnowledgeRepository {
         };
       }
 
+      const historical = releaseSet.id !== CURRENT_AGGREGATE_RELEASE_SET_ID;
+
+      if (isAggregateReleaseProtocol(release.protocol)) {
+        // Aggregate branch: read only CTKG 0.2 public release/projection rows.
+        // Historical CTKG 0.1 tables are never queried for this release.
+        const [
+          receipt,
+          releaseArtifacts,
+          releaseComponents,
+          releaseEntries,
+          projectionNodes,
+          projectionLinks,
+          upstreamRagReferences,
+        ] = await Promise.all([
+          transaction.actkgImportReceipt.findUnique({ where: { releaseId: selector.releaseId } }),
+          transaction.actkgReleaseArtifact.findMany({
+            where: { releaseId: selector.releaseId },
+            select: {
+              releaseId: true,
+              relativePath: true,
+              ordinal: true,
+              mediaType: true,
+              sha256: true,
+              byteLength: true,
+            },
+            orderBy: [{ ordinal: 'asc' }, { relativePath: 'asc' }],
+          }),
+          transaction.actkgReleaseComponent.findMany({
+            where: { releaseId: selector.releaseId },
+            orderBy: [{ ordinal: 'asc' }, { componentReleaseId: 'asc' }],
+          }),
+          transaction.actkgReleaseEntry.findMany({
+            where: { releaseId: selector.releaseId },
+            orderBy: [{ ordinal: 'asc' }, { entityId: 'asc' }],
+          }),
+          transaction.actkgProjectionNode.findMany({
+            where: { releaseId: selector.releaseId },
+            orderBy: [{ ordinal: 'asc' }, { nodeId: 'asc' }],
+          }),
+          transaction.actkgProjectionLink.findMany({
+            where: { releaseId: selector.releaseId },
+            orderBy: [{ ordinal: 'asc' }, { linkId: 'asc' }],
+          }),
+          transaction.actkgUpstreamRagReference.findMany({
+            where: { releaseId: selector.releaseId },
+            orderBy: [{ ordinal: 'asc' }, { publishedEntityId: 'asc' }],
+          }),
+        ]);
+
+        const snapshot: AuthoritativeKnowledgeSnapshot = {
+          authorityState: 'candidate',
+          productionAuthoritative: false,
+          historical,
+          releaseSet,
+          release,
+          receipt: receipt as AuthoritativeImportReceiptRecord | null,
+          objects: [],
+          relations: [],
+          sourceMappings: [],
+          sourceObjects: [],
+          evidence: [],
+          releaseArtifacts: byOrdinalAndId(
+            releaseArtifacts as AuthoritativeReleaseArtifactRecord[],
+            (row) => row.relativePath,
+          ),
+          releaseComponents: byOrdinalAndId(
+            releaseComponents as AuthoritativeReleaseComponentRecord[],
+            (row) => row.componentReleaseId,
+          ),
+          releaseEntries: byOrdinalAndId(
+            releaseEntries as AuthoritativeReleaseEntryRecord[],
+            (row) => row.entityId,
+          ),
+          projectionNodes: byOrdinalAndId(
+            projectionNodes as AuthoritativeProjectionNodeRecord[],
+            (row) => row.nodeId,
+          ),
+          projectionLinks: byOrdinalAndId(
+            projectionLinks as AuthoritativeProjectionLinkRecord[],
+            (row) => row.linkId,
+          ),
+          upstreamRagReferences: byOrdinalAndId(
+            upstreamRagReferences as AuthoritativeUpstreamRagReferenceRecord[],
+            (row) => `${row.publishedEntityId}${row.retrievalChunkId}${row.citationTargetId}`,
+          ),
+        };
+        const diagnostics = diagnoseSnapshot(snapshot);
+        return diagnostics.length === 0
+          ? { status: 'available', selector, snapshot, diagnostics: [] }
+          : { status: 'drift', selector, snapshot, diagnostics };
+      }
+
       const [
         receipt,
         objects,
@@ -247,6 +454,7 @@ export class AuthoritativeKnowledgeRepository {
       const snapshot: AuthoritativeKnowledgeSnapshot = {
         authorityState: 'candidate',
         productionAuthoritative: false,
+        historical,
         releaseSet,
         release,
         receipt: receipt as AuthoritativeImportReceiptRecord | null,

@@ -768,6 +768,109 @@ describe('Konling conversation library', () => {
     });
   });
 
+  it('retains root-locus candidate history and binds the new turn to the aggregate ReleaseSet without merging', () => {
+    const historicalCandidate = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v1',
+      releaseId: 'root-locus-engineering-v0.1',
+      selectedCanonicalId: 'canonical-legacy-a',
+      selectedCanonicalType: 'DomainConcept',
+      governanceFilter: 'EXTENSION' as const,
+      canonicalTypeFilter: null,
+      coverageStatus: 'ready' as const,
+      objectCount: 10,
+      relationCount: 12,
+    };
+    const historicalEvent = createKonlingContextEvent({
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      candidateGraph: historicalCandidate,
+    }, 'historical-context');
+    const historicalSnapshot = JSON.stringify([historicalEvent]);
+    const original = conversation({
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      messages: [historicalEvent],
+    });
+
+    const aggregateCandidate = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
+      selectedCanonicalId: 'ctc:concept-a',
+      selectedCanonicalType: 'DomainConcept',
+      governanceFilter: 'EXTENSION' as const,
+      canonicalTypeFilter: null,
+      coverageStatus: 'ready' as const,
+      objectCount: 744,
+      relationCount: 97,
+      projectionDigest: 'f'.repeat(64),
+      sourceDatasetHash: 'd'.repeat(64),
+      releaseTier: 'gold',
+      teachingSemanticsAvailability: 'unavailable' as const,
+    };
+    const turn = prepareKonlingConversationTurn({
+      conversation: original,
+      currentScope: {
+        courseId: 'knowledge',
+        pageId: '/knowledge',
+        candidateGraph: aggregateCandidate,
+      },
+      userMessage: { id: 'user-v2', role: 'user', content: '解释选中的概念' },
+    });
+
+    // 旧 root-locus / CTKG 0.1 上下文只作为历史记录原样保留
+    expect(JSON.stringify(turn.existingMessages)).toBe(historicalSnapshot);
+    expect(turn.existingMessages[0]?.content).toContain('releaseSetId=actkg-authoritative-candidate-v1');
+    // 新一轮候选上下文绑定 CTKG 0.2 聚合身份：追加独立上下文事件，
+    // 不合并旧对象或旧 provenance，也不改写历史记录
+    expect(turn.contextAppended).toBe(true);
+    expect(turn.turnMessages[0]?.content).toContain('releaseSetId=actkg-authoritative-candidate-v2');
+    expect(turn.turnMessages[0]?.content).toContain('releaseId=control-theory-engineering-v0.2');
+    expect(turn.turnMessages[0]?.content).toContain(`projectionDigest=${'f'.repeat(64)}`);
+    expect(turn.turnMessages[0]?.content).toContain(`sourceDatasetHash=${'d'.repeat(64)}`);
+    expect(turn.turnMessages[0]?.content).not.toContain('root-locus-engineering-v0.1');
+    expect(turn.turnMessages[0]?.content).not.toContain('canonical-legacy-a');
+  });
+
+  it('treats a projection digest change on the same aggregate release as a new context identity', () => {
+    const aggregateCandidate = {
+      authorityState: 'candidate' as const,
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      releaseId: 'control-theory-engineering-v0.2',
+      selectedCanonicalId: 'ctc:concept-a',
+      selectedCanonicalType: 'DomainConcept',
+      governanceFilter: 'EXTENSION' as const,
+      canonicalTypeFilter: null,
+      coverageStatus: 'ready' as const,
+      objectCount: 744,
+      relationCount: 97,
+      projectionDigest: 'f'.repeat(64),
+      sourceDatasetHash: 'd'.repeat(64),
+      releaseTier: 'gold',
+      teachingSemanticsAvailability: 'unavailable' as const,
+    };
+    const identityA = buildKonlingContextIdentity({
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      candidateGraph: aggregateCandidate,
+    });
+    const identityB = buildKonlingContextIdentity({
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      candidateGraph: { ...aggregateCandidate, projectionDigest: 'e'.repeat(64) },
+    });
+    const identityC = buildKonlingContextIdentity({
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+      candidateGraph: { ...aggregateCandidate, sourceDatasetHash: 'c'.repeat(64) },
+    });
+
+    expect(identityA).not.toBe(identityB);
+    expect(identityA).not.toBe(identityC);
+    expect(identityB).not.toBe(identityC);
+  });
+
   it('claims the user turn before completion, generates a redacted title, and never overwrites a manual title', async () => {
     const automatic = statefulConversationDb();
     const claim = await claimKonlingConversationTurn(automatic.db as never, {

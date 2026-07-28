@@ -211,6 +211,8 @@ function buildCandidateOnlySystemPrompt(
     `- Authority: ${candidate.authorityState}`,
     `- ReleaseSet: ${candidate.releaseSetId}`,
     `- Release: ${candidate.releaseId}`,
+    `- Projection Digest: ${candidate.projectionDigest ?? '未提供'}`,
+    `- Source Dataset Hash: ${candidate.sourceDatasetHash ?? '未提供'}`,
     `- 页面: ${page.topic} (${page.courseId}/${page.stepId})`,
   ];
   if (candidate.selectedCanonicalId) {
@@ -218,12 +220,20 @@ function buildCandidateOnlySystemPrompt(
     if (candidate.selectedCanonicalType) {
       lines.push(`- Canonical 类型: ${candidate.selectedCanonicalType}`);
     }
+    lines.push(`- Release Tier: ${candidate.releaseTier ?? '未提供'}`);
   }
   lines.push(`- Governance 筛选: ${candidate.governanceFilter}`);
   if (candidate.canonicalTypeFilter) {
     lines.push(`- Canonical 类型筛选: ${candidate.canonicalTypeFilter}`);
   }
   lines.push(`- 投影诊断: coverage=${candidate.coverageStatus}, objects=${candidate.objectCount}, relations=${candidate.relationCount}`);
+  if (candidate.selectedRelations?.length) {
+    lines.push('- 选中对象的精确关系（只读，上限 12 条）:');
+    candidate.selectedRelations.slice(0, 12).forEach((relation) => {
+      lines.push(`  - ${relation.relationId}: ${relation.predicate}，direction=${relation.direction ?? '未声明'}，family=${relation.relationFamily ?? '未提供'}，evidence=${relation.evidenceState ?? '未提供'}，tier=${relation.releaseTier ?? '未提供'}，${relation.traversal === 'outgoing' ? '出向' : '入向'}→${relation.neighborId}`);
+    });
+  }
+  lines.push(`- Teaching Semantics: ${candidate.teachingSemanticsAvailability ?? 'unavailable'}（正式教学投影尚未发布；不得推断前置、包含或其他教学关系，也不得按显示顺序或名称相似度补全）`);
   lines.push('- Provenance: server-owned fixed-selector projection；只读，不进行跨权威状态映射或推断。');
 
   const candidateCitations = runtime?.citationContext?.contentCitations
@@ -585,10 +595,14 @@ function buildCourseSection(page: PageContext): string {
     lines.push('**候选权威图谱**: 只读候选上下文');
     lines.push(`- ReleaseSet: ${page.candidateGraph.releaseSetId}`);
     lines.push(`- Release: ${page.candidateGraph.releaseId}`);
+    lines.push(`- Projection Digest: ${page.candidateGraph.projectionDigest ?? '未提供'}`);
+    lines.push(`- Source Dataset Hash: ${page.candidateGraph.sourceDatasetHash ?? '未提供'}`);
     lines.push(`- 选中 Canonical Object: ${page.candidateGraph.selectedCanonicalId ?? '无'}`);
     lines.push(`- Canonical 类型: ${page.candidateGraph.selectedCanonicalType ?? '无'}`);
+    lines.push(`- Release Tier: ${page.candidateGraph.releaseTier ?? '未提供'}`);
     lines.push(`- 筛选: governance=${page.candidateGraph.governanceFilter}, type=${page.candidateGraph.canonicalTypeFilter ?? '全部'}`);
     lines.push(`- 覆盖状态: ${page.candidateGraph.coverageStatus} (${page.candidateGraph.objectCount ?? 'unknown'} objects, ${page.candidateGraph.relationCount ?? 'unknown'} relations)`);
+    lines.push(`- Teaching Semantics: ${page.candidateGraph.teachingSemanticsAvailability ?? 'unavailable'}（正式教学投影尚未发布，不得推断教学关系）`);
     lines.push('- 只能调用三项 candidate Canonical 只读工具；不得按名称推断 Legacy 映射，不得读取或写入学习事实、画像、推荐、路径、干预、仿真、控制器或持久学习记忆。');
   }
 
