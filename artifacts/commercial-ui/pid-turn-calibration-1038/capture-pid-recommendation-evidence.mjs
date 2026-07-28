@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +20,21 @@ const viewports = [
 ];
 
 await mkdir(outputDirectory, { recursive: true });
+
+// --- Git HEAD validation (fail-closed) ---
+const repoRoot = join(currentDirectory, '..', '..', '..');
+let preCaptureHead;
+let preCaptureClean;
+try {
+  preCaptureHead = execSync('git rev-parse HEAD', { cwd: repoRoot, encoding: 'utf8' }).trim();
+  const statusOutput = execSync('git status --porcelain', { cwd: repoRoot, encoding: 'utf8' }).trim();
+  preCaptureClean = statusOutput.length === 0;
+  console.log(`[evidence] Pre-capture HEAD: ${preCaptureHead}`);
+  console.log(`[evidence] Workspace clean: ${preCaptureClean}`);
+} catch (err) {
+  console.error('[evidence] Failed to read git state:', err.message);
+  process.exit(1);
+}
 
 const browser = await chromium.launch({ headless: true });
 const captures = [];
@@ -98,8 +115,31 @@ try {
   await browser.close();
 }
 
+// --- Post-capture HEAD validation ---
+let postCaptureHead;
+let postCaptureClean;
+try {
+  postCaptureHead = execSync('git rev-parse HEAD', { cwd: repoRoot, encoding: 'utf8' }).trim();
+  const statusOutput = execSync('git status --porcelain', { cwd: repoRoot, encoding: 'utf8' }).trim();
+  postCaptureClean = statusOutput.length === 0;
+  console.log(`[evidence] Post-capture HEAD: ${postCaptureHead}`);
+  console.log(`[evidence] Workspace clean: ${postCaptureClean}`);
+} catch (err) {
+  console.error('[evidence] Failed to read post-capture git state:', err.message);
+  process.exit(1);
+}
+
+// Fail-closed: HEAD must not have changed, workspace must remain clean
+assert.equal(postCaptureHead, preCaptureHead, 'HEAD changed during capture — aborting evidence');
+assert.equal(postCaptureClean, true, 'Workspace is dirty after capture — aborting evidence');
+if (!preCaptureClean) {
+  console.warn('[evidence] WARNING: Workspace was dirty before capture; evidence may not reflect committed source');
+}
+
 await writeFile(join(outputDirectory, 'browser-evidence.json'), `${JSON.stringify({
   change: 'calibrate-pid-turn-scenario',
+  headCommit: postCaptureHead,
+  workspaceClean: postCaptureClean,
   capturedAt: new Date().toISOString(),
   server: baseUrl,
   browser: 'Playwright Chromium',
