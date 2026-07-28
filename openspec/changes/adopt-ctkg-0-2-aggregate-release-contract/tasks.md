@@ -31,6 +31,6 @@
 ## 5. Verify the protocol rebase
 
 - [x] 5.1 Add unit and database tests for clean import, duplicate import, every checksum/reference failure class, public-bundle round trip, 0.1 historical reads, and stale shadow isolation.
-- [ ] 5.2 Run the relevant migration and importer against a local database, then run targeted authoritative-knowledge, Repository, candidate graph, and Konling test suites.
+- [x] 5.2 Run the relevant migration and importer against a local database, then run targeted authoritative-knowledge, Repository, candidate graph, and Konling test suites.
 - [x] 5.3 Run typecheck, affected data-governance checks, build, strict OpenSpec validation, and browser acceptance for candidate/Legacy switching.
 - [x] 5.4 Update project documentation with the aggregate candidate contract, explicit private-data boundary, unchanged Legacy production authority, and downstream dependency gates.
