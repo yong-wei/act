@@ -1,6 +1,6 @@
 ## Context
 
-Legacy 路径的步骤引用旧节点，ActKG 当前又未发布完整教学关系。继续执行旧路径或直接步骤映射都会混合权威。
+Legacy 路径的步骤引用旧节点，当前 CTKG 0.2 聚合包又未发布正式 Teaching Projection。继续执行旧路径或直接步骤映射都会混合权威。
 
 ## Goals / Non-Goals
 
@@ -20,7 +20,7 @@ Legacy 路径的步骤引用旧节点，ActKG 当前又未发布完整教学关�
 
 1. 权威切换事务把未完成 Legacy 路径置为停止归档状态，执行记录不可变。
 2. 目标或用户意图作为独立字段保留，不携带旧节点序列约束。
-3. 新规划只使用当前累计画像、CourseCoverage、KAQ Canonical 绑定和已发布 Teaching Projection。
+3. 新规划只使用当前累计画像、聚合 CourseCoverage、聚合 KAQ Canonical 绑定和已发布 Teaching Projection。
 4. 新路径具有独立 identity、Canonical ID 和版本，不继承旧执行进度。
 5. Teaching Projection 未满足时只显示无法再规划的明确状态，不以旧图 fallback。
 

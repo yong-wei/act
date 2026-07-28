@@ -1,8 +1,8 @@
 ## 1. Define compositional query contracts
 
 - [ ] 1.1 Define SAR source adapters for Repository, KAQ, resource, path, and learner-state Overlay boundaries.
-- [ ] 1.2 Define typed cross-namespace bindings, supported semantics, hop limits, candidate budgets, and scope.
-- [ ] 1.3 Include namespace, authority owner, source identity, and Release or Overlay version on every result item.
+- [ ] 1.2 Define aggregate-versioned cross-namespace bindings, explicitly supported semantics, hop limits, candidate budgets, and scope.
+- [ ] 1.3 Include namespace, authority owner, source identity, and ReleaseSet/Release or Overlay version on every result item.
 
 ## 2. Implement query-time composition
 

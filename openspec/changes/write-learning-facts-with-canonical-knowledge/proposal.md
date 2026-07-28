@@ -4,12 +4,12 @@
 
 ## What Changes
 
-- 定义 Canonical 新事实引用：Canonical ID、ReleaseSet/Release 和知识修订身份均为必需。
+- 定义 Canonical 新事实引用：Canonical ID、活动聚合 ReleaseSet/Release、projection/知识修订身份均为必需。
 - 候选 ReleaseSet 禁止写入正式事实；写入边界只在最终事务切换时激活。
 - 课程覆盖、有效资源绑定和 KAQ 支持范围共同约束可写 Canonical 对象。
 - 历史 LearningFact、画像、诊断、风险、成长、班级聚合和已完成路径保持 Legacy 修订解释。
 - 不建立历史 Canonical sidecar，不回填、不按新图重新聚合，也不双写新旧知识身份。
-- 本变更依赖 Repository、CourseCoverage、有效资源绑定和 KAQ Canonical 绑定。
+- 本变更依赖 `adopt-ctkg-0-2-aggregate-release-contract`、`govern-aggregate-course-coverage-and-resource-bindings`、有效聚合资源绑定和 `bind-kaq-to-canonical-knowledge`；当前结果仍只允许影子验证。
 
 ## Capabilities
 

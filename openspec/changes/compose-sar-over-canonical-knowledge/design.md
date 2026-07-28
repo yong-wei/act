@@ -19,8 +19,8 @@ SAR 需要跨多个治理域查找相关上下文。权威对象、KAQ、资源�
 ## Decisions
 
 1. 查询计划从明确种子和 scope 出发，分别调用 Repository 与 Overlay 公开接口。
-2. 跨域跳转只使用显式绑定实体，限制跳数、候选量和支持的边类型。
-3. 每个节点和边携带来源 namespace、Release/Overlay version 和 authority。
+2. 跨域跳转只使用聚合 ReleaseSet 下经审阅的显式绑定实体和 SAR 明确支持的边类型，限制跳数和候选量。
+3. 每个节点和边携带来源 namespace、ReleaseSet/Release 或 Overlay version 和 authority。
 4. 组合缓存键包含所有输入版本；任一来源变化只使相关缓存失效。
 5. 结果只服务当前检索和上下文组织，不晋升为正式关系或写回各真源。
 6. SAR authority selector 只在最终停服事务中统一激活；本变更的组合查询完成度不得造成局部生产切换。
@@ -33,7 +33,7 @@ SAR 需要跨多个治理域查找相关上下文。权威对象、KAQ、资源�
 
 ## Migration Plan
 
-以固定候选 ReleaseSet 和测试 Overlay 验证组合，再接入 KAQ 和资源真实绑定；在切换前只进行影子对比。
+以固定聚合候选 ReleaseSet、聚合 CourseCoverage、经治理的 ACT Crosswalk/资源绑定和测试 Overlay 验证组合，再接入 KAQ；在切换前只进行影子对比。
 
 ## Open Questions
 

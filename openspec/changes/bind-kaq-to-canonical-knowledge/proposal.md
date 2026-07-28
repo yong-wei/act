@@ -10,7 +10,7 @@ KAQ 的知识角色仍承担知识—能力—素养治理，不能被 ActKG 工
 - 接入未来 ActKG Teaching Projection；其正式发布后由 ActKG 拥有包含、先修、关联等知识—知识教学关系。
 - Teaching Projection 与既有 KAQ 知识关系冲突时执行一次性审核，确认后退役对应 KAQ 旧关系，不长期并行。
 - 切换前 Canonical KAQ 绑定和 Teaching Projection 只用于影子验证，正式 KAQ 消费者继续使用 Legacy authority selector。
-- 本变更依赖 `add-authoritative-knowledge-repository` 和 `add-course-knowledge-coverage-overlay`。
+- 本变更依赖 `adopt-ctkg-0-2-aggregate-release-contract` 和 `govern-aggregate-course-coverage-and-resource-bindings`；当前聚合包没有正式 Teaching Projection，因此本变更不能把工程谓词当作教学关系。
 
 ## Capabilities
 

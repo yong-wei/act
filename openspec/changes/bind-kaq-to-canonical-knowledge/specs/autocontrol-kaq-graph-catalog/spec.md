@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: KAQ catalog validates Canonical binding readiness
-The KAQ catalog MUST validate that each knowledge role intended for post-cutover formal consumption has a reviewed binding within the current CourseCoverage and pinned Release.
+The KAQ catalog MUST validate that each knowledge role intended for post-cutover formal consumption has a reviewed binding within the current aggregate CourseCoverage and pinned aggregate ReleaseSet.
 
 #### Scenario: Binding is stale
 - **WHEN** a Canonical revision or Release no longer matches the catalog binding

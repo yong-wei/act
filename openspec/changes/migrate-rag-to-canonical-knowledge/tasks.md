@@ -1,14 +1,14 @@
 ## 1. Add Canonical retrieval signals
 
-- [ ] 1.1 Implement Canonical entity alignment using IDs, names, aliases, current Release, and CourseCoverage.
+- [ ] 1.1 Implement Canonical entity alignment using IDs, names, aliases, the current aggregate ReleaseSet, and version-matched CourseCoverage.
 - [ ] 1.2 Add bounded expansion for explicitly supported engineering predicates.
-- [ ] 1.3 Resolve EvidenceSegment seeds through the versioned Crosswalk to ACT structural units and RetrievalChunks.
+- [ ] 1.3 Resolve upstream RAG-reference seeds only through the governed ACT EvidenceStructuralUnitCrosswalk to structural units, RetrievalChunks, and CitationTargets.
 - [ ] 1.4 Preserve existing lexical, vector, reranking, and evidence-adjudication stages.
 
 ## 2. Enforce citation ownership
 
 - [ ] 2.1 Require final citations to resolve to accessible ACT structural text units or anchors.
-- [ ] 2.2 Reject graph summaries, relations, and unresolved EvidenceSegment stubs as final answer evidence.
+- [ ] 2.2 Reject graph summaries, relations, and unresolved upstream RAG references as final answer evidence.
 - [ ] 2.3 Add diagnostics for missing or drifted Crosswalks without Legacy fallback.
 - [ ] 2.4 Emit standard numbered citations targeting the most specific available textbook structure.
 

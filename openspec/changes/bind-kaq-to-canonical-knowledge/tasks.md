@@ -1,8 +1,8 @@
 ## 1. Add KAQ Canonical binding
 
-- [ ] 1.1 Add versioned KAQ-role-to-Canonical binding models with role, Release, evidence, and review state.
+- [ ] 1.1 Add versioned KAQ-role-to-Canonical binding models with role, aggregate ReleaseSet/Release, evidence, and review state.
 - [ ] 1.2 Generate and review bindings from KAQ semantics without inheriting Legacy IDs or same-name matches.
-- [ ] 1.3 Restrict active KAQ bindings to current CourseCoverage and pinned Release.
+- [ ] 1.3 Restrict shadow KAQ bindings to the current aggregate CourseCoverage and pinned aggregate ReleaseSet.
 - [ ] 1.4 Update KAQ catalog validation and consumer projection to expose binding readiness and authority.
 
 ## 2. Preserve and migrate relation ownership

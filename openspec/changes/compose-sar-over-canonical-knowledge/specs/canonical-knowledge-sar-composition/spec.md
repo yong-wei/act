@@ -8,18 +8,18 @@ SAR MUST query AuthoritativeKnowledgeRepository and ACT KAQ, resource, path, and
 - **THEN** SAR SHALL query the relevant sources and compose only the bounded candidate result
 
 ### Requirement: Cross-domain traversal uses explicit typed bindings
-SAR MUST cross namespaces only through reviewed Canonical bindings and MUST enforce supported edge types, hop limits, scope, and candidate limits.
+SAR MUST cross namespaces only through reviewed bindings for the same aggregate ReleaseSet and MUST enforce explicitly supported edge types, hop limits, scope, and candidate limits.
 
 #### Scenario: Explicit binding exists
-- **WHEN** a Canonical Object has a reviewed KAQ or resource binding within the requested scope
-- **THEN** SAR MAY traverse that binding and preserve its type and provenance
+- **WHEN** a Canonical Object has a reviewed KAQ or resource binding within the requested scope and current aggregate ReleaseSet
+- **THEN** SAR MAY traverse that binding and preserve its type, aggregate identity, and provenance
 
 #### Scenario: Only lexical similarity exists
 - **WHEN** two objects have similar names but no explicit binding
 - **THEN** SAR MUST NOT treat them as one identity or traverse between them
 
 ### Requirement: Every result retains authority provenance
-Each SAR result node and edge MUST retain namespace, authority owner, source identity, and Release or Overlay version.
+Each SAR result node and edge MUST retain namespace, authority owner, source identity, and ReleaseSet/Release or Overlay version.
 
 #### Scenario: Result combines multiple sources
 - **WHEN** a candidate set contains ActKG, KAQ, resource, path, and learner-state items

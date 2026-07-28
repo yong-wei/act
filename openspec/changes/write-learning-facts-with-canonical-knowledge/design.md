@@ -18,8 +18,8 @@
 
 ## Decisions
 
-1. 新事实必须原子记录 Canonical ID、ReleaseSet/Release、知识修订和既有来源身份。
-2. 写入适配器验证活动权威、CourseCoverage、有效资源绑定和消费者语义支持。
+1. 新事实必须原子记录 Canonical ID、活动聚合 ReleaseSet/Release、projection/知识修订和既有来源身份。
+2. 写入适配器验证活动权威、聚合 CourseCoverage、当前聚合资源绑定和消费者语义支持。
 3. candidate 状态在类型、数据库和服务端门禁上均不可写。
 4. 切换前实现以 shadow validation 验证，不产生正式 Canonical fact。
 5. 历史读取按事实自己的 Legacy revision 或 snapshot 路由，不能使用当前 Canonical 图重新聚合。

@@ -1,14 +1,14 @@
 ## ADDED Requirements
 
 ### Requirement: New facts carry complete Canonical knowledge identity
-After production authority cutover, every knowledge-scoped learning fact MUST atomically record Canonical Object ID, ReleaseSet or Release identity, and knowledge revision together with its governed source identity.
+After production authority cutover, every knowledge-scoped learning fact MUST atomically record Canonical Object ID, active aggregate ReleaseSet/Release identity, projection or knowledge revision, and its governed source identity.
 
 #### Scenario: Canonical fact is accepted
 - **WHEN** an authorized producer submits a fact for the active Canonical authority
 - **THEN** the fact SHALL persist all required knowledge and source identities in one transaction
 
 #### Scenario: Knowledge version is incomplete
-- **WHEN** Canonical ID, Release, or revision is missing or inconsistent
+- **WHEN** Canonical ID, aggregate ReleaseSet/Release, projection, or revision is missing or inconsistent
 - **THEN** the producer SHALL fail closed without creating a partial fact
 
 ### Requirement: Candidate knowledge cannot receive formal facts
@@ -19,7 +19,7 @@ Candidate ReleaseSets MUST be excluded from every formal learning-fact writer.
 - **THEN** no formal knowledge-scoped learning fact SHALL be written from that candidate context
 
 ### Requirement: Canonical facts obey teaching admission gates
-A Canonical fact MUST target an object admitted by CourseCoverage and supported by the active resource or KAQ producer contract.
+A Canonical fact MUST target an object admitted by the active aggregate CourseCoverage and supported by a current aggregate resource or KAQ producer contract.
 
 #### Scenario: Object is browsable but outside coverage
 - **WHEN** a producer targets an imported object that is not admitted for the course

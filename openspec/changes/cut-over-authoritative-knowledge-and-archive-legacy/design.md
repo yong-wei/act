@@ -18,7 +18,7 @@
 
 ## Decisions
 
-1. Cutover Gate 要求前十一项、完整课程 Release/Teaching Projection、有效资源绑定和所有消费者验收全部通过。
+1. Cutover Gate 要求新增协议变基与聚合治理变更、其余消费者变更、完整课程 Release/Teaching Projection、有效资源绑定和所有消费者验收全部通过；当前 CTKG 0.2 聚合包不等同于完整课程 Teaching Projection。
 2. 正式前导出最新生产数据库，在本地恢复并运行相同应用修订、Schema、ReleaseSet、Overlay、迁移和冒烟。
 3. Legacy Archive 固定保存旧节点、关系、修订、路径和节点笔记；沿用旧内容权限，个人笔记仅所有者可见，管理员可审计。
 4. 生产停服应用、worker、scheduler 后备份，再运行同一迁移；活动 authority 与 Canonical writer selector 在事务内同时切换。

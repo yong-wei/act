@@ -5,11 +5,11 @@ SAR 需要同时利用权威知识、KAQ、资源、路径和学习状态，但�
 ## What Changes
 
 - 请求期间分别查询 AuthoritativeKnowledgeRepository 与 ACT 的 KAQ、资源、路径和学习状态 Overlay。
-- 只沿显式类型化绑定执行有限跳扩展，并保留 namespace、authority、Release 或 Overlay 版本。
+- 只沿聚合 ReleaseSet 下经审阅的显式类型化绑定和 SAR 明确支持的谓词执行有限跳扩展，并保留 namespace、authority、ReleaseSet/Release 或 Overlay 版本。
 - 组合结果是面向当前请求的可重建候选投影，不回写为工程关系、教学关系或统一图谱。
 - 未支持的对象类型和谓词不得自动参与 SAR 计算。
 - 切换前 Canonical SAR 只运行影子查询，正式 SAR authority selector 继续使用 Legacy 实现。
-- 本变更依赖 `add-authoritative-knowledge-repository`、`bind-active-resources-to-canonical-knowledge` 和 `bind-kaq-to-canonical-knowledge`。
+- 本变更依赖 `adopt-ctkg-0-2-aggregate-release-contract`、`govern-aggregate-course-coverage-and-resource-bindings` 和 `bind-kaq-to-canonical-knowledge`。
 
 ## Capabilities
 

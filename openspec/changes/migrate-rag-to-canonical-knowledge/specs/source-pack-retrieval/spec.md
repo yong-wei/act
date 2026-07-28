@@ -1,15 +1,15 @@
 ## ADDED Requirements
 
-### Requirement: EvidenceSegment seeds resolve to readable ACT citation targets
-The retrieval system MUST resolve an ActKG EvidenceSegment through a versioned Crosswalk to an ACT structural text unit, RetrievalChunk, and CitationTarget before it can support a final citation.
+### Requirement: Governed ACT Crosswalks resolve to readable citation targets
+The retrieval system MUST resolve an upstream aggregate RAG reference through a current, version-matched ACT EvidenceStructuralUnitCrosswalk to an ACT structural text unit, RetrievalChunk, and CitationTarget before it can support a final citation.
 
 #### Scenario: Crosswalk resolves
-- **WHEN** source identity, segment identity, version, and content hash match
+- **WHEN** aggregate ReleaseSet, upstream reference, source edition, structural unit, inventory capture, version, and content hash match
 - **THEN** retrieval SHALL use the ACT text and return a navigable structural citation target
 
 #### Scenario: Crosswalk is missing or drifted
-- **WHEN** no exact Crosswalk target exists
-- **THEN** the seed SHALL remain diagnostic-only and MUST NOT be cited or silently resolved through Legacy knowledge
+- **WHEN** no exact current ACT Crosswalk target exists
+- **THEN** the upstream reference SHALL remain diagnostic-only and MUST NOT be cited, treated as ACT content, or silently resolved through Legacy knowledge
 
 ### Requirement: Final citations remain structural and numbered
 The final answer SHALL present verified sources as numbered citations that resolve to the most specific available user-readable textbook structure.

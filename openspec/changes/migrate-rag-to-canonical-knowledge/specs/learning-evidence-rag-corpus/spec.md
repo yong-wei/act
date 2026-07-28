@@ -1,18 +1,18 @@
 ## ADDED Requirements
 
 ### Requirement: RAG uses Canonical knowledge as a retrieval signal
-RAG SHALL use Canonical Object identity, aliases, supported precise relations, and EvidenceSegment references for entity alignment and bounded candidate expansion.
+RAG SHALL use aggregate Canonical Object identity, aliases, explicitly supported precise relations, and governed ACT Crosswalks for entity alignment and bounded candidate expansion.
 
 #### Scenario: Canonical entity is aligned
 - **WHEN** a query matches a supported Canonical Object
-- **THEN** RAG MAY expand candidates through supported relations and EvidenceSegment seeds while retaining Release provenance
+- **THEN** RAG MAY expand candidates through supported relations and ACT Crosswalk seeds while retaining aggregate ReleaseSet and Crosswalk provenance
 
 #### Scenario: Relation is unsupported
 - **WHEN** a stored predicate has no RAG semantic adapter
 - **THEN** RAG MUST NOT use it for query expansion
 
 ### Requirement: Graph content is not final answer evidence
-Canonical summaries, relations, and EvidenceSegment stubs MUST NOT directly satisfy the final answer citation requirement.
+Canonical summaries, relations, and upstream RAG references MUST NOT directly satisfy the final answer citation requirement.
 
 #### Scenario: Graph identifies a relevant concept
 - **WHEN** the graph expands the query to a candidate object

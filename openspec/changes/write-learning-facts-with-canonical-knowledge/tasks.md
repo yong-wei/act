@@ -1,8 +1,8 @@
 ## 1. Define Canonical fact identity
 
-- [ ] 1.1 Add required Canonical ID, ReleaseSet/Release, and knowledge revision fields or normalized binding to the governed fact schema.
+- [ ] 1.1 Add required Canonical ID, aggregate ReleaseSet/Release, projection/knowledge revision fields or normalized binding to the governed fact schema.
 - [ ] 1.2 Add a fixed-identity Canonical writer adapter and active-authority selector.
-- [ ] 1.3 Enforce CourseCoverage, effective resource binding, KAQ support, and source identity before writes.
+- [ ] 1.3 Enforce current aggregate CourseCoverage, aggregate resource binding, KAQ support, and source identity before writes.
 - [ ] 1.4 Reject candidate ReleaseSets and incomplete Canonical version identity at every producer boundary.
 
 ## 2. Preserve historical truth

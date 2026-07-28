@@ -1,11 +1,11 @@
 ## ADDED Requirements
 
 ### Requirement: KAQ knowledge roles bind explicitly to Canonical Objects
-Each migrated KAQ knowledge role MUST reference one or more Canonical Objects through a versioned binding that records role, Release, evidence, and review status.
+Each migrated KAQ knowledge role MUST reference one or more Canonical Objects through a versioned binding that records role, aggregate ReleaseSet/Release, evidence, and review status.
 
 #### Scenario: Reviewed KAQ binding is used
 - **WHEN** a KAQ consumer resolves an active knowledge role
-- **THEN** it SHALL traverse only reviewed bindings within current CourseCoverage and the pinned Release
+- **THEN** it SHALL traverse only reviewed bindings within the current aggregate CourseCoverage and pinned aggregate ReleaseSet
 
 #### Scenario: Same-name legacy node exists
 - **WHEN** a Legacy node has the same label as a Canonical Object

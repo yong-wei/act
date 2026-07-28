@@ -4,7 +4,7 @@
 
 ## What Changes
 
-- 在图谱 API、控灵、RAG、SAR、KAQ、有效资源、CourseCoverage、路径和新事实写入全部通过门禁后执行一次性权威切换。
+- 在图谱 API、控灵、RAG、SAR、KAQ、有效资源、聚合 CourseCoverage、路径和新事实写入全部通过门禁，且完整课程 ReleaseSet 与正式 Teaching Projection 已到达后，执行一次性权威切换。
 - 建立独立 Legacy Archive 固定快照，延续旧图原访问范围；个人节点笔记仅所有者可见，管理员可审计。
 - 切换后主图移除旧版开关，退役旧 DTO、业务 API 和运行读取；归档不提供控灵、资源、路径或新事实能力。
 - 正式部署前导出最新生产数据库，在本地恢复并以生产一致修订、Schema、ReleaseSet、Overlay 和迁移命令完成全流程演练。
@@ -28,4 +28,4 @@
 ## Impact
 
 - 影响生产数据库迁移、部署脚本、worker/scheduler 停启、活动权威配置、旧 API、归档路由和权限测试。
-- 依赖其余十一项变更及完整 ActKG 课程 Release/Teaching Projection 已满足最终门禁。
+- 依赖新增的 CTKG 0.2 协议变基、聚合课程覆盖/资源绑定治理、其余消费者变更及完整 ActKG 课程 Release/Teaching Projection；`control-theory-engineering-v0.2` 的聚合名称和局部工程覆盖本身不满足最终门禁。
