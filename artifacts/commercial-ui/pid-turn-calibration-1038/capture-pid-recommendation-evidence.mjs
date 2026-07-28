@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +20,7 @@ const viewports = [
 
 await mkdir(outputDirectory, { recursive: true });
 
-// --- Git HEAD validation (fail-closed) ---
+// --- Pre-capture git state (fail-closed BEFORE browser launch) ---
 const repoRoot = join(currentDirectory, '..', '..', '..');
 let preCaptureHead;
 let preCaptureClean;
@@ -30,11 +29,14 @@ try {
   const statusOutput = execSync('git status --porcelain', { cwd: repoRoot, encoding: 'utf8' }).trim();
   preCaptureClean = statusOutput.length === 0;
   console.log(`[evidence] Pre-capture HEAD: ${preCaptureHead}`);
-  console.log(`[evidence] Workspace clean: ${preCaptureClean}`);
+  console.log(`[evidence] Pre-capture workspace clean: ${preCaptureClean}`);
 } catch (err) {
-  console.error('[evidence] Failed to read git state:', err.message);
+  console.error('[evidence] Failed to read git state before capture:', err.message);
   process.exit(1);
 }
+
+// Fail-closed: workspace MUST be clean before starting capture
+assert.equal(preCaptureClean, true, 'Workspace is dirty before capture — clean the working tree first');
 
 const browser = await chromium.launch({ headless: true });
 const captures = [];
@@ -53,13 +55,13 @@ try {
     });
     page.on('pageerror', (error) => consoleErrors.push(error.message));
 
-    // 拦截请求以记录请求体，但不拦截响应——让浏览器调用真实 /api/simulation/optimize
+    // Intercept request body but let browser call real /api/simulation/optimize
     await page.route('**/api/simulation/optimize', async (routeRequest) => {
       requestBody = routeRequest.request().postDataJSON();
       await routeRequest.continue();
     });
 
-    // 捕获真实 API 响应
+    // Capture real API response
     page.on('response', async (response) => {
       if (response.url().includes('/api/simulation/optimize') && response.status() === 200) {
         try {
@@ -71,14 +73,14 @@ try {
     await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: '智能推荐' }).click();
 
-    // 等待推荐结果渲染（得分文本不固定，由真实 API 返回）
+    // Wait for recommendation result rendering
     await page.locator('text=/得分/').first().waitFor({ timeout: 60000 });
 
-    assert.ok(requestBody, '浏览器未发出 /api/simulation/optimize 请求');
-    assert.equal(requestBody.target.targetHeading, 90, 'targetHeading 应为 90');
-    assert.equal(requestBody.target.maxRudderRate, 5, 'maxRudderRate 应为 5');
-    assert.ok(responseBody, '未收到真实 /api/simulation/optimize 响应');
-    assert.equal(responseBody.success, true, 'API 响应 success 应为 true');
+    assert.ok(requestBody, 'Browser did not send /api/simulation/optimize request');
+    assert.equal(requestBody.target.targetHeading, 90, 'targetHeading should be 90');
+    assert.equal(requestBody.target.maxRudderRate, 5, 'maxRudderRate should be 5');
+    assert.ok(responseBody, 'No real /api/simulation/optimize response');
+    assert.equal(responseBody.success, true, 'API response success should be true');
 
     const metrics = await page.evaluate(() => ({
       documentScrollWidth: document.documentElement.scrollWidth,
@@ -86,10 +88,10 @@ try {
       panelVisible: Boolean([...document.querySelectorAll('h3')].find((node) => node.textContent === 'AI 参数推荐')),
       scoreVisible: document.body.textContent?.includes('得分') ?? false,
     }));
-    assert.equal(metrics.documentScrollWidth <= metrics.viewportWidth, true, '页面存在横向溢出');
-    assert.equal(metrics.panelVisible, true, '未渲染生产 PID 推荐面板');
-    assert.equal(metrics.scoreVisible, true, '未显示推荐评分');
-    assert.deepEqual(consoleErrors, [], '浏览器控制台出现错误');
+    assert.equal(metrics.documentScrollWidth <= metrics.viewportWidth, true, 'Page has horizontal overflow');
+    assert.equal(metrics.panelVisible, true, 'Production PID recommendation panel not rendered');
+    assert.equal(metrics.scoreVisible, true, 'Recommendation score not displayed');
+    assert.deepEqual(consoleErrors, [], 'Browser console errors detected');
 
     const screenshot = `pid-recommendation-${viewport.name}.png`;
     const metricsFile = `pid-recommendation-${viewport.name}-metrics.json`;
@@ -115,31 +117,24 @@ try {
   await browser.close();
 }
 
-// --- Post-capture HEAD validation ---
+// --- Post-capture: verify HEAD unchanged (NOT workspace clean, evidence files changed it) ---
 let postCaptureHead;
-let postCaptureClean;
 try {
   postCaptureHead = execSync('git rev-parse HEAD', { cwd: repoRoot, encoding: 'utf8' }).trim();
-  const statusOutput = execSync('git status --porcelain', { cwd: repoRoot, encoding: 'utf8' }).trim();
-  postCaptureClean = statusOutput.length === 0;
   console.log(`[evidence] Post-capture HEAD: ${postCaptureHead}`);
-  console.log(`[evidence] Workspace clean: ${postCaptureClean}`);
 } catch (err) {
-  console.error('[evidence] Failed to read post-capture git state:', err.message);
+  console.error('[evidence] Failed to read post-capture HEAD:', err.message);
   process.exit(1);
 }
 
-// Fail-closed: HEAD must not have changed, workspace must remain clean
+// Fail-closed: HEAD must not have changed during capture
 assert.equal(postCaptureHead, preCaptureHead, 'HEAD changed during capture — aborting evidence');
-assert.equal(postCaptureClean, true, 'Workspace is dirty after capture — aborting evidence');
-if (!preCaptureClean) {
-  console.warn('[evidence] WARNING: Workspace was dirty before capture; evidence may not reflect committed source');
-}
+console.log('[evidence] HEAD unchanged, evidence captured successfully');
 
 await writeFile(join(outputDirectory, 'browser-evidence.json'), `${JSON.stringify({
   change: 'calibrate-pid-turn-scenario',
   headCommit: postCaptureHead,
-  workspaceClean: postCaptureClean,
+  workspaceClean: preCaptureClean,
   capturedAt: new Date().toISOString(),
   server: baseUrl,
   browser: 'Playwright Chromium',
@@ -154,13 +149,14 @@ await writeFile(join(outputDirectory, 'browser-evidence.json'), `${JSON.stringif
     testHarnessRoute: route,
   },
   assertions: [
-    '浏览器请求使用 targetHeading=90 和 maxRudderRate=5。',
-    '真实 /api/simulation/optimize 返回 success=true 且面板显示得分。',
-    '1440px 与 320px 视口均无横向溢出和控制台错误。',
+    'Browser request uses targetHeading=90 and maxRudderRate=5.',
+    'Real /api/simulation/optimize returns success=true and panel shows score.',
+    '1440px and 320px viewports have no horizontal overflow or console errors.',
   ],
   limitations: [
-    '测试路由渲染生产 AIRecommendPanel 组件，优化接口由真实 /api/simulation/optimize 处理（需要 Docker 环境运行 WASM 运行时）。',
-    '算法正确性由 PID 定向单元与 Rust 测试覆盖；浏览器证据验证集成链路可达性和 UI 渲染。',
+    'Test route renders production AIRecommendPanel; optimize endpoint handled by real /api/simulation/optimize (requires Docker for WASM runtime).',
+    'Algorithm correctness covered by PID unit and Rust tests; browser evidence validates integration reachability and UI rendering.',
+    'Pre-capture workspace was clean (verified by git status --porcelain before browser launch).',
   ],
   captures,
 }, null, 2)}\n`);
