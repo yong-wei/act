@@ -5053,17 +5053,20 @@ model ActkgRelease {
   lockRawHash     String
   createdAt       DateTime @default(now())
 
-  releaseSet      ActkgReleaseSet              @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
-  objects         ActkgAuthoritativeObject[]
-  relations       ActkgAuthoritativeRelation[]
-  sourceMappings  ActkgSourceMapping[]
-  sourceObjects   ActkgSourceObject[]
-  evidence        ActkgEvidenceSegment[]
-  originalPayload ActkgOriginalReleasePayload?
-  receipt         ActkgImportReceipt?
-  courseCoverageVersions CourseCoverageOverlayVersion[]
+  releaseSet               ActkgReleaseSet                        @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  objects                  ActkgAuthoritativeObject[]
+  relations                ActkgAuthoritativeRelation[]
+  sourceMappings           ActkgSourceMapping[]
+  sourceObjects            ActkgSourceObject[]
+  evidence                 ActkgEvidenceSegment[]
+  originalPayload          ActkgOriginalReleasePayload?
+  receipt                  ActkgImportReceipt?
+  courseCoverageVersions   CourseCoverageOverlayVersion[]
+  resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
+  resourceBindingDecisions CanonicalResourceBindingDecision[]
 
   @@unique([releaseSetId, releaseVersion])
+  @@unique([releaseSetId, id])
   @@index([releaseSetId, releaseStatus])
 }
 
@@ -5078,11 +5081,13 @@ model ActkgAuthoritativeObject {
   lifecycleStatus   String?
   payload           Json
 
-  release        ActkgRelease                 @relation(fields: [releaseId], references: [id], onDelete: Restrict)
-  outgoing       ActkgAuthoritativeRelation[] @relation("ActkgRelationSource")
-  incoming       ActkgAuthoritativeRelation[] @relation("ActkgRelationTarget")
-  sourceMappings ActkgSourceMapping[]
-  courseCoverageEntries CourseCoverageOverlayEntry[]
+  release                  ActkgRelease                       @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  outgoing                 ActkgAuthoritativeRelation[]       @relation("ActkgRelationSource")
+  incoming                 ActkgAuthoritativeRelation[]       @relation("ActkgRelationTarget")
+  sourceMappings           ActkgSourceMapping[]
+  courseCoverageEntries    CourseCoverageOverlayEntry[]
+  resourceBindingDecisions CanonicalResourceBindingDecision[]
+  resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
 
   @@id([releaseId, canonicalId])
   @@unique([releaseId, ordinal])
@@ -5164,7 +5169,9 @@ model ActkgEvidenceSegment {
   contentHash     String
   payload         Json
 
-  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  release    ActkgRelease                           @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  crosswalks ActkgEvidenceStructuralUnitCrosswalk[]
+  resourceBindingDecisions CanonicalResourceBindingDecision[]
 
   @@id([releaseId, evidenceId])
   @@unique([releaseId, ordinal])
@@ -5263,4 +5270,164 @@ model CourseCoverageImportReceipt {
   importedAt        DateTime @default(now())
 
   overlayVersion CourseCoverageOverlayVersion @relation(fields: [overlayVersionId], references: [id], onDelete: Restrict)
+}
+
+// Shadow-only inventory and binding records. Formal consumers remain on Legacy
+// until a later, separately governed authority cutover.
+model ResourceBindingInventoryRun {
+  id              String   @id
+  captureRevision String
+  capturedAt      DateTime
+  dbWatermark     String
+  sourceHash      String
+  itemCount       Int
+  includedCount   Int
+  excludedCount   Int
+  unresolvedCount Int
+  complete        Boolean
+  cutoverReady    Boolean  @default(false)
+  authorityState  String   @default("SHADOW")
+  createdAt       DateTime @default(now())
+
+  items ResourceBindingInventoryItem[]
+
+  @@index([captureRevision, capturedAt])
+}
+
+model ResourceBindingInventoryItem {
+  runId               String
+  atomicResourceId    String
+  resourceId          String
+  structuralUnitId    String
+  segmentId           String
+  resourceSegmentHash String
+  disposition         String
+  reasonCodes         Json
+  sourceObservations  Json
+  observationDigest   String
+
+  run ResourceBindingInventoryRun @relation(fields: [runId], references: [id], onDelete: Restrict)
+  evidenceCrosswalks ActkgEvidenceStructuralUnitCrosswalk[]
+
+  @@id([runId, atomicResourceId])
+  @@index([runId, disposition])
+  @@index([resourceId, structuralUnitId])
+}
+
+model ActkgEvidenceStructuralUnitCrosswalk {
+  id                    String
+  releaseId             String
+  evidenceId            String
+  sourceEditionId       String
+  sourceVersion         String
+  evidenceContentHash   String
+  structuralUnitId      String
+  structuralUnitVersion String
+  structuralUnitHash    String
+  inventoryRunId        String
+  atomicResourceId      String
+  resourceId            String
+  segmentId             String
+  resourceSegmentHash   String
+  captureRevision       String
+  canonicalId           String
+  validationState       String
+  validationDigest      String
+  createdAt             DateTime @default(now())
+
+  release     ActkgRelease                  @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  evidence    ActkgEvidenceSegment          @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
+  canonical   ActkgAuthoritativeObject      @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  inventory   ResourceBindingInventoryItem  @relation(fields: [inventoryRunId, atomicResourceId], references: [runId, atomicResourceId], onDelete: Restrict)
+  decisions   CanonicalResourceBindingDecision[]
+
+  @@id([releaseId, id])
+  @@unique([releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion])
+  @@unique([releaseId, evidenceId, sourceVersion, evidenceContentHash, inventoryRunId, atomicResourceId, resourceSegmentHash, canonicalId])
+  @@unique([releaseId, evidenceId, canonicalId, resourceId, structuralUnitId, segmentId, resourceSegmentHash, inventoryRunId, captureRevision, structuralUnitVersion], map: "ActkgEvidenceStructuralUnitCrosswalk_endpoint_key")
+  @@index([structuralUnitId, structuralUnitVersion, structuralUnitHash])
+}
+
+model CanonicalResourceBindingDecision {
+  id                     String   @id
+  pairId                 String
+  releaseSetId           String
+  releaseId              String
+  canonicalId            String
+  objectRevision         String
+  resourceId             String
+  structuralUnitId       String
+  segmentId              String
+  resourceSegmentHash    String
+  role                   String
+  evidenceId             String?
+  evidenceDigest         String
+  generatorPromptVersion String
+  reviewerPromptVersion  String
+  generatorCacheKey      String
+  reviewerCacheKey       String
+  reviewerRole           String
+  reviewerInputDigest    String
+  candidateDigest        String
+  reviewProvider         String
+  reviewState            String
+  publicationState       String
+  lifecycleState         String
+  attemptSequence        Int
+  supersedesDecisionId   String?  @unique
+  crosswalkId            String?
+  inventoryRunId         String?
+  captureRevision        String?
+  structuralUnitVersion  String?
+  validationDigest       String?
+  highImpactPolicyVersion String
+  highImpactReasons      Json
+  createdTransactionId   BigInt   @default(dbgenerated("txid_current()"))
+  createdAt              DateTime @default(now())
+
+  release        ActkgRelease                            @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
+  evidence       ActkgEvidenceSegment?                   @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
+  canonical      ActkgAuthoritativeObject                @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  crosswalk      ActkgEvidenceStructuralUnitCrosswalk?    @relation(fields: [releaseId, crosswalkId, inventoryRunId, captureRevision, structuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
+  supersedes     CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)
+  supersededBy   CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession")
+  humanQueueItem CanonicalResourceBindingHumanQueueItem?
+  humanDecisionReceipts CanonicalResourceBindingHumanDecisionReceipt[]
+
+  @@unique([pairId, generatorPromptVersion, reviewerPromptVersion, reviewerInputDigest, attemptSequence])
+  @@index([resourceId, structuralUnitId, publicationState])
+  @@index([releaseId, canonicalId, role])
+}
+
+model CanonicalResourceBindingHumanQueueItem {
+  id                String   @id
+  bindingDecisionId String   @unique
+  reasonCodes       Json
+  contextDigest     String
+  inputDigest       String
+  state             String   @default("PENDING")
+  createdAt         DateTime @default(now())
+
+  bindingDecision CanonicalResourceBindingDecision @relation(fields: [bindingDecisionId], references: [id], onDelete: Restrict)
+  receipt         CanonicalResourceBindingHumanDecisionReceipt?
+
+  @@index([state, createdAt])
+}
+
+model CanonicalResourceBindingHumanDecisionReceipt {
+  id            String   @id
+  queueId       String   @unique
+  actorId       String
+  decidedAt     DateTime
+  outcome       String
+  rationale     String   @db.Text
+  contextDigest String
+  inputDigest   String
+  decisionId    String
+  createdAt     DateTime @default(now())
+
+  queue    CanonicalResourceBindingHumanQueueItem @relation(fields: [queueId], references: [id], onDelete: Restrict)
+  decision CanonicalResourceBindingDecision       @relation(fields: [decisionId], references: [id], onDelete: Restrict)
+
+  @@index([decisionId])
 }
