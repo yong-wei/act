@@ -35,7 +35,7 @@ function ChallengeKnowledgePreviewDetail({ selected }: { selected: RelatedKnowle
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/knowledge/nodes/${selected.nodeId}`)
+    fetch(`/api/knowledge/nodes/${encodeURIComponent(selected.nodeId)}`)
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
         if (!cancelled) {

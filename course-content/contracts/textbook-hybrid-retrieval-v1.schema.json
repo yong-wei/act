@@ -1,0 +1,522 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://act.just.edu.cn/contracts/textbook-hybrid-retrieval-v1.schema.json",
+  "title": "Textbook hybrid retrieval v1",
+  "oneOf": [
+    { "$ref": "#/$defs/indexManifest" },
+    { "$ref": "#/$defs/indexWindow" },
+    { "$ref": "#/$defs/lexicalTermsHeader" },
+    { "$ref": "#/$defs/lexicalTerm" },
+    { "$ref": "#/$defs/buildReport" },
+    { "$ref": "#/$defs/evaluationReport" }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "formatVersion": {
+      "const": "textbook-hybrid-retrieval.v1"
+    },
+    "normalizationVersion": {
+      "const": "nfkc-lower-cjk-unigram-bigram-technical-v1"
+    },
+    "bookSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bookId",
+        "edition",
+        "manifestHash",
+        "sourceHashes"
+      ],
+      "properties": {
+        "bookId": { "type": "string", "minLength": 1 },
+        "edition": { "type": "string", "minLength": 1 },
+        "manifestHash": { "$ref": "#/$defs/sha256" },
+        "sourceHashes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "fileHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bodies.utf8",
+        "windows.jsonl",
+        "lexical-terms.jsonl",
+        "lexical-postings.bin",
+        "vectors.f32",
+        "build-report.json"
+      ],
+      "properties": {
+        "bodies.utf8": { "$ref": "#/$defs/sha256" },
+        "windows.jsonl": { "$ref": "#/$defs/sha256" },
+        "lexical-terms.jsonl": { "$ref": "#/$defs/sha256" },
+        "lexical-postings.bin": { "$ref": "#/$defs/sha256" },
+        "vectors.f32": { "$ref": "#/$defs/sha256" },
+        "build-report.json": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "coreFileHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bodies.utf8",
+        "windows.jsonl",
+        "lexical-terms.jsonl",
+        "lexical-postings.bin",
+        "vectors.f32"
+      ],
+      "properties": {
+        "bodies.utf8": { "$ref": "#/$defs/sha256" },
+        "windows.jsonl": { "$ref": "#/$defs/sha256" },
+        "lexical-terms.jsonl": { "$ref": "#/$defs/sha256" },
+        "lexical-postings.bin": { "$ref": "#/$defs/sha256" },
+        "vectors.f32": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "indexManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "formatVersion",
+        "sourceRevision",
+        "model",
+        "observedDimension",
+        "normalizationVersion",
+        "vectorNormalization",
+        "vectorEncoding",
+        "books",
+        "sourcePriority",
+        "counts",
+        "files",
+        "productionConnected"
+      ],
+      "properties": {
+        "recordType": { "const": "index-manifest" },
+        "formatVersion": { "$ref": "#/$defs/formatVersion" },
+        "sourceRevision": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "observedDimension": { "type": "integer", "minimum": 1 },
+        "normalizationVersion": { "$ref": "#/$defs/normalizationVersion" },
+        "vectorNormalization": { "const": "l2" },
+        "vectorEncoding": { "const": "float32-le" },
+        "books": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/bookSource" }
+        },
+        "sourcePriority": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "books",
+            "windows",
+            "vectors",
+            "bodyBytes",
+            "lexicalTerms"
+          ],
+          "properties": {
+            "books": { "type": "integer", "minimum": 1 },
+            "windows": { "type": "integer", "minimum": 1 },
+            "vectors": { "type": "integer", "minimum": 1 },
+            "bodyBytes": { "type": "integer", "minimum": 0 },
+            "lexicalTerms": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "files": { "$ref": "#/$defs/fileHashes" },
+        "productionConnected": { "const": false }
+      }
+    },
+    "indexWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "formatVersion",
+        "id",
+        "sourceWindowId",
+        "bookId",
+        "sourceRevision",
+        "primaryUnitId",
+        "owningUnitIds",
+        "segments",
+        "sourcePaths",
+        "vectorRow",
+        "bodyOffset",
+        "bodyLength",
+        "bodyHash",
+        "contentHash",
+        "tokenCount"
+      ],
+      "properties": {
+        "recordType": { "const": "index-window" },
+        "formatVersion": { "$ref": "#/$defs/formatVersion" },
+        "id": { "type": "string", "pattern": "^textbook-window:" },
+        "sourceWindowId": { "type": "string", "pattern": "^textbook-window:" },
+        "bookId": { "type": "string", "minLength": 1 },
+        "sourceRevision": { "type": "string", "minLength": 1 },
+        "primaryUnitId": { "type": "string", "pattern": "^textbook-unit:" },
+        "owningUnitIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^textbook-unit:" }
+        },
+        "segments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["owningUnitId", "bodyOffset", "bodyLength"],
+            "properties": {
+              "owningUnitId": { "type": "string", "pattern": "^textbook-unit:" },
+              "bodyOffset": { "type": "integer", "minimum": 0 },
+              "bodyLength": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        "sourcePaths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "vectorRow": { "type": "integer", "minimum": 0 },
+        "bodyOffset": { "type": "integer", "minimum": 0 },
+        "bodyLength": { "type": "integer", "minimum": 0 },
+        "bodyHash": { "$ref": "#/$defs/sha256" },
+        "contentHash": { "$ref": "#/$defs/sha256" },
+        "tokenCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "lexicalTermsHeader": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "formatVersion",
+        "normalizationVersion"
+      ],
+      "properties": {
+        "recordType": { "const": "lexical-terms-header" },
+        "formatVersion": { "$ref": "#/$defs/formatVersion" },
+        "normalizationVersion": { "$ref": "#/$defs/normalizationVersion" }
+      }
+    },
+    "lexicalTerm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "token",
+        "byteOffset",
+        "byteLength",
+        "postingCount"
+      ],
+      "properties": {
+        "recordType": { "const": "lexical-term" },
+        "token": { "type": "string", "minLength": 1 },
+        "byteOffset": { "type": "integer", "minimum": 0 },
+        "byteLength": { "type": "integer", "minimum": 1 },
+        "postingCount": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "buildReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "formatVersion",
+        "status",
+        "sourceRevision",
+        "model",
+        "observedDimension",
+        "normalizationVersion",
+        "bookCount",
+        "windowCount",
+        "cacheHits",
+        "cacheMisses",
+        "providerBatches",
+        "providerUsageTokens",
+        "providerLatencyMs",
+        "providerTraceIds",
+        "fileHashes"
+      ],
+      "properties": {
+        "recordType": { "const": "build-report" },
+        "formatVersion": { "$ref": "#/$defs/formatVersion" },
+        "status": { "const": "complete" },
+        "sourceRevision": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "observedDimension": { "type": "integer", "minimum": 1 },
+        "normalizationVersion": { "$ref": "#/$defs/normalizationVersion" },
+        "bookCount": { "type": "integer", "minimum": 1 },
+        "windowCount": { "type": "integer", "minimum": 1 },
+        "cacheHits": { "type": "integer", "minimum": 0 },
+        "cacheMisses": { "type": "integer", "minimum": 0 },
+        "providerBatches": { "type": "integer", "minimum": 0 },
+        "providerUsageTokens": { "type": "integer", "minimum": 0 },
+        "providerLatencyMs": { "$ref": "#/$defs/providerLatencyMetrics" },
+        "providerTraceIds": { "$ref": "#/$defs/traceIds" },
+        "fileHashes": { "$ref": "#/$defs/coreFileHashes" }
+      }
+    },
+    "queryResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "queryId",
+        "hitAt10",
+        "candidateWindowIds",
+        "mode"
+      ],
+      "properties": {
+        "queryId": { "type": "string", "minLength": 1 },
+        "hitAt10": { "type": "boolean" },
+        "candidateWindowIds": {
+          "type": "array",
+          "maxItems": 10,
+          "items": { "type": "string", "pattern": "^textbook-window:" }
+        },
+        "mode": { "const": "lexical-vector-rrf" }
+      }
+    },
+    "latencyMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "batchCount",
+        "samples",
+        "p50",
+        "p95",
+        "total"
+      ],
+      "properties": {
+        "batchCount": { "type": "integer", "minimum": 1 },
+        "samples": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "number", "minimum": 0 }
+        },
+        "p50": { "type": "number", "minimum": 0 },
+        "p95": { "type": "number", "minimum": 0 },
+        "total": { "type": "number", "minimum": 0 }
+      }
+    },
+    "providerLatencyMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "batchCount",
+        "samples",
+        "p50",
+        "p95",
+        "total"
+      ],
+      "properties": {
+        "batchCount": { "type": "integer", "minimum": 0 },
+        "samples": {
+          "type": "array",
+          "items": { "type": "number", "minimum": 0 }
+        },
+        "p50": { "type": "number", "minimum": 0 },
+        "p95": { "type": "number", "minimum": 0 },
+        "total": { "type": "number", "minimum": 0 }
+      }
+    },
+    "traceIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$"
+      }
+    },
+    "metricFields": {
+      "type": "object",
+      "required": [
+        "model",
+        "observedDimension",
+        "normalizationVersion",
+        "indexManifestHash",
+        "indexBytes",
+        "vectorBytes",
+        "evaluatedQueries",
+        "hitsAt10",
+        "recallAt10",
+        "threshold",
+        "passed",
+        "embeddingLatencyMs",
+        "queryUsageTokens",
+        "usageTokens",
+        "queryApiCostCny",
+        "apiCostCny",
+        "queryTraceIds",
+        "providerTraceIds",
+        "results"
+      ],
+      "properties": {
+        "model": {
+          "enum": [
+            "BAAI/bge-m3",
+            "Qwen/Qwen3-Embedding-0.6B",
+            "Qwen/Qwen3-Embedding-4B"
+          ]
+        },
+        "observedDimension": { "type": "integer", "minimum": 1 },
+        "normalizationVersion": { "$ref": "#/$defs/normalizationVersion" },
+        "indexManifestHash": { "$ref": "#/$defs/sha256" },
+        "indexBytes": { "type": "integer", "minimum": 1 },
+        "vectorBytes": { "type": "integer", "minimum": 1 },
+        "evaluatedQueries": { "type": "integer", "minimum": 0 },
+        "hitsAt10": { "type": "integer", "minimum": 0 },
+        "recallAt10": { "type": "number", "minimum": 0, "maximum": 1 },
+        "threshold": { "const": 0.8 },
+        "passed": { "type": "boolean" },
+        "embeddingLatencyMs": { "$ref": "#/$defs/latencyMetrics" },
+        "queryUsageTokens": { "type": "integer", "minimum": 0 },
+        "usageTokens": { "type": "integer", "minimum": 0 },
+        "queryApiCostCny": { "type": "number", "minimum": 0 },
+        "apiCostCny": { "type": "number", "minimum": 0 },
+        "queryTraceIds": { "$ref": "#/$defs/traceIds" },
+        "providerTraceIds": { "$ref": "#/$defs/traceIds" },
+        "results": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/queryResult" }
+        }
+      }
+    },
+    "candidateMetrics": {
+      "allOf": [
+        { "$ref": "#/$defs/metricFields" },
+        {
+          "type": "object",
+          "required": [
+            "corpusUsageTokens",
+            "corpusApiCostCny",
+            "corpusTraceIds",
+            "recallPassed",
+            "residentArtifactBytes",
+            "residentArtifactBudgetBytes",
+            "residentArtifactPassed"
+          ],
+          "properties": {
+            "corpusUsageTokens": { "type": "integer", "minimum": 0 },
+            "corpusApiCostCny": { "type": "number", "minimum": 0 },
+            "corpusTraceIds": { "$ref": "#/$defs/traceIds" },
+            "recallPassed": { "type": "boolean" },
+            "residentArtifactBytes": { "type": "integer", "minimum": 1 },
+            "residentArtifactBudgetBytes": { "const": 157286400 },
+            "residentArtifactPassed": { "type": "boolean" }
+          }
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "selectionReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "formatVersion",
+        "split",
+        "benchmarkHash",
+        "splitHash",
+        "benchmarkLockHash",
+        "candidateModels",
+        "candidates",
+        "selectedModel",
+        "selectedObservedDimension",
+        "selectedNormalizationVersion",
+        "selectedIndexManifestHash",
+        "selectionRule",
+        "acceptanceEvaluated"
+      ],
+      "properties": {
+        "recordType": { "const": "selection-report" },
+        "formatVersion": { "$ref": "#/$defs/formatVersion" },
+        "split": { "const": "tuning" },
+        "benchmarkHash": { "$ref": "#/$defs/sha256" },
+        "splitHash": { "$ref": "#/$defs/sha256" },
+        "benchmarkLockHash": { "$ref": "#/$defs/sha256" },
+        "candidateModels": {
+          "const": [
+            "BAAI/bge-m3",
+            "Qwen/Qwen3-Embedding-0.6B",
+            "Qwen/Qwen3-Embedding-4B"
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/candidateMetrics" }
+        },
+        "selectedModel": {
+          "enum": [
+            "BAAI/bge-m3",
+            "Qwen/Qwen3-Embedding-0.6B",
+            "Qwen/Qwen3-Embedding-4B"
+          ]
+        },
+        "selectedObservedDimension": { "type": "integer", "minimum": 1 },
+        "selectedNormalizationVersion": { "$ref": "#/$defs/normalizationVersion" },
+        "selectedIndexManifestHash": { "$ref": "#/$defs/sha256" },
+        "selectionRule": {
+          "const": "recall-and-resident-artifact-passing-apiCostCny-indexBytes-model"
+        },
+        "acceptanceEvaluated": { "const": false }
+      }
+    },
+    "acceptanceReport": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/metricFields" },
+        {
+          "type": "object",
+          "required": [
+            "recordType",
+            "formatVersion",
+            "split",
+            "benchmarkHash",
+            "splitHash",
+            "benchmarkLockHash",
+            "selectionReportHash",
+            "acceptanceEvaluated"
+          ],
+          "properties": {
+            "recordType": { "const": "acceptance-report" },
+            "formatVersion": { "$ref": "#/$defs/formatVersion" },
+            "split": { "const": "acceptance" },
+            "benchmarkHash": { "$ref": "#/$defs/sha256" },
+            "splitHash": { "$ref": "#/$defs/sha256" },
+            "benchmarkLockHash": { "$ref": "#/$defs/sha256" },
+            "selectionReportHash": { "$ref": "#/$defs/sha256" },
+            "acceptanceEvaluated": { "const": true }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "evaluationReport": {
+      "oneOf": [
+        { "$ref": "#/$defs/selectionReport" },
+        { "$ref": "#/$defs/acceptanceReport" }
+      ]
+    }
+  }
+}

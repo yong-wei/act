@@ -104,6 +104,13 @@ describe('arena domain model', () => {
     ]));
   });
 
+  it('labels the Odyssey settlingTime ranking metric as 调节时间', () => {
+    const profile = ARENA_METRIC_PROFILES.find((item) => item.id === 'metric-odyssey-growth');
+    const settlingTime = profile?.rankingMetrics.find((metric) => metric.id === 'settlingTime');
+
+    expect(settlingTime?.label).toBe('调节时间');
+  });
+
   it('allows black-box virtual simulation objects without exposing transfer functions', () => {
     const blackBoxObject = getArenaChallengeObject('plant-cruise-roll-blackbox');
     const blackBoxTask = getArenaChallengeTask('task-cruise-roll-blackbox-identification');

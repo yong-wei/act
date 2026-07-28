@@ -72,7 +72,15 @@ async function main() {
       .filter((node) => node.isActive !== false)
       .filter((node) => !Array.isArray(node.resources) || node.resources.length === 0)
       .map(toWorkqueueItem);
-    const reviewedItems = await readExistingReviewedItems();
+    const missingNodeById = new Map(nodes
+      .filter((node) => node.isActive !== false)
+      .filter((node) => !Array.isArray(node.resources) || node.resources.length === 0)
+      .map((node) => [node.id, node]));
+    const reviewedItems = (await readExistingReviewedItems())
+      .filter((item) => {
+        const node = missingNodeById.get(item.graphNodeId);
+        return node && item.sourceHash === hashNode(node);
+      });
     const after = buildDataCompletenessAuditReport({
       generatedAt: GENERATED_AT,
       knowledgeNodes: nodes.map(toAuditNode),
@@ -102,6 +110,7 @@ async function main() {
 
     await fs.mkdir(OUTPUT_DIR, { recursive: true });
     await writeJsonl(WORKQUEUE_ITEMS_PATH, workqueueItems);
+    await writeJsonl(REVIEWED_ITEMS_PATH, reviewedItems);
     await fs.writeFile(SUMMARY_PATH, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
     await fs.writeFile(EVIDENCE_PATH, renderEvidence(summary, workqueueItems), 'utf8');
 

@@ -1,74 +1,76 @@
 import { NextResponse } from 'next/server';
 
-import {
-  COMPETENCY_DIMENSIONS,
-  COMPETENCY_LEVELS,
-  calculateOverallScore,
-  getCompetencyLabel,
-  type CompetencyDimension,
-  type CompetencyVector,
-} from '@/lib/data-governance/competency-model';
-import { getServerAuthSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
-import {
-  normalizeInsightRiskLevel,
-  parseStringList,
-  rankStudentsByAttention,
-  summarizeGovernanceState,
-} from '@/features/teacher/teacher-insights';
-import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import {
-  buildArenaClassEvidenceSummary,
-  type ArenaClassEvidenceSummary,
-} from '@/features/arena/evidence-summary';
+import { buildArenaClassEvidenceSummary } from '@/features/arena/evidence-summary';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
+import { summarizeGovernanceState } from '@/features/teacher/teacher-insights';
+import { getServerAuthSession } from '@/lib/auth';
+import { COMPETENCY_LEVELS } from '@/lib/data-governance/competency-model';
 import {
-  buildTeacherClassScopedEvidenceStatusMap,
-  buildTeacherScopedLearningFactScopeFilters,
-  buildTeacherScopedSimulationArenaFeatureMap,
-  summarizeTeacherEvidenceCoverage,
-  summarizeTeacherSessionQualityReports,
-  type TeacherRecentSessionQualitySummary,
-  type TeacherStudentEvidenceStatus,
-} from '@/lib/data-governance/teacher-evidence-governance';
-import { STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT } from '@/lib/data-governance/student-evidence-feature-cache';
+  readCurrentCumulativeClassPortrait,
+  readCurrentCumulativePortrait,
+  type CumulativeClassPortraitReadModel,
+  type CumulativePortraitReadModel,
+} from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
-  createPrismaDiagnosisReportSnapshotStore,
-  hasDiagnosisReportSnapshotPersistenceTable,
-  readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence,
-} from '@/lib/data-governance/control-correction-diagnosis-profile';
+  PORTRAIT_V2_DIMENSIONS,
+  type PortraitV2DimensionId,
+} from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
-  materializeRoleBasedLearningDiagnosis,
-  type RoleBasedLearningDiagnosis,
-} from '@/lib/data-governance/role-based-learning-diagnosis';
+  CUMULATIVE_ATTAINMENT_LABEL,
+  getUnsupportedTeacherAttainmentScopeError,
+} from '@/lib/data-governance/teacher-attainment-scope';
+import { buildTeacherScopedLearningFactScopeFilters } from '@/lib/data-governance/teacher-evidence-governance';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { prisma } from '@/lib/prisma';
+import {
+  createDatabaseUnavailableResponse,
+  isDatabaseConnectivityError,
+} from '@/lib/service-availability';
 
 export const dynamic = 'force-dynamic';
 
 type LevelDistribution = Record<keyof typeof COMPETENCY_LEVELS, number>;
+type StudentPortrait = Awaited<ReturnType<typeof readCurrentCumulativePortrait>>;
 
 interface TeacherClassInsightStudent {
   id: string;
   name: string;
   email: string | null;
   studentNumber: string | null;
-  overallScore: number;
-  overallLevel: string;
+  overallScore: number | null;
+  overallLevel: string | null;
+  overallScoreSource: 'native-portrait-v2' | null;
   riskLevel: 'none' | 'low' | 'medium' | 'high';
   riskLabel: string;
-  trendDirection: 'up' | 'stable' | 'down';
-  recentTrend: string;
+  trendDirection: 'up' | 'stable' | 'down' | 'not-comparable';
   strengths: string[];
   weaknesses: string[];
   riskBadges: string[];
-  growthRecordCount: number;
-  recommendationCount: number;
   factCount: number;
   lastSnapshotAt: string | null;
-  evidenceStatus: TeacherStudentEvidenceStatus;
+  portraitV2: StudentPortrait['payload'];
+  availabilityReason: StudentPortrait['availabilityReason'];
+  evidenceStatus: {
+    state: 'ready' | 'missing';
+    refreshedAt: string | null;
+    lastEvidenceAt: string | null;
+    confidence: {
+      level: 'none' | 'low' | 'medium' | 'high';
+      score: number;
+      evidenceCount: number;
+      sourceCompleteness: number;
+    };
+    statusMarkers: Array<'low-confidence' | 'missing-source'>;
+  };
 }
 
 export interface TeacherClassInsightsPayload {
+  scope: 'cumulative';
+  scopeLabel: typeof CUMULATIVE_ATTAINMENT_LABEL;
+  availability: {
+    state: CumulativeClassPortraitReadModel['stateKind'];
+    reason: CumulativeClassPortraitReadModel['availabilityReason'];
+  };
   classInfo: {
     id: string;
     name: string;
@@ -84,34 +86,38 @@ export interface TeacherClassInsightsPayload {
     pendingStudents: number;
     classSnapshotAt: string | null;
     latestStudentSnapshotAt: string | null;
-    evidenceCoverage: ReturnType<typeof summarizeTeacherEvidenceCoverage>;
-    recentSessionQuality: TeacherRecentSessionQualitySummary;
   };
   overview: {
-    overallIndex: number;
+    overallIndex: number | null;
     highRiskStudents: number;
     mediumRiskStudents: number;
     attentionStudents: number;
     averageFactCount: number;
   };
   ability: {
+    state: 'ready' | 'no-evidence' | 'unavailable';
     dimensions: Array<{
-      dimension: CompetencyDimension;
+      dimension: PortraitV2DimensionId;
       label: string;
-      mean: number;
-      stdDev: number;
+      mean: number | null;
+      meanConfidence: number | null;
+      includedCount: number;
+      missingCount: number;
     }>;
+    taskAttainment: NonNullable<CumulativeClassPortraitReadModel['aggregate']>['taskAttainment'] | null;
     levelDistribution: LevelDistribution;
   };
-  arena: ArenaClassEvidenceSummary;
-  diagnosis: RoleBasedLearningDiagnosis;
+  trendDistribution: CumulativeClassPortraitReadModel['trendDistribution'];
+  riskDistribution: CumulativeClassPortraitReadModel['riskDistribution'];
+  diagnosis: CumulativeClassPortraitReadModel['diagnosis'];
+  arena: ReturnType<typeof buildArenaClassEvidenceSummary>;
   spotlightStudents: TeacherClassInsightStudent[];
   students: TeacherClassInsightStudent[];
 }
 
 export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ classId: string }> }
+  request: Request,
+  { params }: { params: Promise<{ classId: string }> },
 ) {
   try {
     const session = await getServerAuthSession();
@@ -120,7 +126,6 @@ export async function GET(
     }
 
     const { classId } = await params;
-
     const classData = await prisma.class.findUnique({
       where: { id: classId },
       include: {
@@ -138,321 +143,93 @@ export async function GET(
         },
       },
     });
-
     if (!classData) {
       return NextResponse.json({ error: '班级不存在' }, { status: 404 });
     }
-
     if (classData.teacherId !== session.user.id && session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: '权限不足' }, { status: 403 });
     }
 
-    const studentIds = classData.students.map((student) => student.userId);
-    const totalStudents = studentIds.length;
-    const classSessionIds = studentIds.length
-      ? (await prisma.classSession.findMany({
-          where: { classId },
-          select: { id: true },
-        })).map((session) => session.id)
-      : [];
+    const requestedScope = new URL(request.url).searchParams.get('scope');
+    const unsupportedScopeError = getUnsupportedTeacherAttainmentScopeError(requestedScope);
+    if (unsupportedScopeError) {
+      return NextResponse.json(unsupportedScopeError, { status: 400 });
+    }
 
-    const [
-      classSnapshot,
-      latestSnapshots,
-      profileSummaries,
-      riskFlags,
-      growthCounts,
-      recommendationCounts,
-      arenaSubmissions,
-      arenaLearningFacts,
-      studentEvidenceFeatureCaches,
-      classScopedEvidenceFactGroups,
-      classScopedSimulationArenaFacts,
-      recentSessionQualityReports,
-    ] = await Promise.all([
-      prisma.classCompetencySnapshot.findFirst({
+    const classPortrait = await readCurrentCumulativeClassPortrait(prisma, classId);
+    const portraitEntries = await Promise.all(classData.students.map(async (profile) => [
+      profile.userId,
+      await readCurrentCumulativePortrait(prisma, profile.userId),
+    ] as const));
+    const portraits = new Map(portraitEntries);
+    const studentIds = classData.students.map((profile) => profile.userId);
+    const [classSessionIds, classArenaSubmissions] = await Promise.all([
+      prisma.classSession.findMany({
         where: { classId },
-        orderBy: { snapshotAt: 'desc' },
-      }),
-      studentIds.length
-        ? prisma.studentCompetencySnapshot.findMany({
-            where: { userId: { in: studentIds } },
-            orderBy: { snapshotAt: 'desc' },
-            distinct: ['userId'],
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.studentProfileSummary.findMany({
-            where: { userId: { in: studentIds } },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.studentRiskFlag.findMany({
-            where: {
-              userId: { in: studentIds },
-              isResolved: false,
-            },
-            orderBy: { triggeredAt: 'desc' },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.growthRecord.groupBy({
-            by: ['userId'],
-            where: { userId: { in: studentIds } },
-            _count: { _all: true },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.learningRecommendation.groupBy({
-            by: ['userId'],
-            where: {
-              userId: { in: studentIds },
-              isCompleted: false,
-            },
-            _count: { _all: true },
-          })
-        : Promise.resolve([]),
+        select: { id: true },
+      }).then((sessions) => sessions.map((session) => session.id)),
       prismaArenaSubmissionStore.listSubmissions({ classId }),
-      studentIds.length
-        ? prisma.learningFact.findMany({
-            where: {
-              userId: { in: studentIds },
-              factType: 'design',
-            },
-            orderBy: { startedAt: 'desc' },
-            take: 200,
-            select: {
-              factType: true,
-              moduleId: true,
-              outcome: true,
-              score: true,
-              contextJson: true,
-            },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.studentEvidenceFeatureCache.findMany({
-            where: { userId: { in: studentIds } },
-            select: {
-              userId: true,
-              payloadVersion: true,
-              refreshedAt: true,
-              statusMarkers: true,
-              features: true,
-            },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.learningFact.groupBy({
-            by: ['userId', 'factType'],
-            where: {
-              userId: { in: studentIds },
-              OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
-            },
-            _count: { _all: true },
-            _min: { startedAt: true },
-            _max: { startedAt: true },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.learningFact.findMany({
-            where: {
-              userId: { in: studentIds },
-              OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
-            },
-            orderBy: { startedAt: 'desc' },
-            select: STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
-          })
-        : Promise.resolve([]),
-      prisma.classSessionReport.findMany({
-        where: {
-          reportType: 'class-summary',
-          session: { classId },
-        },
-        orderBy: { updatedAt: 'desc' },
-        take: 8,
-        select: {
-          sessionId: true,
-          lessonKey: true,
-          status: true,
-          summary: true,
-          reportData: true,
-          updatedAt: true,
-          session: {
-            select: {
-              id: true,
-              startTime: true,
-              endTime: true,
-              plan: {
-                select: { title: true },
-              },
-            },
-          },
-        },
-      }),
     ]);
-
-    const snapshotMap = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
-    const summaryMap = new Map(profileSummaries.map((summary) => [summary.userId, summary]));
-    const growthMap = new Map(growthCounts.map((entry) => [entry.userId, entry._count._all]));
-    const recommendationMap = new Map(
-      recommendationCounts.map((entry) => [entry.userId, entry._count._all])
-    );
-    const riskByUserId = riskFlags.reduce<Record<string, typeof riskFlags>>(
-      (accumulator, flag) => {
-        accumulator[flag.userId] = [
-          ...(accumulator[flag.userId] ?? []),
-          flag,
-        ];
-        return accumulator;
-      },
-      {},
-    );
-    const cacheHealthByUserId = new Map(
-      studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
-    );
-    const now = new Date();
-    const scopedSimulationArenaByUserId = buildTeacherScopedSimulationArenaFeatureMap(
-      studentIds,
-      classScopedSimulationArenaFacts,
-      {
-        classId,
-        sessionIds: classSessionIds,
-        now,
-      },
-    );
-    const evidenceStatusMap = buildTeacherClassScopedEvidenceStatusMap(studentIds, classScopedEvidenceFactGroups, {
-      now,
-      cacheHealthByUserId,
-      scopedSimulationArenaByUserId,
-    });
-    const evidenceCoverage = summarizeTeacherEvidenceCoverage(evidenceStatusMap.values());
-    const recentSessionQuality = summarizeTeacherSessionQualityReports(recentSessionQualityReports);
-    const diagnosisReportSnapshot = await hasDiagnosisReportSnapshotPersistenceTable(prisma)
-      ? await readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence(
-        createPrismaDiagnosisReportSnapshotStore(prisma.diagnosisReportSnapshot),
-        {
-          view: 'teacher-class',
-          goalId: 'control-correction',
-          userId: session.user.id,
-          classId,
-          teacherClassIds: [classId],
-        }
-      )
-      : null;
-
-    const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
-      const snapshot = snapshotMap.get(studentProfile.userId);
-      const summary = summaryMap.get(studentProfile.userId);
-      const studentRiskFlags = riskByUserId[studentProfile.userId] ?? [];
-      const vector = snapshot?.competencyVector as CompetencyVector | undefined;
-      const fallbackScore = vector ? calculateOverallScore(vector) : 0;
-      const overallScore = Math.round((summary?.overallScore ?? fallbackScore) * 10) / 10;
-      const riskLevel = normalizeInsightRiskLevel(
-        summary?.riskLevel ??
-          studentRiskFlags.find((flag) => flag.severity)?.severity ??
-          null
-      );
-
-      return {
-        id: studentProfile.user.id,
-        name: studentProfile.user.name || '未命名学生',
-        email: studentProfile.user.email,
-        studentNumber: studentProfile.studentNumber,
-        overallScore,
-        overallLevel:
-          summary?.overallLevel ||
-          COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label,
-        riskLevel,
-        riskLabel: getRiskLabel(riskLevel),
-        trendDirection:
-          summary?.trendDirection === 'up' || summary?.trendDirection === 'down'
-            ? summary.trendDirection
-            : 'stable',
-        recentTrend: summary?.recentTrend || '近期暂无治理趋势',
-        strengths: parseStringList(summary?.strengthsJson),
-        weaknesses: parseStringList(summary?.weaknessesJson),
-        riskBadges:
-          parseStringList(summary?.riskFlagsJson).length > 0
-            ? parseStringList(summary?.riskFlagsJson)
-            : studentRiskFlags.map((flag) => flag.description),
-        growthRecordCount: growthMap.get(studentProfile.userId) ?? 0,
-        recommendationCount: recommendationMap.get(studentProfile.userId) ?? 0,
-        factCount: snapshot?.factCount ?? 0,
-        lastSnapshotAt: snapshot?.snapshotAt.toISOString() ?? null,
-        evidenceStatus: evidenceStatusMap.get(studentProfile.userId)!,
-      };
-    });
-
-    const coverageStudents = students.filter(
-      (student) => student.lastSnapshotAt || student.overallScore > 0 || student.riskBadges.length > 0
-    ).length;
-    const latestStudentSnapshotAt =
-      latestSnapshots[0]?.snapshotAt.toISOString() ?? null;
+    const arenaSubmissions = classArenaSubmissions.filter(({ userId }) =>
+      typeof userId === 'string' && studentIds.includes(userId));
+    const arenaLearningFacts = studentIds.length
+      ? await prisma.learningFact.findMany({
+          where: {
+            userId: { in: studentIds },
+            factType: 'design',
+            OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
+          },
+          orderBy: { startedAt: 'desc' },
+          take: 200,
+          select: {
+            factType: true,
+            moduleId: true,
+            outcome: true,
+            score: true,
+            contextJson: true,
+          },
+        })
+      : [];
+    const students = classData.students.map((profile) =>
+      buildStudent(profile, portraits.get(profile.userId)!));
+    const coveredStudents = students.filter((student) =>
+      student.availabilityReason === 'available').length;
+    const latestStudentSnapshotAt = students
+      .flatMap((student) => student.lastSnapshotAt ? [student.lastSnapshotAt] : [])
+      .sort()
+      .at(-1) ?? null;
     const governanceBase = summarizeGovernanceState({
-      totalStudents,
-      coveredStudents: coverageStudents,
-      classSnapshotAt: classSnapshot?.snapshotAt.toISOString() ?? null,
+      totalStudents: students.length,
+      coveredStudents,
+      classSnapshotAt: classPortrait.generatedAt,
       latestStudentSnapshotAt,
     });
-
-    const dimensionStats = COMPETENCY_DIMENSIONS.map((dimension) => {
-      const classMean = extractClassMean(classSnapshot?.aggregateJson, dimension);
-      const classStdDev = extractClassStdDev(classSnapshot?.aggregateJson, dimension);
-      const fallbackScores = latestSnapshots
-        .map((snapshot) => {
-          const vector = snapshot.competencyVector as unknown as CompetencyVector;
-          return vector?.[dimension]?.score ?? 0;
-        })
-        .filter((score) => Number.isFinite(score));
-      const fallbackMean = fallbackScores.length
-        ? roundTo(fallbackScores.reduce((sum, score) => sum + score, 0) / fallbackScores.length, 1)
-        : 0;
+    const highRiskStudents = students.filter((student) => student.riskLevel === 'high').length;
+    const mediumRiskStudents = students.filter((student) => student.riskLevel === 'medium').length;
+    const attentionStudents = students.filter((student) =>
+      student.riskLevel === 'high' ||
+      student.riskLevel === 'medium' ||
+      (student.overallScore !== null &&
+        student.overallScore < COMPETENCY_LEVELS.average.min)).length;
+    const abilityDimensions = PORTRAIT_V2_DIMENSIONS.map(({ id, label }) => {
+      const aggregate = classPortrait.aggregate?.dimensions[id];
       return {
-        dimension,
-        label: getCompetencyLabel(dimension),
-        mean: classMean ?? fallbackMean,
-        stdDev: classStdDev ?? 0,
+        dimension: id,
+        label,
+        mean: aggregate?.mean ?? null,
+        meanConfidence: aggregate?.meanConfidence ?? null,
+        includedCount: aggregate?.includedCount ?? 0,
+        missingCount: aggregate?.missingCount ?? students.length,
       };
-    });
-
-    const levelDistribution =
-      normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
-      students.reduce<LevelDistribution>(
-        (accumulator, student) => {
-          accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
-          return accumulator;
-        },
-        createEmptyLevelDistribution()
-      );
-    const diagnosis = materializeRoleBasedLearningDiagnosis({
-      view: 'teacher-class',
-      goalId: 'control-correction',
-      userId: session.user.id,
-      classId,
-      teacherClassIds: [classId],
-      teacherReport: {
-        classInfo: {
-          classId,
-          studentCount: totalStudents,
-        },
-        metrics: {
-          evidenceCoverage: {
-            sourceCoverage: {
-              readyStudents: evidenceCoverage.readyStudents,
-              staleStudents: evidenceCoverage.staleStudents,
-              missingStudents: evidenceCoverage.missingStudents,
-              lowConfidenceStudents: evidenceCoverage.lowConfidenceStudents,
-            },
-            denominator: totalStudents,
-          },
-        },
-        studentDrilldowns: students.map((student) => ({ userId: student.id })),
-      },
-      diagnosisReportSnapshot,
     });
 
     const payload: TeacherClassInsightsPayload = {
+      scope: 'cumulative',
+      scopeLabel: CUMULATIVE_ATTAINMENT_LABEL,
+      availability: {
+        state: classPortrait.stateKind,
+        reason: classPortrait.availabilityReason,
+      },
       classInfo: {
         id: classData.id,
         name: classData.name,
@@ -460,50 +237,55 @@ export async function GET(
         description: classData.description,
         semester: classData.semester,
         year: classData.year,
-        studentCount: totalStudents,
+        studentCount: students.length,
       },
       governance: {
         ...governanceBase,
-        totalStudents,
-        coveredStudents: coverageStudents,
-        pendingStudents: Math.max(totalStudents - coverageStudents, 0),
-        classSnapshotAt: classSnapshot?.snapshotAt.toISOString() ?? null,
+        totalStudents: students.length,
+        coveredStudents,
+        pendingStudents: Math.max(students.length - coveredStudents, 0),
+        classSnapshotAt: classPortrait.generatedAt,
         latestStudentSnapshotAt,
-        evidenceCoverage,
-        recentSessionQuality,
       },
       overview: {
-        overallIndex: roundTo(
-          dimensionStats.reduce((sum, item) => sum + item.mean, 0) / dimensionStats.length,
-          1
-        ),
-        highRiskStudents: students.filter((student) => student.riskLevel === 'high').length,
-        mediumRiskStudents: students.filter((student) => student.riskLevel === 'medium').length,
-        attentionStudents: students.filter((student) =>
-          student.riskLevel === 'high' ||
-          student.riskLevel === 'medium' ||
-          student.overallScore < COMPETENCY_LEVELS.average.min
-        ).length,
+        overallIndex: classPortrait.aggregate?.overall.mean ?? null,
+        highRiskStudents,
+        mediumRiskStudents,
+        attentionStudents,
         averageFactCount: roundTo(
-          students.reduce((sum, student) => sum + student.factCount, 0) / (students.length || 1),
-          1
+          students.reduce((total, student) => total + student.factCount, 0) /
+            (students.length || 1),
+          1,
         ),
       },
       ability: {
-        dimensions: dimensionStats,
-        levelDistribution,
+        state: classPortrait.stateKind === 'UNAVAILABLE'
+          ? 'unavailable'
+          : classPortrait.activeStudentCount > 0 ? 'ready' : 'no-evidence',
+        dimensions: abilityDimensions,
+        taskAttainment: classPortrait.aggregate?.taskAttainment ?? null,
+        levelDistribution: students.reduce<LevelDistribution>((distribution, student) => {
+          if (student.overallScore !== null) {
+            distribution[getCompetencyLevelKey(student.overallScore)] += 1;
+          }
+          return distribution;
+        }, createEmptyLevelDistribution()),
       },
+      trendDistribution: classPortrait.trendDistribution,
+      riskDistribution: classPortrait.riskDistribution,
+      diagnosis: classPortrait.diagnosis,
       arena: buildArenaClassEvidenceSummary({
         classId,
-        expectedStudentCount: totalStudents,
+        expectedStudentCount: students.length,
         submissions: arenaSubmissions,
         learningFacts: arenaLearningFacts,
       }),
-      diagnosis,
-      spotlightStudents: rankStudentsByAttention(students).slice(0, 5),
+      spotlightStudents: [...students]
+        .filter((student) => student.riskLevel !== 'none' || student.overallScore !== null)
+        .sort(compareAttention)
+        .slice(0, 5),
       students,
     };
-
     return NextResponse.json(payload);
   } catch (error) {
     rethrowIfNextDynamicError(error);
@@ -513,6 +295,61 @@ export async function GET(
     }
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
+}
+
+function buildStudent(
+  profile: {
+    userId: string;
+    studentNumber: string | null;
+    user: { id: string; name: string | null; email: string | null };
+  },
+  portrait: CumulativePortraitReadModel,
+): TeacherClassInsightStudent {
+  const dimensions = portrait.payload?.dimensions.filter((dimension) =>
+    dimension.evidenceSummary.totalCount > 0) ?? [];
+  const ordered = [...dimensions].sort((left, right) => right.score - left.score);
+  const evidenceCount = dimensions.reduce((total, dimension) =>
+    total + dimension.evidenceSummary.totalCount, 0);
+  const riskLevel = highestRisk(portrait.lastRisk.map((risk) => risk.severity));
+  const confidenceScore = portrait.confidence ?? 0;
+  return {
+    id: profile.user.id,
+    name: profile.user.name || '未命名学生',
+    email: profile.user.email,
+    studentNumber: profile.studentNumber,
+    overallScore: portrait.availabilityReason === 'available' ? portrait.overallScore : null,
+    overallLevel: portrait.overallScore === null
+      ? null
+      : COMPETENCY_LEVELS[getCompetencyLevelKey(portrait.overallScore)].label,
+    overallScoreSource: portrait.availabilityReason === 'available'
+      ? 'native-portrait-v2'
+      : null,
+    riskLevel,
+    riskLabel: getRiskLabel(riskLevel),
+    trendDirection: portrait.lastTrend ?? 'not-comparable',
+    strengths: ordered.slice(0, 2).map((dimension) => dimension.label),
+    weaknesses: ordered.slice(-2).reverse().map((dimension) => dimension.label),
+    riskBadges: portrait.lastRisk.map((risk) => `${risk.type}:${risk.severity}`),
+    factCount: evidenceCount,
+    lastSnapshotAt: portrait.generatedAt,
+    portraitV2: portrait.payload,
+    availabilityReason: portrait.availabilityReason,
+    evidenceStatus: {
+      state: portrait.availabilityReason === 'available' ? 'ready' : 'missing',
+      refreshedAt: portrait.generatedAt,
+      lastEvidenceAt: portrait.evidenceAsOf,
+      confidence: {
+        level: confidenceLevel(confidenceScore, evidenceCount),
+        score: confidenceScore,
+        evidenceCount,
+        sourceCompleteness: portrait.dimensionCoverage.evidencedDimensionIds.length /
+          PORTRAIT_V2_DIMENSIONS.length,
+      },
+      statusMarkers: portrait.availabilityReason === 'available'
+        ? confidenceScore < 0.5 ? ['low-confidence'] : []
+        : ['missing-source'],
+    },
+  };
 }
 
 function createEmptyLevelDistribution(): LevelDistribution {
@@ -533,6 +370,13 @@ function getCompetencyLevelKey(score: number): keyof typeof COMPETENCY_LEVELS {
   return 'atRisk';
 }
 
+function highestRisk(levels: Array<'low' | 'medium' | 'high'>) {
+  if (levels.includes('high')) return 'high';
+  if (levels.includes('medium')) return 'medium';
+  if (levels.includes('low')) return 'low';
+  return 'none';
+}
+
 function getRiskLabel(level: 'none' | 'low' | 'medium' | 'high') {
   if (level === 'high') return '高风险';
   if (level === 'medium') return '中风险';
@@ -540,35 +384,21 @@ function getRiskLabel(level: 'none' | 'low' | 'medium' | 'high') {
   return '风险平稳';
 }
 
-function extractClassMean(aggregate: unknown, dimension: CompetencyDimension) {
-  if (!aggregate || typeof aggregate !== 'object') return null;
-  const entry = (aggregate as Record<string, { mean?: number }>)[dimension];
-  return typeof entry?.mean === 'number' ? roundTo(entry.mean, 1) : null;
+function confidenceLevel(score: number, evidenceCount: number) {
+  if (evidenceCount === 0) return 'none';
+  if (score >= 0.75) return 'high';
+  if (score >= 0.5) return 'medium';
+  return 'low';
 }
 
-function extractClassStdDev(aggregate: unknown, dimension: CompetencyDimension) {
-  if (!aggregate || typeof aggregate !== 'object') return null;
-  const entry = (aggregate as Record<string, { stdDev?: number }>)[dimension];
-  return typeof entry?.stdDev === 'number' ? roundTo(entry.stdDev, 1) : null;
-}
-
-function normalizeLevelDistribution(value: unknown): LevelDistribution | null {
-  if (!value || typeof value !== 'object') return null;
-
-  return {
-    excellent: toCount((value as Record<string, unknown>).excellent),
-    good: toCount((value as Record<string, unknown>).good),
-    average: toCount((value as Record<string, unknown>).average),
-    needsImprovement: toCount((value as Record<string, unknown>).needsImprovement),
-    atRisk: toCount((value as Record<string, unknown>).atRisk),
-  };
+function compareAttention(left: TeacherClassInsightStudent, right: TeacherClassInsightStudent) {
+  const priority = { high: 0, medium: 1, low: 2, none: 3 };
+  return priority[left.riskLevel] - priority[right.riskLevel] ||
+    (left.overallScore ?? Number.POSITIVE_INFINITY) -
+      (right.overallScore ?? Number.POSITIVE_INFINITY);
 }
 
 function roundTo(value: number, digits: number) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
-}
-
-function toCount(value: unknown) {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }

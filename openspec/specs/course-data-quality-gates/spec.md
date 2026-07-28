@@ -300,3 +300,46 @@ The course data-quality gates SHALL prevent newly added or modified registered r
 - **WHEN** the worktree sync or hook setup script runs
 - **THEN** it SHALL install or update a local commit-time gate for new resource semantic completeness
 - **AND** the same check SHALL be available as a direct command for future CI use.
+
+### Requirement: Legacy six-dimensional primary usage is gated
+Repository gates SHALL prevent new primary learner portrait writes or exposed
+student-facing contracts from reverting to the legacy six-dimensional model.
+
+#### Scenario: New primary write uses legacy model
+- **WHEN** a gate scans changed learner portrait code
+- **AND** it finds a new primary write of six-dimensional `CompetencyVector` outside an approved compatibility adapter
+- **THEN** the gate SHALL fail with the file and symbol responsible.
+
+#### Scenario: Student-facing contract exposes legacy primary model
+- **WHEN** a profile, learner-state, planner, or Konling contract exposes learner portrait data
+- **THEN** the gate SHALL verify that portrait v2 is primary
+- **AND** legacy dimensions SHALL be allowed only as explicit compatibility metadata.
+
+#### Scenario: Recommendation or cache contract exposes legacy primary model
+- **WHEN** recommendation generation, `LearningRecommendation` persistence, or `StudentEvidenceFeatureCache` payloads expose portrait-related rationale or aggregates
+- **THEN** the gate SHALL verify portrait v2 ids, confidence, freshness, and limitation metadata are primary
+- **AND** legacy six-dimensional values SHALL be allowed only inside explicitly named compatibility fields.
+
+#### Scenario: Class-level portrait aggregation is checked
+- **WHEN** class competency snapshots, teacher insights, or analytics dashboards expose class portrait summaries
+- **THEN** the gate SHALL verify portrait v2 dimension labels and limitation metadata
+- **AND** it SHALL fail if teacher-facing aggregation silently uses six-dimensional labels as the current primary model.
+
+### Requirement: Full resource semantic completion can be closed
+The data-quality gates SHALL provide a final closure check proving current project resources have complete reviewed semantic disposition and path/citation readiness.
+
+#### Scenario: Full closure check runs
+- **WHEN** resource-family completion batches have landed
+- **THEN** the closure check SHALL consume helper output, ResourceNode audit output, LearningGoal stage coverage, path diagnostics, and resource-metadata citation addressability checks
+- **AND** it SHALL fail on unexplained missing disposition, unreviewed semantic fields, invalid path promotion, missing parent PlanningUnit link, missing exclusion rationale, missing evidence policy, or missing citation addressability.
+
+#### Scenario: Current resources are accounted for
+- **WHEN** the closure check enumerates current discovered resources
+- **THEN** every resource SHALL be classified as path-plannable, supporting-citation, embedded-asset, evidence-producing, or excluded-with-rationale
+- **AND** each classification SHALL include review metadata and source/version evidence or a concrete external blocker.
+
+#### Scenario: Closure succeeds
+- **WHEN** full resource semantic completion succeeds
+- **THEN** the new-resource gate SHALL be tightened so future resource additions and modified existing records cannot bypass reviewed semantic completeness
+- **AND** any future incomplete resource SHALL fail local gate or CI-ready checks.
+

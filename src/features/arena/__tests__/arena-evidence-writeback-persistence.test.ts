@@ -49,7 +49,10 @@ function submission(overrides: Partial<ArenaSubmissionRecord> = {}): ArenaSubmis
 function createMockDb() {
   return {
     learningFact: {
-      createMany: vi.fn(async () => ({ count: 1 })),
+      createMany: vi.fn(async (_args: {
+        data: Array<Record<string, unknown>>;
+        skipDuplicates?: boolean;
+      }) => ({ count: 1 })),
     },
     evidenceOutbox: {
       upsert: vi.fn(async ({ create }: any) => ({
@@ -76,27 +79,33 @@ describe('Arena evidence writeback persistence', () => {
       terminalValidationAccepted: true,
     });
     expect(outcome.learningFactCreated).toBe(true);
-    expect(db.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
-      skipDuplicates: true,
-      data: [
-        expect.objectContaining({
-          userId: 'student-a',
-          factType: 'design',
-          moduleId: 'task-second-order-lead-pid',
-          sourceEventId: expect.stringMatching(/^arena-official:.*submission-arena-writeback/),
-          sourceLogId: 'submission-arena-writeback',
-          outcome: 'success',
-          score: 88,
-          contextJson: expect.objectContaining({
-            arena: expect.objectContaining({
-              official: true,
-              evaluationMode: 'official',
-              evaluationVisibility: 'official',
-            }),
+    const learningFactWrite = db.learningFact.createMany.mock.calls[0]?.[0];
+    expect(learningFactWrite).toMatchObject({ skipDuplicates: true });
+    expect(learningFactWrite?.data).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        userId: 'student-a',
+        factType: 'simulation_task_evidence',
+        moduleId: 'arena:task-second-order-lead-pid',
+        sourceLogId: 'arena-submission:submission-arena-writeback',
+        competencyContribution: {},
+      }),
+      expect.objectContaining({
+        userId: 'student-a',
+        factType: 'design',
+        moduleId: 'task-second-order-lead-pid',
+        sourceEventId: expect.stringMatching(/^arena-official:.*submission-arena-writeback/),
+        sourceLogId: 'submission-arena-writeback',
+        outcome: 'success',
+        score: 88,
+        contextJson: expect.objectContaining({
+          arena: expect.objectContaining({
+            official: true,
+            evaluationMode: 'official',
+            evaluationVisibility: 'official',
           }),
         }),
-      ],
-    }));
+      }),
+    ]));
     expect(db.evidenceOutbox.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: {
         dedupeKey: expect.stringMatching(/^arena-official:.*submission-arena-writeback/),
@@ -111,6 +120,48 @@ describe('Arena evidence writeback persistence', () => {
     expect(db.learningFact.createMany.mock.invocationCallOrder[0]).toBeLessThan(
       db.evidenceOutbox.upsert.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY,
     );
+  });
+
+  it.each([
+    'task-integrator-low-frequency-balance',
+    'task-odyssey-level-one-growth',
+  ])('materializes qualified task evidence independently of the KAQ target whitelist for %s', async (taskId) => {
+    const db = createMockDb();
+    const base = submission();
+
+    const outcome = await persistArenaSubmissionEvidenceWriteback(db, submission({
+      taskId,
+      artifact: {
+        ...base.artifact,
+        taskId,
+      },
+      evaluation: {
+        ...base.evaluation,
+        taskId,
+        artifact: {
+          ...base.artifact,
+          taskId,
+        },
+      },
+    }));
+
+    expect(outcome.evidenceWriteback).toMatchObject({
+      status: 'degraded',
+      attemptStatus: 'effective',
+      terminalValidationAccepted: false,
+    });
+    expect(outcome.learningFactCreated).toBe(true);
+    expect(db.learningFact.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          factType: 'simulation_task_evidence',
+          moduleId: `arena:${taskId}`,
+          sourceLogId: 'arena-submission:submission-arena-writeback',
+          competencyContribution: {},
+        }),
+      ],
+      skipDuplicates: true,
+    });
   });
 
   it('records blocked attempts without creating positive mastery LearningFacts', async () => {

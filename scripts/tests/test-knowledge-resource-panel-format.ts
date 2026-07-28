@@ -50,4 +50,23 @@ assert.equal(
   'resource panel should support collapsible relation groups'
 );
 
+assert.equal(
+  content.includes('node.inspectionSentence') && content.includes('node.evidenceState'),
+  true,
+  'resource panel should render the shared directional sentence and explicit evidence state'
+);
+
+assert.equal(
+  content.includes("node.cycleState === 'cyclic'")
+    && content.includes('循环依赖，需共同理解或待审查'),
+  true,
+  'resource panel should surface cyclic dependency inspection state'
+);
+
+assert.equal(
+  content.includes('node.relationId ?? node.canonicalType ?? node.relation'),
+  true,
+  'resource panel should retain multiple relation provenance records for one neighboring node'
+);
+
 console.log('knowledge resource panel format test passed');

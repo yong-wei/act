@@ -263,18 +263,21 @@ Path execution records SHALL preserve distinct learner actions for execution and
 - **AND** the history UI SHALL be able to show the result without exposing private raw answers.
 
 ### Requirement: Planner gates active path nodes by learner readiness
-The adaptive path planner SHALL evaluate learner readiness before placing a ResourceNode into the immediately executable portion of a generated path.
+The adaptive path planner SHALL evaluate learner readiness using portrait v2
+learner-state signals before placing a ResourceNode into the immediately
+executable portion of a generated path.
 
-#### Scenario: Student lacks competency for a heavy node
-- **WHEN** a student requests a path and the learner-state slice is below a node's readiness threshold
+#### Scenario: Student lacks readiness for a heavy node
+- **WHEN** a student requests a path and the portrait v2 learner-state slice is below a node's readiness threshold
 - **THEN** the planner SHALL exclude that node from `activeNodeIds`
 - **AND** it SHALL include preparation nodes or fallback nodes before the locked node when such nodes are available
 - **AND** it SHALL keep the locked node out of current or next executable actions.
 
-#### Scenario: Zero-competency control-correction learner requests a path
-- **WHEN** student `20230010102601` or an equivalent learner has zero control-modeling and parameter-design competency
+#### Scenario: Low-readiness control-correction learner requests a path
+- **WHEN** student `20230010102601` or an equivalent learner has low portrait v2 readiness for control modeling/representation and controller design/synthesis
 - **THEN** Arena and other terminal heavy nodes SHALL NOT be returned as immediate current nodes
-- **AND** the first executable option SHALL start with preparation, knowledge, guided practice, diagnosis, or low-risk resource nodes.
+- **AND** the first executable option SHALL start with preparation, knowledge, guided practice, diagnosis, or low-risk resource nodes
+- **AND** any values derived from legacy six-dimensional compatibility mapping SHALL be identified in diagnostics.
 
 ### Requirement: Path options carry active and locked readiness structure
 Generated path options SHALL distinguish active nodes, locked nodes, readiness summaries, and unlock conditions.
@@ -620,4 +623,31 @@ Governed `interactive_lesson`, `knowledge_card`, `textbook_section`, `slides`, `
 - **WHEN** an external resource is path-plannable but cannot consume platform path controls
 - **THEN** its execution contract SHALL keep the path center available, record governed access and completion state, and refresh the authoritative journey on return
 - **AND** it SHALL NOT require the student to restart the same node to reach the next action.
+
+### Requirement: Path personalization uses portrait v2
+Adaptive path planning SHALL use portrait v2 dimensions for learner-state
+personalization, weak-dimension targeting, and path rationale.
+
+#### Scenario: Planner ranks resources by learner needs
+- **WHEN** the planner personalizes resources for a learner
+- **THEN** weak-dimension signals SHALL be read from portrait v2
+- **AND** selected-resource rationales SHALL reference portrait v2 dimensions rather than legacy six-dimensional ids.
+
+#### Scenario: Only legacy portrait data exists
+- **WHEN** planner input contains only migrated compatibility data
+- **THEN** the planner SHALL include limitation metadata in diagnostics
+- **AND** it SHALL NOT silently present compatibility-derived values as native portrait v2 evidence.
+
+### Requirement: All path-ready LearningGoals prove governed resource coverage
+Adaptive path diagnostics SHALL prove that each path-ready LearningGoal can generate meaningful governed paths after resource semantic completion.
+
+#### Scenario: Goal has governed resource coverage
+- **WHEN** all resource-completion batches are closed
+- **THEN** each registered path-ready LearningGoal SHALL generate path options from reviewed ResourceNodes, checkpoints, and supporting citations according to its K/A/Q boundary
+- **AND** path options SHALL expose resource mix, overlap, effort, stage coverage, and limitation metadata.
+
+#### Scenario: Goal still has a reviewed blocker
+- **WHEN** a LearningGoal cannot generate meaningful governed paths after closure
+- **THEN** diagnostics SHALL identify a specific reviewed blocker such as missing source artifact, unresolved route, missing terminal-validation authority, or unavailable evidence lineage
+- **AND** the student-facing surface SHALL not show cosmetic identical path options.
 

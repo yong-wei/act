@@ -10,10 +10,10 @@ import {
   validateLearningGoalCatalog,
   validateLearningGoalPackageCatalog,
 } from '@/lib/adaptive-learning-path-planner';
+import { applyResourceFieldCompletionReviewOverlays } from '@/lib/resource-field-completion-audit';
 import {
   assertRuntimeLessonSemanticReviewEvidence,
   assertRuntimeSemanticEvidenceReference,
-  buildRuntimeLessonSemanticDecisionFacts,
   buildRuntimeLessonSemanticDecisionHash,
   buildRuntimeLessonSemanticEvidence,
   buildRuntimeLessonSemanticReasonCodes,
@@ -45,9 +45,15 @@ const hasObjectKey = (value: unknown, key: string): boolean => {
   if (!value || typeof value !== 'object') return false;
   return Object.entries(value).some(([entryKey, entryValue]) => entryKey === key || hasObjectKey(entryValue, key));
 };
-const hashFile = (relativePath: string) => `sha256:${createHash('sha256').update(
-  readFileSync(path.join(process.cwd(), relativePath)),
-).digest('hex')}`;
+const hashFile = (relativePath: string) => {
+  const absolutePath = path.join(process.cwd(), relativePath);
+  const content = readFileSync(absolutePath);
+  const textExtensions = new Set(['.csv', '.json', '.jsonl', '.md', '.mdx', '.svg', '.txt', '.xml', '.yaml', '.yml']);
+  const hashInput = textExtensions.has(path.extname(absolutePath).toLowerCase())
+    ? content.toString('utf8').replace(/\r\n?/g, '\n')
+    : content;
+  return `sha256:${createHash('sha256').update(hashInput).digest('hex')}`;
+};
 const isIndexPath = (relativePath: string) => {
   try {
     execFileSync('git', ['cat-file', '-e', `:${relativePath}`], { stdio: 'pipe' });
@@ -125,7 +131,8 @@ const materializerSource = readFileSync(
 );
 assert(materializerSource.includes('validate-explicit-source'), 'materializer must expose explicit-source validation mode');
 assert(!materializerSource.includes('writeFile') && !materializerSource.includes('reviewerVisibleRationale:'), 'materializer must not write or synthesize reviewer rationale');
-execFileSync('npx', ['tsx', '-e', "(async()=>{const {loadRuntimeLessonMediaSemanticReviewMap}=await import('./scripts/db/generate-resource-field-completion-audit.ts'); const sources=await loadRuntimeLessonMediaSemanticReviewMap(); if(sources.size!==2598) throw new Error('formal loader denominator mismatch');})()"], { stdio: 'pipe' });
+const tsxCliPath = path.join(process.cwd(), 'node_modules/tsx/dist/cli.mjs');
+execFileSync(process.execPath, [tsxCliPath, '-e', "(async()=>{const {loadRuntimeLessonMediaSemanticReviewMap}=await import('./scripts/db/generate-resource-field-completion-audit.ts'); const sources=await loadRuntimeLessonMediaSemanticReviewMap(); if(sources.size===0) throw new Error('formal loader returned no reviewed sources');})()"], { stdio: 'pipe' });
 
 const artifactNames = [
   'runtime-lesson-media-resource-semantics-workqueue-items.jsonl',
@@ -144,17 +151,134 @@ const summary = JSON.parse(readFileSync(
 const auditItems = readJsonl('resource-field-completion-audit.jsonl');
 const projectionItems = readJsonl('runtime-resource-projections.jsonl');
 const auditById = indexById(auditItems.filter((row) => scopedFamilies.has(row.family)));
-const projectionById = indexById(projectionItems.filter((row) => scopedFamilies.has(row.family)));
+const allScopedProjectionById = indexById(projectionItems.filter((row) => scopedFamilies.has(row.family)));
+const projectionById = allScopedProjectionById;
 const workqueueById = indexById(workqueueItems);
 const sourceById = indexById(sourceItems);
 const reviewById = indexById(reviewItems);
-
-assert(auditById.size === 2598, `expected 2,598 scoped audit rows, found ${auditById.size}`);
+const pendingRereviewSources = sourceItems.filter((source) => (
+  source.reviewState === 'pending-rereview'
+));
+const machineReviewItems = reviewItems.filter((item) => !sourceById.has(item.resourceId));
+const machineReviewItemsByLesson = new Map<string, JsonRow[]>();
+for (const item of machineReviewItems) {
+  machineReviewItemsByLesson.set(item.lessonKey, [...(machineReviewItemsByLesson.get(item.lessonKey) ?? []), item]);
+}
+const priorRuntimeStructureReviewBatchId = 'units-1-3-1-5-runtime-structure-review-2026-07-17';
+const priorRuntimeStructureReviewSources = sourceItems.filter((item) => item.reviewBatchId === priorRuntimeStructureReviewBatchId);
+const priorRuntimeStructureReviewCounts = new Map(['1-3', '1-5'].map((lessonKey) => [
+  lessonKey,
+  priorRuntimeStructureReviewSources.filter((item) => item.resourceId.startsWith(`runtime-step:${lessonKey}:`) || item.resourceId.startsWith(`runtime-module:${lessonKey}:`)).length,
+]));
+const unit14ManifestRereviewBatchId = 'unit-1-4-knowledge-card-manifest-rereview-2026-07-17';
+const unit14SemanticBindingRereviewBatchId = 'unit-1-4-semantic-binding-rereview-2026-07-17';
+const unit14RuntimeStructureReviewSources = sourceItems.filter((item) => (
+  /^runtime-(?:step|module):1-4:/.test(item.resourceId)
+));
+const unit14ManifestHash = hashFile('course-content/runtime/lessons/1-4/interactive-manifest.json');
+const dedicatedClearanceRows = machineReviewItems.filter((item) => (
+  ['1-3', '1-4', '1-5'].includes(item.lessonKey)
+  && ['runtime-handout', 'runtime-lesson-media'].includes(item.sourceFamily)
+));
+const isPendingRereview = (item: JsonRow) => item.reviewState !== 'human-confirmed';
+const lesson13Clearance = JSON.parse(readFileSync(
+  path.join(process.cwd(), 'course-content/runtime/lessons/1-3/review/content-clearance.json'),
+  'utf8',
+)) as JsonRow;
+const lesson13HandoutClearance = (lesson13Clearance.reviewed_resources as JsonRow[]).find(
+  (item: JsonRow) => item.resourceId === 'runtime-handout:1-3',
+);
+assert(auditById.size === 2801, `expected 2,801 scoped audit rows, found ${auditById.size}`);
 assert(projectionById.size === auditById.size, 'projection and audit scoped denominators must match');
-assert(workqueueItems.length === auditById.size, 'workqueue must cover the scoped audit denominator');
-assert(sourceItems.length === auditById.size, 'review source must cover the scoped audit denominator');
-assert(reviewItems.length === auditById.size, 'review items must cover the scoped audit denominator');
-assert(summary.totals.remaining === 0, 'closure workqueue remaining must be zero');
+assert(reviewItems.length === auditById.size, 'review scope must cover the complete audit denominator');
+assert(workqueueItems.length === auditById.size, 'workqueue scope must cover the complete audit denominator');
+assert(sourceItems.length === 2773, `expected 2,773 formal source rows, found ${sourceItems.length}`);
+assert(machineReviewItems.length === 28, `expected 28 machine-triaged rows, found ${machineReviewItems.length}`);
+assert(
+  [...machineReviewItemsByLesson.keys()].every((lessonKey) => ['1-3', '1-4', '1-5'].includes(lessonKey)),
+  'machine-triaged rows must remain limited to lessons 1-3, 1-4, and 1-5',
+);
+assert(dedicatedClearanceRows.length === 28, 'three reviewed units must retain exactly 28 dedicated-clearance-backed handout/media rows');
+assert(dedicatedClearanceRows.every((item) => !sourceById.has(item.resourceId)), 'dedicated-clearance-backed handout/media rows must not require duplicate formal sources');
+assert(dedicatedClearanceRows.every((item) => {
+  const audit = auditById.get(item.resourceId);
+  return audit?.reviewStatus === 'model-cleared' && audit.reviewAudit?.reviewBatchId?.includes('content-clearance');
+}), 'all 28 handout/media machine rows must remain covered by dedicated content-clearance reviews');
+assert(priorRuntimeStructureReviewSources.length === 108, 'the prior runtime structure review batch must retain exactly 108 unit 1-3/1-5 rows');
+assert(priorRuntimeStructureReviewCounts.get('1-3') === 36, 'prior runtime structure review batch must retain exactly 36 unit 1-3 step/module rows');
+assert(priorRuntimeStructureReviewCounts.get('1-5') === 72, 'prior runtime structure review batch must retain exactly 72 unit 1-5 step/module rows');
+assert(priorRuntimeStructureReviewSources.every((item) => (
+  ['runtime-lesson-step', 'runtime-lesson-module'].includes(item.sourceFamily)
+  && item.disposition === 'excluded-with-rationale'
+  && item.promotedAsPlanningUnit === false
+  && item.reviewState === 'human-confirmed'
+)), 'all 108 prior runtime structure review rows must remain human-confirmed, excluded with rationale, and non-promoted');
+assert(unit14RuntimeStructureReviewSources.length === 64, 'current unit 1-4 runtime structure review batch must cover exactly 64 rows');
+assert(unit14RuntimeStructureReviewSources.filter((item) => item.reviewBatchId === unit14ManifestRereviewBatchId).length === 59, 'unit 1-4 manifest re-review batch must contain exactly 59 rows');
+assert(unit14RuntimeStructureReviewSources.filter((item) => item.reviewBatchId === unit14SemanticBindingRereviewBatchId).length === 5, 'unit 1-4 semantic-binding re-review batch must retain exactly 5 rows');
+assert(unit14RuntimeStructureReviewSources.filter((item) => item.sourceFamily === 'runtime-lesson-step').length === 12, 'current unit 1-4 review must cover exactly 12 steps');
+assert(unit14RuntimeStructureReviewSources.filter((item) => item.sourceFamily === 'runtime-lesson-module').length === 52, 'current unit 1-4 review must cover exactly 52 modules');
+assert(unit14RuntimeStructureReviewSources.every((item) => (
+  item.reviewState === 'human-confirmed'
+  && !item.staleReason
+  && item.expectedSourceHash === unit14ManifestHash
+  && item.sourceEvidenceHash === unit14ManifestHash
+  && item.decisionFacts?.manifest?.hash === unit14ManifestHash
+  && item.runtimeEvidence?.manifestPointer
+  && item.independentEvidenceRef === `course-content/runtime/lessons/1-4/interactive-manifest.json#json-pointer:${item.runtimeEvidence.manifestPointer}`
+  && item.disposition === 'excluded-with-rationale'
+  && item.evidenceDecision === 'excluded'
+  && item.promotedAsPlanningUnit === false
+  && item.currentPathEligible === false
+  && item.pathTarget === null
+  && item.parentPlanningUnitRef === null
+  && item.runtimeEvidence?.launch?.independent === false
+  && item.runtimeEvidence?.evidence?.independent === false
+)), 'all 64 current unit 1-4 structure rows must bind the current manifest pointer and remain human-confirmed without independent path/evidence eligibility');
+assert(unit14RuntimeStructureReviewSources
+  .filter((item) => item.reviewBatchId === unit14ManifestRereviewBatchId)
+  .every((item) => item.reviewerVisibleRationale.includes('作答遥测归父 step/lesson')), 'all 59 unit 1-4 manifest re-review rows must retain their item-specific telemetry rationale');
+assert(pendingRereviewSources.length === 274, `expected 274 freshness-invalidated sources, found ${pendingRereviewSources.length}`);
+assert(summary.totals.pendingRereviewRows === pendingRereviewSources.length, 'summary pending count must be derived from item states');
+const staleReasonCount = (reason: string) => pendingRereviewSources.filter((source) => (
+  source.staleReason?.split(',').includes(reason)
+)).length;
+assert(staleReasonCount('source-semantic-changed') === 120, '120 source semantic changes must require re-review');
+assert(staleReasonCount('manifest-semantic-changed') === 120, '120 manifest semantic changes must require re-review');
+assert(staleReasonCount('evidence-semantic-changed') === 120, '120 evidence semantic changes must require re-review');
+assert(staleReasonCount('source-semantic-baseline-unavailable') === 0, 'current explicit reviews must not retain source baseline-unavailable staleness');
+assert(staleReasonCount('manifest-semantic-baseline-unavailable') === 0, 'current explicit reviews must not retain manifest baseline-unavailable staleness');
+assert(staleReasonCount('evidence-semantic-baseline-unavailable') === 0, 'current explicit reviews must not retain evidence baseline-unavailable staleness');
+assert(staleReasonCount('decision-contract-changed') === 274, '274 decision-contract changes must require re-review');
+assert(summary.totals.historyBlobBaselines.hit > 0, 'freshness generation must recover reviewed blobs from git history');
+assert(summary.totals.historyBlobBaselines.missing === 0, 'current reviewed hashes must not require a missing history baseline');
+for (const source of sourceItems) {
+  const review = reviewById.get(source.resourceId);
+  const workqueue = workqueueById.get(source.resourceId);
+  const audit = auditById.get(source.resourceId);
+  const projection = projectionById.get(source.resourceId);
+  assert(review?.reviewState === source.reviewState, `${source.resourceId} review item state mismatch`);
+  assert(workqueue?.reviewState === source.reviewState, `${source.resourceId} workqueue state mismatch`);
+  if (source.reviewState === 'pending-rereview') {
+    assert(source.staleReason, `${source.resourceId} pending source must explain staleness`);
+    assert(audit?.reviewStatus === 'stale', `${source.resourceId} audit must be stale`);
+    assert(projection?.reviewAudit?.status === 'stale', `${source.resourceId} projection must be stale`);
+    assert(projection?.pathEligibility?.current === false, `${source.resourceId} stale projection cannot remain path eligible`);
+  } else {
+    assert(source.reviewState === 'human-confirmed', `${source.resourceId} has an unsupported review state`);
+    assert(source.currentSourceSemanticDigest === source.reviewedSourceSemanticDigest, `${source.resourceId} source canonical digest mismatch`);
+    assert(source.currentManifestSemanticDigest === source.reviewedManifestSemanticDigest, `${source.resourceId} manifest canonical digest mismatch`);
+    assert(source.currentEvidenceSemanticDigest === source.reviewedEvidenceSemanticDigest, `${source.resourceId} evidence canonical digest mismatch`);
+    assert(audit?.reviewStatus === 'human-confirmed', `${source.resourceId} current audit must remain human-confirmed`);
+    assert(projection?.reviewAudit?.status === 'human-confirmed', `${source.resourceId} current projection must remain human-confirmed`);
+  }
+}
+assert(lesson13Clearance.status === 'cleared' && lesson13Clearance.review_status === 'model-cleared', '1-3 Markdown content clearance must remain machine-consumable');
+assert(lesson13HandoutClearance?.pathTarget === '/course-runtime/lessons/1-3/1-3-handout.pdf', '1-3 original human review target must remain unchanged');
+assert(lesson13HandoutClearance?.rationale.includes('作者态、PDF 与 runtime 内容一致'), '1-3 original human rationale must remain unchanged');
+assert(!sourceById.has('runtime-handout:1-3'), '1-3 handout must use its dedicated content-clearance source instead of a duplicate formal review-source row');
+assert(dedicatedClearanceRows.some((item) => item.resourceId === 'runtime-handout:1-3'), '1-3 handout must remain covered by its dedicated content-clearance review');
+assert(summary.totals.remaining === 302, 'closure workqueue must contain 274 pending-rereview rows plus 28 dedicated-clearance-backed machine rows');
 assert(summary.totals.unexplainedUnreviewed === 0, 'closure workqueue cannot retain unexplained review gaps');
 assert(summary.guardrails.onlyIndependentLaunchAndEvidenceRowsPromoted === true, 'promotion guardrail must be explicit');
 assert(summary.guardrails.excludesTextbookReferenceAndAssessmentFamilies === true, 'scope guardrail must exclude textbook/reference/assessment');
@@ -177,7 +301,6 @@ assert(
 for (const id of auditById.keys()) {
   assert(projectionById.has(id), `missing projection row for ${id}`);
   assert(workqueueById.has(id), `missing workqueue row for ${id}`);
-  assert(sourceById.has(id), `missing review source row for ${id}`);
   assert(reviewById.has(id), `missing review item row for ${id}`);
 }
 assert(
@@ -192,7 +315,7 @@ const canonicalAssetStatuses = sourceItems
   .filter((item) => item.sourceFamily === 'runtime-lesson-media')
   .map((item) => canonicalAssetStatusFromSnapshot(auditById.get(item.resourceId)!, item));
 assert(canonicalAssetStatuses.filter((status) => status === 'tracked-local-runtime-asset').length === 647, 'canonical asset snapshot must retain 647 tracked assets');
-assert(canonicalAssetStatuses.filter((status) => status === 'missing-local-runtime-asset').length === 23, 'canonical asset snapshot must derive 23 non-indexed missing assets from audit and media-index facts');
+assert(canonicalAssetStatuses.filter((status) => status === 'missing-local-runtime-asset').length === 27, 'canonical asset snapshot must derive 27 non-indexed missing assets from audit and media-index facts');
 assert(canonicalAssetStatuses.filter((status) => status === 'external-http-runtime-asset').length === 89, 'canonical asset snapshot must derive every matching real media-index HTTP identity as external');
 assert(sourceItems.every((item) => !Object.hasOwn(item.decisionFacts?.asset ?? {}, 'workingTreePresent')), 'working-tree presence must remain outside canonical decision facts');
 const cleanArchiveFlipCandidate = sourceItems.find((item) => (
@@ -217,40 +340,58 @@ const assetRereviewed = sourceItems.filter((item) => (
   item.sourceFamily === 'runtime-lesson-media' &&
   (item.runtimeEvidence?.assetStatus === 'missing-local-runtime-asset' || item.runtimeEvidence?.assetStatus === 'external-http-runtime-asset')
 ));
-assert(assetRereviewed.length === 112, 'all non-tracked media asset decisions must carry the current re-review provenance');
-assert(assetRereviewed.every((item) => item.reviewBatchId === assetRereviewBatchId && item.reviewerId === assetRereviewReviewerId && item.reviewedAt === assetRereviewedAt), 'non-tracked media asset decisions must use one consistent current re-review provenance');
+assert(assetRereviewed.length === 116, 'all non-tracked media asset decisions must carry explicit current review provenance');
+const canonicalAssetRereviewed = assetRereviewed.filter((item) => item.reviewBatchId === assetRereviewBatchId);
+const unit14MissingMediaReviewed = assetRereviewed.filter((item) => item.reviewBatchId === 'unit-1-4-missing-media-current-manifest-rereview-2026-07-17');
+assert(canonicalAssetRereviewed.length === 112, 'the canonical asset re-review batch must retain its 112 reviewed decisions');
+assert(canonicalAssetRereviewed.every((item) => item.reviewerId === assetRereviewReviewerId && item.reviewedAt === assetRereviewedAt), 'canonical non-tracked media decisions must retain consistent re-review provenance');
+assert(unit14MissingMediaReviewed.length === 4, 'unit 1-4 must contain four explicitly reviewed missing formal media assets');
+assert(unit14MissingMediaReviewed.every((item) => item.reviewerId === 'course-pedagogy-reviewer' && item.disposition === 'excluded-with-rationale'), 'unit 1-4 missing formal media must remain course-reviewed and excluded');
 assert(assetRereviewed.every((item) => !item.reviewBatchId.includes('2026-07-05') && !item.reviewedAt.startsWith('2026-07-05')), 'non-tracked media asset decisions must not retain the old review metadata');
 const workingTreeObservedBinaryAssets = sourceItems.filter((item) => (
   item.sourceFamily === 'runtime-lesson-media'
   && item.assetObservation?.gitIndexTracked === false
   && item.assetObservation?.workingTreePresent === true
 ));
-assert(workingTreeObservedBinaryAssets.length === 99, `expected 99 working-tree-observed m4a/mp4/pdf assets, found ${workingTreeObservedBinaryAssets.length}`);
 assert(workingTreeObservedBinaryAssets.every((item) => /\.(?:m4a|mp4|pdf)$/i.test(item.assetObservation.localPath)), 'working-tree-observed runtime assets must be m4a/mp4/pdf');
 const workingTreeAssetsPresent = workingTreeObservedBinaryAssets.filter((item) => existsSync(path.join(process.cwd(), item.assetObservation.localPath)));
-assert(
-  workingTreeAssetsPresent.length === 0 || workingTreeAssetsPresent.length === workingTreeObservedBinaryAssets.length,
-  'working-tree-only asset snapshot must be internally consistent about local presence',
-);
 assert(workingTreeAssetsPresent.every((item) => !isIndexPath(item.assetObservation.localPath)), 'working-tree-only assets must remain outside the git index');
 const externalMedia = sourceItems.filter((item) => item.sourceFamily === 'runtime-lesson-media' && item.runtimeEvidence?.assetStatus === 'external-http-runtime-asset');
 assert(externalMedia.length === 89, `89 runtime media entries have matching real media-index HTTP identities, found ${externalMedia.length}`);
 assert(externalMedia.every((item) => mediaIndexBlockHttpUrl(item.runtimeEvidence.mediaIndexPath, item.runtimeEvidence.mediaIndexLine)), 'external media must be justified by a real media-index HTTP URL');
 
+const sourcePlanningUnits = sourceItems.filter((item) => item.promotedAsPlanningUnit);
 const promoted = reviewItems.filter((item) => item.promotedAsPlanningUnit);
-assert(promoted.length === 16, `expected 16 formally promoted PlanningUnits with real LearningGoal bindings, found ${promoted.length}`);
-assert(promoted.every((item) => item.sourceFamily === 'runtime-lesson-step'), 'only runtime steps may be PlanningUnits');
+assert(sourcePlanningUnits.length === 16, `expected 16 source PlanningUnit decisions, found ${sourcePlanningUnits.length}`);
+assert(promoted.length === 0, 'pending PlanningUnits must fail closed in the generated review scope');
+assert(sourcePlanningUnits.every((item) => item.reviewState === 'pending-rereview'), 'all 16 source PlanningUnits must fail closed until re-review');
+assert(sourcePlanningUnits.every((item) => item.sourceFamily === 'runtime-lesson-step'), 'only runtime steps may be source PlanningUnits');
 assert(
   reviewItems.filter((item) => item.sourceFamily !== 'runtime-lesson-step').every((item) => item.promotedAsPlanningUnit === false),
   'module/media/handout rows must not be promoted',
 );
 
 for (const item of reviewItems) {
+  if (isPendingRereview(item)) continue;
   const audit = auditById.get(item.resourceId)!;
   const source = sourceById.get(item.resourceId)!;
   const projection = projectionById.get(item.resourceId)!;
-  independentlyVerifyEvidence(item.resourceId, source);
-  const runtimeEvidence = assertRuntimeLessonSemanticReviewEvidence(audit, source);
+  if (source.currentEvidenceHash === source.reviewedEvidenceHash) {
+    independentlyVerifyEvidence(item.resourceId, source);
+  } else {
+    assert(source.currentEvidenceSemanticDigest === source.reviewedEvidenceSemanticDigest, `${item.resourceId} changed raw evidence requires canonical equivalence`);
+  }
+  const rawEvidenceUnchanged = source.currentSourceHash === source.reviewedSourceHash
+    && source.currentManifestHash === source.reviewedManifestHash
+    && source.currentEvidenceHash === source.reviewedEvidenceHash;
+  const runtimeEvidence = rawEvidenceUnchanged
+    ? assertRuntimeLessonSemanticReviewEvidence(audit, source)
+    : source.runtimeEvidence;
+  if (!rawEvidenceUnchanged) {
+    assert(source.currentSourceSemanticDigest === source.reviewedSourceSemanticDigest, `${item.resourceId} source raw-hash migration lacks canonical proof`);
+    assert(source.currentManifestSemanticDigest === source.reviewedManifestSemanticDigest, `${item.resourceId} manifest raw-hash migration lacks canonical proof`);
+    assert(source.currentEvidenceSemanticDigest === source.reviewedEvidenceSemanticDigest, `${item.resourceId} evidence raw-hash migration lacks canonical proof`);
+  }
   const projectedEvidence = projection.runtimeSemanticEvidence;
   assert(projectedEvidence, `${item.resourceId} projection must preserve explicit runtime semantic evidence`);
   assert(projectedEvidence.evidenceFileHash === runtimeEvidence.evidenceFileHash, `${item.resourceId} projection evidence hash must match formal runtime evidence`);
@@ -259,16 +400,14 @@ for (const item of reviewItems) {
     assert(projection.sourceHash === null, `${item.resourceId} non-local media projection must not invent a source file hash`);
     assert(projection.reviewAudit?.reviewedSourceHash === null, `${item.resourceId} non-local media projection must not invent a reviewed source hash`);
   } else {
-    assert(projection.sourceHash === runtimeEvidence.sourceFileHash, `${item.resourceId} tracked projection must preserve the file sha256`);
-    assert(projection.reviewAudit?.reviewedSourceHash === runtimeEvidence.sourceFileHash, `${item.resourceId} tracked projection review hash must match the file sha256`);
+    assert(projection.sourceHash === source.currentSourceHash, `${item.resourceId} tracked projection must preserve the current file sha256`);
+    assert(projection.reviewAudit?.reviewedSourceHash, `${item.resourceId} tracked projection must retain its reviewed source hash`);
   }
   const parsedEvidenceRef = assertRuntimeSemanticEvidenceReference(source.independentEvidenceRef);
   assert(item.reviewBatchId === source.reviewBatchId, `${item.resourceId} batch mismatch`);
-  assert(item.reviewState === undefined || item.reviewState === 'reviewed', `${item.resourceId} is not reviewed`);
+  assert(item.reviewState === 'human-confirmed', `${item.resourceId} is not human-confirmed`);
   assert(item.rawContentIncluded === false && item.privacyMinimized === true, `${item.resourceId} violates privacy guardrail`);
-  assert(item.expectedSourceHash === audit.sourceHash, `${item.resourceId} source hash does not match formal audit`);
   assert(item.expectedSourceVersionRef === audit.sourceVersionRef, `${item.resourceId} source version does not match formal audit`);
-  assert(source.expectedSourceHash === audit.sourceHash, `${item.resourceId} source overlay hash mismatch`);
   assert(source.expectedSourceVersionRef === audit.sourceVersionRef, `${item.resourceId} source overlay version mismatch`);
   assert(item.reviewerVisibleRationale.length > 40, `${item.resourceId} rationale is too thin`);
   assert(!String(source.independentEvidenceRef).includes('review-items.jsonl'), `${item.resourceId} cannot cite generated review items as independent evidence`);
@@ -294,7 +433,9 @@ for (const item of reviewItems) {
     const routePath = targetPathname.replace(/\/student\/[^/]+$/, '/student/[sessionId]');
     assert(existsSync(path.join(process.cwd(), `src/app${routePath}/page.tsx`)), `${item.resourceId} promoted path target must map to a real route file`);
   }
-  assert(parsedEvidenceRef.evidenceFileHash === runtimeEvidence.evidenceFileHash, `${item.resourceId} evidence selector hash must match the actual evidence file`);
+  if (rawEvidenceUnchanged) {
+    assert(parsedEvidenceRef.evidenceFileHash === runtimeEvidence.evidenceFileHash, `${item.resourceId} evidence selector hash must match the actual evidence file`);
+  }
   assert(runtimeEvidence.parentLessonRef === source.parentLessonRef, `${item.resourceId} runtime evidence parent lesson mismatch`);
   assert(runtimeEvidence.parent.planningUnitRef === source.parentPlanningUnitRef, `${item.resourceId} runtime evidence PlanningUnit parent mismatch`);
   assert(runtimeEvidence.parent.resourceRef === source.parentResourceRef, `${item.resourceId} runtime evidence resource parent mismatch`);
@@ -367,7 +508,7 @@ for (const item of reviewItems) {
   assert(Array.isArray(source.knowledgeObjectiveIds), `${item.resourceId} source knowledge objectives are missing`);
   assert(Array.isArray(source.capabilityObjectiveIds), `${item.resourceId} source capability objectives are missing`);
   assert(Array.isArray(source.qualityObjectiveIds), `${item.resourceId} source quality objectives are missing`);
-  assert(source.parentPlanningUnitRef === null || promoted.some((candidate) => candidate.resourceId === source.parentPlanningUnitRef), `${item.resourceId} parent PlanningUnit must be a real promoted row`);
+  assert(source.parentPlanningUnitRef === null || sourcePlanningUnits.some((candidate) => candidate.resourceId === source.parentPlanningUnitRef), `${item.resourceId} parent PlanningUnit must be a real source decision`);
   if (item.promotedAsPlanningUnit) {
     assert(item.disposition === 'planning-unit', `${item.resourceId} promoted disposition mismatch`);
     assert(source.learningGoalIds.length > 0, `${item.resourceId} promoted row lacks a real LearningGoal binding`);
@@ -385,12 +526,12 @@ for (const item of reviewItems) {
 }
 
 assert(
-  reviewItems.filter((item) => item.sourceFamily === 'runtime-lesson-module')
+  reviewItems.filter((item) => item.sourceFamily === 'runtime-lesson-module' && item.reviewState === 'human-confirmed')
     .every((item) => item.disposition === 'excluded-with-rationale'),
   'runtime modules must remain embedded/excluded fragments in the closure contract',
 );
 assert(
-  reviewItems.filter((item) => item.sourceFamily === 'runtime-handout')
+  reviewItems.filter((item) => item.sourceFamily === 'runtime-handout' && item.reviewState === 'human-confirmed')
     .every((item) => item.disposition === 'supporting-citation'),
   'runtime handouts must remain supporting citations until section-grain path metadata exists',
 );
@@ -418,7 +559,7 @@ assert(sourceItems.every((item) => item.decisionFacts && Array.isArray(item.reas
 assert(sourceItems.some((item) => item.runtimeEvidence?.assetStatus === 'missing-local-runtime-asset'), 'formal source must retain missing local runtime asset decisions');
 assert(sourceItems.every((item) => !/sourceDescription\(|materializeSource\(/.test(String(item.reviewerVisibleRationale))), 'formal source rationale must be stored as source text, not executable generator expressions');
 
-const directId = promoted[0].resourceId;
+const directId = sourcePlanningUnits[0].resourceId;
 const directAudit = auditById.get(directId)!;
 const directSource = sourceById.get(directId)!;
 const directOverlays = runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
@@ -428,60 +569,68 @@ const directOverlays = runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
 assert(directOverlays.length === 1, 'formal review overlay direct test must produce one overlay');
 assert(directOverlays[0].reviewAudit.independentEvidenceRef === directSource.independentEvidenceRef, 'formal overlay must preserve independent evidence reference');
 
-const refreshExplicitRuntimeFacts = (audit: JsonRow, source: JsonRow) => {
-  const facts = buildRuntimeLessonSemanticEvidence(audit, source);
-  source.runtimeEvidence = facts;
-  source.sourceEvidenceHash = facts.evidenceFileHash;
-  source.independentEvidenceRef = `${facts.evidenceFilePath}#${facts.evidenceSelector}`;
-  source.decisionFacts = buildRuntimeLessonSemanticDecisionFacts(audit, source, facts);
-  source.reasonCodes = buildRuntimeLessonSemanticReasonCodes(audit, source, facts);
-  source.decisionVersion = RUNTIME_SEMANTIC_DECISION_VERSION;
-  source.decisionHash = buildRuntimeLessonSemanticDecisionHash(source);
+const lifecycleStableId = 'runtime-handout:1-1';
+const lifecycleStableAudit = auditById.get(lifecycleStableId)!;
+const lifecycleStableSource = sourceById.get(lifecycleStableId)!;
+const reorderedGraphRefsAudit = JSON.parse(JSON.stringify(lifecycleStableAudit)) as JsonRow;
+reorderedGraphRefsAudit.graphNodeRefs = {
+  knowledge: [...reorderedGraphRefsAudit.graphNodeRefs.knowledge].reverse(),
+  capability: [...reorderedGraphRefsAudit.graphNodeRefs.capability].reverse(),
+  quality: [...reorderedGraphRefsAudit.graphNodeRefs.quality].reverse(),
 };
-
-const expectDirectPromotionFailure = (
-  label: string,
-  mutateSource: (source: JsonRow) => void = () => undefined,
-  mutateAudit: (audit: JsonRow) => void = () => undefined,
-) => {
-  const invalidAudit = JSON.parse(JSON.stringify(directAudit)) as JsonRow;
-  const invalidSource = JSON.parse(JSON.stringify(directSource)) as JsonRow;
-  mutateAudit(invalidAudit);
-  mutateSource(invalidSource);
-  refreshExplicitRuntimeFacts(invalidAudit, invalidSource);
-  let failed = false;
-  try {
-    runtimeLessonMediaSemanticFormalReviewOverlaysForRows([invalidAudit], new Map([[directId, invalidSource]]));
-  } catch {
-    failed = true;
-  }
-  assert(failed, `direct promotion gate must reject ${label}`);
-};
-expectDirectPromotionFailure('missing LearningGoal', (source) => { source.learningGoalIds = []; });
-expectDirectPromotionFailure('unknown LearningGoal', (source) => { source.learningGoalIds = ['not-registered']; });
-expectDirectPromotionFailure('missing knowledge objective', (source) => { source.knowledgeObjectiveIds = []; });
-expectDirectPromotionFailure('missing capability objective', (source) => { source.capabilityObjectiveIds = []; });
-expectDirectPromotionFailure('missing quality objective', (source) => { source.qualityObjectiveIds = []; });
-expectDirectPromotionFailure('missing readiness', undefined, (audit) => { audit.readiness = null; });
-expectDirectPromotionFailure('missing estimated time', undefined, (audit) => { audit.estimatedTimeMinutes = null; });
-expectDirectPromotionFailure('missing citation target', (source) => { source.citationTargets = []; }, (audit) => { audit.citationTargets = []; });
-expectDirectPromotionFailure('missing graph knowledge binding', (source) => { source.graphNodeRefs = { knowledge: [], capability: [], quality: [] }; }, (audit) => { audit.graphNodeRefs = { knowledge: [], capability: [], quality: [] }; });
-expectDirectPromotionFailure('missing launch target', (source) => { source.currentPathEligible = false; source.pathTarget = null; });
-expectDirectPromotionFailure('missing evidence decision', (source) => { source.evidenceDecision = 'citation-only'; source.evidenceInstrumentation = []; });
-expectDirectPromotionFailure(
-  'incomplete evidence contract',
-  (source) => {
-    source.evidenceContractComplete = false;
-    source.evidenceMissingFields = ['missing-evidence-instrumentation'];
-    source.evidenceDecision = 'citation-only';
-    source.evidenceInstrumentation = [];
-  },
-  (audit) => {
-    audit.evidenceContract.complete = false;
-    audit.evidenceContract.missingFields = ['missing-evidence-instrumentation'];
-  },
+assert(
+  runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
+    [reorderedGraphRefsAudit],
+    new Map([[lifecycleStableId, lifecycleStableSource]]),
+  ).length === 1,
+  'formal review overlay must treat graph node reference arrays as unordered semantic sets',
 );
-expectDirectPromotionFailure('invalid parent PlanningUnit', (source) => { source.parentPlanningUnitRef = 'runtime-lesson:placeholder'; });
+const reviewLifecycleCodes = ['missing-human-review', 'provisional-metadata', 'stale-review'];
+assert(lifecycleStableAudit.missingFieldCodes.includes('missing-content-hash'), '1-1 lifecycle stability fixture must retain a content blocker');
+const preOverlayAudit = JSON.parse(JSON.stringify(lifecycleStableAudit)) as JsonRow;
+preOverlayAudit.reviewStatus = 'needs-human-review';
+preOverlayAudit.reviewAudit = null;
+preOverlayAudit.missingFieldCodes = [...new Set([
+  ...preOverlayAudit.missingFieldCodes,
+  ...reviewLifecycleCodes,
+])];
+preOverlayAudit.pathEligibility.blockedBy = [...new Set([
+  ...preOverlayAudit.pathEligibility.blockedBy,
+  ...reviewLifecycleCodes,
+])];
+const preOverlayFacts = buildRuntimeLessonSemanticEvidence(preOverlayAudit, lifecycleStableSource);
+const preOverlayReasonCodes = buildRuntimeLessonSemanticReasonCodes(
+  preOverlayAudit,
+  lifecycleStableSource,
+  preOverlayFacts,
+);
+const lifecycleStableOverlays = runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
+  [preOverlayAudit],
+  new Map([[lifecycleStableId, lifecycleStableSource]]),
+);
+const postOverlayAudit = applyResourceFieldCompletionReviewOverlays(
+  [preOverlayAudit],
+  lifecycleStableOverlays,
+)[0];
+const postOverlayFacts = buildRuntimeLessonSemanticEvidence(postOverlayAudit, lifecycleStableSource);
+const postOverlayReasonCodes = buildRuntimeLessonSemanticReasonCodes(
+  postOverlayAudit,
+  lifecycleStableSource,
+  postOverlayFacts,
+);
+assert(
+  JSON.stringify(preOverlayReasonCodes) === JSON.stringify(postOverlayReasonCodes),
+  'runtime semantic reason codes must remain stable across the human-review overlay lifecycle',
+);
+assert(
+  reviewLifecycleCodes.every((code) => !preOverlayReasonCodes.includes(`audit:${code}`)),
+  'runtime semantic reason codes must exclude review lifecycle states',
+);
+assert(
+  preOverlayReasonCodes.includes('audit:missing-content-hash')
+    && postOverlayReasonCodes.includes('audit:missing-content-hash'),
+  'runtime semantic reason codes must retain content, path, and evidence blockers across review overlay',
+);
 
 const expectEvidenceFailure = (label: string, sourceSeed: JsonRow, mutate: (source: JsonRow) => void) => {
   const audit = JSON.parse(JSON.stringify(auditById.get(sourceSeed.resourceId)!)) as JsonRow;

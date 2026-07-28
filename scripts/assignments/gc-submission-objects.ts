@@ -1,5 +1,6 @@
 import { createSubmissionGcObjectStore } from '../../src/lib/assignments/submission-object-store';
-import { garbageCollectQuarantine } from '../../src/lib/assignments/submission-service';
+import { garbageCollectQuarantine, garbageCollectSourceAssets } from '../../src/lib/assignments/submission-service';
+import { runGradingRetentionGc } from '../../src/lib/data-governance/math-document-grading-lifecycle';
 import { prisma } from '../../src/lib/prisma';
 
 async function main() {
@@ -8,7 +9,16 @@ async function main() {
   const store = createSubmissionGcObjectStore();
   await store.healthCheck();
   const result = await garbageCollectQuarantine(prisma, store, new Date(Date.now() - hours * 3_600_000));
-  process.stdout.write(`${JSON.stringify(result)}\n`);
+  const sourceAssets = await garbageCollectSourceAssets(prisma, store, new Date());
+  const policies = await prisma.gradingLifecyclePolicy.findMany({
+    where: {
+      enabled: true,
+      dataClass: { in: ['answer-evidence', 'document-conversion', 'ai-draft', 'grading-run'] },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  const grading = await runGradingRetentionGc({ db: prisma, store, policies, now: new Date() });
+  process.stdout.write(`${JSON.stringify({ submission: result, sourceAssets, grading })}\n`);
 }
 
 main().finally(() => prisma.$disconnect());

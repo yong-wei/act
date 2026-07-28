@@ -10,9 +10,10 @@ const mocks = vi.hoisted(() => ({
   getControlProfile: vi.fn(),
   getTopControlConfigs: vi.fn(),
   completeArenaPath: vi.fn().mockResolvedValue(true),
+  searchParams: new URLSearchParams(),
 }));
 
-vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams() }));
+vi.mock('next/navigation', () => ({ useSearchParams: () => mocks.searchParams }));
 vi.mock('@/app/actions/control-odyssey', () => ({
   submitGameScore: mocks.submitGameScore,
   getControlProfile: mocks.getControlProfile,
@@ -81,6 +82,7 @@ describe('Control Odyssey sync lifecycle', () => {
     root = createRoot(container);
     mocks.submitGameScore.mockResolvedValue({ id: 'log-ui' });
     mocks.getControlProfile.mockResolvedValue(profile);
+    mocks.searchParams = new URLSearchParams();
   });
 
   afterEach(async () => {
@@ -122,5 +124,16 @@ describe('Control Odyssey sync lifecycle', () => {
     await act(async () => resolveConfigs([]));
 
     expect(consoleError).not.toHaveBeenCalledWith(expect.stringMatching(/unmounted|state update/i));
+  });
+
+  it('opens an Arena task in its assigned level configuration without level selection', async () => {
+    mocks.searchParams = new URLSearchParams('arenaTask=task-odyssey-level-one-growth&odysseyLevelId=level-1');
+
+    await act(async () => root.render(<ControlOdysseyGame />));
+
+    expect(container.textContent).not.toContain('进入星域选择');
+    expect(container.textContent).not.toContain('确认关卡');
+    expect(Array.from(container.querySelectorAll('button'))
+      .some((button) => button.textContent?.includes('启动引擎'))).toBe(true);
   });
 });

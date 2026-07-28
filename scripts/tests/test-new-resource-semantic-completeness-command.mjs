@@ -5,7 +5,19 @@ import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 
+for (const inheritedGitVariable of [
+  'GIT_DIR',
+  'GIT_WORK_TREE',
+  'GIT_INDEX_FILE',
+  'GIT_COMMON_DIR',
+  'GIT_OBJECT_DIRECTORY',
+  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+]) {
+  delete process.env[inheritedGitVariable];
+}
+
 const root = process.cwd();
+const realGit = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
 const tsxBin = path.join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'tsx.cmd' : 'tsx');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'act-new-resource-gate-'));
 const repo = path.join(tmp, 'repo');
@@ -487,21 +499,50 @@ assert.match(
 );
 run('git', ['checkout', '--', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
 
+const syncedLessonSourcePath = 'course-content/runtime/lessons/1-1/interactive-manifest.json';
+const syncedLessonSourceHash = sha256File(lessonManifestPath);
+const syncedLessonSemanticDigest = 'sha256:json-pointer-step-01-semantic-digest';
+const syncedLessonProjection = runtimeProjectionRow({
+  id: 'lesson-step:1-1:step-01',
+  family: 'runtime-lesson-step',
+  resourceType: 'lesson_step',
+  sourceKind: 'runtime_lesson_step',
+  sourceRef: '1-1:step-01',
+  sourcePathOrUrl: syncedLessonSourcePath,
+  sourceHash: syncedLessonSourceHash,
+  sourceVersionRef: 'runtime-lesson-manifest.v1',
+  reviewedSourceHash: syncedLessonSourceHash,
+  promptOrManifestHash: syncedLessonSemanticDigest,
+  independentEvidenceRef: `${syncedLessonSourcePath}#/steps/step-01`,
+});
+syncedLessonProjection.runtimeSemanticEvidence = {
+  schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+  sourceFilePath: syncedLessonSourcePath,
+  sourceFileKind: 'json-manifest',
+  sourceFileHash: syncedLessonSourceHash,
+  evidenceFilePath: syncedLessonSourcePath,
+  evidenceFileHash: syncedLessonSourceHash,
+  evidenceSelector: 'json-pointer:/steps/step-01',
+  assetStatus: 'not-applicable',
+  assetAvailability: 'not-applicable',
+  externalIdentitySha256: null,
+};
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
-    id: 'lesson-step:1-1:step-01',
-    family: 'runtime-lesson-step',
-    resourceType: 'lesson_step',
-    sourceKind: 'runtime_lesson_step',
-    sourceRef: '1-1:step-01',
-    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
-    sourceVersionRef: 'runtime-lesson-manifest.v1',
-  }))}\n`,
+  `${JSON.stringify(syncedLessonProjection)}\n`,
 );
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 const syncedLessonProjectionResult = runGate(['--staged']);
-assert.equal(syncedLessonProjectionResult.status, 0, 'gate must pass when a runtime lesson source change has a matching valid projection row');
+assert.equal(syncedLessonProjectionResult.status, 0, 'gate must match runtime semantic source coverage when the semantic digest differs from the reviewed raw source hash');
+
+syncedLessonProjection.reviewAudit.reviewedSourceHash = syncedLessonSemanticDigest;
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(syncedLessonProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const staleReviewedLessonSourceResult = runGate(['--staged']);
+assert.notEqual(staleReviewedLessonSourceResult.status, 0, 'gate must reject runtime semantic review evidence when the reviewed raw source hash is stale');
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
 fs.writeFileSync(lessonManifestPath, JSON.stringify({
@@ -4086,16 +4127,308 @@ run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-
 const deletedRoutedProjectionWithSourceResult = runGate(['--staged']);
 assert.equal(deletedRoutedProjectionWithSourceResult.status, 0, 'gate must pass when a routed projection row and its mapped runtime source file are deleted together');
 
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const reviewOnlyBaselineParent = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+const reviewOnlySnapshotDirectory = path.join(
+  repo,
+  'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence',
+);
+fs.mkdirSync(reviewOnlySnapshotDirectory, { recursive: true });
+const reviewOnlyReviewPath = path.join(
+  repo,
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+);
+const reviewOnlySnapshotPath = path.join(
+  reviewOnlySnapshotDirectory,
+  'longform-textbook-reference-resource-input-snapshot.jsonl',
+);
+const reviewOnlySealPath = path.join(
+  reviewOnlySnapshotDirectory,
+  'longform-textbook-reference-resource-input-snapshot.seal.json',
+);
+const reviewOnlyProjectionPath = path.join(
+  repo,
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+);
+const reviewOnlyReviewRow = JSON.parse(fs.readFileSync(
+  path.join(root, 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl'),
+  'utf8',
+).split(/\r?\n/).find(Boolean));
+const reviewOnlySnapshotRow = JSON.parse(fs.readFileSync(
+  path.join(root, 'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.jsonl'),
+  'utf8',
+).split(/\r?\n/).find(Boolean));
+const reviewOnlyProjectionRow = JSON.parse(fs.readFileSync(
+  path.join(root, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  'utf8',
+).split(/\r?\n/).find(Boolean));
+delete reviewOnlyReviewRow.reviewSourceSha256;
+delete reviewOnlyReviewRow.reviewRowHash;
+reviewOnlyReviewRow.reviewRowHash = `sha256:${createHash('sha256').update(JSON.stringify(reviewOnlyReviewRow)).digest('hex')}`;
+reviewOnlyReviewRow.reviewSourceSha256 = createHash('sha256')
+  .update(`${JSON.stringify(reviewOnlyReviewRow)}\n`)
+  .digest('hex');
+reviewOnlyProjectionRow.reviewAudit.reviewSourceSha256 = reviewOnlyReviewRow.reviewSourceSha256;
+reviewOnlyProjectionRow.reviewAudit.reviewRowHash = reviewOnlyReviewRow.reviewRowHash;
+const reviewOnlySnapshotContent = `${JSON.stringify(reviewOnlySnapshotRow)}\n`;
+const reviewOnlyBaselineTree = execFileSync('git', ['rev-parse', `${reviewOnlyBaselineParent}^{tree}`], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+fs.writeFileSync(reviewOnlyReviewPath, `${JSON.stringify(reviewOnlyReviewRow)}\n`);
+fs.writeFileSync(reviewOnlySnapshotPath, reviewOnlySnapshotContent);
+fs.writeFileSync(reviewOnlySealPath, `${JSON.stringify({
+  artifactVersion: 'longform-textbook-reference-resource-input-snapshot.v1',
+  baselineCommit: reviewOnlyBaselineParent,
+  baselineTree: reviewOnlyBaselineTree,
+  rowCount: 1,
+  rowsSha256: `sha256:${createHash('sha256').update(reviewOnlySnapshotContent).digest('hex')}`,
+}, null, 2)}\n`);
+fs.writeFileSync(reviewOnlyProjectionPath, `${JSON.stringify(reviewOnlyProjectionRow)}\n`);
+run('git', ['add',
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+  'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.jsonl',
+  'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.seal.json',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add sealed longform review-only baseline'], repo);
+const reviewOnlyBaselineCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+const reviewOnlyNoopResult = runGate(['--staged']);
+assert.equal(reviewOnlyNoopResult.status, 0, 'byte-identical review source with no staged diff must remain a no-op');
+
+fs.rmSync(reviewOnlyReviewPath);
+run('git', ['add', 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl'], repo);
+const deletedReviewOnlyStagedResult = runGate(['--staged']);
+assert.notEqual(deletedReviewOnlyStagedResult.status, 0, 'review-source-only staged deletion must fail without a projection diff');
+assert.match(
+  `${deletedReviewOnlyStagedResult.stdout}\n${deletedReviewOnlyStagedResult.stderr}`,
+  /sealed staged review-source row|stale-runtime-projection-source-hash/,
+);
+run('git', ['reset', '--hard', reviewOnlyBaselineCommit], repo);
+
+const forgedReviewOnlyRow = structuredClone(reviewOnlyReviewRow);
+forgedReviewOnlyRow.reviewRowHash = 'sha256:forged-review-only-row';
+fs.writeFileSync(reviewOnlyReviewPath, `${JSON.stringify(forgedReviewOnlyRow)}\n`);
+run('git', ['add', 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl'], repo);
+const forgedReviewOnlyStagedResult = runGate(['--staged']);
+assert.notEqual(forgedReviewOnlyStagedResult.status, 0, 'review-source-only staged hash forgery must fail without a projection diff');
+assert.match(
+  `${forgedReviewOnlyStagedResult.stdout}\n${forgedReviewOnlyStagedResult.stderr}`,
+  /sealed staged review-source row|stale-runtime-projection-source-hash/,
+);
+fs.writeFileSync(reviewOnlyReviewPath, `${JSON.stringify(reviewOnlyReviewRow)}\n`);
+const forgedReviewOnlyWorktreeResult = runGate(['--staged']);
+assert.notEqual(forgedReviewOnlyWorktreeResult.status, 0, 'review-source-only staged changes must reject a different working-tree copy');
+assert.match(
+  `${forgedReviewOnlyWorktreeResult.stdout}\n${forgedReviewOnlyWorktreeResult.stderr}`,
+  /cannot run with unstaged changes in gated resource files/,
+);
+fs.writeFileSync(reviewOnlyReviewPath, `${JSON.stringify(forgedReviewOnlyRow)}\n`);
+run('git', ['commit', '--no-verify', '-m', 'forge review source only'], repo);
+const forgedReviewOnlyBaseResult = runGate(['--base', reviewOnlyBaselineCommit]);
+assert.notEqual(forgedReviewOnlyBaseResult.status, 0, 'base mode must reject a review-source-only hash forgery');
+assert.match(
+  `${forgedReviewOnlyBaseResult.stdout}\n${forgedReviewOnlyBaseResult.stderr}`,
+  /sealed staged review-source row|stale-runtime-projection-source-hash/,
+);
+run('git', ['reset', '--hard', reviewOnlyBaselineParent], repo);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const mixedRewriteReviewSourcePath = path.join(
+  repo,
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+);
+const mixedRewriteProjectionPath = path.join(
+  repo,
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+);
+const mixedChapterRows = Array.from({ length: 1001 }, (_, index) => runtimeProjectionRow({
+  id: `authoring-textbook-chapter:mixed-book:chapter-${String(index + 1).padStart(4, '0')}`,
+  family: 'authoring-textbook-chapter',
+  resourceType: 'textbook_section',
+  sourceKind: 'textbook_section',
+  sourceRef: `mixed-book:chapter-${String(index + 1).padStart(4, '0')}`,
+  sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+  sourceVersionRef: 'authoring-textbook-manifest.v1',
+}));
+const mixedRuntimeRow = runtimeProjectionRow({
+  id: 'runtime-step:mixed-rewrite:step-01',
+  family: 'runtime-lesson-step',
+  resourceType: 'lesson_step',
+  sourceKind: 'runtime_lesson_step',
+  sourceRef: 'mixed-rewrite:step-01',
+  sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
+  sourceVersionRef: 'interactive-manifest.v1',
+});
+fs.writeFileSync(mixedRewriteReviewSourcePath, '{}\n');
+fs.writeFileSync(mixedRewriteProjectionPath, `${[...mixedChapterRows, mixedRuntimeRow].map(JSON.stringify).join('\n')}\n`);
+run('git', ['add',
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add mixed rewrite baseline'], repo);
+const changedChapter = structuredClone(mixedChapterRows[0]);
+changedChapter.reviewAudit.reviewedSourceHash = 'sha256:stale-chapter-contract';
+const changedRuntime = structuredClone(mixedRuntimeRow);
+changedRuntime.reviewAudit.reviewedSourceHash = 'sha256:stale-runtime-contract';
+fs.writeFileSync(mixedRewriteReviewSourcePath, '{"changed":true}\n');
+fs.writeFileSync(mixedRewriteProjectionPath, `${[
+  changedChapter,
+  ...mixedChapterRows.slice(1),
+  changedRuntime,
+].map(JSON.stringify).join('\n')}\n`);
+run('git', ['add',
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const mixedRewriteResult = runGate(['--staged']);
+assert.notEqual(mixedRewriteResult.status, 0, 'real staged CLI must reject gate-relevant chapter and non-longform changes in one full materialization rewrite');
+assert.match(`${mixedRewriteResult.stdout}\n${mixedRewriteResult.stderr}`, /authoring-textbook-chapter:mixed-book:chapter-0001/);
+assert.match(`${mixedRewriteResult.stdout}\n${mixedRewriteResult.stderr}`, /runtime-step:mixed-rewrite:step-01/);
+assert.match(`${mixedRewriteResult.stdout}\n${mixedRewriteResult.stderr}`, /stale-review-evidence/);
+
+for (const [field, mutate, expectedIssue] of [
+  ['reviewedAt', (row) => { row.reviewAudit.reviewedAt = ''; }, /missing-reviewed-at/],
+  ['reviewBatchId', (row) => { row.reviewAudit.reviewBatchId = ''; }, /missing-review-batch-id/],
+  ['lifecycleScope', (row) => { row.lifecycleScope = 'runtime'; }, /invalid-agent-reviewed-audit-only-projection/],
+]) {
+  run('git', ['reset', '--hard', 'HEAD'], repo);
+  const baseline = structuredClone(mixedChapterRows[0]);
+  delete baseline.lifecycleScope;
+  if (field === 'lifecycleScope') {
+    baseline.resourceNodeId = null;
+    baseline.graphNodeRefs = { knowledge: [], capability: [], quality: [] };
+    baseline.privacyScope = 'teacher-scoped';
+    baseline.teacherPolicy = 'teacher-only';
+    baseline.evidenceContract = null;
+    baseline.citationTargets = [];
+    baseline.pathEligibility = { current: false, afterCompletion: false, masteryAffecting: false, blockedBy: [] };
+    baseline.groundingEligibility = { retrievalReady: false, citationReady: false, authoringTriageReady: true };
+    baseline.retrievalChunk = null;
+    baseline.reviewAudit.status = 'agent-reviewed';
+    baseline.reviewAudit.reviewerRole = 'implementing-agent';
+  }
+  fs.writeFileSync(mixedRewriteProjectionPath, `${JSON.stringify(baseline)}\n`);
+  run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+  run('git', ['commit', '--allow-empty', '--no-verify', '-m', `add ${field} replacement baseline`], repo);
+  const invalid = structuredClone(baseline);
+  mutate(invalid);
+  fs.writeFileSync(mixedRewriteProjectionPath, `${JSON.stringify(invalid)}\n`);
+  run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+  const result = runGate(['--staged']);
+  assert.notEqual(result.status, 0, `real staged CLI must retain and reject a replacement row with invalid ${field}`);
+  assert.match(`${result.stdout}\n${result.stderr}`, expectedIssue);
+}
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const mergeAwareCommonHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+run('git', ['checkout', '-b', 'merge-aware-integration'], repo);
+const mergeAwareManifestPath = path.join(repo, 'course-content/runtime/lessons/1-1/interactive-manifest.json');
+const mergeAwareManifest = JSON.parse(fs.readFileSync(mergeAwareManifestPath, 'utf8'));
+mergeAwareManifest.steps['integration-only-step'] = {
+  id: 'integration-only-step',
+  title: 'Integration-only step already reviewed upstream',
+};
+fs.writeFileSync(mergeAwareManifestPath, `${JSON.stringify(mergeAwareManifest, null, 2)}\n`);
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
+run('git', ['commit', '--no-verify', '-m', 'integration-only reviewed resource change'], repo);
+run('git', ['checkout', '-b', 'merge-aware-origin-tip'], repo);
+fs.writeFileSync(path.join(repo, 'origin-integration-tip.md'), 'origin integration advanced after merge start\n');
+run('git', ['add', 'origin-integration-tip.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'advance origin integration fixture'], repo);
+run('git', ['update-ref', 'refs/remotes/origin/integration', 'merge-aware-origin-tip'], repo);
+run('git', ['checkout', 'merge-aware-integration'], repo);
+run('git', ['checkout', '-b', 'merge-aware-feature', mergeAwareCommonHead], repo);
+fs.writeFileSync(path.join(repo, 'README.md'), 'Feature-only documentation change.\n');
+run('git', ['add', 'README.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'feature-only documentation change'], repo);
+run('git', ['merge', '--no-commit', '--no-ff', 'merge-aware-integration'], repo);
+const mergeAwareStagedResult = runGate(['--staged']);
+assert.equal(
+  mergeAwareStagedResult.status,
+  0,
+  'staged merge mode must compare the index with MERGE_HEAD and exclude upstream-only resource changes',
+);
+assert.match(
+  `${mergeAwareStagedResult.stdout}\n${mergeAwareStagedResult.stderr}`,
+  /new-resource semantic completeness passed \(\d+ changed resources checked\)/,
+);
+assert.doesNotMatch(
+  `${mergeAwareStagedResult.stdout}\n${mergeAwareStagedResult.stderr}`,
+  /integration-only-step|missing-runtime-lesson-runtime-projection-row/,
+);
+run('git', ['commit', '--no-verify', '-m', 'merge integration into feature'], repo);
+
+run('git', ['checkout', '-b', 'merge-aware-reverse-feature', 'merge-aware-integration'], repo);
+const reverseManifest = JSON.parse(fs.readFileSync(mergeAwareManifestPath, 'utf8'));
+reverseManifest.steps['incoming-feature-step'] = {
+  id: 'incoming-feature-step',
+  title: 'Incoming feature resource without projection',
+};
+fs.writeFileSync(mergeAwareManifestPath, `${JSON.stringify(reverseManifest, null, 2)}\n`);
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
+run('git', ['commit', '--no-verify', '-m', 'incoming feature resource change'], repo);
+run('git', ['checkout', '-b', 'merge-aware-origin-after-feature', 'merge-aware-origin-tip'], repo);
+run('git', ['merge', '--no-ff', '--no-edit', 'merge-aware-reverse-feature'], repo);
+run('git', ['update-ref', 'refs/remotes/origin/integration', 'merge-aware-origin-after-feature'], repo);
+run('git', ['checkout', 'merge-aware-integration'], repo);
+run('git', ['merge', '--no-commit', '--no-ff', 'merge-aware-reverse-feature'], repo);
+const reverseMergeResult = runGate(['--staged']);
+assert.notEqual(
+  reverseMergeResult.status,
+  0,
+  'integration-to-feature reverse merge must compare with HEAD and scan incoming feature resources',
+);
+assert.match(
+  `${reverseMergeResult.stdout}\n${reverseMergeResult.stderr}`,
+  /incoming-feature-step|missing-runtime-lesson-runtime-projection-row/,
+);
+const failingGitBin = path.join(tmp, 'failing-git-bin');
+fs.mkdirSync(failingGitBin, { recursive: true });
+fs.writeFileSync(
+  path.join(failingGitBin, 'git'),
+  `#!/bin/sh\nif [ "$1" = "merge-base" ] && [ "$2" = "--is-ancestor" ]; then exit 128; fi\nexec "${realGit}" "$@"\n`,
+  { mode: 0o755 },
+);
+const ancestryErrorResult = runGate(['--staged'], {
+  PATH: `${failingGitBin}${path.delimiter}${process.env.PATH ?? ''}`,
+});
+assert.notEqual(ancestryErrorResult.status, 0, 'merge-base errors must conservatively fall back to HEAD');
+assert.match(
+  `${ancestryErrorResult.stdout}\n${ancestryErrorResult.stderr}`,
+  /incoming-feature-step|missing-runtime-lesson-runtime-projection-row/,
+);
+run('git', ['commit', '--no-verify', '-m', 'merge feature into integration fixture'], repo);
+
+const octopusBase = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+run('git', ['checkout', '-b', 'merge-aware-octopus-one', octopusBase], repo);
+fs.writeFileSync(path.join(repo, 'octopus-one.md'), 'octopus one\n');
+run('git', ['add', 'octopus-one.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'octopus one'], repo);
+run('git', ['checkout', '-b', 'merge-aware-octopus-two', octopusBase], repo);
+fs.writeFileSync(path.join(repo, 'octopus-two.md'), 'octopus two\n');
+run('git', ['add', 'octopus-two.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'octopus two'], repo);
+run('git', ['checkout', 'merge-aware-integration'], repo);
+run('git', ['merge', '--no-commit', '--no-ff', 'merge-aware-octopus-one', 'merge-aware-octopus-two'], repo);
+const octopusMergeResult = runGate(['--staged']);
+assert.notEqual(octopusMergeResult.status, 0, 'octopus staged merges must fail closed');
+assert.match(
+  `${octopusMergeResult.stdout}\n${octopusMergeResult.stderr}`,
+  /does not support octopus merge staging/,
+);
+
 console.log('new resource semantic completeness command contract passed');
 
 function run(command, args, cwd) {
   execFileSync(command, args, { cwd, stdio: 'pipe' });
 }
 
-function runGate(args) {
+function runGate(args, envOverrides = {}) {
   return spawnSync(tsxBin, ['./scripts/data-governance/check-new-resource-semantic-completeness.ts', ...args], {
     cwd: repo,
     encoding: 'utf8',
+    env: { ...process.env, ...envOverrides },
   });
 }
 

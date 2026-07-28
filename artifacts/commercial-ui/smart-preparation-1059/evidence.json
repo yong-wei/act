@@ -1,0 +1,44 @@
+{
+  "change": "redesign-smart-preparation-workspace",
+  "issue": 1059,
+  "route": "/teacher/smart-prep",
+  "sourceTest": "tests/smart-lesson-plan-teacher-flow.spec.ts",
+  "result": "passed",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "artifacts/commercial-ui/smart-preparation-1059/smart-preparation-desktop-expanded-1440.png",
+      "checks": [
+        "task index and active task are visible in the first viewport",
+        "five persisted stages are visible in one task workspace",
+        "search and top-level workspace switching preserve task state",
+        "controls use semantic theme tokens",
+        "no text overlap or unstable panel geometry was observed"
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "artifacts/commercial-ui/smart-preparation-1059/smart-preparation-desktop-collapsed-1440.png",
+      "checks": [
+        "collapsed platform navigation remains reachable as an icon rail",
+        "the active task and all task controls remain visible",
+        "the workspace uses the additional content width without overflow",
+        "active navigation retains accessible names and titles"
+      ]
+    },
+    {
+      "width": 320,
+      "height": 844,
+      "screenshot": "artifacts/commercial-ui/smart-preparation-1059/smart-preparation-mobile-320.png",
+      "checks": [
+        "task index is presented as a dismissible drawer",
+        "drawer clears the authenticated account header",
+        "task controls fit without horizontal page overflow",
+        "task list remains keyboard reachable",
+        "no mobile text overlap was observed"
+      ]
+    }
+  ]
+}

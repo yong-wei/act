@@ -1,0 +1,85 @@
+{
+  "lock_version": "actkg-release-set-lock/v2",
+  "release_set_id": "actkg-authoritative-candidate-v2",
+  "upstream": {
+    "publication_commit": "7ab6041201f3c23963a8ddb2685256a5418ad532",
+    "closed_commit": "f5f442e99324af731e0b5226a22b0973e838621b"
+  },
+  "consumer_contract": {
+    "schema_version": "0.2.0",
+    "schema_raw_sha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de",
+    "schema_controlled_path": "course-content/authoring/knowledge/releases/control-theory-engineering-v0.2/ctkg.schema.json",
+    "normalization": "canonical-json/rfc8785-subset-v1"
+  },
+  "releases": [
+    {
+      "release_id": "control-theory-engineering-v0.2",
+      "release_version": "control-theory-engineering-v0.2",
+      "upstream_release_id": "ctr:release:control-theory-engineering-v0.2",
+      "controlled_path": "course-content/authoring/knowledge/releases/control-theory-engineering-v0.2",
+      "release_hash": "3a897438ad8ff2ea5154befb1f8b6c783d843b430a39a128c654ebfa10ac2ffd",
+      "source_dataset_hash": "0468a685d93ea6a727444ff1464b8c3472dc18014d4c4f6a834e33218c2dae6c",
+      "projection_id": "ctr:projection:control-theory-engineering-v0.2:domain-v2",
+      "projection_digest": "f324255fd77cf5bf3bacf4cc55a7a082faca3339fff2b8410ddca37a00226255",
+      "artifacts": [
+        {
+          "path": "RELEASE-NOTES.md",
+          "media_type": "text/markdown",
+          "sha256": "13e93fe9dda5f7e7ef40821d1c621fcfbecea7def59398341e970a92eeaee1eb"
+        },
+        {
+          "path": "SHA256SUMS",
+          "media_type": "text/plain",
+          "sha256": "920764005d3d2117b6b80020df3b893d6e6db4134db3acd3f920dfc316a28e35"
+        },
+        {
+          "path": "component-releases.json",
+          "media_type": "application/json",
+          "sha256": "4634b241ff851e6e717faa6db212a22ef96237e73ae5424d3a6cf257d7a18654"
+        },
+        {
+          "path": "control-theory-engineering-v0.2.projection.json",
+          "media_type": "application/json",
+          "sha256": "0f5b4d6de86a66e637f2a664e3d74fa9f4ecc3d02a41b6101e2c36ede82dd97b"
+        },
+        {
+          "path": "control-theory-engineering-v0.2.rag-crosswalk.jsonl",
+          "media_type": "application/x-ndjson",
+          "sha256": "d1e806defe9742774ed8851532fd5b1dd23290e39b5fcb02225912a3d12fdb7c"
+        },
+        {
+          "path": "control-theory-engineering-v0.2.release.json",
+          "media_type": "application/json",
+          "sha256": "38cdeb7afcfbdc561308653fd86475c2b60a57de8c418b7d5080daf5dffa6dcc"
+        },
+        {
+          "path": "ctkg.schema.json",
+          "media_type": "application/schema+json",
+          "sha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de"
+        }
+      ],
+      "components": [
+        {
+          "release_id": "ctr:root-locus-engineering-v0.1",
+          "release_version": "root-locus-engineering-v0.1",
+          "protocol": "ctkg-m1c-v14p-root-locus-engineering-release-v1",
+          "controlled_path": "course-content/authoring/knowledge/releases/root-locus-engineering-v0.1",
+          "release_json_name": "root-locus-engineering-v0.1.json",
+          "release_hash": "8b1e3832f10d4142db0c395c3b6b2188af6f400faab56f0870502e39c9493e74",
+          "release_json_raw_sha256": "9a88ce87b4b728c36291b923f69e0647722f1e191501306c33c2c1fed2654eae",
+          "sha256sums_raw_sha256": "e304590768b1ca00647895893612631480bb7a3664a95f68f8e8e2234f5c356a"
+        },
+        {
+          "release_id": "ctr:release:system-modeling-engineering-v0.1",
+          "release_version": "system-modeling-engineering-v0.1",
+          "protocol": "ctkg-0.2-release",
+          "controlled_path": "course-content/authoring/knowledge/releases/system-modeling-engineering-v0.1",
+          "release_json_name": "system-modeling-engineering-v0.1.release.json",
+          "release_hash": "90746513ec47be545e3b7c011450d0fc6542781998a7779797b825e91e17775b",
+          "release_json_raw_sha256": "b94417c7598982f144612496114d4c205dc797f622c556e931c64d26cb6974de",
+          "sha256sums_raw_sha256": "01039d8a15751a09f7eb3eb17fdf8c77f2972522b9000f848f83873262e73a30"
+        }
+      ]
+    }
+  ]
+}

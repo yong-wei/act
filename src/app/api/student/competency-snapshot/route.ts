@@ -1,208 +1,90 @@
 /**
- * Student Competency Snapshot API
- *
- * Returns comprehensive competency data for the current student.
+ * Canonical cumulative student portrait API.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
 import { getServerAuthSession } from '@/lib/auth';
+import {
+  readCurrentCumulativePortrait,
+  type CumulativePortraitReadDb,
+  type CumulativePortraitReadModel,
+} from '@/lib/data-governance/cumulative-portrait-read-model';
+import { summarizePortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
+import type {
+  RoleBasedLearningDiagnosis,
+  RoleBasedLearningDiagnosisClaim,
+} from '@/lib/data-governance/role-based-learning-diagnosis';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
-import { calculateTrendVector } from '@/lib/data-governance/competency-engine';
-import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
-import {
-  dedupeRecommendations,
-  dedupeRiskFlags,
-} from '@/lib/data-governance/profile-center';
-import {
-  createPrismaDiagnosisReportSnapshotStore,
-  hasDiagnosisReportSnapshotPersistenceTable,
-  readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence,
-} from '@/lib/data-governance/control-correction-diagnosis-profile';
-import {
-  materializeRoleBasedLearningDiagnosis,
-  type RoleBasedLearningDiagnosis,
-} from '@/lib/data-governance/role-based-learning-diagnosis';
-import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
-import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
 export const dynamic = 'force-dynamic';
 
-interface EvidenceSummaryItem {
-  factType: string;
-  outcome: string;
-  score?: number;
-  moduleId?: string | null;
-  lessonId?: string | null;
-  sourceLogId?: string | null;
-  evidenceTitle?: string;
-  stepId?: string;
-  questionSummaries?: Array<{
-    questionId?: string;
-    prompt?: string;
-    studentAnswerRedacted?: boolean;
-    referenceAnswer?: string;
-    isCorrect?: boolean;
-  }>;
-}
+type SafeRisk = CumulativePortraitReadModel['lastRisk'][number] & {
+  description: string;
+};
 
-export interface StudentSnapshotResponse {
-  currentSnapshot: {
-    vector: CompetencyVector;
-    snapshotAt: string;
-    factCount: number;
-  };
-  previousSnapshot: {
-    vector: CompetencyVector;
-    snapshotAt: string;
-  } | null;
-  trendVector: TrendVector;
-  evidenceSummary: Record<string, EvidenceSummaryItem[]>;
-  riskFlags: RiskFlag[];
-  recommendations: Array<{
-    type: 'immediate' | 'weekly' | 'challenge';
-    title: string;
-    description: string;
-    actionUrl?: string;
-    priority: number;
-    rationale: RecommendationRationale;
-  }>;
-  diagnosis: RoleBasedLearningDiagnosis;
-}
-
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerAuthSession();
-
     if (!session?.user?.id) {
       return NextResponse.json({ error: '未授权' }, { status: 401 });
     }
 
-    const userId = session.user.id;
-    // Get current snapshot
-    const currentSnapshot = await prisma.studentCompetencySnapshot.findFirst({
-      where: { userId },
-      orderBy: { snapshotAt: 'desc' },
-    });
-
-    if (!currentSnapshot) {
+    const searchParams = new URL(request.url).searchParams;
+    if (searchParams.has('timeRange')) {
       return NextResponse.json({
+        error: 'unsupported-scope',
+        scope: searchParams.get('timeRange') ?? '',
+      }, { status: 400 });
+    }
+
+    const state = await readCurrentCumulativePortrait(
+      prisma as unknown as CumulativePortraitReadDb,
+      session.user.id,
+    );
+    if (state.stateKind !== 'SNAPSHOT' || !state.payload) {
+      return NextResponse.json({
+        derivationState: state.availabilityReason,
+        evidenceState: state.stateKind === 'NO_EVIDENCE' ? 'empty' : 'unavailable',
+        availabilityReason: state.availabilityReason,
         currentSnapshot: null,
         previousSnapshot: null,
         trendVector: null,
+        lastTrend: state.lastTrend,
         evidenceSummary: {},
-        riskFlags: [],
+        riskFlags: state.lastRisk.map(toSafeRisk),
         recommendations: [],
-        diagnosis: materializeRoleBasedLearningDiagnosis({
-          view: 'student',
-          goalId: 'control-correction',
-          userId,
-          targetUserId: userId,
-          diagnosisReportSnapshot: null,
-        }),
-      } as unknown as StudentSnapshotResponse);
+        diagnosis: null,
+      });
     }
 
-    const studentProfile = await prisma.studentProfile.findUnique({
-      where: { userId },
-      select: { classId: true },
-    });
-
-    const diagnosisReportSnapshot = await hasDiagnosisReportSnapshotPersistenceTable(prisma)
-      ? await readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence(
-        createPrismaDiagnosisReportSnapshotStore(prisma.diagnosisReportSnapshot),
-        {
-          view: 'student',
-          goalId: 'control-correction',
-          userId,
-          targetUserId: userId,
-          classId: studentProfile?.classId ?? null,
-        }
-      )
-      : null;
-
-    // Get previous snapshot for trend calculation
-    const previousSnapshot = await prisma.studentCompetencySnapshot.findFirst({
-      where: {
-        userId,
-        snapshotAt: {
-          lt: currentSnapshot.snapshotAt,
-        },
-      },
-      orderBy: { snapshotAt: 'desc' },
-    });
-
-    // Get evidence summary from current snapshot
-    const evidenceSummary = sanitizeEvidenceSummary(
-      (currentSnapshot.evidenceSummary as unknown as Record<string, EvidenceSummaryItem[]>) || {}
-    );
-
-    // Get risk flags
-    const rawRiskFlags = await prisma.studentRiskFlag.findMany({
-      where: {
-        userId,
-        isResolved: false,
-      },
-      orderBy: { triggeredAt: 'desc' },
-      take: 10,
-    });
-
-    const riskFlags = dedupeRiskFlags(
-      rawRiskFlags.map((rf) => ({
-        type: rf.flagType as RiskFlag['type'],
-        severity: rf.severity as RiskFlag['severity'],
-        description: rf.description,
-        evidence: rf.evidenceJson as Record<string, unknown>,
-        triggeredAt: rf.triggeredAt,
-      }))
-    );
-
-    // Calculate trend vector
-    const currentVector = currentSnapshot.competencyVector as unknown as CompetencyVector;
-    const previousVector = previousSnapshot?.competencyVector as unknown as CompetencyVector | undefined;
-    const trendVector = previousVector
-      ? calculateTrendVector(currentVector, previousVector)
-      : (Object.fromEntries(
-          Object.keys(currentVector).map((k) => [k, 'stable'])
-        ) as unknown as TrendVector);
-
-    // Generate basic recommendations based on snapshot data
-    const recommendations = generateSnapshotRecommendations(
-      currentVector,
-      riskFlags,
-      evidenceSummary,
-      currentSnapshot.factCount
-    );
-
-    const response: StudentSnapshotResponse = {
+    const portrait = summarizePortraitV2(state.payload);
+    const riskFlags = state.lastRisk.map(toSafeRisk);
+    return NextResponse.json({
+      derivationState: 'current',
+      evidenceState: 'current',
+      availabilityReason: state.availabilityReason,
       currentSnapshot: {
-        vector: currentVector,
-        snapshotAt: currentSnapshot.snapshotAt.toISOString(),
-        factCount: currentSnapshot.factCount,
+        portrait,
+        snapshotAt: state.generatedAt,
+        overallScore: state.overallScore,
+        dimensionCoverage: state.dimensionCoverage,
+        evidenceAsOf: state.evidenceAsOf,
+        confidence: state.confidence,
+        factCount: portrait.dimensions.reduce(
+          (total, dimension) => total + dimension.evidenceCount,
+          0,
+        ),
       },
-      previousSnapshot: previousSnapshot
-        ? {
-            vector: previousVector!,
-            snapshotAt: previousSnapshot.snapshotAt.toISOString(),
-          }
-        : null,
-      trendVector,
-      evidenceSummary,
+      previousSnapshot: null,
+      trendVector: null,
+      lastTrend: state.lastTrend,
+      evidenceSummary: buildSafeEvidenceSummary(state),
       riskFlags,
-      recommendations,
-      diagnosis: materializeRoleBasedLearningDiagnosis({
-        view: 'student',
-        goalId: 'control-correction',
-        userId,
-        targetUserId: userId,
-        learnerState: {
-          generatedAt: currentSnapshot.snapshotAt.toISOString(),
-        },
-        diagnosisReportSnapshot,
-      }),
-    };
-
-    return NextResponse.json(response);
+      recommendations: buildRecommendations(state),
+      diagnosis: buildCumulativeDiagnosis(state),
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[StudentSnapshot] Error:', error);
@@ -210,196 +92,156 @@ export async function GET(_request: NextRequest) {
   }
 }
 
-function sanitizeEvidenceSummary(
-  summary: Record<string, EvidenceSummaryItem[]>,
-): Record<string, EvidenceSummaryItem[]> {
-  return Object.fromEntries(
-    Object.entries(summary).map(([dimension, items]) => [
-      dimension,
-      Array.isArray(items)
-        ? items.slice(0, 6).map((item) => ({
-            factType: item.factType,
-            outcome: item.outcome,
-            score: item.score,
-            moduleId: item.moduleId,
-            lessonId: item.lessonId,
-            sourceLogId: item.sourceLogId,
-            evidenceTitle: truncateOptionalText(item.evidenceTitle),
-            stepId: item.stepId,
-            questionSummaries: item.questionSummaries?.slice(0, 3).map((question) => ({
-              questionId: question.questionId,
-              prompt: truncateOptionalText(question.prompt),
-              studentAnswerRedacted: typeof (question as { studentAnswer?: unknown }).studentAnswer === 'string' &&
-                ((question as { studentAnswer?: string }).studentAnswer?.length ?? 0) > 0,
-              referenceAnswer: truncateOptionalText(question.referenceAnswer),
-              isCorrect: question.isCorrect,
-            })),
-          }))
-        : [],
-    ]),
-  );
-}
-
-function truncateOptionalText(value: string | undefined, maxLength: number = 96) {
-  if (typeof value !== 'string') return undefined;
-  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
-}
-
-/**
- * Generate recommendations based on snapshot data
- */
-function generateSnapshotRecommendations(
-  vector: CompetencyVector,
-  riskFlags: RiskFlag[],
-  _evidenceSummary: Record<string, EvidenceSummaryItem[]>,
-  factCount: number
-): StudentSnapshotResponse['recommendations'] {
-  const recommendations: StudentSnapshotResponse['recommendations'] = [];
-
-  // Find weakest dimensions
-  const dimensions = Object.entries(vector)
-    .map(([key, value]) => ({ dimension: key, score: value.score }))
-    .sort((a, b) => a.score - b.score);
-
-  const weakestDimension = dimensions[0];
-  const secondWeakest = dimensions[1];
-
-  // Immediate recommendations based on risks
-  for (const risk of riskFlags) {
-    switch (risk.type) {
-      case 'ai_misuse':
-        recommendations.push({
-          type: 'immediate',
-          title: '优化AI使用方式',
-          description: '你近期频繁使用AI助手但问题解决率较低。建议先独立思考，再针对性地提问。',
-          actionUrl: '/ai/copilot',
-          priority: 90,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-ai_misuse', 'risk', vector, factCount),
-        });
-        break;
-      case 'constraint':
-        recommendations.push({
-          type: 'immediate',
-          title: '强化工程约束意识',
-          description: '仿真中多次忽视工程约束。建议在调整参数前明确安全边界。',
-          actionUrl: '/simulations/destroyer',
-          priority: 85,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-constraint', 'risk', vector, factCount),
-        });
-        break;
-      case 'participation':
-        recommendations.push({
-          type: 'immediate',
-          title: '增加学习活跃度',
-          description: '近一周学习活跃度较低，建议每天保持至少30分钟的学习时间。',
-          actionUrl: '/missions',
-          priority: 95,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-participation', 'risk', vector, factCount),
-        });
-        break;
-      case 'cross_domain':
-        recommendations.push({
-          type: 'immediate',
-          title: '加强跨域知识联系',
-          description: '单点知识掌握较好，但跨域迁移能力需要提升。',
-          actionUrl: '/interactive-learning',
-          priority: 80,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-cross_domain', 'risk', vector, factCount),
-        });
-        break;
-    }
-  }
-
-  // Weekly recommendations based on weak dimensions
-  if (weakestDimension.score < 60) {
-    const dimensionNames: Record<string, string> = {
-      controlModeling: '控制建模',
-      parameterDesign: '参数设计',
-      crossDomainTransfer: '跨域迁移',
-      engineeringDecision: '工程决策',
-      inquiryReflection: '探究反思',
-      selfDirectedLearning: '自主学习',
-    };
-
-    recommendations.push({
-      type: 'weekly',
-      title: `提升${dimensionNames[weakestDimension.dimension]}能力`,
-      description: `这是你的薄弱领域（${Math.round(weakestDimension.score)}分），建议本周重点练习相关任务。`,
-      actionUrl: '/missions',
-      priority: 70,
-      rationale: buildSnapshotRecommendationRationale('snapshot-weak-dimension', 'direct', vector, factCount),
-    });
-  }
-
-  if (secondWeakest && secondWeakest.score < 65) {
-    recommendations.push({
-      type: 'weekly',
-      title: '巩固基础能力',
-      description: '多维度能力有待提升，建议系统复习基础知识。',
-      actionUrl: '/knowledge',
-      priority: 60,
-      rationale: buildSnapshotRecommendationRationale('snapshot-foundation-review', 'direct', vector, factCount),
-    });
-  }
-
-  // Challenge recommendations
-  const strongDimensions = dimensions.filter((d) => d.score > 75);
-  if (strongDimensions.length > 0) {
-    recommendations.push({
-      type: 'challenge',
-      title: '挑战高难度任务',
-      description: `你在${strongDimensions.map((d) => d.dimension).join('、')}方面表现优秀，可以尝试专家级任务。`,
-      actionUrl: '/missions',
-      priority: 50,
-      rationale: buildSnapshotRecommendationRationale('snapshot-strong-dimension-challenge', 'direct', vector, factCount),
-    });
-  }
-
-  // Sort by priority
-  return dedupeRecommendations(
-    recommendations.sort((a, b) => b.priority - a.priority)
-  );
-}
-
-function buildSnapshotRecommendationRationale(
-  reasonCode: string,
-  evidenceRole: RecommendationRationale['evidenceRole'],
-  vector: CompetencyVector,
-  factCount: number
-): RecommendationRationale {
-  const confidenceValues = Object.values(vector)
-    .map((dimension) => dimension.confidence)
-    .filter((value) => Number.isFinite(value));
-  const confidenceScore = confidenceValues.length
-    ? roundTo(confidenceValues.reduce((sum, value) => sum + value, 0) / confidenceValues.length, 2)
-    : 0;
-
+function toSafeRisk(
+  risk: CumulativePortraitReadModel['lastRisk'][number],
+): SafeRisk {
+  const descriptions = {
+    constraint: '累计学习证据显示工程约束处理需要关注。',
+    stagnation: '连续累计能力状态显示能力提升停滞。',
+    cross_domain: '累计学习证据显示跨域迁移能力需要关注。',
+  } as const;
   return {
-    reasonCode,
-    evidenceBasis: 'approved-snapshot',
-    evidenceRole,
-    contextOnly: evidenceRole === 'context',
-    evidenceWindow: {
-      firstStartedAt: null,
-      lastStartedAt: null,
-      daysCovered: 0,
+    ...risk,
+    description: descriptions[risk.type],
+  };
+}
+
+function buildSafeEvidenceSummary(state: CumulativePortraitReadModel) {
+  if (!state.payload) return {};
+  return Object.fromEntries(state.payload.dimensions.map((dimension) => [
+    dimension.id,
+    dimension.evidenceSummary.totalCount === 0
+      ? []
+      : [{
+          factType: 'governed-cumulative-summary',
+          outcome: 'cumulative',
+          score: dimension.score,
+          evidenceTitle: `${dimension.label}累计证据 ${dimension.evidenceSummary.totalCount} 条`,
+        }],
+  ]));
+}
+
+function buildRecommendations(state: CumulativePortraitReadModel) {
+  if (!state.payload) return [];
+  const recommendations: Array<{
+    type: 'immediate' | 'weekly';
+    title: string;
+    description: string;
+    priority: number;
+  }> = state.lastRisk.map((risk) => ({
+    type: 'immediate',
+    title: risk.type === 'constraint'
+      ? '复核工程约束'
+      : risk.type === 'stagnation'
+        ? '回顾累计证据变化'
+        : '加强跨域迁移练习',
+    description: toSafeRisk(risk).description,
+    priority: risk.severity === 'high' ? 90 : risk.severity === 'medium' ? 70 : 50,
+  }));
+  const weakest = state.payload.dimensions
+    .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
+    .sort((left, right) => left.score - right.score)[0];
+  if (weakest) {
+    recommendations.push({
+      type: 'weekly',
+      title: `巩固${weakest.label}`,
+      description: '根据已有累计学习证据继续完成对应能力练习。',
+      priority: 40,
+    });
+  }
+  return recommendations;
+}
+
+function buildCumulativeDiagnosis(
+  state: CumulativePortraitReadModel,
+): RoleBasedLearningDiagnosis | null {
+  if (!state.payload || !state.generatedAt) return null;
+  const generatedAt = state.generatedAt;
+  const claims: RoleBasedLearningDiagnosisClaim[] = state.payload.dimensions.map((dimension) => {
+    const evidenceCount = dimension.evidenceSummary.totalCount;
+    const judgment = evidenceCount === 0
+      ? 'insufficient-evidence'
+      : dimension.score < 65
+        ? 'needs-attention'
+        : dimension.score < 82
+          ? 'developing'
+          : 'stable';
+    const confidenceState = evidenceCount === 0
+      ? 'none'
+      : dimension.confidence >= 0.8
+        ? 'high'
+        : dimension.confidence >= 0.5
+          ? 'medium'
+          : 'low';
+    return {
+      id: `cumulative:${dimension.id}`,
+      dimensionId: dimension.id,
+      judgment,
+      studentExplanation: evidenceCount === 0
+        ? `${dimension.label}尚无合格累计证据。`
+        : `${dimension.label}累计得分为 ${Math.round(dimension.score)} 分。`,
+      rootCause: evidenceCount === 0
+        ? '该维度尚无合格累计证据。'
+        : '该结论来自当前规范累计画像。',
+      evidenceRefs: [],
+      sourceCoverage: {
+        LearningFact: evidenceCount > 0 ? 'available' : 'missing',
+      },
+      metrics: {
+        score: evidenceCount > 0 ? dimension.score : null,
+        percentile: unavailablePercentile(),
+        growthPercentile: unavailablePercentile(),
+      },
+      confidence: {
+        state: confidenceState,
+        score: dimension.confidence,
+        evidenceCount,
+        sourceCompleteness: evidenceCount > 0 ? 1 : 0,
+      },
+      evidenceWindow: {
+        generatedAt,
+        sourceLastUpdatedAt: dimension.freshness.asOf,
+        stale: false,
+      },
+      limitations: evidenceCount > 0
+        ? []
+        : [{ reason: 'missing-dimension-evidence', detail: '该维度尚无合格累计证据。' }],
+      nextActions: [{
+        kind: 'learning-path',
+        label: '继续学习',
+        href: '/courses',
+      }],
+      privacyClass: 'student-visible',
+      materializationVersion: 'role-based-learning-diagnosis.v1',
+    };
+  });
+  return {
+    version: 'role-based-learning-diagnosis.v1',
+    view: 'student',
+    goalId: 'cumulative-portrait-overall',
+    generatedAt,
+    materialization: {
+      version: 'role-based-learning-diagnosis.v1',
+      inputs: ['canonical-cumulative-portrait'],
+      refresh: 'on-evidence-change-or-request',
     },
-    evidenceCount: factCount,
-    sourceCoverage: {
-      LearningFact: factCount > 0 ? 'available' : 'missing',
-      StudentCompetencySnapshot: 'available',
-      StudentProfileSummary: 'missing',
-    },
-    confidence: {
-      state: factCount > 0 ? 'ready' : 'missing',
-      level: confidenceScore >= 0.75 ? 'high' : confidenceScore >= 0.45 ? 'medium' : 'low',
-      score: confidenceScore,
-      markers: factCount > 0 ? [] : ['missing-source'],
+    claims,
+    limitations: claims.flatMap((claim) => claim.limitations),
+    rootCauseClusters: [],
+    drilldownRefs: [],
+    auditRefs: [],
+    redactionPolicy: {
+      rawPayloads: 'omitted',
+      ordinaryViews: 'redacted-summaries-only',
     },
   };
 }
 
-function roundTo(value: number, digits: number) {
-  const factor = 10 ** digits;
-  return Math.round(value * factor) / factor;
+function unavailablePercentile() {
+  return {
+    state: 'unavailable' as const,
+    percentile: null,
+    sampleSize: 0,
+    fallback: 'cold-start' as const,
+  };
 }

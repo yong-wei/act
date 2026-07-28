@@ -15,6 +15,7 @@ describe('evidence source catalog', () => {
       'InteractionLog',
       'StudentStepResponse',
       'SimulationSession',
+      'SimulationRun',
       'SimulationLog',
       'UserAnswer',
       'AbilityAssessment',
@@ -26,6 +27,25 @@ describe('evidence source catalog', () => {
       'ArenaEvaluationRun',
       'LearningFact',
     ]));
+  });
+
+  it('declares governed task-evidence identity and whitelist policies', () => {
+    const catalog = getEvidenceSourceCatalog();
+    const simulationRun = catalog.find((entry) => entry.id === 'SimulationRun');
+    const controlWorkbench = catalog.find((entry) => entry.id === 'InteractionLog');
+    const arenaSubmission = catalog.find((entry) => entry.id === 'ArenaSubmission');
+    const arenaEvaluation = catalog.find((entry) => entry.id === 'ArenaEvaluationRun');
+    const odyssey = catalog.find((entry) => entry.id === 'SimulationLog');
+
+    expect(simulationRun?.taskEvidencePolicy).toMatchObject({
+      sourceFamily: 'virtual-simulation',
+      requiresStudentOwnership: true,
+    });
+    expect(controlWorkbench?.taskEvidencePolicy?.eligibleEventTypes).toContain('workspace_submission');
+    expect(controlWorkbench?.taskEvidencePolicy?.ineligibleEventTypes).toContain('param_change');
+    expect(arenaSubmission?.taskEvidencePolicy?.taskIdentityFields).toContain('taskId');
+    expect(arenaEvaluation?.taskEvidencePolicy?.linkedSourceOnly).toBe(true);
+    expect(odyssey?.taskEvidencePolicy?.eligibleEventTypes).toContain('odyssey_persistent_clear');
   });
 
   it('uses InteractionLog.eventData.eventType before the wrapper event type', () => {

@@ -18,6 +18,10 @@ interface WorkerFailureMessage {
 
 type WorkerMessage = WorkerSuccessMessage | WorkerFailureMessage;
 
+type KeyedControlEngineState = ControlEngineState & {
+  requestKey: string;
+};
+
 async function computeAnalysisOnMainThread(requestJson: string): Promise<string> {
   const controlEngine = await import('../wasm/control_engine/index.js');
   await controlEngine.default();
@@ -39,16 +43,18 @@ export function useControlEngine(
   const cacheRef = useRef<Map<string, ControlAnalysisResult>>(new Map());
   const workerRef = useRef<Worker | null>(null);
   const latestRequestIdRef = useRef<string | null>(null);
-  const [state, setState] = useState<ControlEngineState>(() => ({
+  const [state, setState] = useState<KeyedControlEngineState>(() => ({
+    requestKey,
     result: enabled ? (fallbackResult ?? null) : null,
     isLoading: enabled,
     error: null,
-    isFallback: !enabled || Boolean(fallbackResult?.isFallback),
+    isFallback: !enabled || Boolean(fallbackResult),
   }));
 
   useEffect(() => {
     if (!enabled) {
       setState({
+        requestKey,
         result: null,
         isLoading: false,
         error: null,
@@ -59,6 +65,7 @@ export function useControlEngine(
 
     if (typeof window === 'undefined') {
       setState({
+        requestKey,
         result: fallbackResult ?? null,
         isLoading: false,
         error: fallbackResult ? null : '控制分析引擎只在浏览器环境可用。',
@@ -70,6 +77,7 @@ export function useControlEngine(
     if (cacheRef.current.has(requestKey)) {
       const cached = cacheRef.current.get(requestKey)!;
       setState({
+        requestKey,
         result: cached,
         isLoading: false,
         error: null,
@@ -89,17 +97,19 @@ export function useControlEngine(
     const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     latestRequestIdRef.current = requestId;
     let settled = false;
-    setState((prev) => ({
-      result: prev.result ?? fallbackResult ?? null,
+    setState({
+      requestKey,
+      result: fallbackResult ?? null,
       isLoading: true,
       error: null,
-      isFallback: Boolean(prev.result?.isFallback ?? fallbackResult?.isFallback),
-    }));
+      isFallback: Boolean(fallbackResult),
+    });
 
     const finishWithResult = (resultJson: string) => {
       const result = JSON.parse(resultJson) as ControlAnalysisResult;
       cacheRef.current.set(requestKey, result);
       setState({
+        requestKey,
         result,
         isLoading: false,
         error: null,
@@ -109,6 +119,7 @@ export function useControlEngine(
 
     const finishWithError = (error: string) => {
       setState({
+        requestKey,
         result: fallbackResult ?? null,
         isLoading: false,
         error,
@@ -184,6 +195,15 @@ export function useControlEngine(
       workerRef.current = null;
     };
   }, []);
+
+  if (state.requestKey !== requestKey) {
+    return {
+      result: enabled ? (fallbackResult ?? null) : null,
+      isLoading: enabled,
+      error: null,
+      isFallback: !enabled || Boolean(fallbackResult),
+    };
+  }
 
   return state;
 }

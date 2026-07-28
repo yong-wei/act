@@ -9,6 +9,11 @@ import {
   buildLessonPlanDeleteConflictMessage,
   canDeleteLessonPlan,
 } from '@/lib/lesson-plan-delete-policy';
+import {
+  readPresetRuntimeStepBinding,
+  stripPresetRuntimeStepBinding,
+  withPresetRuntimeStepBinding,
+} from '@/lib/lesson-plan-runtime-binding';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +59,15 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
     // Verify ownership
     const existingPlan = await prisma.lessonPlan.findUnique({
       where: { id: params.id },
-      select: { authorId: true }
+      select: {
+        authorId: true,
+        items: {
+          select: {
+            id: true,
+            overrideConfig: true,
+          },
+        },
+      }
     });
 
     if (!existingPlan) {
@@ -72,7 +85,19 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
       return NextResponse.json({ error: EMPTY_LESSON_PLAN_MESSAGE }, { status: 400 });
     }
 
+    const existingItems = new Map(existingPlan.items.map((item) => [item.id, item]));
+    const requestedExistingItemIds = new Set<string>();
     for (const item of rawItems) {
+      if (item.id !== undefined) {
+        if (
+          typeof item.id !== 'string'
+          || !existingItems.has(item.id)
+          || requestedExistingItemIds.has(item.id)
+        ) {
+          return NextResponse.json({ error: 'Invalid lesson item id' }, { status: 400 });
+        }
+        requestedExistingItemIds.add(item.id);
+      }
       const inferredType = item.knowledgeNodeId
         ? LessonItemType.KNOWLEDGE_NODE
         : LessonItemType.RESOURCE;
@@ -104,6 +129,14 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
                 ? LessonItemType.KNOWLEDGE_NODE
                 : LessonItemType.RESOURCE;
               const itemType = (item.itemType as LessonItemType | undefined) ?? inferredType;
+              const requestedOverrideConfig = stripPresetRuntimeStepBinding(item.overrideConfig);
+              const existingItem = typeof item.id === 'string'
+                ? existingItems.get(item.id)
+                : null;
+              const existingBinding = readPresetRuntimeStepBinding(existingItem?.overrideConfig);
+              const overrideConfig = existingBinding.state === 'valid'
+                ? withPresetRuntimeStepBinding(requestedOverrideConfig, existingBinding.binding)
+                : requestedOverrideConfig;
 
               return {
                 itemType,
@@ -112,7 +145,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
                 stage: item.stage as BopppsStage,
                 order: item.order,
                 duration: item.duration,
-                overrideConfig: item.overrideConfig || {},
+                overrideConfig: overrideConfig as Prisma.InputJsonValue,
               };
             })
           }

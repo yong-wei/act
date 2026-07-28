@@ -1,11 +1,20 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-07-11T09:05:21.151Z",
-  "sourceCommit": "worktree:87bb12ab20c4d3086dcf9ead",
+  "generatedAt": "2026-07-26T21:10:00.000+08:00",
+  "sourceCommit": "worktree:integrate-konling-textbook-rag+textbook-tool-source-only",
+  "currentSourceRefresh": {
+    "capturedAt": "2026-07-26T21:10:00.000+08:00",
+    "sourcePath": "src/lib/konling-agent-runtime.ts",
+    "sourceSha256": "4b2874ed0d00586561ebaae21e45d62f27cbd8b0514aff0b7a5274ca561bfac1",
+    "classification": "source-only",
+    "visualImpact": "none",
+    "reason": "The shared Konling runtime now registers a server-side textbook retrieval tool and unified citations on registered course pages; it does not change adaptive-path DOM structure, visual styling, responsive geometry, or existing path actions.",
+    "targetedTest": "npm exec vitest run src/lib/__tests__/konling-agent-runtime.test.ts src/lib/__tests__/textbook-v2-adapter.test.ts"
+  },
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
-  "handoffMatrixSha256": "e1f27e07a86a8b9c1699b7d9ec9b6a10ecc04c6d656fabae94177d8e01bc44bd",
+  "handoffMatrixSha256": "4518ad34dc92bf23554dc6c7d59a7c1662424a73ef96269546fb06775d06468f",
   "captureManifest": "artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json",
   "captureManifestSha256": "dbf85a21062570051924c4b6c95bb1667c28ee869eb4d31ad3e7c78671310594",
   "visualSignals": "artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json",

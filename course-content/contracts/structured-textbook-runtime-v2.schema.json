@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://act.just.edu.cn/contracts/structured-textbook-runtime-v2.schema.json",
+  "title": "Structured textbook runtime v2",
+  "description": "Versioned records shared by the non-production structured textbook export.",
+  "oneOf": [
+    { "$ref": "#/$defs/structureUnit" },
+    { "$ref": "#/$defs/retrievalWindow" },
+    { "$ref": "#/$defs/fragmentAnchor" },
+    { "$ref": "#/$defs/navigationIndex" },
+    { "$ref": "#/$defs/structureAnomaly" },
+    { "$ref": "#/$defs/structureSample" },
+    { "$ref": "#/$defs/exportManifest" }
+  ],
+  "$defs": {
+    "sourceSpan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourcePath", "startLine", "endLine", "startByte", "endByte"],
+      "properties": {
+        "sourcePath": { "type": "string", "minLength": 1 },
+        "startLine": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "startByte": { "type": "integer", "minimum": 0 },
+        "endByte": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "structureUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "schemaVersion",
+        "id",
+        "bookId",
+        "edition",
+        "chapterId",
+        "structuralPath",
+        "parentId",
+        "ancestorIds",
+        "level",
+        "kind",
+        "title",
+        "markdown",
+        "sourceSpan"
+      ],
+      "properties": {
+        "recordType": { "const": "structure-unit" },
+        "schemaVersion": { "const": "structured-textbook-runtime.v2" },
+        "id": { "type": "string", "pattern": "^textbook-unit:" },
+        "bookId": { "type": "string", "minLength": 1 },
+        "edition": { "type": "string", "minLength": 1 },
+        "chapterId": { "type": "string", "minLength": 1 },
+        "structuralPath": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "parentId": { "type": ["string", "null"] },
+        "ancestorIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^textbook-unit:" }
+        },
+        "level": { "type": "integer", "minimum": 1 },
+        "kind": {
+          "enum": ["chapter", "section", "subsection", "item", "example", "solution", "exercise", "reference-entry", "unnumbered"]
+        },
+        "naturalNumber": { "type": ["string", "null"] },
+        "title": { "type": "string" },
+        "markdown": { "type": "string" },
+        "sourceSpan": { "$ref": "#/$defs/sourceSpan" },
+        "fragmentAnchorIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^textbook-unit:.+#" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "windowSegment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owningUnitId", "markdown", "sourceSpan"],
+      "properties": {
+        "owningUnitId": { "type": "string", "pattern": "^textbook-unit:" },
+        "markdown": { "type": "string" },
+        "sourceSpan": { "$ref": "#/$defs/sourceSpan" }
+      }
+    },
+    "retrievalWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordType", "schemaVersion", "id", "primaryUnitId", "segments"],
+      "properties": {
+        "recordType": { "const": "retrieval-window" },
+        "schemaVersion": { "const": "structured-textbook-runtime.v2" },
+        "id": { "type": "string", "pattern": "^textbook-window:" },
+        "primaryUnitId": { "type": "string", "pattern": "^textbook-unit:" },
+        "segments": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/windowSegment" }
+        },
+        "citationTarget": { "const": false }
+      }
+    },
+    "fragmentAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordType", "schemaVersion", "id", "owningUnitId", "kind", "ordinal", "sourceSpan"],
+      "properties": {
+        "recordType": { "const": "fragment-anchor" },
+        "schemaVersion": { "const": "structured-textbook-runtime.v2" },
+        "id": { "type": "string", "pattern": "^textbook-unit:.+#(formula|figure|table)-" },
+        "owningUnitId": { "type": "string", "pattern": "^textbook-unit:" },
+        "kind": { "enum": ["formula", "figure", "table"] },
+        "naturalNumber": { "type": ["string", "null"] },
+        "ordinal": { "type": "integer", "minimum": 1 },
+        "sourceSpan": { "$ref": "#/$defs/sourceSpan" }
+      }
+    },
+    "navigationEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unitId", "parentId", "childIds", "previousUnitId", "nextUnitId", "contentByteIndex"],
+      "properties": {
+        "unitId": { "type": "string", "pattern": "^textbook-unit:" },
+        "parentId": { "type": ["string", "null"] },
+        "childIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^textbook-unit:" }
+        },
+        "previousUnitId": { "type": ["string", "null"] },
+        "nextUnitId": { "type": ["string", "null"] },
+        "contentByteIndex": { "$ref": "#/$defs/sourceSpan" }
+      }
+    },
+    "navigationIndex": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordType", "schemaVersion", "bookId", "entries"],
+      "properties": {
+        "recordType": { "const": "navigation-index" },
+        "schemaVersion": { "const": "structured-textbook-runtime.v2" },
+        "bookId": { "type": "string", "minLength": 1 },
+        "entries": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/navigationEntry" }
+        }
+      }
+    },
+    "exportCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "structureUnits",
+        "fragmentAnchors",
+        "retrievalWindows",
+        "navigationEntries",
+        "anomalies",
+        "unresolvedAnomalies",
+        "samples",
+        "pendingSamples"
+      ],
+      "properties": {
+        "structureUnits": { "type": "integer", "minimum": 0 },
+        "fragmentAnchors": { "type": "integer", "minimum": 0 },
+        "retrievalWindows": { "type": "integer", "minimum": 0 },
+        "navigationEntries": { "type": "integer", "minimum": 0 },
+        "anomalies": { "type": "integer", "minimum": 0 },
+        "unresolvedAnomalies": { "type": "integer", "minimum": 0 },
+        "samples": { "type": "integer", "minimum": 0 },
+        "pendingSamples": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "structureAnomaly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "schemaVersion",
+        "id",
+        "kind",
+        "severity",
+        "message",
+        "sourceSpan",
+        "unitId",
+        "disposition",
+        "dispositionReason",
+        "dispositionRule"
+      ],
+      "properties": {
+        "recordType": { "const": "structure-anomaly" },
+        "schemaVersion": { "const": "structured-textbook-runtime.v2" },
+        "id": { "type": "string", "pattern": "^textbook-anomaly:" },
+        "kind": {
+          "enum": [
+            "oversized-unit",
+            "undersized-unit",
+            "empty-unit",
+            "number-discontinuity",
+            "unexpected-nesting",
+            "unrecognized-natural-numbering"
+          ]
+        },
+        "severity": { "enum": ["error", "reviewed"] },
+        "message": { "type": "string", "minLength": 1 },
+        "sourceSpan": { "$ref": "#/$defs/sourceSpan" },
+        "unitId": {
+          "type": ["string", "null"],
+          "pattern": "^textbook-unit:"
+        },
+        "disposition": {
+          "enum": [
+            "unresolved",
+            "accepted-structure",
+            "false-positive",
+            "parser-corrected",
+            "source-corrected"
+          ]
+        },
+        "dispositionReason": { "type": ["string", "null"] }
+        ,"dispositionRule": { "type": ["string", "null"] }
+      }
+    },
+    "structureSample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "schemaVersion",
+        "id",
+        "chapterId",
+        "unitId",
+        "reasons",
+        "sourceSpan",
+        "reviewStatus",
+        "reviewEvidence"
+      ],
+      "properties": {
+        "recordType": { "const": "structure-sample" },
+        "schemaVersion": { "const": "structured-textbook-runtime.v2" },
+        "id": { "type": "string", "pattern": "^textbook-sample:" },
+        "chapterId": { "type": "string", "minLength": 1 },
+        "unitId": { "type": "string", "pattern": "^textbook-unit:" },
+        "reasons": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "boundary-start",
+              "boundary-end",
+              "deepest-distributed",
+              "numbering-sequence-start",
+              "numbering-sequence-end",
+              "minimum-size",
+              "maximum-size"
+            ]
+          }
+        },
+        "sourceSpan": { "$ref": "#/$defs/sourceSpan" },
+        "reviewStatus": { "enum": ["pending", "reviewed"] },
+        "reviewEvidence": { "type": ["string", "null"] }
+      }
+    },
+    "exportManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType",
+        "schemaVersion",
+        "bookId",
+        "edition",
+        "sourceRevision",
+        "sourceHashes",
+        "parserConfigHash",
+        "counts",
+        "anomalyDisposition",
+        "sampleReview",
+        "outputs",
+        "productionConnected"
+      ],
+      "properties": {
+        "recordType": { "const": "export-manifest" },
+        "schemaVersion": { "const": "structured-textbook-runtime.v2" },
+        "bookId": { "type": "string", "minLength": 1 },
+        "edition": { "type": "string", "minLength": 1 },
+        "sourceRevision": { "type": "string", "minLength": 1 },
+        "sourceHashes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+        },
+        "parserConfigHash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "counts": { "$ref": "#/$defs/exportCounts" },
+        "anomalyDisposition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "byDisposition"],
+          "properties": {
+            "status": { "enum": ["reviewed", "unresolved"] },
+            "byDisposition": {
+              "type": "object",
+              "additionalProperties": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "sampleReview": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "reviewed", "pending"],
+          "properties": {
+            "status": { "enum": ["reviewed", "pending"] },
+            "reviewed": { "type": "integer", "minimum": 0 },
+            "pending": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["units", "anchors", "windows", "navigation", "anomalies", "samples"],
+          "properties": {
+            "units": { "const": "units.jsonl" },
+            "anchors": { "const": "anchors.jsonl" },
+            "windows": { "const": "windows.jsonl" },
+            "navigation": { "const": "navigation.json" },
+            "anomalies": { "const": "anomalies.jsonl" },
+            "samples": { "const": "samples.jsonl" }
+          }
+        },
+        "productionConnected": { "const": false }
+      }
+    }
+  }
+}

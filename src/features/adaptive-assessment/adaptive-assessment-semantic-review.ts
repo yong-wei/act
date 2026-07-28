@@ -1,3 +1,7 @@
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
 import type {
   AdaptiveAssessmentCatalogItem,
   AdaptiveAssessmentCatalogSourceFamily,
@@ -5,10 +9,6 @@ import type {
   AdaptiveAssessmentCatalogStage,
   KaqReviewedItemRecord,
 } from './adaptive-assessment-item-catalog';
-import {
-  LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWER_ID,
-  LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
-} from './learning-goal-checkpoint-question-sets';
 
 export type AssessmentItemSemanticReviewOutcome = 'approved' | 'rejected' | 'deprecated' | 'blocked';
 
@@ -96,6 +96,9 @@ export interface AssessmentItemSemanticCoverageReport {
   artifactVersion: 'assessment-item-semantic-review-coverage.v1';
   itemCount: number;
   reviewedItemCount: number;
+  reviewedDispositionCount: number;
+  reviewedLimitationCount: number;
+  unreviewedItemCount: number;
   pathEligibleItemCount: number;
   staleReviewCount: number;
   rejectedItemCount: number;
@@ -137,6 +140,16 @@ export interface AssessmentItemSemanticReviewInput {
   knownRemediationResourceNodeIds?: string[];
 }
 
+export const ASSESSMENT_ITEM_SEMANTIC_REVIEW_SOURCE_PATH =
+  'course-content/runtime/resource-governance/assessment-item-semantic-review-source.jsonl';
+
+export class AssessmentItemSemanticReviewSourceValidationError extends Error {
+  constructor(readonly issues: string[]) {
+    super(`Invalid assessment item semantic review source:\n${issues.map((issue) => `- ${issue}`).join('\n')}`);
+    this.name = 'AssessmentItemSemanticReviewSourceValidationError';
+  }
+}
+
 const PATH_GATE_STAGES = new Set<AdaptiveAssessmentCatalogStage>([
   'readiness',
   'checkpoint',
@@ -154,6 +167,137 @@ const SEMANTIC_REVIEW_VERSION_REF_EXCLUSIONS = new Set([
 
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
+}
+
+function canonicalizeReviewSourceValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalizeReviewSourceValue);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+    .filter(([, entryValue]) => entryValue !== undefined)
+    .sort(([leftKey], [rightKey]) => leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0)
+    .map(([key, entryValue]) => [key, canonicalizeReviewSourceValue(entryValue)]));
+}
+
+/** Hashes the canonical JSON row after removing its self-referential reviewSourceHash field. */
+export function assessmentItemSemanticReviewSourceHash(
+  decision: AssessmentItemSemanticReviewDecision,
+): string {
+  const { reviewSourceHash: _reviewSourceHash, ...hashInput } = decision;
+  const canonicalJson = JSON.stringify(canonicalizeReviewSourceValue(hashInput));
+  return `sha256:${createHash('sha256').update(canonicalJson).digest('hex')}`;
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && Object.values(value).every((entry) => typeof entry === 'string'),
+  );
+}
+
+export function validateAssessmentItemSemanticReviewSource(
+  items: AdaptiveAssessmentCatalogItem[],
+  decisions: AssessmentItemSemanticReviewDecision[],
+): AssessmentItemSemanticReviewDecision[] {
+  const issues: string[] = [];
+  const catalogByItemId = new Map<string, AdaptiveAssessmentCatalogItem>();
+  for (const item of items) {
+    if (catalogByItemId.has(item.catalogItemId)) {
+      issues.push(`duplicate-catalog-item:${item.catalogItemId}`);
+    } else {
+      catalogByItemId.set(item.catalogItemId, item);
+    }
+  }
+
+  const decisionsByItemId = new Map<string, AssessmentItemSemanticReviewDecision>();
+  for (const decision of decisions) {
+    const catalogItemId = typeof decision?.catalogItemId === 'string' ? decision.catalogItemId : '';
+    if (!catalogItemId) {
+      issues.push('missing-catalog-item-id');
+      continue;
+    }
+    if (decisionsByItemId.has(catalogItemId)) {
+      issues.push(`duplicate-review-source-item:${catalogItemId}`);
+      continue;
+    }
+    decisionsByItemId.set(catalogItemId, decision);
+
+    const item = catalogByItemId.get(catalogItemId);
+    if (!item) {
+      issues.push(`orphan-review-source-item:${catalogItemId}`);
+      continue;
+    }
+    if (decision.decisionKind !== 'human-review') {
+      issues.push(`machine-review-source-rejected:${catalogItemId}`);
+    }
+    for (const [field, value] of [
+      ['reviewerId', decision.reviewerId],
+      ['reviewerRole', decision.reviewerRole],
+      ['reviewedAt', decision.reviewedAt],
+      ['reviewBatchId', decision.reviewBatchId],
+      ['notes', decision.notes],
+    ] as const) {
+      if (typeof value !== 'string' || !value.trim()) {
+        issues.push(`missing-review-audit-field:${catalogItemId}:${field}`);
+      }
+    }
+    if (decision.sourceContentHash !== item.contentHash) {
+      issues.push(`stale-source-content-hash:${catalogItemId}`);
+    }
+    if (
+      !isStringRecord(decision.metadataVersionRefs)
+      || !versionRefsMatch(decision.metadataVersionRefs, semanticReviewVersionRefs(item))
+    ) {
+      issues.push(`stale-metadata-version-refs:${catalogItemId}`);
+    }
+    if (decision.reviewSourceHash !== assessmentItemSemanticReviewSourceHash(decision)) {
+      issues.push(`invalid-review-source-hash:${catalogItemId}`);
+    }
+  }
+
+  for (const catalogItemId of catalogByItemId.keys()) {
+    if (!decisionsByItemId.has(catalogItemId)) {
+      issues.push(`missing-review-source-item:${catalogItemId}`);
+    }
+  }
+
+  if (issues.length) {
+    throw new AssessmentItemSemanticReviewSourceValidationError(issues.sort());
+  }
+  return [...decisionsByItemId.values()]
+    .sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
+}
+
+export async function loadAssessmentItemSemanticReviewSource(
+  items: AdaptiveAssessmentCatalogItem[],
+  options: { rootDir?: string; sourcePath?: string } = {},
+): Promise<AssessmentItemSemanticReviewDecision[]> {
+  const sourcePath = path.resolve(
+    options.rootDir ?? process.cwd(),
+    options.sourcePath ?? ASSESSMENT_ITEM_SEMANTIC_REVIEW_SOURCE_PATH,
+  );
+  let input: string;
+  try {
+    input = await readFile(sourcePath, 'utf8');
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+      throw new AssessmentItemSemanticReviewSourceValidationError([`missing-review-source:${sourcePath}`]);
+    }
+    throw error;
+  }
+
+  const decisions = input.split(/\r?\n/).flatMap((line, index) => {
+    if (!line.trim()) return [];
+    try {
+      return [JSON.parse(line) as AssessmentItemSemanticReviewDecision];
+    } catch {
+      throw new AssessmentItemSemanticReviewSourceValidationError([
+        `invalid-review-source-json:${sourcePath}:${index + 1}`,
+      ]);
+    }
+  });
+  return validateAssessmentItemSemanticReviewSource(items, decisions);
 }
 
 function missingSemanticBlockers(item: AdaptiveAssessmentCatalogItem): string[] {
@@ -370,15 +514,38 @@ function canGeneratedDecisionReplaceExisting(
   return Boolean(existing.reviewerId && existing.reviewerId === generated.reviewerId);
 }
 
+export function sourceReviewShardReplacementPolicy(
+  existing: AssessmentItemSemanticReviewDecision,
+  generated: AssessmentItemSemanticReviewDecision,
+): boolean | undefined {
+  const isSourceReviewShard = (decision: AssessmentItemSemanticReviewDecision) =>
+    decision.reviewBatchId?.startsWith('issue-883-acq-static-question-review.') === true
+    || decision.reviewBatchId?.startsWith('assessment-item-semantic-review-icourse-') === true;
+
+  const existingIsSourceReviewShard = isSourceReviewShard(existing);
+  const generatedIsSourceReviewShard = isSourceReviewShard(generated);
+  if (!existingIsSourceReviewShard && !generatedIsSourceReviewShard) return undefined;
+  return existingIsSourceReviewShard && generatedIsSourceReviewShard;
+}
+
 export function mergeAssessmentItemSemanticReviewDecisions(
   existingDecisions: AssessmentItemSemanticReviewDecision[],
   generatedDecisions: AssessmentItemSemanticReviewDecision[],
+  replacementPolicy?: (
+    existing: AssessmentItemSemanticReviewDecision,
+    generated: AssessmentItemSemanticReviewDecision,
+  ) => boolean | undefined,
 ): AssessmentItemSemanticReviewDecision[] {
   const decisionsByItemId = new Map<string, AssessmentItemSemanticReviewDecision>();
   for (const decision of existingDecisions) decisionsByItemId.set(decision.catalogItemId, decision);
   for (const decision of generatedDecisions) {
     const existing = decisionsByItemId.get(decision.catalogItemId);
-    if (!existing || canGeneratedDecisionReplaceExisting(existing, decision)) {
+    const replacementDecision = existing ? replacementPolicy?.(existing, decision) : undefined;
+    if (
+      !existing
+      || replacementDecision === true
+      || (replacementDecision === undefined && canGeneratedDecisionReplaceExisting(existing, decision))
+    ) {
       decisionsByItemId.set(decision.catalogItemId, decision);
     }
   }
@@ -437,44 +604,6 @@ export function buildKaqFoundationSemanticReviewDecisions(
   });
 }
 
-export function buildCheckpointAuthoredSemanticReviewDecisions(
-  items: AdaptiveAssessmentCatalogItem[],
-): AssessmentItemSemanticReviewDecision[] {
-  return items
-    .filter((item) => item.sourceFamily === 'checkpoint-authored-question')
-    .map((item) => {
-      const selectedStagePurpose = item.semanticRefs.assessmentStage as AdaptiveAssessmentCatalogStage | 'readiness-gate' | 'precheck' | 'practice';
-      return {
-        catalogItemId: item.catalogItemId,
-        decisionKind: 'human-review',
-        outcome: 'approved',
-        reviewerId: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWER_ID,
-        reviewerRole: 'assessment-content-reviewer',
-        reviewedAt: '2026-07-03T00:00:00.000Z',
-        reviewBatchId: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
-        sourceContentHash: item.contentHash,
-        selectedLearningGoalIds: item.semanticRefs.learningGoalIds,
-        selectedKaqObjectiveIds: item.semanticRefs.kaqObjectiveIds,
-        selectedGraphNodeIds: item.semanticRefs.graphNodeIds,
-        selectedStagePurpose,
-        difficulty: item.semanticRefs.difficulty ?? undefined,
-        cognitiveLevel: item.semanticRefs.cognitiveLevel ?? undefined,
-        misconceptionRefs: item.semanticRefs.misconceptionTags,
-        remediationRefs: item.semanticRefs.remediationResourceNodeIds,
-        metadataVersionRefs: {
-          checkpointQuestionSetVersion: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
-        },
-        reviewSourceHash: item.lineage.sourceHash,
-        notes: [
-          'Reviewed checkpoint-authored source question, answer/rubric context, content hash, LearningGoal fit, K/A/Q objective ids, graph-node refs,',
-          `stage purpose ${selectedStagePurpose}, difficulty ${item.semanticRefs.difficulty ?? 'unspecified'}, cognitive level ${item.semanticRefs.cognitiveLevel ?? 'unspecified'},`,
-          `misconception refs ${item.semanticRefs.misconceptionTags.join(', ') || 'none'}, and remediation refs ${item.semanticRefs.remediationResourceNodeIds.join(', ') || 'none'}.`,
-          `Approved for baseline coverage of ${item.semanticRefs.learningGoalIds.join(', ') || 'no LearningGoal'} with source ${item.lineage.sourceHash}.`,
-        ].join(' '),
-      };
-    });
-}
-
 export function buildAssessmentItemSemanticCoverageReport(
   input: AssessmentItemSemanticReviewInput,
 ): AssessmentItemSemanticCoverageReport {
@@ -497,6 +626,8 @@ export function buildAssessmentItemSemanticCoverageReport(
   const learningGoalTotals: Record<string, number> = {};
   const kaqObjectiveTotals: Record<string, number> = {};
   const stageTotals: Record<string, number> = {};
+  let reviewedDispositionCount = 0;
+  let reviewedLimitationCount = 0;
 
   for (const sourceFamily of input.sourceFamilies ?? []) {
     sourceFamilyCounts.set(sourceFamily.family, {
@@ -545,7 +676,10 @@ export function buildAssessmentItemSemanticCoverageReport(
         severity: issueSeverity(reason),
       });
     }
-    if (hasPathGate(item) && !isApprovedDecisionValid(item, decision, input)) {
+    if (
+      hasPathGate(item)
+      && (!decision || (decision.outcome === 'approved' && !isApprovedDecisionValid(item, decision, input)))
+    ) {
       issues.push({
         catalogItemId: item.catalogItemId,
         sourceFamily: item.sourceFamily,
@@ -562,12 +696,19 @@ export function buildAssessmentItemSemanticCoverageReport(
       sourceCounts.unreviewedTotal += 1;
     } else if (decision.outcome === 'rejected') {
       sourceCounts.rejectedTotal += 1;
+      reviewedDispositionCount += 1;
+      reviewedLimitationCount += 1;
     } else if (decision.outcome === 'deprecated') {
       sourceCounts.deprecatedTotal += 1;
+      reviewedDispositionCount += 1;
+      reviewedLimitationCount += 1;
     } else if (decision.outcome === 'blocked') {
       sourceCounts.blockedTotal += 1;
+      reviewedDispositionCount += 1;
+      reviewedLimitationCount += 1;
     } else if (isApprovedDecisionValid(item, decision, input)) {
       sourceCounts.reviewedTotal += 1;
+      reviewedDispositionCount += 1;
       if (item.eligibilityState === 'path-eligible') sourceCounts.pathEligibleTotal += 1;
       for (const learningGoalId of decision.selectedLearningGoalIds) {
         learningGoalTotals[learningGoalId] = (learningGoalTotals[learningGoalId] ?? 0) + 1;
@@ -587,6 +728,9 @@ export function buildAssessmentItemSemanticCoverageReport(
     artifactVersion: 'assessment-item-semantic-review-coverage.v1',
     itemCount: input.items.length,
     reviewedItemCount: [...sourceFamilyCounts.values()].reduce((sum, item) => sum + item.reviewedTotal, 0),
+    reviewedDispositionCount,
+    reviewedLimitationCount,
+    unreviewedItemCount: input.items.length - reviewedDispositionCount,
     pathEligibleItemCount: [...sourceFamilyCounts.values()].reduce((sum, item) => sum + item.pathEligibleTotal, 0),
     staleReviewCount: [...sourceFamilyCounts.values()].reduce((sum, item) => sum + item.staleTotal, 0),
     rejectedItemCount: [...sourceFamilyCounts.values()].reduce((sum, item) => sum + item.rejectedTotal, 0),

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import { AlertTriangle, Filter, Network, PanelRightOpen, UserRound, UsersRound } from 'lucide-react';
 import {
   buildGraphCenterPayload,
@@ -134,13 +135,13 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
             </button>
           ))}
         </div>
-        <a
+        <Link
           href="/knowledge"
           className="inline-flex items-center justify-center rounded-md border border-platform-border px-3 py-2 text-sm font-medium text-platform-fg-muted hover:text-platform-fg-primary"
           data-graph-center-knowledge-compatibility-link="true"
         >
           知识图谱
-        </a>
+        </Link>
       </div>
 
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="图谱覆盖模式">

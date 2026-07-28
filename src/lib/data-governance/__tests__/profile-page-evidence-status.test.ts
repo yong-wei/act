@@ -9,9 +9,10 @@ describe('student profile evidence status page wiring', () => {
       'utf8',
     );
 
-    expect(pageSource).toContain('evidenceStatus');
-    expect(pageSource).toContain('证据状态');
-    expect(pageSource).toContain('formatEvidenceStatusSummary');
+    expect(pageSource).toContain('competency.availability');
+    expect(pageSource).toContain('data-learner-record-portrait-availability');
+    expect(pageSource).toContain('累计画像');
+    expect(pageSource).toContain('formatPortraitAvailabilitySummary');
     expect(pageSource).toContain('recommendationConfidenceLabel');
     expect(pageSource).toContain('证据置信度低');
     expect(pageSource).toContain('证据待刷新');

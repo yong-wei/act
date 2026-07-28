@@ -1,0 +1,31 @@
+{
+  "subject": {
+    "issue": 934,
+    "change_id": "restore-incremental-learning-state-truth"
+  },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "The current student worker schedules aging snapshots after a 30-day boundary and writes no-recent-evidence compatibility snapshots even when no governed evidence changed the learner state.",
+      "Teacher class insights and dashboard routes filter to a 30-day evidence window and class-competency.v2, so classes with valid historical evidence can be presented as having no current evidence.",
+      "The current adaptive learner-state specification preserves dimension scores without new evidence, while the archived stabilization change explicitly rejects fixed-window portrait erasure; the implementation only partially satisfies that contract.",
+      "Existing production-derived data includes legacy class snapshots and zero-fact no-recent-evidence student snapshots, so restoring long-term truth requires an idempotent, lineage-preserving migration rather than a display-only fallback."
+    ]
+  },
+  "duplication": {
+    "existing_implementation": "partial",
+    "conflicting_specs": [],
+    "active_changes": [],
+    "superseded_by": null
+  },
+  "readiness": {
+    "information": "sufficient",
+    "disposition": "executable",
+    "reason": "A single coordinated high-risk expand-migrate-contract change can add journaled processing, dual generations, deterministic scoped selection, frozen repair inputs, atomic activation, and synchronized rollback before contracting any legacy path."
+  },
+  "binding": {
+    "issue_updated_at": "2026-07-18T13:04:55Z",
+    "base_sha": "40ee52d4deab5b54f141df7fcd160c0ff89c7e4b",
+    "generated_at": "2026-07-18T13:04:55Z"
+  }
+}

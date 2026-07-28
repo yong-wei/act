@@ -65,6 +65,20 @@ export function shouldPollSessionStatus(status: SessionInfo['status'] | null | u
   return status !== 'FINISHED';
 }
 
+export function resolveTeacherFollowIndex({
+  activeIndex,
+  nextTeacherIndex,
+  previousTeacherIndex,
+}: {
+  activeIndex: number;
+  nextTeacherIndex: number;
+  previousTeacherIndex: number | null;
+}) {
+  return previousTeacherIndex === null || previousTeacherIndex !== nextTeacherIndex
+    ? nextTeacherIndex
+    : activeIndex;
+}
+
 function normalizeTeacherSyncValue(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map((item) => normalizeTeacherSyncValue(item));
@@ -103,6 +117,7 @@ export function useSessionProgressChannel({
   const [error, setError] = useState<string | null>(null);
   const [errorTelemetry, setErrorTelemetry] = useState<FetchFailureTelemetry | null>(null);
   const initialTeacherSyncRef = useRef(isDemo || !followTeacher);
+  const lastTeacherIndexRef = useRef<number | null>(null);
   const initializedTeacherRef = useRef(isDemo || followTeacher);
   const pendingStepIdRef = useRef<string | null>(null);
   const demoSyncKeyRef = useRef<string | null>(null);
@@ -210,11 +225,15 @@ export function useSessionProgressChannel({
 
       if (followTeacher) {
         if (nextIndex >= 0) {
+          const followedIndex = resolveTeacherFollowIndex({
+            activeIndex,
+            nextTeacherIndex: nextIndex,
+            previousTeacherIndex: lastTeacherIndexRef.current,
+          });
           setTeacherIndex(nextIndex);
-          if (!initialTeacherSyncRef.current) {
-            setActiveIndex(nextIndex);
-            initialTeacherSyncRef.current = true;
-          }
+          setActiveIndex(followedIndex);
+          lastTeacherIndexRef.current = nextIndex;
+          initialTeacherSyncRef.current = true;
         } else if (!initialTeacherSyncRef.current) {
           initialTeacherSyncRef.current = true;
         }
@@ -303,7 +322,7 @@ export function useSessionProgressChannel({
       timeout?.clear();
       isSyncingRef.current = false;
     }
-  }, [followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, sessionInfo?.status, stableStepIds]);
+  }, [activeIndex, followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, sessionInfo?.status, stableStepIds]);
 
   const patchSession = useCallback(
     async (patch: Record<string, unknown>) => {
@@ -373,9 +392,6 @@ export function useSessionProgressChannel({
       // 设置PATCH进行中标志，暂停轮询
       isPatchingRef.current = true;
 
-      // 乐观更新UI
-      setActiveIndex(nextIndex);
-      setTeacherIndex(nextIndex);
       pendingStepIdRef.current = nextStepId ?? null;
       setError(null);
 
@@ -414,6 +430,8 @@ export function useSessionProgressChannel({
 
         // 更新本地sessionInfo以确保一致性
         setSessionInfo(data);
+        setActiveIndex(nextIndex);
+        setTeacherIndex(nextIndex);
       } catch (requestError) {
         pendingStepIdRef.current = null;
         // 合并状态更新，避免抖动
@@ -431,8 +449,6 @@ export function useSessionProgressChannel({
               timeoutMs: DEFAULT_SYNC_FETCH_TIMEOUT_MS,
             }),
         );
-        setActiveIndex(previousIndex);
-        setTeacherIndex(previousIndex);
         throw requestError;
       } finally {
         timeout?.clear();

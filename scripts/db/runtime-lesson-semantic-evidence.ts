@@ -30,6 +30,12 @@ export const RUNTIME_SEMANTIC_ASSET_OBSERVATION_VERSION = 'runtime-lesson-asset-
 export const RUNTIME_SEMANTIC_DECISION_VERSION = 'runtime-lesson-media-semantic-decision.v1' as const;
 export type RuntimeSemanticSourcePathKind = 'local-path' | 'http-url' | 'none';
 
+const RUNTIME_SEMANTIC_REVIEW_LIFECYCLE_MISSING_FIELD_CODES = new Set([
+  'missing-human-review',
+  'provisional-metadata',
+  'stale-review',
+]);
+
 export interface RuntimeSemanticAssetObservation {
   schemaVersion: typeof RUNTIME_SEMANTIC_ASSET_OBSERVATION_VERSION;
   localPath: string | null;
@@ -198,7 +204,12 @@ function projectPath(relativePath: string): string {
 function fileHash(relativePath: string): string {
   const absolutePath = projectPath(relativePath);
   assert(existsSync(absolutePath), `Runtime semantic evidence file does not exist: ${relativePath}`);
-  return `sha256:${createHash('sha256').update(readFileSync(absolutePath)).digest('hex')}`;
+  const content = readFileSync(absolutePath);
+  const textExtensions = new Set(['.csv', '.json', '.jsonl', '.md', '.mdx', '.svg', '.txt', '.xml', '.yaml', '.yml']);
+  const hashInput = textExtensions.has(path.extname(absolutePath).toLowerCase())
+    ? content.toString('utf8').replace(/\r\n?/g, '\n')
+    : content;
+  return `sha256:${createHash('sha256').update(hashInput).digest('hex')}`;
 }
 
 function isGitIndexPath(relativePath: string): boolean {
@@ -969,9 +980,9 @@ export function buildRuntimeLessonSemanticDecisionFacts(
         .filter((target: unknown): target is string => typeof target === 'string' && !/^https?:\/\//i.test(target))
         .sort(),
       graphNodeRefs: {
-        knowledge: [...(row.graphNodeRefs?.knowledge ?? [])],
-        capability: [...(row.graphNodeRefs?.capability ?? [])],
-        quality: [...(row.graphNodeRefs?.quality ?? [])],
+        knowledge: [...(source.graphNodeRefs?.knowledge ?? [])],
+        capability: [...(source.graphNodeRefs?.capability ?? [])],
+        quality: [...(source.graphNodeRefs?.quality ?? [])],
       },
       evidenceDecision: facts.evidence.decision,
       evidenceContractComplete: row.evidenceContract?.complete === true,
@@ -989,7 +1000,9 @@ export function buildRuntimeLessonSemanticReasonCodes(
   facts: RuntimeLessonSemanticReviewEvidence,
 ): string[] {
   return [...new Set([
-    ...(row.missingFieldCodes ?? []).map((code: string) => `audit:${code}`),
+    ...(row.missingFieldCodes ?? [])
+      .filter((code: string) => !RUNTIME_SEMANTIC_REVIEW_LIFECYCLE_MISSING_FIELD_CODES.has(code))
+      .map((code: string) => `audit:${code}`),
     `disposition:${source.disposition}`,
     `record-kind:${facts.recordKind}`,
     `source-kind:${facts.sourceFileKind}`,

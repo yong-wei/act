@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://act.just.edu.cn/contracts/knowledge-relation-coverage-audit.schema.json",
+  "title": "Knowledge relation coverage audit input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "orderSource",
+    "density",
+    "provenance",
+    "overlayTripleEligibility"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "orderSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationIds"],
+      "properties": {
+        "relationIds": { "$ref": "#/$defs/nonEmptyStringArray" }
+      }
+    },
+    "density": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectedNodeId", "visibleAssociationRelationIds"],
+      "properties": {
+        "selectedNodeId": { "$ref": "#/$defs/nonEmptyString" },
+        "visibleAssociationRelationIds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" },
+          "maxItems": 24
+        }
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/relationExpectation" }
+    },
+    "overlayTripleEligibility": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["relationId", "sourceId", "targetId", "normalizedType"],
+        "properties": {
+          "relationId": { "$ref": "#/$defs/nonEmptyString" },
+          "sourceId": { "$ref": "#/$defs/nonEmptyString" },
+          "targetId": { "$ref": "#/$defs/nonEmptyString" },
+          "normalizedType": { "$ref": "#/$defs/nonEmptyString" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$" },
+    "nonEmptyStringArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonEmptyString" }
+    },
+    "relationIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationId", "sourceId", "targetId"],
+      "properties": {
+        "relationId": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceId": { "$ref": "#/$defs/nonEmptyString" },
+        "targetId": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "relationExpectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationId", "sourceId", "targetId", "canonicalType"],
+      "properties": {
+        "relationId": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceId": { "$ref": "#/$defs/nonEmptyString" },
+        "targetId": { "$ref": "#/$defs/nonEmptyString" },
+        "canonicalType": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}

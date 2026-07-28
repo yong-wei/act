@@ -400,6 +400,6 @@ def ensure_runtime_media_index(
     if processed_media_index_path is not None and not processed_media_index_path.exists():
         processed_media_index_path.parent.mkdir(parents=True, exist_ok=True)
         processed_media_index_path.write_text(
-            build_blank_runtime_media_index_content(lesson_id),
+            build_runtime_media_index_content(lesson_id, existing_markdown),
             encoding='utf-8',
         )

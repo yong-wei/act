@@ -8,6 +8,7 @@ import {
   parseAddedRuntimeProjectionRows,
   parseChangedRegisteredResourceIds,
   validateChangedRegisteredResources,
+  validateChangedRuntimeResourceProjectionChanges,
   validateChangedRuntimeResourceProjections,
 } from '@/lib/data-governance/new-resource-semantic-completeness-gate';
 
@@ -329,6 +330,34 @@ describe('new resource semantic completeness gate', () => {
     ]));
   });
 
+  it('accepts agent-reviewed disposition provenance without treating it as provisional', () => {
+    const result = validateChangedRegisteredResources([
+      completeRegisteredResource({
+        id: 'agent-reviewed-resource',
+        planningKind: 'supporting-citation',
+        reviewStatus: 'agent-reviewed',
+      }),
+    ]);
+
+    expect(result).toMatchObject({ passed: true, checked: 1, issues: [] });
+  });
+
+  it('rejects agent-reviewed path-plannable disposition without human authorization', () => {
+    const result = validateChangedRegisteredResources([
+      completeRegisteredResource({
+        id: 'agent-reviewed-path-resource',
+        planningKind: 'path-plannable',
+        reviewStatus: 'agent-reviewed',
+      }),
+    ]);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toContainEqual(expect.objectContaining({
+      resourceId: 'agent-reviewed-path-resource',
+      code: 'missing-human-review',
+    }));
+  });
+
   it('rejects template and system-governed reviewer identities', () => {
     const result = validateChangedRegisteredResources([
       completeRegisteredResource({
@@ -374,6 +403,27 @@ describe('new resource semantic completeness gate', () => {
     expect(result.issues.some((item) => item.resourceId === 'projection-complete')).toBe(false);
   });
 
+  it('does not treat fresh agent semantic review as human publication authorization', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-agent-reviewed' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        status: 'agent-reviewed',
+        reviewerRole: 'implementing-agent',
+      },
+    }]);
+
+    expect(result).toMatchObject({
+      passed: false,
+      checked: 1,
+      issues: expect.arrayContaining([expect.objectContaining({
+        resourceId: 'projection-agent-reviewed',
+        code: 'missing-human-review',
+      })]),
+    });
+  });
+
   it('rejects stale runtime projection review evidence', () => {
     const projection = completeRuntimeProjection({ id: 'projection-stale' });
     const reviewAudit = projection.reviewAudit;
@@ -415,6 +465,99 @@ describe('new resource semantic completeness gate', () => {
       checked: 1,
       issues: [],
     });
+  });
+
+  it('accepts runtime semantic projection reviews against the raw source hash', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-runtime-semantic' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        reviewedSourceHash: projection.sourceHash,
+        promptOrManifestHash: 'sha-json-pointer-semantic-digest',
+      },
+      runtimeSemanticEvidence: runtimeSemanticEvidenceFor(projection),
+    }]);
+
+    expect(result).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+  });
+
+  it('rejects runtime semantic projection reviews with a stale raw source hash', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-runtime-semantic-stale' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        reviewedSourceHash: 'sha-stale-raw-source',
+        promptOrManifestHash: 'sha-stale-raw-source',
+      },
+      runtimeSemanticEvidence: runtimeSemanticEvidenceFor(projection),
+    }]);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-runtime-semantic-stale',
+        code: 'stale-review-evidence',
+      }),
+    ]));
+  });
+
+  it('allows only a derived stale missing-asset citation safety tightening', () => {
+    const base = completeRuntimeProjection({ id: 'projection-stale-missing-asset' });
+    const previous = {
+      ...base,
+      projectionLevel: 'ResourceSegment' as const,
+      reviewAudit: {
+        ...base.reviewAudit!,
+        status: 'stale' as const,
+      },
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-content-hash'],
+      },
+      groundingEligibility: {
+        retrievalReady: false,
+        citationReady: true,
+        authoringTriageReady: true,
+      },
+      runtimeSemanticEvidence: {
+        ...runtimeSemanticEvidenceFor(base),
+        sourceFileHash: null,
+        assetStatus: 'missing-local-runtime-asset' as const,
+        assetAvailability: 'not-tracked-in-git-index' as const,
+      },
+    };
+    const tightened = {
+      ...previous,
+      groundingEligibility: {
+        ...previous.groundingEligibility,
+        citationReady: false,
+      },
+    };
+
+    expect(validateChangedRuntimeResourceProjectionChanges([tightened], [previous])).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+    expect(validateChangedRuntimeResourceProjectionChanges([tightened], []).passed).toBe(false);
+    expect(validateChangedRuntimeResourceProjectionChanges([{
+      ...tightened,
+      pathEligibility: {
+        current: true,
+        afterCompletion: true,
+        masteryAffecting: true,
+        blockedBy: [],
+      },
+    }], [previous]).passed).toBe(false);
+    expect(validateChangedRuntimeResourceProjectionChanges([previous], [previous]).passed).toBe(false);
   });
 
   it('rejects path-capable runtime projections without capability bindings', () => {
@@ -553,16 +696,18 @@ describe('new resource semantic completeness gate', () => {
     const projection = completeRuntimeProjection({ id: 'projection-supporting-citation' });
     const result = validateChangedRuntimeResourceProjections([{
       ...projection,
+      family: 'textbook-search-document',
+      resourceType: 'textbook_section',
+      sourceKind: 'textbook_section',
+      resourceNodeId: null,
       projectionLevel: 'ResourceSegment',
       routeTarget: null,
       renderTarget: null,
+      estimatedTimeMinutes: null,
+      readiness: null,
+      citationTargets: [],
       evidenceInstrumentation: [],
       evidenceContract: null,
-      graphNodeRefs: {
-        knowledge: ['kn-bode'],
-        capability: [],
-        quality: [],
-      },
       pathEligibility: {
         current: false,
         afterCompletion: false,
@@ -578,31 +723,42 @@ describe('new resource semantic completeness gate', () => {
     });
   });
 
-  it('accepts model-cleared projections only as retrieval-only resource segments', () => {
-    const projection = completeRuntimeProjection({ id: 'projection-model-cleared' });
+  it('accepts agent-reviewed projections only as strict support and audit-only resource segments', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-agent-audit-only' });
     const result = validateChangedRuntimeResourceProjections([{
       ...projection,
+      family: 'textbook-search-document',
+      resourceType: 'textbook_section',
+      sourceKind: 'textbook_section',
+      resourceNodeId: null,
       projectionLevel: 'ResourceSegment',
+      lifecycleScope: 'audit-only',
+      teacherPolicy: 'teacher-only',
+      privacyScope: 'teacher-scoped',
       routeTarget: null,
-      renderTarget: '/course-runtime/resources/projection-model-cleared',
+      renderTarget: null,
+      graphNodeRefs: { knowledge: [], capability: [], quality: [] },
+      estimatedTimeMinutes: null,
+      readiness: null,
+      citationTargets: [],
       evidenceInstrumentation: [],
       evidenceContract: null,
       reviewAudit: {
         ...projection.reviewAudit!,
-        status: 'model-cleared',
-        generationToolOrModel: 'gpt-5.6-sol',
-        promptOrManifestHash: 'sha-projection-model-cleared',
+        status: 'agent-reviewed',
+        reviewerRole: 'implementing-agent',
       },
-      retrievalChunk: {
-        id: 'retrieval-chunk:projection-model-cleared:primary',
-        pathEligible: false,
-        reason: 'resource-node-planning-audit-required',
-      },
+      retrievalChunk: null,
       pathEligibility: {
         current: false,
         afterCompletion: false,
         masteryAffecting: false,
         blockedBy: ['missing-human-review'],
+      },
+      groundingEligibility: {
+        retrievalReady: false,
+        citationReady: false,
+        authoringTriageReady: true,
       },
     }]);
 
@@ -613,28 +769,61 @@ describe('new resource semantic completeness gate', () => {
     });
   });
 
-  it('rejects model-cleared projections that claim path or mastery capability', () => {
-    const projection = completeRuntimeProjection({ id: 'projection-model-cleared-path' });
+  it.each([
+    ['render target', { renderTarget: '/course-runtime/resources/agent-reviewed' }],
+    ['runtime lifecycle', { lifecycleScope: 'runtime' as const }],
+    ['publication policy', { teacherPolicy: 'allowed' as const }],
+    ['graph refs', { graphNodeRefs: { knowledge: ['反馈_1_1'], capability: [], quality: [] } }],
+    ['citation targets', { citationTargets: ['citation:forbidden'] }],
+    ['evidence contract', { evidenceContract: completeRuntimeProjection({ id: 'projection-evidence-attack' }).evidenceContract }],
+    ['retrieval metadata', { retrievalChunk: { id: 'retrieval:forbidden', pathEligible: false, reason: 'not-pure-audit' } }],
+    ['current path', { pathEligibility: { current: true, afterCompletion: false, masteryAffecting: false, blockedBy: [] } }],
+    ['mastery effect', { pathEligibility: { current: false, afterCompletion: false, masteryAffecting: true, blockedBy: [] } }],
+  ])('rejects agent-reviewed audit rows that claim %s authorization', (_label, override) => {
+    const projection = completeRuntimeProjection({ id: 'projection-agent-audit-escalation' });
     const result = validateChangedRuntimeResourceProjections([{
       ...projection,
+      family: 'textbook-search-document',
+      resourceType: 'textbook_section',
+      sourceKind: 'textbook_section',
+      resourceNodeId: null,
+      projectionLevel: 'ResourceSegment',
+      lifecycleScope: 'audit-only',
+      teacherPolicy: 'teacher-only',
+      privacyScope: 'teacher-scoped',
+      routeTarget: null,
+      renderTarget: null,
+      graphNodeRefs: { knowledge: [], capability: [], quality: [] },
+      estimatedTimeMinutes: null,
+      readiness: null,
+      citationTargets: [],
+      evidenceInstrumentation: [],
+      evidenceContract: null,
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-human-review'],
+      },
       reviewAudit: {
         ...projection.reviewAudit!,
-        status: 'model-cleared',
-        generationToolOrModel: 'gpt-5.6-sol',
-        promptOrManifestHash: 'sha-projection-model-cleared-path',
+        status: 'agent-reviewed',
+        reviewerRole: 'implementing-agent',
       },
-      retrievalChunk: {
-        id: 'retrieval-chunk:projection-model-cleared-path:primary',
-        pathEligible: true,
-        reason: 'reviewed-path-eligible',
+      retrievalChunk: null,
+      groundingEligibility: {
+        retrievalReady: false,
+        citationReady: false,
+        authoringTriageReady: true,
       },
+      ...override,
     }]);
 
     expect(result.passed).toBe(false);
     expect(result.issues).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        resourceId: 'projection-model-cleared-path',
-        code: 'invalid-model-cleared-retrieval-projection',
+        resourceId: 'projection-agent-audit-escalation',
+        code: 'invalid-agent-reviewed-audit-only-projection',
       }),
     ]));
   });
@@ -654,6 +843,83 @@ describe('new resource semantic completeness gate', () => {
         code: 'malformed-runtime-projection-json',
       }),
     ]));
+  });
+
+  it('ignores pre-existing rows changed only by audit summary fields in a full JSONL rewrite', () => {
+    const previous = completeRuntimeProjection({ id: 'projection-existing' });
+    const next = { ...previous, reviewConcluded: true, semanticConfirmed: true };
+    const added = completeRuntimeProjection({ id: 'projection-new' });
+    const parsed = parseAddedRuntimeProjectionChanges([
+      `-${JSON.stringify(previous)}`,
+      `+${JSON.stringify(next)}`,
+      `+${JSON.stringify(added)}`,
+    ].join('\n'));
+
+    expect(parsed.rows.map((row) => row.id)).toEqual(['projection-new']);
+    expect(parsed.deletedRows).toEqual([]);
+    expect(parsed.result).toMatchObject({ passed: true, checked: 1, issues: [] });
+  });
+
+  it('retains pre-existing rows whose gate-relevant projection contract changed', () => {
+    const previous = completeRuntimeProjection({ id: 'projection-existing' });
+    const next = { ...previous, renderTarget: '/new-render-target' };
+    const parsed = parseAddedRuntimeProjectionChanges([
+      `-${JSON.stringify(previous)}`,
+      `+${JSON.stringify(next)}`,
+    ].join('\n'));
+
+    expect(parsed.rows.map((row) => row.id)).toEqual(['projection-existing']);
+    expect(parsed.deletedRows.map((row) => row.id)).toEqual(['projection-existing']);
+  });
+
+  it('rejects an unchanged MERGE_HEAD projection whose review provenance moves backward', () => {
+    const previous = completeRuntimeProjection({ id: 'projection-provenance-regression' });
+    previous.reviewAudit!.reviewedAt = '2026-07-16T11:05:14.000Z';
+    previous.reviewAudit!.reviewBatchId = 'unit-1-5-content-clearance-2026-07-16-1905';
+    const current = structuredClone(previous);
+    current.reviewAudit!.reviewedAt = '2026-07-14T04:30:00.000Z';
+    current.reviewAudit!.reviewBatchId = 'unit-1-5-content-clearance-2026-07-14';
+    const parsed = parseAddedRuntimeProjectionChanges([
+      `-${JSON.stringify(previous)}`,
+      `+${JSON.stringify(current)}`,
+    ].join('\n'));
+    const result = validateChangedRuntimeResourceProjectionChanges(parsed.rows, parsed.deletedRows);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-provenance-regression',
+        code: 'runtime-projection-reviewed-at-regression',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-provenance-regression',
+        code: 'runtime-projection-review-batch-regression',
+      }),
+    ]));
+  });
+
+  it.each([
+    ['reviewedAt', (row: ReturnType<typeof completeRuntimeProjection>) => {
+      row.reviewAudit!.reviewedAt = '';
+    }],
+    ['reviewBatchId', (row: ReturnType<typeof completeRuntimeProjection>) => {
+      row.reviewAudit!.reviewBatchId = '';
+    }],
+    ['lifecycleScope', (row: ReturnType<typeof completeRuntimeProjection>) => {
+      row.lifecycleScope = 'runtime';
+    }],
+  ])('retains replacement rows when validator field %s changes', (_field, mutate) => {
+    const previous = completeRuntimeProjection({ id: 'projection-validator-field' });
+    delete previous.lifecycleScope;
+    const next = structuredClone(previous);
+    mutate(next);
+    const parsed = parseAddedRuntimeProjectionChanges([
+      `-${JSON.stringify(previous)}`,
+      `+${JSON.stringify(next)}`,
+    ].join('\n'));
+
+    expect(parsed.rows.map((row) => row.id)).toEqual(['projection-validator-field']);
+    expect(parsed.deletedRows.map((row) => row.id)).toEqual(['projection-validator-field']);
   });
 
   it('rejects runtime projection rows missing required schema fields before validation', () => {
@@ -801,7 +1067,7 @@ describe('new resource semantic completeness gate', () => {
 function completeRegisteredResource(input: {
   id: string;
   planningKind: 'path-plannable' | 'supporting-citation' | 'excluded-with-rationale';
-  reviewStatus?: 'human-confirmed' | 'generated-provisional';
+  reviewStatus?: 'human-confirmed' | 'agent-reviewed' | 'generated-provisional';
   reviewerId?: string | null;
 }): RegisteredResourceMetadata {
   return {
@@ -909,5 +1175,22 @@ function completeRuntimeProjection(
       masteryAffecting: true,
       blockedBy: [],
     },
+  };
+}
+
+function runtimeSemanticEvidenceFor(
+  projection: RuntimeResourceProjectionInput,
+): NonNullable<RuntimeResourceProjectionInput['runtimeSemanticEvidence']> {
+  return {
+    schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+    sourceFilePath: projection.sourcePathOrUrl!,
+    sourceFileKind: 'json-manifest',
+    sourceFileHash: projection.sourceHash,
+    evidenceFilePath: projection.sourcePathOrUrl!,
+    evidenceFileHash: projection.sourceHash!,
+    evidenceSelector: 'json-pointer:/steps/example',
+    assetStatus: 'not-applicable',
+    assetAvailability: 'not-applicable',
+    externalIdentitySha256: null,
   };
 }

@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   recordPathIntervention: vi.fn(),
   recordPathChoiceEvidence: vi.fn(),
   refreshStudentEvidenceFeatureCache: vi.fn(),
+  currentCatalogSnapshots: new Map<string, unknown>(),
   prisma: {
     learningPath: {
       findUnique: vi.fn(),
@@ -69,6 +70,17 @@ vi.mock('@/lib/control-correction-path-rounds', async (importOriginal) => {
 vi.mock('@/lib/data-governance/student-evidence-feature-cache', () => ({
   refreshStudentEvidenceFeatureCache: mocks.refreshStudentEvidenceFeatureCache,
 }));
+
+vi.mock('@/features/adaptive-assessment/adaptive-assessment-catalog-selector', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/features/adaptive-assessment/adaptive-assessment-catalog-selector')>();
+  return {
+    ...actual,
+    findAdaptiveAssessmentCatalogSnapshot: (questionId: string) =>
+      mocks.currentCatalogSnapshots.get(questionId) ?? null,
+  };
+});
+
+import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 
 import { POST as planPath } from '../plan/route';
 import { GET as readLatestPath } from '../latest/route';
@@ -264,6 +276,8 @@ function reviewedAdaptiveAssessmentAnswer(params: {
   questionScope?: string;
   catalogStage?: 'readiness' | 'checkpoint' | 'remediation';
   includeCatalogRef?: boolean;
+  createdAt?: Date;
+  answeredAt?: Date;
 }) {
   const goalId = params.goalId ?? 'control-correction';
   const metadata: Record<string, unknown> = {
@@ -276,17 +290,11 @@ function reviewedAdaptiveAssessmentAnswer(params: {
     },
   };
   if (params.includeCatalogRef !== false && params.catalogStage) {
-    metadata.adaptiveAssessmentItemRef = {
-      catalogBacked: true,
-      catalogItemId: `adaptive-assessment-item:${params.catalogStage}:${params.questionId}`,
-      contentHash: `content-hash:${params.questionId}`,
-      reviewState: 'path-eligible',
-      eligibilityState: 'path-eligible',
-      allowedStages: ['low-stakes-practice', params.catalogStage],
-      semanticRefs: {
-        learningGoalIds: [goalId],
-      },
-    };
+    metadata.adaptiveAssessmentItemRef = assessmentCatalogSnapshot(
+      params.questionId,
+      goalId,
+      params.catalogStage,
+    );
   }
 
   return {
@@ -295,7 +303,8 @@ function reviewedAdaptiveAssessmentAnswer(params: {
     isCorrect: true,
     score: 100,
     abilityEstimate: 0.66,
-    answeredAt: new Date('2026-06-04T09:59:00.000Z'),
+    createdAt: params.createdAt ?? new Date('2026-06-04T09:58:00.000Z'),
+    answeredAt: params.answeredAt ?? new Date('2026-06-04T09:59:00.000Z'),
     questionRef: {
       knowledgeTags: ['controller-tuning'],
       questionType: 'multi-criteria',
@@ -315,9 +324,91 @@ function reviewedAdaptiveAssessmentAnswer(params: {
   };
 }
 
+function assessmentCatalogSnapshot(
+  questionId: string,
+  goalId: string,
+  stage: 'readiness' | 'checkpoint' | 'remediation',
+) {
+  const contentHash = `content-hash:${questionId}`;
+  const kaqObjectiveIds = [`knowledge:${goalId}`];
+  const graphNodeIds = [`kn:${goalId}`];
+  const misconceptionRefs = [`misconception:${goalId}`];
+  const remediationRefs = [`registry:${goalId}-remediation`];
+  const versionRefs = { testAssessmentVersion: 'test-assessment.v1' };
+  const reviewDecision = {
+    catalogItemId: `adaptive-assessment-item:${stage}:${questionId}`,
+    decisionKind: 'human-review' as const,
+    outcome: 'approved' as const,
+    reviewerId: 'reviewer:test',
+    reviewedAt: '2026-06-03T00:00:00.000Z',
+    reviewBatchId: 'test-assessment.v1',
+    sourceContentHash: contentHash,
+    selectedLearningGoalIds: [goalId],
+    selectedKaqObjectiveIds: kaqObjectiveIds,
+    selectedGraphNodeIds: graphNodeIds,
+    selectedStagePurpose: stage,
+    difficulty: 0.7,
+    cognitiveLevel: 'apply',
+    misconceptionRefs,
+    remediationRefs,
+    metadataVersionRefs: versionRefs,
+    notes: 'Reviewed test assessment evidence contract.',
+  };
+  const snapshot = {
+    catalogBacked: true,
+    catalogItemId: `adaptive-assessment-item:${stage}:${questionId}`,
+    sourceFamily: 'preset-adaptive-question',
+    sourceId: questionId,
+    sourceAnchor: `test:${questionId}`,
+    sourceLineage: {
+      sourceFamily: 'preset-adaptive-question',
+      sourceId: questionId,
+      sourcePath: null,
+      sourceHash: contentHash,
+    },
+    contentHash,
+    contentHashAlgorithm: 'sha256',
+    reviewState: 'path-eligible',
+    eligibilityState: 'path-eligible',
+    allowedStages: ['low-stakes-practice', stage],
+    questionRefs: {
+      stem: 'Reviewed assessment fixture',
+      answerKey: ['A'],
+      rubricRef: 'rubric:test-assessment.v1',
+    },
+    semanticRefs: {
+      learningGoalIds: [goalId],
+      kaqObjectiveIds,
+      graphNodeIds,
+      knowledgeTags: [goalId],
+      misconceptionTags: misconceptionRefs,
+      remediationResourceNodeIds: remediationRefs,
+      difficulty: 0.7,
+      cognitiveLevel: 'apply',
+      assessmentStage: stage,
+    },
+    versionRefs,
+    limitations: [],
+    reviewDecision: {
+      ...reviewDecision,
+      reviewSourceHash: assessmentItemSemanticReviewSourceHash(reviewDecision),
+    },
+    relationship: {
+      relationship: 'answer-time-snapshot',
+      immutable: true,
+      mayReferenceCatalogItemId: true,
+      mayReferenceContentHash: true,
+      catalogUpdatesRewriteHistoricalAnswers: false,
+    },
+  };
+  mocks.currentCatalogSnapshots.set(questionId, snapshot);
+  return snapshot;
+}
+
 describe('learning path round API routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.currentCatalogSnapshots.clear();
     delete process.env.CONTROL_CORRECTION_PATH_ROUNDS_ENABLED;
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
@@ -1232,6 +1323,48 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it.each([
+    ['post-cutoff answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('2026-07-04T00:00:00.001Z')],
+    ['exact-cutoff createdAt', new Date('2026-07-04T00:00:00.000Z'), new Date('2026-07-03T23:59:59.999Z')],
+    ['exact-cutoff answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('2026-07-04T00:00:00.000Z')],
+    ['invalid createdAt', new Date('invalid'), new Date('2026-07-03T23:59:59.999Z')],
+    ['invalid answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('invalid')],
+  ])('rejects legacy readiness recovery with %s', async (_label, createdAt, answeredAt) => {
+    useStructuredAdaptiveAssessmentPath('adaptive_assessment:answer-legacy-readiness');
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
+      id: 'answer-legacy-readiness',
+      questionId: 'preset-q-01',
+      purpose: 'readiness-gate',
+      nodeId: 'adaptive-quiz:control-target-check',
+      includeCatalogRef: false,
+      createdAt,
+      answeredAt,
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      idempotencyKey: `legacy-readiness-${_label}`,
+      liftMetadata: {
+        adaptiveAssessmentRef: { id: 'answer-legacy-readiness' },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'started',
+      completedAt: null,
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          provenance: 'unknown',
+          mismatchReason: 'adaptive-assessment-readiness-not-eligible',
+        }),
+      }),
+      evidenceRefs: [],
+    }));
+  });
+
   it('does not complete readiness answers without a readiness path question scope', async () => {
     useStructuredAdaptiveAssessmentPath();
     mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
@@ -1543,17 +1676,11 @@ describe('learning path round API routes', () => {
             outcomeRefs: ['quiz-outcome:control-correction:checkpoint:preset-q-04'],
             review: { state: 'reviewed' },
           },
-          adaptiveAssessmentItemRef: {
-            catalogBacked: true,
-            catalogItemId: 'adaptive-assessment-item:preset-adaptive-question:preset-q-04',
-            contentHash: 'reviewed-checkpoint-hash-1',
-            reviewState: 'path-eligible',
-            eligibilityState: 'path-eligible',
-            allowedStages: ['low-stakes-practice', 'checkpoint'],
-            semanticRefs: {
-              learningGoalIds: ['control-correction'],
-            },
-          },
+          adaptiveAssessmentItemRef: assessmentCatalogSnapshot(
+            'preset-q-04',
+            'control-correction',
+            'checkpoint',
+          ),
         },
       },
       abilityEstimateSnapshot: {
@@ -1645,6 +1772,79 @@ describe('learning path round API routes', () => {
         }),
       }),
       evidenceRefs: [{ kind: 'AdaptiveAssessmentAnswer', id: 'answer-legacy-checkpoint' }],
+    }));
+  });
+
+  it('does not let new unsupported checkpoint answers bypass the catalog snapshot contract', async () => {
+    useStructuredCheckpointAssessmentPath();
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
+      ...reviewedAdaptiveAssessmentAnswer({
+        id: 'answer-new-legacy-checkpoint',
+        questionId: 'preset-q-04',
+        purpose: 'checkpoint',
+        nodeId: 'checkpoint:control-correction-review',
+        includeCatalogRef: false,
+      }),
+      answeredAt: new Date('2026-07-05T09:59:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'checkpoint:control-correction-review',
+      resourceType: 'checkpoint',
+      status: 'completed',
+      completedAt: '2026-07-05T10:00:00.000Z',
+      idempotencyKey: 'new-legacy-checkpoint-answer-ref',
+      liftMetadata: {
+        pathActivityKind: 'checkpoint-pass',
+        adaptiveAssessmentRef: { id: 'answer-new-legacy-checkpoint' },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'started',
+      completedAt: null,
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          provenance: 'unknown',
+          mismatchReason: 'adaptive-assessment-readiness-not-eligible',
+        }),
+      }),
+      evidenceRefs: [],
+    }));
+  });
+
+  it('rejects legacy checkpoint answers created after the cutoff even when answeredAt predates it', async () => {
+    useStructuredCheckpointAssessmentPath();
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
+      ...reviewedAdaptiveAssessmentAnswer({
+        id: 'answer-created-after-cutoff',
+        questionId: 'preset-q-04',
+        purpose: 'checkpoint',
+        nodeId: 'checkpoint:control-correction-review',
+        includeCatalogRef: false,
+      }),
+      createdAt: new Date('2026-07-05T09:58:00.000Z'),
+      answeredAt: new Date('2026-07-03T09:59:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'checkpoint:control-correction-review',
+      resourceType: 'checkpoint',
+      status: 'completed',
+      completedAt: '2026-07-05T10:00:00.000Z',
+      idempotencyKey: 'created-after-cutoff-checkpoint-answer-ref',
+      liftMetadata: {
+        pathActivityKind: 'checkpoint-pass',
+        adaptiveAssessmentRef: { id: 'answer-created-after-cutoff' },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'started',
+      completedAt: null,
+      evidenceRefs: [],
     }));
   });
 

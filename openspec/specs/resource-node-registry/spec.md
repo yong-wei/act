@@ -412,3 +412,36 @@ Runtime lesson steps, modules, media, slides, audio/video, PDFs, and handouts SH
 - **THEN** unreviewed runtime lesson and media disposition blockers SHALL be zero
 - **AND** residual blockers SHALL identify concrete missing runtime artifacts, route gaps, or schema conflicts.
 
+### Requirement: Textbook and reference resources have reviewed long-form semantics
+Textbook and reference resources SHALL be reviewed at section/supporting-resource grain before they affect path planning, RAG grounding, or citation presentation.
+
+#### Scenario: Long-form section is path-plannable
+- **WHEN** a textbook or reference section is promoted to path-plannable
+- **THEN** it SHALL include source book/reference ref, section ref, citation target, graph binding, K/A/Q mapping where applicable, LearningGoal fit, prerequisite position, estimated time, path role, authority, privacy, source hash, and review metadata
+- **AND** it SHALL be selectable by the planner only through the reviewed section PlanningUnit.
+
+#### Scenario: Long-form child item is support only
+- **WHEN** a search document, chunk, figure, caption, image description, equation, table, or citation target lacks an independent reviewed PlanningUnit
+- **THEN** it SHALL be classified as supporting-citation, embedded-asset, parent-section evidence, or excluded-with-rationale
+- **AND** it SHALL link to a reviewed parent section where available.
+
+#### Scenario: Long-form batch is complete
+- **WHEN** scoped long-form workqueues are rerun
+- **THEN** unreviewed long-form disposition and citation-anchor blockers SHALL be zero
+- **AND** residual blockers SHALL identify concrete missing source artifacts, anchor gaps, or schema conflicts.
+
+### Requirement: Effective resources use reviewed Canonical bindings
+After the final production cutover, an effective teaching resource that is published, recommendable, path-eligible, or evidence-producing MUST resolve its knowledge scope through active Canonical binding entities rather than Legacy knowledge-node ID arrays.
+
+#### Scenario: Effective resource is consumed
+- **WHEN** a formal consumer loads an effective resource after the final selector activation
+- **THEN** the registry SHALL expose its reviewed Canonical Object, Release, teaching role, and binding version
+
+#### Scenario: Only Legacy IDs are present
+- **WHEN** an effective resource has no active Canonical binding
+- **THEN** the registry SHALL mark it not ready for Canonical cutover rather than inheriting a binding
+
+#### Scenario: Effective resource is consumed before cutover
+- **WHEN** a reviewed Canonical binding exists but Legacy remains the active authority
+- **THEN** the formal registry response SHALL retain Legacy production identity and expose the Canonical binding only through migration review
+

@@ -74,7 +74,8 @@ export function InteractiveProvider({
 
   // 初始化进度钩子
   const progress = useInteractiveProgress({
-    onComplete: (result) => {
+    onComplete: async (result) => {
+      await onComplete?.(result);
       tracking.emit('complete', buildInteractiveCompletionPayload({
         result,
         resultData: readWidgetResultData(result),
@@ -88,7 +89,6 @@ export function InteractiveProvider({
           targetLabel: config.title,
         },
       }));
-      onComplete?.(result);
     },
     onProgressChange: (value) => {
       // 可选：追踪进度变化

@@ -1,0 +1,687 @@
+schema_version: course-knowledge-source-registry/v1
+registry_id: course-knowledge-governance-stage-one
+normalization_profile: course-knowledge-nfc-posix-lf/v1
+algorithm_version: course-knowledge-inventory/v1
+
+scope_contract:
+  decision: ADR-0045
+  readiness_inputs:
+    - current_formal_course_and_reviewed_scope_anchors
+    - current_authoring_content_cards_media_and_resources
+    - current_published_graph_and_binding_migration_comparison
+    - active_knowledge_references
+    - reviewed_active_legacy_to_canonical_mapping
+  active_reference_definition: course, resource, progress, note, or incomplete-path knowledge references still read or continued by current business behavior at cutover
+  post_cutover_fact_rule: every new fact binds atomically to the single active new graph revision
+  historical_fact_rule: preserve the original graph revision; use legacy-unversioned or a legacy snapshot when no revision is provable
+  excluded_from_readiness:
+    - historical_learning_fact_backfill_or_reinterpretation
+    - historical_event_replay_or_deduplication
+    - learner_derived_state_reconciliation
+    - completed_path_migration
+    - full_history_decoder_closure
+    - full_root_writer_equality
+
+repository_codec_contract:
+  schema_version: repository-input-codecs/v1
+  unknown_codec: invalid
+  codecs:
+    - { id: markdown-utf8/v1, media_type: text/markdown, kind: text, include: ["**/*.md"] }
+    - { id: json-utf8/v1, media_type: application/json, kind: text, include: ["**/*.json", "**/*.jsonl"] }
+    - { id: yaml-utf8/v1, media_type: application/yaml, kind: text, include: ["**/*.yaml", "**/*.yml"] }
+    - { id: source-utf8/v1, media_type: text/plain, kind: text, include: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.cjs", "**/*.py", "**/*.sql", "**/*.txt", "**/*.csv", "**/*.html", "**/*.css", "**/*.svg"] }
+    - { id: matlab-utf8/v1, media_type: text/x-matlab, kind: text, include: ["**/*.m"] }
+    - { id: tex-utf8/v1, media_type: application/x-tex, kind: text, include: ["**/*.tex"] }
+    - { id: png/v1, media_type: image/png, kind: binary, signature: png, include: ["**/*.png"] }
+    - { id: pdf/v1, media_type: application/pdf, kind: binary, signature: pdf, include: ["**/*.pdf"] }
+    - { id: jpeg/v1, media_type: image/jpeg, kind: binary, include: ["**/*.jpg", "**/*.jpeg"] }
+    - { id: gif/v1, media_type: image/gif, kind: binary, include: ["**/*.gif"] }
+    - { id: webp/v1, media_type: image/webp, kind: binary, include: ["**/*.webp"] }
+    - { id: mp4/v1, media_type: video/mp4, kind: binary, include: ["**/*.mp4"] }
+    - { id: webm/v1, media_type: video/webm, kind: binary, include: ["**/*.webm"] }
+    - { id: audio/v1, media_type: audio/unknown, kind: binary, include: ["**/*.mp3", "**/*.wav", "**/*.ogg"] }
+    - { id: m4a/v1, media_type: audio/mp4, kind: binary, include: ["**/*.m4a"] }
+    - { id: ppm/v1, media_type: image/x-portable-pixmap, kind: binary, include: ["**/*.ppm"] }
+    - { id: zip/v1, media_type: application/zip, kind: binary, include: ["**/*.zip"] }
+    - { id: tex-build-artifact/v1, media_type: application/x-tex-build-artifact, kind: binary, disposition: invalid-unclassified, include: ["**/*.aux", "**/*.log"] }
+    - { id: python-bytecode/v1, media_type: application/x-python-bytecode, kind: binary, disposition: invalid-unclassified, include: ["**/*.pyc"] }
+    - { id: macos-desktop-metadata/v1, media_type: application/x-apple-ds-store, kind: binary, disposition: invalid-unclassified, include: ["**/.DS_Store"] }
+
+anchor_record_contract:
+  schema_version: course-scope-anchor/v1
+  required_fields:
+    - anchor_id
+    - anchor_scope
+    - anchor_type
+    - course_id
+    - module_id
+    - lesson_id
+    - source_locator
+    - text_digest
+  anchor_types:
+    - formal_objective
+    - necessary_prerequisite
+    - explicit_extension
+  anchor_scopes:
+    course: { module_id: null, lesson_id: null }
+    module: { module_id: required, lesson_id: null }
+    lesson: { module_id: required, lesson_id: required }
+  null_encoding: YAML null; empty strings and synthetic hierarchy IDs are invalid
+  identity_rule: anchor_id is derived from anchor_type, course/module/lesson identities, source_locator, and text_digest
+  stage_one_disposition: evidence_only
+
+instructional_source_role_matrix:
+  binding_content:
+    sources:
+      - { include: course-content/authoring/lessons/**/design/*-handout.md, exclude: course-content/authoring/lessons/**/design/*-teacher-handout.md, audience: student }
+      - { include: course-content/authoring/lessons/**/design/*-teacher-handout.md, audience: teacher }
+      - { include: course-content/authoring/knowledge/cards/nodes/*.md, audience: shared }
+      - { include: course-content/authoring/lessons/**/media/processed/**, audience: student_or_declared }
+      - { include: course-content/authoring/resources/**, audience: declared_required }
+      - { derived: reconciled-actual-activity, audience: declared_required }
+      - { derived: reconciled-actual-assessment, audience: declared_required }
+    binding_candidate_eligible: true
+  planning_evidence:
+    sources:
+      - course-content/authoring/lessons/**/design/*-boppps.md
+      - course-content/authoring/lessons/**/design/*-interactive-page.md
+      - course-content/authoring/lessons/**/design/*-interactive-contract.yaml
+      - course-content/authoring/lessons/**/design/*-multimedia.md
+      - course-content/authoring/knowledge/cards/lessons/**/sequence.json
+    binding_candidate_eligible: false
+    allowed_evidence: [objective, sequence, feedback, misconception, teacher_aggregation, teacher_progression]
+  review_gate_evidence:
+    sources:
+      - course-content/authoring/lessons/**/design/*-interactive-design-acceptance.json
+      - course-content/authoring/lessons/**/notes/interactive-implementation-acceptance.json
+      - course-content/runtime/lessons/**/review/interactive-page-check.json
+      - course-content/runtime/lessons/**/review/interactive-manifest-audit.json
+      - course-content/runtime/lessons/**/review/*.json
+    binding_candidate_eligible: false
+  production_provenance:
+    sources:
+      - course-content/authoring/lessons/**/media/raw/**
+    binding_candidate_eligible: false
+  runtime_projection:
+    sources:
+      - course-content/runtime/lessons/**/lesson.json
+      - course-content/runtime/lessons/**/interactive-manifest.json
+      - course-content/runtime/lessons/**/media/**
+      - course-content/runtime/lessons/**/review/**
+      - course-content/runtime/knowledge/cards/nodes/**
+    binding_candidate_eligible: false
+    truth_role: projection_consistency_only
+  reconciliation_rule: a reconciled activity or assessment becomes binding-candidate eligible only when authoring page, authoring contract, runtime manifest, and required review gates agree on step identity, interaction archetype, order, feedback, and progression semantics
+  blocking_rule: source drift, a non-passing hard gate, repeated prompt identity, missing feedback semantics, or interaction degradation to a static image, single choice, or mechanical fill-in emits unresolved_or_blocked and forbids a formal binding candidate
+
+interaction_semantics_contract:
+  schema_version: interaction-binding-semantics/v1
+  objective_refs:
+    required_for_roles: [teaches, practices, assesses]
+    optional_for_role: references
+    resolver: inventoried formal objective or course-scope-anchor/v1 identity
+    alignment_rule: every ref must resolve and the learner action, expected output, criterion, and candidate concept must be consistent with the referenced objective; disagreement is blocked
+  role_semantics:
+    teaches: { required_fields: [candidate_concept_ref, explanation_or_demonstration_locator], forbidden_fields: [scoring_rule] }
+    practices: { required_fields: [candidate_concept_ref, learner_action, expected_output, completion_criterion] }
+    assesses: { required_fields: [candidate_concept_ref, observable_response, assessment_criterion, scoring_rule, evidence_source] }
+    references: { required_fields: [candidate_concept_ref, citation_locator], forbidden_claims: [instruction, practice, assessment] }
+  feedback:
+    required_fields: [trigger_state, learner_response_state, feedback_outcome, corrective_action, next_task_ref]
+    allowed_outcomes: [correct, partial, incorrect, blocked, retry, teacher_review]
+    missing_rule: unresolved_or_blocked
+  teacher_progression:
+    required_fields: [decision, condition, evidence_ref]
+    allowed_decisions: [hold, release, retry, teacher_override]
+    override_required_fields: [actor_role, reason, recorded_at]
+    missing_rule: unresolved_or_blocked
+  reconciliation_fields: [lesson_id, step_id, activity_id, assessment_id, objective_refs, candidate_concept_ref, instructional_role, interaction_archetype, sequence_position, learner_action, expected_output, observable_response, completion_criterion, assessment_criterion, scoring_rule, evidence_source, feedback, misconception_tags, teacher_aggregation, teacher_progression]
+  sources: [authoring_interactive_page, authoring_interactive_contract, runtime_interactive_manifest, interactive_page_check, implementation_acceptance, manifest_audit]
+  conflict_rule: any missing required field, unresolved reference, cross-source mismatch, or hard-gate failure emits unresolved_or_blocked and forbids a formal binding candidate
+future_child_acceptance_profiles:
+  semantic_block: { profile: semantic-block-governance/v1, phase_order: [semantic_profile, canonical_card, in_block_relation] }
+  cross_identity: { profile: cross-identity-governance/v1, requires_all_endpoint_semantic_blocks: true }
+  cross_relation: { profile: cross-relation-governance/v1, requires_all_endpoint_semantic_blocks: true, requires_cross_identity: true }
+  resource_binding: { profile: resource-binding-governance/v1, requires_all_endpoint_semantic_blocks: true, requires_cross_identity: true }
+  global_closeout: { profile: global-closeout-governance/v1, requires_all_governance_children: true }
+  cutover: { profile: cutover-governance/v1, requires_global_closeout: true }
+
+future_child_acceptance_profile_contract:
+  semantic_profile_required_fields: [unique_semantic_name, strict_definition, semantic_boundary, near_neighbor_distinction, synonyms, scope_basis, domain_membership, foundational_concept_disposition]
+  unknown_profile: fail
+
+knowledge_truth_revision_contract:
+  schema_version: knowledge-truth-revision/v1
+  required_fields: [knowledge_revision_id, effective_at, canonical_identity_manifest_digest, definition_digest, relation_manifest_digest, resource_binding_manifest_digest]
+  revision_id_rule: digest the normalized immutable truth inputs and effective timestamp; mutable labels and display names are not revision identities
+  activation_rule: exactly one revision is active for fact generation at any instant; same-name maintenance creates a new immutable revision without candidate publication or agent review
+  learning_fact_fields: [LearningFact.contextJson.knowledgeRevisionRef, LearningFact.contextJson.knowledgeRevisionRefs, LearningFact.contextJson.evidenceGovernance.knowledgeRevisionRef, LearningFact.contextJson.evidenceGovernance.knowledgeRevisionRefs]
+  decoded_cardinality_rule: applies only to facts written after cutover; each must resolve to exactly one immutable active knowledge_revision_id
+  producer_rule: post-cutover LearningFact producers must resolve and persist the active knowledge_revision_id atomically with fact generation; unknown or missing revision fails that new write
+  historical_rule: existing facts retain their original revision; facts without a provable revision use legacy-unversioned or a legacy snapshot and are never relabeled as current
+  historical_backfill: forbidden
+  cutover_rule: validate the post-cutover new-fact write boundary; do not require historical fact backfill or full producer closure
+
+repository_sources:
+  - id: governance-contract
+    item_kind: governance_contract
+    identity_namespace: repository_path
+    include:
+      - docs/proposals/course-knowledge-base-governance-source-derivation-contract.md
+      - docs/proposals/course-knowledge-base-governance-source-registry.yaml
+      - docs/proposals/course-knowledge-base-rebuild-series.md
+      - docs/contexts/course-knowledge-base/CONTEXT.md
+      - docs/knowledge-graph-current-state-audit-2026-07-18.md
+    missing: fail
+  - id: governance-adrs
+    item_kind: governance_decision
+    identity_namespace: repository_path
+    index_path: docs/adr/README.md
+    index_selector: course-knowledge-base-governance-decision-sources
+    required_number_range: [15, 45]
+    missing: fail
+  - id: formal-course-basis
+    item_kind: course_objective_source
+    identity_namespace: repository_path
+    include:
+      - course-content/syllabus-refactor/main.md
+      - course-content/syllabus-refactor/blueprint.md
+      - course-content/syllabus-refactor/module-skeletons.md
+      - course-content/syllabus-refactor/unit-design-details/**/*.md
+    exclude:
+      - course-content/syllabus-refactor/AGENTS.override.md
+    missing: record
+  - id: lesson-authoring-manifests
+    item_kind: lesson_manifest
+    identity_namespace: course_authoring
+    include:
+      - course-content/authoring/lessons/**/manifest.json
+    exclude: []
+    missing: fail
+  - id: lesson-authoring-content
+    item_kind: instructional_authoring_unit
+    identity_namespace: course_authoring
+    include:
+      - course-content/authoring/lessons/**/design/*-handout.md
+      - course-content/authoring/lessons/**/design/*-teacher-handout.md
+      - course-content/authoring/lessons/**/design/*-boppps.md
+      - course-content/authoring/lessons/**/design/*-multimedia.md
+      - course-content/authoring/lessons/**/design/*-interactive-page.md
+      - course-content/authoring/lessons/**/design/*-interactive-contract.yaml
+      - course-content/authoring/lessons/**/design/*-interactive-design-acceptance.json
+      - course-content/authoring/lessons/**/notes/interactive-implementation-acceptance.json
+      - course-content/authoring/lessons/**/media/**
+    exclude:
+      - course-content/authoring/lessons/**/design/pdf-review/**
+      - course-content/authoring/lessons/**/.DS_Store
+      - course-content/authoring/lessons/**/__pycache__/**
+      - course-content/authoring/lessons/**/*.aux
+      - course-content/authoring/lessons/**/*.log
+    missing: record
+  - id: resource-authoring-content
+    item_kind: instructional_authoring_resource
+    identity_namespace: course_authoring
+    include:
+      - course-content/authoring/resources/**
+    exclude: []
+    truth_role: editable_truth
+    missing: record
+  - id: lesson-projection-producers
+    item_kind: projection_producer
+    identity_namespace: repository_path
+    include:
+      - course-content/scripts/review_lesson_content.py
+      - course-content/scripts/export_runtime.py
+    missing: fail
+  - id: lesson-runtime-evidence
+    item_kind: runtime_projection_evidence
+    identity_namespace: course_runtime
+    include:
+      - course-content/runtime/lessons/**/lesson.json
+      - course-content/runtime/lessons/**/*-handout.md
+      - course-content/runtime/lessons/**/*-handout.pdf
+      - course-content/runtime/lessons/**/interactive-manifest.json
+      - course-content/runtime/lessons/**/graph-overlay.json
+      - course-content/runtime/lessons/**/review/*-boppps.md
+      - course-content/runtime/lessons/**/review/*.json
+      - course-content/runtime/lessons/**/media/**
+    exclude: []
+    truth_role: projection_consistency_only
+    missing: record
+  - id: knowledge-authoring
+    item_kind: knowledge_authoring_source
+    identity_namespace: knowledge_authoring
+    include:
+      - course-content/authoring/knowledge/**
+    exclude:
+      - course-content/authoring/knowledge/**/.DS_Store
+    truth_role: editable_truth
+    missing: record
+  - id: knowledge-runtime-projection
+    item_kind: knowledge_runtime_projection
+    identity_namespace: knowledge_runtime
+    include:
+      - course-content/runtime/knowledge/**
+    exclude: []
+    truth_role: projection_consistency_only
+    reconciliation_key: authoring-relative knowledge artifact identity
+    missing: record
+  - id: resource-governance-runtime-projection
+    item_kind: resource_governance_projection
+    identity_namespace: resource_governance_runtime
+    include:
+      - course-content/runtime/resource-governance/**
+    exclude: []
+    truth_role: projection_consistency_only
+    missing: record
+  - id: resource-registry-source
+    item_kind: registry_entry_source
+    identity_namespace: registry_entry
+    include:
+      - src/lib/resource-registry.tsx
+    exclude: []
+    missing: record
+  - id: knowledge-runtime-loaders
+    item_kind: runtime_loader
+    identity_namespace: repository_path
+    include:
+      - src/lib/knowledge-graph-source.ts
+      - src/app/api/knowledge/nodes/route.ts
+    missing: fail
+database_snapshot:
+  mode:
+    allowed:
+      - immutable_export
+      - repeatable_read_read_only
+  required_metadata:
+    - snapshot_id
+    - captured_at
+    - dataset_watermarks
+    - snapshot_proof
+  proof_profiles:
+    repeatable_read_read_only:
+      required:
+        - transaction_isolation
+        - transaction_started_at
+        - exported_snapshot_token
+        - shared_snapshot_import_count
+      consistency_rule: every query shares one transaction or imports the same exported snapshot token
+    immutable_export:
+      required:
+        - export_object_id
+        - generated_at
+        - export_digest
+      consistency_rule: every dataset is read from the same immutable export object and aggregate digest
+  snapshot_id_rule: derive snapshot_id from the selected proof profile; caller-supplied labels are invalid
+  repository_row_policy: no learner row content or row digest is committed
+
+database_sources:
+  - id: course-basis
+    tables: [CourseBasis, CourseBasisDocument, CourseBasisDocumentVersion, CourseBasisSegment, CourseBasisProjection, CourseBasisReferenceLink]
+    fields:
+      CourseBasis: [id, courseIdentity, title, description, createdAt, updatedAt]
+      CourseBasisDocument: [id, courseBasisId, title, kind, createdAt, updatedAt]
+      CourseBasisDocumentVersion: [id, documentId, versionNumber, sourceType, sourceName, mimeType, contentHash, normalizedText, extractionState, extractionVersion, reviewState, retiredAt, createdAt]
+      CourseBasisSegment: [id, versionId, orderIndex, stableAnchor, headingPath, pageNumber, paragraphNumber, text, contentHash]
+      CourseBasisProjection: [id, versionId, segmentId, projectionKey, corpusSourceId, projectedAt]
+      CourseBasisReferenceLink: [id, versionId, referenceType, referenceId, createdAt]
+    observation_contracts:
+      CourseBasisDocument.kind: { discriminators: [STANDARD, TEXTBOOK, OTHER], zero_observation: allow_if_table_empty }
+      CourseBasisDocumentVersion.extractionVersion: { versions: [course-basis-extraction.v1], zero_observation: allow_if_table_empty }
+      CourseBasisDocumentVersion.sourceType: { discriminators: [MARKDOWN, PLAIN_TEXT, PASTED_TEXT, SEARCHABLE_PDF], zero_observation: allow_if_table_empty }
+      CourseBasisDocumentVersion.mimeType: { discriminators: [text/markdown, text/plain, application/pdf], zero_observation: allow_if_table_empty }
+      CourseBasisDocumentVersion.extractionState: { discriminators: [EXTRACTED, UNSUPPORTED, FAILED], zero_observation: allow_if_table_empty }
+      CourseBasisDocumentVersion.reviewState: { discriminators: [PENDING, CONFIRMED, REJECTED], zero_observation: allow_if_table_empty }
+    item_kind: course_objective_source
+    identity_namespace: course_basis
+    privacy: non_learner
+  - id: canonical-knowledge-projection
+    tables: [KnowledgeNode, KnowledgeLink]
+    fields:
+      KnowledgeNode: [id, name, nodeType, description, bloomLevel, knowledgeDim, content, metadata, resources, tags, isActive]
+      KnowledgeLink: [id, sourceId, targetId, relation, strength, metadata]
+    json_selectors:
+      KnowledgeNode.metadata:
+        - $.chapter
+        - $.chapterName
+        - $.domain
+    observation_contracts:
+      KnowledgeNode.nodeType: { discriminators: [THEORY, CONCEPT, METHOD, SKILL, APPLICATION, ETHICS, SCENARIO], zero_observation: forbid }
+      KnowledgeNode.isActive: { discriminators: ['true', 'false'], zero_observation: forbid }
+      KnowledgeNode.metadata: { historical_shapes: [object], zero_observation: forbid }
+      KnowledgeLink.relation: { discriminators: [applies_to, association, complements, contains, contrasts_with, cross_domain, defines, derives, describes_migration_of, determines, embodies, enables, example, explains, follows, generalizes, governs, implements, influences, informs, instance_of, leads_to, opposite, prerequisite, quantified_by, related, supports, uses, visualized_by, 建模基础, 引出机械建模, 引出电路建模, 机电类比, 电路应用, 非线性扩展], zero_observation: forbid }
+    item_kind: knowledge_projection
+    identity_namespace: canonical_knowledge_node
+    privacy: non_learner
+  - id: lesson-plan-arrangement
+    tables: [LessonPlan]
+    fields:
+      LessonPlan: [id, title, description, isPublic, isPreset, presetKey, createdAt, updatedAt]
+    observation_contracts:
+      LessonPlan.isPublic: { discriminators: ['true', 'false'], zero_observation: forbid }
+    item_kind: course_arrangement
+    identity_namespace: lesson_plan
+    privacy: non_learner
+  - id: lesson-item-arrangement
+    tables: [LessonItem]
+    fields:
+      LessonItem: [id, planId, itemType, resourceId, knowledgeNodeId, stage, order, duration, overrideConfig, createdAt]
+    observation_contracts:
+      LessonItem.itemType: { discriminators: [KNOWLEDGE_NODE, RESOURCE], zero_observation: forbid }
+      LessonItem.stage: { discriminators: [BRIDGE_IN, OBJECTIVE, PARTICIPATORY, POST_ASSESSMENT, PRE_ASSESSMENT, SUMMARY], zero_observation: forbid }
+    item_kind: lesson_item
+    identity_namespace: lesson_item
+    privacy: non_learner
+  - id: teaching-resource-projection
+    tables: [TeachingResource]
+    fields:
+      TeachingResource: [id, title, description, type, content, registryId, category, displayName, displayOrder, teacherOnly, config, aiHints, createdAt, updatedAt, knowledgeNodes]
+    observation_contracts:
+      TeachingResource.type: { discriminators: [ETHICS_SCENARIO, INTERACTIVE_COMP, SIMULATION, SIMULATION_APP, STATIC_MEDIA, STATIC_TEXT, VIDEO], zero_observation: forbid }
+      TeachingResource.teacherOnly: { discriminators: ['true', 'false'], zero_observation: forbid }
+    relation_observation_contracts:
+      TeachingResource.knowledgeNodes: { join_table: _KnowledgeNodeToTeachingResource, owner_column: B, target_column: A }
+    logical_selectors:
+      - TeachingResource.knowledgeNodes[*].id
+    item_kind: resource
+    identity_namespace: teaching_resource
+    privacy: non_learner
+  - id: active-knowledge-references
+    tables: [KnowledgeProgress, LearningPath, LearningNote]
+    learner_identity_fields:
+      KnowledgeProgress: userId
+      LearningPath: userId
+      LearningNote: userId
+    fields:
+      KnowledgeProgress: [nodeId]
+      LearningPath: [id, userId, pathStatus, nodeIds, currentNodeId, entryNodeId, pathPayload]
+      LearningNote: [nodeId]
+    observation_contracts:
+      LearningPath.pathStatus: { discriminators: [active, fallback, legacy, completed], zero_observation: forbid }
+    json_selectors:
+      LearningPath.pathPayload:
+        - $.currentNodeId
+        - $.mainPathNodeIds[*]
+        - $.planNodes[*].nodeId
+        - $.planNodes[*].resourceNodeId
+        - $.planNodes[*].prerequisiteNodeIds[*]
+        - $.planNodes[*].prerequisiteBasis[*].nodeId
+        - $.planNodes[*].readiness.requiredCompletedNodeIds[*]
+        - $.planNodes[*].readiness.fallbackNodeIds[*]
+        - $.planNodes[*].readiness.missingCompletedNodeIds[*]
+        - $.alternatives[*].nodeId
+        - $.alternatives[*].nodeIds[*]
+        - $.pathOptions[*].nodeIds[*]
+        - $.pathOptions[*].activeNodeIds[*]
+        - $.pathOptions[*].lockedNodeIds[*]
+        - $.pathOptions[*].terminalValidationNodeIds[*]
+        - $.pathOptions[*].checkpointNodeIds[*]
+        - $.pathOptions[*].readinessSummary[*].nodeId
+        - $.pathOptions[*].unlockMessages[*].nodeId
+        - $.pathOptions[*].nodeSummaries[*].nodeId
+        - $.pathOptions[*].terminalValidationStrategy.nodeIds[*]
+        - $.pathOptions[*].planNodes[*].nodeId
+        - $.pathOptions[*].planNodes[*].resourceNodeId
+        - $.pathOptions[*].planNodes[*].prerequisiteNodeIds[*]
+        - $.pathOptions[*].planNodes[*].prerequisiteBasis[*].nodeId
+        - $.pathOptions[*].planNodes[*].readiness.requiredCompletedNodeIds[*]
+        - $.pathOptions[*].planNodes[*].readiness.fallbackNodeIds[*]
+        - $.pathOptions[*].planNodes[*].readiness.missingCompletedNodeIds[*]
+        - $.policyBundle.paths[*].nodeIds[*]
+        - $.policyBundle.paths[*].activeNodeIds[*]
+        - $.policyBundle.paths[*].lockedNodeIds[*]
+        - $.policyBundle.paths[*].terminalValidationNodeIds[*]
+        - $.policyBundle.paths[*].checkpointNodeIds[*]
+        - $.policyBundle.paths[*].readinessSummary[*].nodeId
+        - $.policyBundle.paths[*].unlockMessages[*].nodeId
+        - $.policyBundle.paths[*].nodeSummaries[*].nodeId
+        - $.policyBundle.paths[*].terminalValidationStrategy.nodeIds[*]
+        - $.policyBundle.paths[*].planNodes[*].nodeId
+        - $.policyBundle.paths[*].planNodes[*].resourceNodeId
+        - $.policyBundle.paths[*].planNodes[*].prerequisiteNodeIds[*]
+        - $.policyBundle.paths[*].planNodes[*].prerequisiteBasis[*].nodeId
+        - $.policyBundle.paths[*].planNodes[*].readiness.requiredCompletedNodeIds[*]
+        - $.policyBundle.paths[*].planNodes[*].readiness.fallbackNodeIds[*]
+        - $.policyBundle.paths[*].planNodes[*].readiness.missingCompletedNodeIds[*]
+        - $.constraintRepair.draftNodeIds[*]
+        - $.constraintRepair.repairedNodeIds[*]
+        - $.constraintRepair.insertedNodeIds[*]
+        - $.constraintRepair.removedNodeIds[*]
+        - $.constraintRepair.checkpointNodeIds[*]
+        - $.constraintRepair.terminalValidationNodeIds[*]
+        - $.constraintRepair.infeasibleReasons[*].nodeIds[*]
+        - $.executionStatus.activeNodeId
+        - $.executionStatus.currentNodeId
+        - $.executionStatus.completedNodeIds[*]
+        - $.executionStatus.failedNodeIds[*]
+        - $.executionStatus.skippedNodeIds[*]
+        - $.executionStatus.nextNodeIds[*]
+        - $.executionStatus.remainingNodeIds[*]
+        - $.explanations.rejectedAlternatives[*].nodeId
+        - $.explanations.rejectedAlternatives[*].nodeIds[*]
+        - $.explanations.associativeRetrieval.candidateResourceNodeIds[*]
+        - $.explanations.associativeRetrieval.selectedCandidateNodeIds[*]
+        - $.explanations.associativeRetrieval.rejectedCandidates[*].resourceNodeId
+        - $.visualization.map.currentNodeId
+        - $.visualization.map.mainPathNodeIds[*]
+        - $.visualization.map.completedNodeIds[*]
+        - $.visualization.map.riskNodeIds[*]
+        - $.visualization.map.branchPaths[*].fromNodeId
+        - $.visualization.map.branchPaths[*].nodeIds[*]
+        - $.visualization.map.blockedNodes[*].nodeId
+        - $.visualization.map.blockedNodes[*].nodeIds[*]
+        - $.visualization.map.alternatives[*].nodeId
+        - $.visualization.map.alternatives[*].nodeIds[*]
+        - $.visualization.timeline.windows[*].nodeIds[*]
+        - $.visualization.evidence.prerequisiteReasons[*].nodeId
+        - $.visualization.evidence.prerequisiteReasons[*].prerequisiteNodeIds[*]
+        - $.visualization.evidence.teacherPolicy[*].nodeId
+        - $.visualization.evidence.alternatives[*].nodeId
+        - $.visualization.evidence.alternatives[*].nodeIds[*]
+        - $.visualization.evidence.associativeRetrieval.candidateResourceNodeIds[*]
+        - $.visualization.evidence.associativeRetrieval.selectedCandidateNodeIds[*]
+        - $.visualization.evidence.associativeRetrieval.rejectedCandidates[*].resourceNodeId
+        - $.deviations[*].nodeId
+        - $.deviations[*].priorNodeId
+        - $.deviations[*].targetNodeId
+        - $.corrections[*].nodeIds[*]
+        - $.feedbackEvents[*].nodeId
+        - $.activity[*].nodeId
+        - $.activity[*].nodeIds[*]
+        - $.selectionHistory[*].nodeId
+    item_kind: active_reference
+    identity_namespace: field_decoder_required
+    privacy: schema_count_aggregate_only
+    inclusion_rule: include only progress, note, and LearningPath references where pathStatus != completed and a current business reader still reads or continues that path at cutover
+    exclusion_rule: exclude completed LearningPath rows and every historical fact, event, execution, deviation, intervention, or derived-state row
+    current_business_readers:
+      - src/app/api/learning-paths/route-helpers.ts
+      - src/app/api/learning-paths/latest/route.ts
+      - src/app/api/learning-paths/[id]/journey/route.ts
+    readiness_tables: [KnowledgeProgress, LearningPath, LearningNote]
+    readiness_fields:
+      KnowledgeProgress: [nodeId]
+      LearningPath: [pathStatus, nodeIds, currentNodeId, entryNodeId, pathPayload]
+      LearningNote: [nodeId]
+    path_status_rule: include exactly when pathStatus != completed and at least one declared current_business_reader reads or continues the row; completed paths are excluded regardless of retained payloads
+decoder_common_contract:
+  schema_version: active-reference-decoder-common/v1
+  applies_to: [learning-path-payload/v1]
+  selector_language: JSONPath
+  scope_rule: decode only LearningPath rows admitted by the closed active-path predicate
+  unknown_id_bearing_field: fail_bounded_active_reference
+  schema_digest_rule: digest normalized schema_source, selectors, namespaces, joins, and the active-path predicate
+
+decoder_contracts:
+  learning-path-payload/v1:
+    root_type: object
+    schema_source: src/lib/path-node-id-alias-remap.ts#remapAdaptivePathPayloadReferences
+    parent_join: LearningPath.id -> LearningPath.pathPayload
+    reference_namespace: mixed_path_node_ref
+    field_namespaces:
+      nodeId: mixed_path_node_ref
+      nodeIds: mixed_path_node_ref
+      resourceNodeId: resource_node_ref
+      candidateResourceNodeIds: resource_node_ref
+      selectedCandidateNodeIds: resource_node_ref
+    mixed_identity_resolution: resolve only through inventoried typed source identity; unresolved values fail only the bounded active-reference input
+    selectors:
+      - $.currentNodeId
+      - $.mainPathNodeIds[*]
+      - $.planNodes[*].nodeId
+      - $.planNodes[*].resourceNodeId
+      - $.planNodes[*].prerequisiteNodeIds[*]
+      - $.planNodes[*].prerequisiteBasis[*].nodeId
+      - $.planNodes[*].readiness.requiredCompletedNodeIds[*]
+      - $.planNodes[*].readiness.fallbackNodeIds[*]
+      - $.planNodes[*].readiness.missingCompletedNodeIds[*]
+      - $.alternatives[*].nodeId
+      - $.alternatives[*].nodeIds[*]
+      - $.pathOptions[*].nodeIds[*]
+      - $.pathOptions[*].activeNodeIds[*]
+      - $.pathOptions[*].lockedNodeIds[*]
+      - $.pathOptions[*].terminalValidationNodeIds[*]
+      - $.pathOptions[*].checkpointNodeIds[*]
+      - $.pathOptions[*].readinessSummary[*].nodeId
+      - $.pathOptions[*].unlockMessages[*].nodeId
+      - $.pathOptions[*].nodeSummaries[*].nodeId
+      - $.pathOptions[*].terminalValidationStrategy.nodeIds[*]
+      - $.pathOptions[*].planNodes[*].nodeId
+      - $.pathOptions[*].planNodes[*].resourceNodeId
+      - $.pathOptions[*].planNodes[*].prerequisiteNodeIds[*]
+      - $.pathOptions[*].planNodes[*].prerequisiteBasis[*].nodeId
+      - $.pathOptions[*].planNodes[*].readiness.requiredCompletedNodeIds[*]
+      - $.pathOptions[*].planNodes[*].readiness.fallbackNodeIds[*]
+      - $.pathOptions[*].planNodes[*].readiness.missingCompletedNodeIds[*]
+      - $.policyBundle.paths[*].nodeIds[*]
+      - $.policyBundle.paths[*].activeNodeIds[*]
+      - $.policyBundle.paths[*].lockedNodeIds[*]
+      - $.policyBundle.paths[*].terminalValidationNodeIds[*]
+      - $.policyBundle.paths[*].checkpointNodeIds[*]
+      - $.policyBundle.paths[*].readinessSummary[*].nodeId
+      - $.policyBundle.paths[*].unlockMessages[*].nodeId
+      - $.policyBundle.paths[*].nodeSummaries[*].nodeId
+      - $.policyBundle.paths[*].terminalValidationStrategy.nodeIds[*]
+      - $.policyBundle.paths[*].planNodes[*].nodeId
+      - $.policyBundle.paths[*].planNodes[*].resourceNodeId
+      - $.policyBundle.paths[*].planNodes[*].prerequisiteNodeIds[*]
+      - $.policyBundle.paths[*].planNodes[*].prerequisiteBasis[*].nodeId
+      - $.policyBundle.paths[*].planNodes[*].readiness.requiredCompletedNodeIds[*]
+      - $.policyBundle.paths[*].planNodes[*].readiness.fallbackNodeIds[*]
+      - $.policyBundle.paths[*].planNodes[*].readiness.missingCompletedNodeIds[*]
+      - $.constraintRepair.draftNodeIds[*]
+      - $.constraintRepair.repairedNodeIds[*]
+      - $.constraintRepair.insertedNodeIds[*]
+      - $.constraintRepair.removedNodeIds[*]
+      - $.constraintRepair.checkpointNodeIds[*]
+      - $.constraintRepair.terminalValidationNodeIds[*]
+      - $.constraintRepair.infeasibleReasons[*].nodeIds[*]
+      - $.executionStatus.activeNodeId
+      - $.executionStatus.currentNodeId
+      - $.executionStatus.completedNodeIds[*]
+      - $.executionStatus.failedNodeIds[*]
+      - $.executionStatus.skippedNodeIds[*]
+      - $.executionStatus.nextNodeIds[*]
+      - $.executionStatus.remainingNodeIds[*]
+      - $.explanations.rejectedAlternatives[*].nodeId
+      - $.explanations.rejectedAlternatives[*].nodeIds[*]
+      - $.explanations.associativeRetrieval.candidateResourceNodeIds[*]
+      - $.explanations.associativeRetrieval.selectedCandidateNodeIds[*]
+      - $.explanations.associativeRetrieval.rejectedCandidates[*].resourceNodeId
+      - $.visualization.map.currentNodeId
+      - $.visualization.map.mainPathNodeIds[*]
+      - $.visualization.map.completedNodeIds[*]
+      - $.visualization.map.riskNodeIds[*]
+      - $.visualization.map.branchPaths[*].fromNodeId
+      - $.visualization.map.branchPaths[*].nodeIds[*]
+      - $.visualization.map.blockedNodes[*].nodeId
+      - $.visualization.map.blockedNodes[*].nodeIds[*]
+      - $.visualization.map.alternatives[*].nodeId
+      - $.visualization.map.alternatives[*].nodeIds[*]
+      - $.visualization.timeline.windows[*].nodeIds[*]
+      - $.visualization.evidence.prerequisiteReasons[*].nodeId
+      - $.visualization.evidence.prerequisiteReasons[*].prerequisiteNodeIds[*]
+      - $.visualization.evidence.teacherPolicy[*].nodeId
+      - $.visualization.evidence.alternatives[*].nodeId
+      - $.visualization.evidence.alternatives[*].nodeIds[*]
+      - $.visualization.evidence.associativeRetrieval.candidateResourceNodeIds[*]
+      - $.visualization.evidence.associativeRetrieval.selectedCandidateNodeIds[*]
+      - $.visualization.evidence.associativeRetrieval.rejectedCandidates[*].resourceNodeId
+      - $.deviations[*].nodeId
+      - $.deviations[*].priorNodeId
+      - $.deviations[*].targetNodeId
+      - $.corrections[*].nodeIds[*]
+      - $.feedbackEvents[*].nodeId
+      - $.activity[*].nodeId
+      - $.activity[*].nodeIds[*]
+      - $.selectionHistory[*].nodeId
+
+field_decoders:
+  - source_field: LessonItem.knowledgeNodeId
+    item_kind: instructional_reference
+    identity_namespace: canonical_knowledge_node
+  - source_field: TeachingResource.knowledgeNodes
+    item_kind: instructional_reference
+    identity_namespace: canonical_knowledge_node
+  - source_field: KnowledgeProgress.nodeId
+    item_kind: active_reference
+    identity_namespace: canonical_knowledge_node
+  - source_field: LearningNote.nodeId
+    item_kind: active_reference
+    identity_namespace: canonical_knowledge_node
+  - source_field: LearningPath.nodeIds
+    item_kind: active_reference
+    identity_namespace: mixed_path_node_ref
+    discriminator: LearningPath.pathPayload
+  - source_field: LearningPath.currentNodeId
+    item_kind: active_reference
+    identity_namespace: mixed_path_node_ref
+    discriminator: LearningPath.pathPayload
+  - source_field: LearningPath.entryNodeId
+    item_kind: active_reference
+    identity_namespace: mixed_path_node_ref
+    discriminator: LearningPath.pathPayload
+  - source_field: LearningPath.pathPayload
+    item_kind: active_reference
+    identity_namespace: mixed_path_node_ref
+    json_decoder: learning-path-payload/v1
+
+closed_namespaces:
+  - canonical_knowledge_node
+  - graph_node_ref
+  - knowledge_revision_ref
+  - artifact_version_ref
+  - resource_node_ref
+  - knowledge_authoring
+  - knowledge_runtime
+  - resource_governance_runtime
+  - mixed_path_node_ref
+  - course_basis
+  - course_authoring
+  - course_runtime
+  - course
+  - course_module
+  - lesson
+  - lesson_plan
+  - lesson_item
+  - teaching_resource
+  - resource_container
+  - registry_entry
+  - runtime_projection
+  - assessment
+  - activity
+  - citation
+  - source
+  - repository_path
+  - field_decoder_required
+
+failure_rules:
+  - unknown item_kind, identity_namespace, or source_field combinations fail only when they belong to one of the five declared readiness_inputs
+  - mixed_path_node_ref without an explicit discriminator fails only for a LearningPath row admitted by the active path predicate
+  - equal source_id values in different namespaces remain distinct
+  - missing required sources fail only within the five declared readiness_inputs; optional missing readiness sources emit deterministic missing records
+  - declared Prisma tables and fields used by active-knowledge-references must exist in the current DMMF
+  - the LearningPath.pathPayload decoder is schema-aware and unknown ID-bearing fields fail closed only for admitted incomplete paths
+  - every field_decoders json_decoder resolves to the bounded active-reference decoder contract and participates in its digest
+  - a post-cutover new LearningFact without exactly one active knowledge revision fails that new write
+  - historical facts, events, execution rows, derived state, lineage, decoder coverage, and writer discovery are rejected as out-of-scope inputs and produce no missing-input, unknown-shape, or readiness finding

@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, X } from 'lucide-react';
 
-import type { GovernedQuestionSummary } from './assignment-ui-contracts';
+import {
+  governedQuestionMetadataLabel,
+  type GovernedQuestionSummary,
+} from './assignment-ui-contracts';
 
 export function GovernedQuestionPicker({
   open,
@@ -155,14 +158,49 @@ export function GovernedQuestionPicker({
               />
             </label>
             {[
-              ['来源', source, setSource, options('sourceFamily')],
-              ['题型', type, setType, options('questionType')],
+              [
+                '来源',
+                source,
+                setSource,
+                options('sourceFamily'),
+                (entry: string) =>
+                  governedQuestionMetadataLabel('source', entry),
+              ],
+              [
+                '题型',
+                type,
+                setType,
+                options('questionType'),
+                (entry: string) =>
+                  governedQuestionMetadataLabel('questionType', entry),
+              ],
               ['知识点', knowledge, setKnowledge, options('knowledgeTags')],
               ['难度', difficulty, setDifficulty, options('difficulty')],
-              ['审核', review, setReview, options('reviewState')],
-              ['评分标准', rubric, setRubric, options('rubricReadiness')],
-              ['版本', version, setVersion, options('sourceVersion')],
-            ].map(([label, value, setter, values]) => (
+              [
+                '审核',
+                review,
+                setReview,
+                options('reviewState'),
+                (entry: string) =>
+                  governedQuestionMetadataLabel('reviewState', entry),
+              ],
+              [
+                '评分标准',
+                rubric,
+                setRubric,
+                options('rubricReadiness'),
+                (entry: string) =>
+                  governedQuestionMetadataLabel('rubricReadiness', entry),
+              ],
+              [
+                '版本',
+                version,
+                setVersion,
+                options('sourceVersion'),
+                (entry: string) =>
+                  governedQuestionMetadataLabel('version', entry),
+              ],
+            ].map(([label, value, setter, values, formatValue]) => (
               <label
                 key={String(label)}
                 className="block text-xs text-slate-400"
@@ -178,7 +216,9 @@ export function GovernedQuestionPicker({
                   <option value="ALL">全部</option>
                   {(values as string[]).map((entry) => (
                     <option key={entry} value={entry}>
-                      {entry}
+                      {formatValue
+                        ? (formatValue as (value: string) => string)(entry)
+                        : entry}
                     </option>
                   ))}
                 </select>
@@ -214,10 +254,36 @@ export function GovernedQuestionPicker({
                       className="rounded-xl border border-slate-700 p-4"
                     >
                       <div className="flex flex-wrap gap-2 text-xs text-slate-400">
-                        <span>{item.sourceFamily}</span>
-                        <span>{item.questionType}</span>
-                        <span>{item.reviewState}</span>
-                        <span>{item.sourceVersion}</span>
+                        <span>
+                          {governedQuestionMetadataLabel(
+                            'source',
+                            item.sourceFamily,
+                          )}
+                        </span>
+                        <span>
+                          {governedQuestionMetadataLabel(
+                            'questionType',
+                            item.questionType,
+                          )}
+                        </span>
+                        <span>
+                          {governedQuestionMetadataLabel(
+                            'reviewState',
+                            item.reviewState,
+                          )}
+                        </span>
+                        <span>
+                          {governedQuestionMetadataLabel(
+                            'version',
+                            item.sourceVersion,
+                          )}
+                        </span>
+                        <span>
+                          {governedQuestionMetadataLabel(
+                            'rubricReadiness',
+                            item.rubricReadiness,
+                          )}
+                        </span>
                       </div>
                       <p className="mt-3 text-sm text-white">
                         {item.stemPreview}

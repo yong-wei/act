@@ -2,18 +2,20 @@ import type { LearningFact, Prisma } from '@prisma/client';
 
 import type { EvidenceQuestionSummary } from './competency-engine';
 import {
-  COMPETENCY_DIMENSIONS,
-  type CompetencyDimension,
-} from './competency-model';
+  mapLegacyCompetencyDimensionToPortraitV2,
+  PORTRAIT_V2_DIMENSION_IDS,
+  type PortraitV2DimensionId,
+} from './kaq-objective-taxonomy';
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy dimension filters remain accepted for historical evidence queries.
+import { COMPETENCY_DIMENSIONS, type CompetencyDimension } from './competency-model';
 import {
   summarizeSubmissionEvidencePayload,
   type SubmissionEvidenceQuality,
 } from './submission-evidence-quality';
-
 export interface EvidenceTimelineFilters {
   cursor?: string;
   limit?: number;
-  dimension?: CompetencyDimension;
+  dimension?: PortraitV2DimensionId | CompetencyDimension;
   lessonId?: string;
   factType?: string;
   outcome?: string;
@@ -696,17 +698,34 @@ function resolveQuality(
 
 function matchesDimension(
   fact: LearningFactTimelineRecord,
-  dimension?: CompetencyDimension
+  dimension?: PortraitV2DimensionId | CompetencyDimension
 ): boolean {
   if (!dimension) return true;
   const contribution = readNumericRecord(fact.competencyContribution);
-  return Number.isFinite(contribution[dimension]) && contribution[dimension] !== 0;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: accept historical six-dimensional filters while mapping to v2.
+  if (COMPETENCY_DIMENSIONS.includes(dimension as CompetencyDimension)) {
+    return Number.isFinite(contribution[dimension as CompetencyDimension]) &&
+      contribution[dimension as CompetencyDimension] !== 0;
+  }
+  const portraitDimension = dimension as PortraitV2DimensionId;
+  if (Number.isFinite(contribution[portraitDimension]) && contribution[portraitDimension] !== 0) {
+    return true;
+  }
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: map legacy evidence contributions into portrait dimensions.
+  return COMPETENCY_DIMENSIONS.some((legacyDimension) =>
+    mapLegacyCompetencyDimensionToPortraitV2(legacyDimension).targetDimensions.includes(portraitDimension) &&
+    Number.isFinite(contribution[legacyDimension]) && contribution[legacyDimension] !== 0
+  );
 }
 
-function parseDimension(value: string | null): CompetencyDimension | undefined {
+function parseDimension(value: string | null): PortraitV2DimensionId | CompetencyDimension | undefined {
   const dimension = readSearchString(value);
-  return COMPETENCY_DIMENSIONS.includes(dimension as CompetencyDimension)
-    ? dimension as CompetencyDimension
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: parse historical dimension ids for compatibility queries.
+  if (COMPETENCY_DIMENSIONS.includes(dimension as CompetencyDimension)) {
+    return dimension as CompetencyDimension;
+  }
+  return PORTRAIT_V2_DIMENSION_IDS.includes(dimension as PortraitV2DimensionId)
+    ? dimension as PortraitV2DimensionId
     : undefined;
 }
 

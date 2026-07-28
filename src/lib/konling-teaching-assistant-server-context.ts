@@ -13,6 +13,9 @@ import {
   resolveKonlingTeachingAssistantMode,
   type KonlingRuntimeContext,
   type KonlingRuntimeScope,
+  type KonlingSmartPrepSessionBinding,
+  type KonlingSmartPreparationAmbiguity,
+  type KonlingSmartPreparationConfirmedDecision,
   type KonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-agent-runtime';
 
@@ -71,6 +74,14 @@ interface CourseEnhancementPackReader {
   }): Promise<{ id: string; sourcePrepPackId: string; classId: string; teacherId: string; goalId: string; status?: string | null } | null>;
 }
 
+interface SmartLessonTaskContextReader {
+  findFirst(input: any): Promise<unknown | null>;
+}
+
+interface CourseBasisContextReader {
+  findMany(input: any): Promise<unknown[]>;
+}
+
 interface DiagnosisReportSnapshotReader {
   findMany(input: {
     where: {
@@ -89,6 +100,8 @@ export interface KonlingTeachingAssistantServerContextDb {
   class?: ClassReader;
   teachingResource?: TeachingResourceReader;
   courseEnhancementPack?: CourseEnhancementPackReader;
+  smartLessonTask?: SmartLessonTaskContextReader;
+  courseBasis?: CourseBasisContextReader;
   diagnosisReportSnapshot?: DiagnosisReportSnapshotReader;
 }
 
@@ -157,6 +170,17 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
     return resolvePrepCoauthorModeContext({ ...input, clientContextHints: verifiedHints });
   }
   return {};
+}
+
+export function resolveKonlingSmartPrepSessionBinding(
+  context: KonlingTeachingAssistantServerModeContext,
+): KonlingSmartPrepSessionBinding | null {
+  const task = context.smartPreparation;
+  if (!task?.taskId?.trim() || !task.taskRevision?.trim()) return null;
+  return {
+    taskId: task.taskId,
+    taskRevision: task.taskRevision,
+  };
 }
 
 export function resolveKonlingTeachingAssistantSignedGraphNodeId(input: {
@@ -327,17 +351,125 @@ async function resolveClassSummarizerModeContext(input: {
   };
 }
 
-function resolvePrepCoauthorModeContext(input: {
+async function resolvePrepCoauthorModeContext(input: {
   db: KonlingTeachingAssistantServerContextDb;
   scope: KonlingRuntimeScope;
   clientContextHints?: Record<string, unknown> | null;
 }): Promise<KonlingTeachingAssistantServerModeContext> {
-  if (input.scope.role !== 'teacher' && input.scope.role !== 'admin') return Promise.resolve({});
-  if (!input.scope.classId || !input.db.courseEnhancementPack) return Promise.resolve({});
+  const smartTaskId = stringHint(input.clientContextHints, 'smartTaskId');
+  if (smartTaskId || isSmartPrepPage(input.scope.pageId)) {
+    if (
+      input.scope.role !== 'teacher' ||
+      input.scope.authenticatedUserId !== input.scope.targetUserId ||
+      !isSmartPrepPage(input.scope.pageId) ||
+      (smartTaskId && !input.db.smartLessonTask)
+    ) return {};
+    if (!smartTaskId) {
+      const courseBases = await input.db.courseBasis?.findMany({
+        where: { ownerId: input.scope.authenticatedUserId },
+        orderBy: { updatedAt: 'desc' },
+        take: 20,
+        select: {
+          id: true,
+          title: true,
+          documents: {
+            select: {
+              id: true,
+              title: true,
+              versions: {
+                where: { reviewState: 'CONFIRMED', retiredAt: null },
+                orderBy: { versionNumber: 'desc' },
+                take: 5,
+                select: { id: true, versionNumber: true },
+              },
+            },
+          },
+        },
+      }) ?? [];
+      return {
+        'prep-pack': true,
+        'task-ambiguities': true,
+        'teacher-review-state': true,
+        'clarification-readiness': true,
+        smartPreparation: {
+          taskId: null,
+          taskRevision: null,
+          bootstrap: true,
+          currentTask: { availableCourseBases: courseBases },
+          selectedCourseBasisVersions: [],
+          unresolvedAmbiguities: [],
+          confirmedDecisions: [],
+          citationState: 'unselected',
+          reviewState: 'draft',
+          clarificationReadiness: {
+            status: 'clarification-required',
+            canGenerate: false,
+            unresolvedAmbiguityIds: [],
+          },
+          updatePolicy: {
+            suggestionStatus: 'draft',
+            requiresExplicitTeacherConfirmation: true,
+            expectedTaskRevision: null,
+          },
+        },
+      };
+    }
+    const taskRow = await input.db.smartLessonTask!.findFirst({
+      where: {
+        id: smartTaskId,
+        ownerId: input.scope.authenticatedUserId,
+      },
+      include: {
+        sources: {
+          where: { state: 'SELECTED' },
+          include: { sourceVersion: { select: { reviewState: true, retiredAt: true } } },
+        },
+        knowledgePoints: { where: { state: { not: 'REMOVED' } }, select: { id: true, lineageId: true, state: true, title: true, origin: true, sourceState: true, sourceBindings: true, supersedesIds: true } },
+        goals: { where: { state: { not: 'REMOVED' } }, select: { id: true, lineageId: true, state: true, content: true, sourceState: true, sourceBindings: true, standardsMappings: true } },
+      },
+    });
+    const task = projectSmartLessonTaskContext(taskRow, input.scope.authenticatedUserId);
+    if (!task || task.taskId !== smartTaskId) return {};
+    const unresolvedAmbiguityIds = task.unresolvedAmbiguities.map((ambiguity) => ambiguity.id);
+    return {
+      'prep-pack': true,
+      'smart-task': true,
+      'selected-course-basis-versions': true,
+      'task-ambiguities': true,
+      'confirmed-task-decisions': true,
+      'citation-state': true,
+      'teacher-review-state': true,
+      'clarification-readiness': true,
+      smartPreparation: {
+        taskId: task.taskId,
+        taskRevision: task.taskRevision,
+        bootstrap: false,
+        currentTask: task.currentTask,
+        selectedCourseBasisVersions: task.selectedCourseBasisVersions,
+        unresolvedAmbiguities: task.unresolvedAmbiguities,
+        confirmedDecisions: task.confirmedDecisions,
+        citationState: task.citationState,
+        reviewState: task.reviewState,
+        clarificationReadiness: {
+          status: unresolvedAmbiguityIds.length > 0 ? 'clarification-required' : 'ready',
+          canGenerate: unresolvedAmbiguityIds.length === 0,
+          unresolvedAmbiguityIds,
+        },
+        updatePolicy: {
+          suggestionStatus: 'draft',
+          requiresExplicitTeacherConfirmation: true,
+          expectedTaskRevision: task.taskRevision,
+        },
+      },
+    };
+  }
+
+  if (input.scope.role !== 'teacher' && input.scope.role !== 'admin') return {};
+  if (!input.scope.classId || !input.db.courseEnhancementPack) return {};
   const prepPackId = stringHint(input.clientContextHints, 'prepPackId');
   const goalId = stringHint(input.clientContextHints, 'goalId');
-  if (!prepPackId || !goalId) return Promise.resolve({});
-  return input.db.courseEnhancementPack.findFirst({
+  if (!prepPackId || !goalId) return {};
+  const pack = await input.db.courseEnhancementPack.findFirst({
     where: {
       classId: input.scope.classId,
       teacherId: input.scope.authenticatedUserId,
@@ -347,15 +479,154 @@ function resolvePrepCoauthorModeContext(input: {
         { sourcePrepPackId: prepPackId },
       ],
     },
-  }).then((pack) => {
-    if (!pack) return {};
-    if (pack.status === 'archived' || pack.status === 'rolled-back') return {};
-    return {
-      'prep-pack': true,
-      'diagnosis-view': true,
-      'teacher-review-state': true,
-    };
   });
+  if (!pack) return {};
+  if (pack.status === 'archived' || pack.status === 'rolled-back') return {};
+  return {
+    'prep-pack': true,
+    'diagnosis-view': true,
+    'teacher-review-state': true,
+  };
+}
+
+function isSmartPrepPage(pageId: string) {
+  return pageId === '/teacher/smart-prep' || pageId === 'teacher-smart-prep' || pageId === 'smart-prep';
+}
+
+function projectSmartLessonTaskContext(value: unknown, ownerUserId: string) {
+  const task = recordValue(value);
+  if (!task) return null;
+  const taskId = recordString(task, 'id');
+  const storedOwnerId = recordString(task, 'ownerId') || recordString(task, 'ownerUserId');
+  const taskRevision = String(task.revision ?? '');
+  if (!taskId || storedOwnerId !== ownerUserId || !taskRevision) return null;
+
+  if (Array.isArray(task.selectedCourseBasisVersions)) {
+    return {
+      taskId,
+      taskRevision,
+      currentTask: recordValue(task.currentTask) ?? {},
+      selectedCourseBasisVersions: task.selectedCourseBasisVersions as Array<{ versionId: string; citationState: string; reviewState: string }>,
+      unresolvedAmbiguities: Array.isArray(task.unresolvedAmbiguities) ? task.unresolvedAmbiguities as KonlingSmartPreparationAmbiguity[] : [],
+      confirmedDecisions: Array.isArray(task.confirmedDecisions) ? task.confirmedDecisions as KonlingSmartPreparationConfirmedDecision[] : [],
+      citationState: recordString(task, 'citationState') || 'missing',
+      reviewState: recordString(task, 'reviewState') || 'draft',
+    };
+  }
+
+  const sources = recordArray(task.sources);
+  const selectedCourseBasisVersions = sources.map((value) => {
+    const source = recordValue(value) ?? {};
+    const version = recordValue(source.sourceVersion) ?? {};
+    const reviewState = recordString(version, 'reviewState') || 'UNKNOWN';
+    const retired = version.retiredAt !== null && version.retiredAt !== undefined;
+    return {
+      versionId: recordString(source, 'sourceVersionId'),
+      citationState: reviewState === 'CONFIRMED' && !retired ? 'verified' : 'review-required',
+      reviewState: retired ? `${reviewState}:RETIRED` : reviewState,
+    };
+  }).filter((source) => source.versionId);
+  const knowledgePoints = recordArray(task.knowledgePoints).map(recordValue).filter((item): item is Record<string, unknown> => Boolean(item));
+  const goals = recordArray(task.goals).map(recordValue).filter((item): item is Record<string, unknown> => Boolean(item));
+  const scopeConfirmedAt = isoString(task.scopeConfirmedAt);
+  const goalsConfirmedAt = isoString(task.goalsConfirmedAt);
+  const unresolvedAmbiguities: KonlingSmartPreparationAmbiguity[] = [
+    ...(!scopeConfirmedAt ? [{
+      id: 'confirm-lesson-scope',
+      field: 'scope',
+      question: '请确认本课主题、对象、时长、知识点与来源范围。',
+      alternatives: [{ id: 'confirm-current-scope', label: '确认当前范围' }],
+    }] : []),
+    ...(!goalsConfirmedAt ? [{
+      id: 'confirm-lesson-goals',
+      field: 'goals',
+      question: '请确认本课教学目标。',
+      alternatives: [{ id: 'confirm-current-goals', label: '确认当前目标' }],
+    }] : []),
+  ];
+  const confirmedDecisions: KonlingSmartPreparationConfirmedDecision[] = [
+    ...(scopeConfirmedAt ? [{
+      id: `scope:${taskRevision}`,
+      field: 'scope',
+      value: [
+        recordString(task, 'topic'),
+        recordString(task, 'audience'),
+        String(task.durationMinutes ?? ''),
+        ...knowledgePoints.map((item) => recordString(item, 'id')),
+        ...selectedCourseBasisVersions.map((source) => source.versionId),
+      ].filter(Boolean),
+      confirmedAt: scopeConfirmedAt,
+      confirmedBy: ownerUserId,
+    }] : []),
+    ...(goalsConfirmedAt ? [{
+      id: `goals:${taskRevision}`,
+      field: 'goals',
+      value: goals.map((goal) => recordString(goal, 'id')).filter(Boolean),
+      confirmedAt: goalsConfirmedAt,
+      confirmedBy: ownerUserId,
+    }] : []),
+  ];
+  return {
+    taskId,
+    taskRevision,
+    currentTask: {
+      courseBasisId: recordString(task, 'courseBasisId'),
+      topic: recordString(task, 'topic'),
+      audience: recordString(task, 'audience'),
+      prerequisites: recordString(task, 'prerequisites'),
+      durationMinutes: task.durationMinutes,
+      outlineConfirmationRequired: task.outlineConfirmationRequired === true,
+      sourceVersionIds: selectedCourseBasisVersions.map((source) => source.versionId),
+      textbookRanges: recordArray(task.textbookRanges),
+      selectedClassId: recordString(task, 'selectedClassId') || null,
+      knowledgePoints: knowledgePoints.map((item) => ({
+        id: recordString(item, 'id'), lineageId: recordString(item, 'lineageId'), title: recordString(item, 'title'), content: recordString(item, 'title'),
+        origin: recordString(item, 'origin'), sourceState: publicSmartLessonSourceState(recordString(item, 'sourceState')),
+        sourceBindings: item.sourceBindings ?? [], supersedesIds: Array.isArray(item.supersedesIds) ? item.supersedesIds : [],
+      })),
+      goals: goals.map((item) => ({
+        id: recordString(item, 'id'), lineageId: recordString(item, 'lineageId'), content: recordString(item, 'content'),
+        sourceState: publicSmartLessonSourceState(recordString(item, 'sourceState')), sourceBindings: item.sourceBindings ?? [],
+        standardsMappings: item.standardsMappings ?? [],
+      })),
+      confirmScope: Boolean(scopeConfirmedAt),
+      confirmGoals: Boolean(goalsConfirmedAt),
+    },
+    selectedCourseBasisVersions,
+    unresolvedAmbiguities,
+    confirmedDecisions,
+    citationState: selectedCourseBasisVersions.length > 0 && selectedCourseBasisVersions.every((source) => source.citationState === 'verified')
+      ? 'verified'
+      : selectedCourseBasisVersions.length > 0 ? 'review-required' : 'missing',
+    reviewState: scopeConfirmedAt && goalsConfirmedAt ? 'confirmed' : 'draft',
+  };
+}
+
+function publicSmartLessonSourceState(value: string) {
+  if (value === 'VERIFIED') return 'verified';
+  if (value === 'NO_RELIABLE_SOURCE') return 'no_reliable_source';
+  if (value === 'AI_GENERATED_SOURCE_PENDING') return 'ai_generated_source_pending';
+  return 'teacher_created_source_pending';
+}
+
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function recordArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function recordString(record: Record<string, unknown>, key: string): string {
+  const value = record[key];
+  return typeof value === 'string' ? value : '';
+}
+
+function isoString(value: unknown): string | null {
+  if (value instanceof Date && Number.isFinite(value.getTime())) return value.toISOString();
+  if (typeof value !== 'string') return null;
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
 }
 
 function stringHint(hints: Record<string, unknown> | null | undefined, key: string): string | null {

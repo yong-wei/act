@@ -1,28 +1,22 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { assignmentDraftSchema } from '@/lib/assignments/assignment-domain';
+import { assignmentDraftPersistenceSchema } from '@/lib/assignments/assignment-domain';
 import { assignmentErrorResponse, readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { createAssignmentDraft } from '@/lib/assignments/assignment-service';
+import { createAssignmentDraft, listTeacherAssignments } from '@/lib/assignments/assignment-service';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 const createSchema = z.object({
   courseContext: z.string().trim().max(200).optional(),
-  draft: assignmentDraftSchema,
+  draft: assignmentDraftPersistenceSchema,
 }).strict();
 
 export async function GET() {
   const auth = await requireAssignmentActor();
   if ('response' in auth) return auth.response;
-  const assignments = await prisma.assignment.findMany({
-    where: auth.actor.role === 'ADMIN' ? {} : { authorId: auth.actor.id },
-    orderBy: { updatedAt: 'desc' },
-    include: {
-      revisions: { orderBy: { revisionNumber: 'desc' }, take: 1, include: { audiences: { select: { classId: true, availableAt: true, dueAt: true } } } },
-    },
-  });
+  const assignments = await listTeacherAssignments(prisma, auth.actor);
   return NextResponse.json({ assignments });
 }
 

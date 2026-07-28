@@ -13,8 +13,10 @@
 - 已将 `design/1-3-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 缺少 互动设计接受文件：course-content/authoring/lessons/1-3/design/1-3-interactive-design-acceptance.json
-- 缺少 互动设计接受文件：course-content/authoring/lessons/1-3/design/1-3-interactive-design-acceptance.json
+- 已覆盖讲义中的核心公式与静态承载内容。
+- 已检测到 `1-3` 的 V2 互动契约，步骤字段完整。
+- 互动设计接受文件已通过校验。
+- 互动实现接受文件已通过校验。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。
@@ -27,7 +29,7 @@
 - 尚缺信息图：开环增益_1_3, 闭环特征方程_1_3, 极点迁移_1_3, 实极点_1_3, 重实极点_1_3, 共轭复极点_1_3, 临界阻尼_1_3, 衰减振荡_1_3, 根轨迹雏形_1_3, 参数连续性_1_3
 
 ## multimedia-check
-- 已识别并确认存在 2 项正式媒体，未发现缺失。
+- 正式媒体仍缺失：1-3-slides.pdf, 1-3-intro-video.mp4, 1-3-course.mp4, 1-3-audio.m4a
 
 ## 导出结论
-- authoring 已作为审查源保留；runtime 已输出 handout、media、review 索引，可直接供后续互动课程制作使用。
+- authoring 已作为审查源保留；runtime 仅包含本报告已确认生成的产物，缺失项与审查问题以上述检查结果为准。

@@ -4,6 +4,7 @@ import {
   ARENA_PUBLICATION_CONTEXT_KEYS,
   resolveArenaPathLaunchParams,
 } from './arena-path-journey';
+import { getOdysseyLevelForArenaTask } from './odyssey/assignment';
 
 type ArenaWorkspaceParams = Record<string, string | undefined>;
 
@@ -23,6 +24,8 @@ function buildSearchParams(params: ArenaWorkspaceParams, taskId: string) {
 function withArenaTask(path: string, taskId: string, params: ArenaWorkspaceParams = {}): string {
   const searchParams = buildSearchParams(params, taskId);
   searchParams.set('arenaTask', taskId);
+  const odysseyLevelId = getOdysseyLevelForArenaTask(taskId);
+  if (odysseyLevelId) searchParams.set('odysseyLevelId', odysseyLevelId);
   return `${path}?${searchParams.toString()}`;
 }
 

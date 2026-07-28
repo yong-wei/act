@@ -735,7 +735,7 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(lockedStep10Html).toContain('ω（虚部）');
     expect(step10.modules.find((module) => module.id === 's-plane-static')?.kind).toBe('content.figure');
     expect(step10.modules.find((module) => module.id === 'response-static')?.kind).toBe('content.figure');
-    expect(releasedStep10Html).toContain('提交当前观察');
+    expect(releasedStep10Html).toContain('等待当前计算完成');
     expect(lockedStep11Html).toContain('data-control-workbench-capability="control-linked-comparison"');
     expect(lockedStep11Html).toContain('data-control-workbench-module-id="ship-simulation"');
     expect(lockedStep11Html).toContain('data-annotated-media-id="three-ships-response-evidence"');
@@ -787,7 +787,7 @@ describe('unit 1-2 modeling from object to system course', () => {
       },
     ]);
     expect(`${lockedStep10Html}\n${lockedStep11Html}`).not.toContain('data-interactive-figure-panel');
-    expect(releasedStep11Html).toContain('提交当前观察');
+    expect(releasedStep11Html).toContain('等待当前计算完成');
   });
 
   it('builds real shared control workbench submission payloads for step 10 and 11', () => {
@@ -834,6 +834,7 @@ describe('unit 1-2 modeling from object to system course', () => {
       step: step11,
       module: step11Module,
       submittedAt: 1778550644901,
+      derivedResultRefs: [{ kind: 'SimulationRun', id: 'run-step-11' }],
       submissionValues: {
         selected_ship: 'B',
         time_scale: 3,
@@ -846,6 +847,9 @@ describe('unit 1-2 modeling from object to system course', () => {
       simulation_interaction_count: 4,
     });
     expect(step11Draft?.payload.parameterSnapshot).not.toHaveProperty('gain.k');
+    expect(step11Draft?.payload.derivedResultRefs).toEqual([
+      { kind: 'SimulationRun', id: 'run-step-11' },
+    ]);
   });
 
   it('maps step 10 pole controls into a reactive shared control workbench request', () => {

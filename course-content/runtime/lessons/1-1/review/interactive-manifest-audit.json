@@ -2,7 +2,7 @@
   "status": "pass",
   "summary": {
     "steps": 15,
-    "modules": 91,
+    "modules": 92,
     "issues": 0
   },
   "implementation_sources": {
@@ -23,6 +23,7 @@
       "compute.panel",
       "condition-list",
       "content.cardSet",
+      "content.code",
       "content.figure",
       "content.formula",
       "content.reveal",
@@ -88,6 +89,12 @@
       "teacher-strip",
       "template-card",
       "title-card",
+      "visual.annotatedMedia",
+      "visual.blockDiagram",
+      "visual.derivationStage",
+      "visual.embedded-activity",
+      "visual.signalFlowGraph",
+      "visual.stage",
       "worked-example-card"
     ],
     "student_activity_kinds": [
@@ -160,24 +167,12 @@
     ],
     "activity_module_kinds": [
       "activity-card",
-      "activity-card-grid",
-      "activity-card-row",
       "activity-card-set",
       "activity.panel",
       "activity.workspace",
-      "binary-choice",
-      "card-sort",
-      "drag-match",
-      "hotspot-labeling",
-      "multi-select-matrix",
       "quiz-card",
       "quiz-group",
-      "reason-chain",
-      "single-choice-card",
-      "table-builder",
-      "task-card-workspace",
-      "teacher-reveal-only",
-      "triple-match"
+      "single-choice-card"
     ]
   },
   "entries": [
@@ -353,11 +348,11 @@
     },
     {
       "step_id": "step-05",
-      "module_id": "step-05-content-formula-06",
-      "kind": "content.formula",
+      "module_id": "step-05-content-code-06",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step5_code",
-      "resolved_content_type": "formula",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -423,11 +418,11 @@
     },
     {
       "step_id": "step-06",
-      "module_id": "step-06-content-formula-05",
-      "kind": "content.formula",
+      "module_id": "step-06-content-code-05",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step6_step_code",
-      "resolved_content_type": "formula",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -493,11 +488,11 @@
     },
     {
       "step_id": "step-07",
-      "module_id": "step-07-content-formula-04",
-      "kind": "content.formula",
+      "module_id": "step-07-content-code-04",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step7_isstable",
-      "resolved_content_type": "formula",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -523,11 +518,11 @@
     },
     {
       "step_id": "step-07",
-      "module_id": "step-07-content-formula-06",
-      "kind": "content.formula",
+      "module_id": "step-07-content-code-06",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step7_rlocus_code",
-      "resolved_content_type": "formula",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -563,11 +558,11 @@
     },
     {
       "step_id": "step-08",
-      "module_id": "step-08-content-formula-03",
-      "kind": "content.formula",
+      "module_id": "step-08-content-code-03",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step8_bode_code",
-      "resolved_content_type": "formula",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -863,6 +858,16 @@
     },
     {
       "step_id": "step-12",
+      "module_id": "step-12-content-code-03",
+      "kind": "content.code",
+      "renderer_owner": "content",
+      "resolved_content_source": "content_blocks.step12_object_code",
+      "resolved_content_type": "summary",
+      "is_empty": false,
+      "diagnostic": null
+    },
+    {
+      "step_id": "step-12",
       "module_id": "step-12-content-rich-03",
       "kind": "content.rich",
       "renderer_owner": "content",
@@ -893,11 +898,11 @@
     },
     {
       "step_id": "step-12",
-      "module_id": "step-12-content-formula-06",
-      "kind": "content.formula",
+      "module_id": "step-12-content-code-06",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step12_step_code",
-      "resolved_content_type": "formula",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -923,11 +928,11 @@
     },
     {
       "step_id": "step-12",
-      "module_id": "step-12-content-formula-09",
-      "kind": "content.formula",
+      "module_id": "step-12-content-code-09",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step12_rlocus_code",
-      "resolved_content_type": "formula",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -953,11 +958,11 @@
     },
     {
       "step_id": "step-12",
-      "module_id": "step-12-content-formula-12",
-      "kind": "content.formula",
+      "module_id": "step-12-content-code-12",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step12_bode_code",
-      "resolved_content_type": "formula",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -973,11 +978,11 @@
     },
     {
       "step_id": "step-13",
-      "module_id": "step-13-content-reveal-02",
-      "kind": "content.reveal",
+      "module_id": "step-13-content-code-02",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step13_correction_code",
-      "resolved_content_type": "reveal",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -1003,11 +1008,11 @@
     },
     {
       "step_id": "step-13",
-      "module_id": "step-13-content-reveal-05",
-      "kind": "content.reveal",
+      "module_id": "step-13-content-code-05",
+      "kind": "content.code",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.step13_full_script",
-      "resolved_content_type": "reveal",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },

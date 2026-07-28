@@ -1,0 +1,214 @@
+{
+  "generatedAt": "2026-07-20T17:37:15.497Z",
+  "revision": "8b968e0a81e90555956ec2ffe3c6192c6a696cc8+working-tree",
+  "sourcePath": "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+  "sourceSha256": "d1f089cd2ab727927b05122934d9b762d681b2ab56d6bb0b8ca52be72db0ccde",
+  "route": "/review/annotated-media-activity-564",
+  "roles": [
+    "student",
+    "teacher"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "viewports": [
+    "mobile",
+    "desktop",
+    "projection"
+  ],
+  "states": [
+    "student-unreleased",
+    "student-released",
+    "selected-hotspot",
+    "student-submitted",
+    "teacher-reveal",
+    "teacher-answer-reveal",
+    "teacher-diagnostics"
+  ],
+  "noHorizontalOverflow": true,
+  "teacherControlsClearPrimaryStage": true,
+  "captures": [
+    {
+      "state": "student-unreleased",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "route": "/review/annotated-media-activity-564",
+      "url": "http://localhost:3211/review/annotated-media-activity-564?role=student&state=student-unreleased&theme=light",
+      "screenshot": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/screenshots/student-unreleased-desktop-light.png",
+      "screenshotSha256": "f9dbf312b1d010822b81114385256c1744c26ce9a51ebd21287e447846505933",
+      "checks": {
+        "titleTokenPresent": true,
+        "titleFontSize": "20px",
+        "bodyTokenPresent": true,
+        "bodyFontSize": "18px",
+        "hotspotCount": 3,
+        "horizontalOverflow": false,
+        "visibleFocus": true,
+        "selectedCount": 0
+      },
+      "result": "passed"
+    },
+    {
+      "state": "student-released",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "route": "/review/annotated-media-activity-564",
+      "url": "http://localhost:3211/review/annotated-media-activity-564?role=student&state=student-released&theme=dark",
+      "screenshot": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/screenshots/student-released-desktop-dark.png",
+      "screenshotSha256": "1902e3b00782ec0e968b02dd35fd97fa7cf1759c4fe0c413ac136fd2733e5851",
+      "checks": {
+        "titleTokenPresent": true,
+        "titleFontSize": "20px",
+        "bodyTokenPresent": true,
+        "bodyFontSize": "18px",
+        "hotspotCount": 3,
+        "horizontalOverflow": false,
+        "visibleFocus": true,
+        "selectedCount": 1
+      },
+      "result": "passed"
+    },
+    {
+      "state": "selected-hotspot",
+      "role": "student",
+      "theme": "light",
+      "viewport": "mobile",
+      "width": 390,
+      "height": 1000,
+      "route": "/review/annotated-media-activity-564",
+      "url": "http://localhost:3211/review/annotated-media-activity-564?role=student&state=selected-hotspot&theme=light",
+      "screenshot": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/screenshots/selected-hotspot-mobile-light.png",
+      "screenshotSha256": "a1e8bce309177f650d018c14be1c21cbec606d5043b74ee86a6477dde0d05d8c",
+      "checks": {
+        "titleTokenPresent": true,
+        "titleFontSize": "20px",
+        "bodyTokenPresent": true,
+        "bodyFontSize": "16px",
+        "hotspotCount": 3,
+        "horizontalOverflow": false,
+        "visibleFocus": true,
+        "selectedCount": 2
+      },
+      "result": "passed"
+    },
+    {
+      "state": "student-submitted",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "route": "/review/annotated-media-activity-564",
+      "url": "http://localhost:3211/review/annotated-media-activity-564?role=student&state=student-submitted&theme=light",
+      "screenshot": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/screenshots/student-submitted-desktop-light.png",
+      "screenshotSha256": "11ad0c0f3764748d04e58ede0e329edca0c6115c7e30fda8eda1ef554955a380",
+      "checks": {
+        "titleTokenPresent": true,
+        "titleFontSize": "20px",
+        "bodyTokenPresent": true,
+        "bodyFontSize": "18px",
+        "hotspotCount": 3,
+        "horizontalOverflow": false,
+        "visibleFocus": true,
+        "selectedCount": 1
+      },
+      "result": "passed"
+    },
+    {
+      "state": "teacher-reveal",
+      "role": "teacher",
+      "theme": "dark",
+      "viewport": "projection",
+      "width": 1920,
+      "height": 1080,
+      "route": "/review/annotated-media-activity-564",
+      "url": "http://localhost:3211/review/annotated-media-activity-564?role=teacher&state=teacher-reveal&theme=dark",
+      "screenshot": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/screenshots/teacher-reveal-projection-dark.png",
+      "screenshotSha256": "e21b2cad2f6355de7534c041703c1e7c9c82605a5dff36549a180e0fe6006732",
+      "checks": {
+        "titleTokenPresent": true,
+        "titleFontSize": "20px",
+        "bodyTokenPresent": true,
+        "bodyFontSize": "18px",
+        "hotspotCount": 3,
+        "horizontalOverflow": false,
+        "visibleFocus": true,
+        "selectedCount": 0
+      },
+      "result": "passed"
+    },
+    {
+      "state": "teacher-answer-reveal",
+      "role": "teacher",
+      "theme": "light",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "route": "/review/annotated-media-activity-564",
+      "url": "http://localhost:3211/review/annotated-media-activity-564?role=teacher&state=teacher-answer-reveal&theme=light",
+      "screenshot": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/screenshots/teacher-answer-reveal-desktop-light.png",
+      "screenshotSha256": "0e69fd80636b6cc12a3152e192da339311cf4fbf8453d39cac0a1776bc2df2e2",
+      "checks": {
+        "titleTokenPresent": true,
+        "titleFontSize": "20px",
+        "bodyTokenPresent": true,
+        "bodyFontSize": "18px",
+        "hotspotCount": 3,
+        "horizontalOverflow": false,
+        "visibleFocus": true,
+        "selectedCount": 0
+      },
+      "result": "passed"
+    },
+    {
+      "state": "teacher-diagnostics",
+      "role": "teacher",
+      "theme": "light",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "route": "/review/annotated-media-activity-564",
+      "url": "http://localhost:3211/review/annotated-media-activity-564?role=teacher&state=teacher-diagnostics&theme=light",
+      "screenshot": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/screenshots/teacher-diagnostics-desktop-light.png",
+      "screenshotSha256": "bb0f082188bc3e0c2b18d532a95f50511c2848982feceedb772b91642f734102",
+      "checks": {
+        "titleTokenPresent": true,
+        "titleFontSize": "20px",
+        "bodyTokenPresent": true,
+        "bodyFontSize": "18px",
+        "hotspotCount": 3,
+        "horizontalOverflow": false,
+        "visibleFocus": true,
+        "selectedCount": 0
+      },
+      "result": "passed"
+    },
+    {
+      "state": "unit-1-2-step-11-annotated-media",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo",
+      "url": "http://localhost:3211/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-11",
+      "screenshot": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/screenshots/unit-1-2-step-11-annotated-media-desktop-dark.png",
+      "screenshotSha256": "390bb47664e2be83a7fceb58b8eff0fcb266c0571110467213fcc8d62784356d",
+      "checks": {
+        "titleTokenCount": 4,
+        "bodyTokenCount": 6,
+        "hotspotCount": 4,
+        "horizontalOverflow": false
+      },
+      "result": "passed"
+    }
+  ],
+  "result": "passed"
+}

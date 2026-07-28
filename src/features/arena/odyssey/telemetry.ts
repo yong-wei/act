@@ -14,7 +14,7 @@ const REQUIRED_TELEMETRY: Array<{
   key: keyof OdysseyOfficialTelemetryMetrics;
   label: string;
 }> = [
-  { key: 'settlingTime', label: '通关时间' },
+  { key: 'settlingTime', label: '调节时间' },
   { key: 'overshoot', label: '偏离峰值' },
   { key: 'steadyStateError', label: '终点误差' },
   { key: 'controlEnergy', label: '操作强度' },

@@ -18,6 +18,10 @@ import {
   resolveInteractiveResourceConfig,
 } from './resource-renderer-config';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
+import {
+  GeneratedCoursewareResource,
+  resolveGeneratedCoursewareResourceConfig,
+} from './generated-courseware-resource';
 
 interface ResourceRendererProps {
   resource?: TeachingResource | null;
@@ -25,7 +29,7 @@ interface ResourceRendererProps {
   /** 课程环节级配置覆盖 */
   overrideConfig?: Prisma.JsonValue | null;
   /** Callback when widget completes */
-  onComplete?: (result?: WidgetResult) => void;
+  onComplete?: (result?: WidgetResult) => void | Promise<void>;
   /** Callback when widget state changes (for AI context) */
   onStateChange?: (state: WidgetState) => void;
   /** 课堂会话 ID（用于埋点追踪） */
@@ -40,6 +44,8 @@ interface ResourceRendererProps {
   stage?: string | null;
   /** 是否启用 AI 面板 */
   enableAIPanel?: boolean;
+  /** 仅学生课堂运行态可以写入课堂作答。 */
+  classroomActorRole?: 'student' | 'teacher';
 }
 
 // Temporary accessibility exception: legacy static media resources only store one content URL.
@@ -92,6 +98,7 @@ export function ResourceRenderer({
   classId,
   stage,
   enableAIPanel = true,
+  classroomActorRole,
 }: ResourceRendererProps) {
   // Get lesson context for AI integration
   const lessonContext = useLessonContext();
@@ -119,7 +126,7 @@ export function ResourceRenderer({
   // Handle widget completion
   const handleComplete = useCallback((result?: WidgetResult) => {
     console.log('[ResourceRenderer] Widget complete:', result);
-    onComplete?.(result);
+    return onComplete?.(result);
   }, [onComplete]);
 
   useEffect(() => {
@@ -207,6 +214,32 @@ export function ResourceRenderer({
   const descriptionOverride = typeof rawOverride.descriptionOverride === 'string' ? rawOverride.descriptionOverride : null;
   const effectiveTitle = titleOverride ?? resource.title;
   const effectiveDescription = descriptionOverride ?? resource.description;
+  if (resource.generatedCoursewarePublicationId) {
+    const generatedCoursewareConfig = resolveGeneratedCoursewareResourceConfig(resource.config);
+    if (!generatedCoursewareConfig
+      || generatedCoursewareConfig.publicationRevisionId !== resource.generatedCoursewarePublicationId) {
+      return (
+        <div
+          className="flex h-full items-center justify-center bg-platform-canvas p-8 text-platform-fg-primary"
+          data-generated-courseware-resource-integrity="invalid"
+          role="alert"
+        >
+          互动课件资源完整性校验失败，请教师重新创建课堂。
+        </div>
+      );
+    }
+    return (
+      <GeneratedCoursewareResource
+        config={generatedCoursewareConfig}
+        onComplete={onComplete}
+        onStateChange={onStateChange}
+        sessionId={sessionId}
+        lessonItemId={lessonItemId}
+        resourceId={resource.id}
+        runtimeMode={classroomActorRole === 'student' ? 'student' : 'preview'}
+      />
+    );
+  }
 
   // 1. Static Text (Markdown)
   if (resource.type === 'STATIC_TEXT') {

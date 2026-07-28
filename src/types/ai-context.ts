@@ -5,6 +5,7 @@
  */
 
 import type { Message } from '@/types/ai-message';
+import type { PortraitV2ConsumerSummary } from '@/lib/data-governance/portrait-v2-consumer';
 
 /**
  * 页面类型
@@ -65,6 +66,40 @@ export interface PageContext {
   routeProvenance?: 'simulation-route';
   /** 运行摘要可用性 */
   runSummaryAvailability?: 'unavailable-until-runtime-run' | 'available';
+  /** 服务端固定的候选权威图谱上下文；不得用于推断 Legacy 对应项 */
+  candidateGraph?: CandidateGraphPageContext | null;
+}
+
+export interface CandidateGraphPageContext {
+  authorityState: 'candidate';
+  releaseSetId: string;
+  releaseId: string;
+  selectedCanonicalId: string | null;
+  selectedCanonicalType: string | null;
+  governanceFilter: 'CORE' | 'EXTENSION';
+  canonicalTypeFilter: string | null;
+  coverageStatus: 'loading' | 'ready' | 'empty' | 'error';
+  objectCount: number | null;
+  relationCount: number | null;
+  /** GraphProjection V2 version_digest，由服务端重算注入；客户端声明不可信 */
+  projectionDigest?: string | null;
+  /** 上游 source dataset hash，由服务端重算注入 */
+  sourceDatasetHash?: string | null;
+  /** 选中对象的聚合 release tier（gold/silver），由服务端重算注入 */
+  releaseTier?: string | null;
+  /** 选中对象的精确一跳关系（有界 ≤12），由服务端按投影重算注入 */
+  selectedRelations?: Array<{
+    relationId: string;
+    predicate: string;
+    direction: string | null;
+    relationFamily: string | null;
+    evidenceState: string | null;
+    releaseTier: string | null;
+    traversal: 'outgoing' | 'incoming';
+    neighborId: string;
+  }>;
+  /** 正式教学语义（Teaching Projection）可用性；当前恒为 unavailable */
+  teachingSemanticsAvailability?: 'unavailable';
 }
 
 /**
@@ -79,8 +114,10 @@ export interface UserProfile {
   learningStyle: LearningStyle;
   /** 认知水平 (1-5) */
   cognitiveLevel: 1 | 2 | 3 | 4 | 5;
-  /** 能力向量 */
+  /** 能力向量；PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER，仅作无 portrait v2 时的兼容字段 */
   abilityVector: AbilityVector;
+  /** 七维 portrait v2 主画像；abilityVector 仅保留为兼容字段 */
+  portraitV2?: PortraitV2ConsumerSummary;
   /** 舰队/班组 */
   fleetGroup?: string;
   /** 班级 */

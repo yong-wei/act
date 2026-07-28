@@ -11,7 +11,7 @@
  * ### Supported inputs
  *
  * - `LearningEvidenceCorpusChunk` — teaching knowledge & learner evidence
- * - `TextbookRuntimeSearchDocument` — textbook / reference runtime search docs
+ * - `TextbookStructureUnitProjection` — v2 textbook structural units
  * - `RuntimeResourceProjectionArtifactRow` — resource projection sidecars
  *
  * ### Safety
@@ -31,11 +31,14 @@ import type {
   LearningEvidenceCorpusPrivacyClass,
   LearningEvidenceRetrievalScope,
 } from '../data-governance/learning-evidence-rag-corpus';
-import { validateLearningEvidenceCorpusChunk } from '../data-governance/learning-evidence-rag-corpus';
+import {
+  matchesTeacherCourseBasisRetrievalScope,
+  validateLearningEvidenceCorpusChunk,
+} from '../data-governance/learning-evidence-rag-corpus';
 
 import type {
-  TextbookRuntimeSearchDocument,
-} from '../textbook-runtime-resources';
+  TextbookStructureUnitProjection,
+} from '../structured-textbook-runtime';
 
 import type {
   RuntimeResourceProjectionArtifactRow,
@@ -88,7 +91,7 @@ const USE_CASE_SOURCE_TYPES: Record<LearningEvidenceCitationUseCase, Set<Learnin
   konling: new Set(['course-content', 'knowledge-card', 'runtime-handout', 'path-summary', 'simulation-summary', 'arena-summary', 'diagnosis']),
   recommendation: new Set(['course-content', 'knowledge-card', 'runtime-handout', 'path-summary', 'simulation-summary', 'arena-summary', 'teacher-report']),
   'teacher-report': new Set(['path-summary', 'diagnosis', 'grading-artifact', 'simulation-summary', 'arena-summary', 'teacher-report']),
-  'prep-pack': new Set(['course-content', 'knowledge-card', 'runtime-handout', 'diagnosis', 'grading-artifact', 'teacher-report']),
+  'prep-pack': new Set(['course-content', 'teacher-course-basis', 'knowledge-card', 'runtime-handout', 'diagnosis', 'grading-artifact', 'teacher-report']),
 };
 
 // ─── Visibility Helpers ──────────────────────────────────────────────────────
@@ -113,10 +116,17 @@ function mapPrivacyClass(privacy: LearningEvidenceCorpusPrivacyClass): SourcePac
   }
 }
 
-function mapSourceTypeToKind(sourceType: string): SourcePackSourceKind {
+function mapSourceTypeToKind(
+  sourceType: string,
+  documentSourceType?: string | null,
+): SourcePackSourceKind {
   switch (sourceType) {
     case 'course-content':
       return 'textbook';
+    case 'teacher-course-basis':
+      if (documentSourceType === 'textbook') return 'textbook';
+      if (documentSourceType === 'reference') return 'reference';
+      return 'other';
     case 'knowledge-card':
       return 'knowledge-card';
     case 'runtime-handout':
@@ -268,7 +278,7 @@ export function adaptLearningEvidenceChunk(
   const item: SourcePackItem = {
     id: chunk.id,
     title: chunk.display?.title ?? chunk.id,
-    sourceKind: mapSourceTypeToKind(chunk.sourceType),
+    sourceKind: mapSourceTypeToKind(chunk.sourceType, chunk.sourceRef.documentSourceType),
     modality: chunk.citationAddress?.kind === 'image' ? 'image'
       : chunk.citationAddress?.kind === 'video' ? 'video'
       : chunk.citationAddress?.kind === 'audio' ? 'audio'
@@ -292,6 +302,7 @@ export function adaptLearningEvidenceChunk(
       freshnessBucket: chunk.authority?.freshnessBucket ?? 'recent',
       contentHash: chunk.content?.hash ?? '',
       spanKind: chunk.spanRef.kind,
+      stableAnchor: chunk.spanRef.locator ?? '',
       spanStart: chunk.spanRef.start ?? '',
       spanEnd: chunk.spanRef.end ?? '',
       spanLocator: chunk.spanRef.locator ?? '',
@@ -305,6 +316,13 @@ export function adaptLearningEvidenceChunk(
       citationImageRegionHeight: chunk.citationAddress?.imageRegion?.height ?? '',
       resourceId: chunk.resourceProjection?.resourceId ?? chunk.sourceRef.resourceId ?? '',
       resourceIds: stringRefs([chunk.resourceProjection?.resourceId, chunk.sourceRef.resourceId]),
+      ownerUserId: chunk.sourceRef.ownerUserId ?? '',
+      courseBasisId: chunk.sourceRef.courseBasisId ?? '',
+      documentId: chunk.sourceRef.documentId ?? '',
+      versionId: chunk.sourceRef.versionId ?? '',
+      documentSourceType: chunk.sourceRef.documentSourceType ?? '',
+      reviewState: chunk.sourceRef.reviewState ?? '',
+      versionState: chunk.sourceRef.versionState ?? '',
       knowledgeNodeRefs: chunk.resourceProjection?.knowledgeNodeRefs ?? [],
       capabilityTargetRefs: chunk.resourceProjection?.capabilityTargetRefs ?? [],
       qualityTargetRefs: chunk.resourceProjection?.graphNodeRefs?.quality ?? [],
@@ -316,65 +334,40 @@ export function adaptLearningEvidenceChunk(
   return { item, limitations };
 }
 
-// ─── TextbookRuntimeSearchDocument → SourcePackItem ──────────────────────────
+// ─── TextbookStructureUnitProjection → SourcePackItem ───────────────────────
 
 /**
- * Adapt a TextbookRuntimeSearchDocument into a SourcePackItem.
- *
- * Textbook and reference runtime search documents carry resource projection
- * metadata, citation addresses, content hashes, and book/section/chapter
- * metadata.
+ * Adapt a v2 textbook structural unit into a SourcePackItem.
  */
-export function adaptTextbookSearchDocument(
-  doc: TextbookRuntimeSearchDocument,
+export function adaptTextbookStructureUnit(
+  unit: TextbookStructureUnitProjection,
 ): { item: SourcePackItem; limitations: SourcePackLimitation[] } {
   const limitations: SourcePackLimitation[] = [];
-  const citationLocator = doc.citationAddress?.locator ??
-    anchorFromHref(doc.citationAddress?.href ?? null) ??
-    anchorFromHref(doc.href);
+  const citationLocator = unit.citationAddress.locator ?? anchorFromHref(unit.href);
 
   // ── Href safety ───────────────────────────────────────────────────────
-  const rawHref = doc.href ?? doc.citationAddress?.href ?? null;
+  const rawHref = unit.href;
   if (rawHref && !isSafeHref(rawHref)) {
     limitations.push(buildUnsafeHrefLimitation('corpus-adapters'));
   }
-  if (!rawHref) {
-    limitations.push({
-      code: 'textbook-missing-href',
-      severity: 'warning',
-      message: `Textbook doc ${doc.id} has no href.`,
-      source: 'corpus-adapters',
-      recoverable: true,
-    });
-  }
 
   // ── Citation preservation ─────────────────────────────────────────────
-  let citation = undefined;
-  const retrievalChunkId = toGovernedId('textbook-search', doc.resourceProjection?.segmentRef ?? doc.id);
+  const retrievalChunkId = toGovernedId('textbook-unit', unit.id);
   const citationTargetRefs = [
-    doc.resourceProjection?.citationTargetRef,
-    doc.citationAddress?.sourceRefId,
+    unit.resourceProjection.citationTargetRef,
+    unit.citationAddress.sourceRefId,
   ];
   addRawCitationTargetLimitations(limitations, citationTargetRefs, 'corpus-adapters');
   const citationTargetId = firstGovernedId(citationTargetRefs) ??
-    toGovernedId('textbook-citation', doc.resourceProjection?.citationTargetRef ?? doc.id);
-  if (doc.citationAddress) {
-    const addr: HydratorCitationAddressInput = {
-      kind: doc.citationAddress.kind,
-      sourceRefId: doc.citationAddress.sourceRefId,
-      href: doc.citationAddress.href,
-      locator: doc.citationAddress.locator,
-      contentHash: doc.citationAddress.contentHash,
-    };
-    const result = hydrateCitationFromAddress(
-      citationTargetId,
-      retrievalChunkId,
-      addr,
-      doc.title,
-    );
-    citation = result.citation;
-    limitations.push(...result.limitations);
-  }
+    toGovernedId('textbook-citation', unit.id);
+  const address: HydratorCitationAddressInput = unit.citationAddress;
+  const hydrated = hydrateCitationFromAddress(
+    citationTargetId,
+    retrievalChunkId,
+    address,
+    unit.title,
+  );
+  limitations.push(...hydrated.limitations);
 
   // ── Access ────────────────────────────────────────────────────────────
   const access: SourcePackAccessMetadata = {
@@ -395,36 +388,37 @@ export function adaptTextbookSearchDocument(
 
   // ── Assemble item ─────────────────────────────────────────────────────
   const item: SourcePackItem = {
-    id: doc.id,
-    title: doc.title,
+    id: unit.id,
+    title: unit.title,
     sourceKind: 'textbook',
-    modality: doc.citationAddress?.kind === 'image' ? 'image'
-      : doc.citationAddress?.kind === 'video' ? 'video'
-      : 'text',
-    excerpt: doc.text ?? doc.title,
-    inclusionRationale: `Textbook search document (book: ${doc.metadata.bookId}, section: ${doc.metadata.sectionId}).`,
+    modality: 'text',
+    excerpt: unit.text,
+    inclusionRationale: `Textbook structural unit (book: ${unit.metadata.bookId}, unit: ${unit.metadata.unitId}).`,
     resourceNodeId: undefined,
     planningUnitId: undefined,
     retrievalChunkId,
     citationTargetId,
     scores,
     access,
-    citation,
+    citation: hydrated.citation,
     metadata: {
-      bookId: doc.metadata.bookId,
-      sectionId: doc.metadata.sectionId,
-      chapterId: doc.metadata.chapterId ?? '',
-      chapterNumber: doc.metadata.chapterNumber ?? '',
-      resourceId: doc.resourceProjection?.resourceId ?? '',
-      segmentRef: doc.resourceProjection?.segmentRef ?? '',
+      bookId: unit.metadata.bookId,
+      edition: unit.metadata.edition,
+      sourceRevision: unit.metadata.sourceRevision,
+      unitId: unit.metadata.unitId,
+      structuralPath: unit.metadata.structuralPath,
+      chapterId: unit.metadata.chapterId,
+      naturalNumber: unit.metadata.naturalNumber ?? '',
+      resourceId: unit.resourceProjection.resourceId,
+      segmentRef: unit.resourceProjection.segmentRef,
       citationLocator: citationLocator ?? '',
-      citationAddressKind: doc.citationAddress?.kind ?? '',
-      sourceVersion: doc.resourceProjection?.versionRefs?.resourceProjectionVersion ?? doc.resourceProjection?.versionRefs?.resourceRegistryVersion ?? '',
-      ...versionRefsMetadata(doc.resourceProjection?.versionRefs),
-      knowledgeNodeRefs: doc.resourceProjection?.knowledgeNodeRefs ?? [],
-      capabilityTargetRefs: doc.resourceProjection?.capabilityTargetRefs ?? [],
-      contentHash: doc.contentHash ?? doc.resourceProjection?.contentHash ?? '',
-      kind: doc.kind,
+      citationAddressKind: unit.citationAddress.kind,
+      sourceVersion: unit.metadata.sourceRevision,
+      ...versionRefsMetadata(unit.resourceProjection.versionRefs),
+      knowledgeNodeRefs: unit.resourceProjection.knowledgeNodeRefs,
+      capabilityTargetRefs: unit.resourceProjection.capabilityTargetRefs,
+      contentHash: unit.contentHash,
+      kind: unit.kind,
       reviewStatus: 'canonical',
       authorityLevel: 'canonical',
     },
@@ -526,6 +520,7 @@ function isLearningEvidenceChunkInScope(
     (!scope.allowedSourceTypes || scope.allowedSourceTypes.includes(chunk.sourceType)) &&
     (!scope.useCase || chunk.retrieval.useCases.includes(scope.useCase)) &&
     (!scope.useCase || USE_CASE_SOURCE_TYPES[scope.useCase]?.has(chunk.sourceType) === true) &&
+    matchesTeacherCourseBasisRetrievalScope(chunk, scope) &&
     matchesResourceProjectionSceneAvailability(chunk, scope.useCase) &&
     isChunkVisible(chunk, scope);
 }
@@ -552,6 +547,7 @@ function matchesClassScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEv
 function matchesOwnerScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope): boolean {
   const ownerUserId = chunk.sourceRef.ownerUserId;
   if (!ownerUserId) return chunk.privacyClass !== 'student-visible';
+  if (chunk.sourceType === 'teacher-course-basis' && (scope.role === 'admin' || scope.role === 'service')) return true;
   if (scope.role === 'student') return Boolean(scope.userId && ownerUserId === scope.userId);
   if (!scope.targetUserId) return true;
   return ownerUserId === scope.targetUserId;
@@ -573,6 +569,9 @@ function isChunkVisible(chunk: LearningEvidenceCorpusChunk, scope: LearningEvide
   if (chunk.privacyClass === 'admin-only') return scope.role === 'admin' || scope.role === 'service';
   if (chunk.privacyClass === 'teacher-visible') {
     if (scope.role === 'admin' || scope.role === 'service') return true;
+    if (chunk.sourceType === 'teacher-course-basis') {
+      return scope.role === 'teacher' && scope.userId === chunk.sourceRef.ownerUserId;
+    }
     return scope.role === 'teacher' && Boolean(chunk.sourceRef.classId && scope.classIds?.includes(chunk.sourceRef.classId));
   }
   if (chunk.privacyClass === 'student-visible') {
@@ -655,7 +654,7 @@ function decodePercentEncodingLenient(value: string): string {
 }
 
 function versionRefsMetadata(
-  refs: TextbookRuntimeSearchDocument['resourceProjection']['versionRefs'] | NonNullable<LearningEvidenceCorpusChunk['resourceProjection']>['versionRefs'],
+  refs: TextbookStructureUnitProjection['resourceProjection']['versionRefs'] | NonNullable<LearningEvidenceCorpusChunk['resourceProjection']>['versionRefs'],
 ): Record<string, string> {
   const metadata: Record<string, string> = {};
   for (const key of VERSION_REF_KEYS) {

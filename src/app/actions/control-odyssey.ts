@@ -19,6 +19,10 @@ import {
 } from '@/features/arena/teacher/publication-store';
 import { computeOfficialOdysseyTelemetry } from '@/resources/interactive-learning/control-odyssey/engine/official-simulation';
 import { randomUUID } from 'node:crypto';
+import { materializeOdysseyTaskEvidence } from '@/lib/data-governance/simulation-task-materialization';
+import { persistAcceptedSimulationTaskEvidence } from '@/lib/data-governance/simulation-task-learning-fact';
+import { hashSemanticFingerprintValue } from '@/lib/data-governance/simulation-task-evidence';
+import { requestRealtimeSimulationTaskReconciliation } from '@/lib/data-governance/simulation-task-reconciliation';
 
 export interface LeaderboardEntry {
   rank: number;
@@ -105,6 +109,7 @@ const buildOdysseyReplaySnapshot = (
   difficultyScale: context.difficultyScale ?? 1,
   controllerLevels,
   arenaTaskId: context.arenaTaskId,
+  arenaAssigned: context.arenaAssigned ?? false,
   publicationId: context.publicationId,
 });
 
@@ -126,6 +131,16 @@ const readOdysseyReplaySnapshot = (value: unknown) => {
     return null;
   }
   return value;
+};
+
+const isPersistedArenaAssignedRun = (value: unknown): boolean => {
+  if (!isRecord(value)
+    || value.arenaAssigned !== true
+    || typeof value.levelId !== 'string'
+    || typeof value.arenaTaskId !== 'string') {
+    return false;
+  }
+  return getArenaTaskForOdysseyLevel(value.levelId) === value.arenaTaskId.trim();
 };
 
 type ControlTierProgress = Record<string, LevelTier>;
@@ -164,6 +179,7 @@ type ActionSession = {
   user?: {
     id?: string | null;
     name?: string | null;
+    role?: string | null;
   } | null;
 } | null;
 
@@ -176,8 +192,61 @@ const getAuthenticatedActionUser = (session: ActionSession) => {
   return {
     id: userId,
     name: user.name ?? null,
+    role: user.role ?? null,
   };
 };
+
+async function persistOrdinaryOdysseyTaskEvidence({
+  userId,
+  role,
+  log,
+  levelId,
+}: {
+  userId: string;
+  role: string | null;
+  log: {
+    id: string;
+    inputParams: unknown;
+    score: number | null;
+    odysseyCompletedAt: Date | null;
+  };
+  levelId: string;
+}) {
+  if (role?.toUpperCase() !== 'STUDENT' || !log.odysseyCompletedAt) return;
+  const taskEvidence = materializeOdysseyTaskEvidence({
+    actor: { userId, role: 'student' },
+    eventType: 'odyssey_persistent_clear',
+    levelId,
+    isArenaAssigned: false,
+    sourceArtifactId: log.id,
+    occurredAt: log.odysseyCompletedAt.toISOString(),
+    persistentClear: true,
+    fingerprint: {
+      modelRef: levelId,
+      controllerConfigHash: hashSemanticFingerprintValue(
+        readOdysseyReplaySnapshot(log.inputParams) ?? log.inputParams,
+      ),
+    },
+    summary: {
+      sourceRef: `SimulationLog:${log.id}`,
+      qualityBand: 'full',
+      metrics: {
+        score: typeof log.score === 'number' && Number.isFinite(log.score) ? log.score : 0,
+      },
+      label: 'Odyssey persistent clear',
+    },
+  });
+  const persisted = await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
+    userId,
+    sourceLogId: `odyssey-simulation-log:${log.id}`,
+  });
+  if (persisted) {
+    await requestRealtimeSimulationTaskReconciliation(prisma, {
+      userId,
+      reason: 'odyssey-task-evidence',
+    });
+  }
+}
 
 const defaultUnlocks = (): ControllerId[] => ['P'];
 
@@ -621,6 +690,7 @@ export async function submitGameScore(
     enableSmithPredictor?: boolean;
     difficultyScale?: number;
     arenaTaskId?: string;
+    arenaAssigned?: boolean;
     publicationId?: string;
   }
 ) {
@@ -706,6 +776,17 @@ export async function submitGameScore(
         const persistedSnapshot = readOdysseyReplaySnapshot(persistedInput);
         bridgeContext = (persistedSnapshot ?? persistedInput) as typeof context;
         const persistedLevelId = typeof persistedInput.levelId === 'string' ? persistedInput.levelId : levelId;
+        if (
+          existingLog.odysseyCompletedAt
+          && !isPersistedArenaAssignedRun(existingLog.inputParams)
+        ) {
+          await persistOrdinaryOdysseyTaskEvidence({
+            userId: actionUser.id,
+            role: actionUser.role,
+            log: existingLog,
+            levelId: persistedLevelId,
+          });
+        }
         const expectedArenaTaskId = getArenaTaskForOdysseyLevel(persistedLevelId);
         const requestedArenaTaskId = typeof bridgeContext?.arenaTaskId === 'string'
           ? bridgeContext.arenaTaskId.trim()
@@ -802,6 +883,7 @@ export async function submitGameScore(
     const creditLevelId = isRecord(log.inputParams) && typeof log.inputParams.levelId === 'string'
       ? log.inputParams.levelId
       : levelId;
+    const isArenaAssignedRun = isPersistedArenaAssignedRun(log.inputParams);
     const completedTier = isLevelTier(bridgeContext?.tier)
       ? bridgeContext.tier
       : undefined;
@@ -811,7 +893,7 @@ export async function submitGameScore(
     const persistedScore = typeof log.score === 'number' && Number.isFinite(log.score) ? log.score : 0;
     const creditsEarned = Math.floor(persistedScore / 100);
 
-    if (ownsRunClaim && !log.odysseyCreditAppliedAt) {
+    if (!isArenaAssignedRun && ownsRunClaim && !log.odysseyCreditAppliedAt) {
       const creditAppliedAt = new Date();
       const claimedLogId = log.id;
       await prisma.$transaction(async (tx) => {
@@ -853,16 +935,16 @@ export async function submitGameScore(
     const persistedLevelId = isRecord(log.inputParams) && typeof log.inputParams.levelId === 'string'
       ? log.inputParams.levelId
       : levelId;
-    const expectedArenaTaskId = runId ? getArenaTaskForOdysseyLevel(persistedLevelId) : undefined;
+    const expectedArenaTaskIdForBridge = runId ? getArenaTaskForOdysseyLevel(persistedLevelId) : undefined;
     const requestedArenaTaskId = typeof bridgeContext?.arenaTaskId === 'string'
       ? bridgeContext.arenaTaskId.trim()
       : undefined;
     const shouldSubmitArenaBridge = Boolean(
       runId
-      && expectedArenaTaskId
-      && requestedArenaTaskId === expectedArenaTaskId
+      && expectedArenaTaskIdForBridge
+      && requestedArenaTaskId === expectedArenaTaskIdForBridge
     );
-    if (shouldSubmitArenaBridge && expectedArenaTaskId) {
+    if (shouldSubmitArenaBridge && expectedArenaTaskIdForBridge) {
       const officialReplaySnapshot = readOdysseyReplaySnapshot(log.inputParams);
       if (!officialReplaySnapshot) {
         return {
@@ -875,7 +957,7 @@ export async function submitGameScore(
         };
       }
       bridgeContext = officialReplaySnapshot as typeof context;
-      const arenaTaskId = expectedArenaTaskId;
+      const arenaTaskId = expectedArenaTaskIdForBridge;
       let officialMetrics: Record<string, unknown> | null = isRecord(log.odysseyOfficialMetrics)
         ? log.odysseyOfficialMetrics
         : null;
@@ -999,14 +1081,26 @@ export async function submitGameScore(
     }
 
     if (runId && ownsRunClaim) {
+      const completedAt = new Date();
       assertOdysseyLeaseOwned(await prisma.simulationLog.updateMany({
         where: { id: log.id, odysseyLeaseToken: leaseToken },
         data: {
-          odysseyCompletedAt: new Date(),
+          odysseyCompletedAt: completedAt,
           odysseyLeaseToken: null,
           odysseyLeaseExpiresAt: null,
         },
       }));
+      if (!isArenaAssignedRun) {
+        await persistOrdinaryOdysseyTaskEvidence({
+          userId: actionUser.id,
+          role: actionUser.role,
+          log: {
+            ...log,
+            odysseyCompletedAt: completedAt,
+          },
+          levelId: persistedLevelId,
+        });
+      }
     }
 
     revalidatePath('/interactive-learning/control-odyssey');

@@ -46,6 +46,12 @@
   "groups": [
     {
       "group_name": "区分增益在开环与闭环中的作用",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04"
+      ],
       "node_ids": [
         "开环增益_1_3",
         "闭环特征方程_1_3"
@@ -53,6 +59,13 @@
     },
     {
       "group_name": "追踪极点随参数连续迁移",
+      "step_ids": [
+        "step-05",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-11"
+      ],
       "node_ids": [
         "极点迁移_1_3",
         "实极点_1_3",
@@ -63,6 +76,10 @@
     },
     {
       "group_name": "联读极点路径与时域行为",
+      "step_ids": [
+        "step-06",
+        "step-10"
+      ],
       "node_ids": [
         "临界阻尼_1_3",
         "衰减振荡_1_3",
@@ -1057,12 +1074,36 @@
       "strength": 1.0
     },
     {
-      "id": "rel-94283a1b58563c0b",
-      "sourceId": "极点_1_2",
-      "targetId": "复平面_1_2",
-      "relation": "visualized_by",
-      "relationType": "visualized_by",
-      "strength": 1.0
+      "id": "rel-3bad196fc39e584e",
+      "sourceId": "开环增益_1_3",
+      "targetId": "闭环特征方程_1_3",
+      "relation": "contrasts_with",
+      "relationType": "contrasts_with",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-42cb7cdf8e0c2d38",
+      "sourceId": "实极点_1_3",
+      "targetId": "参数连续性_1_3",
+      "relation": "exemplifies",
+      "relationType": "exemplifies",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-4e618f3040a0321b",
+      "sourceId": "极点迁移_1_3",
+      "targetId": "重实极点_1_3",
+      "relation": "has_stage",
+      "relationType": "has_stage",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-4f9a330257ea59be",
+      "sourceId": "闭环控制_1_1",
+      "targetId": "闭环特征方程_1_3",
+      "relation": "provides_foundation",
+      "relationType": "provides_foundation",
+      "strength": 0.9
     },
     {
       "id": "rel-6402718cc30e74b5",
@@ -1073,12 +1114,52 @@
       "strength": 1.0
     },
     {
+      "id": "rel-6b54e9f80f7532d5",
+      "sourceId": "极点迁移_1_3",
+      "targetId": "共轭复极点_1_3",
+      "relation": "has_stage",
+      "relationType": "has_stage",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-8300ef346ab075fa",
+      "sourceId": "极点迁移_1_3",
+      "targetId": "根轨迹雏形_1_3",
+      "relation": "visualized_by",
+      "relationType": "visualized_by",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-94283a1b58563c0b",
+      "sourceId": "极点_1_2",
+      "targetId": "复平面_1_2",
+      "relation": "visualized_by",
+      "relationType": "visualized_by",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-9e6f7ebcd89aae05",
+      "sourceId": "共轭复极点_1_3",
+      "targetId": "衰减振荡_1_3",
+      "relation": "produces",
+      "relationType": "produces",
+      "strength": 0.98
+    },
+    {
       "id": "rel-a5846e7d650a958c",
       "sourceId": "复平面_1_2",
       "targetId": "稳定边界_1_2",
       "relation": "contains",
       "relationType": "contains",
       "strength": 1.0
+    },
+    {
+      "id": "rel-a9268a859d534a79",
+      "sourceId": "复平面_1_2",
+      "targetId": "根轨迹雏形_1_3",
+      "relation": "provides_context",
+      "relationType": "provides_context",
+      "strength": 0.85
     },
     {
       "id": "rel-aa56698ed83d04c4",
@@ -1089,12 +1170,12 @@
       "strength": 1.0
     },
     {
-      "id": "rel-3bad196fc39e584e",
-      "sourceId": "开环增益_1_3",
-      "targetId": "闭环特征方程_1_3",
-      "relation": "contrasts_with",
-      "relationType": "contrasts_with",
-      "strength": 0.95
+      "id": "rel-af1fdeb52ce7010c",
+      "sourceId": "根轨迹雏形_1_3",
+      "targetId": "参数连续性_1_3",
+      "relation": "demonstrates",
+      "relationType": "demonstrates",
+      "strength": 0.9
     },
     {
       "id": "rel-bb5e7e710e6112e3",
@@ -1113,60 +1194,12 @@
       "strength": 0.9
     },
     {
-      "id": "rel-4e618f3040a0321b",
-      "sourceId": "极点迁移_1_3",
-      "targetId": "重实极点_1_3",
-      "relation": "has_stage",
-      "relationType": "has_stage",
-      "strength": 0.95
-    },
-    {
-      "id": "rel-6b54e9f80f7532d5",
-      "sourceId": "极点迁移_1_3",
-      "targetId": "共轭复极点_1_3",
-      "relation": "has_stage",
-      "relationType": "has_stage",
-      "strength": 0.95
-    },
-    {
-      "id": "rel-42cb7cdf8e0c2d38",
-      "sourceId": "实极点_1_3",
-      "targetId": "参数连续性_1_3",
-      "relation": "exemplifies",
-      "relationType": "exemplifies",
-      "strength": 0.8
-    },
-    {
       "id": "rel-cf51502e81204d7b",
       "sourceId": "重实极点_1_3",
       "targetId": "临界阻尼_1_3",
       "relation": "equivalent_to",
       "relationType": "equivalent_to",
       "strength": 0.98
-    },
-    {
-      "id": "rel-9e6f7ebcd89aae05",
-      "sourceId": "共轭复极点_1_3",
-      "targetId": "衰减振荡_1_3",
-      "relation": "produces",
-      "relationType": "produces",
-      "strength": 0.98
-    },
-    {
-      "id": "rel-8300ef346ab075fa",
-      "sourceId": "极点迁移_1_3",
-      "targetId": "根轨迹雏形_1_3",
-      "relation": "visualized_by",
-      "relationType": "visualized_by",
-      "strength": 0.98
-    },
-    {
-      "id": "rel-af1fdeb52ce7010c",
-      "sourceId": "根轨迹雏形_1_3",
-      "targetId": "参数连续性_1_3",
-      "relation": "demonstrates",
-      "relationType": "demonstrates",
-      "strength": 0.9
     },
     {
       "id": "rel-f0eaf8332c2b458c",
@@ -1182,22 +1215,6 @@
       "targetId": "极点迁移_1_3",
       "relation": "extends",
       "relationType": "extends",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-a9268a859d534a79",
-      "sourceId": "复平面_1_2",
-      "targetId": "根轨迹雏形_1_3",
-      "relation": "provides_context",
-      "relationType": "provides_context",
-      "strength": 0.85
-    },
-    {
-      "id": "rel-ece7c437603d78d1",
-      "sourceId": "闭环控制_1_1",
-      "targetId": "闭环特征方程_1_3",
-      "relation": "refines",
-      "relationType": "refines",
       "strength": 0.9
     }
   ]

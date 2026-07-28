@@ -1,4 +1,33 @@
+import { normalizeExactKnowledgeLessonId } from '@/lib/knowledge-lesson-identity';
+
 export type KnowledgeNodeActivationAction = 'expand' | 'collapse' | 'inspect' | 'resolve' | 'ignore';
+
+export function resolveKnowledgeLessonLocation(
+  search: string,
+  trustedLessonId: string | null = null
+): { lessonId: string | null; search: string } {
+  const params = new URLSearchParams(search);
+  const lessonValues = params.getAll('lessonId');
+  const urlLessonId = lessonValues.length === 1
+    ? normalizeExactKnowledgeLessonId(lessonValues[0])
+    : null;
+  params.delete('lessonId');
+
+  const lessonId = lessonValues.length > 0
+    ? urlLessonId
+    : normalizeExactKnowledgeLessonId(trustedLessonId);
+  if (lessonId) params.set('lessonId', lessonId);
+  const normalized = params.toString();
+  return { lessonId, search: normalized ? `?${normalized}` : '' };
+}
+
+export function resolveInitialKnowledgeNodeId(
+  search: string,
+  initialSelectedNodeId: string | null = null
+): string | null {
+  const params = new URLSearchParams(search);
+  return params.get('node') ?? params.get('nodeId') ?? initialSelectedNodeId;
+}
 
 export interface KnowledgeExpansionCommitQueue {
   register: (sequence: number, onCancel?: () => void) => void;

@@ -3,7 +3,7 @@
 /**
  * 学生个人中心页面
  *
- * 展示学生六维能力画像、学习统计、最近活动与个性化补强路径。
+ * 展示学生累计七维 portrait v2、学习统计、最新活动与个性化补强路径。
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
@@ -16,7 +16,6 @@ import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learnin
 import type { ArenaStudentPortfolio } from '@/features/arena/profile';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
-import type { StudentProfileEvidenceStatus } from '@/lib/data-governance/profile-center';
 import { getCommercialStudentEntryIntentGroups, getPlatformCockpitHref, getPlatformRoleNavigation } from '@/lib/platform-role-navigation';
 
 const learnerDataShell = buildLearnerDataRouteShell('/profile');
@@ -42,7 +41,7 @@ const personalCenterEntryOverrides: Record<string, { title: string; description:
   },
   '/profile': {
     title: '个人中心',
-    description: '回到个人中心首页，查看画像、班级、入口地图和近期活动。',
+    description: '回到个人中心首页，查看累计画像、班级、入口地图和最新活动。',
   },
 };
 
@@ -101,22 +100,47 @@ interface UserProfile {
     averageScore: number;
   };
   competency: {
-    overallScore: number;
-    level: string;
-    trend: string;
+    model: 'portrait-v2-cumulative';
+    availability: {
+      state: 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE';
+      reason:
+        | 'available'
+        | 'no-eligible-evidence'
+        | 'no-evidence-after-revocation'
+        | 'migration-in-progress'
+        | 'current-state-unavailable'
+        | 'current-state-version-mismatch'
+        | 'invalid-current-snapshot';
+    };
+    limitations: string[];
+    overallScore: number | null;
+    level: string | null;
+    confidence: number | null;
+    lastTrend: 'up' | 'stable' | 'down' | 'not-comparable' | null;
+    lastRisk: Array<{
+      type: 'constraint' | 'stagnation' | 'cross_domain';
+      severity: 'low' | 'medium' | 'high';
+      occurredAt: string | null;
+    }>;
+    evidenceAsOf: string | null;
+    generatedAt: string | null;
     strengths: string[];
-    weaknesses: string[];
+    improvementAreas: string[];
     dimensions: Array<{
       key: string;
       label: string;
       description: string;
-      score: number;
+      score: number | null;
       trend: 'up' | 'stable' | 'down';
-      confidence: number;
+      confidence: number | null;
       evidenceCount: number;
+      freshness: { state: string; asOf: string | null; evidenceAgeDays: number | null };
+      limitations: string[];
+      calculationVersion: string;
+      availabilityReason: 'available' | 'no-eligible-evidence';
     }>;
   };
-  recentActivity: {
+  latestActivity: {
     preview: ActivityItemData[];
     grouped: Array<{
       category: ActivityItemData['category'];
@@ -154,7 +178,6 @@ interface UserProfile {
       actionUrl: string;
     };
   };
-  evidenceStatus: StudentProfileEvidenceStatus;
   arenaPortfolio: ArenaStudentPortfolio;
 }
 
@@ -277,7 +300,7 @@ export default function ProfilePage() {
       ? (profile.missionProgress.completed / profile.missionProgress.total) * 100
       : 0;
   const topArenaRank = profile.arenaPortfolio.personalBestByTask[0];
-  const evidenceStatusMeta = getEvidenceStatusMeta(profile.evidenceStatus);
+  const portraitAvailabilityMeta = getPortraitAvailabilityMeta(profile.competency.availability.reason);
 
   return (
     <AppShell
@@ -298,8 +321,9 @@ export default function ProfilePage() {
         <div
           className="surface-card mb-8 p-6"
           data-learner-record-priority="current-path"
-          data-learner-record-evidence-confidence={profile.evidenceStatus.confidence.level}
-          data-learner-record-missing-source={profile.evidenceStatus.statusMarkers.includes('missing-source') ? 'missing-source' : 'complete'}
+          data-learner-record-evidence-confidence={profile.competency.confidence ?? 'unavailable'}
+          data-learner-record-portrait-availability={profile.competency.availability.reason}
+          data-learner-record-missing-source={profile.competency.availability.reason === 'available' ? 'complete' : 'missing-source'}
         >
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
@@ -318,20 +342,20 @@ export default function ProfilePage() {
                   <span>
                     伦理分 <span className="text-emerald-500">{Math.round(profile.profile?.ethicsScore || 0)}</span>
                   </span>
-                  <span>{profile.competency.trend}</span>
+                  <span>累计趋势：{trendText(profile.competency.lastTrend)}</span>
                 </div>
               </div>
             </div>
             <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-6 py-4 text-center md:text-right">
-              <div className="text-5xl font-bold text-amber-500">{profile.competency.overallScore}</div>
-              <p className="text-lg font-medium text-foreground">{profile.competency.level}</p>
-              <p className="text-sm text-subtle">六维能力综合得分</p>
-              <div className={`mt-3 rounded-lg border px-3 py-2 text-left text-xs ${evidenceStatusMeta.className}`}>
+              <div className="text-5xl font-bold text-amber-500">{profile.competency.overallScore ?? '—'}</div>
+              <p className="text-lg font-medium text-foreground">{profile.competency.level ?? '暂无累计画像'}</p>
+              <p className="text-sm text-subtle">累计七维综合得分</p>
+              <div className={`mt-3 rounded-lg border px-3 py-2 text-left text-xs ${portraitAvailabilityMeta.className}`}>
                 <div className="flex items-center justify-between gap-3">
-                  <span>证据状态</span>
-                  <span className="font-medium">{evidenceStatusMeta.label}</span>
+                  <span>累计画像</span>
+                  <span className="font-medium">{portraitAvailabilityMeta.label}</span>
                 </div>
-                <p className="mt-1">{formatEvidenceStatusSummary(profile.evidenceStatus)}</p>
+                <p className="mt-1">{formatPortraitAvailabilitySummary(profile.competency)}</p>
               </div>
             </div>
           </div>
@@ -428,7 +452,10 @@ export default function ProfilePage() {
               <div>
                 <h3 className="text-lg font-semibold text-foreground">能力画像</h3>
                 <p className="mt-1 text-sm text-subtle">
-                  已对齐当前实际能力维度，聚焦控制建模、参数设计、跨域迁移、工程决策、探究反思与自主学习。
+                  画像由全部有效学习事实累计生成；证据日期较早不会使已有能力失效。
+                </p>
+                <p className="mt-1 text-xs text-subtle">
+                  证据截至 {formatDateTime(profile.competency.evidenceAsOf)} · 画像生成 {formatDateTime(profile.competency.generatedAt)}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -437,7 +464,7 @@ export default function ProfilePage() {
                     强项 · {strength}
                   </span>
                 ))}
-                {profile.competency.weaknesses.map((weakness) => (
+                {profile.competency.improvementAreas.map((weakness) => (
                   <span key={weakness} className="rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-700 dark:text-amber-300">
                     待补强 · {weakness}
                   </span>
@@ -445,8 +472,13 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {profile.competency.dimensions.map((dimension) => (
+            {profile.competency.dimensions.length === 0 ? (
+              <div className="surface-card-soft mt-6 p-5 text-sm text-subtle">
+                {portraitAvailabilityMeta.description}
+              </div>
+            ) : (
+              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {profile.competency.dimensions.map((dimension) => (
                 <div key={dimension.key} className="surface-card-soft p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -454,22 +486,58 @@ export default function ProfilePage() {
                       <p className="mt-1 text-xs leading-5 text-subtle">{dimension.description}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-foreground">{dimension.score}</div>
-                      <div className={`text-xs ${trendClassName(dimension.trend)}`}>{trendText(dimension.trend)}</div>
+                      <div className="text-2xl font-bold text-foreground">{dimension.score ?? '—'}</div>
+                      <div className={`text-xs ${trendClassName(dimension.trend)}`}>
+                        {dimension.availabilityReason === 'available' ? trendText(dimension.trend) : '无合格证据'}
+                      </div>
                     </div>
                   </div>
                   <div className="mt-4 h-2 rounded-full bg-accent/85">
-                    <div
-                      className={`h-2 rounded-full ${scoreBarClassName(dimension.score)}`}
-                      style={{ width: `${Math.max(0, Math.min(100, dimension.score))}%` }}
-                    />
+                    {dimension.score !== null ? (
+                      <div
+                        className={`h-2 rounded-full ${scoreBarClassName(dimension.score)}`}
+                        style={{ width: `${Math.max(0, Math.min(100, dimension.score))}%` }}
+                      />
+                    ) : null}
                   </div>
                   <div className="mt-2 flex items-center justify-between text-xs text-subtle">
-                    <span>置信度 {Math.round(dimension.confidence * 100)}%</span>
+                    <span>
+                      {dimension.confidence === null
+                        ? '置信度不可用'
+                        : `置信度 ${Math.round(dimension.confidence * 100)}%`}
+                    </span>
                     <span>{dimension.evidenceCount} 条证据</span>
                   </div>
+                  {dimension.limitations.length > 0 ? (
+                    <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">限制：{dimension.limitations.join('；')}</p>
+                  ) : null}
                 </div>
-              ))}
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 grid gap-3 md:grid-cols-2">
+              <div className="surface-card-soft p-4">
+                <p className="text-xs text-subtle">最后趋势</p>
+                <p className="mt-1 font-medium text-foreground">{trendText(profile.competency.lastTrend)}</p>
+              </div>
+              <div className="surface-card-soft p-4">
+                <p className="text-xs text-subtle">最后风险</p>
+                {profile.competency.lastRisk.length === 0 ? (
+                  <p className="mt-1 font-medium text-foreground">无证据支持的当前风险</p>
+                ) : (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {profile.competency.lastRisk.map((risk) => (
+                      <span
+                        key={`${risk.type}-${risk.severity}-${risk.occurredAt ?? ''}`}
+                        className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-600 dark:text-red-300"
+                      >
+                        {riskTypeLabel(risk.type)} · {riskSeverityLabel(risk.severity)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -633,12 +701,12 @@ export default function ProfilePage() {
           <div className="surface-card p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">最近活动</h3>
+                <h3 className="text-lg font-semibold text-foreground">最新活动</h3>
                 <p className="mt-1 text-sm text-subtle">
-                  汇总课堂参与、仿真训练、互动页面和自适应题目等全部学习轨迹。
+                  按时间倒序汇总学习轨迹，仅用于活动浏览，不改变累计画像、趋势或风险。
                 </p>
               </div>
-              {profile.recentActivity.total > 3 && (
+              {profile.latestActivity.total > 3 && (
                 <button type="button"
                   onClick={() => setShowAllActivities((value) => !value)}
                   className="rounded-full border border-border/70 px-4 py-2 text-sm text-foreground transition hover:border-amber-500/40 hover:text-amber-600 dark:hover:text-amber-300"
@@ -648,11 +716,11 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {profile.recentActivity.total === 0 ? (
+            {profile.latestActivity.total === 0 ? (
               <p className="py-10 text-center text-subtle">暂无活动记录</p>
             ) : showAllActivities ? (
               <div className="mt-6 space-y-6">
-                {profile.recentActivity.grouped.map((group) => (
+                {profile.latestActivity.grouped.map((group) => (
                   <div key={group.category}>
                     <div className="mb-3 flex items-center justify-between">
                       <h4 className="text-sm font-medium text-foreground">{group.label}</h4>
@@ -668,7 +736,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div className="mt-6 space-y-3">
-                {profile.recentActivity.preview.map((activity) => (
+                {profile.latestActivity.preview.map((activity) => (
                   <ActivityItem key={activity.id} activity={activity} />
                 ))}
               </div>
@@ -980,46 +1048,50 @@ function formatDate(dateStr: string) {
   return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
 }
 
-function formatShortDate(dateStr: string | null) {
+function formatDateTime(dateStr: string | null) {
   if (!dateStr) {
-    return '未刷新';
+    return '不可用';
   }
-  return new Date(dateStr).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+  return new Date(dateStr).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
-function getEvidenceStatusMeta(status: StudentProfileEvidenceStatus) {
-  if (status.state === 'ready' && status.confidence.state === 'ready') {
+function getPortraitAvailabilityMeta(reason: UserProfile['competency']['availability']['reason']) {
+  if (reason === 'available') {
     return {
       label: '可用',
       className: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+      description: '当前累计画像已经通过版本与迁移围栏校验。',
     };
   }
 
-  if (status.state === 'stale') {
+  if (reason === 'migration-in-progress') {
     return {
-      label: '待刷新',
+      label: '迁移中',
       className: 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+      description: '累计画像迁移尚未完成，请在迁移完成后重试。',
     };
   }
 
   return {
-    label: '证据不足',
+    label: reason === 'no-evidence-after-revocation' ? '证据已撤销' : '不可用',
     className: 'border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300',
+    description: reason === 'no-eligible-evidence' || reason === 'no-evidence-after-revocation'
+      ? '当前没有可用于累计画像的有效学习事实。'
+      : '当前累计画像未通过版本或完整性校验。',
   };
 }
 
-function formatEvidenceStatusSummary(status: StudentProfileEvidenceStatus) {
-  const evidenceCount = status.confidence.evidenceCount ?? status.sourceCounts.LearningFact ?? 0;
-
-  if (status.state === 'missing') {
-    return `缓存缺失 · ${evidenceCount} 条事实`;
+function formatPortraitAvailabilitySummary(competency: UserProfile['competency']) {
+  if (competency.availability.reason !== 'available') {
+    return getPortraitAvailabilityMeta(competency.availability.reason).description;
   }
-
-  if (status.state === 'stale') {
-    return `最近刷新 ${formatShortDate(status.refreshedAt)} · ${evidenceCount} 条证据`;
-  }
-
-  return `覆盖 ${status.evidenceWindow.daysCovered} 天 · ${evidenceCount} 条证据`;
+  return `证据截至 ${formatDateTime(competency.evidenceAsOf)} · 画像生成 ${formatDateTime(competency.generatedAt)}`;
 }
 
 function recommendationConfidenceLabel(rationale?: RecommendationRationale) {
@@ -1044,9 +1116,10 @@ function recommendationConfidenceLabel(rationale?: RecommendationRationale) {
   return null;
 }
 
-function trendText(trend: 'up' | 'stable' | 'down') {
+function trendText(trend: 'up' | 'stable' | 'down' | 'not-comparable' | null) {
   if (trend === 'up') return '上升';
   if (trend === 'down') return '下降';
+  if (trend === 'not-comparable' || trend === null) return '暂无可比状态';
   return '稳定';
 }
 
@@ -1060,6 +1133,18 @@ function scoreBarClassName(score: number) {
   if (score >= 75) return 'bg-emerald-500';
   if (score >= 55) return 'bg-amber-500';
   return 'bg-red-500';
+}
+
+function riskTypeLabel(type: UserProfile['competency']['lastRisk'][number]['type']) {
+  if (type === 'constraint') return '约束风险';
+  if (type === 'stagnation') return '能力停滞';
+  return '跨域联动';
+}
+
+function riskSeverityLabel(severity: UserProfile['competency']['lastRisk'][number]['severity']) {
+  if (severity === 'high') return '高';
+  if (severity === 'medium') return '中';
+  return '低';
 }
 
 function activityCategoryClassName(category: ActivityItemData['category']) {

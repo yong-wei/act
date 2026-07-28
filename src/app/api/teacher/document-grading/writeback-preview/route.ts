@@ -10,7 +10,19 @@ import {
   validateDocumentRubricGradingDraftInvariants,
 } from '@/lib/data-governance/document-rubric-grading-workbench';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { GradingMutationError } from '@/lib/data-governance/math-document-grading-contracts';
 import { prisma } from '@/lib/prisma';
+import {
+  buildPipelineReviewFacts,
+  assertPipelineReviewActor,
+  isPipelineRunReviewable,
+  PIPELINE_GRADING_REVIEW_INCLUDE,
+  pipelineReviewScope,
+  validatePipelineReviewContract,
+  validatePipelineReviewEdits,
+  validatePipelineRuntimeSource,
+} from '@/lib/data-governance/math-document-grading-review';
+import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +51,33 @@ export async function POST(request: Request) {
     }
     if (body.edits !== undefined && !isDocumentGradingEditList(body.edits)) {
       return NextResponse.json({ error: '评分编辑无效' }, { status: 400 });
+    }
+
+    const pipelineRun = await prisma.gradingRun.findUnique({
+      where: { id: body.gradingRunId },
+      include: PIPELINE_GRADING_REVIEW_INCLUDE,
+    });
+    if (pipelineRun) {
+      if (!isPipelineRunReviewable(pipelineRun) || pipelineRun.state !== 'AWAITING_REVIEW') {
+        return NextResponse.json({ error: '评分运行当前不可预览写回' }, { status: 409 });
+      }
+      const scope = pipelineReviewScope(pipelineRun);
+      await assertPipelineReviewActor({ db: prisma, run: pipelineRun, actor: { id: session.user.id, role: session.user.role } });
+      const editError = validatePipelineReviewEdits(pipelineRun, body.edits ?? []);
+      if (editError) return NextResponse.json({ error: editError }, { status: 400 });
+      const contractReasons = validatePipelineReviewContract(pipelineRun);
+      contractReasons.push(...await validatePipelineRuntimeSource(pipelineRun, createSubmissionObjectStore()));
+      if (contractReasons.length > 0) return NextResponse.json({ error: 'grading-review-contract-drift', reasons: contractReasons }, { status: 409 });
+      const facts = buildPipelineReviewFacts({ run: pipelineRun, edits: body.edits ?? [], reviewedAt: new Date() });
+      return NextResponse.json({
+        status: 'preview',
+        gradingRunId: pipelineRun.id,
+        wouldCreateFacts: facts.length,
+        blockedFacts: 0,
+        affectedDimensions: facts.flatMap((fact: any) => Object.entries(fact.competencyContribution).map(([competencyDimension, contribution]) => ({ criterionId: fact.contextJson.criterionId, competencyDimension, contribution, confidence: fact.contextJson.confidence, sourceEventId: fact.sourceEventId, anchorCount: pipelineRun.annotations.filter((annotation: any) => annotation.criterionId === fact.contextJson.criterionId).length, hasEvidence: pipelineRun.annotations.some((annotation: any) => annotation.criterionId === fact.contextJson.criterionId) }))),
+        evidenceSourceEventIds: facts.map((fact: any) => fact.sourceEventId),
+        dedupeKeys: facts.map((fact: any) => fact.sourceEventId),
+      });
     }
 
     const draft = await prisma.learningEvidenceDraft.findFirst({
@@ -134,6 +173,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof GradingMutationError) return NextResponse.json({ error: error.code }, { status: error.status });
     console.error('[DocumentRubricGrading] writeback preview failed', error);
     return NextResponse.json({ error: '预览文档评分写回失败' }, { status: 500 });
   }
@@ -141,7 +181,7 @@ export async function POST(request: Request) {
 
 function isDocumentGradingEditList(value: unknown): value is Array<{
   criterionId: string;
-  levelId: string;
+  levelId: string | null;
   score: number;
   comment: string;
 }> {
@@ -149,7 +189,7 @@ function isDocumentGradingEditList(value: unknown): value is Array<{
     typeof item === 'object' &&
     !Array.isArray(item) &&
     typeof item.criterionId === 'string' &&
-    typeof item.levelId === 'string' &&
+    (item.levelId === null || typeof item.levelId === 'string') &&
     typeof item.score === 'number' &&
     Number.isFinite(item.score) &&
     typeof item.comment === 'string');
@@ -158,14 +198,17 @@ function isDocumentGradingEditList(value: unknown): value is Array<{
 function validateDocumentGradingEditsAgainstRubric(
   edits: Array<{
     criterionId: string;
-    levelId: string;
+    levelId: string | null;
     score: number;
     comment: string;
   }>,
   rubric: {
+    schemaVersion?: string;
     maxScore: number;
     criteria: Array<{
       id: string;
+      maxPoints?: number;
+      detailedRubricEnabled?: boolean;
       levels: Array<{ id: string; score: number }>;
     }>;
   },
@@ -175,12 +218,20 @@ function validateDocumentGradingEditsAgainstRubric(
     if (!criterion) {
       return '评分编辑指标不存在';
     }
-    const level = criterion.levels.find((item) => item.id === edit.levelId);
-    if (!level) {
+    const detailedRubricEnabled = criterion.detailedRubricEnabled !== false;
+    const level = edit.levelId === null
+      ? null
+      : criterion.levels.find((item) => item.id === edit.levelId);
+    if ((detailedRubricEnabled && !level) || (!detailedRubricEnabled && edit.levelId !== null)) {
       return '评分编辑等级不存在';
     }
-    if (edit.score < 0 || edit.score > rubric.maxScore) {
+    const criterionMax = criterion.maxPoints ?? rubric.maxScore;
+    if (edit.score < 0 || edit.score > criterionMax) {
       return '评分编辑分数超出量规范围';
+    }
+    if (rubric.schemaVersion === 'assignment-scoring-rubric.v2'
+      && Math.abs(edit.score * 10 - Math.round(edit.score * 10)) >= 1e-8) {
+      return '评分编辑分数必须保留一位小数';
     }
   }
   return null;

@@ -28,7 +28,13 @@ function main() {
   const appPrismaClientFactory = read('src/lib/prisma-client.ts');
   const scriptPrismaClientFactory = read('scripts/lib/prisma-client.mjs');
   const prismaConfig = read('prisma.config.ts');
+  const prismaSchema = read('prisma/schema.prisma');
   const packageJson = JSON.parse(read('package.json'));
+  const entrypointScript = read('docker-entrypoint.sh');
+  const releaseImportCli = read('scripts/db/import-authoritative-actkg-release.ts');
+  const coverageImportCli = read('scripts/db/import-course-coverage-overlay.ts');
+  const resourceBindingImportCli = read('scripts/db/import-canonical-resource-binding-shadow.ts');
+  const remoteDeployScript = read('scripts/remote-deploy.sh');
   const migrationSql = fs
     .readdirSync(path.join(root, 'prisma', 'migrations'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
@@ -39,6 +45,30 @@ function main() {
     dockerfile,
     /COPY --from=builder \/app\/prisma \.\/prisma/,
     'Dockerfile 必须把 prisma 迁移目录复制到运行镜像'
+  );
+
+  for (const requiredCopy of [
+    '/app/scripts/actkg-release ./scripts/actkg-release',
+    '/app/scripts/course-coverage ./scripts/course-coverage',
+    '/app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases',
+    '/app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage',
+    '/app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+    '/app/.app-revision ./.app-revision',
+  ]) {
+    assert.ok(
+      dockerfile.includes(requiredCopy),
+      `Docker runner 必须包含权威知识部署输入: ${requiredCopy}`,
+    );
+  }
+  assert.match(
+    dockerfile,
+    /ARG APP_REVISION[\s\S]*printf '%s\\n' "\$\{APP_REVISION\}" > \/app\/\.app-revision/,
+    'Docker builder 必须把 APP_REVISION 写入不可变镜像修订文件',
+  );
+  assert.match(
+    dockerfile,
+    /ENV APP_REVISION=\$\{APP_REVISION\}/,
+    'Docker runner 必须公开与不可变修订文件一致的 APP_REVISION',
   );
 
   assert.match(
@@ -143,6 +173,20 @@ function main() {
 
   assert.match(
     dockerfile,
+    /ENV NODE_OPTIONS=--max-old-space-size=4096/,
+    'Dockerfile builder 阶段必须提高 Node heap，避免容器内 Next 构建因默认堆内存不足失败'
+  );
+
+  const packageBuildScript = packageJson.scripts.build;
+  const wasmBuildIndex = Math.min(
+    ...[
+      packageBuildScript.indexOf('wasm:build:control-engine'),
+      packageBuildScript.indexOf('scripts/wasm/build-control-engine.mjs'),
+    ].filter((index) => index >= 0),
+  );
+
+  assert.match(
+    dockerfile,
     /RUN --mount=type=secret,id=database_url,required=false/,
     'Dockerfile builder 阶段必须通过 BuildKit secret 接收真实构建期 DATABASE_URL'
   );
@@ -171,9 +215,12 @@ function main() {
     'Dockerfile 不得用 ENV 固化假 DATABASE_URL，避免覆盖真实构建期数据库'
   );
 
-  assert.match(
-    packageJson.scripts.build,
-    /(?:wasm:build:control-engine|scripts\/wasm\/build-control-engine\.mjs)/,
+  const prismaGenerateIndex = packageBuildScript.indexOf('prisma generate');
+  const nextBuildIndex = packageBuildScript.indexOf('scripts/build-next-with-trace-check.mjs');
+  assert.ok(
+    wasmBuildIndex >= 0
+      && prismaGenerateIndex > wasmBuildIndex
+      && nextBuildIndex > wasmBuildIndex,
     '统一 build 脚本必须先构建控制分析内核的 Wasm 产物'
   );
 
@@ -194,14 +241,36 @@ function main() {
     /!scripts\/lib\//,
     '.dockerignore 必须保留 scripts/lib Prisma 工厂进入镜像构建上下文'
   );
+  for (const requiredPath of [
+    '!scripts/actkg-release/**',
+    '!scripts/course-coverage/**',
+    '!course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+  ]) {
+    assert.ok(
+      dockerignore.includes(requiredPath),
+      `.dockerignore 必须放行 ${requiredPath}`,
+    );
+  }
 
   const entrypointPath = path.join(root, 'docker-entrypoint.sh');
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
-  const entrypointScript = read('docker-entrypoint.sh');
   assert.match(
     entrypointScript,
     /migrate deploy --config \.\/prisma\.config\.ts/,
     'docker-entrypoint.sh 必须通过 Prisma 7 config 执行 migrate deploy'
+  );
+  const migrateIndex = entrypointScript.indexOf('migrate deploy --config ./prisma.config.ts');
+  const releaseImportIndex = entrypointScript.indexOf('import-authoritative-actkg-release.ts');
+  const coverageImportIndex = entrypointScript.indexOf('import-course-coverage-overlay.ts');
+  const resourceBindingImportIndex = entrypointScript.indexOf(
+    'import-canonical-resource-binding-shadow.ts',
+  );
+  assert.ok(
+    migrateIndex >= 0
+      && releaseImportIndex > migrateIndex
+      && coverageImportIndex > releaseImportIndex
+      && resourceBindingImportIndex > coverageImportIndex,
+    'entrypoint 必须仅在启动迁移分支内按 migrate → Release → Overlay → 资源绑定影子清单顺序执行',
   );
 
   assert.match(
@@ -268,7 +337,7 @@ function main() {
   }
 
   const deployScript = read('deploy/podman/deploy.sh');
-  const buildScript = read('scripts/build.sh');
+  const localImageBuildScript = read('scripts/build.sh');
   const startWrapperScript = read('deploy/podman/container-start-wrapper.sh');
   assert.match(
     deployScript,
@@ -355,61 +424,146 @@ function main() {
   );
 
   assert.doesNotMatch(
-    buildScript,
+    localImageBuildScript,
     /RUSTUP_DIST_SERVER|RUSTUP_UPDATE_ROOT/,
     '构建脚本不应再向 Docker 构建传入 Rust 下载源；Docker 阶段不负责重复编译 Wasm'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /rm -rf "\$\{ROOT_DIR\}\/\.next"/,
     '构建脚本应在本地 Next 构建前清理 .next，避免增量产物导致部署构建卡住'
   );
+  assert.match(
+    localImageBuildScript,
+    /import-course-coverage-overlay\.ts --validate-only/,
+    'release build 必须在干净 Git HEAD 上预校验 CourseCoverage Overlay',
+  );
+  assert.match(
+    localImageBuildScript,
+    /--build-arg "APP_REVISION=\$\{APP_REVISION\}"/,
+    'release build 必须向镜像传递已验证的 APP_REVISION',
+  );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /BUILD_ARGS=\(/,
     '构建脚本必须集中维护 Docker build args'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /DATABASE_URL_FOR_BUILD="\$\{DATABASE_URL:-\}"/,
     '构建脚本必须优先使用已导出的宿主 DATABASE_URL'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /require\("dotenv"\)\.config\(\{ path: "\.env", quiet: true \}\)/,
     '构建脚本必须在宿主 DATABASE_URL 未导出时从 .env 读取构建期数据库 URL'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /if \[\[ -n "\$\{DATABASE_URL_FOR_BUILD\}" \]\]; then/,
     '构建脚本必须在解析到构建期 DATABASE_URL 后传入 Docker 构建 secret'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /BUILD_ARGS\+=\(--secret "id=database_url,env=DATABASE_URL"\)/,
     '构建脚本必须把构建期 DATABASE_URL 作为 BuildKit secret 传给 builder'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /DATABASE_URL="\$\{DATABASE_URL_FOR_BUILD\}" docker buildx build/,
     '构建脚本必须只在 docker buildx 调用环境中暴露 DATABASE_URL secret 来源'
   );
 
   assert.doesNotMatch(
-    buildScript,
+    localImageBuildScript,
     /--build-arg "DATABASE_URL=/,
     '构建脚本不得把真实 DATABASE_URL 作为 Docker build arg 传递'
   );
+  for (const [name, source] of [
+    ['Release CLI', releaseImportCli],
+    ['Overlay CLI', coverageImportCli],
+  ]) {
+    assert.match(
+      source,
+      /APP_REVISION_FILE \?\? '\.app-revision'/,
+      `${name} 必须在无 .git 的容器中读取不可变镜像修订文件`,
+    );
+    assert.match(
+      source,
+      /select: \{ captureRevision: true \}/,
+      `${name} 必须优先读取既有数据库投影的 captureRevision 进行幂等核验`,
+    );
+    assert.match(
+      source,
+      /--verify-only/,
+      `${name} 必须支持只读部署后核验`,
+    );
+  }
+  assert.match(
+    releaseImportCli,
+    /persisted ActKG Release round-trip hash mismatch/,
+    'Release CLI 必须核验 canonical round-trip hash',
+  );
+  assert.match(
+    releaseImportCli,
+    /result\.status !== 'available' \|\| result\.diagnostics\.length !== 0/,
+    'Release CLI 必须核验 receipt/count/hash Repository 诊断为空',
+  );
+  assert.match(
+    coverageImportCli,
+    /readCourseCoverage\(selector\(validated\.overlay\)\)/,
+    'Overlay CLI 必须通过显式 selector 读取 CourseCoverage',
+  );
+  assert.match(
+    coverageImportCli,
+    /result\.status !== 'available' \|\| result\.diagnostics\.length !== 0/,
+    'Overlay CLI 必须要求 available 且无 diagnostics',
+  );
+  assert.match(
+    resourceBindingImportCli,
+    /buildResourceBindingInventory\(observations\)/,
+    '资源绑定 CLI 必须从同一捕获身份的 observation 生成完整逐项清单',
+  );
+  assert.match(
+    prismaSchema,
+    /release\s+ActkgRelease\s+@relation\(fields: \[releaseSetId, releaseId\], references: \[releaseSetId, id\]/,
+    'binding decision 的 Prisma Release relation 必须与迁移中的复合外键一致',
+  );
+  assert.match(
+    prismaSchema,
+    /evidence\s+ActkgEvidenceSegment\?\s+@relation\(fields: \[releaseId, evidenceId\], references: \[releaseId, evidenceId\]/,
+    'binding decision 的 Prisma Evidence relation 必须与迁移中的可选复合外键一致',
+  );
+  assert.match(
+    migrationSql,
+    /"CanonicalResourceBindingDecision_releaseSetId_releaseId_fkey"[\s\S]*FOREIGN KEY \("releaseSetId", "releaseId"\)[\s\S]*REFERENCES "ActkgRelease"\("releaseSetId", "id"\)/,
+    'binding decision migration 必须声明复合 Release 外键',
+  );
+  assert.match(
+    migrationSql,
+    /"CanonicalResourceBindingDecision_releaseId_evidenceId_fkey"[\s\S]*FOREIGN KEY \("releaseId", "evidenceId"\)[\s\S]*REFERENCES "ActkgEvidenceSegment"\("releaseId", "evidenceId"\)/,
+    'binding decision migration 必须声明复合 Evidence 外键',
+  );
+  assert.match(
+    resourceBindingImportCli,
+    /cutoverReady:\s*false/,
+    '资源绑定部署核验必须保持 Canonical cutover fail closed',
+  );
+  assert.match(
+    remoteDeployScript,
+    /podman exec '\$\{APP_NAME_HINT\}' npm run db:verify-authoritative-knowledge-deployment/,
+    'remote-deploy 最终阶段必须核验 Release roundtrip/receipt/count/hash 与 Overlay selector/receipt',
+  );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /"\$\{BUILD_ARGS\[@\]\}"/,
     'docker buildx build 必须使用集中维护的 BUILD_ARGS'
   );
@@ -463,6 +617,42 @@ function main() {
     migrationSql,
     /ALTER TABLE "InteractionLog" ALTER COLUMN "resourceKey" DROP NOT NULL/,
     'Prisma 迁移必须包含 InteractionLog.resourceKey 可空变更'
+  );
+
+  for (const tableName of [
+    'ActkgReleaseArtifact',
+    'ActkgReleaseComponent',
+    'ActkgReleaseEntry',
+    'ActkgProjectionNode',
+    'ActkgProjectionLink',
+    'ActkgUpstreamRagReference',
+  ]) {
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TABLE "${tableName}"`),
+      `Prisma 迁移必须包含 CTKG 0.2 聚合发布表 ${tableName}`
+    );
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TRIGGER "${tableName}_immutable"`),
+      `Prisma 迁移必须为 ${tableName} 声明 immutable 触发器`
+    );
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TRIGGER "${tableName}_sealed_insert"`),
+      `Prisma 迁移必须为 ${tableName} 声明 sealed_insert 触发器`
+    );
+  }
+
+  assert.match(
+    releaseImportCli,
+    /importValidatedAggregateRelease/u,
+    'Release CLI 必须通过聚合 adapter 导入 CTKG 0.2 发布'
+  );
+  assert.match(
+    releaseImportCli,
+    /reconstructAggregateArtifacts/u,
+    'Release CLI 必须核验聚合公开 artifact 的字节级往返',
   );
 
   console.log('docker migration readiness test passed');

@@ -95,8 +95,10 @@ describe('platform role navigation', () => {
       '/teacher/assignments',
       '/teacher/assignments/new',
       '/teacher/assignments/[assignmentId]/edit',
+      '/teacher/assignments/[assignmentId]/submissions',
+      '/teacher/assignments/[assignmentId]/submissions/[submissionId]/review',
     ]);
-    expect(routes.every((entry) => entry.frame === 'operations-console' && entry.roleScope.join(',') === 'teacher')).toBe(true);
+    expect(routes.every((entry) => entry.frame === 'operations-console' && entry.roleScope.includes('teacher'))).toBe(true);
     expect(routes.every((entry) => entry.navigationLayers.join(',') === 'role-cockpit,contextual-workspace,local-tool')).toBe(true);
     expect(resolvePlatformRouteInventory('/teacher/assignments/assignment-1/edit')?.href).toBe('/teacher/assignments/[assignmentId]/edit');
   });
@@ -368,6 +370,7 @@ describe('platform role navigation', () => {
       '/arena/challenges/[taskId]',
       '/assessment/adaptive-practice',
       '/missions',
+      '/missions/assignments/[assignmentId]',
       '/interactive-learning/control-workbench',
       '/dashboard',
       '/profile',
@@ -399,11 +402,15 @@ describe('platform role navigation', () => {
       '/teacher/assignments',
       '/teacher/assignments/new',
       '/teacher/assignments/[assignmentId]/edit',
+      '/teacher/assignments/[assignmentId]/submissions',
+      '/teacher/assignments/[assignmentId]/submissions/[submissionId]/review',
       '/teacher/preset-lessons',
       '/teacher/resources',
       '/teacher/resources/resource-nodes',
       '/teacher/history',
       '/teacher/grading-workbench',
+      '/teacher/smart-prep',
+      '/teacher/smart-prep/courseware/[draftId]',
       '/teacher/prep-packs',
       '/teacher/arena',
       '/teacher/arena/publications/[publicationId]',
@@ -543,6 +550,12 @@ describe('platform role navigation', () => {
       frame: 'report-ledger',
       owningChange: 'migrate-operations-report-ledger-surfaces',
       roleScope: ['teacher'],
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher/smart-prep')).toMatchObject({
+      frame: 'operations-console',
+      owningChange: 'add-teacher-course-basis-management',
+      roleScope: ['teacher'],
+      screenshotProfile: 'temporary-exception',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin')).toMatchObject({
       frame: 'operations-console',
@@ -1037,6 +1050,17 @@ describe('platform role navigation', () => {
     });
   });
 
+  it('keeps classroom teacher review inside the exact teacher session workspace route family', () => {
+    expect(
+      PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/classroom/teacher/[sessionId]'),
+    ).toMatchObject({
+      routeFile: 'src/app/classroom/teacher/[sessionId]/page.tsx',
+      coveredRouteGlob: 'src/app/classroom/teacher/[sessionId]/*/page.tsx',
+      frame: 'mission-workspace',
+      roleScope: ['teacher', 'admin'],
+    });
+  });
+
   it('records route-level legacy shell and dock dispositions for primary routes that still use adapters', () => {
     const shellRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.legacyShell);
     expect(shellRoutes.map((route) => [route.href, route.legacyShell?.component])).toEqual(
@@ -1215,15 +1239,16 @@ describe('platform role navigation', () => {
     expect(resourceSource).toContain('data-route-source={sourceContext.href}');
     expect(resourceSource).toContain('resolveAdaptivePathLaunchReturnContext(searchParams)');
     expect(resourceSource).toContain('buildAdaptivePathCompletionRequest');
-    expect(resourceSource).toContain('onComplete={handlePathResourceComplete}');
+    expect(resourceSource).toContain('selectResourceCompletionHandler');
+    expect(resourceSource).toContain('onComplete={resourceCompletionHandler}');
     expect(resourceSource).toContain("label: '学习路径'");
-    expect(resourceSource).toContain('breadcrumbs={[');
+    expect(resourceSource).toContain('breadcrumbs={breadcrumbs}');
     expect(resourceSource).toContain('h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)]');
     expect(readSource('src/features/interactive/shared/lesson-runtime-shell.tsx')).toContain(
       'const runtimeReturnLabel = pathLaunchContext ?',
     );
     expect(readSource('src/features/interactive/shared/lesson-runtime-shell.tsx')).toContain(
-      '{ label: runtimeReturnLabel, href: runtimeReturnHref }',
+      "{ label: '学习路径' }",
     );
     expect(coursesSource).toContain('data-learning-entry-map="course-module-progression"');
     expect(coursesSource).toContain('data-entry-current-work-priority="recommended-course"');
@@ -1302,7 +1327,8 @@ describe('platform role navigation', () => {
 
     expect(teacherNewClassSource).toContain('useSearchParams');
     expect(teacherNewClassSource).toContain('resolveScopedReturnTarget(');
-    expect(teacherClassDetailSource).toContain('returnTo=${encodeURIComponent(`/teacher/classes/${classId}`)}');
+    expect(teacherClassDetailSource).toContain('currentClassId: classId');
+    expect(teacherClassDetailSource).toContain('router.push(`/classroom/teacher/${sessionId}`)');
     expect(teacherLessonPlansSource).toContain('/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans');
     expect(teacherNewLessonPlanSource).toContain('returnPath={returnTarget}');
     expect(teacherNewLessonPlanSource).toContain('workbenchReturnLabel={getTeacherReturnLabel(returnTarget)}');
@@ -1328,14 +1354,14 @@ describe('platform role navigation', () => {
     expect(knowledgeGraphSource).toContain('data-knowledge-command-trigger={item.id}');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool-summary="desktop"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="chapter-directory"');
-    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="relation-filters"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="node-filters"');
     expect(knowledgeGraphSource).toContain('data-knowledge-active-filter-summary={activeFilterSummary}');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-command-surface="single-tool-panel"');
     expect(knowledgeGraphSource).toContain("data-state={mobileToolPanelOpen ? 'open' : 'closed'}");
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-panel-toggle="true"');
     expect(knowledgeGraphSource).toContain('{mobileToolPanelOpen && (');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-tool-panel={mobileActiveTool}');
-    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="legend"');
+    expect(knowledgeGraphSource).toContain('<RelationFamilyControl');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="view-layout"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-panel="view-layout-controls"');
   });

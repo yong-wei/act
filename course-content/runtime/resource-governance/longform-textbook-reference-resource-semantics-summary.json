@@ -1,0 +1,138 @@
+{
+  "artifactVersion": "longform-textbook-reference-resource-semantics.v2",
+  "reviewSourceVersion": "longform-textbook-reference-resource-semantics.review-source.v2",
+  "reviewSourceSha256": "c201bdccd4a3f9d2eed32858f89da8f5c6c0fd392cd79cb85e29ce5f6a5fffd2",
+  "generatedAt": "2026-07-17T03:29:53.000Z",
+  "reviewBatchId": "longform-textbook-reference-resource-semantics-882-2026-07-17",
+  "delivery": {
+    "files": [
+      "longform-textbook-reference-resource-semantics-review-source.jsonl",
+      "longform-textbook-reference-resource-semantics-workqueue-items.jsonl",
+      "longform-textbook-reference-resource-semantics-review-items.jsonl",
+      "longform-textbook-reference-resource-semantics-summary.json",
+      "longform-textbook-reference-resource-semantics-evidence.md",
+      "openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.jsonl",
+      "openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.seal.json",
+      "openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/issue-body-validator-evidence.json"
+    ],
+    "cleanDeliveryInput": {
+      "snapshot": "openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.jsonl",
+      "seal": "openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.seal.json",
+      "validationMode": "delivery"
+    },
+    "validationEntrypoints": {
+      "liveFull": {
+        "command": "npm run test:longform-textbook-reference-resource-semantics:live-full",
+        "guarantee": "cross-checks tracked review rows against live runtime textbook section bodies"
+      },
+      "deliveryClean": {
+        "command": "npm run test:longform-textbook-reference-resource-semantics:delivery-clean",
+        "guarantee": "validates tracked sealed delivery inputs in a clean staged clone; does not claim live textbook-body coverage"
+      }
+    }
+  },
+  "denominator": {
+    "total": 3082,
+    "byFamily": {
+      "authoring-textbook-caption": 535,
+      "authoring-textbook-chapter": 10,
+      "authoring-textbook-figure": 535,
+      "authoring-textbook-section": 25,
+      "textbook": 6,
+      "textbook-search-document": 964,
+      "textbook-section": 1007
+    }
+  },
+  "closure": {
+    "missing": [],
+    "extra": [],
+    "duplicate": [],
+    "stale": []
+  },
+  "before": {
+    "byReviewStatus": {
+      "external-tool-provisional": 1105,
+      "human-confirmed": 15,
+      "not-materialized": 949,
+      "not-reviewed": 1013
+    },
+    "blockerRows": 3082
+  },
+  "after": {
+    "agentReviewed": 3082,
+    "semanticReviewed": 3063,
+    "sectionReviewCompleted": 1007,
+    "sectionSemanticReviewed": 988,
+    "sectionInsufficientSource": 19,
+    "humanConfirmed": 0,
+    "promotedPlanningUnits": 0,
+    "unexplainedUnreviewed": 0,
+    "byDisposition": {
+      "embedded-asset": 1070,
+      "excluded-with-rationale": 180,
+      "supporting-citation": 1832
+    },
+    "byAddressKind": {
+      "image": 1070,
+      "manifest": 551,
+      "markdown-line": 25,
+      "section": 1007,
+      "text": 429
+    },
+    "addressReady": 1977,
+    "limitationMarked": 1105,
+    "rationaleDiversity": {
+      "total": 1007,
+      "normalizedDecisionUnique": 1007,
+      "normalizedBodySummaryUnique": 1004,
+      "normalizedDecisionRatio": 1,
+      "normalizedBodySummaryRatio": 0.997,
+      "variableStrippedBodySummaryRatio": 0.997,
+      "semanticTeachingUseTotal": 988,
+      "teachingUseSentenceFrameUnique": 647,
+      "teachingUseSentenceFrameRatio": 0.6549,
+      "teachingUseTopSixFrameCoverage": 0.1498,
+      "actionObjectOutputUnique": 977,
+      "actionObjectOutputRatio": 0.9889,
+      "forbiddenTeachingUseStarts": 0,
+      "forbiddenGenericTeachingUseTemplates": 0,
+      "nearDuplicatePairs": 5,
+      "nearDuplicatePairRatio": 0.00001,
+      "citationCommentSummaries": 0,
+      "byContentType": {
+        "concept": 493,
+        "insufficient-source": 19,
+        "mixed": 67,
+        "reference-entry": 26,
+        "worked-example": 402
+      }
+    }
+  },
+  "guardrails": {
+    "exactDenominator": true,
+    "implementingAgentNeverHumanConfirmed": true,
+    "noPathPromotion": true,
+    "acceptedGraphLabelsNotGenerated": true,
+    "authoringTeacherScopedAuditOnly": true,
+    "addressHashParentVerified": true,
+    "beforeAfterIndependent": true,
+    "trackedInputSnapshotSealed": true,
+    "sectionReviewConclusionsComplete": true,
+    "insufficientSourceNotCountedAsSemanticReviewed": true,
+    "sectionRationaleDiversity": true,
+    "rawContentIncluded": false,
+    "privacyMinimized": true
+  },
+  "issueBodyValidatorEvidence": {
+    "artifactVersion": "buddy-issue-body-validator-evidence.v1",
+    "command": "rtk node /Users/YW/Documents/Project/OpenSpec-buddy/skills/openspec-buddy/scripts/validate-issue-body.mjs openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/issue-body-propose-snapshot.md",
+    "result": "Buddy issue body validation passed.",
+    "exitCode": 0,
+    "validatedAt": "2026-07-17T07:15:37.000Z",
+    "input": {
+      "path": "openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/issue-body-propose-snapshot.md",
+      "sha256": "sha256:f4d9ddfdf2e1f23dfcfe68ae73a58b5ee37f3f46e6bf60eb6646255f2c4fe640"
+    },
+    "githubStateObserved": false
+  }
+}

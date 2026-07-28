@@ -14,11 +14,23 @@ export interface StudentAssignmentQuestion {
   version: number;
   currentAttemptNumber?: number | null;
   textDraft?: string | null;
-  assets?: Array<{ id: string; displayName: string; sizeBytes?: number }>;
+  assets?: Array<{
+    id: string;
+    displayName: string;
+    mimeType?: string;
+    sizeBytes?: number;
+    state?: string;
+    finalizedAt?: string | Date | null;
+    role?: string;
+    orderIndex?: number | null;
+    embeddedPosition?: string | null;
+  }>;
+  resubmission?: { state: string; reason: string; allowedResponseType: string; deadlineAt: string } | null;
 }
 
 export interface StudentAssignmentSummary {
   id: string;
+  revisionId: string;
   title: string;
   instructions: string;
   availableAt: string;
@@ -41,6 +53,21 @@ export interface StudentAnswerAttempt extends Omit<StudentQuestionDto['history']
 
 export interface StudentAssignmentDetail extends StudentAssignmentSummary {
   history?: Record<string, StudentAnswerAttempt[]>;
+  approvedTotal?: number | null;
+  feedbackStatus?: 'HIDDEN' | 'PUBLISHING' | 'BLOCKED' | 'PUBLISHED';
+  feedback?: Array<{
+    snapshotId: string;
+    questionId: string;
+    questionTitle: string;
+    questionTotal: number;
+    criteria: Array<{ criterionId?: string; levelId?: string | null; score?: number; comment?: string }>;
+    annotations: Array<{ id?: string; criterionId?: string; status?: string; comment?: string; anchor?: Record<string, unknown> }>;
+    overallComment: string;
+    approvedAt: string;
+    reviewedAssets: Array<{ id?: string; label?: string; href?: string; mimeType?: string; precision?: string }>;
+    limitations: string[];
+    resubmission: { state: string; reason: string; allowedResponseType: string; deadlineAt: string } | null;
+  }>;
 }
 
 export const assignmentStateLabels: Record<StudentAssignmentState, string> = {

@@ -47,3 +47,7 @@ Design source: `artifacts/product-design-audits/adaptive-learning-path-2026-06-1
 ## Temporary Exceptions
 
 None.
+
+## Source-only refresh: nullable search parameters
+
+On 2026-07-21, `src/features/adaptive/adaptive-path-journey-control.tsx` was refreshed at SHA-256 `0d3abb64029192cdebe340b6805d48d94f9303070e97af3595b42588f2f54dc9`. The optional `searchParams` guard maps a null router value to an empty query string. It does not change DOM structure, visual styling, responsive geometry, or the accepted route-state matrix. Targeted verification: `npm run test:unit -- src/lib/__tests__/adaptive-path-journey-control.test.ts`.

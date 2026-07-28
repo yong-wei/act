@@ -198,6 +198,50 @@ const FIXTURE_KNOWLEDGE_NODE_IDS = [
   '传统设计四联图校正_4_47004',
 ] as const;
 
+export const YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNED_RESOURCE_IDS = [
+  'yangfan-diagnostic-fixture:knowledge-progress:2e6a2cf5d76b',
+  'yangfan-diagnostic-fixture:knowledge-progress:ff8ef10e4870',
+  'yangfan-diagnostic-fixture:knowledge-progress:5c29bbb95ddf',
+  FIXTURE_ALGORITHM_VERSION,
+  FIXTURE_SESSION_ID,
+  FIXTURE_QUESTION_ID,
+  FIXTURE_ITEM_REF_ID,
+  FIXTURE_ANSWER_ID,
+  FIXTURE_ABILITY_ESTIMATE_ID,
+  FIXTURE_MASTERY_UPDATE_ID,
+  FIXTURE_PATH_ID,
+  'yangfan-diagnostic-fixture:exec-start',
+  'yangfan-diagnostic-fixture:exec-terminal',
+  'yangfan-diagnostic-fixture:deviation-low-confidence',
+  'yangfan-diagnostic-fixture:intervention-konling',
+  'yangfan-diagnostic-fixture:snapshot',
+  'yangfan-diagnostic-fixture:student-profile-summary',
+  'yangfan-diagnostic-fixture:student-evidence-feature-cache',
+  ...FIXTURE_FACT_IDS,
+] as const;
+
+export const YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE = {
+  sourcePathOrUrl: 'src/lib/data-governance/yangfan-diagnostic-fixture.ts',
+  sourceVersionRef: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION,
+  reviewerId: 'codex:issue-884-yangfan-fixture-governance-review',
+  reviewedAt: '2026-07-18T04:35:00.000Z',
+  reviewBatchId: 'yangfan-diagnostic-fixture-governance-884.v1',
+  independentEvidenceRef: 'src/lib/data-governance/yangfan-diagnostic-fixture.ts#applyYangFanDiagnosticFixture',
+  evidenceContract: {
+    eventType: 'fixture entity-specific create/upsert event',
+    clientEventIdPolicy: 'deterministic fixture-owned id',
+    attemptKey: 'canonical user id plus fixture version',
+    sourceLogId: 'fixture entity id',
+    dedupeKey: 'fixture entity primary or compound key',
+    timestamps: 'the confirmed fixture apply timestamp',
+    learningFactPolicy: 'fixture writes are linked to deterministic LearningFact evidence',
+    learningFactMaterializationPolicy: 'materialized-learning-fact',
+    confidencePolicy: 'fixture-owned deterministic confidence only',
+    privacyScope: 'minimized; raw identifiers and payloads excluded from governance output',
+  },
+  resourceIds: YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNED_RESOURCE_IDS,
+} as const;
+
 export async function buildYangFanDiagnosticFixturePlan(
   db: YangFanDiagnosticFixtureDb,
   options: YangFanDiagnosticFixtureOptions = {},

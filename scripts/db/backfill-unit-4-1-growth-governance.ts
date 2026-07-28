@@ -215,40 +215,8 @@ function isSameClassAggregate(
 }
 
 async function refreshClassSnapshot(classId: string, userIds: string[]) {
-  const snapshots = await Promise.all(userIds.map((userId) =>
-    prisma.studentCompetencySnapshot.findFirst({
-      where: { userId },
-      orderBy: { snapshotAt: 'desc' },
-    }),
-  ));
-  const validSnapshots = snapshots.filter((snapshot) => Boolean(snapshot) && snapshot!.factCount > 0) as Array<{ competencyVector: unknown; riskFlags: unknown }>;
-  if (validSnapshots.length === 0 || options.dryRun) {
-    return { snapshotId: null, studentCount: validSnapshots.length };
-  }
-
-  const aggregate = calculateClassAggregate(validSnapshots);
-  const distribution = calculateLevelDistribution(validSnapshots);
-  const previousSnapshot = await prisma.classCompetencySnapshot.findFirst({
-    where: { classId },
-    orderBy: { snapshotAt: 'desc' },
-  });
-  if (previousSnapshot && isSameClassAggregate(aggregate, previousSnapshot.aggregateJson)) {
-    return { snapshotId: previousSnapshot.id, studentCount: validSnapshots.length, skipped: 'unchanged_aggregate' };
-  }
-  const snapshot = await prisma.classCompetencySnapshot.create({
-    data: {
-      classId,
-      snapshotAt: new Date(),
-      aggregateJson: aggregate as unknown as Prisma.InputJsonValue,
-      distributionJson: distribution as unknown as Prisma.InputJsonValue,
-      trendJson: calculateClassTrend(aggregate, previousSnapshot?.aggregateJson) as Prisma.InputJsonValue,
-      riskSummaryJson: {} as Prisma.InputJsonValue,
-      levelDistribution: distribution as unknown as Prisma.InputJsonValue,
-      activeStudentCount: validSnapshots.length,
-      totalStudentCount: userIds.length,
-    },
-  });
-  return { snapshotId: snapshot.id, studentCount: validSnapshots.length };
+  console.warn(`[backfill-unit-4-1] Class snapshot write disabled for ${classId} (${userIds.length} users); run the data-governance-worker class materialization to create class-competency.v2.`);
+  return { snapshotId: null, studentCount: 0, skipped: 'class_snapshot_requires_v2_worker' };
 }
 
 async function main() {

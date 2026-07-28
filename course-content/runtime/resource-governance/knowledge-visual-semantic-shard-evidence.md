@@ -13,13 +13,13 @@ Remaining selected semantic review blockers: 0
 
 ## Residual Unselected Counts
 
-- knowledge-card: 277
-- knowledge-infograph: 159
+- knowledge-card: 559
+- knowledge-infograph: 0
 
 ## Evidence Files
 
-Review items: course-content/runtime/resource-governance/knowledge-visual-semantic-shard-review-items.jsonl
-Audit JSONL: course-content/runtime/resource-governance/resource-field-completion-audit.jsonl
-Workqueue JSONL: course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl
+Review items: course-content\runtime\resource-governance\knowledge-visual-semantic-shard-review-items.jsonl
+Audit JSONL: course-content\runtime\resource-governance\resource-field-completion-audit.jsonl
+Workqueue JSONL: course-content\runtime\resource-governance\resource-completion-workqueue-items.jsonl
 
 The selected shard is bounded. Remaining unselected rows are reported as residual backlog and are not completion blockers for this change.

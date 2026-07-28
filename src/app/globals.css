@@ -186,6 +186,19 @@
     }
   }
 
+  [data-course-entry-shell="app-shell"] [data-knowledge-map="lesson-entry"] {
+    --premium-lesson-graph-edge: var(--border);
+    --premium-lesson-graph-edge-active: var(--primary);
+    --premium-lesson-graph-node-fill: var(--card);
+    --premium-lesson-graph-node-stroke: var(--border);
+    --premium-lesson-graph-node-active-fill: var(--accent);
+    --premium-lesson-graph-node-active-stroke: var(--primary);
+    --premium-lesson-graph-node-text: var(--foreground);
+    --premium-lesson-graph-label-bg: var(--popover);
+    --premium-lesson-graph-label-stroke: var(--border);
+    --premium-lesson-graph-label-text: var(--popover-foreground);
+  }
+
   [data-route-family="learner-data-pathway"] {
     --learner-floating-dock-safe-inline: 0rem;
     --learner-floating-dock-safe-block: 8rem;
@@ -228,29 +241,29 @@
       right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;
     }
 
-    body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"] {
+    body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"] {
       top: 7rem !important;
       right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;
       height: calc(100vh - 8rem) !important;
     }
 
-    body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"] ~ * [data-knowledge-desktop-command-system],
-    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]) [data-knowledge-desktop-command-system] {
+    body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"] ~ * [data-knowledge-desktop-command-system],
+    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"]) [data-knowledge-desktop-command-system] {
       max-width: 16rem !important;
     }
 
-    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]) [data-knowledge-local-tool-panel] {
+    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"]) [data-knowledge-local-tool-panel] {
       min-width: 0 !important;
       width: min(16rem, calc(100vw - 3rem)) !important;
     }
   }
 
   @media (min-width: 1024px) and (max-width: 1279px) {
-    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]) [data-knowledge-desktop-command-system] {
+    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"]) [data-knowledge-desktop-command-system] {
       display: none !important;
     }
 
-    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]) [data-knowledge-local-tool-panel] {
+    body:has([data-knowledge-inspector="floating-right-edge"]):has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-konling-presentation-mode="side"]) [data-knowledge-local-tool-panel] {
       display: none !important;
     }
   }
@@ -1155,6 +1168,10 @@
 
   .premium-lesson-shell {
     @apply min-h-screen;
+  }
+
+  .premium-lesson-shell,
+  .premium-lesson-theme-scope {
     --premium-lesson-surface: 222 42% 13%;
     --premium-lesson-surface-soft: 222 38% 10%;
     --premium-lesson-surface-elevated: 220 32% 18%;
@@ -1202,6 +1219,8 @@
     --premium-lesson-highlight-surface: 192 72% 18%;
     --premium-lesson-highlight-border: 189 90% 68%;
     --premium-lesson-highlight-shadow: 0 18px 42px rgba(8, 145, 178, 0.18);
+    --premium-lesson-select-hover-bg: 192 60% 24%;
+    --premium-lesson-select-selected-bg: 192 66% 32%;
     --premium-lesson-graph-edge: 216 20% 42%;
     --premium-lesson-graph-edge-active: 189 90% 68%;
     --premium-lesson-graph-node-fill: 202 72% 16%;
@@ -1213,6 +1232,9 @@
     --premium-lesson-graph-label-stroke: 195 62% 30%;
     --premium-lesson-graph-label-text: 187 95% 88%;
     color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-shell {
     background:
       radial-gradient(circle at top left, rgba(8, 145, 178, 0.2), transparent 32%),
       radial-gradient(circle at top right, rgba(14, 116, 144, 0.16), transparent 34%),
@@ -1552,10 +1574,58 @@
   }
 
   .premium-lesson-select {
-    @apply rounded border px-2 py-1 text-xs outline-none;
-    border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
-    background: hsl(var(--premium-lesson-input-bg));
-    color: hsl(var(--premium-lesson-foreground-strong));
+    @apply rounded border px-2 py-1 text-xs outline-none transition-colors;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92) !important;
+    background: hsl(var(--premium-lesson-input-bg)) !important;
+    color: hsl(var(--premium-lesson-foreground-strong)) !important;
+  }
+
+  [data-parameter-drawer='true'] .premium-lesson-select:hover:not(:disabled) {
+    border-color: hsl(var(--premium-tone-cyan-border) / 0.95) !important;
+    background: hsl(var(--premium-lesson-surface-elevated)) !important;
+  }
+
+  [data-parameter-drawer='true'] .premium-lesson-select:focus-visible {
+    border-color: hsl(var(--premium-lesson-highlight-border)) !important;
+    box-shadow: 0 0 0 2px hsl(var(--premium-lesson-highlight-border) / 0.42);
+  }
+
+  [data-parameter-drawer='true'] .premium-lesson-select:disabled {
+    cursor: not-allowed;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.62) !important;
+    background: hsl(var(--premium-lesson-surface-muted) / 0.88) !important;
+    color: hsl(var(--premium-lesson-muted)) !important;
+    opacity: 0.78;
+  }
+
+  .premium-lesson-select-content {
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92) !important;
+    background: hsl(var(--premium-lesson-input-bg)) !important;
+    color: hsl(var(--premium-lesson-foreground-strong)) !important;
+    box-shadow: 0 18px 42px hsl(222 47% 4% / 0.34);
+  }
+
+  .premium-lesson-select-item {
+    background: hsl(var(--premium-lesson-input-bg)) !important;
+    color: hsl(var(--premium-lesson-foreground-strong)) !important;
+  }
+
+  .premium-lesson-select-item:hover:not([data-disabled]),
+  .premium-lesson-select-item[data-highlighted] {
+    background: hsl(var(--premium-lesson-select-hover-bg)) !important;
+    color: hsl(var(--premium-lesson-foreground-strong)) !important;
+  }
+
+  .premium-lesson-select-item[data-state='checked'] {
+    background: hsl(var(--premium-lesson-select-selected-bg)) !important;
+    color: hsl(var(--premium-lesson-foreground-strong)) !important;
+  }
+
+  .premium-lesson-select-item[data-disabled] {
+    cursor: not-allowed;
+    background: hsl(var(--premium-lesson-surface-muted) / 0.88) !important;
+    color: hsl(var(--premium-lesson-muted)) !important;
+    opacity: 0.72;
   }
 
   .premium-lesson-action-primary {
@@ -1575,7 +1645,8 @@
     @apply inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition disabled:opacity-60;
   }
 
-  .light .premium-lesson-shell {
+  .light .premium-lesson-shell,
+  .light .premium-lesson-theme-scope {
     --premium-lesson-surface: 194 58% 96%;
     --premium-lesson-surface-soft: 192 52% 92%;
     --premium-lesson-surface-elevated: 196 46% 98%;
@@ -1623,6 +1694,8 @@
     --premium-lesson-highlight-surface: 191 72% 88%;
     --premium-lesson-highlight-border: 193 64% 60%;
     --premium-lesson-highlight-shadow: 0 18px 36px rgba(14, 116, 144, 0.12);
+    --premium-lesson-select-hover-bg: 190 78% 86%;
+    --premium-lesson-select-selected-bg: 191 70% 62%;
     --premium-lesson-graph-edge: 215 20% 64%;
     --premium-lesson-graph-edge-active: 194 82% 40%;
     --premium-lesson-graph-node-fill: 190 76% 88%;
@@ -1634,6 +1707,9 @@
     --premium-lesson-graph-label-stroke: 191 72% 58%;
     --premium-lesson-graph-label-text: 196 72% 24%;
     color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .light .premium-lesson-shell {
     background:
       radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 30%),
       radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 32%),

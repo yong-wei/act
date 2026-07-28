@@ -1,6 +1,12 @@
 import type { ArenaSubmissionEvidenceWriteback } from './evidence-writeback';
-import { buildArenaSubmissionEvidenceWriteback } from './evidence-writeback';
+import {
+  buildArenaSubmissionEvidenceWriteback,
+  getArenaAttemptStatus,
+} from './evidence-writeback';
 import type { ArenaSubmissionRecord } from './submissions/submission-service';
+import { getArenaChallengeTask } from './data/seed-challenges';
+import { materializeArenaTaskEvidence } from '@/lib/data-governance/simulation-task-materialization';
+import { buildSimulationTaskLearningFact } from '@/lib/data-governance/simulation-task-learning-fact';
 
 type ArenaEvidenceWritebackConsumer = 'student' | 'teacher' | 'admin' | 'service';
 
@@ -148,6 +154,45 @@ function buildLearningFact(input: {
   };
 }
 
+function buildArenaTaskLearningFact(
+  submission: ArenaSubmissionRecord,
+): Record<string, unknown> | null {
+  if (!submission.userId || getArenaAttemptStatus(submission) !== 'effective') return null;
+  const task = getArenaChallengeTask(submission.taskId);
+  const result = materializeArenaTaskEvidence({
+    actor: { userId: submission.userId, role: 'student' },
+    eventType: 'arena_submit',
+    taskId: submission.taskId,
+    submissionId: submission.id,
+    occurredAt: submission.submittedAt,
+    accepted: true,
+    evaluationValid: submission.evaluation.valid,
+    fingerprint: {
+      modelRef: submission.taskId,
+      controllerConfigHash: submission.artifactHash,
+    },
+    summary: {
+      sourceRef: `ArenaSubmission:${submission.id}`,
+      qualityBand: 'full',
+      metrics: {
+        score: submission.evaluation.score,
+        valid: submission.evaluation.valid,
+      },
+      label: 'Arena accepted submission',
+    },
+    capabilityMappingTags: task?.training.capabilityTags,
+  });
+  if (result.status !== 'accepted' || !result.evidence) return null;
+  return buildSimulationTaskLearningFact({
+    userId: submission.userId,
+    evidence: result.evidence,
+    sourceLogId: `arena-submission:${submission.id}`,
+    sessionId: submission.publicationId ?? submission.seasonId ?? null,
+    courseId: 'control-correction',
+    lessonId: submission.taskId,
+  }) as unknown as Record<string, unknown>;
+}
+
 function projectPersistedEvidenceWriteback(
   evidenceWriteback: ArenaSubmissionEvidenceWriteback,
   consumer: ArenaEvidenceWritebackConsumer,
@@ -211,19 +256,26 @@ export async function persistArenaSubmissionEvidenceWriteback(
   const outboxStatus = evidenceWriteback.status === 'accepted'
     ? 'processed'
     : evidenceWriteback.status;
+  const taskLearningFact = buildArenaTaskLearningFact(submission);
 
   const writeOutcome = async (tx: ArenaWritebackDb): Promise<boolean> => {
     if (typeof tx.evidenceOutbox?.upsert !== 'function') {
       throw new Error('Arena evidence writeback requires EvidenceOutbox persistence.');
     }
 
+    const learningFacts = [
+      ...(evidenceWriteback.status === 'accepted'
+        ? [buildLearningFact({ submission, evidenceWriteback, dedupeKey })]
+        : []),
+      ...(taskLearningFact ? [taskLearningFact] : []),
+    ];
     let learningFactCreated = false;
-    if (evidenceWriteback.status === 'accepted') {
+    if (learningFacts.length > 0) {
       if (!submission.userId || typeof tx.learningFact?.createMany !== 'function') {
-        throw new Error('Accepted Arena evidence writeback requires LearningFact persistence.');
+        throw new Error('Qualified Arena evidence writeback requires LearningFact persistence.');
       }
       const result = await tx.learningFact.createMany({
-        data: [buildLearningFact({ submission, evidenceWriteback, dedupeKey })],
+        data: learningFacts,
         skipDuplicates: true,
       });
       learningFactCreated = result.count > 0;

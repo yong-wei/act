@@ -1,0 +1,12 @@
+{
+  "artifactVersion": "buddy-issue-body-validator-evidence.v1",
+  "command": "rtk node /Users/YW/Documents/Project/OpenSpec-buddy/skills/openspec-buddy/scripts/validate-issue-body.mjs openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/issue-body-propose-snapshot.md",
+  "result": "Buddy issue body validation passed.",
+  "exitCode": 0,
+  "validatedAt": "2026-07-17T07:15:37.000Z",
+  "input": {
+    "path": "openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/issue-body-propose-snapshot.md",
+    "sha256": "sha256:f4d9ddfdf2e1f23dfcfe68ae73a58b5ee37f3f46e6bf60eb6646255f2c4fe640"
+  },
+  "githubStateObserved": false
+}

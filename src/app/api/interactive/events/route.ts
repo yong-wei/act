@@ -35,6 +35,21 @@ import {
   materializeAnnotatedMediaEvidenceFromSubmissionPayload,
   type AnnotatedMediaDiagnosticEvent,
 } from '@/features/interactive/shared/manifest-runtime/annotated-media-evidence';
+import {
+  evaluatePersistedSimulationRunQuality,
+  materializeControlWorkbenchTaskEvidence,
+  materializeVirtualSimulationTaskEvidence,
+} from '@/lib/data-governance/simulation-task-materialization';
+import { persistAcceptedSimulationTaskEvidence } from '@/lib/data-governance/simulation-task-learning-fact';
+import { requestRealtimeSimulationTaskReconciliation } from '@/lib/data-governance/simulation-task-reconciliation';
+import {
+  hashSemanticFingerprintValue,
+  hashSimulationTaskSpecKeyInputs,
+} from '@/lib/data-governance/simulation-task-evidence';
+import {
+  persistedControlWorkbenchRunMatchesContext,
+  resolveTrustedControlWorkbenchContext,
+} from '@/lib/data-governance/control-workbench-run-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -442,6 +457,255 @@ function buildStudentStepResponseRows(
   return rows;
 }
 
+async function persistControlWorkbenchTaskEvidenceRows(
+  rows: readonly Prisma.StudentStepResponseCreateManyInput[],
+  userId: string,
+  actorRole: 'student' | 'teacher' | 'admin' | 'guest',
+) {
+  if (actorRole !== 'student') return;
+  let acceptedTaskEvidence = false;
+
+  for (const row of rows) {
+    const responseData = readRecord(row.responseData);
+    const evidence = readRecord(responseData.controlWorkbenchEvidence);
+    const payload = readRecord(evidence.payload);
+    const sourceLogId = typeof row.sourceLogId === 'string' ? row.sourceLogId : null;
+    if (!sourceLogId || evidence.actorRole !== 'student') continue;
+
+    const selectedDesignState = readRecord(payload.selectedDesignState);
+    const simulationRunRefs = Array.isArray(payload.derivedResultRefs)
+      ? payload.derivedResultRefs.filter((value) => {
+          const ref = readRecord(value);
+          return readPayloadString(ref, 'kind') === 'SimulationRun'
+            && readPayloadString(ref, 'id') !== null;
+        })
+      : [];
+    const capabilityId = typeof payload.capabilityId === 'string' ? payload.capabilityId : '';
+    const moduleId = typeof evidence.moduleId === 'string' ? evidence.moduleId : '';
+    const sessionId = typeof row.sessionId === 'string' ? row.sessionId : '';
+    const lessonId = typeof row.lessonKey === 'string' ? row.lessonKey : '';
+    const stepId = typeof row.stepId === 'string' ? row.stepId : '';
+    if (!capabilityId || !moduleId || !sessionId || !lessonId || !stepId) continue;
+    const trustedContext = await resolveTrustedControlWorkbenchContext({
+      user: { id: userId, role: actorRole.toUpperCase() },
+      sessionId,
+      lessonId,
+      stepId,
+      moduleId,
+      capabilityId,
+      requireActive: false,
+    });
+    if (!trustedContext) continue;
+    const verifiedRuns = [];
+    for (const value of simulationRunRefs) {
+      const runId = readPayloadString(readRecord(value), 'id');
+      if (!runId) continue;
+      const run = await prisma.simulationRun.findFirst({
+        where: {
+          id: runId,
+          ownerUserId: userId,
+          runKind: 'scene_simulation',
+          sourceDomain: 'simulation_scene',
+          status: 'completed',
+          completedAt: { not: null },
+        },
+        select: {
+          id: true,
+          sessionId: true,
+          resourceId: true,
+          taskSpecSnapshot: true,
+          controllerSnapshotRef: true,
+          summary: true,
+          modelVersion: true,
+          completedAt: true,
+        },
+      });
+      if (
+        run?.completedAt
+        && persistedControlWorkbenchRunMatchesContext(run, trustedContext)
+      ) {
+        verifiedRuns.push(run);
+      }
+    }
+    for (const resultRun of verifiedRuns) {
+      const completedAt = resultRun.completedAt;
+      if (!completedAt) continue;
+      const taskSpec = readRecord(resultRun.taskSpecSnapshot);
+      const metrics = buildSafeSimulationMetrics(resultRun.summary);
+      const quality = evaluatePersistedSimulationRunQuality(
+        resultRun.taskSpecSnapshot,
+        resultRun.summary,
+      );
+      const taskEvidence = materializeControlWorkbenchTaskEvidence({
+        actor: { userId, role: 'student' },
+        eventType: 'workspace_submission',
+        sourceArtifactId: resultRun.id,
+        occurredAt: completedAt.toISOString(),
+        tier: 'submission',
+        fingerprint: {
+          plantRef: readPayloadString(taskSpec, 'plantRef')
+            ?? readPayloadString(taskSpec, 'sceneId')
+            ?? resultRun.resourceId
+            ?? undefined,
+          modelRef: resultRun.modelVersion,
+          controllerConfigHash: resultRun.controllerSnapshotRef
+            ? hashSemanticFingerprintValue(resultRun.controllerSnapshotRef)
+            : undefined,
+          keyInputHash: hashSimulationTaskSpecKeyInputs(taskSpec),
+        },
+        summary: {
+          sourceRef: `SimulationRun:${resultRun.id}`,
+          qualityBand: Object.keys(metrics).length > 0 ? 'full' : 'partial',
+          metrics: {
+            ...metrics,
+            visiblePanelCount: Array.isArray(payload.visiblePanelIds) ? payload.visiblePanelIds.length : 0,
+            verifiedResultCount: verifiedRuns.length,
+          },
+          label: 'Control workbench persisted submission',
+        },
+        hasPersistedDesign: Object.keys(selectedDesignState).length > 0,
+        hasQualityTarget: quality.hasQualityTarget,
+        meetsQualityTarget: quality.meetsQualityTarget,
+        capabilityMappingTags: capabilityId ? [capabilityId] : [],
+      });
+      const persisted = await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
+        userId,
+        sourceLogId,
+        sessionId: row.sessionId,
+        lessonId: row.lessonKey ?? null,
+      });
+      if (persisted) {
+        acceptedTaskEvidence = true;
+      }
+    }
+  }
+  if (acceptedTaskEvidence) {
+    await requestRealtimeSimulationTaskReconciliation(prisma, {
+      userId,
+      reason: 'control-workbench-task-evidence',
+    });
+  }
+}
+
+const SAFE_SIMULATION_METRIC_KEYS = new Set([
+  'duration',
+  'overshoot',
+  'riseTime',
+  'sampleCount',
+  'score',
+  'settlingTime',
+  'stable',
+  'steadyStateError',
+  'valid',
+]);
+
+function buildSafeSimulationMetrics(summary: unknown): Record<string, number | boolean> {
+  const summaryRecord = readRecord(summary);
+  const metricsRecord = readRecord(summaryRecord.metrics);
+  return Object.fromEntries(
+    Object.entries({ ...summaryRecord, ...metricsRecord })
+      .flatMap(([key, value]): Array<[string, number | boolean]> => {
+        if (!SAFE_SIMULATION_METRIC_KEYS.has(key)) return [];
+        if (typeof value === 'number' && Number.isFinite(value)) return [[key, value]];
+        if (typeof value === 'boolean') return [[key, value]];
+        return [];
+      }),
+  );
+}
+
+async function persistVirtualSimulationTaskEvidenceEvents(
+  events: readonly NormalizedInteractionEvent[],
+  userId: string,
+  actorRole: 'student' | 'teacher' | 'admin' | 'guest',
+  serverRecordedAt: Date,
+) {
+  if (actorRole !== 'student') return;
+  let acceptedTaskEvidence = false;
+
+  for (const eventData of events) {
+    const payload = readRecord(eventData.event.data);
+    const eventType = resolveCanonicalEventType(eventData.event.type, payload);
+    if (eventType !== 'simulation_finish' && eventType !== 'simulation_session_complete') continue;
+    const sourceLogId = readPayloadString(payload, 'sourceLogId');
+    if (!sourceLogId || eventData.event.actorRole !== 'student') continue;
+
+    const simulationRunId = readPayloadString(payload, 'simulationRunId');
+    if (!simulationRunId) continue;
+    const run = await prisma.simulationRun.findFirst({
+      where: {
+        id: simulationRunId,
+        ownerUserId: userId,
+        runKind: 'scene_simulation',
+        sourceDomain: 'simulation_scene',
+        status: 'completed',
+        completedAt: { not: null },
+      },
+      select: {
+        id: true,
+        sessionId: true,
+        resourceId: true,
+        taskSpecSnapshot: true,
+        controllerSnapshotRef: true,
+        summary: true,
+        modelVersion: true,
+        completedAt: true,
+      },
+    });
+    if (!run?.completedAt) continue;
+    if ((run.sessionId ?? null) !== (eventData.sessionId ?? null)) continue;
+
+    const taskSpec = readRecord(run.taskSpecSnapshot);
+    const runTaskId = run.resourceId
+      ?? readPayloadString(taskSpec, 'resourceId')
+      ?? readPayloadString(taskSpec, 'sceneId');
+    const declaredTaskId = readPayloadString(payload, 'registryId')
+      ?? eventData.event.resourceKey
+      ?? null;
+    if (runTaskId && declaredTaskId && runTaskId !== declaredTaskId) continue;
+    const metrics = buildSafeSimulationMetrics(run.summary);
+    const taskEvidence = materializeVirtualSimulationTaskEvidence({
+      actor: { userId, role: 'student' },
+      eventType,
+      namedTaskId: runTaskId ?? declaredTaskId,
+      sourceArtifactId: run.id,
+      occurredAt: run.completedAt.toISOString(),
+      tier: 'run',
+      fingerprint: {
+        plantRef: readPayloadString(taskSpec, 'plantRef')
+          ?? readPayloadString(taskSpec, 'sceneId')
+          ?? runTaskId
+          ?? undefined,
+        modelRef: run.modelVersion,
+        controllerConfigHash: run.controllerSnapshotRef
+          ? hashSemanticFingerprintValue(run.controllerSnapshotRef)
+          : undefined,
+        keyInputHash: hashSimulationTaskSpecKeyInputs(taskSpec),
+      },
+      summary: {
+        sourceRef: `SimulationRun:${run.id}`,
+        qualityBand: Object.keys(metrics).length > 0 ? 'full' : 'partial',
+        metrics,
+        label: 'Virtual simulation completed run',
+      },
+    });
+    const persisted = await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
+      userId,
+      sourceLogId,
+      sessionId: eventData.sessionId,
+      lessonId: eventData.event.lessonKey ?? null,
+    });
+    if (persisted) {
+      acceptedTaskEvidence = true;
+    }
+  }
+  if (acceptedTaskEvidence) {
+    await requestRealtimeSimulationTaskReconciliation(prisma, {
+      userId,
+      reason: 'virtual-simulation-task-evidence',
+    });
+  }
+}
+
 async function loadSessionEndMetadata(
   events: Array<{ event: ClassroomInteractionEventInput; resourceId: string | null }>,
 ) {
@@ -577,6 +841,7 @@ export async function POST(request: NextRequest) {
           clientEventId: { in: clientEventIds },
         },
         select: {
+          id: true,
           clientEventId: true,
         },
       })
@@ -676,17 +941,51 @@ export async function POST(request: NextRequest) {
         clientEventId: log.clientEventId ?? readJsonString(log.eventData, 'clientEventId'),
       })),
     );
+    const retrySourceLinkedEvents = attachSourceLogIds(
+      enrichedValidEvents.filter((item) =>
+        Boolean(item.clientEventId && persistedClientEventIds.has(item.clientEventId))
+      ),
+      existingLogs
+        .filter((log): log is typeof log & { id: string } => typeof log.id === 'string')
+        .map((log) => ({
+          id: log.id,
+          clientEventId: log.clientEventId,
+        })),
+    );
+    const taskMaterializationEvents = [
+      ...sourceLinkedEvents,
+      ...retrySourceLinkedEvents,
+    ];
 
     const serverRecordedAt = new Date();
-    const studentStepResponseRows = buildStudentStepResponseRows(sourceLinkedEvents, session.user.id, serverRecordedAt);
+    await persistVirtualSimulationTaskEvidenceEvents(
+      taskMaterializationEvents,
+      session.user.id,
+      serverActorRole,
+      serverRecordedAt,
+    );
+    const studentStepResponseRows = buildStudentStepResponseRows(
+      taskMaterializationEvents,
+      session.user.id,
+      serverRecordedAt,
+    );
     if (studentStepResponseRows.length > 0) {
+      let stepResponsesPersisted = false;
       try {
         await prisma.studentStepResponse.createMany({
           data: studentStepResponseRows,
           skipDuplicates: true,
         });
+        stepResponsesPersisted = true;
       } catch (error) {
         console.error('[Interactive Events API] Failed to persist immutable student step responses:', error);
+      }
+      if (stepResponsesPersisted) {
+        await persistControlWorkbenchTaskEvidenceRows(
+          studentStepResponseRows,
+          session.user.id,
+          serverActorRole,
+        );
       }
     }
 

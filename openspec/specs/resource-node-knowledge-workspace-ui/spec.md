@@ -3,11 +3,12 @@
 Define the ResourceNode-aware knowledge workspace UI contract that connects graph exploration, resource details, mapping warnings, role-scoped diagnostics, and launch actions without moving resource implementations into the knowledge UI.
 ## Requirements
 ### Requirement: Knowledge workspace supports ResourceNode-aware exploration
-The system SHALL provide a knowledge/resource workspace that can display graph nodes and mapped ResourceNodes through shared workspace UI.
+The system SHALL preserve ordinary ResourceNode detail and resource exploration without exposing persisted path eligibility in the knowledge graph workspace.
 
 #### Scenario: ResourceNode mapping exists
 - **WHEN** a selected knowledge node or resource has a ResourceNode mapping
-- **THEN** the UI SHALL show source reference, knowledge coverage, prerequisites, availability, privacy level, teacher policy, evidence instrumentation, and path eligibility where role scope permits.
+- **THEN** the UI SHALL show source reference, knowledge coverage, prerequisites, availability, privacy level, teacher policy, and evidence instrumentation where role scope permits
+- **AND** `/knowledge` SHALL NOT display ResourceNode path eligibility or use it to derive layout, corridor, animation, or inspector state.
 
 ### Requirement: Partial ResourceNode coverage is explicit
 The system SHALL make missing or partial ResourceNode coverage visible.
@@ -17,12 +18,13 @@ The system SHALL make missing or partial ResourceNode coverage visible.
 - **THEN** the workspace SHALL show a warning or unavailable state with a reason suitable for the current role.
 
 ### Requirement: Resource launch actions preserve source ownership
-The system SHALL launch mapped resources through their existing source-of-record, registry, or feature-owned launcher contracts.
+The system SHALL launch mapped resources through existing source-owned launcher contracts without treating launchability as graph path projection.
 
 #### Scenario: User launches a mapped resource
 - **WHEN** a user launches a lesson, media item, widget, simulation, Arena task, or adaptive path node from the knowledge/resource workspace
 - **THEN** the UI SHALL use the ResourceNode source reference, `registryId`, route, or feature-owned launcher contract where available
-- **AND** it SHALL NOT move resource implementations, lesson rendering, or Arena/simulation business logic into the knowledge workspace UI.
+- **AND** an adaptive path node launch SHALL remain an opaque feature-owned action and SHALL NOT expose, map, or animate its persisted path in the graph
+- **AND** the knowledge workspace SHALL NOT absorb resource, lesson, Arena, simulation, or adaptive-path business logic.
 
 ### Requirement: Workspace preserves current graph exploration
 The system SHALL keep existing knowledge graph browsing available while ResourceNode-aware panels are introduced.
@@ -40,12 +42,17 @@ The knowledge graph SHALL render relation lines with distinct visual semantics f
 - **AND** relation meaning SHALL remain distinguishable in both light and dark themes without relying on color alone.
 
 ### Requirement: Default graph view limits edge density
-The knowledge graph SHALL limit default visible edges to high-signal structure and current exploration context.
+The knowledge graph SHALL limit default visible edges to the active domain's post-requisite and association presentation families and current exploration context.
 
-#### Scenario: Graph opens with many available relations
-- **WHEN** the available relation count is high
-- **THEN** the default view SHALL show skeleton, hierarchy, prerequisite, follows/leads-to, and selected-context relations before weak related edges
-- **AND** weaker relations SHALL be dimmed, collapsed, or hidden until selected through filters or focus interaction.
+#### Scenario: Root view opens
+- **WHEN** the compact root domain chooser is visible
+- **THEN** domain selection SHALL remain readable without displaying child membership rays or raw-semantic edge density
+- **AND** root summaries MAY communicate domain size without materializing member relations.
+
+#### Scenario: Domain view opens with many relations
+- **WHEN** the active domain contains more relations than can be read at the current viewport
+- **THEN** post-requisite edges SHALL form the primary learning-order skeleton, association edges SHALL remain visually subordinate, and child edges SHALL remain hidden by default
+- **AND** selected-corridor focus and explicit family controls SHALL govern additional emphasis.
 
 ### Requirement: Graph focus reduces unrelated edge noise
 The knowledge graph SHALL dim unrelated edges and emphasize selected-node neighborhoods during hover, selection, or search focus.
@@ -79,25 +86,26 @@ The ResourceNode workspace SHALL coordinate filters, legends, node panels, launc
 - **THEN** primary launch, close, return, and dock controls SHALL remain reachable and non-overlapping.
 
 ### Requirement: Knowledge workspace launches real learning resources
-The ResourceNode knowledge workspace SHALL connect graph exploration to actual learning resources and evidence review.
+The ResourceNode knowledge workspace SHALL connect graph exploration to actual learning resources and evidence review while keeping canonical graph corridors separate from persisted personalized paths.
 
 #### Scenario: Knowledge node with launchable resource is selected
 - **WHEN** a selected node has a registered ResourceNode, course resource, simulation, lesson entry, or evidence target
-- **THEN** the UI SHALL expose the launch action and return path
-- **AND** the knowledge graph SHALL NOT be accepted as a decorative graph with no connection to learning paths, resources, or evidence.
+- **THEN** the UI SHALL expose the source-owned launch action and return path
+- **AND** the canonical corridor MAY explain authored prerequisite order but SHALL NOT inspect or project a persisted LearningPath.
 
 ### Requirement: Knowledge graph tools are collapsible local tools
-The knowledge workspace SHALL expose chapter directory, relation filters, legend, view switch, and resource panel as collapsible or drawer-based local tools.
+The knowledge workspace SHALL expose chapter directory, node metadata filters, view and layout controls, and resource inspector as collapsible local tools while relation-family visibility remains in the compact canvas legend.
 
 #### Scenario: Desktop knowledge graph opens
 - **WHEN** `/knowledge` renders on a desktop viewport
-- **THEN** the graph SHALL expose relation filters and chapter directory through local tool panels with visible open and closed states
-- **AND** the graph canvas SHALL remain usable when those tools are closed.
+- **THEN** directory, node metadata, view, and layout controls SHALL use compact local panels with visible open and closed states
+- **AND** raw relation-type, density, strength, connected-node, and full semantic legend panels SHALL not remain as learner-facing tools
+- **AND** the graph canvas SHALL remain usable when local tools are closed.
 
 #### Scenario: Mobile knowledge graph opens
 - **WHEN** `/knowledge` renders at mobile width
-- **THEN** chapter directory, relation filters, legend, view switch, and resource details SHALL open through a drawer, sheet, or focused tool panel
-- **AND** scattered permanent controls SHALL NOT block the graph canvas or floating dock.
+- **THEN** directory, node metadata, view, layout, and resource details SHALL open through a drawer, sheet, or focused panel
+- **AND** relation-family visibility SHALL remain reachable through the synchronized compact legend without blocking the canvas or floating dock.
 
 ### Requirement: Knowledge graph panels use platform token roles
 Knowledge graph local panels SHALL use platform semantic token roles instead of page-local Tailwind color families or unregistered accent palettes.
@@ -108,25 +116,45 @@ Knowledge graph local panels SHALL use platform semantic token roles instead of 
 - **AND** local `slate`, `sky`, `cyan`, `amber`, `emerald`, `fuchsia`, or raw hex palettes SHALL NOT be introduced on migrated lines.
 
 ### Requirement: Active knowledge filters remain visible when collapsed
-The knowledge workspace SHALL preserve filter state visibility when local tools are collapsed.
+The knowledge workspace SHALL preserve node-filter and relation-family state visibility when local tools are collapsed.
 
-#### Scenario: User collapses relation filters
-- **WHEN** a user has active relation types, chapter filters, density mode, strength threshold, or connected-node filters and closes the filter panel
-- **THEN** the closed tool affordance SHALL summarize active filter state
-- **AND** reopening the tool SHALL preserve selected node, visible graph state, and resource panel context.
+#### Scenario: User collapses node filters
+- **WHEN** chapter, category, Bloom level, search, or other retained node filters are active and the node-filter panel closes
+- **THEN** the closed affordance SHALL summarize those retained filters
+- **AND** reopening it SHALL preserve current domain, selected node, family visibility, viewport, and inspector context.
+
+#### Scenario: Relation-family visibility changes
+- **WHEN** child, post-requisite, or association eligibility changes
+- **THEN** the compact legend itself SHALL expose current checked or mixed state
+- **AND** no separate raw-type/density/strength summary SHALL be required.
 
 ### Requirement: Knowledge graph relation styles use semantic visual grammar
-The knowledge graph SHALL render each supported relation family with a distinct visual grammar that does not rely on color alone.
+The knowledge graph SHALL render child, post-requisite, and association presentation families with distinct visual grammar that does not rely on color alone. Within each family's grammar, edge evidence state SHALL be encoded as a bounded modulation of opacity and width: edges whose public link carries `evidenceState: 'unavailable'` SHALL render muted relative to evidence-available edges of the same family, while edges whose evidence state is absent SHALL render exactly as before this modulation existed.
 
-#### Scenario: Multiple relation types render together
-- **WHEN** prerequisite, contains, follows/leads-to, applies-to, opposite, and related relations are visible in the graph
-- **THEN** each relation family SHALL use a distinct combination of fine line pattern, arrow behavior, endpoint treatment, curvature or opacity
-- **AND** the visual difference SHALL remain distinguishable in both light and dark themes.
+#### Scenario: Three relation families render together
+- **WHEN** child, post-requisite, and association edges are enabled
+- **THEN** each family SHALL use a distinct combination of line pattern, target-arrow behavior, opacity, and curvature
+- **AND** raw relation distinctions SHALL remain available in the inspector rather than multiplying canvas grammars.
 
-#### Scenario: Dense graph renders by default
-- **WHEN** the graph opens with many available relations
-- **THEN** relation edges SHALL render as fine lines by default
-- **AND** emphasis SHALL come from hover, focus, selection, or filter state rather than permanently thick strokes.
+#### Scenario: Dense domain renders by default
+- **WHEN** the active domain has many available relations
+- **THEN** relation edges SHALL remain fine and association edges subordinate
+- **AND** emphasis SHALL come from selection, corridor focus, or family visibility rather than permanently thick strokes.
+
+#### Scenario: Unavailable-evidence edge renders muted within its family
+- **WHEN** an enabled edge's public link carries `evidenceState: 'unavailable'`
+- **THEN** the edge SHALL render with reduced opacity and reduced width relative to an evidence-available edge of the same family and theme
+- **AND** it SHALL keep its family's line pattern, arrow behavior, and curvature
+- **AND** the muted variant SHALL remain distinguishable from the family's available variant in both light and dark themes without relying on color alone.
+
+#### Scenario: Unknown evidence state preserves prior rendering
+- **WHEN** an enabled edge's public link omits `evidenceState`
+- **THEN** the edge SHALL render with the same opacity, width, pattern, and arrow behavior it had before evidence modulation existed.
+
+#### Scenario: Evidence modulation respects density budgets
+- **WHEN** evidence modulation is applied in a dense domain
+- **THEN** default visible edge counts per family, the post-requisite structural foreground cap, and the association one-hop cap SHALL be unchanged
+- **AND** muted edges SHALL NOT be hidden or reordered solely because of their evidence state.
 
 ### Requirement: Runtime relation types have complete visual-semantic coverage
 The knowledge graph SHALL map every relation type present in the runtime knowledge graph to explicit teaching semantics before rendering.
@@ -142,7 +170,7 @@ The knowledge graph SHALL map every relation type present in the runtime knowled
 - **AND** the mapping SHALL preserve the intended teaching logic instead of flattening specialized relations into weak association.
 
 ### Requirement: Knowledge graph node scale reflects instructional and graph importance
-The knowledge graph SHALL scale node size from bounded importance signals rather than rendering all nodes at the same size.
+The knowledge graph SHALL scale node size from bounded importance signals rather than rendering all nodes at the same size. When a node carries `sourceCoverageCount`, that count SHALL act only as a capped tertiary signal after teaching importance and degree centrality, and its absence SHALL never reduce a node below the size it would have had without coverage data.
 
 #### Scenario: Nodes have different importance or connection counts
 - **WHEN** nodes include importance metadata, degree centrality, or selected-neighborhood relevance
@@ -150,37 +178,66 @@ The knowledge graph SHALL scale node size from bounded importance signals rather
 - **AND** degree or connection count SHALL act only as a capped secondary signal within a bounded range that preserves labels and neighboring nodes
 - **AND** selected or focused nodes SHALL remain visually prominent without hiding nearby nodes.
 
-### Requirement: Relation legend is graphical
-The knowledge workspace SHALL show relationship legend items as visual samples generated from the same relation style contract used by the graph.
+#### Scenario: Coverage count modulates within a cap
+- **WHEN** two nodes share the same importance and degree signals but differ in `sourceCoverageCount`
+- **THEN** the higher-coverage node MAY render larger within the bounded tertiary range
+- **AND** neither node SHALL exceed the existing size bounds that preserve labels and neighbors.
 
-#### Scenario: User reads the relation legend
-- **WHEN** the legend is visible
-- **THEN** each legend item SHALL include a miniature graphical edge sample matching the actual edge style
-- **AND** the legend SHALL NOT rely on text-only descriptions such as "long dashed arrow" as the only explanation.
+#### Scenario: Absent coverage never penalizes
+- **WHEN** a node omits `sourceCoverageCount`
+- **THEN** its radius SHALL equal the radius it would have had from importance and degree signals alone.
+
+### Requirement: Relation legend is graphical
+The knowledge workspace SHALL show child, post-requisite, and association legend controls as graphical samples generated from the same presentation-family contract used by the graph.
+
+#### Scenario: User reads the compact relation legend
+- **WHEN** the compact legend is visible
+- **THEN** `子级`, `后置`, and `关联` SHALL each include a miniature sample matching the active renderer
+- **AND** the legend SHALL not enumerate every raw runtime relation type.
+
+#### Scenario: User operates the all-families control
+- **WHEN** the user activates `全部` from a partial family selection
+- **THEN** all three families SHALL become enabled
+- **AND** activating it while all three are enabled SHALL restore the default post-requisite-plus-association set
+- **AND** checked, unchecked, and mixed state SHALL be exposed to keyboard and assistive technology and synchronized across desktop and mobile controls.
 
 ### Requirement: Knowledge graph communicates a learner-readable concept map
-The knowledge graph SHALL make the main conceptual structure understandable from the default view before learners open dense tools or all-relation modes.
+The knowledge graph SHALL make domain choice and prerequisite learning order understandable before learners inspect raw relation detail.
 
-#### Scenario: Learner opens the default graph view
+#### Scenario: Learner opens the root graph view
 - **WHEN** a learner first opens the knowledge graph
-- **THEN** the learner SHALL be able to distinguish prerequisite/foundation, contains, and follows/leads-to relation families through visible edge grammar and legend samples
-- **AND** weak related edges SHALL NOT form the primary visual skeleton of the graph.
+- **THEN** compact large domain nodes SHALL provide the primary conceptual overview without child rays or an all-semantic legend
+- **AND** activating one domain SHALL reveal only that domain's knowledge map.
+
+#### Scenario: Learner reads a domain graph
+- **WHEN** a single-domain view is active
+- **THEN** post-requisite direction and selected canonical corridors SHALL be visually primary, association SHALL be secondary, and child membership SHALL remain available on request
+- **AND** every visible line SHALL correspond to canonical relation provenance.
 
 ### Requirement: Knowledge graph visible labels use Chinese teaching language
-The knowledge workspace SHALL localize visible graph filter, legend, and metadata labels into Chinese learner-facing language.
+The knowledge workspace SHALL use Chinese learner-facing language for node metadata, retained node filters, three relation families, inspector sentences, cycle/gap states, and navigation.
 
-#### Scenario: User opens graph filters
-- **WHEN** category, Bloom level, relation type, density, strength, or connected-node filters are shown
-- **THEN** the labels SHALL use Chinese teaching terms
-- **AND** raw field names such as `category`, `bloom_level`, or implementation enum keys SHALL NOT appear as primary visible labels.
+#### Scenario: User opens retained node filters
+- **WHEN** chapter, category, Bloom level, search, or another retained node filter is shown
+- **THEN** labels SHALL use Chinese teaching terms
+- **AND** raw keys such as `category`, `bloom_level`, or implementation enum values SHALL not appear as primary labels.
+
+#### Scenario: User reads relation presentation
+- **WHEN** the compact legend or inspector presents graph relations
+- **THEN** the canvas SHALL use `子级`, `后置`, and `关联` and the inspector SHALL use reviewed source/target Chinese sentences
+- **AND** removed raw relation-type, density, strength, and connected-node filter labels SHALL not remain as learner controls.
 
 ### Requirement: Knowledge graph default view prioritizes readable structure
-The knowledge graph SHALL open in a high-signal view that exposes conceptual structure before weak relationship density.
+The knowledge graph SHALL open in a compact root view and then prioritize post-requisite learning order inside one active domain.
 
-#### Scenario: Graph opens with many relations
-- **WHEN** the graph has more relations than can be read at the current viewport
-- **THEN** the default view SHALL prioritize skeleton, hierarchy, prerequisite/foundation, contains, follows/leads-to, and selected-context relations
-- **AND** weak related edges SHALL be hidden, faded, or deferred until the user selects a denser mode.
+#### Scenario: Root view contains many domains
+- **WHEN** domain roots exceed a single compact row
+- **THEN** deterministic collision-safe packing SHALL preserve readable labels without expanding into a distant complete ring.
+
+#### Scenario: Active domain contains many relations
+- **WHEN** the domain has more relations than can be read at once
+- **THEN** the default family set SHALL include post-requisite and association but exclude child
+- **AND** association opacity and selected-corridor focus SHALL prevent weak relations from becoming the primary skeleton.
 
 ### Requirement: Knowledge graph focus reveals logical neighborhoods
 The knowledge graph SHALL make selected-node neighborhoods readable by reducing unrelated graph noise.
@@ -191,117 +248,110 @@ The knowledge graph SHALL make selected-node neighborhoods readable by reducing 
 - **AND** unrelated nodes and relations SHALL reduce opacity or visibility enough that the selected neighborhood remains readable.
 
 ### Requirement: Knowledge graph layout has measurable clarity bounds
-The knowledge graph SHALL expose testable clarity behavior for node size, visible edge density, label visibility, and overlap.
+The knowledge graph SHALL enforce quantitative clarity and motion bounds on representative reviewed domain data.
 
-#### Scenario: Layout clarity is validated
-- **WHEN** automated or manual visual QA checks a representative graph state
-- **THEN** the check SHALL verify bounded node size, bounded visible edge density, recoverable label visibility, and selected-neighborhood readability
-- **AND** accepting a graph as migrated SHALL NOT rely only on the presence of graph DOM nodes.
+#### Scenario: Representative domain layout is validated
+- **WHEN** a checked-in fixture generated from the largest reviewed runtime domain and carrying its graph-version hash is captured in Chromium at 1440×900 CSS pixels and device scale factor 1 after a two-second warm-up and initial fit
+- **THEN** visible node bodies SHALL have zero overlaps and overlapping visible-label pairs SHALL not exceed five percent
+- **AND** label overlap ratio SHALL equal unique intersecting visible-label pairs divided by visible rendered label count
+- **AND** lower-priority labels SHALL defer rather than violate the label-overlap bound.
 
-### Requirement: Dense relation modes remain user controlled
-The knowledge graph SHALL allow learners to request denser relation views without making dense views the default.
-
-#### Scenario: User requests all relations
-- **WHEN** the user selects an all-relations or equivalent density mode
-- **THEN** the graph MAY show weak and non-structural edges
-- **AND** the UI SHALL make the dense mode explicit and reversible without losing selected node context.
-
-#### Scenario: User returns from dense mode
-- **WHEN** the user returns from all-relations mode to the default or focused mode
-- **THEN** the graph SHALL restore the appropriate high-signal relation set
-- **AND** selected node, active filters, density mode state, and visible summaries SHALL remain consistent.
+#### Scenario: Focus motion performance is validated
+- **WHEN** a selected corridor is animated without CPU throttling for ten seconds after warm-up on the reference visual-QA desktop
+- **THEN** it SHALL contain no more than 64 nodes, 96 edges, four ancestor levels, four descendant levels, and three simultaneous motion markers
+- **AND** 95th-percentile `requestAnimationFrame` interval SHALL remain below 24 milliseconds with no graph-attributable PerformanceObserver long task above 100 milliseconds
+- **AND** evidence SHALL record browser version, fixture hash, hardware identifier, raw samples, and formulas.
 
 ### Requirement: Knowledge graph local tools open from compact default controls
-The knowledge workspace SHALL expose chapter directory, relation filters, relation legend, view switch, and resource panel as compact default controls rather than permanent desktop panels.
+The knowledge workspace SHALL expose directory, retained node filters, view, layout, and resource inspector through compact default controls while keeping the three-family legend directly available on the canvas.
 
 #### Scenario: Desktop knowledge graph first renders
 - **WHEN** `/knowledge` first renders on a desktop viewport
-- **THEN** the chapter directory, relation filters, relation legend, view switch, and resource panel SHALL be collapsed or compacted into discoverable local tool controls unless a selected-node resource panel is explicitly opened by the user
-- **AND** the graph canvas SHALL receive the primary visible area by default.
+- **THEN** retained local tools SHALL be collapsed or compacted unless the user explicitly opens an inspector
+- **AND** the compact domain chooser or active domain canvas and three-family legend SHALL receive the primary visible area.
 
-#### Scenario: User opens graph tools
-- **WHEN** the user opens chapter directory, relation filters, legend, or view controls
-- **THEN** the opened control SHALL preserve graph context, selected node state, active filters, density mode, legend mode, and visible summaries
-- **AND** closing the control SHALL restore the compact canvas-first layout.
+#### Scenario: User opens a retained graph tool
+- **WHEN** the user opens directory, node filters, view, or layout controls
+- **THEN** the tool SHALL preserve navigation state, selected node, family visibility, viewport, and inspector context
+- **AND** closing it SHALL restore the compact canvas-first layout.
 
 #### Scenario: Graph renders at tablet width
-- **WHEN** `/knowledge` renders at an intermediate viewport between mobile and desktop breakpoints
-- **THEN** local tools SHALL use the same compact or drawer-based behavior as the nearest safe canvas-first layout
-- **AND** the layout SHALL NOT create a third state where permanent panels squeeze the graph canvas.
+- **WHEN** `/knowledge` renders between mobile and desktop breakpoints
+- **THEN** retained local tools SHALL use the nearest safe compact or drawer behavior
+- **AND** no permanent panel SHALL squeeze the graph canvas.
 
 ### Requirement: Knowledge graph interactions preserve layout stability
-The knowledge graph SHALL keep layout state stable when users hover, activate, expand, collapse, inspect, or dismiss nodes.
+The knowledge graph SHALL keep layout state stable when users hover, enter or leave domains, select, inspect, filter, drag, or dismiss nodes.
 
 #### Scenario: User hovers over a node
 - **WHEN** the pointer hovers over a graph node
 - **THEN** the graph MAY show a lightweight name preview and local visual emphasis
-- **AND** hover SHALL NOT rebuild filtered graph data, change relation density, rerun layout, reheat the force simulation, or trigger automatic camera movement.
+- **AND** hover SHALL NOT rebuild graph membership, change relation families, rerun layout, reheat force simulation, or move the camera.
 
 #### Scenario: User moves across many nodes quickly
-- **WHEN** pointer movement emits many hover events across graph nodes
-- **THEN** hover preview updates SHALL be throttled, debounced, or renderer-local enough to avoid visible jitter
-- **AND** high-frequency hover SHALL NOT change layout version, filtered graph membership, or assistant durable context.
+- **WHEN** pointer movement emits many hover events
+- **THEN** preview updates SHALL be throttled, debounced, or renderer-local enough to avoid visible jitter
+- **AND** high-frequency hover SHALL NOT change domain, layout version, visible membership, or assistant durable context.
 
-#### Scenario: User activates a node
+#### Scenario: User activates a domain or knowledge node
 - **WHEN** the user clicks, taps, or keyboard-activates a graph node
-- **THEN** the graph SHALL resolve direct expansion, collapse, or leaf inspection from that node's current state
-- **AND** activation SHALL NOT recreate unrelated graph node objects, rerun global radial or force layout, reset user-positioned nodes, or call fit-to-view.
+- **THEN** a domain root SHALL enter its single-domain view and a knowledge node SHALL select, focus, and inspect
+- **AND** activation SHALL not recreate unrelated graph objects, rerun global radial layout, reset user-positioned nodes, or call full fit-to-view.
 
 #### Scenario: User opens or closes the node inspector
-- **WHEN** the selected-node inspector opens, closes, updates content, or is dismissed by blank-space activation or drag start
-- **THEN** graph layout coordinates, expanded neighborhoods, viewport scale, and loaded shard state SHALL remain stable
-- **AND** the inspector transition SHALL NOT redistribute unrelated graph nodes.
+- **WHEN** the inspector opens, closes, updates, or is dismissed by blank-space activation or manipulation start
+- **THEN** current domain coordinates, viewport scale, family selection, focused corridor, and loaded shard state SHALL remain stable
+- **AND** the transition SHALL not redistribute unrelated nodes.
 
 ### Requirement: Knowledge graph drag state is explicit and recoverable
-The knowledge graph SHALL freeze established node coordinates after initial automatic layout and SHALL preserve user-dragged positions until the user or a real graph data change requests a new layout.
+The knowledge graph SHALL freeze established coordinates after each explicit root or domain layout and preserve user-positioned nodes until the user, graph version, or domain navigation requests a new layout.
 
-#### Scenario: Initial automatic layout completes
-- **WHEN** the root graph finishes its bounded initial automatic layout
-- **THEN** visible node coordinates SHALL become stable canonical positions
-- **AND** subsequent ordinary interaction SHALL NOT reheat a free-running force simulation.
+#### Scenario: Automatic root or domain layout completes
+- **WHEN** bounded compact-root or domain layout finishes
+- **THEN** visible coordinates SHALL become stable for that navigation state
+- **AND** ordinary hover, selection, family toggles, inspector updates, or association-neighborhood changes SHALL not reheat a free-running force simulation.
 
 #### Scenario: User starts dragging a node
-- **WHEN** the user begins dragging a graph node
-- **THEN** any open inspector SHALL close
-- **AND** all other visible nodes SHALL retain their current coordinates throughout the drag.
+- **WHEN** node drag begins
+- **THEN** the inspector SHALL close and every other visible node SHALL retain its coordinate
+- **AND** the active domain and focused corridor SHALL remain selected.
 
 #### Scenario: User releases a dragged node
-- **WHEN** the user drags a node and releases it
-- **THEN** only that node's final coordinates SHALL be stored by node id as user-positioned or pinned layout state
-- **AND** no unrelated node position SHALL be overwritten as a drag side effect.
+- **WHEN** the dragged node is released
+- **THEN** only that node's final coordinate SHALL be stored as user-positioned
+- **AND** no unrelated coordinate SHALL be overwritten.
 
 #### Scenario: User requests layout reset
-- **WHEN** the user activates an explicit relayout, reset, or clear-pins command
-- **THEN** the graph MAY recompute layout
-- **AND** the UI SHALL make the change intentional rather than treating it as a side effect of normal inspection.
+- **WHEN** the user explicitly requests relayout, reset, or clear positions
+- **THEN** the active navigation state's layout MAY recompute
+- **AND** the change SHALL not occur as a side effect of ordinary inspection.
 
-#### Scenario: Filters change the visible graph
-- **WHEN** relation filters, chapter filters, or density mode changes hide or show graph nodes
-- **THEN** visible user-positioned and established nodes SHALL retain their stored coordinates where possible
-- **AND** the layout system SHALL not erase pinned positions unless the node is no longer part of the current graph data or the user resets layout.
+#### Scenario: Retained filters or family visibility change
+- **WHEN** node filters or child/post-requisite/association eligibility hide or show content
+- **THEN** visible user-positioned and established nodes SHALL retain stored coordinates where possible
+- **AND** removed density-mode behavior SHALL not erase positions or become a hidden relayout trigger.
 
 ### Requirement: Knowledge graph renders as a semantic map
-The knowledge graph SHALL present nodes, edges, labels, and semantic regions as a readable concept map rather than an all-edge tangle.
+The knowledge graph SHALL present compact domains, ordered nodes, edges, labels, and selected corridors as a readable semantic map rather than an all-edge tangle.
 
-#### Scenario: Default semantic map renders
-- **WHEN** `/knowledge` renders its default graph view
-- **THEN** relation lines SHALL be thin, visually subordinate, and distinguishable through non-color visual grammar
-- **AND** the learner SHALL be able to identify major conceptual regions, important nodes, and high-signal relation families without opening dense all-relations mode.
+#### Scenario: Root semantic map renders
+- **WHEN** `/knowledge` opens
+- **THEN** compact domain nodes and summaries SHALL establish the top-level map without member rays or global dense relations.
 
-#### Scenario: Selected neighborhood renders
-- **WHEN** a node is selected or explicitly focused
-- **THEN** directly relevant nodes and relations SHALL become visually prominent through bounded emphasis
-- **AND** unrelated graph content SHALL dim enough to clarify the selected neighborhood without disappearing unless the user requests focused mode.
+#### Scenario: Domain semantic map renders
+- **WHEN** one domain is active
+- **THEN** teaching-order placement and post-requisite edges SHALL form the primary structure, association SHALL be absent before selection and bounded afterward, and child SHALL remain optional
+- **AND** learners SHALL not need a dense all-relations mode to understand the map.
 
-#### Scenario: Graph legend renders
-- **WHEN** the relation legend is visible
-- **THEN** legend edge samples SHALL be generated from the same visual style contract as the graph renderer
-- **AND** the legend SHALL remain accurate in both light and dark themes.
+#### Scenario: Selected corridor renders
+- **WHEN** a knowledge node is selected and its corridor is immediately derived from authored canonical post-requisite edges
+- **THEN** directly relevant nodes and canonical post-requisite relations SHALL receive bounded emphasis
+- **AND** unrelated content SHALL dim without changing domain membership.
 
-#### Scenario: Semantic clusters are available
-- **WHEN** chapter, category, or graph-structure grouping can be represented safely
-- **THEN** the graph MAY show subtle semantic regions or cluster territories
-- **AND** those regions SHALL be derived from graph semantics, use platform tokens, and remain visually subordinate to nodes and selected relations.
+#### Scenario: Compact legend renders
+- **WHEN** relation-family controls are visible
+- **THEN** samples SHALL come from the same renderer contract and remain accurate in light and dark themes
+- **AND** no standalone full semantic legend SHALL be required.
 
 ### Requirement: Knowledge graph presentation follows approved concept direction
 Knowledge graph presentation SHALL adopt the approved Product Design direction without copying generated mockup chrome.
@@ -312,57 +362,82 @@ Knowledge graph presentation SHALL adopt the approved Product Design direction w
 - **AND** it SHALL NOT copy standalone shell chrome, role switchers, exact generated node positions, or generated labels as product truth.
 
 ### Requirement: Knowledge graph local tools use a compact command system
-The knowledge workspace SHALL expose graph-specific directory, filter, legend, view, layout, and focus controls through a coherent compact local command system.
+The knowledge workspace SHALL expose graph-specific directory, retained node filters, view, layout, focus, and return navigation through a coherent compact command system and SHALL keep relation-family visibility in the compact legend.
 
 #### Scenario: Desktop knowledge graph opens
-- **WHEN** `/knowledge` renders on a desktop viewport
-- **THEN** chapter directory, relation filters, relation legend, view mode, layout, and focus controls SHALL appear as compact local workspace tools by default
-- **AND** detailed panels SHALL open only when requested by the user.
+- **WHEN** `/knowledge` renders on desktop
+- **THEN** retained tools SHALL appear as compact workspace commands and detailed panels SHALL open only on request
+- **AND** the removed raw relation, density, strength, connected-node, and semantic-legend commands SHALL not remain available.
 
 #### Scenario: Local tools are collapsed
-- **WHEN** local graph tools are closed or compacted
-- **THEN** active relation count, density, strength, connected-node mode, and selected focus summaries SHALL remain visible where relevant
-- **AND** the graph canvas SHALL remain the primary visual surface.
+- **WHEN** retained local tools are closed
+- **THEN** node-filter summaries, current domain, selected focus, and return navigation SHALL remain visible where relevant
+- **AND** the legend SHALL independently communicate family state and the canvas SHALL remain primary.
 
 #### Scenario: User opens a local tool
-- **WHEN** the user opens directory, filters, legend, view, layout, or focus controls
-- **THEN** the tool SHALL preserve selected node, graph density, active filters, pinned layout state, and inspector context
-- **AND** the tool SHALL not overlap the shared floating dock or global navigation.
-- **AND** keyboard focus SHALL enter and leave the opened tool predictably, Escape or an equivalent close action SHALL close the tool where appropriate, and focus SHALL return to the invoking control.
+- **WHEN** the user opens directory, node filters, view, layout, or focus controls
+- **THEN** the tool SHALL preserve current domain, selected node, family state, stored positions, and inspector context
+- **AND** it SHALL not overlap global navigation or the floating dock
+- **AND** keyboard focus SHALL enter and leave predictably and return to the invoking control after close.
 
 ### Requirement: Selected knowledge nodes render in a stable inspector
-The knowledge workspace SHALL present leaf-node content through a dismissible stable inspector whose learning-object content precedes graph-adjacency navigation.
+The knowledge workspace SHALL present selected domain and knowledge-node content through a dismissible stable inspector whose state is independent from domain navigation and progressive graph materialization.
 
-#### Scenario: User selects a leaf knowledge node on desktop
-- **WHEN** a leaf knowledge node has details, Knowledge Card content, relations, learning actions, or evidence sources
-- **THEN** the UI SHALL render a stable inspector with identity and explanatory content first, Knowledge Card before Related Knowledge Points, and learning-path or evidence actions afterward
-- **AND** the inspector SHALL use predictable desktop width or overlay rules that do not cause graph layout jitter.
+#### Scenario: User selects a knowledge node on desktop
+- **WHEN** a knowledge node has details, Knowledge Card content, relations, learning actions, or evidence sources
+- **THEN** activation SHALL open or update a stable inspector with identity and explanatory content first, Knowledge Card and learning resources next, normalized prerequisite/post-requisite groups and the currently derived canonical corridor next, raw association details after them, and evidence actions afterward
+- **AND** the inspector SHALL use predictable desktop overlay rules that do not cause graph relayout.
 
-#### Scenario: User changes selected leaf node
-- **WHEN** the selected leaf node changes through the inspector or another semantic navigation surface
-- **THEN** inspector content SHALL update without remounting the whole panel or losing stable scroll and layout context unnecessarily
-- **AND** stale async detail responses SHALL NOT overwrite the current selected-node content.
+#### Scenario: User enters a domain
+- **WHEN** a domain root is activated and its progressive data must load or materialize
+- **THEN** navigation, selection, and inspector-open state SHALL be resolved independently
+- **AND** loading or entering the domain SHALL NOT close an already valid inspector merely to signal expansion.
+
+#### Scenario: User manually changes away from an inspected node's domain
+- **WHEN** a user activates another domain while the inspector and focused corridor target a node outside that destination domain
+- **THEN** navigation SHALL clear the hidden node selection and corridor before destination materialization
+- **AND** the inspector SHALL close or atomically replace its content with the destination domain summary rather than retaining hidden old-domain content.
+
+#### Scenario: User changes selected node
+- **WHEN** selection changes through the canvas, inspector, directory, search, deep link, or cross-domain relation
+- **THEN** inspector content SHALL update without remounting the whole workspace or accepting stale async detail responses
+- **AND** cross-domain selection SHALL first enter the target node's owning domain and then present the target details.
 
 #### Scenario: Inspector content updates asynchronously
-- **WHEN** details, Knowledge Card metadata, relations, or evidence sources load for the current leaf node
+- **WHEN** details, Knowledge Card metadata, child membership, relations, or evidence sources load for the current node
 - **THEN** async updates SHALL preserve the user's active inspector section and scroll context where possible
-- **AND** they SHALL NOT reset reading position solely because data returned after the panel opened.
+- **AND** they SHALL NOT reset reading position solely because data returned after the inspector opened.
+
+#### Scenario: Child relation is hidden on the canvas
+- **WHEN** a selected domain or knowledge node has canonical `contains` provenance while the child family is disabled
+- **THEN** the inspector SHALL still expose domain membership or direct child detail, canonical source and target, and contributing relation evidence
+- **AND** the user SHALL be able to enable the child family without losing inspector context.
+
+#### Scenario: Raw relation rationale is unavailable
+- **WHEN** a canonical link provides id, type, endpoints, and strength but no rationale, evidence, or source document
+- **THEN** the inspector SHALL show the available fields and `关系依据未提供`
+- **AND** it SHALL not fabricate or imply unavailable evidence.
+
+#### Scenario: Directed association detail is inspected
+- **WHEN** the selected node participates in a directed raw association
+- **THEN** the inspector SHALL render a reviewed Chinese sentence appropriate to whether the selected node is the authored source or target
+- **AND** the sentence SHALL preserve raw type and endpoint direction even though the canvas association edge is unordered.
 
 #### Scenario: User activates blank canvas space
-- **WHEN** the user activates graph canvas space that is not a node, edge control, local tool, or inspector surface
+- **WHEN** the user activates canvas space that is not a node, edge control, local tool, or inspector surface
 - **THEN** the selected-node inspector SHALL close
-- **AND** expanded neighborhoods, filters, zoom, pan, cached shards, and node coordinates SHALL remain unchanged.
+- **AND** current domain, filters, zoom, pan, cached shards, path focus, and node coordinates SHALL remain unchanged.
 
 #### Scenario: User starts dragging the canvas or a node
 - **WHEN** the user begins a canvas pan or node drag while the inspector is open
-- **THEN** the inspector SHALL close before the manipulation continues
-- **AND** the dismissal SHALL NOT trigger relayout or collapse expanded neighborhoods.
+- **THEN** the inspector SHALL close before manipulation continues
+- **AND** dismissal SHALL not leave the current domain, trigger relayout, clear the focused corridor, or evict cached shards.
 
-#### Scenario: Mobile knowledge graph opens a leaf node
-- **WHEN** a leaf node is opened on a mobile viewport
-- **THEN** node details SHALL render through a drawer or sheet with Knowledge Card before Related Knowledge Points
-- **AND** graph pan, zoom, and local tool access SHALL remain reachable when the sheet is collapsed
-- **AND** keyboard and screen-reader focus SHALL remain inside the opened sheet while active and return to the invoking graph context when closed.
+#### Scenario: Mobile knowledge graph opens a selected node
+- **WHEN** a node is opened on a mobile viewport
+- **THEN** details SHALL render through a focus-contained drawer or sheet with the same content priority
+- **AND** graph pan, zoom, return navigation, and local tool access SHALL remain reachable when the sheet is collapsed
+- **AND** focus SHALL return to the invoking graph context when the sheet closes.
 
 ### Requirement: Knowledge workspace publishes selected context to the shared assistant
 The knowledge workspace SHALL publish stable selected-node and graph-state context for the shared Konling assistant without coupling hover preview or local UI internals to assistant permissions.
@@ -378,199 +453,273 @@ The knowledge workspace SHALL publish stable selected-node and graph-state conte
 - **AND** hover SHALL NOT become durable Konling context unless the user explicitly selects or focuses that node.
 
 ### Requirement: Knowledge graph first render is collapsed and root-first
-The knowledge graph SHALL render a useful collapsed root graph before requesting or parsing the full graph.
+The knowledge graph SHALL render a compact top-level domain chooser before requesting or parsing domain members or the full graph.
+
+The root-first presentation SHALL NOT weaken canonical validation. Before root, progressive, full, or detail output returns any node, the loader SHALL parse the complete canonical relation source and execute the shared strict relation contract. Malformed JSONL, an empty relation source, missing/empty/unknown type, duplicate relation ID, reverse child membership, or unresolved endpoint SHALL return bounded machine-readable HTTP 422 diagnostics and SHALL NOT expose a partial graph.
+
+Database fallback, graph version fingerprints, progressive shards, and detail inspection SHALL consume only relation rows whose `metadata.runtimeSource` exactly identifies the current canonical runtime relation source. External or unowned rows SHALL remain stored but SHALL NOT enter canonical graph output, counts, fingerprints, projection, or inspection.
+
+DB strict validation SHALL read every relation carrying that current runtime source marker before endpoint validation, including relations whose endpoints are inactive or external. It SHALL validate them against active canonical nodes whose `metadata.source` equals the canonical runtime node marker; no active-node join or external-node inclusion may silently remove an invalid relation. Runtime-owned relations to inactive, external, or otherwise absent canonical endpoints SHALL block root, full, progressive, list, and detail output with unresolved-endpoint HTTP 422 diagnostics.
+
+Canonical file absence SHALL be distinguished from invalid content. Only a genuinely absent canonical node or relation file may select DB fallback. A present malformed or empty node file, duplicate node ID, or blank/whitespace/overlong canonical node ID SHALL fail closed with machine-readable HTTP 422 diagnostics. Cached file output SHALL be reused only after a fresh stable size, modification-time, and SHA-256 fingerprint confirms both canonical files are unchanged; an empty, malformed, or unknown-type mutation SHALL invalidate cached output within the same TTL.
+
+DB canonical node loading and every public node list SHALL include only active nodes carrying the exact canonical node source marker. External/unowned nodes and their raw metadata, content, and resources SHALL NOT enter root, full, remaining, list, or detail DTOs. The legacy `source=db` query SHALL use the same runtime-only sanitized loader contract and SHALL NOT bypass it with a direct raw Prisma response.
+
+Canonical DB nodes, every current runtime-owned relation, and relation count/fingerprint version evidence SHALL be read inside one Prisma `RepeatableRead` transaction with bounded wait, timeout, and transient-conflict retry. The payload and `versionDigest` SHALL be constructed from that one snapshot. Root, full, progressive, list, and detail paths SHALL reuse the snapshot result and SHALL NOT independently re-query fingerprint evidence. If a same-count canonical seed or update commits between the node and relation reads, one request SHALL be entirely old or entirely new; a subsequent request SHALL expose the new digest and shard version without mixing node, relation, provenance, or version evidence.
+
+The database projection SHALL preserve multiple canonical relation IDs for one endpoint pair. Migration SHALL NOT infer historical ownership from endpoint ownership. Canonical seed SHALL claim rows only by exact canonical relation ID, validate all nodes and relations before its single synchronization transaction, and delete stale rows only inside the explicit runtime ownership boundary.
 
 #### Scenario: Learner opens the knowledge graph
 - **WHEN** a learner opens `/knowledge`
-- **THEN** the first visible graph payload SHALL contain only top-level graph roots and root summaries
-- **AND** the first visible graph SHALL NOT require the full graph endpoint, all knowledge nodes, or all relations to complete before nodes are visible.
+- **THEN** the first visible payload SHALL contain only stable chapter/domain roots and root summaries arranged in a compact collision-safe cluster near the canvas center
+- **AND** roots SHALL use a larger bounded visual scale than ordinary knowledge nodes
+- **AND** the first view SHALL NOT use a distant full ring or require the full graph endpoint, all knowledge nodes, or all relations.
 
 #### Scenario: Runtime chapter metadata is available
 - **WHEN** runtime knowledge nodes include chapter metadata
-- **THEN** the first-screen root graph SHALL use stable chapter-level roots unless a reviewed graph-root catalog explicitly declares a better top-level hierarchy
-- **AND** concept roots inferred from `contains` edges SHALL NOT replace stable chapter roots without a deterministic review contract.
-
-### Requirement: Knowledge graph nodes expand and collapse on demand
-The knowledge graph SHALL reveal neighbors and relations through direct node activation instead of showing all filtered nodes by default or requiring a secondary expansion control.
-
-#### Scenario: User activates a collapsed expandable node
-- **WHEN** a user clicks, taps, or keyboard-activates a collapsed node declared expandable
-- **THEN** the node activation SHALL reveal its filter-visible neighbors and relations
-- **AND** the same node SHALL expose accessible expanded or pending state through the synchronized semantic node surface and live status.
-
-#### Scenario: User activates an expanded node
-- **WHEN** a user activates an expanded graph node
-- **THEN** the same node activation SHALL hide that expansion's revealed neighbors without evicting version-valid graph data from the client cache
-- **AND** focus SHALL remain associated with the node activation context.
-
-#### Scenario: Expansion data is not cached
-- **WHEN** a user activates an expandable node whose required shard is not yet loaded
-- **THEN** the graph SHALL show a local loading state for that node or expansion path and suppress duplicate activation
-- **AND** the rest of the graph, local tools, inspector, and floating dock SHALL remain interactive
-- **AND** background shard loading SHALL NOT move focus away from the initiating node context, local tool, or Konling surface.
-
-#### Scenario: Expansion has no filter-visible neighbors
-- **WHEN** canonical graph metadata identifies the node as expandable but the active filter hides all neighbors or relations in that expansion
-- **THEN** the graph SHALL keep the expansion cached and logically expanded while showing a local empty or filtered-out explanation
-- **AND** the UI SHALL distinguish filtered-empty from canonical leaf, loading, and network failure
-- **AND** a filter change SHALL reveal matching cached neighbors without a duplicate request.
-
-#### Scenario: Expansion request fails
-- **WHEN** an uncached expansion request fails
-- **THEN** the node SHALL expose an accessible local error and allow the next activation to retry
-- **AND** stale or failed responses SHALL NOT open the inspector, move unrelated nodes, or overwrite a newer activation state.
+- **THEN** stable chapter roots SHALL define the top-level domains unless a reviewed graph-root catalog declares a replacement
+- **AND** inferred concept hierarchy SHALL NOT create additional top-level domains without a deterministic review contract.
 
 ### Requirement: Knowledge graph loads matching and remaining graph data progressively
-The knowledge graph SHALL load graph data in ordered batches instead of treating the full graph as the first required payload.
+The knowledge graph SHALL load root and active-domain data progressively without exposing remaining-graph density as a normal learner control.
 
-#### Scenario: First-screen roots are visible
-- **WHEN** the root graph has rendered
-- **THEN** the client SHALL begin loading shards for the active filter signature in the background
-- **AND** those shards SHALL fill the graph cache without forcing every matching node to become visible before the user expands nodes.
+#### Scenario: Root domains are visible
+- **WHEN** the compact root graph has rendered
+- **THEN** the client MAY preload version-valid domain summaries or the next required domain shard
+- **AND** it SHALL not make all knowledge nodes or all associations visible.
 
-#### Scenario: Active-filter shards are cached
-- **WHEN** active-filter graph shards are complete
-- **THEN** the client MAY begin loading remaining or dense graph shards in the background
-- **AND** dense or weak relation families SHALL remain hidden until the user requests a denser relation mode, search result, or expansion that requires them.
+#### Scenario: User enters a domain
+- **WHEN** a domain root is activated
+- **THEN** the client SHALL request only missing shards required for that domain, retained node filters, and three-family projection
+- **AND** already loaded nodes and links SHALL be reused without duplicate graph objects or full-graph loading.
 
-#### Scenario: User changes graph filters
-- **WHEN** a user changes chapter, relation-family, density, strength, search, or connected-node filters
-- **THEN** the graph SHALL request only missing shards required by the new filter signature
-- **AND** already loaded nodes, links, and shards SHALL be reused without duplicate network requests or duplicate graph objects.
+#### Scenario: User changes retained filters or family visibility
+- **WHEN** chapter/domain navigation, node metadata filters, search, or family state changes
+- **THEN** the graph SHALL reuse cached canonical data and request only missing domain-scoped shards
+- **AND** enabling `全部` SHALL not trigger global remaining-graph materialization or expose other domains.
 
 ### Requirement: Knowledge graph shard cache is explicit and versioned
-The knowledge graph SHALL identify graph payloads by graph version and shard keys so progressive loading is deterministic and cacheable.
+The knowledge graph SHALL identify learner root and domain payloads by graph version and shard keys while restricting remaining/full graph shards to authorized diagnostics or maintenance.
 
-#### Scenario: Graph shard is requested
-- **WHEN** the client requests a graph root, expansion, active-filter, or remaining-graph shard
-- **THEN** the request or response SHALL include a graph version and shard identity
-- **AND** the client SHALL record loaded shard keys, loading shard keys, loaded node ids, and loaded link keys.
+#### Scenario: Learner shard is requested
+- **WHEN** normal `/knowledge` interaction requests root or active-domain data
+- **THEN** the request or response SHALL include graph version and shard identity
+- **AND** the client SHALL record loaded and loading keys, node ids, and link keys without treating global remaining shards as learner density controls.
 
-#### Scenario: Shard data is merged
-- **WHEN** a graph shard arrives
-- **THEN** nodes SHALL be merged by node id and links SHALL be merged by stable link key
-- **AND** merging a shard SHALL NOT remount existing graph nodes, reset selected-node context, or discard user-positioned layout state.
+#### Scenario: Domain shard data is merged
+- **WHEN** a version-valid domain shard arrives
+- **THEN** nodes SHALL merge by node id and links by stable canonical key
+- **AND** merging SHALL not remount existing nodes, reset inspector context, or discard applicable user positions.
 
 #### Scenario: Runtime graph version changes
-- **WHEN** the graph version changes
-- **THEN** stale loaded shard records SHALL be invalidated or ignored
-- **AND** the next root request SHALL establish the new graph version before expansion shards are trusted.
+- **WHEN** graph version changes
+- **THEN** stale root, domain, mapping, and layout records SHALL be invalidated or ignored
+- **AND** a new root version SHALL be established before domain, ResourceNode, or lesson-overlay mappings are trusted.
+
+#### Scenario: Authorized diagnostics request remaining data
+- **WHEN** an authorized diagnostics or maintenance path requests remaining or full graph shards
+- **THEN** those shards SHALL remain separately identified from learner root/domain cache state
+- **AND** they SHALL not make global dense data or removed controls available in normal learner flows.
 
 ### Requirement: Knowledge graph keeps full graph loading out of normal user flows
-The knowledge graph SHALL preserve full graph access only as a diagnostics or maintenance path outside normal `/knowledge` user interaction.
+The knowledge graph SHALL keep full graph and global remaining-shard access outside normal learner interaction, including the compact `全部` family control.
 
 #### Scenario: First render is measured
-- **WHEN** tests or browser evidence inspect `/knowledge` first render
-- **THEN** the page SHALL not request, parse, or depend on the full graph endpoint before top-level root nodes are visible
-- **AND** a spinner-only state SHALL NOT be accepted as the first rendered knowledge graph state.
+- **WHEN** tests inspect `/knowledge` first render
+- **THEN** the page SHALL not request, parse, or depend on the full graph endpoint before compact root nodes are visible
+- **AND** spinner-only or global dense states SHALL not be accepted as first render.
 
-#### Scenario: User explicitly requests dense exploration
-- **WHEN** a user selects all-relations, dense mode, or another full-graph exploration action
-- **THEN** the graph SHALL request missing remaining graph shards rather than the full graph compatibility endpoint
-- **AND** the UI SHALL identify the denser mode as explicit and reversible.
-- **AND** any full graph endpoint retained for diagnostics SHALL NOT be used by the normal `/knowledge` user interaction path.
+#### Scenario: User enables all relation families
+- **WHEN** the user activates `全部` inside an active domain
+- **THEN** only child, post-requisite, and bounded one-hop association eligibility for that domain SHALL change
+- **AND** the action SHALL not request the global full graph or remaining relations from unrelated domains.
+
+#### Scenario: Diagnostics request full graph access
+- **WHEN** an authorized diagnostics or maintenance path requests full graph data
+- **THEN** that path SHALL remain outside normal `/knowledge` learner interaction
+- **AND** it SHALL not restore removed raw-semantic or dense-mode controls to the learner workspace.
 
 ### Requirement: Knowledge graph nodes use direct activation semantics
-The knowledge graph SHALL make the node itself the primary expansion or inspection control and SHALL resolve the outcome from versioned expandability metadata.
+The knowledge graph SHALL make domain roots the direct navigation controls and ordinary knowledge nodes the direct selection and inspection controls.
 
-#### Scenario: User activates a collapsed expandable node
-- **WHEN** a user clicks, taps, or keyboard-activates a node declared expandable and currently collapsed
-- **THEN** the graph SHALL load or reveal that node's local neighborhood immediately without requiring a second expansion control
-- **AND** any open node inspector SHALL close without collapsing other expanded neighborhoods.
+#### Scenario: User activates a domain root
+- **WHEN** pointer or keyboard activation targets a domain root
+- **THEN** the graph SHALL enter that domain through the shared navigation resolver without requiring a secondary expansion button
+- **AND** repeated activation SHALL not recursively create another ring or sector.
 
-#### Scenario: User activates an expanded node
-- **WHEN** a user activates a node whose local neighborhood is expanded
-- **THEN** the graph SHALL collapse that neighborhood while retaining its version-valid shard cache and stable stored coordinates
-- **AND** the action SHALL NOT open the node inspector.
+#### Scenario: User activates a knowledge node
+- **WHEN** pointer or keyboard activation targets a knowledge node in the active domain
+- **THEN** the graph SHALL select the node, focus its bounded canonical post-requisite corridor, and open or update the inspector
+- **AND** it SHALL not close the inspector as an expansion side effect.
 
-#### Scenario: User activates a leaf node
-- **WHEN** a user activates a node declared as a leaf
-- **THEN** the graph SHALL open the selected-node inspector
-- **AND** it SHALL NOT request an expansion shard or show an expansion control.
+#### Scenario: User activates a related item in another domain
+- **WHEN** an inspector relation, directory item, search result, or deep link resolves to a knowledge node outside the active domain
+- **THEN** the shared resolver SHALL enter the owning domain before selecting the target
+- **AND** pointer, keyboard, and semantic-node activation SHALL produce equivalent navigation and focus state.
 
-#### Scenario: User activates a node with unknown expandability
-- **WHEN** a compatibility or stale payload leaves a node's expandability unknown
-- **THEN** the graph SHALL show an honest node-local busy state and resolve the existing expansion endpoint once
-- **AND** only a canonical leaf descriptor SHALL open the inspector
-- **AND** a canonical expandable descriptor with no filter-visible neighbor SHALL enter a cached filtered-empty state instead of being treated as a leaf.
-
-#### Scenario: Active filters hide every neighbor of an expandable node
-- **WHEN** a canonically expandable node is activated while the active filters hide all revealable neighbors or relations
-- **THEN** the node SHALL remain logically expanded with a local filtered-out explanation and cached expansion data
-- **AND** changing filters SHALL reveal newly matching neighbors without a duplicate shard request
-- **AND** activating the filtered-empty node again SHALL collapse it.
-
-#### Scenario: User activates a related knowledge item
-- **WHEN** a user activates a Related Knowledge Points entry, directory item, search result, or deep link that resolves to a graph node
-- **THEN** that entry SHALL invoke the same activation resolver as the 2D and 3D graph node
-- **AND** an expandable target SHALL close the inspector, focus the canvas target, and expand or collapse it while a leaf target SHALL open or replace inspector content.
-
-#### Scenario: Progressive graph payload identifies node behavior
-- **WHEN** root, expansion, active-filter, or remaining graph payloads return nodes
-- **THEN** each node SHALL carry a graph-version-consistent expansion state of expandable, leaf, or unknown
-- **AND** the client SHALL NOT infer leaf status solely from currently loaded links or node type.
-
-#### Scenario: User activates a node with keyboard
-- **WHEN** keyboard focus reaches a visible graph node through the graph or an equivalent synchronized semantic node surface
-- **THEN** Enter or Space SHALL invoke the same activation resolver as pointer activation
-- **AND** focus, busy, expanded, leaf, and error states SHALL be exposed without relying on color alone.
+#### Scenario: Progressive payload identifies domain membership
+- **WHEN** root or expansion payloads return graph nodes
+- **THEN** each ordinary knowledge node SHALL retain deterministic domain ownership sufficient for navigation
+- **AND** the client SHALL not infer nested hierarchy from arbitrary incident relations.
 
 ### Requirement: Knowledge graph expansion motion explains local topology
-The knowledge graph SHALL use short, bounded motion to explain focus and neighborhood revelation while preserving stable canonical coordinates and a complete reduced-motion path.
+The knowledge graph SHALL use bounded transition motion for domain entry, an ambient directional flow layer on eligible structural edges, and prominent continuous directional path motion for a selected post-requisite corridor. All continuous motion SHALL be paint-level: node coordinates, deterministic packing, label placement, and hit areas SHALL remain frozen, and no motion SHALL reheat layout simulation.
 
-#### Scenario: Local neighborhood is revealed
-- **WHEN** an expandable node successfully reveals new neighbors and relations
-- **THEN** the graph SHALL use bounded focus emphasis, center-to-neighbor relation reveal, and staged node appearance to communicate origin and direction
-- **AND** the complete reveal SHALL finish promptly without adding expansion-specific continuous orbit, pulse, particle, or force-driven motion
-- **AND** existing relation-semantic direction encoding MAY remain active outside reduced-motion mode.
+#### Scenario: Domain view is entered
+- **WHEN** a domain's knowledge nodes become visible
+- **THEN** the graph MAY use a short bounded transition from the domain center to stable final coordinates
+- **AND** the transition SHALL finish promptly without continuous orbit, radial ray, or force-driven drift.
 
-#### Scenario: Expanded content falls outside the safe viewport
-- **WHEN** newly revealed nodes would be clipped by the graph viewport or inspector-safe area
-- **THEN** the graph MAY perform a bounded local camera translation
-- **AND** it SHALL NOT run full-graph zoom-to-fit, reset zoom, or change canonical node coordinates.
+#### Scenario: Ambient flow renders on structural edges
+- **WHEN** a domain view is visible and no reduced-motion preference is active
+- **THEN** small directional markers SHALL travel along the visible post-requisite structural-foreground edges from source boundary to target boundary, following each rendered path's tangent
+- **AND** concurrent ambient markers SHALL be deterministically selected within a documented budget that preserves the performance frame budget
+- **AND** ambient markers SHALL use a subdued, family-tinted treatment distinct from the prominent selected-corridor markers
+- **AND** shared segments and simultaneous branches SHALL be deduplicated or bounded to avoid visual noise.
+
+#### Scenario: Ambient flow pauses when unseen or unfocused
+- **WHEN** the browser tab is hidden, the canvas is outside the viewport, or a domain transition is mid-flight
+- **THEN** ambient marker advancement SHALL pause rather than consuming frame budget offscreen.
+
+#### Scenario: Selected path corridor is focused
+- **WHEN** a selected knowledge node has eligible canonical prerequisite ancestors or post-requisite descendants
+- **THEN** small directional arrows SHALL travel from source boundary to target boundary along the exact rendered straight or curved post-requisite edges
+- **AND** each marker SHALL follow the path tangent, disappear at the terminal node, pause, and restart at the path origin
+- **AND** corridor markers SHALL remain visually prominent above the ambient flow layer
+- **AND** shared segments and simultaneous branches SHALL be deduplicated or bounded to avoid visual noise.
+
+#### Scenario: Path corridor is not focused
+- **WHEN** no knowledge node is selected
+- **THEN** prominent looping corridor markers SHALL stop while the subdued ambient flow layer MAY continue within its budget
+- **AND** static edge and target-arrow semantics SHALL remain available.
 
 #### Scenario: User prefers reduced motion
 - **WHEN** `prefers-reduced-motion: reduce` is active
-- **THEN** spatial interpolation, relation drawing, and reveal staggering SHALL be disabled or reduced to an immediate state transition
-- **AND** animated semantic particles SHALL stop while static relation lines, endpoints, and arrowheads preserve direction
-- **AND** focus, expandability, loading, success, and error states SHALL remain perceivable.
+- **THEN** domain interpolation, ambient flow markers, and looping corridor markers SHALL stop or become immediate state changes
+- **AND** static focus, edge, endpoint, loading, success, and error states SHALL preserve equivalent meaning.
 
-### Requirement: Expanded graph neighborhoods use outward sectors
-The knowledge graph SHALL arrange newly revealed neighbors in a deterministic outward sector anchored to the expanded node so the result communicates reveal provenance without forming a complete-ring cross or moving existing graph content.
+### Requirement: Runtime semantic review invalidation is item-scoped and auditable
+Runtime lesson/media governance SHALL derive current review state from each reviewed item's bound source, manifest, and evidence hashes without manufacturing human confirmation.
 
-#### Scenario: Node with reveal provenance is expanded
-- **WHEN** an expandable node that was first materialized by another expansion reveals new neighbors
-- **THEN** the graph SHALL orient the new-neighbor sector along the provenance-node→center vector and continue away from the provenance node
-- **AND** later relations to that center SHALL NOT rewrite its layout provenance before graph-version invalidation or explicit relayout.
+#### Scenario: Reviewed evidence changes
+- **WHEN** any reviewed source, manifest, or evidence hash differs from the current file hash
+- **THEN** that item SHALL become `pending-rereview` with a stale reason and both reviewed and current hashes
+- **AND** its review item, workqueue item, audit row, and projection SHALL not continue to display `human-confirmed`
+- **AND** summary counts SHALL be calculated from item states rather than lesson identifiers or sentinel resources.
 
-#### Scenario: Concurrent expansions reveal the same new neighbor
-- **WHEN** multiple expansion activations are in flight and their payloads can first materialize the same neighbor
-- **THEN** layout materialization and provenance claims SHALL commit in client activation-intent sequence rather than network response order
-- **AND** stable center id SHALL break any same-sequence batch tie
-- **AND** the winning provenance and resulting coordinate SHALL remain unchanged when later responses merge.
+#### Scenario: Governance artifacts are regenerated without input changes
+- **WHEN** the formal generation command runs twice over identical files
+- **THEN** the second run SHALL produce byte-identical source, review-item, workqueue, summary, and evidence artifacts
+- **AND** pending human review MAY be reported separately from generator failure without changing those artifacts.
 
-#### Scenario: Node without reveal provenance is expanded
-- **WHEN** an expandable root or initially visible node has no layout provenance
-- **THEN** the graph SHALL choose from a fixed deterministic set of candidate sectors using occupied-space and label-overlap scoring
-- **AND** score ties SHALL resolve by stable candidate index so identical inputs produce identical placement.
+#### Scenario: Supported relation projection is validated
+- **WHEN** the presentation coverage checker evaluates canonical relation types
+- **THEN** `contains` SHALL use child with preserved parent-to-child source direction
+- **AND** `prerequisite`, `provides_foundation`, `follows`, and `leads_to` SHALL use post-requisite with preserved source-to-target earlier-to-later direction
+- **AND** `applies_to`, `opposite`, `related`, `cross_domain`, `generalizes`, `instance_of`, `supports`, `enables`, `complements`, `contrasts_with`, `derives`, `describes_migration_of`, `determines`, `embodies`, `informs`, `quantified_by`, `uses`, `visualized_by`, `causes`, `demonstrates`, `equivalent_to`, `exemplifies`, `extends`, `has_stage`, `precedes`, `produces`, `provides_context`, `refined_by`, and `refines` SHALL use unordered association presentation while preserving authored direction in inspector provenance
+- **AND** `defines`, `governs`, `implements`, and `influences` SHALL normalize to `related`, `example` to `instance_of`, and `explains` to `informs` before projection
+- **AND** `引出机械建模` and `引出电路建模` SHALL normalize to `leads_to`, `机电类比` to `cross_domain`, `非线性扩展` to `generalizes`, `建模基础` to `provides_foundation`, and `电路应用` to `applies_to`
+- **AND** no endpoint reversal SHALL be inferred from an unregistered relation name.
 
-#### Scenario: Expansion identifies revealable neighbors
-- **WHEN** a chapter root or ordinary node is expanded
-- **THEN** a chapter root SHALL reveal outgoing `contains` neighbors and an ordinary node SHALL use canonical incident expansion relations
-- **AND** neighbor ordering SHALL use stable semantic-density, relation-type, directed-endpoint, importance, name, and id tie-breaks.
+#### Scenario: Zero-instance follows contract is validated
+- **WHEN** a coverage fixture uses `follows` even though current runtime data has no instance
+- **THEN** its authoring grammar SHALL be `source is followed by target / target 是 source 的学习后续`
+- **AND** source-to-target SHALL normalize as earlier-to-later without name-based reversal.
 
-#### Scenario: Expanded node has many new neighbors
-- **WHEN** newly materialized neighbors cannot fit on one readable arc within the chosen sector
-- **THEN** neighbors SHALL spill into stable additional arcs inside that sector
-- **AND** labels, semantic color, hit targets, and relation direction SHALL remain recoverable without using a complete 360-degree ring.
+#### Scenario: Association contracts are independent of runtime instance count
+- **WHEN** coverage fixtures evaluate `causes`, `demonstrates`, `equivalent_to`, `exemplifies`, `extends`, `has_stage`, `precedes`, `produces`, `provides_context`, `refined_by`, or `refines` with zero runtime instances
+- **THEN** every type SHALL still have association family, unordered canvas direction, Chinese label, source/target inspector sentences, and unavailable-evidence fallback contracts
+- **AND** `equivalent_to` SHALL say equivalence holds only under declared models and conditions
+- **AND** none of these types SHALL enter child membership, post-requisite corridor, teaching order, or motion eligibility.
 
-#### Scenario: Revealable neighbor is already visible
-- **WHEN** an expanded node is related to a neighbor that already has a visible established or user-positioned coordinate
-- **THEN** the neighbor SHALL keep that coordinate and the graph SHALL reveal only the relevant relation
-- **AND** the layout SHALL NOT duplicate or relocate the neighbor to complete the local fan.
+#### Scenario: Direction-sensitive association distinctions are preserved
+- **WHEN** `precedes`, `has_stage`, `provides_context`, `refined_by`, `refines`, or `extends` is inspected
+- **THEN** `precedes` SHALL describe process or parameter evolution rather than a `follows` inverse, `has_stage` SHALL describe process state rather than child membership, and `provides_context` SHALL remain distinct from `provides_foundation`
+- **AND** `refined_by` SHALL not imply endpoint reversal or alias conversion without an explicit contract
+- **AND** `extends` SHALL preserve the authored source-to-target meaning instead of applying English-name endpoint inference.
 
-#### Scenario: User has positioned graph nodes
-- **WHEN** a user has dragged or pinned graph nodes before another node is expanded
-- **THEN** sector expansion SHALL preserve all user-positioned coordinates and all unrelated established coordinates
-- **AND** it SHALL compute automatic coordinates only for newly materialized nodes.
+#### Scenario: Specialized relation types exist
+- **WHEN** specialized relations such as `cross_domain`, `generalizes`, `instance_of`, `supports`, `enables`, `opposite`, or `applies_to` exist
+- **THEN** their authored semantics SHALL remain available in the inspector and diagnostics
+- **AND** their canvas edge MAY use the shared association family without deleting or rewriting the canonical relation.
+
+### Requirement: Evidence state parity across canvas, legend, and inspector
+
+The knowledge workspace SHALL present one consistent evidence vocabulary: the graphical relation legend SHALL include an evidence-available versus evidence-unavailable swatch pair, and inspector relation rows SHALL continue to show evidence state or the honest `关系依据未提供` fallback, so the same edge never appears verified in one surface and unverified in another. Evidence presentation SHALL use platform tokens and SHALL NOT invent evidence where none exists.
+
+#### Scenario: Legend explains the evidence dimension
+- **WHEN** the relation legend is visible
+- **THEN** it SHALL include a graphical swatch pair distinguishing evidence-available from evidence-unavailable edges
+- **AND** the swatches SHALL match the canvas modulation in the active theme.
+
+#### Scenario: Canvas and inspector agree
+- **WHEN** a user selects a node whose relations include both evidence-available and evidence-unavailable edges
+- **THEN** each inspector relation row's evidence presentation SHALL match the canvas modulation of the same relation
+- **AND** relations without evidence SHALL show the honest `关系依据未提供` wording rather than fabricated support.
+
+### Requirement: Knowledge graph nodes present concept macro-categories
+
+The knowledge graph SHALL classify nodes into six teaching-oriented concept macro-categories (systems, models, methods, criteria-and-metrics, phenomena-and-objects, constraints-and-tasks) for presentation purposes. The classification SHALL be sourced from a node's `conceptKind` when present (grouping ActKG's fifteen concept kinds into the six categories), and SHALL otherwise fall back to the existing `nodeType`/`knowledgeDim` mapping so current data receives sensible categories today. Macro-category presentation SHALL use shape or token-role cues in addition to any color, and uncategorized nodes SHALL render in the neutral default presentation.
+
+#### Scenario: Concept kind takes precedence when present
+- **WHEN** a node carries `conceptKind`
+- **THEN** its macro-category SHALL be derived from the concept-kind grouping table
+- **AND** nodes whose `conceptKind` differs but maps to the same macro-category SHALL share one presentation.
+
+#### Scenario: Current data falls back to legacy mapping
+- **WHEN** a node omits `conceptKind`
+- **THEN** its macro-category SHALL be derived from the existing `nodeType`/`knowledgeDim` mapping
+- **AND** the rendered presentation SHALL remain readable in both themes without relying on color alone.
+
+#### Scenario: Unknown kind renders neutral
+- **WHEN** a node carries a `conceptKind` outside the grouping table
+- **THEN** it SHALL render in the neutral default node presentation and the unknown kind SHALL be surfaced for contract review rather than silently guessed.
+
+### Requirement: Knowledge graph governs candidate node visibility
+
+Nodes carrying `candidate: true` SHALL be treated as governance candidates: learner-facing graph views SHALL exclude them by default, while teacher or review contexts MAY display them with a dashed candidate outline and a candidate badge so they are never mistaken for reviewed knowledge. Candidate filtering SHALL NOT alter the visibility of non-candidate nodes or edges, except that edges touching an excluded candidate SHALL be hidden with it.
+
+#### Scenario: Learner view excludes candidates
+- **WHEN** a learner-facing view renders a graph containing `candidate: true` nodes
+- **THEN** those nodes and their incident edges SHALL NOT appear on the canvas, in the legend counts, or in default label layout.
+
+#### Scenario: Teacher review shows candidates distinctly
+- **WHEN** a teacher or review context renders the same graph
+- **THEN** candidate nodes SHALL appear with a dashed outline and candidate badge distinct from reviewed nodes
+- **AND** their incident edges SHALL render with the candidate-muted treatment in addition to any evidence modulation.
+
+### Requirement: Root domain bubbles render with layered vitality
+
+Root domain bubbles SHALL present a layered, lively treatment built from platform tokens: an offset inner highlight, a rim-light arc, a soft outer halo, and a slow breathing glow on the active or hovered bubble. All vitality effects SHALL be paint-level: bubble centers, radii, packing, hit areas, and the always-visible internal full-name labels SHALL remain exactly as the deterministic root layout defines them. A bounded entrance stagger MAY play when the root view mounts and SHALL finish promptly.
+
+#### Scenario: Bubble depth layers render
+- **WHEN** the root view is visible in light or dark theme
+- **THEN** each domain bubble SHALL render an offset inner highlight, rim-light arc, and outer halo derived from platform tokens
+- **AND** the full domain name SHALL remain completely visible inside the bubble with no vitality effect overdrawing the label.
+
+#### Scenario: Active bubble breathes
+- **WHEN** a root bubble is active or hovered and reduced motion is off
+- **THEN** its halo and glow SHALL pulse slowly within bounded intensity
+- **AND** the bubble's geometry and every other bubble's presentation SHALL remain unchanged.
+
+#### Scenario: Root entrance is bounded
+- **WHEN** the root view mounts
+- **THEN** bubbles MAY appear with a short staggered fade-and-settle sequence that completes within a documented duration
+- **AND** after the sequence the presentation SHALL be identical to a re-render of the same state.
+
+#### Scenario: Reduced motion collapses vitality
+- **WHEN** `prefers-reduced-motion: reduce` is active
+- **THEN** breathing and entrance stagger SHALL be disabled
+- **AND** the static layered depth treatment SHALL still distinguish active from inactive bubbles.
+
+### Requirement: Knowledge workspace provides an explicit migration-period graph switch
+The knowledge workspace SHALL let every currently authorized graph user switch between the candidate ActKG graph and the Legacy graph, defaulting to the candidate when available.
+
+#### Scenario: Candidate ReleaseSet is available
+- **WHEN** an authorized teacher or student opens the workspace
+- **THEN** the workspace SHALL select the candidate view and provide a clearly labeled Legacy switch
+
+#### Scenario: User changes version
+- **WHEN** the user selects the other graph version
+- **THEN** the workspace SHALL replace the graph and detail state from the selected independent API without merging nodes
 

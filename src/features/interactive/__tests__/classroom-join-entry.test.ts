@@ -26,7 +26,8 @@ describe('classroom join entry', () => {
   it('allows alphanumeric class codes instead of digit-only input', () => {
     const source = readFileSync(join(repoRoot, 'src/app/classroom/join/page.tsx'), 'utf8');
 
-    expect(source).toContain("value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6)");
+    expect(source).toContain(".replace(/[^a-zA-Z0-9]/g, '')");
+    expect(source).toContain('.toUpperCase()');
     expect(source).toContain("inputMode={isClassMode ? 'text' : 'numeric'}");
     expect(source).toContain("searchParams.get('mode') === 'class' ? 'class' : 'session'");
     expect(source).not.toContain('/[a-zA-Z]/.test(rawCodeFromUrl)');
@@ -90,25 +91,33 @@ describe('classroom join entry', () => {
 
   it('marks class-bound and temporary launch contexts explicitly', () => {
     const classPageSource = readFileSync(join(repoRoot, 'src/app/teacher/classes/[classId]/page.tsx'), 'utf8');
+    const teacherLauncherSource = readFileSync(
+      join(repoRoot, 'src/features/teacher/teacher-classroom-launcher.tsx'),
+      'utf8',
+    );
     const lessonListSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/lesson-plan-list.tsx'), 'utf8');
     const courseEntrySource = readFileSync(join(repoRoot, 'src/features/interactive/shared/course-entry-shell.tsx'), 'utf8');
     const premiumEntrySource = readFileSync(join(repoRoot, 'src/features/interactive/shared/premium-lesson-entry-page.tsx'), 'utf8');
     const studentSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/student-player.tsx'), 'utf8');
 
-    expect(classPageSource).toContain("launchContext: 'class-bound'");
-    expect(classPageSource).toContain('班级课堂：{classData?.name');
-    expect(classPageSource).toContain("duplicateAction: 'new-session'");
+    expect(classPageSource).toContain('useTeacherClassroomLauncher');
+    expect(classPageSource).toContain('currentClassId: classId');
+    expect(teacherLauncherSource).toContain("fetch('/api/session'");
+    expect(teacherLauncherSource).toContain('classId: selectedClassId');
+    expect(teacherLauncherSource).toContain("launchContext: 'class-bound'");
+    expect(teacherLauncherSource).toContain('...(duplicateAction ? { duplicateAction } : {})');
     expect(lessonListSource).toContain("launchContext: 'temporary'");
     expect(lessonListSource).toContain("duplicateAction: 'new-session'");
+    expect(courseEntrySource).toContain('useTeacherClassroomLauncher');
+    expect(courseEntrySource).toContain('preparePlanId: async () =>');
     expect(courseEntrySource).toContain('sourcePresetKey: config.presetKey');
     expect(courseEntrySource).toContain("duplicateAction: 'new-session'");
-    expect(courseEntrySource.indexOf("fetch('/api/session'")).toBeLessThan(
-      courseEntrySource.indexOf("fetch('/api/teacher/preset-lessons/clone'"),
-    );
+    expect(premiumEntrySource).toContain('useTeacherClassroomLauncher');
+    expect(premiumEntrySource).toContain('preparePlanId: async () =>');
     expect(premiumEntrySource).toContain('sourcePresetKey: config.presetKey');
     expect(premiumEntrySource).toContain("duplicateAction: 'new-session'");
-    expect(premiumEntrySource.indexOf("fetch('/api/session'")).toBeLessThan(
-      premiumEntrySource.indexOf("fetch('/api/teacher/preset-lessons/clone'"),
+    expect(teacherLauncherSource.indexOf("const preflightResponse = await fetch('/api/session'")).toBeLessThan(
+      teacherLauncherSource.indexOf('planId = await request.preparePlanId()'),
     );
     expect(studentSource).toContain('data-classroom-identity-kind={classroomIdentity.kind}');
     expect(studentSource).not.toContain('session id');

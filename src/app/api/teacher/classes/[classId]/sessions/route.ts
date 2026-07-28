@@ -53,19 +53,7 @@ export async function GET(request: Request, props: { params: Promise<{ classId: 
     // 构建查询条件
     const where: Prisma.ClassSessionWhereInput = {
       teacherId: classData.teacherId,
-      OR: [
-        { classId },
-        {
-          classId: null,
-          studentStates: {
-            some: {
-              user: {
-                profile: { classId },
-              },
-            },
-          },
-        },
-      ],
+      classId,
     };
 
     if (status && Object.values(SessionStatus).includes(status as SessionStatus)) {
@@ -108,19 +96,6 @@ export async function GET(request: Request, props: { params: Promise<{ classId: 
             studentStates: true
           }
         },
-        studentStates: {
-          select: {
-            user: {
-              select: {
-                profile: {
-                  select: {
-                    classId: true,
-                  },
-                },
-              },
-            },
-          },
-        },
         classSessionReports: {
           where: {
             reportType: 'class-summary',
@@ -141,7 +116,6 @@ export async function GET(request: Request, props: { params: Promise<{ classId: 
       .map((s) => {
         const classAttribution = resolveClassAttribution({
           sessionClassId: s.classId,
-          participantClassIds: s.studentStates.map((state) => state.user.profile?.classId),
         });
         const statistics = buildClassroomSessionStatistics({
           startTime: s.startTime,

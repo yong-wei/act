@@ -53,6 +53,7 @@ interface GroundingCandidate {
 
 interface CitationTarget {
   candidateId: string;
+  targetFileHash: string;
   pathEligibility?: { eligible: boolean };
 }
 
@@ -148,6 +149,10 @@ assert(summary.guardrails.rawChunksPromotedAsPathNodes === false, 'raw chunks mu
 assert(summary.guardrails.rawContentIncluded === false, 'raw content must not be included');
 assert(summary.guardrails.promotedMetadataComplete === true, 'promoted review metadata must be complete');
 assert(summary.guardrails.supportingRowsNotPromoted === true, 'supporting rows must remain non-promoted');
+assert(
+  citationTargets.every((target) => target.targetFileHash.startsWith('sha256:')),
+  'all consumed textbook CitationTargets must declare a runtime target file hash',
+);
 assert(
   artifactTexts.every((text) => !/textbook-section:[^:\n]+:[^:\n]+:[^:\n]*__chunk/.test(text)),
   'artifacts must not treat chunk candidates as primary textbook section records',

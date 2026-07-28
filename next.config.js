@@ -1,5 +1,7 @@
 const path = require('node:path');
 
+const buildFilesystemRoot = process.env.ACT_NEXT_BUILD_FILESYSTEM_ROOT;
+
 const runtimeCatalogTraceIncludes = [
   './course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
   './course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
@@ -35,7 +37,11 @@ const contentTraceExcludes = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    cpus: 2,
+  },
   turbopack: {
+    ...(buildFilesystemRoot ? { root: buildFilesystemRoot } : {}),
     resolveAlias: {
       three: './src/lib/three-runtime-compat.ts',
     },
@@ -53,6 +59,7 @@ const nextConfig = {
     ],
   },
   output: 'standalone',
+  ...(buildFilesystemRoot ? { outputFileTracingRoot: buildFilesystemRoot } : {}),
   outputFileTracingIncludes: {
     '/*': [
       './course-content/authoring/shared/lesson-id-map.json',

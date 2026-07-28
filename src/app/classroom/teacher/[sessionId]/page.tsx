@@ -7,6 +7,8 @@ import { TeacherPlayer } from '@/features/lesson-engine/teacher-player';
 import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
 import { buildClassroomIdentityPayload } from '@/lib/classroom-lifecycle-contract';
 import { canManageClassroomSession, isClassroomTeacherOrAdmin } from '@/lib/classroom-session-access';
+import { resolveGeneratedCoursewareSessionBinding } from '@/lib/smart-courseware/classroom-runtime';
+import { GeneratedCoursewareRecoveryState } from '@/features/lesson-engine/generated-courseware-recovery';
 
 interface PageProps {
   params: Promise<{ sessionId: string }>;
@@ -42,6 +44,10 @@ export default async function TeacherSessionPage(props: PageProps) {
   if (!session) notFound();
   if (!canManageClassroomSession(session, userSession.user)) {
     notFound();
+  }
+  const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, session);
+  if (!generatedResolution.ok) {
+    return <GeneratedCoursewareRecoveryState recovery={generatedResolution.recovery} />;
   }
 
   const teacherHref = buildSessionParticipantHref({
@@ -82,6 +88,7 @@ export default async function TeacherSessionPage(props: PageProps) {
     },
     class: session.class,
     classroomIdentity: buildClassroomIdentityPayload(session),
+    generatedCoursewareIdentity: generatedResolution.identity,
   };
 
   return <TeacherPlayer session={sessionData} initialItems={sortedItems} />;

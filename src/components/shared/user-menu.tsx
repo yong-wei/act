@@ -6,6 +6,7 @@ import { ChevronDown, KeyRound, LogOut, User } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
+import { platformLayerStyle } from '@/components/platform/platform-layers';
 
 type UserMenuProps = {
   user: {
@@ -97,7 +98,12 @@ export function UserMenu({ user, variant = 'default', accountHref, accountLabel 
   };
 
   return (
-    <div ref={menuRef} className="relative z-[70]">
+    <div
+      ref={menuRef}
+      className="relative"
+      style={platformLayerStyle('account')}
+      data-platform-layer="account"
+    >
       <button type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
@@ -131,7 +137,7 @@ export function UserMenu({ user, variant = 'default', accountHref, accountLabel 
       {open && (
         <div
           className={cn(
-            'absolute right-0 z-[80] mt-2 w-52 rounded-xl border p-2 text-sm shadow-xl backdrop-blur',
+            'absolute right-0 mt-2 w-52 rounded-xl border p-2 text-sm shadow-xl backdrop-blur',
             variant === 'admin'
               ? 'admin-console-user-menu-panel'
               : 'border-border/70 bg-background/95 text-foreground'
@@ -168,7 +174,11 @@ export function UserMenu({ user, variant = 'default', accountHref, accountLabel 
       )}
 
       {passwordOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 px-4">
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black/60 px-4"
+          style={platformLayerStyle('overlay')}
+          data-platform-layer="overlay"
+        >
           <div className="surface-card w-full max-w-md p-6 text-foreground">
             <div className="flex items-center justify-between">
               <div>

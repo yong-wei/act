@@ -1,6 +1,6 @@
 {
   "artifactVersion": "full-resource-path-readiness-gate.v1",
-  "generatedAt": "2026-07-07T10:45:00.000Z",
+  "generatedAt": "2026-07-23T08:30:00.000Z",
   "status": "failed",
   "sourceArtifacts": {
     "resourceFieldCompletion": "course-content/runtime/resource-governance/resource-field-completion-summary.json",
@@ -10,61 +10,57 @@
     "learningGoalReviewedBindings": "course-content/runtime/resource-governance/learning-goal-resource-baseline-reviewed-bindings.jsonl"
   },
   "resourceCoverage": {
-    "totalResources": 5291,
+    "totalResources": 7050,
     "familyTotals": {
+      "arena": 2,
       "authoring-textbook-caption": 535,
       "authoring-textbook-chapter": 10,
       "authoring-textbook-figure": 535,
       "authoring-textbook-section": 25,
-      "knowledge-card": 279,
+      "knowledge-card": 838,
       "knowledge-infograph": 161,
-      "registered-resource": 168,
-      "runtime-handout": 37,
-      "runtime-lesson-media": 759,
-      "runtime-lesson-module": 1352,
-      "runtime-lesson-step": 450,
-      "textbook": 1,
+      "registered-resource": 166,
+      "runtime-handout": 39,
+      "runtime-lesson-media": 788,
+      "runtime-lesson-module": 1487,
+      "runtime-lesson-step": 487,
+      "textbook": 6,
       "textbook-search-document": 964,
-      "textbook-section": 15
+      "textbook-section": 1007
     },
     "dispositionClassifications": {
-      "supporting-citation": 1577,
-      "embedded-asset": 1343,
-      "evidence-producing": 337,
-      "path-plannable": 234,
-      "excluded-with-rationale": 1746
+      "path-plannable": 231,
+      "supporting-citation": 1914,
+      "excluded-with-rationale": 2061,
+      "embedded-asset": 1907,
+      "evidence-producing": 937
     },
-    "unaccountedCount": 0,
-    "invalidPromotionCount": 5,
-    "unreviewedSemanticCount": 2070,
-    "unresolvedGraphNodeResourceMissingCount": 3938,
+    "unaccountedCount": 541,
+    "invalidPromotionCount": 0,
+    "unreviewedSemanticCount": 541,
+    "unresolvedGraphNodeResourceMissingCount": 0,
     "downstreamBlockers": {
-      "dependency": 60,
-      "evidence-lineage": 7479,
-      "path-readiness": 15457,
-      "runtime-identity": 2190
+      "path-readiness": 1082
     },
-    "unresolvedDownstreamPathBlockers": 17707,
-    "evidenceLineageBlockerCount": 22,
+    "unresolvedDownstreamPathBlockers": 1082,
+    "evidenceLineageBlockerCount": 0,
     "followupBuckets": {
-      "blocked-resource-completion-dependencies": 60,
-      "complete-analysis-design-graph-resource-bindings": 6704,
-      "complete-citation-and-rag-bindings": 1857,
-      "complete-evidence-lineage-bindings": 7479,
-      "complete-foundation-graph-resource-bindings": 436,
-      "repair-resource-identity-bindings": 333,
-      "review-runtime-lesson-planning-units": 8317,
-      "review-runtime-media-handout-dispositions": 3159
+      "blocked-resource-completion-dependencies": 1069,
+      "complete-analysis-design-graph-resource-bindings": 7121,
+      "complete-citation-and-rag-bindings": 2034,
+      "complete-evidence-lineage-bindings": 6850,
+      "complete-foundation-graph-resource-bindings": 977,
+      "repair-resource-identity-bindings": 318,
+      "review-runtime-lesson-planning-units": 9213,
+      "review-runtime-media-handout-dispositions": 3444
     },
     "yangFanFixtureBlockers": {
-      "blocked": true,
-      "blockerCount": 22,
-      "scopedBlockerCount": 22,
-      "globalLimitationCount": 2301,
-      "blockerFamilies": {
-        "external-resource": 22
-      },
-      "reason": "Canonical learner fixture generation remains blocked until fixture-owned evidence lineage gaps are resolved.",
+      "blocked": false,
+      "blockerCount": 0,
+      "scopedBlockerCount": 0,
+      "globalLimitationCount": 1512,
+      "blockerFamilies": {},
+      "reason": "Canonical learner fixture generation has scoped resource readiness; unrelated global resource backlog remains a limited-coverage diagnostic.",
       "scopePolicy": "yangfan-fixture-readiness-scope.v1"
     }
   },
@@ -78,13 +74,11 @@
         "coverageState": "limited",
         "missingBaselineCategories": [
           "diagnostic",
-          "practice",
           "checkpoint",
-          "remediation",
-          "terminal-validation"
+          "remediation"
         ],
-        "reviewedBindingCount": 3,
-        "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation,terminal-validation"
+        "reviewedBindingCount": 5,
+        "limitationReason": "missing-baseline-categories:diagnostic,checkpoint,remediation"
       },
       {
         "learningGoalId": "frequency-response-foundations",
@@ -102,37 +96,40 @@
         "learningGoalId": "feedback-loop-concept-foundations",
         "coverageState": "limited",
         "missingBaselineCategories": [
+          "concept",
           "diagnostic",
           "practice",
           "checkpoint",
           "remediation"
         ],
-        "reviewedBindingCount": 3,
-        "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation"
+        "reviewedBindingCount": 0,
+        "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation"
       },
       {
         "learningGoalId": "transfer-function-modeling-foundations",
         "coverageState": "limited",
         "missingBaselineCategories": [
+          "concept",
           "diagnostic",
           "practice",
           "checkpoint",
           "remediation"
         ],
-        "reviewedBindingCount": 3,
-        "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation"
+        "reviewedBindingCount": 0,
+        "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation"
       },
       {
         "learningGoalId": "time-domain-response-analysis",
         "coverageState": "limited",
         "missingBaselineCategories": [
+          "concept",
           "diagnostic",
           "practice",
           "checkpoint",
           "remediation"
         ],
-        "reviewedBindingCount": 3,
-        "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation"
+        "reviewedBindingCount": 0,
+        "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation"
       },
       {
         "learningGoalId": "root-locus-analysis-foundations",
@@ -162,27 +159,27 @@
         "learningGoalId": "simulation-validation-practice",
         "coverageState": "limited",
         "missingBaselineCategories": [
+          "concept",
           "diagnostic",
           "practice",
           "checkpoint",
           "remediation",
           "terminal-validation"
         ],
-        "reviewedBindingCount": 3,
-        "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation,terminal-validation"
+        "reviewedBindingCount": 0,
+        "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation,terminal-validation"
       },
       {
         "learningGoalId": "ship-ocean-transfer-application",
         "coverageState": "limited",
         "missingBaselineCategories": [
+          "concept",
           "diagnostic",
-          "practice",
           "checkpoint",
-          "remediation",
-          "terminal-validation"
+          "remediation"
         ],
         "reviewedBindingCount": 3,
-        "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation,terminal-validation"
+        "limitationReason": "missing-baseline-categories:concept,diagnostic,checkpoint,remediation"
       }
     ],
     "completeLearningGoals": 0,
@@ -198,7 +195,7 @@
       "simulation-validation-practice",
       "ship-ocean-transfer-application"
     ],
-    "reviewedBindings": 27,
+    "reviewedBindings": 17,
     "pathGenerationDiagnostics": [
       {
         "learningGoalId": "control-correction",
@@ -409,6 +406,7 @@
       "authoring-textbook-caption"
     ],
     "auditedFamilies": [
+      "arena",
       "authoring-textbook-caption",
       "authoring-textbook-chapter",
       "authoring-textbook-figure",
@@ -486,73 +484,46 @@
   },
   "findings": [
     {
+      "id": "unaccounted-resource-disposition",
+      "severity": "blocking",
+      "count": 541,
+      "message": "Resources are missing a reviewed path-planning disposition.",
+      "evidenceRefs": [
+        "resource-disposition-backlog-review-summary.json"
+      ]
+    },
+    {
       "id": "unresolved-downstream-path-blockers",
       "severity": "blocking",
-      "count": 17707,
+      "count": 1082,
       "message": "Reviewed disposition output still carries downstream path-readiness, runtime-identity, or dependency blockers.",
       "evidenceRefs": [
         "resource-disposition-backlog-review-summary.json"
       ]
     },
     {
-      "id": "invalid-path-promotion",
-      "severity": "blocking",
-      "count": 5,
-      "message": "Resources are marked path-current without complete human-reviewed governance.",
-      "evidenceRefs": [
-        "resource-field-completion-audit.jsonl"
-      ]
-    },
-    {
       "id": "unreviewed-resource-semantics",
       "severity": "blocking",
-      "count": 2070,
+      "count": 541,
       "message": "Resources still require reviewed semantic fields or reviewed limitations.",
       "evidenceRefs": [
         "resource-field-completion-summary.json"
       ]
     },
     {
-      "id": "unresolved-graph-node-resource-missing",
-      "severity": "blocking",
-      "count": 3938,
-      "message": "Resources still lack reviewed graph knowledge or capability bindings.",
-      "evidenceRefs": [
-        "resource-field-completion-audit.jsonl"
-      ]
-    },
-    {
-      "id": "evidence-lineage-blockers",
-      "severity": "blocking",
-      "count": 22,
-      "message": "Evidence-producing path resources still have hard evidence-lineage blockers.",
-      "evidenceRefs": [
-        "resource-evidence-lineage-readiness-summary.json"
-      ]
-    },
-    {
-      "id": "yang-fan-fixture-blockers",
-      "severity": "blocking",
-      "count": 22,
-      "message": "Yang Fan fixture generation remains blocked by fixture-owned lineage limitations.",
-      "evidenceRefs": [
-        "resource-evidence-lineage-readiness-summary.json"
-      ]
-    },
-    {
       "id": "yang-fan-fixture-limited-coverage",
       "severity": "warning",
-      "count": 2301,
+      "count": 1512,
       "message": "Yang Fan fixture-owned resources are scoped separately; unrelated global resource backlog remains visible as limited coverage.",
       "evidenceRefs": [
         "resource-evidence-lineage-readiness-summary.json"
       ]
     },
     {
-      "id": "learning-goal-path-generation-blocked",
-      "severity": "blocking",
+      "id": "learning-goal-path-generation-reviewed-blockers",
+      "severity": "warning",
       "count": 9,
-      "message": "Registered LearningGoals attempted path generation but reported blocking planner reasons.",
+      "message": "Registered LearningGoals report specific reviewed blockers and do not expose cosmetic path options.",
       "evidenceRefs": [
         "full-resource-path-readiness-gate-summary.json"
       ]
@@ -568,9 +539,9 @@
     },
     {
       "id": "resource-type-audit-missing",
-      "severity": "blocking",
+      "severity": "warning",
       "count": 7,
-      "message": "Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.",
+      "message": "Required future import resource types are not currently represented; the new-resource gate remains responsible for rejecting incomplete future instances.",
       "evidenceRefs": [
         "resource-field-completion-audit.jsonl"
       ]

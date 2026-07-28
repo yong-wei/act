@@ -1,0 +1,1632 @@
+{
+  "acceptanceEvaluated": false,
+  "benchmarkHash": "sha256:516d9f7b4f19a9f324d3dbf4f285d69a5367a07335fcde910c781303cf51e903",
+  "benchmarkLockHash": "sha256:fe1b9d7d637cf85b5690c1e63b2b7a1cf424312773821937824844a69689f2de",
+  "candidateModels": [
+    "BAAI/bge-m3",
+    "Qwen/Qwen3-Embedding-0.6B",
+    "Qwen/Qwen3-Embedding-4B"
+  ],
+  "candidates": [
+    {
+      "apiCostCny": 0.0,
+      "corpusApiCostCny": 0.0,
+      "corpusTraceIds": [],
+      "corpusUsageTokens": 0,
+      "embeddingLatencyMs": {
+        "batchCount": 2,
+        "p50": 362.9164374999999,
+        "p95": 430.97805594999994,
+        "samples": [
+          438.54045799999994,
+          287.29241699999994
+        ],
+        "total": 725.8328749999998
+      },
+      "evaluatedQueries": 29,
+      "hitsAt10": 21,
+      "indexBytes": 133271373,
+      "indexManifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+      "model": "BAAI/bge-m3",
+      "normalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
+      "observedDimension": 1024,
+      "passed": false,
+      "providerTraceIds": [
+        "ti_8u8qzidsigwi1q4okk",
+        "ti_d9w4tdajje0c0gtw9p"
+      ],
+      "queryApiCostCny": 0.0,
+      "queryTraceIds": [
+        "ti_8u8qzidsigwi1q4okk",
+        "ti_d9w4tdajje0c0gtw9p"
+      ],
+      "queryUsageTokens": 967,
+      "recallAt10": 0.7241379310344828,
+      "recallPassed": false,
+      "residentArtifactBudgetBytes": 157286400,
+      "residentArtifactBytes": 86511505,
+      "residentArtifactPassed": true,
+      "results": [
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/section-3.3.1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/section-4.5.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-transfer-function-definition"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/section-5.2.1/solution-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/unnumbered-001/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-root-locus-definition"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/unnumbered-001/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/unnumbered-001/item-3::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-open-loop-no-self-correction"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/section-6.1.1::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-08/section-8.1/item-3-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/section-4.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5/item-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-frequency-response-sinusoid"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-08/section-8.1/item-4-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/item-2/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/unnumbered-002/section-1.8.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.6",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-1-occurrence-2"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-rise-time"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.4/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.4/section-4.4.1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-4",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-10/chapter-10/section-10.26/solution/item-2-occurrence-3",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-10/chapter-10/section-10.26/solution/item-2-occurrence-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/unnumbered-002/section-1.8.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-peak-time"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.6",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/unnumbered-002/section-1.8.3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-004/example-4.3/solution",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.6/section-1.6.1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-004/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-maximum-overshoot"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.14/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.14/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.15",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.15",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-6",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-006/example-4.11/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-007/example-4.12",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-6",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-007"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-settling-time"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.6/section-1.6.1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.6/section-1.6.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.6/section-4.6.1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-007/example-4.13",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.4/item-1/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/unnumbered-002/section-1.8.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-steady-state-error"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/section-4.3.3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-004"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-underdamped-second-order-step-response"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-004/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-004/example-4.3/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/section-4.3.3"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-second-order-percent-overshoot"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/example-4.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/example-3.10",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.5/item-3/example-7.24",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5/example-3.9",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/section-4.5.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/example-4.6/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/example-3.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.5/item-3/example-7.24"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-routh-sign-changes"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-1",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-05/chapter-5/section-5.8",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.11"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-first-order-lag-frequency-response"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-006/item-3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-4::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-006/item-3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-006/item-3/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-004/section-6.2.4::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-second-order-resonance"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.14/solution",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-06/chapter-6/section-6.3/example-6.3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.4/item-3"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-phase-margin"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-gain-margin"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/example-5.1::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/example-4.6",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/section-5.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/example-5.1/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/section-5.1.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/unnumbered-001/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/unnumbered-001/item-3::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-positive-root-locus-angle-condition"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-6/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-6/item-1::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-6/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-6/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-6/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/example-9.8"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-lti-forced-state-solution"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-6::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-6/item-1::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-6/item-1::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-6::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/section-4.5.2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-controllability-rank-test"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.2/item-4::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/unnumbered-002/section-1.8.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2/section-1.2.8"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-001"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-07/section-7.5/section-7.5.1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-3"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-003"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-05/chapter-5/section-5.25/solution::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-01/chapter-1/section-1.2",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-01/chapter-1/section-1.1",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-01/chapter-1/section-1.1/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.7/example-7.29::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-01/chapter-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/unnumbered-001",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.4/section-1.4.4::embedding-chunk-000002-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-004"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.6/item-2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.6/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-1.4/section-9.1.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.6/example-9.20",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.5/example-9.17",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-3"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-005"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-006"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/section-3.3.1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.2/example-2.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-02/chapter-2/section-2.2/example-2.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-02/chapter-2/section-2.2/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-02/chapter-2/section-2.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.2/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-2"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-007"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/example-4.4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution-occurrence-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/example-4.4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution-occurrence-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-008"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.4/example-3.18/solution::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.4/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/section-5.1.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.5/example-3.19",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/example-7.20",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-4"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-010"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-3"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-011"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/unnumbered-002/section-1.8.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-012"
+        }
+      ],
+      "threshold": 0.8,
+      "usageTokens": 967,
+      "vectorBytes": 54444032
+    },
+    {
+      "apiCostCny": 6.0620000000000006e-05,
+      "corpusApiCostCny": 0.0,
+      "corpusTraceIds": [],
+      "corpusUsageTokens": 0,
+      "embeddingLatencyMs": {
+        "batchCount": 2,
+        "p50": 308.02566649999983,
+        "p95": 309.66711664999866,
+        "samples": [
+          306.20183300000116,
+          309.84949999999856
+        ],
+        "total": 616.0513329999997
+      },
+      "evaluatedQueries": 29,
+      "hitsAt10": 26,
+      "indexBytes": 133271401,
+      "indexManifestHash": "sha256:f47e2c709a431c083d132199eea2600e3b49a607e3b2a9458b2b59bf93f54cee",
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "normalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
+      "observedDimension": 1024,
+      "passed": true,
+      "providerTraceIds": [
+        "ti_ghr4z3w20fqeas61k5",
+        "ti_5hu5vdcboc6pdfpqk1"
+      ],
+      "queryApiCostCny": 6.0620000000000006e-05,
+      "queryTraceIds": [
+        "ti_ghr4z3w20fqeas61k5",
+        "ti_5hu5vdcboc6pdfpqk1"
+      ],
+      "queryUsageTokens": 866,
+      "recallAt10": 0.896551724137931,
+      "recallPassed": true,
+      "residentArtifactBudgetBytes": 157286400,
+      "residentArtifactBytes": 86511533,
+      "residentArtifactPassed": true,
+      "results": [
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/section-3.3.1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/section-4.5.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-02/chapter-2/section-2.2/example-2.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.2/example-2.9"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-transfer-function-definition"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/example-4.6",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.12"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-root-locus-definition"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4/item-3"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-open-loop-no-self-correction"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/section-6.1.1::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-08/section-8.1/item-3-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-08/section-8.1/item-2-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/section-4.1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-08/section-8.2/section-8.2.1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-1::embedding-chunk-000002-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-2::embedding-chunk-000002-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-frequency-response-sinusoid"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-2-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-rise-time"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.4/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-004",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-peak-time"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-6/item-1::embedding-chunk-000002-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-6/example-3.4::embedding-chunk-000002-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-maximum-overshoot"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.14/solution",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.14/solution",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-006/example-4.11/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.15",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.15",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-007/example-4.12",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-settling-time"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.6/section-4.6.1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-007/example-4.13",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.6/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.16",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.6/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.16",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-steady-state-error"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/section-4.3.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-underdamped-second-order-step-response"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-003::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-004",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-3"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-second-order-percent-overshoot"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/example-4.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/example-4.6/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-4/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/section-4.5.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/example-3.10",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5/example-3.9",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/example-3.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5/item-5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.5/item-3/example-7.24"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-routh-sign-changes"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-3-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.5::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.11",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.4/example-3.18/solution::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-first-order-lag-frequency-response"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-4::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-006/item-3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-006/item-3/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-006/item-3/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-second-order-resonance"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.14/solution",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.12"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-phase-margin"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-gain-margin"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/example-4.6",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/example-5.1::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/unnumbered-001/example-4.6::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/example-5.1/solution",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/section-5.1.4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-positive-root-locus-angle-condition"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-1",
+            "textbook-window:control-encyclopedia@2015/chapter-l/unnumbered-056/unnumbered-078::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-3",
+            "textbook-window:control-encyclopedia@2015/chapter-l/unnumbered-056/unnumbered-077::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-lti-forced-state-solution"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-6/item-1::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-6::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-6::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-6/item-1::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-controllability-rank-test"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.6",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.5/section-1.5.7/parameter-distribution-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.1/example-2.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/unnumbered-002/section-1.8.3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.3/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-02/chapter-2/section-2.1/example-2.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2/section-1.2.8",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-02/chapter-2/section-2.1/example-2.5/solution",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-001"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-8/item-4"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-003"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.2/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.2/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-01/chapter-1/section-1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.2/item-5::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-01/chapter-1/section-1.1",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-01/chapter-1/section-1.1/solution"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-004"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.2/item-5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/unnumbered-003/section-9.2.2/item-1::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.6/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.5/example-9.17/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.6/example-9.20",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.6/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-005"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-006"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/section-3.3.1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.2/example-2.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-02/chapter-2/section-2.2/example-2.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-02/chapter-2/section-2.2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.5/example-3.19"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-007"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/section-5.2.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.12",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.3/item-2/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-008"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-feedback-topic-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/item-1/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.5::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.5/example-3.19",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-feedback-topic-1/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.4/example-3.18/solution::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/item-1::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-010"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-011"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-6/item-1::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-6/item-1::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-012"
+        }
+      ],
+      "threshold": 0.8,
+      "usageTokens": 866,
+      "vectorBytes": 54444032
+    },
+    {
+      "apiCostCny": 0.00012124000000000001,
+      "corpusApiCostCny": 0.0,
+      "corpusTraceIds": [],
+      "corpusUsageTokens": 0,
+      "embeddingLatencyMs": {
+        "batchCount": 2,
+        "p50": 410.73697949999934,
+        "p95": 426.2284360499999,
+        "samples": [
+          427.949709,
+          393.5242499999987
+        ],
+        "total": 821.4739589999987
+      },
+      "evaluatedQueries": 29,
+      "hitsAt10": 25,
+      "indexBytes": 214937445,
+      "indexManifestHash": "sha256:05f246790aaf664ca2caa896b9216a9bb2682aac11f6c1497a113e6439016539",
+      "model": "Qwen/Qwen3-Embedding-4B",
+      "normalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
+      "observedDimension": 2560,
+      "passed": false,
+      "providerTraceIds": [
+        "ti_zxo7nv2qty4jxrqpiq",
+        "ti_w09dq961ht9yyj94b8"
+      ],
+      "queryApiCostCny": 0.00012124000000000001,
+      "queryTraceIds": [
+        "ti_zxo7nv2qty4jxrqpiq",
+        "ti_w09dq961ht9yyj94b8"
+      ],
+      "queryUsageTokens": 866,
+      "recallAt10": 0.8620689655172413,
+      "recallPassed": true,
+      "residentArtifactBudgetBytes": 157286400,
+      "residentArtifactBytes": 168177577,
+      "residentArtifactPassed": false,
+      "results": [
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/section-3.3.1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/section-4.5.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-transfer-function-definition"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.12",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/section-5.2.1/solution-occurrence-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-root-locus-definition"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-3::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-open-loop-no-self-correction"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.1/section-6.1.1::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-08/section-8.1/item-3-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/section-4.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-08/section-8.1/item-2-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-08/section-8.2/section-8.2.1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.1/item-1::embedding-chunk-000002-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-1::embedding-chunk-000002-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/section-4.5.2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "concept-frequency-response-sinusoid"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-2-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-3",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-03/chapter-3/section-3.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-rise-time"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.2/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-3"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-peak-time"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-4-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-6/item-1::embedding-chunk-000002-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-maximum-overshoot"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.15",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-006/example-4.11/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-dynamic-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.15",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.14/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.1/item-2/performance-steady-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.14/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-6",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-6"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-settling-time"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.6/section-4.6.1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-007/example-4.13",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.6/example-3.16",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.6/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/unnumbered-007/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.6/item-1"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "bilingual-steady-state-error"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/section-4.3.3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-underdamped-second-order-step-response"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.3/item-5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-4"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-second-order-percent-overshoot"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/example-4.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/example-4.6/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5/example-3.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/example-3.10",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/section-4.5.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/example-3.9",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.5/item-1-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.5/item-3/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-3/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-routh-sign-changes"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-3-occurrence-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.11",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.5::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-05/chapter-5/section-5.8",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/section-6.2/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-first-order-lag-frequency-response"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-003/item-4::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-006/item-3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-006/item-3/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.2/item-2/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-006/item-3/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-second-order-resonance"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.14/solution",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-phase-margin"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-gain-margin"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/example-4.6",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/unnumbered-001/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/unnumbered-001/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/unnumbered-001/example-4.6::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/example-5.1::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/example-5.1/solution",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.1/section-5.1.4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.3/solution-occurrence-3::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-positive-root-locus-angle-condition"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-6/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-6/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.1/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-4/solution-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.1/item-6/item-1::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-lti-forced-state-solution"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-6::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-6::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-6/item-1::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-6/item-1::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "formula-controllability-rank-test"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2/section-1.2.8",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.6",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/unnumbered-002/section-1.8.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.3/item-1",
+            "textbook-window:control-encyclopedia@2015/chapter-front-matter/unnumbered-003",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-001"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4/item-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-003"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.2/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.2/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-3",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-3::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.2/item-4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.2/item-5::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-exercise-analysis-3rd@第三版/chapter-chapter-01/chapter-1/section-1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.2/item-4::embedding-chunk-000001-of-000002",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.4/section-1.4.6::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-004"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/unnumbered-002/section-1.8.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.6/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.6/item-2/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.5/example-9.17/solution",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-01/chapter-1/section-1.1/item-3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-09/section-9.6/example-9.20",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.19"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-005"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.5",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-006"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/section-3.3.1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.2/example-2.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-02/chapter-2/section-2.2/example-2.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.3/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-07/chapter-7/section-7.4/item-3/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.5/example-3.19",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.2/item-1/example-2.8/solution"
+          ],
+          "hitAt10": false,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-007"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/section-5.2.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.12",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.11/item-5"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-008"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.3",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.3/item-1/item-2::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-03/section-3.5/example-3.19",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-4",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-2/item-3-occurrence-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-feedback-topic-1/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.4-feedback/state-feedback-topic-1"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-010"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-1",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/item-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-06/unnumbered-005/example-6.19::embedding-chunk-000001-of-000002",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/example-5.12",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.4/item-2",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-05/chapter-5/section-5.5"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-011"
+        },
+        {
+          "candidateWindowIds": [
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/example-9.9",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-1",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-09/chapter-9/section-9.2",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/item-6::embedding-chunk-000001-of-000002"
+          ],
+          "hitAt10": true,
+          "mode": "lexical-vector-rrf",
+          "queryId": "fig-cross-012"
+        }
+      ],
+      "threshold": 0.8,
+      "usageTokens": 866,
+      "vectorBytes": 136110080
+    }
+  ],
+  "formatVersion": "textbook-hybrid-retrieval.v1",
+  "recordType": "selection-report",
+  "selectedIndexManifestHash": "sha256:f47e2c709a431c083d132199eea2600e3b49a607e3b2a9458b2b59bf93f54cee",
+  "selectedModel": "Qwen/Qwen3-Embedding-0.6B",
+  "selectedNormalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
+  "selectedObservedDimension": 1024,
+  "selectionRule": "recall-and-resident-artifact-passing-apiCostCny-indexBytes-model",
+  "split": "tuning",
+  "splitHash": "sha256:872d5640d14ce0236c448a4e90bf74b3e201413631bc5009cba9ebe26bd28948"
+}

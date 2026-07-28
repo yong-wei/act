@@ -651,6 +651,74 @@ const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = 
   konling: MessageSquare,
 };
 
+function PathOptionRoutePreview({ option }: { option: AdaptivePathOptionDisplay }) {
+  if (!option.isGenerated) return null;
+  if (!option.orderedNodes) {
+    return (
+      <div
+        className="mt-3 rounded-lg border border-border bg-background/60 px-3 py-2 text-xs leading-5 text-subtle"
+        data-learning-path-route-preview="unavailable"
+      >
+        详细学习步骤暂不可用；请生成新的学习路径后查看具体资源安排。
+      </div>
+    );
+  }
+
+  const visibleNodes = option.orderedNodes.slice(0, 4);
+  const remainingNodes = option.orderedNodes.slice(4);
+  const renderNode = (node: typeof option.orderedNodes[number], index: number) => {
+    const Icon = adaptivePathResourceIcons[node.kind];
+    return (
+      <li key={node.nodeId} className="relative flex gap-2.5 pb-3 last:pb-0">
+        <span className="grid size-6 shrink-0 place-items-center rounded-full border border-primary/35 bg-primary/5 text-xs font-semibold text-primary">
+          {index + 1}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="break-words text-sm font-medium text-foreground">{node.title}</p>
+          <div className="mt-1 flex flex-wrap gap-1.5 text-xs text-subtle">
+            <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/30 px-1.5 py-0.5">
+              <Icon className="size-3" aria-hidden="true" />
+              {node.resourceLabel}
+            </span>
+            <span className="rounded-md border border-border bg-muted/30 px-1.5 py-0.5">{node.estimatedTime}</span>
+            <span className="rounded-md border border-border bg-muted/30 px-1.5 py-0.5">{node.statusLabel}</span>
+            {node.comparisonLabel ? (
+              <span className="rounded-md border border-primary/30 bg-primary/5 px-1.5 py-0.5 text-primary">
+                {node.comparisonLabel}
+              </span>
+            ) : null}
+          </div>
+          {node.unlockMessage ? (
+            <p className="mt-1 text-xs leading-5 text-subtle">解锁条件：{node.unlockMessage}</p>
+          ) : null}
+        </div>
+      </li>
+    );
+  };
+
+  return (
+    <section
+      className="mt-3 rounded-lg border border-border bg-background/60 p-3"
+      data-learning-path-route-preview={option.id}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold text-foreground">学习步骤</p>
+        <span className="text-xs text-subtle">共 {option.orderedNodes.length} 步</span>
+      </div>
+      <ol className="mt-3">{visibleNodes.map(renderNode)}</ol>
+      {remainingNodes.length > 0 ? (
+        <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-route-disclosure="full">
+          <summary className="cursor-pointer font-medium text-foreground">展开完整路径（共 {option.orderedNodes.length} 步）</summary>
+          <p className="mt-2 text-xs leading-5 text-subtle">以下为前四步之后的学习安排。</p>
+          <ol className="mt-3" start={5}>
+            {remainingNodes.map((node, index) => renderNode(node, index + 4))}
+          </ol>
+        </details>
+      ) : null}
+    </section>
+  );
+}
+
 const generationGoalOptions = getAdaptivePracticeGoalOptions();
 
 function percentLabel(value: number): string {
@@ -877,6 +945,7 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       terminalValidationStrategy: {
         summary: typeof terminalValidationStrategy.summary === 'string' ? terminalValidationStrategy.summary : undefined,
       },
+      expectedTargetLift: typeof option.expectedTargetLift === 'number' ? option.expectedTargetLift : undefined,
       limitations: getStringArray(option.limitations),
     };
   });
@@ -944,6 +1013,17 @@ function getPathBudgetLimitation(view: ControlCorrectionLearningCenterView | nul
     requestedMinutes,
     minimumMinutes,
   };
+}
+
+function hasPathComparisonDiversityLimitation(fallback: Record<string, unknown> | null): boolean {
+  const studentVisibleReasons = new Set([
+    '路径差异不足',
+    '资源形式差异不足',
+    '学习时长差异不足',
+    '路径选项过于接近',
+  ]);
+  return getStringArray(getRecord(fallback).fallbackReasons)
+    .some((reason) => studentVisibleReasons.has(reason));
 }
 
 const SKIP_WARNING_TEXT = '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。';
@@ -1547,13 +1627,21 @@ export default function AdaptivePracticePage() {
       })
     : null, [activeGoal, activeGoalLabel, activeLearnerState, activePathPlan, error, questionState, routeIntent]);
   const pathOptions = useMemo(() => getPathOptions(adaptivePathCenter), [adaptivePathCenter]);
-  const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);
+  const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
+  const pathComparisonDiversityLimited = useMemo(
+    () => hasPathComparisonDiversityLimitation(pathOptionFallback),
+    [pathOptionFallback],
+  );
+  const visiblePathOptions = useMemo(
+    () => buildAdaptivePathOptionDisplays(pathOptions, { diversityLimited: pathComparisonDiversityLimited }),
+    [pathComparisonDiversityLimited, pathOptions],
+  );
+  const hasGeneratedPathOptions = pathOptions.length > 0;
   const selectedExecutionOption = useMemo(
     () => pathOptions.find((option) => option.optionId === activeOptionId) ?? null,
     [activeOptionId, pathOptions],
   );
   const pathSelectionHistory = useMemo(() => getPathSelectionHistory(adaptivePathCenter), [adaptivePathCenter]);
-  const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathConfigurationFulfillment = useMemo(
     () => getPathConfigurationFulfillment(adaptivePathCenter),
     [adaptivePathCenter],
@@ -3428,16 +3516,18 @@ export default function AdaptivePracticePage() {
               openModuleId={openPathModuleId}
               onToggle={togglePathModule}
               eyebrow="Path comparison"
-              title="选择你的学习路径"
-              summary="不同路径按同一组字段比较，便于直接判断取舍。"
+              title={hasGeneratedPathOptions ? '选择你的学习路径' : '查看示例学习方式'}
+              summary={hasGeneratedPathOptions
+                ? '不同路径按同一组字段比较，便于直接判断取舍。'
+                : '生成正式学习路径后，系统会展示具体资源、顺序和方案差异。'}
               className="order-40"
               trailing={(
                 <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
-                  {visiblePathOptions.length} 条可比较路径
+                  {hasGeneratedPathOptions ? `${visiblePathOptions.length} 条可比较路径` : `${visiblePathOptions.length} 个学习方式示例`}
                 </span>
               )}
               data-learning-path-product-surface="path-options-selection-history-terminal-validation"
-              data-learning-path-options-slot="three-style"
+              data-learning-path-options-slot={hasGeneratedPathOptions ? 'three-style' : 'starter-examples'}
               data-learning-path-options-layout="route-modules"
             >
             {pathConfigurationFulfillment.length > 0 || pathBudgetLimitation.insufficient || Boolean(pathOptionFallback) ? (
@@ -3469,18 +3559,33 @@ export default function AdaptivePracticePage() {
                 </div>
               </section>
             ) : null}
+            {hasGeneratedPathOptions && pathComparisonDiversityLimited ? (
+              <p
+                className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm leading-6 text-foreground"
+                data-learning-path-diversity-notice="limited"
+              >
+                当前可用资源有限，推荐方案差异较小。
+              </p>
+            ) : null}
             <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]" data-learning-path-desktop-modules="attached-actions">
               {visiblePathOptions.map((option) => (
                 <article
                   key={option.id}
                   className="flex min-h-full flex-col rounded-lg border border-border bg-muted/30 p-3"
-                  data-learning-path-option={option.id}
-                  data-learning-path-option-module="route"
+                  data-learning-path-option={option.isGenerated ? option.id : undefined}
+                  data-learning-path-option-module={option.isGenerated ? 'route' : undefined}
+                  data-learning-path-example={option.isGenerated ? undefined : option.id}
                 >
                   <div>
                     <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
                     <p className="mt-1 text-sm leading-6 text-subtle">{option.scenario}</p>
+                    {!option.isGenerated ? (
+                      <p className="mt-2 text-xs leading-5 text-subtle" data-learning-path-starter-example={option.id}>
+                        示例学习方式，不是已生成的正式路径。
+                      </p>
+                    ) : null}
                   </div>
+                  <PathOptionRoutePreview option={option} />
                   <div className="mt-3 grid gap-2 text-sm">
                     {[
                       ['预计时长', option.estimatedTime],
@@ -3488,6 +3593,7 @@ export default function AdaptivePracticePage() {
                       ['准备度', option.readiness],
                       ['检查节点', option.checkpoints],
                       ['当前建议理由', option.reason],
+                      ...(option.expectedAbilityImprovement ? [['预期能力改善', option.expectedAbilityImprovement]] : []),
                       ['预期结果', option.outcome],
                       ['风险提示', option.riskNote],
                     ].map(([label, value]) => (
@@ -3508,6 +3614,7 @@ export default function AdaptivePracticePage() {
                       );
                     })}
                   </div>
+                  {option.isGenerated ? (
                   <div className="mt-auto grid gap-2 pt-3" data-learning-path-option-actions="attached">
                     <button
                       type="button"
@@ -3604,6 +3711,11 @@ export default function AdaptivePracticePage() {
                       </p>
                     ) : null}
                   </div>
+                  ) : (
+                    <p className="mt-auto pt-3 text-xs leading-5 text-subtle">
+                      生成正式学习路径后，可查看完整资源安排并进行选择。
+                    </p>
+                  )}
                 </article>
               ))}
             </div>
@@ -3622,18 +3734,25 @@ export default function AdaptivePracticePage() {
                 <section
                   key={`${option.id}:mobile`}
                   className="rounded-lg border border-border bg-muted/30 p-3"
-                  data-learning-path-option={option.id}
-                  data-learning-path-option-module="route"
+                  data-learning-path-option={option.isGenerated ? option.id : undefined}
+                  data-learning-path-option-module={option.isGenerated ? 'route' : undefined}
+                  data-learning-path-example={option.isGenerated ? undefined : option.id}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
                       <p className="mt-1 text-sm leading-6 text-subtle">{option.scenario}</p>
+                      {!option.isGenerated ? (
+                        <p className="mt-2 text-xs leading-5 text-subtle" data-learning-path-starter-example={`${option.id}:mobile`}>
+                          示例学习方式，不是已生成的正式路径。
+                        </p>
+                      ) : null}
                     </div>
                     <span className="shrink-0 rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-subtle">
                       {option.estimatedTime}
                     </span>
                   </div>
+                  <PathOptionRoutePreview option={option} />
                   <div className="mt-3 space-y-2 rounded-lg border border-border bg-background/60 p-3 text-sm">
                     <p className="leading-6 text-foreground">{option.reason}</p>
                     <div className="flex flex-wrap gap-1.5 text-xs text-subtle">
@@ -3643,6 +3762,9 @@ export default function AdaptivePracticePage() {
                         {option.resources.slice(0, 2).map((resource) => resource.label).join('、')}
                       </span>
                     </div>
+                    {option.expectedAbilityImprovement ? (
+                      <p className="text-xs leading-5 text-subtle">预期能力改善：{option.expectedAbilityImprovement}</p>
+                    ) : null}
                     <p className="text-xs leading-5 text-subtle">{option.outcome}</p>
                     <p className="text-xs leading-5 text-subtle">{option.riskNote}</p>
                   </div>
@@ -3660,6 +3782,7 @@ export default function AdaptivePracticePage() {
                       })}
                     </div>
                   </details>
+                  {option.isGenerated ? (
                   <div className="mt-3 grid gap-2" data-learning-path-mobile-actions="primary-then-secondary" data-learning-path-option-actions="attached">
                     <button
                       type="button"
@@ -3756,6 +3879,11 @@ export default function AdaptivePracticePage() {
                       </p>
                     ) : null}
                   </div>
+                  ) : (
+                    <p className="mt-3 text-xs leading-5 text-subtle">
+                      生成正式学习路径后，可查看完整资源安排并进行选择。
+                    </p>
+                  )}
                 </section>
               ))}
             </div>

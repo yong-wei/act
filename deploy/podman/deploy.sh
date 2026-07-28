@@ -141,23 +141,45 @@ DB_PASSWORD="${DB_PASSWORD:-ChangeMe_Act_2026!}"
 APP_DOMAIN="${APP_DOMAIN:-act.adapt-learn.online}"
 NEXTAUTH_URL="$(normalize_public_app_url "${NEXTAUTH_URL:-}" "$APP_DOMAIN")"
 
-APP_IMAGE="${APP_IMAGE:-act-obe-platform:20260301-amd64}"
+APP_IMAGE="${APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"
 DB_IMAGE="${DB_IMAGE:-${POSTGRES_IMAGE:-postgres:15-alpine-amd64}}"
 REDIS_IMAGE="${REDIS_IMAGE:-docker.io/redis:7-alpine}"
 NODE_ENV="${NODE_ENV:-production}"
 NEXT_TELEMETRY_DISABLED="${NEXT_TELEMETRY_DISABLED:-1}"
 WORKER_CONCURRENCY="${WORKER_CONCURRENCY:-2}"
+MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"
 ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED:-true}"
+SMART_COURSEWARE_ORDERING_SECRET="${SMART_COURSEWARE_ORDERING_SECRET:-}"
+MATHPIX_IMAGE_ENDPOINT="${MATHPIX_IMAGE_ENDPOINT:-https://api.mathpix.com/v3/text}"
+MATHPIX_DOCUMENT_ENDPOINT="${MATHPIX_DOCUMENT_ENDPOINT:-https://api.mathpix.com/v3/pdf}"
+MATHPIX_CREDENTIAL_REF="${MATHPIX_CREDENTIAL_REF:-env:MATHPIX_APP_KEY}"
+MATHPIX_VERSION="${MATHPIX_VERSION:-mathpix.v1}"
+GRADING_MATHPIX_POLICY_VERSION="${GRADING_MATHPIX_POLICY_VERSION:-$MATHPIX_VERSION}"
 SUBMISSION_SCAN_INTERVAL_SECONDS="${SUBMISSION_SCAN_INTERVAL_SECONDS:-15}"
 SUBMISSION_GC_INTERVAL_SECONDS="${SUBMISSION_GC_INTERVAL_SECONDS:-3600}"
 REDIS_MAXMEMORY="${REDIS_MAXMEMORY:-512mb}"
 REDIS_MAXMEMORY_POLICY="${REDIS_MAXMEMORY_POLICY:-noeviction}"
+POLICY_SEED_ENV_NAMES=(
+  AI_PROVIDER AI_BASE_URL AI_SECRET_REF AI_MODEL
+  MATHPIX_IMAGE_ENDPOINT MATHPIX_DOCUMENT_ENDPOINT MATHPIX_CREDENTIAL_REF MATHPIX_VERSION
+  GRADING_SOURCE_ASSET_POLICY_VERSION GRADING_SOURCE_ASSET_RETENTION_SECONDS GRADING_SOURCE_ASSET_GOVERNED_RECORD_RULE GRADING_SOURCE_ASSET_DELETE_STRATEGY GRADING_SOURCE_ASSET_PROVIDER_RETENTION_SECONDS GRADING_SOURCE_ASSET_ENABLED
+  GRADING_ANSWER_EVIDENCE_POLICY_VERSION GRADING_ANSWER_EVIDENCE_RETENTION_SECONDS GRADING_ANSWER_EVIDENCE_GOVERNED_RECORD_RULE GRADING_ANSWER_EVIDENCE_DELETE_STRATEGY GRADING_ANSWER_EVIDENCE_PROVIDER_RETENTION_SECONDS GRADING_ANSWER_EVIDENCE_ENABLED
+  GRADING_DOCUMENT_CONVERSION_POLICY_VERSION GRADING_DOCUMENT_CONVERSION_RETENTION_SECONDS GRADING_DOCUMENT_CONVERSION_GOVERNED_RECORD_RULE GRADING_DOCUMENT_CONVERSION_DELETE_STRATEGY GRADING_DOCUMENT_CONVERSION_PROVIDER_RETENTION_SECONDS GRADING_DOCUMENT_CONVERSION_ENABLED
+  GRADING_AI_DRAFT_POLICY_VERSION GRADING_AI_DRAFT_RETENTION_SECONDS GRADING_AI_DRAFT_GOVERNED_RECORD_RULE GRADING_AI_DRAFT_DELETE_STRATEGY GRADING_AI_DRAFT_PROVIDER_RETENTION_SECONDS GRADING_AI_DRAFT_ENABLED
+  GRADING_RUN_POLICY_VERSION GRADING_RUN_RETENTION_SECONDS GRADING_RUN_GOVERNED_RECORD_RULE GRADING_RUN_DELETE_STRATEGY GRADING_RUN_PROVIDER_RETENTION_SECONDS GRADING_RUN_ENABLED
+  GRADING_PROVIDER_PROCESSING_REGION GRADING_PROVIDER_AGREEMENT_VERSION GRADING_PROVIDER_NO_TRAINING GRADING_PROVIDER_RETENTION_SECONDS GRADING_PROVIDER_DELETION_CAPABILITY GRADING_PROVIDER_RATE_LIMIT_PER_MINUTE GRADING_PROVIDER_CLASS_SCOPE GRADING_PROVIDER_INSTITUTION_SCOPE
+  GRADING_AI_PROVIDER_VERSION GRADING_AI_PROVIDER_ENABLED GRADING_AI_PROVIDER_DATA_CATEGORIES GRADING_AI_PROVIDER_MINIMIZED_SCOPE
+  GRADING_MATHPIX_POLICY_VERSION GRADING_MATHPIX_ENABLED GRADING_MATHPIX_DATA_CATEGORIES GRADING_MATHPIX_MINIMIZED_SCOPE
+)
 RUN_MIGRATIONS_ON_START="${RUN_MIGRATIONS_ON_START:-}"
 if [ -z "$RUN_MIGRATIONS_ON_START" ]; then
   RUN_MIGRATIONS_ON_START="1"
 fi
 RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/course-content/runtime}"
 START_WRAPPER_PATH="${START_WRAPPER_PATH:-${PROJECT_DIR}/scripts/container-start-wrapper.sh}"
+if [ ! -f "$START_WRAPPER_PATH" ] && [ -f "${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh" ]; then
+  START_WRAPPER_PATH="${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh"
+fi
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -186,6 +208,47 @@ require_konling_mode_context_secret() {
   fi
 }
 
+require_grading_audit_secret() {
+  if [ "$NODE_ENV" = "production" ]; then
+    case "${GRADING_AUDIT_SECRET:-}" in
+      ''|replace-with*|your-*|change-me*|sk-your*)
+        echo "ERROR: production 数学文档批改必须配置真实的 GRADING_AUDIT_SECRET。" >&2
+        exit 1
+        ;;
+    esac
+  fi
+}
+
+require_smart_courseware_ordering_secret() {
+  if [ "$NODE_ENV" != "production" ]; then
+    return 0
+  fi
+  SMART_COURSEWARE_ORDERING_SECRET="$(printf '%s' "$SMART_COURSEWARE_ORDERING_SECRET" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+  case "$SMART_COURSEWARE_ORDERING_SECRET" in
+    ''|replace-with*|your-*|change-me*|sk-your*)
+      echo "ERROR: production 课件学生排序投影必须配置真实的 SMART_COURSEWARE_ORDERING_SECRET。" >&2
+      exit 1
+      ;;
+  esac
+  local secret_bytes
+  secret_bytes="$(printf '%s' "$SMART_COURSEWARE_ORDERING_SECRET" | wc -c | tr -d '[:space:]')"
+  if [ "$secret_bytes" -lt 32 ]; then
+    echo "ERROR: production SMART_COURSEWARE_ORDERING_SECRET 必须至少为 32 bytes。" >&2
+    exit 1
+  fi
+}
+
+require_grading_lifecycle_lookup_secret() {
+  if [ "$NODE_ENV" = "production" ]; then
+    case "${GRADING_LIFECYCLE_LOOKUP_SECRET:-}" in
+      ''|replace-with*|your-*|change-me*|sk-your*)
+        echo "ERROR: production 数学文档批改必须配置稳定的 GRADING_LIFECYCLE_LOOKUP_SECRET，不能随 GRADING_AUDIT_SECRET 轮换。" >&2
+        exit 1
+        ;;
+    esac
+  fi
+}
+
 require_submission_security_pipeline() {
   local required=(SUBMISSION_S3_ENDPOINT SUBMISSION_S3_BUCKET SUBMISSION_S3_ACCESS_KEY SUBMISSION_S3_SECRET_KEY SUBMISSION_SCANNER_ACCESS_KEY SUBMISSION_SCANNER_SECRET_KEY SUBMISSION_SCANNER_PROBE_KEY SUBMISSION_GC_ACCESS_KEY SUBMISSION_GC_SECRET_KEY)
   if [ "${SUBMISSION_OBJECT_STORE:-}" != "s3" ] || [ "${SUBMISSION_SCANNER_MODE:-}" != "s3-object-tag" ]; then
@@ -197,6 +260,74 @@ require_submission_security_pipeline() {
     https) if [ -z "${SUBMISSION_SCANNER_URL:-}" ] || [ -z "${SUBMISSION_SCANNER_TOKEN:-}" ]; then echo "ERROR: https scanner 需要外部 URL/TOKEN。" >&2; exit 1; fi ;;
     *) echo "ERROR: SUBMISSION_CONTENT_SCANNER 必须为 clamav-tcp 或 https。" >&2; exit 1 ;;
   esac
+}
+
+require_math_document_grading_worker_config() {
+  if ! [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+    return 0
+  fi
+
+  local required=(DATABASE_URL REDIS_URL SUBMISSION_S3_ENDPOINT SUBMISSION_S3_BUCKET SUBMISSION_S3_ACCESS_KEY SUBMISSION_S3_SECRET_KEY SUBMISSION_SCANNER_ACCESS_KEY SUBMISSION_SCANNER_SECRET_KEY SUBMISSION_SCANNER_PROBE_KEY MATHPIX_APP_ID MATHPIX_APP_KEY)
+  if [ "$NODE_ENV" = "production" ]; then
+    required+=(GRADING_AUDIT_SECRET GRADING_LIFECYCLE_LOOKUP_SECRET)
+  fi
+  for name in "${required[@]}"; do
+    if [ -z "${!name:-}" ]; then
+      echo "ERROR: 数学文档批改 worker 缺少必要配置: $name" >&2
+      exit 1
+    fi
+  done
+
+  if [ "${SUBMISSION_OBJECT_STORE:-}" != "s3" ] || [ "${SUBMISSION_SCANNER_MODE:-}" != "s3-object-tag" ]; then
+    echo "ERROR: 数学文档批改 worker 需要 S3 对象存储与可信扫描配置。" >&2
+    exit 1
+  fi
+
+  local provider="${AI_PROVIDER:-${LLM_PROVIDER:-siliconflow}}"
+  local endpoint="${AI_BASE_URL:-${SILICONFLOW_API_URL:-}}"
+  local model="${AI_MODEL:-${SILICONFLOW_MODEL:-}}"
+  local api_key="${AI_API_KEY:-}"
+  if [ "$provider" = "siliconflow" ]; then
+    api_key="${api_key:-${SILICONFLOW_API_KEY:-}}"
+    endpoint="${endpoint:-https://api.siliconflow.cn/v1}"
+    model="${model:-Qwen/Qwen3.6-35B-A3B}"
+  fi
+  if ! [[ "${GRADING_AI_PROVIDER_ENABLED:-false}" =~ ^(1|true|yes)$ ]] || [[ "$endpoint" != https://* ]] || [ -z "$model" ] || [ -z "$api_key" ]; then
+    echo "ERROR: 数学文档批改 worker 缺少可用的 AI provider 配置。" >&2
+    exit 1
+  fi
+  if [ "$(printf '%s' "${AI_PROVIDER_ENABLED:-}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')" = "false" ]; then
+    echo "ERROR: AI_PROVIDER_ENABLED=false 与数学文档批改 worker 不兼容。" >&2
+    exit 1
+  fi
+
+  if ! [[ "${GRADING_MATHPIX_ENABLED:-false}" =~ ^(1|true|yes)$ ]]; then
+    echo "ERROR: GRADING_MATHPIX_ENABLED=false 与数学文档批改 worker 不兼容。" >&2
+    exit 1
+  fi
+  if [[ "$MATHPIX_IMAGE_ENDPOINT" != https://*/v3/text ]] || [[ "$MATHPIX_DOCUMENT_ENDPOINT" != https://*/v3/pdf ]] || [[ ! "$MATHPIX_CREDENTIAL_REF" =~ ^env:[A-Z][A-Z0-9_]*$ ]]; then
+    echo "ERROR: Mathpix image/document endpoint 或 credential reference 配置无效。" >&2
+    exit 1
+  fi
+}
+
+validate_grading_policy_seed_config() {
+  local policy_seed_env_args=()
+  local env_name
+  for env_name in "${POLICY_SEED_ENV_NAMES[@]}"; do
+    if [ -n "${!env_name:-}" ]; then
+      policy_seed_env_args+=(-e "${env_name}=${!env_name}")
+    fi
+  done
+
+  echo "- 预检数学文档批改策略配置"
+  podman run --rm \
+    --entrypoint ./node_modules/.bin/tsx \
+    "${policy_seed_env_args[@]}" \
+    -e NODE_ENV="$NODE_ENV" \
+    -e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED" \
+    "$APP_IMAGE" \
+    scripts/assignments/ensure-grading-policies.ts --dry-run >/dev/null
 }
 
 resolve_image() {
@@ -259,6 +390,59 @@ remove_if_exists() {
       exit 1
     fi
   fi
+}
+
+run_detached_container() {
+  local name="$1"
+  shift
+  local run_output=''
+  local run_status=0
+  local start_output=''
+  local start_status=0
+  local state=''
+  local attempt
+
+  set +e
+  run_output="$("$@" 2>&1)"
+  run_status=$?
+  set -e
+
+  if [ "$run_status" -ne 0 ] && [ -n "$run_output" ]; then
+    echo "$run_output" >&2
+  fi
+
+  for attempt in $(seq 1 3); do
+    state="$(podman inspect "$name" --format '{{.State.Status}}' 2>/dev/null || true)"
+    if [ "$state" = "running" ]; then
+      return 0
+    fi
+
+    if [ "$state" = "created" ] || [ "$state" = "exited" ]; then
+      echo "WARNING: 容器 ${name} 当前状态为 ${state}，尝试重新启动 (${attempt}/3)" >&2
+      set +e
+      start_output="$(podman start "$name" 2>&1)"
+      start_status=$?
+      set -e
+      if [ -n "$start_output" ]; then
+        echo "$start_output" >&2
+      fi
+      if [ "$start_status" -eq 0 ]; then
+        state="$(podman inspect "$name" --format '{{.State.Status}}' 2>/dev/null || true)"
+        if [ "$state" = "running" ]; then
+          return 0
+        fi
+      fi
+    elif [ "$run_status" -ne 0 ]; then
+      break
+    fi
+
+    sleep 2
+  done
+
+  echo "ERROR: 容器启动失败: ${name}" >&2
+  podman inspect "$name" --format '{{json .State}}' >&2 2>/dev/null || true
+  podman logs --tail 120 "$name" >&2 2>/dev/null || true
+  return 1
 }
 
 wait_for_db() {
@@ -358,6 +542,7 @@ REDIS_IMAGE=$REDIS_IMAGE
 REDIS_URL=$redis_url_value
 WORKER_CONTAINER=$WORKER_CONTAINER
 WORKER_CONCURRENCY=$WORKER_CONCURRENCY
+MATH_DOCUMENT_GRADING_WORKER_REQUIRED=$MATH_DOCUMENT_GRADING_WORKER_REQUIRED
 NETWORK_NAME=$NETWORK_NAME
 DB_VOLUME=$DB_VOLUME
 REDIS_VOLUME=$REDIS_VOLUME
@@ -471,6 +656,38 @@ if [ ! -f "$START_WRAPPER_PATH" ]; then
   exit 1
 fi
 
+# Complete all configuration validation before removing any existing
+# container.  A bad secret or provider configuration must not turn a failed
+# preflight into an avoidable outage.
+if [ "$MODE" != "--db-only" ]; then
+  require_konling_mode_context_secret
+  if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+    require_grading_audit_secret
+    require_grading_lifecycle_lookup_secret
+    require_submission_security_pipeline
+  else
+    echo "- 数学文档批改 worker 已禁用，跳过其专用安全配置预检"
+  fi
+  require_smart_courseware_ordering_secret
+
+  REDIS_URL_DEFAULT="redis://${REDIS_HOST_ALIAS}:6379"
+  REDIS_URL="${REDIS_URL:-$REDIS_URL_DEFAULT}"
+  REDIS_URL="$(printf '%s' "$REDIS_URL" | sed "s#redis://${REDIS_CONTAINER}:#redis://${REDIS_HOST_ALIAS}:#")"
+  REDIS_URL="$(printf '%s' "$REDIS_URL" | sed "s#redis://${REDIS_CONTAINER}\\.dns\\.podman:#redis://${REDIS_HOST_ALIAS}:#")"
+  REDIS_URL="$(printf '%s' "$REDIS_URL" | sed "s#redis://localhost:#redis://${REDIS_HOST_ALIAS}:#")"
+  DATABASE_URL_DEFAULT="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST_ALIAS}:5432/${DB_NAME}?connection_limit=10&pool_timeout=20"
+  DATABASE_URL="${DATABASE_URL:-$DATABASE_URL_DEFAULT}"
+  DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@${DB_CONTAINER}:#@${DB_HOST_ALIAS}:#")"
+  DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@${DB_CONTAINER}\\.dns\\.podman:#@${DB_HOST_ALIAS}:#")"
+  DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@localhost:#@${DB_HOST_ALIAS}:#")"
+  DATABASE_URL="$(ensure_database_url_param "$DATABASE_URL" "connection_limit" "10")"
+  DATABASE_URL="$(ensure_database_url_param "$DATABASE_URL" "pool_timeout" "20")"
+  require_math_document_grading_worker_config
+  if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+    validate_grading_policy_seed_config
+  fi
+fi
+
 if [ "$MODE" = "--all" ] || [ "$MODE" = "--db-only" ]; then
   remove_if_exists "$SUBMISSION_SCANNER_CONTAINER"
   remove_if_exists "$SUBMISSION_GC_CONTAINER"
@@ -520,10 +737,7 @@ if [ "$MODE" = "--db-only" ]; then
   exit 0
 fi
 
-require_konling_mode_context_secret
-
 ensure_db_running
-if [ "$MODE" != "--db-only" ]; then require_submission_security_pipeline; fi
 DATABASE_URL_DEFAULT="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST_ALIAS}:5432/${DB_NAME}?connection_limit=10&pool_timeout=20"
 DATABASE_URL="${DATABASE_URL:-$DATABASE_URL_DEFAULT}"
 DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@${DB_CONTAINER}:#@${DB_HOST_ALIAS}:#")"
@@ -577,20 +791,37 @@ SHARED_ENV_ARGS=(
   -e POSTGRES_PASSWORD="$DB_PASSWORD"
   -e APP_DOMAIN="$APP_DOMAIN"
   -e REDIS_URL="$REDIS_URL"
+  -e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED"
   -e ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 )
-APP_STORAGE_ENV_ARGS=(-e SUBMISSION_OBJECT_STORE="$SUBMISSION_OBJECT_STORE" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_S3_ACCESS_KEY="$SUBMISSION_S3_ACCESS_KEY" -e SUBMISSION_S3_SECRET_KEY="$SUBMISSION_S3_SECRET_KEY" -e SUBMISSION_SCANNER_MODE="$SUBMISSION_SCANNER_MODE" -e SUBMISSION_CONTENT_SCANNER="$SUBMISSION_CONTENT_SCANNER")
-SCANNER_ENV_ARGS=("${SHARED_ENV_ARGS[@]}" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_SCANNER_MODE="$SUBMISSION_SCANNER_MODE" -e SUBMISSION_SCANNER_ACCESS_KEY="$SUBMISSION_SCANNER_ACCESS_KEY" -e SUBMISSION_SCANNER_SECRET_KEY="$SUBMISSION_SCANNER_SECRET_KEY" -e SUBMISSION_SCANNER_PROBE_KEY="$SUBMISSION_SCANNER_PROBE_KEY" -e SUBMISSION_CONTENT_SCANNER="$SUBMISSION_CONTENT_SCANNER" -e SUBMISSION_SCAN_BATCH_SIZE="${SUBMISSION_SCAN_BATCH_SIZE:-25}")
-if [ "$SUBMISSION_CONTENT_SCANNER" = "clamav-tcp" ]; then SCANNER_ENV_ARGS+=(-e SUBMISSION_CLAMAV_HOST="$SUBMISSION_CLAMAV_HOST" -e SUBMISSION_CLAMAV_PORT="$SUBMISSION_CLAMAV_PORT"); else SCANNER_ENV_ARGS+=(-e SUBMISSION_SCANNER_URL="$SUBMISSION_SCANNER_URL" -e SUBMISSION_SCANNER_TOKEN="$SUBMISSION_SCANNER_TOKEN"); fi
-GC_ENV_ARGS=("${SHARED_ENV_ARGS[@]}" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_GC_ACCESS_KEY="$SUBMISSION_GC_ACCESS_KEY" -e SUBMISSION_GC_SECRET_KEY="$SUBMISSION_GC_SECRET_KEY" -e SUBMISSION_QUARANTINE_RETENTION_HOURS="${SUBMISSION_QUARANTINE_RETENTION_HOURS:-24}")
+GRADING_AUDIT_ENV_ARGS=()
+if [ -n "${GRADING_AUDIT_SECRET:-}" ]; then
+  GRADING_AUDIT_ENV_ARGS=(-e GRADING_AUDIT_SECRET="$GRADING_AUDIT_SECRET")
+fi
+if [ -n "${GRADING_LIFECYCLE_LOOKUP_SECRET:-}" ]; then
+  GRADING_AUDIT_ENV_ARGS+=(-e GRADING_LIFECYCLE_LOOKUP_SECRET="$GRADING_LIFECYCLE_LOOKUP_SECRET")
+fi
+APP_STORAGE_ENV_ARGS=()
+SCANNER_ENV_ARGS=()
+GC_ENV_ARGS=()
+if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+  APP_STORAGE_ENV_ARGS=(-e SUBMISSION_OBJECT_STORE="$SUBMISSION_OBJECT_STORE" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_S3_ACCESS_KEY="$SUBMISSION_S3_ACCESS_KEY" -e SUBMISSION_S3_SECRET_KEY="$SUBMISSION_S3_SECRET_KEY" -e SUBMISSION_SCANNER_MODE="$SUBMISSION_SCANNER_MODE" -e SUBMISSION_CONTENT_SCANNER="$SUBMISSION_CONTENT_SCANNER")
+  SCANNER_ENV_ARGS=("${SHARED_ENV_ARGS[@]}" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_SCANNER_MODE="$SUBMISSION_SCANNER_MODE" -e SUBMISSION_SCANNER_ACCESS_KEY="$SUBMISSION_SCANNER_ACCESS_KEY" -e SUBMISSION_SCANNER_SECRET_KEY="$SUBMISSION_SCANNER_SECRET_KEY" -e SUBMISSION_SCANNER_PROBE_KEY="$SUBMISSION_SCANNER_PROBE_KEY" -e SUBMISSION_CONTENT_SCANNER="$SUBMISSION_CONTENT_SCANNER" -e SUBMISSION_SCAN_BATCH_SIZE="${SUBMISSION_SCAN_BATCH_SIZE:-25}")
+  if [ "$SUBMISSION_CONTENT_SCANNER" = "clamav-tcp" ]; then SCANNER_ENV_ARGS+=(-e SUBMISSION_CLAMAV_HOST="$SUBMISSION_CLAMAV_HOST" -e SUBMISSION_CLAMAV_PORT="$SUBMISSION_CLAMAV_PORT"); else SCANNER_ENV_ARGS+=(-e SUBMISSION_SCANNER_URL="$SUBMISSION_SCANNER_URL" -e SUBMISSION_SCANNER_TOKEN="$SUBMISSION_SCANNER_TOKEN"); fi
+  GC_ENV_ARGS=("${SHARED_ENV_ARGS[@]}" "${GRADING_AUDIT_ENV_ARGS[@]}" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_GC_ACCESS_KEY="$SUBMISSION_GC_ACCESS_KEY" -e SUBMISSION_GC_SECRET_KEY="$SUBMISSION_GC_SECRET_KEY" -e SUBMISSION_QUARANTINE_RETENTION_HOURS="${SUBMISSION_QUARANTINE_RETENTION_HOURS:-24}")
+fi
 if [ -n "${KONLING_SERVER_MODE_CONTEXT_SECRET:-}" ]; then
   SHARED_ENV_ARGS+=(-e KONLING_SERVER_MODE_CONTEXT_SECRET="$KONLING_SERVER_MODE_CONTEXT_SECRET")
 fi
 
 APP_ENV_ARGS=(
   "${SHARED_ENV_ARGS[@]}"
+  "${GRADING_AUDIT_ENV_ARGS[@]}"
   "${APP_STORAGE_ENV_ARGS[@]}"
-  -e RUN_MIGRATIONS_ON_START="$RUN_MIGRATIONS_ON_START"
+  -e SMART_COURSEWARE_ORDERING_SECRET="$SMART_COURSEWARE_ORDERING_SECRET"
+  -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
+  -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
+  -e RUN_MIGRATIONS_ON_START=0
   -e PORT="$APP_CONTAINER_PORT"
   -e HOSTNAME=0.0.0.0
 )
@@ -629,13 +860,70 @@ if [ -n "${LLM_SERVICE_URL:-}" ]; then
   APP_ENV_ARGS+=(-e LLM_SERVICE_URL="$LLM_SERVICE_URL")
 fi
 
-echo "- 验证学生作业对象存储与扫描服务健康"
-podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SHARED_ENV_ARGS[@]}" "${APP_STORAGE_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=app "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
-podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=scanner "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
-podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=gc "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+AI_PROVIDER_ENV_ARGS=()
+for env_name in AI_PROVIDER LLM_PROVIDER AI_PROVIDER_KIND LLM_PROVIDER_KIND AI_BASE_URL AI_API_KEY AI_SECRET_REF AI_MODEL AI_PROVIDER_ENABLED GRADING_AI_PROVIDER_ENABLED AI_PROVIDER_PRIORITY SILICONFLOW_API_URL SILICONFLOW_API_KEY SILICONFLOW_SECRET_REF SILICONFLOW_MODEL LLM_SERVICE_URL; do
+  if [ -n "${!env_name:-}" ]; then
+    AI_PROVIDER_ENV_ARGS+=(-e "${env_name}=${!env_name}")
+  fi
+done
+MATHPIX_ENV_ARGS=(
+  -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
+  -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
+  -e MATHPIX_IMAGE_ENDPOINT="$MATHPIX_IMAGE_ENDPOINT"
+  -e MATHPIX_DOCUMENT_ENDPOINT="$MATHPIX_DOCUMENT_ENDPOINT"
+  -e MATHPIX_CREDENTIAL_REF="$MATHPIX_CREDENTIAL_REF"
+  -e MATHPIX_APP_ID="${MATHPIX_APP_ID:-}"
+  -e MATHPIX_APP_KEY="${MATHPIX_APP_KEY:-}"
+  -e MATHPIX_VERSION="$MATHPIX_VERSION"
+)
+WORKER_STORAGE_ENV_ARGS=()
+if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+  WORKER_STORAGE_ENV_ARGS=("${APP_STORAGE_ENV_ARGS[@]}" -e SUBMISSION_SCANNER_ACCESS_KEY="$SUBMISSION_SCANNER_ACCESS_KEY" -e SUBMISSION_SCANNER_SECRET_KEY="$SUBMISSION_SCANNER_SECRET_KEY" -e SUBMISSION_SCANNER_PROBE_KEY="$SUBMISSION_SCANNER_PROBE_KEY")
+  if [ "$SUBMISSION_CONTENT_SCANNER" = "clamav-tcp" ]; then
+    WORKER_STORAGE_ENV_ARGS+=(-e SUBMISSION_CLAMAV_HOST="$SUBMISSION_CLAMAV_HOST" -e SUBMISSION_CLAMAV_PORT="$SUBMISSION_CLAMAV_PORT")
+  else
+    WORKER_STORAGE_ENV_ARGS+=(-e SUBMISSION_SCANNER_URL="$SUBMISSION_SCANNER_URL" -e SUBMISSION_SCANNER_TOKEN="$SUBMISSION_SCANNER_TOKEN")
+  fi
+fi
+
+POLICY_SEED_ENV_ARGS=("${SHARED_ENV_ARGS[@]}")
+for env_name in "${POLICY_SEED_ENV_NAMES[@]}"; do
+  if [ -n "${!env_name:-}" ]; then
+    POLICY_SEED_ENV_ARGS+=(-e "${env_name}=${!env_name}")
+  fi
+done
+
+if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+  echo "- 执行 Prisma 迁移并物化数学文档批改策略"
+  podman run --rm \
+    --network "$NETWORK_NAME" \
+    --entrypoint ./docker-entrypoint.sh \
+    "${DB_HOST_ARGS[@]}" \
+    "${POLICY_SEED_ENV_ARGS[@]}" \
+    -e RUN_MIGRATIONS_ON_START="$RUN_MIGRATIONS_ON_START" \
+    "$APP_IMAGE" \
+    ./node_modules/.bin/tsx scripts/assignments/ensure-grading-policies.ts
+else
+  echo "- 执行 Prisma 迁移（数学文档批改策略暂不物化）"
+  podman run --rm \
+    --network "$NETWORK_NAME" \
+    --entrypoint ./docker-entrypoint.sh \
+    "${DB_HOST_ARGS[@]}" \
+    "${SHARED_ENV_ARGS[@]}" \
+    -e RUN_MIGRATIONS_ON_START="$RUN_MIGRATIONS_ON_START" \
+    "$APP_IMAGE" \
+    true
+fi
+
+if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+  echo "- 验证学生作业对象存储与扫描服务健康"
+  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SHARED_ENV_ARGS[@]}" "${APP_STORAGE_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=app "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=scanner "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=gc "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+fi
 
 echo "- 启动应用容器: $APP_CONTAINER"
-podman run -d \
+run_detached_container "$APP_CONTAINER" podman run -d \
   --name "$APP_CONTAINER" \
   --restart unless-stopped \
   --network "$NETWORK_NAME" \
@@ -647,34 +935,45 @@ podman run -d \
   "${REDIS_HOST_ARGS[@]}" \
   "${APP_ENV_ARGS[@]}" \
   "$APP_IMAGE" \
-  /app-container-start-wrapper.sh app >/dev/null
+  /app-container-start-wrapper.sh app
 
 WORKER_ENV_ARGS=(
   "${SHARED_ENV_ARGS[@]}"
+  "${GRADING_AUDIT_ENV_ARGS[@]}"
+  "${WORKER_STORAGE_ENV_ARGS[@]}"
+  "${AI_PROVIDER_ENV_ARGS[@]}"
+  "${MATHPIX_ENV_ARGS[@]}"
   -e RUN_MIGRATIONS_ON_START=0
   -e WORKER_CONCURRENCY="$WORKER_CONCURRENCY"
+  -e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED"
 )
 
 echo "- 启动数据治理 worker 容器: $WORKER_CONTAINER"
-podman run -d \
+run_detached_container "$WORKER_CONTAINER" podman run -d \
   --name "$WORKER_CONTAINER" \
   --restart unless-stopped \
   --network "$NETWORK_NAME" \
   --entrypoint /bin/sh \
+  --health-cmd "node -e 'const required=[\"1\",\"true\",\"yes\"].includes((process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED || \"true\").toLowerCase()); if(!required) process.exit(0); const Redis=require(\"ioredis\"); const redis=new Redis(process.env.REDIS_URL); Promise.all([redis.get(\"math-document-grading:worker:heartbeat\"), redis.get(\"math-document-grading:worker:capability\")]).then(([heartbeat, rawCapability])=>{let ready=false; try { const capability=JSON.parse(rawCapability || \"{}\"); const requiredCapabilities=[\"database\",\"redis\",\"objectStore\",\"scanner\",\"aiProvider\",\"mathpix\",\"auditSecret\"]; const keys=Object.keys(capability.capabilities || {}); ready=heartbeat === \"ready\" && capability.version === \"math-document-grading-worker.v1\" && capability.ready === true && capability.configReady === true && keys.length === requiredCapabilities.length && requiredCapabilities.every((key)=>capability.capabilities[key] === true) && keys.every((key)=>requiredCapabilities.includes(key)); } catch {} redis.disconnect(); process.exit(ready ? 0 : 1)}).catch(()=>process.exit(1))'" \
+  --health-interval 15s \
+  --health-timeout 5s \
+  --health-retries 6 \
   -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" \
   "${DB_HOST_ARGS[@]}" \
   "${REDIS_HOST_ARGS[@]}" \
   "${WORKER_ENV_ARGS[@]}" \
   "$APP_IMAGE" \
-  /app-container-start-wrapper.sh worker >/dev/null
+  /app-container-start-wrapper.sh worker
 
 run_scheduler_once
 
-echo "- 启动学生作业扫描 worker 容器: $SUBMISSION_SCANNER_CONTAINER"
-podman run -d --name "$SUBMISSION_SCANNER_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" -e SUBMISSION_SCAN_INTERVAL_SECONDS="$SUBMISSION_SCAN_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-scanner >/dev/null
+if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
+  echo "- 启动学生作业扫描 worker 容器: $SUBMISSION_SCANNER_CONTAINER"
+  podman run -d --name "$SUBMISSION_SCANNER_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" -e SUBMISSION_SCAN_INTERVAL_SECONDS="$SUBMISSION_SCAN_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-scanner >/dev/null
 
-echo "- 启动学生作业 GC worker 容器: $SUBMISSION_GC_CONTAINER"
-podman run -d --name "$SUBMISSION_GC_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_GC_INTERVAL_SECONDS="$SUBMISSION_GC_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-gc >/dev/null
+  echo "- 启动学生作业 GC worker 容器: $SUBMISSION_GC_CONTAINER"
+  podman run -d --name "$SUBMISSION_GC_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_GC_INTERVAL_SECONDS="$SUBMISSION_GC_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-gc >/dev/null
+fi
 
 echo "[4-deploy] 部署完成。"
 echo "- 公网访问: http://121.40.124.135:${APP_PORT}"

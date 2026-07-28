@@ -194,7 +194,7 @@ describe('portrait v2 primary model', () => {
     expect(() => validatePortraitV2Payload(calculationVersionMismatch)).toThrow('calculation version');
   });
 
-  it('enforces the documented 30/90-day freshness thresholds and evidence timestamp ordering', () => {
+  it('treats evidence age as descriptive while enforcing evidence timestamp ordering', () => {
     const partialAge = nativePayload();
     partialAge.dimensions[0].freshness = {
       state: 'current',
@@ -218,8 +218,8 @@ describe('portrait v2 primary model', () => {
       evidenceAgeDays: 1,
     };
 
-    expect(() => validatePortraitV2Payload(partialAge)).toThrow('freshness metadata');
-    expect(() => validatePortraitV2Payload(staleAge)).toThrow('freshness metadata');
+    expect(() => validatePortraitV2Payload(partialAge)).not.toThrow();
+    expect(() => validatePortraitV2Payload(staleAge)).not.toThrow();
     expect(() => validatePortraitV2Payload(futureEvidence)).toThrow('evidence timestamps');
     expect(() => validatePortraitV2Payload(evidenceAfterAsOf)).toThrow('evidence timestamps');
   });
@@ -563,12 +563,12 @@ describe('portrait v2 primary model', () => {
       evidenceSummary: { sourceFamilyCounts: { StudentCompetencySnapshot: 2 } },
     });
     expect(payload.dimensions[2]).toMatchObject({
-      freshness: { state: 'partial', asOf: '2026-05-20T00:00:00.000Z', evidenceAgeDays: 52 },
+      freshness: { state: 'current', asOf: '2026-05-20T00:00:00.000Z', evidenceAgeDays: 52 },
       lastPositiveEvidenceAt: null,
       lastNegativeEvidenceAt: null,
     });
     expect(payload.dimensions[5]).toMatchObject({
-      freshness: { state: 'stale', asOf: '2026-01-01T00:00:00.000Z', evidenceAgeDays: 191 },
+      freshness: { state: 'current', asOf: '2026-01-01T00:00:00.000Z', evidenceAgeDays: 191 },
       lastPositiveEvidenceAt: null,
       lastNegativeEvidenceAt: '2026-01-01T00:00:00.000Z',
     });

@@ -20,6 +20,7 @@ import type { PageContext, UserProfile } from '@/types/ai-context';
 import type { KonlingKnowledgeWorkspaceHint, KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 import {
   resolveAIContext,
+  resolveRegisteredAIContextFromPath,
   isPathExcluded,
   type ResolvedContext,
 } from '@/lib/ai-context-resolver';
@@ -64,6 +65,8 @@ interface GlobalAIContextValue {
     assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
     knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
   }) => void;
+  /** 清除同一路由内卸载组件留下的动态上下文 */
+  clearDynamicPageContext: () => void;
   /** 打开指定教学助理模式 */
   openAssistantEntryPoint: (entryPoint: KonlingTeachingAssistantEntryPoint) => void;
   /** 当前路径名 */
@@ -141,7 +144,13 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
 
     // 解析当前路径的AI上下文
     const resolved = resolveAIContext(pathname);
-    setResolvedContext(resolved);
+    const registeredContext = resolveRegisteredAIContextFromPath(pathname);
+    const persistentConversationEnabled = Boolean(registeredContext)
+      || pathname === '/teacher/smart-prep';
+    setResolvedContext(persistentConversationEnabled
+      ? resolved
+      : { ...resolved, enabled: false });
+    if (!persistentConversationEnabled) setIsOpen(false);
     setDynamicContext({
       pageContext: null,
       tools: [],
@@ -198,6 +207,17 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
       systemPromptExtension: context.systemPromptExtension,
       assistantEntryPoint: context.assistantEntryPoint ?? null,
       knowledgeWorkspaceHint: context.knowledgeWorkspaceHint ?? null,
+    });
+  }, []);
+
+  const clearDynamicPageContext = useCallback(() => {
+    setDynamicContext({
+      pageContext: null,
+      tools: [],
+      quickQuestions: [],
+      systemPromptExtension: undefined,
+      assistantEntryPoint: null,
+      knowledgeWorkspaceHint: null,
     });
   }, []);
 
@@ -267,6 +287,7 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     incrementUnread,
     clearUnread,
     updatePageContext,
+    clearDynamicPageContext,
     openAssistantEntryPoint,
     pathname,
     shouldShowButton,

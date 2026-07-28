@@ -79,7 +79,7 @@ type CommandDeckRouteEvidence = {
   href: string;
   routeFile: string;
   commandDeckGeometry: {
-    change: 'normalize-simulation-command-deck-layout';
+    change: 'unify-simulation-chrome-and-camera-views';
     generatedAt: string;
     sourceSha256: Record<string, string>;
     viewports: CommandDeckViewportEvidence[];
@@ -632,7 +632,7 @@ async function main() {
         href: route.href,
         routeFile: route.routeFile,
         commandDeckGeometry: {
-          change: 'normalize-simulation-command-deck-layout',
+          change: 'unify-simulation-chrome-and-camera-views',
           generatedAt,
           sourceSha256: commandDeckGeometrySourceSha256(route.routeFile),
           viewports: capturedViewports,
@@ -645,7 +645,7 @@ async function main() {
   attachCruiseComparison(routeEvidence);
   const manifest = {
     generatedAt,
-    change: 'normalize-simulation-command-deck-layout',
+    change: 'unify-simulation-chrome-and-camera-views',
     baseUrl,
     routes: routeEvidence,
   };
