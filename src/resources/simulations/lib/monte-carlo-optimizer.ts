@@ -185,7 +185,9 @@ function evaluateWithRustRuntime(
       T: simConfig.nomotoT || 55,
       speedMps: speed,
       maxRudderDeg: 35,
-      maxRudderRateDegPerSec: 5,
+      ...(logic.runtimeVersion === 'simulation-optimizer-runtime-v2'
+        ? { maxRudderRateDegPerSec: 5 }
+        : {}),
     },
     guidePath,
   });
