@@ -326,6 +326,9 @@ export async function runIndependentReview(input: {
     if (!['GPT', 'FIXTURE'].includes(review.provider)) {
       throw new Error('review provider is not supported');
     }
+    if (!['ACCEPT', 'REJECT', 'DISPUTE'].includes(review.outcome)) {
+      throw new Error('review outcome is not supported');
+    }
     const reasons = new Set<CanonicalBindingHighImpactReason>(
       input.generatorDecision.highImpactReasons,
     );

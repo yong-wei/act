@@ -548,6 +548,38 @@ describe('incremental candidate and review pipeline', () => {
     });
   });
 
+  it('fails closed when the reviewer adapter returns an unknown outcome', async () => {
+    const row = candidate();
+    const generated = generatorDecision(row, {
+      proposedRole: 'EXPLAINS',
+      evidenceDigest: sha256('evidence'),
+      evidenceIds: ['evidence'],
+      highImpactReasons: [],
+    });
+    const decision = await runIndependentReview({
+      candidate: row,
+      generatorDecision: generated,
+      canonicalProfile: {
+        canonicalId: 'canonical',
+        canonicalType: 'DomainConcept',
+        semanticProfile: 'profile',
+      },
+      resourceSegment: {
+        structuralUnitId: 'structural-unit',
+        segmentId: 'segment',
+        contentHash: segmentHash,
+        content: 'segment',
+      },
+      reviewerPromptVersion: 'reviewer-v1',
+      review: async () => ({ outcome: 'MAYBE', provider: 'GPT' }) as never,
+    });
+    expect(decision).toMatchObject({
+      reviewProvider: 'GPT',
+      reviewState: 'REVIEW_RETRYABLE',
+      publicationState: 'REVIEW_RETRYABLE',
+    });
+  });
+
   it('invalidates only changed resource hashes', () => {
     const unchanged = acceptedDecision();
     const other = acceptedDecision({
