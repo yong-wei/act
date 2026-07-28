@@ -7,6 +7,7 @@ import {
   buildResourceBindingInventory,
   buildReviewerInput,
   canonicalCandidateId,
+  CanonicalResourceBindingRepository,
   canonicalSha256,
   evaluateCanonicalResourceCutoverReadiness,
   generateCandidatesForCanonicalChanges,
@@ -22,7 +23,9 @@ import {
   toPublicResourceBindingInventory,
   type CanonicalObjectIndexEntry,
   type CanonicalResourceBindingCandidate,
+  type CanonicalResourceBindingDatabase,
   type CanonicalResourceBindingDecision,
+  type EvidenceStructuralUnitCrosswalk,
   type PublicationGateContext,
   type ResourceInventoryObservation,
   type ResourceSegmentIndexEntry,
@@ -855,5 +858,205 @@ describe('publication, human, and authority gates', () => {
         canonicalBindingsVisible: false,
       });
     }
+  });
+});
+
+describe('repository persistence guards', () => {
+  function repositoryCrosswalk(): EvidenceStructuralUnitCrosswalk {
+    const projection = {
+      releaseId: 'release',
+      evidenceId: 'evidence',
+      evidenceContentHash: sha256('evidence'),
+      inventoryRunId: 'inventory-run',
+      atomicResourceId: 'atomic-resource',
+      resourceId: 'resource',
+      structuralUnitId: 'structural-unit',
+      segmentId: 'segment',
+      resourceSegmentHash: segmentHash,
+      captureRevision,
+      canonicalId: 'canonical',
+    };
+    return {
+      id: 'crosswalk',
+      ...projection,
+      sourceEditionId: 'source-edition',
+      sourceVersion: 'source-v1',
+      structuralUnitVersion: captureRevision,
+      structuralUnitHash: segmentHash,
+      validationState: 'VALIDATED',
+      validationDigest: canonicalSha256(projection),
+    };
+  }
+
+  function crosswalkRepository(mode: 'stored' | 'skipped' | 'tampered') {
+    const row = repositoryCrosswalk();
+    const persisted: Array<Record<string, unknown>> = mode === 'skipped'
+      ? []
+      : mode === 'tampered'
+        ? [{ ...row, sourceVersion: 'tampered-source-version' }]
+        : [row];
+    const transaction = {
+      actkgEvidenceSegment: {
+        findUnique: async () => ({
+          sourceEditionId: row.sourceEditionId,
+          contentHash: row.evidenceContentHash,
+        }),
+      },
+      resourceBindingInventoryItem: {
+        findUnique: async () => ({
+          resourceId: row.resourceId,
+          structuralUnitId: row.structuralUnitId,
+          segmentId: row.segmentId,
+          resourceSegmentHash: row.resourceSegmentHash,
+          disposition: 'INCLUDED',
+          run: { captureRevision: row.captureRevision, complete: true },
+        }),
+      },
+      actkgEvidenceStructuralUnitCrosswalk: {
+        createMany: async () => ({}),
+        findMany: async () => persisted,
+      },
+      $queryRawUnsafe: async () => [{ canonicalId: row.canonicalId }],
+    };
+    const database = {
+      $transaction: <T>(callback: (tx: typeof transaction) => Promise<T>): Promise<T> => (
+        callback(transaction)
+      ),
+    } as unknown as CanonicalResourceBindingDatabase;
+    return { repository: new CanonicalResourceBindingRepository(database), row };
+  }
+
+  it('persists a validated crosswalk and accepts idempotent re-imports', async () => {
+    const { repository, row } = crosswalkRepository('stored');
+    await expect(repository.persistEvidenceCrosswalks([row])).resolves.toBe(1);
+  });
+
+  it('rejects a crosswalk whose endpoint tuple is already held by another row', async () => {
+    const { repository, row } = crosswalkRepository('skipped');
+    await expect(repository.persistEvidenceCrosswalks([row]))
+      .rejects.toThrow(/endpoint duplicate for crosswalk/u);
+  });
+
+  it('rejects conflicting content for an already persisted crosswalk id', async () => {
+    const { repository, row } = crosswalkRepository('tampered');
+    await expect(repository.persistEvidenceCrosswalks([row]))
+      .rejects.toThrow(/idempotency conflict for crosswalk/u);
+  });
+
+  function queuedDecision(
+    overrides: Partial<CanonicalResourceBindingDecision> = {},
+  ): CanonicalResourceBindingDecision {
+    return acceptedDecision({
+      reviewProvider: 'FIXTURE',
+      reviewState: 'HUMAN_REQUIRED',
+      publicationState: 'HUMAN_REQUIRED',
+      highImpactReasons: ['fixture-review-not-authoritative'],
+      ...overrides,
+    });
+  }
+
+  function adjudicationRepository(decision: CanonicalResourceBindingDecision) {
+    const context = gateContext();
+    const writes: string[] = [];
+    const transaction = {
+      canonicalResourceBindingHumanQueueItem: {
+        findUnique: async () => ({
+          contextDigest: canonicalSha256(context),
+          inputDigest: decision.reviewerInputDigest,
+          receipt: null,
+          bindingDecision: decision,
+        }),
+      },
+      canonicalResourceBindingDecision: {
+        createMany: async () => {
+          writes.push('decision:createMany');
+          return {};
+        },
+        update: async () => {
+          writes.push('decision:update');
+          return {};
+        },
+      },
+      canonicalResourceBindingHumanDecisionReceipt: {
+        create: async () => {
+          writes.push('receipt:create');
+          return {};
+        },
+      },
+    };
+    const database = {
+      $transaction: <T>(callback: (tx: typeof transaction) => Promise<T>): Promise<T> => (
+        callback(transaction)
+      ),
+    } as unknown as CanonicalResourceBindingDatabase;
+    return { repository: new CanonicalResourceBindingRepository(database), context, writes };
+  }
+
+  function adjudicationInput(
+    outcome: 'ACCEPT' | 'REJECT',
+    context: PublicationGateContext,
+  ) {
+    return {
+      queueId: 'queue',
+      actorId: 'teacher-reviewer',
+      decidedAt: '2026-07-28T12:30:00.000Z',
+      outcome,
+      rationale: '已核对证据与资源端点。',
+      context,
+    };
+  }
+
+  it('rejects adjudication of a superseded queue decision', async () => {
+    const { repository, context, writes } = adjudicationRepository(queuedDecision({
+      lifecycleState: 'SUPERSEDED',
+    }));
+    await expect(repository.adjudicateHumanQueue(adjudicationInput('ACCEPT', context)))
+      .rejects.toThrow(/no longer adjudicatable/u);
+    expect(writes).toEqual([]);
+  });
+
+  it('rejects adjudication when the queue decision is not human-required', async () => {
+    const { repository, context, writes } = adjudicationRepository(queuedDecision({
+      reviewProvider: 'GPT',
+      reviewState: 'ACCEPTED',
+      publicationState: 'CANDIDATE',
+      highImpactReasons: [],
+    }));
+    await expect(repository.adjudicateHumanQueue(adjudicationInput('REJECT', context)))
+      .rejects.toThrow(/no longer adjudicatable/u);
+    expect(writes).toEqual([]);
+  });
+
+  it('keeps the controlled human accept and reject flows intact', async () => {
+    const accepted = adjudicationRepository(queuedDecision());
+    const acceptedResult = await accepted.repository.adjudicateHumanQueue(
+      adjudicationInput('ACCEPT', accepted.context),
+    );
+    expect(acceptedResult).toMatchObject({
+      reviewProvider: 'HUMAN',
+      reviewState: 'ACCEPTED',
+      publicationState: 'SHADOW_PUBLISHED',
+      supersedesDecisionId: expect.any(String),
+    });
+    expect(accepted.writes).toEqual([
+      'decision:createMany',
+      'decision:update',
+      'receipt:create',
+      'decision:update',
+    ]);
+    const rejected = adjudicationRepository(queuedDecision());
+    const rejectedResult = await rejected.repository.adjudicateHumanQueue(
+      adjudicationInput('REJECT', rejected.context),
+    );
+    expect(rejectedResult).toMatchObject({
+      reviewProvider: 'HUMAN',
+      reviewState: 'REJECTED',
+      publicationState: 'CANDIDATE',
+    });
+    expect(rejected.writes).toEqual([
+      'decision:createMany',
+      'decision:update',
+      'receipt:create',
+    ]);
   });
 });

@@ -292,12 +292,17 @@ export class CanonicalResourceBindingRepository {
       const persisted = await transaction.actkgEvidenceStructuralUnitCrosswalk.findMany({
         where: { OR: rows.map((row) => ({ releaseId: row.releaseId, id: row.id })) },
       }) as Array<Record<string, unknown>>;
-      if (
-        persisted.length !== rows.length
-        || rows.some((row) => !persisted.some((actual) => (
-          Object.entries(row).every(([key, value]) => actual[key] === value)
-        )))
-      ) throw new Error('crosswalk idempotency conflict');
+      for (const row of rows) {
+        const actual = persisted.find((candidate) => (
+          candidate.releaseId === row.releaseId && candidate.id === row.id
+        ));
+        if (!actual) {
+          throw new Error(`crosswalk endpoint duplicate for ${row.id}`);
+        }
+        if (!Object.entries(row).every(([key, value]) => actual[key] === value)) {
+          throw new Error(`crosswalk idempotency conflict for ${row.id}`);
+        }
+      }
       return rows.length;
     }, { isolationLevel: 'Serializable' });
   }
@@ -441,6 +446,12 @@ export class CanonicalResourceBindingRepository {
       } | null;
       if (!queued || queued.receipt) {
         throw new Error('human queue item is missing or already adjudicated');
+      }
+      if (
+        queued.bindingDecision.lifecycleState !== 'CURRENT'
+        || queued.bindingDecision.publicationState !== 'HUMAN_REQUIRED'
+      ) {
+        throw new Error('human queue decision is no longer adjudicatable');
       }
       if (queued.contextDigest !== canonicalSha256(input.context)) {
         throw new Error('human adjudication context has drifted');

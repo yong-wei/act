@@ -95,6 +95,13 @@ CREATE UNIQUE INDEX "ActkgEvidenceStructuralUnitCrosswalk_releaseId_id_inventory
   ON "ActkgEvidenceStructuralUnitCrosswalk"(
     "releaseId", "id", "inventoryRunId", "captureRevision", "structuralUnitVersion"
   );
+-- Immutable VALIDATED rows share one endpoint tuple; duplicates would seal
+-- publication behind a permanently unsatisfiable count = 1 gate.
+CREATE UNIQUE INDEX "ActkgEvidenceStructuralUnitCrosswalk_endpoint_key"
+  ON "ActkgEvidenceStructuralUnitCrosswalk"(
+    "releaseId", "evidenceId", "canonicalId", "resourceId", "structuralUnitId",
+    "segmentId", "resourceSegmentHash", "inventoryRunId", "captureRevision", "structuralUnitVersion"
+  );
 
 CREATE UNIQUE INDEX "ActkgRelease_releaseSetId_id_key"
   ON "ActkgRelease"("releaseSetId", "id");
@@ -201,6 +208,10 @@ CREATE UNIQUE INDEX "CanonicalResourceBindingDecision_attempt_key"
 CREATE UNIQUE INDEX "CanonicalResourceBindingDecision_current_published_pair_role_key"
   ON "CanonicalResourceBindingDecision"("pairId", "role")
   WHERE "lifecycleState" = 'CURRENT' AND "publicationState" = 'SHADOW_PUBLISHED';
+-- One predecessor admits at most one superseding child, so a stale human
+-- queue cannot resurrect an already superseded decision through a new child.
+CREATE UNIQUE INDEX "CanonicalResourceBindingDecision_supersedesDecisionId_key"
+  ON "CanonicalResourceBindingDecision"("supersedesDecisionId");
 
 CREATE TABLE "CanonicalResourceBindingHumanQueueItem" (
     "id" TEXT NOT NULL PRIMARY KEY,

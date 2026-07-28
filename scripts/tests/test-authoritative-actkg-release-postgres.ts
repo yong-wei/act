@@ -1613,6 +1613,124 @@ async function main(): Promise<void> {
   });
   assert.equal(humanRejectedReceipt.outcome, 'REJECT');
   assert.equal(humanRejectedReceipt.decisionId, humanRejected.id);
+  const staleQueuedInputDigest = sha256('postgres-stale-queued-input');
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-stale-queued',
+      ...decisionBase,
+      pairId: 'postgres-stale-pair',
+      role: 'PRACTICES',
+      reviewerInputDigest: staleQueuedInputDigest,
+      reviewProvider: 'FIXTURE',
+      reviewState: 'HUMAN_REQUIRED',
+      publicationState: 'HUMAN_REQUIRED',
+      crosswalkId: null,
+      validationDigest: null,
+      highImpactReasons: ['fixture-review-not-authoritative'],
+    },
+  });
+  await db.canonicalResourceBindingHumanQueueItem.create({
+    data: {
+      id: 'postgres-stale-queue',
+      bindingDecisionId: 'postgres-stale-queued',
+      reasonCodes: ['fixture-review-not-authoritative'],
+      contextDigest: humanContextDigest,
+      inputDigest: staleQueuedInputDigest,
+    },
+  });
+  await db.$transaction(async (transaction) => {
+    await transaction.canonicalResourceBindingDecision.create({
+      data: {
+        id: 'postgres-stale-retry',
+        ...decisionBase,
+        pairId: 'postgres-stale-pair',
+        role: 'PRACTICES',
+        reviewerPromptVersion: 'postgres-reviewer/v2',
+        reviewerInputDigest: sha256('postgres-stale-retry-input'),
+        attemptSequence: 2,
+        supersedesDecisionId: 'postgres-stale-queued',
+        publicationState: 'CANDIDATE',
+        crosswalkId: null,
+        validationDigest: null,
+      },
+    });
+    await transaction.canonicalResourceBindingDecision.update({
+      where: { id: 'postgres-stale-queued' },
+      data: { lifecycleState: 'SUPERSEDED' },
+    });
+  });
+  await assert.rejects(bindingRepository.adjudicateHumanQueue({
+    queueId: 'postgres-stale-queue',
+    actorId: 'teacher-reviewer',
+    decidedAt: '2026-07-28T12:33:00.000Z',
+    outcome: 'ACCEPT',
+    rationale: '过期队列不得复活旧决策。',
+    context: humanContext,
+  }), /no longer adjudicatable/u);
+  await assert.rejects(db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-stale-resurrection',
+      ...decisionBase,
+      pairId: 'postgres-stale-pair',
+      role: 'PRACTICES',
+      reviewerPromptVersion: 'human-adjudication/v1',
+      reviewerInputDigest: staleQueuedInputDigest,
+      reviewProvider: 'HUMAN',
+      reviewState: 'ACCEPTED',
+      attemptSequence: 3,
+      supersedesDecisionId: 'postgres-stale-queued',
+      publicationState: 'CANDIDATE',
+      crosswalkId: null,
+      validationDigest: null,
+    },
+  }), /supersedesDecisionId/u);
+  await db.canonicalResourceBindingDecision.create({
+    data: {
+      id: 'postgres-supersession-parent',
+      ...decisionBase,
+      pairId: 'postgres-supersession-pair',
+      role: 'PRACTICES',
+      reviewerInputDigest: sha256('postgres-supersession-parent-input'),
+      publicationState: 'CANDIDATE',
+      crosswalkId: null,
+      validationDigest: null,
+    },
+  });
+  const supersessionChildBase = {
+    ...decisionBase,
+    pairId: 'postgres-supersession-pair',
+    role: 'PRACTICES',
+    attemptSequence: 2,
+    supersedesDecisionId: 'postgres-supersession-parent',
+    publicationState: 'CANDIDATE',
+    crosswalkId: null,
+    validationDigest: null,
+  };
+  const supersessionResults = await Promise.allSettled([
+    db.canonicalResourceBindingDecision.create({
+      data: {
+        ...supersessionChildBase,
+        id: 'postgres-supersession-child-a',
+        reviewerPromptVersion: 'postgres-reviewer/v2',
+        reviewerInputDigest: sha256('postgres-supersession-child-a-input'),
+      },
+    }),
+    db.canonicalResourceBindingDecision.create({
+      data: {
+        ...supersessionChildBase,
+        id: 'postgres-supersession-child-b',
+        reviewerPromptVersion: 'postgres-reviewer/v3',
+        reviewerInputDigest: sha256('postgres-supersession-child-b-input'),
+      },
+    }),
+  ]);
+  assert.equal(
+    supersessionResults.filter((result) => result.status === 'fulfilled').length,
+    1,
+  );
+  assert.equal(await db.canonicalResourceBindingDecision.count({
+    where: { supersedesDecisionId: 'postgres-supersession-parent' },
+  }), 1);
   const duplicateCurrentCrosswalk = {
     id: 'postgres-crosswalk-current-duplicate',
     ...crosswalkBase,
@@ -1631,42 +1749,30 @@ async function main(): Promise<void> {
     structuralUnitVersion: historicalCaptureRevision,
     validationDigest: bindingDigest(historicalCrosswalkProjection),
   };
-  await bindingRepository.persistEvidenceCrosswalks([duplicateHistoricalCrosswalk]);
-  const historicalCaptureIdentity = {
-    inventoryRunId: historicalInventoryRunId,
-    captureRevision: historicalCaptureRevision,
-    structuralUnitVersion: historicalCaptureRevision,
-  };
-  const historicalCrosswalkBinding = {
-    crosswalkId: historicalCrosswalk.id,
-    ...historicalCaptureIdentity,
-    validationDigest: historicalCrosswalk.validationDigest,
-  };
-  const historicalRepositoryContext = {
-    ...repositoryContext,
-    captureIdentity: historicalCaptureIdentity,
-    existingPublished: [],
-    crosswalks: [historicalCrosswalk],
-  };
-  await assert.rejects(bindingRepository.persistDecisions([{
-    ...repositoryReplacement,
-    id: 'postgres-repository-hidden-prepublication-ambiguity',
-    pairId: 'postgres-repository-hidden-prepublication-ambiguity-pair',
-    role: 'PRACTICES',
-    proposedRole: 'PRACTICES',
-    supersedesDecisionId: null,
-    ...historicalCrosswalkBinding,
-  }], historicalRepositoryContext), /bypasses publication gates/u);
-  await assert.rejects(db.canonicalResourceBindingDecision.create({
-    data: {
-      id: 'postgres-direct-prepublication-ambiguity',
-      ...decisionBase,
-      pairId: 'postgres-direct-prepublication-ambiguity-pair',
-      role: 'ASSESSES',
-      publicationState: 'SHADOW_PUBLISHED',
-      ...historicalCrosswalkBinding,
+  await assert.rejects(
+    bindingRepository.persistEvidenceCrosswalks([duplicateHistoricalCrosswalk]),
+    /endpoint duplicate/u,
+  );
+  await assert.rejects(db.$executeRawUnsafe(`
+    INSERT INTO "ActkgEvidenceStructuralUnitCrosswalk"
+    SELECT (
+      jsonb_populate_record(
+        NULL::"ActkgEvidenceStructuralUnitCrosswalk",
+        to_jsonb(source) || jsonb_build_object(
+          'id', 'postgres-crosswalk-direct-duplicate',
+          'sourceVersion', 'postgres-test/v3'
+        )
+      )
+    ).*
+    FROM "ActkgEvidenceStructuralUnitCrosswalk" source
+    WHERE source."id" = 'postgres-crosswalk-historical-capture'
+  `), /endpoint_key/u);
+  assert.equal(await db.actkgEvidenceStructuralUnitCrosswalk.count({
+    where: {
+      releaseId: validated.entry.release_id,
+      inventoryRunId: historicalInventoryRunId,
     },
-  }), /exact validated crosswalk/u);
+  }), 1);
   const concurrentCaptureRevision = 'e'.repeat(40);
   const concurrentInventoryRunId = `${bindingInventory.id}:concurrent`;
   await db.resourceBindingInventoryRun.create({
@@ -1740,10 +1846,8 @@ async function main(): Promise<void> {
       })
     )),
   ]);
-  assert.equal(
-    concurrentResults.filter((result) => result.status === 'fulfilled').length,
-    1,
-  );
+  assert.equal(concurrentResults[0]!.status, 'fulfilled');
+  assert.equal(concurrentResults[1]!.status, 'rejected');
   const [concurrentCrosswalkCount, concurrentPublishedCount] = await Promise.all([
     db.actkgEvidenceStructuralUnitCrosswalk.count({
       where: {
@@ -1762,10 +1866,8 @@ async function main(): Promise<void> {
       },
     }),
   ]);
-  assert(
-    (concurrentPublishedCount === 1 && concurrentCrosswalkCount === 1)
-    || (concurrentPublishedCount === 0 && concurrentCrosswalkCount === 2),
-  );
+  assert.equal(concurrentCrosswalkCount, 1);
+  assert.equal(concurrentPublishedCount, 1);
   const precedenceAuthorId = 'binding-precedence-author';
   const precedencePlanId = 'binding-precedence-plan';
   const disabledResourceId = 'binding-precedence-disabled';

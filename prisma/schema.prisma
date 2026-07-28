@@ -5344,6 +5344,7 @@ model ActkgEvidenceStructuralUnitCrosswalk {
   @@id([releaseId, id])
   @@unique([releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion])
   @@unique([releaseId, evidenceId, sourceVersion, evidenceContentHash, inventoryRunId, atomicResourceId, resourceSegmentHash, canonicalId])
+  @@unique([releaseId, evidenceId, canonicalId, resourceId, structuralUnitId, segmentId, resourceSegmentHash, inventoryRunId, captureRevision, structuralUnitVersion], map: "ActkgEvidenceStructuralUnitCrosswalk_endpoint_key")
   @@index([structuralUnitId, structuralUnitVersion, structuralUnitHash])
 }
 
@@ -5373,7 +5374,7 @@ model CanonicalResourceBindingDecision {
   publicationState       String
   lifecycleState         String
   attemptSequence        Int
-  supersedesDecisionId   String?
+  supersedesDecisionId   String?  @unique
   crosswalkId            String?
   inventoryRunId         String?
   captureRevision        String?
@@ -5389,7 +5390,7 @@ model CanonicalResourceBindingDecision {
   canonical      ActkgAuthoritativeObject                @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
   crosswalk      ActkgEvidenceStructuralUnitCrosswalk?    @relation(fields: [releaseId, crosswalkId, inventoryRunId, captureRevision, structuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
   supersedes     CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)
-  supersededBy   CanonicalResourceBindingDecision[]       @relation("CanonicalBindingSupersession")
+  supersededBy   CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession")
   humanQueueItem CanonicalResourceBindingHumanQueueItem?
   humanDecisionReceipts CanonicalResourceBindingHumanDecisionReceipt[]
 
