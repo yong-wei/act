@@ -1,16 +1,15 @@
 import 'dotenv/config';
 
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
-
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
+  assertCanonicalResourceBindingCaptureRevisionUnchanged,
   buildAtomicResourceId,
   buildResourceBindingInventory,
   canonicalSha256,
   CanonicalResourceBindingRepository,
   evaluateCanonicalResourceCutoverReadiness,
   runtimeProjectionObservation,
+  resolveCanonicalResourceBindingCaptureRevision,
   resolveGeneratedPublicationAggregate,
   selectResourceKnowledgeAuthority,
   type CanonicalResourceBindingDatabase,
@@ -18,8 +17,6 @@ import {
 } from '../../src/lib/canonical-resource-binding';
 import { getAllRegisteredResourceMetadata } from '../../src/lib/resource-registry-metadata';
 import { loadRuntimeResourceProjectionInputs } from '../../src/lib/teacher-resource-node-data';
-
-const GIT_COMMIT = /^[a-f0-9]{40}$/u;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -74,25 +71,6 @@ function dispositionSignals(...values: unknown[]) {
   };
 }
 
-async function captureRevision(): Promise<string> {
-  const environmentRevision = process.env.APP_REVISION?.trim();
-  const revisionPath = path.resolve(process.env.APP_REVISION_FILE ?? '.app-revision');
-  const fileRevision = await readFile(revisionPath, 'utf8')
-    .then((value) => value.trim())
-    .catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return undefined;
-      throw error;
-    });
-  if (environmentRevision && fileRevision && environmentRevision !== fileRevision) {
-    throw new Error('APP_REVISION does not match the immutable image revision file');
-  }
-  const revision = fileRevision ?? environmentRevision;
-  if (!revision || !GIT_COMMIT.test(revision)) {
-    throw new Error('immutable APP_REVISION is required for resource binding inventory');
-  }
-  return revision;
-}
-
 function registeredResourceObservations(input: {
   captureRevision: string;
   capturedAt: string;
@@ -142,7 +120,7 @@ export async function buildCurrentInventory(
   db: ReturnType<typeof createPrismaClient>,
   verificationCapture?: { capturedAt: string; dbWatermark: string },
 ) {
-  const revision = await captureRevision();
+  const revision = await resolveCanonicalResourceBindingCaptureRevision();
   const capturedAt = verificationCapture?.capturedAt ?? new Date().toISOString();
   const snapshot = await db.$transaction(async (transaction) => {
     const watermarkRows = await transaction.$queryRaw<Array<{ watermark: string }>>`
@@ -312,7 +290,9 @@ export async function buildCurrentInventory(
       dbWatermark: snapshot.dbWatermark,
     }));
   }
-  return buildResourceBindingInventory(observations);
+  const inventory = buildResourceBindingInventory(observations);
+  await assertCanonicalResourceBindingCaptureRevisionUnchanged(revision);
+  return inventory;
 }
 
 async function main(): Promise<void> {

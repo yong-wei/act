@@ -1,4 +1,5 @@
 export * from './authority';
+export * from './capture-revision';
 export * from './contracts';
 export * from './inventory';
 export * from './pipeline';

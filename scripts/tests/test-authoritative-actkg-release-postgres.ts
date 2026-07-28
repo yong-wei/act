@@ -51,6 +51,11 @@ let db: ReturnType<typeof createPrismaClient> | null = null;
 let ephemeralPgCtl: string | null = null;
 let ephemeralDataDir: string | null = null;
 const tempRoot = mkdtempSync(path.join(os.tmpdir(), 'actkg-postgres-'));
+const checkoutRevision = spawnSync('git', ['rev-parse', 'HEAD'], {
+  cwd: process.cwd(),
+  encoding: 'utf8',
+}).stdout.trim();
+assert.match(checkoutRevision, /^[a-f0-9]{40}$/u);
 
 function migrate(): void {
   const result = spawnSync(process.execPath, ['node_modules/prisma/build/index.js', 'migrate', 'deploy'], {
@@ -97,7 +102,7 @@ function runDeploymentCli(script: string, mode?: '--verify-only'): string {
     env: {
       ...process.env,
       DATABASE_URL: testUrl.toString(),
-      APP_REVISION: 'b'.repeat(40),
+      APP_REVISION: checkoutRevision,
       APP_REVISION_FILE: path.join(tempRoot, 'missing-image-revision'),
     },
     encoding: 'utf8',
@@ -106,7 +111,7 @@ function runDeploymentCli(script: string, mode?: '--verify-only'): string {
   return result.stdout;
 }
 
-function runBindingVerify(revision: string) {
+function runBindingVerify() {
   return spawnSync(process.execPath, [
     path.join('node_modules', 'tsx', 'dist', 'cli.mjs'),
     'scripts/db/import-canonical-resource-binding-shadow.ts',
@@ -116,14 +121,14 @@ function runBindingVerify(revision: string) {
     env: {
       ...process.env,
       DATABASE_URL: testUrl.toString(),
-      APP_REVISION: revision,
+      APP_REVISION: checkoutRevision,
       APP_REVISION_FILE: path.join(tempRoot, 'missing-image-revision'),
     },
     encoding: 'utf8',
   });
 }
 
-function runConcurrentBindingImport(revision: string): Promise<{
+function runConcurrentBindingImport(): Promise<{
   status: number | null;
   stdout: string;
   stderr: string;
@@ -137,7 +142,7 @@ function runConcurrentBindingImport(revision: string): Promise<{
       env: {
         ...process.env,
         DATABASE_URL: testUrl.toString(),
-        APP_REVISION: revision,
+        APP_REVISION: checkoutRevision,
         APP_REVISION_FILE: path.join(tempRoot, 'missing-image-revision'),
       },
     });
@@ -327,13 +332,34 @@ async function main(): Promise<void> {
   assert.equal(bindingRetryOutput.runId, bindingImportOutput.runId);
   assert.equal(bindingRetryOutput.reused, true);
   assert.equal(await db.resourceBindingInventoryRun.count({
-    where: { captureRevision: 'b'.repeat(40) },
+    where: { captureRevision: checkoutRevision },
   }), 1);
 
-  const concurrentRevision = 'd'.repeat(40);
+  const concurrentAuthorId = 'binding-concurrent-author';
+  const concurrentResourceId = 'binding-concurrent-resource';
+  const concurrentResourceConfig = {
+    resourceNodePlanning: { pathEligible: true },
+    concurrencyIdentity: 'stable',
+  };
+  await db.user.create({
+    data: {
+      id: concurrentAuthorId,
+      email: 'binding-concurrent@example.test',
+      role: 'TEACHER',
+    },
+  });
+  await db.teachingResource.create({
+    data: {
+      id: concurrentResourceId,
+      title: 'Resource binding concurrent import fixture',
+      type: 'STATIC_TEXT',
+      config: concurrentResourceConfig,
+      authorId: concurrentAuthorId,
+    },
+  });
   const concurrentImports = await Promise.all([
-    runConcurrentBindingImport(concurrentRevision),
-    runConcurrentBindingImport(concurrentRevision),
+    runConcurrentBindingImport(),
+    runConcurrentBindingImport(),
   ]);
   for (const result of concurrentImports) {
     assert.equal(result.status, 0, result.stderr || result.stdout);
@@ -347,20 +373,19 @@ async function main(): Promise<void> {
     [false, true],
   );
   const concurrentRun = await db.resourceBindingInventoryRun.findFirstOrThrow({
-    where: { captureRevision: concurrentRevision },
+    where: { id: concurrentOutputs[0]!.runId },
     include: { items: true },
   });
-  assert.equal(concurrentRun.items.length, 7050);
+  assert.equal(concurrentRun.items.length, 7051);
   assert.equal(await db.resourceBindingInventoryRun.count({
-    where: { captureRevision: concurrentRevision },
+    where: { id: concurrentRun.id },
   }), 1);
   assert.match(
     runDeploymentCli('scripts/db/import-canonical-resource-binding-shadow.ts', '--verify-only'),
     /"mode":"verify-only"/u,
   );
-  const bindingInventory = await db.resourceBindingInventoryRun.findFirstOrThrow({
-    where: { captureRevision: 'b'.repeat(40) },
-    orderBy: [{ capturedAt: 'desc' }, { id: 'desc' }],
+  const bindingInventory = await db.resourceBindingInventoryRun.findUniqueOrThrow({
+    where: { id: concurrentRun.id },
     include: { items: true },
   });
   assert.equal(bindingInventory.complete, true);
@@ -368,12 +393,25 @@ async function main(): Promise<void> {
   assert.equal(bindingInventory.authorityState, 'SHADOW');
   assert.equal(bindingInventory.items.length, bindingInventory.itemCount);
   assert(bindingInventory.unresolvedCount > 0);
-  const missingBindingVerify = runBindingVerify('c'.repeat(40));
+  await db.teachingResource.update({
+    where: { id: concurrentResourceId },
+    data: {
+      config: {
+        ...concurrentResourceConfig,
+        verifyMissingCurrentRun: true,
+      },
+    },
+  });
+  const missingBindingVerify = runBindingVerify();
   assert.notEqual(missingBindingVerify.status, 0);
   assert.match(
     missingBindingVerify.stderr,
     /current resource binding inventory .* is missing/u,
   );
+  await db.teachingResource.update({
+    where: { id: concurrentResourceId },
+    data: { config: concurrentResourceConfig },
+  });
   await db.$executeRawUnsafe(
     'ALTER TABLE "ResourceBindingInventoryRun" DISABLE TRIGGER "ResourceBindingInventoryRun_immutable"',
   );
@@ -381,7 +419,7 @@ async function main(): Promise<void> {
     where: { id: bindingInventory.id },
     data: { complete: false },
   });
-  const incompleteBindingVerify = runBindingVerify('b'.repeat(40));
+  const incompleteBindingVerify = runBindingVerify();
   assert.notEqual(incompleteBindingVerify.status, 0);
   assert.match(
     incompleteBindingVerify.stderr,
@@ -397,7 +435,6 @@ async function main(): Promise<void> {
 
   const verifyIdentityAuthorId = 'binding-verify-identity-author';
   const verifyIdentityResourceId = 'binding-verify-identity-resource';
-  const verifyIdentityRevision = '9'.repeat(40);
   const verifyIdentityConfigA = {
     resourceNodePlanning: { pathEligible: true },
     verifyRunIdentity: 'A',
@@ -418,7 +455,7 @@ async function main(): Promise<void> {
       authorId: verifyIdentityAuthorId,
     },
   });
-  const verifyIdentityImportA = await runConcurrentBindingImport(verifyIdentityRevision);
+  const verifyIdentityImportA = await runConcurrentBindingImport();
   assert.equal(
     verifyIdentityImportA.status,
     0,
@@ -436,7 +473,7 @@ async function main(): Promise<void> {
       },
     },
   });
-  const verifyIdentityImportB = await runConcurrentBindingImport(verifyIdentityRevision);
+  const verifyIdentityImportB = await runConcurrentBindingImport();
   assert.equal(
     verifyIdentityImportB.status,
     0,
@@ -466,7 +503,7 @@ async function main(): Promise<void> {
     where: { id: verifyIdentityResourceId },
     data: { config: verifyIdentityConfigA },
   });
-  const verifyIdentityResult = runBindingVerify(verifyIdentityRevision);
+  const verifyIdentityResult = runBindingVerify();
   assert.equal(
     verifyIdentityResult.status,
     0,
@@ -1256,7 +1293,7 @@ async function main(): Promise<void> {
     ...repositoryContext,
     existingPublished: [repositoryReplacement],
   }), /requires a published replacement/u);
-  assert.notEqual(runBindingVerify('b'.repeat(40)).status, 0);
+  assert.notEqual(runBindingVerify().status, 0);
 
   await db.canonicalResourceBindingDecision.create({
     data: {
@@ -1783,11 +1820,11 @@ async function main(): Promise<void> {
       },
     ],
   });
-  const precedenceRevision = 'e'.repeat(40);
-  const precedenceImport = await runConcurrentBindingImport(precedenceRevision);
+  const precedenceImport = await runConcurrentBindingImport();
   assert.equal(precedenceImport.status, 0, precedenceImport.stderr || precedenceImport.stdout);
-  const precedenceRun = await db.resourceBindingInventoryRun.findFirstOrThrow({
-    where: { captureRevision: precedenceRevision },
+  const precedenceOutput = JSON.parse(precedenceImport.stdout) as { runId: string };
+  const precedenceRun = await db.resourceBindingInventoryRun.findUniqueOrThrow({
+    where: { id: precedenceOutput.runId },
   });
   const precedenceItems = await db.resourceBindingInventoryItem.findMany({
     where: {
