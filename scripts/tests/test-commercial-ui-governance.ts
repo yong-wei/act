@@ -743,6 +743,22 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'textbook citation reader is a source-inspection view launched from registered runtime citations',
   ],
   [
+    'src/app/textbooks/[bookId]/[edition]/[...unitPath]/page.tsx',
+    'standalone textbook reader uses the registered /textbooks/** embed-surface exception with dedicated hierarchy, breadcrumb, and reading workspace instead of an AppShell primary route',
+  ],
+  [
+    'src/app/@textbookModal/(.)textbooks/[bookId]/[edition]/[...unitPath]/page.tsx',
+    'intercepted textbook reader is a parallel-slot overlay covered by the registered /@textbookModal/** embed-surface exception above the originating shell-covered page',
+  ],
+  [
+    'src/app/@textbookModal/[...catchAll]/page.tsx',
+    'textbook parallel-slot fallback belongs to the registered /@textbookModal/** embed-surface exception and does not define an AppShell primary route',
+  ],
+  [
+    'src/app/review/unified-textbook-reader/page.tsx',
+    'unified textbook reader review is an isolated internal visual QA surface covered by the registered /review/** visual-review-only exception',
+  ],
+  [
     'src/app/review/adaptive-assessment-figures/page.tsx',
     'adaptive assessment figures is an internal review preview launched from the review hub',
   ],

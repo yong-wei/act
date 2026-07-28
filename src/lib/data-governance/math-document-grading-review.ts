@@ -2,6 +2,7 @@ import type { TeacherGradingWorkbenchView } from './document-rubric-grading-work
 import { DOCUMENT_RUBRIC_GOAL_DIMENSION_MAP } from './document-rubric-grading-workbench';
 import { GradingMutationError, normalizeTextAnswerEvidence, sha256, stableStringify, validateEvidenceAnchor } from './math-document-grading-contracts';
 import type { SubmissionObjectStore } from '@/lib/assignments/submission-object-store';
+import { hasAtMostOneDecimal } from '@/lib/assignments/assignment-rubric-contract';
 import { assertPipelineActorScope, questionContractFromRow, validateFrozenRunInput } from './math-document-grading-persistence';
 
 export const PIPELINE_GRADING_REVIEW_INCLUDE = {
@@ -296,7 +297,18 @@ export function validatePipelineReviewContract(run: any, reviewedAt = new Date()
   if (!scope.assignmentRevisionId) reasons.push('assignment-revision-id-missing');
   if (!scope.courseId) reasons.push('course-id-missing');
   const criteria = Array.isArray(rubric?.criteria) ? rubric.criteria : [];
-  if (criteria.length === 0 || criteria.some((criterion: any) => !criterion || typeof criterion !== 'object' || Array.isArray(criterion) || typeof criterion.id !== 'string' || !criterion.id || !Number.isFinite(criterion.maxPoints) || criterion.maxPoints <= 0 || !DOCUMENT_RUBRIC_GOAL_DIMENSION_MAP[String(criterion.goalDimension)] || !Array.isArray(criterion.levels) || criterion.levels.length === 0 || criterion.levels.some((level: any) => !level || typeof level !== 'object' || Array.isArray(level) || typeof level.id !== 'string' || !level.id || !Number.isFinite(level.minPoints) || !Number.isFinite(level.maxPoints) || level.minPoints > level.maxPoints))) reasons.push('rubric-criteria-invalid');
+  const rubricV2 = rubric?.schemaVersion === 'assignment-scoring-rubric.v2';
+  if (criteria.length === 0 || criteria.some((criterion: any) => {
+    const detailed = rubricV2 ? criterion?.detailedRubricEnabled === true : true;
+    return !criterion || typeof criterion !== 'object' || Array.isArray(criterion)
+      || typeof criterion.id !== 'string' || !criterion.id
+      || !Number.isFinite(criterion.maxPoints) || criterion.maxPoints <= 0
+      || !DOCUMENT_RUBRIC_GOAL_DIMENSION_MAP[String(criterion.goalDimension)]
+      || !Array.isArray(criterion.levels)
+      || (detailed && criterion.levels.length === 0)
+      || (!detailed && criterion.levels.length > 0)
+      || criterion.levels.some((level: any) => !level || typeof level !== 'object' || Array.isArray(level) || typeof level.id !== 'string' || !level.id || !Number.isFinite(level.minPoints) || !Number.isFinite(level.maxPoints) || level.minPoints > level.maxPoints);
+  })) reasons.push('rubric-criteria-invalid');
   if (Number.isFinite(rubric?.maxScore) && criteria.length > 0 && Math.abs(criteria.reduce((sum: number, criterion: any) => sum + (Number.isFinite(criterion?.maxPoints) ? criterion.maxPoints : 0), 0) - rubric.maxScore) > 1e-9) reasons.push('rubric-max-score-total-mismatch');
   const criterionIds = criteria.map((criterion: any) => criterion.id);
   if (new Set(criterionIds).size !== criterionIds.length) reasons.push('rubric-criteria-not-unique');
@@ -315,9 +327,14 @@ export function validatePipelineReviewContract(run: any, reviewedAt = new Date()
     if (rows.length !== 1) reasons.push(`assessment-cardinality:${criterion.id}`);
     else {
       const assessment = rows[0];
-      const level = criterion.levels?.find((item: any) => item.id === assessment.levelId);
-      if (!level) reasons.push(`assessment-level-mismatch:${criterion.id}`);
-      if (!Number.isFinite(assessment.score) || assessment.score < 0 || assessment.score > criterion.maxPoints || (level && (assessment.score < level.minPoints || assessment.score > level.maxPoints))) reasons.push(`assessment-score-invalid:${criterion.id}`);
+      const detailed = rubricV2 ? criterion.detailedRubricEnabled === true : true;
+      const level = assessment.levelId
+        ? criterion.levels?.find((item: any) => item.id === assessment.levelId)
+        : null;
+      if ((detailed && !level) || (!detailed && assessment.levelId !== null)) reasons.push(`assessment-level-mismatch:${criterion.id}`);
+      if (!Number.isFinite(assessment.score) || assessment.score < 0 || assessment.score > criterion.maxPoints
+        || (rubricV2 && !hasAtMostOneDecimal(assessment.score))
+        || (!rubricV2 && level && (assessment.score < level.minPoints || assessment.score > level.maxPoints))) reasons.push(`assessment-score-invalid:${criterion.id}`);
       if (!Number.isFinite(assessment.confidence) || assessment.confidence < 0 || assessment.confidence > 1) reasons.push(`assessment-confidence-invalid:${criterion.id}`);
     }
   }
@@ -379,10 +396,16 @@ export function validatePipelineReviewEdits(run: any, edits: any[]): string | nu
     seen.add(edit.criterionId);
     const criterion = rubric.criteria.find((item: any) => item.id === edit.criterionId);
     if (!criterion) return '评分编辑指标不存在';
-    const level = criterion.levels.find((item: any) => item.id === edit.levelId);
-    if (!level) return '评分编辑等级不存在';
-    if (edit.score < 0 || edit.score > criterion.maxPoints) return '评分编辑分数超出指标范围';
-    if (edit.score < level.minPoints || edit.score > level.maxPoints) return '评分编辑分数不在所选等级范围';
+    const v2 = rubric.schemaVersion === 'assignment-scoring-rubric.v2';
+    const detailed = v2 ? criterion.detailedRubricEnabled === true : true;
+    const level = edit.levelId
+      ? criterion.levels.find((item: any) => item.id === edit.levelId)
+      : null;
+    if (detailed && !level) return '评分编辑等级不存在';
+    if (!detailed && edit.levelId !== null) return '标准评分项不得指定评价级别';
+    if (!Number.isFinite(edit.score) || edit.score < 0 || edit.score > criterion.maxPoints) return '评分编辑分数超出指标范围';
+    if (v2 && !hasAtMostOneDecimal(edit.score)) return '评分编辑分数必须保留一位小数';
+    if (!v2 && level && (edit.score < level.minPoints || edit.score > level.maxPoints)) return '评分编辑分数不在所选等级范围';
   }
   return null;
 }

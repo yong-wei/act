@@ -14,80 +14,101 @@ import {
   verifyLearningEvidenceCitations,
   type LearningEvidenceCorpusChunk,
 } from '../learning-evidence-rag-corpus';
-import { loadAllTextbookRuntimeSearchDocuments } from '../../textbook-runtime-resources';
+import { loadAllTextbookStructureUnitProjections } from '../../structured-textbook-runtime';
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 
 function createTextbookRuntimeFixture() {
   const root = mkdtempSync(join(tmpdir(), 'textbook-runtime-'));
   const bookRoot = join(root, 'dorf-modern-control-systems');
   mkdirSync(bookRoot, { recursive: true });
+  const unitId = 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-10/section-10.1';
+  const sourceSpan = {
+    sourcePath: 'textbooks/dorf-modern-control-systems/chapter-10/textbook.md',
+    startLine: 1,
+    endLine: 2,
+    startByte: 0,
+    endByte: 124,
+  };
+  const fragmentId = `${unitId}#figure-10.3`;
   writeFileSync(join(bookRoot, 'manifest.json'), JSON.stringify({
+    recordType: 'export-manifest',
+    schemaVersion: 'structured-textbook-runtime.v2',
     bookId: 'dorf-modern-control-systems',
-    title: 'Modern Control Systems',
+    edition: '14th Global Edition',
+    sourceRevision: 'revision-001',
+    sourceHashes: {
+      'textbooks/dorf-modern-control-systems/chapter-10/textbook.md': 'sha256:source',
+    },
+    counts: {
+      structureUnits: 1,
+      fragmentAnchors: 1,
+      retrievalWindows: 1,
+      navigationEntries: 1,
+    },
   }), 'utf-8');
-  const documents = [
-    {
-      id: 'ch10-sec01__chunk-001',
-      kind: 'chunk',
-      title: 'Modern Control Systems 第 10 章 10.1 节',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#chunk-001',
-      text: 'Root-locus compensation links desired transient response to controller zero and pole placement.',
-      contentHash: 'hash-textbook-section',
-      resourceProjection: {
-        resourceId: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
-        segmentRef: 'ch10-sec01',
-        citationTargetRef: 'ch10-sec01__chunk-001',
-        knowledgeNodeRefs: ['kn-phase-margin'],
-        capabilityTargetRefs: ['parameterDesign'],
-        contentHash: 'hash-textbook-section',
-      },
-      citationAddress: {
-        kind: 'text',
-        sourceRefId: 'ch10-sec01__chunk-001',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#chunk-001',
-        locator: 'chunk-001',
-        contentHash: 'hash-textbook-section',
-      },
-      metadata: {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch10-sec01',
-        chapterId: 'chapter-10',
-        chapterNumber: 10,
-      },
-    },
-    {
-      id: 'fig-10-03__figure',
-      kind: 'figure',
-      title: '图 10-3 根轨迹校正示意',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#fig-10-03',
-      text: 'Figure 10-3 shows a root-locus compensation sketch.',
-      contentHash: 'hash-figure-description',
-      resourceProjection: {
-        resourceId: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
-        segmentRef: 'ch10-sec01',
-        citationTargetRef: 'fig-10-03',
-        knowledgeNodeRefs: ['kn-phase-margin'],
-        capabilityTargetRefs: ['parameterDesign'],
-        contentHash: 'hash-figure-description',
-      },
-      citationAddress: {
-        kind: 'image',
-        sourceRefId: 'fig-10-03',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#fig-10-03',
-        locator: 'fig-10-03',
-        contentHash: 'hash-figure-description',
-      },
-      metadata: {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch10-sec01',
-        chapterId: 'chapter-10',
-        chapterNumber: 10,
-      },
-    },
-  ];
+  const unit = {
+    id: unitId,
+    bookId: 'dorf-modern-control-systems',
+    edition: '14th Global Edition',
+    chapterId: 'chapter-10',
+    structuralPath: ['chapter-chapter-10', 'section-10.1'],
+    parentId: null,
+    ancestorIds: [],
+    level: 2,
+    kind: 'section',
+    naturalNumber: '10.1',
+    title: 'Root-Locus Compensation',
+    markdown: 'Root-locus compensation links desired transient response to controller zero and pole placement.',
+    sourceSpan,
+    fragmentAnchorIds: [fragmentId],
+    recordType: 'structure-unit',
+    schemaVersion: 'structured-textbook-runtime.v2',
+  };
   writeFileSync(
-    join(bookRoot, 'search-documents.jsonl'),
-    documents.map((document) => JSON.stringify(document)).join('\n') + '\n',
+    join(bookRoot, 'units.jsonl'),
+    `${JSON.stringify(unit)}\n`,
+    'utf-8',
+  );
+  writeFileSync(
+    join(bookRoot, 'anchors.jsonl'),
+    `${JSON.stringify({
+      id: fragmentId,
+      owningUnitId: unitId,
+      kind: 'figure',
+      naturalNumber: '10.3',
+      ordinal: 1,
+      sourceSpan,
+      recordType: 'fragment-anchor',
+      schemaVersion: 'structured-textbook-runtime.v2',
+    })}\n`,
+    'utf-8',
+  );
+  writeFileSync(
+    join(bookRoot, 'windows.jsonl'),
+    `${JSON.stringify({
+      id: `${unitId}#window-001`,
+      primaryUnitId: unitId,
+      segments: [{ owningUnitId: unitId, markdown: unit.markdown, sourceSpan }],
+      citationTarget: false,
+      recordType: 'retrieval-window',
+      schemaVersion: 'structured-textbook-runtime.v2',
+    })}\n`,
+    'utf-8',
+  );
+  writeFileSync(
+    join(bookRoot, 'navigation.json'),
+    JSON.stringify({
+      recordType: 'navigation-index',
+      schemaVersion: 'structured-textbook-runtime.v2',
+      bookId: 'dorf-modern-control-systems',
+      entries: [{
+        unitId,
+        parentId: null,
+        childIds: [],
+        previousUnitId: null,
+        nextUnitId: null,
+      }],
+    }),
     'utf-8',
   );
   return {
@@ -381,40 +402,47 @@ describe('learning evidence RAG corpus contract', () => {
   it('verifies real textbook citations and media citation fixtures with precise anchors for Konling answers', async () => {
     const fixture = createTextbookRuntimeFixture();
     try {
-      const textbookDocuments = await loadAllTextbookRuntimeSearchDocuments(fixture.root);
-      const textbookChunk = textbookDocuments.find((document) => document.kind === 'chunk');
-      const textbookFigure = textbookDocuments.find((document) => document.kind === 'figure');
-      expect(textbookChunk).toBeDefined();
+      const textbookUnits = await loadAllTextbookStructureUnitProjections(fixture.root);
+      const textbookUnit = textbookUnits[0];
+      const textbookFigure = textbookUnit?.fragments[0];
+      expect(textbookUnit).toBeDefined();
       expect(textbookFigure).toBeDefined();
-      if (!textbookChunk || !textbookFigure) {
-        throw new Error('expected textbook chunk and figure fixtures');
+      if (!textbookUnit || !textbookFigure) {
+        throw new Error('expected textbook unit and fragment fixtures');
       }
+      const figureHref = `${textbookUnit.href}#${textbookFigure.id.split('#').at(-1)}`;
+      const figureHash = 'sha256:figure-description';
 
       const textbookAndMedia = [
         chunk({
-          id: textbookChunk.id,
+          id: textbookUnit.id,
           family: 'course-content',
           sourceType: 'course-content',
           sourceRef: {
-            id: textbookChunk.id,
+            id: textbookUnit.id,
             goalId: 'root-locus-correction',
-            resourceId: textbookChunk.resourceProjection.resourceId,
+            resourceId: textbookUnit.resourceProjection.resourceId,
           },
-          spanRef: { kind: 'text-range', start: 0, end: textbookChunk.text?.length ?? 0, locator: textbookChunk.citationAddress?.locator },
+          spanRef: {
+            kind: 'text-range',
+            start: 0,
+            end: textbookUnit.text.length,
+            locator: textbookUnit.citationAddress.locator,
+          },
           display: {
-            title: textbookChunk.title ?? 'Modern Control Systems 教材段落',
-            href: textbookChunk.href ?? null,
-            capsule: textbookChunk.text?.slice(0, 120) ?? 'Modern Control Systems 教材段落。',
+            title: textbookUnit.title,
+            href: textbookUnit.href,
+            capsule: textbookUnit.text.slice(0, 120),
           },
-          citationAddress: textbookChunk.citationAddress,
+          citationAddress: textbookUnit.citationAddress,
           content: {
-            text: textbookChunk.text ?? null,
-            redactedSummary: textbookChunk.text?.slice(0, 160) ?? null,
-            hash: textbookChunk.contentHash ?? 'hash-textbook-section',
+            text: textbookUnit.text,
+            redactedSummary: textbookUnit.text.slice(0, 160),
+            hash: textbookUnit.contentHash,
           },
-          resourceProjection: textbookChunk.resourceProjection,
+          resourceProjection: textbookUnit.resourceProjection,
           retrieval: {
-            tags: ['textbook-section'],
+            tags: ['textbook-unit'],
             goals: ['root-locus-correction'],
             useCases: ['konling', 'recommendation'],
           },
@@ -426,21 +454,32 @@ describe('learning evidence RAG corpus contract', () => {
           sourceRef: {
             id: textbookFigure.id,
             goalId: 'root-locus-correction',
-            resourceId: textbookFigure.resourceProjection.resourceId,
+            resourceId: textbookUnit.resourceProjection.resourceId,
           },
-          spanRef: { kind: 'node', locator: textbookFigure.citationAddress?.locator },
+          spanRef: { kind: 'node', locator: textbookFigure.id },
           display: {
-            title: textbookFigure.title ?? 'Modern Control Systems 教材图片',
-            href: textbookFigure.href ?? null,
-            capsule: textbookFigure.text?.slice(0, 120) ?? 'Modern Control Systems 教材图片描述。',
+            title: '图 10-3 根轨迹校正示意',
+            href: figureHref,
+            capsule: 'Figure 10-3 shows a root-locus compensation sketch.',
           },
-          citationAddress: textbookFigure.citationAddress,
+          citationAddress: {
+            kind: 'image',
+            sourceRefId: textbookFigure.id,
+            href: figureHref,
+            locator: textbookFigure.id,
+            contentHash: figureHash,
+          },
           content: {
-            text: textbookFigure.text ?? null,
-            redactedSummary: textbookFigure.text?.slice(0, 160) ?? null,
-            hash: textbookFigure.contentHash ?? 'hash-figure-description',
+            text: 'Figure 10-3 shows a root-locus compensation sketch.',
+            redactedSummary: 'Figure 10-3 shows a root-locus compensation sketch.',
+            hash: figureHash,
           },
-          resourceProjection: textbookFigure.resourceProjection,
+          resourceProjection: {
+            ...textbookUnit.resourceProjection,
+            segmentRef: textbookFigure.id,
+            citationTargetRef: textbookFigure.id,
+            contentHash: figureHash,
+          },
           retrieval: {
             tags: ['figure-description'],
             goals: ['root-locus-correction'],
@@ -540,17 +579,7 @@ describe('learning evidence RAG corpus contract', () => {
         useCase: 'konling' as const,
       };
       const retrieved = retrieveLearningEvidenceCorpus(textbookAndMedia, scope, {
-        tags: ['textbook-section', 'figure-description', 'video-transcript', 'slides'],
-        knowledgeNodeRefs: [
-          ...(textbookChunk?.resourceProjection.knowledgeNodeRefs ?? []),
-          ...(textbookFigure?.resourceProjection.knowledgeNodeRefs ?? []),
-          'kn-phase-margin',
-        ],
-        capabilityTargetRefs: [
-          ...(textbookChunk?.resourceProjection.capabilityTargetRefs ?? []),
-          ...(textbookFigure?.resourceProjection.capabilityTargetRefs ?? []),
-          'parameterDesign',
-        ],
+        tags: ['textbook-unit', 'figure-description', 'video-transcript', 'slides'],
         limit: 8,
       });
       const verification = verifyLearningEvidenceCitations(textbookAndMedia, scope, retrieved.map((item) => ({
@@ -562,19 +591,18 @@ describe('learning evidence RAG corpus contract', () => {
       })));
 
       expect(retrieved.map((item) => item.id)).toEqual(expect.arrayContaining([
-        textbookChunk?.id,
-        textbookFigure?.id,
+        textbookUnit.id,
+        textbookFigure.id,
         'chunk-video-transcript',
         'chunk-slides-anchor',
       ]));
-      expect(textbookChunk?.resourceProjection.resourceId).toMatch(/^textbook-section:dorf-modern-control-systems:/);
-      expect(textbookFigure?.resourceProjection.resourceId).toMatch(/^textbook-section:dorf-modern-control-systems:/);
-      expect(textbookChunk?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
-      expect(textbookFigure?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
+      expect(textbookUnit.resourceProjection.resourceId).toBe(textbookUnit.id);
+      expect(textbookUnit.href).toContain('/textbooks/dorf-modern-control-systems/');
+      expect(figureHref).toContain('/textbooks/dorf-modern-control-systems/');
       expect(verification.status).toBe('downgraded');
-      expect(verification.limitations).toEqual(expect.arrayContaining([
-        expect.objectContaining({ chunkId: textbookChunk?.id, reason: 'missing-version-ref' }),
-        expect.objectContaining({ chunkId: textbookFigure?.id, reason: 'missing-version-ref' }),
+      expect(verification.limitations).not.toEqual(expect.arrayContaining([
+        expect.objectContaining({ chunkId: textbookUnit.id, reason: 'missing-version-ref' }),
+        expect.objectContaining({ chunkId: textbookFigure.id, reason: 'missing-version-ref' }),
       ]));
       expect(new Set(verification.verifiedRefs.map((ref) => ref.addressKind))).toEqual(new Set([
         'text',

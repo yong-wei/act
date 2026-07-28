@@ -44,42 +44,50 @@ The relation contract SHALL register a canonical relation type `association` map
 - **THEN** every previously registered canonical type keeps its existing family, direction, strength normalization, and deduplication behavior
 
 ### Requirement: ActKG graph projection loads as a gated graph source
-
-The knowledge graph source layer SHALL support an environment-gated ActKG `GraphProjection` JSON source alongside the existing file and database sources. When the gate is unset, the adapter SHALL NOT run and the default source selection SHALL be unchanged. When the gate is set, the adapter SHALL map `ProjectedNode` to unified nodes (`id` → `id`, `display_name` → `name`, `description` → `description`, `concept_kind` → `conceptKind`, `semantic_name` → `semanticName`, `candidate` → `candidate`, `source_coverage_count` → `sourceCoverageCount`) and `ProjectedLink` to unified links (`source_id`/`target_id` → `sourceId`/`targetId`, `relation_type` → canonical relation type, `evidence_state` → `evidenceState`). Adapter output SHALL pass the same relation-contract validation, coverage checks, node/link budgets, and byte budget as the file source, and SHALL fail closed with a descriptive error when the projection document is missing, malformed, or fails validation.
-
-#### Scenario: Gate unset keeps default source
-- **WHEN** the ActKG projection environment gate is not configured
-- **THEN** graph loading uses the existing file-first, database-fallback chain with no adapter involvement
+The candidate knowledge graph source layer SHALL load the locked CTKG 0.2 `GraphProjection` V2 only through the aggregate Repository candidate selector. The adapter SHALL validate the pinned GraphProjection V2 contract, map every public node and link field without semantic coercion, and apply the existing graph budgets and authorization boundary. The Legacy source selection SHALL remain unchanged for production consumers until final cutover.
 
 #### Scenario: Valid projection maps into unified payload
-- **WHEN** the gate points to a projection document conforming to the ActKG projection JSON Schema
-- **THEN** the adapter emits a unified payload whose nodes and links carry the mapped fields, and the payload passes relation-contract validation and coverage checks
+- **WHEN** the Repository returns the locked `control-theory-engineering-v0.2` projection conforming to the pinned CTKG 0.2 contract
+- **THEN** the adapter SHALL emit a candidate payload containing all 744 nodes and 97 links with their upstream identities, types, tiers, predicates, directions, families, evidence state, and projection provenance
 
 #### Scenario: Malformed projection fails closed
-- **WHEN** the gate points to a missing or schema-invalid projection document
-- **THEN** graph loading fails closed with a descriptive adapter error and does not silently fall back to another source or emit a partial graph
+- **WHEN** the aggregate projection is absent, schema-invalid, hash-invalid, or inconsistent with the selected ReleaseSet
+- **THEN** candidate loading SHALL fail closed with a descriptive error and SHALL NOT fall back to Legacy or emit a partial candidate graph
+
+#### Scenario: Gate unset keeps default source
+- **WHEN** a formal graph consumer has not explicitly entered the candidate V2 path
+- **THEN** the existing production source selection SHALL remain unchanged
 
 ### Requirement: Projection version binds to graph version identity
-
-When the ActKG adapter is active, the projection's `version_digest` (with its source release identity) SHALL become the payload `graphVersion`/`versionDigest`, so progressive shard keys, client caches, and runtime coordinate invalidation behave exactly as they do for file and database sources. A projection whose digest changes SHALL invalidate prior shard caches and stored layout coordinates through the existing version-change path.
+When the CTKG 0.2 candidate adapter is active, the aggregate ReleaseSet identity, source release hash, source dataset hash, and `version_digest` SHALL jointly identify the payload, caches, progressive shards, and stored layout state.
 
 #### Scenario: Digest binds to shard identity
-- **WHEN** the adapter loads a projection with `version_digest` D
-- **THEN** every progressive shard derived from it validates against graph version D and stale shards keyed to a prior digest are rejected
+- **WHEN** the adapter loads a projection with version digest D from aggregate ReleaseSet R
+- **THEN** every progressive shard SHALL validate against both R and D and SHALL reject a shard from any prior ReleaseSet or digest
 
 #### Scenario: Digest change invalidates layout state
-- **WHEN** a reload yields a projection whose `version_digest` differs from the previously loaded one
-- **THEN** stored runtime node coordinates for the prior version are cleared through the existing version-invalidation path
+- **WHEN** either the selected aggregate ReleaseSet or its `version_digest` differs from the stored version
+- **THEN** candidate caches and stored runtime coordinates for the prior identity SHALL be invalidated through the existing version-change path
 
-### Requirement: Projected direction conflicts resolve by canonical contract
+### Requirement: Candidate authoritative projection is isolated from Legacy projection
+The projection layer MUST expose `act.canvas.v2` and `act.node-detail.v2` as contracts derived from one selected candidate ReleaseSet, and MUST keep the existing Legacy projection unchanged during migration.
 
-When an ActKG `ProjectedLink.direction` conflicts with the direction implied by the canonical relation contract for its mapped type, the canonical contract table SHALL win, the conflict SHALL be recorded in the link's provenance, and loading SHALL continue. When the projected direction agrees with the contract, no provenance conflict marker is added.
+#### Scenario: Candidate projection is requested
+- **WHEN** the client requests a specific candidate ReleaseSet
+- **THEN** the projection SHALL contain only objects and relations from that ReleaseSet and SHALL identify its projection version
 
-#### Scenario: Contract wins on conflict
-- **WHEN** a projected link of relation type `contains` declares direction `unordered`
-- **THEN** the emitted link uses direction `parent-to-child` from the canonical contract and its provenance records the overridden projected direction
+#### Scenario: Legacy projection is requested
+- **WHEN** the migration-period client selects the old graph
+- **THEN** the existing Legacy DTO SHALL be returned without Canonical candidate objects
 
-#### Scenario: Agreement adds no conflict marker
-- **WHEN** a projected link of relation type `prerequisite` declares direction `earlier_to_later`
-- **THEN** the emitted link uses direction `earlier-to-later` and carries no direction-conflict provenance marker
+### Requirement: Projected relation semantics match the pinned contract
+Every CTKG 0.2 projected link MUST preserve its upstream `relation_type`, `direction`, and `relation_family`, and the importer MUST fail closed when those fields violate the pinned consumer contract or relation vocabulary.
+
+#### Scenario: Projected relation is valid
+- **WHEN** a link's predicate, direction, family, endpoints, and evidence state conform to the pinned CTKG 0.2 contract
+- **THEN** the candidate payload SHALL preserve those values exactly
+
+#### Scenario: Projected relation conflicts with the contract
+- **WHEN** a link declares an invalid direction, family, predicate, or endpoint combination
+- **THEN** the complete aggregate import SHALL fail and no corrected relation SHALL be fabricated
 

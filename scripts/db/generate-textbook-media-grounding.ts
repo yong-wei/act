@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
@@ -8,39 +7,29 @@ import {
 } from '@/lib/textbook-media-grounding';
 import type { RuntimeResourceProjectionArtifactRow } from '@/lib/runtime-resource-projections';
 import {
-  loadAllTextbookRuntimeSearchDocuments,
-  type TextbookRuntimeSearchDocument,
-} from '@/lib/textbook-runtime-resources';
-import { buildKaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
+  loadAllTextbookStructureUnitProjections,
+  type TextbookStructureUnitProjection,
+} from '@/lib/structured-textbook-runtime';
 
 const SOURCE_PACKAGE_ID = 'hu-shousong-exercise-analysis-3rd';
-const RUNTIME_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/runtime/resources/textbooks', SOURCE_PACKAGE_ID);
+const RUNTIME_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/runtime/resources/textbooks-v2');
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const RUNTIME_PROJECTIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
-const CANDIDATES_PATH = path.join(OUTPUT_DIR, 'textbook-section-grounding-candidates.jsonl');
-const CITATION_TARGETS_PATH = path.join(OUTPUT_DIR, 'textbook-section-citation-targets.jsonl');
+const CANDIDATES_PATH = path.join(OUTPUT_DIR, 'textbook-unit-grounding-candidates.jsonl');
+const CITATION_TARGETS_PATH = path.join(OUTPUT_DIR, 'textbook-unit-citation-targets.jsonl');
 const LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'textbook-media-grounding-limitations.json');
-
-interface RuntimeTextbookManifest {
-  bookId?: string;
-  version?: string;
-  title?: string;
-  authoringManifestHash?: string;
-}
 
 async function main() {
   const generatedAt = new Date().toISOString();
-  await assertRuntimeExportExists();
-  const textbookManifest = await readJson<RuntimeTextbookManifest>(path.join(RUNTIME_TEXTBOOK_ROOT, 'manifest.json'));
-  const textbookDocuments = await buildTextbookDocuments(textbookManifest);
-  const targetFileHashes = await buildTargetFileHashes(textbookDocuments);
+  const textbookUnits = await loadTextbookUnits();
+  const targetFileHashes = new Map(textbookUnits.map((unit) => [unit.href, unit.contentHash]));
   const mediaProjections = await loadMediaProjectionRows(RUNTIME_PROJECTIONS_PATH);
   const artifacts = buildTextbookMediaGroundingArtifacts({
     sourcePackageId: SOURCE_PACKAGE_ID,
     generatedAt,
     reviewBatchId: `textbook-grounding-${generatedAt.slice(0, 10)}`,
-    textbookDocuments,
-    targetFileHashForHref: (href) => targetFileHashes.get(runtimeHrefPathname(href)) ?? null,
+    textbookUnits,
+    targetFileHashForHref: (href) => targetFileHashes.get(href) ?? null,
     mediaProjections,
   });
 
@@ -51,26 +40,13 @@ async function main() {
   printSummary(artifacts);
 }
 
-async function buildTextbookDocuments(manifest: RuntimeTextbookManifest): Promise<TextbookRuntimeSearchDocument[]> {
-  const bookId = manifest.bookId ?? SOURCE_PACKAGE_ID;
-  const documents = (await loadAllTextbookRuntimeSearchDocuments(path.dirname(RUNTIME_TEXTBOOK_ROOT)))
-    .filter((document) => document.metadata.bookId === bookId);
-  if (documents.length === 0) {
-    throw new Error(`No runtime search documents found for ${bookId}.`);
+async function loadTextbookUnits(): Promise<TextbookStructureUnitProjection[]> {
+  const units = (await loadAllTextbookStructureUnitProjections(RUNTIME_TEXTBOOK_ROOT))
+    .filter((unit) => unit.metadata.bookId === SOURCE_PACKAGE_ID);
+  if (units.length === 0) {
+    throw new Error(`No structured textbook units found for ${SOURCE_PACKAGE_ID}.`);
   }
-  const versionRefs = buildKaqArtifactVersionRefs({
-    resourceRegistryVersion: manifest.version ?? 'textbook-resource-export.v1',
-    resourceProjectionVersion: 'resource-semantic-projection.v1',
-    groundingVersion: 'textbook-media-grounding.v1',
-  });
-  await Promise.all(documents.map(assertTextbookDocumentRuntimeHrefExists));
-  return documents.map((document) => ({
-    ...document,
-    resourceProjection: {
-      ...document.resourceProjection,
-      versionRefs: document.resourceProjection.versionRefs ?? versionRefs,
-    },
-  }));
+  return units;
 }
 
 async function loadMediaProjectionRows(filePath: string): Promise<RuntimeResourceProjectionArtifactRow[]> {
@@ -94,72 +70,11 @@ function isMediaProjectionRow(row: RuntimeResourceProjectionArtifactRow): boolea
     row.resourceType === 'slides';
 }
 
-async function readJson<T>(filePath: string): Promise<T> {
-  return JSON.parse(await fs.readFile(filePath, 'utf-8')) as T;
-}
-
 async function readRequiredTextFile(filePath: string, message: string): Promise<string> {
   try {
     return await fs.readFile(filePath, 'utf-8');
   } catch (error) {
     throw new Error(`${message}\nRequired file: ${filePath}`, { cause: error });
-  }
-}
-
-async function assertTextbookDocumentRuntimeHrefExists(document: TextbookRuntimeSearchDocument): Promise<void> {
-  const href = document.citationAddress?.href ?? document.href;
-  if (href) await assertRuntimeHrefExists(href);
-}
-
-async function buildTargetFileHashes(
-  documents: readonly TextbookRuntimeSearchDocument[],
-): Promise<ReadonlyMap<string, string>> {
-  const pathnames = Array.from(new Set(documents
-    .map((document) => document.citationAddress?.href ?? document.href)
-    .filter(Boolean)
-    .map(runtimeHrefPathname)));
-  const entries = await Promise.all(pathnames.map(async (pathname) => {
-    const bytes = await fs.readFile(runtimeHrefAbsolutePath(pathname));
-    return [pathname, `sha256:${createHash('sha256').update(bytes).digest('hex')}`] as const;
-  }));
-  return new Map(entries);
-}
-
-async function assertRuntimeHrefExists(href: string): Promise<void> {
-  const pathname = runtimeHrefPathname(href);
-  await fs.access(runtimeHrefAbsolutePath(pathname));
-}
-
-function runtimeHrefPathname(href: string): string {
-  return href.split('#')[0];
-}
-
-function runtimeHrefAbsolutePath(pathname: string): string {
-  const prefix = '/course-runtime/';
-  if (!pathname.startsWith(prefix)) {
-    throw new Error(`Textbook runtime section href must start with ${prefix}: ${pathname}`);
-  }
-  const relativePath = pathname.slice(prefix.length);
-  return path.join(process.cwd(), 'course-content/runtime', relativePath);
-}
-
-async function assertRuntimeExportExists(): Promise<void> {
-  const requiredFiles = ['manifest.json', 'search-documents.jsonl'];
-  const missingFiles: string[] = [];
-  for (const fileName of requiredFiles) {
-    const filePath = path.join(RUNTIME_TEXTBOOK_ROOT, fileName);
-    try {
-      await fs.access(filePath);
-    } catch {
-      missingFiles.push(filePath);
-    }
-  }
-  if (missingFiles.length > 0) {
-    throw new Error([
-      `Missing runtime textbook export for ${SOURCE_PACKAGE_ID}:`,
-      ...missingFiles.map((filePath) => `- ${filePath}`),
-      `Run: python3 course-content/scripts/export_textbook_resources.py --book ${SOURCE_PACKAGE_ID}`,
-    ].join('\n'));
   }
 }
 

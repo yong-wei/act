@@ -1,11 +1,156 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 
 function read(file) {
   return fs.readFileSync(path.join(root, file), 'utf8');
+}
+
+function writeExecutable(directory, name, content) {
+  const filePath = path.join(directory, name);
+  fs.writeFileSync(filePath, content, { mode: 0o755 });
+  return filePath;
+}
+
+function verifyCutoverFailureGate() {
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'remote-deploy-cutover-gate-'));
+  try {
+    const fakeBin = path.join(fixtureRoot, 'bin');
+    const sshLog = path.join(fixtureRoot, 'ssh.log');
+    fs.mkdirSync(fakeBin);
+    writeExecutable(fakeBin, 'ssh', [
+      '#!/usr/bin/env bash',
+      `printf '%s\\n' "$*" >> ${JSON.stringify(sshLog)}`,
+      'exit 0',
+      '',
+    ].join('\n'));
+    for (const command of ['scp', 'curl']) {
+      writeExecutable(fakeBin, command, '#!/usr/bin/env bash\nexit 0\n');
+    }
+    writeExecutable(fakeBin, 'node', [
+      '#!/usr/bin/env bash',
+      'field=""',
+      'while [[ "$#" -gt 0 ]]; do',
+      '  if [[ "$1" == "--field" ]]; then field="$2"; break; fi',
+      '  shift',
+      'done',
+      'case "$field" in',
+      '  appRevision|runtimeSourceRevision|indexSourceRevision)',
+      '    printf "%s\\n" "1111111111111111111111111111111111111111"',
+      '    ;;',
+      '  runtimeDigest|indexDigest)',
+      '    printf "%s\\n" "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"',
+      '    ;;',
+      'esac',
+      'exit 0',
+      '',
+    ].join('\n'));
+    const baseEnv = {
+      ...process.env,
+      PATH: `${fakeBin}:${process.env.PATH}`,
+      SKIP_BUILD: '1',
+      SSH_TARGET: 'fixture.invalid',
+      REMOTE_PROJECT_DIR: '/tmp/act-remote-deploy-fixture',
+    };
+    const missingImage = path.join(fixtureRoot, 'missing-image.tar');
+    const preCutover = spawnSync(
+      'bash',
+      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        env: {
+          ...baseEnv,
+          LOCAL_IMAGE_TAR: missingImage,
+          LOCAL_PROVENANCE_FILE: `${missingImage}.provenance.json`,
+        },
+      },
+    );
+    assert.notEqual(preCutover.status, 0, '缺少本地镜像的 pre-cutover 应失败');
+    assert.equal(
+      fs.existsSync(sshLog) ? fs.readFileSync(sshLog, 'utf8') : '',
+      '',
+      'pre-cutover 本地失败不得通过 SSH 停止或探测生产消费者',
+    );
+
+    const imageTar = path.join(fixtureRoot, 'image.tar');
+    const provenance = `${imageTar}.provenance.json`;
+    const runtimeRoot = path.join(fixtureRoot, 'runtime');
+    fs.writeFileSync(imageTar, 'fixture-image');
+    fs.writeFileSync(provenance, '{}\n');
+    fs.mkdirSync(path.join(runtimeRoot, 'resources', 'textbook-retrieval'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(runtimeRoot, 'resources', 'textbook-retrieval', 'manifest.json'),
+      '{}\n',
+    );
+    writeExecutable(fakeBin, 'rsync', '#!/usr/bin/env bash\nexit 73\n');
+    const postCutover = spawnSync(
+      'bash',
+      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        env: {
+          ...baseEnv,
+          LOCAL_IMAGE_TAR: imageTar,
+          LOCAL_PROVENANCE_FILE: provenance,
+          LOCAL_RUNTIME_DIR: runtimeRoot,
+        },
+      },
+    );
+    assert.notEqual(postCutover.status, 0, 'runtime rsync 失败应终止 cutover');
+    const stopCalls = (
+      fs.readFileSync(sshLog, 'utf8').match(/runtime consumer still running/gu) ?? []
+    ).length;
+    assert.equal(
+      stopCalls,
+      2,
+      'cutover 开始后的 ERR 必须执行初始 stop，并在失败处理时再次确认消费者停止',
+    );
+
+    fs.writeFileSync(sshLog, '');
+    writeExecutable(fakeBin, 'rsync', '#!/usr/bin/env bash\nexit 0\n');
+    const postCutoverExplicitExit = spawnSync(
+      'bash',
+      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        env: {
+          ...baseEnv,
+          LOCAL_IMAGE_TAR: imageTar,
+          LOCAL_PROVENANCE_FILE: provenance,
+          LOCAL_RUNTIME_DIR: runtimeRoot,
+        },
+      },
+    );
+    assert.notEqual(
+      postCutoverExplicitExit.status,
+      0,
+      'cutover 开始后的远端镜像哈希显式 fail 应终止部署',
+    );
+    assert.match(
+      postCutoverExplicitExit.stderr,
+      /远端临时文件 SHA256 不一致/u,
+      '合同夹具应到达 cutover 后的显式 fail 路径',
+    );
+    const explicitExitStopCalls = (
+      fs.readFileSync(sshLog, 'utf8').match(/runtime consumer still running/gu) ?? []
+    ).length;
+    assert.equal(
+      explicitExitStopCalls,
+      2,
+      'cutover 开始后的显式非零 EXIT 必须执行初始 stop，并在退出处理时再次确认消费者停止',
+    );
+  } finally {
+    fs.rmSync(fixtureRoot, { recursive: true, force: true });
+  }
 }
 
 function main() {
@@ -34,6 +179,17 @@ function main() {
     script.includes('--skip-build'),
     true,
     '远端部署脚本必须支持 --skip-build 选项'
+  );
+
+  assert.equal(
+    script.includes('stop_remote_runtime_consumers') &&
+      script.indexOf('stop_remote_runtime_consumers', script.indexOf('[2/5]')) <
+        script.indexOf('rsync -az --delete') &&
+      script.includes('REMOTE_RUNTIME_STAGING_DIR') &&
+      script.includes('保持教材 runtime 消费者停止') &&
+      script.includes('trap on_exit EXIT'),
+    true,
+    '远端部署必须在 runtime 同步前停止消费者，并让 ERR 或显式非零退出都保持消费者停止',
   );
 
   assert.match(
@@ -292,6 +448,8 @@ function main() {
     true,
     '远端部署脚本必须验证 BullMQ 队列 key'
   );
+
+  verifyCutoverFailureGate();
 
   console.log('remote deploy script test passed');
 }

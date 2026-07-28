@@ -48,6 +48,7 @@ course-content/runtime/resource-governance/*
 !course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl
 !course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl
 !course-content/runtime/resource-governance/learning-goal-assessment-coverage-matrix.json
+!course-content/runtime/resource-governance/runtime-resource-projections.jsonl
 scripts/
 !scripts/
 scripts/*
@@ -59,6 +60,10 @@ scripts/*
 !scripts/wasm/**
 !scripts/db/
 !scripts/db/**
+!scripts/actkg-release/
+!scripts/actkg-release/**
+!scripts/course-coverage/
+!scripts/course-coverage/**
 !scripts/knowledge/
 !scripts/knowledge/**
 !scripts/assignments/

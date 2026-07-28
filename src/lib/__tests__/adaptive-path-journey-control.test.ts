@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { createElement } from 'react';
@@ -26,6 +26,16 @@ const rootDir = path.resolve(__dirname, '../../..');
 
 function readSource(relativePath: string) {
   return readFileSync(path.join(rootDir, relativePath), 'utf8');
+}
+
+function findJourneyControlMounts(directory: string): string[] {
+  return readdirSync(path.join(rootDir, directory), { withFileTypes: true }).flatMap((entry) => {
+    const relativePath = path.posix.join(directory.replaceAll('\\', '/'), entry.name);
+    if (entry.isDirectory() && entry.name === '__tests__') return [];
+    if (entry.isDirectory()) return findJourneyControlMounts(relativePath);
+    if (!entry.isFile() || !/\.tsx?$/.test(entry.name)) return [];
+    return readSource(relativePath).includes('<AdaptivePathJourneyControlFromRoute') ? [relativePath] : [];
+  });
 }
 
 function launchContext(resourceType = 'knowledge_card') {
@@ -86,6 +96,90 @@ describe('adaptive path journey control', () => {
     expect(html).toContain('1 / 3');
     expect(html).toContain('进入校正工作台');
     expect(html).toContain('href="/interactive-learning/control-workbench?pathId=path-1"');
+  });
+
+  it('renders only one return action when the ready next action resolves to the path return', () => {
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: journey({
+        state: 'ready',
+        nodeId: 'node-1',
+        title: '返回学习路径',
+        type: 'adaptive_quiz',
+        href: launchContext().returnHref,
+        reason: null,
+        recovery: null,
+      }),
+      error: null,
+      onRefresh: () => undefined,
+    }));
+
+    expect(html.match(/返回学习路径/g)).toHaveLength(1);
+    expect(html).not.toContain('data-adaptive-path-next-action="ready"');
+  });
+
+  it('normalizes query ordering before deduplicating an equivalent return target', () => {
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: journey({
+        state: 'ready',
+        nodeId: 'node-1',
+        title: '返回学习路径',
+        type: 'adaptive_quiz',
+        href: '/assessment/adaptive-practice?nodeId=node-1&pathId=path-1&intent=path-execution&goal=control-correction',
+        reason: null,
+        recovery: null,
+      }),
+      error: null,
+      onRefresh: () => undefined,
+    }));
+
+    expect(html.match(/返回学习路径/g)).toHaveLength(1);
+    expect(html).not.toContain('data-adaptive-path-next-action="ready"');
+  });
+
+  it('keeps a same-label next action when its normalized target differs from the return target', () => {
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: journey({
+        state: 'ready',
+        nodeId: 'node-2',
+        title: '返回学习路径',
+        type: 'knowledge_card',
+        href: '/knowledge?nodeId=node-2',
+        reason: null,
+        recovery: null,
+      }),
+      error: null,
+      onRefresh: () => undefined,
+    }));
+
+    expect(html.match(/返回学习路径/g)).toHaveLength(2);
+    expect(html).toContain('data-adaptive-path-next-action="ready"');
+    expect(html).toContain('href="/knowledge?nodeId=node-2"');
+  });
+
+  it('does not repeat the return action as blocked recovery', () => {
+    const html = renderToStaticMarkup(createElement(AdaptivePathJourneyControl, {
+      launchContext: launchContext(),
+      status: 'ready',
+      journey: journey({
+        state: 'blocked',
+        nodeId: 'node-1',
+        title: '理解频域指标',
+        type: 'knowledge_card',
+        href: null,
+        reason: '当前结果未通过路径验证',
+        recovery: { label: '返回学习路径', href: launchContext().returnHref },
+      }),
+      error: null,
+      onRefresh: () => undefined,
+    }));
+
+    expect(html.match(/返回学习路径/g)).toHaveLength(1);
   });
 
   it.each([
@@ -193,6 +287,44 @@ describe('adaptive path journey control', () => {
     expect(readSource('src/app/knowledge/page.tsx')).toContain(
       'journeyControl={<AdaptivePathJourneyControlFromRoute />}',
     );
+  });
+
+  it('audits every direct shared journey-control mount', () => {
+    expect(findJourneyControlMounts('src').sort()).toEqual([
+      'src/app/assessment/adaptive-practice/page.tsx',
+      'src/app/knowledge/page.tsx',
+      'src/app/simulations/_components/simulation-shell.tsx',
+      'src/features/arena/arena-path-journey-control.tsx',
+      'src/features/control-workbench/shell/control-workbench-shell.tsx',
+      'src/features/interactive/interactive-learning-shell.tsx',
+      'src/features/interactive/shared/lesson-runtime-shell.tsx',
+    ]);
+  });
+
+  it('suppresses resource-page return actions when the shared path journey owns navigation', () => {
+    const resourcePageSource = readSource('src/app/interactive-learning/resources/[id]/page.tsx');
+
+    expect(resourcePageSource).toContain('const showLocalReturnAction = !pathLaunchContext;');
+    expect(resourcePageSource).toContain('actions={showLocalReturnAction ? (');
+    expect(resourcePageSource).toContain('action={showLocalReturnAction ? (');
+    expect(resourcePageSource).toContain("pathLaunchContext\n      ? { label: sourceContext.label }");
+  });
+
+  it('keeps the resource-page return action for non-path sources', () => {
+    const resourcePageSource = readSource('src/app/interactive-learning/resources/[id]/page.tsx');
+
+    expect(resourcePageSource).toContain('const showLocalReturnAction = !pathLaunchContext;');
+    expect(resourcePageSource).toContain('href={sourceContext.href}');
+    expect(resourcePageSource).toContain('返回{sourceContext.label}');
+  });
+
+  it('suppresses invalid lesson-runtime return actions when the shared path journey owns navigation', () => {
+    const lessonShellSource = readSource('src/features/interactive/shared/lesson-runtime-shell.tsx');
+
+    expect(lessonShellSource).toContain('const showRuntimeReturnAction = !pathLaunchContext;');
+    expect(lessonShellSource).toContain('{showRuntimeReturnAction ? (');
+    expect(lessonShellSource).toContain("{ label: '学习路径' },");
+    expect(lessonShellSource).not.toContain('{ label: runtimeReturnLabel, href: runtimeReturnHref },');
   });
 
   it('keeps raw course content in the owning path center instead of claiming destination controls', () => {

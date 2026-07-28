@@ -21,6 +21,7 @@ export interface TeacherCourseBasisSegmentProjection {
   title: string;
   documentSourceType: TeacherCourseBasisDocumentSourceType;
   reviewState: TeacherCourseBasisReviewState;
+  lifecycleState?: 'editable' | 'frozen';
   text: string;
   knowledgeTags?: string[];
   indexedAt: string;
@@ -115,6 +116,7 @@ export function projectConfirmedTeacherCourseBasisSegment(
       versionId: segment.versionId,
       documentSourceType: segment.documentSourceType,
       reviewState: segment.reviewState,
+      lifecycleState: segment.lifecycleState,
       versionState: segment.versionState,
     },
     spanRef: {
@@ -226,7 +228,8 @@ export function teacherCourseBasisSegmentsFromProjections(
     contentHash: projection.segment.contentHash,
     title: projection.version.document.title,
     documentSourceType: documentSourceType(projection.version.document.kind),
-    reviewState: projection.version.reviewState === 'CONFIRMED' ? 'confirmed' : 'unconfirmed',
+    reviewState: projection.version.reviewState === 'REJECTED' ? 'unconfirmed' : 'confirmed',
+    lifecycleState: projection.version.reviewState === 'CONFIRMED' ? 'frozen' : 'editable',
     text: projection.segment.text,
     indexedAt: isoTimestamp(projection.projectedAt),
     sourceUpdatedAt: isoTimestamp(projection.version.createdAt),

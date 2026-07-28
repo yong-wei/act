@@ -218,9 +218,9 @@ function assertStudentPdfProjection(projection: StudentPdfProjection, manifest: 
     if (slide.modules.some((module) => !expectedStudentModules.some((expectedModule) => expectedModule.id === module.id))) {
       throw new SmartCoursewareError(`pdf-export-student-visibility-invalid:${slide.stepId}`, 409);
     }
-    for (const module of slide.modules) {
-      if (!layout.slots.some((slot) => slot.id === module.slotId) || module.lines.length === 0) {
-        throw new SmartCoursewareError(`pdf-export-module-contract-invalid:${module.id}`, 409);
+    for (const slideModule of slide.modules) {
+      if (!layout.slots.some((slot) => slot.id === slideModule.slotId) || slideModule.lines.length === 0) {
+        throw new SmartCoursewareError(`pdf-export-module-contract-invalid:${slideModule.id}`, 409);
       }
     }
   });
@@ -233,16 +233,16 @@ async function drawStudentPdfSlide(page: PDFPage, slide: StudentPdfSlideProjecti
   if (slide.notice) await drawWrappedText(page, slide.notice, PDF_PAGE_PADDING, PDF_PAGE_PADDING + 5, PDF_CONTENT_WIDTH, 9, 12, rgb(0.24, 0.32, 0.45), fonts, 1);
 
   const layout = GENERATED_SLIDE_LAYOUT_REGISTRY[slide.layoutId as keyof typeof GENERATED_SLIDE_LAYOUT_REGISTRY];
-  for (const module of slide.modules) {
-    const slot = layout.slots.find((candidate) => candidate.id === module.slotId);
-    if (!slot) throw new SmartCoursewareError(`pdf-export-slot-missing:${module.id}`, 409);
+  for (const slideModule of slide.modules) {
+    const slot = layout.slots.find((candidate) => candidate.id === slideModule.slotId);
+    if (!slot) throw new SmartCoursewareError(`pdf-export-slot-missing:${slideModule.id}`, 409);
     const box = slotBox(slot.cells);
-    page.drawRectangle({ x: box.x, y: box.y, width: box.width, height: box.height, color: module.kind === 'activity' ? rgb(0.93, 0.96, 1) : rgb(1, 1, 1), borderColor: rgb(0.8, 0.85, 0.92), borderWidth: 0.8 });
-    const fontSize = Math.max(9, Math.min(14, Math.floor(module.fontSizePx * 0.42)));
+    page.drawRectangle({ x: box.x, y: box.y, width: box.width, height: box.height, color: slideModule.kind === 'activity' ? rgb(0.93, 0.96, 1) : rgb(1, 1, 1), borderColor: rgb(0.8, 0.85, 0.92), borderWidth: 0.8 });
+    const fontSize = Math.max(9, Math.min(14, Math.floor(slideModule.fontSizePx * 0.42)));
     const lineHeight = Math.ceil(fontSize * 1.45);
-    const renderedLines = await wrapLines(module.lines, box.width - 20, fontSize, fonts);
+    const renderedLines = await wrapLines(slideModule.lines, box.width - 20, fontSize, fonts);
     const capacity = Math.floor((box.height - 20) / lineHeight);
-    if (renderedLines.length > capacity) throw new SmartCoursewareError(`pdf-export-overflow:${slide.stepId}:${module.id}`, 409);
+    if (renderedLines.length > capacity) throw new SmartCoursewareError(`pdf-export-overflow:${slide.stepId}:${slideModule.id}`, 409);
     let y = box.y + box.height - 14 - fontSize;
     for (const line of renderedLines) {
       await drawFontRuns(page, line, box.x + 10, y, fontSize, rgb(0.12, 0.17, 0.24), fonts);

@@ -1,6 +1,0 @@
-# Sources: docs/contexts/course-knowledge-base/CONTEXT.md; docs/adr/README.md indexed ADR 0015-0044 files; docs/knowledge-graph-current-state-audit-2026-07-18.md
-split_status: single-change
-vertical_slice_status: valid
-blocking_edges_status: valid
-wide_refactor_strategy: none
-children: []

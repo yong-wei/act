@@ -523,15 +523,20 @@ The path execution intent SHALL place the compact journey and current action bef
 - **AND** it SHALL NOT repeat equivalent hero, recommendation, current-node, and six-card statistics as equal-priority regions.
 
 ### Requirement: Path-launched resources expose continuous journey controls
-Every governed path node type admitted to execution SHALL use a defined continuous-journey behavior. Platform-owned destinations for `interactive_lesson`, `knowledge_card`, `textbook_section`, `slides`, `adaptive_quiz`, `control_workbench`, `simulation`, `arena_task`, `reflection`, `checkpoint`, and `konling` SHALL expose the shared journey control either on the destination page or in the owning path-center activity. `external_resource` SHALL use the governed external fallback.
+Every governed path node type admitted to execution SHALL use a defined continuous-journey behavior. Platform-owned destinations for `interactive_lesson`, `knowledge_card`, `textbook_section`, `slides`, `adaptive_quiz`, `control_workbench`, `simulation`, `arena_task`, `reflection`, `checkpoint`, and `konling` SHALL expose the shared journey control either on the destination page or in the owning path-center activity. `external_resource` SHALL use the governed external fallback. Any page rendered with a valid path launch context SHALL expose no more than one visible action whose normalized target and user-facing semantics are equivalent to `返回学习路径`.
 
 #### Scenario: Resource is still incomplete
 - **WHEN** a path-launched resource has not produced accepted completion evidence
-- **THEN** `返回学习路径` SHALL remain available
+- **THEN** `返回学习路径` SHALL remain available exactly once within the active journey action surface
 - **AND** the next action SHALL be disabled or replaced by an explicit blocked or pending-result status.
 
+#### Scenario: Ready action duplicates the return action
+- **WHEN** the projected ready, completion, or recovery action resolves to the same normalized href and return semantics as the journey return action
+- **THEN** the journey control SHALL render only the owned `返回学习路径` action
+- **AND** it SHALL NOT render the equivalent projected action as a second control.
+
 #### Scenario: Resource completion advances the path
-- **WHEN** the server accepts completion evidence and returns a ready next action
+- **WHEN** the server accepts completion evidence and returns a ready next action with a different normalized target
 - **THEN** the resource surface SHALL enable a visible action naming the next node
 - **AND** the student SHALL be able to enter that node without first returning to the path center.
 
@@ -554,6 +559,11 @@ Every governed path node type admitted to execution SHALL use a defined continuo
 - **WHEN** accepted completion leaves no further executable node
 - **THEN** the journey control SHALL show path completion or terminal-validation status
 - **AND** its primary continuation SHALL lead to the same path's summary rather than fabricate another node.
+
+#### Scenario: Resource opens outside a path
+- **WHEN** a destination page has no valid path launch context
+- **THEN** its normal contextual return action SHALL remain available
+- **AND** the page SHALL NOT fabricate or duplicate a `返回学习路径` action.
 
 ### Requirement: Student portrait surfaces render the canonical cumulative state
 Student profile and growth surfaces SHALL render the canonical cumulative
@@ -610,4 +620,46 @@ diagnoses only as subordinate drilldowns.
 - **WHEN** an authorized teacher opens a class containing members with cumulative portraits
 - **THEN** the page SHALL show overall coverage, seven-dimension aggregates, trend distribution, risk distribution, strengths, improvement clusters, cumulative evidence summary, and member drilldowns
 - **AND** members without a dimension SHALL be reported as missing rather than marked `累计口径不适用` or assigned zero.
+
+### Requirement: Generated path comparison exposes ordered resource previews
+The adaptive learning center SHALL present every generated, selectable path option as an ordered, read-only preview before the student chooses it. The preview SHALL use the planner-provided node order and node summaries, show the first four contiguous nodes by default, and allow the student to disclose the full route without launching a resource.
+
+#### Scenario: Generated options include ordered node summaries
+- **WHEN** the path center receives multiple generated options with ordered `nodeIds` and `nodeSummaries`
+- **THEN** each formal comparison option SHALL show concrete resource title, resource type, single-node estimated time, and student-facing readiness state in the planner order
+- **AND** the option SHALL reveal the remaining route through an in-module disclosure when it contains more than four nodes
+
+#### Scenario: Generated option contains a locked node
+- **WHEN** an ordered preview includes a locked node
+- **THEN** the node SHALL show a student-facing locked state and its preparation or unlock condition
+- **AND** the node SHALL remain non-startable until the student selects a path and receives an authorized execution context
+
+#### Scenario: Historic path payload lacks usable node summaries
+- **WHEN** an option lacks usable ordered node summaries
+- **THEN** the comparison surface SHALL retain its other student-facing fields and explain that the detailed route is unavailable
+- **AND** it SHALL NOT invent resource titles, order, or readiness details
+
+### Requirement: Generated path comparison explains overlap and diversity limits
+The adaptive learning center SHALL explain meaningful path differences from stable resource-node identity across the currently generated comparison set.
+
+#### Scenario: A resource appears in all generated options
+- **WHEN** the same `nodeId` occurs in every generated, selectable option
+- **THEN** each occurrence SHALL be labelled “所有方案均包含”
+
+#### Scenario: A resource appears in only one generated option
+- **WHEN** a `nodeId` occurs in exactly one generated, selectable option
+- **THEN** that occurrence SHALL be labelled “本方案特有”
+
+#### Scenario: Existing planner data reports insufficient distinction
+- **WHEN** existing planner diversity or limitation data establishes that available resources cannot produce meaningfully distinct options
+- **THEN** the comparison region SHALL display “当前可用资源有限，推荐方案差异较小” in student-facing language
+- **AND** students SHALL retain access to the route previews and path-selection actions
+
+### Requirement: Starter examples are distinct from formal path comparisons
+The adaptive learning center SHALL distinguish pre-generation starter examples from generated path options.
+
+#### Scenario: The learner has no generated path options
+- **WHEN** the path center displays starter learning approaches before a planner response
+- **THEN** the UI SHALL identify them as examples rather than formal comparable paths
+- **AND** it SHALL NOT apply generated-node ordering, overlap, uniqueness, or formal selection semantics to them
 

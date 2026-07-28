@@ -15,7 +15,11 @@ import {
   TimeDomainComparisonPanel,
 } from '@/resources/control-system/charts/control-analysis-panels';
 import type { ControlSignalCurveStyle } from '@/resources/control-system/charts/control-signal-styles';
-import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
+import type {
+  ControlAnalysisRequest,
+  ControlAnalysisResult,
+  ControlEngineState,
+} from '@/resources/control-system/analysis/types';
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 
 import {
@@ -34,6 +38,7 @@ import {
   writeDesignSnapshots,
   type DesignSnapshot,
 } from './design-snapshots';
+import { MetricComparisonTable } from './metric-comparison';
 import { ArenaModelSelectorPanel } from '@/features/arena/workbench/arena-model-selector-panel';
 import { ArenaSubmitPanel } from './arena-submit-panel';
 import {
@@ -72,11 +77,11 @@ interface ClassicCurveOption<T extends string> {
 function SnapshotAnalysis({
   snapshot,
   buildRequest,
-  onResult,
+  onState,
 }: {
   snapshot: DesignSnapshot;
   buildRequest: (design: DesignSnapshot['design']) => ControlAnalysisRequest;
-  onResult: (snapshotId: string, result: ControlAnalysisResult | null) => void;
+  onState: (snapshotId: string, state: ControlEngineState) => void;
 }) {
   const request = useMemo(
     () => buildRequest(snapshot.design),
@@ -85,8 +90,8 @@ function SnapshotAnalysis({
   const analysisState = useControlEngine(request);
 
   useEffect(() => {
-    onResult(snapshot.id, analysisState.result?.isFallback ? null : analysisState.result);
-  }, [analysisState.result, onResult, snapshot.id]);
+    onState(snapshot.id, analysisState);
+  }, [analysisState, onState, snapshot.id]);
 
   return null;
 }
@@ -319,13 +324,13 @@ export function MultiRepresentationLinkageClient({
   }, [initialParams.arenaTaskId, initialParams.plantModel?.id, initialParams.plantModel?.objectId]);
   const [snapshots, setSnapshots] = useState<DesignSnapshot[]>([]);
   const [snapshotsLoadedKey, setSnapshotsLoadedKey] = useState<string | null>(null);
-  const [snapshotResults, setSnapshotResults] = useState<Record<string, ControlAnalysisResult>>({});
+  const [snapshotStates, setSnapshotStates] = useState<Record<string, ControlEngineState>>({});
   const snapshotsLoaded = snapshotsLoadedKey === snapshotStorageKey;
 
   useEffect(() => {
     setSnapshots(readDesignSnapshots(window.sessionStorage, snapshotStorageKey));
     setSnapshotsLoadedKey(snapshotStorageKey);
-    setSnapshotResults({});
+    setSnapshotStates({});
   }, [snapshotStorageKey]);
 
   useEffect(() => {
@@ -349,20 +354,26 @@ export function MultiRepresentationLinkageClient({
     }
     model.restoreDesignState(snapshot.design);
   }, [model]);
-  const recordSnapshotResult = useCallback((snapshotId: string, result: ControlAnalysisResult | null) => {
-    setSnapshotResults((current) => {
-      if (!result) {
-        if (!(snapshotId in current)) return current;
-        const { [snapshotId]: _removed, ...remaining } = current;
-        return remaining;
-      }
-      return current[snapshotId] === result ? current : { ...current, [snapshotId]: result };
+  const recordSnapshotState = useCallback((snapshotId: string, state: ControlEngineState) => {
+    setSnapshotStates((current) => (
+      current[snapshotId] === state ? current : { ...current, [snapshotId]: state }
+    ));
+  }, []);
+  const deleteSnapshot = useCallback((snapshotId: string) => {
+    setSnapshots((current) => current.filter((snapshot) => snapshot.id !== snapshotId));
+    setSnapshotStates((current) => {
+      if (!(snapshotId in current)) return current;
+      const { [snapshotId]: _removed, ...remaining } = current;
+      return remaining;
     });
   }, []);
   const visibleSnapshots = snapshots.filter((snapshot) => snapshot.visible);
   const visibleSnapshotSeries = visibleSnapshots.flatMap((snapshot) => {
-    const result = snapshotResults[snapshot.id];
-    return result ? [{ label: snapshot.name, color: snapshot.color, result }] : [];
+    const state = snapshotStates[snapshot.id];
+    const snapshotResult = state && !state.isLoading && !state.error && !state.isFallback
+      ? state.result
+      : null;
+    return snapshotResult ? [{ label: snapshot.name, color: snapshot.color, result: snapshotResult }] : [];
   });
   const [panelSourceSelections, setPanelSourceSelections] = useState<Record<string, ClassicPanelSourceId>>({});
   const result = model.analysisResult;
@@ -835,14 +846,20 @@ export function MultiRepresentationLinkageClient({
           onToggleVisible={(id) => updateSnapshot(id, (snapshot) => ({ ...snapshot, visible: !snapshot.visible }))}
           onRename={(id, name) => updateSnapshot(id, (snapshot) => ({ ...snapshot, name }))}
           onRestore={restoreSnapshot}
-          onDelete={(id) => setSnapshots((current) => current.filter((snapshot) => snapshot.id !== id))}
+          onDelete={deleteSnapshot}
+        />
+        <MetricComparisonTable
+          currentState={model.analysisState}
+          currentResponseType={model.responseType}
+          snapshots={snapshots}
+          snapshotStates={snapshotStates}
         />
         {visibleSnapshots.map((snapshot) => (
           <SnapshotAnalysis
             key={snapshot.id}
             snapshot={snapshot}
             buildRequest={model.buildSnapshotAnalysisRequest}
-            onResult={recordSnapshotResult}
+            onState={recordSnapshotState}
           />
         ))}
 

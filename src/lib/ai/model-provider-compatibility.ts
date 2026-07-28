@@ -5,6 +5,7 @@ import type {
   AIProviderKind,
 } from './provider-config';
 import type { AIProviderSetting, AIProviderSettings } from './provider-settings';
+import { normalizeKonlingStructuredText } from '@/lib/konling-structured-action-runtime';
 
 export type ModelProviderSelectionStatus = 'selected' | 'downgraded' | 'unavailable';
 export type NormalizedAIStreamEventType = 'message_start' | 'text_delta' | 'tool_call' | 'tool_result' | 'message_stop';
@@ -91,6 +92,15 @@ export interface NormalizedAIStreamEvent {
   textDelta?: string;
   toolCall?: NormalizedAIToolCall;
   toolResult?: NormalizedAIToolResult;
+}
+
+export function normalizeProviderStructuredText(value: string) {
+  const normalized = normalizeKonlingStructuredText(value);
+  return {
+    text: normalized.text,
+    toolCalls: normalized.toolCalls.map(({ id, name, input }) => ({ id, name, input })),
+    withheldMalformedSyntax: normalized.withheldMalformedSyntax,
+  };
 }
 
 export function providerSettingToCompatibilityEntry(provider: AIProviderSetting): ModelProviderCompatibilityEntry {
@@ -195,15 +205,19 @@ export function normalizeOpenAICompatibleResponse(raw: unknown): NormalizedAIRes
     }>;
   } : {};
   const message = data.choices?.[0]?.message;
+  const structuredText = normalizeProviderStructuredText(message?.content ?? '');
   return {
     providerKind: 'openai-compatible',
-    text: message?.content ?? '',
-    toolCalls: (message?.tool_calls ?? []).map((call, index) => ({
-      id: call.id ?? `tool-call-${index + 1}`,
-      providerCallId: call.id,
-      name: call.function?.name ?? 'unknown_tool',
-      input: parseJsonOrText(call.function?.arguments ?? ''),
-    })),
+    text: structuredText.text,
+    toolCalls: dedupeNormalizedToolCalls([
+      ...(message?.tool_calls ?? []).map((call, index) => ({
+        id: call.id ?? `tool-call-${index + 1}`,
+        providerCallId: call.id,
+        name: call.function?.name ?? 'unknown_tool',
+        input: parseJsonOrText(call.function?.arguments ?? ''),
+      })),
+      ...structuredText.toolCalls,
+    ]),
     toolResults: [],
     citations: normalizeCitationList(message?.citations, 'openai-compatible'),
     finishReason: data.choices?.[0]?.finish_reason ?? null,
@@ -226,17 +240,21 @@ export function normalizeAnthropicCompatibleResponse(raw: unknown): NormalizedAI
     }>;
   } : {};
   const content = data.content ?? [];
+  const structuredText = normalizeProviderStructuredText(
+    content.filter((part) => part.type === 'text').map((part) => part.text ?? '').join(''),
+  );
   return {
     providerKind: 'anthropic-compatible',
-    text: content.filter((part) => part.type === 'text').map((part) => part.text ?? '').join(''),
-    toolCalls: content
-      .filter((part) => part.type === 'tool_use')
-      .map((part, index) => ({
+    text: structuredText.text,
+    toolCalls: dedupeNormalizedToolCalls([
+      ...content.filter((part) => part.type === 'tool_use').map((part, index) => ({
         id: part.id ?? `tool-use-${index + 1}`,
         providerCallId: part.id,
         name: part.name ?? 'unknown_tool',
         input: part.input ?? {},
       })),
+      ...structuredText.toolCalls,
+    ]),
     toolResults: content
       .filter((part) => part.type === 'tool_result')
       .map((part, index) => ({
@@ -349,6 +367,19 @@ function parseJsonOrText(value: string): unknown {
   } catch {
     return value;
   }
+}
+
+function dedupeNormalizedToolCalls(
+  calls: readonly NormalizedAIToolCall[],
+): NormalizedAIToolCall[] {
+  const seen = new Set<string>();
+  return calls.filter((call) => {
+    const semanticIdentity = `${call.name}\u001f${JSON.stringify(call.input)}`;
+    if (seen.has(call.id) || seen.has(semanticIdentity)) return false;
+    seen.add(call.id);
+    seen.add(semanticIdentity);
+    return true;
+  });
 }
 
 function normalizeCitationList(

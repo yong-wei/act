@@ -23,7 +23,9 @@ export function courseBasisErrorResponse(error: unknown) {
   }
   if (error instanceof CourseBasisError) {
     const notFound = error.code.endsWith('-not-found');
-    const conflict = error.code.includes('conflict') || error.code.includes('immutable');
+    const conflict = error.code.includes('conflict')
+      || error.code.includes('immutable')
+      || error.code.endsWith('-referenced');
     const tooLarge = error.code === 'source-too-large';
     return NextResponse.json({ error: error.code, details: error.details }, { status: notFound ? 404 : conflict ? 409 : tooLarge ? 413 : 400 });
   }

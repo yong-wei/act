@@ -25,6 +25,13 @@ export function belongsToAssignmentFilter(state: StudentAssignmentState, filter:
   return ['SUBMITTED', 'PARSING', 'AWAITING_REVIEW', 'IN_REVIEW', 'AWAITING_TEACHER_CONFIRMATION'].includes(state);
 }
 
+export function studentAssignmentHref(assignment: Pick<StudentAssignmentSummary, 'id' | 'revisionId' | 'historicalOnly'>): string {
+  const path = `/missions/assignments/${encodeURIComponent(assignment.id)}`;
+  return assignment.historicalOnly
+    ? `${path}?revisionId=${encodeURIComponent(assignment.revisionId)}`
+    : path;
+}
+
 export function StudentAssignmentList({
   assignments,
   filter,
@@ -83,7 +90,7 @@ function AssignmentRow({ assignment }: { assignment: StudentAssignmentSummary })
   const progress = assignment.requiredQuestionCount === 0
     ? 0
     : Math.round((assignment.submittedRequiredCount / assignment.requiredQuestionCount) * 100);
-  const isBlocked = assignment.historicalOnly || assignment.contextStatus === 'STALE';
+  const isBlocked = assignment.contextStatus === 'STALE';
 
   return (
     <article className="surface-card group p-4 transition hover:border-primary/35 sm:p-5" data-assignment-state={assignment.state}>
@@ -119,8 +126,9 @@ function AssignmentRow({ assignment }: { assignment: StudentAssignmentSummary })
           {isBlocked ? (
             <span className="inline-flex items-center gap-2 text-sm text-subtle"><AlertCircle className="h-4 w-4" />仅可查看</span>
           ) : (
-            <Link href={`/missions/assignments/${encodeURIComponent(assignment.id)}`} className="cta-primary inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm lg:w-auto">
-              {assignment.nextAction === 'start-answering' ? '开始作答'
+            <Link href={studentAssignmentHref(assignment)} className="cta-primary inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm lg:w-auto">
+              {assignment.historicalOnly ? '查看历史提交'
+                : assignment.nextAction === 'start-answering' ? '开始作答'
                 : assignment.nextAction === 'continue-answering' ? '继续作答'
                   : assignment.nextAction === 'resubmit-question' ? '处理重交'
                     : assignment.nextAction === 'view-feedback' ? '查看反馈'

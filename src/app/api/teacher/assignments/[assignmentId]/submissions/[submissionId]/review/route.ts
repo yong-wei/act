@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { createTeacherAssignmentReview, getTeacherAssignmentReview, saveTeacherAssignmentReview } from '@/lib/data-governance/teacher-assignment-review';
+import {
+  buildTeacherAssignmentReviewApiProjection,
+  createTeacherAssignmentReview,
+  getTeacherAssignmentReview,
+  saveTeacherAssignmentReview,
+} from '@/lib/data-governance/teacher-assignment-review';
 import { teacherAssignmentReviewErrorResponse } from '@/lib/data-governance/teacher-assignment-review-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
@@ -13,7 +18,7 @@ const openSchema = z.object({ gradingRunId: z.string().trim().min(1).max(160) })
 
 const criterionSchema = z.object({
   criterionId: z.string().trim().min(1).max(160),
-  levelId: z.string().trim().min(1).max(160),
+  levelId: z.string().trim().min(1).max(160).nullable(),
   score: z.number().finite().min(0).max(100_000),
   comment: z.string().max(2_000),
 }).strict();
@@ -54,7 +59,7 @@ export async function GET(request: Request, context: { params: Promise<{ assignm
       gradingRunId: z.string().trim().min(1).max(160).optional(),
     }).strict().parse(Object.fromEntries(url.searchParams));
     const review = await getTeacherAssignmentReview(prisma, { actor: auth.actor, assignmentId, submissionId, reviewId: query.reviewId, gradingRunId: query.gradingRunId });
-    return NextResponse.json({ review });
+    return NextResponse.json({ review: buildTeacherAssignmentReviewApiProjection(review) });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     return teacherAssignmentReviewErrorResponse(error);
@@ -70,7 +75,10 @@ export async function POST(request: Request, context: { params: Promise<{ assign
     const { assignmentId, submissionId } = await context.params;
     const body = openSchema.parse(await readBoundedAssignmentJson(request, 32_000));
     const result = await createTeacherAssignmentReview(prisma, { actor: auth.actor, assignmentId, submissionId, gradingRunId: body.gradingRunId });
-    return NextResponse.json(result, { status: result.replay ? 200 : 201 });
+    return NextResponse.json({
+      ...result,
+      review: buildTeacherAssignmentReviewApiProjection(result.review),
+    }, { status: result.replay ? 200 : 201 });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     return teacherAssignmentReviewErrorResponse(error);
@@ -86,7 +94,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ assig
     const { assignmentId, submissionId } = await context.params;
     const body = saveSchema.parse(await readBoundedAssignmentJson(request));
     const review = await saveTeacherAssignmentReview(prisma, { actor: auth.actor, assignmentId, submissionId, ...body });
-    return NextResponse.json({ review });
+    return NextResponse.json({ review: buildTeacherAssignmentReviewApiProjection(review) });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     return teacherAssignmentReviewErrorResponse(error);

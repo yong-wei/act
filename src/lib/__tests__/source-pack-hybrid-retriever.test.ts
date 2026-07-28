@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   adaptLearningEvidenceChunk,
   adaptResourceProjectionRow,
-  adaptTextbookSearchDocument,
+  adaptTextbookStructureUnit,
   evaluateSourcePackRetrieval,
   getSourcePackRetrievalProfile,
   retrieveSourcePack,
@@ -13,7 +13,7 @@ import {
 } from '../source-pack';
 import type { LearningEvidenceCorpusChunk } from '../data-governance/learning-evidence-rag-corpus';
 import type { RuntimeResourceProjectionArtifactRow } from '../runtime-resource-projections';
-import type { TextbookRuntimeSearchDocument } from '../textbook-runtime-resources';
+import type { TextbookStructureUnitProjection } from '../structured-textbook-runtime';
 
 function item(overrides: Partial<SourcePackItem> = {}): SourcePackItem {
   return {
@@ -203,33 +203,48 @@ function projectionRow(overrides: Partial<RuntimeResourceProjectionArtifactRow> 
   };
 }
 
-function textbookDoc(): TextbookRuntimeSearchDocument {
+function textbookDoc(): TextbookStructureUnitProjection {
   return {
-    id: 'textbook-root-locus',
-    kind: 'chunk',
+    id: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
+    kind: 'section',
     title: 'Root locus textbook section',
-    href: '/course-runtime/textbook/ch02/root-locus',
+    href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-02/section-2.1',
     text: 'Root locus explains closed-loop pole movement.',
     contentHash: 'sha256:textbook-root-locus',
+    identity: {
+      bookId: 'dorf-modern-control-systems',
+      edition: '14th Global Edition',
+      sourceRevision: 'revision-001',
+      unitId: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
+      fragmentId: null,
+    },
+    fragments: [],
     resourceProjection: {
       resourceId: 'res-textbook-root-locus',
       segmentRef: 'seg-textbook-root-locus',
       citationTargetRef: 'textbook:root-locus:citation',
       knowledgeNodeRefs: ['kn-root-locus'],
       capabilityTargetRefs: ['cap-analysis'],
+      contentHash: 'sha256:textbook-root-locus',
+      versionRefs: {
+        artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+      },
     },
     citationAddress: {
       kind: 'text',
-      sourceRefId: 'textbook:root-locus',
-      href: '/course-runtime/textbook/ch02/root-locus#section',
-      locator: '#section',
+      sourceRefId: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
+      href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-02/section-2.1',
+      locator: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
       contentHash: 'sha256:textbook-root-locus',
     },
     metadata: {
       bookId: 'dorf-modern-control-systems',
-      sectionId: 'ch02-sec-root-locus',
+      edition: '14th Global Edition',
+      sourceRevision: 'revision-001',
+      unitId: 'textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-02/section-2.1',
       chapterId: 'ch02',
-      chapterNumber: 2,
+      naturalNumber: '2.1',
+      structuralPath: ['chapter-chapter-02', 'section-2.1'],
     },
   };
 }
@@ -467,7 +482,7 @@ describe('source pack retrieval profiles', () => {
   });
 
   it('keeps adapted textbook candidates eligible for controlled answer profiles', () => {
-    const adapted = adaptTextbookSearchDocument(textbookDoc());
+    const adapted = adaptTextbookStructureUnit(textbookDoc());
     const result = retrieveSourcePack({
       query: 'root locus',
       profile: 'konling-answer',
@@ -475,7 +490,7 @@ describe('source pack retrieval profiles', () => {
       candidates: [adapted.item],
       now: new Date('2026-06-28T00:00:00Z'),
     });
-    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['textbook-root-locus']);
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual([textbookDoc().id]);
     expect(result.pack.limitations.map((limitation) => limitation.code)).not.toContain('profile-filtered-review-state');
   });
 

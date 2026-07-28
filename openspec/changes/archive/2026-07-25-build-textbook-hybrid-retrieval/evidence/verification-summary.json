@@ -1,0 +1,279 @@
+{
+  "recordType": "textbook-hybrid-retrieval-verification-summary",
+  "formatVersion": "textbook-hybrid-retrieval-verification-summary.v1",
+  "configIdentity": {
+    "recordType": "textbook-hybrid-retrieval-config",
+    "formatVersion": "textbook-hybrid-retrieval.v1",
+    "locked": true,
+    "sourceRevision": "0cc4edc7fdc22976b9e3d399263876bfbf9a977c",
+    "configFileSha256": "sha256:9fd87aea6c7427c2f2499d11f5206398a227bebd46e8c6dd315ef1ffb7a926f0"
+  },
+  "benchmarkIdentity": {
+    "benchmarkHash": "sha256:14bcd6350d51b554327cc9a93d21f479398303e6696985dd1f5429403f471028",
+    "splitHash": "sha256:50b168cfa236a35166408c0a9d5cc9384e76528277b3a717ddf1fe15dbfbcba8",
+    "benchmarkLockHash": "sha256:c3c10eb9620457f4dcb72d75afcc9bd060d20d705347726dca21796cb79355e0",
+    "benchmarkLockFileSha256": "sha256:47496c5a9dda99f8c772bd98a348a007978f36902112ef170d09de8c0b4e44f6",
+    "tuningQueries": 39,
+    "acceptanceQueries": 11
+  },
+  "historicalFailure": {
+    "directory": "course-content/benchmarks/textbook-hybrid-retrieval/history/v1-initial-holdout",
+    "acceptanceReportSha256": "sha256:93b8e892c5dd4921418f46653e0fb93d00b21a779414b8479e5666d8df6ae4c7",
+    "hitsAt10": 5,
+    "evaluatedQueries": 7,
+    "recallAt10": 0.7142857142857143,
+    "passed": false
+  },
+  "tuningSelection": {
+    "acceptanceEvaluated": false,
+    "selectionRule": "recall-and-resident-artifact-passing-apiCostCny-indexBytes-model",
+    "candidates": [
+      {
+        "model": "BAAI/bge-m3",
+        "observedDimension": 1024,
+        "hitsAt10": 32,
+        "evaluatedQueries": 39,
+        "recallAt10": 0.8205128205128205,
+        "apiCostCny": 0.0,
+        "indexBytes": 133271373,
+        "vectorBytes": 54444032,
+        "providerTraceCount": 3
+      },
+      {
+        "model": "Qwen/Qwen3-Embedding-0.6B",
+        "observedDimension": 1024,
+        "hitsAt10": 37,
+        "evaluatedQueries": 39,
+        "recallAt10": 0.9487179487179487,
+        "apiCostCny": 0.00009219000000000001,
+        "indexBytes": 133271401,
+        "vectorBytes": 54444032,
+        "providerTraceCount": 3
+      },
+      {
+        "model": "Qwen/Qwen3-Embedding-4B",
+        "observedDimension": 2560,
+        "hitsAt10": 35,
+        "evaluatedQueries": 39,
+        "recallAt10": 0.8974358974358975,
+        "apiCostCny": 0.00018438000000000002,
+        "indexBytes": 214937445,
+        "vectorBytes": 136110080,
+        "providerTraceCount": 3
+      }
+    ],
+    "selected": {
+      "model": "BAAI/bge-m3",
+      "observedDimension": 1024,
+      "normalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
+      "indexManifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+      "thresholdResult": "32/39=82.05%"
+    }
+  },
+  "runtimeMemory": {
+    "maxRssDeltaBytes": 150863872,
+    "p95RssDeltaBytes": 150863872,
+    "budgetBytes": 157286400,
+    "passed": true
+  },
+  "runtimeLatency": {
+    "backgroundWaitLimitMs": 2500,
+    "concurrency": [
+      {
+        "level": 1,
+        "p50Ms": 1009.224,
+        "p95Ms": 1652.764,
+        "success": 39,
+        "fallback": 0,
+        "failed": 0
+      },
+      {
+        "level": 4,
+        "p50Ms": 231.068,
+        "p95Ms": 1253.34,
+        "success": 8,
+        "fallback": 31,
+        "failed": 0
+      },
+      {
+        "level": 8,
+        "p50Ms": 278.169,
+        "p95Ms": 401.392,
+        "success": 0,
+        "fallback": 39,
+        "failed": 0
+      }
+    ],
+    "passed": true
+  },
+  "localFusionDiagnostic": {
+    "acceptanceEvidence": false,
+    "runtimeEntryEvaluated": false,
+    "hitsAt10": 11,
+    "evaluatedQueries": 11,
+    "recallAt10": 1.0,
+    "knownFailureHit": true,
+    "returnedCandidateIds": 110,
+    "uniqueReturnedCandidateIds": 100,
+    "allReturnedCandidateIdsValid": true,
+    "allReturnedCandidatesHavePrimaryAndOwningUnitIds": true,
+    "providerTraceCount": 1
+  },
+  "runtimeAcceptance": {
+    "status": "complete",
+    "report": "runtime-acceptance-report.json",
+    "reportSha256": "sha256:f1598e11219acc08cc5bbb41dd5c75b70704f8d70f77bbca535e317d469d9741",
+    "recordType": "textbook-hybrid-runtime-acceptance-report",
+    "runtimeEntry": "src/lib/textbook-retrieval/retrieval.ts#retrieveTextbookHybrid",
+    "oneShot": true,
+    "evaluatedQueries": 11,
+    "hitsAt10": 11,
+    "recallAt10": 1.0,
+    "threshold": 0.8,
+    "knownFailureHit": true,
+    "allResultsResolved": true,
+    "outcomes": {
+      "success": 11,
+      "fallback": 0,
+      "failed": 0
+    },
+    "providerFailures": 0,
+    "traceIds": 22,
+    "passed": true,
+    "task": "5.3"
+  },
+  "sourceReportHashes": {
+    "selection-report.json": {
+      "sha256": "sha256:beb6972a9f9badd3c8632699975dd40300324d2340260bd7d0d41045df50e02c",
+      "archivedVerbatim": true
+    },
+    "local-fusion-diagnostic.json": {
+      "sha256": "sha256:ae1115b6a02bebe11cf3b26e9717977790d6aa34dccb16ea38d83ff90d2ddb58",
+      "archivedVerbatim": true,
+      "acceptanceEvidence": false
+    },
+    "runtime-acceptance-report.json": {
+      "sha256": "sha256:f1598e11219acc08cc5bbb41dd5c75b70704f8d70f77bbca535e317d469d9741",
+      "archivedVerbatim": true,
+      "acceptanceEvidence": true
+    },
+    "runtime-memory-report.json": {
+      "sha256": "sha256:a9b376943cfb8c82a0d0d82c31cbf099ee4654e21f6c505eb148d1d2088b9e39",
+      "archivedVerbatim": true
+    },
+    "runtime-latency-report.json": {
+      "sha256": "sha256:b554fd248ed24ba6074f956cab4fd5309779311377c07c687ec7044bc04fa0af",
+      "archivedVerbatim": false,
+      "summarizedFromIgnoredSource": true
+    }
+  },
+  "buildReports": {
+    "sourceRevision": "2427eba20f279314c366837ccce17ed220dbb2c4",
+    "current": [
+      {
+        "directory": "bge-m3",
+        "sha256": "sha256:c5278a86ef4569daeaedf4befbf5b60945f9b7f7a5a3dc79dc11926a08b206c3",
+        "model": "BAAI/bge-m3",
+        "observedDimension": 1024,
+        "windowCount": 13292,
+        "cacheHits": 13292,
+        "cacheMisses": 0,
+        "providerBatches": 0,
+        "providerUsageTokens": 0,
+        "providerTraceCount": 0
+      },
+      {
+        "directory": "qwen3-embedding-0.6b",
+        "sha256": "sha256:99ccc49aafbaa5a6436b2628d90119916d33a4901c43b7e1269b0a3529b6e4aa",
+        "model": "Qwen/Qwen3-Embedding-0.6B",
+        "observedDimension": 1024,
+        "windowCount": 13292,
+        "cacheHits": 13292,
+        "cacheMisses": 0,
+        "providerBatches": 0,
+        "providerUsageTokens": 0,
+        "providerTraceCount": 0
+      },
+      {
+        "directory": "qwen3-embedding-4b",
+        "sha256": "sha256:030e5545c888266ee534ca27e9ea5aacf6865c91a6c3ef7f8cad36589c94914d",
+        "model": "Qwen/Qwen3-Embedding-4B",
+        "observedDimension": 2560,
+        "windowCount": 13292,
+        "cacheHits": 13292,
+        "cacheMisses": 0,
+        "providerBatches": 0,
+        "providerUsageTokens": 0,
+        "providerTraceCount": 0
+      },
+      {
+        "directory": "cache-rebuild-selected",
+        "sha256": "sha256:99ccc49aafbaa5a6436b2628d90119916d33a4901c43b7e1269b0a3529b6e4aa",
+        "model": "Qwen/Qwen3-Embedding-0.6B",
+        "observedDimension": 1024,
+        "windowCount": 13292,
+        "cacheHits": 13292,
+        "cacheMisses": 0,
+        "providerBatches": 0,
+        "providerUsageTokens": 0,
+        "providerTraceCount": 0
+      }
+    ],
+    "preJsonl": [
+      {
+        "directory": "bge-m3",
+        "sha256": "sha256:4af38975080b8fed75f1909d3143f0bb60dd11e96c6cbbde9274119832de98aa",
+        "model": "BAAI/bge-m3",
+        "observedDimension": 1024,
+        "windowCount": 13292,
+        "cacheHits": 0,
+        "cacheMisses": 13292,
+        "providerBatches": 831,
+        "providerLatencyP50Ms": 1667.7767909999943,
+        "providerLatencyP95Ms": 5046.133166500027,
+        "providerUsageTokens": 16152323,
+        "providerTraceCount": 831
+      },
+      {
+        "directory": "qwen3-embedding-0.6b",
+        "sha256": "sha256:24b935324e0cf5d398b5d80909b6b6006d8d2e968bca13a1c03a86764ec43eba",
+        "model": "Qwen/Qwen3-Embedding-0.6B",
+        "observedDimension": 1024,
+        "windowCount": 13292,
+        "cacheHits": 0,
+        "cacheMisses": 13292,
+        "providerBatches": 831,
+        "providerLatencyP50Ms": 530.6935830000157,
+        "providerLatencyP95Ms": 1626.3937290000001,
+        "providerUsageTokens": 13784380,
+        "providerTraceCount": 831
+      },
+      {
+        "directory": "qwen3-embedding-4b",
+        "sha256": "sha256:94fd052dc6cfe5e2142d18c8a2c0fee282bbdcd722851e72f63b3449244230ef",
+        "model": "Qwen/Qwen3-Embedding-4B",
+        "observedDimension": 2560,
+        "windowCount": 13292,
+        "cacheHits": 336,
+        "cacheMisses": 12956,
+        "providerBatches": 203,
+        "providerLatencyP50Ms": 4581.703749999974,
+        "providerLatencyP95Ms": 6209.477267299973,
+        "providerUsageTokens": 13481904,
+        "providerTraceCount": 203
+      },
+      {
+        "directory": "cache-rebuild-selected",
+        "sha256": "sha256:077c3f8b20d90c40065a9837892460f16d629551c7a52af3c4b7c3954576354a",
+        "model": "Qwen/Qwen3-Embedding-0.6B",
+        "observedDimension": 1024,
+        "windowCount": 13292,
+        "cacheHits": 13292,
+        "cacheMisses": 0,
+        "providerBatches": 0,
+        "providerUsageTokens": 0,
+        "providerTraceCount": 0
+      }
+    ]
+  }
+}

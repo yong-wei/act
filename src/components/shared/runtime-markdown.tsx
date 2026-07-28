@@ -5,7 +5,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
-import { TEXTBOOK_CITATION_MARKDOWN_ANCHOR_PREFIX } from '@/lib/textbook-citation-targets';
+import { TEXTBOOK_READER_MARKDOWN_ANCHOR_PREFIX } from '@/lib/textbook-reader-markdown';
 
 export interface RuntimeMarkdownContentProps {
   markdown: string;
@@ -14,7 +14,7 @@ export interface RuntimeMarkdownContentProps {
 }
 
 const textbookCitationAnchorMarkerPattern = new RegExp(
-  `\\[\\[${TEXTBOOK_CITATION_MARKDOWN_ANCHOR_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([A-Za-z][A-Za-z0-9_.:-]{0,127})\\]\\]`,
+  `\\[\\[${TEXTBOOK_READER_MARKDOWN_ANCHOR_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([A-Za-z][A-Za-z0-9_.:-]{0,127})\\]\\]`,
   'g',
 );
 
