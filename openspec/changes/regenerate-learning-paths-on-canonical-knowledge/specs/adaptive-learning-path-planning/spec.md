@@ -15,7 +15,7 @@ The system SHALL preserve the declared learning goal or user intent of a stopped
 - **THEN** that goal SHALL remain available as input to later replanning while the Legacy steps remain historical
 
 ### Requirement: Canonical paths are independently regenerated
-When a formal ActKG Teaching Projection is active, the planner SHALL generate a new path identity from the preserved goal, current cumulative portrait, aggregate CourseCoverage, aggregate KAQ bindings, and supported Canonical teaching relations. The CTKG 0.2 engineering aggregate alone MUST NOT satisfy this gate.
+When a formal ActKG Teaching Projection is active, the planner SHALL generate a new path identity from the preserved goal, current cumulative portrait, version-matched CourseCoverage, reviewed KAQ bindings, and supported Canonical teaching relations. An engineering-only ReleaseSet without formal Teaching Projection MUST NOT satisfy this gate.
 
 #### Scenario: Teaching semantics are ready
 - **WHEN** all required Canonical planning inputs pass validation

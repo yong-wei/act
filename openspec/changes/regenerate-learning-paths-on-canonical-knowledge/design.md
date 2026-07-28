@@ -1,6 +1,6 @@
 ## Context
 
-Legacy 路径的步骤引用旧节点，当前 CTKG 0.2 聚合包又未发布正式 Teaching Projection。继续执行旧路径或直接步骤映射都会混合权威。
+Legacy 路径的步骤引用旧节点，而工程型候选 ReleaseSet 未必发布正式 Teaching Projection。继续执行旧路径或直接步骤映射都会混合权威。
 
 ## Goals / Non-Goals
 

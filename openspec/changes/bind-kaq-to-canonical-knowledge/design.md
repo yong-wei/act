@@ -28,7 +28,7 @@ KAQ 是 ACT 的教学与能力治理图，ActKG 是工程知识权威。二者�
 ## Risks / Trade-offs
 
 - [一对多或多对一语义] → 允许显式多绑定及角色，不以单一映射强制压缩。
-- [当前 CTKG 0.2 聚合包没有 Teaching Projection] → 先迁移身份和保留现有 KAQ 教学关系，禁止从工程谓词或 CourseCoverage 伪造上游教学语义。
+- [候选 ReleaseSet 可能没有 Teaching Projection] → 先迁移身份和保留现有 KAQ 教学关系，禁止从工程谓词或 CourseCoverage 伪造上游教学语义。
 - [冲突形成路径环] → 关系接管前运行循环和一致性门禁。
 
 ## Migration Plan

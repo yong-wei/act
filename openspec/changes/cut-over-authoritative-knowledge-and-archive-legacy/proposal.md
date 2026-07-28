@@ -28,4 +28,4 @@
 ## Impact
 
 - 影响生产数据库迁移、部署脚本、worker/scheduler 停启、活动权威配置、旧 API、归档路由和权限测试。
-- 依赖新增的 CTKG 0.2 协议变基、聚合课程覆盖/资源绑定治理、其余消费者变更及完整 ActKG 课程 Release/Teaching Projection；`control-theory-engineering-v0.2` 的聚合名称和局部工程覆盖本身不满足最终门禁。
+- 依赖标准 Bundle 兼容、候选导入、ReleaseSet Delta、课程覆盖/资源绑定治理、其余消费者变更及完整 ActKG 课程 Release/Teaching Projection；任何仅有工程覆盖的候选 ReleaseSet 均不满足最终门禁。

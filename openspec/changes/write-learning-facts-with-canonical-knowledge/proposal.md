@@ -9,7 +9,7 @@
 - 课程覆盖、有效资源绑定和 KAQ 支持范围共同约束可写 Canonical 对象。
 - 历史 LearningFact、画像、诊断、风险、成长、班级聚合和已完成路径保持 Legacy 修订解释。
 - 不建立历史 Canonical sidecar，不回填、不按新图重新聚合，也不双写新旧知识身份。
-- 本变更依赖 `adopt-ctkg-0-2-aggregate-release-contract`、`govern-aggregate-course-coverage-and-resource-bindings`、有效聚合资源绑定和 `bind-kaq-to-canonical-knowledge`；当前结果仍只允许影子验证。
+- 本变更依赖已接受候选 ReleaseSet、对应 `ReleaseSetDeltaReceipt`、`govern-aggregate-course-coverage-and-resource-bindings`、有效资源绑定和 `bind-kaq-to-canonical-knowledge`；当前结果仍只允许影子验证。
 
 ## Capabilities
 
