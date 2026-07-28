@@ -1,14 +1,14 @@
 ## ADDED Requirements
 
 ### Requirement: Cutover waits for every formal consumer
-Production authority MUST remain Legacy until CTKG protocol acceptance, aggregate coverage/resource governance, graph APIs, Konling knowledge search, RAG, SAR, KAQ, effective resources, CourseCoverage, learning paths, and Canonical fact writers all pass their migration gates against a complete accepted course ReleaseSet and formal Teaching Projection. The current CTKG 0.2 engineering aggregate alone MUST NOT satisfy the complete-course gate.
+Production authority MUST remain Legacy until standard Bundle compatibility, candidate import, accepted ReleaseSet Delta, coverage/resource governance, graph APIs, Konling knowledge search, RAG, SAR, KAQ, effective resources, CourseCoverage, learning paths, and Canonical fact writers all pass their migration gates against a complete accepted course ReleaseSet and formal Teaching Projection. An engineering-only ReleaseSet MUST NOT satisfy the complete-course gate.
 
 #### Scenario: One consumer remains Legacy-bound
 - **WHEN** any required consumer or effective resource lacks verified Canonical support
 - **THEN** the system SHALL block production authority cutover
 
-#### Scenario: Current engineering aggregate is the latest accepted package
-- **WHEN** `control-theory-engineering-v0.2` is accepted but a complete course ReleaseSet or formal Teaching Projection is still unavailable
+#### Scenario: Engineering-only ReleaseSet is the latest accepted candidate
+- **WHEN** the latest accepted candidate lacks a complete course ReleaseSet or formal Teaching Projection
 - **THEN** the system SHALL keep production authority on Legacy
 
 ### Requirement: Latest production data is rehearsed locally

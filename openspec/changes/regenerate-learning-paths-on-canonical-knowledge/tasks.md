@@ -7,7 +7,7 @@
 ## 2. Add Canonical replanning
 
 - [ ] 2.1 Define Canonical path identity and version fields independent from Legacy paths.
-- [ ] 2.2 Require current cumulative portrait, aggregate CourseCoverage, reviewed aggregate KAQ binding, and a formally released Teaching Projection; treat CTKG 0.2 engineering relations as insufficient.
+- [ ] 2.2 Require current cumulative portrait, version-matched CourseCoverage, reviewed KAQ binding, and a formally released Teaching Projection; treat engineering-only relations as insufficient.
 - [ ] 2.3 Generate a new path without inherited Legacy progress when all inputs are ready.
 - [ ] 2.4 Return an explicit pending state when teaching semantics or goal resolution is unavailable, without engineering-relation inference.
 

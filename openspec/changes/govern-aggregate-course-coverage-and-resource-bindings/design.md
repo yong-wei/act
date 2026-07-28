@@ -1,50 +1,49 @@
 ## Context
 
-本变更依赖 `adopt-ctkg-0-2-aggregate-release-contract`。聚合发布扩大了 Canonical Object 范围，并公开 1302 条 `published_entity_id → retrieval_chunk_id → citation_target_id` 记录，但这些标识在 ACT 当前教材 runtime 和 #1124 资源清单中没有可直接复用的结构单元身份。#1124 已建立资源 inventory、候选、独立复核、争议裁决和 shadow publication 机制；其 489 included、3105 excluded、3456 unresolved 及零 Crosswalk/零 binding 是旧局部 ReleaseSet 下的审计基线，不是新发布的现成绑定。
+标准候选导入与 Delta Receipt 建立后，课程和资源治理不应再绑定某个发布名称或固定对象数量。首次接入没有已治理基线，需要对当前候选 ReleaseSet 做完整处置；之后每个兼容发布只处理 Delta Receipt 中受影响的对象、Crosswalk、组件和相关资源片段。
 
-CourseCoverage 也仍锁定旧根轨迹覆盖文件。聚合包可完整浏览，但未提供正式 Teaching Projection，不能把全部对象自动提升为课程目标或路径语义。
+#1124 已建立资源 inventory、候选、独立复核、争议裁决和 shadow publication 机制。该机制可以复用，但旧发布身份下的结果只有在 Canonical 语义、资源内容、角色、提示词/复核版本和结构门禁全部未变化时，才能生成新 ReleaseSet 下的重验证回执。
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- 对聚合发布中新增的系统建模对象形成逐项、可审计的课程覆盖处置。
-- 将上游三字段 RAG reference 与 ACT 教材结构单元对齐，同时保留“上游引用身份”和“ACT 教学资源角色”两个权威层次。
-- 在聚合发布身份下复用 #1124 的资源治理机制并重新计算有效 shadow 结果。
-- 为后续 RAG、KAQ 和 SAR 提供版本一致、可核验的输入。
+- 建立一次完整课程覆盖和 ACT 结构单元/资源绑定基线。
+- 按 ReleaseSet Delta 做对象驱动和资源驱动的增量治理。
+- 使上游 opaque reference、ACT 结构单元定位和资源教学角色保持三个独立层次。
+- 保持所有结果为 shadow，并向下游提供版本一致的输入门禁。
 
 **Non-Goals:**
 
-- 不修改 CTKG 0.2 协议、Schema snapshot、导入器或候选图谱。
-- 不把 opaque retrieval/citation ID 直接解释为 ACT 内容身份。
-- 不实现 RAG、KAQ、SAR、路径、学习事实或生产切换。
-- 不把未发布的先修、包含、关联等教学语义推断成 Teaching Projection。
+- 不修改 Bundle 兼容、候选导入或 Delta 算法。
+- 不把工程关系推断为 Teaching Projection。
+- 不实施 RAG、KAQ、SAR、路径、事实或生产切换。
 
 ## Decisions
 
-1. **课程覆盖按对象处置，不按发布名称自动纳入。** 通过组件成员身份识别新系统建模对象；实现代理逐项读取 Canonical semantic profile 与课程依据，记录 `formal_objective`、`necessary_prerequisite`、`explicit_extension` 或 `excluded_with_rationale`。未覆盖对象继续可浏览，但不进入教学消费者。
-2. **上游 reference 与 ACT 对齐记录分层。** Change A 已将原始三字段记录保存为不可变 `UpstreamRagReference`；本变更只引用并核验该记录，不重复导入或复制上游权威数据。只有当定位过程同时给出 ACT source edition、结构单元 ID/version/hash、inventory run/capture revision、atomic resource/segment identity 和 validation digest 时，才形成 ACT `EvidenceStructuralUnitCrosswalk`。原始三字段本身不满足该合同。
-3. **确定性优先，语义对齐受治理。** 若未来存在可验证的稳定 ID/hash 对应则确定性接受；否则以 Canonical Object 为起点，在一次稳定资源索引上下文中召回候选 ACT 结构单元，由独立 GPT 上下文复核对象语义、候选正文和引用身份。歧义、冲突或高影响结果进入既有人工裁决队列；无法建立证据链的 reference 保持 unresolved。
-4. **节点驱动批次复用资源上下文。** 每个新增或变化的 Canonical Object 只处理一次，在同一索引/模型版本下对资源候选排序并产出 candidate；资源变更继续沿用 #1124 的反向增量路径。这样不会因未来新增节点重读并重审所有已稳定节点。
-5. **旧决定只做有证据的重用。** 旧 inventory observation 保留。只有 Canonical ID、对象语义摘要、ACT resource/segment hash、角色、提示词/复核版本和结构门禁均未变化时，流程才能生成绑定新聚合 ReleaseSet 的复核回执；不得复制旧 publication 或让旧 ReleaseSet identity 直接通过。
-6. **同一捕获修订闭合输入。** CourseCoverage authoring revision、resource inventory、ACT structural unit index、crosswalk 和 binding run 必须绑定同一 ACT Git capture revision 及对应数据库 watermark；混合 worktree 或漂移输入失败关闭。
-7. **shadow 状态保持。** 有效结果最高为 `SHADOW_PUBLISHED`。RAG、推荐、路径、证据和学习事实继续选择 Legacy；本变更只让后续消费者具备可验收的 Canonical 输入。
-8. **下游门禁按能力分开。** RAG 依赖经验证的 ACT Crosswalk；KAQ 依赖 CourseCoverage；SAR 依赖 KAQ 与经审阅资源绑定。路径、学习事实和最终切换仍等待完整 Teaching Projection 和其余消费者，不由本变更提前解除。
+1. **基线与增量共用一套处置合同。** 当当前候选尚无已治理覆盖基线时，无论其 ReleaseSet Delta 是空库 `BASELINE` 还是从 #1125 演进的普通内容差异，都必须处置全部当前对象；已有有效覆盖基线后，Delta 才只调度新增、payload/type-safe 变化、删除和显式失效对象。所有当前对象最终必须有一个有效课程处置或排除理由。
+2. **课程覆盖按对象决定。** 发布名、组件名或 tier 不能自动决定课程角色；实现代理逐项依据 Canonical profile 与课程来源记录 `formal_objective`、`necessary_prerequisite`、`explicit_extension` 或 `excluded_with_rationale`。
+3. **三层记录保持独立。** 导入的上游三字段记录只用于定位；ACT EvidenceStructuralUnitCrosswalk 绑定教材版次、结构单元 ID/version/hash、资源片段和捕获身份；资源 teaching role 另存，不修改 ActKG 数据。
+4. **确定性优先，语义对齐受治理。** 稳定 ID/hash 唯一匹配可直接进入结构门禁；否则以 Canonical Object 为起点，在固定结构索引中生成候选，再由隔离上下文复核。歧义、冲突和高影响结果保持 unresolved 或进入既有裁决队列。
+5. **增量失效由 Delta 驱动。** 对象删除或变化使其覆盖、Crosswalk 和绑定失效；Crosswalk 删除只失效对应 ACT 对齐；资源内容变化使用 #1124 反向索引。未受影响的结果通过严格身份比较生成重验证回执，不复制旧 publication。
+6. **纯包装修订不重跑语义治理。** 当 Delta 分类为 packaging revision 且语义 digest 不变时，只记录治理无需变更的回执。
+7. **输入必须同一捕获修订。** ReleaseSet/Delta、CourseCoverage authoring、资源 inventory、结构单元索引、数据库 watermark、Crosswalk 和 binding run 绑定同一干净 ACT capture revision；漂移失败关闭。
+8. **下游门禁分开。** RAG 需要有效 ACT Crosswalk；KAQ 需要 CourseCoverage；SAR 需要 KAQ 与经审阅绑定。Teaching Projection、路径、事实和最终切换继续由后续变更负责。
 
 ## Risks / Trade-offs
 
-- [上游 ID 在 ACT 中没有直接身份] → 明确保存为 opaque reference；没有 ACT 结构、版本和哈希证据时保持 unresolved。
-- [语义对齐可能误配] → 生成与复核上下文隔离，所有接受结果重新执行结构、版本、端点和唯一性门禁。
-- [聚合范围使候选量增长] → 先处理新增/变化对象，复用稳定索引和未变化决定，只重算受影响 pair。
-- [课程覆盖被误认为教学关系] → Overlay 只表达课程角色，不生成先修、包含、关联或路径边。
+- [首个基线体量较大] → 通过稳定 manifest 分批执行，但逐项处置和全量闭合仍是基线验收条件。
+- [语义对齐误配] → 生成与复核上下文隔离，最终接受仍执行身份、版本、哈希、端点和唯一性门禁。
+- [上游 ID 无法解析] → 保持 unresolved，不把字符串相似度提升为权威映射。
+- [Delta 漏掉资源侧变化] → 保留 #1124 的资源反向增量入口，与图谱 Delta 共同形成有效输入集。
 
 ## Migration Plan
 
-1. 在 Change A 聚合导入验收后，更新 CourseCoverage authoring schema/数据并生成逐对象处置清单。
-2. 从同一干净 Git revision 捕获教材结构单元索引和资源 inventory，导入上游 references 并运行结构/语义对齐。
-3. 重新运行聚合 ReleaseSet 下的 binding candidate、独立复核、争议裁决与 shadow publication。
-4. 验证所有 included/excluded/unresolved、Crosswalk 和 binding 均可从同一捕获身份重建，且生产 selector 仍为 Legacy。
-5. 若运行失败，丢弃未提交事务或保留失败回执；旧 shadow 历史和 Legacy 生产路径不变。
+1. 等候候选导入和对应 Delta Receipt 完成。
+2. 若当前候选没有已治理覆盖基线，生成完整课程处置 manifest、结构单元索引和资源 inventory，并在同一捕获修订下运行治理。
+3. 发布 CourseCoverage、ACT Crosswalk 和资源绑定为 `SHADOW_PUBLISHED`，验证生产选择器不变。
+4. 用合成内容更新、删除、Crosswalk 更新和纯包装修订验证增量路径。
+5. 失败时保留失败回执并丢弃未提交结果；上一有效 shadow 和 Legacy 生产路径不变。
 
 ## Open Questions
 

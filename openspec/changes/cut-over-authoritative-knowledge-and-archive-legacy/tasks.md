@@ -7,7 +7,7 @@
 
 ## 2. Prove cutover readiness
 
-- [ ] 2.1 Implement one Cutover Gate covering CTKG 0.2 protocol acceptance, aggregate governance, graph API, Konling, RAG, SAR, KAQ, effective resources, CourseCoverage, paths, Canonical writers, complete course ReleaseSet, and formal Teaching Projection.
+- [ ] 2.1 Implement one Cutover Gate covering standard Bundle compatibility, candidate import, accepted ReleaseSet Delta, semantic governance, graph API, Konling, RAG, SAR, KAQ, effective resources, CourseCoverage, paths, Canonical writers, complete course ReleaseSet, and formal Teaching Projection.
 - [ ] 2.2 Verify every accepted Release and Overlay is pinned to the intended application and database revision.
 - [ ] 2.3 Export the latest production database, restore it locally, and execute the exact intended migration and application revision.
 - [ ] 2.4 Validate the candidate graph, all formal consumers, Legacy Archive permissions, historical interpretation, and Canonical writer shadow mode on the restored data.
