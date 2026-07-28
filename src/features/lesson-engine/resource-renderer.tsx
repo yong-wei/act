@@ -29,7 +29,7 @@ interface ResourceRendererProps {
   /** 课程环节级配置覆盖 */
   overrideConfig?: Prisma.JsonValue | null;
   /** Callback when widget completes */
-  onComplete?: (result?: WidgetResult) => void;
+  onComplete?: (result?: WidgetResult) => void | Promise<void>;
   /** Callback when widget state changes (for AI context) */
   onStateChange?: (state: WidgetState) => void;
   /** 课堂会话 ID（用于埋点追踪） */
@@ -126,7 +126,7 @@ export function ResourceRenderer({
   // Handle widget completion
   const handleComplete = useCallback((result?: WidgetResult) => {
     console.log('[ResourceRenderer] Widget complete:', result);
-    onComplete?.(result);
+    return onComplete?.(result);
   }, [onComplete]);
 
   useEffect(() => {

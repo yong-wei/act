@@ -5,13 +5,13 @@ const mocks = vi.hoisted(() => {
   const teachingResourceFindMany = vi.fn();
   const teachingResourceUpdate = vi.fn();
   const loadAllLessonRuntimeResourceCatalogEntries = vi.fn();
-  const loadAllTextbookRuntimeResourceCatalogEntries = vi.fn();
+  const loadAllTextbookStructureRuntimeCatalogEntries = vi.fn();
   const loadRuntimeResourceProjectionInputs = vi.fn();
 
   return {
     getServerSession,
     loadAllLessonRuntimeResourceCatalogEntries,
-    loadAllTextbookRuntimeResourceCatalogEntries,
+    loadAllTextbookStructureRuntimeCatalogEntries,
     loadRuntimeResourceProjectionInputs,
     prisma: {
       teachingResource: {
@@ -38,8 +38,8 @@ vi.mock('@/lib/course-runtime', () => ({
   loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
 }));
 
-vi.mock('@/lib/textbook-runtime-resources', () => ({
-  loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
+vi.mock('@/lib/structured-textbook-runtime', () => ({
+  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
 }));
 
 vi.mock('@/lib/teacher-resource-node-data', async (importOriginal) => {
@@ -86,7 +86,7 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource]);
     mocks.prisma.teachingResource.update.mockResolvedValue(ownedResource);
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
-    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([textbookEntry]);
+    mocks.loadAllTextbookStructureRuntimeCatalogEntries.mockResolvedValue([textbookEntry]);
     mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
   });
 
@@ -426,7 +426,7 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
       candidateRef: 'citation-target:dorf-modern-control-systems:ch10-sec01',
       refType: 'citation-target',
       resourceNodeId: null,
-      sourceRefs: ['textbook-section:dorf-modern-control-systems:ch10-sec01'],
+      sourceRefs: ['ch10-sec01'],
     }));
     const payload = await response.json();
 
@@ -445,7 +445,7 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
       candidateRef: 'owned-quiz',
       refType: 'citation-target',
       resourceNodeId: null,
-      sourceRefs: ['textbook-section:dorf-modern-control-systems:ch10-sec01'],
+      sourceRefs: ['ch10-sec01'],
     }));
     const payload = await response.json();
 
@@ -462,9 +462,9 @@ const textbookEntry = {
   textbook: {
     bookId: 'dorf-modern-control-systems',
   },
-  sections: [
+  units: [
     {
-      sectionId: 'ch10-sec01',
+      unitId: 'ch10-sec01',
       knowledgeNodeIds: ['kn-bode'],
     },
   ],

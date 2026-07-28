@@ -12,6 +12,11 @@ import {
 import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 import { buildFeedbackTaskHref, type StudentFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
 import type { LearningEvidenceCitationChipPayload } from './learning-evidence-rag-corpus';
+import {
+  hasAtMostOneDecimal,
+  roundUpToOneDecimal,
+  teacherScoreIsValid,
+} from '@/lib/assignments/assignment-rubric-contract';
 
 const execFileAsync = promisify(execFile);
 
@@ -105,6 +110,8 @@ export interface RubricCriterionLevel {
   label: string;
   score: number;
   description: string;
+  minPoints?: number;
+  maxPoints?: number;
 }
 
 export interface RubricCriterion {
@@ -113,6 +120,9 @@ export interface RubricCriterion {
   weight: number;
   evidenceRequirement: string;
   goalDimension: string;
+  maxPoints?: number;
+  scoringStandard?: string;
+  detailedRubricEnabled?: boolean;
   levels: RubricCriterionLevel[];
 }
 
@@ -120,6 +130,7 @@ export interface RubricDefinition {
   id: string;
   title: string;
   version: string;
+  schemaVersion?: string;
   maxScore: number;
   criteria: RubricCriterion[];
 }
@@ -136,7 +147,7 @@ export interface GradingEvidenceReference {
 
 export interface CriterionDraftGrade {
   criterionId: string;
-  levelId: string;
+  levelId: string | null;
   score: number;
   comment: string;
   rationale: string;
@@ -194,7 +205,7 @@ export interface CriterionTeacherDiff {
 
 export interface DraftRubricEvaluatorCriterionAssessment {
   criterionId: string;
-  levelId: string;
+  levelId: string | null;
   score: number;
   rationale: string;
   confidence: number;
@@ -511,8 +522,9 @@ export function createDraftRubricGrading(input: {
   now?: Date;
 }): DocumentRubricGradingRun {
   const evaluatorOutput = input.evaluatorOutput ?? createDeterministicControlCorrectionEvaluatorOutput(input);
+  const normalizedEvaluatorOutput = normalizeDraftRubricEvaluatorOutput(evaluatorOutput, input.rubric);
   const validation = validateDraftRubricEvaluatorOutput({
-    output: evaluatorOutput,
+    output: normalizedEvaluatorOutput,
     rubric: input.rubric,
     convertedDocument: input.convertedDocument,
   });
@@ -541,7 +553,7 @@ export function createDraftRubricGrading(input: {
     };
   }
   const blockMap = new Map(input.convertedDocument.blocks.map((block) => [block.id, block]));
-  const assessmentMap = new Map(evaluatorOutput.assessments.map((assessment) => [assessment.criterionId, assessment]));
+  const assessmentMap = new Map(normalizedEvaluatorOutput.assessments.map((assessment) => [assessment.criterionId, assessment]));
   const draftGrades = input.rubric.criteria.map((criterion) => {
     const assessment = assessmentMap.get(criterion.id)!;
     const evidenceBlocks = assessment.evidenceBlockIds.map((blockId) => blockMap.get(blockId)).filter((block): block is ConvertedDocumentBlock => Boolean(block));
@@ -609,17 +621,23 @@ export function createDeterministicControlCorrectionEvaluatorOutput(input: {
           : evidenceBlock.confidence < 0.7
             ? 'low-confidence'
             : 'none';
-      const level = chooseRubricLevel(criterion, limitationState, evidenceBlock.confidence);
+      const detailedRubricEnabled = criterion.detailedRubricEnabled !== false;
+      const level = detailedRubricEnabled
+        ? chooseRubricLevel(criterion, limitationState, evidenceBlock.confidence)
+        : null;
+      const criterionMax = criterion.maxPoints
+        ?? Math.max(0, ...criterion.levels.map((candidate) => candidate.maxPoints ?? candidate.score))
+        ?? input.rubric.maxScore;
       return {
         criterionId: criterion.id,
-        levelId: level.id,
-        score: level.score,
+        levelId: level?.id ?? null,
+        score: level?.score ?? criterionMax,
         confidence: round(Math.min(input.convertedDocument.confidence, evidenceBlock.confidence)),
         evidenceBlockIds: [evidenceBlock.id],
         limitationState,
         rationale: [
           `AI draft: ${criterion.label} evaluated against "${criterion.evidenceRequirement}".`,
-          `Selected ${level.label} because evidence anchor ${evidenceBlock.id} has ${limitationState === 'none' ? 'usable' : limitationState} support.`,
+          `${level ? `Selected ${level.label}` : 'Applied the scoring standard'} because evidence anchor ${evidenceBlock.id} has ${limitationState === 'none' ? 'usable' : limitationState} support.`,
         ].join(' '),
       };
     }),
@@ -651,14 +669,24 @@ export function validateDraftRubricEvaluatorOutput(input: {
     }
     if (seenCriteria.has(assessment.criterionId)) reasons.push('duplicate-criterion');
     seenCriteria.add(assessment.criterionId);
-    const selectedLevel = criterion.levels.find((level) => level.id === assessment.levelId);
-    if (!selectedLevel) {
+    const detailedRubricEnabled = criterion.detailedRubricEnabled !== false;
+    const selectedLevel = assessment.levelId
+      ? criterion.levels.find((level) => level.id === assessment.levelId)
+      : undefined;
+    if (detailedRubricEnabled && !selectedLevel) {
       reasons.push('unsupported-level');
-    } else if (assessment.score !== selectedLevel.score) {
+    } else if (!detailedRubricEnabled && assessment.levelId !== null) {
+      reasons.push('standard-only-level-not-allowed');
+    } else if (input.rubric.schemaVersion !== 'assignment-scoring-rubric.v2'
+      && selectedLevel && assessment.score !== selectedLevel.score) {
       reasons.push('score-level-mismatch');
     }
-    if (!Number.isFinite(assessment.score) || assessment.score < 0 || assessment.score > input.rubric.maxScore) {
+    const criterionMax = criterion.maxPoints ?? input.rubric.maxScore;
+    if (!Number.isFinite(assessment.score) || assessment.score < 0 || assessment.score > criterionMax) {
       reasons.push('score-out-of-range');
+    }
+    if (input.rubric.schemaVersion === 'assignment-scoring-rubric.v2' && !hasAtMostOneDecimal(assessment.score)) {
+      reasons.push('score-must-use-0.1-quantum');
     }
     if (typeof assessment.rationale !== 'string' || assessment.rationale.trim().length < 12) {
       reasons.push('rationale-missing');
@@ -698,11 +726,37 @@ export function validateDraftRubricEvaluatorOutput(input: {
   };
 }
 
+function normalizeDraftRubricEvaluatorOutput(
+  output: DraftRubricEvaluatorOutput,
+  rubric: RubricDefinition,
+): DraftRubricEvaluatorOutput {
+  if (rubric.schemaVersion !== 'assignment-scoring-rubric.v2') return output;
+  const criteria = new Map(rubric.criteria.map((criterion) => [criterion.id, criterion]));
+  return {
+    ...output,
+    assessments: output.assessments.map((assessment) => {
+      const criterion = criteria.get(assessment.criterionId);
+      if (!criterion) return assessment;
+      if (criterion.detailedRubricEnabled === false) return assessment;
+      const rounded = roundUpToOneDecimal(assessment.score);
+      if (!assessment.levelId) return { ...assessment, score: rounded };
+      const level = criterion.levels.find((candidate) => candidate.id === assessment.levelId);
+      if (!level) return { ...assessment, score: rounded };
+      const minimum = level.minPoints ?? level.score;
+      const maximum = level.maxPoints ?? level.score;
+      return {
+        ...assessment,
+        score: Math.min(maximum, Math.max(minimum, rounded)),
+      };
+    }),
+  };
+}
+
 export function editCriterionGrade(
   run: DocumentRubricGradingRun,
   edit: {
     criterionId: string;
-    levelId: string;
+    levelId: string | null;
     score: number;
     comment: string;
     reviewerId: string;
@@ -710,6 +764,26 @@ export function editCriterionGrade(
     now?: Date;
   },
 ): DocumentRubricGradingRun {
+  const criterion = edit.rubric?.criteria.find((item) => item.id === edit.criterionId);
+  const isV2 = edit.rubric?.schemaVersion === 'assignment-scoring-rubric.v2';
+  const hasValidPrecision = isV2
+    ? hasAtMostOneDecimal(edit.score)
+    : edit.rubric
+      ? Number.isFinite(edit.score) && Math.abs(edit.score * 100 - Math.round(edit.score * 100)) < 1e-8
+      : Number.isFinite(edit.score);
+  if (!hasValidPrecision || edit.score < 0) {
+    throw new Error('teacher-score-must-use-0.1-quantum');
+  }
+  if (criterion) {
+    const criterionMax = criterion.maxPoints ?? edit.rubric!.maxScore;
+    if ((isV2 && !teacherScoreIsValid(edit.score, criterionMax))
+      || (!isV2 && edit.score > criterionMax)) {
+      throw new Error('teacher-score-out-of-range');
+    }
+    if (criterion.detailedRubricEnabled === false && edit.levelId !== null) {
+      throw new Error('standard-only-level-not-allowed');
+    }
+  }
   const edited = run.draftGrades.map((grade) => grade.criterionId === edit.criterionId
     ? {
         ...grade,
@@ -1152,10 +1226,13 @@ export function validateDocumentRubricGradingDraftInvariants(input: {
       reasons.push('grade-criterion-mismatch');
       continue;
     }
-    if (!criterion.levels.some((level) => level.id === grade.levelId)) {
+    const detailedRubricEnabled = criterion.detailedRubricEnabled !== false;
+    if ((detailedRubricEnabled && !criterion.levels.some((level) => level.id === grade.levelId))
+      || (!detailedRubricEnabled && grade.levelId !== null)) {
       reasons.push('grade-level-mismatch');
     }
-    if (grade.score < 0 || grade.score > input.parsed.rubric.maxScore) {
+    const criterionMax = criterion.maxPoints ?? input.parsed.rubric.maxScore;
+    if (grade.score < 0 || grade.score > criterionMax) {
       reasons.push('grade-score-out-of-range');
     }
     if (grade.profileWritebackCandidate.goalDimension !== criterion.goalDimension) {
@@ -1664,7 +1741,14 @@ function asRubricDefinition(value: unknown): RubricDefinition | null {
   if (!id || !title || !version || maxScore === null || !Number.isFinite(maxScore) || maxScore <= 0 || !criteria) {
     return null;
   }
-  return { id, title, version, maxScore, criteria };
+  return {
+    id,
+    title,
+    version,
+    maxScore,
+    schemaVersion: stringFrom(record.schemaVersion) ?? undefined,
+    criteria,
+  };
 }
 
 function asRubricCriterion(value: unknown): RubricCriterion | null {
@@ -1675,13 +1759,27 @@ function asRubricCriterion(value: unknown): RubricCriterion | null {
   const weight = numberFrom(record.weight);
   const evidenceRequirement = stringFrom(record.evidenceRequirement);
   const goalDimension = stringFrom(record.goalDimension);
+  const maxPoints = numberFrom(record.maxPoints);
+  const scoringStandard = stringFrom(record.scoringStandard);
   const levels = Array.isArray(record.levels)
     ? record.levels.map(asRubricCriterionLevel).filter((level): level is RubricCriterionLevel => Boolean(level))
     : null;
   if (!id || !label || weight === null || !evidenceRequirement || !goalDimension || !levels) {
     return null;
   }
-  return { id, label, weight, evidenceRequirement, goalDimension, levels };
+  return {
+    id,
+    label,
+    weight,
+    evidenceRequirement,
+    goalDimension,
+    maxPoints: maxPoints ?? undefined,
+    scoringStandard: scoringStandard ?? undefined,
+    detailedRubricEnabled: typeof record.detailedRubricEnabled === 'boolean'
+      ? record.detailedRubricEnabled
+      : undefined,
+    levels,
+  };
 }
 
 function asRubricCriterionLevel(value: unknown): RubricCriterionLevel | null {
@@ -1694,7 +1792,14 @@ function asRubricCriterionLevel(value: unknown): RubricCriterionLevel | null {
   if (!id || !label || score === null || !description) {
     return null;
   }
-  return { id, label, score, description };
+  return {
+    id,
+    label,
+    score,
+    description,
+    minPoints: numberFrom(record.minPoints) ?? undefined,
+    maxPoints: numberFrom(record.maxPoints) ?? undefined,
+  };
 }
 
 function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | null {
@@ -1778,13 +1883,13 @@ function asCriterionDiffSnapshot(
 ): Pick<CriterionDraftGrade, 'levelId' | 'score' | 'comment' | 'rationale' | 'evidenceRefs'> | null {
   const record = asRecord(value);
   if (!record) return null;
-  const levelId = stringFrom(record.levelId);
+  const levelId = record.levelId === null ? null : stringFrom(record.levelId);
   const score = numberFrom(record.score);
   const comment = stringFrom(record.comment);
   const evidenceRefs = Array.isArray(record.evidenceRefs)
     ? record.evidenceRefs.map(asEvidenceReference).filter((ref): ref is GradingEvidenceReference => Boolean(ref))
     : null;
-  if (!levelId || score === null || comment === null || !evidenceRefs) {
+  if ((record.levelId !== null && !levelId) || score === null || comment === null || !evidenceRefs) {
     return null;
   }
   return { levelId, score, comment, rationale: stringFrom(record.rationale) ?? comment, evidenceRefs };
@@ -1814,7 +1919,7 @@ function asCriterionDraftGrade(value: unknown): CriterionDraftGrade | null {
   const record = asRecord(value);
   if (!record) return null;
   const criterionId = stringFrom(record.criterionId);
-  const levelId = stringFrom(record.levelId);
+  const levelId = record.levelId === null ? null : stringFrom(record.levelId);
   const score = numberFrom(record.score);
   const comment = stringFrom(record.comment);
   const confidence = numberFrom(record.confidence);
@@ -1825,7 +1930,7 @@ function asCriterionDraftGrade(value: unknown): CriterionDraftGrade | null {
   const evidenceRefs = Array.isArray(record.evidenceRefs)
     ? record.evidenceRefs.map(asEvidenceReference).filter((ref): ref is GradingEvidenceReference => Boolean(ref))
     : null;
-  if (!criterionId || !levelId || score === null || comment === null || confidence === null || !goalDimension || contribution === null || writebackConfidence === null || !evidenceRefs) {
+  if (!criterionId || (record.levelId !== null && !levelId) || score === null || comment === null || confidence === null || !goalDimension || contribution === null || writebackConfidence === null || !evidenceRefs) {
     return null;
   }
   return {

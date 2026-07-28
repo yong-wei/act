@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { Settings } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { platformLayerStyle } from '@/components/platform/platform-layers';
 
 export type PageFloatingControlRegistration = {
   id: string;
@@ -26,6 +27,7 @@ export type PageFloatingControlMenuItem = Omit<PageFloatingControlRegistration, 
 type PageFloatingControlsContextValue = {
   registerControl: (control: PageFloatingControlRegistration) => () => void;
   setRouteDockBehavior: (behavior: PageFloatingDockBehavior) => () => void;
+  setWorkspaceDockSuppressed: (suppressed: boolean) => () => void;
 };
 
 const PageFloatingControlsContext = createContext<PageFloatingControlsContextValue | null>(null);
@@ -48,6 +50,7 @@ export function selectPrimaryFloatingControl(
 export function PageFloatingControlsProvider({ children }: { children: ReactNode }) {
   const [controls, setControls] = useState<Record<string, PageFloatingControlRegistration>>({});
   const [routeDockBehavior, setRouteDockBehaviorState] = useState<PageFloatingDockBehavior>('enabled');
+  const [workspaceDockSuppressed, setWorkspaceDockSuppressedState] = useState(false);
 
   const registerControl = useCallback((control: PageFloatingControlRegistration) => {
     setControls((prev) => ({ ...prev, [control.id]: control }));
@@ -65,12 +68,23 @@ export function PageFloatingControlsProvider({ children }: { children: ReactNode
     return () => setRouteDockBehaviorState('enabled');
   }, []);
 
-  const value = useMemo(() => ({ registerControl, setRouteDockBehavior }), [registerControl, setRouteDockBehavior]);
+  const setWorkspaceDockSuppressed = useCallback((suppressed: boolean) => {
+    setWorkspaceDockSuppressedState(suppressed);
+    return () => setWorkspaceDockSuppressedState(false);
+  }, []);
+
+  const value = useMemo(
+    () => ({ registerControl, setRouteDockBehavior, setWorkspaceDockSuppressed }),
+    [registerControl, setRouteDockBehavior, setWorkspaceDockSuppressed],
+  );
 
   return (
     <PageFloatingControlsContext.Provider value={value}>
       {children}
-      <PageFloatingControls registrations={Object.values(controls)} behavior={routeDockBehavior} />
+      <PageFloatingControls
+        registrations={Object.values(controls)}
+        behavior={workspaceDockSuppressed ? 'hidden' : routeDockBehavior}
+      />
     </PageFloatingControlsContext.Provider>
   );
 }
@@ -181,10 +195,14 @@ function PageFloatingControls({
     <div
       ref={menuRef}
       className="no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end"
-      style={knowledgeInspectorAvoidanceActive ? {
-        right: 'calc(1.5rem + var(--knowledge-inspector-width, clamp(22.5rem, 30vw, 28.75rem)))',
-      } : undefined}
+      style={{
+        ...platformLayerStyle('floatingDock'),
+        ...(knowledgeInspectorAvoidanceActive ? {
+          right: 'calc(1.5rem + var(--knowledge-inspector-width, clamp(22.5rem, 30vw, 28.75rem)))',
+        } : {}),
+      }}
       data-page-floating-controls="true"
+      data-platform-layer="floatingDock"
       data-platform-floating-dock={behavior === 'collapsed' ? 'collapsed' : 'enabled'}
       data-platform-floating-dock-safe-area="bottom-right"
       data-platform-floating-dock-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : undefined}

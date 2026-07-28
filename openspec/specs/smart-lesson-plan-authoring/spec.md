@@ -47,7 +47,7 @@ The smart-preparation workspace SHALL let an authorized teacher create and revis
 The system SHALL let the teacher select, edit, merge, or manually create knowledge points before goal confirmation.
 
 #### Scenario: System suggests knowledge points
-- **WHEN** confirmed course-basis versions are available
+- **WHEN** enabled usable course-basis versions or teacher-confirmed textbook ranges are available
 - **THEN** the system MAY propose knowledge-point candidates from governed retrieval
 - **AND** each candidate SHALL retain source bindings or an explicit source-gap state.
 
@@ -59,7 +59,7 @@ The system SHALL let the teacher select, edit, merge, or manually create knowled
 #### Scenario: Teacher creates a knowledge point manually
 - **WHEN** a teacher enters a knowledge point that was not suggested
 - **THEN** the system SHALL retain it as teacher-created
-- **AND** it SHALL allow source binding or an explicit source-gap state without requiring a full knowledge-graph writeback.
+- **AND** it SHALL automatically attempt source matching before requiring teacher resolution of ambiguity or an explicit source gap.
 
 ### Requirement: Teaching goals require confirmation and source mapping
 The system SHALL support teacher-entered and system-suggested teaching goals, and SHALL require teacher confirmation before full lesson-plan generation.
@@ -230,4 +230,224 @@ Course bases, tasks, jobs, drafts, revisions, AI reviews, source bindings, and a
 - **WHEN** a student requests a lesson-plan draft, answer key, provider audit, source-gap acknowledgement, or AI review
 - **THEN** the system SHALL deny access
 - **AND** publication of courseware SHALL NOT make teacher-only plan records student-visible.
+
+### Requirement: Smart preparation presents one staged task workspace
+The system SHALL present smart preparation through the top-level views `备课任务` and `课程依据`, and SHALL render one selected task as the ordered accordion stages `课程依据`, `主题与目标`, `班级学情`, `生成与审核教案`, and `生成课件`.
+
+#### Scenario: Teacher opens an existing task
+- **WHEN** an authorized teacher selects a task
+- **THEN** the workspace SHALL show the five stages in order
+- **AND** each stage SHALL be collapsible without discarding persisted values or active generation state.
+
+#### Scenario: Teacher surveys task progress
+- **WHEN** one or more stages contain saved data
+- **THEN** the workspace SHALL show each stage's Chinese status, completion mark, blocking reason when present, and next available action
+- **AND** the teacher SHALL be able to expand completed and incomplete stages independently.
+
+#### Scenario: Course-basis state changes in the management view
+- **WHEN** the teacher creates, edits, freezes, disables, or deletes a course-basis document and returns to the current task
+- **THEN** the task's source choices, state labels, and previews SHALL reflect the persisted change without a full page refresh
+- **AND** the current task, expanded stage, and scroll position SHALL be preserved when still valid.
+
+### Requirement: Stage completion is derived from valid persisted facts
+The system SHALL mark a preparation stage complete only when its required data is persisted and valid and every explicit teacher confirmation required by that stage is present.
+
+#### Scenario: A stage becomes valid
+- **WHEN** all required fields, source decisions, and teacher confirmations for a stage are saved
+- **THEN** the stage SHALL receive a completion check automatically.
+
+#### Scenario: A completed stage is invalidated
+- **WHEN** a teacher edit makes a required field, source binding, confirmation, or downstream baseline stale
+- **THEN** the affected stage SHALL lose its completion check
+- **AND** later affected stages SHALL show the specific stale or blocked state without deleting their prior content.
+
+### Requirement: Preparation tasks have reference-aware deletion and archive
+The system SHALL permit the owning teacher to permanently delete a task until it is formally published or referenced by a classroom runtime, regardless of whether generation or approval has completed.
+
+#### Scenario: Unpublished task is deleted
+- **WHEN** the teacher confirms deletion of a task with no publication or classroom reference
+- **THEN** the task, provider attempts, outlines, generation stages, lesson drafts, approved but unpublished lesson revisions, and task-owned unpublished courseware SHALL be permanently deleted atomically
+- **AND** the task SHALL disappear from the task list.
+
+#### Scenario: Referenced task deletion is requested
+- **WHEN** the teacher requests deletion of a task referenced by a publication or classroom runtime
+- **THEN** the system SHALL refuse permanent deletion
+- **AND** it SHALL identify the blocking reference category, explain that the task can only be archived, and provide the relevant management action.
+
+#### Scenario: Task is archived
+- **WHEN** the teacher archives a task
+- **THEN** it SHALL leave the default active list while remaining available through the archived-task filter.
+
+### Requirement: Existing smart-preparation tasks remain usable
+The system SHALL project existing readable tasks and jobs into the staged workspace without exposing raw JSON.
+
+#### Scenario: Existing structured output is valid
+- **WHEN** an existing task contains schema-valid outline, stage, draft, or revision content
+- **THEN** the content SHALL render in its corresponding accordion stage using the normal teaching-document presentation.
+
+#### Scenario: Existing job can resume
+- **WHEN** an existing task has a persisted retryable or cancelled job
+- **THEN** the workspace SHALL show the completed stages and the resume action at the first incomplete stage.
+
+#### Scenario: Existing payload cannot be rendered
+- **WHEN** an existing payload is not compatible with the supported schema
+- **THEN** the workspace SHALL show an actionable Chinese unavailable state
+- **AND** it SHALL NOT display the serialized payload as teacher-facing content.
+
+### Requirement: Generation progress exposes teaching stage and action state
+The smart-preparation UI SHALL present the teaching stages `提纲`, `导入`, `学习目标`, `前测`, `参与式学习`, `后测`, and `总结`, each with one current action state from `等待开始`, `正在准备依据`, `正在生成`, `正在校验`, `正在自动修正`, `等待教师确认`, `可重试`, `已完成`, and `已取消`.
+
+#### Scenario: A stage is running
+- **WHEN** a generation stage is active
+- **THEN** its row SHALL show the teaching-stage name, current action state, and a visible motion cue
+- **AND** the interface SHALL NOT rely on animation alone to communicate progress.
+
+#### Scenario: Provider or validation work changes state
+- **WHEN** the job moves between generation, validation, and automatic correction
+- **THEN** the current action label SHALL update without a manual page refresh.
+
+### Requirement: Completed stages appear immediately as rendered content
+The workspace SHALL refresh active durable jobs and expose each schema-valid persisted stage as soon as it completes.
+
+#### Scenario: A stage completes
+- **WHEN** normalized stage content passes structure, source, and duration validation and is persisted
+- **THEN** the stage SHALL receive a completion mark and render its complete teaching content
+- **AND** later stages MAY continue running without hiding the completed result.
+
+#### Scenario: Stage output is not valid
+- **WHEN** provider output has not passed validation
+- **THEN** it SHALL remain in generation, validation, or correction state
+- **AND** raw JSON or a partial structured object SHALL NOT be shown as completed teaching content.
+
+### Requirement: Failed generation resumes from the first incomplete stage
+The generation service SHALL preserve completed stages and SHALL resume only from the first incomplete stage after retry, cancellation, navigation, or process restart.
+
+#### Scenario: A provider attempt fails after earlier stages complete
+- **WHEN** the current stage enters a retryable failure
+- **THEN** earlier completed stages SHALL remain visible and immutable for that attempt
+- **AND** the teacher SHALL receive a Chinese failure reason and retry action for the failed stage.
+
+#### Scenario: Teacher requests retry
+- **WHEN** the teacher explicitly retries a retryable stage
+- **THEN** the system SHALL create a new provider attempt and idempotency key for that stage
+- **AND** it SHALL NOT regenerate completed stages.
+
+#### Scenario: The same queue delivery is repeated
+- **WHEN** the worker receives a duplicate delivery for one attempt identity
+- **THEN** the delivery SHALL converge on the existing stage result
+- **AND** it SHALL NOT create another provider charge or duplicate output.
+
+### Requirement: Existing generation jobs migrate to localized projections
+Existing readable generation jobs SHALL map to the new stage and action-state presentation without losing recovery.
+
+#### Scenario: Historical job is terminal
+- **WHEN** an existing job is completed, failed, or cancelled
+- **THEN** the workspace SHALL derive the corresponding Chinese terminal state and render any valid completed stages.
+
+#### Scenario: Historical failure code is unknown
+- **WHEN** an existing job has an unsupported failure payload
+- **THEN** the workspace SHALL show a general actionable failure state
+- **AND** it SHALL NOT expose the provider payload or stack trace to the teacher.
+
+### Requirement: Lesson drafts and outlines open in the unified editor
+Smart-preparation outline and lesson-draft editing SHALL use the preparation document editor and SHALL preserve task, draft, and approval identities.
+
+#### Scenario: Teacher edits a paused outline
+- **WHEN** generation is paused for outline confirmation and the teacher selects edit
+- **THEN** the outline SHALL open in the unified editor
+- **AND** saving SHALL update the same paused draft rather than creating an unrelated browser-prompt value.
+
+#### Scenario: Teacher edits a generated lesson
+- **WHEN** the teacher edits a generated lesson draft
+- **THEN** the complete structured lesson SHALL open in the unified editor
+- **AND** approval SHALL operate only on the subsequently saved and validated draft revision.
+
+### Requirement: Knowledge points and goals receive governed source matching
+The system SHALL attempt to match every teacher-entered or system-suggested knowledge point and goal to reliable evidence in the current preparation resource pack.
+
+#### Scenario: One reliable match exists
+- **WHEN** source matching finds one reliable source
+- **THEN** the system SHALL attach that source automatically and SHALL NOT require the teacher to process that item before continuing
+- **AND** the teacher SHALL still be able to inspect, replace, or remove the binding.
+
+#### Scenario: Reliable matches are ambiguous
+- **WHEN** multiple materially different reliable matches remain
+- **THEN** the system SHALL ask the teacher to select or reject the candidates
+- **AND** the stage SHALL remain incomplete until the ambiguity is resolved.
+
+#### Scenario: No reliable source exists
+- **WHEN** source matching finds no reliable source
+- **THEN** the item SHALL remain marked as a source gap
+- **AND** the stage SHALL complete only after the teacher explicitly confirms the gap and records a short reason.
+
+#### Scenario: Confirmed source gap is displayed
+- **WHEN** the teacher confirms a no-source gap and records a reason
+- **THEN** the item SHALL remain displayed as `无可靠来源`
+- **AND** it SHALL NOT be represented as verified or as having linked evidence.
+
+#### Scenario: Teacher changes an attached source
+- **WHEN** the teacher replaces or removes an automatically or manually attached source
+- **THEN** the system SHALL persist the new binding or gap state and re-evaluate the affected stage
+- **AND** generation SHALL use only the resulting teacher-visible source decision.
+
+### Requirement: Source matching invalidates only on semantic change
+The system SHALL preserve valid source decisions across presentation-only edits and SHALL re-evaluate them after semantic edits.
+
+#### Scenario: Formatting-only edit is saved
+- **WHEN** an edit changes only formatting, whitespace, or punctuation without changing normalized meaning
+- **THEN** existing source bindings and gap confirmations SHALL remain valid.
+
+#### Scenario: Semantic content is changed
+- **WHEN** a knowledge point or goal changes meaning
+- **THEN** its existing source decision SHALL become stale and source matching SHALL run again
+- **AND** affected stage completion SHALL be removed until the new decision is valid.
+
+### Requirement: Class adaptation reads the current cumulative class portrait
+When a class is selected for smart preparation, generation SHALL read the current authorized cumulative class portrait rather than a historical diagnosis snapshot.
+
+#### Scenario: Default class is available
+- **WHEN** the teacher opens class selection and has an authorized default class
+- **THEN** that class SHALL be selected initially and its current cumulative portrait summary SHALL be displayed
+- **AND** the teacher SHALL be able to select another authorized class or choose not to use class learning state.
+
+#### Scenario: Default class has no available cumulative portrait
+- **WHEN** the authorized default class is selected but its cumulative portrait is unavailable
+- **THEN** the UI SHALL show the governed unavailability reason
+- **AND** the teacher SHALL still be able to continue with generic audience context, select another class, or choose not to use class learning state.
+
+#### Scenario: Selected class portrait changes before generation
+- **WHEN** generation reads the selected class
+- **THEN** it SHALL use the current authoritative cumulative class-portrait projection rather than a historical diagnosis report or task snapshot
+- **AND** it SHALL NOT require a frozen class-portrait version.
+
+#### Scenario: The same selected class portrait changes during preparation
+- **WHEN** new learner evidence updates the selected class's cumulative portrait while the task remains open
+- **THEN** the system SHALL NOT create a task-specific portrait version, show a change warning, or mark existing content stale solely for that update
+- **AND** the next generation operation SHALL read the latest available cumulative portrait.
+
+#### Scenario: Class selection changes after content generation
+- **WHEN** the teacher changes or removes the selected class after generated content exists
+- **THEN** the affected generated content SHALL be retained and marked stale
+- **AND** regeneration from the outline SHALL require teacher confirmation.
+
+### Requirement: Konling task proposals update the shared preparation task
+Smart-preparation natural-language proposals SHALL apply through the same authorized structured task revision used by the accordion controls.
+
+#### Scenario: Proposal is applied
+- **WHEN** an authorized teacher applies a valid in-message proposal
+- **THEN** the shared task revision SHALL persist the change and lineage to the conversation turn and tool run
+- **AND** both the conversation and accordion SHALL reflect the same resulting task.
+
+#### Scenario: In-message actions are available
+- **WHEN** the conversation renderer supports structured proposal cards
+- **THEN** the separate `查看控灵建议` surface SHALL be removed
+- **AND** no second suggestion store SHALL be required.
+
+### Requirement: Smart-preparation assistant labels are correct and localized
+All smart-preparation assistant entry points SHALL display `控灵` and Chinese user-facing action labels.
+
+#### Scenario: Smart-preparation task renders
+- **WHEN** the page shows assistant collaboration or revision actions
+- **THEN** it SHALL use `控灵` rather than `孔灵`
+- **AND** provider, tool, draft, and task state identifiers SHALL not be exposed as untranslated primary labels.
 

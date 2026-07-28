@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   approveTeacherAssignmentReview,
+  buildTeacherAssignmentReviewApiProjection,
+  consumeTeacherAssignmentOriginalAssetRead,
   createTeacherAssignmentReview,
   deriveTeacherAssignmentReviewTotal,
   deriveTeacherReviewQueueStatus,
@@ -12,6 +14,7 @@ import {
   requestTeacherAssignmentFeedbackRelease,
   returnTeacherAssignmentReview,
   saveTeacherAssignmentReview,
+  signTeacherAssignmentOriginalAssetRead,
   TeacherAssignmentReviewError,
 } from '../teacher-assignment-review';
 
@@ -88,6 +91,246 @@ function reviewFixture() {
 }
 
 describe('teacher assignment review persistence', () => {
+  it('projects only the sealed attempt text and safe current-attempt original assets', () => {
+    const review: any = reviewFixture();
+    review.gradingRun.answerAttempt = {
+      id: 'attempt-1',
+      textSnapshot: '# 原始答案\n\n$x^2$',
+      answerSnapshot: {
+        schemaVersion: 'assignment-response.v2',
+        attachmentOrderProvenance: 'legacy-fallback',
+      },
+      answer: {
+        id: 'answer-1',
+        attachmentOrderProvenance: 'student-arranged',
+      },
+      assets: [
+        {
+          id: 'asset-other-attempt',
+          answerId: 'answer-1',
+          attemptId: 'attempt-0',
+          state: 'FINALIZED',
+          originalName: 'old.pdf',
+          mimeType: 'application/pdf',
+          sizeBytes: 10,
+          assetRole: 'ATTACHMENT',
+          orderIndex: 0,
+          objectKey: 'private/old',
+          checksum: 'sha256:old',
+        },
+        {
+          id: 'asset-image',
+          answerId: 'answer-1',
+          attemptId: 'attempt-1',
+          state: 'FINALIZED',
+          originalName: '..\\private\\diagram.png',
+          mimeType: 'image/png',
+          sizeBytes: 20,
+          assetRole: 'EMBEDDED_IMAGE',
+          orderIndex: null,
+          embeddedPosition: 'md:diagram',
+          objectKey: 'private/image',
+          checksum: 'sha256:image',
+        },
+        {
+          id: 'asset-office',
+          answerId: 'answer-1',
+          attemptId: 'attempt-1',
+          state: 'FINALIZED',
+          originalName: '/Users/student/\u00ad\u061c\u180e\u202a\u206a\u206f\u2060\u200b\ufeffreport\ufff9.docx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          sizeBytes: 30,
+          assetRole: 'ATTACHMENT',
+          orderIndex: 2,
+          objectKey: 'private/office',
+          checksum: 'sha256:office',
+        },
+        {
+          id: 'asset-pending',
+          answerId: 'answer-1',
+          attemptId: 'attempt-1',
+          state: 'QUARANTINED',
+          originalName: 'pending.pdf',
+          mimeType: 'application/pdf',
+          sizeBytes: 40,
+          assetRole: 'ATTACHMENT',
+          orderIndex: 1,
+        },
+      ],
+    };
+    review.gradingRun.answerEvidence = {
+      limitationState: 'evidence-incomplete',
+      sourceManifest: {
+        sources: [{
+          assetId: 'asset-office',
+          displayName: '/private/provider/report.docx',
+          state: 'UNDERSTANDING_FAILED',
+          provider: 'private-provider',
+          errorCode: 'private-error',
+        }],
+      },
+      conversion: { canonicalMarkdown: 'converted private answer' },
+    };
+
+    const projection = buildTeacherAssignmentReviewApiProjection(review);
+
+    expect(projection.originalResponse).toEqual({
+      textSnapshot: '# 原始答案\n\n$x^2$',
+      attachmentOrderProvenance: 'legacy-fallback',
+      assets: [
+        expect.objectContaining({
+          id: 'asset-image',
+          displayName: 'diagram.png',
+          embeddedPosition: 'md:diagram',
+        }),
+        expect.objectContaining({
+          id: 'asset-office',
+          displayName: 'report.docx',
+          orderIndex: 2,
+        }),
+      ],
+    });
+    expect(projection.omittedEvidence).toEqual([{
+      assetId: 'asset-office',
+      displayName: 'report.docx',
+    }]);
+    expect(JSON.stringify(projection.originalResponse)).not.toMatch(
+      /objectKey|checksum|conversion|provider|errorCode|QUARANTINED/,
+    );
+    expect(JSON.stringify(projection)).not.toContain('converted private answer');
+  });
+
+  it('uses a distinct one-time teacher purpose and rechecks the current attempt before reading', async () => {
+    const review = reviewFixture();
+    const tokenCreate = vi.fn().mockResolvedValue({ id: 'token-1' });
+    const tokenClaim = vi.fn().mockResolvedValue({ count: 1 });
+    const asset = {
+      id: 'asset-1',
+      answerId: review.answerId,
+      attemptId: review.attemptId,
+      state: 'FINALIZED',
+      objectKey: 'private/original',
+      originalName: '/private/report.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 12,
+      checksum: `sha256:${'1'.repeat(64)}`,
+    };
+    const db: any = {
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      submissionAsset: { findUnique: vi.fn().mockResolvedValue(asset) },
+      submissionAssetAccessToken: {
+        create: tokenCreate,
+        updateMany: tokenClaim,
+      },
+    };
+
+    const signed = await signTeacherAssignmentOriginalAssetRead(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      assetId: asset.id,
+      now,
+    });
+    expect(signed.url).toContain('/api/teacher/assignments/');
+    expect(tokenCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        assetId: asset.id,
+        studentId: 'teacher-1',
+        purpose: 'teacher-assignment-original-read',
+      }),
+    });
+
+    await expect(consumeTeacherAssignmentOriginalAssetRead(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      assetId: asset.id,
+      token: 'one-time-token',
+      now,
+    })).resolves.toMatchObject({
+      objectKey: 'private/original',
+      displayName: 'report.pdf',
+    });
+    expect(tokenClaim).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        studentId: 'teacher-1',
+        purpose: 'teacher-assignment-original-read',
+        usedAt: null,
+      }),
+      data: { usedAt: now },
+    }));
+
+    db.submissionAsset.findUnique.mockResolvedValue({
+      ...asset,
+      attemptId: 'attempt-old',
+    });
+    await expect(signTeacherAssignmentOriginalAssetRead(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      assetId: asset.id,
+      now,
+    })).rejects.toMatchObject({
+      code: 'teacher-review-original-asset-forbidden',
+      status: 403,
+    });
+  });
+
+  it('requires explicit confirmation before approving incomplete evidence', async () => {
+    const review = reviewFixture();
+    review.gradingRun = {
+      ...review.gradingRun,
+      evidenceState: 'EVIDENCE_INCOMPLETE',
+      answerEvidence: {
+        ...review.gradingRun.answerEvidence,
+        limitationState: 'evidence-incomplete',
+        sourceManifest: {
+          sources: [
+            { assetId: 'asset-ready', state: 'READY' },
+            { assetId: 'asset-truncated', state: 'READY', limitations: ['blocks-truncated'] },
+            { assetId: 'asset-missing', state: 'UNDERSTANDING_FAILED' },
+          ],
+        },
+      },
+    } as any;
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      teacherAssignmentApprovalSnapshot: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+    };
+    await expect(approveTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      expectedVersion: review.version,
+      idempotencyKey: 'approve-incomplete',
+      now,
+    })).rejects.toMatchObject({
+      code: 'teacher-review-incomplete-evidence-confirmation-required',
+      details: { omittedAssetIds: ['asset-truncated', 'asset-missing'] },
+    });
+    await expect(approveTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: review.assignmentId,
+      submissionId: review.submissionId,
+      reviewId: review.id,
+      expectedVersion: review.version,
+      idempotencyKey: 'approve-stale-omitted-assets',
+      confirmIncompleteEvidence: true,
+      omittedAssetIds: ['asset-missing'],
+      now,
+    })).rejects.toMatchObject({
+      code: 'teacher-review-version-conflict',
+      status: 409,
+    });
+  });
+
   it('resets a terminal reviewed derivative before retrying its outbox command', async () => {
     const review: any = {
       ...reviewFixture(),
@@ -179,6 +422,24 @@ describe('teacher assignment review persistence', () => {
     expect(() => deriveTeacherAssignmentReviewTotal(rubric(), [{ ...criteria()[0], levelId: 'c1-low', score: 4 }, criteria()[1]])).toThrow('teacher-review-level-score-mismatch');
   });
 
+  it('derives a one-decimal total for a standard v2 rubric without level identities', () => {
+    expect(deriveTeacherAssignmentReviewTotal({
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      maxScore: 10,
+      criteria: [{
+        id: 'criterion-1',
+        maxPoints: 10,
+        detailedRubricEnabled: false,
+        levels: [],
+      }],
+    }, [{
+      criterionId: 'criterion-1',
+      levelId: null,
+      score: 8.5,
+      comment: '证据完整',
+    }])).toBe(8.5);
+  });
+
   it('withholds the assignment total until every latest required attempt is approved or exempted', () => {
     const base = {
       questions: [{ id: 'question-1' }, { id: 'question-2' }],
@@ -268,7 +529,19 @@ describe('teacher assignment review persistence', () => {
 
   it('atomically freezes approval and appends exactly three deterministic outbox commands', async () => {
     const review = reviewFixture();
+    review.gradingRun = {
+      ...review.gradingRun,
+      evidenceState: 'EVIDENCE_INCOMPLETE',
+      answerEvidence: {
+        ...review.gradingRun.answerEvidence,
+        limitationState: 'evidence-incomplete',
+        sourceManifest: {
+          sources: [{ assetId: 'asset-missing', state: 'UNDERSTANDING_FAILED' }],
+        },
+      },
+    } as any;
     const snapshotCreate = vi.fn(async ({ data }: any) => ({ ...data, id: 'snapshot-1' }));
+    const auditCreate = vi.fn().mockResolvedValue({});
     const outboxCreateMany = vi.fn().mockResolvedValue({ count: 3 });
     const outboxUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
     const reviewUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
@@ -284,6 +557,7 @@ describe('teacher assignment review persistence', () => {
       teacherAssignmentReviewOutbox: { createMany: outboxCreateMany, updateMany: outboxUpdateMany },
       gradingRun: { updateMany: runUpdateMany },
       gradingCriterionAssessment: { updateMany: assessmentUpdateMany },
+      gradingAuditEvent: { create: auditCreate },
       assignmentSubmission: {
         findUnique: vi.fn().mockResolvedValue({
           revision: { questions: [{ id: 'question-1' }] },
@@ -296,10 +570,18 @@ describe('teacher assignment review persistence', () => {
     };
     const result = await approveTeacherAssignmentReview(db, {
       actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,
-      reviewId: review.id, expectedVersion: 2, idempotencyKey: 'approve-review-1', now,
+      reviewId: review.id, expectedVersion: 2, idempotencyKey: 'approve-review-1',
+      confirmIncompleteEvidence: true, now,
     });
     expect(result).toMatchObject({ snapshot: { id: 'snapshot-1', questionTotal: 9 }, replay: false, assignment: { complete: true, total: 9 } });
-    expect(snapshotCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ reviewVersion: 2, criterionSnapshot: criteria(), questionTotal: 9 }) }));
+    expect(snapshotCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
+      reviewVersion: 2,
+      criterionSnapshot: criteria(),
+      questionTotal: 9,
+      incompleteEvidenceConfirmed: true,
+      omittedAssetIds: ['asset-missing'],
+    }) }));
+    expect(JSON.stringify(auditCreate.mock.calls)).not.toContain('asset-missing');
     expect(outboxCreateMany).toHaveBeenCalledWith({
       data: expect.arrayContaining([
         expect.objectContaining({ command: 'GENERATE_DERIVATIVE', dedupeKey: 'teacher-review:snapshot-1:generate-derivative' }),

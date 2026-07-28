@@ -3,7 +3,11 @@ import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 
 import { getServerAuthSession } from '@/lib/auth';
-import { SmartLessonPlanError, type SmartLessonActor } from '@/lib/smart-lesson-plan';
+import {
+  SmartLessonPlanError,
+  projectSmartPreparationTask,
+  type SmartLessonActor,
+} from '@/lib/smart-lesson-plan';
 
 export {
   createTaskSchema,
@@ -43,7 +47,7 @@ export function smartLessonErrorResponse(error: unknown): NextResponse {
 
 export function publicTask(task: Record<string, unknown>) {
   const drafts = optionalArray(task.drafts, (draft) => publicDraft(recordValue(draft)));
-  return compact({
+  const projected = compact({
     id: task.id,
     courseBasisId: task.courseBasisId,
     lineageId: task.lineageId,
@@ -54,18 +58,72 @@ export function publicTask(task: Record<string, unknown>) {
     outlineConfirmationRequired: task.outlineConfirmationRequired,
     scopeConfirmedAt: task.scopeConfirmedAt,
     goalsConfirmedAt: task.goalsConfirmedAt,
+    selectedClassId: task.selectedClassId,
+    textbookRanges: publicJson(task.textbookRanges),
     aggregateClassContextRef: task.aggregateClassContextRef,
+    classContextStaleAt: task.classContextStaleAt,
+    classContextStaleReason: task.classContextStaleReason,
     revision: task.revision,
+    archivedAt: task.archivedAt,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
     sources: optionalArray(task.sources, (source) => {
       const item = recordValue(source);
-      return compact({ id: item.id, sourceVersionId: item.sourceVersionId, state: item.state, selectedAt: item.selectedAt, removedAt: item.removedAt });
+      const sourceVersion = recordValue(item.sourceVersion);
+      return compact({
+        id: item.id,
+        sourceVersionId: item.sourceVersionId,
+        state: item.state,
+        sourceValid: sourceVersion.reviewState === undefined
+          ? true
+          : sourceVersion.extractionState === 'EXTRACTED'
+            && sourceVersion.reviewState !== 'REJECTED'
+            && !sourceVersion.retiredAt,
+        selectedAt: item.selectedAt,
+        removedAt: item.removedAt,
+      });
     }),
     knowledgePoints: optionalArray(task.knowledgePoints, publicKnowledgePoint),
     goals: optionalArray(task.goals, publicGoal),
     drafts,
     revisions: optionalArray(task.revisions, (revision) => publicRevision(recordValue(revision))),
+    coursewarePublicationSeries: publicPublicationSeries(task.coursewarePublicationSeries),
+  });
+  return { ...projected, workspace: projectSmartPreparationTask(projected) };
+}
+
+export function publicTaskSummary(task: Record<string, unknown>) {
+  const workspace = projectSmartPreparationTask({
+    ...task,
+    sources: optionalArray(task.sources, (source) => {
+      const item = recordValue(source);
+      const sourceVersion = recordValue(item.sourceVersion);
+      return {
+        state: item.state,
+        sourceValid: sourceVersion.reviewState === undefined
+          ? true
+          : sourceVersion.extractionState === 'EXTRACTED'
+            && sourceVersion.reviewState !== 'REJECTED'
+            && !sourceVersion.retiredAt,
+      };
+    }),
+  });
+  const currentStage = workspace.stages.find((stage) => stage.id === workspace.currentStage);
+  return compact({
+    id: task.id,
+    courseBasisId: task.courseBasisId,
+    topic: task.topic,
+    audience: task.audience,
+    durationMinutes: task.durationMinutes,
+    revision: task.revision,
+    archivedAt: task.archivedAt,
+    updatedAt: task.updatedAt,
+    currentStage: workspace.currentStage,
+    currentStageTitle: currentStage?.title,
+    statusLabel: workspace.statusLabel,
+    nextAction: currentStage?.nextAction,
+    blockingReason: currentStage?.blockingReason,
+    complete: workspace.stages.every((stage) => stage.complete),
   });
 }
 
@@ -75,6 +133,7 @@ export function normalizeSourceStatesForService(value: unknown): unknown {
   return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => {
     if (key !== 'sourceState') return [key, normalizeSourceStatesForService(child)];
     if (child === 'verified') return [key, 'VERIFIED'];
+    if (child === 'no_reliable_source') return [key, 'NO_RELIABLE_SOURCE'];
     if (child === 'ai_generated_source_pending') return [key, 'AI_GENERATED_SOURCE_PENDING'];
     if (child === 'teacher_created_source_pending') return [key, 'TEACHER_CREATED_SOURCE_PENDING'];
     throw new SmartLessonPlanError('invalid-public-source-state', 400);
@@ -104,19 +163,24 @@ function redactPrivateFields(value: unknown): unknown {
 
 function publicSourceState(value: unknown) {
   if (value === 'VERIFIED') return 'verified';
+  if (value === 'NO_RELIABLE_SOURCE') return 'no_reliable_source';
   if (value === 'AI_GENERATED_SOURCE_PENDING') return 'ai_generated_source_pending';
   if (value === 'TEACHER_CREATED_SOURCE_PENDING') return 'teacher_created_source_pending';
   return value;
 }
 
 export function publicJob(job: Record<string, unknown>) {
+  const failureCode = publicGenerationFailureCode(job.failureCode);
   return compact({
     id: job.id,
     draftId: job.draftId,
     state: job.state,
     outlineConfirmation: job.outlineConfirmation,
     firstIncompleteStage: job.firstIncompleteStage,
-    failureCode: job.failureCode,
+    failureCode,
+    failureMessage: typeof job.failureCode === 'string'
+      ? localizedGenerationFailure(failureCode ?? 'unknown-generation-failure')
+      : undefined,
     startedAt: job.startedAt,
     completedAt: job.completedAt,
     cancelledAt: job.cancelledAt,
@@ -125,6 +189,19 @@ export function publicJob(job: Record<string, unknown>) {
     updatedAt: job.updatedAt,
     stages: optionalArray(job.stages, (stage) => publicStage(recordValue(stage))),
   });
+}
+
+const PUBLIC_GENERATION_FAILURE_CODES = new Set([
+  'provider-timeout',
+  'provider-output-invalid-after-correction',
+  'queue-unavailable',
+  'governed-source-evidence-unavailable',
+]);
+
+function publicGenerationFailureCode(value: unknown) {
+  return typeof value === 'string' && PUBLIC_GENERATION_FAILURE_CODES.has(value)
+    ? value
+    : undefined;
 }
 
 export function publicDraft(draft: Record<string, unknown>) {
@@ -148,10 +225,18 @@ export function publicDraft(draft: Record<string, unknown>) {
   });
 }
 
+export function publicDraftForEditing(draft: Record<string, unknown>) {
+  return {
+    ...publicDraft(draft),
+    content: redactPrivateFields(draft.content),
+  };
+}
+
 export function publicRevision(revision: Record<string, unknown>) {
   return compact({
     id: revision.id,
     taskId: revision.taskId,
+    taskRevision: revision.taskRevision,
     draftId: revision.draftId,
     revisionNumber: revision.revisionNumber,
     displayName: revision.displayName,
@@ -163,18 +248,64 @@ export function publicRevision(revision: Record<string, unknown>) {
 }
 
 function publicStage(stage: Record<string, unknown>) {
-  const output = publicJson(stage.output, 64_000);
+  const completed = stage.state === 'COMPLETED';
+  const output = completed ? redactPrivateFields(stage.output) : undefined;
+  const actionState = generationActionState(stage.actionState, stage.state);
   return compact({
     id: stage.id,
     kind: stage.kind,
     orderIndex: stage.orderIndex,
     state: stage.state,
+    title: GENERATION_STAGE_TITLES[String(stage.kind)] ?? '未知阶段',
+    actionState,
+    actionLabel: GENERATION_ACTION_LABELS[actionState],
     output,
-    outputTruncated: stage.output != null && output == null,
+    outputTruncated: completed && stage.output != null && output == null,
     startedAt: stage.startedAt,
     completedAt: stage.completedAt,
     updatedAt: stage.updatedAt,
   });
+}
+
+const GENERATION_STAGE_TITLES: Record<string, string> = {
+  OUTLINE: '提纲',
+  BRIDGE_IN: '导入',
+  OBJECTIVES: '学习目标',
+  PRE_ASSESSMENT: '前测',
+  PARTICIPATORY_LEARNING: '参与式学习',
+  POST_ASSESSMENT: '后测',
+  SUMMARY: '总结',
+};
+
+const GENERATION_ACTION_LABELS: Record<string, string> = {
+  WAITING: '等待开始',
+  PREPARING_EVIDENCE: '正在准备依据',
+  GENERATING: '正在生成',
+  VALIDATING: '正在校验',
+  AUTO_FIXING: '正在自动修正',
+  WAITING_CONFIRMATION: '等待教师确认',
+  RETRYABLE: '可重试',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消',
+};
+
+function generationActionState(actionState: unknown, stageState: unknown) {
+  if (typeof actionState === 'string' && GENERATION_ACTION_LABELS[actionState]) return actionState;
+  if (stageState === 'RUNNING') return 'GENERATING';
+  if (stageState === 'PAUSED') return 'WAITING_CONFIRMATION';
+  if (stageState === 'RETRYABLE' || stageState === 'FAILED') return 'RETRYABLE';
+  if (stageState === 'COMPLETED') return 'COMPLETED';
+  if (stageState === 'CANCELLED') return 'CANCELLED';
+  return 'WAITING';
+}
+
+function localizedGenerationFailure(code: string | undefined) {
+  if (!code) return undefined;
+  if (code === 'provider-timeout') return '生成服务响应超时，请重试当前阶段。';
+  if (code === 'provider-output-invalid-after-correction') return '自动修正后内容仍未通过校验，请重试当前阶段。';
+  if (code === 'queue-unavailable') return '生成队列暂不可用，请稍后重试。';
+  if (code === 'governed-source-evidence-unavailable') return '当前课程依据不可用，请检查依据后重试。';
+  return '当前阶段未能完成，请重试；若问题持续存在，请联系管理员。';
 }
 
 function publicKnowledgePoint(value: unknown) {
@@ -182,7 +313,7 @@ function publicKnowledgePoint(value: unknown) {
   return compact({
     id: item.id, lineageId: item.lineageId, state: item.state, title: item.title,
     sourceState: publicSourceState(item.sourceState), sourceBindings: publicJson(item.sourceBindings, 64_000),
-    gapIdentity: item.gapIdentity, origin: item.origin, supersedesIds: item.supersedesIds,
+    gapIdentity: item.gapIdentity, gapReason: item.gapReason, origin: item.origin, supersedesIds: item.supersedesIds,
     confirmedAt: item.confirmedAt, removedAt: item.removedAt, createdAt: item.createdAt, updatedAt: item.updatedAt,
   });
 }
@@ -192,8 +323,20 @@ function publicGoal(value: unknown) {
   return compact({
     id: item.id, lineageId: item.lineageId, state: item.state, content: item.content,
     sourceState: publicSourceState(item.sourceState), sourceBindings: publicJson(item.sourceBindings, 64_000),
-    gapIdentity: item.gapIdentity, standardsMappings: publicJson(item.standardsMappings, 64_000),
+    gapIdentity: item.gapIdentity, gapReason: item.gapReason, standardsMappings: publicJson(item.standardsMappings, 64_000),
     confirmedAt: item.confirmedAt, removedAt: item.removedAt, createdAt: item.createdAt, updatedAt: item.updatedAt,
+  });
+}
+
+function publicPublicationSeries(value: unknown) {
+  const item = recordValue(value);
+  if (!item.id && !Array.isArray(item.revisions)) return undefined;
+  return compact({
+    id: item.id,
+    revisions: optionalArray(item.revisions, (revision) => {
+      const record = recordValue(revision);
+      return compact({ id: record.id, revisionNumber: record.revisionNumber, publishedAt: record.publishedAt });
+    }),
   });
 }
 

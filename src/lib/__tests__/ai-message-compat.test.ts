@@ -89,4 +89,25 @@ describe('AI SDK message compatibility', () => {
       },
     ]);
   });
+
+  it('preserves complete tool call and result pairs for provider history', async () => {
+    const modelMessages = await toModelMessages([{
+      id: 'assistant-complete-tool',
+      role: 'assistant',
+      parts: [{
+        type: 'dynamic-tool',
+        toolName: 'get_plan_context',
+        toolCallId: 'tool-complete-1',
+        state: 'output-available',
+        input: {},
+        output: { readiness: 'ready' },
+      }],
+    }]);
+    const encoded = JSON.stringify(modelMessages);
+
+    expect(encoded).toContain('"type":"tool-call"');
+    expect(encoded).toContain('"type":"tool-result"');
+    expect(encoded).toContain('tool-complete-1');
+  });
+
 });

@@ -112,7 +112,7 @@ export interface InteractiveProgressContextValue {
   current: number;
   setProgress: (value: number) => void;
   isComplete: boolean;
-  markComplete: (result?: WidgetResult) => void;
+  markComplete: (result?: WidgetResult) => Promise<void>;
   reset: () => void;
 }
 
@@ -156,7 +156,7 @@ export interface InteractiveProviderProps {
   userId?: string;
 
   /** 完成回调 */
-  onComplete?: (result?: WidgetResult) => void;
+  onComplete?: (result?: WidgetResult) => void | Promise<void>;
 
   /** 状态变化回调 */
   onStateChange?: (state: InteractiveStateSnapshot) => void;

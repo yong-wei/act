@@ -1013,6 +1013,26 @@ function loadKnowledgeGraphFromActkgProjection(snapshot: ActkgProjectionSnapshot
     sourceCoverageCount: node.source_coverage_count,
   }));
 
+  // Runtime direction repair is removed (OpenSpec: adopt-ctkg-0-2-aggregate-release-contract,
+  // task 3.3). A projected direction that disagrees with the pinned relation
+  // contract is a semantic conflict: the source fails closed with a descriptive
+  // error instead of silently overriding the upstream direction. Consistent
+  // historical CTKG 0.1 projections keep loading through this exact adapter.
+  const directionConflicts = projectedLinks.flatMap((link) => {
+    const contract = getKnowledgeGraphRelationContract(link.relation_type);
+    if (!contract) return [];
+    const projectedDirection = ACTKG_DIRECTION_BY_PROJECTION[link.direction];
+    return projectedDirection === contract.direction
+      ? []
+      : [`${link.id} (${link.relation_type}): projected direction "${link.direction}" maps to "${projectedDirection}" but the pinned contract requires "${contract.direction}"`];
+  });
+  if (directionConflicts.length > 0) {
+    throw runtimeLoadingError(
+      'ACTKG_DIRECTION_CONFLICT',
+      `ActKG projection declares direction conflicts against the pinned relation contract: ${directionConflicts.join('; ')}`
+    );
+  }
+
   const relationRows = projectedLinks.map((link) => {
     const row: Record<string, unknown> = {
       id: link.id,
@@ -1021,13 +1041,6 @@ function loadKnowledgeGraphFromActkgProjection(snapshot: ActkgProjectionSnapshot
       relation_type: link.relation_type,
       evidence_state: link.evidence_state,
     };
-    // The canonical contract table wins direction conflicts; the overridden
-    // projected direction is carried into provenance via the raw relation so
-    // the disagreement stays inspectable instead of being silently dropped.
-    const contract = getKnowledgeGraphRelationContract(link.relation_type);
-    if (contract && ACTKG_DIRECTION_BY_PROJECTION[link.direction] !== contract.direction) {
-      row.projectedDirection = link.direction;
-    }
     return row;
   });
   const relationCoverage = assertRuntimeKnowledgeRelationCoverage(

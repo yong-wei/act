@@ -166,11 +166,13 @@
 - 数据库核对：使用 postgres、Prisma 脚本或 `js_repl` 的一次性 Node 检查。
 - 需要完整项目脚本、Next.js 构建、`tsx` 或测试链路时，使用仓库命令，不强行改写为 `js_repl`。
 
-## OpenWolf
+<!-- openwolf:begin -->
+# OpenWolf
 
 @.wolf/OPENWOLF.md
 
 This project uses OpenWolf for context management. Read and follow .wolf/OPENWOLF.md every session. Check .wolf/cerebrum.md before generating code. Check .wolf/anatomy.md before reading files.
+<!-- openwolf:end -->
 
 ## Code Graph Tool Split
 

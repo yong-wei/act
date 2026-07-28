@@ -1,0 +1,49 @@
+{
+  "capturedAt": "2026-07-24T15:25:27.119Z",
+  "baseUrl": "http://localhost:3101",
+  "route": "/assessment/adaptive-practice",
+  "captures": [
+    {
+      "name": "path-comparison-desktop-light-final",
+      "width": 1440,
+      "height": 1100,
+      "query": "?demo=1&goal=control-correction&intent=path-selection",
+      "relativeFile": "artifacts/commercial-ui/adaptive-path-option-comparison-988/path-comparison-desktop-light-final.png",
+      "sha256": "60757dcb154e31da0d8a9e195ac239616ba37c0c6b240be7ce09f376d14c2e7e",
+      "signals": {
+        "title": "自适应学习路径中心",
+        "moduleState": "expanded",
+        "routeModuleCount": 1,
+        "attachedActionGroupCount": 1,
+        "previewCount": 1,
+        "fullRouteExpanded": true,
+        "viewportWidth": 1440,
+        "scrollWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "focusVisible": true,
+      "reducedMotionTransition": "0s"
+    },
+    {
+      "name": "path-comparison-mobile-320-light-final",
+      "width": 320,
+      "height": 1100,
+      "query": "?demo=1&goal=control-correction&intent=path-selection",
+      "relativeFile": "artifacts/commercial-ui/adaptive-path-option-comparison-988/path-comparison-mobile-320-light-final.png",
+      "sha256": "12caa20189d50a73c57bca375e8e452c5df10510b138fe6b25b6070af7ab8f1b",
+      "signals": {
+        "title": "自适应学习路径中心",
+        "moduleState": "expanded",
+        "routeModuleCount": 1,
+        "attachedActionGroupCount": 1,
+        "previewCount": 1,
+        "fullRouteExpanded": true,
+        "viewportWidth": 320,
+        "scrollWidth": 320,
+        "bodyWidth": 320
+      },
+      "focusVisible": true,
+      "reducedMotionTransition": "0s"
+    }
+  ]
+}

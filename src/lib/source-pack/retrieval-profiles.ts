@@ -152,12 +152,27 @@ const lessonDesign: SourcePackRetrievalProfile = {
   rankingWeights: { exact: 0.22, lexical: 0.18, graph: 0.22, authority: 0.14, freshness: 0.06, learnerContext: 0.04, eligibility: 0.1, semantic: 0.04 },
 };
 
+const smartPreparation: SourcePackRetrievalProfile = {
+  ...lessonDesign,
+  name: 'smart-preparation',
+  description: 'Teacher-controlled smart preparation retrieval from selected course evidence and confirmed textbook ranges.',
+  budgets: {
+    maxItems: 8,
+    maxExcerptChars: 340,
+    maxPerSourceKind: 3,
+    maxPerModality: 4,
+    maxPerResource: 2,
+    maxPerCitationTarget: 2,
+  },
+};
+
 const profiles: Record<SourcePackRetrievalProfileName, SourcePackRetrievalProfile> = {
   'handout-authoring': handoutAuthoring,
   'assessment-item': assessmentItem,
   'konling-answer': konlingAnswer,
   'path-planning': pathPlanning,
   'lesson-design': lessonDesign,
+  'smart-preparation': smartPreparation,
   'lesson-authoring': { ...lessonDesign, name: 'lesson-authoring' },
   'homework-authoring': { ...assessmentItem, name: 'homework-authoring' },
   konling: { ...konlingAnswer, name: 'konling' },

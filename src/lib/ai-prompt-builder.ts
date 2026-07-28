@@ -101,6 +101,7 @@ interface KonlingPromptRuntimeContext {
       evidenceBasis: string;
       citationTargetId?: string | null;
       verified?: boolean;
+      displayNumber?: number;
     }>;
     evidenceCitations?: Array<{
       id?: string;
@@ -108,6 +109,7 @@ interface KonlingPromptRuntimeContext {
       displayTitle: string;
       confidence: string;
       evidenceBasis: string;
+      displayNumber?: number;
     }>;
     missingCitationClasses?: string[];
     lowConfidenceReasons?: string[];
@@ -165,6 +167,15 @@ export function buildKonlingSystemPrompt(
   const { page, user } = context;
   const { wordLimit = 150, enableLatex = true } = options;
 
+  if (page.candidateGraph) {
+    return buildCandidateOnlySystemPrompt(
+      page,
+      context.adaptiveRuntime,
+      wordLimit,
+      enableLatex,
+    );
+  }
+
   const sections: string[] = [];
 
   // 基础角色声明
@@ -184,6 +195,71 @@ export function buildKonlingSystemPrompt(
   sections.push(buildFormatRequirements(wordLimit, enableLatex));
 
   return sections.filter(Boolean).join('\n\n');
+}
+
+function buildCandidateOnlySystemPrompt(
+  page: PageContext,
+  runtime: KonlingPromptRuntimeContext | undefined,
+  wordLimit: number,
+  enableLatex: boolean,
+): string {
+  const candidate = page.candidateGraph!;
+  const lines = [
+    `你是AI-OBE平台的智能学习助手「${KONLING_BRAND.name}」。`,
+    '',
+    '**服务端候选权威投影**:',
+    `- Authority: ${candidate.authorityState}`,
+    `- ReleaseSet: ${candidate.releaseSetId}`,
+    `- Release: ${candidate.releaseId}`,
+    `- Projection Digest: ${candidate.projectionDigest ?? '未提供'}`,
+    `- Source Dataset Hash: ${candidate.sourceDatasetHash ?? '未提供'}`,
+    `- 页面: ${page.topic} (${page.courseId}/${page.stepId})`,
+  ];
+  if (candidate.selectedCanonicalId) {
+    lines.push(`- 选中 Canonical Object: ${candidate.selectedCanonicalId}`);
+    if (candidate.selectedCanonicalType) {
+      lines.push(`- Canonical 类型: ${candidate.selectedCanonicalType}`);
+    }
+    lines.push(`- Release Tier: ${candidate.releaseTier ?? '未提供'}`);
+  }
+  lines.push(`- Governance 筛选: ${candidate.governanceFilter}`);
+  if (candidate.canonicalTypeFilter) {
+    lines.push(`- Canonical 类型筛选: ${candidate.canonicalTypeFilter}`);
+  }
+  lines.push(`- 投影诊断: coverage=${candidate.coverageStatus}, objects=${candidate.objectCount}, relations=${candidate.relationCount}`);
+  if (candidate.selectedRelations?.length) {
+    lines.push('- 选中对象的精确关系（只读，上限 12 条）:');
+    candidate.selectedRelations.slice(0, 12).forEach((relation) => {
+      lines.push(`  - ${relation.relationId}: ${relation.predicate}，direction=${relation.direction ?? '未声明'}，family=${relation.relationFamily ?? '未提供'}，evidence=${relation.evidenceState ?? '未提供'}，tier=${relation.releaseTier ?? '未提供'}，${relation.traversal === 'outgoing' ? '出向' : '入向'}→${relation.neighborId}`);
+    });
+  }
+  lines.push(`- Teaching Semantics: ${candidate.teachingSemanticsAvailability ?? 'unavailable'}（正式教学投影尚未发布；不得推断前置、包含或其他教学关系，也不得按显示顺序或名称相似度补全）`);
+  lines.push('- Provenance: server-owned fixed-selector projection；只读，不进行跨权威状态映射或推断。');
+
+  const candidateCitations = runtime?.citationContext?.contentCitations
+    ?.filter((citation) => citation.evidenceBasis.startsWith('candidate-canonical:'))
+    ?? [];
+  if (candidateCitations.length) {
+    lines.push(`- 可用 Provenance 引用: ${candidateCitations.slice(0, 3).map(formatCitationHint).join('；')}`);
+  }
+
+  lines.push('');
+  lines.push('**执行边界**:');
+  lines.push(`- 仅可调用: ${[
+    'search_candidate_canonical',
+    'get_candidate_canonical_detail',
+    'get_candidate_canonical_neighbors',
+  ].join(', ')}`);
+  lines.push('- 只能依据工具返回的 Canonical ID、类型、关系方向、治理等级、Provenance 和 diagnostics 作答。');
+  lines.push('- 正文只能使用服务器已分配的 `[n]` 引用编号；不得自行创建编号、URL 或映射。');
+  lines.push('');
+  lines.push('**回答格式**:');
+  lines.push(`- 回答控制在${wordLimit}字以内，除非用户明确要求详细说明`);
+  lines.push('- 使用 Markdown 清晰组织内容');
+  if (enableLatex) {
+    lines.push('- 公式使用 LaTeX：行内公式用 `$...$`，块级公式用 `$$...$$`');
+  }
+  return lines.join('\n');
 }
 
 function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): string {
@@ -300,7 +376,7 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
   }
   if (runtime.citationContext?.required) {
     lines.push('- 引用协议: 概念解释、个性化建议、仿真/Arena 失败分析、路径纠偏和报告解释必须至少使用 1 个内容引用；有学习者、路径、仿真、Arena 或干预证据时还必须使用 1 个证据引用。');
-    lines.push('- 学生可见引用元数据必须包含 sourceType、displayTitle、href、confidence、evidenceBasis；不得暴露 hiddenEvaluation、原始高频轨迹或私有记忆正文。');
+    lines.push('- 回答正文只能使用服务器已分配的 `[n]` 引用编号。不得输出原始 citation ID、`[content: ...]`、`[证据: ...]`、内部路径、脚注链接或自行创建 URL。');
     if (runtime.citationContext.contentCitations?.length) {
       lines.push(`- 可用内容引用: ${runtime.citationContext.contentCitations.slice(0, 3).map(formatCitationHint).join('；')}`);
     }
@@ -342,13 +418,13 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       lines.push(`  - 专业问答类型: ${study.intent}`);
       lines.push(`  - 必须覆盖: ${study.requiredSections.join('、')}`);
       lines.push(`  - 表达偏好: 深度=${study.preferences.depth}，格式=${study.preferences.format}，引导=${study.preferences.hintStrength}${study.preferences.exampleContext ? `，示例=${study.preferences.exampleContext}` : ''}`);
-      lines.push('  - 每个关键结论、关键推导变形或修复建议后，只能使用可用内容引用的 ID 标注 `[证据: citation-id]`；不得编造 ID、链接或脚注。');
-      const studyCitationIds = runtime.citationContext?.contentCitations
+      lines.push('  - 每个关键结论、关键推导变形或修复建议后，只能使用可用内容引用的服务器编号 `[n]`；不得编造编号、ID、链接或脚注。');
+      const studyCitationNumbers = runtime.citationContext?.contentCitations
         ?.filter((citation) => citation.verified === true && Boolean(citation.citationTargetId))
-        ?.map((citation) => citation.id)
-        .filter((id): id is string => Boolean(id));
-      if (studyCitationIds?.length) {
-        lines.push(`  - 可用于步骤证据绑定的内容引用 ID: ${studyCitationIds.slice(0, 6).join(', ')}`);
+        ?.map((citation) => citation.displayNumber)
+        .filter((number): number is number => Number.isInteger(number));
+      if (studyCitationNumbers?.length) {
+        lines.push(`  - 可用于步骤证据绑定的内容引用编号: ${studyCitationNumbers.slice(0, 6).map((number) => `[${number}]`).join('、')}`);
       }
       if (study.normativeGuidance === 'verification-required') {
         lines.push('  - 当前规范性内容缺少可用的服务端验证权威来源：必须明确标为“需核验”，不得写成确定的官方规则、法定要求或标准格式。');
@@ -483,8 +559,11 @@ function formatCitationHint(citation: {
   displayTitle: string;
   confidence: string;
   evidenceBasis: string;
+  displayNumber?: number;
 }): string {
-  return `[${citation.sourceType}] ${citation.displayTitle} (${citation.confidence}, ${citation.evidenceBasis})`;
+  return citation.displayNumber
+    ? `[${citation.displayNumber}] ${citation.displayTitle} (${citation.sourceType}, ${citation.confidence})`
+    : `${citation.displayTitle} (${citation.sourceType}, ${citation.confidence})`;
 }
 
 /**
@@ -510,6 +589,21 @@ function buildCourseSection(page: PageContext): string {
 
   if (page.knowledgeType) {
     lines.push(`**知识类型**: ${getKnowledgeTypeLabel(page.knowledgeType)}`);
+  }
+
+  if (page.candidateGraph) {
+    lines.push('**候选权威图谱**: 只读候选上下文');
+    lines.push(`- ReleaseSet: ${page.candidateGraph.releaseSetId}`);
+    lines.push(`- Release: ${page.candidateGraph.releaseId}`);
+    lines.push(`- Projection Digest: ${page.candidateGraph.projectionDigest ?? '未提供'}`);
+    lines.push(`- Source Dataset Hash: ${page.candidateGraph.sourceDatasetHash ?? '未提供'}`);
+    lines.push(`- 选中 Canonical Object: ${page.candidateGraph.selectedCanonicalId ?? '无'}`);
+    lines.push(`- Canonical 类型: ${page.candidateGraph.selectedCanonicalType ?? '无'}`);
+    lines.push(`- Release Tier: ${page.candidateGraph.releaseTier ?? '未提供'}`);
+    lines.push(`- 筛选: governance=${page.candidateGraph.governanceFilter}, type=${page.candidateGraph.canonicalTypeFilter ?? '全部'}`);
+    lines.push(`- 覆盖状态: ${page.candidateGraph.coverageStatus} (${page.candidateGraph.objectCount ?? 'unknown'} objects, ${page.candidateGraph.relationCount ?? 'unknown'} relations)`);
+    lines.push(`- Teaching Semantics: ${page.candidateGraph.teachingSemanticsAvailability ?? 'unavailable'}（正式教学投影尚未发布，不得推断教学关系）`);
+    lines.push('- 只能调用三项 candidate Canonical 只读工具；不得按名称推断 Legacy 映射，不得读取或写入学习事实、画像、推荐、路径、干预、仿真、控制器或持久学习记忆。');
   }
 
   return lines.join('\n');

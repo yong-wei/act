@@ -177,6 +177,18 @@ export function AdaptivePathJourneyControl({
 }: AdaptivePathJourneyControlProps) {
   const state = journey?.nextAction.state ?? (status === 'error' ? 'blocked' : 'pending-result');
   const returnAction = journey?.return ?? { label: '返回学习路径', href: launchContext.returnHref };
+  const nextAction = journey?.nextAction ?? null;
+  const nextActionDuplicatesReturn = nextAction?.href
+    ? areEquivalentJourneyActions(returnAction, { label: nextAction.title, href: nextAction.href })
+    : false;
+  const navigationActionDuplicatesReturn = nextActionDuplicatesReturn &&
+    (nextAction?.state === 'ready' || nextAction?.state === 'path-complete');
+  const recoveryDuplicatesReturn = nextAction?.recovery
+    ? areEquivalentJourneyActions(returnAction, nextAction.recovery)
+    : false;
+  const refreshLabel = recoveryDuplicatesReturn
+    ? '刷新路径状态'
+    : nextAction?.recovery?.label ?? '刷新路径状态';
 
   return (
     <section
@@ -219,44 +231,80 @@ export function AdaptivePathJourneyControl({
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             {returnAction.label}
           </Link>
-          {journey?.nextAction.state === 'ready' && journey.nextAction.href ? (
+          {nextAction?.state === 'ready' && nextAction.href && !nextActionDuplicatesReturn ? (
             <Link
-              href={journey.nextAction.href}
+              href={nextAction.href}
               className="inline-flex h-9 items-center gap-1.5 rounded-md bg-platform-action-primary px-3 text-sm font-medium text-platform-action-primary-fg"
               data-adaptive-path-next-action="ready"
             >
-              {journey.nextAction.title}
+              {nextAction.title}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
-          ) : journey?.nextAction.state === 'path-complete' && journey.nextAction.href ? (
+          ) : nextAction?.state === 'path-complete' && nextAction.href && !nextActionDuplicatesReturn ? (
             <Link
-              href={journey.nextAction.href}
+              href={nextAction.href}
               className="inline-flex h-9 items-center gap-1.5 rounded-md bg-platform-action-primary px-3 text-sm font-medium text-platform-action-primary-fg"
             >
               <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-              {journey.nextAction.title}
+              {nextAction.title}
             </Link>
-          ) : journey?.nextAction.state === 'blocked' && journey.nextAction.recovery ? (
+          ) : navigationActionDuplicatesReturn ? null : nextAction?.state === 'blocked' && nextAction.recovery && !recoveryDuplicatesReturn ? (
             <Link
-              href={journey.nextAction.recovery.href}
+              href={nextAction.recovery.href}
               className="inline-flex h-9 items-center gap-1.5 rounded-md border border-platform-border px-3 text-sm font-medium text-platform-fg-primary hover:border-platform-border-strong"
             >
-              {journey.nextAction.recovery.label}
+              {nextAction.recovery.label}
             </Link>
-          ) : (
+          ) : nextAction?.state === 'blocked' && recoveryDuplicatesReturn ? null : (
             <button
               type="button"
               onClick={onRefresh}
               className="inline-flex h-9 items-center gap-1.5 rounded-md border border-platform-border px-3 text-sm font-medium text-platform-fg-primary hover:border-platform-border-strong"
             >
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
-              {journey?.nextAction.recovery?.label ?? '刷新路径状态'}
+              {refreshLabel}
             </button>
           )}
         </div>
       </div>
     </section>
   );
+}
+
+function areEquivalentJourneyActions(
+  primary: { label: string; href: string },
+  candidate: { label: string; href: string },
+): boolean {
+  const primaryTarget = normalizeJourneyActionTarget(primary.href);
+  const candidateTarget = normalizeJourneyActionTarget(candidate.href);
+
+  return primaryTarget !== null
+    && primaryTarget === candidateTarget
+    && (
+      primary.label.trim() === candidate.label.trim()
+      || (hasJourneyReturnSemantics(primary.label) && hasJourneyReturnSemantics(candidate.label))
+    );
+}
+
+function hasJourneyReturnSemantics(label: string): boolean {
+  const normalizedLabel = label.replace(/\s+/g, '');
+  return normalizedLabel.includes('学习路径')
+    && (normalizedLabel.includes('返回') || normalizedLabel.includes('恢复'));
+}
+
+function normalizeJourneyActionTarget(href: string): string | null {
+  const trimmedHref = href.trim();
+  if (!trimmedHref.startsWith('/') || trimmedHref.startsWith('//')) return null;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmedHref, 'https://act.local');
+  } catch {
+    return null;
+  }
+
+  parsed.searchParams.sort();
+  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
 }
 
 export function AdaptivePathOwnedResourceAction({

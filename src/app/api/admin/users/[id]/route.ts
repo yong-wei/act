@@ -3,6 +3,7 @@ import { Prisma, UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/admin';
 import { SYSTEM_RESOURCE_REGISTRY_IDS } from '@/lib/system-resource-ids';
+import { detachSmartLessonTasksForDeletedClass } from '@/lib/teacher-default-class-service';
 
 export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -35,6 +36,13 @@ export async function DELETE(_request: Request, props: { params: Promise<{ id: s
           where: { teacherId: targetUser.id },
         });
 
+        const classes = await tx.class.findMany({
+          where: { teacherId: targetUser.id },
+          select: { id: true },
+        });
+        for (const ownedClass of classes) {
+          await detachSmartLessonTasksForDeletedClass(tx, targetUser.id, ownedClass.id);
+        }
         await tx.class.deleteMany({
           where: { teacherId: targetUser.id },
         });
@@ -68,7 +76,7 @@ export async function DELETE(_request: Request, props: { params: Promise<{ id: s
         await tx.studentState.deleteMany({
           where: { userId: targetUser.id },
         });
-      });
+      }, { isolationLevel: 'Serializable' });
     }
 
     await prisma.user.delete({
