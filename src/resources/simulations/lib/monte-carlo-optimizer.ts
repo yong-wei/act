@@ -178,13 +178,14 @@ function evaluateWithRustRuntime(
     start: logic.startPos,
     targetHeadingDeg: target.targetHeading,
     targetSwitchTime: 60,
-    headingSchedule: logic.headingSchedule,
+    headingSchedule: logic.headingSchedule.map(({ time, heading }) => ({ time, headingDeg: heading })),
     pid: params,
     nomoto: {
       K: simConfig.nomotoK || 0.08,
       T: simConfig.nomotoT || 55,
       speedMps: speed,
       maxRudderDeg: 35,
+      maxRudderRateDegPerSec: 5,
     },
     guidePath,
   });
