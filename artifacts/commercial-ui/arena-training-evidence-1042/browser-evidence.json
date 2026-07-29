@@ -1,6 +1,6 @@
 {
   "change": "surface-arena-training-evidence",
-  "capturedAt": "2026-07-28T15:32:52.042Z",
+  "capturedAt": "2026-07-29T08:02:42.814Z",
   "server": "http://localhost:3000",
   "browser": "Playwright Chromium",
   "role": "student",
@@ -49,5 +49,5 @@
     "The evidence route is available only when COMMERCIAL_UI_EVIDENCE=1 and renders the production profile client component with deterministic authenticated session and profile API fixtures.",
     "Production database and object storage are not exercised; persistence behavior remains covered by focused route and domain tests."
   ],
-  "headCommit": "de46301848ff2d5f0ebda20765f3dda0cfac613c"
+  "headCommit": "951cda83f84dea9b678754898981cbd549c9df80"
 }
