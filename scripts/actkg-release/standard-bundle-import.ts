@@ -31,6 +31,8 @@ export const STANDARD_PUBLIC_BUNDLE_PROTOCOL = 'actkg-public-bundle/1';
 export const STANDARD_PUBLIC_BUNDLE_AUTHORITY = 'ActKG';
 export const STAGED_CANDIDATE_STATE = 'STAGED';
 export const ACCEPTED_CANDIDATE_STATE = 'ACCEPTED_CANDIDATE';
+/** Exact #1125 aggregate protocol — accepted timeline peer for global order. */
+export const EXACT_AGGREGATE_IMPORT_PROTOCOL = 'ctkg-0.2-aggregate-engineering-release-v1';
 
 const MAX_IMPORT_ATTEMPTS = 8;
 
@@ -415,10 +417,13 @@ export function advisoryLockKeys(namespace: string, identity: string): readonly 
 }
 
 /**
- * Serialize concurrent imports that share a Release and/or Bundle identity.
+ * Serialize concurrent imports that share a Release and/or Bundle identity and
+ * that advance the global acceptance timeline.
  *
- * Lock order is fixed (release → bundle) to avoid deadlocks when one worker
- * imports content while another imports a packaging revision of the same Release.
+ * Lock order is fixed (global → release → bundle) to avoid deadlocks when one
+ * worker imports content while another imports a packaging revision of the same
+ * Release, and to serialize ACCEPTED_CANDIDATE importedAt assignment across
+ * all standard Bundles.
  * pg_advisory_xact_lock is held until transaction end (commit or rollback).
  *
  * Must be acquired BEFORE reading existingRelease / staging semantic rows so
@@ -427,11 +432,16 @@ export function advisoryLockKeys(namespace: string, identity: string): readonly 
  * Uses Postgres hashtext() over bound text parameters so the lock token is
  * computed server-side and never requires client int binding edge cases.
  */
+export const GLOBAL_ACCEPTANCE_LOCK_TOKEN = 'actkg-standard-import:global-acceptance';
+
 async function acquireImportLocks(tx: Tx, validated: ValidatedActKGBundle): Promise<void> {
   const releaseToken = `actkg-standard-import:release:${validated.releaseIdentity.releaseId}`;
   const bundleToken = `actkg-standard-import:bundle:${validated.bundleIdentity.bundleDigest}`;
   // Bound text parameters only — no string concatenation into SQL.
-  // hashtext returns int4; cast void advisory result for Prisma deserialization.
+  // Order: global acceptance → release → bundle.
+  await tx.$queryRaw`
+    SELECT (pg_advisory_xact_lock(hashtext(${GLOBAL_ACCEPTANCE_LOCK_TOKEN})) IS NULL) AS "acquired"
+  `;
   await tx.$queryRaw`
     SELECT (pg_advisory_xact_lock(hashtext(${releaseToken})) IS NULL) AS "acquired"
   `;
@@ -827,12 +837,12 @@ async function stageBundleReceiptAndArtifacts(
 }
 
 /**
- * Next acceptance timestamp for packaging evidence of one Release.
+ * Next acceptance timestamp for standard Bundle ACCEPTED_CANDIDATE evidence.
  *
- * Must be strictly greater than any already-ACCEPTED receipt for that Release so
- * `importedAt desc` proves real acceptance order. Wall-clock alone can collide at
- * the same millisecond under concurrent or sequential-fast imports; under the
- * release advisory lock we serialize accepts and advance by at least +1ms.
+ * Must be strictly greater than the global previous accepted timeline so
+ * ReleaseSet Delta prior selection can use strict `importedAt < candidate`
+ * without lexical ID tie-breaks. Wall-clock alone can collide; under the
+ * global acceptance advisory lock we serialize accepts and advance by ≥ +1ms.
  */
 export function nextStrictAcceptanceTimestamp(
   previousAcceptedImportedAt: Date | null | undefined,
@@ -846,23 +856,45 @@ export function nextStrictAcceptanceTimestamp(
   return new Date(Math.max(now.getTime(), previousMs + 1));
 }
 
-async function acceptBundleReceipt(
-  tx: Tx,
-  bundleReceiptId: string,
-  releaseId: string,
-  now: Date = new Date(),
-): Promise<void> {
-  // Under acquireImportLocks(release) + Serializable: read max ACCEPTED importedAt
-  // for this Release and stamp a strictly greater acceptance time.
-  const latestAccepted = await tx.actkgBundleReceipt.findFirst({
+/**
+ * Max importedAt over all accepted standard Bundle receipts and supported
+ * exact (#1125) ImportReceipt rows. Used for global acceptance total order.
+ */
+export async function maxGlobalAcceptedImportedAt(tx: Tx): Promise<Date | null> {
+  const latestBundle = await tx.actkgBundleReceipt.findFirst({
+    where: { candidateState: ACCEPTED_CANDIDATE_STATE },
+    orderBy: [{ importedAt: 'desc' }, { id: 'desc' }],
+    select: { importedAt: true },
+  });
+  // Exact #1125 path uses ImportReceipt.candidateState = CANDIDATE.
+  const latestExactImport = await tx.actkgImportReceipt.findFirst({
     where: {
-      releaseId,
-      candidateState: ACCEPTED_CANDIDATE_STATE,
+      candidateState: 'CANDIDATE',
+      release: { protocol: EXACT_AGGREGATE_IMPORT_PROTOCOL },
     },
     orderBy: [{ importedAt: 'desc' }, { id: 'desc' }],
     select: { importedAt: true },
   });
-  const importedAt = nextStrictAcceptanceTimestamp(latestAccepted?.importedAt, now);
+
+  const candidates = [latestBundle?.importedAt, latestExactImport?.importedAt]
+    .filter((value): value is Date => value instanceof Date);
+  if (candidates.length === 0) return null;
+  return candidates.reduce((max, value) => (
+    value.getTime() > max.getTime() ? value : max
+  ));
+}
+
+async function acceptBundleReceipt(
+  tx: Tx,
+  bundleReceiptId: string,
+  _releaseId: string,
+  now: Date = new Date(),
+): Promise<void> {
+  // Under global acceptance lock + Serializable: read the global max accepted
+  // importedAt (all standard Bundles + exact ImportReceipts) and stamp a
+  // strictly greater acceptance time for this Bundle receipt.
+  const latestAccepted = await maxGlobalAcceptedImportedAt(tx);
+  const importedAt = nextStrictAcceptanceTimestamp(latestAccepted, now);
 
   const updated = await tx.actkgBundleReceipt.updateMany({
     where: {

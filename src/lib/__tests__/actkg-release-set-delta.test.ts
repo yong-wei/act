@@ -1,0 +1,602 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  assertSignalsAreGeneric,
+  buildVocabulary,
+  computeReleaseSetDelta,
+  computeSemanticCollectionDigest,
+  crossCheckUpstreamDiff,
+  digestObjectMaterialIdentity,
+  digestPayload,
+  emitDeltaSignals,
+  emptyDetails,
+  emptyEvidenceRef,
+  isPackagingRevisionOnly,
+  isStrictlyPriorAnchor,
+  parseUpstreamReleaseDiff,
+  RELEASE_SET_DELTA_ALGORITHM_VERSION,
+} from '../../../scripts/actkg-release/release-set-delta';
+import type {
+  DeltaEvidenceRef,
+  DeltaObjectRecord,
+  DeltaRelationRecord,
+  DeltaSemanticSnapshot,
+  DeltaSignalRecord,
+  UpstreamReleaseDiffV1,
+} from '../../../scripts/actkg-release/release-set-delta-types';
+import type { AcceptedAnchor } from '../../../scripts/actkg-release/release-set-delta-load';
+
+const CAPTURE = 'a'.repeat(40);
+
+function obj(partial: Partial<DeltaObjectRecord> & Pick<DeltaObjectRecord, 'canonicalId' | 'canonicalType'>): DeltaObjectRecord {
+  const semanticName = partial.semanticName !== undefined ? partial.semanticName : partial.canonicalId;
+  const payload = {
+    entity_id: partial.canonicalId,
+    entity_type: partial.canonicalType,
+    semantic_name: semanticName,
+    description: 'desc',
+  };
+  return {
+    canonicalId: partial.canonicalId,
+    canonicalType: partial.canonicalType,
+    releaseTier: partial.releaseTier ?? 'gold',
+    semanticName,
+    displayName: partial.displayName ?? semanticName,
+    materialIdentityDigest: digestObjectMaterialIdentity({
+      canonicalId: partial.canonicalId,
+      canonicalType: partial.canonicalType,
+      semanticName,
+    }),
+    payloadDigest: partial.payloadDigest ?? digestPayload(payload),
+    supersedes: partial.supersedes ?? null,
+  };
+}
+
+function rel(partial: Partial<DeltaRelationRecord> & Pick<DeltaRelationRecord, 'relationId' | 'sourceId' | 'targetId'>): DeltaRelationRecord {
+  const predicate = partial.predicate ?? 'part_of';
+  const direction = partial.direction ?? 'source_to_target';
+  return {
+    relationId: partial.relationId,
+    predicate,
+    direction,
+    releaseTier: partial.releaseTier ?? 'gold',
+    sourceId: partial.sourceId,
+    targetId: partial.targetId,
+    payloadDigest: partial.payloadDigest ?? digestPayload({
+      relation_id: partial.relationId,
+      relation_type: predicate,
+      direction,
+    }),
+  };
+}
+
+function snapshot(partial: Partial<DeltaSemanticSnapshot> & Pick<DeltaSemanticSnapshot, 'releaseId' | 'releaseHash'>): DeltaSemanticSnapshot {
+  const objects = partial.objects ?? [];
+  const relations = partial.relations ?? [];
+  const vocabulary = partial.vocabulary ?? buildVocabulary(objects, relations);
+  const base = {
+    releaseSetId: partial.releaseSetId ?? `set:${partial.releaseId}`,
+    releaseId: partial.releaseId,
+    releaseVersion: partial.releaseVersion ?? `${partial.releaseId}-version`,
+    releaseHash: partial.releaseHash,
+    sourceDatasetHash: partial.sourceDatasetHash ?? 's'.repeat(64),
+    protocol: partial.protocol ?? 'actkg-public-bundle/1',
+    runtimeProjectionId: partial.runtimeProjectionId ?? `proj:${partial.releaseId}`,
+    runtimeProjectionDigest: partial.runtimeProjectionDigest ?? 'p'.repeat(64),
+    objects,
+    relations,
+    crosswalk: partial.crosswalk ?? [],
+    components: partial.components ?? [],
+    projections: partial.projections ?? [{
+      profile: 'runtime',
+      projectionId: `proj:${partial.releaseId}`,
+      versionDigest: partial.runtimeProjectionDigest ?? 'p'.repeat(64),
+      isRuntime: true,
+    }],
+    vocabulary,
+  };
+  return {
+    ...base,
+    semanticCollectionDigest: partial.semanticCollectionDigest ?? computeSemanticCollectionDigest(base),
+  };
+}
+
+function evidence(kind: DeltaEvidenceRef['kind'], releaseId: string, extra?: Partial<DeltaEvidenceRef>): DeltaEvidenceRef {
+  if (kind === 'none') return emptyEvidenceRef();
+  return {
+    kind,
+    releaseSetId: `set:${releaseId}`,
+    releaseId,
+    releaseVersion: `${releaseId}-version`,
+    releaseHash: 'h'.repeat(64),
+    sourceDatasetHash: 's'.repeat(64),
+    importReceiptId: `receipt:${releaseId}`,
+    bundleReceiptId: kind === 'standard_bundle' ? `bundle:${releaseId}` : null,
+    bundleId: kind === 'standard_bundle' ? `ctb:${releaseId}` : null,
+    bundleRevision: kind === 'standard_bundle' ? 1 : null,
+    bundleDigest: kind === 'standard_bundle' ? 'b'.repeat(64) : null,
+    runtimeProjectionId: `proj:${releaseId}`,
+    runtimeProjectionDigest: 'p'.repeat(64),
+    evidenceCaptureRevision: CAPTURE,
+    protocol: kind === 'exact_import'
+      ? 'ctkg-0.2-aggregate-engineering-release-v1'
+      : 'actkg-public-bundle/1',
+    acceptedAt: new Date('2026-07-28T00:00:00.000Z').toISOString(),
+    semanticSnapshotDigest: 'd'.repeat(64),
+    ...extra,
+  };
+}
+
+describe('actkg release-set delta pure compute', () => {
+  it('emits BASELINE with all candidate members as additions when no prior accepted ReleaseSet exists', () => {
+    const candidate = snapshot({
+      releaseId: 'ctr:release:first',
+      releaseHash: '1'.repeat(64),
+      objects: [obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' })],
+      relations: [rel({ relationId: 'ctr:r1', sourceId: 'n1', targetId: 'n2' })],
+    });
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId),
+      baseSnapshot: null,
+      baseEvidence: emptyEvidenceRef(),
+      captureRevision: CAPTURE,
+    });
+
+    expect(result.classification).toBe('BASELINE');
+    expect(result.authorizationState).toBe('ACCEPTED');
+    expect(result.details.objects.added).toEqual(['ctc:a']);
+    expect(result.algorithmVersion).toBe(RELEASE_SET_DELTA_ALGORITHM_VERSION);
+  });
+
+  it('records relation-only additions without fabricating object changes', () => {
+    const objects = [
+      obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' }),
+      obj({ canonicalId: 'ctc:b', canonicalType: 'DomainConcept' }),
+    ];
+    const base = snapshot({
+      releaseId: 'ctr:release:v1',
+      releaseHash: '1'.repeat(64),
+      objects,
+      relations: [rel({ relationId: 'ctr:r1', sourceId: 'n1', targetId: 'n2' })],
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:v2',
+      releaseHash: '2'.repeat(64),
+      objects,
+      relations: [
+        rel({ relationId: 'ctr:r1', sourceId: 'n1', targetId: 'n2' }),
+        rel({ relationId: 'ctr:r2', sourceId: 'n2', targetId: 'n1', predicate: 'association', direction: 'unordered' }),
+      ],
+    });
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, { releaseHash: candidate.releaseHash }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, { releaseHash: base.releaseHash }),
+      captureRevision: CAPTURE,
+    });
+
+    expect(result.details.objects.added).toEqual([]);
+    expect(result.details.relations.added).toEqual(['ctr:r2']);
+    expect(result.details.vocabulary.addedPredicates).toEqual(['association']);
+  });
+
+  it('records ordinary description payload updates without identity violation', () => {
+    const baseObj = obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept', semanticName: 'gain' });
+    const changed = obj({
+      canonicalId: 'ctc:a',
+      canonicalType: 'DomainConcept',
+      semanticName: 'gain',
+      payloadDigest: digestPayload({
+        entity_id: 'ctc:a',
+        entity_type: 'DomainConcept',
+        semantic_name: 'gain',
+        description: 'updated description only',
+      }),
+    });
+    const base = snapshot({
+      releaseId: 'ctr:release:v1',
+      releaseHash: '1'.repeat(64),
+      objects: [baseObj],
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:v2',
+      releaseHash: '2'.repeat(64),
+      objects: [changed],
+    });
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, { releaseHash: candidate.releaseHash }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, { releaseHash: base.releaseHash }),
+      captureRevision: CAPTURE,
+    });
+
+    expect(result.authorizationState).toBe('ACCEPTED');
+    expect(result.details.objects.payloadChanged).toEqual(['ctc:a']);
+    expect(result.identityViolations).toEqual([]);
+  });
+
+  it('fails closed on semanticName material identity replacement without supersession', () => {
+    const base = snapshot({
+      releaseId: 'ctr:release:v1',
+      releaseHash: '1'.repeat(64),
+      objects: [obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept', semanticName: 'gain' })],
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:v2',
+      releaseHash: '2'.repeat(64),
+      objects: [obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept', semanticName: 'phase' })],
+    });
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, { releaseHash: candidate.releaseHash }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, { releaseHash: base.releaseHash }),
+      captureRevision: CAPTURE,
+    });
+
+    expect(result.authorizationState).toBe('REJECTED_IDENTITY');
+    expect(result.identityViolations.some((row) => row.code === 'material_identity_replacement')).toBe(true);
+    expect(result.signals).toEqual([]);
+  });
+
+  it('records rejected type and endpoint/direction changes in details while rejecting signals', () => {
+    const base = snapshot({
+      releaseId: 'ctr:release:v1',
+      releaseHash: '1'.repeat(64),
+      objects: [obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' })],
+      relations: [rel({ relationId: 'ctr:r1', sourceId: 'n1', targetId: 'n2' })],
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:v2',
+      releaseHash: '2'.repeat(64),
+      objects: [obj({ canonicalId: 'ctc:a', canonicalType: 'Formula' })],
+      relations: [rel({
+        relationId: 'ctr:r1',
+        sourceId: 'n9',
+        targetId: 'n2',
+        direction: 'parent_to_child',
+      })],
+    });
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, { releaseHash: candidate.releaseHash }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, { releaseHash: base.releaseHash }),
+      captureRevision: CAPTURE,
+    });
+
+    expect(result.authorizationState).toBe('REJECTED_IDENTITY');
+    expect(result.details.objects.typeChanged).toEqual(['ctc:a']);
+    expect(result.summary.objectTypeChanged).toBe(1);
+    expect(result.details.relations.endpointChanged).toEqual(['ctr:r1']);
+    expect(result.details.relations.directionChanged).toEqual(['ctr:r1']);
+    expect(result.summary.relationEndpointChanged).toBe(1);
+    expect(result.summary.relationDirectionChanged).toBe(1);
+    expect(result.identityViolations.map((row) => row.code).sort()).toEqual([
+      'canonical_type_replacement',
+      'relation_direction_replacement',
+      'relation_endpoint_replacement',
+    ].sort());
+    expect(result.signals).toEqual([]);
+  });
+
+  it('emits vocabulary invalidation signals for removed types and predicates', () => {
+    const base = snapshot({
+      releaseId: 'ctr:release:v1',
+      releaseHash: '1'.repeat(64),
+      objects: [
+        obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' }),
+        obj({ canonicalId: 'ctc:b', canonicalType: 'Formula' }),
+      ],
+      relations: [
+        rel({ relationId: 'ctr:r1', sourceId: 'n1', targetId: 'n2', predicate: 'part_of' }),
+        rel({ relationId: 'ctr:r2', sourceId: 'n2', targetId: 'n1', predicate: 'is_a' }),
+      ],
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:v2',
+      releaseHash: '2'.repeat(64),
+      objects: [obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' })],
+      relations: [rel({ relationId: 'ctr:r1', sourceId: 'n1', targetId: 'n2', predicate: 'part_of' })],
+    });
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, { releaseHash: candidate.releaseHash }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, { releaseHash: base.releaseHash }),
+      captureRevision: CAPTURE,
+    });
+
+    expect(result.details.vocabulary.removedTypes).toEqual(['Formula']);
+    expect(result.details.vocabulary.removedPredicates).toEqual(['is_a']);
+    expect(result.signals).toContainEqual(expect.objectContaining({
+      scope: 'vocabulary',
+      identity: 'type:Formula',
+      action: 'invalidation',
+      reason: 'removed',
+    }));
+    expect(result.signals).toContainEqual(expect.objectContaining({
+      scope: 'vocabulary',
+      identity: 'predicate:is_a',
+      action: 'invalidation',
+      reason: 'removed',
+    }));
+  });
+
+  it('allows identities containing active/legacy tokens and rejects injected governance fields', () => {
+    const details = emptyDetails();
+    details.objects.added = ['ctc:active-legacy-selector-node'];
+    const signals = emitDeltaSignals(details);
+    expect(() => assertSignalsAreGeneric(signals)).not.toThrow();
+
+    const malicious = {
+      ...signals[0]!,
+      courseRole: 'core',
+    } as unknown as DeltaSignalRecord;
+    expect(() => assertSignalsAreGeneric([malicious])).toThrow(/unsupported top-level field|forbidden/i);
+
+    const maliciousDigest = {
+      ...signals[0]!,
+      digests: { courseRole: 'core' } as unknown as DeltaSignalRecord['digests'],
+    } as DeltaSignalRecord;
+    expect(() => assertSignalsAreGeneric([maliciousDigest])).toThrow(/unsupported key/i);
+  });
+
+  it('cross-checks upstream release_version and rejects disagreement', () => {
+    const objects = [obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' })];
+    const base = snapshot({
+      releaseId: 'ctr:release:v1',
+      releaseVersion: 'control-theory-engineering-v0.2',
+      releaseHash: '1'.repeat(64),
+      objects,
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:v2',
+      releaseVersion: 'control-theory-engineering-v0.3',
+      releaseHash: '2'.repeat(64),
+      objects,
+      relations: [rel({ relationId: 'ctr:r-new', sourceId: 'n1', targetId: 'n2' })],
+    });
+
+    const agreeing: UpstreamReleaseDiffV1 = {
+      contractVersion: 'actkg-release-diff/1',
+      baseRelease: {
+        releaseId: base.releaseId,
+        releaseVersion: base.releaseVersion,
+        releaseHash: base.releaseHash,
+      },
+      targetRelease: {
+        releaseId: candidate.releaseId,
+        releaseVersion: candidate.releaseVersion,
+        releaseHash: candidate.releaseHash,
+      },
+      objects: { added: [], removed: [], changed: [] },
+      relations: { added: ['ctr:r-new'], removed: [], changed: [] },
+      crosswalk: { addedCount: 0, removedCount: 0 },
+      components: { added: [], removed: [] },
+    };
+
+    const ok = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, {
+        releaseHash: candidate.releaseHash,
+        releaseVersion: candidate.releaseVersion,
+      }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, {
+        releaseHash: base.releaseHash,
+        releaseVersion: base.releaseVersion,
+      }),
+      captureRevision: CAPTURE,
+      upstreamDiff: agreeing,
+    });
+    expect(ok.authorizationState).toBe('ACCEPTED');
+    expect(ok.upstream.status).toBe('AGREED');
+
+    const badVersion: UpstreamReleaseDiffV1 = {
+      ...agreeing,
+      targetRelease: {
+        ...agreeing.targetRelease,
+        releaseVersion: 'wrong-version',
+      },
+    };
+    const rejected = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, {
+        releaseHash: candidate.releaseHash,
+        releaseVersion: candidate.releaseVersion,
+        bundleDigest: 'e'.repeat(64),
+        bundleReceiptId: 'bundle:version-mismatch',
+      }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, {
+        releaseHash: base.releaseHash,
+        releaseVersion: base.releaseVersion,
+      }),
+      captureRevision: CAPTURE,
+      upstreamDiff: badVersion,
+    });
+    expect(rejected.authorizationState).toBe('REJECTED_UPSTREAM');
+    expect(rejected.upstream.status).toBe('DISAGREED');
+  });
+
+  it('uses strict acceptedAt < only; equal timestamps are never previous', () => {
+    const candidateEvidence = evidence('standard_bundle', 'ctr:release:v0.3', {
+      acceptedAt: '2026-07-28T12:00:00.000Z',
+      bundleReceiptId: 'bundle:v03',
+      importReceiptId: 'receipt:v03',
+    });
+    const candidate = {
+      evidence: candidateEvidence,
+      snapshot: snapshot({
+        releaseId: 'ctr:release:v0.3',
+        releaseHash: '3'.repeat(64),
+      }),
+    };
+
+    const priorExact: AcceptedAnchor = {
+      kind: 'exact_import',
+      releaseId: 'control-theory-engineering-v0.2',
+      releaseSetId: 'actkg-authoritative-candidate-v2',
+      acceptedAt: new Date('2026-07-28T11:00:00.000Z'),
+      bundleReceiptId: null,
+      importReceiptId: 'receipt:v02',
+    };
+    const equalTsDifferentRelease: AcceptedAnchor = {
+      kind: 'standard_bundle',
+      // Lexicographically smaller ID must still NOT become prior at equal timestamp.
+      releaseId: 'aaa:release:spoof',
+      releaseSetId: 'set:spoof',
+      acceptedAt: new Date('2026-07-28T12:00:00.000Z'),
+      bundleReceiptId: 'bundle:aaa',
+      importReceiptId: 'receipt:aaa',
+    };
+    const later: AcceptedAnchor = {
+      kind: 'standard_bundle',
+      releaseId: 'ctr:release:v0.5',
+      releaseSetId: 'set:v05',
+      acceptedAt: new Date('2026-07-28T13:00:00.000Z'),
+      bundleReceiptId: 'bundle:v05',
+      importReceiptId: 'receipt:v05',
+    };
+
+    expect(isStrictlyPriorAnchor(priorExact, candidate)).toBe(true);
+    expect(isStrictlyPriorAnchor(later, candidate)).toBe(false);
+    expect(isStrictlyPriorAnchor(equalTsDifferentRelease, candidate)).toBe(false);
+  });
+
+  it('rejects BASELINE when upstream release_diff is present (no ACT base to cross-check)', () => {
+    const candidate = snapshot({
+      releaseId: 'ctr:release:first',
+      releaseHash: '1'.repeat(64),
+      objects: [obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' })],
+    });
+    const upstream: UpstreamReleaseDiffV1 = {
+      contractVersion: 'actkg-release-diff/1',
+      baseRelease: {
+        releaseId: 'ctr:release:ghost',
+        releaseVersion: 'ghost-v1',
+        releaseHash: '9'.repeat(64),
+      },
+      targetRelease: {
+        releaseId: candidate.releaseId,
+        releaseVersion: candidate.releaseVersion,
+        releaseHash: candidate.releaseHash,
+      },
+      objects: { added: ['ctc:a'], removed: [], changed: [] },
+      relations: { added: [], removed: [], changed: [] },
+      crosswalk: { addedCount: 0, removedCount: 0 },
+      components: { added: [], removed: [] },
+    };
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId),
+      baseSnapshot: null,
+      baseEvidence: emptyEvidenceRef(),
+      captureRevision: CAPTURE,
+      upstreamDiff: upstream,
+    });
+
+    expect(result.classification).toBe('BASELINE');
+    expect(result.authorizationState).toBe('REJECTED_UPSTREAM');
+    expect(result.upstream.status).toBe('DISAGREED');
+    expect(result.signals).toEqual([]);
+  });
+
+  it('rejects forged signalDigest that does not match recomputed body', () => {
+    const details = emptyDetails();
+    details.objects.added = ['ctc:ok'];
+    const signals = emitDeltaSignals(details);
+    expect(() => assertSignalsAreGeneric(signals)).not.toThrow();
+
+    const forged = {
+      ...signals[0]!,
+      signalDigest: '0'.repeat(64),
+    };
+    expect(() => assertSignalsAreGeneric([forged])).toThrow(/does not match recomputed body digest/i);
+  });
+
+  it('short-circuits packaging-only revisions with empty semantic changes and no signals', () => {
+    const objects = [obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' })];
+    const base = snapshot({
+      releaseId: 'ctr:release:same',
+      releaseHash: '1'.repeat(64),
+      sourceDatasetHash: 's'.repeat(64),
+      objects,
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:same',
+      releaseHash: '1'.repeat(64),
+      sourceDatasetHash: 's'.repeat(64),
+      objects,
+    });
+    expect(isPackagingRevisionOnly(base, candidate)).toBe(true);
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, {
+        releaseHash: candidate.releaseHash,
+        bundleRevision: 2,
+        bundleDigest: '9'.repeat(64),
+        bundleReceiptId: 'bundle:r2',
+      }),
+      baseSnapshot: base,
+      baseEvidence: evidence('standard_bundle', base.releaseId, {
+        releaseHash: base.releaseHash,
+        bundleRevision: 1,
+        bundleDigest: '8'.repeat(64),
+        bundleReceiptId: 'bundle:r1',
+      }),
+      captureRevision: CAPTURE,
+    });
+
+    expect(result.classification).toBe('COMPATIBLE_PACKAGING_REVISION');
+    expect(result.signals).toEqual([]);
+  });
+
+  it('rejects non-sha captureRevision in pure compute', () => {
+    expect(() => computeReleaseSetDelta({
+      candidateSnapshot: snapshot({
+        releaseId: 'ctr:release:x',
+        releaseHash: '1'.repeat(64),
+      }),
+      candidateEvidence: evidence('standard_bundle', 'ctr:release:x'),
+      captureRevision: 'not-a-git-sha',
+    })).toThrow(/40-character/i);
+  });
+
+  it('includes release_version in upstream parse and identity cross-check helper', () => {
+    const parsed = parseUpstreamReleaseDiff({
+      contract_version: 'actkg-release-diff/1',
+      base_release: {
+        release_id: 'base',
+        release_version: 'v1',
+        release_hash: 'a'.repeat(64),
+      },
+      target_release: {
+        release_id: 'target',
+        release_version: 'v2',
+        release_hash: 'b'.repeat(64),
+      },
+      objects: { added: [], removed: [], changed: [] },
+      relations: { added: [], removed: [], changed: [] },
+      crosswalk: { added_count: 0, removed_count: 0 },
+      components: { added: [], removed: [] },
+    });
+    expect(parsed.baseRelease.releaseVersion).toBe('v1');
+    const result = crossCheckUpstreamDiff(emptyDetails(), parsed, {
+      baseReleaseVersion: 'other',
+    });
+    expect(result.status).toBe('DISAGREED');
+  });
+});

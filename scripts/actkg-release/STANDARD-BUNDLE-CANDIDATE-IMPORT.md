@@ -12,7 +12,8 @@ authority, default candidate, active, or Legacy selectors.
 | Compatibility validation (#1130) | public Bundle validator | `scripts/actkg-release/public-bundle-v1.ts` → `ValidatedActKGBundle` |
 | Standard candidate persistence (#1131) | importer | `scripts/actkg-release/standard-bundle-import.ts` |
 | Ordinary CLI | import command | `npm run db:import-compatible-actkg-public-bundle` |
-| ReleaseSet Delta / course / resource governance | later changes | not in this boundary |
+| ReleaseSet Delta recompute / receipt | `govern-actkg-release-set-deltas` | `scripts/actkg-release/release-set-delta.ts` and `RELEASE-SET-DELTA.md` |
+| Course / resource role governance | later changes | not in this boundary |
 | Production selector activation | later cutover change | not in this boundary |
 
 ## Unchanged #1125 exact path
@@ -62,10 +63,14 @@ control-theory-engineering-v0.2
 
 ## Downstream Delta handoff
 
-`govern-actkg-release-set-deltas` should compare already-accepted candidate
-snapshots by exact ReleaseSet/Release/Projection identities. This import change
-does not compute deltas, course coverage, resource bindings, RAG/KAQ/SAR
-migration, or production cutover.
+After a successful ACCEPTED_CANDIDATE import (or verify-only of an already
+accepted Bundle), the ordinary import CLI recomputes the ACT-owned ReleaseSet
+Delta against the previous accepted ReleaseSet evidence. In current
+environments the first standard candidate freezes #1125 v0.2 as base.
+
+Delta details, receipts, and generic signals are defined in
+`RELEASE-SET-DELTA.md`. This import boundary still does not decide course or
+resource roles, run consumer migrations, or move selectors.
 
 ## Local verification
 
