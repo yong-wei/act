@@ -46,6 +46,9 @@ export function buildAggregateGovernanceSummary(input: {
     invalidated: number;
     reviewed: number;
     shadowPublished: number;
+    candidatesGenerated: number;
+    decisionsStaged: number;
+    pendingReviewCount: number;
   };
   revalidationReceipts: readonly RevalidationReceipt[];
   packagingNoop: boolean;

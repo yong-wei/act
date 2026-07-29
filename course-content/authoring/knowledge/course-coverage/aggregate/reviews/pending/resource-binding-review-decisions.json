@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "act-resource-binding-review-decisions/v1",
+  "worklistInputDigest": "9a64bdaeb660887363ac60b6fad411ec9fd9129057694f41676c021fc7aa8b2f",
+  "deltaReceiptId": "delta-receipt:340280e950af341d3c402c01f783d0ed1735335eb1b1da019002b9bf460214ef",
+  "authoringRevision": "ca42502e15df87cddd12cd0e039fcf7bddf22656",
+  "reviewProvider": "GROK",
+  "reviewerIdentity": "agent-review:grok:issue-1126-binding:v1",
+  "reviewerPromptVersion": "aggregate-binding-review/v1",
+  "decisions": []
+}

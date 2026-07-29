@@ -1,5 +1,6 @@
 export * from './contracts';
 export * from './hash';
+export * from './term-match';
 export * from './capture';
 export * from './membership';
 export * from './upstream-classification';
@@ -14,3 +15,4 @@ export * from './readiness';
 export * from './summary';
 export * from './pipeline';
 export * from './repository';
+export * from './review-workflow';

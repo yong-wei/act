@@ -22,6 +22,8 @@ export interface AggregateGovernanceTransaction {
   aggregateCourseCoverageEntry: CreateDelegate;
   actGovernedStructuralUnitCrosswalk: CreateDelegate;
   aggregateRevalidationReceipt: CreateDelegate;
+  canonicalResourceBindingDecision?: CreateDelegate;
+  canonicalResourceBindingHumanQueueItem?: CreateDelegate;
 }
 
 export interface AggregateGovernanceDatabase {
@@ -437,6 +439,8 @@ export class AggregateGovernanceRepository {
   async persistRun(result: AggregateGovernanceRunResult): Promise<{
     mode: 'created' | 'idempotent';
     receiptId: string;
+    bindingDecisionsPersisted?: number;
+    bindingCandidatesRetained?: number;
   }> {
     return this.db.$transaction(async (tx) => {
       const existingReceipt = await tx.aggregateGovernanceReceipt.findUnique?.({
@@ -449,7 +453,11 @@ export class AggregateGovernanceRepository {
           normalizeReceiptPersisted(result.receipt),
           normalizeReceiptPersisted(existingReceipt),
         );
-        return { mode: 'idempotent' as const, receiptId: result.receipt.id };
+        return {
+          mode: 'idempotent' as const,
+          receiptId: result.receipt.id,
+          bindingCandidatesRetained: result.binding?.candidatesGenerated ?? 0,
+        };
       }
 
       if (result.coverageVersionId) {
@@ -641,11 +649,171 @@ export class AggregateGovernanceRepository {
         });
       }
 
+      // Feed same-run #1124 binding decisions into decision/persistence.
+      // Fail closed: any create/identity conflict rolls back the transaction.
+      const bindingDecisions = result.binding?.decisions ?? [];
+      let bindingDecisionsPersisted = 0;
+      if (bindingDecisions.length > 0 && !tx.canonicalResourceBindingDecision) {
+        throw new Error(
+          'Aggregate governance rejected: binding decisions present but '
+          + 'canonicalResourceBindingDecision delegate is unavailable',
+        );
+      }
+      for (const decision of bindingDecisions) {
+        const expectedDecision = {
+          id: decision.id,
+          pairId: decision.pairId,
+          releaseSetId: decision.releaseSetId,
+          releaseId: decision.releaseId,
+          canonicalId: decision.canonicalId,
+          objectRevision: decision.objectRevision,
+          resourceId: decision.resourceId,
+          structuralUnitId: decision.structuralUnitId,
+          segmentId: decision.segmentId,
+          resourceSegmentHash: decision.resourceSegmentHash,
+          role: decision.role,
+          evidenceId: decision.evidenceId,
+          evidenceDigest: decision.evidenceDigest,
+          generatorPromptVersion: decision.generatorPromptVersion,
+          reviewerPromptVersion: decision.reviewerPromptVersion,
+          generatorCacheKey: decision.generatorCacheKey,
+          reviewerCacheKey: decision.reviewerCacheKey,
+          reviewerRole: decision.reviewerRole,
+          reviewerInputDigest: decision.reviewerInputDigest,
+          candidateDigest: decision.candidateDigest,
+          reviewProvider: decision.reviewProvider,
+          reviewState: decision.reviewState,
+          publicationState: decision.publicationState,
+          lifecycleState: decision.lifecycleState,
+          attemptSequence: decision.attemptSequence,
+          supersedesDecisionId: decision.supersedesDecisionId,
+          crosswalkId: decision.crosswalkId,
+          inventoryRunId: decision.inventoryRunId,
+          captureRevision: decision.captureRevision,
+          structuralUnitVersion: decision.structuralUnitVersion,
+          validationDigest: decision.validationDigest,
+          highImpactPolicyVersion: decision.highImpactPolicyVersion,
+          highImpactReasons: decision.highImpactReasons,
+          reviewIdentity: decision.reviewIdentity ?? null,
+          reviewRationale: decision.reviewRationale ?? null,
+          governedCrosswalkId: decision.governedCrosswalkId ?? null,
+          governedInventoryRunId: decision.governedInventoryRunId ?? null,
+          governedCaptureRevision: decision.governedCaptureRevision ?? null,
+          governedStructuralUnitVersion: decision.governedStructuralUnitVersion ?? null,
+          governedValidationDigest: decision.governedValidationDigest ?? null,
+        };
+        const existing = await tx.canonicalResourceBindingDecision!.findUnique?.({
+          where: { id: decision.id },
+        }) as Record<string, unknown> | null;
+        if (existing) {
+          assertSameIdentity(
+            'binding decision',
+            decision.id,
+            expectedDecision,
+            {
+              id: String(existing.id),
+              pairId: String(existing.pairId),
+              releaseSetId: String(existing.releaseSetId),
+              releaseId: String(existing.releaseId),
+              canonicalId: String(existing.canonicalId),
+              objectRevision: String(existing.objectRevision),
+              resourceId: String(existing.resourceId),
+              structuralUnitId: String(existing.structuralUnitId),
+              segmentId: String(existing.segmentId),
+              resourceSegmentHash: String(existing.resourceSegmentHash),
+              role: String(existing.role),
+              evidenceId: existing.evidenceId == null ? null : String(existing.evidenceId),
+              evidenceDigest: String(existing.evidenceDigest),
+              generatorPromptVersion: String(existing.generatorPromptVersion),
+              reviewerPromptVersion: String(existing.reviewerPromptVersion),
+              generatorCacheKey: String(existing.generatorCacheKey),
+              reviewerCacheKey: String(existing.reviewerCacheKey),
+              reviewerRole: String(existing.reviewerRole),
+              reviewerInputDigest: String(existing.reviewerInputDigest),
+              candidateDigest: String(existing.candidateDigest),
+              reviewProvider: String(existing.reviewProvider),
+              reviewState: String(existing.reviewState),
+              publicationState: String(existing.publicationState),
+              lifecycleState: String(existing.lifecycleState),
+              attemptSequence: Number(existing.attemptSequence),
+              supersedesDecisionId: existing.supersedesDecisionId == null
+                ? null
+                : String(existing.supersedesDecisionId),
+              crosswalkId: existing.crosswalkId == null ? null : String(existing.crosswalkId),
+              inventoryRunId: existing.inventoryRunId == null
+                ? null
+                : String(existing.inventoryRunId),
+              captureRevision: existing.captureRevision == null
+                ? null
+                : String(existing.captureRevision),
+              structuralUnitVersion: existing.structuralUnitVersion == null
+                ? null
+                : String(existing.structuralUnitVersion),
+              validationDigest: existing.validationDigest == null
+                ? null
+                : String(existing.validationDigest),
+              highImpactPolicyVersion: String(existing.highImpactPolicyVersion),
+              highImpactReasons: existing.highImpactReasons,
+              reviewIdentity: existing.reviewIdentity == null
+                ? null
+                : String(existing.reviewIdentity),
+              reviewRationale: existing.reviewRationale == null
+                ? null
+                : String(existing.reviewRationale),
+              governedCrosswalkId: existing.governedCrosswalkId == null
+                ? null
+                : String(existing.governedCrosswalkId),
+              governedInventoryRunId: existing.governedInventoryRunId == null
+                ? null
+                : String(existing.governedInventoryRunId),
+              governedCaptureRevision: existing.governedCaptureRevision == null
+                ? null
+                : String(existing.governedCaptureRevision),
+              governedStructuralUnitVersion: existing.governedStructuralUnitVersion == null
+                ? null
+                : String(existing.governedStructuralUnitVersion),
+              governedValidationDigest: existing.governedValidationDigest == null
+                ? null
+                : String(existing.governedValidationDigest),
+            },
+          );
+          bindingDecisionsPersisted += 1;
+          continue;
+        }
+        await tx.canonicalResourceBindingDecision!.create({
+          data: expectedDecision,
+        });
+        if (
+          decision.publicationState === 'HUMAN_REQUIRED'
+          && tx.canonicalResourceBindingHumanQueueItem
+        ) {
+          await tx.canonicalResourceBindingHumanQueueItem.create({
+            data: {
+              id: `${decision.id}:human`,
+              bindingDecisionId: decision.id,
+              reasonCodes: decision.highImpactReasons,
+              contextDigest: decision.candidateDigest,
+              inputDigest: decision.reviewerInputDigest,
+              state: 'PENDING',
+            },
+          });
+        }
+        bindingDecisionsPersisted += 1;
+      }
+
+      // Receipt summary identity is fixed by the pure pipeline. Binding
+      // retention/persist counts are returned to the caller only so re-persist
+      // remains byte-stable for immutable receipt identity.
       await tx.aggregateGovernanceReceipt.create({
         data: receiptData(result.receipt),
       });
 
-      return { mode: 'created' as const, receiptId: result.receipt.id };
+      return {
+        mode: 'created' as const,
+        receiptId: result.receipt.id,
+        bindingDecisionsPersisted,
+        bindingCandidatesRetained: result.binding?.candidatesGenerated ?? 0,
+      };
     }, { isolationLevel: 'Serializable' });
   }
 }

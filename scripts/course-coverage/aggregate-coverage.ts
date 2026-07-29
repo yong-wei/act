@@ -27,6 +27,38 @@ export const AGGREGATE_COVERAGE_ACTIVE_PATH =
   'course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json';
 export const AGGREGATE_COVERAGE_CANDIDATE_PATH =
   'course-content/authoring/knowledge/course-coverage/aggregate/candidates/automatic-control.heuristic-candidate.json';
+/** Controlled ACT Crosswalk semantic reviews (optional; missing → all unresolved). */
+export const AGGREGATE_CROSSWALK_SEMANTIC_REVIEWS_PATH =
+  'course-content/authoring/knowledge/course-coverage/aggregate/active/act-crosswalk-semantic-reviews.json';
+/** Controlled #1124 binding reviews keyed by pairId (optional; never auto-accept). */
+export const AGGREGATE_BINDING_REVIEWS_PATH =
+  'course-content/authoring/knowledge/course-coverage/aggregate/active/resource-binding-reviews.json';
+
+/**
+ * Generator worklists (deterministic, Git-trackable). Never contain final roles/outcomes.
+ * A separate Grok semantic-review session authors the pending review decision files.
+ */
+export const AGGREGATE_COVERAGE_WORKLIST_PATH =
+  'course-content/authoring/knowledge/course-coverage/aggregate/candidates/course-coverage-worklist.json';
+export const AGGREGATE_CROSSWALK_WORKLIST_PATH =
+  'course-content/authoring/knowledge/course-coverage/aggregate/candidates/act-crosswalk-semantic-worklist.json';
+export const AGGREGATE_BINDING_WORKLIST_PATH =
+  'course-content/authoring/knowledge/course-coverage/aggregate/candidates/resource-binding-worklist.json';
+
+/** Reviewer-authored decision files (pending until a separate session writes them). */
+export const AGGREGATE_COVERAGE_REVIEW_DECISIONS_PATH =
+  'course-content/authoring/knowledge/course-coverage/aggregate/reviews/pending/course-coverage-review-decisions.json';
+export const AGGREGATE_CROSSWALK_REVIEW_DECISIONS_PATH =
+  'course-content/authoring/knowledge/course-coverage/aggregate/reviews/pending/act-crosswalk-review-decisions.json';
+export const AGGREGATE_BINDING_REVIEW_DECISIONS_PATH =
+  'course-content/authoring/knowledge/course-coverage/aggregate/reviews/pending/resource-binding-review-decisions.json';
+
+/** Relocated heuristic self-review artifacts — never load as production evidence. */
+export const AGGREGATE_INVALIDATED_HEURISTIC_DIR =
+  'course-content/authoring/knowledge/course-coverage/aggregate/candidates/invalidated-heuristic-self-review';
+
+export const RUNTIME_RESOURCE_PROJECTION_ARTIFACT_PATH =
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl';
 
 /** Unreviewed candidate generator marker — never a production review identity. */
 export const AGGREGATE_CANDIDATE_GENERATOR_IDENTITY =
@@ -35,6 +67,11 @@ export const AGGREGATE_CANDIDATE_GENERATOR_IDENTITY =
 export const AGGREGATE_GOVERNANCE_PROTECTED_PATHS = [
   AGGREGATE_COVERAGE_ACTIVE_PATH,
   AGGREGATE_COVERAGE_SCHEMA_PATH,
+  AGGREGATE_CROSSWALK_SEMANTIC_REVIEWS_PATH,
+  AGGREGATE_BINDING_REVIEWS_PATH,
+  AGGREGATE_COVERAGE_WORKLIST_PATH,
+  AGGREGATE_CROSSWALK_WORKLIST_PATH,
+  AGGREGATE_BINDING_WORKLIST_PATH,
   'scripts/course-coverage/aggregate-coverage.ts',
   'scripts/db/run-aggregate-course-resource-governance.ts',
   'src/lib/aggregate-governance',
@@ -340,6 +377,253 @@ export function validateBaselineAuthoring(
     sourceDatasetHash: overlay.sourceDatasetHash,
     mode: 'baseline',
   });
+}
+
+export type LoadedCrosswalkSemanticReviews = Readonly<Record<string, {
+  outcome: 'ACCEPT' | 'REJECT' | 'AMBIGUOUS' | 'UNSUPPORTED' | 'HIGH_IMPACT';
+  reviewIdentity: string;
+  reviewerPromptVersion: string;
+  evidenceDigest: string;
+  rationale: string;
+  candidateId?: string;
+}>>;
+
+export type LoadedBindingReviews = Readonly<Record<string, {
+  outcome: 'ACCEPT' | 'REJECT' | 'DISPUTE' | 'HUMAN_REQUIRED';
+  proposedRole: 'EXPLAINS' | 'PRACTICES' | 'ASSESSES' | 'REFERENCES';
+  reviewIdentity: string;
+  reviewerPromptVersion: string;
+  evidenceDigest: string;
+  evidenceIds?: readonly string[];
+  rationale: string;
+  reviewProvider: 'GPT' | 'FIXTURE' | 'HUMAN' | 'NONE' | 'GROK';
+}>>;
+
+/**
+ * Load optional controlled Crosswalk semantic reviews for the production runner.
+ * Missing file is valid (all semantic alignments stay unresolved).
+ * When present, file must be Git-tracked, clean, and bind the accepted Delta.
+ */
+/**
+ * @param allowedTripleKeys When provided, every review key must be in this set
+ *   (current work manifest) and every allowed key is not required to be reviewed.
+ *   Unknown keys fail closed. Empty set means "require no reviews loaded".
+ */
+export async function loadTrackedCrosswalkSemanticReviews(
+  root: string,
+  expectedDeltaReceiptId: string,
+  allowedTripleKeys?: ReadonlySet<string>,
+): Promise<LoadedCrosswalkSemanticReviews> {
+  const relativePath = AGGREGATE_CROSSWALK_SEMANTIC_REVIEWS_PATH;
+  const tracked = git(root, ['ls-files', '--', relativePath]);
+  if (!tracked) return {};
+  const dirty = git(root, [
+    'status',
+    '--porcelain=v1',
+    '--untracked-files=all',
+    '--',
+    relativePath,
+  ]);
+  if (dirty) {
+    throw new Error(
+      `Aggregate coverage rejected: crosswalk semantic reviews path is dirty:\n${dirty}`,
+    );
+  }
+  const captureRevision = git(root, ['rev-parse', '--verify', 'HEAD']);
+  const committed = JSON.parse(git(root, ['show', `${captureRevision}:${relativePath}`])) as {
+    schemaVersion?: string;
+    deltaReceiptId?: string;
+    reviews?: Record<string, {
+      outcome?: string;
+      reviewIdentity?: string;
+      reviewerPromptVersion?: string;
+      evidenceDigest?: string;
+      rationale?: string;
+      candidateId?: string;
+    }>;
+  };
+  const working = JSON.parse(await readFile(path.join(root, relativePath), 'utf8')) as typeof committed;
+  if (JSON.stringify(working) !== JSON.stringify(committed)) {
+    throw new Error(
+      'Aggregate coverage rejected: crosswalk semantic reviews working tree drifts from HEAD',
+    );
+  }
+  if (committed.schemaVersion !== 'act-crosswalk-semantic-reviews/v1') {
+    throw new Error('Aggregate coverage rejected: crosswalk semantic reviews schemaVersion invalid');
+  }
+  if (committed.deltaReceiptId !== expectedDeltaReceiptId) {
+    throw new Error(
+      `Aggregate coverage rejected: crosswalk semantic reviews deltaReceiptId `
+      + `${committed.deltaReceiptId} does not match accepted Delta ${expectedDeltaReceiptId}`,
+    );
+  }
+  const out: Record<string, {
+    outcome: 'ACCEPT' | 'REJECT' | 'AMBIGUOUS' | 'UNSUPPORTED' | 'HIGH_IMPACT';
+    reviewIdentity: string;
+    reviewerPromptVersion: string;
+    evidenceDigest: string;
+    rationale: string;
+    candidateId?: string;
+  }> = {};
+  for (const [key, row] of Object.entries(committed.reviews ?? {})) {
+    if (!row || typeof row !== 'object') continue;
+    if (allowedTripleKeys && !allowedTripleKeys.has(key)) {
+      throw new Error(
+        `Aggregate coverage rejected: crosswalk review key not in current workset: ${key}`,
+      );
+    }
+    const outcome = String(row.outcome ?? '');
+    if (!['ACCEPT', 'REJECT', 'AMBIGUOUS', 'UNSUPPORTED', 'HIGH_IMPACT'].includes(outcome)) {
+      throw new Error(`Aggregate coverage rejected: invalid crosswalk review outcome for ${key}`);
+    }
+    const reviewIdentity = String(row.reviewIdentity ?? '').trim();
+    if (!reviewIdentity || /candidate-generator|unreviewed|unbound/iu.test(reviewIdentity)) {
+      throw new Error(
+        `Aggregate coverage rejected: non-production crosswalk reviewIdentity for ${key}`,
+      );
+    }
+    const candidateId = row.candidateId == null ? undefined : String(row.candidateId).trim();
+    if (outcome === 'ACCEPT' && !candidateId) {
+      throw new Error(
+        `Aggregate coverage rejected: ACCEPT crosswalk review requires candidateId for ${key}`,
+      );
+    }
+    out[key] = {
+      outcome: outcome as 'ACCEPT' | 'REJECT' | 'AMBIGUOUS' | 'UNSUPPORTED' | 'HIGH_IMPACT',
+      reviewIdentity,
+      reviewerPromptVersion: String(row.reviewerPromptVersion ?? '').trim() || 'aggregate-semantic-align/v1',
+      evidenceDigest: String(row.evidenceDigest ?? '').trim(),
+      rationale: String(row.rationale ?? '').trim(),
+      candidateId,
+    };
+    if (!out[key]!.evidenceDigest || !/^[a-f0-9]{64}$/u.test(out[key]!.evidenceDigest)) {
+      throw new Error(`Aggregate coverage rejected: crosswalk review evidenceDigest invalid for ${key}`);
+    }
+    if (!out[key]!.rationale) {
+      throw new Error(`Aggregate coverage rejected: crosswalk review rationale required for ${key}`);
+    }
+  }
+  return out;
+}
+
+/**
+ * Load optional controlled #1124 binding reviews. Missing file is valid.
+ * Reviews never auto-elevate to SHADOW_PUBLISHED without #1124 gates.
+ */
+/**
+ * @param allowedPairIds When provided, every review pairId must belong to the
+ *   current generated candidate workset. Unknown keys fail closed.
+ */
+export async function loadTrackedBindingReviews(
+  root: string,
+  expectedDeltaReceiptId: string,
+  allowedPairIds?: ReadonlySet<string>,
+): Promise<LoadedBindingReviews> {
+  const relativePath = AGGREGATE_BINDING_REVIEWS_PATH;
+  const tracked = git(root, ['ls-files', '--', relativePath]);
+  if (!tracked) return {};
+  const dirty = git(root, [
+    'status',
+    '--porcelain=v1',
+    '--untracked-files=all',
+    '--',
+    relativePath,
+  ]);
+  if (dirty) {
+    throw new Error(
+      `Aggregate coverage rejected: binding reviews path is dirty:\n${dirty}`,
+    );
+  }
+  const captureRevision = git(root, ['rev-parse', '--verify', 'HEAD']);
+  const committed = JSON.parse(git(root, ['show', `${captureRevision}:${relativePath}`])) as {
+    schemaVersion?: string;
+    deltaReceiptId?: string;
+    reviews?: Record<string, {
+      outcome?: string;
+      proposedRole?: string;
+      reviewIdentity?: string;
+      reviewerPromptVersion?: string;
+      evidenceDigest?: string;
+      evidenceIds?: string[];
+      rationale?: string;
+      reviewProvider?: string;
+    }>;
+  };
+  const working = JSON.parse(await readFile(path.join(root, relativePath), 'utf8')) as typeof committed;
+  if (JSON.stringify(working) !== JSON.stringify(committed)) {
+    throw new Error(
+      'Aggregate coverage rejected: binding reviews working tree drifts from HEAD',
+    );
+  }
+  if (committed.schemaVersion !== 'act-resource-binding-reviews/v1') {
+    throw new Error('Aggregate coverage rejected: binding reviews schemaVersion invalid');
+  }
+  if (committed.deltaReceiptId !== expectedDeltaReceiptId) {
+    throw new Error(
+      `Aggregate coverage rejected: binding reviews deltaReceiptId `
+      + `${committed.deltaReceiptId} does not match accepted Delta ${expectedDeltaReceiptId}`,
+    );
+  }
+  const out: Record<string, {
+    outcome: 'ACCEPT' | 'REJECT' | 'DISPUTE' | 'HUMAN_REQUIRED';
+    proposedRole: 'EXPLAINS' | 'PRACTICES' | 'ASSESSES' | 'REFERENCES';
+    reviewIdentity: string;
+    reviewerPromptVersion: string;
+    evidenceDigest: string;
+    evidenceIds?: readonly string[];
+    rationale: string;
+    reviewProvider: 'GPT' | 'FIXTURE' | 'HUMAN' | 'NONE' | 'GROK';
+  }> = {};
+  for (const [pairId, row] of Object.entries(committed.reviews ?? {})) {
+    if (!row || typeof row !== 'object') continue;
+    if (allowedPairIds && !allowedPairIds.has(pairId)) {
+      throw new Error(
+        `Aggregate coverage rejected: binding review pairId not in current workset: ${pairId}`,
+      );
+    }
+    const outcome = String(row.outcome ?? '');
+    if (!['ACCEPT', 'REJECT', 'DISPUTE', 'HUMAN_REQUIRED'].includes(outcome)) {
+      throw new Error(`Aggregate coverage rejected: invalid binding review outcome for ${pairId}`);
+    }
+    const proposedRole = String(row.proposedRole ?? '');
+    if (!['EXPLAINS', 'PRACTICES', 'ASSESSES', 'REFERENCES'].includes(proposedRole)) {
+      throw new Error(`Aggregate coverage rejected: invalid binding proposedRole for ${pairId}`);
+    }
+    const reviewIdentity = String(row.reviewIdentity ?? '').trim();
+    if (!reviewIdentity || /candidate-generator|unreviewed|unbound/iu.test(reviewIdentity)) {
+      throw new Error(
+        `Aggregate coverage rejected: non-production binding reviewIdentity for ${pairId}`,
+      );
+    }
+    const reviewProvider = String(row.reviewProvider ?? '').trim();
+    if (!['GPT', 'FIXTURE', 'HUMAN', 'NONE', 'GROK'].includes(reviewProvider)) {
+      throw new Error(
+        `Aggregate coverage rejected: binding reviewProvider required/valid for ${pairId}`,
+      );
+    }
+    if (reviewProvider === 'GPT' && /grok/iu.test(reviewIdentity)) {
+      throw new Error(
+        `Aggregate coverage rejected: reviewProvider=GPT conflicts with Grok identity for ${pairId}`,
+      );
+    }
+    out[pairId] = {
+      outcome: outcome as 'ACCEPT' | 'REJECT' | 'DISPUTE' | 'HUMAN_REQUIRED',
+      proposedRole: proposedRole as 'EXPLAINS' | 'PRACTICES' | 'ASSESSES' | 'REFERENCES',
+      reviewIdentity,
+      reviewerPromptVersion: String(row.reviewerPromptVersion ?? '').trim() || 'aggregate-binding-review/v1',
+      evidenceDigest: String(row.evidenceDigest ?? '').trim(),
+      evidenceIds: Array.isArray(row.evidenceIds) ? row.evidenceIds.map(String) : undefined,
+      rationale: String(row.rationale ?? '').trim(),
+      reviewProvider: reviewProvider as 'GPT' | 'FIXTURE' | 'HUMAN' | 'NONE' | 'GROK',
+    };
+    if (!out[pairId]!.evidenceDigest || !/^[a-f0-9]{64}$/u.test(out[pairId]!.evidenceDigest)) {
+      throw new Error(`Aggregate coverage rejected: binding review evidenceDigest invalid for ${pairId}`);
+    }
+    if (!out[pairId]!.rationale) {
+      throw new Error(`Aggregate coverage rejected: binding review rationale required for ${pairId}`);
+    }
+  }
+  return out;
 }
 
 export async function loadActCurriculumEvidence(root: string): Promise<ActCurriculumEvidence> {

@@ -6,11 +6,13 @@ import type {
 import { selectResourceKnowledgeAuthority } from '@/lib/canonical-resource-binding';
 
 import {
+  AGGREGATE_SEMANTIC_ALIGNMENT_GENERATOR_PROMPT_VERSION,
   acceptSemanticAlignment,
   attemptDeterministicAlignment,
   generateSemanticAlignmentCandidates,
   invalidateCrosswalks,
   referenceOpaqueUpstream,
+  semanticAlignmentCandidateId,
   validateCrosswalkForShadowPublication,
 } from './act-crosswalk';
 import {
@@ -38,7 +40,9 @@ import { buildDownstreamReadinessDiagnostics } from './readiness';
 import { buildResourceIndexFromValidatedCrosswalks } from './resource-index';
 import {
   assertFormalSelectorsRemainLegacy,
+  buildBindingPublicationGateContext,
   governResourceBindings,
+  type BindingReviewAuthoringEntry,
 } from './resource-bindings';
 import { packagingNoopRevalidation } from './revalidation';
 import { buildAggregateGovernanceSummary } from './summary';
@@ -86,6 +90,11 @@ export interface AggregateGovernanceRunInput {
    */
   priorSemanticPublicationIdentity?: string | null;
   generatorPromptVersion?: string;
+  /**
+   * Controlled Crosswalk semantic reviews keyed by
+   * publishedEntityId\x1fretrievalChunkId\x1fcitationTargetId.
+   * Production CLI loads these from Git-tracked authoring.
+   */
   semanticReviews?: Readonly<Record<string, {
     outcome: 'ACCEPT' | 'REJECT' | 'AMBIGUOUS' | 'UNSUPPORTED' | 'HIGH_IMPACT';
     reviewIdentity: string;
@@ -94,6 +103,11 @@ export interface AggregateGovernanceRunInput {
     rationale: string;
     candidateId?: string;
   }>>;
+  /**
+   * Controlled #1124 binding reviews keyed by pairId.
+   * Absent entries leave candidates pending — never auto-accepted.
+   */
+  bindingReviews?: Readonly<Record<string, BindingReviewAuthoringEntry>>;
 }
 
 export interface AggregateGovernanceRunResult {
@@ -146,22 +160,106 @@ function resolveOneCrosswalk(input: {
   if (!review) return deterministic;
   if (input.index.length === 0) return deterministic;
 
+  // Must match worklist generator version — candidateId digests include it.
+  const generatorPromptVersion = AGGREGATE_SEMANTIC_ALIGNMENT_GENERATOR_PROMPT_VERSION;
+  // Ranked shortlist for diagnostics; acceptance never falls back to first.
   const candidates = generateSemanticAlignmentCandidates({
     upstream: input.upstream,
     canonicalId: input.canonicalId,
     canonicalProfileDigest: sha256Canonical({ canonicalId: input.canonicalId }),
     index: input.index,
-    generatorPromptVersion: 'aggregate-semantic-align/v1',
+    generatorPromptVersion,
+    profileText: input.canonicalId,
   });
-  if (candidates.length === 0) return deterministic;
+  if (candidates.length === 0 && input.index.length === 0) return deterministic;
 
-  const candidate = review.candidateId
-    ? candidates.find((row) => row.candidateId === review.candidateId) ?? candidates[0]!
-    : candidates[0]!;
+  // Never auto-accept first candidate. ACCEPT requires exact candidateId.
+  if (!review.candidateId?.trim()) {
+    return acceptSemanticAlignment({
+      candidate: candidates[0] ?? {
+        candidateId: 'missing',
+        upstream: input.upstream,
+        canonicalId: input.canonicalId,
+        structuralUnitId: '',
+        structuralUnitVersion: '',
+        structuralUnitHash: '',
+        sourceEditionId: '',
+        sourceVersion: '',
+        rationale: 'missing-candidate',
+        generatorPromptVersion,
+      },
+      review: {
+        ...review,
+        outcome: review.outcome === 'ACCEPT' ? 'UNSUPPORTED' : review.outcome,
+      },
+      capture: input.capture,
+    });
+  }
+
+  // Resolve candidateId against the FULL index (not only top-N shortlist) so
+  // controlled reviews can accept a specific unit without rank-position coupling.
+  // Uses the same candidateId contract as worklist generation.
+  let candidate = candidates.find((row) => row.candidateId === review.candidateId) ?? null;
+  if (!candidate) {
+    for (const entry of input.index) {
+      if (
+        !entry.sourceEditionId
+        || !entry.sourceVersion
+        || !entry.structuralUnitId
+        || !entry.structuralUnitVersion
+        || !entry.structuralUnitHash
+      ) {
+        continue;
+      }
+      const candidateId = semanticAlignmentCandidateId({
+        upstream: input.upstream,
+        canonicalId: input.canonicalId,
+        structuralUnitId: entry.structuralUnitId,
+        structuralUnitHash: entry.structuralUnitHash,
+        generatorPromptVersion,
+      });
+      if (candidateId !== review.candidateId) continue;
+      candidate = {
+        candidateId,
+        upstream: input.upstream,
+        canonicalId: input.canonicalId,
+        structuralUnitId: entry.structuralUnitId,
+        structuralUnitVersion: entry.structuralUnitVersion,
+        structuralUnitHash: entry.structuralUnitHash,
+        sourceEditionId: entry.sourceEditionId,
+        sourceVersion: entry.sourceVersion,
+        rationale: `resolved-from-index:${entry.structuralUnitId}`,
+        generatorPromptVersion,
+      };
+      break;
+    }
+  }
+  if (!candidate) {
+    return acceptSemanticAlignment({
+      candidate: candidates[0] ?? {
+        candidateId: review.candidateId,
+        upstream: input.upstream,
+        canonicalId: input.canonicalId,
+        structuralUnitId: '',
+        structuralUnitVersion: '',
+        structuralUnitHash: '',
+        sourceEditionId: '',
+        sourceVersion: '',
+        rationale: 'candidateId-not-in-index',
+        generatorPromptVersion,
+      },
+      review: {
+        ...review,
+        outcome: 'UNSUPPORTED',
+        rationale: `${review.rationale}; candidateId not present in structural index`,
+      },
+      capture: input.capture,
+    });
+  }
   const indexEntry = input.index.find((row) => (
-    row.structuralUnitId === candidate.structuralUnitId
-    && row.structuralUnitVersion === candidate.structuralUnitVersion
-    && row.structuralUnitHash === candidate.structuralUnitHash
+    row.structuralUnitId === candidate!.structuralUnitId
+    && row.structuralUnitVersion === candidate!.structuralUnitVersion
+    && row.structuralUnitHash === candidate!.structuralUnitHash
   ));
   return acceptSemanticAlignment({
     candidate,
@@ -291,6 +389,9 @@ export function runAggregateGovernance(
         invalidated: 0,
         reviewed: 0,
         shadowPublished: shadowPublishedBindingCount,
+        candidatesGenerated: 0,
+        decisionsStaged: 0,
+        pendingReviewCount: 0,
       },
       revalidationReceipts,
       packagingNoop: true,
@@ -452,6 +553,14 @@ export function runAggregateGovernance(
     validatedCrosswalks: publishedCrosswalks,
   });
 
+  const publicationGateContext = buildBindingPublicationGateContext({
+    capture: input.capture,
+    canonicalIndex: input.canonicalIndex ?? [],
+    validatedCrosswalks: publishedCrosswalks,
+    existingPublished: (input.previousDecisions ?? []).filter(
+      (row) => row.publicationState === 'SHADOW_PUBLISHED' && row.lifecycleState === 'CURRENT',
+    ),
+  });
   const binding = governResourceBindings({
     capture: input.capture,
     work: manifest.resourceBindings,
@@ -459,6 +568,8 @@ export function runAggregateGovernance(
     canonicalIndex: input.canonicalIndex ?? [],
     resourceIndex: effectiveResourceIndex,
     generatorPromptVersion: input.generatorPromptVersion ?? 'aggregate-binding/v1',
+    bindingReviews: input.bindingReviews,
+    publicationGateContext,
   });
   revalidationReceipts.push(...binding.revalidationReceipts);
 
@@ -480,8 +591,11 @@ export function runAggregateGovernance(
     bindings: {
       revalidated: binding.revalidationReceipts.filter((r) => r.outcome === 'REVALIDATED').length,
       invalidated: binding.invalidated.length,
-      reviewed: binding.candidatesGenerated,
+      reviewed: binding.decisions.length,
       shadowPublished: binding.shadowPublishedCount,
+      candidatesGenerated: binding.candidatesGenerated,
+      decisionsStaged: binding.decisions.length,
+      pendingReviewCount: binding.pendingReviewCandidates.length,
     },
     revalidationReceipts,
     packagingNoop: false,
@@ -498,6 +612,9 @@ export function runAggregateGovernance(
     unresolvedCount: unresolvedCrosswalkDiagnostics.length,
     bindingRevalidated: binding.revalidationReceipts.length,
     bindingInvalidated: binding.invalidated.length,
+    bindingCandidatesGenerated: binding.candidatesGenerated,
+    bindingDecisionsStaged: binding.decisions.length,
+    bindingPendingReviewCount: binding.pendingReviewCandidates.length,
     summary,
   });
 

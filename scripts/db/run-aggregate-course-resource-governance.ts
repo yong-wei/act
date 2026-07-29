@@ -34,6 +34,8 @@ import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
   AGGREGATE_COVERAGE_ACTIVE_PATH,
   loadTrackedActiveCoverageAuthoring,
+  loadTrackedBindingReviews,
+  loadTrackedCrosswalkSemanticReviews,
 } from '../course-coverage/aggregate-coverage';
 
 function argValue(flag: string): string | undefined {
@@ -249,6 +251,31 @@ async function main(): Promise<void> {
       citationTargetId: row.citationTargetId,
     }));
 
+    // Current object-triple workset for fail-closed review key validation.
+    const membershipSet = new Set(membership.canonicalIds);
+    const allowedTripleKeys = new Set(
+      upstream
+        .filter((row) => membershipSet.has(row.publishedEntityId))
+        .map((row) => [
+          row.publishedEntityId,
+          row.retrievalChunkId,
+          row.citationTargetId,
+        ].join('\u001f')),
+    );
+
+    // Controlled Git-tracked semantic review inputs (optional; empty is valid).
+    // Unknown keys outside the current object-triple workset fail closed.
+    const semanticReviews = await loadTrackedCrosswalkSemanticReviews(
+      root,
+      delta.id,
+      allowedTripleKeys,
+    );
+    // Binding pair workset is enforced after candidates are generated inside the
+    // pure pipeline; loader still rejects unknown pair ids when a workset is
+    // supplied. Pass undefined here — runner validates after dry-run candidate
+    // generation via governed bindingReviews keys ⊆ generated pairIds.
+    const bindingReviews = await loadTrackedBindingReviews(root, delta.id);
+
     const result = runAggregateGovernance({
       capture: expectedCapture,
       observedCapture,
@@ -275,7 +302,22 @@ async function main(): Promise<void> {
         previousReceipt?.id
         ?? existingCoverage?.publicationIdentity
         ?? null,
+      semanticReviews,
+      bindingReviews,
     });
+
+    // Fail closed: every binding review pairId must be in generated candidates.
+    const generatedPairIds = new Set(
+      (result.binding?.candidates ?? []).map((row) => row.pairId),
+    );
+    for (const pairId of Object.keys(bindingReviews)) {
+      if (!generatedPairIds.has(pairId)) {
+        throw new Error(
+          `Aggregate governance rejected: binding review pairId not in current `
+          + `generated workset: ${pairId}`,
+        );
+      }
+    }
 
     if (dryRun) {
       console.log(JSON.stringify({
@@ -289,8 +331,12 @@ async function main(): Promise<void> {
         structuralUnitIndexVersion: structural.version,
         publishedCrosswalks: result.publishedCrosswalks.length,
         unresolvedCrosswalks: result.unresolvedCrosswalkDiagnostics.length,
-        publishedCrosswalks: result.publishedCrosswalks.length,
+        semanticReviewsLoaded: Object.keys(semanticReviews).length,
+        bindingReviewsLoaded: Object.keys(bindingReviews).length,
         bindingCandidatesGenerated: result.binding?.candidatesGenerated ?? 0,
+        bindingCandidatesRetained: result.binding?.candidates.length ?? 0,
+        bindingDecisionsStaged: result.binding?.decisions.length ?? 0,
+        bindingPendingReviewCount: result.binding?.pendingReviewCandidates.length ?? 0,
         receiptId: result.receipt.id,
         summary: result.receipt.summary,
       }, null, 2));
@@ -310,6 +356,12 @@ async function main(): Promise<void> {
       structuralUnitIndexVersion: structural.version,
       publishedCrosswalks: result.publishedCrosswalks.length,
       unresolvedCrosswalks: result.unresolvedCrosswalkDiagnostics.length,
+      semanticReviewsLoaded: Object.keys(semanticReviews).length,
+      bindingReviewsLoaded: Object.keys(bindingReviews).length,
+      bindingCandidatesGenerated: result.binding?.candidatesGenerated ?? 0,
+      bindingCandidatesRetained: result.binding?.candidates.length ?? 0,
+      bindingDecisionsStaged: result.binding?.decisions.length ?? 0,
+      bindingPendingReviewCount: result.binding?.pendingReviewCandidates.length ?? 0,
       receiptId: result.receipt.id,
       coverageVersionId: result.coverageVersionId,
       summary: result.receipt.summary,

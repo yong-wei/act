@@ -162,6 +162,8 @@ export interface GovernanceWorkManifest {
   inputDigest: string;
 }
 
+export type InventoryDisposition = 'INCLUDED' | 'EXCLUDED' | 'UNRESOLVED';
+
 export interface StructuralUnitIndexEntry {
   sourceEditionId: string;
   sourceVersion: string;
@@ -175,6 +177,14 @@ export interface StructuralUnitIndexEntry {
   segmentId: string | null;
   resourceSegmentHash: string | null;
   textPreviewDigest: string | null;
+  /**
+   * Current inventory disposition for this structural unit. Semantic Crosswalk
+   * recall may include EXCLUDED/UNRESOLVED content-bearing units; binding
+   * eligibility still requires INCLUDED.
+   */
+  inventoryDisposition: InventoryDisposition;
+  /** Sorted inventory reason codes (auditable; not a semantic review outcome). */
+  reasonCodes: string[];
 }
 
 export interface DeterministicAlignmentInput {
@@ -346,6 +356,12 @@ export interface AggregateGovernanceSummary {
     invalidated: number;
     reviewed: number;
     shadowPublished: number;
+    /** Same-run candidates retained for #1124 (not count-only). */
+    candidatesGenerated: number;
+    /** Decisions staged through #1124 contracts this run. */
+    decisionsStaged: number;
+    /** Candidates still awaiting controlled review (not discarded). */
+    pendingReviewCount: number;
   };
   invalidations: number;
   packagingNoop: boolean;

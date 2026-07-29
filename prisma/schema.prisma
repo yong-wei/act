@@ -5794,6 +5794,10 @@ model ActkgEvidenceStructuralUnitCrosswalk {
   @@index([structuralUnitId, structuralUnitVersion, structuralUnitHash])
 }
 
+/// #1124 binding decision with additive #1126 governed-crosswalk fields.
+/// Legacy crosswalkId/inventoryRunId/captureRevision/structuralUnitVersion
+/// continue to reference ActkgEvidenceStructuralUnitCrosswalk only.
+/// #1126 uses separate governed* fields → ActGovernedStructuralUnitCrosswalk.
 model CanonicalResourceBindingDecision {
   id                     String   @id
   pairId                 String
@@ -5815,12 +5819,14 @@ model CanonicalResourceBindingDecision {
   reviewerRole           String
   reviewerInputDigest    String
   candidateDigest        String
+  /// GPT | FIXTURE | HUMAN | NONE | GROK
   reviewProvider         String
   reviewState            String
   publicationState       String
   lifecycleState         String
   attemptSequence        Int
   supersedesDecisionId   String?  @unique
+  /// Legacy #1124 EvidenceStructuralUnitCrosswalk identity (unchanged).
   crosswalkId            String?
   inventoryRunId         String?
   captureRevision        String?
@@ -5828,6 +5834,15 @@ model CanonicalResourceBindingDecision {
   validationDigest       String?
   highImpactPolicyVersion String
   highImpactReasons      Json
+  /// #1126 sealed controlled-review metadata (additive; null on legacy rows).
+  reviewIdentity         String?
+  reviewRationale        String?  @db.Text
+  /// #1126 governed ACT Crosswalk identity (separate from legacy tuple).
+  governedCrosswalkId            String?
+  governedInventoryRunId         String?
+  governedCaptureRevision        String?
+  governedStructuralUnitVersion  String?
+  governedValidationDigest       String?
   createdTransactionId   BigInt   @default(dbgenerated("txid_current()"))
   createdAt              DateTime @default(now())
 
@@ -5835,6 +5850,7 @@ model CanonicalResourceBindingDecision {
   evidence       ActkgEvidenceSegment?                   @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
   canonical      ActkgAuthoritativeObject                @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
   crosswalk      ActkgEvidenceStructuralUnitCrosswalk?    @relation(fields: [releaseId, crosswalkId, inventoryRunId, captureRevision, structuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
+  governedCrosswalk ActGovernedStructuralUnitCrosswalk? @relation(fields: [releaseId, governedCrosswalkId, governedInventoryRunId, governedCaptureRevision, governedStructuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
   supersedes     CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)
   supersededBy   CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession")
   humanQueueItem CanonicalResourceBindingHumanQueueItem?
@@ -5983,7 +5999,10 @@ model ActGovernedStructuralUnitCrosswalk {
   /// Null when unresolved/relation-type upstream; when set, must be Projection membership.
   projectionCanonical ActkgProjectionNode?   @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
   inventory    ResourceBindingInventoryItem? @relation(fields: [inventoryRunId, atomicResourceId], references: [runId, atomicResourceId], onDelete: Restrict)
+  bindingDecisions CanonicalResourceBindingDecision[]
 
+  /// Supports FK from binding decisions when VALIDATED (non-null inventory/version).
+  @@unique([releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion])
   @@unique([releaseSetId, releaseId, publishedEntityId, retrievalChunkId, citationTargetId, captureRevision])
   @@index([releaseSetId, releaseId, lifecycleState, validationState])
   @@index([canonicalId])

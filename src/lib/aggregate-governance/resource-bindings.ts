@@ -1,9 +1,17 @@
 import {
+  applyPublicationGates,
+  buildDeterministicDecision,
   generateCandidatesForCanonicalChanges,
   generateCandidatesForResourceChanges,
+  generatorDecision,
   invalidateChangedResourcePairs,
+  type CanonicalBindingReviewProvider,
   type CanonicalObjectIndexEntry,
+  type CanonicalResourceBindingCandidate,
   type CanonicalResourceBindingDecision,
+  type CanonicalResourceBindingRole,
+  type EvidenceStructuralUnitCrosswalk,
+  type PublicationGateContext,
   type ResourceSegmentIndexEntry,
 } from '@/lib/canonical-resource-binding';
 
@@ -15,8 +23,31 @@ import {
 import type { PriorSemanticDecision, RevalidationReceipt } from './contracts';
 import { sha256Canonical } from './hash';
 
+/** Controlled binding review authoring entry (never auto-accepted as shadow). */
+export interface BindingReviewAuthoringEntry {
+  outcome: 'ACCEPT' | 'REJECT' | 'DISPUTE' | 'HUMAN_REQUIRED';
+  proposedRole: CanonicalResourceBindingRole;
+  reviewIdentity: string;
+  reviewerPromptVersion: string;
+  evidenceDigest: string;
+  evidenceIds?: readonly string[];
+  rationale: string;
+  /** Real reviewer provider — must not be fabricated (e.g. GROK, not GPT). */
+  reviewProvider: CanonicalBindingReviewProvider;
+}
+
 export interface BindingGovernanceResult {
+  /** Full same-run candidates retained for #1124 review/decision/persistence. */
+  candidates: CanonicalResourceBindingCandidate[];
   candidatesGenerated: number;
+  /**
+   * Decisions produced through #1124 contracts in this run.
+   * Deterministic gates may yield SHADOW_PUBLISHED; semantic candidates without
+   * controlled review are staged as HUMAN_REQUIRED and never auto-accepted.
+   */
+  decisions: CanonicalResourceBindingDecision[];
+  /** Candidates still lacking a controlled role proposal (not discarded). */
+  pendingReviewCandidates: CanonicalResourceBindingCandidate[];
   reusedDecisionIds: string[];
   invalidated: CanonicalResourceBindingDecision[];
   reusable: CanonicalResourceBindingDecision[];
@@ -57,10 +88,158 @@ function priorFromDecision(
   };
 }
 
+function stageSemanticBindingDecision(input: {
+  candidate: CanonicalResourceBindingCandidate;
+  role: CanonicalResourceBindingRole;
+  evidenceDigest: string;
+  evidenceIds: readonly string[];
+  reviewerPromptVersion: string;
+  outcome: BindingReviewAuthoringEntry['outcome'];
+  reviewIdentity: string;
+  rationale: string;
+  reviewProvider: CanonicalBindingReviewProvider;
+  publicationGateContext?: PublicationGateContext | null;
+}): CanonicalResourceBindingDecision {
+  if (!input.reviewIdentity.trim()) {
+    throw new Error('Binding review rejected: reviewIdentity is required');
+  }
+  if (!input.rationale.trim()) {
+    throw new Error('Binding review rejected: rationale is required');
+  }
+  if (input.reviewProvider === 'GPT' && /grok/iu.test(input.reviewIdentity)) {
+    throw new Error(
+      'Binding review rejected: reviewProvider=GPT conflicts with Grok reviewIdentity',
+    );
+  }
+  const generated = generatorDecision(input.candidate, {
+    proposedRole: input.role,
+    evidenceDigest: input.evidenceDigest,
+    evidenceIds: [...input.evidenceIds],
+    highImpactReasons: input.outcome === 'DISPUTE' ? ['review-disputed'] : [],
+  });
+  const candidateDigest = sha256Canonical({
+    releaseSetId: input.candidate.releaseSetId,
+    releaseId: input.candidate.releaseId,
+    canonicalId: input.candidate.canonicalId,
+    objectRevision: input.candidate.objectRevision,
+    resourceId: input.candidate.resourceId,
+    structuralUnitId: input.candidate.structuralUnitId,
+    segmentId: input.candidate.segmentId,
+    resourceSegmentHash: input.candidate.resourceSegmentHash,
+  });
+  const reviewerInputDigest = sha256Canonical({
+    candidateIdentity: {
+      releaseSetId: input.candidate.releaseSetId,
+      releaseId: input.candidate.releaseId,
+      canonicalId: input.candidate.canonicalId,
+      objectRevision: input.candidate.objectRevision,
+      resourceId: input.candidate.resourceId,
+      structuralUnitId: input.candidate.structuralUnitId,
+      segmentId: input.candidate.segmentId,
+      resourceSegmentHash: input.candidate.resourceSegmentHash,
+    },
+    proposedRole: input.role,
+    evidenceDigest: input.evidenceDigest,
+    evidenceIds: [...input.evidenceIds].sort(),
+    outcome: input.outcome,
+    reviewIdentity: input.reviewIdentity,
+    rationale: input.rationale,
+    reviewProvider: input.reviewProvider,
+  });
+  const humanRequired = input.outcome === 'HUMAN_REQUIRED'
+    || input.outcome === 'DISPUTE'
+    || generated.highImpactReasons.length > 0
+    || input.reviewProvider === 'FIXTURE';
+  const reviewState = humanRequired
+    ? 'HUMAN_REQUIRED' as const
+    : input.outcome === 'ACCEPT'
+      ? 'ACCEPTED' as const
+      : 'REJECTED' as const;
+  const base: CanonicalResourceBindingDecision = {
+    ...input.candidate,
+    id: `canonical-resource-decision:${sha256Canonical({
+      pairId: input.candidate.pairId,
+      generatorPromptVersion: input.candidate.generatorPromptVersion,
+      reviewerPromptVersion: input.reviewerPromptVersion,
+      reviewerInputDigest,
+      attemptSequence: 1,
+    })}`,
+    role: input.role,
+    evidenceId: input.evidenceIds.length === 1 ? input.evidenceIds[0]! : null,
+    evidenceDigest: input.evidenceDigest,
+    reviewerPromptVersion: input.reviewerPromptVersion,
+    reviewerRole: 'INDEPENDENT_REVIEWER',
+    reviewerInputDigest,
+    candidateDigest,
+    reviewerCacheKey: sha256Canonical({
+      candidateDigest,
+      reviewerRole: 'INDEPENDENT_REVIEWER',
+      reviewerPromptVersion: input.reviewerPromptVersion,
+      reviewerInputDigest,
+    }),
+    reviewProvider: input.reviewProvider,
+    reviewState,
+    // REJECT / HUMAN_REQUIRED / DISPUTE never publish; ACCEPT needs gates.
+    publicationState: humanRequired
+      ? 'HUMAN_REQUIRED'
+      : input.outcome === 'ACCEPT'
+        ? 'CANDIDATE'
+        : 'CANDIDATE',
+    highImpactPolicyVersion: 'binding-impact/v1',
+    highImpactReasons: [...generated.highImpactReasons].sort(),
+    attemptSequence: 1,
+    lifecycleState: 'CURRENT',
+    supersedesDecisionId: null,
+    crosswalkId: null,
+    inventoryRunId: null,
+    captureRevision: null,
+    structuralUnitVersion: null,
+    validationDigest: null,
+    reviewIdentity: input.reviewIdentity.trim(),
+    reviewRationale: input.rationale.trim(),
+  };
+  if (input.outcome === 'ACCEPT' && !humanRequired && input.publicationGateContext) {
+    const gated = applyPublicationGates(base, input.publicationGateContext);
+    // Map publication identity onto #1126 governed* fields. Never write legacy
+    // EvidenceStructuralUnitCrosswalk tuple for aggregate-governed decisions.
+    if (gated.publicationState === 'SHADOW_PUBLISHED') {
+      return {
+        ...gated,
+        // #1126 governed path only — leave legacy EvidenceStructuralUnit tuple null.
+        governedCrosswalkId: gated.crosswalkId,
+        governedInventoryRunId: gated.inventoryRunId,
+        governedCaptureRevision: gated.captureRevision,
+        governedStructuralUnitVersion: gated.structuralUnitVersion,
+        governedValidationDigest: gated.validationDigest,
+        crosswalkId: null,
+        inventoryRunId: null,
+        captureRevision: null,
+        structuralUnitVersion: null,
+        validationDigest: null,
+        // evidenceId may be inventory atomic id, not ActkgEvidenceSegment.
+        evidenceId: null,
+      };
+    }
+    return gated;
+  }
+  if (input.outcome === 'REJECT') {
+    return {
+      ...base,
+      reviewState: 'REJECTED',
+      publicationState: 'CANDIDATE',
+    };
+  }
+  return base;
+}
+
 /**
  * Reuse #1124 candidate generation / invalidation under the current ReleaseSet
  * and Delta-scoped work items. Unchanged semantic work yields revalidation
  * receipts that do not copy old publication identities.
+ *
+ * Same-run candidates are retained and fed into #1124 decision contracts:
+ * deterministic pairs may pass publication gates; semantic pairs require
+ * controlled review authoring and are never auto-accepted as shadow.
  */
 export function governResourceBindings(input: {
   capture: CaptureIdentity;
@@ -69,6 +248,13 @@ export function governResourceBindings(input: {
   canonicalIndex: readonly CanonicalObjectIndexEntry[];
   resourceIndex: readonly ResourceSegmentIndexEntry[];
   generatorPromptVersion: string;
+  /**
+   * Optional controlled binding reviews keyed by pairId.
+   * Absent reviews leave non-deterministic candidates pending (not discarded).
+   */
+  bindingReviews?: Readonly<Record<string, BindingReviewAuthoringEntry>>;
+  /** Optional #1124 publication gate context for deterministic elevation. */
+  publicationGateContext?: PublicationGateContext | null;
 }): BindingGovernanceResult {
   const reviewCanonicalIds = new Set(
     input.work
@@ -180,24 +366,201 @@ export function governResourceBindings(input: {
     ...resourceInvalidated.map((row) => ({ ...row, lifecycleState: 'SUPERSEDED' as const })),
     ...objectInvalidated,
   ];
-  const candidateCount = new Set([
-    ...objectCandidates.candidates.map((row) => row.pairId),
-    ...resourceCandidates.candidates.map((row) => row.pairId),
-  ]).size;
+
+  const candidateByPair = new Map<string, CanonicalResourceBindingCandidate>();
+  for (const row of [
+    ...objectCandidates.candidates,
+    ...resourceCandidates.candidates,
+  ]) {
+    candidateByPair.set(row.pairId, row);
+  }
+  const candidates = [...candidateByPair.values()]
+    .sort((left, right) => left.pairId.localeCompare(right.pairId));
+
+  const decisions: CanonicalResourceBindingDecision[] = [];
+  const pendingReviewCandidates: CanonicalResourceBindingCandidate[] = [];
+  const bindingReviews = input.bindingReviews ?? {};
+
+  for (const candidate of candidates) {
+    const controlled = bindingReviews[candidate.pairId];
+    if (
+      candidate.proposedRole
+      && candidate.evidenceIds.length === 1
+      && input.publicationGateContext
+    ) {
+      decisions.push(buildDeterministicDecision({
+        candidate,
+        evidenceDigest: sha256Canonical({
+          pairId: candidate.pairId,
+          role: candidate.proposedRole,
+          evidenceIds: candidate.evidenceIds,
+        }),
+        context: input.publicationGateContext,
+      }));
+      continue;
+    }
+    if (controlled) {
+      decisions.push(stageSemanticBindingDecision({
+        candidate,
+        role: controlled.proposedRole,
+        evidenceDigest: controlled.evidenceDigest,
+        evidenceIds: controlled.evidenceIds ?? candidate.evidenceIds,
+        reviewerPromptVersion: controlled.reviewerPromptVersion,
+        outcome: controlled.outcome,
+        reviewIdentity: controlled.reviewIdentity,
+        rationale: controlled.rationale,
+        reviewProvider: controlled.reviewProvider,
+        publicationGateContext: input.publicationGateContext,
+      }));
+      continue;
+    }
+    // Retain for #1124 reviewer queue — do not invent teaching roles.
+    pendingReviewCandidates.push(candidate);
+  }
+
   const reusedDecisionIds = [...new Set([
     ...objectCandidates.reusedDecisionIds,
     ...resourceCandidates.reusedDecisionIds,
   ])].sort();
 
+  const shadowFromReusable = stillReusable.filter(
+    (row) => row.publicationState === 'SHADOW_PUBLISHED',
+  ).length;
+  const shadowFromDecisions = decisions.filter(
+    (row) => row.publicationState === 'SHADOW_PUBLISHED',
+  ).length;
+
   return {
-    candidatesGenerated: candidateCount,
+    candidates,
+    candidatesGenerated: candidates.length,
+    decisions,
+    pendingReviewCandidates,
     reusedDecisionIds,
     invalidated,
     reusable: stillReusable,
     revalidationReceipts,
-    shadowPublishedCount: stillReusable.filter(
-      (row) => row.publicationState === 'SHADOW_PUBLISHED',
-    ).length,
+    shadowPublishedCount: shadowFromReusable + shadowFromDecisions,
+  };
+}
+
+/** Build #1124 publication gate context from same-run validated ACT Crosswalks. */
+export function buildBindingPublicationGateContext(input: {
+  capture: CaptureIdentity;
+  canonicalIndex: readonly CanonicalObjectIndexEntry[];
+  /** Same-run VALIDATED ActGoverned structural-unit crosswalks. */
+  validatedCrosswalks: ReadonlyArray<{
+    id: string;
+    releaseId: string;
+    canonicalId: string | null;
+    resourceId: string | null;
+    structuralUnitId: string | null;
+    structuralUnitVersion: string | null;
+    structuralUnitHash: string | null;
+    segmentId: string | null;
+    resourceSegmentHash: string | null;
+    inventoryRunId: string | null;
+    atomicResourceId: string | null;
+    captureRevision: string;
+    validationDigest: string | null;
+    sourceEditionId?: string | null;
+    sourceVersion?: string | null;
+    evidenceContentHash?: string | null;
+  }>;
+  existingPublished?: readonly CanonicalResourceBindingDecision[];
+}): PublicationGateContext {
+  const crosswalks: EvidenceStructuralUnitCrosswalk[] = [];
+  const evidenceAlignments: PublicationGateContext['evidenceAlignments'] = [];
+  for (const row of input.validatedCrosswalks) {
+    if (
+      !row.canonicalId
+      || !row.resourceId
+      || !row.structuralUnitId
+      || !row.structuralUnitVersion
+      || !row.structuralUnitHash
+      || !row.segmentId
+      || !row.resourceSegmentHash
+      || !row.inventoryRunId
+      || !row.atomicResourceId
+      || !row.validationDigest
+      || !row.sourceEditionId
+      || !row.sourceVersion
+    ) {
+      continue;
+    }
+    const evidenceId = row.atomicResourceId;
+    crosswalks.push({
+      id: row.id,
+      releaseId: row.releaseId,
+      evidenceId,
+      sourceEditionId: row.sourceEditionId,
+      sourceVersion: row.sourceVersion,
+      evidenceContentHash: row.evidenceContentHash ?? row.structuralUnitHash,
+      structuralUnitId: row.structuralUnitId,
+      structuralUnitVersion: row.structuralUnitVersion,
+      structuralUnitHash: row.structuralUnitHash,
+      inventoryRunId: row.inventoryRunId,
+      atomicResourceId: row.atomicResourceId,
+      resourceId: row.resourceId,
+      segmentId: row.segmentId,
+      resourceSegmentHash: row.resourceSegmentHash,
+      captureRevision: row.captureRevision,
+      canonicalId: row.canonicalId,
+      validationState: 'VALIDATED',
+      validationDigest: row.validationDigest,
+    });
+    evidenceAlignments.push({
+      releaseId: row.releaseId,
+      evidenceId,
+      canonicalId: row.canonicalId,
+    });
+  }
+  // structuralUnitVersion must be the per-crosswalk unit version (inventory
+  // capture revision for index-built rows), NOT structuralUnitIndexVersion digest.
+  const versions = new Set(
+    crosswalks.map((row) => row.structuralUnitVersion).filter(Boolean),
+  );
+  if (versions.size > 1) {
+    throw new Error(
+      `Aggregate governance rejected: incompatible structuralUnitVersion set in same-run validated Crosswalks (${[...versions].sort().join(',')})`,
+    );
+  }
+  const structuralUnitVersion = versions.size === 1 ? [...versions][0]! : '';
+  const inventoryRuns = new Set(
+    crosswalks.map((row) => row.inventoryRunId).filter(Boolean),
+  );
+  if (inventoryRuns.size > 1) {
+    throw new Error(
+      `Aggregate governance rejected: incompatible inventoryRunId set in same-run validated Crosswalks`,
+    );
+  }
+  if (
+    input.capture.inventoryRunId
+    && inventoryRuns.size === 1
+    && ![...inventoryRuns][0]
+  ) {
+    // unreachable
+  }
+  if (
+    input.capture.inventoryRunId
+    && inventoryRuns.size === 1
+    && [...inventoryRuns][0] !== input.capture.inventoryRunId
+  ) {
+    throw new Error(
+      'Aggregate governance rejected: validated Crosswalk inventoryRunId drifts from capture',
+    );
+  }
+
+  return {
+    captureIdentity: {
+      inventoryRunId: input.capture.inventoryRunId
+        ?? (inventoryRuns.size === 1 ? [...inventoryRuns][0]! : ''),
+      captureRevision: input.capture.captureRevision,
+      structuralUnitVersion,
+    },
+    canonicalObjects: [...input.canonicalIndex],
+    crosswalks,
+    evidenceAlignments,
+    existingPublished: [...(input.existingPublished ?? [])],
   };
 }
 

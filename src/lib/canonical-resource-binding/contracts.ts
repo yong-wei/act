@@ -226,9 +226,16 @@ export interface ReviewerInput {
   evidenceDigest: string;
 }
 
+export type CanonicalBindingReviewProvider =
+  | 'GPT'
+  | 'FIXTURE'
+  | 'HUMAN'
+  | 'NONE'
+  | 'GROK';
+
 export interface ReviewerDecision {
   outcome: 'ACCEPT' | 'REJECT' | 'DISPUTE';
-  provider: 'GPT' | 'FIXTURE';
+  provider: 'GPT' | 'FIXTURE' | 'GROK';
   reviewerPromptVersion: string;
   reviewerCacheKey: string;
 }
@@ -243,7 +250,7 @@ export interface CanonicalResourceBindingDecision
   reviewerRole: 'INDEPENDENT_REVIEWER';
   reviewerInputDigest: string;
   candidateDigest: string;
-  reviewProvider: 'GPT' | 'FIXTURE' | 'HUMAN' | 'NONE';
+  reviewProvider: CanonicalBindingReviewProvider;
   reviewState: CanonicalBindingReviewState;
   publicationState: CanonicalBindingPublicationState;
   highImpactPolicyVersion: typeof CANONICAL_BINDING_HIGH_IMPACT_POLICY_VERSION;
@@ -251,11 +258,22 @@ export interface CanonicalResourceBindingDecision
   attemptSequence: number;
   lifecycleState: CanonicalBindingLifecycleState;
   supersedesDecisionId: string | null;
+  /** Legacy #1124 EvidenceStructuralUnitCrosswalk id (null for pure #1126 path). */
   crosswalkId: string | null;
   inventoryRunId: string | null;
   captureRevision: string | null;
   structuralUnitVersion: string | null;
   validationDigest: string | null;
+  /** Sealed controlled-review identity; null for deterministic NOT_REQUIRED. */
+  reviewIdentity?: string | null;
+  /** Sealed controlled-review rationale; null when not applicable. */
+  reviewRationale?: string | null;
+  /** #1126 governed Crosswalk identity (separate from legacy tuple). */
+  governedCrosswalkId?: string | null;
+  governedInventoryRunId?: string | null;
+  governedCaptureRevision?: string | null;
+  governedStructuralUnitVersion?: string | null;
+  governedValidationDigest?: string | null;
 }
 
 export interface ResourceBindingCaptureIdentity {
