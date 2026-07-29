@@ -108,6 +108,9 @@ function sha256(value: string): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
+/** Intentional end-of-tx marker so outer code can prove the tier clone rolled back. */
+const TIER_CLONE_ROLLBACK = 'ACTKG_DELTA_TIER_CLONE_ROLLBACK';
+
 async function main(): Promise<void> {
   const isolated = await ensureIsolatedDatabaseUrl();
   testUrl = isolated.url;
@@ -248,158 +251,215 @@ async function main(): Promise<void> {
     assert.equal(relation.releaseTier, standardMetaTier.get(relation.relationId));
   }
 
-  // 3c) DB snapshot tier-only change through loaders + pure recompute.
-  // Mutate a shared relation on the standard candidate only (entry + metadata).
-  const sharedRelation = standardLoaded.snapshot.relations.find((row) => (
-    exactEntryTier.has(row.relationId)
-    && exactEntryTier.get(row.relationId) === row.releaseTier
-  ));
-  assert.ok(sharedRelation, 'expected at least one shared relation across v0.2 and v0.3');
-  const originalTier = sharedRelation.releaseTier;
+  // 3c) Tier-only change via rolled-back clone of accepted standard v0.3.
+  // Clone rebinds release/set/bundle identity and rewrites one relation's
+  // ReleaseEntry + LinkMetadata tiers; sealed original rows are never mutated.
+  const sourceReleaseId = validatedV03.releaseIdentity.releaseId;
+  const sourceBundleReceiptId = first.computed.candidateEvidence.bundleReceiptId!;
+  const tierTarget = standardLoaded.snapshot.relations[0]!;
+  const originalTier = tierTarget.releaseTier;
   const mutatedTier = originalTier === 'gold' ? 'silver' : 'gold';
-  const baseStandardSnapshot = standardLoaded.snapshot;
-  const baseStandardEvidence = standardLoaded.evidence;
+  const cloneSetId = 'actkg-delta-tier-clone';
+  const cloneReleaseId = 'ctr:release:delta-tier-clone';
+  const cloneBundleReceiptId = 'bundle-receipt:delta-tier-clone';
 
-  await db.actkgReleaseEntry.update({
-    where: {
-      releaseId_entityId: {
-        releaseId: validatedV03.releaseIdentity.releaseId,
-        entityId: sharedRelation.relationId,
-      },
-    },
-    data: { releaseTier: mutatedTier },
-  });
-  await db.actkgProjectionLinkMetadata.update({
-    where: {
-      releaseId_relationId: {
-        releaseId: validatedV03.releaseIdentity.releaseId,
-        relationId: sharedRelation.relationId,
-      },
-    },
-    data: { releaseTier: mutatedTier },
-  });
+  try {
+    await db.$transaction(async (tx) => {
+      const srcRelease = await tx.actkgRelease.findUniqueOrThrow({ where: { id: sourceReleaseId } });
+      const srcSet = await tx.actkgReleaseSet.findUniqueOrThrow({ where: { id: srcRelease.releaseSetId } });
+      const srcImport = await tx.actkgImportReceipt.findUniqueOrThrow({ where: { releaseId: sourceReleaseId } });
+      const srcBundle = await tx.actkgBundleReceipt.findUniqueOrThrow({ where: { id: sourceBundleReceiptId } });
+      const [
+        entries,
+        nodes,
+        links,
+        crosswalk,
+        components,
+        identities,
+        linkMeta,
+      ] = await Promise.all([
+        tx.actkgReleaseEntry.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgProjectionNode.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgProjectionLink.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgUpstreamRagReference.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgReleaseComponent.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgProjectionIdentity.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgProjectionLinkMetadata.findMany({ where: { releaseId: sourceReleaseId } }),
+      ]);
 
-  const standardAfterTier = await loadStandardAcceptedEvidence(
-    db,
-    first.computed.candidateEvidence.bundleReceiptId!,
-  );
-  const tierOnlyDelta = computeReleaseSetDelta({
-    candidateSnapshot: standardAfterTier.snapshot,
-    candidateEvidence: standardAfterTier.evidence,
-    baseSnapshot: baseStandardSnapshot,
-    baseEvidence: baseStandardEvidence,
-    captureRevision: checkoutRevision,
-  });
-  assert.equal(tierOnlyDelta.classification, 'SEMANTIC_CONTENT_UPDATE');
-  assert.equal(tierOnlyDelta.authorizationState, 'ACCEPTED');
-  assert.ok(
-    tierOnlyDelta.details.relations.tierChanged.includes(sharedRelation.relationId),
-    `expected tierChanged to include ${sharedRelation.relationId}`,
-  );
-  assert.ok(tierOnlyDelta.signals.some((row) => (
-    row.scope === 'relation'
-    && row.identity === sharedRelation.relationId
-    && row.reason === 'tier_changed'
-  )));
-  // Other collections should not invent object churn from a tier-only edit.
-  assert.equal(tierOnlyDelta.details.objects.added.length, 0);
-  assert.equal(tierOnlyDelta.details.objects.removed.length, 0);
+      const {
+        id: _releaseId,
+        createdAt: _releaseCreatedAt,
+        releaseSetId: _releaseSetId,
+        ...releaseScalars
+      } = srcRelease;
+      const cloneReleaseHash = sha256(`tier-clone-release:${srcRelease.releaseHash}`);
+      const cloneSourceDatasetHash = sha256(`tier-clone-source:${srcRelease.sourceDatasetHash}`);
+      const cloneBundleDigest = sha256(`tier-clone-bundle:${srcBundle.bundleDigest}`);
 
-  // Restore tiers so later packaging/idempotent paths keep original semantic digests.
-  await db.actkgReleaseEntry.update({
-    where: {
-      releaseId_entityId: {
-        releaseId: validatedV03.releaseIdentity.releaseId,
-        entityId: sharedRelation.relationId,
-      },
-    },
-    data: { releaseTier: originalTier },
-  });
-  await db.actkgProjectionLinkMetadata.update({
-    where: {
-      releaseId_relationId: {
-        releaseId: validatedV03.releaseIdentity.releaseId,
-        relationId: sharedRelation.relationId,
-      },
-    },
-    data: { releaseTier: originalTier },
-  });
-
-  // 3d) Standard path with fully/partially missing LinkMetadata fails closed
-  // (protocol contract — not entry-only fallback). Use a rolled-back transaction
-  // so sealed metadata rows are not permanently deleted.
-  await assert.rejects(
-    () => db!.$transaction(async (tx) => {
-      await tx.actkgProjectionLinkMetadata.deleteMany({
-        where: { releaseId: validatedV03.releaseIdentity.releaseId },
-      });
-      await loadStandardAcceptedEvidence(tx, first.computed.candidateEvidence.bundleReceiptId!);
-    }),
-    /ProjectionLinkMetadata|missing/i,
-  );
-  await assert.rejects(
-    () => db!.$transaction(async (tx) => {
-      await tx.actkgProjectionLinkMetadata.delete({
-        where: {
-          releaseId_relationId: {
-            releaseId: validatedV03.releaseIdentity.releaseId,
-            relationId: sharedRelation.relationId,
-          },
+      await tx.actkgReleaseSet.create({
+        data: {
+          id: cloneSetId,
+          controlledPath: `${srcSet.controlledPath}/delta-tier-clone`,
+          lockVersion: srcSet.lockVersion,
+          candidateState: 'CANDIDATE',
         },
       });
-      await loadStandardAcceptedEvidence(tx, first.computed.candidateEvidence.bundleReceiptId!);
-    }),
-    /ProjectionLinkMetadata|missing|releaseTier/i,
-  );
-  await assert.rejects(
-    () => db!.$transaction(async (tx) => {
-      await tx.actkgProjectionLinkMetadata.update({
-        where: {
-          releaseId_relationId: {
-            releaseId: validatedV03.releaseIdentity.releaseId,
-            relationId: sharedRelation.relationId,
-          },
+      await tx.actkgRelease.create({
+        data: {
+          ...releaseScalars,
+          id: cloneReleaseId,
+          releaseSetId: cloneSetId,
+          releaseVersion: `${srcRelease.releaseVersion}-delta-tier-clone`,
+          releaseHash: cloneReleaseHash,
+          sourceDatasetHash: cloneSourceDatasetHash,
         },
-        data: { releaseTier: originalTier === 'gold' ? 'support' : 'gold' },
       });
-      // Entry still has originalTier — mismatch must fail closed.
-      await loadStandardAcceptedEvidence(tx, first.computed.candidateEvidence.bundleReceiptId!);
-    }),
-    /releaseTier mismatch/i,
-  );
-  // Confirm metadata still fully present after rolled-back probes.
+
+      // Semantic rows before ImportReceipt (sealed-insert). Only the chosen
+      // relation's entry/metadata tiers differ from the source snapshot.
+      await tx.actkgReleaseEntry.createMany({
+        data: entries.map(({ releaseId: _rid, ...row }) => ({
+          ...row,
+          releaseId: cloneReleaseId,
+          releaseTier: row.entityId === tierTarget.relationId && row.entityRole === 'relation'
+            ? mutatedTier
+            : row.releaseTier,
+        })),
+      });
+      await tx.actkgProjectionNode.createMany({
+        data: nodes.map(({ releaseId: _rid, ...row }) => ({ ...row, releaseId: cloneReleaseId })),
+      });
+      await tx.actkgProjectionLink.createMany({
+        data: links.map(({ releaseId: _rid, ...row }) => ({ ...row, releaseId: cloneReleaseId })),
+      });
+      await tx.actkgUpstreamRagReference.createMany({
+        data: crosswalk.map(({ releaseId: _rid, ...row }) => ({ ...row, releaseId: cloneReleaseId })),
+      });
+      await tx.actkgReleaseComponent.createMany({
+        data: components.map(({ releaseId: _rid, ...row }) => ({ ...row, releaseId: cloneReleaseId })),
+      });
+      await tx.actkgProjectionIdentity.createMany({
+        data: identities.map(({ releaseId: _rid, bundleReceiptId: _bid, ...row }) => ({
+          ...row,
+          releaseId: cloneReleaseId,
+          bundleReceiptId: null,
+        })),
+      });
+      await tx.actkgProjectionLinkMetadata.createMany({
+        data: linkMeta.map(({ releaseId: _rid, bundleReceiptId: _bid, ...row }) => ({
+          ...row,
+          releaseId: cloneReleaseId,
+          bundleReceiptId: null,
+          releaseTier: row.relationId === tierTarget.relationId ? mutatedTier : row.releaseTier,
+        })),
+      });
+
+      const {
+        id: _importId,
+        importedAt: _importImportedAt,
+        releaseSetId: _importSetId,
+        releaseId: _importReleaseId,
+        ...importScalars
+      } = srcImport;
+      await tx.actkgImportReceipt.create({
+        data: {
+          ...importScalars,
+          id: `receipt:${cloneReleaseId}`,
+          releaseSetId: cloneSetId,
+          releaseId: cloneReleaseId,
+          sourceDatasetHash: cloneSourceDatasetHash,
+          bundleDigest: cloneBundleDigest,
+          candidateState: ACCEPTED_CANDIDATE_STATE,
+        },
+      });
+
+      const {
+        id: _bundleId,
+        importedAt: _bundleImportedAt,
+        candidateState: _bundleState,
+        ...bundleScalars
+      } = srcBundle;
+      await tx.actkgBundleReceipt.create({
+        data: {
+          ...bundleScalars,
+          id: cloneBundleReceiptId,
+          bundleId: `${srcBundle.bundleId}:delta-tier-clone`,
+          bundleRevision: srcBundle.bundleRevision + 1000,
+          bundleDigest: cloneBundleDigest,
+          controlledPath: `${srcBundle.controlledPath}/delta-tier-clone`,
+          publicationTag: `${srcBundle.publicationTag}-delta-tier-clone`,
+          sourceTag: `${srcBundle.sourceTag}-delta-tier-clone`,
+          releaseSetId: cloneSetId,
+          releaseId: cloneReleaseId,
+          releaseHash: cloneReleaseHash,
+          sourceDatasetHash: cloneSourceDatasetHash,
+          candidateState: 'STAGED',
+        },
+      });
+      await tx.actkgBundleReceipt.update({
+        where: { id: cloneBundleReceiptId },
+        data: {
+          candidateState: ACCEPTED_CANDIDATE_STATE,
+          importedAt: new Date(srcBundle.importedAt.getTime() + 60_000),
+        },
+      });
+
+      const baseLoadedClone = await loadStandardAcceptedEvidence(tx, sourceBundleReceiptId);
+      const candidateLoadedClone = await loadStandardAcceptedEvidence(tx, cloneBundleReceiptId);
+      assert.equal(
+        candidateLoadedClone.snapshot.relations.find((row) => row.relationId === tierTarget.relationId)?.releaseTier,
+        mutatedTier,
+      );
+      assert.equal(
+        baseLoadedClone.snapshot.relations.find((row) => row.relationId === tierTarget.relationId)?.releaseTier,
+        originalTier,
+      );
+
+      const tierOnlyDelta = computeReleaseSetDelta({
+        candidateSnapshot: candidateLoadedClone.snapshot,
+        candidateEvidence: candidateLoadedClone.evidence,
+        baseSnapshot: baseLoadedClone.snapshot,
+        baseEvidence: baseLoadedClone.evidence,
+        captureRevision: checkoutRevision,
+      });
+      assert.equal(tierOnlyDelta.classification, 'SEMANTIC_CONTENT_UPDATE');
+      assert.equal(tierOnlyDelta.authorizationState, 'ACCEPTED');
+      assert.deepEqual(tierOnlyDelta.details.relations.tierChanged, [tierTarget.relationId]);
+      assert.deepEqual(tierOnlyDelta.details.relations.added, []);
+      assert.deepEqual(tierOnlyDelta.details.relations.removed, []);
+      assert.deepEqual(tierOnlyDelta.details.relations.predicateChanged, []);
+      assert.deepEqual(tierOnlyDelta.details.relations.directionChanged, []);
+      assert.deepEqual(tierOnlyDelta.details.relations.endpointChanged, []);
+      assert.equal(tierOnlyDelta.details.objects.added.length, 0);
+      assert.equal(tierOnlyDelta.details.objects.removed.length, 0);
+      assert.equal(tierOnlyDelta.details.objects.tierChanged.length, 0);
+      assert.equal(tierOnlyDelta.details.components.added.length, 0);
+      assert.equal(tierOnlyDelta.details.components.removed.length, 0);
+      assert.equal(tierOnlyDelta.details.components.changed.length, 0);
+      assert.ok(tierOnlyDelta.signals.some((row) => (
+        row.scope === 'relation'
+        && row.identity === tierTarget.relationId
+        && row.reason === 'tier_changed'
+      )));
+      assert.equal(tierOnlyDelta.summary.relationTierChanged, 1);
+
+      throw new Error(TIER_CLONE_ROLLBACK);
+    }, { maxWait: 60_000, timeout: 180_000 });
+    assert.fail('expected 3c clone transaction to roll back via sentinel');
+  } catch (error) {
+    assert.equal(
+      error instanceof Error ? error.message : String(error),
+      TIER_CLONE_ROLLBACK,
+      `3c expected rollback sentinel, got: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  assert.equal(await db.actkgRelease.count({ where: { id: cloneReleaseId } }), 0);
+  assert.equal(await db.actkgBundleReceipt.count({ where: { id: cloneBundleReceiptId } }), 0);
   assert.equal(
-    await db.actkgProjectionLinkMetadata.count({
-      where: { releaseId: validatedV03.releaseIdentity.releaseId },
-    }),
+    await db.actkgProjectionLinkMetadata.count({ where: { releaseId: sourceReleaseId } }),
     standardLoaded.snapshot.relations.length,
   );
-
-  // 3e) Exact aggregate path must not carry ProjectionLinkMetadata (protocol
-  // drift fails closed — not silently treated as entry-only).
-  await assert.rejects(
-    () => db!.$transaction(async (tx) => {
-      const sampleLink = exactLoaded.snapshot.relations[0]!;
-      await tx.actkgProjectionLinkMetadata.create({
-        data: {
-          releaseId: CURRENT_AGGREGATE_RELEASE_ID,
-          relationId: sampleLink.relationId,
-          ordinal: 0,
-          releaseTier: sampleLink.releaseTier,
-          sourceRelease: CURRENT_AGGREGATE_RELEASE_ID,
-          sourceReleaseHash: exactLoaded.snapshot.releaseHash,
-          evidenceRefs: [],
-          profiles: [],
-          payload: {},
-        },
-      });
-      await loadExactAcceptedEvidence(tx, CURRENT_AGGREGATE_RELEASE_ID);
-    }),
-    /must not carry ProjectionLinkMetadata/i,
-  );
-  assert.equal(await db.actkgProjectionLinkMetadata.count({
-    where: { releaseId: CURRENT_AGGREGATE_RELEASE_ID },
-  }), 0);
 
   // 4) Idempotent recompute + concurrent persist.
   const second = await computeAndPersistReleaseSetDelta(db, {
