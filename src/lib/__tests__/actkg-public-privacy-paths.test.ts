@@ -35,6 +35,15 @@ describe('public privacy absolute path detection', () => {
     expect(detectAbsoluteFilesystemPathLeak('/components/schemas/Foo')).toBe(
       '/components/schemas/Foo',
     );
+    // Unicode path segments (not ASCII-only).
+    expect(detectAbsoluteFilesystemPathLeak('/私有/输出.json')).toBe('/私有/输出.json');
+    // Colon-labeled absolute path (http(s) scrubbed first; label colon is a boundary).
+    expect(detectAbsoluteFilesystemPathLeak('source:/srv/act/private.json')).toContain(
+      '/srv/act/private.json',
+    );
+    expect(detectAbsoluteFilesystemPathLeak('path:/run/user/1000/out.json')).toContain(
+      '/run/user/1000/out.json',
+    );
   });
 
   it('detects Windows drive, real UNC, and file: URI absolute paths', () => {

@@ -279,10 +279,18 @@ export function detectAbsoluteFilesystemPathLeak(text: string): string | null {
     .exec(scrubbed);
   if (unc?.[1]) return unc[1];
 
-  // Multi-segment POSIX absolute path (filesystem-safe segment charset).
+  // Multi-segment POSIX absolute path.
+  // Segments use a structural delimiter blacklist (not an ASCII allowlist) so
+  // Unicode names like /私有/输出.json are accepted. Colon is a valid left
+  // boundary so labels like source:/srv/act/private.json match after http(s)
+  // URLs have been scrubbed. Parentheses/braces/= are excluded so transfer-
+  // function ratios are not treated as paths.
   // Bare /foo/bar fails closed in free text; JSON $ref uses field-context skip.
-  const posix = /(?:^|[^A-Za-z0-9_.:/])(\/(?:[A-Za-z0-9._~+-]+)(?:\/(?:[A-Za-z0-9._~+-]+))+)/u
-    .exec(scrubbed);
+  const posixSegment = '[^\\s/"\'`<>|\\\\()={}\\[\\]]+';
+  const posix = new RegExp(
+    `(?:^|[^A-Za-z0-9_./])(/(?:${posixSegment})(?:/(?:${posixSegment}))+)`,
+    'u',
+  ).exec(scrubbed);
   if (posix?.[1]) return posix[1];
 
   return null;
