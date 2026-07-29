@@ -9,9 +9,15 @@ import {
   AGGREGATE_SEMANTIC_ALIGNMENT_GENERATOR_PROMPT_VERSION,
   acceptSemanticAlignment,
   attemptDeterministicAlignment,
+  crosswalkCaptureIdentityDrift,
+  crosswalkStructuralComparable,
   generateSemanticAlignmentCandidates,
   invalidateCrosswalks,
+  markCrosswalkStale,
+  priorFromCrosswalk,
+  rebindValidatedCrosswalkToCapture,
   referenceOpaqueUpstream,
+  resolveCurrentIncludedStructuralTuple,
   semanticAlignmentCandidateId,
   validateCrosswalkForShadowPublication,
 } from './act-crosswalk';
@@ -37,7 +43,7 @@ import {
   mergeIncrementalCoverage,
   validateCourseCoverageAuthoring,
 } from './course-coverage';
-import { sha256Canonical } from './hash';
+import { sha256Canonical, tripleKey } from './hash';
 import { buildDownstreamReadinessDiagnostics } from './readiness';
 import { buildResourceIndexFromValidatedCrosswalks } from './resource-index';
 import {
@@ -46,7 +52,7 @@ import {
   governResourceBindings,
   type BindingReviewAuthoringEntry,
 } from './resource-bindings';
-import { packagingNoopRevalidation } from './revalidation';
+import { evaluateSemanticRevalidation, packagingNoopRevalidation } from './revalidation';
 import { buildAggregateGovernanceSummary } from './summary';
 import { classifyUpstreamReference } from './upstream-classification';
 import {
@@ -503,21 +509,135 @@ export function runAggregateGovernance(
   const removedTripleKeys = manifest.crosswalks
     .filter((row) => row.action === 'invalidate')
     .map((row) => row.tripleKey);
-  const { retained, invalidated: invalidatedCrosswalks } = invalidateCrosswalks({
+  const { retained, invalidated: signalInvalidatedCrosswalks } = invalidateCrosswalks({
     current: input.previousCrosswalks ?? [],
     removedObjectIds,
     removedTripleKeys,
   });
 
   const membershipSet = new Set(input.currentCanonicalIds);
-  // Exact same-input baseline replay re-derives CURRENT rows from exhaustive work
-  // (first publication had empty previous). Do not seed retained rows only for
-  // that path — ordinary first baseline still starts empty; incremental keeps
-  // retained. This is not a generic re-baseline capability.
-  const resolved: ActStructuralUnitCrosswalkRecord[] = exactBaselineReplay
-    ? []
-    : [...retained];
   const workCrosswalks = manifest.crosswalks.filter((row) => row.action !== 'invalidate');
+  const workTripleKeys = new Set(workCrosswalks.map((row) => row.tripleKey));
+  const invalidatedCrosswalks: ActStructuralUnitCrosswalkRecord[] = [
+    ...signalInvalidatedCrosswalks,
+  ];
+
+  // Exact same-input baseline replay re-derives CURRENT rows from exhaustive work
+  // (first publication had empty previous). Ordinary first baseline still starts
+  // empty. Incremental must not seed prior publication identity as CURRENT
+  // VALIDATED for a new Release/Delta/capture — revalidate and rebind instead.
+  const resolved: ActStructuralUnitCrosswalkRecord[] = [];
+  if (!exactBaselineReplay) {
+    for (const row of retained) {
+      const key = tripleKey(row);
+      const drift = crosswalkCaptureIdentityDrift(row, input.capture);
+
+      // Work-path triples are re-resolved below under the candidate capture.
+      // Close out same-ReleaseSet prior rows so old identity cannot remain CURRENT.
+      if (workTripleKeys.has(key)) {
+        if (row.releaseSetId === input.capture.releaseSetId) {
+          invalidatedCrosswalks.push(markCrosswalkStale(row));
+        }
+        continue;
+      }
+
+      if (!drift) {
+        // Same immutable publication capture — retain without re-issuing.
+        resolved.push(row);
+        continue;
+      }
+
+      // Unaffected-by-Delta retained rows still need an audit-visible revalidation
+      // under the new candidate capture. Never copy prior publication identity.
+      // Current comparable MUST come from the live structural index (not the old
+      // row), so hash/disposition drift cannot auto-REVALIDATE.
+      if (row.validationState === 'VALIDATED' && row.canonicalId) {
+        if (row.releaseSetId === input.capture.releaseSetId) {
+          invalidatedCrosswalks.push(markCrosswalkStale(row));
+        }
+
+        const currentTuple = resolveCurrentIncludedStructuralTuple({
+          prior: row,
+          structuralUnitIndex: input.structuralUnitIndex,
+        });
+        if (!currentTuple) {
+          // Missing / multi-hit / non-INCLUDED / incomplete — unavailable.
+          revalidationReceipts.push(evaluateSemanticRevalidation({
+            prior: priorFromCrosswalk(row),
+            current: {
+              canonicalDigest: null,
+              resourceSegmentHash: null,
+              role: null,
+              promptReviewerVersion: null,
+              evidenceDigest: null,
+              structuralGateDigest: null,
+            },
+            newReleaseSetId: input.capture.releaseSetId,
+            newReleaseId: input.capture.releaseId,
+            newDeltaReceiptId: input.capture.deltaReceiptId,
+            captureRevision: input.capture.captureRevision,
+            kind: 'crosswalk',
+          }));
+          continue;
+        }
+
+        const currentComparable = crosswalkStructuralComparable({
+          canonicalId: row.canonicalId,
+          publishedEntityId: row.publishedEntityId,
+          retrievalChunkId: row.retrievalChunkId,
+          citationTargetId: row.citationTargetId,
+          resourceSegmentHash: currentTuple.resourceSegmentHash,
+          reviewIdentity: row.reviewIdentity,
+          evidenceDigest: row.evidenceDigest,
+          resolutionState: row.resolutionState,
+          structuralUnitId: currentTuple.structuralUnitId,
+          structuralUnitHash: currentTuple.structuralUnitHash,
+          sourceEditionId: currentTuple.sourceEditionId,
+          atomicResourceId: currentTuple.atomicResourceId,
+          resourceId: currentTuple.resourceId,
+          segmentId: currentTuple.segmentId,
+        });
+        const receipt = evaluateSemanticRevalidation({
+          prior: priorFromCrosswalk(row),
+          current: currentComparable,
+          newReleaseSetId: input.capture.releaseSetId,
+          newReleaseId: input.capture.releaseId,
+          newDeltaReceiptId: input.capture.deltaReceiptId,
+          captureRevision: input.capture.captureRevision,
+          kind: 'crosswalk',
+        });
+        revalidationReceipts.push(receipt);
+
+        if (receipt.outcome !== 'REVALIDATED') {
+          // Hash drift or other structural change — leave unavailable/stale.
+          continue;
+        }
+
+        const rebound = rebindValidatedCrosswalkToCapture(
+          row,
+          input.capture,
+          currentTuple,
+        );
+        const gate = validateCrosswalkForShadowPublication({
+          crosswalk: rebound,
+          capture: input.capture,
+          existingCurrent: resolved,
+        });
+        if (gate.ok) {
+          resolved.push(gate.crosswalk);
+        }
+        // Gate failure: unavailable under candidate; do not keep old identity.
+        continue;
+      }
+
+      // Non-validated diagnostics: do not promote old identity into the new
+      // capture. Same-ReleaseSet prior diagnostics become STALE.
+      if (row.releaseSetId === input.capture.releaseSetId) {
+        invalidatedCrosswalks.push(markCrosswalkStale(row));
+      }
+    }
+  }
+
   for (const item of workCrosswalks) {
     const upstream = referenceOpaqueUpstream({
       publishedEntityId: item.publishedEntityId,

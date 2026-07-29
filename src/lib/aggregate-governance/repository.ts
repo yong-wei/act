@@ -715,66 +715,103 @@ export class AggregateGovernanceRepository {
         });
       }
 
-      // Feed same-run #1124 binding decisions into decision/persistence.
-      // Fail closed: any create/identity conflict rolls back the transaction.
+      // Close out invalidated #1124 binding decisions as SUPERSEDED in the same
+      // Serializable transaction. Keep historical rows; never delete.
+      //
+      // Pure invalidation mints a non-publishable audit tombstone
+      // (REJECTED + CANDIDATE + aggregate-invalidation reason) so the pair has
+      // zero CURRENT SHADOW_PUBLISHED after supersession. Cross-ReleaseSet prior
+      // rows are never rewritten — only same-ReleaseSet predecessors supersede.
+      const bindingInvalidated = result.binding?.invalidated ?? [];
       const bindingDecisions = result.binding?.decisions ?? [];
       let bindingDecisionsPersisted = 0;
-      if (bindingDecisions.length > 0 && !tx.canonicalResourceBindingDecision) {
+      if (
+        (bindingInvalidated.length > 0 || bindingDecisions.length > 0)
+        && !tx.canonicalResourceBindingDecision
+      ) {
         throw new Error(
-          'Aggregate governance rejected: binding decisions present but '
+          'Aggregate governance rejected: binding decisions/invalidations present but '
           + 'canonicalResourceBindingDecision delegate is unavailable',
         );
       }
-      for (const decision of bindingDecisions) {
-        const expectedDecision = {
-          id: decision.id,
-          pairId: decision.pairId,
-          releaseSetId: decision.releaseSetId,
-          releaseId: decision.releaseId,
-          canonicalId: decision.canonicalId,
-          objectRevision: decision.objectRevision,
-          resourceId: decision.resourceId,
-          structuralUnitId: decision.structuralUnitId,
-          segmentId: decision.segmentId,
-          resourceSegmentHash: decision.resourceSegmentHash,
-          role: decision.role,
-          evidenceId: decision.evidenceId,
-          evidenceDigest: decision.evidenceDigest,
-          generatorPromptVersion: decision.generatorPromptVersion,
-          reviewerPromptVersion: decision.reviewerPromptVersion,
-          generatorCacheKey: decision.generatorCacheKey,
-          reviewerCacheKey: decision.reviewerCacheKey,
-          reviewerRole: decision.reviewerRole,
-          reviewerInputDigest: decision.reviewerInputDigest,
-          candidateDigest: decision.candidateDigest,
-          reviewProvider: decision.reviewProvider,
-          reviewState: decision.reviewState,
-          publicationState: decision.publicationState,
-          lifecycleState: decision.lifecycleState,
-          attemptSequence: decision.attemptSequence,
-          supersedesDecisionId: decision.supersedesDecisionId,
-          crosswalkId: decision.crosswalkId,
-          inventoryRunId: decision.inventoryRunId,
-          captureRevision: decision.captureRevision,
-          structuralUnitVersion: decision.structuralUnitVersion,
-          validationDigest: decision.validationDigest,
-          highImpactPolicyVersion: decision.highImpactPolicyVersion,
-          highImpactReasons: decision.highImpactReasons,
-          reviewIdentity: decision.reviewIdentity ?? null,
-          reviewRationale: decision.reviewRationale ?? null,
-          governedCrosswalkId: decision.governedCrosswalkId ?? null,
-          governedInventoryRunId: decision.governedInventoryRunId ?? null,
-          governedCaptureRevision: decision.governedCaptureRevision ?? null,
-          governedStructuralUnitVersion: decision.governedStructuralUnitVersion ?? null,
-          governedValidationDigest: decision.governedValidationDigest ?? null,
-        };
+      if (bindingInvalidated.length > 0) {
+        const updateMany = tx.canonicalResourceBindingDecision!.updateMany;
+        if (typeof updateMany !== 'function') {
+          throw new Error(
+            'Aggregate governance rejected: binding invalidations present but '
+            + 'canonicalResourceBindingDecision.updateMany is unavailable',
+          );
+        }
+      }
+
+      const candidateReleaseSetId = result.receipt.capture.releaseSetId;
+      const candidateReleaseId = result.receipt.capture.releaseId;
+      const explicitReplacementIds = new Set(
+        bindingDecisions
+          .map((row) => row.supersedesDecisionId)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0),
+      );
+
+      const AGGREGATE_INVALIDATION_REASON = 'aggregate-invalidation';
+      const AGGREGATE_INVALIDATION_REVIEW_IDENTITY =
+        'issue-1126-aggregate-invalidation-tombstone';
+      const AGGREGATE_INVALIDATION_RATIONALE =
+        'Aggregate governance invalidated prior binding; audit tombstone is not publishable';
+
+      const toBindingRow = (decision: (typeof bindingDecisions)[number]) => ({
+        id: decision.id,
+        pairId: decision.pairId,
+        releaseSetId: decision.releaseSetId,
+        releaseId: decision.releaseId,
+        canonicalId: decision.canonicalId,
+        objectRevision: decision.objectRevision,
+        resourceId: decision.resourceId,
+        structuralUnitId: decision.structuralUnitId,
+        segmentId: decision.segmentId,
+        resourceSegmentHash: decision.resourceSegmentHash,
+        role: decision.role,
+        evidenceId: decision.evidenceId,
+        evidenceDigest: decision.evidenceDigest,
+        generatorPromptVersion: decision.generatorPromptVersion,
+        reviewerPromptVersion: decision.reviewerPromptVersion,
+        generatorCacheKey: decision.generatorCacheKey,
+        reviewerCacheKey: decision.reviewerCacheKey,
+        reviewerRole: decision.reviewerRole,
+        reviewerInputDigest: decision.reviewerInputDigest,
+        candidateDigest: decision.candidateDigest,
+        reviewProvider: decision.reviewProvider,
+        reviewState: decision.reviewState,
+        publicationState: decision.publicationState,
+        lifecycleState: decision.lifecycleState,
+        attemptSequence: decision.attemptSequence,
+        supersedesDecisionId: decision.supersedesDecisionId,
+        crosswalkId: decision.crosswalkId,
+        inventoryRunId: decision.inventoryRunId,
+        captureRevision: decision.captureRevision,
+        structuralUnitVersion: decision.structuralUnitVersion,
+        validationDigest: decision.validationDigest,
+        highImpactPolicyVersion: decision.highImpactPolicyVersion,
+        highImpactReasons: decision.highImpactReasons,
+        reviewIdentity: decision.reviewIdentity ?? null,
+        reviewRationale: decision.reviewRationale ?? null,
+        governedCrosswalkId: decision.governedCrosswalkId ?? null,
+        governedInventoryRunId: decision.governedInventoryRunId ?? null,
+        governedCaptureRevision: decision.governedCaptureRevision ?? null,
+        governedStructuralUnitVersion: decision.governedStructuralUnitVersion ?? null,
+        governedValidationDigest: decision.governedValidationDigest ?? null,
+      });
+
+      const persistBindingDecisionRow = async (
+        expectedDecision: ReturnType<typeof toBindingRow>,
+        options?: { stagePublishedReplacement?: boolean },
+      ) => {
         const existing = await tx.canonicalResourceBindingDecision!.findUnique?.({
-          where: { id: decision.id },
+          where: { id: expectedDecision.id },
         }) as Record<string, unknown> | null;
         if (existing) {
           assertSameIdentity(
             'binding decision',
-            decision.id,
+            expectedDecision.id,
             expectedDecision,
             {
               id: String(existing.id),
@@ -844,27 +881,177 @@ export class AggregateGovernanceRepository {
             },
           );
           bindingDecisionsPersisted += 1;
-          continue;
+          return;
         }
+
+        const stagedPublished = options?.stagePublishedReplacement === true
+          && expectedDecision.publicationState === 'SHADOW_PUBLISHED';
         await tx.canonicalResourceBindingDecision!.create({
-          data: expectedDecision,
+          data: {
+            ...expectedDecision,
+            publicationState: stagedPublished ? 'CANDIDATE' : expectedDecision.publicationState,
+          },
         });
+        if (expectedDecision.supersedesDecisionId) {
+          const updateMany = tx.canonicalResourceBindingDecision!.updateMany;
+          if (typeof updateMany !== 'function') {
+            throw new Error(
+              'Aggregate governance rejected: supersession requires '
+              + 'canonicalResourceBindingDecision.updateMany',
+            );
+          }
+          await updateMany.call(tx.canonicalResourceBindingDecision, {
+            where: {
+              id: expectedDecision.supersedesDecisionId,
+              lifecycleState: 'CURRENT',
+            },
+            data: { lifecycleState: 'SUPERSEDED' },
+          });
+        }
+        if (stagedPublished) {
+          const updateMany = tx.canonicalResourceBindingDecision!.updateMany;
+          if (typeof updateMany !== 'function') {
+            throw new Error(
+              'Aggregate governance rejected: published elevation requires '
+              + 'canonicalResourceBindingDecision.updateMany',
+            );
+          }
+          await updateMany.call(tx.canonicalResourceBindingDecision, {
+            where: { id: expectedDecision.id },
+            data: { publicationState: 'SHADOW_PUBLISHED' },
+          });
+        }
         if (
-          decision.publicationState === 'HUMAN_REQUIRED'
+          expectedDecision.publicationState === 'HUMAN_REQUIRED'
           && tx.canonicalResourceBindingHumanQueueItem
         ) {
           await tx.canonicalResourceBindingHumanQueueItem.create({
             data: {
-              id: `${decision.id}:human`,
-              bindingDecisionId: decision.id,
-              reasonCodes: decision.highImpactReasons,
-              contextDigest: decision.candidateDigest,
-              inputDigest: decision.reviewerInputDigest,
+              id: `${expectedDecision.id}:human`,
+              bindingDecisionId: expectedDecision.id,
+              reasonCodes: expectedDecision.highImpactReasons,
+              contextDigest: expectedDecision.candidateDigest,
+              inputDigest: expectedDecision.reviewerInputDigest,
               state: 'PENDING',
             },
           });
         }
         bindingDecisionsPersisted += 1;
+      };
+
+      // Pure invalidations without an explicit replacement decision get a
+      // non-publishable audit tombstone under the candidate Release.
+      // Same-ReleaseSet only (including earlier Releases in the set): never
+      // rewrite cross-ReleaseSet base history rows.
+      for (const decision of bindingInvalidated) {
+        if (explicitReplacementIds.has(decision.id)) {
+          continue;
+        }
+        if (decision.releaseSetId !== candidateReleaseSetId) {
+          // Cross-ReleaseSet prior — leave base history untouched.
+          continue;
+        }
+        const tombstoneId = `agg-invalidation:${sha256Canonical({
+          priorDecisionId: decision.id,
+          pairId: decision.pairId,
+          role: decision.role,
+          releaseSetId: candidateReleaseSetId,
+          releaseId: candidateReleaseId,
+          deltaReceiptId: result.receipt.capture.deltaReceiptId,
+          captureRevision: result.receipt.capture.captureRevision,
+          kind: 'aggregate-invalidation-tombstone',
+        })}`;
+        const tombstoneEvidenceDigest = sha256Canonical({
+          kind: 'aggregate-invalidation-tombstone',
+          priorDecisionId: decision.id,
+          captureRevision: result.receipt.capture.captureRevision,
+        });
+        const tombstoneCacheKey = sha256Canonical({
+          kind: 'aggregate-invalidation-tombstone',
+          pairId: decision.pairId,
+          priorDecisionId: decision.id,
+        });
+        await persistBindingDecisionRow({
+          id: tombstoneId,
+          pairId: decision.pairId,
+          releaseSetId: candidateReleaseSetId,
+          releaseId: candidateReleaseId,
+          canonicalId: decision.canonicalId,
+          objectRevision: decision.objectRevision,
+          resourceId: decision.resourceId,
+          structuralUnitId: decision.structuralUnitId,
+          segmentId: decision.segmentId,
+          // Distinct segment hash so tombstone is not endpoint-equivalent to a
+          // live published consumer binding.
+          resourceSegmentHash: sha256Canonical({
+            kind: 'aggregate-invalidation-tombstone',
+            priorResourceSegmentHash: decision.resourceSegmentHash,
+            priorDecisionId: decision.id,
+          }),
+          role: decision.role,
+          evidenceId: null,
+          evidenceDigest: tombstoneEvidenceDigest,
+          generatorPromptVersion: decision.generatorPromptVersion,
+          reviewerPromptVersion: decision.reviewerPromptVersion,
+          generatorCacheKey: tombstoneCacheKey,
+          reviewerCacheKey: sha256Canonical({
+            kind: 'aggregate-invalidation-tombstone-reviewer',
+            priorDecisionId: decision.id,
+          }),
+          reviewerRole: decision.reviewerRole,
+          reviewerInputDigest: sha256Canonical({
+            kind: 'aggregate-invalidation-tombstone-input',
+            priorDecisionId: decision.id,
+          }),
+          candidateDigest: sha256Canonical({
+            kind: 'aggregate-invalidation-tombstone-candidate',
+            priorDecisionId: decision.id,
+          }),
+          reviewProvider: 'NONE',
+          reviewState: 'REJECTED',
+          publicationState: 'CANDIDATE',
+          lifecycleState: 'CURRENT',
+          attemptSequence: decision.attemptSequence + 1,
+          supersedesDecisionId: decision.id,
+          // Clear publishable endpoint identity — audit chain via supersedes only.
+          crosswalkId: null,
+          inventoryRunId: null,
+          captureRevision: null,
+          structuralUnitVersion: null,
+          validationDigest: null,
+          highImpactPolicyVersion: decision.highImpactPolicyVersion,
+          // Stored as JSON reason code for DB supersession guards; cast keeps
+          // #1124 typed reason union closed while allowing the #1126 marker.
+          highImpactReasons: [AGGREGATE_INVALIDATION_REASON] as unknown as
+            typeof decision.highImpactReasons,
+          reviewIdentity: AGGREGATE_INVALIDATION_REVIEW_IDENTITY,
+          reviewRationale: AGGREGATE_INVALIDATION_RATIONALE,
+          governedCrosswalkId: null,
+          governedInventoryRunId: null,
+          governedCaptureRevision: null,
+          governedStructuralUnitVersion: null,
+          governedValidationDigest: null,
+        }, {
+          stagePublishedReplacement: false,
+        });
+      }
+
+      // Feed same-run #1124 binding decisions into decision/persistence.
+      // Fail closed: any create/identity conflict rolls back the transaction.
+      for (const decision of bindingDecisions) {
+        const expectedDecision = toBindingRow(decision);
+        const predecessor = decision.supersedesDecisionId
+          ? await tx.canonicalResourceBindingDecision!.findUnique?.({
+              where: { id: decision.supersedesDecisionId },
+            }) as { publicationState?: string } | null
+          : null;
+        const stagePublishedReplacement = (
+          decision.publicationState === 'SHADOW_PUBLISHED'
+          && predecessor?.publicationState === 'SHADOW_PUBLISHED'
+        );
+        await persistBindingDecisionRow(expectedDecision, {
+          stagePublishedReplacement,
+        });
       }
 
       // Receipt summary identity is fixed by the pure pipeline. Binding

@@ -55,22 +55,49 @@ export interface BindingGovernanceResult {
   shadowPublishedCount: number;
 }
 
+/**
+ * Semantic comparable for binding revalidation. Excludes ReleaseSet / Release /
+ * capture / inventory publication identity so cross-ReleaseSet revalidation can
+ * prove structural equivalence without copying old publication ids.
+ */
+function decisionSemanticComparable(input: {
+  canonicalId: string;
+  objectRevision: string;
+  resourceSegmentHash: string;
+  role: string | null;
+  generatorPromptVersion: string;
+  reviewerPromptVersion: string;
+  evidenceDigest: string;
+  structuralGateDigest: string | null;
+}): RevalidationComparable {
+  return {
+    canonicalDigest: sha256Canonical({
+      canonicalId: input.canonicalId,
+      objectRevision: input.objectRevision,
+    }),
+    resourceSegmentHash: input.resourceSegmentHash,
+    role: input.role,
+    promptReviewerVersion: `${input.generatorPromptVersion}|${input.reviewerPromptVersion}`,
+    evidenceDigest: input.evidenceDigest,
+    structuralGateDigest: input.structuralGateDigest,
+  };
+}
+
 function decisionComparable(
   decision: CanonicalResourceBindingDecision,
 ): RevalidationComparable {
-  return {
-    canonicalDigest: sha256Canonical({
-      releaseSetId: decision.releaseSetId,
-      releaseId: decision.releaseId,
-      canonicalId: decision.canonicalId,
-      objectRevision: decision.objectRevision,
-    }),
+  return decisionSemanticComparable({
+    canonicalId: decision.canonicalId,
+    objectRevision: decision.objectRevision,
     resourceSegmentHash: decision.resourceSegmentHash,
     role: decision.role,
-    promptReviewerVersion: `${decision.generatorPromptVersion}|${decision.reviewerPromptVersion}`,
+    generatorPromptVersion: decision.generatorPromptVersion,
+    reviewerPromptVersion: decision.reviewerPromptVersion,
     evidenceDigest: decision.evidenceDigest,
-    structuralGateDigest: decision.validationDigest,
-  };
+    structuralGateDigest: decision.validationDigest
+      ?? decision.governedValidationDigest
+      ?? null,
+  });
 }
 
 function priorFromDecision(
@@ -86,6 +113,63 @@ function priorFromDecision(
     publicationIdentity: decision.id,
     lifecycleState: decision.lifecycleState,
   };
+}
+
+export function bindingCaptureIdentityDrift(
+  decision: CanonicalResourceBindingDecision,
+  capture: CaptureIdentity,
+): boolean {
+  if (
+    decision.releaseSetId !== capture.releaseSetId
+    || decision.releaseId !== capture.releaseId
+  ) {
+    return true;
+  }
+  if (
+    decision.captureRevision != null
+    && decision.captureRevision !== capture.captureRevision
+  ) {
+    return true;
+  }
+  if (
+    decision.governedCaptureRevision != null
+    && decision.governedCaptureRevision !== capture.captureRevision
+  ) {
+    return true;
+  }
+  if (
+    capture.inventoryRunId != null
+    && decision.inventoryRunId != null
+    && decision.inventoryRunId !== capture.inventoryRunId
+  ) {
+    return true;
+  }
+  if (
+    capture.inventoryRunId != null
+    && decision.governedInventoryRunId != null
+    && decision.governedInventoryRunId !== capture.inventoryRunId
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function mintRevalidatedBindingDecisionId(input: {
+  priorId: string;
+  pairId: string;
+  capture: CaptureIdentity;
+  attemptSequence: number;
+}): string {
+  return `canonical-resource-decision:${sha256Canonical({
+    pairId: input.pairId,
+    releaseSetId: input.capture.releaseSetId,
+    releaseId: input.capture.releaseId,
+    deltaReceiptId: input.capture.deltaReceiptId,
+    captureRevision: input.capture.captureRevision,
+    priorPublicationIdentity: input.priorId,
+    attemptSequence: input.attemptSequence,
+    notCopy: true,
+  })}`;
 }
 
 function stageSemanticBindingDecision(input: {
@@ -327,21 +411,59 @@ export function governResourceBindings(input: {
 
   const revalidationReceipts: RevalidationReceipt[] = [];
   const stillReusable: CanonicalResourceBindingDecision[] = [];
+  const revalidatedDecisions: CanonicalResourceBindingDecision[] = [];
+  const driftInvalidated: CanonicalResourceBindingDecision[] = [];
+
   for (const decision of remaining) {
-    const work = input.work.find((row) => (
+    const revalidateWork = input.work.find((row) => (
       row.action === 'revalidate'
       && (
         row.canonicalId === decision.canonicalId
         || row.pairKey === decision.pairId
       )
     ));
-    if (!work) {
+    const drift = bindingCaptureIdentityDrift(decision, input.capture);
+
+    // Same capture identity with no revalidate work — retain as-is.
+    if (!drift && !revalidateWork) {
       stillReusable.push(decision);
       continue;
     }
+
+    const currentCanon = input.canonicalIndex.find(
+      (row) => row.canonicalId === decision.canonicalId,
+    );
+    const currentSegment = input.resourceIndex.find((row) => (
+      row.resourceId === decision.resourceId
+      && row.structuralUnitId === decision.structuralUnitId
+      && row.segmentId === decision.segmentId
+    ));
+
+    const currentComparable = currentCanon && currentSegment
+      ? decisionSemanticComparable({
+          canonicalId: decision.canonicalId,
+          objectRevision: currentCanon.objectRevision,
+          resourceSegmentHash: currentSegment.resourceSegmentHash,
+          role: decision.role,
+          generatorPromptVersion: decision.generatorPromptVersion,
+          reviewerPromptVersion: decision.reviewerPromptVersion,
+          evidenceDigest: decision.evidenceDigest,
+          structuralGateDigest: decision.validationDigest
+            ?? decision.governedValidationDigest
+            ?? null,
+        })
+      : {
+          canonicalDigest: null,
+          resourceSegmentHash: null,
+          role: null,
+          promptReviewerVersion: null,
+          evidenceDigest: null,
+          structuralGateDigest: null,
+        };
+
     const receipt = evaluateSemanticRevalidation({
       prior: priorFromDecision(decision),
-      current: decisionComparable(decision),
+      current: currentComparable,
       newReleaseSetId: input.capture.releaseSetId,
       newReleaseId: input.capture.releaseId,
       newDeltaReceiptId: input.capture.deltaReceiptId,
@@ -349,22 +471,153 @@ export function governResourceBindings(input: {
       kind: 'binding',
     });
     revalidationReceipts.push(receipt);
-    if (receipt.outcome === 'REVALIDATED') {
-      // Keep historical record; revalidation does not copy publication id.
-      stillReusable.push({
-        ...decision,
-        // Endpoint identity moves to the new ReleaseSet without reusing id.
-        releaseSetId: input.capture.releaseSetId,
-        releaseId: input.capture.releaseId,
-        captureRevision: input.capture.captureRevision,
-        inventoryRunId: input.capture.inventoryRunId,
-      });
+
+    if (receipt.outcome !== 'REVALIDATED' || !currentCanon || !currentSegment) {
+      // Cannot prove equivalence under current indexes — candidate-side
+      // unavailable. Same-ReleaseSet prior is closed via supersession.
+      if (decision.releaseSetId === input.capture.releaseSetId) {
+        driftInvalidated.push({
+          ...decision,
+          lifecycleState: 'SUPERSEDED',
+        });
+      }
+      continue;
+    }
+
+    const attemptSequence = decision.attemptSequence + 1;
+    const newId = mintRevalidatedBindingDecisionId({
+      priorId: decision.id,
+      pairId: decision.pairId,
+      capture: input.capture,
+      attemptSequence,
+    });
+    if (newId === decision.id) {
+      throw new Error(
+        'Aggregate governance rejected: revalidated binding must not copy prior publication identity',
+      );
+    }
+
+    const sameReleaseSet = decision.releaseSetId === input.capture.releaseSetId;
+    let reissued: CanonicalResourceBindingDecision = {
+      ...decision,
+      id: newId,
+      releaseSetId: input.capture.releaseSetId,
+      releaseId: input.capture.releaseId,
+      objectRevision: currentCanon.objectRevision,
+      resourceSegmentHash: currentSegment.resourceSegmentHash,
+      inventoryRunId: input.capture.inventoryRunId,
+      captureRevision: input.capture.captureRevision,
+      attemptSequence,
+      lifecycleState: 'CURRENT',
+      supersedesDecisionId: sameReleaseSet ? decision.id : null,
+      governedInventoryRunId: decision.governedInventoryRunId
+        ? input.capture.inventoryRunId
+        : null,
+      governedCaptureRevision: decision.governedCaptureRevision
+        ? input.capture.captureRevision
+        : null,
+    };
+
+    // SHADOW_PUBLISHED only survives when the same-run publication gate still
+    // admits the reissued decision under the candidate capture.
+    if (decision.publicationState === 'SHADOW_PUBLISHED') {
+      if (!input.publicationGateContext) {
+        if (sameReleaseSet) {
+          driftInvalidated.push({
+            ...decision,
+            lifecycleState: 'SUPERSEDED',
+          });
+        }
+        continue;
+      }
+
+      // Resolve the unique current VALIDATED crosswalk/evidence from the
+      // same-run gate context. Prior rows often have evidenceId=null after the
+      // #1126 governed path cleared the legacy tuple — never pass null evidence
+      // into applyPublicationGates.
+      const gateMatches = input.publicationGateContext.crosswalks.filter((row) => (
+        row.releaseId === reissued.releaseId
+        && row.canonicalId === reissued.canonicalId
+        && row.resourceId === reissued.resourceId
+        && row.structuralUnitId === reissued.structuralUnitId
+        && row.segmentId === reissued.segmentId
+        && row.resourceSegmentHash === reissued.resourceSegmentHash
+        && row.inventoryRunId === input.publicationGateContext!.captureIdentity.inventoryRunId
+        && row.captureRevision === input.publicationGateContext!.captureIdentity.captureRevision
+        && row.structuralUnitVersion
+          === input.publicationGateContext!.captureIdentity.structuralUnitVersion
+        && row.validationState === 'VALIDATED'
+      ));
+      if (gateMatches.length !== 1) {
+        if (sameReleaseSet) {
+          driftInvalidated.push({
+            ...decision,
+            lifecycleState: 'SUPERSEDED',
+          });
+        }
+        continue;
+      }
+      const gateCrosswalk = gateMatches[0]!;
+      const reviewStateForGate = (
+        decision.reviewState === 'ACCEPTED' || decision.reviewState === 'NOT_REQUIRED'
+      )
+        ? decision.reviewState
+        : 'ACCEPTED';
+      const gated = applyPublicationGates(
+        {
+          ...reissued,
+          publicationState: 'CANDIDATE',
+          reviewState: reviewStateForGate,
+          evidenceId: gateCrosswalk.evidenceId,
+          // Leave legacy tuple null; gate fills crosswalk identity from match.
+          crosswalkId: null,
+          inventoryRunId: null,
+          captureRevision: null,
+          structuralUnitVersion: null,
+          validationDigest: null,
+        },
+        input.publicationGateContext,
+      );
+      if (gated.publicationState !== 'SHADOW_PUBLISHED') {
+        if (sameReleaseSet) {
+          driftInvalidated.push({
+            ...decision,
+            lifecycleState: 'SUPERSEDED',
+          });
+        }
+        continue;
+      }
+      reissued = {
+        ...reissued,
+        publicationState: 'SHADOW_PUBLISHED',
+        reviewState: gated.reviewState,
+        evidenceId: null,
+        // #1126 governed path only — clear legacy EvidenceStructuralUnit tuple.
+        governedCrosswalkId: gated.crosswalkId,
+        governedInventoryRunId: gated.inventoryRunId,
+        governedCaptureRevision: gated.captureRevision,
+        governedStructuralUnitVersion: gated.structuralUnitVersion,
+        governedValidationDigest: gated.validationDigest,
+        crosswalkId: null,
+        inventoryRunId: null,
+        captureRevision: null,
+        structuralUnitVersion: null,
+        validationDigest: null,
+      };
+    }
+
+    // Persistable decision under candidate capture (new immutable id).
+    revalidatedDecisions.push(reissued);
+    if (sameReleaseSet) {
+      // Predecessor will be SUPERSEDED via supersedesDecisionId path.
+      // Do not also list as invalidated (avoid double tombstone).
     }
   }
 
   const invalidated = [
     ...resourceInvalidated.map((row) => ({ ...row, lifecycleState: 'SUPERSEDED' as const })),
     ...objectInvalidated,
+    ...driftInvalidated,
   ];
 
   const candidateByPair = new Map<string, CanonicalResourceBindingCandidate>();
@@ -377,7 +630,7 @@ export function governResourceBindings(input: {
   const candidates = [...candidateByPair.values()]
     .sort((left, right) => left.pairId.localeCompare(right.pairId));
 
-  const decisions: CanonicalResourceBindingDecision[] = [];
+  const decisions: CanonicalResourceBindingDecision[] = [...revalidatedDecisions];
   const pendingReviewCandidates: CanonicalResourceBindingCandidate[] = [];
   const bindingReviews = input.bindingReviews ?? {};
 
@@ -423,12 +676,19 @@ export function governResourceBindings(input: {
     ...resourceCandidates.reusedDecisionIds,
   ])].sort();
 
-  const shadowFromReusable = stillReusable.filter(
-    (row) => row.publicationState === 'SHADOW_PUBLISHED',
-  ).length;
-  const shadowFromDecisions = decisions.filter(
-    (row) => row.publicationState === 'SHADOW_PUBLISHED',
-  ).length;
+  // Readiness only counts CURRENT SHADOW_PUBLISHED under the candidate capture.
+  const shadowFromReusable = stillReusable.filter((row) => (
+    row.publicationState === 'SHADOW_PUBLISHED'
+    && row.lifecycleState === 'CURRENT'
+    && row.releaseSetId === input.capture.releaseSetId
+    && row.releaseId === input.capture.releaseId
+  )).length;
+  const shadowFromDecisions = decisions.filter((row) => (
+    row.publicationState === 'SHADOW_PUBLISHED'
+    && row.lifecycleState === 'CURRENT'
+    && row.releaseSetId === input.capture.releaseSetId
+    && row.releaseId === input.capture.releaseId
+  )).length;
 
   return {
     candidates,

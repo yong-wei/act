@@ -170,6 +170,36 @@ export function buildExpectedCapture(input: {
 }
 
 /**
+ * Choose the ReleaseSet that supplies governed baseline coverage / crosswalks /
+ * CURRENT binding decisions for the next runner invocation.
+ *
+ * Candidate self-state is used only when CURRENT governed coverage already
+ * exists on the candidate. A packaging no-op receipt alone is insufficient:
+ * first packaging no-op persists a receipt without coverage, and exact replay
+ * must continue reading the accepted Delta base coverage baseline.
+ */
+export function selectAggregateGovernanceBaselineSource(input: {
+  candidateReleaseSetId: string;
+  baseReleaseSetId: string | null | undefined;
+  /** True only when the candidate has CURRENT governed coverage rows. */
+  candidateHasGovernedCoverage: boolean;
+}): {
+  baselineReleaseSetId: string;
+  usesCandidateSelfState: boolean;
+} {
+  if (input.candidateHasGovernedCoverage) {
+    return {
+      baselineReleaseSetId: input.candidateReleaseSetId,
+      usesCandidateSelfState: true,
+    };
+  }
+  return {
+    baselineReleaseSetId: input.baseReleaseSetId ?? input.candidateReleaseSetId,
+    usesCandidateSelfState: false,
+  };
+}
+
+/**
  * Persisted governance receipt identity needed to detect exact same-input
  * baseline command replay. Not a re-baseline switch — only exact identity match.
  */

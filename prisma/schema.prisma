@@ -5116,7 +5116,6 @@ model ActkgAuthoritativeObject {
   incoming                 ActkgAuthoritativeRelation[]       @relation("ActkgRelationTarget")
   sourceMappings           ActkgSourceMapping[]
   courseCoverageEntries    CourseCoverageOverlayEntry[]
-  resourceBindingDecisions CanonicalResourceBindingDecision[]
   resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
 
   @@id([releaseId, canonicalId])
@@ -5499,6 +5498,8 @@ model ActkgProjectionNode {
   incoming ActkgProjectionLink[] @relation("ActkgProjectionLinkTarget")
   aggregateCourseCoverageEntries AggregateCourseCoverageEntry[]
   actGovernedCrosswalks    ActGovernedStructuralUnitCrosswalk[]
+  /// #1126 binding decisions pin public Projection membership (not private objects).
+  resourceBindingDecisions CanonicalResourceBindingDecision[]
 
   @@id([releaseId, nodeId])
   @@unique([releaseId, ordinal])
@@ -5848,7 +5849,8 @@ model CanonicalResourceBindingDecision {
 
   release        ActkgRelease                            @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
   evidence       ActkgEvidenceSegment?                   @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
-  canonical      ActkgAuthoritativeObject                @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  /// Public Projection Canonical membership (standard Bundle has no private objects).
+  projectionCanonical ActkgProjectionNode                @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
   crosswalk      ActkgEvidenceStructuralUnitCrosswalk?    @relation(fields: [releaseId, crosswalkId, inventoryRunId, captureRevision, structuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
   governedCrosswalk ActGovernedStructuralUnitCrosswalk? @relation(fields: [releaseId, governedCrosswalkId, governedInventoryRunId, governedCaptureRevision, governedStructuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
   supersedes     CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)

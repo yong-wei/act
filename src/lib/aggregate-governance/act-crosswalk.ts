@@ -3,11 +3,13 @@ import type {
   CaptureIdentity,
   DeterministicAlignmentInput,
   OpaqueUpstreamRagReference,
+  PriorSemanticDecision,
   SemanticAlignmentCandidate,
   SemanticAlignmentReview,
   StructuralUnitIndexEntry,
 } from './contracts';
 import { sha256Canonical, tripleKey } from './hash';
+import type { RevalidationComparable } from './revalidation';
 import { includesTermBounded, normalizeEvidenceText, sortNames } from './term-match';
 
 /**
@@ -705,4 +707,258 @@ export function invalidateCrosswalks(input: {
     }
   }
   return { retained, invalidated };
+}
+
+/**
+ * True when a prior Crosswalk is not bound to the candidate capture's
+ * immutable publication identity (ReleaseSet / Release / Delta / capture /
+ * inventory). Such rows must not count as CURRENT VALIDATED for the new run.
+ */
+export function crosswalkCaptureIdentityDrift(
+  row: ActStructuralUnitCrosswalkRecord,
+  capture: CaptureIdentity,
+): boolean {
+  if (
+    row.releaseSetId !== capture.releaseSetId
+    || row.releaseId !== capture.releaseId
+    || row.deltaReceiptId !== capture.deltaReceiptId
+    || row.captureRevision !== capture.captureRevision
+  ) {
+    return true;
+  }
+  if (
+    capture.inventoryRunId != null
+    && row.inventoryRunId != null
+    && row.inventoryRunId !== capture.inventoryRunId
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Structural / semantic comparable for Crosswalk revalidation.
+ *
+ * Includes stable semantic endpoints and content hashes only.
+ * Explicitly excludes Release/Delta/capture-derived fields such as
+ * sourceVersion and structuralUnitVersion (inventory often stamps those with
+ * the current capture revision — they must not force REQUIRES_REVIEW on every
+ * clean capture advance when content is unchanged).
+ */
+export function crosswalkStructuralComparable(
+  row: Pick<
+    ActStructuralUnitCrosswalkRecord,
+    | 'canonicalId'
+    | 'publishedEntityId'
+    | 'retrievalChunkId'
+    | 'citationTargetId'
+    | 'resourceSegmentHash'
+    | 'reviewIdentity'
+    | 'evidenceDigest'
+    | 'resolutionState'
+    | 'structuralUnitId'
+    | 'structuralUnitHash'
+    | 'sourceEditionId'
+    | 'atomicResourceId'
+    | 'resourceId'
+    | 'segmentId'
+  >,
+): RevalidationComparable {
+  return {
+    canonicalDigest: sha256Canonical({
+      canonicalId: row.canonicalId,
+      publishedEntityId: row.publishedEntityId,
+      retrievalChunkId: row.retrievalChunkId,
+      citationTargetId: row.citationTargetId,
+    }),
+    resourceSegmentHash: row.resourceSegmentHash,
+    role: null,
+    promptReviewerVersion: row.reviewIdentity,
+    evidenceDigest: row.evidenceDigest
+      && row.resolutionState === 'SEMANTIC'
+      ? row.evidenceDigest
+      : null,
+    structuralGateDigest: sha256Canonical({
+      structuralUnitId: row.structuralUnitId,
+      structuralUnitHash: row.structuralUnitHash,
+      sourceEditionId: row.sourceEditionId,
+      atomicResourceId: row.atomicResourceId,
+      resourceId: row.resourceId,
+      segmentId: row.segmentId,
+      resourceSegmentHash: row.resourceSegmentHash,
+      resolutionState: row.resolutionState,
+    }),
+  };
+}
+
+/**
+ * Resolve the unique current INCLUDED structural-unit tuple that may rebind a
+ * prior VALIDATED Crosswalk. Missing, multi-hit, incomplete, non-INCLUDED, or
+ * endpoint-inconsistent rows return null (caller keeps unavailable).
+ */
+export function resolveCurrentIncludedStructuralTuple(input: {
+  prior: ActStructuralUnitCrosswalkRecord;
+  structuralUnitIndex: readonly StructuralUnitIndexEntry[];
+}): StructuralUnitIndexEntry | null {
+  if (!input.prior.structuralUnitId || !input.prior.canonicalId) return null;
+  const matches = input.structuralUnitIndex.filter((entry) => {
+    if (entry.inventoryDisposition !== 'INCLUDED') return false;
+    if (entry.structuralUnitId !== input.prior.structuralUnitId) return false;
+    if (input.prior.resourceId && entry.resourceId !== input.prior.resourceId) {
+      return false;
+    }
+    if (input.prior.segmentId && entry.segmentId !== input.prior.segmentId) {
+      return false;
+    }
+    if (
+      input.prior.atomicResourceId
+      && entry.atomicResourceId !== input.prior.atomicResourceId
+    ) {
+      return false;
+    }
+    return Boolean(
+      entry.sourceEditionId
+      && entry.sourceVersion
+      && entry.structuralUnitVersion
+      && entry.structuralUnitHash
+      && entry.atomicResourceId
+      && entry.resourceId
+      && entry.segmentId
+      && entry.resourceSegmentHash,
+    );
+  });
+  return matches.length === 1 ? matches[0]! : null;
+}
+
+export function priorFromCrosswalk(
+  row: ActStructuralUnitCrosswalkRecord,
+): PriorSemanticDecision {
+  return {
+    kind: 'crosswalk',
+    identityKey: tripleKey(row),
+    releaseSetId: row.releaseSetId,
+    releaseId: row.releaseId,
+    ...crosswalkStructuralComparable(row),
+    publicationIdentity: row.id,
+    lifecycleState: row.lifecycleState,
+  };
+}
+
+/**
+ * Re-issue a VALIDATED Crosswalk under the candidate capture identity using the
+ * current structural/inventory tuple (never the stale prior tuple fields).
+ * Never reuses the prior publication id when capture identity changed.
+ */
+export function rebindValidatedCrosswalkToCapture(
+  prior: ActStructuralUnitCrosswalkRecord,
+  capture: CaptureIdentity,
+  current: StructuralUnitIndexEntry,
+): ActStructuralUnitCrosswalkRecord {
+  if (prior.validationState !== 'VALIDATED' || !prior.canonicalId) {
+    throw new Error(
+      'Aggregate governance rejected: rebind requires VALIDATED crosswalk with canonicalId',
+    );
+  }
+  if (!capture.inventoryRunId) {
+    throw new Error(
+      'Aggregate governance rejected: rebind requires capture.inventoryRunId',
+    );
+  }
+  if (current.inventoryDisposition !== 'INCLUDED') {
+    throw new Error(
+      'Aggregate governance rejected: rebind requires INCLUDED structural unit',
+    );
+  }
+  if (
+    !current.sourceEditionId
+    || !current.sourceVersion
+    || !current.structuralUnitId
+    || !current.structuralUnitVersion
+    || !current.structuralUnitHash
+    || !current.atomicResourceId
+    || !current.resourceId
+    || !current.segmentId
+    || !current.resourceSegmentHash
+  ) {
+    throw new Error(
+      'Aggregate governance rejected: rebind requires complete current structural/inventory tuple',
+    );
+  }
+
+  const upstream = referenceOpaqueUpstream({
+    publishedEntityId: prior.publishedEntityId,
+    retrievalChunkId: prior.retrievalChunkId,
+    citationTargetId: prior.citationTargetId,
+  });
+  const id = crosswalkIdFor({
+    releaseSetId: capture.releaseSetId,
+    releaseId: capture.releaseId,
+    deltaReceiptId: capture.deltaReceiptId,
+    upstream,
+    canonicalId: prior.canonicalId,
+    captureRevision: capture.captureRevision,
+  });
+  if (id === prior.id && !crosswalkCaptureIdentityDrift(prior, capture)) {
+    return prior;
+  }
+  if (id === prior.id) {
+    throw new Error(
+      'Aggregate governance rejected: rebind must not copy prior publication identity',
+    );
+  }
+
+  const validationDigest = sha256Canonical({
+    upstream,
+    canonicalId: prior.canonicalId,
+    sourceEditionId: current.sourceEditionId,
+    sourceVersion: current.sourceVersion,
+    structuralUnitId: current.structuralUnitId,
+    structuralUnitVersion: current.structuralUnitVersion,
+    structuralUnitHash: current.structuralUnitHash,
+    inventoryRunId: capture.inventoryRunId,
+    atomicResourceId: current.atomicResourceId,
+    resourceId: current.resourceId,
+    segmentId: current.segmentId,
+    resourceSegmentHash: current.resourceSegmentHash,
+    captureRevision: capture.captureRevision,
+    releaseSetId: capture.releaseSetId,
+    deltaReceiptId: capture.deltaReceiptId,
+  });
+
+  return {
+    ...prior,
+    id,
+    releaseSetId: capture.releaseSetId,
+    releaseId: capture.releaseId,
+    deltaReceiptId: capture.deltaReceiptId,
+    sourceEditionId: current.sourceEditionId,
+    sourceVersion: current.sourceVersion,
+    structuralUnitId: current.structuralUnitId,
+    structuralUnitVersion: current.structuralUnitVersion,
+    structuralUnitHash: current.structuralUnitHash,
+    evidenceContentHash: current.contentHashes[0] ?? current.structuralUnitHash,
+    inventoryRunId: capture.inventoryRunId,
+    atomicResourceId: current.atomicResourceId,
+    resourceId: current.resourceId,
+    segmentId: current.segmentId,
+    resourceSegmentHash: current.resourceSegmentHash,
+    captureRevision: capture.captureRevision,
+    validationDigest,
+    evidenceDigest: prior.resolutionState === 'SEMANTIC' && prior.evidenceDigest
+      ? prior.evidenceDigest
+      : validationDigest,
+    lifecycleState: 'CURRENT',
+    validationState: 'VALIDATED',
+  };
+}
+
+export function markCrosswalkStale(
+  row: ActStructuralUnitCrosswalkRecord,
+): ActStructuralUnitCrosswalkRecord {
+  return {
+    ...row,
+    lifecycleState: 'STALE',
+    resolutionState: 'STALE',
+    validationState: 'STALE',
+  };
 }

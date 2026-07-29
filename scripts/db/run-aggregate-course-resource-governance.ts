@@ -12,7 +12,6 @@
  */
 import 'dotenv/config';
 
-import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,6 +19,7 @@ import {
   AggregateGovernanceRepository,
   buildStructuralUnitIndexFromInventory,
   runAggregateGovernance,
+  selectAggregateGovernanceBaselineSource,
   selectCanonicalObjectMembership,
   type CaptureIdentity,
   type ObservedCaptureFields,
@@ -48,8 +48,36 @@ function hasFlag(flag: string): boolean {
   return process.argv.includes(flag);
 }
 
-function shaLike(value: unknown): string {
-  return createHash('sha256').update(JSON.stringify(value ?? null)).digest('hex');
+/**
+ * Load DB-computed public Projection membership revisions for the release.
+ * Standard public Bundles persist membership in ActkgProjectionNode and have
+ * zero private ActkgAuthoritativeObject rows. Governed SHADOW publication must
+ * use actkg_authoritative_object_revision(projection.payload) so objectRevision
+ * matches the publication trigger join. Missing / ambiguous membership fails
+ * closed — never fall back to a local JSON hash that can diverge from the DB.
+ */
+async function loadPublicProjectionMembershipRevisions(
+  db: ReturnType<typeof createPrismaClient>,
+  releaseId: string,
+): Promise<Map<string, string>> {
+  const rows = await db.$queryRaw<Array<{ canonicalId: string; objectRevision: string }>>`
+    SELECT
+      "entityId" AS "canonicalId",
+      actkg_authoritative_object_revision("payload") AS "objectRevision"
+    FROM "ActkgProjectionNode"
+    WHERE "releaseId" = ${releaseId}
+  `;
+  const revisions = new Map<string, string>();
+  for (const row of rows) {
+    if (revisions.has(row.canonicalId)) {
+      throw new Error(
+        `Aggregate governance rejected: ambiguous public Projection membership `
+        + `for canonical ${row.canonicalId} in release ${releaseId}`,
+      );
+    }
+    revisions.set(row.canonicalId, row.objectRevision);
+  }
+  return revisions;
 }
 
 async function main(): Promise<void> {
@@ -167,30 +195,83 @@ async function main(): Promise<void> {
     }
 
     const repository = new AggregateGovernanceRepository(db as never);
-    const existingCoverage = await repository.readCurrentCoverage(candidate.id);
-    const previousCrosswalks = await repository.readCurrentCrosswalks(candidate.id);
-    const previousReceipt = await repository.readLatestGovernanceReceipt(candidate.id);
+
+    // Prefer the candidate's own governed baseline only when CURRENT coverage
+    // exists (sufficient baseline). A packaging no-op receipt alone is not
+    // enough — first packaging no-op persists a receipt without coverage, and
+    // exact replay must keep using the accepted Delta base coverage/crosswalk/
+    // decisions while remaining idempotent on the candidate receipt.
+    const candidateCoverage = await repository.readCurrentCoverage(candidate.id);
+    const candidateReceipt = await repository.readLatestGovernanceReceipt(candidate.id);
+    const baselineSource = selectAggregateGovernanceBaselineSource({
+      candidateReleaseSetId: candidate.id,
+      baseReleaseSetId: delta.baseReleaseSetId ?? null,
+      candidateHasGovernedCoverage: Boolean(candidateCoverage),
+    });
+    const priorReleaseSetId = baselineSource.baselineReleaseSetId;
+    const usesCandidateSelfState = baselineSource.usesCandidateSelfState;
+
+    const existingCoverage = usesCandidateSelfState
+      ? candidateCoverage
+      : priorReleaseSetId === candidate.id
+        ? candidateCoverage
+        : await repository.readCurrentCoverage(priorReleaseSetId);
+    const previousCrosswalks = usesCandidateSelfState
+      ? await repository.readCurrentCrosswalks(candidate.id)
+      : await repository.readCurrentCrosswalks(priorReleaseSetId);
+    const previousReceipt = usesCandidateSelfState
+      ? candidateReceipt
+      : priorReleaseSetId === candidate.id
+        ? candidateReceipt
+        : await repository.readLatestGovernanceReceipt(priorReleaseSetId);
 
     const previousDecisions = await db.canonicalResourceBindingDecision.findMany({
       where: {
-        releaseSetId: candidate.id,
+        releaseSetId: priorReleaseSetId,
         lifecycleState: 'CURRENT',
       },
       orderBy: { createdAt: 'asc' },
     }) as unknown as CanonicalResourceBindingDecision[];
 
-    const objectRows = release.objects.length > 0
-      ? release.objects
-      : release.projectionNodes.map((row) => ({
+    // Standard public Bundles expose membership only via Projection nodes.
+    // Prefer that public path even when private objects exist (legacy private
+    // CTKG may still populate objects; governed identity remains Projection).
+    const objectRows = release.projectionNodes.length > 0
+      ? release.projectionNodes.map((row) => ({
           canonicalId: row.entityId,
           canonicalType: row.entityType,
           payload: row.payload,
+        }))
+      : release.objects.map((row) => ({
+          canonicalId: row.canonicalId,
+          canonicalType: row.canonicalType,
+          payload: row.payload,
         }));
+    // Require DB-computed public Projection revision so governed SHADOW
+    // publication matches actkg_authoritative_object_revision(projection.payload).
+    const projectionRevisions = await loadPublicProjectionMembershipRevisions(
+      db,
+      release.id,
+    );
+    const missingRevisions = objectRows
+      .map((row) => row.canonicalId)
+      .filter((canonicalId) => !projectionRevisions.has(canonicalId));
+    if (missingRevisions.length > 0) {
+      const preview = missingRevisions.slice(0, 8).join(', ');
+      const more = missingRevisions.length > 8
+        ? ` (+${missingRevisions.length - 8} more)`
+        : '';
+      throw new Error(
+        `Aggregate governance rejected: ${missingRevisions.length} canonical object(s) `
+        + `lack ActkgProjectionNode / actkg_authoritative_object_revision for `
+        + `release ${release.id}: ${preview}${more}`,
+      );
+    }
     const canonicalIndex: CanonicalObjectIndexEntry[] = objectRows.map((row) => ({
       releaseSetId: candidate.id,
       releaseId: release.id,
       canonicalId: row.canonicalId,
-      objectRevision: shaLike(row.payload),
+      objectRevision: projectionRevisions.get(row.canonicalId)!,
       canonicalType: row.canonicalType,
     }));
     // Base inventory segments only. Pipeline rebuilds candidateCanonicalIds
