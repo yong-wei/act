@@ -239,8 +239,12 @@ export function detectAbsoluteFilesystemPathLeak(text: string): string | null {
   const windowsDrive = /(?:^|[^A-Za-z0-9_])([A-Za-z]:[\\/][^\s"'`<>|]+)/u.exec(text);
   if (windowsDrive?.[1]) return windowsDrive[1];
 
-  // UNC path: \\server\share\...
-  const unc = /(?:^|[^\\])(\\\\[^\s\\/]+\\[^\s\\/]+(?:\\[^\s"'`<>|\\/]+)*)/u.exec(text);
+  // UNC path: \\server\share[\path...]
+  // Require a real hostname-like server and share name. Do not treat LaTeX
+  // (e.g. "\\begin{aligned}\nV_{2}(s)") or other backslash escapes as UNC —
+  // braces, spaces, and non-host characters are rejected in the server/share.
+  const unc = /(?:^|[^\\])(\\\\[A-Za-z0-9][A-Za-z0-9._-]*\\[A-Za-z0-9$][A-Za-z0-9._$-]*(?:\\[^\s"'`<>|\\/]+)*)/u
+    .exec(text);
   if (unc?.[1]) return unc[1];
 
   // Unix absolute paths under sensitive roots, requiring at least one more segment.

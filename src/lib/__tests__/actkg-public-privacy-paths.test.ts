@@ -19,13 +19,16 @@ describe('public privacy absolute path detection', () => {
     expect(detectAbsoluteFilesystemPathLeak('/home/student/notes.md')).toContain('/home/student');
   });
 
-  it('detects Windows drive and UNC absolute paths', () => {
+  it('detects Windows drive and real UNC absolute paths', () => {
     expect(detectAbsoluteFilesystemPathLeak('C:\\Users\\yw\\secret.txt')).toMatch(/^C:/u);
     expect(detectAbsoluteFilesystemPathLeak('notes at D:/data/private/file.json')).toMatch(/^D:/u);
     expect(detectAbsoluteFilesystemPathLeak('share=\\\\fileserver\\teams\\act')).toMatch(/^\\\\fileserver/u);
+    expect(detectAbsoluteFilesystemPathLeak('\\\\nas01\\exports\\bundle\\manifest.json')).toMatch(
+      /^\\\\nas01\\exports/u,
+    );
   });
 
-  it('does not flag legitimate URLs, JSON pointers, or course-relative paths', () => {
+  it('does not flag legitimate URLs, JSON pointers, course-relative paths, or LaTeX escapes', () => {
     expect(detectAbsoluteFilesystemPathLeak('https://example.com/tmp/docs/guide')).toBeNull();
     expect(detectAbsoluteFilesystemPathLeak('http://cdn.example.org/var/assets/a.png')).toBeNull();
     expect(detectAbsoluteFilesystemPathLeak('/properties/schema_version')).toBeNull();
@@ -33,6 +36,11 @@ describe('public privacy absolute path detection', () => {
     expect(detectAbsoluteFilesystemPathLeak('course-content/authoring/knowledge/releases/x')).toBeNull();
     expect(detectAbsoluteFilesystemPathLeak('relative/path/to/file.json')).toBeNull();
     expect(detectAbsoluteFilesystemPathLeak('ctr:profile:control-theory-engineering-v0.3:act-v2')).toBeNull();
+    // r2 Projection descriptions include LaTeX; raw JSON often stores "\\begin{aligned}\nV_{2}(s)".
+    expect(detectAbsoluteFilesystemPathLeak('\\\\begin{aligned}\\nV_{2}(s)')).toBeNull();
+    expect(detectAbsoluteFilesystemPathLeak('\\begin{aligned}\nV_{2}(s)=\\frac{1}{s}')).toBeNull();
+    expect(detectAbsoluteFilesystemPathLeak('G(s)=\\frac{K}{s(Js+B)}')).toBeNull();
+    expect(detectAbsoluteFilesystemPathLeak('{"description":"\\\\begin{aligned}\\nV_{2}(s)\\\\end{aligned}"}')).toBeNull();
   });
 
   it('scanPublicTextForPrivacyLeaks reports absolute-path findings with labels', () => {
