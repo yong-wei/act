@@ -23,6 +23,7 @@ vi.mock('../rust/control-engine-server-runtime', () => ({
 
 import {
   DEFAULT_TARGET,
+  evaluatePIDParams,
   optimizePIDParams,
   type SimpleSimConfig,
 } from '../lib/monte-carlo-optimizer';
@@ -157,5 +158,19 @@ describe('PID turn scenario calibration', () => {
 
     expect(result.metrics.settlingTime).toBe(90);
     expect(result.score).toBeLessThan(90);
+  });
+
+  it('does not pass maxRudderRateDegPerSec for v1 three-parameter requests', () => {
+    // 3-param overload: (params, simConfig, target) — creates v1 legacy scene internally
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (evaluatePIDParams as any)(
+      { kp: 3, ki: 0.001, kd: 5 },
+      { nomotoK: 0.08, nomotoT: 55, shipSpeed: 15 },
+      DEFAULT_TARGET,
+    );
+
+    const callArgs = (computeVirtualSimulationServerStepMock.mock.calls as unknown[][])[0][0] as Record<string, unknown>;
+    expect(callArgs).not.toHaveProperty('maxRudderRateDegPerSec');
+    expect(callArgs.duration).toBe(120);
   });
 });
