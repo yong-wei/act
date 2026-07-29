@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-course-coverage-overlay/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "overlayId",
+    "overlayVersion",
+    "courseId",
+    "releaseSetId",
+    "releaseId",
+    "releaseHash",
+    "sourceDatasetHash",
+    "deltaReceiptId",
+    "mode",
+    "authoringRevision",
+    "sourceHash",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "act-course-coverage-overlay/v2" },
+    "overlayId": { "const": "automatic-control-aggregate-coverage-v1" },
+    "overlayVersion": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+    "courseId": { "const": "automatic-control" },
+    "releaseSetId": { "type": "string", "minLength": 1 },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "releaseHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sourceDatasetHash": {
+      "anyOf": [
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        { "type": "null" }
+      ]
+    },
+    "deltaReceiptId": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "const": "UNBOUND_CANDIDATE_REQUIRES_REVIEW_ACTIVATION" }
+    },
+    "mode": { "enum": ["baseline", "incremental"] },
+    "authoringRevision": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "canonicalId",
+          "role",
+          "rationale",
+          "evidenceRefs",
+          "reviewIdentity",
+          "sourceEvidenceDigest"
+        ],
+        "properties": {
+          "canonicalId": { "type": "string", "minLength": 1 },
+          "role": {
+            "enum": [
+              "formal_objective",
+              "necessary_prerequisite",
+              "explicit_extension",
+              "excluded_with_rationale"
+            ]
+          },
+          "rationale": {
+            "anyOf": [
+              { "type": "string", "minLength": 1 },
+              { "type": "null" }
+            ]
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "reviewIdentity": { "type": "string", "minLength": 1 },
+          "sourceEvidenceDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    }
+  }
+}

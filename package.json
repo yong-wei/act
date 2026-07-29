@@ -106,6 +106,8 @@
     "db:compute-actkg-release-set-delta": "tsx ./scripts/db/compute-actkg-release-set-delta.ts",
     "test:standard-actkg-bundle-import-postgres": "tsx ./scripts/tests/test-standard-actkg-bundle-import-postgres.ts",
     "test:actkg-release-set-delta-postgres": "tsx ./scripts/tests/test-actkg-release-set-delta-postgres.ts",
+    "test:aggregate-governance-postgres": "tsx ./scripts/tests/test-aggregate-governance-postgres.ts",
+    "db:run-aggregate-course-resource-governance": "tsx ./scripts/db/run-aggregate-course-resource-governance.ts",
     "db:import-course-coverage-overlay": "tsx ./scripts/db/import-course-coverage-overlay.ts",
     "db:import-canonical-resource-binding-shadow": "tsx ./scripts/db/import-canonical-resource-binding-shadow.ts",
     "db:verify-authoritative-knowledge-deployment": "tsx ./scripts/db/import-authoritative-actkg-release.ts --verify-only && tsx ./scripts/db/import-course-coverage-overlay.ts --verify-only && tsx ./scripts/db/import-canonical-resource-binding-shadow.ts --verify-only",

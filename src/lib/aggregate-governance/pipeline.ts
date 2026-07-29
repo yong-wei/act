@@ -1,0 +1,534 @@
+import type {
+  CanonicalObjectIndexEntry,
+  CanonicalResourceBindingDecision,
+  ResourceSegmentIndexEntry,
+} from '@/lib/canonical-resource-binding';
+import { selectResourceKnowledgeAuthority } from '@/lib/canonical-resource-binding';
+
+import {
+  acceptSemanticAlignment,
+  attemptDeterministicAlignment,
+  generateSemanticAlignmentCandidates,
+  invalidateCrosswalks,
+  referenceOpaqueUpstream,
+  validateCrosswalkForShadowPublication,
+} from './act-crosswalk';
+import {
+  requireCoherentCapture,
+  type ObservedCaptureFields,
+} from './capture';
+import type {
+  ActStructuralUnitCrosswalkRecord,
+  AggregateGovernanceReceipt,
+  CaptureIdentity,
+  CourseCoverageDisposition,
+  GovernanceWorkManifest,
+  OpaqueUpstreamRagReference,
+  RevalidationReceipt,
+  StructuralUnitIndexEntry,
+} from './contracts';
+import {
+  admittedCanonicalIds,
+  courseRoleCreatesTeachingProjectionEdge,
+  mergeIncrementalCoverage,
+  validateCourseCoverageAuthoring,
+} from './course-coverage';
+import { sha256Canonical } from './hash';
+import { buildDownstreamReadinessDiagnostics } from './readiness';
+import { buildResourceIndexFromValidatedCrosswalks } from './resource-index';
+import {
+  assertFormalSelectorsRemainLegacy,
+  governResourceBindings,
+} from './resource-bindings';
+import { packagingNoopRevalidation } from './revalidation';
+import { buildAggregateGovernanceSummary } from './summary';
+import { classifyUpstreamReference } from './upstream-classification';
+import {
+  buildGovernanceWorkManifest,
+  expandBaselineCrosswalkWork,
+  type DeltaSignalLike,
+} from './work-manifest';
+
+export interface AggregateGovernanceRunInput {
+  capture: CaptureIdentity;
+  /**
+   * Independently observed capture fields. Must not be the same object as
+   * `capture`. Drift fails before any semantic work or persistence.
+   */
+  observedCapture: ObservedCaptureFields;
+  hasGovernedCoverageBaseline: boolean;
+  deltaClassification: string;
+  currentCanonicalIds: readonly string[];
+  signals: readonly DeltaSignalLike[];
+  upstreamReferences: readonly OpaqueUpstreamRagReference[];
+  structuralUnitIndex: readonly StructuralUnitIndexEntry[];
+  /** Optional stable id/hash hints keyed by tripleKey. */
+  alignmentHints?: Readonly<Record<string, {
+    stableIds?: string[];
+    contentHashes?: string[];
+  }>>;
+  coverageAuthoring: unknown | null;
+  currentCoverageEntries?: readonly CourseCoverageDisposition[];
+  previousCrosswalks?: readonly ActStructuralUnitCrosswalkRecord[];
+  previousDecisions?: readonly CanonicalResourceBindingDecision[];
+  canonicalIndex?: readonly CanonicalObjectIndexEntry[];
+  resourceIndex?: readonly ResourceSegmentIndexEntry[];
+  changedResourceSegments?: ReadonlyArray<{
+    resourceId: string;
+    structuralUnitId: string;
+    segmentId: string;
+    resourceSegmentHash: string;
+    candidateCanonicalIds?: string[];
+  }>;
+  /**
+   * Prior coverage / Crosswalk / binding publication identity required for
+   * packaging no-op. Must not be the new Delta or Release identity.
+   */
+  priorSemanticPublicationIdentity?: string | null;
+  generatorPromptVersion?: string;
+  semanticReviews?: Readonly<Record<string, {
+    outcome: 'ACCEPT' | 'REJECT' | 'AMBIGUOUS' | 'UNSUPPORTED' | 'HIGH_IMPACT';
+    reviewIdentity: string;
+    reviewerPromptVersion: string;
+    evidenceDigest: string;
+    rationale: string;
+    candidateId?: string;
+  }>>;
+}
+
+export interface AggregateGovernanceRunResult {
+  manifest: GovernanceWorkManifest;
+  coverageEntries: CourseCoverageDisposition[];
+  coverageVersionId: string | null;
+  crosswalks: ActStructuralUnitCrosswalkRecord[];
+  /** Validated CURRENT shadow publications only. */
+  publishedCrosswalks: ActStructuralUnitCrosswalkRecord[];
+  unresolvedCrosswalkDiagnostics: ActStructuralUnitCrosswalkRecord[];
+  invalidatedCrosswalks: ActStructuralUnitCrosswalkRecord[];
+  binding: ReturnType<typeof governResourceBindings> | null;
+  revalidationReceipts: RevalidationReceipt[];
+  receipt: AggregateGovernanceReceipt;
+  admittedCanonicalIds: string[];
+  teachingProjectionEdgesCreated: false;
+  selectorsLegacy: true;
+}
+
+function resolveOneCrosswalk(input: {
+  upstream: OpaqueUpstreamRagReference;
+  /** Null for relation-type upstream. */
+  canonicalId: string | null;
+  capture: CaptureIdentity;
+  index: readonly StructuralUnitIndexEntry[];
+  hints?: { stableIds?: string[]; contentHashes?: string[] };
+  semanticReviews?: AggregateGovernanceRunInput['semanticReviews'];
+}): ActStructuralUnitCrosswalkRecord {
+  const deterministic = attemptDeterministicAlignment({
+    upstream: input.upstream,
+    canonicalId: input.canonicalId,
+    capture: input.capture,
+    index: input.index,
+    stableIds: input.hints?.stableIds,
+    contentHashes: input.hints?.contentHashes,
+  });
+  if (deterministic.validationState === 'VALIDATED') return deterministic;
+
+  // Relation/other upstream never enters semantic object alignment.
+  if (!input.canonicalId) return deterministic;
+
+  // Semantic alignment acceptance requires an explicit evidence-bearing
+  // isolated review. Without it, remain unresolved.
+  const reviewKey = [
+    input.upstream.publishedEntityId,
+    input.upstream.retrievalChunkId,
+    input.upstream.citationTargetId,
+  ].join('\u001f');
+  const review = input.semanticReviews?.[reviewKey];
+  if (!review) return deterministic;
+  if (input.index.length === 0) return deterministic;
+
+  const candidates = generateSemanticAlignmentCandidates({
+    upstream: input.upstream,
+    canonicalId: input.canonicalId,
+    canonicalProfileDigest: sha256Canonical({ canonicalId: input.canonicalId }),
+    index: input.index,
+    generatorPromptVersion: 'aggregate-semantic-align/v1',
+  });
+  if (candidates.length === 0) return deterministic;
+
+  const candidate = review.candidateId
+    ? candidates.find((row) => row.candidateId === review.candidateId) ?? candidates[0]!
+    : candidates[0]!;
+  const indexEntry = input.index.find((row) => (
+    row.structuralUnitId === candidate.structuralUnitId
+    && row.structuralUnitVersion === candidate.structuralUnitVersion
+    && row.structuralUnitHash === candidate.structuralUnitHash
+  ));
+  return acceptSemanticAlignment({
+    candidate,
+    review,
+    capture: input.capture,
+    inventoryAtomic: indexEntry
+      ? {
+          atomicResourceId: indexEntry.atomicResourceId,
+          resourceId: indexEntry.resourceId,
+          segmentId: indexEntry.segmentId,
+          resourceSegmentHash: indexEntry.resourceSegmentHash,
+        }
+      : undefined,
+  });
+}
+
+function partitionCrosswalks(rows: readonly ActStructuralUnitCrosswalkRecord[]): {
+  published: ActStructuralUnitCrosswalkRecord[];
+  unresolved: ActStructuralUnitCrosswalkRecord[];
+} {
+  const published: ActStructuralUnitCrosswalkRecord[] = [];
+  const unresolved: ActStructuralUnitCrosswalkRecord[] = [];
+  for (const row of rows) {
+    if (
+      row.lifecycleState === 'CURRENT'
+      && row.validationState === 'VALIDATED'
+    ) {
+      published.push(row);
+    } else if (row.lifecycleState === 'CURRENT') {
+      unresolved.push(row);
+    }
+  }
+  return { published, unresolved };
+}
+
+/**
+ * Pure orchestration for baseline / incremental / packaging-no-op governance.
+ * Persistence is handled by the repository layer.
+ */
+export function runAggregateGovernance(
+  input: AggregateGovernanceRunInput,
+): AggregateGovernanceRunResult {
+  requireCoherentCapture({
+    expected: input.capture,
+    observed: input.observedCapture,
+  });
+
+  if (!input.capture.inventoryRunId) {
+    throw new Error('Aggregate governance rejected: inventoryRunId is required');
+  }
+  if (!input.capture.structuralUnitIndexVersion) {
+    throw new Error('Aggregate governance rejected: structuralUnitIndexVersion is required');
+  }
+  if (!input.capture.authoringRevision || !input.capture.coverageSourceHash) {
+    // packaging no-op may inherit authoring from prior baseline via capture
+    // fields already set by the caller.
+    if (input.deltaClassification !== 'COMPATIBLE_PACKAGING_REVISION') {
+      throw new Error(
+        'Aggregate governance rejected: authoringRevision and coverageSourceHash are required',
+      );
+    }
+  }
+
+  let manifest = buildGovernanceWorkManifest({
+    capture: input.capture,
+    hasGovernedCoverageBaseline: input.hasGovernedCoverageBaseline,
+    deltaClassification: input.deltaClassification,
+    currentCanonicalIds: input.currentCanonicalIds,
+    signals: input.signals,
+    changedResourceSegments: input.changedResourceSegments,
+  });
+  if (manifest.mode === 'baseline') {
+    manifest = expandBaselineCrosswalkWork(manifest, input.upstreamReferences);
+  }
+
+  const revalidationReceipts: RevalidationReceipt[] = [];
+
+  if (manifest.packagingNoop) {
+    if (!input.hasGovernedCoverageBaseline) {
+      throw new Error(
+        'Aggregate governance rejected: packaging no-op requires an eligible prior semantic baseline',
+      );
+    }
+    const priorIdentity = input.priorSemanticPublicationIdentity?.trim() ?? '';
+    if (!priorIdentity) {
+      throw new Error(
+        'Aggregate governance rejected: packaging no-op requires prior coverage/Crosswalk/binding publication identity',
+      );
+    }
+
+    const coverageEntries = [...(input.currentCoverageEntries ?? [])];
+    if (coverageEntries.length === 0) {
+      throw new Error(
+        'Aggregate governance rejected: packaging no-op requires preserved coverage dispositions',
+      );
+    }
+    const previous = [...(input.previousCrosswalks ?? [])];
+    const { published, unresolved } = partitionCrosswalks(previous);
+    const shadowPublishedBindingCount = (input.previousDecisions ?? []).filter(
+      (row) => row.publicationState === 'SHADOW_PUBLISHED' && row.lifecycleState === 'CURRENT',
+    ).length;
+    const packagingReceipt = packagingNoopRevalidation({
+      priorPublicationIdentity: priorIdentity,
+      newReleaseSetId: input.capture.releaseSetId,
+      newReleaseId: input.capture.releaseId,
+      newDeltaReceiptId: input.capture.deltaReceiptId,
+      captureRevision: input.capture.captureRevision,
+    });
+    revalidationReceipts.push(packagingReceipt);
+    const readiness = buildDownstreamReadinessDiagnostics({
+      capture: input.capture,
+      coverageEntries,
+      crosswalks: previous,
+      unresolvedUpstreamCount: unresolved.length,
+      shadowPublishedBindingCount,
+    });
+    const summary = buildAggregateGovernanceSummary({
+      mode: 'packaging_noop',
+      captureRevision: input.capture.captureRevision,
+      releaseSetId: input.capture.releaseSetId,
+      releaseId: input.capture.releaseId,
+      deltaReceiptId: input.capture.deltaReceiptId,
+      coverageEntries,
+      crosswalks: previous,
+      bindings: {
+        revalidated: 0,
+        invalidated: 0,
+        reviewed: 0,
+        shadowPublished: shadowPublishedBindingCount,
+      },
+      revalidationReceipts,
+      packagingNoop: true,
+      readiness,
+    });
+    const outputDigest = sha256Canonical({
+      mode: 'packaging_noop',
+      inputDigest: manifest.inputDigest,
+      summary,
+      packagingReceiptId: packagingReceipt.id,
+      priorPublicationIdentity: priorIdentity,
+    });
+    assertFormalSelectorsRemainLegacy({
+      selectAuthority: selectResourceKnowledgeAuthority,
+    });
+    return {
+      manifest,
+      coverageEntries,
+      coverageVersionId: null,
+      crosswalks: previous,
+      publishedCrosswalks: published,
+      unresolvedCrosswalkDiagnostics: unresolved,
+      invalidatedCrosswalks: [],
+      binding: null,
+      revalidationReceipts,
+      receipt: {
+        id: `agg-gov:${outputDigest}`,
+        schemaVersion: 'act-aggregate-course-resource-governance/v1',
+        mode: 'packaging_noop',
+        capture: input.capture,
+        coverageVersionId: null,
+        inputDigest: manifest.inputDigest,
+        outputDigest,
+        summary,
+        authorityState: 'SHADOW',
+        productionAuthoritative: false,
+      },
+      admittedCanonicalIds: admittedCanonicalIds(coverageEntries),
+      teachingProjectionEdgesCreated: false,
+      selectorsLegacy: true,
+    };
+  }
+
+  if (!input.coverageAuthoring) {
+    throw new Error('Aggregate governance rejected: coverage authoring is required');
+  }
+  const coverageMode = manifest.mode === 'baseline' ? 'baseline' : 'incremental';
+  const validatedCoverage = validateCourseCoverageAuthoring(input.coverageAuthoring, {
+    currentCanonicalIds: input.currentCanonicalIds,
+    releaseSetId: input.capture.releaseSetId,
+    releaseId: input.capture.releaseId,
+    releaseHash: input.capture.releaseHash,
+    sourceDatasetHash: input.capture.sourceDatasetHash,
+    mode: coverageMode,
+    requireExhaustive: coverageMode === 'baseline',
+  });
+
+  // Authoring identity must match the coherent capture.
+  requireCoherentCapture({
+    expected: input.capture,
+    observed: {
+      ...input.observedCapture,
+      authoringRevision: validatedCoverage.overlay.authoringRevision,
+      coverageSourceHash: validatedCoverage.overlay.sourceHash,
+    },
+  });
+
+  let coverageEntries = validatedCoverage.entries;
+  if (coverageMode === 'incremental') {
+    const invalidateIds = manifest.objects
+      .filter((row) => row.action === 'invalidate')
+      .map((row) => row.canonicalId);
+    const patchIds = new Set(
+      manifest.objects
+        .filter((row) => row.action === 'review')
+        .map((row) => row.canonicalId),
+    );
+    const patch = validatedCoverage.entries.filter((row) => patchIds.has(row.canonicalId));
+    coverageEntries = mergeIncrementalCoverage({
+      current: input.currentCoverageEntries ?? [],
+      patch: patch.length > 0 ? patch : validatedCoverage.entries,
+      invalidateCanonicalIds: invalidateIds,
+      currentCanonicalIds: input.currentCanonicalIds,
+    });
+  }
+
+  for (const entry of coverageEntries) {
+    if (courseRoleCreatesTeachingProjectionEdge(entry.role) !== false) {
+      throw new Error('Course coverage must not create Teaching Projection edges');
+    }
+  }
+
+  const removedObjectIds = manifest.objects
+    .filter((row) => row.action === 'invalidate')
+    .map((row) => row.canonicalId);
+  const removedTripleKeys = manifest.crosswalks
+    .filter((row) => row.action === 'invalidate')
+    .map((row) => row.tripleKey);
+  const { retained, invalidated: invalidatedCrosswalks } = invalidateCrosswalks({
+    current: input.previousCrosswalks ?? [],
+    removedObjectIds,
+    removedTripleKeys,
+  });
+
+  const membershipSet = new Set(input.currentCanonicalIds);
+  const resolved: ActStructuralUnitCrosswalkRecord[] = [...retained];
+  const workCrosswalks = manifest.crosswalks.filter((row) => row.action !== 'invalidate');
+  for (const item of workCrosswalks) {
+    const upstream = referenceOpaqueUpstream({
+      publishedEntityId: item.publishedEntityId,
+      retrievalChunkId: item.retrievalChunkId,
+      citationTargetId: item.citationTargetId,
+    });
+    const classified = classifyUpstreamReference(upstream, membershipSet);
+    const hints = input.alignmentHints?.[item.tripleKey];
+    const crosswalk = resolveOneCrosswalk({
+      upstream,
+      canonicalId: classified.canonicalId,
+      capture: input.capture,
+      index: input.structuralUnitIndex,
+      hints,
+      semanticReviews: input.semanticReviews,
+    });
+    const gate = validateCrosswalkForShadowPublication({
+      crosswalk,
+      capture: input.capture,
+      existingCurrent: resolved,
+    });
+    if (gate.ok) {
+      resolved.push(gate.crosswalk);
+    } else {
+      // Keep as unresolved diagnostic — never publish without gates.
+      // Relation-type upstream keeps null canonicalId (no fabricated object id).
+      resolved.push({
+        ...crosswalk,
+        canonicalId: classified.canonicalId,
+        validationState: crosswalk.validationState === 'VALIDATED'
+          ? 'UNRESOLVED'
+          : crosswalk.validationState,
+        lifecycleState: 'CURRENT',
+      });
+    }
+  }
+
+  const { published: publishedCrosswalks, unresolved: unresolvedCrosswalkDiagnostics } =
+    partitionCrosswalks(resolved);
+
+  // Same-run reverse index: after Crosswalk publication gates, rebuild
+  // candidateCanonicalIds from all current VALIDATED Crosswalks (prior retained
+  // + this run). Callers must not freeze the reverse map from previous-only rows.
+  const baseSegments = (input.resourceIndex ?? []).map((row) => ({
+    resourceId: row.resourceId,
+    structuralUnitId: row.structuralUnitId,
+    segmentId: row.segmentId,
+    resourceSegmentHash: row.resourceSegmentHash,
+  }));
+  const effectiveResourceIndex = buildResourceIndexFromValidatedCrosswalks({
+    inventoryItems: baseSegments,
+    validatedCrosswalks: publishedCrosswalks,
+  });
+
+  const binding = governResourceBindings({
+    capture: input.capture,
+    work: manifest.resourceBindings,
+    previousDecisions: input.previousDecisions ?? [],
+    canonicalIndex: input.canonicalIndex ?? [],
+    resourceIndex: effectiveResourceIndex,
+    generatorPromptVersion: input.generatorPromptVersion ?? 'aggregate-binding/v1',
+  });
+  revalidationReceipts.push(...binding.revalidationReceipts);
+
+  const readiness = buildDownstreamReadinessDiagnostics({
+    capture: input.capture,
+    coverageEntries,
+    crosswalks: resolved,
+    unresolvedUpstreamCount: unresolvedCrosswalkDiagnostics.length,
+    shadowPublishedBindingCount: binding.shadowPublishedCount,
+  });
+  const summary = buildAggregateGovernanceSummary({
+    mode: manifest.mode,
+    captureRevision: input.capture.captureRevision,
+    releaseSetId: input.capture.releaseSetId,
+    releaseId: input.capture.releaseId,
+    deltaReceiptId: input.capture.deltaReceiptId,
+    coverageEntries,
+    crosswalks: [...resolved, ...invalidatedCrosswalks],
+    bindings: {
+      revalidated: binding.revalidationReceipts.filter((r) => r.outcome === 'REVALIDATED').length,
+      invalidated: binding.invalidated.length,
+      reviewed: binding.candidatesGenerated,
+      shadowPublished: binding.shadowPublishedCount,
+    },
+    revalidationReceipts,
+    packagingNoop: false,
+    readiness,
+  });
+  const outputDigest = sha256Canonical({
+    mode: manifest.mode,
+    inputDigest: manifest.inputDigest,
+    coverageVersionId: validatedCoverage.versionId,
+    coverageEntryCount: coverageEntries.length,
+    publishedCrosswalkDigests: publishedCrosswalks
+      .map((row) => row.validationDigest ?? row.id)
+      .sort(),
+    unresolvedCount: unresolvedCrosswalkDiagnostics.length,
+    bindingRevalidated: binding.revalidationReceipts.length,
+    bindingInvalidated: binding.invalidated.length,
+    summary,
+  });
+
+  assertFormalSelectorsRemainLegacy({
+    selectAuthority: selectResourceKnowledgeAuthority,
+  });
+
+  return {
+    manifest,
+    coverageEntries,
+    coverageVersionId: validatedCoverage.versionId,
+    crosswalks: resolved,
+    publishedCrosswalks,
+    unresolvedCrosswalkDiagnostics,
+    invalidatedCrosswalks,
+    binding,
+    revalidationReceipts,
+    receipt: {
+      id: `agg-gov:${outputDigest}`,
+      schemaVersion: 'act-aggregate-course-resource-governance/v1',
+      mode: manifest.mode,
+      capture: input.capture,
+      coverageVersionId: validatedCoverage.versionId,
+      inputDigest: manifest.inputDigest,
+      outputDigest,
+      summary,
+      authorityState: 'SHADOW',
+      productionAuthoritative: false,
+    },
+    admittedCanonicalIds: admittedCanonicalIds(coverageEntries),
+    teachingProjectionEdgesCreated: false,
+    selectorsLegacy: true,
+  };
+}

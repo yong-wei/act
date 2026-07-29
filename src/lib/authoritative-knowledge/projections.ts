@@ -1079,6 +1079,20 @@ export interface MigrationReviewProjection {
     disposition: 'stale';
     currentReleaseSetId: string;
   }>;
+  /**
+   * Downstream consumer readiness after aggregate governance (#1126).
+   * RAG needs valid ACT Crosswalks; KAQ needs CourseCoverage; SAR needs
+   * reviewed bindings. Teaching Projection / path / facts / cutover remain blocked.
+   */
+  downstreamReadiness: {
+    rag: { consumes: 'valid-act-structural-unit-crosswalk'; blockedWithout: true };
+    kaq: { consumes: 'course-coverage'; blockedWithout: true };
+    sar: { consumes: 'reviewed-bindings-and-kaq'; blockedWithout: true };
+    teachingProjection: { ready: false; blocked: true; reason: 'formal-teaching-projection-not-available' };
+    path: { ready: false; blocked: true; reason: 'awaits-formal-teaching-projection' };
+    facts: { ready: false; blocked: true; reason: 'awaits-formal-teaching-projection' };
+    cutover: { ready: false; blocked: true; reason: 'production-selectors-remain-legacy' };
+  };
   legacyArchive: 'not-ready';
   activeConsumerRebinding: 'not-started';
   readOnly: true;
@@ -1099,10 +1113,37 @@ const MIGRATION_REVIEW_FIELDS: ProjectionFieldDeclaration = {
     'ingest.actualCounts',
     'ingest.drift',
     'staleShadowOutputs',
+    'downstreamReadiness',
     'legacyArchive',
     'activeConsumerRebinding',
   ],
   hidden: ['artifact.bytes'],
+};
+
+const AGGREGATE_DOWNSTREAM_READINESS: MigrationReviewProjection['downstreamReadiness'] = {
+  rag: { consumes: 'valid-act-structural-unit-crosswalk', blockedWithout: true },
+  kaq: { consumes: 'course-coverage', blockedWithout: true },
+  sar: { consumes: 'reviewed-bindings-and-kaq', blockedWithout: true },
+  teachingProjection: {
+    ready: false,
+    blocked: true,
+    reason: 'formal-teaching-projection-not-available',
+  },
+  path: {
+    ready: false,
+    blocked: true,
+    reason: 'awaits-formal-teaching-projection',
+  },
+  facts: {
+    ready: false,
+    blocked: true,
+    reason: 'awaits-formal-teaching-projection',
+  },
+  cutover: {
+    ready: false,
+    blocked: true,
+    reason: 'production-selectors-remain-legacy',
+  },
 };
 
 export function buildMigrationReviewProjection(
@@ -1164,6 +1205,7 @@ export function buildMigrationReviewProjection(
       disposition: 'stale' as const,
       currentReleaseSetId: CURRENT_AGGREGATE_RELEASE_SET_ID,
     })),
+    downstreamReadiness: AGGREGATE_DOWNSTREAM_READINESS,
     legacyArchive: 'not-ready',
     activeConsumerRebinding: 'not-started',
     readOnly: true,

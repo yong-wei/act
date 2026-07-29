@@ -5083,6 +5083,10 @@ model ActkgRelease {
   courseCoverageVersions   CourseCoverageOverlayVersion[]
   resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
   resourceBindingDecisions CanonicalResourceBindingDecision[]
+  aggregateCourseCoverageVersions AggregateCourseCoverageVersion[]
+  aggregateGovernanceReceipts AggregateGovernanceReceipt[]
+  actGovernedCrosswalks ActGovernedStructuralUnitCrosswalk[]
+  aggregateRevalidationReceipts AggregateRevalidationReceipt[]
   // Standard Bundle packaging receipts and multi-Projection identities.
   // Historical #1125 rows leave these relations empty (unavailable).
   bundleReceipts           ActkgBundleReceipt[]
@@ -5114,6 +5118,8 @@ model ActkgAuthoritativeObject {
   courseCoverageEntries    CourseCoverageOverlayEntry[]
   resourceBindingDecisions CanonicalResourceBindingDecision[]
   resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
+  aggregateCourseCoverageEntries AggregateCourseCoverageEntry[]
+  actGovernedCrosswalks    ActGovernedStructuralUnitCrosswalk[]
 
   @@id([releaseId, canonicalId])
   @@unique([releaseId, ordinal])
@@ -5537,6 +5543,7 @@ model ActkgUpstreamRagReference {
 
   release ActkgRelease      @relation(fields: [releaseId], references: [id], onDelete: Restrict)
   entity  ActkgReleaseEntry @relation(fields: [releaseId, publishedEntityId], references: [releaseId, entityId], onDelete: Restrict)
+  actGovernedCrosswalks ActGovernedStructuralUnitCrosswalk[]
 
   @@id([releaseId, publishedEntityId, retrievalChunkId, citationTargetId])
   @@unique([releaseId, ordinal])
@@ -5615,8 +5622,14 @@ model ActkgReleaseSetDeltaReceipt {
   baseImportReceipt   ActkgImportReceipt? @relation("ActkgDeltaBaseImport", fields: [baseImportReceiptId], references: [id], onDelete: Restrict)
   candidateImportReceipt ActkgImportReceipt? @relation("ActkgDeltaCandidateImport", fields: [candidateImportReceiptId], references: [id], onDelete: Restrict)
   signals ActkgReleaseSetDeltaSignal[]
+  aggregateCourseCoverageVersions AggregateCourseCoverageVersion[]
+  actGovernedCrosswalks ActGovernedStructuralUnitCrosswalk[]
+  aggregateRevalidationReceipts AggregateRevalidationReceipt[]
+  aggregateGovernanceReceipts AggregateGovernanceReceipt[]
 
   @@unique([inputDigest, algorithmVersion])
+  /// Composite identity for consumers that must bind a Delta to its candidate Release.
+  @@unique([id, candidateReleaseSetId, candidateReleaseId])
   @@index([candidateReleaseSetId, candidateReleaseId])
   @@index([baseReleaseSetId, baseReleaseId])
   @@index([classification, authorizationState])
@@ -5737,6 +5750,7 @@ model ResourceBindingInventoryItem {
 
   run ResourceBindingInventoryRun @relation(fields: [runId], references: [id], onDelete: Restrict)
   evidenceCrosswalks ActkgEvidenceStructuralUnitCrosswalk[]
+  actGovernedCrosswalks ActGovernedStructuralUnitCrosswalk[]
 
   @@id([runId, atomicResourceId])
   @@index([runId, disposition])
@@ -5859,4 +5873,181 @@ model CanonicalResourceBindingHumanDecisionReceipt {
   decision CanonicalResourceBindingDecision       @relation(fields: [decisionId], references: [id], onDelete: Restrict)
 
   @@index([decisionId])
+}
+
+// ---------------------------------------------------------------------------
+// Aggregate CourseCoverage + ACT structural-unit Crosswalk governance (#1126).
+// Shadow-only. Does not move candidate/active/Legacy production selectors.
+//
+// Identity integrity:
+// - Release membership via composite [releaseSetId, releaseId] → ActkgRelease
+// - Delta bound to the same candidate Release via
+//   [deltaReceiptId, releaseSetId, releaseId] →
+//   ActkgReleaseSetDeltaReceipt[id, candidateReleaseSetId, candidateReleaseId]
+// - Coverage entries bind real Canonical Objects; Crosswalk VALIDATED requires
+//   full structure/inventory tuple; unresolved relation upstream keeps
+//   nullable canonicalId (no fabricated object ids).
+// ---------------------------------------------------------------------------
+
+model AggregateCourseCoverageVersion {
+  id                 String   @id
+  schemaVersion      String
+  overlayId          String
+  overlayVersion     String
+  courseId           String
+  releaseSetId       String
+  releaseId          String
+  releaseHash        String
+  sourceDatasetHash  String?
+  deltaReceiptId     String
+  mode               String
+  authoringRevision  String
+  captureRevision    String
+  sourceHash         String
+  lifecycleState     String   @default("CURRENT")
+  createdAt          DateTime @default(now())
+
+  release            ActkgRelease                  @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
+  deltaReceipt       ActkgReleaseSetDeltaReceipt   @relation(fields: [deltaReceiptId, releaseSetId, releaseId], references: [id, candidateReleaseSetId, candidateReleaseId], onDelete: Restrict)
+  entries            AggregateCourseCoverageEntry[]
+  governanceReceipts AggregateGovernanceReceipt[]
+
+  @@unique([id, releaseId])
+  @@unique([overlayId, overlayVersion])
+  @@unique([courseId, releaseSetId, releaseId, overlayVersion])
+  @@index([releaseSetId, releaseId, lifecycleState])
+  @@index([captureRevision])
+  @@index([deltaReceiptId])
+}
+
+model AggregateCourseCoverageEntry {
+  versionId            String
+  releaseId            String
+  canonicalId          String
+  role                 String
+  ordinal              Int
+  rationale            String?
+  evidenceRefs         Json
+  reviewIdentity       String
+  sourceEvidenceDigest String
+  lifecycleState       String @default("CURRENT")
+
+  version   AggregateCourseCoverageVersion @relation(fields: [versionId, releaseId], references: [id, releaseId], onDelete: Restrict)
+  canonical ActkgAuthoritativeObject       @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+
+  @@id([versionId, canonicalId])
+  @@unique([versionId, ordinal])
+  @@index([releaseId, canonicalId])
+  @@index([canonicalId, role])
+}
+
+/// ACT-owned structural-unit Crosswalk. Upstream RAG triple is referenced
+/// opaquely and never rewritten. Teaching roles are stored separately.
+/// canonicalId is null for unresolved relation-type upstream records.
+model ActGovernedStructuralUnitCrosswalk {
+  id                    String   @id
+  releaseSetId          String
+  releaseId             String
+  deltaReceiptId        String
+  publishedEntityId     String
+  retrievalChunkId      String
+  citationTargetId      String
+  canonicalId           String?
+  sourceEditionId       String?
+  sourceVersion         String?
+  structuralUnitId      String?
+  structuralUnitVersion String?
+  structuralUnitHash    String?
+  evidenceContentHash   String?
+  inventoryRunId        String?
+  atomicResourceId      String?
+  resourceId            String?
+  segmentId             String?
+  resourceSegmentHash   String?
+  captureRevision       String
+  resolutionState       String
+  validationState       String
+  validationDigest      String?
+  reviewIdentity        String?
+  evidenceDigest        String?
+  lifecycleState        String   @default("CURRENT")
+  createdAt             DateTime @default(now())
+
+  release      ActkgRelease                  @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
+  deltaReceipt ActkgReleaseSetDeltaReceipt   @relation(fields: [deltaReceiptId, releaseSetId, releaseId], references: [id, candidateReleaseSetId, candidateReleaseId], onDelete: Restrict)
+  upstream     ActkgUpstreamRagReference     @relation(fields: [releaseId, publishedEntityId, retrievalChunkId, citationTargetId], references: [releaseId, publishedEntityId, retrievalChunkId, citationTargetId], onDelete: Restrict)
+  canonical    ActkgAuthoritativeObject?     @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  inventory    ResourceBindingInventoryItem? @relation(fields: [inventoryRunId, atomicResourceId], references: [runId, atomicResourceId], onDelete: Restrict)
+
+  @@unique([releaseSetId, releaseId, publishedEntityId, retrievalChunkId, citationTargetId, captureRevision])
+  @@index([releaseSetId, releaseId, lifecycleState, validationState])
+  @@index([canonicalId])
+  @@index([structuralUnitId, structuralUnitVersion, structuralUnitHash])
+  @@index([deltaReceiptId])
+}
+
+model AggregateRevalidationReceipt {
+  id                       String   @id
+  kind                     String
+  priorPublicationIdentity String
+  newReleaseSetId          String
+  newReleaseId             String
+  newDeltaReceiptId        String
+  outcome                  String
+  identityDigest           String
+  captureRevision          String
+  copiesPriorPublication   Boolean  @default(false)
+  createdAt                DateTime @default(now())
+
+  release      ActkgRelease                @relation(fields: [newReleaseSetId, newReleaseId], references: [releaseSetId, id], onDelete: Restrict)
+  deltaReceipt ActkgReleaseSetDeltaReceipt @relation(fields: [newDeltaReceiptId, newReleaseSetId, newReleaseId], references: [id, candidateReleaseSetId, candidateReleaseId], onDelete: Restrict)
+
+  @@index([newReleaseSetId, newReleaseId, kind])
+  @@index([priorPublicationIdentity])
+  @@index([captureRevision])
+  @@index([newDeltaReceiptId])
+}
+
+model AggregateGovernanceReceipt {
+  id                         String   @id
+  schemaVersion              String
+  mode                       String
+  /// Current clean governance capture (authoring/inventory/index/implementation).
+  captureRevision            String
+  /// Historical Release import capture — may differ from governance capture.
+  importCaptureRevision      String
+  /// Historical Delta computation capture — may differ from governance capture.
+  deltaCaptureRevision       String
+  dbWatermark                String
+  releaseSetId               String
+  releaseId                  String
+  releaseHash                String
+  sourceDatasetHash          String?
+  deltaReceiptId             String
+  deltaOutputDigest          String
+  deltaClassification        String
+  runtimeProjectionId        String?
+  runtimeProjectionDigest    String?
+  inventoryRunId             String?
+  structuralUnitIndexVersion String?
+  authoringRevision          String?
+  coverageSourceHash         String?
+  coverageVersionId          String?
+  inputDigest                String
+  outputDigest               String
+  summary                    Json
+  authorityState             String   @default("SHADOW")
+  productionAuthoritative    Boolean  @default(false)
+  createdAt                  DateTime @default(now())
+
+  release         ActkgRelease                    @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
+  deltaReceipt    ActkgReleaseSetDeltaReceipt     @relation(fields: [deltaReceiptId, releaseSetId, releaseId], references: [id, candidateReleaseSetId, candidateReleaseId], onDelete: Restrict)
+  coverageVersion AggregateCourseCoverageVersion? @relation(fields: [coverageVersionId, releaseId], references: [id, releaseId], onDelete: Restrict)
+
+  @@unique([outputDigest])
+  @@index([releaseSetId, releaseId, mode])
+  @@index([deltaReceiptId])
+  @@index([captureRevision])
+  @@index([importCaptureRevision])
+  @@index([deltaCaptureRevision])
 }
