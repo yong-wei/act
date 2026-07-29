@@ -1,4 +1,4 @@
-﻿## ADDED Requirements
+## ADDED Requirements
 
 ### Requirement: Teaching assistant triggers learning diagnosis
 The system SHALL support teacher-initiated learning diagnosis generation through the Konling teaching assistant runtime.
