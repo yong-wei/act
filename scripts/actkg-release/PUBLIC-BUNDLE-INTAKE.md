@@ -23,6 +23,23 @@ Machine-readable identities live in:
 - `scripts/actkg-release/bundle-compatibility-registry.ts`
 - `scripts/actkg-release/schemas/public-bundle/*`
 
+## Current compatible content release
+
+The current reviewed intake is the stable v3E three-layer ReleaseSet published
+from ActKG source commit
+`0c9775f25eab5a4f45b4d74e68de4dcf0cbcef46`:
+
+| Layer | Publication tag | Bundle digest | Release hash |
+| --- | --- | --- | --- |
+| Module | `time-domain-analysis-engineering-v0.1` | `20807dfe406903bd9a8a4a238717d49f4abbacb3e041dab5be6068d126ec7eeb` | `52da8d2147f44749d4e1f8ffd99090f5e0d8c6ba6a8915433041d163cb51aff6` |
+| Integration | `control-theory-integration-v0.2` | `f1b75e4d5e98c360e6f60bdc6abd130b3bbfd130df9cc04141d389f8d3348ead` | `c35c5acac51de4fa9a951df5fdd6c96041795a406ed7555163953f45068d4c1a` |
+| Aggregate | `control-theory-engineering-v0.4` | `e17a46ce3a159cf9b0a1e35b5eddd68f7c8a21ac97ebedd281c2f18215d285c7` | `46ce6f09afba677358749f854d2797895e05dda875c8b1c197437d742c7f0b4b` |
+
+The aggregate is pinned by
+`course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.4.json`.
+The module and integration Bundles are validated component boundaries; only the
+aggregate is a top-level candidate import target.
+
 ## Ordinary compatible-release intake
 
 Use this path when Bundle, Schema, and required Artifact contracts are already

@@ -15,6 +15,9 @@ import type { JsonObject } from '../../../scripts/actkg-release/public-bundle-ty
 
 const root = process.cwd();
 const R2 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.3-r2';
+const V3E_MODULE =
+  'course-content/authoring/knowledge/releases/time-domain-analysis-engineering-v0.1';
+const V4 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.4';
 
 describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
   it('recomputes the vendored r2 Release self-hash', async () => {
@@ -37,6 +40,49 @@ describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
       expect(computeProjectionVersionDigest(projection, null, entry.profile)).toBe(
         String(projection.version_digest),
       );
+    }
+  });
+
+  it('recomputes vendored v3E projection digests with their registered aggregation policies', async () => {
+    const cases: Array<{
+      directory: string;
+      file: string;
+      profile: string;
+      aggregationPolicy: string;
+    }> = [
+      {
+        directory: V4,
+        file: 'act-projection.json',
+        profile: 'runtime',
+        aggregationPolicy: 'm1f-v1t-release-tier-preserving',
+      },
+      {
+        directory: V3E_MODULE,
+        file: 'act-projection.json',
+        profile: 'runtime',
+        aggregationPolicy: 'm1f-v3e-release-tier-preserving',
+      },
+    ];
+    for (const entry of cases) {
+      const projection = JSON.parse(
+        await readFile(path.join(root, entry.directory, entry.file), 'utf8'),
+      ) as JsonObject;
+      expect(
+        computeProjectionVersionDigest(
+          projection,
+          null,
+          entry.profile,
+          entry.aggregationPolicy,
+        ),
+      ).toBe(String(projection.version_digest));
+      expect(
+        computeProjectionVersionDigest(
+          projection,
+          null,
+          entry.profile,
+          'm1e-v1b-release-tier-preserving',
+        ),
+      ).not.toBe(String(projection.version_digest));
     }
   });
 

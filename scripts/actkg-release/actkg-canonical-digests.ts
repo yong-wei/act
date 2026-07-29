@@ -4,8 +4,8 @@
  * Contract sources (upstream ActKG repository):
  * - `src/ctkg_schema/validation.py` → `projection_version_digest`
  * - `src/ctkg_schema/public_bundle.py` → `canonical_json` / Release self-hash
- * - `src/ctkg_schema/section_kg/m1e_release.py` → public projection profile shape
- *   used when packaging GraphProjection `version_digest` with a full profile record
+ * - registered CTKG release builders → public projection profile shape used
+ *   when packaging GraphProjection `version_digest` with a full profile record
  *
  * Serialization matches ActKG:
  *   json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -21,8 +21,8 @@
  *
  * Public packages often only carry `projection_profile` as an id string. In that
  * case the profile record is reconstructed from the CTKG public packaging
- * template (m1e_release) so standalone Bundle validation matches the digest
- * that was produced with the full profile at package time.
+ * template so standalone Bundle validation can match the digest produced with
+ * the full registered profile at package time.
  */
 import { createHash } from 'node:crypto';
 
@@ -101,14 +101,15 @@ export function resolveProjectionKind(
  * Reconstruct the CTKG public projection profile record used at package time
  * when only the profile id is present on the GraphProjection payload.
  *
- * Shape source: ActKG `m1e_release._build_projection` profile template.
+ * Shape source: registered ActKG public release profile templates.
  */
 export function reconstructPublicProjectionProfile(
   projectionProfileId: string,
   manifestProfile?: string,
+  aggregationPolicy = 'm1e-v1b-release-tier-preserving',
 ): JsonObject {
   return {
-    aggregation_policy: 'm1e-v1b-release-tier-preserving',
+    aggregation_policy: aggregationPolicy,
     id: projectionProfileId,
     included_lifecycle_statuses: ['accepted'],
     lifecycle_status: 'accepted',
@@ -125,7 +126,8 @@ export function reconstructPublicProjectionProfile(
  *
  * @param projection GraphProjection payload
  * @param profile Optional full profile record. When omitted, a public packaging
- *   profile is reconstructed from the projection's profile id.
+ *   profile is reconstructed from the projection's profile id and registered
+ *   aggregation policy.
  * @param manifestProfile Optional Manifest profile label (runtime/domain/review)
  *   used only to disambiguate kind when reconstructing the profile.
  */
@@ -133,6 +135,7 @@ export function computeProjectionVersionDigest(
   projection: JsonObject,
   profile?: JsonObject | null,
   manifestProfile?: string,
+  aggregationPolicy?: string,
 ): string {
   const projectionProfileId = typeof projection.projection_profile === 'string'
     ? projection.projection_profile
@@ -140,7 +143,11 @@ export function computeProjectionVersionDigest(
   const profileRecord = profile
     ?? (
       projectionProfileId
-        ? reconstructPublicProjectionProfile(projectionProfileId, manifestProfile)
+        ? reconstructPublicProjectionProfile(
+          projectionProfileId,
+          manifestProfile,
+          aggregationPolicy,
+        )
         : { id: projection.projection_profile }
     );
 

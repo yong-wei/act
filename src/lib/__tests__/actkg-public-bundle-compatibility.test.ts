@@ -16,6 +16,7 @@ import {
   PUBLIC_BUNDLE_CONTRACT_VERSION,
   REVIEWED_V0_3_R2_IDENTITIES,
 } from '../../../scripts/actkg-release/bundle-compatibility-registry';
+import { PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS } from '../../../scripts/actkg-release/capture-revision';
 import {
   decidePublicBundleRoute,
   routeAndValidatePublicBundle,
@@ -34,13 +35,22 @@ import type { JsonObject, ReleaseSetLockV3 } from '../../../scripts/actkg-releas
 
 const root = process.cwd();
 const R2_PATH = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.3-r2';
+const V4_PATH = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.4';
 const V02_PATH = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.2';
 const LOCK_V3 = DEFAULT_PUBLIC_BUNDLE_LOCK_PATH;
+const V4_LOCK =
+  'course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.4.json';
 const UNFIXED = 'scripts/actkg-release/fixtures/control-theory-engineering-v0.3-unfixed';
 const COMPONENT_PATHS = [
   'course-content/authoring/knowledge/releases/root-locus-engineering-v0.1',
   'course-content/authoring/knowledge/releases/system-modeling-engineering-v0.1',
   'course-content/authoring/knowledge/releases/control-theory-integration-v0.1',
+] as const;
+const V4_COMPONENT_PATHS = [
+  'course-content/authoring/knowledge/releases/root-locus-engineering-v0.1',
+  'course-content/authoring/knowledge/releases/system-modeling-engineering-v0.1',
+  'course-content/authoring/knowledge/releases/time-domain-analysis-engineering-v0.1',
+  'course-content/authoring/knowledge/releases/control-theory-integration-v0.2',
 ] as const;
 
 /** Real Git HEAD of the repository; never a fabricated digest. */
@@ -105,7 +115,37 @@ type Manifest = JsonObject & {
 };
 
 async function copyTree(sourceRelative: string, destinationRoot: string, destinationRelative: string): Promise<void> {
+  await mkdir(path.dirname(path.join(destinationRoot, destinationRelative)), { recursive: true });
   await cp(path.join(root, sourceRelative), path.join(destinationRoot, destinationRelative), { recursive: true });
+}
+
+async function v4FixtureRoot(): Promise<string> {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'actkg-public-bundle-v4-'));
+  await copyTree(V4_PATH, dir, V4_PATH);
+  await copyTree(V4_LOCK, dir, V4_LOCK);
+  for (const component of V4_COMPONENT_PATHS) {
+    await copyTree(component, dir, component);
+  }
+  for (const adapterPath of PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS) {
+    await copyTree(adapterPath, dir, adapterPath);
+  }
+  execFileSync('git', ['init', '-q'], { cwd: dir });
+  execFileSync('git', ['add', '.'], { cwd: dir });
+  execFileSync(
+    'git',
+    [
+      '-c',
+      'user.name=ACT Test',
+      '-c',
+      'user.email=act-test@example.invalid',
+      'commit',
+      '-q',
+      '-m',
+      'test: capture v4 fixture',
+    ],
+    { cwd: dir },
+  );
+  return dir;
 }
 
 async function fixtureRoot(): Promise<string> {
@@ -557,6 +597,69 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     expect(validated.crosswalk).toHaveLength(1361);
     // storage-independent: no database side effects are performed by validation
     expect(validated.releaseSetIdentity.lockVersion).toBe('actkg-release-set-lock/v3');
+  });
+
+  it('admits the stable v3E aggregate and validates its three-layer component closure', async () => {
+    const fixture = await v4FixtureRoot();
+    try {
+      const validated = await loadAndValidatePublicBundleV1({
+        root: fixture,
+        lockPath: V4_LOCK,
+        bundlePath: V4_PATH,
+        captureRevision: realGitHead(fixture),
+        gitRoot: fixture,
+      });
+
+      expect(validated.releaseSetIdentity.releaseSetId).toBe('actkg-authoritative-candidate-v4');
+      expect(validated.bundleIdentity).toMatchObject({
+        bundleId: 'ctb:control-theory-engineering-v0.4:r1',
+        bundleRevision: 1,
+        bundleDigest: 'e17a46ce3a159cf9b0a1e35b5eddd68f7c8a21ac97ebedd281c2f18215d285c7',
+        manifestRawSha256: 'f1a8fe3fa224b8b125535bb721ca64eff6ba41a8361094d667b0ac496c096489',
+        bundleKind: 'aggregate',
+        releaseStage: 'stable',
+      });
+      expect(validated.releaseIdentity).toMatchObject({
+        releaseId: 'ctr:release:control-theory-engineering-v0.4',
+        releaseHash: '46ce6f09afba677358749f854d2797895e05dda875c8b1c197437d742c7f0b4b',
+        sourceDatasetHash: '18ee354f64674211d511d23d53269a9081cc05bcaa31a2d0422b14ef89f974e4',
+      });
+      expect(validated.schemaIdentity).toEqual({
+        version: '0.2.0',
+        rawSha256: '3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de',
+      });
+      expect(validated.compatibility.code).toBe('COMPATIBLE_CONTENT_UPDATE');
+      expect(
+        validated.components.map((component) => ({
+          releaseId: component.releaseId,
+          referenceKind: component.referenceKind,
+          bundleDigest: component.bundleDigest,
+        })),
+      ).toEqual([
+        {
+          releaseId: 'ctr:root-locus-engineering-v0.1',
+          referenceKind: 'legacy_exact',
+          bundleDigest: undefined,
+        },
+        {
+          releaseId: 'ctr:release:system-modeling-engineering-v0.1',
+          referenceKind: 'legacy_exact',
+          bundleDigest: undefined,
+        },
+        {
+          releaseId: 'ctr:release:time-domain-analysis-engineering-v0.1',
+          referenceKind: 'standard_bundle',
+          bundleDigest: '20807dfe406903bd9a8a4a238717d49f4abbacb3e041dab5be6068d126ec7eeb',
+        },
+        {
+          releaseId: 'ctr:release:control-theory-integration-v0.2',
+          referenceKind: 'standard_bundle',
+          bundleDigest: 'f1b75e4d5e98c360e6f60bdc6abd130b3bbfd130df9cc04141d389f8d3348ead',
+        },
+      ]);
+    } finally {
+      await rm(fixture, { recursive: true, force: true });
+    }
   });
 
   it('keeps the historical v0.2 package on the exact adapter and never fabricates a Manifest route', async () => {
