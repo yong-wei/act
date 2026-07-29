@@ -224,114 +224,133 @@ function forbiddenFieldNames(): string[] {
 }
 
 /**
- * Absolute filesystem-path leak detector for public Artifacts.
+ * Absolute filesystem-path leak detector for free-text / non-JSON public content.
  *
  * Coverage:
- * - arbitrary multi-segment POSIX absolute paths (/srv/..., /usr/..., /run/...)
+ * - arbitrary multi-segment POSIX absolute paths
  * - Windows drive paths (C:\... / D:/...)
  * - real UNC paths (\\server\share\...)
  * - file URIs: POSIX form (file:///path) and authority form (file://host/path)
  *
- * False-positive guards:
- * - http(s) URL path segments (host alnum precedes the slash)
- * - JSON Pointer-like paths (/properties/..., /$defs/...)
- * - course-relative paths without a leading absolute root
- * - LaTeX / JSON backslash escapes (\\begin{aligned} is not a UNC host/share)
+ * Context rules (production data):
+ * - http(s) URL path/query/fragment is stripped before POSIX matching so a URL
+ *   never yields a second-path false positive
+ * - bare multi-segment absolute paths fail closed (no JSON Pointer root whitelist)
+ * - LaTeX / math backslash sequences are not UNC hosts
  *
- * Exported for unit tests only; production callers go through scanPrivacy.
+ * JSON/NDJSON documents do not run this detector over raw bytes; they use
+ * decoded field-context scanning (see scanDecodedJsonValue).
+ *
+ * Exported for unit tests; production callers go through scanPrivacy.
  */
-const JSON_POINTER_ROOT_SEGMENTS = new Set([
-  'properties',
-  'items',
-  'definitions',
-  '$defs',
-  'allOf',
-  'anyOf',
-  'oneOf',
-  'not',
-  'if',
-  'then',
-  'else',
-  'required',
-  'type',
-  'enum',
-  'const',
-  'default',
-  'title',
-  'description',
-  'format',
-  'patternProperties',
-  'additionalProperties',
-  'dependentSchemas',
-  'prefixItems',
-  'contains',
-  'unevaluatedProperties',
-  'unevaluatedItems',
-  'pattern',
-  'minimum',
-  'maximum',
-  'minLength',
-  'maxLength',
-  'minItems',
-  'maxItems',
-  'uniqueItems',
-  'additionalItems',
-  'dependencies',
-  'propertyNames',
-  'contentMediaType',
-  'contentSchema',
+const HTTP_OR_HTTPS_URL = /https?:\/\/[^\s"'`<>]+/giu;
+
+/** JSON Reference keys whose string values are pointers/URIs, not filesystem paths. */
+const JSON_REFERENCE_KEYS = new Set([
+  '$ref',
+  '$recursiveRef',
+  '$dynamicRef',
 ]);
 
-function isJsonPointerLikeAbsolutePath(absolutePath: string): boolean {
-  const segments = absolutePath.split('/').filter((segment) => segment.length > 0);
-  if (segments.length === 0) return true;
-  // JSON Schema / pointer roots: /$defs/..., /properties/..., etc.
-  if (segments.some((segment) => segment.startsWith('$'))) return true;
-  if (JSON_POINTER_ROOT_SEGMENTS.has(segments[0]!)) return true;
-  return false;
+function scrubHttpUrls(text: string): string {
+  return text.replace(HTTP_OR_HTTPS_URL, ' ');
+}
+
+function isJsonReferenceKey(key: string | undefined): boolean {
+  return key !== undefined && JSON_REFERENCE_KEYS.has(key);
 }
 
 export function detectAbsoluteFilesystemPathLeak(text: string): string | null {
+  // Never re-match path/query/fragment from http(s) URLs.
+  const scrubbed = scrubHttpUrls(text);
+
   // file: URIs — POSIX triple-slash and host-authority forms.
-  // file:///tmp/build/out  |  file:///Users/yw/secret.txt  |  file://server/share/path
   const fileUri = /(?:^|[^A-Za-z0-9_+.-])(file:\/\/(?:\/[^\s"'`<>]+|[A-Za-z0-9][A-Za-z0-9._-]*(?:\/[^\s"'`<>]+)+))/iu
-    .exec(text);
+    .exec(scrubbed);
   if (fileUri?.[1]) return fileUri[1];
 
   // Windows drive path: C:\foo\bar or C:/foo/bar
-  const windowsDrive = /(?:^|[^A-Za-z0-9_])([A-Za-z]:[\\/][^\s"'`<>|]+)/u.exec(text);
+  const windowsDrive = /(?:^|[^A-Za-z0-9_])([A-Za-z]:[\\/][^\s"'`<>|]+)/u.exec(scrubbed);
   if (windowsDrive?.[1]) return windowsDrive[1];
 
-  // UNC path: \\server\share[\path...]
-  // Require hostname-like server + share names so LaTeX "\\begin{aligned}\nV_{2}(s)"
-  // (braces / non-host characters) is never treated as UNC.
+  // UNC path: \\server\share[\path...] with hostname-like server + share.
+  // Rejects LaTeX "\\begin{aligned}\nV_{2}(s)" (braces are not host characters).
   const unc = /(?:^|[^\\])(\\\\[A-Za-z0-9][A-Za-z0-9._-]*\\[A-Za-z0-9$][A-Za-z0-9._$-]*(?:\\[^\s"'`<>|\\/]+)*)/u
-    .exec(text);
+    .exec(scrubbed);
   if (unc?.[1]) return unc[1];
 
-  // Arbitrary multi-segment POSIX absolute path.
-  // Segments are restricted to filesystem-safe tokens so math like
-  // "R(s)=p(s)/q(s)" and LaTeX fractions are not treated as paths.
-  // Leading boundary excludes alnum / _ / . / : / so URL hosts like example.com/tmp
-  // do not match (the character before /tmp is alnum).
+  // Multi-segment POSIX absolute path (filesystem-safe segment charset).
+  // Bare /foo/bar fails closed in free text; JSON $ref uses field-context skip.
   const posix = /(?:^|[^A-Za-z0-9_.:/])(\/(?:[A-Za-z0-9._~+-]+)(?:\/(?:[A-Za-z0-9._~+-]+))+)/u
-    .exec(text);
-  if (posix?.[1] && !isJsonPointerLikeAbsolutePath(posix[1])) {
-    return posix[1];
-  }
+    .exec(scrubbed);
+  if (posix?.[1]) return posix[1];
 
   return null;
 }
 
-/** Scan arbitrary public text for secrets/global tokens and absolute path leaks. */
-export function scanPublicTextForPrivacyLeaks(relativePath: string, text: string): string[] {
+/** Scan free-text for global secret tokens only (no path detection). */
+export function scanPublicTextForSecretLeaks(relativePath: string, text: string): string[] {
   const findings: string[] = [];
   for (const token of FORBIDDEN_PUBLIC_GLOBAL_TOKENS) {
     if (text.includes(token)) findings.push(`${relativePath}:${token}`);
   }
+  return findings;
+}
+
+/**
+ * Scan free-text / non-JSON public content for secrets and absolute path leaks.
+ * Not used for context-free path scanning of raw JSON document bytes.
+ */
+export function scanPublicTextForPrivacyLeaks(relativePath: string, text: string): string[] {
+  const findings = scanPublicTextForSecretLeaks(relativePath, text);
   const pathLeak = detectAbsoluteFilesystemPathLeak(text);
   if (pathLeak) findings.push(`${relativePath}:absolute-path:${pathLeak}`);
   return findings;
+}
+
+/**
+ * Pure JSON Pointer / URI-reference forms under $ref (RFC 6901 / 3986-ish).
+ * These are schema structure, not filesystem paths. Anything with file://,
+ * a Windows drive, or UNC is NOT pure and must still be path-scanned.
+ */
+function isPureJsonPointerOrUriReference(text: string): boolean {
+  const value = text.trim();
+  if (!value) return false;
+  // Explicit filesystem URI schemes are never pure pointers.
+  if (/^file:/iu.test(value)) return false;
+  // Windows drive or UNC absolute paths are never pure pointers.
+  if (/^[A-Za-z]:[\\/]/u.test(value)) return false;
+  if (/^\\\\[A-Za-z0-9]/u.test(value)) return false;
+  // JSON Pointer: "" (root), "#", "#/...", or absolute/relative pointer "/..."
+  if (value === '#' || value.startsWith('#/') || value.startsWith('#') && !value.includes('://')) {
+    // "#foo" fragment refs and "#/a/b" pointers — no scheme.
+    if (!/^[A-Za-z][A-Za-z0-9+.-]*:/u.test(value)) return true;
+  }
+  if (value.startsWith('/') && !value.startsWith('//')) return true;
+  // Relative URI-references without a scheme (e.g. "schemas/Foo.json") stay exempt.
+  if (!/^[A-Za-z][A-Za-z0-9+.-]*:/u.test(value) && !value.startsWith('\\')) return true;
+  return false;
+}
+
+/**
+ * Scan a decoded JSON string value.
+ * - Always checks global secrets.
+ * - Under JSON Reference keys ($ref, …), only pure JSON Pointer / URI-reference
+ *   forms skip path detection; file://, Windows drive, and UNC still fail closed.
+ * - Otherwise applies the free-text path detector (with http(s) URL scrubbing).
+ */
+function scanDecodedJsonString(
+  relativePath: string,
+  text: string,
+  findings: string[],
+  fieldKey: string | undefined,
+): void {
+  findings.push(...scanPublicTextForSecretLeaks(relativePath, text));
+  if (isJsonReferenceKey(fieldKey) && isPureJsonPointerOrUriReference(text)) {
+    return;
+  }
+  const pathLeak = detectAbsoluteFilesystemPathLeak(text);
+  if (pathLeak) findings.push(`${relativePath}:absolute-path:${pathLeak}`);
 }
 
 function scanDecodedJsonValue(
@@ -339,10 +358,11 @@ function scanDecodedJsonValue(
   relativePath: string,
   findings: string[],
   skipFieldTokens: boolean,
+  fieldKey?: string,
 ): void {
   if (value === null || value === undefined) return;
   if (typeof value === 'string') {
-    findings.push(...scanPublicTextForPrivacyLeaks(relativePath, value));
+    scanDecodedJsonString(relativePath, value, findings, fieldKey);
     return;
   }
   if (typeof value === 'number' || typeof value === 'boolean') {
@@ -350,7 +370,9 @@ function scanDecodedJsonValue(
   }
   if (Array.isArray(value)) {
     for (const item of value) {
-      scanDecodedJsonValue(item, relativePath, findings, skipFieldTokens);
+      // Array elements inherit no key context from the parent field name for
+      // reference semantics (only the object property name $ref qualifies).
+      scanDecodedJsonValue(item, relativePath, findings, skipFieldTokens, undefined);
     }
     return;
   }
@@ -359,9 +381,42 @@ function scanDecodedJsonValue(
       if (!skipFieldTokens && forbiddenFieldNames().includes(key)) {
         findings.push(`${relativePath}:${key}`);
       }
-      scanDecodedJsonValue(child, relativePath, findings, skipFieldTokens);
+      scanDecodedJsonValue(child, relativePath, findings, skipFieldTokens, key);
     }
   }
+}
+
+/**
+ * JSON/NDJSON privacy scan for tests: secrets on raw text + decoded field-context
+ * path checks (no context-free POSIX scan of the raw document).
+ */
+export function scanJsonTextForPrivacyLeaks(
+  relativePath: string,
+  text: string,
+  options: { ndjson?: boolean } = {},
+): string[] {
+  const findings = scanPublicTextForSecretLeaks(relativePath, text);
+  if (options.ndjson) {
+    for (const [index, line] of text.split(/\r?\n/u).entries()) {
+      if (!line.trim()) continue;
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(line);
+      } catch {
+        throw new Error(`${relativePath}[${index}] is not valid NDJSON for privacy scanning`);
+      }
+      scanDecodedJsonValue(parsed, relativePath, findings, false);
+    }
+    return findings;
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(`${relativePath} is not valid JSON for privacy scanning`);
+  }
+  scanDecodedJsonValue(parsed, relativePath, findings, false);
+  return findings;
 }
 
 /**
@@ -649,9 +704,6 @@ function scanPrivacy(
   } = {},
 ): string[] {
   const text = bytes.toString('utf8');
-  // Always scan raw public text for secrets and absolute path leaks.
-  const findings = scanPublicTextForPrivacyLeaks(relativePath, text);
-
   const skipFieldTokens = options.skipFieldTokens
     ?? (
       relativePath === 'ctkg.schema.json'
@@ -660,6 +712,10 @@ function scanPrivacy(
   const mediaType = options.mediaType;
 
   if (mediaType && isJsonFamilyMediaType(mediaType)) {
+    // JSON/NDJSON: raw bytes get secret-token checks only (no context-free POSIX
+    // path scan). Paths are evaluated after decode with field-key context so
+    // $ref pointers are not misclassified and Unicode-escaped keys still surface.
+    const findings = scanPublicTextForSecretLeaks(relativePath, text);
     if (isNdjsonMediaType(mediaType)) {
       const lines = text.split(/\r?\n/u).filter((line) => line.length > 0);
       for (const [index, line] of lines.entries()) {
@@ -684,6 +740,8 @@ function scanPrivacy(
     return findings;
   }
 
+  // Non-JSON public text: secrets + free-text path detection (bare /foo/bar fails closed).
+  const findings = scanPublicTextForPrivacyLeaks(relativePath, text);
   if (!skipFieldTokens) {
     for (const token of FORBIDDEN_PUBLIC_FIELD_TOKENS) {
       if (text.includes(token)) findings.push(`${relativePath}:${token}`);
