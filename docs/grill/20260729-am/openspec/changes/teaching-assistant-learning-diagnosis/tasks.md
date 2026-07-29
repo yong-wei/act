@@ -1,4 +1,4 @@
-﻿## 1. 风险标记后台扫描 pipeline
+## 1. 风险标记后台扫描 pipeline
 
 - [ ] 1.1 在 `src/lib/` 下创建 `risk-scanner.ts`，实现确定性规则引擎
   - 定义规则接口：`type RiskScanRule = { evaluate(studentId: string): Promise<StudentRiskFlag | null> }`
