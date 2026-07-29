@@ -351,6 +351,70 @@ async function main(): Promise<void> {
     const secondPersist = await repository.persistRun(baseline);
     assert.equal(secondPersist.mode, 'idempotent');
 
+    // Exact same capture/receipt identity after DB baseline exists must re-derive
+    // the identical receipt (production re-run path), not fail on source hash drift
+    // and must not treat authoring.mode alone as a re-baseline switch.
+    const persistedPrior = await repository.readLatestGovernanceReceipt(releaseSet.id);
+    assert.ok(persistedPrior);
+    assert.equal(persistedPrior!.id, baseline.receipt.id);
+    assert.equal(persistedPrior!.mode, 'baseline');
+    const sameInputReplay = runAggregateGovernance({
+      capture,
+      observedCapture: observedOf(capture),
+      hasGovernedCoverageBaseline: true,
+      priorGovernanceReceipt: persistedPrior,
+      deltaClassification: delta.classification,
+      currentCanonicalIds: membership.canonicalIds,
+      signals: delta.signals.map((row) => ({
+        scope: row.scope,
+        identity: row.identity,
+        action: row.action,
+        reason: row.reason,
+      })),
+      upstreamReferences: release.upstreamRagReferences.map((row) => ({
+        publishedEntityId: row.publishedEntityId,
+        retrievalChunkId: row.retrievalChunkId,
+        citationTargetId: row.citationTargetId,
+      })),
+      structuralUnitIndex: structural.entries,
+      coverageAuthoring: provisionalAuthoring,
+      currentCoverageEntries: baseline.coverageEntries,
+      previousCrosswalks: baseline.crosswalks,
+      priorSemanticPublicationIdentity: baseline.coverageVersionId ?? baseline.receipt.id,
+    });
+    assert.equal(sameInputReplay.manifest.mode, 'baseline');
+    assert.equal(sameInputReplay.receipt.id, baseline.receipt.id);
+    assert.equal(sameInputReplay.coverageVersionId, baseline.coverageVersionId);
+    const thirdPersist = await repository.persistRun(sameInputReplay);
+    assert.equal(thirdPersist.mode, 'idempotent');
+    assert.equal(thirdPersist.receiptId, baseline.receipt.id);
+
+    // New Delta identity must not re-baseline even if authoring.mode is still baseline.
+    const driftedDeltaCapture: CaptureIdentity = {
+      ...capture,
+      deltaReceiptId: 'delta-receipt:changed-for-replay-fence',
+      deltaOutputDigest: 'a'.repeat(64),
+    };
+    assert.throws(() => runAggregateGovernance({
+      capture: driftedDeltaCapture,
+      observedCapture: observedOf(driftedDeltaCapture),
+      hasGovernedCoverageBaseline: true,
+      priorGovernanceReceipt: persistedPrior,
+      deltaClassification: delta.classification,
+      currentCanonicalIds: membership.canonicalIds,
+      signals: delta.signals.map((row) => ({
+        scope: row.scope,
+        identity: row.identity,
+        action: row.action,
+        reason: row.reason,
+      })),
+      upstreamReferences: [],
+      structuralUnitIndex: structural.entries,
+      coverageAuthoring: provisionalAuthoring,
+      currentCoverageEntries: baseline.coverageEntries,
+      previousCrosswalks: baseline.crosswalks,
+    }), /authoring mode baseline conflicts with governance mode incremental|capture drift/u);
+
     // Prove distinct historical identity slots: re-run with different importCaptureRevision
     // values that still match between expected and observed succeeds.
     const differentImport = 'd'.repeat(40);
@@ -396,6 +460,7 @@ async function main(): Promise<void> {
       baselineDispositions: baseline.coverageEntries.length,
       publishedCrosswalks: baseline.publishedCrosswalks.length,
       unresolvedCrosswalks: baseline.unresolvedCrosswalkDiagnostics.length,
+      sameInputReplayIdempotent: true,
       packagingNoopWithDistinctCaptures: true,
       captureDriftRejected: true,
       selectors: {

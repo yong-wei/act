@@ -203,6 +203,11 @@ export function validateCourseCoverageAuthoring(
   if (!Array.isArray(raw.entries)) {
     throw new Error('Course coverage rejected: entries must be an array');
   }
+  if (raw.mode != null && raw.mode !== input.mode) {
+    throw new Error(
+      `Course coverage rejected: authoring mode ${String(raw.mode)} conflicts with governance mode ${input.mode}`,
+    );
+  }
 
   const entries = raw.entries.map((entry, index) => {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {

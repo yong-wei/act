@@ -280,6 +280,7 @@ async function main(): Promise<void> {
       capture: expectedCapture,
       observedCapture,
       hasGovernedCoverageBaseline: Boolean(existingCoverage),
+      priorGovernanceReceipt: previousReceipt,
       deltaClassification: delta.classification,
       currentCanonicalIds: membership.canonicalIds,
       signals: delta.signals.map((row) => ({

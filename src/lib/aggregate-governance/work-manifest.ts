@@ -20,6 +20,12 @@ export interface BuildWorkManifestInput {
   capture: CaptureIdentity;
   /** True when a CURRENT governed coverage baseline already exists for this candidate lineage. */
   hasGovernedCoverageBaseline: boolean;
+  /**
+   * Exact same-input baseline receipt/capture replay only.
+   * Must come from fail-closed identity comparison against the persisted prior
+   * governance receipt — never from authoring.mode alone (no generic re-baseline).
+   */
+  exactBaselineReplay?: boolean;
   deltaClassification: string;
   currentCanonicalIds: readonly string[];
   signals: readonly DeltaSignalLike[];
@@ -46,6 +52,8 @@ function packagingNoop(classification: string, signals: readonly DeltaSignalLike
  * Schedule governance work.
  * - No baseline → every current object is reviewed (exhaustive).
  * - Baseline exists → only Delta-affected objects/crosswalks/bindings.
+ * - Exact same-input baseline receipt/capture replay → re-derive original baseline
+ *   work only (idempotent persist path); not a public re-baseline capability.
  * - Packaging-only → empty work sets with packagingNoop=true.
  */
 export function buildGovernanceWorkManifest(
@@ -56,9 +64,9 @@ export function buildGovernanceWorkManifest(
   const isPackaging = packagingNoop(input.deltaClassification, input.signals);
   const mode: GovernanceMode = isPackaging
     ? 'packaging_noop'
-    : input.hasGovernedCoverageBaseline
-      ? 'incremental'
-      : 'baseline';
+    : !input.hasGovernedCoverageBaseline || input.exactBaselineReplay === true
+      ? 'baseline'
+      : 'incremental';
 
   if (isPackaging) {
     const manifest: GovernanceWorkManifest = {

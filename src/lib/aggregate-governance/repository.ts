@@ -422,18 +422,84 @@ export class AggregateGovernanceRepository {
 
   async readLatestGovernanceReceipt(releaseSetId: string): Promise<{
     id: string;
+    mode: string;
     outputDigest: string;
+    inputDigest: string;
     coverageVersionId: string | null;
+    captureRevision: string;
+    importCaptureRevision: string;
+    deltaCaptureRevision: string;
+    dbWatermark: string;
+    releaseSetId: string;
+    releaseId: string;
+    releaseHash: string;
+    sourceDatasetHash: string | null;
+    deltaReceiptId: string;
+    deltaOutputDigest: string;
+    deltaClassification: string;
+    runtimeProjectionId: string | null;
+    runtimeProjectionDigest: string | null;
+    inventoryRunId: string | null;
+    structuralUnitIndexVersion: string | null;
+    authoringRevision: string | null;
+    coverageSourceHash: string | null;
   } | null> {
     const row = await this.db.aggregateGovernanceReceipt?.findFirst?.({
       where: { releaseSetId },
       orderBy: { createdAt: 'desc' },
     }) as {
       id: string;
+      mode: string;
       outputDigest: string;
+      inputDigest: string;
       coverageVersionId: string | null;
+      captureRevision: string;
+      importCaptureRevision: string;
+      deltaCaptureRevision: string;
+      dbWatermark: string;
+      releaseSetId: string;
+      releaseId: string;
+      releaseHash: string;
+      sourceDatasetHash: string | null;
+      deltaReceiptId: string;
+      deltaOutputDigest: string;
+      deltaClassification: string;
+      runtimeProjectionId: string | null;
+      runtimeProjectionDigest: string | null;
+      inventoryRunId: string | null;
+      structuralUnitIndexVersion: string | null;
+      authoringRevision: string | null;
+      coverageSourceHash: string | null;
     } | null;
-    return row;
+    if (!row) return null;
+    return {
+      id: String(row.id),
+      mode: String(row.mode),
+      outputDigest: String(row.outputDigest),
+      inputDigest: String(row.inputDigest),
+      coverageVersionId: row.coverageVersionId == null ? null : String(row.coverageVersionId),
+      captureRevision: String(row.captureRevision),
+      importCaptureRevision: String(row.importCaptureRevision),
+      deltaCaptureRevision: String(row.deltaCaptureRevision),
+      dbWatermark: String(row.dbWatermark),
+      releaseSetId: String(row.releaseSetId),
+      releaseId: String(row.releaseId),
+      releaseHash: String(row.releaseHash),
+      sourceDatasetHash: row.sourceDatasetHash == null ? null : String(row.sourceDatasetHash),
+      deltaReceiptId: String(row.deltaReceiptId),
+      deltaOutputDigest: String(row.deltaOutputDigest),
+      deltaClassification: String(row.deltaClassification),
+      runtimeProjectionId: row.runtimeProjectionId == null ? null : String(row.runtimeProjectionId),
+      runtimeProjectionDigest: row.runtimeProjectionDigest == null
+        ? null
+        : String(row.runtimeProjectionDigest),
+      inventoryRunId: row.inventoryRunId == null ? null : String(row.inventoryRunId),
+      structuralUnitIndexVersion: row.structuralUnitIndexVersion == null
+        ? null
+        : String(row.structuralUnitIndexVersion),
+      authoringRevision: row.authoringRevision == null ? null : String(row.authoringRevision),
+      coverageSourceHash: row.coverageSourceHash == null ? null : String(row.coverageSourceHash),
+    };
   }
 
   async persistRun(result: AggregateGovernanceRunResult): Promise<{

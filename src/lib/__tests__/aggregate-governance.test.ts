@@ -13,7 +13,12 @@ import {
   semanticAlignmentCandidateId,
   validateCrosswalkForShadowPublication,
 } from '../aggregate-governance/act-crosswalk';
-import { verifyCoherentCapture, requireCoherentCapture } from '../aggregate-governance/capture';
+import {
+  isExactBaselineGovernanceReplay,
+  priorGovernanceReceiptIdentityFromCapture,
+  requireCoherentCapture,
+  verifyCoherentCapture,
+} from '../aggregate-governance/capture';
 import {
   buildDispositionFromReview,
   computeCoverageSourceHash,
@@ -279,6 +284,29 @@ describe('governance work manifest', () => {
     });
     expect(manifest.mode).toBe('baseline');
     expect(manifest.objects.map((row) => row.canonicalId)).toEqual(['ctc:a', 'ctc:b']);
+  });
+
+  it('keeps incremental work after a DB baseline unless exactBaselineReplay is set', () => {
+    const withBaselineOnly = buildGovernanceWorkManifest({
+      capture: CAPTURE,
+      hasGovernedCoverageBaseline: true,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+      currentCanonicalIds: ['ctc:a', 'ctc:b'],
+      signals: [{ scope: 'object', identity: 'ctc:a', action: 'candidate', reason: 'added' }],
+    });
+    expect(withBaselineOnly.mode).toBe('incremental');
+    expect(withBaselineOnly.objects.map((row) => row.canonicalId).sort()).toEqual(['ctc:a', 'ctc:b']);
+
+    const exactReplay = buildGovernanceWorkManifest({
+      capture: CAPTURE,
+      hasGovernedCoverageBaseline: true,
+      exactBaselineReplay: true,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+      currentCanonicalIds: ['ctc:a', 'ctc:b'],
+      signals: [{ scope: 'object', identity: 'ctc:a', action: 'candidate', reason: 'added' }],
+    });
+    expect(exactReplay.mode).toBe('baseline');
+    expect(exactReplay.objects.map((row) => row.canonicalId)).toEqual(['ctc:a', 'ctc:b']);
   });
 
   it('scopes later deltas to added/changed/removed work and revalidates unchanged', () => {
@@ -1327,6 +1355,190 @@ describe('end-to-end pure pipeline', () => {
     expect(result.manifest.objects.find((row) => row.canonicalId === 'ctc:d')?.action).toBe('review');
     expect(result.manifest.objects.find((row) => row.canonicalId === 'ctc:c')?.action).toBe('invalidate');
   });
+
+  it('exact same baseline receipt/capture replay re-derives identical receipt after DB baseline', () => {
+    const ids = ['ctc:a', 'ctc:b'];
+    const coverage = authoring([
+      disposition('ctc:a', 'formal_objective'),
+      disposition('ctc:b', 'excluded_with_rationale'),
+    ]);
+    const upstream = [{
+      publishedEntityId: 'ctc:a',
+      retrievalChunkId: 'chunk-1',
+      citationTargetId: 'cite-1',
+    }];
+    const capture = {
+      ...CAPTURE,
+      coverageSourceHash: coverage.sourceHash,
+      authoringRevision: coverage.authoringRevision,
+    };
+    const signals = [
+      { scope: 'object', identity: 'ctc:a', action: 'candidate', reason: 'added' },
+    ];
+    const first = runAggregateGovernance({
+      capture,
+      observedCapture: observedOf(capture),
+      hasGovernedCoverageBaseline: false,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+      currentCanonicalIds: ids,
+      signals,
+      upstreamReferences: upstream,
+      structuralUnitIndex: [UNIT],
+      alignmentHints: {
+        [`ctc:a\u001fchunk-1\u001fcite-1`]: { stableIds: ['stable:root-locus'] },
+      },
+      coverageAuthoring: coverage,
+    });
+    expect(first.manifest.mode).toBe('baseline');
+    const prior = priorGovernanceReceiptIdentityFromCapture({
+      id: first.receipt.id,
+      mode: first.receipt.mode,
+      capture: first.receipt.capture,
+      coverageVersionId: first.coverageVersionId,
+    });
+    expect(isExactBaselineGovernanceReplay({
+      prior,
+      capture,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+    })).toBe(true);
+
+    // Production second execution: DB baseline exists, exact prior receipt identity.
+    const second = runAggregateGovernance({
+      capture,
+      observedCapture: observedOf(capture),
+      hasGovernedCoverageBaseline: true,
+      priorGovernanceReceipt: prior,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+      currentCanonicalIds: ids,
+      signals,
+      upstreamReferences: upstream,
+      structuralUnitIndex: [UNIT],
+      alignmentHints: {
+        [`ctc:a\u001fchunk-1\u001fcite-1`]: { stableIds: ['stable:root-locus'] },
+      },
+      coverageAuthoring: coverage,
+      currentCoverageEntries: first.coverageEntries,
+      previousCrosswalks: first.crosswalks,
+      previousDecisions: [],
+      priorSemanticPublicationIdentity: first.receipt.id,
+    });
+    expect(second.manifest.mode).toBe('baseline');
+    expect(second.receipt.id).toBe(first.receipt.id);
+    expect(second.receipt.outputDigest).toBe(first.receipt.outputDigest);
+    expect(second.coverageVersionId).toBe(first.coverageVersionId);
+    expect(second.receipt.capture.coverageSourceHash).toBe(coverage.sourceHash);
+  });
+
+  it('same baseline authoring mode with a new Delta does not re-baseline', () => {
+    const coverage = authoring([
+      disposition('ctc:a', 'formal_objective'),
+      disposition('ctc:b', 'excluded_with_rationale'),
+    ]);
+    const capture = {
+      ...CAPTURE,
+      coverageSourceHash: coverage.sourceHash,
+      authoringRevision: coverage.authoringRevision,
+    };
+    const first = runAggregateGovernance({
+      capture,
+      observedCapture: observedOf(capture),
+      hasGovernedCoverageBaseline: false,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+      currentCanonicalIds: ['ctc:a', 'ctc:b'],
+      signals: [],
+      upstreamReferences: [],
+      structuralUnitIndex: [],
+      coverageAuthoring: coverage,
+    });
+    const prior = priorGovernanceReceiptIdentityFromCapture({
+      id: first.receipt.id,
+      mode: first.receipt.mode,
+      capture: first.receipt.capture,
+      coverageVersionId: first.coverageVersionId,
+    });
+    const newDeltaCapture = {
+      ...capture,
+      deltaReceiptId: 'delta-receipt-new',
+      deltaOutputDigest: '9'.repeat(64),
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+    };
+    expect(isExactBaselineGovernanceReplay({
+      prior,
+      capture: newDeltaCapture,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+    })).toBe(false);
+
+    // Baseline authoring under a new Delta must fail closed (mode conflict), not re-baseline.
+    expect(() => runAggregateGovernance({
+      capture: newDeltaCapture,
+      observedCapture: observedOf(newDeltaCapture),
+      hasGovernedCoverageBaseline: true,
+      priorGovernanceReceipt: prior,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+      currentCanonicalIds: ['ctc:a', 'ctc:b'],
+      signals: [
+        { scope: 'object', identity: 'ctc:a', action: 'candidate', reason: 'payload_changed' },
+      ],
+      upstreamReferences: [],
+      structuralUnitIndex: [],
+      coverageAuthoring: coverage,
+      currentCoverageEntries: first.coverageEntries,
+      previousCrosswalks: first.crosswalks,
+    })).toThrow(/authoring mode baseline conflicts with governance mode incremental/u);
+  });
+
+  it('changed inventory/capture/source hash is not exact replay', () => {
+    const coverage = authoring([disposition('ctc:a')]);
+    const capture = {
+      ...CAPTURE,
+      coverageSourceHash: coverage.sourceHash,
+      authoringRevision: coverage.authoringRevision,
+    };
+    const first = runAggregateGovernance({
+      capture,
+      observedCapture: observedOf(capture),
+      hasGovernedCoverageBaseline: false,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+      currentCanonicalIds: ['ctc:a'],
+      signals: [],
+      upstreamReferences: [],
+      structuralUnitIndex: [],
+      coverageAuthoring: coverage,
+    });
+    const prior = priorGovernanceReceiptIdentityFromCapture({
+      id: first.receipt.id,
+      mode: first.receipt.mode,
+      capture: first.receipt.capture,
+      coverageVersionId: first.coverageVersionId,
+    });
+    expect(isExactBaselineGovernanceReplay({
+      prior,
+      capture: { ...capture, inventoryRunId: 'inv-other' },
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+    })).toBe(false);
+    expect(isExactBaselineGovernanceReplay({
+      prior,
+      capture: { ...capture, coverageSourceHash: '0'.repeat(64) },
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+    })).toBe(false);
+    expect(isExactBaselineGovernanceReplay({
+      prior,
+      capture: { ...capture, captureRevision: '1'.repeat(40) },
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+    })).toBe(false);
+  });
+
+  it('rejects baseline authoring when governance mode is forced incremental (hash/mode fence)', () => {
+    const coverage = authoring([disposition('ctc:a')]);
+    expect(() => validateCourseCoverageAuthoring(coverage, {
+      currentCanonicalIds: ['ctc:a'],
+      releaseSetId: CAPTURE.releaseSetId,
+      releaseId: CAPTURE.releaseId,
+      releaseHash: CAPTURE.releaseHash,
+      sourceDatasetHash: CAPTURE.sourceDatasetHash,
+      mode: 'incremental',
+    })).toThrow(/authoring mode baseline conflicts with governance mode incremental/u);
+  });
 });
 
 describe('readiness diagnostics and summary safety', () => {
@@ -1636,6 +1848,71 @@ describe('aggregate governance repository persistence integrity', () => {
 
     const second = await repo.persistRun(run);
     expect(second.mode).toBe('idempotent');
+  });
+
+  it('exact-replay pure re-run after baseline exists persists as idempotent with same receipt', async () => {
+    const coverage = authoring([
+      disposition('ctc:a', 'formal_objective'),
+      disposition('ctc:b', 'excluded_with_rationale'),
+    ]);
+    const capture = {
+      ...CAPTURE,
+      coverageSourceHash: coverage.sourceHash,
+      authoringRevision: coverage.authoringRevision,
+    };
+    const upstream = [
+      {
+        publishedEntityId: 'ctc:a',
+        retrievalChunkId: 'chunk-1',
+        citationTargetId: 'cite-1',
+      },
+    ];
+    const first = runAggregateGovernance({
+      capture,
+      observedCapture: observedOf(capture),
+      hasGovernedCoverageBaseline: false,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+      currentCanonicalIds: ['ctc:a', 'ctc:b'],
+      signals: [],
+      upstreamReferences: upstream,
+      structuralUnitIndex: [UNIT],
+      alignmentHints: {
+        [`ctc:a\u001fchunk-1\u001fcite-1`]: { stableIds: ['stable:root-locus'] },
+      },
+      coverageAuthoring: coverage,
+    });
+    const prior = priorGovernanceReceiptIdentityFromCapture({
+      id: first.receipt.id,
+      mode: first.receipt.mode,
+      capture: first.receipt.capture,
+      coverageVersionId: first.coverageVersionId,
+    });
+    const replayed = runAggregateGovernance({
+      capture,
+      observedCapture: observedOf(capture),
+      hasGovernedCoverageBaseline: true,
+      priorGovernanceReceipt: prior,
+      deltaClassification: 'SEMANTIC_CONTENT_UPDATE',
+      currentCanonicalIds: ['ctc:a', 'ctc:b'],
+      signals: [],
+      upstreamReferences: upstream,
+      structuralUnitIndex: [UNIT],
+      alignmentHints: {
+        [`ctc:a\u001fchunk-1\u001fcite-1`]: { stableIds: ['stable:root-locus'] },
+      },
+      coverageAuthoring: coverage,
+      currentCoverageEntries: first.coverageEntries,
+      previousCrosswalks: first.crosswalks,
+    });
+    expect(replayed.receipt.id).toBe(first.receipt.id);
+
+    const { db } = createMemoryDb();
+    const repo = new AggregateGovernanceRepository(db);
+    const created = await repo.persistRun(first);
+    expect(created.mode).toBe('created');
+    const second = await repo.persistRun(replayed);
+    expect(second.mode).toBe('idempotent');
+    expect(second.receiptId).toBe(first.receipt.id);
   });
 
   it('rejects same coverage version id with changed source/entries', async () => {

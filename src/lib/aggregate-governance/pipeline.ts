@@ -16,8 +16,10 @@ import {
   validateCrosswalkForShadowPublication,
 } from './act-crosswalk';
 import {
+  isExactBaselineGovernanceReplay,
   requireCoherentCapture,
   type ObservedCaptureFields,
+  type PriorGovernanceReceiptIdentity,
 } from './capture';
 import type {
   ActStructuralUnitCrosswalkRecord,
@@ -61,6 +63,11 @@ export interface AggregateGovernanceRunInput {
    */
   observedCapture: ObservedCaptureFields;
   hasGovernedCoverageBaseline: boolean;
+  /**
+   * Latest persisted governance receipt identity for this ReleaseSet lineage.
+   * Used only for fail-closed exact same-input baseline replay detection.
+   */
+  priorGovernanceReceipt?: PriorGovernanceReceiptIdentity | null;
   deltaClassification: string;
   currentCanonicalIds: readonly string[];
   signals: readonly DeltaSignalLike[];
@@ -323,9 +330,15 @@ export function runAggregateGovernance(
     }
   }
 
+  const exactBaselineReplay = isExactBaselineGovernanceReplay({
+    prior: input.priorGovernanceReceipt,
+    capture: input.capture,
+    deltaClassification: input.deltaClassification,
+  });
   let manifest = buildGovernanceWorkManifest({
     capture: input.capture,
     hasGovernedCoverageBaseline: input.hasGovernedCoverageBaseline,
+    exactBaselineReplay,
     deltaClassification: input.deltaClassification,
     currentCanonicalIds: input.currentCanonicalIds,
     signals: input.signals,
@@ -497,7 +510,13 @@ export function runAggregateGovernance(
   });
 
   const membershipSet = new Set(input.currentCanonicalIds);
-  const resolved: ActStructuralUnitCrosswalkRecord[] = [...retained];
+  // Exact same-input baseline replay re-derives CURRENT rows from exhaustive work
+  // (first publication had empty previous). Do not seed retained rows only for
+  // that path — ordinary first baseline still starts empty; incremental keeps
+  // retained. This is not a generic re-baseline capability.
+  const resolved: ActStructuralUnitCrosswalkRecord[] = exactBaselineReplay
+    ? []
+    : [...retained];
   const workCrosswalks = manifest.crosswalks.filter((row) => row.action !== 'invalidate');
   for (const item of workCrosswalks) {
     const upstream = referenceOpaqueUpstream({

@@ -168,3 +168,115 @@ export function buildExpectedCapture(input: {
     coverageSourceHash: input.coverageSourceHash,
   };
 }
+
+/**
+ * Persisted governance receipt identity needed to detect exact same-input
+ * baseline command replay. Not a re-baseline switch — only exact identity match.
+ */
+export interface PriorGovernanceReceiptIdentity {
+  id: string;
+  mode: string;
+  captureRevision: string;
+  importCaptureRevision: string;
+  deltaCaptureRevision: string;
+  dbWatermark: string;
+  releaseSetId: string;
+  releaseId: string;
+  releaseHash: string;
+  sourceDatasetHash: string | null;
+  deltaReceiptId: string;
+  deltaOutputDigest: string;
+  deltaClassification: string;
+  runtimeProjectionId: string | null;
+  runtimeProjectionDigest: string | null;
+  inventoryRunId: string | null;
+  structuralUnitIndexVersion: string | null;
+  authoringRevision: string | null;
+  coverageSourceHash: string | null;
+  coverageVersionId: string | null;
+}
+
+function nullableText(value: string | null | undefined): string | null {
+  return value == null ? null : String(value);
+}
+
+/**
+ * True only when the persisted prior receipt is the same baseline governance
+ * run under the complete current capture identity. A new Delta, inventory,
+ * authoring hash, or any other capture slot must return false so later work
+ * stays incremental (OpenSpec: baseline exists ⇒ affected work only).
+ */
+export function isExactBaselineGovernanceReplay(input: {
+  prior: PriorGovernanceReceiptIdentity | null | undefined;
+  capture: CaptureIdentity;
+  deltaClassification: string;
+}): boolean {
+  const prior = input.prior;
+  if (!prior) return false;
+  if (prior.mode !== 'baseline') return false;
+  if (input.deltaClassification !== prior.deltaClassification) return false;
+  if (input.capture.deltaClassification !== prior.deltaClassification) return false;
+
+  const pairs: Array<[string, string | null, string | null]> = [
+    ['captureRevision', prior.captureRevision, input.capture.captureRevision],
+    ['importCaptureRevision', prior.importCaptureRevision, input.capture.importCaptureRevision],
+    ['deltaCaptureRevision', prior.deltaCaptureRevision, input.capture.deltaCaptureRevision],
+    ['dbWatermark', prior.dbWatermark, input.capture.dbWatermark],
+    ['releaseSetId', prior.releaseSetId, input.capture.releaseSetId],
+    ['releaseId', prior.releaseId, input.capture.releaseId],
+    ['releaseHash', prior.releaseHash, input.capture.releaseHash],
+    ['sourceDatasetHash', nullableText(prior.sourceDatasetHash), nullableText(input.capture.sourceDatasetHash)],
+    ['deltaReceiptId', prior.deltaReceiptId, input.capture.deltaReceiptId],
+    ['deltaOutputDigest', prior.deltaOutputDigest, input.capture.deltaOutputDigest],
+    ['deltaClassification', prior.deltaClassification, input.capture.deltaClassification],
+    ['runtimeProjectionId', nullableText(prior.runtimeProjectionId), nullableText(input.capture.runtimeProjectionId)],
+    [
+      'runtimeProjectionDigest',
+      nullableText(prior.runtimeProjectionDigest),
+      nullableText(input.capture.runtimeProjectionDigest),
+    ],
+    ['inventoryRunId', nullableText(prior.inventoryRunId), nullableText(input.capture.inventoryRunId)],
+    [
+      'structuralUnitIndexVersion',
+      nullableText(prior.structuralUnitIndexVersion),
+      nullableText(input.capture.structuralUnitIndexVersion),
+    ],
+    ['authoringRevision', nullableText(prior.authoringRevision), nullableText(input.capture.authoringRevision)],
+    [
+      'coverageSourceHash',
+      nullableText(prior.coverageSourceHash),
+      nullableText(input.capture.coverageSourceHash),
+    ],
+  ];
+  return pairs.every(([, left, right]) => left === right);
+}
+
+export function priorGovernanceReceiptIdentityFromCapture(input: {
+  id: string;
+  mode: string;
+  capture: CaptureIdentity;
+  coverageVersionId: string | null;
+}): PriorGovernanceReceiptIdentity {
+  return {
+    id: input.id,
+    mode: input.mode,
+    captureRevision: input.capture.captureRevision,
+    importCaptureRevision: input.capture.importCaptureRevision,
+    deltaCaptureRevision: input.capture.deltaCaptureRevision,
+    dbWatermark: input.capture.dbWatermark,
+    releaseSetId: input.capture.releaseSetId,
+    releaseId: input.capture.releaseId,
+    releaseHash: input.capture.releaseHash,
+    sourceDatasetHash: input.capture.sourceDatasetHash,
+    deltaReceiptId: input.capture.deltaReceiptId,
+    deltaOutputDigest: input.capture.deltaOutputDigest,
+    deltaClassification: input.capture.deltaClassification,
+    runtimeProjectionId: input.capture.runtimeProjectionId,
+    runtimeProjectionDigest: input.capture.runtimeProjectionDigest,
+    inventoryRunId: input.capture.inventoryRunId,
+    structuralUnitIndexVersion: input.capture.structuralUnitIndexVersion,
+    authoringRevision: input.capture.authoringRevision,
+    coverageSourceHash: input.capture.coverageSourceHash,
+    coverageVersionId: input.coverageVersionId,
+  };
+}
