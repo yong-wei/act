@@ -24,6 +24,10 @@ import {
   matchedRegistryIdentities,
   normalizeProjectionProfile,
 } from './bundle-compatibility-registry';
+import {
+  PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS,
+  resolveTrustedCaptureRevision,
+} from './capture-revision';
 import type {
   ArtifactDescriptor,
   CompatibilityAssessment,
@@ -186,11 +190,59 @@ function parseSha256Sums(text: string): Map<string, string> {
   return sums;
 }
 
-function recordCount(bytes: Buffer, relativePath: string): number | null {
-  if (!relativePath.endsWith('.jsonl')) return null;
+function isNdjsonMediaType(mediaType: string): boolean {
+  return mediaType === 'application/x-ndjson' || mediaType === 'application/ndjson';
+}
+
+function isJsonFamilyMediaType(mediaType: string): boolean {
+  return (
+    mediaType === 'application/json'
+    || mediaType === 'application/schema+json'
+    || mediaType === 'application/x-ndjson'
+    || mediaType === 'application/ndjson'
+    || mediaType.endsWith('+json')
+  );
+}
+
+/**
+ * NDJSON record counts follow verified media_type (role/contract), not filename
+ * suffixes, so safe non-default paths remain countable.
+ */
+function recordCountForMediaType(bytes: Buffer, mediaType: string): number | null {
+  if (!isNdjsonMediaType(mediaType)) return null;
   const text = bytes.toString('utf8');
   if (!text) return 0;
   return text.split(/\r?\n/u).filter((line) => line.length > 0).length;
+}
+
+function forbiddenFieldNames(): string[] {
+  return FORBIDDEN_PUBLIC_FIELD_TOKENS.map((token) => token.replaceAll('"', ''));
+}
+
+function scanDecodedJsonValue(
+  value: unknown,
+  relativePath: string,
+  findings: string[],
+  skipFieldTokens: boolean,
+): void {
+  if (value === null || value === undefined) return;
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      scanDecodedJsonValue(item, relativePath, findings, skipFieldTokens);
+    }
+    return;
+  }
+  if (typeof value === 'object') {
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      if (!skipFieldTokens && forbiddenFieldNames().includes(key)) {
+        findings.push(`${relativePath}:${key}`);
+      }
+      scanDecodedJsonValue(child, relativePath, findings, skipFieldTokens);
+    }
+  }
 }
 
 function loadJson(bytes: Buffer, label: string): JsonObject {
@@ -414,13 +466,63 @@ function computeBundleDigest(manifest: JsonObject): string {
   return sha256(canonicalJson(body));
 }
 
-function scanPrivacy(relativePath: string, bytes: Buffer): string[] {
+/**
+ * Public/private boundary scan.
+ *
+ * - Global secrets/paths always match against raw UTF-8 text.
+ * - JSON/NDJSON Artifacts are decoded so Unicode-escaped private field names
+ *   (for example "\u0072aw_text") cannot bypass key checks; undeclared parse
+ *   failures fail closed.
+ * - Non-JSON public text keeps raw quoted-field token checks.
+ * - Schema snapshots may document private field names and skip field tokens.
+ */
+function scanPrivacy(
+  relativePath: string,
+  bytes: Buffer,
+  options: {
+    mediaType?: string;
+    skipFieldTokens?: boolean;
+  } = {},
+): string[] {
   const text = bytes.toString('utf8');
   const findings: string[] = [];
   for (const token of FORBIDDEN_PUBLIC_GLOBAL_TOKENS) {
     if (text.includes(token)) findings.push(`${relativePath}:${token}`);
   }
-  if (relativePath !== 'ctkg.schema.json') {
+
+  const skipFieldTokens = options.skipFieldTokens
+    ?? (
+      relativePath === 'ctkg.schema.json'
+      || relativePath.endsWith('/ctkg.schema.json')
+    );
+  const mediaType = options.mediaType;
+
+  if (mediaType && isJsonFamilyMediaType(mediaType)) {
+    if (isNdjsonMediaType(mediaType)) {
+      const lines = text.split(/\r?\n/u).filter((line) => line.length > 0);
+      for (const [index, line] of lines.entries()) {
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(line);
+        } catch {
+          integrity(`${relativePath}[${index}] is not valid NDJSON for privacy scanning`);
+        }
+        scanDecodedJsonValue(parsed, relativePath, findings, skipFieldTokens);
+      }
+      return findings;
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      integrity(`${relativePath} is not valid JSON for privacy scanning`);
+    }
+    scanDecodedJsonValue(parsed, relativePath, findings, skipFieldTokens);
+    return findings;
+  }
+
+  if (!skipFieldTokens) {
     for (const token of FORBIDDEN_PUBLIC_FIELD_TOKENS) {
       if (text.includes(token)) findings.push(`${relativePath}:${token}`);
     }
@@ -542,14 +644,177 @@ function classifyCompatibility(options: {
   };
 }
 
+/**
+ * Read-only public package boundary for a module/integration standard_bundle
+ * component. Validates root confinement, exact file set, SHA256SUMS, declared
+ * Artifact bytes, Bundle digest and Release identity. Does not recurse into
+ * nested component references (avoids unbounded graph walks).
+ */
+async function validateStandardBundlePackageBoundary(options: {
+  root: string;
+  controlledPath: string;
+  releaseId: string;
+  expectedBundleId: string;
+  expectedBundleDigest: string;
+  expectedManifestSha256: string;
+  expectedReleaseVersion: string;
+  expectedReleaseHash: string;
+  expectedComponentRole: string;
+  contractValidators: ReturnType<typeof compileContractValidators>;
+}): Promise<void> {
+  const label = `standard_bundle component ${options.releaseId}`;
+  const packageDir = await resolveControlledBundleDirectory(
+    path.resolve(options.root, options.controlledPath),
+    `${label} controlled path ${options.controlledPath}`,
+    options.root,
+  );
+
+  const onDisk = await listRegularFiles(packageDir);
+  if (!onDisk.includes(MANIFEST_NAME)) integrity(`${label} is missing bundle-manifest.json`);
+  if (!onDisk.includes(SHA256SUMS_NAME)) integrity(`${label} is missing SHA256SUMS`);
+
+  const manifestBytes = await readExactFile(packageDir, MANIFEST_NAME);
+  if (sha256(manifestBytes) !== options.expectedManifestSha256) {
+    integrity(`${label} Manifest raw hash mismatch`);
+  }
+  const manifest = loadJson(manifestBytes, `${label} Manifest`);
+  if (!options.contractValidators.manifest(manifest)) {
+    schemaFailure(`${label} Manifest`, options.contractValidators.manifest.errors);
+  }
+
+  const bundleKind = string(manifest.bundle_kind, `${label}.bundle_kind`);
+  if (bundleKind !== 'module' && bundleKind !== 'integration') {
+    integrity(`${label} must declare bundle_kind module or integration`);
+  }
+  if (bundleKind !== options.expectedComponentRole) {
+    integrity(`${label} bundle_kind does not match component_role ${options.expectedComponentRole}`);
+  }
+  if (string(manifest.bundle_id, `${label}.bundle_id`) !== options.expectedBundleId) {
+    integrity(`${label} Manifest bundle_id disagrees`);
+  }
+  const claimedDigest = hash(manifest.bundle_digest, `${label}.bundle_digest`);
+  const actualDigest = computeBundleDigest(manifest);
+  if (claimedDigest !== actualDigest) integrity(`${label} canonical bundle_digest mismatch`);
+  if (claimedDigest !== options.expectedBundleDigest) {
+    integrity(`${label} bundle_digest disagrees with declaration`);
+  }
+
+  const releaseIdentity = object(manifest.release, `${label}.release`);
+  if (
+    string(releaseIdentity.release_id, `${label}.release_id`) !== options.releaseId
+    || string(releaseIdentity.release_version, `${label}.release_version`) !== options.expectedReleaseVersion
+    || hash(releaseIdentity.release_hash, `${label}.release_hash`) !== options.expectedReleaseHash
+  ) {
+    integrity(`${label} release identity disagrees with Manifest declaration`);
+  }
+
+  const artifactRows = records(manifest.artifacts, `${label}.artifacts`);
+  const declaredPaths: string[] = [];
+  const caseFolded = new Map<string, string>();
+  const artifactMeta: Array<{
+    path: string;
+    mediaType: string;
+    sha256: string;
+    byteLength: number;
+    recordCount: number | null;
+    role: string;
+  }> = [];
+
+  for (const [index, row] of artifactRows.entries()) {
+    const relativePath = assertSafeRelativePath(
+      string(row.path, `${label}.artifacts[${index}].path`),
+      `${label}.artifacts[${index}].path`,
+    );
+    const folded = caseFold(relativePath);
+    if (caseFolded.has(folded)) {
+      integrity(`${label} Artifact paths collide after case folding`);
+    }
+    caseFolded.set(folded, relativePath);
+    if (declaredPaths.includes(relativePath)) integrity(`${label} duplicate Artifact path ${relativePath}`);
+    if (RESERVED_FILES.has(relativePath)) {
+      integrity(`${label} reserved file ${relativePath} must not be declared as an Artifact`);
+    }
+    declaredPaths.push(relativePath);
+    artifactMeta.push({
+      path: relativePath,
+      mediaType: string(row.media_type, `${label}.artifacts[${index}].media_type`),
+      sha256: hash(row.sha256, `${label}.artifacts[${index}].sha256`),
+      byteLength: integer(row.byte_length, `${label}.artifacts[${index}].byte_length`),
+      recordCount: row.record_count === null || row.record_count === undefined
+        ? null
+        : integer(row.record_count, `${label}.artifacts[${index}].record_count`),
+      role: string(row.role, `${label}.artifacts[${index}].role`),
+    });
+  }
+
+  const expectedFiles = new Set([...declaredPaths, MANIFEST_NAME, SHA256SUMS_NAME]);
+  const actualFiles = new Set(onDisk);
+  if (canonicalJson([...expectedFiles].sort()) !== canonicalJson([...actualFiles].sort())) {
+    integrity(`${label} file set does not equal Manifest artifacts plus reserved files`);
+  }
+
+  const sumsBytes = await readExactFile(packageDir, SHA256SUMS_NAME);
+  const sums = parseSha256Sums(sumsBytes.toString('utf8'));
+  if (
+    canonicalJson([...sums.keys()])
+    !== canonicalJson([...actualFiles].filter((name) => name !== SHA256SUMS_NAME).sort())
+  ) {
+    integrity(`${label} SHA256SUMS file set does not close over the package`);
+  }
+  if (sha256(manifestBytes) !== sums.get(MANIFEST_NAME)) {
+    integrity(`${label} SHA256SUMS mismatch: bundle-manifest.json`);
+  }
+
+  const privacyFindings: string[] = [];
+  privacyFindings.push(
+    ...scanPrivacy(MANIFEST_NAME, manifestBytes, { mediaType: 'application/json' }),
+  );
+  privacyFindings.push(...scanPrivacy(SHA256SUMS_NAME, sumsBytes));
+
+  for (const artifact of artifactMeta) {
+    const bytes = await readExactFile(packageDir, artifact.path);
+    if (sha256(bytes) !== artifact.sha256) integrity(`${label} Artifact SHA mismatch: ${artifact.path}`);
+    if (bytes.byteLength !== artifact.byteLength) {
+      integrity(`${label} Artifact byte length mismatch: ${artifact.path}`);
+    }
+    const actualRecords = recordCountForMediaType(bytes, artifact.mediaType);
+    if (actualRecords !== artifact.recordCount) {
+      integrity(`${label} Artifact record count mismatch: ${artifact.path}`);
+    }
+    const sumDigest = sums.get(artifact.path);
+    if (!sumDigest || sumDigest !== artifact.sha256) {
+      integrity(`${label} SHA256SUMS mismatch: ${artifact.path}`);
+    }
+    privacyFindings.push(...scanPrivacy(artifact.path, bytes, {
+      mediaType: artifact.mediaType,
+      skipFieldTokens: artifact.role === 'ctkg_schema',
+    }));
+  }
+
+  if (privacyFindings.length > 0) {
+    integrity(`${label} public privacy boundary violated: ${privacyFindings.join(', ')}`);
+  }
+}
+
 export async function loadAndValidatePublicBundleV1(options: {
   root?: string;
   lockPath?: string;
   bundlePath?: string;
   allowCandidateBundle?: boolean;
   contractSchemaDir?: string;
+  /**
+   * Optional expected capture revision. Compared to the real current HEAD only
+   * after protected-input cleanliness and tracking succeed. Never skips clean.
+   */
+  captureRevision?: string;
+  /**
+   * Git work tree used for capture-revision binding. Defaults to `root`.
+   * Fixture tests pass the repository root while content is read from a temp tree.
+   */
+  gitRoot?: string;
 } = {}): Promise<ValidatedActKGBundle> {
   const root = path.resolve(options.root ?? process.cwd());
+  const gitRoot = path.resolve(options.gitRoot ?? root);
   const lockPath = options.lockPath ?? DEFAULT_PUBLIC_BUNDLE_LOCK_PATH;
   const lockBytes = await readFile(path.join(root, lockPath));
   const lockRawSha256 = sha256(lockBytes);
@@ -563,6 +828,24 @@ export async function loadAndValidatePublicBundleV1(options: {
       `lock Schema identity ${lock.compatibility.schema_version}/${lock.compatibility.schema_sha256} is not registered`,
     );
   }
+
+  // Adapter/schemas always bind to the real Git work tree. Lock and package paths
+  // bind only when content is read from that same work tree (production).
+  // Capture resolution uses process Git only — no caller-injected runner.
+  const captureTrackedPaths: string[] = [...PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS];
+  if (gitRoot === root) {
+    captureTrackedPaths.push(
+      lockPath,
+      lock.bundle.controlled_path,
+      ...lock.components.map((component) => component.controlled_path),
+    );
+  }
+  const captureRevision = resolveTrustedCaptureRevision({
+    gitRoot,
+    trackedPaths: captureTrackedPaths,
+    expectedCaptureRevision: options.captureRevision,
+    fail: integrity,
+  });
 
   const controlledPath = lock.bundle.controlled_path;
   const requested = path.resolve(root, options.bundlePath ?? controlledPath);
@@ -742,7 +1025,9 @@ export async function loadAndValidatePublicBundleV1(options: {
   }
 
   const privacyFindings: string[] = [];
-  privacyFindings.push(...scanPrivacy(MANIFEST_NAME, manifestBytes));
+  privacyFindings.push(
+    ...scanPrivacy(MANIFEST_NAME, manifestBytes, { mediaType: 'application/json' }),
+  );
   privacyFindings.push(...scanPrivacy(SHA256SUMS_NAME, sumsBytes));
 
   const rawArtifacts: ValidatedRawArtifact[] = [];
@@ -750,7 +1035,7 @@ export async function loadAndValidatePublicBundleV1(options: {
     const bytes = await readExactFile(bundleDir, descriptor.path);
     if (sha256(bytes) !== descriptor.sha256) integrity(`Artifact SHA mismatch: ${descriptor.path}`);
     if (bytes.byteLength !== descriptor.byteLength) integrity(`Artifact byte length mismatch: ${descriptor.path}`);
-    const actualRecords = recordCount(bytes, descriptor.path);
+    const actualRecords = recordCountForMediaType(bytes, descriptor.mediaType);
     if (actualRecords !== descriptor.recordCount) {
       integrity(`Artifact record count mismatch: ${descriptor.path}`);
     }
@@ -758,7 +1043,10 @@ export async function loadAndValidatePublicBundleV1(options: {
     if (!sumDigest || sumDigest !== descriptor.sha256) {
       integrity(`SHA256SUMS mismatch: ${descriptor.path}`);
     }
-    privacyFindings.push(...scanPrivacy(descriptor.path, bytes));
+    privacyFindings.push(...scanPrivacy(descriptor.path, bytes, {
+      mediaType: descriptor.mediaType,
+      skipFieldTokens: descriptor.role === 'ctkg_schema',
+    }));
     rawArtifacts.push({ descriptor, bytes });
   }
   if (sha256(manifestBytes) !== sums.get(MANIFEST_NAME)) integrity('SHA256SUMS mismatch: bundle-manifest.json');
@@ -942,51 +1230,24 @@ export async function loadAndValidatePublicBundleV1(options: {
       if (locked.manifest_raw_sha256 !== manifestSha256) {
         integrity(`standard_bundle component ${releaseId} manifest_sha256 does not match the lock`);
       }
+      if (componentRole !== 'module' && componentRole !== 'integration') {
+        integrity(`standard_bundle component ${releaseId} component_role must be module or integration`);
+      }
 
-      // Read only the controlled component Manifest. Do not recursively import,
-      // write database state, or enable runtime semantics for nested packages.
-      const componentManifestRelative = MANIFEST_NAME;
-      const componentManifestFile = path.join(root, locked.controlled_path, componentManifestRelative);
-      const componentManifestBytes = await readFile(componentManifestFile).catch(() => {
-        integrity(`standard_bundle component ${releaseId} controlled Manifest is missing`);
+      // Full read-only public package boundary for the component itself.
+      // Do not recurse into nested standard_bundle references.
+      await validateStandardBundlePackageBoundary({
+        root,
+        controlledPath: locked.controlled_path,
+        releaseId,
+        expectedBundleId: bundleId,
+        expectedBundleDigest: bundleDigest,
+        expectedManifestSha256: manifestSha256,
+        expectedReleaseVersion: releaseVersion,
+        expectedReleaseHash: releaseHash,
+        expectedComponentRole: componentRole,
+        contractValidators,
       });
-      if (sha256(componentManifestBytes) !== manifestSha256) {
-        integrity(`standard_bundle component ${releaseId} Manifest raw hash mismatch`);
-      }
-      const componentManifest = loadJson(
-        componentManifestBytes,
-        `standard_bundle component ${releaseId} Manifest`,
-      );
-      if (!contractValidators.manifest(componentManifest)) {
-        schemaFailure(
-          `standard_bundle component ${releaseId} Manifest`,
-          contractValidators.manifest.errors,
-        );
-      }
-      if (string(componentManifest.bundle_id, `component ${releaseId}.bundle_id`) !== bundleId) {
-        integrity(`standard_bundle component ${releaseId} Manifest bundle_id disagrees`);
-      }
-      const claimedComponentDigest = hash(
-        componentManifest.bundle_digest,
-        `component ${releaseId}.bundle_digest`,
-      );
-      const actualComponentDigest = computeBundleDigest(componentManifest);
-      if (claimedComponentDigest !== actualComponentDigest) {
-        integrity(`standard_bundle component ${releaseId} canonical bundle_digest mismatch`);
-      }
-      if (claimedComponentDigest !== bundleDigest) {
-        integrity(`standard_bundle component ${releaseId} bundle_digest disagrees with declaration`);
-      }
-      const componentRelease = object(componentManifest.release, `component ${releaseId}.release`);
-      if (
-        string(componentRelease.release_id, `component ${releaseId}.release_id`) !== releaseId
-        || string(componentRelease.release_version, `component ${releaseId}.release_version`) !== releaseVersion
-        || hash(componentRelease.release_hash, `component ${releaseId}.release_hash`) !== releaseHash
-      ) {
-        integrity(
-          `standard_bundle component ${releaseId} release identity disagrees with Manifest declaration`,
-        );
-      }
 
       validatedComponents.push({
         releaseId,
@@ -1368,6 +1629,7 @@ export async function loadAndValidatePublicBundleV1(options: {
   });
 
   return {
+    captureRevision,
     bundleIdentity: {
       bundleId: lock.bundle.bundle_id,
       bundleRevision: lock.bundle.bundle_revision,

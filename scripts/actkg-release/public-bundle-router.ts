@@ -7,6 +7,10 @@ import {
   type ValidatedAggregateRelease,
 } from './ctkg-0-2-aggregate-release';
 import {
+  LEGACY_V02_ADAPTER_CAPTURE_PATHS,
+  resolveTrustedCaptureRevision,
+} from './capture-revision';
+import {
   DEFAULT_PUBLIC_BUNDLE_LOCK_PATH,
   PublicBundleRejection,
   loadAndValidatePublicBundleV1,
@@ -40,12 +44,22 @@ async function manifestExists(bundleDirectory: string): Promise<boolean> {
   }
 }
 
+function rejectCapture(reason: string): never {
+  throw new PublicBundleRejection({
+    code: 'INTEGRITY_REJECTED',
+    reasons: [reason],
+    matchedIdentities: [],
+  });
+}
+
 /**
  * Deterministic public-bundle router.
  *
  * - Presence of bundle-manifest.json forces the standard adapter.
  * - Standard validation failure never falls back to the historical adapter.
  * - No directory scanning or "latest version" selection.
+ * - Both routes resolve a trusted capture revision via real process Git before
+ *   any adapter runs. Callers cannot inject a Git runner.
  */
 export async function decidePublicBundleRoute(options: {
   root?: string;
@@ -82,16 +96,20 @@ export async function routeAndValidatePublicBundle(options: {
    */
   legacyLockPath?: string;
   /**
-   * Optional explicit capture revision for the historical adapter only.
-   * Production callers should omit this so the frozen loader resolves a clean
-   * real Git HEAD. Tests may pass a real HEAD (or a fixture revision) when the
-   * surrounding tree is intentionally dirty.
+   * Optional expected capture revision. Equality-only after clean protected
+   * inputs and real HEAD resolution. Never authorizes dirty trees or forged
+   * digests for either the standard or historical route.
    */
   captureRevision?: string;
+  /**
+   * Git work tree for capture-revision binding. Defaults to `root`.
+   */
+  gitRoot?: string;
 } = {
   controlledPath: 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.2',
 }): Promise<RoutedPublicBundleResult> {
   const root = path.resolve(options.root ?? process.cwd());
+  const gitRoot = path.resolve(options.gitRoot ?? root);
   const route = await decidePublicBundleRoute({
     root,
     controlledPath: options.controlledPath,
@@ -99,11 +117,15 @@ export async function routeAndValidatePublicBundle(options: {
 
   if (route.kind === 'actkg-public-bundle/1') {
     try {
+      // Standard adapter re-resolves capture with package-specific tracked paths
+      // using real process Git only.
       const validated = await loadAndValidatePublicBundleV1({
         root,
         lockPath: options.lockPath ?? DEFAULT_PUBLIC_BUNDLE_LOCK_PATH,
         bundlePath: options.controlledPath,
         allowCandidateBundle: options.allowCandidateBundle,
+        gitRoot,
+        ...(options.captureRevision ? { captureRevision: options.captureRevision } : {}),
       });
       return {
         route,
@@ -125,12 +147,23 @@ export async function routeAndValidatePublicBundle(options: {
     }
   }
 
-  // Historical path: only the frozen no-Manifest adapter is eligible.
-  // Never forge a capture revision here; default to the loader's clean-HEAD resolve.
+  // Historical path: resolve trusted capture here so the frozen loader never
+  // receives an untrusted external SHA that would bypass its own clean check.
+  const trustedCaptureRevision = resolveTrustedCaptureRevision({
+    gitRoot,
+    trackedPaths: [
+      ...LEGACY_V02_ADAPTER_CAPTURE_PATHS,
+      options.controlledPath,
+    ],
+    expectedCaptureRevision: options.captureRevision,
+    fail: rejectCapture,
+  });
+
   const validated = await loadAndValidateAggregateRelease({
     root,
     releasePath: options.controlledPath,
-    ...(options.captureRevision ? { captureRevision: options.captureRevision } : {}),
+    // Only the already-verified real HEAD is forwarded.
+    captureRevision: trustedCaptureRevision,
   });
   // Guard: the historical adapter must remain on its own lock, not Lock v3.
   if (options.legacyLockPath && options.legacyLockPath !== AGGREGATE_RELEASE_SET_LOCK_PATH) {

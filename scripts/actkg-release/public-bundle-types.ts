@@ -143,6 +143,8 @@ export interface RecomputedStatistics {
 }
 
 export interface ValidatedActKGBundle {
+  /** Trusted ACT capture Git revision bound to this validation result. */
+  captureRevision: string;
   bundleIdentity: BundleIdentity;
   releaseIdentity: ReleaseIdentity;
   releaseSetIdentity: ReleaseSetIdentity;

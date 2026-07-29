@@ -34,9 +34,54 @@ const COMPONENT_PATHS = [
   'course-content/authoring/knowledge/releases/control-theory-integration-v0.1',
 ] as const;
 
-/** Explicit real Git HEAD for historical-adapter tests; never forged in production defaults. */
+/** Real Git HEAD of the repository; never a fabricated digest. */
 function realGitHead(cwd: string = root): string {
   return execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
+}
+
+/**
+ * Public loader options for isolated content fixtures.
+ * Capture binding always uses real process Git on `gitRoot` (repository root).
+ * Success requires a clean protected worktree — no runner injection seam.
+ */
+function fixtureLoadOptions(
+  fixture: string,
+  extra: {
+    lockPath?: string;
+    bundlePath?: string;
+    allowCandidateBundle?: boolean;
+  } = {},
+): {
+  root: string;
+  lockPath: string;
+  captureRevision: string;
+  gitRoot: string;
+  bundlePath?: string;
+  allowCandidateBundle?: boolean;
+} {
+  return {
+    root: fixture,
+    lockPath: extra.lockPath ?? LOCK_V3,
+    captureRevision: realGitHead(),
+    gitRoot: root,
+    ...(extra.bundlePath ? { bundlePath: extra.bundlePath } : {}),
+    ...(extra.allowCandidateBundle !== undefined
+      ? { allowCandidateBundle: extra.allowCandidateBundle }
+      : {}),
+  };
+}
+
+/** Production-root loads with optional expected captureRevision equality only. */
+function rootLoadOptions(extra: { captureRevision?: string } = {}): {
+  root: string;
+  captureRevision?: string;
+} {
+  return {
+    root,
+    ...(extra.captureRevision !== undefined
+      ? { captureRevision: extra.captureRevision }
+      : { captureRevision: realGitHead() }),
+  };
 }
 
 type Manifest = JsonObject & {
@@ -319,6 +364,8 @@ async function writeMinimalStandardBundleComponent(options: {
   };
   manifest.bundle_digest = recomputeDigest(manifest);
   const manifestBytes = await writeJson(path.join(dir, 'bundle-manifest.json'), manifest);
+  // Component packages must publish a closed SHA256SUMS like any public Bundle.
+  await rewriteSha256Sums(dir);
   return {
     bundleDigest: String(manifest.bundle_digest),
     manifestSha256: sha256(manifestBytes),
@@ -357,7 +404,8 @@ async function expectRejection(
 
 describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
   it('records reviewed contract identities and admits the vendored v0.3 r2 package', async () => {
-    const validated = await loadAndValidatePublicBundleV1({ root });
+    const validated = await loadAndValidatePublicBundleV1(rootLoadOptions());
+    expect(validated.captureRevision).toBe(realGitHead());
     expect(validated.bundleIdentity.bundleContractVersion).toBe(PUBLIC_BUNDLE_CONTRACT_VERSION);
     expect(validated.schemaIdentity).toEqual({
       version: CTKG_SCHEMA_VERSION,
@@ -395,7 +443,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       hasManifest: false,
       reason: 'no bundle-manifest.json; only the frozen historical exact adapter may apply',
     });
-    // Explicit real HEAD only for tests; production default resolves clean HEAD itself.
+    // Capture binding uses real process Git; requires clean protected inputs on gitRoot.
     const routed = await routeAndValidatePublicBundle({
       root,
       controlledPath: V02_PATH,
@@ -416,11 +464,14 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       manifest.bundle_digest = '0'.repeat(64);
       await writeFile(path.join(bundleDir, 'extra-unlocked.txt'), 'nope\n');
     }, { updateLock: false });
+    const head = realGitHead();
     await expectRejection(
       () => routeAndValidatePublicBundle({
         root: fixture,
         controlledPath: R2_PATH,
         lockPath: LOCK_V3,
+        captureRevision: head,
+        gitRoot: root,
       }),
       'INTEGRITY_REJECTED',
     );
@@ -435,7 +486,11 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     expect(route.hasManifest).toBe(false);
     // Without a Manifest the historical adapter is selected and rejects the unpinned package.
     await expect(
-      routeAndValidatePublicBundle({ root, controlledPath: UNFIXED, captureRevision }),
+      routeAndValidatePublicBundle({
+        root,
+        controlledPath: UNFIXED,
+        captureRevision,
+      }),
     ).rejects.toThrow(/ActKG aggregate Release rejected|not the pinned/u);
 
     const components = JSON.parse(
@@ -465,6 +520,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
         root: fixture,
         controlledPath: unknownPath,
         captureRevision,
+        gitRoot: root,
       }),
     ).rejects.toThrow(/ActKG aggregate Release rejected|not the pinned|not the controlled locked path/u);
   });
@@ -483,7 +539,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       release.byte_length = bytes.byteLength;
       await syncValidationReport(manifest, bundleDir);
     });
-    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
     expect(
       validated.rawArtifacts.some((artifact) => (
         artifact.descriptor.role === 'release' && artifact.descriptor.path === 'release-envelope.json'
@@ -506,7 +562,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       release.byte_length = bytes.byteLength;
       await syncValidationReport(manifest, bundleDir);
     });
-    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
     expect(
       validated.rawArtifacts.some((artifact) => (
         artifact.descriptor.role === 'release'
@@ -532,7 +588,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       });
       await syncValidationReport(manifest, bundleDir);
     });
-    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
     expect(validated.compatibility.code).toBe('COMPATIBLE_OPTIONAL_EXTENSION');
     expect(validated.unknownOptionalArtifacts).toHaveLength(1);
     expect(validated.unknownOptionalArtifacts[0]!.semanticsEnabled).toBe(false);
@@ -555,7 +611,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       });
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'ADAPTER_UPDATE_REQUIRED',
       /unknown required Artifact/u,
     );
@@ -570,7 +626,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       };
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'SCHEMA_REVIEW_REQUIRED',
       /Schema identity/u,
     );
@@ -582,7 +638,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       manifest.artifacts[0]!.path = '../escape.json';
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: traversal, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(traversal)),
       'INTEGRITY_REJECTED',
       /confined POSIX|escapes|must match pattern|unsafe|path/u,
     );
@@ -606,7 +662,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       void bundleDir;
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: caseFold, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(caseFold)),
       'INTEGRITY_REJECTED',
       /case folding|file set|missing/u,
     );
@@ -614,7 +670,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     const extra = await fixtureRoot();
     await writeFile(path.join(extra, R2_PATH, 'not-in-manifest.bin'), 'x');
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: extra, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(extra)),
       'INTEGRITY_REJECTED',
       /file set/u,
     );
@@ -627,7 +683,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       'raw_text=secret-should-not-escape-closure\n',
     );
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: hiddenExtra, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(hiddenExtra)),
       'INTEGRITY_REJECTED',
       /file set/u,
     );
@@ -636,7 +692,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     await mkdir(path.join(nestedExtra, R2_PATH, 'smuggle'), { recursive: true });
     await writeFile(path.join(nestedExtra, R2_PATH, 'smuggle', 'not-in-manifest.bin'), 'x');
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: nestedExtra, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(nestedExtra)),
       'INTEGRITY_REJECTED',
       /file set/u,
     );
@@ -645,7 +701,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     await mkdir(path.join(nestedSymlink, R2_PATH, 'nested'), { recursive: true });
     await symlink('/etc/passwd', path.join(nestedSymlink, R2_PATH, 'nested', 'escaped-link'));
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: nestedSymlink, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(nestedSymlink)),
       'INTEGRITY_REJECTED',
       /symbolic link|file set/u,
     );
@@ -656,7 +712,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       `${await readFile(path.join(hashDrift, R2_PATH, 'RELEASE-NOTES.md'), 'utf8')}\n`,
     );
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: hashDrift, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(hashDrift)),
       'INTEGRITY_REJECTED',
       /hash|SHA|digest|file set|byte length/u,
     );
@@ -671,7 +727,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await syncValidationReport(manifest, bundleDir);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: privacy, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(privacy)),
       'INTEGRITY_REJECTED',
       /privacy/u,
     );
@@ -686,7 +742,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await syncValidationReport(manifest, bundleDir);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: privateDraft, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(privateDraft)),
       'INTEGRITY_REJECTED',
       /privacy/u,
     );
@@ -694,7 +750,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     const symlinkFixture = await fixtureRoot();
     await symlink('/etc/passwd', path.join(symlinkFixture, R2_PATH, 'escaped-link'));
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: symlinkFixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(symlinkFixture)),
       'INTEGRITY_REJECTED',
       /symbolic link|file set/u,
     );
@@ -715,7 +771,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     await symlink(aliasAbs, controlledAbs);
 
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /symbolic link/u,
     );
@@ -727,7 +783,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     await rm(controlledAbs, { recursive: true, force: true });
     await symlink(outsideBundle, controlledAbs);
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /symbolic link/u,
     );
@@ -739,7 +795,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       delete manifest.components[0]!.release_id;
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: incomplete, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(incomplete)),
       'INTEGRITY_REJECTED',
       /component/u,
     );
@@ -757,7 +813,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       artifact.byte_length = bytes.byteLength;
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: disagree, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(disagree)),
       'INTEGRITY_REJECTED',
       /component identity sets differ/u,
     );
@@ -776,7 +832,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       projection.byte_length = bytes.byteLength;
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: endpoint, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(endpoint)),
       'INTEGRITY_REJECTED',
       /missing endpoint/u,
     );
@@ -795,7 +851,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       manifest.statistics.projection_links = 130;
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: metadata, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(metadata)),
       'INTEGRITY_REJECTED',
       /metadata|one-to-one|closed/u,
     );
@@ -814,7 +870,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       artifact.byte_length = bytes.byteLength;
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: crosswalk, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(crosswalk)),
       'INTEGRITY_REJECTED',
       /outside release membership/u,
     );
@@ -833,7 +889,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       manifest.statistics.rag_crosswalk_rows = lines.length;
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: duplicate, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(duplicate)),
       'INTEGRITY_REJECTED',
       /repeats a crosswalk triple|statistics/u,
     );
@@ -943,7 +999,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       });
     });
 
-    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
     expect(validated.statistics.projectionLinks).toBe(expectedLinks);
     expect(validated.statistics.projectionLinks).toBe(129);
     expect(validated.statistics.projectionNodes).toBe(744);
@@ -1095,7 +1151,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     lockSynthetic.release_raw_sha256 = String(synthetic.release_raw_sha256);
     await writeJson(lockPath, lock);
 
-    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
     expect(validated.components).toHaveLength(4);
     expect(validated.statistics.componentCount).toBe(4);
     expect(
@@ -1129,7 +1185,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await syncValidationReport(manifest, bundleDir);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /component package release_hash disagrees|component identity mismatch/u,
     );
@@ -1204,7 +1260,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     expect(String(target.release_raw_sha256)).toMatch(/^[a-f0-9]{64}$/u);
 
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /component package canonical release_hash drift/u,
     );
@@ -1221,7 +1277,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await writeTrackedJson(manifest, bundleDir, String(reportArtifact.path), report);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /artifact_validation/u,
     );
@@ -1248,7 +1304,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await writeTrackedJson(manifest, bundleDir, String(reportArtifact.path), report);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /projection_validation check .* is FAIL while top-level result is PASS|privacy_validation check .* is FAIL while top-level result is PASS|reproducibility_validation check .* is FAIL while top-level result is PASS/u,
     );
@@ -1263,7 +1319,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await syncValidationReport(manifest, bundleDir);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /required aggregate Artifact missing: release_notes@actkg-release-notes\/1/u,
     );
@@ -1277,7 +1333,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await syncValidationReport(manifest, bundleDir);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /required aggregate Artifact must declare required:true: release@ctkg-release\/0\.2/u,
     );
@@ -1309,7 +1365,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await syncValidationReport(manifest, bundleDir);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: missingDomain, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(missingDomain)),
       'INTEGRITY_REJECTED',
       /domain.*lacks link metadata coverage|required aggregate projection profile domain lacks link metadata coverage/u,
     );
@@ -1336,7 +1392,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await syncValidationReport(manifest, bundleDir);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: duplicate, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(duplicate)),
       'INTEGRITY_REJECTED',
       /domain has duplicate link metadata coverage/u,
     );
@@ -1356,7 +1412,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       await writeTrackedJson(manifest, bundleDir, String(reportArtifact.path), report);
     });
     await expectRejection(
-      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /Validation Report source_revision does not match Manifest\/Lock/u,
     );
@@ -1468,7 +1524,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       },
     });
 
-    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
     expect(validated.components).toHaveLength(4);
     const admitted = validated.components.find((component) => component.releaseId === releaseId)!;
     expect(admitted.referenceKind).toBe('standard_bundle');
@@ -1616,7 +1672,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       });
 
       await expectRejection(
-        () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+        () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
         'INTEGRITY_REJECTED',
         testCase.pattern,
       );
@@ -1674,7 +1730,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       });
     });
 
-    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
     const byProfile = Object.fromEntries(
       validated.preservedProjections.map((item) => [item.identity.profile, item.identity.linkCount]),
     );
@@ -1710,7 +1766,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       });
     });
 
-    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
     expect(validated.statistics.ragCrosswalkRows).toBe(expectedCrosswalk);
     expect(validated.statistics.ragCrosswalkRows).not.toBe(1361);
     expect(validated.compatibility.code).toBe('COMPATIBLE_CONTENT_UPDATE');
@@ -1718,7 +1774,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
   });
 
   it('preserves three projection identities even when their current records are equal and selects only runtime', async () => {
-    const validated = await loadAndValidatePublicBundleV1({ root });
+    const validated = await loadAndValidatePublicBundleV1(rootLoadOptions());
     const digests = validated.preservedProjections.map((item) => item.identity.versionDigest);
     expect(new Set(digests).size).toBe(validated.preservedProjections.length);
     expect(validated.selectedRuntimeProjection.identity.profile).toBe('runtime');
@@ -1726,7 +1782,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
   });
 
   it('classifies the r2 packaging revision as COMPATIBLE_PACKAGING_REVISION for the same semantic Release', async () => {
-    const validated = await loadAndValidatePublicBundleV1({ root });
+    const validated = await loadAndValidatePublicBundleV1(rootLoadOptions());
     expect(validated.compatibility.code).toBe('COMPATIBLE_PACKAGING_REVISION');
     expect(validated.releaseIdentity.releaseId).toBe(REVIEWED_V0_3_R2_IDENTITIES.releaseId);
     expect(validated.bundleIdentity.bundleRevision).toBe(2);
@@ -1757,15 +1813,16 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       }
       await syncValidationReport(manifest, bundleDir);
     });
-    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
     expect(validated.allLinkMetadata).toHaveLength(3);
     expect(validated.runtimeLinkMetadata).toHaveLength(130);
     expect(validated.compatibility.code).toBe('COMPATIBLE_PACKAGING_REVISION');
   });
 
   it('emits one deterministic ValidatedActKGBundle without selector or database coupling', async () => {
-    const first = await loadAndValidatePublicBundleV1({ root });
-    const second = await loadAndValidatePublicBundleV1({ root });
+    const first = await loadAndValidatePublicBundleV1(rootLoadOptions());
+    const second = await loadAndValidatePublicBundleV1(rootLoadOptions());
+    expect(first.captureRevision).toBe(second.captureRevision);
     expect(first.bundleIdentity).toEqual(second.bundleIdentity);
     expect(first.releaseIdentity).toEqual(second.releaseIdentity);
     expect(first.statistics).toEqual(second.statistics);
@@ -1778,8 +1835,268 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     expect(Object.keys(first)).not.toContain('selector');
   });
 
+  it('public loader and router reject untrusted capture revisions via real Git only', async () => {
+    // Invalid format is rejected before cleanliness (always runnable).
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1({
+        root,
+        captureRevision: 'not-a-git-revision',
+      }),
+      'INTEGRITY_REJECTED',
+      /invalid/u,
+    );
+    await expectRejection(
+      () => routeAndValidatePublicBundle({
+        root,
+        controlledPath: V02_PATH,
+        captureRevision: 'not-a-git-revision',
+      }),
+      'INTEGRITY_REJECTED',
+      /invalid/u,
+    );
+
+    // Fabricated 40-hex never authorizes admission:
+    // - dirty protected tree → clean check fails first
+    // - clean tree → equality against real HEAD fails
+    // Either way the public API fail-closes before trusting the SHA.
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1({
+        root,
+        captureRevision: 'a'.repeat(40),
+      }),
+      'INTEGRITY_REJECTED',
+      /clean protected Git inputs|expected captureRevision must equal the current Git HEAD/u,
+    );
+    await expectRejection(
+      () => routeAndValidatePublicBundle({
+        root,
+        controlledPath: V02_PATH,
+        captureRevision: 'a'.repeat(40),
+      }),
+      'INTEGRITY_REJECTED',
+      /clean protected Git inputs|expected captureRevision must equal the current Git HEAD/u,
+    );
+  });
+
+  it('public validation APIs do not expose a captureGit runner injection seam', async () => {
+    const v1Source = await readFile(
+      path.join(root, 'scripts/actkg-release/public-bundle-v1.ts'),
+      'utf8',
+    );
+    const routerSource = await readFile(
+      path.join(root, 'scripts/actkg-release/public-bundle-router.ts'),
+      'utf8',
+    );
+    const captureSource = await readFile(
+      path.join(root, 'scripts/actkg-release/capture-revision.ts'),
+      'utf8',
+    );
+    expect(v1Source).not.toMatch(/captureGit/u);
+    expect(v1Source).not.toMatch(/CaptureGitRunner/u);
+    expect(routerSource).not.toMatch(/captureGit/u);
+    expect(routerSource).not.toMatch(/CaptureGitRunner/u);
+    // Public resolve API must not accept a runner option either.
+    expect(captureSource).toMatch(/export function resolveTrustedCaptureRevision/u);
+    expect(captureSource).not.toMatch(/git\?:/u);
+    expect(captureSource).not.toMatch(/export (type|interface) CaptureGitRunner/u);
+  });
+
+  it('rejects Unicode-escaped private field names after JSON decode', async () => {
+    const fixture = await fixtureRoot();
+    await finalizeBundle(fixture, async (manifest, bundleDir) => {
+      // Key is raw_text after JSON.parse, but not the literal "raw_text" in UTF-8 text.
+      const payload = `{"\\u0072aw_text":"secret-source"}\n`;
+      const bytes = Buffer.from(payload, 'utf8');
+      expect(bytes.toString('utf8')).not.toContain('"raw_text"');
+      await writeFile(path.join(bundleDir, 'future-optional.json'), bytes);
+      manifest.artifacts.push({
+        role: 'future_analytics',
+        contract_version: 'actkg-future-analytics/1',
+        required: false,
+        path: 'future-optional.json',
+        media_type: 'application/json',
+        sha256: sha256(bytes),
+        byte_length: bytes.byteLength,
+        record_count: null,
+      });
+      await syncValidationReport(manifest, bundleDir);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
+      'INTEGRITY_REJECTED',
+      /privacy|raw_text/u,
+    );
+  });
+
+  it('counts NDJSON records by verified media_type, not filename suffix', async () => {
+    const fixture = await fixtureRoot();
+    await finalizeBundle(fixture, async (manifest, bundleDir) => {
+      const crosswalk = manifest.artifacts.find((artifact) => artifact.role === 'rag_crosswalk')!;
+      const oldPath = String(crosswalk.path);
+      const newPath = 'artifacts/crosswalk.ndjson';
+      await mkdir(path.join(bundleDir, 'artifacts'), { recursive: true });
+      await cp(path.join(bundleDir, oldPath), path.join(bundleDir, ...newPath.split('/')));
+      await unlink(path.join(bundleDir, oldPath));
+      const bytes = await readFile(path.join(bundleDir, ...newPath.split('/')));
+      crosswalk.path = newPath;
+      crosswalk.media_type = 'application/x-ndjson';
+      crosswalk.sha256 = sha256(bytes);
+      crosswalk.byte_length = bytes.byteLength;
+      crosswalk.record_count = bytes.toString('utf8').split(/\r?\n/u).filter((line) => line.length > 0).length;
+      await syncValidationReport(manifest, bundleDir);
+    });
+    const validated = await loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture));
+    const artifact = validated.rawArtifacts.find((item) => item.descriptor.role === 'rag_crosswalk')!;
+    expect(artifact.descriptor.path).toBe('artifacts/crosswalk.ndjson');
+    expect(artifact.descriptor.mediaType).toBe('application/x-ndjson');
+    expect(artifact.descriptor.recordCount).toBe(validated.statistics.ragCrosswalkRows);
+  });
+
+  it('rejects standard_bundle component packages that fail public package boundary closure', async () => {
+    const buildSynthetic = async () => {
+      const fixture = await fixtureRoot();
+      const syntheticPath = 'course-content/authoring/knowledge/releases/synthetic-standard-bundle-v0.1';
+      const releaseId = 'ctr:release:synthetic-standard-bundle-v0.1';
+      const releaseVersion = 'synthetic-standard-bundle-v0.1';
+      const releaseHash = 'b'.repeat(64);
+      const bundleId = 'ctb:synthetic-standard-bundle-v0.1:r1';
+      const written = await writeMinimalStandardBundleComponent({
+        fixture,
+        controlledPath: syntheticPath,
+        releaseId,
+        releaseVersion,
+        releaseHash,
+        bundleId,
+      });
+      await finalizeBundle(fixture, async (manifest, bundleDir) => {
+        const releaseArtifact = manifest.artifacts.find((item) => item.role === 'release')!;
+        const componentArtifact = manifest.artifacts.find((item) => item.role === 'component_manifest')!;
+        const release = JSON.parse(
+          await readFile(path.join(bundleDir, String(releaseArtifact.path)), 'utf8'),
+        ) as JsonObject;
+        const componentIds = release.component_releases as string[];
+        componentIds.push(releaseId);
+        release.component_releases = componentIds;
+        release.release_hash = recomputeReleaseHash(release);
+
+        const paths = projectionPaths(manifest);
+        for (const profile of ['runtime', 'domain', 'review'] as const) {
+          const projection = JSON.parse(
+            await readFile(path.join(bundleDir, paths[profile]), 'utf8'),
+          ) as JsonObject;
+          projection.source_release_hash = release.release_hash;
+          await writeTrackedJson(manifest, bundleDir, paths[profile], projection);
+        }
+
+        const metaArtifact = manifest.artifacts.find((item) => item.role === 'projection_link_metadata')!;
+        const metaLines = (await readFile(path.join(bundleDir, String(metaArtifact.path)), 'utf8'))
+          .split(/\r?\n/u)
+          .filter(Boolean)
+          .map((line) => {
+            const row = JSON.parse(line) as JsonObject;
+            row.source_release_hash = release.release_hash;
+            return JSON.stringify(row);
+          });
+        await writeTrackedArtifact(
+          manifest,
+          bundleDir,
+          String(metaArtifact.path),
+          Buffer.from(`${metaLines.join('\n')}\n`, 'utf8'),
+        );
+        await writeTrackedJson(manifest, bundleDir, String(releaseArtifact.path), release);
+
+        const componentManifest = JSON.parse(
+          await readFile(path.join(bundleDir, String(componentArtifact.path)), 'utf8'),
+        ) as { components: JsonObject[] };
+        componentManifest.components.push({
+          component_role: 'module',
+          release_hash: releaseHash,
+          release_id: releaseId,
+          release_version: releaseVersion,
+        });
+        await writeTrackedJson(manifest, bundleDir, String(componentArtifact.path), componentManifest);
+
+        manifest.components.push({
+          reference_kind: 'standard_bundle',
+          release_id: releaseId,
+          release_version: releaseVersion,
+          release_hash: releaseHash,
+          component_role: 'module',
+          bundle_id: bundleId,
+          bundle_digest: written.bundleDigest,
+          manifest_sha256: written.manifestSha256,
+        });
+        manifest.release = {
+          release_id: String(release.id),
+          release_version: String(release.release_version),
+          release_hash: String(release.release_hash),
+          source_dataset_hash: String(release.source_dataset_hash),
+        };
+        manifest.statistics = {
+          ...manifest.statistics,
+          component_count: 4,
+        };
+        markContentBundleRevision(manifest, 'v0.4-standard-bundle-boundary');
+        await syncValidationReport(manifest, bundleDir, {
+          bundleId: String(manifest.bundle_id),
+          release: manifest.release,
+          statistics: manifest.statistics,
+        });
+      }, {
+        mutateLock: (lock) => {
+          lock.components = [
+            ...lock.components,
+            {
+              reference_kind: 'standard_bundle',
+              release_id: releaseId,
+              controlled_path: syntheticPath,
+              bundle_id: bundleId,
+              bundle_digest: written.bundleDigest,
+              manifest_raw_sha256: written.manifestSha256,
+            },
+          ];
+        },
+      });
+      return { fixture, syntheticPath, releaseId };
+    };
+
+    const extraFile = await buildSynthetic();
+    await writeFile(
+      path.join(extraFile.fixture, extraFile.syntheticPath, 'undeclared-component.bin'),
+      'x',
+    );
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(extraFile.fixture)),
+      'INTEGRITY_REJECTED',
+      /standard_bundle component|file set/u,
+    );
+
+    const missingSums = await buildSynthetic();
+    await unlink(path.join(missingSums.fixture, missingSums.syntheticPath, 'SHA256SUMS'));
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(missingSums.fixture)),
+      'INTEGRITY_REJECTED',
+      /standard_bundle component|SHA256SUMS|file set/u,
+    );
+
+    const rootLink = await buildSynthetic();
+    const controlledAbs = path.join(rootLink.fixture, rootLink.syntheticPath);
+    const aliasAbs = path.join(
+      rootLink.fixture,
+      'course-content/authoring/knowledge/releases/synthetic-standard-bundle-alias',
+    );
+    await cp(controlledAbs, aliasAbs, { recursive: true });
+    await rm(controlledAbs, { recursive: true, force: true });
+    await symlink(aliasAbs, controlledAbs);
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(rootLink.fixture)),
+      'INTEGRITY_REJECTED',
+      /symbolic link/u,
+    );
+  });
+
   it('retains opaque retrieval/citation identifiers without treating them as closure failures', async () => {
-    const validated = await loadAndValidatePublicBundleV1({ root });
+    const validated = await loadAndValidatePublicBundleV1(rootLoadOptions());
     expect(validated.crosswalk[0]!.retrievalChunkId).toMatch(/^ctr:/u);
     expect(validated.crosswalk[0]!.citationTargetId).toMatch(/^ctr:/u);
     // no attempt is made to resolve these inside the bundle; presence alone is sufficient
