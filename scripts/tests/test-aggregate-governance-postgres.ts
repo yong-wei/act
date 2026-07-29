@@ -4,7 +4,7 @@
  *
  * Uses:
  * - real #1132 computeAndPersistReleaseSetDelta (no synthetic delta rows)
- * - real #1124 buildCurrentInventory from library (no synthetic harness inventory)
+ * - real #1124 persisted inventory snapshot (import then loadVerified)
  * - membership equality without fixed production count
  * - three capture identities (governance/import/delta may differ)
  *
@@ -32,6 +32,8 @@ import {
 } from '../../src/lib/aggregate-governance';
 import {
   buildCurrentInventory,
+  CanonicalResourceBindingRepository,
+  loadVerifiedPersistedCurrentInventory,
   selectResourceKnowledgeAuthority,
 } from '../../src/lib/canonical-resource-binding';
 import { createPrismaClient } from '../../src/lib/prisma-client';
@@ -205,23 +207,36 @@ async function main(): Promise<void> {
     // Fixture assertion only — not a production gate.
     assert.equal(membership.canonicalIds.length, V03_R2_FIXTURE_OBJECT_COUNT);
 
-    // Real #1124 inventory — no synthetic fallback. Dirty capture paths fail closed.
+    // Real #1124 inventory: operator import snapshot, then governance load with
+    // pinned watermark (never mint a fresh LSN inside governance).
     let inventory;
     try {
-      inventory = await buildCurrentInventory(db, {
-        capturedAt: new Date().toISOString(),
-        dbWatermark: 'test-watermark',
+      const imported = await buildCurrentInventory(db, {
+        capturedAt: '2026-07-30T00:00:00.000Z',
+        dbWatermark: 'test-watermark-persisted',
       });
+      const bindingRepo = new CanonicalResourceBindingRepository(db as never);
+      await bindingRepo.persistInventory(imported);
+      inventory = await loadVerifiedPersistedCurrentInventory(db);
+      assert.equal(inventory.dbWatermark, 'test-watermark-persisted');
+      assert.equal(inventory.runId, imported.runId);
+      // Live rebuild may observe a different WAL LSN; verified load must stay pinned.
+      const liveRebuild = await buildCurrentInventory(db);
+      assert.equal(liveRebuild.runId, imported.runId);
+      assert.notEqual(liveRebuild.dbWatermark, inventory.dbWatermark);
+      const reloaded = await loadVerifiedPersistedCurrentInventory(db);
+      assert.equal(reloaded.dbWatermark, inventory.dbWatermark);
+      assert.equal(reloaded.runId, inventory.runId);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.log(JSON.stringify({
         ok: false,
         deferred: true,
-        reason: 'real #1124 inventory capture failed (likely dirty protected paths)',
+        reason: 'real #1124 inventory capture/import/verify failed (likely dirty protected paths)',
         detail: message,
         membershipCount: membership.canonicalIds.length,
         deltaReceiptId: delta.id,
-        note: 'Fail closed until clean checkpoint.',
+        note: 'Fail closed until clean checkpoint and operator inventory import.',
       }, null, 2));
       process.exitCode = 1;
       return;

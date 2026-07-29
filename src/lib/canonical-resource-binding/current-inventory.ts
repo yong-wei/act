@@ -11,7 +11,10 @@ import {
   assertCanonicalResourceBindingCaptureRevisionUnchanged,
   resolveCanonicalResourceBindingCaptureRevision,
 } from './capture-revision';
-import type { ResourceInventoryObservation } from './contracts';
+import type {
+  ResourceBindingInventory,
+  ResourceInventoryObservation,
+} from './contracts';
 import {
   buildAtomicResourceId,
   buildResourceBindingInventory,
@@ -295,4 +298,253 @@ export async function buildCurrentInventory(
   const inventory = buildResourceBindingInventory(observations);
   await assertCanonicalResourceBindingCaptureRevisionUnchanged(revision);
   return inventory;
+}
+
+/** Content-only projection (excludes live dbWatermark / capturedAt). */
+export function inventoryContentProjection(inventory: ResourceBindingInventory) {
+  return {
+    runId: inventory.runId,
+    sourceHash: inventory.sourceHash,
+    captureRevision: inventory.captureRevision,
+    summary: {
+      itemCount: inventory.summary.itemCount,
+      includedCount: inventory.summary.includedCount,
+      excludedCount: inventory.summary.excludedCount,
+      unresolvedCount: inventory.summary.unresolvedCount,
+    },
+    items: inventory.items.map((item) => ({
+      atomicResourceId: item.atomicResourceId,
+      resourceId: item.resourceId,
+      structuralUnitId: item.structuralUnitId,
+      segmentId: item.segmentId,
+      resourceSegmentHash: item.resourceSegmentHash,
+      disposition: item.disposition,
+      reasonCodes: item.reasonCodes,
+      sourceObservations: item.sourceObservations,
+      observationDigest: item.observationDigest,
+    })).sort((left, right) => left.atomicResourceId.localeCompare(right.atomicResourceId)),
+  };
+}
+
+export interface PersistedInventorySnapshotRow {
+  id: string;
+  captureRevision: string;
+  capturedAt: Date | string;
+  dbWatermark: string;
+  sourceHash: string;
+  itemCount: number;
+  includedCount: number;
+  excludedCount: number;
+  unresolvedCount: number;
+  complete: boolean;
+  items: Array<{
+    atomicResourceId: string;
+    resourceId: string;
+    structuralUnitId: string;
+    segmentId: string;
+    resourceSegmentHash: string;
+    disposition: string;
+    reasonCodes: unknown;
+    sourceObservations: unknown;
+    observationDigest: string;
+  }>;
+}
+
+export function inventoryContentProjectionFromPersisted(
+  row: PersistedInventorySnapshotRow,
+) {
+  return {
+    runId: row.id,
+    sourceHash: row.sourceHash,
+    captureRevision: row.captureRevision,
+    summary: {
+      itemCount: row.itemCount,
+      includedCount: row.includedCount,
+      excludedCount: row.excludedCount,
+      unresolvedCount: row.unresolvedCount,
+    },
+    items: row.items.map((item) => ({
+      atomicResourceId: item.atomicResourceId,
+      resourceId: item.resourceId,
+      structuralUnitId: item.structuralUnitId,
+      segmentId: item.segmentId,
+      resourceSegmentHash: item.resourceSegmentHash,
+      disposition: item.disposition,
+      reasonCodes: item.reasonCodes,
+      sourceObservations: item.sourceObservations,
+      observationDigest: item.observationDigest,
+    })).sort((left, right) => left.atomicResourceId.localeCompare(right.atomicResourceId)),
+  };
+}
+
+export function assertPersistedInventorySnapshotComplete(
+  row: PersistedInventorySnapshotRow,
+): void {
+  if (!row.complete) {
+    throw new Error(
+      `resource binding inventory rejected: persisted snapshot ${row.id} is not complete`,
+    );
+  }
+  const dispositionTotal = row.includedCount + row.excludedCount + row.unresolvedCount;
+  if (row.items.length !== row.itemCount || row.itemCount !== dispositionTotal) {
+    throw new Error(
+      `resource binding inventory rejected: persisted snapshot ${row.id} is incomplete `
+      + `(items=${row.items.length}, itemCount=${row.itemCount}, dispositionTotal=${dispositionTotal})`,
+    );
+  }
+}
+
+/**
+ * Fail closed when recomputed current resource content drifts from a persisted
+ * #1124 snapshot. Capture watermark is not part of content identity.
+ */
+export function assertInventoryMatchesPersistedSnapshot(
+  inventory: ResourceBindingInventory,
+  persisted: PersistedInventorySnapshotRow,
+): void {
+  assertPersistedInventorySnapshotComplete(persisted);
+  if (inventory.captureRevision !== persisted.captureRevision) {
+    throw new Error(
+      `resource binding inventory rejected: captureRevision drift `
+      + `(recomputed=${inventory.captureRevision}, persisted=${persisted.captureRevision})`,
+    );
+  }
+  if (inventory.runId !== persisted.id || inventory.sourceHash !== persisted.sourceHash) {
+    throw new Error(
+      `resource binding inventory rejected: current resource content drifts from persisted snapshot `
+      + `(runId ${inventory.runId} / sourceHash ${inventory.sourceHash} vs `
+      + `persisted ${persisted.id} / ${persisted.sourceHash})`,
+    );
+  }
+  const recomputedDigest = canonicalSha256(inventoryContentProjection(inventory));
+  const persistedDigest = canonicalSha256(inventoryContentProjectionFromPersisted(persisted));
+  if (recomputedDigest !== persistedDigest) {
+    throw new Error(
+      `resource binding inventory rejected: item/summary projection drifts from persisted snapshot `
+      + `(${recomputedDigest} != ${persistedDigest})`,
+    );
+  }
+}
+
+function capturedAtIso(value: Date | string): string {
+  if (value instanceof Date) return value.toISOString();
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`resource binding inventory rejected: invalid persisted capturedAt ${value}`);
+  }
+  return parsed.toISOString();
+}
+
+/**
+ * Pure selection/fencing for an operator-imported #1124 snapshot.
+ * Used by loadVerifiedPersistedCurrentInventory and unit tests.
+ */
+export function resolveVerifiedPersistedInventory(input: {
+  captureRevision: string;
+  contentProbe: ResourceBindingInventory;
+  completeRunsForCapture: ReadonlyArray<{ id: string; sourceHash: string }>;
+  persisted: PersistedInventorySnapshotRow | null;
+  verifiedWithPinnedCapture: ResourceBindingInventory;
+}): ResourceBindingInventory {
+  const {
+    captureRevision,
+    contentProbe,
+    completeRunsForCapture,
+    persisted,
+    verifiedWithPinnedCapture,
+  } = input;
+
+  if (contentProbe.captureRevision !== captureRevision) {
+    throw new Error(
+      `resource binding inventory rejected: content probe captureRevision ${contentProbe.captureRevision} `
+      + `drifts from resolved capture ${captureRevision}`,
+    );
+  }
+  if (completeRunsForCapture.length === 0) {
+    throw new Error(
+      `resource binding inventory rejected: no complete #1124 inventory snapshot for capture `
+      + `${captureRevision}; run import-canonical-resource-binding-shadow first`,
+    );
+  }
+
+  const matchingComplete = completeRunsForCapture.filter((row) => row.id === contentProbe.runId);
+  if (matchingComplete.length === 0) {
+    throw new Error(
+      `resource binding inventory rejected: complete snapshot missing for current content `
+      + `runId=${contentProbe.runId} (capture=${captureRevision}); `
+      + `run import-canonical-resource-binding-shadow first`,
+    );
+  }
+  if (matchingComplete.length > 1) {
+    throw new Error(
+      `resource binding inventory rejected: ambiguous complete snapshots for runId=${contentProbe.runId}`,
+    );
+  }
+  if (!persisted) {
+    throw new Error(
+      `resource binding inventory rejected: complete snapshot row missing for runId=${contentProbe.runId}`,
+    );
+  }
+
+  assertInventoryMatchesPersistedSnapshot(verifiedWithPinnedCapture, persisted);
+
+  const expectedCapturedAt = capturedAtIso(persisted.capturedAt);
+  if (
+    verifiedWithPinnedCapture.dbWatermark !== persisted.dbWatermark
+    || verifiedWithPinnedCapture.capturedAt !== expectedCapturedAt
+  ) {
+    throw new Error(
+      `resource binding inventory rejected: recomputed capture identity did not pin to persisted snapshot `
+      + `(dbWatermark=${verifiedWithPinnedCapture.dbWatermark}, `
+      + `capturedAt=${verifiedWithPinnedCapture.capturedAt})`,
+    );
+  }
+
+  return verifiedWithPinnedCapture;
+}
+
+/**
+ * Load the operator-imported #1124 inventory snapshot for current resource content
+ * and recompute with that row's immutable capturedAt/dbWatermark so governance
+ * dry-run/apply/replay share one capture identity.
+ *
+ * Does not auto-persist. Missing, incomplete, ambiguous, or drifted snapshots fail closed.
+ */
+export async function loadVerifiedPersistedCurrentInventory(
+  db: PrismaClient,
+): Promise<ResourceBindingInventory> {
+  const captureRevision = await resolveCanonicalResourceBindingCaptureRevision();
+
+  // Content probe resolves the current resource-content runId. Live LSN is discarded.
+  const contentProbe = await buildCurrentInventory(db);
+
+  const completeForCapture = await db.resourceBindingInventoryRun.findMany({
+    where: { captureRevision, complete: true },
+    select: { id: true, sourceHash: true },
+    orderBy: { createdAt: 'desc' },
+  }) as Array<{ id: string; sourceHash: string }>;
+
+  const persisted = await db.resourceBindingInventoryRun.findUnique({
+    where: { id: contentProbe.runId },
+    include: { items: { orderBy: { atomicResourceId: 'asc' } } },
+  }) as PersistedInventorySnapshotRow | null;
+
+  // Recompute only when a candidate persisted row exists; otherwise pure resolver
+  // reports missing without a second full rebuild.
+  let verifiedWithPinnedCapture = contentProbe;
+  if (persisted) {
+    assertPersistedInventorySnapshotComplete(persisted);
+    verifiedWithPinnedCapture = await buildCurrentInventory(db, {
+      capturedAt: capturedAtIso(persisted.capturedAt),
+      dbWatermark: persisted.dbWatermark,
+    });
+  }
+
+  return resolveVerifiedPersistedInventory({
+    captureRevision,
+    contentProbe,
+    completeRunsForCapture: completeForCapture,
+    persisted,
+    verifiedWithPinnedCapture,
+  });
 }

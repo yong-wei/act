@@ -26,7 +26,7 @@ import {
   type OpaqueUpstreamRagReference,
 } from '../../src/lib/aggregate-governance';
 import {
-  buildCurrentInventory,
+  loadVerifiedPersistedCurrentInventory,
   type CanonicalObjectIndexEntry,
   type CanonicalResourceBindingDecision,
 } from '../../src/lib/canonical-resource-binding';
@@ -132,8 +132,10 @@ async function main(): Promise<void> {
       })),
     });
 
-    // Real #1124 inventory (library path — no CLI main side effects).
-    const inventory = await buildCurrentInventory(db);
+    // Real #1124 inventory: consume one operator-imported complete snapshot and
+    // pin its immutable dbWatermark/capturedAt. Never mint a fresh WAL LSN here —
+    // live rebuilds break dry-run/apply/exact-replay receipt identity.
+    const inventory = await loadVerifiedPersistedCurrentInventory(db);
     const structural = buildStructuralUnitIndexFromInventory({ inventory });
     const runtime = release.projectionIdentities.find((row) => row.isRuntime)
       ?? release.projectionIdentities[0]
