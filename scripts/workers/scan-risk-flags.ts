@@ -1,7 +1,7 @@
-﻿/**
+/**
  * Risk Flag Scanner - standalone entry point
  * 
- * Usage: npx tsx scripts/worker/scan-risk-flags.ts [--batch-size 100]
+ * Usage: npx tsx scripts/workers/scan-risk-flags.ts [--batch-size 100]
  */
 
 import { scanBatchRisks } from '@/lib/risk-scanner';
