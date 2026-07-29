@@ -126,6 +126,8 @@ export const PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS = [
   'scripts/actkg-release/public-bundle-router.ts',
   'scripts/actkg-release/public-bundle-types.ts',
   'scripts/actkg-release/bundle-compatibility-registry.ts',
+  // Shared digest primitives imported by public-bundle-v1 (canonicalJson/sha256).
+  'scripts/actkg-release/authoritative-release.ts',
   'scripts/actkg-release/capture-revision.ts',
   'scripts/actkg-release/actkg-canonical-digests.ts',
   'scripts/actkg-release/schemas/public-bundle',

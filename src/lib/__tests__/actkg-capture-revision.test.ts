@@ -12,6 +12,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS,
   resolveTrustedCaptureRevision,
 } from '../../../scripts/actkg-release/capture-revision';
 
@@ -122,5 +123,42 @@ describe('resolveTrustedCaptureRevision (isolated temp Git)', () => {
       expectedCaptureRevision: 'not-a-git-revision',
       fail: failWith,
     })).toThrow(/invalid/u);
+  });
+
+  it('binds authoritative-release.ts and rejects staged/unstaged drift on that shared digest module', async () => {
+    // public-bundle-v1 imports canonicalJson/sha256 from authoritative-release.ts;
+    // capture must fail closed when that shared implementation drifts.
+    expect(PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS).toContain(
+      'scripts/actkg-release/authoritative-release.ts',
+    );
+
+    const sharedDigestPath = 'scripts/actkg-release/authoritative-release.ts';
+    const { dir, head, trackedPaths } = await createTempGitRepo({
+      'scripts/actkg-release/public-bundle-v1.ts': 'export const loader = true;\n',
+      [sharedDigestPath]: 'export function sha256() { return "clean"; }\n',
+      'scripts/actkg-release/capture-revision.ts': 'export const capture = true;\n',
+    });
+
+    // Unstaged drift on the shared digest module is rejected.
+    await writeFile(
+      path.join(dir, sharedDigestPath),
+      'export function sha256() { return "unstaged-drift"; }\n',
+      'utf8',
+    );
+    expect(() => resolveTrustedCaptureRevision({
+      gitRoot: dir,
+      trackedPaths,
+      expectedCaptureRevision: head,
+      fail: failWith,
+    })).toThrow(/clean protected Git inputs/u);
+
+    // Staged-but-uncommitted drift is also rejected (still not clean HEAD inputs).
+    git(dir, ['add', '--', sharedDigestPath]);
+    expect(() => resolveTrustedCaptureRevision({
+      gitRoot: dir,
+      trackedPaths,
+      expectedCaptureRevision: head,
+      fail: failWith,
+    })).toThrow(/clean protected Git inputs/u);
   });
 });
