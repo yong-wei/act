@@ -129,6 +129,38 @@ function assertSafeRelativePath(relative: string, label: string): string {
   return relative;
 }
 
+/**
+ * Resolve a lock-controlled Bundle directory without accepting a package that is
+ * only present via a root symbolic link (or that escapes the intake root).
+ *
+ * Callers must not realpath first: resolving a symlink root would hide the link
+ * from later enumeration and could admit a complete package outside the
+ * controlled path.
+ */
+async function resolveControlledBundleDirectory(
+  directory: string,
+  label: string,
+  intakeRoot: string,
+): Promise<string> {
+  const leaf = await lstat(directory).catch(() => {
+    integrity(`${label} is missing`);
+  });
+  if (leaf.isSymbolicLink()) {
+    integrity(`${label} is a symbolic link`);
+  }
+  if (!leaf.isDirectory()) {
+    integrity(`${label} is not a directory`);
+  }
+  const rootResolved = await realpath(intakeRoot).catch(() => path.resolve(intakeRoot));
+  const resolved = await realpath(directory).catch(() => {
+    integrity(`${label} is inaccessible`);
+  });
+  if (resolved !== rootResolved && !resolved.startsWith(`${rootResolved}${path.sep}`)) {
+    integrity(`${label} escapes the intake root`);
+  }
+  return resolved;
+}
+
 function caseFold(value: string): string {
   return value.normalize('NFKC').toLocaleLowerCase('en-US');
 }
@@ -179,18 +211,52 @@ function schemaFailure(label: string, errors: ErrorObject[] | null | undefined):
   integrity(`${label} violates the contract schema${detail ? `: ${detail}` : ''}`);
 }
 
+/**
+ * Enumerate every regular file under the controlled Bundle as POSIX relative paths.
+ *
+ * Closure and privacy scanning depend on this set: hidden (dot-prefixed) names and
+ * ordinary nested files must be visible so undeclared content cannot escape the
+ * Manifest/SHA256SUMS equality check. Symbolic links, special files, and path
+ * escapes are rejected. Intermediate directories are traversed, not treated as
+ * package members.
+ */
 async function listRegularFiles(directory: string): Promise<string[]> {
-  const names = await readdir(directory);
+  const rootResolved = await realpath(directory).catch(() => path.resolve(directory));
   const files: string[] = [];
-  for (const name of names) {
-    if (name.startsWith('.')) continue;
-    const full = path.join(directory, name);
-    const linkInfo = await lstat(full);
-    if (linkInfo.isSymbolicLink()) integrity(`Bundle contains symbolic link ${name}`);
-    if (linkInfo.isFile()) files.push(name);
-    else if (linkInfo.isDirectory()) integrity(`Bundle contains unexpected directory ${name}`);
-    else integrity(`Bundle contains non-regular entry ${name}`);
+
+  async function walk(currentDir: string, relativePrefix: string): Promise<void> {
+    const names = await readdir(currentDir);
+    for (const name of names) {
+      // Dot-prefixed names are intentional package members when present; skipping
+      // them would let undeclared secrets bypass file-set and privacy gates.
+      const relative = relativePrefix ? `${relativePrefix}/${name}` : name;
+      assertSafeRelativePath(relative, relative);
+
+      const full = path.join(currentDir, name);
+      const linkInfo = await lstat(full);
+      if (linkInfo.isSymbolicLink()) integrity(`Bundle contains symbolic link ${relative}`);
+      if (linkInfo.isFile()) {
+        files.push(relative);
+        continue;
+      }
+      if (linkInfo.isDirectory()) {
+        const dirResolved = await realpath(full).catch(() => {
+          integrity(`Bundle directory ${relative} is inaccessible`);
+        });
+        if (
+          !dirResolved.startsWith(`${rootResolved}${path.sep}`)
+          && dirResolved !== rootResolved
+        ) {
+          integrity(`Bundle directory ${relative} escapes the controlled Bundle`);
+        }
+        await walk(full, relative);
+        continue;
+      }
+      integrity(`Bundle contains non-regular entry ${relative}`);
+    }
   }
+
+  await walk(directory, '');
   return files.sort();
 }
 
@@ -501,12 +567,19 @@ export async function loadAndValidatePublicBundleV1(options: {
   const controlledPath = lock.bundle.controlled_path;
   const requested = path.resolve(root, options.bundlePath ?? controlledPath);
   const expected = path.resolve(root, controlledPath);
-  if (await realpath(requested).catch(() => requested) !== await realpath(expected).catch(() => expected)) {
+  const requestedDir = await resolveControlledBundleDirectory(
+    requested,
+    `requested package path ${options.bundlePath ?? controlledPath}`,
+    root,
+  );
+  const bundleDir = await resolveControlledBundleDirectory(
+    expected,
+    `controlled Bundle path ${controlledPath}`,
+    root,
+  );
+  if (requestedDir !== bundleDir) {
     integrity('requested package path is not the controlled locked path');
   }
-  const bundleDir = await realpath(expected).catch(() => {
-    integrity(`controlled Bundle path ${controlledPath} is missing`);
-  });
 
   const contractValidators = compileContractValidators(options.contractSchemaDir ?? DEFAULT_CONTRACT_SCHEMA_DIR);
 

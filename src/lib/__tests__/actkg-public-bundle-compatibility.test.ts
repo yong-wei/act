@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readFile, symlink, unlink, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, symlink, unlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -92,12 +92,38 @@ function recomputeDigest(manifest: Manifest): string {
   return sha256(canonicalJson(body));
 }
 
+/** List all regular files under a Bundle as POSIX relative paths (includes hidden names). */
+async function listFixtureRegularFiles(bundleDir: string): Promise<string[]> {
+  const { lstat, readdir } = await import('node:fs/promises');
+  const files: string[] = [];
+  async function walk(currentDir: string, relativePrefix: string): Promise<void> {
+    for (const name of await readdir(currentDir)) {
+      const relative = relativePrefix ? `${relativePrefix}/${name}` : name;
+      const full = path.join(currentDir, name);
+      const info = await lstat(full);
+      if (info.isSymbolicLink()) {
+        throw new Error(`test fixture must not contain symbolic links: ${relative}`);
+      }
+      if (info.isFile()) {
+        files.push(relative);
+        continue;
+      }
+      if (info.isDirectory()) {
+        await walk(full, relative);
+        continue;
+      }
+      throw new Error(`test fixture contains non-regular entry: ${relative}`);
+    }
+  }
+  await walk(bundleDir, '');
+  return files.sort();
+}
+
 async function rewriteSha256Sums(bundleDir: string): Promise<void> {
-  const { readdir } = await import('node:fs/promises');
-  const names = (await readdir(bundleDir)).filter((name) => name !== 'SHA256SUMS').sort();
+  const names = (await listFixtureRegularFiles(bundleDir)).filter((name) => name !== 'SHA256SUMS');
   const lines: string[] = [];
   for (const name of names) {
-    const digest = sha256(await readFile(path.join(bundleDir, name)));
+    const digest = sha256(await readFile(path.join(bundleDir, ...name.split('/'))));
     lines.push(`${digest}  ${name}`);
   }
   await writeFile(path.join(bundleDir, 'SHA256SUMS'), `${lines.join('\n')}\n`);
@@ -465,6 +491,30 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     ).toBe(true);
   });
 
+  it('loads a required artifact from a safe nested relative path declared by the Manifest', async () => {
+    const fixture = await fixtureRoot();
+    await finalizeBundle(fixture, async (manifest, bundleDir) => {
+      const release = manifest.artifacts.find((artifact) => artifact.role === 'release')!;
+      const oldPath = String(release.path);
+      const newPath = 'artifacts/release-envelope.json';
+      await mkdir(path.join(bundleDir, 'artifacts'), { recursive: true });
+      await cp(path.join(bundleDir, oldPath), path.join(bundleDir, ...newPath.split('/')));
+      await unlink(path.join(bundleDir, oldPath));
+      const bytes = await readFile(path.join(bundleDir, ...newPath.split('/')));
+      release.path = newPath;
+      release.sha256 = sha256(bytes);
+      release.byte_length = bytes.byteLength;
+      await syncValidationReport(manifest, bundleDir);
+    });
+    const validated = await loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 });
+    expect(
+      validated.rawArtifacts.some((artifact) => (
+        artifact.descriptor.role === 'release'
+        && artifact.descriptor.path === 'artifacts/release-envelope.json'
+      )),
+    ).toBe(true);
+  });
+
   it('classifies unknown optional artifacts as COMPATIBLE_OPTIONAL_EXTENSION without enabling semantics', async () => {
     const fixture = await fixtureRoot();
     await finalizeBundle(fixture, async (manifest, bundleDir) => {
@@ -569,6 +619,37 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       /file set/u,
     );
 
+    // Hidden (dot-prefixed) undeclared files must enter the closure set so they
+    // cannot bypass Manifest/SHA256SUMS equality or privacy scanning.
+    const hiddenExtra = await fixtureRoot();
+    await writeFile(
+      path.join(hiddenExtra, R2_PATH, '.env'),
+      'raw_text=secret-should-not-escape-closure\n',
+    );
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1({ root: hiddenExtra, lockPath: LOCK_V3 }),
+      'INTEGRITY_REJECTED',
+      /file set/u,
+    );
+
+    const nestedExtra = await fixtureRoot();
+    await mkdir(path.join(nestedExtra, R2_PATH, 'smuggle'), { recursive: true });
+    await writeFile(path.join(nestedExtra, R2_PATH, 'smuggle', 'not-in-manifest.bin'), 'x');
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1({ root: nestedExtra, lockPath: LOCK_V3 }),
+      'INTEGRITY_REJECTED',
+      /file set/u,
+    );
+
+    const nestedSymlink = await fixtureRoot();
+    await mkdir(path.join(nestedSymlink, R2_PATH, 'nested'), { recursive: true });
+    await symlink('/etc/passwd', path.join(nestedSymlink, R2_PATH, 'nested', 'escaped-link'));
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1({ root: nestedSymlink, lockPath: LOCK_V3 }),
+      'INTEGRITY_REJECTED',
+      /symbolic link|file set/u,
+    );
+
     const hashDrift = await fixtureRoot();
     await writeFile(
       path.join(hashDrift, R2_PATH, 'RELEASE-NOTES.md'),
@@ -616,6 +697,39 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       () => loadAndValidatePublicBundleV1({ root: symlinkFixture, lockPath: LOCK_V3 }),
       'INTEGRITY_REJECTED',
       /symbolic link|file set/u,
+    );
+  });
+
+  it('rejects when the controlled Bundle root directory is a symbolic link', async () => {
+    // Pre-fix, realpath() of the controlled path would follow a root symlink to a
+    // complete external package and admit it; the root link itself never entered
+    // the recursive file-set walk.
+    const fixture = await fixtureRoot();
+    const controlledAbs = path.join(fixture, R2_PATH);
+    const aliasAbs = path.join(
+      fixture,
+      'course-content/authoring/knowledge/releases/aliased-complete-r2-bundle',
+    );
+    await cp(controlledAbs, aliasAbs, { recursive: true });
+    await rm(controlledAbs, { recursive: true, force: true });
+    await symlink(aliasAbs, controlledAbs);
+
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      'INTEGRITY_REJECTED',
+      /symbolic link/u,
+    );
+
+    // Same attack with an absolute target outside the intake root.
+    const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'actkg-bundle-root-escape-'));
+    const outsideBundle = path.join(outsideRoot, 'complete-r2');
+    await cp(aliasAbs, outsideBundle, { recursive: true });
+    await rm(controlledAbs, { recursive: true, force: true });
+    await symlink(outsideBundle, controlledAbs);
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1({ root: fixture, lockPath: LOCK_V3 }),
+      'INTEGRITY_REJECTED',
+      /symbolic link/u,
     );
   });
 
