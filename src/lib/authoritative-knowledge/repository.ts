@@ -296,18 +296,26 @@ function diagnoseStandardBundleSnapshot(
     expected: release.projectionDigest ?? '(missing)',
     actual: bundleReceipt.runtimeProjectionDigest,
   });
-  compare(diagnostics, {
-    code: 'capture-revision-mismatch',
-    field: 'bundleReceipt.captureRevision',
-    expected: release.captureRevision,
-    actual: bundleReceipt.captureRevision,
-  });
-  compare(diagnostics, {
-    code: 'lock-hash-mismatch',
-    field: 'bundleReceipt.lockRawSha256',
-    expected: release.lockRawHash,
-    actual: bundleReceipt.lockRawSha256,
-  });
+  // Packaging revisions may carry a later Git capture and lock hash on the
+  // accepted Bundle receipt. Semantic ActkgRelease keeps the first-import
+  // values, so compare receipt packaging identity only against its own contract
+  // (format/integrity), not against the immutable Release snapshot.
+  if (!GIT_COMMIT.test(bundleReceipt.captureRevision)) {
+    diagnostics.push({
+      code: 'capture-revision-invalid',
+      field: 'bundleReceipt.captureRevision',
+      expected: '40 lowercase hexadecimal characters',
+      actual: bundleReceipt.captureRevision,
+    });
+  }
+  if (!SHA256.test(bundleReceipt.lockRawSha256)) {
+    diagnostics.push({
+      code: 'hash-invalid',
+      field: 'bundleReceipt.lockRawSha256',
+      expected: '64 lowercase hexadecimal characters',
+      actual: bundleReceipt.lockRawSha256,
+    });
+  }
   compare(diagnostics, {
     code: 'bundle-identity-mismatch',
     field: 'bundleReceipt.schemaRawSha256',

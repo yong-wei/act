@@ -1454,6 +1454,74 @@ describe('AuthoritativeKnowledgeRepository standard public Bundle candidates', (
     }
   });
 
+  it('accepts packaging-revision capture/lock that differ from the first semantic Release', async () => {
+    const packagingCapture = 'c'.repeat(40);
+    const packagingLock = 'd'.repeat(64);
+    const snapshot = standardFixture();
+    // First content import freezes semantic Release + import receipt.
+    expect(snapshot.release.captureRevision).toBe(commit);
+    expect(snapshot.release.lockRawHash).toBe(hash);
+    expect(snapshot.receipt?.captureRevision).toBe(commit);
+    expect(snapshot.receipt?.lockRawHash).toBe(hash);
+    // Later packaging revision: new accepted Bundle receipt packaging identity.
+    snapshot.bundleReceipt = {
+      ...snapshot.bundleReceipt!,
+      bundleRevision: 3,
+      captureRevision: packagingCapture,
+      lockRawSha256: packagingLock,
+    };
+
+    const result = await new AuthoritativeKnowledgeRepository(
+      mockDatabase(snapshot).database,
+    ).read(standardSelector);
+    expect(result.status).toBe('available');
+    if (result.status === 'available') {
+      expect(result.snapshot.bundleReceipt?.captureRevision).toBe(packagingCapture);
+      expect(result.snapshot.bundleReceipt?.lockRawSha256).toBe(packagingLock);
+      expect(result.snapshot.release.captureRevision).toBe(commit);
+      expect(result.snapshot.release.lockRawHash).toBe(hash);
+      expect(result.diagnostics).toEqual([]);
+    }
+  });
+
+  it('diagnoses invalid packaging captureRevision and lockRawSha256 formats on Bundle receipt', async () => {
+    const snapshot = standardFixture();
+    snapshot.bundleReceipt = {
+      ...snapshot.bundleReceipt!,
+      captureRevision: 'not-a-git-sha',
+      lockRawSha256: 'too-short',
+    };
+
+    const result = await new AuthoritativeKnowledgeRepository(
+      mockDatabase(snapshot).database,
+    ).read(standardSelector);
+    expect(result.status).toBe('drift');
+    if (result.status === 'drift') {
+      const byField = Object.fromEntries(
+        result.diagnostics.map((item) => [item.field, item]),
+      );
+      expect(byField['bundleReceipt.captureRevision']).toMatchObject({
+        code: 'capture-revision-invalid',
+        expected: '40 lowercase hexadecimal characters',
+        actual: 'not-a-git-sha',
+      });
+      expect(byField['bundleReceipt.lockRawSha256']).toMatchObject({
+        code: 'hash-invalid',
+        expected: '64 lowercase hexadecimal characters',
+        actual: 'too-short',
+      });
+      // Must not falsely require equality with the first semantic Release values.
+      expect(result.diagnostics.some((item) => (
+        item.code === 'capture-revision-mismatch'
+        && item.field === 'bundleReceipt.captureRevision'
+      ))).toBe(false);
+      expect(result.diagnostics.some((item) => (
+        item.code === 'lock-hash-mismatch'
+        && item.field === 'bundleReceipt.lockRawSha256'
+      ))).toBe(false);
+    }
+  });
+
   it('keeps #1125 exact diagnosis free of Manifest-only Bundle requirements', async () => {
     const result = await new AuthoritativeKnowledgeRepository(
       mockDatabase(aggregateFixture()).database,
