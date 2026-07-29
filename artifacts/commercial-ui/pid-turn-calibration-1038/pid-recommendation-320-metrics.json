@@ -26,24 +26,24 @@
     "success": true,
     "result": {
       "recommendedParams": {
-        "kp": 2.836,
-        "ki": 0.019,
-        "kd": 4.227
+        "kp": 1.4,
+        "ki": 0.001,
+        "kd": 4.237
       },
-      "score": 85.2,
+      "score": 83.6,
       "metrics": {
-        "avgError": 55.32744834126077,
+        "avgError": 81.83773130397682,
         "maxRudderRate": 5,
-        "settlingTime": 82,
-        "overshoot": 15.747748256368695
+        "settlingTime": 69,
+        "overshoot": 18.834759748233466
       },
       "searchInfo": {
-        "iterations": 9,
-        "timeMs": 98,
+        "iterations": 6,
+        "timeMs": 56,
         "convergenceHistory": [
           {
             "iteration": 0,
-            "score": 40.2980935924094,
+            "score": 38.9,
             "params": {
               "kp": 1.8868388818809763,
               "ki": 0.0754356296635233,
@@ -52,7 +52,7 @@
           },
           {
             "iteration": 2,
-            "score": 43.64690649561658,
+            "score": 41.9,
             "params": {
               "kp": 1.959431814495474,
               "ki": 0.08910835459041411,
@@ -61,7 +61,7 @@
           },
           {
             "iteration": 3,
-            "score": 52.77475737980225,
+            "score": 49.8,
             "params": {
               "kp": 2.2210710924700834,
               "ki": 0.1,
@@ -70,7 +70,7 @@
           },
           {
             "iteration": 4,
-            "score": 55.54236139205027,
+            "score": 52.2,
             "params": {
               "kp": 2.33825742197223,
               "ki": 0.1,
@@ -79,7 +79,7 @@
           },
           {
             "iteration": 5,
-            "score": 59.850106289624115,
+            "score": 67.1,
             "params": {
               "kp": 1.1091653724433854,
               "ki": 0.00878042037738487,
@@ -88,38 +88,11 @@
           },
           {
             "iteration": 11,
-            "score": 78.17660498560619,
+            "score": 83.6,
             "params": {
               "kp": 1.4004006268223748,
               "ki": 0.001,
               "kd": 4.237131930752657
-            }
-          },
-          {
-            "iteration": 44,
-            "score": 82.3968400658008,
-            "params": {
-              "kp": 2.8874697770224884,
-              "ki": 0.030270360705209897,
-              "kd": 3.6163567707873883
-            }
-          },
-          {
-            "iteration": 47,
-            "score": 82.80193323679336,
-            "params": {
-              "kp": 2.7895036568515934,
-              "ki": 0.025939310746663252,
-              "kd": 3.584217015237082
-            }
-          },
-          {
-            "iteration": 48,
-            "score": 85.2460137756638,
-            "params": {
-              "kp": 2.836218996613752,
-              "ki": 0.01896905633066781,
-              "kd": 4.226996810745914
             }
           }
         ]
@@ -132,7 +105,7 @@
         "protocolVersion": "1.0",
         "runtimeVersion": "simulation-optimizer-runtime-v2",
         "modelVersion": "nomoto-quick-sim-v1",
-        "checksum": "sha256:eeb868b8ef9ad8afd00156d47fc7a72760556c11c0c603cc50888316c909ee3a"
+        "checksum": "sha256:625d2e3c912be53fa63ddf00007ed672b60e4fa6a8664a5bc075d8bbd5c3b338"
       }
     },
     "advice": "推荐参数达到良好水平，可在此基础上微调。 舵角速度接近安全限制，建议适当减小 Kp 或增大 Kd。 存在明显超调，建议增大 Kd 以增加阻尼。 调节时间较长，可适当增大 Kp 加快响应。"

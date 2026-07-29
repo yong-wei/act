@@ -1,11 +1,9 @@
 {
   "change": "calibrate-pid-turn-scenario",
-  "headCommit": "64844c803fb5cae0552ae8ade3b3405f9b5c8e2f",
+  "headCommit": "df9adea649256fb0487063ee7578ffa8169615cd",
   "workspaceClean": true,
-  "needsRecapture": true,
-  "capturedAt": "2026-07-27T10:32:15.964Z",
-  "recaptureRequired": "Screenshots were captured at an earlier code state (commit 7a9c37feb). The capture script at that commit is identical to the one at HEAD 64844c803fb (HEAD only changed browser-evidence.json metadata). To produce a fully self-consistent evidence manifest matching the final HEAD, run capture-pid-recommendation-evidence.mjs on this branch with Docker running.",
-  "server": "http://localhost:3012",
+  "capturedAt": "2026-07-29T06:12:53.308Z",
+  "server": "http://localhost:3000",
   "browser": "Playwright Chromium",
   "evidenceMode": "COMMERCIAL_UI_EVIDENCE=1",
   "authentication": {
@@ -18,14 +16,14 @@
     "testHarnessRoute": "/evidence-pid"
   },
   "assertions": [
-    "browser request uses targetHeading=90 and maxRudderRate=5",
-    "real /api/simulation/optimize returns success=true and panel shows score",
-    "1440px and 320px viewports have no horizontal overflow or console errors"
+    "Browser request uses targetHeading=90 and maxRudderRate=5.",
+    "Real /api/simulation/optimize returns success=true and panel shows score.",
+    "1440px and 320px viewports have no horizontal overflow or console errors."
   ],
   "limitations": [
-    "test route renders production AIRecommendPanel; optimize endpoint handled by real /api/simulation/optimize (requires Docker for WASM runtime)",
-    "algorithm correctness covered by PID unit and Rust tests; browser evidence validates integration reachability and UI rendering",
-    "STALE: Screenshots captured at older HEAD (7a9c37feb). Re-run capture script on current HEAD with Docker to refresh."
+    "Test route renders production AIRecommendPanel; optimize endpoint handled by real /api/simulation/optimize (requires Docker for WASM runtime).",
+    "Algorithm correctness covered by PID unit and Rust tests; browser evidence validates integration reachability and UI rendering.",
+    "Pre-capture workspace was clean (verified by git status --porcelain before browser launch)."
   ],
   "captures": [
     {
@@ -33,8 +31,20 @@
       "screenshot": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-1440.png",
       "metrics": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-1440-metrics.json",
       "request": {
-        "config": { "seaState": { "level": 3, "waveHeight": 1.2, "windSpeed": 8 }, "shipSpeed": 15 },
-        "target": { "targetHeading": 90, "maxError": 150, "maxRudderRate": 5, "maxOvershoot": 20 },
+        "config": {
+          "seaState": {
+            "level": 3,
+            "waveHeight": 1.2,
+            "windSpeed": 8
+          },
+          "shipSpeed": 15
+        },
+        "target": {
+          "targetHeading": 90,
+          "maxError": 150,
+          "maxRudderRate": 5,
+          "maxOvershoot": 20
+        },
         "maxIterations": 50
       },
       "result": "passed"
@@ -44,8 +54,20 @@
       "screenshot": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-320.png",
       "metrics": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-320-metrics.json",
       "request": {
-        "config": { "seaState": { "level": 3, "waveHeight": 1.2, "windSpeed": 8 }, "shipSpeed": 15 },
-        "target": { "targetHeading": 90, "maxError": 150, "maxRudderRate": 5, "maxOvershoot": 20 },
+        "config": {
+          "seaState": {
+            "level": 3,
+            "waveHeight": 1.2,
+            "windSpeed": 8
+          },
+          "shipSpeed": 15
+        },
+        "target": {
+          "targetHeading": 90,
+          "maxError": 150,
+          "maxRudderRate": 5,
+          "maxOvershoot": 20
+        },
         "maxIterations": 50
       },
       "result": "passed"
