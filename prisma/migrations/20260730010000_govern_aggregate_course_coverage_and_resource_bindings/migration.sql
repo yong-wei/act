@@ -12,6 +12,13 @@
 CREATE UNIQUE INDEX "ActkgReleaseSetDeltaReceipt_id_candidate_release_key"
   ON "ActkgReleaseSetDeltaReceipt"("id", "candidateReleaseSetId", "candidateReleaseId");
 
+-- Public Projection Canonical membership identity for #1126 coverage/Crosswalk FKs.
+-- Standard public Bundle imports do not materialize private ActkgAuthoritativeObject rows;
+-- runtime Projection nodes are the authority target (1:1 with knowledge_object entities).
+DROP INDEX IF EXISTS "ActkgProjectionNode_releaseId_entityId_idx";
+CREATE UNIQUE INDEX "ActkgProjectionNode_releaseId_entityId_key"
+  ON "ActkgProjectionNode"("releaseId", "entityId");
+
 CREATE TABLE "AggregateCourseCoverageVersion" (
     "id" TEXT NOT NULL,
     "schemaVersion" TEXT NOT NULL,
@@ -317,7 +324,7 @@ ALTER TABLE "AggregateCourseCoverageEntry"
   ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "AggregateCourseCoverageEntry"
   ADD CONSTRAINT "AggregateCourseCoverageEntry_canonical_fkey"
-  FOREIGN KEY ("releaseId", "canonicalId") REFERENCES "ActkgAuthoritativeObject"("releaseId", "canonicalId")
+  FOREIGN KEY ("releaseId", "canonicalId") REFERENCES "ActkgProjectionNode"("releaseId", "entityId")
   ON DELETE RESTRICT ON UPDATE CASCADE;
 
 ALTER TABLE "ActGovernedStructuralUnitCrosswalk"
@@ -336,7 +343,7 @@ ALTER TABLE "ActGovernedStructuralUnitCrosswalk"
   ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "ActGovernedStructuralUnitCrosswalk"
   ADD CONSTRAINT "ActGovernedStructuralUnitCrosswalk_canonical_fkey"
-  FOREIGN KEY ("releaseId", "canonicalId") REFERENCES "ActkgAuthoritativeObject"("releaseId", "canonicalId")
+  FOREIGN KEY ("releaseId", "canonicalId") REFERENCES "ActkgProjectionNode"("releaseId", "entityId")
   ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "ActGovernedStructuralUnitCrosswalk"
   ADD CONSTRAINT "ActGovernedStructuralUnitCrosswalk_inventory_fkey"

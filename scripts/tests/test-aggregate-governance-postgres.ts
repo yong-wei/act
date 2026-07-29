@@ -150,6 +150,7 @@ async function main(): Promise<void> {
     await importValidatedActKGBundle(db, validatedV03);
 
     // Real #1132 delta for accepted v0.3 candidate (no synthetic receipt rows).
+    // Dirty protected capture paths fail closed — no bypass.
     let deltaResult: Awaited<ReturnType<typeof computeAndPersistReleaseSetDelta>>;
     try {
       deltaResult = await computeAndPersistReleaseSetDelta(db, {
@@ -164,7 +165,7 @@ async function main(): Promise<void> {
         deferred: true,
         reason: 'real #1132 computeAndPersistReleaseSetDelta failed (likely dirty protected paths)',
         detail: message,
-        note: 'No synthetic Delta. tasks 1.1/5.2 remain unchecked until clean checkpoint.',
+        note: 'No synthetic Delta. Fail closed until clean checkpoint.',
       }, null, 2));
       process.exitCode = 1;
       return;
@@ -220,7 +221,7 @@ async function main(): Promise<void> {
         detail: message,
         membershipCount: membership.canonicalIds.length,
         deltaReceiptId: delta.id,
-        note: 'tasks depending on inventory remain unchecked until clean checkpoint',
+        note: 'Fail closed until clean checkpoint.',
       }, null, 2));
       process.exitCode = 1;
       return;

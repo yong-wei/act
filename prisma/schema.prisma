@@ -5118,8 +5118,6 @@ model ActkgAuthoritativeObject {
   courseCoverageEntries    CourseCoverageOverlayEntry[]
   resourceBindingDecisions CanonicalResourceBindingDecision[]
   resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
-  aggregateCourseCoverageEntries AggregateCourseCoverageEntry[]
-  actGovernedCrosswalks    ActGovernedStructuralUnitCrosswalk[]
 
   @@id([releaseId, canonicalId])
   @@unique([releaseId, ordinal])
@@ -5477,6 +5475,9 @@ model ActkgReleaseEntry {
 
 // GraphProjection V2 nodes. Consumer-facing projections of public release
 // membership, not reconstructed private CTKGDataset objects.
+// [releaseId, entityId] is the public Canonical membership identity used by
+// #1126 CourseCoverage / ACT Crosswalk FKs (standard Bundle has no private
+// ActkgAuthoritativeObject rows).
 model ActkgProjectionNode {
   releaseId           String
   nodeId              String
@@ -5496,10 +5497,12 @@ model ActkgProjectionNode {
   entry    ActkgReleaseEntry     @relation(fields: [releaseId, entityId], references: [releaseId, entityId], onDelete: Restrict)
   outgoing ActkgProjectionLink[] @relation("ActkgProjectionLinkSource")
   incoming ActkgProjectionLink[] @relation("ActkgProjectionLinkTarget")
+  aggregateCourseCoverageEntries AggregateCourseCoverageEntry[]
+  actGovernedCrosswalks    ActGovernedStructuralUnitCrosswalk[]
 
   @@id([releaseId, nodeId])
   @@unique([releaseId, ordinal])
-  @@index([releaseId, entityId])
+  @@unique([releaseId, entityId])
   @@index([releaseId, entityType])
   @@index([releaseId, releaseTier])
 }
@@ -5933,7 +5936,8 @@ model AggregateCourseCoverageEntry {
   lifecycleState       String @default("CURRENT")
 
   version   AggregateCourseCoverageVersion @relation(fields: [versionId, releaseId], references: [id, releaseId], onDelete: Restrict)
-  canonical ActkgAuthoritativeObject       @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  /// Public Projection Canonical membership (not private ActkgAuthoritativeObject).
+  projectionCanonical ActkgProjectionNode @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
 
   @@id([versionId, canonicalId])
   @@unique([versionId, ordinal])
@@ -5976,7 +5980,8 @@ model ActGovernedStructuralUnitCrosswalk {
   release      ActkgRelease                  @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
   deltaReceipt ActkgReleaseSetDeltaReceipt   @relation(fields: [deltaReceiptId, releaseSetId, releaseId], references: [id, candidateReleaseSetId, candidateReleaseId], onDelete: Restrict)
   upstream     ActkgUpstreamRagReference     @relation(fields: [releaseId, publishedEntityId, retrievalChunkId, citationTargetId], references: [releaseId, publishedEntityId, retrievalChunkId, citationTargetId], onDelete: Restrict)
-  canonical    ActkgAuthoritativeObject?     @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  /// Null when unresolved/relation-type upstream; when set, must be Projection membership.
+  projectionCanonical ActkgProjectionNode?   @relation(fields: [releaseId, canonicalId], references: [releaseId, entityId], onDelete: Restrict)
   inventory    ResourceBindingInventoryItem? @relation(fields: [inventoryRunId, atomicResourceId], references: [runId, atomicResourceId], onDelete: Restrict)
 
   @@unique([releaseSetId, releaseId, publishedEntityId, retrievalChunkId, citationTargetId, captureRevision])

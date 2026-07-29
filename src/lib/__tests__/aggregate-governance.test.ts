@@ -630,6 +630,17 @@ describe('schema migration composite identity constraints', () => {
     expect(sql).toContain('AggregateCourseCoverageEntry_evidence_check');
     expect(sql).toMatch(/jsonb_array_length\("evidenceRefs"\) > 0/u);
     expect(sql).toMatch(/reviewIdentity[\s\S]*!~\* 'unbound'/u);
+    // Canonical membership FKs target public Projection nodes, not private objects.
+    expect(sql).toContain('ActkgProjectionNode_releaseId_entityId_key');
+    expect(sql).toMatch(
+      /AggregateCourseCoverageEntry_canonical_fkey[\s\S]*REFERENCES "ActkgProjectionNode"/u,
+    );
+    expect(sql).toMatch(
+      /ActGovernedStructuralUnitCrosswalk_canonical_fkey[\s\S]*REFERENCES "ActkgProjectionNode"/u,
+    );
+    expect(sql).not.toMatch(
+      /AggregateCourseCoverageEntry_canonical_fkey[\s\S]*REFERENCES "ActkgAuthoritativeObject"/u,
+    );
   });
 });
 

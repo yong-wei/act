@@ -95,7 +95,8 @@ function unresolvedRecord(input: {
     structuralUnitVersion: null,
     structuralUnitHash: null,
     evidenceContentHash: null,
-    inventoryRunId: input.capture.inventoryRunId,
+    // Unresolved diagnostics must not partially bind inventory (pair CHECK).
+    inventoryRunId: null,
     atomicResourceId: null,
     resourceId: null,
     segmentId: null,
