@@ -224,35 +224,101 @@ function forbiddenFieldNames(): string[] {
 }
 
 /**
- * Bounded absolute filesystem-path leak detector for public Artifacts.
+ * Absolute filesystem-path leak detector for public Artifacts.
  *
- * Catches Unix roots (/Users, /home, /tmp, /var, /root, /workspace, …) and
- * Windows drive/UNC paths while avoiding common false positives:
- * - http(s) URLs (alphanumeric host characters precede the path segment)
- * - bare JSON Pointer tokens without a sensitive multi-segment filesystem root
+ * Coverage:
+ * - arbitrary multi-segment POSIX absolute paths (/srv/..., /usr/..., /run/...)
+ * - Windows drive paths (C:\... / D:/...)
+ * - real UNC paths (\\server\share\...)
+ * - file URIs: POSIX form (file:///path) and authority form (file://host/path)
+ *
+ * False-positive guards:
+ * - http(s) URL path segments (host alnum precedes the slash)
+ * - JSON Pointer-like paths (/properties/..., /$defs/...)
  * - course-relative paths without a leading absolute root
+ * - LaTeX / JSON backslash escapes (\\begin{aligned} is not a UNC host/share)
  *
  * Exported for unit tests only; production callers go through scanPrivacy.
  */
+const JSON_POINTER_ROOT_SEGMENTS = new Set([
+  'properties',
+  'items',
+  'definitions',
+  '$defs',
+  'allOf',
+  'anyOf',
+  'oneOf',
+  'not',
+  'if',
+  'then',
+  'else',
+  'required',
+  'type',
+  'enum',
+  'const',
+  'default',
+  'title',
+  'description',
+  'format',
+  'patternProperties',
+  'additionalProperties',
+  'dependentSchemas',
+  'prefixItems',
+  'contains',
+  'unevaluatedProperties',
+  'unevaluatedItems',
+  'pattern',
+  'minimum',
+  'maximum',
+  'minLength',
+  'maxLength',
+  'minItems',
+  'maxItems',
+  'uniqueItems',
+  'additionalItems',
+  'dependencies',
+  'propertyNames',
+  'contentMediaType',
+  'contentSchema',
+]);
+
+function isJsonPointerLikeAbsolutePath(absolutePath: string): boolean {
+  const segments = absolutePath.split('/').filter((segment) => segment.length > 0);
+  if (segments.length === 0) return true;
+  // JSON Schema / pointer roots: /$defs/..., /properties/..., etc.
+  if (segments.some((segment) => segment.startsWith('$'))) return true;
+  if (JSON_POINTER_ROOT_SEGMENTS.has(segments[0]!)) return true;
+  return false;
+}
+
 export function detectAbsoluteFilesystemPathLeak(text: string): string | null {
+  // file: URIs — POSIX triple-slash and host-authority forms.
+  // file:///tmp/build/out  |  file:///Users/yw/secret.txt  |  file://server/share/path
+  const fileUri = /(?:^|[^A-Za-z0-9_+.-])(file:\/\/(?:\/[^\s"'`<>]+|[A-Za-z0-9][A-Za-z0-9._-]*(?:\/[^\s"'`<>]+)+))/iu
+    .exec(text);
+  if (fileUri?.[1]) return fileUri[1];
+
   // Windows drive path: C:\foo\bar or C:/foo/bar
   const windowsDrive = /(?:^|[^A-Za-z0-9_])([A-Za-z]:[\\/][^\s"'`<>|]+)/u.exec(text);
   if (windowsDrive?.[1]) return windowsDrive[1];
 
   // UNC path: \\server\share[\path...]
-  // Require a real hostname-like server and share name. Do not treat LaTeX
-  // (e.g. "\\begin{aligned}\nV_{2}(s)") or other backslash escapes as UNC —
-  // braces, spaces, and non-host characters are rejected in the server/share.
+  // Require hostname-like server + share names so LaTeX "\\begin{aligned}\nV_{2}(s)"
+  // (braces / non-host characters) is never treated as UNC.
   const unc = /(?:^|[^\\])(\\\\[A-Za-z0-9][A-Za-z0-9._-]*\\[A-Za-z0-9$][A-Za-z0-9._$-]*(?:\\[^\s"'`<>|\\/]+)*)/u
     .exec(text);
   if (unc?.[1]) return unc[1];
 
-  // Unix absolute paths under sensitive roots, requiring at least one more segment.
+  // Arbitrary multi-segment POSIX absolute path.
+  // Segments are restricted to filesystem-safe tokens so math like
+  // "R(s)=p(s)/q(s)" and LaTeX fractions are not treated as paths.
   // Leading boundary excludes alnum / _ / . / : / so URL hosts like example.com/tmp
   // do not match (the character before /tmp is alnum).
-  const unix = /(?:^|[^A-Za-z0-9_.:/])(\/(?:Users|home|tmp|var|root|workspace|opt|private|data|mnt|Volumes|etc)(?:\/[^\s"'`<>|\\]+)+)/u
+  const posix = /(?:^|[^A-Za-z0-9_.:/])(\/(?:[A-Za-z0-9._~+-]+)(?:\/(?:[A-Za-z0-9._~+-]+))+)/u
     .exec(text);
-  if (unix?.[1]) return unix[1];
+  if (posix?.[1] && !isJsonPointerLikeAbsolutePath(posix[1])) {
+    return posix[1];
+  }
 
   return null;
 }

@@ -10,21 +10,46 @@ import {
 } from '../../../scripts/actkg-release/public-bundle-v1';
 
 describe('public privacy absolute path detection', () => {
-  it('detects Unix sensitive absolute paths', () => {
+  it('detects arbitrary multi-segment POSIX absolute paths', () => {
     expect(detectAbsoluteFilesystemPathLeak('see /tmp/secret/token.json')).toContain('/tmp/secret');
     expect(detectAbsoluteFilesystemPathLeak('root=/var/lib/act/db')).toContain('/var/lib');
     expect(detectAbsoluteFilesystemPathLeak('"/workspace/projects/act"')).toContain('/workspace/projects');
     expect(detectAbsoluteFilesystemPathLeak('path=/root/.ssh/id_rsa')).toContain('/root/.ssh');
     expect(detectAbsoluteFilesystemPathLeak('/Users/yw/.codex/config')).toContain('/Users/yw');
     expect(detectAbsoluteFilesystemPathLeak('/home/student/notes.md')).toContain('/home/student');
+    // Previously missed roots (allowlist hole):
+    expect(detectAbsoluteFilesystemPathLeak('/srv/act/private/output.json')).toBe(
+      '/srv/act/private/output.json',
+    );
+    expect(detectAbsoluteFilesystemPathLeak('leak=/usr/local/share/private.json')).toContain(
+      '/usr/local/share/private.json',
+    );
+    expect(detectAbsoluteFilesystemPathLeak('/run/user/1000/build.json')).toBe(
+      '/run/user/1000/build.json',
+    );
+    expect(detectAbsoluteFilesystemPathLeak('export=/media/usb/export.json')).toContain(
+      '/media/usb/export.json',
+    );
   });
 
-  it('detects Windows drive and real UNC absolute paths', () => {
+  it('detects Windows drive, real UNC, and file: URI absolute paths', () => {
     expect(detectAbsoluteFilesystemPathLeak('C:\\Users\\yw\\secret.txt')).toMatch(/^C:/u);
     expect(detectAbsoluteFilesystemPathLeak('notes at D:/data/private/file.json')).toMatch(/^D:/u);
     expect(detectAbsoluteFilesystemPathLeak('share=\\\\fileserver\\teams\\act')).toMatch(/^\\\\fileserver/u);
     expect(detectAbsoluteFilesystemPathLeak('\\\\nas01\\exports\\bundle\\manifest.json')).toMatch(
       /^\\\\nas01\\exports/u,
+    );
+
+    // POSIX file URI (empty authority, absolute path)
+    expect(detectAbsoluteFilesystemPathLeak('file:///Users/yw/secret.txt')).toBe(
+      'file:///Users/yw/secret.txt',
+    );
+    expect(detectAbsoluteFilesystemPathLeak('note file:///tmp/build/out ')).toContain(
+      'file:///tmp/build/out',
+    );
+    // Authority form
+    expect(detectAbsoluteFilesystemPathLeak('file://server/share/path')).toBe(
+      'file://server/share/path',
     );
   });
 
@@ -41,6 +66,9 @@ describe('public privacy absolute path detection', () => {
     expect(detectAbsoluteFilesystemPathLeak('\\begin{aligned}\nV_{2}(s)=\\frac{1}{s}')).toBeNull();
     expect(detectAbsoluteFilesystemPathLeak('G(s)=\\frac{K}{s(Js+B)}')).toBeNull();
     expect(detectAbsoluteFilesystemPathLeak('{"description":"\\\\begin{aligned}\\nV_{2}(s)\\\\end{aligned}"}')).toBeNull();
+    // Transfer-function ratios must not be parsed as multi-segment POSIX paths.
+    expect(detectAbsoluteFilesystemPathLeak('R(s)=p(s)/q(s).')).toBeNull();
+    expect(detectAbsoluteFilesystemPathLeak('Y(s)/U(s)=G(s)/(1+G(s)H(s))')).toBeNull();
   });
 
   it('scanPublicTextForPrivacyLeaks reports absolute-path findings with labels', () => {
@@ -50,5 +78,13 @@ describe('public privacy absolute path detection', () => {
     );
     expect(findings.some((item) => item.includes('absolute-path:') && item.includes('/tmp/build'))).toBe(true);
     expect(findings.some((item) => item.includes('SILICONFLOW_API_KEY'))).toBe(true);
+
+    const fileUriFindings = scanPublicTextForPrivacyLeaks(
+      'notes.md',
+      'cached at file:///Users/yw/secret.txt\n',
+    );
+    expect(
+      fileUriFindings.some((item) => item.includes('absolute-path:file:///Users/yw/secret.txt')),
+    ).toBe(true);
   });
 });
