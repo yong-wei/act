@@ -198,6 +198,11 @@ function evaluateWithRustRuntime(
  */
 export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
+  simConfig: SimpleSimConfig,
+  target: OptimizationTarget,
+): { score: number; metrics: OptimizationResult['metrics'] };
+export function evaluatePIDParams(
+  params: { kp: number; ki: number; kd: number },
   logic: ScenarioLogic,
   simConfig: SimpleSimConfig,
   target: OptimizationTarget,
