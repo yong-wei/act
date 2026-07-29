@@ -173,6 +173,25 @@ describe('standard ActKG Bundle persistence boundary', () => {
     expect(source).toMatch(/MAX_IMPORT_ATTEMPTS|isRetryableConflict/);
     expect(source).toMatch(/pg_advisory_xact_lock|acquireImportLocks/);
     expect(source).toMatch(/releaseStage !== 'stable'/u);
+    // Strictly monotonic acceptance timestamps under the release lock (not wall-clock alone).
+    expect(source).toMatch(/nextStrictAcceptanceTimestamp/);
+    expect(source).toMatch(/previousMs \+ 1|previousAcceptedImportedAt\.getTime\(\) \+ 1/u);
+  });
+
+  it('advances acceptance timestamps strictly past prior ACCEPTED importedAt', async () => {
+    const { nextStrictAcceptanceTimestamp } = await import(
+      '../../../scripts/actkg-release/standard-bundle-import'
+    );
+    const previous = new Date('2026-07-29T12:00:00.000Z');
+    const sameMs = new Date(previous.getTime());
+    const advanced = nextStrictAcceptanceTimestamp(previous, sameMs);
+    expect(advanced.getTime()).toBe(previous.getTime() + 1);
+
+    const laterWall = new Date(previous.getTime() + 50);
+    expect(nextStrictAcceptanceTimestamp(previous, laterWall).getTime()).toBe(laterWall.getTime());
+
+    const first = nextStrictAcceptanceTimestamp(null, previous);
+    expect(first.getTime()).toBe(previous.getTime());
   });
 
   it('derives stable advisory lock keys without SQL string interpolation', async () => {

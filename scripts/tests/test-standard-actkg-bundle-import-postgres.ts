@@ -448,6 +448,22 @@ async function main(): Promise<void> {
     assert.equal(artifact.sha256, original.descriptor.sha256);
     assert.equal(artifact.bytes.equals(original.bytes), true);
   }
+  // Reserved public package files round-trip byte-for-byte with descriptors.
+  for (const reservedPath of ['bundle-manifest.json', 'SHA256SUMS'] as const) {
+    const original = validatedV03.rawArtifacts.find((row) => row.descriptor.path === reservedPath);
+    const persisted = reconstructed.find((row) => row.relativePath === reservedPath);
+    assert.ok(original, `validated Bundle missing reserved ${reservedPath}`);
+    assert.ok(persisted, `persisted packaging missing reserved ${reservedPath}`);
+    assert.equal(persisted.sha256, original.descriptor.sha256);
+    assert.equal(persisted.bytes.equals(original.bytes), true);
+    assert.equal(persisted.role, original.descriptor.role);
+    assert.equal(persisted.contractVersion, original.descriptor.contractVersion);
+    assert.equal(persisted.byteLength, original.descriptor.byteLength);
+  }
+  assert.equal(
+    validatedV03.rawArtifacts.find((row) => row.descriptor.path === 'bundle-manifest.json')?.descriptor.sha256,
+    validatedV03.bundleIdentity.manifestRawSha256,
+  );
 
   // Multi-projection identities are release-scoped (not packaging-owned).
   assert.equal(await db.actkgProjectionIdentity.count({
@@ -634,6 +650,102 @@ async function main(): Promise<void> {
       packagingRead.snapshot.bundleReceipt?.artifactCount,
       packagingBase.rawArtifacts.length,
     );
+  }
+
+  // 4b) Cross-bundleId packaging lineage: older A@rev10 then newer B@rev2.
+  // Ranking by bundleRevision alone would incorrectly prefer A.
+  const packagingA: ValidatedActKGBundle = {
+    ...validatedV03,
+    bundleIdentity: {
+      ...validatedV03.bundleIdentity,
+      bundleId: 'ctb:control-theory-engineering-v0.3:bundle-a',
+      bundleRevision: 10,
+      bundleDigest: sha256(Buffer.from(`packaging-a-r10:${validatedV03.bundleIdentity.bundleDigest}`)),
+      publicationTag: `${validatedV03.bundleIdentity.publicationTag}-bundle-a`,
+    },
+    compatibility: {
+      code: 'COMPATIBLE_PACKAGING_REVISION',
+      reasons: ['older packaging lineage A rev10'],
+      matchedIdentities: validatedV03.compatibility.matchedIdentities,
+    },
+    rawArtifacts: validatedV03.rawArtifacts.map((artifact) => ({
+      descriptor: { ...artifact.descriptor },
+      bytes: Buffer.from(artifact.bytes),
+    })),
+  };
+  const packagingB: ValidatedActKGBundle = {
+    ...validatedV03,
+    bundleIdentity: {
+      ...validatedV03.bundleIdentity,
+      bundleId: 'ctb:control-theory-engineering-v0.3:bundle-b',
+      bundleRevision: 2,
+      bundleDigest: sha256(Buffer.from(`packaging-b-r2:${validatedV03.bundleIdentity.bundleDigest}`)),
+      publicationTag: `${validatedV03.bundleIdentity.publicationTag}-bundle-b`,
+    },
+    compatibility: {
+      code: 'COMPATIBLE_PACKAGING_REVISION',
+      reasons: ['newer packaging lineage B rev2'],
+      matchedIdentities: validatedV03.compatibility.matchedIdentities,
+    },
+    rawArtifacts: validatedV03.rawArtifacts.map((artifact) => ({
+      descriptor: { ...artifact.descriptor },
+      bytes: Buffer.from(artifact.bytes),
+    })),
+  };
+  assert.ok(packagingA.bundleIdentity.bundleRevision > packagingB.bundleIdentity.bundleRevision);
+  const importA = await importValidatedActKGBundle(db, packagingA);
+  assert.equal(importA.mode, 'packaging');
+  // No sleep: accept stamps strictly monotonic importedAt under the release lock
+  // (max(now, previousAccepted+1ms)), so same-ms wall-clock cannot erase order.
+  const importB = await importValidatedActKGBundle(db, packagingB);
+  assert.equal(importB.mode, 'packaging');
+
+  const receiptA = await db.actkgBundleReceipt.findUniqueOrThrow({
+    where: { bundleDigest: packagingA.bundleIdentity.bundleDigest },
+  });
+  const receiptB = await db.actkgBundleReceipt.findUniqueOrThrow({
+    where: { bundleDigest: packagingB.bundleIdentity.bundleDigest },
+  });
+  assert.equal(receiptA.candidateState, ACCEPTED_CANDIDATE_STATE);
+  assert.equal(receiptB.candidateState, ACCEPTED_CANDIDATE_STATE);
+  assert.ok(
+    receiptB.importedAt.getTime() > receiptA.importedAt.getTime(),
+    `expected B.importedAt > A.importedAt, got A=${receiptA.importedAt.toISOString()} B=${receiptB.importedAt.toISOString()}`,
+  );
+
+  const crossBundleRead = await repository.read({
+    authorityState: 'candidate',
+    releaseSetId: validatedV03.releaseSetIdentity.releaseSetId,
+    releaseId: validatedV03.releaseIdentity.releaseId,
+  });
+  assert.equal(crossBundleRead.status, 'available');
+  if (crossBundleRead.status === 'available') {
+    assert.equal(
+      crossBundleRead.snapshot.bundleReceipt?.bundleId,
+      packagingB.bundleIdentity.bundleId,
+    );
+    assert.equal(crossBundleRead.snapshot.bundleReceipt?.bundleRevision, 2);
+    assert.equal(
+      crossBundleRead.snapshot.bundleReceipt?.bundleDigest,
+      packagingB.bundleIdentity.bundleDigest,
+    );
+    assert.notEqual(
+      crossBundleRead.snapshot.bundleReceipt?.bundleDigest,
+      packagingA.bundleIdentity.bundleDigest,
+    );
+    assert.ok(
+      (crossBundleRead.snapshot.bundleReceipt?.importedAt.getTime() ?? 0)
+        > receiptA.importedAt.getTime(),
+    );
+    // CLI-style verification for the selected latest packaging must not use A.
+    const latestReceiptId = crossBundleRead.snapshot.bundleReceipt!.id;
+    const latestReconstructed = await reconstructBundleArtifacts(db, latestReceiptId);
+    assert.equal(latestReconstructed.length, packagingB.rawArtifacts.length);
+    for (const reservedPath of ['bundle-manifest.json', 'SHA256SUMS'] as const) {
+      const original = packagingB.rawArtifacts.find((row) => row.descriptor.path === reservedPath)!;
+      const persisted = latestReconstructed.find((row) => row.relativePath === reservedPath)!;
+      assert.equal(persisted.bytes.equals(original.bytes), true);
+    }
   }
 
   // 5) Synthetic v0.4 semantic update through the compatibility validator.

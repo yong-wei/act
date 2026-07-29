@@ -77,6 +77,26 @@ export interface AuthoritativeKnowledgeDatabase {
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const GIT_COMMIT = /^[a-f0-9]{40}$/u;
+/** Reserved public package files that must appear on every accepted standard packaging receipt. */
+const RESERVED_PUBLIC_BUNDLE_PATHS = ['bundle-manifest.json', 'SHA256SUMS'] as const;
+/**
+ * Order for "latest accepted packaging evidence" of one Release.
+ *
+ * Primary key is `importedAt desc`: the importer stamps a **strictly monotonic**
+ * acceptance timestamp per releaseId under the release advisory lock
+ * (`max(now, previousAccepted+1ms)`), so equal-ms wall-clock collisions do not
+ * erase real acceptance order. Never rank by `bundleRevision` alone — re-packaging
+ * may reset revision under a new bundleId (A@10 then B@2).
+ *
+ * `id desc` is only a deterministic fallback for pre-fix rows or other equal
+ * `importedAt` values; it is **not** proof of acceptance order.
+ */
+export const LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY: Array<
+  { importedAt: 'desc' } | { id: 'desc' }
+> = [
+  { importedAt: 'desc' },
+  { id: 'desc' },
+];
 
 function byOrdinalAndId<T extends { ordinal: number }>(
   rows: T[],
@@ -336,6 +356,39 @@ function diagnoseStandardBundleSnapshot(
   });
 
   // Persisted Artifact contract identities for the latest accepted packaging.
+  // Complete public packages always include reserved Manifest + SHA256SUMS bytes.
+  for (const relativePath of RESERVED_PUBLIC_BUNDLE_PATHS) {
+    const reserved = (snapshot.bundleArtifacts ?? []).find((row) => row.relativePath === relativePath);
+    if (!reserved) {
+      diagnostics.push({
+        code: 'bundle-identity-mismatch',
+        field: `bundleArtifacts.${relativePath}`,
+        expected: 'present',
+        actual: null,
+      });
+      continue;
+    }
+    if (!reserved.role || !reserved.contractVersion || !SHA256.test(reserved.sha256)) {
+      diagnostics.push({
+        code: 'bundle-identity-mismatch',
+        field: `bundleArtifacts.${relativePath}.contract`,
+        expected: 'role+contractVersion+sha256',
+        actual: `${reserved.role ?? 'null'}/${reserved.contractVersion ?? 'null'}/${reserved.sha256}`,
+      });
+    }
+  }
+  const manifestArtifact = (snapshot.bundleArtifacts ?? []).find(
+    (row) => row.relativePath === 'bundle-manifest.json',
+  );
+  if (manifestArtifact) {
+    compare(diagnostics, {
+      code: 'bundle-identity-mismatch',
+      field: 'bundleArtifacts.bundle-manifest.json.sha256',
+      expected: bundleReceipt.manifestRawSha256,
+      actual: manifestArtifact.sha256,
+    });
+  }
+
   const requiredRoles = new Map<string, {
     role: string;
     sha256: string;
@@ -734,7 +787,9 @@ export class AuthoritativeKnowledgeRepository {
                   releaseSetId: selector.releaseSetId,
                   candidateState: ACCEPTED_CANDIDATE_STATE,
                 },
-                orderBy: [{ bundleRevision: 'desc' }, { importedAt: 'desc' }],
+                // Acceptance time (+ id) is the packaging-evidence order. Do not
+                // rank by bundleRevision: distinct bundleIds may reset revision.
+                orderBy: LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY,
               })
             : Promise.resolve(null),
           standard

@@ -826,7 +826,44 @@ async function stageBundleReceiptAndArtifacts(
   return id;
 }
 
-async function acceptBundleReceipt(tx: Tx, bundleReceiptId: string): Promise<void> {
+/**
+ * Next acceptance timestamp for packaging evidence of one Release.
+ *
+ * Must be strictly greater than any already-ACCEPTED receipt for that Release so
+ * `importedAt desc` proves real acceptance order. Wall-clock alone can collide at
+ * the same millisecond under concurrent or sequential-fast imports; under the
+ * release advisory lock we serialize accepts and advance by at least +1ms.
+ */
+export function nextStrictAcceptanceTimestamp(
+  previousAcceptedImportedAt: Date | null | undefined,
+  now: Date = new Date(),
+): Date {
+  if (!previousAcceptedImportedAt) return now;
+  const previousMs = previousAcceptedImportedAt.getTime();
+  if (!Number.isFinite(previousMs)) {
+    fail('previous ACCEPTED_CANDIDATE importedAt is not a finite timestamp');
+  }
+  return new Date(Math.max(now.getTime(), previousMs + 1));
+}
+
+async function acceptBundleReceipt(
+  tx: Tx,
+  bundleReceiptId: string,
+  releaseId: string,
+  now: Date = new Date(),
+): Promise<void> {
+  // Under acquireImportLocks(release) + Serializable: read max ACCEPTED importedAt
+  // for this Release and stamp a strictly greater acceptance time.
+  const latestAccepted = await tx.actkgBundleReceipt.findFirst({
+    where: {
+      releaseId,
+      candidateState: ACCEPTED_CANDIDATE_STATE,
+    },
+    orderBy: [{ importedAt: 'desc' }, { id: 'desc' }],
+    select: { importedAt: true },
+  });
+  const importedAt = nextStrictAcceptanceTimestamp(latestAccepted?.importedAt, now);
+
   const updated = await tx.actkgBundleReceipt.updateMany({
     where: {
       id: bundleReceiptId,
@@ -834,6 +871,7 @@ async function acceptBundleReceipt(tx: Tx, bundleReceiptId: string): Promise<voi
     },
     data: {
       candidateState: ACCEPTED_CANDIDATE_STATE,
+      importedAt,
     },
   });
   if (updated.count !== 1) {
@@ -1281,7 +1319,7 @@ async function importOnce(
 
     // Full reconstruction before the sole STAGED→ACCEPTED transition.
     await roundTripVerify(tx, validated, bundleReceiptId, linkMetadata);
-    await acceptBundleReceipt(tx, bundleReceiptId);
+    await acceptBundleReceipt(tx, bundleReceiptId, validated.releaseIdentity.releaseId);
     await stageImportReceipt(tx, validated, expectedCounts);
 
     return resultShape(validated, mode, linkMetadata.length);

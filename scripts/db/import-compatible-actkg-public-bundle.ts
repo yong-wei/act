@@ -71,6 +71,22 @@ async function main(): Promise<void> {
         throw new Error(`standard Bundle Artifact round-trip mismatch for ${artifact.relativePath}`);
       }
     }
+    // Explicit reserved public package members (Manifest + SHA256SUMS).
+    for (const reservedPath of ['bundle-manifest.json', 'SHA256SUMS'] as const) {
+      const original = validated.rawArtifacts.find((row) => row.descriptor.path === reservedPath);
+      const persisted = reconstructed.find((row) => row.relativePath === reservedPath);
+      if (!original || !persisted) {
+        throw new Error(`standard Bundle missing reserved public file ${reservedPath}`);
+      }
+      if (
+        !persisted.bytes.equals(original.bytes)
+        || persisted.sha256 !== original.descriptor.sha256
+        || persisted.role !== original.descriptor.role
+        || persisted.contractVersion !== original.descriptor.contractVersion
+      ) {
+        throw new Error(`standard Bundle reserved file round-trip mismatch for ${reservedPath}`);
+      }
+    }
 
     const repository = new AuthoritativeKnowledgeRepository(
       db as unknown as AuthoritativeKnowledgeDatabase,
@@ -82,6 +98,31 @@ async function main(): Promise<void> {
     });
     if (result.status !== 'available' || result.diagnostics.length !== 0) {
       throw new Error(`standard Bundle repository verification failed: ${JSON.stringify(result)}`);
+    }
+    // After a write, Repository must surface this packaging evidence as latest
+    // (not an older accepted receipt from a higher bundleRevision under another
+    // bundleId). verify-only may inspect an older lock without claiming latest.
+    if (
+      !verifyOnly
+      && result.status === 'available'
+      && (
+        result.snapshot.bundleReceipt?.bundleDigest !== validated.bundleIdentity.bundleDigest
+        || result.snapshot.bundleReceipt?.bundleId !== validated.bundleIdentity.bundleId
+      )
+    ) {
+      throw new Error(
+        'standard Bundle repository verification selected a non-matching packaging receipt: '
+        + JSON.stringify({
+          expected: {
+            bundleId: validated.bundleIdentity.bundleId,
+            bundleDigest: validated.bundleIdentity.bundleDigest,
+          },
+          actual: {
+            bundleId: result.snapshot.bundleReceipt?.bundleId ?? null,
+            bundleDigest: result.snapshot.bundleReceipt?.bundleDigest ?? null,
+          },
+        }),
+      );
     }
 
     // Default candidate and production selectors must remain unchanged.

@@ -20,6 +20,7 @@ import {
   CURRENT_AGGREGATE_RELEASE_ID,
   CURRENT_AGGREGATE_RELEASE_SET_ID,
   HISTORICAL_ROOT_LOCUS_RELEASE_SET_ID,
+  LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY,
   STANDARD_PUBLIC_BUNDLE_PROTOCOL,
   type AuthoritativeKnowledgeDatabase,
   type AuthoritativeKnowledgeSnapshot,
@@ -174,10 +175,14 @@ function fixture(): AuthoritativeKnowledgeSnapshot {
   };
 }
 
-function mockDatabase(snapshot: AuthoritativeKnowledgeSnapshot): {
+function mockDatabase(snapshot: AuthoritativeKnowledgeSnapshot, options: {
+  /** Multiple accepted packaging receipts for latest-evidence selection tests. */
+  acceptedBundleReceipts?: NonNullable<AuthoritativeKnowledgeSnapshot['bundleReceipt']>[];
+} = {}): {
   database: AuthoritativeKnowledgeDatabase;
   transaction: ReturnType<typeof vi.fn>;
   legacyDelegates: Record<string, { findUnique: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn> }>;
+  actkgBundleReceiptFindFirst: ReturnType<typeof vi.fn>;
 } {
   const one = (value: unknown) => ({
     findUnique: vi.fn(async () => value),
@@ -196,6 +201,37 @@ function mockDatabase(snapshot: AuthoritativeKnowledgeSnapshot): {
     actkgSourceObject: many([...snapshot.sourceObjects].reverse()),
     actkgEvidenceSegment: many([...snapshot.evidence].reverse()),
   };
+  const acceptedBundleReceipts = options.acceptedBundleReceipts
+    ?? (snapshot.bundleReceipt ? [snapshot.bundleReceipt] : []);
+  const selectLatestBundleReceipt = (
+    orderBy: ReadonlyArray<{ importedAt?: 'asc' | 'desc'; id?: 'asc' | 'desc' }> | undefined,
+  ) => {
+    if (acceptedBundleReceipts.length === 0) return null;
+    const sorted = [...acceptedBundleReceipts].sort((left, right) => {
+      for (const clause of orderBy ?? []) {
+        if (clause.importedAt) {
+          const delta = left.importedAt.getTime() - right.importedAt.getTime();
+          if (delta !== 0) return clause.importedAt === 'desc' ? -delta : delta;
+        }
+        if (clause.id) {
+          const cmp = left.id.localeCompare(right.id);
+          if (cmp !== 0) return clause.id === 'desc' ? -cmp : cmp;
+        }
+      }
+      return 0;
+    });
+    return sorted[0] ?? null;
+  };
+  const actkgBundleReceiptFindFirst = vi.fn(async (args?: {
+    orderBy?: ReadonlyArray<{ importedAt?: 'asc' | 'desc'; id?: 'asc' | 'desc' }>;
+  }) => selectLatestBundleReceipt(args?.orderBy));
+  const selectedReceipt = selectLatestBundleReceipt(LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY);
+  const artifactsForSelected = selectedReceipt && snapshot.bundleArtifacts
+    ? snapshot.bundleArtifacts.map((row) => ({
+        ...row,
+        bundleReceiptId: selectedReceipt.id,
+      }))
+    : (snapshot.bundleArtifacts ?? []);
   const tx = {
     actkgReleaseSet: one(snapshot.releaseSet),
     actkgRelease: one(snapshot.release),
@@ -208,11 +244,11 @@ function mockDatabase(snapshot: AuthoritativeKnowledgeSnapshot): {
     actkgProjectionLink: many([...(snapshot.projectionLinks ?? [])].reverse()),
     actkgUpstreamRagReference: many([...(snapshot.upstreamRagReferences ?? [])].reverse()),
     actkgBundleReceipt: {
-      findUnique: vi.fn(async () => snapshot.bundleReceipt ?? null),
-      findFirst: vi.fn(async () => snapshot.bundleReceipt ?? null),
-      findMany: vi.fn(async () => (snapshot.bundleReceipt ? [snapshot.bundleReceipt] : [])),
+      findUnique: vi.fn(async () => selectedReceipt),
+      findFirst: actkgBundleReceiptFindFirst,
+      findMany: vi.fn(async () => acceptedBundleReceipts),
     },
-    actkgBundleArtifact: many([...(snapshot.bundleArtifacts ?? [])].reverse()),
+    actkgBundleArtifact: many([...artifactsForSelected].reverse()),
     actkgProjectionIdentity: many([...(snapshot.projectionIdentities ?? [])].reverse()),
     actkgProjectionLinkMetadata: many([...(snapshot.linkMetadata ?? [])].reverse()),
   };
@@ -220,7 +256,12 @@ function mockDatabase(snapshot: AuthoritativeKnowledgeSnapshot): {
     expect(options).toEqual({ isolationLevel: 'RepeatableRead' });
     return callback(tx);
   });
-  return { database: { $transaction: transaction }, transaction, legacyDelegates };
+  return {
+    database: { $transaction: transaction },
+    transaction,
+    legacyDelegates,
+    actkgBundleReceiptFindFirst,
+  };
 }
 
 describe('AuthoritativeKnowledgeRepository', () => {
@@ -1195,7 +1236,7 @@ function standardFixture(options: {
         runtimeProjectionId: 'ctr:projection:control-theory-engineering-v0.3:act-v2',
         runtimeProjectionProfile: 'ctr:profile:control-theory-engineering-v0.3:act-v2',
         runtimeProjectionDigest: standardDigest,
-        artifactCount: 5,
+        artifactCount: 6,
         statistics: { projectionNodes: nodeCount, projectionLinks: linkCount },
         importedAt: new Date('2026-07-29T00:00:00.000Z'),
       };
@@ -1312,7 +1353,7 @@ function standardFixture(options: {
             mediaType: 'application/json',
             sha256: hash,
             byteLength: 12,
-            role: 'manifest',
+            role: 'bundle_manifest',
             profile: null,
             contractVersion: 'actkg-public-bundle-manifest/1',
             required: true,
@@ -1320,8 +1361,21 @@ function standardFixture(options: {
           },
           {
             bundleReceiptId: bundleReceipt.id,
-            relativePath: 'control-theory-engineering-v0.3.release.json',
+            relativePath: 'SHA256SUMS',
             ordinal: 1,
+            mediaType: 'text/plain; charset=utf-8',
+            sha256: hash,
+            byteLength: 12,
+            role: 'sha256sums',
+            profile: null,
+            contractVersion: 'actkg-sha256sums/1',
+            required: true,
+            recordCount: null,
+          },
+          {
+            bundleReceiptId: bundleReceipt.id,
+            relativePath: 'control-theory-engineering-v0.3.release.json',
+            ordinal: 2,
             mediaType: 'application/json',
             sha256: hash,
             byteLength: 12,
@@ -1334,7 +1388,7 @@ function standardFixture(options: {
           {
             bundleReceiptId: bundleReceipt.id,
             relativePath: 'control-theory-engineering-v0.3.act-projection.json',
-            ordinal: 2,
+            ordinal: 3,
             mediaType: 'application/json',
             sha256: hash,
             byteLength: 12,
@@ -1347,7 +1401,7 @@ function standardFixture(options: {
           {
             bundleReceiptId: bundleReceipt.id,
             relativePath: 'ctkg.schema.json',
-            ordinal: 3,
+            ordinal: 4,
             mediaType: 'application/json',
             sha256: hash,
             byteLength: 12,
@@ -1360,7 +1414,7 @@ function standardFixture(options: {
           {
             bundleReceiptId: bundleReceipt.id,
             relativePath: 'control-theory-engineering-v0.3.rag-crosswalk.jsonl',
-            ordinal: 4,
+            ordinal: 5,
             mediaType: 'application/x-ndjson',
             sha256: hash,
             byteLength: 12,
@@ -1452,6 +1506,52 @@ describe('AuthoritativeKnowledgeRepository standard public Bundle candidates', (
         expect.arrayContaining(['bundle-receipt-missing']),
       );
     }
+  });
+
+  it('selects latest accepted packaging by acceptance time across bundleId revision resets', async () => {
+    const snapshot = standardFixture();
+    const olderHighRevision = {
+      ...snapshot.bundleReceipt!,
+      id: 'bundle-receipt:bundle-a-rev10',
+      bundleId: 'ctb:control-theory-engineering-v0.3:bundle-a',
+      bundleRevision: 10,
+      bundleDigest: '1'.repeat(64),
+      importedAt: new Date('2026-07-01T00:00:00.000Z'),
+    };
+    const newerLowRevision = {
+      ...snapshot.bundleReceipt!,
+      id: 'bundle-receipt:bundle-b-rev2',
+      bundleId: 'ctb:control-theory-engineering-v0.3:bundle-b',
+      bundleRevision: 2,
+      bundleDigest: '2'.repeat(64),
+      importedAt: new Date('2026-07-29T12:00:00.000Z'),
+    };
+    // Global revision ranking would incorrectly prefer A@10 over B@2.
+    expect(olderHighRevision.bundleRevision).toBeGreaterThan(newerLowRevision.bundleRevision);
+
+    const { database, actkgBundleReceiptFindFirst } = mockDatabase(snapshot, {
+      acceptedBundleReceipts: [olderHighRevision, newerLowRevision],
+    });
+    const result = await new AuthoritativeKnowledgeRepository(database).read(standardSelector);
+    expect(result.status).toBe('available');
+    if (result.status === 'available') {
+      expect(result.snapshot.bundleReceipt?.bundleId).toBe(newerLowRevision.bundleId);
+      expect(result.snapshot.bundleReceipt?.bundleRevision).toBe(2);
+      expect(result.snapshot.bundleReceipt?.bundleDigest).toBe(newerLowRevision.bundleDigest);
+    }
+    expect(actkgBundleReceiptFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY,
+      }),
+    );
+    expect(LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY).toEqual([
+      { importedAt: 'desc' },
+      { id: 'desc' },
+    ]);
+    expect(LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY.some((clause) => 'bundleRevision' in clause)).toBe(false);
+    // Primary evidence is monotonic importedAt; id is only equal-timestamp fallback.
+    expect(LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY[0]).toEqual({ importedAt: 'desc' });
+    expect(LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY[1]).toEqual({ id: 'desc' });
   });
 
   it('accepts packaging-revision capture/lock that differ from the first semantic Release', async () => {
@@ -1635,14 +1735,14 @@ describe('AuthoritativeKnowledgeRepository standard public Bundle candidates', (
     const snapshot = standardFixture();
     const review = buildMigrationReviewProjection(snapshot, []);
     expect(snapshot.receipt?.artifactCount).toBeNull();
-    expect(snapshot.bundleReceipt?.artifactCount).toBe(5);
-    expect(snapshot.bundleArtifacts).toHaveLength(5);
+    expect(snapshot.bundleReceipt?.artifactCount).toBe(6);
+    expect(snapshot.bundleArtifacts).toHaveLength(6);
     expect(review.ingest.expectedCounts).toMatchObject({
-      artifacts: 5,
+      artifacts: 6,
       components: 1,
     });
     expect(review.ingest.actualCounts).toMatchObject({
-      artifacts: 5,
+      artifacts: 6,
       components: 1,
     });
     expect(review.ingest.expectedCounts?.artifacts).toBe(review.ingest.actualCounts.artifacts);

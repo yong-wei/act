@@ -165,6 +165,11 @@ export interface ValidatedActKGBundle {
   }>;
   crosswalk: CrosswalkRow[];
   components: ValidatedComponentReference[];
+  /**
+   * Complete public package bytes for packaging persistence and round-trip.
+   * Includes every Manifest-declared Artifact plus reserved
+   * `bundle-manifest.json` and `SHA256SUMS` (with descriptors).
+   */
   rawArtifacts: ValidatedRawArtifact[];
   release: JsonObject;
   schema: JsonObject;
