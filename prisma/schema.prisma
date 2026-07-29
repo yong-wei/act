@@ -5031,8 +5031,9 @@ model ActkgReleaseSet {
   candidateState String   @default("CANDIDATE")
   createdAt      DateTime @default(now())
 
-  releases ActkgRelease[]
-  receipt  ActkgImportReceipt?
+  releases       ActkgRelease[]
+  receipt        ActkgImportReceipt?
+  bundleReceipts ActkgBundleReceipt[]
   courseCoverageVersions CourseCoverageOverlayVersion[]
 }
 
@@ -5054,6 +5055,7 @@ model ActkgRelease {
   createdAt       DateTime @default(now())
 
   // CTKG 0.2 aggregate identity. NULL for historical CTKG 0.1 releases.
+  // Standard public Bundle candidates also populate these fields.
   schemaVersion             String?
   upstreamReleaseId         String?
   projectionId              String?
@@ -5079,6 +5081,11 @@ model ActkgRelease {
   courseCoverageVersions   CourseCoverageOverlayVersion[]
   resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
   resourceBindingDecisions CanonicalResourceBindingDecision[]
+  // Standard Bundle packaging receipts and multi-Projection identities.
+  // Historical #1125 rows leave these relations empty (unavailable).
+  bundleReceipts           ActkgBundleReceipt[]
+  projectionIdentities     ActkgProjectionIdentity[]
+  linkMetadataRows         ActkgProjectionLinkMetadata[]
 
   @@unique([releaseSetId, releaseVersion])
   @@unique([releaseSetId, id])
@@ -5241,20 +5248,37 @@ model ActkgImportReceipt {
   artifactCount             Int?
   componentCount            Int?
 
+  // Standard public Bundle contract identities. NULL / unavailable for #1125.
+  bundleContractVersion String?
+  bundleId              String?
+  bundleRevision        Int?
+  bundleDigest          String?
+  bundleKind            String?
+  releaseStage          String?
+  manifestRawSha256     String?
+  schemaContractVersion String?
+
   releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
   release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
 }
 
 // CTKG 0.2 aggregate public artifacts. Original bytes of the locked public
 // bundle, one row per locked artifact, byte-for-byte reconstructable.
+// Standard Bundle Artifact role/profile/contract fields remain NULL for #1125
+// historical rows and are exposed as unavailable rather than inferred.
 model ActkgReleaseArtifact {
-  releaseId    String
-  relativePath String
-  ordinal      Int
-  mediaType    String
-  sha256       String
-  byteLength   Int
-  bytes        Bytes
+  releaseId       String
+  relativePath    String
+  ordinal         Int
+  mediaType       String
+  sha256          String
+  byteLength      Int
+  bytes           Bytes
+  role            String?
+  profile         String?
+  contractVersion String?
+  required        Boolean?
+  recordCount     Int?
 
   release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
 
@@ -5264,22 +5288,156 @@ model ActkgReleaseArtifact {
 
 // Declared component lineage of the aggregate release. Components are
 // verified immutable lineage inputs, never parallel ReleaseSet members.
+// Standard Bundles may reference legacy_exact or standard_bundle components;
+// historical #1125 rows keep releaseRawSha256/sha256sumsSha256 populated and
+// leave the standard reference fields unavailable.
 model ActkgReleaseComponent {
-  releaseId          String
-  ordinal            Int
-  componentReleaseId String
-  releaseVersion     String
-  protocol           String
-  controlledPath     String
-  releaseHash        String
-  releaseRawSha256   String
-  sha256sumsSha256   String
-  payload            Json
+  releaseId                String
+  ordinal                  Int
+  componentReleaseId       String
+  releaseVersion           String
+  protocol                 String
+  controlledPath           String
+  releaseHash              String
+  releaseRawSha256         String?
+  sha256sumsSha256         String?
+  referenceKind            String?
+  componentRole            String?
+  componentBundleId        String?
+  componentBundleDigest    String?
+  componentManifestSha256  String?
+  payload                  Json
 
   release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
 
   @@id([releaseId, componentReleaseId])
   @@unique([releaseId, ordinal])
+}
+
+// Standard public Bundle packaging receipt. Distinct from the semantic Release
+// so packaging revisions can add receipts without duplicating object/relation
+// rows. candidateState becomes ACCEPTED_CANDIDATE only after round-trip.
+model ActkgBundleReceipt {
+  id                       String   @id
+  bundleId                 String
+  bundleRevision           Int
+  bundleDigest             String   @unique
+  bundleKind               String
+  releaseStage             String
+  bundleContractVersion    String
+  controlledPath           String
+  manifestRawSha256        String
+  normalization            String
+  publicationTag           String
+  sourceCommit             String
+  sourceTag                String
+  releaseSetId             String
+  releaseId                String
+  releaseHash              String
+  sourceDatasetHash        String
+  schemaVersion            String
+  schemaRawSha256          String
+  lockVersion              String
+  lockPath                 String
+  lockRawSha256            String
+  captureRevision          String
+  candidateState           String
+  compatibilityCode        String
+  runtimeProjectionId      String
+  runtimeProjectionProfile String
+  runtimeProjectionDigest  String
+  /** Public Artifact count for this packaging receipt (not semantic ImportReceipt). */
+  artifactCount            Int
+  statistics               Json
+  importedAt               DateTime @default(now())
+
+  releaseSet   ActkgReleaseSet              @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  release      ActkgRelease                 @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  artifacts    ActkgBundleArtifact[]
+  projections  ActkgProjectionIdentity[]
+  linkMetadata ActkgProjectionLinkMetadata[]
+
+  @@unique([bundleId, bundleRevision])
+  @@index([releaseSetId, releaseId])
+  @@index([releaseId, candidateState])
+}
+
+// Raw public Artifact bytes bound to a standard Bundle packaging receipt.
+// Packaging revisions store a new receipt + artifact versions; semantic rows
+// stay on the Release.
+model ActkgBundleArtifact {
+  bundleReceiptId String
+  relativePath    String
+  ordinal         Int
+  mediaType       String
+  sha256          String
+  byteLength      Int
+  bytes           Bytes
+  role            String
+  profile         String?
+  profiles        Json?
+  contractVersion String
+  required        Boolean
+  recordCount     Int?
+
+  receipt ActkgBundleReceipt @relation(fields: [bundleReceiptId], references: [id], onDelete: Restrict)
+
+  @@id([bundleReceiptId, relativePath])
+  @@unique([bundleReceiptId, ordinal])
+  @@index([role])
+}
+
+// Multi-Projection identity records. Runtime Projection maps into existing
+// ActkgProjectionNode/Link tables; domain/review stay as separate identities
+// even when counts match.
+model ActkgProjectionIdentity {
+  releaseId         String
+  projectionId      String
+  ordinal           Int
+  profile           String
+  projectionProfile String
+  versionDigest     String
+  sourceRelease     String
+  sourceReleaseHash String
+  sourceDatasetHash String
+  nodeCount         Int
+  linkCount         Int
+  artifactPath      String
+  artifactSha256    String
+  isRuntime         Boolean
+  bundleReceiptId   String?
+
+  release ActkgRelease        @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  receipt ActkgBundleReceipt? @relation(fields: [bundleReceiptId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, projectionId])
+  @@unique([releaseId, profile])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, isRuntime])
+}
+
+// Projection Link Metadata rows preserved for standard Bundles.
+model ActkgProjectionLinkMetadata {
+  releaseId                  String
+  relationId                 String
+  ordinal                    Int
+  releaseTier                String
+  sourceRelease              String
+  sourceReleaseHash          String
+  evidenceRefs               Json
+  sourceComponentRelease     String?
+  targetComponentRelease     String?
+  relationComponentRelease   String?
+  profiles                   Json
+  payload                    Json
+  bundleReceiptId            String?
+
+  release ActkgRelease        @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  receipt ActkgBundleReceipt? @relation(fields: [bundleReceiptId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, relationId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, releaseTier])
 }
 
 // CTKG 0.2 release membership entries (the public membership authority).

@@ -52,6 +52,59 @@ const SHA256 = /^[a-f0-9]{64}$/u;
 const MANIFEST_NAME = 'bundle-manifest.json';
 const SHA256SUMS_NAME = 'SHA256SUMS';
 const RESERVED_FILES = new Set([MANIFEST_NAME, SHA256SUMS_NAME]);
+/** Reserved Manifest artifact role carried in ValidatedActKGBundle.rawArtifacts. */
+export const RESERVED_BUNDLE_MANIFEST_ROLE = 'bundle_manifest';
+/** Reserved SHA256SUMS artifact role carried in ValidatedActKGBundle.rawArtifacts. */
+export const RESERVED_SHA256SUMS_ROLE = 'sha256sums';
+export const RESERVED_BUNDLE_MANIFEST_CONTRACT = 'actkg-public-bundle-manifest/1';
+export const RESERVED_SHA256SUMS_CONTRACT = 'actkg-sha256sums/1';
+
+/**
+ * Build reserved public-package rawArtifacts (Manifest + SHA256SUMS).
+ * Used by the loader so packaging persistence can reconstruct the complete package.
+ */
+export function buildReservedPublicPackageArtifacts(input: {
+  manifestBytes: Buffer;
+  sumsBytes: Buffer;
+  manifestRawSha256: string;
+}): ValidatedRawArtifact[] {
+  const { manifestBytes, sumsBytes, manifestRawSha256 } = input;
+  if (sha256(manifestBytes) !== manifestRawSha256) {
+    throw new Error('reserved Manifest bytes disagree with manifestRawSha256');
+  }
+  return [
+    {
+      descriptor: {
+        role: RESERVED_BUNDLE_MANIFEST_ROLE,
+        contractVersion: RESERVED_BUNDLE_MANIFEST_CONTRACT,
+        required: true,
+        path: MANIFEST_NAME,
+        mediaType: 'application/json',
+        sha256: manifestRawSha256,
+        byteLength: manifestBytes.byteLength,
+        recordCount: null,
+        known: true,
+        semanticsEnabled: false,
+      },
+      bytes: manifestBytes,
+    },
+    {
+      descriptor: {
+        role: RESERVED_SHA256SUMS_ROLE,
+        contractVersion: RESERVED_SHA256SUMS_CONTRACT,
+        required: true,
+        path: SHA256SUMS_NAME,
+        mediaType: 'text/plain; charset=utf-8',
+        sha256: sha256(sumsBytes),
+        byteLength: sumsBytes.byteLength,
+        recordCount: null,
+        known: true,
+        semanticsEnabled: false,
+      },
+      bytes: sumsBytes,
+    },
+  ];
+}
 const DEFAULT_CONTRACT_SCHEMA_DIR = path.join(
   process.cwd(),
   'scripts/actkg-release/schemas/public-bundle',
@@ -1312,7 +1365,7 @@ export async function loadAndValidatePublicBundleV1(options: {
   );
   privacyFindings.push(...scanPrivacy(SHA256SUMS_NAME, sumsBytes));
 
-  const rawArtifacts: ValidatedRawArtifact[] = [];
+  const declaredArtifacts: ValidatedRawArtifact[] = [];
   for (const descriptor of descriptors) {
     const bytes = await readExactFile(bundleDir, descriptor.path);
     if (sha256(bytes) !== descriptor.sha256) integrity(`Artifact SHA mismatch: ${descriptor.path}`);
@@ -1329,15 +1382,25 @@ export async function loadAndValidatePublicBundleV1(options: {
       mediaType: descriptor.mediaType,
       skipFieldTokens: descriptor.role === 'ctkg_schema',
     }));
-    rawArtifacts.push({ descriptor, bytes });
+    declaredArtifacts.push({ descriptor, bytes });
   }
   if (sha256(manifestBytes) !== sums.get(MANIFEST_NAME)) integrity('SHA256SUMS mismatch: bundle-manifest.json');
   if (privacyFindings.length > 0) {
     integrity(`public privacy boundary violated: ${privacyFindings.join(', ')}`);
   }
 
+  // Reserved package files are public Bundle members. They are not Manifest
+  // Artifact rows, but packaging persistence/round-trip must carry their raw
+  // bytes and descriptors so the complete on-disk package can be reconstructed.
+  const reservedArtifacts = buildReservedPublicPackageArtifacts({
+    manifestBytes,
+    sumsBytes,
+    manifestRawSha256,
+  });
+  const rawArtifacts: ValidatedRawArtifact[] = [...reservedArtifacts, ...declaredArtifacts];
+
   const byRole = new Map<string, ValidatedRawArtifact[]>();
-  for (const artifact of rawArtifacts) {
+  for (const artifact of declaredArtifacts) {
     const list = byRole.get(artifact.descriptor.role) ?? [];
     list.push(artifact);
     byRole.set(artifact.descriptor.role, list);

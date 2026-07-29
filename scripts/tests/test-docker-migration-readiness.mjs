@@ -32,6 +32,8 @@ function main() {
   const packageJson = JSON.parse(read('package.json'));
   const entrypointScript = read('docker-entrypoint.sh');
   const releaseImportCli = read('scripts/db/import-authoritative-actkg-release.ts');
+  const standardBundleImportCli = read('scripts/db/import-compatible-actkg-public-bundle.ts');
+  const standardBundleImporter = read('scripts/actkg-release/standard-bundle-import.ts');
   const coverageImportCli = read('scripts/db/import-course-coverage-overlay.ts');
   const resourceBindingImportCli = read('scripts/db/import-canonical-resource-binding-shadow.ts');
   const remoteDeployScript = read('scripts/remote-deploy.sh');
@@ -653,6 +655,96 @@ function main() {
     releaseImportCli,
     /reconstructAggregateArtifacts/u,
     'Release CLI 必须核验聚合公开 artifact 的字节级往返',
+  );
+
+  for (const tableName of [
+    'ActkgBundleReceipt',
+    'ActkgBundleArtifact',
+    'ActkgProjectionIdentity',
+    'ActkgProjectionLinkMetadata',
+  ]) {
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TABLE "${tableName}"`),
+      `Prisma 迁移必须包含标准 Bundle 候选表 ${tableName}`,
+    );
+  }
+  // Bundle receipt allows the sole STAGED→ACCEPTED transition; other tables are fully immutable.
+  assert.match(
+    migrationSql,
+    /CREATE TRIGGER "ActkgBundleReceipt_mutation_guard"/,
+    'Prisma 迁移必须为 ActkgBundleReceipt 声明 mutation_guard 触发器',
+  );
+  for (const tableName of [
+    'ActkgBundleArtifact',
+    'ActkgProjectionIdentity',
+    'ActkgProjectionLinkMetadata',
+  ]) {
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TRIGGER "${tableName}_immutable"`),
+      `Prisma 迁移必须为 ${tableName} 声明 immutable 触发器`,
+    );
+  }
+  assert.match(
+    migrationSql,
+    /ADD COLUMN "bundleContractVersion" TEXT/,
+    'Prisma 迁移必须扩展 ActkgImportReceipt 的标准 Bundle 合同字段',
+  );
+  assert.match(
+    migrationSql,
+    /ADD COLUMN "role" TEXT/,
+    'Prisma 迁移必须扩展 ActkgReleaseArtifact 的标准 Artifact 角色字段',
+  );
+  assert.match(
+    standardBundleImporter,
+    /assertValidatedActKGBundleInput|importValidatedActKGBundle|STAGED_CANDIDATE_STATE|ACCEPTED_CANDIDATE_STATE/u,
+    '标准 Bundle importer 必须只消费 ValidatedActKGBundle，并经 STAGED→ACCEPTED 转换',
+  );
+  assert.match(
+    migrationSql,
+    /candidateState.*STAGED.*ACCEPTED_CANDIDATE|STAGED.*ACCEPTED_CANDIDATE/u,
+    'Prisma 迁移必须允许 Bundle receipt STAGED 与 ACCEPTED_CANDIDATE',
+  );
+  assert.match(
+    migrationSql,
+    /artifactCount/u,
+    'Prisma 迁移必须为 Bundle receipt 声明 packaging artifactCount',
+  );
+  assert.match(
+    migrationSql,
+    /actkg_bundle_receipt_mutation_guard|STAGED→ACCEPTED/u,
+    'Prisma 迁移必须限制 Bundle receipt 只能 STAGED→ACCEPTED',
+  );
+  assert.match(
+    migrationSql,
+    /CREATE TRIGGER "ActkgBundleReceipt_insert_guard"/,
+    'Prisma 迁移必须为 ActkgBundleReceipt 声明 INSERT guard',
+  );
+  assert.match(
+    migrationSql,
+    /actkg_bundle_receipt_insert_guard|INSERT requires candidateState=STAGED/u,
+    'Prisma 迁移必须拒绝直接 INSERT ACCEPTED_CANDIDATE Bundle receipt',
+  );
+  assert.doesNotMatch(
+    standardBundleImporter,
+    /loadAndValidatePublicBundleV1|bundle-manifest\.json|readdir/u,
+    '标准 Bundle 数据库层不得重新发现文件或解析 Manifest',
+  );
+  assert.match(
+    standardBundleImportCli,
+    /importValidatedActKGBundle|loadAndValidatePublicBundleV1/u,
+    '标准 Bundle CLI 必须先走兼容层验证再导入',
+  );
+  assert.match(
+    prismaSchema,
+    /model ActkgBundleReceipt/,
+    'Prisma schema 必须声明 ActkgBundleReceipt',
+  );
+  assert.match(
+    packageJson.scripts?.['db:import-compatible-actkg-public-bundle'] ?? '',
+    /import-compatible-actkg-public-bundle/,
+    'package.json 必须暴露标准 Bundle 导入脚本',
   );
 
   console.log('docker migration readiness test passed');

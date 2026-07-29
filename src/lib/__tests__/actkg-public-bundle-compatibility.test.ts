@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readFile, rm, symlink, unlink, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, symlink, unlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -23,6 +23,11 @@ import {
 import {
   DEFAULT_PUBLIC_BUNDLE_LOCK_PATH,
   PublicBundleRejection,
+  RESERVED_BUNDLE_MANIFEST_CONTRACT,
+  RESERVED_BUNDLE_MANIFEST_ROLE,
+  RESERVED_SHA256SUMS_CONTRACT,
+  RESERVED_SHA256SUMS_ROLE,
+  buildReservedPublicPackageArtifacts,
   loadAndValidatePublicBundleV1,
 } from '../../../scripts/actkg-release/public-bundle-v1';
 import type { JsonObject, ReleaseSetLockV3 } from '../../../scripts/actkg-release/public-bundle-types';
@@ -472,6 +477,45 @@ async function expectRejection(
 }
 
 describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
+  it('carries reserved Manifest and SHA256SUMS as first-class rawArtifacts with descriptors', async () => {
+    // Pure packaging evidence helper — does not require a clean capture worktree.
+    const manifestOnDisk = await readFile(path.join(root, R2_PATH, 'bundle-manifest.json'));
+    const sumsOnDisk = await readFile(path.join(root, R2_PATH, 'SHA256SUMS'));
+    const reserved = buildReservedPublicPackageArtifacts({
+      manifestBytes: manifestOnDisk,
+      sumsBytes: sumsOnDisk,
+      manifestRawSha256: sha256(manifestOnDisk),
+    });
+    expect(reserved).toHaveLength(2);
+    expect(reserved[0]!.descriptor).toMatchObject({
+      role: RESERVED_BUNDLE_MANIFEST_ROLE,
+      contractVersion: RESERVED_BUNDLE_MANIFEST_CONTRACT,
+      path: 'bundle-manifest.json',
+      required: true,
+      semanticsEnabled: false,
+    });
+    expect(reserved[0]!.bytes.equals(manifestOnDisk)).toBe(true);
+    expect(reserved[0]!.descriptor.sha256).toBe(sha256(manifestOnDisk));
+    expect(reserved[1]!.descriptor).toMatchObject({
+      role: RESERVED_SHA256SUMS_ROLE,
+      contractVersion: RESERVED_SHA256SUMS_CONTRACT,
+      path: 'SHA256SUMS',
+      required: true,
+      semanticsEnabled: false,
+    });
+    expect(reserved[1]!.bytes.equals(sumsOnDisk)).toBe(true);
+    expect(reserved[1]!.descriptor.sha256).toBe(sha256(sumsOnDisk));
+    expect(reserved[1]!.descriptor.byteLength).toBe(sumsOnDisk.byteLength);
+
+    // Loader must concatenate reserved + declared (source invariant).
+    const source = await readFile(
+      path.join(root, 'scripts/actkg-release/public-bundle-v1.ts'),
+      'utf8',
+    );
+    expect(source).toMatch(/buildReservedPublicPackageArtifacts/);
+    expect(source).toMatch(/\[\.\.\.reservedArtifacts, \.\.\.declaredArtifacts\]/);
+  });
+
   it('records reviewed contract identities and admits the vendored v0.3 r2 package', async () => {
     const validated = await loadAndValidatePublicBundleV1(rootLoadOptions());
     expect(validated.captureRevision).toBe(realGitHead());
@@ -497,6 +541,19 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     expect(validated.statistics.projectionLinks).toBe(130);
     expect(validated.statistics.ragCrosswalkRows).toBe(1361);
     expect(validated.runtimeLinkMetadata).toHaveLength(130);
+
+    // Complete public package when capture is clean: reserved + declared close over disk.
+    const packageFiles = (await readdir(path.join(root, R2_PATH)))
+      .filter((name) => !name.startsWith('.'));
+    expect(validated.rawArtifacts).toHaveLength(packageFiles.length);
+    for (const name of packageFiles) {
+      const entry = validated.rawArtifacts.find((item) => item.descriptor.path === name);
+      expect(entry, `missing rawArtifact for ${name}`).toBeDefined();
+      const disk = await readFile(path.join(root, R2_PATH, name));
+      expect(entry!.bytes.equals(disk)).toBe(true);
+      expect(entry!.descriptor.sha256).toBe(sha256(disk));
+      expect(entry!.descriptor.byteLength).toBe(disk.byteLength);
+    }
     expect(validated.crosswalk).toHaveLength(1361);
     // storage-independent: no database side effects are performed by validation
     expect(validated.releaseSetIdentity.lockVersion).toBe('actkg-release-set-lock/v3');

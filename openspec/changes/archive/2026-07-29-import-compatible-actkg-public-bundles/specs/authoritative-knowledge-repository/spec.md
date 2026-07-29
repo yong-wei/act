@@ -3,6 +3,10 @@
 ### Requirement: Aggregate candidate identity is end-to-end consistent
 Every candidate Repository query, response, cache key, and diagnostic MUST bind the explicitly selected ReleaseSet, Release and runtime Projection digest. A completed #1125 candidate SHALL use its frozen exact CTKG 0.2 diagnosis, while a standard candidate SHALL use its persisted Bundle, Schema, Artifact-contract and accepted-import receipt identities. Rows or diagnostics from different candidates MUST NOT be combined.
 
+#### Scenario: Aggregate candidate is queried
+- **WHEN** a consumer selects the current candidate
+- **THEN** all returned objects, relations, and provenance SHALL belong to the one aggregate ReleaseSet and projection digest selected for that query, and SHALL NOT combine rows from another ReleaseSet
+
 #### Scenario: Explicit standard candidate is queried
 - **WHEN** an authorized consumer selects an accepted standard candidate by exact ReleaseSet and Release identity
 - **THEN** all returned objects, relations, provenance and diagnostics SHALL belong to that ReleaseSet and runtime Projection digest
