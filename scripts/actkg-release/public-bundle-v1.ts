@@ -223,6 +223,47 @@ function forbiddenFieldNames(): string[] {
   return FORBIDDEN_PUBLIC_FIELD_TOKENS.map((token) => token.replaceAll('"', ''));
 }
 
+/**
+ * Bounded absolute filesystem-path leak detector for public Artifacts.
+ *
+ * Catches Unix roots (/Users, /home, /tmp, /var, /root, /workspace, …) and
+ * Windows drive/UNC paths while avoiding common false positives:
+ * - http(s) URLs (alphanumeric host characters precede the path segment)
+ * - bare JSON Pointer tokens without a sensitive multi-segment filesystem root
+ * - course-relative paths without a leading absolute root
+ *
+ * Exported for unit tests only; production callers go through scanPrivacy.
+ */
+export function detectAbsoluteFilesystemPathLeak(text: string): string | null {
+  // Windows drive path: C:\foo\bar or C:/foo/bar
+  const windowsDrive = /(?:^|[^A-Za-z0-9_])([A-Za-z]:[\\/][^\s"'`<>|]+)/u.exec(text);
+  if (windowsDrive?.[1]) return windowsDrive[1];
+
+  // UNC path: \\server\share\...
+  const unc = /(?:^|[^\\])(\\\\[^\s\\/]+\\[^\s\\/]+(?:\\[^\s"'`<>|\\/]+)*)/u.exec(text);
+  if (unc?.[1]) return unc[1];
+
+  // Unix absolute paths under sensitive roots, requiring at least one more segment.
+  // Leading boundary excludes alnum / _ / . / : / so URL hosts like example.com/tmp
+  // do not match (the character before /tmp is alnum).
+  const unix = /(?:^|[^A-Za-z0-9_.:/])(\/(?:Users|home|tmp|var|root|workspace|opt|private|data|mnt|Volumes|etc)(?:\/[^\s"'`<>|\\]+)+)/u
+    .exec(text);
+  if (unix?.[1]) return unix[1];
+
+  return null;
+}
+
+/** Scan arbitrary public text for secrets/global tokens and absolute path leaks. */
+export function scanPublicTextForPrivacyLeaks(relativePath: string, text: string): string[] {
+  const findings: string[] = [];
+  for (const token of FORBIDDEN_PUBLIC_GLOBAL_TOKENS) {
+    if (text.includes(token)) findings.push(`${relativePath}:${token}`);
+  }
+  const pathLeak = detectAbsoluteFilesystemPathLeak(text);
+  if (pathLeak) findings.push(`${relativePath}:absolute-path:${pathLeak}`);
+  return findings;
+}
+
 function scanDecodedJsonValue(
   value: unknown,
   relativePath: string,
@@ -230,7 +271,11 @@ function scanDecodedJsonValue(
   skipFieldTokens: boolean,
 ): void {
   if (value === null || value === undefined) return;
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (typeof value === 'string') {
+    findings.push(...scanPublicTextForPrivacyLeaks(relativePath, value));
+    return;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
     return;
   }
   if (Array.isArray(value)) {
@@ -246,6 +291,51 @@ function scanDecodedJsonValue(
       }
       scanDecodedJsonValue(child, relativePath, findings, skipFieldTokens);
     }
+  }
+}
+
+/**
+ * Normalize a Manifest profile label or payload projection_profile id to the
+ * registry identity space: runtime | domain | review.
+ */
+export function normalizeProjectionIdentityLabel(profileOrId: string): string {
+  const aliased = normalizeProjectionProfile(profileOrId);
+  if (aliased === 'runtime' || aliased === 'domain' || aliased === 'review') {
+    return aliased;
+  }
+  const lower = profileOrId.toLowerCase();
+  if (
+    lower.includes(':act-')
+    || lower.endsWith(':act-v2')
+    || lower.includes('act_runtime')
+    || lower.includes('act-runtime')
+  ) {
+    return 'runtime';
+  }
+  if (
+    lower.includes(':domain-')
+    || lower.endsWith(':domain-v2')
+    || lower.includes('domain_graph')
+  ) {
+    return 'domain';
+  }
+  if (
+    lower.includes(':review-')
+    || lower.endsWith(':review-v2')
+    || lower.includes('review_graph')
+  ) {
+    return 'review';
+  }
+  integrity(`unsupported projection profile identity: ${profileOrId}`);
+}
+
+function assertPayloadSchemaVersion(payload: JsonObject, label: string): void {
+  if (payload.schema_version === undefined || payload.schema_version === null) {
+    integrity(`${label} is missing schema_version`);
+  }
+  const version = string(payload.schema_version, `${label}.schema_version`);
+  if (version !== CTKG_SCHEMA_VERSION) {
+    schemaReview(`${label} schema_version ${version} is not the registered Schema identity ${CTKG_SCHEMA_VERSION}`);
   }
 }
 
@@ -489,10 +579,8 @@ function scanPrivacy(
   } = {},
 ): string[] {
   const text = bytes.toString('utf8');
-  const findings: string[] = [];
-  for (const token of FORBIDDEN_PUBLIC_GLOBAL_TOKENS) {
-    if (text.includes(token)) findings.push(`${relativePath}:${token}`);
-  }
+  // Always scan raw public text for secrets and absolute path leaks.
+  const findings = scanPublicTextForPrivacyLeaks(relativePath, text);
 
   const skipFieldTokens = options.skipFieldTokens
     ?? (
@@ -809,6 +897,7 @@ async function validateStandardBundlePackageBoundary(options: {
   }
 
   if (!releasePayload) integrity(`${label} release Artifact payload is missing`);
+  assertPayloadSchemaVersion(releasePayload, `${label} release Artifact`);
   const payloadReleaseId = typeof releasePayload.id === 'string'
     ? releasePayload.id
     : string(releasePayload.release_id, `${label} release.id`);
@@ -838,6 +927,14 @@ async function validateStandardBundlePackageBoundary(options: {
   }
   if (hash(releaseIdentity.release_hash, `${label}.release_hash`) !== payloadDeclaredHash) {
     integrity(`${label} Manifest release.release_hash disagrees with release Artifact self-hash`);
+  }
+
+  // If the component package ships Projection Artifacts, bind their schema_version too.
+  for (const artifact of artifactMeta) {
+    if (artifact.role !== 'projection') continue;
+    const bytes = await readExactFile(packageDir, artifact.path);
+    const projectionPayload = loadJson(bytes, `${label} projection ${artifact.path}`);
+    assertPayloadSchemaVersion(projectionPayload, `${label} projection ${artifact.path}`);
   }
 
   if (privacyFindings.length > 0) {
@@ -1125,6 +1222,7 @@ export async function loadAndValidatePublicBundleV1(options: {
 
   const release = loadJson(releaseArtifacts[0]!.bytes, releaseArtifacts[0]!.descriptor.path);
   if (!ctkgValidators.release(release)) schemaFailure('Release', ctkgValidators.release.errors);
+  assertPayloadSchemaVersion(release, 'Release');
   if (
     string(release.id, 'release.id') !== lock.release.release_id
     || string(release.release_version, 'release.release_version') !== lock.release.release_version
@@ -1326,6 +1424,18 @@ export async function loadAndValidatePublicBundleV1(options: {
     const payload = loadJson(artifact.bytes, artifact.descriptor.path);
     if (!ctkgValidators.projection(payload)) {
       schemaFailure(`projection ${artifact.descriptor.path}`, ctkgValidators.projection.errors);
+    }
+    assertPayloadSchemaVersion(payload, `projection ${artifact.descriptor.path}`);
+    // Manifest Artifact profile (normalized) must equal payload.projection_profile identity.
+    const payloadProfileRaw = string(
+      payload.projection_profile,
+      `${artifact.descriptor.path}.projection_profile`,
+    );
+    const payloadProfile = normalizeProjectionIdentityLabel(payloadProfileRaw);
+    if (payloadProfile !== profile) {
+      integrity(
+        `projection profile mismatch at ${artifact.descriptor.path}: Manifest profile ${profile} vs payload projection_profile ${payloadProfileRaw}`,
+      );
     }
     if (
       string(payload.source_release, `${artifact.descriptor.path}.source_release`) !== lock.release.release_id
@@ -1580,12 +1690,18 @@ export async function loadAndValidatePublicBundleV1(options: {
     }
   }
   const reportedArtifacts = records(report.artifact_validation, 'validation-report.artifact_validation');
-  const reportedByPath = new Map(
-    reportedArtifacts.map((row, index) => [
-      string(row.path, `validation-report.artifact_validation[${index}].path`),
-      row,
-    ]),
-  );
+  const reportedByPath = new Map<string, JsonObject>();
+  for (const [index, row] of reportedArtifacts.entries()) {
+    const pathName = string(row.path, `validation-report.artifact_validation[${index}].path`);
+    if (reportedByPath.has(pathName)) {
+      integrity(`Validation Report artifact_validation repeats path ${pathName}`);
+    }
+    const rowResult = string(row.result, `validation-report.artifact_validation[${index}].result`);
+    if (rowResult === 'FAIL') {
+      integrity(`Validation Report artifact_validation path ${pathName} is FAIL`);
+    }
+    reportedByPath.set(pathName, row);
+  }
   const expectedReportPaths = new Set(
     descriptors
       .filter((descriptor) => descriptor.role !== 'validation_report')
@@ -1611,12 +1727,18 @@ export async function loadAndValidatePublicBundleV1(options: {
     }
   }
   const reportedComponents = records(report.component_validation, 'validation-report.component_validation');
-  const reportedComponentsById = new Map(
-    reportedComponents.map((row, index) => [
-      string(row.release_id, `validation-report.component_validation[${index}].release_id`),
-      row,
-    ]),
-  );
+  const reportedComponentsById = new Map<string, JsonObject>();
+  for (const [index, row] of reportedComponents.entries()) {
+    const releaseId = string(row.release_id, `validation-report.component_validation[${index}].release_id`);
+    if (reportedComponentsById.has(releaseId)) {
+      integrity(`Validation Report component_validation repeats release_id ${releaseId}`);
+    }
+    const rowResult = string(row.result, `validation-report.component_validation[${index}].result`);
+    if (rowResult === 'FAIL') {
+      integrity(`Validation Report component_validation release_id ${releaseId} is FAIL`);
+    }
+    reportedComponentsById.set(releaseId, row);
+  }
   if (
     canonicalJson([...reportedComponentsById.keys()].sort())
       !== canonicalJson([...manifestComponentIds].sort())

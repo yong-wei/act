@@ -330,6 +330,7 @@ async function writeMinimalStandardBundleComponent(options: {
     id: options.releaseId,
     release_version: options.releaseVersion,
     source_dataset_hash: sourceDatasetHash,
+    // Must match Manifest/Lock registered Schema identity for standard_bundle closure.
     schema_version: CTKG_SCHEMA_VERSION,
     entries: [],
     included_entities: [],
@@ -1383,6 +1384,159 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
       'INTEGRITY_REJECTED',
       /projection_validation check .* is FAIL while top-level result is PASS|privacy_validation check .* is FAIL while top-level result is PASS|reproducibility_validation check .* is FAIL while top-level result is PASS/u,
+    );
+  });
+
+  it('rejects Validation Report artifact_validation and component_validation duplicates and FAIL rows', async () => {
+    const passThenFail = await fixtureRoot();
+    await finalizeBundle(passThenFail, async (manifest, bundleDir) => {
+      const reportArtifact = manifest.artifacts.find((item) => item.role === 'validation_report')!;
+      const report = JSON.parse(
+        await readFile(path.join(bundleDir, String(reportArtifact.path)), 'utf8'),
+      ) as JsonObject;
+      const rows = report.artifact_validation as JsonObject[];
+      const seed = structuredClone(rows[0]!) as JsonObject;
+      seed.result = 'FAIL';
+      report.artifact_validation = [...rows, seed];
+      await writeTrackedJson(manifest, bundleDir, String(reportArtifact.path), report);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(passThenFail)),
+      'INTEGRITY_REJECTED',
+      /artifact_validation repeats path|artifact_validation path .* is FAIL/u,
+    );
+
+    const passThenPass = await fixtureRoot();
+    await finalizeBundle(passThenPass, async (manifest, bundleDir) => {
+      const reportArtifact = manifest.artifacts.find((item) => item.role === 'validation_report')!;
+      const report = JSON.parse(
+        await readFile(path.join(bundleDir, String(reportArtifact.path)), 'utf8'),
+      ) as JsonObject;
+      const rows = report.artifact_validation as JsonObject[];
+      report.artifact_validation = [...rows, structuredClone(rows[0]!)];
+      await writeTrackedJson(manifest, bundleDir, String(reportArtifact.path), report);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(passThenPass)),
+      'INTEGRITY_REJECTED',
+      /artifact_validation repeats path/u,
+    );
+
+    const componentDup = await fixtureRoot();
+    await finalizeBundle(componentDup, async (manifest, bundleDir) => {
+      const reportArtifact = manifest.artifacts.find((item) => item.role === 'validation_report')!;
+      const report = JSON.parse(
+        await readFile(path.join(bundleDir, String(reportArtifact.path)), 'utf8'),
+      ) as JsonObject;
+      const rows = report.component_validation as JsonObject[];
+      const seed = structuredClone(rows[0]!) as JsonObject;
+      seed.result = 'FAIL';
+      report.component_validation = [...rows, seed];
+      await writeTrackedJson(manifest, bundleDir, String(reportArtifact.path), report);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(componentDup)),
+      'INTEGRITY_REJECTED',
+      /component_validation repeats release_id|component_validation release_id .* is FAIL/u,
+    );
+  });
+
+  it('rejects Manifest projection profile labels that disagree with payload.projection_profile', async () => {
+    const fixture = await fixtureRoot();
+    await finalizeBundle(fixture, async (manifest, bundleDir) => {
+      const runtime = manifest.artifacts.find(
+        (item) => item.role === 'projection' && item.profile === 'runtime',
+      )!;
+      // Swap label only: payload remains act-v2, Manifest claims domain.
+      runtime.profile = 'domain';
+      await syncValidationReport(manifest, bundleDir);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
+      'INTEGRITY_REJECTED',
+      /projection profile mismatch|duplicate projection profile/u,
+    );
+  });
+
+  it('rejects Release/Projection schema_version that is not the registered Schema identity', async () => {
+    const fixture = await fixtureRoot();
+    await finalizeBundle(fixture, async (manifest, bundleDir) => {
+      const releaseArtifact = manifest.artifacts.find((item) => item.role === 'release')!;
+      const release = JSON.parse(
+        await readFile(path.join(bundleDir, String(releaseArtifact.path)), 'utf8'),
+      ) as JsonObject;
+      release.schema_version = '0.9.9';
+      release.release_hash = recomputeReleaseHash(release);
+      await writeTrackedJson(manifest, bundleDir, String(releaseArtifact.path), release);
+
+      const paths = projectionPaths(manifest);
+      for (const profile of ['runtime', 'domain', 'review'] as const) {
+        const projection = JSON.parse(
+          await readFile(path.join(bundleDir, paths[profile]), 'utf8'),
+        ) as JsonObject;
+        projection.source_release_hash = release.release_hash;
+        projection.version_digest = recomputeProjectionDigest(projection, profile);
+        await writeTrackedJson(manifest, bundleDir, paths[profile], projection);
+      }
+      const metaArtifact = manifest.artifacts.find((item) => item.role === 'projection_link_metadata')!;
+      const metaLines = (await readFile(path.join(bundleDir, String(metaArtifact.path)), 'utf8'))
+        .split(/\r?\n/u)
+        .filter(Boolean)
+        .map((line) => {
+          const row = JSON.parse(line) as JsonObject;
+          row.source_release_hash = release.release_hash;
+          return JSON.stringify(row);
+        });
+      await writeTrackedArtifact(
+        manifest,
+        bundleDir,
+        String(metaArtifact.path),
+        Buffer.from(`${metaLines.join('\n')}\n`, 'utf8'),
+      );
+      manifest.release = {
+        ...manifest.release,
+        release_hash: String(release.release_hash),
+      };
+      await syncValidationReport(manifest, bundleDir, {
+        release: manifest.release,
+      });
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
+      'SCHEMA_REVIEW_REQUIRED',
+      /schema_version 0\.9\.9 is not the registered Schema identity/u,
+    );
+  });
+
+  it('rejects absolute filesystem path leaks beyond /Users and /home prefixes', async () => {
+    const fixture = await fixtureRoot();
+    await finalizeBundle(fixture, async (manifest, bundleDir) => {
+      const notes = manifest.artifacts.find((artifact) => artifact.role === 'release_notes')!;
+      const bytes = Buffer.from('notes with leak path /tmp/private/out/bundle.json\n', 'utf8');
+      await writeFile(path.join(bundleDir, String(notes.path)), bytes);
+      notes.sha256 = sha256(bytes);
+      notes.byte_length = bytes.byteLength;
+      await syncValidationReport(manifest, bundleDir);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
+      'INTEGRITY_REJECTED',
+      /privacy|absolute-path|\/tmp\//u,
+    );
+
+    const windows = await fixtureRoot();
+    await finalizeBundle(windows, async (manifest, bundleDir) => {
+      const notes = manifest.artifacts.find((artifact) => artifact.role === 'release_notes')!;
+      const bytes = Buffer.from('windows leak C:\\Users\\yw\\secret.txt\n', 'utf8');
+      await writeFile(path.join(bundleDir, String(notes.path)), bytes);
+      notes.sha256 = sha256(bytes);
+      notes.byte_length = bytes.byteLength;
+      await syncValidationReport(manifest, bundleDir);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(windows)),
+      'INTEGRITY_REJECTED',
+      /privacy|absolute-path|C:/u,
     );
   });
 
