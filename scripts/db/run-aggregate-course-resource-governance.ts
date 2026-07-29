@@ -18,12 +18,15 @@ import { fileURLToPath } from 'node:url';
 import {
   AggregateGovernanceRepository,
   buildStructuralUnitIndexFromInventory,
+  deriveChangedResourceSegments,
   runAggregateGovernance,
   selectAggregateGovernanceBaselineSource,
   selectCanonicalObjectMembership,
+  toChangedResourceSegmentWorkItems,
   type CaptureIdentity,
   type ObservedCaptureFields,
   type OpaqueUpstreamRagReference,
+  type PackagingNoopAncestryNode,
 } from '../../src/lib/aggregate-governance';
 import {
   loadVerifiedPersistedCurrentInventory,
@@ -185,12 +188,33 @@ async function main(): Promise<void> {
       );
     }
 
-    // Governance capture = current clean authoring capture (tracked active file HEAD).
-    // Import / Delta captures are historical and may differ.
+    // All Git revision slots must bind one clean ACT capture. Inventory,
+    // authoring, import receipt and Delta capture are fail-closed together.
     if (inventory.captureRevision !== authoringLoaded.captureRevision) {
       throw new Error(
         `Aggregate governance rejected: inventory governance capture ${inventory.captureRevision} `
         + `drifts from authoring governance capture ${authoringLoaded.captureRevision}`,
+      );
+    }
+    if (String(receipt.captureRevision) !== authoringLoaded.captureRevision) {
+      throw new Error(
+        `Aggregate governance rejected: import capture ${receipt.captureRevision} `
+        + `drifts from clean ACT capture ${authoringLoaded.captureRevision}`,
+      );
+    }
+    if (String(delta.captureRevision) !== authoringLoaded.captureRevision) {
+      throw new Error(
+        `Aggregate governance rejected: delta capture ${delta.captureRevision} `
+        + `drifts from clean ACT capture ${authoringLoaded.captureRevision}`,
+      );
+    }
+    if (
+      coverageAuthoringRaw.authoringRevision != null
+      && String(coverageAuthoringRaw.authoringRevision) !== authoringLoaded.captureRevision
+    ) {
+      throw new Error(
+        `Aggregate governance rejected: authoringRevision ${coverageAuthoringRaw.authoringRevision} `
+        + `drifts from clean ACT capture ${authoringLoaded.captureRevision}`,
       );
     }
 
@@ -201,12 +225,73 @@ async function main(): Promise<void> {
     // enough — first packaging no-op persists a receipt without coverage, and
     // exact replay must keep using the accepted Delta base coverage/crosswalk/
     // decisions while remaining idempotent on the candidate receipt.
+    //
+    // When the accepted Delta base is packaging-only, walk verified
+    // packaging_noop ancestry (receipt → Delta.baseReleaseSetId) until CURRENT
+    // governed coverage is found. Never invent lineage.
     const candidateCoverage = await repository.readCurrentCoverage(candidate.id);
     const candidateReceipt = await repository.readLatestGovernanceReceipt(candidate.id);
+    const ancestryCache = new Map<string, PackagingNoopAncestryNode | null>();
+    const resolveAncestryNode = async (
+      releaseSetId: string,
+    ): Promise<PackagingNoopAncestryNode | null> => {
+      if (ancestryCache.has(releaseSetId)) {
+        return ancestryCache.get(releaseSetId) ?? null;
+      }
+      const coverage = await repository.readCurrentCoverage(releaseSetId);
+      const receiptRow = await repository.readLatestGovernanceReceipt(releaseSetId);
+      let acceptedDeltaBaseReleaseSetId: string | null = null;
+      if (receiptRow?.deltaReceiptId) {
+        const ancestryDelta = await db.actkgReleaseSetDeltaReceipt.findUnique({
+          where: { id: receiptRow.deltaReceiptId },
+          select: {
+            baseReleaseSetId: true,
+            candidateReleaseSetId: true,
+            authorizationState: true,
+          },
+        });
+        if (
+          ancestryDelta
+          && ancestryDelta.candidateReleaseSetId === releaseSetId
+          && ancestryDelta.authorizationState === 'ACCEPTED'
+        ) {
+          acceptedDeltaBaseReleaseSetId = ancestryDelta.baseReleaseSetId ?? null;
+        }
+        // Unverified / non-accepted Delta links leave base null so the pure
+        // selector fail-closes on packaging intermediates without inventing lineage.
+      }
+      const node: PackagingNoopAncestryNode = {
+        releaseSetId,
+        hasGovernedCoverage: Boolean(coverage),
+        latestReceiptMode: receiptRow?.mode ?? null,
+        acceptedDeltaBaseReleaseSetId,
+      };
+      ancestryCache.set(releaseSetId, node);
+      return node;
+    };
+
+    // Prefetch the packaging ancestry chain so the pure selector stays sync.
+    if (!candidateCoverage && delta.baseReleaseSetId) {
+      let cursor: string | null = delta.baseReleaseSetId;
+      const seen = new Set<string>();
+      while (cursor && !seen.has(cursor) && seen.size < 16) {
+        seen.add(cursor);
+        const node = await resolveAncestryNode(cursor);
+        if (!node || node.hasGovernedCoverage) break;
+        if (node.latestReceiptMode !== 'packaging_noop') break;
+        cursor = node.acceptedDeltaBaseReleaseSetId;
+      }
+    }
+
     const baselineSource = selectAggregateGovernanceBaselineSource({
       candidateReleaseSetId: candidate.id,
       baseReleaseSetId: delta.baseReleaseSetId ?? null,
       candidateHasGovernedCoverage: Boolean(candidateCoverage),
+      // Walk only when an accepted Delta base exists; missing base keeps the
+      // single-hop candidate fallback without inventing ancestry.
+      resolveAncestryNode: delta.baseReleaseSetId
+        ? (releaseSetId) => ancestryCache.get(releaseSetId) ?? null
+        : undefined,
     });
     const priorReleaseSetId = baselineSource.baselineReleaseSetId;
     const usesCandidateSelfState = baselineSource.usesCandidateSelfState;
@@ -287,6 +372,16 @@ async function main(): Promise<void> {
         deterministicRole: null,
         evidenceIds: [] as string[],
       }));
+
+    // Resource-side changes: previous CURRENT binding endpoints vs current
+    // versioned inventory. Hash drift → invalidate + current-segment candidates
+    // (pipeline reverse map); removals → invalidate only. Unchanged → no work.
+    const changedResourceSegments = toChangedResourceSegmentWorkItems(
+      deriveChangedResourceSegments({
+        previousDecisions,
+        currentResourceIndex: resourceIndex,
+      }),
+    );
 
     const expectedCapture: CaptureIdentity = {
       captureRevision: authoringLoaded.captureRevision,
@@ -382,6 +477,7 @@ async function main(): Promise<void> {
       previousDecisions,
       canonicalIndex,
       resourceIndex,
+      changedResourceSegments,
       priorSemanticPublicationIdentity:
         previousReceipt?.id
         ?? existingCoverage?.publicationIdentity

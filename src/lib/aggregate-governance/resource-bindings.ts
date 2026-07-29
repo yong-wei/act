@@ -1,11 +1,17 @@
 import {
   applyPublicationGates,
   buildDeterministicDecision,
+  canonicalCandidateId,
+  canonicalSha256,
+  decisionAttemptId,
   generateCandidatesForCanonicalChanges,
   generateCandidatesForResourceChanges,
+  generatorCacheKey as buildGeneratorCacheKey,
   generatorDecision,
   invalidateChangedResourcePairs,
+  reviewerCacheKey as buildReviewerCacheKey,
   type CanonicalBindingReviewProvider,
+  type CanonicalCandidateIdentity,
   type CanonicalObjectIndexEntry,
   type CanonicalResourceBindingCandidate,
   type CanonicalResourceBindingDecision,
@@ -154,22 +160,30 @@ export function bindingCaptureIdentityDrift(
   return false;
 }
 
-function mintRevalidatedBindingDecisionId(input: {
-  priorId: string;
-  pairId: string;
-  capture: CaptureIdentity;
-  attemptSequence: number;
+/**
+ * Seal a revalidation reviewer/revalidation digest for the new candidate
+ * identity. Does not pretend the prior reviewer input was executed against the
+ * new identity — it records prior decision/review evidence + revalidation
+ * receipt + current candidate identity only (no semantic re-review).
+ */
+function revalidationReviewerInputDigest(input: {
+  prior: CanonicalResourceBindingDecision;
+  candidateIdentity: CanonicalCandidateIdentity;
+  revalidationReceipt: RevalidationReceipt;
 }): string {
-  return `canonical-resource-decision:${sha256Canonical({
-    pairId: input.pairId,
-    releaseSetId: input.capture.releaseSetId,
-    releaseId: input.capture.releaseId,
-    deltaReceiptId: input.capture.deltaReceiptId,
-    captureRevision: input.capture.captureRevision,
-    priorPublicationIdentity: input.priorId,
-    attemptSequence: input.attemptSequence,
-    notCopy: true,
-  })}`;
+  return canonicalSha256({
+    kind: 'binding-revalidation',
+    priorDecisionId: input.prior.id,
+    priorPairId: input.prior.pairId,
+    priorReviewerInputDigest: input.prior.reviewerInputDigest,
+    priorReviewState: input.prior.reviewState,
+    priorEvidenceDigest: input.prior.evidenceDigest,
+    priorRole: input.prior.role,
+    candidateIdentity: input.candidateIdentity,
+    revalidationReceiptId: input.revalidationReceipt.id,
+    revalidationOutcome: input.revalidationReceipt.outcome,
+    revalidationIdentityDigest: input.revalidationReceipt.identityDigest,
+  });
 }
 
 function stageSemanticBindingDecision(input: {
@@ -485,15 +499,78 @@ export function governResourceBindings(input: {
     }
 
     const attemptSequence = decision.attemptSequence + 1;
-    const newId = mintRevalidatedBindingDecisionId({
-      priorId: decision.id,
-      pairId: decision.pairId,
-      capture: input.capture,
+    // Recompute the complete #1124 candidate identity under the current
+    // ReleaseSet/Release/revision/segment. Never retain sealed digests from the
+    // prior publication (pairId, generatorCacheKey, candidateDigest,
+    // reviewerInputDigest, reviewerCacheKey).
+    const candidateIdentity: CanonicalCandidateIdentity = {
+      releaseSetId: input.capture.releaseSetId,
+      releaseId: input.capture.releaseId,
+      canonicalId: decision.canonicalId,
+      objectRevision: currentCanon.objectRevision,
+      resourceId: decision.resourceId,
+      structuralUnitId: decision.structuralUnitId,
+      segmentId: decision.segmentId,
+      resourceSegmentHash: currentSegment.resourceSegmentHash,
+    };
+    const pairId = canonicalCandidateId(candidateIdentity);
+    const generatorCacheKey = buildGeneratorCacheKey(
+      candidateIdentity,
+      decision.generatorPromptVersion,
+    );
+    const candidateDigest = canonicalSha256(candidateIdentity);
+    const reviewerInputDigest = revalidationReviewerInputDigest({
+      prior: decision,
+      candidateIdentity,
+      revalidationReceipt: receipt,
+    });
+    const reviewerCacheKey = buildReviewerCacheKey({
+      candidateDigest,
+      reviewerRole: 'INDEPENDENT_REVIEWER',
+      reviewerPromptVersion: decision.reviewerPromptVersion,
+      reviewerInputDigest,
+    });
+    const newId = decisionAttemptId({
+      pairId,
+      generatorPromptVersion: decision.generatorPromptVersion,
+      reviewerPromptVersion: decision.reviewerPromptVersion,
+      reviewerInputDigest,
       attemptSequence,
     });
+    const identityChanged = (
+      decision.releaseSetId !== candidateIdentity.releaseSetId
+      || decision.releaseId !== candidateIdentity.releaseId
+      || decision.objectRevision !== candidateIdentity.objectRevision
+      || decision.resourceSegmentHash !== candidateIdentity.resourceSegmentHash
+    );
     if (newId === decision.id) {
       throw new Error(
         'Aggregate governance rejected: revalidated binding must not copy prior publication identity',
+      );
+    }
+    if (identityChanged && pairId === decision.pairId) {
+      throw new Error(
+        'Aggregate governance rejected: revalidated binding pairId must follow current candidate identity',
+      );
+    }
+    if (identityChanged && generatorCacheKey === decision.generatorCacheKey) {
+      throw new Error(
+        'Aggregate governance rejected: revalidated binding generatorCacheKey must follow current candidate identity',
+      );
+    }
+    if (identityChanged && candidateDigest === decision.candidateDigest) {
+      throw new Error(
+        'Aggregate governance rejected: revalidated binding candidateDigest must follow current candidate identity',
+      );
+    }
+    if (reviewerInputDigest === decision.reviewerInputDigest) {
+      throw new Error(
+        'Aggregate governance rejected: revalidated binding must seal a new reviewer/revalidation digest',
+      );
+    }
+    if (reviewerCacheKey === decision.reviewerCacheKey) {
+      throw new Error(
+        'Aggregate governance rejected: revalidated binding must seal a new reviewerCacheKey',
       );
     }
 
@@ -501,10 +578,19 @@ export function governResourceBindings(input: {
     let reissued: CanonicalResourceBindingDecision = {
       ...decision,
       id: newId,
-      releaseSetId: input.capture.releaseSetId,
-      releaseId: input.capture.releaseId,
-      objectRevision: currentCanon.objectRevision,
-      resourceSegmentHash: currentSegment.resourceSegmentHash,
+      pairId,
+      releaseSetId: candidateIdentity.releaseSetId,
+      releaseId: candidateIdentity.releaseId,
+      canonicalId: candidateIdentity.canonicalId,
+      objectRevision: candidateIdentity.objectRevision,
+      resourceId: candidateIdentity.resourceId,
+      structuralUnitId: candidateIdentity.structuralUnitId,
+      segmentId: candidateIdentity.segmentId,
+      resourceSegmentHash: candidateIdentity.resourceSegmentHash,
+      generatorCacheKey,
+      candidateDigest,
+      reviewerInputDigest,
+      reviewerCacheKey,
       inventoryRunId: input.capture.inventoryRunId,
       captureRevision: input.capture.captureRevision,
       attemptSequence,

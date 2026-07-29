@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { selectResourceKnowledgeAuthority } from '@/lib/canonical-resource-binding';
+import {
+  canonicalCandidateId,
+  canonicalSha256,
+  decisionAttemptId,
+  generatorCacheKey,
+  reviewerCacheKey,
+  selectResourceKnowledgeAuthority,
+} from '@/lib/canonical-resource-binding';
 import type { ResourceBindingInventory } from '@/lib/canonical-resource-binding';
 
 import {
@@ -22,6 +29,10 @@ import {
   selectAggregateGovernanceBaselineSource,
   verifyCoherentCapture,
 } from '../aggregate-governance/capture';
+import {
+  deriveChangedResourceSegments,
+  toChangedResourceSegmentWorkItems,
+} from '../aggregate-governance/resource-index';
 import {
   buildDispositionFromReview,
   computeCoverageSourceHash,
@@ -71,14 +82,13 @@ import {
 } from '../aggregate-governance/upstream-classification';
 import type { AggregateGovernanceRunResult } from '../aggregate-governance/pipeline';
 
-const GOV = 'a'.repeat(40);
-const IMPORT = 'b'.repeat(40);
-const DELTA_CAP = 'c'.repeat(40);
+/** One clean ACT capture revision shared by all Git-governed slots. */
+const CLEAN_CAPTURE = 'a'.repeat(40);
 
 const CAPTURE: CaptureIdentity = {
-  captureRevision: GOV,
-  importCaptureRevision: IMPORT,
-  deltaCaptureRevision: DELTA_CAP,
+  captureRevision: CLEAN_CAPTURE,
+  importCaptureRevision: CLEAN_CAPTURE,
+  deltaCaptureRevision: CLEAN_CAPTURE,
   dbWatermark: '0/16B2A40',
   releaseSetId: 'actkg-authoritative-candidate-v3-r2',
   releaseId: 'ctr:release:control-theory-engineering-v0.3',
@@ -91,7 +101,7 @@ const CAPTURE: CaptureIdentity = {
   runtimeProjectionDigest: 'e'.repeat(64),
   inventoryRunId: 'inv-1',
   structuralUnitIndexVersion: 'struct-v1',
-  authoringRevision: GOV,
+  authoringRevision: CLEAN_CAPTURE,
   coverageSourceHash: 'f'.repeat(64),
 };
 
@@ -166,6 +176,7 @@ describe('aggregate governance baseline source selection', () => {
     })).toEqual({
       baselineReleaseSetId: 'candidate-set',
       usesCandidateSelfState: true,
+      walkedReleaseSetIds: ['candidate-set'],
     });
   });
 
@@ -179,6 +190,7 @@ describe('aggregate governance baseline source selection', () => {
     })).toEqual({
       baselineReleaseSetId: 'base-set',
       usesCandidateSelfState: false,
+      walkedReleaseSetIds: ['base-set'],
     });
   });
 
@@ -190,7 +202,139 @@ describe('aggregate governance baseline source selection', () => {
     })).toEqual({
       baselineReleaseSetId: 'candidate-set',
       usesCandidateSelfState: false,
+      walkedReleaseSetIds: ['candidate-set'],
     });
+  });
+
+  it('walks packaging-noop ancestry A → packaging B → semantic C to CURRENT coverage', () => {
+    const nodes = new Map([
+      ['rs-b', {
+        releaseSetId: 'rs-b',
+        hasGovernedCoverage: false,
+        latestReceiptMode: 'packaging_noop',
+        acceptedDeltaBaseReleaseSetId: 'rs-a',
+      }],
+      ['rs-a', {
+        releaseSetId: 'rs-a',
+        hasGovernedCoverage: true,
+        latestReceiptMode: 'baseline',
+        acceptedDeltaBaseReleaseSetId: null,
+      }],
+    ]);
+    expect(selectAggregateGovernanceBaselineSource({
+      candidateReleaseSetId: 'rs-c',
+      baseReleaseSetId: 'rs-b',
+      candidateHasGovernedCoverage: false,
+      resolveAncestryNode: (id) => nodes.get(id) ?? null,
+    })).toEqual({
+      baselineReleaseSetId: 'rs-a',
+      usesCandidateSelfState: false,
+      walkedReleaseSetIds: ['rs-b', 'rs-a'],
+    });
+  });
+
+  it('walks multi-hop packaging ancestry until CURRENT coverage', () => {
+    const nodes = new Map([
+      ['rs-c', {
+        releaseSetId: 'rs-c',
+        hasGovernedCoverage: false,
+        latestReceiptMode: 'packaging_noop',
+        acceptedDeltaBaseReleaseSetId: 'rs-b',
+      }],
+      ['rs-b', {
+        releaseSetId: 'rs-b',
+        hasGovernedCoverage: false,
+        latestReceiptMode: 'packaging_noop',
+        acceptedDeltaBaseReleaseSetId: 'rs-a',
+      }],
+      ['rs-a', {
+        releaseSetId: 'rs-a',
+        hasGovernedCoverage: true,
+        latestReceiptMode: 'incremental',
+        acceptedDeltaBaseReleaseSetId: null,
+      }],
+    ]);
+    expect(selectAggregateGovernanceBaselineSource({
+      candidateReleaseSetId: 'rs-d',
+      baseReleaseSetId: 'rs-c',
+      candidateHasGovernedCoverage: false,
+      resolveAncestryNode: (id) => nodes.get(id) ?? null,
+    })).toEqual({
+      baselineReleaseSetId: 'rs-a',
+      usesCandidateSelfState: false,
+      walkedReleaseSetIds: ['rs-c', 'rs-b', 'rs-a'],
+    });
+  });
+
+  it('fails closed on packaging ancestry cycle, missing link, or non-packaging intermediate', () => {
+    expect(() => selectAggregateGovernanceBaselineSource({
+      candidateReleaseSetId: 'rs-c',
+      baseReleaseSetId: 'rs-b',
+      candidateHasGovernedCoverage: false,
+      resolveAncestryNode: (id) => (
+        id === 'rs-b'
+          ? {
+              releaseSetId: 'rs-b',
+              hasGovernedCoverage: false,
+              latestReceiptMode: 'packaging_noop',
+              acceptedDeltaBaseReleaseSetId: 'rs-b',
+            }
+          : null
+      ),
+    })).toThrow(/self-link|cycle/u);
+
+    expect(() => selectAggregateGovernanceBaselineSource({
+      candidateReleaseSetId: 'rs-c',
+      baseReleaseSetId: 'rs-b',
+      candidateHasGovernedCoverage: false,
+      resolveAncestryNode: (id) => (
+        id === 'rs-b'
+          ? {
+              releaseSetId: 'rs-b',
+              hasGovernedCoverage: false,
+              latestReceiptMode: 'packaging_noop',
+              acceptedDeltaBaseReleaseSetId: null,
+            }
+          : null
+      ),
+    })).toThrow(/missing Delta base link/u);
+
+    expect(() => selectAggregateGovernanceBaselineSource({
+      candidateReleaseSetId: 'rs-c',
+      baseReleaseSetId: 'rs-b',
+      candidateHasGovernedCoverage: false,
+      resolveAncestryNode: (id) => (
+        id === 'rs-b'
+          ? {
+              releaseSetId: 'rs-b',
+              hasGovernedCoverage: false,
+              latestReceiptMode: 'incremental',
+              acceptedDeltaBaseReleaseSetId: 'rs-a',
+            }
+          : null
+      ),
+    })).toThrow(/not a packaging_noop/u);
+
+    const cycle = new Map([
+      ['rs-b', {
+        releaseSetId: 'rs-b',
+        hasGovernedCoverage: false,
+        latestReceiptMode: 'packaging_noop',
+        acceptedDeltaBaseReleaseSetId: 'rs-a',
+      }],
+      ['rs-a', {
+        releaseSetId: 'rs-a',
+        hasGovernedCoverage: false,
+        latestReceiptMode: 'packaging_noop',
+        acceptedDeltaBaseReleaseSetId: 'rs-b',
+      }],
+    ]);
+    expect(() => selectAggregateGovernanceBaselineSource({
+      candidateReleaseSetId: 'rs-c',
+      baseReleaseSetId: 'rs-b',
+      candidateHasGovernedCoverage: false,
+      resolveAncestryNode: (id) => cycle.get(id) ?? null,
+    })).toThrow(/cycle/u);
   });
 
   it('keeps packaging no-op deterministic after first run then exact replay', () => {
@@ -300,9 +444,47 @@ describe('aggregate governance baseline source selection', () => {
 });
 
 describe('aggregate governance capture coherence', () => {
-  it('accepts independently observed capture when import/delta differ from governance', () => {
-    expect(CAPTURE.captureRevision).not.toBe(CAPTURE.importCaptureRevision);
-    expect(CAPTURE.captureRevision).not.toBe(CAPTURE.deltaCaptureRevision);
+  it('accepts independently observed capture when all Git slots share one clean revision', () => {
+    expect(CAPTURE.captureRevision).toBe(CAPTURE.importCaptureRevision);
+    expect(CAPTURE.captureRevision).toBe(CAPTURE.deltaCaptureRevision);
+    expect(CAPTURE.captureRevision).toBe(CAPTURE.authoringRevision);
+    expect(verifyCoherentCapture({
+      expected: CAPTURE,
+      observed: observedOf(CAPTURE),
+    }).coherent).toBe(true);
+  });
+
+  it('fails closed when Git revision slots differ even if expected/observed agree field-wise', () => {
+    const mixed: CaptureIdentity = {
+      ...CAPTURE,
+      captureRevision: 'a'.repeat(40),
+      importCaptureRevision: 'b'.repeat(40),
+      deltaCaptureRevision: 'c'.repeat(40),
+      authoringRevision: 'a'.repeat(40),
+    };
+    const result = verifyCoherentCapture({
+      expected: mixed,
+      observed: { ...mixed },
+    });
+    expect(result.coherent).toBe(false);
+    expect(result.failures.some((row) => row.field === 'gitCaptureRevision')).toBe(true);
+  });
+
+  it('keeps non-Git identities independently verified without comparing them to the Git SHA', () => {
+    expect(verifyCoherentCapture({
+      expected: CAPTURE,
+      observed: { ...CAPTURE, dbWatermark: '0/OTHER' },
+    }).coherent).toBe(false);
+    expect(verifyCoherentCapture({
+      expected: CAPTURE,
+      observed: { ...CAPTURE, inventoryRunId: 'other' },
+    }).coherent).toBe(false);
+    expect(verifyCoherentCapture({
+      expected: CAPTURE,
+      observed: { ...CAPTURE, releaseHash: '0'.repeat(64) },
+    }).coherent).toBe(false);
+    // Non-Git hash fields may differ from the Git SHA without being "mixed capture".
+    expect(CAPTURE.releaseHash).not.toBe(CAPTURE.captureRevision);
     expect(verifyCoherentCapture({
       expected: CAPTURE,
       observed: observedOf(CAPTURE),
@@ -330,6 +512,255 @@ describe('aggregate governance capture coherence', () => {
       expected: CAPTURE,
       observed: { ...CAPTURE, releaseHash: '0'.repeat(64) },
     })).toThrow(/capture drift/u);
+  });
+});
+
+describe('deriveChangedResourceSegments', () => {
+  const priorDecision = {
+    resourceId: 'resource-1',
+    structuralUnitId: 'unit-1',
+    segmentId: 'seg-1',
+    resourceSegmentHash: '2'.repeat(64),
+    canonicalId: 'ctc:a',
+    lifecycleState: 'CURRENT',
+  };
+
+  it('marks hash-changed endpoints and keeps current-segment candidates only', () => {
+    const derived = deriveChangedResourceSegments({
+      previousDecisions: [priorDecision],
+      currentResourceIndex: [{
+        resourceId: 'resource-1',
+        structuralUnitId: 'unit-1',
+        segmentId: 'seg-1',
+        resourceSegmentHash: '9'.repeat(64),
+        candidateCanonicalIds: ['ctc:a'],
+      }],
+    });
+    expect(derived).toEqual([{
+      resourceId: 'resource-1',
+      structuralUnitId: 'unit-1',
+      segmentId: 'seg-1',
+      resourceSegmentHash: '9'.repeat(64),
+      candidateCanonicalIds: ['ctc:a'],
+      removed: false,
+    }]);
+    // Work items never carry candidateCanonicalIds (no full-object review).
+    expect(toChangedResourceSegmentWorkItems(derived)).toEqual([{
+      resourceId: 'resource-1',
+      structuralUnitId: 'unit-1',
+      segmentId: 'seg-1',
+      resourceSegmentHash: '9'.repeat(64),
+    }]);
+  });
+
+  it('invalidates removed endpoints without fabricating candidates', () => {
+    const derived = deriveChangedResourceSegments({
+      previousDecisions: [priorDecision],
+      currentResourceIndex: [],
+    });
+    expect(derived).toEqual([{
+      resourceId: 'resource-1',
+      structuralUnitId: 'unit-1',
+      segmentId: 'seg-1',
+      resourceSegmentHash: '2'.repeat(64),
+      candidateCanonicalIds: [],
+      removed: true,
+    }]);
+    expect(toChangedResourceSegmentWorkItems(derived)[0]).not.toHaveProperty('candidateCanonicalIds');
+  });
+
+  it('ignores unchanged endpoints and non-CURRENT decisions', () => {
+    expect(deriveChangedResourceSegments({
+      previousDecisions: [
+        priorDecision,
+        { ...priorDecision, lifecycleState: 'SUPERSEDED', resourceSegmentHash: '8'.repeat(64) },
+      ],
+      currentResourceIndex: [{
+        resourceId: 'resource-1',
+        structuralUnitId: 'unit-1',
+        segmentId: 'seg-1',
+        resourceSegmentHash: '2'.repeat(64),
+        candidateCanonicalIds: ['ctc:a'],
+      }],
+    })).toEqual([]);
+  });
+
+  it('invalidates only dependent pairs for hash change and regenerates current-segment candidates', () => {
+    const work = toChangedResourceSegmentWorkItems(deriveChangedResourceSegments({
+      previousDecisions: [
+        priorDecision,
+        {
+          ...priorDecision,
+          resourceId: 'resource-2',
+          segmentId: 'seg-2',
+          resourceSegmentHash: '3'.repeat(64),
+          canonicalId: 'ctc:b',
+        },
+      ],
+      currentResourceIndex: [
+        {
+          resourceId: 'resource-1',
+          structuralUnitId: 'unit-1',
+          segmentId: 'seg-1',
+          resourceSegmentHash: '9'.repeat(64),
+          candidateCanonicalIds: ['ctc:a'],
+        },
+        {
+          resourceId: 'resource-2',
+          structuralUnitId: 'unit-1',
+          segmentId: 'seg-2',
+          resourceSegmentHash: '3'.repeat(64),
+          candidateCanonicalIds: ['ctc:b'],
+        },
+      ],
+    }));
+    expect(work).toHaveLength(1);
+    expect(work[0]?.resourceId).toBe('resource-1');
+
+    const binding = governResourceBindings({
+      capture: CAPTURE,
+      work: work.map((segment) => ({
+        pairKey: [
+          segment.resourceId,
+          segment.structuralUnitId,
+          segment.segmentId,
+          segment.resourceSegmentHash,
+        ].join('\u001f'),
+        canonicalId: null,
+        resourceId: segment.resourceId,
+        structuralUnitId: segment.structuralUnitId,
+        segmentId: segment.segmentId,
+        action: 'invalidate' as const,
+        reasons: ['resource-segment-hash-changed'],
+      })),
+      previousDecisions: [{
+        id: 'decision-1',
+        pairId: 'pair-1',
+        releaseSetId: CAPTURE.releaseSetId,
+        releaseId: CAPTURE.releaseId,
+        canonicalId: 'ctc:a',
+        objectRevision: 'rev-1',
+        resourceId: 'resource-1',
+        structuralUnitId: 'unit-1',
+        segmentId: 'seg-1',
+        resourceSegmentHash: '2'.repeat(64),
+        role: 'EXPLAINS',
+        evidenceId: null,
+        evidenceDigest: 'e'.repeat(64),
+        generatorPromptVersion: 'aggregate-binding/v1',
+        reviewerPromptVersion: 'aggregate-binding-review/v1',
+        generatorCacheKey: '1'.repeat(64),
+        reviewerCacheKey: '2'.repeat(64),
+        reviewerRole: 'INDEPENDENT_REVIEWER',
+        reviewerInputDigest: '3'.repeat(64),
+        candidateDigest: '4'.repeat(64),
+        reviewProvider: 'GPT',
+        reviewState: 'ACCEPTED',
+        publicationState: 'CANDIDATE',
+        highImpactPolicyVersion: 'binding-impact/v1',
+        highImpactReasons: [],
+        attemptSequence: 1,
+        lifecycleState: 'CURRENT',
+        supersedesDecisionId: null,
+        crosswalkId: null,
+        inventoryRunId: null,
+        captureRevision: null,
+        structuralUnitVersion: null,
+        validationDigest: null,
+        trigger: 'RESOURCE_CHANGE',
+        proposedRole: 'EXPLAINS',
+        evidenceIds: ['atomic-1'],
+        reviewIdentity: null,
+        reviewRationale: null,
+        governedCrosswalkId: null,
+        governedInventoryRunId: null,
+        governedCaptureRevision: null,
+        governedStructuralUnitVersion: null,
+        governedValidationDigest: null,
+      }, {
+        id: 'decision-2',
+        pairId: 'pair-2',
+        releaseSetId: CAPTURE.releaseSetId,
+        releaseId: CAPTURE.releaseId,
+        canonicalId: 'ctc:b',
+        objectRevision: 'rev-1',
+        resourceId: 'resource-2',
+        structuralUnitId: 'unit-1',
+        segmentId: 'seg-2',
+        resourceSegmentHash: '3'.repeat(64),
+        role: 'EXPLAINS',
+        evidenceId: null,
+        evidenceDigest: 'e'.repeat(64),
+        generatorPromptVersion: 'aggregate-binding/v1',
+        reviewerPromptVersion: 'aggregate-binding-review/v1',
+        generatorCacheKey: '5'.repeat(64),
+        reviewerCacheKey: '6'.repeat(64),
+        reviewerRole: 'INDEPENDENT_REVIEWER',
+        reviewerInputDigest: '7'.repeat(64),
+        candidateDigest: '8'.repeat(64),
+        reviewProvider: 'GPT',
+        reviewState: 'ACCEPTED',
+        publicationState: 'CANDIDATE',
+        highImpactPolicyVersion: 'binding-impact/v1',
+        highImpactReasons: [],
+        attemptSequence: 1,
+        lifecycleState: 'CURRENT',
+        supersedesDecisionId: null,
+        crosswalkId: null,
+        inventoryRunId: null,
+        captureRevision: null,
+        structuralUnitVersion: null,
+        validationDigest: null,
+        trigger: 'RESOURCE_CHANGE',
+        proposedRole: 'EXPLAINS',
+        evidenceIds: ['atomic-2'],
+        reviewIdentity: null,
+        reviewRationale: null,
+        governedCrosswalkId: null,
+        governedInventoryRunId: null,
+        governedCaptureRevision: null,
+        governedStructuralUnitVersion: null,
+        governedValidationDigest: null,
+      }],
+      canonicalIndex: [{
+        releaseSetId: CAPTURE.releaseSetId,
+        releaseId: CAPTURE.releaseId,
+        canonicalId: 'ctc:a',
+        objectRevision: 'rev-1',
+        canonicalType: 'DomainConcept',
+      }, {
+        releaseSetId: CAPTURE.releaseSetId,
+        releaseId: CAPTURE.releaseId,
+        canonicalId: 'ctc:b',
+        objectRevision: 'rev-1',
+        canonicalType: 'DomainConcept',
+      }],
+      resourceIndex: [{
+        resourceId: 'resource-1',
+        structuralUnitId: 'unit-1',
+        segmentId: 'seg-1',
+        resourceSegmentHash: '9'.repeat(64),
+        candidateCanonicalIds: ['ctc:a'],
+        deterministicRole: null,
+        evidenceIds: ['atomic-1'],
+      }, {
+        resourceId: 'resource-2',
+        structuralUnitId: 'unit-1',
+        segmentId: 'seg-2',
+        resourceSegmentHash: '3'.repeat(64),
+        candidateCanonicalIds: ['ctc:b'],
+        deterministicRole: null,
+        evidenceIds: ['atomic-2'],
+      }],
+      generatorPromptVersion: 'aggregate-binding/v1',
+    });
+
+    expect(binding.invalidated.some((row) => row.id === 'decision-1')).toBe(true);
+    expect(binding.invalidated.some((row) => row.id === 'decision-2')).toBe(false);
+    expect(binding.candidates).toHaveLength(1);
+    expect(binding.candidates[0]?.resourceSegmentHash).toBe('9'.repeat(64));
+    expect(binding.candidates[0]?.canonicalId).toBe('ctc:a');
+    expect(binding.candidates[0]?.trigger).toBe('RESOURCE_CHANGE');
   });
 });
 
@@ -1046,7 +1477,7 @@ describe('structural and resource reverse index', () => {
     const inventory: ResourceBindingInventory = {
       schemaVersion: 'canonical-resource-binding-inventory/v1',
       runId: 'inv-1',
-      captureRevision: GOV,
+      captureRevision: CLEAN_CAPTURE,
       capturedAt: new Date().toISOString(),
       dbWatermark: '0/1',
       sourceHash: '1'.repeat(64),
@@ -1077,7 +1508,7 @@ describe('structural and resource reverse index', () => {
     const inventory: ResourceBindingInventory = {
       schemaVersion: 'canonical-resource-binding-inventory/v1',
       runId: 'inv-semantic',
-      captureRevision: GOV,
+      captureRevision: CLEAN_CAPTURE,
       capturedAt: new Date().toISOString(),
       dbWatermark: '0/1',
       sourceHash: '4'.repeat(64),
@@ -2659,12 +3090,16 @@ describe('incremental retained crosswalk revalidation', () => {
     });
     expect(versionAdvancedReceipt.outcome).toBe('REVALIDATED');
 
+    const reboundCaptureRev = '1'.repeat(40);
     const rebound = rebindValidatedCrosswalkToCapture(prior, {
       ...CAPTURE,
       releaseSetId: 'rs-b',
       releaseId: 'rel-b',
       deltaReceiptId: 'delta-b',
-      captureRevision: '1'.repeat(40),
+      captureRevision: reboundCaptureRev,
+      importCaptureRevision: reboundCaptureRev,
+      deltaCaptureRevision: reboundCaptureRev,
+      authoringRevision: reboundCaptureRev,
       inventoryRunId: 'inv-b',
     }, currentEntry);
     expect(rebound.id).not.toBe(prior.id);
@@ -2761,14 +3196,17 @@ describe('incremental retained crosswalk revalidation', () => {
     );
     expect(priorValidated).toBeTruthy();
 
+    const captureBRev = '1'.repeat(40);
     const captureB = {
       ...captureA,
       releaseSetId: 'candidate-release-set-b',
       releaseId: 'ctr:release:candidate-b',
       deltaReceiptId: 'delta-receipt-b',
       deltaOutputDigest: '9'.repeat(64),
-      captureRevision: '1'.repeat(40),
-      authoringRevision: '1'.repeat(40),
+      captureRevision: captureBRev,
+      importCaptureRevision: captureBRev,
+      deltaCaptureRevision: captureBRev,
+      authoringRevision: captureBRev,
       inventoryRunId: 'inv-b',
     };
     const incrementalAuthoring = {
@@ -2908,13 +3346,16 @@ describe('incremental retained crosswalk revalidation', () => {
       ...patchBase,
       sourceHash: computeCoverageSourceHash(patchBase),
     };
+    const captureBRev = '1'.repeat(40);
     const captureB = {
       ...CAPTURE,
       releaseSetId: 'candidate-b',
       releaseId: 'rel-b',
       deltaReceiptId: 'delta-b',
       deltaOutputDigest: '9'.repeat(64),
-      captureRevision: '1'.repeat(40),
+      captureRevision: captureBRev,
+      importCaptureRevision: captureBRev,
+      deltaCaptureRevision: captureBRev,
       authoringRevision: patch.authoringRevision,
       coverageSourceHash: patch.sourceHash,
       inventoryRunId: 'inv-b',
@@ -2994,12 +3435,16 @@ describe('cross-ReleaseSet binding revalidation', () => {
       governedValidationDigest: 'v'.repeat(64),
     };
 
+    const captureBRev = '1'.repeat(40);
     const captureB = {
       ...CAPTURE,
       releaseSetId: 'rs-b',
       releaseId: 'rel-b',
       deltaReceiptId: 'delta-b',
-      captureRevision: '1'.repeat(40),
+      captureRevision: captureBRev,
+      importCaptureRevision: captureBRev,
+      deltaCaptureRevision: captureBRev,
+      authoringRevision: captureBRev,
       inventoryRunId: 'inv-b',
     };
     expect(bindingCaptureIdentityDrift(priorDecision, captureB)).toBe(true);
@@ -3102,11 +3547,61 @@ describe('cross-ReleaseSet binding revalidation', () => {
     expect(reissued.evidenceId).toBeNull();
     expect(reissued.supersedesDecisionId).toBeNull(); // cross-RS: no base rewrite
 
+    // Independently recompute every sealed identity field; none may retain the
+    // prior decision's digests after ReleaseSet/Release/revision changes.
+    const expectedIdentity = {
+      releaseSetId: captureB.releaseSetId,
+      releaseId: captureB.releaseId,
+      canonicalId: 'ctc:a',
+      objectRevision: 'rev-1',
+      resourceId: 'resource-1',
+      structuralUnitId: 'unit-root-locus-1',
+      segmentId: 'seg-1',
+      resourceSegmentHash: '2'.repeat(64),
+    };
+    const expectedPairId = canonicalCandidateId(expectedIdentity);
+    const expectedGeneratorCacheKey = generatorCacheKey(
+      expectedIdentity,
+      priorDecision.generatorPromptVersion,
+    );
+    const expectedCandidateDigest = canonicalSha256(expectedIdentity);
+    expect(reissued.pairId).toBe(expectedPairId);
+    expect(reissued.pairId).not.toBe(priorDecision.pairId);
+    expect(reissued.generatorCacheKey).toBe(expectedGeneratorCacheKey);
+    expect(reissued.generatorCacheKey).not.toBe(priorDecision.generatorCacheKey);
+    expect(reissued.candidateDigest).toBe(expectedCandidateDigest);
+    expect(reissued.candidateDigest).not.toBe(priorDecision.candidateDigest);
+    expect(reissued.reviewerInputDigest).not.toBe(priorDecision.reviewerInputDigest);
+    expect(reissued.reviewerCacheKey).not.toBe(priorDecision.reviewerCacheKey);
+    expect(reissued.reviewerCacheKey).toBe(reviewerCacheKey({
+      candidateDigest: expectedCandidateDigest,
+      reviewerRole: 'INDEPENDENT_REVIEWER',
+      reviewerPromptVersion: priorDecision.reviewerPromptVersion,
+      reviewerInputDigest: reissued.reviewerInputDigest,
+    }));
+    expect(reissued.id).toBe(decisionAttemptId({
+      pairId: expectedPairId,
+      generatorPromptVersion: priorDecision.generatorPromptVersion,
+      reviewerPromptVersion: priorDecision.reviewerPromptVersion,
+      reviewerInputDigest: reissued.reviewerInputDigest,
+      attemptSequence: priorDecision.attemptSequence + 1,
+    }));
+    // Revalidation receipt remains independent lineage evidence.
+    expect(withGate.revalidationReceipts.some((row) => (
+      row.priorPublicationIdentity === priorDecision.id
+      && row.outcome === 'REVALIDATED'
+      && row.id !== priorDecision.id
+    ))).toBe(true);
+
     // Same ReleaseSet with drift (new capture) + failed gate → invalidate prior.
+    const sameRsCaptureRev = '1'.repeat(40);
     const sameRsDrift = governResourceBindings({
       capture: {
         ...CAPTURE,
-        captureRevision: '1'.repeat(40),
+        captureRevision: sameRsCaptureRev,
+        importCaptureRevision: sameRsCaptureRev,
+        deltaCaptureRevision: sameRsCaptureRev,
+        authoringRevision: sameRsCaptureRev,
         inventoryRunId: 'inv-new',
       },
       work: [],

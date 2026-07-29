@@ -6,7 +6,7 @@
  * - real #1132 computeAndPersistReleaseSetDelta (no synthetic delta rows)
  * - real #1124 persisted inventory snapshot (import then loadVerified)
  * - membership equality without fixed production count
- * - three capture identities (governance/import/delta may differ)
+ * - one clean ACT capture for governance/import/delta/authoring Git revision slots
  *
  * Does NOT claim production authoring review completion when the controlled
  * active file is absent. In that case coverage baseline import is deferred.
@@ -248,13 +248,16 @@ async function main(): Promise<void> {
     const structural = buildStructuralUnitIndexFromInventory({ inventory });
     assert.ok(structural.entries.length > 0, 'structural index must not be empty');
 
-    // Capture identity model: governance may differ from historical import/delta
-    // in production. Here import/delta use the same harness revision, but fields
-    // are still distinct and independently observed.
-    const importCaptureRevision = receipt.captureRevision;
-    const deltaCaptureRevision = delta.captureRevision;
-    // Simulate distinct historical identities while keeping observations coherent.
+    // Capture identity model: governance / import / delta / authoring Git slots
+    // must share one clean ACT capture revision. Pipeline happy-path uses the
+    // inventory checkout as that clean capture; historical receipt/delta Git
+    // values may differ in DB fixtures and are rejected by the mixed-slot gate
+    // tested below (not silently accepted as "distinct historical slots").
     const governanceCaptureRevision = inventory.captureRevision;
+    const historicalImportCapture = String(receipt.captureRevision);
+    const historicalDeltaCapture = String(delta.captureRevision);
+    const importCaptureRevision = governanceCaptureRevision;
+    const deltaCaptureRevision = governanceCaptureRevision;
 
     const runtime = release.projectionIdentities.find((row) => row.isRuntime)
       ?? release.projectionIdentities[0]
@@ -332,8 +335,31 @@ async function main(): Promise<void> {
       coverageAuthoring: provisionalAuthoring,
     }), /capture drift/u);
 
-    // Coherent run succeeds even when import/delta capture fields are distinct slots
-    // (values may equal in harness; identity fields are still separately observed).
+    // Historical import/delta Git SHAs that diverge from the clean capture must
+    // fail closed when placed into the identity (even if expected==observed).
+    if (
+      historicalImportCapture !== governanceCaptureRevision
+      || historicalDeltaCapture !== governanceCaptureRevision
+    ) {
+      const historicallyMixed: CaptureIdentity = {
+        ...capture,
+        importCaptureRevision: historicalImportCapture,
+        deltaCaptureRevision: historicalDeltaCapture,
+      };
+      assert.throws(() => runAggregateGovernance({
+        capture: historicallyMixed,
+        observedCapture: observedOf(historicallyMixed),
+        hasGovernedCoverageBaseline: false,
+        deltaClassification: delta.classification,
+        currentCanonicalIds: membership.canonicalIds,
+        signals: [],
+        upstreamReferences: [],
+        structuralUnitIndex: structural.entries,
+        coverageAuthoring: provisionalAuthoring,
+      }), /capture drift|gitCaptureRevision|one clean ACT capture/u);
+    }
+
+    // Coherent run succeeds only under one clean ACT capture revision.
     const baseline = runAggregateGovernance({
       capture,
       observedCapture: observedOf(capture),
@@ -432,8 +458,7 @@ async function main(): Promise<void> {
       previousCrosswalks: baseline.crosswalks,
     }), /authoring mode baseline conflicts with governance mode incremental|capture drift/u);
 
-    // Prove distinct historical identity slots: re-run with different importCaptureRevision
-    // values that still match between expected and observed succeeds.
+    // Mixed Git revision slots fail closed even when expected/observed agree field-wise.
     const differentImport = 'd'.repeat(40);
     const differentDeltaCap = 'e'.repeat(40);
     const captureDistinct: CaptureIdentity = {
@@ -441,7 +466,7 @@ async function main(): Promise<void> {
       importCaptureRevision: differentImport,
       deltaCaptureRevision: differentDeltaCap,
     };
-    const distinctRun = runAggregateGovernance({
+    assert.throws(() => runAggregateGovernance({
       capture: captureDistinct,
       observedCapture: observedOf(captureDistinct),
       hasGovernedCoverageBaseline: true,
@@ -454,10 +479,26 @@ async function main(): Promise<void> {
       currentCoverageEntries: baseline.coverageEntries,
       previousCrosswalks: baseline.crosswalks,
       priorSemanticPublicationIdentity: baseline.coverageVersionId ?? baseline.receipt.id,
-    });
-    assert.equal(distinctRun.manifest.packagingNoop, true);
+    }), /capture drift|gitCaptureRevision|one clean ACT capture/u);
     assert.notEqual(captureDistinct.importCaptureRevision, captureDistinct.captureRevision);
     assert.notEqual(captureDistinct.deltaCaptureRevision, captureDistinct.captureRevision);
+
+    // Packaging no-op still succeeds under one clean Git capture.
+    const packagingClean = runAggregateGovernance({
+      capture,
+      observedCapture: observedOf(capture),
+      hasGovernedCoverageBaseline: true,
+      deltaClassification: 'COMPATIBLE_PACKAGING_REVISION',
+      currentCanonicalIds: membership.canonicalIds,
+      signals: [],
+      upstreamReferences: [],
+      structuralUnitIndex: structural.entries,
+      coverageAuthoring: null,
+      currentCoverageEntries: baseline.coverageEntries,
+      previousCrosswalks: baseline.crosswalks,
+      priorSemanticPublicationIdentity: baseline.coverageVersionId ?? baseline.receipt.id,
+    });
+    assert.equal(packagingClean.manifest.packagingNoop, true);
 
     // --- P1 regressions: binding SUPERSEDE + tx rollback + partial-delta rebind ---
     const sampleCanonicalIds = membership.canonicalIds.slice(0, 2);
@@ -1844,7 +1885,8 @@ async function main(): Promise<void> {
       publishedCrosswalks: baseline.publishedCrosswalks.length,
       unresolvedCrosswalks: baseline.unresolvedCrosswalkDiagnostics.length,
       sameInputReplayIdempotent: true,
-      packagingNoopWithDistinctCaptures: true,
+      packagingNoopRequiresOneCleanGitCapture: true,
+      mixedGitCapturesRejected: true,
       captureDriftRejected: true,
       bindingObjectAndResourceSuperseded: true,
       bindingPublishedSupersededNoCurrentShadow: true,

@@ -6038,11 +6038,13 @@ model AggregateGovernanceReceipt {
   id                         String   @id
   schemaVersion              String
   mode                       String
-  /// Current clean governance capture (authoring/inventory/index/implementation).
+  /// Governance Git capture (authoring/inventory/index/implementation).
+  /// Must equal importCaptureRevision, deltaCaptureRevision, and authoringRevision
+  /// as one clean ACT capture; mixed Git revision slots fail closed.
   captureRevision            String
-  /// Historical Release import capture — may differ from governance capture.
+  /// Release import Git capture — same clean ACT capture as captureRevision.
   importCaptureRevision      String
-  /// Historical Delta computation capture — may differ from governance capture.
+  /// Delta computation Git capture — same clean ACT capture as captureRevision.
   deltaCaptureRevision       String
   dbWatermark                String
   releaseSetId               String
@@ -6056,6 +6058,7 @@ model AggregateGovernanceReceipt {
   runtimeProjectionDigest    String?
   inventoryRunId             String?
   structuralUnitIndexVersion String?
+  /// Coverage authoring Git revision — same clean ACT capture when present.
   authoringRevision          String?
   coverageSourceHash         String?
   coverageVersionId          String?

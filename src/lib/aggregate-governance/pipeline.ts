@@ -45,7 +45,11 @@ import {
 } from './course-coverage';
 import { sha256Canonical, tripleKey } from './hash';
 import { buildDownstreamReadinessDiagnostics } from './readiness';
-import { buildResourceIndexFromValidatedCrosswalks } from './resource-index';
+import {
+  buildResourceIndexFromValidatedCrosswalks,
+  deriveChangedResourceSegments,
+  enrichResourceIndexWithChangedSegmentCandidates,
+} from './resource-index';
 import {
   assertFormalSelectorsRemainLegacy,
   buildBindingPublicationGateContext,
@@ -687,9 +691,20 @@ export function runAggregateGovernance(
     segmentId: row.segmentId,
     resourceSegmentHash: row.resourceSegmentHash,
   }));
-  const effectiveResourceIndex = buildResourceIndexFromValidatedCrosswalks({
+  const reverseFromCrosswalks = buildResourceIndexFromValidatedCrosswalks({
     inventoryItems: baseSegments,
     validatedCrosswalks: publishedCrosswalks,
+  });
+  // Resource-side hash changes: merge current reverse map with CURRENT prior
+  // bindings on the same endpoint so candidates stay endpoint-scoped (never
+  // full-object review). Removals contribute no candidates.
+  const resourceSideChanges = deriveChangedResourceSegments({
+    previousDecisions: input.previousDecisions ?? [],
+    currentResourceIndex: reverseFromCrosswalks,
+  });
+  const effectiveResourceIndex = enrichResourceIndexWithChangedSegmentCandidates({
+    resourceIndex: reverseFromCrosswalks,
+    changedSegments: resourceSideChanges,
   });
 
   const publicationGateContext = buildBindingPublicationGateContext({

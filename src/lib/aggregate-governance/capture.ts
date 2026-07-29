@@ -49,11 +49,30 @@ export type ObservedCaptureFields = Partial<CaptureIdentity> & {
 };
 
 /**
- * Fail closed when any bound identity drifts from its independently observed value.
+ * Git revision slots that the design binds to one clean ACT capture.
+ * Non-Git identities (dbWatermark, inventory run, structural index, release
+ * hash, source hashes) stay independently verified and are never compared to
+ * these SHAs.
+ */
+export function gitCaptureRevisionSlots(capture: Pick<
+  CaptureIdentity,
+  'captureRevision' | 'importCaptureRevision' | 'deltaCaptureRevision' | 'authoringRevision'
+>): Array<{ field: string; value: string }> {
+  const slots: Array<{ field: string; value: string }> = [
+    { field: 'captureRevision', value: capture.captureRevision },
+    { field: 'importCaptureRevision', value: capture.importCaptureRevision },
+    { field: 'deltaCaptureRevision', value: capture.deltaCaptureRevision },
+  ];
+  if (capture.authoringRevision != null && capture.authoringRevision !== '') {
+    slots.push({ field: 'authoringRevision', value: String(capture.authoringRevision) });
+  }
+  return slots;
+}
+
+/**
+ * Fail closed when any bound identity drifts from its independently observed value,
+ * or when the Git revision slots that must share one clean ACT capture diverge.
  * expected and observed must not be the same object reference.
- *
- * Governance / import / delta capture revisions are distinct immutable
- * identities. They are compared field-wise but are not required to equal each other.
  */
 export function verifyCoherentCapture(input: {
   expected: CaptureIdentity;
@@ -114,6 +133,18 @@ export function verifyCoherentCapture(input: {
       });
     }
   }
+
+  // Mixed Git captures fail closed even when expected/observed agree field-wise.
+  const gitSlots = gitCaptureRevisionSlots(input.expected);
+  const uniqueGit = new Set(gitSlots.map((slot) => slot.value));
+  if (uniqueGit.size > 1) {
+    failures.push({
+      field: 'gitCaptureRevision',
+      expected: 'one clean ACT capture revision across capture/import/delta/authoring',
+      actual: gitSlots.map((slot) => `${slot.field}=${slot.value}`).join(','),
+    });
+  }
+
   return { coherent: failures.length === 0, failures };
 }
 
@@ -169,6 +200,27 @@ export function buildExpectedCapture(input: {
   };
 }
 
+/** Default hop bound for packaging-noop ancestry walks (fail closed beyond). */
+export const AGGREGATE_PACKAGING_ANCESTRY_MAX_HOPS = 16;
+
+/**
+ * One ReleaseSet node on a packaging-noop ancestry chain. Production builds
+ * this from CURRENT coverage + latest governance receipt + that receipt's
+ * accepted Delta base link. Missing fields fail closed during resolution.
+ */
+export interface PackagingNoopAncestryNode {
+  releaseSetId: string;
+  hasGovernedCoverage: boolean;
+  /** Latest AggregateGovernanceReceipt.mode for this ReleaseSet, if any. */
+  latestReceiptMode: string | null;
+  /**
+   * Base ReleaseSet of the accepted Delta that produced this node
+   * (receipt.deltaReceiptId → Delta.baseReleaseSetId). Required to walk past
+   * packaging-only intermediates.
+   */
+  acceptedDeltaBaseReleaseSetId: string | null;
+}
+
 /**
  * Choose the ReleaseSet that supplies governed baseline coverage / crosswalks /
  * CURRENT binding decisions for the next runner invocation.
@@ -177,26 +229,113 @@ export function buildExpectedCapture(input: {
  * exists on the candidate. A packaging no-op receipt alone is insufficient:
  * first packaging no-op persists a receipt without coverage, and exact replay
  * must continue reading the accepted Delta base coverage baseline.
+ *
+ * When the accepted Delta base is itself packaging-only, walk only a verified
+ * packaging-noop ancestry chain until CURRENT governed coverage is found.
+ * Non-packaging intermediates, missing Delta links, cycles, and hop overflow
+ * fail closed. Does not invent lineage or alter prior receipt audit identity.
  */
 export function selectAggregateGovernanceBaselineSource(input: {
   candidateReleaseSetId: string;
   baseReleaseSetId: string | null | undefined;
   /** True only when the candidate has CURRENT governed coverage rows. */
   candidateHasGovernedCoverage: boolean;
+  /**
+   * Optional packaging ancestry resolver. Required when the direct Delta base
+   * may be packaging-only (production multi-hop). Omitted only for simple
+   * single-hop unit fixtures that already point at the semantic baseline.
+   */
+  resolveAncestryNode?: (releaseSetId: string) => PackagingNoopAncestryNode | null;
+  maxHops?: number;
 }): {
   baselineReleaseSetId: string;
   usesCandidateSelfState: boolean;
+  walkedReleaseSetIds: string[];
 } {
   if (input.candidateHasGovernedCoverage) {
     return {
       baselineReleaseSetId: input.candidateReleaseSetId,
       usesCandidateSelfState: true,
+      walkedReleaseSetIds: [input.candidateReleaseSetId],
     };
   }
-  return {
-    baselineReleaseSetId: input.baseReleaseSetId ?? input.candidateReleaseSetId,
-    usesCandidateSelfState: false,
-  };
+
+  const start = input.baseReleaseSetId ?? input.candidateReleaseSetId;
+  if (!input.resolveAncestryNode) {
+    return {
+      baselineReleaseSetId: start,
+      usesCandidateSelfState: false,
+      walkedReleaseSetIds: [start],
+    };
+  }
+
+  const maxHops = input.maxHops ?? AGGREGATE_PACKAGING_ANCESTRY_MAX_HOPS;
+  if (!Number.isInteger(maxHops) || maxHops < 1) {
+    throw new Error(
+      'Aggregate governance rejected: packaging ancestry maxHops must be a positive integer',
+    );
+  }
+
+  const walked: string[] = [];
+  const visited = new Set<string>();
+  let cursor: string | null = start;
+
+  while (cursor != null) {
+    if (visited.has(cursor)) {
+      throw new Error(
+        `Aggregate governance rejected: packaging ancestry cycle at ${cursor}`,
+      );
+    }
+    if (walked.length >= maxHops) {
+      throw new Error(
+        `Aggregate governance rejected: packaging ancestry exceeded max hops (${maxHops})`,
+      );
+    }
+    visited.add(cursor);
+    walked.push(cursor);
+
+    const node = input.resolveAncestryNode(cursor);
+    if (!node) {
+      throw new Error(
+        `Aggregate governance rejected: packaging ancestry node missing for ${cursor}`,
+      );
+    }
+    if (node.releaseSetId !== cursor) {
+      throw new Error(
+        `Aggregate governance rejected: packaging ancestry identity conflict for ${cursor}`,
+      );
+    }
+    if (node.hasGovernedCoverage) {
+      return {
+        baselineReleaseSetId: cursor,
+        usesCandidateSelfState: false,
+        walkedReleaseSetIds: walked,
+      };
+    }
+    // Intermediate without CURRENT coverage must be a verified packaging no-op.
+    if (node.latestReceiptMode !== 'packaging_noop') {
+      throw new Error(
+        `Aggregate governance rejected: packaging ancestry intermediate ${cursor} `
+        + `lacks CURRENT coverage and is not a packaging_noop receipt `
+        + `(mode=${node.latestReceiptMode ?? 'null'})`,
+      );
+    }
+    if (!node.acceptedDeltaBaseReleaseSetId) {
+      throw new Error(
+        `Aggregate governance rejected: packaging ancestry missing Delta base link for ${cursor}`,
+      );
+    }
+    if (node.acceptedDeltaBaseReleaseSetId === cursor) {
+      throw new Error(
+        `Aggregate governance rejected: packaging ancestry self-link at ${cursor}`,
+      );
+    }
+    cursor = node.acceptedDeltaBaseReleaseSetId;
+  }
+
+  throw new Error(
+    'Aggregate governance rejected: packaging ancestry exhausted without CURRENT coverage',
+  );
 }
 
 /**
