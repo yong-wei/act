@@ -5,6 +5,10 @@ import path from 'node:path';
 import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
 import Ajv2020 from 'ajv/dist/2020';
 
+import {
+  computeCanonicalReleaseHash,
+  computeProjectionVersionDigest,
+} from './actkg-canonical-digests';
 import { canonicalJson, sha256 } from './authoritative-release';
 import {
   ARTIFACT_CONTRACTS,
@@ -771,6 +775,16 @@ async function validateStandardBundlePackageBoundary(options: {
   );
   privacyFindings.push(...scanPrivacy(SHA256SUMS_NAME, sumsBytes));
 
+  const releaseArtifacts = artifactMeta.filter((artifact) => artifact.role === 'release');
+  if (releaseArtifacts.length !== 1) {
+    integrity(`${label} must contain exactly one role=release Artifact`);
+  }
+  const releaseArtifact = releaseArtifacts[0]!;
+  if (!isJsonFamilyMediaType(releaseArtifact.mediaType) || isNdjsonMediaType(releaseArtifact.mediaType)) {
+    integrity(`${label} release Artifact must be JSON media type`);
+  }
+
+  let releasePayload: JsonObject | null = null;
   for (const artifact of artifactMeta) {
     const bytes = await readExactFile(packageDir, artifact.path);
     if (sha256(bytes) !== artifact.sha256) integrity(`${label} Artifact SHA mismatch: ${artifact.path}`);
@@ -789,6 +803,41 @@ async function validateStandardBundlePackageBoundary(options: {
       mediaType: artifact.mediaType,
       skipFieldTokens: artifact.role === 'ctkg_schema',
     }));
+    if (artifact.role === 'release') {
+      releasePayload = loadJson(bytes, `${label} release Artifact ${artifact.path}`);
+    }
+  }
+
+  if (!releasePayload) integrity(`${label} release Artifact payload is missing`);
+  const payloadReleaseId = typeof releasePayload.id === 'string'
+    ? releasePayload.id
+    : string(releasePayload.release_id, `${label} release.id`);
+  const payloadReleaseVersion = string(
+    releasePayload.release_version,
+    `${label} release.release_version`,
+  );
+  const payloadDeclaredHash = hash(
+    releasePayload.release_hash,
+    `${label} release.release_hash`,
+  );
+  // ActKG authoritative self-hash: canonical JSON without circular release_hash.
+  const recomputedReleaseHash = computeCanonicalReleaseHash(releasePayload);
+  if (payloadDeclaredHash !== recomputedReleaseHash) {
+    integrity(`${label} release Artifact release_hash does not match payload self-hash`);
+  }
+  if (payloadDeclaredHash !== options.expectedReleaseHash) {
+    integrity(
+      `${label} release Artifact release_hash disagrees with Manifest/Lock component reference`,
+    );
+  }
+  if (payloadReleaseId !== options.releaseId) {
+    integrity(`${label} release Artifact id disagrees with component release_id`);
+  }
+  if (payloadReleaseVersion !== options.expectedReleaseVersion) {
+    integrity(`${label} release Artifact release_version disagrees with component declaration`);
+  }
+  if (hash(releaseIdentity.release_hash, `${label}.release_hash`) !== payloadDeclaredHash) {
+    integrity(`${label} Manifest release.release_hash disagrees with release Artifact self-hash`);
   }
 
   if (privacyFindings.length > 0) {
@@ -1084,9 +1133,8 @@ export async function loadAndValidatePublicBundleV1(options: {
   ) {
     integrity('Manifest and Release identities differ');
   }
-  const normalizedRelease = structuredClone(release);
-  delete normalizedRelease.release_hash;
-  if (sha256(canonicalJson(normalizedRelease)) !== lock.release.release_hash) {
+  // ActKG authoritative Release self-hash (public_bundle / frozen loaders).
+  if (computeCanonicalReleaseHash(release) !== lock.release.release_hash) {
     integrity('canonical Release hash drift');
   }
 
@@ -1190,9 +1238,7 @@ export async function loadAndValidatePublicBundleV1(options: {
       if (typeof packageRelease.id === 'string' && packageRelease.id !== releaseId) {
         integrity(`component package id disagrees with declaration: ${releaseId}`);
       }
-      const normalizedComponent = structuredClone(packageRelease);
-      delete normalizedComponent.release_hash;
-      if (sha256(canonicalJson(normalizedComponent)) !== releaseHash) {
+      if (computeCanonicalReleaseHash(packageRelease) !== releaseHash) {
         integrity(`component package canonical release_hash drift: ${releaseId}`);
       }
       const sourceRevisionValue = component.source_revision && typeof component.source_revision === 'object'
@@ -1289,6 +1335,22 @@ export async function loadAndValidatePublicBundleV1(options: {
         !== lock.release.source_dataset_hash
     ) {
       integrity(`projection identity drifts from Bundle/Release: ${artifact.descriptor.path}`);
+    }
+    // ActKG validation.projection_version_digest — declared digest must match
+    // recomputation over profile bindings + full projected graph payload.
+    const declaredDigest = hash(
+      payload.version_digest,
+      `${artifact.descriptor.path}.version_digest`,
+    );
+    const recomputedDigest = computeProjectionVersionDigest(
+      payload,
+      null,
+      profile,
+    );
+    if (declaredDigest !== recomputedDigest) {
+      integrity(
+        `projection version_digest mismatch: ${artifact.descriptor.path}`,
+      );
     }
     projections.push({ artifact, payload, profile });
   }

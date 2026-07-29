@@ -127,6 +127,7 @@ export const PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS = [
   'scripts/actkg-release/public-bundle-types.ts',
   'scripts/actkg-release/bundle-compatibility-registry.ts',
   'scripts/actkg-release/capture-revision.ts',
+  'scripts/actkg-release/actkg-canonical-digests.ts',
   'scripts/actkg-release/schemas/public-bundle',
 ] as const;
 

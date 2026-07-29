@@ -5,6 +5,10 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import {
+  computeCanonicalReleaseHash,
+  computeProjectionVersionDigest,
+} from '../../../scripts/actkg-release/actkg-canonical-digests';
 import { canonicalJson, sha256 } from '../../../scripts/actkg-release/authoritative-release';
 import {
   CTKG_SCHEMA_RAW_SHA256,
@@ -207,9 +211,11 @@ async function finalizeBundle(
 }
 
 function recomputeReleaseHash(release: JsonObject): string {
-  const withoutHash = structuredClone(release);
-  delete withoutHash.release_hash;
-  return sha256(canonicalJson(withoutHash));
+  return computeCanonicalReleaseHash(release);
+}
+
+function recomputeProjectionDigest(projection: JsonObject, manifestProfile: string): string {
+  return computeProjectionVersionDigest(projection, null, manifestProfile);
 }
 
 async function writeTrackedArtifact(
@@ -297,19 +303,91 @@ async function writeMinimalStandardBundleComponent(options: {
   controlledPath: string;
   releaseId: string;
   releaseVersion: string;
-  releaseHash: string;
+  /** Ignored when omitted; always recomputed from the release payload self-hash. */
+  releaseHash?: string;
   bundleId: string;
   sourceDatasetHash?: string;
+  /**
+   * Optional mutation applied after the release self-hash is sealed — used by
+   * negative tests to leave a stale declared hash or alter identity fields.
+   */
+  mutateReleaseAfterSeal?: (release: JsonObject) => void;
+  omitReleaseArtifact?: boolean;
+  duplicateReleaseArtifact?: boolean;
 }): Promise<{
   bundleDigest: string;
   manifestSha256: string;
   releaseHash: string;
+  releasePath: string;
 }> {
   const dir = path.join(options.fixture, options.controlledPath);
   await mkdir(dir, { recursive: true });
   const notes = Buffer.from(`# ${options.releaseVersion}\nstandard_bundle fixture\n`, 'utf8');
   await writeFile(path.join(dir, 'RELEASE-NOTES.md'), notes);
-  const releaseHash = options.releaseHash;
+
+  const sourceDatasetHash = options.sourceDatasetHash ?? 'd'.repeat(64);
+  const releasePayload: JsonObject = {
+    id: options.releaseId,
+    release_version: options.releaseVersion,
+    source_dataset_hash: sourceDatasetHash,
+    schema_version: CTKG_SCHEMA_VERSION,
+    entries: [],
+    included_entities: [],
+    component_releases: [],
+  };
+  const releaseHash = computeCanonicalReleaseHash(releasePayload);
+  releasePayload.release_hash = releaseHash;
+  if (options.mutateReleaseAfterSeal) {
+    options.mutateReleaseAfterSeal(releasePayload);
+  }
+  const releasePath = 'component-release.json';
+  const releaseBytes = options.omitReleaseArtifact
+    ? null
+    : await writeJson(path.join(dir, releasePath), releasePayload);
+
+  const artifacts: Manifest['artifacts'] = [
+    {
+      role: 'release_notes',
+      contract_version: 'actkg-release-notes/1',
+      required: true,
+      path: 'RELEASE-NOTES.md',
+      media_type: 'text/markdown',
+      sha256: sha256(notes),
+      byte_length: notes.byteLength,
+      record_count: null,
+    },
+  ];
+  if (releaseBytes) {
+    artifacts.push({
+      role: 'release',
+      contract_version: 'ctkg-release/0.2',
+      required: true,
+      path: releasePath,
+      media_type: 'application/json',
+      sha256: sha256(releaseBytes),
+      byte_length: releaseBytes.byteLength,
+      record_count: null,
+    });
+    if (options.duplicateReleaseArtifact) {
+      const dupPath = 'component-release-dup.json';
+      await writeFile(path.join(dir, dupPath), releaseBytes);
+      artifacts.push({
+        role: 'release',
+        contract_version: 'ctkg-release/0.2',
+        required: true,
+        path: dupPath,
+        media_type: 'application/json',
+        sha256: sha256(releaseBytes),
+        byte_length: releaseBytes.byteLength,
+        record_count: null,
+      });
+    }
+  }
+
+  const declaredReleaseHash = typeof releasePayload.release_hash === 'string'
+    ? String(releasePayload.release_hash)
+    : releaseHash;
+
   const manifest: Manifest = {
     bundle_contract_version: PUBLIC_BUNDLE_CONTRACT_VERSION,
     bundle_id: options.bundleId,
@@ -324,8 +402,8 @@ async function writeMinimalStandardBundleComponent(options: {
     release: {
       release_id: options.releaseId,
       release_version: options.releaseVersion,
-      release_hash: releaseHash,
-      source_dataset_hash: options.sourceDatasetHash ?? 'd'.repeat(64),
+      release_hash: declaredReleaseHash,
+      source_dataset_hash: sourceDatasetHash,
     },
     source_revision: {
       commit: 'c'.repeat(40),
@@ -337,18 +415,7 @@ async function writeMinimalStandardBundleComponent(options: {
       kind: 'legacy_exact',
       sha256sums_sha256: 'e'.repeat(64),
     },
-    artifacts: [
-      {
-        role: 'release_notes',
-        contract_version: 'actkg-release-notes/1',
-        required: true,
-        path: 'RELEASE-NOTES.md',
-        media_type: 'text/markdown',
-        sha256: sha256(notes),
-        byte_length: notes.byteLength,
-        record_count: null,
-      },
-    ],
+    artifacts,
     components: [],
     statistics: {
       release_entries: 0,
@@ -369,7 +436,8 @@ async function writeMinimalStandardBundleComponent(options: {
   return {
     bundleDigest: String(manifest.bundle_digest),
     manifestSha256: sha256(manifestBytes),
-    releaseHash,
+    releaseHash: declaredReleaseHash,
+    releasePath,
   };
 }
 
@@ -951,11 +1019,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       for (const profile of ['runtime', 'domain', 'review'] as const) {
         const payload = projections[profile]!;
         payload.source_release_hash = release.release_hash;
-        payload.version_digest = sha256(canonicalJson({
-          profile,
-          links: payload.links,
-          nodes: payload.nodes,
-        }));
+        payload.version_digest = recomputeProjectionDigest(payload, profile);
         await writeTrackedJson(manifest, bundleDir, paths[profile], payload);
       }
 
@@ -1054,6 +1118,9 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
           await readFile(path.join(bundleDir, paths[profile]), 'utf8'),
         ) as JsonObject;
         projection.source_release_hash = release.release_hash;
+
+        projection.version_digest = recomputeProjectionDigest(projection, profile);
+
         await writeTrackedJson(manifest, bundleDir, paths[profile], projection);
       }
 
@@ -1430,16 +1497,15 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     const syntheticPath = 'course-content/authoring/knowledge/releases/synthetic-standard-bundle-v0.1';
     const releaseId = 'ctr:release:synthetic-standard-bundle-v0.1';
     const releaseVersion = 'synthetic-standard-bundle-v0.1';
-    const releaseHash = 'b'.repeat(64);
     const bundleId = 'ctb:synthetic-standard-bundle-v0.1:r1';
     const written = await writeMinimalStandardBundleComponent({
       fixture,
       controlledPath: syntheticPath,
       releaseId,
       releaseVersion,
-      releaseHash,
       bundleId,
     });
+    const releaseHash = written.releaseHash;
 
     await finalizeBundle(fixture, async (manifest, bundleDir) => {
       const releaseArtifact = manifest.artifacts.find((item) => item.role === 'release')!;
@@ -1458,6 +1524,9 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
           await readFile(path.join(bundleDir, paths[profile]), 'utf8'),
         ) as JsonObject;
         projection.source_release_hash = release.release_hash;
+
+        projection.version_digest = recomputeProjectionDigest(projection, profile);
+
         await writeTrackedJson(manifest, bundleDir, paths[profile], projection);
       }
 
@@ -1577,16 +1646,15 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       const syntheticPath = 'course-content/authoring/knowledge/releases/synthetic-standard-bundle-v0.1';
       const releaseId = 'ctr:release:synthetic-standard-bundle-v0.1';
       const releaseVersion = 'synthetic-standard-bundle-v0.1';
-      const releaseHash = 'b'.repeat(64);
       const bundleId = 'ctb:synthetic-standard-bundle-v0.1:r1';
       const written = await writeMinimalStandardBundleComponent({
         fixture,
         controlledPath: syntheticPath,
         releaseId,
         releaseVersion,
-        releaseHash,
         bundleId,
       });
+      const releaseHash = written.releaseHash;
 
       await finalizeBundle(fixture, async (manifest, bundleDir) => {
         const releaseArtifact = manifest.artifacts.find((item) => item.role === 'release')!;
@@ -1603,6 +1671,9 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
             await readFile(path.join(bundleDir, paths[profile]), 'utf8'),
           ) as JsonObject;
           projection.source_release_hash = release.release_hash;
+
+          projection.version_digest = recomputeProjectionDigest(projection, profile);
+
           await writeTrackedJson(manifest, bundleDir, paths[profile], projection);
         }
         const metaArtifact = manifest.artifacts.find((item) => item.role === 'projection_link_metadata')!;
@@ -1686,6 +1757,207 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     }
   });
 
+  it('rejects standard_bundle release payload that disagrees with declared release_hash or role closure', async () => {
+    async function admitWithComponent(
+      writeOptions: Parameters<typeof writeMinimalStandardBundleComponent>[0] extends infer T
+        ? Omit<T, 'fixture' | 'controlledPath' | 'releaseId' | 'releaseVersion' | 'bundleId'>
+        : never,
+    ): Promise<string> {
+      const fixture = await fixtureRoot();
+      const syntheticPath = 'course-content/authoring/knowledge/releases/synthetic-standard-bundle-v0.1';
+      const releaseId = 'ctr:release:synthetic-standard-bundle-v0.1';
+      const releaseVersion = 'synthetic-standard-bundle-v0.1';
+      const bundleId = 'ctb:synthetic-standard-bundle-v0.1:r1';
+      const written = await writeMinimalStandardBundleComponent({
+        fixture,
+        controlledPath: syntheticPath,
+        releaseId,
+        releaseVersion,
+        bundleId,
+        ...writeOptions,
+      });
+      const releaseHash = written.releaseHash;
+
+      await finalizeBundle(fixture, async (manifest, bundleDir) => {
+        const releaseArtifact = manifest.artifacts.find((item) => item.role === 'release')!;
+        const componentArtifact = manifest.artifacts.find((item) => item.role === 'component_manifest')!;
+        const release = JSON.parse(
+          await readFile(path.join(bundleDir, String(releaseArtifact.path)), 'utf8'),
+        ) as JsonObject;
+        (release.component_releases as string[]).push(releaseId);
+        release.release_hash = recomputeReleaseHash(release);
+
+        const paths = projectionPaths(manifest);
+        for (const profile of ['runtime', 'domain', 'review'] as const) {
+          const projection = JSON.parse(
+            await readFile(path.join(bundleDir, paths[profile]), 'utf8'),
+          ) as JsonObject;
+          projection.source_release_hash = release.release_hash;
+          projection.version_digest = recomputeProjectionDigest(projection, profile);
+          await writeTrackedJson(manifest, bundleDir, paths[profile], projection);
+        }
+
+        const metaArtifact = manifest.artifacts.find((item) => item.role === 'projection_link_metadata')!;
+        const metaLines = (await readFile(path.join(bundleDir, String(metaArtifact.path)), 'utf8'))
+          .split(/\r?\n/u)
+          .filter(Boolean)
+          .map((line) => {
+            const row = JSON.parse(line) as JsonObject;
+            row.source_release_hash = release.release_hash;
+            return JSON.stringify(row);
+          });
+        await writeTrackedArtifact(
+          manifest,
+          bundleDir,
+          String(metaArtifact.path),
+          Buffer.from(`${metaLines.join('\n')}\n`, 'utf8'),
+        );
+        await writeTrackedJson(manifest, bundleDir, String(releaseArtifact.path), release);
+
+        const componentManifest = JSON.parse(
+          await readFile(path.join(bundleDir, String(componentArtifact.path)), 'utf8'),
+        ) as { components: JsonObject[] };
+        componentManifest.components.push({
+          component_role: 'module',
+          release_hash: releaseHash,
+          release_id: releaseId,
+          release_version: releaseVersion,
+        });
+        await writeTrackedJson(manifest, bundleDir, String(componentArtifact.path), componentManifest);
+
+        manifest.components.push({
+          reference_kind: 'standard_bundle',
+          release_id: releaseId,
+          release_version: releaseVersion,
+          release_hash: releaseHash,
+          component_role: 'module',
+          bundle_id: bundleId,
+          bundle_digest: written.bundleDigest,
+          manifest_sha256: written.manifestSha256,
+        });
+        manifest.release = {
+          release_id: String(release.id),
+          release_version: String(release.release_version),
+          release_hash: String(release.release_hash),
+          source_dataset_hash: String(release.source_dataset_hash),
+        };
+        manifest.statistics = {
+          ...manifest.statistics,
+          component_count: 4,
+        };
+        markContentBundleRevision(manifest, 'v0.4-standard-bundle-release-bind');
+        await syncValidationReport(manifest, bundleDir, {
+          bundleId: String(manifest.bundle_id),
+          release: manifest.release,
+          statistics: manifest.statistics,
+        });
+      }, {
+        mutateLock: (lock) => {
+          lock.components = [
+            ...lock.components,
+            {
+              reference_kind: 'standard_bundle',
+              release_id: releaseId,
+              controlled_path: syntheticPath,
+              bundle_id: bundleId,
+              bundle_digest: written.bundleDigest,
+              manifest_raw_sha256: written.manifestSha256,
+            },
+          ];
+        },
+      });
+      return fixture;
+    }
+
+    // Stale release_hash left on payload after mutating sealed content.
+    const stale = await admitWithComponent({
+      mutateReleaseAfterSeal: (release) => {
+        release.entries = [{ entity: 'ctc:stale', release_tier: 'core' }];
+        // Intentionally leave release_hash as the pre-mutation self-hash.
+      },
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(stale)),
+      'INTEGRITY_REJECTED',
+      /release_hash does not match payload self-hash|release Artifact/u,
+    );
+
+    // Wrong release identity in payload.
+    const wrongId = await admitWithComponent({
+      mutateReleaseAfterSeal: (release) => {
+        release.id = 'ctr:release:someone-else';
+        release.release_hash = computeCanonicalReleaseHash(release);
+      },
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(wrongId)),
+      'INTEGRITY_REJECTED',
+      /release Artifact id disagrees|release_hash disagrees/u,
+    );
+
+    const missingRelease = await admitWithComponent({ omitReleaseArtifact: true });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(missingRelease)),
+      'INTEGRITY_REJECTED',
+      /exactly one role=release Artifact/u,
+    );
+
+    const duplicateRelease = await admitWithComponent({ duplicateReleaseArtifact: true });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(duplicateRelease)),
+      'INTEGRITY_REJECTED',
+      /exactly one role=release Artifact/u,
+    );
+  });
+
+  it('rejects projections whose version_digest is stale after nodes/links/hidden_entities change', async () => {
+    const fixture = await fixtureRoot();
+    await finalizeBundle(fixture, async (manifest, bundleDir) => {
+      const paths = projectionPaths(manifest);
+      const runtime = JSON.parse(await readFile(path.join(bundleDir, paths.runtime), 'utf8')) as JsonObject;
+      const nodes = runtime.nodes as JsonObject[];
+      // Mutate projected graph payload while keeping the declared digest stale.
+      nodes[0] = { ...nodes[0]!, display_name: `${String(nodes[0]!.display_name)}-tampered` };
+      runtime.nodes = nodes;
+      // Do not recompute version_digest.
+      await writeTrackedJson(manifest, bundleDir, paths.runtime, runtime);
+      await syncValidationReport(manifest, bundleDir);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
+      'INTEGRITY_REJECTED',
+      /version_digest mismatch/u,
+    );
+
+    const hidden = await fixtureRoot();
+    await finalizeBundle(hidden, async (manifest, bundleDir) => {
+      const paths = projectionPaths(manifest);
+      const domain = JSON.parse(await readFile(path.join(bundleDir, paths.domain), 'utf8')) as JsonObject;
+      domain.hidden_entities = ['ctc:hidden-tamper'];
+      await writeTrackedJson(manifest, bundleDir, paths.domain, domain);
+      await syncValidationReport(manifest, bundleDir);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(hidden)),
+      'INTEGRITY_REJECTED',
+      /version_digest mismatch/u,
+    );
+
+    const links = await fixtureRoot();
+    await finalizeBundle(links, async (manifest, bundleDir) => {
+      const paths = projectionPaths(manifest);
+      const review = JSON.parse(await readFile(path.join(bundleDir, paths.review), 'utf8')) as JsonObject;
+      review.links = (review.links as JsonObject[]).slice(0, -1);
+      await writeTrackedJson(manifest, bundleDir, paths.review, review);
+      await syncValidationReport(manifest, bundleDir);
+    });
+    await expectRejection(
+      () => loadAndValidatePublicBundleV1(fixtureLoadOptions(links)),
+      'INTEGRITY_REJECTED',
+      /version_digest mismatch/u,
+    );
+  });
+
   it('accepts distinct Projection membership sets with profile-specific metadata', async () => {
     const fixture = await fixtureRoot();
     await finalizeBundle(fixture, async (manifest, bundleDir) => {
@@ -1701,11 +1973,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       domain.links = (domain.links as JsonObject[]).filter(
         (link) => link.relation_id !== removedRelationId,
       );
-      domain.version_digest = sha256(canonicalJson({
-        profile: 'domain',
-        links: domain.links,
-        nodes: domain.nodes,
-      }));
+      domain.version_digest = recomputeProjectionDigest(domain, 'domain');
       await writeTrackedJson(manifest, bundleDir, paths.domain, domain);
 
       await (await import('node:fs/promises')).unlink(path.join(bundleDir, sharedPath));
@@ -1965,16 +2233,15 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       const syntheticPath = 'course-content/authoring/knowledge/releases/synthetic-standard-bundle-v0.1';
       const releaseId = 'ctr:release:synthetic-standard-bundle-v0.1';
       const releaseVersion = 'synthetic-standard-bundle-v0.1';
-      const releaseHash = 'b'.repeat(64);
       const bundleId = 'ctb:synthetic-standard-bundle-v0.1:r1';
       const written = await writeMinimalStandardBundleComponent({
         fixture,
         controlledPath: syntheticPath,
         releaseId,
         releaseVersion,
-        releaseHash,
         bundleId,
       });
+      const releaseHash = written.releaseHash;
       await finalizeBundle(fixture, async (manifest, bundleDir) => {
         const releaseArtifact = manifest.artifacts.find((item) => item.role === 'release')!;
         const componentArtifact = manifest.artifacts.find((item) => item.role === 'component_manifest')!;
@@ -1992,6 +2259,9 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
             await readFile(path.join(bundleDir, paths[profile]), 'utf8'),
           ) as JsonObject;
           projection.source_release_hash = release.release_hash;
+
+          projection.version_digest = recomputeProjectionDigest(projection, profile);
+
           await writeTrackedJson(manifest, bundleDir, paths[profile], projection);
         }
 
