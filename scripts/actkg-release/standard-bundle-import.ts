@@ -2,8 +2,11 @@
  * Standard ActKG public Bundle candidate importer.
  *
  * Persistence boundary: accepts only a storage-independent
- * `ValidatedActKGBundle`. It must not rediscover files, parse Manifests, or
- * fall back to the frozen #1125 exact adapter.
+ * `ValidatedActKGBundle` whose `bundleIdentity.releaseStage` is `stable`.
+ * Compatibility inspection may produce candidate-stage objects (for example via
+ * an explicit allow-candidate flag), but this importer MUST reject them before
+ * any database write. It must not rediscover files, parse Manifests, or fall
+ * back to the frozen #1125 exact adapter.
  *
  * Lifecycle inside one Serializable transaction:
  *   stage (STAGED receipt + artifacts + semantic rows)
@@ -1300,6 +1303,14 @@ export async function importValidatedActKGBundle(
   }
   if (validated.bundleIdentity.bundleKind !== 'aggregate') {
     fail('only aggregate Bundles may be imported as candidates');
+  }
+  // Stable-only write gate: a candidate-stage ValidatedActKGBundle may exist for
+  // compatibility inspection, but persistence must fail closed before any DB I/O.
+  if (validated.bundleIdentity.releaseStage !== 'stable') {
+    fail(
+      'only stable public Bundles may be persisted; '
+      + `candidate-stage or unknown releaseStage '${validated.bundleIdentity.releaseStage}' is rejected before write`,
+    );
   }
   if (!validated.compatibility.code.startsWith('COMPATIBLE_')) {
     fail(`compatibility assessment ${validated.compatibility.code} is not importable`);

@@ -5,8 +5,124 @@ import { describe, expect, it } from 'vitest';
 
 import {
   assertValidatedActKGBundleInput,
+  importValidatedActKGBundle,
   STANDARD_PUBLIC_BUNDLE_PROTOCOL,
 } from '../../../scripts/actkg-release/standard-bundle-import';
+
+function minimalValidatedBundleInput(releaseStage: 'stable' | 'candidate') {
+  const bytes = Buffer.from('{"ok":true}');
+  const digest = 'a'.repeat(64);
+  const commit = 'b'.repeat(40);
+  return {
+    captureRevision: commit,
+    bundleIdentity: {
+      bundleId: 'ctb:example:r1',
+      bundleRevision: 1,
+      bundleDigest: digest,
+      bundleKind: 'aggregate' as const,
+      releaseStage,
+      bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      controlledPath: 'course-content/authoring/knowledge/releases/example',
+      manifestRawSha256: digest,
+      normalization: 'actkg-public-bundle-manifest/1',
+      publicationTag: 'example',
+      sourceCommit: commit,
+      sourceTag: 'example-source',
+    },
+    releaseIdentity: {
+      releaseId: 'ctr:release:example',
+      releaseVersion: 'example-v0.1',
+      releaseHash: digest,
+      sourceDatasetHash: digest,
+    },
+    releaseSetIdentity: {
+      releaseSetId: 'actkg-example-candidate',
+      lockVersion: 'actkg-release-set-lock/v3' as const,
+      lockPath: 'course-content/authoring/knowledge/releases/example.lock.json',
+      lockRawSha256: digest,
+    },
+    schemaIdentity: {
+      version: '0.2.0',
+      rawSha256: digest,
+    },
+    selectedRuntimeProjection: {
+      identity: {
+        projectionId: 'ctr:projection:example:act-v2',
+        profile: 'runtime',
+        projectionProfile: 'ctr:profile:example:act-v2',
+        versionDigest: digest,
+        sourceRelease: 'ctr:release:example',
+        sourceReleaseHash: digest,
+        sourceDatasetHash: digest,
+        nodeCount: 0,
+        linkCount: 0,
+        artifactPath: 'example.act-projection.json',
+        artifactSha256: digest,
+      },
+      payload: { nodes: [], links: [] },
+    },
+    preservedProjections: [],
+    runtimeLinkMetadata: [],
+    allLinkMetadata: [],
+    crosswalk: [],
+    components: [],
+    rawArtifacts: [{
+      descriptor: {
+        role: 'release',
+        contractVersion: 'ctkg-release/0.2',
+        required: true,
+        path: 'example.release.json',
+        mediaType: 'application/json',
+        sha256: digest,
+        byteLength: bytes.length,
+        recordCount: null,
+        known: true,
+        semanticsEnabled: true,
+      },
+      bytes,
+    }],
+    release: { entries: [] },
+    schema: { $id: 'schema' },
+    statistics: {
+      releaseEntries: 0,
+      knowledgeNodes: 0,
+      publishedRelations: 0,
+      projectionNodes: 0,
+      projectionLinks: 0,
+      ragCrosswalkRows: 0,
+      componentCount: 0,
+      relationTypeCount: 0,
+    },
+    compatibility: {
+      code: 'COMPATIBLE_CONTENT_UPDATE' as const,
+      reasons: ['ok'],
+      matchedIdentities: [],
+    },
+    unknownOptionalArtifacts: [],
+  };
+}
+
+/** Records any Prisma property walk / call; proves the stable gate does zero DB I/O. */
+function writeTrackingPrisma() {
+  const interactions: string[] = [];
+  const track = (label: string): unknown => new Proxy(function tracked() {}, {
+    apply() {
+      interactions.push(`${label}()`);
+      throw new Error(`unexpected Prisma interaction: ${label}()`);
+    },
+    get(_target, prop) {
+      if (typeof prop === 'symbol') return undefined;
+      return track(`${label}.${prop}`);
+    },
+  });
+  return new Proxy({ interactions } as { interactions: string[] } & Record<string, unknown>, {
+    get(target, prop) {
+      if (prop === 'interactions') return target.interactions;
+      if (typeof prop === 'symbol') return undefined;
+      return track(String(prop));
+    },
+  });
+}
 
 describe('standard ActKG Bundle persistence boundary', () => {
   it('rejects raw directory paths and unvalidated Manifest inputs', () => {
@@ -23,98 +139,24 @@ describe('standard ActKG Bundle persistence boundary', () => {
   });
 
   it('accepts a minimal ValidatedActKGBundle shape without file discovery imports', () => {
-    const bytes = Buffer.from('{"ok":true}');
-    const digest = 'a'.repeat(64);
-    const commit = 'b'.repeat(40);
-    const validated = assertValidatedActKGBundleInput({
-      captureRevision: commit,
-      bundleIdentity: {
-        bundleId: 'ctb:example:r1',
-        bundleRevision: 1,
-        bundleDigest: digest,
-        bundleKind: 'aggregate',
-        releaseStage: 'stable',
-        bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
-        controlledPath: 'course-content/authoring/knowledge/releases/example',
-        manifestRawSha256: digest,
-        normalization: 'actkg-public-bundle-manifest/1',
-        publicationTag: 'example',
-        sourceCommit: commit,
-        sourceTag: 'example-source',
-      },
-      releaseIdentity: {
-        releaseId: 'ctr:release:example',
-        releaseVersion: 'example-v0.1',
-        releaseHash: digest,
-        sourceDatasetHash: digest,
-      },
-      releaseSetIdentity: {
-        releaseSetId: 'actkg-example-candidate',
-        lockVersion: 'actkg-release-set-lock/v3',
-        lockPath: 'course-content/authoring/knowledge/releases/example.lock.json',
-        lockRawSha256: digest,
-      },
-      schemaIdentity: {
-        version: '0.2.0',
-        rawSha256: digest,
-      },
-      selectedRuntimeProjection: {
-        identity: {
-          projectionId: 'ctr:projection:example:act-v2',
-          profile: 'runtime',
-          projectionProfile: 'ctr:profile:example:act-v2',
-          versionDigest: digest,
-          sourceRelease: 'ctr:release:example',
-          sourceReleaseHash: digest,
-          sourceDatasetHash: digest,
-          nodeCount: 0,
-          linkCount: 0,
-          artifactPath: 'example.act-projection.json',
-          artifactSha256: digest,
-        },
-        payload: { nodes: [], links: [] },
-      },
-      preservedProjections: [],
-      runtimeLinkMetadata: [],
-      allLinkMetadata: [],
-      crosswalk: [],
-      components: [],
-      rawArtifacts: [{
-        descriptor: {
-          role: 'release',
-          contractVersion: 'ctkg-release/0.2',
-          required: true,
-          path: 'example.release.json',
-          mediaType: 'application/json',
-          sha256: digest,
-          byteLength: bytes.length,
-          recordCount: null,
-          known: true,
-          semanticsEnabled: true,
-        },
-        bytes,
-      }],
-      release: { entries: [] },
-      schema: { $id: 'schema' },
-      statistics: {
-        releaseEntries: 0,
-        knowledgeNodes: 0,
-        publishedRelations: 0,
-        projectionNodes: 0,
-        projectionLinks: 0,
-        ragCrosswalkRows: 0,
-        componentCount: 0,
-        relationTypeCount: 0,
-      },
-      compatibility: {
-        code: 'COMPATIBLE_CONTENT_UPDATE',
-        reasons: ['ok'],
-        matchedIdentities: [],
-      },
-      unknownOptionalArtifacts: [],
-    });
+    const input = minimalValidatedBundleInput('stable');
+    const validated = assertValidatedActKGBundleInput(input);
     expect(validated.bundleIdentity.bundleId).toBe('ctb:example:r1');
-    expect(validated.rawArtifacts[0]?.bytes.equals(bytes)).toBe(true);
+    expect(validated.rawArtifacts[0]?.bytes.equals(input.rawArtifacts[0]!.bytes)).toBe(true);
+  });
+
+  it('rejects candidate-stage Bundles before any database interaction', async () => {
+    const db = writeTrackingPrisma();
+    // Shape-valid candidate object is still allowed through the compatibility
+    // boundary (allowCandidateBundle), but the write gate must fail closed.
+    const candidateInput = minimalValidatedBundleInput('candidate');
+    expect(() => assertValidatedActKGBundleInput(candidateInput)).not.toThrow();
+
+    await expect(
+      importValidatedActKGBundle(db as never, candidateInput),
+    ).rejects.toThrow(/only stable public Bundles may be persisted|candidate-stage|releaseStage/u);
+
+    expect(db.interactions).toEqual([]);
   });
 
   it('keeps the importer free of Manifest parsing and file discovery', () => {
@@ -130,6 +172,7 @@ describe('standard ActKG Bundle persistence boundary', () => {
     expect(source).toMatch(/canonicalizeAllLinkMetadata/);
     expect(source).toMatch(/MAX_IMPORT_ATTEMPTS|isRetryableConflict/);
     expect(source).toMatch(/pg_advisory_xact_lock|acquireImportLocks/);
+    expect(source).toMatch(/releaseStage !== 'stable'/u);
   });
 
   it('derives stable advisory lock keys without SQL string interpolation', async () => {
