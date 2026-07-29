@@ -1,0 +1,381 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actkg.example/schema/public-bundle/bundle-manifest.schema.json",
+  "title": "ActKG Public Bundle Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bundle_contract_version",
+    "bundle_id",
+    "bundle_revision",
+    "bundle_kind",
+    "release_stage",
+    "normalization",
+    "schema",
+    "release",
+    "source_revision",
+    "publication",
+    "previous_bundle",
+    "artifacts",
+    "components",
+    "statistics",
+    "bundle_digest"
+  ],
+  "properties": {
+    "bundle_contract_version": {"const": "actkg-public-bundle/1"},
+    "bundle_id": {"type": "string", "minLength": 1},
+    "bundle_revision": {"type": "integer", "minimum": 1},
+    "bundle_kind": {"enum": ["module", "integration", "aggregate"]},
+    "release_stage": {"enum": ["candidate", "stable"]},
+    "normalization": {"const": "canonical-json/rfc8785-subset-v1"},
+    "schema": {"$ref": "#/$defs/schemaIdentity"},
+    "release": {"$ref": "#/$defs/releaseIdentity"},
+    "source_revision": {"$ref": "#/$defs/sourceRevision"},
+    "publication": {"$ref": "#/$defs/publication"},
+    "previous_bundle": {"$ref": "#/$defs/previousBundle"},
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/artifact"}
+    },
+    "components": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/componentReference"}
+    },
+    "statistics": {"$ref": "#/$defs/statistics"},
+    "bundle_digest": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "safePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*//)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\u0000]+$"
+    },
+    "schemaIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "sha256"],
+      "properties": {
+        "version": {"const": "0.2.0"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "releaseIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_id",
+        "release_version",
+        "release_hash",
+        "source_dataset_hash"
+      ],
+      "properties": {
+        "release_id": {"type": "string", "minLength": 1},
+        "release_version": {"type": "string", "minLength": 1},
+        "release_hash": {"$ref": "#/$defs/sha256"},
+        "source_dataset_hash": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "sourceRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tag"],
+      "properties": {
+        "commit": {"$ref": "#/$defs/commit"},
+        "tag": {"type": "string", "minLength": 1}
+      }
+    },
+    "componentSourceRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit"],
+      "properties": {
+        "commit": {"$ref": "#/$defs/commit"},
+        "tag": {"type": "string", "minLength": 1}
+      }
+    },
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag"],
+      "properties": {
+        "tag": {"type": "string", "minLength": 1}
+      }
+    },
+    "previousBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bundle_id", "kind", "sha256sums_sha256"],
+      "properties": {
+        "bundle_id": {"type": "string", "minLength": 1},
+        "kind": {"const": "legacy_exact"},
+        "sha256sums_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "contract_version",
+        "required",
+        "path",
+        "media_type",
+        "sha256",
+        "byte_length",
+        "record_count"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "release",
+            "ctkg_schema",
+            "projection",
+            "projection_link_metadata",
+            "rag_crosswalk",
+            "component_manifest",
+            "provenance_stubs",
+            "validation_report",
+            "release_diff",
+            "release_notes"
+          ]
+        },
+        "contract_version": {"type": "string", "minLength": 1},
+        "required": {"type": "boolean"},
+        "path": {"$ref": "#/$defs/safePath"},
+        "media_type": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "byte_length": {"type": "integer", "minimum": 0},
+        "record_count": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "integer", "minimum": 0}
+          ]
+        },
+        "profile": {
+          "enum": ["runtime", "domain", "review"]
+        },
+        "profiles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["runtime", "domain", "review"]}
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"role": {"const": "projection"}}},
+          "then": {
+            "required": ["profile"],
+            "not": {"required": ["profiles"]},
+            "properties": {
+              "contract_version": {"const": "ctkg-graph-projection/0.2"}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "role": {"const": "projection_link_metadata"}
+            }
+          },
+          "then": {
+            "required": ["profiles"],
+            "not": {"required": ["profile"]},
+            "properties": {
+              "contract_version": {
+                "const": "actkg-projection-link-metadata/1"
+              },
+              "media_type": {"const": "application/x-ndjson"},
+              "record_count": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "not": {
+                  "enum": ["projection", "projection_link_metadata"]
+                }
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {"required": ["profile"]},
+                {"required": ["profiles"]}
+              ]
+            }
+          }
+        },
+        {
+          "if": {"properties": {"role": {"const": "release"}}},
+          "then": {
+            "properties": {
+              "contract_version": {"const": "ctkg-release/0.2"},
+              "media_type": {"const": "application/json"},
+              "record_count": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"role": {"const": "ctkg_schema"}}},
+          "then": {
+            "properties": {
+              "contract_version": {"const": "ctkg-json-schema/0.2"},
+              "media_type": {"const": "application/schema+json"},
+              "record_count": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"role": {"const": "rag_crosswalk"}}},
+          "then": {
+            "properties": {
+              "contract_version": {"const": "actkg-rag-crosswalk/1"},
+              "media_type": {"const": "application/x-ndjson"},
+              "record_count": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"role": {"const": "component_manifest"}}},
+          "then": {
+            "properties": {
+              "contract_version": {"const": "actkg-component-manifest/1"},
+              "media_type": {"const": "application/json"},
+              "record_count": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"role": {"const": "validation_report"}}},
+          "then": {
+            "properties": {
+              "contract_version": {"const": "actkg-validation-report/1"},
+              "media_type": {"const": "application/json"},
+              "record_count": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"role": {"const": "release_notes"}}},
+          "then": {
+            "properties": {
+              "contract_version": {"const": "actkg-release-notes/1"},
+              "media_type": {"const": "text/markdown"},
+              "record_count": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"role": {"const": "release_diff"}}},
+          "then": {
+            "properties": {
+              "contract_version": {"const": "actkg-release-diff/1"},
+              "media_type": {"const": "application/json"},
+              "record_count": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"role": {"const": "provenance_stubs"}}},
+          "then": {
+            "properties": {
+              "contract_version": {"const": "actkg-provenance-stubs/1"},
+              "media_type": {"const": "application/json"},
+              "record_count": {"type": "null"}
+            }
+          }
+        }
+      ]
+    },
+    "componentReference": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reference_kind",
+            "release_id",
+            "release_version",
+            "release_hash",
+            "component_role",
+            "bundle_id",
+            "bundle_digest",
+            "manifest_sha256"
+          ],
+          "properties": {
+            "reference_kind": {"const": "standard_bundle"},
+            "release_id": {"type": "string", "minLength": 1},
+            "release_version": {"type": "string", "minLength": 1},
+            "release_hash": {"$ref": "#/$defs/sha256"},
+            "component_role": {"enum": ["module", "integration"]},
+            "bundle_id": {"type": "string", "minLength": 1},
+            "bundle_digest": {"$ref": "#/$defs/sha256"},
+            "manifest_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reference_kind",
+            "release_id",
+            "release_version",
+            "release_hash",
+            "component_role",
+            "component_path",
+            "release_raw_sha256",
+            "source_revision"
+          ],
+          "properties": {
+            "reference_kind": {"const": "legacy_exact"},
+            "release_id": {"type": "string", "minLength": 1},
+            "release_version": {"type": "string", "minLength": 1},
+            "release_hash": {"$ref": "#/$defs/sha256"},
+            "component_role": {"enum": ["module", "integration"]},
+            "component_path": {"$ref": "#/$defs/safePath"},
+            "release_raw_sha256": {"$ref": "#/$defs/sha256"},
+            "source_revision": {"$ref": "#/$defs/componentSourceRevision"}
+          }
+        }
+      ]
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_entries",
+        "knowledge_nodes",
+        "published_relations",
+        "projection_nodes",
+        "projection_links",
+        "rag_crosswalk_rows",
+        "component_count",
+        "relation_type_count"
+      ],
+      "properties": {
+        "release_entries": {"type": "integer", "minimum": 0},
+        "knowledge_nodes": {"type": "integer", "minimum": 0},
+        "published_relations": {"type": "integer", "minimum": 0},
+        "projection_nodes": {"type": "integer", "minimum": 0},
+        "projection_links": {"type": "integer", "minimum": 0},
+        "rag_crosswalk_rows": {"type": "integer", "minimum": 0},
+        "component_count": {"type": "integer", "minimum": 0},
+        "relation_type_count": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

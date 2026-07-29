@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actkg.example/schema/public-bundle/release-diff.schema.json",
+  "title": "ActKG Semantic Release Diff",
+  "description": "Future semantic Release differences; packaging-only revisions do not emit this artifact.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "base_release",
+    "target_release",
+    "objects",
+    "relations",
+    "crosswalk",
+    "components"
+  ],
+  "properties": {
+    "contract_version": {"const": "actkg-release-diff/1"},
+    "base_release": {"$ref": "#/$defs/releaseIdentity"},
+    "target_release": {"$ref": "#/$defs/releaseIdentity"},
+    "objects": {"$ref": "#/$defs/entityChanges"},
+    "relations": {"$ref": "#/$defs/entityChanges"},
+    "crosswalk": {"$ref": "#/$defs/countChanges"},
+    "components": {"$ref": "#/$defs/idChanges"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "releaseIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_id", "release_version", "release_hash"],
+      "properties": {
+        "release_id": {"type": "string", "minLength": 1},
+        "release_version": {"type": "string", "minLength": 1},
+        "release_hash": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "entityChanges": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added", "removed", "changed"],
+      "properties": {
+        "added": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "removed": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "changed": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "countChanges": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added_count", "removed_count"],
+      "properties": {
+        "added_count": {"type": "integer", "minimum": 0},
+        "removed_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "idChanges": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added", "removed"],
+      "properties": {
+        "added": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "removed": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}
