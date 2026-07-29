@@ -6,7 +6,9 @@
  * - real #1132 computeAndPersistReleaseSetDelta (no synthetic delta rows)
  * - real #1124 persisted inventory snapshot (import then loadVerified)
  * - membership equality without fixed production count
- * - one clean ACT capture for governance/import/delta/authoring Git revision slots
+ * - governance capture = inventory/loader clean HEAD (not overlay authoringRevision)
+ * - import / delta implementation / overlay authoringRevision keep immutable
+ *   historical lineage (may differ; production lineage helper requires ancestors)
  *
  * Does NOT claim production authoring review completion when the controlled
  * active file is absent. In that case coverage baseline import is deferred.
@@ -22,9 +24,12 @@ import { Client } from 'pg';
 import {
   AggregateGovernanceRepository,
   V03_R2_FIXTURE_OBJECT_COUNT,
+  assertAggregateCaptureRevisionLineage,
+  assertCandidateEvidenceCaptureBinding,
   buildDispositionFromReview,
   buildStructuralUnitIndexFromInventory,
   computeCoverageSourceHash,
+  createRepoGitCaptureLineageOps,
   runAggregateGovernance,
   selectCanonicalObjectMembership,
   type CaptureIdentity,
@@ -248,16 +253,17 @@ async function main(): Promise<void> {
     const structural = buildStructuralUnitIndexFromInventory({ inventory });
     assert.ok(structural.entries.length > 0, 'structural index must not be empty');
 
-    // Capture identity model: governance / import / delta / authoring Git slots
-    // must share one clean ACT capture revision. Pipeline happy-path uses the
-    // inventory checkout as that clean capture; historical receipt/delta Git
-    // values may differ in DB fixtures and are rejected by the mixed-slot gate
-    // tested below (not silently accepted as "distinct historical slots").
+    // Capture identity model:
+    // - governance = inventory/loader clean HEAD
+    // - import / delta implementation / overlay authoringRevision = historical
+    //   lineage (never rewritten to governance SHA)
     const governanceCaptureRevision = inventory.captureRevision;
-    const historicalImportCapture = String(receipt.captureRevision);
-    const historicalDeltaCapture = String(delta.captureRevision);
-    const importCaptureRevision = governanceCaptureRevision;
-    const deltaCaptureRevision = governanceCaptureRevision;
+    const importCaptureRevision = String(receipt.captureRevision);
+    const deltaCaptureRevision = String(delta.captureRevision);
+    assertCandidateEvidenceCaptureBinding({
+      candidateEvidenceCaptureRevision: delta.candidateEvidenceCaptureRevision,
+      candidateImportCaptureRevision: importCaptureRevision,
+    });
 
     const runtime = release.projectionIdentities.find((row) => row.isRuntime)
       ?? release.projectionIdentities[0]
@@ -273,6 +279,28 @@ async function main(): Promise<void> {
     }
 
     // Provisional in-memory authoring for pipeline mechanics only (not production).
+    // When active overlay is present, bind its real authoringRevision (historical
+    // source revision). Otherwise use a resolvable ancestor of governance (HEAD
+    // itself is always a valid ancestor) — never invent an unresolvable SHA.
+    let overlayAuthoringRevision = governanceCaptureRevision;
+    if (activeAuthoringPresent) {
+      const { loadTrackedActiveCoverageAuthoring } = await import(
+        '../course-coverage/aggregate-coverage'
+      );
+      const loaded = await loadTrackedActiveCoverageAuthoring(root);
+      const raw = loaded.overlay as { authoringRevision?: string };
+      if (typeof raw.authoringRevision === 'string' && raw.authoringRevision.trim()) {
+        overlayAuthoringRevision = String(raw.authoringRevision);
+      }
+    }
+    assertAggregateCaptureRevisionLineage({
+      governanceCaptureRevision,
+      importCaptureRevision,
+      deltaCaptureRevision,
+      authoringRevision: overlayAuthoringRevision,
+      git: createRepoGitCaptureLineageOps(root),
+    });
+
     const provisionalEntries = membership.canonicalIds.map(provisionalDisposition);
     const provisionalWithoutHash = {
       schemaVersion: 'act-course-coverage-overlay/v2' as const,
@@ -285,7 +313,7 @@ async function main(): Promise<void> {
       sourceDatasetHash: receipt.sourceDatasetHash ?? null,
       deltaReceiptId: delta.id,
       mode: 'baseline' as const,
-      authoringRevision: governanceCaptureRevision,
+      authoringRevision: overlayAuthoringRevision,
       entries: provisionalEntries,
     };
     const provisionalAuthoring = {
@@ -335,31 +363,17 @@ async function main(): Promise<void> {
       coverageAuthoring: provisionalAuthoring,
     }), /capture drift/u);
 
-    // Historical import/delta Git SHAs that diverge from the clean capture must
-    // fail closed when placed into the identity (even if expected==observed).
-    if (
-      historicalImportCapture !== governanceCaptureRevision
-      || historicalDeltaCapture !== governanceCaptureRevision
-    ) {
-      const historicallyMixed: CaptureIdentity = {
-        ...capture,
-        importCaptureRevision: historicalImportCapture,
-        deltaCaptureRevision: historicalDeltaCapture,
-      };
-      assert.throws(() => runAggregateGovernance({
-        capture: historicallyMixed,
-        observedCapture: observedOf(historicallyMixed),
-        hasGovernedCoverageBaseline: false,
-        deltaClassification: delta.classification,
-        currentCanonicalIds: membership.canonicalIds,
-        signals: [],
-        upstreamReferences: [],
-        structuralUnitIndex: structural.entries,
-        coverageAuthoring: provisionalAuthoring,
-      }), /capture drift|gitCaptureRevision|one clean ACT capture/u);
-    }
+    // Non-ancestor / unresolvable import fails the production lineage helper
+    // (same helper as production runner). Fabricated SHAs must not pass.
+    assert.throws(() => assertAggregateCaptureRevisionLineage({
+      governanceCaptureRevision,
+      importCaptureRevision: '0'.repeat(40),
+      deltaCaptureRevision,
+      git: createRepoGitCaptureLineageOps(root),
+    }), /not a resolvable Git commit|not an ancestor/u);
 
-    // Coherent run succeeds only under one clean ACT capture revision.
+    // Coherent baseline under real receipt lineage + governance capture.
+    // import/delta may differ from governance; expected/observed match field-wise.
     const baseline = runAggregateGovernance({
       capture,
       observedCapture: observedOf(capture),
@@ -458,32 +472,15 @@ async function main(): Promise<void> {
       previousCrosswalks: baseline.crosswalks,
     }), /authoring mode baseline conflicts with governance mode incremental|capture drift/u);
 
-    // Mixed Git revision slots fail closed even when expected/observed agree field-wise.
-    const differentImport = 'd'.repeat(40);
-    const differentDeltaCap = 'e'.repeat(40);
-    const captureDistinct: CaptureIdentity = {
-      ...capture,
-      importCaptureRevision: differentImport,
-      deltaCaptureRevision: differentDeltaCap,
-    };
-    assert.throws(() => runAggregateGovernance({
-      capture: captureDistinct,
-      observedCapture: observedOf(captureDistinct),
-      hasGovernedCoverageBaseline: true,
-      deltaClassification: 'COMPATIBLE_PACKAGING_REVISION',
-      currentCanonicalIds: membership.canonicalIds,
-      signals: [],
-      upstreamReferences: [],
-      structuralUnitIndex: structural.entries,
-      coverageAuthoring: null,
-      currentCoverageEntries: baseline.coverageEntries,
-      previousCrosswalks: baseline.crosswalks,
-      priorSemanticPublicationIdentity: baseline.coverageVersionId ?? baseline.receipt.id,
-    }), /capture drift|gitCaptureRevision|one clean ACT capture/u);
-    assert.notEqual(captureDistinct.importCaptureRevision, captureDistinct.captureRevision);
-    assert.notEqual(captureDistinct.deltaCaptureRevision, captureDistinct.captureRevision);
-
-    // Packaging no-op still succeeds under one clean Git capture.
+    // Distinct legal import/delta slots (when they already differ) pass packaging
+    // no-op under field-wise coherent capture. Fabricated non-resolvable SHAs are
+    // rejected only by the production lineage helper (not pure pipeline equality).
+    if (capture.importCaptureRevision !== capture.captureRevision) {
+      assert.notEqual(capture.importCaptureRevision, capture.captureRevision);
+    }
+    if (capture.deltaCaptureRevision !== capture.captureRevision) {
+      assert.notEqual(capture.deltaCaptureRevision, capture.captureRevision);
+    }
     const packagingClean = runAggregateGovernance({
       capture,
       observedCapture: observedOf(capture),
@@ -1891,8 +1888,8 @@ async function main(): Promise<void> {
       publishedCrosswalks: baseline.publishedCrosswalks.length,
       unresolvedCrosswalks: baseline.unresolvedCrosswalkDiagnostics.length,
       sameInputReplayIdempotent: true,
-      packagingNoopRequiresOneCleanGitCapture: true,
-      mixedGitCapturesRejected: true,
+      packagingNoopWithHistoricalLineage: true,
+      captureLineageAncestorGate: true,
       captureDriftRejected: true,
       bindingObjectAndResourceSuperseded: true,
       bindingPublishedSupersededNoCurrentShadow: true,

@@ -1,3 +1,5 @@
+import { spawnSync } from 'node:child_process';
+
 import type {
   CaptureIdentity,
   CoherentCaptureGateResult,
@@ -30,49 +32,54 @@ export function assertCaptureIdentityShape(capture: CaptureIdentity): void {
   }
 }
 
-export type ObservedCaptureFields = Partial<CaptureIdentity> & {
-  captureRevision?: string | null;
-  importCaptureRevision?: string | null;
-  deltaCaptureRevision?: string | null;
-  dbWatermark?: string | null;
-  releaseSetId?: string | null;
-  releaseId?: string | null;
-  releaseHash?: string | null;
-  sourceDatasetHash?: string | null;
-  deltaReceiptId?: string | null;
-  deltaOutputDigest?: string | null;
-  runtimeProjectionDigest?: string | null;
-  inventoryRunId?: string | null;
-  structuralUnitIndexVersion?: string | null;
-  authoringRevision?: string | null;
-  coverageSourceHash?: string | null;
+/**
+ * Independently observed counterpart of CaptureIdentity. Every CaptureIdentity
+ * field is compared by verifyCoherentCapture; null and undefined normalize as empty.
+ */
+export type ObservedCaptureFields = {
+  [K in keyof CaptureIdentity]?: CaptureIdentity[K] | null | undefined;
 };
 
-/**
- * Git revision slots that the design binds to one clean ACT capture.
- * Non-Git identities (dbWatermark, inventory run, structural index, release
- * hash, source hashes) stay independently verified and are never compared to
- * these SHAs.
- */
-export function gitCaptureRevisionSlots(capture: Pick<
-  CaptureIdentity,
-  'captureRevision' | 'importCaptureRevision' | 'deltaCaptureRevision' | 'authoringRevision'
->): Array<{ field: string; value: string }> {
-  const slots: Array<{ field: string; value: string }> = [
-    { field: 'captureRevision', value: capture.captureRevision },
-    { field: 'importCaptureRevision', value: capture.importCaptureRevision },
-    { field: 'deltaCaptureRevision', value: capture.deltaCaptureRevision },
-  ];
-  if (capture.authoringRevision != null && capture.authoringRevision !== '') {
-    slots.push({ field: 'authoringRevision', value: String(capture.authoringRevision) });
-  }
-  return slots;
+/** CaptureIdentity fields compared field-wise for expected/observed coherence. */
+const CAPTURE_IDENTITY_FIELDS = [
+  'captureRevision',
+  'importCaptureRevision',
+  'deltaCaptureRevision',
+  'dbWatermark',
+  'releaseSetId',
+  'releaseId',
+  'releaseHash',
+  'sourceDatasetHash',
+  'deltaReceiptId',
+  'deltaOutputDigest',
+  'deltaClassification',
+  'runtimeProjectionId',
+  'runtimeProjectionDigest',
+  'inventoryRunId',
+  'structuralUnitIndexVersion',
+  'authoringRevision',
+  'coverageSourceHash',
+] as const satisfies ReadonlyArray<keyof CaptureIdentity>;
+
+/** null and undefined both normalize to empty; non-empty strings stay as String(value). */
+function normalizeCaptureField(value: unknown): string | null {
+  if (value == null) return null;
+  return String(value);
 }
 
 /**
- * Fail closed when any bound identity drifts from its independently observed value,
- * or when the Git revision slots that must share one clean ACT capture diverge.
- * expected and observed must not be the same object reference.
+ * Fail closed when any bound identity drifts from its independently observed
+ * value. expected and observed must not be the same object reference.
+ *
+ * Compares every CaptureIdentity field after null/undefined normalization:
+ * both empty → match; empty vs non-empty or unequal values → drift.
+ *
+ * Does NOT require importCaptureRevision / deltaCaptureRevision /
+ * authoringRevision to equal captureRevision — those are independent historical
+ * lineage identities. Git ancestry of import/delta/authoring is enforced by
+ * assertAggregateCaptureRevisionLineage (production runner / harness).
+ * Governance capture itself is the current clean HEAD (authoring loader +
+ * inventory); that equality is enforced at the runner boundary, not here.
  */
 export function verifyCoherentCapture(input: {
   expected: CaptureIdentity;
@@ -90,41 +97,10 @@ export function verifyCoherentCapture(input: {
     };
   }
 
-  const pairs: Array<[keyof CaptureIdentity, string | null | undefined]> = [
-    ['captureRevision', input.observed.captureRevision],
-    ['importCaptureRevision', input.observed.importCaptureRevision],
-    ['deltaCaptureRevision', input.observed.deltaCaptureRevision],
-    ['dbWatermark', input.observed.dbWatermark],
-    ['releaseSetId', input.observed.releaseSetId],
-    ['releaseId', input.observed.releaseId],
-    ['releaseHash', input.observed.releaseHash],
-    ['deltaReceiptId', input.observed.deltaReceiptId],
-    ['deltaOutputDigest', input.observed.deltaOutputDigest],
-  ];
-  if (input.expected.sourceDatasetHash != null) {
-    pairs.push(['sourceDatasetHash', input.observed.sourceDatasetHash]);
-  }
-  if (input.expected.runtimeProjectionDigest != null) {
-    pairs.push(['runtimeProjectionDigest', input.observed.runtimeProjectionDigest]);
-  }
-  if (input.expected.inventoryRunId != null) {
-    pairs.push(['inventoryRunId', input.observed.inventoryRunId]);
-  }
-  if (input.expected.structuralUnitIndexVersion != null) {
-    pairs.push(['structuralUnitIndexVersion', input.observed.structuralUnitIndexVersion]);
-  }
-  if (input.expected.authoringRevision != null) {
-    pairs.push(['authoringRevision', input.observed.authoringRevision]);
-  }
-  if (input.expected.coverageSourceHash != null) {
-    pairs.push(['coverageSourceHash', input.observed.coverageSourceHash]);
-  }
-
   const failures: CoherentCaptureGateResult['failures'] = [];
-  for (const [field, actual] of pairs) {
-    const expected = input.expected[field];
-    const expectedText = expected == null ? null : String(expected);
-    const actualText = actual == null ? null : String(actual);
+  for (const field of CAPTURE_IDENTITY_FIELDS) {
+    const expectedText = normalizeCaptureField(input.expected[field]);
+    const actualText = normalizeCaptureField(input.observed[field]);
     if (expectedText !== actualText) {
       failures.push({
         field,
@@ -134,18 +110,139 @@ export function verifyCoherentCapture(input: {
     }
   }
 
-  // Mixed Git captures fail closed even when expected/observed agree field-wise.
-  const gitSlots = gitCaptureRevisionSlots(input.expected);
-  const uniqueGit = new Set(gitSlots.map((slot) => slot.value));
-  if (uniqueGit.size > 1) {
-    failures.push({
-      field: 'gitCaptureRevision',
-      expected: 'one clean ACT capture revision across capture/import/delta/authoring',
-      actual: gitSlots.map((slot) => `${slot.field}=${slot.value}`).join(','),
-    });
+  return { coherent: failures.length === 0, failures };
+}
+
+/** Injectable Git ops so unit tests need no repo; production uses createRepoGitCaptureLineageOps. */
+export interface GitCaptureLineageOps {
+  /** True when sha is a resolvable 40-char commit in the repository. */
+  isResolvableCommit: (sha: string) => boolean;
+  /**
+   * True when ancestor is an ancestor of descendant, or the same commit.
+   * Must fail closed (return false) when either side is unresolvable.
+   */
+  isAncestorOrEqual: (ancestor: string, descendant: string) => boolean;
+}
+
+/**
+ * Bind historical lineage captures to the current governance capture without
+ * requiring SHA equality.
+ *
+ * Required historical slots (each must be a resolvable commit that is an
+ * ancestor of governanceCaptureRevision, or equal to it):
+ * - importCaptureRevision (immutable candidate import/bundle receipt)
+ * - deltaCaptureRevision (Delta implementation receipt.captureRevision)
+ * - authoringRevision when present (reviewed overlay source revision; may predate
+ *   the commit that last touched the active file on the current clean HEAD)
+ *
+ * Governance itself must be resolvable. Does not invent lineage.
+ */
+export function assertAggregateCaptureRevisionLineage(input: {
+  governanceCaptureRevision: string;
+  importCaptureRevision: string;
+  deltaCaptureRevision: string;
+  /** Reviewed coverage overlay source revision; optional when unbound. */
+  authoringRevision?: string | null;
+  git: GitCaptureLineageOps;
+}): void {
+  const governance = input.governanceCaptureRevision;
+  if (!COMMIT.test(governance)) {
+    throw new Error(
+      'Aggregate governance rejected: governance captureRevision is not a 40-char commit',
+    );
+  }
+  if (!input.git.isResolvableCommit(governance)) {
+    throw new Error(
+      `Aggregate governance rejected: governance captureRevision=${governance} `
+      + 'is not a resolvable Git commit',
+    );
   }
 
-  return { coherent: failures.length === 0, failures };
+  const historical: Array<[string, string]> = [
+    ['importCaptureRevision', input.importCaptureRevision],
+    ['deltaCaptureRevision', input.deltaCaptureRevision],
+  ];
+  if (input.authoringRevision != null && input.authoringRevision !== '') {
+    historical.push(['authoringRevision', String(input.authoringRevision)]);
+  }
+
+  for (const [field, sha] of historical) {
+    if (!COMMIT.test(sha)) {
+      throw new Error(
+        `Aggregate governance rejected: ${field} is not a 40-char commit`,
+      );
+    }
+    if (!input.git.isResolvableCommit(sha)) {
+      throw new Error(
+        `Aggregate governance rejected: ${field}=${sha} is not a resolvable Git commit`,
+      );
+    }
+    if (!input.git.isAncestorOrEqual(sha, governance)) {
+      throw new Error(
+        `Aggregate governance rejected: ${field}=${sha} is not an ancestor of `
+        + `governance capture ${governance}`,
+      );
+    }
+  }
+}
+
+/**
+ * Delta's candidateEvidenceCaptureRevision must equal the immutable candidate
+ * import/bundle receipt capture (not the delta implementation capture).
+ */
+export function assertCandidateEvidenceCaptureBinding(input: {
+  candidateEvidenceCaptureRevision: string | null | undefined;
+  candidateImportCaptureRevision: string;
+}): void {
+  const evidence = input.candidateEvidenceCaptureRevision == null
+    ? null
+    : String(input.candidateEvidenceCaptureRevision);
+  const importCapture = String(input.candidateImportCaptureRevision);
+  if (!evidence || !COMMIT.test(evidence)) {
+    throw new Error(
+      'Aggregate governance rejected: delta.candidateEvidenceCaptureRevision is missing or invalid',
+    );
+  }
+  if (evidence !== importCapture) {
+    throw new Error(
+      `Aggregate governance rejected: delta.candidateEvidenceCaptureRevision ${evidence} `
+      + `does not equal candidate import capture ${importCapture}`,
+    );
+  }
+}
+
+/**
+ * Production Git ops for capture lineage. Uses only process git against gitRoot;
+ * no fabricated ancestry. Unresolvable commits fail closed (false).
+ */
+export function createRepoGitCaptureLineageOps(gitRoot: string): GitCaptureLineageOps {
+  const run = (args: string[]): { status: number | null; stdout: string } => {
+    const result = spawnSync('git', args, {
+      cwd: gitRoot,
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024,
+    });
+    return {
+      status: result.status,
+      stdout: (result.stdout ?? '').trim(),
+    };
+  };
+  return {
+    isResolvableCommit: (sha: string) => {
+      if (!COMMIT.test(sha)) return false;
+      const resolved = run(['rev-parse', '--verify', `${sha}^{commit}`]);
+      return resolved.status === 0 && COMMIT.test(resolved.stdout);
+    },
+    isAncestorOrEqual: (ancestor: string, descendant: string) => {
+      if (!COMMIT.test(ancestor) || !COMMIT.test(descendant)) return false;
+      if (ancestor === descendant) {
+        const self = run(['rev-parse', '--verify', `${ancestor}^{commit}`]);
+        return self.status === 0 && self.stdout === ancestor;
+      }
+      const check = run(['merge-base', '--is-ancestor', ancestor, descendant]);
+      return check.status === 0;
+    },
+  };
 }
 
 export function requireCoherentCapture(

@@ -6038,13 +6038,13 @@ model AggregateGovernanceReceipt {
   id                         String   @id
   schemaVersion              String
   mode                       String
-  /// Governance Git capture (authoring/inventory/index/implementation).
-  /// Must equal importCaptureRevision, deltaCaptureRevision, and authoringRevision
-  /// as one clean ACT capture; mixed Git revision slots fail closed.
+  /// Current clean governance capture (loader HEAD / inventory / implementation).
+  /// Independent of import, delta implementation, and overlay authoringRevision.
   captureRevision            String
-  /// Release import Git capture — same clean ACT capture as captureRevision.
+  /// Immutable Release import capture — historical lineage; ancestor of governance (or equal).
   importCaptureRevision      String
-  /// Delta computation Git capture — same clean ACT capture as captureRevision.
+  /// Delta implementation capture (receipt.captureRevision) — historical; ancestor of governance (or equal).
+  /// Distinct from Delta.candidateEvidenceCaptureRevision (binds candidate import capture).
   deltaCaptureRevision       String
   dbWatermark                String
   releaseSetId               String
@@ -6058,7 +6058,8 @@ model AggregateGovernanceReceipt {
   runtimeProjectionDigest    String?
   inventoryRunId             String?
   structuralUnitIndexVersion String?
-  /// Coverage authoring Git revision — same clean ACT capture when present.
+  /// Reviewed overlay source revision — historical lineage; ancestor of governance (or equal).
+  /// Need not equal governance HEAD (active file may be committed later under a newer HEAD).
   authoringRevision          String?
   coverageSourceHash         String?
   coverageVersionId          String?

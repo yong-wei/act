@@ -23,11 +23,14 @@ import {
   validateCrosswalkForShadowPublication,
 } from '../aggregate-governance/act-crosswalk';
 import {
+  assertAggregateCaptureRevisionLineage,
+  assertCandidateEvidenceCaptureBinding,
   isExactBaselineGovernanceReplay,
   priorGovernanceReceiptIdentityFromCapture,
   requireCoherentCapture,
   selectAggregateGovernanceBaselineSource,
   verifyCoherentCapture,
+  type GitCaptureLineageOps,
 } from '../aggregate-governance/capture';
 import {
   deriveChangedResourceSegments,
@@ -82,13 +85,19 @@ import {
 } from '../aggregate-governance/upstream-classification';
 import type { AggregateGovernanceRunResult } from '../aggregate-governance/pipeline';
 
-/** One clean ACT capture revision shared by all Git-governed slots. */
-const CLEAN_CAPTURE = 'a'.repeat(40);
+/** Governance clean capture (loader HEAD / inventory). */
+const GOV = 'a'.repeat(40);
+/** Historical import lineage — may legally differ from governance. */
+const IMPORT = 'b'.repeat(40);
+/** Historical delta implementation lineage — may legally differ from governance. */
+const DELTA_CAP = 'c'.repeat(40);
+/** Reviewed overlay source revision — independent historical lineage. */
+const AUTHORING = 'd'.repeat(40);
 
 const CAPTURE: CaptureIdentity = {
-  captureRevision: CLEAN_CAPTURE,
-  importCaptureRevision: CLEAN_CAPTURE,
-  deltaCaptureRevision: CLEAN_CAPTURE,
+  captureRevision: GOV,
+  importCaptureRevision: IMPORT,
+  deltaCaptureRevision: DELTA_CAP,
   dbWatermark: '0/16B2A40',
   releaseSetId: 'actkg-authoritative-candidate-v3-r2',
   releaseId: 'ctr:release:control-theory-engineering-v0.3',
@@ -101,9 +110,22 @@ const CAPTURE: CaptureIdentity = {
   runtimeProjectionDigest: 'e'.repeat(64),
   inventoryRunId: 'inv-1',
   structuralUnitIndexVersion: 'struct-v1',
-  authoringRevision: CLEAN_CAPTURE,
+  authoringRevision: AUTHORING,
   coverageSourceHash: 'f'.repeat(64),
 };
+
+/** Mock git lineage where listed SHAs form a linear ancestor chain (index 0 = oldest). */
+function mockLineageOps(chainOldestFirst: string[]): GitCaptureLineageOps {
+  const known = new Set(chainOldestFirst);
+  const rank = new Map(chainOldestFirst.map((sha, index) => [sha, index]));
+  return {
+    isResolvableCommit: (sha) => known.has(sha),
+    isAncestorOrEqual: (ancestor, descendant) => {
+      if (!known.has(ancestor) || !known.has(descendant)) return false;
+      return rank.get(ancestor)! <= rank.get(descendant)!;
+    },
+  };
+}
 
 function observedOf(capture: CaptureIdentity) {
   return { ...capture };
@@ -444,30 +466,14 @@ describe('aggregate governance baseline source selection', () => {
 });
 
 describe('aggregate governance capture coherence', () => {
-  it('accepts independently observed capture when all Git slots share one clean revision', () => {
-    expect(CAPTURE.captureRevision).toBe(CAPTURE.importCaptureRevision);
-    expect(CAPTURE.captureRevision).toBe(CAPTURE.deltaCaptureRevision);
-    expect(CAPTURE.captureRevision).toBe(CAPTURE.authoringRevision);
+  it('accepts independently observed capture when import/delta/authoring differ from governance', () => {
+    expect(CAPTURE.captureRevision).not.toBe(CAPTURE.importCaptureRevision);
+    expect(CAPTURE.captureRevision).not.toBe(CAPTURE.deltaCaptureRevision);
+    expect(CAPTURE.captureRevision).not.toBe(CAPTURE.authoringRevision);
     expect(verifyCoherentCapture({
       expected: CAPTURE,
       observed: observedOf(CAPTURE),
     }).coherent).toBe(true);
-  });
-
-  it('fails closed when Git revision slots differ even if expected/observed agree field-wise', () => {
-    const mixed: CaptureIdentity = {
-      ...CAPTURE,
-      captureRevision: 'a'.repeat(40),
-      importCaptureRevision: 'b'.repeat(40),
-      deltaCaptureRevision: 'c'.repeat(40),
-      authoringRevision: 'a'.repeat(40),
-    };
-    const result = verifyCoherentCapture({
-      expected: mixed,
-      observed: { ...mixed },
-    });
-    expect(result.coherent).toBe(false);
-    expect(result.failures.some((row) => row.field === 'gitCaptureRevision')).toBe(true);
   });
 
   it('keeps non-Git identities independently verified without comparing them to the Git SHA', () => {
@@ -491,7 +497,7 @@ describe('aggregate governance capture coherence', () => {
     }).coherent).toBe(true);
   });
 
-  it('fails on tautology or drift within any single identity', () => {
+  it('fails on tautology or observed drift within any single identity', () => {
     expect(verifyCoherentCapture({
       expected: CAPTURE,
       observed: CAPTURE,
@@ -506,12 +512,212 @@ describe('aggregate governance capture coherence', () => {
     }).coherent).toBe(false);
     expect(verifyCoherentCapture({
       expected: CAPTURE,
+      observed: { ...CAPTURE, authoringRevision: '2'.repeat(40) },
+    }).coherent).toBe(false);
+    expect(verifyCoherentCapture({
+      expected: CAPTURE,
       observed: { ...CAPTURE, inventoryRunId: 'other' },
     }).coherent).toBe(false);
     expect(() => requireCoherentCapture({
       expected: CAPTURE,
       observed: { ...CAPTURE, releaseHash: '0'.repeat(64) },
     })).toThrow(/capture drift/u);
+  });
+
+  it('detects deltaClassification and runtimeProjectionId drift', () => {
+    const classDrift = verifyCoherentCapture({
+      expected: CAPTURE,
+      observed: { ...CAPTURE, deltaClassification: 'COMPATIBLE_PACKAGING_REVISION' },
+    });
+    expect(classDrift.coherent).toBe(false);
+    expect(classDrift.failures.some((row) => row.field === 'deltaClassification')).toBe(true);
+
+    const projectionDrift = verifyCoherentCapture({
+      expected: CAPTURE,
+      observed: { ...CAPTURE, runtimeProjectionId: 'proj-other' },
+    });
+    expect(projectionDrift.coherent).toBe(false);
+    expect(projectionDrift.failures.some((row) => row.field === 'runtimeProjectionId')).toBe(true);
+  });
+
+  it('production-shaped observedCapture is coherent and detects classification/projection drift', () => {
+    // Mirrors scripts/db/run-aggregate-course-resource-governance.ts: every
+    // CaptureIdentity field from an independent observed source (no expected spread).
+    const expected: CaptureIdentity = { ...CAPTURE };
+    const productionShapedObserved = {
+      captureRevision: expected.captureRevision, // inventory.captureRevision
+      importCaptureRevision: expected.importCaptureRevision, // receipt.captureRevision
+      deltaCaptureRevision: expected.deltaCaptureRevision, // delta.captureRevision
+      dbWatermark: expected.dbWatermark, // inventory.dbWatermark
+      releaseSetId: expected.releaseSetId, // candidate.id
+      releaseId: expected.releaseId, // release.id
+      releaseHash: expected.releaseHash, // release.releaseHash
+      sourceDatasetHash: expected.sourceDatasetHash, // receipt.sourceDatasetHash
+      deltaReceiptId: expected.deltaReceiptId, // delta.id
+      deltaOutputDigest: expected.deltaOutputDigest, // delta.outputDigest
+      deltaClassification: expected.deltaClassification, // delta.classification
+      runtimeProjectionId: expected.runtimeProjectionId, // runtime/receipt projectionId
+      runtimeProjectionDigest: expected.runtimeProjectionDigest, // runtime/receipt digest
+      inventoryRunId: expected.inventoryRunId, // inventory.runId
+      structuralUnitIndexVersion: expected.structuralUnitIndexVersion, // structural.version
+      authoringRevision: expected.authoringRevision, // overlay.authoringRevision
+      coverageSourceHash: expected.coverageSourceHash, // overlay.sourceHash
+    };
+    expect(verifyCoherentCapture({
+      expected,
+      observed: productionShapedObserved,
+    }).coherent).toBe(true);
+
+    const classDrift = verifyCoherentCapture({
+      expected,
+      observed: {
+        ...productionShapedObserved,
+        deltaClassification: 'COMPATIBLE_PACKAGING_REVISION',
+      },
+    });
+    expect(classDrift.coherent).toBe(false);
+    expect(classDrift.failures.some((row) => row.field === 'deltaClassification')).toBe(true);
+
+    const projectionDrift = verifyCoherentCapture({
+      expected,
+      observed: {
+        ...productionShapedObserved,
+        runtimeProjectionId: 'proj-other-independent',
+      },
+    });
+    expect(projectionDrift.coherent).toBe(false);
+    expect(projectionDrift.failures.some((row) => row.field === 'runtimeProjectionId')).toBe(true);
+
+    // Missing classification/projectionId (pre-fix runner shape) fails closed.
+    const { deltaClassification: _c, runtimeProjectionId: _p, ...incomplete } =
+      productionShapedObserved;
+    const incompleteResult = verifyCoherentCapture({
+      expected,
+      observed: incomplete,
+    });
+    expect(incompleteResult.coherent).toBe(false);
+    expect(incompleteResult.failures.some((row) => row.field === 'deltaClassification')).toBe(true);
+    expect(incompleteResult.failures.some((row) => row.field === 'runtimeProjectionId')).toBe(true);
+  });
+
+  it('detects expected-null vs observed-value drift and accepts both-empty nullable fields', () => {
+    const expectedNull: CaptureIdentity = {
+      ...CAPTURE,
+      sourceDatasetHash: null,
+      runtimeProjectionId: null,
+      runtimeProjectionDigest: null,
+      inventoryRunId: null,
+      structuralUnitIndexVersion: null,
+      authoringRevision: null,
+      coverageSourceHash: null,
+    };
+    // Both empty (null expected + omitted/undefined observed) is coherent.
+    expect(verifyCoherentCapture({
+      expected: expectedNull,
+      observed: {
+        ...expectedNull,
+        sourceDatasetHash: undefined,
+        runtimeProjectionId: null,
+        runtimeProjectionDigest: undefined,
+        inventoryRunId: null,
+        structuralUnitIndexVersion: undefined,
+        authoringRevision: null,
+        coverageSourceHash: undefined,
+      },
+    }).coherent).toBe(true);
+
+    // expected null / observed non-null must fail for every previously skipped nullable.
+    for (const [field, value] of [
+      ['sourceDatasetHash', 'c'.repeat(64)],
+      ['runtimeProjectionId', 'proj-runtime'],
+      ['runtimeProjectionDigest', 'e'.repeat(64)],
+      ['inventoryRunId', 'inv-1'],
+      ['structuralUnitIndexVersion', 'struct-v1'],
+      ['authoringRevision', AUTHORING],
+      ['coverageSourceHash', 'f'.repeat(64)],
+    ] as const) {
+      const result = verifyCoherentCapture({
+        expected: expectedNull,
+        observed: { ...expectedNull, [field]: value },
+      });
+      expect(result.coherent).toBe(false);
+      expect(result.failures.some((row) => (
+        row.field === field && row.expected === 'null' && row.actual === value
+      ))).toBe(true);
+    }
+
+    // expected non-null / observed empty must also fail.
+    const emptyObserved = verifyCoherentCapture({
+      expected: CAPTURE,
+      observed: { ...CAPTURE, inventoryRunId: null, authoringRevision: undefined },
+    });
+    expect(emptyObserved.coherent).toBe(false);
+    expect(emptyObserved.failures.some((row) => row.field === 'inventoryRunId')).toBe(true);
+    expect(emptyObserved.failures.some((row) => row.field === 'authoringRevision')).toBe(true);
+  });
+});
+
+describe('aggregate capture Git lineage', () => {
+  // Oldest → newest: IMPORT, DELTA, AUTHORING, GOV
+  const legalChain = mockLineageOps([IMPORT, DELTA_CAP, AUTHORING, GOV]);
+
+  it('accepts distinct import/delta/authoring SHAs that are ancestors of governance', () => {
+    expect(() => assertAggregateCaptureRevisionLineage({
+      governanceCaptureRevision: GOV,
+      importCaptureRevision: IMPORT,
+      deltaCaptureRevision: DELTA_CAP,
+      authoringRevision: AUTHORING,
+      git: legalChain,
+    })).not.toThrow();
+  });
+
+  it('accepts import/delta/authoring equal to governance', () => {
+    const git = mockLineageOps([GOV]);
+    expect(() => assertAggregateCaptureRevisionLineage({
+      governanceCaptureRevision: GOV,
+      importCaptureRevision: GOV,
+      deltaCaptureRevision: GOV,
+      authoringRevision: GOV,
+      git,
+    })).not.toThrow();
+  });
+
+  it('fails closed on unresolvable or non-ancestor historical slots', () => {
+    expect(() => assertAggregateCaptureRevisionLineage({
+      governanceCaptureRevision: GOV,
+      importCaptureRevision: IMPORT,
+      deltaCaptureRevision: DELTA_CAP,
+      authoringRevision: AUTHORING,
+      git: mockLineageOps([IMPORT, GOV]), // DELTA/AUTHORING missing
+    })).toThrow(/not a resolvable Git commit/u);
+
+    // chainOldestFirst: GOV then E means E is a descendant; import=E is not an ancestor of GOV.
+    expect(() => assertAggregateCaptureRevisionLineage({
+      governanceCaptureRevision: GOV,
+      importCaptureRevision: 'e'.repeat(40),
+      deltaCaptureRevision: GOV,
+      authoringRevision: GOV,
+      git: mockLineageOps([GOV, 'e'.repeat(40)]),
+    })).toThrow(/not an ancestor/u);
+
+    expect(() => assertAggregateCaptureRevisionLineage({
+      governanceCaptureRevision: GOV,
+      importCaptureRevision: IMPORT,
+      deltaCaptureRevision: DELTA_CAP,
+      authoringRevision: 'e'.repeat(40),
+      git: legalChain,
+    })).toThrow(/not a resolvable Git commit|not an ancestor/u);
+  });
+
+  it('binds delta.candidateEvidenceCaptureRevision to candidate import capture', () => {
+    expect(() => assertCandidateEvidenceCaptureBinding({
+      candidateEvidenceCaptureRevision: IMPORT,
+      candidateImportCaptureRevision: IMPORT,
+    })).not.toThrow();
+    expect(() => assertCandidateEvidenceCaptureBinding({
+      candidateEvidenceCaptureRevision: DELTA_CAP,
+      candidateImportCaptureRevision: IMPORT,
+    })).toThrow(/candidateEvidenceCaptureRevision/u);
   });
 });
 
@@ -1477,7 +1683,7 @@ describe('structural and resource reverse index', () => {
     const inventory: ResourceBindingInventory = {
       schemaVersion: 'canonical-resource-binding-inventory/v1',
       runId: 'inv-1',
-      captureRevision: CLEAN_CAPTURE,
+      captureRevision: GOV,
       capturedAt: new Date().toISOString(),
       dbWatermark: '0/1',
       sourceHash: '1'.repeat(64),
@@ -1508,7 +1714,7 @@ describe('structural and resource reverse index', () => {
     const inventory: ResourceBindingInventory = {
       schemaVersion: 'canonical-resource-binding-inventory/v1',
       runId: 'inv-semantic',
-      captureRevision: CLEAN_CAPTURE,
+      captureRevision: GOV,
       capturedAt: new Date().toISOString(),
       dbWatermark: '0/1',
       sourceHash: '4'.repeat(64),

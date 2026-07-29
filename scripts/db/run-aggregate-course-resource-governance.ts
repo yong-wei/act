@@ -17,7 +17,10 @@ import { fileURLToPath } from 'node:url';
 
 import {
   AggregateGovernanceRepository,
+  assertAggregateCaptureRevisionLineage,
+  assertCandidateEvidenceCaptureBinding,
   buildStructuralUnitIndexFromInventory,
+  createRepoGitCaptureLineageOps,
   deriveChangedResourceSegments,
   runAggregateGovernance,
   selectAggregateGovernanceBaselineSource,
@@ -188,35 +191,29 @@ async function main(): Promise<void> {
       );
     }
 
-    // All Git revision slots must bind one clean ACT capture. Inventory,
-    // authoring, import receipt and Delta capture are fail-closed together.
+    // Governance capture = clean HEAD from authoring loader + inventory.
+    // Overlay authoringRevision, import receipt capture, and Delta implementation
+    // capture are independent historical lineage (ancestors of governance, not
+    // required equal). Loader already proves active file bytes match HEAD.
     if (inventory.captureRevision !== authoringLoaded.captureRevision) {
       throw new Error(
         `Aggregate governance rejected: inventory governance capture ${inventory.captureRevision} `
         + `drifts from authoring governance capture ${authoringLoaded.captureRevision}`,
       );
     }
-    if (String(receipt.captureRevision) !== authoringLoaded.captureRevision) {
-      throw new Error(
-        `Aggregate governance rejected: import capture ${receipt.captureRevision} `
-        + `drifts from clean ACT capture ${authoringLoaded.captureRevision}`,
-      );
-    }
-    if (String(delta.captureRevision) !== authoringLoaded.captureRevision) {
-      throw new Error(
-        `Aggregate governance rejected: delta capture ${delta.captureRevision} `
-        + `drifts from clean ACT capture ${authoringLoaded.captureRevision}`,
-      );
-    }
-    if (
-      coverageAuthoringRaw.authoringRevision != null
-      && String(coverageAuthoringRaw.authoringRevision) !== authoringLoaded.captureRevision
-    ) {
-      throw new Error(
-        `Aggregate governance rejected: authoringRevision ${coverageAuthoringRaw.authoringRevision} `
-        + `drifts from clean ACT capture ${authoringLoaded.captureRevision}`,
-      );
-    }
+    assertCandidateEvidenceCaptureBinding({
+      candidateEvidenceCaptureRevision: delta.candidateEvidenceCaptureRevision,
+      candidateImportCaptureRevision: String(receipt.captureRevision),
+    });
+    assertAggregateCaptureRevisionLineage({
+      governanceCaptureRevision: authoringLoaded.captureRevision,
+      importCaptureRevision: String(receipt.captureRevision),
+      deltaCaptureRevision: String(delta.captureRevision),
+      authoringRevision: coverageAuthoringRaw.authoringRevision == null
+        ? null
+        : String(coverageAuthoringRaw.authoringRevision),
+      git: createRepoGitCaptureLineageOps(root),
+    });
 
     const repository = new AggregateGovernanceRepository(db as never);
 
@@ -399,10 +396,16 @@ async function main(): Promise<void> {
       runtimeProjectionDigest: runtime?.versionDigest ?? receipt.projectionDigest ?? null,
       inventoryRunId: inventory.runId,
       structuralUnitIndexVersion: structural.version,
-      authoringRevision: String(coverageAuthoringRaw.authoringRevision),
-      coverageSourceHash: String(coverageAuthoringRaw.sourceHash),
+      authoringRevision: coverageAuthoringRaw.authoringRevision == null
+        ? null
+        : String(coverageAuthoringRaw.authoringRevision),
+      coverageSourceHash: coverageAuthoringRaw.sourceHash == null
+        ? null
+        : String(coverageAuthoringRaw.sourceHash),
     };
 
+    // Independently observed fields only — never spread expectedCapture.
+    // Must include every CaptureIdentity slot (verifyCoherentCapture is exhaustive).
     const observedCapture: ObservedCaptureFields = {
       captureRevision: inventory.captureRevision,
       importCaptureRevision: String(receipt.captureRevision),
@@ -416,11 +419,19 @@ async function main(): Promise<void> {
         : String(receipt.sourceDatasetHash),
       deltaReceiptId: String(delta.id),
       deltaOutputDigest: String(delta.outputDigest),
-      runtimeProjectionDigest: runtime?.versionDigest ?? receipt.projectionDigest ?? null,
+      deltaClassification: String(delta.classification),
+      runtimeProjectionId: runtime?.projectionId ?? receipt.projectionId ?? null,
+      runtimeProjectionDigest: runtime?.versionDigest
+        ?? receipt.projectionDigest
+        ?? null,
       inventoryRunId: String(inventory.runId),
       structuralUnitIndexVersion: String(structural.version),
-      authoringRevision: String(coverageAuthoringRaw.authoringRevision),
-      coverageSourceHash: String(coverageAuthoringRaw.sourceHash),
+      authoringRevision: coverageAuthoringRaw.authoringRevision == null
+        ? null
+        : String(coverageAuthoringRaw.authoringRevision),
+      coverageSourceHash: coverageAuthoringRaw.sourceHash == null
+        ? null
+        : String(coverageAuthoringRaw.sourceHash),
     };
 
     const upstream: OpaqueUpstreamRagReference[] = release.upstreamRagReferences.map((row) => ({

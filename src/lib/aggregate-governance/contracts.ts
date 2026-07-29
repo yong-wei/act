@@ -64,13 +64,19 @@ export interface OpaqueUpstreamRagReference {
 }
 
 /**
- * Three independent capture identities:
- * - captureRevision: current clean governance capture (authoring/inventory/index/implementation)
- * - importCaptureRevision: historical Release import capture (does NOT need to equal governance)
- * - deltaCaptureRevision: historical Delta computation capture (does NOT need to equal governance)
+ * Independent capture identities:
+ * - captureRevision: current clean governance capture (loader HEAD / inventory /
+ *   implementation). Does NOT need to equal overlay authoringRevision.
+ * - importCaptureRevision: historical Release import capture (ancestor of governance or equal)
+ * - deltaCaptureRevision: Delta implementation capture / receipt.captureRevision
+ *   (ancestor of governance or equal). Distinct from Delta.candidateEvidenceCaptureRevision,
+ *   which binds the candidate import capture.
+ * - authoringRevision: reviewed overlay source revision (ancestor of governance or equal);
+ *   may predate the commit that last updated the active file on the current clean HEAD.
  *
  * Coherence requires each identity to match its independently observed counterpart,
- * not that the three commits are equal.
+ * not that the commits are equal. Git ancestry is enforced by
+ * assertAggregateCaptureRevisionLineage on the production runner path.
  */
 export interface CaptureIdentity {
   /** Current clean governance capture revision (authoring/inventory/index). */
