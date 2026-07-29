@@ -79,12 +79,80 @@ export const AGGREGATE_GOVERNANCE_PROTECTED_PATHS = [
   'prisma/migrations/20260730010000_govern_aggregate_course_coverage_and_resource_bindings/migration.sql',
 ] as const;
 
+/**
+ * Bounded buffer for `git show` of controlled governance JSON.
+ * Active Crosswalk reviews are multi-MiB; Node's default maxBuffer (1 MiB) fails closed incorrectly.
+ * Keep explicit and finite — not an unbounded shell workaround.
+ */
+export const AGGREGATE_GIT_MAX_BUFFER_BYTES = 16 * 1024 * 1024;
+
+const GIT_ERROR_DETAIL_MAX_CHARS = 400;
+
+function asUtf8Text(value: string | Buffer | null | undefined): string {
+  if (value == null) return '';
+  return typeof value === 'string' ? value : value.toString('utf8');
+}
+
+/**
+ * Build a fail-closed Git error message without echoing stdout (protected artifact bodies).
+ * Stderr is length-bounded and suppressed when it looks like structured payload.
+ */
+export function formatAggregateGitFailure(
+  args: readonly string[],
+  result: {
+    status: number | null;
+    signal?: NodeJS.Signals | null;
+    error?: Error | null;
+    stderr?: string | Buffer | null;
+    stdout?: string | Buffer | null;
+  },
+): string {
+  const command = args.join(' ');
+  const prefix = `Aggregate coverage Git verification failed for ${command}`;
+
+  if (result.error) {
+    const code = (result.error as NodeJS.ErrnoException).code;
+    if (code === 'ENOBUFS') {
+      return (
+        `${prefix}: output exceeded maxBuffer `
+        + `(${AGGREGATE_GIT_MAX_BUFFER_BYTES} bytes); refuse to echo artifact contents`
+      );
+    }
+    // error.message may mention buffer limits; never append stdout.
+    return `${prefix}: ${result.error.message}`;
+  }
+
+  const parts: string[] = [];
+  if (result.status != null) parts.push(`exit ${result.status}`);
+  if (result.signal) parts.push(`signal ${result.signal}`);
+
+  const stderr = asUtf8Text(result.stderr).trim();
+  if (stderr) {
+    const clipped = stderr.length > GIT_ERROR_DETAIL_MAX_CHARS
+      ? `${stderr.slice(0, GIT_ERROR_DETAIL_MAX_CHARS)}…`
+      : stderr;
+    // Never re-emit structured payload-looking stderr as diagnostics.
+    if (/^\s*[{[]/u.test(clipped)) {
+      parts.push('stderr omitted (looks like structured payload)');
+    } else {
+      parts.push(clipped);
+    }
+  } else {
+    parts.push('no stderr (stdout suppressed to avoid leaking protected artifacts)');
+  }
+
+  // Intentionally ignore result.stdout — may hold entire protected JSON.
+  return `${prefix}: ${parts.join('; ')}`;
+}
+
 function git(root: string, args: string[]): string {
-  const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
-  if (result.status !== 0) {
-    throw new Error(
-      `Aggregate coverage Git verification failed for ${args.join(' ')}: ${result.stderr || result.stdout}`,
-    );
+  const result = spawnSync('git', args, {
+    cwd: root,
+    encoding: 'utf8',
+    maxBuffer: AGGREGATE_GIT_MAX_BUFFER_BYTES,
+  });
+  if (result.error || result.status !== 0) {
+    throw new Error(formatAggregateGitFailure(args, result));
   }
   return result.stdout.trim();
 }

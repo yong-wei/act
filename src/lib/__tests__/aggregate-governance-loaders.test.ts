@@ -5,6 +5,8 @@ import { spawnSync } from 'node:child_process';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  AGGREGATE_GIT_MAX_BUFFER_BYTES,
+  formatAggregateGitFailure,
   loadTrackedBindingReviews,
   loadTrackedCrosswalkSemanticReviews,
 } from '../../../scripts/course-coverage/aggregate-coverage';
@@ -164,5 +166,94 @@ describe('loadTrackedBindingReviews', () => {
         new Set(['canonical-resource-pair:abc']),
       ),
     ).rejects.toThrow(/GPT conflicts with Grok/u);
+  });
+});
+
+describe('aggregate coverage Git helper (large artifacts / diagnostics)', () => {
+  it('loads a committed Crosswalk artifact larger than Node default maxBuffer (1 MiB)', async () => {
+    expect(AGGREGATE_GIT_MAX_BUFFER_BYTES).toBeGreaterThan(1 * 1024 * 1024);
+
+    const root = initGitRepo();
+    const rel =
+      'course-content/authoring/knowledge/course-coverage/aggregate/active/act-crosswalk-semantic-reviews.json';
+    const tripleKey = 'ctc:large\u001fchunk\u001fcite';
+    const sentinel = 'SENTINEL_PROTECTED_CROSSWALK_BODY_DO_NOT_ECHO';
+    // Build a valid schema body > 1 MiB (default spawnSync maxBuffer) while remaining
+    // under AGGREGATE_GIT_MAX_BUFFER_BYTES so clean-capture load succeeds.
+    const padding = 'x'.repeat(1.2 * 1024 * 1024);
+    const doc = {
+      schemaVersion: 'act-crosswalk-semantic-reviews/v1',
+      deltaReceiptId: 'delta-receipt:test',
+      authoringRevision: 'a'.repeat(40),
+      reviews: {
+        [tripleKey]: {
+          outcome: 'UNSUPPORTED',
+          reviewIdentity: 'agent-review:grok:test',
+          reviewerPromptVersion: 'v1',
+          evidenceDigest: 'b'.repeat(64),
+          rationale: `${sentinel}:${padding}`,
+        },
+      },
+    };
+    const abs = path.join(root, rel);
+    mkdirSync(path.dirname(abs), { recursive: true });
+    const raw = `${JSON.stringify(doc)}\n`;
+    expect(Buffer.byteLength(raw, 'utf8')).toBeGreaterThan(1 * 1024 * 1024);
+    writeFileSync(abs, raw, 'utf8');
+    const run = (args: string[]) => {
+      const result = spawnSync('git', args, {
+        cwd: root,
+        encoding: 'utf8',
+        maxBuffer: AGGREGATE_GIT_MAX_BUFFER_BYTES,
+      });
+      if (result.status !== 0) throw new Error(result.stderr || args.join(' '));
+    };
+    run(['add', rel]);
+    run(['commit', '-m', 'large crosswalk active']);
+
+    const loaded = await loadTrackedCrosswalkSemanticReviews(
+      root,
+      'delta-receipt:test',
+      new Set([tripleKey]),
+    );
+    expect(loaded[tripleKey]?.outcome).toBe('UNSUPPORTED');
+    expect(loaded[tripleKey]?.rationale).toContain(sentinel);
+  });
+
+  it('formats Git failures without echoing stdout artifact bodies', () => {
+    const sentinel = 'SENTINEL_PROTECTED_JSON_PAYLOAD_{"reviews":{"secret":true}}';
+    const message = formatAggregateGitFailure(
+      ['show', `${'a'.repeat(40)}:course-content/authoring/knowledge/course-coverage/aggregate/active/act-crosswalk-semantic-reviews.json`],
+      {
+        status: 128,
+        error: null,
+        stdout: `{\n  "schemaVersion": "act-crosswalk-semantic-reviews/v1",\n  "payload": "${sentinel}"\n}\n`,
+        stderr: 'fatal: path not in the working tree',
+      },
+    );
+    expect(message).toContain('Aggregate coverage Git verification failed');
+    expect(message).toContain('show');
+    expect(message).toContain('fatal: path not in the working tree');
+    expect(message).not.toContain(sentinel);
+    expect(message).not.toContain('schemaVersion');
+    expect(message).not.toContain('"reviews"');
+  });
+
+  it('classifies maxBuffer overflow without dumping stdout', () => {
+    const sentinel = 'SENTINEL_ENOBUFS_BODY_' + 'z'.repeat(200);
+    const err = Object.assign(new Error('spawnSync git ENOBUFS'), { code: 'ENOBUFS' });
+    const message = formatAggregateGitFailure(
+      ['show', 'HEAD:course-content/authoring/knowledge/course-coverage/aggregate/active/act-crosswalk-semantic-reviews.json'],
+      {
+        status: null,
+        error: err,
+        stdout: sentinel,
+        stderr: '',
+      },
+    );
+    expect(message).toMatch(/maxBuffer/u);
+    expect(message).toContain(String(AGGREGATE_GIT_MAX_BUFFER_BYTES));
+    expect(message).not.toContain(sentinel);
+    expect(message).not.toContain('SENTINEL_ENOBUFS_BODY_');
   });
 });
