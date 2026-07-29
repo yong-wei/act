@@ -103,6 +103,11 @@ export const ARTIFACT_CONTRACTS: readonly ArtifactContractRegistration[] = [
 
 export const RUNTIME_PROJECTION_PROFILES = new Set(['runtime', 'act']);
 export const REQUIRED_AGGREGATE_PROJECTION_PROFILES = ['runtime', 'domain', 'review'] as const;
+export const PROJECTION_AGGREGATION_POLICIES = [
+  'm1e-v1b-release-tier-preserving',
+  'm1f-v1t-release-tier-preserving',
+  'm1f-v3e-release-tier-preserving',
+] as const;
 export const PROFILE_ALIASES: Record<string, string> = {
   act: 'runtime',
 };

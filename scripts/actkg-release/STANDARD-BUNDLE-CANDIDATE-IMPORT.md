@@ -85,8 +85,9 @@ npx vitest run src/lib/__tests__/standard-actkg-bundle-import.test.ts \
 # real PostgreSQL (requires DATABASE_URL or ephemeral local Postgres)
 npm run test:standard-actkg-bundle-import-postgres
 
-# ordinary import of the vendored v0.3 r2 packaging fixture
-npm run db:import-compatible-actkg-public-bundle
+# ordinary import of the current vendored v0.4 candidate ReleaseSet
+npm run db:import-compatible-actkg-public-bundle -- \
+  --lock-path=course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.4.json
 ```
 
 ## Production authority

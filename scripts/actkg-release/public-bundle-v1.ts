@@ -19,6 +19,7 @@ import {
   FORBIDDEN_PUBLIC_GLOBAL_TOKENS,
   MANIFEST_NORMALIZATION,
   PUBLIC_BUNDLE_CONTRACT_VERSION,
+  PROJECTION_AGGREGATION_POLICIES,
   RELEASE_SET_LOCK_V3,
   REQUIRED_AGGREGATE_PROJECTION_PROFILES,
   RUNTIME_PROJECTION_PROFILES,
@@ -1651,14 +1652,20 @@ export async function loadAndValidatePublicBundleV1(options: {
       payload.version_digest,
       `${artifact.descriptor.path}.version_digest`,
     );
-    const recomputedDigest = computeProjectionVersionDigest(
-      payload,
-      null,
-      profile,
+    const matchingPolicies = PROJECTION_AGGREGATION_POLICIES.filter(
+      (aggregationPolicy) => computeProjectionVersionDigest(
+        payload,
+        null,
+        profile,
+        aggregationPolicy,
+      ) === declaredDigest,
     );
-    if (declaredDigest !== recomputedDigest) {
-      integrity(
-        `projection version_digest mismatch: ${artifact.descriptor.path}`,
+    if (matchingPolicies.length !== 1) {
+      if (matchingPolicies.length === 0) {
+        integrity(`projection version_digest mismatch: ${artifact.descriptor.path}`);
+      }
+      adapterRequired(
+        `projection profile template is ambiguous for declared version_digest: ${artifact.descriptor.path}`,
       );
     }
     projections.push({ artifact, payload, profile });
