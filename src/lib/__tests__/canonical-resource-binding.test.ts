@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   applyHumanDecision,
   applyPublicationGates,
+  assertInventoryMatchesPersistedSnapshot,
   buildDeterministicDecision,
   buildResourceBindingInventory,
   buildReviewerInput,
@@ -14,7 +15,9 @@ import {
   generateCandidatesForResourceChanges,
   generatorDecision,
   invalidateChangedResourcePairs,
+  inventoryContentProjection,
   normalizeSha256,
+  resolveVerifiedPersistedInventory,
   runIndependentReview,
   runtimeProjectionObservation,
   resolveGeneratedPublicationAggregate,
@@ -187,6 +190,8 @@ describe('canonical resource inventory', () => {
       dispositionDeclared: true,
     })]);
     expect(retry.runId).toBe(first.runId);
+    expect(canonicalSha256(inventoryContentProjection(first)))
+      .toBe(canonicalSha256(inventoryContentProjection(retry)));
     expect(retry.sourceHash).toBe(first.sourceHash);
     expect(retry.items[0]?.observationDigest).toBe(first.items[0]?.observationDigest);
     const changed = buildResourceBindingInventory([observation('stable', {
@@ -195,6 +200,113 @@ describe('canonical resource inventory', () => {
       dispositionDeclared: true,
     })]);
     expect(changed.runId).not.toBe(first.runId);
+  });
+
+  it('pins persisted inventory capture watermark while rejecting missing/ambiguous/drifted snapshots', () => {
+    const imported = buildResourceBindingInventory([observation('stable', {
+      positiveSignals: { published: true },
+      dispositionDeclared: true,
+      dbWatermark: '2/7D89E1C8',
+      capturedAt: '2026-07-30T01:00:00.000Z',
+    })]);
+    const liveProbe = buildResourceBindingInventory([observation('stable', {
+      positiveSignals: { published: true },
+      dispositionDeclared: true,
+      dbWatermark: '2/7E787650',
+      capturedAt: '2026-07-30T02:00:00.000Z',
+    })]);
+    expect(liveProbe.runId).toBe(imported.runId);
+    expect(liveProbe.dbWatermark).not.toBe(imported.dbWatermark);
+
+    const persisted = {
+      id: imported.runId,
+      captureRevision: imported.captureRevision,
+      capturedAt: imported.capturedAt,
+      dbWatermark: imported.dbWatermark,
+      sourceHash: imported.sourceHash,
+      itemCount: imported.summary.itemCount,
+      includedCount: imported.summary.includedCount,
+      excludedCount: imported.summary.excludedCount,
+      unresolvedCount: imported.summary.unresolvedCount,
+      complete: true,
+      items: imported.items,
+    };
+
+    const pinned = buildResourceBindingInventory([observation('stable', {
+      positiveSignals: { published: true },
+      dispositionDeclared: true,
+      dbWatermark: imported.dbWatermark,
+      capturedAt: imported.capturedAt,
+    })]);
+    const verified = resolveVerifiedPersistedInventory({
+      captureRevision,
+      contentProbe: liveProbe,
+      completeRunsForCapture: [{ id: imported.runId, sourceHash: imported.sourceHash }],
+      persisted,
+      verifiedWithPinnedCapture: pinned,
+    });
+    expect(verified.dbWatermark).toBe('2/7D89E1C8');
+    expect(verified.runId).toBe(imported.runId);
+    expect(() => assertInventoryMatchesPersistedSnapshot(pinned, persisted)).not.toThrow();
+
+    // Missing complete snapshot for capture.
+    expect(() => resolveVerifiedPersistedInventory({
+      captureRevision,
+      contentProbe: liveProbe,
+      completeRunsForCapture: [],
+      persisted: null,
+      verifiedWithPinnedCapture: liveProbe,
+    })).toThrow(/no complete #1124 inventory snapshot/u);
+
+    // Complete rows exist but not for current content runId.
+    expect(() => resolveVerifiedPersistedInventory({
+      captureRevision,
+      contentProbe: liveProbe,
+      completeRunsForCapture: [{ id: 'resource-binding-inventory:other', sourceHash: '0'.repeat(64) }],
+      persisted: null,
+      verifiedWithPinnedCapture: liveProbe,
+    })).toThrow(/complete snapshot missing for current content/u);
+
+    // Ambiguous duplicate complete rows for the same runId.
+    expect(() => resolveVerifiedPersistedInventory({
+      captureRevision,
+      contentProbe: liveProbe,
+      completeRunsForCapture: [
+        { id: imported.runId, sourceHash: imported.sourceHash },
+        { id: imported.runId, sourceHash: imported.sourceHash },
+      ],
+      persisted,
+      verifiedWithPinnedCapture: pinned,
+    })).toThrow(/ambiguous complete snapshots/u);
+
+    // Current resource content drift changes source/run.
+    const drifted = buildResourceBindingInventory([observation('stable', {
+      positiveSignals: { published: true },
+      dispositionDeclared: true,
+      resourceSegmentHash: sha256('drifted-segment'),
+      dbWatermark: imported.dbWatermark,
+      capturedAt: imported.capturedAt,
+    })]);
+    expect(drifted.runId).not.toBe(imported.runId);
+    expect(() => resolveVerifiedPersistedInventory({
+      captureRevision,
+      contentProbe: drifted,
+      completeRunsForCapture: [{ id: imported.runId, sourceHash: imported.sourceHash }],
+      persisted,
+      verifiedWithPinnedCapture: drifted,
+    })).toThrow(/complete snapshot missing for current content/u);
+    expect(() => assertInventoryMatchesPersistedSnapshot(drifted, persisted))
+      .toThrow(/current resource content drifts/u);
+
+    // Incomplete snapshot rejected.
+    expect(() => assertInventoryMatchesPersistedSnapshot(pinned, {
+      ...persisted,
+      complete: false,
+    })).toThrow(/not complete/u);
+    expect(() => assertInventoryMatchesPersistedSnapshot(pinned, {
+      ...persisted,
+      itemCount: persisted.itemCount + 1,
+    })).toThrow(/incomplete/u);
   });
 
   it('accepts bare and prefixed hashes without inferring publication from lifecycleScope', () => {

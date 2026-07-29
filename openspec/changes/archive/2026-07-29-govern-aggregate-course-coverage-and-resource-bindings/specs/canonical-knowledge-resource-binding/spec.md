@@ -7,9 +7,13 @@ The system MUST represent an imported upstream RAG reference, its governed ACT s
 - **WHEN** candidate import preserves `published_entity_id`, `retrieval_chunk_id`, and `citation_target_id`
 - **THEN** resource governance SHALL reference that immutable record without rewriting it or assigning an ACT structure or teaching role
 
+#### Scenario: EvidenceSegment resolves to ACT content
+- **WHEN** a stable source identity, segment identity, version, and content hash match an ACT structural unit
+- **THEN** the Crosswalk SHALL resolve the authoritative evidence location without assigning a teaching role
+
 #### Scenario: Upstream reference resolves to ACT content
 - **WHEN** governed alignment identifies one source edition, structural unit version/hash, inventory capture, atomic resource/segment and validation digest
-- **THEN** the ACT Crosswalk SHALL resolve the evidence location without assigning a teaching role
+- **THEN** the ACT Crosswalk SHALL bind that coherent capture identity without assigning a teaching role
 
 #### Scenario: Resource receives a teaching role
 - **WHEN** an ACT atomic resource is reviewed as explaining, practicing, assessing, or referencing a Canonical Object
@@ -18,7 +22,7 @@ The system MUST represent an imported upstream RAG reference, its governed ACT s
 ### Requirement: Binding work is change-triggered and incremental
 The system SHALL process object changes declared by the accepted ReleaseSet Delta against one versioned resource index and resource-segment changes against the current Canonical index, using one candidate-pair contract and one coherent capture identity.
 
-#### Scenario: Object and resource evidence are unchanged
+#### Scenario: Canonical object is unchanged
 - **WHEN** Canonical ID/semantic digest, resource/segment hash, role, prompt/reviewer version, structural gates and evidence match a prior accepted decision
 - **THEN** the system SHALL create an auditable revalidation for the new ReleaseSet without invoking semantic review or copying the old publication identity
 
@@ -52,7 +56,7 @@ A binding MUST satisfy both a unique, version-valid ACT EvidenceStructuralUnitCr
 ### Requirement: Canonical resource bindings remain shadow before cutover
 The system MUST keep formal resource consumers on the Legacy authority selector before final production cutover, even when current candidate CourseCoverage, ACT Crosswalks and reviewed Canonical bindings are complete.
 
-#### Scenario: Candidate binding governance completes before cutover
+#### Scenario: Binding migration completes before cutover
 - **WHEN** an effective resource has a current `SHADOW_PUBLISHED` binding but Legacy remains production authority
 - **THEN** formal RAG, recommendation, path and evidence consumers SHALL continue using Legacy while candidate results remain shadow diagnostics
 

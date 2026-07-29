@@ -3,7 +3,7 @@
 ### Requirement: Complete Release import and course activation are separate
 The system MUST keep every object in an accepted candidate ReleaseSet available for authoritative browsing while allowing teaching consumers to use only objects with a valid, version-matched course coverage disposition.
 
-#### Scenario: Object is excluded or uncovered
+#### Scenario: Object is outside course coverage
 - **WHEN** an imported Canonical Object has an explicit excluded disposition or no valid current coverage entry
 - **THEN** it SHALL remain browsable and SHALL NOT enter recommendation, KAQ, path, assessment, or new-fact computation
 
@@ -17,6 +17,10 @@ The coverage implementation MUST use structured repository authoring data review
 #### Scenario: Authoring data changes
 - **WHEN** a reviewed Git revision changes the coverage source
 - **THEN** deployment SHALL validate and transactionally replace the corresponding runtime projection for the exact ReleaseSet and Delta identity
+
+#### Scenario: Runtime user attempts direct edit
+- **WHEN** a teacher or administrator attempts to change coverage through the running application
+- **THEN** the system SHALL provide no direct mutation endpoint in this change
 
 #### Scenario: Inputs come from mixed captures
 - **WHEN** coverage source, ReleaseSet, Delta Receipt, resource index, Git revision, or database watermark do not belong to one coherent capture
