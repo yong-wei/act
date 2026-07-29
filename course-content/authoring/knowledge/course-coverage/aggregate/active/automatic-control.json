@@ -7,9 +7,9 @@
   "releaseId": "ctr:release:control-theory-engineering-v0.3",
   "releaseHash": "13fc60a0a4e1706095f4db89f0a0db4cba10525f4cd6e9ec08b7d44acd7a4ffc",
   "sourceDatasetHash": "7ada10dbb5862ea1fa0102453bceff31c7b62c9045b2f14a1aba29bf5762911c",
-  "deltaReceiptId": "delta-receipt:340280e950af341d3c402c01f783d0ed1735335eb1b1da019002b9bf460214ef",
+  "deltaReceiptId": "delta-receipt:d30d29958647f74dc25d7b11f24763945cad838d6ccf6d6e5ba2ef2b7630c98b",
   "mode": "baseline",
-  "authoringRevision": "ca42502e15df87cddd12cd0e039fcf7bddf22656",
+  "authoringRevision": "2d42a16a4f772297bb6ddcf5b15ae0011108fd8a",
   "entries": [
     {
       "canonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
@@ -7907,5 +7907,5 @@
       "sourceEvidenceDigest": "540f42cbfcdf3b0438c701c3701e9b935d14fc01f360e805d0cd7bbcae1f59dc"
     }
   ],
-  "sourceHash": "ec71a7e90911eae3657f5912a808698d46db01b710074aa24b72ab12ff8b8db7"
+  "sourceHash": "bdd6214b9c8b900dab7a6ce280969e7594b95d912715854f33c4ef65f7c21f61"
 }

@@ -1,8 +1,8 @@
 {
   "schemaVersion": "course-coverage-review-decisions/v1",
-  "worklistInputDigest": "3c7a10f8b8a300af4a4d2e55471e9bf1676f56089ffa25c5663e5dfc6dd23fa2",
-  "deltaReceiptId": "delta-receipt:340280e950af341d3c402c01f783d0ed1735335eb1b1da019002b9bf460214ef",
-  "authoringRevision": "ca42502e15df87cddd12cd0e039fcf7bddf22656",
+  "worklistInputDigest": "5dab7eefef47b6b4b14575e6ba5917a3173e40253c1f88a4edc329a8e1d667d3",
+  "deltaReceiptId": "delta-receipt:d30d29958647f74dc25d7b11f24763945cad838d6ccf6d6e5ba2ef2b7630c98b",
+  "authoringRevision": "2d42a16a4f772297bb6ddcf5b15ae0011108fd8a",
   "reviewProvider": "GROK",
   "reviewerIdentity": "agent-review:grok:issue-1126-course-coverage:v1",
   "reviewerPromptVersion": "aggregate-course-coverage-isolated-review/v1",

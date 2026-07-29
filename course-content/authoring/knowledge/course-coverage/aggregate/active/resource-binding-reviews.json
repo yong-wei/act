@@ -1,10 +1,10 @@
 {
   "schemaVersion": "act-resource-binding-reviews/v1",
-  "deltaReceiptId": "delta-receipt:340280e950af341d3c402c01f783d0ed1735335eb1b1da019002b9bf460214ef",
-  "authoringRevision": "ca42502e15df87cddd12cd0e039fcf7bddf22656",
+  "deltaReceiptId": "delta-receipt:d30d29958647f74dc25d7b11f24763945cad838d6ccf6d6e5ba2ef2b7630c98b",
+  "authoringRevision": "2d42a16a4f772297bb6ddcf5b15ae0011108fd8a",
   "reviewIdentity": "agent-review:grok:issue-1126-binding:v1",
   "reviewProvider": "GROK",
-  "worklistInputDigest": "9a64bdaeb660887363ac60b6fad411ec9fd9129057694f41676c021fc7aa8b2f",
+  "worklistInputDigest": "62a87bfead90e84b22b7a73e650f4f6001b6486650de33267b1b3d9d222767b7",
   "reviews": {},
   "summary": {
     "candidates": 0,

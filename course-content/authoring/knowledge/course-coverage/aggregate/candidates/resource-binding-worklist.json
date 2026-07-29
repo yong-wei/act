@@ -1,11 +1,11 @@
 {
   "schemaVersion": "act-resource-binding-worklist/v2",
   "generatorVersion": "act-resource-binding-worklist-generator/v1",
-  "deltaReceiptId": "delta-receipt:340280e950af341d3c402c01f783d0ed1735335eb1b1da019002b9bf460214ef",
-  "authoringRevision": "ca42502e15df87cddd12cd0e039fcf7bddf22656",
-  "inventoryRunId": "resource-binding-inventory:ca42502e15df87cddd12cd0e039fcf7bddf22656:a8400e926bb8ad2865c7a4b7a906e144efd3d4391605a5921503524d38fd7c5f",
-  "crosswalkWorklistInputDigest": "1266c6e03abc1c00dfa10d7e16d0e402d3de6e6ced7ab3cee19b09d68a90c56d",
-  "crosswalkActiveReviewsDigest": "cdb6d1b50ba195306e4dd6515777eb6e223e2ca2baff142ca4032ec9c9b80275",
+  "deltaReceiptId": "delta-receipt:d30d29958647f74dc25d7b11f24763945cad838d6ccf6d6e5ba2ef2b7630c98b",
+  "authoringRevision": "2d42a16a4f772297bb6ddcf5b15ae0011108fd8a",
+  "inventoryRunId": "resource-binding-inventory:2d42a16a4f772297bb6ddcf5b15ae0011108fd8a:a8400e926bb8ad2865c7a4b7a906e144efd3d4391605a5921503524d38fd7c5f",
+  "crosswalkWorklistInputDigest": "114aaf109ba18e275002e1259bd476adcac9ea5ac511237940865d9fce47a286",
+  "crosswalkActiveReviewsDigest": "1baad2c569358a78f9567dc5057f184c9c2396fd94db9aeb9c89a1e8acb8331e",
   "items": [],
-  "inputDigest": "9a64bdaeb660887363ac60b6fad411ec9fd9129057694f41676c021fc7aa8b2f"
+  "inputDigest": "62a87bfead90e84b22b7a73e650f4f6001b6486650de33267b1b3d9d222767b7"
 }
