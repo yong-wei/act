@@ -25,6 +25,6 @@
 - [x] 4.1 Add tests for #1125 v0.2-to-standard-candidate comparison, empty-installation baseline, relation-only addition, object payload update, object removal, Crosswalk change, component addition and Projection-profile change.
 - [x] 4.2 Add tests for packaging-only revision, repeated/concurrent computation and receipt identity conflict.
 - [x] 4.3 Add negative tests for canonical type replacement, missing supersession, endpoint/direction replacement and upstream Diff disagreement.
-- [ ] 4.4 Run database integration tests proving immutable receipts, stable signals and unchanged candidate/active/Legacy selectors.
-- [ ] 4.5 Run targeted tests, typecheck, data-governance checks, build and strict OpenSpec validation.
+- [x] 4.4 Run database integration tests proving immutable receipts, stable signals and unchanged candidate/active/Legacy selectors.
+- [x] 4.5 Run targeted tests, typecheck, data-governance checks, build and strict OpenSpec validation.
 - [x] 4.6 Document the Delta contract consumed by course/resource governance and later consumer migrations.
