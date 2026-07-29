@@ -633,8 +633,9 @@ describe('crosswalk assembler', () => {
     const GOV = AUTHORING;
     const CAPTURE: CaptureIdentity = {
       captureRevision: GOV,
-      importCaptureRevision: 'b'.repeat(40),
-      deltaCaptureRevision: 'c'.repeat(40),
+      // One clean ACT capture for all Git revision slots (import/delta/authoring).
+      importCaptureRevision: GOV,
+      deltaCaptureRevision: GOV,
       dbWatermark: '0/1',
       releaseSetId: 'rs-test',
       releaseId: 'rel-test',
