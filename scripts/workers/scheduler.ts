@@ -22,6 +22,7 @@ const SCHEDULES = {
   ACTIVE_STUDENT_SNAPSHOT: '15 * * * *',
   CLASS_SNAPSHOT: '30 3 * * *',
   EVIDENCE_FEATURE_CACHE_REBUILD: '45 4 * * *',
+  RISK_FLAG_SCAN_NIGHTLY: '0 3 * * *',
 } as const;
 
 const JOB_HISTORY_OPTIONS = {
@@ -97,7 +98,22 @@ async function scheduleJobs() {
   await eventQueue.close();
   await studentQueue.close();
   await classQueue.close();
+  const riskFlagQueue = new Queue<{ coordinator: boolean }>('risk-flag-scan', { connection: redis });
+  await clearRepeatableJobs(riskFlagQueue);
+
+  await riskFlagQueue.add(
+    'risk-flag-scan-coordinator',
+    { coordinator: true },
+    {
+      repeat: { cron: SCHEDULES.RISK_FLAG_SCAN_NIGHTLY },
+      jobId: 'coordinator-risk-flag-scan',
+      ...JOB_HISTORY_OPTIONS,
+    },
+  );
+  console.log('[Scheduler] Risk flag scan scheduled: ' + SCHEDULES.RISK_FLAG_SCAN_NIGHTLY);
+
   await evidenceFeatureCacheQueue.close();
+  await riskFlagQueue.close();
   await redis.quit();
 
   console.log('[Scheduler] Recurring coordinator jobs refreshed successfully');
