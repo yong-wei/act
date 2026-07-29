@@ -4,6 +4,7 @@ import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  ACCEPTED_CANDIDATE_STATE,
   AggregateProjectionContractError,
   AuthoritativeKnowledgeProjectionService,
   AuthoritativeKnowledgeRepository,
@@ -12,12 +13,14 @@ import {
   buildMigrationReviewProjection,
   buildNodeDetailProjection,
   buildProjectionCacheKey,
+  consumerSupportDigest,
   CANDIDATE_RELEASE_LABEL,
   CTKG_0_2_AGGREGATE_PROTOCOL,
   CTKG_0_2_SCHEMA_VERSION,
   CURRENT_AGGREGATE_RELEASE_ID,
   CURRENT_AGGREGATE_RELEASE_SET_ID,
   HISTORICAL_ROOT_LOCUS_RELEASE_SET_ID,
+  STANDARD_PUBLIC_BUNDLE_PROTOCOL,
   type AuthoritativeKnowledgeDatabase,
   type AuthoritativeKnowledgeSnapshot,
   type ConsumerSemanticSupport,
@@ -176,8 +179,16 @@ function mockDatabase(snapshot: AuthoritativeKnowledgeSnapshot): {
   transaction: ReturnType<typeof vi.fn>;
   legacyDelegates: Record<string, { findUnique: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn> }>;
 } {
-  const one = (value: unknown) => ({ findUnique: vi.fn(async () => value), findMany: vi.fn() });
-  const many = (value: unknown[]) => ({ findUnique: vi.fn(), findMany: vi.fn(async () => value) });
+  const one = (value: unknown) => ({
+    findUnique: vi.fn(async () => value),
+    findFirst: vi.fn(async () => value),
+    findMany: vi.fn(),
+  });
+  const many = (value: unknown[]) => ({
+    findUnique: vi.fn(),
+    findFirst: vi.fn(async () => value[0] ?? null),
+    findMany: vi.fn(async () => value),
+  });
   const legacyDelegates = {
     actkgAuthoritativeObject: many([...snapshot.objects].reverse()),
     actkgAuthoritativeRelation: many([...snapshot.relations].reverse()),
@@ -196,6 +207,14 @@ function mockDatabase(snapshot: AuthoritativeKnowledgeSnapshot): {
     actkgProjectionNode: many([...(snapshot.projectionNodes ?? [])].reverse()),
     actkgProjectionLink: many([...(snapshot.projectionLinks ?? [])].reverse()),
     actkgUpstreamRagReference: many([...(snapshot.upstreamRagReferences ?? [])].reverse()),
+    actkgBundleReceipt: {
+      findUnique: vi.fn(async () => snapshot.bundleReceipt ?? null),
+      findFirst: vi.fn(async () => snapshot.bundleReceipt ?? null),
+      findMany: vi.fn(async () => (snapshot.bundleReceipt ? [snapshot.bundleReceipt] : [])),
+    },
+    actkgBundleArtifact: many([...(snapshot.bundleArtifacts ?? [])].reverse()),
+    actkgProjectionIdentity: many([...(snapshot.projectionIdentities ?? [])].reverse()),
+    actkgProjectionLinkMetadata: many([...(snapshot.linkMetadata ?? [])].reverse()),
   };
   const transaction = vi.fn(async (callback, options) => {
     expect(options).toEqual({ isolationLevel: 'RepeatableRead' });
@@ -1065,5 +1084,517 @@ describe('aggregate CTKG 0.2 candidate Repository', () => {
       }),
     ]);
     expect(keys.size).toBe(5);
+  });
+});
+
+const standardReleaseSetId = 'actkg-authoritative-candidate-v3-r2';
+const standardReleaseId = 'ctr:release:control-theory-engineering-v0.3';
+const standardDigest = '3c76c97476178342aa1111111111111111111111111111111111111111111111';
+const standardSelector = {
+  authorityState: 'candidate' as const,
+  releaseSetId: standardReleaseSetId,
+  releaseId: standardReleaseId,
+};
+
+function standardFixture(options: {
+  counts?: { nodes: number; links: number; entries: number };
+  unregistered?: boolean;
+  missingBundleReceipt?: boolean;
+} = {}): AuthoritativeKnowledgeSnapshot {
+  const nodeCount = options.counts?.nodes ?? 2;
+  const linkCount = options.counts?.links ?? 1;
+  const entryCount = options.counts?.entries ?? nodeCount + linkCount;
+  const releaseId = standardReleaseId;
+  const projectionNodes = Array.from({ length: nodeCount }, (_, ordinal) => ({
+    releaseId,
+    nodeId: `ctc:std-node-${ordinal}`,
+    ordinal,
+    entityId: `ctc:std-node-${ordinal}`,
+    entityType: options.unregistered && ordinal === 1 ? 'FutureSchemaType' : 'DomainConcept',
+    displayName: `标准节点${ordinal}`,
+    releaseTier: ordinal === 0 ? 'gold' : 'silver',
+    reviewStatus: 'REVIEWED',
+    publicationStatus: 'PUBLISHED',
+    semanticName: `std_node_${ordinal}`,
+    sourceCoverageCount: 1,
+    candidate: false,
+    payload: { description: `standard node ${ordinal}` },
+  }));
+  const projectionLinks = Array.from({ length: linkCount }, (_, ordinal) => ({
+    releaseId,
+    linkId: `ctr:std-link-${ordinal}`,
+    ordinal,
+    relationId: `ctr:std-rel-${ordinal}`,
+    sourceId: projectionNodes[0]!.nodeId,
+    targetId: projectionNodes[Math.min(1, nodeCount - 1)]!.nodeId,
+    relationType: options.unregistered ? 'future_predicate' : 'association',
+    relationFamily: 'domain_semantic',
+    direction: options.unregistered ? 'source_to_target' : 'unordered',
+    evidenceState: 'available',
+    payload: {},
+  }));
+  const releaseEntries = [
+    ...projectionNodes.map((node, ordinal) => ({
+      releaseId,
+      entityId: node.entityId,
+      ordinal,
+      releaseTier: node.releaseTier,
+      entityRole: 'knowledge_object',
+      inclusionReason: 'standard fixture',
+      payload: {},
+    })),
+    ...projectionLinks.map((link, ordinal) => ({
+      releaseId,
+      entityId: link.relationId,
+      ordinal: nodeCount + ordinal,
+      releaseTier: 'gold',
+      entityRole: 'relation',
+      inclusionReason: 'standard fixture',
+      payload: {},
+    })),
+  ];
+  while (releaseEntries.length < entryCount) {
+    releaseEntries.push({
+      releaseId,
+      entityId: `ctc:extra-${releaseEntries.length}`,
+      ordinal: releaseEntries.length,
+      releaseTier: 'support',
+      entityRole: 'governance_record',
+      inclusionReason: 'padding',
+      payload: {},
+    });
+  }
+  const bundleReceipt = options.missingBundleReceipt
+    ? null
+    : {
+        id: `bundle-receipt:${hash}`,
+        bundleId: 'ctb:control-theory-engineering-v0.3:r2',
+        bundleRevision: 2,
+        bundleDigest: hash,
+        bundleKind: 'aggregate',
+        releaseStage: 'stable',
+        bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+        controlledPath: 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.3-r2',
+        manifestRawSha256: hash,
+        normalization: 'actkg-public-bundle-manifest/1',
+        publicationTag: 'control-theory-engineering-v0.3-r2',
+        sourceCommit: commit,
+        sourceTag: 'control-theory-engineering-v0.3-source',
+        releaseSetId: standardReleaseSetId,
+        releaseId,
+        releaseHash: hash,
+        sourceDatasetHash: hash,
+        schemaVersion: CTKG_0_2_SCHEMA_VERSION,
+        schemaRawSha256: hash,
+        lockVersion: 'actkg-release-set-lock/v3',
+        lockPath: 'course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.3-r2.json',
+        lockRawSha256: hash,
+        captureRevision: commit,
+        candidateState: ACCEPTED_CANDIDATE_STATE,
+        compatibilityCode: 'COMPATIBLE_CONTENT_UPDATE',
+        runtimeProjectionId: 'ctr:projection:control-theory-engineering-v0.3:act-v2',
+        runtimeProjectionProfile: 'ctr:profile:control-theory-engineering-v0.3:act-v2',
+        runtimeProjectionDigest: standardDigest,
+        artifactCount: 5,
+        statistics: { projectionNodes: nodeCount, projectionLinks: linkCount },
+        importedAt: new Date('2026-07-29T00:00:00.000Z'),
+      };
+
+  return {
+    authorityState: 'candidate',
+    productionAuthoritative: false,
+    historical: true,
+    releaseSet: {
+      id: standardReleaseSetId,
+      controlledPath: 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.3-r2',
+      lockVersion: 'actkg-release-set-lock/v3',
+      candidateState: 'CANDIDATE',
+    },
+    release: {
+      id: releaseId,
+      releaseSetId: standardReleaseSetId,
+      releaseVersion: 'control-theory-engineering-v0.3',
+      releaseStatus: 'RELEASED',
+      protocol: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      authority: 'ActKG',
+      scope: 'control-theory-engineering',
+      contractHash: hash,
+      releaseHash: hash,
+      schemaRawHash: hash,
+      releaseRawHash: hash,
+      notesRawHash: hash,
+      captureRevision: commit,
+      lockRawHash: hash,
+      schemaVersion: CTKG_0_2_SCHEMA_VERSION,
+      upstreamReleaseId: releaseId,
+      projectionId: 'ctr:projection:control-theory-engineering-v0.3:act-v2',
+      projectionDigest: standardDigest,
+      sourceDatasetHash: hash,
+      upstreamPublicationCommit: commit,
+      upstreamClosedCommit: null,
+    },
+    receipt: {
+      id: `receipt:${releaseId}`,
+      releaseSetId: standardReleaseSetId,
+      releaseId,
+      sourceRun: null,
+      sourceImplementationCommit: null,
+      captureRevision: commit,
+      lockRawHash: hash,
+      ctkgDatasetAvailability: 'UNAVAILABLE',
+      ctkgDatasetHash: null,
+      ctkgDatasetPublicationIdentity: null,
+      ctkgDatasetResolvableLocation: null,
+      revisionRegistryAvailability: 'UNAVAILABLE',
+      revisionRegistryVersion: null,
+      revisionRegistryHash: null,
+      objectCount: 0,
+      sourceMappingCount: 0,
+      goldRelationCount: 0,
+      silverRelationCount: 0,
+      sourceObjectCount: 0,
+      evidenceSegmentCount: 0,
+      candidateState: ACCEPTED_CANDIDATE_STATE,
+      importedAt: new Date('2026-07-29T00:00:00.000Z'),
+      schemaVersion: CTKG_0_2_SCHEMA_VERSION,
+      upstreamReleaseId: releaseId,
+      projectionId: 'ctr:projection:control-theory-engineering-v0.3:act-v2',
+      projectionDigest: standardDigest,
+      sourceDatasetHash: hash,
+      upstreamPublicationCommit: commit,
+      upstreamClosedCommit: null,
+      releaseEntryCount: releaseEntries.length,
+      projectionNodeCount: nodeCount,
+      projectionLinkCount: linkCount,
+      upstreamRagReferenceCount: 0,
+      artifactCount: null,
+      componentCount: 1,
+      bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      bundleId: 'ctb:control-theory-engineering-v0.3:r2',
+      bundleRevision: 2,
+      bundleDigest: hash,
+      bundleKind: 'aggregate',
+      releaseStage: 'stable',
+      manifestRawSha256: hash,
+      schemaContractVersion: CTKG_0_2_SCHEMA_VERSION,
+    },
+    objects: [],
+    relations: [],
+    sourceMappings: [],
+    sourceObjects: [],
+    evidence: [],
+    releaseEntries,
+    projectionNodes,
+    projectionLinks,
+    upstreamRagReferences: [],
+    releaseArtifacts: [],
+    releaseComponents: [{
+      releaseId,
+      ordinal: 0,
+      componentReleaseId: 'ctr:root-locus-engineering-v0.1',
+      releaseVersion: 'root-locus-engineering-v0.1',
+      protocol: 'legacy_exact',
+      controlledPath: 'course-content/authoring/knowledge/releases/root-locus-engineering-v0.1',
+      releaseHash: hash,
+      releaseRawSha256: hash,
+      sha256sumsSha256: null,
+      referenceKind: 'legacy_exact',
+      componentRole: 'module',
+      payload: {},
+    }],
+    bundleReceipt,
+    bundleArtifacts: bundleReceipt
+      ? [
+          {
+            bundleReceiptId: bundleReceipt.id,
+            relativePath: 'bundle-manifest.json',
+            ordinal: 0,
+            mediaType: 'application/json',
+            sha256: hash,
+            byteLength: 12,
+            role: 'manifest',
+            profile: null,
+            contractVersion: 'actkg-public-bundle-manifest/1',
+            required: true,
+            recordCount: null,
+          },
+          {
+            bundleReceiptId: bundleReceipt.id,
+            relativePath: 'control-theory-engineering-v0.3.release.json',
+            ordinal: 1,
+            mediaType: 'application/json',
+            sha256: hash,
+            byteLength: 12,
+            role: 'release',
+            profile: null,
+            contractVersion: 'ctkg-release/0.2',
+            required: true,
+            recordCount: null,
+          },
+          {
+            bundleReceiptId: bundleReceipt.id,
+            relativePath: 'control-theory-engineering-v0.3.act-projection.json',
+            ordinal: 2,
+            mediaType: 'application/json',
+            sha256: hash,
+            byteLength: 12,
+            role: 'projection',
+            profile: 'runtime',
+            contractVersion: 'ctkg-graph-projection/0.2',
+            required: true,
+            recordCount: nodeCount,
+          },
+          {
+            bundleReceiptId: bundleReceipt.id,
+            relativePath: 'ctkg.schema.json',
+            ordinal: 3,
+            mediaType: 'application/json',
+            sha256: hash,
+            byteLength: 12,
+            role: 'ctkg_schema',
+            profile: null,
+            contractVersion: 'ctkg-json-schema/0.2',
+            required: true,
+            recordCount: null,
+          },
+          {
+            bundleReceiptId: bundleReceipt.id,
+            relativePath: 'control-theory-engineering-v0.3.rag-crosswalk.jsonl',
+            ordinal: 4,
+            mediaType: 'application/x-ndjson',
+            sha256: hash,
+            byteLength: 12,
+            role: 'rag_crosswalk',
+            profile: null,
+            contractVersion: 'actkg-rag-crosswalk/1',
+            required: true,
+            recordCount: 0,
+          },
+        ]
+      : [],
+    projectionIdentities: [
+      {
+        releaseId,
+        projectionId: 'ctr:projection:control-theory-engineering-v0.3:act-v2',
+        ordinal: 0,
+        profile: 'runtime',
+        projectionProfile: 'ctr:profile:control-theory-engineering-v0.3:act-v2',
+        versionDigest: standardDigest,
+        sourceRelease: releaseId,
+        sourceReleaseHash: hash,
+        sourceDatasetHash: hash,
+        nodeCount,
+        linkCount,
+        artifactPath: 'control-theory-engineering-v0.3.act-projection.json',
+        artifactSha256: hash,
+        isRuntime: true,
+        bundleReceiptId: bundleReceipt?.id ?? null,
+      },
+      {
+        releaseId,
+        projectionId: 'ctr:projection:control-theory-engineering-v0.3:domain-v2',
+        ordinal: 1,
+        profile: 'domain',
+        projectionProfile: 'ctr:profile:control-theory-engineering-v0.3:domain-v2',
+        versionDigest: 'd'.repeat(64),
+        sourceRelease: releaseId,
+        sourceReleaseHash: hash,
+        sourceDatasetHash: hash,
+        nodeCount,
+        linkCount,
+        artifactPath: 'control-theory-engineering-v0.3.domain-projection.json',
+        artifactSha256: hash,
+        isRuntime: false,
+        bundleReceiptId: bundleReceipt?.id ?? null,
+      },
+    ],
+    linkMetadata: [],
+  };
+}
+
+describe('AuthoritativeKnowledgeRepository standard public Bundle candidates', () => {
+  it('reads an explicit standard candidate with multi-Projection identities', async () => {
+    const snapshot = standardFixture({ counts: { nodes: 3, links: 2, entries: 6 } });
+    const result = await new AuthoritativeKnowledgeRepository(
+      mockDatabase(snapshot).database,
+    ).read(standardSelector);
+    expect(result.status).toBe('available');
+    if (result.status === 'available') {
+      expect(result.snapshot.historical).toBe(true);
+      expect(result.snapshot.productionAuthoritative).toBe(false);
+      expect(result.snapshot.projectionNodes).toHaveLength(3);
+      expect(result.snapshot.projectionLinks).toHaveLength(2);
+      expect(result.snapshot.projectionIdentities).toHaveLength(2);
+      expect(result.snapshot.bundleReceipt?.candidateState).toBe(ACCEPTED_CANDIDATE_STATE);
+      expect(result.snapshot.release.protocol).toBe(STANDARD_PUBLIC_BUNDLE_PROTOCOL);
+    }
+  });
+
+  it('preserves unregistered types/predicates for generic read-only projection', async () => {
+    const snapshot = standardFixture({ unregistered: true });
+    const canvas = buildCanvasProjection(snapshot, support);
+    expect(canvas.projectionVersion).toBe('act.canvas.v2');
+    expect(canvas.nodes.some((node) => node.canonicalType === 'FutureSchemaType')).toBe(true);
+    expect(canvas.relations.some((relation) => relation.predicate === 'future_predicate')).toBe(true);
+    expect(
+      canvas.nodes.find((node) => node.canonicalType === 'FutureSchemaType')?.semanticSupport,
+    ).toEqual({ supported: false, readOnly: true });
+  });
+
+  it('fails closed when the accepted Bundle receipt is missing', async () => {
+    const snapshot = standardFixture({ missingBundleReceipt: true });
+    const result = await new AuthoritativeKnowledgeRepository(
+      mockDatabase(snapshot).database,
+    ).read(standardSelector);
+    expect(result.status).toBe('drift');
+    if (result.status === 'drift') {
+      expect(result.diagnostics.map((item) => item.code)).toEqual(
+        expect.arrayContaining(['bundle-receipt-missing']),
+      );
+    }
+  });
+
+  it('keeps #1125 exact diagnosis free of Manifest-only Bundle requirements', async () => {
+    const result = await new AuthoritativeKnowledgeRepository(
+      mockDatabase(aggregateFixture()).database,
+    ).read(aggregateSelector);
+    expect(result.status).toBe('available');
+    if (result.status === 'available') {
+      expect(result.snapshot.bundleReceipt).toBeUndefined();
+      expect(result.snapshot.receipt?.candidateState).toBe('CANDIDATE');
+    }
+  });
+
+  it('rejects active and legacy selectors without reading standard candidate rows', async () => {
+    const { database, transaction } = mockDatabase(standardFixture());
+    const repository = new AuthoritativeKnowledgeRepository(database);
+    await expect(repository.read({ authorityState: 'active' })).resolves.toMatchObject({
+      status: 'unavailable',
+      reason: 'active-pointer-unavailable',
+    });
+    await expect(repository.read({ authorityState: 'legacy' })).resolves.toMatchObject({
+      status: 'unavailable',
+      reason: 'legacy-outside-repository',
+    });
+    expect(transaction).not.toHaveBeenCalled();
+  });
+
+  it('marks non-default standard ReleaseSets as historical explicit candidates', async () => {
+    const snapshot = standardFixture();
+    expect(snapshot.releaseSet.id).not.toBe(CURRENT_AGGREGATE_RELEASE_SET_ID);
+    expect(snapshot.historical).toBe(true);
+    const canvas = buildCanvasProjection(snapshot, support);
+    expect(canvas.source.historical).toBe(true);
+    expect(canvas.source.productionAuthoritative).toBe(false);
+    expect(canvas.source.projectionDigest).toBe(standardDigest);
+  });
+
+  it('keeps exact #1125 projection identity free of standard runtime own-keys', () => {
+    const canvas = buildCanvasProjection(aggregateFixture(), support);
+    expect(Object.prototype.hasOwnProperty.call(canvas.source, 'runtimeProjectionId')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(canvas.source, 'runtimeProjectionProfile')).toBe(false);
+    expect(canvas.source.runtimeProjectionId).toBeUndefined();
+    expect(canvas.source.runtimeProjectionProfile).toBeUndefined();
+  });
+
+  it('preserves exact #1125 cache keys without runtime Projection segments', () => {
+    const base = {
+      projectionVersion: 'act.canvas.v2' as const,
+      authorityState: 'candidate' as const,
+      releaseSetId: CURRENT_AGGREGATE_RELEASE_SET_ID,
+      releaseId: CURRENT_AGGREGATE_RELEASE_ID,
+      releaseHash: hash,
+      sourceDatasetHash: aggregateDatasetHash,
+      projectionDigest: aggregateDigest,
+      role: 'NONE' as const,
+      support,
+    };
+    // Pre-#1131 exact key shape (no runtimeProjection* segments).
+    const legacyExactKey = [
+      base.projectionVersion,
+      base.authorityState,
+      base.releaseSetId,
+      base.releaseId,
+      base.releaseHash,
+      base.sourceDatasetHash,
+      base.projectionDigest,
+      base.role,
+      '',
+      consumerSupportDigest(base.support),
+    ].join('|');
+    expect(buildProjectionCacheKey(base)).toBe(legacyExactKey);
+    // Explicit empty-string placeholders must still differ from omission only when
+    // at least one runtime field is a string — exact callers omit both.
+    expect(buildProjectionCacheKey({
+      ...base,
+      runtimeProjectionId: 'ctr:projection:should-not-be-used-for-exact',
+      runtimeProjectionProfile: 'ctr:profile:should-not-be-used-for-exact',
+    })).not.toBe(legacyExactKey);
+  });
+
+  it('binds standard candidate runtime Projection identity into source and cache keys', () => {
+    const snapshot = standardFixture();
+    const canvas = buildCanvasProjection(snapshot, support);
+    expect(canvas.source.runtimeProjectionId).toBe(
+      'ctr:projection:control-theory-engineering-v0.3:act-v2',
+    );
+    expect(canvas.source.runtimeProjectionProfile).toBe(
+      'ctr:profile:control-theory-engineering-v0.3:act-v2',
+    );
+    const base = {
+      projectionVersion: 'act.canvas.v2' as const,
+      authorityState: 'candidate' as const,
+      releaseSetId: standardReleaseSetId,
+      releaseId: standardReleaseId,
+      releaseHash: hash,
+      sourceDatasetHash: hash,
+      projectionDigest: standardDigest,
+      role: 'NONE' as const,
+      support,
+    };
+    const withoutRuntime = buildProjectionCacheKey(base);
+    const withRuntime = buildProjectionCacheKey({
+      ...base,
+      runtimeProjectionId: canvas.source.runtimeProjectionId!,
+      runtimeProjectionProfile: canvas.source.runtimeProjectionProfile!,
+    });
+    expect(withRuntime).not.toBe(withoutRuntime);
+    expect(withRuntime).toContain(canvas.source.runtimeProjectionId!);
+    expect(withRuntime).toContain(canvas.source.runtimeProjectionProfile!);
+  });
+
+  it('aligns standard migration-review Artifact expected/actual counts with Bundle receipt', () => {
+    const snapshot = standardFixture();
+    const review = buildMigrationReviewProjection(snapshot, []);
+    expect(snapshot.receipt?.artifactCount).toBeNull();
+    expect(snapshot.bundleReceipt?.artifactCount).toBe(5);
+    expect(snapshot.bundleArtifacts).toHaveLength(5);
+    expect(review.ingest.expectedCounts).toMatchObject({
+      artifacts: 5,
+      components: 1,
+    });
+    expect(review.ingest.actualCounts).toMatchObject({
+      artifacts: 5,
+      components: 1,
+    });
+    expect(review.ingest.expectedCounts?.artifacts).toBe(review.ingest.actualCounts.artifacts);
+
+    // Standard candidates without an accepted Bundle receipt must fail closed
+    // rather than emit invented Artifact expected counts.
+    const missingPackaging = standardFixture();
+    missingPackaging.bundleReceipt = null;
+    expect(missingPackaging.bundleArtifacts?.length).toBeGreaterThan(0);
+    expect(() => buildMigrationReviewProjection(missingPackaging, [])).toThrow(
+      /requires an accepted Bundle receipt with numeric artifactCount/u,
+    );
+
+    const nonNumeric = standardFixture();
+    nonNumeric.bundleReceipt = {
+      ...nonNumeric.bundleReceipt!,
+      artifactCount: Number.NaN,
+    };
+    expect(() => buildMigrationReviewProjection(nonNumeric, [])).toThrow(
+      /requires an accepted Bundle receipt with numeric artifactCount/u,
+    );
   });
 });

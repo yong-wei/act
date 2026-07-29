@@ -110,7 +110,7 @@ back to that adapter.
 
 | Concern | Owner |
 | --- | --- |
-| Candidate persistence / receipts | later import change |
+| Candidate persistence / receipts | `import-compatible-actkg-public-bundles` → `scripts/actkg-release/standard-bundle-import.ts` and `STANDARD-BUNDLE-CANDIDATE-IMPORT.md` |
 | ReleaseSet Delta | later import/governance change |
 | Semantic course/resource governance | course-coverage / resource changes |
 | Production selector activation | explicit production switch change |

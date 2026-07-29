@@ -102,6 +102,8 @@
     "db:sync-remote": "bash ./scripts/db/sync-remote-db-to-local.sh",
     "db:backfill-facts": "npx tsx ./scripts/db/backfill-learning-facts-from-event-batches.ts",
     "db:import-authoritative-actkg-release": "tsx ./scripts/db/import-authoritative-actkg-release.ts",
+    "db:import-compatible-actkg-public-bundle": "tsx ./scripts/db/import-compatible-actkg-public-bundle.ts",
+    "test:standard-actkg-bundle-import-postgres": "tsx ./scripts/tests/test-standard-actkg-bundle-import-postgres.ts",
     "db:import-course-coverage-overlay": "tsx ./scripts/db/import-course-coverage-overlay.ts",
     "db:import-canonical-resource-binding-shadow": "tsx ./scripts/db/import-canonical-resource-binding-shadow.ts",
     "db:verify-authoritative-knowledge-deployment": "tsx ./scripts/db/import-authoritative-actkg-release.ts --verify-only && tsx ./scripts/db/import-course-coverage-overlay.ts --verify-only && tsx ./scripts/db/import-canonical-resource-binding-shadow.ts --verify-only",
