@@ -1841,6 +1841,26 @@ export async function loadAndValidatePublicBundleV1(options: {
     crosswalk.push({ publishedEntityId, retrievalChunkId, citationTargetId });
   }
 
+  const provenanceArtifacts = byRole.get('provenance_stubs') ?? [];
+  if (provenanceArtifacts.length > 1) {
+    integrity('Bundle must not contain more than one provenance_stubs Artifact');
+  }
+  if (provenanceArtifacts.length === 1) {
+    const provenance = loadJson(
+      provenanceArtifacts[0]!.bytes,
+      provenanceArtifacts[0]!.descriptor.path,
+    );
+    const graphRagRuntimeIntake = provenance.graph_rag_runtime_intake;
+    if (graphRagRuntimeIntake !== undefined && graphRagRuntimeIntake !== 'BLOCKED') {
+      integrity(
+        `provenance graph_rag_runtime_intake must remain BLOCKED, received ${String(graphRagRuntimeIntake)}`,
+      );
+    }
+  }
+  // Older compatible Bundles may omit the explicit disposition. They remain
+  // fail-closed, and a supplied disposition is accepted only when BLOCKED.
+  const graphRagRuntimeIntakeBlocked = true as const;
+
   const reportArtifacts = byRole.get('validation_report') ?? [];
   if (reportArtifacts.length !== 1) integrity('Bundle must contain one validation_report Artifact');
   const report = loadJson(reportArtifacts[0]!.bytes, reportArtifacts[0]!.descriptor.path);
@@ -2020,6 +2040,7 @@ export async function loadAndValidatePublicBundleV1(options: {
 
   return {
     captureRevision,
+    graphRagRuntimeIntakeBlocked,
     bundleIdentity: {
       bundleId: lock.bundle.bundle_id,
       bundleRevision: lock.bundle.bundle_revision,

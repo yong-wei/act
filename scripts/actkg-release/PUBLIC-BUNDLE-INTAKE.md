@@ -13,8 +13,8 @@ those belong to downstream changes.
 | CTKG Schema version | `0.2.0` |
 | CTKG Schema raw SHA-256 | `3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de` |
 | Lock version | `actkg-release-set-lock/v3` |
-| Upstream reviewed HEAD | `7f2ff5f154acf7b34a89e67b64867f16ce5b111e` |
-| Positive packaging fixture | `control-theory-engineering-v0.3-r2` |
+| Upstream reviewed packaging commit | `35250ad0ac81f1f020107d831a0f2a4b290c39a0` |
+| Positive packaging fixture | `control-theory-engineering-v0.5` |
 | Negative incomplete fixture | `scripts/actkg-release/fixtures/control-theory-engineering-v0.3-unfixed` |
 
 Machine-readable identities live in:
@@ -25,20 +25,36 @@ Machine-readable identities live in:
 
 ## Current compatible content release
 
-The current reviewed intake is the stable v3E three-layer ReleaseSet published
-from ActKG source commit
-`0c9775f25eab5a4f45b4d74e68de4dcf0cbcef46`:
+The current reviewed governance intake is the M1G stability ReleaseSet. Its
+Bundle Manifest and Validation Report bind semantic source commit
+`1255a337a8863e83d8f0d10b4afb09ac8ba76c68`:
 
 | Layer | Publication tag | Bundle digest | Release hash |
 | --- | --- | --- | --- |
-| Module | `time-domain-analysis-engineering-v0.1` | `20807dfe406903bd9a8a4a238717d49f4abbacb3e041dab5be6068d126ec7eeb` | `52da8d2147f44749d4e1f8ffd99090f5e0d8c6ba6a8915433041d163cb51aff6` |
-| Integration | `control-theory-integration-v0.2` | `f1b75e4d5e98c360e6f60bdc6abd130b3bbfd130df9cc04141d389f8d3348ead` | `c35c5acac51de4fa9a951df5fdd6c96041795a406ed7555163953f45068d4c1a` |
-| Aggregate | `control-theory-engineering-v0.4` | `e17a46ce3a159cf9b0a1e35b5eddd68f7c8a21ac97ebedd281c2f18215d285c7` | `46ce6f09afba677358749f854d2797895e05dda875c8b1c197437d742c7f0b4b` |
+| Module | `stability-analysis-engineering-v0.1` | `0c484509f524d10a9ad1c6b273c93cdb885327ce951a084a26fcfc1cf5965e67` | `70fd22fba92301085e73055caa4c98e1428762eb954610abaeceb0b4bf333ece` |
+| Integration | `control-theory-integration-v0.3` | `f0d3866fe65e9ac16edaf2d4cedf605f5a4ae94131eb4869c8678604acc20412` | `345707df46013c88db5fe7a620e26d54378efc5b474f2f506422204ddbe0c205` |
+| Aggregate | `control-theory-engineering-v0.5` | `186ed42ff29c038e6c7ce43265d86c4e9866c13bd9fec2651209668d8f6302c2` | `33e464b0617c21dec92a6ed98a0b95f78e8e27f31e4e988dc59de21afd5b4bde` |
 
 The aggregate is pinned by
-`course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.4.json`.
-The module and integration Bundles are validated component boundaries; only the
-aggregate is a top-level candidate import target.
+`course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.5.json`.
+Its component chain preserves the legacy root-locus and system-modeling
+packages, reuses the standard time-domain module, and adds the standard
+stability module and v0.3 integration Bundle. Only the aggregate is a
+top-level governance intake target.
+
+The annotated source tags
+`stability-analysis-engineering-v0.1-source`,
+`control-theory-integration-v0.3-source`, and
+`control-theory-engineering-v0.5-source` currently dereference to packaging
+commit `35250ad0ac81f1f020107d831a0f2a4b290c39a0`. That tag target does not
+replace the embedded semantic `source_revision.commit` above.
+
+M1G provenance explicitly declares
+`graph_rag_runtime_intake=BLOCKED`. The compatibility layer exposes this as
+`ValidatedActKGBundle.graphRagRuntimeIntakeBlocked=true` and rejects any
+different declared disposition. Older compatible packages without this field
+also remain blocked by default. This is governance intake only: no Graph-RAG
+runtime path, selector, API, or UI is enabled.
 
 ## Ordinary compatible-release intake
 

@@ -40,6 +40,9 @@ const V02_PATH = 'course-content/authoring/knowledge/releases/control-theory-eng
 const LOCK_V3 = DEFAULT_PUBLIC_BUNDLE_LOCK_PATH;
 const V4_LOCK =
   'course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.4.json';
+const V5_PATH = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.5';
+const V5_LOCK =
+  'course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.5.json';
 const UNFIXED = 'scripts/actkg-release/fixtures/control-theory-engineering-v0.3-unfixed';
 const COMPONENT_PATHS = [
   'course-content/authoring/knowledge/releases/root-locus-engineering-v0.1',
@@ -51,6 +54,13 @@ const V4_COMPONENT_PATHS = [
   'course-content/authoring/knowledge/releases/system-modeling-engineering-v0.1',
   'course-content/authoring/knowledge/releases/time-domain-analysis-engineering-v0.1',
   'course-content/authoring/knowledge/releases/control-theory-integration-v0.2',
+] as const;
+const V5_COMPONENT_PATHS = [
+  'course-content/authoring/knowledge/releases/root-locus-engineering-v0.1',
+  'course-content/authoring/knowledge/releases/system-modeling-engineering-v0.1',
+  'course-content/authoring/knowledge/releases/time-domain-analysis-engineering-v0.1',
+  'course-content/authoring/knowledge/releases/stability-analysis-engineering-v0.1',
+  'course-content/authoring/knowledge/releases/control-theory-integration-v0.3',
 ] as const;
 
 /** Real Git HEAD of the repository; never a fabricated digest. */
@@ -142,6 +152,75 @@ async function v4FixtureRoot(): Promise<string> {
       '-q',
       '-m',
       'test: capture v4 fixture',
+    ],
+    { cwd: dir },
+  );
+  return dir;
+}
+
+async function m1gFixtureRoot(graphRagRuntimeIntake = 'BLOCKED'): Promise<string> {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'actkg-public-bundle-m1g-'));
+  await copyTree(V5_PATH, dir, V5_PATH);
+  await copyTree(V5_LOCK, dir, V5_LOCK);
+  for (const component of V5_COMPONENT_PATHS) {
+    await copyTree(component, dir, component);
+  }
+  for (const adapterPath of PUBLIC_BUNDLE_ADAPTER_CAPTURE_PATHS) {
+    await copyTree(adapterPath, dir, adapterPath);
+  }
+
+  if (graphRagRuntimeIntake !== 'BLOCKED') {
+    const bundleDir = path.join(dir, V5_PATH);
+    const manifestPath = path.join(bundleDir, 'bundle-manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Manifest;
+    const provenanceArtifact = manifest.artifacts.find(
+      (artifact) => artifact.role === 'provenance_stubs',
+    )!;
+    const provenancePath = path.join(bundleDir, String(provenanceArtifact.path));
+    const provenance = JSON.parse(await readFile(provenancePath, 'utf8')) as JsonObject;
+    provenance.graph_rag_runtime_intake = graphRagRuntimeIntake;
+    const provenanceBytes = await writeJson(provenancePath, provenance);
+    provenanceArtifact.sha256 = sha256(provenanceBytes);
+    provenanceArtifact.byte_length = provenanceBytes.byteLength;
+
+    const reportArtifact = manifest.artifacts.find(
+      (artifact) => artifact.role === 'validation_report',
+    )!;
+    const reportPath = path.join(bundleDir, String(reportArtifact.path));
+    const report = JSON.parse(await readFile(reportPath, 'utf8')) as JsonObject;
+    const artifactValidation = report.artifact_validation as Array<JsonObject>;
+    const provenanceEvidence = artifactValidation.find(
+      (row) => row.path === provenanceArtifact.path,
+    )!;
+    provenanceEvidence.sha256 = provenanceArtifact.sha256;
+    provenanceEvidence.byte_length = provenanceArtifact.byte_length;
+    const reportBytes = await writeJson(reportPath, report);
+    reportArtifact.sha256 = sha256(reportBytes);
+    reportArtifact.byte_length = reportBytes.byteLength;
+
+    manifest.bundle_digest = recomputeDigest(manifest);
+    const manifestBytes = await writeJson(manifestPath, manifest);
+    const lockPath = path.join(dir, V5_LOCK);
+    const lock = JSON.parse(await readFile(lockPath, 'utf8')) as ReleaseSetLockV3;
+    lock.bundle.bundle_digest = manifest.bundle_digest;
+    lock.bundle.manifest_raw_sha256 = sha256(manifestBytes);
+    await writeJson(lockPath, lock);
+    await rewriteSha256Sums(bundleDir);
+  }
+
+  execFileSync('git', ['init', '-q'], { cwd: dir });
+  execFileSync('git', ['add', '.'], { cwd: dir });
+  execFileSync(
+    'git',
+    [
+      '-c',
+      'user.name=ACT Test',
+      '-c',
+      'user.email=act-test@example.invalid',
+      'commit',
+      '-q',
+      '-m',
+      'test: capture m1g fixture',
     ],
     { cwd: dir },
   );
@@ -657,6 +736,53 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
           bundleDigest: 'f1b75e4d5e98c360e6f60bdc6abd130b3bbfd130df9cc04141d389f8d3348ead',
         },
       ]);
+    } finally {
+      await rm(fixture, { recursive: true, force: true });
+    }
+  });
+
+  it('admits the M1G stability aggregate while keeping Graph-RAG runtime intake blocked', async () => {
+    const fixture = await m1gFixtureRoot();
+    try {
+      const validated = await loadAndValidatePublicBundleV1({
+        root: fixture,
+        lockPath: V5_LOCK,
+        bundlePath: V5_PATH,
+        captureRevision: realGitHead(fixture),
+        gitRoot: fixture,
+      });
+
+      expect(validated.releaseSetIdentity.releaseSetId).toBe('actkg-authoritative-candidate-v5');
+      expect(validated.bundleIdentity.sourceCommit).toBe('1255a337a8863e83d8f0d10b4afb09ac8ba76c68');
+      expect(validated.graphRagRuntimeIntakeBlocked).toBe(true);
+      expect(validated.components.map((component) => component.releaseId)).toEqual([
+        'ctr:root-locus-engineering-v0.1',
+        'ctr:release:system-modeling-engineering-v0.1',
+        'ctr:release:time-domain-analysis-engineering-v0.1',
+        'ctr:release:stability-analysis-engineering-v0.1',
+        'ctr:release:control-theory-integration-v0.3',
+      ]);
+      expect(validated.selectedRuntimeProjection.identity.profile).toBe('runtime');
+      expect(Object.keys(validated)).not.toContain('selector');
+    } finally {
+      await rm(fixture, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects an M1G provenance disposition that would enable Graph-RAG runtime intake', async () => {
+    const fixture = await m1gFixtureRoot('ALLOWED');
+    try {
+      await expectRejection(
+        () => loadAndValidatePublicBundleV1({
+          root: fixture,
+          lockPath: V5_LOCK,
+          bundlePath: V5_PATH,
+          captureRevision: realGitHead(fixture),
+          gitRoot: fixture,
+        }),
+        'INTEGRITY_REJECTED',
+        /graph_rag_runtime_intake must remain BLOCKED/u,
+      );
     } finally {
       await rm(fixture, { recursive: true, force: true });
     }

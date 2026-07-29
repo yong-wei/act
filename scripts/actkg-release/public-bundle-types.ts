@@ -145,6 +145,11 @@ export interface RecomputedStatistics {
 export interface ValidatedActKGBundle {
   /** Trusted ACT capture Git revision bound to this validation result. */
   captureRevision: string;
+  /**
+   * Governance disposition only. A true value does not enable Graph-RAG
+   * consumption; it records that runtime intake remains blocked.
+   */
+  graphRagRuntimeIntakeBlocked: true;
   bundleIdentity: BundleIdentity;
   releaseIdentity: ReleaseIdentity;
   releaseSetIdentity: ReleaseSetIdentity;
