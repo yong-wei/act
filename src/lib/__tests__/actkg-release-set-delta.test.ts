@@ -14,6 +14,8 @@ import {
   isPackagingRevisionOnly,
   isStrictlyPriorAnchor,
   parseUpstreamReleaseDiff,
+  resolveAuthoritativeRelationReleaseTier,
+  assertRelationTierProtocolShape,
   RELEASE_SET_DELTA_ALGORITHM_VERSION,
 } from '../../../scripts/actkg-release/release-set-delta';
 import type {
@@ -25,6 +27,10 @@ import type {
   UpstreamReleaseDiffV1,
 } from '../../../scripts/actkg-release/release-set-delta-types';
 import type { AcceptedAnchor } from '../../../scripts/actkg-release/release-set-delta-load';
+import {
+  CTKG_0_2_AGGREGATE_PROTOCOL,
+  STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+} from '../authoritative-knowledge/contracts';
 
 const CAPTURE = 'a'.repeat(40);
 
@@ -697,6 +703,168 @@ describe('actkg release-set delta pure compute', () => {
       signalDigest: '0'.repeat(64),
     };
     expect(() => assertSignalsAreGeneric([forged])).toThrow(/does not match recomputed body digest/i);
+  });
+
+  it('resolves relation releaseTier by protocol contract (not payload or row-count)', () => {
+    // Exact path: entry only. Stray metadata values are ignored by the resolver
+    // (presence of LinkMetadata rows is a separate load-level fail closed).
+    expect(resolveAuthoritativeRelationReleaseTier({
+      relationId: 'ctr:r1',
+      entryReleaseTier: 'gold',
+      requireLinkMetadata: false,
+    })).toBe('gold');
+    expect(resolveAuthoritativeRelationReleaseTier({
+      relationId: 'ctr:r1',
+      entryReleaseTier: 'gold',
+      metadataReleaseTier: 'silver',
+      requireLinkMetadata: false,
+    })).toBe('gold');
+
+    // Standard path: entry + metadata must agree.
+    expect(resolveAuthoritativeRelationReleaseTier({
+      relationId: 'ctr:r1',
+      entryReleaseTier: 'silver',
+      metadataReleaseTier: 'silver',
+      requireLinkMetadata: true,
+    })).toBe('silver');
+
+    // Standard path with empty/missing metadata fails closed (not entry-only fallback).
+    expect(() => resolveAuthoritativeRelationReleaseTier({
+      relationId: 'ctr:r1',
+      entryReleaseTier: 'gold',
+      requireLinkMetadata: true,
+      metadataReleaseTier: undefined,
+    })).toThrow(/missing authoritative ProjectionLinkMetadata releaseTier/i);
+
+    expect(() => resolveAuthoritativeRelationReleaseTier({
+      relationId: 'ctr:r1',
+      entryReleaseTier: 'gold',
+      requireLinkMetadata: true,
+      metadataReleaseTier: '',
+    })).toThrow(/missing authoritative ProjectionLinkMetadata releaseTier/i);
+
+    // Standard partial absence for one relation (undefined map get) fails closed.
+    expect(() => resolveAuthoritativeRelationReleaseTier({
+      relationId: 'ctr:missing-meta',
+      entryReleaseTier: 'gold',
+      requireLinkMetadata: true,
+      metadataReleaseTier: undefined,
+    })).toThrow(/ctr:missing-meta.*ProjectionLinkMetadata/i);
+
+    // Tier disagreement fails closed.
+    expect(() => resolveAuthoritativeRelationReleaseTier({
+      relationId: 'ctr:r1',
+      entryReleaseTier: 'gold',
+      metadataReleaseTier: 'silver',
+      requireLinkMetadata: true,
+    })).toThrow(/releaseTier mismatch/i);
+
+    // Missing entry fails closed (never "unknown").
+    expect(() => resolveAuthoritativeRelationReleaseTier({
+      relationId: 'ctr:r1',
+      entryReleaseTier: null,
+      requireLinkMetadata: false,
+    })).toThrow(/missing authoritative ReleaseEntry releaseTier/i);
+
+    expect(() => resolveAuthoritativeRelationReleaseTier({
+      relationId: 'ctr:r1',
+      entryReleaseTier: '   ',
+      requireLinkMetadata: false,
+    })).toThrow(/missing authoritative ReleaseEntry releaseTier/i);
+  });
+
+  it('enforces relation tier protocol shape without row-count heuristics', () => {
+    // Exact: zero metadata is the contract; any rows fail closed.
+    expect(assertRelationTierProtocolShape({
+      releaseId: 'ctr:exact',
+      protocol: CTKG_0_2_AGGREGATE_PROTOCOL,
+      projectionLinkCount: 97,
+      linkMetadataRowCount: 0,
+    })).toEqual({ requireLinkMetadata: false });
+    expect(() => assertRelationTierProtocolShape({
+      releaseId: 'ctr:exact',
+      protocol: CTKG_0_2_AGGREGATE_PROTOCOL,
+      projectionLinkCount: 97,
+      linkMetadataRowCount: 1,
+    })).toThrow(/must not carry ProjectionLinkMetadata/i);
+
+    // Standard: full-empty metadata table with projection links fails closed.
+    expect(() => assertRelationTierProtocolShape({
+      releaseId: 'ctr:std',
+      protocol: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      projectionLinkCount: 10,
+      linkMetadataRowCount: 0,
+    })).toThrow(/missing ProjectionLinkMetadata/i);
+
+    // Standard with any metadata rows present still requires per-relation
+    // agreement later; shape check only rejects full empty.
+    expect(assertRelationTierProtocolShape({
+      releaseId: 'ctr:std',
+      protocol: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      projectionLinkCount: 10,
+      linkMetadataRowCount: 9,
+    })).toEqual({ requireLinkMetadata: true });
+
+    expect(assertRelationTierProtocolShape({
+      releaseId: 'ctr:std',
+      protocol: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      projectionLinkCount: 10,
+      linkMetadataRowCount: 10,
+    })).toEqual({ requireLinkMetadata: true });
+  });
+
+  it('emits relationTierChanged signals when only relation tier changes', () => {
+    const objects = [
+      obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' }),
+      obj({ canonicalId: 'ctc:b', canonicalType: 'DomainConcept' }),
+    ];
+    const base = snapshot({
+      releaseId: 'ctr:release:v1',
+      releaseHash: '1'.repeat(64),
+      objects,
+      relations: [rel({
+        relationId: 'ctr:r1',
+        sourceId: 'n1',
+        targetId: 'n2',
+        releaseTier: 'silver',
+      })],
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:v2',
+      releaseHash: '2'.repeat(64),
+      objects,
+      relations: [rel({
+        relationId: 'ctr:r1',
+        sourceId: 'n1',
+        targetId: 'n2',
+        releaseTier: 'gold',
+      })],
+    });
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, {
+        releaseHash: candidate.releaseHash,
+      }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, {
+        releaseHash: base.releaseHash,
+      }),
+      captureRevision: CAPTURE,
+    });
+
+    expect(result.authorizationState).toBe('ACCEPTED');
+    expect(result.details.relations.tierChanged).toEqual(['ctr:r1']);
+    expect(result.details.relations.added).toEqual([]);
+    expect(result.details.relations.removed).toEqual([]);
+    expect(result.details.relations.predicateChanged).toEqual([]);
+    expect(result.summary.relationTierChanged).toBe(1);
+    expect(result.signals).toContainEqual(expect.objectContaining({
+      scope: 'relation',
+      identity: 'ctr:r1',
+      action: 'candidate',
+      reason: 'tier_changed',
+    }));
   });
 
   it('fails closed when persisted signalDigest sets drift from recomputation', async () => {

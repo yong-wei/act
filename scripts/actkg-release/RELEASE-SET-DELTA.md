@@ -59,6 +59,7 @@ course/resource governance and consumer migrations.
 | --- | --- | --- |
 | objects | Canonical / entity id | added, removed, payload_changed, type_changed, tier_changed, superseded |
 | relations | relation id | added, removed, predicate_changed, direction_changed, tier_changed, endpoint_changed |
+| relation tier authority | protocol-keyed: exact=ReleaseEntry only; standard=ReleaseEntry+per-relation LinkMetadata (must agree) | never Projection Link payload; never infer from row counts; missing/mismatch fail closed |
 | Crosswalk | publishedEntityId + retrievalChunkId + citationTargetId | added, removed |
 | components | component release id | added, removed, changed |
 | projections | profile | added_profiles, removed_profiles, digest_changed |

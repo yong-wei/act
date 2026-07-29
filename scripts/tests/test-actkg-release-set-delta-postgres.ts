@@ -30,6 +30,9 @@ import {
 import { loadAndValidatePublicBundleV1 } from '../actkg-release/public-bundle-v1';
 import {
   computeAndPersistReleaseSetDelta,
+  computeReleaseSetDelta,
+  loadExactAcceptedEvidence,
+  loadStandardAcceptedEvidence,
   persistReleaseSetDelta,
   recomputeReleaseSetDelta,
 } from '../actkg-release/release-set-delta';
@@ -202,6 +205,201 @@ async function main(): Promise<void> {
     first.computed.candidateEvidence.evidenceCaptureRevision,
   );
   assert.ok(Array.isArray(persistedRow.identityViolations));
+
+  // 3b) Relation releaseTier authority through public DB evidence loaders
+  // (exact = ReleaseEntry only; standard = Entry + LinkMetadata agreement).
+  const exactLoaded = await loadExactAcceptedEvidence(db, CURRENT_AGGREGATE_RELEASE_ID);
+  const standardLoaded = await loadStandardAcceptedEvidence(
+    db,
+    first.computed.candidateEvidence.bundleReceiptId!,
+  );
+  assert.ok(exactLoaded.snapshot.relations.length > 0);
+  assert.ok(standardLoaded.snapshot.relations.length > 0);
+
+  const exactEntryRows = await db.actkgReleaseEntry.findMany({
+    where: { releaseId: CURRENT_AGGREGATE_RELEASE_ID, entityRole: 'relation' },
+  });
+  const exactEntryTier = new Map(exactEntryRows.map((row) => [row.entityId, row.releaseTier]));
+  assert.equal(await db.actkgProjectionLinkMetadata.count({
+    where: { releaseId: CURRENT_AGGREGATE_RELEASE_ID },
+  }), 0);
+  for (const relation of exactLoaded.snapshot.relations) {
+    assert.notEqual(relation.releaseTier, 'unknown');
+    assert.match(relation.releaseTier, /^(gold|silver|support)$/u);
+    assert.equal(relation.releaseTier, exactEntryTier.get(relation.relationId));
+  }
+
+  const standardEntryRows = await db.actkgReleaseEntry.findMany({
+    where: {
+      releaseId: validatedV03.releaseIdentity.releaseId,
+      entityRole: 'relation',
+    },
+  });
+  const standardMetaRows = await db.actkgProjectionLinkMetadata.findMany({
+    where: { releaseId: validatedV03.releaseIdentity.releaseId },
+  });
+  const standardEntryTier = new Map(standardEntryRows.map((row) => [row.entityId, row.releaseTier]));
+  const standardMetaTier = new Map(standardMetaRows.map((row) => [row.relationId, row.releaseTier]));
+  assert.equal(standardMetaRows.length, standardLoaded.snapshot.relations.length);
+  for (const relation of standardLoaded.snapshot.relations) {
+    assert.notEqual(relation.releaseTier, 'unknown');
+    assert.match(relation.releaseTier, /^(gold|silver|support)$/u);
+    assert.equal(relation.releaseTier, standardEntryTier.get(relation.relationId));
+    assert.equal(relation.releaseTier, standardMetaTier.get(relation.relationId));
+  }
+
+  // 3c) DB snapshot tier-only change through loaders + pure recompute.
+  // Mutate a shared relation on the standard candidate only (entry + metadata).
+  const sharedRelation = standardLoaded.snapshot.relations.find((row) => (
+    exactEntryTier.has(row.relationId)
+    && exactEntryTier.get(row.relationId) === row.releaseTier
+  ));
+  assert.ok(sharedRelation, 'expected at least one shared relation across v0.2 and v0.3');
+  const originalTier = sharedRelation.releaseTier;
+  const mutatedTier = originalTier === 'gold' ? 'silver' : 'gold';
+  const baseStandardSnapshot = standardLoaded.snapshot;
+  const baseStandardEvidence = standardLoaded.evidence;
+
+  await db.actkgReleaseEntry.update({
+    where: {
+      releaseId_entityId: {
+        releaseId: validatedV03.releaseIdentity.releaseId,
+        entityId: sharedRelation.relationId,
+      },
+    },
+    data: { releaseTier: mutatedTier },
+  });
+  await db.actkgProjectionLinkMetadata.update({
+    where: {
+      releaseId_relationId: {
+        releaseId: validatedV03.releaseIdentity.releaseId,
+        relationId: sharedRelation.relationId,
+      },
+    },
+    data: { releaseTier: mutatedTier },
+  });
+
+  const standardAfterTier = await loadStandardAcceptedEvidence(
+    db,
+    first.computed.candidateEvidence.bundleReceiptId!,
+  );
+  const tierOnlyDelta = computeReleaseSetDelta({
+    candidateSnapshot: standardAfterTier.snapshot,
+    candidateEvidence: standardAfterTier.evidence,
+    baseSnapshot: baseStandardSnapshot,
+    baseEvidence: baseStandardEvidence,
+    captureRevision: checkoutRevision,
+  });
+  assert.equal(tierOnlyDelta.classification, 'SEMANTIC_CONTENT_UPDATE');
+  assert.equal(tierOnlyDelta.authorizationState, 'ACCEPTED');
+  assert.ok(
+    tierOnlyDelta.details.relations.tierChanged.includes(sharedRelation.relationId),
+    `expected tierChanged to include ${sharedRelation.relationId}`,
+  );
+  assert.ok(tierOnlyDelta.signals.some((row) => (
+    row.scope === 'relation'
+    && row.identity === sharedRelation.relationId
+    && row.reason === 'tier_changed'
+  )));
+  // Other collections should not invent object churn from a tier-only edit.
+  assert.equal(tierOnlyDelta.details.objects.added.length, 0);
+  assert.equal(tierOnlyDelta.details.objects.removed.length, 0);
+
+  // Restore tiers so later packaging/idempotent paths keep original semantic digests.
+  await db.actkgReleaseEntry.update({
+    where: {
+      releaseId_entityId: {
+        releaseId: validatedV03.releaseIdentity.releaseId,
+        entityId: sharedRelation.relationId,
+      },
+    },
+    data: { releaseTier: originalTier },
+  });
+  await db.actkgProjectionLinkMetadata.update({
+    where: {
+      releaseId_relationId: {
+        releaseId: validatedV03.releaseIdentity.releaseId,
+        relationId: sharedRelation.relationId,
+      },
+    },
+    data: { releaseTier: originalTier },
+  });
+
+  // 3d) Standard path with fully/partially missing LinkMetadata fails closed
+  // (protocol contract — not entry-only fallback). Use a rolled-back transaction
+  // so sealed metadata rows are not permanently deleted.
+  await assert.rejects(
+    () => db!.$transaction(async (tx) => {
+      await tx.actkgProjectionLinkMetadata.deleteMany({
+        where: { releaseId: validatedV03.releaseIdentity.releaseId },
+      });
+      await loadStandardAcceptedEvidence(tx, first.computed.candidateEvidence.bundleReceiptId!);
+    }),
+    /ProjectionLinkMetadata|missing/i,
+  );
+  await assert.rejects(
+    () => db!.$transaction(async (tx) => {
+      await tx.actkgProjectionLinkMetadata.delete({
+        where: {
+          releaseId_relationId: {
+            releaseId: validatedV03.releaseIdentity.releaseId,
+            relationId: sharedRelation.relationId,
+          },
+        },
+      });
+      await loadStandardAcceptedEvidence(tx, first.computed.candidateEvidence.bundleReceiptId!);
+    }),
+    /ProjectionLinkMetadata|missing|releaseTier/i,
+  );
+  await assert.rejects(
+    () => db!.$transaction(async (tx) => {
+      await tx.actkgProjectionLinkMetadata.update({
+        where: {
+          releaseId_relationId: {
+            releaseId: validatedV03.releaseIdentity.releaseId,
+            relationId: sharedRelation.relationId,
+          },
+        },
+        data: { releaseTier: originalTier === 'gold' ? 'support' : 'gold' },
+      });
+      // Entry still has originalTier — mismatch must fail closed.
+      await loadStandardAcceptedEvidence(tx, first.computed.candidateEvidence.bundleReceiptId!);
+    }),
+    /releaseTier mismatch/i,
+  );
+  // Confirm metadata still fully present after rolled-back probes.
+  assert.equal(
+    await db.actkgProjectionLinkMetadata.count({
+      where: { releaseId: validatedV03.releaseIdentity.releaseId },
+    }),
+    standardLoaded.snapshot.relations.length,
+  );
+
+  // 3e) Exact aggregate path must not carry ProjectionLinkMetadata (protocol
+  // drift fails closed — not silently treated as entry-only).
+  await assert.rejects(
+    () => db!.$transaction(async (tx) => {
+      const sampleLink = exactLoaded.snapshot.relations[0]!;
+      await tx.actkgProjectionLinkMetadata.create({
+        data: {
+          releaseId: CURRENT_AGGREGATE_RELEASE_ID,
+          relationId: sampleLink.relationId,
+          ordinal: 0,
+          releaseTier: sampleLink.releaseTier,
+          sourceRelease: CURRENT_AGGREGATE_RELEASE_ID,
+          sourceReleaseHash: exactLoaded.snapshot.releaseHash,
+          evidenceRefs: [],
+          profiles: [],
+          payload: {},
+        },
+      });
+      await loadExactAcceptedEvidence(tx, CURRENT_AGGREGATE_RELEASE_ID);
+    }),
+    /must not carry ProjectionLinkMetadata/i,
+  );
+  assert.equal(await db.actkgProjectionLinkMetadata.count({
+    where: { releaseId: CURRENT_AGGREGATE_RELEASE_ID },
+  }), 0);
 
   // 4) Idempotent recompute + concurrent persist.
   const second = await computeAndPersistReleaseSetDelta(db, {

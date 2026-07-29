@@ -67,6 +67,8 @@ export {
   loadStandardAcceptedEvidence,
   listAcceptedAnchors,
   resolveBaseForCandidate,
+  resolveAuthoritativeRelationReleaseTier,
+  assertRelationTierProtocolShape,
   isStrictlyPriorAnchor,
   anchorSortKey,
 } from './release-set-delta-load';

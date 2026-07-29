@@ -89,18 +89,107 @@ function mapProjectionNode(row: {
   };
 }
 
-function mapProjectionLink(row: {
+/**
+ * Protocol-level relation-tier authority shape.
+ *
+ * Never infer from "how many metadata rows currently happen to exist":
+ * - exact aggregate (#1125): ReleaseEntry only; any LinkMetadata is drift.
+ * - standard public Bundle: per-relation LinkMetadata is mandatory whenever
+ *   projection links exist (full empty table fails closed).
+ * Partial absence / tier mismatch are enforced per relation by
+ * {@link resolveAuthoritativeRelationReleaseTier}.
+ */
+export function assertRelationTierProtocolShape(options: {
+  releaseId: string;
+  protocol: string;
+  projectionLinkCount: number;
+  linkMetadataRowCount: number;
+}): { requireLinkMetadata: boolean } {
+  const isStandardBundle = options.protocol === STANDARD_PUBLIC_BUNDLE_PROTOCOL;
+  const isExactAggregate = options.protocol === CTKG_0_2_AGGREGATE_PROTOCOL;
+
+  if (!isStandardBundle && !isExactAggregate) {
+    fail(`unsupported Release protocol for delta: ${options.protocol}`);
+  }
+
+  if (isExactAggregate && options.linkMetadataRowCount > 0) {
+    // Exact #1125 contract does not store ProjectionLinkMetadata; presence is drift.
+    fail(
+      `exact aggregate Release ${options.releaseId} must not carry ProjectionLinkMetadata `
+      + `(found ${options.linkMetadataRowCount} rows)`,
+    );
+  }
+
+  if (
+    isStandardBundle
+    && options.projectionLinkCount > 0
+    && options.linkMetadataRowCount === 0
+  ) {
+    fail(
+      `standard Bundle Release ${options.releaseId} missing ProjectionLinkMetadata `
+      + `(${options.projectionLinkCount} projection links require per-relation metadata)`,
+    );
+  }
+
+  return { requireLinkMetadata: isStandardBundle };
+}
+
+/**
+ * Resolve authoritative relation releaseTier.
+ *
+ * Contract by release protocol (not by row-count heuristics):
+ * - exact aggregate (#1125): ReleaseEntry.releaseTier only.
+ * - standard public Bundle: ReleaseEntry.releaseTier AND per-relation
+ *   ProjectionLinkMetadata.releaseTier (must agree).
+ * - Projection Link payload is never authoritative (v0.2/v0.3 omit release_tier).
+ */
+export function resolveAuthoritativeRelationReleaseTier(options: {
   relationId: string;
-  relationType: string;
-  direction: string;
-  sourceId: string;
-  targetId: string;
-  payload: unknown;
-}): DeltaRelationRecord {
+  entryReleaseTier: string | null | undefined;
+  metadataReleaseTier?: string | null | undefined;
+  /**
+   * True for standard public Bundle protocol — LinkMetadata is mandatory
+   * per relation regardless of how many metadata rows currently exist.
+   */
+  requireLinkMetadata: boolean;
+}): string {
+  const entryTier = typeof options.entryReleaseTier === 'string'
+    ? options.entryReleaseTier.trim()
+    : '';
+  if (!entryTier) {
+    fail(`relation ${options.relationId} missing authoritative ReleaseEntry releaseTier`);
+  }
+
+  if (options.requireLinkMetadata) {
+    const metaTier = typeof options.metadataReleaseTier === 'string'
+      ? options.metadataReleaseTier.trim()
+      : '';
+    if (!metaTier) {
+      fail(`relation ${options.relationId} missing authoritative ProjectionLinkMetadata releaseTier`);
+    }
+    if (metaTier !== entryTier) {
+      fail(
+        `relation ${options.relationId} releaseTier mismatch: `
+        + `ReleaseEntry=${entryTier}, ProjectionLinkMetadata=${metaTier}`,
+      );
+    }
+  }
+
+  return entryTier;
+}
+
+function mapProjectionLink(
+  row: {
+    relationId: string;
+    relationType: string;
+    direction: string;
+    sourceId: string;
+    targetId: string;
+    payload: unknown;
+  },
+  releaseTier: string,
+): DeltaRelationRecord {
   const payload = asObject(row.payload);
-  const releaseTier = typeof payload.release_tier === 'string'
-    ? payload.release_tier
-    : 'unknown';
   return {
     relationId: row.relationId,
     predicate: row.relationType,
@@ -108,6 +197,7 @@ function mapProjectionLink(row: {
     releaseTier,
     sourceId: row.sourceId,
     targetId: row.targetId,
+    // Payload digest intentionally excludes authoritative tier (not in payload).
     payloadDigest: digestPayload(payload),
   };
 }
@@ -167,6 +257,13 @@ async function loadSemanticSnapshot(tx: Tx, releaseId: string): Promise<DeltaSem
       upstreamRagReferences: { orderBy: { ordinal: 'asc' } },
       components: { orderBy: { ordinal: 'asc' } },
       projectionIdentities: { orderBy: { ordinal: 'asc' } },
+      // Membership authority for relation releaseTier (exact + standard).
+      entries: {
+        where: { entityRole: 'relation' },
+        orderBy: { ordinal: 'asc' },
+      },
+      // Standard Bundle path also persists per-relation LinkMetadata tiers.
+      linkMetadataRows: { orderBy: { ordinal: 'asc' } },
       receipt: true,
     },
   });
@@ -189,8 +286,33 @@ async function loadSemanticSnapshot(tx: Tx, releaseId: string): Promise<DeltaSem
     fail(`Release ${releaseId} is missing release/source dataset hashes`);
   }
 
+  const entryTierByRelationId = new Map(
+    release.entries.map((row) => [row.entityId, row.releaseTier] as const),
+  );
+  const metadataTierByRelationId = new Map(
+    release.linkMetadataRows.map((row) => [row.relationId, row.releaseTier] as const),
+  );
+
+  // Protocol contract — never infer from "metadata rows happen to exist".
+  const { requireLinkMetadata } = assertRelationTierProtocolShape({
+    releaseId,
+    protocol: release.protocol,
+    projectionLinkCount: release.projectionLinks.length,
+    linkMetadataRowCount: release.linkMetadataRows.length,
+  });
+
   const objects = release.projectionNodes.map(mapProjectionNode);
-  const relations = release.projectionLinks.map(mapProjectionLink);
+  const relations = release.projectionLinks.map((link) => {
+    const releaseTier = resolveAuthoritativeRelationReleaseTier({
+      relationId: link.relationId,
+      entryReleaseTier: entryTierByRelationId.get(link.relationId),
+      metadataReleaseTier: requireLinkMetadata
+        ? metadataTierByRelationId.get(link.relationId)
+        : undefined,
+      requireLinkMetadata,
+    });
+    return mapProjectionLink(link, releaseTier);
+  });
   const crosswalk = release.upstreamRagReferences.map(mapCrosswalk);
   const components = release.components.map(mapComponent);
 
