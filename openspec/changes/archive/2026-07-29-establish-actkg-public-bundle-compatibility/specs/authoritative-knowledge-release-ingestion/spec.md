@@ -3,11 +3,11 @@
 ### Requirement: Explicit ReleaseSet lock governs admissible packages
 The system MUST validate a standard ActKG public Bundle only when its controlled repository path, Bundle identity/revision/digest, Release identity/hash, Schema version/raw hash, Manifest raw hash, and required public contract identities exactly match an explicitly reviewed ReleaseSet Lock v3 entry. Already accepted no-Manifest historical packages MUST retain their frozen exact lock and adapter and MUST NOT be rewritten as Lock v3 Bundles.
 
-#### Scenario: Locked standard Bundle is admitted
+#### Scenario: Locked package is admitted
 - **WHEN** a standard Bundle and every declared identity and hash match the current Lock v3 entry
 - **THEN** the system SHALL admit it to compatibility and integrity validation
 
-#### Scenario: Unlocked, scanned, or drifted Bundle is rejected
+#### Scenario: Unlocked or drifted package is rejected
 - **WHEN** a package is discovered by directory scan, selected by latest/max-version logic, supplied as a candidate without an explicit development flag, or differs from its lock
 - **THEN** the system SHALL reject it without changing any candidate or production selector
 

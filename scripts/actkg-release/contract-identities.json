@@ -1,0 +1,48 @@
+{
+  "reviewed_at": "2026-07-29",
+  "upstream_head": "7f2ff5f154acf7b34a89e67b64867f16ce5b111e",
+  "bundle_contract": {
+    "version": "actkg-public-bundle/1"
+  },
+  "schema": {
+    "version": "0.2.0",
+    "raw_sha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de"
+  },
+  "public_bundle_machine_schemas": {
+    "bundle-manifest.schema.json": "24e493f5ee8f45079993bd1b667ac6d979452b8a10efb9caf6d8fa33d67c4db6",
+    "component-manifest.schema.json": "b024b51643d54f44afc1a675eb466d2e949a65f31900beb0ee95d826f80df2c8",
+    "projection-link-metadata-row.schema.json": "c2e3f130450db3198408110f37ba87e707aad8625f93a50e7b56476fefbf9605",
+    "rag-crosswalk-row.schema.json": "287c3aa272985d309b0721cd90eb633580e42d58e03a5021f45f84e165f9dfee",
+    "release-diff.schema.json": "1a653a8674cf45376d553b45cffdf873a7dcf3109454c97e3484ea68b10fa3dd",
+    "validation-report.schema.json": "7e0c6dba8e9e331b36e47ad9b11930ee6dca6deab645fbcef9d4f84c444760e0"
+  },
+  "artifact_contracts": {
+    "ctkg-release/0.2": { "role": "release", "required_for_aggregate": true },
+    "ctkg-json-schema/0.2": { "role": "ctkg_schema", "required_for_aggregate": true },
+    "ctkg-graph-projection/0.2": { "role": "projection", "required_for_aggregate": true },
+    "actkg-projection-link-metadata/1": { "role": "projection_link_metadata", "required_for_aggregate": true },
+    "actkg-rag-crosswalk/1": { "role": "rag_crosswalk", "required_for_aggregate": true },
+    "actkg-component-manifest/1": { "role": "component_manifest", "required_for_aggregate": true },
+    "actkg-validation-report/1": { "role": "validation_report", "required_for_aggregate": true },
+    "actkg-release-notes/1": { "role": "release_notes", "required_for_aggregate": true },
+    "actkg-provenance-stubs/1": { "role": "provenance_stubs", "required_for_aggregate": false },
+    "actkg-release-diff/1": { "role": "release_diff", "required_for_aggregate": false }
+  },
+  "v0_3_r2_prerequisites": {
+    "bundle_id": "ctb:control-theory-engineering-v0.3:r2",
+    "bundle_revision": 2,
+    "bundle_digest": "ab6c33fb06d4beefda1c23f8329619caf4e572e252ddd69ba443d2a48364acb9",
+    "manifest_raw_sha256": "e5499fc08da9386dee098a84785b6ae721d3c94cef9b948a2491a80992ebc09a",
+    "release_id": "ctr:release:control-theory-engineering-v0.3",
+    "release_hash": "13fc60a0a4e1706095f4db89f0a0db4cba10525f4cd6e9ec08b7d44acd7a4ffc",
+    "source_dataset_hash": "7ada10dbb5862ea1fa0102453bceff31c7b62c9045b2f14a1aba29bf5762911c",
+    "source_commit": "5240c0c16378c4f8aa2bfbf2dd1d73c94f28f718",
+    "source_tag": "control-theory-engineering-v0.3-source",
+    "component_release_ids": [
+      "ctr:root-locus-engineering-v0.1",
+      "ctr:release:system-modeling-engineering-v0.1",
+      "ctr:release:control-theory-integration-v0.1"
+    ],
+    "notes": "r2 packaging revision completes component release_id identity, Manifest roles/profiles/contracts, Schema snapshot, validation report, stable source commit/tag and closed checksums."
+  }
+}
