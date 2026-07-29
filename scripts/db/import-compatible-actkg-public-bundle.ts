@@ -14,6 +14,7 @@ import {
   importValidatedActKGBundle,
   reconstructBundleArtifacts,
 } from '../actkg-release/standard-bundle-import';
+import { computeAndPersistReleaseSetDelta } from '../actkg-release/release-set-delta';
 
 const COMMIT = /^[a-f0-9]{40}$/u;
 
@@ -131,6 +132,17 @@ async function main(): Promise<void> {
       select: { id: true, candidateState: true },
     });
 
+    // After successful import/verify of an ACCEPTED_CANDIDATE Bundle, recompute
+    // the ACT-owned ReleaseSet Delta. verify-only never writes the delta either.
+    // Capture revision is the trusted ACT delta implementation HEAD; an explicit
+    // expected value may only equal that HEAD (never a fallback source).
+    const delta = await computeAndPersistReleaseSetDelta(db, {
+      candidateReleaseId: validated.releaseIdentity.releaseId,
+      candidateBundleDigest: validated.bundleIdentity.bundleDigest,
+      verifyOnly,
+      expectedCaptureRevision: captureRevision ?? validated.captureRevision,
+    });
+
     console.log(JSON.stringify({
       mode: verifyOnly ? 'verify-only' : 'import',
       import: counts ?? null,
@@ -142,7 +154,20 @@ async function main(): Promise<void> {
       candidateState: ACCEPTED_CANDIDATE_STATE,
       defaultCandidateUnchanged: defaultCandidate?.id === 'actkg-authoritative-candidate-v2',
       captureRevision: validated.captureRevision,
+      delta: {
+        mode: delta.persisted.mode,
+        classification: delta.computed.classification,
+        authorizationState: delta.computed.authorizationState,
+        receiptId: delta.persisted.receiptId,
+        signalCount: delta.persisted.signalCount,
+        upstreamCrosscheckStatus: delta.persisted.upstreamCrosscheckStatus,
+        selectorsUnchanged: delta.persisted.selectorsUnchanged,
+      },
     }));
+
+    if (delta.computed.authorizationState !== 'ACCEPTED') {
+      process.exitCode = 2;
+    }
   } finally {
     await db.$disconnect();
   }

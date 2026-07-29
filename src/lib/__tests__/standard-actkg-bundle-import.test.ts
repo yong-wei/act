@@ -172,8 +172,10 @@ describe('standard ActKG Bundle persistence boundary', () => {
     expect(source).toMatch(/canonicalizeAllLinkMetadata/);
     expect(source).toMatch(/MAX_IMPORT_ATTEMPTS|isRetryableConflict/);
     expect(source).toMatch(/pg_advisory_xact_lock|acquireImportLocks/);
+    expect(source).toMatch(/GLOBAL_ACCEPTANCE_LOCK_TOKEN|global-acceptance/);
+    expect(source).toMatch(/maxGlobalAcceptedImportedAt/);
     expect(source).toMatch(/releaseStage !== 'stable'/u);
-    // Strictly monotonic acceptance timestamps under the release lock (not wall-clock alone).
+    // Strictly monotonic global acceptance timestamps (not wall-clock alone).
     expect(source).toMatch(/nextStrictAcceptanceTimestamp/);
     expect(source).toMatch(/previousMs \+ 1|previousAcceptedImportedAt\.getTime\(\) \+ 1/u);
   });
@@ -195,16 +197,19 @@ describe('standard ActKG Bundle persistence boundary', () => {
   });
 
   it('derives stable advisory lock keys without SQL string interpolation', async () => {
-    const { advisoryLockKeys } = await import(
+    const { advisoryLockKeys, GLOBAL_ACCEPTANCE_LOCK_TOKEN } = await import(
       '../../../scripts/actkg-release/standard-bundle-import'
     );
     const a = advisoryLockKeys('release', 'ctr:release:example');
     const b = advisoryLockKeys('release', 'ctr:release:example');
     const c = advisoryLockKeys('bundle', 'ctr:release:example');
+    const global = advisoryLockKeys('global', GLOBAL_ACCEPTANCE_LOCK_TOKEN);
     expect(a).toEqual(b);
     expect(a).not.toEqual(c);
+    expect(global).not.toEqual(a);
     expect(Number.isInteger(a[0])).toBe(true);
     expect(Number.isInteger(a[1])).toBe(true);
+    expect(GLOBAL_ACCEPTANCE_LOCK_TOKEN).toContain('global-acceptance');
   });
 
   it('deduplicates runtime Projection when it also appears in preservedProjections', async () => {

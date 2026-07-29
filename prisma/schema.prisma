@@ -5035,6 +5035,8 @@ model ActkgReleaseSet {
   receipt        ActkgImportReceipt?
   bundleReceipts ActkgBundleReceipt[]
   courseCoverageVersions CourseCoverageOverlayVersion[]
+  deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseReleaseSet")
+  deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateReleaseSet")
 }
 
 model ActkgRelease {
@@ -5086,6 +5088,8 @@ model ActkgRelease {
   bundleReceipts           ActkgBundleReceipt[]
   projectionIdentities     ActkgProjectionIdentity[]
   linkMetadataRows         ActkgProjectionLinkMetadata[]
+  deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseRelease")
+  deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateRelease")
 
   @@unique([releaseSetId, releaseVersion])
   @@unique([releaseSetId, id])
@@ -5260,6 +5264,8 @@ model ActkgImportReceipt {
 
   releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
   release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseImport")
+  deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateImport")
 }
 
 // CTKG 0.2 aggregate public artifacts. Original bytes of the locked public
@@ -5356,6 +5362,8 @@ model ActkgBundleReceipt {
   artifacts    ActkgBundleArtifact[]
   projections  ActkgProjectionIdentity[]
   linkMetadata ActkgProjectionLinkMetadata[]
+  deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseBundle")
+  deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateBundle")
 
   @@unique([bundleId, bundleRevision])
   @@index([releaseSetId, releaseId])
@@ -5533,6 +5541,107 @@ model ActkgUpstreamRagReference {
   @@id([releaseId, publishedEntityId, retrievalChunkId, citationTargetId])
   @@unique([releaseId, ordinal])
   @@index([releaseId, publishedEntityId])
+}
+
+// Immutable ACT-owned ReleaseSet Delta receipt (#1132).
+// Computed only from fully verified base/candidate database snapshots.
+// Upstream release-diff is cross-check evidence only, never calculation authority.
+// Does not move candidate/active/Legacy selectors or run consumer migrations.
+model ActkgReleaseSetDeltaReceipt {
+  id String @id
+
+  algorithmVersion String
+  /** Trusted ACT delta implementation capture revision (Git HEAD). */
+  captureRevision  String
+  classification   String
+  authorizationState String
+
+  baseEvidenceKind             String
+  baseReleaseSetId             String?
+  baseReleaseId                String?
+  baseReleaseVersion           String?
+  baseReleaseHash              String?
+  baseSourceDatasetHash        String?
+  baseImportReceiptId          String?
+  baseBundleReceiptId          String?
+  baseBundleId                 String?
+  baseBundleRevision           Int?
+  baseBundleDigest             String?
+  baseRuntimeProjectionId      String?
+  baseRuntimeProjectionDigest  String?
+  baseEvidenceCaptureRevision  String?
+  baseSemanticSnapshotDigest   String?
+
+  candidateEvidenceKind            String
+  candidateReleaseSetId            String
+  candidateReleaseId               String
+  candidateReleaseVersion          String
+  candidateReleaseHash             String
+  candidateSourceDatasetHash       String
+  candidateImportReceiptId         String?
+  candidateBundleReceiptId         String?
+  candidateBundleId                String?
+  candidateBundleRevision          Int?
+  candidateBundleDigest            String?
+  candidateRuntimeProjectionId     String?
+  candidateRuntimeProjectionDigest String?
+  candidateEvidenceCaptureRevision String
+  candidateSemanticSnapshotDigest  String
+
+  inputDigest  String
+  outputDigest String
+  details      Json
+  summary      Json
+  identityViolations Json
+  /**
+   * Immutable expected Signal cardinality sealed at receipt creation.
+   * INSERT trigger allows at most this many signals; after the official
+   * create-many fills the set, further appends fail closed.
+   */
+  expectedSignalCount Int
+
+  upstreamCrosscheckStatus  String
+  upstreamCrosscheckDetails Json?
+
+  naturalKey String @unique
+  createdAt  DateTime @default(now())
+
+  baseReleaseSet      ActkgReleaseSet?    @relation("ActkgDeltaBaseReleaseSet", fields: [baseReleaseSetId], references: [id], onDelete: Restrict)
+  candidateReleaseSet ActkgReleaseSet     @relation("ActkgDeltaCandidateReleaseSet", fields: [candidateReleaseSetId], references: [id], onDelete: Restrict)
+  baseRelease         ActkgRelease?       @relation("ActkgDeltaBaseRelease", fields: [baseReleaseId], references: [id], onDelete: Restrict)
+  candidateRelease    ActkgRelease        @relation("ActkgDeltaCandidateRelease", fields: [candidateReleaseId], references: [id], onDelete: Restrict)
+  baseBundleReceipt   ActkgBundleReceipt? @relation("ActkgDeltaBaseBundle", fields: [baseBundleReceiptId], references: [id], onDelete: Restrict)
+  candidateBundleReceipt ActkgBundleReceipt? @relation("ActkgDeltaCandidateBundle", fields: [candidateBundleReceiptId], references: [id], onDelete: Restrict)
+  baseImportReceipt   ActkgImportReceipt? @relation("ActkgDeltaBaseImport", fields: [baseImportReceiptId], references: [id], onDelete: Restrict)
+  candidateImportReceipt ActkgImportReceipt? @relation("ActkgDeltaCandidateImport", fields: [candidateImportReceiptId], references: [id], onDelete: Restrict)
+  signals ActkgReleaseSetDeltaSignal[]
+
+  @@unique([inputDigest, algorithmVersion])
+  @@index([candidateReleaseSetId, candidateReleaseId])
+  @@index([baseReleaseSetId, baseReleaseId])
+  @@index([classification, authorizationState])
+  @@index([createdAt])
+}
+
+// Generic candidate/invalidation signals derived from accepted semantic Deltas.
+// Signals describe affected identities and reasons only — never course roles,
+// resource roles, teaching relations, or selector mutations.
+model ActkgReleaseSetDeltaSignal {
+  id          String @id
+  receiptId   String
+  scope       String
+  identity    String
+  action      String
+  reason      String
+  digests     Json?
+  signalDigest String
+  createdAt   DateTime @default(now())
+
+  receipt ActkgReleaseSetDeltaReceipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+
+  @@unique([receiptId, signalDigest])
+  @@index([scope, identity])
+  @@index([action, reason])
 }
 
 // Git-governed course admission overlay. This is independent from the complete
