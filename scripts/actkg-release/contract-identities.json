@@ -1,6 +1,6 @@
 {
-  "reviewed_at": "2026-07-29",
-  "upstream_head": "7f2ff5f154acf7b34a89e67b64867f16ce5b111e",
+  "reviewed_at": "2026-07-30",
+  "upstream_head": "35250ad0ac81f1f020107d831a0f2a4b290c39a0",
   "bundle_contract": {
     "version": "actkg-public-bundle/1"
   },

@@ -208,6 +208,9 @@ export function assertValidatedActKGBundleInput(input: unknown): ValidatedActKGB
 
   return {
     captureRevision,
+    graphRagRuntimeIntakeBlocked: input.graphRagRuntimeIntakeBlocked === true
+      ? true
+      : fail('graphRagRuntimeIntakeBlocked must be true'),
     bundleIdentity: {
       bundleId: stringField(bundleIdentity.bundleId, 'bundleIdentity.bundleId'),
       bundleRevision: numberField(bundleIdentity.bundleRevision, 'bundleIdentity.bundleRevision'),

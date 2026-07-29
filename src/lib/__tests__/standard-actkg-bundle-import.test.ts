@@ -15,6 +15,7 @@ function minimalValidatedBundleInput(releaseStage: 'stable' | 'candidate') {
   const commit = 'b'.repeat(40);
   return {
     captureRevision: commit,
+    graphRagRuntimeIntakeBlocked: true as const,
     bundleIdentity: {
       bundleId: 'ctb:example:r1',
       bundleRevision: 1,
