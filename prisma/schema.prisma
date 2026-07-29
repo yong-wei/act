@@ -5593,6 +5593,12 @@ model ActkgReleaseSetDeltaReceipt {
   details      Json
   summary      Json
   identityViolations Json
+  /**
+   * Immutable expected Signal cardinality sealed at receipt creation.
+   * INSERT trigger allows at most this many signals; after the official
+   * create-many fills the set, further appends fail closed.
+   */
+  expectedSignalCount Int
 
   upstreamCrosscheckStatus  String
   upstreamCrosscheckDetails Json?

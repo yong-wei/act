@@ -3,6 +3,7 @@
  *
  * Idempotent on naturalKey / inputDigest. Concurrent inserts converge.
  * Conflicts on same natural key with different output digest fail closed.
+ * Signal sets are sealed at creation via expectedSignalCount + DB trigger.
  * Never mutates candidate/active/Legacy selectors.
  */
 import type { Prisma, PrismaClient } from '@prisma/client';
@@ -10,6 +11,7 @@ import { Prisma as PrismaNamespace } from '@prisma/client';
 
 import type {
   ComputedReleaseSetDelta,
+  DeltaSignalRecord,
   PersistedDeltaReceiptResult,
 } from './release-set-delta-types';
 import { assertSignalsAreGeneric } from './release-set-delta-compute';
@@ -49,11 +51,75 @@ function json(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
 }
 
+/**
+ * Exact signalDigest set comparison for idempotent / verify-only paths.
+ * Order-independent; empty sets allowed (zero-signal packaging revisions).
+ */
+export function assertSignalDigestSetsMatch(
+  persistedDigests: readonly string[],
+  expectedDigests: readonly string[],
+  label: string,
+): void {
+  const left = [...persistedDigests].sort();
+  const right = [...expectedDigests].sort();
+  if (left.length !== right.length) {
+    fail(`${label}: signal set cardinality drift (persisted ${left.length}, expected ${right.length})`);
+  }
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) {
+      fail(`${label}: signalDigest set drift at sorted index ${index}`);
+    }
+  }
+}
+
+function signalDigestsOf(signals: ReadonlyArray<{ signalDigest: string } | DeltaSignalRecord>): string[] {
+  return signals.map((row) => row.signalDigest);
+}
+
 async function acquireDeltaLock(tx: Tx, naturalKey: string): Promise<void> {
   const token = `actkg-release-set-delta:${naturalKey}`;
   await tx.$queryRaw`
     SELECT (pg_advisory_xact_lock(hashtext(${token})) IS NULL) AS "acquired"
   `;
+}
+
+function assertExistingMatchesComputed(
+  existing: {
+    inputDigest: string;
+    outputDigest: string;
+    naturalKey: string;
+    algorithmVersion: string;
+    classification: string;
+    authorizationState: string;
+    candidateSemanticSnapshotDigest: string;
+    baseSemanticSnapshotDigest: string | null;
+    expectedSignalCount: number;
+    signals: Array<{ signalDigest: string }>;
+  },
+  computed: ComputedReleaseSetDelta,
+  label: string,
+): void {
+  if (
+    existing.inputDigest !== computed.inputDigest
+    || existing.outputDigest !== computed.outputDigest
+    || existing.naturalKey !== computed.naturalKey
+    || existing.algorithmVersion !== computed.algorithmVersion
+    || existing.classification !== computed.classification
+    || existing.authorizationState !== computed.authorizationState
+    || existing.candidateSemanticSnapshotDigest !== computed.candidateSemanticSnapshotDigest
+    || (existing.baseSemanticSnapshotDigest ?? null) !== computed.baseSemanticSnapshotDigest
+    || existing.expectedSignalCount !== computed.signals.length
+  ) {
+    fail(`${label}: existing receipt conflicts with recomputed input/output digests or expectedSignalCount`);
+  }
+  if (computed.authorizationState !== 'ACCEPTED' && existing.signals.length > 0) {
+    fail(`${label}: non-accepted receipt must not carry signals`);
+  }
+  assertSignalDigestSetsMatch(
+    signalDigestsOf(existing.signals),
+    signalDigestsOf(computed.signals),
+    label,
+  );
 }
 
 async function readExisting(
@@ -75,12 +141,7 @@ async function readExisting(
       include: { signals: true },
     });
     if (!byInput) return null;
-    if (
-      byInput.outputDigest !== computed.outputDigest
-      || byInput.naturalKey !== computed.naturalKey
-    ) {
-      fail('input digest already bound to a different delta output');
-    }
+    assertExistingMatchesComputed(byInput, computed, 'idempotent-by-input');
     return {
       mode: 'idempotent',
       receiptId: byInput.id,
@@ -95,17 +156,7 @@ async function readExisting(
     };
   }
 
-  if (
-    existing.inputDigest !== computed.inputDigest
-    || existing.outputDigest !== computed.outputDigest
-    || existing.algorithmVersion !== computed.algorithmVersion
-    || existing.classification !== computed.classification
-    || existing.authorizationState !== computed.authorizationState
-    || existing.candidateSemanticSnapshotDigest !== computed.candidateSemanticSnapshotDigest
-    || (existing.baseSemanticSnapshotDigest ?? null) !== computed.baseSemanticSnapshotDigest
-  ) {
-    fail('delta natural key already exists with conflicting input/output digests');
-  }
+  assertExistingMatchesComputed(existing, computed, 'idempotent-by-natural-key');
 
   return {
     mode: 'idempotent',
@@ -129,7 +180,11 @@ async function insertReceipt(
   if (computed.authorizationState !== 'ACCEPTED' && computed.signals.length > 0) {
     fail('non-accepted delta must not carry governance signals');
   }
+  if (computed.authorizationState === 'ACCEPTED' && computed.summary.signalCount !== computed.signals.length) {
+    fail('summary.signalCount must equal signals.length for ACCEPTED receipts');
+  }
 
+  const expectedSignalCount = computed.signals.length;
   const id = receiptIdFor(computed.naturalKey);
   await tx.actkgReleaseSetDeltaReceipt.create({
     data: {
@@ -183,13 +238,16 @@ async function insertReceipt(
       details: json(computed.details),
       summary: json(computed.summary),
       identityViolations: json(computed.identityViolations),
+      expectedSignalCount,
       upstreamCrosscheckStatus: computed.upstream.status,
       upstreamCrosscheckDetails: json(computed.upstream.details),
       naturalKey: computed.naturalKey,
     },
   });
 
-  if (computed.authorizationState === 'ACCEPTED' && computed.signals.length > 0) {
+  // Batch insert within the same transaction while count < expectedSignalCount.
+  // Zero-signal ACCEPTED receipts (packaging) leave the set sealed immediately.
+  if (computed.authorizationState === 'ACCEPTED' && expectedSignalCount > 0) {
     await tx.actkgReleaseSetDeltaSignal.createMany({
       data: computed.signals.map((row) => ({
         id: signalIdFor(id, row.signalDigest),
@@ -204,6 +262,11 @@ async function insertReceipt(
     });
   }
 
+  const sealedCount = await tx.actkgReleaseSetDeltaSignal.count({ where: { receiptId: id } });
+  if (sealedCount !== expectedSignalCount) {
+    fail(`signal seal round-trip failed: expected ${expectedSignalCount}, persisted ${sealedCount}`);
+  }
+
   return {
     mode: 'created',
     receiptId: id,
@@ -212,7 +275,7 @@ async function insertReceipt(
     inputDigest: computed.inputDigest,
     outputDigest: computed.outputDigest,
     naturalKey: computed.naturalKey,
-    signalCount: computed.signals.length,
+    signalCount: sealedCount,
     upstreamCrosscheckStatus: computed.upstream.status,
     selectorsUnchanged: true,
   };
@@ -278,19 +341,17 @@ export async function verifyReleaseSetDelta(
     || existing.candidateEvidenceCaptureRevision !== computed.candidateEvidence.evidenceCaptureRevision
     || existing.baseImportReceiptId !== computed.baseEvidence.importReceiptId
     || existing.candidateImportReceiptId !== computed.candidateEvidence.importReceiptId
+    || existing.expectedSignalCount !== computed.signals.length
   ) {
     fail('verify-only: persisted delta digests/classification conflict with recomputation');
   }
   if (existing.authorizationState === 'ACCEPTED') {
-    const persistedDigests = existing.signals.map((row) => row.signalDigest).sort();
-    const expectedDigests = computed.signals.map((row) => row.signalDigest).sort();
-    if (
-      persistedDigests.length !== expectedDigests.length
-      || persistedDigests.some((value, index) => value !== expectedDigests[index])
-    ) {
-      fail('verify-only: persisted delta signals conflict with recomputation');
-    }
-  } else if (existing.signals.length > 0) {
+    assertSignalDigestSetsMatch(
+      signalDigestsOf(existing.signals),
+      signalDigestsOf(computed.signals),
+      'verify-only',
+    );
+  } else if (existing.signals.length > 0 || existing.expectedSignalCount !== 0) {
     fail('verify-only: non-accepted receipt must not carry signals');
   }
 

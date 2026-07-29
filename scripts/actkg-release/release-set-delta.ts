@@ -73,11 +73,13 @@ export {
 export {
   persistReleaseSetDelta,
   verifyReleaseSetDelta,
+  assertSignalDigestSetsMatch,
 } from './release-set-delta-persist';
 
 /**
  * Protected paths for ACT delta capture-revision resolution.
  * Dirty or untracked drift on any of these fails closed.
+ * Test-only helpers (e.g. actkg-postgres-harness-policy) are intentionally excluded.
  */
 export const DELTA_CAPTURE_PROTECTED_PATHS = [
   'scripts/actkg-release/release-set-delta.ts',

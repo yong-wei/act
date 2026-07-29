@@ -38,12 +38,13 @@ import {
   importValidatedActKGBundle,
 } from '../actkg-release/standard-bundle-import';
 import type { ValidatedActKGBundle } from '../actkg-release/public-bundle-types';
+import { actkgPostgresSkipExitCode } from '../actkg-release/actkg-postgres-harness-policy';
 
 const sourceUrl = process.env.DATABASE_URL;
 if (!sourceUrl) {
   if (process.env.ACTKG_POSTGRES_REQUIRED === '1') throw new Error('DATABASE_URL is required');
   console.log('ActKG ReleaseSet Delta PostgreSQL integration skipped: DATABASE_URL is unavailable');
-  process.exit(0);
+  process.exit(actkgPostgresSkipExitCode(false));
 }
 
 const schemaName = `actkg_delta_${process.pid}_${Date.now()}`;
@@ -121,14 +122,24 @@ async function main(): Promise<void> {
       isolated.mode === 'schema'
       && /ActkgImportReceipt does not exist|does not exist in the current database/u.test(message)
     ) {
+      const required = process.env.ACTKG_POSTGRES_REQUIRED === '1';
+      const exitCode = actkgPostgresSkipExitCode(required);
       console.log(JSON.stringify({
         ok: false,
         mode: isolated.mode,
         schema: schemaName,
         code: 'SCHEMA_ISOLATION_UNSUPPORTED',
+        required,
+        exitCode,
         error: message.replace(/\s+/gu, ' ').slice(0, 240),
       }));
-      process.exitCode = 0;
+      // Required mode must not fake green when Delta DB assertions did not run.
+      process.exitCode = exitCode;
+      if (required) {
+        throw new Error(
+          'SCHEMA_ISOLATION_UNSUPPORTED while ACTKG_POSTGRES_REQUIRED=1: Delta PostgreSQL assertions did not run',
+        );
+      }
       return;
     }
     throw error;
@@ -151,7 +162,9 @@ async function main(): Promise<void> {
   const first = await computeAndPersistReleaseSetDelta(db, {
     candidateReleaseId: validatedV03.releaseIdentity.releaseId,
     candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
     expectedCaptureRevision: checkoutRevision,
+
   });
 
   assert.equal(first.computed.classification, 'SEMANTIC_CONTENT_UPDATE');
@@ -194,7 +207,9 @@ async function main(): Promise<void> {
   const second = await computeAndPersistReleaseSetDelta(db, {
     candidateReleaseId: validatedV03.releaseIdentity.releaseId,
     candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
     expectedCaptureRevision: checkoutRevision,
+
   });
   assert.equal(second.persisted.mode, 'idempotent');
   assert.equal(second.persisted.receiptId, first.persisted.receiptId);
@@ -205,12 +220,16 @@ async function main(): Promise<void> {
     computeAndPersistReleaseSetDelta(db, {
       candidateReleaseId: validatedV03.releaseIdentity.releaseId,
       candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
       expectedCaptureRevision: checkoutRevision,
+
     }),
     computeAndPersistReleaseSetDelta(db, {
       candidateReleaseId: validatedV03.releaseIdentity.releaseId,
       candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
       expectedCaptureRevision: checkoutRevision,
+
     }),
   ]);
   assert.ok(concurrent.every((row) => row.persisted.receiptId === first.persisted.receiptId));
@@ -222,8 +241,9 @@ async function main(): Promise<void> {
   const verified = await computeAndPersistReleaseSetDelta(db, {
     candidateReleaseId: validatedV03.releaseIdentity.releaseId,
     candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
-    expectedCaptureRevision: checkoutRevision,
+
     verifyOnly: true,
+    expectedCaptureRevision: checkoutRevision,
   });
   assert.equal(verified.persisted.mode, 'verify-only');
 
@@ -254,7 +274,9 @@ async function main(): Promise<void> {
   const packagingDelta = await computeAndPersistReleaseSetDelta(db, {
     candidateReleaseId: packaging.releaseIdentity.releaseId,
     candidateBundleDigest: packaging.bundleIdentity.bundleDigest,
+
     expectedCaptureRevision: checkoutRevision,
+
   });
   assert.equal(packagingDelta.computed.classification, 'COMPATIBLE_PACKAGING_REVISION');
   assert.equal(packagingDelta.computed.authorizationState, 'ACCEPTED');
@@ -269,7 +291,9 @@ async function main(): Promise<void> {
   const recomputeAfterFuture = await computeAndPersistReleaseSetDelta(db, {
     candidateReleaseId: validatedV03.releaseIdentity.releaseId,
     candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
     expectedCaptureRevision: checkoutRevision,
+
   });
   assert.equal(recomputeAfterFuture.computed.baseEvidence.releaseId, CURRENT_AGGREGATE_RELEASE_ID);
   assert.equal(recomputeAfterFuture.computed.baseEvidence.kind, 'exact_import');
@@ -511,7 +535,9 @@ async function main(): Promise<void> {
   const recomputeAfterDifferentRelease = await computeAndPersistReleaseSetDelta(db, {
     candidateReleaseId: validatedV03.releaseIdentity.releaseId,
     candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
     expectedCaptureRevision: checkoutRevision,
+
   });
   assert.equal(
     recomputeAfterDifferentRelease.computed.baseEvidence.releaseId,
@@ -549,11 +575,121 @@ async function main(): Promise<void> {
     );
   }
 
+  // 7b) Accepted receipt signal set is sealed: direct INSERT after completion fails.
+  const sealedReceipt = await db.actkgReleaseSetDeltaReceipt.findUniqueOrThrow({
+    where: { id: first.persisted.receiptId },
+    include: { _count: { select: { signals: true } } },
+  });
+  assert.equal(sealedReceipt.expectedSignalCount, sealedReceipt._count.signals);
+  assert.ok(sealedReceipt.expectedSignalCount > 0);
+  await assert.rejects(
+    () => db!.actkgReleaseSetDeltaSignal.create({
+      data: {
+        id: `delta-signal:forged:${first.persisted.receiptId}`,
+        receiptId: first.persisted.receiptId,
+        scope: 'object',
+        identity: 'ctc:forged-after-seal',
+        action: 'candidate',
+        reason: 'added',
+        signalDigest: 'f'.repeat(64),
+      },
+    }),
+    /sealed|expected|signal set/i,
+  );
+  assert.equal(
+    await db.actkgReleaseSetDeltaSignal.count({ where: { receiptId: first.persisted.receiptId } }),
+    sealedReceipt.expectedSignalCount,
+  );
+
+  // 7c) Zero-signal ACCEPTED packaging receipt is sealed immediately.
+  const packagingReceiptRow = await db.actkgReleaseSetDeltaReceipt.findUniqueOrThrow({
+    where: { id: packagingDelta.persisted.receiptId },
+  });
+  assert.equal(packagingReceiptRow.expectedSignalCount, 0);
+  await assert.rejects(
+    () => db!.actkgReleaseSetDeltaSignal.create({
+      data: {
+        id: `delta-signal:forged-zero:${packagingDelta.persisted.receiptId}`,
+        receiptId: packagingDelta.persisted.receiptId,
+        scope: 'object',
+        identity: 'ctc:forged-zero',
+        action: 'candidate',
+        reason: 'added',
+        signalDigest: 'e'.repeat(64),
+      },
+    }),
+    /sealed|zero expected signals/i,
+  );
+
+  // 7d) Incomplete Receipt (expectedSignalCount>0, zero signals) fails at COMMIT
+  // via DEFERRABLE constraint trigger — not only the max-count INSERT guard.
+  const incompleteId = `delta-receipt:incomplete-${Date.now()}`;
+  await assert.rejects(
+    () => db!.$transaction(async (tx) => {
+      await tx.actkgReleaseSetDeltaReceipt.create({
+        data: {
+          id: incompleteId,
+          algorithmVersion: first.computed.algorithmVersion,
+          captureRevision: checkoutRevision,
+          classification: 'SEMANTIC_CONTENT_UPDATE',
+          authorizationState: 'ACCEPTED',
+          baseEvidenceKind: first.computed.baseEvidence.kind,
+          baseReleaseSetId: first.computed.baseEvidence.releaseSetId,
+          baseReleaseId: first.computed.baseEvidence.releaseId,
+          baseReleaseVersion: first.computed.baseEvidence.releaseVersion,
+          baseReleaseHash: first.computed.baseEvidence.releaseHash,
+          baseSourceDatasetHash: first.computed.baseEvidence.sourceDatasetHash,
+          baseImportReceiptId: first.computed.baseEvidence.importReceiptId,
+          baseBundleReceiptId: first.computed.baseEvidence.bundleReceiptId,
+          baseBundleId: first.computed.baseEvidence.bundleId,
+          baseBundleRevision: first.computed.baseEvidence.bundleRevision,
+          baseBundleDigest: first.computed.baseEvidence.bundleDigest,
+          baseRuntimeProjectionId: first.computed.baseEvidence.runtimeProjectionId,
+          baseRuntimeProjectionDigest: first.computed.baseEvidence.runtimeProjectionDigest,
+          baseEvidenceCaptureRevision: first.computed.baseEvidence.evidenceCaptureRevision,
+          baseSemanticSnapshotDigest: first.computed.baseSemanticSnapshotDigest,
+          candidateEvidenceKind: first.computed.candidateEvidence.kind,
+          candidateReleaseSetId: first.computed.candidateEvidence.releaseSetId!,
+          candidateReleaseId: first.computed.candidateEvidence.releaseId!,
+          candidateReleaseVersion: first.computed.candidateEvidence.releaseVersion!,
+          candidateReleaseHash: first.computed.candidateEvidence.releaseHash!,
+          candidateSourceDatasetHash: first.computed.candidateEvidence.sourceDatasetHash!,
+          candidateImportReceiptId: first.computed.candidateEvidence.importReceiptId,
+          candidateBundleReceiptId: first.computed.candidateEvidence.bundleReceiptId,
+          candidateBundleId: first.computed.candidateEvidence.bundleId,
+          candidateBundleRevision: first.computed.candidateEvidence.bundleRevision,
+          candidateBundleDigest: first.computed.candidateEvidence.bundleDigest,
+          candidateRuntimeProjectionId: first.computed.candidateEvidence.runtimeProjectionId,
+          candidateRuntimeProjectionDigest: first.computed.candidateEvidence.runtimeProjectionDigest,
+          candidateEvidenceCaptureRevision: first.computed.candidateEvidence.evidenceCaptureRevision!,
+          candidateSemanticSnapshotDigest: first.computed.candidateSemanticSnapshotDigest,
+          inputDigest: '9'.repeat(64),
+          outputDigest: '8'.repeat(64),
+          details: {},
+          summary: {},
+          identityViolations: [],
+          expectedSignalCount: 1,
+          upstreamCrosscheckStatus: 'NOT_REQUIRED',
+          naturalKey: `incomplete-natural-key-${Date.now()}`,
+        },
+      });
+      // Intentionally omit signals — deferred trigger must fail at commit.
+    }),
+    /signal count must equal expectedSignalCount|expectedSignalCount/i,
+  );
+  assert.equal(
+    await db.actkgReleaseSetDeltaReceipt.count({ where: { id: incompleteId } }),
+    0,
+    'incomplete receipt must not survive a failed commit',
+  );
+
   // 8) Natural-key conflict with different output digest fails closed.
   const recomputed = await recomputeReleaseSetDelta(db, {
     candidateReleaseId: validatedV03.releaseIdentity.releaseId,
     candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
     expectedCaptureRevision: checkoutRevision,
+
   });
   const conflicting = {
     ...recomputed,
@@ -565,7 +701,35 @@ async function main(): Promise<void> {
     },
     (error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
-      return /conflicting input\/output digests|different delta output|natural key already exists/i.test(message);
+      return /conflicting input\/output digests|different delta output|natural key already exists|expectedSignalCount/i.test(message);
+    },
+  );
+
+  // 8b) Ordinary idempotent persist fails closed when recomputed signal set drifts.
+  const driftedSignals = {
+    ...recomputed,
+    signals: [
+      ...recomputed.signals,
+      {
+        scope: 'object' as const,
+        identity: 'ctc:drifted',
+        action: 'candidate' as const,
+        reason: 'added' as const,
+        signalDigest: 'd'.repeat(64),
+      },
+    ],
+    summary: {
+      ...recomputed.summary,
+      signalCount: recomputed.signals.length + 1,
+    },
+  };
+  await assert.rejects(
+    async () => {
+      await persistReleaseSetDelta(db!, driftedSignals);
+    },
+    (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      return /signal set|signalDigest|expectedSignalCount|drift/i.test(message);
     },
   );
 
@@ -597,7 +761,9 @@ async function main(): Promise<void> {
   const recomputedAgain = await recomputeReleaseSetDelta(db, {
     candidateReleaseId: validatedV03.releaseIdentity.releaseId,
     candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
     expectedCaptureRevision: checkoutRevision,
+
   });
   assert.equal(recomputedAgain.inputDigest, first.computed.inputDigest);
   assert.equal(recomputedAgain.outputDigest, first.computed.outputDigest);
@@ -646,6 +812,7 @@ async function main(): Promise<void> {
         "candidateRuntimeProjectionId", "candidateRuntimeProjectionDigest",
         "candidateEvidenceCaptureRevision", "candidateSemanticSnapshotDigest",
         "inputDigest", "outputDigest", "details", "summary", "identityViolations",
+        "expectedSignalCount",
         "upstreamCrosscheckStatus", "naturalKey"
       ) VALUES (
         'bad-non-baseline-none', 'actkg-release-set-delta/1', $1, 'SEMANTIC_CONTENT_UPDATE', 'ACCEPTED',
@@ -657,6 +824,7 @@ async function main(): Promise<void> {
         $10, $11,
         $1, $12,
         $13, $14, '{}'::jsonb, '{}'::jsonb, '[]'::jsonb,
+        0,
         'NOT_REQUIRED', 'bad-non-baseline-none-key'
       )
     `,
@@ -692,6 +860,7 @@ async function main(): Promise<void> {
         "candidateRuntimeProjectionId", "candidateRuntimeProjectionDigest",
         "candidateEvidenceCaptureRevision", "candidateSemanticSnapshotDigest",
         "inputDigest", "outputDigest", "details", "summary", "identityViolations",
+        "expectedSignalCount",
         "upstreamCrosscheckStatus", "naturalKey"
       ) VALUES (
         'bad-standard-shape', 'actkg-release-set-delta/1', $1, 'SEMANTIC_CONTENT_UPDATE', 'ACCEPTED',
@@ -705,6 +874,7 @@ async function main(): Promise<void> {
         $15, $16,
         $1, $17,
         $18, $19, '{}'::jsonb, '{}'::jsonb, '[]'::jsonb,
+        0,
         'NOT_REQUIRED', 'bad-standard-shape-key'
       )
     `,
@@ -745,6 +915,7 @@ async function main(): Promise<void> {
         "candidateBundleRevision", "candidateBundleDigest",
         "candidateEvidenceCaptureRevision", "candidateSemanticSnapshotDigest",
         "inputDigest", "outputDigest", "details", "summary", "identityViolations",
+        "expectedSignalCount",
         "upstreamCrosscheckStatus", "naturalKey"
       ) VALUES (
         'bad-missing-projection', 'actkg-release-set-delta/1', $1, 'SEMANTIC_CONTENT_UPDATE', 'ACCEPTED',
@@ -758,6 +929,7 @@ async function main(): Promise<void> {
         1, $17,
         $1, $18,
         $19, $20, '{}'::jsonb, '{}'::jsonb, '[]'::jsonb,
+        0,
         'NOT_REQUIRED', 'bad-missing-projection-key'
       )
     `,

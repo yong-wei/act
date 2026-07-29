@@ -112,12 +112,13 @@ Binds:
 - input/output digests
 - detailed changes + summary counts
 - identityViolations (always persisted, even when empty)
+- expectedSignalCount (immutable sealed Signal cardinality)
 - upstream cross-check status
 
 Unique on `naturalKey` and `(inputDigest, algorithmVersion)`.
 Natural key / input digest include the complete stable evidence identity.
 Recompute of identical inputs is idempotent. Same natural key with different
-output digest fails closed.
+output digest or different signalDigest set fails closed.
 
 ### `ActkgReleaseSetDeltaSignal` (immutable, ACCEPTED only)
 
@@ -131,6 +132,17 @@ Scopes: `object | relation | crosswalk | component | projection | vocabulary`
 Actions: `candidate | invalidation`
 
 Allowed digests keys: `replacement | predecessor | baseDigest | candidateDigest`.
+
+The official create path inserts the receipt with `expectedSignalCount`, then
+batch-inserts exactly that many signals in the same transaction. Two DB seals:
+
+1. **Immediate INSERT guard**: only `existing_count < expectedSignalCount` on
+   ACCEPTED receipts; zero-signal receipts reject any append immediately.
+2. **DEFERRABLE COMMIT seal**: at transaction end, actual signal count must
+   equal `expectedSignalCount`. Incomplete receipts (insert receipt with
+   expected>0 and omit signals) fail at commit and roll back.
+
+Non-ACCEPTED receipts always have `expectedSignalCount = 0`.
 
 Signals never decide:
 

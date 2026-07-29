@@ -46,6 +46,10 @@ CREATE TABLE "ActkgReleaseSetDeltaReceipt" (
     "details" JSONB NOT NULL,
     "summary" JSONB NOT NULL,
     "identityViolations" JSONB NOT NULL,
+    -- Sealed expected Signal cardinality. Official create path inserts the
+    -- receipt first, then batch-inserts at most this many signals in-tx.
+    -- After the set is full, further inserts fail closed.
+    "expectedSignalCount" INTEGER NOT NULL,
 
     "upstreamCrosscheckStatus" TEXT NOT NULL,
     "upstreamCrosscheckDetails" JSONB,
@@ -81,6 +85,14 @@ CREATE TABLE "ActkgReleaseSetDeltaReceipt" (
       CHECK (
         ("baseBundleRevision" IS NULL OR "baseBundleRevision" > 0)
         AND ("candidateBundleRevision" IS NULL OR "candidateBundleRevision" > 0)
+      ),
+    CONSTRAINT "ActkgReleaseSetDeltaReceipt_expectedSignalCount_check"
+      CHECK ("expectedSignalCount" >= 0),
+    -- Rejected receipts never authorize signals; ACCEPTED may be zero (packaging).
+    CONSTRAINT "ActkgReleaseSetDeltaReceipt_rejected_zero_signals"
+      CHECK (
+        "authorizationState" = 'ACCEPTED'
+        OR "expectedSignalCount" = 0
       ),
     -- classification = BASELINE iff baseEvidenceKind = none.
     CONSTRAINT "ActkgReleaseSetDeltaReceipt_baseline_iff_none"
@@ -316,22 +328,43 @@ CREATE TRIGGER "ActkgReleaseSetDeltaSignal_immutable"
 BEFORE UPDATE OR DELETE ON "ActkgReleaseSetDeltaSignal"
 FOR EACH ROW EXECUTE FUNCTION reject_actkg_release_set_delta_mutation();
 
--- Signals may only be appended for ACCEPTED receipts.
+-- Signals may only be appended for ACCEPTED receipts while the sealed set is
+-- incomplete (count < expectedSignalCount). The official transaction creates
+-- the receipt with expectedSignalCount then batch-inserts that many rows;
+-- once full, the set is sealed and further inserts fail closed.
 CREATE OR REPLACE FUNCTION actkg_delta_signal_insert_guard() RETURNS trigger
 LANGUAGE plpgsql AS $$
 DECLARE
   auth_state TEXT;
+  expected_count INTEGER;
+  existing_count INTEGER;
 BEGIN
-  SELECT "authorizationState" INTO auth_state
+  SELECT "authorizationState", "expectedSignalCount"
+  INTO auth_state, expected_count
   FROM "ActkgReleaseSetDeltaReceipt"
-  WHERE "id" = NEW."receiptId";
+  WHERE "id" = NEW."receiptId"
+  FOR SHARE;
 
-  IF auth_state IS NULL THEN
+  IF auth_state IS NULL OR expected_count IS NULL THEN
     RAISE EXCEPTION 'ActKG Delta signal requires its parent receipt';
   END IF;
   IF auth_state <> 'ACCEPTED' THEN
     RAISE EXCEPTION 'ActKG Delta signals require an ACCEPTED receipt';
   END IF;
+  IF expected_count = 0 THEN
+    RAISE EXCEPTION 'ActKG Delta receipt is sealed with zero expected signals';
+  END IF;
+
+  SELECT COUNT(*)::integer INTO existing_count
+  FROM "ActkgReleaseSetDeltaSignal"
+  WHERE "receiptId" = NEW."receiptId";
+
+  IF existing_count >= expected_count THEN
+    RAISE EXCEPTION
+      'ActKG Delta receipt signal set is sealed (expected %, existing %)',
+      expected_count, existing_count;
+  END IF;
+
   RETURN NEW;
 END;
 $$;
@@ -339,3 +372,31 @@ $$;
 CREATE TRIGGER "ActkgReleaseSetDeltaSignal_insert_guard"
 BEFORE INSERT ON "ActkgReleaseSetDeltaSignal"
 FOR EACH ROW EXECUTE FUNCTION actkg_delta_signal_insert_guard();
+
+-- Deferred exact cardinality seal: at COMMIT, each new Receipt must have
+-- exactly expectedSignalCount signals. Official path (receipt insert → signal
+-- createMany → commit) succeeds; incomplete receipts fail at commit even if
+-- the immediate INSERT of the receipt itself succeeded.
+CREATE OR REPLACE FUNCTION actkg_delta_receipt_signal_count_final() RETURNS trigger
+LANGUAGE plpgsql AS $$
+DECLARE
+  actual_count INTEGER;
+BEGIN
+  SELECT COUNT(*)::integer INTO actual_count
+  FROM "ActkgReleaseSetDeltaSignal"
+  WHERE "receiptId" = NEW."id";
+
+  IF actual_count IS DISTINCT FROM NEW."expectedSignalCount" THEN
+    RAISE EXCEPTION
+      'ActKG Delta receipt % signal count must equal expectedSignalCount (expected %, actual %)',
+      NEW."id", NEW."expectedSignalCount", actual_count;
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER "ActkgReleaseSetDeltaReceipt_signal_count_final"
+AFTER INSERT ON "ActkgReleaseSetDeltaReceipt"
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION actkg_delta_receipt_signal_count_final();

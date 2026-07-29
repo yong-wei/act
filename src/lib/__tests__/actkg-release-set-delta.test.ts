@@ -526,6 +526,35 @@ describe('actkg release-set delta pure compute', () => {
     expect(() => assertSignalsAreGeneric([forged])).toThrow(/does not match recomputed body digest/i);
   });
 
+  it('fails closed when persisted signalDigest sets drift from recomputation', async () => {
+    const { assertSignalDigestSetsMatch } = await import(
+      '../../../scripts/actkg-release/release-set-delta-persist'
+    );
+    expect(() => assertSignalDigestSetsMatch(
+      ['a'.repeat(64), 'b'.repeat(64)],
+      ['a'.repeat(64), 'b'.repeat(64)],
+      'unit',
+    )).not.toThrow();
+    expect(() => assertSignalDigestSetsMatch(
+      ['a'.repeat(64)],
+      ['a'.repeat(64), 'b'.repeat(64)],
+      'unit',
+    )).toThrow(/cardinality drift/i);
+    expect(() => assertSignalDigestSetsMatch(
+      ['a'.repeat(64), 'c'.repeat(64)],
+      ['a'.repeat(64), 'b'.repeat(64)],
+      'unit',
+    )).toThrow(/set drift/i);
+  });
+
+  it('SCHEMA_ISOLATION_UNSUPPORTED exit policy does not fake green when required', async () => {
+    const { actkgPostgresSkipExitCode } = await import(
+      '../../../scripts/actkg-release/actkg-postgres-harness-policy'
+    );
+    expect(actkgPostgresSkipExitCode(true)).toBe(1);
+    expect(actkgPostgresSkipExitCode(false)).toBe(0);
+  });
+
   it('short-circuits packaging-only revisions with empty semantic changes and no signals', () => {
     const objects = [obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' })];
     const base = snapshot({
