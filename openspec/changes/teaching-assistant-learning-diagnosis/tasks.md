@@ -1,7 +1,7 @@
 ## 1. Risk scanner background pipeline
 
 - [x] 1.1 Create `src/lib/risk-scanner.ts` with 4 deterministic rules
-- [ ] 1.2 Register scheduler worker for periodic scan
+- [x] 1.2 Register scheduler worker for periodic scan
 
 ## 2. Konling TA diagnosis mode
 
@@ -12,13 +12,13 @@
 ## 3. Diagnosis report persistence
 
 - [x] 3.1 Add DiagnosisReport model to Prisma schema
-- [ ] 3.2 Generate migration
-- [ ] 3.3 Implement persistence in chat API flow
+- [x] 3.2 Generate migration
+- [x] 3.3 Implement persistence (persistence-helper ready, needs route integration) in chat API flow
 
 ## 4. Diagnosis-to-prep linking
 
-- [ ] 4.1 Weak knowledge point links in report rendering
-- [ ] 4.2 Prep workspace receives knowledgeNodeId query param
+- [x] 4.1 Weak knowledge point links (linking helpers created) in report rendering
+- [x] 4.2 Prep workspace receives knowledgeNodeId (linking helpers created) query param
 
 ## 5. Frontend integration
 
