@@ -1,4 +1,4 @@
-﻿generator client {
+generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
 }
@@ -76,8 +76,14 @@ enum CourseBasisReviewState {
 }
 
 enum CourseBasisReferenceType {
+  SMART_LESSON_KNOWLEDGE_POINT
+  SMART_LESSON_GOAL
+  GENERATION_JOB
   LESSON_PLAN_REVISION
   COURSEWARE_REVISION
+  PUBLICATION_REVISION
+  CLASSROOM_SESSION
+  RESOURCE_PACK
 }
 
 enum SmartLessonSourceSelectionState {
@@ -93,6 +99,7 @@ enum SmartLessonItemState {
 
 enum SmartLessonSourceState {
   VERIFIED
+  NO_RELIABLE_SOURCE
   AI_GENERATED_SOURCE_PENDING
   TEACHER_CREATED_SOURCE_PENDING
 }
@@ -132,6 +139,23 @@ enum SmartLessonGenerationStageState {
   FAILED
   CANCELLED
   COMPLETED
+}
+
+enum SmartLessonGenerationActionState {
+  WAITING
+  PREPARING_EVIDENCE
+  GENERATING
+  VALIDATING
+  AUTO_FIXING
+  WAITING_CONFIRMATION
+  RETRYABLE
+  COMPLETED
+  CANCELLED
+}
+
+enum SmartLessonProviderAttemptKind {
+  ORIGINAL
+  CORRECTION
 }
 
 enum SmartLessonProviderAttemptOutcome {
@@ -217,6 +241,16 @@ enum AssignmentQuestionSourceFamily {
   MANUAL
   ADAPTIVE_ASSESSMENT_CATALOG
   ASSIGNMENT_DERIVATIVE
+}
+
+enum AssignmentContentAssetState {
+  PENDING
+  AVAILABLE
+}
+
+enum AssignmentContentAssetField {
+  PROMPT
+  REFERENCE_ANSWER
 }
 
 enum AssignmentSolutionReleaseMode {
@@ -495,7 +529,9 @@ model User {
   studentStates    StudentState[]
 
   // 教师班级管理
-  teacherClasses Class[] @relation("TeacherClasses")
+  teacherClasses         Class[] @relation("TeacherClasses")
+  defaultTeachingClassId String? @unique
+  defaultTeachingClass   Class?  @relation("DefaultTeachingClass", fields: [defaultTeachingClassId], references: [id], onDelete: SetNull)
 
   // 互动埋点日志
   interactionLogs      InteractionLog[]
@@ -536,6 +572,7 @@ model User {
   simulationRuns                       SimulationRun[]
   arenaChallengePublications           ArenaChallengePublication[]               @relation("ArenaChallengePublications")
   authoredAssignments                  Assignment[]                              @relation("AssignmentAuthor")
+  assignmentContentAssets              AssignmentContentAsset[]                  @relation("AssignmentContentAssetUploader")
   assignmentReviewGrants               AssignmentReviewGrant[]                   @relation("AssignmentReviewGrantee")
   issuedAssignmentReviewGrants         AssignmentReviewGrant[]                   @relation("AssignmentReviewGrantIssuer")
   assignmentHistoricalOwnerships       AssignmentHistoricalOwnership[]
@@ -663,6 +700,8 @@ model CourseBasisReferenceLink {
   versionId     String
   referenceType CourseBasisReferenceType
   referenceId   String
+  contentHash   String
+  anchors       Json
   createdAt     DateTime                 @default(now())
 
   version CourseBasisDocumentVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
@@ -683,14 +722,20 @@ model SmartLessonTask {
   outlineConfirmationRequired Boolean   @default(false)
   scopeConfirmedAt            DateTime?
   goalsConfirmedAt            DateTime?
+  selectedClassId             String?
+  textbookRanges              Json      @default("[]")
   aggregateClassContext       Json?
   aggregateClassContextRef    String?
+  classContextStaleAt         DateTime?
+  classContextStaleReason     String?
   revision                    Int       @default(1)
+  archivedAt                  DateTime?
   createdAt                   DateTime  @default(now())
   updatedAt                   DateTime  @updatedAt
 
   owner                       User                              @relation("SmartLessonTaskOwner", fields: [ownerId], references: [id], onDelete: Restrict)
   courseBasis                 CourseBasis                       @relation(fields: [courseBasisId], references: [id], onDelete: Restrict)
+  selectedClass               Class?                            @relation("SmartLessonTaskSelectedClass", fields: [selectedClassId], references: [id], onDelete: Restrict)
   sources                     SmartLessonSourceSelection[]
   knowledgePoints             SmartLessonKnowledgePoint[]
   goals                       SmartLessonGoal[]
@@ -699,7 +744,9 @@ model SmartLessonTask {
   coursewarePublicationSeries SmartCoursewarePublicationSeries?
 
   @@index([ownerId, updatedAt])
+  @@index([ownerId, archivedAt, updatedAt])
   @@index([ownerId, courseBasisId])
+  @@index([ownerId, selectedClassId])
 }
 
 model SmartLessonSourceSelection {
@@ -730,6 +777,7 @@ model SmartLessonKnowledgePoint {
   sourceBindings       Json                   @default("[]")
   sourceBindingSetHash String
   gapIdentity          String?
+  gapReason            String?
   origin               String
   supersedesIds        String[]
   confirmedAt          DateTime?
@@ -755,6 +803,7 @@ model SmartLessonGoal {
   sourceBindings       Json                   @default("[]")
   sourceBindingSetHash String
   gapIdentity          String?
+  gapReason            String?
   standardsMappings    Json                   @default("[]")
   confirmedAt          DateTime?
   removedAt            DateTime?
@@ -794,6 +843,7 @@ model SmartLessonRevision {
   id                     String   @id @default(cuid())
   ownerId                String
   taskId                 String
+  taskRevision           Int
   draftId                String   @unique
   revisionNumber         Int
   displayName            String
@@ -850,21 +900,23 @@ model SmartLessonGenerationJob {
 }
 
 model SmartLessonGenerationStage {
-  id                String                          @id @default(cuid())
-  ownerId           String
-  jobId             String
-  kind              SmartLessonGenerationStageKind
-  orderIndex        Int
-  state             SmartLessonGenerationStageState @default(PENDING)
-  attemptGeneration Int                             @default(0)
-  claimToken        String?
-  claimExpiresAt    DateTime?
-  output            Json?
-  outputHash        String?
-  startedAt         DateTime?
-  completedAt       DateTime?
-  createdAt         DateTime                        @default(now())
-  updatedAt         DateTime                        @updatedAt
+  id                        String                           @id @default(cuid())
+  ownerId                   String
+  jobId                     String
+  kind                      SmartLessonGenerationStageKind
+  orderIndex                Int
+  state                     SmartLessonGenerationStageState  @default(PENDING)
+  actionState               SmartLessonGenerationActionState @default(WAITING)
+  attemptGeneration         Int                              @default(0)
+  providerAttemptGeneration Int                              @default(1)
+  claimToken                String?
+  claimExpiresAt            DateTime?
+  output                    Json?
+  outputHash                String?
+  startedAt                 DateTime?
+  completedAt               DateTime?
+  createdAt                 DateTime                         @default(now())
+  updatedAt                 DateTime                         @updatedAt
 
   job      SmartLessonGenerationJob     @relation(fields: [jobId], references: [id], onDelete: Restrict)
   attempts SmartLessonProviderAttempt[]
@@ -875,30 +927,38 @@ model SmartLessonGenerationStage {
 }
 
 model SmartLessonProviderAttempt {
-  id                   String                            @id @default(cuid())
-  ownerId              String
-  stageId              String
-  attemptNumber        Int
-  idempotencyKey       String
-  serviceId            String
-  providerKind         String
-  model                String
-  promptVersion        String
-  schemaVersion        String
-  requestHash          String
-  requestSnapshot      Json
-  normalizedResponseId String?
-  outcome              SmartLessonProviderAttemptOutcome @default(RUNNING)
-  inputTokens          Int?
-  outputTokens         Int?
-  costMicros           BigInt?
-  startedAt            DateTime                          @default(now())
-  finishedAt           DateTime?
+  id                        String                            @id @default(cuid())
+  ownerId                   String
+  stageId                   String
+  attemptNumber             Int
+  kind                      SmartLessonProviderAttemptKind    @default(ORIGINAL)
+  providerAttemptGeneration Int                               @default(1)
+  deliveryGeneration        Int
+  idempotencyKey            String
+  serviceId                 String
+  providerKind              String
+  model                     String
+  promptVersion             String
+  schemaVersion             String
+  requestHash               String
+  requestSnapshot           Json
+  validationReceipt         Json?
+  correctsAttemptId         String?
+  normalizedResponseId      String?
+  outcome                   SmartLessonProviderAttemptOutcome @default(RUNNING)
+  inputTokens               Int?
+  outputTokens              Int?
+  costMicros                BigInt?
+  startedAt                 DateTime                          @default(now())
+  finishedAt                DateTime?
 
-  stage SmartLessonGenerationStage @relation(fields: [stageId], references: [id], onDelete: Restrict)
+  stage             SmartLessonGenerationStage   @relation(fields: [stageId], references: [id], onDelete: Restrict)
+  correctsAttempt   SmartLessonProviderAttempt?  @relation("SmartLessonProviderAttemptCorrection", fields: [correctsAttemptId], references: [id], onDelete: Restrict)
+  correctionAttempt SmartLessonProviderAttempt[] @relation("SmartLessonProviderAttemptCorrection")
 
   @@unique([ownerId, idempotencyKey])
   @@unique([stageId, attemptNumber])
+  @@unique([stageId, providerAttemptGeneration, kind])
   @@index([ownerId, stageId, startedAt])
 }
 
@@ -1153,7 +1213,7 @@ model SmartCoursewarePdfExport {
   createdAt             DateTime @default(now())
 
   publicationRevision SmartCoursewarePublicationRevision @relation(fields: [publicationRevisionId], references: [id], onDelete: Restrict)
-  createdBy          User                                @relation("SmartCoursewarePdfExportActor", fields: [createdById], references: [id], onDelete: Restrict)
+  createdBy           User                               @relation("SmartCoursewarePdfExportActor", fields: [createdById], references: [id], onDelete: Restrict)
 
   @@unique([ownerId, idempotencyKey])
   @@unique([publicationRevisionId, rendererVersion])
@@ -1370,11 +1430,12 @@ model ControlOdysseyAiHistory {
 
 // 班级管理
 model Class {
-  id        String @id @default(cuid())
-  name      String
-  code      String @unique // 6位班级码，学生通过此码加入班级
-  teacherId String
-  teacher   User   @relation("TeacherClasses", fields: [teacherId], references: [id])
+  id                String @id @default(cuid())
+  name              String
+  code              String @unique // 6位班级码，学生通过此码加入班级
+  teacherId         String
+  teacher           User   @relation("TeacherClasses", fields: [teacherId], references: [id])
+  defaultForTeacher User?  @relation("DefaultTeachingClass")
 
   description String?
   year        String? // 学年
@@ -1386,6 +1447,7 @@ model Class {
   arenaChallengePublications ArenaChallengePublication[]
   assignmentAudiences        AssignmentAudience[]
   gradingBatches             GradingBatch[]
+  smartLessonTasks           SmartLessonTask[] @relation("SmartLessonTaskSelectedClass")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1411,6 +1473,7 @@ model Assignment {
   approvalSnapshots     TeacherAssignmentApprovalSnapshot[]
   resubmissionGrants    TeacherAssignmentResubmissionGrant[]
   questionExemptions    TeacherAssignmentQuestionExemption[]
+  contentAssets         AssignmentContentAsset[]
 
   @@index([authorId, state, updatedAt])
   @@index([courseContext])
@@ -1448,10 +1511,46 @@ model AssignmentRevision {
   approvalSnapshots     TeacherAssignmentApprovalSnapshot[]
   resubmissionGrants    TeacherAssignmentResubmissionGrant[]
   questionExemptions    TeacherAssignmentQuestionExemption[]
+  assetReferences       AssignmentRevisionAssetReference[]
 
   @@unique([assignmentId, revisionNumber])
   @@index([assignmentId, state, updatedAt])
   @@index([publishedAt])
+}
+
+model AssignmentContentAsset {
+  id           String   @id @default(cuid())
+  assignmentId String
+  uploaderId   String
+  objectKey    String   @unique
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  checksum     String
+  state        AssignmentContentAssetState @default(PENDING)
+  createdAt    DateTime @default(now())
+  availableAt  DateTime?
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  uploader   User       @relation("AssignmentContentAssetUploader", fields: [uploaderId], references: [id], onDelete: Restrict)
+  references AssignmentRevisionAssetReference[]
+
+  @@index([assignmentId, uploaderId, state])
+}
+
+model AssignmentRevisionAssetReference {
+  id               String   @id @default(cuid())
+  revisionId       String
+  assetId          String
+  stableQuestionId String
+  field            AssignmentContentAssetField
+  createdAt        DateTime @default(now())
+
+  revision AssignmentRevision   @relation(fields: [revisionId], references: [id], onDelete: Restrict)
+  asset    AssignmentContentAsset @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@unique([revisionId, stableQuestionId, field, assetId])
+  @@index([assetId, revisionId])
 }
 
 model AssignmentAudience {
@@ -1541,16 +1640,18 @@ model AssignmentSubmission {
 }
 
 model SubmissionAnswer {
-  id                   String                @id @default(cuid())
-  submissionId         String
-  assignmentQuestionId String
-  state                SubmissionAnswerState @default(DRAFT)
-  version              Int                   @default(1)
-  responseType         String
-  textDraft            String?
-  currentAttemptNumber Int                   @default(0)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  id                        String                @id @default(cuid())
+  submissionId              String
+  assignmentQuestionId      String
+  state                     SubmissionAnswerState @default(DRAFT)
+  version                   Int                   @default(1)
+  responseType              String
+  answerContractVersion     String                @default("assignment-response.v2")
+  textDraft                 String?
+  attachmentOrderProvenance String?
+  currentAttemptNumber      Int                   @default(0)
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
 
   submission         AssignmentSubmission                 @relation(fields: [submissionId], references: [id], onDelete: Restrict)
   question           AssignmentQuestion                   @relation(fields: [assignmentQuestionId], references: [id], onDelete: Restrict)
@@ -1570,6 +1671,7 @@ model SubmissionAttempt {
   attemptNumber                        Int
   answerVersion                        Int
   textSnapshot                         String?
+  answerSnapshot                       Json?
   textSnapshotPolicyId                 String?
   textSnapshotPolicyVersion            String?
   textSnapshotDeleteStrategy           String?
@@ -1610,6 +1712,9 @@ model SubmissionAsset {
   mimeType                String
   sizeBytes               Int
   checksum                String?
+  assetRole               String               @default("ATTACHMENT")
+  orderIndex              Int?
+  embeddedPosition        String?
   state                   SubmissionAssetState @default(QUARANTINED)
   scanState               String               @default("PENDING")
   scanRetryCount          Int                  @default(0)
@@ -1645,6 +1750,8 @@ model SubmissionAsset {
   retentionPolicy     GradingLifecyclePolicy?               @relation("SubmissionAssetRetentionPolicy", fields: [retentionPolicyId], references: [id], onDelete: Restrict)
 
   @@unique([answerId, version])
+  @@index([answerId, state, orderIndex])
+  @@index([attemptId, orderIndex])
   @@index([state, createdAt])
   @@index([state, retentionExpiresAt])
   @@index([deletionLeaseExpiresAt])
@@ -1743,27 +1850,28 @@ model GradingRequestIdempotency {
 }
 
 model LearningMaterializationRebuildRequest {
-  userId             String    @id
-  classIds           Json
-  reason             String
-  kind               String    @default("LEGACY")
-  migrationRunId     String?
-  calculationVersion String?
-  learnerGeneration  BigInt?
-  queueGeneration    BigInt?
-  cutoverFence       BigInt?
-  inputDigest        String?
-  status             String    @default("PENDING")
-  generation         Int       @default(1)
-  claimedGeneration  Int?
-  claimToken         String?
-  claimExpiresAt     DateTime?
-  attemptCount       Int       @default(0)
-  lastErrorCode      String?
-  completedAt        DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String    @id
+  classIds            Json
+  reason              String
+  kind                String    @default("LEGACY")
+  migrationRunId      String?
+  calculationVersion  String?
+  learnerGeneration   BigInt?
+  queueGeneration     BigInt?
+  cutoverFence        BigInt?
+  inputDigest         String?
+  simulationTaskInput Json?
+  status              String    @default("PENDING")
+  generation          Int       @default(1)
+  claimedGeneration   Int?
+  claimToken          String?
+  claimExpiresAt      DateTime?
+  attemptCount        Int       @default(0)
+  lastErrorCode       String?
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status, claimExpiresAt, updatedAt], map: "LMRebuild_status_claim_exp_updated_idx")
   @@index([kind, migrationRunId, cutoverFence], map: "LMRebuild_kind_run_fence_idx")
@@ -2004,6 +2112,7 @@ model AnswerEvidence {
   readiness                         AnswerEvidenceReadiness  @default(PENDING)
   limitationState                   String                   @default("none")
   limitations                       String[]                 @default([])
+  sourceManifest                    Json                     @default("{}")
   lifecyclePolicyId                 String?
   lifecyclePolicyVersion            String?
   lifecycleDeleteStrategy           String?
@@ -2081,6 +2190,7 @@ model DocumentConversion {
   sourceChecksum                    String
   outputChecksum                    String?
   canonicalMarkdown                 String?                 @db.Text
+  normalizedBlocks                  Json?
   renderedObjectKey                 String?
   renderedChecksum                  String?
   precision                         GradingPrecision?
@@ -2298,6 +2408,7 @@ model GradingRun {
   referenceAnswer                   String?         @db.Text
   limitations                       String[]        @default([])
   blockedReasons                    String[]        @default([])
+  evidenceState                     String          @default("COMPLETE")
   state                             GradingRunState @default(QUEUED)
   draftTotalScore                   Float?
   overallComment                    String?         @db.Text
@@ -2337,7 +2448,7 @@ model GradingCriterionAssessment {
   id                String    @id @default(cuid())
   gradingRunId      String
   criterionId       String
-  levelId           String
+  levelId           String?
   score             Float
   rationale         String    @db.Text
   confidence        Float
@@ -2452,7 +2563,7 @@ model AssignmentPublicationOperation {
   revision   AssignmentRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict)
 
   @@unique([assignmentId, idempotencyKey])
-  @@index([revisionId])
+  @@unique([revisionId])
 }
 
 model AssignmentHistoricalOwnership {
@@ -2517,31 +2628,33 @@ model TeacherAssignmentReview {
 }
 
 model TeacherAssignmentApprovalSnapshot {
-  id                     String   @id
-  reviewId               String   @unique
-  assignmentId           String
-  assignmentRevisionId   String
-  submissionId           String
-  answerId               String
-  attemptId              String
-  questionId             String
-  gradingRunId           String   @unique
-  answerEvidenceId       String
-  reviewerId             String
-  reviewVersion          Int
-  idempotencyKey         String
-  requestHash            String
-  machineSnapshotHash    String
-  criterionSnapshot      Json
-  annotationSnapshot     Json
-  questionTotal          Decimal  @db.Decimal(10, 4)
-  overallComment         String?  @db.Text
-  authorizationSnapshot  Json
-  rubricVersion          String
-  evaluatorVersion       String
-  lifecyclePolicyVersion String?
-  approvedAt             DateTime
-  createdAt              DateTime @default(now())
+  id                          String   @id
+  reviewId                    String   @unique
+  assignmentId                String
+  assignmentRevisionId        String
+  submissionId                String
+  answerId                    String
+  attemptId                   String
+  questionId                  String
+  gradingRunId                String   @unique
+  answerEvidenceId            String
+  reviewerId                  String
+  reviewVersion               Int
+  idempotencyKey              String
+  requestHash                 String
+  machineSnapshotHash         String
+  criterionSnapshot           Json
+  annotationSnapshot          Json
+  questionTotal               Decimal  @db.Decimal(10, 4)
+  overallComment              String?  @db.Text
+  authorizationSnapshot       Json
+  rubricVersion               String
+  evaluatorVersion            String
+  lifecyclePolicyVersion      String?
+  incompleteEvidenceConfirmed Boolean  @default(false)
+  omittedAssetIds             String[] @default([])
+  approvedAt                  DateTime
+  createdAt                   DateTime @default(now())
 
   review              TeacherAssignmentReview               @relation(fields: [reviewId], references: [id], onDelete: Restrict)
   assignment          Assignment                            @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
@@ -3947,28 +4060,31 @@ model KonlingMemory {
 }
 
 model AgentSession {
-  id              String    @id @default(cuid())
-  ownerUserId     String
-  actorUserId     String?
-  classId         String?
-  courseId        String
-  pageId          String
-  resourceId      String?
-  pathNodeId      String?
-  phase           String
-  status          String    @default("draft")
-  stateJson       Json      @default("{}")
-  permittedTools  String[]  @default([])
-  pendingApproval Json?
-  expiresAt       DateTime?
-  archivedAt      DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  konlingSessionId String?
+  ownerUserId      String
+  actorUserId      String?
+  classId          String?
+  courseId         String
+  pageId           String
+  resourceId       String?
+  pathNodeId       String?
+  phase            String
+  status           String    @default("draft")
+  stateJson        Json      @default("{}")
+  permittedTools   String[]  @default([])
+  pendingApproval  Json?
+  expiresAt        DateTime?
+  archivedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  ownerUser User           @relation("AgentSessionOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
-  actorUser User?          @relation("AgentSessionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
-  toolRuns  AgentToolRun[]
+  ownerUser      User            @relation("AgentSessionOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  actorUser      User?           @relation("AgentSessionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  konlingSession KonlingSession? @relation(fields: [konlingSessionId], references: [id], onDelete: SetNull)
+  toolRuns       AgentToolRun[]
 
+  @@index([konlingSessionId, updatedAt])
   @@index([ownerUserId, status, updatedAt])
   @@index([ownerUserId, courseId, pageId])
   @@index([classId])
@@ -4070,11 +4186,18 @@ model PlatformSetting {
 // ========== 控灵AI助手会话模型 ==========
 
 model KonlingSession {
-  id       String @id @default(cuid())
-  userId   String
-  courseId String // 课程ID (L-2d, L-sum等)
-  pageId   String // 页面/步骤ID
-  title    String // 会话标题
+  id                  String    @id @default(cuid())
+  userId              String
+  courseId            String // 发起会话时的课程ID
+  pageId              String // 发起会话时的页面/步骤ID
+  title               String
+  titleIsManual       Boolean   @default(false)
+  pinnedAt            DateTime?
+  lastActivityAt      DateTime  @default(now())
+  libraryVisible      Boolean   @default(true)
+  migrationSourceId   String?   @unique
+  activeTurnId        String?
+  activeTurnClaimedAt DateTime?
 
   messages Json // 消息历史数组
 
@@ -4082,11 +4205,13 @@ model KonlingSession {
   updatedAt DateTime @updatedAt
   expiresAt DateTime // 7天后过期
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentSessions AgentSession[]
 
   @@index([userId, courseId, pageId])
   @@index([expiresAt])
   @@index([userId, updatedAt])
+  @@index([userId, libraryVisible, pinnedAt, lastActivityAt])
 }
 
 // ========== Data Governance Tables ==========
@@ -4495,7 +4620,7 @@ model LearnerFactTransition {
   correctionOfSequence BigInt?
   createdAt            DateTime                       @default(now())
 
-  fact                LearningFact                 @relation(fields: [factId], references: [id], onDelete: Restrict)
+  fact                LearningFact               @relation(fields: [factId], references: [id], onDelete: Restrict)
   riskStates          LearnerEvidenceRiskState[]
   growthInvalidations GrowthRecordInvalidation[]
 
@@ -4514,31 +4639,32 @@ model LearnerFactTransitionSequence {
 // Immutable versioned learner state. NO_EVIDENCE rows are current tombstones,
 // not replacements or deletions of prior portrait snapshots.
 model LearnerPortraitStateVersion {
-  id                       String                   @id @default(cuid())
-  userId                   String
-  calculationVersion       String
-  generation               BigInt
-  queueGeneration          BigInt
-  stateWatermark           BigInt
-  stateKind                LearnerPortraitStateKind
-  snapshotId               String?
-  overallScore             Float?
-  dimensionCoverage        Json
-  evidenceAsOf             DateTime?
-  confidence               Float?
-  lastTrend                String?
-  lastRisk                 Json?
-  availabilityReason       String
-  generatedAt              DateTime
-  cutoverFence             BigInt
-  migrationRunId           String?
-  createdAt                DateTime                 @default(now())
+  id                 String                   @id @default(cuid())
+  userId             String
+  calculationVersion String
+  generation         BigInt
+  queueGeneration    BigInt
+  stateWatermark     BigInt
+  taskInputDigest    String                   @default("")
+  stateKind          LearnerPortraitStateKind
+  snapshotId         String?
+  overallScore       Float?
+  dimensionCoverage  Json
+  evidenceAsOf       DateTime?
+  confidence         Float?
+  lastTrend          String?
+  lastRisk           Json?
+  availabilityReason String
+  generatedAt        DateTime
+  cutoverFence       BigInt
+  migrationRunId     String?
+  createdAt          DateTime                 @default(now())
 
   snapshot       StudentPortraitV2Snapshot?      @relation(fields: [snapshotId], references: [id], onDelete: Restrict)
   migrationRun   CumulativePortraitMigrationRun? @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
   currentPointer LearnerPortraitCurrentState?
 
-  @@unique([userId, calculationVersion, generation, stateWatermark], map: "LearnerPortraitState_user_calc_generation_watermark_key")
+  @@unique([userId, calculationVersion, generation, stateWatermark, taskInputDigest], map: "LearnerPortraitState_user_calc_generation_watermark_task_key")
   @@index([userId, stateWatermark])
   @@index([calculationVersion, generation, queueGeneration], map: "LearnerPortraitState_calc_generation_queue_idx")
   @@index([migrationRunId, generation, queueGeneration], map: "LearnerPortraitState_run_generation_queue_idx")
@@ -4553,6 +4679,7 @@ model LearnerPortraitCurrentState {
   generation         BigInt
   queueGeneration    BigInt
   stateWatermark     BigInt
+  taskInputDigest    String   @default("")
   cutoverFence       BigInt
   updatedAt          DateTime @updatedAt
 
@@ -4581,7 +4708,7 @@ model CumulativePortraitCutoverFence {
 // Evidence risk history is independent from teacher disposition fields on
 // StudentRiskFlag. Current state is selected by the greatest transition sequence.
 model LearnerEvidenceRiskState {
-  id                       String   @id @default(cuid())
+  id                       String                  @id @default(cuid())
   userId                   String
   riskKey                  String
   riskType                 LearnerEvidenceRiskType
@@ -4592,7 +4719,7 @@ model LearnerEvidenceRiskState {
   stateGeneration          BigInt
   sourceTransitionSequence BigInt
   occurredAt               DateTime
-  createdAt                DateTime @default(now())
+  createdAt                DateTime                @default(now())
 
   sourceTransition LearnerFactTransition @relation(fields: [userId, sourceTransitionSequence], references: [userId, sequence], onDelete: Restrict)
 
@@ -4625,7 +4752,7 @@ model CumulativePortraitMigrationRun {
   learnerStates      LearnerPortraitStateVersion[]
   classVersions      ClassCumulativePortraitVersion[]
   receipts           CumulativePortraitMigrationReceipt[]
-  activeCutoverFence CumulativePortraitCutoverFence?           @relation("ActiveCumulativePortraitMigrationRun")
+  activeCutoverFence CumulativePortraitCutoverFence?      @relation("ActiveCumulativePortraitMigrationRun")
 
   @@index([status, startedAt])
   @@index([sourceDryRunId])
@@ -4634,17 +4761,17 @@ model CumulativePortraitMigrationRun {
 
 // Append-only stage and subject receipts make migration retries auditable.
 model CumulativePortraitMigrationReceipt {
-  id          String                                    @id @default(cuid())
+  id          String                                   @id @default(cuid())
   runId       String
   stage       String
   subjectKind String
   subjectKey  String
-  attempt     Int                                       @default(1)
+  attempt     Int                                      @default(1)
   status      CumulativePortraitMigrationReceiptStatus
   inputDigest String
-  counts      Json                                      @default("{}")
-  details     Json                                      @default("{}")
-  createdAt   DateTime                                  @default(now())
+  counts      Json                                     @default("{}")
+  details     Json                                     @default("{}")
+  createdAt   DateTime                                 @default(now())
 
   run CumulativePortraitMigrationRun @relation(fields: [runId], references: [id], onDelete: Restrict)
 
@@ -4744,7 +4871,7 @@ model ClassCompetencySnapshot {
 // Immutable class-competency.cumulative.v2 history. Legacy v1 rows remain in
 // ClassCompetencySnapshot and are not eligible for this model's current pointer.
 model ClassCumulativePortraitVersion {
-  id                     String   @id @default(cuid())
+  id                     String    @id @default(cuid())
   classId                String
   materializationVersion String
   calculationVersion     String
@@ -4764,9 +4891,9 @@ model ClassCumulativePortraitVersion {
   totalStudentCount      Int
   cutoverFence           BigInt
   generatedAt            DateTime
-  createdAt              DateTime @default(now())
+  createdAt              DateTime  @default(now())
 
-  migrationRun   CumulativePortraitMigrationRun  @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
+  migrationRun   CumulativePortraitMigrationRun       @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
   currentPointer ClassCumulativePortraitCurrentState?
 
   @@unique([classId, migrationRunId, inputDigest], map: "ClassCumulativePortrait_class_run_input_key")
@@ -4820,9 +4947,9 @@ model StudentRiskFlag {
 
 model DiagnosisReport {
   id               String   @id @default(cuid())
-  scopeType        String   // class or student
+  scopeType        String
   scopeId          String
-  userId           String   // teacher who triggered
+  userId           String
   reportBody       Json
   riskSummary      Json?
   generatedAt      DateTime @default(now())
@@ -4834,28 +4961,28 @@ model DiagnosisReport {
 
 // Growth records for portfolio
 model GrowthRecord {
-  id                 String  @id @default(cuid())
-  userId             String
-  businessKey        String? @unique(map: "GrowthRecord_businessKey_key")
+  id          String  @id @default(cuid())
+  userId      String
+  businessKey String? @unique(map: "GrowthRecord_businessKey_key")
 
-  recordType         String // milestone, breakthrough, remediation, reflection, portfolio
-  title              String
-  description        String
+  recordType  String // milestone, breakthrough, remediation, reflection, portfolio
+  title       String
+  description String
 
-  evidenceJson       Json
-  mediaUrls          String[]
+  evidenceJson Json
+  mediaUrls    String[]
 
-  occurredAt         DateTime
-  courseId           String?
-  isPublic           Boolean  @default(false)
+  occurredAt DateTime
+  courseId   String?
+  isPublic   Boolean  @default(false)
 
   createdAt          DateTime  @default(now())
   sourceSnapshotAt   DateTime?
   sourceInputDigest  String?
   expiresAt          DateTime?
   calculationVersion String?
-  stateGeneration     BigInt?
-  derivedIdentity     String?   @unique
+  stateGeneration    BigInt?
+  derivedIdentity    String?   @unique
 
   invalidations GrowthRecordInvalidation[]
 
@@ -4907,4 +5034,576 @@ model LearningRecommendation {
 
   @@index([userId, recType])
   @@index([userId, isCompleted])
+}
+
+// Candidate-only, immutable mirror of explicitly locked ActKG Engineering
+// Releases. No production knowledge consumer reads these models.
+model ActkgReleaseSet {
+  id             String   @id
+  controlledPath String   @unique
+  lockVersion    String
+  candidateState String   @default("CANDIDATE")
+  createdAt      DateTime @default(now())
+
+  releases ActkgRelease[]
+  receipt  ActkgImportReceipt?
+  courseCoverageVersions CourseCoverageOverlayVersion[]
+}
+
+model ActkgRelease {
+  id              String   @id
+  releaseSetId    String
+  releaseVersion  String   @unique
+  releaseStatus   String
+  protocol        String
+  authority       String
+  scope           String
+  contractHash    String
+  releaseHash     String   @unique
+  schemaRawHash   String
+  releaseRawHash  String
+  notesRawHash    String
+  captureRevision String
+  lockRawHash     String
+  createdAt       DateTime @default(now())
+
+  // CTKG 0.2 aggregate identity. NULL for historical CTKG 0.1 releases.
+  schemaVersion             String?
+  upstreamReleaseId         String?
+  projectionId              String?
+  projectionDigest          String?
+  sourceDatasetHash         String?
+  upstreamPublicationCommit String?
+  upstreamClosedCommit      String?
+
+  releaseSet               ActkgReleaseSet                        @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  objects                  ActkgAuthoritativeObject[]
+  relations                ActkgAuthoritativeRelation[]
+  sourceMappings           ActkgSourceMapping[]
+  sourceObjects            ActkgSourceObject[]
+  evidence                 ActkgEvidenceSegment[]
+  originalPayload          ActkgOriginalReleasePayload?
+  receipt                  ActkgImportReceipt?
+  artifacts                ActkgReleaseArtifact[]
+  components               ActkgReleaseComponent[]
+  entries                  ActkgReleaseEntry[]
+  projectionNodes          ActkgProjectionNode[]
+  projectionLinks          ActkgProjectionLink[]
+  upstreamRagReferences    ActkgUpstreamRagReference[]
+  courseCoverageVersions   CourseCoverageOverlayVersion[]
+  resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
+  resourceBindingDecisions CanonicalResourceBindingDecision[]
+
+  @@unique([releaseSetId, releaseVersion])
+  @@unique([releaseSetId, id])
+  @@index([releaseSetId, releaseStatus])
+}
+
+model ActkgAuthoritativeObject {
+  releaseId         String
+  canonicalId       String
+  ordinal           Int
+  canonicalType     String
+  semanticName      String?
+  reviewStatus      String?
+  publicationStatus String?
+  lifecycleStatus   String?
+  payload           Json
+
+  release                  ActkgRelease                       @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  outgoing                 ActkgAuthoritativeRelation[]       @relation("ActkgRelationSource")
+  incoming                 ActkgAuthoritativeRelation[]       @relation("ActkgRelationTarget")
+  sourceMappings           ActkgSourceMapping[]
+  courseCoverageEntries    CourseCoverageOverlayEntry[]
+  resourceBindingDecisions CanonicalResourceBindingDecision[]
+  resourceCrosswalks       ActkgEvidenceStructuralUnitCrosswalk[]
+
+  @@id([releaseId, canonicalId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, canonicalType])
+  @@index([releaseId, semanticName])
+}
+
+model ActkgAuthoritativeRelation {
+  releaseId         String
+  relationId        String
+  ordinal           Int
+  qualityTier       String
+  sourceId          String
+  targetId          String
+  relationType      String
+  reviewStatus      String?
+  publicationStatus String?
+  direct            Boolean?
+  payload           Json
+
+  release ActkgRelease             @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  source  ActkgAuthoritativeObject @relation("ActkgRelationSource", fields: [releaseId, sourceId], references: [releaseId, canonicalId], onDelete: Restrict)
+  target  ActkgAuthoritativeObject @relation("ActkgRelationTarget", fields: [releaseId, targetId], references: [releaseId, canonicalId], onDelete: Restrict)
+
+  @@id([releaseId, relationId])
+  @@unique([releaseId, qualityTier, ordinal])
+  @@unique([releaseId, sourceId, targetId, relationType])
+  @@index([releaseId, relationType, qualityTier])
+  @@index([releaseId, sourceId])
+  @@index([releaseId, targetId])
+}
+
+model ActkgSourceObject {
+  releaseId      String
+  sourceObjectId String
+  ordinal        Int
+  sourceId       String?
+  sectionId      String?
+  nodeType       String?
+  reviewStatus   String?
+  payload        Json
+
+  release  ActkgRelease         @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  mappings ActkgSourceMapping[]
+
+  @@id([releaseId, sourceObjectId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, sourceId, sectionId])
+}
+
+model ActkgSourceMapping {
+  releaseId      String
+  mappingId      String
+  ordinal        Int
+  sourceObjectId String
+  canonicalId    String
+  mappingType    String
+  reviewStatus   String?
+  payload        Json
+
+  release      ActkgRelease             @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  sourceObject ActkgSourceObject        @relation(fields: [releaseId, sourceObjectId], references: [releaseId, sourceObjectId], onDelete: Restrict)
+  canonical    ActkgAuthoritativeObject @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+
+  @@id([releaseId, mappingId])
+  @@unique([releaseId, ordinal])
+  @@unique([releaseId, sourceObjectId, canonicalId, mappingType])
+  @@index([releaseId, canonicalId])
+}
+
+model ActkgEvidenceSegment {
+  releaseId       String
+  evidenceId      String
+  ordinal         Int
+  sourceEditionId String
+  sectionId       String
+  segmentOrdinal  Int
+  segmentType     String
+  contentHash     String
+  payload         Json
+
+  release    ActkgRelease                           @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  crosswalks ActkgEvidenceStructuralUnitCrosswalk[]
+  resourceBindingDecisions CanonicalResourceBindingDecision[]
+
+  @@id([releaseId, evidenceId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, sourceEditionId, sectionId, segmentOrdinal])
+}
+
+model ActkgOriginalReleasePayload {
+  releaseId         String @id
+  normalization     String
+  canonicalHash     String
+  normalizedPayload Json
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+}
+
+model ActkgImportReceipt {
+  id                             String   @id
+  releaseSetId                   String   @unique
+  releaseId                      String   @unique
+  sourceRun                      String?
+  sourceImplementationCommit     String?
+  captureRevision                String
+  lockRawHash                    String
+  ctkgDatasetAvailability        String
+  ctkgDatasetHash                String?
+  ctkgDatasetPublicationIdentity String?
+  ctkgDatasetResolvableLocation  String?
+  revisionRegistryAvailability   String
+  revisionRegistryVersion        String?
+  revisionRegistryHash           String?
+  objectCount                    Int
+  sourceMappingCount             Int
+  goldRelationCount              Int
+  silverRelationCount            Int
+  sourceObjectCount              Int
+  evidenceSegmentCount           Int
+  candidateState                 String   @default("CANDIDATE")
+  importedAt                     DateTime @default(now())
+
+  // CTKG 0.2 aggregate receipt identity and counts. NULL for historical CTKG 0.1 receipts.
+  schemaVersion             String?
+  upstreamReleaseId         String?
+  projectionId              String?
+  projectionDigest          String?
+  sourceDatasetHash         String?
+  upstreamPublicationCommit String?
+  upstreamClosedCommit      String?
+  releaseEntryCount         Int?
+  projectionNodeCount       Int?
+  projectionLinkCount       Int?
+  upstreamRagReferenceCount Int?
+  artifactCount             Int?
+  componentCount            Int?
+
+  releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+}
+
+// CTKG 0.2 aggregate public artifacts. Original bytes of the locked public
+// bundle, one row per locked artifact, byte-for-byte reconstructable.
+model ActkgReleaseArtifact {
+  releaseId    String
+  relativePath String
+  ordinal      Int
+  mediaType    String
+  sha256       String
+  byteLength   Int
+  bytes        Bytes
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, relativePath])
+  @@unique([releaseId, ordinal])
+}
+
+// Declared component lineage of the aggregate release. Components are
+// verified immutable lineage inputs, never parallel ReleaseSet members.
+model ActkgReleaseComponent {
+  releaseId          String
+  ordinal            Int
+  componentReleaseId String
+  releaseVersion     String
+  protocol           String
+  controlledPath     String
+  releaseHash        String
+  releaseRawSha256   String
+  sha256sumsSha256   String
+  payload            Json
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, componentReleaseId])
+  @@unique([releaseId, ordinal])
+}
+
+// CTKG 0.2 release membership entries (the public membership authority).
+model ActkgReleaseEntry {
+  releaseId       String
+  entityId        String
+  ordinal         Int
+  releaseTier     String
+  entityRole      String
+  inclusionReason String
+  payload         Json
+
+  release    ActkgRelease               @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  nodes      ActkgProjectionNode[]
+  links      ActkgProjectionLink[]
+  references ActkgUpstreamRagReference[]
+
+  @@id([releaseId, entityId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, releaseTier])
+  @@index([releaseId, entityRole])
+}
+
+// GraphProjection V2 nodes. Consumer-facing projections of public release
+// membership, not reconstructed private CTKGDataset objects.
+model ActkgProjectionNode {
+  releaseId           String
+  nodeId              String
+  ordinal             Int
+  entityId            String
+  entityType          String
+  displayName         String
+  releaseTier         String
+  reviewStatus        String
+  publicationStatus   String
+  semanticName        String?
+  sourceCoverageCount Int
+  candidate           Boolean
+  payload             Json
+
+  release  ActkgRelease          @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  entry    ActkgReleaseEntry     @relation(fields: [releaseId, entityId], references: [releaseId, entityId], onDelete: Restrict)
+  outgoing ActkgProjectionLink[] @relation("ActkgProjectionLinkSource")
+  incoming ActkgProjectionLink[] @relation("ActkgProjectionLinkTarget")
+
+  @@id([releaseId, nodeId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, entityId])
+  @@index([releaseId, entityType])
+  @@index([releaseId, releaseTier])
+}
+
+// GraphProjection V2 links with exact upstream predicates, directions,
+// families and evidence state.
+model ActkgProjectionLink {
+  releaseId      String
+  linkId         String
+  ordinal        Int
+  relationId     String
+  sourceId       String
+  targetId       String
+  relationType   String
+  relationFamily String
+  direction      String
+  evidenceState  String
+  payload        Json
+
+  release  ActkgRelease        @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  relation ActkgReleaseEntry   @relation(fields: [releaseId, relationId], references: [releaseId, entityId], onDelete: Restrict)
+  source   ActkgProjectionNode @relation("ActkgProjectionLinkSource", fields: [releaseId, sourceId], references: [releaseId, nodeId], onDelete: Restrict)
+  target   ActkgProjectionNode @relation("ActkgProjectionLinkTarget", fields: [releaseId, targetId], references: [releaseId, nodeId], onDelete: Restrict)
+
+  @@id([releaseId, linkId])
+  @@unique([releaseId, ordinal])
+  @@unique([releaseId, relationId])
+  @@index([releaseId, sourceId])
+  @@index([releaseId, targetId])
+  @@index([releaseId, relationType])
+}
+
+// Upstream RAG crosswalk triples. retrieval/citation identifiers are opaque
+// values; only published_entity_id is closed over aggregate membership.
+model ActkgUpstreamRagReference {
+  releaseId         String
+  ordinal           Int
+  publishedEntityId String
+  retrievalChunkId  String
+  citationTargetId  String
+
+  release ActkgRelease      @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  entity  ActkgReleaseEntry @relation(fields: [releaseId, publishedEntityId], references: [releaseId, entityId], onDelete: Restrict)
+
+  @@id([releaseId, publishedEntityId, retrievalChunkId, citationTargetId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, publishedEntityId])
+}
+
+// Git-governed course admission overlay. This is independent from the complete
+// candidate Release mirror and is not wired into production consumers.
+model CourseCoverageOverlayVersion {
+  id                String   @id
+  schemaVersion     String
+  overlayId         String
+  overlayVersion    String
+  courseId          String
+  releaseSetId      String
+  releaseId         String
+  authoringRevision String
+  captureRevision   String
+  sourceHash        String
+  releaseHash       String
+  lockRawHash       String
+  createdAt         DateTime @default(now())
+
+  releaseSet ActkgReleaseSet @relation(fields: [releaseSetId], references: [id], onDelete: Restrict)
+  release    ActkgRelease    @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  entries    CourseCoverageOverlayEntry[]
+  receipt    CourseCoverageImportReceipt?
+
+  @@unique([overlayId, overlayVersion])
+  @@unique([courseId, releaseId, overlayVersion])
+  @@unique([id, releaseId])
+  @@index([courseId, releaseSetId, releaseId])
+}
+
+model CourseCoverageOverlayEntry {
+  overlayVersionId String
+  releaseId        String
+  canonicalId      String
+  role             String
+  ordinal          Int
+
+  overlayVersion CourseCoverageOverlayVersion @relation(fields: [overlayVersionId, releaseId], references: [id, releaseId], onDelete: Restrict)
+  canonical      ActkgAuthoritativeObject      @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+
+  @@id([overlayVersionId, canonicalId, role])
+  @@unique([overlayVersionId, ordinal])
+  @@index([releaseId, canonicalId])
+}
+
+model CourseCoverageImportReceipt {
+  id                String   @id
+  overlayVersionId  String   @unique
+  authoringRevision String
+  captureRevision   String
+  sourceHash        String
+  releaseHash       String
+  lockRawHash       String
+  entryCount        Int
+  importedAt        DateTime @default(now())
+
+  overlayVersion CourseCoverageOverlayVersion @relation(fields: [overlayVersionId], references: [id], onDelete: Restrict)
+}
+
+// Shadow-only inventory and binding records. Formal consumers remain on Legacy
+// until a later, separately governed authority cutover.
+model ResourceBindingInventoryRun {
+  id              String   @id
+  captureRevision String
+  capturedAt      DateTime
+  dbWatermark     String
+  sourceHash      String
+  itemCount       Int
+  includedCount   Int
+  excludedCount   Int
+  unresolvedCount Int
+  complete        Boolean
+  cutoverReady    Boolean  @default(false)
+  authorityState  String   @default("SHADOW")
+  createdAt       DateTime @default(now())
+
+  items ResourceBindingInventoryItem[]
+
+  @@index([captureRevision, capturedAt])
+}
+
+model ResourceBindingInventoryItem {
+  runId               String
+  atomicResourceId    String
+  resourceId          String
+  structuralUnitId    String
+  segmentId           String
+  resourceSegmentHash String
+  disposition         String
+  reasonCodes         Json
+  sourceObservations  Json
+  observationDigest   String
+
+  run ResourceBindingInventoryRun @relation(fields: [runId], references: [id], onDelete: Restrict)
+  evidenceCrosswalks ActkgEvidenceStructuralUnitCrosswalk[]
+
+  @@id([runId, atomicResourceId])
+  @@index([runId, disposition])
+  @@index([resourceId, structuralUnitId])
+}
+
+model ActkgEvidenceStructuralUnitCrosswalk {
+  id                    String
+  releaseId             String
+  evidenceId            String
+  sourceEditionId       String
+  sourceVersion         String
+  evidenceContentHash   String
+  structuralUnitId      String
+  structuralUnitVersion String
+  structuralUnitHash    String
+  inventoryRunId        String
+  atomicResourceId      String
+  resourceId            String
+  segmentId             String
+  resourceSegmentHash   String
+  captureRevision       String
+  canonicalId           String
+  validationState       String
+  validationDigest      String
+  createdAt             DateTime @default(now())
+
+  release     ActkgRelease                  @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  evidence    ActkgEvidenceSegment          @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
+  canonical   ActkgAuthoritativeObject      @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  inventory   ResourceBindingInventoryItem  @relation(fields: [inventoryRunId, atomicResourceId], references: [runId, atomicResourceId], onDelete: Restrict)
+  decisions   CanonicalResourceBindingDecision[]
+
+  @@id([releaseId, id])
+  @@unique([releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion])
+  @@unique([releaseId, evidenceId, sourceVersion, evidenceContentHash, inventoryRunId, atomicResourceId, resourceSegmentHash, canonicalId])
+  @@unique([releaseId, evidenceId, canonicalId, resourceId, structuralUnitId, segmentId, resourceSegmentHash, inventoryRunId, captureRevision, structuralUnitVersion], map: "ActkgEvidenceStructuralUnitCrosswalk_endpoint_key")
+  @@index([structuralUnitId, structuralUnitVersion, structuralUnitHash])
+}
+
+model CanonicalResourceBindingDecision {
+  id                     String   @id
+  pairId                 String
+  releaseSetId           String
+  releaseId              String
+  canonicalId            String
+  objectRevision         String
+  resourceId             String
+  structuralUnitId       String
+  segmentId              String
+  resourceSegmentHash    String
+  role                   String
+  evidenceId             String?
+  evidenceDigest         String
+  generatorPromptVersion String
+  reviewerPromptVersion  String
+  generatorCacheKey      String
+  reviewerCacheKey       String
+  reviewerRole           String
+  reviewerInputDigest    String
+  candidateDigest        String
+  reviewProvider         String
+  reviewState            String
+  publicationState       String
+  lifecycleState         String
+  attemptSequence        Int
+  supersedesDecisionId   String?  @unique
+  crosswalkId            String?
+  inventoryRunId         String?
+  captureRevision        String?
+  structuralUnitVersion  String?
+  validationDigest       String?
+  highImpactPolicyVersion String
+  highImpactReasons      Json
+  createdTransactionId   BigInt   @default(dbgenerated("txid_current()"))
+  createdAt              DateTime @default(now())
+
+  release        ActkgRelease                            @relation(fields: [releaseSetId, releaseId], references: [releaseSetId, id], onDelete: Restrict)
+  evidence       ActkgEvidenceSegment?                   @relation(fields: [releaseId, evidenceId], references: [releaseId, evidenceId], onDelete: Restrict)
+  canonical      ActkgAuthoritativeObject                @relation(fields: [releaseId, canonicalId], references: [releaseId, canonicalId], onDelete: Restrict)
+  crosswalk      ActkgEvidenceStructuralUnitCrosswalk?    @relation(fields: [releaseId, crosswalkId, inventoryRunId, captureRevision, structuralUnitVersion], references: [releaseId, id, inventoryRunId, captureRevision, structuralUnitVersion], onDelete: Restrict)
+  supersedes     CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)
+  supersededBy   CanonicalResourceBindingDecision?        @relation("CanonicalBindingSupersession")
+  humanQueueItem CanonicalResourceBindingHumanQueueItem?
+  humanDecisionReceipts CanonicalResourceBindingHumanDecisionReceipt[]
+
+  @@unique([pairId, generatorPromptVersion, reviewerPromptVersion, reviewerInputDigest, attemptSequence])
+  @@index([resourceId, structuralUnitId, publicationState])
+  @@index([releaseId, canonicalId, role])
+}
+
+model CanonicalResourceBindingHumanQueueItem {
+  id                String   @id
+  bindingDecisionId String   @unique
+  reasonCodes       Json
+  contextDigest     String
+  inputDigest       String
+  state             String   @default("PENDING")
+  createdAt         DateTime @default(now())
+
+  bindingDecision CanonicalResourceBindingDecision @relation(fields: [bindingDecisionId], references: [id], onDelete: Restrict)
+  receipt         CanonicalResourceBindingHumanDecisionReceipt?
+
+  @@index([state, createdAt])
+}
+
+model CanonicalResourceBindingHumanDecisionReceipt {
+  id            String   @id
+  queueId       String   @unique
+  actorId       String
+  decidedAt     DateTime
+  outcome       String
+  rationale     String   @db.Text
+  contextDigest String
+  inputDigest   String
+  decisionId    String
+  createdAt     DateTime @default(now())
+
+  queue    CanonicalResourceBindingHumanQueueItem @relation(fields: [queueId], references: [id], onDelete: Restrict)
+  decision CanonicalResourceBindingDecision       @relation(fields: [decisionId], references: [id], onDelete: Restrict)
+
+  @@index([decisionId])
 }
