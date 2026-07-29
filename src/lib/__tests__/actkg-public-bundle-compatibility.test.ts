@@ -513,6 +513,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       readFile(path.join(fixture, unknownPath, 'bundle-manifest.json')).catch(() => null),
     ).resolves.toBeNull();
     const route = await decidePublicBundleRoute({ root: fixture, controlledPath: unknownPath });
+    // No Manifest → historical route only; never standard acceptance.
     expect(route.kind).toBe('legacy-exact-v0.2');
     expect(route.hasManifest).toBe(false);
     await expect(
@@ -522,7 +523,13 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
         captureRevision,
         gitRoot: root,
       }),
-    ).rejects.toThrow(/ActKG aggregate Release rejected|not the pinned|not the controlled locked path/u);
+    ).rejects.toThrow(
+      // Unified capture fail-closed for untracked synthetic paths is correct;
+      // legacy aggregate/pinned/path errors remain acceptable outcomes too.
+      /ActKG public Bundle rejected \(INTEGRITY_REJECTED\).*same Git HEAD|ActKG aggregate Release rejected|not the pinned|not the controlled locked path/u,
+    );
+    // Re-assert routing so a standard-adapter success path cannot slip through.
+    expect(route.kind).not.toBe('actkg-public-bundle/1');
   });
 
   it('loads a required artifact from a safe non-default top-level path declared by the Manifest', async () => {
