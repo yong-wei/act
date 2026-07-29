@@ -1757,14 +1757,20 @@ async function main(): Promise<void> {
       .filter((row) => row.lifecycleState === 'CURRENT');
     assert.ok(priorAnyCurrent.length > 0, 'baseline must publish at least one CURRENT crosswalk');
 
+    // Synthetic candidate-B: distinct release/delta identities, but all four
+    // Git revision slots share one clean capture (f*40) — never inherit mixed
+    // import/delta slots from the real HEAD capture.
+    const laterGitCapture = 'f'.repeat(40);
     const laterCapture: CaptureIdentity = {
       ...capture,
       releaseSetId: `${releaseSet.id}:candidate-b`,
       releaseId: `${release.id}:candidate-b`,
       deltaReceiptId: `${delta.id}:candidate-b`,
       deltaOutputDigest: 'ab'.repeat(32),
-      captureRevision: 'f'.repeat(40),
-      authoringRevision: 'f'.repeat(40),
+      captureRevision: laterGitCapture,
+      importCaptureRevision: laterGitCapture,
+      deltaCaptureRevision: laterGitCapture,
+      authoringRevision: laterGitCapture,
       inventoryRunId: inventory.runId,
     };
     // Pure pipeline A→B: prior state is A's coverage/crosswalks; mode is incremental.
