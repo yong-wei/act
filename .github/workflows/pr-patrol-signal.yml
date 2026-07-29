@@ -1,0 +1,181 @@
+name: PR patrol signal
+
+on:
+  pull_request_target:
+    branches:
+      - integration
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+      - ready_for_review
+      - converted_to_draft
+      - review_requested
+      - review_request_removed
+      - closed
+  issue_comment:
+    types:
+      - created
+      - edited
+      - deleted
+  pull_request_review:
+    types:
+      - submitted
+      - edited
+      - dismissed
+  pull_request_review_comment:
+    types:
+      - created
+      - edited
+      - deleted
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to signal
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: pr-patrol-signal-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  signal:
+    if: >-
+      github.actor != 'github-actions[bot]' &&
+      (github.event_name != 'issue_comment' || github.event.issue.pull_request != null)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark pull request for patrol
+        uses: actions/github-script@v7
+        env:
+          MANUAL_PR_NUMBER: ${{ inputs.pr_number || '' }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const payload = context.payload;
+            const marker = '<!-- pr-patrol-signal:v1 -->';
+            const label = 'pr-patrol:pending';
+
+            let pullNumber;
+            if (context.eventName === 'workflow_dispatch') {
+              pullNumber = Number(process.env.MANUAL_PR_NUMBER);
+            } else if (payload.pull_request?.number) {
+              pullNumber = payload.pull_request.number;
+            } else if (payload.issue?.pull_request && payload.issue.number) {
+              pullNumber = payload.issue.number;
+            }
+
+            if (!Number.isInteger(pullNumber) || pullNumber <= 0) {
+              core.setFailed('Unable to resolve a pull request number from the event payload.');
+              return;
+            }
+
+            const { data: pull } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: pullNumber,
+            });
+
+            if (pull.base.ref !== 'integration') {
+              core.info(`Skip #${pullNumber}: base is ${pull.base.ref}, not integration.`);
+              return;
+            }
+
+            const removePendingLabel = async () => {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number: pullNumber,
+                  name: label,
+                });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+              }
+            };
+
+            if (pull.user.login === 'yong-wei') {
+              await removePendingLabel();
+              core.info(`Skip #${pullNumber}: authored by yong-wei.`);
+              return;
+            }
+
+            if (context.eventName === 'pull_request_target' && payload.action === 'closed') {
+              await removePendingLabel();
+              core.info(`Removed ${label} from closed PR #${pullNumber}.`);
+              return;
+            }
+
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: label,
+                color: 'D4C5F9',
+                description: 'PR changed and is awaiting automated patrol review',
+              });
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: pullNumber,
+              labels: [label],
+            });
+
+            const signal = {
+              version: 1,
+              generation: `${context.runId}.${context.runAttempt}`,
+              event: `${context.eventName}:${payload.action ?? 'manual'}`,
+              actor: context.actor,
+              head_sha: pull.head.sha,
+              base_ref: pull.base.ref,
+              pull_updated_at: pull.updated_at,
+              signaled_at: new Date().toISOString(),
+            };
+            const body = [
+              marker,
+              '<details><summary>PR 巡检信号：待处理（自动维护）</summary>',
+              '',
+              '```json',
+              JSON.stringify(signal, null, 2),
+              '```',
+              '</details>',
+            ].join('\n');
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number: pullNumber, per_page: 100 },
+            );
+            const existing = comments.find((comment) => comment.body?.includes(marker));
+
+            if (existing) {
+              if (existing.body !== body) {
+                await github.rest.issues.updateComment({
+                  owner,
+                  repo,
+                  comment_id: existing.id,
+                  body,
+                });
+              }
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pullNumber,
+                body,
+              });
+            }
+
+            core.info(`Signaled PR #${pullNumber} at ${pull.head.sha}.`);
