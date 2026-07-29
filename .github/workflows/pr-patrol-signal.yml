@@ -2,8 +2,6 @@ name: PR patrol signal
 
 on:
   pull_request_target:
-    branches:
-      - integration
     types:
       - opened
       - reopened
@@ -48,8 +46,7 @@ concurrency:
 jobs:
   signal:
     if: >-
-      github.actor != 'github-actions[bot]' &&
-      (github.event_name != 'issue_comment' || github.event.issue.pull_request != null)
+      github.event_name != 'issue_comment' || github.event.issue.pull_request != null
     runs-on: ubuntu-latest
     steps:
       - name: Mark pull request for patrol
@@ -84,11 +81,6 @@ jobs:
               pull_number: pullNumber,
             });
 
-            if (pull.base.ref !== 'integration') {
-              core.info(`Skip #${pullNumber}: base is ${pull.base.ref}, not integration.`);
-              return;
-            }
-
             const removePendingLabel = async () => {
               try {
                 await github.rest.issues.removeLabel({
@@ -102,15 +94,21 @@ jobs:
               }
             };
 
-            if (pull.user.login === 'yong-wei') {
+            if (pull.state !== 'open') {
               await removePendingLabel();
-              core.info(`Skip #${pullNumber}: authored by yong-wei.`);
+              core.info(`Removed ${label} from non-open PR #${pullNumber}.`);
               return;
             }
 
-            if (context.eventName === 'pull_request_target' && payload.action === 'closed') {
+            if (pull.base.ref !== 'integration') {
               await removePendingLabel();
-              core.info(`Removed ${label} from closed PR #${pullNumber}.`);
+              core.info(`Removed ${label} from #${pullNumber}: base is ${pull.base.ref}, not integration.`);
+              return;
+            }
+
+            if (pull.user.login === 'yong-wei') {
+              await removePendingLabel();
+              core.info(`Removed ${label} from #${pullNumber}: authored by yong-wei.`);
               return;
             }
 
