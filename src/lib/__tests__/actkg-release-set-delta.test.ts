@@ -474,7 +474,7 @@ describe('actkg release-set delta pure compute', () => {
     expect(isStrictlyPriorAnchor(equalTsDifferentRelease, candidate)).toBe(false);
   });
 
-  it('rejects BASELINE when upstream release_diff is present (no ACT base to cross-check)', () => {
+  it('rejects BASELINE when required upstream release_diff is present (no ACT base)', () => {
     const candidate = snapshot({
       releaseId: 'ctr:release:first',
       releaseHash: '1'.repeat(64),
@@ -505,12 +505,185 @@ describe('actkg release-set delta pure compute', () => {
       baseEvidence: emptyEvidenceRef(),
       captureRevision: CAPTURE,
       upstreamDiff: upstream,
+      // Default is required; explicit true documents the fail-closed path.
+      upstreamRequired: true,
     });
 
     expect(result.classification).toBe('BASELINE');
     expect(result.authorizationState).toBe('REJECTED_UPSTREAM');
     expect(result.upstream.status).toBe('DISAGREED');
     expect(result.signals).toEqual([]);
+  });
+
+  it('accepts BASELINE with optional release_diff and still emits full addition signals', () => {
+    const candidate = snapshot({
+      releaseId: 'ctr:release:first-optional',
+      releaseHash: '2'.repeat(64),
+      objects: [
+        obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept' }),
+        obj({ canonicalId: 'ctc:b', canonicalType: 'Formula' }),
+      ],
+      relations: [rel({ relationId: 'ctr:r1', sourceId: 'n1', targetId: 'n2' })],
+    });
+    const upstream: UpstreamReleaseDiffV1 = {
+      contractVersion: 'actkg-release-diff/1',
+      baseRelease: {
+        releaseId: 'ctr:release:ghost',
+        releaseVersion: 'ghost-v1',
+        releaseHash: '9'.repeat(64),
+      },
+      targetRelease: {
+        releaseId: candidate.releaseId,
+        releaseVersion: candidate.releaseVersion,
+        releaseHash: candidate.releaseHash,
+      },
+      objects: { added: ['ctc:a', 'ctc:b'], removed: [], changed: [] },
+      relations: { added: ['ctr:r1'], removed: [], changed: [] },
+      crosswalk: { addedCount: 0, removedCount: 0 },
+      components: { added: [], removed: [] },
+    };
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId),
+      baseSnapshot: null,
+      baseEvidence: emptyEvidenceRef(),
+      captureRevision: CAPTURE,
+      upstreamDiff: upstream,
+      upstreamRequired: false,
+    });
+
+    expect(result.classification).toBe('BASELINE');
+    expect(result.authorizationState).toBe('ACCEPTED');
+    expect(result.upstream.status).toBe('NOT_REQUIRED');
+    expect(result.details.objects.added).toEqual(['ctc:a', 'ctc:b']);
+    expect(result.details.relations.added).toEqual(['ctr:r1']);
+    expect(result.signals.some((row) => (
+      row.scope === 'object' && row.identity === 'ctc:a' && row.action === 'candidate'
+    ))).toBe(true);
+    expect(result.signals.length).toBeGreaterThan(0);
+  });
+
+  it('agrees with upstream when legal supersession uses added/removed only (not changed)', () => {
+    const base = snapshot({
+      releaseId: 'ctr:release:v1',
+      releaseHash: '1'.repeat(64),
+      objects: [obj({ canonicalId: 'ctc:old', canonicalType: 'DomainConcept' })],
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:v2',
+      releaseHash: '2'.repeat(64),
+      objects: [obj({
+        canonicalId: 'ctc:new',
+        canonicalType: 'DomainConcept',
+        supersedes: 'ctc:old',
+      })],
+    });
+    const upstream: UpstreamReleaseDiffV1 = {
+      contractVersion: 'actkg-release-diff/1',
+      baseRelease: {
+        releaseId: base.releaseId,
+        releaseVersion: base.releaseVersion,
+        releaseHash: base.releaseHash,
+      },
+      targetRelease: {
+        releaseId: candidate.releaseId,
+        releaseVersion: candidate.releaseVersion,
+        releaseHash: candidate.releaseHash,
+      },
+      objects: {
+        added: ['ctc:new'],
+        removed: ['ctc:old'],
+        changed: [],
+      },
+      relations: { added: [], removed: [], changed: [] },
+      crosswalk: { addedCount: 0, removedCount: 0 },
+      components: { added: [], removed: [] },
+    };
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, {
+        releaseHash: candidate.releaseHash,
+        releaseVersion: candidate.releaseVersion,
+      }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, {
+        releaseHash: base.releaseHash,
+        releaseVersion: base.releaseVersion,
+      }),
+      captureRevision: CAPTURE,
+      upstreamDiff: upstream,
+      upstreamRequired: true,
+    });
+
+    expect(result.authorizationState).toBe('ACCEPTED');
+    expect(result.upstream.status).toBe('AGREED');
+    expect(result.details.objects.added).toEqual(['ctc:new']);
+    expect(result.details.objects.removed).toEqual(['ctc:old']);
+    expect(result.details.objects.superseded).toEqual([{ from: 'ctc:old', to: 'ctc:new' }]);
+    expect(result.details.objects.payloadChanged).toEqual([]);
+  });
+
+  it('still maps same-ID payload changes into upstream objects.changed', () => {
+    const baseObj = obj({ canonicalId: 'ctc:a', canonicalType: 'DomainConcept', semanticName: 'gain' });
+    const changed = obj({
+      canonicalId: 'ctc:a',
+      canonicalType: 'DomainConcept',
+      semanticName: 'gain',
+      payloadDigest: digestPayload({
+        entity_id: 'ctc:a',
+        entity_type: 'DomainConcept',
+        semantic_name: 'gain',
+        description: 'payload only',
+      }),
+    });
+    const base = snapshot({
+      releaseId: 'ctr:release:v1',
+      releaseHash: '1'.repeat(64),
+      objects: [baseObj],
+    });
+    const candidate = snapshot({
+      releaseId: 'ctr:release:v2',
+      releaseHash: '2'.repeat(64),
+      objects: [changed],
+    });
+    const upstream: UpstreamReleaseDiffV1 = {
+      contractVersion: 'actkg-release-diff/1',
+      baseRelease: {
+        releaseId: base.releaseId,
+        releaseVersion: base.releaseVersion,
+        releaseHash: base.releaseHash,
+      },
+      targetRelease: {
+        releaseId: candidate.releaseId,
+        releaseVersion: candidate.releaseVersion,
+        releaseHash: candidate.releaseHash,
+      },
+      objects: { added: [], removed: [], changed: ['ctc:a'] },
+      relations: { added: [], removed: [], changed: [] },
+      crosswalk: { addedCount: 0, removedCount: 0 },
+      components: { added: [], removed: [] },
+    };
+
+    const result = computeReleaseSetDelta({
+      candidateSnapshot: candidate,
+      candidateEvidence: evidence('standard_bundle', candidate.releaseId, {
+        releaseHash: candidate.releaseHash,
+        releaseVersion: candidate.releaseVersion,
+      }),
+      baseSnapshot: base,
+      baseEvidence: evidence('exact_import', base.releaseId, {
+        releaseHash: base.releaseHash,
+        releaseVersion: base.releaseVersion,
+      }),
+      captureRevision: CAPTURE,
+      upstreamDiff: upstream,
+    });
+
+    expect(result.authorizationState).toBe('ACCEPTED');
+    expect(result.upstream.status).toBe('AGREED');
+    expect(result.details.objects.payloadChanged).toEqual(['ctc:a']);
   });
 
   it('rejects forged signalDigest that does not match recomputed body', () => {

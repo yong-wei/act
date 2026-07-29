@@ -24,6 +24,12 @@ course/resource governance and consumer migrations.
    downstream authorization (`REJECTED_UPSTREAM`) and emits no signals.
 4. Upstream is never the calculation source of truth.
 5. Multiple `release_diff` Artifacts on one Bundle fail closed (ambiguous).
+6. Optional (`required:false`) `release_diff` on an empty-installation BASELINE
+   is `NOT_REQUIRED` (no ACT base to cross-check) and does not suppress addition
+   signals. Required (`required:true`) `release_diff` on BASELINE fails closed.
+7. Upstream `objects.changed` is compared only to same-ID payload/type/tier
+   changes. Legal supersession endpoints stay in ACT `added`/`removed`/
+   `superseded` and are not double-counted as `changed`.
 
 ## Accepted base selection
 

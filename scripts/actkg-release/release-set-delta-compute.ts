@@ -807,11 +807,14 @@ export function crossCheckUpstreamDiff(
     disagreements.push('target_release.release_hash');
   }
 
+  // Same-ID payload/type/tier changes only. Supersession endpoints already
+  // appear in added/removed and must not also land in objects.changed —
+  // actkg-release-diff/1 has no supersession collection and treats the three
+  // sets as mutually exclusive identity buckets.
   const actObjectChanged = sortedUnique([
     ...details.objects.payloadChanged,
     ...details.objects.typeChanged,
     ...details.objects.tierChanged,
-    ...details.objects.superseded.flatMap((row) => [row.from, row.to]),
   ]);
   const actRelationChanged = sortedUnique([
     ...details.relations.predicateChanged,
@@ -877,6 +880,13 @@ export interface ComputeDeltaInput {
   captureRevision: string;
   upstreamDiff?: UpstreamReleaseDiffV1 | null;
   upstreamParseError?: string | null;
+  /**
+   * Whether the upstream release_diff Artifact is required by the Bundle.
+   * Default is true whenever upstreamDiff or upstreamParseError is supplied,
+   * so direct pure-compute callers cannot silently weaken required artifacts.
+   * Pass explicit false for optional (`required:false`) Bundle Artifacts.
+   */
+  upstreamRequired?: boolean;
 }
 
 /**
@@ -957,24 +967,56 @@ export function computeReleaseSetDelta(input: ComputeDeltaInput): ComputedReleas
     details: ReleaseSetDeltaDetails,
     options?: { baseline?: boolean },
   ): UpstreamCrosscheckResult => {
+    const hasUpstreamEvidence = Boolean(input.upstreamDiff || input.upstreamParseError);
+    // Explicit false only; missing flag defaults to required when evidence is present.
+    const upstreamRequired = input.upstreamRequired !== false;
+
     if (input.upstreamParseError) {
+      if (!upstreamRequired) {
+        return {
+          status: 'NOT_REQUIRED',
+          details: {
+            reason: 'optional upstream release_diff could not be parsed; ignored for authorization',
+            error: input.upstreamParseError,
+          },
+        };
+      }
       return {
         status: 'PARSE_FAILED',
         details: { error: input.upstreamParseError },
       };
     }
-    // BASELINE has no ACT base. A required/present upstream release_diff always
-    // declares base_release, which cannot be cross-validated — fail closed.
+
+    // BASELINE has no ACT base. Required release_diff always declares base_release
+    // and cannot be cross-validated — fail closed. Optional release_diff is
+    // recorded as NOT_REQUIRED so empty-installation BASELINE still authorizes
+    // full addition signals.
     if (options?.baseline && input.upstreamDiff) {
+      if (!upstreamRequired) {
+        return {
+          status: 'NOT_REQUIRED',
+          details: {
+            reason: 'optional upstream release_diff present on BASELINE; no ACT base to cross-check',
+            upstreamPresent: true,
+            upstreamRequired: false,
+          },
+        };
+      }
       return {
         status: 'DISAGREED',
         details: {
           disagreements: ['base_release.missing_on_baseline'],
-          reason: 'BASELINE has no prior ReleaseSet but upstream release_diff declares base_release',
+          reason: 'BASELINE has no prior ReleaseSet but required upstream release_diff declares base_release',
           upstream: input.upstreamDiff,
+          upstreamRequired: true,
         },
       };
     }
+
+    if (!hasUpstreamEvidence) {
+      return crossCheckUpstreamDiff(details, null);
+    }
+
     return crossCheckUpstreamDiff(details, input.upstreamDiff ?? null, {
       baseReleaseId: base?.releaseId ?? null,
       candidateReleaseId: candidate.releaseId,

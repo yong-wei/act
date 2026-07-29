@@ -164,26 +164,41 @@ async function loadCandidate(
 
 function prepareUpstream(
   rawResult: { required: boolean; raw: unknown | null; parseError: string | null },
-): { upstreamDiff: UpstreamReleaseDiffV1 | null; upstreamParseError: string | null } {
+): {
+  upstreamDiff: UpstreamReleaseDiffV1 | null;
+  upstreamParseError: string | null;
+  /** Explicit Bundle-required flag preserved into pure compute. */
+  upstreamRequired: boolean;
+} {
+  // Ambiguous multi-artifact sets required=true in the loader.
   if (rawResult.parseError) {
-    // Ambiguous multi-artifact and required artifacts always fail authorization.
-    if (rawResult.required) {
-      return { upstreamDiff: null, upstreamParseError: rawResult.parseError };
-    }
-    return { upstreamDiff: null, upstreamParseError: null };
+    return {
+      upstreamDiff: null,
+      upstreamParseError: rawResult.parseError,
+      upstreamRequired: rawResult.required,
+    };
   }
   if (!rawResult.raw) {
-    return { upstreamDiff: null, upstreamParseError: null };
+    return {
+      upstreamDiff: null,
+      upstreamParseError: null,
+      upstreamRequired: rawResult.required,
+    };
   }
   try {
     const parsed = parseUpstreamReleaseDiff(rawResult.raw);
-    return { upstreamDiff: parsed, upstreamParseError: null };
+    return {
+      upstreamDiff: parsed,
+      upstreamParseError: null,
+      upstreamRequired: rawResult.required,
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (rawResult.required) {
-      return { upstreamDiff: null, upstreamParseError: message };
-    }
-    return { upstreamDiff: null, upstreamParseError: null };
+    return {
+      upstreamDiff: null,
+      upstreamParseError: message,
+      upstreamRequired: rawResult.required,
+    };
   }
 }
 
@@ -204,7 +219,7 @@ export async function recomputeReleaseSetDelta(
 
   const base = await resolveBaseForCandidate(db, candidate);
   const upstreamRaw = await loadUpstreamReleaseDiffRaw(db, candidate);
-  const { upstreamDiff, upstreamParseError } = prepareUpstream(upstreamRaw);
+  const { upstreamDiff, upstreamParseError, upstreamRequired } = prepareUpstream(upstreamRaw);
 
   const captureRevision = resolveDeltaCaptureRevision({
     gitRoot: options.gitRoot,
@@ -219,6 +234,8 @@ export async function recomputeReleaseSetDelta(
     captureRevision,
     upstreamDiff,
     upstreamParseError,
+    // Preserve loader/required Artifact semantics; pure default remains fail-closed.
+    upstreamRequired,
   });
 
   if (computed.authorizationState === 'ACCEPTED') {
