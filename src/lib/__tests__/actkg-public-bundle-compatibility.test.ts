@@ -902,6 +902,8 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       const payload = JSON.parse(await readFile(filePath, 'utf8')) as JsonObject;
       const links = payload.links as JsonObject[];
       links[0]!.source_id = 'ctc:missing-endpoint';
+      // Keep version_digest authoritative so validation proceeds to endpoint closure.
+      payload.version_digest = recomputeProjectionDigest(payload, 'runtime');
       const bytes = await writeJson(filePath, payload);
       projection.sha256 = sha256(bytes);
       projection.byte_length = bytes.byteLength;
@@ -1933,7 +1935,14 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     await finalizeBundle(hidden, async (manifest, bundleDir) => {
       const paths = projectionPaths(manifest);
       const domain = JSON.parse(await readFile(path.join(bundleDir, paths.domain), 'utf8')) as JsonObject;
-      domain.hidden_entities = ['ctc:hidden-tamper'];
+      // Schema-valid HiddenEntityRecord (entity_id + reason); keep stale version_digest.
+      const seedNode = (domain.nodes as JsonObject[])[0]!;
+      domain.hidden_entities = [
+        {
+          entity_id: String(seedNode.entity_id ?? seedNode.id),
+          reason: 'profile-omitted-for-digest-staleness-test',
+        },
+      ];
       await writeTrackedJson(manifest, bundleDir, paths.domain, domain);
       await syncValidationReport(manifest, bundleDir);
     });
@@ -1947,7 +1956,13 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     await finalizeBundle(links, async (manifest, bundleDir) => {
       const paths = projectionPaths(manifest);
       const review = JSON.parse(await readFile(path.join(bundleDir, paths.review), 'utf8')) as JsonObject;
-      review.links = (review.links as JsonObject[]).slice(0, -1);
+      // Schema-valid link mutation: change a non-identity evidence field, keep stale digest.
+      const reviewLinks = review.links as JsonObject[];
+      reviewLinks[0] = {
+        ...reviewLinks[0]!,
+        evidence_state: reviewLinks[0]!.evidence_state === 'available' ? 'unavailable' : 'available',
+      };
+      review.links = reviewLinks;
       await writeTrackedJson(manifest, bundleDir, paths.review, review);
       await syncValidationReport(manifest, bundleDir);
     });
