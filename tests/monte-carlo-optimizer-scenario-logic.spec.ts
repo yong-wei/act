@@ -16,56 +16,50 @@ vi.mock('@/resources/simulations/rust/control-engine-server-runtime', () => {
       mockNomotoRequests.push(request);
       const req = request as Record<string, unknown>;
       const nomoto = req.nomoto as Record<string, unknown> | undefined;
-      const speed = (nomoto?.speedMps as number) ?? 7.5;
-      const duration = (req.duration as number) ?? 240;
-      const dt = (req.dt as number) ?? 0.5;
-      const steps = Math.floor(duration / dt);
+      const speed = (nomoto?.speed as number) ?? 7.5;
+      const headingDeg = (nomoto?.targetHeading as number) ?? 90;
 
+      const timeCount = 500;
+      const dt = 0.5;
       const time: number[] = [];
       const desiredHeading: number[] = [];
       const actualHeading: number[] = [];
       const speedArr: number[] = [];
-      const rudder: number[] = [];
+      const rudderArr: number[] = [];
       const trajectory: Array<{ time: number; x: number; z: number; heading: number; rudder: number }> = [];
 
-      let x = 0;
-      let z = 0;
-      let heading = 0;
-
-      for (let i = 0; i <= steps; i++) {
+      for (let i = 0; i <= timeCount; i++) {
         const t = i * dt;
         time.push(t);
-
-        const targetHeading = t < 90 ? (t / 90) * 90 : 90;
-        const headingError = targetHeading - heading;
-        const rudderCmd = Math.max(-5, Math.min(5, headingError * 0.1));
-
-        heading += rudderCmd * dt;
-        heading = Math.max(0, Math.min(90, heading));
-
-        desiredHeading.push(targetHeading);
-        actualHeading.push(heading);
+        const desired = t < 60 ? 0 : t < 150 ? headingDeg * ((t - 60) / 90) : headingDeg;
+        const actual = Math.min(headingDeg, Math.max(0, (t / 200) * headingDeg));
+        desiredHeading.push(desired);
+        actualHeading.push(actual);
         speedArr.push(speed);
-        rudder.push(rudderCmd);
-
-        const headingRad = (heading * Math.PI) / 180;
-        x += speed * Math.cos(headingRad) * dt;
-        z += speed * Math.sin(headingRad) * dt;
-
-        trajectory.push({ time: t, x, z, heading, rudder: rudderCmd });
-      }
-
-      let totalError = 0;
-      for (let i = 0; i < time.length; i++) {
-        totalError += Math.abs(desiredHeading[i] - actualHeading[i]);
+        rudderArr.push(i % 10 === 0 ? 1.5 : 0.5);
+        trajectory.push({
+          time: t,
+          x: speed * t * Math.cos((actual * Math.PI) / 180),
+          z: speed * t * Math.sin((actual * Math.PI) / 180),
+          heading: actual,
+          rudder: rudderArr[rudderArr.length - 1],
+        });
       }
 
       return {
         trajectory,
-        chartData: { time, desiredHeading, actualHeading, speed: speedArr, rudder },
+        chartData: {
+          time,
+          desiredHeading,
+          actualHeading,
+          speed: speedArr,
+          rudder: rudderArr,
+        },
         metrics: {
-          avgError: totalError / time.length,
+          avgError: 15,
           maxRudderRate: 1.5,
+          settlingTime: 120,
+          overshoot: 5,
         },
       };
     }),
