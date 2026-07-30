@@ -10525,10 +10525,15 @@ describe('konling agent runtime', () => {
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
       learningPath: {
-        findFirst: vi.fn()
-          .mockResolvedValueOnce({
+        // Semantic lock/business reads: always return the owned active path for
+        // path-1. Avoid once-queues that break when the write fence adds reads.
+        findFirst: vi.fn(async ({ where }: { where?: { id?: string } } = {}) => {
+          if (where?.id && where.id !== 'path-1') return null;
+          return {
             id: 'path-1',
             userId: 'student-1',
+            goalId: 'control-correction',
+            pathStatus: 'active',
             pathPayload: {
               policyBundle: {
                 status: 'ready',
@@ -10540,13 +10545,8 @@ describe('konling agent runtime', () => {
               selectionHistory: [],
               activity: [],
             },
-          })
-          .mockResolvedValueOnce(null)
-          .mockResolvedValueOnce({
-            id: 'path-1',
-            userId: 'student-1',
-            pathPayload: { selectionHistory: [], activity: [] },
-          }),
+          };
+        }),
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
         update: vi.fn().mockResolvedValue({ id: 'path-1' }),
       },
@@ -11745,6 +11745,14 @@ describe('konling agent runtime', () => {
             nodeIds: ['node-1', 'node-2'],
           },
         ]),
+        // Write fence lock read (recordPathIntervention) — independent of findMany.
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -11860,6 +11868,13 @@ describe('konling agent runtime', () => {
           currentNodeId: 'node-2',
           nodeIds: ['node-1', 'node-2'],
         }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -11961,6 +11976,13 @@ describe('konling agent runtime', () => {
           currentNodeId: 'node-1',
           nodeIds: ['node-1'],
         }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -12017,6 +12039,13 @@ describe('konling agent runtime', () => {
           currentNodeId: 'node-1',
           nodeIds: ['node-1'],
         }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
