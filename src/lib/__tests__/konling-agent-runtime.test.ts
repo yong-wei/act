@@ -1702,6 +1702,226 @@ describe('konling agent runtime', () => {
     expect(isolatedRuntime.getTextbookOptimizations()).toEqual([]);
   });
 
+  it('compares actual production TextbookV2 foreground with Canonical shadow sidecar, not the shadow pool as production', async () => {
+    const {
+      buildOfflineShadowInput,
+      offlineStructuralUnits,
+    } = await import('@/lib/canonical-rag');
+    const shadowInput = buildOfflineShadowInput({
+      query: '请解释根轨迹的基本概念',
+    });
+    const shadowPoolUnit = offlineStructuralUnits[0]!;
+    // Independent shadow pool item (distinct from production foreground identity).
+    const shadowPoolItem = {
+      id: shadowPoolUnit.structuralUnitId,
+      title: shadowPoolUnit.displayTitle,
+      sourceKind: 'textbook' as const,
+      modality: 'text' as const,
+      excerpt: '根轨迹法是分析和设计线性定常控制系统的图解方法，根轨迹定义见教材正文。',
+      inclusionRationale: 'Canonical shadow pool structural unit',
+      retrievalChunkId: shadowPoolUnit.retrievalChunkId,
+      citationTargetId: shadowPoolUnit.citationTargetId,
+      scores: {
+        relevance: 0.95,
+        graphAlignment: 0.9,
+        authority: 0.95,
+        eligibility: 0.9,
+        freshness: 0.9,
+        final: 0.95,
+      },
+      access: { visibility: 'public' as const, aiUseAllowed: true },
+      citation: {
+        citationTargetId: shadowPoolUnit.citationTargetId,
+        sourceId: shadowPoolUnit.retrievalChunkId,
+        displayTitle: shadowPoolUnit.displayTitle,
+        // Must use a governed relative resolver so Source Pack adjudication
+        // can validate the pack (offline sample href is under /course-runtime).
+        href: shadowPoolUnit.href ?? undefined,
+        resolver: 'course-runtime',
+        verified: true,
+      },
+      metadata: {
+        reviewStatus: 'human-confirmed',
+        // bookId:edition must form seed.sourceEditionId for full-tuple mapping.
+        bookId: 'edition',
+        edition: 'hu-shousong-8th',
+        contentHash: shadowPoolUnit.structuralUnitHash,
+        sourceVersion: shadowPoolUnit.sourceVersion,
+        structuralUnitVersion: shadowPoolUnit.structuralUnitVersion,
+        resourceId: shadowPoolUnit.resourceId,
+        segmentRef: shadowPoolUnit.segmentId,
+        citationLocator: shadowPoolUnit.locator ?? '',
+      },
+    };
+
+    const productionForeground = {
+      mode: 'lexical' as const,
+      candidates: [{
+        displayNumber: 1,
+        title: '生产前景候选（非影子池）',
+        text: '这是生产 TextbookV2 foreground 的正文，身份必须进入诊断。',
+        identity: {
+          kind: 'unit' as const,
+          unitId: 'textbook-unit:production-only-foreground',
+          fragmentId: null,
+          bookId: 'hu-shousong-auto-control-8th',
+          edition: '第八版',
+          sourceRevision: 'revision-prod',
+          structuralPath: ['chapter-production'],
+        },
+        href: '/textbooks/hu-shousong-auto-control-8th/第八版/chapter-production',
+        priority: 0,
+        limitation: null,
+      }],
+      limitations: [] as string[],
+      diagnostics: [] as Array<{ stage: 'embedding' | 'rerank'; code: string }>,
+    };
+
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: productionForeground,
+      optimizationPending: false,
+      continuation: null,
+    });
+
+    const session = {
+      id: 'agent-session-shadow-diagnostic',
+      permittedTools: ['search_textbook'],
+    };
+    let createdRun: Record<string, unknown> | null = null;
+    const db = {
+      agentSession: { findFirst: vi.fn(async () => session) },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          createdRun = {
+            id: 'shadow-run-1',
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          return createdRun;
+        }),
+        findFirst: vi.fn(async () => createdRun),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+
+    const baseRuntimeInput = {
+      db,
+      scope: createScope(),
+      agentSessionId: session.id,
+      context: createRuntimeContext({
+        permittedTools: ['search_textbook'],
+        textbookRetrievalContext: Object.freeze({
+          externalQuery: '自动控制原理 生产前景',
+        }),
+        knowledgeCapabilityContext: {
+          source: 'server-owned' as const,
+          answerIntent: 'fact-explanation' as const,
+          knowledgeNodeRefs: [] as string[],
+          capabilityTargetRefs: [] as string[],
+          resourceRefs: [] as string[],
+          pathNodeRefs: [] as string[],
+          citationRefs: [] as string[],
+          scope: createScope(),
+          missingContext: [] as string[],
+        },
+      }),
+      permittedTools: session.permittedTools,
+    };
+
+    const query = '请解释根轨迹的基本概念';
+
+    // Baseline: no shadow context.
+    const baselineRuntime = buildKonlingToolRuntime(baseRuntimeInput);
+    const baseline = await baselineRuntime.searchTextbook({ query }) as typeof productionForeground & {
+      optimizationPending: boolean;
+      canonicalRagShadowDiagnostic?: unknown;
+    };
+    expect(baseline.candidates.map((c) => c.identity.unitId)).toEqual([
+      'textbook-unit:production-only-foreground',
+    ]);
+    expect(baseline.canonicalRagShadowDiagnostic).toBeUndefined();
+
+    // With valid shadow context: production foreground must stay equal; diagnostic
+    // production IDs come from foreground, not shadowCandidatePool.
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: productionForeground,
+      optimizationPending: false,
+      continuation: null,
+    });
+    const shadowRuntime = buildKonlingToolRuntime({
+      ...baseRuntimeInput,
+      canonicalRagShadow: {
+        shadow: shadowInput,
+        shadowCandidatePool: [shadowPoolItem],
+      },
+    });
+    const withShadow = await shadowRuntime.searchTextbook({ query }) as typeof productionForeground & {
+      optimizationPending: boolean;
+      canonicalRagShadowDiagnostic?: {
+        productionAuthority: string;
+        productionUsesCanonical: boolean;
+        productionStructuralUnitIds: string[];
+        shadowStructuralUnitIds: string[];
+        shadowCitationIds: string[];
+        graphStageEmittedNumberedCitations: boolean;
+        shadowCitationsFromAdjudication: boolean;
+      };
+    };
+
+    const { canonicalRagShadowDiagnostic, ...productionOnly } = withShadow;
+    const { canonicalRagShadowDiagnostic: _ignored, ...baselineOnly } = baseline as typeof withShadow;
+    expect(productionOnly).toEqual(baselineOnly);
+
+    expect(canonicalRagShadowDiagnostic).toBeDefined();
+    expect(canonicalRagShadowDiagnostic?.productionAuthority).toBe('LEGACY');
+    expect(canonicalRagShadowDiagnostic?.productionUsesCanonical).toBe(false);
+    expect(canonicalRagShadowDiagnostic?.graphStageEmittedNumberedCitations).toBe(false);
+    expect(canonicalRagShadowDiagnostic?.shadowCitationsFromAdjudication).toBe(true);
+    expect(canonicalRagShadowDiagnostic?.productionStructuralUnitIds).toEqual([
+      'textbook-unit:production-only-foreground',
+    ]);
+    // Production IDs must not be taken from the shadow pool.
+    expect(canonicalRagShadowDiagnostic?.productionStructuralUnitIds).not.toContain(
+      shadowPoolItem.id,
+    );
+    // Shadow IDs come from adjudicated shadow path.
+    expect(canonicalRagShadowDiagnostic?.shadowStructuralUnitIds).toContain(shadowPoolItem.id);
+    expect(canonicalRagShadowDiagnostic?.shadowCitationIds).toContain(shadowPoolItem.citationTargetId);
+
+    // Broken shadow context must not mutate or fail production output.
+    mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
+      foreground: productionForeground,
+      optimizationPending: false,
+      continuation: null,
+    });
+    const brokenRuntime = buildKonlingToolRuntime({
+      ...baseRuntimeInput,
+      canonicalRagShadow: {
+        shadow: {
+          ...shadowInput,
+          objects: shadowInput.objects.map((object, index) => (
+            index === 0
+              ? {
+                  ...object,
+                  projectionId: `${object.projectionId}-broken`,
+                  contextDigest: '0'.repeat(64),
+                }
+              : object
+          )),
+        },
+        shadowCandidatePool: [shadowPoolItem],
+      },
+    });
+    const broken = await brokenRuntime.searchTextbook({ query }) as typeof productionForeground & {
+      optimizationPending: boolean;
+      canonicalRagShadowDiagnostic?: unknown;
+    };
+    const { canonicalRagShadowDiagnostic: brokenDiag, ...brokenProduction } = broken;
+    expect(brokenProduction).toEqual(baselineOnly);
+    expect(brokenDiag).toBeUndefined();
+  }, 60_000);
+
   it('exposes server-owned smart-preparation state as a teacher-only draft contract', () => {
     const smartPreparation = {
       taskId: 'task-1',

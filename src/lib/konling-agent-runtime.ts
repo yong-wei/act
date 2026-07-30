@@ -80,6 +80,11 @@ import {
   type TextbookV2ToolResult,
 } from '@/lib/source-pack/textbook-v2-adapter';
 import {
+  maybeRunKonlingCanonicalRagShadowDiagnostic,
+  type KonlingCanonicalRagShadowContext,
+  type KonlingCanonicalRagShadowDiagnostic,
+} from '@/lib/canonical-rag/konling-integration';
+import {
   assignKonlingCitationDisplayNumbers,
   buildKonlingCitationCanonicalKey,
   createKonlingCitationAllocator,
@@ -1791,6 +1796,13 @@ interface KonlingToolRuntimeInput {
   agentSessionId?: string | null;
   permittedTools?: string[] | null;
   scopedSimulationState?: Partial<SimulationStateStore> | null;
+  /**
+   * Optional #1112 Canonical RAG shadow context. When omitted (default), Konling
+   * production retrieval remains Legacy-only and does not require Crosswalks.
+   * When supplied, Legacy production is unchanged and a separate shadow
+   * comparison is recorded as diagnostics only.
+   */
+  canonicalRagShadow?: KonlingCanonicalRagShadowContext | null;
 }
 
 const candidateKnowledgeProjectionService = new AuthoritativeKnowledgeProjectionService();
@@ -2901,6 +2913,7 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       execution: { toolCallId?: string; abortSignal?: AbortSignal } = {},
     ) =>
       runKonlingRuntimeTool(input, 'search_textbook', args, async () => {
+        // Production textbook path remains Legacy workspace graph refs only.
         const progressive = await retrieveTextbookSourcePackV2Progressive({
           query: args.query,
           externalQuery: input.context.textbookRetrievalContext?.externalQuery
@@ -2925,9 +2938,24 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
             )).catch((): TextbookV2OptimizationResult => ({ status: 'failed' })),
           });
         }
+
+        // Optional #1112 shadow sidecar: compares actual production foreground
+        // identities with Canonical seed+Source Pack adjudication only. Never
+        // re-runs production retrieval and never mutates the user-facing result.
+        const canonicalRagShadowDiagnostic = maybeRunKonlingCanonicalRagShadowDiagnostic({
+          query: args.query,
+          productionForeground: result,
+          shadowContext: input.canonicalRagShadow ?? null,
+          role: sourcePackRoleForKonling(input.scope.role),
+        });
+
         return {
           ...result,
           optimizationPending: progressive.optimizationPending,
+          // Diagnostic-only; model projection / user answer ignore this field.
+          ...(canonicalRagShadowDiagnostic
+            ? { canonicalRagShadowDiagnostic }
+            : {}),
         };
       }),
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
@@ -7155,13 +7183,21 @@ function buildKnowledgeWorkspaceContentCitations(
   }];
 }
 
+/**
+ * Legacy Source Pack content citations (production path only).
+ * Shadow comparison for textbooks lives on search_textbook via the TextbookV2
+ * foreground, not on this unused helper path.
+ */
 async function buildKonlingSourcePackContentCitations(input: {
   scope: KonlingRuntimeScope;
   pageContext: PageContext;
   knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
   sarAssociatedGrounding?: KonlingSarAssociatedGroundingContext | null;
   currentUserQuery?: string | null;
-}): Promise<{ citations: KonlingCitation[]; sourcePack: KonlingSourcePackCitationSummary | null }> {
+}): Promise<{
+  citations: KonlingCitation[];
+  sourcePack: KonlingSourcePackCitationSummary | null;
+}> {
   const units = await loadAllTextbookStructureUnitProjections().catch(() => []);
   const adapted = units.map(adaptTextbookStructureUnit);
   const query = buildKonlingSourcePackQuery(
@@ -7187,6 +7223,7 @@ async function buildKonlingSourcePackContentCitations(input: {
     candidates: adapted.map((entry) => entry.item),
     limitations: adapted.flatMap((entry) => entry.limitations),
   });
+
   return {
     citations: result.pack.items.map((item) => buildSourcePackContentCitation(result.pack, item)),
     sourcePack: {
