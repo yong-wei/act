@@ -15,12 +15,54 @@ vi.mock('@/resources/simulations/rust/control-engine-server-runtime', () => {
     computeVirtualSimulationServerStep: vi.fn((request: unknown) => {
       mockNomotoRequests.push(request);
       const req = request as Record<string, unknown>;
-      const nomoto = req.nomoto as Record<string, unknown> | undefined;
-      const speed = (nomoto?.speed as number) ?? 7.5;
-      const headingDeg = (nomoto?.targetHeading as number) ?? 90;
 
-      const timeCount = 500;
-      const dt = 0.5;
+      // Read actual request fields matching production contract
+      const nomoto = req.nomoto as Record<string, unknown> | undefined;
+      const pid = req.pid as Record<string, unknown> | undefined;
+      const headingSchedule = req.headingSchedule as Array<{ time: number; headingDeg: number }>;
+      const duration = (req.duration as number) ?? 240;
+      const dt = (req.dt as number) ?? 0.5;
+      const start = req.start as Record<string, unknown> | undefined;
+
+      // Nomoto params from production request shape
+      const K = (nomoto?.K as number) ?? 0.08;
+      const T = (nomoto?.T as number) ?? 55;
+      const speedMps = (nomoto?.speedMps as number) ?? 7.5;
+      const maxRudderDeg = (nomoto?.maxRudderDeg as number) ?? 35;
+      const maxRudderRate = (nomoto?.maxRudderRateDegPerSec as number) ?? 0;
+
+      // PID params from request
+      const kp = (pid?.kp as number) ?? 1;
+      const ki = (pid?.ki as number) ?? 0.01;
+      const kd = (pid?.kd as number) ?? 1;
+
+      // Start state from request
+      let heading = (start?.headingDeg as number) ?? 0;
+      let x = (start?.x as number) ?? 0;
+      let z = (start?.z as number) ?? 0;
+      let headingRate = 0;
+      let integral = 0;
+      let prevError = 0;
+      let prevRudder = 0;
+
+      // Interpolate desired heading from schedule
+      const getDesired = (t: number) => {
+        if (!headingSchedule || headingSchedule.length === 0) return 0;
+        const first = headingSchedule[0];
+        if (t <= first.time) return first.headingDeg;
+        for (let i = 1; i < headingSchedule.length; i++) {
+          const prev = headingSchedule[i - 1];
+          const next = headingSchedule[i];
+          if (t <= next.time) {
+            if (next.time === prev.time) return next.headingDeg;
+            const progress = (t - prev.time) / (next.time - prev.time);
+            return prev.headingDeg + (next.headingDeg - prev.headingDeg) * progress;
+          }
+        }
+        return headingSchedule[headingSchedule.length - 1].headingDeg;
+      };
+
+      const timeCount = Math.floor(duration / dt);
       const time: number[] = [];
       const desiredHeading: number[] = [];
       const actualHeading: number[] = [];
@@ -28,38 +70,71 @@ vi.mock('@/resources/simulations/rust/control-engine-server-runtime', () => {
       const rudderArr: number[] = [];
       const trajectory: Array<{ time: number; x: number; z: number; heading: number; rudder: number }> = [];
 
+      let maxRudderRateActual = 0;
+
       for (let i = 0; i <= timeCount; i++) {
         const t = i * dt;
         time.push(t);
-        const desired = t < 60 ? 0 : t < 150 ? headingDeg * ((t - 60) / 90) : headingDeg;
-        const actual = Math.min(headingDeg, Math.max(0, (t / 200) * headingDeg));
+        const desired = getDesired(t);
         desiredHeading.push(desired);
-        actualHeading.push(actual);
-        speedArr.push(speed);
-        rudderArr.push(i % 10 === 0 ? 1.5 : 0.5);
-        trajectory.push({
-          time: t,
-          x: speed * t * Math.cos((actual * Math.PI) / 180),
-          z: speed * t * Math.sin((actual * Math.PI) / 180),
-          heading: actual,
-          rudder: rudderArr[rudderArr.length - 1],
-        });
+
+        // PID controller
+        const error = desired - heading;
+        integral += error * dt;
+        const derivative = dt > 0 ? (error - prevError) / dt : 0;
+        let rudder = kp * error + ki * integral + kd * derivative;
+
+        // Clamp rudder to actuator limit
+        rudder = Math.max(-maxRudderDeg, Math.min(maxRudderDeg, rudder));
+
+        // Apply rudder rate limit (v2 only)
+        if (maxRudderRate > 0) {
+          const maxChange = maxRudderRate * dt;
+          const change = rudder - prevRudder;
+          if (Math.abs(change) > maxChange) {
+            rudder = prevRudder + Math.sign(change) * maxChange;
+          }
+        }
+
+        // Track max rudder rate
+        if (i > 0) {
+          const rate = Math.abs(rudder - prevRudder) / dt;
+          if (rate > maxRudderRateActual) maxRudderRateActual = rate;
+        }
+
+        prevRudder = rudder;
+        prevError = error;
+
+        // Nomoto first-order model: T * dω/dt + ω = K * δ
+        headingRate += (K * rudder - headingRate) / T * dt;
+
+        // Update heading
+        heading += headingRate * dt;
+
+        // Update position
+        const headingRad = heading * Math.PI / 180;
+        x += speedMps * Math.cos(headingRad) * dt;
+        z += speedMps * Math.sin(headingRad) * dt;
+
+        actualHeading.push(heading);
+        speedArr.push(speedMps);
+        rudderArr.push(rudder);
+        trajectory.push({ time: t, x, z, heading, rudder });
       }
+
+      // Compute avgError
+      let totalError = 0;
+      for (let i = 0; i < desiredHeading.length; i++) {
+        totalError += Math.abs(desiredHeading[i] - actualHeading[i]);
+      }
+      const avgError = desiredHeading.length > 0 ? totalError / desiredHeading.length : 0;
 
       return {
         trajectory,
-        chartData: {
-          time,
-          desiredHeading,
-          actualHeading,
-          speed: speedArr,
-          rudder: rudderArr,
-        },
+        chartData: { time, desiredHeading, actualHeading, speed: speedArr, rudder: rudderArr },
         metrics: {
-          avgError: 15,
-          maxRudderRate: 1.5,
-          settlingTime: 120,
-          overshoot: 5,
+          avgError,
+          maxRudderRate: maxRudderRateActual,
         },
       };
     }),
@@ -144,7 +219,7 @@ describe('PID optimizer scenario rudder rate isolation', () => {
     expect(v2.runtimeVersion).toBe('simulation-optimizer-runtime-v2');
   });
 
-  it('default v2 scenario achieves at least 60 score', () => {
+  it('default v2 scenario achieves at least 60 score with realistic PID+Nomoto dynamics', () => {
     const result = optimizePIDParams(
       legacyConfig,
       DEFAULT_TARGET,
@@ -156,5 +231,6 @@ describe('PID optimizer scenario rudder rate isolation', () => {
 
     expect(result.score).toBeGreaterThanOrEqual(60);
     expect(result.replay).toBeDefined();
+    expect(result.metrics.avgError).toBeLessThan(DEFAULT_TARGET.maxError);
   });
 });
