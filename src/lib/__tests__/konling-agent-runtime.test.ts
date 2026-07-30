@@ -1137,6 +1137,7 @@ describe('konling agent runtime', () => {
       'grading-assistant',
       'feedback-explainer',
       'class-summarizer',
+      'teacher-diagnosis',
       'prep-coauthor',
     ]);
 
@@ -1169,6 +1170,17 @@ describe('konling agent runtime', () => {
       'apply-smart-task-change',
       'confirm-smart-task-change',
     ]));
+    const teacherDiagnosis = resolveKonlingTeachingAssistantMode('teacher-diagnosis');
+    expect(teacherDiagnosis).toMatchObject({
+      supportedRoles: ['teacher'],
+      mountingSurfaces: ['teacher-dashboard-diagnosis'],
+      privacyPolicy: { payload: 'teacher-scoped-summary' },
+    });
+    expect(teacherDiagnosis.permittedTools).toEqual([
+      'get_student_risk_flags',
+      'get_class_competency_summary',
+      'get_student_knowledge_progress',
+    ]);
 
     const mounts = getKonlingTeachingAssistantMountContracts();
     expect(mounts).toEqual(expect.arrayContaining([
@@ -1178,11 +1190,108 @@ describe('konling agent runtime', () => {
         requiredContext: expect.arrayContaining(['prep-pack']),
       }),
       expect.objectContaining({
+        surface: 'teacher-dashboard-diagnosis',
+        modeId: 'teacher-diagnosis',
+      }),
+      expect.objectContaining({
         surface: 'resource-node-launch',
         modeId: 'resource-coach',
         requiredContext: expect.arrayContaining(['resource-node', 'path-execution-context']),
       }),
     ]));
+  });
+
+  it('binds teacher diagnosis tools to the authorized class and redacts raw risk evidence', async () => {
+    const db = {
+      class: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'class-1',
+          teacherId: 'teacher-1',
+          isActive: true,
+        }),
+      },
+      studentProfile: {
+        findFirst: vi.fn(async ({ where }: any) => (
+          where.userId === 'student-1' && where.classId === 'class-1'
+            ? { userId: 'student-1' }
+            : null
+        )),
+        findMany: vi.fn().mockResolvedValue([{ userId: 'student-1' }]),
+      },
+      studentRiskFlag: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'risk-1',
+          userId: 'student-1',
+          flagType: 'constraint',
+          severity: 'high',
+          description: '受约束',
+          evidenceJson: {
+            stuckNodeCount: 2,
+            evidenceCutoff: '2026-07-29T00:00:00.000Z',
+            rawAnswer: 'must-not-leak',
+          },
+          triggeredAt: new Date('2026-07-29T00:00:00.000Z'),
+        }]),
+      },
+      studentCompetencySnapshot: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'snapshot-1',
+          userId: 'student-1',
+          snapshotAt: new Date('2026-07-29T00:00:00.000Z'),
+          competencyVector: { modeling: 80, analysis: 60, design: 70 },
+        }]),
+      },
+      knowledgeProgress: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'progress-1',
+          userId: 'student-1',
+          nodeId: 'node-1',
+          status: 'IN_PROGRESS',
+          progress: 40,
+          timeSpent: 600,
+          lastVisited: new Date('2026-07-29T00:00:00.000Z'),
+        }]),
+      },
+    };
+    const permittedTools = [
+      'get_student_risk_flags',
+      'get_class_competency_summary',
+      'get_student_knowledge_progress',
+    ] as const;
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'teacher-1',
+        role: 'teacher',
+        classId: 'class-1',
+      }),
+      context: createRuntimeContext({
+        permittedTools: [...permittedTools],
+      }),
+      permittedTools: [...permittedTools],
+    });
+
+    const riskResult = await runtime.getStudentRiskFlags({ studentId: 'student-1' });
+    expect(riskResult).toMatchObject({
+      classId: 'class-1',
+      flags: [{
+        studentId: 'student-1',
+        evidenceSummary: { stuckNodeCount: 2 },
+      }],
+      privacyClass: 'teacher-scoped',
+    });
+    expect(JSON.stringify(riskResult)).not.toContain('must-not-leak');
+    await expect(runtime.getStudentRiskFlags({ studentId: 'student-outside' }))
+      .rejects.toMatchObject({ status: 403 });
+    await expect(runtime.getClassCompetencySummary({})).resolves.toMatchObject({
+      classId: 'class-1',
+      sourceCoverage: { classMembers: 1, includedStudents: 1 },
+    });
+    await expect(runtime.getStudentKnowledgeProgress({ studentId: 'student-1' }))
+      .resolves.toMatchObject({
+        progress: [{ knowledgeNodeId: 'node-1' }],
+      });
   });
 
   it('exposes only the three candidate read tools for a candidate runtime', () => {

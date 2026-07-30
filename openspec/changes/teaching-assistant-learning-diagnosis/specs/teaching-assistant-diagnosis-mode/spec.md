@@ -1,42 +1,45 @@
 ## ADDED Requirements
 
-### Requirement: Teaching assistant triggers learning diagnosis
-The system SHALL support teacher-initiated learning diagnosis generation through the Konling teaching assistant runtime.
+### Requirement: Teacher diagnosis tools preserve authorized class scope
 
-#### Scenario: Teacher requests class diagnosis
-- GIVEN an authorized teacher is in the teaching assistant interface
-- AND the teacher has class scope authorization
-- WHEN the teacher clicks Generate Diagnosis
-- THEN the system SHALL initiate a Konling TA diagnosis mode session
-- AND the session SHALL invoke get_student_risk_flags, get_class_competency_summary, and get_student_knowledge_progress tools
-- AND the model SHALL produce a structured diagnosis report from the tool results
-- AND all tools SHALL validate that requested userId/classId falls within the teacher authorized scope
+The system SHALL provide a teacher-only `teacher-diagnosis` runtime mode with `get_student_risk_flags`, `get_class_competency_summary`, and `get_student_knowledge_progress`. Every invocation SHALL revalidate the authenticated teacher's active class ownership, and student-scoped invocations SHALL require current membership in that class.
 
-#### Scenario: Risk flags prompt diagnosis awareness
-- GIVEN risk flags have been produced by the background scanner
-- WHEN a teacher opens the teaching assistant dashboard
-- THEN the dashboard SHALL display risk flag indicators per-class and per-student
+#### Scenario: Teacher requests class diagnosis evidence
 
-### Requirement: Background risk scanner
-The system SHALL run a deterministic background scan for student risk flags.
+- **WHEN** an authenticated teacher invokes a diagnosis tool for an active class they own
+- **THEN** the tool SHALL return only members of that class
+- **AND** the result SHALL include evidence references, evidence cutoff, source coverage, confidence, and privacy class.
 
-#### Scenario: Risk scanner respects deterministic rules only
-- WHEN no deterministic rule condition is met
-- THEN the scanner SHALL NOT create speculative or AI-generated risk flags
+#### Scenario: Teacher requests an unauthorized student
 
-### Requirement: Diagnosis report persistence
-The system SHALL persist diagnosis reports as structured JSON for historical comparison.
+- **WHEN** a diagnosis tool targets a student outside the authenticated teacher's active class
+- **THEN** the tool SHALL reject the request
+- **AND** it SHALL NOT return class or learner evidence.
 
-### Requirement: Diagnosis-to-action linking
-Diagnosis reports SHALL provide navigation links to the preparation workspace without triggering automatic teaching actions.
+#### Scenario: Risk evidence is returned
 
-## MODIFIED Requirements
+- **WHEN** the risk tool returns current risk flags
+- **THEN** it SHALL include only `constraint`, `stagnation`, and `cross_domain`
+- **AND** it SHALL return whitelisted summaries rather than raw evidence JSON, submissions, answers, or private dialogue.
 
-### Requirement: Diagnosis views are role-specific (extension)
-Modifies role-based-learning-diagnosis spec
+### Requirement: Diagnosis reports are authorized and evidence-backed
 
-#### Scenario: Teacher triggers diagnosis from teaching assistant
-- WHEN an authorized teacher initiates diagnosis from the teaching assistant interface
-- THEN the diagnosis SHALL be generated via the Konling TA diagnosis mode
-- AND tools SHALL include get_student_risk_flags, get_class_competency_summary, get_student_knowledge_progress
-- AND tool results SHALL be scoped to the teacher authorized class membership
+The system SHALL persist and read structured class and student diagnosis reports through a teacher-authorized API. Scope SHALL be derived by the server and each report SHALL retain class, creator, optional target student, evidence references, evidence cutoff, source coverage, confidence, limitations, and generator version.
+
+#### Scenario: Teacher writes a student diagnosis report
+
+- **WHEN** an authenticated teacher writes a report for a current member of an active class they own
+- **THEN** the system SHALL persist server-derived class and student scope
+- **AND** findings with a knowledge-node identifier SHALL receive a preparation navigation link
+- **AND** no teaching action SHALL be created automatically.
+
+#### Scenario: Report includes raw private evidence
+
+- **WHEN** a report contains raw answers, event payloads, private dialogue, parser output, or raw evidence JSON
+- **THEN** the system SHALL reject the write.
+
+#### Scenario: Teacher reads diagnosis history
+
+- **WHEN** an authenticated teacher reads class or student diagnosis history
+- **THEN** the system SHALL repeat class ownership and student-membership authorization
+- **AND** it SHALL return only reports in the requested server-derived scope.

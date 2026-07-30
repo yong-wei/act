@@ -1,27 +1,26 @@
 ## Why
-Teachers need precise learning diagnosis in the teaching assistant scenario: analyzing student assignments, tests, and learning behavior to identify knowledge weaknesses and generate diagnosis reports.
 
-The existing `role-based-learning-diagnosis` spec defines role-specific diagnosis views but does not cover storage, diagnosis-to-action closure, or the complete teacher workflow in the TA service.
+The teaching-assistant runtime lacks a governed backend path for class-scoped learning diagnosis. Teachers need deterministic risk signals, privacy-safe diagnosis tools, and durable reports before a user interface can safely expose the workflow.
 
 ## What Changes
-- New lightweight background risk scanner (deterministic rules, produces StudentRiskFlag only)
-- New Konling TA diagnosis mode (`teacher-diagnosis`) with 3 diagnosis tools
-- New DiagnosisReport persistence model
-- Teacher-initiated diagnosis generation via Konling mode
-- Diagnosis reports provide directional links to prep workspace (no auto-trigger teaching actions)
+
+- Add a paged background scanner for the current `constraint`, `stagnation`, and `cross_domain` risk types.
+- Register a teacher-only `teacher-diagnosis` Konling mode with three class-scoped, privacy-safe evidence tools.
+- Persist class and student diagnosis reports with explicit class, creator, target, evidence-cutoff, coverage, confidence, and evidence-reference fields.
+- Add an authorized read/write API for diagnosis reports.
+- Add preparation links to report findings that reference a knowledge node.
 
 ## Capabilities
-### New
-- `teaching-assistant-diagnosis-mode`: Konling TA diagnosis mode with tools, report generation and storage
-- `student-risk-scanner`: Lightweight background risk scan pipeline, deterministic rules, produces StudentRiskFlag
 
-### Modified
-- `role-based-learning-diagnosis`: Add teacher-initiated diagnosis trigger scenarios
-- `konling-agent-runtime`: Register new diagnosis mode and tools
+### New
+
+- `teaching-assistant-diagnosis-mode`: governed teacher diagnosis runtime and report persistence boundary.
+- `student-risk-scanner`: deterministic, paged current-risk scan pipeline.
 
 ## Impact
-- Affects Konling runtime mechanism (new mode + tool set)
-- Affects teacher assistant UI (new diagnosis entry)
-- New Prisma model DiagnosisReport
-- Background risk scanner worker
-- Does not modify student-side diagnosis surfaces, class timed aggregation, or confirmed teaching flow boundaries
+
+- Affects the Konling runtime tool registry and worker scheduler.
+- Adds the `DiagnosisReport` schema and migration.
+- Adds a teacher-only diagnosis-report API.
+- Does not add the teacher dashboard entry or report-rendering UI; those require a separate frontend change.
+- Does not modify student diagnosis surfaces or trigger teaching actions automatically.

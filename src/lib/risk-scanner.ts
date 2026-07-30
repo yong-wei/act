@@ -1,175 +1,193 @@
-﻿import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-// ---- Rule configuration ----
+export const CURRENT_RISK_FLAG_TYPES = [
+  'stagnation',
+  'constraint',
+  'cross_domain',
+] as const;
 
-export interface RiskScanRule {
-  name: string;
-  evaluate(studentId: string): Promise<RiskFlagInput | null>;
-}
+export type CurrentRiskFlagType = (typeof CURRENT_RISK_FLAG_TYPES)[number];
+export type RiskFlagSeverity = 'low' | 'medium' | 'high';
 
 export interface RiskFlagInput {
-  flagType: string;
-  severity: 'low' | 'medium' | 'high';
+  flagType: CurrentRiskFlagType;
+  severity: RiskFlagSeverity;
   description: string;
   evidenceJson: Record<string, unknown>;
 }
 
-const STAGNATION_WINDOW_DAYS = 14;
+export interface RiskRuleContext {
+  db: RiskScannerDb;
+  now: Date;
+}
+
+export interface RiskScanRule {
+  name: CurrentRiskFlagType;
+  evaluate(studentId: string, context: RiskRuleContext): Promise<RiskFlagInput | null>;
+}
+
+export interface RiskScannerDb {
+  studentProfile: {
+    findMany(args: Record<string, unknown>): Promise<Array<{ userId: string }>>;
+  };
+  knowledgeProgress: {
+    findMany(args: Record<string, unknown>): Promise<Array<{
+      nodeId: string;
+      progress: number;
+      lastVisited: Date;
+    }>>;
+  };
+  studentCompetencySnapshot: {
+    findFirst(args: Record<string, unknown>): Promise<{
+      id: string;
+      snapshotAt: Date;
+      competencyVector: unknown;
+    } | null>;
+  };
+  studentRiskFlag: {
+    findFirst(args: Record<string, unknown>): Promise<{
+      id: string;
+      severity: string;
+      description: string;
+      evidenceJson: unknown;
+    } | null>;
+    create(args: Record<string, unknown>): Promise<unknown>;
+    update(args: Record<string, unknown>): Promise<unknown>;
+  };
+}
+
 const STAGNATION_PROGRESS_THRESHOLD = 5;
-const PARTICIPATION_INACTIVE_DAYS = 7;
-const CONSTRAINT_STUCK_DAYS = 10;
+const CONSTRAINT_PROGRESS_THRESHOLD = 40;
 const CROSS_DOMAIN_STD_THRESHOLD = 15;
 
-// ---- Rules ----
+function stableEvidenceJson(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
+}
 
-const stagnationRule: RiskScanRule = {
+function sameEvidence(
+  existing: { severity: string; description: string; evidenceJson: unknown },
+  next: RiskFlagInput,
+) {
+  return existing.severity === next.severity
+    && existing.description === next.description
+    && JSON.stringify(stableEvidenceJson(existing.evidenceJson)) === JSON.stringify(next.evidenceJson);
+}
+
+export const stagnationRule: RiskScanRule = {
   name: 'stagnation',
-  async evaluate(studentId) {
-    const recentProgress = await prisma.knowledgeProgress.findMany({
+  async evaluate(studentId, context) {
+    const recentProgress = await context.db.knowledgeProgress.findMany({
       where: { userId: studentId, status: 'IN_PROGRESS' },
       orderBy: { lastVisited: 'desc' },
       take: 10,
+      select: {
+        nodeId: true,
+        progress: true,
+        lastVisited: true,
+      },
     });
-
     if (recentProgress.length === 0) return null;
 
-    const staleProgress = recentProgress.filter(
-      (p) => p.lastVisited < new Date(Date.now() - STAGNATION_WINDOW_DAYS * 86400000)
-    );
+    if (recentProgress.length < 3) return null;
 
-    if (staleProgress.length < 3) return null;
-
-    const avgProgress = recentProgress.reduce((sum, p) => sum + p.progress, 0) / recentProgress.length;
+    const avgProgress = recentProgress.reduce((sum, progress) => sum + progress.progress, 0)
+      / recentProgress.length;
     if (avgProgress > STAGNATION_PROGRESS_THRESHOLD) return null;
 
     return {
       flagType: 'stagnation',
       severity: avgProgress < 1 ? 'high' : 'medium',
-      description: `Knowledge progress stalled: ${staleProgress.length} nodes unchanged in ${STAGNATION_WINDOW_DAYS} days (avg ${avgProgress.toFixed(1)}%)`,
+      description: `Knowledge progress remains low across ${recentProgress.length} nodes`,
       evidenceJson: {
-        staleNodeCount: staleProgress.length,
+        lowProgressNodeCount: recentProgress.length,
         avgProgress: Math.round(avgProgress * 10) / 10,
-        windowDays: STAGNATION_WINDOW_DAYS,
-        sampleNodeIds: staleProgress.slice(0, 3).map((p) => p.nodeId),
+        evidenceCutoff: recentProgress[0]?.lastVisited.toISOString() ?? null,
       },
     };
   },
 };
 
-const participationRule: RiskScanRule = {
-  name: 'participation',
-  async evaluate(studentId) {
-    const latestActivity = await prisma.learningNote.findFirst({
-      where: { userId: studentId },
-      orderBy: { createdAt: 'desc' },
-      select: { createdAt: true },
-    });
-
-    if (!latestActivity) {
-      const sessionCount = await prisma.studentState.count({
-        where: { userId: studentId },
-      });
-      if (sessionCount > 0) return null;
-
-      return {
-        flagType: 'participation',
-        severity: 'high',
-        description: 'No learning activity found for this student',
-        evidenceJson: { sessionCount: 0, reason: 'no-records' },
-      };
-    }
-
-    const daysSinceLastActivity = Math.floor(
-      (Date.now() - latestActivity.createdAt.getTime()) / 86400000
-    );
-
-    if (daysSinceLastActivity < PARTICIPATION_INACTIVE_DAYS) return null;
-
-    return {
-      flagType: 'participation',
-      severity: daysSinceLastActivity > 14 ? 'high' : 'medium',
-      description: `Student inactive for ${daysSinceLastActivity} days`,
-      evidenceJson: {
-        daysSinceLastActivity,
-        lastActivityAt: latestActivity.createdAt.toISOString(),
-        thresholdDays: PARTICIPATION_INACTIVE_DAYS,
-      },
-    };
-  },
-};
-
-const constraintRule: RiskScanRule = {
+export const constraintRule: RiskScanRule = {
   name: 'constraint',
-  async evaluate(studentId) {
-    const stuckNodes = await prisma.knowledgeProgress.findMany({
+  async evaluate(studentId, context) {
+    const stuckNodes = await context.db.knowledgeProgress.findMany({
       where: {
         userId: studentId,
         status: 'IN_PROGRESS',
-        lastVisited: { lt: new Date(Date.now() - CONSTRAINT_STUCK_DAYS * 86400000) },
+        progress: {
+          gt: STAGNATION_PROGRESS_THRESHOLD,
+          lte: CONSTRAINT_PROGRESS_THRESHOLD,
+        },
       },
       orderBy: { lastVisited: 'asc' },
       take: 3,
+      select: {
+        nodeId: true,
+        progress: true,
+        lastVisited: true,
+      },
     });
-
     if (stuckNodes.length === 0) return null;
 
     return {
       flagType: 'constraint',
       severity: stuckNodes.length >= 3 ? 'high' : 'medium',
-      description: `Student stuck on ${stuckNodes.length} knowledge node(s) for >${CONSTRAINT_STUCK_DAYS} days`,
+      description: `Learning progress remains constrained on ${stuckNodes.length} knowledge node(s)`,
       evidenceJson: {
-        stuckNodeIds: stuckNodes.map((n) => n.nodeId),
-        stuckDays: CONSTRAINT_STUCK_DAYS,
         stuckNodeCount: stuckNodes.length,
+        progressUpperBound: CONSTRAINT_PROGRESS_THRESHOLD,
+        evidenceCutoff: stuckNodes
+          .map((node) => node.lastVisited)
+          .sort((left, right) => right.getTime() - left.getTime())[0]
+          ?.toISOString() ?? null,
       },
     };
   },
 };
 
-const crossDomainRule: RiskScanRule = {
+export const crossDomainRule: RiskScanRule = {
   name: 'cross_domain',
-  async evaluate(studentId) {
-    const snapshot = await prisma.studentCompetencySnapshot.findFirst({
+  async evaluate(studentId, context) {
+    const snapshot = await context.db.studentCompetencySnapshot.findFirst({
       where: { userId: studentId },
       orderBy: { snapshotAt: 'desc' },
+      select: {
+        id: true,
+        snapshotAt: true,
+        competencyVector: true,
+      },
     });
-
     if (!snapshot) return null;
 
-    const vector = snapshot.competencyVector as Record<string, number>;
-    const dimensions = Object.values(vector).filter((v) => typeof v === 'number');
+    const vector = stableEvidenceJson(snapshot.competencyVector);
+    const dimensions = Object.values(vector).filter(
+      (value): value is number => typeof value === 'number' && Number.isFinite(value),
+    );
     if (dimensions.length < 3) return null;
 
-    const mean = dimensions.reduce((a, b) => a + b, 0) / dimensions.length;
-    const variance = dimensions.reduce((sum, v) => sum + (v - mean) ** 2, 0) / dimensions.length;
-    const std = Math.sqrt(variance);
-
-    if (std < CROSS_DOMAIN_STD_THRESHOLD) return null;
-
-    const entries = Object.entries(vector).sort(([, a], [, b]) => (b as number) - (a as number));
-    const top = entries.slice(0, 2).map(([k]) => k);
-    const bottom = entries.slice(-2).map(([k]) => k);
+    const mean = dimensions.reduce((sum, value) => sum + value, 0) / dimensions.length;
+    const variance = dimensions.reduce((sum, value) => sum + (value - mean) ** 2, 0)
+      / dimensions.length;
+    const standardDeviation = Math.sqrt(variance);
+    if (standardDeviation < CROSS_DOMAIN_STD_THRESHOLD) return null;
 
     return {
       flagType: 'cross_domain',
-      severity: std > 25 ? 'high' : 'medium',
-      description: `Competency imbalance detected (std=${std.toFixed(1)})`,
+      severity: standardDeviation > 25 ? 'high' : 'medium',
+      description: 'Cross-domain competency evidence is materially imbalanced',
       evidenceJson: {
-        stdDev: Math.round(std * 10) / 10,
-        topDimensions: top,
-        bottomDimensions: bottom,
+        standardDeviation: Math.round(standardDeviation * 10) / 10,
         dimensionCount: dimensions.length,
+        evidenceCutoff: snapshot.snapshotAt.toISOString(),
+        snapshotRef: `student-competency-snapshot:${snapshot.id}`,
       },
     };
   },
 };
 
-// ---- Scanner ----
-
-const ALL_RULES: RiskScanRule[] = [
+export const CURRENT_RISK_SCAN_RULES: RiskScanRule[] = [
   stagnationRule,
-  participationRule,
   constraintRule,
   crossDomainRule,
 ];
@@ -177,60 +195,155 @@ const ALL_RULES: RiskScanRule[] = [
 export interface ScanResult {
   studentId: string;
   flagsCreated: number;
-  skipped: number;
+  flagsUpdated: number;
+  flagsResolved: number;
+  unchanged: number;
+  failures: number;
 }
 
 export async function scanStudentRisks(
   studentId: string,
-  rules: RiskScanRule[] = ALL_RULES,
+  options: {
+    db?: RiskScannerDb;
+    rules?: RiskScanRule[];
+    now?: Date;
+  } = {},
 ): Promise<ScanResult> {
-  let flagsCreated = 0;
-  let skipped = 0;
+  const db = options.db ?? (prisma as unknown as RiskScannerDb);
+  const rules = options.rules ?? CURRENT_RISK_SCAN_RULES;
+  const now = options.now ?? new Date();
+  const result: ScanResult = {
+    studentId,
+    flagsCreated: 0,
+    flagsUpdated: 0,
+    flagsResolved: 0,
+    unchanged: 0,
+    failures: 0,
+  };
 
   for (const rule of rules) {
-    const base = rule.name;
-    const existing = await prisma.studentRiskFlag.findFirst({
-      where: {
-        userId: studentId,
-        flagType: base,
-        isResolved: false,
-      },
-    });
-    if (existing) {
-      skipped++;
-      continue;
-    }
-
     try {
-      const result = await rule.evaluate(studentId);
-      if (result) {
-        await prisma.studentRiskFlag.create({
+      const next = await rule.evaluate(studentId, { db, now });
+      const existing = await db.studentRiskFlag.findFirst({
+        where: {
+          userId: studentId,
+          flagType: rule.name,
+          isResolved: false,
+        },
+        select: {
+          id: true,
+          severity: true,
+          description: true,
+          evidenceJson: true,
+        },
+      });
+
+      if (!next && existing) {
+        await db.studentRiskFlag.update({
+          where: { id: existing.id },
           data: {
-            userId: studentId,
-            flagType: base,
-            severity: result.severity,
-            description: result.description,
-            evidenceJson: result.evidenceJson as Prisma.InputJsonValue,
-            triggeredAt: new Date(),
+            isResolved: true,
+            resolvedAt: now,
+            resolutionNote: `deterministic-rule-cleared:${rule.name}`,
           },
         });
-        flagsCreated++;
+        result.flagsResolved += 1;
+        continue;
       }
+
+      if (!next) {
+        result.unchanged += 1;
+        continue;
+      }
+
+      if (existing) {
+        if (sameEvidence(existing, next)) {
+          result.unchanged += 1;
+          continue;
+        }
+        await db.studentRiskFlag.update({
+          where: { id: existing.id },
+          data: {
+            severity: next.severity,
+            description: next.description,
+            evidenceJson: next.evidenceJson,
+            resolutionNote: null,
+          },
+        });
+        result.flagsUpdated += 1;
+        continue;
+      }
+
+      await db.studentRiskFlag.create({
+        data: {
+          userId: studentId,
+          flagType: next.flagType,
+          severity: next.severity,
+          description: next.description,
+          evidenceJson: next.evidenceJson,
+          triggeredAt: now,
+        },
+      });
+      result.flagsCreated += 1;
     } catch (error) {
+      result.failures += 1;
       console.warn(`[risk-scanner] Rule ${rule.name} failed for student ${studentId}:`, error);
     }
   }
 
-  return { studentId, flagsCreated, skipped };
+  return result;
 }
 
 export async function scanBatchRisks(
   studentIds: string[],
-  rules: RiskScanRule[] = ALL_RULES,
-): Promise<ScanResult[]> {
+  options: {
+    db?: RiskScannerDb;
+    rules?: RiskScanRule[];
+    now?: Date;
+  } = {},
+) {
   const results: ScanResult[] = [];
-  for (const id of studentIds) {
-    results.push(await scanStudentRisks(id, rules));
+  for (const studentId of studentIds) {
+    results.push(await scanStudentRisks(studentId, options));
   }
+  return results;
+}
+
+export async function scanAllStudentRisks(options: {
+  db?: RiskScannerDb;
+  rules?: RiskScanRule[];
+  now?: Date;
+  pageSize?: number;
+  maxStudents?: number;
+} = {}) {
+  const db = options.db ?? (prisma as unknown as RiskScannerDb);
+  const pageSize = Math.min(Math.max(options.pageSize ?? 100, 1), 500);
+  const results: ScanResult[] = [];
+  let cursorUserId: string | undefined;
+
+  while (options.maxStudents === undefined || results.length < options.maxStudents) {
+    const take = Math.min(pageSize, options.maxStudents === undefined
+      ? pageSize
+      : options.maxStudents - results.length);
+    const students = await db.studentProfile.findMany({
+      orderBy: { userId: 'asc' },
+      take,
+      ...(cursorUserId ? { cursor: { userId: cursorUserId }, skip: 1 } : {}),
+      select: { userId: true },
+    });
+    if (students.length === 0) break;
+
+    results.push(...await scanBatchRisks(
+      students.map((student) => student.userId),
+      {
+        db,
+        rules: options.rules,
+        now: options.now,
+      },
+    ));
+    cursorUserId = students.at(-1)?.userId;
+    if (students.length < take) break;
+  }
+
   return results;
 }
