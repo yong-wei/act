@@ -1,5 +1,6 @@
 import { chromium } from 'playwright';
-import { mkdirSync, writeFileSync, createHash, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const repoRoot = process.cwd();
