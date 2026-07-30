@@ -302,6 +302,7 @@ function draftToLearningFactInput(
     userId: draft.ownerUserId,
     factType: draft.factType,
     moduleId: readString(draft.summary.sourceId) ??
+      readString(readObject(draft.summary.arenaTraining).taskId) ??
       readString(draft.summary.taskId) ??
       readString(draft.evidenceRefs.taskSpecId),
     sessionId: draft.sessionId,
@@ -326,8 +327,16 @@ function draftToLearningFactInput(
             replayConfidence: draft.confidence,
             agentAssisted: draft.provenance.agentAssisted === true,
             preview: draft.provenance.preview === true,
+            officialEligible: draft.provenance.preview === true ? false : draft.provenance.official === true,
             official: draft.provenance.official === true,
             launchMode: draft.provenance.standalone === true ? 'standalone' : 'course-resource',
+            taskId: readString(readObject(draft.summary.arenaTraining).taskId),
+            arenaTraining: draft.provenance.preview === true
+              ? compactObject({
+                  scenarioId: readString(readObject(draft.summary.arenaTraining).scenarioId),
+                  evaluationVisibility: readString(readObject(draft.summary.arenaTraining).evaluationVisibility),
+                })
+              : undefined,
             governanceContext: compactObject({
               classId: draft.classId,
               privacyScope: draft.privacyScope,
@@ -506,10 +515,15 @@ function resolveFactTimeSpent(draft: SimulationAgentEvidenceDraft): number | und
 
 function resolveCompetencyContribution(draft: SimulationAgentEvidenceDraft): Prisma.InputJsonValue {
   const score = readNumber(draft.summary.score);
-  const contribution = score === undefined ? 0.2 : Math.max(Math.min((score - 50) / 100, 0.6), -0.3);
+  let contribution = score === undefined ? 0.2 : Math.max(Math.min((score - 50) / 100, 0.6), -0.3);
+  const arenaTraining = readObject(draft.summary.arenaTraining);
+  const isPreview = readString(arenaTraining.evaluationVisibility) === 'preview';
+  if (isPreview) {
+    contribution = round(contribution * 0.33);
+  }
   return {
     parameterDesign: round(contribution),
-    systemAnalysis: round(contribution * 0.8),
+    systemAnalysis: round(round(contribution * 0.8)),
   };
 }
 
