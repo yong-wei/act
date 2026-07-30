@@ -1,0 +1,65 @@
+{
+  "capturedAt": "2026-07-30T17:44:02.536Z",
+  "commitSha": "fc5b7ab429c20b7b48b871345a98e6d8b93a5b09",
+  "route": "/assessment/adaptive-practice?goal=control-correction",
+  "sourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "b1de0e21df1a41e1ecd405f07635be964e75c42cd54a86dc44f7db1f1701bf2c",
+    "src/lib/adaptive-path-execution-state.ts": "077105951a1edd8c6a4e80e42bbd2c2357dfb12aca3e253dd9e4492e82d7cc78"
+  },
+  "screenshots": [
+    {
+      "name": "desktop-1440-failed.png",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-failed.png",
+      "sha256": "c9c1cd2e4ba5e7496fdb5dd262d802b3489c632df15e6a31903c4f4d31e45f80",
+      "state": "failed",
+      "noHorizontalOverflow": true
+    },
+    {
+      "name": "desktop-1440-loading.png",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-loading.png",
+      "sha256": "682d71077b3bb8609f40627e06b509d2d147e280b1856e08fd60f9e432f698b0",
+      "state": "loading",
+      "noHorizontalOverflow": true
+    },
+    {
+      "name": "desktop-1440-recovered.png",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-recovered.png",
+      "sha256": "35f653f7693770148fa28afd6bb76ab871942d2b171f5c732891b19f595f86e3",
+      "state": "recovered",
+      "noHorizontalOverflow": true
+    },
+    {
+      "name": "mobile-320-failed.png",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-failed.png",
+      "sha256": "813636c924c4354c3f110a9be8d4faec9fac1dd070e49db77afab8f48b7048d4",
+      "state": "failed",
+      "noHorizontalOverflow": true
+    },
+    {
+      "name": "mobile-320-loading.png",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-loading.png",
+      "sha256": "06e010b3a7a1a9f8269514772a850d905134c73321d94b7251c9c6ce560fa062",
+      "state": "loading",
+      "noHorizontalOverflow": true
+    },
+    {
+      "name": "mobile-320-recovered.png",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-recovered.png",
+      "sha256": "4cc41199a6d3749be4a6b7d69f7dbf971b25e26e4c4153ce23cf9b28336c011c",
+      "state": "recovered",
+      "noHorizontalOverflow": true
+    }
+  ]
+}
