@@ -2909,6 +2909,7 @@ export default function AdaptivePracticePage() {
           className="flex flex-col gap-5"
           data-commercial-workspace="adaptive-path-center"
           data-adaptive-path-center="generation-selection"
+          data-adaptive-path-landing-state={pathLandingState}
           data-adaptive-path-workspace-intent={workspaceIntent}
           data-commercial-student-entry-route="/assessment/adaptive-practice"
           data-commercial-entry-intent="practice"
