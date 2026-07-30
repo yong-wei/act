@@ -1,45 +1,47 @@
 {
-  "capturedAt": "2026-07-30T07:56:17.899Z",
-  "commit": "HEAD",
+  "capturedAt": "2026-07-30T08:32:50.637Z",
+  "commit": "794a076159802dac97ac496f1f04a3d25e4591fc",
   "baseUrl": "http://localhost:3000",
   "captures": [
     {
       "name": "path-execution-409-desktop",
-      "width": 1280,
-      "theme": "light",
       "file": "artifacts/commercial-ui/path-execution-409-error-995/path-execution-409-desktop.png",
-      "sha256": "c9274dd4a661ec656911a993472d02a960bcc79fb9ecb354689687cd304f64d3",
+      "sha256": "9ba4839709bd98d98ac480f352e685f76044683f0746e2d154a56979a67a9d14",
       "signals": {
-        "pageTitle": "智控深蓝",
-        "mainHeading": "自适应学习路径中心",
-        "executionError": false,
+        "executionError": true,
+        "errorText": "路径操作未能完成执行事件只能写入当前路径节点刷新路径状态",
+        "refreshButton": true,
         "executionSurface": true,
         "nodeActions": 1,
         "pathNodeCount": 3,
-        "demoHeading": false,
-        "practiceError": false,
-        "bodyWidth": 1280,
-        "scrollWidth": 1280,
+        "overflowX": false
+      }
+    },
+    {
+      "name": "path-refresh-success",
+      "file": "artifacts/commercial-ui/path-execution-409-error-995/path-refresh-success.png",
+      "sha256": "19684b2b6fee7cea91b46b7b50bfd0d5e95134b7d95db671cea97890bb73a2a7",
+      "signals": {
+        "executionError": false,
+        "errorText": null,
+        "refreshButton": false,
+        "executionSurface": true,
+        "nodeActions": 1,
+        "pathNodeCount": 3,
         "overflowX": false
       }
     },
     {
       "name": "path-execution-409-mobile",
-      "width": 320,
-      "theme": "dark",
       "file": "artifacts/commercial-ui/path-execution-409-error-995/path-execution-409-mobile.png",
-      "sha256": "841dd4d2a7a774fc47e5cc75e7504b79a88857ada0eb4b94987c4f7c189c7120",
+      "sha256": "afc28f3381b2092342f8b644a76680e20620fcb4e271c0afa946a2dc930bd411",
       "signals": {
-        "pageTitle": "智控深蓝",
-        "mainHeading": "自适应学习路径中心",
-        "executionError": false,
+        "executionError": true,
+        "errorText": "路径操作未能完成执行事件只能写入当前路径节点刷新路径状态",
+        "refreshButton": true,
         "executionSurface": true,
         "nodeActions": 1,
         "pathNodeCount": 3,
-        "demoHeading": false,
-        "practiceError": false,
-        "bodyWidth": 320,
-        "scrollWidth": 320,
         "overflowX": false
       }
     }
