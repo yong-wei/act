@@ -296,7 +296,10 @@ describe('ResourcePanel relation detail behavior', () => {
     const launchContract = container.querySelector('[data-resource-node-launch-contract="launch-return-evidence"]');
     expect(launchContract?.querySelector('[data-resource-node-action="launch"]')).not.toBeNull();
     expect(launchContract?.querySelector('[data-resource-node-action="return-to-learning-path"]')).not.toBeNull();
-    expect(launchContract?.querySelector('[data-resource-node-action="review-evidence"]')).not.toBeNull();
+    const evidenceLink = launchContract?.querySelector('[data-resource-node-action="review-evidence"]');
+    expect(evidenceLink).not.toBeNull();
+    expect(evidenceLink?.getAttribute('target')).toBe('_blank');
+    expect(evidenceLink?.getAttribute('href')).toContain('node=');
 
     await act(async () => fireEvent.click(overviewButton));
     expect(overviewButton.getAttribute('aria-expanded')).toBe('true');
