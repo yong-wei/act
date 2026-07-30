@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
+import { extractColdStartEvidenceCount, isColdStartLearner } from '@/lib/adaptive-cold-start-detection';
 import {
   AdaptivePathJourneyControlFromRoute,
   AdaptivePathOwnedResourceAction,
@@ -2847,10 +2848,10 @@ export default function AdaptivePracticePage() {
   };
 
     const completedPathLearningTime = formatCompletedPathLearningTime(activePathPlan, Boolean(diagnostic));
-    const isColdStart = learnerStateLoadState === 'ready' && (
-      !activeLearnerState ||
-      activeLearnerState.evidence?.confidence?.evidenceCount === 0
-    );
+    const isColdStart = isColdStartLearner({
+      learnerStateLoadState,
+      evidenceCount: extractColdStartEvidenceCount(activeLearnerState),
+    });
     const currentNode = practiceRouteNodes.find((node) => node.state === 'current') ?? practiceRouteNodes[0];
     const compactCurrentNodeTitle = compactPathNodeTitle(currentNode?.title);
     const nextPathAction = adaptivePathCenter?.nextAction ?? null;
