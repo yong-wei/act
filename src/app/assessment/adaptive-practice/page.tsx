@@ -2847,6 +2847,10 @@ export default function AdaptivePracticePage() {
   };
 
     const completedPathLearningTime = formatCompletedPathLearningTime(activePathPlan, Boolean(diagnostic));
+    const isColdStart = learnerStateLoadState === 'ready' && (
+      !activeLearnerState ||
+      activeLearnerState.evidence?.confidence?.evidenceCount === 0
+    );
     const currentNode = practiceRouteNodes.find((node) => node.state === 'current') ?? practiceRouteNodes[0];
     const compactCurrentNodeTitle = compactPathNodeTitle(currentNode?.title);
     const nextPathAction = adaptivePathCenter?.nextAction ?? null;
@@ -3006,7 +3010,35 @@ export default function AdaptivePracticePage() {
                   <p className="text-xs text-subtle">本周完成</p>
                   <p className="mt-1 font-medium text-foreground">{percentLabel(weeklyProgress)}</p>
                 </div>
+            </div>
+            {isColdStart ? (
+            <>
+              <div className="mt-4 rounded-lg border border-border bg-muted/40 p-3">
+                <p className="text-xs font-medium text-subtle">推荐依据</p>
+                <p className="mt-1 text-sm leading-6 text-foreground">
+                  当前暂无历史学习记录，系统根据课程知识结构生成初始路径。
+                  完成诊断、练习和互动任务后，系统会根据新的学习记录调整后续路径推荐。
+                </p>
               </div>
+              <div className="mt-3 rounded-lg border border-border bg-muted/40 p-3">
+                <p className="text-xs font-medium text-subtle">提升推荐准确度</p>
+                <ul className="mt-2 grid gap-2 text-sm">
+                  <li className="flex items-start gap-2 leading-6 text-foreground">
+                    <span className="mt-1.5 grid size-2 shrink-0 rounded-full bg-primary/60" aria-hidden="true" />
+                    <span>完成诊断 → 系统了解薄弱知识点，细化能力画像</span>
+                  </li>
+                  <li className="flex items-start gap-2 leading-6 text-foreground">
+                    <span className="mt-1.5 grid size-2 shrink-0 rounded-full bg-primary/60" aria-hidden="true" />
+                    <span>完成练习 → 系统更新知识掌握程度估计</span>
+                  </li>
+                  <li className="flex items-start gap-2 leading-6 text-foreground">
+                    <span className="mt-1.5 grid size-2 shrink-0 rounded-full bg-primary/60" aria-hidden="true" />
+                    <span>完成仿真 → 系统优化实践能力推荐</span>
+                  </li>
+                </ul>
+              </div>
+            </>
+            ) : null}
             </aside>
           </header>
           )}
