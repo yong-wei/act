@@ -407,24 +407,80 @@ export function assertVerifiedSarBindingSet(
 
 /**
  * Require VerifiedKaqPinnedContext for aggregate authority when projecting
- * KAQ/resource/path/learner bindings into a verified set.
+ * KAQ/resource bindings into a verified set.
+ *
+ * Compares the full shared governance fingerprint — Release identity, dataset
+ * hash, Delta, and CourseCoverage capture fields — not just overlay IDs.
+ * Drift of sourceDatasetHash / coverageSourceHash / coverageCaptureRevision
+ * (or any other shared field) fails closed.
  */
 export function assertPinnedMatchesVersion(
   pinned: VerifiedKaqPinnedContext,
   version: SarCompositionVersionContext,
 ): void {
   const closed = assertVerifiedKaqPinnedContext(pinned);
-  if (
-    closed.releaseSetId !== version.releaseSetId
-    || closed.releaseId !== version.releaseId
-    || closed.releaseHash !== version.releaseHash
-    || closed.deltaReceiptId !== version.deltaReceiptId
-    || closed.coverageOverlayId !== version.coverageOverlayId
-    || closed.coverageOverlayVersion !== version.coverageOverlayVersion
-  ) {
+  const shared: Array<[string, string, string]> = [
+    ['releaseSetId', closed.releaseSetId, version.releaseSetId],
+    ['releaseId', closed.releaseId, version.releaseId],
+    ['releaseHash', closed.releaseHash, version.releaseHash],
+    ['sourceDatasetHash', closed.sourceDatasetHash, version.sourceDatasetHash],
+    ['deltaReceiptId', closed.deltaReceiptId, version.deltaReceiptId],
+    ['coverageOverlayId', closed.coverageOverlayId, version.coverageOverlayId],
+    [
+      'coverageOverlayVersion',
+      closed.coverageOverlayVersion,
+      version.coverageOverlayVersion,
+    ],
+    [
+      'coverageSourceHash',
+      closed.coverageSourceHash,
+      version.coverageSourceHash,
+    ],
+    [
+      'coverageCaptureRevision',
+      closed.coverageCaptureRevision,
+      version.coverageCaptureRevision,
+    ],
+  ];
+  for (const [field, left, right] of shared) {
+    if (left !== right) {
+      throw new SarBindingCapabilityError(
+        'version-mismatch',
+        `VerifiedKaqPinnedContext.${field} does not match composition version context`,
+      );
+    }
+  }
+}
+
+/**
+ * Module-private: resource decision capture/inventory must close against SAR
+ * version context. Prefer governed* fields; fall back to legacy tuple.
+ * Not part of the public composition contract.
+ */
+function assertResourceDecisionMatchesVersion(
+  decision: {
+    governedCaptureRevision?: string | null;
+    captureRevision?: string | null;
+    governedInventoryRunId?: string | null;
+    inventoryRunId?: string | null;
+    id: string;
+  },
+  version: SarCompositionVersionContext,
+): void {
+  const captureRev =
+    decision.governedCaptureRevision ?? decision.captureRevision ?? null;
+  const inventoryId =
+    decision.governedInventoryRunId ?? decision.inventoryRunId ?? null;
+  if (!captureRev || captureRev !== version.coverageCaptureRevision) {
     throw new SarBindingCapabilityError(
       'version-mismatch',
-      'VerifiedKaqPinnedContext does not match composition version context',
+      `Resource decision ${decision.id} captureRevision is not closed against composition coverageCaptureRevision`,
+    );
+  }
+  if (!inventoryId || inventoryId !== version.inventoryRunId) {
+    throw new SarBindingCapabilityError(
+      'version-mismatch',
+      `Resource decision ${decision.id} inventoryRunId is not closed against composition inventoryRunId`,
     );
   }
 }
@@ -585,6 +641,9 @@ export function projectReviewedResourceBindingsToSar(input: {
     ) {
       continue;
     }
+    // Hard fail closed: eligible shadow decision with capture/inventory drift
+    // aborts the entire projection (no partial binding set).
+    assertResourceDecisionMatchesVersion(decision, input.version);
     const predicate = mapResourceRoleToSarPredicate(decision.role);
     if (
       predicate !== 'resource_explains'

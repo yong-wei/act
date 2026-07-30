@@ -228,40 +228,105 @@ function emptyExpansion(): ExpansionState {
   };
 }
 
-function tryAddNode(
+/**
+ * Shared total candidate budget: every retained node and edge consumes one slot.
+ * Expansion steps reserve all newly required node+edge slots atomically — never
+ * write a dangling edge when the paired node would not fit.
+ */
+function nodeKeyOf(hit: SarSourceHit): SarQualifiedId {
+  return qualifySarId(hit.namespace, hit.id);
+}
+
+function hasNode(state: ExpansionState, hit: SarSourceHit): boolean {
+  const key = nodeKeyOf(hit);
+  return state.nodes.has(key) || state.readOnly.has(key);
+}
+
+function commitNode(
   state: ExpansionState,
   hit: SarSourceHit,
-  budget: SarCompositionBudget,
   readOnly: boolean,
-): boolean {
-  const key = qualifySarId(hit.namespace, hit.id);
-  if (state.nodes.has(key) || state.readOnly.has(key)) return true;
-
-  const per = state.perSourceCount.get(hit.namespace) ?? 0;
-  if (per >= budget.maxPerSourceCandidates) {
-    state.limitations.push(`per-source-budget:${hit.namespace}`);
-    return false;
-  }
-  if (state.totalCount >= budget.maxTotalCandidates) {
-    state.limitations.push('total-budget');
-    return false;
-  }
-
+): void {
+  const key = nodeKeyOf(hit);
+  if (state.nodes.has(key) || state.readOnly.has(key)) return;
   const node = nodeFromHit(hit, readOnly);
   if (node.readOnlyContext) {
     state.readOnly.set(key, node);
   } else {
     state.nodes.set(key, node);
   }
+  const per = state.perSourceCount.get(hit.namespace) ?? 0;
   state.perSourceCount.set(hit.namespace, per + 1);
   state.totalCount += 1;
+}
+
+function commitEdge(state: ExpansionState, edge: SarCandidateEdge): void {
+  if (state.edges.has(edge.id)) return;
+  state.edges.set(edge.id, edge);
+  state.totalCount += 1;
+}
+
+/**
+ * Atomically admit a set of new edges and nodes for one expansion step.
+ * Existing members cost 0. Returns false without writing anything when the
+ * shared maxTotalCandidates (or per-source node cap) would be exceeded.
+ */
+function tryCommitExpansion(
+  state: ExpansionState,
+  budget: SarCompositionBudget,
+  plan: {
+    edges?: readonly SarCandidateEdge[];
+    nodes?: readonly { hit: SarSourceHit; readOnly: boolean }[];
+  },
+): boolean {
+  const newEdges = (plan.edges ?? []).filter((edge) => !state.edges.has(edge.id));
+  const newNodes: Array<{ hit: SarSourceHit; readOnly: boolean }> = [];
+  const newPerSource = new Map<SarSourceNamespace, number>();
+
+  for (const item of plan.nodes ?? []) {
+    if (hasNode(state, item.hit)) continue;
+    // Dedup multiple planned adds of the same new node within one step.
+    if (newNodes.some((n) => nodeKeyOf(n.hit) === nodeKeyOf(item.hit))) continue;
+    newNodes.push(item);
+    newPerSource.set(
+      item.hit.namespace,
+      (newPerSource.get(item.hit.namespace) ?? 0) + 1,
+    );
+  }
+
+  for (const [ns, add] of newPerSource) {
+    const per = state.perSourceCount.get(ns) ?? 0;
+    if (per + add > budget.maxPerSourceCandidates) {
+      state.limitations.push(`per-source-budget:${ns}`);
+      return false;
+    }
+  }
+
+  const slotsNeeded = newEdges.length + newNodes.length;
+  if (state.totalCount + slotsNeeded > budget.maxTotalCandidates) {
+    state.limitations.push('total-budget');
+    return false;
+  }
+
+  for (const edge of newEdges) {
+    commitEdge(state, edge);
+  }
+  for (const item of newNodes) {
+    commitNode(state, item.hit, item.readOnly);
+  }
   return true;
 }
 
-function addEdge(state: ExpansionState, edge: SarCandidateEdge): void {
-  if (!state.edges.has(edge.id)) {
-    state.edges.set(edge.id, edge);
-  }
+/** Seed admission (single node, no paired edge). */
+function tryAddNode(
+  state: ExpansionState,
+  hit: SarSourceHit,
+  budget: SarCompositionBudget,
+  readOnly: boolean,
+): boolean {
+  return tryCommitExpansion(state, budget, {
+    nodes: [{ hit, readOnly }],
+  });
 }
 
 function bindingProvenance(
@@ -372,40 +437,55 @@ async function expand(
           );
 
           if (resolved.skipReason === 'unsupported-predicate') {
-            addEdge(state, {
-              kind: 'edge',
-              id: `edge:repository:${edge.id}`,
-              predicate: edge.predicate,
-              fromId: fromQ,
-              toId: toQ,
-              hop,
-              supportedForTraversal: false,
-              provenance: edgeProv,
-              skipReason: 'unsupported-predicate',
-            });
+            // Diagnostic edge + optional read-only neighbor context; never traverse.
             const otherLocal =
               edge.fromId === seedItem.localId ? edge.toId : edge.fromId;
             const neighborHit = hitIndex.get(
               qualifySarId('repository', otherLocal),
             );
-            if (neighborHit && neighborHit.namespace === 'repository') {
-              tryAddNode(state, neighborHit, budget, true);
+            const planNodes =
+              neighborHit && neighborHit.namespace === 'repository'
+                ? [{ hit: neighborHit, readOnly: true as const }]
+                : [];
+            if (
+              !tryCommitExpansion(state, budget, {
+                edges: [{
+                  kind: 'edge',
+                  id: `edge:repository:${edge.id}`,
+                  predicate: edge.predicate,
+                  fromId: fromQ,
+                  toId: toQ,
+                  hop,
+                  supportedForTraversal: false,
+                  provenance: edgeProv,
+                  skipReason: 'unsupported-predicate',
+                }],
+                nodes: planNodes,
+              })
+            ) {
+              break;
             }
             continue;
           }
 
           if (!resolved.neighborId || resolved.skipReason) {
-            addEdge(state, {
-              kind: 'edge',
-              id: `edge:repository:${edge.id}:${resolved.skipReason ?? 'skip'}`,
-              predicate: edge.predicate,
-              fromId: fromQ,
-              toId: toQ,
-              hop,
-              supportedForTraversal: resolved.supported,
-              provenance: edgeProv,
-              skipReason: resolved.skipReason,
-            });
+            if (
+              !tryCommitExpansion(state, budget, {
+                edges: [{
+                  kind: 'edge',
+                  id: `edge:repository:${edge.id}:${resolved.skipReason ?? 'skip'}`,
+                  predicate: edge.predicate,
+                  fromId: fromQ,
+                  toId: toQ,
+                  hop,
+                  supportedForTraversal: resolved.supported,
+                  provenance: edgeProv,
+                  skipReason: resolved.skipReason,
+                }],
+              })
+            ) {
+              break;
+            }
             continue;
           }
 
@@ -441,39 +521,46 @@ async function expand(
             !input.scope.admittedCanonicalIds.includes(resolved.neighborId)
             && !input.scope.admittedCanonicalIds.includes(neighborHit.id)
           ) {
-            addEdge(state, {
-              kind: 'edge',
-              id: `edge:repository:${edge.id}:outside-scope`,
-              predicate: edge.predicate,
-              fromId: fromQ,
-              toId: toQ,
-              hop,
-              supportedForTraversal: true,
-              provenance: edgeProv,
-              skipReason: 'outside-scope',
-            });
+            if (
+              !tryCommitExpansion(state, budget, {
+                edges: [{
+                  kind: 'edge',
+                  id: `edge:repository:${edge.id}:outside-scope`,
+                  predicate: edge.predicate,
+                  fromId: fromQ,
+                  toId: toQ,
+                  hop,
+                  supportedForTraversal: true,
+                  provenance: edgeProv,
+                  skipReason: 'outside-scope',
+                }],
+              })
+            ) {
+              break;
+            }
             continue;
           }
 
           const readOnly = !isSarSupportedObjectType(neighborHit.objectType);
-          const added = tryAddNode(state, neighborHit, budget, readOnly);
-          addEdge(state, {
-            kind: 'edge',
-            id: `edge:repository:${edge.id}`,
-            predicate: edge.predicate,
-            fromId: fromQ,
-            toId: toQ,
-            hop,
-            supportedForTraversal:
-              !readOnly && isSarSupportedTraversalPredicate(edge.predicate),
-            provenance: edgeProv,
-            skipReason: readOnly
-              ? 'unsupported-object-type'
-              : added
-                ? null
-                : 'total-budget',
+          const committed = tryCommitExpansion(state, budget, {
+            edges: [{
+              kind: 'edge',
+              id: `edge:repository:${edge.id}`,
+              predicate: edge.predicate,
+              fromId: fromQ,
+              toId: toQ,
+              hop,
+              supportedForTraversal:
+                !readOnly && isSarSupportedTraversalPredicate(edge.predicate),
+              provenance: edgeProv,
+              skipReason: readOnly ? 'unsupported-object-type' : null,
+            }],
+            nodes: [{ hit: neighborHit, readOnly }],
           });
-          if (added && !readOnly && state.nodes.has(neighborKey)) {
+          if (!committed) {
+            break;
+          }
+          if (!readOnly && state.nodes.has(neighborKey)) {
             pushNext('repository', resolved.neighborId);
           }
         }
@@ -551,31 +638,29 @@ async function expand(
         }
 
         const readOnly = !isSarSupportedObjectType(neighborHit.objectType);
-        const added = tryAddNode(state, neighborHit, budget, readOnly);
-        if (
-          !added
-          && !state.nodes.has(neighborKey)
-          && !state.readOnly.has(neighborKey)
-        ) {
+        const committed = tryCommitExpansion(state, budget, {
+          edges: [{
+            kind: 'edge',
+            id: `edge:binding:${binding.id}`,
+            predicate: binding.predicate,
+            fromId: qualifySarId(binding.fromNamespace, binding.fromIdentity),
+            toId: qualifySarId(binding.toNamespace, binding.toIdentity),
+            hop,
+            supportedForTraversal: !readOnly,
+            provenance: bindingProvenance(binding),
+            skipReason: readOnly ? 'unsupported-object-type' : null,
+          }],
+          nodes: [{ hit: neighborHit, readOnly }],
+        });
+        if (!committed) {
           state.skippedBindings.push({
             bindingId: binding.id,
             reason: 'total-budget',
           });
-          continue;
+          break;
         }
 
         state.traversedBindingIds.push(binding.id);
-        addEdge(state, {
-          kind: 'edge',
-          id: `edge:binding:${binding.id}`,
-          predicate: binding.predicate,
-          fromId: qualifySarId(binding.fromNamespace, binding.fromIdentity),
-          toId: qualifySarId(binding.toNamespace, binding.toIdentity),
-          hop,
-          supportedForTraversal: !readOnly,
-          provenance: bindingProvenance(binding),
-          skipReason: readOnly ? 'unsupported-object-type' : null,
-        });
 
         if (!readOnly && state.nodes.has(neighborKey)) {
           pushNext(neighbor.namespace, neighbor.localId);

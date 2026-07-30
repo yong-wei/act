@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   assertBindingKindMatrix,
   assertCompleteAdapterSet,
+  assertPinnedMatchesVersion,
   assertVerifiedSarBindingSet,
   buildFixtureBindingRecords,
   buildFixtureVersion,
@@ -11,6 +12,7 @@ import {
   CANONICAL_SAR_FIXTURE_IDS,
   composeCanonicalSar,
   computeBindingSetDigest,
+  createFiveSourceAdapterSet,
   evaluateBindingForTraversal,
   expectedSourceVersionClosure,
   isReviewedCrossNamespaceBinding,
@@ -434,6 +436,306 @@ describe('merge + raw set rejection preserved', () => {
     expect(() =>
       mergeVerifiedSarBindingSets([fixture.bindings, conflict], fixture.version),
     ).toThrow(/conflicting content/i);
+  });
+});
+
+describe('P1-A complete governance fingerprint close', () => {
+  it('fails closed when pinned and version share IDs but any capture/hash field drifts', () => {
+    const version = buildFixtureVersion();
+    const basePinned = pinnedFor(version);
+    expect(() => assertPinnedMatchesVersion(basePinned, version)).not.toThrow();
+
+    for (const field of [
+      'sourceDatasetHash',
+      'coverageSourceHash',
+      'coverageCaptureRevision',
+      'releaseHash',
+      'deltaReceiptId',
+    ] as const) {
+      const driftedVersion = buildFixtureVersion({
+        ...version,
+        [field]:
+          field === 'coverageCaptureRevision'
+            ? 'f'.repeat(40)
+            : '9'.repeat(64),
+      });
+      // Same releaseSetId/releaseId/overlay IDs — only the drifted field differs.
+      expect(driftedVersion.releaseSetId).toBe(version.releaseSetId);
+      expect(driftedVersion.releaseId).toBe(version.releaseId);
+      expect(driftedVersion.coverageOverlayId).toBe(version.coverageOverlayId);
+      expect(() => assertPinnedMatchesVersion(basePinned, driftedVersion)).toThrow(
+        SarBindingCapabilityError,
+      );
+      expect(() => assertPinnedMatchesVersion(basePinned, driftedVersion)).toThrow(
+        new RegExp(field),
+      );
+    }
+  });
+
+  it('hard-fails resource projector when governResourceBindings capture/inventory drifts', () => {
+    // Real producer result under capture B.
+    const captureB = {
+      releaseSetId: CURRENT_AGGREGATE_RELEASE_SET_ID,
+      releaseId: CURRENT_AGGREGATE_RELEASE_ID,
+      releaseHash: 'a'.repeat(64),
+      sourceDatasetHash: 'b'.repeat(64),
+      deltaReceiptId: 'delta-receipt:accepted-aggregate-v1',
+      deltaOutputDigest: 'c'.repeat(64),
+      deltaClassification: 'NO_OP_PACKAGING',
+      captureRevision: 'f'.repeat(40),
+      importCaptureRevision: 'f'.repeat(40),
+      deltaCaptureRevision: 'f'.repeat(40),
+      authoringRevision: 'f'.repeat(40),
+      inventoryRunId: 'inventory:run-b',
+      dbWatermark: 'wm:v1',
+      runtimeProjectionId: 'proj:ctkg-0-2-runtime',
+      runtimeProjectionDigest: 'c'.repeat(64),
+      structuralUnitIndexVersion: '1',
+      coverageSourceHash: 'd'.repeat(64),
+    };
+    const gate = buildBindingPublicationGateContext({
+      capture: captureB,
+      canonicalIndex: [{
+        releaseSetId: captureB.releaseSetId,
+        releaseId: captureB.releaseId,
+        canonicalId: CANONICAL_SAR_FIXTURE_IDS.feedbackLoop,
+        objectRevision: 'obj-rev:1',
+        canonicalType: 'DomainConcept',
+      }],
+      validatedCrosswalks: [{
+        id: 'xwalk-feedback-b',
+        releaseId: captureB.releaseId,
+        canonicalId: CANONICAL_SAR_FIXTURE_IDS.feedbackLoop,
+        resourceId: 'resource-feedback',
+        structuralUnitId: 'unit-feedback',
+        structuralUnitVersion: captureB.captureRevision,
+        structuralUnitHash: 'f'.repeat(64),
+        segmentId: 'seg-feedback',
+        resourceSegmentHash: '2'.repeat(64),
+        inventoryRunId: captureB.inventoryRunId,
+        atomicResourceId: 'atomic-feedback',
+        captureRevision: captureB.captureRevision,
+        validationDigest: 'v'.repeat(64),
+        sourceEditionId: 'edition',
+        sourceVersion: '1',
+        evidenceContentHash: 'f'.repeat(64),
+      }],
+    });
+    const governanceResult = governResourceBindings({
+      capture: captureB,
+      work: [{
+        pairKey: [
+          'resource-feedback',
+          'unit-feedback',
+          'seg-feedback',
+          '2'.repeat(64),
+        ].join('\u001f'),
+        canonicalId: CANONICAL_SAR_FIXTURE_IDS.feedbackLoop,
+        resourceId: 'resource-feedback',
+        structuralUnitId: 'unit-feedback',
+        segmentId: 'seg-feedback',
+        action: 'review',
+        reasons: ['fixture-review'],
+      }],
+      previousDecisions: [],
+      canonicalIndex: [{
+        releaseSetId: captureB.releaseSetId,
+        releaseId: captureB.releaseId,
+        canonicalId: CANONICAL_SAR_FIXTURE_IDS.feedbackLoop,
+        objectRevision: 'obj-rev:1',
+        canonicalType: 'DomainConcept',
+      }],
+      resourceIndex: [{
+        resourceId: 'resource-feedback',
+        structuralUnitId: 'unit-feedback',
+        segmentId: 'seg-feedback',
+        resourceSegmentHash: '2'.repeat(64),
+        candidateCanonicalIds: [CANONICAL_SAR_FIXTURE_IDS.feedbackLoop],
+        deterministicRole: 'EXPLAINS',
+        evidenceIds: ['atomic-feedback'],
+      }],
+      generatorPromptVersion: 'aggregate-binding/v1',
+      publicationGateContext: gate,
+    });
+    expect(governanceResult.shadowPublishedCount).toBeGreaterThan(0);
+
+    // SAR version + pinned share release/overlay IDs but use capture A (drift).
+    const versionA = buildFixtureVersion({
+      releaseSetId: captureB.releaseSetId,
+      releaseId: captureB.releaseId,
+      releaseHash: captureB.releaseHash,
+      sourceDatasetHash: captureB.sourceDatasetHash,
+      deltaReceiptId: captureB.deltaReceiptId,
+      coverageSourceHash: captureB.coverageSourceHash,
+      coverageCaptureRevision: 'e'.repeat(40),
+      inventoryRunId: 'inventory:run-a',
+    });
+    const pinnedA = pinnedFor(versionA);
+    expect(() =>
+      projectReviewedResourceBindingsToSar({
+        governanceResult,
+        pinned: pinnedA,
+        version: versionA,
+      }),
+    ).toThrow(SarBindingCapabilityError);
+    expect(() =>
+      projectReviewedResourceBindingsToSar({
+        governanceResult,
+        pinned: pinnedA,
+        version: versionA,
+      }),
+    ).toThrow(/captureRevision|inventoryRunId/);
+
+    // KAQ projector refuses sourceDatasetHash drift under full fingerprint.
+    const version = buildFixtureVersion();
+    const { pinned, accepted } = realReviewedKaq(version);
+    const drifted = buildFixtureVersion({
+      ...version,
+      sourceDatasetHash: '9'.repeat(64),
+    });
+    expect(() =>
+      projectReviewedKaqBindingsToSar({
+        bindings: [accepted],
+        pinned,
+        version: drifted,
+      }),
+    ).toThrow(/sourceDatasetHash/);
+  });
+});
+
+describe('P1-B shared total candidate budget for nodes and edges', () => {
+  it('caps nodes+edges under maxTotalCandidates; no dangling traversable edges; keeps unsupported read-only', async () => {
+    const version = buildFixtureVersion();
+    const hubId = 'ctr:object:hub';
+    const genericId = 'ctr:object:generic-readonly';
+    const scope = {
+      courseId: 'automatic-control',
+      learningGoalId: 'control-correction',
+      studentId: 'student-alpha',
+      classId: 'class-demo',
+      admittedCanonicalIds: Array.from({ length: 40 }, (_, i) => `ctr:object:n${i}`).concat([
+        hubId,
+        genericId,
+      ]),
+    };
+    const neighborEdges = [
+      ...Array.from({ length: 30 }, (_, i) => ({
+        id: `rel:hub-${i}`,
+        predicate: 'has_component' as const,
+        fromId: hubId,
+        toId: `ctr:object:n${i}`,
+        sourceIdentity: `repo-rel:hub-${i}`,
+      })),
+      {
+        id: 'rel:hub-mentions-generic',
+        predicate: 'mentions' as const,
+        fromId: hubId,
+        toId: genericId,
+        sourceIdentity: 'repo-rel:hub-mentions-generic',
+      },
+    ];
+    const records = [
+      {
+        id: hubId,
+        objectType: 'DomainConcept',
+        label: 'Hub',
+        sourceIdentity: `repo:${hubId}`,
+        neighborEdges,
+      },
+      {
+        id: genericId,
+        objectType: 'GenericStoredObject',
+        label: 'Generic',
+        sourceIdentity: `repo:${genericId}`,
+      },
+      ...Array.from({ length: 30 }, (_, i) => ({
+        id: `ctr:object:n${i}`,
+        objectType: 'DomainConcept',
+        label: `N${i}`,
+        sourceIdentity: `repo:ctr:object:n${i}`,
+      })),
+    ];
+    const adapters = createFiveSourceAdapterSet({
+      version,
+      repository: { records },
+      kaq: { records: [] },
+      resource: { records: [] },
+      path: { records: [] },
+      learnerState: { records: [] },
+    });
+    const maxTotal = 8;
+    const runOnce = () => composeCanonicalSar({
+      seeds: [{ id: hubId, namespace: 'repository' }],
+      scope,
+      version,
+      bindings: mintVerifiedSarBindingSetForTests([], version),
+      adapters,
+      authorityConsumer: 'OFFLINE_EVAL',
+      budget: {
+        maxHops: 1,
+        maxPerSourceCandidates: 50,
+        maxTotalCandidates: maxTotal,
+      },
+    });
+    const result = await runOnce();
+    expect(result.status).toBe('composed');
+    const proj = result.projection!;
+    const nodes = proj.nodes.length + proj.readOnlyContext.length;
+    const edges = proj.edges.length;
+    expect(nodes + edges).toBeLessThanOrEqual(maxTotal);
+    expect(proj.limitations).toContain('total-budget');
+
+    // No dangling traversable edges: every traversable endpoint must be present.
+    const nodeIds = new Set([
+      ...proj.nodes.map((n) => n.id),
+      ...proj.readOnlyContext.map((n) => n.id),
+    ]);
+    for (const edge of proj.edges) {
+      if (!edge.supportedForTraversal) continue;
+      expect(nodeIds.has(edge.fromId)).toBe(true);
+      expect(nodeIds.has(edge.toId)).toBe(true);
+    }
+
+    // Unsupported predicate: when neighbor is already in the hit index (seeded),
+    // record as read-only context without traversal — pre-patch semantics.
+    const withNeighborSeed = await composeCanonicalSar({
+      seeds: [
+        { id: hubId, namespace: 'repository' },
+        { id: genericId, namespace: 'repository' },
+      ],
+      scope,
+      version,
+      bindings: mintVerifiedSarBindingSetForTests([], version),
+      adapters,
+      authorityConsumer: 'OFFLINE_EVAL',
+      budget: {
+        maxHops: 1,
+        maxPerSourceCandidates: 50,
+        maxTotalCandidates: 100,
+      },
+    });
+    const mentions = withNeighborSeed.projection!.edges.find(
+      (e) => e.predicate === 'mentions',
+    );
+    expect(mentions?.supportedForTraversal).toBe(false);
+    expect(mentions?.skipReason).toBe('unsupported-predicate');
+    expect(
+      withNeighborSeed.projection!.readOnlyContext.some(
+        (n) => n.id === qualifySarId('repository', genericId),
+      ),
+    ).toBe(true);
+    expect(
+      withNeighborSeed.projection!.nodes.some(
+        (n) => n.id === qualifySarId('repository', genericId),
+      ),
+    ).toBe(false);
+
+    // Stable truncation under tight budget.
+    const again = await runOnce();
+    expect(
+      again.projection!.nodes.length + again.projection!.readOnlyContext.length,
+    ).toBe(nodes);
+    expect(again.projection!.edges.length).toBe(edges);
   });
 });
 
