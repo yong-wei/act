@@ -19,6 +19,20 @@ function createDb(overrides: Partial<DiagnosisPersistenceDb> = {}): DiagnosisPer
     },
     studentProfile: {
       findFirst: vi.fn().mockResolvedValue({ userId: 'student-1' }),
+      findMany: vi.fn().mockResolvedValue([{ userId: 'student-1' }]),
+    },
+    studentRiskFlag: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    studentCompetencySnapshot: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    knowledgeProgress: {
+      findMany: vi.fn().mockResolvedValue([{
+        id: 'progress-1',
+        userId: 'student-1',
+        lastVisited: new Date('2026-07-30T07:00:00.000Z'),
+      }]),
     },
     diagnosisReport: {
       create: vi.fn().mockResolvedValue({ id: 'report-1' }),
@@ -36,7 +50,7 @@ const reportBody = {
     riskType: 'constraint' as const,
     severity: 'medium' as const,
   }],
-  evidenceRefs: ['knowledge-progress:student-1:node-1'],
+  evidenceRefs: ['knowledge-progress:progress-1'],
   evidenceCutoff: '2026-07-30T08:00:00.000Z',
   sourceCoverage: { progressRows: 1 },
   confidence: 'medium' as const,
@@ -111,7 +125,10 @@ describe('diagnosis report persistence', () => {
     });
 
     const missingStudentDb = createDb({
-      studentProfile: { findFirst: vi.fn().mockResolvedValue(null) },
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        findMany: vi.fn().mockResolvedValue([]),
+      },
     });
     await expect(readDiagnosisReports({
       teacherId: 'teacher-1',
@@ -157,6 +174,87 @@ describe('diagnosis report persistence', () => {
       riskSummary: { raw_answer: 'secret' },
       generatorVersion: 'client-controlled',
     }).success).toBe(false);
+  });
+
+  it('rejects missing or source-mismatched evidence references', async () => {
+    const db = createDb({
+      knowledgeProgress: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    });
+    await expect(persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      reportBody,
+    }, db)).rejects.toMatchObject({
+      status: 400,
+      message: 'diagnosis-evidence-not-found',
+    });
+    expect(db.diagnosisReport.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects evidence owned by another student or class', async () => {
+    const foreignStudentDb = createDb({
+      knowledgeProgress: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'progress-1',
+          userId: 'student-2',
+          lastVisited: new Date('2026-07-30T07:00:00.000Z'),
+        }]),
+      },
+    });
+    await expect(persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody,
+    }, foreignStudentDb)).rejects.toMatchObject({
+      status: 403,
+      message: 'diagnosis-evidence-outside-target',
+    });
+
+    const foreignClassDb = createDb({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1' }),
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    });
+    await expect(persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      reportBody,
+    }, foreignClassDb)).rejects.toMatchObject({
+      status: 403,
+      message: 'diagnosis-evidence-outside-class',
+    });
+  });
+
+  it('rejects top-level or finding evidence newer than the declared cutoff', async () => {
+    const db = createDb({
+      studentRiskFlag: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'risk-1',
+          userId: 'student-1',
+          triggeredAt: new Date('2026-07-30T09:00:00.000Z'),
+        }]),
+      },
+    });
+    await expect(persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody: {
+        ...reportBody,
+        findings: [{
+          title: 'Late evidence',
+          evidenceRefs: ['student-risk-flag:risk-1'],
+        }],
+      },
+    }, db)).rejects.toMatchObject({
+      status: 400,
+      message: 'diagnosis-evidence-after-cutoff',
+    });
+    expect(db.diagnosisReport.create).not.toHaveBeenCalled();
   });
 
   it('reads only the requested class-level reports with a bounded limit', async () => {

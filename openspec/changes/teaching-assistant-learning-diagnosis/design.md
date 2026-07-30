@@ -13,6 +13,7 @@ Goals:
 
 Non-goals:
 
+- Teacher dashboard entry and diagnosis report rendering.
 - Student-facing diagnosis surfaces.
 - AI-generated risk flags or automatic interventions.
 
@@ -34,15 +35,11 @@ The report API derives class or student scope from the authenticated teacher, ro
 
 A finding with a knowledge-node identifier receives a server-generated preparation link. The link is navigation only and does not create a preparation pack or intervention.
 
-### Teacher report surface is read-only
-
-Teachers enter class diagnosis from the authorized class workspace. The browser surface reads only the existing report API and renders its governed summary, findings, evidence cutoff, coverage, confidence, limitations, and preparation links. It does not generate reports or expose raw evidence.
-
 ## Risks and mitigations
 
 - A scan rule failure could block later students. The scanner isolates failures per rule and records failure counts.
 - Large cohorts could cause unbounded jobs. The worker uses bounded pages and supports a maximum-student limit.
-- JSON reports could become a data-exfiltration path. The service uses strict allowlisted schemas, validates governed evidence-reference prefixes, derives report metadata on the server, and persists only after authorization.
+- JSON reports could become a data-exfiltration path. The service uses strict allowlisted schemas, validates governed evidence entities, ownership, and cutoff, derives report metadata on the server, and persists only after authorization.
 
 ## Verification
 

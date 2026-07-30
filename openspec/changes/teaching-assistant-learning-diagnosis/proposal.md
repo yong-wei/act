@@ -9,8 +9,6 @@ The teaching-assistant runtime lacks a governed backend path for class-scoped le
 - Persist class and student diagnosis reports with explicit class, creator, target, evidence-cutoff, coverage, confidence, and evidence-reference fields.
 - Add an authorized read/write API for diagnosis reports.
 - Add preparation links to report findings that reference a knowledge node.
-- Add a teacher class diagnosis entry and a read-only report surface with browser acceptance coverage.
-- Reconcile the historical migration directory with the canonical Prisma schema.
 
 ## Capabilities
 
@@ -24,4 +22,5 @@ The teaching-assistant runtime lacks a governed backend path for class-scoped le
 - Affects the Konling runtime tool registry and worker scheduler.
 - Adds the `DiagnosisReport` schema and migration.
 - Adds a teacher-only diagnosis-report API.
+- Does not add the teacher dashboard entry or report-rendering UI; those require a separate frontend change.
 - Does not modify student diagnosis surfaces or trigger teaching actions automatically.

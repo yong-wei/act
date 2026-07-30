@@ -58,6 +58,28 @@ export interface DiagnosisPersistenceDb {
   };
   studentProfile: {
     findFirst(args: Record<string, unknown>): Promise<{ userId: string } | null>;
+    findMany(args: Record<string, unknown>): Promise<Array<{ userId: string }>>;
+  };
+  studentRiskFlag: {
+    findMany(args: Record<string, unknown>): Promise<Array<{
+      id: string;
+      userId: string;
+      triggeredAt: Date;
+    }>>;
+  };
+  studentCompetencySnapshot: {
+    findMany(args: Record<string, unknown>): Promise<Array<{
+      id: string;
+      userId: string;
+      snapshotAt: Date;
+    }>>;
+  };
+  knowledgeProgress: {
+    findMany(args: Record<string, unknown>): Promise<Array<{
+      id: string;
+      userId: string;
+      lastVisited: Date;
+    }>>;
   };
   diagnosisReport: {
     create(args: Record<string, unknown>): Promise<unknown>;
@@ -129,6 +151,118 @@ function buildRiskSummary(findings: z.output<typeof diagnosisFindingSchema>[]) {
   return { total, byType, bySeverity };
 }
 
+type DiagnosisEvidenceSource =
+  | 'student-risk-flag'
+  | 'student-competency-snapshot'
+  | 'knowledge-progress';
+
+interface DiagnosisEvidenceRow {
+  ref: string;
+  userId: string;
+  observedAt: Date;
+}
+
+function parseEvidenceRef(ref: string) {
+  const separator = ref.indexOf(':');
+  return {
+    source: ref.slice(0, separator) as DiagnosisEvidenceSource,
+    id: ref.slice(separator + 1),
+  };
+}
+
+async function assertEvidenceScope(
+  db: DiagnosisPersistenceDb,
+  input: {
+    classId: string;
+    targetStudentId?: string | null;
+    evidenceCutoff: Date;
+    evidenceRefs: string[];
+  },
+) {
+  const refsBySource = new Map<DiagnosisEvidenceSource, Set<string>>([
+    ['student-risk-flag', new Set()],
+    ['student-competency-snapshot', new Set()],
+    ['knowledge-progress', new Set()],
+  ]);
+  for (const ref of new Set(input.evidenceRefs)) {
+    const parsed = parseEvidenceRef(ref);
+    refsBySource.get(parsed.source)?.add(parsed.id);
+  }
+
+  const riskFlagIds = [...refsBySource.get('student-risk-flag')!];
+  const competencySnapshotIds = [...refsBySource.get('student-competency-snapshot')!];
+  const knowledgeProgressIds = [...refsBySource.get('knowledge-progress')!];
+  const [riskFlags, competencySnapshots, knowledgeProgressRows] = await Promise.all([
+    riskFlagIds.length === 0
+      ? []
+      : db.studentRiskFlag.findMany({
+          where: { id: { in: riskFlagIds } },
+          select: { id: true, userId: true, triggeredAt: true },
+        }),
+    competencySnapshotIds.length === 0
+      ? []
+      : db.studentCompetencySnapshot.findMany({
+          where: { id: { in: competencySnapshotIds } },
+          select: { id: true, userId: true, snapshotAt: true },
+        }),
+    knowledgeProgressIds.length === 0
+      ? []
+      : db.knowledgeProgress.findMany({
+          where: { id: { in: knowledgeProgressIds } },
+          select: { id: true, userId: true, lastVisited: true },
+        }),
+  ]);
+  const evidenceRows: DiagnosisEvidenceRow[] = [
+    ...riskFlags.map((row) => ({
+      ref: `student-risk-flag:${row.id}`,
+      userId: row.userId,
+      observedAt: row.triggeredAt,
+    })),
+    ...competencySnapshots.map((row) => ({
+      ref: `student-competency-snapshot:${row.id}`,
+      userId: row.userId,
+      observedAt: row.snapshotAt,
+    })),
+    ...knowledgeProgressRows.map((row) => ({
+      ref: `knowledge-progress:${row.id}`,
+      userId: row.userId,
+      observedAt: row.lastVisited,
+    })),
+  ];
+  const resolvedRefs = new Set(evidenceRows.map((row) => row.ref));
+  const requestedRefs = new Set(input.evidenceRefs);
+  if (resolvedRefs.size !== requestedRefs.size
+    || [...requestedRefs].some((ref) => !resolvedRefs.has(ref))) {
+    throw new DiagnosisReportScopeError(400, 'diagnosis-evidence-not-found');
+  }
+
+  for (const row of evidenceRows) {
+    if (!(row.observedAt instanceof Date)
+      || !Number.isFinite(row.observedAt.getTime())
+      || row.observedAt > input.evidenceCutoff) {
+      throw new DiagnosisReportScopeError(400, 'diagnosis-evidence-after-cutoff');
+    }
+    if (input.targetStudentId && row.userId !== input.targetStudentId) {
+      throw new DiagnosisReportScopeError(403, 'diagnosis-evidence-outside-target');
+    }
+  }
+
+  if (!input.targetStudentId) {
+    const evidenceUserIds = [...new Set(evidenceRows.map((row) => row.userId))];
+    const members = await db.studentProfile.findMany({
+      where: {
+        classId: input.classId,
+        userId: { in: evidenceUserIds },
+      },
+      select: { userId: true },
+    });
+    const memberIds = new Set(members.map((member) => member.userId));
+    if (evidenceUserIds.some((userId) => !memberIds.has(userId))) {
+      throw new DiagnosisReportScopeError(403, 'diagnosis-evidence-outside-class');
+    }
+  }
+}
+
 export async function persistDiagnosisReport(
   params: {
     teacherId: string;
@@ -145,6 +279,16 @@ export async function persistDiagnosisReport(
     requireActive: true,
   });
   const parsedReportBody = diagnosisReportBodySchema.parse(params.reportBody);
+  const evidenceCutoff = new Date(parsedReportBody.evidenceCutoff);
+  await assertEvidenceScope(db, {
+    classId: params.classId,
+    targetStudentId: params.targetStudentId,
+    evidenceCutoff,
+    evidenceRefs: [
+      ...parsedReportBody.evidenceRefs,
+      ...parsedReportBody.findings.flatMap((finding) => finding.evidenceRefs),
+    ],
+  });
   const reportBody = {
     ...parsedReportBody,
     findings: parsedReportBody.findings.map((finding) => {
@@ -172,7 +316,7 @@ export async function persistDiagnosisReport(
       targetUserId: params.targetStudentId ?? null,
       reportBody,
       riskSummary,
-      evidenceCutoff: new Date(reportBody.evidenceCutoff),
+      evidenceCutoff,
       generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
     },
   });
