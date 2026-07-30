@@ -3,7 +3,9 @@
 ## Purpose
 
 Define front-end error handling for path execution 409 failures so users see actionable error messages in the current operation area, without confusion from shared error states.
-## Requirements
+
+## ADDED Requirements
+
 ### Requirement: Path execution errors do not reuse the shared error state
 The system SHALL use a dedicated `pathExecutionError` state instead of the shared page-level `error` state for all path-execution operations.
 
@@ -13,7 +15,7 @@ The system SHALL use a dedicated `pathExecutionError` state instead of the share
 - **AND** the shared `error` state SHALL remain unchanged
 - **AND** the current-path module SHALL display the error message with heading "路径操作未能完成"
 
-#### Scenario: Practice load fails
+#### Scenario: Practice load fails does not affect path error
 - **WHEN** the practice loading or submit flow fails
 - **THEN** the system SHALL set the shared `error` state
 - **AND** `pathExecutionError` SHALL remain unchanged
