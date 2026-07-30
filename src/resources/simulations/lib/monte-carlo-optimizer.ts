@@ -1,7 +1,7 @@
 /**
- * Monte Carlo 参数优化�?
+ * Monte Carlo å‚æ•°ä¼˜åŒ–å™?
  *
- * 使用随机搜索算法寻找最�?PID 参数
+ * ä½¿ç”¨éšæœºæœç´¢ç®—æ³•å¯»æ‰¾æœ€ä¼?PID å‚æ•°
  */
 
 import { computeVirtualSimulationServerStep } from '../rust/control-engine-server-runtime';
@@ -17,17 +17,17 @@ import { buildSimulationReplayMetadata } from './replay-checksum';
 import type { Position } from '../types';
 
 export interface OptimizationTarget {
-  targetHeading: number; // 目标航向
-  maxError: number; // 允许的最大航迹误�?
-  maxRudderRate: number; // 允许的最大舵角速度
-  maxOvershoot?: number; // 允许的最大超调量
-  minSettlingTime?: number; // 期望的最小调节时�?
+  targetHeading: number; // ç›®æ ‡èˆªå‘
+  maxError: number; // å…è®¸çš„æœ€å¤§èˆªè¿¹è¯¯å·?
+  maxRudderRate: number; // å…è®¸çš„æœ€å¤§èˆµè§’é€Ÿåº¦
+  maxOvershoot?: number; // å…è®¸çš„æœ€å¤§è¶…è°ƒé‡
+  minSettlingTime?: number; // æœŸæœ›çš„æœ€å°è°ƒèŠ‚æ—¶é—?
 }
 
 export interface OptimizationConstraints {
-  kpRange: [number, number]; // Kp 搜索范围
-  kiRange: [number, number]; // Ki 搜索范围
-  kdRange: [number, number]; // Kd 搜索范围
+  kpRange: [number, number]; // Kp æœç´¢èŒƒå›´
+  kiRange: [number, number]; // Ki æœç´¢èŒƒå›´
+  kdRange: [number, number]; // Kd æœç´¢èŒƒå›´
 }
 
 export interface OptimizationResult {
@@ -56,9 +56,10 @@ export interface OptimizationResult {
 export interface OptimizePIDParamsOptions {
   runContext?: SimulationRunContext;
   seed?: number | string;
+  scenario?: ScenarioLogic;
 }
 
-// 简化的仿真配置
+// ç®€åŒ–çš„ä»¿çœŸé…ç½®
 export interface SimpleSimConfig {
   nomotoK?: number;
   nomotoT?: number;
@@ -194,14 +195,14 @@ function evaluateWithRustRuntime(
       T: simConfig.nomotoT || 55,
       speedMps: speed,
       maxRudderDeg: 35,
-      maxRudderRateDegPerSec: 5,
+      ...(scenario.runtimeVersion === 'simulation-optimizer-runtime-v2' ? { maxRudderRateDegPerSec: 5 } : {}),
     },
     guidePath,
   });
 }
 
 /**
- * 评估参数组合的得�?
+ * è¯„ä¼°å‚æ•°ç»„åˆçš„å¾—åˆ?
  */
 // 3-parameter legacy overload: scene-trace route compatibility
 export function evaluateParams(
@@ -239,7 +240,7 @@ export function evaluateParams(
   const guidePath = generateGuidePath(logic, logic.duration, speed);
   const result = evaluateWithRustRuntime(params, logic, guidePath, speed, simConfig, target);
 
-  // 计算超调量和调节时间
+  // è®¡ç®—è¶…è°ƒé‡å’Œè°ƒèŠ‚æ—¶é—´
   let overshoot = 0;
   let stableSince: number | undefined;
   const targetReached = target.targetHeading;
@@ -252,7 +253,7 @@ export function evaluateParams(
       continue;
     }
 
-    // 计算超调
+    // è®¡ç®—è¶…è°ƒ
     const error = heading - targetReached;
     if (error > overshoot) {
       overshoot = error;
@@ -269,7 +270,7 @@ export function evaluateParams(
     ? logic.duration - logic.referenceCompletedAt
     : stableSince - logic.referenceCompletedAt;
 
-  // 计算各项指标得分
+  // è®¡ç®—å„é¡¹æŒ‡æ ‡å¾—åˆ†
   const errorScore = Math.max(0, 100 - (result.metrics.avgError / target.maxError) * 100);
   const rudderScore = result.metrics.maxRudderRate <= target.maxRudderRate
     ? 100
@@ -291,7 +292,7 @@ export function evaluateParams(
       : Math.max(0, 100 - ((settlingTime - target.minSettlingTime) / target.minSettlingTime) * 50);
   }
 
-  // 综合得分（加权平均）
+  // ç»¼åˆå¾—åˆ†ï¼ˆåŠ æƒå¹³å‡ï¼‰
   const score =
     errorScore * 0.4 +
     rudderScore * 0.3 +
@@ -310,7 +311,7 @@ export function evaluateParams(
 }
 
 /**
- * 随机采样参数
+ * éšæœºé‡‡æ ·å‚æ•°
  */
 function sampleParams(
   constraints: OptimizationConstraints,
@@ -324,7 +325,7 @@ function sampleParams(
 }
 
 /**
- * 在最优解附近采样（局部搜索）
+ * åœ¨æœ€ä¼˜è§£é™„è¿‘é‡‡æ ·ï¼ˆå±€éƒ¨æœç´¢ï¼‰
  */
 function sampleNearby(
   bestParams: { kp: number; ki: number; kd: number },
@@ -354,7 +355,7 @@ function sampleNearby(
 }
 
 /**
- * Monte Carlo 优化主函�?
+ * Monte Carlo ä¼˜åŒ–ä¸»å‡½æ•?
  */
 export function optimizePIDParams(
   config: SimpleSimConfig,
@@ -391,7 +392,7 @@ export function optimizePIDParams(
   let noImprovementCount = 0;
   let currentMaxIterations = maxIterations;
 
-  // 添加初始�?
+  // æ·»åŠ åˆå§‹ç‚?
   convergenceHistory.push({
     iteration: 0,
     score: bestResult.score,
@@ -399,7 +400,7 @@ export function optimizePIDParams(
   });
 
   for (let i = 1; i <= currentMaxIterations; i++) {
-    // 混合策略�?0% 局部搜�?+ 20% 全局探索
+    // æ··åˆç­–ç•¥ï¼?0% å±€éƒ¨æœç´?+ 20% å…¨å±€æŽ¢ç´¢
     const params = rng() < 0.8
       ? sampleNearby(bestParams, constraints, rng, 0.15)
       : sampleParams(constraints, rng);
@@ -420,12 +421,12 @@ export function optimizePIDParams(
       noImprovementCount++;
     }
 
-    // 提前停止条件
+    // æå‰åœæ­¢æ¡ä»¶
     if (noImprovementCount >= earlyStopThreshold && bestResult.score > 80) {
       break;
     }
 
-    // 如果已经找到很好的解，缩小搜索范�?
+    // å¦‚æžœå·²ç»æ‰¾åˆ°å¾ˆå¥½çš„è§£ï¼Œç¼©å°æœç´¢èŒƒå›?
     if (bestResult.score > 90) {
       currentMaxIterations = Math.min(currentMaxIterations, i + 10);
     }
@@ -453,7 +454,7 @@ export function optimizePIDParams(
         referenceCompletedAt: scenario.referenceCompletedAt,
         headingSchedule: scenario.headingSchedule,
         start: scenario.startPos,
-        maxRudderRateDegPerSec: 5,
+        ...(scenario.runtimeVersion === 'simulation-optimizer-runtime-v2' ? { maxRudderRateDegPerSec: 5 } : {}),
       },
       bestParams: result.bestParams,
       score: result.score,
@@ -465,7 +466,7 @@ export function optimizePIDParams(
 }
 
 /**
- * 默认优化配置
+ * é»˜è®¤ä¼˜åŒ–é…ç½®
  */
 export const DEFAULT_CONSTRAINTS: OptimizationConstraints = {
   kpRange: [0.5, 3.0],
