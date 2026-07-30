@@ -46,19 +46,32 @@ async function main() {
     for (const state of states) {
       const page = await browser.newPage({ viewport: { width: state.width, height: state.height } });
       await setTheme(page, state.theme);
-      await page.goto(`${baseUrl}/assessment/adaptive-practice${state.query}`, { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
-      // Wait for the page to settle — demo fixture or error state
-      await page.waitForTimeout(3000);
+      await page.goto(`${baseUrl}/assessment/adaptive-practice${state.query}`, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+      // Give client-side React time to hydrate
+      await page.waitForTimeout(5000);
+      // Expand the current-path module if collapsed
+      await page.evaluate(() => {
+        const pathModule = document.querySelector('[data-adaptive-path-module-id="current-path"]');
+        if (pathModule) {
+          const toggle = pathModule.querySelector('button[aria-expanded]');
+          if (toggle && toggle.getAttribute('aria-expanded') === 'false') toggle.click();
+        }
+      });
+      // Capture screenshot after module expansion
+      await page.waitForTimeout(1000);
 
       const relativePath = `artifacts/commercial-ui/path-execution-409-error-995/${state.name}.png`;
       const absolutePath = path.join(repoRoot, relativePath);
       await page.screenshot({ path: absolutePath, fullPage: true });
 
       const signals = await page.evaluate(() => ({
+        pageTitle: document.title,
+        mainHeading: document.querySelector('h1')?.textContent?.trim() ?? '(none)',
         executionError: document.querySelector('[data-adaptive-path-execution-error="visible"]') !== null,
         executionSurface: document.querySelector('[data-adaptive-path-execution-surface="active-route"]') !== null,
         nodeActions: document.querySelectorAll('[data-adaptive-path-node-actions="attached"]').length,
-        pathModuleTitles: Array.from(document.querySelectorAll('[data-adaptive-path-module-title]')).map(e => e.textContent),
+        pathNodeCount: document.querySelectorAll('[data-adaptive-path-node]').length,
+        demoHeading: document.body.innerText.includes('演示') || document.body.innerText.includes('Demo'),
         practiceError: document.querySelector('[data-adaptive-practice-error-state="recoverable"]') !== null,
         bodyWidth: document.body.getBoundingClientRect().width,
         scrollWidth: document.documentElement.scrollWidth,
