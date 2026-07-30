@@ -71,6 +71,12 @@ vi.mock('@/resources/simulations/rust/control-engine-server-runtime', () => {
       const trajectory: Array<{ time: number; x: number; z: number; heading: number; rudder: number }> = [];
 
       let maxRudderRateActual = 0;
+      let settlingTime: number | null = null;
+
+      const toleranceDeg = 2;
+      const targetHeadingDeg = headingSchedule && headingSchedule.length > 0
+        ? headingSchedule[headingSchedule.length - 1].headingDeg
+        : 0;
 
       for (let i = 0; i <= timeCount; i++) {
         const t = i * dt;
@@ -120,6 +126,14 @@ vi.mock('@/resources/simulations/rust/control-engine-server-runtime', () => {
         speedArr.push(speedMps);
         rudderArr.push(rudder);
         trajectory.push({ time: t, x, z, heading, rudder });
+
+        // Compute settling time: first time after reference completes when heading stays within tolerance
+        if (settlingTime === null && t >= 150) {
+          const withinTolerance = Math.abs(heading - targetHeadingDeg) <= toleranceDeg;
+          if (withinTolerance) {
+            settlingTime = t;
+          }
+        }
       }
 
       // Compute avgError
@@ -135,6 +149,7 @@ vi.mock('@/resources/simulations/rust/control-engine-server-runtime', () => {
         metrics: {
           avgError,
           maxRudderRate: maxRudderRateActual,
+          settlingTime: settlingTime ?? duration,
         },
       };
     }),
@@ -232,5 +247,21 @@ describe('PID optimizer scenario rudder rate isolation', () => {
     expect(result.score).toBeGreaterThanOrEqual(60);
     expect(result.replay).toBeDefined();
     expect(result.metrics.avgError).toBeLessThan(DEFAULT_TARGET.maxError);
+  });
+
+  it('spec calibration candidate kp=3/ki=0.001/kd=5 achieves >=60 with maxRudderRate<=5 and settlingTime<=90', () => {
+    const v2Scenario = getScenarioLogic('turn90', DEFAULT_TARGET.targetHeading);
+    const result = optimizePIDParams(
+      legacyConfig,
+      DEFAULT_TARGET,
+      { kpRange: [3, 3], kiRange: [0.001, 0.001], kdRange: [5, 5] },
+      1,
+      1,
+      { scenario: v2Scenario, seed: 42 }
+    );
+
+    expect(result.score).toBeGreaterThanOrEqual(60);
+    expect(result.metrics.maxRudderRate).toBeLessThanOrEqual(5);
+    expect(result.metrics.settlingTime).toBeLessThanOrEqual(90);
   });
 });
