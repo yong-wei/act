@@ -2,7 +2,7 @@
 
 ## Tested on Commit
 
-`67a365223` (HEAD of `issue-995-fix-execute-409-ui-response`)
+`794a076159802dac97ac496f1f04a3d25e4591fc` (see `capture-manifest.json` for SHA binding)
 
 ## Verification Script
 
