@@ -178,7 +178,7 @@ function buildMethodDistribution(submissions: ArenaSubmissionRecord[]): ArenaPor
   }
   return Array.from(counts.entries())
     .map(([method, count]) => ({ method, count }))
-    .sort((left, right) => right.count - left.count);
+    .sort((left, right) => right.failureCount - left.failureCount);
 }
 
 function buildIdentificationModels(submissions: ArenaSubmissionRecord[]): ArenaPortfolioIdentificationModel[] {
@@ -209,13 +209,13 @@ function buildPersonalBestByTask(
 
     if (!userBest) continue;
 
-    const rank = leaderboard.findIndex((entry) => entry.submissionId === userBest.id) + 1;
+    const rank = leaderboard.entries.findIndex((entry) => entry.submissionId === userBest.id) + 1;
     results.push({
       taskId,
       taskTitle: taskTitle(taskId),
       submissionId: userBest.id,
       bestScore: userBest.evaluation.score,
-      rank: rank || leaderboard.length + 1,
+      rank: rank || leaderboard.entries.length + 1,
       submittedAt: userBest.submittedAt,
     });
   }
@@ -242,13 +242,13 @@ function buildFailureObjects(submissions: ArenaSubmissionRecord[]): ArenaPortfol
         latestSubmittedAt: submission.submittedAt,
       });
     } else {
-      existing.count++;
+      existing.failureCount++;
     }
   }
 
   return Array.from(objectFailures.entries())
     .map(([objectId, data]) => ({ objectId, ...data }))
-    .sort((left, right) => right.count - left.count);
+    .sort((left, right) => right.failureCount - left.failureCount);
 }
 
 function buildImprovingMetrics(submissions: ArenaSubmissionRecord[]): ArenaPortfolioImprovingMetric[] {
@@ -378,12 +378,16 @@ function buildNextChallengeRecommendations(
         return task ? stageIndex(task.training.stage) : -1;
       }));
 
+  const allWeakMetrics = new Set(
+    capabilitySignals.flatMap((signal) => signal.weakMetricIds),
+  );
+
   const candidates = ARENA_CHALLENGE_TASKS
     .map((task) => {
       const missingPrerequisites = task.training.prerequisites.filter((cap) => !capabilitySignals.some((signal) => signal.capability === cap && signal.validSubmissionCount > 0));
       const weakOverlap = task.training.capabilityTags.filter((cap) => weakCapabilities.has(cap));
       const taskStageIndex = stageIndex(task.training.stage);
-      const metricReason = task.primaryMetrics.find((metricId) => weakMetrics.has(metricId));
+      const metricReason = task.primaryMetrics.find((metricId) => allWeakMetrics.has(metricId));
       let priority = 5;
       let evidenceLevel: ArenaNextChallengeRecommendation['evidenceLevel'] = 'next-stage';
       let reason = `进入${ARENA_TRAINING_STAGE_LABELS[task.training.stage]}阶段，延伸${capabilityLabels(task.training.capabilityTags).join('、')}训练。`;
