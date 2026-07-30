@@ -1,0 +1,35 @@
+{
+  "change": "calibrate-pid-turn-scenario",
+  "capturedAt": "2026-07-25T13:08:26.724Z",
+  "server": "http://localhost:3012",
+  "browser": "Playwright Chromium",
+  "evidenceMode": "COMMERCIAL_UI_EVIDENCE=1",
+  "route": {
+    "productionSurface": "src/resources/simulations/ai-recommend-panel.tsx",
+    "testHarnessRoute": "/evidence-pid",
+    "sourceBlob": "f799914f11c0db9f5e52cfaf4017634eaee25dad"
+  },
+  "assertions": [
+    "浏览器请求使用 targetHeading=90 和 maxRudderRate=5。",
+    "返回的得分、指标和建议均在生产 PID 推荐面板中可见。",
+    "1440px 与 320px 视口均无横向溢出和控制台错误。"
+  ],
+  "limitations": [
+    "测试路由仅作为确定性展示夹具，直接渲染与提交分支同 blob 的生产 AIRecommendPanel。",
+    "优化接口由 Playwright 拦截为经校准场景契约的固定结果；算法正确性由 PID 定向单元与 Rust 测试覆盖。"
+  ],
+  "captures": [
+    {
+      "viewport": 1440,
+      "screenshot": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-1440.png",
+      "metrics": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-1440-metrics.json",
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "screenshot": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-320.png",
+      "metrics": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-320-metrics.json",
+      "result": "passed"
+    }
+  ]
+}
