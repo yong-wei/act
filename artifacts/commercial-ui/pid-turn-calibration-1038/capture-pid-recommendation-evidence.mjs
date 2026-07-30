@@ -1,6 +1,7 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -62,7 +63,8 @@ try {
         return text.includes('得分:') || text.includes('优化失败') || text.includes('服务器错误');
       }, { timeout: 30000 });
     } catch {
-      console.warn(`Viewport ${viewport.name}: timeout waiting for result`);
+      // fail-closed: do not continue silently
+      assert.fail(`Viewport ${viewport.name}: timeout waiting for recommendation result — no API response received within 30s`);
     }
 
     const metrics = await page.evaluate(() => ({
@@ -72,13 +74,40 @@ try {
       adviceVisible: document.body.innerText.includes('当前推荐'),
     }));
 
+    // ── fail-closed assertions ──────────────────────────────────────
     assert.ok(!consoleErrors.length, `Console errors: ${consoleErrors.join(', ')}`);
     assert.equal(metrics.documentScrollWidth, viewport.width, 'No horizontal overflow');
-    assert.ok(metrics.panelVisible, 'Panel is visible');
+    assert.ok(metrics.panelVisible, 'Recommendation panel is visible');
 
+    // API request must have been sent
+    assert.ok(requestBody, `Viewport ${viewport.name}: no /api/simulation/optimize request was intercepted`);
+
+    // API response must exist and be HTTP 200
+    assert.ok(apiResponse, `Viewport ${viewport.name}: no API response captured`);
+    assert.equal(apiResponse.status, 200, `Viewport ${viewport.name}: API returned non-200 status ${apiResponse.status}`);
+    assert.ok(!apiResponseError, `Viewport ${viewport.name}: ${apiResponseError}`);
+
+    // Response must contain a score >= 60
+    const body = apiResponse.body;
+    assert.ok(body && typeof body === 'object', `Viewport ${viewport.name}: API response body is not an object`);
+    assert.ok(typeof body.score === 'number', `Viewport ${viewport.name}: response missing numeric score`);
+    assert.ok(body.score >= 60, `Viewport ${viewport.name}: score ${body.score} < 60`);
+
+    // Request should use v2 calibrated semantics (targetHeading and maxRudderRate)
+    assert.ok(
+      requestBody && (requestBody.targetHeading === 90 || requestBody.targetHeadingDeg === 90),
+      `Viewport ${viewport.name}: request missing targetHeading=90`
+    );
+
+    // Screenshot and metrics
     const screenshotFile = `pid-recommendation-${viewport.name}.png`;
     const metricsFile = `pid-recommendation-${viewport.name}-metrics.json`;
     await page.screenshot({ path: join(outputDirectory, screenshotFile), fullPage: true });
+
+    // Compute SHA-256 of screenshot
+    const screenshotBytes = await readFile(join(outputDirectory, screenshotFile));
+    const screenshotSha256 = createHash('sha256').update(screenshotBytes).digest('hex');
+
     await writeFile(join(outputDirectory, metricsFile), JSON.stringify({
       route,
       viewport,
@@ -87,6 +116,7 @@ try {
       apiResponseError,
       consoleErrors,
       gitSha,
+      screenshotSha256,
       ...metrics,
     }, null, 2));
 
@@ -94,6 +124,7 @@ try {
       viewport: viewport.width,
       screenshot: `artifacts/commercial-ui/pid-turn-calibration-1038/${screenshotFile}`,
       metrics: `artifacts/commercial-ui/pid-turn-calibration-1038/${metricsFile}`,
+      screenshotSha256,
       apiStatus: apiResponse?.status ?? null,
       apiResponseBody: apiResponse?.body ?? null,
       result: 'passed',
