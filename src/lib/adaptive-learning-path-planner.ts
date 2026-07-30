@@ -3175,9 +3175,11 @@ function buildConfigurationFulfillment(
       effect = fulfilled ? '已将可识别意图映射为路径配置。' : '识别到的意图未能全部落实到可执行路径。';
       message = fulfilled
         ? effect
-        : request.limitationCode
-          ? '请使用资源类型、节奏、检查点、外部资源或目标相关的明确表达。'
-          : '请调整明确配置或可用资源后重试。';
+        : request.limitationCode === 'natural-language-intent-partially-unmapped'
+          ? '部分意图未能识别为可执行配置，请补充资源类型、节奏、检查点或目标相关的明确表达。'
+          : request.limitationCode
+            ? '请使用资源类型、节奏、检查点、外部资源或目标相关的明确表达。'
+            : '请调整明确配置或可用资源后重试。';
     } else if (request.key === 'time-budget') {
       fulfilled = !fallbackReasons.includes('time-budget-insufficient');
       effect = fulfilled ? '已按所选学习时长生成路径。' : '所选学习时长不足以覆盖必需验证。';

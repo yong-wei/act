@@ -8731,7 +8731,7 @@ describe('konling agent runtime', () => {
     expect(result.pathOptions.length).toBeGreaterThan(0);
     expect(result.configurationFulfillment).toEqual(expect.arrayContaining([
       expect.objectContaining({ key: 'difficulty-rhythm', status: 'applied' }),
-      expect.objectContaining({ key: 'natural-language-intent', status: 'applied' }),
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', limitationCode: 'natural-language-intent-partially-unmapped' }),
     ]));
     expect(JSON.stringify(result.configurationFulfillment)).not.toContain('我想先补相位裕度');
     expect(mocks.loadRuntimeResourceProjectionInputs).toHaveBeenCalled();
@@ -8777,7 +8777,7 @@ describe('konling agent runtime', () => {
       }),
     });
     expect(createdPath.pathPayload.configurationFulfillment).toEqual(expect.arrayContaining([
-      expect.objectContaining({ key: 'natural-language-intent', status: 'applied' }),
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', limitationCode: 'natural-language-intent-partially-unmapped' }),
     ]));
     expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({

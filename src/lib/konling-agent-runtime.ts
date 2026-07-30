@@ -3861,14 +3861,37 @@ function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): AdaptiveP
       ? true
       : undefined;
   if (allowExternalResources !== undefined) matchedTerms.push('external-resources');
-  return {
+  const uniqueMatchedTerms = Array.from(new Set(matchedTerms));
+  const hasUnconsumedClause = detectUnconsumedIntentClauses(value, uniqueMatchedTerms);
+  const result = {
     resourcePreferences: Array.from(new Set(resourcePreferences)),
     difficultyRhythm,
     checkpointPreference,
     allowExternalResources,
-    matchedTerms: Array.from(new Set(matchedTerms)),
-    ...(matchedTerms.length === 0 ? { limitationCode: 'natural-language-intent-unsupported' } : {}),
+    matchedTerms: uniqueMatchedTerms,
+    ...(uniqueMatchedTerms.length === 0
+      ? { limitationCode: 'natural-language-intent-unsupported' }
+      : hasUnconsumedClause
+        ? { limitationCode: 'natural-language-intent-partially-unmapped' }
+        : {}
+    ),
   };
+  return result;
+}
+/**
+ * Detect whether the intent text contains sub-clauses (separated by punctuation)
+ * that have no consumed mapping terms. When some terms match but other sub-clauses
+ * remain unmapped, the intent is only partially actionable.
+ */
+function detectUnconsumedIntentClauses(value: string, matchedTerms: string[]): boolean {
+  const clauses = value
+    .split(/[，。、；：；,.!:;?？\n]+/)
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0);
+  const unconsumedClauses = clauses.filter((clause) =>
+    !matchedTerms.some((term) => clause.includes(term))
+  );
+  return unconsumedClauses.length > 0;
 }
 
 function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]): AdaptiveLearningPathLearnerState {
