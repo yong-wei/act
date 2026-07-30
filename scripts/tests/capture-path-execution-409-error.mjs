@@ -61,8 +61,8 @@ async function captureAndSignal(page, name) {
   return { name, file: relativePath, sha256: sha256File(relativePath), signals };
 }
 
-async function runDesktop() {
-  const page = await chromium.launch({ headless: true }).then(b => b.newPage({ viewport: { width: 1280, height: 900 } }));
+async function runDesktop(browser) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await setTheme(page, 'light');
   await page.route('**/api/learning-paths/*/execute', (route) => {
     route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: '执行事件只能写入当前路径节点' }) });
@@ -87,8 +87,8 @@ async function runDesktop() {
   return [c1, c2];
 }
 
-async function runMobile() {
-  const page = await chromium.launch({ headless: true }).then(b => b.newPage({ viewport: { width: 320, height: 812 } }));
+async function runMobile(browser) {
+  const page = await browser.newPage({ viewport: { width: 320, height: 812 } });
   await setTheme(page, 'dark');
   await page.route('**/api/learning-paths/*/execute', (route) => {
     route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: '执行事件只能写入当前路径节点' }) });
@@ -109,15 +109,20 @@ async function runMobile() {
 
 async function main() {
   mkdirSync(outputDir, { recursive: true });
-  const all = [...await runDesktop(), ...await runMobile()];
-  writeFileSync(path.join(outputDir, 'capture-manifest.json'), JSON.stringify({
-    capturedAt: new Date().toISOString(),
-    commit: commitHash,
-    baseUrl: baseUrl,
-    captures: all,
-  }, null, 2) + '\n');
-  console.log('OK: captured ' + all.length + ' states. commit=' + commitHash);
-  console.log('All UI assertions passed.');
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const all = [...await runDesktop(browser), ...await runMobile(browser)];
+    writeFileSync(path.join(outputDir, 'capture-manifest.json'), JSON.stringify({
+      capturedAt: new Date().toISOString(),
+      commit: commitHash,
+      baseUrl: baseUrl,
+      captures: all,
+    }, null, 2) + '\n');
+    console.log('OK: captured ' + all.length + ' states. commit=' + commitHash);
+    console.log('All UI assertions passed.');
+  } finally {
+    await browser.close();
+  }
 }
 
 main().catch((err) => { console.error(err); process.exit(1); });
