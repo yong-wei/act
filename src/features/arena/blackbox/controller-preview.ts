@@ -459,6 +459,12 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
           summary: {
             ...input.preview.summary,
             previewBoundary,
+            arenaTraining: {
+              taskId: input.taskId,
+              scenarioId: input.scenarioId,
+              evaluationVisibility: 'preview',
+              officialEligible: false,
+            },
           } as unknown as Prisma.InputJsonValue,
           replayToken: input.preview.replay?.checksum ?? null,
           seed: input.preview.replay?.seed ?? null,
