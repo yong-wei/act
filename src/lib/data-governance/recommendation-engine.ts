@@ -891,11 +891,28 @@ function buildRecommendationEvidenceContext(input: {
       ?? input.featureCache.knowledgeIdentityCoverage,
     );
     const statusMarkers = normalizeStatusMarkers(input.featureCache.statusMarkers);
-    // Fail closed for pre-#1116 / v4 caches that lack identity diagnostics:
-    // missing coverage on a feature-cache-backed path is non-comparable until rebuild.
-    const singleVersionComparable = knowledgeIdentityCoverage != null
-      && knowledgeIdentityCoverage.singleVersionComparable === true;
-    if (!singleVersionComparable) {
+    // Three states for #1116 identity diagnostics on a feature-cache path:
+    // 1) missing diagnostics (v4/old) → fail closed partial
+    // 2) non-empty mixed/non-comparable LearningFacts → mixed + partial + confidence cap
+    // 3) explicit empty coverage (no LearningFacts) → keep empty; do not invent mixed
+    //    markers or cap otherwise-valid path-only evidence
+    const hasCoverageDiagnostics = knowledgeIdentityCoverage != null;
+    const isEmptyLearningFactCoverage = hasCoverageDiagnostics
+      && knowledgeIdentityCoverage.availability === 'empty'
+      && knowledgeIdentityCoverage.totalFacts === 0;
+    const isMixedNonComparable = hasCoverageDiagnostics
+      && !isEmptyLearningFactCoverage
+      && knowledgeIdentityCoverage.singleVersionComparable !== true;
+    const isMissingDiagnostics = !hasCoverageDiagnostics;
+    const requiresIdentityFailClosed = isMissingDiagnostics || isMixedNonComparable;
+    // Empty coverage is not a multi-version conflict: path-only evidence remains comparable.
+    const singleVersionComparable = isEmptyLearningFactCoverage
+      ? true
+      : (
+        hasCoverageDiagnostics
+        && knowledgeIdentityCoverage.singleVersionComparable === true
+      );
+    if (requiresIdentityFailClosed) {
       if (!statusMarkers.includes('mixed-knowledge-identity')) {
         statusMarkers.push('mixed-knowledge-identity');
       }
@@ -903,10 +920,8 @@ function buildRecommendationEvidenceContext(input: {
         statusMarkers.push('partial');
       }
     }
-    // Mixed-era or unknown-era aggregates remain visible but confidence is capped:
-    // recommendation must not present a multi-revision (or undiagnosed) merge as
-    // single-version ready evidence.
-    const confidenceLevel = !singleVersionComparable
+    // Cap confidence only for missing diagnostics or non-empty mixed eras.
+    const confidenceLevel = requiresIdentityFailClosed
       ? (confidence.level === 'none' ? 'none' : 'low')
       : confidence.level;
     return {
@@ -917,7 +932,7 @@ function buildRecommendationEvidenceContext(input: {
       sourceCoverage: normalizeSourceCoverage(input.featureCache.sourceCoverage),
       confidence: {
         level: confidenceLevel,
-        score: !singleVersionComparable
+        score: requiresIdentityFailClosed
           ? Math.min(confidence.score, 0.45)
           : confidence.score,
       },
