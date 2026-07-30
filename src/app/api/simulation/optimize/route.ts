@@ -86,7 +86,7 @@ export async function POST(request: Request) {
           sceneId: 'simulation/optimizer/nomoto-quick-sim',
           scenarioId: 'turn90',
           seed: replaySeed,
-          runtimeVersion: 'simulation-optimizer-runtime-v1',
+          runtimeVersion: 'simulation-optimizer-runtime-v2',
           modelVersion: 'nomoto-quick-sim-v1',
         }),
       }
