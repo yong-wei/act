@@ -872,7 +872,7 @@ export default function ProfilePage() {
             />
           </div>
         </div>
-      </section></section>
+      </section>
 
         {/* training summary */}
         {portfolio?.trainingSummary && portfolio.trainingSummary.runCount > 0 && (
