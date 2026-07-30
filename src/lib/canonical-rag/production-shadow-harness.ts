@@ -235,45 +235,118 @@ export function runLegacyProductionWithCanonicalShadow(
   };
 }
 
+/**
+ * Map governed structural seeds onto pool SourcePackItems only when the full
+ * endpoint tuple + version/content/resource metadata all agree.
+ *
+ * Never match on a single identifier (id OR chunk OR citation). Fail closed
+ * when required identity/version/hash metadata is absent or drifted.
+ */
 export function mapGovernedSeedsToSourcePackItems(
   seeds: CanonicalRagShadowResult['governedStructuralSeeds'],
   pool: readonly SourcePackItem[],
 ): SourcePackItem[] {
-  const byId = new Map(pool.map((item) => [item.id, item] as const));
-  const byChunk = new Map(
-    pool
-      .filter((item) => item.retrievalChunkId)
-      .map((item) => [item.retrievalChunkId!, item] as const),
-  );
-  const byCite = new Map(
-    pool
-      .filter((item) => item.citationTargetId)
-      .map((item) => [item.citationTargetId!, item] as const),
-  );
-
   const mapped: SourcePackItem[] = [];
   const seen = new Set<string>();
   for (const seed of seeds) {
-    const item = byId.get(seed.structuralUnitId)
-      ?? byChunk.get(seed.retrievalChunkId)
-      ?? byCite.get(seed.citationTargetId)
-      ?? null;
+    const item = pool.find((candidate) => governedSeedMatchesSourcePackItem(seed, candidate));
     if (!item || seen.has(item.id)) continue;
-    // Require readable textbook-like identity and no graph summary text.
-    if (item.excerpt && /Graph summary/i.test(item.excerpt)) continue;
-    if (!item.retrievalChunkId || !item.citationTargetId) continue;
     seen.add(item.id);
     mapped.push({
       ...item,
       metadata: {
         ...item.metadata,
         // Diagnostic only — harness rejects if this appears on production items.
+        // Never stamp seed endpoint authority onto the pool item itself.
         canonicalShadowSeed: true,
         governedStructuralUnitId: seed.structuralUnitId,
       },
     });
   }
   return mapped.sort((a, b) => a.id.localeCompare(b.id));
+}
+
+export function governedSeedMatchesSourcePackItem(
+  seed: CanonicalRagShadowResult['governedStructuralSeeds'][number],
+  item: SourcePackItem,
+): boolean {
+  // Graph summary text is never citable evidence.
+  if (item.excerpt && /Graph summary/i.test(item.excerpt)) return false;
+
+  // 1) Simultaneous identity endpoints — no single-ID fallback.
+  if (item.id !== seed.structuralUnitId) return false;
+  if (item.retrievalChunkId !== seed.retrievalChunkId) return false;
+  if (item.citationTargetId !== seed.citationTargetId) return false;
+  if (!item.citation) return false;
+  if (item.citation.citationTargetId !== seed.citationTargetId) return false;
+  if (item.citation.sourceId !== seed.retrievalChunkId) return false;
+
+  // 2) Required edition/version/content/resource metadata from textbook adapter.
+  const bookId = metaString(item, 'bookId');
+  const edition = metaString(item, 'edition');
+  if (!bookId || !edition) return false;
+  if (`${bookId}:${edition}` !== seed.sourceEditionId) return false;
+
+  const itemSourceVersion = metaString(item, 'sourceVersion')
+    ?? metaString(item, 'sourceRevision');
+  if (!itemSourceVersion) return false;
+  if (itemSourceVersion !== seed.sourceVersion) return false;
+  // structuralUnitVersion must also agree; adapter usually reuses sourceRevision.
+  const itemStructuralUnitVersion = metaString(item, 'structuralUnitVersion')
+    ?? itemSourceVersion;
+  if (itemStructuralUnitVersion !== seed.structuralUnitVersion) return false;
+
+  const itemContentHash = metaString(item, 'contentHash');
+  if (!itemContentHash) return false;
+  const normalizedItemHash = normalizeContentHash(itemContentHash);
+  if (normalizedItemHash !== normalizeContentHash(seed.structuralUnitHash)) return false;
+  if (normalizedItemHash !== normalizeContentHash(seed.evidenceContentHash)) return false;
+
+  const resourceId = metaString(item, 'resourceId');
+  const segmentRef = metaString(item, 'segmentRef');
+  if (!resourceId || !segmentRef) return false;
+  if (resourceId !== seed.resourceId) return false;
+  if (segmentRef !== seed.segmentId) return false;
+
+  // 3) href / locator when seed declares non-null values.
+  if (seed.href !== null) {
+    if (item.citation.href !== seed.href) return false;
+  }
+  if (seed.locator !== null) {
+    const itemLocator = metaString(item, 'citationLocator');
+    if (itemLocator !== seed.locator) return false;
+  }
+
+  // 4) Optional inventory-shaped metadata — compare only when present; never invent.
+  const atomicResourceId = metaString(item, 'atomicResourceId');
+  if (atomicResourceId !== null && atomicResourceId !== seed.atomicResourceId) return false;
+  const resourceSegmentHash = metaString(item, 'resourceSegmentHash');
+  if (
+    resourceSegmentHash !== null
+    && normalizeContentHash(resourceSegmentHash) !== normalizeContentHash(seed.resourceSegmentHash)
+  ) {
+    return false;
+  }
+  const inventoryRunId = metaString(item, 'inventoryRunId');
+  if (inventoryRunId !== null && inventoryRunId !== seed.inventoryRunId) return false;
+  const captureRevision = metaString(item, 'captureRevision');
+  if (captureRevision !== null && captureRevision !== seed.captureRevision) return false;
+
+  return true;
+}
+
+function metaString(
+  item: SourcePackItem,
+  key: string,
+): string | null {
+  const value = item.metadata?.[key];
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeContentHash(value: string): string {
+  return value.replace(/^sha256:/u, '');
 }
 
 function citationsFromAdjudicatedPack(

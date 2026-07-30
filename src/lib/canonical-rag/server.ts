@@ -18,6 +18,7 @@ export {
   type GovernedTextbookFixture,
 } from './governed-textbook-fixture';
 export {
+  governedSeedMatchesSourcePackItem,
   mapGovernedSeedsToSourcePackItems,
   productionNumberedCitations,
   runLegacyProductionWithCanonicalShadow,

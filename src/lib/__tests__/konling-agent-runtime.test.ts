@@ -1742,10 +1742,12 @@ describe('konling agent runtime', () => {
       },
       metadata: {
         reviewStatus: 'human-confirmed',
-        bookId: 'hu-shousong-auto-control-8th',
-        edition: '第八版',
+        // bookId:edition must form seed.sourceEditionId for full-tuple mapping.
+        bookId: 'edition',
+        edition: 'hu-shousong-8th',
         contentHash: shadowPoolUnit.structuralUnitHash,
         sourceVersion: shadowPoolUnit.sourceVersion,
+        structuralUnitVersion: shadowPoolUnit.structuralUnitVersion,
         resourceId: shadowPoolUnit.resourceId,
         segmentRef: shadowPoolUnit.segmentId,
         citationLocator: shadowPoolUnit.locator ?? '',

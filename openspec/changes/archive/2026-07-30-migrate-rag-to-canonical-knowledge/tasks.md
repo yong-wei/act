@@ -25,13 +25,17 @@
 - [x] 3.4 Final verification run (this checkpoint only):
 
 ```text
+# focused strict endpoint mapping regression (P1 remediation on reviewed 365a4043c)
+rtk npx vitest run src/lib/__tests__/canonical-rag.test.ts -t "strict governed seed|adjudicates via Source Pack|never emits"
+→ Test Files 1 passed | Tests 4 passed | 7 skipped (11)
+
 # direct runtime regression
 rtk npx vitest run src/lib/__tests__/konling-agent-runtime.test.ts -t "compares actual production TextbookV2 foreground"
 → Test Files 1 passed | Tests 1 passed | 189 skipped (190)
 
 # focused canonical-rag
 rtk npm run test:unit -- src/lib/__tests__/canonical-rag.test.ts
-→ Test Files 1 passed | Tests 9 passed (9)
+→ Test Files 1 passed | Tests 11 passed (11)
 
 # directly affected Source Pack / Konling (explicit path list)
 rtk npm run test:unit -- \
@@ -41,19 +45,26 @@ rtk npm run test:unit -- \
   src/lib/__tests__/textbook-v2-adapter.test.ts \
   src/lib/__tests__/source-pack.test.ts \
   src/lib/__tests__/konling-agent-runtime.test.ts
-→ Test Files 6 passed | Tests 354 passed (354)
+→ Test Files 6 passed | Tests 356 passed (356)
 
 NODE_OPTIONS='--max-old-space-size=8192' rtk npm run typecheck
+→ pass (exit 0)
+
+rtk npm run lint
 → pass (exit 0)
 
 NODE_OPTIONS='--max-old-space-size=8192' NODE_MAX_OLD_SPACE_SIZE=8192 rtk npm run build
 → pass (exit 0)
 
-rtk openspec validate migrate-rag-to-canonical-knowledge --type change --strict
-→ Change 'migrate-rag-to-canonical-knowledge' is valid
+rtk openspec validate --specs --strict
+→ Totals: 189 passed, 0 failed (189 items)
+
+rtk openspec validate --changes --strict
+→ Totals: 19 passed, 0 failed (19 items)
 ```
 
 Notes:
 - Live DB VALIDATED Crosswalks remain out of scope; E2E uses production-shaped non-live fixture.
 - Counterexamples cover mutating only projectionId/projectionProfile and full resolver-path endpoint mutations (unit identity, SourcePack chunk/cite/href/hash, inventory resource/segment/hash/run/capture).
 - Offline harness (`runLegacyProductionWithCanonicalShadow`) remains for unit/fixture tests only; live Konling path uses `runKonlingCanonicalRagShadowDiagnostic` with real production foreground.
+- P1 remediation: `mapGovernedSeedsToSourcePackItems` requires simultaneous full endpoint tuple (structuralUnitId + retrievalChunkId + citationTargetId + citation.sourceId) plus bookId/edition, sourceVersion, contentHash, resourceId/segmentRef, and href/locator when non-null; same-one-ID drift yields zero mapped candidates and zero shadow citations.

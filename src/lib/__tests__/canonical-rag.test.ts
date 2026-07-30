@@ -29,6 +29,7 @@ import {
 import {
   GOVERNED_TEXTBOOK_FIXTURE_KIND,
   loadGovernedTextbookFixture,
+  mapGovernedSeedsToSourcePackItems,
   productionNumberedCitations,
   runLegacyProductionWithCanonicalShadow,
 } from '@/lib/canonical-rag/server';
@@ -36,6 +37,8 @@ import {
   CURRENT_AGGREGATE_RELEASE_ID,
   CURRENT_AGGREGATE_RELEASE_SET_ID,
 } from '@/lib/authoritative-knowledge/contracts';
+import type { SourcePackItem } from '@/lib/source-pack/types';
+import type { ActStructuralCitationTarget } from '@/lib/canonical-rag';
 
 describe('canonical-rag authority (preserved)', () => {
   it('keeps production Legacy and never activates cutover', () => {
@@ -401,6 +404,183 @@ describe('graph stage seed-only + harness adjudication (preserved)', () => {
     expect(expansion.skippedUnsupportedPredicates).toEqual(['mentions', 'prerequisite']);
   });
 });
+
+describe('strict governed seed → SourcePack endpoint mapping', () => {
+  it('maps only exact full-tuple pool items and rejects same-one-ID drift', () => {
+    const seed = exactOfflineSeed();
+    const exact = exactPoolItemFromSeed(seed);
+
+    // Positive: full identity + edition/version/hash/resource/segment tuple.
+    expect(mapGovernedSeedsToSourcePackItems([seed], [exact]).map((item) => item.id)).toEqual([
+      seed.structuralUnitId,
+    ]);
+
+    // Same structuralUnitId but wrong chunk / citation.
+    expect(mapGovernedSeedsToSourcePackItems([seed], [{
+      ...exact,
+      retrievalChunkId: 'chunk:drifted',
+      citationTargetId: 'cite:drifted',
+      citation: {
+        ...exact.citation!,
+        citationTargetId: 'cite:drifted',
+        sourceId: 'chunk:drifted',
+      },
+    }])).toEqual([]);
+
+    // Same chunk but wrong structural unit / citation.
+    expect(mapGovernedSeedsToSourcePackItems([seed], [{
+      ...exact,
+      id: 'unit:other-structure',
+      citationTargetId: 'cite:other',
+      citation: {
+        ...exact.citation!,
+        citationTargetId: 'cite:other',
+      },
+    }])).toEqual([]);
+
+    // Same citation but wrong structural unit / chunk.
+    expect(mapGovernedSeedsToSourcePackItems([seed], [{
+      ...exact,
+      id: 'unit:other-structure',
+      retrievalChunkId: 'chunk:other',
+      citation: {
+        ...exact.citation!,
+        sourceId: 'chunk:other',
+      },
+    }])).toEqual([]);
+
+    // All three IDs match but edition drifts.
+    expect(mapGovernedSeedsToSourcePackItems([seed], [{
+      ...exact,
+      metadata: { ...exact.metadata, edition: '第七版' },
+    }])).toEqual([]);
+
+    // All three IDs match but sourceVersion drifts.
+    expect(mapGovernedSeedsToSourcePackItems([seed], [{
+      ...exact,
+      metadata: { ...exact.metadata, sourceVersion: '7th' },
+    }])).toEqual([]);
+
+    // All three IDs match but contentHash drifts.
+    expect(mapGovernedSeedsToSourcePackItems([seed], [{
+      ...exact,
+      metadata: { ...exact.metadata, contentHash: '9'.repeat(64) },
+    }])).toEqual([]);
+
+    // All three IDs match but resource/segment drifts.
+    expect(mapGovernedSeedsToSourcePackItems([seed], [{
+      ...exact,
+      metadata: {
+        ...exact.metadata,
+        resourceId: 'resource:other',
+        segmentRef: 'segment:other',
+      },
+    }])).toEqual([]);
+
+    // Required version/content metadata absent → fail closed.
+    const { contentHash: _hash, sourceVersion: _version, ...withoutVersionHash } = exact.metadata as Record<string, string>;
+    expect(mapGovernedSeedsToSourcePackItems([seed], [{
+      ...exact,
+      metadata: withoutVersionHash,
+    }])).toEqual([]);
+
+    // Missing citation object → fail closed even with top-level IDs.
+    const { citation: _citation, ...withoutCitation } = exact;
+    expect(mapGovernedSeedsToSourcePackItems([seed], [withoutCitation as SourcePackItem])).toEqual([]);
+  });
+
+  it('yields zero shadow citations when pool only has same-one-ID drifted items', async () => {
+    const fixture = await loadGovernedTextbookFixture();
+    const seed = fixture.independentStructuralTarget;
+    const exact = fixture.productionItem;
+
+    const driftedSameId: SourcePackItem = {
+      ...exact,
+      retrievalChunkId: 'chunk:wrong-edition',
+      citationTargetId: 'cite:wrong-edition',
+      citation: {
+        ...exact.citation!,
+        citationTargetId: 'cite:wrong-edition',
+        sourceId: 'chunk:wrong-edition',
+      },
+    };
+    expect(mapGovernedSeedsToSourcePackItems([seed], [driftedSameId])).toEqual([]);
+
+    const result = runLegacyProductionWithCanonicalShadow({
+      query: fixture.query,
+      production: {
+        profile: 'konling-answer',
+        role: 'student',
+        candidates: [fixture.productionItem],
+        graphNodeRefs: [],
+      },
+      shadow: fixture.shadowInput,
+      shadowCandidatePool: [driftedSameId],
+      latencyBudgetMs: 5_000,
+    });
+    expect(result.productionAuthority.authority).toBe('LEGACY');
+    expect(result.shadowSeeds.numberedCitations).toEqual([]);
+    expect(result.shadowCitations).toEqual([]);
+    expect(result.production.pack.items.map((item) => item.id)).toEqual([
+      fixture.productionItem.id,
+    ]);
+  }, 60_000);
+});
+
+function exactOfflineSeed(): ActStructuralCitationTarget {
+  const input = buildOfflineShadowInput({
+    query: offlineSampleCases.inQueryEntityMatch.query,
+  });
+  const shadow = runCanonicalRagShadow(input);
+  const seed = shadow.governedStructuralSeeds.find(
+    (row) => row.structuralUnitId === 'unit:root-locus-para-2',
+  );
+  if (!seed) throw new Error('expected offline root-locus seed');
+  return seed;
+}
+
+function exactPoolItemFromSeed(seed: ActStructuralCitationTarget): SourcePackItem {
+  const [bookId, ...editionParts] = seed.sourceEditionId.split(':');
+  const edition = editionParts.join(':');
+  return {
+    id: seed.structuralUnitId,
+    title: seed.displayTitle,
+    sourceKind: 'textbook',
+    modality: 'text',
+    excerpt: '根轨迹定义见教材正文（精确端点池项）。',
+    inclusionRationale: 'exact full-tuple pool item for mapping regression',
+    retrievalChunkId: seed.retrievalChunkId,
+    citationTargetId: seed.citationTargetId,
+    scores: {
+      relevance: 0.95,
+      graphAlignment: 0.9,
+      authority: 0.95,
+      eligibility: 0.9,
+      freshness: 0.9,
+      final: 0.95,
+    },
+    access: { visibility: 'public', aiUseAllowed: true },
+    citation: {
+      citationTargetId: seed.citationTargetId,
+      sourceId: seed.retrievalChunkId,
+      displayTitle: seed.displayTitle,
+      href: seed.href ?? undefined,
+      resolver: 'course-runtime',
+      verified: true,
+    },
+    metadata: {
+      reviewStatus: 'human-confirmed',
+      bookId,
+      edition,
+      contentHash: seed.structuralUnitHash,
+      sourceVersion: seed.sourceVersion,
+      structuralUnitVersion: seed.structuralUnitVersion,
+      resourceId: seed.resourceId,
+      segmentRef: seed.segmentId,
+      citationLocator: seed.locator ?? '',
+    },
+  };
+}
 
 function mutateContextField(
   base: CanonicalRagReleaseContext,
