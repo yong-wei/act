@@ -872,7 +872,26 @@ export default function ProfilePage() {
             />
           </div>
         </div>
-      </section>
+      </section></section>
+
+        {/* training summary */}
+        {portfolio?.trainingSummary && portfolio.trainingSummary.runCount > 0 && (
+          <section>
+            <h2>训练记录</h2>
+            <p>已完成 {portfolio.trainingSummary.runCount} 次虚拟训练</p>
+            {portfolio.trainingSummary.recentRuns.length > 0 && (
+              <ul>
+                {portfolio.trainingSummary.recentRuns.map((run) => (
+                  <li key={run.taskId + run.completedAt}>
+                    {run.scenarioId || run.taskId} - {run.completedAt}
+                    {run.evaluationVisibility === 'official' && ' (正式)'}
+                    {run.officialEligible && ' (有资格)'}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
     </AppShell>
   );
 }
