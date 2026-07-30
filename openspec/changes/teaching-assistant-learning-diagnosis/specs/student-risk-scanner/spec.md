@@ -21,6 +21,12 @@ The system SHALL scan only `constraint`, `stagnation`, and `cross_domain` as cur
 - **WHEN** the evidence used by a current rule is unchanged
 - **THEN** the scanner SHALL preserve the current flag state.
 
+#### Scenario: Concurrent scans observe the same new risk
+
+- **WHEN** multiple scanner instances evaluate the same student and current risk type concurrently
+- **THEN** the database SHALL retain exactly one active flag for that student and risk type
+- **AND** conflicting writers SHALL reconcile against the retained active flag without creating divergent current state.
+
 ### Requirement: Risk scanning is executable and bounded
 
 The system SHALL provide a scheduled queue consumer and a standalone scan command. Population scanning SHALL use bounded cursor pages and SHALL isolate rule failures so one failure does not prevent other rules or students from being processed.

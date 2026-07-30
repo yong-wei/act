@@ -31,3 +31,31 @@ ALTER TABLE "DiagnosisReport"
 ALTER TABLE "DiagnosisReport"
   ADD CONSTRAINT "DiagnosisReport_targetUserId_fkey"
   FOREIGN KEY ("targetUserId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- Preserve the newest active risk state and close pre-existing duplicates before
+-- enforcing the one-active-flag invariant used by concurrent scanners.
+WITH "rankedActiveRiskFlags" AS (
+  SELECT
+    "id",
+    ROW_NUMBER() OVER (
+      PARTITION BY "userId", "flagType"
+      ORDER BY "triggeredAt" DESC, "createdAt" DESC, "id" DESC
+    ) AS "activeRank"
+  FROM "StudentRiskFlag"
+  WHERE "isResolved" = false
+)
+UPDATE "StudentRiskFlag" AS "flag"
+SET
+  "isResolved" = true,
+  "resolvedAt" = COALESCE("flag"."resolvedAt", CURRENT_TIMESTAMP),
+  "resolutionNote" = COALESCE(
+    "flag"."resolutionNote",
+    'deduplicated-before-active-risk-unique-index'
+  )
+FROM "rankedActiveRiskFlags" AS "ranked"
+WHERE "flag"."id" = "ranked"."id"
+  AND "ranked"."activeRank" > 1;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "StudentRiskFlag_active_user_type_key"
+  ON "StudentRiskFlag"("userId", "flagType")
+  WHERE "isResolved" = false;

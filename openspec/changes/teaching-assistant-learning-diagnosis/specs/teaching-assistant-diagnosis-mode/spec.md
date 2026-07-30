@@ -30,6 +30,8 @@ The system SHALL persist and read structured class and student diagnosis reports
 
 - **WHEN** an authenticated teacher writes a report for a current member of an active class they own
 - **THEN** the system SHALL persist server-derived class and student scope
+- **AND** the report body SHALL accept only allowlisted structured findings and governed evidence-reference sources
+- **AND** the risk summary and generator version SHALL be derived by the server
 - **AND** findings with a knowledge-node identifier SHALL receive a preparation navigation link
 - **AND** no teaching action SHALL be created automatically.
 

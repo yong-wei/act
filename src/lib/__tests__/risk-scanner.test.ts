@@ -147,4 +147,61 @@ describe('risk scanner', () => {
       skip: 1,
     }));
   });
+
+  it('converges concurrent creates on one active risk flag', async () => {
+    const now = new Date('2026-07-30T08:00:00.000Z');
+    const next = {
+      flagType: 'constraint' as const,
+      severity: 'high' as const,
+      description: 'constraint detected',
+      evidenceJson: { evidenceCutoff: now.toISOString() },
+    };
+    let activeFlag: {
+      id: string;
+      severity: string;
+      description: string;
+      evidenceJson: unknown;
+    } | null = null;
+    const db = createDb({
+      studentRiskFlag: {
+        findFirst: vi.fn().mockImplementation(async () => activeFlag),
+        create: vi.fn().mockImplementation(async (args: Record<string, unknown>) => {
+          if (activeFlag) {
+            throw Object.assign(new Error('unique constraint'), { code: 'P2002' });
+          }
+          const data = args.data as typeof next;
+          activeFlag = {
+            id: 'flag-1',
+            severity: data.severity,
+            description: data.description,
+            evidenceJson: data.evidenceJson,
+          };
+          return activeFlag;
+        }),
+        update: vi.fn().mockResolvedValue({}),
+      },
+    });
+
+    const results = await Promise.all([
+      scanStudentRisks('student-1', {
+        db,
+        now,
+        rules: [rule('constraint', next)],
+      }),
+      scanStudentRisks('student-1', {
+        db,
+        now,
+        rules: [rule('constraint', next)],
+      }),
+    ]);
+
+    expect(activeFlag).toEqual(expect.objectContaining({
+      id: 'flag-1',
+      severity: 'high',
+    }));
+    expect(db.studentRiskFlag.create).toHaveBeenCalledTimes(2);
+    expect(results.reduce((total, result) => total + result.flagsCreated, 0)).toBe(1);
+    expect(results.reduce((total, result) => total + result.unchanged, 0)).toBe(1);
+    expect(results.reduce((total, result) => total + result.failures, 0)).toBe(0);
+  });
 });

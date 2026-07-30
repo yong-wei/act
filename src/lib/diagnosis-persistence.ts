@@ -2,15 +2,51 @@ import { prisma } from '@/lib/prisma';
 import { buildDiagnosisPrepLink } from '@/lib/diagnosis-prep-link';
 import { z } from 'zod';
 
+const diagnosisEvidenceRefSchema = z.string()
+  .trim()
+  .min(1)
+  .max(500)
+  .regex(
+    /^(student-risk-flag|student-competency-snapshot|knowledge-progress):[A-Za-z0-9._:-]+$/,
+    'diagnosis evidence reference uses an unsupported source',
+  );
+
+const diagnosisFindingSchema = z.object({
+  title: z.string().trim().min(1).max(500),
+  summary: z.string().trim().min(1).max(2_000).optional(),
+  knowledgeNodeId: z.string().trim().min(1).max(200).optional(),
+  riskType: z.enum(['stagnation', 'constraint', 'cross_domain']).optional(),
+  severity: z.enum(['low', 'medium', 'high']).optional(),
+  evidenceRefs: z.array(diagnosisEvidenceRefSchema).max(100).default([]),
+  confidence: z.enum(['high', 'medium', 'low', 'unavailable']).optional(),
+}).strict();
+
+const diagnosisSourceCoverageSchema = z.object({
+  classMembers: z.number().int().nonnegative().optional(),
+  includedStudents: z.number().int().nonnegative().optional(),
+  progressRows: z.number().int().nonnegative().optional(),
+  coverage: z.number().min(0).max(1).optional(),
+}).strict().refine(
+  (coverage) => Object.keys(coverage).length > 0,
+  'source coverage must contain at least one governed metric',
+);
+
 export const diagnosisReportBodySchema = z.object({
   summary: z.string().trim().min(1).max(20_000),
-  findings: z.array(z.record(z.string(), z.unknown())).default([]),
-  evidenceRefs: z.array(z.string().trim().min(1).max(500)).min(1).max(500),
+  findings: z.array(diagnosisFindingSchema).max(500).default([]),
+  evidenceRefs: z.array(diagnosisEvidenceRefSchema).min(1).max(500),
   evidenceCutoff: z.string().datetime({ offset: true }),
-  sourceCoverage: z.record(z.string(), z.unknown()),
+  sourceCoverage: diagnosisSourceCoverageSchema,
   confidence: z.enum(['high', 'medium', 'low', 'unavailable']),
   limitations: z.array(z.string().trim().min(1).max(500)).default([]),
-}).passthrough();
+}).strict();
+
+export const diagnosisReportWriteSchema = z.object({
+  targetStudentId: z.string().trim().min(1).max(200).nullable().optional(),
+  reportBody: diagnosisReportBodySchema,
+}).strict();
+
+export const DIAGNOSIS_REPORT_GENERATOR_VERSION = 'teacher-diagnosis.v1';
 
 export interface DiagnosisPersistenceDb {
   class: {
@@ -36,31 +72,6 @@ export class DiagnosisReportScopeError extends Error {
   ) {
     super(message);
     this.name = 'DiagnosisReportScopeError';
-  }
-}
-
-const FORBIDDEN_REPORT_KEYS = new Set([
-  'rawAnswer',
-  'answerBody',
-  'eventPayload',
-  'evidenceJson',
-  'privateDialogue',
-  'submissionBody',
-  'parserOutput',
-  'localPath',
-]);
-
-function assertNoRawDiagnosisPayload(value: unknown, path = 'reportBody') {
-  if (Array.isArray(value)) {
-    value.forEach((item, index) => assertNoRawDiagnosisPayload(item, `${path}[${index}]`));
-    return;
-  }
-  if (!value || typeof value !== 'object') return;
-  for (const [key, nested] of Object.entries(value)) {
-    if (FORBIDDEN_REPORT_KEYS.has(key)) {
-      throw new DiagnosisReportScopeError(400, `${path}.${key} is not permitted in a diagnosis report`);
-    }
-    assertNoRawDiagnosisPayload(nested, `${path}.${key}`);
   }
 }
 
@@ -96,14 +107,34 @@ async function assertTeacherClassScope(
   }
 }
 
+function buildRiskSummary(findings: z.output<typeof diagnosisFindingSchema>[]) {
+  const byType = {
+    stagnation: 0,
+    constraint: 0,
+    cross_domain: 0,
+  };
+  const bySeverity = {
+    low: 0,
+    medium: 0,
+    high: 0,
+  };
+  let total = 0;
+
+  for (const finding of findings) {
+    if (!finding.riskType) continue;
+    byType[finding.riskType] += 1;
+    if (finding.severity) bySeverity[finding.severity] += 1;
+    total += 1;
+  }
+  return { total, byType, bySeverity };
+}
+
 export async function persistDiagnosisReport(
   params: {
     teacherId: string;
     classId: string;
     targetStudentId?: string | null;
     reportBody: z.input<typeof diagnosisReportBodySchema>;
-    riskSummary?: Record<string, unknown> | null;
-    generatorVersion?: string;
   },
   db: DiagnosisPersistenceDb = prisma as unknown as DiagnosisPersistenceDb,
 ) {
@@ -128,8 +159,7 @@ export async function persistDiagnosisReport(
         : finding;
     }),
   };
-  assertNoRawDiagnosisPayload(reportBody);
-  assertNoRawDiagnosisPayload(params.riskSummary, 'riskSummary');
+  const riskSummary = buildRiskSummary(parsedReportBody.findings);
 
   const scopeType = params.targetStudentId ? 'student' : 'class';
   const scopeId = params.targetStudentId ?? params.classId;
@@ -141,9 +171,9 @@ export async function persistDiagnosisReport(
       userId: params.teacherId,
       targetUserId: params.targetStudentId ?? null,
       reportBody,
-      riskSummary: params.riskSummary ?? undefined,
+      riskSummary,
       evidenceCutoff: new Date(reportBody.evidenceCutoff),
-      generatorVersion: params.generatorVersion ?? 'teacher-diagnosis.v1',
+      generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
     },
   });
 }

@@ -74,6 +74,35 @@ function sameEvidence(
     && JSON.stringify(stableEvidenceJson(existing.evidenceJson)) === JSON.stringify(next.evidenceJson);
 }
 
+function isUniqueConstraintViolation(error: unknown) {
+  return Boolean(
+    error
+    && typeof error === 'object'
+    && 'code' in error
+    && error.code === 'P2002',
+  );
+}
+
+async function readActiveRiskFlag(
+  db: RiskScannerDb,
+  studentId: string,
+  flagType: CurrentRiskFlagType,
+) {
+  return db.studentRiskFlag.findFirst({
+    where: {
+      userId: studentId,
+      flagType,
+      isResolved: false,
+    },
+    select: {
+      id: true,
+      severity: true,
+      description: true,
+      evidenceJson: true,
+    },
+  });
+}
+
 export const stagnationRule: RiskScanRule = {
   name: 'stagnation',
   async evaluate(studentId, context) {
@@ -224,19 +253,7 @@ export async function scanStudentRisks(
   for (const rule of rules) {
     try {
       const next = await rule.evaluate(studentId, { db, now });
-      const existing = await db.studentRiskFlag.findFirst({
-        where: {
-          userId: studentId,
-          flagType: rule.name,
-          isResolved: false,
-        },
-        select: {
-          id: true,
-          severity: true,
-          description: true,
-          evidenceJson: true,
-        },
-      });
+      const existing = await readActiveRiskFlag(db, studentId, rule.name);
 
       if (!next && existing) {
         await db.studentRiskFlag.update({
@@ -274,17 +291,38 @@ export async function scanStudentRisks(
         continue;
       }
 
-      await db.studentRiskFlag.create({
-        data: {
-          userId: studentId,
-          flagType: next.flagType,
-          severity: next.severity,
-          description: next.description,
-          evidenceJson: next.evidenceJson,
-          triggeredAt: now,
-        },
-      });
-      result.flagsCreated += 1;
+      try {
+        await db.studentRiskFlag.create({
+          data: {
+            userId: studentId,
+            flagType: next.flagType,
+            severity: next.severity,
+            description: next.description,
+            evidenceJson: next.evidenceJson,
+            triggeredAt: now,
+          },
+        });
+        result.flagsCreated += 1;
+      } catch (error) {
+        if (!isUniqueConstraintViolation(error)) throw error;
+
+        const concurrent = await readActiveRiskFlag(db, studentId, rule.name);
+        if (!concurrent) throw error;
+        if (sameEvidence(concurrent, next)) {
+          result.unchanged += 1;
+          continue;
+        }
+        await db.studentRiskFlag.update({
+          where: { id: concurrent.id },
+          data: {
+            severity: next.severity,
+            description: next.description,
+            evidenceJson: next.evidenceJson,
+            resolutionNote: null,
+          },
+        });
+        result.flagsUpdated += 1;
+      }
     } catch (error) {
       result.failures += 1;
       console.warn(`[risk-scanner] Rule ${rule.name} failed for student ${studentId}:`, error);

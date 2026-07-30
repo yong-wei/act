@@ -1,5 +1,7 @@
 import {
+  DIAGNOSIS_REPORT_GENERATOR_VERSION,
   DiagnosisReportScopeError,
+  diagnosisReportWriteSchema,
   persistDiagnosisReport,
   readDiagnosisReports,
   type DiagnosisPersistenceDb,
@@ -28,10 +30,15 @@ function createDb(overrides: Partial<DiagnosisPersistenceDb> = {}): DiagnosisPer
 
 const reportBody = {
   summary: 'The class needs reinforcement on stability margins.',
-  findings: [{ knowledgeNodeId: 'node-1', title: 'Stability margin' }],
+  findings: [{
+    knowledgeNodeId: 'node-1',
+    title: 'Stability margin',
+    riskType: 'constraint' as const,
+    severity: 'medium' as const,
+  }],
   evidenceRefs: ['knowledge-progress:student-1:node-1'],
   evidenceCutoff: '2026-07-30T08:00:00.000Z',
-  sourceCoverage: { knowledgeProgress: 1 },
+  sourceCoverage: { progressRows: 1 },
   confidence: 'medium' as const,
   limitations: ['One evidence source is currently available.'],
 };
@@ -66,6 +73,20 @@ describe('diagnosis report persistence', () => {
             }),
           ],
         }),
+        riskSummary: {
+          total: 1,
+          byType: {
+            stagnation: 0,
+            constraint: 1,
+            cross_domain: 0,
+          },
+          bySeverity: {
+            low: 0,
+            medium: 1,
+            high: 0,
+          },
+        },
+        generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
       }),
     });
   });
@@ -102,19 +123,40 @@ describe('diagnosis report persistence', () => {
     });
   });
 
-  it('rejects nested raw evidence payloads', async () => {
+  it.each([
+    { raw_answer: 'secret' },
+    { rawAnswers: ['secret'] },
+    { RAWANSWER: 'secret' },
+    { nested: { eventPayload: { answer: 'secret' } } },
+  ])('rejects non-allowlisted finding payload %j', async (unsafeFinding) => {
     const db = createDb();
     await expect(persistDiagnosisReport({
       teacherId: 'teacher-1',
       classId: 'class-1',
       reportBody: {
         ...reportBody,
-        findings: [{ title: 'unsafe', eventPayload: { answer: 'raw' } }],
+        findings: [{ title: 'unsafe', ...unsafeFinding }],
       },
-    }, db)).rejects.toMatchObject({
-      status: 400,
-    });
+    }, db)).rejects.toBeDefined();
     expect(db.diagnosisReport.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects ungoverned evidence references and client-controlled report metadata', async () => {
+    await expect(persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      reportBody: {
+        ...reportBody,
+        evidenceRefs: ['local-file:C:/private-answer.json'],
+      },
+    }, createDb())).rejects.toBeDefined();
+
+    expect(diagnosisReportWriteSchema.safeParse({
+      targetStudentId: 'student-1',
+      reportBody,
+      riskSummary: { raw_answer: 'secret' },
+      generatorVersion: 'client-controlled',
+    }).success).toBe(false);
   });
 
   it('reads only the requested class-level reports with a bounded limit', async () => {

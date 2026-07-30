@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   DiagnosisReportScopeError,
+  diagnosisReportWriteSchema,
   persistDiagnosisReport,
   readDiagnosisReports,
 } from '@/lib/diagnosis-persistence';
@@ -77,16 +78,12 @@ export async function POST(
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
       return NextResponse.json({ error: '请求体无效' }, { status: 400 });
     }
-    const input = body as Record<string, unknown>;
+    const input = diagnosisReportWriteSchema.parse(body);
     const report = await persistDiagnosisReport({
       teacherId: session.user.id,
       classId,
-      targetStudentId: typeof input.targetStudentId === 'string' ? input.targetStudentId : null,
-      reportBody: input.reportBody as Parameters<typeof persistDiagnosisReport>[0]['reportBody'],
-      riskSummary: input.riskSummary && typeof input.riskSummary === 'object' && !Array.isArray(input.riskSummary)
-        ? input.riskSummary as Record<string, unknown>
-        : null,
-      generatorVersion: typeof input.generatorVersion === 'string' ? input.generatorVersion : undefined,
+      targetStudentId: input.targetStudentId ?? null,
+      reportBody: input.reportBody,
     });
     return NextResponse.json({ report }, { status: 201 });
   } catch (error) {
