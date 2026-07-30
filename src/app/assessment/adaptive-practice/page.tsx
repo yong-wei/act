@@ -2542,9 +2542,10 @@ export default function AdaptivePracticePage() {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点启动失败');
-      }
-      publishAdaptivePathJourneyResponse(payload);
-      resourceWindow.location.replace(action.redirectHref);
+     }
+     publishAdaptivePathJourneyResponse(payload);
+      setPathExecutionError(null);
+     resourceWindow.location.replace(action.redirectHref);
    } catch (launchError) {
      resourceWindow.close();
       setPathExecutionError(launchError instanceof Error ? launchError.message : '路径节点启动失败');
