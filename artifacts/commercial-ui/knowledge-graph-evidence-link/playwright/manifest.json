@@ -1,0 +1,67 @@
+{
+  "captureSourceSha": "c21b0f313479a612013a1375ecfb4cbd52e25490",
+  "capturedAt": "2026-07-30T01:28:22.024Z",
+  "toolVersion": "Codex desktop / Playwright 1.60.0",
+  "command": "npx playwright test tests/knowledge-graph-evidence-link.spec.ts --reporter=list",
+  "passCount": 2,
+  "failCount": 0,
+  "runDuration": "37.9s",
+  "screenshots": [
+    {
+      "file": "evidence-with-node-1280.png",
+      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\evidence-with-node-1280.png",
+      "size": 50668,
+      "sha256": "8805c38603b7f2dc41e805eb21d2b7db3858b85fbc31fd00110d93028246dcd3",
+      "capturedAt": "2026-07-30T01:27:51.776Z"
+    },
+    {
+      "file": "evidence-with-node-320.png",
+      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\evidence-with-node-320.png",
+      "size": 35797,
+      "sha256": "2d223e52271585b6bd832c02df3b3ac64498d632a41b826fe5f607782b527f70",
+      "capturedAt": "2026-07-30T01:27:51.780Z"
+    },
+    {
+      "file": "evidence-without-node-1280.png",
+      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\evidence-without-node-1280.png",
+      "size": 50483,
+      "sha256": "7056d0a003d9770380bf2af50edf1af683e796bb8aacf08340c36193f768cb49",
+      "capturedAt": "2026-07-30T01:27:53.542Z"
+    },
+    {
+      "file": "evidence-without-node-320.png",
+      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\evidence-without-node-320.png",
+      "size": 35681,
+      "sha256": "ae661f6feb490f805a0774d82a3871cb862fbc48a313527570bf0e42ec6908e3",
+      "capturedAt": "2026-07-30T01:27:53.542Z"
+    },
+    {
+      "file": "knowledge-reactivated-1280.png",
+      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\knowledge-reactivated-1280.png",
+      "size": 74781,
+      "sha256": "6e0dc714eef844c3e98bfc305efc4355d6529f4543e2f04f13b537f24b513994",
+      "capturedAt": "2026-07-30T01:27:52.819Z"
+    },
+    {
+      "file": "knowledge-reactivated-320.png",
+      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\knowledge-reactivated-320.png",
+      "size": 46338,
+      "sha256": "1b4e520fddd1b40f3389a302b1e7dbc7d05211c59a2a9cdad1f720fe40c31c35",
+      "capturedAt": "2026-07-30T01:27:52.751Z"
+    },
+    {
+      "file": "knowledge-selected-1280.png",
+      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\knowledge-selected-1280.png",
+      "size": 81262,
+      "sha256": "7b4717ecf3690d1ee4882d4afc1d5965df3745b7af698aabb01b9c1298c75158",
+      "capturedAt": "2026-07-30T01:27:49.998Z"
+    },
+    {
+      "file": "knowledge-selected-320.png",
+      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\knowledge-selected-320.png",
+      "size": 46036,
+      "sha256": "c576505b87c34599150bfd654c92c0a08d7dbe7a941e483482cefa305c3a5e13",
+      "capturedAt": "2026-07-30T01:27:49.988Z"
+    }
+  ]
+}

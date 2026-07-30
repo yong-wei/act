@@ -494,24 +494,20 @@ function ResourcePanelContent({
       mobileFocusNodeIdRef.current = null;
       return;
     }
-    const shouldFocusClose = !mobileFocusInitializedRef.current
-      || mobileFocusNodeIdRef.current !== selectedNode.id
-      || restoreCloseFocusAfterPortalRef.current;
     mobileFocusInitializedRef.current = true;
     mobileFocusNodeIdRef.current = selectedNode.id;
     restoreCloseFocusAfterPortalRef.current = false;
     let focusFrame = 0;
-    const mountFrame = shouldFocusClose
-      ? window.requestAnimationFrame(() => {
-        focusFrame = window.requestAnimationFrame(() => {
-          closeButtonRef.current?.focus();
-        });
-      })
-      : 0;
+    window.requestAnimationFrame(() => {
+      focusFrame = window.requestAnimationFrame(() => {
+        if (closeButtonRef.current) {
+          closeButtonRef.current.focus();
+        }
+      });
+    });
     return () => {
       restoreCloseFocusAfterPortalRef.current ||= document.activeElement === closeButtonRef.current;
-      window.cancelAnimationFrame(mountFrame);
-      if (focusFrame) window.cancelAnimationFrame(focusFrame);
+      window.cancelAnimationFrame(focusFrame);
     };
   }, [isMobileInspector, mobileToolPanelOpen, selectedNode.id]);
 
