@@ -526,3 +526,33 @@ fn nomoto_quick_simulation_outputs_metrics_for_optimizer() {
     assert_eq!(result["chartData"]["time"].as_array().unwrap().len(), 41);
     assert_eq!(result["trajectory"].as_array().unwrap().len(), 41);
 }
+
+#[test]
+fn nomoto_quick_simulation_limits_actual_rudder_rate_when_requested() {
+    let request = json!({
+        "modelId": "nomoto_quick_sim",
+        "duration": 2.0,
+        "dt": 0.5,
+        "start": { "x": 0.0, "z": 0.0, "headingDeg": 0.0 },
+        "targetHeadingDeg": 90.0,
+        "targetSwitchTime": 0.0,
+        "pid": { "kp": 3.0, "ki": 0.001, "kd": 5.0 },
+        "nomoto": {
+            "K": 0.08,
+            "T": 55.0,
+            "speedMps": 15.0,
+            "maxRudderDeg": 35.0,
+            "maxRudderRateDegPerSec": 5.0
+        },
+        "guidePath": [
+            { "x": 0.0, "z": 0.0 },
+            { "x": 30.0, "z": 0.0 }
+        ]
+    });
+
+    let result: Value =
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap();
+
+    assert!(result["metrics"]["maxRudderRate"].as_f64().unwrap() <= 5.0 + 1e-9);
+}
