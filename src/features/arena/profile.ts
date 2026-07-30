@@ -202,7 +202,7 @@ function buildPersonalBestByTask(
   const results: ArenaPortfolioTaskRank[] = [];
 
   for (const taskId of taskIds) {
-    const leaderboard = buildArenaLeaderboard(taskId);
+    const leaderboard = buildArenaLeaderboard(allSubmissions, { taskId, type: 'main' });
     const userBest = userSubmissions
       .filter((submission) => submission.taskId === taskId)
       .sort((left, right) => right.evaluation.score - left.evaluation.score)[0];
@@ -225,7 +225,7 @@ function buildPersonalBestByTask(
 
 function buildFailureObjects(submissions: ArenaSubmissionRecord[]): ArenaPortfolioFailureObject[] {
   const failedSubmissions = submissions.filter((submission) => submission.evaluation.score < FAILURE_SCORE_THRESHOLD);
-  const objectFailures = new Map<string, { objectName: string; source: ChallengeObjectSource; count: number; latestSubmittedAt: string }>();
+  const objectFailures = new Map<string, { objectName: string; source: ChallengeObjectSource; failureCount: number; latestSubmittedAt: string }>();
 
   for (const submission of failedSubmissions) {
     const task = getArenaChallengeTask(submission.taskId);
@@ -238,7 +238,7 @@ function buildFailureObjects(submissions: ArenaSubmissionRecord[]): ArenaPortfol
       objectFailures.set(key, {
         objectName: object.name,
         source: object.source,
-        count: (existing?.count ?? 0) + 1,
+        failureCount: (existing?.failureCount ?? 0) + 1,
         latestSubmittedAt: submission.submittedAt,
       });
     } else {
