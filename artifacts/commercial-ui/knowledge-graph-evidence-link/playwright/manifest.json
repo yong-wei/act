@@ -1,67 +1,63 @@
 {
-  "captureSourceSha": "c21b0f313479a612013a1375ecfb4cbd52e25490",
-  "capturedAt": "2026-07-30T01:28:22.024Z",
+  "captureSourceSha": "16346e89904b0a73f35d10c21dc206c1249595c5",
+  "capturedAt": "2026-07-30T09:24:26.279Z",
   "toolVersion": "Codex desktop / Playwright 1.60.0",
-  "command": "npx playwright test tests/knowledge-graph-evidence-link.spec.ts --reporter=list",
-  "passCount": 2,
-  "failCount": 0,
-  "runDuration": "37.9s",
+  "verificationCommands": {
+    "unitTest": "npx vitest run src/features/knowledge/__tests__/resource-panel-relation-behavior.client.test.ts",
+    "unitTestResult": "8 passed (8)",
+    "typecheck": "npx tsc --noEmit --pretty false",
+    "typecheckResult": "0 errors",
+    "playwright": "npx playwright test tests/knowledge-graph-evidence-link.spec.ts --reporter=list",
+    "playwrightResult": "2 passed (15.8s)"
+  },
   "screenshots": [
     {
       "file": "evidence-with-node-1280.png",
-      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\evidence-with-node-1280.png",
-      "size": 50668,
-      "sha256": "8805c38603b7f2dc41e805eb21d2b7db3858b85fbc31fd00110d93028246dcd3",
-      "capturedAt": "2026-07-30T01:27:51.776Z"
+      "size": 50659,
+      "sha256": "0c6b0aaa479af05c293e37ef9fa2b4475fde2726aface84125fbbf59e025c862",
+      "capturedAt": "2026-07-30T09:24:05.436Z"
     },
     {
       "file": "evidence-with-node-320.png",
-      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\evidence-with-node-320.png",
       "size": 35797,
       "sha256": "2d223e52271585b6bd832c02df3b3ac64498d632a41b826fe5f607782b527f70",
-      "capturedAt": "2026-07-30T01:27:51.780Z"
+      "capturedAt": "2026-07-30T09:24:05.364Z"
     },
     {
       "file": "evidence-without-node-1280.png",
-      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\evidence-without-node-1280.png",
-      "size": 50483,
-      "sha256": "7056d0a003d9770380bf2af50edf1af683e796bb8aacf08340c36193f768cb49",
-      "capturedAt": "2026-07-30T01:27:53.542Z"
+      "size": 50513,
+      "sha256": "55ef52592ff4845b119a7146a62acf412f36f009d2266288f06785706c628206",
+      "capturedAt": "2026-07-30T09:24:07.209Z"
     },
     {
       "file": "evidence-without-node-320.png",
-      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\evidence-without-node-320.png",
       "size": 35681,
       "sha256": "ae661f6feb490f805a0774d82a3871cb862fbc48a313527570bf0e42ec6908e3",
-      "capturedAt": "2026-07-30T01:27:53.542Z"
+      "capturedAt": "2026-07-30T09:24:07.180Z"
     },
     {
       "file": "knowledge-reactivated-1280.png",
-      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\knowledge-reactivated-1280.png",
-      "size": 74781,
-      "sha256": "6e0dc714eef844c3e98bfc305efc4355d6529f4543e2f04f13b537f24b513994",
-      "capturedAt": "2026-07-30T01:27:52.819Z"
+      "size": 78466,
+      "sha256": "85e6897ca38c25c8a8397e5478f51f5e564565b0347bc20db108760a14dc1c45",
+      "capturedAt": "2026-07-30T09:24:06.505Z"
     },
     {
       "file": "knowledge-reactivated-320.png",
-      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\knowledge-reactivated-320.png",
       "size": 46338,
       "sha256": "1b4e520fddd1b40f3389a302b1e7dbc7d05211c59a2a9cdad1f720fe40c31c35",
-      "capturedAt": "2026-07-30T01:27:52.751Z"
+      "capturedAt": "2026-07-30T09:24:06.466Z"
     },
     {
       "file": "knowledge-selected-1280.png",
-      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\knowledge-selected-1280.png",
-      "size": 81262,
-      "sha256": "7b4717ecf3690d1ee4882d4afc1d5965df3745b7af698aabb01b9c1298c75158",
-      "capturedAt": "2026-07-30T01:27:49.998Z"
+      "size": 83840,
+      "sha256": "7bfc9fb725ebc59d86bdb55dd2a2e12b371c1798825aabfeae4c2a6877a5ed09",
+      "capturedAt": "2026-07-30T09:24:03.613Z"
     },
     {
       "file": "knowledge-selected-320.png",
-      "path": "artifacts\\commercial-ui\\knowledge-graph-evidence-link\\playwright\\knowledge-selected-320.png",
-      "size": 46036,
-      "sha256": "c576505b87c34599150bfd654c92c0a08d7dbe7a941e483482cefa305c3a5e13",
-      "capturedAt": "2026-07-30T01:27:49.988Z"
+      "size": 48057,
+      "sha256": "69fc098b9cbaa4cfa64efa48689d17cc518b07f5b13bd2c5bcc626f6bed58d4a",
+      "capturedAt": "2026-07-30T09:24:03.850Z"
     }
   ]
 }
