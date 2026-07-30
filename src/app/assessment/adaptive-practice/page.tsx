@@ -1526,8 +1526,9 @@ export default function AdaptivePracticePage() {
   const [feedback, setFeedback] = useState<SubmitAnswerResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [questionStartAt, setQuestionStartAt] = useState<number>(Date.now());
-  const [error, setError] = useState<string | null>(null);
-  const [activeLearnerState, setActiveLearnerState] = useState<AdaptiveLearnerState | null>(null);
+ const [error, setError] = useState<string | null>(null);
+  const [pathExecutionError, setPathExecutionError] = useState<string | null>(null);
+ const [activeLearnerState, setActiveLearnerState] = useState<AdaptiveLearnerState | null>(null);
   const [learnerStateLoadState, setLearnerStateLoadState] = useState<'idle' | 'loading' | 'ready'>('idle');
   const [activePathPlan, setActivePathPlan] = useState<AdaptiveLearningPathPlan | null>(null);
   const [activePathRound, setActivePathRound] = useState<LearningPathRoundView | null>(null);
@@ -2522,14 +2523,14 @@ export default function AdaptivePracticePage() {
 
   const launchPathNodeAction = useCallback(async (action: PostLearningPathNodeAction) => {
     if (!action.body || !action.redirectHref) return;
-    if (!isSafeExternalBrowserTarget(action.redirectHref)) {
-      setError('外部资源地址未通过平台验证，请重新生成路径。');
-      return;
-    }
-    const resourceWindow = window.open('about:blank', '_blank');
-    if (!resourceWindow) {
-      setError('浏览器阻止了新资源窗口，请允许本站打开新窗口后重试。');
-      return;
+   if (!isSafeExternalBrowserTarget(action.redirectHref)) {
+      setPathExecutionError('外部资源地址未通过平台验证，请重新生成路径。');
+     return;
+   }
+   const resourceWindow = window.open('about:blank', '_blank');
+   if (!resourceWindow) {
+      setPathExecutionError('浏览器阻止了新资源窗口，请允许本站打开新窗口后重试。');
+     return;
     }
     resourceWindow.opener = null;
     try {
@@ -2544,10 +2545,10 @@ export default function AdaptivePracticePage() {
       }
       publishAdaptivePathJourneyResponse(payload);
       resourceWindow.location.replace(action.redirectHref);
-    } catch (launchError) {
-      resourceWindow.close();
-      setError(launchError instanceof Error ? launchError.message : '路径节点启动失败');
-    }
+   } catch (launchError) {
+     resourceWindow.close();
+      setPathExecutionError(launchError instanceof Error ? launchError.message : '路径节点启动失败');
+   }
   }, []);
 
   const launchPathNode = useCallback(async (node: PracticeEntryRouteNode) => {
@@ -2577,11 +2578,11 @@ export default function AdaptivePracticePage() {
       if (!response.ok) {
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点完成确认失败');
       }
-      publishAdaptivePathJourneyResponse(payload);
-      await reloadActiveLearningPath();
-      setError(null);
-    } catch (completionError) {
-      setError(completionError instanceof Error ? completionError.message : '路径节点完成确认失败');
+     publishAdaptivePathJourneyResponse(payload);
+     await reloadActiveLearningPath();
+      setPathExecutionError(null);
+   } catch (completionError) {
+      setPathExecutionError(completionError instanceof Error ? completionError.message : '路径节点完成确认失败');
     } finally {
       setPathNodeCompletionPending(null);
     }
@@ -2625,13 +2626,13 @@ export default function AdaptivePracticePage() {
       if (!response.ok) {
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径活动写入失败');
       }
-      publishAdaptivePathJourneyResponse(payload);
-      await reloadActiveLearningPath();
-      setError(null);
-      return true;
-    } catch (activityError) {
-      setError(activityError instanceof Error ? activityError.message : '路径活动写入失败');
-      return false;
+     publishAdaptivePathJourneyResponse(payload);
+     await reloadActiveLearningPath();
+      setPathExecutionError(null);
+     return true;
+   } catch (activityError) {
+      setPathExecutionError(activityError instanceof Error ? activityError.message : '路径活动写入失败');
+     return false;
     } finally {
       setPathActivityPending(null);
     }
@@ -2670,11 +2671,11 @@ export default function AdaptivePracticePage() {
         const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径偏离写入失败');
       }
-      await reloadActiveLearningPath();
-      setSkipCandidateNode(null);
-      setError(null);
-    } catch (skipError) {
-      setError(skipError instanceof Error ? skipError.message : '路径偏离写入失败');
+     await reloadActiveLearningPath();
+     setSkipCandidateNode(null);
+      setPathExecutionError(null);
+   } catch (skipError) {
+      setPathExecutionError(skipError instanceof Error ? skipError.message : '路径偏离写入失败');
     } finally {
       setPathActivityPending(null);
     }
@@ -2682,15 +2683,15 @@ export default function AdaptivePracticePage() {
 
   const launchExecutionNode = useCallback(async (node: PathExecutionNodeView) => {
     const ownedTarget = resolveAdaptivePathCenterOwnedTargetHref(node.type, node.target);
-    if (requiresOwningPathCenter(node) && !ownedTarget) {
-      setError('路径资源地址未通过平台验证，请返回路径并重新生成。');
-      return;
-    }
-    const keepsPathCenter = keepsOwningPathCenterOpen(node);
-    const resourceWindow = keepsPathCenter ? window.open('about:blank', '_blank') : null;
-    if (keepsPathCenter && !resourceWindow) {
-      setError('浏览器阻止了新资源窗口，请允许本站打开新窗口后重试。');
-      return;
+   if (requiresOwningPathCenter(node) && !ownedTarget) {
+      setPathExecutionError('路径资源地址未通过平台验证，请返回路径并重新生成。');
+     return;
+   }
+   const keepsPathCenter = keepsOwningPathCenterOpen(node);
+   const resourceWindow = keepsPathCenter ? window.open('about:blank', '_blank') : null;
+   if (keepsPathCenter && !resourceWindow) {
+      setPathExecutionError('浏览器阻止了新资源窗口，请允许本站打开新窗口后重试。');
+     return;
     }
     if (resourceWindow) resourceWindow.opener = null;
     const activityWritten = await writePathNodeActivity(
@@ -3862,8 +3863,27 @@ export default function AdaptivePracticePage() {
                     当前节点：{currentPathNode?.title ?? '待定位'}
                   </span>
                 )}
-                data-adaptive-path-execution-surface="active-route"
-              >
+               data-adaptive-path-execution-surface="active-route"
+            >
+                {pathExecutionError ? (
+                 <div
+                   className="mb-4 rounded-lg border border-destructive/35 bg-destructive/10 p-4 text-sm"
+                   data-adaptive-path-execution-error="visible"
+                 >
+                   <p className="font-medium text-foreground">路径操作未能完成</p>
+                    <p className="mt-1 leading-6 text-subtle">{pathExecutionError}</p>
+                   <div className="mt-3 flex flex-wrap gap-2">
+                     <button
+                       type="button"
+                        onClick={() => { setPathExecutionError(null); void reloadActiveLearningPath(); }}
+                       className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground"
+                     >
+                       <RefreshCw className="size-3.5" aria-hidden="true" />
+                       刷新路径状态
+                     </button>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="mt-4 grid gap-2 sm:grid-cols-3" data-adaptive-path-progress-summary="essential">
                   {[
