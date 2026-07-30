@@ -14,6 +14,9 @@ import {
   updateLearningPathIfWritable,
   type LearningPathFenceClient,
 } from './canonical-learning-path-transition/write-fence';
+import { isStudentVisiblePathTarget } from './student-visible-path-target';
+
+export { isStudentVisiblePathTarget } from './student-visible-path-target';
 
 export const CONTROL_CORRECTION_PATH_ROUND_GOAL_ID = 'control-correction';
 export const CONTROL_CORRECTION_PATH_ROUND_PLANNER_VERSION = 'stage-1-rules-graph';
@@ -463,37 +466,6 @@ function isSafeExternalPathTarget(target: string): boolean {
     return false;
   }
 }
-
-export function isStudentVisiblePathTarget(target: string): boolean {
-  const normalized = target.trim();
-  if (normalized.length === 0 || normalized !== target) return false;
-  if (/^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(normalized)) return false;
-  const pathname = normalized.split(/[?#]/, 1)[0] ?? normalized;
-  const segments = pathname.split('/').filter(Boolean);
-  if (segments.some((segment) => ['admin', 'api', 'teacher', '_next', 'data-center'].includes(segment))) {
-    return false;
-  }
-  if (!pathname.startsWith('/')) {
-    return pathname.startsWith('course-content/runtime/');
-  }
-  return STUDENT_VISIBLE_PATH_TARGET_PREFIXES.some((prefix) => (
-    pathname === prefix.slice(0, -1) || pathname.startsWith(prefix)
-  ));
-}
-
-const STUDENT_VISIBLE_PATH_TARGET_PREFIXES = [
-  '/adaptive-learning/',
-  '/arena/',
-  '/assessment/',
-  '/classroom/student/',
-  '/course-runtime/',
-  '/dashboard/',
-  '/interactive-learning/',
-  '/knowledge/',
-  '/playlists/',
-  '/profile/',
-  '/simulations/',
-] as const;
 
 export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLearningPathPlan): void {
   if (

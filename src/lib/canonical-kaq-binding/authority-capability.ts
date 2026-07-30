@@ -105,7 +105,7 @@ const FORMAL_TP_PROOF_REGISTRY = new WeakSet<object>();
 export const ACCEPTED_DELTA_RECEIPT_EVIDENCE_VERSION =
   'act-accepted-delta-receipt-evidence/v1' as const;
 export const FORMAL_TEACHING_PROJECTION_PROOF_VERSION =
-  'act-formal-teaching-projection-proof/v1' as const;
+  'act-formal-teaching-projection-proof/v2' as const;
 export const VERIFIED_COURSE_COVERAGE_BUNDLE_VERSION =
   'act-verified-course-coverage-bundle/v1' as const;
 
@@ -258,6 +258,12 @@ export type FormalTeachingProjectionProof = {
   pinnedContextDigest: string;
   projectionId: string;
   projectionDigest: string;
+  /**
+   * Stable digest of the complete formal Teaching Projection relation-set
+   * (sorted id/version/predicate/source/target + projection identity).
+   * Replan must reject any submitted set whose digest does not equal this value.
+   */
+  relationSetDigest: string;
   formalReleaseAttestationId: string;
   formalReleaseAttestationDigest: string;
   proofDigest: string;
@@ -797,6 +803,7 @@ function teachingProofFields(
     `pinnedContextDigest=${proof.pinnedContextDigest}`,
     `projectionId=${proof.projectionId}`,
     `projectionDigest=${proof.projectionDigest}`,
+    `relationSetDigest=${proof.relationSetDigest}`,
     `formalReleaseAttestationId=${proof.formalReleaseAttestationId}`,
     `formalReleaseAttestationDigest=${proof.formalReleaseAttestationDigest}`,
   ].join('\n');
@@ -812,6 +819,8 @@ function mintFormalTeachingProjectionProof(input: {
   pinned: VerifiedKaqPinnedContext;
   projectionId: string;
   projectionDigest: string;
+  /** Complete formal relation-set digest bound into this proof. */
+  relationSetDigest: string;
   formalReleaseAttestationId: string;
   formalReleaseAttestationDigest: string;
 }): FormalTeachingProjectionProof {
@@ -823,6 +832,12 @@ function mintFormalTeachingProjectionProof(input: {
     throw new KaqAuthorityInputError(
       'teaching-proof-invalid',
       'projectionDigest must be 64-char lowercase sha256 hex',
+    );
+  }
+  if (!SHA256.test(input.relationSetDigest)) {
+    throw new KaqAuthorityInputError(
+      'teaching-proof-invalid',
+      'relationSetDigest must be 64-char lowercase sha256 hex',
     );
   }
   if (!input.formalReleaseAttestationId.trim()) {
@@ -846,6 +861,7 @@ function mintFormalTeachingProjectionProof(input: {
     pinnedContextDigest: pinned.contextDigest,
     projectionId: input.projectionId.trim(),
     projectionDigest: input.projectionDigest,
+    relationSetDigest: input.relationSetDigest,
     formalReleaseAttestationId: input.formalReleaseAttestationId.trim(),
     formalReleaseAttestationDigest: input.formalReleaseAttestationDigest,
   };
@@ -891,6 +907,7 @@ export function assertFormalTeachingProjectionProof(
   const pinnedContextDigest = String(raw.pinnedContextDigest ?? '');
   const projectionId = String(raw.projectionId ?? '');
   const projectionDigest = String(raw.projectionDigest ?? '');
+  const relationSetDigest = String(raw.relationSetDigest ?? '');
   const formalReleaseAttestationId = String(raw.formalReleaseAttestationId ?? '');
   const formalReleaseAttestationDigest = String(raw.formalReleaseAttestationDigest ?? '');
   const claimedProofDigest = String(raw.proofDigest ?? '');
@@ -912,6 +929,12 @@ export function assertFormalTeachingProjectionProof(
       'Teaching proof projection identity invalid',
     );
   }
+  if (!SHA256.test(relationSetDigest)) {
+    throw new KaqAuthorityInputError(
+      'teaching-proof-invalid',
+      'Teaching proof relationSetDigest invalid',
+    );
+  }
   if (!formalReleaseAttestationId.trim() || !SHA256.test(formalReleaseAttestationDigest)) {
     throw new KaqAuthorityInputError(
       'teaching-proof-invalid',
@@ -928,6 +951,7 @@ export function assertFormalTeachingProjectionProof(
     pinnedContextDigest,
     projectionId,
     projectionDigest,
+    relationSetDigest,
     formalReleaseAttestationId,
     formalReleaseAttestationDigest,
   });
@@ -970,6 +994,7 @@ export function mintFormalTeachingProjectionProofForTests(input: {
   pinned: VerifiedKaqPinnedContext;
   projectionId: string;
   projectionDigest: string;
+  relationSetDigest: string;
   formalReleaseAttestationId: string;
   formalReleaseAttestationDigest: string;
 }): FormalTeachingProjectionProof {

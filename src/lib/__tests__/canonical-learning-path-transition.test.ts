@@ -3,12 +3,14 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   buildActkgTeachingProjectionRelation,
   buildReviewedKaqRoleCanonicalMapping,
+  digestFormalTeachingProjectionRelationSet,
   generateKaqCanonicalBindings,
   PINNED_KAQ_AGGREGATE_RELEASE_ID,
   PINNED_KAQ_AGGREGATE_RELEASE_SET_ID,
   PINNED_KAQ_COVERAGE_OVERLAY_ID,
   resolveTeachingProjectionAvailability,
   reviewKaqCanonicalBinding,
+  type ActkgTeachingProjectionRelation,
   type KaqCanonicalBinding,
   type VerifiedKaqPinnedContext,
 } from '@/lib/canonical-kaq-binding';
@@ -88,15 +90,95 @@ function pinned(admitted: readonly string[] = [...GOAL_CANONICALS]): VerifiedKaq
   });
 }
 
-function formalProof(context: VerifiedKaqPinnedContext) {
+const PROJECTION_ID = 'ctr:projection:teaching-v1';
+const PROJECTION_DIGEST = '1'.repeat(64);
+
+type RelationSpec = {
+  id: string;
+  predicate: 'prerequisite' | 'contains' | 'association';
+  sourceCanonicalId: string;
+  targetCanonicalId: string;
+  version: string;
+};
+
+function formalProof(
+  context: VerifiedKaqPinnedContext,
+  relations: ReadonlyArray<Pick<
+    RelationSpec,
+    'id' | 'version' | 'predicate' | 'sourceCanonicalId' | 'targetCanonicalId'
+  >> = [],
+) {
   return mintFormalTeachingProjectionProofForTests({
     pinned: context,
-    projectionId: 'ctr:projection:teaching-v1',
-    projectionDigest: '1'.repeat(64),
+    projectionId: PROJECTION_ID,
+    projectionDigest: PROJECTION_DIGEST,
+    relationSetDigest: digestFormalTeachingProjectionRelationSet(relations, {
+      projectionId: PROJECTION_ID,
+      projectionDigest: PROJECTION_DIGEST,
+    }),
     formalReleaseAttestationId: 'attestation:teaching-projection-release-v1',
     formalReleaseAttestationDigest: '2'.repeat(64),
   });
 }
+
+function materializeRelations(
+  context: VerifiedKaqPinnedContext,
+  specs: readonly RelationSpec[],
+): {
+  proof: ReturnType<typeof formalProof>;
+  relations: ActkgTeachingProjectionRelation[];
+} {
+  const proof = formalProof(context, specs);
+  const availability = resolveTeachingProjectionAvailability({
+    pinned: context,
+    formalProof: proof,
+  });
+  if (!availability.available) throw new Error('expected teaching projection');
+  const relations = specs.map((spec) => buildActkgTeachingProjectionRelation({
+    availability,
+    pinned: context,
+    id: spec.id,
+    predicate: spec.predicate,
+    sourceCanonicalId: spec.sourceCanonicalId,
+    targetCanonicalId: spec.targetCanonicalId,
+    version: spec.version,
+  }));
+  return { proof, relations };
+}
+
+const GOAL_RELATION_SPECS: RelationSpec[] = [
+  {
+    id: 'tp-rel:td-prereq-rl',
+    predicate: 'prerequisite',
+    sourceCanonicalId: 'ctr:object:time-domain-performance',
+    targetCanonicalId: 'ctr:object:root-locus',
+    version: 'tp-rel/v1',
+  },
+  {
+    id: 'tp-rel:rl-prereq-cc',
+    predicate: 'prerequisite',
+    sourceCanonicalId: 'ctr:object:root-locus',
+    targetCanonicalId: 'ctr:object:controller-correction',
+    version: 'tp-rel/v1',
+  },
+  {
+    id: 'tp-rel:cc-prereq-sim',
+    predicate: 'prerequisite',
+    sourceCanonicalId: 'ctr:object:controller-correction',
+    targetCanonicalId: 'ctr:object:simulation-validation',
+    version: 'tp-rel/v1',
+  },
+];
+
+const UNRELATED_RELATION_SPECS: RelationSpec[] = [
+  {
+    id: 'tp-rel:feedback-prereq-tf',
+    predicate: 'prerequisite',
+    sourceCanonicalId: 'ctr:object:feedback-loop',
+    targetCanonicalId: 'ctr:object:transfer-function',
+    version: 'tp-rel/v1',
+  },
+];
 
 function acceptBinding(
   binding: KaqCanonicalBinding,
@@ -204,61 +286,12 @@ function portraitFor(
   };
 }
 
-function goalTeachingRelations(context: VerifiedKaqPinnedContext) {
-  const availability = resolveTeachingProjectionAvailability({
-    pinned: context,
-    formalProof: formalProof(context),
-  });
-  if (!availability.available) throw new Error('expected teaching projection');
-  return [
-    buildActkgTeachingProjectionRelation({
-      availability,
-      pinned: context,
-      id: 'tp-rel:td-prereq-rl',
-      predicate: 'prerequisite',
-      sourceCanonicalId: 'ctr:object:time-domain-performance',
-      targetCanonicalId: 'ctr:object:root-locus',
-      version: 'tp-rel/v1',
-    }),
-    buildActkgTeachingProjectionRelation({
-      availability,
-      pinned: context,
-      id: 'tp-rel:rl-prereq-cc',
-      predicate: 'prerequisite',
-      sourceCanonicalId: 'ctr:object:root-locus',
-      targetCanonicalId: 'ctr:object:controller-correction',
-      version: 'tp-rel/v1',
-    }),
-    buildActkgTeachingProjectionRelation({
-      availability,
-      pinned: context,
-      id: 'tp-rel:cc-prereq-sim',
-      predicate: 'prerequisite',
-      sourceCanonicalId: 'ctr:object:controller-correction',
-      targetCanonicalId: 'ctr:object:simulation-validation',
-      version: 'tp-rel/v1',
-    }),
-  ];
+function goalTeachingFixture(context: VerifiedKaqPinnedContext) {
+  return materializeRelations(context, GOAL_RELATION_SPECS);
 }
 
-function unrelatedTeachingRelations(context: VerifiedKaqPinnedContext) {
-  // Expand coverage to include unrelated objects for this fixture.
-  const availability = resolveTeachingProjectionAvailability({
-    pinned: context,
-    formalProof: formalProof(context),
-  });
-  if (!availability.available) throw new Error('expected teaching projection');
-  return [
-    buildActkgTeachingProjectionRelation({
-      availability,
-      pinned: context,
-      id: 'tp-rel:feedback-prereq-tf',
-      predicate: 'prerequisite',
-      sourceCanonicalId: 'ctr:object:feedback-loop',
-      targetCanonicalId: 'ctr:object:transfer-function',
-      version: 'tp-rel/v1',
-    }),
-  ];
+function unrelatedTeachingFixture(context: VerifiedKaqPinnedContext) {
+  return materializeRelations(context, UNRELATED_RELATION_SPECS);
 }
 
 function legacyPathRow(overrides: Partial<{
@@ -1070,6 +1103,7 @@ describe('canonical learning path transition — replan', () => {
   it('rejects raw preserved intent that claims Legacy sequence constraints', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
+    const { proof, relations } = goalTeachingFixture(context);
     const result = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
@@ -1086,10 +1120,10 @@ describe('canonical learning path transition — replan', () => {
         legacyNodeIds: ['legacy-a', 'legacy-b'],
       } as unknown as PreservedLearningIntent,
       pinned: context,
-      formalTeachingProjectionProof: formalProof(context),
+      formalTeachingProjectionProof: proof,
       reviewedBindings: bindings,
       cumulativePortrait: portraitFor('student-1'),
-      teachingRelations: goalTeachingRelations(context),
+      teachingRelations: relations,
     });
     expect(result).toMatchObject({
       status: 'failed',
@@ -1121,8 +1155,7 @@ describe('canonical learning path transition — replan', () => {
   it('returns pending for NO_EVIDENCE and null/invalid portrait payloads', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
-    const proof = formalProof(context);
-    const relations = goalTeachingRelations(context);
+    const { proof, relations } = goalTeachingFixture(context);
 
     const noEvidence = replanCanonicalLearningPath({
       userId: 'student-1',
@@ -1178,18 +1211,19 @@ describe('canonical learning path transition — replan', () => {
   it('returns pending for SNAPSHOT portraits that are not availabilityReason=available', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
+    const { proof, relations } = goalTeachingFixture(context);
     const base = portraitFor('student-1');
     const result = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
       pinned: context,
-      formalTeachingProjectionProof: formalProof(context),
+      formalTeachingProjectionProof: proof,
       reviewedBindings: bindings,
       cumulativePortrait: {
         ...base,
         availabilityReason: 'reconciliation-pending',
       },
-      teachingRelations: goalTeachingRelations(context),
+      teachingRelations: relations,
     });
     expect(result).toMatchObject({
       status: 'pending',
@@ -1203,6 +1237,7 @@ describe('canonical learning path transition — replan', () => {
   it('accepts official async/no-op materialization when read-model generatedAt differs from payload', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
+    const { proof, relations } = goalTeachingFixture(context);
     const base = portraitFor('student-1', '2026-07-28T00:00:00.000Z');
     // Official readCurrentCumulativePortrait: generatedAt is state-version
     // materialization time; payload.generatedAt is snapshot/evidence time.
@@ -1210,13 +1245,13 @@ describe('canonical learning path transition — replan', () => {
       userId: 'student-1',
       goalId: 'control-correction',
       pinned: context,
-      formalTeachingProjectionProof: formalProof(context),
+      formalTeachingProjectionProof: proof,
       reviewedBindings: bindings,
       cumulativePortrait: {
         ...base,
         generatedAt: '2026-07-29T00:00:00.000Z',
       },
-      teachingRelations: goalTeachingRelations(context),
+      teachingRelations: relations,
     });
     expect(result.status).toBe('ready');
     if (result.status !== 'ready') return;
@@ -1228,18 +1263,19 @@ describe('canonical learning path transition — replan', () => {
   it('returns pending when read-model generatedAt is present but not ISO', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
+    const { proof, relations } = goalTeachingFixture(context);
     const base = portraitFor('student-1', '2026-07-28T00:00:00.000Z');
     const result = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
       pinned: context,
-      formalTeachingProjectionProof: formalProof(context),
+      formalTeachingProjectionProof: proof,
       reviewedBindings: bindings,
       cumulativePortrait: {
         ...base,
         generatedAt: 'not-an-iso-timestamp',
       },
-      teachingRelations: goalTeachingRelations(context),
+      teachingRelations: relations,
     });
     expect(result.status).toBe('pending');
     if (result.status === 'pending') {
@@ -1251,14 +1287,15 @@ describe('canonical learning path transition — replan', () => {
   it('rejects another learner portrait', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
+    const { proof, relations } = goalTeachingFixture(context);
     const result = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
       pinned: context,
-      formalTeachingProjectionProof: formalProof(context),
+      formalTeachingProjectionProof: proof,
       reviewedBindings: bindings,
       cumulativePortrait: portraitFor('student-other'),
-      teachingRelations: goalTeachingRelations(context),
+      teachingRelations: relations,
     });
     expect(result).toMatchObject({
       status: 'pending',
@@ -1272,15 +1309,16 @@ describe('canonical learning path transition — replan', () => {
       'ctr:object:transfer-function',
     ]);
     const { bindings } = reviewedUnrelatedBindings(context);
+    const { proof, relations } = unrelatedTeachingFixture(context);
     // Teaching relations only cover unrelated objects.
     const result = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
       pinned: context,
-      formalTeachingProjectionProof: formalProof(context),
+      formalTeachingProjectionProof: proof,
       reviewedBindings: bindings,
       cumulativePortrait: portraitFor('student-1'),
-      teachingRelations: unrelatedTeachingRelations(context),
+      teachingRelations: relations,
     });
     expect(result).toMatchObject({
       status: 'pending',
@@ -1296,14 +1334,15 @@ describe('canonical learning path transition — replan', () => {
       'ctr:object:transfer-function',
     ]);
     const { bindings } = reviewedGoalBindings(context);
+    const { proof, relations } = unrelatedTeachingFixture(context);
     const result = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
       pinned: context,
-      formalTeachingProjectionProof: formalProof(context),
+      formalTeachingProjectionProof: proof,
       reviewedBindings: bindings,
       cumulativePortrait: portraitFor('student-1'),
-      teachingRelations: unrelatedTeachingRelations(context),
+      teachingRelations: relations,
     });
     expect(result.status).toBe('pending');
     if (result.status === 'pending') {
@@ -1316,33 +1355,23 @@ describe('canonical learning path transition — replan', () => {
   it('returns pending for cycles and out-of-coverage relations', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
-    const proof = formalProof(context);
-    const availability = resolveTeachingProjectionAvailability({
-      pinned: context,
-      formalProof: proof,
-    });
-    if (!availability.available) throw new Error('expected availability');
-
-    const cycle = [
-      buildActkgTeachingProjectionRelation({
-        availability,
-        pinned: context,
+    const cycleSpecs: RelationSpec[] = [
+      {
         id: 'tp-rel:a-to-b',
         predicate: 'prerequisite',
         sourceCanonicalId: 'ctr:object:time-domain-performance',
         targetCanonicalId: 'ctr:object:root-locus',
         version: 'tp-rel/v1',
-      }),
-      buildActkgTeachingProjectionRelation({
-        availability,
-        pinned: context,
+      },
+      {
         id: 'tp-rel:b-to-a',
         predicate: 'prerequisite',
         sourceCanonicalId: 'ctr:object:root-locus',
         targetCanonicalId: 'ctr:object:time-domain-performance',
         version: 'tp-rel/v1',
-      }),
+      },
     ];
+    const { proof, relations: cycle } = materializeRelations(context, cycleSpecs);
     const cycleResult = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
@@ -1359,32 +1388,41 @@ describe('canonical learning path transition — replan', () => {
 
     const narrow = pinned(['ctr:object:time-domain-performance', 'ctr:object:root-locus']);
     const narrowBindings = reviewedGoalBindings(narrow);
-    const narrowProof = formalProof(narrow);
+    const outSpec: RelationSpec = {
+      id: 'tp-rel:out',
+      predicate: 'prerequisite',
+      sourceCanonicalId: 'ctr:object:time-domain-performance',
+      targetCanonicalId: 'ctr:object:controller-correction',
+      version: 'tp-rel/v1',
+    };
+    // Out-of-coverage edges cannot be built via buildActkg…; mint proof for the
+    // submitted set, then hand-construct the relation with matching identity.
+    const outProof = formalProof(narrow, [outSpec]);
     const narrowAvailability = resolveTeachingProjectionAvailability({
       pinned: narrow,
-      formalProof: narrowProof,
+      formalProof: outProof,
     });
     if (!narrowAvailability.available) throw new Error('expected availability');
     const result = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
       pinned: narrow,
-      formalTeachingProjectionProof: narrowProof,
+      formalTeachingProjectionProof: outProof,
       reviewedBindings: narrowBindings.bindings,
       cumulativePortrait: portraitFor('student-1'),
       teachingRelations: [{
-        id: 'tp-rel:out',
+        id: outSpec.id,
         namespace: 'actkg-teaching-projection',
         authority: 'ACTKG',
-        predicate: 'prerequisite',
-        sourceCanonicalId: 'ctr:object:time-domain-performance',
-        targetCanonicalId: 'ctr:object:controller-correction',
+        predicate: outSpec.predicate,
+        sourceCanonicalId: outSpec.sourceCanonicalId,
+        targetCanonicalId: outSpec.targetCanonicalId,
         releaseSetId: narrowAvailability.releaseSetId,
         releaseId: narrowAvailability.releaseId,
         pinnedContextDigest: narrowAvailability.pinnedContextDigest,
         projectionId: narrowAvailability.projectionId,
         projectionDigest: narrowAvailability.projectionDigest,
-        version: 'tp-rel/v1',
+        version: outSpec.version,
       }],
     });
     expect(result.status).toBe('pending');
@@ -1393,10 +1431,106 @@ describe('canonical learning path transition — replan', () => {
     }
   });
 
+  it('fail-closes when submitted relations add/remove/replace outside the proof-bound set', () => {
+    const context = pinned();
+    const { bindings } = reviewedGoalBindings(context);
+    const { proof, relations } = goalTeachingFixture(context);
+
+    // Legal full set remains ready.
+    const legal = replanCanonicalLearningPath({
+      userId: 'student-1',
+      goalId: 'control-correction',
+      pinned: context,
+      formalTeachingProjectionProof: proof,
+      reviewedBindings: bindings,
+      cumulativePortrait: portraitFor('student-1'),
+      teachingRelations: relations,
+    });
+    expect(legal.status).toBe('ready');
+
+    // Drop one relation (subset of proof set).
+    const removed = replanCanonicalLearningPath({
+      userId: 'student-1',
+      goalId: 'control-correction',
+      pinned: context,
+      formalTeachingProjectionProof: proof,
+      reviewedBindings: bindings,
+      cumulativePortrait: portraitFor('student-1'),
+      teachingRelations: relations.slice(0, 2),
+    });
+    expect(removed.status).toBe('pending');
+    if (removed.status === 'pending') {
+      expect(removed.reason).toBe('mixed-version-identity');
+      expect(removed.diagnostics.codes).toContain('relation-set-digest-mismatch');
+    }
+
+    // Add an extra forged edge within coverage.
+    const extra: ActkgTeachingProjectionRelation = {
+      ...relations[0]!,
+      id: 'tp-rel:forged-extra',
+      sourceCanonicalId: 'ctr:object:time-domain-performance',
+      targetCanonicalId: 'ctr:object:simulation-validation',
+    };
+    const added = replanCanonicalLearningPath({
+      userId: 'student-1',
+      goalId: 'control-correction',
+      pinned: context,
+      formalTeachingProjectionProof: proof,
+      reviewedBindings: bindings,
+      cumulativePortrait: portraitFor('student-1'),
+      teachingRelations: [...relations, extra],
+    });
+    expect(added.status).toBe('pending');
+    if (added.status === 'pending') {
+      expect(added.reason).toBe('mixed-version-identity');
+      expect(added.diagnostics.codes).toContain('relation-set-digest-mismatch');
+    }
+
+    // Replace a relation id while keeping endpoints (forged membership).
+    const replaced = replanCanonicalLearningPath({
+      userId: 'student-1',
+      goalId: 'control-correction',
+      pinned: context,
+      formalTeachingProjectionProof: proof,
+      reviewedBindings: bindings,
+      cumulativePortrait: portraitFor('student-1'),
+      teachingRelations: [
+        { ...relations[0]!, id: 'tp-rel:forged-id' },
+        relations[1]!,
+        relations[2]!,
+      ],
+    });
+    expect(replaced.status).toBe('pending');
+    if (replaced.status === 'pending') {
+      expect(replaced.reason).toBe('mixed-version-identity');
+      expect(replaced.diagnostics.codes).toContain('relation-set-digest-mismatch');
+    }
+
+    // Forge projection identity on an otherwise matching set shape.
+    const forgedIdentity = replanCanonicalLearningPath({
+      userId: 'student-1',
+      goalId: 'control-correction',
+      pinned: context,
+      formalTeachingProjectionProof: proof,
+      reviewedBindings: bindings,
+      cumulativePortrait: portraitFor('student-1'),
+      teachingRelations: relations.map((relation) => ({
+        ...relation,
+        projectionDigest: '9'.repeat(64),
+      })),
+    });
+    expect(forgedIdentity.status).toBe('pending');
+    if (forgedIdentity.status === 'pending') {
+      expect(['mixed-version-identity', 'no-supported-teaching-relations']).toContain(
+        forgedIdentity.reason,
+      );
+    }
+  });
+
   it('creates a goal-closed Canonical path without inherited Legacy progress', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
-    const proof = formalProof(context);
+    const { proof, relations } = goalTeachingFixture(context);
     const preserved: PreservedLearningIntent = {
       schemaVersion: 'act-preserved-learning-intent/v1',
       sourcePathId: 'legacy-path-1',
@@ -1430,7 +1564,7 @@ describe('canonical learning path transition — replan', () => {
       formalTeachingProjectionProof: proof,
       reviewedBindings: bindings,
       cumulativePortrait: portraitFor('student-1'),
-      teachingRelations: goalTeachingRelations(context),
+      teachingRelations: relations,
     });
 
     expect(result.status).toBe('ready');
@@ -1453,35 +1587,29 @@ describe('canonical learning path transition — replan', () => {
     expect(path.nodeIds.at(-1)).toContain('simulation-validation');
   });
 
-  it('changes path identity when the effective teaching-relation subset changes', () => {
+  it('changes path identity when the formal relation-set (and its proof) changes', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
-    const proof = formalProof(context);
-    const availability = resolveTeachingProjectionAvailability({
-      pinned: context,
-      formalProof: proof,
-    });
-    if (!availability.available) throw new Error('expected availability');
-    const full = goalTeachingRelations(context);
-    const subset = full.slice(0, 2); // drop the last prereq edge
+    const full = goalTeachingFixture(context);
+    const subset = materializeRelations(context, GOAL_RELATION_SPECS.slice(0, 2));
 
     const withFull = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
       pinned: context,
-      formalTeachingProjectionProof: proof,
+      formalTeachingProjectionProof: full.proof,
       reviewedBindings: bindings,
       cumulativePortrait: portraitFor('student-1'),
-      teachingRelations: full,
+      teachingRelations: full.relations,
     });
     const withSubset = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
       pinned: context,
-      formalTeachingProjectionProof: proof,
+      formalTeachingProjectionProof: subset.proof,
       reviewedBindings: bindings,
       cumulativePortrait: portraitFor('student-1'),
-      teachingRelations: subset,
+      teachingRelations: subset.relations,
     });
 
     expect(withFull.status).toBe('ready');
@@ -1499,8 +1627,7 @@ describe('canonical learning path transition — replan', () => {
   it('changes path identity when the cumulative portrait revision changes', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
-    const proof = formalProof(context);
-    const relations = goalTeachingRelations(context);
+    const { proof, relations } = goalTeachingFixture(context);
 
     const first = replanCanonicalLearningPath({
       userId: 'student-1',
@@ -1534,6 +1661,7 @@ describe('canonical learning path transition — replan', () => {
   it('does not let preserved goal force Legacy node sequence', () => {
     const context = pinned();
     const { bindings } = reviewedGoalBindings(context);
+    const { proof, relations } = goalTeachingFixture(context);
     const result = replanCanonicalLearningPath({
       userId: 'student-1',
       goalId: 'control-correction',
@@ -1546,10 +1674,10 @@ describe('canonical learning path transition — replan', () => {
         },
       },
       pinned: context,
-      formalTeachingProjectionProof: formalProof(context),
+      formalTeachingProjectionProof: proof,
       reviewedBindings: bindings,
       cumulativePortrait: portraitFor('student-1'),
-      teachingRelations: goalTeachingRelations(context),
+      teachingRelations: relations,
     });
     expect(result.status).toBe('ready');
     if (result.status !== 'ready') return;

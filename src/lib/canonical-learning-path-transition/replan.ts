@@ -25,7 +25,8 @@ import {
   type ReviewedKaqRoleCanonicalMapping,
 } from '@/lib/canonical-kaq-binding/contracts';
 import {
-  buildActkgTeachingProjectionRelation,
+  digestFormalTeachingProjectionRelationSet,
+  isActkgTeachingProjectionPredicate,
   resolveTeachingProjectionAvailability,
 } from '@/lib/canonical-kaq-binding/teaching-projection';
 import {
@@ -368,7 +369,8 @@ export function replanCanonicalLearningPath(
     });
   }
 
-  // 6) Formal teaching relations — validate, then restrict to goal-relevant subgraph
+  // 6) Formal teaching relations — validate whole-set membership without rebuild,
+  // then restrict to goal-relevant subgraph.
   const teachingRelations = input.teachingRelations ?? [];
   if (teachingRelations.length === 0) {
     return pending('no-supported-teaching-relations', {
@@ -382,63 +384,39 @@ export function replanCanonicalLearningPath(
     });
   }
 
+  // Whole-set closure: submitted relation-set digest must equal proof-bound digest
+  // exposed by availability. Never remint/rebuild relations from partial identity.
+  const submittedRelationSetDigest = digestFormalTeachingProjectionRelationSet(
+    teachingRelations,
+    {
+      projectionId: availability.projectionId,
+      projectionDigest: availability.projectionDigest,
+    },
+  );
+  if (submittedRelationSetDigest !== availability.relationSetDigest) {
+    return pending('mixed-version-identity', {
+      hasPreservedGoal: true,
+      teachingProjectionAvailable: true,
+      portraitAvailable: true,
+      reviewedBindingCount: mapping.bindingIds.length,
+      admittedCanonicalObjectCount: pinned.admittedCanonicalIds.length,
+      teachingRelationCount: teachingRelations.length,
+      resolvedGoalTargetCount: goalResolution.targetCanonicalIds.length,
+      codes: ['relation-set-digest-mismatch'],
+    });
+  }
+
   const validatedRelations: ActkgTeachingProjectionRelation[] = [];
+  const seenRelationIds = new Set<string>();
   for (const relation of teachingRelations) {
-    try {
-      const closed = buildActkgTeachingProjectionRelation({
-        availability,
-        pinned,
-        id: relation.id,
-        predicate: relation.predicate,
-        sourceCanonicalId: relation.sourceCanonicalId,
-        targetCanonicalId: relation.targetCanonicalId,
-        version: relation.version,
-      });
-      if (
-        closed.releaseSetId !== availability.releaseSetId
-        || closed.releaseId !== availability.releaseId
-        || closed.pinnedContextDigest !== availability.pinnedContextDigest
-        || closed.projectionId !== availability.projectionId
-        || closed.projectionDigest !== availability.projectionDigest
-      ) {
-        return pending('mixed-version-identity', {
-          hasPreservedGoal: true,
-          teachingProjectionAvailable: true,
-          portraitAvailable: true,
-          reviewedBindingCount: mapping.bindingIds.length,
-          admittedCanonicalObjectCount: pinned.admittedCanonicalIds.length,
-          teachingRelationCount: teachingRelations.length,
-          resolvedGoalTargetCount: goalResolution.targetCanonicalIds.length,
-          codes: [closed.id],
-        });
-      }
-      if (!admitted.has(closed.sourceCanonicalId) || !admitted.has(closed.targetCanonicalId)) {
-        return pending('teaching-relation-out-of-coverage', {
-          hasPreservedGoal: true,
-          teachingProjectionAvailable: true,
-          portraitAvailable: true,
-          reviewedBindingCount: mapping.bindingIds.length,
-          admittedCanonicalObjectCount: pinned.admittedCanonicalIds.length,
-          teachingRelationCount: teachingRelations.length,
-          resolvedGoalTargetCount: goalResolution.targetCanonicalIds.length,
-          codes: [closed.id],
-        });
-      }
-      validatedRelations.push(closed);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '';
-      if (message.includes('outside CourseCoverage')) {
-        return pending('teaching-relation-out-of-coverage', {
-          hasPreservedGoal: true,
-          teachingProjectionAvailable: true,
-          portraitAvailable: true,
-          reviewedBindingCount: mapping.bindingIds.length,
-          admittedCanonicalObjectCount: pinned.admittedCanonicalIds.length,
-          teachingRelationCount: teachingRelations.length,
-          resolvedGoalTargetCount: goalResolution.targetCanonicalIds.length,
-        });
-      }
-      return pending('no-supported-teaching-relations', {
+    const membership = validateSubmittedTeachingRelationMembership(
+      relation,
+      availability,
+      pinned,
+      admitted,
+    );
+    if (membership !== null) {
+      return pending(membership.reason, {
         hasPreservedGoal: true,
         teachingProjectionAvailable: true,
         portraitAvailable: true,
@@ -446,9 +424,24 @@ export function replanCanonicalLearningPath(
         admittedCanonicalObjectCount: pinned.admittedCanonicalIds.length,
         teachingRelationCount: teachingRelations.length,
         resolvedGoalTargetCount: goalResolution.targetCanonicalIds.length,
-        codes: ['relation-validation-failed'],
+        codes: membership.codes,
       });
     }
+    if (seenRelationIds.has(relation.id)) {
+      return pending('mixed-version-identity', {
+        hasPreservedGoal: true,
+        teachingProjectionAvailable: true,
+        portraitAvailable: true,
+        reviewedBindingCount: mapping.bindingIds.length,
+        admittedCanonicalObjectCount: pinned.admittedCanonicalIds.length,
+        teachingRelationCount: teachingRelations.length,
+        resolvedGoalTargetCount: goalResolution.targetCanonicalIds.length,
+        codes: ['duplicate-relation-id', relation.id],
+      });
+    }
+    seenRelationIds.add(relation.id);
+    // Preserve submitted identity — never rebuild via availability.
+    validatedRelations.push(relation);
   }
 
   // Cycle detection on full formal graph first (invalid release surface).
@@ -1066,6 +1059,8 @@ function digestReviewedMapping(mapping: ReviewedKaqRoleCanonicalMapping): string
 function digestTeachingRelationSet(
   relations: readonly ActkgTeachingProjectionRelation[],
 ): string {
+  // Goal-relevant path-identity digest (subset). Whole-set membership is bound
+  // separately via FormalTeachingProjectionProof.relationSetDigest.
   const rows = relations
     .map((relation) => ({
       id: relation.id,
@@ -1078,6 +1073,72 @@ function digestTeachingRelationSet(
   return createHash('sha256')
     .update(JSON.stringify(rows), 'utf8')
     .digest('hex');
+}
+
+/**
+ * Field-by-field membership check for a submitted formal TP relation.
+ * Does not rebuild or overwrite identity from availability.
+ */
+function validateSubmittedTeachingRelationMembership(
+  relation: ActkgTeachingProjectionRelation,
+  availability: Extract<
+    ReturnType<typeof resolveTeachingProjectionAvailability>,
+    { available: true }
+  >,
+  pinned: VerifiedKaqPinnedContext,
+  admitted: ReadonlySet<string>,
+): { reason: CanonicalPathReplanPendingReason; codes: string[] } | null {
+  if (
+    relation.namespace !== 'actkg-teaching-projection'
+    || relation.authority !== 'ACTKG'
+  ) {
+    return {
+      reason: 'no-supported-teaching-relations',
+      codes: ['relation-authority-or-namespace-invalid', relation.id],
+    };
+  }
+  if (!isActkgTeachingProjectionPredicate(relation.predicate)) {
+    return {
+      reason: 'no-supported-teaching-relations',
+      codes: ['relation-predicate-invalid', relation.id],
+    };
+  }
+  if (
+    !relation.id?.trim()
+    || !relation.version?.trim()
+    || !relation.sourceCanonicalId?.trim()
+    || !relation.targetCanonicalId?.trim()
+  ) {
+    return {
+      reason: 'no-supported-teaching-relations',
+      codes: ['relation-fields-incomplete', relation.id ?? ''],
+    };
+  }
+  if (
+    relation.releaseSetId !== availability.releaseSetId
+    || relation.releaseId !== availability.releaseId
+    || relation.pinnedContextDigest !== availability.pinnedContextDigest
+    || relation.projectionId !== availability.projectionId
+    || relation.projectionDigest !== availability.projectionDigest
+    || relation.pinnedContextDigest !== pinned.contextDigest
+    || relation.releaseSetId !== pinned.releaseSetId
+    || relation.releaseId !== pinned.releaseId
+  ) {
+    return {
+      reason: 'mixed-version-identity',
+      codes: ['relation-identity-mismatch', relation.id],
+    };
+  }
+  if (
+    !admitted.has(relation.sourceCanonicalId)
+    || !admitted.has(relation.targetCanonicalId)
+  ) {
+    return {
+      reason: 'teaching-relation-out-of-coverage',
+      codes: [relation.id],
+    };
+  }
+  return null;
 }
 
 function buildCanonicalPathId(input: {

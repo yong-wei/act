@@ -252,6 +252,11 @@ export type TeachingProjectionAvailability =
       projectionId: string;
       /** 64-char lowercase SHA-256 of the formal Teaching Projection artifact. */
       projectionDigest: string;
+      /**
+       * Complete formal Teaching Projection relation-set digest bound by the
+       * formal proof. Consumers must reject submitted sets that do not match.
+       */
+      relationSetDigest: string;
     };
 
 /**
