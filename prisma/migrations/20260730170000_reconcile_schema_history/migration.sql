@@ -1,0 +1,90 @@
+-- Reconcile the schema recorded by the historical migration directory with the
+-- canonical Prisma schema. This migration preserves data and only adjusts
+-- constraints, indexes, defaults, and PostgreSQL object names.
+
+ALTER TABLE "ActkgEvidenceStructuralUnitCrosswalk" DROP CONSTRAINT "ActkgEvidenceStructuralUnitCrosswalk_canonical_fkey";
+ALTER TABLE "ActkgEvidenceStructuralUnitCrosswalk" DROP CONSTRAINT "ActkgEvidenceStructuralUnitCrosswalk_evidence_fkey";
+ALTER TABLE "ActkgEvidenceStructuralUnitCrosswalk" DROP CONSTRAINT "ActkgEvidenceStructuralUnitCrosswalk_inventory_fkey";
+ALTER TABLE "ActkgEvidenceStructuralUnitCrosswalk" DROP CONSTRAINT "ActkgEvidenceStructuralUnitCrosswalk_releaseId_fkey";
+ALTER TABLE "CanonicalResourceBindingDecision" DROP CONSTRAINT "CanonicalResourceBindingDecision_canonical_fkey";
+ALTER TABLE "CanonicalResourceBindingDecision" DROP CONSTRAINT "CanonicalResourceBindingDecision_supersedes_fkey";
+ALTER TABLE "CanonicalResourceBindingHumanDecisionReceipt" DROP CONSTRAINT "CanonicalResourceBindingHumanDecisionReceipt_decisionId_fkey";
+ALTER TABLE "CanonicalResourceBindingHumanDecisionReceipt" DROP CONSTRAINT "CanonicalResourceBindingHumanDecisionReceipt_queueId_fkey";
+ALTER TABLE "CanonicalResourceBindingHumanQueueItem" DROP CONSTRAINT "CanonicalResourceBindingHumanQueueItem_bindingDecisionId_fkey";
+ALTER TABLE "ResourceBindingInventoryItem" DROP CONSTRAINT "ResourceBindingInventoryItem_runId_fkey";
+
+DROP INDEX "CanonicalResourceBindingDecision_current_published_pair_role_ke";
+DROP INDEX "ClassCompetencySnapshot_classId_snapshotAt_idx";
+DROP INDEX "CumulativePortraitReceipt_success_terminal_key";
+DROP INDEX "InteractionLog_userId_clientEventId_unique";
+DROP INDEX "SmartCoursewareGenerationJob_ownerId_mode_createdAt_idx";
+DROP INDEX "SmartCoursewareModuleRevision_acceptedCommandId_idx";
+DROP INDEX "SmartCoursewareModuleRevision_generationJobId_idx";
+DROP INDEX "SmartCoursewareModuleRevision_providerAttemptId_idx";
+
+ALTER TABLE "ClassSessionIntegrityIncident" ALTER COLUMN "lastDetectedAt" DROP DEFAULT;
+ALTER TABLE "GradingRequestIdempotency" ALTER COLUMN "expiresAt" SET DEFAULT (CURRENT_TIMESTAMP + '24:00:00'::interval);
+ALTER TABLE "SmartLessonProviderAttempt" ALTER COLUMN "deliveryGeneration" DROP DEFAULT;
+ALTER TABLE "_KnowledgeNodeToTeachingResource" ADD CONSTRAINT "_KnowledgeNodeToTeachingResource_AB_pkey" PRIMARY KEY ("A", "B");
+DROP INDEX "_KnowledgeNodeToTeachingResource_AB_unique";
+
+ALTER TABLE "ActkgAuthoritativeRelation" RENAME CONSTRAINT "ActkgAuthoritativeRelation_source_fkey" TO "ActkgAuthoritativeRelation_releaseId_sourceId_fkey";
+ALTER TABLE "ActkgAuthoritativeRelation" RENAME CONSTRAINT "ActkgAuthoritativeRelation_target_fkey" TO "ActkgAuthoritativeRelation_releaseId_targetId_fkey";
+ALTER TABLE "ActkgSourceMapping" RENAME CONSTRAINT "ActkgSourceMapping_canonical_fkey" TO "ActkgSourceMapping_releaseId_canonicalId_fkey";
+ALTER TABLE "ActkgSourceMapping" RENAME CONSTRAINT "ActkgSourceMapping_sourceObject_fkey" TO "ActkgSourceMapping_releaseId_sourceObjectId_fkey";
+ALTER TABLE "CourseCoverageOverlayEntry" RENAME CONSTRAINT "CourseCoverageOverlayEntry_canonical_fkey" TO "CourseCoverageOverlayEntry_releaseId_canonicalId_fkey";
+ALTER TABLE "CourseCoverageOverlayEntry" RENAME CONSTRAINT "CourseCoverageOverlayEntry_overlayVersionId_fkey" TO "CourseCoverageOverlayEntry_overlayVersionId_releaseId_fkey";
+ALTER TABLE "SmartCoursewarePdfExport" RENAME CONSTRAINT "SmartCoursewarePdfExport_created_by_fkey" TO "SmartCoursewarePdfExport_createdById_fkey";
+ALTER TABLE "SmartCoursewarePdfExport" RENAME CONSTRAINT "SmartCoursewarePdfExport_publication_fkey" TO "SmartCoursewarePdfExport_publicationRevisionId_fkey";
+ALTER TABLE "SmartCoursewareStalePlanAcknowledgement" RENAME CONSTRAINT "SmartCoursewareStalePlanAcknowledgement_newestPlanRevisionId_fk" TO "SmartCoursewareStalePlanAcknowledgement_newestPlanRevision_fkey";
+
+ALTER TABLE "ResourceBindingInventoryItem" ADD CONSTRAINT "ResourceBindingInventoryItem_runId_fkey" FOREIGN KEY ("runId") REFERENCES "ResourceBindingInventoryRun"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ActkgEvidenceStructuralUnitCrosswalk" ADD CONSTRAINT "ActkgEvidenceStructuralUnitCrosswalk_releaseId_fkey" FOREIGN KEY ("releaseId") REFERENCES "ActkgRelease"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ActkgEvidenceStructuralUnitCrosswalk" ADD CONSTRAINT "ActkgEvidenceStructuralUnitCrosswalk_releaseId_evidenceId_fkey" FOREIGN KEY ("releaseId", "evidenceId") REFERENCES "ActkgEvidenceSegment"("releaseId", "evidenceId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ActkgEvidenceStructuralUnitCrosswalk" ADD CONSTRAINT "ActkgEvidenceStructuralUnitCrosswalk_releaseId_canonicalId_fkey" FOREIGN KEY ("releaseId", "canonicalId") REFERENCES "ActkgAuthoritativeObject"("releaseId", "canonicalId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ActkgEvidenceStructuralUnitCrosswalk" ADD CONSTRAINT "ActkgEvidenceStructuralUnitCrosswalk_inventoryRunId_atomic_fkey" FOREIGN KEY ("inventoryRunId", "atomicResourceId") REFERENCES "ResourceBindingInventoryItem"("runId", "atomicResourceId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CanonicalResourceBindingDecision" ADD CONSTRAINT "CanonicalResourceBindingDecision_releaseId_canonicalId_fkey" FOREIGN KEY ("releaseId", "canonicalId") REFERENCES "ActkgAuthoritativeObject"("releaseId", "canonicalId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CanonicalResourceBindingDecision" ADD CONSTRAINT "CanonicalResourceBindingDecision_supersedesDecisionId_fkey" FOREIGN KEY ("supersedesDecisionId") REFERENCES "CanonicalResourceBindingDecision"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CanonicalResourceBindingHumanQueueItem" ADD CONSTRAINT "CanonicalResourceBindingHumanQueueItem_bindingDecisionId_fkey" FOREIGN KEY ("bindingDecisionId") REFERENCES "CanonicalResourceBindingDecision"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CanonicalResourceBindingHumanDecisionReceipt" ADD CONSTRAINT "CanonicalResourceBindingHumanDecisionReceipt_queueId_fkey" FOREIGN KEY ("queueId") REFERENCES "CanonicalResourceBindingHumanQueueItem"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CanonicalResourceBindingHumanDecisionReceipt" ADD CONSTRAINT "CanonicalResourceBindingHumanDecisionReceipt_decisionId_fkey" FOREIGN KEY ("decisionId") REFERENCES "CanonicalResourceBindingDecision"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER INDEX "ActkgAuthoritativeRelation_releaseId_relationType_qualityTier_i" RENAME TO "ActkgAuthoritativeRelation_releaseId_relationType_qualityTi_idx";
+ALTER INDEX "ActkgAuthoritativeRelation_releaseId_sourceId_targetId_relation" RENAME TO "ActkgAuthoritativeRelation_releaseId_sourceId_targetId_rela_key";
+ALTER INDEX "ActkgEvidenceSegment_releaseId_sourceEditionId_sectionId_segmen" RENAME TO "ActkgEvidenceSegment_releaseId_sourceEditionId_sectionId_se_idx";
+ALTER INDEX "ActkgEvidenceStructuralUnitCrosswalk_identity_key" RENAME TO "ActkgEvidenceStructuralUnitCrosswalk_releaseId_evidenceId_s_key";
+ALTER INDEX "ActkgEvidenceStructuralUnitCrosswalk_structural_unit_idx" RENAME TO "ActkgEvidenceStructuralUnitCrosswalk_structuralUnitId_struc_idx";
+ALTER INDEX "ActkgSourceMapping_releaseId_sourceObjectId_canonicalId_mapping" RENAME TO "ActkgSourceMapping_releaseId_sourceObjectId_canonicalId_map_key";
+ALTER INDEX "AdaptiveAssessmentItemRef_questionId_algorithmVersion_contentHa" RENAME TO "AdaptiveAssessmentItemRef_questionId_algorithmVersion_conte_key";
+ALTER INDEX "AdaptiveMasteryUpdate_answerId_knowledgeTag_algorithmVersion_ke" RENAME TO "AdaptiveMasteryUpdate_answerId_knowledgeTag_algorithmVersio_key";
+ALTER INDEX "AssignmentHistoricalOwnership_assignmentRevisionId_studentId_ke" RENAME TO "AssignmentHistoricalOwnership_assignmentRevisionId_studentI_key";
+ALTER INDEX "AssignmentReviewGrant_assignmentId_teacherId_revokedAt_expiresA" RENAME TO "AssignmentReviewGrant_assignmentId_teacherId_revokedAt_expi_idx";
+ALTER INDEX "AssignmentRevisionAssetReference_revisionId_stableQuestionId_fi" RENAME TO "AssignmentRevisionAssetReference_revisionId_stableQuestionI_key";
+ALTER INDEX "CanonicalResourceBindingDecision_attempt_key" RENAME TO "CanonicalResourceBindingDecision_pairId_generatorPromptVers_key";
+ALTER INDEX "CanonicalResourceBindingDecision_canonical_role_idx" RENAME TO "CanonicalResourceBindingDecision_releaseId_canonicalId_role_idx";
+ALTER INDEX "CanonicalResourceBindingDecision_resource_shadow_idx" RENAME TO "CanonicalResourceBindingDecision_resourceId_structuralUnitI_idx";
+ALTER INDEX "CourseCoverageOverlayVersion_courseId_releaseId_overlayVersion_" RENAME TO "CourseCoverageOverlayVersion_courseId_releaseId_overlayVers_key";
+ALTER INDEX "CourseCoverageOverlayVersion_courseId_releaseSetId_releaseId_id" RENAME TO "CourseCoverageOverlayVersion_courseId_releaseSetId_releaseI_idx";
+ALTER INDEX "GrowthRecordInvalidation_growthRecordId_sourceTransitionSequenc" RENAME TO "GrowthRecordInvalidation_growthRecordId_sourceTransitionSeq_key";
+ALTER INDEX "KonlingSession_userId_libraryVisible_pinnedAt_lastActivityAt_id" RENAME TO "KonlingSession_userId_libraryVisible_pinnedAt_lastActivityA_idx";
+ALTER INDEX "SmartCoursewareGapAcknowledgement_owner_scope_gap_key" RENAME TO "SmartCoursewareGapAcknowledgement_ownerId_scope_gapIdentity_key";
+ALTER INDEX "SmartCoursewareGapAcknowledgement_source_scope_target_idx" RENAME TO "SmartCoursewareGapAcknowledgement_sourceRevisionId_scope_ta_idx";
+ALTER INDEX "SmartCoursewareGenerationCommand_ownerId_action_idempotencyKey_" RENAME TO "SmartCoursewareGenerationCommand_ownerId_action_idempotency_key";
+ALTER INDEX "SmartCoursewareModuleRevision_ownerId_moduleRecordId_createdAt_" RENAME TO "SmartCoursewareModuleRevision_ownerId_moduleRecordId_create_idx";
+ALTER INDEX "SmartCoursewarePdfExport_owner_idempotency_key" RENAME TO "SmartCoursewarePdfExport_ownerId_idempotencyKey_key";
+ALTER INDEX "SmartCoursewarePdfExport_owner_publication_created_idx" RENAME TO "SmartCoursewarePdfExport_ownerId_publicationRevisionId_crea_idx";
+ALTER INDEX "SmartCoursewarePdfExport_publication_renderer_key" RENAME TO "SmartCoursewarePdfExport_publicationRevisionId_rendererVers_key";
+ALTER INDEX "SmartCoursewareProviderAttempt_generationJobId_attemptNumber_id" RENAME TO "SmartCoursewareProviderAttempt_generationJobId_attemptNumbe_idx";
+ALTER INDEX "SmartCoursewarePublicationOperation_owner_idempotency_key" RENAME TO "SmartCoursewarePublicationOperation_ownerId_idempotencyKey_key";
+ALTER INDEX "SmartCoursewarePublicationOperation_source_created_idx" RENAME TO "SmartCoursewarePublicationOperation_sourceRevisionId_create_idx";
+ALTER INDEX "SmartCoursewarePublicationReceipt_owner_source_kind_completed_i" RENAME TO "SmartCoursewarePublicationReceipt_ownerId_sourceRevisionId__idx";
+ALTER INDEX "SmartCoursewarePublicationReceipt_source_kind_hash_validator_pr" RENAME TO "SmartCoursewarePublicationReceipt_sourceRevisionId_kind_con_key";
+ALTER INDEX "SmartCoursewarePublicationRevision_owner_published_idx" RENAME TO "SmartCoursewarePublicationRevision_ownerId_publishedAt_idx";
+ALTER INDEX "SmartCoursewarePublicationRevision_series_revision_key" RENAME TO "SmartCoursewarePublicationRevision_seriesId_revisionNumber_key";
+ALTER INDEX "SmartCoursewareStalePlanAcknowledgement_owner_source_newest_key" RENAME TO "SmartCoursewareStalePlanAcknowledgement_ownerId_sourceRevis_key";
+ALTER INDEX "SmartCoursewareStalePlanAcknowledgement_source_newest_number_id" RENAME TO "SmartCoursewareStalePlanAcknowledgement_sourceRevisionId_ne_idx";
+ALTER INDEX "SmartLessonProviderAttempt_stageId_providerAttemptGeneration_ki" RENAME TO "SmartLessonProviderAttempt_stageId_providerAttemptGeneratio_key";
+ALTER INDEX "TeacherAssignmentResubmissionGrant_questionId_state_expiresAt_i" RENAME TO "TeacherAssignmentResubmissionGrant_questionId_state_expires_idx";
+ALTER INDEX "TeacherAssignmentResubmissionGrant_submissionId_state_expiresAt" RENAME TO "TeacherAssignmentResubmissionGrant_submissionId_state_expir_idx";
+ALTER INDEX "TeacherAssignmentResubmissionIntake_state_availableAt_leaseExpi" RENAME TO "TeacherAssignmentResubmissionIntake_state_availableAt_lease_idx";
+ALTER INDEX "TeacherAssignmentReviewedDerivative_snapshotId_state_updatedAt_" RENAME TO "TeacherAssignmentReviewedDerivative_snapshotId_state_update_idx";

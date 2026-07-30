@@ -26,3 +26,9 @@
 - [x] 4.2 Pass targeted Vitest suites.
 - [x] 4.3 Pass TypeScript typecheck for the affected dependency graph.
 - [x] 4.4 Pass strict OpenSpec validation.
+
+## 5. Teacher diagnosis surface and migration reconciliation
+
+- [x] 5.1 Add a data-preserving reconciliation migration so the migrations directory and Prisma schema have no diff.
+- [ ] 5.2 Add a teacher class diagnosis entry and governed report-rendering surface.
+- [ ] 5.3 Add browser E2E coverage for the authorized teacher report path.
