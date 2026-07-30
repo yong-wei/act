@@ -14,7 +14,7 @@
 
 ## 3. Acceptance
 
-- [ ] 3.1 Verify desktop and 320px correct/incorrect button hierarchy
-- [ ] 3.2 Verify automatic conversation creation, retry behavior, and path-advisor coexistence
+- [x] 3.1 Verify desktop and 320px correct/incorrect button hierarchy
+- [x] 3.2 Verify automatic conversation creation, retry behavior, and path-advisor coexistence
 - [x] 3.3 Run targeted tests, typecheck, commit and push gates
 - [x] 3.4 Complete independent high-reasoning review
