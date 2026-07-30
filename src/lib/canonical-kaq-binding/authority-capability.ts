@@ -11,12 +11,6 @@
 import { createHash } from 'node:crypto';
 
 import { ACTIVE_COURSE_COVERAGE_ROLES } from '@/lib/aggregate-governance/contracts';
-import type {
-  CourseCoverageAuditIdentity,
-  CourseCoverageRecord,
-  CourseCoverageResult,
-  CourseCoverageSelector,
-} from '@/lib/authoritative-knowledge/contracts';
 
 import {
   PINNED_KAQ_AGGREGATE_RELEASE_ID,
@@ -30,6 +24,64 @@ import {
   buildKaqPinnedContext,
   KaqPinnedContextError,
 } from './pinned-context';
+
+/**
+ * Selector for AggregateCourseCoverageVersion. Field-compatible with the legacy
+ * CourseCoverageSelector shape, but authority is #1126 aggregate coverage +
+ * AggregateGovernanceReceipt — not CourseCoverageOverlayVersion.
+ */
+export type KaqAggregateCoverageSelector = {
+  courseId: string;
+  overlayId: string;
+  overlayVersion: string;
+  releaseSetId: string;
+  releaseId: string;
+};
+
+/**
+ * Raw aggregate coverage + governance identity closed against an accepted Delta.
+ * Not a branded capability — private mint + server loader only.
+ */
+export type AggregateCoverageAuthoritySource = {
+  selector: KaqAggregateCoverageSelector;
+  version: {
+    id: string;
+    courseId: string;
+    overlayId: string;
+    overlayVersion: string;
+    releaseSetId: string;
+    releaseId: string;
+    releaseHash: string;
+    sourceDatasetHash: string | null;
+    deltaReceiptId: string;
+    authoringRevision: string;
+    captureRevision: string;
+    sourceHash: string;
+    lifecycleState: string;
+  };
+  entries: ReadonlyArray<{
+    canonicalId: string;
+    role: string;
+    ordinal: number;
+    lifecycleState: string;
+  }>;
+  governance: {
+    id: string;
+    coverageVersionId: string | null;
+    releaseSetId: string;
+    releaseId: string;
+    releaseHash: string;
+    sourceDatasetHash: string | null;
+    deltaReceiptId: string;
+    deltaOutputDigest: string;
+    deltaCaptureRevision: string;
+    coverageSourceHash: string | null;
+    captureRevision: string;
+    authoringRevision: string | null;
+    authorityState: string;
+    productionAuthoritative: boolean;
+  };
+};
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const GIT_COMMIT = /^[a-f0-9]{40}$/u;
@@ -165,9 +217,34 @@ export type AcceptedDeltaReceiptEvidence = {
 export type VerifiedCourseCoverageBundle = {
   readonly [VERIFIED_COVERAGE_BRAND]: typeof VERIFIED_COVERAGE_BRAND;
   schemaVersion: typeof VERIFIED_COURSE_COVERAGE_BUNDLE_VERSION;
-  selector: CourseCoverageSelector;
-  audit: CourseCoverageAuditIdentity;
-  entries: CourseCoverageRecord[];
+  selector: KaqAggregateCoverageSelector;
+  /**
+   * Aggregate CourseCoverage + AggregateGovernanceReceipt identity.
+   * Does not invent legacy overlay lock hashes or overlay-version table evidence.
+   */
+  identity: {
+    coverageVersionId: string;
+    courseId: string;
+    overlayId: string;
+    overlayVersion: string;
+    authoringRevision: string;
+    captureRevision: string;
+    sourceHash: string;
+    releaseSetId: string;
+    releaseId: string;
+    releaseHash: string;
+    sourceDatasetHash: string;
+    deltaReceiptId: string;
+    governanceReceiptId: string;
+    authorityState: 'SHADOW';
+    productionAuthoritative: false;
+  };
+  entries: Array<{
+    canonicalId: string;
+    role: string;
+    ordinal: number;
+    lifecycleState: 'CURRENT';
+  }>;
   admittedCanonicalIds: readonly string[];
 };
 
@@ -338,28 +415,23 @@ export function admittedCanonicalIdsFromCoverageEntries(
   )].sort();
 }
 
-function validateCoverageAgainstDelta(
-  coverage: CourseCoverageResult,
+function validateAggregateCoverageAgainstDelta(
+  source: AggregateCoverageAuthoritySource,
   delta: AcceptedDeltaReceiptEvidence,
 ): {
-  selector: CourseCoverageSelector;
-  audit: CourseCoverageAuditIdentity;
-  entries: CourseCoverageRecord[];
+  selector: KaqAggregateCoverageSelector;
+  identity: VerifiedCourseCoverageBundle['identity'];
+  entries: VerifiedCourseCoverageBundle['entries'];
   admittedCanonicalIds: string[];
 } {
-  if (coverage.status !== 'available') {
+  const { selector, version, entries, governance } = source;
+
+  if (version.lifecycleState !== 'CURRENT') {
     throw new KaqAuthorityInputError(
       'coverage-not-available',
-      `CourseCoverage is not available (status=${coverage.status})`,
+      `AggregateCourseCoverageVersion lifecycleState must be CURRENT (got ${version.lifecycleState})`,
     );
   }
-  if (coverage.productionAuthoritative !== false) {
-    throw new KaqAuthorityInputError(
-      'coverage-format-invalid',
-      'CourseCoverage productionAuthoritative must be false for shadow KAQ',
-    );
-  }
-  const { selector, audit, entries } = coverage;
   if (selector.overlayId !== PINNED_KAQ_COVERAGE_OVERLAY_ID) {
     throw new KaqAuthorityInputError(
       'coverage-identity-mismatch',
@@ -367,85 +439,230 @@ function validateCoverageAgainstDelta(
     );
   }
   if (
-    selector.releaseSetId !== delta.candidateReleaseSetId
-    || selector.releaseId !== delta.candidateReleaseId
+    selector.courseId !== version.courseId
+    || selector.overlayId !== version.overlayId
+    || selector.overlayVersion !== version.overlayVersion
+    || selector.releaseSetId !== version.releaseSetId
+    || selector.releaseId !== version.releaseId
   ) {
     throw new KaqAuthorityInputError(
       'coverage-identity-mismatch',
-      'CourseCoverage selector Release identity does not match accepted Delta',
+      'AggregateCourseCoverageVersion does not match coverageSelector',
     );
   }
   if (
-    audit.releaseSetId !== delta.candidateReleaseSetId
-    || audit.releaseId !== delta.candidateReleaseId
-    || audit.releaseHash !== delta.candidateReleaseHash
+    version.releaseSetId !== delta.candidateReleaseSetId
+    || version.releaseId !== delta.candidateReleaseId
+    || version.releaseHash !== delta.candidateReleaseHash
+    || version.deltaReceiptId !== delta.id
   ) {
     throw new KaqAuthorityInputError(
       'coverage-identity-mismatch',
-      'CourseCoverage audit Release identity does not match accepted Delta',
+      'AggregateCourseCoverageVersion Release/Delta identity does not match accepted Delta',
     );
   }
-  if (
-    audit.overlayId !== selector.overlayId
-    || audit.overlayVersion !== selector.overlayVersion
-    || audit.courseId !== selector.courseId
-  ) {
+  const versionSourceDatasetHash = version.sourceDatasetHash?.trim() ?? '';
+  if (!SHA256.test(versionSourceDatasetHash)) {
+    throw new KaqAuthorityInputError(
+      'coverage-format-invalid',
+      'AggregateCourseCoverageVersion.sourceDatasetHash must be 64-char lowercase sha256 hex',
+    );
+  }
+  if (versionSourceDatasetHash !== delta.candidateSourceDatasetHash) {
     throw new KaqAuthorityInputError(
       'coverage-identity-mismatch',
-      'CourseCoverage audit does not match selector',
+      'AggregateCourseCoverageVersion.sourceDatasetHash does not match accepted Delta',
     );
   }
-  if (!SHA256.test(audit.sourceHash)) {
+  if (!SHA256.test(version.sourceHash)) {
     throw new KaqAuthorityInputError(
       'coverage-format-invalid',
-      'CourseCoverage audit.sourceHash must be 64-char lowercase sha256 hex',
+      'AggregateCourseCoverageVersion.sourceHash must be 64-char lowercase sha256 hex',
     );
   }
-  if (!GIT_COMMIT.test(audit.captureRevision)) {
+  if (!GIT_COMMIT.test(version.authoringRevision)) {
     throw new KaqAuthorityInputError(
       'coverage-format-invalid',
-      'CourseCoverage audit.captureRevision must be a 40-char git commit',
+      'AggregateCourseCoverageVersion.authoringRevision must be a 40-char git commit',
     );
   }
+  if (!GIT_COMMIT.test(version.captureRevision)) {
+    throw new KaqAuthorityInputError(
+      'coverage-format-invalid',
+      'AggregateCourseCoverageVersion.captureRevision must be a 40-char git commit',
+    );
+  }
+
   if (!Array.isArray(entries) || entries.length === 0) {
     throw new KaqAuthorityInputError(
       'coverage-format-invalid',
-      'CourseCoverage available result requires non-empty entries',
+      'AggregateCourseCoverage requires non-empty CURRENT entries',
     );
   }
+  const currentEntries: VerifiedCourseCoverageBundle['entries'] = [];
+  const seenOrdinals = new Set<number>();
   for (const entry of entries) {
+    if (entry.lifecycleState !== 'CURRENT') {
+      throw new KaqAuthorityInputError(
+        'coverage-format-invalid',
+        `AggregateCourseCoverageEntry lifecycleState must be CURRENT (got ${entry.lifecycleState})`,
+      );
+    }
     if (!entry.canonicalId?.trim()) {
       throw new KaqAuthorityInputError(
         'coverage-format-invalid',
-        'CourseCoverage entry missing canonicalId',
+        'AggregateCourseCoverageEntry missing canonicalId',
       );
     }
+    if (!Number.isInteger(entry.ordinal) || entry.ordinal < 0) {
+      throw new KaqAuthorityInputError(
+        'coverage-format-invalid',
+        'AggregateCourseCoverageEntry ordinal must be a non-negative integer',
+      );
+    }
+    if (seenOrdinals.has(entry.ordinal)) {
+      throw new KaqAuthorityInputError(
+        'coverage-format-invalid',
+        `Duplicate AggregateCourseCoverageEntry ordinal ${entry.ordinal}`,
+      );
+    }
+    seenOrdinals.add(entry.ordinal);
+    if (!entry.role?.trim()) {
+      throw new KaqAuthorityInputError(
+        'coverage-format-invalid',
+        'AggregateCourseCoverageEntry missing role',
+      );
+    }
+    currentEntries.push({
+      canonicalId: entry.canonicalId,
+      role: entry.role,
+      ordinal: entry.ordinal,
+      lifecycleState: 'CURRENT',
+    });
   }
-  const admittedCanonicalIds = admittedCanonicalIdsFromCoverageEntries(entries);
+
+  const admittedCanonicalIds = admittedCanonicalIdsFromCoverageEntries(currentEntries);
   if (admittedCanonicalIds.length === 0) {
     throw new KaqAuthorityInputError(
       'coverage-format-invalid',
       'CourseCoverage has no active admitted roles (excluded-only is not admitted)',
     );
   }
+
+  // Governance receipt must bind the same coverage version + accepted Delta and
+  // remain SHADOW / non-production authoritative.
+  if (!governance.id?.trim()) {
+    throw new KaqAuthorityInputError(
+      'coverage-not-available',
+      'AggregateGovernanceReceipt is required for aggregate CourseCoverage authority',
+    );
+  }
+  if (governance.coverageVersionId !== version.id) {
+    throw new KaqAuthorityInputError(
+      'coverage-identity-mismatch',
+      'AggregateGovernanceReceipt.coverageVersionId does not match coverage version',
+    );
+  }
+  if (
+    governance.releaseSetId !== delta.candidateReleaseSetId
+    || governance.releaseId !== delta.candidateReleaseId
+    || governance.releaseHash !== delta.candidateReleaseHash
+    || governance.deltaReceiptId !== delta.id
+  ) {
+    throw new KaqAuthorityInputError(
+      'coverage-identity-mismatch',
+      'AggregateGovernanceReceipt Release/Delta identity does not match accepted Delta',
+    );
+  }
+  const governanceSourceDatasetHash = governance.sourceDatasetHash?.trim() ?? '';
+  if (
+    !SHA256.test(governanceSourceDatasetHash)
+    || governanceSourceDatasetHash !== delta.candidateSourceDatasetHash
+  ) {
+    throw new KaqAuthorityInputError(
+      'coverage-identity-mismatch',
+      'AggregateGovernanceReceipt.sourceDatasetHash does not match accepted Delta',
+    );
+  }
+  if (governance.deltaOutputDigest !== delta.outputDigest) {
+    throw new KaqAuthorityInputError(
+      'coverage-identity-mismatch',
+      'AggregateGovernanceReceipt.deltaOutputDigest does not match accepted Delta',
+    );
+  }
+  if (governance.deltaCaptureRevision !== delta.captureRevision) {
+    throw new KaqAuthorityInputError(
+      'coverage-identity-mismatch',
+      'AggregateGovernanceReceipt.deltaCaptureRevision does not match accepted Delta',
+    );
+  }
+  const coverageSourceHash = governance.coverageSourceHash?.trim() ?? '';
+  if (!SHA256.test(coverageSourceHash) || coverageSourceHash !== version.sourceHash) {
+    throw new KaqAuthorityInputError(
+      'coverage-identity-mismatch',
+      'AggregateGovernanceReceipt.coverageSourceHash does not match coverage version',
+    );
+  }
+  if (governance.captureRevision !== version.captureRevision) {
+    throw new KaqAuthorityInputError(
+      'coverage-identity-mismatch',
+      'AggregateGovernanceReceipt.captureRevision does not match coverage version',
+    );
+  }
+  const governanceAuthoring = governance.authoringRevision?.trim() ?? '';
+  if (!GIT_COMMIT.test(governanceAuthoring) || governanceAuthoring !== version.authoringRevision) {
+    throw new KaqAuthorityInputError(
+      'coverage-identity-mismatch',
+      'AggregateGovernanceReceipt.authoringRevision does not match coverage version',
+    );
+  }
+  if (governance.authorityState !== 'SHADOW') {
+    throw new KaqAuthorityInputError(
+      'coverage-format-invalid',
+      `AggregateGovernanceReceipt.authorityState must be SHADOW (got ${governance.authorityState})`,
+    );
+  }
+  if (governance.productionAuthoritative !== false) {
+    throw new KaqAuthorityInputError(
+      'coverage-format-invalid',
+      'AggregateGovernanceReceipt.productionAuthoritative must be false for shadow KAQ',
+    );
+  }
+
   return {
-    selector,
-    audit,
-    entries: [...entries],
+    selector: { ...selector },
+    identity: {
+      coverageVersionId: version.id,
+      courseId: version.courseId,
+      overlayId: version.overlayId,
+      overlayVersion: version.overlayVersion,
+      authoringRevision: version.authoringRevision,
+      captureRevision: version.captureRevision,
+      sourceHash: version.sourceHash,
+      releaseSetId: version.releaseSetId,
+      releaseId: version.releaseId,
+      releaseHash: version.releaseHash,
+      sourceDatasetHash: versionSourceDatasetHash,
+      deltaReceiptId: version.deltaReceiptId,
+      governanceReceiptId: governance.id,
+      authorityState: 'SHADOW',
+      productionAuthoritative: false,
+    },
+    entries: currentEntries,
     admittedCanonicalIds,
   };
 }
 
 function mintVerifiedCourseCoverageBundle(input: {
-  coverage: CourseCoverageResult;
+  coverage: AggregateCoverageAuthoritySource;
   delta: AcceptedDeltaReceiptEvidence;
 }): VerifiedCourseCoverageBundle {
   const delta = assertAcceptedDeltaReceiptEvidence(input.delta);
-  const closed = validateCoverageAgainstDelta(input.coverage, delta);
+  const closed = validateAggregateCoverageAgainstDelta(input.coverage, delta);
   const obj = {
     schemaVersion: VERIFIED_COURSE_COVERAGE_BUNDLE_VERSION,
     selector: { ...closed.selector },
-    audit: { ...closed.audit },
+    identity: { ...closed.identity },
     entries: closed.entries.map((entry) => ({ ...entry })),
     admittedCanonicalIds: [...closed.admittedCanonicalIds],
   } as unknown as VerifiedCourseCoverageBundle;
@@ -482,7 +699,7 @@ export function assertVerifiedCourseCoverageBundle(
   }
   // Re-check admitted set excludes non-active roles if entries present.
   const entries = Array.isArray(record.entries)
-    ? (record.entries as CourseCoverageRecord[])
+    ? (record.entries as Array<{ canonicalId: string; role: string }>)
     : [];
   const expectedAdmitted = admittedCanonicalIdsFromCoverageEntries(entries);
   const claimed = Array.isArray(record.admittedCanonicalIds)
@@ -492,6 +709,17 @@ export function assertVerifiedCourseCoverageBundle(
     throw new KaqAuthorityInputError(
       'coverage-format-invalid',
       'Verified CourseCoverage admittedCanonicalIds does not match active roles only',
+    );
+  }
+  const identity = record.identity as VerifiedCourseCoverageBundle['identity'] | undefined;
+  if (
+    !identity
+    || identity.authorityState !== 'SHADOW'
+    || identity.productionAuthoritative !== false
+  ) {
+    throw new KaqAuthorityInputError(
+      'coverage-format-invalid',
+      'Verified CourseCoverage identity must be SHADOW / non-production aggregate authority',
     );
   }
   // Return the same branded instance; never remint/rebrand.
@@ -551,8 +779,8 @@ export function buildKaqPinnedContextFromVerifiedAuthority(input: {
     deltaReceiptId: delta.id,
     coverageOverlayId: coverage.selector.overlayId,
     coverageOverlayVersion: coverage.selector.overlayVersion,
-    coverageSourceHash: coverage.audit.sourceHash,
-    coverageCaptureRevision: coverage.audit.captureRevision,
+    coverageSourceHash: coverage.identity.sourceHash,
+    coverageCaptureRevision: coverage.identity.captureRevision,
     admittedCanonicalIds: coverage.admittedCanonicalIds,
   });
 }
@@ -731,7 +959,7 @@ export function mintAcceptedDeltaEvidenceForTests(raw: {
 }
 
 export function mintVerifiedCoverageForTests(input: {
-  coverage: CourseCoverageResult;
+  coverage: AggregateCoverageAuthoritySource;
   delta: AcceptedDeltaReceiptEvidence;
 }): VerifiedCourseCoverageBundle {
   assertTestOnly('mintVerifiedCoverageForTests');
@@ -760,10 +988,14 @@ export function mintVerifiedKaqPinnedContextForTests(
  * Server DB loader — stable ids only. Private mints stay in this module.
  * Dynamic-imports prisma so static client bundles that only pull asserts
  * do not eagerly load the Prisma singleton at import time.
+ *
+ * Authority source is #1126 AggregateCourseCoverageVersion + CURRENT entries
+ * + AggregateGovernanceReceipt (SHADOW, non-production). Never reads legacy
+ * overlay-version tables or the authoritative-knowledge repository coverage API.
  */
 export async function loadKaqPinnedContextFromDb(input: {
   deltaReceiptId: string;
-  coverageSelector: CourseCoverageSelector;
+  coverageSelector: KaqAggregateCoverageSelector;
 }): Promise<VerifiedKaqPinnedContext> {
   const deltaReceiptId = input.deltaReceiptId?.trim();
   if (!deltaReceiptId) {
@@ -775,11 +1007,9 @@ export async function loadKaqPinnedContextFromDb(input: {
       'coverageSelector is required',
     );
   }
+  const selector = input.coverageSelector;
 
   const { prisma } = await import('@/lib/prisma');
-  const { AuthoritativeKnowledgeRepository } = await import(
-    '@/lib/authoritative-knowledge/repository'
-  );
 
   const row = await prisma.actkgReleaseSetDeltaReceipt.findUnique({
     where: { id: deltaReceiptId },
@@ -812,15 +1042,147 @@ export async function loadKaqPinnedContextFromDb(input: {
     captureRevision: row.captureRevision,
   });
 
-  const repository = new AuthoritativeKnowledgeRepository(prisma);
-  const coverage = await repository.readCourseCoverage(input.coverageSelector);
-  const verifiedCoverage = mintVerifiedCourseCoverageBundle({ coverage, delta });
-  return buildKaqPinnedContextFromVerifiedAuthority({ delta, coverage: verifiedCoverage });
+  // Exact selector + CURRENT lifecycle. Unique key is overlayId+overlayVersion;
+  // remaining selector fields and lifecycle are closed below.
+  const version = await prisma.aggregateCourseCoverageVersion.findUnique({
+    where: {
+      overlayId_overlayVersion: {
+        overlayId: selector.overlayId,
+        overlayVersion: selector.overlayVersion,
+      },
+    },
+    select: {
+      id: true,
+      courseId: true,
+      overlayId: true,
+      overlayVersion: true,
+      releaseSetId: true,
+      releaseId: true,
+      releaseHash: true,
+      sourceDatasetHash: true,
+      deltaReceiptId: true,
+      authoringRevision: true,
+      captureRevision: true,
+      sourceHash: true,
+      lifecycleState: true,
+    },
+  });
+  if (!version) {
+    throw new KaqAuthorityInputError(
+      'coverage-not-available',
+      `AggregateCourseCoverageVersion not found for overlay ${selector.overlayId}@${selector.overlayVersion}`,
+    );
+  }
+
+  const entryRows = await prisma.aggregateCourseCoverageEntry.findMany({
+    where: {
+      versionId: version.id,
+      releaseId: version.releaseId,
+      lifecycleState: 'CURRENT',
+    },
+    orderBy: [{ ordinal: 'asc' }, { canonicalId: 'asc' }],
+    select: {
+      canonicalId: true,
+      role: true,
+      ordinal: true,
+      lifecycleState: true,
+    },
+  });
+
+  const governance = await prisma.aggregateGovernanceReceipt.findFirst({
+    where: {
+      coverageVersionId: version.id,
+      releaseId: version.releaseId,
+      releaseSetId: version.releaseSetId,
+      deltaReceiptId: delta.id,
+      authorityState: 'SHADOW',
+      productionAuthoritative: false,
+    },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      coverageVersionId: true,
+      releaseSetId: true,
+      releaseId: true,
+      releaseHash: true,
+      sourceDatasetHash: true,
+      deltaReceiptId: true,
+      deltaOutputDigest: true,
+      deltaCaptureRevision: true,
+      coverageSourceHash: true,
+      captureRevision: true,
+      authoringRevision: true,
+      authorityState: true,
+      productionAuthoritative: true,
+    },
+  });
+  if (!governance) {
+    throw new KaqAuthorityInputError(
+      'coverage-not-available',
+      'AggregateGovernanceReceipt not found for coverage version + accepted Delta (SHADOW)',
+    );
+  }
+
+  const coverageSource: AggregateCoverageAuthoritySource = {
+    selector: {
+      courseId: selector.courseId,
+      overlayId: selector.overlayId,
+      overlayVersion: selector.overlayVersion,
+      releaseSetId: selector.releaseSetId,
+      releaseId: selector.releaseId,
+    },
+    version: {
+      id: version.id,
+      courseId: version.courseId,
+      overlayId: version.overlayId,
+      overlayVersion: version.overlayVersion,
+      releaseSetId: version.releaseSetId,
+      releaseId: version.releaseId,
+      releaseHash: version.releaseHash,
+      sourceDatasetHash: version.sourceDatasetHash,
+      deltaReceiptId: version.deltaReceiptId,
+      authoringRevision: version.authoringRevision,
+      captureRevision: version.captureRevision,
+      sourceHash: version.sourceHash,
+      lifecycleState: version.lifecycleState,
+    },
+    entries: entryRows.map((entry) => ({
+      canonicalId: entry.canonicalId,
+      role: entry.role,
+      ordinal: entry.ordinal,
+      lifecycleState: entry.lifecycleState,
+    })),
+    governance: {
+      id: governance.id,
+      coverageVersionId: governance.coverageVersionId,
+      releaseSetId: governance.releaseSetId,
+      releaseId: governance.releaseId,
+      releaseHash: governance.releaseHash,
+      sourceDatasetHash: governance.sourceDatasetHash,
+      deltaReceiptId: governance.deltaReceiptId,
+      deltaOutputDigest: governance.deltaOutputDigest,
+      deltaCaptureRevision: governance.deltaCaptureRevision,
+      coverageSourceHash: governance.coverageSourceHash,
+      captureRevision: governance.captureRevision,
+      authoringRevision: governance.authoringRevision,
+      authorityState: governance.authorityState,
+      productionAuthoritative: governance.productionAuthoritative,
+    },
+  };
+
+  const verifiedCoverage = mintVerifiedCourseCoverageBundle({
+    coverage: coverageSource,
+    delta,
+  });
+  return buildKaqPinnedContextFromVerifiedAuthority({
+    delta,
+    coverage: verifiedCoverage,
+  });
 }
 
 export async function loadTeachingProjectionAvailabilityFromDb(input: {
   deltaReceiptId: string;
-  coverageSelector: CourseCoverageSelector;
+  coverageSelector: KaqAggregateCoverageSelector;
 }): Promise<{
   pinned: VerifiedKaqPinnedContext;
   availability: import('./contracts').TeachingProjectionAvailability;

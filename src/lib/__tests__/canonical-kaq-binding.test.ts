@@ -67,7 +67,7 @@ import {
   mintVerifiedKaqPinnedContextForTests,
 } from '@/lib/canonical-kaq-binding/testing';
 import { buildKaqPinnedContext } from '@/lib/canonical-kaq-binding/pinned-context';
-import type { CourseCoverageResult } from '@/lib/authoritative-knowledge/contracts';
+import type { AggregateCoverageAuthoritySource } from '@/lib/canonical-kaq-binding';
 import {
   AUTOCONTROL_KAQ_GRAPH_VERSION,
   validateAutocontrolKaqGraphCatalog,
@@ -82,6 +82,8 @@ const sourceDatasetHash = 'b'.repeat(64);
 const coverageSourceHash = 'c'.repeat(64);
 const coverageCaptureRevision = 'd'.repeat(40);
 const deltaReceiptId = 'delta-receipt:accepted-aggregate-v1';
+const coverageVersionId = 'agg-cov:automatic-control@1';
+const governanceReceiptId = 'agg-gov:receipt-v1';
 
 function pinned(overrides: Partial<{
   releaseSetId: string;
@@ -177,44 +179,72 @@ function acceptedDelta(overrides: Partial<{
   });
 }
 
-function availableCoverage(contextIds: readonly string[] = [
+function availableAggregateCoverage(contextIds: readonly string[] = [
   'ctr:object:feedback-loop',
   'ctr:object:transfer-function',
   'ctr:object:root-locus',
   'ctr:object:bode-plot',
-]): CourseCoverageResult {
+], overrides: {
+  entries?: AggregateCoverageAuthoritySource['entries'];
+  selectorOverlayId?: string;
+  versionLifecycle?: string;
+  governanceAuthorityState?: string;
+  governanceProductionAuthoritative?: boolean;
+  governanceCoverageVersionId?: string | null;
+} = {}): AggregateCoverageAuthoritySource {
+  const selector = {
+    courseId: 'automatic-control',
+    overlayId: overrides.selectorOverlayId ?? PINNED_KAQ_COVERAGE_OVERLAY_ID,
+    overlayVersion: '1',
+    releaseSetId: PINNED_KAQ_AGGREGATE_RELEASE_SET_ID,
+    releaseId: PINNED_KAQ_AGGREGATE_RELEASE_ID,
+  };
   return {
-    status: 'available',
-    productionAuthoritative: false,
-    selector: {
-      courseId: 'automatic-control',
+    selector,
+    version: {
+      id: coverageVersionId,
+      courseId: selector.courseId,
       overlayId: PINNED_KAQ_COVERAGE_OVERLAY_ID,
       overlayVersion: '1',
-      releaseSetId: PINNED_KAQ_AGGREGATE_RELEASE_SET_ID,
-      releaseId: PINNED_KAQ_AGGREGATE_RELEASE_ID,
-    },
-    audit: {
-      courseId: 'automatic-control',
-      overlayId: PINNED_KAQ_COVERAGE_OVERLAY_ID,
-      overlayVersion: '1',
-      overlayVersionId: 'overlay-version-1',
-      authoringRevision: coverageCaptureRevision,
-      captureRevision: coverageCaptureRevision,
-      sourceHash: coverageSourceHash,
       releaseSetId: PINNED_KAQ_AGGREGATE_RELEASE_SET_ID,
       releaseId: PINNED_KAQ_AGGREGATE_RELEASE_ID,
       releaseHash,
-      lockRawHash: 'f'.repeat(64),
-      productionAuthoritative: false,
+      sourceDatasetHash,
+      deltaReceiptId,
+      authoringRevision: coverageCaptureRevision,
+      captureRevision: coverageCaptureRevision,
+      sourceHash: coverageSourceHash,
+      lifecycleState: overrides.versionLifecycle ?? 'CURRENT',
     },
-    entries: contextIds.map((canonicalId, ordinal) => ({
+    entries: overrides.entries ?? contextIds.map((canonicalId, ordinal) => ({
       canonicalId,
-      role: 'formal_objective' as const,
+      role: 'formal_objective',
       ordinal,
+      lifecycleState: 'CURRENT',
     })),
-    diagnostics: [],
+    governance: {
+      id: governanceReceiptId,
+      coverageVersionId: overrides.governanceCoverageVersionId === undefined
+        ? coverageVersionId
+        : overrides.governanceCoverageVersionId,
+      releaseSetId: PINNED_KAQ_AGGREGATE_RELEASE_SET_ID,
+      releaseId: PINNED_KAQ_AGGREGATE_RELEASE_ID,
+      releaseHash,
+      sourceDatasetHash,
+      deltaReceiptId,
+      deltaOutputDigest: 'e'.repeat(64),
+      deltaCaptureRevision: coverageCaptureRevision,
+      coverageSourceHash,
+      captureRevision: coverageCaptureRevision,
+      authoringRevision: coverageCaptureRevision,
+      authorityState: overrides.governanceAuthorityState ?? 'SHADOW',
+      productionAuthoritative: overrides.governanceProductionAuthoritative ?? false,
+    },
   };
 }
+
+/** @deprecated alias kept for local readability in older test blocks */
+const availableCoverage = availableAggregateCoverage;
 
 function availableTeachingProjection(context: ReturnType<typeof pinned> = pinned()) {
   const formalProof = mintFormalTeachingProjectionProofForTests({
@@ -392,39 +422,16 @@ describe('canonical KAQ pinned context', () => {
     const delta = acceptedDelta();
     expect(() => mintVerifiedCoverageForTests({
       delta,
-      coverage: {
-        status: 'available',
-        productionAuthoritative: false,
-        selector: {
-          courseId: 'automatic-control',
-          overlayId: PINNED_KAQ_COVERAGE_OVERLAY_ID,
-          overlayVersion: '1',
-          releaseSetId: PINNED_KAQ_AGGREGATE_RELEASE_SET_ID,
-          releaseId: PINNED_KAQ_AGGREGATE_RELEASE_ID,
-        },
-        audit: {
-          courseId: 'automatic-control',
-          overlayId: PINNED_KAQ_COVERAGE_OVERLAY_ID,
-          overlayVersion: '1',
-          overlayVersionId: 'ov-1',
-          authoringRevision: coverageCaptureRevision,
-          captureRevision: coverageCaptureRevision,
-          sourceHash: coverageSourceHash,
-          releaseSetId: PINNED_KAQ_AGGREGATE_RELEASE_SET_ID,
-          releaseId: PINNED_KAQ_AGGREGATE_RELEASE_ID,
-          releaseHash,
-          lockRawHash: 'f'.repeat(64),
-          productionAuthoritative: false,
-        },
+      coverage: availableAggregateCoverage([], {
         entries: [
           {
             canonicalId: 'ctr:object:excluded',
-            role: 'excluded_with_rationale' as never,
+            role: 'excluded_with_rationale',
             ordinal: 0,
+            lifecycleState: 'CURRENT',
           },
         ],
-        diagnostics: [],
-      },
+      }),
     })).toThrow(/no active admitted roles|excluded/);
   });
 });
@@ -1083,7 +1090,9 @@ describe('teaching relation conflict review and planner gate', () => {
         reviewRationale: 'Keep KAQ edge for review fixture; ActKG edge must be suppressed.',
       },
     );
-    const parallel = selectPlannerTeachingRelations({
+    // RETAIN_KAQ may keep ActKG present in the relation set for exact-set ledger
+    // closure / audit, but must suppress it from effective activation.
+    const retainGate = selectPlannerTeachingRelations({
       selector: migrationSelector(),
       availability,
       kaqRelations: [kaqForward],
@@ -1091,9 +1100,12 @@ describe('teaching relation conflict review and planner gate', () => {
       conflicts: [retainConflict],
       reviewedMapping: mapping,
       pinned: context,
-      bindings
+      bindings,
     });
-    expect(parallel.reason).toBe('parallel-conflict-versions');
+    expect(retainGate.blocked).toBe(false);
+    expect(retainGate.activeKaqEdgeIds).toContain('edge:kaq:A->B');
+    expect(retainGate.activeActkgRelationIds).not.toContain('tp:B->A');
+    expect(retainGate.activeActkgRelationIds).toEqual([]);
 
     const actkgForward = buildActkgTeachingProjectionRelation({
       availability,
@@ -1620,27 +1632,22 @@ describe('P1 authority input closure', () => {
     const delta = acceptedDelta();
     expect(() => mintVerifiedCoverageForTests({
       delta,
-      coverage: {
-        status: 'unavailable',
-        selector: null,
-        reason: 'coverage-not-found',
-        diagnostics: [],
-        productionAuthoritative: false,
-      },
-    })).toThrow(/not available/);
+      coverage: availableAggregateCoverage(undefined, { versionLifecycle: 'STALE' }),
+    })).toThrow(/CURRENT|not available/);
 
-    const forgedCoverage = availableCoverage();
-    if (forgedCoverage.status !== 'available') throw new Error('fixture');
     expect(() => mintVerifiedCoverageForTests({
       delta,
-      coverage: {
-        ...forgedCoverage,
-        selector: {
-          ...forgedCoverage.selector,
-          overlayId: 'forged-overlay',
-        },
-      },
-    })).toThrow(/overlayId/);
+      coverage: availableAggregateCoverage(undefined, {
+        governanceCoverageVersionId: 'wrong-coverage-version',
+      }),
+    })).toThrow(/coverageVersionId|identity/);
+
+    expect(() => mintVerifiedCoverageForTests({
+      delta,
+      coverage: availableAggregateCoverage(undefined, {
+        selectorOverlayId: 'forged-overlay',
+      }),
+    })).toThrow(/overlayId|selector/);
 
     // Unbranded coverage object cannot build pinned context.
     expect(() => buildKaqPinnedContextFromVerifiedAuthority({
@@ -1652,6 +1659,14 @@ describe('P1 authority input closure', () => {
       delta,
       coverage: availableCoverage(),
     });
+    expect(verified.identity.authorityState).toBe('SHADOW');
+    expect(verified.identity.productionAuthoritative).toBe(false);
+    expect(verified.identity.coverageVersionId).toBe(coverageVersionId);
+    expect(verified.identity.governanceReceiptId).toBe(governanceReceiptId);
+    // No legacy lockRawHash invented on aggregate identity.
+    expect(verified.identity).not.toHaveProperty('lockRawHash');
+    expect(verified).not.toHaveProperty('audit');
+
     const context = buildKaqPinnedContextFromVerifiedAuthority({
       delta,
       coverage: verified,
@@ -1700,7 +1715,13 @@ describe('P1 authority input closure', () => {
     expect(serverSrc).toContain("import 'server-only'");
     expect(serverSrc).not.toContain('deltaReceiptRow');
     expect(capabilitySrc).toContain('actkgReleaseSetDeltaReceipt.findUnique');
-    expect(capabilitySrc).toContain('readCourseCoverage');
+    expect(capabilitySrc).toContain('aggregateCourseCoverageVersion');
+    expect(capabilitySrc).toContain('aggregateCourseCoverageEntry');
+    expect(capabilitySrc).toContain('aggregateGovernanceReceipt');
+    expect(capabilitySrc).not.toContain('readCourseCoverage');
+    expect(capabilitySrc).not.toContain('AuthoritativeKnowledgeRepository');
+    expect(capabilitySrc).not.toContain('courseCoverageOverlayVersion');
+    expect(capabilitySrc).not.toContain('lockRawHash');
     expect(capabilitySrc).toContain('deltaReceiptId');
     expect(capabilitySrc).toContain('coverageSelector');
     // Production mint factories are not exported as open symbols.
@@ -2038,5 +2059,59 @@ describe('P1 one-time review lifecycle', () => {
     });
     expect(gate.blocked).toBe(false);
     expect(gate.activeActkgRelationIds).toContain('tp-1');
+  });
+
+  it('RETAIN_KAQ keeps KAQ active and suppresses conflicting ActKG without parallel block', () => {
+    const context = pinned();
+    const { bindings, mapping } = reviewedMappingFixture(context);
+    const availability = availableTeachingProjection(context);
+    const kaqEdge: KaqKnowledgeToKnowledgeRelation = {
+      edgeId: 'edge:kaq:retain-active',
+      sourceRoleId: 'kn:autocontrol:feedback-loop',
+      targetRoleId: 'kn:autocontrol:transfer-function-model',
+      relation: 'depends-on',
+      lifecycleState: 'ACTIVE',
+      ownership: 'KAQ',
+    };
+    const actkg = buildActkgTeachingProjectionRelation({
+      availability,
+      pinned: context,
+      id: 'tp-retain-conflict',
+      predicate: 'prerequisite',
+      sourceCanonicalId: 'ctr:object:feedback-loop',
+      targetCanonicalId: 'ctr:object:transfer-function',
+      version: 'tp-v1',
+    });
+    const retain = reviewTeachingRelationConflict(
+      detectTeachingRelationConflicts({
+        kaqRelations: [kaqEdge],
+        actkgRelations: [actkg],
+        reviewedMapping: mapping,
+        pinned: context,
+        bindings,
+        existingLedger: [],
+      })[0]!,
+      {
+        outcome: 'RETAIN_KAQ',
+        reviewIdentity: 'issue-1113-retain-kaq-reviewer',
+        reviewRationale: 'Keep KAQ pedagogical edge; suppress ActKG from effective activation.',
+      },
+    );
+    // ActKG remains in the supplied relation set for exact-set ledger closure.
+    const gate = selectPlannerTeachingRelations({
+      selector: migrationSelector(),
+      availability,
+      kaqRelations: [kaqEdge],
+      actkgRelations: [actkg],
+      conflicts: [retain],
+      reviewedMapping: mapping,
+      pinned: context,
+      bindings,
+    });
+    expect(gate.blocked).toBe(false);
+    expect(gate.available).toBe(true);
+    expect(gate.activeKaqEdgeIds).toEqual(['edge:kaq:retain-active']);
+    expect(gate.activeActkgRelationIds).not.toContain('tp-retain-conflict');
+    expect(gate.activeActkgRelationIds).toEqual([]);
   });
 });

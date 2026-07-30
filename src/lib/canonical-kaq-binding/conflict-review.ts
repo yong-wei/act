@@ -543,9 +543,11 @@ export function selectPlannerTeachingRelations(input: {
     );
   }
 
-  // Parallel if:
-  // - ACCEPTED_ACTKG / RETIRED_KAQ ledger claims retirement but KAQ edge still ACTIVE
-  // - RETAIN_KAQ while corresponding ActKG relation still present
+  // Parallel only when a terminal ledger claims KAQ retirement but the KAQ edge
+  // is still ACTIVE. RETAIN_KAQ may keep the conflicting ActKG relation present
+  // in the supplied relation set for audit / exact-set ledger closure; that
+  // presence is not parallel activation — ActKG is suppressed from effective
+  // activation via suppressedActkgIds below.
   const parallel = input.conflicts.filter((conflict) => {
     if (
       conflict.reviewState === 'ACCEPTED_ACTKG'
@@ -556,11 +558,6 @@ export function selectPlannerTeachingRelations(input: {
           relation.edgeId === conflict.kaqEdgeId
           && relation.lifecycleState === 'ACTIVE'
         ),
-      );
-    }
-    if (conflict.reviewState === 'RETAIN_KAQ') {
-      return input.actkgRelations.some(
-        (relation) => relation.id === conflict.actkgRelationId,
       );
     }
     return false;

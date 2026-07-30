@@ -18,7 +18,9 @@ export {
   assertVerifiedKaqPinnedContext,
   buildKaqPinnedContextFromVerifiedAuthority,
   type AcceptedDeltaReceiptEvidence,
+  type AggregateCoverageAuthoritySource,
   type FormalTeachingProjectionProof,
+  type KaqAggregateCoverageSelector,
   type VerifiedCourseCoverageBundle,
   type VerifiedKaqPinnedContext,
 } from './authority-capability';
