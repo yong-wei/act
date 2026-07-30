@@ -71,13 +71,14 @@ try {
       documentScrollWidth: document.documentElement.scrollWidth,
       viewportWidth: window.innerWidth,
       panelVisible: !!document.querySelector('[class*="recommend"]') || document.body.innerText.includes('得分'),
-      adviceVisible: document.body.innerText.includes('当前推荐'),
+      adviceVisible: document.body.innerText.includes('AI 建议'),
     }));
 
     // ── fail-closed assertions ──────────────────────────────────────
     assert.ok(!consoleErrors.length, `Console errors: ${consoleErrors.join(', ')}`);
     assert.equal(metrics.documentScrollWidth, viewport.width, 'No horizontal overflow');
     assert.ok(metrics.panelVisible, 'Recommendation panel is visible');
+    assert.ok(metrics.adviceVisible, 'AI advice is visible');
 
     // API request must have been sent
     assert.ok(requestBody, `Viewport ${viewport.name}: no /api/simulation/optimize request was intercepted`);
@@ -90,12 +91,12 @@ try {
     // Response must contain a score >= 60
     const body = apiResponse.body;
     assert.ok(body && typeof body === 'object', `Viewport ${viewport.name}: API response body is not an object`);
-    assert.ok(typeof body.score === 'number', `Viewport ${viewport.name}: response missing numeric score`);
-    assert.ok(body.score >= 60, `Viewport ${viewport.name}: score ${body.score} < 60`);
+    assert.ok(typeof body.result?.score === 'number', `Viewport ${viewport.name}: response missing numeric score`);
+    assert.ok(body.result.score >= 60, `Viewport ${viewport.name}: score ${body.score} < 60`);
 
     // Request should use v2 calibrated semantics (targetHeading and maxRudderRate)
     assert.ok(
-      requestBody && (requestBody.targetHeading === 90 || requestBody.targetHeadingDeg === 90),
+      requestBody && (requestBody.target?.targetHeading === 90),
       `Viewport ${viewport.name}: request missing targetHeading=90`
     );
 
