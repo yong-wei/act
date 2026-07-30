@@ -14,7 +14,7 @@ function sha256File(relativePath) {
 }
 
 function assert(condition, message) {
-  if (!condition) { console.error('FAIL: ' + message); process.exit(1); }
+  if (!condition) { console.error('FAIL: ' + message); throw new Error('FAIL: ' + message); }
 }
 
 async function setTheme(page, theme) {
