@@ -5,6 +5,8 @@
  * Availability requires VerifiedKaqPinnedContext + branded FormalTeachingProjectionProof.
  */
 
+import { createHash } from 'node:crypto';
+
 import {
   assertFormalTeachingProjectionProof,
   assertVerifiedKaqPinnedContext,
@@ -28,6 +30,52 @@ import {
 } from './contracts';
 
 const SHA256 = /^[a-f0-9]{64}$/u;
+
+/**
+ * Stable whole-set digest for a formal Teaching Projection relation release.
+ * Covers sorted id/version/predicate/source/target plus projection identity.
+ * Must match FormalTeachingProjectionProof.relationSetDigest / availability.
+ */
+export function digestFormalTeachingProjectionRelationSet(
+  relations: ReadonlyArray<{
+    id: string;
+    version: string;
+    predicate: string;
+    sourceCanonicalId: string;
+    targetCanonicalId: string;
+  }>,
+  projection: {
+    projectionId: string;
+    projectionDigest: string;
+  },
+): string {
+  const rows = relations
+    .map((relation) => ({
+      id: relation.id,
+      version: relation.version,
+      predicate: relation.predicate,
+      sourceCanonicalId: relation.sourceCanonicalId,
+      targetCanonicalId: relation.targetCanonicalId,
+    }))
+    .sort((a, b) => {
+      const byId = a.id.localeCompare(b.id);
+      if (byId !== 0) return byId;
+      const byVersion = a.version.localeCompare(b.version);
+      if (byVersion !== 0) return byVersion;
+      const byPredicate = a.predicate.localeCompare(b.predicate);
+      if (byPredicate !== 0) return byPredicate;
+      const bySource = a.sourceCanonicalId.localeCompare(b.sourceCanonicalId);
+      if (bySource !== 0) return bySource;
+      return a.targetCanonicalId.localeCompare(b.targetCanonicalId);
+    });
+  return createHash('sha256')
+    .update(JSON.stringify({
+      projectionId: projection.projectionId,
+      projectionDigest: projection.projectionDigest,
+      relations: rows,
+    }), 'utf8')
+    .digest('hex');
+}
 
 export function isActkgTeachingProjectionPredicate(
   value: string,
@@ -107,6 +155,7 @@ export function resolveTeachingProjectionAvailability(input?: {
       pinnedContextDigest: proof.pinnedContextDigest,
       projectionId: proof.projectionId,
       projectionDigest: proof.projectionDigest,
+      relationSetDigest: proof.relationSetDigest,
     };
   } catch (error) {
     if (error instanceof KaqAuthorityInputError) {

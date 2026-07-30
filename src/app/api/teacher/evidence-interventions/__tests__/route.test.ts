@@ -174,6 +174,42 @@ describe('teacher evidence interventions route', () => {
     expect(mocks.prisma.evidenceOutbox.createMany).not.toHaveBeenCalled();
   });
 
+  it('maps LearningPathMutationBlockedError to 409 LEGACY_PATH_STOPPED for stopped path writebacks', async () => {
+    // Scope + fence lock reads all see a stopped Legacy path.
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      classId: 'class-1',
+      pathStatus: 'legacy-stopped',
+      pathPayload: {
+        legacyArchiveState: 'legacy-stopped',
+        readOnlyStopped: true,
+      },
+    });
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-1' });
+
+    const response = await postJson({
+      kind: 'remedial-path',
+      surface: 'teacher-evidence',
+      studentId: 'student-1',
+      classId: 'class-1',
+      reportId: 'control-correction',
+      pathId: 'path-1',
+      sourceEvidenceRefs: ['LearningFact:fact-1'],
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body).toMatchObject({
+      error: 'LEGACY_PATH_STOPPED',
+      reason: 'legacy-stopped-immutable',
+      pathStatus: 'legacy-stopped',
+      pathId: 'path-1',
+    });
+    expect(mocks.prisma.learningPathIntervention.create).not.toHaveBeenCalled();
+  });
+
   it('keeps missing remedial paths as reduced personalization without completed student URLs', async () => {
     const response = await postJson({
       kind: 'remedial-path',

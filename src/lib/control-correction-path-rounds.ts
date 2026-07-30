@@ -4,6 +4,19 @@ import {
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
 } from './adaptive-learning-path-planner';
+// Narrow imports only — never the transition barrel (replan pulls server Prisma).
+import {
+  LearningPathMutationBlockedError,
+  throwIfLearningPathNotWritable,
+} from './canonical-learning-path-transition/mutation-guard';
+import {
+  runWithLearningPathWriteFence,
+  updateLearningPathIfWritable,
+  type LearningPathFenceClient,
+} from './canonical-learning-path-transition/write-fence';
+import { isStudentVisiblePathTarget } from './student-visible-path-target';
+
+export { isStudentVisiblePathTarget } from './student-visible-path-target';
 
 export const CONTROL_CORRECTION_PATH_ROUND_GOAL_ID = 'control-correction';
 export const CONTROL_CORRECTION_PATH_ROUND_PLANNER_VERSION = 'stage-1-rules-graph';
@@ -18,11 +31,12 @@ const DEFAULT_TERMINAL_VALIDATION_POLICY = {
   requireOfficialArenaEvidence: true,
 };
 
-export interface ControlCorrectionPathRoundDb {
-  learningPath: {
+export interface ControlCorrectionPathRoundDb extends LearningPathFenceClient {
+  learningPath: LearningPathFenceClient['learningPath'] & {
     upsert: (args: any) => Promise<any>;
     findFirst: (args: any) => Promise<any | null>;
     update?: (args: any) => Promise<any>;
+    updateMany?: (args: any) => Promise<{ count: number }>;
   };
   learningPathExecution: AppendOnlyDelegate;
   learningPathDeviation: AppendOnlyDelegate;
@@ -33,6 +47,8 @@ export interface ControlCorrectionPathRoundDb {
   learningFact?: {
     createMany: (args: { data: any[]; skipDuplicates?: boolean }) => Promise<{ count: number }>;
   };
+  $transaction?: LearningPathFenceClient['$transaction'];
+  $queryRaw?: LearningPathFenceClient['$queryRaw'];
 }
 
 interface AppendOnlyDelegate {
@@ -170,87 +186,113 @@ export async function persistLearningPathRound(
 ): Promise<any> {
   validateLearningPathPlanForPersistence(input.plan);
   const record = serializeLearningPathPlan(input.plan);
-  const existing = await db.learningPath.findFirst({
-    where: { id: record.id },
-    select: { id: true, userId: true, goalId: true, pathPayload: true },
-  });
-  if (existing && (existing.userId !== record.userId || existing.goalId !== input.plan.goal.id)) {
-    throw new ControlCorrectionPathRoundConflictError();
-  }
-  const existingPathPayload = toRecord(existing?.pathPayload);
-  const selectionHistory = mergePathPayloadEntries(
-    existingPathPayload.selectionHistory,
-    buildPathSelectionHistory(record.payload.feedbackEvents),
-  );
-  const activity = mergePathPayloadEntries(
-    existingPathPayload.activity,
-    buildGenericPathActivity(input.plan),
-  );
-  const terminalValidation = resolveTerminalValidation(
-    input.plan.mainPath,
-    getRegisteredAdaptiveLearningPathGoal(input.plan.goal.id)?.checkpointPolicy.requiresTerminalValidation ?? false,
-  );
-  const pathPayload = {
-    goalId: input.plan.goal.id,
-    plannerVersion: input.plan.stage,
-    status: record.payload.status,
-    ...(input.pathPayloadMetadata ?? {}),
-    artifactVersioning: record.payload.artifactVersioning,
-    graphContext: record.payload.graphContext ?? null,
-    mainPathNodeIds: input.plan.mainPath.map((node) => node.nodeId),
-    planNodes: record.payload.planNodes,
-    score: record.payload.score,
-    confidence: record.payload.confidence,
-    policyBundle: record.payload.policyBundle ?? null,
-    pathOptions: record.payload.pathOptions ?? [],
-    feedbackEvents: record.payload.feedbackEvents,
-    selectionHistory,
-    activity,
-    visualization: record.payload.visualization,
-  };
-  const explanationPayload = {
-    explanations: record.payload.explanations,
-    selectedReasons: record.payload.explanations.selectedReasons,
-    fallbackReasons: record.payload.explanations.fallbackReasons,
-    studentFacing: record.payload.studentFacing,
-  };
-  const alternativePayload = record.payload.alternatives;
-  const data = {
-    userId: record.userId,
-    title: record.title,
-    description: record.description,
-    estimatedTime: record.estimatedTime,
-    nodeIds: record.nodeIds,
-    isAiGenerated: true,
-    goalId: input.plan.goal.id,
-    plannerVersion: input.plan.stage,
-    pathStatus: input.plan.status === 'ready' ? 'active' : 'fallback',
-    currentNodeId: input.plan.currentNodeId,
-    learnerStateRef: input.learnerStateRef ?? null,
-    classId: input.classId ?? null,
-    inputSnapshot: input.inputSnapshot ?? null,
-    pathPayload,
-    explanationPayload,
-    alternativePayload,
-    entryNodeId: input.plan.mainPath[0]?.nodeId ?? null,
-    terminalValidation,
-    lastExecutionMetadata: input.plan.executionStatus,
-    legacySummaryPayload: toLegacyLearningPathSummary({
-      id: record.id,
+
+  // Existing-path read, conflict check, payload merge, and upsert must share one
+  // Serializable/FOR UPDATE fence so cutover cannot stop a Legacy path between
+  // findFirst and an upsert that would reactivate it as active/fallback.
+  // Missing paths (lockedPath === null) still create with prior conflict semantics.
+  return runWithLearningPathWriteFence(db, record.id, async (tx) => {
+    const client = tx as ControlCorrectionPathRoundDb;
+    const existing = await client.learningPath.findFirst({
+      where: { id: record.id },
+      select: {
+        id: true,
+        userId: true,
+        goalId: true,
+        pathPayload: true,
+        pathStatus: true,
+      },
+    });
+    if (existing && (existing.userId !== record.userId || existing.goalId !== input.plan.goal.id)) {
+      throw new ControlCorrectionPathRoundConflictError();
+    }
+    if (existing) {
+      // Fence already checked mutability; re-assert with the fully selected row.
+      throwIfLearningPathNotWritable(existing);
+    }
+
+    const existingPathPayload = toRecord(existing?.pathPayload);
+    const selectionHistory = mergePathPayloadEntries(
+      existingPathPayload.selectionHistory,
+      buildPathSelectionHistory(record.payload.feedbackEvents),
+    );
+    const activity = mergePathPayloadEntries(
+      existingPathPayload.activity,
+      buildGenericPathActivity(input.plan),
+    );
+    const terminalValidation = resolveTerminalValidation(
+      input.plan.mainPath,
+      getRegisteredAdaptiveLearningPathGoal(input.plan.goal.id)?.checkpointPolicy.requiresTerminalValidation ?? false,
+    );
+    const pathPayload = {
+      goalId: input.plan.goal.id,
+      plannerVersion: input.plan.stage,
+      status: record.payload.status,
+      ...(input.pathPayloadMetadata ?? {}),
+      artifactVersioning: record.payload.artifactVersioning,
+      graphContext: record.payload.graphContext ?? null,
+      mainPathNodeIds: input.plan.mainPath.map((node) => node.nodeId),
+      planNodes: record.payload.planNodes,
+      score: record.payload.score,
+      confidence: record.payload.confidence,
+      policyBundle: record.payload.policyBundle ?? null,
+      pathOptions: record.payload.pathOptions ?? [],
+      feedbackEvents: record.payload.feedbackEvents,
+      selectionHistory,
+      activity,
+      visualization: record.payload.visualization,
+    };
+    const explanationPayload = {
+      explanations: record.payload.explanations,
+      selectedReasons: record.payload.explanations.selectedReasons,
+      fallbackReasons: record.payload.explanations.fallbackReasons,
+      studentFacing: record.payload.studentFacing,
+    };
+    const alternativePayload = record.payload.alternatives;
+    const data = {
+      userId: record.userId,
       title: record.title,
       description: record.description,
       estimatedTime: record.estimatedTime,
       nodeIds: record.nodeIds,
       isAiGenerated: true,
+      goalId: input.plan.goal.id,
+      plannerVersion: input.plan.stage,
       pathStatus: input.plan.status === 'ready' ? 'active' : 'fallback',
       currentNodeId: input.plan.currentNodeId,
-    }),
-  };
+      learnerStateRef: input.learnerStateRef ?? null,
+      classId: input.classId ?? null,
+      inputSnapshot: input.inputSnapshot ?? null,
+      pathPayload,
+      explanationPayload,
+      alternativePayload,
+      entryNodeId: input.plan.mainPath[0]?.nodeId ?? null,
+      terminalValidation,
+      lastExecutionMetadata: input.plan.executionStatus,
+      legacySummaryPayload: toLegacyLearningPathSummary({
+        id: record.id,
+        title: record.title,
+        description: record.description,
+        estimatedTime: record.estimatedTime,
+        nodeIds: record.nodeIds,
+        isAiGenerated: true,
+        pathStatus: input.plan.status === 'ready' ? 'active' : 'fallback',
+        currentNodeId: input.plan.currentNodeId,
+      }),
+    };
 
-  return db.learningPath.upsert({
-    where: { id: record.id },
-    create: { id: record.id, ...data },
-    update: data,
+    // Must use the fence/transaction client only — never fall back to an outer
+    // delegate that would escape Serializable/FOR UPDATE isolation.
+    if (typeof client.learningPath.upsert !== 'function') {
+      throw new Error(
+        'LearningPath upsert must be available on the write-fence transaction client',
+      );
+    }
+    return client.learningPath.upsert({
+      where: { id: record.id },
+      create: { id: record.id, ...data },
+      update: data,
+    });
   });
 }
 
@@ -425,37 +467,6 @@ function isSafeExternalPathTarget(target: string): boolean {
   }
 }
 
-export function isStudentVisiblePathTarget(target: string): boolean {
-  const normalized = target.trim();
-  if (normalized.length === 0 || normalized !== target) return false;
-  if (/^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(normalized)) return false;
-  const pathname = normalized.split(/[?#]/, 1)[0] ?? normalized;
-  const segments = pathname.split('/').filter(Boolean);
-  if (segments.some((segment) => ['admin', 'api', 'teacher', '_next', 'data-center'].includes(segment))) {
-    return false;
-  }
-  if (!pathname.startsWith('/')) {
-    return pathname.startsWith('course-content/runtime/');
-  }
-  return STUDENT_VISIBLE_PATH_TARGET_PREFIXES.some((prefix) => (
-    pathname === prefix.slice(0, -1) || pathname.startsWith(prefix)
-  ));
-}
-
-const STUDENT_VISIBLE_PATH_TARGET_PREFIXES = [
-  '/adaptive-learning/',
-  '/arena/',
-  '/assessment/',
-  '/classroom/student/',
-  '/course-runtime/',
-  '/dashboard/',
-  '/interactive-learning/',
-  '/knowledge/',
-  '/playlists/',
-  '/profile/',
-  '/simulations/',
-] as const;
-
 export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLearningPathPlan): void {
   if (
     !plan.id ||
@@ -542,28 +553,38 @@ export async function recordPathNodeExecution(
   db: ControlCorrectionPathRoundDb,
   input: PathNodeExecutionInput,
 ): Promise<any> {
-  const existing = await findExistingAppendOnly(db.learningPathExecution, input);
-  if (existing) {
-    await emitPathEvidenceEvent(db, 'execution', existing, input);
-    return existing;
+  // Idempotent replay of an already-committed execution is allowed even after stop.
+  const existingOutsideFence = await findExistingAppendOnly(db.learningPathExecution, input);
+  if (existingOutsideFence) {
+    await emitPathEvidenceEvent(db, 'execution', existingOutsideFence, input);
+    return existingOutsideFence;
   }
-  const execution = await createAppendOnly(db.learningPathExecution, input, {
-    pathId: input.pathId,
-    userId: input.userId,
-    nodeId: input.nodeId,
-    resourceType: input.resourceType,
-    status: input.status,
-    startedAt: normalizeDate(input.startedAt),
-    completedAt: normalizeDate(input.completedAt),
-    failedAt: normalizeDate(input.failedAt),
-    evidenceRefs: input.evidenceRefs ?? [],
-    liftMetadata: input.liftMetadata ?? {},
-    simulationRef: input.simulationRef ?? null,
-    arenaRef: input.arenaRef ?? null,
-    idempotencyKey: input.idempotencyKey ?? null,
+
+  return runWithLearningPathWriteFence(db, input.pathId, async (tx) => {
+    const existing = await findExistingAppendOnly(tx.learningPathExecution ?? db.learningPathExecution, input);
+    if (existing) {
+      await emitPathEvidenceEvent(tx as ControlCorrectionPathRoundDb, 'execution', existing, input);
+      return existing;
+    }
+    const executionDelegate = tx.learningPathExecution ?? db.learningPathExecution;
+    const execution = await createAppendOnly(executionDelegate, input, {
+      pathId: input.pathId,
+      userId: input.userId,
+      nodeId: input.nodeId,
+      resourceType: input.resourceType,
+      status: input.status,
+      startedAt: normalizeDate(input.startedAt),
+      completedAt: normalizeDate(input.completedAt),
+      failedAt: normalizeDate(input.failedAt),
+      evidenceRefs: input.evidenceRefs ?? [],
+      liftMetadata: input.liftMetadata ?? {},
+      simulationRef: input.simulationRef ?? null,
+      arenaRef: input.arenaRef ?? null,
+      idempotencyKey: input.idempotencyKey ?? null,
+    });
+    await emitPathEvidenceEvent(tx as ControlCorrectionPathRoundDb, 'execution', execution, input);
+    return execution;
   });
-  await emitPathEvidenceEvent(db, 'execution', execution, input);
-  return execution;
 }
 
 export async function updateControlCorrectionPathRoundAfterExecution(
@@ -571,8 +592,18 @@ export async function updateControlCorrectionPathRoundAfterExecution(
   path: any,
   input: PathNodeExecutionInput,
 ): Promise<any | null> {
-  if (!db.learningPath.update) return null;
+  if (!db.learningPath.update && !db.learningPath.updateMany) return null;
 
+  return runWithLearningPathWriteFence(db, input.pathId, async (tx) => {
+    return applyPathRoundAfterExecution(tx as ControlCorrectionPathRoundDb, path, input);
+  });
+}
+
+async function applyPathRoundAfterExecution(
+  db: ControlCorrectionPathRoundDb,
+  path: any,
+  input: PathNodeExecutionInput,
+): Promise<any | null> {
   const mainPathNodeIds = readMainPathNodeIds(path);
   const currentIndex = mainPathNodeIds.indexOf(input.nodeId);
   const pathCurrentNodeId = typeof path.currentNodeId === 'string' ? path.currentNodeId : null;
@@ -649,57 +680,75 @@ export async function updateControlCorrectionPathRoundAfterExecution(
       })
     : [];
 
-  return db.learningPath.update({
-    where: { id: input.pathId },
-    data: {
-      ...(Array.isArray(path.nodeIds) ? { nodeIds: path.nodeIds } : {}),
-      ...(typeof path.entryNodeId === 'string' || path.entryNodeId === null
-        ? { entryNodeId: path.entryNodeId }
-        : {}),
+  const data = {
+    ...(Array.isArray(path.nodeIds) ? { nodeIds: path.nodeIds } : {}),
+    ...(typeof path.entryNodeId === 'string' || path.entryNodeId === null
+      ? { entryNodeId: path.entryNodeId }
+      : {}),
+    currentNodeId: nextNodeId,
+    pathStatus: nextPathStatus,
+    terminalValidation,
+    pathPayload: derivePathPayloadExecutionState({
+      ...path,
       currentNodeId: nextNodeId,
-      pathStatus: nextPathStatus,
-      terminalValidation,
-      pathPayload: derivePathPayloadExecutionState({
-        ...path,
-        currentNodeId: nextNodeId,
-        lastExecutionMetadata: {
-          ...metadata,
-          completedNodeIds: [...completedNodeIds],
-          failedNodeIds: [...failedNodeIds],
-          availableOutcomeRefs: [...availableOutcomeRefs],
-          availableEvidenceCount,
-        },
-        pathPayload: {
-          ...toRecord(path.pathPayload),
-          planNodes: refreshedPlanNodes,
-        },
-      }),
       lastExecutionMetadata: {
         ...metadata,
-        activeNodeId: nextNodeId,
         completedNodeIds: [...completedNodeIds],
         failedNodeIds: [...failedNodeIds],
         availableOutcomeRefs: [...availableOutcomeRefs],
         availableEvidenceCount,
-        lastExecution: {
-          nodeId: input.nodeId,
-          status: input.status,
-          completedAt: normalizeDate(input.completedAt)?.toISOString() ?? null,
-          failedAt: normalizeDate(input.failedAt)?.toISOString() ?? null,
-        },
-        ...(isTerminalExecution ? {
-          terminalValidationState: terminalState,
-          failureReasons: terminalFailureReasons,
-          lowConfidenceMarkers: terminalLowConfidenceMarkers,
-          fallbackReasons: terminalFallbackReasons,
-        } : {}),
-        updatedAt: new Date().toISOString(),
       },
-      ...(deviationNodeReferenceUpdates.length > 0
-        ? { deviations: { update: deviationNodeReferenceUpdates } }
-        : {}),
+      pathPayload: {
+        ...toRecord(path.pathPayload),
+        planNodes: refreshedPlanNodes,
+      },
+    }),
+    lastExecutionMetadata: {
+      ...metadata,
+      activeNodeId: nextNodeId,
+      completedNodeIds: [...completedNodeIds],
+      failedNodeIds: [...failedNodeIds],
+      availableOutcomeRefs: [...availableOutcomeRefs],
+      availableEvidenceCount,
+      lastExecution: {
+        nodeId: input.nodeId,
+        status: input.status,
+        completedAt: normalizeDate(input.completedAt)?.toISOString() ?? null,
+        failedAt: normalizeDate(input.failedAt)?.toISOString() ?? null,
+      },
+      ...(isTerminalExecution ? {
+        terminalValidationState: terminalState,
+        failureReasons: terminalFailureReasons,
+        lowConfidenceMarkers: terminalLowConfidenceMarkers,
+        fallbackReasons: terminalFallbackReasons,
+      } : {}),
+      updatedAt: new Date().toISOString(),
     },
-  });
+    ...(deviationNodeReferenceUpdates.length > 0
+      ? { deviations: { update: deviationNodeReferenceUpdates } }
+      : {}),
+  };
+
+  // Fence already locked + re-checked mutability. Prefer full update so nested
+  // deviation reference patches remain supported (updateMany cannot nest relations).
+  if (typeof db.learningPath.update === 'function') {
+    const current = await db.learningPath.findFirst({
+      where: { id: input.pathId },
+      select: { id: true, pathStatus: true, pathPayload: true },
+    });
+    throwIfLearningPathNotWritable(current ?? {
+      id: input.pathId,
+      pathStatus: 'legacy-stopped',
+    });
+    return db.learningPath.update({
+      where: { id: input.pathId },
+      data,
+    });
+  }
+
+  const result = await updateLearningPathIfWritable(db, input.pathId, data);
+  if (!result.updated) throw result.blocked;
+  return result.path;
 }
 
 function findNextPendingMainPathNodeId(
@@ -730,49 +779,74 @@ export async function recordPathDeviation(
   db: ControlCorrectionPathRoundDb,
   input: PathDeviationInput,
 ): Promise<any> {
-  const existing = await findExistingAppendOnly(db.learningPathDeviation, input);
-  if (existing) {
-    await emitPathEvidenceEvent(db, 'deviation', existing, input);
-    return existing;
+  const existingOutsideFence = await findExistingAppendOnly(db.learningPathDeviation, input);
+  if (existingOutsideFence) {
+    await emitPathEvidenceEvent(db, 'deviation', existingOutsideFence, input);
+    return existingOutsideFence;
   }
-  const deviation = await createAppendOnly(db.learningPathDeviation, input, {
-    pathId: input.pathId,
-    userId: input.userId,
-    deviationType: input.deviationType,
-    priorNodeId: input.priorNodeId ?? null,
-    targetNodeId: input.targetNodeId ?? null,
-    context: input.context ?? {},
-    evidenceConfidence: input.evidenceConfidence ?? 'unknown',
-    idempotencyKey: input.idempotencyKey ?? null,
+
+  return runWithLearningPathWriteFence(db, input.pathId, async (tx) => {
+    const existing = await findExistingAppendOnly(tx.learningPathDeviation ?? db.learningPathDeviation, input);
+    if (existing) {
+      await emitPathEvidenceEvent(tx as ControlCorrectionPathRoundDb, 'deviation', existing, input);
+      return existing;
+    }
+    const deviation = await createAppendOnly(tx.learningPathDeviation ?? db.learningPathDeviation, input, {
+      pathId: input.pathId,
+      userId: input.userId,
+      deviationType: input.deviationType,
+      priorNodeId: input.priorNodeId ?? null,
+      targetNodeId: input.targetNodeId ?? null,
+      context: input.context ?? {},
+      evidenceConfidence: input.evidenceConfidence ?? 'unknown',
+      idempotencyKey: input.idempotencyKey ?? null,
+    });
+    await emitPathEvidenceEvent(tx as ControlCorrectionPathRoundDb, 'deviation', deviation, input);
+    return deviation;
   });
-  await emitPathEvidenceEvent(db, 'deviation', deviation, input);
-  return deviation;
 }
 
 export async function recordPathIntervention(
   db: ControlCorrectionPathRoundDb,
   input: PathInterventionInput,
 ): Promise<any> {
-  const existing = await findExistingAppendOnly(db.learningPathIntervention, input);
-  if (existing) {
-    await emitPathEvidenceEvent(db, 'intervention', existing, input);
-    return existing;
+  const existingOutsideFence = await findExistingAppendOnly(db.learningPathIntervention, input);
+  if (existingOutsideFence) {
+    await emitPathEvidenceEvent(db, 'intervention', existingOutsideFence, input);
+    return existingOutsideFence;
   }
-  const intervention = await createAppendOnly(db.learningPathIntervention, input, {
-    pathId: input.pathId,
-    userId: input.userId,
-    interventionKind: input.interventionKind,
-    citedEvidence: input.citedEvidence ?? [],
-    suggestedAction: input.suggestedAction,
-    studentOutcome: input.studentOutcome ?? 'pending',
-    privacySafeSummary: input.privacySafeSummary,
-    idempotencyKey: input.idempotencyKey ?? null,
+
+  return runWithLearningPathWriteFence(db, input.pathId, async (tx) => {
+    const existing = await findExistingAppendOnly(tx.learningPathIntervention ?? db.learningPathIntervention, input);
+    if (existing) {
+      await emitPathEvidenceEvent(tx as ControlCorrectionPathRoundDb, 'intervention', existing, input);
+      return existing;
+    }
+    const intervention = await createAppendOnly(tx.learningPathIntervention ?? db.learningPathIntervention, input, {
+      pathId: input.pathId,
+      userId: input.userId,
+      interventionKind: input.interventionKind,
+      citedEvidence: input.citedEvidence ?? [],
+      suggestedAction: input.suggestedAction,
+      studentOutcome: input.studentOutcome ?? 'pending',
+      privacySafeSummary: input.privacySafeSummary,
+      idempotencyKey: input.idempotencyKey ?? null,
+    });
+    await emitPathEvidenceEvent(tx as ControlCorrectionPathRoundDb, 'intervention', intervention, input);
+    return intervention;
   });
-  await emitPathEvidenceEvent(db, 'intervention', intervention, input);
-  return intervention;
 }
 
 export async function recordPathChoiceEvidence(
+  db: ControlCorrectionPathRoundDb,
+  input: PathChoiceEvidenceInput,
+): Promise<{ emitted: boolean; dedupeKey: string }> {
+  return runWithLearningPathWriteFence(db, input.pathId, async (tx) => {
+    return recordPathChoiceEvidenceInClient(tx as ControlCorrectionPathRoundDb, input);
+  });
+}
+
+async function recordPathChoiceEvidenceInClient(
   db: ControlCorrectionPathRoundDb,
   input: PathChoiceEvidenceInput,
 ): Promise<{ emitted: boolean; dedupeKey: string }> {
@@ -855,7 +929,7 @@ export async function recordPathChoiceEvidence(
       return { emitted: false, dedupeKey };
     }
   }
-  if (db.learningPath.update) {
+  if (db.learningPath.update || db.learningPath.updateMany) {
     const path = await db.learningPath.findFirst({
       where: {
         id: input.pathId,
@@ -863,6 +937,7 @@ export async function recordPathChoiceEvidence(
       },
     });
     if (path) {
+      throwIfLearningPathNotWritable(path);
       const pathPayload = toRecord(path.pathPayload);
       const existingHistory = Array.isArray(pathPayload.selectionHistory)
         ? pathPayload.selectionHistory
@@ -872,29 +947,25 @@ export async function recordPathChoiceEvidence(
         : [];
       const hasHistoryEntry = existingHistory.some((entry) => toRecord(entry).id === dedupeKey);
       if (hasHistoryEntry) return { emitted: false, dedupeKey };
-      if (!hasHistoryEntry) {
-        const historyEntry = buildPathChoiceSelectionHistoryEntry(input, payload, dedupeKey);
-        await db.learningPath.update({
-          where: { id: input.pathId },
-          data: {
-            pathPayload: {
-              ...pathPayload,
-              selectionHistory: [
-                ...existingHistory,
-                historyEntry,
-              ],
-              activity: [
-                ...existingActivity,
-                {
-                  ...historyEntry,
-                  goalId: input.goalId ?? null,
-                  type: `choice:${input.action}`,
-                },
-              ],
+      const historyEntry = buildPathChoiceSelectionHistoryEntry(input, payload, dedupeKey);
+      const updateResult = await updateLearningPathIfWritable(db, input.pathId, {
+        pathPayload: {
+          ...pathPayload,
+          selectionHistory: [
+            ...existingHistory,
+            historyEntry,
+          ],
+          activity: [
+            ...existingActivity,
+            {
+              ...historyEntry,
+              goalId: input.goalId ?? null,
+              type: `choice:${input.action}`,
             },
-          },
-        });
-      }
+          ],
+        },
+      });
+      if (!updateResult.updated) throw updateResult.blocked;
     }
   }
   return { emitted: true, dedupeKey };
@@ -918,6 +989,8 @@ function buildPathChoiceSelectionHistoryEntry(
     helpful: input.helpful ?? null,
   };
 }
+
+export { LearningPathMutationBlockedError };
 
 export function toLegacyLearningPathSummary(path: LegacyLearningPathSummary) {
   return {
