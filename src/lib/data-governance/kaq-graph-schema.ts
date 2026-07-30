@@ -28,6 +28,62 @@ export type KaqGraphKnowledgeNodeKind =
   | 'case';
 export type KaqCapabilityBloomLevel = 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create';
 
+/**
+ * Relation ownership namespaces (#1113).
+ * KAQ owns knowledge-capability-quality / learning-goal / runtime-pedagogical.
+ * ActKG Teaching Projection owns knowledge-to-knowledge teaching predicates
+ * only after a formal Teaching Projection release — never inferred here.
+ */
+export type KaqRelationOwnershipAuthority = 'KAQ' | 'ACTKG';
+export type KaqRelationOwnershipNamespace =
+  | 'knowledge-capability-quality'
+  | 'learning-goal'
+  | 'runtime-pedagogical'
+  | 'knowledge-to-knowledge-teaching';
+
+export interface KaqRelationOwnershipDescriptor {
+  namespace: KaqRelationOwnershipNamespace;
+  authority: KaqRelationOwnershipAuthority;
+  /** Artifact / catalog / projection version for the owning namespace. */
+  version: string;
+  /**
+   * When authority is ACTKG, consumers must also carry projection identity.
+   * Absent for KAQ-owned namespaces.
+   */
+  actkgProjectionId?: string;
+  actkgProjectionDigest?: string;
+}
+
+/** KAQ-owned edge namespaces that Canonical binding must not transfer. */
+export const KAQ_OWNED_GRAPH_RELATION_NAMESPACES = [
+  'knowledge-capability-quality',
+  'learning-goal',
+  'runtime-pedagogical',
+] as const satisfies ReadonlyArray<KaqRelationOwnershipNamespace>;
+
+export function describeKaqOwnedGraphRelation(
+  namespace: (typeof KAQ_OWNED_GRAPH_RELATION_NAMESPACES)[number],
+  version: string,
+): KaqRelationOwnershipDescriptor {
+  return {
+    namespace,
+    authority: 'KAQ',
+    version,
+  };
+}
+
+/**
+ * Map KAQ graph body edge relations to ownership. All current graph body
+ * relations remain KAQ-owned; ActKG Teaching Projection is a separate typed
+ * boundary outside this catalog body.
+ */
+export function kaqGraphEdgeOwnership(
+  _relation: KaqGraphRelation,
+  catalogVersion: string,
+): KaqRelationOwnershipDescriptor {
+  return describeKaqOwnedGraphRelation('knowledge-capability-quality', catalogVersion);
+}
+
 export interface KaqGraphNodeBase {
   id: string;
   domain: KaqGraphDomain;
