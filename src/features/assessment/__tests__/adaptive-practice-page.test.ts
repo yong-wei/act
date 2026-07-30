@@ -222,6 +222,45 @@ describe('adaptive practice page entry states', () => {
     );
 
     expect(generateBlock).toContain("fetch('/api/assessment/generate-question'");
-    expect(generateBlock).toContain('sessionId,');
+   expect(generateBlock).toContain('sessionId,');
+ });
+
+  it('declares a separate pathExecutionError state', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    expect(source).toContain('const [pathExecutionError, setPathExecutionError] = useState<string | null>(null);');
+  });
+
+  it('path execution actions use setPathExecutionError not setError', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const activityBlock = source.slice(
+      source.indexOf('const writePathNodeActivity = useCallback'),
+      source.indexOf('}, [activePathPlan, activePathRound, reloadActiveLearningPath]);') + 1,
+    );
+    expect(activityBlock).not.toContain('setError(');
+    expect(activityBlock).toContain('setPathExecutionError(');
+  });
+
+  it('launchPathNodeAction success clears pathExecutionError', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const launchBlock = source.slice(
+      source.indexOf('const launchPathNodeAction = useCallback'),
+      source.indexOf('}, []);', source.indexOf('const launchPathNodeAction')),
+    );
+    expect(launchBlock).toContain('setPathExecutionError(null)');
+    expect(launchBlock).toContain('publishAdaptivePathJourneyResponse(payload)');
+    const clearIndex = launchBlock.indexOf('setPathExecutionError(null)');
+    const successIndex = launchBlock.indexOf('publishAdaptivePathJourneyResponse(payload)');
+    expect(clearIndex).toBeGreaterThan(successIndex);
+  });
+
+  it('current-path module shows pathExecutionError with refresh button', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const moduleBlock = source.slice(
+      source.indexOf('moduleId="current-path"'),
+      source.indexOf('data-adaptive-path-progress-summary'),
+    );
+    expect(moduleBlock).toContain('pathExecutionError ?');
+    expect(moduleBlock).toContain('data-adaptive-path-execution-error="visible"');
+    expect(moduleBlock).toContain('setPathExecutionError(null); void reloadActiveLearningPath()');
   });
 });
