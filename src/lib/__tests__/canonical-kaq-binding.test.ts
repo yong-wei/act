@@ -17,9 +17,11 @@ import {
   assertShadowCannotActivateKaqCutover,
   assertVerifiedCourseCoverageBundle,
   assertVerifiedKaqPinnedContext,
+  bindingIdentity,
   buildActkgTeachingProjectionRelation,
   buildKaqPinnedContextFromVerifiedAuthority,
   buildReviewedKaqRoleCanonicalMapping,
+  evidenceDigest,
   courseCoverageCreatesTeachingProjectionEdge,
   detectTeachingRelationConflicts,
   detectTeachingRelationCycles,
@@ -1990,6 +1992,100 @@ describe('P1 one-time review lifecycle', () => {
       },
       context,
     )).toThrow(/only CANDIDATE/);
+  });
+
+  it('rejects hand-built and cloned CANDIDATE even when id/evidenceDigest are recomputed', () => {
+    const context = pinned();
+    const { bindings } = generateKaqCanonicalBindings({
+      pinned: context,
+      proposals: [{
+        kaqRoleId: 'kn:autocontrol:feedback-loop',
+        targets: [{
+          canonicalId: 'ctr:object:feedback-loop',
+          bindingRole: 'PRIMARY_IDENTITY',
+          evidenceRefs: ['e1'],
+          semanticRationale: 'once',
+          objectRevision: 'r1',
+        }],
+      }],
+    });
+    const real = bindings[0]!;
+    expect(Object.isFrozen(real)).toBe(true);
+
+    // Exact generated instance can ACCEPT / REJECT.
+    const accepted = acceptBinding(real, context);
+    expect(accepted.reviewState).toBe('ACCEPTED');
+    expect(Object.isFrozen(accepted)).toBe(true);
+
+    const { bindings: again } = generateKaqCanonicalBindings({
+      pinned: context,
+      proposals: [{
+        kaqRoleId: 'kn:autocontrol:transfer-function',
+        targets: [{
+          canonicalId: 'ctr:object:transfer-function',
+          bindingRole: 'PRIMARY_IDENTITY',
+          evidenceRefs: ['e2'],
+          semanticRationale: 'tf',
+          objectRevision: 'r1',
+        }],
+      }],
+    });
+    const rejected = reviewKaqCanonicalBinding(
+      again[0]!,
+      {
+        bindingId: again[0]!.id,
+        outcome: 'REJECT',
+        reviewIdentity: 'r',
+        reviewRationale: 'no',
+      },
+      context,
+    );
+    expect(rejected.reviewState).toBe('REJECTED');
+
+    // Clone of generated candidate fails.
+    const clone = { ...real, evidenceRefs: [...real.evidenceRefs] };
+    expect(() => acceptBinding(clone as typeof real, context)).toThrow(
+      /not a generateKaqCanonicalBindings-registered instance/,
+    );
+
+    // Hand-built CANDIDATE with fully recomputed identity digests still fails.
+    const identity = {
+      kaqRoleId: 'kn:autocontrol:feedback-loop',
+      canonicalId: 'ctr:object:feedback-loop',
+      bindingRole: 'PRIMARY_IDENTITY' as const,
+      releaseSetId: context.releaseSetId,
+      releaseId: context.releaseId,
+      objectRevision: 'r1',
+    };
+    const evidenceRefs = ['e1'];
+    const handBuilt = {
+      id: bindingIdentity(identity),
+      schemaVersion: 'act-canonical-kaq-binding/v1' as const,
+      ...identity,
+      evidenceRefs,
+      evidenceDigest: evidenceDigest({
+        kaqRoleId: identity.kaqRoleId,
+        canonicalId: identity.canonicalId,
+        bindingRole: identity.bindingRole,
+        evidenceRefs,
+        semanticRationale: 'once',
+      }),
+      semanticRationale: 'once',
+      reviewState: 'CANDIDATE' as const,
+      reviewIdentity: null,
+      reviewRationale: null,
+      lifecycleState: 'CURRENT' as const,
+      authorityState: 'SHADOW' as const,
+      productionAuthoritative: false as const,
+      pinnedContextDigest: context.contextDigest,
+      inheritedFromLegacyId: null,
+      sameNameAutoMatch: false as const,
+    };
+    expect(handBuilt.id).toBe(real.id);
+    expect(handBuilt.evidenceDigest).toBe(real.evidenceDigest);
+    expect(() => acceptBinding(handBuilt as typeof real, context)).toThrow(
+      /not a generateKaqCanonicalBindings-registered instance/,
+    );
   });
 
   it('keeps retirement consistent with relation lifecycle', () => {

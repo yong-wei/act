@@ -27,6 +27,26 @@ import {
   KaqPinnedContextError,
 } from './pinned-context';
 
+/**
+ * Module-private registry of CANDIDATE bindings from generateKaqCanonicalBindings.
+ * Only generate may register. Hand-built / cloned candidates cannot enter review.
+ */
+const GENERATED_KAQ_CANDIDATE_REGISTRY = new WeakSet<object>();
+
+/**
+ * Module-private registry of ACCEPTED reviewed KAQ bindings.
+ * Only reviewKaqCanonicalBinding may register. Clones / field-forged objects
+ * never pass isReviewedShadowBinding.
+ */
+const ACCEPTED_REVIEWED_KAQ_BINDING_REGISTRY = new WeakSet<object>();
+
+function freezeKaqBinding(binding: KaqCanonicalBinding): KaqCanonicalBinding {
+  return Object.freeze({
+    ...binding,
+    evidenceRefs: Object.freeze([...(binding.evidenceRefs ?? [])]) as string[],
+  });
+}
+
 function stableStringify(value: unknown): string {
   if (value === null || typeof value !== 'object') {
     return JSON.stringify(value);
@@ -260,11 +280,11 @@ export function generateKaqCanonicalBindings(input: {
       if (seen.has(id)) continue;
       seen.add(id);
 
-      bindings.push({
+      const candidate = freezeKaqBinding({
         id,
         schemaVersion: CANONICAL_KAQ_BINDING_SCHEMA_VERSION,
         ...identity,
-        evidenceRefs,
+        evidenceRefs: Object.freeze([...evidenceRefs]) as string[],
         evidenceDigest: evidenceDigest({
           kaqRoleId: proposal.kaqRoleId,
           canonicalId: target.canonicalId,
@@ -283,11 +303,15 @@ export function generateKaqCanonicalBindings(input: {
         inheritedFromLegacyId: null,
         sameNameAutoMatch: false,
       });
+      GENERATED_KAQ_CANDIDATE_REGISTRY.add(candidate);
+      bindings.push(candidate);
     }
   }
 
+  const sealedCandidates = bindings
+    .sort((a, b) => a.id.localeCompare(b.id));
   return {
-    bindings: bindings.sort((a, b) => a.id.localeCompare(b.id)),
+    bindings: Object.freeze(sealedCandidates) as KaqCanonicalBinding[],
     rejected: rejected.sort((a, b) => (
       a.kaqRoleId.localeCompare(b.kaqRoleId)
       || a.canonicalId.localeCompare(b.canonicalId)
@@ -298,6 +322,10 @@ export function generateKaqCanonicalBindings(input: {
 /**
  * Independent semantic review. ACCEPT requires non-empty reviewer identity.
  * Does not activate formal consumers.
+ *
+ * On ACCEPT: reconstructs a frozen binding, recomputes identity/evidence digests,
+ * and registers the exact instance in a private WeakSet. Clones and field-edited
+ * objects never pass isReviewedShadowBinding / SAR projection.
  */
 export function reviewKaqCanonicalBinding(
   binding: KaqCanonicalBinding,
@@ -325,15 +353,93 @@ export function reviewKaqCanonicalBinding(
       `KAQ binding review rejected: only CANDIDATE can be reviewed (got ${binding.reviewState})`,
     );
   }
+  // Provenance: only generateKaqCanonicalBindings-registered CANDIDATE instances.
+  // Hand-built objects with recomputed id/evidenceDigest still fail here.
+  if (!GENERATED_KAQ_CANDIDATE_REGISTRY.has(binding as object)) {
+    throw new Error(
+      'KAQ binding review rejected: candidate is not a generateKaqCanonicalBindings-registered instance',
+    );
+  }
 
-  return {
-    ...binding,
-    reviewState: review.outcome === 'ACCEPT' ? 'ACCEPTED' : 'REJECTED',
+  if (review.outcome === 'REJECT') {
+    return Object.freeze({
+      ...binding,
+      evidenceRefs: Object.freeze([...binding.evidenceRefs]) as string[],
+      reviewState: 'REJECTED' as const,
+      reviewIdentity: review.reviewIdentity.trim(),
+      reviewRationale: review.reviewRationale.trim(),
+      authorityState: 'SHADOW' as const,
+      productionAuthoritative: false as const,
+      inheritedFromLegacyId: null,
+      sameNameAutoMatch: false as const,
+    });
+  }
+
+  // ACCEPT: full identity/digest revalidation + immutable provenance register.
+  const identity = {
+    kaqRoleId: binding.kaqRoleId,
+    canonicalId: binding.canonicalId,
+    bindingRole: binding.bindingRole,
+    releaseSetId: closedPinned.releaseSetId,
+    releaseId: closedPinned.releaseId,
+    objectRevision: binding.objectRevision,
+  };
+  const recomputedId = bindingIdentity(identity);
+  if (recomputedId !== binding.id) {
+    throw new Error(
+      'KAQ binding review rejected: binding identity does not match fields (forged or drifted)',
+    );
+  }
+  const evidenceRefs = Object.freeze(
+    [...new Set(binding.evidenceRefs.map((ref) => ref.trim()).filter(Boolean))].sort(),
+  ) as readonly string[];
+  const recomputedEvidenceDigest = evidenceDigest({
+    kaqRoleId: binding.kaqRoleId,
+    canonicalId: binding.canonicalId,
+    bindingRole: binding.bindingRole,
+    evidenceRefs,
+    semanticRationale: binding.semanticRationale.trim(),
+  });
+  if (recomputedEvidenceDigest !== binding.evidenceDigest) {
+    throw new Error(
+      'KAQ binding review rejected: evidenceDigest does not match fields (forged or drifted)',
+    );
+  }
+  if (binding.pinnedContextDigest !== closedPinned.contextDigest) {
+    throw new Error(
+      'KAQ binding review rejected: pinnedContextDigest mismatch',
+    );
+  }
+  if (!closedPinned.admittedCanonicalIds.includes(binding.canonicalId)) {
+    throw new Error(
+      'KAQ binding review rejected: canonicalId outside admitted CourseCoverage',
+    );
+  }
+
+  const accepted = Object.freeze({
+    id: recomputedId,
+    schemaVersion: CANONICAL_KAQ_BINDING_SCHEMA_VERSION,
+    kaqRoleId: binding.kaqRoleId,
+    canonicalId: binding.canonicalId,
+    bindingRole: binding.bindingRole,
+    releaseSetId: closedPinned.releaseSetId,
+    releaseId: closedPinned.releaseId,
+    objectRevision: binding.objectRevision,
+    evidenceRefs: evidenceRefs as string[],
+    evidenceDigest: recomputedEvidenceDigest,
+    semanticRationale: binding.semanticRationale.trim(),
+    reviewState: 'ACCEPTED' as const,
     reviewIdentity: review.reviewIdentity.trim(),
     reviewRationale: review.reviewRationale.trim(),
-    authorityState: 'SHADOW',
-    productionAuthoritative: false,
-  };
+    lifecycleState: 'CURRENT' as const,
+    authorityState: 'SHADOW' as const,
+    productionAuthoritative: false as const,
+    pinnedContextDigest: closedPinned.contextDigest,
+    inheritedFromLegacyId: null,
+    sameNameAutoMatch: false as const,
+  });
+  ACCEPTED_REVIEWED_KAQ_BINDING_REGISTRY.add(accepted);
+  return accepted;
 }
 
 /**
@@ -365,15 +471,36 @@ export function markStaleKaqBindings(
 }
 
 /**
- * True only for ACCEPTED + CURRENT + SHADOW bindings inside the verified pinned
- * CourseCoverage / Release identity. Candidate/rejected/stale/out-of-coverage
- * never qualify.
+ * True only for mint-registered ACCEPTED + CURRENT + SHADOW bindings inside the
+ * verified pinned CourseCoverage / Release identity. Clones, field-forged
+ * objects, candidate/rejected/stale/out-of-coverage never qualify.
  */
 export function isReviewedShadowBinding(
   binding: KaqCanonicalBinding,
   pinned: VerifiedKaqPinnedContext,
 ): boolean {
   const closed = assertVerifiedKaqPinnedContext(pinned);
+  if (!ACCEPTED_REVIEWED_KAQ_BINDING_REGISTRY.has(binding as object)) {
+    return false;
+  }
+  // Recompute digests against the registered instance fields (defense in depth).
+  const recomputedId = bindingIdentity({
+    kaqRoleId: binding.kaqRoleId,
+    canonicalId: binding.canonicalId,
+    bindingRole: binding.bindingRole,
+    releaseSetId: binding.releaseSetId,
+    releaseId: binding.releaseId,
+    objectRevision: binding.objectRevision,
+  });
+  if (recomputedId !== binding.id) return false;
+  const recomputedEvidence = evidenceDigest({
+    kaqRoleId: binding.kaqRoleId,
+    canonicalId: binding.canonicalId,
+    bindingRole: binding.bindingRole,
+    evidenceRefs: binding.evidenceRefs,
+    semanticRationale: binding.semanticRationale,
+  });
+  if (recomputedEvidence !== binding.evidenceDigest) return false;
   return (
     binding.lifecycleState === 'CURRENT'
     && binding.reviewState === 'ACCEPTED'
@@ -386,6 +513,25 @@ export function isReviewedShadowBinding(
     && binding.inheritedFromLegacyId === null
     && binding.sameNameAutoMatch === false
   );
+}
+
+/**
+ * SAR / consumers: assert the exact instance is a mint-registered reviewed binding.
+ */
+export function assertGovernedReviewedKaqBinding(
+  value: unknown,
+  pinned: VerifiedKaqPinnedContext,
+): KaqCanonicalBinding {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Governed KAQ binding rejected: object required');
+  }
+  const binding = value as KaqCanonicalBinding;
+  if (!isReviewedShadowBinding(binding, pinned)) {
+    throw new Error(
+      'Governed KAQ binding rejected: not a mint-registered ACCEPTED reviewed binding',
+    );
+  }
+  return binding;
 }
 
 /**
