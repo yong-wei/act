@@ -591,7 +591,40 @@ export async function GET() {
           recommendedFocus: adaptiveDiagnostic?.recommendedFocus ?? [],
         }),
       },
-      arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId),
+      // ---------- arena training runs ----------
+      const trainingRuns = await prisma.simulationRun.findMany({
+        where: {
+          ownerUserId: userId,
+          runKind: 'arena_preview',
+          status: 'completed',
+        },
+        select: {
+          summary: true,
+          completedAt: true,
+        },
+        orderBy: { completedAt: 'desc' },
+        take: 50,
+      });
+
+      const mappedTrainingRuns = trainingRuns
+        .filter((run) => {
+          const summary = run.summary as Record<string, unknown> | null;
+          const arenaTraining = summary?.arenaTraining as Record<string, unknown> | undefined;
+          return arenaTraining?.taskId != null;
+        })
+        .map((run) => {
+          const summary = run.summary as Record<string, unknown> | null;
+          const arenaTraining = summary?.arenaTraining as Record<string, unknown> | undefined;
+          return {
+            taskId: String(arenaTraining?.taskId ?? ''),
+            scenarioId: String(arenaTraining?.scenarioId ?? ''),
+            completedAt: run.completedAt?.toISOString() ?? new Date().toISOString(),
+            evaluationVisibility: String(arenaTraining?.evaluationVisibility ?? 'preview'),
+            officialEligible: Boolean(arenaTraining?.officialEligible ?? false),
+          };
+        });
+
+      arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId, mappedTrainingRuns),
       arenaSummary: buildArenaStudentEvidenceSummary({
         userId,
         submissions: userArenaSubmissions,
