@@ -35,6 +35,12 @@ function fact(id: string, overrides: Partial<LearningFact> = {}): LearningFact {
     courseId: null,
     lessonId: null,
     contextJson: {},
+    knowledgeIdentityNamespace: null,
+    canonicalObjectId: null,
+    aggregateReleaseSetId: null,
+    aggregateReleaseId: null,
+    knowledgeProjectionId: null,
+    knowledgeRevisionRef: null,
     createdAt: evidenceAt,
     ...overrides,
   };

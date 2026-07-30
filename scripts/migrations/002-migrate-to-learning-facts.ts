@@ -3,10 +3,36 @@ import { createPrismaClient } from '../../src/lib/prisma-client';
  * Migrate to Learning Facts
  *
  * Transforms existing data into unified LearningFact format.
+ * New rows stamp LEGACY identity via the fixed-identity adapter (#1116).
  */
 
+import type { Prisma } from '@prisma/client';
+
+import {
+  writeLegacyKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 
 const prisma = createPrismaClient();
+
+async function writeLegacyFacts(rows: LearningFactWriteRow[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  const activeRevision = await resolveActiveKnowledgeRevision(prisma);
+  const result = await writeLegacyKnowledgeScopedLearningFacts(
+    {
+      learningFact: {
+        createMany: async (args) => prisma.learningFact.createMany({
+          data: [...args.data] as Prisma.LearningFactCreateManyInput[],
+          skipDuplicates: args.skipDuplicates,
+        }),
+      },
+    },
+    rows,
+    { knowledgeRevisionRef: activeRevision.id },
+  );
+  return result.written;
+}
 
 async function migrateToLearningFacts() {
   console.log('[Migration] Starting LearningFacts migration...');
@@ -17,7 +43,7 @@ async function migrateToLearningFacts() {
     take: 1000, // Process in batches
   });
 
-  const simulationFacts = simulationLogs.map(log => ({
+  const simulationFacts = simulationLogs.map((log) => ({
     userId: log.userId,
     factType: 'simulation',
     moduleId: log.missionId,
@@ -33,14 +59,11 @@ async function migrateToLearningFacts() {
     },
     sourceLogId: log.id,
     createdAt: log.createdAt,
-  }));
+  })) as LearningFactWriteRow[];
 
   if (simulationFacts.length > 0) {
-    await prisma.learningFact.createMany({
-      data: simulationFacts,
-      skipDuplicates: true,
-    });
-    console.log(`[Migration] Migrated ${simulationFacts.length} simulation logs`);
+    const written = await writeLegacyFacts(simulationFacts);
+    console.log(`[Migration] Migrated ${written} simulation logs`);
   }
 
   // 2. Migrate UserAnswers
@@ -50,7 +73,7 @@ async function migrateToLearningFacts() {
     include: { question: true },
   });
 
-  const answerFacts = userAnswers.map(answer => ({
+  const answerFacts = userAnswers.map((answer) => ({
     userId: answer.userId,
     factType: 'question',
     moduleId: answer.questionId,
@@ -65,14 +88,11 @@ async function migrateToLearningFacts() {
     },
     sourceLogId: answer.id,
     createdAt: answer.createdAt,
-  }));
+  })) as LearningFactWriteRow[];
 
   if (answerFacts.length > 0) {
-    await prisma.learningFact.createMany({
-      data: answerFacts,
-      skipDuplicates: true,
-    });
-    console.log(`[Migration] Migrated ${answerFacts.length} user answers`);
+    const written = await writeLegacyFacts(answerFacts);
+    console.log(`[Migration] Migrated ${written} user answers`);
   }
 
   // 3. Migrate AIInterventions
@@ -81,7 +101,7 @@ async function migrateToLearningFacts() {
     take: 1000,
   });
 
-  const interventionFacts = interventions.map(intervention => ({
+  const interventionFacts = interventions.map((intervention) => ({
     userId: intervention.userId,
     factType: 'ai_intervention',
     sessionId: intervention.sessionId,
@@ -95,14 +115,11 @@ async function migrateToLearningFacts() {
     },
     sourceLogId: intervention.id,
     createdAt: intervention.createdAt,
-  }));
+  })) as LearningFactWriteRow[];
 
   if (interventionFacts.length > 0) {
-    await prisma.learningFact.createMany({
-      data: interventionFacts,
-      skipDuplicates: true,
-    });
-    console.log(`[Migration] Migrated ${interventionFacts.length} AI interventions`);
+    const written = await writeLegacyFacts(interventionFacts);
+    console.log(`[Migration] Migrated ${written} AI interventions`);
   }
 
   // 4. Migrate PromptAssessments
@@ -111,7 +128,7 @@ async function migrateToLearningFacts() {
     take: 1000,
   });
 
-  const promptFacts = assessments.map(assessment => ({
+  const promptFacts = assessments.map((assessment) => ({
     userId: assessment.userId,
     factType: 'prompt_design',
     sessionId: assessment.sessionId,
@@ -125,14 +142,11 @@ async function migrateToLearningFacts() {
     },
     sourceLogId: assessment.id,
     createdAt: assessment.createdAt,
-  }));
+  })) as LearningFactWriteRow[];
 
   if (promptFacts.length > 0) {
-    await prisma.learningFact.createMany({
-      data: promptFacts,
-      skipDuplicates: true,
-    });
-    console.log(`[Migration] Migrated ${promptFacts.length} prompt assessments`);
+    const written = await writeLegacyFacts(promptFacts);
+    console.log(`[Migration] Migrated ${written} prompt assessments`);
   }
 
   console.log('[Migration] LearningFacts migration complete');
@@ -143,4 +157,6 @@ migrateToLearningFacts()
     console.error('[Migration] Failed:', err);
     process.exit(1);
   })
-  .finally(() => prisma.$disconnect());
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

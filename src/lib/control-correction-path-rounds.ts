@@ -14,6 +14,12 @@ import {
   updateLearningPathIfWritable,
   type LearningPathFenceClient,
 } from './canonical-learning-path-transition/write-fence';
+import {
+  selectLearningFactAuthority,
+  writeKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from './canonical-learning-fact-identity';
+import { resolveActiveKnowledgeRevision } from './data-governance/knowledge-truth-revision';
 import { isStudentVisiblePathTarget } from './student-visible-path-target';
 
 export { isStudentVisiblePathTarget } from './student-visible-path-target';
@@ -905,27 +911,43 @@ async function recordPathChoiceEvidenceInClient(
     }
   }
   if (db.learningFact?.createMany) {
-    const result = await db.learningFact.createMany({
-      data: [{
-        userId: input.userId,
-        factType: eventType,
-        moduleId: namespace.moduleId,
-        sessionId: null,
-        startedAt: occurredAt,
-        finishedAt: occurredAt,
-        outcome: 'success',
-        score: null,
-        timeSpent: 0,
-        competencyContribution: {},
-        sourceEventId: dedupeKey,
-        sourceLogId: input.eventId ?? input.idempotencyKey ?? null,
-        courseId: null,
-        lessonId: null,
-        contextJson: payload,
-      }],
-      skipDuplicates: true,
-    });
-    if (!db.evidenceOutbox?.createMany && typeof result?.count === 'number' && result.count === 0) {
+    const selector = selectLearningFactAuthority('FORMAL_PRODUCTION');
+    const activeRevision = await resolveActiveKnowledgeRevision(db as never);
+    const result = await writeKnowledgeScopedLearningFacts(
+      {
+        learningFact: {
+          createMany: async (args) => db.learningFact!.createMany!({
+            data: [...args.data],
+            skipDuplicates: args.skipDuplicates,
+          }),
+        },
+      },
+      {
+        rows: [{
+          userId: input.userId,
+          factType: eventType,
+          moduleId: namespace.moduleId,
+          sessionId: null,
+          startedAt: occurredAt,
+          finishedAt: occurredAt,
+          outcome: 'success',
+          score: null,
+          timeSpent: 0,
+          competencyContribution: {},
+          sourceEventId: dedupeKey,
+          sourceLogId: input.eventId ?? input.idempotencyKey ?? null,
+          courseId: null,
+          lessonId: null,
+          contextJson: payload,
+        } as LearningFactWriteRow],
+        knowledgeScoped: true,
+      },
+      {
+        selector,
+        knowledgeRevisionRef: activeRevision.id,
+      },
+    );
+    if (!db.evidenceOutbox?.createMany && result.written === 0) {
       return { emitted: false, dedupeKey };
     }
   }

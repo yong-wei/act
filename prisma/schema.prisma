@@ -4241,6 +4241,11 @@ model EventDictionary {
 }
 
 // Unified learning facts (derived from events)
+// Knowledge identity (#1116):
+// - historical rows keep null namespace (read as LEGACY / legacy-unversioned)
+// - new Legacy knowledge-scoped writes may stamp LEGACY without Canonical columns
+// - formal Canonical writes require complete fixed identity (DB CHECK enforces)
+// - never dual-write Legacy + Canonical identity for one fact; no historical backfill
 model LearningFact {
   id        String  @id @default(cuid())
   userId    String
@@ -4267,6 +4272,18 @@ model LearningFact {
   lessonId    String?
   contextJson Json    @default("{}")
 
+  // Fixed knowledge identity namespace (#1116). null = historical pre-namespace rows.
+  // Values: LEGACY | CANONICAL. Candidate is never a writable namespace.
+  knowledgeIdentityNamespace String?
+  // Canonical Object ID (required when namespace = CANONICAL)
+  canonicalObjectId          String?
+  // Active aggregate ReleaseSet/Release (required when namespace = CANONICAL)
+  aggregateReleaseSetId      String?
+  aggregateReleaseId         String?
+  // Projection identity and/or knowledge revision (at least one required for CANONICAL)
+  knowledgeProjectionId      String?
+  knowledgeRevisionRef       String?
+
   createdAt DateTime @default(now())
 
   portraitTransitions LearnerFactTransition[]
@@ -4275,6 +4292,10 @@ model LearningFact {
   @@index([userId, startedAt])
   @@index([sessionId])
   @@index([factType, startedAt])
+  @@index([knowledgeIdentityNamespace, startedAt])
+  @@index([canonicalObjectId])
+  @@index([aggregateReleaseSetId, aggregateReleaseId])
+  @@index([knowledgeRevisionRef])
 }
 
 model LearningEvidenceDraft {
