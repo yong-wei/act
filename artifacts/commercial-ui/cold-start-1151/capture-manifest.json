@@ -1,0 +1,23 @@
+{
+  "captureGeneratedAt": "2026-07-30T12:03:25.252Z",
+  "captureSourceSha": {
+    "src/app/assessment/adaptive-practice/page.tsx": "d299d71a7923c6999d4348e93776f86e89099b688dccda9965b156b797fc4b22",
+    "src/lib/adaptive-cold-start-detection.ts": "6322b7fd3ebf691fef33b11900b034d9cbbc0b802bebf5ad5655b62b4386716a",
+    "src/lib/__tests__/adaptive-cold-start-detection.test.ts": "29a8e13d58799943ab878072495a244ca3b65d5a1f89664028f105eff47d8f7a"
+  },
+  "captureCommitSha": null,
+  "screenshots": [
+    {
+      "filename": "cold-start-desktop.png",
+      "viewportWidth": 1440,
+      "viewportHeight": 900,
+      "capturedAt": "2026-07-30T12:04:06.415Z"
+    },
+    {
+      "filename": "cold-start-mobile.png",
+      "viewportWidth": 320,
+      "viewportHeight": 900,
+      "capturedAt": "2026-07-30T12:04:42.280Z"
+    }
+  ]
+}
