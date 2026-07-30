@@ -111,6 +111,7 @@
     "db:import-course-coverage-overlay": "tsx ./scripts/db/import-course-coverage-overlay.ts",
     "db:import-canonical-resource-binding-shadow": "tsx ./scripts/db/import-canonical-resource-binding-shadow.ts",
     "db:verify-authoritative-knowledge-deployment": "tsx ./scripts/db/import-authoritative-actkg-release.ts --verify-only && tsx ./scripts/db/import-course-coverage-overlay.ts --verify-only && tsx ./scripts/db/import-canonical-resource-binding-shadow.ts --verify-only",
+    "verify:canonical-learning-fact-identity": "tsx ./scripts/data-governance/verify-canonical-learning-fact-identity.mjs",
     "db:backfill-cumulative-attainment": "tsx ./scripts/db/backfill-cumulative-attainment.ts",
     "db:reconcile-teacher-default-classes": "tsx ./scripts/db/reconcile-teacher-default-classes.ts",
     "test:teacher-default-class-postgres": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=react-server\" tsx ./scripts/tests/test-teacher-default-class-postgres.ts",

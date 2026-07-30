@@ -288,6 +288,45 @@ function evidenceCache(overrides: Record<string, unknown> = {}) {
       adaptiveLearnerState: defaultAdaptiveLearnerStateFeature(),
       simulationArena: emptySimulationArenaFeature(),
       pathExecution: emptyPathExecutionFeature(),
+      // Persisted shape: identity diagnostics live inside features JSON.
+      knowledgeIdentityCoverage: {
+        totalFacts: 7,
+        byNamespace: { LEGACY: 7, CANONICAL: 0, LEGACY_UNVERSIONED: 0 },
+        distinctRevisionRefs: ['legacy-active:pre-cutover-v1'],
+        mixedNamespaces: false,
+        mixedRevisions: false,
+        singleVersionComparable: true,
+        availability: 'single-version',
+      },
+      knowledgeIdentityLayers: [
+        {
+          layerKey: 'LEGACY\u001flegacy-active:pre-cutover-v1',
+          identityNamespace: 'LEGACY',
+          knowledgeRevisionRef: 'legacy-active:pre-cutover-v1',
+          factCount: 7,
+          evidenceWindow: {
+            firstStartedAt: '2026-05-01T00:00:00.000Z',
+            lastStartedAt: '2026-05-18T00:00:00.000Z',
+            daysCovered: 17,
+          },
+          activity: {
+            totalFacts: 7,
+            successfulFacts: 7,
+            partialFacts: 0,
+            failedFacts: 0,
+            averageScore: 80,
+            totalTimeSpentSeconds: 0,
+            distinctLessons: [],
+            distinctModules: [],
+          },
+          competencyContributions: {},
+        },
+      ],
+      mergedAggregateComparability: {
+        singleVersionComparable: true,
+        reason: 'single-layer',
+        layerCount: 1,
+      },
       ...overrideFeatures,
     },
     ...Object.fromEntries(
@@ -411,6 +450,68 @@ describe('generateRecommendations', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('fails closed on pre-#1116 v4 feature caches without knowledge identity diagnostics', async () => {
+    // Explicitly omit knowledgeIdentityCoverage / layers so missing diagnostics
+    // cannot be treated as single-version comparable after #1116 rollout.
+    const v4Cache = evidenceCache({
+      payloadVersion: 'student-evidence-features.v4',
+      // Keep cache freshness current so state reflects identity fail-closed, not stale.
+      refreshedAt: new Date('2026-05-20T12:00:00.000Z'),
+    });
+    // evidenceCache spreads overrides after defaults; force-delete identity fields
+    // from both top-level compatibility fields and features JSON.
+    delete (v4Cache as { knowledgeIdentityCoverage?: unknown }).knowledgeIdentityCoverage;
+    delete (v4Cache as { knowledgeIdentityLayers?: unknown }).knowledgeIdentityLayers;
+    delete (v4Cache as { mergedAggregateComparability?: unknown }).mergedAggregateComparability;
+    const features = v4Cache.features as Record<string, unknown>;
+    delete features.knowledgeIdentityCoverage;
+    delete features.knowledgeIdentityLayers;
+    delete features.mergedAggregateComparability;
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(v4Cache);
+
+    const recommendations = await generateRecommendations('student-1');
+    expect(recommendations.length).toBeGreaterThan(0);
+    const cacheBacked = recommendations.filter(
+      (item) => item.rationale.evidenceBasis === 'student-evidence-feature-cache',
+    );
+    expect(cacheBacked.length).toBeGreaterThan(0);
+    for (const item of cacheBacked) {
+      expect(item.rationale.confidence.state).toBe('partial');
+      expect(item.rationale.confidence.markers).toEqual(
+        expect.arrayContaining(['mixed-knowledge-identity', 'partial']),
+      );
+      // Must not present undiagnosed multi-era merge as ready single-version evidence.
+      expect(item.rationale.confidence.state).not.toBe('ready');
+      expect(item.rationale.confidence.level === 'high').toBe(false);
+    }
+  });
+
+  it('consumes identity diagnostics from persisted features JSON (not only top-level)', async () => {
+    // Simulate real Prisma cache: diagnostics live only under features.
+    const cache = evidenceCache({
+      refreshedAt: new Date('2026-05-20T12:00:00.000Z'),
+    });
+    delete (cache as { knowledgeIdentityCoverage?: unknown }).knowledgeIdentityCoverage;
+    delete (cache as { knowledgeIdentityLayers?: unknown }).knowledgeIdentityLayers;
+    delete (cache as { mergedAggregateComparability?: unknown }).mergedAggregateComparability;
+    // features retains single-version diagnostics (set by evidenceCache helper).
+    expect((cache.features as any).knowledgeIdentityCoverage?.singleVersionComparable).toBe(true);
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(cache);
+
+    const recommendations = await generateRecommendations('student-1');
+    const cacheBacked = recommendations.filter(
+      (item) => item.rationale.evidenceBasis === 'student-evidence-feature-cache',
+    );
+    expect(cacheBacked.length).toBeGreaterThan(0);
+    for (const item of cacheBacked) {
+      // With features-only diagnostics present, single-version path remains usable.
+      expect(item.rationale.confidence.state).not.toBe('partial');
+      expect(item.rationale.confidence.markers).not.toEqual(
+        expect.arrayContaining(['mixed-knowledge-identity']),
+      );
+    }
   });
 
   it('uses the governed feature cache as the recommendation evidence source', async () => {

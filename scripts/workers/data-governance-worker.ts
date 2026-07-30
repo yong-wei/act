@@ -21,6 +21,12 @@ import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance
 import {
   eventToLearningFactInput,
 } from '@/lib/data-governance/learning-fact-materialization';
+import {
+  selectLearningFactAuthority,
+  writeKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import {
   rebuildStudentEvidenceFeatureCache,
@@ -589,11 +595,29 @@ export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
 
   let factsCreated = 0;
   if (facts.length > 0) {
-    const result = await db.learningFact.createMany({
-      data: facts as Prisma.LearningFactCreateManyInput[],
-      skipDuplicates: true,
-    });
-    factsCreated = result.count;
+    // Realtime knowledge-scoped facts must resolve the active authority selector
+    // and write through the fixed-identity adapter (pre-cutover: LEGACY).
+    const selector = selectLearningFactAuthority('FORMAL_PRODUCTION');
+    const activeRevision = await resolveActiveKnowledgeRevision(db);
+    const result = await writeKnowledgeScopedLearningFacts(
+      {
+        learningFact: {
+          createMany: async (args) => db.learningFact.createMany({
+            data: args.data as Prisma.LearningFactCreateManyInput[],
+            skipDuplicates: args.skipDuplicates,
+          }),
+        },
+      },
+      {
+        rows: facts as LearningFactWriteRow[],
+        knowledgeScoped: true,
+      },
+      {
+        selector,
+        knowledgeRevisionRef: activeRevision.id,
+      },
+    );
+    factsCreated = result.written;
     const triggerId = String(job.id ?? batchDate);
     const fence = await readActiveCumulativePublicationFence(db);
     for (const userId of new Set(facts.map((fact) => fact.userId))) {
