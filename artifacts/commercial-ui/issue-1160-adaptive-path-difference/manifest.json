@@ -1,0 +1,60 @@
+{
+  "capturedAt": "2026-07-31T12:19:52.500Z",
+  "commitSha": "658ce9fe026205cba55bf7fbc612974180d92edc",
+  "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=path-difference-evidence-1160",
+  "sourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "b7534ee8b1653d3f96e89f47c3a4fffde43918b3b88a10db62178363636d95dd",
+    "src/app/assessment/adaptive-practice/layout.tsx": "c079dc059609bf222c52179ceac5801707eb8f570f1d244a1002e9fedb0467db",
+    "src/features/adaptive/path-advisor-entrypoint-bridge.tsx": "ca094f8f013b803e45c44d8b2e3a758d72d91e614c54f6b8b4be3b58b96253f1",
+    "src/lib/konling-agent-runtime.ts": "2e1a9ba84e1435e7d2f533c88d1504c9fa93049b5fedfe56711381d4d6e70dbe",
+    "tests/adaptive-path-difference-evidence.spec.ts": "2795a4b162ff3873e2f594063403e8620dd432077988df501282c0395c3f84f0"
+  },
+  "assertions": [
+    {
+      "viewport": "desktop-1440",
+      "scenario": "ready-identical-insufficient-and-invalidation",
+      "passed": true,
+      "checks": [
+        "ready comparison",
+        "no material difference",
+        "insufficient data",
+        "advisor route request contract",
+        "candidate group invalidates stale explanation",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "ready-identical-insufficient-and-invalidation",
+      "passed": true,
+      "checks": [
+        "ready comparison",
+        "no material difference",
+        "insufficient data",
+        "advisor route request contract",
+        "candidate group invalidates stale explanation",
+        "no horizontal overflow"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "desktop-1440-ready.png",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1160-adaptive-path-difference/desktop-1440-ready.png",
+      "sha256": "6e3181e853a96e3386b91ce1480c96ab90b659053532a6dd140f5ca214001bf5",
+      "state": "ready",
+      "noHorizontalOverflow": true
+    },
+    {
+      "name": "mobile-320-ready.png",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1160-adaptive-path-difference/mobile-320-ready.png",
+      "sha256": "80b331d2859b1d3a1b23770b601ed377225f4e583cc05967ed798ff2fda9d9ec",
+      "state": "ready",
+      "noHorizontalOverflow": true
+    }
+  ]
+}
