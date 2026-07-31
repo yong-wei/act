@@ -6,6 +6,7 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { canonicalJson } from '../../../scripts/actkg-release/authoritative-release';
 import { prepareLatestActkgIntake } from '../../../scripts/knowledge-cutover/prepare-latest-actkg-intake';
 import { resolveLatestStableAggregate } from '../../../scripts/actkg-release/latest-stable-aggregate';
 
@@ -31,21 +32,31 @@ async function fixtureRepo(): Promise<string> {
   const sourceCommit = git(root, ['rev-parse', 'HEAD']);
   git(root, ['tag', 'source-v1']);
 
-  const bundleDir = path.join(root, 'releases', 'control-v1');
+  const legacyDir = path.join(root, 'releases', 'control-theory-engineering-v0.3');
+  await mkdir(legacyDir, { recursive: true });
+  await writeFile(path.join(legacyDir, 'legacy.txt'), 'legacy\n');
+  const legacySums = `${sha256(await readFile(path.join(legacyDir, 'legacy.txt')))}  legacy.txt\n`;
+  await writeFile(path.join(legacyDir, 'SHA256SUMS'), legacySums);
+
+  const bundleDir = path.join(root, 'releases', 'control-theory-engineering-v0.3-r2');
   await mkdir(bundleDir, { recursive: true });
   await writeFile(path.join(bundleDir, 'validation-report.json'), '{"result":"PASS"}\n');
   const manifest = {
     bundle_contract_version: 'actkg-public-bundle/1',
     bundle_digest: sha256('bundle'),
-    bundle_id: 'ctb:control-v1:r1',
+    bundle_id: 'ctb:control-theory-engineering-v0.3:r2',
     bundle_kind: 'aggregate',
-    bundle_revision: 1,
-    publication: { tag: 'stable-control-v1' },
-    previous_bundle: null,
+    bundle_revision: 2,
+    publication: { tag: 'stable-control-theory-engineering-v0.3-r2' },
+    previous_bundle: {
+      bundle_id: 'ctb:control-theory-engineering-v0.3:r1',
+      kind: 'legacy_exact',
+      sha256sums_sha256: sha256(legacySums),
+    },
     release: {
       release_hash: sha256('release'),
-      release_id: 'ctr:release:control-v1',
-      release_version: 'control-v1',
+      release_id: 'ctr:release:control-theory-engineering-v0.3',
+      release_version: 'control-theory-engineering-v0.3',
       source_dataset_hash: sha256('source-dataset'),
     },
     release_stage: 'stable',
@@ -63,9 +74,42 @@ async function fixtureRepo(): Promise<string> {
       .map(async (name) => `${sha256(await readFile(path.join(bundleDir, name)))}  ${name}`),
   )).join('\n');
   await writeFile(path.join(bundleDir, 'SHA256SUMS'), `${sums}\n`);
-  git(root, ['add', 'releases']);
+  const closureBody = {
+    algorithm_version: 'sha256sums-legacy-exact-root/1',
+    authority_implementation: 'fixture',
+    authority_protocol: 'ctkg-m1k-v1d-predecessor-closure/1',
+    bundle_id: 'ctb:control-theory-engineering-v0.3:r1',
+    bundle_path: 'releases/control-theory-engineering-v0.3',
+    consumer_binding: {
+      consumer_bundle_id: 'ctb:control-theory-engineering-v0.3:r2',
+      field: 'previous_bundle',
+      manifest_path: 'releases/control-theory-engineering-v0.3-r2/bundle-manifest.json',
+      manifest_sha256: sha256(await readFile(path.join(bundleDir, 'bundle-manifest.json'))),
+      value: manifest.previous_bundle,
+    },
+    contract_version: 'actkg-legacy-predecessor-root-closure/1',
+    gates: {
+      BUNDLE_ID_BINDING_GATE: 'PASS',
+      CONSUMER_PREDECESSOR_BINDING_GATE: 'PASS',
+      LEGACY_LAYOUT_GATE: 'PASS',
+      MEMBER_CHECKSUM_GATE: 'PASS',
+      SHA256SUMS_RAW_BINDING_GATE: 'PASS',
+    },
+    member_checksum_count: 1,
+    reference_kind: 'legacy_exact',
+    release_version: 'control-theory-engineering-v0.3',
+    sha256sums_path: 'releases/control-theory-engineering-v0.3/SHA256SUMS',
+    sha256sums_raw_sha256: sha256(legacySums),
+    status: 'PASS',
+  };
+  await mkdir(path.join(root, 'docs/coordination/m1j'), { recursive: true });
+  await writeFile(
+    path.join(root, 'docs/coordination/m1j/v0.3-r1-predecessor-closure.json'),
+    JSON.stringify({ ...closureBody, artifact_hash: sha256(canonicalJson(closureBody)) }),
+  );
+  git(root, ['add', 'releases', 'docs']);
   git(root, ['commit', '-m', 'fixture stable bundle']);
-  git(root, ['tag', 'stable-control-v1']);
+  git(root, ['tag', 'stable-control-theory-engineering-v0.3-r2']);
   return root;
 }
 
@@ -90,7 +134,7 @@ describe('prepareLatestActkgIntake', () => {
       });
       expect(receipt).toMatchObject({
         protocol: 'act-latest-stable-aggregate-intake/1',
-        releaseId: 'ctr:release:control-v1',
+        releaseId: 'ctr:release:control-theory-engineering-v0.3',
       });
       await expect(
         prepareLatestActkgIntake({
@@ -101,7 +145,7 @@ describe('prepareLatestActkgIntake', () => {
         }),
       ).rejects.toThrow('intake output root already exists');
       await expect(
-        readFile(path.join(outputRoot, 'releases', 'control-v1', 'SHA256SUMS')),
+        readFile(path.join(outputRoot, 'releases', 'control-theory-engineering-v0.3', 'SHA256SUMS')),
       ).resolves.toBeTruthy();
     } finally {
       await rm(actkgRoot, { recursive: true, force: true });
