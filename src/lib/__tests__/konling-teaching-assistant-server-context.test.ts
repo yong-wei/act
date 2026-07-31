@@ -67,16 +67,67 @@ describe('Konling teaching-assistant server context', () => {
       misconceptionTags: ['bandwidth-only'],
       remediationResources: [],
     };
+    const contentHash = 'a'.repeat(64);
+    const catalogContentHash = 'c'.repeat(64);
     const answer = {
-      id: 'answer-1', userId: 'student-1', sessionId: 'session-1', questionId: 'question-1',
+      id: 'answer-1', userId: 'student-1', sessionId: 'session-1', questionRefId: 'item-ref-1', questionId: 'question-1',
       selectedOptionKey: 'B', correctOptionKey: 'A', isCorrect: false, answeredAt: new Date('2026-07-28T00:00:00.000Z'),
       session: { id: 'session-1', userId: 'student-1', sessionKey: 'practice-1' },
-      questionRef: { knowledgeTags: ['steady-state-error'], metadata: { questionSnapshot } },
+      questionRef: {
+        id: 'item-ref-1',
+        questionId: 'question-1',
+        contentHash,
+        knowledgeTags: ['steady-state-error'],
+        metadata: {
+          questionSnapshot,
+          adaptiveAssessmentItemRef: {
+            catalogBacked: true,
+            catalogItemId: 'catalog-item-1',
+            snapshotVersion: 'adaptive-assessment-item-ref.v1',
+            reviewState: 'path-eligible',
+            eligibilityState: 'path-eligible',
+            contentHash: catalogContentHash,
+            semanticRefs: {
+              graphNodeIds: ['knowledge-node-1'],
+              misconceptionTags: ['bandwidth-only'],
+            },
+            relationship: {
+              immutable: true,
+              catalogUpdatesRewriteHistoricalAnswers: false,
+            },
+          },
+        },
+      },
     };
     const db = {
       adaptiveAssessmentAnswer: {
         findFirst: vi.fn().mockResolvedValue(answer),
         findMany: vi.fn().mockResolvedValue([answer]),
+      },
+      wrongAnswerAttribution: {
+        upsert: vi.fn().mockResolvedValue({
+          id: 'attribution-1',
+          answerId: 'answer-1',
+          attributionVersion: 'wrong-answer-attribution.v1',
+          sessionId: 'session-1',
+          questionRefId: 'item-ref-1',
+          itemContentHash: contentHash,
+          state: 'ATTRIBUTED',
+          knowledgeNodeIds: ['knowledge-node-1'],
+          misconceptionTags: ['bandwidth-only'],
+          evidenceSummary: {
+            version: 'wrong-answer-evidence-summary.v1',
+            outcome: 'incorrect',
+            answeredAt: '2026-07-28T00:00:00.000Z',
+            knowledgeNodeCount: 1,
+            misconceptionCandidateCount: 1,
+          },
+          evidenceRefs: [],
+          confidence: 1,
+          limitations: [],
+          nextAction: 'NONE',
+          createdAt: new Date('2026-07-28T00:01:00.000Z'),
+        }),
       },
     };
 
@@ -95,6 +146,13 @@ describe('Konling teaching-assistant server context', () => {
       where: { id: 'answer-1', userId: 'student-1' },
     }));
     expect(context.adaptiveAttempt).toMatchObject({ answerId: 'answer-1', selectedOptionKey: 'B', question: questionSnapshot });
+    expect(context.wrongAnswerAttribution).toMatchObject({
+      state: 'ATTRIBUTED',
+      attribution: {
+        knowledgeNodeId: 'knowledge-node-1',
+        misconceptionTag: 'bandwidth-only',
+      },
+    });
   });
 
   it('fails closed when diagnosis attempt context cannot be verified', async () => {

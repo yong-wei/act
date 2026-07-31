@@ -3946,6 +3946,7 @@ model AdaptiveAssessmentAnswer {
   algorithm               AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
   abilityEstimateSnapshot AdaptiveAssessmentAbilityEstimate?
   masteryUpdates          AdaptiveMasteryUpdate[]
+  wrongAnswerAttributions WrongAnswerAttribution[]
 
   @@unique([sessionId, questionId])
   @@index([userId, answeredAt])
@@ -3953,6 +3954,33 @@ model AdaptiveAssessmentAnswer {
   @@index([questionId])
   @@index([questionRefId])
   @@index([algorithmVersion])
+}
+
+model WrongAnswerAttribution {
+  id                 String   @id @default(cuid())
+  answerId           String
+  attributionVersion String
+  userId             String
+  sessionId          String
+  questionRefId      String
+  questionId         String
+  itemContentHash    String
+  state              String
+  knowledgeNodeIds   String[]
+  misconceptionTags  String[]
+  evidenceSummary    Json
+  evidenceRefs       String[]
+  confidence         Float
+  limitations        String[]
+  nextAction         String
+  createdAt          DateTime @default(now())
+
+  answer AdaptiveAssessmentAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@unique([answerId, attributionVersion])
+  @@index([userId, createdAt])
+  @@index([sessionId, createdAt])
+  @@index([questionRefId])
 }
 
 model AdaptiveAssessmentAbilityEstimate {

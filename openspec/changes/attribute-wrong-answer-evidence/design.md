@@ -52,7 +52,7 @@ Evidence summaries and references use a fixed schema and identifiers. They never
 
 - [Reviewed mappings can still be pedagogically wrong] → Persist the rule version and evidence references so later versions can coexist without rewriting history.
 - [A unique constraint race can occur] → Use an upsert with an empty update so repeated requests return the same immutable record.
-- [Content metadata can drift internally] → Validate the item-reference metadata hash and immutable relationship against the persisted item reference before attribution.
+- [Content metadata can drift internally] → Validate the persisted item-version hash, the distinct catalog-source hash, and the immutable snapshot relationship before attribution.
 
 ## Migration Plan
 
