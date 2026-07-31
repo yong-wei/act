@@ -181,11 +181,21 @@ export async function prepareLatestActkgIntake(
     target: string;
     targetPath: string;
     label: string;
+    bundleValidation?: {
+      bundleId: string;
+      bundleDigest: string;
+      manifestSha256: string;
+    };
   }> = [{
     source: sourceBundle,
     target: path.join(args.outputRoot, targetBundlePath),
     targetPath: targetBundlePath,
     label: 'aggregate target directory',
+    bundleValidation: {
+      bundleId: resolved.bundleId,
+      bundleDigest: resolved.bundleDigest,
+      manifestSha256: resolved.manifestSha256,
+    },
   }];
   const lockComponents: JsonObject[] = [];
   const legacyStagedFiles: Array<{ targetPath: string; sha256: string }> = [];
@@ -267,6 +277,7 @@ export async function prepareLatestActkgIntake(
       target: path.join(args.outputRoot, targetDirectoryPath),
       targetPath: targetDirectoryPath,
       label: `standard component target ${targetDirectoryPath}`,
+      bundleValidation: { bundleId, bundleDigest, manifestSha256 },
     });
     lockComponents.push({
       reference_kind: 'standard_bundle',
@@ -329,6 +340,13 @@ export async function prepareLatestActkgIntake(
         force: false,
         errorOnExist: true,
       });
+    }
+    for (const plan of copyPlans) {
+      if (!plan.bundleValidation) continue;
+      await validateBundleDirectory(
+        path.join(stagingRoot, plan.targetPath),
+        plan.bundleValidation,
+      );
     }
     for (const legacy of legacyStagedFiles) {
       const stagedPath = path.join(stagingRoot, ...legacy.targetPath.split('/'));
