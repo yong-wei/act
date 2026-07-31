@@ -634,6 +634,9 @@ export async function prepareLatestActkgChainIntake(
         force: false,
         errorOnExist: true,
       });
+      if (await directoryDigest(path.join(stagingRoot, plan.targetRelative)) !== plan.digest) {
+        fail(`staged bytes drift while copying ${plan.label}`);
+      }
       if (await directoryDigest(plan.source) !== plan.digest) fail(`source drift during copying ${plan.label}`);
     }
     await cp(closureSource, closureTarget, { force: false, errorOnExist: true });
@@ -643,6 +646,9 @@ export async function prepareLatestActkgChainIntake(
     }
     if (!(await readFile(bindingPath)).equals(bindingBytes) || !(await readFile(closureSource)).equals(closureBytes)) {
       fail('frozen binding or predecessor closure drifted during intake');
+    }
+    if (!(await readFile(bindingTarget)).equals(bindingBytes) || !(await readFile(closureTarget)).equals(closureBytes)) {
+      fail('staged binding or predecessor closure bytes drifted during intake');
     }
     const end = await resolveLatestStableAggregateWithCandidates({
       actkgRoot,
