@@ -26,6 +26,7 @@ import {
 } from '@/lib/konling-streaming-citation-fallback';
 import { appendFinalCitationGuardMetadata } from '@/lib/konling-final-citation-metadata-stream';
 import {
+  KonlingAdaptiveAttemptContextError,
   resolveKonlingTeachingAssistantScopeOverride,
   resolveKonlingSmartPrepSessionBinding,
   resolveKonlingTeachingAssistantServerModeContext,
@@ -53,6 +54,7 @@ import {
   claimKonlingConversationTurn,
   completeKonlingConversationTurn,
   KonlingConversationTurnConflictError,
+  normalizeKonlingConversationAssistantBinding,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
   replaceKonlingConversationAssistantRevision,
@@ -463,6 +465,13 @@ export async function POST(request: Request) {
             scope: authorizedScope,
             clientContextHints: effectiveModeClientContextHints,
           });
+      const assistantBinding = candidateOnly
+        ? null
+        : normalizeKonlingConversationAssistantBinding({
+            modeId: effectiveModeId,
+            clientContextHints: effectiveModeClientContextHints,
+            validatedModeContext: serverModeContext,
+          });
       const smartPrepBinding = serverModeContext
         ? resolveKonlingSmartPrepSessionBinding(serverModeContext)
         : null;
@@ -574,6 +583,7 @@ export async function POST(request: Request) {
           ownerUserId: session.user.id,
           currentScope: authorizedScope,
           userMessage: requestedUserMessage,
+          assistantBinding,
         });
         if (!claimedConversationTurn) {
           return new Response(JSON.stringify({ error: 'Conversation not found' }), {
@@ -1195,6 +1205,12 @@ export async function POST(request: Request) {
       });
     }
     if (error instanceof KonlingRuntimeScopeError) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: error.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (error instanceof KonlingAdaptiveAttemptContextError) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: error.status,
         headers: { 'Content-Type': 'application/json' },

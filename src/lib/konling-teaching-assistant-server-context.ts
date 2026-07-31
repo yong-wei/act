@@ -1,6 +1,11 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import {
+  readAdaptiveAttemptContext,
+  type AdaptiveAttemptContextDb,
+} from '@/features/assessment/adaptive-attempt-context';
+
+import {
   parsePersistedDocumentRubricGradingDraft,
   validateDocumentRubricGradingDraftInvariants,
   type PersistedDocumentRubricGradingDraft,
@@ -103,6 +108,16 @@ export interface KonlingTeachingAssistantServerContextDb {
   smartLessonTask?: SmartLessonTaskContextReader;
   courseBasis?: CourseBasisContextReader;
   diagnosisReportSnapshot?: DiagnosisReportSnapshotReader;
+  adaptiveAssessmentAnswer?: any;
+}
+
+export class KonlingAdaptiveAttemptContextError extends Error {
+  readonly status = 409;
+
+  constructor() {
+    super('KONLING_ADAPTIVE_ATTEMPT_CONTEXT_UNAVAILABLE');
+    this.name = 'KonlingAdaptiveAttemptContextError';
+  }
 }
 
 interface ResolvedDocumentGradingDraft {
@@ -143,6 +158,26 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
 
   if (mode.id === 'resource-coach') {
     return resolveResourceCoachModeContext(input);
+  }
+  const adaptiveAttemptAnswerId = stringHint(input.clientContextHints, 'answerId');
+  if (mode.id === 'diagnosis-explainer' && adaptiveAttemptAnswerId) {
+    if (
+      input.scope.role !== 'student' ||
+      input.scope.authenticatedUserId !== input.scope.targetUserId ||
+      !input.db.adaptiveAssessmentAnswer
+    ) {
+      throw new KonlingAdaptiveAttemptContextError();
+    }
+    const adaptiveAttempt = await readAdaptiveAttemptContext({
+      db: input.db as AdaptiveAttemptContextDb,
+      authenticatedUserId: input.scope.authenticatedUserId,
+      answerId: adaptiveAttemptAnswerId,
+    });
+    if (!adaptiveAttempt) throw new KonlingAdaptiveAttemptContextError();
+    return {
+      'adaptive-attempt': true,
+      adaptiveAttempt,
+    };
   }
   if (mode.id === 'path-advisor') {
     return resolvePathAdvisorModeContext({

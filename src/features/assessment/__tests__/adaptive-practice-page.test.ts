@@ -10,6 +10,23 @@ function readRepoFile(relativePath: string) {
 }
 
 describe('adaptive practice page entry states', () => {
+  it('opens a dedicated diagnosis conversation for the durable submitted answer', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('请控灵解析本题');
+    expect(source).toContain("mode: 'diagnosis-explainer'");
+    expect(source).not.toContain("durableAnswerId: 'demo-adaptive-answer-generated-live'");
+    expect(source).toContain('serverContext: { answerId: feedback.durableAnswerId }');
+    expect(source).toContain("promptContext: 'adaptive-attempt'");
+    expect(source).toContain("await startAssistantConversation(entryPoint, '请解析本题')");
+    expect(source).toContain("feedback.isCorrect ? 'border border-border");
+    expect(source).toContain("'bg-primary text-primary-foreground hover:opacity-90'");
+    expect(source).toContain('setPathAdvisorAssistantEntryPoint(pathAdvisorEntryPoint)');
+    expect(source).toContain('openAssistantEntryPoint(pathAdvisorAssistantEntryPoint)');
+    expect(source).toContain('解析请求失败，请重试');
+    expect(source).not.toContain('serverContext: { question');
+  });
+
   it('does not leave unauthenticated homepage entry in an empty loading state', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
@@ -130,9 +147,9 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("const canRetryPathGeneration = pathGenerationReadiness.status === 'retryable'");
     expect(source).toContain("pathAdvisorReadiness?.status === 'retryable'");
     expect(source).toContain('!pathGenerationDegradedReadiness');
-    expect(source).toContain("assistantEntryPoint?.mode === 'path-advisor'");
-    expect(source).toContain('Boolean(assistantEntryPoint.serverContext.modeContextToken)');
-    expect(source).toContain("const hasPathAdvisorModeContext = assistantEntryPoint?.mode === 'path-advisor'");
+    expect(source).toContain("pathAdvisorAssistantEntryPoint?.mode === 'path-advisor'");
+    expect(source).toContain('Boolean(pathAdvisorAssistantEntryPoint.serverContext.modeContextToken)');
+    expect(source).toContain("const hasPathAdvisorModeContext = pathAdvisorAssistantEntryPoint?.mode === 'path-advisor'");
     expect(source).toContain("const canSubmitPathGeneration = (pathGenerationReadiness.status === 'ready' && hasPathAdvisorModeContext) || canRetryPathGeneration;");
     expect(source).toContain("const pathGenerationContextReadiness = pathGenerationReadiness.status === 'ready'");
     expect(source).toContain('!hasPathAdvisorModeContext');

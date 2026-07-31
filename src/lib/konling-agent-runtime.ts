@@ -220,6 +220,7 @@ export type KonlingTeachingAssistantMountSurface =
 export type KonlingTeachingAssistantContextKey =
   | 'student-path-center'
   | 'diagnosis-view'
+  | 'adaptive-attempt'
   | 'learner-state-summary'
   | 'evidence-citations'
   | 'path-execution-context'
@@ -321,6 +322,7 @@ export interface KonlingTeachingAssistantRuntimeContract {
   privacyPolicy: KonlingTeachingAssistantModeContract['privacyPolicy'];
   outputContract: KonlingTeachingAssistantModeContract['outputContract'];
   smartPreparation: KonlingSmartPreparationServerContext | null;
+  adaptiveAttempt: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext | null;
   clientHintsAccepted: string[];
   clientHintsRejected: string[];
 }
@@ -368,6 +370,7 @@ export interface KonlingSmartPreparationServerContext {
 
 export type KonlingTeachingAssistantServerModeContext = Partial<Record<KonlingTeachingAssistantContextKey, boolean>> & {
   smartPreparation?: KonlingSmartPreparationServerContext;
+  adaptiveAttempt?: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext;
 };
 
 export interface KonlingTeachingAssistantEntryPoint {
@@ -651,7 +654,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     supportedRoles: ['student', 'teacher'],
     mountingSurfaces: ['student-learning-overview'],
     requiredContext: ['diagnosis-view', 'learner-state-summary', 'evidence-citations'],
-    optionalContext: ['path-execution-context'],
+    optionalContext: ['adaptive-attempt', 'path-execution-context'],
     permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
     citationClasses: ['learner-state', 'path-execution', 'content'],
     payload: 'aggregate-and-redacted-only',
@@ -842,7 +845,12 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const smartPreparation = mode.id === 'prep-coauthor' && input.scope.role === 'teacher'
     ? input.serverModeContext?.smartPreparation ?? null
     : null;
-  const requiredContext = smartPreparation
+  const adaptiveAttempt = mode.id === 'diagnosis-explainer'
+    ? input.serverModeContext?.adaptiveAttempt ?? null
+    : null;
+  const requiredContext = adaptiveAttempt
+    ? ['adaptive-attempt'] satisfies KonlingTeachingAssistantContextKey[]
+    : smartPreparation
     ? smartPreparation.bootstrap
       ? [
           'prep-pack',
@@ -860,7 +868,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
         'clarification-readiness',
         ] satisfies KonlingTeachingAssistantContextKey[]
     : mode.requiredContext;
-  const requiredCitationClasses = smartPreparation ? [] : mode.citationClasses;
+  const requiredCitationClasses = smartPreparation || adaptiveAttempt ? [] : mode.citationClasses;
   const missingRequiredContext = mode.id === 'generic-chat'
     ? []
     : requiredContext.flatMap((contextKey) =>
@@ -964,6 +972,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     privacyPolicy: mode.privacyPolicy,
     outputContract: mode.outputContract,
     smartPreparation,
+    adaptiveAttempt,
     clientHintsAccepted: [],
     clientHintsRejected,
   };
@@ -1517,6 +1526,8 @@ function isKonlingModeContextAvailable(
     case 'diagnosis-view':
     case 'learner-state-summary':
       return Boolean(runtimeContext.learnerState) && !runtimeContext.missingContext.includes('learner-state');
+    case 'adaptive-attempt':
+      return Boolean(serverModeContext?.adaptiveAttempt);
     case 'evidence-citations':
       return mode.citationClasses.every((citationClass) =>
         hasKonlingCitationClass(citationClass, runtimeContext.citationContext)

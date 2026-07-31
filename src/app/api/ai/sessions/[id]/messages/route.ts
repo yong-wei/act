@@ -35,6 +35,7 @@ import {
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import {
+  KonlingAdaptiveAttemptContextError,
   resolveKonlingTeachingAssistantScopeOverride,
   resolveKonlingSmartPrepSessionBinding,
   resolveKonlingTeachingAssistantServerModeContext,
@@ -47,6 +48,7 @@ import {
   completeKonlingConversationTurn,
   createKonlingMessageId,
   KonlingConversationTurnConflictError,
+  normalizeKonlingConversationAssistantBinding,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
   resolveKonlingContextEventScope,
@@ -246,6 +248,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
           scope: authorizedScope,
           clientContextHints: effectiveModeClientContextHints,
         });
+    const assistantBinding = candidateOnly
+      ? null
+      : normalizeKonlingConversationAssistantBinding({
+          modeId: effectiveModeId,
+          clientContextHints: effectiveModeClientContextHints,
+          validatedModeContext: serverModeContext,
+        });
     const smartPrepBinding = serverModeContext
       ? resolveKonlingSmartPrepSessionBinding(serverModeContext)
       : null;
@@ -289,6 +298,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       ownerUserId: session.user.id,
       currentScope: authorizedScope,
       userMessage,
+      assistantBinding,
     });
     if (!claimedConversationTurn) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
@@ -547,6 +557,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     if (error instanceof KonlingRuntimeScopeError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    if (error instanceof KonlingAdaptiveAttemptContextError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     if (error instanceof AIProviderCapabilityUnavailableError) {
