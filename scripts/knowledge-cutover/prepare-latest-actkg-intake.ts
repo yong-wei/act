@@ -16,7 +16,10 @@ import {
   resolveLatestStableAggregate,
   type LatestStableAggregateBinding,
 } from '../actkg-release/latest-stable-aggregate';
-import { validateBundleDirectory } from './prepare-latest-actkg-chain-intake';
+import {
+  validateBundleDirectory,
+  validateReleaseVersionSegment,
+} from './prepare-latest-actkg-chain-intake';
 
 type JsonObject = Record<string, unknown>;
 
@@ -158,7 +161,10 @@ export async function prepareLatestActkgIntake(
   }
 
   const sourceBundle = path.join(args.actkgRoot, resolved.bundlePath);
-  const targetBundlePath = path.posix.join('releases', resolved.releaseVersion);
+  const targetBundlePath = path.posix.join(
+    'releases',
+    validateReleaseVersionSegment(resolved.releaseVersion, 'binding.releaseVersion'),
+  );
   const manifest = object(
     JSON.parse(await readFile(path.join(sourceBundle, 'bundle-manifest.json'), 'utf8')),
     'latest Manifest',
@@ -231,7 +237,7 @@ export async function prepareLatestActkgIntake(
       bundleDigest,
       manifestSha256,
     });
-    const releaseVersion = string(
+    const releaseVersion = validateReleaseVersionSegment(
       found.manifest.release && object(found.manifest.release, 'component release').release_version,
       `components[${index}].release_version`,
     );

@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -22,7 +22,10 @@ function git(root: string, args: string[]): string {
   }).trim();
 }
 
-async function fixtureRepo(): Promise<string> {
+async function fixtureRepo(options?: {
+  aggregateReleaseVersion?: string;
+  componentReleaseVersion?: string;
+}): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), 'act-intake-'));
   git(root, ['init', '-b', 'main']);
   git(root, ['config', 'user.email', 'intake@example.invalid']);
@@ -55,7 +58,7 @@ async function fixtureRepo(): Promise<string> {
     release: {
       release_hash: sha256('component-release'),
       release_id: 'ctr:release:component-v1',
-      release_version: 'component-v1',
+      release_version: options?.componentReleaseVersion ?? 'component-v1',
       source_dataset_hash: sha256('component-source'),
     },
     release_stage: 'stable',
@@ -89,7 +92,7 @@ async function fixtureRepo(): Promise<string> {
     release: {
       release_hash: sha256('release'),
       release_id: 'ctr:release:control-theory-engineering-v0.3',
-      release_version: 'control-theory-engineering-v0.3',
+      release_version: options?.aggregateReleaseVersion ?? 'control-theory-engineering-v0.3',
       source_dataset_hash: sha256('source-dataset'),
     },
     release_stage: 'stable',
@@ -173,6 +176,31 @@ describe('prepareLatestActkgIntake', () => {
         outputRoot: path.join(workRoot, 'attempt-invalid'),
         mainRef: 'main',
       })).rejects.toThrow(/component SHA256SUMS does not close over ctb:component:v1/u);
+    } finally {
+      await rm(actkgRoot, { recursive: true, force: true });
+      await rm(workRoot, { recursive: true, force: true });
+    }
+  });
+
+  it.each([
+    ['aggregate', { aggregateReleaseVersion: '../../escaped' }],
+    ['standard component', { componentReleaseVersion: '../../escaped' }],
+  ])('rejects an unsafe %s release_version before constructing targets', async (_label, options) => {
+    const actkgRoot = await fixtureRepo(options);
+    const workRoot = await mkdtemp(path.join(tmpdir(), 'act-intake-output-'));
+    const bindingPath = path.join(workRoot, 'binding.json');
+    try {
+      const binding = await resolveLatestStableAggregate({ actkgRoot, mainRef: 'main' });
+      await writeFile(bindingPath, `${JSON.stringify(binding, null, 2)}\n`);
+      const outputRoot = path.join(workRoot, 'attempt-invalid-path');
+      await expect(prepareLatestActkgIntake({
+        actkgRoot,
+        bindingPath,
+        outputRoot,
+        mainRef: 'main',
+      })).rejects.toThrow(/must be a single safe path segment/u);
+      await expect(lstat(outputRoot)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(lstat(path.join(workRoot, 'escaped'))).rejects.toMatchObject({ code: 'ENOENT' });
     } finally {
       await rm(actkgRoot, { recursive: true, force: true });
       await rm(workRoot, { recursive: true, force: true });
