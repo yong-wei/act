@@ -1,0 +1,22 @@
+{
+  "issue": 979,
+  "pr": 1161,
+  "headSha": "0fb747388faa23b420fc4f2abbb49529ba65645c",
+  "base": "integration",
+  "route": "/evidence/issue-979",
+  "harness": "LessonEntryMediaHub",
+  "failClosed": true,
+  "capturedAt": "2026-07-31T09:46:30.146Z",
+  "entries": [
+    {
+      "viewport": 1440,
+      "screenshot": "viewport-1440.png",
+      "sha256": "8deab4df261a1f53f52644d9047344ce108d820de48f14afdfe31c4290cf9913"
+    },
+    {
+      "viewport": 320,
+      "screenshot": "viewport-320.png",
+      "sha256": "03717c61dcbe5a209527583e7687288845664fcce50ccb2218e6f4cca8b5fc15"
+    }
+  ]
+}
