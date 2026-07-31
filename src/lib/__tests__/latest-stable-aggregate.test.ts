@@ -13,7 +13,10 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { canonicalJson } from '../../../scripts/actkg-release/authoritative-release';
-import { resolveLatestStableAggregate } from '../../../scripts/actkg-release/latest-stable-aggregate';
+import {
+  resolveLatestStableAggregate,
+  resolveLatestStableAggregateWithCandidates,
+} from '../../../scripts/actkg-release/latest-stable-aggregate';
 
 const LEGACY_ROOT = 'releases/control-theory-engineering-v0.3';
 const LEGACY_ROOT_ID = 'ctb:control-theory-engineering-v0.3:r1';
@@ -271,6 +274,24 @@ describe('resolveLatestStableAggregate', () => {
       algorithm: 'sha256sums-legacy-exact-root/1',
     });
     expect(result.resolutionDigest).toMatch(/^[0-9a-f]{64}$/u);
+
+    const resolved = await resolveLatestStableAggregateWithCandidates({
+      actkgRoot: root,
+      mainRef: 'main',
+    });
+    expect(resolved.binding).toEqual(result);
+    expect(resolved.activeCandidates.map((candidate) => candidate.bundleId)).toEqual([
+      CHAIN_HEAD_ID,
+      'ctb:control-theory-engineering-v0.4:r2',
+    ]);
+    expect(resolved.activeCandidates[1]).toMatchObject({
+      bundlePath: 'releases/control-theory-engineering-v0.4-r2',
+      releaseVersion: 'control-theory-engineering-v0.4',
+      bundleRevision: 2,
+      manifestSha256: expect.stringMatching(/^[0-9a-f]{64}$/u),
+      sha256sumsSha256: expect.stringMatching(/^[0-9a-f]{64}$/u),
+      validationReportSha256: expect.stringMatching(/^[0-9a-f]{64}$/u),
+    });
   });
 
   it('selects the highest revision and excludes the old revision from the chain', async () => {

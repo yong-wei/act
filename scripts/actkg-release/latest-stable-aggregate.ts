@@ -25,7 +25,7 @@ const LEGACY_ROOT_CLOSURE_GATES = [
 
 type JsonObject = Record<string, unknown>;
 
-interface PreviousBundle {
+export interface PreviousBundle {
   bundle_id: string;
   kind: string;
   sha256sums_sha256: string;
@@ -55,6 +55,7 @@ interface Candidate {
   bundleDir: string;
   bundleFiles: string[];
   manifest: StableAggregateManifest;
+  manifestRaw: JsonObject;
   manifestSha256: string;
   sha256sumsSha256: string;
   sha256sumsBytes: Buffer;
@@ -122,6 +123,42 @@ export interface LatestStableAggregateBinding extends JsonObject {
   bundlePath: string;
   predecessorRootClosure: PredecessorRootClosureBinding | null;
   resolutionDigest: string;
+}
+
+/**
+ * A stable Aggregate candidate after all resolver integrity, lineage, Git tag,
+ * and predecessor-closure checks have passed.  The raw Manifest is retained so
+ * downstream intake can consume its declared component references without
+ * reimplementing candidate discovery.
+ */
+export interface LatestStableAggregateCandidate extends JsonObject {
+  bundleId: string;
+  bundlePath: string;
+  bundleFiles: string[];
+  bundleRevision: number;
+  bundleDigest: string;
+  manifest: JsonObject;
+  manifestSha256: string;
+  sha256sumsSha256: string;
+  validationReportSha256: string;
+  bundleContractVersion: string;
+  releaseId: string;
+  releaseVersion: string;
+  releaseHash: string;
+  sourceDatasetHash: string;
+  schemaVersion: string;
+  schemaSha256: string;
+  sourceCommit: string;
+  sourceTag: string;
+  packagingCommit: string;
+  stableTag: string;
+  predecessorBundleId: string | null;
+  previousBundle: PreviousBundle | null;
+}
+
+export interface LatestStableAggregateResolution {
+  binding: LatestStableAggregateBinding;
+  activeCandidates: LatestStableAggregateCandidate[];
 }
 
 function fail(message: string): never {
@@ -285,8 +322,10 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
   const manifestPath = path.join(bundleDir, 'bundle-manifest.json');
   const manifestBytes = await readFile(manifestPath).catch(() => null);
   if (!manifestBytes) return null;
+  const manifestValue = JSON.parse(manifestBytes.toString('utf8'));
+  const manifestRaw = object(manifestValue, manifestPath);
   const manifest = parseManifest(
-    JSON.parse(manifestBytes.toString('utf8')),
+    manifestValue,
     manifestPath,
   );
   if (!manifest) return null;
@@ -315,6 +354,7 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
     bundleDir,
     bundleFiles: files,
     manifest,
+    manifestRaw,
     manifestSha256: sha256(manifestBytes),
     sha256sumsSha256: sha256(sumsBytes),
     sha256sumsBytes: sumsBytes,
@@ -604,12 +644,12 @@ async function validateLegacyRootClosure(input: {
   };
 }
 
-export async function resolveLatestStableAggregate(options: {
+export async function resolveLatestStableAggregateWithCandidates(options: {
   actkgRoot: string;
   releasesPath?: string;
   mainRef?: string;
   legacyRootClosurePath?: string;
-}): Promise<LatestStableAggregateBinding> {
+}): Promise<LatestStableAggregateResolution> {
   const actkgRoot = path.resolve(options.actkgRoot);
   const releasesRoot = path.resolve(
     actkgRoot,
@@ -737,6 +777,10 @@ export async function resolveLatestStableAggregate(options: {
   if (!COMMIT.test(actkgMainCommit)) fail('main commit is not a Git commit');
 
   const candidateBundlePaths = new Map<Candidate, string>();
+  const candidateIdentities = new Map<
+    Candidate,
+    { sourceCommit: string; packagingCommit: string }
+  >();
   for (const candidate of activeCandidates) {
     const candidateBundlePath = relativePath(
       actkgRoot,
@@ -761,6 +805,7 @@ export async function resolveLatestStableAggregate(options: {
     if (sourceCommit !== candidate.manifest.source_revision.commit) {
       fail(`${candidate.manifest.bundle_id} source tag does not peel to Manifest source commit`);
     }
+    candidateIdentities.set(candidate, { sourceCommit, packagingCommit });
     for (const commit of [sourceCommit, packagingCommit]) {
       try {
         git(actkgRoot, ['merge-base', '--is-ancestor', commit, actkgMainCommit]);
@@ -844,8 +889,47 @@ export async function resolveLatestStableAggregate(options: {
     bundlePath: bundleRelativePath,
     predecessorRootClosure,
   };
-  return {
+  const binding: LatestStableAggregateBinding = {
     ...body,
     resolutionDigest: sha256(canonicalJson(body)),
   };
+  const candidatesWithIdentities: LatestStableAggregateCandidate[] = chain.map((candidate) => {
+    const identity = candidateIdentities.get(candidate);
+    if (!identity) fail(`missing verified Git identity for ${candidate.manifest.bundle_id}`);
+    return {
+      bundleId: candidate.manifest.bundle_id,
+      bundlePath: candidateBundlePaths.get(candidate)!,
+      bundleFiles: [...candidate.bundleFiles],
+      bundleRevision: candidate.manifest.bundle_revision,
+      bundleDigest: candidate.manifest.bundle_digest,
+      manifest: structuredClone(candidate.manifestRaw),
+      manifestSha256: candidate.manifestSha256,
+      sha256sumsSha256: candidate.sha256sumsSha256,
+      validationReportSha256: candidate.validationReportSha256,
+      bundleContractVersion: candidate.manifest.bundle_contract_version,
+      releaseId: candidate.manifest.release.release_id,
+      releaseVersion: candidate.manifest.release.release_version,
+      releaseHash: candidate.manifest.release.release_hash,
+      sourceDatasetHash: candidate.manifest.release.source_dataset_hash,
+      schemaVersion: candidate.manifest.schema.version,
+      schemaSha256: candidate.manifest.schema.sha256,
+      sourceCommit: identity.sourceCommit,
+      sourceTag: candidate.manifest.source_revision.tag,
+      packagingCommit: identity.packagingCommit,
+      stableTag: candidate.manifest.publication.tag,
+      predecessorBundleId: candidate.manifest.previous_bundle?.bundle_id ?? null,
+      previousBundle: candidate.manifest.previous_bundle,
+    };
+  });
+  return { binding, activeCandidates: candidatesWithIdentities };
+}
+
+export async function resolveLatestStableAggregate(options: {
+  actkgRoot: string;
+  releasesPath?: string;
+  mainRef?: string;
+  legacyRootClosurePath?: string;
+}): Promise<LatestStableAggregateBinding> {
+  const { binding } = await resolveLatestStableAggregateWithCandidates(options);
+  return binding;
 }
