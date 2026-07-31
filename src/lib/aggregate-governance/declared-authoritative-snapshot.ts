@@ -15,6 +15,10 @@ export const DECLARED_AUTHORITATIVE_SNAPSHOT_RECEIPT_SCHEMA =
 export const DECLARED_AUTHORITATIVE_SNAPSHOT_RECEIPT_PATH =
   'course-content/authoring/knowledge/issue-1117-v08-r3-chain/metadata/declared-authoritative-snapshot-receipt.json' as const;
 
+/** Immutable digest of the published #1117 receipt payload. */
+export const DECLARED_AUTHORITATIVE_SNAPSHOT_RECEIPT_DIGEST =
+  'd05f74c26767335bd11317379d8ffabc121b0760682faea6bb85fa5a382e088c' as const;
+
 const SHA256 = /^[a-f0-9]{64}$/u;
 const COMMIT = /^[a-f0-9]{40}$/u;
 
@@ -867,6 +871,12 @@ export function validateDeclaredAuthoritativeSnapshotReceipt(
   try {
     receiptDigest = computeDeclaredAuthoritativeSnapshotReceiptDigest(receipt);
     equal(receipt.receiptDigest, receiptDigest, 'receiptDigest', errors);
+    equal(
+      receiptDigest,
+      DECLARED_AUTHORITATIVE_SNAPSHOT_RECEIPT_DIGEST,
+      'receiptDigest immutable published value',
+      errors,
+    );
     hash(receipt.receiptDigest, 'receiptDigest', errors);
   } catch (error) {
     errors.push(error instanceof Error ? error.message : 'receiptDigest cannot be computed');

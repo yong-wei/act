@@ -46,6 +46,18 @@ describe('declared authoritative snapshot receipt', () => {
     expect(() => assertDeclaredAuthoritativeSnapshotReceipt(receipt)).toThrow(/rejected/u);
   });
 
+  it('rejects rewritten role blockers even when the self digest is recomputed', async () => {
+    const receipt = await fixture();
+    const downstream = receipt.downstream as Record<string, unknown>;
+    const roleContracts = downstream.roleContracts as Record<string, unknown>;
+    roleContracts.blockedRoles = ['arbitrary-role'];
+    receipt.receiptDigest = computeDeclaredAuthoritativeSnapshotReceiptDigest(receipt);
+
+    const result = validateDeclaredAuthoritativeSnapshotReceipt(receipt);
+    expect(result.valid).toBe(false);
+    expect(result.errors.join('; ')).toMatch(/immutable published value/u);
+  });
+
   it('binds referenced bytes in a copied repository and rejects projection tampering', async () => {
     const receipt = await fixture();
     const sourceRoot = process.cwd();
