@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-07-31T12:19:52.500Z",
-  "commitSha": "658ce9fe026205cba55bf7fbc612974180d92edc",
+  "capturedAt": "2026-07-31T13:35:20.177Z",
+  "commitSha": "90e9b4767eb759e52f24cb6ca1390b475203c6e4",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=path-difference-evidence-1160",
   "sourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "b7534ee8b1653d3f96e89f47c3a4fffde43918b3b88a10db62178363636d95dd",
