@@ -3,6 +3,7 @@ import { createHmac } from 'node:crypto';
 
 vi.mock('server-only', () => ({}));
 
+import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   createKonlingTeachingAssistantServerContextToken,
   resolveKonlingTeachingAssistantSignedGraphNodeId,
@@ -69,6 +70,29 @@ describe('Konling teaching-assistant server context', () => {
     };
     const contentHash = 'a'.repeat(64);
     const catalogContentHash = 'c'.repeat(64);
+    const reviewDecisionWithoutHash = {
+      catalogItemId: 'catalog-item-1',
+      decisionKind: 'human-review' as const,
+      outcome: 'approved' as const,
+      reviewerId: 'reviewer:test',
+      reviewedAt: '2026-07-27T23:00:00.000Z',
+      reviewBatchId: 'konling-context-test.v1',
+      sourceContentHash: catalogContentHash,
+      selectedLearningGoalIds: ['learning-goal-1'],
+      selectedKaqObjectiveIds: ['kaq-objective-1'],
+      selectedGraphNodeIds: ['knowledge-node-1'],
+      selectedStagePurpose: 'checkpoint' as const,
+      difficulty: 0.5,
+      cognitiveLevel: 'apply',
+      misconceptionRefs: ['bandwidth-only'],
+      remediationRefs: ['remediation-node-1'],
+      metadataVersionRefs: { semanticReviewVersion: 'v1' },
+      notes: 'Reviewed diagnosis attribution boundary and evidence snapshot.',
+    };
+    const reviewDecision = {
+      ...reviewDecisionWithoutHash,
+      reviewSourceHash: assessmentItemSemanticReviewSourceHash(reviewDecisionWithoutHash),
+    };
     const answer = {
       id: 'answer-1', userId: 'student-1', sessionId: 'session-1', questionRefId: 'item-ref-1', questionId: 'question-1',
       selectedOptionKey: 'B', correctOptionKey: 'A', isCorrect: false, answeredAt: new Date('2026-07-28T00:00:00.000Z'),
@@ -87,12 +111,41 @@ describe('Konling teaching-assistant server context', () => {
             reviewState: 'path-eligible',
             eligibilityState: 'path-eligible',
             contentHash: catalogContentHash,
-            semanticRefs: {
-              graphNodeIds: ['knowledge-node-1'],
-              misconceptionTags: ['bandwidth-only'],
+            contentHashAlgorithm: 'sha256',
+            sourceFamily: 'preset-adaptive-question',
+            sourceId: 'question-1',
+            sourceAnchor: 'test:question-1',
+            sourceLineage: {
+              sourceFamily: 'preset-adaptive-question',
+              sourceId: 'question-1',
+              sourcePath: 'test/questions.ts',
+              sourceHash: catalogContentHash,
             },
+            allowedStages: ['checkpoint'],
+            questionRefs: {
+              stem: questionSnapshot.prompt,
+              answerKey: [questionSnapshot.correctOptionKey],
+              rubricRef: 'rubric:test',
+            },
+            semanticRefs: {
+              learningGoalIds: ['learning-goal-1'],
+              kaqObjectiveIds: ['kaq-objective-1'],
+              graphNodeIds: ['knowledge-node-1'],
+              knowledgeTags: ['steady-state-error'],
+              misconceptionTags: ['bandwidth-only'],
+              remediationResourceNodeIds: ['remediation-node-1'],
+              difficulty: 0.5,
+              cognitiveLevel: 'apply',
+              assessmentStage: 'checkpoint',
+            },
+            limitations: [],
+            reviewDecision,
+            versionRefs: { semanticReviewVersion: 'v1' },
             relationship: {
+              relationship: 'answer-time-snapshot',
               immutable: true,
+              mayReferenceCatalogItemId: true,
+              mayReferenceContentHash: true,
               catalogUpdatesRewriteHistoricalAnswers: false,
             },
           },
