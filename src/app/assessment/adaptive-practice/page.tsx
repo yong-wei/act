@@ -1982,6 +1982,15 @@ export default function AdaptivePracticePage() {
   }, [loadDiagnostic, loadNextQuestion]);
 
   useEffect(() => {
+    if (isDemoMode) {
+      setActiveLearnerState(null);
+      setLearnerStateLoadState('ready');
+      setLearnerStateReadiness(null);
+      setPathContextLoadState('ready');
+      setLoadedPathContextKey(requestedPathContextKey);
+      return;
+    }
+
     if (!activeGoal) {
       setActiveLearnerState(null);
       setActivePathPlan(null);
@@ -1990,15 +1999,6 @@ export default function AdaptivePracticePage() {
       setLearnerStateReadiness(null);
       setPathContextLoadState('idle');
       setLoadedPathContextKey(null);
-      return;
-    }
-
-    if (isDemoMode) {
-      setActiveLearnerState(null);
-      setLearnerStateLoadState('ready');
-      setLearnerStateReadiness(null);
-      setPathContextLoadState('ready');
-      setLoadedPathContextKey(requestedPathContextKey);
       return;
     }
 
@@ -2850,7 +2850,8 @@ export default function AdaptivePracticePage() {
     const completedPathLearningTime = formatCompletedPathLearningTime(activePathPlan, Boolean(diagnostic));
     const isColdStart = isColdStartLearner({
       learnerStateLoadState,
-      evidenceCount: extractColdStartEvidenceCount(activeLearnerState),
+      // demo 模式是显式零证据夹具，不能与 learner-state API 缺失/失败混为一谈。
+      evidenceCount: isDemoMode ? 0 : extractColdStartEvidenceCount(activeLearnerState),
     });
     const currentNode = practiceRouteNodes.find((node) => node.state === 'current') ?? practiceRouteNodes[0];
     const compactCurrentNodeTitle = compactPathNodeTitle(currentNode?.title);

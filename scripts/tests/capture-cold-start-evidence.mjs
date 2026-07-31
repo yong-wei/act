@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/cold-start-1151');
 const baseUrl = process.env.COLD_START_BASE_URL ?? 'http://localhost:3001';
-const capturePath = '/assessment/adaptive-practice?demo=1&goal=frequency-response-foundations';
+const capturePath = '/assessment/adaptive-practice?demo=1';
 
 // 需要验证的源码文件（相对 repoRoot）
 const sourceFiles = [
@@ -125,8 +125,8 @@ async function capture() {
       const generationAction = page.locator('[data-adaptive-path-generation-action]').first();
       const evidenceLink = page.locator('a[href="/profile/evidence"]').first();
       const pathManagement = page.locator('[data-adaptive-path-local-command="path-management"]').first();
-      if (!(await generationAction.isVisible())) {
-        throw new Error('Path generation action is not visible');
+      if (!(await generationAction.isVisible()) || !(await generationAction.isEnabled())) {
+        throw new Error('Path generation action is not visible and enabled');
       }
       if (!(await evidenceLink.isVisible())) {
         throw new Error('Learning record entry is not visible');

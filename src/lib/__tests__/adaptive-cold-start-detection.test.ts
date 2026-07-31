@@ -22,14 +22,20 @@ describe('isColdStartLearner', () => {
     expect(isColdStartLearner({ learnerStateLoadState: 'idle', evidenceCount: 3 })).toBe(false);
   });
 
-  it('treats null/undefined evidenceCount as 0 for ready state', () => {
-    expect(isColdStartLearner({ learnerStateLoadState: 'ready', evidenceCount: null })).toBe(true);
-    expect(isColdStartLearner({ learnerStateLoadState: 'ready', evidenceCount: undefined })).toBe(true);
+  it('returns false when learner state is ready but evidenceCount is null/undefined', () => {
+    expect(isColdStartLearner({ learnerStateLoadState: 'ready', evidenceCount: null })).toBe(false);
+    expect(isColdStartLearner({ learnerStateLoadState: 'ready', evidenceCount: undefined })).toBe(false);
   });
 
   it('returns false when loading and null/undefined evidenceCount', () => {
     expect(isColdStartLearner({ learnerStateLoadState: 'loading', evidenceCount: null })).toBe(false);
     expect(isColdStartLearner({ learnerStateLoadState: 'loading', evidenceCount: undefined })).toBe(false);
+  });
+
+  it('returns false when ready state has a missing learner state instead of explicit zero evidence', () => {
+    const evidenceCount = extractColdStartEvidenceCount(null);
+
+    expect(isColdStartLearner({ learnerStateLoadState: 'ready', evidenceCount })).toBe(false);
   });
 });
 
@@ -40,23 +46,23 @@ describe('extractColdStartEvidenceCount', () => {
     })).toBe(3);
   });
 
-  it('returns 0 when learner state is null', () => {
-    expect(extractColdStartEvidenceCount(null)).toBe(0);
+  it('returns null when learner state is null', () => {
+    expect(extractColdStartEvidenceCount(null)).toBeNull();
   });
 
-  it('returns 0 when learner state is undefined', () => {
-    expect(extractColdStartEvidenceCount(undefined)).toBe(0);
+  it('returns null when learner state is undefined', () => {
+    expect(extractColdStartEvidenceCount(undefined)).toBeNull();
   });
 
-  it('returns 0 when evidence field is missing', () => {
-    expect(extractColdStartEvidenceCount({})).toBe(0);
+  it('returns null when evidence field is missing', () => {
+    expect(extractColdStartEvidenceCount({})).toBeNull();
   });
 
-  it('returns 0 when evidence.confidence is missing', () => {
-    expect(extractColdStartEvidenceCount({ evidence: {} })).toBe(0);
+  it('returns null when evidence.confidence is missing', () => {
+    expect(extractColdStartEvidenceCount({ evidence: {} })).toBeNull();
   });
 
-  it('returns 0 when evidence.confidence.evidenceCount is undefined', () => {
-    expect(extractColdStartEvidenceCount({ evidence: { confidence: {} } })).toBe(0);
+  it('returns null when evidence.confidence.evidenceCount is undefined', () => {
+    expect(extractColdStartEvidenceCount({ evidence: { confidence: {} } })).toBeNull();
   });
 });
