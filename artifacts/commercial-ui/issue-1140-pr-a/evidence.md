@@ -4,7 +4,7 @@
 
 - Code commit: `bcdfd262d65b04ca21dcd2011558bbf4fc781827`
 - Desktop captured at: `2026-07-31T11:52:53.7270329Z`
-- Mobile recaptured at: `2026-07-31T12:17:16.3685527Z`
+- Mobile recaptured at: `2026-07-31T12:13:42Z`
 - Mobile screenshot correction commit: `a96fc43c9d40f62c97bc7f805f794e3e69c199f2`
 - Route: `/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&pathTime=90&pathRhythm=steady&pathResources=knowledge_card%2Cadaptive_quiz%2Csimulation&pathCheckpoint=standard`
 
