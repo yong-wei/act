@@ -101,7 +101,10 @@ async function capture() {
         const coldStart = document.querySelector('[data-adaptive-path-cold-start="product-language"]');
         const heading = document.querySelector('h1, h2');
         const workspace = document.querySelector('[data-adaptive-path-center]');
-        return coldStart && heading && workspace;
+        const cardText = coldStart?.textContent ?? '';
+        return coldStart && heading && workspace &&
+          cardText.includes('推荐依据') &&
+          cardText.includes('提升推荐准确度');
       }, { timeout: 30000 });
 
       // 断言冷启动两组说明文案可见
