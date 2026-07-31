@@ -70,6 +70,7 @@ function post(body: Record<string, unknown>) {
     body: JSON.stringify({
       goalId: 'control-correction',
       modeContextToken: 'mode-token',
+      generationRequestId: 'generation-request-1',
       ...body,
     }),
   }));
@@ -209,6 +210,47 @@ describe('path advisor tool route readiness', () => {
         staffAction: 'none',
       },
       result: { pathId: 'path-1' },
+      generationRequest: {
+        id: 'generation-request-1',
+        status: 'succeeded',
+      },
+    });
+  });
+
+  it('rejects an invalid generation request id', async () => {
+    const response = await post({ generationRequestId: '../request' });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '学习路径生成请求 ID 无效',
+    });
+  });
+
+  it('uses the generation request id as the stable runtime idempotency key', async () => {
+    const generateLearningPath = vi.fn().mockResolvedValue({
+      pathId: 'path-1',
+      generationStatus: 'running',
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath,
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({
+      generationRequestId: 'stable-request-1',
+      idempotencyKey: 'client-value-must-not-win',
+    });
+
+    expect(response.status).toBe(200);
+    expect(generateLearningPath).toHaveBeenCalledWith(expect.objectContaining({
+      idempotencyKey: 'path-generation-request:stable-request-1',
+    }));
+    await expect(response.json()).resolves.toMatchObject({
+      generationRequest: {
+        id: 'stable-request-1',
+        status: 'running',
+      },
     });
   });
 

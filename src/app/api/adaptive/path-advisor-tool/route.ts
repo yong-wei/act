@@ -31,8 +31,12 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 type PathAdvisorToolOperation = 'generate' | 'revise' | 'explain';
+type PathGenerationRequestStatus = 'running' | 'succeeded' | 'failed';
+
+const PATH_GENERATION_REQUEST_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9:_-]*$/;
 
 export async function POST(request: Request) {
+  let generationRequestId: string | null = null;
   try {
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
@@ -76,6 +80,16 @@ export async function POST(request: Request) {
     const operation: PathAdvisorToolOperation = body.operation === 'revise' || body.operation === 'explain'
       ? body.operation
       : 'generate';
+    if (operation === 'generate') {
+      generationRequestId = typeof body.generationRequestId === 'string' ? body.generationRequestId : null;
+      if (
+        !generationRequestId ||
+        generationRequestId.length > 128 ||
+        !PATH_GENERATION_REQUEST_ID_PATTERN.test(generationRequestId)
+      ) {
+        return NextResponse.json({ error: '学习路径生成请求 ID 无效' }, { status: 400 });
+      }
+    }
     const scopeResult = await verifyKonlingRuntimeScope(prisma, {
       authenticatedUserId: session.user.id,
       authenticatedUserName: session.user.name,
@@ -102,6 +116,9 @@ export async function POST(request: Request) {
     }
 
     const requestedToolInput = await buildPathAdvisorToolInput(body, goalId, session.user.id);
+    if (generationRequestId) {
+      requestedToolInput.idempotencyKey = `path-generation-request:${generationRequestId}`;
+    }
     const requestedContextHints = {
       modeContextToken,
       goalId,
@@ -218,6 +235,12 @@ export async function POST(request: Request) {
       agentSessionId: agentSession.id,
       readiness: buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor-tool' }),
       result,
+      ...(generationRequestId ? {
+        generationRequest: {
+          id: generationRequestId,
+          status: readPathGenerationRequestStatus(result),
+        },
+      } : {}),
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
@@ -238,8 +261,19 @@ export async function POST(request: Request) {
         reason: 'retryable',
         source: 'path-advisor-tool',
       }),
+      ...(generationRequestId ? {
+        generationRequest: { id: generationRequestId, status: 'failed' as const },
+      } : {}),
     }, { status: 500 });
   }
+}
+
+function readPathGenerationRequestStatus(result: unknown): PathGenerationRequestStatus {
+  if (!result || typeof result !== 'object') return 'succeeded';
+  const generationStatus = (result as Record<string, unknown>).generationStatus;
+  if (generationStatus === 'pending' || generationStatus === 'running') return 'running';
+  if (generationStatus === 'blocked' || generationStatus === 'failed') return 'failed';
+  return 'succeeded';
 }
 
 function readinessError(error: string, status: 403, readiness: AdaptiveGenerationReadiness) {

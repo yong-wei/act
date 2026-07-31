@@ -304,6 +304,34 @@ export function GlobalAISidebar() {
     onResponse: handleChatResponse,
   });
 
+  useEffect(() => {
+    if (assistantEntryPoint?.mode !== 'path-advisor') return;
+    const handlePathGenerationStatus = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        message?: unknown;
+        requestId?: unknown;
+        status?: unknown;
+      }>).detail;
+      if (
+        !detail ||
+        typeof detail.message !== 'string' ||
+        detail.message.length === 0 ||
+        typeof detail.requestId !== 'string' ||
+        typeof detail.status !== 'string'
+      ) return;
+      const messageId = `path-generation:${detail.requestId}:${detail.status}`;
+      setMessages((current) => current.some((message) => message.id === messageId)
+        ? current
+        : [...current, {
+            id: messageId,
+            role: 'assistant',
+            content: detail.message as string,
+          }]);
+    };
+    window.addEventListener('konling:path-generation-status', handlePathGenerationStatus);
+    return () => window.removeEventListener('konling:path-generation-status', handlePathGenerationStatus);
+  }, [assistantEntryPoint?.mode, setMessages]);
+
   const handledAssistantRequestIdRef = useRef<number | null>(null);
   useEffect(() => {
     if (!pendingAssistantRequest || handledAssistantRequestIdRef.current === pendingAssistantRequest.id) return;

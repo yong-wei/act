@@ -194,6 +194,18 @@ type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
+type PathGenerationRequestStatus = 'idle' | 'pending' | 'running' | 'succeeded' | 'failed';
+
+function publishPathGenerationStatus(
+  status: Exclude<PathGenerationRequestStatus, 'idle'>,
+  requestId: string,
+  message: string,
+) {
+  window.dispatchEvent(new CustomEvent('konling:path-generation-status', {
+    detail: { status, requestId, message },
+  }));
+}
+
 function readAdaptiveGenerationReadiness(payload: unknown): AdaptiveGenerationReadiness | null {
   const record = getRecord(payload);
   const readiness = getRecord(record.readiness);
@@ -1549,6 +1561,9 @@ export default function AdaptivePracticePage() {
   const [pathOptionFeedback, setPathOptionFeedback] = useState<Record<string, string>>({});
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
+  const [pathGenerationRequestStatus, setPathGenerationRequestStatus] = useState<PathGenerationRequestStatus>('idle');
+  const pathGenerationRequestRef = useRef<string | null>(null);
+  const pathGenerationRequestReusableRef = useRef(false);
   const [pathAdvisorReadiness, setPathAdvisorReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [learnerStateReadiness, setLearnerStateReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
@@ -2304,6 +2319,7 @@ export default function AdaptivePracticePage() {
   const submitPathGeneration = useCallback(async (
     operation: PathGenerationOperation,
     option?: PathOptionView,
+    requestedGenerationRequestId?: string,
   ) => {
     if (authStatus !== 'authenticated') {
       setPathChoiceMessage('请先登录后再生成学习路径。');
@@ -2332,6 +2348,16 @@ export default function AdaptivePracticePage() {
       setPathChoiceMessage('请先生成路径后再请求调整或解释。');
       return;
     }
+    if (operation === 'generate' && pathGenerationRequestStatus === 'pending') return;
+    const generationRequestId = operation === 'generate'
+      ? requestedGenerationRequestId ?? crypto.randomUUID()
+      : undefined;
+    if (generationRequestId) {
+      pathGenerationRequestRef.current = generationRequestId;
+      pathGenerationRequestReusableRef.current = true;
+      setPathGenerationRequestStatus('pending');
+      publishPathGenerationStatus('pending', generationRequestId, '已接收路径生成请求，正在准备生成。');
+    }
     setPathGenerationPending(operation);
     setPathChoiceMessage(null);
     if (option?.optionId) {
@@ -2350,6 +2376,7 @@ export default function AdaptivePracticePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           operation,
+          generationRequestId,
           goalId: pathGenerationPanel.goalId,
           pathId: operation !== 'generate' ? currentPathId : undefined,
           routeIntent,
@@ -2375,11 +2402,14 @@ export default function AdaptivePracticePage() {
             ? pathOptions.find((item) => item.optionId !== option?.optionId)?.optionId
             : undefined,
           rejectedOptionIds: undefined,
-          idempotencyKey: `path-generation-panel:${operation}:${pathGenerationPanel.goalId}:${Date.now()}`,
+          idempotencyKey: generationRequestId ?? `path-generation-panel:${operation}:${pathGenerationPanel.goalId}:${Date.now()}`,
         }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
+        if (payload.generationRequest?.status === 'failed') {
+          pathGenerationRequestReusableRef.current = false;
+        }
         const readiness = readAdaptiveGenerationReadiness(payload);
         if (readiness) {
           setPathAdvisorReadiness(readiness);
@@ -2391,11 +2421,23 @@ export default function AdaptivePracticePage() {
       if (typeof payload.agentSessionId === 'string') {
         setPathAdvisorAgentSessionId(payload.agentSessionId);
       }
+      if (generationRequestId && payload.generationRequest?.status === 'running') {
+        setPathGenerationRequestStatus('running');
+        const runningMessage = '生成仍在进行中，稍后可再次查看结果。';
+        setPathChoiceMessage(runningMessage);
+        publishPathGenerationStatus('running', generationRequestId, runningMessage);
+        return;
+      }
       if (payload.result?.generationStatus === 'blocked') {
         const blockedMessage = typeof payload.result.comparison?.message === 'string'
           ? payload.result.comparison.message
           : '当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。';
         setPathChoiceMessage(blockedMessage);
+        if (generationRequestId) {
+          pathGenerationRequestReusableRef.current = false;
+          setPathGenerationRequestStatus('failed');
+          publishPathGenerationStatus('failed', generationRequestId, blockedMessage);
+        }
         if (option?.optionId) {
           setPathOptionFeedback((current) => ({ ...current, [option.optionId]: blockedMessage }));
         }
@@ -2425,15 +2467,12 @@ export default function AdaptivePracticePage() {
           }
           return;
         }
-        const selectionQuery = new URLSearchParams({
-          goal: pathGenerationPanel.goalId,
-          intent: 'path-selection',
-        });
-        const generatedPathId = typeof payload.result?.pathId === 'string' && payload.result.pathId.length > 0
-          ? payload.result.pathId
-          : currentPathId;
-        if (generatedPathId) selectionQuery.set('pathId', generatedPathId);
-        window.location.assign(withFeedbackTaskHref(`/assessment/adaptive-practice?${selectionQuery.toString()}`));
+        if (generationRequestId) {
+          pathGenerationRequestReusableRef.current = false;
+          setPathGenerationRequestStatus('succeeded');
+          publishPathGenerationStatus('succeeded', generationRequestId, '学习路径已生成，请比较候选方案。');
+        }
+        setPathChoiceMessage('学习路径已生成，请比较候选方案。');
         return;
       }
       const rationale = Array.isArray(payload.result?.studentSafeRationale)
@@ -2457,6 +2496,10 @@ export default function AdaptivePracticePage() {
     } catch (generationError) {
       const errorMessage = generationError instanceof Error ? generationError.message : '学习路径生成失败';
       setPathChoiceMessage(errorMessage);
+      if (generationRequestId) {
+        setPathGenerationRequestStatus('failed');
+        publishPathGenerationStatus('failed', generationRequestId, errorMessage);
+      }
       if (option?.optionId) {
         setPathOptionFeedback((current) => ({ ...current, [option.optionId]: errorMessage }));
       }
@@ -2476,11 +2519,20 @@ export default function AdaptivePracticePage() {
     pathExecutionNodes,
     pathGenerationPanel,
     pathGenerationDisplayReadiness,
+    pathGenerationRequestStatus,
     pathOptions,
     refreshLatestLearningPathAfterKonling,
     routeIntent,
-    withFeedbackTaskHref,
   ]);
+
+  const startPathGenerationFromAdvisor = useCallback(() => {
+    openPathGenerationAdvisor();
+    const reusableRequestId = pathGenerationRequestStatus === 'running'
+      || (pathGenerationRequestStatus === 'failed' && pathGenerationRequestReusableRef.current)
+      ? pathGenerationRequestRef.current
+      : null;
+    void submitPathGeneration('generate', undefined, reusableRequestId ?? crypto.randomUUID());
+  }, [openPathGenerationAdvisor, pathGenerationRequestStatus, submitPathGeneration]);
 
   const submitPathChoice = useCallback(async (
     action: 'selection' | 'rejection' | 'switch' | 'helpfulness',
@@ -3051,15 +3103,25 @@ export default function AdaptivePracticePage() {
                 {pathAdvisorContextGoal ? (
                   <button
                     type="button"
-                    onClick={openPathGenerationAdvisor}
-                    disabled={!canSubmitPathGeneration}
+                    onClick={startPathGenerationFromAdvisor}
+                    disabled={!canSubmitPathGeneration || pathGenerationRequestStatus === 'pending'}
                     data-adaptive-path-generation-action="open-in-page-path-advisor"
                     data-adaptive-generation-readiness-status={pathGenerationDisplayReadiness.status}
                     data-adaptive-generation-readiness-reason={pathGenerationDisplayReadiness.reason}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                   >
                     <Sparkles className="size-4" aria-hidden="true" />
-                    {canSubmitPathGeneration ? '请控灵生成路径' : '路径顾问准备中'}
+                    {!canSubmitPathGeneration
+                      ? '路径顾问准备中'
+                      : pathGenerationRequestStatus === 'pending'
+                        ? '正在准备生成'
+                        : pathGenerationRequestStatus === 'running'
+                          ? '查看生成进度'
+                          : pathGenerationRequestStatus === 'failed'
+                            ? '重试生成'
+                            : pathGenerationRequestStatus === 'succeeded'
+                              ? '重新生成'
+                              : '请控灵生成路径'}
                   </button>
                 ) : (
                   <Link
@@ -3256,6 +3318,7 @@ export default function AdaptivePracticePage() {
                   <select
                     value={pathGenerationPanel.goalId}
                     onChange={(event) => handlePathGenerationGoalChange(event.target.value)}
+                    disabled={pathGenerationRequestStatus === 'pending' || pathGenerationRequestStatus === 'running'}
                     className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
                   >
                     {generationGoalOptions.map((goal) => (
@@ -3383,14 +3446,20 @@ export default function AdaptivePracticePage() {
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => submitPathGeneration('generate')}
+                  onClick={startPathGenerationFromAdvisor}
                   disabled={pathGenerationPending !== null || hasInvalidRequestedGoal || !canSubmitPathGeneration}
                   data-adaptive-path-generation-action="submit-panel-request"
                   data-adaptive-generation-readiness-action={pathGenerationDisplayReadiness.studentAction}
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                 >
                   <Sparkles className="size-4" aria-hidden="true" />
-                  {pathGenerationPending === 'generate' ? '正在生成' : '生成路径'}
+                  {pathGenerationRequestStatus === 'running'
+                    ? '查看生成进度'
+                    : pathGenerationRequestStatus === 'failed'
+                      ? '重试生成'
+                      : pathGenerationRequestStatus === 'succeeded'
+                        ? '重新生成'
+                        : pathGenerationPending === 'generate' ? '正在生成' : '生成路径'}
                 </button>
                 <button
                   type="button"
