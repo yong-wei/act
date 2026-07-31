@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 
@@ -16,7 +16,7 @@ test.beforeAll(() => {
 for (const viewport of [1440, 320]) {
   test(`Issue 979 production component at ${viewport}px`, async ({ page }) => {
     await page.setViewportSize({ width: viewport, height: 900 });
-    await page.goto('/__evidence/issue-979');
+    await page.goto('/evidence/issue-979');
     const media = page.locator('audio, video');
     expect(await media.count()).toBeGreaterThanOrEqual(3);
     const result = await media.evaluateAll((elements) => {
@@ -35,15 +35,16 @@ for (const viewport of [1440, 320]) {
     expect(result).toEqual({ firstPauseCalls: 1, secondPauseCalls: 0, currentTime: 12 });
     const screenshot = `viewport-${viewport}.png`;
     await page.screenshot({ path: join(evidenceDir, screenshot), fullPage: true });
-    writeFileSync(join(evidenceDir, `viewport-${viewport}.json`), JSON.stringify({ viewport, route: '/__evidence/issue-979', ...result }, null, 2));
+    writeFileSync(join(evidenceDir, `viewport-${viewport}.json`), JSON.stringify({ viewport, route: '/evidence/issue-979', ...result }, null, 2));
   });
 }
 
 test.afterAll(() => {
   const entries = [1440, 320].map((viewport) => {
     const screenshot = `viewport-${viewport}.png`;
+    if (!existsSync(join(evidenceDir, screenshot))) throw new Error(`Missing required evidence screenshot: ${screenshot}`);
     return { viewport, screenshot, sha256: createHash('sha256').update(readFileSync(join(evidenceDir, screenshot))).digest('hex') };
   });
-  writeFileSync(join(evidenceDir, 'evidence.json'), JSON.stringify({ issue: 979, pr: 1161, headSha, base: 'integration', route: '/__evidence/issue-979', harness: 'LessonEntryMediaHub', failClosed: true, capturedAt: new Date().toISOString(), entries }, null, 2));
+  writeFileSync(join(evidenceDir, 'evidence.json'), JSON.stringify({ issue: 979, pr: 1161, headSha, base: 'integration', route: '/evidence/issue-979', harness: 'LessonEntryMediaHub', failClosed: true, capturedAt: new Date().toISOString(), entries }, null, 2));
   writeFileSync(join(evidenceDir, 'sha256sums.txt'), `${entries.map((entry) => `${entry.sha256}  ${entry.screenshot}`).join('\n')}\n`);
 });
