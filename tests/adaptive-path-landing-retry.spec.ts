@@ -11,9 +11,11 @@ const manifestPath = path.join(evidenceDir, 'manifest.json');
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/lib/adaptive-path-execution-state.ts',
+  'tests/adaptive-path-landing-retry.spec.ts',
 ];
 const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
 const screenshots: Array<Record<string, unknown>> = [];
+const assertions: Array<Record<string, unknown>> = [];
 
 function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex');
@@ -101,6 +103,110 @@ const learnerStateFixture = JSON.stringify({
   },
   missingEvidence: [],
 });
+
+const activePathId = 'path-active-1141';
+const activeNodeTitle = '相位裕度校正基础';
+const activeLearnerStateFixture = JSON.stringify({
+  ...JSON.parse(learnerStateFixture),
+  pathContext: {
+    activePathCount: 1,
+    bookmarkedPathCount: 0,
+    recentPathIds: [activePathId],
+    activeControlCorrectionPath: {
+      state: 'active',
+      pathId: activePathId,
+      status: 'active',
+      currentNodeId: 'node-active-1',
+      terminalValidationState: null,
+      lowConfidenceMarkers: [],
+    },
+    statusMarkers: ['available'],
+  },
+});
+const activePathFixture = JSON.stringify({
+  path: {
+    id: activePathId,
+    userId: 'demo-student',
+    title: '控制系统校正学习路径',
+    goalId: 'control-correction',
+    plannerVersion: 'stage-1-rules-graph',
+    pathStatus: 'active',
+    currentNodeId: 'node-active-1',
+    pathPayload: {
+      policyFamily: 'rules-plus-graph-search',
+      confidence: { level: 'medium', score: 0.78, sourceCoverage: 0.8 },
+      score: { total: 0.82, objectives: {} },
+      planNodes: [{
+        nodeId: 'node-active-1',
+        title: activeNodeTitle,
+        type: 'knowledge_card',
+        sourceKind: 'resource_node',
+        sourceRef: 'phase-margin-correction-card',
+        target: 'course-content/runtime/knowledge/cards/nodes/phase-margin-correction.md',
+        estimatedTimeMinutes: 20,
+        prerequisiteNodeIds: [],
+        knowledgeCoverage: ['control-correction:phase-margin'],
+        teacherPolicy: 'allowed',
+        privacyLevel: 'student-visible',
+        terminalConstraints: [],
+        score: 0.82,
+        reasonCodes: ['active-path-evidence'],
+        status: 'current',
+      }],
+      explanations: {
+        selectedReasons: ['active-path-evidence'],
+        rejectedAlternatives: [],
+        fallbackReasons: [],
+      },
+      executionStatus: {
+        adopted: true,
+        completedNodeIds: [],
+        activeNodeId: 'node-active-1',
+        updatedAt: '2026-07-31T00:00:00.000Z',
+      },
+      deviations: [],
+      corrections: [],
+      feedbackEvents: [],
+      visualization: {
+        map: {
+          mainPathNodeIds: ['node-active-1'],
+          branchPaths: [],
+          currentNodeId: 'node-active-1',
+          completedNodeIds: [],
+          riskNodeIds: [],
+          blockedNodes: [],
+          alternatives: [],
+        },
+        timeline: {
+          generatedAt: '2026-07-31T00:00:00.000Z',
+          windows: [{ days: 7, nodeIds: ['node-active-1'], estimatedMinutes: 20 }],
+        },
+        evidence: {
+          evidenceBasis: 'adaptive-learner-state',
+          confidence: { level: 'medium', score: 0.78, sourceCoverage: 0.8 },
+          sourceCoverage: { learnerState: 'available' },
+          learnerStateDeficits: [],
+          prerequisiteReasons: [],
+          teacherPolicy: [],
+          alternatives: [],
+        },
+      },
+    },
+    explanationPayload: {
+      selectedReasons: ['active-path-evidence'],
+      rejectedAlternatives: [],
+      fallbackReasons: [],
+    },
+    alternativePayload: [],
+  },
+});
+
+async function expectColdStartContentHidden(page: Page) {
+  await expect(page.locator('[data-adaptive-path-cold-start]')).toHaveCount(0);
+  await expect(page.locator('[data-adaptive-path-module="learning-overview"]')).toHaveCount(0);
+  await expect(page.locator('[data-adaptive-path-generation-action]')).toHaveCount(0);
+  await expect(page.getByText('入门诊断', { exact: true })).toHaveCount(0);
+}
 
 async function capture(page: Page, viewport: { name: string; width: number; height: number }, state: string) {
   mkdirSync(evidenceDir, { recursive: true });
@@ -194,17 +300,96 @@ for (const viewport of [
     expect(learnerCalls).toBe(2);
     expect(pathCalls).toBeGreaterThanOrEqual(2);
     await capture(page, viewport, 'recovered');
+    assertions.push({
+      viewport: viewport.name,
+      scenario: 'failed-retry-cold-start',
+      passed: true,
+      checks: ['failed state', 'retry loading state', 'cold-start recovery'],
+    });
+  });
+
+  test(`${viewport.name} keeps the active path hidden until both responses finish`, async ({ context, page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await login(context);
+
+    let learnerCalls = 0;
+    let pathCalls = 0;
+    let releaseLearner!: () => void;
+    let releasePath!: () => void;
+    const learnerGate = new Promise<void>((resolve) => { releaseLearner = resolve; });
+    const pathGate = new Promise<void>((resolve) => { releasePath = resolve; });
+
+    await page.route('**/api/adaptive/learner-state**', async (route: Route) => {
+      learnerCalls += 1;
+      await learnerGate;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: activeLearnerStateFixture,
+      });
+    });
+    await page.route(`**/api/learning-paths/${activePathId}`, async (route: Route) => {
+      pathCalls += 1;
+      await pathGate;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: activePathFixture,
+      });
+    });
+
+    await page.goto('/assessment/adaptive-practice?goal=control-correction', { waitUntil: 'domcontentloaded' });
+    const workspace = page.locator('[data-commercial-workspace="adaptive-path-center"]');
+    await expect.poll(() => learnerCalls).toBe(1);
+    await expect(workspace).toHaveAttribute('data-adaptive-path-landing-state', 'loading');
+    await expectColdStartContentHidden(page);
+    expect(pathCalls).toBe(0);
+
+    releaseLearner();
+    await expect.poll(() => pathCalls).toBe(1);
+    await expect(workspace).toHaveAttribute('data-adaptive-path-landing-state', 'loading');
+    await expectColdStartContentHidden(page);
+    await capture(page, viewport, 'active-loading');
+
+    releasePath();
+    await expect(workspace).toHaveAttribute('data-adaptive-path-landing-state', 'active');
+    const currentPathModule = page.locator('[data-adaptive-path-module="current-path"]');
+    await expect(currentPathModule).toBeVisible();
+    await currentPathModule.locator('[data-adaptive-path-module-header="responsive"]').click();
+    await expect(currentPathModule).toHaveAttribute('data-adaptive-path-module-state', 'expanded');
+    await expect(page.locator('[data-adaptive-path-node="node-active-1"]')).toBeVisible();
+    await expect(page.getByText(activeNodeTitle, { exact: true }).first()).toBeVisible();
+    await expectColdStartContentHidden(page);
+    await capture(page, viewport, 'active');
+
+    expect(learnerCalls).toBe(1);
+    expect(pathCalls).toBe(1);
+    assertions.push({
+      viewport: viewport.name,
+      scenario: 'delayed-active-path',
+      passed: true,
+      checks: [
+        'loading while learner state is pending',
+        'loading while path response is pending',
+        'strict active landing state',
+        'active path and node visible',
+        'cold-start content hidden',
+      ],
+    });
   });
 }
 
 test.afterAll(() => {
   if (!updateEvidence) return;
+  expect(assertions).toHaveLength(4);
+  expect(screenshots).toHaveLength(10);
   mkdirSync(evidenceDir, { recursive: true });
   writeFileSync(manifestPath, `${JSON.stringify({
     capturedAt: new Date().toISOString(),
     commitSha: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
     route: '/assessment/adaptive-practice?goal=control-correction',
     sourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sourceHash(file)])),
+    assertions,
     screenshots,
   }, null, 2)}\n`, 'utf8');
 });

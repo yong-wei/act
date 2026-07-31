@@ -1,11 +1,58 @@
 {
-  "capturedAt": "2026-07-30T17:45:36.537Z",
-  "commitSha": "c37f398d5f869eaf66a35aa9dd8019a59547b548",
+  "capturedAt": "2026-07-31T04:10:53.821Z",
+  "commitSha": "241b9e5b646b2f2559c195c878aa9ccce970790b",
   "route": "/assessment/adaptive-practice?goal=control-correction",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "b1de0e21df1a41e1ecd405f07635be964e75c42cd54a86dc44f7db1f1701bf2c",
-    "src/lib/adaptive-path-execution-state.ts": "077105951a1edd8c6a4e80e42bbd2c2357dfb12aca3e253dd9e4492e82d7cc78"
+    "src/app/assessment/adaptive-practice/page.tsx": "86bc044ebf4eef1bdf0465ac9b6581b7f22ff773968dc0278a0b1a33276040b7",
+    "src/lib/adaptive-path-execution-state.ts": "077105951a1edd8c6a4e80e42bbd2c2357dfb12aca3e253dd9e4492e82d7cc78",
+    "tests/adaptive-path-landing-retry.spec.ts": "0ae104204f09ccb6ea3d797233cad37db635d315a2a33d9a019d3bb44557d2e2"
   },
+  "assertions": [
+    {
+      "viewport": "desktop-1440",
+      "scenario": "failed-retry-cold-start",
+      "passed": true,
+      "checks": [
+        "failed state",
+        "retry loading state",
+        "cold-start recovery"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "scenario": "delayed-active-path",
+      "passed": true,
+      "checks": [
+        "loading while learner state is pending",
+        "loading while path response is pending",
+        "strict active landing state",
+        "active path and node visible",
+        "cold-start content hidden"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "failed-retry-cold-start",
+      "passed": true,
+      "checks": [
+        "failed state",
+        "retry loading state",
+        "cold-start recovery"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "scenario": "delayed-active-path",
+      "passed": true,
+      "checks": [
+        "loading while learner state is pending",
+        "loading while path response is pending",
+        "strict active landing state",
+        "active path and node visible",
+        "cold-start content hidden"
+      ]
+    }
+  ],
   "screenshots": [
     {
       "name": "desktop-1440-failed.png",
@@ -35,11 +82,29 @@
       "noHorizontalOverflow": true
     },
     {
+      "name": "desktop-1440-active-loading.png",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-active-loading.png",
+      "sha256": "62da6814ab51c3738d239d67e634ffd096f75fe3b82bd97424151a79d08a5394",
+      "state": "active-loading",
+      "noHorizontalOverflow": true
+    },
+    {
+      "name": "desktop-1440-active.png",
+      "width": 1440,
+      "height": 1000,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-active.png",
+      "sha256": "ebc6d86e3d51e349823d5b6fa3dc4fc79c17c07b6e56c88eef7d1543dc8ffc68",
+      "state": "active",
+      "noHorizontalOverflow": true
+    },
+    {
       "name": "mobile-320-failed.png",
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-failed.png",
-      "sha256": "813636c924c4354c3f110a9be8d4faec9fac1dd070e49db77afab8f48b7048d4",
+      "sha256": "ebe32d4e25f255bb7b9822702ec7cb998d28ec481ef7c42a33572a798878a7d0",
       "state": "failed",
       "noHorizontalOverflow": true
     },
@@ -48,7 +113,7 @@
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-loading.png",
-      "sha256": "06e010b3a7a1a9f8269514772a850d905134c73321d94b7251c9c6ce560fa062",
+      "sha256": "5008270ae713b82e946c870a21f75d820d77900dbfeb5b0aa486216b03785fe5",
       "state": "loading",
       "noHorizontalOverflow": true
     },
@@ -59,6 +124,24 @@
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-recovered.png",
       "sha256": "4cc41199a6d3749be4a6b7d69f7dbf971b25e26e4c4153ce23cf9b28336c011c",
       "state": "recovered",
+      "noHorizontalOverflow": true
+    },
+    {
+      "name": "mobile-320-active-loading.png",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-active-loading.png",
+      "sha256": "8185aaafe7a6a34f010502b64c73a742e187b485d8fa363d948fc17a9aea23df",
+      "state": "active-loading",
+      "noHorizontalOverflow": true
+    },
+    {
+      "name": "mobile-320-active.png",
+      "width": 320,
+      "height": 900,
+      "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-active.png",
+      "sha256": "a633cbe8067b7406d303d5f75281d6bb4d409cf20051014796e77af6b6c168d3",
+      "state": "active",
       "noHorizontalOverflow": true
     }
   ]
