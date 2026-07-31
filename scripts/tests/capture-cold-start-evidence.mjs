@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/cold-start-1151');
 const baseUrl = process.env.COLD_START_BASE_URL ?? 'http://localhost:3001';
-const capturePath = '/assessment/adaptive-practice?demo=1';
+const capturePath = '/assessment/adaptive-practice?demo=1&goal=frequency-response-foundations';
 
 // 需要验证的源码文件（相对 repoRoot）
 const sourceFiles = [
