@@ -28,4 +28,3 @@ The adaptive learning center SHALL expose pending, running, succeeded, and faile
 #### Scenario: Definitive generation failure is retried explicitly
 - **WHEN** the server reports a definitive failed or blocked result and the student explicitly activates regeneration
 - **THEN** the page SHALL create a new generation request identity
-

@@ -17,4 +17,3 @@ The Konling path-generation boundary SHALL preserve one client-visible generatio
 - **WHEN** the runtime reports succeeded, blocked, or failed for a generation request
 - **THEN** the response SHALL preserve the request identity and expose the definitive lifecycle state
 - **AND** a later explicit regeneration SHALL use a new request identity
-
