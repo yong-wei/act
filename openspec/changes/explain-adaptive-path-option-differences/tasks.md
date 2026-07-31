@@ -12,5 +12,5 @@
 
 ## 3. 验证
 
-- [x] 3.1 运行 `openspec validate explain-adaptive-path-option-differences --type change --strict`、相关 Vitest（258 tests passed）、目标 ESLint 和 `git diff --check`；类型检查仅保留既有 `src/lib/konling-conversation-library.ts:122` 基线错误。
-- [x] 3.2 在 Issue 工作树以 `http://127.0.0.1:3003` 启动项目，使用 Playwright route mock 完成桌面端与 320px 移动端验收；证据保存为 `artifacts/adaptive-learning/issue-1160/desktop.png` 与 `artifacts/adaptive-learning/issue-1160/mobile-320.png`，并验证移动端 `scrollWidth <= 320`。
+- [x] 3.1 运行 `openspec validate explain-adaptive-path-option-differences --type change --strict`、相关 Vitest、`npm run typecheck` 和 `git diff --check`；完整类型检查通过。
+- [x] 3.2 在 Issue 工作树以 `http://127.0.0.1:3003` 启动项目，运行 `tests/adaptive-path-difference-evidence.spec.ts`：受控的已保存路径夹具与真实路径顾问上下文共同覆盖真实差异、无实质差异、数据不足、候选组变化后旧解释清除，以及 1440px/320px 无页面级横向溢出。该测试在证据捕获时生成包含捕获修订、源码 SHA-256、截图 SHA-256 和断言记录的 fail-closed manifest。
