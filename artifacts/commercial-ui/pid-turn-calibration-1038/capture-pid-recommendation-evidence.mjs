@@ -22,10 +22,27 @@ await mkdir(outputDirectory, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const captures = [];
 
+// ---- API-based authentication helper ----
+async function authenticateContext(page) {
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const csrfData = await page.evaluate(async () => (await fetch('/api/auth/csrf')).json());
+  await page.evaluate(async (token) => {
+    await fetch('/api/auth/callback/credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ csrfToken: token, email: 'demo', password: 'DemoStudent@Just2026!', redirect: 'false', json: 'true' }).toString(),
+    });
+  }, csrfData.csrfToken);
+  const session = await page.evaluate(async () => (await fetch('/api/auth/session')).json());
+  if (!session?.user?.id) throw new Error('Auth failed in viewport context');
+  console.log('[capture] Authenticated context, user:', session.user.id);
+}
+
 try {
   for (const viewport of viewports) {
     const context = await browser.newContext({ viewport });
     const page = await context.newPage();
+    await authenticateContext(page);
     const consoleErrors = [];
     let requestBody;
     let apiResponse = null;

@@ -1,22 +1,151 @@
 {
   "route": "/evidence-pid",
-  "viewport": { "width": 320, "height": 900, "name": "320" },
+  "viewport": {
+    "width": 320,
+    "height": 900,
+    "name": "320"
+  },
   "requestBody": {
-    "config": { "seaState": { "level": 3, "waveHeight": 1.2, "windSpeed": 8 }, "shipSpeed": 15 },
-    "target": { "targetHeading": 90, "maxError": 150, "maxRudderRate": 5, "maxOvershoot": 20 },
+    "config": {
+      "seaState": {
+        "level": 3,
+        "waveHeight": 1.2,
+        "windSpeed": 8
+      },
+      "shipSpeed": 15
+    },
+    "target": {
+      "targetHeading": 90,
+      "maxError": 150,
+      "maxRudderRate": 5,
+      "maxOvershoot": 20
+    },
     "maxIterations": 50
   },
-  "result": {
-    "recommendedParams": { "kp": 2.4, "ki": 0.05, "kd": 1.2 },
-    "score": 86,
-    "metrics": { "avgError": 74.2, "maxRudderRate": 4.2, "settlingTime": 31, "overshoot": 7.5 },
-    "searchInfo": { "iterations": 50, "timeMs": 312 },
-    "advice": "当前推荐针对 90°右转目标；在 5°/s 舵角速度约束下保持稳定余量。"
+  "apiResponse": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "result": {
+        "recommendedParams": {
+          "kp": 2.836,
+          "ki": 0.019,
+          "kd": 4.227
+        },
+        "score": 85.2,
+        "metrics": {
+          "avgError": 55.32744834126077,
+          "maxRudderRate": 5,
+          "settlingTime": 82,
+          "overshoot": 15.747748256368695
+        },
+        "searchInfo": {
+          "iterations": 9,
+          "timeMs": 98,
+          "convergenceHistory": [
+            {
+              "iteration": 0,
+              "score": 40.2980935924094,
+              "params": {
+                "kp": 1.8868388818809763,
+                "ki": 0.0754356296635233,
+                "kd": 2.004307000315748
+              }
+            },
+            {
+              "iteration": 2,
+              "score": 43.64690649561657,
+              "params": {
+                "kp": 1.959431814495474,
+                "ki": 0.08910835459041411,
+                "kd": 1.5273257768782786
+              }
+            },
+            {
+              "iteration": 3,
+              "score": 52.77475737980225,
+              "params": {
+                "kp": 2.2210710924700834,
+                "ki": 0.1,
+                "kd": 2.0520351252285765
+              }
+            },
+            {
+              "iteration": 4,
+              "score": 55.54236139205027,
+              "params": {
+                "kp": 2.33825742197223,
+                "ki": 0.1,
+                "kd": 2.116627622419037
+              }
+            },
+            {
+              "iteration": 5,
+              "score": 59.85010628962411,
+              "params": {
+                "kp": 1.1091653724433854,
+                "ki": 0.00878042037738487,
+                "kd": 4.643364904867485
+              }
+            },
+            {
+              "iteration": 11,
+              "score": 78.17660498560619,
+              "params": {
+                "kp": 1.4004006268223748,
+                "ki": 0.001,
+                "kd": 4.237131930752657
+              }
+            },
+            {
+              "iteration": 44,
+              "score": 82.3968400658008,
+              "params": {
+                "kp": 2.8874697770224884,
+                "ki": 0.030270360705209897,
+                "kd": 3.6163567707873883
+              }
+            },
+            {
+              "iteration": 47,
+              "score": 82.80193323679336,
+              "params": {
+                "kp": 2.7895036568515934,
+                "ki": 0.025939310746663252,
+                "kd": 3.584217015237082
+              }
+            },
+            {
+              "iteration": 48,
+              "score": 85.2460137756638,
+              "params": {
+                "kp": 2.836218996613752,
+                "ki": 0.01896905633066781,
+                "kd": 4.226996810745914
+              }
+            }
+          ]
+        },
+        "replay": {
+          "runId": "optimizer-cmjm5lkjk0000t69bqiupz5am-677f1691",
+          "sceneId": "simulation/optimizer/nomoto-quick-sim",
+          "scenarioId": "turn90-calibrated-v1",
+          "seed": 1736382097,
+          "protocolVersion": "1.0",
+          "runtimeVersion": "simulation-optimizer-runtime-v2",
+          "modelVersion": "nomoto-quick-sim-v1",
+          "checksum": "sha256:0d5f7d11e6f20d9f67731c6035f5f3e45faff7a60551a2420012f4359735d776"
+        }
+      },
+      "advice": "推荐参数达到良好水平，可在此基础上微调。 舵角速度接近安全限制，建议适当减小 Kp 或增大 Kd。 存在明显超调，建议增大 Kd 以增加阻尼。 调节时间较长，可适当增大 Kp 加快响应。"
+    }
   },
+  "apiResponseError": null,
   "consoleErrors": [],
+  "gitSha": "52744b24d93066831aefb4afd6742a114c199546",
+  "screenshotSha256": "abb38f95e2d6f2d841ed387bf4c84bb79eb486b176c7c630f5b875d44dce7f9b",
   "documentScrollWidth": 320,
   "viewportWidth": 320,
   "panelVisible": true,
-  "scoreVisible": true,
   "adviceVisible": true
 }
