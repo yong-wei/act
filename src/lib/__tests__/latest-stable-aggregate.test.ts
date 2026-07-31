@@ -123,6 +123,16 @@ async function writeBundle(input: {
     schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
     source_revision: { commit: input.sourceCommit, tag: 'source-v2' },
     statistics: { knowledge_nodes: 1 },
+    artifacts: [{
+      role: 'validation_report',
+      contract_version: 'ctkg-validation-report/0.2',
+      required: true,
+      path: 'validation-report.json',
+      media_type: 'application/json',
+      sha256: sha256(report),
+      byte_length: Buffer.byteLength(report),
+      record_count: null,
+    }],
   };
   const digestBody = { ...manifest };
   delete digestBody.bundle_digest;
@@ -517,7 +527,7 @@ describe('resolveLatestStableAggregate', () => {
 
     await expect(
       resolveLatestStableAggregate({ actkgRoot: root, mainRef: 'main' }),
-    ).rejects.toThrow('SHA256SUMS bytes drift');
+    ).rejects.toThrow(/Artifact hash drift|SHA256SUMS bytes drift/u);
   });
 
   it('fails closed when the stable tag omits a Bundle member listed by SHA256SUMS', async () => {
@@ -543,7 +553,7 @@ describe('resolveLatestStableAggregate', () => {
 
     await expect(
       resolveLatestStableAggregate({ actkgRoot: root, mainRef: 'main' }),
-    ).rejects.toThrow('is missing releases/control-theory-engineering-v0.3-r2/bundle-manifest.json');
+    ).rejects.toThrow(/Bundle member set drift|is missing releases\/control-theory-engineering-v0\.3-r2\/bundle-manifest\.json/u);
   });
 
   it('rejects self-consistent SHA256SUMS when bundle_digest is not recomputable', async () => {

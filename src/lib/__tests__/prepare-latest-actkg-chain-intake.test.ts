@@ -102,6 +102,7 @@ async function fixtureActkg(): Promise<string> {
     const directory = path.join(root, 'releases', name);
     await mkdir(directory, { recursive: true });
     const bundleId = `ctb:control-theory-engineering-v0.${version}:r2`;
+    const aggregateReportBytes = Buffer.from('{"result":"PASS"}\n');
     const manifest = {
       bundle_contract_version: 'actkg-public-bundle/1',
       bundle_digest: '',
@@ -134,13 +135,23 @@ async function fixtureActkg(): Promise<string> {
       schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
       source_revision: { commit: sourceCommit, tag: `source-v0.${version}` },
       statistics: {},
+      artifacts: [{
+        role: 'validation_report',
+        contract_version: 'ctkg-validation-report/0.2',
+        required: true,
+        path: 'validation-report.json',
+        media_type: 'application/json',
+        sha256: sha256(aggregateReportBytes),
+        byte_length: aggregateReportBytes.byteLength,
+        record_count: null,
+      }],
     };
     const digestBody = { ...manifest } as Record<string, unknown>;
     delete digestBody.bundle_digest;
     manifest.bundle_digest = sha256(canonicalJson(digestBody));
     const manifestBytes = Buffer.from(JSON.stringify(manifest));
     await writeFile(path.join(directory, 'bundle-manifest.json'), manifestBytes);
-    await writeFile(path.join(directory, 'validation-report.json'), '{"result":"PASS"}\n');
+    await writeFile(path.join(directory, 'validation-report.json'), aggregateReportBytes);
     const sums = await writeSums(directory, ['bundle-manifest.json', 'validation-report.json']);
     aggregateManifests.push({ directory, manifestBytes, sums });
     previousId = bundleId;

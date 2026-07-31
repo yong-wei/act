@@ -3,9 +3,14 @@
 import {
   cp,
   lstat,
+  mkdtemp,
   mkdir,
   readFile,
   readdir,
+  realpath,
+  rename,
+  rm,
+  stat,
   writeFile,
 } from 'node:fs/promises';
 import path from 'node:path';
@@ -183,6 +188,7 @@ export async function prepareLatestActkgIntake(
     label: 'aggregate target directory',
   }];
   const lockComponents: JsonObject[] = [];
+  const legacyStagedFiles: Array<{ targetPath: string; sha256: string }> = [];
   for (const [index, value] of components.entries()) {
     const component = object(value, `components[${index}]`);
     const referenceKind = string(
@@ -199,10 +205,23 @@ export async function prepareLatestActkgIntake(
       if (!sourceFile.startsWith(`${path.resolve(args.actkgRoot, 'releases')}${path.sep}`)) {
         fail(`legacy component escapes releases root: ${componentPath}`);
       }
-      const directoryName = path.basename(path.dirname(sourceFile));
+      const releasesRoot = await realpath(path.join(args.actkgRoot, 'releases'));
+      const sourceReal = await realpath(sourceFile).catch(() => null);
+      if (!sourceReal || !sourceReal.startsWith(`${releasesRoot}${path.sep}`)) {
+        fail(`legacy component resolves outside releases root: ${componentPath}`);
+      }
+      if (!(await stat(sourceReal)).isFile()) fail(`legacy component is not a regular file: ${componentPath}`);
+      const releaseRawSha256 = string(
+        component.release_raw_sha256,
+        `components[${index}].release_raw_sha256`,
+      );
+      if (sha256(await readFile(sourceReal)) !== releaseRawSha256) {
+        fail(`legacy component Release bytes drift: ${componentPath}`);
+      }
+      const directoryName = path.basename(path.dirname(sourceReal));
       const targetDirectoryPath = path.posix.join('releases', directoryName);
       copyPlans.push({
-        source: path.dirname(sourceFile),
+        source: path.dirname(sourceReal),
         target: path.join(args.outputRoot, targetDirectoryPath),
         targetPath: targetDirectoryPath,
         label: `legacy component target ${targetDirectoryPath}`,
@@ -211,11 +230,12 @@ export async function prepareLatestActkgIntake(
         reference_kind: 'legacy_exact',
         release_id: releaseId,
         controlled_path: targetDirectoryPath,
-        release_json_name: path.basename(sourceFile),
-        release_raw_sha256: string(
-          component.release_raw_sha256,
-          `components[${index}].release_raw_sha256`,
-        ),
+        release_json_name: path.basename(sourceReal),
+        release_raw_sha256: releaseRawSha256,
+      });
+      legacyStagedFiles.push({
+        targetPath: path.posix.join(targetDirectoryPath, path.basename(sourceReal)),
+        sha256: releaseRawSha256,
       });
       continue;
     }
@@ -266,19 +286,6 @@ export async function prepareLatestActkgIntake(
     seenTargetPaths.add(plan.targetPath);
   }
   await requireAbsent(args.outputRoot, 'intake output root');
-  await mkdir(args.outputRoot, { recursive: false });
-  await mkdir(path.join(args.outputRoot, 'releases'), { recursive: false });
-  for (const plan of copyPlans) {
-    await requireAbsent(plan.target, plan.label);
-  }
-  for (const plan of copyPlans) {
-    await cp(plan.source, plan.target, {
-      recursive: true,
-      force: false,
-      errorOnExist: true,
-    });
-  }
-
   const lock = {
     lock_version: 'actkg-release-set-lock/v3',
     release_set_id: `actkg-authoritative-candidate-${resolved.resolutionDigest.slice(0, 16)}`,
@@ -309,24 +316,52 @@ export async function prepareLatestActkgIntake(
     },
     components: lockComponents,
   };
-  const lockPath = path.join(args.outputRoot, 'release-set.lock.v3.latest.json');
-  await writeImmutable(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
-  const receipt = {
-    protocol: 'act-latest-stable-aggregate-intake/1',
-    resolutionDigest: resolved.resolutionDigest,
-    releaseSetId: lock.release_set_id,
-    releaseId: resolved.releaseId,
-    bundleId: resolved.bundleId,
-    bundleDigest: resolved.bundleDigest,
-    lockPath: path.basename(lockPath),
-    lockSha256: sha256(await readFile(lockPath)),
-    stagedRoot: args.outputRoot,
-  };
-  await writeImmutable(
-    path.join(args.outputRoot, 'intake-receipt.json'),
-    `${JSON.stringify(receipt, null, 2)}\n`,
-  );
-  return receipt;
+  await mkdir(path.dirname(args.outputRoot), { recursive: true });
+  const stagingRoot = await mkdtemp(path.join(
+    path.dirname(args.outputRoot),
+    `.${path.basename(args.outputRoot)}.tmp-`,
+  ));
+  try {
+    await mkdir(path.join(stagingRoot, 'releases'), { recursive: false });
+    for (const plan of copyPlans) {
+      await cp(plan.source, path.join(stagingRoot, plan.targetPath), {
+        recursive: true,
+        force: false,
+        errorOnExist: true,
+      });
+    }
+    for (const legacy of legacyStagedFiles) {
+      const stagedPath = path.join(stagingRoot, ...legacy.targetPath.split('/'));
+      const metadata = await lstat(stagedPath).catch(() => null);
+      if (!metadata?.isFile()) fail(`staged legacy Release is not a regular file: ${legacy.targetPath}`);
+      if (sha256(await readFile(stagedPath)) !== legacy.sha256) {
+        fail(`staged legacy Release bytes drift: ${legacy.targetPath}`);
+      }
+    }
+    const lockName = 'release-set.lock.v3.latest.json';
+    const lockPath = path.join(stagingRoot, lockName);
+    await writeImmutable(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+    const receipt = {
+      protocol: 'act-latest-stable-aggregate-intake/1',
+      resolutionDigest: resolved.resolutionDigest,
+      releaseSetId: lock.release_set_id,
+      releaseId: resolved.releaseId,
+      bundleId: resolved.bundleId,
+      bundleDigest: resolved.bundleDigest,
+      lockPath: lockName,
+      lockSha256: sha256(await readFile(lockPath)),
+      stagedRoot: args.outputRoot,
+    };
+    await writeImmutable(
+      path.join(stagingRoot, 'intake-receipt.json'),
+      `${JSON.stringify(receipt, null, 2)}\n`,
+    );
+    await rename(stagingRoot, args.outputRoot);
+    return receipt;
+  } catch (error) {
+    await rm(stagingRoot, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 async function main(): Promise<void> {

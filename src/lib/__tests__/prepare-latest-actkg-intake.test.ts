@@ -44,7 +44,8 @@ async function fixtureRepo(options?: {
 
   const bundleDir = path.join(root, 'releases', 'control-theory-engineering-v0.3-r2');
   await mkdir(bundleDir, { recursive: true });
-  await writeFile(path.join(bundleDir, 'validation-report.json'), '{"result":"PASS"}\n');
+  const aggregateReportBytes = Buffer.from('{"result":"PASS"}\n');
+  await writeFile(path.join(bundleDir, 'validation-report.json'), aggregateReportBytes);
   const componentDir = path.join(root, 'releases', 'component-v1');
   await mkdir(componentDir, { recursive: true });
   await writeFile(path.join(componentDir, 'component.json'), '{"component":true}\n');
@@ -115,6 +116,16 @@ async function fixtureRepo(options?: {
       bundle_id: componentManifest.bundle_id,
       bundle_digest: componentManifest.bundle_digest,
       manifest_sha256: sha256(componentManifestBytes),
+    }],
+    artifacts: [{
+      role: 'validation_report',
+      contract_version: 'ctkg-validation-report/0.2',
+      required: true,
+      path: 'validation-report.json',
+      media_type: 'application/json',
+      sha256: sha256(aggregateReportBytes),
+      byte_length: aggregateReportBytes.byteLength,
+      record_count: null,
     }],
   };
   const digestBody = { ...manifest };

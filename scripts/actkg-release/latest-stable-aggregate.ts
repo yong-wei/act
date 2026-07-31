@@ -201,8 +201,54 @@ function positiveInteger(value: unknown, label: string): number {
   return value;
 }
 
+function nonNegativeInteger(value: unknown, label: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
+    fail(`${label} must be a non-negative integer`);
+  }
+  return value;
+}
+
 function sha256(value: Buffer | string): string {
   return createHash('sha256').update(value).digest('hex');
+}
+
+function bundleMemberPath(value: unknown, label: string): string {
+  const relative = string(value, label);
+  if (
+    path.posix.isAbsolute(relative)
+    || path.posix.normalize(relative) !== relative
+    || relative.includes('\\')
+    || relative.includes('\u0000')
+    || relative.split('/').some((part) => part === '' || part === '.' || part === '..')
+  ) {
+    fail(`${label} must be a normalized confined POSIX path`);
+  }
+  return relative;
+}
+
+function caseFold(value: string): string {
+  return value.normalize('NFKC').toLocaleLowerCase('en-US');
+}
+
+function artifactRecordCount(bytes: Buffer, mediaType: string): number | null {
+  if (mediaType !== 'application/x-ndjson' && mediaType !== 'application/ndjson') return null;
+  return bytes.toString('utf8').split(/\r?\n/u).filter((line) => line.length > 0).length;
+}
+
+async function listRegularFiles(directory: string): Promise<string[]> {
+  const files: string[] = [];
+  const walk = async (current: string, relative: string): Promise<void> => {
+    for (const entry of await readdir(current, { withFileTypes: true })) {
+      const childRelative = relative ? `${relative}/${entry.name}` : entry.name;
+      const child = path.join(current, entry.name);
+      if (entry.isSymbolicLink()) fail(`Bundle contains symlink ${childRelative}`);
+      if (entry.isDirectory()) await walk(child, childRelative);
+      else if (entry.isFile()) files.push(childRelative);
+      else fail(`Bundle contains non-regular entry ${childRelative}`);
+    }
+  };
+  await walk(directory, '');
+  return files.sort();
 }
 
 function git(root: string, args: string[]): string {
@@ -314,11 +360,15 @@ function parseManifest(value: unknown, label: string): StableAggregateManifest |
 
 function parseSums(value: string, label: string): Map<string, string> {
   const result = new Map<string, string>();
+  const folded = new Map<string, string>();
   for (const [index, line] of value.trimEnd().split('\n').entries()) {
     const match = /^([0-9a-f]{64}) {2}(.+)$/u.exec(line);
     if (!match) fail(`${label}:${index + 1} is not a canonical SHA256SUMS row`);
-    if (result.has(match[2])) fail(`${label} repeats ${match[2]}`);
-    result.set(match[2], match[1]);
+    const memberPath = bundleMemberPath(match[2], `${label}:${index + 1} path`);
+    const foldedPath = caseFold(memberPath);
+    if (result.has(memberPath) || folded.has(foldedPath)) fail(`${label} repeats or collides at ${memberPath}`);
+    result.set(memberPath, match[1]);
+    folded.set(foldedPath, memberPath);
   }
   return result;
 }
@@ -366,9 +416,52 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
   const sumsPath = path.join(bundleDir, 'SHA256SUMS');
   const sumsBytes = await readFile(sumsPath);
   const sums = parseSums(sumsBytes.toString('utf8'), sumsPath);
-  const files = (await readdir(bundleDir))
-    .filter((name) => name !== 'SHA256SUMS')
-    .sort();
+  const files = (await listRegularFiles(bundleDir)).filter((name) => name !== 'SHA256SUMS');
+  if (!Array.isArray(manifestRaw.artifacts)) {
+    fail(`${manifest.bundle_id} Manifest artifacts must be an array`);
+  }
+  const artifactPaths = new Set<string>();
+  const foldedArtifacts = new Map<string, string>();
+  for (const [index, value] of manifestRaw.artifacts.entries()) {
+    const artifact = object(value, `${manifest.bundle_id}.artifacts[${index}]`);
+    const artifactPath = bundleMemberPath(
+      artifact.path,
+      `${manifest.bundle_id}.artifacts[${index}].path`,
+    );
+    const foldedPath = caseFold(artifactPath);
+    if (
+      artifactPath === 'bundle-manifest.json'
+      || artifactPath === 'SHA256SUMS'
+      || artifactPaths.has(artifactPath)
+      || foldedArtifacts.has(foldedPath)
+    ) {
+      fail(`${manifest.bundle_id} Artifact path is reserved, duplicated, or case-fold colliding: ${artifactPath}`);
+    }
+    artifactPaths.add(artifactPath);
+    foldedArtifacts.set(foldedPath, artifactPath);
+    const bytes = await readFile(path.join(bundleDir, ...artifactPath.split('/')));
+    const declaredHash = hash(artifact.sha256, `${manifest.bundle_id}.artifacts[${index}].sha256`);
+    if (sha256(bytes) !== declaredHash || sums.get(artifactPath) !== declaredHash) {
+      fail(`${manifest.bundle_id} Artifact hash drift: ${artifactPath}`);
+    }
+    if (bytes.byteLength !== nonNegativeInteger(
+      artifact.byte_length,
+      `${manifest.bundle_id}.artifacts[${index}].byte_length`,
+    )) {
+      fail(`${manifest.bundle_id} Artifact byte length drift: ${artifactPath}`);
+    }
+    const mediaType = string(artifact.media_type, `${manifest.bundle_id}.artifacts[${index}].media_type`);
+    const recordCount = artifact.record_count === null
+      ? null
+      : nonNegativeInteger(artifact.record_count, `${manifest.bundle_id}.artifacts[${index}].record_count`);
+    if (artifactRecordCount(bytes, mediaType) !== recordCount) {
+      fail(`${manifest.bundle_id} Artifact record count drift: ${artifactPath}`);
+    }
+  }
+  const manifestClosedFiles = ['bundle-manifest.json', ...artifactPaths].sort();
+  if (canonicalJson(files) !== canonicalJson(manifestClosedFiles)) {
+    fail(`${manifest.bundle_id} file set does not close over Manifest artifacts`);
+  }
   if (canonicalJson([...sums.keys()].sort()) !== canonicalJson(files)) {
     fail(`${manifest.bundle_id} SHA256SUMS does not close over the Bundle`);
   }
@@ -863,6 +956,24 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
       fail(
         `stable tag ${candidate.manifest.publication.tag} SHA256SUMS bytes drift`,
       );
+    }
+    const stableTagMembers = git(actkgRoot, [
+      'ls-tree',
+      '-r',
+      '--name-only',
+      candidate.manifest.publication.tag,
+      '--',
+      candidateBundlePath,
+    ]).split('\n').filter(Boolean).map((member) => {
+      const prefix = `${candidateBundlePath}/`;
+      if (!member.startsWith(prefix)) {
+        fail(`stable tag ${candidate.manifest.publication.tag} returned an out-of-package member ${member}`);
+      }
+      return member.slice(prefix.length);
+    }).sort();
+    const expectedStableTagMembers = [...candidate.bundleFiles, 'SHA256SUMS'].sort();
+    if (canonicalJson(stableTagMembers) !== canonicalJson(expectedStableTagMembers)) {
+      fail(`stable tag ${candidate.manifest.publication.tag} Bundle member set drift`);
     }
     for (const name of candidate.bundleFiles) {
       const stableTagMemberPath = `${candidateBundlePath}/${name}`;
