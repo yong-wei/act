@@ -7,6 +7,7 @@ import { chromium } from 'playwright';
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/cold-start-1151');
 const baseUrl = process.env.COLD_START_BASE_URL ?? 'http://localhost:3001';
+const capturePath = '/assessment/adaptive-practice?demo=1';
 
 // 需要验证的源码文件（相对 repoRoot）
 const sourceFiles = [
@@ -69,7 +70,7 @@ async function capture() {
     captureCommitShort: headShort,
     captureCommand: `node scripts/tests/capture-cold-start-evidence.mjs`,
     captureCommandResult: null,
-    captureUrl: new URL('/assessment/adaptive-practice', baseUrl).toString(),
+    captureUrl: new URL(capturePath, baseUrl).toString(),
     captureSourceFiles: Object.fromEntries(
       sourceFiles.map((f) => [f, sha256(f)])
     ),
@@ -84,7 +85,7 @@ async function capture() {
   try {
     for (const target of screenshotTargets) {
       await page.setViewportSize({ width: target.width, height: 900 });
-      const response = await page.goto(new URL('/assessment/adaptive-practice', baseUrl).toString(), {
+      const response = await page.goto(new URL(capturePath, baseUrl).toString(), {
         waitUntil: 'networkidle',
         timeout: 30000,
       });
