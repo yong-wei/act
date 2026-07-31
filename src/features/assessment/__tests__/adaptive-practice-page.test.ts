@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 const repoRoot = process.cwd();
 
 function readRepoFile(relativePath: string) {
-  return readFileSync(join(repoRoot, relativePath), 'utf8');
+  return readFileSync(join(repoRoot, relativePath), 'utf8').replace(/\r\n/g, '\n');
 }
 
 describe('adaptive practice page entry states', () => {
@@ -97,7 +97,8 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("requestedIntent !== null && requestedIntent.trim().length > 0 && routeIntent === 'practice'");
     expect(source).toContain("data-adaptive-path-workspace-intent={workspaceIntent}");
     expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
-    expect(source).toContain('const showPresetGoalCards = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
+    expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
+    expect(source).toContain("const showPresetGoalCards = isPresetGoalLanding && pathLandingState === 'cold-start';");
     expect(source).toContain("showSelectionWorkspace && !showPathContextRecovery ? (");
     expect(source).toContain("!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
     expect(source).toContain("!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)");
@@ -203,6 +204,19 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('data-adaptive-path-recovery-action="generate-path"');
     expect(source).toContain('data-adaptive-path-recovery-action="review-evidence"');
     expect(source).toContain('data-adaptive-path-recovery-action="return-to-task"');
+  });
+
+  it('keeps path loading and failure states separate from the cold-start workspace', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('resolveAdaptivePathLandingState({');
+    expect(source).toContain("const showColdStartLandingWorkspace = showLandingWorkspace && pathLandingState === 'cold-start';");
+    expect(source).toContain('data-adaptive-path-landing-state="loading"');
+    expect(source).toContain('正在加载学习路径');
+    expect(source).toContain('data-adaptive-path-landing-state="failed"');
+    expect(source).toContain('学习路径暂时无法加载');
+    expect(source).toContain('onClick={retryPathContext}');
+    expect(source).toContain("setPathContextLoadState(pathLoadFailed ? 'failed' : 'missing');");
   });
 
   it('keeps demo path state available for execution and visual QA routes', () => {

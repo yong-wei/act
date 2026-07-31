@@ -86,6 +86,8 @@ import {
 import {
   resolveAdaptivePathContextRecoveryState,
   resolveAdaptivePathExecutionNodeStatus,
+  resolveAdaptivePathLandingState,
+  type AdaptiveLearnerStateLoadState,
   type AdaptivePathContextLoadState,
 } from '@/lib/adaptive-path-execution-state';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
@@ -1743,7 +1745,7 @@ export default function AdaptivePracticePage() {
   const showSelectionWorkspace = workspaceIntent === 'selection';
   const showExecutionWorkspace = workspaceIntent === 'execution';
   const showEvidenceWorkspace = workspaceIntent === 'evidence-review';
-  const showPresetGoalCards = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;
+  const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;
   const activePathId = searchParams.get('pathId');
   const activeNodeId = searchParams.get('nodeId');
   const activeGraphNodeId = searchParams.get('graphNodeId');
@@ -1785,14 +1787,15 @@ export default function AdaptivePracticePage() {
   const [pathAdvisorAssistantEntryPoint, setPathAdvisorAssistantEntryPoint] = useState<NonNullable<typeof assistantEntryPoint> | null>(null);
   const [loading, setLoading] = useState(false);
   const [questionStartAt, setQuestionStartAt] = useState<number>(Date.now());
- const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [pathExecutionError, setPathExecutionError] = useState<string | null>(null);
- const [activeLearnerState, setActiveLearnerState] = useState<AdaptiveLearnerState | null>(null);
-  const [learnerStateLoadState, setLearnerStateLoadState] = useState<'idle' | 'loading' | 'ready'>('idle');
+  const [activeLearnerState, setActiveLearnerState] = useState<AdaptiveLearnerState | null>(null);
+  const [learnerStateLoadState, setLearnerStateLoadState] = useState<AdaptiveLearnerStateLoadState>('idle');
   const [activePathPlan, setActivePathPlan] = useState<AdaptiveLearningPathPlan | null>(null);
   const [activePathRound, setActivePathRound] = useState<LearningPathRoundView | null>(null);
   const [pathContextLoadState, setPathContextLoadState] = useState<AdaptivePathContextLoadState>('idle');
   const [loadedPathContextKey, setLoadedPathContextKey] = useState<string | null>(null);
+  const [pathContextReloadKey, setPathContextReloadKey] = useState(0);
   const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
   const [pathOptionFeedback, setPathOptionFeedback] = useState<Record<string, string>>({});
@@ -1950,6 +1953,14 @@ export default function AdaptivePracticePage() {
     loadState: pathContextLoadState,
   }), [activeGoal, activePathId, authStatus, hasLoadedCurrentPathContext, isDemoMode, pathContextLoadState, workspaceIntent]);
   const showPathContextRecovery = pathContextRecoveryState.shouldRecover;
+  const pathLandingState = useMemo(() => resolveAdaptivePathLandingState({
+    authStatus,
+    learnerStateLoadState,
+    pathContextLoadState,
+    hasLoadedPathContext: hasLoadedCurrentPathContext,
+  }), [authStatus, hasLoadedCurrentPathContext, learnerStateLoadState, pathContextLoadState]);
+  const showColdStartLandingWorkspace = showLandingWorkspace && pathLandingState === 'cold-start';
+  const showPresetGoalCards = isPresetGoalLanding && pathLandingState === 'cold-start';
   const pathContextRecoveryEvidenceHref = useMemo(() => {
     const params = new URLSearchParams();
     if (activeGoal) params.set('goal', activeGoal);
@@ -2027,7 +2038,7 @@ export default function AdaptivePracticePage() {
     if (showPresetGoalCards) {
       return 'goal-selection';
     }
-    if (showLandingWorkspace) {
+    if (showColdStartLandingWorkspace) {
       return 'learning-overview';
     }
     return null;
@@ -2035,7 +2046,7 @@ export default function AdaptivePracticePage() {
     pathExecutionNodes.length,
     showEvidenceWorkspace,
     showExecutionWorkspace,
-    showLandingWorkspace,
+    showColdStartLandingWorkspace,
     showPathContextRecovery,
     showPracticeWorkspace,
     showPresetGoalCards,
@@ -2089,6 +2100,12 @@ export default function AdaptivePracticePage() {
     setActivePathPlan(null);
     setLoadedPathContextKey(null);
     setPathContextLoadState(loadState);
+  }, []);
+
+  const retryPathContext = useCallback(() => {
+    setLearnerStateLoadState('loading');
+    setPathContextLoadState('loading');
+    setPathContextReloadKey((current) => current + 1);
   }, []);
 
   const openPathGenerationAdvisor = useCallback(() => {
@@ -2302,7 +2319,7 @@ export default function AdaptivePracticePage() {
       const requiresRoutePathContext = showSelectionWorkspace || showExecutionWorkspace || showEvidenceWorkspace;
       setLearnerStateLoadState('loading');
       setLearnerStateReadiness(null);
-      setPathContextLoadState(requiresRoutePathContext || activePathId ? 'loading' : 'idle');
+      setPathContextLoadState('loading');
       setLoadedPathContextKey(null);
       if (requiresRoutePathContext || activePathId) {
         setActivePathPlan(null);
@@ -2323,7 +2340,7 @@ export default function AdaptivePracticePage() {
             source: 'learner-state',
             fallbackReason: 'learner-state-unavailable',
           }));
-          setLearnerStateLoadState('ready');
+          setLearnerStateLoadState('failed');
         }
       } catch {
         if (!cancelled) {
@@ -2332,7 +2349,7 @@ export default function AdaptivePracticePage() {
             reason: 'learner-state-unavailable',
             source: 'learner-state',
           }));
-          setLearnerStateLoadState('ready');
+          setLearnerStateLoadState('failed');
         }
       }
 
@@ -2379,7 +2396,7 @@ export default function AdaptivePracticePage() {
       if (!loadedMatchingPath && !cancelled) {
         setActivePathPlan(null);
         setActivePathRound(null);
-        setPathContextLoadState(pathLoadFailed ? 'failed' : requiresRoutePathContext || activePathId ? 'missing' : 'idle');
+        setPathContextLoadState(pathLoadFailed ? 'failed' : 'missing');
         setLoadedPathContextKey(null);
       }
       if (cancelled) return;
@@ -2389,7 +2406,7 @@ export default function AdaptivePracticePage() {
     return () => {
       cancelled = true;
     };
-  }, [activeGoal, activeGoalLabel, activePathId, authStatus, isDemoMode, requestedPathContextKey, showEvidenceWorkspace, showExecutionWorkspace, showSelectionWorkspace]);
+  }, [activeGoal, activeGoalLabel, activePathId, authStatus, isDemoMode, pathContextReloadKey, requestedPathContextKey, showEvidenceWorkspace, showExecutionWorkspace, showSelectionWorkspace]);
 
   useEffect(() => {
     if (activeGoal || !pathAdvisorContextGoal || !showGenerationWorkspace || isDemoMode) return;
@@ -3203,6 +3220,7 @@ export default function AdaptivePracticePage() {
           className="flex flex-col gap-5"
           data-commercial-workspace="adaptive-path-center"
           data-adaptive-path-center="generation-selection"
+          data-adaptive-path-landing-state={pathLandingState}
           data-adaptive-path-workspace-intent={workspaceIntent}
           data-commercial-student-entry-route="/assessment/adaptive-practice"
           data-commercial-entry-intent="practice"
@@ -3232,7 +3250,68 @@ export default function AdaptivePracticePage() {
               data-control-correction-alternative-count={controlCorrectionAlternativeCount(adaptivePathCenter)}
             />
           ) : null}
-          {showExecutionWorkspace || showRecoveredExecutionWorkspace ? null : (
+          {showExecutionWorkspace || showRecoveredExecutionWorkspace ||
+          (showLandingWorkspace && pathLandingState === 'active') ? null :
+          showLandingWorkspace && pathLandingState === 'loading' ? (
+          <header
+            className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]"
+            data-adaptive-path-landing-state="loading"
+            aria-busy="true"
+          >
+            <div className="surface-card min-h-56 p-5" role="status" aria-live="polite">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
+                  <RefreshCw className="size-5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-xs font-medium text-primary">学习路径</p>
+                  <h1 className="text-xl font-semibold text-foreground">正在加载学习路径</h1>
+                </div>
+              </div>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-subtle">
+                正在确认你的活动路径、当前节点和学习进度，请稍候。
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2" aria-hidden="true">
+                <div className="h-16 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" />
+                <div className="h-16 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" />
+              </div>
+            </div>
+            <aside className="surface-card min-h-56 p-5" aria-hidden="true">
+              <div className="h-5 w-28 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+              <div className="mt-5 h-4 w-full animate-pulse rounded bg-muted motion-reduce:animate-none" />
+              <div className="mt-3 h-4 w-4/5 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+              <div className="mt-6 h-14 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" />
+            </aside>
+          </header>
+          ) : showLandingWorkspace && pathLandingState === 'failed' ? (
+          <header
+            className="surface-card min-h-56 p-5"
+            data-adaptive-path-landing-state="failed"
+            role="alert"
+          >
+            <div className="flex items-center gap-3">
+              <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
+                <RefreshCw className="size-5" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-xs font-medium text-primary">学习路径</p>
+                <h1 className="text-xl font-semibold text-foreground">学习路径暂时无法加载</h1>
+              </div>
+            </div>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-subtle">
+              当前无法确认你的活动路径，因此不会显示入门路径或生成入口。请重新加载路径数据。
+            </p>
+            <button
+              type="button"
+              onClick={retryPathContext}
+              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              data-adaptive-path-retry="landing"
+            >
+              <RefreshCw className="size-4" aria-hidden="true" />
+              重新加载
+            </button>
+          </header>
+          ) : (
           <header className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]">
             <div className="surface-card p-5">
               <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-primary">
@@ -3322,9 +3401,9 @@ export default function AdaptivePracticePage() {
           </header>
           )}
 
-          {showLandingWorkspace || showGenerationWorkspace ? (
-          <section className={`order-10 grid gap-4 ${showLandingWorkspace && showGenerationWorkspace ? 'xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]' : ''}`}>
-            {showLandingWorkspace ? (
+          {showColdStartLandingWorkspace || showGenerationWorkspace ? (
+          <section className={`order-10 grid gap-4 ${showColdStartLandingWorkspace && showGenerationWorkspace ? 'xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]' : ''}`}>
+            {showColdStartLandingWorkspace ? (
             <PathWorkspaceModule
               moduleId="learning-overview"
               openModuleId={openPathModuleId}
