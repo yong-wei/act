@@ -7,6 +7,8 @@ import { expect, test } from '@playwright/test';
 const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/issue-979-media-exclusivity');
 const headSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 
+test.describe.configure({ mode: 'serial' });
+
 test.beforeAll(() => {
   const dirty = execFileSync('git', ['status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' }).trim();
   if (dirty) throw new Error(`Evidence capture requires a clean tracked worktree:\n${dirty}`);
@@ -19,6 +21,7 @@ for (const viewport of [1440, 320]) {
     await page.goto('/evidence/issue-979');
     const media = page.locator('audio, video');
     expect(await media.count()).toBeGreaterThanOrEqual(3);
+    await page.waitForTimeout(500);
     const result = await media.evaluateAll((elements) => {
       const first = elements[0] as HTMLMediaElement;
       const second = elements[1] as HTMLMediaElement;
