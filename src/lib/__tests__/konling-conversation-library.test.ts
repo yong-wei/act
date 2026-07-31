@@ -145,6 +145,16 @@ describe('Konling conversation library', () => {
       });
   });
 
+  it('persists the teacher diagnosis binding without client hints', () => {
+    expect(normalizeKonlingConversationAssistantBinding({
+      modeId: 'teacher-diagnosis',
+      clientContextHints: { forged: 'discard-me' },
+    })).toEqual({
+      teachingAssistantModeId: 'teacher-diagnosis',
+      modeClientContextHints: {},
+    });
+  });
+
   it('safely compresses an orphaned persisted tool call before a reloaded continuation', async () => {
     const persisted = conversation({
       messages: [
