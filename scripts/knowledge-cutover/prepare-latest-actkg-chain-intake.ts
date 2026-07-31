@@ -4,10 +4,13 @@ import { createHash } from 'node:crypto';
 import {
   cp,
   lstat,
+  mkdtemp,
   mkdir,
   readFile,
   readdir,
   realpath,
+  rename,
+  rm,
   stat,
   writeFile,
 } from 'node:fs/promises';
@@ -532,65 +535,81 @@ export async function prepareLatestActkgChainIntake(
   const closureBytes = await readFile(closureSource);
   const bindingBytes = frozen.bytes;
   const plans = new Map<string, SourcePlan>();
-  const locks: Array<{ candidate: LatestStableAggregateCandidate; lock: ChainLock; lockPath: string }> = [];
+  const locks: Array<{ candidate: LatestStableAggregateCandidate; lock: ChainLock; lockName: string }> = [];
   for (const candidate of candidates) {
     const lock = await buildLock(candidate, actkgRoot, repoRoot, outputRoot, plans);
-    const lockPath = path.join(outputRoot, lockFileName(candidate));
-    locks.push({ candidate, lock, lockPath });
+    locks.push({ candidate, lock, lockName: lockFileName(candidate) });
   }
-  const closureTarget = path.join(outputRoot, 'metadata', 'predecessor-closure.json');
-  const bindingTarget = path.join(outputRoot, 'metadata', 'latest-stable-aggregate-binding.json');
   await mkdir(path.dirname(outputRoot), { recursive: true });
-  await mkdir(outputRoot, { recursive: false });
-  await mkdir(path.join(outputRoot, 'releases'), { recursive: false });
-  await mkdir(path.join(outputRoot, 'metadata'), { recursive: false });
-  for (const plan of [...plans.values()].sort((left, right) => left.targetRelative.localeCompare(right.targetRelative))) {
-    if (await directoryDigest(plan.source) !== plan.digest) fail(`source drift before copying ${plan.label}`);
-    await cp(plan.source, path.join(outputRoot, plan.targetRelative), {
-      recursive: true,
-      force: false,
-      errorOnExist: true,
+  const stagingRoot = await mkdtemp(path.join(
+    path.dirname(outputRoot),
+    `.${path.basename(outputRoot)}.tmp-`,
+  ));
+  try {
+    const closureTarget = path.join(stagingRoot, 'metadata', 'predecessor-closure.json');
+    const bindingTarget = path.join(stagingRoot, 'metadata', 'latest-stable-aggregate-binding.json');
+    await mkdir(path.join(stagingRoot, 'releases'), { recursive: false });
+    await mkdir(path.join(stagingRoot, 'metadata'), { recursive: false });
+    for (const plan of [...plans.values()].sort((left, right) => left.targetRelative.localeCompare(right.targetRelative))) {
+      if (await directoryDigest(plan.source) !== plan.digest) fail(`source drift before copying ${plan.label}`);
+      await cp(plan.source, path.join(stagingRoot, plan.targetRelative), {
+        recursive: true,
+        force: false,
+        errorOnExist: true,
+      });
+      if (await directoryDigest(plan.source) !== plan.digest) fail(`source drift during copying ${plan.label}`);
+    }
+    await cp(closureSource, closureTarget, { force: false, errorOnExist: true });
+    await cp(bindingPath, bindingTarget, { force: false, errorOnExist: true });
+    for (const plan of plans.values()) {
+      if (await directoryDigest(plan.source) !== plan.digest) fail(`source drift after copying ${plan.label}`);
+    }
+    if (!(await readFile(bindingPath)).equals(bindingBytes) || !(await readFile(closureSource)).equals(closureBytes)) {
+      fail('frozen binding or predecessor closure drifted during intake');
+    }
+    const end = await resolveLatestStableAggregateWithCandidates({
+      actkgRoot,
+      mainRef: options.mainRef,
     });
-    if (await directoryDigest(plan.source) !== plan.digest) fail(`source drift during copying ${plan.label}`);
+    assertBindingMatches(frozen.binding, end.binding);
+    for (const { lockName, lock } of locks) {
+      await writeFile(path.join(stagingRoot, lockName), `${JSON.stringify(lock, null, 2)}\n`);
+    }
+    const entries = await Promise.all(locks.map(async ({ candidate, lock, lockName }, index) => ({
+      order: index + 1,
+      lockPath: repoRelative(repoRoot, path.join(outputRoot, lockName), 'receipt lockPath'),
+      lockSha256: sha256(await readFile(path.join(stagingRoot, lockName))),
+      releaseSetId: lock.release_set_id,
+      releaseId: candidate.releaseId,
+      releaseVersion: candidate.releaseVersion,
+      releaseHash: candidate.releaseHash,
+      bundleId: candidate.bundleId,
+      bundleDigest: candidate.bundleDigest,
+    })));
+    const receipt = {
+      protocol: 'act-latest-stable-aggregate-chain-intake/1',
+      outputRoot: repoRelative(repoRoot, outputRoot, 'receipt outputRoot'),
+      bindingPath: repoRelative(
+        repoRoot,
+        path.join(outputRoot, 'metadata', 'latest-stable-aggregate-binding.json'),
+        'receipt bindingPath',
+      ),
+      predecessorClosurePath: repoRelative(
+        repoRoot,
+        path.join(outputRoot, 'metadata', 'predecessor-closure.json'),
+        'receipt predecessorClosurePath',
+      ),
+      predecessorClosureArtifactHash: closure.artifactHash,
+      resolutionDigest: end.binding.resolutionDigest,
+      chain: entries,
+    };
+    await writeFile(path.join(stagingRoot, 'chain-intake-receipt.json'), `${JSON.stringify(receipt, null, 2)}\n`);
+    await rename(stagingRoot, outputRoot);
+    return receipt;
+  } catch (error) {
+    await rm(stagingRoot, { recursive: true, force: true });
+    throw error;
   }
-  await cp(closureSource, closureTarget, { force: false, errorOnExist: true });
-  await cp(bindingPath, bindingTarget, { force: false, errorOnExist: true });
-  for (const plan of plans.values()) {
-    if (await directoryDigest(plan.source) !== plan.digest) fail(`source drift after copying ${plan.label}`);
-  }
-  if (!(await readFile(bindingPath)).equals(bindingBytes) || !(await readFile(closureSource)).equals(closureBytes)) {
-    fail('frozen binding or predecessor closure drifted during intake');
-  }
-  const end = await resolveLatestStableAggregateWithCandidates({
-    actkgRoot,
-    mainRef: options.mainRef,
-  });
-  assertBindingMatches(frozen.binding, end.binding);
-  for (const { lockPath, lock } of locks) {
-    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
-  }
-  const entries = await Promise.all(locks.map(async ({ candidate, lock, lockPath }, index) => ({
-    order: index + 1,
-    lockPath: repoRelative(repoRoot, lockPath, 'receipt lockPath'),
-    lockSha256: sha256(await readFile(lockPath)),
-    releaseSetId: lock.release_set_id,
-    releaseId: candidate.releaseId,
-    releaseVersion: candidate.releaseVersion,
-    releaseHash: candidate.releaseHash,
-    bundleId: candidate.bundleId,
-    bundleDigest: candidate.bundleDigest,
-  })));
-  const receipt = {
-    protocol: 'act-latest-stable-aggregate-chain-intake/1',
-    outputRoot: repoRelative(repoRoot, outputRoot, 'receipt outputRoot'),
-    bindingPath: repoRelative(repoRoot, bindingTarget, 'receipt bindingPath'),
-    predecessorClosurePath: repoRelative(repoRoot, closureTarget, 'receipt predecessorClosurePath'),
-    predecessorClosureArtifactHash: closure.artifactHash,
-    resolutionDigest: end.binding.resolutionDigest,
-    chain: entries,
-  };
-  await writeFile(path.join(outputRoot, 'chain-intake-receipt.json'), `${JSON.stringify(receipt, null, 2)}\n`);
-  return receipt;
 }
 
 async function main(): Promise<void> {
