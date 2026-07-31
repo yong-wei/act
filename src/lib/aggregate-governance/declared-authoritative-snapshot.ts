@@ -446,6 +446,200 @@ async function readMaterializedJson(
   }
 }
 
+async function validateBundleChecksumClosure(input: {
+  repoRoot: string;
+  controlledPath: string;
+  controlledRelative: string;
+  manifest: JsonRecord;
+  expectedManifestHash?: unknown;
+  expectedBundleId?: unknown;
+  expectedBundleDigest?: unknown;
+  label: string;
+  errors: string[];
+  checkedPaths: string[];
+}): Promise<void> {
+  const manifestRelative = path.posix.join(input.controlledRelative, 'bundle-manifest.json');
+  const manifestPath = await resolveMaterializedPath(
+    input.repoRoot,
+    manifestRelative,
+    `${input.label} manifest path`,
+    'file',
+    input.errors,
+    input.checkedPaths,
+  );
+  if (!manifestPath) return;
+  const manifestHash = createHash('sha256').update(await readFile(manifestPath)).digest('hex');
+  if (input.expectedManifestHash !== undefined) {
+    materializedEqual(
+      manifestHash,
+      input.expectedManifestHash,
+      `${input.label} manifest raw SHA-256`,
+      input.errors,
+    );
+  }
+  if (input.expectedBundleId !== undefined) {
+    materializedEqual(input.manifest.bundle_id, input.expectedBundleId, `${input.label} bundle_id`, input.errors);
+  }
+  if (input.expectedBundleDigest !== undefined) {
+    materializedEqual(
+      input.manifest.bundle_digest,
+      input.expectedBundleDigest,
+      `${input.label} bundle_digest`,
+      input.errors,
+    );
+  }
+
+  const sumsRelative = path.posix.join(input.controlledRelative, 'SHA256SUMS');
+  const sumsPath = await resolveMaterializedPath(
+    input.repoRoot,
+    sumsRelative,
+    `${input.label} SHA256SUMS path`,
+    'file',
+    input.errors,
+    input.checkedPaths,
+  );
+  if (!sumsPath) return;
+  const entries = new Map<string, string>();
+  for (const [index, line] of (await readFile(sumsPath, 'utf8')).trimEnd().split('\n').entries()) {
+    const match = line.match(/^([a-f0-9]{64})  (.+)$/u);
+    if (!match) {
+      input.errors.push(`${input.label} SHA256SUMS line ${index + 1} is invalid`);
+      continue;
+    }
+    const relative = normalizedRepoRelativePath(
+      match[2],
+      `${input.label} SHA256SUMS line ${index + 1} path`,
+      input.errors,
+    );
+    if (!relative) continue;
+    if (entries.has(relative)) input.errors.push(`${input.label} SHA256SUMS duplicates ${relative}`);
+    entries.set(relative, match[1]);
+  }
+  const artifacts = Array.isArray(input.manifest.artifacts) ? input.manifest.artifacts : [];
+  const expectedFiles = new Set(['bundle-manifest.json']);
+  for (const [index, raw] of artifacts.entries()) {
+    const artifact = materializedRecord(raw, `${input.label}.artifacts[${index}]`, input.errors);
+    if (!artifact || artifact.required !== true) continue;
+    const relative = normalizedRepoRelativePath(
+      artifact.path,
+      `${input.label}.artifacts[${index}].path`,
+      input.errors,
+    );
+    if (relative) expectedFiles.add(relative);
+  }
+  for (const expected of expectedFiles) {
+    if (!entries.has(expected)) input.errors.push(`${input.label} SHA256SUMS is missing ${expected}`);
+  }
+  for (const declared of entries.keys()) {
+    if (!expectedFiles.has(declared)) input.errors.push(`${input.label} SHA256SUMS has undeclared ${declared}`);
+  }
+  for (const [relative, expectedHash] of entries) {
+    const repositoryRelative = path.posix.join(input.controlledRelative, relative);
+    const artifactPath = await resolveMaterializedPath(
+      input.repoRoot,
+      repositoryRelative,
+      `${input.label} checksummed ${relative}`,
+      'file',
+      input.errors,
+      input.checkedPaths,
+    );
+    if (!artifactPath) continue;
+    if (!isContainedPath(input.controlledPath, artifactPath)) {
+      input.errors.push(`${input.label} checksummed ${relative} resolves outside its controlled path`);
+      continue;
+    }
+    materializedEqual(
+      createHash('sha256').update(await readFile(artifactPath)).digest('hex'),
+      expectedHash,
+      `${input.label} checksummed ${relative} SHA-256`,
+      input.errors,
+    );
+  }
+}
+
+async function validateLockComponents(input: {
+  repoRoot: string;
+  lock: JsonRecord;
+  errors: string[];
+  checkedPaths: string[];
+}): Promise<void> {
+  const components = Array.isArray(input.lock.components) ? input.lock.components : [];
+  for (const [index, raw] of components.entries()) {
+    const component = materializedRecord(raw, `lock.components[${index}]`, input.errors);
+    if (!component) continue;
+    const controlledRelative = normalizedRepoRelativePath(
+      component.controlled_path,
+      `lock.components[${index}].controlled_path`,
+      input.errors,
+    );
+    if (!controlledRelative) continue;
+    const controlledPath = await resolveMaterializedPath(
+      input.repoRoot,
+      controlledRelative,
+      `lock.components[${index}].controlled_path`,
+      'directory',
+      input.errors,
+      input.checkedPaths,
+    );
+    if (!controlledPath) continue;
+    if (component.reference_kind === 'legacy_exact') {
+      const releaseRelative = normalizedRepoRelativePath(
+        component.release_json_name,
+        `lock.components[${index}].release_json_name`,
+        input.errors,
+      );
+      if (!releaseRelative) continue;
+      const releasePath = await resolveMaterializedPath(
+        input.repoRoot,
+        path.posix.join(controlledRelative, releaseRelative),
+        `lock.components[${index}] legacy Release`,
+        'file',
+        input.errors,
+        input.checkedPaths,
+      );
+      if (!releasePath || !isContainedPath(controlledPath, releasePath)) continue;
+      materializedEqual(
+        createHash('sha256').update(await readFile(releasePath)).digest('hex'),
+        component.release_raw_sha256,
+        `lock.components[${index}] legacy Release SHA-256`,
+        input.errors,
+      );
+      continue;
+    }
+    if (component.reference_kind !== 'standard_bundle') {
+      input.errors.push(`lock.components[${index}].reference_kind is invalid`);
+      continue;
+    }
+    const manifestPath = await resolveMaterializedPath(
+      input.repoRoot,
+      path.posix.join(controlledRelative, 'bundle-manifest.json'),
+      `lock.components[${index}] manifest`,
+      'file',
+      input.errors,
+      input.checkedPaths,
+    );
+    if (!manifestPath) continue;
+    const manifest = await readMaterializedJson(
+      manifestPath,
+      `lock.components[${index}] manifest`,
+      input.errors,
+    );
+    if (!manifest) continue;
+    await validateBundleChecksumClosure({
+      repoRoot: input.repoRoot,
+      controlledPath,
+      controlledRelative,
+      manifest,
+      expectedManifestHash: component.manifest_raw_sha256,
+      expectedBundleId: component.bundle_id,
+      expectedBundleDigest: component.bundle_digest,
+      label: `lock.components[${index}]`,
+      errors: input.errors,
+      checkedPaths: input.checkedPaths,
+    });
+  }
+}
+
 async function validateMaterializedBundleArtifacts(input: {
   repoRoot: string;
   lock: JsonRecord;
@@ -564,6 +758,19 @@ async function validateMaterializedBundleArtifacts(input: {
   }
   if (!hasReleaseArtifact) input.errors.push('Bundle manifest is missing required release Artifact');
   if (!hasSchemaArtifact) input.errors.push('Bundle manifest is missing required ctkg_schema Artifact');
+  await validateBundleChecksumClosure({
+    repoRoot: input.repoRoot,
+    controlledPath,
+    controlledRelative,
+    manifest,
+    expectedManifestHash: bundle.manifest_raw_sha256,
+    expectedBundleId: (input.receipt.bundle as JsonRecord | undefined)?.bundleId,
+    expectedBundleDigest: (input.receipt.bundle as JsonRecord | undefined)?.bundleDigest,
+    label: 'Bundle',
+    errors: input.errors,
+    checkedPaths: input.checkedPaths,
+  });
+  await validateLockComponents(input);
 }
 
 /**

@@ -63,25 +63,30 @@ describe('declared authoritative snapshot receipt', () => {
     const sourceRoot = process.cwd();
     const copyRoot = await mkdtemp(path.join(tmpdir(), 'declared-snapshot-'));
     const bundleRoot = 'course-content/authoring/knowledge/issue-1117-v08-r3-chain/releases/control-theory-engineering-v0.8';
-    const manifest = JSON.parse(
-      await readFile(path.join(sourceRoot, bundleRoot, 'bundle-manifest.json'), 'utf8'),
-    ) as { artifacts: Array<{ path: string; required: boolean }> };
-    const requiredArtifacts = manifest.artifacts
-      .filter((artifact) => artifact.required)
-      .map((artifact) => path.posix.join(bundleRoot, artifact.path));
+    const lockJson = JSON.parse(
+      await readFile(path.join(sourceRoot, (receipt.lock as Record<string, string>).path), 'utf8'),
+    ) as { components: Array<{ controlled_path: string }> };
     const relativeFiles = [
       'course-content/authoring/knowledge/issue-1117-v08-r3-chain/metadata/declared-authoritative-snapshot-receipt.json',
       (receipt.lock as Record<string, string>).path,
       (receipt.projection as Record<string, string>).path,
       (receipt.worklist as Record<string, string>).path,
-      path.posix.join(bundleRoot, 'bundle-manifest.json'),
-      ...requiredArtifacts,
     ];
     try {
       for (const relative of relativeFiles) {
         const target = path.join(copyRoot, relative);
         await mkdir(path.dirname(target), { recursive: true });
         await cp(path.join(sourceRoot, relative), target);
+      }
+      for (const controlledPath of [
+        bundleRoot,
+        ...lockJson.components.map((component) => component.controlled_path),
+      ]) {
+        await cp(
+          path.join(sourceRoot, controlledPath),
+          path.join(copyRoot, controlledPath),
+          { recursive: true },
+        );
       }
 
       const valid = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
@@ -90,6 +95,16 @@ describe('declared authoritative snapshot receipt', () => {
       );
       expect(valid.valid).toBe(true);
       expect(valid.checkedPaths).toContain((receipt.projection as Record<string, string>).path);
+
+      const sumsPath = path.join(copyRoot, bundleRoot, 'SHA256SUMS');
+      await rm(sumsPath);
+      const missingSums = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
+        receipt,
+        { repoRoot: copyRoot },
+      );
+      expect(missingSums.valid).toBe(false);
+      expect(missingSums.errors.join('; ')).toMatch(/SHA256SUMS/u);
+      await cp(path.join(sourceRoot, bundleRoot, 'SHA256SUMS'), sumsPath);
 
       const worklistPath = path.join(copyRoot, (receipt.worklist as Record<string, string>).path);
       const worklistJson = JSON.parse(await readFile(worklistPath, 'utf8')) as {

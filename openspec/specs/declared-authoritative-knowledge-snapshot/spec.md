@@ -19,7 +19,7 @@ The system MUST create a declared-authoritative snapshot only after resolving on
 
 ### Requirement: Snapshot reads are isolated and provenance-closed
 
-All locked Release, Projection, Bundle, and worklist files MUST belong to the same immutable ACT capture, and all corresponding import and Delta rows MUST be read from one isolated database snapshot bound to that capture. The validator MUST reject mixed schemas, stale rows, lock/Projection mismatches, missing receipts, or inputs whose provenance cannot be closed to the frozen resolution.
+All locked Release, Projection, Bundle, and worklist files MUST belong to the same immutable ACT capture. During snapshot creation, all corresponding import and Delta rows MUST be read from one isolated database snapshot bound to that capture, and their relevant identities, states, hashes, relationships, and capture revision MUST be frozen into the immutable receipt. Materialized validation MUST reject a receipt whose independently pinned full-payload digest, schema, row identities, relationships, or capture binding differs. Once frozen, the historical snapshot MUST NOT depend on continued availability or later mutable state of the source database; later database drift requires a new capture attempt and MUST NOT rewrite or invalidate the retained snapshot.
 
 #### Scenario: Isolated loader and Delta chain agree
 
@@ -72,4 +72,3 @@ A later accepted Release MAY produce a new snapshot with a new frozen identity a
 
 - **WHEN** a caller attempts to replace an old snapshot's identities, worklist, receipts, or verdict state
 - **THEN** the write SHALL be rejected as provenance drift
-
