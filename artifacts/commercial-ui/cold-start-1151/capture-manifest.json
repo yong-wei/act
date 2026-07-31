@@ -1,23 +1,31 @@
 {
-  "captureGeneratedAt": "2026-07-30T12:03:25.252Z",
-  "captureSourceSha": {
-    "src/app/assessment/adaptive-practice/page.tsx": "d299d71a7923c6999d4348e93776f86e89099b688dccda9965b156b797fc4b22",
+  "captureGeneratedAt": "2026-07-31T02:16:49.634Z",
+  "captureCommitSha": "8a9c2982b72028e03a9f53a3720a65f7cbbf86ae",
+  "captureCommitShort": "8a9c2982b",
+  "captureCommand": "node scripts/tests/capture-cold-start-evidence.mjs",
+  "captureCommandResult": "exit 0",
+  "captureUrl": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=frequency-response-foundations",
+  "captureSourceFiles": {
+    "src/app/assessment/adaptive-practice/page.tsx": "896ce3da5eddba12df008eff699c0e8cdb27a6559876a5f495500fb051f19f03",
     "src/lib/adaptive-cold-start-detection.ts": "6322b7fd3ebf691fef33b11900b034d9cbbc0b802bebf5ad5655b62b4386716a",
-    "src/lib/__tests__/adaptive-cold-start-detection.test.ts": "29a8e13d58799943ab878072495a244ca3b65d5a1f89664028f105eff47d8f7a"
+    "src/lib/__tests__/adaptive-cold-start-detection.test.ts": "29a8e13d58799943ab878072495a244ca3b65d5a1f89664028f105eff47d8f7a",
+    "scripts/tests/capture-cold-start-evidence.mjs": "6a74a97bbb60200d1e5dd97461f650e54678e9b90e9a17b068f6379def75e603"
   },
-  "captureCommitSha": null,
+  "workspaceClean": true,
   "screenshots": [
     {
       "filename": "cold-start-desktop.png",
+      "sha256": "a2c12eb37d9aeb52c82876461b000a601a62b61c15a0904d15ebcca8265c95a7",
       "viewportWidth": 1440,
       "viewportHeight": 900,
-      "capturedAt": "2026-07-30T12:04:06.415Z"
+      "capturedAt": "2026-07-31T02:16:54.007Z"
     },
     {
       "filename": "cold-start-mobile.png",
+      "sha256": "75c3d8cf4439e607c994bf42f52e3b9f2646486644e60484b6f60310ed77fc27",
       "viewportWidth": 320,
       "viewportHeight": 900,
-      "capturedAt": "2026-07-30T12:04:42.280Z"
+      "capturedAt": "2026-07-31T02:16:55.909Z"
     }
   ]
 }
