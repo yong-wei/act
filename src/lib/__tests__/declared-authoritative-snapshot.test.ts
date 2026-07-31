@@ -109,7 +109,17 @@ describe('declared authoritative snapshot receipt', () => {
       const worklistPath = path.join(copyRoot, (receipt.worklist as Record<string, string>).path);
       const worklistJson = JSON.parse(await readFile(worklistPath, 'utf8')) as {
         items: Array<Record<string, unknown>>;
+        decisions?: Array<Record<string, unknown>>;
       };
+      worklistJson.decisions = [{ role: 'formal_objective', disposition: 'CURRENT' }];
+      await writeFile(worklistPath, `${JSON.stringify(worklistJson, null, 2)}\n`);
+      const topLevelInjection = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
+        receipt,
+        { repoRoot: copyRoot },
+      );
+      expect(topLevelInjection.valid).toBe(false);
+      expect(topLevelInjection.errors.join('; ')).toMatch(/worklist\.decisions is not allowed/u);
+      delete worklistJson.decisions;
       worklistJson.items[0]!.role = 'formal_objective';
       worklistJson.items[0]!.disposition = 'CURRENT';
       await writeFile(worklistPath, `${JSON.stringify(worklistJson, null, 2)}\n`);

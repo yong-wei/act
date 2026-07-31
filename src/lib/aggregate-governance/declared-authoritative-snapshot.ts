@@ -868,6 +868,29 @@ export async function validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
   if (worklistPath && worklist) {
     const worklistJson = await readMaterializedJson(worklistPath, 'worklist', errors);
     if (worklistJson) {
+      materializedExactKeys(
+        worklistJson,
+        [
+          'schemaVersion',
+          'generatorVersion',
+          'deltaReceiptId',
+          'authoringRevision',
+          'releaseSetId',
+          'releaseId',
+          'releaseHash',
+          'sourceDatasetHash',
+          'membershipCount',
+          'inputDigest',
+          'items',
+        ],
+        'worklist',
+        errors,
+      );
+      try {
+        assertNoFinalSemanticOutcomes(worklistJson, 'coverage worklist');
+      } catch (error) {
+        errors.push(error instanceof Error ? error.message : 'worklist embeds final semantic outcomes');
+      }
       const typed = worklistJson as unknown as CoverageWorklistDocument;
       const items = Array.isArray(worklistJson.items) ? worklistJson.items : [];
       materializedEqual(worklistJson.schemaVersion, 'course-coverage-worklist/v1', 'worklist.schemaVersion', errors);
