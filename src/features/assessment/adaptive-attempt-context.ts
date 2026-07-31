@@ -102,17 +102,17 @@ function parseQuestionSnapshot(value: unknown): AdaptiveAttemptQuestionSnapshot 
     return null;
   }
 
-  const remediationResources = Array.isArray(snapshot.remediationResources)
-    ? snapshot.remediationResources.flatMap((value) => {
-        const resource = record(value);
-        const id = string(resource?.id);
-        const title = string(resource?.title);
-        const href = string(resource?.href);
-        return id && title && href && resource?.governanceState === 'reviewed'
-          ? [{ id, title, href, governanceState: 'reviewed' as const }]
-          : [];
-      })
-    : [];
+  if (!Array.isArray(snapshot.remediationResources)) return null;
+  const remediationResources = snapshot.remediationResources.flatMap((value) => {
+    const resource = record(value);
+    const id = string(resource?.id);
+    const title = string(resource?.title);
+    const href = string(resource?.href);
+    return id && title && href && resource?.governanceState === 'reviewed'
+      ? [{ id, title, href, governanceState: 'reviewed' as const }]
+      : [];
+  });
+  if (remediationResources.length !== snapshot.remediationResources.length) return null;
 
   return {
     version: 'adaptive-question-snapshot.v1',

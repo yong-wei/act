@@ -150,6 +150,35 @@ describe('readAdaptiveAttemptContext', () => {
     })).resolves.toBeNull();
   });
 
+  it.each([
+    ['missing', { ...questionSnapshot, remediationResources: undefined }],
+    ['not an array', { ...questionSnapshot, remediationResources: 'resource-1' }],
+    ['containing a damaged entry', {
+      ...questionSnapshot,
+      remediationResources: [{ id: 'resource-1', title: '', href: '/knowledge/resource-1', governanceState: 'reviewed' }],
+    }],
+  ])('fails closed when a recent attempt has %s remediation resources', async (_label, damagedSnapshot) => {
+    const current = answer();
+    const db = {
+      adaptiveAssessmentAnswer: {
+        findFirst: vi.fn().mockResolvedValue(current),
+        findMany: vi.fn().mockResolvedValue([
+          current,
+          answer({
+            id: 'answer-damaged-remediation',
+            questionRef: { knowledgeTags: [], metadata: { questionSnapshot: damagedSnapshot } },
+          }),
+        ]),
+      },
+    };
+
+    await expect(readAdaptiveAttemptContext({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: 'answer-current',
+    })).resolves.toBeNull();
+  });
+
   it('fails closed if a recent row escapes the authenticated session scope', async () => {
     const current = answer();
     const db = {

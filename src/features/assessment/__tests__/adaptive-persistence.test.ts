@@ -858,20 +858,20 @@ describe('submitAnswerDurably', () => {
         ],
       },
     });
-    const resourceMetadataSpy = vi.spyOn(resourceRegistryMetadata, 'getRegisteredResourceMetadata').mockImplementation((id) => {
-      if (id === 'valid-remediation') {
+    const resourceMetadataSpy = vi.spyOn(resourceRegistryMetadata, 'getRegisteredResourceMetadataByNodeId').mockImplementation((id) => {
+      if (id === 'registry:valid-remediation') {
         return {
-          id,
+          id: 'valid-remediation',
           label: 'Canonical remediation title',
           renderTarget: '/interactive-learning/resources/canonical-remediation',
-        } as ReturnType<typeof resourceRegistryMetadata.getRegisteredResourceMetadata>;
+        } as ReturnType<typeof resourceRegistryMetadata.getRegisteredResourceMetadataByNodeId>;
       }
-      if (id === 'missing-render-target') {
+      if (id === 'registry:missing-render-target') {
         return {
-          id,
+          id: 'missing-render-target',
           label: 'Resource without target',
           renderTarget: null,
-        } as ReturnType<typeof resourceRegistryMetadata.getRegisteredResourceMetadata>;
+        } as ReturnType<typeof resourceRegistryMetadata.getRegisteredResourceMetadataByNodeId>;
       }
       return undefined;
     });

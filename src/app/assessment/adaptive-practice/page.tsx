@@ -356,7 +356,6 @@ const DEMO_SCENES: Record<DemoScene, {
     feedback: {
       isCorrect: true,
       correctOption: 'A',
-      durableAnswerId: 'demo-adaptive-answer-generated-live',
       explanation: '本题强调“约束优先 + 跨域因果”的设计流程，先保稳定再优化舒适度。',
       estimatedAbility: 0.96,
       recommendedFocus: ['围绕 comfort-constraint 继续练习跨域题目', '增加参数摄动场景下的决策练习'],
@@ -2794,7 +2793,6 @@ export default function AdaptivePracticePage() {
       setFeedback({
         isCorrect,
         correctOption,
-        durableAnswerId: 'demo-adaptive-answer-generated-live',
         explanation: isCorrect
           ? '回答正确：已建立“约束优先 + 跨域映射”的解题顺序。'
           : '回答错误：请优先识别约束，再进行域间因果映射。',

@@ -15,7 +15,7 @@ describe('adaptive practice page entry states', () => {
 
     expect(source).toContain('请控灵解析本题');
     expect(source).toContain("mode: 'diagnosis-explainer'");
-    expect(source).toContain("durableAnswerId: 'demo-adaptive-answer-generated-live'");
+    expect(source).not.toContain("durableAnswerId: 'demo-adaptive-answer-generated-live'");
     expect(source).toContain('serverContext: { answerId: feedback.durableAnswerId }');
     expect(source).toContain("promptContext: 'adaptive-attempt'");
     expect(source).toContain("await startAssistantConversation(entryPoint, '请解析本题')");

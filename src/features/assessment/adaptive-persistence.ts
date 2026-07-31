@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
-import { getRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { getRegisteredResourceMetadataByNodeId } from '@/lib/resource-registry-metadata';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
@@ -268,8 +268,8 @@ function buildAdaptiveQuestionSnapshot(
   const correctOption = details.question.options.find((option) => option.isCorrect);
   const remediationResources = catalogSnapshot?.reviewDecision.outcome === 'approved'
     ? catalogSnapshot.reviewDecision.remediationRefs.flatMap((id) => {
-        const resource = getRegisteredResourceMetadata(id.replace(/^registry:/, ''));
-        const href = resource?.renderTarget;
+        const resource = getRegisteredResourceMetadataByNodeId(id);
+        const href = resource?.launchTarget ?? resource?.renderTarget;
         return resource && href
           ? [{
               id,
