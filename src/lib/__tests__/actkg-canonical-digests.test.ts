@@ -86,6 +86,35 @@ describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
     }
   });
 
+  it('matches the authoritative M1I profile reconstruction and rejects a prior policy', () => {
+    const projection: JsonObject = {
+      projection_profile: 'ctr:profile:control-theory-engineering-v0.7:act-v2',
+      source_release: 'ctr:release:control-theory-engineering-v0.7',
+      source_release_hash: 'e46f854d7a05fd4ec840c5eaff69288e7ce34cb2119da501913cbf457ce91f8e',
+      source_dataset_hash: '21e957c750c29efaae3b7ec5d70f8155cc33221dae5faec24f3fda1d59c4f31c',
+      nodes: [{ id: 'ctc:test' }],
+      links: [],
+      hidden_entities: [],
+    };
+
+    expect(
+      computeProjectionVersionDigest(
+        projection,
+        null,
+        'runtime',
+        'm1i-v1e-release-tier-preserving',
+      ),
+    ).toBe('1b7df5ec9857489ed955695c82cddf209199c8441cc9e48a5ff0e11c1b19c7ed');
+    expect(
+      computeProjectionVersionDigest(
+        projection,
+        null,
+        'runtime',
+        'm1g-v1e-release-tier-preserving',
+      ),
+    ).not.toBe('1b7df5ec9857489ed955695c82cddf209199c8441cc9e48a5ff0e11c1b19c7ed');
+  });
+
   it('changes projection version_digest when nodes, links, or hidden_entities change', async () => {
     const projection = JSON.parse(
       await readFile(
