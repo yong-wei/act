@@ -54,10 +54,12 @@ import {
 import { SimulationTaskInputDriftError } from '@/lib/data-governance/simulation-task-portrait-projection';
 import { scheduleSimulationTaskCatalogRefresh } from '@/lib/data-governance/simulation-task-reconciliation';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
+import { scanAllStudentRisks, type RiskScannerDb } from '@/lib/risk-scanner';
 import type {
   ClassSnapshotJob,
   EventIngestionJob,
   EvidenceFeatureCacheJob,
+  RiskFlagScanJob,
   SessionReportJob,
   StudentSnapshotJob,
 } from './types';
@@ -100,11 +102,13 @@ let studentQueue: Queue<StudentSnapshotJob> | null = null;
 let classQueue: Queue<ClassSnapshotJob> | null = null;
 let reportQueue: Queue<SessionReportJob> | null = null;
 let evidenceFeatureCacheQueue: Queue<EvidenceFeatureCacheJob> | null = null;
+let riskFlagQueue: Queue<RiskFlagScanJob> | null = null;
 let eventIngestionWorker: Worker<EventIngestionJob> | null = null;
 let studentSnapshotWorker: Worker<StudentSnapshotJob> | null = null;
 let classSnapshotWorker: Worker<ClassSnapshotJob> | null = null;
 let sessionReportWorker: Worker<SessionReportJob> | null = null;
 let evidenceFeatureCacheWorker: Worker<EvidenceFeatureCacheJob> | null = null;
+let riskFlagWorker: Worker<RiskFlagScanJob> | null = null;
 let mathDocumentGradingController: Awaited<ReturnType<typeof createMathDocumentGradingWorker>> | null = null;
 let teacherAssignmentReviewController: ReturnType<typeof createTeacherAssignmentReviewOutboxWorker> | null = null;
 let isShuttingDown = false;
@@ -968,6 +972,40 @@ async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>)
   return { userId: job.data.userId, refreshed: true };
 }
 
+export async function processRiskFlagScanJob(job: Job<RiskFlagScanJob>) {
+  if (!job.data.coordinator) {
+    throw new Error('risk-flag-scan job must be a coordinator job');
+  }
+
+  const results = await scanAllStudentRisks({
+    db: getPrismaClient() as unknown as RiskScannerDb,
+    pageSize: job.data.pageSize,
+    maxStudents: job.data.maxStudents,
+  });
+  const totals = results.reduce(
+    (summary, result) => ({
+      created: summary.created + result.flagsCreated,
+      updated: summary.updated + result.flagsUpdated,
+      resolved: summary.resolved + result.flagsResolved,
+      unchanged: summary.unchanged + result.unchanged,
+      failures: summary.failures + result.failures,
+    }),
+    { created: 0, updated: 0, resolved: 0, unchanged: 0, failures: 0 },
+  );
+  logWithThrottle(
+    'risk-flag-scan:coordinator',
+    'info',
+    `[RiskFlagScan] Processed ${results.length} students: `
+      + `${totals.created} created, ${totals.updated} updated, `
+      + `${totals.resolved} resolved, ${totals.unchanged} unchanged, `
+      + `${totals.failures} failed rules`,
+  );
+  return {
+    processedStudents: results.length,
+    ...totals,
+  };
+}
+
 async function startWorkers() {
   await respectCooldown();
 
@@ -1019,6 +1057,7 @@ async function startWorkers() {
   classQueue = new Queue<ClassSnapshotJob>('snapshot-class', { connection: redis });
   reportQueue = new Queue<SessionReportJob>('session-report', { connection: redis });
   evidenceFeatureCacheQueue = new Queue<EvidenceFeatureCacheJob>('evidence-feature-cache', { connection: redis });
+  riskFlagQueue = new Queue<RiskFlagScanJob>('risk-flag-scan', { connection: redis });
 
   eventIngestionWorker = new Worker<EventIngestionJob>('event-ingestion', processEventIngestionJob, {
     connection: redis,
@@ -1040,12 +1079,17 @@ async function startWorkers() {
     connection: redis,
     concurrency: 1,
   });
+  riskFlagWorker = new Worker<RiskFlagScanJob>('risk-flag-scan', processRiskFlagScanJob, {
+    connection: redis,
+    concurrency: 1,
+  });
 
   registerWorkerHandlers('EventIngestion', eventIngestionWorker);
   registerWorkerHandlers('StudentSnapshot', studentSnapshotWorker);
   registerWorkerHandlers('ClassSnapshot', classSnapshotWorker);
   registerWorkerHandlers('SessionReport', sessionReportWorker);
   registerWorkerHandlers('EvidenceFeatureCache', evidenceFeatureCacheWorker);
+  registerWorkerHandlers('RiskFlagScan', riskFlagWorker);
 
   process.on('SIGTERM', () => {
     void shutdown(0);
@@ -1087,6 +1131,7 @@ async function shutdown(exitCode: number) {
   if (classSnapshotWorker) cleanupTasks.push(classSnapshotWorker.close());
   if (sessionReportWorker) cleanupTasks.push(sessionReportWorker.close());
   if (evidenceFeatureCacheWorker) cleanupTasks.push(evidenceFeatureCacheWorker.close());
+  if (riskFlagWorker) cleanupTasks.push(riskFlagWorker.close());
   if (mathDocumentGradingController) cleanupTasks.push(mathDocumentGradingController.close());
   if (teacherAssignmentReviewController) cleanupTasks.push(teacherAssignmentReviewController.close());
   cleanupTasks.push(closeCoursewareGenerationWorker());
@@ -1095,6 +1140,7 @@ async function shutdown(exitCode: number) {
   if (classQueue) cleanupTasks.push(classQueue.close());
   if (reportQueue) cleanupTasks.push(reportQueue.close());
   if (evidenceFeatureCacheQueue) cleanupTasks.push(evidenceFeatureCacheQueue.close());
+  if (riskFlagQueue) cleanupTasks.push(riskFlagQueue.close());
   if (prisma) cleanupTasks.push(prisma.$disconnect());
   if (redis) {
     cleanupTasks.push(
