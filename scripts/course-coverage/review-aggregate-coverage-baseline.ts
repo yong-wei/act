@@ -20,6 +20,7 @@ import path from 'node:path';
 import {
   assembleCoverageFromReview,
   assertLatestAggregateAuthority,
+  assertLatestAggregateProjectionIdentity,
   boundExcerpt,
   contentSha256,
   finalizeCoverageWorklist,
@@ -646,6 +647,14 @@ async function loadDynamicDatabaseAuthority(
       const bundleReceipt = await tx.actkgBundleReceipt.findUnique({
         where: { bundleDigest: lock.bundleDigest },
       });
+      const projectionIdentity = await tx.actkgProjectionIdentity.findUnique({
+        where: {
+          releaseId_projectionId: {
+            releaseId: lock.releaseId,
+            projectionId: lock.projectionId,
+          },
+        },
+      });
       const delta = await tx.actkgReleaseSetDeltaReceipt.findUnique({
         where: { id: deltaReceiptId },
       });
@@ -654,7 +663,24 @@ async function loadDynamicDatabaseAuthority(
       const releaseRow = requireDatabaseRow(release, 'Release');
       const importRow = requireDatabaseRow(importReceipt, 'ImportReceipt');
       const bundleRow = requireDatabaseRow(bundleReceipt, 'BundleReceipt');
+      const projectionIdentityRow = requireDatabaseRow(
+        projectionIdentity,
+        'ProjectionIdentity',
+      );
       const deltaRow = requireDatabaseRow(delta, 'Delta receipt');
+
+      assertLatestAggregateProjectionIdentity(
+        {
+          releaseId: projectionIdentityRow.releaseId,
+          projectionId: projectionIdentityRow.projectionId,
+          versionDigest: projectionIdentityRow.versionDigest,
+          sourceRelease: projectionIdentityRow.sourceRelease,
+          sourceReleaseHash: projectionIdentityRow.sourceReleaseHash,
+          sourceDatasetHash: projectionIdentityRow.sourceDatasetHash,
+        },
+        lock,
+        bundleRow,
+      );
 
       assertLatestAggregateAuthority({
         lock,
@@ -674,6 +700,8 @@ async function loadDynamicDatabaseAuthority(
           sourceDatasetHash: releaseRow.sourceDatasetHash,
           captureRevision: releaseRow.captureRevision,
           lockRawHash: releaseRow.lockRawHash,
+          projectionId: releaseRow.projectionId,
+          projectionDigest: releaseRow.projectionDigest,
         },
         importReceipt: {
           id: importRow.id,
@@ -684,12 +712,16 @@ async function loadDynamicDatabaseAuthority(
           lockRawHash: importRow.lockRawHash,
           bundleId: importRow.bundleId,
           bundleDigest: importRow.bundleDigest,
+          projectionId: importRow.projectionId,
+          projectionDigest: importRow.projectionDigest,
         },
         bundleReceipt: {
           id: bundleRow.id,
           bundleId: bundleRow.bundleId,
           bundleRevision: bundleRow.bundleRevision,
           bundleDigest: bundleRow.bundleDigest,
+          runtimeProjectionId: bundleRow.runtimeProjectionId,
+          runtimeProjectionDigest: bundleRow.runtimeProjectionDigest,
           candidateState: bundleRow.candidateState,
           releaseSetId: bundleRow.releaseSetId,
           releaseId: bundleRow.releaseId,
@@ -833,6 +865,8 @@ async function resolveDynamicInputConfig(
       bundleId: validated.bundleIdentity.bundleId,
       bundleRevision: validated.bundleIdentity.bundleRevision,
       bundleDigest: validated.bundleIdentity.bundleDigest,
+      projectionId: validated.selectedRuntimeProjection.identity.projectionId,
+      projectionDigest: validated.selectedRuntimeProjection.identity.versionDigest,
     },
     deltaReceiptId,
     authoringRevision,

@@ -20,6 +20,9 @@ export interface LatestAggregateLockIdentity {
   bundleId: string;
   bundleRevision: number;
   bundleDigest: string;
+  /** Runtime Projection identity selected by the formal public Bundle loader. */
+  projectionId: string;
+  projectionDigest: string;
 }
 
 export interface LatestAggregateReleaseSetEvidence {
@@ -37,6 +40,8 @@ export interface LatestAggregateReleaseEvidence {
   sourceDatasetHash: string | null;
   captureRevision: string;
   lockRawHash: string;
+  projectionId: string | null;
+  projectionDigest: string | null;
 }
 
 export interface LatestAggregateImportEvidence {
@@ -48,6 +53,8 @@ export interface LatestAggregateImportEvidence {
   lockRawHash: string;
   bundleId: string | null;
   bundleDigest: string | null;
+  projectionId: string | null;
+  projectionDigest: string | null;
 }
 
 export interface LatestAggregateBundleEvidence {
@@ -55,6 +62,8 @@ export interface LatestAggregateBundleEvidence {
   bundleId: string;
   bundleRevision: number;
   bundleDigest: string;
+  runtimeProjectionId: string;
+  runtimeProjectionDigest: string;
   candidateState: string;
   releaseSetId: string;
   releaseId: string;
@@ -65,6 +74,15 @@ export interface LatestAggregateBundleEvidence {
   lockPath: string;
   lockRawSha256: string;
   captureRevision: string;
+}
+
+export interface LatestAggregateProjectionIdentityEvidence {
+  releaseId: string;
+  projectionId: string;
+  versionDigest: string;
+  sourceRelease: string;
+  sourceReleaseHash: string;
+  sourceDatasetHash: string;
 }
 
 export interface LatestAggregateDeltaEvidence {
@@ -111,6 +129,36 @@ function requiredAccepted(field: string, value: string, expected: string): void 
 }
 
 /**
+ * Assert the runtime Projection identity persisted by Bundle import is bound
+ * to the selected lock and its release identity. Projection identities are
+ * release semantics and intentionally are not owned by a packaging receipt.
+ */
+export function assertLatestAggregateProjectionIdentity(
+  identity: LatestAggregateProjectionIdentityEvidence,
+  lock: LatestAggregateLockIdentity,
+  bundleReceipt: Pick<
+    LatestAggregateBundleEvidence,
+    | 'releaseId'
+    | 'releaseHash'
+    | 'sourceDatasetHash'
+    | 'runtimeProjectionId'
+    | 'runtimeProjectionDigest'
+  >,
+): void {
+  equal('ProjectionIdentity.releaseId', identity.releaseId, lock.releaseId);
+  equal('ProjectionIdentity.projectionId', identity.projectionId, lock.projectionId);
+  equal('ProjectionIdentity.projectionId', identity.projectionId, bundleReceipt.runtimeProjectionId);
+  equal('ProjectionIdentity.versionDigest', identity.versionDigest, lock.projectionDigest);
+  equal('ProjectionIdentity.versionDigest', identity.versionDigest, bundleReceipt.runtimeProjectionDigest);
+  equal('ProjectionIdentity.sourceReleaseId', identity.sourceRelease, lock.releaseId);
+  equal('ProjectionIdentity.sourceReleaseId', identity.sourceRelease, bundleReceipt.releaseId);
+  equal('ProjectionIdentity.sourceReleaseHash', identity.sourceReleaseHash, lock.releaseHash);
+  equal('ProjectionIdentity.sourceReleaseHash', identity.sourceReleaseHash, bundleReceipt.releaseHash);
+  equal('ProjectionIdentity.sourceDatasetHash', identity.sourceDatasetHash, lock.sourceDatasetHash);
+  equal('ProjectionIdentity.sourceDatasetHash', identity.sourceDatasetHash, bundleReceipt.sourceDatasetHash);
+}
+
+/**
  * Assert one immutable ReleaseSet/Bundle/Delta identity closure.
  *
  * This function does not accept a caller-provided JSON document as authority:
@@ -132,6 +180,8 @@ export function assertLatestAggregateAuthority(
   equal('Release.releaseVersion', release.releaseVersion, lock.releaseVersion);
   equal('Release.releaseHash', release.releaseHash, lock.releaseHash);
   equal('Release.sourceDatasetHash', release.sourceDatasetHash, lock.sourceDatasetHash);
+  equal('Release.projectionId', release.projectionId, lock.projectionId);
+  equal('Release.projectionDigest', release.projectionDigest, lock.projectionDigest);
   equal('Release.captureRevision', release.captureRevision, input.expectedCaptureRevision);
   equal('Release.lockRawHash', release.lockRawHash, lock.lockRawSha256);
 
@@ -140,10 +190,14 @@ export function assertLatestAggregateAuthority(
   requiredAccepted('ImportReceipt.candidateState', importReceipt.candidateState, 'ACCEPTED_CANDIDATE');
   equal('ImportReceipt.captureRevision', importReceipt.captureRevision, input.expectedCaptureRevision);
   equal('ImportReceipt.lockRawHash', importReceipt.lockRawHash, lock.lockRawSha256);
+  equal('ImportReceipt.projectionId', importReceipt.projectionId, lock.projectionId);
+  equal('ImportReceipt.projectionDigest', importReceipt.projectionDigest, lock.projectionDigest);
 
   equal('BundleReceipt.bundleId', bundleReceipt.bundleId, lock.bundleId);
   equal('BundleReceipt.bundleRevision', bundleReceipt.bundleRevision, lock.bundleRevision);
   equal('BundleReceipt.bundleDigest', bundleReceipt.bundleDigest, lock.bundleDigest);
+  equal('BundleReceipt.runtimeProjectionId', bundleReceipt.runtimeProjectionId, lock.projectionId);
+  equal('BundleReceipt.runtimeProjectionDigest', bundleReceipt.runtimeProjectionDigest, lock.projectionDigest);
   requiredAccepted('BundleReceipt.candidateState', bundleReceipt.candidateState, 'ACCEPTED_CANDIDATE');
   equal('BundleReceipt.releaseSetId', bundleReceipt.releaseSetId, lock.releaseSetId);
   equal('BundleReceipt.releaseId', bundleReceipt.releaseId, lock.releaseId);

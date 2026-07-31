@@ -1,4 +1,6 @@
-import { readFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -6,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import {
   assertDeclaredAuthoritativeSnapshotReceipt,
   computeDeclaredAuthoritativeSnapshotReceiptDigest,
+  validateMaterializedDeclaredAuthoritativeSnapshotReceipt,
   validateDeclaredAuthoritativeSnapshotReceipt,
 } from '../aggregate-governance/declared-authoritative-snapshot';
 
@@ -41,5 +44,65 @@ describe('declared authoritative snapshot receipt', () => {
     const result = validateDeclaredAuthoritativeSnapshotReceipt(receipt);
     expect(result.valid).toBe(false);
     expect(() => assertDeclaredAuthoritativeSnapshotReceipt(receipt)).toThrow(/rejected/u);
+  });
+
+  it('binds referenced bytes in a copied repository and rejects projection tampering', async () => {
+    const receipt = await fixture();
+    const sourceRoot = process.cwd();
+    const copyRoot = await mkdtemp(path.join(tmpdir(), 'declared-snapshot-'));
+    const bundleRoot = 'course-content/authoring/knowledge/issue-1117-v08-r3-chain/releases/control-theory-engineering-v0.8';
+    const manifest = JSON.parse(
+      await readFile(path.join(sourceRoot, bundleRoot, 'bundle-manifest.json'), 'utf8'),
+    ) as { artifacts: Array<{ path: string; required: boolean }> };
+    const requiredArtifacts = manifest.artifacts
+      .filter((artifact) => artifact.required)
+      .map((artifact) => path.posix.join(bundleRoot, artifact.path));
+    const relativeFiles = [
+      'course-content/authoring/knowledge/issue-1117-v08-r3-chain/metadata/declared-authoritative-snapshot-receipt.json',
+      (receipt.lock as Record<string, string>).path,
+      (receipt.projection as Record<string, string>).path,
+      (receipt.worklist as Record<string, string>).path,
+      path.posix.join(bundleRoot, 'bundle-manifest.json'),
+      ...requiredArtifacts,
+    ];
+    try {
+      for (const relative of relativeFiles) {
+        const target = path.join(copyRoot, relative);
+        await mkdir(path.dirname(target), { recursive: true });
+        await cp(path.join(sourceRoot, relative), target);
+      }
+
+      const valid = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
+        receipt,
+        { repoRoot: copyRoot },
+      );
+      expect(valid.valid).toBe(true);
+      expect(valid.checkedPaths).toContain((receipt.projection as Record<string, string>).path);
+
+      const missingArtifact = path.join(copyRoot, bundleRoot, 'component-releases.json');
+      await rm(missingArtifact);
+      const missingRequired = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
+        receipt,
+        { repoRoot: copyRoot },
+      );
+      expect(missingRequired.valid).toBe(false);
+      expect(missingRequired.errors.join('; ')).toMatch(/component_manifest/u);
+      await cp(path.join(sourceRoot, bundleRoot, 'component-releases.json'), missingArtifact);
+
+      const projectionPath = path.join(copyRoot, (receipt.projection as Record<string, string>).path);
+      const projectionBytes = await readFile(projectionPath);
+      await writeFile(projectionPath, Buffer.concat([projectionBytes, Buffer.from(' ')]));
+      const unchangedReceipt = JSON.parse(
+        await readFile(path.join(copyRoot, relativeFiles[0]!), 'utf8'),
+      ) as Record<string, unknown>;
+      const rejected = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
+        unchangedReceipt,
+        { repoRoot: copyRoot },
+      );
+      expect(rejected.valid).toBe(false);
+      expect(rejected.errors.join('; ')).toMatch(/projection\.sha256/u);
+    } finally {
+      await rm(copyRoot, { recursive: true, force: true });
+    }
   });
 });

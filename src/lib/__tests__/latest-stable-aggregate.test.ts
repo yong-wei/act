@@ -13,6 +13,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { canonicalJson } from '../../../scripts/actkg-release/authoritative-release';
+import { CTKG_SCHEMA_RAW_SHA256 } from '../../../scripts/actkg-release/bundle-compatibility-registry';
 import {
   resolveLatestStableAggregate,
   resolveLatestStableAggregateWithCandidates,
@@ -89,6 +90,7 @@ async function writeBundle(input: {
   previousHashOverride?: string;
   publicationTag?: string;
   releaseHashOverride?: string;
+  bundleDigestOverride?: string;
 }): Promise<string> {
   const bundleDir = path.join(input.root, 'releases', input.name);
   await mkdir(bundleDir, { recursive: true });
@@ -96,9 +98,9 @@ async function writeBundle(input: {
   const releaseId = input.releaseId ?? `ctr:release:${releaseVersion}`;
   const report = JSON.stringify({ result: 'PASS' });
   await writeFile(path.join(bundleDir, 'validation-report.json'), report);
-  const manifest = {
+  const manifest: Record<string, unknown> = {
     bundle_contract_version: 'actkg-public-bundle/1',
-    bundle_digest: sha256(`bundle:${input.bundleId}:${input.revision ?? 1}`),
+    bundle_digest: '',
     bundle_id: input.bundleId,
     bundle_kind: 'aggregate',
     bundle_revision: input.revision ?? 1,
@@ -118,10 +120,14 @@ async function writeBundle(input: {
       source_dataset_hash: sha256(`source:${releaseId}`),
     },
     release_stage: 'stable',
-    schema: { sha256: sha256('schema'), version: '0.2.0' },
+    schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
     source_revision: { commit: input.sourceCommit, tag: 'source-v2' },
     statistics: { knowledge_nodes: 1 },
   };
+  const digestBody = { ...manifest };
+  delete digestBody.bundle_digest;
+  manifest.bundle_digest = input.bundleDigestOverride
+    ?? sha256(canonicalJson(digestBody));
   await writeFile(
     path.join(bundleDir, 'bundle-manifest.json'),
     JSON.stringify(manifest),
@@ -538,5 +544,38 @@ describe('resolveLatestStableAggregate', () => {
     await expect(
       resolveLatestStableAggregate({ actkgRoot: root, mainRef: 'main' }),
     ).rejects.toThrow('is missing releases/control-theory-engineering-v0.3-r2/bundle-manifest.json');
+  });
+
+  it('rejects self-consistent SHA256SUMS when bundle_digest is not recomputable', async () => {
+    const { root, sourceCommit } = await initRepo();
+    await writeValidChain(root, sourceCommit);
+    const bundleDir = path.join(root, 'releases/control-theory-engineering-v0.3-r2');
+    const manifestPath = path.join(bundleDir, 'bundle-manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
+    manifest.bundle_digest = 'f'.repeat(64);
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    await rewriteBundleSums(bundleDir);
+
+    await expect(
+      resolveLatestStableAggregate({ actkgRoot: root, mainRef: 'main' }),
+    ).rejects.toThrow('bundle_digest mismatch');
+  });
+
+  it('rejects a self-consistent package with an unregistered Bundle contract', async () => {
+    const { root, sourceCommit } = await initRepo();
+    await writeValidChain(root, sourceCommit);
+    const bundleDir = path.join(root, 'releases/control-theory-engineering-v0.3-r2');
+    const manifestPath = path.join(bundleDir, 'bundle-manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
+    manifest.bundle_contract_version = 'actkg-public-bundle/999';
+    const digestBody = { ...manifest };
+    delete digestBody.bundle_digest;
+    manifest.bundle_digest = sha256(canonicalJson(digestBody));
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    await rewriteBundleSums(bundleDir);
+
+    await expect(
+      resolveLatestStableAggregate({ actkgRoot: root, mainRef: 'main' }),
+    ).rejects.toThrow('unregistered bundle contract');
   });
 });

@@ -7,6 +7,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { canonicalJson } from '../../../scripts/actkg-release/authoritative-release';
+import { CTKG_SCHEMA_RAW_SHA256 } from '../../../scripts/actkg-release/bundle-compatibility-registry';
 import { prepareLatestActkgIntake } from '../../../scripts/knowledge-cutover/prepare-latest-actkg-intake';
 import { resolveLatestStableAggregate } from '../../../scripts/actkg-release/latest-stable-aggregate';
 
@@ -41,9 +42,9 @@ async function fixtureRepo(): Promise<string> {
   const bundleDir = path.join(root, 'releases', 'control-theory-engineering-v0.3-r2');
   await mkdir(bundleDir, { recursive: true });
   await writeFile(path.join(bundleDir, 'validation-report.json'), '{"result":"PASS"}\n');
-  const manifest = {
+  const manifest: Record<string, unknown> = {
     bundle_contract_version: 'actkg-public-bundle/1',
-    bundle_digest: sha256('bundle'),
+    bundle_digest: '',
     bundle_id: 'ctb:control-theory-engineering-v0.3:r2',
     bundle_kind: 'aggregate',
     bundle_revision: 2,
@@ -60,11 +61,14 @@ async function fixtureRepo(): Promise<string> {
       source_dataset_hash: sha256('source-dataset'),
     },
     release_stage: 'stable',
-    schema: { sha256: sha256('schema'), version: '0.2.0' },
+    schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
     source_revision: { commit: sourceCommit, tag: 'source-v1' },
     statistics: { knowledge_nodes: 0 },
     components: [],
   };
+  const digestBody = { ...manifest };
+  delete digestBody.bundle_digest;
+  manifest.bundle_digest = sha256(canonicalJson(digestBody));
   await writeFile(
     path.join(bundleDir, 'bundle-manifest.json'),
     `${JSON.stringify(manifest)}\n`,

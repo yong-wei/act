@@ -4,6 +4,11 @@ import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { canonicalJson } from './authoritative-release';
+import {
+  CTKG_SCHEMA_VERSION,
+  isBundleContractSupported,
+  isSchemaIdentitySupported,
+} from './bundle-compatibility-registry';
 
 const SHA256 = /^[0-9a-f]{64}$/u;
 const COMMIT = /^[0-9a-f]{40}$/u;
@@ -329,6 +334,34 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
     manifestPath,
   );
   if (!manifest) return null;
+
+  // Candidate discovery is also an integrity gate.  A package can have a
+  // perfectly self-consistent SHA256SUMS file while its declared Bundle
+  // contract, Schema identity, or Bundle digest is not one ACT supports.  The
+  // formal public-Bundle loader performs the same checks for the ACT tree; the
+  // resolver runs against an ActKG checkout, so repeat these storage-neutral
+  // checks before freezing a candidate.
+  if (!isBundleContractSupported(manifest.bundle_contract_version)) {
+    fail(`${manifest.bundle_id} uses an unregistered bundle contract ${manifest.bundle_contract_version}`);
+  }
+  if (
+    manifest.schema.version !== CTKG_SCHEMA_VERSION
+    || !isSchemaIdentitySupported(manifest.schema.version, manifest.schema.sha256)
+  ) {
+    fail(
+      `${manifest.bundle_id} uses an unregistered Schema identity `
+      + `${manifest.schema.version}/${manifest.schema.sha256}`,
+    );
+  }
+  const digestBody = structuredClone(manifestRaw);
+  delete digestBody.bundle_digest;
+  const recomputedBundleDigest = sha256(canonicalJson(digestBody));
+  if (manifest.bundle_digest !== recomputedBundleDigest) {
+    fail(
+      `${manifest.bundle_id} bundle_digest mismatch: `
+      + `declared ${manifest.bundle_digest}, recomputed ${recomputedBundleDigest}`,
+    );
+  }
 
   const sumsPath = path.join(bundleDir, 'SHA256SUMS');
   const sumsBytes = await readFile(sumsPath);

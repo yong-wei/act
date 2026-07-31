@@ -1,4 +1,13 @@
 import { createHash } from 'node:crypto';
+import { readFile, realpath, stat } from 'node:fs/promises';
+import path from 'node:path';
+
+import {
+  coverageItemInputDigest,
+  coverageWorklistInputDigest,
+  type CoverageWorklistItem,
+  type CoverageWorklistDocument,
+} from './review-workflow';
 
 export const DECLARED_AUTHORITATIVE_SNAPSHOT_RECEIPT_SCHEMA =
   'declared-authoritative-snapshot-receipt/v1' as const;
@@ -310,6 +319,409 @@ export interface DeclaredSnapshotValidationResult {
   errors: string[];
   receiptDigest: string | null;
 }
+
+export interface DeclaredSnapshotMaterializedValidationOptions {
+  /** Repository root against which every receipt path is resolved. */
+  repoRoot: string;
+  /** Also verify the lock-controlled Bundle manifest, Release, and Schema bytes. */
+  verifyBundleArtifacts?: boolean;
+}
+
+export interface DeclaredSnapshotMaterializedValidationResult
+  extends DeclaredSnapshotValidationResult {
+  checkedPaths: string[];
+}
+
+type MaterializedPathKind = 'file' | 'directory';
+
+function normalizedRepoRelativePath(
+  value: unknown,
+  field: string,
+  errors: string[],
+): string | null {
+  if (typeof value !== 'string' || value.length === 0) {
+    errors.push(`${field} must be a non-empty repository-relative path`);
+    return null;
+  }
+  const raw = value.replaceAll('\\', '/');
+  if (
+    path.posix.isAbsolute(raw)
+    || /^[A-Za-z]:\//u.test(raw)
+    || raw.includes('\u0000')
+  ) {
+    errors.push(`${field} must be repository-relative`);
+    return null;
+  }
+  const normalized = path.posix.normalize(raw);
+  if (normalized === '.' || normalized === '..' || normalized.startsWith('../')) {
+    errors.push(`${field} escapes the repository root`);
+    return null;
+  }
+  return normalized;
+}
+
+function isContainedPath(root: string, target: string): boolean {
+  return target === root || target.startsWith(`${root}${path.sep}`);
+}
+
+async function resolveMaterializedPath(
+  repoRoot: string,
+  value: unknown,
+  field: string,
+  kind: MaterializedPathKind,
+  errors: string[],
+  checkedPaths: string[],
+): Promise<string | null> {
+  const relative = normalizedRepoRelativePath(value, field, errors);
+  if (!relative) return null;
+  const root = await realpath(repoRoot).catch(() => null);
+  if (!root) {
+    errors.push(`repoRoot does not exist: ${repoRoot}`);
+    return null;
+  }
+  const lexical = path.resolve(root, relative);
+  if (!isContainedPath(root, lexical)) {
+    errors.push(`${field} escapes the repository root`);
+    return null;
+  }
+  const resolved = await realpath(lexical).catch(() => null);
+  if (!resolved || !isContainedPath(root, resolved)) {
+    errors.push(`${field} is missing or resolves outside the repository root`);
+    return null;
+  }
+  const metadata = await stat(resolved).catch(() => null);
+  if (!metadata || (kind === 'file' ? !metadata.isFile() : !metadata.isDirectory())) {
+    errors.push(`${field} is not a ${kind}`);
+    return null;
+  }
+  checkedPaths.push(relative);
+  return resolved;
+}
+
+function materializedRecord(value: unknown, field: string, errors: string[]): JsonRecord | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    errors.push(`${field} must be an object`);
+    return null;
+  }
+  return value as JsonRecord;
+}
+
+function materializedEqual(
+  actual: unknown,
+  expected: unknown,
+  field: string,
+  errors: string[],
+): void {
+  if (actual !== expected) errors.push(`${field} must equal ${String(expected)}`);
+}
+
+async function readMaterializedJson(
+  filePath: string,
+  field: string,
+  errors: string[],
+): Promise<JsonRecord | null> {
+  try {
+    const parsed: unknown = JSON.parse((await readFile(filePath)).toString('utf8'));
+    return materializedRecord(parsed, field, errors);
+  } catch {
+    errors.push(`${field} is not readable JSON`);
+    return null;
+  }
+}
+
+async function validateMaterializedBundleArtifacts(input: {
+  repoRoot: string;
+  lock: JsonRecord;
+  receipt: JsonRecord;
+  errors: string[];
+  checkedPaths: string[];
+}): Promise<void> {
+  const bundle = materializedRecord(input.lock.bundle, 'lock.bundle', input.errors);
+  if (!bundle) return;
+  const controlledPath = await resolveMaterializedPath(
+    input.repoRoot,
+    bundle.controlled_path,
+    'lock.bundle.controlled_path',
+    'directory',
+    input.errors,
+    input.checkedPaths,
+  );
+  if (!controlledPath) return;
+  const controlledRelative = normalizedRepoRelativePath(
+    bundle.controlled_path,
+    'lock.bundle.controlled_path',
+    input.errors,
+  );
+  if (!controlledRelative) return;
+  const manifestRelative = path.posix.join(controlledRelative, 'bundle-manifest.json');
+  const manifestPath = await resolveMaterializedPath(
+    input.repoRoot,
+    manifestRelative,
+    'Bundle manifest path',
+    'file',
+    input.errors,
+    input.checkedPaths,
+  );
+  if (!manifestPath) return;
+  const manifestBytes = await readFile(manifestPath);
+  const expectedManifestHash = bundle.manifest_raw_sha256;
+  if (typeof expectedManifestHash === 'string' && createHash('sha256').update(manifestBytes).digest('hex') !== expectedManifestHash) {
+    input.errors.push('Bundle manifest bytes disagree with lock.bundle.manifest_raw_sha256');
+  }
+  const manifest = await readMaterializedJson(manifestPath, 'bundle-manifest.json', input.errors);
+  if (!manifest) return;
+  materializedEqual(manifest.bundle_id, input.receipt.bundle && (input.receipt.bundle as JsonRecord).bundleId, 'Bundle manifest bundle_id', input.errors);
+  materializedEqual(manifest.bundle_revision, (input.receipt.bundle as JsonRecord | undefined)?.bundleRevision, 'Bundle manifest bundle_revision', input.errors);
+  materializedEqual(manifest.bundle_digest, (input.receipt.bundle as JsonRecord | undefined)?.bundleDigest, 'Bundle manifest bundle_digest', input.errors);
+
+  const digestBody = { ...manifest };
+  delete digestBody.bundle_digest;
+  const recomputed = createHash('sha256').update(canonicalJson(digestBody)).digest('hex');
+  materializedEqual(recomputed, manifest.bundle_digest, 'Bundle manifest recomputed bundle_digest', input.errors);
+
+  const schema = materializedRecord(manifest.schema, 'bundle-manifest.schema', input.errors);
+  const lockCompatibility = materializedRecord(input.lock.compatibility, 'lock.compatibility', input.errors);
+  if (schema && lockCompatibility) {
+    materializedEqual(schema.version, lockCompatibility.schema_version, 'Bundle schema.version', input.errors);
+    materializedEqual(schema.sha256, lockCompatibility.schema_sha256, 'Bundle schema.sha256', input.errors);
+  }
+  const artifacts = Array.isArray(manifest.artifacts) ? manifest.artifacts : [];
+  let hasReleaseArtifact = false;
+  let hasSchemaArtifact = false;
+  for (const [index, raw] of artifacts.entries()) {
+    const artifact = materializedRecord(
+      raw,
+      `bundle-manifest.artifacts[${index}]`,
+      input.errors,
+    );
+    if (!artifact || artifact.required !== true) continue;
+    const role = typeof artifact.role === 'string' ? artifact.role : '';
+    const artifactRelative = normalizedRepoRelativePath(
+      artifact.path,
+      `Bundle required artifact ${index} path`,
+      input.errors,
+    );
+    if (!artifactRelative) continue;
+    const relative = path.posix.join(controlledRelative, artifactRelative);
+    const artifactPath = await resolveMaterializedPath(
+      input.repoRoot,
+      relative,
+      `Bundle required artifact ${role || index} path`,
+      'file',
+      input.errors,
+      input.checkedPaths,
+    );
+    if (!artifactPath) continue;
+    if (!isContainedPath(controlledPath, artifactPath)) {
+      input.errors.push(`Bundle required artifact ${role || index} resolves outside lock.bundle.controlled_path`);
+      continue;
+    }
+    const bytes = await readFile(artifactPath);
+    const actualHash = createHash('sha256').update(bytes).digest('hex');
+    materializedEqual(
+      actualHash,
+      artifact.sha256,
+      `Bundle required artifact ${role || index} SHA-256`,
+      input.errors,
+    );
+    materializedEqual(
+      bytes.byteLength,
+      artifact.byte_length,
+      `Bundle required artifact ${role || index} byte_length`,
+      input.errors,
+    );
+    if (role === 'ctkg_schema' && lockCompatibility) {
+      hasSchemaArtifact = true;
+      materializedEqual(actualHash, lockCompatibility.schema_sha256, 'CTKG Schema artifact SHA-256', input.errors);
+    }
+    if (role === 'release') {
+      hasReleaseArtifact = true;
+      const releasePayload = await readMaterializedJson(artifactPath, 'Release Artifact', input.errors);
+      const release = materializedRecord(input.receipt.release, 'receipt.release', input.errors);
+      if (releasePayload && release) {
+        materializedEqual(releasePayload.id, release.releaseId, 'Release Artifact id', input.errors);
+        materializedEqual(releasePayload.release_hash, release.releaseHash, 'Release Artifact release_hash', input.errors);
+        materializedEqual(releasePayload.source_dataset_hash, release.sourceDatasetHash, 'Release Artifact source_dataset_hash', input.errors);
+      }
+    }
+  }
+  if (!hasReleaseArtifact) input.errors.push('Bundle manifest is missing required release Artifact');
+  if (!hasSchemaArtifact) input.errors.push('Bundle manifest is missing required ctkg_schema Artifact');
+}
+
+/**
+ * Validate the receipt and all referenced files in one repository snapshot.
+ * The pure validator above remains the schema/constant validator; this layer
+ * binds its paths to real bytes and rejects traversal or symlink escapes.
+ */
+export async function validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
+  input: unknown,
+  options: DeclaredSnapshotMaterializedValidationOptions,
+): Promise<DeclaredSnapshotMaterializedValidationResult> {
+  const pure = validateDeclaredAuthoritativeSnapshotReceipt(input);
+  const checkedPaths: string[] = [];
+  if (!pure.valid) return { ...pure, checkedPaths };
+  const errors: string[] = [];
+  const receipt = materializedRecord(input, 'receipt', errors);
+  if (!receipt) return { valid: false, errors, receiptDigest: pure.receiptDigest, checkedPaths };
+  const repoRoot = path.resolve(options.repoRoot);
+
+  const lock = materializedRecord(receipt.lock, 'receipt.lock', errors);
+  const projection = materializedRecord(receipt.projection, 'receipt.projection', errors);
+  const worklist = materializedRecord(receipt.worklist, 'receipt.worklist', errors);
+  const lockPath = lock
+    ? await resolveMaterializedPath(repoRoot, lock.path, 'receipt.lock.path', 'file', errors, checkedPaths)
+    : null;
+  const projectionPath = projection
+    ? await resolveMaterializedPath(repoRoot, projection.path, 'receipt.projection.path', 'file', errors, checkedPaths)
+    : null;
+  const worklistPath = worklist
+    ? await resolveMaterializedPath(repoRoot, worklist.path, 'receipt.worklist.path', 'file', errors, checkedPaths)
+    : null;
+
+  let lockJson: JsonRecord | null = null;
+  if (lockPath && lock) {
+    const lockBytes = await readFile(lockPath);
+    materializedEqual(
+      createHash('sha256').update(lockBytes).digest('hex'),
+      lock.rawHash,
+      'lock.rawHash',
+      errors,
+    );
+    lockJson = await readMaterializedJson(lockPath, 'lock', errors);
+  }
+
+  if (lockJson) {
+    const lockRelease = materializedRecord(lockJson.release, 'lock.release', errors);
+    const lockBundle = materializedRecord(lockJson.bundle, 'lock.bundle', errors);
+    const lockCompatibility = materializedRecord(lockJson.compatibility, 'lock.compatibility', errors);
+    materializedEqual(lockJson.lock_version, 'actkg-release-set-lock/v3', 'lock.lock_version', errors);
+    materializedEqual(lockJson.release_set_id, receipt.releaseSetId, 'lock.release_set_id', errors);
+    if (lockRelease) {
+      const release = materializedRecord(receipt.release, 'receipt.release', errors);
+      materializedEqual(lockRelease.release_id, release?.releaseId, 'lock.release.release_id', errors);
+      materializedEqual(lockRelease.release_hash, release?.releaseHash, 'lock.release.release_hash', errors);
+      materializedEqual(lockRelease.source_dataset_hash, release?.sourceDatasetHash, 'lock.release.source_dataset_hash', errors);
+    }
+    if (lockBundle) {
+      materializedEqual(lockBundle.bundle_id, (receipt.bundle as JsonRecord | undefined)?.bundleId, 'lock.bundle.bundle_id', errors);
+      materializedEqual(lockBundle.bundle_revision, (receipt.bundle as JsonRecord | undefined)?.bundleRevision, 'lock.bundle.bundle_revision', errors);
+      materializedEqual(lockBundle.bundle_digest, (receipt.bundle as JsonRecord | undefined)?.bundleDigest, 'lock.bundle.bundle_digest', errors);
+    }
+    if (lockCompatibility) {
+      materializedEqual(lockCompatibility.schema_version, (receipt.schema as JsonRecord | undefined)?.version, 'lock.compatibility.schema_version', errors);
+      materializedEqual(lockCompatibility.schema_sha256, (receipt.schema as JsonRecord | undefined)?.rawSha256, 'lock.compatibility.schema_sha256', errors);
+    }
+  }
+
+  if (projectionPath && projection) {
+    const projectionBytes = await readFile(projectionPath);
+    materializedEqual(
+      createHash('sha256').update(projectionBytes).digest('hex'),
+      projection.sha256,
+      'projection.sha256',
+      errors,
+    );
+    const projectionJson = await readMaterializedJson(projectionPath, 'projection', errors);
+    const release = materializedRecord(receipt.release, 'receipt.release', errors);
+    const schema = materializedRecord(receipt.schema, 'receipt.schema', errors);
+    if (projectionJson) {
+      materializedEqual(projectionJson.schema_version, schema?.version, 'projection.schema_version', errors);
+      materializedEqual(projectionJson.source_release, release?.releaseId, 'projection.source_release', errors);
+      materializedEqual(projectionJson.source_release_hash, release?.releaseHash, 'projection.source_release_hash', errors);
+      materializedEqual(projectionJson.source_dataset_hash, release?.sourceDatasetHash, 'projection.source_dataset_hash', errors);
+    }
+    if (lockJson) {
+      const bundle = materializedRecord(lockJson.bundle, 'lock.bundle', errors);
+      const controlled = normalizedRepoRelativePath(bundle?.controlled_path, 'lock.bundle.controlled_path', errors);
+      const projectionRelative = normalizedRepoRelativePath(projection.path, 'receipt.projection.path', errors);
+      if (controlled && projectionRelative && !projectionRelative.startsWith(`${controlled}/`)) {
+        errors.push('projection.path must remain inside lock.bundle.controlled_path');
+      }
+    }
+  }
+
+  if (worklistPath && worklist) {
+    const worklistJson = await readMaterializedJson(worklistPath, 'worklist', errors);
+    if (worklistJson) {
+      const typed = worklistJson as unknown as CoverageWorklistDocument;
+      const items = Array.isArray(worklistJson.items) ? worklistJson.items : [];
+      materializedEqual(worklistJson.schemaVersion, 'course-coverage-worklist/v1', 'worklist.schemaVersion', errors);
+      materializedEqual(worklistJson.generatorVersion, 'course-coverage-worklist-generator/v1', 'worklist.generatorVersion', errors);
+      materializedEqual(worklistJson.deltaReceiptId, worklist.deltaReceiptId, 'worklist.deltaReceiptId', errors);
+      materializedEqual(worklistJson.authoringRevision, worklist.authoringRevision, 'worklist.authoringRevision', errors);
+      materializedEqual(worklistJson.releaseSetId, receipt.releaseSetId, 'worklist.releaseSetId', errors);
+      materializedEqual(worklistJson.releaseId, (receipt.release as JsonRecord).releaseId, 'worklist.releaseId', errors);
+      materializedEqual(worklistJson.releaseHash, (receipt.release as JsonRecord).releaseHash, 'worklist.releaseHash', errors);
+      materializedEqual(worklistJson.sourceDatasetHash, (receipt.release as JsonRecord).sourceDatasetHash, 'worklist.sourceDatasetHash', errors);
+      materializedEqual(worklistJson.membershipCount, items.length, 'worklist.membershipCount', errors);
+      materializedEqual(worklist.itemCount, items.length, 'worklist.itemCount', errors);
+      const profileOnly = items.filter((item) => {
+        const row = materializedRecord(item, 'worklist.items[]', errors);
+        const candidates = row && Array.isArray(row.evidenceCandidates) ? row.evidenceCandidates : [];
+        return candidates.length > 0 && candidates.every((candidate) => (
+          materializedRecord(candidate, 'worklist.evidenceCandidates[]', errors)?.kind === 'profile'
+        ));
+      }).length;
+      materializedEqual(worklist.profileOnly, profileOnly, 'worklist.profileOnly', errors);
+      try {
+        materializedEqual(
+          coverageWorklistInputDigest(typed),
+          worklist.inputDigest,
+          'worklist.inputDigest',
+          errors,
+        );
+        for (const [index, item] of items.entries()) {
+          const row = materializedRecord(item, `worklist.items[${index}]`, errors);
+          if (!row) continue;
+          const { itemInputDigest, ...withoutDigest } = row;
+          materializedEqual(
+            coverageItemInputDigest(withoutDigest as Omit<CoverageWorklistItem, 'itemInputDigest'>),
+            itemInputDigest,
+            `worklist.items[${index}].itemInputDigest`,
+            errors,
+          );
+        }
+      } catch (error) {
+        errors.push(error instanceof Error ? error.message : 'worklist digest cannot be computed');
+      }
+    }
+  }
+
+  if (lockJson && (options.verifyBundleArtifacts ?? true)) {
+    await validateMaterializedBundleArtifacts({
+      repoRoot,
+      lock: lockJson,
+      receipt,
+      errors,
+      checkedPaths,
+    });
+  }
+  return {
+    valid: errors.length === 0,
+    errors,
+    receiptDigest: pure.receiptDigest,
+    checkedPaths,
+  };
+}
+
+/** Throwing counterpart for callers that require a materialized snapshot. */
+export async function assertMaterializedDeclaredAuthoritativeSnapshotReceipt(
+  input: unknown,
+  options: DeclaredSnapshotMaterializedValidationOptions,
+): Promise<void> {
+  const result = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(input, options);
+  if (!result.valid) {
+    throw new Error(`Materialized declared authoritative snapshot rejected: ${result.errors.join('; ')}`);
+  }
+}
+
+// Explicit aliases for callers that name the on-disk check rather than its
+// materialized contract.
+export const validateDeclaredAuthoritativeSnapshotReceiptOnDisk =
+  validateMaterializedDeclaredAuthoritativeSnapshotReceipt;
+export const assertDeclaredAuthoritativeSnapshotReceiptOnDisk =
+  assertMaterializedDeclaredAuthoritativeSnapshotReceipt;
 
 /**
  * Validate the immutable #1117 candidate snapshot. This is deliberately pure:

@@ -7,6 +7,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { canonicalJson } from '../../../scripts/actkg-release/authoritative-release';
+import { CTKG_SCHEMA_RAW_SHA256 } from '../../../scripts/actkg-release/bundle-compatibility-registry';
 import {
   resolveLatestStableAggregate,
 } from '../../../scripts/actkg-release/latest-stable-aggregate';
@@ -52,7 +53,7 @@ async function fixtureActkg(): Promise<string> {
   await mkdir(sharedDir, { recursive: true });
   const sharedManifest = {
     bundle_contract_version: 'actkg-public-bundle/1',
-    bundle_digest: sha256('shared-bundle'),
+    bundle_digest: '',
     bundle_id: 'ctb:shared-component-v0.1:r1',
     bundle_kind: 'module',
     bundle_revision: 1,
@@ -64,9 +65,12 @@ async function fixtureActkg(): Promise<string> {
       source_dataset_hash: sha256('shared-source'),
     },
     release_stage: 'stable',
-    schema: { sha256: sha256('schema'), version: '0.2.0' },
+    schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
     source_revision: { commit: sourceCommit, tag: 'source-v1' },
   };
+  const sharedDigestBody = { ...sharedManifest } as Record<string, unknown>;
+  delete sharedDigestBody.bundle_digest;
+  sharedManifest.bundle_digest = sha256(canonicalJson(sharedDigestBody));
   await writeFile(path.join(sharedDir, 'bundle-manifest.json'), JSON.stringify(sharedManifest));
   await writeFile(path.join(sharedDir, 'validation-report.json'), '{"result":"PASS"}\n');
   const sharedManifestSha = sha256(await readFile(path.join(sharedDir, 'bundle-manifest.json')));
@@ -88,7 +92,7 @@ async function fixtureActkg(): Promise<string> {
     const bundleId = `ctb:control-theory-engineering-v0.${version}:r2`;
     const manifest = {
       bundle_contract_version: 'actkg-public-bundle/1',
-      bundle_digest: sha256(`bundle-${version}`),
+      bundle_digest: '',
       bundle_id: bundleId,
       bundle_kind: 'aggregate',
       bundle_revision: 2,
@@ -115,10 +119,13 @@ async function fixtureActkg(): Promise<string> {
         source_dataset_hash: sha256(`dataset-${version}`),
       },
       release_stage: 'stable',
-      schema: { sha256: sha256('schema'), version: '0.2.0' },
+      schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
       source_revision: { commit: sourceCommit, tag: `source-v0.${version}` },
       statistics: {},
     };
+    const digestBody = { ...manifest } as Record<string, unknown>;
+    delete digestBody.bundle_digest;
+    manifest.bundle_digest = sha256(canonicalJson(digestBody));
     const manifestBytes = Buffer.from(JSON.stringify(manifest));
     await writeFile(path.join(directory, 'bundle-manifest.json'), manifestBytes);
     await writeFile(path.join(directory, 'validation-report.json'), '{"result":"PASS"}\n');
