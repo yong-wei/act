@@ -21,7 +21,7 @@ for (const viewport of [1440, 320]) {
     await page.goto('/evidence/issue-979');
     const media = page.locator('audio, video');
     expect(await media.count()).toBeGreaterThanOrEqual(3);
-    await page.waitForTimeout(500);
+    await expect(page.locator('[data-media-coordinator-ready="true"]')).toHaveCount(3);
     const result = await media.evaluateAll((elements) => {
       const first = elements[0] as HTMLMediaElement;
       const second = elements[1] as HTMLMediaElement;

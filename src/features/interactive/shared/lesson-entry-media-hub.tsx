@@ -219,9 +219,11 @@ function TrackedMediaElement({
     element.addEventListener('timeupdate', handleTimeUpdate);
     element.addEventListener('ended', handleEnded);
     const unregister = mediaCoordinator?.register(element);
+    if (mediaCoordinator) element.dataset.mediaCoordinatorReady = 'true';
 
     return () => {
       unregister?.();
+      delete element.dataset.mediaCoordinatorReady;
       element.removeEventListener('play', handlePlay);
       element.removeEventListener('timeupdate', handleTimeUpdate);
       element.removeEventListener('ended', handleEnded);
