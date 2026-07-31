@@ -1,11 +1,11 @@
 {
-  "capturedAt": "2026-07-31T04:21:26.070Z",
-  "commitSha": "f1f7a4d5b7a8acfb11d73f870454ee5e2740e24c",
+  "capturedAt": "2026-07-31T05:37:01.735Z",
+  "commitSha": "04e0f5c202dac689d54279dc49c252782863c63d",
   "route": "/assessment/adaptive-practice?goal=control-correction",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "86bc044ebf4eef1bdf0465ac9b6581b7f22ff773968dc0278a0b1a33276040b7",
-    "src/lib/adaptive-path-execution-state.ts": "077105951a1edd8c6a4e80e42bbd2c2357dfb12aca3e253dd9e4492e82d7cc78",
-    "tests/adaptive-path-landing-retry.spec.ts": "4dc070a0c55d6245e8e02016a29d628a1763eda3d3b8639256b67816c75a1db7"
+    "src/app/assessment/adaptive-practice/page.tsx": "3fbd783c3f71312e2a12668d33e610a0ab534a4fc190443905dbcf173f0410eb",
+    "src/lib/adaptive-path-execution-state.ts": "df3cd8a6233c94ba7aba212c0e4ecfc5ea638d981c81d7209d86039b3ebba081",
+    "tests/adaptive-path-landing-retry.spec.ts": "ec3dc57546dcaac4e2150e5eee15bac629513908acdfb4d8ef842ce39c202c7f"
   },
   "assertions": [
     {
@@ -68,7 +68,7 @@
       "width": 1440,
       "height": 1000,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-loading.png",
-      "sha256": "dfd31b846f6f00e2f417e473af447404474a26af3d2c76b43e03ff6ba8b22d62",
+      "sha256": "d6a8c8dbe19912063f12d9d8b488d1a2a66eaa4f93be305bf7740a194207cef2",
       "state": "loading",
       "noHorizontalOverflow": true
     },
@@ -86,7 +86,7 @@
       "width": 1440,
       "height": 1000,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-active-loading.png",
-      "sha256": "343aebf31113089895a602c07577ccfa737b253a71a51c07a3cb5ddaa8038a1c",
+      "sha256": "89d7281e8463c7d57847b1af69646132fec8e5bfe0b1cfb78242f7aea8d8f150",
       "state": "active-loading",
       "noHorizontalOverflow": true
     },
@@ -113,7 +113,7 @@
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-loading.png",
-      "sha256": "82673e697ad562fcc2f098405d2776271d95928365c82aa59165a6131310c270",
+      "sha256": "0b7e84106df1f61b5870978b178ef8f77cbc8d8987802970ae88c8bfaba3a183",
       "state": "loading",
       "noHorizontalOverflow": true
     },
@@ -131,7 +131,7 @@
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-active-loading.png",
-      "sha256": "b53d42884295c6c5b47230ec9088aa2640a6077907b59ec9f5c05276e49b950b",
+      "sha256": "2a202597379327866e895d7dd299bcfc54f28c8e4b7adffc06fea7e8e761114c",
       "state": "active-loading",
       "noHorizontalOverflow": true
     },
