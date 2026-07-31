@@ -3,6 +3,7 @@ import { readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
+  assertNoFinalSemanticOutcomes,
   coverageItemInputDigest,
   coverageWorklistInputDigest,
   type CoverageWorklistItem,
@@ -419,6 +420,18 @@ function materializedEqual(
   if (actual !== expected) errors.push(`${field} must equal ${String(expected)}`);
 }
 
+function materializedExactKeys(
+  value: JsonRecord,
+  allowed: readonly string[],
+  field: string,
+  errors: string[],
+): void {
+  const allowedSet = new Set(allowed);
+  for (const key of Object.keys(value)) {
+    if (!allowedSet.has(key)) errors.push(`${field}.${key} is not allowed`);
+  }
+}
+
 async function readMaterializedJson(
   filePath: string,
   field: string,
@@ -678,7 +691,55 @@ export async function validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
         for (const [index, item] of items.entries()) {
           const row = materializedRecord(item, `worklist.items[${index}]`, errors);
           if (!row) continue;
+          materializedExactKeys(
+            row,
+            ['canonicalId', 'profile', 'evidenceCandidates', 'retrievalHints', 'itemInputDigest'],
+            `worklist.items[${index}]`,
+            errors,
+          );
+          const profile = materializedRecord(row.profile, `worklist.items[${index}].profile`, errors);
+          if (profile) {
+            materializedExactKeys(
+              profile,
+              ['entityType', 'conceptKind', 'semanticName', 'displayName', 'description'],
+              `worklist.items[${index}].profile`,
+              errors,
+            );
+          }
+          const candidates = Array.isArray(row.evidenceCandidates) ? row.evidenceCandidates : [];
+          for (const [candidateIndex, candidateValue] of candidates.entries()) {
+            const candidate = materializedRecord(
+              candidateValue,
+              `worklist.items[${index}].evidenceCandidates[${candidateIndex}]`,
+              errors,
+            );
+            if (candidate) {
+              materializedExactKeys(
+                candidate,
+                ['evidenceId', 'path', 'selector', 'sourceHash', 'kind', 'rank', 'weight', 'excerpt', 'excerptHash'],
+                `worklist.items[${index}].evidenceCandidates[${candidateIndex}]`,
+                errors,
+              );
+            }
+          }
+          const hints = Array.isArray(row.retrievalHints) ? row.retrievalHints : [];
+          for (const [hintIndex, hintValue] of hints.entries()) {
+            const hint = materializedRecord(
+              hintValue,
+              `worklist.items[${index}].retrievalHints[${hintIndex}]`,
+              errors,
+            );
+            if (hint) {
+              materializedExactKeys(
+                hint,
+                ['term', 'rank'],
+                `worklist.items[${index}].retrievalHints[${hintIndex}]`,
+                errors,
+              );
+            }
+          }
           const { itemInputDigest, ...withoutDigest } = row;
+          assertNoFinalSemanticOutcomes(withoutDigest, `worklist.items[${index}]`);
           materializedEqual(
             coverageItemInputDigest(withoutDigest as Omit<CoverageWorklistItem, 'itemInputDigest'>),
             itemInputDigest,

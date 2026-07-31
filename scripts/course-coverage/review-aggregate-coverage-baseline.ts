@@ -14,7 +14,8 @@
  *
  * No production path manufactures final roles and labels them agent-review.
  */
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -115,39 +116,37 @@ async function collectMarkdownSnippets(
   relativeDir: string,
   limitFiles = 200,
 ): Promise<Array<{ ref: string; text: string; sourceHash: string }>> {
-  const abs = path.join(root, relativeDir);
   const collected: Array<{ ref: string; text: string; sourceHash: string }> = [];
-  async function walk(dir: string, rel: string): Promise<void> {
-    let entries: Array<{ name: string; isDirectory: () => boolean; isFile: () => boolean }>;
+  for (const ref of trackedFilesUnder(root, relativeDir)) {
+    if (!/\.(md|mdx)$/iu.test(ref)) continue;
     try {
-      entries = await readdir(dir, { withFileTypes: true }) as never;
+      const text = await readFile(path.join(root, ref), 'utf8');
+      collected.push({
+        ref,
+        text: text.slice(0, 8000),
+        sourceHash: contentSha256(text),
+      });
     } catch {
-      return;
-    }
-    const ordered = [...entries].sort((a, b) => a.name.localeCompare(b.name, 'en'));
-    for (const entry of ordered) {
-      if (entry.name.startsWith('.')) continue;
-      const childAbs = path.join(dir, entry.name);
-      const childRel = path.join(rel, entry.name);
-      if (entry.isDirectory()) {
-        await walk(childAbs, childRel);
-      } else if (entry.isFile() && /\.(md|mdx)$/iu.test(entry.name)) {
-        try {
-          const text = await readFile(childAbs, 'utf8');
-          collected.push({
-            ref: childRel,
-            text: text.slice(0, 8000),
-            sourceHash: contentSha256(text),
-          });
-        } catch {
-          // skip unreadable
-        }
-      }
+      // skip unreadable
     }
   }
-  await walk(abs, relativeDir);
   collected.sort((a, b) => a.ref.localeCompare(b.ref, 'en'));
   return collected.slice(0, limitFiles);
+}
+
+function trackedFilesUnder(root: string, relativePath: string): string[] {
+  const result = spawnSync(
+    'git',
+    ['ls-files', '-z', '--', relativePath],
+    { cwd: root, encoding: 'utf8' },
+  );
+  if (result.status !== 0) {
+    throw new Error(`Aggregate coverage evidence capture rejected: cannot enumerate ${relativePath}`);
+  }
+  return (result.stdout ?? '')
+    .split('\u0000')
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, 'en'));
 }
 
 function extractChineseTerms(text: string, minLen = 2, maxLen = 12): string[] {
@@ -303,23 +302,21 @@ async function buildRepoEvidenceSources(root: string): Promise<RepoEvidenceSourc
   }
 
   try {
-    const cardRoot = path.join(root, 'course-content/authoring/knowledge/cards');
-    const cardEntries = await readdir(cardRoot, { withFileTypes: true });
-    const orderedCards = [...cardEntries]
-      .filter((e) => e.isFile())
-      .sort((a, b) => a.name.localeCompare(b.name, 'en'))
+    const cardRoot = 'course-content/authoring/knowledge/cards';
+    const orderedCards = trackedFilesUnder(root, cardRoot)
+      .filter((ref) => path.posix.dirname(ref) === cardRoot)
       .slice(0, 400);
-    for (const entry of orderedCards) {
-      const rel = `course-content/authoring/knowledge/cards/${entry.name}`;
-      let text = entry.name;
-      let sourceHash = contentSha256(entry.name);
+    for (const rel of orderedCards) {
+      const fileName = path.posix.basename(rel);
+      let text = fileName;
+      let sourceHash = contentSha256(fileName);
       try {
         text = await readFile(path.join(root, rel), 'utf8');
         sourceHash = contentSha256(text);
       } catch {
         // name-only fallback
       }
-      const base = entry.name.replace(/\.(md|mdx|json)$/iu, '');
+      const base = fileName.replace(/\.(md|mdx|json)$/iu, '');
       for (const term of extractChineseTerms(base)) {
         sources.push({
           path: rel,

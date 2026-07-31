@@ -91,6 +91,21 @@ describe('declared authoritative snapshot receipt', () => {
       expect(valid.valid).toBe(true);
       expect(valid.checkedPaths).toContain((receipt.projection as Record<string, string>).path);
 
+      const worklistPath = path.join(copyRoot, (receipt.worklist as Record<string, string>).path);
+      const worklistJson = JSON.parse(await readFile(worklistPath, 'utf8')) as {
+        items: Array<Record<string, unknown>>;
+      };
+      worklistJson.items[0]!.role = 'formal_objective';
+      worklistJson.items[0]!.disposition = 'CURRENT';
+      await writeFile(worklistPath, `${JSON.stringify(worklistJson, null, 2)}\n`);
+      const semanticInjection = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
+        receipt,
+        { repoRoot: copyRoot },
+      );
+      expect(semanticInjection.valid).toBe(false);
+      expect(semanticInjection.errors.join('; ')).toMatch(/\.role is not allowed/u);
+      await cp(path.join(sourceRoot, (receipt.worklist as Record<string, string>).path), worklistPath);
+
       const missingArtifact = path.join(copyRoot, bundleRoot, 'component-releases.json');
       await rm(missingArtifact);
       const missingRequired = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
