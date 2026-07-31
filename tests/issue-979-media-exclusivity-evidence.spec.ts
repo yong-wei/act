@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -5,7 +6,7 @@ import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 
 const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/issue-979-media-exclusivity');
-const headSha = process.env.GITHUB_SHA ?? 'local-uncommitted';
+const headSha = process.env.GITHUB_SHA ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 
 test.describe('Issue 979 native media evidence harness', () => {
   for (const viewport of [1440, 320]) {

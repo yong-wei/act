@@ -452,7 +452,7 @@ export function LessonEntryMediaHub({
 }: LessonEntryMediaHubProps) {
   const [isDownloadingHandout, setIsDownloadingHandout] = useState(false);
   const [isHandoutOpen, setIsHandoutOpen] = useState(false);
-  const nativeMediaCoordinator = useMemo(createNativeMediaCoordinator, []);
+  const nativeMediaCoordinator = useMemo(() => createNativeMediaCoordinator(), []);
   const handoutCompletionTrackedRef = useRef(false);
   const lessonId = lessonRuntime.lesson.lesson_id;
   const resourceTracker = useResourceInteractionTracking({
