@@ -2,7 +2,9 @@ import 'dotenv/config';
 
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
+import path from 'node:path';
 import process from 'node:process';
 
 import Redis from 'ioredis';
@@ -20,14 +22,21 @@ const courseBasisId = `smart-lesson-real-basis-${process.pid}`;
 const documentId = `smart-lesson-real-document-${process.pid}`;
 const versionId = `smart-lesson-real-version-${process.pid}`;
 const segmentId = `smart-lesson-real-segment-${process.pid}`;
+const classId = `smart-lesson-real-class-${process.pid}`;
 let realProviderTopic = `闭环稳定性真实提供商验收 ${process.pid}`;
 const baseDatabaseUrl = process.env.SMART_LESSON_TEST_DATABASE_BASE_URL ?? process.env.DATABASE_URL;
 const redisUrl = process.env.SMART_LESSON_TEST_REDIS_URL ?? process.env.REDIS_URL ?? 'redis://127.0.0.1:6379';
 const nextAuthSecret = `smart-lesson-real-e2e-secret-${randomBytes(24).toString('hex')}`;
+const e2eFaultToken = `smart-lesson-e2e-fault-${randomBytes(24).toString('hex')}`;
 const publicationReviewSecret = `smart-courseware-review-${randomBytes(24).toString('hex')}`;
 const coursewareOrderingSecret = `smart-courseware-ordering-${randomBytes(24).toString('hex')}`;
 const realProviderMode = process.argv.includes('--real-provider');
+const structuredActionMode = process.argv.includes('--structured-action');
 const resumeMode = resumedSchemaName !== undefined;
+const structuredActionEvidencePath = path.join(
+  process.cwd(),
+  'openspec/changes/archive/2026-07-27-harden-konling-structured-action-runtime/evidence/real-provider-structured-action.json',
+);
 let nextServer: ChildProcess | undefined;
 let coursewareWorkerConnection: Redis | undefined;
 let smartLessonWorkerConnection: Redis | undefined;
@@ -45,6 +54,8 @@ async function main() {
   if (!baseDatabaseUrl) throw new Error('smart-lesson-test-database-required');
   assertTemporarySchema(schemaName);
 
+  let playwrightExitCode = 1;
+  let baseURL = '';
   try {
     scopedDatabaseUrl = resumeMode
       ? scopedDatabaseUrlFor(schemaName)
@@ -53,9 +64,19 @@ async function main() {
     process.env.REDIS_URL = redisUrl;
     process.env.SMART_LESSON_REDIS_PREFIX = redisPrefix;
     process.env.SMART_COURSEWARE_REDIS_PREFIX = redisPrefix;
+    delete process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED;
     if (realProviderMode) {
+      process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED = '1';
       delete process.env.SMART_LESSON_E2E_FIXTURE_TOKEN;
+      delete process.env.SMART_LESSON_E2E_FAIL_ONCE_STAGE;
+      delete process.env.SMART_LESSON_E2E_FAULT_TOKEN;
+      delete process.env.SMART_LESSON_E2E_FAULT_SECRET;
       if (!process.env.AI_API_KEY?.trim()) throw new Error('smart-lesson-real-provider-api-key-required');
+      if (!resumeMode) {
+        process.env.SMART_LESSON_E2E_FAIL_ONCE_STAGE = 'BRIDGE_IN';
+        process.env.SMART_LESSON_E2E_FAULT_TOKEN = e2eFaultToken;
+        process.env.SMART_LESSON_E2E_FAULT_SECRET = e2eFaultToken;
+      }
     } else {
       process.env.SMART_LESSON_E2E_FIXTURE_TOKEN = 'smart-lesson-real-browser-v1';
     }
@@ -71,7 +92,7 @@ async function main() {
     smartLessonWorker = await ensureSmartLessonGenerationWorker(smartLessonWorkerConnection);
 
     const port = await availablePort();
-    const baseURL = `http://127.0.0.1:${port}`;
+    baseURL = `http://127.0.0.1:${port}`;
     nextServer = spawn(process.execPath, ['./node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', String(port)], {
     cwd: process.cwd(),
     detached: true,
@@ -95,7 +116,7 @@ async function main() {
     nextServer.stderr?.on('data', (chunk) => process.stderr.write(`[smart-lesson-next] ${chunk}`));
     await waitForServer(`${baseURL}/api/auth/session`, nextServer);
 
-    const playwrightExitCode = await runPlaywright({
+    playwrightExitCode = await runPlaywright({
       env: {
       ...process.env,
       DATABASE_URL: scopedDatabaseUrl,
@@ -107,13 +128,17 @@ async function main() {
       SMART_LESSON_E2E_BASE_URL: baseURL,
       SMART_LESSON_E2E_TEACHER_ID: teacherId,
       SMART_LESSON_E2E_TOPIC: realProviderTopic,
+      SMART_LESSON_E2E_CLASS_ID: classId,
       SMART_LESSON_E2E_SOURCE_REVISION: sourceRevision,
+      SMART_LESSON_E2E_STRUCTURED_ACTION_EVIDENCE_PATH: structuredActionEvidencePath,
       SMART_LESSON_REAL_PROVIDER_REQUIRED: realProviderMode ? '1' : undefined,
-      SMART_LESSON_E2E_SPEC: realProviderMode
-        ? resumeMode
-          ? 'smart-lesson-real-provider-retry.spec.ts'
-          : 'smart-lesson-real-provider.spec.ts'
-        : 'smart-lesson-plan-real-e2e.spec.ts',
+      SMART_LESSON_E2E_SPEC: structuredActionMode
+        ? 'konling-structured-action-real-e2e.spec.ts'
+        : realProviderMode
+          ? resumeMode
+            ? 'smart-lesson-real-provider-retry.spec.ts'
+            : 'smart-lesson-real-provider.spec.ts'
+          : 'smart-lesson-plan-real-e2e.spec.ts',
       NEXTAUTH_SECRET: nextAuthSecret,
       NEXTAUTH_URL: baseURL,
       SMART_COURSEWARE_PUBLICATION_REVIEW_BASE_URL: baseURL,
@@ -124,18 +149,40 @@ async function main() {
       cwd: process.cwd(),
     });
     if (playwrightExitCode !== 0) process.exitCode = playwrightExitCode;
-    else console.log(JSON.stringify({
-      evidence: 'smart-lesson-real-browser-e2e',
+  } finally {
+    await cleanup();
+  }
+  if (playwrightExitCode === 0 && structuredActionMode) {
+    await finalizeStructuredActionEvidence();
+  }
+  if (playwrightExitCode === 0) {
+    console.log(JSON.stringify({
+      evidence: structuredActionMode
+        ? 'konling-structured-action-real-browser-e2e'
+        : 'smart-lesson-real-browser-e2e',
       schema: schemaName,
       redisPrefix,
       server: baseURL,
       routeInterception: false,
       providerMode: realProviderMode ? 'configured-real-provider' : 'deterministic-fixture',
+      cleanup: 'passed',
       result: 'passed',
     }));
-  } finally {
-    await cleanup();
   }
+}
+
+async function finalizeStructuredActionEvidence() {
+  const parsed = JSON.parse(await readFile(structuredActionEvidencePath, 'utf8')) as Record<string, unknown>;
+  await writeFile(structuredActionEvidencePath, `${JSON.stringify({
+    ...parsed,
+    cleanup: {
+      completed: true,
+      temporaryDatabaseSchemaDropped: !resumeMode,
+      scopedRedisKeysRemoved: true,
+      workersClosed: true,
+      browserServerStopped: true,
+    },
+  }, null, 2)}\n`, 'utf8');
 }
 
 async function runPlaywright(options: { cwd: string; env: NodeJS.ProcessEnv; stdio: 'inherit' }) {
@@ -163,14 +210,14 @@ async function createIsolatedDatabase() {
   } finally {
     await pool.end();
   }
-  const scoped = new URL(admin.toString());
-  scoped.searchParams.set('schema', schemaName);
-  return scoped.toString();
+  return scopedDatabaseUrlFor(schemaName, admin.toString());
 }
 
-function scopedDatabaseUrlFor(schema: string) {
-  const scoped = new URL(baseDatabaseUrl!);
+function scopedDatabaseUrlFor(schema: string, databaseUrl = baseDatabaseUrl!) {
+  assertTemporarySchema(schema);
+  const scoped = new URL(databaseUrl);
   scoped.searchParams.set('schema', schema);
+  scoped.searchParams.set('options', `-c search_path=${schema},public`);
   return scoped.toString();
 }
 
@@ -211,8 +258,40 @@ async function seedAcceptanceData() {
   const prisma = createPrismaClient({ log: ['warn', 'error'] });
   try {
     await prisma.user.create({
-      data: { id: teacherId, email: 'smart-lesson-real-e2e@example.test', name: '智能教案真实验收教师', role: 'TEACHER' },
+      data: {
+        id: teacherId,
+        email: 'smart-lesson-real-e2e@example.test',
+        name: '智能教案真实验收教师',
+        role: 'TEACHER',
+      },
     });
+    await prisma.class.create({
+      data: {
+        id: classId,
+        teacherId,
+        name: '自动控制原理验收班',
+        code: `E${String(process.pid).slice(-5).padStart(5, '0')}`,
+      },
+    });
+    await prisma.user.update({
+      where: { id: teacherId },
+      data: { defaultTeachingClassId: classId },
+    });
+    await prisma.user.create({
+      data: {
+        id: `smart-lesson-real-student-${process.pid}`,
+        role: 'STUDENT',
+        profile: {
+          create: {
+            studentNumber: `S${process.pid}`,
+            classId,
+            major: '自动化',
+          },
+        },
+      },
+    });
+    await seedCurrentCumulativeClassPortrait(prisma);
+    if (realProviderMode && !structuredActionMode) return;
     await prisma.courseBasis.create({
       data: {
         id: courseBasisId,
@@ -266,51 +345,73 @@ async function seedAcceptanceData() {
         corpusSourceId,
       },
     });
-    if (realProviderMode) {
-      const binding = {
-        citationId: `course-basis:${versionId}:chapter-1-stability`,
-        sourceVersionId: versionId,
-        anchor: 'chapter-1-stability',
-        contentHash: 'b'.repeat(64),
-      };
-      const { createSmartLessonTask } = await import('../../src/lib/smart-lesson-plan/service');
-      const created = await createSmartLessonTask(prisma, {
-        actor: { id: teacherId, role: 'TEACHER' },
-        courseBasisId,
-        topic: realProviderTopic,
-        audience: '自动化专业本科生',
-        prerequisites: '传递函数与特征方程',
-        durationMinutes: 30,
-        outlineConfirmationRequired: true,
-        sourceVersionIds: [versionId],
-        knowledgePoints: [{
-          title: '闭环稳定性判据',
-          content: '闭环稳定性判据',
-          origin: 'TEACHER_CREATED',
-          sourceState: 'teacher_created_source_pending',
-          sourceBindings: [binding],
-        }],
-        goals: [{
-          content: '能够依据特征方程判断闭环系统稳定性',
-          sourceState: 'teacher_created_source_pending',
-          sourceBindings: [binding],
-          standardsMappings: [],
-        }],
-        confirmScope: true,
-        confirmGoals: true,
-      });
-      const verified = await prisma.smartLessonTask.findUniqueOrThrow({
-        where: { id: created.id },
-        include: { knowledgePoints: true, goals: true },
-      });
-      if (!verified.knowledgePoints.every((item) => item.sourceState === 'VERIFIED')
-        || !verified.goals.every((item) => item.sourceState === 'VERIFIED')) {
-        throw new Error('smart-lesson-real-provider-source-verification-required');
-      }
-    }
   } finally {
     await prisma.$disconnect();
   }
+}
+
+async function seedCurrentCumulativeClassPortrait(
+  prisma: ReturnType<typeof createPrismaClient>,
+) {
+  const {
+    CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
+    materializeCumulativeClassPortrait,
+  } = await import('../../src/lib/data-governance/cumulative-class-materialization');
+  const { PORTRAIT_V2_CALCULATION_VERSION } = await import('../../src/lib/data-governance/portrait-v2-model');
+  const migrationRunId = `smart-lesson-real-migration-${process.pid}`;
+  const now = new Date();
+  const publication = await prisma.$transaction(async (tx) => {
+    await tx.$executeRawUnsafe(`SET LOCAL search_path TO "${schemaName}", public`);
+    const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({
+      where: { id: 'global' },
+    });
+    const next = {
+      cutoverFence: BigInt(currentFence?.fence ?? 0) + 1n,
+      learnerGeneration: BigInt(currentFence?.learnerGeneration ?? 0) + 1n,
+      generation: BigInt(currentFence?.classGeneration ?? 0) + 1n,
+      queueGeneration: BigInt(currentFence?.queueGeneration ?? 0) + 1n,
+    };
+    const nextPublication = {
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      materializationVersion: CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
+      migrationRunId,
+      ...next,
+    };
+    await tx.cumulativePortraitMigrationRun.create({
+      data: {
+        id: migrationRunId,
+        mode: 'APPLY',
+        status: 'COMPLETED',
+        calculationVersion: nextPublication.calculationVersion,
+        classMaterializationVersion: nextPublication.materializationVersion,
+        learnerGeneration: nextPublication.learnerGeneration,
+        classGeneration: nextPublication.generation,
+        queueGeneration: nextPublication.queueGeneration,
+        cutoverFence: nextPublication.cutoverFence,
+        inputDigest: 'smart-lesson-real-e2e',
+        verificationDigest: 'smart-lesson-real-e2e',
+        startedAt: now,
+        completedAt: now,
+      },
+    });
+    const fenceData = {
+      fence: nextPublication.cutoverFence,
+      calculationVersion: nextPublication.calculationVersion,
+      learnerGeneration: nextPublication.learnerGeneration,
+      classMaterializationVersion: nextPublication.materializationVersion,
+      classGeneration: nextPublication.generation,
+      queueGeneration: nextPublication.queueGeneration,
+      activeMigrationRunId: migrationRunId,
+      advancedAt: now,
+    };
+    await tx.cumulativePortraitCutoverFence.upsert({
+      where: { id: 'global' },
+      create: { id: 'global', ...fenceData },
+      update: fenceData,
+    });
+    return nextPublication;
+  });
+  await materializeCumulativeClassPortrait(prisma, classId, { now, publication });
 }
 
 async function availablePort() {

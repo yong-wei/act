@@ -33,6 +33,10 @@ describe('Konling textbook background route contract', () => {
     const optimizationBody = route.slice(optimizationStart);
     const revisionGeneration = optimizationBody.indexOf('const optimized = await generateText');
     const cas = optimizationBody.indexOf('replaceKonlingConversationAssistantRevision');
+    const persistedRevision = optimizationBody.indexOf(
+      'assistantMessage: buildPersistedAssistantRevision(',
+      cas,
+    );
     const revisionReturn = optimizationBody.indexOf('revision: 2', cas);
 
     expect(revisionGeneration).toBeGreaterThan(0);
@@ -41,11 +45,12 @@ describe('Konling textbook background route contract', () => {
     expect(optimizationBody).toContain('...response.messages');
     expect(optimizationBody).toContain('abortSignal: request.signal');
     expect(cas).toBeGreaterThan(revisionGeneration);
+    expect(persistedRevision).toBeGreaterThan(cas);
+    expect(persistedRevision).toBeLessThan(revisionReturn);
     expect(revisionReturn).toBeGreaterThan(cas);
     expect(optimizationBody).toContain('if (!replaced) return null');
     expect(optimizationBody).toContain('repair: citationRepairUsed');
     expect(route).toContain('completedResponseMessage = toLegacyMessage(responseMessage)');
-    expect(route.match(/buildPersistedAssistantRevision\(/gu)).toHaveLength(2);
     expect(route).toContain("if (part.type !== 'text') return [part]");
   });
 

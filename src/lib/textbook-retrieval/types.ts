@@ -166,11 +166,17 @@ export interface TextbookProgressiveRetrievalResponse {
   continuation: Promise<TextbookRetrievalContinuationResult> | null;
 }
 
+export interface TextbookRetrievalScope {
+  bookId: string;
+  unitIds?: readonly string[];
+}
+
 export interface RetrievalOptions {
   indexRoot: string;
   externalQuery?: string | null;
   topK?: number;
   candidateCount?: number;
+  scope?: readonly TextbookRetrievalScope[];
   embeddingClient?: TextbookEmbeddingClient;
   embeddingTimeoutMs?: number;
   rerankClient?: TextbookRerankClient;

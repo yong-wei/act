@@ -13,6 +13,7 @@ import {
   assertPathRoundIdAvailable,
   ensureControlCorrectionPathRoutesEnabled,
   getLearningPathRequester,
+  learningPathMutationBlockedResponse,
   resolvePathRoundClassScope,
 } from '../route-helpers';
 
@@ -68,6 +69,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ path });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    const blocked = learningPathMutationBlockedResponse(error);
+    if (blocked) return blocked;
     if (error instanceof ControlCorrectionPathRoundConflictError) {
       return NextResponse.json({ error: '学习路径 id 已被其他路径占用' }, { status: 409 });
     }

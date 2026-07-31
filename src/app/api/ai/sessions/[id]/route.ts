@@ -2,16 +2,72 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import {
+  conversationMessages,
+  konlingStructuredActionToolRunIds,
+  mergeLegacyKonlingStructuredActionToolRuns,
   normalizeKonlingManualTitle,
   serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
+}
+
+async function refreshConversationStructuredActions(input: {
+  conversationId: string;
+  ownerUserId: string;
+  messages: Prisma.JsonValue;
+}) {
+  const persistedMessages = conversationMessages(input.messages);
+  const toolRunIds = konlingStructuredActionToolRunIds(persistedMessages);
+  const referencedToolRuns = toolRunIds.length
+    ? await prisma.agentToolRun.findMany({
+        where: {
+          id: { in: toolRunIds },
+          ownerUserId: input.ownerUserId,
+          agentSession: { konlingSessionId: input.conversationId },
+        },
+        select: {
+          id: true,
+          toolName: true,
+          status: true,
+          approvalState: true,
+          inputSummary: true,
+          outputSummary: true,
+          errorSummary: true,
+        },
+      })
+    : [];
+  const legacyToolRuns = await prisma.agentToolRun.findMany({
+    where: {
+      ownerUserId: input.ownerUserId,
+      agentSession: { konlingSessionId: input.conversationId },
+      toolName: 'propose_smart_lesson_task_change',
+    },
+    orderBy: [
+      { startedAt: 'desc' },
+      { id: 'desc' },
+    ],
+    take: 100,
+    select: {
+      id: true,
+      toolName: true,
+      status: true,
+      approvalState: true,
+      inputSummary: true,
+      outputSummary: true,
+      errorSummary: true,
+    },
+  });
+  const toolRuns = [...new Map(
+    [...legacyToolRuns, ...referencedToolRuns].map((run) => [run.id, run]),
+  ).values()];
+  return mergeLegacyKonlingStructuredActionToolRuns(persistedMessages, toolRuns);
 }
 
 export async function GET(_request: NextRequest, context: RouteContext) {
@@ -32,7 +88,12 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     if (!conversation) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
-    return NextResponse.json(serializeKonlingConversation(conversation));
+    const refreshedMessages = await refreshConversationStructuredActions({
+      conversationId: id,
+      ownerUserId: session.user.id,
+      messages: conversation.messages,
+    });
+    return NextResponse.json(serializeKonlingConversation(conversation, refreshedMessages));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Error in GET /api/ai/sessions/[id]:', error);
@@ -88,7 +149,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (!conversation) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
-    return NextResponse.json(serializeKonlingConversation(conversation));
+    const refreshedMessages = await refreshConversationStructuredActions({
+      conversationId: id,
+      ownerUserId: session.user.id,
+      messages: conversation.messages,
+    });
+    return NextResponse.json(serializeKonlingConversation(conversation, refreshedMessages));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Error in PATCH /api/ai/sessions/[id]:', error);

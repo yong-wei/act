@@ -27,6 +27,7 @@ import {
   smartLessonOutlineOutputSchema,
   sourceBindingSchema,
 } from './schema';
+import { confirmedTextbookRangeSchema } from './textbook-range';
 import {
   beginCorrectionAttempt,
   beginProviderAttempt,
@@ -50,6 +51,7 @@ type WorkerDb = PrismaClient;
 type ProviderResolver = typeof resolveSmartLessonStructuredProvider;
 type JobContext = Awaited<ReturnType<typeof loadJobContext>>;
 let worker: Worker<{ jobId: string }> | null = null;
+const consumedE2EFaultTokens = new Set<string>();
 
 export async function ensureSmartLessonGenerationWorker(connection: Redis): Promise<Worker<{ jobId: string }>> {
   if (worker) {
@@ -151,6 +153,9 @@ export async function processSmartLessonGenerationJob(
     let validationReceipt: SmartLessonValidationReceipt | undefined;
     let finalAttemptId = claim.attempt.id;
     try {
+      if (consumeSmartLessonE2EFailOnce(stage.kind)) {
+        throw new Error('curl: (28) Operation timed out during authorized smart-lesson E2E fault');
+      }
       const original = await runtime.generate({
         schema: request.schema,
         schemaVersion: request.schemaVersion,
@@ -180,12 +185,19 @@ export async function processSmartLessonGenerationJob(
       let finalAttempt = claim.attempt;
       let finalGenerated = original;
       if (!validated.success) {
+        const correctionContext = buildCorrectionContext(
+          context,
+          stage.kind,
+          validated.output,
+          validated.receipt,
+        );
         const correctionRequest = {
           stablePromptPrefix: request.system,
           originalStructuredResult: validated.output,
           validationErrors: validated.receipt.issues,
           requiredSchema: zodSchema(request.schema).jsonSchema,
           schemaVersion: request.schemaVersion,
+          ...(correctionContext ? { correctionContext } : {}),
         };
         const correctionAttempt = await beginCorrectionAttempt(db, {
           actor: { id: context.ownerId, role: 'TEACHER' },
@@ -274,6 +286,25 @@ export async function processSmartLessonGenerationJob(
   }
 }
 
+export function consumeSmartLessonE2EFailOnce(
+  stage: SmartLessonGenerationStageKind,
+  environment: Record<string, string | undefined> = process.env,
+) {
+  if (environment.SMART_LESSON_REAL_PROVIDER_REQUIRED !== '1') return false;
+  const configuredStage = environment.SMART_LESSON_E2E_FAIL_ONCE_STAGE?.trim();
+  const token = environment.SMART_LESSON_E2E_FAULT_TOKEN?.trim();
+  const secret = environment.SMART_LESSON_E2E_FAULT_SECRET?.trim();
+  if (
+    configuredStage !== stage
+    || !token
+    || token !== secret
+    || !/^smart-lesson-e2e-fault-[a-f0-9]{48}$/.test(token)
+    || consumedE2EFaultTokens.has(token)
+  ) return false;
+  consumedE2EFaultTokens.add(token);
+  return true;
+}
+
 async function loadJobContext(db: WorkerDb, jobId: string) {
   return db.smartLessonGenerationJob.findUnique({
     where: { id: jobId },
@@ -301,41 +332,55 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
   const query = [task.topic, ...task.goals.map((goal) => goal.content), ...task.knowledgePoints.map((point) => point.title)]
     .join('\n')
     .slice(0, 4_000);
-  let sourcePack;
-  try {
-    const actor = { id: context.ownerId, role: 'TEACHER' as const };
-    const sar = await buildCourseBasisLessonDesignSar(db, {
-      actor,
-      selectedVersionIds,
-      explicitRetiredVersionIds: selectedVersionIds,
-      query,
-    });
-    sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
-      actor,
-      selectedVersionIds,
-      explicitRetiredVersionIds: selectedVersionIds,
-      sar,
-      retrieval: { query, topK: 8 },
-    });
-  } catch (error) {
-    if (error instanceof CourseBasisError) {
-      throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
+  const textbookRanges = confirmedTextbookRangeSchema.array().max(20).parse(task.textbookRanges ?? []);
+  let sourcePackItems: Awaited<ReturnType<
+    typeof buildCourseBasisLessonDesignSourcePack
+  >>['retrieval']['pack']['items'] = [];
+  if (selectedVersionIds.length > 0) {
+    try {
+      const actor = { id: context.ownerId, role: 'TEACHER' as const };
+      const sar = await buildCourseBasisLessonDesignSar(db, {
+        actor,
+        selectedVersionIds,
+        explicitRetiredVersionIds: selectedVersionIds,
+        query,
+      });
+      const sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
+        actor,
+        selectedVersionIds,
+        explicitRetiredVersionIds: selectedVersionIds,
+        sar,
+        retrieval: { query, topK: 8 },
+      });
+      sourcePackItems = sourcePack.retrieval.pack.items;
+    } catch (error) {
+      if (error instanceof CourseBasisError) {
+        throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
+      }
+      throw error;
     }
-    throw error;
   }
-  const sourcePackItems = sourcePack.retrieval.pack.items;
-  if (sourcePackItems.length === 0) throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
-  const allowedBindings = sourceBindingSchema.array().safeParse(sourcePackItems.map((item) => ({
+  const uploadedBindings = sourceBindingSchema.array().safeParse(sourcePackItems.map((item) => ({
     citationId: item.citationTargetId ?? item.citation?.citationTargetId,
     sourceVersionId: item.metadata?.versionId,
     anchor: item.metadata?.stableAnchor,
     contentHash: item.metadata?.contentHash,
   })));
+  if (!uploadedBindings.success) throw new SmartLessonPlanError('governed-source-evidence-invalid', 409);
+  const { retrieveConfirmedTextbookBindings } = await import('./textbook-resource-pack');
+  const textbookBindings = await retrieveConfirmedTextbookBindings(query, textbookRanges);
+  const allowedBindings = sourceBindingSchema.array().safeParse([
+    ...uploadedBindings.data,
+    ...textbookBindings,
+  ]);
   if (!allowedBindings.success) throw new SmartLessonPlanError('governed-source-evidence-invalid', 409);
   const allowedSourceBindings = allowedBindings.data;
+  if (allowedSourceBindings.length === 0) {
+    throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
+  }
   const freezeGenerationInputs = async (tx: Parameters<typeof adoptCourseBasisVersion>[0]) => {
-    const byVersion = new Map<string, typeof allowedSourceBindings>();
-    for (const binding of allowedSourceBindings) {
+    const byVersion = new Map<string, typeof uploadedBindings.data>();
+    for (const binding of uploadedBindings.data) {
       byVersion.set(binding.sourceVersionId, [...(byVersion.get(binding.sourceVersionId) ?? []), binding]);
     }
     for (const [versionId, bindings] of byVersion) {
@@ -367,7 +412,7 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
     goals: task.goals,
     knowledgePoints: task.knowledgePoints,
     aggregateClassContext: task.aggregateClassContext,
-    sourcePackItems,
+    sourcePackItems: [...sourcePackItems, ...textbookBindings],
   };
   const previous = Object.fromEntries(context.stages
     .filter((item) => item.state === 'COMPLETED' && item.output !== null)
@@ -536,12 +581,39 @@ function validateGeneratedStage(
   for (const binding of parsed.steps.flatMap((step) => step.sourceBindings)) {
     if (!allowedBindings.has(bindingKey(binding))) throw new SmartLessonPlanError('generated-source-binding-unverified', 409);
   }
+  const expectedMinutes = expectedStageMinutes(context, stage);
+  if (parsed.minutes !== expectedMinutes) throw new SmartLessonPlanError('stage-duration-mismatch', 409);
+}
+
+function buildCorrectionContext(
+  context: NonNullable<JobContext>,
+  stage: SmartLessonGenerationStageKind,
+  output: unknown,
+  receipt: SmartLessonValidationReceipt,
+) {
+  if (
+    stage === 'OUTLINE'
+    || !receipt.issues.some((issue) => issue.code === 'stage-duration-mismatch')
+  ) return null;
+  const parsed = bopppsStageSchema.parse(output);
+  const expectedMinutes = expectedStageMinutes(context, stage);
+  return {
+    stage,
+    expectedMinutes,
+    actualMinutes: parsed.minutes,
+    instruction: `将 minutes 和 steps 时长总和修正为 ${expectedMinutes} 分钟；sourceBindings 仍只能使用 requiredSchema 允许的来源绑定。`,
+  };
+}
+
+function expectedStageMinutes(
+  context: NonNullable<JobContext>,
+  stage: Exclude<SmartLessonGenerationStageKind, 'OUTLINE'>,
+) {
   const outline = smartLessonOutlineOutputSchema.parse(context.stages.find((item) => item.kind === 'OUTLINE')?.output);
-  const planKey = STAGE_TO_PLAN_KEY[stage as keyof typeof STAGE_TO_PLAN_KEY];
-  const expectedMinutes = outline.coursewareStepOutline
+  const planKey = STAGE_TO_PLAN_KEY[stage];
+  return outline.coursewareStepOutline
     .filter((step) => step.bopppsStage === planKey)
     .reduce((total, step) => total + step.minutes, 0);
-  if (parsed.minutes !== expectedMinutes) throw new SmartLessonPlanError('stage-duration-mismatch', 409);
 }
 
 function assembleCompletedPlan(context: NonNullable<JobContext>, summaryOutput: unknown) {

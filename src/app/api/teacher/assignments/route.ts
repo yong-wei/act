@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { assignmentDraftSchema } from '@/lib/assignments/assignment-domain';
+import { assignmentDraftPersistenceSchema } from '@/lib/assignments/assignment-domain';
 import { assignmentErrorResponse, readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
 import { createAssignmentDraft, listTeacherAssignments } from '@/lib/assignments/assignment-service';
 import { prisma } from '@/lib/prisma';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 const createSchema = z.object({
   courseContext: z.string().trim().max(200).optional(),
-  draft: assignmentDraftSchema,
+  draft: assignmentDraftPersistenceSchema,
 }).strict();
 
 export async function GET() {

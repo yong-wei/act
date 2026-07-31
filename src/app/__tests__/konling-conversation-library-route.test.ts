@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
       deleteMany: vi.fn(),
     },
     agentToolRun: {
+      findMany: vi.fn(),
       deleteMany: vi.fn(),
     },
     $transaction: vi.fn(),
@@ -96,6 +97,7 @@ describe('Konling conversation library routes', () => {
       },
     });
     mocks.prisma.$transaction.mockImplementation(async (callback) => callback(mocks.prisma));
+    mocks.prisma.agentToolRun.findMany.mockResolvedValue([]);
   });
 
   it('lists only owner-visible unexpired conversations with title-only search and pin ordering', async () => {
@@ -221,6 +223,243 @@ describe('Konling conversation library routes', () => {
     );
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({ error: 'Conversation not found' });
+  });
+
+  it('rehydrates bounded owner-and-conversation-scoped legacy structured actions', async () => {
+    mocks.prisma.konlingSession.findFirst.mockResolvedValue(record({
+      messages: [{
+        id: 'assistant-legacy',
+        role: 'assistant',
+        content: '已生成建议。',
+        metadata: { konlingTurnId: 'turn-legacy' },
+      }],
+    }));
+    mocks.prisma.agentToolRun.findMany.mockResolvedValue([
+      {
+        id: 'legacy-pending',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'not_required',
+        inputSummary: {
+          turnId: 'turn-legacy',
+          operation: 'bootstrap',
+          proposedTask: {
+            topic: '根轨迹',
+            courseBasisId: 'private-basis',
+          },
+        },
+        outputSummary: { privateReceipt: 'private-output' },
+        errorSummary: null,
+      },
+      {
+        id: 'legacy-terminal',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'ignored',
+        inputSummary: {
+          turnId: 'turn-legacy',
+          operation: 'revise',
+          taskId: 'task-public',
+          proposedTask: { topic: '闭环稳定性' },
+        },
+        outputSummary: { privateReceipt: 'private-terminal-output' },
+        errorSummary: null,
+      },
+    ]);
+
+    const response = await getConversation(
+      new NextRequest('http://localhost/api/ai/sessions/conversation-1'),
+      routeContext,
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.agentToolRun.findMany).toHaveBeenCalledWith({
+      where: {
+        ownerUserId: 'user-1',
+        agentSession: { konlingSessionId: 'conversation-1' },
+        toolName: 'propose_smart_lesson_task_change',
+      },
+      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+      take: 100,
+      select: {
+        id: true,
+        toolName: true,
+        status: true,
+        approvalState: true,
+        inputSummary: true,
+        outputSummary: true,
+        errorSummary: true,
+      },
+    });
+    const encoded = JSON.stringify(await response.json());
+    expect(encoded).toContain('"actionId":"legacy-pending"');
+    expect(encoded).toContain('"state":"pending"');
+    expect(encoded).toContain('"actionId":"legacy-terminal"');
+    expect(encoded).toContain('"state":"ignored"');
+    expect(encoded).not.toContain('private-basis');
+    expect(encoded).not.toContain('private-output');
+    expect(encoded).not.toContain('private-terminal-output');
+  });
+
+  it('refreshes an explicitly referenced old run outside the bounded legacy discovery window', async () => {
+    mocks.prisma.konlingSession.findFirst.mockResolvedValue(record({
+      messages: [{
+        id: 'assistant-current',
+        role: 'assistant',
+        content: '请确认建议。',
+        metadata: {
+          konlingTurnId: 'turn-current',
+          konlingStructuredActionTurn: {
+            toolRuns: [{
+              toolRunId: 'referenced-old-run',
+              toolName: 'propose_smart_lesson_task_change',
+              status: 'succeeded',
+              approvalState: 'not_required',
+              inputSummary: {
+                publicActionId: 'public-current-action',
+                turnId: 'turn-current',
+                operation: 'bootstrap',
+                proposedTask: { topic: '根轨迹' },
+              },
+            }],
+          },
+        },
+      }],
+    }));
+    const discoveryWindow = Array.from({ length: 100 }, (_, index) => ({
+      id: `newer-legacy-${index}`,
+      toolName: 'propose_smart_lesson_task_change',
+      status: 'succeeded',
+      approvalState: 'ignored',
+      inputSummary: {
+        turnId: `other-turn-${index}`,
+        operation: 'revise',
+        proposedTask: { topic: `其他建议 ${index}` },
+      },
+      outputSummary: null,
+      errorSummary: null,
+    }));
+    mocks.prisma.agentToolRun.findMany
+      .mockResolvedValueOnce([{
+        id: 'referenced-old-run',
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: 'approved',
+        inputSummary: {},
+        outputSummary: { actionState: 'applied' },
+        errorSummary: null,
+      }])
+      .mockResolvedValueOnce(discoveryWindow);
+
+    const response = await getConversation(
+      new NextRequest('http://localhost/api/ai/sessions/conversation-1'),
+      routeContext,
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.agentToolRun.findMany).toHaveBeenNthCalledWith(1, {
+      where: {
+        id: { in: ['referenced-old-run'] },
+        ownerUserId: 'user-1',
+        agentSession: { konlingSessionId: 'conversation-1' },
+      },
+      select: {
+        id: true,
+        toolName: true,
+        status: true,
+        approvalState: true,
+        inputSummary: true,
+        outputSummary: true,
+        errorSummary: true,
+      },
+    });
+    expect(mocks.prisma.agentToolRun.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        ownerUserId: 'user-1',
+        agentSession: { konlingSessionId: 'conversation-1' },
+        toolName: 'propose_smart_lesson_task_change',
+      },
+      take: 100,
+    }));
+    const encoded = JSON.stringify(await response.json());
+    expect(encoded).toContain('"actionId":"public-current-action"');
+    expect(encoded).toContain('"state":"applied"');
+    expect(encoded).not.toContain('newer-legacy-');
+  });
+
+  it('preserves applied, ignored, and conflict action states after rename and pin', async () => {
+    const actionRuns = [
+      ['applied-run', 'not_required', 'approved', 'applied'],
+      ['ignored-run', 'not_required', 'ignored', 'ignored'],
+      ['conflict-run', 'not_required', 'conflict', 'conflict'],
+    ] as const;
+    const messages = actionRuns.map(([id, persistedApprovalState]) => ({
+      id: `assistant-${id}`,
+      role: 'assistant',
+      content: '请确认建议。',
+      metadata: {
+        konlingTurnId: `turn-${id}`,
+        konlingStructuredActionTurn: {
+          toolRuns: [{
+            toolRunId: id,
+            toolName: 'propose_smart_lesson_task_change',
+            status: 'succeeded',
+            approvalState: persistedApprovalState,
+            inputSummary: {
+              publicActionId: `public-${id}`,
+              turnId: `turn-${id}`,
+              operation: 'revise',
+              taskId: 'task-1',
+              proposedTask: { topic: id },
+            },
+          }],
+        },
+      },
+    }));
+    mocks.prisma.konlingSession.updateMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.konlingSession.findUnique.mockResolvedValue(record({
+      title: '终态会话',
+      titleIsManual: true,
+      pinnedAt: now,
+      messages,
+    }));
+    mocks.prisma.agentToolRun.findMany
+      .mockResolvedValueOnce(actionRuns.map(([id, , currentApprovalState]) => ({
+        id,
+        toolName: 'propose_smart_lesson_task_change',
+        status: 'succeeded',
+        approvalState: currentApprovalState,
+        inputSummary: {},
+        outputSummary: null,
+        errorSummary: null,
+      })))
+      .mockResolvedValueOnce([]);
+
+    const response = await patchConversation(new NextRequest('http://localhost/api/ai/sessions/conversation-1', {
+      method: 'PATCH',
+      body: JSON.stringify({ title: '终态会话', pinned: true }),
+    }), routeContext);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.agentToolRun.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: {
+        id: { in: ['applied-run', 'ignored-run', 'conflict-run'] },
+        ownerUserId: 'user-1',
+        agentSession: { konlingSessionId: 'conversation-1' },
+      },
+    }));
+    expect(mocks.prisma.agentToolRun.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        ownerUserId: 'user-1',
+        agentSession: { konlingSessionId: 'conversation-1' },
+        toolName: 'propose_smart_lesson_task_change',
+      },
+      take: 100,
+    }));
+    const responseMessages = (await response.json()).messages as Array<{
+      metadata?: { konlingSmartPreparationActions?: Array<{ state: string }> };
+    }>;
+    expect(responseMessages.map((message) =>
+      message.metadata?.konlingSmartPreparationActions?.[0]?.state,
+    )).toEqual(['applied', 'ignored', 'conflict']);
   });
 
   it('deletes only a teacher-owned message library and preserves student-target tool audit rows', async () => {

@@ -612,9 +612,8 @@ function projectSmartLessonTaskContext(value: unknown, ownerUserId: string) {
       durationMinutes: task.durationMinutes,
       outlineConfirmationRequired: task.outlineConfirmationRequired === true,
       sourceVersionIds: selectedCourseBasisVersions.map((source) => source.versionId),
-      aggregateClassContextRef: recordString(task, 'aggregateClassContextRef') && recordString(recordValue(task.aggregateClassContext) ?? {}, 'classId')
-        ? { classId: recordString(recordValue(task.aggregateClassContext) ?? {}, 'classId'), diagnosisRef: recordString(task, 'aggregateClassContextRef') }
-        : null,
+      textbookRanges: recordArray(task.textbookRanges),
+      selectedClassId: recordString(task, 'selectedClassId') || null,
       knowledgePoints: knowledgePoints.map((item) => ({
         id: recordString(item, 'id'), lineageId: recordString(item, 'lineageId'), title: recordString(item, 'title'), content: recordString(item, 'title'),
         origin: recordString(item, 'origin'), sourceState: publicSmartLessonSourceState(recordString(item, 'sourceState')),
@@ -640,6 +639,7 @@ function projectSmartLessonTaskContext(value: unknown, ownerUserId: string) {
 
 function publicSmartLessonSourceState(value: string) {
   if (value === 'VERIFIED') return 'verified';
+  if (value === 'NO_RELIABLE_SOURCE') return 'no_reliable_source';
   if (value === 'AI_GENERATED_SOURCE_PENDING') return 'ai_generated_source_pending';
   return 'teacher_created_source_pending';
 }

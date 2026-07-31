@@ -11,6 +11,7 @@ import { POST as PUBLISH_ASSIGNMENT } from '../[assignmentId]/publish/route';
 import { POST as NEXT_DRAFT } from '../[assignmentId]/next-draft/route';
 import { POST as SELECT_CATALOG_QUESTION } from '../question-catalog/route';
 import { POST as CREATE_ASSIGNMENT } from '../route';
+import { assignmentContentAssetHref } from '@/lib/assignments/assignment-content-assets';
 import { prisma } from '@/lib/prisma';
 
 const enabled = process.env.ASSIGNMENT_REAL_DB_TEST === '1';
@@ -109,8 +110,21 @@ describe.runIf(enabled)('assignment authoring self-contained isolated database i
     const createdRevisionHash = created.assignment.revisions[0].contentHash;
     expect(createdRevisionHash).toMatch(/^sha256:/);
 
+    const contentAsset = await prisma.assignmentContentAsset.create({
+      data: {
+        assignmentId,
+        uploaderId: teacherId,
+        objectKey: `assignment-real-db/${assignmentId}/figure.png`,
+        originalName: 'figure.png',
+        mimeType: 'image/png',
+        sizeBytes: 8,
+        checksum: `sha256:${'a'.repeat(64)}`,
+        state: 'AVAILABLE',
+        availableAt: new Date(),
+      },
+    });
     const editedQuestion = structuredClone(authoredQuestion);
-    editedQuestion.prompt = '编辑后的非默认题面：上传完整设计报告。';
+    editedQuestion.prompt = `编辑后的非默认题面：上传完整设计报告。\n\n![校正结果](${assignmentContentAssetHref(assignmentId, contentAsset.id)} "asset:${contentAsset.id}")`;
     editedQuestion.referenceAnswer = '编辑后的参考答案：模型、指标、校正参数与验证证据。';
     editedQuestion.rubric.criteria[1].feedbackGuidance = '编辑后反馈：逐项核对验证证据。';
     const editDraft = draftWith(editedQuestion, '真实数据库作业 v2', '编辑后的非默认说明。');
@@ -126,6 +140,9 @@ describe.runIf(enabled)('assignment authoring self-contained isolated database i
     expect(edited.revision.contentHash).not.toBe(createdRevisionHash);
     const editedQuestionHash = edited.revision.questions[0].contentHash;
     const editedRevisionHash = edited.revision.contentHash;
+    expect(await prisma.assignmentRevisionAssetReference.count({
+      where: { revisionId, assetId: contentAsset.id, field: 'PROMPT' },
+    })).toBe(1);
     expect((await PATCH_ASSIGNMENT(request(`/api/teacher/assignments/${assignmentId}`, 'PATCH', editBody), context(assignmentId)) as Response).status).toBe(409);
 
     const publishBody = {
@@ -179,6 +196,13 @@ describe.runIf(enabled)('assignment authoring self-contained isolated database i
     expect(leftPayload.revision.questions[0].sourceHash).toBe(editedDerivativeHash);
     expect(leftPayload.revision.questions[0].contentHash).toBe(editedQuestionHash);
     expect(leftPayload.revision.contentHash).toBe(editedRevisionHash);
+    expect(await prisma.assignmentRevisionAssetReference.count({
+      where: {
+        revisionId: leftPayload.revision.id,
+        assetId: contentAsset.id,
+        field: 'PROMPT',
+      },
+    })).toBe(1);
   });
 });
 
@@ -191,9 +215,9 @@ function draftWith(question: Record<string, unknown>, title: string, instruction
 }
 
 function nonDefaultQuestion(question: Record<string, unknown> & { source: Record<string, unknown> }) {
-  return { ...question, stableQuestionId: 'catalog-non-default-decimal', responseType: 'SUBJECTIVE_FILE', points: 2.5, prompt: '非默认题面：上传校正设计报告。', referenceAnswer: '非默认参考答案：包含模型、参数与验证结果。', rubric: { schemaVersion: 'assignment-analytic-rubric.v1', criteria: [
-    { id: 'model-evidence', label: '模型证据', maxPoints: 1.25, evidenceDescription: '提供对象模型与指标证据。', feedbackGuidance: '核对模型来源和指标单位。', studentVisibleGuidance: '说明模型与目标。', levels: [{ id: 'model-high', label: '充分', minPoints: 0.76, maxPoints: 1.25, description: '模型证据完整。' }, { id: 'model-low', label: '待完善', minPoints: 0, maxPoints: 0.75, description: '模型证据存在缺口。' }] },
-    { id: 'verification-evidence', label: '验证证据', maxPoints: 1.25, evidenceDescription: '提供校正前后对比。', feedbackGuidance: '核对时域与频域验证。', studentVisibleGuidance: '展示验证过程。', levels: [{ id: 'verification-high', label: '充分', minPoints: 0.51, maxPoints: 1.25, description: '验证证据完整。' }, { id: 'verification-low', label: '待完善', minPoints: 0, maxPoints: 0.5, description: '验证证据存在缺口。' }] },
+  return { ...question, stableQuestionId: 'catalog-non-default-decimal', responseType: 'SUBJECTIVE_FILE', points: 2.5, prompt: '非默认题面：上传校正设计报告。', referenceAnswer: '非默认参考答案：包含模型、参数与验证结果。', rubric: { schemaVersion: 'assignment-scoring-rubric.v2', criteria: [
+    { id: 'model-evidence', label: '模型证据', goalDimension: 'controlModeling', maxPoints: 1.2, scoringStandard: '提供对象模型与指标证据。', detailedRubricEnabled: false, feedbackGuidance: '核对模型来源和指标单位。', studentVisibleGuidance: '说明模型与目标。', levels: [] },
+    { id: 'verification-evidence', label: '验证证据', goalDimension: 'engineeringDecision', maxPoints: 1.3, scoringStandard: '提供校正前后对比。', detailedRubricEnabled: false, feedbackGuidance: '核对时域与频域验证。', studentVisibleGuidance: '展示验证过程。', levels: [] },
   ] } };
 }
 

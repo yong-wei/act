@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   applyKonlingMessageRevision,
@@ -130,6 +130,100 @@ describe('Konling message revision reducer', () => {
       type: 'data-konling-optimization-status',
       data: { active: false },
     });
+  });
+
+  it('finalizes an empty visible body only when the structured turn explicitly allows it', async () => {
+    const buildSource = () => new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-tool-only' });
+        controller.enqueue({ type: 'finish' });
+        controller.close();
+      },
+    });
+    const finalize = vi.fn(async () => ({
+      body: '',
+      citations: [],
+      status: 'verified' as const,
+      userNotice: null,
+      metadata: {
+        konlingSmartPreparationActions: [{ actionId: 'public-action' }],
+      },
+    }));
+    const finalizedChunks = await readChunks(createKonlingMessageRevisionStream({
+      stream: buildSource(),
+      shouldFinalizeEmpty: () => true,
+      finalize,
+    }));
+
+    expect(finalize).toHaveBeenCalledWith({
+      messageId: 'assistant-tool-only',
+      body: '',
+    });
+    expect(finalizedChunks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'data-konling-message-revision',
+        data: expect.objectContaining({
+          body: '',
+          metadata: {
+            konlingSmartPreparationActions: [{ actionId: 'public-action' }],
+          },
+        }),
+      }),
+    ]));
+
+    finalize.mockClear();
+    const skippedChunks = await readChunks(createKonlingMessageRevisionStream({
+      stream: buildSource(),
+      shouldFinalizeEmpty: async () => false,
+      finalize,
+    }));
+    expect(finalize).not.toHaveBeenCalled();
+    expect(skippedChunks.filter((chunk) => chunk.type === 'data-konling-message-revision')).toEqual([]);
+  });
+
+  it('runs unfinalized-close cleanup once only when no revision completes', async () => {
+    const cleanup = vi.fn(async () => undefined);
+    const interruptedSource = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-interrupted' });
+        controller.enqueue({ type: 'error', errorText: 'provider failed' });
+        controller.close();
+      },
+    });
+    await readChunks(createKonlingMessageRevisionStream({
+      stream: interruptedSource,
+      finalize: async () => ({
+        body: '',
+        citations: [],
+        status: 'verified',
+        userNotice: null,
+        metadata: {},
+      }),
+      onUnfinalizedClose: cleanup,
+    }));
+    expect(cleanup).toHaveBeenCalledTimes(1);
+
+    cleanup.mockClear();
+    const completedSource = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'start', messageId: 'assistant-completed' });
+        controller.enqueue({ type: 'text-delta', delta: '已完成' });
+        controller.enqueue({ type: 'finish' });
+        controller.close();
+      },
+    });
+    await readChunks(createKonlingMessageRevisionStream({
+      stream: completedSource,
+      finalize: async () => ({
+        body: '已完成',
+        citations: [],
+        status: 'verified',
+        userNotice: null,
+        metadata: {},
+      }),
+      onUnfinalizedClose: cleanup,
+    }));
+    expect(cleanup).not.toHaveBeenCalled();
   });
 
   it('keeps optimization status transient in the client-only message metadata', () => {

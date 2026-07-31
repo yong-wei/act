@@ -14,6 +14,7 @@ import {
   retrieveTextbookHybridProgressive,
   type LoadedTextbookRetrievalIndex,
   type RetrievalOptions,
+  type TextbookRetrievalScope,
   type TextbookProgressiveRetrievalResponse,
   type TextbookRetrievalContinuationResult,
   type TextbookRetrievalResponse,
@@ -137,6 +138,7 @@ export interface RetrieveTextbookSourcePackV2Input {
   runtimeRoot?: string;
   topK?: number;
   maxTextChars?: number;
+  scope?: readonly TextbookRetrievalScope[];
   retrieve?: RetrieveTextbook;
   loadIndex?: LoadIndex;
   loadUnits?: LoadUnits;
@@ -171,6 +173,7 @@ export async function retrieveTextbookSourcePackV2(
       indexRoot,
       externalQuery,
       topK: Math.max(input.topK ?? DEFAULT_TOP_K, DEFAULT_TOP_K),
+      scope: input.scope,
     }),
     loadIndex(indexRoot),
   ]);
@@ -212,6 +215,7 @@ export async function retrieveTextbookSourcePackV2Progressive(
       indexRoot,
       externalQuery,
       topK: Math.max(input.topK ?? DEFAULT_TOP_K, DEFAULT_TOP_K),
+      scope: input.scope,
       embeddingTimeoutMs: EMBEDDING_TIMEOUT_MS,
       rerankModel: RERANK_MODEL,
       rerankTimeoutMs: RERANK_TIMEOUT_MS,

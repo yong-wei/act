@@ -55,9 +55,15 @@ RUN --mount=type=cache,target=/root/.npm \
 # Builder stage
 FROM base AS builder
 WORKDIR /app
+ARG APP_REVISION
 RUN apk add --no-cache python3
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN case "${APP_REVISION}" in \
+    [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;; \
+    *) echo "APP_REVISION must be one 40-character lowercase Git commit" >&2; exit 1 ;; \
+  esac \
+  && printf '%s\n' "${APP_REVISION}" > /app/.app-revision
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -73,11 +79,13 @@ RUN --mount=type=secret,id=database_url,required=false \
 # Runner stage
 FROM base AS runner
 WORKDIR /app
+ARG APP_REVISION
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV RUN_MIGRATIONS_ON_START=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+ENV APP_REVISION=${APP_REVISION}
 
 # BuildKit otherwise installs the large browser/office runtime in parallel with
 # the memory-intensive Next.js build. This copy is an explicit stage barrier.
@@ -103,10 +111,16 @@ COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/scripts/db ./scripts/db
+COPY --from=builder /app/scripts/actkg-release ./scripts/actkg-release
+COPY --from=builder /app/scripts/course-coverage ./scripts/course-coverage
 COPY --from=builder /app/scripts/knowledge ./scripts/knowledge
 COPY --from=builder /app/scripts/assignments ./scripts/assignments
 COPY --from=builder /app/scripts/lib ./scripts/lib
 COPY --from=builder /app/scripts/workers ./scripts/workers
+COPY --from=builder /app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases
+COPY --from=builder /app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage
+COPY --from=builder /app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl
+COPY --from=builder /app/.app-revision ./.app-revision
 
 # Set the correct permission for prerender cache
 RUN mkdir .next

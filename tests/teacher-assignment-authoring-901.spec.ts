@@ -41,7 +41,7 @@ async function mockList(page: Page, mode: 'ready' | 'empty' | 'error' = 'ready')
 }
 
 async function mockCatalog(page: Page) {
-  await page.route('**/api/teacher/assignments/question-catalog', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ catalogItemId: 'catalog-1', sourceId: 'source-1', sourceFamily: 'kaq-foundation-reviewed', questionType: 'subjective-text', stemPreview: '请说明二阶系统阻尼比与超调量的关系。', knowledgeTags: ['二阶系统'], difficulty: 0.6, reviewState: 'path-eligible', rubricReadiness: 'needs-authoring', sourceVersion: 'catalog-v1', contentHash: `sha256:${'a'.repeat(64)}` }] }) }));
+  await page.route('**/api/teacher/assignments/question-catalog', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ catalogItemId: 'catalog-1', sourceId: 'source-1', sourceFamily: 'checkpoint-authored-question', questionType: 'subjective-text', stemPreview: '请说明二阶系统阻尼比与超调量的关系。', knowledgeTags: ['二阶系统'], difficulty: 0.6, reviewState: 'path-eligible', rubricReadiness: 'needs-authoring', sourceVersion: 'catalog-v1', contentHash: `sha256:${'a'.repeat(64)}` }] }) }));
 }
 
 async function capture(page: Page, name: string) {
@@ -69,19 +69,70 @@ for (const width of desktopWidths) {
 
     await page.goto('/teacher/assignments/new');
     await page.getByRole('button', { name: '新建题目' }).click();
+    await expect(page.getByLabel('作业标题')).toHaveCount(1);
     await expect(page.getByRole('heading', { name: '题面' })).toBeVisible();
     await expect(page.getByRole('heading', { name: '参考答案' })).toBeVisible();
     await expect(page.getByRole('heading', { name: '评分标准' })).toBeVisible();
+    await expect(page.locator('[data-assignment-editor-field="question-prompt"]')).toBeVisible();
+    await expect(page.locator('[data-assignment-editor-field="reference-answer"]')).toBeVisible();
+    await expect(page.getByLabel('作业总分')).toHaveText('10.0');
+    const firstCriterion = page.getByLabel('评分项 1 名称').locator('xpath=ancestor::article');
+    await firstCriterion.getByRole('button', { name: '折叠评分项 1' }).click();
+    await expect(firstCriterion.getByText('10 分')).toBeVisible();
+    await expect(firstCriterion.getByText('评分标准', { exact: true })).toBeHidden();
+    await firstCriterion.getByRole('button', { name: '展开评分项 1' }).click();
+    if (width === 768) {
+      await page.getByRole('button', { name: '添加评分项' }).click();
+      const secondCriterionToggle = page.getByRole('button', {
+        name: '折叠评分项 2',
+      });
+      await expect(secondCriterionToggle).toBeFocused();
+      await page.getByRole('button', { name: '删除评分项 2' }).click();
+      await expect(
+        page.getByRole('button', { name: '折叠评分项 1' }),
+      ).toBeFocused();
+
+      await page.getByRole('button', { name: '新建题目' }).click();
+      const outlineButtons = page.locator(
+        'aside[aria-label="题目大纲"] button[data-question-id]',
+      );
+      const movedQuestionId = await outlineButtons.nth(1).getAttribute(
+        'data-question-id',
+      );
+      const movedQuestion = page.locator(
+        `aside[aria-label="题目大纲"] [data-question-id="${movedQuestionId}"]`,
+      );
+      await movedQuestion
+        .locator('xpath=..')
+        .getByRole('button', { name: '上移第 2 题' })
+        .click();
+      await expect(movedQuestion).toBeFocused();
+      await movedQuestion
+        .locator('xpath=..')
+        .getByRole('button', { name: '删除第 1 题' })
+        .click();
+      await expect(outlineButtons.first()).toBeFocused();
+    }
     await page.getByRole('button', { name: '从题库选择' }).click();
     await expect(page.getByRole('dialog', { name: '从受治理题库选题' })).toBeVisible();
     await expect(page.getByText('可选，发布前必须补全参考答案与评分标准')).toBeVisible();
     await page.getByRole('button', { name: '关闭受治理题库' }).click();
     await expect(page.getByRole('button', { name: '从题库选择' })).toBeFocused();
     await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
+    const publicationSettings = page.locator('details[aria-label="发布设置"]');
+    await expect(publicationSettings).not.toHaveAttribute('open', '');
+    await publicationSettings.locator('summary').click();
     await page.locator('#assignment-validation-errors button').first().click();
-    await expect(page.locator('[tabindex="-1"]').filter({ hasText: '发布阻断项' })).toBeFocused();
+    await expect(page.getByLabel('作业标题')).toBeFocused();
     await capture(page, `editor-${width}`);
     if (width === 768) {
+      await page.getByLabel('作业标题').fill('控制系统分析作业');
+      await page
+        .locator('[data-assignment-editor-field="question-prompt"] [contenteditable="true"]')
+        .fill('说明二阶系统阻尼比与超调量的关系。');
+      await page
+        .locator('[data-assignment-editor-field="reference-answer"] [contenteditable="true"]')
+        .fill('阻尼比增大时，超调量通常减小。');
       await page.getByLabel('发布班级').selectOption('class-901');
       await page.getByLabel('开放时间').fill('2026-07-12T09:00');
       await page.getByLabel('截止时间').fill('2026-07-19T09:00');
@@ -201,7 +252,7 @@ test('list resolves the published assignment location with teacher-visible class
   await expect(page.getByLabel('按班级筛选').locator('option')).toContainText(['全部班级', '自控 2401']);
 });
 
-test('409 save conflict restores focus to the recovery alert', async ({ page, context }) => {
+test('autosave conflict preserves the active field focus', async ({ page, context }) => {
   await addTeacherSession(context);
   await mockList(page);
   let publishCount = 0;
@@ -210,14 +261,15 @@ test('409 save conflict restores focus to the recovery alert', async ({ page, co
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
   await fillPublicationSchedule(page);
   await page.getByRole('button', { name: '保存', exact: true }).click();
   await expect(page.getByText('自动保存：已保存')).toBeVisible();
-  await page.getByLabel('作业标题').fill('触发并发冲突');
-  await page.getByRole('button', { name: '保存', exact: true }).click();
+  const title = page.getByLabel('作业标题');
+  await title.fill('触发并发冲突');
   const alert = page.getByRole('alert').filter({ hasText: '检测到新版本' });
   await expect(alert).toBeVisible();
-  await expect(alert).toBeFocused();
+  await expect(title).toBeFocused();
   await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
   await expect(page.locator('#assignment-publication-state')).toContainText('存在版本冲突');
   expect(publishCount).toBe(0);
@@ -240,6 +292,7 @@ test('publication waits for an explicit saved baseline after a rapid edit', asyn
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
   await fillPublicationSchedule(page);
   await page.getByLabel('作业标题').fill('发布前最后一刻的新标题');
   await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
@@ -271,8 +324,9 @@ test('publication remains unavailable until queued autosaves finish', async ({ p
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
   await fillPublicationSchedule(page);
-  await expect(page.getByText('自动保存：保存中……')).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByText('自动保存：正在保存')).toBeVisible({ timeout: 5_000 });
   await page.getByLabel('作业标题').fill('排队期间的新标题');
   await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
   await expect(page.getByText('自动保存：已保存')).toBeVisible({ timeout: 5_000 });
@@ -304,6 +358,7 @@ test('publication waits for a second save when the draft changes during PATCH', 
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
   await fillPublicationSchedule(page);
   await page.getByRole('button', { name: '保存', exact: true }).click();
   await expect(page.getByText('自动保存：已保存')).toBeVisible();
@@ -336,17 +391,43 @@ test('schema blockers focus their exact fields', async ({ page, context }) => {
       },
       target: () => page.getByLabel('评分项 1 级别 2 分值边界'),
     },
-    { mutate: async () => page.getByLabel('允许作答类型').selectOption('SUBJECTIVE_FILE'), target: () => page.getByLabel('允许作答类型') },
   ];
   for (const item of cases) {
     await page.goto('/teacher/assignments/new');
     await page.getByRole('button', { name: '新建题目' }).click();
+    await fillRequiredQuestionContent(page);
     await fillPublicationSchedule(page);
     await item.mutate();
     await page.locator('#assignment-validation-errors button').first().click();
     await expect(item.target()).toBeFocused();
     await expect(item.target()).toHaveAttribute('aria-describedby', 'assignment-validation-errors');
   }
+});
+
+test('a collapsed scoring item expands and focuses its exact invalid detail field', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
+  await fillPublicationSchedule(page);
+
+  const criterion = page.getByLabel('评分项 1 名称').locator('xpath=ancestor::article');
+  const maximum = criterion.getByLabel('最高分');
+  await maximum.fill('0');
+  await criterion.getByRole('button', { name: '折叠评分项 1' }).click();
+  await expect(criterion.getByRole('button', { name: '展开评分项 1' }))
+    .toHaveAttribute('aria-expanded', 'false');
+
+  await page
+    .locator('#assignment-validation-errors button')
+    .filter({ hasText: '补全评分项名称、分值与评分标准' })
+    .first()
+    .click();
+
+  await expect(criterion.getByRole('button', { name: '折叠评分项 1' }))
+    .toHaveAttribute('aria-expanded', 'true');
+  await expect(maximum).toBeFocused();
 });
 
 test('invalid decimal rubric never reaches save or publish', async ({ page, context }) => {
@@ -356,6 +437,7 @@ test('invalid decimal rubric never reaches save or publish', async ({ page, cont
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
   await fillPublicationSchedule(page);
   await page.getByLabel('启用详细评分细则').check();
   await page.getByRole('button', { name: '添加评价级别' }).click();
@@ -371,6 +453,7 @@ test('rubric boundary conflict never reaches save or publish', async ({ page, co
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
   await fillPublicationSchedule(page);
   await page.getByLabel('启用详细评分细则').check();
   await page.getByRole('button', { name: '添加评价级别' }).click();
@@ -515,7 +598,7 @@ test('an edited single level keeps its content while the two-level shortcut uses
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
-  await expect(page.getByLabel('作业总分')).toHaveAttribute('step', '0.1');
+  await expect(page.getByLabel('作业总分')).toHaveText('10.0');
   await page.getByLabel('启用详细评分细则').check();
   await page.getByLabel('评分项 1 档位 1 名称').fill('教师高档');
 
@@ -534,6 +617,7 @@ test('autosave 400 prevents publish and focuses the blocker', async ({ page, con
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
   await fillPublicationSchedule(page);
   await expect(page.getByText('自动保存：保存失败')).toBeVisible({ timeout: 5_000 });
   await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
@@ -556,6 +640,7 @@ test('aborted publish is recoverable and retry succeeds', async ({ page, context
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
   await fillPublicationSchedule(page);
   await page.getByRole('button', { name: '保存', exact: true }).click();
   await expect(page.getByText('自动保存：已保存')).toBeVisible();
@@ -583,6 +668,7 @@ test('successful publication leaves the editor through one completion flow', asy
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
   await page.getByRole('button', { name: '新建题目' }).click();
+  await fillRequiredQuestionContent(page);
   await fillPublicationSchedule(page);
   await page.getByRole('button', { name: '保存', exact: true }).click();
   await expect(page.getByText('自动保存：已保存')).toBeVisible();
@@ -607,11 +693,112 @@ test('autosave completion preserves the active input focus', async ({ page, cont
   await expect(title).toHaveValue('持续输入');
 });
 
+test('semantic publication blockers resolve colon ids to exact authoring fields', async ({ page, context }) => {
+  await addTeacherSession(context);
+  const revision = {
+    id: 'semantic-revision',
+    state: 'DRAFT',
+    version: 1,
+    contentHash: savedDigest,
+    title: '语义阻断定位',
+    instructions: '',
+    totalPoints: 10,
+    latePolicy: { version: 1, mode: 'CLOSED' },
+    responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
+    resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
+    solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
+    questions: [{
+      stableQuestionId: 'question:with:colon',
+      orderIndex: 0,
+      responseType: 'SUBJECTIVE_TEXT',
+      points: 10,
+      promptSnapshot: {
+        text: '完整题面\n\n![受保护题图](/api/assignments/semantic-assignment/content-assets/prompt-asset "asset:prompt-asset")',
+      },
+      answerSnapshot: { text: '完整参考答案' },
+      rubricSnapshot: {
+        schemaVersion: 'assignment-scoring-rubric.v2',
+        criteria: [
+          {
+            id: 'standard:criterion',
+            label: '标准评分项',
+            maxPoints: 5,
+            scoringStandard: '',
+            detailedRubricEnabled: false,
+            levels: [],
+          },
+          {
+            id: 'detail:criterion',
+            label: '详细评分项',
+            maxPoints: 4,
+            scoringStandard: '按级别评分',
+            detailedRubricEnabled: true,
+            levels: [{
+              id: 'level:one',
+              label: '达成',
+              maxPoints: 4,
+              guideline: '',
+            }],
+          },
+        ],
+      },
+      sourceFamily: 'MANUAL',
+      sourceHash: `sha256:${'a'.repeat(64)}`,
+      sourceReviewState: 'author-owned',
+      sourceLineage: { marker: 'assignment-authoring' },
+    }],
+  };
+  await page.route('**/api/teacher/assignments/semantic-assignment**', (route) => {
+    if (route.request().url().endsWith('/next-draft')) {
+      return route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ revision }),
+      });
+    }
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ assignment: { id: 'semantic-assignment', revisions: [revision] } }),
+    });
+  });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.route(
+    '**/api/assignments/semantic-assignment/content-assets/prompt-asset',
+    (route) => route.fulfill({
+      contentType: 'image/png',
+      body: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        'base64',
+      ),
+    }),
+  );
+  await page.goto('/teacher/assignments/semantic-assignment/edit');
+  await page.getByRole('button', { name: '预览' }).click();
+  const preview = page.locator('[aria-label="作业预览"]');
+  await expect(preview.getByRole('img', { name: '受保护题图' })).toBeVisible();
+  await expect(preview.getByRole('img', { name: '受保护题图' })).toHaveAttribute(
+    'src',
+    '/api/assignments/semantic-assignment/content-assets/prompt-asset',
+  );
+  const settings = page.locator('details[aria-label="发布设置"]');
+  await settings.locator('summary').click();
+
+  await page.getByRole('button', { name: '补全评分标准' }).click();
+  await expect(page.getByLabel('评分项 1 评分标准')).toBeFocused();
+
+  await page.getByRole('button', { name: '补全评价级别评分准则' }).click();
+  await expect(page.getByLabel('评分项 2 级别 1 评分准则')).toBeFocused();
+
+  await page.getByRole('button', {
+    name: '题目分值与评分标准合计不一致',
+  }).click();
+  await expect(page.getByLabel('题目分值')).toBeFocused();
+});
+
 test('catalog selection abort keeps the picker open and retry succeeds', async ({ page, context }) => {
   await addTeacherSession(context);
   let selectionAttempts = 0;
   await page.route('**/api/teacher/assignments/question-catalog', async (route) => {
-    if (route.request().method() === 'GET') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ catalogItemId: 'retry-catalog', sourceId: 'retry-source', sourceFamily: 'checkpoint-authored-question', questionType: 'subjective-text', stemPreview: '可恢复选择题', knowledgeTags: ['控制'], difficulty: 0.5, reviewState: 'path-eligible', rubricReadiness: 'ready', sourceVersion: 'v1', contentHash: `sha256:${'a'.repeat(64)}` }] }) });
+    if (route.request().method() === 'GET') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ catalogItemId: 'retry-catalog', sourceId: 'retry-source', sourceFamily: 'preset-adaptive-question', questionType: 'subjective-text', stemPreview: '可恢复选择题', knowledgeTags: ['控制'], difficulty: 0.5, reviewState: 'path-eligible', rubricReadiness: 'ready', sourceVersion: 'v1', contentHash: `sha256:${'a'.repeat(64)}` }] }) });
     selectionAttempts += 1;
     if (selectionAttempts === 1) return route.abort('failed');
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ question: { stableQuestionId: 'selected-retry-question', responseType: 'SUBJECTIVE_TEXT', points: 10, prompt: '重试成功后的完整题面', referenceAnswer: '完整参考答案', rubric: { schemaVersion: 'assignment-analytic-rubric.v1', criteria: [{ id: 'criterion-1', label: '完成质量', maxPoints: 10, evidenceDescription: '可复核证据', feedbackGuidance: '反馈指导', levels: [{ id: 'level-1', label: '达成', minPoints: 0, maxPoints: 10, description: '完整档位' }] }] }, source: { family: 'MANUAL', authoringMarker: 'assignment-authoring' } } }) });
@@ -626,7 +813,9 @@ test('catalog selection abort keeps the picker open and retry succeeds', async (
   await expect(page.getByRole('dialog', { name: '从受治理题库选题' })).toBeVisible();
   await page.getByRole('button', { name: '选择此题' }).click();
   await expect(page.getByRole('dialog', { name: '从受治理题库选题' })).toBeHidden();
-  await expect(page.getByRole('textbox', { name: '题面' })).toHaveValue('重试成功后的完整题面');
+  await expect(
+    page.locator('[data-assignment-editor-field="question-prompt"] [contenteditable="true"]'),
+  ).toHaveText('重试成功后的完整题面');
   expect(selectionAttempts).toBe(2);
 });
 
@@ -641,18 +830,38 @@ test('managed class picker exposes loading, error recovery, empty state, and sel
   });
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto('/teacher/assignments/new');
+  await page.locator('details[aria-label="发布设置"] summary').click();
   await expect(page.getByText('正在加载可管理班级……')).toBeVisible();
   await expect(page.getByRole('alert').filter({ hasText: '可管理班级加载失败' })).toBeVisible();
   await page.getByRole('button', { name: '重试' }).click();
   await expect(page.getByText('暂无可发布的活跃班级')).toBeVisible();
   await page.reload();
+  await page.locator('details[aria-label="发布设置"] summary').click();
   await expect(page.getByLabel('发布班级')).toBeVisible();
   await page.getByLabel('发布班级').selectOption('managed-1');
   await expect(page.getByLabel('发布班级')).toHaveValue('managed-1');
 });
 
 async function fillPublicationSchedule(page: Page) {
+  const settings = page.locator('details[aria-label="发布设置"]');
+  if (!(await settings.evaluate((element) => (element as HTMLDetailsElement).open))) {
+    await settings.locator('summary').click();
+  }
   await page.getByLabel('发布班级').selectOption('class-901');
   await page.getByLabel('开放时间').fill('2099-01-01T09:00');
   await page.getByLabel('截止时间').fill('2099-01-02T09:00');
+}
+
+async function fillRequiredQuestionContent(page: Page) {
+  await page.getByLabel('作业标题').fill('初始作业');
+  await page
+    .locator(
+      '[data-assignment-editor-field="question-prompt"] [contenteditable="true"]',
+    )
+    .fill('说明二阶系统阻尼比与超调量的关系。');
+  await page
+    .locator(
+      '[data-assignment-editor-field="reference-answer"] [contenteditable="true"]',
+    )
+    .fill('阻尼比增大时，超调量通常减小。');
 }

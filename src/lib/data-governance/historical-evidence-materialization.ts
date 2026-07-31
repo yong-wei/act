@@ -1,6 +1,10 @@
 import type { Prisma } from '@prisma/client';
 
 import {
+  writeLegacyKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
+import {
   classifyEvidenceRow,
   getEvidenceSourceCatalog,
   type EvidenceCoverageRow,
@@ -14,6 +18,7 @@ import {
   eventToLearningFactInput,
   shouldMaterializeLearningFact,
 } from './learning-fact-materialization';
+import { resolveActiveKnowledgeRevision } from './knowledge-truth-revision';
 
 type LearningFactCreateManyDelegate = {
   createMany(args: {
@@ -557,12 +562,22 @@ export async function applyHistoricalEvidenceMaterializationPlan(
     : DEFAULT_APPLY_BATCH_SIZE;
   let createdRows = 0;
 
+  const activeRevision = await resolveActiveKnowledgeRevision(db as never);
   for (let offset = 0; offset < factsToCreate.length; offset += batchSize) {
-    const result = await db.learningFact.createMany({
-      data: factsToCreate.slice(offset, offset + batchSize),
-      skipDuplicates: true,
-    });
-    createdRows += result.count;
+    const batch = factsToCreate.slice(offset, offset + batchSize);
+    const result = await writeLegacyKnowledgeScopedLearningFacts(
+      {
+        learningFact: {
+          createMany: async (args) => db.learningFact.createMany({
+            data: [...args.data] as Prisma.LearningFactCreateManyInput[],
+            skipDuplicates: args.skipDuplicates,
+          }),
+        },
+      },
+      batch as LearningFactWriteRow[],
+      { knowledgeRevisionRef: activeRevision.id },
+    );
+    createdRows += result.written;
   }
 
   return {

@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 
 import { getServerAuthSession } from '@/lib/auth';
+import {
+  LearningPathMutationBlockedError,
+} from '@/lib/canonical-learning-path-transition/mutation-guard';
 import { recordPathIntervention } from '@/lib/control-correction-path-rounds';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
@@ -135,6 +138,14 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof LearningPathMutationBlockedError) {
+      return NextResponse.json({
+        error: error.code,
+        reason: error.reason,
+        pathStatus: error.pathStatus,
+        pathId: error.pathId,
+      }, { status: 409 });
+    }
     console.error('[TeacherEvidenceIntervention] Error:', error);
     return NextResponse.json({ error: '创建教师证据处置失败' }, { status: 500 });
   }

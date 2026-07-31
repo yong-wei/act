@@ -781,6 +781,15 @@ describe('Konling teaching-assistant server context', () => {
       topic: '频域稳定裕度',
       audience: '自动化专业本科生',
       durationMinutes: 45,
+      selectedClassId: 'class-1',
+      textbookRanges: [{
+        bookId: 'book-1',
+        level: 'SECTION',
+        unitId: 'section-1',
+        structuralPath: ['chapter-1', 'section-1'],
+      }],
+      aggregateClassContextRef: 'legacy-diagnosis-ref',
+      aggregateClassContext: { classId: 'class-legacy' },
       scopeConfirmedAt: new Date('2026-07-19T03:10:00.000Z'),
       goalsConfirmedAt: new Date('2026-07-19T03:11:00.000Z'),
       sources: [{
@@ -810,7 +819,17 @@ describe('Konling teaching-assistant server context', () => {
       citationState: 'verified',
       reviewState: 'confirmed',
       clarificationReadiness: { status: 'ready', canGenerate: true },
+      currentTask: {
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1',
+          level: 'SECTION',
+          unitId: 'section-1',
+          structuralPath: ['chapter-1', 'section-1'],
+        }],
+      },
     });
+    expect(context.smartPreparation?.currentTask).not.toHaveProperty('aggregateClassContextRef');
     expect(context.smartPreparation?.confirmedDecisions).toEqual(expect.arrayContaining([
       expect.objectContaining({ field: 'scope', confirmedBy: 'teacher-1' }),
       expect.objectContaining({ field: 'goals', value: ['goal-1'] }),

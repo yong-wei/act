@@ -23,6 +23,7 @@ import {
 } from '@/lib/textbook-retrieval';
 import type {
   EmbeddingResponse,
+  RerankRequest,
   RerankResponse,
   TextbookEmbeddingClient,
   TextbookRerankClient,
@@ -509,6 +510,67 @@ describe('textbook hybrid retrieval runtime', () => {
     for (const forbidden of ['K=37', '张三', 'student-1', 'mastery', 'risk', '学习记录', 'private']) {
       expect(providerPayloads).not.toContain(forbidden);
     }
+  });
+
+  it('ranks within the confirmed scope before topK across lexical, vector, and rerank paths', async () => {
+    const windows = [
+      ...Array.from({ length: 25 }, (_, index) => ({
+        id: `textbook-window:global/${index}`,
+        body: '反馈控制 '.repeat(20),
+        sourcePath: `global/${index}.md`,
+        bookId: 'global-book',
+      })),
+      {
+        id: 'textbook-window:confirmed/late',
+        body: '反馈控制',
+        sourcePath: 'confirmed/late.md',
+        bookId: 'confirmed-book',
+      },
+    ];
+    const root = await buildIndexFixture('unused', {
+      windows,
+      vectors: windows.map(() => [1, 0]),
+      books: [
+        { bookId: 'global-book', edition: '1' },
+        { bookId: 'confirmed-book', edition: '1' },
+      ],
+      sourcePriority: ['global-book', 'confirmed-book'],
+    });
+    const embeddingClient = embedding([1, 0]);
+    const rerankClient: TextbookRerankClient = {
+      rerank: vi.fn(async ({ documents }) => ({
+        results: documents.map((document: RerankRequest['documents'][number]) => ({
+          index: document.index,
+          score: 1,
+        })),
+      })),
+    };
+
+    const unscoped = await retrieveTextbookHybrid('反馈控制', {
+      indexRoot: root,
+      topK: 8,
+      externalQuery: null,
+    });
+    expect(unscoped.results.map((item) => item.windowId))
+      .not.toContain('textbook-window:confirmed/late');
+
+    const result = await retrieveTextbookHybrid('反馈控制', {
+      indexRoot: root,
+      topK: 8,
+      scope: [{ bookId: 'confirmed-book' }],
+      embeddingClient,
+      rerankClient,
+      rerankModel: 'fixture/reranker',
+    });
+
+    expect(result.results).toHaveLength(1);
+    expect(result.results[0]).toMatchObject({
+      windowId: 'textbook-window:confirmed/late',
+      bookId: 'confirmed-book',
+    });
+    expect(rerankClient.rerank).toHaveBeenCalledWith(expect.objectContaining({
+      documents: [expect.objectContaining({ text: '反馈控制' })],
+    }));
   });
 
   it('keeps local lexical retrieval but disables embedding and rerank without a safe external query', async () => {

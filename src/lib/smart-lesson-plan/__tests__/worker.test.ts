@@ -12,6 +12,7 @@ const sourcePackMocks = vi.hoisted(() => ({
   pack: vi.fn(),
 }));
 const adoptionMocks = vi.hoisted(() => ({ adopt: vi.fn() }));
+const textbookMocks = vi.hoisted(() => ({ retrieve: vi.fn() }));
 
 vi.mock('../service', () => ({
   beginCorrectionAttempt: serviceMocks.beginCorrection,
@@ -27,8 +28,11 @@ vi.mock('../../course-basis/lesson-design-source-pack', () => ({
 vi.mock('../../course-basis/service', () => ({
   adoptCourseBasisVersion: adoptionMocks.adopt,
 }));
+vi.mock('../textbook-resource-pack', () => ({
+  retrieveConfirmedTextbookBindings: textbookMocks.retrieve,
+}));
 
-import { processSmartLessonGenerationJob } from '../worker';
+import { consumeSmartLessonE2EFailOnce, processSmartLessonGenerationJob } from '../worker';
 
 const sourcePackItem = {
   id: 'item-1',
@@ -46,6 +50,17 @@ const sourcePackItem = {
     stableAnchor: 'chapter-1',
     contentHash: 'a'.repeat(64),
   },
+};
+const textbookBinding = {
+  citationId: 'textbook-v2:fragment:formula-3.2-1',
+  sourceVersionId: 'textbook-v2:book-1:8:revision-1',
+  anchor: 'formula-3.2-1',
+  contentHash: 'b'.repeat(64),
+  sourceKind: 'textbook' as const,
+  title: '单位阶跃响应',
+  structuralPath: ['chapter-3', 'section-3.2'],
+  snippet: '一阶系统单位阶跃响应为指数形式。',
+  href: '/textbooks/book-1/8/chapter-3/section-3.2#formula-3.2-1',
 };
 
 function outlineJobContext() {
@@ -87,6 +102,7 @@ function persistenceDb(context: object, transitionedCount = 1) {
 
 describe('smart lesson BullMQ worker', () => {
   beforeEach(() => {
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
     serviceMocks.fail.mockResolvedValue({ state: 'RETRYABLE' });
     serviceMocks.action.mockResolvedValue(undefined);
@@ -96,6 +112,84 @@ describe('smart lesson BullMQ worker', () => {
     });
     sourcePackMocks.sar.mockResolvedValue({ candidateRefs: { retrievalChunkIds: ['chunk-1'] } });
     sourcePackMocks.pack.mockResolvedValue({ retrieval: { pack: { items: [sourcePackItem] } } });
+    textbookMocks.retrieve.mockResolvedValue([]);
+  });
+
+  it('enables one fail-closed real-provider E2E fault only for the authorized stage and token', () => {
+    const token = `smart-lesson-e2e-fault-${'a'.repeat(48)}`;
+    const authorized = {
+      SMART_LESSON_REAL_PROVIDER_REQUIRED: '1',
+      SMART_LESSON_E2E_FAIL_ONCE_STAGE: 'BRIDGE_IN',
+      SMART_LESSON_E2E_FAULT_TOKEN: token,
+      SMART_LESSON_E2E_FAULT_SECRET: token,
+    };
+    expect(consumeSmartLessonE2EFailOnce('OUTLINE', authorized)).toBe(false);
+    expect(consumeSmartLessonE2EFailOnce('BRIDGE_IN', {
+      ...authorized,
+      SMART_LESSON_E2E_FAULT_SECRET: 'mismatch',
+    })).toBe(false);
+    expect(consumeSmartLessonE2EFailOnce('BRIDGE_IN', authorized)).toBe(true);
+    expect(consumeSmartLessonE2EFailOnce('BRIDGE_IN', authorized)).toBe(false);
+    expect(consumeSmartLessonE2EFailOnce('BRIDGE_IN', {
+      ...authorized,
+      SMART_LESSON_REAL_PROVIDER_REQUIRED: '0',
+      SMART_LESSON_E2E_FAULT_TOKEN: `smart-lesson-e2e-fault-${'b'.repeat(48)}`,
+      SMART_LESSON_E2E_FAULT_SECRET: `smart-lesson-e2e-fault-${'b'.repeat(48)}`,
+    })).toBe(false);
+  });
+
+  it('routes the authorized one-time BRIDGE_IN fault through failGenerationStage', async () => {
+    const token = `smart-lesson-e2e-fault-${'c'.repeat(48)}`;
+    vi.stubEnv('SMART_LESSON_REAL_PROVIDER_REQUIRED', '1');
+    vi.stubEnv('SMART_LESSON_E2E_FAIL_ONCE_STAGE', 'BRIDGE_IN');
+    vi.stubEnv('SMART_LESSON_E2E_FAULT_TOKEN', token);
+    vi.stubEnv('SMART_LESSON_E2E_FAULT_SECRET', token);
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const context = {
+      id: 'job-fault', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'BRIDGE_IN',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-bridge', kind: 'BRIDGE_IN', orderIndex: 1, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const generate = vi.fn();
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true,
+      claimToken: 'claim-fault',
+      attempt: { id: 'attempt-fault', idempotencyKey: 'attempt-fault-key' },
+    });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-fault',
+      vi.fn(async () => ({
+        serviceId: 'provider-1',
+        providerKind: 'openai-compatible',
+        model: 'model-1',
+        generate,
+      })) as never,
+    )).resolves.toEqual({ jobId: 'job-fault', state: 'RETRYABLE' });
+
+    expect(generate).not.toHaveBeenCalled();
+    expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      jobId: 'job-fault',
+      stage: 'BRIDGE_IN',
+      attemptId: 'attempt-fault',
+      claimToken: 'claim-fault',
+      failureCode: 'provider-timeout',
+      retryable: true,
+    }));
   });
 
   it('loads governed evidence, claims before provider use, and persists the stage result', async () => {
@@ -155,6 +249,108 @@ describe('smart lesson BullMQ worker', () => {
       stage: 'OUTLINE', claimToken: 'claim-1', attemptId: 'attempt-1', output: outline,
     }));
     expect(serviceMocks.fail).not.toHaveBeenCalled();
+  });
+
+  it('merges confirmed textbook evidence into the provider request without adopting it as a course-basis version', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5], ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const textbookRanges = [{
+      bookId: 'book-1', level: 'SECTION', unitId: 'section-3.2', structuralPath: ['chapter-3', 'section-3.2'],
+    }];
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteStage: 'BRIDGE_IN',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-bridge', kind: 'BRIDGE_IN', orderIndex: 1, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null, textbookRanges,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const db = { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } };
+    textbookMocks.retrieve.mockResolvedValue([textbookBinding]);
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+    const generate = vi.fn(async () => ({
+      output: {
+        minutes: 5, teacherActivity: '讲授', studentActivity: '参与', assessment: '观察',
+        steps: [{
+          title: '导入', minutes: 5, teacherActivity: '展示', studentActivity: '回答', assessment: '提问',
+          sourceBindings: [textbookBinding],
+        }],
+      },
+      normalizedResponseId: 'response-1', inputTokens: 10, outputTokens: 20, costMicros: null,
+    }));
+
+    await expect(processSmartLessonGenerationJob(db as never, 'job-1', vi.fn(async () => ({
+      serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate,
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(textbookMocks.retrieve).toHaveBeenCalledWith('稳定性', textbookRanges);
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({
+      prompt: expect.stringContaining(textbookBinding.snippet),
+    }));
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      output: expect.objectContaining({
+        steps: [expect.objectContaining({ sourceBindings: [textbookBinding] })],
+      }),
+    }));
+    expect(adoptionMocks.adopt).toHaveBeenCalledTimes(1);
+    expect(adoptionMocks.adopt).toHaveBeenCalledWith(db, expect.objectContaining({ versionId: 'version-1' }));
+  });
+
+  it('generates from confirmed textbook evidence when the task has no uploaded versions', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5], ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const textbookRanges = [{
+      bookId: 'book-1', level: 'SECTION', unitId: 'section-3.2', structuralPath: ['chapter-3', 'section-3.2'],
+    }];
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'OUTLINE',
+      stages: [{ id: 'stage-1', kind: 'OUTLINE', orderIndex: 0, state: 'PENDING', output: null }],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null, textbookRanges,
+        sources: [], knowledgePoints: [], goals: [],
+      } },
+    };
+    const db = { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } };
+    textbookMocks.retrieve.mockResolvedValue([textbookBinding]);
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+    const generate = vi.fn(async () => ({
+      output: outline,
+      normalizedResponseId: 'response-1',
+      inputTokens: 10,
+      outputTokens: 20,
+      costMicros: null,
+    }));
+
+    await expect(processSmartLessonGenerationJob(db as never, 'job-1', vi.fn(async () => ({
+      serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate,
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(sourcePackMocks.sar).not.toHaveBeenCalled();
+    expect(sourcePackMocks.pack).not.toHaveBeenCalled();
+    expect(textbookMocks.retrieve).toHaveBeenCalledWith('稳定性', textbookRanges);
+    expect(adoptionMocks.adopt).not.toHaveBeenCalled();
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({
+      prompt: expect.stringContaining(textbookBinding.snippet),
+    }));
   });
 
   it('makes exactly one linked correction call and marks a second invalid result retryable', async () => {
@@ -252,6 +448,77 @@ describe('smart lesson BullMQ worker', () => {
       attemptId: 'attempt-correction-1',
       output: outline,
       validationReceipt: expect.objectContaining({ valid: true }),
+    }));
+  });
+
+  it('provides the expected stage minutes to correction without relaxing source bindings', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 10], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteStage: 'PARTICIPATORY_LEARNING',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-participatory', kind: 'PARTICIPATORY_LEARNING', orderIndex: 4, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 35,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const stageOutput = (minutes: number) => ({
+      minutes, teacherActivity: '讲授', studentActivity: '参与', assessment: '观察',
+      steps: [{
+        title: '参与式学习', minutes, teacherActivity: '引导', studentActivity: '练习', assessment: '反馈',
+        sourceBindings: [{
+          citationId: sourcePackItem.citationTargetId,
+          sourceVersionId: sourcePackItem.metadata.versionId,
+          anchor: sourcePackItem.metadata.stableAnchor,
+          contentHash: sourcePackItem.metadata.contentHash,
+        }],
+      }],
+    });
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: stageOutput(5), normalizedResponseId: 'invalid-duration' })
+      .mockResolvedValueOnce({ output: stageOutput(10), normalizedResponseId: 'corrected-duration' });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      request: expect.objectContaining({
+        correctionContext: expect.objectContaining({
+          stage: 'PARTICIPATORY_LEARNING',
+          expectedMinutes: 10,
+          actualMinutes: 5,
+        }),
+      }),
+    }));
+    expect(generate).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      prompt: expect.stringContaining('"expectedMinutes":10'),
+    }));
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      output: expect.objectContaining({
+        minutes: 10,
+        steps: [expect.objectContaining({
+          sourceBindings: [expect.objectContaining({
+            citationId: sourcePackItem.citationTargetId,
+            contentHash: sourcePackItem.metadata.contentHash,
+          })],
+        })],
+      }),
     }));
   });
 

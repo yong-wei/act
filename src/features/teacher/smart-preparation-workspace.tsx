@@ -14,6 +14,7 @@ import { SmartLessonPlanWorkspace } from './smart-lesson-plan-workspace';
 export function SmartPreparationWorkspace({
   courseBases,
   classDiagnosisOptions,
+  textbookCatalog,
   initialTasks,
   initialSelectedTaskId,
   initialView = 'tasks',
@@ -22,7 +23,26 @@ export function SmartPreparationWorkspace({
   initialHasMoreCourseBases,
 }: {
   courseBases: any[];
-  classDiagnosisOptions: Array<{ classId: string; className: string; diagnosisRef: string; generatedAt: string }>;
+  classDiagnosisOptions: Array<{
+    classId: string;
+    className: string;
+    isDefault: boolean;
+    available: boolean;
+    availabilityReason: string;
+    asOf: string | null;
+  }>;
+  textbookCatalog: Array<{
+    bookId: string;
+    title: string;
+    edition: string;
+    ranges: Array<{
+      level: 'CHAPTER' | 'SECTION';
+      unitId: string;
+      title: string;
+      naturalNumber: string | null;
+      structuralPath: string[];
+    }>;
+  }>;
   initialTasks: Record<string, unknown>[];
   initialSelectedTaskId?: string;
   initialView?: 'tasks' | 'basis';
@@ -88,6 +108,7 @@ export function SmartPreparationWorkspace({
       <SmartLessonPlanWorkspace
         courseBases={courseBases}
         classDiagnosisOptions={classDiagnosisOptions}
+        textbookCatalog={textbookCatalog}
         initialTasks={initialTasks}
         initialSelectedTaskId={initialSelectedTaskId}
         preparationReturnState={basisReturn ? null : returnState}

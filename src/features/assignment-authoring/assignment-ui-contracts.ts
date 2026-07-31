@@ -27,19 +27,23 @@ export interface AssignmentEditorDocument {
 export interface GovernedQuestionSummary {
   catalogItemId: string;
   sourceId: string;
-  sourceFamily: string;
+  sourceFamily:
+    | 'acq-static-question'
+    | 'checkpoint-authored-question'
+    | 'icourse-objective-bank'
+    | 'preset-adaptive-question';
   questionType: 'subjective-text' | 'subjective-file' | 'choice' | 'unknown';
   stemPreview: string;
   knowledgeTags: string[];
   difficulty: number | null;
-  reviewState: string;
+  reviewState: 'path-eligible' | 'reviewed' | 'approved';
   rubricReadiness: 'ready' | 'needs-authoring';
   sourceVersion: string;
   contentHash: string;
 }
 
 export const EMPTY_ASSIGNMENT_DRAFT: AssignmentDraftInput = {
-  title: '未命名作业',
+  title: '',
   instructions: '',
   totalPoints: 10,
   questions: [],
@@ -48,6 +52,76 @@ export const EMPTY_ASSIGNMENT_DRAFT: AssignmentDraftInput = {
   resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
   solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
 };
+
+const QUESTION_SOURCE_LABELS = {
+  'acq-static-question': '自适应评估题库',
+  'checkpoint-authored-question': '学习检查点题库',
+  'icourse-objective-bank': '爱课程客观题库',
+  'preset-adaptive-question': '预设自适应题库',
+} as const;
+
+const QUESTION_TYPE_LABELS = {
+  'subjective-text': '主观题',
+  'subjective-file': '附件作答题',
+  choice: '选择题',
+  unknown: '待确认题型',
+} as const;
+
+const REVIEW_STATE_LABELS = {
+  'path-eligible': '已通过路径审核',
+  reviewed: '已审核',
+  approved: '已批准',
+} as const;
+
+const RUBRIC_READINESS_LABELS = {
+  ready: '评分已就绪',
+  'needs-authoring': '评分待补全',
+} as const;
+
+export type GovernedQuestionMetadataKind =
+  | 'source'
+  | 'questionType'
+  | 'reviewState'
+  | 'rubricReadiness'
+  | 'version';
+
+export function governedQuestionMetadataLabel(
+  kind: GovernedQuestionMetadataKind,
+  value: string,
+): string {
+  if (kind === 'version') {
+    if (!value.trim() || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/.test(value)) {
+      throw new Error(`unmapped-governed-question-metadata:${kind}:${value}`);
+    }
+    return `版本 ${value}`;
+  }
+  const labels = {
+    source: QUESTION_SOURCE_LABELS,
+    questionType: QUESTION_TYPE_LABELS,
+    reviewState: REVIEW_STATE_LABELS,
+    rubricReadiness: RUBRIC_READINESS_LABELS,
+  } as const;
+  const label = (labels[kind] as Record<string, string>)[value];
+  if (!label) {
+    throw new Error(`unmapped-governed-question-metadata:${kind}:${value}`);
+  }
+  return label;
+}
+
+export function deriveAssignmentTotal(
+  questions: AssignmentDraftInput['questions'],
+): number {
+  return Math.round(
+    questions.reduce((total, question) => total + question.points, 0) * 10,
+  ) / 10;
+}
+
+export function synchronizeAssignmentTotal(
+  draft: AssignmentDraftInput,
+): AssignmentDraftInput {
+  if (draft.questions.length === 0) return draft;
+  return { ...draft, totalPoints: deriveAssignmentTotal(draft.questions) };
+}
 
 export function assignmentNextAction(item: TeacherAssignmentListItem): string {
   if (item.state === 'DRAFT') return '继续编辑';

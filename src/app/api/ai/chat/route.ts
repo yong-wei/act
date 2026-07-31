@@ -41,7 +41,9 @@ import {
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
   getOrCreateKonlingAgentSession,
+  KONLING_CANDIDATE_READ_TOOLS,
   KonlingRuntimeScopeError,
+  mergeCandidateAssignedCitations,
   normalizeKonlingKnowledgeWorkspaceHint,
   serializeKonlingCitationMetadata,
   verifyKonlingRuntimeScope,
@@ -57,6 +59,7 @@ import {
   releaseKonlingConversationTurn,
   replaceKonlingConversationAssistantRevision,
   resolveKonlingContextEventScope,
+  serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
@@ -69,6 +72,14 @@ import {
 import type { KonlingAssignedCitation } from '@/lib/konling-citation-protocol';
 import { createKonlingMessageRevisionStream } from '@/lib/konling-message-revision-stream';
 import { resolveKonlingTextbookOptimizations } from '@/lib/konling-textbook-background-optimization';
+import {
+  correctKonlingMalformedStructuredResponse,
+  createKonlingStructuredActionStream,
+  executeKonlingScopedAiTool,
+  normalizeKonlingAssistantMessage,
+  normalizeKonlingStructuredText,
+  type KonlingStructuredActionStreamState,
+} from '@/lib/konling-structured-action-runtime';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -79,6 +90,11 @@ const CITATION_REPAIR_SYSTEM_PROMPT = [
   '只能把 unresolvedMarkers 映射到 assignedCitations 中已有的 displayNumber。',
   '不得增加来源、URL、正文、解释或其他字段。',
   '仅返回 JSON 数组，元素格式为 {"marker":"原始标记","displayNumber":1}。',
+].join('\n');
+const STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT = [
+  '修复一条被安全截留的助手响应。',
+  '只返回面向用户的简洁正文，不得输出工具标记、XML、DSML、JSON 调用封套或链接。',
+  '如果无法可靠恢复原意，明确说明结构化操作未完成并请用户重试。',
 ].join('\n');
 
 function sanitizeAIErrorMessage(error: unknown) {
@@ -328,26 +344,56 @@ export async function POST(request: Request) {
     };
 
     if (session?.user?.id && hasRuntimeContext) {
-      const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride({
-        db: prisma,
-        modeId: teachingAssistantModeId,
-        authenticatedUserId: session.user.id,
-        role: session.user.role,
-        clientContextHints: modeClientContextHints,
-      });
-      const runtimeTargetUserId = modeScopeOverride.targetUserId ?? session.user.id;
-      const runtimeClassId = modeScopeOverride.classId ?? classId;
-      const scope = await verifyKonlingRuntimeScope(prisma, {
-        authenticatedUserId: session.user.id,
-        role: session.user.role,
-        targetUserId: runtimeTargetUserId,
-        classId: runtimeClassId,
-        courseId: courseId || pageContext?.courseId || conversation?.courseId,
-        pageId: pageId || pageContext?.stepId || conversation?.pageId,
-        resourceId,
-        pathNodeId,
-        pageContextHint: pageContext,
-      });
+      const candidateScope = pageContext?.candidateGraph
+        ? await verifyKonlingRuntimeScope(prisma, {
+            authenticatedUserId: session.user.id,
+            role: session.user.role,
+            targetUserId: session.user.id,
+            classId: null,
+            courseId: courseId || pageContext.courseId || conversation?.courseId,
+            pageId: pageId || pageContext.stepId || conversation?.pageId,
+            resourceId: null,
+            pathNodeId: null,
+            pageContextHint: pageContext,
+          })
+        : null;
+      if (candidateScope && !candidateScope.ok) {
+        return new Response(JSON.stringify({ error: candidateScope.error }), {
+          status: candidateScope.status,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      const serverCandidateScope = candidateScope?.ok && candidateScope.scope.candidateGraph
+        ? candidateScope.scope
+        : null;
+      const modeScopeOverride = serverCandidateScope
+        ? {}
+        : await resolveKonlingTeachingAssistantScopeOverride({
+            db: prisma,
+            modeId: teachingAssistantModeId,
+            authenticatedUserId: session.user.id,
+            role: session.user.role,
+            clientContextHints: modeClientContextHints,
+          });
+      const runtimeTargetUserId = serverCandidateScope
+        ? session.user.id
+        : modeScopeOverride.targetUserId ?? session.user.id;
+      const runtimeClassId = serverCandidateScope
+        ? null
+        : modeScopeOverride.classId ?? classId;
+      const scope = serverCandidateScope
+        ? { ok: true as const, scope: serverCandidateScope }
+        : await verifyKonlingRuntimeScope(prisma, {
+            authenticatedUserId: session.user.id,
+            role: session.user.role,
+            targetUserId: runtimeTargetUserId,
+            classId: runtimeClassId,
+            courseId: courseId || pageContext?.courseId || conversation?.courseId,
+            pageId: pageId || pageContext?.stepId || conversation?.pageId,
+            resourceId,
+            pathNodeId,
+            pageContextHint: pageContext,
+          });
       if (!scope.ok) {
         return new Response(JSON.stringify({ error: scope.error }), {
           status: scope.status,
@@ -363,9 +409,22 @@ export async function POST(request: Request) {
           headers: { 'Content-Type': 'application/json' },
         });
       }
-      const authorizedScope = contextEventScope
+      const resolvedScope = contextEventScope
         ? { ...scope.scope, ...contextEventScope }
         : scope.scope;
+      const authorizedScope = serverCandidateScope
+        ? {
+            ...resolvedScope,
+            targetUserId: session.user.id,
+            classId: null,
+            resourceId: null,
+            pathNodeId: null,
+            candidateGraph: serverCandidateScope.candidateGraph,
+          }
+        : resolvedScope;
+      const candidateOnly = Boolean(authorizedScope.candidateGraph);
+      const effectiveModeId = candidateOnly ? null : teachingAssistantModeId;
+      const effectiveModeClientContextHints = candidateOnly ? undefined : modeClientContextHints;
       if (conversation && requestedUserMessage) {
         const preparedTurn = prepareKonlingConversationTurn({
           conversation,
@@ -390,35 +449,44 @@ export async function POST(request: Request) {
         pageId: authorizedScope.pageId,
         resourceId: authorizedScope.resourceId,
         pathNodeId: authorizedScope.pathNodeId,
-        knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
-        teachingAssistantModeId,
+        serverAuthorizedCandidateGraph: authorizedScope.candidateGraph,
+        knowledgeWorkspaceHint: candidateOnly
+          ? null
+          : normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
+        teachingAssistantModeId: effectiveModeId,
         currentUserQuery: messages.at(-1)?.role === 'user' ? messages.at(-1)?.content : null,
         trustedContentContext: Boolean(authorizedScope.courseId && authorizedScope.pageId),
       };
-      const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext({
-        db: prisma,
-        modeId: teachingAssistantModeId,
-        scope: authorizedScope,
-        clientContextHints: modeClientContextHints,
-      });
-      const assistantBinding = normalizeKonlingConversationAssistantBinding({
-        modeId: teachingAssistantModeId,
-        clientContextHints: modeClientContextHints,
-        validatedModeContext: serverModeContext,
-      });
-      const smartPrepBinding = resolveKonlingSmartPrepSessionBinding(serverModeContext);
+      const serverModeContext = candidateOnly
+        ? null
+        : await resolveKonlingTeachingAssistantServerModeContext({
+            db: prisma,
+            modeId: effectiveModeId,
+            scope: authorizedScope,
+            clientContextHints: effectiveModeClientContextHints,
+          });
+      const assistantBinding = candidateOnly
+        ? null
+        : normalizeKonlingConversationAssistantBinding({
+            modeId: effectiveModeId,
+            clientContextHints: effectiveModeClientContextHints,
+            validatedModeContext: serverModeContext,
+          });
+      const smartPrepBinding = serverModeContext
+        ? resolveKonlingSmartPrepSessionBinding(serverModeContext)
+        : null;
       const runtimeContext = await buildKonlingRuntimeContext(prisma, {
         ...runtimeInput,
         teachingAssistantServerModeContext: serverModeContext,
       });
       const modeContract = buildKonlingTeachingAssistantRuntimeContract({
-        modeId: teachingAssistantModeId,
+        modeId: effectiveModeId,
         runtimeContext,
         scope: authorizedScope,
         serverModeContext,
-        clientContextHints: modeClientContextHints,
+        clientContextHints: effectiveModeClientContextHints,
         currentUserQuery: runtimeInput.currentUserQuery,
-        studyAnswerPreferences,
+        studyAnswerPreferences: candidateOnly ? undefined : studyAnswerPreferences,
       });
       if (modeContract.status === 'unavailable') {
         return new Response(JSON.stringify({
@@ -437,6 +505,9 @@ export async function POST(request: Request) {
           },
         });
       }
+      const permittedTools = authorizedScope.candidateGraph
+        ? KONLING_CANDIDATE_READ_TOOLS
+        : modeContract.permittedTools;
       forceStructuredSmartPrepTool = modeContract.mode.id === 'prep-coauthor'
         && Boolean(modeContract.smartPreparation);
       const modeRuntimeContext = {
@@ -478,10 +549,16 @@ export async function POST(request: Request) {
       sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
         modeContract.groundingContext.sarAssociatedGrounding,
       );
-      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => buildCitationGuardMetadataPayload(
-        buildKonlingCitationGuard(modeRuntimeContext, assistantContent),
-        citationGuardMetadataContext?.missingContext ?? [],
-      );
+      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => {
+        const finalRuntimeContext = mergeCandidateAssignedCitations(
+          modeRuntimeContext,
+          getAssignedCitationTable?.() ?? [],
+        );
+        return buildCitationGuardMetadataPayload(
+          buildKonlingCitationGuard(finalRuntimeContext, assistantContent),
+          citationGuardMetadataContext?.missingContext ?? [],
+        );
+      };
       modelRequirements = {
         ...modelRequirements,
         tools: true,
@@ -555,7 +632,7 @@ export async function POST(request: Request) {
           konlingCitationGuard: citationGuardMetadataPayload,
           konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
         },
-        permittedTools: modeContract.permittedTools,
+        permittedTools,
         smartPrepBinding,
       });
       const agentSessionStateUpdate = await prisma.agentSession.updateMany({
@@ -598,9 +675,9 @@ export async function POST(request: Request) {
       const toolRuntime = buildKonlingToolRuntime({
         db: prisma,
         scope: authorizedScope,
-        context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools },
+        context: { ...modeRuntimeContext, permittedTools },
         agentSessionId: agentSession.id,
-        permittedTools: modeContract.permittedTools,
+        permittedTools,
         scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
       });
       getAssignedCitationTable = toolRuntime.getAssignedCitations;
@@ -664,6 +741,13 @@ export async function POST(request: Request) {
     });
 
     let completedResponseMessage: Message | null = null;
+    let structuredCorrectionUsed = false;
+    const structuredActionState: KonlingStructuredActionStreamState = {
+      toolCalls: [],
+      executedToolResults: [],
+      withheldMalformedSyntax: false,
+      withheldText: '',
+    };
     const buildPersistedAssistantRevision = (
       messageId: string,
       body: string,
@@ -677,6 +761,27 @@ export async function POST(request: Request) {
         return [{ ...part, text: body }];
       });
       if (!textPartReplaced) parts.push({ type: 'text', text: body });
+      for (const call of structuredActionState.toolCalls) {
+        if (parts.some((part) =>
+          (part.type === 'dynamic-tool' || part.type.startsWith('tool-'))
+          && 'toolCallId' in part
+          && part.toolCallId === call.id
+        )) continue;
+        const execution = structuredActionState.executedToolResults.find((item) =>
+          item.toolCallId === call.id);
+        parts.push({
+          type: 'dynamic-tool',
+          toolCallId: call.id,
+          toolName: call.name,
+          state: execution
+            ? execution.errorText ? 'output-error' : 'output-available'
+            : 'input-available',
+          input: call.input,
+          ...(execution?.errorText
+            ? { errorText: execution.errorText }
+            : execution ? { output: execution.result } : {}),
+        } as Message['parts'][number]);
+      }
       const existingMetadata = completedResponseMessage?.metadata
         && typeof completedResponseMessage.metadata === 'object'
         ? completedResponseMessage.metadata as Record<string, unknown>
@@ -689,6 +794,37 @@ export async function POST(request: Request) {
         parts,
         metadata: { ...existingMetadata, ...metadata },
       });
+    };
+    const publicStructuredActionMetadata = (
+      persistedConversation: Awaited<ReturnType<typeof completeKonlingConversationTurn>>,
+      assistantMessageId: string,
+    ) => {
+      if (!persistedConversation) return {};
+      const publicAssistant = serializeKonlingConversation(persistedConversation).messages
+        .find((message) => message.id === assistantMessageId && message.role === 'assistant');
+      const publicMetadata = publicAssistant?.metadata
+        && typeof publicAssistant.metadata === 'object'
+        && !Array.isArray(publicAssistant.metadata)
+        ? publicAssistant.metadata as Record<string, unknown>
+        : {};
+      return Array.isArray(publicMetadata.konlingSmartPreparationActions)
+        ? { konlingSmartPreparationActions: publicMetadata.konlingSmartPreparationActions }
+        : {};
+    };
+    const shouldFinalizeEmptyStructuredTurn = async () => {
+      if (structuredActionState.toolCalls.length > 0) return true;
+      if (forceStructuredSmartPrepTool && claimedTurn) {
+        const emptyTurn = claimedTurn;
+        claimedTurn = null;
+        await releaseKonlingConversationTurn(prisma, emptyTurn);
+      }
+      return false;
+    };
+    const releaseUnfinalizedStructuredTurn = async () => {
+      if (!forceStructuredSmartPrepTool || !claimedTurn) return;
+      const unfinalizedTurn = claimedTurn;
+      claimedTurn = null;
+      await releaseKonlingConversationTurn(prisma, unfinalizedTurn);
     };
     const uiMessageStream = result.toUIMessageStream({
       originalMessages: uiMessages,
@@ -703,7 +839,13 @@ export async function POST(request: Request) {
           return;
         }
         completedResponseMessage = toLegacyMessage(responseMessage);
-        if (!getMessageContent(responseMessage).trim()) {
+        completedResponseMessage = normalizeKonlingAssistantMessage(completedResponseMessage).message;
+        if (
+          !getMessageContent(completedResponseMessage).trim()
+          && !completedResponseMessage.parts.some((part) =>
+            part.type === 'dynamic-tool' || part.type.startsWith('tool-'))
+          && !forceStructuredSmartPrepTool
+        ) {
           await releaseKonlingConversationTurn(prisma, claimedTurn);
           claimedTurn = null;
           return;
@@ -717,7 +859,7 @@ export async function POST(request: Request) {
         };
       },
       onError: (error) => {
-        if (claimedTurn) {
+        if (claimedTurn && !forceStructuredSmartPrepTool) {
           const failedTurn = claimedTurn;
           claimedTurn = null;
           void releaseKonlingConversationTurn(prisma, failedTurn);
@@ -732,15 +874,49 @@ export async function POST(request: Request) {
           { konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload },
         )
       : uiMessageStream;
+    const structuredActionStream = createKonlingStructuredActionStream({
+      stream: metadataStream,
+      state: structuredActionState,
+      executeToolCall: (call) => executeKonlingScopedAiTool({
+        tools,
+        call,
+        abortSignal: request.signal,
+        messages: frozenModelMessages,
+      }),
+    });
     const finalCitationUiMessageStream = buildFinalCitationGuardMetadataPayload && getAssignedCitationTable
       ? createKonlingMessageRevisionStream({
-          stream: metadataStream,
+          stream: structuredActionStream,
+          shouldFinalizeEmpty: shouldFinalizeEmptyStructuredTurn,
+          onUnfinalizedClose: releaseUnfinalizedStructuredTurn,
           hasPendingOptimization: () =>
-            (getTextbookOptimizations?.().length ?? 0) > 0,
+            structuredActionState.withheldMalformedSyntax
+            || (getTextbookOptimizations?.().length ?? 0) > 0,
           finalize: async ({ messageId, body: assistantBody }) => {
+            let correctedAssistantBody = assistantBody;
+            let structuredCorrectionStatus: 'not-required' | 'corrected' | 'failed' = 'not-required';
+            if (structuredActionState.withheldMalformedSyntax && !structuredCorrectionUsed) {
+              structuredCorrectionUsed = true;
+              const correction = await correctKonlingMalformedStructuredResponse({
+                abortSignal: request.signal,
+                generate: async (abortSignal) => (await generateText({
+                  model: responseModel,
+                  system: STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT,
+                  prompt: JSON.stringify({
+                    question: requestedUserMessage?.content ?? '',
+                    withheldResponse: structuredActionState.withheldText,
+                  }),
+                  temperature: 0,
+                  maxOutputTokens: 500,
+                  abortSignal,
+                })).text,
+              });
+              correctedAssistantBody = correction.text;
+              structuredCorrectionStatus = correction.status;
+            }
             const assignedCitations = getAssignedCitationTable?.() ?? [];
             const normalized = await normalizeAndRepairKonlingCitations({
-              answer: assistantBody,
+              answer: correctedAssistantBody,
               assignedCitations,
               originalQuestion: requestedUserMessage?.content ?? '',
               serverContext: citationRepairServerContext as KonlingCitationRepairRequest['serverContext'],
@@ -774,7 +950,7 @@ export async function POST(request: Request) {
                     ...normalized.diagnostics,
                   ])],
             };
-            const metadata = {
+            let metadata = {
               konlingCitationGuard: finalCitationMetadata,
               ...(sarAssociatedGroundingMetadataPayload ? {
                 konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
@@ -784,11 +960,15 @@ export async function POST(request: Request) {
                 status: normalized.verificationStatus,
                 userNotice: normalized.userNotice,
               },
+              konlingStructuredCorrection: {
+                status: structuredCorrectionStatus,
+                attempts: structuredCorrectionStatus === 'not-required' ? 0 : 1,
+              },
             };
             if (claimedTurn) {
               const completingTurn = claimedTurn;
               try {
-                await completeKonlingConversationTurn(prisma, {
+                const persistedConversation = await completeKonlingConversationTurn(prisma, {
                   ...completingTurn,
                   assistantMessage: buildPersistedAssistantRevision(
                     messageId,
@@ -796,6 +976,10 @@ export async function POST(request: Request) {
                     metadata,
                   ),
                 });
+                metadata = {
+                  ...metadata,
+                  ...publicStructuredActionMetadata(persistedConversation, messageId),
+                };
                 claimedTurn = null;
               } catch (error) {
                 await releaseKonlingConversationTurn(prisma, completingTurn);
@@ -931,7 +1115,71 @@ export async function POST(request: Request) {
             };
           },
         })
-      : metadataStream;
+      : createKonlingMessageRevisionStream({
+          stream: structuredActionStream,
+          shouldFinalizeEmpty: shouldFinalizeEmptyStructuredTurn,
+          onUnfinalizedClose: releaseUnfinalizedStructuredTurn,
+          hasPendingOptimization: () => structuredActionState.withheldMalformedSyntax,
+          finalize: async ({ messageId, body }) => {
+            let finalBody = body;
+            let correctionStatus: 'not-required' | 'corrected' | 'failed' = 'not-required';
+            if (structuredActionState.withheldMalformedSyntax && !structuredCorrectionUsed) {
+              structuredCorrectionUsed = true;
+              const correction = await correctKonlingMalformedStructuredResponse({
+                abortSignal: request.signal,
+                generate: async (abortSignal) => (await generateText({
+                  model: responseModel,
+                  system: STRUCTURED_CALL_CORRECTION_SYSTEM_PROMPT,
+                  prompt: JSON.stringify({
+                    question: requestedUserMessage?.content ?? '',
+                    withheldResponse: structuredActionState.withheldText,
+                  }),
+                  temperature: 0,
+                  maxOutputTokens: 500,
+                  abortSignal,
+                })).text,
+              });
+              finalBody = correction.text;
+              correctionStatus = correction.status;
+            }
+            let metadata = {
+              konlingMessageRevision: {
+                revision: 1,
+                status: 'verified',
+                userNotice: null,
+              },
+              konlingStructuredCorrection: {
+                status: correctionStatus,
+                attempts: correctionStatus === 'not-required' ? 0 : 1,
+              },
+            };
+            if (claimedTurn) {
+              const completingTurn = claimedTurn;
+              try {
+                const persistedConversation = await completeKonlingConversationTurn(prisma, {
+                  ...completingTurn,
+                  assistantMessage: buildPersistedAssistantRevision(messageId, finalBody, metadata),
+                });
+                metadata = {
+                  ...metadata,
+                  ...publicStructuredActionMetadata(persistedConversation, messageId),
+                };
+                claimedTurn = null;
+              } catch (error) {
+                await releaseKonlingConversationTurn(prisma, completingTurn);
+                claimedTurn = null;
+                throw error;
+              }
+            }
+            return {
+              body: finalBody,
+              citations: [],
+              status: 'verified',
+              userNotice: null,
+              metadata,
+            };
+          },
+        });
     const guardedUiMessageStream = insertStreamingCitationFallbackNotice(
       finalCitationUiMessageStream,
       process.env.NODE_ENV === 'production'

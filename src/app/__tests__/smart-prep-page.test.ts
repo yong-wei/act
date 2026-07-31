@@ -6,7 +6,8 @@ const mocks = vi.hoisted(() => ({
   listTaskSummaries: vi.fn(),
   getTask: vi.fn(),
   classFindMany: vi.fn(),
-  snapshotFindMany: vi.fn(),
+  userFindUnique: vi.fn(),
+  textbookCatalog: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
@@ -18,12 +19,15 @@ vi.mock('@/lib/course-basis', () => ({ listCourseBases: mocks.listCourseBases })
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     class: { findMany: mocks.classFindMany },
-    diagnosisReportSnapshot: { findMany: mocks.snapshotFindMany },
+    user: { findUnique: mocks.userFindUnique },
   },
 }));
 vi.mock('@/lib/smart-lesson-plan', () => ({
   getSmartLessonTask: mocks.getTask,
   listSmartLessonTaskSummaries: mocks.listTaskSummaries,
+}));
+vi.mock('@/lib/smart-lesson-plan/textbook-resource-pack', () => ({
+  loadSmartPreparationTextbookCatalog: mocks.textbookCatalog,
 }));
 
 import SmartPrepPage from '../teacher/smart-prep/page';
@@ -35,7 +39,8 @@ describe('smart preparation page', () => {
     mocks.listCourseBases.mockResolvedValue([{ id: 'basis-1' }, { id: 'basis-2' }]);
     mocks.listTaskSummaries.mockResolvedValue([]);
     mocks.classFindMany.mockResolvedValue([]);
-    mocks.snapshotFindMany.mockResolvedValue([]);
+    mocks.userFindUnique.mockResolvedValue({ defaultTeachingClassId: null });
+    mocks.textbookCatalog.mockResolvedValue([]);
   });
 
   it('loads the complete course-basis list while restoring the requested selection', async () => {

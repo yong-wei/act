@@ -7,6 +7,12 @@ import type { ArenaSubmissionRecord } from './submissions/submission-service';
 import { getArenaChallengeTask } from './data/seed-challenges';
 import { materializeArenaTaskEvidence } from '@/lib/data-governance/simulation-task-materialization';
 import { buildSimulationTaskLearningFact } from '@/lib/data-governance/simulation-task-learning-fact';
+import {
+  selectLearningFactAuthority,
+  writeKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 
 type ArenaEvidenceWritebackConsumer = 'student' | 'teacher' | 'admin' | 'service';
 
@@ -274,11 +280,29 @@ export async function persistArenaSubmissionEvidenceWriteback(
       if (!submission.userId || typeof tx.learningFact?.createMany !== 'function') {
         throw new Error('Qualified Arena evidence writeback requires LearningFact persistence.');
       }
-      const result = await tx.learningFact.createMany({
-        data: learningFacts,
-        skipDuplicates: true,
-      });
-      learningFactCreated = result.count > 0;
+      // Route knowledge-scoped Arena facts through the fixed-identity adapter.
+      // Pre-cutover authority selector remains LEGACY (#1116).
+      const selector = selectLearningFactAuthority('FORMAL_PRODUCTION');
+      const activeRevision = await resolveActiveKnowledgeRevision(tx as never);
+      const result = await writeKnowledgeScopedLearningFacts(
+        {
+          learningFact: {
+            createMany: async (args) => tx.learningFact!.createMany({
+              data: args.data as unknown as Array<Record<string, unknown>>,
+              skipDuplicates: args.skipDuplicates,
+            }),
+          },
+        },
+        {
+          rows: learningFacts as LearningFactWriteRow[],
+          knowledgeScoped: true,
+        },
+        {
+          selector,
+          knowledgeRevisionRef: activeRevision.id,
+        },
+      );
+      learningFactCreated = result.written > 0;
     }
 
     await tx.evidenceOutbox.upsert({

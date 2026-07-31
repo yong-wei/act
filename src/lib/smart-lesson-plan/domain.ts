@@ -20,23 +20,49 @@ export class SmartLessonPlanError extends Error {
   }
 }
 
-export const aggregateClassContextSchema = z.object({
+const aggregateClassContextBaseSchema = z.object({
   classId: z.string().trim().min(1).max(200),
-  diagnosisRef: z.string().trim().min(1).max(200),
-  generatedAt: z.string().datetime(),
-  cohortSize: z.number().int().positive(),
-  dimensions: z.array(z.object({
-    key: z.string().trim().min(1).max(100),
-    level: z.enum(['LOW', 'MEDIUM', 'HIGH', 'UNKNOWN']),
+  asOf: z.string().datetime().nullable(),
+  contextRef: z.string().trim().min(1).max(200),
+});
+
+const availableAggregateClassContextSchema = aggregateClassContextBaseSchema.extend({
+  cohortBucket: z.enum(['5-9', '10-19', '20-plus']),
+  overall: z.object({
+    attainment: z.number().min(0).max(1).nullable(),
+    coverage: z.number().min(0).max(1),
     confidence: z.number().min(0).max(1).nullable(),
-    summary: z.string().trim().min(1).max(1000),
+  }).strict(),
+  competencies: z.array(z.object({
+    identity: z.string().trim().min(1).max(100),
+    attainment: z.number().min(0).max(1).nullable(),
+    coverage: z.number().min(0).max(1),
+    confidence: z.number().min(0).max(1).nullable(),
   }).strict()).max(50),
-  constraints: z.array(z.string().trim().min(1).max(1000)).max(50),
+  gaps: z.array(z.object({
+    identity: z.string().trim().min(1).max(100),
+    reason: z.enum(['improvement-cluster']),
+  }).strict()).max(50),
 }).strict();
+
+const suppressedAggregateClassContextSchema = aggregateClassContextBaseSchema.extend({
+  cohortBucket: z.literal('suppressed-small'),
+  suppressionReason: z.literal('cohort-below-five'),
+}).strict();
+
+const unavailableAggregateClassContextSchema = aggregateClassContextBaseSchema.extend({
+  cohortBucket: z.literal('none'),
+  unavailableReason: z.literal('no-active-learners'),
+}).strict();
+
+export const aggregateClassContextSchema = z.union([
+  availableAggregateClassContextSchema,
+  suppressedAggregateClassContextSchema,
+  unavailableAggregateClassContextSchema,
+]);
 
 export const aggregateClassContextRefSchema = z.object({
   classId: z.string().trim().min(1).max(200),
-  diagnosisRef: z.string().trim().min(1).max(200),
 }).strict();
 
 export type AggregateClassContext = z.infer<typeof aggregateClassContextSchema>;
@@ -56,57 +82,147 @@ export function projectAggregateClassContext(value: unknown): AggregateClassCont
   return parsed.data;
 }
 
-export function projectPersistedClassDiagnosis(input: {
+export function projectCurrentCumulativeClassPortrait(input: {
   classId: string;
-  diagnosisRef: string;
-  generatedAt: Date | string;
-  cohortSize: number;
-  snapshot: unknown;
+  portrait: unknown;
 }): AggregateClassContext {
-  const snapshot = z.object({
-    dimensions: z.array(z.object({
-      dimensionId: z.string().trim().min(1).max(100),
-      judgment: z.enum(['needs-attention', 'developing', 'stable', 'insufficient-evidence']),
-      confidence: z.enum(['high', 'medium', 'low', 'none', 'insufficient']).optional(),
-    }).passthrough()).max(100),
-    limitations: z.array(z.object({
-      reason: z.string().trim().min(1).max(200).optional(),
-      detail: z.string().trim().min(1).max(1000).optional(),
-      code: z.string().trim().min(1).max(200).optional(),
-      message: z.string().trim().min(1).max(1000).optional(),
-    }).passthrough()).max(100).default([]),
-  }).passthrough().safeParse(input.snapshot);
-  if (!snapshot.success) throw new SmartLessonPlanError('aggregate-class-context-invalid');
-  const generatedAt = input.generatedAt instanceof Date ? input.generatedAt.toISOString() : input.generatedAt;
-  return aggregateClassContextSchema.parse({
+  const portrait = z.object({
+    stateKind: z.literal('SNAPSHOT'),
+    evidenceAsOf: z.string().datetime().nullable(),
+    generatedAt: z.string().datetime().nullable(),
+    activeStudentCount: z.number().int().nonnegative(),
+    totalStudentCount: z.number().int().nonnegative(),
+    aggregate: z.object({
+      overall: z.object({
+        mean: z.number().min(0).max(1).nullable(),
+        meanConfidence: z.number().min(0).max(1).nullable(),
+        includedCount: z.number().int().nonnegative(),
+        missingCount: z.number().int().nonnegative(),
+      }).passthrough(),
+      dimensions: z.record(z.string(), z.object({
+        mean: z.number().min(0).max(1).nullable(),
+        meanConfidence: z.number().min(0).max(1).nullable(),
+        includedCount: z.number().int().nonnegative(),
+        missingCount: z.number().int().nonnegative(),
+      }).passthrough()),
+    }).passthrough(),
+    diagnosis: z.object({
+      improvementClusters: z.array(z.string().trim().min(1).max(100)).max(50),
+    }).passthrough(),
+  }).passthrough().safeParse(input.portrait);
+  if (!portrait.success) throw new SmartLessonPlanError('aggregate-class-context-invalid');
+  const total = portrait.data.totalStudentCount;
+  const overallIncludedCount = portrait.data.aggregate.overall.includedCount;
+  const bucket = total < 5 || overallIncludedCount < 5
+    ? total === 0 ? 'none' : 'suppressed-small'
+    : cohortBucket(total);
+  const suppressed = {
     classId: input.classId,
-    diagnosisRef: input.diagnosisRef,
-    generatedAt,
-    cohortSize: input.cohortSize,
-    dimensions: snapshot.data.dimensions.slice(0, 50).map((dimension) => ({
-      key: dimension.dimensionId,
-      level: diagnosisJudgmentLevel(dimension.judgment),
-      confidence: diagnosisConfidenceScore(dimension.confidence),
-      summary: `${dimension.dimensionId}:${dimension.judgment}`,
+    asOf: portrait.data.evidenceAsOf ?? portrait.data.generatedAt,
+    cohortBucket: bucket,
+    ...(bucket === 'none'
+      ? { unavailableReason: 'no-active-learners' as const }
+      : { suppressionReason: 'cohort-below-five' as const }),
+  };
+  if (total < 5 || overallIncludedCount < 5) {
+    return aggregateClassContextSchema.parse({
+      ...suppressed,
+      contextRef: `cumulative-class-portrait:${contentHash(suppressed)}`,
+    });
+  }
+  const coverage = (included: number, missing: number) => included + missing > 0
+    ? included / (included + missing)
+    : 0;
+  const competencies = Object.entries(portrait.data.aggregate.dimensions)
+    .filter(([, dimension]) => dimension.includedCount >= 5)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .slice(0, 50);
+  const retainedCompetencyIdentities = new Set(competencies.map(([identity]) => identity));
+  const projected = {
+    classId: input.classId,
+    asOf: portrait.data.evidenceAsOf ?? portrait.data.generatedAt,
+    cohortBucket: bucket,
+    overall: {
+      attainment: portrait.data.aggregate.overall.mean,
+      coverage: coverage(
+        portrait.data.aggregate.overall.includedCount,
+        portrait.data.aggregate.overall.missingCount,
+      ),
+      confidence: portrait.data.aggregate.overall.meanConfidence,
+    },
+    competencies: competencies.map(([identity, dimension]) => ({
+      identity,
+      attainment: dimension.mean,
+      coverage: coverage(dimension.includedCount, dimension.missingCount),
+      confidence: dimension.meanConfidence,
     })),
-    constraints: snapshot.data.limitations.slice(0, 50).map((limitation) => (
-      limitation.detail ?? limitation.message ?? limitation.reason ?? limitation.code ?? 'diagnosis-limitation'
-    )),
+    gaps: [...new Set(portrait.data.diagnosis.improvementClusters)]
+      .filter((identity) => retainedCompetencyIdentities.has(identity))
+      .sort()
+      .map((identity) => ({ identity, reason: 'improvement-cluster' as const })),
+  };
+  return aggregateClassContextSchema.parse({
+    ...projected,
+    contextRef: `cumulative-class-portrait:${contentHash(projected)}`,
   });
 }
 
-function diagnosisJudgmentLevel(judgment: 'needs-attention' | 'developing' | 'stable' | 'insufficient-evidence') {
-  if (judgment === 'needs-attention') return 'LOW' as const;
-  if (judgment === 'developing') return 'MEDIUM' as const;
-  if (judgment === 'stable') return 'HIGH' as const;
-  return 'UNKNOWN' as const;
+function cohortBucket(total: number): 'none' | 'suppressed-small' | '5-9' | '10-19' | '20-plus' {
+  if (total === 0) return 'none';
+  if (total < 5) return 'suppressed-small';
+  if (total < 10) return '5-9';
+  if (total < 20) return '10-19';
+  return '20-plus';
 }
 
-function diagnosisConfidenceScore(confidence: 'high' | 'medium' | 'low' | 'none' | 'insufficient' | undefined) {
-  if (confidence === 'high') return 0.9;
-  if (confidence === 'medium') return 0.65;
-  if (confidence === 'low') return 0.35;
-  return null;
+export function normalizeSourceMatchingMeaning(value: string): string {
+  const compact = value
+    .normalize('NFKC')
+    .toLocaleLowerCase('zh-CN')
+    .replace(/\s+/gu, '')
+    .trim();
+  const characters = Array.from(compact);
+  return characters.filter((character, index) => {
+    if (!/\p{P}/u.test(character)) return true;
+    const previous = characters[index - 1] ?? '';
+    const next = characters[index + 1] ?? '';
+    if ((character === '.' || character === ',') && /\p{N}/u.test(previous) && /\p{N}/u.test(next)) {
+      return true;
+    }
+    if (character !== '-') return false;
+    const leftToken = compact.slice(0, index).match(/([A-Za-z0-9\u0370-\u03ff]+)$/u)?.[1] ?? '';
+    const rightToken = compact.slice(index + 1).match(/^([A-Za-z0-9\u0370-\u03ff]+)/u)?.[1] ?? '';
+    const unaryContext = previous === '' || '[=<>+*/^('.includes(previous);
+    if (unaryContext) {
+      return next === '(' || /^[0-9]/u.test(rightToken) || Array.from(rightToken).length <= 2;
+    }
+    if (!leftToken || !rightToken) return false;
+    if (/[0-9]/u.test(leftToken) || /[0-9]/u.test(rightToken)) return true;
+    return Array.from(leftToken).length <= 2 && Array.from(rightToken).length <= 2;
+  }).join('');
+}
+
+export function shouldMarkClassContextStale(input: {
+  previousClassId: string | null;
+  nextClassId: string | null;
+  hasGeneratedContent: boolean;
+  staleAt: Date | null;
+}) {
+  return input.previousClassId !== input.nextClassId
+    && input.hasGeneratedContent
+    && input.staleAt === null;
+}
+
+export function sourceGapDecisionComplete(input: {
+  sourceState: string;
+  gapReason: string | null;
+  sourceBindings?: unknown;
+}) {
+  if (input.sourceState === 'VERIFIED') return true;
+  return input.sourceState === 'NO_RELIABLE_SOURCE'
+    && Array.isArray(input.sourceBindings)
+    && input.sourceBindings.length === 0
+    && Boolean(input.gapReason?.trim());
 }
 
 export function stableJson(value: unknown): string {
@@ -136,17 +252,19 @@ export function smartLessonGenerationInputHash(task: {
   outlineConfirmationRequired: boolean;
   scopeConfirmedAt: Date | null;
   goalsConfirmedAt: Date | null;
+  selectedClassId?: string | null;
+  textbookRanges?: unknown;
   aggregateClassContext: unknown;
   aggregateClassContextRef: string | null;
   sources: Array<{ sourceVersionId: string }>;
   knowledgePoints: Array<{
     id: string; lineageId: string; title: string; contentHash: string; sourceState: string;
-    sourceBindings: unknown; sourceBindingSetHash: string; gapIdentity: string | null;
+    sourceBindings: unknown; sourceBindingSetHash: string; gapIdentity: string | null; gapReason?: string | null;
     origin: string; supersedesIds: string[];
   }>;
   goals: Array<{
     id: string; lineageId: string; content: string; contentHash: string; sourceState: string;
-    sourceBindings: unknown; sourceBindingSetHash: string; gapIdentity: string | null;
+    sourceBindings: unknown; sourceBindingSetHash: string; gapIdentity: string | null; gapReason?: string | null;
     standardsMappings: unknown;
   }>;
 }) {
@@ -163,6 +281,8 @@ export function smartLessonGenerationInputHash(task: {
     outlineConfirmationRequired: task.outlineConfirmationRequired,
     scopeConfirmedAt: task.scopeConfirmedAt?.toISOString() ?? null,
     goalsConfirmedAt: task.goalsConfirmedAt?.toISOString() ?? null,
+    selectedClassId: task.selectedClassId ?? null,
+    textbookRanges: task.textbookRanges ?? [],
     aggregateClassContext: task.aggregateClassContext,
     aggregateClassContextRef: task.aggregateClassContextRef,
     sourceVersionIds: task.sources.map((source) => source.sourceVersionId).sort(),
@@ -175,6 +295,7 @@ export function smartLessonGenerationInputHash(task: {
       sourceBindings: point.sourceBindings,
       sourceBindingSetHash: point.sourceBindingSetHash,
       gapIdentity: point.gapIdentity,
+      gapReason: point.gapReason ?? null,
       origin: point.origin,
       supersedesIds: [...point.supersedesIds].sort(),
     })),
@@ -187,6 +308,7 @@ export function smartLessonGenerationInputHash(task: {
       sourceBindings: goal.sourceBindings,
       sourceBindingSetHash: goal.sourceBindingSetHash,
       gapIdentity: goal.gapIdentity,
+      gapReason: goal.gapReason ?? null,
       standardsMappings: goal.standardsMappings,
     })),
   });
@@ -214,7 +336,7 @@ export function canonicalSourceFields(input: {
   if (sourceState === 'VERIFIED' && sourceBindings.length === 0) {
     throw new SmartLessonPlanError('verified-source-binding-required');
   }
-  const itemContentHash = contentHash(input.content);
+  const itemContentHash = contentHash(normalizeSourceMatchingMeaning(input.content));
   const sourceBindingSetHash = contentHash(sourceBindings);
   const gapIdentity = sourceState === 'VERIFIED'
     ? null
