@@ -42,6 +42,38 @@ async function fixtureRepo(): Promise<string> {
   const bundleDir = path.join(root, 'releases', 'control-theory-engineering-v0.3-r2');
   await mkdir(bundleDir, { recursive: true });
   await writeFile(path.join(bundleDir, 'validation-report.json'), '{"result":"PASS"}\n');
+  const componentDir = path.join(root, 'releases', 'component-v1');
+  await mkdir(componentDir, { recursive: true });
+  await writeFile(path.join(componentDir, 'component.json'), '{"component":true}\n');
+  const componentManifest: Record<string, unknown> = {
+    bundle_contract_version: 'actkg-public-bundle/1',
+    bundle_digest: '',
+    bundle_id: 'ctb:component:v1',
+    bundle_kind: 'course',
+    bundle_revision: 1,
+    publication: { tag: 'stable-component-v1' },
+    release: {
+      release_hash: sha256('component-release'),
+      release_id: 'ctr:release:component-v1',
+      release_version: 'component-v1',
+      source_dataset_hash: sha256('component-source'),
+    },
+    release_stage: 'stable',
+    schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
+    source_revision: { commit: sourceCommit, tag: 'source-v1' },
+    statistics: { knowledge_nodes: 0 },
+    components: [],
+  };
+  const componentDigestBody = { ...componentManifest };
+  delete componentDigestBody.bundle_digest;
+  componentManifest.bundle_digest = sha256(canonicalJson(componentDigestBody));
+  const componentManifestBytes = Buffer.from(`${JSON.stringify(componentManifest)}\n`);
+  await writeFile(path.join(componentDir, 'bundle-manifest.json'), componentManifestBytes);
+  const componentSums = (await Promise.all(
+    ['bundle-manifest.json', 'component.json']
+      .map(async (name) => `${sha256(await readFile(path.join(componentDir, name)))}  ${name}`),
+  )).join('\n');
+  await writeFile(path.join(componentDir, 'SHA256SUMS'), `${componentSums}\n`);
   const manifest: Record<string, unknown> = {
     bundle_contract_version: 'actkg-public-bundle/1',
     bundle_digest: '',
@@ -64,7 +96,13 @@ async function fixtureRepo(): Promise<string> {
     schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
     source_revision: { commit: sourceCommit, tag: 'source-v1' },
     statistics: { knowledge_nodes: 0 },
-    components: [],
+    components: [{
+      reference_kind: 'standard_bundle',
+      release_id: 'ctr:release:component-v1',
+      bundle_id: componentManifest.bundle_id,
+      bundle_digest: componentManifest.bundle_digest,
+      manifest_sha256: sha256(componentManifestBytes),
+    }],
   };
   const digestBody = { ...manifest };
   delete digestBody.bundle_digest;
@@ -118,6 +156,29 @@ async function fixtureRepo(): Promise<string> {
 }
 
 describe('prepareLatestActkgIntake', () => {
+  it('rejects a standard component that fails the shared formal boundary validator', async () => {
+    const actkgRoot = await fixtureRepo();
+    const workRoot = await mkdtemp(path.join(tmpdir(), 'act-intake-output-'));
+    const bindingPath = path.join(workRoot, 'binding.json');
+    try {
+      const binding = await resolveLatestStableAggregate({ actkgRoot, mainRef: 'main' });
+      await writeFile(bindingPath, `${JSON.stringify(binding, null, 2)}\n`);
+      await writeFile(
+        path.join(actkgRoot, 'releases', 'component-v1', 'undeclared.json'),
+        '{}\n',
+      );
+      await expect(prepareLatestActkgIntake({
+        actkgRoot,
+        bindingPath,
+        outputRoot: path.join(workRoot, 'attempt-invalid'),
+        mainRef: 'main',
+      })).rejects.toThrow(/component SHA256SUMS does not close over ctb:component:v1/u);
+    } finally {
+      await rm(actkgRoot, { recursive: true, force: true });
+      await rm(workRoot, { recursive: true, force: true });
+    }
+  });
+
   it('creates a fresh immutable attempt and rejects reruns', async () => {
     const actkgRoot = await fixtureRepo();
     const workRoot = await mkdtemp(path.join(tmpdir(), 'act-intake-output-'));
@@ -150,6 +211,9 @@ describe('prepareLatestActkgIntake', () => {
       ).rejects.toThrow('intake output root already exists');
       await expect(
         readFile(path.join(outputRoot, 'releases', 'control-theory-engineering-v0.3', 'SHA256SUMS')),
+      ).resolves.toBeTruthy();
+      await expect(
+        readFile(path.join(outputRoot, 'releases', 'component-v1', 'bundle-manifest.json')),
       ).resolves.toBeTruthy();
     } finally {
       await rm(actkgRoot, { recursive: true, force: true });

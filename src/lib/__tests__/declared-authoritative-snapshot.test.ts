@@ -106,6 +106,16 @@ describe('declared authoritative snapshot receipt', () => {
       expect(missingSums.errors.join('; ')).toMatch(/SHA256SUMS/u);
       await cp(path.join(sourceRoot, bundleRoot, 'SHA256SUMS'), sumsPath);
 
+      const undeclaredPath = path.join(copyRoot, bundleRoot, 'undeclared.txt');
+      await writeFile(undeclaredPath, 'not part of the frozen Bundle\n');
+      const undeclaredFile = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
+        receipt,
+        { repoRoot: copyRoot },
+      );
+      expect(undeclaredFile.valid).toBe(false);
+      expect(undeclaredFile.errors.join('; ')).toMatch(/directory has undeclared undeclared\.txt/u);
+      await rm(undeclaredPath);
+
       const worklistPath = path.join(copyRoot, (receipt.worklist as Record<string, string>).path);
       const originalWorklistBytes = await readFile(worklistPath);
       await writeFile(worklistPath, Buffer.concat([originalWorklistBytes, Buffer.from('\n')]));

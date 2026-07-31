@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile, realpath, stat } from 'node:fs/promises';
+import { readFile, readdir, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -537,6 +537,29 @@ async function validateBundleChecksumClosure(input: {
   }
   for (const declared of entries.keys()) {
     if (!expectedFiles.has(declared)) input.errors.push(`${input.label} SHA256SUMS has undeclared ${declared}`);
+  }
+  const actualFiles = new Set<string>();
+  const walk = async (directory: string, relative: string): Promise<void> => {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const childRelative = relative ? `${relative}/${entry.name}` : entry.name;
+      const child = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) {
+        input.errors.push(`${input.label} contains symbolic link ${childRelative}`);
+      } else if (entry.isDirectory()) {
+        await walk(child, childRelative);
+      } else if (entry.isFile()) {
+        if (childRelative !== 'SHA256SUMS') actualFiles.add(childRelative);
+      } else {
+        input.errors.push(`${input.label} contains non-file entry ${childRelative}`);
+      }
+    }
+  };
+  await walk(input.controlledPath, '');
+  for (const expected of expectedFiles) {
+    if (!actualFiles.has(expected)) input.errors.push(`${input.label} directory is missing ${expected}`);
+  }
+  for (const actual of actualFiles) {
+    if (!expectedFiles.has(actual)) input.errors.push(`${input.label} directory has undeclared ${actual}`);
   }
   for (const [relative, expectedHash] of entries) {
     const repositoryRelative = path.posix.join(input.controlledRelative, relative);

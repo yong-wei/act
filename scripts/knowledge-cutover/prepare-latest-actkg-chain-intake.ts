@@ -314,10 +314,23 @@ export async function validateBundleDirectory(
     if (!match || rows.has(match[2])) fail(`invalid component SHA256SUMS row ${index + 1}`);
     rows.set(match[2], match[1]);
   }
-  const files = (await readdir(directory, { withFileTypes: true }))
-    .filter((entry) => entry.isFile() && entry.name !== 'SHA256SUMS')
-    .map((entry) => entry.name)
-    .sort();
+  const files: string[] = [];
+  const walk = async (current: string, relative: string): Promise<void> => {
+    for (const entry of await readdir(current, { withFileTypes: true })) {
+      const childRelative = relative ? `${relative}/${entry.name}` : entry.name;
+      const child = path.join(current, entry.name);
+      if (entry.isSymbolicLink()) fail(`component directory contains symlink: ${childRelative}`);
+      if (entry.isDirectory()) {
+        await walk(child, childRelative);
+      } else if (entry.isFile()) {
+        if (childRelative !== 'SHA256SUMS') files.push(childRelative);
+      } else {
+        fail(`component directory contains non-regular entry: ${childRelative}`);
+      }
+    }
+  };
+  await walk(directory, '');
+  files.sort();
   if (canonicalJson(files) !== canonicalJson([...rows.keys()].sort())) {
     fail(`component SHA256SUMS does not close over ${expected.bundleId}`);
   }

@@ -16,6 +16,7 @@ import {
   resolveLatestStableAggregate,
   type LatestStableAggregateBinding,
 } from '../actkg-release/latest-stable-aggregate';
+import { validateBundleDirectory } from './prepare-latest-actkg-chain-intake';
 
 type JsonObject = Record<string, unknown>;
 
@@ -216,7 +217,20 @@ export async function prepareLatestActkgIntake(
       fail(`unsupported component reference_kind ${referenceKind}`);
     }
     const bundleId = string(component.bundle_id, `components[${index}].bundle_id`);
+    const bundleDigest = string(
+      component.bundle_digest,
+      `components[${index}].bundle_digest`,
+    );
+    const manifestSha256 = string(
+      component.manifest_sha256,
+      `components[${index}].manifest_sha256`,
+    );
     const found = await findStandardComponent(args.actkgRoot, bundleId);
+    await validateBundleDirectory(found.directory, {
+      bundleId,
+      bundleDigest,
+      manifestSha256,
+    });
     const releaseVersion = string(
       found.manifest.release && object(found.manifest.release, 'component release').release_version,
       `components[${index}].release_version`,
@@ -233,14 +247,8 @@ export async function prepareLatestActkgIntake(
       release_id: releaseId,
       controlled_path: targetDirectoryPath,
       bundle_id: bundleId,
-      bundle_digest: string(
-        component.bundle_digest,
-        `components[${index}].bundle_digest`,
-      ),
-      manifest_raw_sha256: string(
-        component.manifest_sha256,
-        `components[${index}].manifest_sha256`,
-      ),
+      bundle_digest: bundleDigest,
+      manifest_raw_sha256: manifestSha256,
     });
   }
 
