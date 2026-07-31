@@ -13,6 +13,21 @@ const sourceFiles = [
   'src/lib/adaptive-path-execution-state.ts',
   'tests/adaptive-path-landing-retry.spec.ts',
 ];
+const expectedScreenshotFiles = [
+  'desktop-1440-failed.png',
+  'desktop-1440-loading.png',
+  'desktop-1440-recovered.png',
+  'desktop-1440-active-loading.png',
+  'desktop-1440-active.png',
+  'mobile-320-failed.png',
+  'mobile-320-loading.png',
+  'mobile-320-recovered.png',
+  'mobile-320-active-loading.png',
+  'mobile-320-active.png',
+].map((filename) => path.posix.join(
+  'artifacts/commercial-ui/issue-1141-adaptive-path-landing',
+  filename,
+));
 const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
 const screenshots: Array<Record<string, unknown>> = [];
 const assertions: Array<Record<string, unknown>> = [];
@@ -261,7 +276,14 @@ test('evidence manifest fails closed when tracked source changes', () => {
     );
     expect(sourceHashAtCommit('HEAD', file), `${file} changed after the evidence checkpoint`).toBe(expectedHash);
   }
-  for (const screenshot of manifest.screenshots ?? []) {
+  const manifestScreenshots = manifest.screenshots ?? [];
+  const manifestScreenshotFiles = manifestScreenshots.map((screenshot) => screenshot.file);
+  expect(manifestScreenshotFiles).toHaveLength(expectedScreenshotFiles.length);
+  expect(new Set(manifestScreenshotFiles).size, 'evidence screenshot paths must be unique').toBe(
+    expectedScreenshotFiles.length,
+  );
+  expect([...manifestScreenshotFiles].sort()).toEqual([...expectedScreenshotFiles].sort());
+  for (const screenshot of manifestScreenshots) {
     const screenshotPath = path.resolve(process.cwd(), screenshot.file);
     expect(existsSync(screenshotPath), screenshot.file).toBe(true);
     expect(sha256(readFileSync(screenshotPath))).toBe(screenshot.sha256);
