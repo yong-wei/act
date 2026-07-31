@@ -45,12 +45,13 @@ async function backfillSnapshots() {
         facts,
         competencyVector,
       });
+      const materializedAt = new Date();
 
       // Create snapshot
       await prisma.studentCompetencySnapshot.create({
         data: {
           userId: student.id,
-          snapshotAt: new Date(),
+          snapshotAt: materializedAt,
           competencyVector: competencyVector as unknown as Prisma.InputJsonValue,
           evidenceSummary: generateEvidenceSummary(facts) as unknown as Prisma.InputJsonValue,
           riskFlags: risks.map(r => r.type),
@@ -112,7 +113,7 @@ async function backfillSnapshots() {
             description: risk.description,
             evidenceJson: risk.evidence as Prisma.InputJsonValue,
             triggeredAt: risk.triggeredAt,
-            evidenceObservedAt: risk.triggeredAt,
+            evidenceObservedAt: materializedAt,
           },
         });
       }
