@@ -1,0 +1,38 @@
+## 1. 解锁链路展示模型
+
+- [x] 1.1 新增 `src/lib/adaptive-path-unlock-chain.ts`，定义学生可见的解锁链路结构与派生函数
+- [x] 1.2 从 `readiness.missingCompletedNodeIds`、`missingEvidenceCount`、`missingCompetencies`、`missingOutcomeRefs` 生成缺失条件
+- [x] 1.3 缺失节点 ID 优先映射为路径内节点标题，未知 ID 不暴露原始 ID
+- [x] 1.4 按“完成节点 -> 结果/证据 -> 能力”排序，只输出未满足条件
+- [x] 1.5 实现 `fallbackNodeIds` / `prerequisiteNodeIds` / `unlockMessage` 降级，并保留“暂时无法展示具体解锁条件”兜底
+- [x] 1.6 解析下一步解锁动作，有可执行目标时输出目标，无目标时仅输出文本
+
+## 2. 路径选项预览
+
+- [x] 2.1 在路径选项预览构建层为锁定节点补充解锁链路
+- [x] 2.2 在 `PathOptionRoutePreview` 渲染锁定原因、缺失条件与下一步动作
+- [x] 2.3 有目标时渲染动作链接/按钮，无目标时只显示文本
+
+## 3. 执行时间线与节点详情
+
+- [x] 3.1 扩展 `PathExecutionNodeView`，增加可选 `unlockChain`
+- [x] 3.2 从 `pathPlan.mainPath[].readiness` 填充执行时间线节点的解锁链路
+- [x] 3.3 在节点展开详情中展示解锁链路
+- [x] 3.4 锁定操作区展示下一步动作，并保持节点不可启动
+
+## 4. 测试
+
+- [x] 4.1 为解锁链路函数补充单元测试，覆盖多条缺口、字段缺失、未知 ID、无目标降级
+- [x] 4.2 为路径选项预览补充测试，断言锁定节点显示结构化解锁链路
+- [x] 4.3 为执行时间线补充测试，断言锁定节点详情显示解锁链路且不暴露内部字段
+
+## 5. 验证
+
+- [x] 5.1 运行 `openspec validate --change add-adaptive-path-unlock-chain-explanation --strict`
+- [x] 5.2 运行相关 Vitest 定向测试
+- [x] 5.3 运行 `npm run typecheck`
+
+## 6. 提交与 PR
+
+- [ ] 6.1 将 grill 决策文档、OpenSpec change 与实现代码一并提交
+- [ ] 6.2 更新 issue #1167 状态并创建关联 PR

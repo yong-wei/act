@@ -52,7 +52,12 @@ import {
   type ControlCorrectionCenterRouteIntent,
   type PracticeEntryRouteNode,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
+import { AdaptivePathUnlockChainView } from '@/features/adaptive/adaptive-path-unlock-chain-view';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import {
+  buildAdaptivePathUnlockChain,
+  type AdaptivePathUnlockChain,
+} from '@/lib/adaptive-path-unlock-chain';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 import {
   buildAdaptivePathOptionDisplays,
@@ -247,6 +252,7 @@ interface PathExecutionNodeView {
   evidence: string;
   checkpoint: string;
   unlockMessage?: string;
+  unlockChain?: AdaptivePathUnlockChain;
   result?: PathNodeResultCardView | null;
 }
 
@@ -688,7 +694,9 @@ function PathOptionRoutePreview({ option }: { option: AdaptivePathOptionDisplay 
               </span>
             ) : null}
           </div>
-          {node.unlockMessage ? (
+          {node.unlockChain ? (
+            <AdaptivePathUnlockChainView chain={node.unlockChain} />
+          ) : node.unlockMessage ? (
             <p className="mt-1 text-xs leading-5 text-subtle">解锁条件：{node.unlockMessage}</p>
           ) : null}
         </div>
@@ -932,6 +940,18 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
             };
           })
         : [],
+      readinessDetails: Array.isArray(option.readinessDetails)
+        ? option.readinessDetails.map((item) => {
+            const detail = getRecord(item);
+            return {
+              nodeId: typeof detail.nodeId === 'string' ? detail.nodeId : 'unknown-node',
+              title: typeof detail.title === 'string' ? detail.title : undefined,
+              target: typeof detail.target === 'string' ? detail.target : undefined,
+              prerequisiteNodeIds: getStringArray(detail.prerequisiteNodeIds),
+              readiness: detail.readiness,
+            };
+          })
+        : [],
       targetDeficits: Array.isArray(option.targetDeficits)
         ? option.targetDeficits.map(getRecord)
         : [],
@@ -1137,6 +1157,14 @@ function getPathExecutionNodes(
   const sourceNodeIds = sourceNodes
     .map((item) => typeof item.nodeId === 'string' ? item.nodeId : null)
     .filter((nodeId): nodeId is string => Boolean(nodeId));
+  const pathNodeContext = sourceNodes.map((item) => {
+    const record = getRecord(item);
+    return {
+      nodeId: typeof record.nodeId === 'string' ? record.nodeId : '',
+      title: typeof record.title === 'string' ? record.title : undefined,
+      target: typeof record.target === 'string' ? record.target : undefined,
+    };
+  });
   const preferredCurrentNodeId = plan.currentNodeId ?? round?.currentNodeId ?? null;
   const currentNodeId = preferredCurrentNodeId && sourceNodeIds.includes(preferredCurrentNodeId)
     ? preferredCurrentNodeId
@@ -1191,9 +1219,37 @@ function getPathExecutionNodes(
       unlockMessage,
       result,
     };
-    return status === 'locked' && unlockMessage
-      ? { ...viewNode, reason: unlockMessage, checkpoint: unlockMessage }
-      : viewNode;
+    const unlockChain = status === 'locked'
+      ? buildAdaptivePathUnlockChain({
+          nodeId,
+          title: viewNode.title,
+          target: viewNode.target,
+          prerequisiteNodeIds: getStringArray(node.prerequisiteNodeIds),
+          readiness: {
+            state: readinessState,
+            message: typeof readiness.message === 'string' ? readiness.message : null,
+            unlockMessage: typeof readiness.unlockMessage === 'string' ? readiness.unlockMessage : null,
+            fallbackNodeIds: getStringArray(readiness.fallbackNodeIds),
+            missingCompetencies: getStringArray(readiness.missingCompetencies),
+            missingEvidenceCount: typeof readiness.missingEvidenceCount === 'number'
+              ? readiness.missingEvidenceCount
+              : 0,
+            missingCompletedNodeIds: getStringArray(readiness.missingCompletedNodeIds),
+            missingOutcomeRefs: getStringArray(readiness.missingOutcomeRefs),
+          },
+        }, pathNodeContext)
+      : undefined;
+    const viewNodeWithUnlock = {
+      ...viewNode,
+      unlockChain,
+    };
+    return status === 'locked' && unlockChain
+      ? {
+          ...viewNodeWithUnlock,
+          reason: unlockChain.reason,
+          checkpoint: unlockChain.canExplain ? '满足解锁条件后自动进入该节点。' : unlockChain.reason,
+        }
+      : viewNodeWithUnlock;
   });
   if (nodes.some((node) => node.status === 'current')) return nodes;
   const currentIndex = currentNodeId ? nodes.findIndex((node) => node.nodeId === currentNodeId) : -1;
@@ -3901,6 +3957,11 @@ export default function AdaptivePracticePage() {
                             <dd className="mt-1 text-foreground">{node.checkpoint}</dd>
                           </div>
                         </dl>
+                        {node.unlockChain ? (
+                          <div className="mt-4">
+                            <AdaptivePathUnlockChainView chain={node.unlockChain} />
+                          </div>
+                        ) : null}
                         {node.result ? (
                           <div
                             className={`mt-4 min-w-0 rounded-lg border p-3 text-sm ${
@@ -4014,9 +4075,21 @@ export default function AdaptivePracticePage() {
                               ) : null}
                             </>
                           ) : node.status === 'locked' ? (
-                            <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">
-                              {node.unlockMessage ?? '稍后解锁'}
-                            </span>
+                            node.unlockChain?.nextAction?.target ? (
+                              <Link
+                                href={node.unlockChain.nextAction.target}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-background"
+                              >
+                                {node.unlockChain.nextAction.title}
+                              </Link>
+                            ) : (
+                              <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">
+                                {node.unlockChain?.nextAction?.title
+                                  ?? node.unlockChain?.fallbackMessage
+                                  ?? node.unlockMessage
+                                  ?? '稍后解锁'}
+                              </span>
+                            )
                           ) : (
                             <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">等待前置节点</span>
                           )}

@@ -1303,6 +1303,16 @@ function currentPathPanel(pathPlan: AdaptiveLearningPathPlan | null): AdaptiveLe
   };
 }
 
+function pathReadinessDetails(pathPlan: AdaptiveLearningPathPlan) {
+  return pathPlan.mainPath.map((node) => ({
+    nodeId: node.nodeId,
+    title: node.title,
+    target: node.target,
+    prerequisiteNodeIds: node.prerequisiteNodeIds,
+    readiness: node.readiness,
+  }));
+}
+
 function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
   const actionablePaths = pathPlan.policyBundle?.paths
     .map((path, index) => ({ path, index }))
@@ -1336,6 +1346,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
         state: node.readiness?.state ?? 'unknown',
         message: node.readiness?.message ?? '准备条件待确认。',
       })),
+      readinessDetails: pathReadinessDetails(pathPlan),
       targetDeficits: [],
       evidenceBasis: pathPlan.confidence.level === 'low'
         ? ['当前证据较少，路径会从基础资源开始。']
@@ -1371,6 +1382,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     nodeSummaries: path.nodeSummaries,
     lockedNodeIds: path.lockedNodeIds,
     readinessSummary: path.readinessSummary,
+    readinessDetails: pathReadinessDetails(pathPlan),
     targetDeficits: path.targetDeficits.map(toStudentDeficit),
     evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
     resourceMix: path.resourceMix,
