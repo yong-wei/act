@@ -13,5 +13,5 @@
 ## 3. Verification
 
 - [x] 3.1 Add behavior tests for duplicate activation, repeated callback, unknown-result retry, and explicit regeneration identity changes.
-- [ ] 3.2 Run focused route and UI tests, lint, typecheck, and diff validation at the final head.
-- [ ] 3.3 Capture 1440px and 320px browser evidence with commit, timestamp, request observations, and screenshot hashes.
+- [x] 3.2 Run focused route and UI tests, lint, typecheck, and diff validation at the final head.
+- [x] 3.3 Capture 1440px and 320px browser evidence with commit, timestamp, request observations, and screenshot hashes.
