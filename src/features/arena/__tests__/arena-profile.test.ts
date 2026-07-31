@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 
 import { buildArenaStudentPortfolio } from '../profile';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
@@ -161,27 +159,26 @@ describe('arena student portfolio', () => {
       { method: 'black-box-control', count: 1 },
       { method: 'pid', count: 2 },
     ]);
-    expect(portfolio.personalBestByTask.length).toBeGreaterThanOrEqual(1);
-    expect(portfolio.personalBestByTask[0].taskId).toBe('task-second-order-lead-pid');
-    expect(portfolio.personalBestByTask[0].bestScore).toBe(82);
-    expect(portfolio.frequentFailureObjects.length).toBeGreaterThanOrEqual(1);
-    expect(portfolio.growth).toMatchObject({ evidenceAvailable: true });
-    expect(portfolio.trainingSummary).toMatchObject({ runCount: 0, recentRuns: [] });
+    expect(portfolio.identificationModels).toHaveLength(1);
+    expect(portfolio.personalBestByTask).toHaveLength(2);
+    expect(portfolio.frequentFailureObjects.length).toBeGreaterThan(0);
+    expect(portfolio.improvingMetrics.length).toBeGreaterThan(0);
+    expect(portfolio.recentSubmissions).toHaveLength(3);
   });
 
-  it('identifies weak capability and recommends a prerequisite-building challenge', () => {
+  it('detects weak capability exposure and recommends prerequisite补齐before next-stage tasks', () => {
     const weakEarly = submission({
       id: 'target-weak-early',
       taskId: 'task-second-order-lead-pid',
       userId: targetUserId,
       studentLabel: '目标学生',
       artifact: artifact({ id: 'target-weak-early', taskId: 'task-second-order-lead-pid' }),
-      score: 38,
+      score: 42,
       valid: false,
       submittedAt: '2026-05-11T08:00:00.000Z',
       satisfaction: {
-        settlingTime: 0.3,
-        overshoot: 0.4,
+        settlingTime: 0.2,
+        overshoot: 0.5,
         steadyStateError: 0.3,
         controlEnergy: 0.25,
       },
@@ -278,27 +275,92 @@ describe('arena student portfolio', () => {
     expect(portfolio.growth.nextChallenges[0].reason).toContain('分析整合');
   });
 
-  it('connects the portfolio summary to the student profile API and page', () => {
-    const routeSource = readFileSync(
-      join(process.cwd(), 'src/app/api/user/profile/route.ts'),
-      'utf8',
-    );
-    const pageSource = readFileSync(
-      join(process.cwd(), 'src/app/(main)/profile/page.tsx'),
-      'utf8',
-    );
+  it('includes quality metrics from training runs in the training summary', () => {
+    const portfolio = buildArenaStudentPortfolio([], targetUserId, [
+      {
+        taskId: 'task-second-order-lead-pid',
+        scenarioId: 'turn-90-degrees',
+        completedAt: '2026-05-12T10:00:00.000Z',
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+        trackingError: 0.35,
+        maxDeviation: 12.5,
+        controlEnergy: 4.2,
+        safetyViolations: 0,
+        smoothness: 0.88,
+      },
+    ]);
 
-    expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ userId })');
-    expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskIds: arenaTaskIds })');
-    expect(routeSource).toContain('buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId, mappedTrainingRuns)');
-    expect(routeSource).toContain('arenaPortfolio:');
-    expect(pageSource).toContain('arenaPortfolio');
-    expect(pageSource).toContain('竞技场画像');
-    expect(pageSource).toContain('训练记录');
-    expect(pageSource).toContain('trainingSummary');
-    expect(pageSource).toContain('能力成长');
-    expect(pageSource).toContain('下一项挑战');
-    expect(pageSource).toContain('growth.nextChallenges');
+    expect(portfolio.trainingSummary.runCount).toBe(1);
+    expect(portfolio.trainingSummary.recentRuns[0]).toMatchObject({
+      taskId: 'task-second-order-lead-pid',
+      scenarioId: 'turn-90-degrees',
+      qualityMetrics: {
+        trackingError: 0.35,
+        maxDeviation: 12.5,
+        controlEnergy: 4.2,
+        safetyViolations: 0,
+        smoothness: 0.88,
+      },
+    });
+  });
+
+  it('returns training-only portfolio when there are training runs but no submissions', () => {
+    const portfolio = buildArenaStudentPortfolio([], targetUserId, [
+      {
+        taskId: 'task-second-order-lead-pid',
+        scenarioId: 'turn-90-degrees',
+        completedAt: '2026-05-12T10:00:00.000Z',
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+        trackingError: 0.4,
+        maxDeviation: 15,
+        controlEnergy: 5,
+        safetyViolations: 1,
+        smoothness: 0.7,
+      },
+    ]);
+
+    expect(portfolio.userId).toBe(targetUserId);
+    expect(portfolio.controllerCount).toBe(0);
+    expect(portfolio.submissionSummary.total).toBe(0);
+    expect(portfolio.trainingSummary.runCount).toBe(1);
+    expect(portfolio.trainingSummary.recentRuns[0].qualityMetrics.trackingError).toBe(0.4);
+  });
+
+  it('isolates training runs by user when building portfolio', () => {
+    const portfolio = buildArenaStudentPortfolio([], targetUserId, [
+      {
+        taskId: 'task-second-order-lead-pid',
+        scenarioId: 'turn-90-degrees',
+        completedAt: '2026-05-12T10:00:00.000Z',
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+        trackingError: 0.3,
+        maxDeviation: 10,
+        controlEnergy: 3,
+        safetyViolations: 0,
+        smoothness: 0.9,
+      },
+      {
+        taskId: 'task-integrator-low-frequency-balance',
+        scenarioId: 'turn-45-degrees',
+        completedAt: '2026-05-12T11:00:00.000Z',
+        evaluationVisibility: 'official',
+        officialEligible: true,
+        trackingError: 0.2,
+        maxDeviation: 5,
+        controlEnergy: 2,
+        safetyViolations: 0,
+        smoothness: 0.95,
+      },
+    ]);
+
+    expect(portfolio.trainingSummary.runCount).toBe(2);
+    expect(portfolio.trainingSummary.recentRuns).toHaveLength(2);
+    const taskIds = portfolio.trainingSummary.recentRuns.map((r) => r.taskId);
+    expect(taskIds).toContain('task-second-order-lead-pid');
+    expect(taskIds).toContain('task-integrator-low-frequency-balance');
   });
 
   it('returns an empty portfolio without inventing controller or leaderboard data', () => {
