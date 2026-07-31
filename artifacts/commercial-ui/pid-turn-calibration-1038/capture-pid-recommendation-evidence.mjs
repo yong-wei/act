@@ -96,13 +96,12 @@ try {
 
     // Request should use v2 calibrated semantics (targetHeading and maxRudderRate)
     assert.ok(
-    assert.ok(
       requestBody && requestBody.target?.targetHeading === 90,
-      `Viewport : request missing target.targetHeading=90`
+      `Viewport ${viewport.name}: request missing target.targetHeading=90`
     );
     assert.ok(
       requestBody && requestBody.target?.maxRudderRate === 5,
-      `Viewport : request missing target.maxRudderRate=5`
+      `Viewport ${viewport.name}: request missing target.maxRudderRate=5`
     );
     // Screenshot and metrics
     const screenshotFile = `pid-recommendation-${viewport.name}.png`;
