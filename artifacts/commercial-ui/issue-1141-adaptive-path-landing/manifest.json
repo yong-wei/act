@@ -1,11 +1,11 @@
 {
-  "capturedAt": "2026-07-31T05:37:01.735Z",
-  "commitSha": "04e0f5c202dac689d54279dc49c252782863c63d",
+  "capturedAt": "2026-07-31T06:21:22.656Z",
+  "commitSha": "63133daf5bc1afa9fe186ecab532ca717d091b9d",
   "route": "/assessment/adaptive-practice?goal=control-correction",
   "sourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "3fbd783c3f71312e2a12668d33e610a0ab534a4fc190443905dbcf173f0410eb",
     "src/lib/adaptive-path-execution-state.ts": "df3cd8a6233c94ba7aba212c0e4ecfc5ea638d981c81d7209d86039b3ebba081",
-    "tests/adaptive-path-landing-retry.spec.ts": "ec3dc57546dcaac4e2150e5eee15bac629513908acdfb4d8ef842ce39c202c7f"
+    "tests/adaptive-path-landing-retry.spec.ts": "b46bf74018703f9b0372e3ddc8f6bd05ded9472aa1a53ed1e6b25d3a61ff5269"
   },
   "assertions": [
     {
@@ -68,7 +68,7 @@
       "width": 1440,
       "height": 1000,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-loading.png",
-      "sha256": "d6a8c8dbe19912063f12d9d8b488d1a2a66eaa4f93be305bf7740a194207cef2",
+      "sha256": "66333450197b312c449fd382a697fe1d73d7201db4231ed57372baff1462d5f7",
       "state": "loading",
       "noHorizontalOverflow": true
     },
@@ -86,7 +86,7 @@
       "width": 1440,
       "height": 1000,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-active-loading.png",
-      "sha256": "89d7281e8463c7d57847b1af69646132fec8e5bfe0b1cfb78242f7aea8d8f150",
+      "sha256": "a68245cf99b60cf67185a2820609c53566a61ec59b835e53ff963043a4d42030",
       "state": "active-loading",
       "noHorizontalOverflow": true
     },
@@ -131,7 +131,7 @@
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-active-loading.png",
-      "sha256": "2a202597379327866e895d7dd299bcfc54f28c8e4b7adffc06fea7e8e761114c",
+      "sha256": "c603e286ec39247ecc9eb1faaeb528cbfe2f8b9d0574eafbbb35bc455fc682a6",
       "state": "active-loading",
       "noHorizontalOverflow": true
     },
