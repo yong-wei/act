@@ -1,7 +1,7 @@
 {
   "issue": 979,
   "pr": 1161,
-  "headSha": "local-uncommitted",
+  "headSha": "97d4c5a38c5f87829b62c851d143132a33fefad5",
   "base": "integration",
   "harness": true,
   "failClosed": true,
