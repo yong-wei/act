@@ -15,5 +15,5 @@
 ## 3. Verification
 
 - [x] 3.1 Run focused attribution tests and related adaptive-attempt regression tests.
-- [ ] 3.2 Run Prisma validation, type checking, OpenSpec strict validation, and the full test suite.
+- [x] 3.2 Run Prisma validation, type checking, OpenSpec strict validation, and the full test suite.
 - [x] 3.3 Review the final diff for issue #1157 scope and sensitive-data leakage.
