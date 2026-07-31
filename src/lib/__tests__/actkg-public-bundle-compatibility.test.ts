@@ -842,8 +842,24 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
           gitRoot: fixture,
         }),
         'INTEGRITY_REJECTED',
-        /graph_rag_runtime_intake must remain BLOCKED/u,
+        /graph_rag_runtime_intake must remain fail-closed/u,
       );
+    } finally {
+      await rm(fixture, { recursive: true, force: true });
+    }
+  });
+
+  it('accepts the M1K UNCHANGED_BLOCKED Graph-RAG runtime disposition', async () => {
+    const fixture = await m1gFixtureRoot('UNCHANGED_BLOCKED');
+    try {
+      const validated = await loadAndValidatePublicBundleV1({
+        root: fixture,
+        lockPath: V5_LOCK,
+        bundlePath: V5_PATH,
+        captureRevision: realGitHead(fixture),
+        gitRoot: fixture,
+      });
+      expect(validated.graphRagRuntimeIntakeBlocked).toBe(true);
     } finally {
       await rm(fixture, { recursive: true, force: true });
     }
