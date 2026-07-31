@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ExternalLink,
   FileAudio2,
@@ -40,6 +40,17 @@ const DEFAULT_RECOMMENDATION =
   '建议先浏览课前讲义，再结合已开放的视频、音频或课件回看关键图表与公式。';
 const DEFAULT_AUDIO_CARD_TITLE = '《闲聊自控》播客';
 const MEDIA_PROGRESS_THRESHOLDS = [25, 50, 75, 90] as const;
+
+type NativeMediaCoordinator = {
+  register: (element: HTMLMediaElement) => () => void;
+  play: (element: HTMLMediaElement) => void;
+};
+
+const NativeMediaCoordinatorContext = createContext<NativeMediaCoordinator | null>(null);
+
+function useNativeMediaCoordinator() {
+  return useContext(NativeMediaCoordinatorContext);
+}
 // Sandbox rationale: iframe previews need scripts for hosted slide/video widgets,
 // popup links, and presentation/fullscreen affordances.
 // Same-origin is intentionally omitted to avoid script + same-origin escape.
@@ -132,6 +143,7 @@ function TrackedMediaElement({
   onComplete: (resource: RuntimeLessonMediaResource, durationMs: number) => void;
 }) {
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
+  const mediaCoordinator = useNativeMediaCoordinator();
   const emittedThresholdsRef = useRef<Set<number>>(new Set());
   const hasCompletedRef = useRef(false);
 
@@ -147,6 +159,9 @@ function TrackedMediaElement({
     }
 
     const handlePlay = () => {
+      if (mediaCoordinator) {
+        mediaCoordinator.play(element);
+      }
       onPlay(resource);
     };
 
@@ -186,13 +201,15 @@ function TrackedMediaElement({
     element.addEventListener('play', handlePlay);
     element.addEventListener('timeupdate', handleTimeUpdate);
     element.addEventListener('ended', handleEnded);
+    const unregister = mediaCoordinator?.register(element);
 
     return () => {
+      unregister?.();
       element.removeEventListener('play', handlePlay);
       element.removeEventListener('timeupdate', handleTimeUpdate);
       element.removeEventListener('ended', handleEnded);
     };
-  }, [onComplete, onPlay, onProgress, resource, src]);
+  }, [mediaCoordinator, onComplete, onPlay, onProgress, resource, src]);
 
   if (mediaType === 'video') {
     return (
@@ -418,6 +435,20 @@ export function LessonEntryMediaHub({
 }: LessonEntryMediaHubProps) {
   const [isDownloadingHandout, setIsDownloadingHandout] = useState(false);
   const [isHandoutOpen, setIsHandoutOpen] = useState(false);
+  const nativeMediaElementsRef = useRef<Set<HTMLMediaElement>>(new Set());
+  const nativeMediaCoordinator = useMemo<NativeMediaCoordinator>(() => ({
+    register: (element) => {
+      nativeMediaElementsRef.current.add(element);
+      return () => nativeMediaElementsRef.current.delete(element);
+    },
+    play: (element) => {
+      nativeMediaElementsRef.current.forEach((other) => {
+        if (other !== element && !other.paused) {
+          other.pause();
+        }
+      });
+    },
+  }), []);
   const handoutCompletionTrackedRef = useRef(false);
   const lessonId = lessonRuntime.lesson.lesson_id;
   const resourceTracker = useResourceInteractionTracking({
@@ -544,7 +575,7 @@ export function LessonEntryMediaHub({
   };
 
   return (
-    <>
+    <NativeMediaCoordinatorContext.Provider value={nativeMediaCoordinator}>
       <section className="premium-lesson-panel mt-4 px-5 py-5">
         <div>
           <div>
@@ -684,6 +715,6 @@ export function LessonEntryMediaHub({
         isExportingHandout={isDownloadingHandout}
         onHandoutExport={() => void handleHandoutDownload()}
       />
-    </>
+    </NativeMediaCoordinatorContext.Provider>
   );
 }
