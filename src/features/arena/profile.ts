@@ -178,7 +178,7 @@ function buildMethodDistribution(submissions: ArenaSubmissionRecord[]): ArenaPor
   }
   return Array.from(counts.entries())
     .map(([method, count]) => ({ method, count }))
-    .sort((left, right) => right.failureCount - left.failureCount);
+    .sort((left, right) => right.count - left.count);
 }
 
 function buildIdentificationModels(submissions: ArenaSubmissionRecord[]): ArenaPortfolioIdentificationModel[] {
