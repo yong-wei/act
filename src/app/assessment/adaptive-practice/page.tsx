@@ -192,6 +192,45 @@ type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
+type PathDifferenceStatus = 'ready' | 'no-material-difference' | 'insufficient-data';
+
+interface PathDifferenceNode {
+  nodeId: string;
+  title: string;
+  resourceType: string;
+}
+
+interface PathDifferenceExplanation {
+  status: PathDifferenceStatus;
+  pathId: string;
+  options: Array<{
+    optionId: string;
+    styleId: string;
+    label: string;
+    metrics: {
+      estimatedMinutes: number | null;
+      nodeCount: number;
+      resourceMix: Record<string, number>;
+      readiness: Record<string, number>;
+      checkpointCount: number;
+      lockedNodeCount: number;
+      terminalValidationCount: number;
+    };
+  }>;
+  commonNodes: Array<PathDifferenceNode & { positions: [number, number] }>;
+  optionOnlyNodes: Array<{
+    optionId: string;
+    nodes: Array<PathDifferenceNode & { position: number }>;
+  }>;
+  orderDifferences: Array<{
+    nodeId: string;
+    title: string;
+    positions: [number, number];
+  }>;
+  tradeoffs: string[];
+  limitations: string[];
+}
+
 function readAdaptiveGenerationReadiness(payload: unknown): AdaptiveGenerationReadiness | null {
   const record = getRecord(payload);
   const readiness = getRecord(record.readiness);
@@ -891,6 +930,97 @@ function getNumberRecord(value: unknown): Record<string, number> {
   );
 }
 
+function readPathDifferenceExplanation(value: unknown): PathDifferenceExplanation | null {
+  const record = getRecord(value);
+  const status = record.status;
+  const pathId = typeof record.pathId === 'string' ? record.pathId : '';
+  if ((status !== 'ready' && status !== 'no-material-difference' && status !== 'insufficient-data') || !pathId) {
+    return null;
+  }
+  const options = Array.isArray(record.options)
+    ? record.options.map((item) => {
+        const option = getRecord(item);
+        const metrics = getRecord(option.metrics);
+        const estimatedMinutes = metrics.estimatedMinutes;
+        return {
+          optionId: typeof option.optionId === 'string' ? option.optionId : '',
+          styleId: typeof option.styleId === 'string' ? option.styleId : '',
+          label: typeof option.label === 'string' ? option.label : '',
+          metrics: {
+            estimatedMinutes: typeof estimatedMinutes === 'number' ? estimatedMinutes : null,
+            nodeCount: typeof metrics.nodeCount === 'number' ? metrics.nodeCount : 0,
+            resourceMix: getNumberRecord(metrics.resourceMix),
+            readiness: getNumberRecord(metrics.readiness),
+            checkpointCount: typeof metrics.checkpointCount === 'number' ? metrics.checkpointCount : 0,
+            lockedNodeCount: typeof metrics.lockedNodeCount === 'number' ? metrics.lockedNodeCount : 0,
+            terminalValidationCount: typeof metrics.terminalValidationCount === 'number'
+              ? metrics.terminalValidationCount
+              : 0,
+          },
+        };
+      }).filter((option) => option.optionId && option.styleId && option.label)
+    : [];
+  if (options.length !== 2) return null;
+  const readNode = (item: unknown): PathDifferenceNode | null => {
+    const node = getRecord(item);
+    const nodeId = typeof node.nodeId === 'string' ? node.nodeId : '';
+    const title = typeof node.title === 'string' ? node.title : '';
+    const resourceType = typeof node.resourceType === 'string' ? node.resourceType : '';
+    return nodeId && title && resourceType ? { nodeId, title, resourceType } : null;
+  };
+  const commonNodes = Array.isArray(record.commonNodes)
+    ? record.commonNodes.map((item) => {
+        const node = readNode(item);
+        const positions = getRecord(item).positions;
+        return node && Array.isArray(positions) && positions.length === 2
+          && positions.every((position) => typeof position === 'number')
+          ? { ...node, positions: positions as [number, number] }
+          : null;
+      }).filter((node): node is PathDifferenceExplanation['commonNodes'][number] => Boolean(node))
+    : [];
+  const optionOnlyNodes = Array.isArray(record.optionOnlyNodes)
+    ? record.optionOnlyNodes.map((item) => {
+        const group = getRecord(item);
+        const optionId = typeof group.optionId === 'string' ? group.optionId : '';
+        const nodes = Array.isArray(group.nodes)
+          ? group.nodes.map((nodeValue) => {
+              const node = readNode(nodeValue);
+              const position = getRecord(nodeValue).position;
+              return node && typeof position === 'number' ? { ...node, position } : null;
+            }).filter((node): node is PathDifferenceExplanation['optionOnlyNodes'][number]['nodes'][number] => Boolean(node))
+          : [];
+        return optionId ? { optionId, nodes } : null;
+      }).filter((group): group is PathDifferenceExplanation['optionOnlyNodes'][number] => Boolean(group))
+    : [];
+  const orderDifferences = Array.isArray(record.orderDifferences)
+    ? record.orderDifferences.map((item) => {
+        const difference = getRecord(item);
+        const positions = difference.positions;
+        return typeof difference.nodeId === 'string'
+          && typeof difference.title === 'string'
+          && Array.isArray(positions)
+          && positions.length === 2
+          && positions.every((position) => typeof position === 'number')
+          ? {
+              nodeId: difference.nodeId,
+              title: difference.title,
+              positions: positions as [number, number],
+            }
+          : null;
+      }).filter((difference): difference is PathDifferenceExplanation['orderDifferences'][number] => Boolean(difference))
+    : [];
+  return {
+    status,
+    pathId,
+    options,
+    commonNodes,
+    optionOnlyNodes,
+    orderDifferences,
+    tradeoffs: getStringArray(record.tradeoffs),
+    limitations: getStringArray(record.limitations),
+  };
+}
+
 function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathOptionView[] {
   const currentPath = view?.panels.find((panel) => panel.region === 'current-path');
   const payload = getRecord(currentPath?.payload);
@@ -993,6 +1123,128 @@ const SKIP_WARNING_TEXT = '跳过后该资源不会计入完成进度，但会�
 
 function formatResourceType(type: string): string {
   return getAdaptivePathResourceVisual(type).label;
+}
+
+function formatReadinessState(state: string): string {
+  if (state === 'ready') return '可开始';
+  if (state === 'locked') return '待解锁';
+  if (state === 'preparation-required') return '需准备';
+  return '待确认';
+}
+
+function PathDifferenceExplanationPanel({ explanation }: { explanation: PathDifferenceExplanation }) {
+  const [left, right] = explanation.options;
+  if (!left || !right) return null;
+  return (
+    <section
+      className="min-w-0 space-y-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-3 text-xs leading-5 text-foreground"
+      role="status"
+      aria-live="polite"
+      data-learning-path-difference-explanation={explanation.pathId}
+    >
+      <p className="break-words font-semibold">
+        正在比较：{left.label} ↔ {right.label}
+      </p>
+
+      {explanation.status === 'insufficient-data' ? (
+        <p>当前路径缺少完整节点信息，暂时无法生成可靠的差异解释。</p>
+      ) : explanation.status === 'no-material-difference' ? (
+        <p>两条路径目前没有实质差异。</p>
+      ) : (
+        <>
+          <div className="grid min-w-0 gap-2 sm:grid-cols-2">
+            {explanation.options.map((option) => {
+              const resourceMix = Object.entries(option.metrics.resourceMix)
+                .filter(([, count]) => count > 0)
+                .map(([type, count]) => `${formatResourceType(type)} ${count}`)
+                .join('、');
+              const readiness = Object.entries(option.metrics.readiness)
+                .filter(([, count]) => count > 0)
+                .map(([state, count]) => `${formatReadinessState(state)} ${count}`)
+                .join('、');
+              return (
+                <div key={option.optionId} className="min-w-0 rounded-md border border-border bg-background/70 p-2">
+                  <p className="break-words font-medium">{option.label}</p>
+                  <p className="mt-1 break-words text-subtle">
+                    {option.metrics.estimatedMinutes === null ? '时长待确认' : `${option.metrics.estimatedMinutes} 分钟`}
+                    {' · '}{option.metrics.nodeCount} 个节点
+                    {' · '}{option.metrics.checkpointCount} 个检查点
+                  </p>
+                  <p className="mt-1 break-words text-subtle">
+                    锁定 {option.metrics.lockedNodeCount} 个 · 终点验证 {option.metrics.terminalValidationCount} 个
+                  </p>
+                  <p className="mt-1 break-words text-subtle">资源：{resourceMix || '未提供'}</p>
+                  <p className="mt-1 break-words text-subtle">准备度：{readiness || '未提供'}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="min-w-0">
+            <p className="font-medium">共同节点</p>
+            {explanation.commonNodes.length > 0 ? (
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                {explanation.commonNodes.map((node) => (
+                  <li key={node.nodeId} className="break-words">
+                    {node.title}（{formatResourceType(node.resourceType)}；位置 {node.positions[0]} / {node.positions[1]}）
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="mt-1 text-subtle">无共同节点。</p>}
+          </div>
+
+          {explanation.optionOnlyNodes.map((group) => {
+            const option = explanation.options.find((candidate) => candidate.optionId === group.optionId);
+            return (
+              <div key={group.optionId} className="min-w-0">
+                <p className="break-words font-medium">{option?.label ?? group.optionId}独有节点</p>
+                {group.nodes.length > 0 ? (
+                  <ul className="mt-1 list-disc space-y-1 pl-5">
+                    {group.nodes.map((node) => (
+                      <li key={node.nodeId} className="break-words">
+                        第 {node.position} 步：{node.title}（{formatResourceType(node.resourceType)}）
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="mt-1 text-subtle">无独有节点。</p>}
+              </div>
+            );
+          })}
+
+          {explanation.orderDifferences.length > 0 ? (
+            <div className="min-w-0">
+              <p className="font-medium">顺序差异</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                {explanation.orderDifferences.map((difference) => (
+                  <li key={difference.nodeId} className="break-words">
+                    {difference.title}：{left.label}第 {difference.positions[0]} 步，{right.label}第 {difference.positions[1]} 步。
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <div className="min-w-0">
+            <p className="font-medium">方案取舍</p>
+            {explanation.tradeoffs.length > 0 ? (
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                {explanation.tradeoffs.map((tradeoff) => <li key={tradeoff} className="break-words">{tradeoff}</li>)}
+              </ul>
+            ) : <p className="mt-1 text-subtle">当前指标没有可量化的差异。</p>}
+          </div>
+        </>
+      )}
+
+      {explanation.limitations.length > 0 ? (
+        <div className="min-w-0">
+          <p className="font-medium">比较限制</p>
+          <ul className="mt-1 list-disc space-y-1 pl-5 text-subtle">
+            {explanation.limitations.map((limitation) => <li key={limitation} className="break-words">{limitation}</li>)}
+          </ul>
+        </div>
+      ) : null}
+    </section>
+  );
 }
 
 function formatPathNodeReason(reasonCodes: string[]): string {
@@ -1544,6 +1796,7 @@ export default function AdaptivePracticePage() {
   const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
   const [pathOptionFeedback, setPathOptionFeedback] = useState<Record<string, string>>({});
+  const [pathDifferenceExplanations, setPathDifferenceExplanations] = useState<Record<string, PathDifferenceExplanation>>({});
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
   const [pathAdvisorReadiness, setPathAdvisorReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
@@ -1598,6 +1851,10 @@ export default function AdaptivePracticePage() {
       })
     : null, [activeGoal, activeGoalLabel, activeLearnerState, activePathPlan, error, questionState, routeIntent]);
   const pathOptions = useMemo(() => getPathOptions(adaptivePathCenter), [adaptivePathCenter]);
+  const pathOptionVersionKey = useMemo(() => [
+    activePathRound?.id ?? activePathPlan?.id ?? 'no-path',
+    ...pathOptions.map((option) => `${option.optionId}:${option.nodeIds?.join(',') ?? ''}`),
+  ].join('|'), [activePathPlan?.id, activePathRound?.id, pathOptions]);
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathComparisonDiversityLimited = useMemo(
     () => hasPathComparisonDiversityLimitation(pathOptionFallback),
@@ -1608,6 +1865,11 @@ export default function AdaptivePracticePage() {
     [pathComparisonDiversityLimited, pathOptions],
   );
   const hasGeneratedPathOptions = pathOptions.length > 0;
+
+  useEffect(() => {
+    setPathOptionFeedback({});
+    setPathDifferenceExplanations({});
+  }, [pathOptionVersionKey]);
   const selectedExecutionOption = useMemo(
     () => pathOptions.find((option) => option.optionId === activeOptionId) ?? null,
     [activeOptionId, pathOptions],
@@ -2318,6 +2580,13 @@ export default function AdaptivePracticePage() {
     setPathGenerationPending(operation);
     setPathChoiceMessage(null);
     if (option?.optionId) {
+      if (operation === 'explain') {
+        setPathDifferenceExplanations((current) => {
+          const next = { ...current };
+          delete next[option.optionId];
+          return next;
+        });
+      }
       setPathOptionFeedback((current) => ({
         ...current,
         [option.optionId]: operation === 'revise'
@@ -2422,12 +2691,21 @@ export default function AdaptivePracticePage() {
       const rationale = Array.isArray(payload.result?.studentSafeRationale)
         ? payload.result.studentSafeRationale.filter((item: unknown): item is string => typeof item === 'string').join(' ')
         : null;
+      const differenceExplanation = operation === 'explain'
+        ? readPathDifferenceExplanation(payload.result?.comparison)
+        : null;
       setPathChoiceMessage(
         operation === 'explain'
           ? rationale ?? '已生成路径差异说明。'
           : operation === 'revise' ? '路径方案已按新参数调整。' : '学习路径已生成，请比较后选择方案。',
       );
       if (option?.optionId) {
+        if (differenceExplanation) {
+          setPathDifferenceExplanations((current) => ({
+            ...current,
+            [option.optionId]: differenceExplanation,
+          }));
+        }
         setPathOptionFeedback((current) => ({
           ...current,
           [option.optionId]: operation === 'explain'
@@ -3651,7 +3929,9 @@ export default function AdaptivePracticePage() {
                         有帮助
                       </button>
                     </div>
-                    {option.writeOption && pathOptionFeedback[option.writeOption.optionId] ? (
+                    {option.writeOption && pathDifferenceExplanations[option.writeOption.optionId] ? (
+                      <PathDifferenceExplanationPanel explanation={pathDifferenceExplanations[option.writeOption.optionId]} />
+                    ) : option.writeOption && pathOptionFeedback[option.writeOption.optionId] ? (
                       <p
                         className="rounded-lg border border-border bg-background/65 px-3 py-2 text-xs leading-5 text-foreground"
                         role="status"
@@ -3819,7 +4099,9 @@ export default function AdaptivePracticePage() {
                         有帮助
                       </button>
                     </div>
-                    {option.writeOption && pathOptionFeedback[option.writeOption.optionId] ? (
+                    {option.writeOption && pathDifferenceExplanations[option.writeOption.optionId] ? (
+                      <PathDifferenceExplanationPanel explanation={pathDifferenceExplanations[option.writeOption.optionId]} />
+                    ) : option.writeOption && pathOptionFeedback[option.writeOption.optionId] ? (
                       <p
                         className="rounded-lg border border-border bg-background/65 px-3 py-2 text-xs leading-5 text-foreground"
                         role="status"

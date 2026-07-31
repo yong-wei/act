@@ -9993,6 +9993,335 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('explains deterministic differences between two stored path options', async () => {
+    const createdRun = {
+      id: 'tool-run-path-tradeoff-difference',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'explain_learning_path_tradeoff',
+      permissionTier: 'analyze',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-tradeoff-difference',
+      correlationId: 'corr-path-tradeoff-difference',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'frequency-path-1',
+          pathPayload: {
+            policyBundle: {
+              status: 'ready',
+              paths: [
+                {
+                  optionId: 'path-option-1',
+                  styleId: 'guided',
+                  label: '基础补救路线',
+                  nodeIds: ['foundation', 'shared-analysis', 'guided-checkpoint'],
+                  nodeSummaries: [
+                    { nodeId: 'foundation', title: '频域基础复习', pathNodeType: 'knowledge_card' },
+                    { nodeId: 'shared-analysis', title: '稳定裕度分析', pathNodeType: 'control_workbench' },
+                    { nodeId: 'guided-checkpoint', title: '补救检查点', pathNodeType: 'checkpoint' },
+                  ],
+                  effort: { estimatedMinutes: 55 },
+                  resourceMix: { knowledge_card: 1, control_workbench: 1, checkpoint: 1 },
+                  readinessSummary: [
+                    { nodeId: 'foundation', state: 'ready', message: '可开始' },
+                    { nodeId: 'shared-analysis', state: 'ready', message: '可开始' },
+                    { nodeId: 'guided-checkpoint', state: 'ready', message: '可开始' },
+                  ],
+                  lockedNodeIds: [],
+                  checkpointNodeIds: ['guided-checkpoint'],
+                  terminalValidationNodeIds: ['guided-checkpoint'],
+                  limitations: [],
+                },
+                {
+                  optionId: 'path-option-2',
+                  styleId: 'sprint',
+                  label: '仿真驱动路线',
+                  nodeIds: ['shared-analysis', 'simulation-task', 'terminal-task'],
+                  nodeSummaries: [
+                    { nodeId: 'shared-analysis', title: '稳定裕度分析', pathNodeType: 'control_workbench' },
+                    { nodeId: 'simulation-task', title: '频域仿真实验', pathNodeType: 'simulation' },
+                    { nodeId: 'terminal-task', title: '终点验证', pathNodeType: 'arena_task' },
+                  ],
+                  effort: { estimatedMinutes: 35 },
+                  resourceMix: { control_workbench: 1, simulation: 1, arena_task: 1 },
+                  readinessSummary: [
+                    { nodeId: 'shared-analysis', state: 'ready', message: '可开始' },
+                    { nodeId: 'simulation-task', state: 'ready', message: '可开始' },
+                    { nodeId: 'terminal-task', state: 'locked', message: '完成仿真后解锁' },
+                  ],
+                  lockedNodeIds: ['terminal-task'],
+                  checkpointNodeIds: [],
+                  terminalValidationNodeIds: ['terminal-task'],
+                  limitations: ['终点验证当前尚未解锁'],
+                },
+              ],
+            },
+          },
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'foundation',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    const result = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-difference',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+
+    expect(result.comparison).toMatchObject({
+      status: 'ready',
+      pathId: 'frequency-path-1',
+      options: [
+        {
+          optionId: 'path-option-1',
+          styleId: 'guided',
+          label: '基础补救路线',
+          metrics: {
+            estimatedMinutes: 55,
+            nodeCount: 3,
+            checkpointCount: 1,
+            lockedNodeCount: 0,
+            terminalValidationCount: 1,
+          },
+        },
+        {
+          optionId: 'path-option-2',
+          styleId: 'sprint',
+          label: '仿真驱动路线',
+          metrics: {
+            estimatedMinutes: 35,
+            nodeCount: 3,
+            checkpointCount: 0,
+            lockedNodeCount: 1,
+            terminalValidationCount: 1,
+          },
+        },
+      ],
+      commonNodes: [{
+        nodeId: 'shared-analysis',
+        title: '稳定裕度分析',
+        resourceType: 'control_workbench',
+        positions: [2, 1],
+      }],
+      optionOnlyNodes: [
+        {
+          optionId: 'path-option-1',
+          nodes: [
+            { nodeId: 'foundation', title: '频域基础复习', resourceType: 'knowledge_card', position: 1 },
+            { nodeId: 'guided-checkpoint', title: '补救检查点', resourceType: 'checkpoint', position: 3 },
+          ],
+        },
+        {
+          optionId: 'path-option-2',
+          nodes: [
+            { nodeId: 'simulation-task', title: '频域仿真实验', resourceType: 'simulation', position: 2 },
+            { nodeId: 'terminal-task', title: '终点验证', resourceType: 'arena_task', position: 3 },
+          ],
+        },
+      ],
+      orderDifferences: [{
+        nodeId: 'shared-analysis',
+        title: '稳定裕度分析',
+        positions: [2, 1],
+      }],
+      limitations: ['终点验证当前尚未解锁'],
+    });
+    expect(result.comparison.tradeoffs).toEqual(expect.arrayContaining([
+      '基础补救路线预计比仿真驱动路线多用 20 分钟。',
+      '基础补救路线比仿真驱动路线多 1 个检查点。',
+      '仿真驱动路线比基础补救路线多 1 个锁定节点。',
+    ]));
+    expect(result.studentSafeRationale.join(' ')).toContain('基础补救路线');
+    expect(result.studentSafeRationale.join(' ')).toContain('仿真驱动路线');
+    expect(result.studentSafeRationale.join(' ')).not.toContain('路径差异主要来自学习时间');
+  });
+
+  it('reports identical and insufficient stored path comparisons explicitly', async () => {
+    const createdRun = {
+      id: 'tool-run-path-tradeoff-boundaries',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'explain_learning_path_tradeoff',
+      permissionTier: 'analyze',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-tradeoff-boundaries',
+      correlationId: 'corr-path-tradeoff-boundaries',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    let pathPayload: Record<string, unknown> = {
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            optionId: 'path-option-1',
+            styleId: 'guided',
+            label: '方案甲',
+            nodeIds: ['shared-node'],
+            nodeSummaries: [{ nodeId: 'shared-node', title: '共同节点', pathNodeType: 'knowledge_card' }],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1 },
+            readinessSummary: [{ nodeId: 'shared-node', state: 'ready', message: '可开始' }],
+            lockedNodeIds: [],
+            checkpointNodeIds: [],
+            terminalValidationNodeIds: [],
+            limitations: [],
+          },
+          {
+            optionId: 'path-option-2',
+            styleId: 'sprint',
+            label: '方案乙',
+            nodeIds: ['shared-node'],
+            nodeSummaries: [{ nodeId: 'shared-node', title: '共同节点', pathNodeType: 'knowledge_card' }],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1 },
+            readinessSummary: [{ nodeId: 'shared-node', state: 'ready', message: '可开始' }],
+            lockedNodeIds: [],
+            checkpointNodeIds: [],
+            terminalValidationNodeIds: [],
+            limitations: [],
+          },
+        ],
+      },
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun)
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockImplementation(async () => ({
+          id: 'frequency-path-1',
+          pathPayload,
+        })),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'shared-node',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    const identicalResult = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-identical',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+    expect(identicalResult.comparison.status).toBe('no-material-difference');
+    expect(identicalResult.studentSafeRationale).toContain('两条路径目前没有实质差异。');
+
+    pathPayload = {
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            optionId: 'path-option-1',
+            styleId: 'guided',
+            label: '方案甲',
+            nodeIds: ['missing-summary'],
+            nodeSummaries: [],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: {},
+          },
+          {
+            optionId: 'path-option-2',
+            styleId: 'sprint',
+            label: '方案乙',
+            nodeIds: ['known-node'],
+            nodeSummaries: [{ nodeId: 'known-node', title: '已知节点', pathNodeType: 'knowledge_card' }],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1 },
+          },
+        ],
+      },
+    };
+    const insufficientResult = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-insufficient',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+    expect(insufficientResult.comparison).toMatchObject({
+      status: 'insufficient-data',
+      tradeoffs: [],
+      limitations: ['方案甲缺少 1 个节点的可靠摘要。'],
+    });
+    expect(insufficientResult.studentSafeRationale).toContain('当前路径缺少完整节点信息，暂时无法生成可靠的差异解释。');
+  });
+
   it('rejects path tradeoff explanations for options outside the scoped path', async () => {
     const db = {
       agentSession: {

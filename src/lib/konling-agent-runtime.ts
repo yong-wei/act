@@ -4337,20 +4337,41 @@ function resolveAdaptivePathChoiceAction(outcome: string, helpful: boolean | nul
   return 'selection' as const;
 }
 
-function buildAdaptivePathTradeoffOutput(
+async function buildAdaptivePathTradeoffOutput(
   input: KonlingToolRuntimeInput,
   args: z.infer<typeof explainLearningPathTradeoffParameters>,
 ) {
   const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  const pathId = args.pathId ?? input.context.planContext?.currentPathId ?? null;
+  const path = await assertScopedAdaptivePathToolPath(input, pathId, {
+    goalId,
+    requirePath: true,
+    requireExisting: true,
+  });
+  if (!path) {
+    throw new KonlingRuntimeScopeError(400, '解释路径差异需要有效的学习路径。');
+  }
+  const storedOptions = readStoredAdaptivePathOptions(
+    readRecord(getValue(path, 'pathPayload')),
+    { allowPolicyFallback: true },
+  );
+  const options = [...storedOptions.values()];
+  const selectedOption = args.styleId
+    ? storedOptions.get(args.styleId) ?? null
+    : options[0] ?? null;
+  const comparedOption = args.compareWithStyleId
+    ? storedOptions.get(args.compareWithStyleId) ?? null
+    : options.find((option) => option.styleId !== selectedOption?.styleId) ?? null;
+  const comparison = selectedOption && comparedOption && selectedOption.styleId !== comparedOption.styleId
+    ? buildAdaptivePathDifferenceExplanation(path.id, selectedOption, comparedOption)
+    : buildUnavailableAdaptivePathDifferenceExplanation(path.id, options);
   return {
     operation: 'explained',
-    scope: buildAdaptivePathToolScope(input, goalId, args.pathId),
-    styleId: args.styleId ?? null,
-    compareWithStyleId: args.compareWithStyleId ?? null,
-    studentSafeRationale: [
-      '路径差异主要来自学习时间、资源类型、检查点密度和当前证据覆盖。',
-      '你可以选择更稳妥的路径，也可以选择挑战更高的路径；系统会保留选择和调整记录。',
-    ],
+    scope: buildAdaptivePathToolScope(input, goalId, path.id),
+    styleId: selectedOption?.styleId ?? args.styleId ?? null,
+    compareWithStyleId: comparedOption?.styleId ?? args.compareWithStyleId ?? null,
+    comparison,
+    studentSafeRationale: buildAdaptivePathDifferenceRationale(comparison),
   };
 }
 
@@ -4656,10 +4677,61 @@ async function assertScopedAdaptivePathToolPath(
 }
 
 interface AdaptivePathStoredOption {
+  optionId: string;
   styleId: string;
+  label: string;
   policyFamily: string | null;
+  nodeIds: string[];
+  nodeSummaries: AdaptivePathStoredNodeSummary[];
+  estimatedMinutes: number | null;
   resourceMix: Record<string, number>;
+  readinessSummary: Array<{
+    nodeId: string;
+    state: string;
+    message: string;
+  }>;
+  lockedNodeIds: string[];
+  checkpointNodeIds: string[];
+  terminalValidationNodeIds: string[];
+  limitations: string[];
   rationaleMetadata: Record<string, unknown>;
+}
+
+interface AdaptivePathStoredNodeSummary {
+  nodeId: string;
+  title: string;
+  resourceType: string;
+}
+
+interface AdaptivePathDifferenceExplanation {
+  status: 'ready' | 'no-material-difference' | 'insufficient-data';
+  pathId: string;
+  options: Array<{
+    optionId: string;
+    styleId: string;
+    label: string;
+    metrics: {
+      estimatedMinutes: number | null;
+      nodeCount: number;
+      resourceMix: Record<string, number>;
+      readiness: Record<string, number>;
+      checkpointCount: number;
+      lockedNodeCount: number;
+      terminalValidationCount: number;
+    };
+  }>;
+  commonNodes: Array<AdaptivePathStoredNodeSummary & { positions: [number, number] }>;
+  optionOnlyNodes: Array<{
+    optionId: string;
+    nodes: Array<AdaptivePathStoredNodeSummary & { position: number }>;
+  }>;
+  orderDifferences: Array<{
+    nodeId: string;
+    title: string;
+    positions: [number, number];
+  }>;
+  tradeoffs: string[];
+  limitations: string[];
 }
 
 function assertAdaptivePathOptionIds(
@@ -4698,17 +4770,244 @@ function readStoredAdaptivePathOptions(
     ? policyBundlePaths
     : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
   return new Map(options
-    .map((option): [string, AdaptivePathStoredOption] | null => {
+    .map((option, index): [string, AdaptivePathStoredOption] | null => {
       const styleId = getString(option, 'styleId');
       if (!styleId) return null;
+      const effort = readRecord(getValue(option, 'effort'));
+      const estimatedMinutesValue = getValue(effort, 'estimatedMinutes') ?? getValue(option, 'estimatedMinutes');
+      const nodeSummaries = arrayOfRecords(getValue(option, 'nodeSummaries'))
+        .map((summary): AdaptivePathStoredNodeSummary | null => {
+          const nodeId = getString(summary, 'nodeId');
+          if (!nodeId) return null;
+          return {
+            nodeId,
+            title: getString(summary, 'title') || getString(summary, 'displayName'),
+            resourceType: getString(summary, 'pathNodeType') || getString(summary, 'resourceType'),
+          };
+        })
+        .filter((summary): summary is AdaptivePathStoredNodeSummary => Boolean(summary));
+      const readinessSummary = arrayOfRecords(getValue(option, 'readinessSummary'))
+        .map((readiness) => ({
+          nodeId: getString(readiness, 'nodeId'),
+          state: getString(readiness, 'state') || 'unknown',
+          message: getString(readiness, 'message'),
+        }))
+        .filter((readiness) => Boolean(readiness.nodeId));
+      const terminalValidationStrategy = readRecord(getValue(option, 'terminalValidationStrategy'));
       return [styleId, {
+        optionId: getString(option, 'optionId') || `path-option-${index + 1}`,
         styleId,
+        label: getString(option, 'label') || styleId,
         policyFamily: getString(option, 'policyFamily') || null,
+        nodeIds: arrayOfStrings(getValue(option, 'nodeIds')),
+        nodeSummaries,
+        estimatedMinutes: typeof estimatedMinutesValue === 'number' && Number.isFinite(estimatedMinutesValue)
+          ? estimatedMinutesValue
+          : null,
         resourceMix: readNumberRecord(getValue(option, 'resourceMix')),
+        readinessSummary,
+        lockedNodeIds: arrayOfStrings(getValue(option, 'lockedNodeIds')),
+        checkpointNodeIds: arrayOfStrings(getValue(option, 'checkpointNodeIds')),
+        terminalValidationNodeIds: uniqueStringList([
+          ...arrayOfStrings(getValue(option, 'terminalValidationNodeIds')),
+          ...arrayOfStrings(getValue(terminalValidationStrategy, 'nodeIds')),
+        ]),
+        limitations: arrayOfStrings(getValue(option, 'limitations')),
         rationaleMetadata: buildStoredAdaptivePathOptionRationale(option),
       }];
     })
     .filter((entry): entry is [string, AdaptivePathStoredOption] => Boolean(entry)));
+}
+
+function buildAdaptivePathDifferenceExplanation(
+  pathId: string,
+  left: AdaptivePathStoredOption,
+  right: AdaptivePathStoredOption,
+): AdaptivePathDifferenceExplanation {
+  const limitations = uniqueStringList([...left.limitations, ...right.limitations]);
+  const missingFacts = [left, right].flatMap((option) => {
+    if (option.nodeIds.length === 0) return [`${option.label}缺少有序节点。`];
+    const summaries = new Map(option.nodeSummaries.map((node) => [node.nodeId, node]));
+    const missingNodeIds = option.nodeIds.filter((nodeId) => {
+      const summary = summaries.get(nodeId);
+      return !summary?.title || !summary.resourceType;
+    });
+    return missingNodeIds.length > 0
+      ? [`${option.label}缺少 ${missingNodeIds.length} 个节点的可靠摘要。`]
+      : [];
+  });
+  const comparisonLimitations = uniqueStringList([...limitations, ...missingFacts]);
+  const leftSummaryById = new Map(left.nodeSummaries.map((node) => [node.nodeId, node]));
+  const rightSummaryById = new Map(right.nodeSummaries.map((node) => [node.nodeId, node]));
+  const leftNodeIds = new Set(left.nodeIds);
+  const rightNodeIds = new Set(right.nodeIds);
+  const commonNodes = left.nodeIds
+    .filter((nodeId) => rightNodeIds.has(nodeId))
+    .map((nodeId) => ({
+      ...(leftSummaryById.get(nodeId) ?? rightSummaryById.get(nodeId) ?? {
+        nodeId,
+        title: '',
+        resourceType: '',
+      }),
+      positions: [left.nodeIds.indexOf(nodeId) + 1, right.nodeIds.indexOf(nodeId) + 1] as [number, number],
+    }));
+  const optionOnlyNodes = [left, right].map((option) => {
+    const otherNodeIds = option.styleId === left.styleId ? rightNodeIds : leftNodeIds;
+    const summaryById = option.styleId === left.styleId ? leftSummaryById : rightSummaryById;
+    return {
+      optionId: option.optionId,
+      nodes: option.nodeIds
+        .filter((nodeId) => !otherNodeIds.has(nodeId))
+        .map((nodeId) => ({
+          ...(summaryById.get(nodeId) ?? { nodeId, title: '', resourceType: '' }),
+          position: option.nodeIds.indexOf(nodeId) + 1,
+        })),
+    };
+  });
+  const orderDifferences = commonNodes
+    .filter((node) => node.positions[0] !== node.positions[1])
+    .map((node) => ({
+      nodeId: node.nodeId,
+      title: node.title,
+      positions: node.positions,
+    }));
+  const optionMetrics = [left, right].map((option) => ({
+    optionId: option.optionId,
+    styleId: option.styleId,
+    label: option.label,
+    metrics: buildAdaptivePathDifferenceMetrics(option),
+  }));
+  const materiallyEqual = missingFacts.length === 0
+    && left.nodeIds.length === right.nodeIds.length
+    && left.nodeIds.every((nodeId, index) => nodeId === right.nodeIds[index])
+    && areAdaptivePathDifferenceMetricsEqual(optionMetrics[0]?.metrics, optionMetrics[1]?.metrics);
+  return {
+    status: missingFacts.length > 0
+      ? 'insufficient-data'
+      : materiallyEqual ? 'no-material-difference' : 'ready',
+    pathId,
+    options: optionMetrics,
+    commonNodes,
+    optionOnlyNodes,
+    orderDifferences,
+    tradeoffs: missingFacts.length > 0 ? [] : buildAdaptivePathTradeoffs(left, right),
+    limitations: comparisonLimitations,
+  };
+}
+
+function buildUnavailableAdaptivePathDifferenceExplanation(
+  pathId: string,
+  options: AdaptivePathStoredOption[],
+): AdaptivePathDifferenceExplanation {
+  return {
+    status: 'insufficient-data',
+    pathId,
+    options: options.slice(0, 2).map((option) => ({
+      optionId: option.optionId,
+      styleId: option.styleId,
+      label: option.label,
+      metrics: buildAdaptivePathDifferenceMetrics(option),
+    })),
+    commonNodes: [],
+    optionOnlyNodes: [],
+    orderDifferences: [],
+    tradeoffs: [],
+    limitations: ['当前路径缺少两条可比较的候选方案。'],
+  };
+}
+
+function buildAdaptivePathDifferenceMetrics(option: AdaptivePathStoredOption) {
+  const readiness = option.readinessSummary.reduce<Record<string, number>>((counts, item) => {
+    counts[item.state] = (counts[item.state] ?? 0) + 1;
+    return counts;
+  }, {});
+  return {
+    estimatedMinutes: option.estimatedMinutes,
+    nodeCount: option.nodeIds.length,
+    resourceMix: option.resourceMix,
+    readiness,
+    checkpointCount: option.checkpointNodeIds.length,
+    lockedNodeCount: option.lockedNodeIds.length,
+    terminalValidationCount: option.terminalValidationNodeIds.length,
+  };
+}
+
+function areAdaptivePathDifferenceMetricsEqual(
+  left: ReturnType<typeof buildAdaptivePathDifferenceMetrics> | undefined,
+  right: ReturnType<typeof buildAdaptivePathDifferenceMetrics> | undefined,
+) {
+  if (!left || !right) return false;
+  return left.estimatedMinutes === right.estimatedMinutes
+    && left.nodeCount === right.nodeCount
+    && left.checkpointCount === right.checkpointCount
+    && left.lockedNodeCount === right.lockedNodeCount
+    && left.terminalValidationCount === right.terminalValidationCount
+    && areNumberRecordsEqual(left.resourceMix, right.resourceMix)
+    && areNumberRecordsEqual(left.readiness, right.readiness);
+}
+
+function areNumberRecordsEqual(left: Record<string, number>, right: Record<string, number>) {
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+  return [...keys].every((key) => (left[key] ?? 0) === (right[key] ?? 0));
+}
+
+function buildAdaptivePathTradeoffs(left: AdaptivePathStoredOption, right: AdaptivePathStoredOption): string[] {
+  const tradeoffs: string[] = [];
+  if (left.estimatedMinutes !== null && right.estimatedMinutes !== null && left.estimatedMinutes !== right.estimatedMinutes) {
+    const longer = left.estimatedMinutes > right.estimatedMinutes ? left : right;
+    const shorter = longer === left ? right : left;
+    tradeoffs.push(`${longer.label}预计比${shorter.label}多用 ${Math.abs(left.estimatedMinutes - right.estimatedMinutes)} 分钟。`);
+  }
+  appendCountTradeoff(tradeoffs, left, right, left.nodeIds.length, right.nodeIds.length, '个学习节点');
+  appendCountTradeoff(tradeoffs, left, right, left.checkpointNodeIds.length, right.checkpointNodeIds.length, '个检查点');
+  appendCountTradeoff(tradeoffs, left, right, left.lockedNodeIds.length, right.lockedNodeIds.length, '个锁定节点');
+  appendCountTradeoff(
+    tradeoffs,
+    left,
+    right,
+    left.terminalValidationNodeIds.length,
+    right.terminalValidationNodeIds.length,
+    '个终点验证节点',
+  );
+  const resourceTypes = [...new Set([...Object.keys(left.resourceMix), ...Object.keys(right.resourceMix)])].sort();
+  for (const resourceType of resourceTypes) {
+    const leftCount = left.resourceMix[resourceType] ?? 0;
+    const rightCount = right.resourceMix[resourceType] ?? 0;
+    if (leftCount === rightCount) continue;
+    tradeoffs.push(`${left.label}包含 ${leftCount} 个 ${resourceType} 资源，${right.label}包含 ${rightCount} 个。`);
+  }
+  return tradeoffs;
+}
+
+function appendCountTradeoff(
+  tradeoffs: string[],
+  left: AdaptivePathStoredOption,
+  right: AdaptivePathStoredOption,
+  leftCount: number,
+  rightCount: number,
+  unit: string,
+) {
+  if (leftCount === rightCount) return;
+  const larger = leftCount > rightCount ? left : right;
+  const smaller = larger === left ? right : left;
+  tradeoffs.push(`${larger.label}比${smaller.label}多 ${Math.abs(leftCount - rightCount)} ${unit}。`);
+}
+
+function buildAdaptivePathDifferenceRationale(comparison: AdaptivePathDifferenceExplanation): string[] {
+  const [left, right] = comparison.options;
+  if (!left || !right) return ['当前路径缺少两条可比较的候选方案。'];
+  const heading = `正在比较：${left.label} ↔ ${right.label}。`;
+  if (comparison.status === 'insufficient-data') {
+    return [heading, '当前路径缺少完整节点信息，暂时无法生成可靠的差异解释。'];
+  }
+  if (comparison.status === 'no-material-difference') {
+    return [heading, '两条路径目前没有实质差异。'];
+  }
+  return [
+    heading,
+    `两条路径共有 ${comparison.commonNodes.length} 个节点，各自独有 ${comparison.optionOnlyNodes[0]?.nodes.length ?? 0} 个和 ${comparison.optionOnlyNodes[1]?.nodes.length ?? 0} 个节点。`,
+    ...comparison.tradeoffs,
+  ];
 }
 
 function buildStoredAdaptivePathOptionRationale(option: Record<string, unknown>): Record<string, unknown> {
