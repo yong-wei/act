@@ -209,6 +209,7 @@ async function expectColdStartContentHidden(page: Page) {
 }
 
 async function capture(page: Page, viewport: { name: string; width: number; height: number }, state: string) {
+  if (!updateEvidence) return;
   mkdirSync(evidenceDir, { recursive: true });
   const filename = `${viewport.name}-${state}.png`;
   const file = path.join(evidenceDir, filename);
