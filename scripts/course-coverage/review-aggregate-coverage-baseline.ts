@@ -39,7 +39,6 @@ import {
 import {
   AGGREGATE_COVERAGE_ACTIVE_PATH,
   AGGREGATE_COVERAGE_WORKLIST_PATH,
-  loadProjectionNodes,
   type ProjectionNodeLike,
 } from './aggregate-coverage';
 import { loadAndValidatePublicBundleV1 } from '../actkg-release/public-bundle-v1';
@@ -561,14 +560,16 @@ async function readCoverageArtifactMetadata(
   root: string,
   projectionPath: string,
   releasePath: string,
+  authoringRevision?: string,
 ): Promise<CoverageArtifactMetadata> {
+  const read = (relativePath: string): Promise<string> | string => (
+    authoringRevision
+      ? readGitFile(root, authoringRevision, relativePath)
+      : readFile(path.join(root, relativePath), 'utf8')
+  );
   return {
-    projection: JSON.parse(
-      await readFile(path.join(root, projectionPath), 'utf8'),
-    ) as CoverageArtifactMetadata['projection'],
-    release: JSON.parse(
-      await readFile(path.join(root, releasePath), 'utf8'),
-    ) as CoverageArtifactMetadata['release'],
+    projection: JSON.parse(await read(projectionPath)) as CoverageArtifactMetadata['projection'],
+    release: JSON.parse(await read(releasePath)) as CoverageArtifactMetadata['release'],
   };
 }
 
@@ -899,7 +900,12 @@ async function resolveDynamicInputConfig(
     authoringRevision,
   );
 
-  const metadata = await readCoverageArtifactMetadata(root, lockedProjectionPath, lockedReleasePath);
+  const metadata = await readCoverageArtifactMetadata(
+    root,
+    lockedProjectionPath,
+    lockedReleasePath,
+    authoringRevision,
+  );
   assertCoverageArtifactIdentity(metadata, expected);
   return {
     ...expected,
@@ -930,13 +936,16 @@ async function generateWorklist(root: string, authoringRevision: string, deltaRe
   const input = await resolveInputConfig(root, authoringRevision, deltaReceiptId);
   const { projectionPath, releasePath } = input;
 
-  const nodesRaw = await loadProjectionNodes(root, projectionPath);
+  const projection = JSON.parse(readGitFile(root, authoringRevision, projectionPath)) as {
+    nodes?: ProjectionNodeLike[];
+  };
+  const nodesRaw = projection.nodes ?? [];
   const byId = new Map<string, ProjectionNodeLike>();
   for (const node of nodesRaw) {
     const id = node.entity_id ?? node.entityId;
     if (id) byId.set(id, node);
   }
-  const release = JSON.parse(await readFile(path.join(root, releasePath), 'utf8')) as {
+  const release = JSON.parse(readGitFile(root, authoringRevision, releasePath)) as {
     entries?: Array<{ entity?: string; entity_role?: string; entityRole?: string }>;
   };
   const membership = selectCanonicalObjectMembership({

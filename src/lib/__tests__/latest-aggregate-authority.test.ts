@@ -135,6 +135,8 @@ describe('latest Aggregate authority closure', () => {
     expect(source).toContain("'course-content/authoring/knowledge/cards'");
     expect(source).toContain("['ls-tree', '-r', '-z', '--name-only', revision, '--', relativePath]");
     expect(source).toContain("['show', `${revision}:${relativePath}`]");
+    expect(source).toContain('JSON.parse(readGitFile(root, authoringRevision, projectionPath))');
+    expect(source).toContain('JSON.parse(readGitFile(root, authoringRevision, releasePath))');
     expect(source).not.toContain("readdir(cardRoot");
     expect(source).toContain("{ isolationLevel: 'RepeatableRead' }");
     expect(source.indexOf('resolveTrustedCaptureRevision({')).toBeLessThan(
