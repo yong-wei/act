@@ -107,6 +107,16 @@ describe('declared authoritative snapshot receipt', () => {
       await cp(path.join(sourceRoot, bundleRoot, 'SHA256SUMS'), sumsPath);
 
       const worklistPath = path.join(copyRoot, (receipt.worklist as Record<string, string>).path);
+      const originalWorklistBytes = await readFile(worklistPath);
+      await writeFile(worklistPath, Buffer.concat([originalWorklistBytes, Buffer.from('\n')]));
+      const reformattedWorklist = await validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
+        receipt,
+        { repoRoot: copyRoot },
+      );
+      expect(reformattedWorklist.valid).toBe(false);
+      expect(reformattedWorklist.errors.join('; ')).toMatch(/worklist\.rawSha256/u);
+      await writeFile(worklistPath, originalWorklistBytes);
+
       const worklistJson = JSON.parse(await readFile(worklistPath, 'utf8')) as {
         items: Array<Record<string, unknown>>;
         decisions?: Array<Record<string, unknown>>;

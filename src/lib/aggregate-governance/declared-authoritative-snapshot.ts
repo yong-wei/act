@@ -18,7 +18,7 @@ export const DECLARED_AUTHORITATIVE_SNAPSHOT_RECEIPT_PATH =
 
 /** Immutable digest of the published #1117 receipt payload. */
 export const DECLARED_AUTHORITATIVE_SNAPSHOT_RECEIPT_DIGEST =
-  'd05f74c26767335bd11317379d8ffabc121b0760682faea6bb85fa5a382e088c' as const;
+  'fe4c703e634bd495b05cf67fd604f69c14d7a4f4ce64b4c6cdb3b190ca2b323f' as const;
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const COMMIT = /^[a-f0-9]{40}$/u;
@@ -52,6 +52,9 @@ export const DECLARED_SNAPSHOT_EXPECTED = {
     'bundle-receipt:00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6',
   worklistInputDigest:
     'd24df1f9acc26ccbb0c2a173e711b7fcc1902d88b5830ce8939eecf8ebe37e22',
+  worklistRawSha256:
+    '939bb85b46e159c89d289bc7c995dd966c7b0e32e66b6573988c2f8c0866046a',
+  worklistByteLength: 9589777,
 } as const;
 
 export const DECLARED_SNAPSHOT_DELTA_RECEIPT_IDS = [
@@ -182,6 +185,8 @@ export interface DeclaredAuthoritativeSnapshotReceipt {
   deltaReceipts: DeclaredSnapshotDeltaReceipt[];
   worklist: {
     path: string;
+    rawSha256: string;
+    byteLength: number;
     inputDigest: string;
     itemCount: number;
     profileOnly: number;
@@ -866,6 +871,14 @@ export async function validateMaterializedDeclaredAuthoritativeSnapshotReceipt(
   }
 
   if (worklistPath && worklist) {
+    const worklistBytes = await readFile(worklistPath);
+    materializedEqual(
+      createHash('sha256').update(worklistBytes).digest('hex'),
+      worklist.rawSha256,
+      'worklist.rawSha256',
+      errors,
+    );
+    materializedEqual(worklistBytes.byteLength, worklist.byteLength, 'worklist.byteLength', errors);
     const worklistJson = await readMaterializedJson(worklistPath, 'worklist', errors);
     if (worklistJson) {
       materializedExactKeys(
@@ -1115,6 +1128,9 @@ export function validateDeclaredAuthoritativeSnapshotReceipt(
 
   const worklist = record(receipt.worklist, 'worklist', errors);
   if (worklist) {
+    equal(worklist.rawSha256, DECLARED_SNAPSHOT_EXPECTED.worklistRawSha256, 'worklist.rawSha256', errors);
+    hash(worklist.rawSha256, 'worklist.rawSha256', errors);
+    equal(worklist.byteLength, DECLARED_SNAPSHOT_EXPECTED.worklistByteLength, 'worklist.byteLength', errors);
     equal(worklist.inputDigest, DECLARED_SNAPSHOT_EXPECTED.worklistInputDigest, 'worklist.inputDigest', errors);
     equal(worklist.itemCount, 3609, 'worklist.itemCount', errors);
     equal(worklist.profileOnly, 1772, 'worklist.profileOnly', errors);

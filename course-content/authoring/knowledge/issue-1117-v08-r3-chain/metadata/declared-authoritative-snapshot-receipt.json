@@ -143,6 +143,8 @@
   ],
   "worklist": {
     "path": "course-content/authoring/knowledge/issue-1117-v08-r3-chain/coverage-iteration-2/course-coverage-worklist.json",
+    "rawSha256": "939bb85b46e159c89d289bc7c995dd966c7b0e32e66b6573988c2f8c0866046a",
+    "byteLength": 9589777,
     "inputDigest": "d24df1f9acc26ccbb0c2a173e711b7fcc1902d88b5830ce8939eecf8ebe37e22",
     "itemCount": 3609,
     "profileOnly": 1772,
@@ -178,5 +180,5 @@
   },
   "selectorsChanged": 0,
   "violations": [],
-  "receiptDigest": "d05f74c26767335bd11317379d8ffabc121b0760682faea6bb85fa5a382e088c"
+  "receiptDigest": "fe4c703e634bd495b05cf67fd604f69c14d7a4f4ce64b4c6cdb3b190ca2b323f"
 }

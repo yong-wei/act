@@ -756,7 +756,7 @@ async function loadDynamicDatabaseAuthority(
           identityViolations: deltaRow.identityViolations,
         },
       });
-    });
+    }, { isolationLevel: 'RepeatableRead' });
   } catch (error) {
     if (
       error instanceof Error
