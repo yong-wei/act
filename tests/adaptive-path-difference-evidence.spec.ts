@@ -4,9 +4,6 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient, UserRole } from '@prisma/client';
-import 'dotenv/config';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3003';
 const pathId = 'path-difference-evidence-1160';
@@ -26,91 +23,6 @@ const expectedScreenshotFiles = [
 const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
 const screenshots: Array<Record<string, unknown>> = [];
 const assertions: Array<Record<string, unknown>> = [];
-const fixtureTeacherEmail = 'issue-1160-evidence-teacher@example.invalid';
-const fixtureClassCode = '1160E2';
-const fixtureClassName = 'Issue 1160 evidence class';
-
-let originalDemoProfile: { id: string; classId: string | null; className: string | null } | null = null;
-let createdFixtureClass = false;
-let createdFixtureTeacher = false;
-
-function createFixturePrismaClient() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) throw new Error('DATABASE_URL is required for the authenticated browser fixture');
-  const url = new URL(databaseUrl);
-  const schema = url.searchParams.get('schema')?.trim();
-  url.searchParams.delete('schema');
-  return new PrismaClient({
-    adapter: new PrismaPg(
-      { connectionString: url.toString() },
-      schema ? { schema } : {},
-    ),
-  });
-}
-
-async function prepareAuthenticatedClassFixture() {
-  const prisma = createFixturePrismaClient();
-  try {
-    const demoUser = await prisma.user.findFirst({
-      where: { email: 'demo@example.com' },
-      select: {
-        id: true,
-        profile: { select: { id: true, classId: true, className: true } },
-      },
-    });
-    if (!demoUser?.profile) throw new Error('The demo student profile is required for the browser evidence fixture');
-    originalDemoProfile = demoUser.profile;
-
-    const existingTeacher = await prisma.user.findUnique({ where: { email: fixtureTeacherEmail } });
-    createdFixtureTeacher = !existingTeacher;
-    const teacher = existingTeacher ?? await prisma.user.create({
-      data: {
-        name: 'Issue 1160 evidence teacher',
-        email: fixtureTeacherEmail,
-        role: UserRole.TEACHER,
-      },
-    });
-    const existingClass = await prisma.class.findUnique({ where: { code: fixtureClassCode } });
-    createdFixtureClass = !existingClass;
-    const fixtureClass = existingClass ?? await prisma.class.create({
-      data: {
-        name: fixtureClassName,
-        code: fixtureClassCode,
-        teacherId: teacher.id,
-      },
-    });
-
-    await prisma.studentProfile.update({
-      where: { id: demoUser.profile.id },
-      data: { classId: fixtureClass.id, className: fixtureClassName },
-    });
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-
-async function restoreAuthenticatedClassFixture() {
-  const prisma = createFixturePrismaClient();
-  try {
-    if (originalDemoProfile) {
-      await prisma.studentProfile.update({
-        where: { id: originalDemoProfile.id },
-        data: {
-          classId: originalDemoProfile.classId,
-          className: originalDemoProfile.className,
-        },
-      });
-    }
-    if (createdFixtureClass) {
-      await prisma.class.delete({ where: { code: fixtureClassCode } });
-    }
-    if (createdFixtureTeacher) {
-      await prisma.user.delete({ where: { email: fixtureTeacherEmail } });
-    }
-  } finally {
-    await prisma.$disconnect();
-  }
-}
 
 function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex');
@@ -185,6 +97,28 @@ const learnerStateFixture = JSON.stringify({
     statusMarkers: [],
   },
   missingEvidence: [],
+});
+
+const pathAdvisorContextFixture = JSON.stringify({
+  goalId: 'control-correction',
+  classId: 'fixture-class-1160',
+  modeContextToken: 'fixture-mode-context-token-1160',
+  readiness: {
+    status: 'ready',
+    reason: 'ready',
+    studentAction: 'continue-practice',
+    staffAction: 'none',
+    studentMessage: '路径生成条件已就绪。',
+    staffMessage: '路径顾问上下文已由受控夹具提供。',
+    evidence: {
+      source: 'path-advisor',
+      diagnosticCode: 'ready',
+      safeLabel: 'fixture-ready',
+    },
+  },
+  courseTitle: '控制校正',
+  topic: '控制校正学习路径',
+  learningObjectives: ['比较候选路径的学习取舍'],
 });
 
 function option(optionId: string, label: string, nodeIds: string[]) {
@@ -288,10 +222,6 @@ async function capture(page: Page, viewport: { name: string; width: number; heig
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async () => {
-  await prepareAuthenticatedClassFixture();
-});
-
 test('evidence manifest fails closed when tracked source changes', () => {
   test.skip(updateEvidence, 'capture run regenerates the manifest');
   expect(existsSync(manifestPath)).toBe(true);
@@ -327,12 +257,17 @@ for (const viewport of [
       compareWithOptionId?: string;
       modeContextToken?: string;
     }> = [];
-    // The real layout receives the temporary class relationship above and issues its signed
-    // path-advisor token. Only saved-path data and the advisor response are controlled here.
+    // Real page interactions consume deterministic, auditable service fixtures without
+    // mutating shared learner or class data.
     await page.route('**/api/adaptive/learner-state**', (route: Route) => route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: learnerStateFixture,
+    }));
+    await page.route('**/api/adaptive/path-advisor-context?goal=control-correction', (route: Route) => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: pathAdvisorContextFixture,
     }));
     await page.route(`**/api/learning-paths/${pathId}`, (route: Route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(pathRound(revised)) }));
     await page.route('**/api/adaptive/path-advisor-tool', async (route: Route) => {
@@ -387,22 +322,18 @@ for (const viewport of [
 
 test.afterAll(() => {
   return (async () => {
-    try {
-      if (!updateEvidence) return;
-      expect(assertions).toHaveLength(2);
-      expect(screenshots).toHaveLength(2);
-      mkdirSync(evidenceDir, { recursive: true });
-      const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-      writeFileSync(manifestPath, `${JSON.stringify({
-        capturedAt: new Date().toISOString(),
-        commitSha,
-        route: `/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=${pathId}`,
-        sourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)])),
-        assertions,
-        screenshots,
-      }, null, 2)}\n`, 'utf8');
-    } finally {
-      await restoreAuthenticatedClassFixture();
-    }
+    if (!updateEvidence) return;
+    expect(assertions).toHaveLength(2);
+    expect(screenshots).toHaveLength(2);
+    mkdirSync(evidenceDir, { recursive: true });
+    const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+    writeFileSync(manifestPath, `${JSON.stringify({
+      capturedAt: new Date().toISOString(),
+      commitSha,
+      route: `/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=${pathId}`,
+      sourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)])),
+      assertions,
+      screenshots,
+    }, null, 2)}\n`, 'utf8');
   })();
 });
