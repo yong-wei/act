@@ -1,3 +1,9 @@
+import {
+  evaluateAssessmentEvidenceSnapshotAuthority,
+  type AssessmentEvidenceCatalogSnapshot,
+} from '@/features/adaptive-assessment/assessment-evidence-authority';
+import type { AdaptiveAssessmentCatalogStage } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+
 export const WRONG_ANSWER_ATTRIBUTION_VERSION = 'wrong-answer-attribution.v1';
 
 export type WrongAnswerAttributionState = 'ATTRIBUTED' | 'UNCERTAIN';
@@ -86,6 +92,25 @@ interface GovernedEvidence {
   misconceptionTags: string[];
 }
 
+const ATTRIBUTION_ALLOWED_STAGES = new Set<AdaptiveAssessmentCatalogStage>([
+  'low-stakes-practice',
+  'readiness',
+  'checkpoint',
+  'remediation',
+  'terminal-validation',
+]);
+
+function attributionStage(value: string | null): AdaptiveAssessmentCatalogStage | null {
+  const normalized = value === 'practice'
+    ? 'low-stakes-practice'
+    : value === 'precheck' || value === 'readiness-gate'
+      ? 'readiness'
+      : value;
+  return normalized && ATTRIBUTION_ALLOWED_STAGES.has(normalized as AdaptiveAssessmentCatalogStage)
+    ? normalized as AdaptiveAssessmentCatalogStage
+    : null;
+}
+
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -145,6 +170,12 @@ function parseGovernedEvidence(
   const snapshotMisconceptionTags = stringArray(questionSnapshot?.misconceptionTags);
   const graphNodeIds = stringArray(semanticRefs?.graphNodeIds);
   const misconceptionTags = stringArray(semanticRefs?.misconceptionTags);
+  const reviewDecision = record(itemSnapshot?.reviewDecision);
+  const normalizedStage = attributionStage(nonEmptyString(reviewDecision?.selectedStagePurpose));
+  const authority = evaluateAssessmentEvidenceSnapshotAuthority(
+    itemSnapshot as unknown as AssessmentEvidenceCatalogSnapshot,
+    { requestedStage: normalizedStage },
+  );
   if (
     questionSnapshot?.version !== 'adaptive-question-snapshot.v1' ||
     itemSnapshot?.catalogBacked !== true ||
@@ -163,6 +194,8 @@ function parseGovernedEvidence(
     !snapshotMisconceptionTags ||
     !graphNodeIds ||
     !misconceptionTags ||
+    !normalizedStage ||
+    !authority.mastery ||
     !sameStrings(snapshotMisconceptionTags, misconceptionTags) ||
     !Array.isArray(questionSnapshot.options)
   ) {

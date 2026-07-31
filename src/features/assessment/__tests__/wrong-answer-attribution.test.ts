@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+
 import { resolveAdaptiveDiagnosisContext } from '../adaptive-diagnosis-context';
 import { attributeWrongAnswerEvidence } from '../wrong-answer-attribution';
 
@@ -10,6 +12,29 @@ const RAW_CORRECT_ANSWER = 'RAW_CORRECT_ANSWER';
 function answer(overrides: Record<string, unknown> = {}) {
   const itemContentHash = 'a'.repeat(64);
   const catalogContentHash = 'c'.repeat(64);
+  const reviewDecisionWithoutHash = {
+    catalogItemId: 'catalog-item-1',
+    decisionKind: 'human-review' as const,
+    outcome: 'approved' as const,
+    reviewerId: 'reviewer:test',
+    reviewedAt: '2026-07-31T07:00:00.000Z',
+    reviewBatchId: 'wrong-answer-attribution-test.v1',
+    sourceContentHash: catalogContentHash,
+    selectedLearningGoalIds: ['learning-goal-1'],
+    selectedKaqObjectiveIds: ['kaq-objective-1'],
+    selectedGraphNodeIds: ['knowledge-node-1'],
+    selectedStagePurpose: 'checkpoint' as const,
+    difficulty: 0.5,
+    cognitiveLevel: 'apply',
+    misconceptionRefs: ['confuses-low-and-high-frequency'],
+    remediationRefs: ['remediation-node-1'],
+    metadataVersionRefs: { semanticReviewVersion: 'v1' },
+    notes: 'Reviewed attribution boundary and evidence snapshot.',
+  };
+  const reviewDecision = {
+    ...reviewDecisionWithoutHash,
+    reviewSourceHash: assessmentItemSemanticReviewSourceHash(reviewDecisionWithoutHash),
+  };
   return {
     id: 'answer-1',
     userId: 'student-1',
@@ -47,15 +72,43 @@ function answer(overrides: Record<string, unknown> = {}) {
           catalogItemId: 'catalog-item-1',
           snapshotVersion: 'adaptive-assessment-item-ref.v1',
           contentHash: catalogContentHash,
+          contentHashAlgorithm: 'sha256',
+          sourceFamily: 'preset-adaptive-question',
+          sourceId: 'question-1',
+          sourceAnchor: 'test:question-1',
+          sourceLineage: {
+            sourceFamily: 'preset-adaptive-question',
+            sourceId: 'question-1',
+            sourcePath: 'test/questions.ts',
+            sourceHash: catalogContentHash,
+          },
           reviewState: 'path-eligible',
           eligibilityState: 'path-eligible',
-          semanticRefs: {
-            graphNodeIds: ['knowledge-node-1'],
-            misconceptionTags: ['confuses-low-and-high-frequency'],
+          allowedStages: ['checkpoint'],
+          questionRefs: {
+            stem: RAW_PROMPT,
+            answerKey: [RAW_CORRECT_ANSWER],
+            rubricRef: 'rubric:test',
           },
+          semanticRefs: {
+            learningGoalIds: ['learning-goal-1'],
+            kaqObjectiveIds: ['kaq-objective-1'],
+            graphNodeIds: ['knowledge-node-1'],
+            knowledgeTags: ['steady-state-error'],
+            misconceptionTags: ['confuses-low-and-high-frequency'],
+            remediationResourceNodeIds: ['remediation-node-1'],
+            difficulty: 0.5,
+            cognitiveLevel: 'apply',
+            assessmentStage: 'checkpoint',
+          },
+          limitations: [],
+          reviewDecision,
+          versionRefs: { semanticReviewVersion: 'v1' },
           relationship: {
             relationship: 'answer-time-snapshot',
             immutable: true,
+            mayReferenceCatalogItemId: true,
+            mayReferenceContentHash: true,
             catalogUpdatesRewriteHistoricalAnswers: false,
           },
         },
@@ -137,6 +190,26 @@ describe('attributeWrongAnswerEvidence', () => {
     })],
     ['a mismatched answer key', answer({ correctOptionKey: 'DIFFERENT_KEY' })],
   ])('fails closed without writing for %s', async (_label, row) => {
+    const db = dbFor(row);
+
+    await expect(attributeWrongAnswerEvidence({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: 'answer-1',
+    })).resolves.toBeNull();
+    expect(db.wrongAnswerAttribution.upsert).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['a rejected review decision', (item: any) => { item.reviewDecision.outcome = 'rejected'; }],
+    ['an invalid review source hash', (item: any) => { item.reviewDecision.reviewSourceHash = 'sha256:invalid'; }],
+    ['a mismatched source lineage', (item: any) => { item.sourceLineage.sourceHash = 'b'.repeat(64); }],
+    ['missing version references', (item: any) => { item.versionRefs = {}; }],
+    ['an invalid snapshot relationship', (item: any) => { item.relationship.mayReferenceContentHash = false; }],
+    ['a stage outside the allowed boundary', (item: any) => { item.allowedStages = ['readiness']; }],
+  ])('does not write or project attribution for %s', async (_label, damage) => {
+    const row = answer();
+    damage((row.questionRef.metadata as any).adaptiveAssessmentItemRef);
     const db = dbFor(row);
 
     await expect(attributeWrongAnswerEvidence({
