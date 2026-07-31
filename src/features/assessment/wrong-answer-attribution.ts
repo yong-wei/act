@@ -144,6 +144,11 @@ function sameStrings(left: string[], right: string[]): boolean {
     normalizedLeft.every((value, index) => value === normalizedRight[index]);
 }
 
+function isSubset(values: string[], reviewedValues: string[]): boolean {
+  const reviewed = new Set(reviewedValues);
+  return values.every((value) => reviewed.has(value));
+}
+
 function parseGovernedEvidence(
   answer: WrongAnswerRow,
   authenticatedUserId: string,
@@ -171,6 +176,8 @@ function parseGovernedEvidence(
   const graphNodeIds = stringArray(semanticRefs?.graphNodeIds);
   const misconceptionTags = stringArray(semanticRefs?.misconceptionTags);
   const reviewDecision = record(itemSnapshot?.reviewDecision);
+  const reviewedGraphNodeIds = stringArray(reviewDecision?.selectedGraphNodeIds);
+  const reviewedMisconceptionTags = stringArray(reviewDecision?.misconceptionRefs);
   const normalizedStage = attributionStage(nonEmptyString(reviewDecision?.selectedStagePurpose));
   const authority = evaluateAssessmentEvidenceSnapshotAuthority(
     itemSnapshot as unknown as AssessmentEvidenceCatalogSnapshot,
@@ -194,6 +201,10 @@ function parseGovernedEvidence(
     !snapshotMisconceptionTags ||
     !graphNodeIds ||
     !misconceptionTags ||
+    !reviewedGraphNodeIds ||
+    !reviewedMisconceptionTags ||
+    !isSubset(graphNodeIds, reviewedGraphNodeIds) ||
+    !isSubset(misconceptionTags, reviewedMisconceptionTags) ||
     !normalizedStage ||
     !authority.mastery ||
     !sameStrings(snapshotMisconceptionTags, misconceptionTags) ||

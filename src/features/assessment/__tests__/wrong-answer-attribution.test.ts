@@ -151,6 +151,14 @@ function persisted(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function rehashReviewDecision(item: any) {
+  const { reviewSourceHash: _reviewSourceHash, ...decisionWithoutHash } = item.reviewDecision;
+  item.reviewDecision = {
+    ...decisionWithoutHash,
+    reviewSourceHash: assessmentItemSemanticReviewSourceHash(decisionWithoutHash),
+  };
+}
+
 function dbFor(row: ReturnType<typeof answer> | null, stored = persisted()) {
   return {
     adaptiveAssessmentAnswer: {
@@ -207,6 +215,7 @@ describe('attributeWrongAnswerEvidence', () => {
     ['missing version references', (item: any) => { item.versionRefs = {}; }],
     ['an invalid snapshot relationship', (item: any) => { item.relationship.mayReferenceContentHash = false; }],
     ['a stage outside the allowed boundary', (item: any) => { item.allowedStages = ['readiness']; }],
+    ['an unreviewed semantic binding', (item: any) => { item.semanticRefs.graphNodeIds.push('unreviewed-node'); }],
   ])('does not write or project attribution for %s', async (_label, damage) => {
     const row = answer();
     damage((row.questionRef.metadata as any).adaptiveAssessmentItemRef);
@@ -280,6 +289,11 @@ describe('attributeWrongAnswerEvidence', () => {
     const ambiguous = answer();
     const metadata = ambiguous.questionRef.metadata as any;
     metadata.adaptiveAssessmentItemRef.semanticRefs.graphNodeIds = ['knowledge-node-1', 'knowledge-node-2'];
+    metadata.adaptiveAssessmentItemRef.reviewDecision.selectedGraphNodeIds = [
+      'knowledge-node-1',
+      'knowledge-node-2',
+    ];
+    rehashReviewDecision(metadata.adaptiveAssessmentItemRef);
     const stored = persisted({
       state: 'UNCERTAIN',
       knowledgeNodeIds: ['knowledge-node-1', 'knowledge-node-2'],
