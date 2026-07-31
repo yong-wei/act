@@ -18,12 +18,6 @@
 - 项目运行日志位于 `.logs/`，排查运行态问题时优先纳入证据。
 - 初始化或刚进入仓库时，先快速读取 `docs/memory/02-recent-summary.md` 建立最近记忆上下文，再按需查阅完整记忆。
 
-### GitHub PR 目标分支
-
-- 对 `yong-wei/act` 的 Issue/PR 工作，默认目标分支是 `integration`，不是 `main`。
-- 创建或更新 PR 前必须显式核对 base；除非用户明确要求，否则不得将目标分支设为 `main`。
-- 目标分支变更后必须重新核对 diff、冲突状态和验证结果，不能沿用旧目标分支的门禁结论。
-
 ## 项目子代理工作流
 
 - 项目命名子代理位于 `.codex/agents/*.toml`；角色、权限和路由真源见 `.codex/agents/README.md`、`.codex/agents/ROUTING.md` 与 `.codex/agents/HARNESS.md`。
