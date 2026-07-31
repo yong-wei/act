@@ -112,6 +112,7 @@ async function backfillSnapshots() {
             description: risk.description,
             evidenceJson: risk.evidence as Prisma.InputJsonValue,
             triggeredAt: risk.triggeredAt,
+            evidenceObservedAt: risk.triggeredAt,
           },
         });
       }

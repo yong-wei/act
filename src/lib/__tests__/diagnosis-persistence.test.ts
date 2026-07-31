@@ -235,7 +235,9 @@ describe('diagnosis report persistence', () => {
         findMany: vi.fn().mockResolvedValue([{
           id: 'risk-1',
           userId: 'student-1',
-          triggeredAt: new Date('2026-07-30T09:00:00.000Z'),
+          flagType: 'constraint',
+          triggeredAt: new Date('2026-07-01T09:00:00.000Z'),
+          evidenceObservedAt: new Date('2026-07-30T09:00:00.000Z'),
         }]),
       },
     });
@@ -256,6 +258,65 @@ describe('diagnosis report persistence', () => {
     });
     expect(db.diagnosisReport.create).not.toHaveBeenCalled();
   });
+
+  it('rejects legacy audit-only risk references', async () => {
+    const db = createDb({
+      studentRiskFlag: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'legacy-risk-1',
+          userId: 'student-1',
+          flagType: 'participation',
+          evidenceObservedAt: new Date('2026-07-30T07:00:00.000Z'),
+        }]),
+      },
+    });
+    await expect(persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody: {
+        ...reportBody,
+        evidenceRefs: ['student-risk-flag:legacy-risk-1'],
+      },
+    }, db)).rejects.toMatchObject({
+      status: 400,
+      message: 'diagnosis-evidence-unsupported-risk-type',
+    });
+    expect(db.diagnosisReport.create).not.toHaveBeenCalled();
+  });
+
+  it.each(['constraint', 'stagnation', 'cross_domain'])(
+    'accepts governed current risk evidence of type %s',
+    async (flagType) => {
+      const db = createDb({
+        studentRiskFlag: {
+          findMany: vi.fn().mockResolvedValue([{
+            id: 'risk-1',
+            userId: 'student-1',
+            flagType,
+            evidenceObservedAt: new Date('2026-07-30T07:00:00.000Z'),
+          }]),
+        },
+      });
+      await persistDiagnosisReport({
+        teacherId: 'teacher-1',
+        classId: 'class-1',
+        targetStudentId: 'student-1',
+        reportBody: {
+          ...reportBody,
+          evidenceRefs: ['student-risk-flag:risk-1'],
+        },
+      }, db);
+
+      expect(db.studentRiskFlag.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: {
+          id: { in: ['risk-1'] },
+          flagType: { in: ['stagnation', 'constraint', 'cross_domain'] },
+        },
+      }));
+      expect(db.diagnosisReport.create).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it('reads only the requested class-level reports with a bounded limit', async () => {
     const db = createDb();

@@ -58,6 +58,7 @@ describe('risk scanner', () => {
         userId: 'student-1',
         flagType: 'constraint',
         triggeredAt: now,
+        evidenceObservedAt: now,
       }),
     });
 
@@ -80,6 +81,12 @@ describe('risk scanner', () => {
       rules: [rule('constraint', next)],
     });
     expect(updated.flagsUpdated).toBe(1);
+    expect(updateDbMock.studentRiskFlag.update).toHaveBeenCalledWith({
+      where: { id: 'flag-1' },
+      data: expect.objectContaining({
+        evidenceObservedAt: now,
+      }),
+    });
 
     const resolveDbMock = createDb({
       studentRiskFlag: {

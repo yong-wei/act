@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { buildDiagnosisPrepLink } from '@/lib/diagnosis-prep-link';
+import { CURRENT_RISK_FLAG_TYPES } from '@/lib/risk-scanner';
 import { z } from 'zod';
 
 const diagnosisEvidenceRefSchema = z.string()
@@ -64,7 +65,8 @@ export interface DiagnosisPersistenceDb {
     findMany(args: Record<string, unknown>): Promise<Array<{
       id: string;
       userId: string;
-      triggeredAt: Date;
+      flagType: string;
+      evidenceObservedAt: Date;
     }>>;
   };
   studentCompetencySnapshot: {
@@ -196,8 +198,16 @@ async function assertEvidenceScope(
     riskFlagIds.length === 0
       ? []
       : db.studentRiskFlag.findMany({
-          where: { id: { in: riskFlagIds } },
-          select: { id: true, userId: true, triggeredAt: true },
+          where: {
+            id: { in: riskFlagIds },
+            flagType: { in: [...CURRENT_RISK_FLAG_TYPES] },
+          },
+          select: {
+            id: true,
+            userId: true,
+            flagType: true,
+            evidenceObservedAt: true,
+          },
         }),
     competencySnapshotIds.length === 0
       ? []
@@ -212,11 +222,15 @@ async function assertEvidenceScope(
           select: { id: true, userId: true, lastVisited: true },
         }),
   ]);
+  const currentRiskTypes = new Set<string>(CURRENT_RISK_FLAG_TYPES);
+  if (riskFlags.some((row) => !currentRiskTypes.has(row.flagType))) {
+    throw new DiagnosisReportScopeError(400, 'diagnosis-evidence-unsupported-risk-type');
+  }
   const evidenceRows: DiagnosisEvidenceRow[] = [
     ...riskFlags.map((row) => ({
       ref: `student-risk-flag:${row.id}`,
       userId: row.userId,
-      observedAt: row.triggeredAt,
+      observedAt: row.evidenceObservedAt,
     })),
     ...competencySnapshots.map((row) => ({
       ref: `student-competency-snapshot:${row.id}`,

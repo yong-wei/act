@@ -284,6 +284,7 @@ export async function scanStudentRisks(
             severity: next.severity,
             description: next.description,
             evidenceJson: next.evidenceJson,
+            evidenceObservedAt: now,
             resolutionNote: null,
           },
         });
@@ -300,6 +301,7 @@ export async function scanStudentRisks(
             description: next.description,
             evidenceJson: next.evidenceJson,
             triggeredAt: now,
+            evidenceObservedAt: now,
           },
         });
         result.flagsCreated += 1;
@@ -318,6 +320,7 @@ export async function scanStudentRisks(
             severity: next.severity,
             description: next.description,
             evidenceJson: next.evidenceJson,
+            evidenceObservedAt: now,
             resolutionNote: null,
           },
         });

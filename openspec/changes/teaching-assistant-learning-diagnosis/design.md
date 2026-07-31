@@ -21,7 +21,7 @@ Non-goals:
 
 ### Current risk state is evidence-driven
 
-The scanner evaluates only `constraint`, `stagnation`, and `cross_domain`. Each rule may create a flag, update its governed summary, resolve an active flag when the rule clears, or leave the state unchanged. A partial unique index enforces one active flag per student and risk type, and a concurrent create retries against the winning active row. Legacy risk types remain audit-only. The worker scans students with a stable user-id cursor so the job is bounded and resumable at page boundaries.
+The scanner evaluates only `constraint`, `stagnation`, and `cross_domain`. Each rule may create a flag, update its governed summary, resolve an active flag when the rule clears, or leave the state unchanged. A partial unique index enforces one active flag per student and current risk type, and a concurrent create retries against the winning active row. Legacy risk types remain audit-only and are outside both the uniqueness predicate and diagnosis evidence inputs. Each current flag records when its current evidence version was observed, independently from its first trigger time. Historical flags whose evidence version predates this field use migration time as their first governed observation so earlier report cutoffs fail closed. The worker scans students with a stable user-id cursor so the job is bounded and resumable at page boundaries.
 
 ### Authorization is revalidated inside diagnosis tools
 

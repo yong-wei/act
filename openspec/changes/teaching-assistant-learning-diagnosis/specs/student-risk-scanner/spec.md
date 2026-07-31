@@ -13,6 +13,7 @@ The system SHALL scan only `constraint`, `stagnation`, and `cross_domain` as cur
 
 - **WHEN** governed evidence changes the supported severity or summary
 - **THEN** the scanner SHALL update the active flag
+- **AND** it SHALL record when the updated evidence version was observed independently from the original trigger time
 - **AND WHEN** governed evidence clears the rule
 - **THEN** the scanner SHALL resolve the active flag with a deterministic resolution reason.
 

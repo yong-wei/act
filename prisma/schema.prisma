@@ -4935,6 +4935,7 @@ model StudentRiskFlag {
 
   evidenceJson Json
   triggeredAt  DateTime
+  evidenceObservedAt DateTime
 
   isResolved     Boolean   @default(false)
   resolvedAt     DateTime?
@@ -4947,7 +4948,9 @@ model StudentRiskFlag {
   @@index([userId, flagType])
   @@index([userId, isResolved])
   @@index([flagType, severity])
-  @@unique([userId, flagType], map: "StudentRiskFlag_active_user_type_key", where: { isResolved: false })
+  @@unique([userId, flagType], map: "StudentRiskFlag_active_stagnation_user_key", where: { isResolved: false, flagType: "stagnation" })
+  @@unique([userId, flagType], map: "StudentRiskFlag_active_constraint_user_key", where: { isResolved: false, flagType: "constraint" })
+  @@unique([userId, flagType], map: "StudentRiskFlag_active_cross_domain_user_key", where: { isResolved: false, flagType: "cross_domain" })
 }
 
 model DiagnosisReport {
