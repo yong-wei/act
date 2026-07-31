@@ -52,6 +52,7 @@ async function fixtureActkg(): Promise<string> {
 
   const sharedDir = path.join(root, 'releases', 'shared-component-v0.1');
   await mkdir(sharedDir, { recursive: true });
+  const sharedReportBytes = Buffer.from('{"result":"PASS"}\n');
   const sharedManifest = {
     bundle_contract_version: 'actkg-public-bundle/1',
     bundle_digest: '',
@@ -68,12 +69,22 @@ async function fixtureActkg(): Promise<string> {
     release_stage: 'stable',
     schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
     source_revision: { commit: sourceCommit, tag: 'source-v1' },
+    artifacts: [{
+      role: 'validation_report',
+      contract_version: 'ctkg-validation-report/0.2',
+      required: true,
+      path: 'validation-report.json',
+      media_type: 'application/json',
+      sha256: sha256(sharedReportBytes),
+      byte_length: sharedReportBytes.byteLength,
+      record_count: null,
+    }],
   };
   const sharedDigestBody = { ...sharedManifest } as Record<string, unknown>;
   delete sharedDigestBody.bundle_digest;
   sharedManifest.bundle_digest = sha256(canonicalJson(sharedDigestBody));
   await writeFile(path.join(sharedDir, 'bundle-manifest.json'), JSON.stringify(sharedManifest));
-  await writeFile(path.join(sharedDir, 'validation-report.json'), '{"result":"PASS"}\n');
+  await writeFile(path.join(sharedDir, 'validation-report.json'), sharedReportBytes);
   const sharedManifestSha = sha256(await readFile(path.join(sharedDir, 'bundle-manifest.json')));
   const sharedDigest = sharedManifest.bundle_digest;
   await writeSums(sharedDir, ['bundle-manifest.json', 'validation-report.json']);

@@ -370,6 +370,28 @@ function normalizedRepoRelativePath(
   return normalized;
 }
 
+function normalizedBundleMemberPath(
+  value: unknown,
+  field: string,
+  errors: string[],
+): string | null {
+  if (typeof value !== 'string' || value.length === 0) {
+    errors.push(`${field} must be a non-empty string`);
+    return null;
+  }
+  if (
+    path.posix.isAbsolute(value)
+    || path.posix.normalize(value) !== value
+    || value.includes('\\')
+    || value.includes('\u0000')
+    || value.split('/').some((part) => part === '' || part === '.' || part === '..')
+  ) {
+    errors.push(`${field} must be a normalized confined POSIX path`);
+    return null;
+  }
+  return value;
+}
+
 function isContainedPath(root: string, target: string): boolean {
   return target === root || target.startsWith(`${root}${path.sep}`);
 }
@@ -505,32 +527,85 @@ async function validateBundleChecksumClosure(input: {
   );
   if (!sumsPath) return;
   const entries = new Map<string, string>();
+  const foldedEntries = new Map<string, string>();
   for (const [index, line] of (await readFile(sumsPath, 'utf8')).trimEnd().split('\n').entries()) {
     const match = line.match(/^([a-f0-9]{64})  (.+)$/u);
     if (!match) {
       input.errors.push(`${input.label} SHA256SUMS line ${index + 1} is invalid`);
       continue;
     }
-    const relative = normalizedRepoRelativePath(
+    const relative = normalizedBundleMemberPath(
       match[2],
       `${input.label} SHA256SUMS line ${index + 1} path`,
       input.errors,
     );
     if (!relative) continue;
-    if (entries.has(relative)) input.errors.push(`${input.label} SHA256SUMS duplicates ${relative}`);
+    const folded = relative.normalize('NFKC').toLocaleLowerCase('en-US');
+    if (entries.has(relative) || foldedEntries.has(folded)) {
+      input.errors.push(`${input.label} SHA256SUMS duplicates or case-fold collides at ${relative}`);
+    }
     entries.set(relative, match[1]);
+    foldedEntries.set(folded, relative);
   }
   const artifacts = Array.isArray(input.manifest.artifacts) ? input.manifest.artifacts : [];
   const expectedFiles = new Set(['bundle-manifest.json']);
+  const artifactDeclarations = new Map<string, {
+    sha256: string;
+    byteLength: number;
+    mediaType: string;
+    recordCount: number | null;
+  }>();
+  const foldedArtifactPaths = new Map<string, string>();
   for (const [index, raw] of artifacts.entries()) {
     const artifact = materializedRecord(raw, `${input.label}.artifacts[${index}]`, input.errors);
-    if (!artifact || artifact.required !== true) continue;
-    const relative = normalizedRepoRelativePath(
+    if (!artifact) continue;
+    const relative = normalizedBundleMemberPath(
       artifact.path,
       `${input.label}.artifacts[${index}].path`,
       input.errors,
     );
-    if (relative) expectedFiles.add(relative);
+    if (!relative) continue;
+    const folded = relative.normalize('NFKC').toLocaleLowerCase('en-US');
+    if (
+      relative === 'bundle-manifest.json'
+      || relative === 'SHA256SUMS'
+      || expectedFiles.has(relative)
+      || foldedArtifactPaths.has(folded)
+    ) {
+      input.errors.push(`${input.label}.artifacts[${index}].path is reserved, duplicated, or case-fold colliding`);
+      continue;
+    }
+    expectedFiles.add(relative);
+    foldedArtifactPaths.set(folded, relative);
+    const declaredHash = typeof artifact.sha256 === 'string' && SHA256.test(artifact.sha256)
+      ? artifact.sha256
+      : null;
+    if (!declaredHash) input.errors.push(`${input.label}.artifacts[${index}].sha256 must be a SHA-256`);
+    const byteLength = typeof artifact.byte_length === 'number'
+      && Number.isInteger(artifact.byte_length)
+      && artifact.byte_length >= 0
+      ? artifact.byte_length
+      : null;
+    if (byteLength === null) {
+      input.errors.push(`${input.label}.artifacts[${index}].byte_length must be a non-negative integer`);
+    }
+    const mediaType = typeof artifact.media_type === 'string' && artifact.media_type.length > 0
+      ? artifact.media_type
+      : null;
+    if (!mediaType) input.errors.push(`${input.label}.artifacts[${index}].media_type must be a non-empty string`);
+    const recordCount = artifact.record_count === null
+      ? null
+      : typeof artifact.record_count === 'number'
+        && Number.isInteger(artifact.record_count)
+        && artifact.record_count >= 0
+        ? artifact.record_count
+        : undefined;
+    if (recordCount === undefined) {
+      input.errors.push(`${input.label}.artifacts[${index}].record_count must be null or a non-negative integer`);
+    }
+    if (declaredHash && byteLength !== null && mediaType && recordCount !== undefined) {
+      artifactDeclarations.set(relative, { sha256: declaredHash, byteLength, mediaType, recordCount });
+    }
   }
   for (const expected of expectedFiles) {
     if (!entries.has(expected)) input.errors.push(`${input.label} SHA256SUMS is missing ${expected}`);
@@ -576,12 +651,29 @@ async function validateBundleChecksumClosure(input: {
       input.errors.push(`${input.label} checksummed ${relative} resolves outside its controlled path`);
       continue;
     }
+    const bytes = await readFile(artifactPath);
+    const actualHash = createHash('sha256').update(bytes).digest('hex');
     materializedEqual(
-      createHash('sha256').update(await readFile(artifactPath)).digest('hex'),
+      actualHash,
       expectedHash,
       `${input.label} checksummed ${relative} SHA-256`,
       input.errors,
     );
+    const declaration = artifactDeclarations.get(relative);
+    if (declaration) {
+      materializedEqual(actualHash, declaration.sha256, `${input.label} Artifact ${relative} SHA-256`, input.errors);
+      materializedEqual(bytes.byteLength, declaration.byteLength, `${input.label} Artifact ${relative} byte_length`, input.errors);
+      const actualRecordCount = declaration.mediaType === 'application/x-ndjson'
+        || declaration.mediaType === 'application/ndjson'
+        ? bytes.toString('utf8').split(/\r?\n/u).filter((line) => line.length > 0).length
+        : null;
+      materializedEqual(
+        actualRecordCount,
+        declaration.recordCount,
+        `${input.label} Artifact ${relative} record_count`,
+        input.errors,
+      );
+    }
   }
 }
 

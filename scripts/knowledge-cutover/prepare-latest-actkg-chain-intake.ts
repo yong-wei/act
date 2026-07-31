@@ -72,6 +72,32 @@ function hash(value: unknown, label: string): string {
   return result;
 }
 
+function nonNegativeInteger(value: unknown, label: string): number {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
+    fail(`${label} must be a non-negative integer`);
+  }
+  return value;
+}
+
+function artifactRecordCount(bytes: Buffer, mediaType: string): number | null {
+  if (mediaType !== 'application/x-ndjson' && mediaType !== 'application/ndjson') return null;
+  return bytes.toString('utf8').split(/\r?\n/u).filter((line) => line.length > 0).length;
+}
+
+function validateBundleMemberPath(value: unknown, label: string): string {
+  const relative = string(value, label);
+  if (
+    path.posix.isAbsolute(relative)
+    || path.posix.normalize(relative) !== relative
+    || relative.includes('\\')
+    || relative.includes('\u0000')
+    || relative.split('/').some((part) => part === '' || part === '.' || part === '..')
+  ) {
+    fail(`${label} must be a normalized confined POSIX path`);
+  }
+  return relative;
+}
+
 function sha256(value: Buffer | string): string {
   return createHash('sha256').update(value).digest('hex');
 }
@@ -312,10 +338,57 @@ export async function validateBundleDirectory(
   }
   const sumsBytes = await readFile(path.join(directory, 'SHA256SUMS'));
   const rows = new Map<string, string>();
+  const foldedRows = new Map<string, string>();
   for (const [index, line] of sumsBytes.toString('utf8').trimEnd().split('\n').entries()) {
     const match = /^([0-9a-f]{64}) {2}(.+)$/u.exec(line);
-    if (!match || rows.has(match[2])) fail(`invalid component SHA256SUMS row ${index + 1}`);
-    rows.set(match[2], match[1]);
+    if (!match) fail(`invalid component SHA256SUMS row ${index + 1}`);
+    const memberPath = validateBundleMemberPath(match[2], `component SHA256SUMS row ${index + 1}`);
+    const folded = memberPath.normalize('NFKC').toLocaleLowerCase('en-US');
+    if (rows.has(memberPath) || foldedRows.has(folded)) {
+      fail(`invalid component SHA256SUMS row ${index + 1}`);
+    }
+    rows.set(memberPath, match[1]);
+    foldedRows.set(folded, memberPath);
+  }
+  if (!Array.isArray(manifest.artifacts)) fail(`component Manifest artifacts are missing: ${expected.bundleId}`);
+  const declaredArtifacts = new Set<string>();
+  const foldedArtifacts = new Map<string, string>();
+  for (const [index, value] of manifest.artifacts.entries()) {
+    const artifact = object(value, `component artifacts[${index}]`);
+    const artifactPath = validateBundleMemberPath(
+      artifact.path,
+      `component artifacts[${index}].path`,
+    );
+    const folded = artifactPath.normalize('NFKC').toLocaleLowerCase('en-US');
+    if (
+      artifactPath === 'bundle-manifest.json'
+      || artifactPath === 'SHA256SUMS'
+      || declaredArtifacts.has(artifactPath)
+      || foldedArtifacts.has(folded)
+    ) {
+      fail(`component Artifact path is invalid: ${expected.bundleId}/${artifactPath}`);
+    }
+    declaredArtifacts.add(artifactPath);
+    foldedArtifacts.set(folded, artifactPath);
+    const bytes = await readFile(path.join(directory, ...artifactPath.split('/')));
+    const declaredHash = hash(artifact.sha256, `component artifacts[${index}].sha256`);
+    const byteLength = nonNegativeInteger(
+      artifact.byte_length,
+      `component artifacts[${index}].byte_length`,
+    );
+    const mediaType = string(artifact.media_type, `component artifacts[${index}].media_type`);
+    const recordCount = artifact.record_count === null
+      ? null
+      : nonNegativeInteger(artifact.record_count, `component artifacts[${index}].record_count`);
+    if (sha256(bytes) !== declaredHash || rows.get(artifactPath) !== declaredHash) {
+      fail(`component Artifact hash drift: ${expected.bundleId}/${artifactPath}`);
+    }
+    if (bytes.byteLength !== byteLength) {
+      fail(`component Artifact byte length drift: ${expected.bundleId}/${artifactPath}`);
+    }
+    if (artifactRecordCount(bytes, mediaType) !== recordCount) {
+      fail(`component Artifact record count drift: ${expected.bundleId}/${artifactPath}`);
+    }
   }
   const files: string[] = [];
   const walk = async (current: string, relative: string): Promise<void> => {
@@ -334,6 +407,10 @@ export async function validateBundleDirectory(
   };
   await walk(directory, '');
   files.sort();
+  const manifestClosedFiles = ['bundle-manifest.json', ...declaredArtifacts].sort();
+  if (canonicalJson(files) !== canonicalJson(manifestClosedFiles)) {
+    fail(`component file set does not close over Manifest artifacts: ${expected.bundleId}`);
+  }
   if (canonicalJson(files) !== canonicalJson([...rows.keys()].sort())) {
     fail(`component SHA256SUMS does not close over ${expected.bundleId}`);
   }

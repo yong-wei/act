@@ -66,6 +66,16 @@ async function fixtureRepo(options?: {
     source_revision: { commit: sourceCommit, tag: 'source-v1' },
     statistics: { knowledge_nodes: 0 },
     components: [],
+    artifacts: [{
+      role: 'release',
+      contract_version: 'ctkg-release/0.2',
+      required: true,
+      path: 'component.json',
+      media_type: 'application/json',
+      sha256: sha256('{"component":true}\n'),
+      byte_length: Buffer.byteLength('{"component":true}\n'),
+      record_count: null,
+    }],
   };
   const componentDigestBody = { ...componentManifest };
   delete componentDigestBody.bundle_digest;
@@ -175,7 +185,33 @@ describe('prepareLatestActkgIntake', () => {
         bindingPath,
         outputRoot: path.join(workRoot, 'attempt-invalid'),
         mainRef: 'main',
-      })).rejects.toThrow(/component SHA256SUMS does not close over ctb:component:v1/u);
+      })).rejects.toThrow(/component file set does not close over Manifest artifacts: ctb:component:v1/u);
+    } finally {
+      await rm(actkgRoot, { recursive: true, force: true });
+      await rm(workRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects component bytes whose rewritten SHA256SUMS disagrees with the Manifest', async () => {
+    const actkgRoot = await fixtureRepo();
+    const workRoot = await mkdtemp(path.join(tmpdir(), 'act-intake-output-'));
+    const bindingPath = path.join(workRoot, 'binding.json');
+    const componentDir = path.join(actkgRoot, 'releases', 'component-v1');
+    try {
+      const binding = await resolveLatestStableAggregate({ actkgRoot, mainRef: 'main' });
+      await writeFile(bindingPath, `${JSON.stringify(binding, null, 2)}\n`);
+      await writeFile(path.join(componentDir, 'component.json'), '{"component":true}\n\n');
+      const rewrittenSums = (await Promise.all(
+        ['bundle-manifest.json', 'component.json']
+          .map(async (name) => `${sha256(await readFile(path.join(componentDir, name)))}  ${name}`),
+      )).join('\n');
+      await writeFile(path.join(componentDir, 'SHA256SUMS'), `${rewrittenSums}\n`);
+      await expect(prepareLatestActkgIntake({
+        actkgRoot,
+        bindingPath,
+        outputRoot: path.join(workRoot, 'attempt-artifact-drift'),
+        mainRef: 'main',
+      })).rejects.toThrow(/component Artifact hash drift: ctb:component:v1\/component\.json/u);
     } finally {
       await rm(actkgRoot, { recursive: true, force: true });
       await rm(workRoot, { recursive: true, force: true });
