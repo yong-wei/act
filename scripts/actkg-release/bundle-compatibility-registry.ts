@@ -108,6 +108,7 @@ export const PROJECTION_AGGREGATION_POLICIES = [
   'm1f-v1t-release-tier-preserving',
   'm1f-v3e-release-tier-preserving',
   'm1g-v1e-release-tier-preserving',
+  'm1i-v1e-release-tier-preserving',
 ] as const;
 export const PROFILE_ALIASES: Record<string, string> = {
   act: 'runtime',
