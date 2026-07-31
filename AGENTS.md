@@ -174,6 +174,7 @@
 
 This project uses OpenWolf for context management. Read and follow .wolf/OPENWOLF.md every session. Check .wolf/cerebrum.md before generating code. Check .wolf/anatomy.md before reading files.
 <!-- openwolf:end -->
+
 ## Code Graph Tool Split
 
 - `codegraph` 和 `code-review-graph` 是两套本地图谱工具；前者偏代码索引与符号级查询，后者偏 review、执行流、影响面和架构风险分析。
@@ -201,11 +202,3 @@ This project uses OpenWolf for context management. Read and follow .wolf/OPENWOL
 - 影响面：先 `get_affected_flows`，再把 `get_impact_radius` 作为辅助估计。
 - 关系追踪：用 `query_graph`；具体执行路径用 `list_flows` / `get_flow`。
 - 图谱缩小范围后，再用 `rg`、`sed`、`git diff` 和测试做证据确认。
-
-<!-- openwolf:begin -->
-# OpenWolf
-
-@.wolf/OPENWOLF.md
-
-This project uses OpenWolf for context management. Read and follow .wolf/OPENWOLF.md every session. Check .wolf/cerebrum.md before generating code. Check .wolf/anatomy.md before reading files.
-<!-- openwolf:end -->
