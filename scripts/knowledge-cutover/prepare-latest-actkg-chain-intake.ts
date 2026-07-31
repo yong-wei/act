@@ -16,6 +16,11 @@ import { pathToFileURL } from 'node:url';
 
 import { canonicalJson } from '../actkg-release/authoritative-release';
 import {
+  CTKG_SCHEMA_VERSION,
+  isBundleContractSupported,
+  isSchemaIdentitySupported,
+} from '../actkg-release/bundle-compatibility-registry';
+import {
   resolveLatestStableAggregateWithCandidates,
   type LatestStableAggregateBinding,
   type LatestStableAggregateCandidate,
@@ -270,7 +275,7 @@ async function findStandardComponent(
   return matches[0]!;
 }
 
-async function validateBundleDirectory(
+export async function validateBundleDirectory(
   directory: string,
   expected: { bundleId: string; bundleDigest?: string; manifestSha256?: string },
 ): Promise<FoundStandardComponent> {
@@ -282,6 +287,25 @@ async function validateBundleDirectory(
   }
   if (expected.manifestSha256 && sha256(manifestBytes) !== expected.manifestSha256) {
     fail(`component Manifest hash drift: ${expected.bundleId}`);
+  }
+  const contractVersion = string(manifest.bundle_contract_version, 'component bundle_contract_version');
+  if (!isBundleContractSupported(contractVersion)) {
+    fail(`component Bundle contract is unregistered: ${contractVersion}`);
+  }
+  const schema = object(manifest.schema, 'component schema');
+  const schemaVersion = string(schema.version, 'component schema.version');
+  const schemaSha256 = hash(schema.sha256, 'component schema.sha256');
+  if (
+    schemaVersion !== CTKG_SCHEMA_VERSION
+    || !isSchemaIdentitySupported(schemaVersion, schemaSha256)
+  ) {
+    fail(`component Schema identity is unregistered: ${schemaVersion}/${schemaSha256}`);
+  }
+  const digestBody = structuredClone(manifest);
+  delete digestBody.bundle_digest;
+  const recomputedBundleDigest = sha256(canonicalJson(digestBody));
+  if (manifest.bundle_digest !== recomputedBundleDigest) {
+    fail(`component bundle_digest cannot be recomputed: ${expected.bundleId}`);
   }
   const sumsBytes = await readFile(path.join(directory, 'SHA256SUMS'));
   const rows = new Map<string, string>();

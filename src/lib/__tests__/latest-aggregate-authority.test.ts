@@ -133,7 +133,8 @@ describe('latest Aggregate authority closure', () => {
     expect(source).toContain("'course-content/syllabus-refactor/main.md'");
     expect(source).toContain("'course-content/authoring/lessons'");
     expect(source).toContain("'course-content/authoring/knowledge/cards'");
-    expect(source).toContain("['ls-files', '-z', '--', relativePath]");
+    expect(source).toContain("['ls-tree', '-r', '-z', '--name-only', revision, '--', relativePath]");
+    expect(source).toContain("['show', `${revision}:${relativePath}`]");
     expect(source).not.toContain("readdir(cardRoot");
     expect(source).toContain("{ isolationLevel: 'RepeatableRead' }");
     expect(source.indexOf('resolveTrustedCaptureRevision({')).toBeLessThan(

@@ -13,6 +13,7 @@ import {
 } from '../../../scripts/actkg-release/latest-stable-aggregate';
 import {
   prepareLatestActkgChainIntake,
+  validateBundleDirectory,
   validateReleaseVersionSegment,
 } from '../../../scripts/knowledge-cutover/prepare-latest-actkg-chain-intake';
 
@@ -189,6 +190,38 @@ async function makeBinding(actkgRoot: string, workRoot: string): Promise<string>
 }
 
 describe('prepareLatestActkgChainIntake', () => {
+  it('rejects a checksummed component whose canonical bundle digest is wrong', async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), 'act-component-digest-'));
+    const manifest = {
+      bundle_contract_version: 'actkg-public-bundle/1',
+      bundle_digest: 'f'.repeat(64),
+      bundle_id: 'ctb:component-digest-test:r1',
+      bundle_kind: 'module',
+      bundle_revision: 1,
+      publication: { tag: 'component-digest-test' },
+      release: {
+        release_hash: sha256('release'),
+        release_id: 'ctr:release:component-digest-test',
+        release_version: 'component-digest-test',
+        source_dataset_hash: sha256('source'),
+      },
+      release_stage: 'stable',
+      schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
+      source_revision: { commit: 'a'.repeat(40), tag: 'source' },
+    };
+    try {
+      await writeFile(path.join(directory, 'bundle-manifest.json'), JSON.stringify(manifest));
+      await writeFile(path.join(directory, 'validation-report.json'), '{"result":"PASS"}\n');
+      await writeSums(directory, ['bundle-manifest.json', 'validation-report.json']);
+      await expect(validateBundleDirectory(directory, {
+        bundleId: manifest.bundle_id,
+        bundleDigest: manifest.bundle_digest,
+      })).rejects.toThrow(/bundle_digest cannot be recomputed/u);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it('rejects aggregate and component release_version path escapes', () => {
     expect(() => validateReleaseVersionSegment(
       '../aggregate',

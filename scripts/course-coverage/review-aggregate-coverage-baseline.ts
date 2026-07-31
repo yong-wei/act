@@ -114,13 +114,14 @@ interface RepoEvidenceSource {
 async function collectMarkdownSnippets(
   root: string,
   relativeDir: string,
+  authoringRevision: string,
   limitFiles = 200,
 ): Promise<Array<{ ref: string; text: string; sourceHash: string }>> {
   const collected: Array<{ ref: string; text: string; sourceHash: string }> = [];
-  for (const ref of trackedFilesUnder(root, relativeDir)) {
+  for (const ref of trackedFilesUnder(root, relativeDir, authoringRevision)) {
     if (!/\.(md|mdx)$/iu.test(ref)) continue;
     try {
-      const text = await readFile(path.join(root, ref), 'utf8');
+      const text = readGitFile(root, authoringRevision, ref);
       collected.push({
         ref,
         text: text.slice(0, 8000),
@@ -134,10 +135,10 @@ async function collectMarkdownSnippets(
   return collected.slice(0, limitFiles);
 }
 
-function trackedFilesUnder(root: string, relativePath: string): string[] {
+function trackedFilesUnder(root: string, relativePath: string, revision: string): string[] {
   const result = spawnSync(
     'git',
-    ['ls-files', '-z', '--', relativePath],
+    ['ls-tree', '-r', '-z', '--name-only', revision, '--', relativePath],
     { cwd: root, encoding: 'utf8' },
   );
   if (result.status !== 0) {
@@ -147,6 +148,18 @@ function trackedFilesUnder(root: string, relativePath: string): string[] {
     .split('\u0000')
     .filter(Boolean)
     .sort((a, b) => a.localeCompare(b, 'en'));
+}
+
+function readGitFile(root: string, revision: string, relativePath: string): string {
+  const result = spawnSync(
+    'git',
+    ['show', `${revision}:${relativePath}`],
+    { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 },
+  );
+  if (result.status !== 0) {
+    throw new Error(`Aggregate coverage evidence capture rejected: cannot read ${relativePath} from ${revision}`);
+  }
+  return result.stdout ?? '';
 }
 
 function extractChineseTerms(text: string, minLen = 2, maxLen = 12): string[] {
@@ -164,12 +177,15 @@ function extractChineseTerms(text: string, minLen = 2, maxLen = 12): string[] {
   )]);
 }
 
-async function buildRepoEvidenceSources(root: string): Promise<RepoEvidenceSource[]> {
+async function buildRepoEvidenceSources(
+  root: string,
+  authoringRevision: string,
+): Promise<RepoEvidenceSource[]> {
   const sources: RepoEvidenceSource[] = [];
 
   try {
     const nodesPath = 'course-content/authoring/knowledge/canonical-nodes.json';
-    const raw = await readFile(path.join(root, nodesPath), 'utf8');
+    const raw = readGitFile(root, authoringRevision, nodesPath);
     const sourceHash = contentSha256(raw);
     const nodesDoc = JSON.parse(raw) as {
       nodes?: Array<{
@@ -228,7 +244,7 @@ async function buildRepoEvidenceSources(root: string): Promise<RepoEvidenceSourc
     'course-content/syllabus-refactor/main.md',
   ])) {
     try {
-      const text = await readFile(path.join(root, rel), 'utf8');
+      const text = readGitFile(root, authoringRevision, rel);
       const sourceHash = contentSha256(text);
       for (const term of extractChineseTerms(text)) {
         if (term.length < 3) continue;
@@ -268,7 +284,12 @@ async function buildRepoEvidenceSources(root: string): Promise<RepoEvidenceSourc
     }
   }
 
-  const lessonFiles = await collectMarkdownSnippets(root, 'course-content/authoring/lessons', 120);
+  const lessonFiles = await collectMarkdownSnippets(
+    root,
+    'course-content/authoring/lessons',
+    authoringRevision,
+    120,
+  );
   for (const file of lessonFiles) {
     const titleMatch = file.text.match(/^#\s+(.+)$/mu);
     if (titleMatch?.[1]) {
@@ -303,7 +324,7 @@ async function buildRepoEvidenceSources(root: string): Promise<RepoEvidenceSourc
 
   try {
     const cardRoot = 'course-content/authoring/knowledge/cards';
-    const orderedCards = trackedFilesUnder(root, cardRoot)
+    const orderedCards = trackedFilesUnder(root, cardRoot, authoringRevision)
       .filter((ref) => path.posix.dirname(ref) === cardRoot)
       .slice(0, 400);
     for (const rel of orderedCards) {
@@ -311,7 +332,7 @@ async function buildRepoEvidenceSources(root: string): Promise<RepoEvidenceSourc
       let text = fileName;
       let sourceHash = contentSha256(fileName);
       try {
-        text = await readFile(path.join(root, rel), 'utf8');
+        text = readGitFile(root, authoringRevision, rel);
         sourceHash = contentSha256(text);
       } catch {
         // name-only fallback
@@ -928,7 +949,7 @@ async function generateWorklist(root: string, authoringRevision: string, deltaRe
     })),
   });
 
-  const sources = await buildRepoEvidenceSources(root);
+  const sources = await buildRepoEvidenceSources(root, authoringRevision);
   const items = membership.canonicalIds.map((canonicalId) => buildWorklistItem({
     canonicalId,
     node: byId.get(canonicalId),
