@@ -41,12 +41,29 @@ const DEFAULT_RECOMMENDATION =
 const DEFAULT_AUDIO_CARD_TITLE = '《闲聊自控》播客';
 const MEDIA_PROGRESS_THRESHOLDS = [25, 50, 75, 90] as const;
 
-type NativeMediaCoordinator = {
+export type NativeMediaCoordinator = {
   register: (element: HTMLMediaElement) => () => void;
   play: (element: HTMLMediaElement) => void;
 };
 
 const NativeMediaCoordinatorContext = createContext<NativeMediaCoordinator | null>(null);
+
+export function createNativeMediaCoordinator(): NativeMediaCoordinator {
+  const elements = new Set<HTMLMediaElement>();
+  return {
+    register: (element) => {
+      elements.add(element);
+      return () => elements.delete(element);
+    },
+    play: (element) => {
+      elements.forEach((other) => {
+        if (other !== element && !other.paused) {
+          other.pause();
+        }
+      });
+    },
+  };
+}
 
 function useNativeMediaCoordinator() {
   return useContext(NativeMediaCoordinatorContext);
@@ -435,20 +452,7 @@ export function LessonEntryMediaHub({
 }: LessonEntryMediaHubProps) {
   const [isDownloadingHandout, setIsDownloadingHandout] = useState(false);
   const [isHandoutOpen, setIsHandoutOpen] = useState(false);
-  const nativeMediaElementsRef = useRef<Set<HTMLMediaElement>>(new Set());
-  const nativeMediaCoordinator = useMemo<NativeMediaCoordinator>(() => ({
-    register: (element) => {
-      nativeMediaElementsRef.current.add(element);
-      return () => nativeMediaElementsRef.current.delete(element);
-    },
-    play: (element) => {
-      nativeMediaElementsRef.current.forEach((other) => {
-        if (other !== element && !other.paused) {
-          other.pause();
-        }
-      });
-    },
-  }), []);
+  const nativeMediaCoordinator = useMemo(createNativeMediaCoordinator, []);
   const handoutCompletionTrackedRef = useRef(false);
   const lessonId = lessonRuntime.lesson.lesson_id;
   const resourceTracker = useResourceInteractionTracking({

@@ -18,6 +18,12 @@
 - 项目运行日志位于 `.logs/`，排查运行态问题时优先纳入证据。
 - 初始化或刚进入仓库时，先快速读取 `docs/memory/02-recent-summary.md` 建立最近记忆上下文，再按需查阅完整记忆。
 
+### GitHub PR 目标分支
+
+- 对 `yong-wei/act` 的 Issue/PR 工作，默认目标分支是 `integration`，不是 `main`。
+- 创建或更新 PR 前必须显式核对 base；除非用户明确要求，否则不得将目标分支设为 `main`。
+- 目标分支变更后必须重新核对 diff、冲突状态和验证结果，不能沿用旧目标分支的门禁结论。
+
 ## 项目子代理工作流
 
 - 项目命名子代理位于 `.codex/agents/*.toml`；角色、权限和路由真源见 `.codex/agents/README.md`、`.codex/agents/ROUTING.md` 与 `.codex/agents/HARNESS.md`。
@@ -174,7 +180,6 @@
 
 This project uses OpenWolf for context management. Read and follow .wolf/OPENWOLF.md every session. Check .wolf/cerebrum.md before generating code. Check .wolf/anatomy.md before reading files.
 <!-- openwolf:end -->
-
 ## Code Graph Tool Split
 
 - `codegraph` 和 `code-review-graph` 是两套本地图谱工具；前者偏代码索引与符号级查询，后者偏 review、执行流、影响面和架构风险分析。
@@ -202,3 +207,11 @@ This project uses OpenWolf for context management. Read and follow .wolf/OPENWOL
 - 影响面：先 `get_affected_flows`，再把 `get_impact_radius` 作为辅助估计。
 - 关系追踪：用 `query_graph`；具体执行路径用 `list_flows` / `get_flow`。
 - 图谱缩小范围后，再用 `rg`、`sed`、`git diff` 和测试做证据确认。
+
+<!-- openwolf:begin -->
+# OpenWolf
+
+@.wolf/OPENWOLF.md
+
+This project uses OpenWolf for context management. Read and follow .wolf/OPENWOLF.md every session. Check .wolf/cerebrum.md before generating code. Check .wolf/anatomy.md before reading files.
+<!-- openwolf:end -->
