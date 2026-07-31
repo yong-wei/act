@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
@@ -24,17 +24,11 @@ const screenshotTargets = [
 function sha256(relativePath) {
   const fullPath = path.join(repoRoot, relativePath);
   if (!existsSync(fullPath)) return null;
+  const raw = readFileSync(fullPath, 'utf8');
+  const normalized = raw.replace(/\r\n/g, '\n');
   return createHash('sha256')
-    .update(readFileSync(fullPath))
+    .update(normalized, 'utf8')
     .digest('hex');
-}
-
-function safeName(value) {
-  return value
-    .replace(/^https?:\/\//, '')
-    .replace(/[^a-zA-Z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 96);
 }
 
 async function capture() {
@@ -74,7 +68,8 @@ async function capture() {
     captureCommitSha: headSha,
     captureCommitShort: headShort,
     captureCommand: `node scripts/tests/capture-cold-start-evidence.mjs`,
-    captureCommandResult: 'exit 0',
+    captureCommandResult: null,
+    captureUrl: new URL('/assessment/adaptive-practice', baseUrl).toString(),
     captureSourceFiles: Object.fromEntries(
       sourceFiles.map((f) => [f, sha256(f)])
     ),
@@ -89,18 +84,60 @@ async function capture() {
   try {
     for (const target of screenshotTargets) {
       await page.setViewportSize({ width: target.width, height: 900 });
-      await page.goto(new URL('/assessment/adaptive-practice', baseUrl).toString(), {
+      const response = await page.goto(new URL('/assessment/adaptive-practice', baseUrl).toString(), {
         waitUntil: 'networkidle',
         timeout: 30000,
-      }).catch(() => {});
+      });
+      if (!response || response.status() >= 400) {
+        throw new Error(`Navigation failed with status ${response?.status() ?? 'no-response'}`);
+      }
+      if (!page.url().includes('/assessment/adaptive-practice')) {
+        throw new Error(`Redirected away from adaptive-practice: ${page.url()}`);
+      }
 
-      // 等待页面核心组件渲染
+      // 冷启动卡片与核心标题必须在超时前渲染，失败直接抛错
       await page.waitForFunction(() => {
-        const coldStart = document.querySelector('[data-adaptive-path-cold-start]');
+        const coldStart = document.querySelector('[data-adaptive-path-cold-start="product-language"]');
         const heading = document.querySelector('h1, h2');
-        const buttons = document.querySelectorAll('button, a[href]');
-        return coldStart && heading && buttons.length > 3;
-      }, { timeout: 30000 }).catch(() => {});
+        const workspace = document.querySelector('[data-adaptive-path-center]');
+        return coldStart && heading && workspace;
+      }, { timeout: 30000 });
+
+      // 断言冷启动两组说明文案可见
+      const coldStartCard = page.locator('[data-adaptive-path-cold-start="product-language"]');
+      if (!(await coldStartCard.isVisible())) {
+        throw new Error('Cold-start card is not visible');
+      }
+      const basisText = coldStartCard.getByText('推荐依据', { exact: true });
+      const guidanceText = coldStartCard.getByText('提升推荐准确度', { exact: true });
+      if (!(await basisText.isVisible())) {
+        throw new Error('Cold-start recommendation basis text is not visible');
+      }
+      if (!(await guidanceText.isVisible())) {
+        throw new Error('Cold-start improvement guidance text is not visible');
+      }
+
+      // 断言主要路径操作与学习记录入口仍可达
+      const generationAction = page.locator('[data-adaptive-path-generation-action]').first();
+      const evidenceLink = page.locator('a[href="/profile/evidence"]').first();
+      const pathManagement = page.locator('[data-adaptive-path-local-command="path-management"]').first();
+      if (!(await generationAction.isVisible())) {
+        throw new Error('Path generation action is not visible');
+      }
+      if (!(await evidenceLink.isVisible())) {
+        throw new Error('Learning record entry is not visible');
+      }
+      if (!(await pathManagement.isVisible())) {
+        throw new Error('Path management action is not visible');
+      }
+
+      // 断言当前视口无横向溢出
+      const hasHorizontalOverflow = await page.evaluate(() => {
+        return document.documentElement.scrollWidth > window.innerWidth;
+      });
+      if (hasHorizontalOverflow) {
+        throw new Error(`Horizontal overflow detected at ${target.width}px`);
+      }
 
       await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
@@ -124,6 +161,8 @@ async function capture() {
 
       console.log(`Captured ${filename} at ${target.width}px (sha256: ${fileSha256})`);
     }
+
+    manifest.captureCommandResult = 'exit 0';
   } finally {
     await browser.close();
   }
