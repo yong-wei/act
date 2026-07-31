@@ -75,6 +75,13 @@ import {
   selectAdaptiveGenerationReadiness,
   type AdaptiveGenerationReadiness,
 } from '@/lib/adaptive-generation-readiness';
+import {
+  claimPathGenerationRequest,
+  INITIAL_PATH_GENERATION_REQUEST_LIFECYCLE,
+  releasePathGenerationRequest,
+  settlePathGenerationRequest,
+  type PathGenerationRequestStatus,
+} from '@/lib/path-generation-request-lifecycle';
 import { restoreAdaptiveLearningPathPlanFromRound } from '@/lib/adaptive-path-round-restore';
 import {
   adaptivePracticeGoalLabel,
@@ -194,8 +201,6 @@ type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
-type PathGenerationRequestStatus = 'idle' | 'pending' | 'running' | 'succeeded' | 'failed';
-
 function publishPathGenerationStatus(
   status: Exclude<PathGenerationRequestStatus, 'idle'>,
   requestId: string,
@@ -1562,8 +1567,7 @@ export default function AdaptivePracticePage() {
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
   const [pathGenerationRequestStatus, setPathGenerationRequestStatus] = useState<PathGenerationRequestStatus>('idle');
-  const pathGenerationRequestRef = useRef<string | null>(null);
-  const pathGenerationRequestReusableRef = useRef(false);
+  const pathGenerationRequestLifecycleRef = useRef(INITIAL_PATH_GENERATION_REQUEST_LIFECYCLE);
   const [pathAdvisorReadiness, setPathAdvisorReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [learnerStateReadiness, setLearnerStateReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
@@ -2353,11 +2357,10 @@ export default function AdaptivePracticePage() {
       ? requestedGenerationRequestId ?? crypto.randomUUID()
       : undefined;
     if (generationRequestId) {
-      pathGenerationRequestRef.current = generationRequestId;
-      pathGenerationRequestReusableRef.current = true;
       setPathGenerationRequestStatus('pending');
       publishPathGenerationStatus('pending', generationRequestId, '已接收路径生成请求，正在准备生成。');
     }
+    let generationFailureIsDefinitive = false;
     setPathGenerationPending(operation);
     setPathChoiceMessage(null);
     if (option?.optionId) {
@@ -2408,7 +2411,7 @@ export default function AdaptivePracticePage() {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         if (payload.generationRequest?.status === 'failed') {
-          pathGenerationRequestReusableRef.current = false;
+          generationFailureIsDefinitive = true;
         }
         const readiness = readAdaptiveGenerationReadiness(payload);
         if (readiness) {
@@ -2422,6 +2425,10 @@ export default function AdaptivePracticePage() {
         setPathAdvisorAgentSessionId(payload.agentSessionId);
       }
       if (generationRequestId && payload.generationRequest?.status === 'running') {
+        pathGenerationRequestLifecycleRef.current = settlePathGenerationRequest(
+          pathGenerationRequestLifecycleRef.current,
+          'running',
+        );
         setPathGenerationRequestStatus('running');
         const runningMessage = '生成仍在进行中，稍后可再次查看结果。';
         setPathChoiceMessage(runningMessage);
@@ -2434,7 +2441,11 @@ export default function AdaptivePracticePage() {
           : '当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。';
         setPathChoiceMessage(blockedMessage);
         if (generationRequestId) {
-          pathGenerationRequestReusableRef.current = false;
+          pathGenerationRequestLifecycleRef.current = settlePathGenerationRequest(
+            pathGenerationRequestLifecycleRef.current,
+            'failed',
+            { definitive: true },
+          );
           setPathGenerationRequestStatus('failed');
           publishPathGenerationStatus('failed', generationRequestId, blockedMessage);
         }
@@ -2468,7 +2479,11 @@ export default function AdaptivePracticePage() {
           return;
         }
         if (generationRequestId) {
-          pathGenerationRequestReusableRef.current = false;
+          pathGenerationRequestLifecycleRef.current = settlePathGenerationRequest(
+            pathGenerationRequestLifecycleRef.current,
+            'succeeded',
+            { definitive: true },
+          );
           setPathGenerationRequestStatus('succeeded');
           publishPathGenerationStatus('succeeded', generationRequestId, '学习路径已生成，请比较候选方案。');
         }
@@ -2497,6 +2512,11 @@ export default function AdaptivePracticePage() {
       const errorMessage = generationError instanceof Error ? generationError.message : '学习路径生成失败';
       setPathChoiceMessage(errorMessage);
       if (generationRequestId) {
+        pathGenerationRequestLifecycleRef.current = settlePathGenerationRequest(
+          pathGenerationRequestLifecycleRef.current,
+          'failed',
+          { definitive: generationFailureIsDefinitive },
+        );
         setPathGenerationRequestStatus('failed');
         publishPathGenerationStatus('failed', generationRequestId, errorMessage);
       }
@@ -2527,12 +2547,18 @@ export default function AdaptivePracticePage() {
 
   const startPathGenerationFromAdvisor = useCallback(() => {
     openPathGenerationAdvisor();
-    const reusableRequestId = pathGenerationRequestStatus === 'running'
-      || (pathGenerationRequestStatus === 'failed' && pathGenerationRequestReusableRef.current)
-      ? pathGenerationRequestRef.current
-      : null;
-    void submitPathGeneration('generate', undefined, reusableRequestId ?? crypto.randomUUID());
-  }, [openPathGenerationAdvisor, pathGenerationRequestStatus, submitPathGeneration]);
+    const claim = claimPathGenerationRequest(
+      pathGenerationRequestLifecycleRef.current,
+      () => crypto.randomUUID(),
+    );
+    if (!claim) return;
+    pathGenerationRequestLifecycleRef.current = claim.lifecycle;
+    void submitPathGeneration('generate', undefined, claim.requestId).finally(() => {
+      pathGenerationRequestLifecycleRef.current = releasePathGenerationRequest(
+        pathGenerationRequestLifecycleRef.current,
+      );
+    });
+  }, [openPathGenerationAdvisor, submitPathGeneration]);
 
   const submitPathChoice = useCallback(async (
     action: 'selection' | 'rejection' | 'switch' | 'helpfulness',

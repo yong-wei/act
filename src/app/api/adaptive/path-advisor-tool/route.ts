@@ -252,6 +252,9 @@ export async function POST(request: Request) {
           source: 'path-advisor-tool',
           fallbackReason: 'advisor-forbidden',
         }),
+        ...(generationRequestId && error.status === 409 ? {
+          generationRequest: { id: generationRequestId, status: 'failed' as const },
+        } : {}),
       }, { status: error.status });
     }
     console.error('[AdaptivePathAdvisorTool] Error:', error);
@@ -262,7 +265,7 @@ export async function POST(request: Request) {
         source: 'path-advisor-tool',
       }),
       ...(generationRequestId ? {
-        generationRequest: { id: generationRequestId, status: 'failed' as const },
+        generationRequest: { id: generationRequestId, status: 'running' as const },
       } : {}),
     }, { status: 500 });
   }

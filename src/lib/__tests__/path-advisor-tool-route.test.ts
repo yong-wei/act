@@ -62,6 +62,7 @@ vi.mock('@/lib/konling-agent-runtime', () => ({
 }));
 
 import { POST } from '@/app/api/adaptive/path-advisor-tool/route';
+import { KonlingRuntimeScopeError } from '@/lib/konling-agent-runtime';
 
 function post(body: Record<string, unknown>) {
   return POST(new Request('http://localhost/api/adaptive/path-advisor-tool', {
@@ -192,6 +193,30 @@ describe('path advisor tool route readiness', () => {
         reason: 'retryable',
         studentAction: 'retry',
         staffAction: 'check-service',
+      },
+      generationRequest: {
+        id: 'generation-request-1',
+        status: 'running',
+      },
+    });
+  });
+
+  it('marks a persisted runtime conflict as a definitive generation failure', async () => {
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn().mockRejectedValue(
+        new KonlingRuntimeScopeError(409, '幂等 Konling 工具请求此前已失败，不能重复执行。'),
+      ),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({});
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      generationRequest: {
+        id: 'generation-request-1',
+        status: 'failed',
       },
     });
   });

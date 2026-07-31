@@ -796,10 +796,11 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('preferredOptionId: operation !==');
     expect(pageSource).toContain('requestedAt: new Date().toISOString()');
     expect(pageSource).toContain('generationRequestId,');
-    expect(pageSource).toContain("type PathGenerationRequestStatus = 'idle' | 'pending' | 'running' | 'succeeded' | 'failed'");
+    expect(pageSource).toContain('type PathGenerationRequestStatus,');
     expect(pageSource).toContain('const startPathGenerationFromAdvisor = useCallback');
     expect(pageSource).toContain('onClick={startPathGenerationFromAdvisor}');
-    expect(pageSource).toContain("pathGenerationRequestStatus === 'failed' && pathGenerationRequestReusableRef.current");
+    expect(pageSource).toContain('claimPathGenerationRequest(');
+    expect(pageSource).toContain('pathGenerationRequestLifecycleRef.current = claim.lifecycle');
     expect(pageSource).toContain("if (payload.generationRequest?.status === 'failed')");
     expect(pageSource).not.toContain('window.location.assign(withFeedbackTaskHref(`/assessment/adaptive-practice?${selectionQuery.toString()}`))');
     expect(pageSource).toContain("disabled={pathGenerationRequestStatus === 'pending' || pathGenerationRequestStatus === 'running'}");
