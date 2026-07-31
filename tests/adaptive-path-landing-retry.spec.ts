@@ -21,8 +21,17 @@ function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
-function sourceHash(file: string): string {
-  return sha256(readFileSync(path.resolve(process.cwd(), file)));
+function sourceHashAtCommit(commitSha: string, file: string): string {
+  return sha256(execFileSync('git', ['show', `${commitSha}:${file}`]));
+}
+
+function hasWorkingTreeSourceDrift(): boolean {
+  try {
+    execFileSync('git', ['diff', '--quiet', 'HEAD', '--', ...sourceFiles]);
+    return false;
+  } catch {
+    return true;
+  }
 }
 
 async function login(context: BrowserContext) {
@@ -218,6 +227,10 @@ async function capture(page: Page, viewport: { name: string; width: number; heig
     clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
   }));
+  expect(
+    geometry.scrollWidth,
+    `${viewport.name}-${state} must not overflow horizontally`,
+  ).toBe(geometry.clientWidth);
   screenshots.push({
     name: filename,
     width: viewport.width,
@@ -225,7 +238,7 @@ async function capture(page: Page, viewport: { name: string; width: number; heig
     file: path.relative(process.cwd(), file).replaceAll('\\', '/'),
     sha256: sha256(image),
     state,
-    noHorizontalOverflow: geometry.clientWidth === geometry.scrollWidth,
+    noHorizontalOverflow: true,
   });
 }
 
@@ -237,16 +250,22 @@ test('evidence manifest fails closed when tracked source changes', () => {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
     commitSha?: string;
     sourceSha256?: Record<string, string>;
-    screenshots?: Array<{ file: string; sha256: string }>;
+    screenshots?: Array<{ file: string; sha256: string; noHorizontalOverflow?: boolean }>;
   };
   expect(manifest.commitSha).toMatch(/^[0-9a-f]{40}$/);
+  expect(hasWorkingTreeSourceDrift(), 'tracked evidence sources must match HEAD').toBe(false);
   for (const file of sourceFiles) {
-    expect(manifest.sourceSha256?.[file], `${file} source hash missing or stale`).toBe(sourceHash(file));
+    const expectedHash = manifest.sourceSha256?.[file];
+    expect(expectedHash, `${file} source hash missing or stale`).toBe(
+      sourceHashAtCommit(manifest.commitSha!, file),
+    );
+    expect(sourceHashAtCommit('HEAD', file), `${file} changed after the evidence checkpoint`).toBe(expectedHash);
   }
   for (const screenshot of manifest.screenshots ?? []) {
     const screenshotPath = path.resolve(process.cwd(), screenshot.file);
     expect(existsSync(screenshotPath), screenshot.file).toBe(true);
     expect(sha256(readFileSync(screenshotPath))).toBe(screenshot.sha256);
+    expect(screenshot.noHorizontalOverflow, `${screenshot.file} records horizontal overflow`).toBe(true);
   }
 });
 
@@ -385,11 +404,12 @@ test.afterAll(() => {
   expect(assertions).toHaveLength(4);
   expect(screenshots).toHaveLength(10);
   mkdirSync(evidenceDir, { recursive: true });
+  const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   writeFileSync(manifestPath, `${JSON.stringify({
     capturedAt: new Date().toISOString(),
-    commitSha: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+    commitSha,
     route: '/assessment/adaptive-practice?goal=control-correction',
-    sourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sourceHash(file)])),
+    sourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)])),
     assertions,
     screenshots,
   }, null, 2)}\n`, 'utf8');
