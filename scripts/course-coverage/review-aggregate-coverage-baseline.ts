@@ -42,6 +42,7 @@ import {
   type ProjectionNodeLike,
 } from './aggregate-coverage';
 import { loadAndValidatePublicBundleV1 } from '../actkg-release/public-bundle-v1';
+import { resolveTrustedCaptureRevision } from '../actkg-release/capture-revision';
 
 const DELTA_DEFAULT =
   'delta-receipt:340280e950af341d3c402c01f783d0ed1735335eb1b1da019002b9bf460214ef';
@@ -51,6 +52,14 @@ const LEGACY_PROJECTION_PATH =
 const LEGACY_RELEASE_PATH =
   'course-content/authoring/knowledge/releases/control-theory-engineering-v0.3-r2/control-theory-engineering-v0.3.release.json';
 const R3_AUTHORITY_SCHEMA = 'issue1117_v08r3_23b7e94';
+const COURSE_COVERAGE_EVIDENCE_CAPTURE_PATHS = [
+  'scripts/course-coverage/review-aggregate-coverage-baseline.ts',
+  'course-content/authoring/knowledge/canonical-nodes.json',
+  'course-content/syllabus-refactor/blueprint.md',
+  'course-content/syllabus-refactor/main.md',
+  'course-content/authoring/lessons',
+  'course-content/authoring/knowledge/cards',
+] as const;
 
 interface CoverageReleaseIdentity {
   releaseSetId: string;
@@ -892,6 +901,14 @@ async function resolveInputConfig(
 }
 
 async function generateWorklist(root: string, authoringRevision: string, deltaReceiptId: string) {
+  resolveTrustedCaptureRevision({
+    gitRoot: root,
+    trackedPaths: [...COURSE_COVERAGE_EVIDENCE_CAPTURE_PATHS],
+    expectedCaptureRevision: authoringRevision,
+    fail(message): never {
+      throw new Error(`Aggregate coverage evidence capture rejected: ${message}`);
+    },
+  });
   const input = await resolveInputConfig(root, authoringRevision, deltaReceiptId);
   const { projectionPath, releasePath } = input;
 

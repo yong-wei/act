@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -119,6 +122,22 @@ function validProjectionIdentity(): LatestAggregateProjectionIdentityEvidence {
 }
 
 describe('latest Aggregate authority closure', () => {
+  it('protects every repository evidence source before dynamic worklist generation', async () => {
+    const source = await readFile(path.join(
+      process.cwd(),
+      'scripts/course-coverage/review-aggregate-coverage-baseline.ts',
+    ), 'utf8');
+    expect(source).toContain("'scripts/course-coverage/review-aggregate-coverage-baseline.ts'");
+    expect(source).toContain("'course-content/authoring/knowledge/canonical-nodes.json'");
+    expect(source).toContain("'course-content/syllabus-refactor/blueprint.md'");
+    expect(source).toContain("'course-content/syllabus-refactor/main.md'");
+    expect(source).toContain("'course-content/authoring/lessons'");
+    expect(source).toContain("'course-content/authoring/knowledge/cards'");
+    expect(source.indexOf('resolveTrustedCaptureRevision({')).toBeLessThan(
+      source.indexOf('const input = await resolveInputConfig('),
+    );
+  });
+
   it('accepts a lock, import, Bundle receipt, and Delta with one identity', () => {
     expect(() => assertLatestAggregateAuthority(validInput())).not.toThrow();
   });
