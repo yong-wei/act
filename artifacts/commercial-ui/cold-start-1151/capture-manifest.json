@@ -1,31 +1,31 @@
 {
-  "captureGeneratedAt": "2026-07-31T02:16:49.634Z",
-  "captureCommitSha": "8a9c2982b72028e03a9f53a3720a65f7cbbf86ae",
-  "captureCommitShort": "8a9c2982b",
+  "captureGeneratedAt": "2026-07-31T13:04:33.043Z",
+  "captureCommitSha": "e5fdd4c81a9b53a12f3290e704b7c831c989d337",
+  "captureCommitShort": "e5fdd4c81",
   "captureCommand": "node scripts/tests/capture-cold-start-evidence.mjs",
   "captureCommandResult": "exit 0",
-  "captureUrl": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=frequency-response-foundations",
+  "captureUrl": "http://localhost:3001/assessment/adaptive-practice?demo=1&intent=landing",
   "captureSourceFiles": {
-    "src/app/assessment/adaptive-practice/page.tsx": "896ce3da5eddba12df008eff699c0e8cdb27a6559876a5f495500fb051f19f03",
-    "src/lib/adaptive-cold-start-detection.ts": "6322b7fd3ebf691fef33b11900b034d9cbbc0b802bebf5ad5655b62b4386716a",
-    "src/lib/__tests__/adaptive-cold-start-detection.test.ts": "29a8e13d58799943ab878072495a244ca3b65d5a1f89664028f105eff47d8f7a",
-    "scripts/tests/capture-cold-start-evidence.mjs": "6a74a97bbb60200d1e5dd97461f650e54678e9b90e9a17b068f6379def75e603"
+    "src/app/assessment/adaptive-practice/page.tsx": "baab0a1c7015c0e1d6b91c684d9abd3743c0701f1bc8032f075fb55236ed6122",
+    "src/lib/adaptive-cold-start-detection.ts": "75eb5c1066e269e5091f61978751698a5ab9eabae1cc1a5cab1b01ab61e39079",
+    "src/lib/__tests__/adaptive-cold-start-detection.test.ts": "662c6dd045e198daf074f3dc936a0bd0141ecb43b9e49a0b6efb93d893f3e05f",
+    "scripts/tests/capture-cold-start-evidence.mjs": "eef9218e163698c4e36153ab559bc7254d0e6ef0aa9e5bfeb8eaf95085126bb2"
   },
   "workspaceClean": true,
   "screenshots": [
     {
       "filename": "cold-start-desktop.png",
-      "sha256": "a2c12eb37d9aeb52c82876461b000a601a62b61c15a0904d15ebcca8265c95a7",
+      "sha256": "fbc7d0ae09bdee9250ea13bf563cc3dab35f619a8f86a0c3e692298fa7c55a89",
       "viewportWidth": 1440,
       "viewportHeight": 900,
-      "capturedAt": "2026-07-31T02:16:54.007Z"
+      "capturedAt": "2026-07-31T13:04:37.313Z"
     },
     {
       "filename": "cold-start-mobile.png",
-      "sha256": "75c3d8cf4439e607c994bf42f52e3b9f2646486644e60484b6f60310ed77fc27",
+      "sha256": "97797aadccf966ca2f5a1fae647fd9997c3f24f3f5dbf612d598b45910823103",
       "viewportWidth": 320,
       "viewportHeight": 900,
-      "capturedAt": "2026-07-31T02:16:55.909Z"
+      "capturedAt": "2026-07-31T13:04:39.771Z"
     }
   ]
 }
