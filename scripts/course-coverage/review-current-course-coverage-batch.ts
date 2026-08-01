@@ -8,11 +8,15 @@ import {
   assertCurrentCourseCoverageProductionBoundaryBundle,
   buildCurrentCourseCoverageBatchReceipt,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
+  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
+  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL,
+  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
   sealCurrentCourseCoverageProductionBoundaryAttestation,
   type CurrentCourseCoverageBatchBinding,
   type CurrentCourseCoverageBatchReceipt,
+  type CurrentCourseCoverageProtectedPathSnapshot,
   type CurrentCourseCoverageProductionBoundaryAttestation,
   type CurrentCourseCoverageProductionBoundaryProof,
   type CurrentCourseCoverageStageReview,
@@ -45,10 +49,45 @@ const ATTESTATION_FILE_NAME = 'batch-boundary-attestation.json';
 export interface ProductionAuthoritySnapshot {
   head: string;
   status: string[];
+  rows?: CurrentCourseCoverageProtectedPathSnapshot[];
   snapshotDigest: string;
 }
 
+interface PublishedReplaySnapshot {
+  currentHead: string;
+  status: string[];
+  rows?: CurrentCourseCoverageProtectedPathSnapshot[];
+  snapshotDigest: string;
+  replayMode?: PublishedReplayMode;
+}
+
 type Publication = 'published' | 'identical';
+
+export type PublishedReplayMode = 'descendant' | 'content-equivalent';
+
+interface IndependentStageSourceMember {
+  ordinal: number;
+  canonicalId: string;
+  canonicalRevision: string;
+  stageConclusion: string;
+  rationale: string;
+  evidenceRefs: string[];
+}
+
+interface IndependentStageSource {
+  schemaVersion: string;
+  stage: string;
+  batchBinding: {
+    batchId: string;
+    manifestBatchIndex: number;
+    sequence: number;
+    group: string;
+    memberCount: number;
+    memberDigest: string;
+    manifestDigest: string;
+  };
+  members: IndependentStageSourceMember[];
+}
 
 interface CliOptions {
   worklist: string;
@@ -136,6 +175,114 @@ function sha256(value: string | Buffer): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
+function gitRevisionIsReadable(revision: string): boolean {
+  if (!/^[a-f0-9]{40}$/u.test(revision)) return false;
+  const result = spawnSync('git', ['cat-file', '-e', `${revision}^{commit}`], {
+    cwd: ROOT,
+    stdio: 'ignore',
+  });
+  return result.status === 0;
+}
+
+function gitRevisionIsAncestor(ancestor: string, descendant: string): boolean {
+  if (!/^[a-f0-9]{40}$/u.test(ancestor) || !/^[a-f0-9]{40}$/u.test(descendant)) {
+    throw new Error('Current batch review rejected: replay Git revisions are invalid');
+  }
+  const result = spawnSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+    cwd: ROOT,
+    stdio: 'ignore',
+  });
+  return result.status === 0;
+}
+
+export function assertGitAncestor(ancestor: string, descendant: string): void {
+  if (!gitRevisionIsAncestor(ancestor, descendant)) {
+    throw new Error('Current batch review rejected: published receipt capture HEAD is not an ancestor of current HEAD');
+  }
+}
+
+export function classifyPublishedReplayMode(input: {
+  captureHeadIsAncestor: boolean;
+  currentRows: readonly CurrentCourseCoverageProtectedPathSnapshot[];
+  expectedRows: readonly CurrentCourseCoverageProtectedPathSnapshot[];
+}): PublishedReplayMode {
+  if (stableStringify(input.currentRows) !== stableStringify(input.expectedRows)) {
+    throw new Error('Current batch review rejected: protected authority bytes drifted from published snapshot');
+  }
+  return input.captureHeadIsAncestor ? 'descendant' : 'content-equivalent';
+}
+
+async function capturePublishedReplaySnapshot(
+  capturedHead: string,
+  expectedRows?: readonly CurrentCourseCoverageProtectedPathSnapshot[],
+): Promise<PublishedReplaySnapshot> {
+  const currentHead = String(git(['rev-parse', '--verify', 'HEAD'])).trim();
+  const hasExpectedRows = expectedRows !== undefined;
+  if (!hasExpectedRows && !gitRevisionIsReadable(capturedHead)) {
+    throw new Error('Current batch review rejected: published receipt capture HEAD is not readable');
+  }
+  const captureHeadIsAncestor = !hasExpectedRows
+    && gitRevisionIsAncestor(capturedHead, currentHead);
+  if (!hasExpectedRows && !captureHeadIsAncestor) {
+    throw new Error('Current batch review rejected: published receipt capture HEAD is not an ancestor of current HEAD');
+  }
+  git(['diff', '--check', '--', ...PROTECTED_PRODUCTION_AUTHORITY_PATHS]);
+  const status = statusLines(String(git([
+    'status', '--porcelain=v1', '--untracked-files=all', '--', ...PROTECTED_PRODUCTION_AUTHORITY_PATHS,
+  ])));
+  if (status.length > 0) {
+    throw new Error(`Current batch review rejected: protected authority paths are dirty during replay: ${status.join(', ')}`);
+  }
+  const rows = await Promise.all(PROTECTED_PRODUCTION_AUTHORITY_PATHS.map(async (relativePath) => {
+    const workingTreeBytes = await readFile(absolute(relativePath));
+    const workingTreeDigest = sha256(workingTreeBytes);
+    const expected = expectedRows?.find((row) => row.relativePath === relativePath);
+    const captureHeadDigest = expected
+      ? expected.headDigest
+      : sha256(git(['show', `${capturedHead}:${relativePath}`], 'buffer'));
+    return {
+      relativePath,
+      workingTreeDigest,
+      headDigest: captureHeadDigest,
+    };
+  }));
+  const replayMode = hasExpectedRows
+    ? 'content-equivalent' as const
+    : classifyPublishedReplayMode({
+      captureHeadIsAncestor,
+      currentRows: rows,
+      expectedRows: rows,
+    });
+  return {
+    currentHead,
+    status,
+    rows,
+    snapshotDigest: sha256(stableStringify({ head: capturedHead, rows })),
+    replayMode,
+  };
+}
+
+export function assertPublishedReplaySnapshot(
+  receipt: CurrentCourseCoverageBatchReceipt,
+  attestation: CurrentCourseCoverageProductionBoundaryAttestation,
+  snapshot: PublishedReplaySnapshot,
+): void {
+  const proof = receipt.productionBoundaryProof;
+  if (stableStringify(proof.protectedPaths) !== stableStringify([...PROTECTED_PRODUCTION_AUTHORITY_PATHS])) {
+    throw new Error('Current batch review rejected: published protected authority path set drifted');
+  }
+  if (proof.verificationProtocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
+    if (!('protectedPathSnapshotsBefore' in attestation)
+      || stableStringify(snapshot.rows) !== stableStringify(proof.protectedPathSnapshots)
+      || stableStringify(snapshot.rows) !== stableStringify(attestation.protectedPathSnapshotsBefore)) {
+      throw new Error('Current batch review rejected: published protected authority path bytes drifted');
+    }
+  }
+  if (snapshot.status.length > 0 || snapshot.snapshotDigest !== attestation.authoritySnapshotBeforeDigest) {
+    throw new Error('Current batch review rejected: protected authority snapshot drifted during replay');
+  }
+}
+
 export async function captureProductionAuthoritySnapshot(): Promise<ProductionAuthoritySnapshot> {
   const head = String(git(['rev-parse', '--verify', 'HEAD'])).trim();
   if (!/^[a-f0-9]{40}$/u.test(head)) throw new Error('Current batch review rejected: Git HEAD is not a full revision');
@@ -160,6 +307,7 @@ export async function captureProductionAuthoritySnapshot(): Promise<ProductionAu
   return {
     head,
     status,
+    rows,
     snapshotDigest: sha256(stableStringify({ head, rows })),
   };
 }
@@ -169,7 +317,8 @@ export function assertProductionAuthoritySnapshotStable(
   after: ProductionAuthoritySnapshot,
 ): void {
   if (before.head !== after.head || before.snapshotDigest !== after.snapshotDigest
-    || stableStringify(before.status) !== stableStringify(after.status)) {
+    || stableStringify(before.status) !== stableStringify(after.status)
+    || stableStringify(before.rows ?? []) !== stableStringify(after.rows ?? [])) {
     throw new Error('Current batch review rejected: Git HEAD or production authority snapshot drifted during publication');
   }
 }
@@ -185,6 +334,7 @@ function productionBoundaryProof(
     attestationPath,
     headBefore: before.head,
     protectedPaths: [...PROTECTED_PRODUCTION_AUTHORITY_PATHS],
+    protectedPathSnapshots: [...(before.rows ?? [])],
     statusBefore: [...before.status],
     authoritySnapshotBeforeDigest: before.snapshotDigest,
     gitDiffCheck: 'PASS',
@@ -199,6 +349,105 @@ function productionBoundaryProof(
 
 async function json<T>(input: string): Promise<T> {
   return JSON.parse(await readFile(absolute(input), 'utf8')) as T;
+}
+
+function sourceEvidenceSelector(value: string, index: number): string {
+  const parts = value.split('|');
+  if (parts.length !== 4 || !parts[2]) {
+    throw new Error(`Current batch review rejected: source evidenceRefs[${index}] is malformed`);
+  }
+  return parts[2]!;
+}
+
+export function validateCurrentCourseCoverageStageSource(input: {
+  document: CurrentCourseCoverageStageReview;
+  sourceBytes: string | Buffer;
+}): void {
+  const binding = input.document.sourceArtifactBinding;
+  if (!binding) {
+    throw new Error(`Current batch review rejected: ${input.document.stage} source artifact binding is required`);
+  }
+  let source: IndependentStageSource;
+  try {
+    source = JSON.parse(input.sourceBytes.toString()) as IndependentStageSource;
+  } catch {
+    throw new Error('Current batch review rejected: source artifact is not valid JSON');
+  }
+  if (sha256(input.sourceBytes) !== binding.artifactSha256) {
+    throw new Error(`Current batch review rejected: ${input.document.stage} source artifact SHA-256 mismatch`);
+  }
+  if (source.schemaVersion !== binding.schemaVersion || source.stage !== binding.stage
+    || source.stage !== input.document.stage) {
+    throw new Error(`Current batch review rejected: ${input.document.stage} source schema/stage binding mismatch`);
+  }
+  const sourceBinding = source.batchBinding;
+  const documentBinding = input.document.batchBinding;
+  if (sourceBinding.batchId !== documentBinding.batchId
+    || sourceBinding.manifestBatchIndex !== documentBinding.manifestBatchIndex
+    || sourceBinding.sequence !== documentBinding.sequence
+    || sourceBinding.group !== documentBinding.semanticGroupKey
+    || sourceBinding.memberCount !== documentBinding.memberCount
+    || sourceBinding.memberDigest !== documentBinding.memberDigest
+    || sourceBinding.manifestDigest !== documentBinding.manifestDigest) {
+    throw new Error(`Current batch review rejected: ${input.document.stage} source batch binding drift`);
+  }
+  if (!Array.isArray(source.members) || source.members.length !== input.document.decisions.length) {
+    throw new Error(`Current batch review rejected: ${input.document.stage} source member count/order drift`);
+  }
+  for (const [index, decision] of input.document.decisions.entries()) {
+    const member = source.members[index];
+    if (!member || member.ordinal !== index || member.canonicalId !== decision.canonicalId
+      || member.canonicalRevision !== decision.canonicalRevision
+      || member.stageConclusion !== decision.conclusion
+      || member.rationale !== decision.rationale
+      || !Array.isArray(member.evidenceRefs)) {
+      throw new Error(`Current batch review rejected: ${input.document.stage} source semantic closure mismatch at member ${index}`);
+    }
+    const selectors = member.evidenceRefs.map(sourceEvidenceSelector);
+    if (stableStringify(selectors) !== stableStringify(decision.evidenceSelectors)) {
+      throw new Error(`Current batch review rejected: ${input.document.stage} source evidence closure mismatch at member ${index}`);
+    }
+  }
+}
+
+async function validateStageSourceFile(
+  document: CurrentCourseCoverageStageReview,
+  allowLegacySourceArtifactBinding = false,
+): Promise<void> {
+  const binding = document.sourceArtifactBinding;
+  if (!binding) {
+    if (allowLegacySourceArtifactBinding) return;
+    throw new Error(`Current batch review rejected: ${document.stage} source artifact binding is required`);
+  }
+  const artifactPath = absolute(binding.artifactPath);
+  const normalizedArtifactPath = repoRelative(artifactPath);
+  if (normalizedArtifactPath !== binding.artifactPath.replaceAll('\\', '/')) {
+    throw new Error(`Current batch review rejected: ${document.stage} source artifact path must be repository-relative`);
+  }
+  const sourceBytes = await readFile(artifactPath);
+  validateCurrentCourseCoverageStageSource({ document, sourceBytes });
+}
+
+export function validateStageProvenanceBinding(
+  document: CurrentCourseCoverageStageReview,
+  provenance: Record<string, unknown>,
+): void {
+  const record = provenance[document.stage.toLowerCase()] as Record<string, unknown> | undefined;
+  if (!document.sourceArtifactBinding) {
+    if (record?.sourceArtifactBinding !== undefined) {
+      throw new Error(`Current batch review rejected: ${document.stage} provenance/source binding drift`);
+    }
+    return;
+  }
+  const sourceBinding = record?.sourceArtifactBinding;
+  if (!sourceBinding || stableStringify(sourceBinding) !== stableStringify(document.sourceArtifactBinding)) {
+    throw new Error(`Current batch review rejected: ${document.stage} provenance/source binding drift`);
+  }
+  if (record?.sourceArtifact !== path.basename(document.sourceArtifactBinding.artifactPath)
+    || record?.sourceArtifactSha256 !== document.sourceArtifactBinding.artifactSha256
+    || record?.normalizedDocumentDigest !== document.documentDigest) {
+    throw new Error(`Current batch review rejected: ${document.stage} provenance/source identity drift`);
+  }
 }
 
 async function exists(input: string): Promise<boolean> {
@@ -326,6 +575,10 @@ export async function publishCurrentCourseCoverageBatchBundle(
     || proof.authoritySnapshotBeforeDigest !== input.beforeSnapshot.snapshotDigest) {
     throw new Error('Current batch review rejected: pre-publication proof does not match the captured snapshot');
   }
+  if (proof.verificationProtocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL
+    && stableStringify(proof.protectedPathSnapshots) !== stableStringify(input.beforeSnapshot.rows ?? [])) {
+    throw new Error('Current batch review rejected: pre-publication protected path rows do not match the captured snapshot');
+  }
   let receiptPublication: Publication | undefined;
   let attestationPublication: Publication | undefined;
   try {
@@ -335,22 +588,41 @@ export async function publishCurrentCourseCoverageBatchBundle(
     }
     const afterReceiptPublication = await input.captureSnapshot();
     assertProductionAuthoritySnapshotStable(input.beforeSnapshot, afterReceiptPublication);
-    const attestation = sealCurrentCourseCoverageProductionBoundaryAttestation({
-      schemaVersion: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
-      protocol: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
-      receiptPath: input.receiptPath,
-      attestationPath: input.attestationPath,
-      receiptDigest: input.receipt.receiptDigest,
-      batchId: input.receipt.batchBinding.batchId,
-      headBefore: proof.headBefore,
-      headAfter: afterReceiptPublication.head,
-      protectedPaths: [...proof.protectedPaths],
-      statusBefore: [...proof.statusBefore],
-      statusAfter: [...afterReceiptPublication.status],
-      authoritySnapshotBeforeDigest: proof.authoritySnapshotBeforeDigest,
-      authoritySnapshotAfterDigest: afterReceiptPublication.snapshotDigest,
-      gitDiffCheck: 'PASS',
-    });
+    const attestation = proof.verificationProtocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL
+      ? sealCurrentCourseCoverageProductionBoundaryAttestation({
+        schemaVersion: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
+        protocol: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
+        receiptPath: input.receiptPath,
+        attestationPath: input.attestationPath,
+        receiptDigest: input.receipt.receiptDigest,
+        batchId: input.receipt.batchBinding.batchId,
+        headBefore: proof.headBefore,
+        headAfter: afterReceiptPublication.head,
+        protectedPaths: [...proof.protectedPaths],
+        statusBefore: [...proof.statusBefore],
+        statusAfter: [...afterReceiptPublication.status],
+        authoritySnapshotBeforeDigest: proof.authoritySnapshotBeforeDigest,
+        authoritySnapshotAfterDigest: afterReceiptPublication.snapshotDigest,
+        protectedPathSnapshotsBefore: [...proof.protectedPathSnapshots],
+        protectedPathSnapshotsAfter: [...(afterReceiptPublication.rows ?? [])],
+        gitDiffCheck: 'PASS',
+      })
+      : sealCurrentCourseCoverageProductionBoundaryAttestation({
+        schemaVersion: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
+        protocol: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1,
+        receiptPath: input.receiptPath,
+        attestationPath: input.attestationPath,
+        receiptDigest: input.receipt.receiptDigest,
+        batchId: input.receipt.batchBinding.batchId,
+        headBefore: proof.headBefore,
+        headAfter: afterReceiptPublication.head,
+        protectedPaths: [...proof.protectedPaths],
+        statusBefore: [...proof.statusBefore],
+        statusAfter: [...afterReceiptPublication.status],
+        authoritySnapshotBeforeDigest: proof.authoritySnapshotBeforeDigest,
+        authoritySnapshotAfterDigest: afterReceiptPublication.snapshotDigest,
+        gitDiffCheck: 'PASS',
+      });
     const attestationBytes = `${JSON.stringify(attestation, null, 2)}\n`;
     attestationPublication = await input.publishArtifact(
       input.attestationOutput,
@@ -363,6 +635,12 @@ export async function publishCurrentCourseCoverageBatchBundle(
       || attestation.authoritySnapshotAfterDigest !== afterAttestationPublication.snapshotDigest
       || stableStringify(attestation.statusAfter) !== stableStringify(afterAttestationPublication.status)) {
       throw new Error('Current batch review rejected: detached attestation post-publication snapshot drifted');
+    }
+    if (proof.verificationProtocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL
+      && ('protectedPathSnapshotsAfter' in attestation)
+      && stableStringify(attestation.protectedPathSnapshotsAfter)
+        !== stableStringify(afterAttestationPublication.rows ?? [])) {
+      throw new Error('Current batch review rejected: detached attestation protected path rows drifted');
     }
     const persistedReceipt = JSON.parse(await input.readArtifact(input.receiptOutput)) as CurrentCourseCoverageBatchReceipt;
     const persistedAttestation = JSON.parse(await input.readArtifact(input.attestationOutput)) as CurrentCourseCoverageProductionBoundaryAttestation;
@@ -404,7 +682,6 @@ async function main(): Promise<void> {
   assertSafeAttestationOutput(attestationOutput);
   const receiptPath = repoRelative(receiptOutput);
   const attestationPath = repoRelative(attestationOutput);
-  const boundaryBefore = await captureProductionAuthoritySnapshot();
   const manifestBytes = await readFile(absolute(input.manifest));
   const worklist = await json<CurrentCourseCoverageWorklist>(input.worklist);
   const manifest = JSON.parse(manifestBytes.toString('utf8')) as CurrentReviewBatchManifest;
@@ -413,16 +690,87 @@ async function main(): Promise<void> {
     ? await json<CurrentCourseCoverageStageReview>(input.challenger)
     : null;
   const third = input.third ? await json<CurrentCourseCoverageStageReview>(input.third) : null;
-  const receipt = buildCurrentCourseCoverageBatchReceipt({
-    worklist,
-    manifest,
-    expectedBinding: input.expectedBinding,
-    observedManifestArtifactSha256: createHash('sha256').update(manifestBytes).digest('hex'),
-    primary,
-    challenger,
-    third,
-    productionBoundaryProof: productionBoundaryProof(boundaryBefore, receiptPath, attestationPath),
-  });
+  const provenancePath = path.join(path.dirname(absolute(input.primary)), 'review-provenance.json');
+  const provenance = await exists(provenancePath)
+    ? await json<Record<string, unknown>>(provenancePath)
+    : null;
+  const receiptExists = await exists(receiptOutput);
+  const attestationExists = await exists(attestationOutput);
+  if (receiptExists !== attestationExists) {
+    throw new Error('Current batch review rejected: published receipt/attestation pair is incomplete');
+  }
+  let persistedReceipt: CurrentCourseCoverageBatchReceipt | null = null;
+  let persistedAttestation: CurrentCourseCoverageProductionBoundaryAttestation | null = null;
+  let allowLegacySourceArtifactBinding = false;
+  if (receiptExists && attestationExists) {
+    persistedReceipt = JSON.parse(await readFile(receiptOutput, 'utf8')) as CurrentCourseCoverageBatchReceipt;
+    persistedAttestation = JSON.parse(await readFile(attestationOutput, 'utf8')) as CurrentCourseCoverageProductionBoundaryAttestation;
+    assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: persistedReceipt,
+      attestation: persistedAttestation,
+      receiptPath,
+      attestationPath,
+    });
+    allowLegacySourceArtifactBinding = persistedReceipt.productionBoundaryProof.verificationProtocol
+      === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2
+      && persistedAttestation.schemaVersion === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1
+      && persistedAttestation.protocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1;
+  }
+  await validateStageSourceFile(primary, allowLegacySourceArtifactBinding);
+  if (provenance) validateStageProvenanceBinding(primary, provenance);
+  if (challenger) {
+    await validateStageSourceFile(challenger, allowLegacySourceArtifactBinding);
+    if (provenance) validateStageProvenanceBinding(challenger, provenance);
+  }
+  if (third) {
+    await validateStageSourceFile(third, allowLegacySourceArtifactBinding);
+    if (provenance) validateStageProvenanceBinding(third, provenance);
+  }
+
+  const buildReceipt = (
+    productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof,
+    allowLegacy = false,
+  ): CurrentCourseCoverageBatchReceipt =>
+    buildCurrentCourseCoverageBatchReceipt({
+      worklist,
+      manifest,
+      expectedBinding: input.expectedBinding,
+      observedManifestArtifactSha256: createHash('sha256').update(manifestBytes).digest('hex'),
+      primary,
+      challenger,
+      third,
+      productionBoundaryProof,
+      allowLegacySourceArtifactBinding: allowLegacy,
+    });
+
+  if (receiptExists && attestationExists) {
+    const replayReceipt = persistedReceipt!;
+    const replayAttestation = persistedAttestation!;
+    const rebuiltReceipt = buildReceipt(replayReceipt.productionBoundaryProof, allowLegacySourceArtifactBinding);
+    if (stableStringify(rebuiltReceipt) !== stableStringify(replayReceipt)) {
+      throw new Error('Current batch review rejected: published receipt source/stage closure differs from current inputs');
+    }
+    const expectedRows = replayReceipt.productionBoundaryProof.verificationProtocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL
+      ? replayReceipt.productionBoundaryProof.protectedPathSnapshots
+      : undefined;
+    const replaySnapshot = await capturePublishedReplaySnapshot(replayAttestation.headBefore, expectedRows);
+    assertPublishedReplaySnapshot(replayReceipt, replayAttestation, replaySnapshot);
+    process.stdout.write(`${stableStringify({
+      status: replayReceipt.status,
+      batchId: replayReceipt.batchBinding.batchId,
+      receiptDigest: replayReceipt.receiptDigest,
+      output: input.output,
+      publication: 'identical' as const,
+      attestation: attestationPath,
+      attestationDigest: replayAttestation.attestationDigest,
+      attestationPublication: 'identical' as const,
+      replayMode: replaySnapshot.replayMode,
+    })}\n`);
+    return;
+  }
+
+  const boundaryBefore = await captureProductionAuthoritySnapshot();
+  const receipt = buildReceipt(productionBoundaryProof(boundaryBefore, receiptPath, attestationPath));
   const bytes = `${JSON.stringify(receipt, null, 2)}\n`;
   const bundle = await publishCurrentCourseCoverageBatchBundle({
     receiptOutput,

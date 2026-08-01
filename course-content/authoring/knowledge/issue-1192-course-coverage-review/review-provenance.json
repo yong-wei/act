@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "bdaa6aeec022a589b5f8fdb3",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "stageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "fb3a6d79-b315-4ead-a8b3-a4da1d52a9f1",
+    "permission": "read-only",
+    "reviewSessionId": "fb3a6d79-b315-4ead-a8b3-a4da1d52a9f1",
+    "reviewSessionScope": "act:issue-1192:primary-review",
+    "sourceWriterSessionId": "5685cf66-23eb-4c10-ae8c-a2310723e670",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1192:primary-source-writer",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "a7d68cb1bba2ec6e23638d41719ce2a5ffd4d206f8b3f3f9a4d9bac5b6e3eeda",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedDocumentDigest": "e77224763fe03f42b8229dc42cc4046f05e409863f9fc4f7bbe4db397c336e8f",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 500
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The independent Primary source writer reviewed all 500 frozen members and authored member-specific DEFER rationales with evidence selectors before normalization. The assembler normalized selectors against the frozen worklist and added only runtime-required decision/document digests; it generated no semantic conclusion.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1192-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "a7d68cb1bba2ec6e23638d41719ce2a5ffd4d206f8b3f3f9a4d9bac5b6e3eeda",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "5685cf66-23eb-4c10-ae8c-a2310723e670"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "d6ae2529-9244-4fe3-8f69-f487bea14be7",
+    "permission": "read-only",
+    "reviewSessionId": "d6ae2529-9244-4fe3-8f69-f487bea14be7",
+    "reviewSessionScope": "act:issue-1192:challenger-review",
+    "sourceWriterSessionId": "9d37b710-760f-4306-b0cb-192579d37f11",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1192:challenger-source-writer",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "020cfb682e547614f15267d31b040132407e843f22653dd8651ae8981a5b68f2",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedDocumentDigest": "61df7d4609b67c3ed64a489eefb3b1093cc25837df880684ef5fdab68491d33e",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 500
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The independent Challenger source writer independently reviewed all 500 frozen members without reading Primary or any #1192 artifact and authored member-specific DEFER rationales with evidence selectors before normalization. The assembler normalized selectors against the frozen worklist and added only runtime-required decision/document digests; it generated no semantic conclusion.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1192-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "020cfb682e547614f15267d31b040132407e843f22653dd8651ae8981a5b68f2",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "9d37b710-760f-4306-b0cb-192579d37f11"
+    }
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}
