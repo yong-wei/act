@@ -44,6 +44,9 @@ const boundInputs = [
   'src/app/api/simulation/optimize/route.ts',
   'src/resources/simulations/ai-recommend-panel.tsx',
   'src/resources/simulations/lib/monte-carlo-optimizer.ts',
+  'src/resources/simulations/rust/control-engine-server-runtime.ts',
+  'src/resources/simulations/core/seeded-rng.ts',
+  'src/resources/simulations/lib/replay-checksum.ts',
   'src/lib/pid-evidence-runtime-attestation.ts',
   'src/lib/pid-evidence-runtime-manifest.generated.ts',
   'rust/control-engine/src/virtual_simulation_runtime.rs',
@@ -176,6 +179,11 @@ try {
     assert.ok(body && typeof body === 'object', `Viewport ${viewport.name}: API response body is not an object`);
     assert.ok(typeof body.result?.score === 'number', `Viewport ${viewport.name}: response missing numeric score`);
     assert.ok(body.result.score >= 60, `Viewport ${viewport.name}: score ${body.score} < 60`);
+    assert.deepEqual(
+      body.evidenceBuildSourceHashes,
+      runtimeSourceHashes,
+      `Viewport ${viewport.name}: optimize API bundle proof does not match the capture checkout`,
+    );
 
     // Request should use v2 calibrated semantics (targetHeading and maxRudderRate)
     assert.ok(
