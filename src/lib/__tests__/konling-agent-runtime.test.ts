@@ -1137,6 +1137,7 @@ describe('konling agent runtime', () => {
       'grading-assistant',
       'feedback-explainer',
       'class-summarizer',
+      'teacher-diagnosis',
       'prep-coauthor',
     ]);
 
@@ -1169,6 +1170,17 @@ describe('konling agent runtime', () => {
       'apply-smart-task-change',
       'confirm-smart-task-change',
     ]));
+    const teacherDiagnosis = resolveKonlingTeachingAssistantMode('teacher-diagnosis');
+    expect(teacherDiagnosis).toMatchObject({
+      supportedRoles: ['teacher'],
+      mountingSurfaces: ['teacher-dashboard-diagnosis'],
+      privacyPolicy: { payload: 'teacher-scoped-summary' },
+    });
+    expect(teacherDiagnosis.permittedTools).toEqual([
+      'get_student_risk_flags',
+      'get_class_competency_summary',
+      'get_student_knowledge_progress',
+    ]);
 
     const mounts = getKonlingTeachingAssistantMountContracts();
     expect(mounts).toEqual(expect.arrayContaining([
@@ -1178,11 +1190,108 @@ describe('konling agent runtime', () => {
         requiredContext: expect.arrayContaining(['prep-pack']),
       }),
       expect.objectContaining({
+        surface: 'teacher-dashboard-diagnosis',
+        modeId: 'teacher-diagnosis',
+      }),
+      expect.objectContaining({
         surface: 'resource-node-launch',
         modeId: 'resource-coach',
         requiredContext: expect.arrayContaining(['resource-node', 'path-execution-context']),
       }),
     ]));
+  });
+
+  it('binds teacher diagnosis tools to the authorized class and redacts raw risk evidence', async () => {
+    const db = {
+      class: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'class-1',
+          teacherId: 'teacher-1',
+          isActive: true,
+        }),
+      },
+      studentProfile: {
+        findFirst: vi.fn(async ({ where }: any) => (
+          where.userId === 'student-1' && where.classId === 'class-1'
+            ? { userId: 'student-1' }
+            : null
+        )),
+        findMany: vi.fn().mockResolvedValue([{ userId: 'student-1' }]),
+      },
+      studentRiskFlag: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'risk-1',
+          userId: 'student-1',
+          flagType: 'constraint',
+          severity: 'high',
+          description: '受约束',
+          evidenceJson: {
+            stuckNodeCount: 2,
+            evidenceCutoff: '2026-07-29T00:00:00.000Z',
+            rawAnswer: 'must-not-leak',
+          },
+          triggeredAt: new Date('2026-07-29T00:00:00.000Z'),
+        }]),
+      },
+      studentCompetencySnapshot: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'snapshot-1',
+          userId: 'student-1',
+          snapshotAt: new Date('2026-07-29T00:00:00.000Z'),
+          competencyVector: { modeling: 80, analysis: 60, design: 70 },
+        }]),
+      },
+      knowledgeProgress: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'progress-1',
+          userId: 'student-1',
+          nodeId: 'node-1',
+          status: 'IN_PROGRESS',
+          progress: 40,
+          timeSpent: 600,
+          lastVisited: new Date('2026-07-29T00:00:00.000Z'),
+        }]),
+      },
+    };
+    const permittedTools = [
+      'get_student_risk_flags',
+      'get_class_competency_summary',
+      'get_student_knowledge_progress',
+    ] as const;
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'teacher-1',
+        role: 'teacher',
+        classId: 'class-1',
+      }),
+      context: createRuntimeContext({
+        permittedTools: [...permittedTools],
+      }),
+      permittedTools: [...permittedTools],
+    });
+
+    const riskResult = await runtime.getStudentRiskFlags({ studentId: 'student-1' });
+    expect(riskResult).toMatchObject({
+      classId: 'class-1',
+      flags: [{
+        studentId: 'student-1',
+        evidenceSummary: { stuckNodeCount: 2 },
+      }],
+      privacyClass: 'teacher-scoped',
+    });
+    expect(JSON.stringify(riskResult)).not.toContain('must-not-leak');
+    await expect(runtime.getStudentRiskFlags({ studentId: 'student-outside' }))
+      .rejects.toMatchObject({ status: 403 });
+    await expect(runtime.getClassCompetencySummary({})).resolves.toMatchObject({
+      classId: 'class-1',
+      sourceCoverage: { classMembers: 1, includedStudents: 1 },
+    });
+    await expect(runtime.getStudentKnowledgeProgress({ studentId: 'student-1' }))
+      .resolves.toMatchObject({
+        progress: [{ knowledgeNodeId: 'node-1' }],
+      });
   });
 
   it('exposes only the three candidate read tools for a candidate runtime', () => {
@@ -5234,6 +5343,76 @@ describe('konling agent runtime', () => {
         lowConfidenceReasons: expect.arrayContaining(['missing-learner-state', 'missing-path-execution']),
       },
     });
+  });
+
+  it('grounds diagnosis prompts in canonical remediation resources and per-attempt misconceptions', () => {
+    const adaptiveAttempt = {
+      answerId: 'answer-current',
+      questionId: 'question-current',
+      selectedOptionKey: 'B',
+      correctOptionKey: 'A',
+      isCorrect: false,
+      answeredAt: '2026-07-28T08:03:00.000Z',
+      misconceptionTags: ['confuses-peak-and-settling-time'],
+      sessionKey: 'practice-session-1',
+      question: {
+        version: 'adaptive-question-snapshot.v1' as const,
+        prompt: 'Which response metric is authoritative?',
+        options: [
+          { key: 'A', label: 'Settling time', text: 'Settling time', explanation: 'Uses the final tolerance band.' },
+          { key: 'B', label: 'Peak time', text: 'Peak time', explanation: 'Measures a different event.' },
+        ],
+        correctOptionKey: 'A',
+        explanation: 'Use the final tolerance band.',
+        knowledgeTags: ['time-domain-response'],
+        misconceptionTags: ['confuses-peak-and-settling-time'],
+        remediationResources: [{
+          id: 'registry:semantic-remediation-id',
+          title: 'Canonical response-metrics guide',
+          href: '/interactive-learning/resources/response-metrics-guide',
+          governanceState: 'reviewed' as const,
+        }],
+      },
+      recentAttempts: [
+        {
+          answerId: 'answer-current',
+          questionId: 'question-current',
+          selectedOptionKey: 'B',
+          correctOptionKey: 'A',
+          isCorrect: false,
+          answeredAt: '2026-07-28T08:03:00.000Z',
+          misconceptionTags: ['confuses-peak-and-settling-time'],
+        },
+        {
+          answerId: 'answer-previous',
+          questionId: 'question-previous',
+          selectedOptionKey: 'C',
+          correctOptionKey: 'B',
+          isCorrect: false,
+          answeredAt: '2026-07-28T08:02:00.000Z',
+          misconceptionTags: ['ignores-tolerance-band'],
+        },
+      ],
+    };
+    const runtime = createRuntimeContext();
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'diagnosis-explainer',
+      runtimeContext: runtime,
+      scope: createScope(),
+      serverModeContext: { adaptiveAttempt },
+    });
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: { ...runtime, teachingAssistantMode: modeContract },
+    });
+
+    expect(prompt).toContain('Canonical response-metrics guide');
+    expect(prompt).toContain('/interactive-learning/resources/response-metrics-guide');
+    expect(prompt).toContain('confuses-peak-and-settling-time');
+    expect(prompt).toContain('ignores-tolerance-band');
+    expect(prompt).not.toContain('/interactive-learning/resources/semantic-remediation-id');
+    expect(prompt).not.toContain('registry:semantic-remediation-id');
   });
 
   it('records missing learner evidence as limited personalization for path advice with content citations', () => {
@@ -10525,10 +10704,15 @@ describe('konling agent runtime', () => {
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
       learningPath: {
-        findFirst: vi.fn()
-          .mockResolvedValueOnce({
+        // Semantic lock/business reads: always return the owned active path for
+        // path-1. Avoid once-queues that break when the write fence adds reads.
+        findFirst: vi.fn(async ({ where }: { where?: { id?: string } } = {}) => {
+          if (where?.id && where.id !== 'path-1') return null;
+          return {
             id: 'path-1',
             userId: 'student-1',
+            goalId: 'control-correction',
+            pathStatus: 'active',
             pathPayload: {
               policyBundle: {
                 status: 'ready',
@@ -10540,13 +10724,8 @@ describe('konling agent runtime', () => {
               selectionHistory: [],
               activity: [],
             },
-          })
-          .mockResolvedValueOnce(null)
-          .mockResolvedValueOnce({
-            id: 'path-1',
-            userId: 'student-1',
-            pathPayload: { selectionHistory: [], activity: [] },
-          }),
+          };
+        }),
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
         update: vi.fn().mockResolvedValue({ id: 'path-1' }),
       },
@@ -11745,6 +11924,14 @@ describe('konling agent runtime', () => {
             nodeIds: ['node-1', 'node-2'],
           },
         ]),
+        // Write fence lock read (recordPathIntervention) — independent of findMany.
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -11860,6 +12047,13 @@ describe('konling agent runtime', () => {
           currentNodeId: 'node-2',
           nodeIds: ['node-1', 'node-2'],
         }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -11961,6 +12155,13 @@ describe('konling agent runtime', () => {
           currentNodeId: 'node-1',
           nodeIds: ['node-1'],
         }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -12017,6 +12218,13 @@ describe('konling agent runtime', () => {
           currentNodeId: 'node-1',
           nodeIds: ['node-1'],
         }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          pathPayload: {},
+        }),
       },
       learningPathIntervention: {
         findFirst: vi.fn().mockResolvedValue(null),

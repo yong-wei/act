@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import {
+  assertLearningPathWritable,
+  LearningPathMutationBlockedError,
+  LEGACY_PATH_MUTATION_BLOCKED_CODE,
+} from '@/lib/canonical-learning-path-transition/mutation-guard';
 import { isControlCorrectionPathRoundPersistenceEnabled } from '@/lib/control-correction-path-rounds';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import { refreshStudentEvidenceFeatureCache } from '@/lib/data-governance/student-evidence-feature-cache';
@@ -176,6 +181,39 @@ export function assertCanWriteStudentPath(
 ): NextResponse | null {
   if (requester.role === 'admin' || requester.userId === path.userId) return null;
   return NextResponse.json({ error: '无权写入该学习路径' }, { status: 403 });
+}
+
+/**
+ * Fail-closed write gate for stopped Legacy paths (#1115).
+ * Must be checked after ownership checks on every mutation route.
+ */
+export function assertPathMutableForWrite(
+  path: { id?: string | null; pathStatus?: string | null; pathPayload?: unknown },
+): NextResponse | null {
+  const block = assertLearningPathWritable(path);
+  if (!block) return null;
+  return NextResponse.json({
+    error: LEGACY_PATH_MUTATION_BLOCKED_CODE,
+    reason: block.reason,
+    pathStatus: block.pathStatus,
+    pathId: block.pathId,
+  }, { status: 409 });
+}
+
+/**
+ * Map fence/service LearningPathMutationBlockedError to the same 409 body as
+ * assertPathMutableForWrite (reachable race after initial guard).
+ */
+export function learningPathMutationBlockedResponse(
+  error: unknown,
+): NextResponse | null {
+  if (!(error instanceof LearningPathMutationBlockedError)) return null;
+  return NextResponse.json({
+    error: error.code,
+    reason: error.reason,
+    pathStatus: error.pathStatus,
+    pathId: error.pathId,
+  }, { status: 409 });
 }
 
 export function assertCanReadOwnedPathJourney(

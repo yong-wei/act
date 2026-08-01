@@ -11,6 +11,7 @@ import type {
   ClassSnapshotJob,
   EventIngestionJob,
   EvidenceFeatureCacheJob,
+  RiskFlagScanJob,
   StudentSnapshotJob,
 } from './types';
 
@@ -22,6 +23,7 @@ const SCHEDULES = {
   ACTIVE_STUDENT_SNAPSHOT: '15 * * * *',
   CLASS_SNAPSHOT: '30 3 * * *',
   EVIDENCE_FEATURE_CACHE_REBUILD: '45 4 * * *',
+  RISK_FLAG_SCAN_NIGHTLY: '0 3 * * *',
 } as const;
 
 const JOB_HISTORY_OPTIONS = {
@@ -43,11 +45,13 @@ async function scheduleJobs() {
   const studentQueue = new Queue<StudentSnapshotJob>('snapshot-student', { connection: redis });
   const classQueue = new Queue<ClassSnapshotJob>('snapshot-class', { connection: redis });
   const evidenceFeatureCacheQueue = new Queue<EvidenceFeatureCacheJob>('evidence-feature-cache', { connection: redis });
+  const riskFlagQueue = new Queue<RiskFlagScanJob>('risk-flag-scan', { connection: redis });
 
   await clearRepeatableJobs(eventQueue);
   await clearRepeatableJobs(studentQueue);
   await clearRepeatableJobs(classQueue);
   await clearRepeatableJobs(evidenceFeatureCacheQueue);
+  await clearRepeatableJobs(riskFlagQueue);
 
   await eventQueue.add(
     'event-ingestion-coordinator',
@@ -89,15 +93,27 @@ async function scheduleJobs() {
     },
   );
 
+  await riskFlagQueue.add(
+    'risk-flag-scan-coordinator',
+    { coordinator: true },
+    {
+      repeat: { cron: SCHEDULES.RISK_FLAG_SCAN_NIGHTLY },
+      jobId: 'coordinator-risk-flag-scan',
+      ...JOB_HISTORY_OPTIONS,
+    },
+  );
+
   console.log(`[Scheduler] Event ingestion scheduled: ${SCHEDULES.EVENT_INGESTION_NIGHTLY}`);
   console.log(`[Scheduler] Active student snapshots scheduled: ${SCHEDULES.ACTIVE_STUDENT_SNAPSHOT}`);
   console.log(`[Scheduler] Class snapshots scheduled: ${SCHEDULES.CLASS_SNAPSHOT}`);
   console.log(`[Scheduler] Evidence feature cache rebuild scheduled: ${SCHEDULES.EVIDENCE_FEATURE_CACHE_REBUILD}`);
+  console.log(`[Scheduler] Risk flag scan scheduled: ${SCHEDULES.RISK_FLAG_SCAN_NIGHTLY}`);
 
   await eventQueue.close();
   await studentQueue.close();
   await classQueue.close();
   await evidenceFeatureCacheQueue.close();
+  await riskFlagQueue.close();
   await redis.quit();
 
   console.log('[Scheduler] Recurring coordinator jobs refreshed successfully');

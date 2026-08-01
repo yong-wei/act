@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { getRegisteredResourceMetadataByNodeId } from '@/lib/resource-registry-metadata';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
@@ -188,9 +189,10 @@ function questionSource(questionId: string): string {
 }
 
 function questionMetadataContentHash(
-  question: SubmittedAnswerDetails['question'],
+  details: SubmittedAnswerDetails,
   catalogSnapshot: AdaptiveAssessmentCatalogSnapshot | null,
 ): string {
+  const question = details.question;
   const kaqMetadata = buildKaqQuizQuestionMetadata(question);
   const snapshot = {
     source: questionSource(question.id),
@@ -205,6 +207,7 @@ function questionMetadataContentHash(
       catalogSnapshot,
       generatedMetadata: question.generatedMetadata,
     }),
+    questionSnapshot: buildAdaptiveQuestionSnapshot(details, kaqMetadata, catalogSnapshot),
   };
 
   return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
@@ -254,6 +257,43 @@ function buildAdaptiveAssessmentItemRefMetadata(params: {
       mayReferenceContentHash: false,
       catalogUpdatesRewriteHistoricalAnswers: false,
     },
+  };
+}
+
+function buildAdaptiveQuestionSnapshot(
+  details: SubmittedAnswerDetails,
+  kaqMetadata: ReturnType<typeof buildKaqQuizQuestionMetadata>,
+  catalogSnapshot: AdaptiveAssessmentCatalogSnapshot | null,
+) {
+  const correctOption = details.question.options.find((option) => option.isCorrect);
+  const remediationResources = catalogSnapshot?.reviewDecision.outcome === 'approved'
+    ? catalogSnapshot.reviewDecision.remediationRefs.flatMap((id) => {
+        const resource = getRegisteredResourceMetadataByNodeId(id);
+        const href = resource?.launchTarget ?? resource?.renderTarget;
+        return resource && href
+          ? [{
+              id,
+              title: resource.label,
+              href,
+              governanceState: 'reviewed' as const,
+            }]
+          : [];
+      })
+    : [];
+  return {
+    version: 'adaptive-question-snapshot.v1' as const,
+    prompt: details.question.stem,
+    options: details.question.options.map((option, index) => ({
+      key: String.fromCharCode(65 + index),
+      label: option.label,
+      text: option.text,
+      explanation: option.explanation,
+    })),
+    correctOptionKey: details.correctOptionKey,
+    explanation: correctOption?.explanation ?? details.result.explanation,
+    knowledgeTags: [...details.question.knowledgeTags],
+    misconceptionTags: [...kaqMetadata.misconceptionTags],
+    remediationResources,
   };
 }
 
@@ -698,8 +738,8 @@ async function persistAdaptiveAssessmentSubmission(
   }
 
   const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(effectiveDetails.question.id);
-  const contentHash = questionMetadataContentHash(effectiveDetails.question, catalogSnapshot);
   const kaqMetadata = buildKaqQuizQuestionMetadata(effectiveDetails.question);
+  const contentHash = questionMetadataContentHash(effectiveDetails, catalogSnapshot);
   const itemRefMetadata = {
     kaq: kaqMetadata,
     adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
@@ -707,6 +747,7 @@ async function persistAdaptiveAssessmentSubmission(
       catalogSnapshot,
       generatedMetadata: effectiveDetails.question.generatedMetadata,
     }),
+    questionSnapshot: buildAdaptiveQuestionSnapshot(effectiveDetails, kaqMetadata, catalogSnapshot),
     ...(effectiveDetails.question.generatedMetadata ? { generatedMetadata: effectiveDetails.question.generatedMetadata } : {}),
   };
   const questionRef = await tx.adaptiveAssessmentItemRef.upsert({
@@ -717,9 +758,7 @@ async function persistAdaptiveAssessmentSubmission(
         contentHash,
       },
     },
-    update: {
-      metadata: itemRefMetadata,
-    },
+    update: {},
     create: {
       questionId: effectiveDetails.question.id,
       contentHash,

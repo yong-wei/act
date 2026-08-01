@@ -17,14 +17,17 @@ import {
   assertShadowCannotActivateKaqCutover,
   assertVerifiedCourseCoverageBundle,
   assertVerifiedKaqPinnedContext,
+  bindingIdentity,
   buildActkgTeachingProjectionRelation,
   buildKaqPinnedContextFromVerifiedAuthority,
   buildReviewedKaqRoleCanonicalMapping,
+  evidenceDigest,
   courseCoverageCreatesTeachingProjectionEdge,
   detectTeachingRelationConflicts,
   detectTeachingRelationCycles,
   describeActkgTeachingRelationAuthority,
   describeKaqOwnedRelationAuthority,
+  digestFormalTeachingProjectionRelationSet,
   engineeringPredicateTeachingInferenceTable,
   evaluateKaqCatalogCanonicalReadiness,
   formalKaqConsumersUseLegacy,
@@ -84,6 +87,13 @@ const coverageCaptureRevision = 'd'.repeat(40);
 const deltaReceiptId = 'delta-receipt:accepted-aggregate-v1';
 const coverageVersionId = 'agg-cov:automatic-control@1';
 const governanceReceiptId = 'agg-gov:receipt-v1';
+const TEST_PROJECTION_ID = 'ctr:projection:teaching-v1';
+const TEST_PROJECTION_DIGEST = '1'.repeat(64);
+/** Empty formal relation-set digest for availability-only fixtures. */
+const EMPTY_RELATION_SET_DIGEST = digestFormalTeachingProjectionRelationSet([], {
+  projectionId: TEST_PROJECTION_ID,
+  projectionDigest: TEST_PROJECTION_DIGEST,
+});
 
 function pinned(overrides: Partial<{
   releaseSetId: string;
@@ -251,6 +261,7 @@ function availableTeachingProjection(context: ReturnType<typeof pinned> = pinned
     pinned: context,
     projectionId: 'ctr:projection:teaching-v1',
     projectionDigest: '1'.repeat(64),
+    relationSetDigest: EMPTY_RELATION_SET_DIGEST,
     formalReleaseAttestationId: 'attestation:teaching-projection-release-v1',
     formalReleaseAttestationDigest: '2'.repeat(64),
   });
@@ -396,6 +407,7 @@ describe('canonical KAQ pinned context', () => {
       pinned: context,
       projectionId: 'ctr:projection:teaching-v1',
       projectionDigest: '1'.repeat(64),
+      relationSetDigest: EMPTY_RELATION_SET_DIGEST,
       formalReleaseAttestationId: 'attestation:x',
       formalReleaseAttestationDigest: '2'.repeat(64),
     });
@@ -681,6 +693,7 @@ describe('relation ownership and Teaching Projection boundary', () => {
         pinned: context,
         projectionId: 'ctr:projection:teaching-v1',
         projectionDigest: '1'.repeat(64),
+        relationSetDigest: EMPTY_RELATION_SET_DIGEST,
         formalReleaseAttestationId: 'attestation:x',
         formalReleaseAttestationDigest: '2'.repeat(64),
       }),
@@ -703,7 +716,7 @@ describe('relation ownership and Teaching Projection boundary', () => {
 
     // Unbranded plain object with plausible fields cannot admit (no capability brand).
     const unbrandedProof = {
-      schemaVersion: 'act-formal-teaching-projection-proof/v1',
+      schemaVersion: 'act-formal-teaching-projection-proof/v2',
       proofKind: 'FORMAL_ACTKG_TEACHING_PROJECTION_RELEASE',
       releaseSetId: context.releaseSetId,
       releaseId: context.releaseId,
@@ -711,6 +724,7 @@ describe('relation ownership and Teaching Projection boundary', () => {
       pinnedContextDigest: context.contextDigest,
       projectionId: 'ctr:projection:teaching-v1',
       projectionDigest: '1'.repeat(64),
+      relationSetDigest: EMPTY_RELATION_SET_DIGEST,
       formalReleaseAttestationId: 'attestation:x',
       formalReleaseAttestationDigest: '2'.repeat(64),
       proofDigest: '9'.repeat(64),
@@ -734,6 +748,8 @@ describe('relation ownership and Teaching Projection boundary', () => {
     expect(availability.releaseSetId).toBe(PINNED_KAQ_AGGREGATE_RELEASE_SET_ID);
     expect(availability.releaseId).toBe(PINNED_KAQ_AGGREGATE_RELEASE_ID);
     expect(availability.pinnedContextDigest).toBe(context.contextDigest);
+    expect(availability.relationSetDigest).toBe(EMPTY_RELATION_SET_DIGEST);
+    expect(availability.relationSetDigest).toMatch(/^[a-f0-9]{64}$/);
 
     // pinned is required — out-of-coverage endpoints always fail
     const relation = buildActkgTeachingProjectionRelation({
@@ -1359,6 +1375,7 @@ describe('root-cause: non-enumerable brands + deep immutability', () => {
       pinned: context,
       projectionId: 'ctr:projection:teaching-v1',
       projectionDigest: '1'.repeat(64),
+      relationSetDigest: EMPTY_RELATION_SET_DIGEST,
       formalReleaseAttestationId: 'attestation:x',
       formalReleaseAttestationDigest: '2'.repeat(64),
     });
@@ -1393,6 +1410,7 @@ describe('root-cause: non-enumerable brands + deep immutability', () => {
       pinned: context,
       projectionId: 'ctr:projection:teaching-v1',
       projectionDigest: '1'.repeat(64),
+      relationSetDigest: EMPTY_RELATION_SET_DIGEST,
       formalReleaseAttestationId: 'attestation:x',
       formalReleaseAttestationDigest: '2'.repeat(64),
     });
@@ -1429,6 +1447,7 @@ describe('root-cause: non-enumerable brands + deep immutability', () => {
       pinned: context,
       projectionId: 'ctr:projection:teaching-v1',
       projectionDigest: '1'.repeat(64),
+      relationSetDigest: EMPTY_RELATION_SET_DIGEST,
       formalReleaseAttestationId: 'attestation:x',
       formalReleaseAttestationDigest: '2'.repeat(64),
     });
@@ -1443,6 +1462,7 @@ describe('root-cause: non-enumerable brands + deep immutability', () => {
       pinnedContextDigest: proof.pinnedContextDigest,
       projectionId: proof.projectionId,
       projectionDigest: proof.projectionDigest,
+      relationSetDigest: proof.relationSetDigest,
       formalReleaseAttestationId: proof.formalReleaseAttestationId,
       formalReleaseAttestationDigest: proof.formalReleaseAttestationDigest,
       proofDigest: '9'.repeat(64),
@@ -1460,6 +1480,7 @@ describe('root-cause: non-enumerable brands + deep immutability', () => {
       pinned: context,
       projectionId: 'ctr:projection:teaching-v1',
       projectionDigest: '1'.repeat(64),
+      relationSetDigest: EMPTY_RELATION_SET_DIGEST,
       formalReleaseAttestationId: 'attestation:x',
       formalReleaseAttestationDigest: '2'.repeat(64),
     });
@@ -1687,7 +1708,7 @@ describe('P1 authority input closure', () => {
     expect(resolveTeachingProjectionAvailability({
       pinned: context,
       formalProof: {
-        schemaVersion: 'act-formal-teaching-projection-proof/v1',
+        schemaVersion: 'act-formal-teaching-projection-proof/v2',
         proofKind: 'FORMAL_ACTKG_TEACHING_PROJECTION_RELEASE',
         releaseSetId: context.releaseSetId,
         releaseId: context.releaseId,
@@ -1695,6 +1716,7 @@ describe('P1 authority input closure', () => {
         pinnedContextDigest: context.contextDigest,
         projectionId: 'p',
         projectionDigest: '1'.repeat(64),
+        relationSetDigest: EMPTY_RELATION_SET_DIGEST,
         formalReleaseAttestationId: 'a',
         formalReleaseAttestationDigest: '2'.repeat(64),
         proofDigest: '3'.repeat(64),
@@ -1990,6 +2012,100 @@ describe('P1 one-time review lifecycle', () => {
       },
       context,
     )).toThrow(/only CANDIDATE/);
+  });
+
+  it('rejects hand-built and cloned CANDIDATE even when id/evidenceDigest are recomputed', () => {
+    const context = pinned();
+    const { bindings } = generateKaqCanonicalBindings({
+      pinned: context,
+      proposals: [{
+        kaqRoleId: 'kn:autocontrol:feedback-loop',
+        targets: [{
+          canonicalId: 'ctr:object:feedback-loop',
+          bindingRole: 'PRIMARY_IDENTITY',
+          evidenceRefs: ['e1'],
+          semanticRationale: 'once',
+          objectRevision: 'r1',
+        }],
+      }],
+    });
+    const real = bindings[0]!;
+    expect(Object.isFrozen(real)).toBe(true);
+
+    // Exact generated instance can ACCEPT / REJECT.
+    const accepted = acceptBinding(real, context);
+    expect(accepted.reviewState).toBe('ACCEPTED');
+    expect(Object.isFrozen(accepted)).toBe(true);
+
+    const { bindings: again } = generateKaqCanonicalBindings({
+      pinned: context,
+      proposals: [{
+        kaqRoleId: 'kn:autocontrol:transfer-function',
+        targets: [{
+          canonicalId: 'ctr:object:transfer-function',
+          bindingRole: 'PRIMARY_IDENTITY',
+          evidenceRefs: ['e2'],
+          semanticRationale: 'tf',
+          objectRevision: 'r1',
+        }],
+      }],
+    });
+    const rejected = reviewKaqCanonicalBinding(
+      again[0]!,
+      {
+        bindingId: again[0]!.id,
+        outcome: 'REJECT',
+        reviewIdentity: 'r',
+        reviewRationale: 'no',
+      },
+      context,
+    );
+    expect(rejected.reviewState).toBe('REJECTED');
+
+    // Clone of generated candidate fails.
+    const clone = { ...real, evidenceRefs: [...real.evidenceRefs] };
+    expect(() => acceptBinding(clone as typeof real, context)).toThrow(
+      /not a generateKaqCanonicalBindings-registered instance/,
+    );
+
+    // Hand-built CANDIDATE with fully recomputed identity digests still fails.
+    const identity = {
+      kaqRoleId: 'kn:autocontrol:feedback-loop',
+      canonicalId: 'ctr:object:feedback-loop',
+      bindingRole: 'PRIMARY_IDENTITY' as const,
+      releaseSetId: context.releaseSetId,
+      releaseId: context.releaseId,
+      objectRevision: 'r1',
+    };
+    const evidenceRefs = ['e1'];
+    const handBuilt = {
+      id: bindingIdentity(identity),
+      schemaVersion: 'act-canonical-kaq-binding/v1' as const,
+      ...identity,
+      evidenceRefs,
+      evidenceDigest: evidenceDigest({
+        kaqRoleId: identity.kaqRoleId,
+        canonicalId: identity.canonicalId,
+        bindingRole: identity.bindingRole,
+        evidenceRefs,
+        semanticRationale: 'once',
+      }),
+      semanticRationale: 'once',
+      reviewState: 'CANDIDATE' as const,
+      reviewIdentity: null,
+      reviewRationale: null,
+      lifecycleState: 'CURRENT' as const,
+      authorityState: 'SHADOW' as const,
+      productionAuthoritative: false as const,
+      pinnedContextDigest: context.contextDigest,
+      inheritedFromLegacyId: null,
+      sameNameAutoMatch: false as const,
+    };
+    expect(handBuilt.id).toBe(real.id);
+    expect(handBuilt.evidenceDigest).toBe(real.evidenceDigest);
+    expect(() => acceptBinding(handBuilt as typeof real, context)).toThrow(
+      /not a generateKaqCanonicalBindings-registered instance/,
+    );
   });
 
   it('keeps retirement consistent with relation lifecycle', () => {

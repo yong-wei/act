@@ -29,6 +29,13 @@ import {
 import type { PriorSemanticDecision, RevalidationReceipt } from './contracts';
 import { sha256Canonical } from './hash';
 
+/**
+ * Module-private registry of BindingGovernanceResult instances produced by
+ * governResourceBindings. SAR projectors must assert this exact instance —
+ * no deep-importable seal/rehydrate API exists.
+ */
+const GOVERNED_RESOURCE_BINDING_RESULT_REGISTRY = new WeakSet<object>();
+
 /** Controlled binding review authoring entry (never auto-accepted as shadow). */
 export interface BindingReviewAuthoringEntry {
   outcome: 'ACCEPT' | 'REJECT' | 'DISPUTE' | 'HUMAN_REQUIRED';
@@ -59,6 +66,82 @@ export interface BindingGovernanceResult {
   reusable: CanonicalResourceBindingDecision[];
   revalidationReceipts: RevalidationReceipt[];
   shadowPublishedCount: number;
+}
+
+function freezeDecision(
+  decision: CanonicalResourceBindingDecision,
+): CanonicalResourceBindingDecision {
+  return Object.freeze({
+    ...decision,
+    evidenceIds: Object.freeze([...(decision.evidenceIds ?? [])]) as string[],
+    highImpactReasons: Object.freeze(
+      [...(decision.highImpactReasons ?? [])],
+    ) as CanonicalResourceBindingDecision['highImpactReasons'],
+  });
+}
+
+function freezeCandidate(
+  candidate: CanonicalResourceBindingCandidate,
+): CanonicalResourceBindingCandidate {
+  return Object.freeze({
+    ...candidate,
+    evidenceIds: Object.freeze([...(candidate.evidenceIds ?? [])]) as string[],
+  });
+}
+
+/**
+ * Immutable snapshot + private WeakSet registration. Only
+ * governResourceBindings may call this (file-private).
+ */
+function sealGovernedResourceBindingResult(
+  result: BindingGovernanceResult,
+): BindingGovernanceResult {
+  const sealed = Object.freeze({
+    candidates: Object.freeze(result.candidates.map(freezeCandidate)),
+    candidatesGenerated: result.candidatesGenerated,
+    decisions: Object.freeze(result.decisions.map(freezeDecision)),
+    pendingReviewCandidates: Object.freeze(
+      result.pendingReviewCandidates.map(freezeCandidate),
+    ),
+    reusedDecisionIds: Object.freeze([...result.reusedDecisionIds]),
+    invalidated: Object.freeze(result.invalidated.map(freezeDecision)),
+    reusable: Object.freeze(result.reusable.map(freezeDecision)),
+    revalidationReceipts: Object.freeze([...result.revalidationReceipts]),
+    shadowPublishedCount: result.shadowPublishedCount,
+  }) as BindingGovernanceResult;
+  GOVERNED_RESOURCE_BINDING_RESULT_REGISTRY.add(sealed);
+  return sealed;
+}
+
+/**
+ * SAR / consumers: only exact instances returned by governResourceBindings pass.
+ * Clones, hand-built results, and raw decision arrays fail closed.
+ */
+export function assertGovernedResourceBindingResult(
+  value: unknown,
+): BindingGovernanceResult {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(
+      'Governed resource binding result rejected: object required',
+    );
+  }
+  if (!GOVERNED_RESOURCE_BINDING_RESULT_REGISTRY.has(value as object)) {
+    throw new Error(
+      'Governed resource binding result rejected: not a governResourceBindings-registered instance',
+    );
+  }
+  return value as BindingGovernanceResult;
+}
+
+export function isGovernedResourceBindingResult(
+  value: unknown,
+): value is BindingGovernanceResult {
+  return (
+    Boolean(value)
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && GOVERNED_RESOURCE_BINDING_RESULT_REGISTRY.has(value as object)
+  );
 }
 
 /**
@@ -776,7 +859,8 @@ export function governResourceBindings(input: {
     && row.releaseId === input.capture.releaseId
   )).length;
 
-  return {
+  // Immutable producer snapshot + private registry — SAR only accepts this instance.
+  return sealGovernedResourceBindingResult({
     candidates,
     candidatesGenerated: candidates.length,
     decisions,
@@ -786,7 +870,7 @@ export function governResourceBindings(input: {
     reusable: stillReusable,
     revalidationReceipts,
     shadowPublishedCount: shadowFromReusable + shadowFromDecisions,
-  };
+  });
 }
 
 /** Build #1124 publication gate context from same-run validated ACT Crosswalks. */

@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "declared-authoritative-snapshot-receipt/v1",
+  "protocol": "declared-authoritative-snapshot-receipt/v1",
+  "snapshotId": "declared-authoritative-snapshot:issue-1117:control-theory-engineering-v0.8:r3",
+  "state": "ACCEPTED_CANDIDATE",
+  "authority": "DECLARED_CANDIDATE",
+  "captureRevision": "23b7e9420c5c0414d9240acdc0a2e166154aa6f1",
+  "releaseSetId": "actkg-authoritative-candidate-00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6",
+  "release": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.8",
+    "releaseHash": "caf4cf31b54675952cb65d635a29e07fa4a5729686b9875f78db3904a6497beb",
+    "sourceDatasetHash": "cbd8839ba61026696e853d514b9b82fbc892804c00e418f7ede885204fe38f9b"
+  },
+  "bundle": {
+    "bundleId": "ctb:control-theory-engineering-v0.8:r3",
+    "bundleRevision": 3,
+    "bundleDigest": "00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6"
+  },
+  "schema": {
+    "version": "0.2.0",
+    "rawSha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de"
+  },
+  "projection": {
+    "path": "course-content/authoring/knowledge/issue-1117-v08-r3-chain/releases/control-theory-engineering-v0.8/act-projection.json",
+    "contractVersion": "ctkg-graph-projection/0.2",
+    "sha256": "5297c60bf11d2fac235b957c9b575b77be419d8df6e34074f73be08dc8664a07"
+  },
+  "resolutionDigest": "f54ad32f66d980837af216a553e6f061c2cdb6c58e029f98bc6165367852d803",
+  "lock": {
+    "path": "course-content/authoring/knowledge/issue-1117-v08-r3-chain/release-set.lock.v3.control-theory-engineering-v0.8-r3.json",
+    "rawHash": "15183b4677265ac0dd70f0d35e3050d66d38a595bd424b718c72ad8c2d8fc861"
+  },
+  "importReceipt": {
+    "id": "receipt:ctr:release:control-theory-engineering-v0.8",
+    "state": "ACCEPTED_CANDIDATE",
+    "source": "docs/coordination/1117/iteration-2-r3-chain-and-course-coverage-stop.md#隔离数据库"
+  },
+  "bundleReceipt": {
+    "id": "bundle-receipt:00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6",
+    "bundleId": "ctb:control-theory-engineering-v0.8:r3",
+    "bundleRevision": 3,
+    "bundleDigest": "00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6",
+    "state": "ACCEPTED_CANDIDATE",
+    "source": "docs/coordination/1117/iteration-2-r3-chain-and-course-coverage-stop.md#隔离数据库"
+  },
+  "deltaReceipts": [
+    {
+      "id": "delta-receipt:6bdec94a7eac4c0883ef2ab03a6f36504e125bd42144bcbb0b20176112707cda",
+      "transition": "ctb:control-theory-engineering-v0.2:exact -> ctb:control-theory-engineering-v0.3:r2",
+      "candidateReleaseSetId": "actkg-authoritative-candidate-v3-r2",
+      "candidateReleaseId": "ctr:release:control-theory-engineering-v0.3",
+      "candidateImportReceiptId": "receipt:ctr:release:control-theory-engineering-v0.3",
+      "candidateBundleReceiptId": "bundle-receipt:ab6c33fb06d4beefda1c23f8329619caf4e572e252ddd69ba443d2a48364acb9",
+      "candidateBundleId": "ctb:control-theory-engineering-v0.3:r2",
+      "candidateBundleDigest": "ab6c33fb06d4beefda1c23f8329619caf4e572e252ddd69ba443d2a48364acb9",
+      "bundleDigest": "ab6c33fb06d4beefda1c23f8329619caf4e572e252ddd69ba443d2a48364acb9",
+      "authorizationState": "ACCEPTED",
+      "upstreamCrosscheckStatus": "NOT_REQUIRED",
+      "captureRevision": "23b7e9420c5c0414d9240acdc0a2e166154aa6f1",
+      "identityViolations": [],
+      "source": "docs/coordination/1117/iteration-2-r3-chain-and-course-coverage-stop.md#基线与逐跳-Delta"
+    },
+    {
+      "id": "delta-receipt:d414e3bf92da99afeae43558cc16299909789722b4aad7a717c45e4e95aac7c1",
+      "transition": "ctb:control-theory-engineering-v0.3:r2 -> ctb:control-theory-engineering-v0.4:r3",
+      "candidateReleaseSetId": "actkg-authoritative-candidate-1051c008525d02dcd23b851c713cc172d932f9374e7834061307abb42d3b18ee",
+      "candidateReleaseId": "ctr:release:control-theory-engineering-v0.4",
+      "candidateImportReceiptId": "receipt:ctr:release:control-theory-engineering-v0.4",
+      "candidateBundleReceiptId": "bundle-receipt:1051c008525d02dcd23b851c713cc172d932f9374e7834061307abb42d3b18ee",
+      "candidateBundleId": "ctb:control-theory-engineering-v0.4:r3",
+      "candidateBundleDigest": "1051c008525d02dcd23b851c713cc172d932f9374e7834061307abb42d3b18ee",
+      "bundleDigest": "1051c008525d02dcd23b851c713cc172d932f9374e7834061307abb42d3b18ee",
+      "authorizationState": "ACCEPTED",
+      "upstreamCrosscheckStatus": "AGREED",
+      "captureRevision": "23b7e9420c5c0414d9240acdc0a2e166154aa6f1",
+      "identityViolations": [],
+      "source": "docs/coordination/1117/iteration-2-r3-chain-and-course-coverage-stop.md#基线与逐跳-Delta"
+    },
+    {
+      "id": "delta-receipt:855efd7242552978520fe6a080785abce1b0b00fb2fc1366e9b6643dd60e617d",
+      "transition": "ctb:control-theory-engineering-v0.4:r3 -> ctb:control-theory-engineering-v0.5:r3",
+      "candidateReleaseSetId": "actkg-authoritative-candidate-fd1516f178bc564c2ae63f211dd69128c2c6a99510c7a6e8bcb91df02aba3d1f",
+      "candidateReleaseId": "ctr:release:control-theory-engineering-v0.5",
+      "candidateImportReceiptId": "receipt:ctr:release:control-theory-engineering-v0.5",
+      "candidateBundleReceiptId": "bundle-receipt:fd1516f178bc564c2ae63f211dd69128c2c6a99510c7a6e8bcb91df02aba3d1f",
+      "candidateBundleId": "ctb:control-theory-engineering-v0.5:r3",
+      "candidateBundleDigest": "fd1516f178bc564c2ae63f211dd69128c2c6a99510c7a6e8bcb91df02aba3d1f",
+      "bundleDigest": "fd1516f178bc564c2ae63f211dd69128c2c6a99510c7a6e8bcb91df02aba3d1f",
+      "authorizationState": "ACCEPTED",
+      "upstreamCrosscheckStatus": "AGREED",
+      "captureRevision": "23b7e9420c5c0414d9240acdc0a2e166154aa6f1",
+      "identityViolations": [],
+      "source": "docs/coordination/1117/iteration-2-r3-chain-and-course-coverage-stop.md#基线与逐跳-Delta"
+    },
+    {
+      "id": "delta-receipt:8d401e6f9cc068d8cbf18e8aaa18fa52e380f997fec630141c19c86291f4702c",
+      "transition": "ctb:control-theory-engineering-v0.5:r3 -> ctb:control-theory-engineering-v0.6:r3",
+      "candidateReleaseSetId": "actkg-authoritative-candidate-ba1e2b23e9c38b85c7d67fc00322ae1029082afef9658e2e46ce6334f28b19c7",
+      "candidateReleaseId": "ctr:release:control-theory-engineering-v0.6",
+      "candidateImportReceiptId": "receipt:ctr:release:control-theory-engineering-v0.6",
+      "candidateBundleReceiptId": "bundle-receipt:ba1e2b23e9c38b85c7d67fc00322ae1029082afef9658e2e46ce6334f28b19c7",
+      "candidateBundleId": "ctb:control-theory-engineering-v0.6:r3",
+      "candidateBundleDigest": "ba1e2b23e9c38b85c7d67fc00322ae1029082afef9658e2e46ce6334f28b19c7",
+      "bundleDigest": "ba1e2b23e9c38b85c7d67fc00322ae1029082afef9658e2e46ce6334f28b19c7",
+      "authorizationState": "ACCEPTED",
+      "upstreamCrosscheckStatus": "AGREED",
+      "captureRevision": "23b7e9420c5c0414d9240acdc0a2e166154aa6f1",
+      "identityViolations": [],
+      "source": "docs/coordination/1117/iteration-2-r3-chain-and-course-coverage-stop.md#基线与逐跳-Delta"
+    },
+    {
+      "id": "delta-receipt:e68db5f48d2ce26ba91642654fb06f35308492c997b7e2f9bae864ba7a98e4ab",
+      "transition": "ctb:control-theory-engineering-v0.6:r3 -> ctb:control-theory-engineering-v0.7:r3",
+      "candidateReleaseSetId": "actkg-authoritative-candidate-b980166e0ba4cd61405b2b4c4ecd1a54e91c3d2556825b057294450d912532e5",
+      "candidateReleaseId": "ctr:release:control-theory-engineering-v0.7",
+      "candidateImportReceiptId": "receipt:ctr:release:control-theory-engineering-v0.7",
+      "candidateBundleReceiptId": "bundle-receipt:b980166e0ba4cd61405b2b4c4ecd1a54e91c3d2556825b057294450d912532e5",
+      "candidateBundleId": "ctb:control-theory-engineering-v0.7:r3",
+      "candidateBundleDigest": "b980166e0ba4cd61405b2b4c4ecd1a54e91c3d2556825b057294450d912532e5",
+      "bundleDigest": "b980166e0ba4cd61405b2b4c4ecd1a54e91c3d2556825b057294450d912532e5",
+      "authorizationState": "ACCEPTED",
+      "upstreamCrosscheckStatus": "AGREED",
+      "captureRevision": "23b7e9420c5c0414d9240acdc0a2e166154aa6f1",
+      "identityViolations": [],
+      "source": "docs/coordination/1117/iteration-2-r3-chain-and-course-coverage-stop.md#基线与逐跳-Delta"
+    },
+    {
+      "id": "delta-receipt:9f7a90209b46db0b5e1fd72559034d00ba27d4eb8b82b3e6df67ce8d6d2f1aa3",
+      "transition": "ctb:control-theory-engineering-v0.7:r3 -> ctb:control-theory-engineering-v0.8:r3",
+      "candidateReleaseSetId": "actkg-authoritative-candidate-00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6",
+      "candidateReleaseId": "ctr:release:control-theory-engineering-v0.8",
+      "candidateImportReceiptId": "receipt:ctr:release:control-theory-engineering-v0.8",
+      "candidateBundleReceiptId": "bundle-receipt:00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6",
+      "candidateBundleId": "ctb:control-theory-engineering-v0.8:r3",
+      "candidateBundleDigest": "00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6",
+      "bundleDigest": "00e6a4786e4232d08a48652af8c3bd391ab9106dc0c32ef21dc633832fac3ff6",
+      "authorizationState": "ACCEPTED",
+      "upstreamCrosscheckStatus": "AGREED",
+      "captureRevision": "23b7e9420c5c0414d9240acdc0a2e166154aa6f1",
+      "identityViolations": [],
+      "source": "docs/coordination/1117/iteration-2-r3-chain-and-course-coverage-stop.md#基线与逐跳-Delta"
+    }
+  ],
+  "worklist": {
+    "path": "course-content/authoring/knowledge/issue-1117-v08-r3-chain/coverage-iteration-2/course-coverage-worklist.json",
+    "rawSha256": "939bb85b46e159c89d289bc7c995dd966c7b0e32e66b6573988c2f8c0866046a",
+    "byteLength": 9589777,
+    "inputDigest": "d24df1f9acc26ccbb0c2a173e711b7fcc1902d88b5830ce8939eecf8ebe37e22",
+    "itemCount": 3609,
+    "profileOnly": 1772,
+    "deltaReceiptId": "delta-receipt:9f7a90209b46db0b5e1fd72559034d00ba27d4eb8b82b3e6df67ce8d6d2f1aa3",
+    "authoringRevision": "23b7e9420c5c0414d9240acdc0a2e166154aa6f1"
+  },
+  "downstream": {
+    "courseCoverage": {
+      "state": "BLOCKED",
+      "reason": "缺少与当前 worklist inputDigest 匹配的独立逐项审核决定"
+    },
+    "teachingProjection": {
+      "state": "BLOCKED",
+      "reason": "正式 Teaching Projection 尚未启动；阶段快照不构成教学投影"
+    },
+    "roleContracts": {
+      "state": "BLOCKED",
+      "followUpChange": "complete-course-teaching-projection-and-final-knowledge-cutover",
+      "blockedRoles": [
+        "仿真验证与跨模型比较",
+        "现代控制与船海迁移"
+      ]
+    },
+    "formalConsumers": {
+      "state": "BLOCKED_OR_LEGACY",
+      "selectorsChanged": 0,
+      "graphRagSelectorsChanged": 0
+    },
+    "canonicalWriter": {
+      "state": "BLOCKED",
+      "selectorsChanged": 0
+    }
+  },
+  "selectorsChanged": 0,
+  "violations": [],
+  "receiptDigest": "fe4c703e634bd495b05cf67fd604f69c14d7a4f4ce64b4c6cdb3b190ca2b323f"
+}

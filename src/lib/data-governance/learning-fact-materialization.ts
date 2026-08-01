@@ -1,5 +1,10 @@
 import type { Prisma } from '@prisma/client';
 
+import {
+  selectLearningFactAuthority,
+  writeKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
 import type { LearningEvent } from './event-protocol';
 import { isCoreEvent } from './event-types';
 import {
@@ -12,6 +17,7 @@ import {
 } from './event-normalization';
 import { isMatchingResponseKind, isOrderingResponseKind } from '../interactive-response-contracts';
 import { resolveLearningFactEvidenceGovernance } from './learning-fact-quality-weight';
+import { resolveActiveKnowledgeRevision } from './knowledge-truth-revision';
 
 type LearningFactCreateManyDelegate = {
   createMany(args: {
@@ -541,14 +547,32 @@ export async function persistCoreLearningFact(
     return { created: 0, skipped: true, actionType };
   }
 
-  const result = await db.learningFact.createMany({
-    data: [fact],
-    skipDuplicates: true,
-  });
+  // Knowledge-scoped formal writes resolve the active authority selector and
+  // use the fixed-identity adapter. Pre-cutover selector is always LEGACY.
+  const selector = selectLearningFactAuthority('FORMAL_PRODUCTION');
+  const activeRevision = await resolveActiveKnowledgeRevision(db as never);
+  const writeResult = await writeKnowledgeScopedLearningFacts(
+    {
+      learningFact: {
+        createMany: async (args) => db.learningFact.createMany({
+          data: args.data as Prisma.LearningFactCreateManyInput[],
+          skipDuplicates: args.skipDuplicates,
+        }),
+      },
+    },
+    {
+      rows: [fact as LearningFactWriteRow],
+      knowledgeScoped: true,
+    },
+    {
+      selector,
+      knowledgeRevisionRef: activeRevision.id,
+    },
+  );
 
   return {
-    created: result.count,
-    skipped: result.count === 0,
+    created: writeResult.written,
+    skipped: writeResult.skipped,
     actionType,
   };
 }

@@ -1,5 +1,9 @@
 import type { LearningFact, Prisma } from '@prisma/client';
 
+import {
+  projectLearningFactServingIdentity,
+  type LearningFactServingIdentity,
+} from '@/lib/canonical-learning-fact-identity';
 import type { EvidenceQuestionSummary } from './competency-engine';
 import {
   mapLegacyCompetencyDimensionToPortraitV2,
@@ -31,6 +35,17 @@ export interface EvidenceTimelineCursor {
   id: string;
 }
 
+export interface EvidenceTimelineKnowledgeIdentity {
+  identityNamespace: LearningFactServingIdentity['identityNamespace'];
+  knowledgeRevisionRef: string;
+  canonicalObjectId: string | null;
+  aggregateReleaseSetId: string | null;
+  aggregateReleaseId: string | null;
+  knowledgeProjectionId: string | null;
+  legacyKnowledgeNodeIds: readonly string[];
+  historicalRevisionBound: true;
+}
+
 export interface EvidenceTimelineItem {
   id: string;
   factType: string;
@@ -59,6 +74,8 @@ export interface EvidenceTimelineItem {
   groupedCount?: number;
   groupedEvidenceIds?: string[];
   learnerRecord?: EvidenceTimelineLearnerRecord;
+  /** Multi-era knowledge identity; never reinterprets historical facts with current graph. */
+  knowledgeIdentity?: EvidenceTimelineKnowledgeIdentity;
 }
 
 export interface EvidenceTimelineQuestionSummary extends Omit<EvidenceQuestionSummary, 'studentAnswer'> {
@@ -110,6 +127,12 @@ type LearningFactTimelineRecord = Pick<
   | 'timeSpent'
   | 'competencyContribution'
   | 'contextJson'
+  | 'knowledgeIdentityNamespace'
+  | 'canonicalObjectId'
+  | 'aggregateReleaseSetId'
+  | 'aggregateReleaseId'
+  | 'knowledgeProjectionId'
+  | 'knowledgeRevisionRef'
 >;
 
 interface StudentStepResponseTimelineRecord {
@@ -350,6 +373,27 @@ function formatEvidenceTimelineItem(
   const derivedLearnerRecord = explicitLearnerRecord
     ?? deriveLearnerRecordMetadata(fact, response, quality?.quality, viewerRole, restrictedFallbackAction);
 
+  const servingIdentity = projectLearningFactServingIdentity({
+    id: fact.id,
+    knowledgeIdentityNamespace: fact.knowledgeIdentityNamespace,
+    canonicalObjectId: fact.canonicalObjectId,
+    aggregateReleaseSetId: fact.aggregateReleaseSetId,
+    aggregateReleaseId: fact.aggregateReleaseId,
+    knowledgeProjectionId: fact.knowledgeProjectionId,
+    knowledgeRevisionRef: fact.knowledgeRevisionRef,
+    contextJson: fact.contextJson,
+  });
+  const knowledgeIdentity: EvidenceTimelineKnowledgeIdentity = {
+    identityNamespace: servingIdentity.identityNamespace,
+    knowledgeRevisionRef: servingIdentity.knowledgeRevisionRef,
+    canonicalObjectId: servingIdentity.canonicalObjectId,
+    aggregateReleaseSetId: servingIdentity.aggregateReleaseSetId,
+    aggregateReleaseId: servingIdentity.aggregateReleaseId,
+    knowledgeProjectionId: servingIdentity.knowledgeProjectionId,
+    legacyKnowledgeNodeIds: servingIdentity.legacyKnowledgeNodeIds,
+    historicalRevisionBound: true,
+  };
+
   return compactObject({
     id: fact.id,
     factType: fact.factType,
@@ -378,6 +422,7 @@ function formatEvidenceTimelineItem(
     sourceState: quality?.sourceState,
     schemaVersion: quality?.schemaVersion,
     learnerRecord: derivedLearnerRecord,
+    knowledgeIdentity,
   });
 }
 

@@ -252,9 +252,9 @@ describe('AI chat route Konling runtime guard', () => {
     expect(globalAIProviderSource).toContain('openAssistantEntryPoint');
     expect(globalAIProviderSource).toContain('assistantEntryPoint: entryPoint');
     expect(globalAIProviderSource).toContain('assistantEntryPoint: null');
-    expect(globalAISidebarSource).toContain('teachingAssistantModeId: assistantEntryPoint?.mode');
-    expect(globalAISidebarSource).toContain('modeClientContextHints: effectiveServerContext');
-    expect(globalAISidebarSource).toContain('resourceId: effectiveServerContext?.resourceId');
+    expect(globalAISidebarSource).toContain('teachingAssistantModeId: activeAssistantBinding?.teachingAssistantModeId');
+    expect(globalAISidebarSource).toContain('modeClientContextHints: activeAssistantBinding?.modeClientContextHints');
+    expect(globalAISidebarSource).toContain('resourceId: activeAssistantBinding?.modeClientContextHints.resourceId');
     expect(documentGradingUiSource).toContain('KonlingEntryPointButton');
     expect(documentGradingUiSource).toContain('entryPoint={view.konlingEntryPoint}');
     expect(resourceRendererSource).toContain("mode: 'resource-coach'");
@@ -416,6 +416,12 @@ describe('AI chat route Konling runtime guard', () => {
     expect(buildIndex).toBeGreaterThan(verifyIndex);
     expect(sessionMessagesRouteSource).toContain('if (error instanceof KonlingRuntimeScopeError)');
     expect(sessionMessagesRouteSource).toContain('status: error.status');
+  });
+
+  it('preserves adaptive attempt context errors across both chat entry points', () => {
+    expect(chatRouteSource).toContain('error instanceof KonlingAdaptiveAttemptContextError');
+    expect(sessionMessagesRouteSource).toContain('error instanceof KonlingAdaptiveAttemptContextError');
+    expect(sessionMessagesRouteSource).toContain('return NextResponse.json({ error: error.message }, { status: error.status })');
   });
 
   it('hides the public simulation AI companion entry when no user is authenticated', () => {

@@ -1,6 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -559,6 +560,8 @@ model User {
 
   // Data governance
   riskFlags                             StudentRiskFlag[]
+  createdDiagnosisReports               DiagnosisReport[] @relation("DiagnosisReportCreator")
+  targetedDiagnosisReports              DiagnosisReport[] @relation("DiagnosisReportTarget")
   learningMaterializationRebuildRequest LearningMaterializationRebuildRequest?
   learningMaterializationGeneration     LearningMaterializationGeneration?
   learningMaterializationOutbox         LearningMaterializationOutbox[]
@@ -1448,6 +1451,7 @@ model Class {
   assignmentAudiences        AssignmentAudience[]
   gradingBatches             GradingBatch[]
   smartLessonTasks           SmartLessonTask[] @relation("SmartLessonTaskSelectedClass")
+  diagnosisReports           DiagnosisReport[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -4241,6 +4245,11 @@ model EventDictionary {
 }
 
 // Unified learning facts (derived from events)
+// Knowledge identity (#1116):
+// - historical rows keep null namespace (read as LEGACY / legacy-unversioned)
+// - new Legacy knowledge-scoped writes may stamp LEGACY without Canonical columns
+// - formal Canonical writes require complete fixed identity (DB CHECK enforces)
+// - never dual-write Legacy + Canonical identity for one fact; no historical backfill
 model LearningFact {
   id        String  @id @default(cuid())
   userId    String
@@ -4267,6 +4276,18 @@ model LearningFact {
   lessonId    String?
   contextJson Json    @default("{}")
 
+  // Fixed knowledge identity namespace (#1116). null = historical pre-namespace rows.
+  // Values: LEGACY | CANONICAL. Candidate is never a writable namespace.
+  knowledgeIdentityNamespace String?
+  // Canonical Object ID (required when namespace = CANONICAL)
+  canonicalObjectId          String?
+  // Active aggregate ReleaseSet/Release (required when namespace = CANONICAL)
+  aggregateReleaseSetId      String?
+  aggregateReleaseId         String?
+  // Projection identity and/or knowledge revision (at least one required for CANONICAL)
+  knowledgeProjectionId      String?
+  knowledgeRevisionRef       String?
+
   createdAt DateTime @default(now())
 
   portraitTransitions LearnerFactTransition[]
@@ -4275,6 +4296,10 @@ model LearningFact {
   @@index([userId, startedAt])
   @@index([sessionId])
   @@index([factType, startedAt])
+  @@index([knowledgeIdentityNamespace, startedAt])
+  @@index([canonicalObjectId])
+  @@index([aggregateReleaseSetId, aggregateReleaseId])
+  @@index([knowledgeRevisionRef])
 }
 
 model LearningEvidenceDraft {
@@ -4925,12 +4950,13 @@ model ClassCumulativePortraitCurrentState {
 model StudentRiskFlag {
   id          String @id @default(cuid())
   userId      String
-  flagType    String // participation, stagnation, ai_misuse, constraint, cross_domain
+  flagType    String // current: stagnation, constraint, cross_domain; legacy audit: participation, ai_misuse
   severity    String // low, medium, high
   description String
 
   evidenceJson Json
   triggeredAt  DateTime
+  evidenceObservedAt DateTime
 
   isResolved     Boolean   @default(false)
   resolvedAt     DateTime?
@@ -4943,6 +4969,32 @@ model StudentRiskFlag {
   @@index([userId, flagType])
   @@index([userId, isResolved])
   @@index([flagType, severity])
+  @@unique([userId, flagType], map: "StudentRiskFlag_active_stagnation_user_key", where: { isResolved: false, flagType: "stagnation" })
+  @@unique([userId, flagType], map: "StudentRiskFlag_active_constraint_user_key", where: { isResolved: false, flagType: "constraint" })
+  @@unique([userId, flagType], map: "StudentRiskFlag_active_cross_domain_user_key", where: { isResolved: false, flagType: "cross_domain" })
+}
+
+model DiagnosisReport {
+  id               String   @id @default(cuid())
+  scopeType        String
+  scopeId          String
+  classId          String
+  userId           String
+  targetUserId     String?
+  reportBody       Json
+  riskSummary      Json?
+  evidenceCutoff   DateTime
+  generatorVersion String   @default("v1")
+  generatedAt      DateTime @default(now())
+
+  class  Class @relation(fields: [classId], references: [id], onDelete: Restrict)
+  creator User @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
+  target  User? @relation("DiagnosisReportTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+
+  @@index([scopeType, scopeId, generatedAt])
+  @@index([classId, generatedAt])
+  @@index([userId, generatedAt])
+  @@index([targetUserId, generatedAt])
 }
 
 // Growth records for portfolio
