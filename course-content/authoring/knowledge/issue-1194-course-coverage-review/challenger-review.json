@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "4fe2a9542cff584574ec2299",
+    "manifestBatchIndex": 4,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:classical-control-design-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 13,
+    "memberDigest": "1483d702fd4044daee524cca5c6487c72db1048bcbe87765b8e998bfcbb87bef",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "CHALLENGER",
+  "reviewer": {
+    "identity": "grok-challenger-issue-1194",
+    "provider": "grok-4.5-build",
+    "sessionId": "1fbf0c8c-84b4-4283-b5f2-0c9cc1afba9b",
+    "promptVersion": "course-coverage-challenger/1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1194-course-coverage-review/challenger-independent-stage-source.json",
+    "artifactSha256": "230abb2d57f78feccc5afac8b670eee416fa5c4a53335699481b6cbc96efdf43",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "CHALLENGER",
+    "writerSessionId": "1fbf0c8c-84b4-4283-b5f2-0c9cc1afba9b"
+  },
+  "reviewInputDigest": "a9676ed0856592b6893b61c1e03c4987398c208590a12f665bfa12490ac531b6",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-0340c4126dd6cf5ee092c557",
+      "canonicalRevision": "ca86c8ea32d2e86c1a6da2a689e6df0d6f575df7fd5c0957674637f439daa826",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b969df644b707f00c0420ec9",
+        "canonicalId:ctkg:v3e-object-0340c4126dd6cf5ee092c557"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=0「G0(s)=10/[s(s+1)]」（canonicalId=ctkg:v3e-object-0340c4126dd6cf5ee092c557, canonicalRevision=ca86c8ea32d2e86c1a6da2a689e6df0d6f575df7fd5c0957674637f439daa826, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "85154c84319d774f89288ca4a8d529fb3449f1a33ad59898164e6e92879c2048"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0f0f3ed73c4d47ee9fbba83b",
+      "canonicalRevision": "d0deef8a43785d2c6c086fc4c0b37e2cd0ad88d2af079ff09d5f8013b8fe07ee",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-90d7370b966c73fbfb798d2e",
+        "canonicalId:ctkg:v3e-object-0f0f3ed73c4d47ee9fbba83b"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=1「K G(s) = K / ((1/0.5 s + 1)(s + 1)(1/2 s + 1))」（canonicalId=ctkg:v3e-object-0f0f3ed73c4d47ee9fbba83b, canonicalRevision=d0deef8a43785d2c6c086fc4c0b37e2cd0ad88d2af079ff09d5f8013b8fe07ee, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "6faf3a40c46cc951d51f9254b35ada8b85a0b015caecd8f3f121a783971a319a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-147dc989f3aa462bb9df6780",
+      "canonicalRevision": "8366ad0139b24a14b312010aed8a101923f3e8f42161ee2315be7e867594459c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3a5da864b3f9297f71e9705b",
+        "evidence:ctkg:v3e-evidence-43363d34252ee8c829d610b3",
+        "canonicalId:ctkg:v3e-object-147dc989f3aa462bb9df6780"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=2「A single-loop feedback control system as shown in Figure 10.1(a) with G(s)=10/s^2 and H(s)=1.」（canonicalId=ctkg:v3e-object-147dc989f3aa462bb9df6780, canonicalRevision=8366ad0139b24a14b312010aed8a101923f3e8f42161ee2315be7e867594459c, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=2, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "9ebf51c7df74c41ba9cce4fecb45b864284f4240aff583d6d609ee4b98dddcf0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-313988aea27586c38b520c26",
+      "canonicalRevision": "8d94a1696bf6892bc30aadc02b773355aa121e114e2b01d71849f85931257bbd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-510b2bc6001d1c2162802f25",
+        "canonicalId:ctkg:v3e-object-313988aea27586c38b520c26"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=3「a Gc(s) G0(s)=10(1+0.456s)/[s(1+0.114s)(1+s)]」（canonicalId=ctkg:v3e-object-313988aea27586c38b520c26, canonicalRevision=8d94a1696bf6892bc30aadc02b773355aa121e114e2b01d71849f85931257bbd, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "be5515b4462b26ea72381f19d387aaea62379400d4abce9a3e41693a5cd86e06"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-64603cebe7ad39ae27863c19",
+      "canonicalRevision": "654765159823559a356b6989df155cc695dab8f477d5a4d2842566d4116d789b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5ea5871067465b45d39ff680",
+        "evidence:ctkg:v3e-evidence-a6c55dc0b7eb89e22d3a9600",
+        "evidence:ctkg:v3e-evidence-f1e7148800b063b57d0039dd",
+        "canonicalId:ctkg:v3e-object-64603cebe7ad39ae27863c19"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=4「带有PD控制器的磁盘驱动器控制系统，忽略电机磁场影响，建模为二阶系统。」（canonicalId=ctkg:v3e-object-64603cebe7ad39ae27863c19, canonicalRevision=654765159823559a356b6989df155cc695dab8f477d5a4d2842566d4116d789b, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=3, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "65b57ede9e024b9db6355e1d1c917289cc6242a704180835eee46cfc11847893"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-77f83a68b59fb8b3c385e201",
+      "canonicalRevision": "5a16ad9c2ee088bf4a0c4b5ac4dab39c1c01a63f2e4a9893a63b378b11ca6e64",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b2f9b41a7bb19048c14c672c",
+        "canonicalId:ctkg:v3e-object-77f83a68b59fb8b3c385e201"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=5「Gc(s)=(1+3.7s)/(1+41s)」（canonicalId=ctkg:v3e-object-77f83a68b59fb8b3c385e201, canonicalRevision=5a16ad9c2ee088bf4a0c4b5ac4dab39c1c01a63f2e4a9893a63b378b11ca6e64, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "afb46e1364b46be017d52fcfe43ce587293dfeaca8e27691b2ef05dead359706"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-98aaaa0e400a39cffd4f1215",
+      "canonicalRevision": "a95fdd5b2514cad0357d20941685bf720ab10218e179c6c5e9a66321f008bcc8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bd2efd6ba7dfbe2b416982e5",
+        "canonicalId:ctkg:v3e-object-98aaaa0e400a39cffd4f1215"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=6「G0(s)=Kv/[s(1/6 s+1)(1/2 s+1)]」（canonicalId=ctkg:v3e-object-98aaaa0e400a39cffd4f1215, canonicalRevision=a95fdd5b2514cad0357d20941685bf720ab10218e179c6c5e9a66321f008bcc8, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "4c7066609a7613c3f42be5da439ff05e3174941fe1be0c4bb0e395751cda2fbd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a72b6c0849fed126c6cfa4da",
+      "canonicalRevision": "d116d8c8d666e6010eaf7109cdce5353d8a769beec3b7425649232d985364b94",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-55f590a34f83384cb632efd1",
+        "canonicalId:ctkg:v3e-object-a72b6c0849fed126c6cfa4da"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=7「Gc(s)G0(s)=180(1+1.28s)/[s(1+0.167s)(1+64s)(1+0.01s)]」（canonicalId=ctkg:v3e-object-a72b6c0849fed126c6cfa4da, canonicalRevision=d116d8c8d666e6010eaf7109cdce5353d8a769beec3b7425649232d985364b94, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "91c8b92f013d412c91858e5a9c1cd3892a3cccbb3cc83a0f2a9a389747ba0436"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a8faaa2a0cc93288cdd92b43",
+      "canonicalRevision": "c9231620d0cfde5c53cec0f40ae068222a4eb932a1ee3b920a812b40deb83d64",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-af5d93e5679ab34bb993b826",
+        "canonicalId:ctkg:v3e-object-a8faaa2a0cc93288cdd92b43"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=8「G0(s)=30/[s(1+0.1s)(1+0.2s)]」（canonicalId=ctkg:v3e-object-a8faaa2a0cc93288cdd92b43, canonicalRevision=c9231620d0cfde5c53cec0f40ae068222a4eb932a1ee3b920a812b40deb83d64, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "0d9a652fdbe7ba89e4f4ac4eeaa4278a280a73d2407cff0f385f2d121c1de372"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b82ef9d91e8e489ea0326005",
+      "canonicalRevision": "78e6a3a1a64b3516f6a2471907afa004b3fc1b9234ddc88d8304881080563884",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bd2708c9cf2f185a3e7d33df",
+        "canonicalId:ctkg:v3e-object-b82ef9d91e8e489ea0326005"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=9「Gc(s)=(1+1.28s)(1+0.5s)/[(1+64s)(1+0.01s)]」（canonicalId=ctkg:v3e-object-b82ef9d91e8e489ea0326005, canonicalRevision=78e6a3a1a64b3516f6a2471907afa004b3fc1b9234ddc88d8304881080563884, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "4c5dfa2179b75a756970f4a6027059d4bbcd4ab51a1222487d90c1562dfc8127"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d0e4ed55b4a44e0c7702dd9f",
+      "canonicalRevision": "6f26b2a485545e85242fa052162938a6f1ac0a53ed20f9d8e9de7b2884112400",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-213665353129dae01c4a614f",
+        "canonicalId:ctkg:v3e-object-d0e4ed55b4a44e0c7702dd9f"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=10「K G(s) = K * 10 / (s(s/2.5 + 1)(s/6 + 1))」（canonicalId=ctkg:v3e-object-d0e4ed55b4a44e0c7702dd9f, canonicalRevision=6f26b2a485545e85242fa052162938a6f1ac0a53ed20f9d8e9de7b2884112400, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "3262317a6e7f8935e4fc93dc1f93b3ead0ef6467ec060e89d6110722451bae05"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dd817489c6bdc3c7c1850e29",
+      "canonicalRevision": "04aa006def8a1d79bb31afa4e45f3dc0cc0c6fbc6c71fd4558d1b916a1b5105c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6d15d3cefe62b51c96e013b6",
+        "evidence:ctkg:v3e-evidence-dd48ea177f1021d5ed97b46a",
+        "canonicalId:ctkg:v3e-object-dd817489c6bdc3c7c1850e29"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=11「A unity feedback control system with loop transfer function L(s)=40/(s(s+2)).」（canonicalId=ctkg:v3e-object-dd817489c6bdc3c7c1850e29, canonicalRevision=04aa006def8a1d79bb31afa4e45f3dc0cc0c6fbc6c71fd4558d1b916a1b5105c, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=silver, upstreamEvidenceCount=2, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "912305bdb883a664ac7250fa7df0bea2cc492e83484c6c6240970642333e226c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f6b3c0a2ea7fe88d6a946f44",
+      "canonicalRevision": "1df00be28f79dd50bc815e1c7d3bb4682a670ab1e11ab86e4bdbcc0056a733e3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-01a4eda8496aaf494bfb3725",
+        "canonicalId:ctkg:v3e-object-f6b3c0a2ea7fe88d6a946f44"
+      ],
+      "rationale": "Challenger 独立审阅 ordinal=12「具有PID控制器的系统结构图，PID控制是通过对误差的比例、积分和微分线性组合，构成控制量对被控对象进行调节。」（canonicalId=ctkg:v3e-object-f6b3c0a2ea7fe88d6a946f44, canonicalRevision=1df00be28f79dd50bc815e1c7d3bb4682a670ab1e11ab86e4bdbcc0056a733e3, entityType=SystemModel）。冻结 worklist 证据仅 boundary/kind ∈ {(aggregate,aggregate-evidence),(profile,canonical-profile)}，sourcePath 全部为 aggregate-projection；profileOnly=True, highRisk=True, sourceCoverage.releaseTier=gold, upstreamEvidenceCount=1, moduleMembership=['ctr:release:classical-control-design-engineering-v0.1'], priorDecisionRefs 为空（count=0）。按 current-course-coverage-review：仅 lesson authoring 与 syllabus blueprint/main 计为 independent-course；canonical-profile/aggregate-evidence 与 silver/gold releaseTier 不得替代课程证据。仓库 course-content/authoring/lessons/**、runtime/lessons/** 与 syllabus-refactor 中未检索到该 canonicalId 的独立课程绑定。因此 stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT；CourseCoverage 角色未解析，权威保持 unresolved，须阻断全局 Coverage gate。不得 INCLUDE/EXCLUDE，不得继承历史角色/结论。",
+      "decisionDigest": "6cbf961780d4a4d5fe4588695d2a1dd0e6000be23eec7dcbeec02ff9fd2620da"
+    }
+  ],
+  "documentDigest": "7e854e469f927b3d9383bdc7d06b4de80535141d1005258838a744cc2b9a3fdf"
+}
