@@ -24,6 +24,7 @@ function runNode(script, options = {}) {
 function main() {
   const dockerfile = read('Dockerfile');
   const dockerignore = read('.dockerignore');
+  const mathCalcRequirements = read('scripts/math-calc/requirements.txt');
   const wasmBuildScript = read('scripts/wasm/build-control-engine.mjs');
   const appPrismaClientFactory = read('src/lib/prisma-client.ts');
   const scriptPrismaClientFactory = read('scripts/lib/prisma-client.mjs');
@@ -133,13 +134,18 @@ function main() {
   );
   assert.match(
     dockerfile,
-    /"sympy==1\.13\.3"/,
-    'Dockerfile 必须固定安装 SymPy 1.13.3',
+    /COPY scripts\/math-calc\/requirements\.txt \/tmp\/math-calc-requirements\.txt[\s\S]*pip install[\s\S]*-r \/tmp\/math-calc-requirements\.txt/,
+    'Dockerfile 必须从 math-calc requirements 安装固定依赖',
   );
   assert.match(
-    dockerfile,
-    /"antlr4-python3-runtime==4\.11\.1"/,
-    'Dockerfile 必须固定安装 antlr4-python3-runtime 4.11.1',
+    mathCalcRequirements,
+    /^sympy==1\.13\.3$/m,
+    'math-calc requirements 必须固定 SymPy 1.13.3',
+  );
+  assert.match(
+    mathCalcRequirements,
+    /^antlr4-python3-runtime==4\.11\.1$/m,
+    'math-calc requirements 必须固定 antlr4-python3-runtime 4.11.1',
   );
 
   assert.match(

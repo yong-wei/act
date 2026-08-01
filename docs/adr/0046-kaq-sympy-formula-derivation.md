@@ -26,14 +26,14 @@ KAQ 的 formula-derivation 此前完全依赖 LLM 文本生成推导，多项式
 3. Python 脚本接收 stdin JSON 输入，输出 stdout JSON 结果；失败时通过退出码和 JSON error 字段传递错误信息。
 4. 同一执行逻辑封装在 `src/lib/math-calc.ts`，API 路由与 KAQ `calculate` 工具共用，避免 HTTP 回环和逻辑漂移。
 5. KAQ 运行时的 `KONLING_TOOL_REGISTRY` 与 generic-chat mode 的 `permittedTools` 注册 `calculate`（permission tier 为 analyze），LLM 在 formula-derivation 意图下可主动调用。
-6. 安全与资源边界：API 强制登录；表达式长度与字符白名单校验；SymPy 解析使用无内建函数的受限命名空间；Python 进程内设置 CPU 时间限制；API 侧限制并发子进程数量（4 并发 + 8 排队，超限返回 429）；子进程 10 秒超时。
+6. 安全与资源边界：API 强制登录；共享执行器在启动子进程前完成表达式长度与字符白名单校验；明确 LaTeX 标记只调用 `parse_latex(strict=True)`，纯 SymPy 表达式只调用无内建函数的受限 `parse_expr`，两种格式之间禁止回退；Python 进程内设置 CPU 时间限制；API 与 KAQ 共用 4 并发 + 8 排队限制，超限分别投影为 API 429 与受治理工具错误；子进程 10 秒超时。
 7. 推导结果包含步骤序列（每步含 `step`、`description`、`operation`、`input`、`output` 五个字段及 LaTeX 表达式），前端通过 `react-katex` 渲染。
 
 ## 后果
 
 - 推导 API 在每个请求上 fork 子进程，延迟约 200–500ms，不适合高频调用。可通过结果缓存（Redis/内存）缓解。
-- 生产镜像在 base stage 安装 `sympy==1.13.3` 与 `antlr4-python3-runtime==4.11.1`，runner 阶段执行真实 `calc.py` SymPy/LaTeX 烟测并检查步骤字段；`scripts/math-calc` 随 runner 阶段复制进镜像。
-- 子进程安全性：推导输入做长度与字符白名单校验，`parse_expr` 使用受限命名空间（`__builtins__` 置空），并设置 CPU 时间与 API 并发限制，避免恶意表达式导致的资源耗尽。
+- 生产镜像在 base stage 按 requirements 安装固定版本 `sympy==1.13.3` 与 `antlr4-python3-runtime==4.11.1`，runner 阶段执行 `py_compile`、真实 `calc.py` SymPy/LaTeX 烟测并检查步骤字段，entrypoint 启动时重复检查；`scripts/math-calc` 随 runner 阶段复制进镜像。
+- 子进程安全性：共享执行器统一执行长度与字符白名单校验，`parse_expr` 使用受限命名空间（`__builtins__` 置空），并设置 CPU 时间与 API/KAQ 并发限制，避免恶意表达式导致的资源耗尽与治理旁路。
 - 不做验证回注循环、逐步骤定位、常驻 worker，也不需要 LLM 输出 `===VERIFY===` 标记；LLM 主动调用即可。
 - 后续可分离为独立 worker（如 BullMQ）以支持队列和重试，API 路由保持不变。
 - 本决策不改变 Arena 模型选择器中的公式渲染行为（由 `arena-model-formula-rendering` spec 覆盖）。

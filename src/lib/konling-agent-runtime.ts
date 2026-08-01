@@ -141,6 +141,7 @@ import {
 } from '@/lib/data-governance/sar-projection';
 import {
   MATH_CALC_OPERATIONS,
+  MathCalculateCapacityError,
   runMathCalculate,
 } from '@/lib/math-calc';
 
@@ -175,10 +176,10 @@ export type KonlingToolName =
   | 'explain_learning_path_tradeoff'
   | 'record_path_adjustment_outcome'
   | 'propose_smart_lesson_task_change'
-  | 'calculate'
   | 'analyze_attempt'
   | 'get_student_risk_flags'
   | 'get_class_competency_summary'
+  | 'calculate'
   | 'get_student_knowledge_progress';
 
 export type KonlingMemoryType = 'working-summary' | 'session-summary' | 'episodic' | 'intervention-outcome';
@@ -3647,10 +3648,18 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     calculate: async (args: { expression: string; operation?: (typeof MATH_CALC_OPERATIONS)[number] }) =>
       runKonlingRuntimeTool(input, 'calculate', args, async () => {
         const parsed = calculateToolParameters.parse(args);
-        const result = await runMathCalculate({
-          expression: parsed.expression,
-          ...(parsed.operation ? { operation: parsed.operation } : {}),
-        });
+        let result;
+        try {
+          result = await runMathCalculate({
+            expression: parsed.expression,
+            ...(parsed.operation ? { operation: parsed.operation } : {}),
+          });
+        } catch (error) {
+          if (error instanceof MathCalculateCapacityError) {
+            throw new KonlingRuntimeScopeError(429, error.message);
+          }
+          throw error;
+        }
         if (result.status === 'error') {
           throw new KonlingRuntimeScopeError(400, result.error ?? '公式计算失败');
         }
@@ -9537,7 +9546,7 @@ function toIsoOrNull(value: unknown): string | null {
 
 export class KonlingRuntimeScopeError extends Error {
   constructor(
-    readonly status: 400 | 403 | 404 | 409,
+    readonly status: 400 | 403 | 404 | 409 | 429,
     message: string,
   ) {
     super(message);

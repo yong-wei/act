@@ -59,12 +59,46 @@ export type MathCalculateResponse = MathCalculateSuccess | MathCalculateFailure;
 
 const MATH_CALC_SCRIPT_PATH = join(process.cwd(), 'scripts', 'math-calc', 'calc.py');
 const MATH_CALC_TIMEOUT_MS = 10_000;
+const MAX_CONCURRENT_CALCULATIONS = 4;
+const MAX_QUEUED_CALCULATIONS = 8;
+
+let activeCalculations = 0;
+const releaseQueue: Array<() => void> = [];
 
 export class MathCalculateUnavailableError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'MathCalculateUnavailableError';
   }
+}
+
+export class MathCalculateCapacityError extends Error {
+  constructor() {
+    super('公式计算并发超限，请稍后重试');
+    this.name = 'MathCalculateCapacityError';
+  }
+}
+
+async function acquireCalculationSlot(): Promise<void> {
+  if (activeCalculations < MAX_CONCURRENT_CALCULATIONS) {
+    activeCalculations += 1;
+    return;
+  }
+  if (releaseQueue.length >= MAX_QUEUED_CALCULATIONS) {
+    throw new MathCalculateCapacityError();
+  }
+  await new Promise<void>((resolve) => {
+    releaseQueue.push(resolve);
+  });
+}
+
+function releaseCalculationSlot(): void {
+  const next = releaseQueue.shift();
+  if (next) {
+    next();
+    return;
+  }
+  activeCalculations = Math.max(0, activeCalculations - 1);
 }
 
 function isErrnoError(error: unknown): error is NodeJS.ErrnoException {
@@ -119,10 +153,9 @@ function parseMathCalculateResponse(stdout: string): MathCalculateResponse | nul
  * 子进程 10 秒超时；Python 或脚本缺失时抛出
  * MathCalculateUnavailableError，调用方应投影为 503。
  */
-export async function runMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {
-  const validatedInput = mathCalculateRequestSchema.parse(input);
+async function executeMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {
   const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
-  const payload = JSON.stringify(validatedInput);
+  const payload = JSON.stringify(input);
 
   return new Promise<MathCalculateResponse>((resolve, reject) => {
     const child = spawn(pythonCommand, [MATH_CALC_SCRIPT_PATH], {
@@ -194,4 +227,14 @@ export async function runMathCalculate(input: MathCalculateRequest): Promise<Mat
     child.stdin.write(payload, 'utf8');
     child.stdin.end();
   });
+}
+
+export async function runMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {
+  const parsedInput = mathCalculateRequestSchema.parse(input);
+  await acquireCalculationSlot();
+  try {
+    return await executeMathCalculate(parsedInput);
+  } finally {
+    releaseCalculationSlot();
+  }
 }

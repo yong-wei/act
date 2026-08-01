@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   runMathCalculate: vi.fn(),
+  MathCalculateCapacityError: class MathCalculateCapacityError extends Error {},
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -15,6 +16,7 @@ vi.mock('@/lib/math-calc', async () => {
   const actual = await vi.importActual<typeof import('@/lib/math-calc')>('@/lib/math-calc');
   return {
     ...actual,
+    MathCalculateCapacityError: mocks.MathCalculateCapacityError,
     runMathCalculate: mocks.runMathCalculate,
   };
 });
@@ -82,6 +84,15 @@ describe('POST /api/math/calculate', () => {
     expect(mocks.runMathCalculate).not.toHaveBeenCalled();
   });
 
+  it('rejects disallowed expression characters before invoking the executor', async () => {
+    const response = await POST(createPostRequest({
+      expression: "__import__('os').system('id')",
+    }));
+
+    expect(response.status).toBe(400);
+    expect(mocks.runMathCalculate).not.toHaveBeenCalled();
+  });
+
   it('returns SymPy calculation steps for an authenticated student', async () => {
     const response = await POST(createPostRequest({ expression: '1', operation: 'laplace' }));
     const payload = await response.json();
@@ -133,38 +144,11 @@ describe('POST /api/math/calculate', () => {
     expect((await response.json()).error).toBe('Python 运行时不可用');
   });
 
-  it('rejects requests when the calculation concurrency queue is saturated', async () => {
-    const resolvers: Array<() => void> = [];
-    mocks.runMathCalculate.mockImplementation(
-      () => new Promise((resolve) => {
-        resolvers.push(() => resolve({
-          status: 'ok' as const,
-          result: '1',
-          steps: [],
-        }));
-      })
-    );
+  it('projects shared executor capacity errors as 429', async () => {
+    mocks.runMathCalculate.mockRejectedValue(new mocks.MathCalculateCapacityError());
 
-    const first = POST(createPostRequest({ expression: '1' }));
-    await vi.waitFor(() => {
-      expect(mocks.runMathCalculate).toHaveBeenCalledTimes(1);
-    });
+    const response = await POST(createPostRequest({ expression: '1' }));
 
-    // 4 个并发已占满，队列容量 8 被填满后，后续请求直接返回 429。
-    const pending = Array.from({ length: 12 }, () => POST(createPostRequest({ expression: '1' })));
-    await vi.waitFor(() => {
-      expect(mocks.runMathCalculate).toHaveBeenCalledTimes(4);
-    });
-    const rejected = await POST(createPostRequest({ expression: '1' }));
-    expect(rejected.status).toBe(429);
-
-    // 逐批释放：每个完成请求会放行一个排队请求，直到全部清空。
-    for (let round = 0; round < 20 && resolvers.length > 0; round += 1) {
-      const batch = resolvers.splice(0);
-      for (const resolve of batch) resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    }
-    expect(resolvers.length).toBe(0);
-    await Promise.all([first, ...pending]);
+    expect(response.status).toBe(429);
   });
 });
