@@ -707,6 +707,9 @@ export async function admitLatestActkgAggregate(options: AdmissionOptions): Prom
       fail(`explicit predecessor identity drift at order ${hop.order}`);
     }
     const upstream = await loadUpstreamCrosscheck(options.db, candidate, loadRawUpstream);
+    if (!upstream.upstreamRequired) {
+      fail(`upstream Release Diff is required for admission hop ${hop.order}`);
+    }
     const computed = computeDelta({
       candidateSnapshot: candidate.snapshot,
       candidateEvidence: candidate.evidence,
@@ -717,6 +720,9 @@ export async function admitLatestActkgAggregate(options: AdmissionOptions): Prom
       upstreamParseError: upstream.upstreamParseError,
       upstreamRequired: upstream.upstreamRequired,
     });
+    if (computed.upstream.status !== 'AGREED') {
+      fail(`upstream Release Diff crosscheck did not agree at admission hop ${hop.order}: ${computed.upstream.status}`);
+    }
     const persisted = await persistDelta(options.db, computed);
     const verified = await verifyDelta(options.db, computed);
     if (verified.inputDigest !== persisted.inputDigest || verified.outputDigest !== persisted.outputDigest) {

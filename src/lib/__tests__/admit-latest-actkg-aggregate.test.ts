@@ -274,7 +274,7 @@ describe('admission selector gates', () => {
     }
   });
 
-  it('cleans up after an injected mid-chain failure without mutating the gate snapshot', async () => {
+  it('fails the first hop without an upstream Release Diff and leaves gates/output unchanged', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'actkg-admission-test-'));
     const outputRoot = path.join(root, 'final-admission');
     const first = {
@@ -385,10 +385,7 @@ describe('admission selector gates', () => {
         loadExact: async () => fakeEvidence('control-theory-engineering-v0.2', null) as never,
         loadStandard: async () => fakeEvidence(first.releaseId, first.bundleId) as never,
         loadUpstream: async () => ({ required: false, raw: null, parseError: null }),
-        loadBundle: async (options) => {
-          if (options?.lockPath === second.lockPath) throw new Error('injected second-hop failure');
-          return fakeValidated(first);
-        },
+        loadBundle: async () => fakeValidated(first),
         computeDelta: () => ({
           classification: 'SEMANTIC_CONTENT_UPDATE',
           authorizationState: 'ACCEPTED',
@@ -404,7 +401,7 @@ describe('admission selector gates', () => {
         }) as never,
         persistDelta: async () => ({ mode: 'created', receiptId: 'delta-1', classification: 'SEMANTIC_CONTENT_UPDATE', authorizationState: 'ACCEPTED', inputDigest: digest('1'), outputDigest: digest('2'), naturalKey: 'delta-1', signalCount: 0, upstreamCrosscheckStatus: 'NOT_REQUIRED', selectorsUnchanged: true }),
         verifyDelta: async (_db, computed) => ({ mode: 'verify-only', receiptId: 'delta-1', classification: computed.classification, authorizationState: computed.authorizationState, inputDigest: computed.inputDigest, outputDigest: computed.outputDigest, naturalKey: computed.naturalKey, signalCount: 0, upstreamCrosscheckStatus: 'NOT_REQUIRED', selectorsUnchanged: true }),
-      })).rejects.toThrow('injected second-hop failure');
+      })).rejects.toThrow('upstream Release Diff is required for admission hop 1');
       await expect(stat(outputRoot)).rejects.toMatchObject({ code: 'ENOENT' });
       expect(selectorCalls).toBe(1);
       expect(stable).toEqual(snapshot);
