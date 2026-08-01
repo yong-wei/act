@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "iteration": 1,
+  "protocol": "act-latest-stable-aggregate-binding/1",
+  "selectionPolicy": "LATEST_STABLE_AGGREGATE",
+  "actkgMainCommit": "cef6661dbd9131234b07949e73f3897e3c18473a",
+  "sourceCommit": "839dcc7a5295db9cc3f5833bbf5cd27c8838a569",
+  "sourceTag": "control-theory-engineering-v0.8-r2-source",
+  "packagingCommit": "683014a8f8970b41c73a6c9137b8a57edbca0ffd",
+  "stableTag": "control-theory-engineering-v0.8-r2",
+  "releaseId": "ctr:release:control-theory-engineering-v0.8",
+  "releaseVersion": "control-theory-engineering-v0.8",
+  "bundleRevision": 2,
+  "releaseHash": "caf4cf31b54675952cb65d635a29e07fa4a5729686b9875f78db3904a6497beb",
+  "sourceDatasetHash": "cbd8839ba61026696e853d514b9b82fbc892804c00e418f7ede885204fe38f9b",
+  "bundleId": "ctb:control-theory-engineering-v0.8:r2",
+  "bundleDigest": "f0bd91e73ed1ccf61cea733abe978658dc21235c9190526319d11f796d567ad7",
+  "manifestSha256": "f083d88e457185f3db31ecb63cb3f914a2f7d6d05aca1479f45e8edae9115c30",
+  "sha256sumsSha256": "478ef66630df944cdb6f6e52369d81f15a2d9614989b98fcf70b942a97128628",
+  "validationReportSha256": "d875a5c413d82842b600003e6f47d83366d55b009acb3d48dd93fc7e7bf73240",
+  "schemaVersion": "0.2.0",
+  "schemaSha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de",
+  "predecessorBundleId": "ctb:control-theory-engineering-v0.7:r2",
+  "candidateChain": [
+    "ctb:control-theory-engineering-v0.3:r2",
+    "ctb:control-theory-engineering-v0.4:r2",
+    "ctb:control-theory-engineering-v0.5:r2",
+    "ctb:control-theory-engineering-v0.6:r2",
+    "ctb:control-theory-engineering-v0.7:r2",
+    "ctb:control-theory-engineering-v0.8:r2"
+  ],
+  "candidateChainEndpoints": [
+    "ctb:control-theory-engineering-v0.8:r2"
+  ],
+  "statistics": {
+    "component_count": 8,
+    "knowledge_nodes": 3609,
+    "projection_links": 1799,
+    "projection_nodes": 3609,
+    "published_relations": 1799,
+    "rag_crosswalk_rows": 7079,
+    "relation_type_count": 9,
+    "release_entries": 5525
+  },
+  "bundlePath": "releases/control-theory-engineering-v0.8-r2",
+  "predecessorRootClosure": {
+    "path": "docs/coordination/m1j/v0.3-r1-predecessor-closure.json",
+    "artifactHash": "41745f666ae98bc7944bb9d5c5fd0045e3b06043df7e87b61d198bc4cb540138",
+    "bundleId": "ctb:control-theory-engineering-v0.3:r1",
+    "sha256sumsSha256": "f600413e68f2bcb69416b4a76ac2dabcf0838f76dc0a7a483ab1e43abbc9dc95",
+    "protocol": "actkg-legacy-predecessor-root-closure/1",
+    "algorithm": "sha256sums-legacy-exact-root/1",
+    "authorityProtocol": "ctkg-m1k-v1d-predecessor-closure/1"
+  },
+  "resolutionDigest": "e9c4f94b5bf43012ac44cb42a56cb3732b5a3715723c39013d927ddbb296d8d8",
+  "gates": {
+    "LATEST_STABLE_AGGREGATE_RESOLUTION_GATE": "PASS",
+    "LATEST_BUNDLE_INTEGRITY_GATE": "PASS",
+    "LATEST_CANDIDATE_IMPORT_GATE": "NOT_RUN",
+    "LATEST_DELTA_RECEIPT_ALIGNMENT_GATE": "NOT_RUN",
+    "LATEST_COURSE_COVERAGE_ALIGNMENT_GATE": "NOT_RUN",
+    "PRODUCTION_SELECTOR_CHANGE": 0,
+    "GRAPH_RAG_SELECTOR_CHANGE": 0,
+    "TEACHING_RELATION_GENERATION": "NOT_RUN",
+    "PROJECTION_GENERATION": "NOT_RUN",
+    "ATTESTATION_GENERATION": "NOT_RUN"
+  }
+}

@@ -1,0 +1,1 @@
+{"authority":{"incremental_replay":"gates/incremental_replay-gate.json","query":"gates/query-gate.json","rag":"gates/rag-gate.json"},"graph_rag_runtime_intake":"UNCHANGED_BLOCKED","module_release_authorization":"CANDIDATE","private_content_included":false,"protocol":"ctkg-m1k-v1d-discrete-time-control-analysis-open-ensemble-expansion-v1"}

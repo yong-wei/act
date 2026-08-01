@@ -16,3 +16,4 @@ export * from './summary';
 export * from './pipeline';
 export * from './repository';
 export * from './review-workflow';
+export * from './latest-aggregate-authority';

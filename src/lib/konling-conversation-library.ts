@@ -130,6 +130,7 @@ const KONLING_ASSISTANT_BINDING_HINT_KEYS: Record<
   'feedback-explainer': ['gradingRunId'],
   'class-summarizer': ['goalId', 'classReportId', 'modeContextToken'],
   'prep-coauthor': ['smartTaskId', 'smartTaskRevision', 'goalId', 'prepPackId', 'modeContextToken'],
+  'teacher-diagnosis': [],
 };
 
 export class KonlingConversationTurnConflictError extends Error {
