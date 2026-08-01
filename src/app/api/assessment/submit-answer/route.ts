@@ -4,6 +4,8 @@ import { submitAnswerWithPersistenceFallback } from '@/features/assessment/adapt
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+import { verifyCompanionPracticeMetadata } from '@/lib/konling-continuity-assessment';
+import type { ContinuityDb } from '@/lib/konling-learning-continuity';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +19,7 @@ interface SubmitAnswerRequest {
   routeIntent?: string | null;
   pathId?: string | null;
   nodeId?: string | null;
+  continuity?: unknown;
 }
 
 export async function POST(request: Request) {
@@ -33,6 +36,13 @@ export async function POST(request: Request) {
 
     const userId = session.user.id;
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
+    const continuity = await verifyCompanionPracticeMetadata(prisma as unknown as ContinuityDb, { userId, continuity: body.continuity });
+    if (sessionId.startsWith('konling-continuity:') && !continuity) {
+      throw new Error('Companion-practice metadata is required for the reserved session.');
+    }
+    if (continuity && sessionId !== `konling-continuity:${continuity.snapshotId}`) {
+      throw new Error('Companion-practice session does not match the continuity snapshot.');
+    }
 
     const result = await submitAnswerWithPersistenceFallback({
       userId,
@@ -40,6 +50,7 @@ export async function POST(request: Request) {
       questionId: body.questionId,
       selectedOption: body.selectedOption,
       timeSpent: body.timeSpent,
+      continuity,
       pathContext: await readVerifiedPathContext(body, userId, sessionId),
     });
 

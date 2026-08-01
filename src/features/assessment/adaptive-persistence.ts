@@ -30,12 +30,14 @@ import {
   getAbilityReportFromAnswers,
   getDiagnostic,
   getDiagnosticFromAnswers,
+  getAdaptiveQuestionSelectionById,
   selectNextQuestion,
   selectNextQuestionFromAnswers,
   submitAnswer,
   type AbilityReport,
   type AdaptiveAnswerRecord,
   type AdaptiveQuestionScope,
+  type CompanionPracticeMetadata,
   type DiagnosticResult,
   type PublicQuestion,
   type SubmitAnswerParams,
@@ -77,6 +79,7 @@ type PersistedAssessmentAnswerRow = {
 type PersistedAssessmentSessionRow = {
   id: string;
   selectedQuestionIds?: string[];
+  metadata?: unknown;
 };
 
 type AdaptiveAssessmentPersistenceTx = {
@@ -183,6 +186,34 @@ type PersistedAssessmentAnswerWithSession = PersistedAssessmentAnswerRow & {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+function assertImmutableCompanionMetadata(existing: unknown, requested: CompanionPracticeMetadata | undefined) {
+  const existingRecord = existing && typeof existing === 'object' && !Array.isArray(existing)
+    ? existing as Record<string, unknown>
+    : {};
+  if (!requested) {
+    if (existingRecord.origin === 'konling-companion-practice') {
+      throw new Error('Companion-practice metadata is required for this session.');
+    }
+    return;
+  }
+  if (Object.keys(existingRecord).length === 0) return;
+  if (JSON.stringify(existingRecord) !== JSON.stringify(requested)) {
+    throw new Error('Companion-practice session metadata is immutable.');
+  }
+}
+
+function assertSelectedCompanionQuestion(
+  session: PersistedAssessmentSessionRow,
+  questionId: string,
+  continuity: CompanionPracticeMetadata | undefined,
+) {
+  if (!continuity) return;
+  const selectedQuestionIds = Array.isArray(session.selectedQuestionIds) ? session.selectedQuestionIds : [];
+  if (selectedQuestionIds.length !== 1 || selectedQuestionIds[0] !== questionId) {
+    throw new Error('Companion-practice answer does not match the selected question.');
+  }
 }
 
 function questionSource(questionId: string): string {
@@ -687,8 +718,11 @@ async function persistAdaptiveAssessmentSubmission(
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       startedAt: answeredAt,
       lastAnsweredAt: answeredAt,
+      metadata: details.continuity ?? {},
     },
   });
+  assertImmutableCompanionMetadata(session.metadata, details.continuity);
+  assertSelectedCompanionQuestion(session, details.question.id, details.continuity);
 
   let effectiveDetails = details;
   if (details.pathContext) {
@@ -725,8 +759,10 @@ async function persistAdaptiveAssessmentSubmission(
           algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
           startedAt: answeredAt,
           lastAnsweredAt: answeredAt,
+          metadata: details.continuity ?? {},
         },
       });
+      assertImmutableCompanionMetadata(session.metadata, details.continuity);
       effectiveDetails = {
         ...details,
         record: {
@@ -1022,6 +1058,9 @@ export async function submitAnswerWithPersistenceFallback(
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<DurableSubmitAnswerResult> {
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
+    if (params.continuity) {
+      throw new Error('Companion practice requires adaptive-assessment persistence.');
+    }
     return submitAnswer(params);
   }
 
@@ -1063,7 +1102,7 @@ async function loadPersistedAnswerRecords(
 }
 
 async function loadPersistedSessionSelection(
-  params: { userId: string; sessionId: string },
+  params: { userId: string; sessionId: string; continuity?: CompanionPracticeMetadata },
   db: AdaptiveAssessmentPersistenceDb,
 ): Promise<PersistedAssessmentSessionRow> {
   const now = new Date();
@@ -1085,12 +1124,15 @@ async function loadPersistedSessionSelection(
       selectedQuestionIds: [],
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       startedAt: now,
+      metadata: params.continuity ?? {},
     },
     select: {
       id: true,
       selectedQuestionIds: true,
+      metadata: true,
     },
   });
+  assertImmutableCompanionMetadata(session.metadata, params.continuity);
 
   return {
     id: session.id,
@@ -1144,7 +1186,7 @@ export async function getDiagnosticWithPersistenceFallback(
 }
 
 export async function selectNextQuestionWithPersistenceFallback(
-  params: { userId: string; sessionId: string; goalId?: string | null; questionScope?: AdaptiveQuestionScope },
+  params: { userId: string; sessionId: string; goalId?: string | null; questionScope?: AdaptiveQuestionScope; continuity?: CompanionPracticeMetadata },
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<{
@@ -1153,6 +1195,9 @@ export async function selectNextQuestionWithPersistenceFallback(
   confidenceInterval: [number, number];
 }> {
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
+    if (params.continuity) {
+      throw new Error('Companion practice requires adaptive-assessment persistence.');
+    }
     return selectNextQuestion(params);
   }
 
@@ -1160,6 +1205,13 @@ export async function selectNextQuestionWithPersistenceFallback(
     const answers = await loadPersistedAnswerRecords(params.userId, db);
     const session = await loadPersistedSessionSelection(params, db);
     const persistedQuestionIds = session.selectedQuestionIds ?? [];
+    if (params.continuity && persistedQuestionIds.length > 0) {
+      return getAdaptiveQuestionSelectionById({
+        userId: params.userId,
+        sessionId: params.sessionId,
+        questionId: persistedQuestionIds[0],
+      }, answers);
+    }
     const askedQuestionIds = new Set([
       ...persistedQuestionIds,
       ...answers

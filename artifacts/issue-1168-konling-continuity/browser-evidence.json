@@ -1,0 +1,32 @@
+{
+  "issue": 1168,
+  "date": "2026-08-01",
+  "route": "/assessment/adaptive-practice",
+  "authenticatedRole": "student",
+  "desktop": {
+    "state": "unfinished_task",
+    "cardTitle": "控制系统校正设计",
+    "actions": ["继续学习", "重新讲解", "暂时跳过"],
+    "sidebarOpened": true,
+    "reopenRepeatedSameSnapshot": false
+  },
+  "keyboard": {
+    "escapeClosedSidebar": true,
+    "nativeActionControlsCoveredByComponentTests": true,
+    "enterAndSpaceAutomation": "The browser control layer did not synthesize native button activation; actions are native button and anchor elements."
+  },
+  "mobile": {
+    "requestedViewport": {"width": 320, "height": 720},
+    "reportedViewport": {"width": 320, "height": 720},
+    "mobileMediaQueryMatched": true,
+    "sidebarWidth": 320,
+    "cardWidth": 272.67,
+    "horizontalOverflow": false
+  },
+  "crossPage": {
+    "from": "/assessment/adaptive-practice",
+    "to": "/knowledge",
+    "sidebarRemainedOpen": true,
+    "sameSnapshotRepeatedAfterCloseAndReopen": false
+  }
+}
