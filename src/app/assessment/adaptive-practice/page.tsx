@@ -221,9 +221,17 @@ interface PathDifferenceExplanation {
       nodeCount: number;
       resourceMix: Record<string, number>;
       readiness: Record<string, number>;
+      readinessSummary: Array<{
+        nodeId: string;
+        state: string;
+        message: string;
+      }>;
       checkpointCount: number;
+      checkpointNodeIds: string[];
       lockedNodeCount: number;
+      lockedNodeIds: string[];
       terminalValidationCount: number;
+      terminalValidationNodeIds: string[];
     };
   }>;
   commonNodes: Array<PathDifferenceNode & { positions: [number, number] }>;
@@ -970,11 +978,24 @@ function readPathDifferenceExplanation(value: unknown): PathDifferenceExplanatio
             nodeCount: typeof metrics.nodeCount === 'number' ? metrics.nodeCount : 0,
             resourceMix: getNumberRecord(metrics.resourceMix),
             readiness: getNumberRecord(metrics.readiness),
+            readinessSummary: Array.isArray(metrics.readinessSummary)
+              ? metrics.readinessSummary.map((item) => {
+                  const readiness = getRecord(item);
+                  return {
+                    nodeId: typeof readiness.nodeId === 'string' ? readiness.nodeId : '',
+                    state: typeof readiness.state === 'string' ? readiness.state : '',
+                    message: typeof readiness.message === 'string' ? readiness.message : '',
+                  };
+                }).filter((item) => item.nodeId && item.state)
+              : [],
             checkpointCount: typeof metrics.checkpointCount === 'number' ? metrics.checkpointCount : 0,
+            checkpointNodeIds: getStringArray(metrics.checkpointNodeIds),
             lockedNodeCount: typeof metrics.lockedNodeCount === 'number' ? metrics.lockedNodeCount : 0,
+            lockedNodeIds: getStringArray(metrics.lockedNodeIds),
             terminalValidationCount: typeof metrics.terminalValidationCount === 'number'
               ? metrics.terminalValidationCount
               : 0,
+            terminalValidationNodeIds: getStringArray(metrics.terminalValidationNodeIds),
           },
         };
       }).filter((option) => option.optionId && option.styleId && option.label)
@@ -1154,6 +1175,13 @@ function formatReadinessState(state: string): string {
 function PathDifferenceExplanationPanel({ explanation }: { explanation: PathDifferenceExplanation }) {
   const [left, right] = explanation.options;
   if (!left || !right) return null;
+  const nodeLabels = new Map<string, string>([
+    ...explanation.commonNodes.map((node) => [node.nodeId, node.title] as const),
+    ...explanation.optionOnlyNodes.flatMap((group) => group.nodes.map((node) => [node.nodeId, node.title] as const)),
+  ]);
+  const formatNodeIdentities = (nodeIds: string[]) => nodeIds
+    .map((nodeId) => nodeLabels.get(nodeId) ?? nodeId)
+    .join('、');
   return (
     <section
       className="min-w-0 space-y-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-3 text-xs leading-5 text-foreground"
@@ -1181,6 +1209,9 @@ function PathDifferenceExplanationPanel({ explanation }: { explanation: PathDiff
                 .filter(([, count]) => count > 0)
                 .map(([state, count]) => `${formatReadinessState(state)} ${count}`)
                 .join('、');
+              const readinessDetails = option.metrics.readinessSummary
+                .map((item) => `${nodeLabels.get(item.nodeId) ?? item.nodeId}：${formatReadinessState(item.state)}${item.message ? `（${item.message}）` : ''}`)
+                .join('；');
               return (
                 <div key={option.optionId} className="min-w-0 rounded-md border border-border bg-background/70 p-2">
                   <p className="break-words font-medium">{option.label}</p>
@@ -1194,6 +1225,16 @@ function PathDifferenceExplanationPanel({ explanation }: { explanation: PathDiff
                   </p>
                   <p className="mt-1 break-words text-subtle">资源：{resourceMix || '未提供'}</p>
                   <p className="mt-1 break-words text-subtle">准备度：{readiness || '未提供'}</p>
+                  <p className="mt-1 break-words text-subtle">准备度明细：{readinessDetails || '未提供'}</p>
+                  <p className="mt-1 break-words text-subtle">
+                    检查点：{formatNodeIdentities(option.metrics.checkpointNodeIds) || '无'}
+                  </p>
+                  <p className="mt-1 break-words text-subtle">
+                    锁定节点：{formatNodeIdentities(option.metrics.lockedNodeIds) || '无'}
+                  </p>
+                  <p className="mt-1 break-words text-subtle">
+                    终点验证：{formatNodeIdentities(option.metrics.terminalValidationNodeIds) || '无'}
+                  </p>
                 </div>
               );
             })}
@@ -1877,6 +1918,8 @@ export default function AdaptivePracticePage() {
     activePathRound?.id ?? activePathPlan?.id ?? 'no-path',
     ...pathOptions.map((option) => `${option.optionId}:${option.nodeIds?.join(',') ?? ''}`),
   ].join('|'), [activePathPlan?.id, activePathRound?.id, pathOptions]);
+  const pathOptionVersionKeyRef = useRef(pathOptionVersionKey);
+  pathOptionVersionKeyRef.current = pathOptionVersionKey;
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathComparisonDiversityLimited = useMemo(
     () => hasPathComparisonDiversityLimitation(pathOptionFallback),
@@ -2618,6 +2661,9 @@ export default function AdaptivePracticePage() {
     const generationRequestId = operation === 'generate'
       ? requestedGenerationRequestId ?? crypto.randomUUID()
       : undefined;
+    const explanationRequestVersionKey = operation === 'explain'
+      ? pathOptionVersionKeyRef.current
+      : null;
     if (generationRequestId) {
       setPathGenerationRequestStatus('pending');
       publishPathGenerationStatus('pending', generationRequestId, '已接收路径生成请求，正在准备生成。');
@@ -2765,6 +2811,15 @@ export default function AdaptivePracticePage() {
       const differenceExplanation = operation === 'explain'
         ? readPathDifferenceExplanation(payload.result?.comparison)
         : null;
+      if (
+        operation === 'explain'
+        && (
+          explanationRequestVersionKey !== pathOptionVersionKeyRef.current
+          || (differenceExplanation && differenceExplanation.pathId !== currentPathId)
+        )
+      ) {
+        return;
+      }
       setPathChoiceMessage(
         operation === 'explain'
           ? rationale ?? '已生成路径差异说明。'

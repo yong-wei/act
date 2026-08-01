@@ -4715,9 +4715,17 @@ interface AdaptivePathDifferenceExplanation {
       nodeCount: number;
       resourceMix: Record<string, number>;
       readiness: Record<string, number>;
+      readinessSummary: Array<{
+        nodeId: string;
+        state: string;
+        message: string;
+      }>;
       checkpointCount: number;
+      checkpointNodeIds: string[];
       lockedNodeCount: number;
+      lockedNodeIds: string[];
       terminalValidationCount: number;
+      terminalValidationNodeIds: string[];
     };
   }>;
   commonNodes: Array<AdaptivePathStoredNodeSummary & { positions: [number, number] }>;
@@ -4926,9 +4934,13 @@ function buildAdaptivePathDifferenceMetrics(option: AdaptivePathStoredOption) {
     nodeCount: option.nodeIds.length,
     resourceMix: option.resourceMix,
     readiness,
+    readinessSummary: option.readinessSummary,
     checkpointCount: option.checkpointNodeIds.length,
+    checkpointNodeIds: option.checkpointNodeIds,
     lockedNodeCount: option.lockedNodeIds.length,
+    lockedNodeIds: option.lockedNodeIds,
     terminalValidationCount: option.terminalValidationNodeIds.length,
+    terminalValidationNodeIds: option.terminalValidationNodeIds,
   };
 }
 
@@ -4943,12 +4955,36 @@ function areAdaptivePathDifferenceMetricsEqual(
     && left.lockedNodeCount === right.lockedNodeCount
     && left.terminalValidationCount === right.terminalValidationCount
     && areNumberRecordsEqual(left.resourceMix, right.resourceMix)
-    && areNumberRecordsEqual(left.readiness, right.readiness);
+    && areNumberRecordsEqual(left.readiness, right.readiness)
+    && areReadinessSummariesEqual(left.readinessSummary, right.readinessSummary)
+    && areStringSetsEqual(left.checkpointNodeIds, right.checkpointNodeIds)
+    && areStringSetsEqual(left.lockedNodeIds, right.lockedNodeIds)
+    && areStringSetsEqual(left.terminalValidationNodeIds, right.terminalValidationNodeIds);
 }
 
 function areNumberRecordsEqual(left: Record<string, number>, right: Record<string, number>) {
   const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
   return [...keys].every((key) => (left[key] ?? 0) === (right[key] ?? 0));
+}
+
+function areReadinessSummariesEqual(
+  left: AdaptivePathStoredOption['readinessSummary'],
+  right: AdaptivePathStoredOption['readinessSummary'],
+) {
+  if (left.length !== right.length) return false;
+  const normalized = (items: AdaptivePathStoredOption['readinessSummary']) => items
+    .map(({ nodeId, state, message }) => `${nodeId}\u0000${state}\u0000${message}`)
+    .sort();
+  const normalizedLeft = normalized(left);
+  const normalizedRight = normalized(right);
+  return normalizedLeft.every((value, index) => value === normalizedRight[index]);
+}
+
+function areStringSetsEqual(left: readonly string[], right: readonly string[]) {
+  if (left.length !== right.length) return false;
+  const sortedLeft = [...left].sort();
+  const sortedRight = [...right].sort();
+  return sortedLeft.every((value, index) => value === sortedRight[index]);
 }
 
 function buildAdaptivePathTradeoffs(left: AdaptivePathStoredOption, right: AdaptivePathStoredOption): string[] {

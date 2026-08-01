@@ -846,7 +846,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain("reason: 'advisor-forbidden'");
     expect(routeSource).toContain('graphNodeId: signedGraphNodeId');
     expect(routeSource).toContain('readPathOptionStyleLookup');
-    expect(routeSource).toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
+    expect(routeSource).not.toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
     expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
     expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
     expect(routeSource).toContain('requestedAt: typeof body.requestedAt');
@@ -881,7 +881,12 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('方案取舍');
     expect(pageSource).toContain('比较限制');
     expect(pageSource).toContain('const pathOptionVersionKey = useMemo');
+    expect(pageSource).toContain('const pathOptionVersionKeyRef = useRef(pathOptionVersionKey)');
+    expect(pageSource).toContain('explanationRequestVersionKey !== pathOptionVersionKeyRef.current');
+    expect(pageSource).toContain('differenceExplanation.pathId !== currentPathId');
     expect(pageSource).toContain('setPathDifferenceExplanations({})');
+    expect(pageSource).toContain('准备度明细');
+    expect(pageSource).toContain('terminalValidationNodeIds: getStringArray(metrics.terminalValidationNodeIds)');
     expect(pageSource).toContain('min-w-0 space-y-3');
     expect(pageSource).toContain('break-words');
     expect(runtimeSource).toContain('buildAdaptivePathDifferenceExplanation(path.id, selectedOption, comparedOption)');

@@ -10244,6 +10244,8 @@ describe('konling agent runtime', () => {
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce(createdRun)
           .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun)
+          .mockResolvedValueOnce(null)
           .mockResolvedValueOnce(createdRun),
         create: vi.fn().mockResolvedValue(createdRun),
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
@@ -10281,6 +10283,88 @@ describe('konling agent runtime', () => {
     }) as Record<string, any>;
     expect(identicalResult.comparison.status).toBe('no-material-difference');
     expect(identicalResult.studentSafeRationale).toContain('两条路径目前没有实质差异。');
+
+    pathPayload = {
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            optionId: 'path-option-1',
+            styleId: 'guided',
+            label: '方案甲',
+            nodeIds: ['node-a', 'node-b'],
+            nodeSummaries: [
+              { nodeId: 'node-a', title: '节点甲', pathNodeType: 'knowledge_card' },
+              { nodeId: 'node-b', title: '节点乙', pathNodeType: 'checkpoint' },
+            ],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1, checkpoint: 1 },
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'ready', message: '可开始' },
+              { nodeId: 'node-b', state: 'locked', message: '待解锁' },
+            ],
+            lockedNodeIds: ['node-b'],
+            checkpointNodeIds: ['node-a'],
+            terminalValidationNodeIds: ['node-b'],
+            limitations: [],
+          },
+          {
+            optionId: 'path-option-2',
+            styleId: 'sprint',
+            label: '方案乙',
+            nodeIds: ['node-a', 'node-b'],
+            nodeSummaries: [
+              { nodeId: 'node-a', title: '节点甲', pathNodeType: 'knowledge_card' },
+              { nodeId: 'node-b', title: '节点乙', pathNodeType: 'checkpoint' },
+            ],
+            effort: { estimatedMinutes: 20 },
+            resourceMix: { knowledge_card: 1, checkpoint: 1 },
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'locked', message: '待解锁' },
+              { nodeId: 'node-b', state: 'ready', message: '可开始' },
+            ],
+            lockedNodeIds: ['node-a'],
+            checkpointNodeIds: ['node-b'],
+            terminalValidationNodeIds: ['node-a'],
+            limitations: [],
+          },
+        ],
+      },
+    };
+    const nodeIdentityResult = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-node-identities',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    }) as Record<string, any>;
+    expect(nodeIdentityResult.comparison).toMatchObject({
+      status: 'ready',
+      options: [
+        {
+          metrics: {
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'ready', message: '可开始' },
+              { nodeId: 'node-b', state: 'locked', message: '待解锁' },
+            ],
+            lockedNodeIds: ['node-b'],
+            checkpointNodeIds: ['node-a'],
+            terminalValidationNodeIds: ['node-b'],
+          },
+        },
+        {
+          metrics: {
+            readinessSummary: [
+              { nodeId: 'node-a', state: 'locked', message: '待解锁' },
+              { nodeId: 'node-b', state: 'ready', message: '可开始' },
+            ],
+            lockedNodeIds: ['node-a'],
+            checkpointNodeIds: ['node-b'],
+            terminalValidationNodeIds: ['node-a'],
+          },
+        },
+      ],
+    });
 
     pathPayload = {
       policyBundle: {

@@ -337,4 +337,49 @@ describe('path advisor tool route readiness', () => {
       styleId: 'recommended',
     }));
   });
+
+  it('allows empty-node path options to reach the runtime insufficient-data result', async () => {
+    const explainLearningPathTradeoff = vi.fn().mockResolvedValue({
+      comparison: { status: 'insufficient-data' },
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: null,
+      nodeIds: [],
+      pathPayload: {
+        pathOptions: [{
+          optionId: 'path-option-1',
+          styleId: 'recommended',
+          nodeIds: [],
+        }],
+        executionStatus: {
+          completedNodeIds: [],
+        },
+      },
+      lastExecutionMetadata: {},
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff,
+      generateLearningPath: vi.fn(),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-1',
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      result: {
+        comparison: { status: 'insufficient-data' },
+      },
+    });
+    expect(explainLearningPathTradeoff).toHaveBeenCalledWith(expect.objectContaining({
+      pathId: 'path-1',
+      selectedStyleId: 'recommended',
+      styleId: 'recommended',
+    }));
+  });
 });

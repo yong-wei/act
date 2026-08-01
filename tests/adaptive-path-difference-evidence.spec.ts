@@ -12,6 +12,7 @@ const manifestPath = path.join(evidenceDir, 'manifest.json');
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/app/assessment/adaptive-practice/layout.tsx',
+  'src/app/api/adaptive/path-advisor-tool/route.ts',
   'src/features/adaptive/path-advisor-entrypoint-bridge.tsx',
   'src/lib/konling-agent-runtime.ts',
   'tests/adaptive-path-difference-evidence.spec.ts',
@@ -184,8 +185,48 @@ function comparison(status: 'ready' | 'no-material-difference' | 'insufficient-d
     status,
     pathId,
     options: [
-      { optionId: 'path-option-1', styleId: 'foundation', label: '基础补救路径', metrics: { estimatedMinutes: 40, nodeCount: 2, resourceMix: { knowledge_card: 2 }, readiness: { ready: 2 }, checkpointCount: 0, lockedNodeCount: 0, terminalValidationCount: 0 } },
-      { optionId: 'path-option-2', styleId: 'simulation', label: '仿真验证路径', metrics: { estimatedMinutes: 40, nodeCount: 2, resourceMix: { knowledge_card: 2 }, readiness: { ready: 2 }, checkpointCount: 0, lockedNodeCount: 0, terminalValidationCount: 0 } },
+      {
+        optionId: 'path-option-1',
+        styleId: 'foundation',
+        label: '基础补救路径',
+        metrics: {
+          estimatedMinutes: 40,
+          nodeCount: 2,
+          resourceMix: { knowledge_card: 2 },
+          readiness: { ready: 2 },
+          readinessSummary: [
+            { nodeId: 'node-a', state: 'ready', message: '可以开始学习' },
+            { nodeId: 'node-b', state: 'ready', message: '可以开始学习' },
+          ],
+          checkpointCount: 1,
+          checkpointNodeIds: ['node-b'],
+          lockedNodeCount: 0,
+          lockedNodeIds: [],
+          terminalValidationCount: 0,
+          terminalValidationNodeIds: [],
+        },
+      },
+      {
+        optionId: 'path-option-2',
+        styleId: 'simulation',
+        label: '仿真验证路径',
+        metrics: {
+          estimatedMinutes: 40,
+          nodeCount: 2,
+          resourceMix: { knowledge_card: 2 },
+          readiness: { ready: 1, locked: 1 },
+          readinessSummary: [
+            { nodeId: 'node-a', state: 'ready', message: '可以开始学习' },
+            { nodeId: 'node-c', state: 'locked', message: '完成共同节点后解锁' },
+          ],
+          checkpointCount: 0,
+          checkpointNodeIds: [],
+          lockedNodeCount: 1,
+          lockedNodeIds: ['node-c'],
+          terminalValidationCount: 1,
+          terminalValidationNodeIds: ['node-c'],
+        },
+      },
     ],
     commonNodes: [{ nodeId: 'node-a', title: '共同节点', resourceType: 'knowledge_card', positions: [0, 0] }],
     optionOnlyNodes: [
@@ -251,6 +292,8 @@ for (const viewport of [
     await login(context);
     let revised = false;
     let explainCalls = 0;
+    let staleExplanationStarted = false;
+    const staleExplanation = { release: null as (() => void) | null };
     let pathAdvisorContextCalls = 0;
     let pathRoundCalls = 0;
     const toolRequests: Array<{
@@ -287,7 +330,14 @@ for (const viewport of [
       };
       toolRequests.push(request);
       if (request.operation === 'explain') {
-        const status = (['ready', 'no-material-difference', 'insufficient-data'] as const)[explainCalls++];
+        const callIndex = explainCalls++;
+        if (callIndex === 3) {
+          staleExplanationStarted = true;
+          await new Promise<void>((resolve) => {
+            staleExplanation.release = resolve;
+          });
+        }
+        const status = (['ready', 'no-material-difference', 'insufficient-data'] as const)[Math.min(callIndex, 2)] ?? 'ready';
         await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ result: { comparison: comparison(status), studentSafeRationale: ['已生成路径差异说明。'] } }) });
         return;
       }
@@ -322,11 +372,24 @@ for (const viewport of [
     await explain.click();
     await expect(differenceExplanation).toContainText('缺少完整节点信息');
 
-    await optionCard.getByRole('button', { name: /调整/ }).click();
-    await expect(page.locator('[data-learning-path-option="path-option-1"]:visible')).toContainText('基础巩固路径');
+    await explain.click();
+    await expect.poll(() => staleExplanationStarted).toBe(true);
+    revised = true;
+    const pathRoundCallsBeforeCandidateChange = pathRoundCalls;
+    await page.evaluate(() => {
+      window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated'));
+    });
+    await expect.poll(() => pathRoundCalls).toBeGreaterThan(pathRoundCallsBeforeCandidateChange);
+    const revisedOptionCard = page.locator('[data-learning-path-option="path-option-1"]:visible');
+    await expect(revisedOptionCard).toContainText('基础巩固路径');
     await expect(differenceExplanations).toHaveCount(0);
-    expect(toolRequests.some((request) => request.operation === 'revise')).toBe(true);
-    assertions.push({ viewport: viewport.name, scenario: 'ready-identical-insufficient-and-invalidation', passed: true, checks: ['ready comparison', 'no material difference', 'insufficient data', 'advisor route request contract', 'candidate group invalidates stale explanation', 'no horizontal overflow'] });
+    staleExplanation.release?.();
+    await expect(revisedOptionCard.getByRole('button', { name: /解释.*差异/ })).toBeEnabled();
+    await expect(differenceExplanations).toHaveCount(0);
+
+    await revisedOptionCard.getByRole('button', { name: /调整/ }).click();
+    await expect.poll(() => toolRequests.some((request) => request.operation === 'revise')).toBe(true);
+    assertions.push({ viewport: viewport.name, scenario: 'ready-identical-insufficient-and-invalidation', passed: true, checks: ['ready comparison', 'no material difference', 'insufficient data', 'advisor route request contract', 'candidate group invalidates stale explanation', 'in-flight stale response discarded', 'no horizontal overflow'] });
   });
 }
 

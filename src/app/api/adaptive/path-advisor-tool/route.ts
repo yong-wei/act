@@ -495,7 +495,6 @@ async function readPathOptionStyleLookup(pathId: string, goalId: string, userId:
   const lookup = new Map<string, string>();
   paths
     .map((item, index) => ({ option: readRecord(item), index }))
-    .filter(({ option }) => readStringArray(option.nodeIds).length > 0)
     .forEach(({ option, index }) => {
       const styleId = readString(option.styleId);
       if (!styleId) return;
