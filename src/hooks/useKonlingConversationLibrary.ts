@@ -22,6 +22,12 @@ export interface KonlingConversationSummary {
 export interface KonlingConversation extends KonlingConversationSummary {
   userId: string;
   messages: Message[];
+  assistantBinding: KonlingConversationAssistantBinding | null;
+}
+
+export interface KonlingConversationAssistantBinding {
+  teachingAssistantModeId: string;
+  modeClientContextHints: Record<string, unknown>;
 }
 
 interface UseKonlingConversationLibraryOptions {
@@ -32,6 +38,39 @@ interface UseKonlingConversationLibraryOptions {
   classId?: string;
   resourceId?: string;
   pathNodeId?: string;
+  assistantBinding?: KonlingConversationAssistantBinding | null;
+}
+
+const ASSISTANT_BINDING_STORAGE_PREFIX = 'konling:conversation-assistant-binding:';
+
+export function readKonlingConversationAssistantBinding(
+  conversationId: string,
+): KonlingConversationAssistantBinding | null {
+  if (typeof window === 'undefined') return null;
+  const serialized = window.sessionStorage.getItem(`${ASSISTANT_BINDING_STORAGE_PREFIX}${conversationId}`);
+  if (!serialized) return null;
+  try {
+    const binding = JSON.parse(serialized) as Partial<KonlingConversationAssistantBinding>;
+    if (
+      typeof binding.teachingAssistantModeId !== 'string'
+      || !binding.modeClientContextHints
+      || typeof binding.modeClientContextHints !== 'object'
+      || Array.isArray(binding.modeClientContextHints)
+    ) return null;
+    return binding as KonlingConversationAssistantBinding;
+  } catch {
+    return null;
+  }
+}
+
+export function writeKonlingConversationAssistantBinding(
+  conversationId: string,
+  binding: KonlingConversationAssistantBinding | null,
+): void {
+  if (typeof window === 'undefined') return;
+  const key = `${ASSISTANT_BINDING_STORAGE_PREFIX}${conversationId}`;
+  if (binding) window.sessionStorage.setItem(key, JSON.stringify(binding));
+  else window.sessionStorage.removeItem(key);
 }
 
 async function readJson<T>(response: Response): Promise<T> {
@@ -61,10 +100,12 @@ export function useKonlingConversationLibrary({
   classId,
   resourceId,
   pathNodeId,
+  assistantBinding = null,
 }: UseKonlingConversationLibraryOptions) {
   const [conversations, setConversations] = useState<KonlingConversationSummary[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeConversation, setActiveConversation] = useState<KonlingConversation | null>(null);
+  const [activeAssistantBinding, setActiveAssistantBinding] = useState<KonlingConversationAssistantBinding | null>(null);
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
@@ -108,8 +149,10 @@ export function useKonlingConversationLibrary({
   useEffect(() => {
     if (!enabled || !activeConversationId) {
       setActiveConversation(null);
+      setActiveAssistantBinding(null);
       return;
     }
+    setActiveAssistantBinding(null);
     const requestId = activeRequestRef.current + 1;
     activeRequestRef.current = requestId;
     setIsLoading(true);
@@ -118,6 +161,7 @@ export function useKonlingConversationLibrary({
       .then((conversation) => {
         if (activeRequestRef.current !== requestId) return;
         setActiveConversation(conversation);
+        setActiveAssistantBinding(conversation.assistantBinding);
         setError(null);
       })
       .catch((cause) => {
@@ -145,6 +189,7 @@ export function useKonlingConversationLibrary({
         return null;
       }
       setActiveConversation(conversation);
+      setActiveAssistantBinding(conversation.assistantBinding);
       setError(null);
       return conversation;
     } catch (cause) {
@@ -157,7 +202,9 @@ export function useKonlingConversationLibrary({
     }
   }, [enabled]);
 
-  const createConversation = useCallback(async () => {
+  const createConversation = useCallback(async (
+    binding: KonlingConversationAssistantBinding | null = assistantBinding,
+  ) => {
     if (!courseId || !pageId) {
       throw new Error('当前页面缺少可用的控灵会话上下文');
     }
@@ -176,9 +223,11 @@ export function useKonlingConversationLibrary({
         }),
       });
       const conversation = await readJson<KonlingConversation>(response);
+      writeKonlingConversationAssistantBinding(conversation.id, binding);
       setActiveConversationId(conversation.id);
       selectedConversationIdRef.current = conversation.id;
       setActiveConversation(conversation);
+      setActiveAssistantBinding(conversation.assistantBinding ?? binding);
       setSearch('');
       await refreshConversations();
       setError(null);
@@ -190,12 +239,13 @@ export function useKonlingConversationLibrary({
     } finally {
       setIsMutating(false);
     }
-  }, [classId, courseId, pageContext, pageId, pathNodeId, refreshConversations, resourceId]);
+  }, [assistantBinding, classId, courseId, pageContext, pageId, pathNodeId, refreshConversations, resourceId]);
 
   const selectConversation = useCallback((conversationId: string) => {
     activeRequestRef.current += 1;
     selectedConversationIdRef.current = conversationId;
     setActiveConversation(null);
+    setActiveAssistantBinding(null);
     setActiveConversationId(conversationId);
   }, []);
 
@@ -281,6 +331,7 @@ export function useKonlingConversationLibrary({
         throw new Error('控灵会话已切换，请重新发送。');
       }
       setActiveConversation(conversation);
+      setActiveAssistantBinding(conversation.assistantBinding);
       return conversation;
     }
     return createConversation();
@@ -290,6 +341,7 @@ export function useKonlingConversationLibrary({
     conversations,
     activeConversationId,
     activeConversation,
+    activeAssistantBinding,
     search,
     setSearch,
     isLoading,

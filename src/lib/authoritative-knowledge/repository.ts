@@ -1,14 +1,22 @@
 import { prisma } from '@/lib/prisma';
 
 import {
+  ACCEPTED_CANDIDATE_STATE,
   CURRENT_AGGREGATE_RELEASE_SET_ID,
   CTKG_0_2_SCHEMA_VERSION,
+  STANDARD_PUBLIC_BUNDLE_PROTOCOL,
   isAggregateReleaseProtocol,
+  isExactAggregateReleaseProtocol,
+  isStandardPublicBundleProtocol,
   type AuthoritySelector,
+  type AuthoritativeBundleArtifactRecord,
+  type AuthoritativeBundleReceiptRecord,
   type AuthoritativeEvidenceRecord,
   type AuthoritativeImportReceiptRecord,
   type AuthoritativeKnowledgeSnapshot,
   type AuthoritativeObjectRecord,
+  type AuthoritativeProjectionIdentityRecord,
+  type AuthoritativeProjectionLinkMetadataRecord,
   type AuthoritativeProjectionLinkRecord,
   type AuthoritativeProjectionNodeRecord,
   type AuthoritativeRelationRecord,
@@ -32,6 +40,7 @@ import {
 
 interface Delegate {
   findUnique(args: unknown): Promise<unknown>;
+  findFirst?(args: unknown): Promise<unknown>;
   findMany(args: unknown): Promise<unknown[]>;
 }
 
@@ -50,6 +59,10 @@ export interface AuthoritativeKnowledgeTransaction {
   actkgProjectionNode: Delegate;
   actkgProjectionLink: Delegate;
   actkgUpstreamRagReference: Delegate;
+  actkgBundleReceipt: Delegate;
+  actkgBundleArtifact: Delegate;
+  actkgProjectionIdentity: Delegate;
+  actkgProjectionLinkMetadata: Delegate;
   courseCoverageOverlayVersion: Delegate;
   courseCoverageOverlayEntry: Delegate;
   courseCoverageImportReceipt: Delegate;
@@ -64,6 +77,26 @@ export interface AuthoritativeKnowledgeDatabase {
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const GIT_COMMIT = /^[a-f0-9]{40}$/u;
+/** Reserved public package files that must appear on every accepted standard packaging receipt. */
+const RESERVED_PUBLIC_BUNDLE_PATHS = ['bundle-manifest.json', 'SHA256SUMS'] as const;
+/**
+ * Order for "latest accepted packaging evidence" of one Release.
+ *
+ * Primary key is `importedAt desc`: the importer stamps a **strictly monotonic**
+ * acceptance timestamp per releaseId under the release advisory lock
+ * (`max(now, previousAccepted+1ms)`), so equal-ms wall-clock collisions do not
+ * erase real acceptance order. Never rank by `bundleRevision` alone — re-packaging
+ * may reset revision under a new bundleId (A@10 then B@2).
+ *
+ * `id desc` is only a deterministic fallback for pre-fix rows or other equal
+ * `importedAt` values; it is **not** proof of acceptance order.
+ */
+export const LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY: Array<
+  { importedAt: 'desc' } | { id: 'desc' }
+> = [
+  { importedAt: 'desc' },
+  { id: 'desc' },
+];
 
 function byOrdinalAndId<T extends { ordinal: number }>(
   rows: T[],
@@ -105,9 +138,442 @@ function compareNullable(
   }
 }
 
+function diagnoseExactAggregateSnapshot(
+  snapshot: AuthoritativeKnowledgeSnapshot,
+  diagnostics: RepositoryDiagnostic[],
+): void {
+  const { release, receipt } = snapshot;
+  compareNullable(diagnostics, {
+    code: 'release-identity-mismatch',
+    field: 'release.schemaVersion',
+    expected: CTKG_0_2_SCHEMA_VERSION,
+    actual: release.schemaVersion ?? null,
+  });
+  for (const [field, value] of [
+    ['release.projectionDigest', release.projectionDigest],
+    ['release.sourceDatasetHash', release.sourceDatasetHash],
+  ] as const) {
+    if (typeof value !== 'string' || !SHA256.test(value)) {
+      diagnostics.push({
+        code: 'hash-invalid',
+        field,
+        expected: '64 lowercase hexadecimal characters',
+        actual: value ?? null,
+      });
+    }
+  }
+  for (const [field, value] of [
+    ['release.upstreamPublicationCommit', release.upstreamPublicationCommit],
+    ['release.upstreamClosedCommit', release.upstreamClosedCommit],
+  ] as const) {
+    if (typeof value !== 'string' || !GIT_COMMIT.test(value)) {
+      diagnostics.push({
+        code: 'capture-revision-invalid',
+        field,
+        expected: '40 lowercase hexadecimal characters',
+        actual: value ?? null,
+      });
+    }
+  }
+  if (!receipt) return;
+  compare(diagnostics, {
+    code: 'candidate-state-mismatch',
+    field: 'receipt.candidateState',
+    expected: 'CANDIDATE',
+    actual: receipt.candidateState,
+  });
+  for (const [field, expected, actual] of [
+    ['receipt.schemaVersion', release.schemaVersion, receipt.schemaVersion],
+    ['receipt.upstreamReleaseId', release.upstreamReleaseId, receipt.upstreamReleaseId],
+    ['receipt.projectionId', release.projectionId, receipt.projectionId],
+    ['receipt.projectionDigest', release.projectionDigest, receipt.projectionDigest],
+    ['receipt.sourceDatasetHash', release.sourceDatasetHash, receipt.sourceDatasetHash],
+    ['receipt.upstreamPublicationCommit', release.upstreamPublicationCommit, receipt.upstreamPublicationCommit],
+    ['receipt.upstreamClosedCommit', release.upstreamClosedCommit, receipt.upstreamClosedCommit],
+  ] as const) {
+    compareNullable(diagnostics, {
+      code: 'receipt-identity-mismatch',
+      field,
+      expected: expected ?? null,
+      actual: actual ?? null,
+    });
+  }
+  const aggregateCounts = {
+    releaseEntryCount: snapshot.releaseEntries?.length ?? 0,
+    projectionNodeCount: snapshot.projectionNodes?.length ?? 0,
+    projectionLinkCount: snapshot.projectionLinks?.length ?? 0,
+    upstreamRagReferenceCount: snapshot.upstreamRagReferences?.length ?? 0,
+    artifactCount: snapshot.releaseArtifacts?.length ?? 0,
+    componentCount: snapshot.releaseComponents?.length ?? 0,
+  } as const;
+  for (const [field, actual] of Object.entries(aggregateCounts)) {
+    const expected = receipt[field as keyof typeof aggregateCounts];
+    if (typeof expected === 'number') {
+      compare(diagnostics, {
+        code: 'receipt-count-mismatch',
+        field: `receipt.${field}`,
+        expected,
+        actual,
+      });
+    } else {
+      diagnostics.push({
+        code: 'receipt-count-mismatch',
+        field: `receipt.${field}`,
+        expected: 'present',
+        actual: null,
+      });
+    }
+  }
+  // #1125 exact path must not require later Manifest-only Bundle fields.
+  if (snapshot.bundleReceipt) {
+    diagnostics.push({
+      code: 'mixed-candidate-snapshot',
+      field: 'bundleReceipt',
+      expected: 'absent for exact #1125 candidate',
+      actual: snapshot.bundleReceipt.bundleDigest,
+    });
+  }
+}
+
+function diagnoseStandardBundleSnapshot(
+  snapshot: AuthoritativeKnowledgeSnapshot,
+  diagnostics: RepositoryDiagnostic[],
+): void {
+  const { release, receipt, bundleReceipt } = snapshot;
+  for (const [field, value] of [
+    ['release.projectionDigest', release.projectionDigest],
+    ['release.sourceDatasetHash', release.sourceDatasetHash],
+    ['release.schemaRawHash', release.schemaRawHash],
+  ] as const) {
+    if (typeof value !== 'string' || !SHA256.test(value)) {
+      diagnostics.push({
+        code: 'hash-invalid',
+        field,
+        expected: '64 lowercase hexadecimal characters',
+        actual: value ?? null,
+      });
+    }
+  }
+  if (typeof release.schemaVersion !== 'string' || release.schemaVersion.length === 0) {
+    diagnostics.push({
+      code: 'release-identity-mismatch',
+      field: 'release.schemaVersion',
+      expected: 'persisted Schema version',
+      actual: release.schemaVersion ?? null,
+    });
+  }
+  if (!bundleReceipt) {
+    diagnostics.push({
+      code: 'bundle-receipt-missing',
+      field: 'bundleReceipt',
+      expected: ACCEPTED_CANDIDATE_STATE,
+      actual: null,
+    });
+    return;
+  }
+  if (bundleReceipt.candidateState !== ACCEPTED_CANDIDATE_STATE) {
+    diagnostics.push({
+      code: 'candidate-state-mismatch',
+      field: 'bundleReceipt.candidateState',
+      expected: ACCEPTED_CANDIDATE_STATE,
+      actual: bundleReceipt.candidateState,
+    });
+    return;
+  }
+  compare(diagnostics, {
+    code: 'bundle-identity-mismatch',
+    field: 'bundleReceipt.releaseSetId',
+    expected: snapshot.releaseSet.id,
+    actual: bundleReceipt.releaseSetId,
+  });
+  compare(diagnostics, {
+    code: 'bundle-identity-mismatch',
+    field: 'bundleReceipt.releaseId',
+    expected: release.id,
+    actual: bundleReceipt.releaseId,
+  });
+  compare(diagnostics, {
+    code: 'bundle-identity-mismatch',
+    field: 'bundleReceipt.releaseHash',
+    expected: release.releaseHash,
+    actual: bundleReceipt.releaseHash,
+  });
+  compare(diagnostics, {
+    code: 'bundle-identity-mismatch',
+    field: 'bundleReceipt.sourceDatasetHash',
+    expected: release.sourceDatasetHash ?? '(missing)',
+    actual: bundleReceipt.sourceDatasetHash,
+  });
+  compare(diagnostics, {
+    code: 'bundle-identity-mismatch',
+    field: 'bundleReceipt.runtimeProjectionId',
+    expected: release.projectionId ?? '(missing)',
+    actual: bundleReceipt.runtimeProjectionId,
+  });
+  compare(diagnostics, {
+    code: 'bundle-identity-mismatch',
+    field: 'bundleReceipt.runtimeProjectionDigest',
+    expected: release.projectionDigest ?? '(missing)',
+    actual: bundleReceipt.runtimeProjectionDigest,
+  });
+  // Packaging revisions may carry a later Git capture and lock hash on the
+  // accepted Bundle receipt. Semantic ActkgRelease keeps the first-import
+  // values, so compare receipt packaging identity only against its own contract
+  // (format/integrity), not against the immutable Release snapshot.
+  if (!GIT_COMMIT.test(bundleReceipt.captureRevision)) {
+    diagnostics.push({
+      code: 'capture-revision-invalid',
+      field: 'bundleReceipt.captureRevision',
+      expected: '40 lowercase hexadecimal characters',
+      actual: bundleReceipt.captureRevision,
+    });
+  }
+  if (!SHA256.test(bundleReceipt.lockRawSha256)) {
+    diagnostics.push({
+      code: 'hash-invalid',
+      field: 'bundleReceipt.lockRawSha256',
+      expected: '64 lowercase hexadecimal characters',
+      actual: bundleReceipt.lockRawSha256,
+    });
+  }
+  compare(diagnostics, {
+    code: 'bundle-identity-mismatch',
+    field: 'bundleReceipt.schemaRawSha256',
+    expected: release.schemaRawHash,
+    actual: bundleReceipt.schemaRawSha256,
+  });
+  compare(diagnostics, {
+    code: 'bundle-identity-mismatch',
+    field: 'bundleReceipt.bundleContractVersion',
+    expected: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+    actual: bundleReceipt.bundleContractVersion,
+  });
+  compare(diagnostics, {
+    code: 'receipt-count-mismatch',
+    field: 'bundleReceipt.artifactCount',
+    expected: bundleReceipt.artifactCount,
+    actual: snapshot.bundleArtifacts?.length ?? 0,
+  });
+
+  // Persisted Artifact contract identities for the latest accepted packaging.
+  // Complete public packages always include reserved Manifest + SHA256SUMS bytes.
+  for (const relativePath of RESERVED_PUBLIC_BUNDLE_PATHS) {
+    const reserved = (snapshot.bundleArtifacts ?? []).find((row) => row.relativePath === relativePath);
+    if (!reserved) {
+      diagnostics.push({
+        code: 'bundle-identity-mismatch',
+        field: `bundleArtifacts.${relativePath}`,
+        expected: 'present',
+        actual: null,
+      });
+      continue;
+    }
+    if (!reserved.role || !reserved.contractVersion || !SHA256.test(reserved.sha256)) {
+      diagnostics.push({
+        code: 'bundle-identity-mismatch',
+        field: `bundleArtifacts.${relativePath}.contract`,
+        expected: 'role+contractVersion+sha256',
+        actual: `${reserved.role ?? 'null'}/${reserved.contractVersion ?? 'null'}/${reserved.sha256}`,
+      });
+    }
+  }
+  const manifestArtifact = (snapshot.bundleArtifacts ?? []).find(
+    (row) => row.relativePath === 'bundle-manifest.json',
+  );
+  if (manifestArtifact) {
+    compare(diagnostics, {
+      code: 'bundle-identity-mismatch',
+      field: 'bundleArtifacts.bundle-manifest.json.sha256',
+      expected: bundleReceipt.manifestRawSha256,
+      actual: manifestArtifact.sha256,
+    });
+  }
+
+  const requiredRoles = new Map<string, {
+    role: string;
+    sha256: string;
+    contractVersion: string;
+    required: boolean;
+  }>();
+  for (const artifact of snapshot.bundleArtifacts ?? []) {
+    if (!artifact.role || !artifact.contractVersion || !SHA256.test(artifact.sha256)) {
+      diagnostics.push({
+        code: 'bundle-identity-mismatch',
+        field: `bundleArtifacts.${artifact.relativePath}.contract`,
+        expected: 'role+contractVersion+sha256',
+        actual: `${artifact.role ?? 'null'}/${artifact.contractVersion ?? 'null'}/${artifact.sha256}`,
+      });
+      continue;
+    }
+    if (artifact.required) {
+      requiredRoles.set(artifact.role, {
+        role: artifact.role,
+        sha256: artifact.sha256,
+        contractVersion: artifact.contractVersion,
+        required: artifact.required,
+      });
+    }
+  }
+  for (const role of ['release', 'projection', 'ctkg_schema', 'rag_crosswalk'] as const) {
+    // projection role may appear multiple times (runtime/domain/review); require at least one.
+    if (role === 'projection') {
+      const hasProjection = (snapshot.bundleArtifacts ?? []).some((row) => row.role === 'projection');
+      if (!hasProjection) {
+        diagnostics.push({
+          code: 'bundle-identity-mismatch',
+          field: 'bundleArtifacts.projection',
+          expected: 'present',
+          actual: null,
+        });
+      }
+      continue;
+    }
+    if (!requiredRoles.has(role) && !(snapshot.bundleArtifacts ?? []).some((row) => row.role === role)) {
+      diagnostics.push({
+        code: 'bundle-identity-mismatch',
+        field: `bundleArtifacts.${role}`,
+        expected: 'present',
+        actual: null,
+      });
+    }
+  }
+
+  const runtimeArtifact = (snapshot.bundleArtifacts ?? []).find((row) => (
+    row.role === 'projection'
+    && (
+      row.profile === 'runtime'
+      || (typeof row.profile === 'string' && row.profile.toLowerCase().includes('runtime'))
+      || row.relativePath.includes('.act-projection.')
+    )
+  ));
+  if (runtimeArtifact) {
+    compare(diagnostics, {
+      code: 'projection-identity-mismatch',
+      field: 'bundleArtifacts.runtime.sha256',
+      expected: (
+        (snapshot.projectionIdentities ?? []).find((row) => row.isRuntime)?.artifactSha256
+        ?? runtimeArtifact.sha256
+      ),
+      actual: runtimeArtifact.sha256,
+    });
+  }
+
+  const runtimeIdentity = (snapshot.projectionIdentities ?? []).find((row) => row.isRuntime);
+  if (!runtimeIdentity) {
+    diagnostics.push({
+      code: 'projection-identity-mismatch',
+      field: 'projectionIdentities.runtime',
+      expected: 'present',
+      actual: null,
+    });
+  } else {
+    compare(diagnostics, {
+      code: 'projection-identity-mismatch',
+      field: 'projectionIdentities.runtime.projectionId',
+      expected: bundleReceipt.runtimeProjectionId,
+      actual: runtimeIdentity.projectionId,
+    });
+    compare(diagnostics, {
+      code: 'projection-identity-mismatch',
+      field: 'projectionIdentities.runtime.projectionProfile',
+      expected: bundleReceipt.runtimeProjectionProfile,
+      actual: runtimeIdentity.projectionProfile,
+    });
+    compare(diagnostics, {
+      code: 'projection-identity-mismatch',
+      field: 'projectionIdentities.runtime.versionDigest',
+      expected: bundleReceipt.runtimeProjectionDigest,
+      actual: runtimeIdentity.versionDigest,
+    });
+    compare(diagnostics, {
+      code: 'projection-identity-mismatch',
+      field: 'projectionIdentities.runtime.sourceReleaseHash',
+      expected: release.releaseHash,
+      actual: runtimeIdentity.sourceReleaseHash,
+    });
+    compare(diagnostics, {
+      code: 'projection-identity-mismatch',
+      field: 'projectionIdentities.runtime.sourceDatasetHash',
+      expected: release.sourceDatasetHash ?? '(missing)',
+      actual: runtimeIdentity.sourceDatasetHash,
+    });
+    compare(diagnostics, {
+      code: 'receipt-count-mismatch',
+      field: 'projectionIdentities.runtime.nodeCount',
+      expected: runtimeIdentity.nodeCount,
+      actual: snapshot.projectionNodes?.length ?? 0,
+    });
+    compare(diagnostics, {
+      code: 'receipt-count-mismatch',
+      field: 'projectionIdentities.runtime.linkCount',
+      expected: runtimeIdentity.linkCount,
+      actual: snapshot.projectionLinks?.length ?? 0,
+    });
+  }
+
+  if (!receipt) {
+    diagnostics.push({
+      code: 'receipt-missing',
+      field: 'receipt',
+      expected: ACCEPTED_CANDIDATE_STATE,
+      actual: null,
+    });
+    return;
+  }
+  compare(diagnostics, {
+    code: 'candidate-state-mismatch',
+    field: 'receipt.candidateState',
+    expected: ACCEPTED_CANDIDATE_STATE,
+    actual: receipt.candidateState,
+  });
+  // Semantic import receipt is written once per Release. Packaging Artifact
+  // counts live only on ActkgBundleReceipt.artifactCount.
+  for (const [field, expected, actual] of [
+    ['receipt.schemaVersion', release.schemaVersion, receipt.schemaVersion],
+    ['receipt.projectionId', release.projectionId, receipt.projectionId],
+    ['receipt.projectionDigest', release.projectionDigest, receipt.projectionDigest],
+    ['receipt.sourceDatasetHash', release.sourceDatasetHash, receipt.sourceDatasetHash],
+    ['receipt.bundleContractVersion', STANDARD_PUBLIC_BUNDLE_PROTOCOL, receipt.bundleContractVersion],
+  ] as const) {
+    compareNullable(diagnostics, {
+      code: 'receipt-identity-mismatch',
+      field,
+      expected: expected ?? null,
+      actual: actual ?? null,
+    });
+  }
+  const semanticCounts = {
+    releaseEntryCount: snapshot.releaseEntries?.length ?? 0,
+    projectionNodeCount: snapshot.projectionNodes?.length ?? 0,
+    projectionLinkCount: snapshot.projectionLinks?.length ?? 0,
+    upstreamRagReferenceCount: snapshot.upstreamRagReferences?.length ?? 0,
+    componentCount: snapshot.releaseComponents?.length ?? 0,
+  } as const;
+  for (const [field, actual] of Object.entries(semanticCounts)) {
+    const expected = receipt[field as keyof typeof semanticCounts];
+    if (typeof expected === 'number') {
+      compare(diagnostics, {
+        code: 'receipt-count-mismatch',
+        field: `receipt.${field}`,
+        expected,
+        actual,
+      });
+    } else {
+      diagnostics.push({
+        code: 'receipt-count-mismatch',
+        field: `receipt.${field}`,
+        expected: 'present',
+        actual: null,
+      });
+    }
+  }
+}
+
 function diagnoseSnapshot(snapshot: AuthoritativeKnowledgeSnapshot): RepositoryDiagnostic[] {
   const diagnostics: RepositoryDiagnostic[] = [];
   const { releaseSet, release, receipt } = snapshot;
+  const exact = isExactAggregateReleaseProtocol(release.protocol);
+  const standard = isStandardPublicBundleProtocol(release.protocol);
   const aggregate = isAggregateReleaseProtocol(release.protocol);
 
   compare(diagnostics, {
@@ -148,142 +614,72 @@ function diagnoseSnapshot(snapshot: AuthoritativeKnowledgeSnapshot): RepositoryD
     }
   }
 
-  if (aggregate) {
-    compareNullable(diagnostics, {
-      code: 'release-identity-mismatch',
-      field: 'release.schemaVersion',
-      expected: CTKG_0_2_SCHEMA_VERSION,
-      actual: release.schemaVersion ?? null,
-    });
-    for (const [field, value] of [
-      ['release.projectionDigest', release.projectionDigest],
-      ['release.sourceDatasetHash', release.sourceDatasetHash],
-    ] as const) {
-      if (typeof value !== 'string' || !SHA256.test(value)) {
-        diagnostics.push({
-          code: 'hash-invalid',
-          field,
-          expected: '64 lowercase hexadecimal characters',
-          actual: value ?? null,
-        });
-      }
-    }
-    for (const [field, value] of [
-      ['release.upstreamPublicationCommit', release.upstreamPublicationCommit],
-      ['release.upstreamClosedCommit', release.upstreamClosedCommit],
-    ] as const) {
-      if (typeof value !== 'string' || !GIT_COMMIT.test(value)) {
-        diagnostics.push({
-          code: 'capture-revision-invalid',
-          field,
-          expected: '40 lowercase hexadecimal characters',
-          actual: value ?? null,
-        });
-      }
-    }
-  }
-
-  if (!receipt) {
+  if (!receipt && !standard) {
     diagnostics.push({
       code: 'receipt-missing',
       field: 'receipt',
       expected: 'present',
       actual: null,
     });
+    if (exact) diagnoseExactAggregateSnapshot(snapshot, diagnostics);
     return diagnostics;
   }
 
-  compare(diagnostics, {
-    code: 'receipt-identity-mismatch',
-    field: 'receipt.releaseSetId',
-    expected: releaseSet.id,
-    actual: receipt.releaseSetId,
-  });
-  compare(diagnostics, {
-    code: 'receipt-identity-mismatch',
-    field: 'receipt.releaseId',
-    expected: release.id,
-    actual: receipt.releaseId,
-  });
-  compare(diagnostics, {
-    code: 'candidate-state-mismatch',
-    field: 'receipt.candidateState',
-    expected: 'CANDIDATE',
-    actual: receipt.candidateState,
-  });
-  compare(diagnostics, {
-    code: 'capture-revision-mismatch',
-    field: 'receipt.captureRevision',
-    expected: release.captureRevision,
-    actual: receipt.captureRevision,
-  });
-  compare(diagnostics, {
-    code: 'lock-hash-mismatch',
-    field: 'receipt.lockRawHash',
-    expected: release.lockRawHash,
-    actual: receipt.lockRawHash,
-  });
-
-  const actualCounts = {
-    objectCount: snapshot.objects.length,
-    sourceMappingCount: snapshot.sourceMappings.length,
-    goldRelationCount: snapshot.relations.filter((row) => row.qualityTier === 'GOLD').length,
-    silverRelationCount: snapshot.relations.filter((row) => row.qualityTier === 'SILVER').length,
-    sourceObjectCount: snapshot.sourceObjects.length,
-    evidenceSegmentCount: snapshot.evidence.length,
-  };
-  for (const [field, actual] of Object.entries(actualCounts)) {
+  if (receipt) {
     compare(diagnostics, {
-      code: 'receipt-count-mismatch',
-      field: `receipt.${field}`,
-      expected: receipt[field as keyof typeof actualCounts],
-      actual,
+      code: 'receipt-identity-mismatch',
+      field: 'receipt.releaseSetId',
+      expected: releaseSet.id,
+      actual: receipt.releaseSetId,
     });
-  }
+    compare(diagnostics, {
+      code: 'receipt-identity-mismatch',
+      field: 'receipt.releaseId',
+      expected: release.id,
+      actual: receipt.releaseId,
+    });
+    compare(diagnostics, {
+      code: 'capture-revision-mismatch',
+      field: 'receipt.captureRevision',
+      expected: release.captureRevision,
+      actual: receipt.captureRevision,
+    });
+    compare(diagnostics, {
+      code: 'lock-hash-mismatch',
+      field: 'receipt.lockRawHash',
+      expected: release.lockRawHash,
+      actual: receipt.lockRawHash,
+    });
 
-  if (aggregate) {
-    for (const [field, expected, actual] of [
-      ['receipt.schemaVersion', release.schemaVersion, receipt.schemaVersion],
-      ['receipt.upstreamReleaseId', release.upstreamReleaseId, receipt.upstreamReleaseId],
-      ['receipt.projectionId', release.projectionId, receipt.projectionId],
-      ['receipt.projectionDigest', release.projectionDigest, receipt.projectionDigest],
-      ['receipt.sourceDatasetHash', release.sourceDatasetHash, receipt.sourceDatasetHash],
-      ['receipt.upstreamPublicationCommit', release.upstreamPublicationCommit, receipt.upstreamPublicationCommit],
-      ['receipt.upstreamClosedCommit', release.upstreamClosedCommit, receipt.upstreamClosedCommit],
-    ] as const) {
-      compareNullable(diagnostics, {
-        code: 'receipt-identity-mismatch',
-        field,
-        expected: expected ?? null,
-        actual: actual ?? null,
+    const actualCounts = {
+      objectCount: snapshot.objects.length,
+      sourceMappingCount: snapshot.sourceMappings.length,
+      goldRelationCount: snapshot.relations.filter((row) => row.qualityTier === 'GOLD').length,
+      silverRelationCount: snapshot.relations.filter((row) => row.qualityTier === 'SILVER').length,
+      sourceObjectCount: snapshot.sourceObjects.length,
+      evidenceSegmentCount: snapshot.evidence.length,
+    };
+    for (const [field, actual] of Object.entries(actualCounts)) {
+      compare(diagnostics, {
+        code: 'receipt-count-mismatch',
+        field: `receipt.${field}`,
+        expected: receipt[field as keyof typeof actualCounts],
+        actual,
       });
     }
-    const aggregateCounts = {
-      releaseEntryCount: snapshot.releaseEntries?.length ?? 0,
-      projectionNodeCount: snapshot.projectionNodes?.length ?? 0,
-      projectionLinkCount: snapshot.projectionLinks?.length ?? 0,
-      upstreamRagReferenceCount: snapshot.upstreamRagReferences?.length ?? 0,
-      artifactCount: snapshot.releaseArtifacts?.length ?? 0,
-      componentCount: snapshot.releaseComponents?.length ?? 0,
-    } as const;
-    for (const [field, actual] of Object.entries(aggregateCounts)) {
-      const expected = receipt[field as keyof typeof aggregateCounts];
-      if (typeof expected === 'number') {
-        compare(diagnostics, {
-          code: 'receipt-count-mismatch',
-          field: `receipt.${field}`,
-          expected,
-          actual,
-        });
-      } else {
-        diagnostics.push({
-          code: 'receipt-count-mismatch',
-          field: `receipt.${field}`,
-          expected: 'present',
-          actual: null,
-        });
-      }
-    }
+  }
+
+  if (exact) {
+    diagnoseExactAggregateSnapshot(snapshot, diagnostics);
+  } else if (standard) {
+    diagnoseStandardBundleSnapshot(snapshot, diagnostics);
+  } else if (aggregate) {
+    diagnostics.push({
+      code: 'release-identity-mismatch',
+      field: 'release.protocol',
+      expected: 'exact or standard aggregate protocol',
+      actual: release.protocol,
+    });
   }
   return diagnostics;
 }
@@ -331,8 +727,9 @@ export class AuthoritativeKnowledgeRepository {
       const historical = releaseSet.id !== CURRENT_AGGREGATE_RELEASE_SET_ID;
 
       if (isAggregateReleaseProtocol(release.protocol)) {
-        // Aggregate branch: read only CTKG 0.2 public release/projection rows.
-        // Historical CTKG 0.1 tables are never queried for this release.
+        // Aggregate branch: exact #1125 or standard public Bundle. Historical
+        // CTKG 0.1 tables are never queried for these releases.
+        const standard = isStandardPublicBundleProtocol(release.protocol);
         const [
           receipt,
           releaseArtifacts,
@@ -341,6 +738,9 @@ export class AuthoritativeKnowledgeRepository {
           projectionNodes,
           projectionLinks,
           upstreamRagReferences,
+          bundleReceipt,
+          projectionIdentities,
+          linkMetadata,
         ] = await Promise.all([
           transaction.actkgImportReceipt.findUnique({ where: { releaseId: selector.releaseId } }),
           transaction.actkgReleaseArtifact.findMany({
@@ -352,6 +752,11 @@ export class AuthoritativeKnowledgeRepository {
               mediaType: true,
               sha256: true,
               byteLength: true,
+              role: true,
+              profile: true,
+              contractVersion: true,
+              required: true,
+              recordCount: true,
             },
             orderBy: [{ ordinal: 'asc' }, { relativePath: 'asc' }],
           }),
@@ -375,7 +780,52 @@ export class AuthoritativeKnowledgeRepository {
             where: { releaseId: selector.releaseId },
             orderBy: [{ ordinal: 'asc' }, { publishedEntityId: 'asc' }],
           }),
+          standard && transaction.actkgBundleReceipt.findFirst
+            ? transaction.actkgBundleReceipt.findFirst({
+                where: {
+                  releaseId: selector.releaseId,
+                  releaseSetId: selector.releaseSetId,
+                  candidateState: ACCEPTED_CANDIDATE_STATE,
+                },
+                // Acceptance time (+ id) is the packaging-evidence order. Do not
+                // rank by bundleRevision: distinct bundleIds may reset revision.
+                orderBy: LATEST_ACCEPTED_BUNDLE_RECEIPT_ORDER_BY,
+              })
+            : Promise.resolve(null),
+          standard
+            ? transaction.actkgProjectionIdentity.findMany({
+                where: { releaseId: selector.releaseId },
+                orderBy: [{ ordinal: 'asc' }, { projectionId: 'asc' }],
+              })
+            : Promise.resolve([]),
+          standard
+            ? transaction.actkgProjectionLinkMetadata.findMany({
+                where: { releaseId: selector.releaseId },
+                orderBy: [{ ordinal: 'asc' }, { relationId: 'asc' }],
+              })
+            : Promise.resolve([]),
         ]);
+
+        const typedBundleReceipt = bundleReceipt as AuthoritativeBundleReceiptRecord | null;
+        const bundleArtifacts = typedBundleReceipt
+          ? await transaction.actkgBundleArtifact.findMany({
+              where: { bundleReceiptId: typedBundleReceipt.id },
+              select: {
+                bundleReceiptId: true,
+                relativePath: true,
+                ordinal: true,
+                mediaType: true,
+                sha256: true,
+                byteLength: true,
+                role: true,
+                profile: true,
+                contractVersion: true,
+                required: true,
+                recordCount: true,
+              },
+              orderBy: [{ ordinal: 'asc' }, { relativePath: 'asc' }],
+            })
+          : [];
 
         const snapshot: AuthoritativeKnowledgeSnapshot = {
           authorityState: 'candidate',
@@ -413,6 +863,23 @@ export class AuthoritativeKnowledgeRepository {
             upstreamRagReferences as AuthoritativeUpstreamRagReferenceRecord[],
             (row) => `${row.publishedEntityId}${row.retrievalChunkId}${row.citationTargetId}`,
           ),
+          ...(standard
+            ? {
+                bundleReceipt: typedBundleReceipt,
+                bundleArtifacts: byOrdinalAndId(
+                  bundleArtifacts as AuthoritativeBundleArtifactRecord[],
+                  (row) => row.relativePath,
+                ),
+                projectionIdentities: byOrdinalAndId(
+                  projectionIdentities as AuthoritativeProjectionIdentityRecord[],
+                  (row) => row.projectionId,
+                ),
+                linkMetadata: byOrdinalAndId(
+                  linkMetadata as AuthoritativeProjectionLinkMetadataRecord[],
+                  (row) => row.relationId,
+                ),
+              }
+            : {}),
         };
         const diagnostics = diagnoseSnapshot(snapshot);
         return diagnostics.length === 0

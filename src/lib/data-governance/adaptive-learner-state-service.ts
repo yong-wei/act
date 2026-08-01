@@ -5,6 +5,11 @@ import {
   type CompetencyDimension,
   type CompetencyVector, // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative compatibility type.
 } from './competency-model';
+import {
+  projectCoexistingLearningFactIdentities,
+  projectLearningFactServingIdentity,
+  type LearningFactServingIdentity,
+} from '@/lib/canonical-learning-fact-identity';
 import { getArenaEvaluationProtocolVersion } from '@/features/arena/evaluation/protocol';
 import {
   readStudentEvidenceFeatures,
@@ -672,6 +677,41 @@ export function resolveAdaptiveGoalSliceDefinition(goal: string | null | undefin
     return null;
   }
   return ADAPTIVE_GOAL_SLICE_REGISTRY[normalizedGoal as AdaptiveLearnerStateGoalId];
+}
+
+/**
+ * Project LearningFact knowledge identities for multi-era learner-state /
+ * audit serving. Each fact keeps its own namespace and revision; historical
+ * facts are never reinterpreted through the current Canonical graph (#1116).
+ */
+export function projectLearnerStateFactIdentities(
+  facts: ReadonlyArray<{
+    id: string;
+    knowledgeIdentityNamespace?: string | null;
+    canonicalObjectId?: string | null;
+    aggregateReleaseSetId?: string | null;
+    aggregateReleaseId?: string | null;
+    knowledgeProjectionId?: string | null;
+    knowledgeRevisionRef?: string | null;
+    contextJson?: unknown;
+  }>,
+): LearningFactServingIdentity[] {
+  return projectCoexistingLearningFactIdentities(facts);
+}
+
+export function projectLearnerStateFactIdentity(
+  fact: {
+    id: string;
+    knowledgeIdentityNamespace?: string | null;
+    canonicalObjectId?: string | null;
+    aggregateReleaseSetId?: string | null;
+    aggregateReleaseId?: string | null;
+    knowledgeProjectionId?: string | null;
+    knowledgeRevisionRef?: string | null;
+    contextJson?: unknown;
+  },
+): LearningFactServingIdentity {
+  return projectLearningFactServingIdentity(fact);
 }
 
 export function isAdaptiveLearnerStateServiceEnabled(

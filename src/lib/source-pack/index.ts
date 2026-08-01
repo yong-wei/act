@@ -85,3 +85,8 @@ export {
   adaptResourceProjectionRow,
   isProvisionalReview,
 } from './resource-projection-adapter';
+
+// NOTE: Canonical RAG shadow harness must NOT be re-exported from this barrel.
+// It pulls Node/fs-backed textbook runtime through the fixture path and would
+// contaminate client bundles (see adaptive-learning-path-planner app-client).
+// Server/tests import `@/lib/canonical-rag/server` instead.

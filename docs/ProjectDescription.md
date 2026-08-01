@@ -218,7 +218,9 @@ AI 可以解释、提示、总结和建议，但不能伪造学习事实、不�
 
 候选 Repository、三项投影（`act.canvas.v2`、`act.node-detail.v2`、`act.migration-review.v1`）、候选图谱与候选态控灵绑定同一聚合 ReleaseSet、`projectionDigest` 与 `sourceDatasetHash`，不混入旧 root-locus 行；方向或谓词与固定合同冲突时在导入或投影契约处失败关闭，不再运行时改写。旧发布身份下的 inventory、crosswalk、candidate、decision 与 binding 输出只保留为 historical/stale 审计记录，不充当当前 readiness。
 
-下游 CourseCoverage 与 ACT structural-unit crosswalk、资源教学角色、RAG/KAQ/SAR、学习路径、学习事实和最终生产权威切换仍受后续依赖门禁约束，不在本次生成或接线。
+标准 public Bundle 可经兼容校验后作为显式非生产候选导入（#1131）；导入完成后 ACT 从已往返验证的数据库快照复算 `ReleaseSetDeltaReceipt`（#1132）。当前环境首个标准候选以已接受的 #1125 v0.2 为冻结 base；仅当安装内完全没有已接受 ReleaseSet 时才标记 `BASELINE`。上游 `release-diff` 只作交叉验证，分歧时不落 accepted 信号；纯包装修订只记录 Bundle 身份、不产生语义 signals。通用失效/增量信号只描述对象/关系/Crosswalk/组件/Projection/词表身份与原因，不决定课程角色、资源角色、教学关系，也不移动 candidate/active/Legacy selector。
+
+下游 CourseCoverage 与 ACT structural-unit crosswalk、资源教学角色、RAG/KAQ/SAR、学习路径、学习事实和最终生产权威切换仍受后续依赖门禁约束，不在 Delta 计算边界内接线。
 
 ## OpenSpec 与工作树协作
 

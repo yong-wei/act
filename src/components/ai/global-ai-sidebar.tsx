@@ -101,6 +101,9 @@ export function GlobalAISidebar() {
     quickQuestions,
     clearUnread,
     pathname,
+    pendingAssistantRequest,
+    completeAssistantRequest,
+    failAssistantRequest,
   } = useGlobalAI();
 
   useEffect(() => {
@@ -109,6 +112,10 @@ export function GlobalAISidebar() {
 
   // 构建请求体
   const effectiveServerContext = smartPrepContext ?? assistantEntryPoint?.serverContext;
+  const requestedAssistantBinding = useMemo(() => assistantEntryPoint ? {
+    teachingAssistantModeId: assistantEntryPoint.mode,
+    modeClientContextHints: effectiveServerContext ?? {},
+  } : null, [assistantEntryPoint, effectiveServerContext]);
   const conversationPageId = useMemo(() => {
     const registeredRoute = resolveRegisteredAIContextFromPath(pathname);
     return registeredRoute?.courseId === pageContext?.courseId
@@ -119,6 +126,7 @@ export function GlobalAISidebar() {
     conversations,
     activeConversationId,
     activeConversation,
+    activeAssistantBinding,
     search,
     setSearch,
     isLoading: isConversationLoading,
@@ -140,6 +148,7 @@ export function GlobalAISidebar() {
     classId: effectiveServerContext?.classId,
     resourceId: effectiveServerContext?.resourceId,
     pathNodeId: effectiveServerContext?.pathNodeId,
+    assistantBinding: requestedAssistantBinding,
   });
   const agentSessionStorageKey = useMemo(() => {
     if (assistantEntryPoint?.mode !== 'prep-coauthor') return null;
@@ -250,15 +259,15 @@ export function GlobalAISidebar() {
     conversationId: activeConversationId ?? undefined,
     courseId: pageContext?.courseId,
     pageId: conversationPageId,
-    resourceId: effectiveServerContext?.resourceId,
-    pathNodeId: effectiveServerContext?.pathNodeId,
+    resourceId: activeAssistantBinding?.modeClientContextHints.resourceId,
+    pathNodeId: activeAssistantBinding?.modeClientContextHints.pathNodeId,
     tools, // 传递可用工具列表，让后端过滤
     systemPromptExtension,
-    teachingAssistantModeId: assistantEntryPoint?.mode,
+    teachingAssistantModeId: activeAssistantBinding?.teachingAssistantModeId,
     agentSessionId: agentSessionId ?? undefined,
-    modeClientContextHints: effectiveServerContext,
-    knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? effectiveServerContext,
-  }), [pageContext, userProfile, activeConversationId, conversationPageId, tools, systemPromptExtension, assistantEntryPoint, knowledgeWorkspaceHint, effectiveServerContext, agentSessionId]);
+    modeClientContextHints: activeAssistantBinding?.modeClientContextHints,
+    knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? activeAssistantBinding?.modeClientContextHints,
+  }), [pageContext, userProfile, activeConversationId, conversationPageId, tools, systemPromptExtension, activeAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
 
   const {
     messages,
@@ -282,10 +291,10 @@ export function GlobalAISidebar() {
         refreshConversations(),
         refreshActiveConversation(),
       ]).catch(() => undefined);
-      if (assistantEntryPoint?.mode === 'path-advisor') {
+      if (activeAssistantBinding?.teachingAssistantModeId === 'path-advisor') {
         window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
           detail: {
-            mode: assistantEntryPoint.mode,
+            mode: activeAssistantBinding.teachingAssistantModeId,
             courseId: pageContext?.courseId ?? null,
             pageId: pageContext?.stepId ?? null,
           },
@@ -294,6 +303,45 @@ export function GlobalAISidebar() {
     },
     onResponse: handleChatResponse,
   });
+
+  const handledAssistantRequestIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!pendingAssistantRequest || handledAssistantRequestIdRef.current === pendingAssistantRequest.id) return;
+    if (assistantEntryPoint !== pendingAssistantRequest.entryPoint) return;
+    handledAssistantRequestIdRef.current = pendingAssistantRequest.id;
+
+    void (async () => {
+      try {
+        const binding = {
+          teachingAssistantModeId: pendingAssistantRequest.entryPoint.mode,
+          modeClientContextHints: pendingAssistantRequest.entryPoint.serverContext,
+        };
+        const conversation = await createConversation(binding);
+        setMessages([]);
+        await append(
+          { role: 'user', content: pendingAssistantRequest.message },
+          {
+            ...chatBody,
+            conversationId: conversation.id,
+            teachingAssistantModeId: pendingAssistantRequest.entryPoint.mode,
+            modeClientContextHints: pendingAssistantRequest.entryPoint.serverContext,
+          },
+        );
+        completeAssistantRequest(pendingAssistantRequest.id);
+      } catch (cause) {
+        failAssistantRequest(pendingAssistantRequest.id, cause);
+      }
+    })();
+  }, [
+    append,
+    assistantEntryPoint,
+    chatBody,
+    completeAssistantRequest,
+    createConversation,
+    failAssistantRequest,
+    pendingAssistantRequest,
+    setMessages,
+  ]);
 
   useEffect(() => {
     if (!activeConversation || activeConversation.id !== activeConversationId) return;
@@ -484,7 +532,7 @@ export function GlobalAISidebar() {
 
   const handleNewConversation = useCallback(async () => {
     try {
-      await createConversation();
+      await createConversation(null);
       setMessages([]);
       setEditingConversationId(null);
       setActionStatus('已新建空白对话。');
@@ -527,7 +575,7 @@ export function GlobalAISidebar() {
     try {
       const deletedActiveConversation = await deleteConversation(conversationId);
       if (deletedActiveConversation) {
-        await createConversation();
+        await createConversation(null);
         setMessages([]);
         setLibraryOpen(false);
         setActionStatus('当前对话已删除，已进入新的空白对话。');

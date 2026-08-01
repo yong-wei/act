@@ -80,6 +80,11 @@ import {
   type TextbookV2ToolResult,
 } from '@/lib/source-pack/textbook-v2-adapter';
 import {
+  maybeRunKonlingCanonicalRagShadowDiagnostic,
+  type KonlingCanonicalRagShadowContext,
+  type KonlingCanonicalRagShadowDiagnostic,
+} from '@/lib/canonical-rag/konling-integration';
+import {
   assignKonlingCitationDisplayNumbers,
   buildKonlingCitationCanonicalKey,
   createKonlingCitationAllocator,
@@ -165,7 +170,10 @@ export type KonlingToolName =
   | 'explain_learning_path_tradeoff'
   | 'record_path_adjustment_outcome'
   | 'propose_smart_lesson_task_change'
-  | 'analyze_attempt';
+  | 'analyze_attempt'
+  | 'get_student_risk_flags'
+  | 'get_class_competency_summary'
+  | 'get_student_knowledge_progress';
 
 export type KonlingMemoryType = 'working-summary' | 'session-summary' | 'episodic' | 'intervention-outcome';
 export type KonlingInterventionFeedback =
@@ -197,7 +205,8 @@ export type KonlingTeachingAssistantModeId =
   | 'grading-assistant'
   | 'feedback-explainer'
   | 'class-summarizer'
-  | 'prep-coauthor';
+  | 'prep-coauthor'
+  | 'teacher-diagnosis';
 export type KonlingTeachingAssistantMountSurface =
   | 'generic-chat'
   | 'student-learning-overview'
@@ -206,10 +215,12 @@ export type KonlingTeachingAssistantMountSurface =
   | 'teacher-grading-workbench'
   | 'student-feedback'
   | 'teacher-class-report'
+  | 'teacher-dashboard-diagnosis'
   | 'teacher-prep-pack';
 export type KonlingTeachingAssistantContextKey =
   | 'student-path-center'
   | 'diagnosis-view'
+  | 'adaptive-attempt'
   | 'learner-state-summary'
   | 'evidence-citations'
   | 'path-execution-context'
@@ -311,6 +322,7 @@ export interface KonlingTeachingAssistantRuntimeContract {
   privacyPolicy: KonlingTeachingAssistantModeContract['privacyPolicy'];
   outputContract: KonlingTeachingAssistantModeContract['outputContract'];
   smartPreparation: KonlingSmartPreparationServerContext | null;
+  adaptiveAttempt: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext | null;
   clientHintsAccepted: string[];
   clientHintsRejected: string[];
 }
@@ -358,6 +370,7 @@ export interface KonlingSmartPreparationServerContext {
 
 export type KonlingTeachingAssistantServerModeContext = Partial<Record<KonlingTeachingAssistantContextKey, boolean>> & {
   smartPreparation?: KonlingSmartPreparationServerContext;
+  adaptiveAttempt?: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext;
 };
 
 export interface KonlingTeachingAssistantEntryPoint {
@@ -641,7 +654,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     supportedRoles: ['student', 'teacher'],
     mountingSurfaces: ['student-learning-overview'],
     requiredContext: ['diagnosis-view', 'learner-state-summary', 'evidence-citations'],
-    optionalContext: ['path-execution-context'],
+    optionalContext: ['adaptive-attempt', 'path-execution-context'],
     permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
     citationClasses: ['learner-state', 'path-execution', 'content'],
     payload: 'aggregate-and-redacted-only',
@@ -726,6 +739,24 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     payload: 'teacher-scoped-summary',
     outputStatus: 'advisory-only',
     requiredCitationOwners: ['answer', 'report-explanation'],
+  }),
+  'teacher-diagnosis': teachingAssistantMode({
+    id: 'teacher-diagnosis',
+    label: '教师学情诊断',
+    supportedRoles: ['teacher'],
+    mountingSurfaces: ['teacher-dashboard-diagnosis'],
+    requiredContext: ['evidence-citations'],
+    optionalContext: ['class-report', 'diagnosis-view', 'learner-state-summary', 'resource-node'],
+    permittedTools: [
+      'get_student_risk_flags',
+      'get_class_competency_summary',
+      'get_student_knowledge_progress',
+    ],
+    citationClasses: ['learner-state', 'path-execution', 'intervention'],
+    payload: 'teacher-scoped-summary',
+    outputStatus: 'draft-only',
+    requiredCitationOwners: ['answer', 'report-explanation'],
+    forbiddenActions: ['auto-publish-diagnosis', 'auto-apply-teaching-action'],
   }),
   'prep-coauthor': teachingAssistantMode({
     id: 'prep-coauthor',
@@ -814,7 +845,12 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const smartPreparation = mode.id === 'prep-coauthor' && input.scope.role === 'teacher'
     ? input.serverModeContext?.smartPreparation ?? null
     : null;
-  const requiredContext = smartPreparation
+  const adaptiveAttempt = mode.id === 'diagnosis-explainer'
+    ? input.serverModeContext?.adaptiveAttempt ?? null
+    : null;
+  const requiredContext = adaptiveAttempt
+    ? ['adaptive-attempt'] satisfies KonlingTeachingAssistantContextKey[]
+    : smartPreparation
     ? smartPreparation.bootstrap
       ? [
           'prep-pack',
@@ -832,7 +868,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
         'clarification-readiness',
         ] satisfies KonlingTeachingAssistantContextKey[]
     : mode.requiredContext;
-  const requiredCitationClasses = smartPreparation ? [] : mode.citationClasses;
+  const requiredCitationClasses = smartPreparation || adaptiveAttempt ? [] : mode.citationClasses;
   const missingRequiredContext = mode.id === 'generic-chat'
     ? []
     : requiredContext.flatMap((contextKey) =>
@@ -936,6 +972,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     privacyPolicy: mode.privacyPolicy,
     outputContract: mode.outputContract,
     smartPreparation,
+    adaptiveAttempt,
     clientHintsAccepted: [],
     clientHintsRejected,
   };
@@ -1489,6 +1526,8 @@ function isKonlingModeContextAvailable(
     case 'diagnosis-view':
     case 'learner-state-summary':
       return Boolean(runtimeContext.learnerState) && !runtimeContext.missingContext.includes('learner-state');
+    case 'adaptive-attempt':
+      return Boolean(serverModeContext?.adaptiveAttempt);
     case 'evidence-citations':
       return mode.citationClasses.every((citationClass) =>
         hasKonlingCitationClass(citationClass, runtimeContext.citationContext)
@@ -1791,6 +1830,13 @@ interface KonlingToolRuntimeInput {
   agentSessionId?: string | null;
   permittedTools?: string[] | null;
   scopedSimulationState?: Partial<SimulationStateStore> | null;
+  /**
+   * Optional #1112 Canonical RAG shadow context. When omitted (default), Konling
+   * production retrieval remains Legacy-only and does not require Crosswalks.
+   * When supplied, Legacy production is unchanged and a separate shadow
+   * comparison is recorded as diagnostics only.
+   */
+  canonicalRagShadow?: KonlingCanonicalRagShadowContext | null;
 }
 
 const candidateKnowledgeProjectionService = new AuthoritativeKnowledgeProjectionService();
@@ -1888,6 +1934,7 @@ export interface KonlingRuntimeDb {
   studentProfile?: {
     findFirst?: (args: any) => Promise<unknown | null>;
     findMany?: (args: any) => Promise<unknown[]>;
+    count?: (args: any) => Promise<number>;
   };
   class?: {
     findUnique?: (args: any) => Promise<unknown | null>;
@@ -1940,8 +1987,12 @@ export interface KonlingRuntimeDb {
   knowledgeNode?: {
     findMany?: (args: any) => Promise<unknown[]>;
   };
+  knowledgeProgress?: {
+    findMany?: (args: any) => Promise<unknown[]>;
+  };
   studentCompetencySnapshot?: {
     findFirst?: (args: any) => Promise<unknown | null>;
+    findMany?: (args: any) => Promise<unknown[]>;
   };
   studentProfileSummary?: {
     findUnique?: (args: any) => Promise<unknown | null>;
@@ -2022,6 +2073,307 @@ const candidateCanonicalNeighborsParameters = z.object({
   predicate: z.string().trim().min(1).max(160).optional(),
   governance: z.enum(['CORE', 'EXTENSION']).optional(),
 });
+const teacherDiagnosisStudentParameters = z.object({
+  studentId: z.string().trim().min(1).max(200).optional(),
+}).strict();
+const teacherDiagnosisClassParameters = z.object({}).strict();
+
+function safeRiskEvidenceSummary(value: unknown) {
+  const evidence = readRecord(value);
+  return {
+    ...(typeof evidence.lowProgressNodeCount === 'number'
+      ? { lowProgressNodeCount: evidence.lowProgressNodeCount }
+      : {}),
+    ...(typeof evidence.avgProgress === 'number' ? { averageProgress: evidence.avgProgress } : {}),
+    ...(typeof evidence.stuckNodeCount === 'number' ? { stuckNodeCount: evidence.stuckNodeCount } : {}),
+    ...(typeof evidence.standardDeviation === 'number' ? { standardDeviation: evidence.standardDeviation } : {}),
+    ...(typeof evidence.dimensionCount === 'number' ? { dimensionCount: evidence.dimensionCount } : {}),
+    ...(typeof evidence.evidenceCutoff === 'string' ? { evidenceCutoff: evidence.evidenceCutoff } : {}),
+  };
+}
+
+async function assertTeacherDiagnosisClassScope(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+) {
+  if (scope.role !== 'teacher' || !scope.classId) {
+    throw new KonlingRuntimeScopeError(403, '教师学情诊断工具需要已授权的班级范围。');
+  }
+  if (!db.class?.findUnique) {
+    throw new KonlingRuntimeScopeError(409, '班级授权数据暂不可用。');
+  }
+  const classRow = await db.class.findUnique({
+    where: { id: scope.classId },
+    select: { id: true, teacherId: true, isActive: true },
+  });
+  if (!classRow) throw new KonlingRuntimeScopeError(404, '班级不存在。');
+  if (getString(classRow, 'teacherId') !== scope.authenticatedUserId) {
+    throw new KonlingRuntimeScopeError(403, '无权读取该班级的学情诊断。');
+  }
+  if (getValue(classRow, 'isActive') === false) {
+    throw new KonlingRuntimeScopeError(409, '班级已停用，不能生成新的学情诊断。');
+  }
+  return scope.classId;
+}
+
+async function resolveTeacherDiagnosisStudentIds(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  requestedStudentId?: string,
+) {
+  const classId = await assertTeacherDiagnosisClassScope(db, scope);
+  if (!db.studentProfile?.findFirst || !db.studentProfile.findMany) {
+    throw new KonlingRuntimeScopeError(409, '班级成员数据暂不可用。');
+  }
+
+  const scopedStudentId = scope.targetUserId !== scope.authenticatedUserId
+    ? scope.targetUserId
+    : null;
+  if (requestedStudentId && scopedStudentId && requestedStudentId !== scopedStudentId) {
+    throw new KonlingRuntimeScopeError(403, '学生诊断会话不能切换到其他学生。');
+  }
+  const targetStudentId = requestedStudentId ?? scopedStudentId;
+  if (targetStudentId) {
+    const member = await db.studentProfile.findFirst({
+      where: { userId: targetStudentId, classId },
+      select: { userId: true },
+    });
+    if (!member) throw new KonlingRuntimeScopeError(403, '目标学生不属于当前授权班级。');
+    return {
+      studentIds: [targetStudentId],
+      totalMembers: 1,
+      truncated: false,
+    };
+  }
+
+  const members = await db.studentProfile.findMany({
+    where: { classId },
+    orderBy: { userId: 'asc' },
+    take: 501,
+    select: { userId: true },
+  });
+  const studentIds = arrayOfRecords(members)
+    .map((member) => getString(member, 'userId'))
+    .filter(Boolean);
+  const totalMembers = db.studentProfile.count
+    ? await db.studentProfile.count({ where: { classId } })
+    : studentIds.length;
+  return {
+    studentIds,
+    totalMembers,
+    truncated: totalMembers > studentIds.length,
+  };
+}
+
+async function readTeacherScopedRiskFlags(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  args: z.infer<typeof teacherDiagnosisStudentParameters>,
+) {
+  const parsed = teacherDiagnosisStudentParameters.parse(args);
+  const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
+  const { studentIds } = memberScope;
+  if (!db.studentRiskFlag?.findMany) {
+    throw new KonlingRuntimeScopeError(409, '学生风险数据暂不可用。');
+  }
+  if (studentIds.length === 0) {
+    return {
+      classId: scope.classId,
+      students: [],
+      sourceCoverage: { classMembers: memberScope.totalMembers, includedStudents: 0 },
+      confidence: 'unavailable',
+      limitations: memberScope.truncated
+        ? ['class-members-truncated-at-500']
+        : ['class-has-no-current-members'],
+      privacyClass: 'teacher-scoped',
+    };
+  }
+
+  const rows = arrayOfRecords(await db.studentRiskFlag.findMany({
+    where: {
+      userId: { in: studentIds },
+      isResolved: false,
+      flagType: { in: ['constraint', 'stagnation', 'cross_domain'] },
+    },
+    orderBy: { triggeredAt: 'desc' },
+    take: 500,
+    select: {
+      id: true,
+      userId: true,
+      flagType: true,
+      severity: true,
+      description: true,
+      evidenceJson: true,
+      triggeredAt: true,
+    },
+  }));
+  const truncated = rows.length > 500;
+  const flags = rows.slice(0, 500).map((row) => ({
+    studentId: getString(row, 'userId'),
+    type: getString(row, 'flagType'),
+    severity: getString(row, 'severity'),
+    summary: getString(row, 'description'),
+    triggeredAt: toIsoOrNull(getValue(row, 'triggeredAt')),
+    evidenceSummary: safeRiskEvidenceSummary(getValue(row, 'evidenceJson')),
+    evidenceCutoff: getString(readRecord(getValue(row, 'evidenceJson')), 'evidenceCutoff') || null,
+    evidenceRefs: getString(row, 'id') ? [`student-risk-flag:${getString(row, 'id')}`] : [],
+  }));
+  return {
+    classId: scope.classId,
+    students: studentIds,
+    flags,
+    evidenceCutoff: flags.map((flag) => flag.evidenceCutoff).filter(Boolean).sort().at(-1) ?? null,
+    evidenceRefs: flags.flatMap((flag) => flag.evidenceRefs),
+    sourceCoverage: {
+      classMembers: memberScope.totalMembers,
+      includedStudents: new Set(flags.map((flag) => flag.studentId).filter(Boolean)).size,
+    },
+    confidence: rows.length > 0 ? 'medium' : 'unavailable',
+    limitations: [
+      ...(rows.length > 0 ? [] : ['no-current-governed-risk-flags']),
+      ...(memberScope.truncated ? ['class-members-truncated-at-500'] : []),
+      ...(truncated ? ['risk-flags-truncated-at-500'] : []),
+    ],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+async function readTeacherScopedClassCompetencySummary(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+) {
+  const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope);
+  const { studentIds } = memberScope;
+  if (!db.studentCompetencySnapshot?.findMany) {
+    throw new KonlingRuntimeScopeError(409, '班级能力快照暂不可用。');
+  }
+  const rows = arrayOfRecords(await db.studentCompetencySnapshot.findMany({
+    where: { userId: { in: studentIds } },
+    orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
+    distinct: ['userId'],
+    take: Math.max(studentIds.length, 1),
+    select: {
+      id: true,
+      userId: true,
+      snapshotAt: true,
+      competencyVector: true,
+    },
+  }));
+  const latestByStudent = new Map<string, Record<string, unknown>>();
+  for (const row of rows) {
+    const studentId = getString(row, 'userId');
+    if (studentId && !latestByStudent.has(studentId)) latestByStudent.set(studentId, row);
+  }
+
+  const totals = new Map<string, { sum: number; count: number }>();
+  for (const row of latestByStudent.values()) {
+    for (const [dimension, value] of Object.entries(readRecord(row.competencyVector))) {
+      if (typeof value !== 'number' || !Number.isFinite(value)) continue;
+      const current = totals.get(dimension) ?? { sum: 0, count: 0 };
+      current.sum += value;
+      current.count += 1;
+      totals.set(dimension, current);
+    }
+  }
+  const dimensions = Object.fromEntries(
+    [...totals.entries()].sort(([left], [right]) => left.localeCompare(right)).map(
+      ([dimension, value]) => [
+        dimension,
+        {
+          mean: Math.round((value.sum / value.count) * 100) / 100,
+          evidencedMembers: value.count,
+          missingMembers: Math.max(memberScope.totalMembers - value.count, 0),
+        },
+      ],
+    ),
+  );
+  const coverage = memberScope.totalMembers === 0
+    ? 0
+    : latestByStudent.size / memberScope.totalMembers;
+  return {
+    classId: scope.classId,
+    dimensions,
+    evidenceCutoff: [...latestByStudent.values()]
+      .map((row) => toIsoOrNull(row.snapshotAt))
+      .filter(Boolean)
+      .sort()
+      .at(-1) ?? null,
+    sourceCoverage: {
+      classMembers: memberScope.totalMembers,
+      includedStudents: latestByStudent.size,
+      coverage,
+    },
+    confidence: coverage >= 0.8 && latestByStudent.size >= 5
+      ? 'high'
+      : coverage > 0
+        ? 'medium'
+        : 'unavailable',
+    evidenceRefs: [...latestByStudent.values()].flatMap((row) => (
+      getString(row, 'id') ? [`student-competency-snapshot:${getString(row, 'id')}`] : []
+    )),
+    limitations: [
+      ...(coverage === 0 ? ['no-current-competency-snapshots'] : []),
+      ...(memberScope.truncated ? ['class-members-truncated-at-500'] : []),
+    ],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+async function readTeacherScopedKnowledgeProgress(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  args: z.infer<typeof teacherDiagnosisStudentParameters>,
+) {
+  const parsed = teacherDiagnosisStudentParameters.parse(args);
+  const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
+  const { studentIds } = memberScope;
+  if (!db.knowledgeProgress?.findMany) {
+    throw new KonlingRuntimeScopeError(409, '知识点进度数据暂不可用。');
+  }
+  const rows = arrayOfRecords(await db.knowledgeProgress.findMany({
+    where: { userId: { in: studentIds } },
+    orderBy: [{ userId: 'asc' }, { lastVisited: 'desc' }],
+    take: 1_001,
+    select: {
+      id: true,
+      userId: true,
+      nodeId: true,
+      status: true,
+      progress: true,
+      timeSpent: true,
+      lastVisited: true,
+    },
+  }));
+  const truncated = rows.length > 1_000;
+  const progress = rows.slice(0, 1_000).map((row) => ({
+    studentId: getString(row, 'userId'),
+    knowledgeNodeId: getString(row, 'nodeId'),
+    status: getString(row, 'status'),
+    progress: getNumber(row, 'progress'),
+    timeSpentSeconds: getNumber(row, 'timeSpent'),
+    lastVisitedAt: toIsoOrNull(getValue(row, 'lastVisited')),
+    evidenceRefs: getString(row, 'id') ? [`knowledge-progress:${getString(row, 'id')}`] : [],
+  }));
+  return {
+    classId: scope.classId,
+    students: studentIds,
+    progress,
+    evidenceCutoff: progress.map((item) => item.lastVisitedAt).filter(Boolean).sort().at(-1) ?? null,
+    evidenceRefs: progress.flatMap((item) => item.evidenceRefs),
+    sourceCoverage: {
+      classMembers: memberScope.totalMembers,
+      includedStudents: new Set(progress.map((item) => item.studentId).filter(Boolean)).size,
+      progressRows: progress.length,
+    },
+    confidence: progress.length > 0 ? 'medium' : 'unavailable',
+    limitations: [
+      ...(progress.length > 0 ? [] : ['no-knowledge-progress-evidence']),
+      ...(memberScope.truncated ? ['class-members-truncated-at-500'] : []),
+      ...(truncated ? ['knowledge-progress-truncated-at-1000'] : []),
+    ],
+    privacyClass: 'teacher-scoped',
+  };
+}
 
 export const KONLING_TOOL_PERMISSION_TIERS: KonlingToolPermissionTier[] = ['read', 'analyze', 'run', 'write', 'publish'];
 
@@ -2054,6 +2406,9 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   record_path_adjustment_outcome: toolRegistryEntry('record_path_adjustment_outcome', 'write', 'none', 'reuse'),
   propose_smart_lesson_task_change: toolRegistryEntry('propose_smart_lesson_task_change', 'analyze'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
+  get_student_risk_flags: toolRegistryEntry('get_student_risk_flags', 'read'),
+  get_class_competency_summary: toolRegistryEntry('get_class_competency_summary', 'read'),
+  get_student_knowledge_progress: toolRegistryEntry('get_student_knowledge_progress', 'read'),
 };
 
 const KONLING_IDEMPOTENCY_KEY_PARAMETER = z.string().min(1).max(128).optional();
@@ -2695,9 +3050,20 @@ export async function buildKonlingRuntimeContext(
   const permitsTextbookRetrieval = Boolean(registeredPageContext)
     && citationMode.supportedRoles.includes(scope.role)
     && citationMode.citationClasses.includes('content');
-  const runtimePermittedTools: KonlingToolName[] = citationMode.id === 'prep-coauthor'
-    ? [...DEFAULT_TOOLS, ...(permitsTextbookRetrieval ? ['search_textbook' as const] : []), 'propose_smart_lesson_task_change']
-    : [...DEFAULT_TOOLS, ...(permitsTextbookRetrieval ? ['search_textbook' as const] : [])];
+  const modeSpecificTools: KonlingToolName[] = citationMode.id === 'prep-coauthor'
+    ? ['propose_smart_lesson_task_change']
+    : citationMode.id === 'teacher-diagnosis'
+      ? [
+          'get_student_risk_flags',
+          'get_class_competency_summary',
+          'get_student_knowledge_progress',
+        ]
+      : [];
+  const runtimePermittedTools: KonlingToolName[] = [
+    ...DEFAULT_TOOLS,
+    ...(permitsTextbookRetrieval ? ['search_textbook' as const] : []),
+    ...modeSpecificTools,
+  ];
   const preCitationRuntimeContext: KonlingRuntimeContext = {
     pageContext,
     userProfile,
@@ -2901,6 +3267,7 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       execution: { toolCallId?: string; abortSignal?: AbortSignal } = {},
     ) =>
       runKonlingRuntimeTool(input, 'search_textbook', args, async () => {
+        // Production textbook path remains Legacy workspace graph refs only.
         const progressive = await retrieveTextbookSourcePackV2Progressive({
           query: args.query,
           externalQuery: input.context.textbookRetrievalContext?.externalQuery
@@ -2925,12 +3292,38 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
             )).catch((): TextbookV2OptimizationResult => ({ status: 'failed' })),
           });
         }
+
+        // Optional #1112 shadow sidecar: compares actual production foreground
+        // identities with Canonical seed+Source Pack adjudication only. Never
+        // re-runs production retrieval and never mutates the user-facing result.
+        const canonicalRagShadowDiagnostic = maybeRunKonlingCanonicalRagShadowDiagnostic({
+          query: args.query,
+          productionForeground: result,
+          shadowContext: input.canonicalRagShadow ?? null,
+          role: sourcePackRoleForKonling(input.scope.role),
+        });
+
         return {
           ...result,
           optimizationPending: progressive.optimizationPending,
+          // Diagnostic-only; model projection / user answer ignore this field.
+          ...(canonicalRagShadowDiagnostic
+            ? { canonicalRagShadowDiagnostic }
+            : {}),
         };
       }),
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
+    getStudentRiskFlags: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
+      runKonlingRuntimeTool(input, 'get_student_risk_flags', args, async () =>
+        readTeacherScopedRiskFlags(input.db, input.scope, args)),
+    getClassCompetencySummary: async (args: z.infer<typeof teacherDiagnosisClassParameters>) =>
+      runKonlingRuntimeTool(input, 'get_class_competency_summary', args, async () => {
+        teacherDiagnosisClassParameters.parse(args);
+        return readTeacherScopedClassCompetencySummary(input.db, input.scope);
+      }),
+    getStudentKnowledgeProgress: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
+      runKonlingRuntimeTool(input, 'get_student_knowledge_progress', args, async () =>
+        readTeacherScopedKnowledgeProgress(input.db, input.scope, args)),
     getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
     searchLearningMemory: async (args: { query?: string; limit?: number } = {}) =>
       runKonlingRuntimeTool(input, 'search_learning_memory', args, async () => searchKonlingMemory(input.db, {
@@ -5948,6 +6341,21 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       inputSchema: z.object({}),
       execute: () => runtime.getLearnerState(),
     }),
+    get_student_risk_flags: tool({
+      description: '读取当前教师授权班级内的受治理风险摘要；不返回原始证据载荷。',
+      inputSchema: teacherDiagnosisStudentParameters,
+      execute: (args) => runtime.getStudentRiskFlags(args),
+    }),
+    get_class_competency_summary: tool({
+      description: '读取当前教师授权班级的能力聚合、成员分母、证据覆盖与置信度。',
+      inputSchema: teacherDiagnosisClassParameters,
+      execute: (args) => runtime.getClassCompetencySummary(args),
+    }),
+    get_student_knowledge_progress: tool({
+      description: '读取当前教师授权班级成员的知识点进度摘要与证据引用。',
+      inputSchema: teacherDiagnosisStudentParameters,
+      execute: (args) => runtime.getStudentKnowledgeProgress(args),
+    }),
     get_plan_context: tool({
       description: '读取当前学习路径与下一步节点上下文。',
       inputSchema: z.object({}),
@@ -6701,9 +7109,10 @@ function summarizeRuntimeToolError(error: unknown): Record<string, unknown> {
 }
 
 function assertToolResult(input: KonlingToolRuntimeInput, toolName: KonlingToolName, result: unknown) {
-  const permittedTools = input.agentSessionId
-    ? normalizeKonlingToolNames(input.permittedTools ?? input.context.permittedTools)
-    : DEFAULT_TOOLS;
+  const permittedTools = normalizeKonlingToolNames(
+    input.permittedTools
+      ?? (input.agentSessionId ? input.context.permittedTools : DEFAULT_TOOLS),
+  );
   if (!permittedTools.includes(toolName)) {
     throw new KonlingRuntimeScopeError(403, `Konling 工具 ${toolName} 未授权。`);
   }
@@ -7155,13 +7564,21 @@ function buildKnowledgeWorkspaceContentCitations(
   }];
 }
 
+/**
+ * Legacy Source Pack content citations (production path only).
+ * Shadow comparison for textbooks lives on search_textbook via the TextbookV2
+ * foreground, not on this unused helper path.
+ */
 async function buildKonlingSourcePackContentCitations(input: {
   scope: KonlingRuntimeScope;
   pageContext: PageContext;
   knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
   sarAssociatedGrounding?: KonlingSarAssociatedGroundingContext | null;
   currentUserQuery?: string | null;
-}): Promise<{ citations: KonlingCitation[]; sourcePack: KonlingSourcePackCitationSummary | null }> {
+}): Promise<{
+  citations: KonlingCitation[];
+  sourcePack: KonlingSourcePackCitationSummary | null;
+}> {
   const units = await loadAllTextbookStructureUnitProjections().catch(() => []);
   const adapted = units.map(adaptTextbookStructureUnit);
   const query = buildKonlingSourcePackQuery(
@@ -7187,6 +7604,7 @@ async function buildKonlingSourcePackContentCitations(input: {
     candidates: adapted.map((entry) => entry.item),
     limitations: adapted.flatMap((entry) => entry.limitations),
   });
+
   return {
     citations: result.pack.items.map((item) => buildSourcePackContentCitation(result.pack, item)),
     sourcePack: {

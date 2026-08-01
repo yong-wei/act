@@ -1,0 +1,17 @@
+{
+  "components": [
+    {
+      "release_hash": "8b1e3832f10d4142db0c395c3b6b2188af6f400faab56f0870502e39c9493e74",
+      "release_version": "root-locus-engineering-v0.1"
+    },
+    {
+      "release_hash": "90746513ec47be545e3b7c011450d0fc6542781998a7779797b825e91e17775b",
+      "release_version": "system-modeling-engineering-v0.1"
+    },
+    {
+      "release_hash": "86050f45ebcec4140dcf6fe29ba83d949527aa98aedce6df467317bee8200b5f",
+      "release_id": "ctr:release:control-theory-integration-v0.1",
+      "release_version": "control-theory-integration-v0.1"
+    }
+  ]
+}

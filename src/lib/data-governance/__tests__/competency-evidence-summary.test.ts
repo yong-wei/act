@@ -21,6 +21,12 @@ function fact(overrides: Partial<LearningFact>): LearningFact {
     courseId: overrides.courseId ?? null,
     lessonId: overrides.lessonId ?? 'unit-4-1-design-task-expression-v1',
     contextJson: overrides.contextJson ?? {},
+    knowledgeIdentityNamespace: overrides.knowledgeIdentityNamespace ?? null,
+    canonicalObjectId: overrides.canonicalObjectId ?? null,
+    aggregateReleaseSetId: overrides.aggregateReleaseSetId ?? null,
+    aggregateReleaseId: overrides.aggregateReleaseId ?? null,
+    knowledgeProjectionId: overrides.knowledgeProjectionId ?? null,
+    knowledgeRevisionRef: overrides.knowledgeRevisionRef ?? null,
     createdAt: overrides.createdAt ?? new Date('2026-05-06T03:58:01Z'),
   };
 }

@@ -10,6 +10,8 @@ import {
   PORTRAIT_V2_CALCULATION_VERSION,
 } from '../portrait-v2-model';
 import {
+  buildKnowledgeIdentityCoverage,
+  buildKnowledgeIdentityLayers,
   buildStudentEvidenceFeaturePayload,
   getStudentEvidenceFeatureCacheAdminSummary,
   readStudentEvidenceFeatures,
@@ -36,6 +38,12 @@ function fact(overrides: Partial<LearningFact> = {}): LearningFact {
     courseId: 'course-1',
     lessonId: 'lesson-1',
     contextJson: {},
+    knowledgeIdentityNamespace: null,
+    canonicalObjectId: null,
+    aggregateReleaseSetId: null,
+    aggregateReleaseId: null,
+    knowledgeProjectionId: null,
+    knowledgeRevisionRef: null,
     createdAt: new Date('2026-05-01T10:05:00.000Z'),
     ...overrides,
   };
@@ -69,6 +77,117 @@ function clientArenaEvaluationEvent(overrides: Partial<LearningEvent> = {}): Lea
 }
 
 describe('buildStudentEvidenceFeaturePayload', () => {
+  it('reports multi-era knowledge identity coverage without reinterpreting historical scores', () => {
+    const now = new Date('2026-07-30T00:00:00.000Z');
+    const mixedFacts = [
+      fact({
+        id: 'unversioned',
+        knowledgeIdentityNamespace: null,
+        knowledgeRevisionRef: null,
+        competencyContribution: { controlModeling: 0.5 },
+        startedAt: new Date('2026-01-01T00:00:00.000Z'),
+        finishedAt: new Date('2026-01-01T00:00:00.000Z'),
+      }),
+      fact({
+        id: 'legacy',
+        knowledgeIdentityNamespace: 'LEGACY',
+        knowledgeRevisionRef: 'legacy-active:pre-cutover-v1',
+        competencyContribution: { controlModeling: 0.6 },
+        startedAt: new Date('2026-05-01T00:00:00.000Z'),
+        finishedAt: new Date('2026-05-01T00:00:00.000Z'),
+      }),
+      fact({
+        id: 'canonical',
+        knowledgeIdentityNamespace: 'CANONICAL',
+        knowledgeRevisionRef: 'a'.repeat(64),
+        canonicalObjectId: 'ctr:object:feedback-loop',
+        aggregateReleaseSetId: 'rs',
+        aggregateReleaseId: 'rel',
+        knowledgeProjectionId: 'proj',
+        competencyContribution: { controlModeling: 0.7 },
+        startedAt: new Date('2026-07-30T00:00:00.000Z'),
+        finishedAt: new Date('2026-07-30T00:00:00.000Z'),
+      }),
+    ];
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now,
+      facts: mixedFacts,
+    });
+
+    expect(payload.payloadVersion).toBe(STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION);
+    expect(payload.knowledgeIdentityCoverage).toMatchObject({
+      totalFacts: 3,
+      mixedNamespaces: true,
+      mixedRevisions: true,
+      singleVersionComparable: false,
+      availability: 'mixed-version',
+      byNamespace: {
+        LEGACY_UNVERSIONED: 1,
+        LEGACY: 1,
+        CANONICAL: 1,
+      },
+    });
+    expect(payload.mergedAggregateComparability).toEqual({
+      singleVersionComparable: false,
+      reason: 'mixed-layers',
+      layerCount: 3,
+    });
+    expect(payload.statusMarkers).toEqual(
+      expect.arrayContaining(['mixed-knowledge-identity', 'partial']),
+    );
+    // Historical scores remain aggregated for continuity (not recomputed).
+    expect(payload.features.competencyContributions.controlModeling.evidenceCount).toBe(3);
+
+    // Per-identity-layer aggregates: deterministic namespace order + revision totals.
+    expect(payload.knowledgeIdentityLayers.map((layer) => layer.identityNamespace)).toEqual([
+      'LEGACY_UNVERSIONED',
+      'LEGACY',
+      'CANONICAL',
+    ]);
+    expect(payload.knowledgeIdentityLayers.map((layer) => layer.factCount)).toEqual([1, 1, 1]);
+    expect(payload.knowledgeIdentityLayers[0]).toMatchObject({
+      knowledgeRevisionRef: 'legacy-unversioned',
+      factCount: 1,
+      competencyContributions: {
+        controlModeling: expect.objectContaining({ evidenceCount: 1, averageContribution: 0.5 }),
+      },
+    });
+    expect(payload.knowledgeIdentityLayers[1]).toMatchObject({
+      knowledgeRevisionRef: 'legacy-active:pre-cutover-v1',
+      factCount: 1,
+      competencyContributions: {
+        controlModeling: expect.objectContaining({ evidenceCount: 1, averageContribution: 0.6 }),
+      },
+    });
+    expect(payload.knowledgeIdentityLayers[2]).toMatchObject({
+      knowledgeRevisionRef: 'a'.repeat(64),
+      factCount: 1,
+      competencyContributions: {
+        controlModeling: expect.objectContaining({ evidenceCount: 1, averageContribution: 0.7 }),
+      },
+    });
+    // Layer helper is deterministic for the same inputs.
+    expect(buildKnowledgeIdentityLayers(mixedFacts)).toEqual(payload.knowledgeIdentityLayers);
+    // Identity diagnostics must also live inside features for Prisma JSON persistence.
+    expect(payload.features.knowledgeIdentityCoverage).toEqual(payload.knowledgeIdentityCoverage);
+    expect(payload.features.knowledgeIdentityLayers).toEqual(payload.knowledgeIdentityLayers);
+    expect(payload.features.mergedAggregateComparability).toEqual(payload.mergedAggregateComparability);
+
+    const single = buildKnowledgeIdentityCoverage([
+      fact({
+        id: 'only-legacy',
+        knowledgeIdentityNamespace: 'LEGACY',
+        knowledgeRevisionRef: 'legacy-active:pre-cutover-v1',
+      }),
+    ]);
+    expect(single).toMatchObject({
+      singleVersionComparable: true,
+      availability: 'single-version',
+      mixedNamespaces: false,
+    });
+  });
+
   it('uses portrait v2 as the primary competency source without inventing a legacy snapshot', () => {
     const now = new Date('2026-05-19T00:00:00.000Z');
     const vector = createEmptyCompetencyVector();
@@ -1243,6 +1362,20 @@ describe('student evidence feature cache service', () => {
       })
     );
     expect(db.studentEvidenceFeatureCache.upsert).toHaveBeenCalledTimes(1);
+    const upsertArgs = db.studentEvidenceFeatureCache.upsert.mock.calls[0][0];
+    // Identity diagnostics must survive real cache persistence inside features JSON.
+    expect(upsertArgs.create.features).toEqual(
+      expect.objectContaining({
+        knowledgeIdentityCoverage: expect.objectContaining({
+          totalFacts: expect.any(Number),
+          singleVersionComparable: expect.any(Boolean),
+        }),
+        knowledgeIdentityLayers: expect.any(Array),
+        mergedAggregateComparability: expect.objectContaining({
+          layerCount: expect.any(Number),
+        }),
+      }),
+    );
     expect(db.studentEvidenceFeatureCache.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: 'student-1' },
