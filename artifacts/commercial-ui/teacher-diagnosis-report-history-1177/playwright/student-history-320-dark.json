@@ -1,0 +1,16 @@
+{
+  "routePath": "/teacher/classes/class-evidence/students/student-evidence",
+  "viewport": {
+    "width": 320,
+    "height": 844
+  },
+  "requests": [
+    "/api/teacher/classes/class-evidence/students/student-evidence/insights",
+    "/api/teacher/classes/class-evidence/diagnosis-reports",
+    "/api/teacher/classes/class-evidence/diagnosis-reports"
+  ],
+  "degraded": true,
+  "consoleErrors": [],
+  "pageErrors": [],
+  "horizontalOverflow": false
+}

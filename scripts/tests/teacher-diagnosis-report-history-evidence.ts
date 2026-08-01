@@ -168,7 +168,7 @@ export function buildTeacherDiagnosisReportHistoryEvidenceContext(
   ]);
   const fileSha256 = Object.fromEntries([...boundFiles].flatMap((file) => {
     const absolutePath = path.join(repositoryRoot, file);
-    return existsSync(absolutePath) ? [[file, sha256(absolutePath)]] : [];
+    return existsSync(absolutePath) ? [[file, sha256EvidenceFile(absolutePath)]] : [];
   }));
 
   return {
@@ -252,8 +252,12 @@ function lines(value: string) {
   return value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 }
 
-function sha256(file: string) {
-  return createHash('sha256').update(readFileSync(file)).digest('hex');
+export function sha256EvidenceFile(file: string) {
+  const bytes = readFileSync(file);
+  const content = path.extname(file).toLowerCase() === '.png'
+    ? bytes
+    : Buffer.from(bytes.toString('utf8').replace(/\r\n/g, '\n'));
+  return createHash('sha256').update(content).digest('hex');
 }
 
 if (require.main === module) {

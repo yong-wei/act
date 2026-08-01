@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   buildTeacherDiagnosisReportHistoryEvidenceContext,
+  sha256EvidenceFile,
   TEACHER_DIAGNOSIS_REPORT_HISTORY_SOURCE_PATHS,
   teacherDiagnosisReportHistoryEvidenceProblems,
   type TeacherDiagnosisReportHistoryEvidenceManifest,
@@ -99,6 +100,22 @@ function context() {
 }
 
 describe('teacher diagnosis report history evidence', () => {
+  it('uses platform-independent hashes for text evidence while preserving binary bytes', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'diagnosis-report-evidence-hash-'));
+    temporaryRepositories.push(directory);
+    const lfFile = join(directory, 'lf.ts');
+    const crlfFile = join(directory, 'crlf.ts');
+    const binaryFile = join(directory, 'capture.png');
+    writeFileSync(lfFile, 'first\nsecond\n');
+    writeFileSync(crlfFile, 'first\r\nsecond\r\n');
+    writeFileSync(binaryFile, Buffer.from([0x0d, 0x0a]));
+
+    expect(sha256EvidenceFile(crlfFile)).toBe(sha256EvidenceFile(lfFile));
+    expect(sha256EvidenceFile(binaryFile)).toBe(
+      createHash('sha256').update(Buffer.from([0x0d, 0x0a])).digest('hex'),
+    );
+  });
+
   it('accepts production-route evidence bound to its capture revision and source bytes', () => {
     expect(teacherDiagnosisReportHistoryEvidenceProblems(manifest(), context())).toEqual([]);
   });
