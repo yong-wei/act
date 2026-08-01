@@ -15,6 +15,6 @@
 ## 3. End-to-End Verification
 
 - [x] 3.1 Verify a persisted Arena preview reaches the canonical run, `LearningFact`, personal-center training summary, and learning-profile-safe context with no official promotion.
-- [ ] 3.2 Capture current-revision `/profile` evidence at 1440px and 320px, including training-only and unavailable-quality states, with source and screenshot hashes.
-- [ ] 3.3 Run strict OpenSpec validation, typecheck, affected tests, full unit/build gates, and inspect the diff for unrelated official evaluation, leaderboard, progress, and historical evidence changes.
-- [ ] 3.4 Complete independent risk-focused review and resolve all accepted blocking findings in one remediation batch.
+- [x] 3.2 Capture current-revision `/profile` evidence at 1440px and 320px, including training-only and unavailable-quality states, with source and screenshot hashes.
+- [x] 3.3 Run strict OpenSpec validation, typecheck, affected tests, full unit/build gates, and inspect the diff for unrelated official evaluation, leaderboard, progress, and historical evidence changes.
+- [x] 3.4 Complete independent risk-focused review and resolve all accepted blocking findings in one remediation batch.
