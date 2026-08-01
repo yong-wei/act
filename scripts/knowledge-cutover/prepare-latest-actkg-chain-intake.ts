@@ -626,7 +626,9 @@ export async function prepareLatestActkgChainIntake(
   if (admittedBundleId !== undefined && admittedIndex < 0) {
     fail(`admitted endpoint bundleId is not an active candidate: ${admittedBundleId}`);
   }
-  const candidates = start.activeCandidates.slice(admittedIndex >= 0 ? admittedIndex + 1 : 1);
+  const candidates = admittedBundleId === undefined
+    ? start.activeCandidates
+    : start.activeCandidates.slice(admittedIndex + 1);
   if (candidates.length === 0) fail('no post-baseline candidates to stage');
   if (start.binding.candidateChain.length !== start.activeCandidates.length) {
     fail('binding candidateChain does not match verified activeCandidates');

@@ -310,7 +310,7 @@ describe('prepareLatestActkgChainIntake', () => {
     );
   });
 
-  it('stages five post-baseline locks, deduplicates shared components, and rejects reruns', async () => {
+  it('stages the complete chain, deduplicates shared components, and rejects reruns', async () => {
     const actkgRoot = await fixtureActkg();
     const repoRoot = await mkdtemp(path.join(tmpdir(), 'act-chain-repo-'));
     const admittedEndpointPath = path.join(repoRoot, 'admitted-endpoint.json');
@@ -327,23 +327,32 @@ describe('prepareLatestActkgChainIntake', () => {
         admittedEndpointPath,
         predecessorRootClosurePath: 'docs/coordination/m1j/v0.3-r1-predecessor-closure.json',
       });
-      expect(receipt.chain).toHaveLength(5);
+      expect(receipt.chain).toHaveLength(6);
       const entries = receipt.chain as Array<Record<string, string | number>>;
       expect(entries.map((entry) => entry.releaseVersion)).toEqual([
+        'control-theory-engineering-v0.3',
         'control-theory-engineering-v0.4',
         'control-theory-engineering-v0.5',
         'control-theory-engineering-v0.6',
         'control-theory-engineering-v0.7',
         'control-theory-engineering-v0.8',
       ]);
-      expect(new Set(entries.map((entry) => entry.releaseSetId)).size).toBe(5);
+      expect(entries[0]).toMatchObject({
+        bundleId: 'ctb:control-theory-engineering-v0.3:r2',
+        releaseVersion: 'control-theory-engineering-v0.3',
+      });
+      expect(new Set(entries.map((entry) => entry.releaseSetId)).size).toBe(6);
       for (const entry of entries) {
         expect(entry.lockPath).toMatch(/^course-content\/authoring\/knowledge\/chain\/release-set\.lock\.v3\..+-r2\.json$/u);
         const lock = JSON.parse(await readFile(path.join(repoRoot, String(entry.lockPath)), 'utf8'));
         expect(lock.bundle.controlled_path).toMatch(/^course-content\/authoring\/knowledge\/chain\//u);
-        expect(lock.components[0].controlled_path).toBe(
-          'course-content/authoring/knowledge/chain/releases/shared-component-v0.1',
-        );
+        if (entry.releaseVersion === 'control-theory-engineering-v0.3') {
+          expect(lock.components).toEqual([]);
+        } else {
+          expect(lock.components[0].controlled_path).toBe(
+            'course-content/authoring/knowledge/chain/releases/shared-component-v0.1',
+          );
+        }
       }
       await expect(prepareLatestActkgChainIntake({
         actkgRoot,
