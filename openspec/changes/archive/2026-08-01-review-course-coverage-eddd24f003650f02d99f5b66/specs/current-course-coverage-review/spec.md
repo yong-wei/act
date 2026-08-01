@@ -40,7 +40,7 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 #### Scenario: Batch eddd24f003650f02d99f5b66 has no conflict
 
 - **WHEN** required stages agree and every member has a review-stage terminal conclusion
-- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal conclusion
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal conclusion in machine-readable `stageRecords`, including the ordered decision records and each stage document digest; the embedded records SHALL close to the supplied stage documents
 
 #### Scenario: Evidence remains insufficient
 
@@ -49,9 +49,19 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 
 ### Requirement: Batch eddd24f003650f02d99f5b66 emits a machine-mergeable receipt
 
-The review receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written. Deterministic code MUST validate and assemble independently authored stage records and MUST NOT generate semantic conclusions.
+The review receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written. It MUST embed complete `stageRecords` for Primary, Challenger, and (when present) Third, including each stage's reviewer identity, input digest, ordered per-member conclusion, evidence selectors, rationale, decision digest, and document digest. Deterministic code MUST validate and assemble independently authored stage records and MUST NOT generate semantic conclusions. The receipt MUST contain a deterministic sibling `attestationPath` and a pre-publication production-boundary proof; the detached attestation is the authoritative post-publication closure and MUST bind the receipt digest, both boundary snapshots, the protected paths and its own digest.
 
 #### Scenario: Receipt for batch eddd24f003650f02d99f5b66 is assembled
 
 - **WHEN** all required stages are review-stage terminal and drift checks pass
 - **THEN** the receipt SHALL be deterministic, machine-mergeable, scoped to `eddd24f003650f02d99f5b66`, and incapable of writing CURRENT or ACTIVE CourseCoverage authority
+
+#### Scenario: Production authority is dirty before receipt publication
+
+- **WHEN** a protected CourseCoverage selector, Canonical RAG selector, LearningFact writer-fence path, or Git `HEAD` is dirty or differs from its selected revision in the pre-publication snapshot
+- **THEN** receipt publication SHALL fail closed and SHALL not emit a receipt claiming a clean production boundary from fixed boolean values
+
+#### Scenario: Detached attestation closes the publication boundary
+
+- **WHEN** the immutable receipt is published, the CLI captures a true post-receipt snapshot, publishes its deterministic sibling attestation, and replays an identical artifact set
+- **THEN** the attestation SHALL bind the receipt digest, pre- and post-publication Git and protected-path snapshots, and its own digest; replay SHALL load and validate the receipt/attestation closure, and any failure after a new receipt is published SHALL attempt cleanup and surface cleanup failure

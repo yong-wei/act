@@ -1,13 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  assertCurrentCourseCoverageProductionBoundaryBundle,
   buildCurrentCourseCoverageBatchReceipt,
+  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
+  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
   currentCourseCoverageStageInputDigest,
+  sealCurrentCourseCoverageProductionBoundaryAttestation,
   sealCurrentCourseCoverageStageReview,
   type CourseCoverageReviewStage,
   type CurrentCourseCoverageBatchBinding,
+  type CurrentCourseCoverageProductionBoundaryAttestation,
+  type CurrentCourseCoverageProductionBoundaryProof,
   type CurrentCourseCoverageStageReview,
 } from '../aggregate-governance/current-course-coverage-batch-review';
+import { publishCurrentCourseCoverageBatchBundle } from '../../../scripts/course-coverage/review-current-course-coverage-batch';
 import {
   buildCurrentCourseCoverageWorklist,
   buildCurrentReviewBatchManifest,
@@ -21,6 +28,28 @@ const SHA_A = 'a'.repeat(64);
 const SHA_B = 'b'.repeat(64);
 const SHA_C = 'c'.repeat(64);
 const COMMIT = 'd'.repeat(40);
+
+function productionBoundaryProof(
+  overrides: Partial<CurrentCourseCoverageProductionBoundaryProof> = {},
+): CurrentCourseCoverageProductionBoundaryProof {
+  return {
+    verificationProtocol: 'git-head-and-production-authority-pre-publication-snapshot/v2',
+    receiptPath: 'course-content/authoring/knowledge/issue-1190-course-coverage-review/batch-receipt.json',
+    attestationPath: 'course-content/authoring/knowledge/issue-1190-course-coverage-review/batch-boundary-attestation.json',
+    headBefore: COMMIT,
+    protectedPaths: ['src/lib/canonical-rag/authority.ts'],
+    statusBefore: [],
+    authoritySnapshotBeforeDigest: SHA_A,
+    gitDiffCheck: 'PASS',
+    mutationFlags: {
+      currentCoverageDecisionWritten: false,
+      productionSelectorChanged: false,
+      graphRagSelectorChanged: false,
+      writerFenceChanged: false,
+    },
+    ...overrides,
+  };
+}
 
 function authority(): CurrentCourseCoverageAuthority {
   return {
@@ -188,6 +217,27 @@ function receipt(input = documents()) {
     observedManifestArtifactSha256: SHA_C,
     primary: input.primary,
     challenger: input.challenger,
+    productionBoundaryProof: productionBoundaryProof(),
+  });
+}
+
+function attestationFor(inputReceipt = receipt()): CurrentCourseCoverageProductionBoundaryAttestation {
+  const proof = inputReceipt.productionBoundaryProof;
+  return sealCurrentCourseCoverageProductionBoundaryAttestation({
+    schemaVersion: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
+    protocol: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
+    receiptPath: proof.receiptPath,
+    attestationPath: proof.attestationPath,
+    receiptDigest: inputReceipt.receiptDigest,
+    batchId: inputReceipt.batchBinding.batchId,
+    headBefore: proof.headBefore,
+    headAfter: proof.headBefore,
+    protectedPaths: [...proof.protectedPaths],
+    statusBefore: [...proof.statusBefore],
+    statusAfter: [],
+    authoritySnapshotBeforeDigest: proof.authoritySnapshotBeforeDigest,
+    authoritySnapshotAfterDigest: proof.authoritySnapshotBeforeDigest,
+    gitDiffCheck: 'PASS',
   });
 }
 
@@ -200,6 +250,13 @@ describe('current CourseCoverage batch review receipt', () => {
     expect(first.status).toBe('DEFERRED_EVIDENCE_BLOCKED');
     expect(first.counts).toMatchObject({ members: 2, deferredEvidenceBlocked: 2, conflicts: 0 });
     expect(first.orderedMembers.map((member) => member.canonicalId)).toEqual(['a', 'b']);
+    expect(first.stageRecords.primary.decisions[0]).toMatchObject({
+      canonicalId: 'a',
+      conclusion: 'DEFER',
+      rationale: expect.any(String),
+    });
+    expect(first.stageRecords.primary.documentDigest).toBe(first.stageDocuments.primaryDigest);
+    expect(first.stageRecords.challenger?.decisions[0]?.rationale).toEqual(expect.any(String));
     expect(first.productionBoundaries).toEqual({
       currentCoverageDecisionWritten: false,
       productionSelectorChanged: false,
@@ -207,6 +264,165 @@ describe('current CourseCoverage batch review receipt', () => {
       writerFenceChanged: false,
     });
     expect(first.aggregateCoverageGate).toBe('BLOCKED_UNRESOLVED_EVIDENCE');
+  });
+
+  it('rejects dirty production authority paths and invalid pre-publication snapshots', () => {
+    const input = documents();
+    const build = (proof: CurrentCourseCoverageProductionBoundaryProof) => buildCurrentCourseCoverageBatchReceipt({
+      worklist: input.worklist,
+      manifest: input.manifest,
+      expectedBinding: input.binding,
+      observedManifestArtifactSha256: SHA_C,
+      primary: input.primary,
+      challenger: input.challenger,
+      productionBoundaryProof: proof,
+    });
+    expect(() => build(productionBoundaryProof({ statusBefore: [' M src/lib/canonical-rag/authority.ts'] })))
+      .toThrow(/production authority paths are dirty/iu);
+    expect(() => build(productionBoundaryProof({
+      authoritySnapshotBeforeDigest: 'not-a-digest',
+    }))).toThrow(/authoritySnapshotBeforeDigest must be|digest/iu);
+  });
+
+  it('binds a detached post-publication attestation to the receipt and snapshots', () => {
+    const inputReceipt = receipt();
+    const attestation = attestationFor(inputReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: inputReceipt,
+      attestation,
+      receiptPath: inputReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: inputReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: inputReceipt,
+      attestation: { ...attestation, attestationDigest: SHA_B },
+      receiptPath: inputReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: inputReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/attestation digest mismatch/iu);
+  });
+
+  it('captures the post-receipt snapshot before publishing the attestation', async () => {
+    const inputReceipt = receipt();
+    const proof = inputReceipt.productionBoundaryProof;
+    const receiptOutput = 'receipt-output';
+    const attestationOutput = 'attestation-output';
+    const receiptBytes = `${JSON.stringify(inputReceipt, null, 2)}\n`;
+    const beforeSnapshot = {
+      head: proof.headBefore,
+      status: [...proof.statusBefore],
+      snapshotDigest: proof.authoritySnapshotBeforeDigest,
+    };
+    const files = new Map<string, string>();
+    const events: string[] = [];
+    let captures = 0;
+    const result = await publishCurrentCourseCoverageBatchBundle({
+      receiptOutput,
+      attestationOutput,
+      receiptPath: proof.receiptPath,
+      attestationPath: proof.attestationPath,
+      receipt: inputReceipt,
+      receiptBytes,
+      beforeSnapshot,
+      captureSnapshot: async () => {
+        captures += 1;
+        if (captures === 1) {
+          expect(files.has(receiptOutput)).toBe(true);
+          events.push('after-receipt-captured');
+        } else {
+          events.push('after-attestation-captured');
+        }
+        return beforeSnapshot;
+      },
+      publishArtifact: async (output, bytes, kind) => {
+        files.set(output, bytes);
+        events.push(`${kind}-published`);
+        return 'published';
+      },
+      readArtifact: async (output) => files.get(output) ?? (() => { throw new Error(`missing ${output}`); })(),
+      existsArtifact: async (output) => files.has(output),
+      unlinkArtifact: async (output) => { files.delete(output); },
+    });
+    expect(events).toEqual([
+      'receipt-published',
+      'after-receipt-captured',
+      'attestation-published',
+      'after-attestation-captured',
+    ]);
+    expect(result.attestation.receiptDigest).toBe(inputReceipt.receiptDigest);
+    expect(result.attestation.authoritySnapshotAfterDigest).toBe(beforeSnapshot.snapshotDigest);
+  });
+
+  it('fails closed when HEAD or protected authority drifts after receipt publication', async () => {
+    const inputReceipt = receipt();
+    const proof = inputReceipt.productionBoundaryProof;
+    const beforeSnapshot = {
+      head: proof.headBefore,
+      status: [...proof.statusBefore],
+      snapshotDigest: proof.authoritySnapshotBeforeDigest,
+    };
+    const files = new Map<string, string>();
+    await expect(publishCurrentCourseCoverageBatchBundle({
+      receiptOutput: 'receipt-output',
+      attestationOutput: 'attestation-output',
+      receiptPath: proof.receiptPath,
+      attestationPath: proof.attestationPath,
+      receipt: inputReceipt,
+      receiptBytes: `${JSON.stringify(inputReceipt, null, 2)}\n`,
+      beforeSnapshot,
+      captureSnapshot: async () => ({ ...beforeSnapshot, head: 'e'.repeat(40) }),
+      publishArtifact: async (output, bytes) => {
+        files.set(output, bytes);
+        return 'published';
+      },
+      readArtifact: async (output) => files.get(output) ?? '',
+      existsArtifact: async (output) => files.has(output),
+      unlinkArtifact: async (output) => { files.delete(output); },
+    })).rejects.toThrow(/HEAD or production authority snapshot drifted/iu);
+    expect(files.size).toBe(0);
+
+    const { attestationDigest: _, ...attestationWithoutDigest } = attestationFor(inputReceipt);
+    const driftedAttestation = sealCurrentCourseCoverageProductionBoundaryAttestation({
+      ...attestationWithoutDigest,
+      headAfter: 'e'.repeat(40),
+    });
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: inputReceipt,
+      attestation: driftedAttestation,
+      receiptPath: proof.receiptPath,
+      attestationPath: proof.attestationPath,
+    })).toThrow(/drifted across receipt publication/iu);
+  });
+
+  it('reports cleanup failure after a post-receipt publication error', async () => {
+    const inputReceipt = receipt();
+    const proof = inputReceipt.productionBoundaryProof;
+    const receiptOutput = 'receipt-output';
+    const attestationOutput = 'attestation-output';
+    const files = new Map<string, string>();
+    const beforeSnapshot = {
+      head: proof.headBefore,
+      status: [...proof.statusBefore],
+      snapshotDigest: proof.authoritySnapshotBeforeDigest,
+    };
+    await expect(publishCurrentCourseCoverageBatchBundle({
+      receiptOutput,
+      attestationOutput,
+      receiptPath: proof.receiptPath,
+      attestationPath: proof.attestationPath,
+      receipt: inputReceipt,
+      receiptBytes: `${JSON.stringify(inputReceipt, null, 2)}\n`,
+      beforeSnapshot,
+      captureSnapshot: async () => beforeSnapshot,
+      publishArtifact: async (output, bytes, kind) => {
+        if (kind === 'attestation') throw new Error('attestation write failed');
+        files.set(output, bytes);
+        return 'published';
+      },
+      readArtifact: async (output) => files.get(output) ?? '',
+      existsArtifact: async (output) => files.has(output),
+      unlinkArtifact: async (output) => { throw new Error(`cannot remove ${output}`); },
+    })).rejects.toThrow(/attestation write failed.*cleanup failed.*cannot remove receipt-output/iu);
+    expect(files.has(receiptOutput)).toBe(true);
   });
 
   it.each([
@@ -227,6 +443,7 @@ describe('current CourseCoverage batch review receipt', () => {
       observedManifestArtifactSha256: SHA_C,
       primary: input.primary,
       challenger: input.challenger,
+      productionBoundaryProof: productionBoundaryProof(),
     })).toThrow(/binding drift/iu);
   });
 
@@ -239,6 +456,7 @@ describe('current CourseCoverage batch review receipt', () => {
       observedManifestArtifactSha256: SHA_A,
       primary: input.primary,
       challenger: input.challenger,
+      productionBoundaryProof: productionBoundaryProof(),
     })).toThrow(/artifact digest mismatch/iu);
     const tampered = structuredClone(input.primary);
     tampered.decisions[0]!.canonicalRevision = SHA_A;
@@ -276,6 +494,7 @@ describe('current CourseCoverage batch review receipt', () => {
       expectedBinding: input.binding,
       observedManifestArtifactSha256: SHA_C,
       primary: input.primary,
+      productionBoundaryProof: productionBoundaryProof(),
     })).toThrow(/Challenger is required/iu);
     const sameIdentity = stageReview({
       ...input,
@@ -311,6 +530,7 @@ describe('current CourseCoverage batch review receipt', () => {
       observedManifestArtifactSha256: SHA_C,
       primary,
       challenger,
+      productionBoundaryProof: productionBoundaryProof(),
     })).toThrow(/Third is required/iu);
     const third = stageReview({
       ...base,
@@ -327,6 +547,7 @@ describe('current CourseCoverage batch review receipt', () => {
       primary,
       challenger,
       third,
+      productionBoundaryProof: productionBoundaryProof(),
     });
     expect(result.terminalMembers[0]).toMatchObject({
       terminalSource: 'THIRD',
@@ -347,6 +568,7 @@ describe('current CourseCoverage batch review receipt', () => {
       primary: input.primary,
       challenger: input.challenger,
       third,
+      productionBoundaryProof: productionBoundaryProof(),
     })).toThrow(/Third is forbidden/iu);
   });
 
@@ -385,6 +607,7 @@ describe('current CourseCoverage batch review receipt', () => {
       observedManifestArtifactSha256: SHA_C,
       primary: injectedPrimary,
       challenger: injectedChallenger,
+      productionBoundaryProof: productionBoundaryProof(),
     })).toThrow(/worklist input digest mismatch|worklist digest mismatch/iu);
 
     const roleFixture = fixture({ independent: true, members: ['a'] });
@@ -412,6 +635,7 @@ describe('current CourseCoverage batch review receipt', () => {
       observedManifestArtifactSha256: SHA_C,
       primary,
       challenger,
+      productionBoundaryProof: productionBoundaryProof(),
     })).toThrow(/must cite independent course evidence/iu);
   });
 

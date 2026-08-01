@@ -17,6 +17,12 @@ export const CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION =
   'current-course-coverage-stage-review/v1' as const;
 export const CURRENT_COURSE_COVERAGE_BATCH_RECEIPT_SCHEMA_VERSION =
   'current-course-coverage-batch-receipt/v1' as const;
+export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL =
+  'git-head-and-production-authority-pre-publication-snapshot/v2' as const;
+export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION =
+  'current-course-coverage-production-boundary-attestation/v1' as const;
+export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL =
+  'git-head-and-production-authority-detached-post-publication-attestation/v1' as const;
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const ACTIVE_ROLES = new Set<CourseCoverageRole>([
@@ -68,6 +74,43 @@ export interface CurrentCourseCoverageStageReview {
   documentDigest: string;
 }
 
+export interface CurrentCourseCoverageProductionBoundaryProof {
+  verificationProtocol: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL;
+  receiptPath: string;
+  attestationPath: string;
+  headBefore: string;
+  protectedPaths: string[];
+  statusBefore: string[];
+  authoritySnapshotBeforeDigest: string;
+  gitDiffCheck: 'PASS';
+  mutationFlags: {
+    currentCoverageDecisionWritten: false;
+    productionSelectorChanged: false;
+    graphRagSelectorChanged: false;
+    writerFenceChanged: false;
+  };
+}
+
+export interface CurrentCourseCoverageProductionBoundaryAttestation {
+  schemaVersion: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION;
+  protocol: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL;
+  receiptPath: string;
+  attestationPath: string;
+  receiptDigest: string;
+  batchId: string;
+  headBefore: string;
+  headAfter: string;
+  protectedPaths: string[];
+  statusBefore: string[];
+  statusAfter: string[];
+  authoritySnapshotBeforeDigest: string;
+  authoritySnapshotAfterDigest: string;
+  gitDiffCheck: 'PASS';
+  attestationDigest: string;
+}
+
+export type CurrentCourseCoverageReceiptStageRecord = CurrentCourseCoverageStageReview;
+
 export interface CurrentCourseCoverageBatchReceipt {
   schemaVersion: typeof CURRENT_COURSE_COVERAGE_BATCH_RECEIPT_SCHEMA_VERSION;
   protocol: 'current-course-coverage-batch-review/1';
@@ -78,6 +121,11 @@ export interface CurrentCourseCoverageBatchReceipt {
     primaryDigest: string;
     challengerDigest: string | null;
     thirdDigest: string | null;
+  };
+  stageRecords: {
+    primary: CurrentCourseCoverageReceiptStageRecord;
+    challenger: CurrentCourseCoverageReceiptStageRecord | null;
+    third: CurrentCourseCoverageReceiptStageRecord | null;
   };
   terminalMembers: Array<{
     canonicalId: string;
@@ -104,6 +152,7 @@ export interface CurrentCourseCoverageBatchReceipt {
     graphRagSelectorChanged: false;
     writerFenceChanged: false;
   };
+  productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof;
   receiptDigest: string;
 }
 
@@ -119,6 +168,106 @@ function requiredString(value: unknown, field: string): string {
 
 function assertSha(value: string, field: string): void {
   if (!SHA256.test(value)) throw new Error(`Current batch review rejected: ${field} must be a SHA-256`);
+}
+
+function assertCommit(value: string, field: string): void {
+  if (!/^[a-f0-9]{40}$/u.test(value)) {
+    throw new Error(`Current batch review rejected: ${field} must be a 40-hex Git revision`);
+  }
+}
+
+function validateProductionBoundaryProof(
+  proof: CurrentCourseCoverageProductionBoundaryProof,
+): void {
+  if (proof.verificationProtocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
+    throw new Error('Current batch review rejected: production boundary verification protocol mismatch');
+  }
+  requiredString(proof.receiptPath, 'productionBoundaryProof.receiptPath');
+  requiredString(proof.attestationPath, 'productionBoundaryProof.attestationPath');
+  assertCommit(proof.headBefore, 'productionBoundaryProof.headBefore');
+  if (!Array.isArray(proof.protectedPaths) || proof.protectedPaths.length === 0
+    || proof.protectedPaths.some((value) => !requiredString(value, 'productionBoundaryProof.protectedPaths'))) {
+    throw new Error('Current batch review rejected: protected authority path snapshot is empty');
+  }
+  if (!Array.isArray(proof.statusBefore) || proof.statusBefore.length > 0) {
+    throw new Error('Current batch review rejected: production authority paths are dirty');
+  }
+  assertSha(proof.authoritySnapshotBeforeDigest, 'productionBoundaryProof.authoritySnapshotBeforeDigest');
+  if (proof.gitDiffCheck !== 'PASS') {
+    throw new Error('Current batch review rejected: production boundary git diff check failed');
+  }
+  const flags = proof.mutationFlags;
+  if (!flags || flags.currentCoverageDecisionWritten || flags.productionSelectorChanged
+    || flags.graphRagSelectorChanged || flags.writerFenceChanged) {
+    throw new Error('Current batch review rejected: production authority mutation evidence is not clean');
+  }
+}
+
+function assertAttestationDigest(
+  attestation: CurrentCourseCoverageProductionBoundaryAttestation,
+): void {
+  const { attestationDigest, ...withoutDigest } = attestation;
+  assertSha(attestationDigest, 'productionBoundaryAttestation.attestationDigest');
+  if (attestationDigest !== sha256Canonical(withoutDigest)) {
+    throw new Error('Current batch review rejected: production boundary attestation digest mismatch');
+  }
+}
+
+export function sealCurrentCourseCoverageProductionBoundaryAttestation(
+  attestation: Omit<CurrentCourseCoverageProductionBoundaryAttestation, 'attestationDigest'>,
+): CurrentCourseCoverageProductionBoundaryAttestation {
+  return { ...attestation, attestationDigest: sha256Canonical(attestation) };
+}
+
+export function assertCurrentCourseCoverageProductionBoundaryBundle(input: {
+  receipt: CurrentCourseCoverageBatchReceipt;
+  attestation: CurrentCourseCoverageProductionBoundaryAttestation;
+  receiptPath: string;
+  attestationPath: string;
+}): void {
+  const { receipt, attestation } = input;
+  const { receiptDigest, ...withoutReceiptDigest } = receipt;
+  assertSha(receiptDigest, 'receiptDigest');
+  if (receiptDigest !== sha256Canonical(withoutReceiptDigest)) {
+    throw new Error('Current batch review rejected: receipt digest mismatch');
+  }
+  const proof = receipt.productionBoundaryProof;
+  validateProductionBoundaryProof(proof);
+  if (proof.receiptPath !== input.receiptPath || proof.attestationPath !== input.attestationPath) {
+    throw new Error('Current batch review rejected: receipt/attestation path binding mismatch');
+  }
+  if (attestation.schemaVersion !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION
+    || attestation.protocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL) {
+    throw new Error('Current batch review rejected: production boundary attestation protocol mismatch');
+  }
+  if (attestation.receiptPath !== input.receiptPath || attestation.attestationPath !== input.attestationPath) {
+    throw new Error('Current batch review rejected: attestation path binding mismatch');
+  }
+  if (attestation.receiptDigest !== receiptDigest || attestation.batchId !== receipt.batchBinding.batchId) {
+    throw new Error('Current batch review rejected: attestation receipt identity mismatch');
+  }
+  if (attestation.headBefore !== proof.headBefore
+    || attestation.authoritySnapshotBeforeDigest !== proof.authoritySnapshotBeforeDigest
+    || sha256Canonical(attestation.protectedPaths) !== sha256Canonical(proof.protectedPaths)
+    || sha256Canonical(attestation.statusBefore) !== sha256Canonical(proof.statusBefore)) {
+    throw new Error('Current batch review rejected: attestation pre-publication snapshot mismatch');
+  }
+  assertCommit(attestation.headAfter, 'productionBoundaryAttestation.headAfter');
+  assertSha(attestation.authoritySnapshotAfterDigest, 'productionBoundaryAttestation.authoritySnapshotAfterDigest');
+  if (attestation.headAfter !== attestation.headBefore
+    || attestation.authoritySnapshotAfterDigest !== attestation.authoritySnapshotBeforeDigest) {
+    throw new Error('Current batch review rejected: production authority drifted across receipt publication');
+  }
+  if (!Array.isArray(attestation.statusBefore) || !Array.isArray(attestation.statusAfter)) {
+    throw new Error('Current batch review rejected: attestation status snapshots are invalid');
+  }
+  if (attestation.statusBefore.length > 0 || attestation.statusAfter.length > 0) {
+    throw new Error('Current batch review rejected: attestation records dirty production authority paths');
+  }
+  if (attestation.gitDiffCheck !== 'PASS') {
+    throw new Error('Current batch review rejected: attestation git diff check failed');
+  }
+  assertAttestationDigest(attestation);
 }
 
 function sameBinding(
@@ -333,12 +482,14 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
   primary: CurrentCourseCoverageStageReview;
   challenger?: CurrentCourseCoverageStageReview | null;
   third?: CurrentCourseCoverageStageReview | null;
+  productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof;
 }): CurrentCourseCoverageBatchReceipt {
   const {
     worklistDigest: storedWorklistDigest,
     worklistInputDigest: storedWorklistInputDigest,
     ...withoutWorklistDigests
   } = input.worklist;
+  validateProductionBoundaryProof(input.productionBoundaryProof);
   if (computeCurrentWorklistInputDigest(withoutWorklistDigests) !== storedWorklistInputDigest) {
     throw new Error('Current batch review rejected: worklist input digest mismatch');
   }
@@ -428,6 +579,11 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
       challengerDigest: input.challenger?.documentDigest ?? null,
       thirdDigest: input.third?.documentDigest ?? null,
     },
+    stageRecords: {
+      primary: structuredClone(input.primary),
+      challenger: input.challenger ? structuredClone(input.challenger) : null,
+      third: input.third ? structuredClone(input.third) : null,
+    },
     terminalMembers,
     counts: {
       members: terminalMembers.length,
@@ -440,12 +596,8 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
     aggregateCoverageGate: deferred > 0
       ? 'BLOCKED_UNRESOLVED_EVIDENCE' as const
       : 'BLOCKED_PENDING_ALL_BATCHES' as const,
-    productionBoundaries: {
-      currentCoverageDecisionWritten: false as const,
-      productionSelectorChanged: false as const,
-      graphRagSelectorChanged: false as const,
-      writerFenceChanged: false as const,
-    },
+    productionBoundaries: input.productionBoundaryProof.mutationFlags,
+    productionBoundaryProof: structuredClone(input.productionBoundaryProof),
   };
   return { ...withoutReceiptDigest, receiptDigest: sha256Canonical(withoutReceiptDigest) };
 }
