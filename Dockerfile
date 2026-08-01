@@ -56,7 +56,7 @@ RUN --mount=type=cache,target=/root/.npm \
 FROM base AS builder
 WORKDIR /app
 ARG APP_REVISION
-ARG NODE_MAX_OLD_SPACE_SIZE=8192
+ARG NODE_MAX_OLD_SPACE_SIZE=12288
 RUN apk add --no-cache python3
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

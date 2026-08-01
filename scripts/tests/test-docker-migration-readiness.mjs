@@ -175,7 +175,7 @@ function main() {
 
   assert.match(
     dockerfile,
-    /ARG NODE_MAX_OLD_SPACE_SIZE=8192/,
+    /ARG NODE_MAX_OLD_SPACE_SIZE=12288/,
     'Dockerfile builder 阶段必须提供可传入的 Node heap 默认值，避免容器内 Next 构建因默认堆内存不足失败'
   );
 
@@ -461,7 +461,7 @@ function main() {
 
   assert.match(
     localImageBuildScript,
-    /NODE_MAX_OLD_SPACE_SIZE="\$\{NODE_MAX_OLD_SPACE_SIZE:-8192\}"/,
+    /NODE_MAX_OLD_SPACE_SIZE="\$\{NODE_MAX_OLD_SPACE_SIZE:-12288\}"/,
     'release build 必须为本地与容器构建设置一致的默认 Node heap',
   );
 
@@ -469,6 +469,40 @@ function main() {
     localImageBuildScript,
     /--build-arg "NODE_MAX_OLD_SPACE_SIZE=\$\{NODE_MAX_OLD_SPACE_SIZE\}"/,
     'release build 必须向 Docker builder 传递 Node heap build arg',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /docker info --format '\{\{\.MemTotal\}\}'/,
+    'release build 必须在构建前读取 Docker VM 内存',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /DOCKER_MIN_MEMORY_BYTES=\$\(\(20 \* 1024 \* 1024 \* 1024\)\)/,
+    'release build 必须以 20 GiB 作为 Docker VM 最低内存门槛',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /DOCKER_MEMORY_BYTES.*\^\[1-9\]\[0-9\]\*\$/,
+    'release build 必须严格校验 Docker VM 内存为正整数',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /Docker Desktop 配置为至少 24 GiB/,
+    'Docker VM 内存门禁失败时必须提示 Docker Desktop 至少配置 24 GiB',
+  );
+
+  const dockerMemoryCheckIndex = localImageBuildScript.indexOf(
+    "docker info --format '{{.MemTotal}}'",
+  );
+  assert.ok(
+    dockerMemoryCheckIndex >= 0
+      && dockerMemoryCheckIndex < localImageBuildScript.indexOf('\nnpm run build\n')
+      && dockerMemoryCheckIndex < localImageBuildScript.indexOf('docker buildx build'),
+    'Docker VM 内存门禁必须早于本地 npm build 与 Docker build',
   );
 
   assert.match(
