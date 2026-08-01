@@ -5,6 +5,7 @@ import {
   getLegacySceneLogic,
   getScenarioLogic,
   DEFAULT_TARGET,
+  LEGACY_SCENE_TRACE_TARGET,
 } from '@/resources/simulations/lib/monte-carlo-optimizer';
 import type { SimpleSimConfig } from '@/resources/simulations/lib/monte-carlo-optimizer';
 
@@ -207,6 +208,7 @@ describe('PID optimizer scenario rudder rate isolation', () => {
     );
 
     expect(result.metrics.settlingTime).toBe(120);
+    expect(LEGACY_SCENE_TRACE_TARGET.minSettlingTime).toBe(60);
     const request = runtime.mockNomotoRequests.at(-1) as Record<string, unknown>;
     expect(request).not.toHaveProperty('headingSchedule');
     expect(request.start).toEqual({ x: 0, z: 0, headingDeg: 0 });

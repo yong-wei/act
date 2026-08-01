@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
+import { PID_EVIDENCE_BUILD_SOURCE_HASHES } from './pid-evidence-runtime-manifest.generated';
+
 const execFileAsync = promisify(execFile);
 const COMMIT_SHA_PATTERN = /^[0-9a-f]{40}$/u;
 
@@ -27,6 +29,17 @@ async function git(cwd: string, args: string[]) {
     maxBuffer: 1024 * 1024,
   });
   return result.stdout.trim();
+}
+
+export function assertPidEvidenceBuildSourceHashes(sourceHashes: Record<string, string>) {
+  const buildSourceHashes = PID_EVIDENCE_BUILD_SOURCE_HASHES as Record<string, string>;
+  const paths = Object.keys(sourceHashes);
+  if (
+    paths.length !== Object.keys(buildSourceHashes).length
+    || paths.some((relativePath) => sourceHashes[relativePath] !== buildSourceHashes[relativePath])
+  ) {
+    throw new Error('PID evidence runtime checkout does not match the executing bundle');
+  }
 }
 
 export async function resolvePidEvidenceRuntimeAttestation(options?: {
@@ -62,6 +75,7 @@ export async function resolvePidEvidenceRuntimeAttestation(options?: {
       return [relativePath, createHash('sha256').update(bytes).digest('hex')];
     }),
   ));
+  assertPidEvidenceBuildSourceHashes(sourceHashes);
 
   const [postRevision, postStatus] = await Promise.all([
     git(gitRoot, ['rev-parse', 'HEAD']),

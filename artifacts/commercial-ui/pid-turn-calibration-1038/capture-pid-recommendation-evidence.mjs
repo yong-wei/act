@@ -45,6 +45,7 @@ const boundInputs = [
   'src/resources/simulations/ai-recommend-panel.tsx',
   'src/resources/simulations/lib/monte-carlo-optimizer.ts',
   'src/lib/pid-evidence-runtime-attestation.ts',
+  'src/lib/pid-evidence-runtime-manifest.generated.ts',
   'rust/control-engine/src/virtual_simulation_runtime.rs',
   'src/resources/control-system/wasm/control_engine/index.d.ts',
   'src/resources/control-system/wasm/control_engine/index.js',
@@ -61,7 +62,10 @@ async function hashBoundInputs() {
 
 const sourceHashes = await hashBoundInputs();
 const runtimeSourceHashes = Object.fromEntries(
-  Object.entries(sourceHashes).filter(([path]) => !path.startsWith('artifacts/commercial-ui/')),
+  Object.entries(sourceHashes).filter(([path]) => (
+    !path.startsWith('artifacts/commercial-ui/')
+    && path !== 'src/lib/pid-evidence-runtime-manifest.generated.ts'
+  )),
 );
 
 await mkdir(outputDirectory, { recursive: true });

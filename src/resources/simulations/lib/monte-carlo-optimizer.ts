@@ -524,3 +524,8 @@ export const DEFAULT_TARGET: OptimizationTarget = {
   maxOvershoot: 20,
   minSettlingTime: 90,
 };
+
+export const LEGACY_SCENE_TRACE_TARGET: OptimizationTarget = {
+  ...DEFAULT_TARGET,
+  minSettlingTime: 60,
+};
