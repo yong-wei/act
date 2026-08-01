@@ -110,6 +110,16 @@ describe('Konling conversation library', () => {
     expect(ordinary.assistantBinding).toBeNull();
   });
 
+  it('does not persist client hints for teacher diagnosis', () => {
+    expect(normalizeKonlingConversationAssistantBinding({
+      modeId: 'teacher-diagnosis',
+      clientContextHints: { classId: 'forged-class', diagnosisId: 'forged-diagnosis' },
+    })).toEqual({
+      teachingAssistantModeId: 'teacher-diagnosis',
+      modeClientContextHints: {},
+    });
+  });
+
   it('restores only verified, allowlisted path-advisor hints', () => {
     expect(normalizeKonlingConversationAssistantBinding({
       modeId: 'path-advisor',
