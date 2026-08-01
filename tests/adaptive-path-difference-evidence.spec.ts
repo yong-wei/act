@@ -251,6 +251,8 @@ for (const viewport of [
     await login(context);
     let revised = false;
     let explainCalls = 0;
+    let pathAdvisorContextCalls = 0;
+    let pathRoundCalls = 0;
     const toolRequests: Array<{
       operation?: string;
       selectedOptionId?: string;
@@ -259,18 +261,24 @@ for (const viewport of [
     }> = [];
     // Real page interactions consume deterministic, auditable service fixtures without
     // mutating shared learner or class data.
-    await page.route('**/api/adaptive/learner-state**', (route: Route) => route.fulfill({
+    await context.route('**/api/adaptive/learner-state**', (route: Route) => route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: learnerStateFixture,
     }));
-    await page.route('**/api/adaptive/path-advisor-context?goal=control-correction', (route: Route) => route.fulfill({
+    await context.route(/\/api\/adaptive\/path-advisor-context(?:\?.*)?$/, (route: Route) => {
+      pathAdvisorContextCalls += 1;
+      return route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: pathAdvisorContextFixture,
-    }));
-    await page.route(`**/api/learning-paths/${pathId}`, (route: Route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(pathRound(revised)) }));
-    await page.route('**/api/adaptive/path-advisor-tool', async (route: Route) => {
+      });
+    });
+    await context.route(new RegExp(`/api/learning-paths/${pathId}$`), (route: Route) => {
+      pathRoundCalls += 1;
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(pathRound(revised)) });
+    });
+    await context.route('**/api/adaptive/path-advisor-tool', async (route: Route) => {
       const request = route.request().postDataJSON() as {
         operation?: string;
         selectedOptionId?: string;
@@ -288,6 +296,8 @@ for (const viewport of [
     });
 
     await page.goto(`/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=${pathId}`, { waitUntil: 'domcontentloaded' });
+    await expect.poll(() => pathAdvisorContextCalls, { timeout: 10_000 }).toBeGreaterThan(0);
+    await expect.poll(() => pathRoundCalls, { timeout: 10_000 }).toBeGreaterThan(0);
     const optionCard = page.locator('[data-learning-path-option="path-option-1"]:visible');
     await expect(optionCard).toHaveCount(1);
     await expect(page.locator('[data-adaptive-path-generation-action="open-in-page-path-advisor"]'))
