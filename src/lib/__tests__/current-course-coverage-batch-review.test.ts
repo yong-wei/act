@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 
 import {
   assertCurrentCourseCoverageProductionBoundaryBundle,
@@ -17,6 +18,8 @@ import {
 } from '../aggregate-governance/current-course-coverage-batch-review';
 import { publishCurrentCourseCoverageBatchBundle } from '../../../scripts/course-coverage/review-current-course-coverage-batch';
 import {
+  assertGitAncestor,
+  assertPublishedReplaySnapshot,
   validateCurrentCourseCoverageStageSource,
   validateStageProvenanceBinding,
 } from '../../../scripts/course-coverage/review-current-course-coverage-batch';
@@ -737,5 +740,37 @@ describe('current CourseCoverage batch review receipt', () => {
         normalizedDocumentDigest: bound.document.documentDigest,
       },
     })).toThrow(/provenance\/source binding drift|identity drift/iu);
+  });
+
+  it('accepts descendant replay and rejects non-ancestor or protected-path drift', () => {
+    const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+    const parent = execFileSync('git', ['rev-parse', 'HEAD^'], { encoding: 'utf8' }).trim();
+    expect(() => assertGitAncestor(parent, head)).not.toThrow();
+    expect(() => assertGitAncestor(head, parent)).toThrow(/not an ancestor/iu);
+
+    const protectedPaths = [
+      'course-content/authoring/knowledge/course-coverage/active/automatic-control.json',
+      'course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json',
+      'src/lib/canonical-rag/authority.ts',
+      'src/lib/canonical-learning-fact-identity/authority.ts',
+      'src/lib/canonical-learning-fact-identity/capability.ts',
+      'src/lib/canonical-learning-fact-identity/writer.ts',
+    ];
+    const replayReceipt = receipt();
+    replayReceipt.productionBoundaryProof.protectedPaths = protectedPaths;
+    const replayAttestation = attestationFor(replayReceipt);
+    const snapshot = {
+      currentHead: head,
+      status: [],
+      snapshotDigest: replayAttestation.authoritySnapshotBeforeDigest,
+    };
+    expect(() => assertPublishedReplaySnapshot(replayReceipt, replayAttestation, snapshot)).not.toThrow();
+    expect(() => assertPublishedReplaySnapshot(replayReceipt, replayAttestation, {
+      ...snapshot,
+      snapshotDigest: SHA_B,
+    })).toThrow(/snapshot drifted/iu);
+    replayReceipt.productionBoundaryProof.protectedPaths = ['src/lib/canonical-rag/authority.ts'];
+    expect(() => assertPublishedReplaySnapshot(replayReceipt, replayAttestation, snapshot))
+      .toThrow(/protected authority path set drifted/iu);
   });
 });

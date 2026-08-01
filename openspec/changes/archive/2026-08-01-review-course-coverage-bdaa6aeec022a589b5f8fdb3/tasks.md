@@ -14,6 +14,7 @@
 
 - [x] Emit a deterministic machine-mergeable receipt keyed by batchId and every binding digest.
 - [x] Prove the receipt contains no member outside the frozen ordered slice and no production selector/writer-fence mutation; publish a detached post-publication boundary attestation.
+- [x] Support immutable post-publication replay after a descendant commit by validating the existing source/stage/receipt/attestation closure, capture-HEAD ancestry, and protected authority bytes without recomputing a new receipt.
 
 ## 4. Validate
 

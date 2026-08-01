@@ -48,6 +48,12 @@ export interface ProductionAuthoritySnapshot {
   snapshotDigest: string;
 }
 
+interface PublishedReplaySnapshot {
+  currentHead: string;
+  status: string[];
+  snapshotDigest: string;
+}
+
 type Publication = 'published' | 'identical';
 
 interface IndependentStageSourceMember {
@@ -158,6 +164,67 @@ function statusLines(output: string): string[] {
 
 function sha256(value: string | Buffer): string {
   return createHash('sha256').update(value).digest('hex');
+}
+
+export function assertGitAncestor(ancestor: string, descendant: string): void {
+  if (!/^[a-f0-9]{40}$/u.test(ancestor) || !/^[a-f0-9]{40}$/u.test(descendant)) {
+    throw new Error('Current batch review rejected: replay Git revisions are invalid');
+  }
+  const result = spawnSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+    cwd: ROOT,
+    stdio: 'ignore',
+  });
+  if (result.status !== 0) {
+    throw new Error('Current batch review rejected: published receipt capture HEAD is not an ancestor of current HEAD');
+  }
+}
+
+async function capturePublishedReplaySnapshot(capturedHead: string): Promise<PublishedReplaySnapshot> {
+  const currentHead = String(git(['rev-parse', '--verify', 'HEAD'])).trim();
+  assertGitAncestor(capturedHead, currentHead);
+  git(['diff', '--check', '--', ...PROTECTED_PRODUCTION_AUTHORITY_PATHS]);
+  const status = statusLines(String(git([
+    'status', '--porcelain=v1', '--untracked-files=all', '--', ...PROTECTED_PRODUCTION_AUTHORITY_PATHS,
+  ])));
+  if (status.length > 0) {
+    throw new Error(`Current batch review rejected: protected authority paths are dirty during replay: ${status.join(', ')}`);
+  }
+  const rows = await Promise.all(PROTECTED_PRODUCTION_AUTHORITY_PATHS.map(async (relativePath) => {
+    const workingTreeBytes = await readFile(absolute(relativePath));
+    const captureHeadBytes = git(['show', `${capturedHead}:${relativePath}`], 'buffer');
+    if (!Buffer.isBuffer(captureHeadBytes)) {
+      throw new Error(`Current batch review rejected: captured Git blob is not binary: ${relativePath}`);
+    }
+    const workingTreeDigest = sha256(workingTreeBytes);
+    const captureHeadDigest = sha256(captureHeadBytes);
+    if (workingTreeDigest !== captureHeadDigest) {
+      throw new Error(`Current batch review rejected: protected authority bytes drifted from capture HEAD at ${relativePath}`);
+    }
+    return {
+      relativePath,
+      workingTreeDigest,
+      headDigest: captureHeadDigest,
+    };
+  }));
+  return {
+    currentHead,
+    status,
+    snapshotDigest: sha256(stableStringify({ head: capturedHead, rows })),
+  };
+}
+
+export function assertPublishedReplaySnapshot(
+  receipt: CurrentCourseCoverageBatchReceipt,
+  attestation: CurrentCourseCoverageProductionBoundaryAttestation,
+  snapshot: PublishedReplaySnapshot,
+): void {
+  const proof = receipt.productionBoundaryProof;
+  if (stableStringify(proof.protectedPaths) !== stableStringify([...PROTECTED_PRODUCTION_AUTHORITY_PATHS])) {
+    throw new Error('Current batch review rejected: published protected authority path set drifted');
+  }
+  if (snapshot.status.length > 0 || snapshot.snapshotDigest !== attestation.authoritySnapshotBeforeDigest) {
+    throw new Error('Current batch review rejected: protected authority snapshot drifted during replay');
+  }
 }
 
 export async function captureProductionAuthoritySnapshot(): Promise<ProductionAuthoritySnapshot> {
@@ -510,7 +577,6 @@ async function main(): Promise<void> {
   assertSafeAttestationOutput(attestationOutput);
   const receiptPath = repoRelative(receiptOutput);
   const attestationPath = repoRelative(attestationOutput);
-  const boundaryBefore = await captureProductionAuthoritySnapshot();
   const manifestBytes = await readFile(absolute(input.manifest));
   const worklist = await json<CurrentCourseCoverageWorklist>(input.worklist);
   const manifest = JSON.parse(manifestBytes.toString('utf8')) as CurrentReviewBatchManifest;
@@ -533,16 +599,54 @@ async function main(): Promise<void> {
     await validateStageSourceFile(third);
     if (provenance) validateStageProvenanceBinding(third, provenance);
   }
-  const receipt = buildCurrentCourseCoverageBatchReceipt({
-    worklist,
-    manifest,
-    expectedBinding: input.expectedBinding,
-    observedManifestArtifactSha256: createHash('sha256').update(manifestBytes).digest('hex'),
-    primary,
-    challenger,
-    third,
-    productionBoundaryProof: productionBoundaryProof(boundaryBefore, receiptPath, attestationPath),
-  });
+  const receiptExists = await exists(receiptOutput);
+  const attestationExists = await exists(attestationOutput);
+  if (receiptExists !== attestationExists) {
+    throw new Error('Current batch review rejected: published receipt/attestation pair is incomplete');
+  }
+
+  const buildReceipt = (productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof): CurrentCourseCoverageBatchReceipt =>
+    buildCurrentCourseCoverageBatchReceipt({
+      worklist,
+      manifest,
+      expectedBinding: input.expectedBinding,
+      observedManifestArtifactSha256: createHash('sha256').update(manifestBytes).digest('hex'),
+      primary,
+      challenger,
+      third,
+      productionBoundaryProof,
+    });
+
+  if (receiptExists && attestationExists) {
+    const persistedReceipt = JSON.parse(await readFile(receiptOutput, 'utf8')) as CurrentCourseCoverageBatchReceipt;
+    const persistedAttestation = JSON.parse(await readFile(attestationOutput, 'utf8')) as CurrentCourseCoverageProductionBoundaryAttestation;
+    assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: persistedReceipt,
+      attestation: persistedAttestation,
+      receiptPath,
+      attestationPath,
+    });
+    const rebuiltReceipt = buildReceipt(persistedReceipt.productionBoundaryProof);
+    if (stableStringify(rebuiltReceipt) !== stableStringify(persistedReceipt)) {
+      throw new Error('Current batch review rejected: published receipt source/stage closure differs from current inputs');
+    }
+    const replaySnapshot = await capturePublishedReplaySnapshot(persistedAttestation.headBefore);
+    assertPublishedReplaySnapshot(persistedReceipt, persistedAttestation, replaySnapshot);
+    process.stdout.write(`${stableStringify({
+      status: persistedReceipt.status,
+      batchId: persistedReceipt.batchBinding.batchId,
+      receiptDigest: persistedReceipt.receiptDigest,
+      output: input.output,
+      publication: 'identical' as const,
+      attestation: attestationPath,
+      attestationDigest: persistedAttestation.attestationDigest,
+      attestationPublication: 'identical' as const,
+    })}\n`);
+    return;
+  }
+
+  const boundaryBefore = await captureProductionAuthoritySnapshot();
+  const receipt = buildReceipt(productionBoundaryProof(boundaryBefore, receiptPath, attestationPath));
   const bytes = `${JSON.stringify(receipt, null, 2)}\n`;
   const bundle = await publishCurrentCourseCoverageBatchBundle({
     receiptOutput,
