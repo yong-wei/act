@@ -10,9 +10,9 @@ import {
   type RuntimeLessonResourceCatalogEntry,
 } from '@/lib/course-runtime';
 import {
-  loadAllTextbookRuntimeResourceCatalogEntries,
-  type TextbookRuntimeResourceCatalogEntry,
-} from '@/lib/textbook-runtime-resources';
+  loadAllTextbookStructureRuntimeCatalogEntries,
+  type TextbookStructureRuntimeCatalogEntry,
+} from '@/lib/structured-textbook-runtime';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import {
   buildResourceNodeRegistryFromTeachingResources,
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     const registeredResources = getAllRegisteredResourceMetadata();
     const [runtimeLessons, runtimeTextbooks, runtimeResourceProjections] = await Promise.all([
       loadAllLessonRuntimeResourceCatalogEntries(),
-      loadAllTextbookRuntimeResourceCatalogEntries(),
+      loadAllTextbookStructureRuntimeCatalogEntries(),
       loadRuntimeResourceProjectionInputs(),
     ]);
     const registry = buildResourceNodeRegistryFromTeachingResources(
@@ -247,7 +247,7 @@ function createScope(
   resources: ReadonlyArray<{ id: string; knowledgeNodes?: Array<{ id: string }> }>,
   registeredResources: ReadonlyArray<{ id: string }>,
   runtimeLessons: ReadonlyArray<RuntimeLessonResourceCatalogEntry>,
-  runtimeTextbooks: ReadonlyArray<TextbookRuntimeResourceCatalogEntry>,
+  runtimeTextbooks: ReadonlyArray<TextbookStructureRuntimeCatalogEntry>,
   runtimeResourceProjections: ReadonlyArray<RuntimeResourceProjectionInput>,
 ): TeacherResourceNodeScope {
   const resourceIds = resources.map((resource) => resource.id);
@@ -270,11 +270,11 @@ function createScope(
   ].filter((value): value is string => Boolean(value)));
   const textbookSourceRefs = runtimeTextbooks.flatMap((entry) => [
     entry.textbook.bookId,
-    ...entry.sections.map((section) => `${entry.textbook.bookId}:${section.sectionId}`),
-    ...entry.sections.map((section) => `textbook-section:${entry.textbook.bookId}:${section.sectionId}`),
+    ...entry.units.map((unit) => `${entry.textbook.bookId}:${unit.unitId}`),
+    ...entry.units.map((unit) => unit.unitId),
   ]);
   const textbookKnowledgeNodeIds = runtimeTextbooks.flatMap((entry) =>
-    entry.sections.flatMap((section) => section.knowledgeNodeIds ?? [])
+    entry.units.flatMap((unit) => unit.knowledgeNodeIds ?? [])
   );
   const textbookKnowledgeCardIds = textbookKnowledgeNodeIds.map((id) => `${id}:card`);
   return {

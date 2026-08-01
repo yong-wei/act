@@ -17,7 +17,7 @@ import { GET as GET_FINALIZE_ROUTE, POST as FINALIZE_ROUTE } from '@/app/api/stu
 const enabled = process.env.SUBMISSION_REAL_DB_TEST === '1';
 const schemaName = `assignment902_it_${process.pid}_${randomBytes(4).toString('hex')}`;
 const teacherId = 'assignment902-teacher'; const studentId = 'assignment902-student'; const otherStudentId = 'assignment902-other'; const classId = 'assignment902-class';
-let adminUrl = ''; let assignmentId = ''; let textQuestionId = ''; let fileQuestionId = ''; let store: MemorySubmissionObjectStore;
+let adminUrl = ''; let assignmentId = ''; let firstRevisionId = ''; let textQuestionId = ''; let fileQuestionId = ''; let store: MemorySubmissionObjectStore;
 
 describe.runIf(enabled)('student assignment isolated PostgreSQL integration', () => {
   beforeAll(async () => {
@@ -32,7 +32,7 @@ describe.runIf(enabled)('student assignment isolated PostgreSQL integration', ()
     await prisma.class.create({ data: { id: classId, name: '902班', code: 'A902IT', teacherId } });
     await prisma.studentProfile.createMany({ data: [{ userId: studentId, classId }, { userId: otherStudentId, classId }] });
     const assignment = await prisma.assignment.create({ data: { authorId: teacherId, state: 'PUBLISHED', revisions: { create: { revisionNumber: 1, state: 'PUBLISHED', title: '逐题作业', instructions: '分别提交', totalPoints: 2, latePolicy: { version: 1, mode: 'CLOSED' }, responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT', 'SUBJECTIVE_FILE'] }, resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true }, solutionReleasePolicy: { version: 1, mode: 'PRIVATE' }, publishedAt: new Date(), frozenAt: new Date(), questions: { create: [question('q-text', 0, 'SUBJECTIVE_TEXT'), question('q-file', 1, 'SUBJECTIVE_FILE')] }, audiences: { create: { classId, availableAt: new Date(Date.now() - 60_000), dueAt: new Date(Date.now() + 3_600_000) } } } } }, include: { revisions: { include: { questions: true } } } });
-    assignmentId = assignment.id; textQuestionId = assignment.revisions[0].questions.find((q) => q.stableQuestionId === 'q-text')!.id; fileQuestionId = assignment.revisions[0].questions.find((q) => q.stableQuestionId === 'q-file')!.id; store = getLocalTestSubmissionObjectStore(); process.env.NEXTAUTH_URL = 'https://assignment902.test'; getServerAuthSession.mockResolvedValue({ user: { id: studentId, role: 'STUDENT' } });
+    assignmentId = assignment.id; firstRevisionId = assignment.revisions[0].id; textQuestionId = assignment.revisions[0].questions.find((q) => q.stableQuestionId === 'q-text')!.id; fileQuestionId = assignment.revisions[0].questions.find((q) => q.stableQuestionId === 'q-file')!.id; store = getLocalTestSubmissionObjectStore(); process.env.NEXTAUTH_URL = 'https://assignment902.test'; getServerAuthSession.mockResolvedValue({ user: { id: studentId, role: 'STUDENT' } });
   });
   afterAll(async () => { await prisma.$disconnect(); if (!adminUrl) return; const pool = new Pool({ connectionString: adminUrl }); try { await pool.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`); } finally { await pool.end(); } });
 
@@ -45,7 +45,7 @@ describe.runIf(enabled)('student assignment isolated PostgreSQL integration', ()
   });
 
   it('finalizes one file idempotently, enforces path binding, and seals questions independently', async () => {
-    const uploadedBytes = new Uint8Array(12).fill(1); const checksum = `sha256:${createHash('sha256').update(uploadedBytes).digest('hex')}`;
+    const uploadedBytes = new TextEncoder().encode('%PDF-1.7\nEOF'); const checksum = `sha256:${createHash('sha256').update(uploadedBytes).digest('hex')}`;
     const missingSigned = await signQuestionUpload(prisma, store, { studentId, assignmentId, questionId: fileQuestionId, fileName: 'not-uploaded.pdf', mimeType: 'application/pdf', sizeBytes: 12, checksum });
     const [signed, raceSigned] = await Promise.all([
       signQuestionUpload(prisma, store, { studentId, assignmentId, questionId: fileQuestionId, fileName: 'q2.pdf', mimeType: 'application/pdf', sizeBytes: 12, checksum }),
@@ -140,6 +140,9 @@ describe.runIf(enabled)('student assignment isolated PostgreSQL integration', ()
     await prisma.assignmentRevision.create({ data: { assignmentId, revisionNumber: 2, state: 'PUBLISHED', title: '新版本', instructions: '不应遮蔽历史', totalPoints: 1, latePolicy: { version: 1, mode: 'CLOSED' }, responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] }, resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true }, solutionReleasePolicy: { version: 1, mode: 'PRIVATE' }, publishedAt: new Date(), frozenAt: new Date(), questions: { create: question('q-new', 0, 'SUBJECTIVE_TEXT') }, audiences: { create: { classId, availableAt: new Date(), dueAt: new Date(Date.now() + 3_600_000) } } } });
     const detail = await getStudentAssignment(prisma, studentId, assignmentId);
     expect(detail.title).toBe('逐题作业'); expect(detail.contextStatus).toBe('HISTORICAL'); expect(detail.canMutate).toBe(false);
+    await prisma.studentProfile.update({ where: { userId: studentId }, data: { classId } });
+    await expect(getStudentAssignment(prisma, studentId, assignmentId)).resolves.toMatchObject({ title: '新版本', contextStatus: 'CURRENT' });
+    await expect(getStudentAssignment(prisma, studentId, assignmentId, new Date(), firstRevisionId)).resolves.toMatchObject({ title: '逐题作业', revisionId: firstRevisionId, contextStatus: 'HISTORICAL', canMutate: false });
   });
 
   it('rejects closed deadlines without creating another question mutation', async () => {

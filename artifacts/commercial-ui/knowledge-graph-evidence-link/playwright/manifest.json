@@ -1,0 +1,63 @@
+{
+  "captureSourceSha": "16346e89904b0a73f35d10c21dc206c1249595c5",
+  "capturedAt": "2026-07-30T09:24:26.279Z",
+  "toolVersion": "Codex desktop / Playwright 1.60.0",
+  "verificationCommands": {
+    "unitTest": "npx vitest run src/features/knowledge/__tests__/resource-panel-relation-behavior.client.test.ts",
+    "unitTestResult": "8 passed (8)",
+    "typecheck": "npx tsc --noEmit --pretty false",
+    "typecheckResult": "0 errors",
+    "playwright": "npx playwright test tests/knowledge-graph-evidence-link.spec.ts --reporter=list",
+    "playwrightResult": "2 passed (15.8s)"
+  },
+  "screenshots": [
+    {
+      "file": "evidence-with-node-1280.png",
+      "size": 50659,
+      "sha256": "0c6b0aaa479af05c293e37ef9fa2b4475fde2726aface84125fbbf59e025c862",
+      "capturedAt": "2026-07-30T09:24:05.436Z"
+    },
+    {
+      "file": "evidence-with-node-320.png",
+      "size": 35797,
+      "sha256": "2d223e52271585b6bd832c02df3b3ac64498d632a41b826fe5f607782b527f70",
+      "capturedAt": "2026-07-30T09:24:05.364Z"
+    },
+    {
+      "file": "evidence-without-node-1280.png",
+      "size": 50513,
+      "sha256": "55ef52592ff4845b119a7146a62acf412f36f009d2266288f06785706c628206",
+      "capturedAt": "2026-07-30T09:24:07.209Z"
+    },
+    {
+      "file": "evidence-without-node-320.png",
+      "size": 35681,
+      "sha256": "ae661f6feb490f805a0774d82a3871cb862fbc48a313527570bf0e42ec6908e3",
+      "capturedAt": "2026-07-30T09:24:07.180Z"
+    },
+    {
+      "file": "knowledge-reactivated-1280.png",
+      "size": 78466,
+      "sha256": "85e6897ca38c25c8a8397e5478f51f5e564565b0347bc20db108760a14dc1c45",
+      "capturedAt": "2026-07-30T09:24:06.505Z"
+    },
+    {
+      "file": "knowledge-reactivated-320.png",
+      "size": 46338,
+      "sha256": "1b4e520fddd1b40f3389a302b1e7dbc7d05211c59a2a9cdad1f720fe40c31c35",
+      "capturedAt": "2026-07-30T09:24:06.466Z"
+    },
+    {
+      "file": "knowledge-selected-1280.png",
+      "size": 83840,
+      "sha256": "7bfc9fb725ebc59d86bdb55dd2a2e12b371c1798825aabfeae4c2a6877a5ed09",
+      "capturedAt": "2026-07-30T09:24:03.613Z"
+    },
+    {
+      "file": "knowledge-selected-320.png",
+      "size": 48057,
+      "sha256": "69fc098b9cbaa4cfa64efa48689d17cc518b07f5b13bd2c5bcc626f6bed58d4a",
+      "capturedAt": "2026-07-30T09:24:03.850Z"
+    }
+  ]
+}

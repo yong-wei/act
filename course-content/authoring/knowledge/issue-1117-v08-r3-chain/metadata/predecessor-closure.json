@@ -1,0 +1,33 @@
+{
+  "algorithm_version": "sha256sums-legacy-exact-root/1",
+  "artifact_hash": "41745f666ae98bc7944bb9d5c5fd0045e3b06043df7e87b61d198bc4cb540138",
+  "authority_implementation": "src/ctkg_schema/section_kg/m1k_v1d_predecessors.py",
+  "authority_protocol": "ctkg-m1k-v1d-predecessor-closure/1",
+  "bundle_id": "ctb:control-theory-engineering-v0.3:r1",
+  "bundle_path": "releases/control-theory-engineering-v0.3",
+  "consumer_binding": {
+    "consumer_bundle_id": "ctb:control-theory-engineering-v0.3:r2",
+    "field": "previous_bundle",
+    "manifest_path": "releases/control-theory-engineering-v0.3-r2/bundle-manifest.json",
+    "manifest_sha256": "e5499fc08da9386dee098a84785b6ae721d3c94cef9b948a2491a80992ebc09a",
+    "value": {
+      "bundle_id": "ctb:control-theory-engineering-v0.3:r1",
+      "kind": "legacy_exact",
+      "sha256sums_sha256": "f600413e68f2bcb69416b4a76ac2dabcf0838f76dc0a7a483ab1e43abbc9dc95"
+    }
+  },
+  "contract_version": "actkg-legacy-predecessor-root-closure/1",
+  "gates": {
+    "BUNDLE_ID_BINDING_GATE": "PASS",
+    "CONSUMER_PREDECESSOR_BINDING_GATE": "PASS",
+    "LEGACY_LAYOUT_GATE": "PASS",
+    "MEMBER_CHECKSUM_GATE": "PASS",
+    "SHA256SUMS_RAW_BINDING_GATE": "PASS"
+  },
+  "member_checksum_count": 8,
+  "reference_kind": "legacy_exact",
+  "release_version": "control-theory-engineering-v0.3",
+  "sha256sums_path": "releases/control-theory-engineering-v0.3/SHA256SUMS",
+  "sha256sums_raw_sha256": "f600413e68f2bcb69416b4a76ac2dabcf0838f76dc0a7a483ab1e43abbc9dc95",
+  "status": "PASS"
+}

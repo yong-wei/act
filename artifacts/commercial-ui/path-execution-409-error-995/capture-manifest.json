@@ -1,0 +1,49 @@
+{
+  "capturedAt": "2026-07-30T08:32:50.637Z",
+  "commit": "794a076159802dac97ac496f1f04a3d25e4591fc",
+  "baseUrl": "http://localhost:3000",
+  "captures": [
+    {
+      "name": "path-execution-409-desktop",
+      "file": "artifacts/commercial-ui/path-execution-409-error-995/path-execution-409-desktop.png",
+      "sha256": "9ba4839709bd98d98ac480f352e685f76044683f0746e2d154a56979a67a9d14",
+      "signals": {
+        "executionError": true,
+        "errorText": "路径操作未能完成执行事件只能写入当前路径节点刷新路径状态",
+        "refreshButton": true,
+        "executionSurface": true,
+        "nodeActions": 1,
+        "pathNodeCount": 3,
+        "overflowX": false
+      }
+    },
+    {
+      "name": "path-refresh-success",
+      "file": "artifacts/commercial-ui/path-execution-409-error-995/path-refresh-success.png",
+      "sha256": "19684b2b6fee7cea91b46b7b50bfd0d5e95134b7d95db671cea97890bb73a2a7",
+      "signals": {
+        "executionError": false,
+        "errorText": null,
+        "refreshButton": false,
+        "executionSurface": true,
+        "nodeActions": 1,
+        "pathNodeCount": 3,
+        "overflowX": false
+      }
+    },
+    {
+      "name": "path-execution-409-mobile",
+      "file": "artifacts/commercial-ui/path-execution-409-error-995/path-execution-409-mobile.png",
+      "sha256": "afc28f3381b2092342f8b644a76680e20620fcb4e271c0afa946a2dc930bd411",
+      "signals": {
+        "executionError": true,
+        "errorText": "路径操作未能完成执行事件只能写入当前路径节点刷新路径状态",
+        "refreshButton": true,
+        "executionSurface": true,
+        "nodeActions": 1,
+        "pathNodeCount": 3,
+        "overflowX": false
+      }
+    }
+  ]
+}

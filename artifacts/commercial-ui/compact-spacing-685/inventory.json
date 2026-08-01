@@ -59,6 +59,14 @@
       "removalCondition": "Permanent citation reader exception."
     },
     {
+      "path": "src/features/textbook-reader/textbook-reader.tsx",
+      "owner": "build-unified-textbook-reader",
+      "scope": "Dedicated textbook reader hierarchy, prose, and adjacent-unit measures",
+      "classification": "component-intrinsic-exception",
+      "reason": "The standalone and modal reader use bounded navigation columns and an 860px prose measure for sustained textbook reading; these widths belong to the reader component rather than the platform page frame.",
+      "removalCondition": "Remove if the textbook reader adopts a shared reader-layout component that owns the same intrinsic hierarchy and prose measures."
+    },
+    {
       "path": "src/app/interactive-learning/resources/[id]/page.tsx",
       "owner": "redesign-adaptive-path-continuous-journey",
       "scope": "Legacy interactive resource detail route frame",

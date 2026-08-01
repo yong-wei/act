@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '@prisma/client';
 
 import type { GeneratedSlideManifest, GeneratedSlideModule } from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
+import { adoptCourseBasisVersion } from '@/lib/course-basis/service';
 import { contentHash, normalizeSourceBindings } from '@/lib/smart-lesson-plan/domain';
 import { smartLessonAdvisoryReviewSchema, validateSmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 
@@ -35,15 +36,19 @@ export async function createSmartCoursewareDraft(db: CoursewareDb, input: {
   const planRevisionId = validateId(input.planRevisionId);
   const idempotencyKey = validateIdempotencyKey(input.idempotencyKey);
   const requestHash = contentHash({ planRevisionId });
+
+  const revision = await db.smartLessonRevision.findFirst({
+    where: { id: planRevisionId, ownerId: actor.id },
+    include: { task: { select: { revision: true } } },
+  });
+  if (!revision) throw new SmartCoursewareError('approved-plan-revision-not-found', 404);
+  if (revision.taskRevision !== revision.task.revision) {
+    throw new SmartCoursewareError('approved-plan-revision-stale', 409);
+  }
   const replay = await db.smartCoursewareDraft.findFirst({
     where: { ownerId: actor.id, creationIdempotencyKey: idempotencyKey },
   });
   if (replay) return assertCreateReplay(replay, requestHash);
-
-  const revision = await db.smartLessonRevision.findFirst({
-    where: { id: planRevisionId, ownerId: actor.id },
-  });
-  if (!revision) throw new SmartCoursewareError('approved-plan-revision-not-found', 404);
   validateSmartLessonPlan(revision.content);
   if (contentHash(revision.content) !== revision.contentHash) {
     throw new SmartCoursewareError('approved-plan-revision-hash-mismatch', 409);
@@ -357,18 +362,27 @@ export async function approveSmartCoursewareDraft(db: CoursewareDb, input: {
         approvalRequestHash: approvalHash,
         approvedById: actor.id,
       } });
-      const versionIds = [...new Set([
-        ...plan.sources.map((binding) => binding.sourceVersionId),
-        ...moduleMetadata.flatMap((module) => module.sourceBindings.map((binding) => binding.sourceVersionId)),
-      ])];
-      await tx.courseBasisReferenceLink.createMany({
-        data: versionIds.map((versionId) => ({
+      const bindingsByVersion = new Map<string, ReturnType<typeof normalizeSourceBindings>>();
+      for (const binding of normalizeSourceBindings([
+        ...plan.sources,
+        ...moduleMetadata.flatMap((module) => module.sourceBindings),
+      ])) {
+        bindingsByVersion.set(
+          binding.sourceVersionId,
+          [...(bindingsByVersion.get(binding.sourceVersionId) ?? []), binding],
+        );
+      }
+      for (const [versionId, bindings] of bindingsByVersion) {
+        await adoptCourseBasisVersion(tx, {
+          actor,
           versionId,
-          referenceType: 'COURSEWARE_REVISION' as const,
-          referenceId: revision.id,
-        })),
-        skipDuplicates: true,
-      });
+          adopter: { referenceType: 'COURSEWARE_REVISION', referenceId: revision.id },
+          anchors: bindings.map((binding) => ({
+            stableAnchor: binding.anchor,
+            contentHash: binding.contentHash,
+          })),
+        });
+      }
       return revision;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   } catch (error) {

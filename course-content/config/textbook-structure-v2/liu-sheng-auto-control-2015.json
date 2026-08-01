@@ -1,0 +1,535 @@
+{
+  "configVersion": "textbook-structure-parser.v2",
+  "resourceId": "liu-sheng-auto-control-2015",
+  "sourceKind": "textbook",
+  "edition": "2015版",
+  "markdownHeadingLevels": { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6 },
+  "enabledNumberingRules": ["chinese-chapter", "chinese-example", "solution-boundary", "arabic-compound", "arabic-ordinal", "parenthesized"],
+  "allowLevelSkips": false,
+  "unnumberedHeadingPolicy": "ordinal-within-parent",
+  "atomicRegions": ["fenced-code", "display-math"],
+  "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
+  "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
+  "reviewLedger": "review-ledgers/liu-sheng-auto-control-2015.json",
+  "reviewSourceDigest": "sha256:73754b71c9d88f044d45b671f650c2f956f1fa22f766edffec3cf1cae8527a3a",
+  "overrides": [
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 479
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-1",
+      "reason": "This numbered heading is the first child classification under section 1.5.3, not a sibling subsection."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 502
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "system-type-1",
+      "reason": "This starts the continuous/discrete classification under section 1.5.4 and is distinct from earlier item 1 classifications."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 517
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "io-cardinality-1",
+      "reason": "This starts the SISO/MIMO classification under section 1.5.5 and is distinct from earlier item 1 classifications."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 520
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "io-cardinality-2",
+      "reason": "This is the MIMO sibling in the section 1.5.5 classification."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 533
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "certainty-class-1",
+      "reason": "This starts the deterministic/uncertain classification under section 1.5.6."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 548
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "parameter-distribution-2",
+      "reason": "This is the distributed-parameter sibling under section 1.5.7 and is distinct from earlier item 2 classifications."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1443
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "advance-theorem-solution-2",
+      "reason": "This is solution part 2 for the advance theorem and is distinct from earlier solution item 2 under the Mathpix heading."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1800
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "z-transform-method-3",
+      "reason": "This starts z-transform method 3 and is distinct from nested item 3 in the preceding method."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1920
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "s-plane-mapping-2",
+      "reason": "This starts mapping topic 2 and is distinct from earlier item 2 in section 2.6."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1924
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "s-plane-mapping-3",
+      "reason": "This is mapping topic 3 and is distinct from earlier item 3 in section 2.6."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 1596
+      },
+      "action": "ignore-boundary",
+      "reason": "This sentence refers back to Example 5.4 while discussing root-locus performance; it is not a new example boundary."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 1656
+      },
+      "action": "ignore-boundary",
+      "reason": "This sentence refers back to Example 5.12 in explanatory prose; it is not a new example boundary."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-06/textbook.md",
+        "line": 2085
+      },
+      "action": "ignore-boundary",
+      "reason": "This sentence summarizes Examples 6.15 and 6.18; it is not a new example boundary."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1207
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "z-transform-method-2",
+      "reason": "部分分式法是 z 变换求法的第二种方法，应结束例2.6边界；后续四级编号属于该方法。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1273
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "z-transform-method-3",
+      "reason": "留数计算法是 z 变换求法的第三种方法，应结束例2.8边界。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-03/textbook.md",
+        "line": 908
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "transfer-function-method-2",
+      "reason": "间接法是传递函数求取的第二种方法，应结束例3.7边界；后续三级步骤应成为其子项。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-03/textbook.md",
+        "line": 1880
+      },
+      "action": "ignore-boundary",
+      "reason": "该行是扫描页眉“自动控制原理”的 OCR 变体，不是教材结构边界；保留3.4.2信号流图的有效父级。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-03/textbook.md",
+        "line": 1996
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "signal-flow-drawing-method-2",
+      "reason": "依据结构图绘制信号流图是第二种绘制方法，应结束例3.14边界；后续编号步骤属于该方法。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-04/textbook.md",
+        "line": 1375
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-2",
+      "reason": "该长行是例4.4解答中的第二个编号分析项，因长度和公式未被默认规则识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 587
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-1",
+      "reason": "该行以行内公式开头，是例5.4解答的第一步，默认编号规则未识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 588
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-2",
+      "reason": "该长行是例5.4解答的第二步，默认编号规则未识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 656
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "root-locus-separation-extremum-method",
+      "reason": "极值法是根轨迹分离点的第一种求法，不属于例5.4解答。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 699
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "root-locus-separation-classical-method",
+      "reason": "经典法是根轨迹分离点的第二种求法，应与极值法同级，不属于例5.4解答。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 780
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-1",
+      "reason": "该行以公式开头，是例5.5解答的第一步，默认编号规则未识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 783
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-4",
+      "reason": "该行以公式开头，是例5.5解答的第四步，默认编号规则未识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 789
+      },
+      "action": "ignore-boundary",
+      "reason": "“206.6°”是上一行角度计算的 OCR 续行，不是章节或编号边界。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 1062
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-4",
+      "reason": "该长行是例5.8解答的第四步，默认编号规则未识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 1485
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-3",
+      "reason": "该长行是例5.13解答的第三步，默认编号规则未识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-05/textbook.md",
+        "line": 1720
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "closed-loop-performance-factor-7",
+      "reason": "稳态误差是闭环零极点性能归纳的第七项，必须结束插入的例5.15边界。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-06/textbook.md",
+        "line": 1204
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-3",
+      "reason": "该长行是例6.8第一组绘图步骤的第三步，默认编号规则未识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-06/textbook.md",
+        "line": 1205
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-4",
+      "reason": "该长行是例6.8第一组绘图步骤的第四步，默认编号规则未识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-06/textbook.md",
+        "line": 1244
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "general-step-4",
+      "reason": "该长行是例6.8第二组一般绘图步骤的第四步，使用独立路径分量避免与前一组item-4混同。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-06/textbook.md",
+        "line": 1788
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "imaginary-axis-pole-case-2",
+      "reason": "等幅振荡环节是虚轴极点奈奎斯特处理的第二种情形，应结束例6.13边界。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-07/textbook.md",
+        "line": 2666
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-3",
+      "reason": "该长行是例7.13解答的第三步，默认编号规则未识别。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 436
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "difference-equation-solution-method-2",
+      "reason": "z变换法是线性常系数差分方程的第二种求解方法，应结束例9.2边界；后续编号步骤属于该方法。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 675
+      },
+      "action": "ignore-boundary",
+      "reason": "该行是重复页眉“自动控制原理”，不是结构边界；保留9.3.2及“开环系统脉冲传递函数”的父级链。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 819
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "open-loop-pulse-transfer-case-3",
+      "reason": "第三种开环情形应为703行主题的四级子项，不应提升为三级。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 890
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "open-loop-pulse-transfer-case-4",
+      "reason": "第四种开环情形应为703行主题的四级子项；修正后923行第4节与703行第3节连续。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 1679
+      },
+      "action": "ignore-boundary",
+      "reason": "该行是重复页眉“自动控制原理”，不是结构边界；保留9.5.1动态响应的有效父级。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 1917
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "closed-loop-pole-response-case-2",
+      "reason": "共轭复数闭环极点是动态响应分类的第二种情形，应结束例9.18边界。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 2260
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "controller-discretization-method-2",
+      "reason": "差分变换法是模拟控制器离散化的第二种方法，应结束例9.20边界；后续四种方法项属于该边界。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 2411
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "subsection",
+      "pathComponent": "controller-discretization-method-characteristics",
+      "reason": "“各种方法的主要特点”是差分变换法内的汇总小节；设为非item边界后，后续四条特点才能稳定形成第五级子项。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 2413
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "method-characteristic-1",
+      "reason": "该行是“各种方法的主要特点”下的第一条，而不是与该标题同级。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 2415
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "method-characteristic-2",
+      "reason": "该行是“各种方法的主要特点”下的第二条，而不是与该标题同级。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 2417
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "method-characteristic-3",
+      "reason": "该行是“各种方法的主要特点”下的第三条，而不是与该标题同级。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 2424
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "method-characteristic-4",
+      "reason": "该行是“各种方法的主要特点”下的第四条，而不是与该标题同级。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-03/textbook.md",
+        "line": 1875
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-7",
+      "reason": "补回信号流图常用术语第7项“前向通路”，恢复原文编号结构。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 804
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.8",
+      "reason": "例9.8属于开环系统脉冲传递函数的第三个主题，保持四级父链。"
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-09/textbook.md",
+        "line": 860
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "example",
+      "pathComponent": "example-9.9",
+      "reason": "例9.9属于第三种开环情形后的示例，保持四级父链。"
+    }
+  ]
+}

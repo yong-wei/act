@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import { garbageCollectSourceAssets } from '@/lib/assignments/submission-service';
-import { assertRetentionCleanupClaim, claimGradingTombstone, clearReverseGradingLineage, completeGradingTombstone, deleteGradingObjectsIndependently, gradingTombstoneLookupKey, hasActiveGradingHold, hasActiveGradingHoldAtDatabaseNow, isExpectedRetentionRace, pseudonymizeGradingLineage, reconcileGradingPhysicalDelete, redactTextNativeEvidenceForAttempt, resolveGradingLineage, runGradingRetentionGc, runRetentionControlTransaction, transitionParentRunsContentUnavailable, validateLifecyclePolicy, writeLifecycleAudit } from '../math-document-grading-lifecycle';
+import { assertRetentionCleanupClaim, blockLifecycleAssociationsForResource, claimGradingTombstone, clearReverseGradingLineage, completeGradingTombstone, deleteGradingObjectsIndependently, gradingTombstoneLookupKey, hasActiveGradingHold, hasActiveGradingHoldAtDatabaseNow, isExpectedRetentionRace, pseudonymizeGradingLineage, reconcileGradingPhysicalDelete, redactTextNativeEvidenceForAttempt, resolveGradingLineage, runGradingRetentionGc, runRetentionControlTransaction, transitionParentRunsContentUnavailable, validateLifecyclePolicy, writeLifecycleAudit } from '../math-document-grading-lifecycle';
 
 const now = new Date();
 
@@ -1743,6 +1743,77 @@ describe('math-document grading retention lifecycle', () => {
       { scopeType: 'class', scopeId: 'class-hold-lineage' },
     ]));
     expect(holdQueries[0].OR).not.toContainEqual({ scopeType: 'assignment', scopeId: 'revision-hold-lineage' });
+  });
+
+  it('resolves every aggregate evidence source asset into legal-hold scopes', async () => {
+    const lineage = await resolveGradingLineage({
+      db: {},
+      resourceType: 'AnswerEvidence',
+      resource: {
+        id: 'aggregate-evidence',
+        sourceManifest: {
+          sources: [
+            { assetId: 'asset-one' },
+            { assetId: null },
+            { assetId: 'asset-two' },
+            { assetId: 'asset-one' },
+          ],
+        },
+      },
+    });
+
+    expect(lineage.scopes).toEqual(expect.arrayContaining([
+      ['asset', 'asset-one'],
+      ['asset', 'asset-two'],
+    ]));
+  });
+
+  it('blocks aggregate evidence and its active grading runs when any source asset is lifecycle-blocked', async () => {
+    const evidenceUpdateMany = vi.fn(async () => ({ count: 1 }));
+    const runUpdateMany = vi.fn(async () => ({ count: 1 }));
+    const db: any = {
+      documentConversion: { findMany: vi.fn(async () => []) },
+      answerEvidence: {
+        findMany: vi.fn(async ({ where }: any) =>
+          where.sourceAssetId ? [] : [{ id: 'aggregate-evidence' }]),
+        updateMany: evidenceUpdateMany,
+      },
+      gradingRun: {
+        findMany: vi.fn(async () => [{ id: 'aggregate-run' }]),
+        updateMany: runUpdateMany,
+      },
+      gradingBatchItem: {
+        findMany: vi.fn(async () => []),
+        updateMany: vi.fn(async () => ({ count: 0 })),
+      },
+      gradingJob: { updateMany: vi.fn(async () => ({ count: 0 })) },
+    };
+
+    await blockLifecycleAssociationsForResource({
+      db,
+      resourceType: 'SubmissionAsset',
+      resourceId: 'asset-one',
+      reason: 'missing-retention-expiry',
+      now,
+    });
+
+    expect(evidenceUpdateMany).toHaveBeenCalledWith({
+      where: { id: { in: ['aggregate-evidence'] } },
+      data: expect.objectContaining({
+        readiness: 'BLOCKED',
+        lifecycleBlockReason: 'missing-retention-expiry',
+      }),
+    });
+    expect(runUpdateMany).toHaveBeenCalledWith({
+      where: {
+        id: { in: ['aggregate-run'] },
+        state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE', 'AWAITING_REVIEW'] },
+      },
+      data: expect.objectContaining({
+        state: 'BLOCKED',
+        lifecycleBlockReason: 'missing-retention-expiry',
+      }),
+    });
   });
 
   it('keeps source assets retryable after a failed delete and completes an existing tombstone on rerun', async () => {

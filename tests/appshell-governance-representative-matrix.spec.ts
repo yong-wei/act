@@ -122,6 +122,11 @@ async function installGovernanceMocks(page: Page) {
             strongCapabilities: [],
             nextChallenges: [],
           },
+          trainingSummary: {
+            total: 0,
+            previewCount: 0,
+            recentRuns: [],
+          },
         },
       }),
     });

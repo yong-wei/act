@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 
 import {
-  loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments,
-} from '@/lib/textbook-runtime-resources';
+  loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections,
+} from '@/lib/structured-textbook-runtime';
 import type { RuntimeLessonMediaKind } from '@/lib/course-runtime';
 import {
   buildResourceFieldCompletionAudit,
@@ -1369,10 +1369,10 @@ async function main() {
         limitations: frozenInput.summary.limitations,
       });
   } else {
-    const [runtimeLessons, runtimeTextbooks, textbookDocuments] = await Promise.all([
+    const [runtimeLessons, runtimeTextbooks, textbookUnits] = await Promise.all([
       collectRuntimeLessonCatalogEntries(),
-      loadAllTextbookRuntimeResourceCatalogEntries().catch(() => []),
-      loadAllTextbookRuntimeSearchDocuments().catch(() => []),
+      loadAllTextbookStructureRuntimeCatalogEntries().catch(() => []),
+      loadAllTextbookStructureUnitProjections().catch(() => []),
     ]);
     registry = buildResourceNodeRegistryFromTeachingResources(
       [],
@@ -1382,7 +1382,7 @@ async function main() {
     );
     result = await buildFullResourceFieldCompletionAudit(
       registry,
-      textbookDocuments,
+      textbookUnits,
       coreSemanticReviewSources,
       runtimeLessonMediaSemanticReviewSources,
       unit15RuntimeProjectionReview,
@@ -2805,7 +2805,7 @@ export function refreshFrozenPathGenerationDiagnostics(
 
 async function buildFullResourceFieldCompletionAudit(
   registry: Parameters<typeof buildResourceFieldCompletionAudit>[0]['registry'],
-  textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>,
+  textbookUnits: Awaited<ReturnType<typeof loadAllTextbookStructureUnitProjections>>,
   coreSemanticReviewSources: Map<string, CoreRegisteredKnowledgeResourceSemanticReviewSource>,
   runtimeLessonMediaSemanticReviewSources: Map<string, RuntimeLessonMediaSemanticReviewSource>,
   unit15RuntimeProjectionReview: Unit15RuntimeProjectionReview,
@@ -2816,7 +2816,7 @@ async function buildFullResourceFieldCompletionAudit(
   } | null,
   generatedAt: string,
 ) {
-  const { candidates, limitations } = await collectAuditOnlyCandidates(textbookDocuments, longformReviewSources);
+  const { candidates, limitations } = await collectAuditOnlyCandidates(textbookUnits, longformReviewSources);
   const sourceResult = buildResourceFieldCompletionAudit({
     registry,
     candidates,
@@ -4108,7 +4108,7 @@ function renderCoreRegisteredKnowledgeResourceSemanticEvidence(
 }
 
 async function collectAuditOnlyCandidates(
-  textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>,
+  textbookUnits: Awaited<ReturnType<typeof loadAllTextbookStructureUnitProjections>>,
   longformReviewSources: ReadonlyMap<string, LongformReviewSourceRow>,
 ) {
   const knowledgeVisualReviewMap = await loadKnowledgeVisualSemanticReviewMap();
@@ -4127,7 +4127,7 @@ async function collectAuditOnlyCandidates(
     collectAuthoringTextbookCandidates(),
     loadTextbookSearchDocumentCitationReviews(),
   ]);
-  const reviewedTextbookDocuments = textbookDocuments.filter((document) => (
+  const reviewedTextbookDocuments = textbookUnits.filter((document) => (
     document.metadata.bookId === 'hu-shousong-exercise-analysis-3rd' &&
     longformReviewSources.has(`textbook-search-document:${document.id}`)
   ));

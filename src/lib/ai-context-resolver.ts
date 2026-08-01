@@ -75,6 +75,38 @@ const INFERENCE_RULES: InferenceRule[] = [
     tools: ['general_assistance'],
   },
   {
+    pattern: /^\/knowledge$/,
+    courseId: 'knowledge',
+    courseTitle: '知识图谱',
+    pageType: 'workspace',
+    getTopic: () => '知识图谱',
+    tools: ['general_assistance'],
+  },
+  {
+    pattern: /^\/arena$/,
+    courseId: 'arena',
+    courseTitle: '控制竞技场',
+    pageType: 'workspace',
+    getTopic: () => '控制竞技场',
+    tools: ['general_assistance'],
+  },
+  {
+    pattern: /^\/data-center$/,
+    courseId: 'data-center',
+    courseTitle: '学习数据中心',
+    pageType: 'workspace',
+    getTopic: () => '学习数据中心',
+    tools: ['general_assistance'],
+  },
+  {
+    pattern: /^\/assessment\/adaptive-practice$/,
+    courseId: 'adaptive-practice',
+    courseTitle: '自适应练习',
+    pageType: 'practice',
+    getTopic: () => '自适应学习路径',
+    tools: ['general_assistance'],
+  },
+  {
     pattern: /\/interactive-learning\//,
     courseId: 'interactive',
     courseTitle: '互动学习',
@@ -103,7 +135,7 @@ export function isPathExcluded(pathname: string): boolean {
 /**
  * 基于路径自动推断页面上下文
  */
-function inferPageContextFromPath(pathname: string): Partial<PageContext> | null {
+export function resolveRegisteredAIContextFromPath(pathname: string): Partial<PageContext> | null {
   for (const rule of INFERENCE_RULES) {
     const match = pathname.match(rule.pattern);
     if (match) {
@@ -130,6 +162,13 @@ function inferPageContextFromPath(pathname: string): Partial<PageContext> | null
       };
     }
   }
+
+  return null;
+}
+
+function inferPageContextFromPath(pathname: string): Partial<PageContext> | null {
+  const registered = resolveRegisteredAIContextFromPath(pathname);
+  if (registered) return registered;
 
   // 默认推断
   if (pathname !== '/') {

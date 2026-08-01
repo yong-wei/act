@@ -705,6 +705,8 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     routeCorrectionEnabled,
     routeResetKey,
     arenaContext?.object.id,
+    configuredPlantModel?.id,
+    configuredPlantModel?.objectId,
   ]);
 
   const idRef = useRef(100);

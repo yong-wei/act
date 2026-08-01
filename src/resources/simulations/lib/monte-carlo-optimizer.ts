@@ -1,7 +1,7 @@
 /**
- * Monte Carlo 参数优化器
+ * Monte Carlo å‚æ•°ä¼˜åŒ–å™?
  *
- * 使用随机搜索算法寻找最优 PID 参数
+ * ä½¿ç”¨éšæœºæœç´¢ç®—æ³•å¯»æ‰¾æœ€ä¼?PID å‚æ•°
  */
 
 import { computeVirtualSimulationServerStep } from '../rust/control-engine-server-runtime';
@@ -17,17 +17,17 @@ import { buildSimulationReplayMetadata } from './replay-checksum';
 import type { Position } from '../types';
 
 export interface OptimizationTarget {
-  targetHeading: number; // 目标航向
-  maxError: number; // 允许的最大航迹误差
-  maxRudderRate: number; // 允许的最大舵角速度
-  maxOvershoot?: number; // 允许的最大超调量
-  minSettlingTime?: number; // 期望的最小调节时间
+  targetHeading: number; // ç›®æ ‡èˆªå‘
+  maxError: number; // å…è®¸çš„æœ€å¤§èˆªè¿¹è¯¯å·?
+  maxRudderRate: number; // å…è®¸çš„æœ€å¤§èˆµè§’é€Ÿåº¦
+  maxOvershoot?: number; // å…è®¸çš„æœ€å¤§è¶…è°ƒé‡
+  minSettlingTime?: number; // æœŸæœ›çš„æœ€å°è°ƒèŠ‚æ—¶é—?
 }
 
 export interface OptimizationConstraints {
-  kpRange: [number, number]; // Kp 搜索范围
-  kiRange: [number, number]; // Ki 搜索范围
-  kdRange: [number, number]; // Kd 搜索范围
+  kpRange: [number, number]; // Kp æœç´¢èŒƒå›´
+  kiRange: [number, number]; // Ki æœç´¢èŒƒå›´
+  kdRange: [number, number]; // Kd æœç´¢èŒƒå›´
 }
 
 export interface OptimizationResult {
@@ -50,15 +50,29 @@ export interface OptimizationResult {
     score: number;
     params: { kp: number; ki: number; kd: number };
   }>;
-  replay?: SimulationReplayMetadata;
+  replay?: OptimizerReplayMetadata;
+}
+
+export interface OptimizerReplayScenario {
+  id: string;
+  duration: number;
+  referenceCompletedAt: number;
+  headingSchedule: Array<{ time: number; headingDeg: number }>;
+  start: { x: number; z: number; headingDeg: number };
+  maxRudderRateDegPerSec?: number;
+}
+
+export interface OptimizerReplayMetadata extends SimulationReplayMetadata {
+  scenario: OptimizerReplayScenario;
 }
 
 export interface OptimizePIDParamsOptions {
   runContext?: SimulationRunContext;
   seed?: number | string;
+  scenario?: ScenarioLogic;
 }
 
-// 简化的仿真配置
+// ç®€åŒ–çš„ä»¿çœŸé…ç½®
 export interface SimpleSimConfig {
   nomotoK?: number;
   nomotoT?: number;
@@ -70,15 +84,74 @@ export interface SimpleSimConfig {
   };
 }
 
-interface ScenarioLogic {
+export interface ScenarioLogic {
+  scenarioId: string;
+  runtimeVersion: string;
+  duration: number;
+  referenceCompletedAt: number;
+  headingSchedule: Array<{ time: number; headingDeg: number }>;
   getDesiredHeading: (time: number) => number;
   startPos: { x: number; z: number; headingDeg: number };
 }
 
-const getScenarioLogic = (_scenario: 'turn90'): ScenarioLogic => ({
-  startPos: { x: -6000, z: 0, headingDeg: 0 },
-  getDesiredHeading: (time: number) => (time < 60 ? 0 : 90),
-});
+const getScheduledHeading = (
+  headingSchedule: Array<{ time: number; headingDeg: number }>,
+  time: number,
+) => {
+  const firstPoint = headingSchedule[0];
+  if (time <= firstPoint.time) {
+    return firstPoint.headingDeg;
+  }
+
+  for (let index = 1; index < headingSchedule.length; index++) {
+    const previousPoint = headingSchedule[index - 1];
+    const nextPoint = headingSchedule[index];
+    if (time <= nextPoint.time) {
+      const progress = (time - previousPoint.time) / (nextPoint.time - previousPoint.time);
+      return previousPoint.headingDeg + (nextPoint.headingDeg - previousPoint.headingDeg) * progress;
+    }
+  }
+
+  return headingSchedule[headingSchedule.length - 1].headingDeg;
+};
+
+export const getLegacySceneLogic = (_scenario: 'turn90', targetHeading: number): ScenarioLogic => {
+  const headingSchedule = [
+    { time: 0, headingDeg: 0 },
+    { time: 60, headingDeg: 0 },
+    { time: 60, headingDeg: targetHeading },
+    { time: 120, headingDeg: targetHeading },
+  ];
+
+  return {
+    scenarioId: 'turn90',
+    runtimeVersion: 'simulation-optimizer-runtime-v1',
+    duration: 120,
+    referenceCompletedAt: 60,
+    headingSchedule,
+    startPos: { x: 0, z: 0, headingDeg: 0 },
+    getDesiredHeading: (time: number) => getScheduledHeading(headingSchedule, time),
+  };
+};
+
+export const getScenarioLogic = (_scenario: 'turn90', targetHeading: number): ScenarioLogic => {
+  const headingSchedule = [
+    { time: 0, headingDeg: 0 },
+    { time: 60, headingDeg: 0 },
+    { time: 150, headingDeg: targetHeading },
+    { time: 240, headingDeg: targetHeading },
+  ];
+
+  return {
+    scenarioId: 'turn90-calibrated-v1',
+    runtimeVersion: 'simulation-optimizer-runtime-v2',
+    duration: 240,
+    referenceCompletedAt: 150,
+    headingSchedule,
+    startPos: { x: 0, z: 0, headingDeg: 0 },
+    getDesiredHeading: (time: number) => getScheduledHeading(headingSchedule, time),
+  };
+};
 
 const generateGuidePath = (logic: ScenarioLogic, duration: number, speed: number): Position[] => {
   const points: Position[] = [];
@@ -113,15 +186,24 @@ interface RustQuickSimResult {
   };
 }
 
-function evaluateWithRustRuntime(
+export function evaluatePIDParams(
   params: { kp: number; ki: number; kd: number },
-  guidePath: Position[],
-  duration: number,
-  speed: number,
   simConfig: SimpleSimConfig,
   target: OptimizationTarget,
-): RustQuickSimResult {
-  return computeVirtualSimulationServerStep<RustQuickSimResult>({
+): { score: number; metrics: OptimizationResult['metrics'] } {
+  const duration = 120;
+  const speed = simConfig.shipSpeed || 15;
+  const legacyLogic: ScenarioLogic = {
+    scenarioId: 'turn90',
+    runtimeVersion: 'simulation-optimizer-runtime-v1',
+    duration,
+    referenceCompletedAt: 60,
+    headingSchedule: [],
+    startPos: { x: -6000, z: 0, headingDeg: 0 },
+    getDesiredHeading: (time: number) => (time < 60 ? 0 : 90),
+  };
+  const guidePath = generateGuidePath(legacyLogic, duration, speed);
+  const result = computeVirtualSimulationServerStep<RustQuickSimResult>({
     modelId: 'nomoto_quick_sim',
     duration,
     dt: 0.5,
@@ -137,51 +219,114 @@ function evaluateWithRustRuntime(
     },
     guidePath,
   });
+
+  let overshoot = 0;
+  let settlingTime = duration;
+  for (let index = 0; index < result.chartData.time.length; index += 1) {
+    const heading = result.chartData.actualHeading[index];
+    const time = result.chartData.time[index];
+    if (time > 60) {
+      overshoot = Math.max(overshoot, heading - target.targetHeading);
+      if (Math.abs(heading - target.targetHeading) <= 2) {
+        settlingTime = Math.min(settlingTime, time - 60);
+      }
+    }
+  }
+
+  const errorScore = Math.max(0, 100 - (result.metrics.avgError / target.maxError) * 100);
+  const rudderScore = result.metrics.maxRudderRate <= target.maxRudderRate
+    ? 100
+    : Math.max(0, 100 - ((result.metrics.maxRudderRate - target.maxRudderRate) / target.maxRudderRate) * 100);
+  const overshootScore = target.maxOvershoot === undefined || overshoot <= target.maxOvershoot
+    ? 100
+    : Math.max(0, 100 - ((overshoot - target.maxOvershoot) / target.maxOvershoot) * 100);
+  const settlingScore = target.minSettlingTime === undefined || settlingTime <= target.minSettlingTime
+    ? 100
+    : Math.max(0, 100 - ((settlingTime - target.minSettlingTime) / target.minSettlingTime) * 50);
+
+  return {
+    score: errorScore * 0.4 + rudderScore * 0.3 + overshootScore * 0.2 + settlingScore * 0.1,
+    metrics: {
+      avgError: result.metrics.avgError,
+      maxRudderRate: result.metrics.maxRudderRate,
+      settlingTime,
+      overshoot,
+    },
+  };
+}
+
+function evaluateWithRustRuntime(
+  params: { kp: number; ki: number; kd: number },
+  logic: ScenarioLogic,
+  guidePath: Position[],
+  speed: number,
+  simConfig: SimpleSimConfig,
+  target: OptimizationTarget,
+): RustQuickSimResult {
+  return computeVirtualSimulationServerStep<RustQuickSimResult>({
+    modelId: 'nomoto_quick_sim',
+    duration: logic.duration,
+    dt: 0.5,
+    start: logic.startPos,
+    targetHeadingDeg: target.targetHeading,
+    targetSwitchTime: 60,
+    headingSchedule: logic.headingSchedule,
+    pid: params,
+    nomoto: {
+      K: simConfig.nomotoK || 0.08,
+      T: simConfig.nomotoT || 55,
+      speedMps: speed,
+      maxRudderDeg: 35,
+      ...(logic.runtimeVersion === 'simulation-optimizer-runtime-v2' ? { maxRudderRateDegPerSec: 5 } : {}),
+    },
+    guidePath,
+  });
 }
 
 /**
- * 评估参数组合的得分
+ * è¯„ä¼°å‚æ•°ç»„åˆçš„å¾—åˆ?
  */
-export function evaluatePIDParams(
+export function evaluateParams(
   params: { kp: number; ki: number; kd: number },
+  logic: ScenarioLogic,
   simConfig: SimpleSimConfig,
-  target: OptimizationTarget
+  target: OptimizationTarget,
 ): { score: number; metrics: OptimizationResult['metrics'] } {
-  // 创建 QuickSimConfig
-  const duration = 120;
   const speed = simConfig.shipSpeed || 15;
+  const guidePath = generateGuidePath(logic, logic.duration, speed);
+  const result = evaluateWithRustRuntime(params, logic, guidePath, speed, simConfig, target);
 
-  // 使用 turn90 场景进行评估
-  const logic = getScenarioLogic('turn90');
-  const guidePath = generateGuidePath(logic, duration, speed);
-
-  const result = evaluateWithRustRuntime(params, guidePath, duration, speed, simConfig, target);
-
-  // 计算超调量和调节时间
+  // è®¡ç®—è¶…è°ƒé‡å’Œè°ƒèŠ‚æ—¶é—´
   let overshoot = 0;
-  let settlingTime = duration;
+  let stableSince: number | undefined;
   const targetReached = target.targetHeading;
-  const tolerance = 2; // 2度容差
+  const tolerance = 5;
 
   for (let i = 0; i < result.chartData.time.length; i++) {
     const heading = result.chartData.actualHeading[i];
     const time = result.chartData.time[i];
-
-    // 计算超调
-    if (time > 60) {
-      const error = heading - targetReached;
-      if (error > overshoot) {
-        overshoot = error;
-      }
+    if (time < logic.referenceCompletedAt) {
+      continue;
     }
 
-    // 计算调节时间
-    if (Math.abs(heading - targetReached) <= tolerance && time > 60) {
-      settlingTime = Math.min(settlingTime, time - 60);
+    // è®¡ç®—è¶…è°ƒ
+    const error = heading - targetReached;
+    if (error > overshoot) {
+      overshoot = error;
+    }
+
+    if (Math.abs(error) <= tolerance) {
+      stableSince ??= time;
+    } else {
+      stableSince = undefined;
     }
   }
+  const hasSustainedSettling = stableSince !== undefined && stableSince < logic.duration;
+  const settlingTime = stableSince === undefined
+    ? logic.duration - logic.referenceCompletedAt
+    : stableSince - logic.referenceCompletedAt;
 
-  // 计算各项指标得分
+  // è®¡ç®—å„é¡¹æŒ‡æ ‡å¾—åˆ†
   const errorScore = Math.max(0, 100 - (result.metrics.avgError / target.maxError) * 100);
   const rudderScore = result.metrics.maxRudderRate <= target.maxRudderRate
     ? 100
@@ -196,12 +341,14 @@ export function evaluatePIDParams(
 
   let settlingScore = 100;
   if (target.minSettlingTime !== undefined) {
-    settlingScore = settlingTime <= target.minSettlingTime
+    settlingScore = !hasSustainedSettling
+      ? 0
+      : settlingTime <= target.minSettlingTime
       ? 100
       : Math.max(0, 100 - ((settlingTime - target.minSettlingTime) / target.minSettlingTime) * 50);
   }
 
-  // 综合得分（加权平均）
+  // ç»¼åˆå¾—åˆ†ï¼ˆåŠ æƒå¹³å‡ï¼‰
   const score =
     errorScore * 0.4 +
     rudderScore * 0.3 +
@@ -220,7 +367,7 @@ export function evaluatePIDParams(
 }
 
 /**
- * 随机采样参数
+ * éšæœºé‡‡æ ·å‚æ•°
  */
 function sampleParams(
   constraints: OptimizationConstraints,
@@ -234,7 +381,7 @@ function sampleParams(
 }
 
 /**
- * 在最优解附近采样（局部搜索）
+ * åœ¨æœ€ä¼˜è§£é™„è¿‘é‡‡æ ·ï¼ˆå±€éƒ¨æœç´¢ï¼‰
  */
 function sampleNearby(
   bestParams: { kp: number; ki: number; kd: number },
@@ -264,7 +411,7 @@ function sampleNearby(
 }
 
 /**
- * Monte Carlo 优化主函数
+ * Monte Carlo ä¼˜åŒ–ä¸»å‡½æ•?
  */
 export function optimizePIDParams(
   config: SimpleSimConfig,
@@ -276,26 +423,32 @@ export function optimizePIDParams(
 ): OptimizationResult {
   const startTime = Date.now();
   const convergenceHistory: OptimizationResult['convergenceHistory'] = [];
+  const scenario = options.scenario ?? getScenarioLogic('turn90', target.targetHeading);
   const replaySeed = normalizeSeed(
     options.seed,
-    JSON.stringify({ config, target, constraints, maxIterations, earlyStopThreshold })
+    JSON.stringify({ config, target, constraints, maxIterations, earlyStopThreshold, scenarioId: scenario.scenarioId })
   );
-  const runContext = options.runContext ?? createSimulationRunContext({
+  const baseRunContext = options.runContext ?? createSimulationRunContext({
     runId: `optimizer-${replaySeed.toString(16)}`,
     sceneId: 'simulation/optimizer/nomoto-quick-sim',
-    scenarioId: 'turn90',
+    scenarioId: scenario.scenarioId,
     seed: replaySeed,
-    runtimeVersion: 'simulation-optimizer-runtime-v1',
+    runtimeVersion: scenario.runtimeVersion,
     modelVersion: 'nomoto-quick-sim-v1',
   });
+  const runContext: SimulationRunContext = {
+    ...baseRunContext,
+    scenarioId: scenario.scenarioId,
+    runtimeVersion: scenario.runtimeVersion,
+  };
   const rng = createSimulationRng(runContext, 'monte-carlo-search').next;
 
   let bestParams = sampleParams(constraints, rng);
-  let bestResult = evaluatePIDParams(bestParams, config, target);
+  let bestResult = evaluateParams(bestParams, scenario, config, target);
   let noImprovementCount = 0;
   let currentMaxIterations = maxIterations;
 
-  // 添加初始点
+  // æ·»åŠ åˆå§‹ç‚?
   convergenceHistory.push({
     iteration: 0,
     score: bestResult.score,
@@ -303,12 +456,12 @@ export function optimizePIDParams(
   });
 
   for (let i = 1; i <= currentMaxIterations; i++) {
-    // 混合策略：80% 局部搜索 + 20% 全局探索
+    // æ··åˆç­–ç•¥ï¼?0% å±€éƒ¨æœç´?+ 20% å…¨å±€æŽ¢ç´¢
     const params = rng() < 0.8
       ? sampleNearby(bestParams, constraints, rng, 0.15)
       : sampleParams(constraints, rng);
 
-    const result = evaluatePIDParams(params, config, target);
+    const result = evaluateParams(params, scenario, config, target);
 
     if (result.score > bestResult.score) {
       bestParams = params;
@@ -324,12 +477,12 @@ export function optimizePIDParams(
       noImprovementCount++;
     }
 
-    // 提前停止条件
+    // æå‰åœæ­¢æ¡ä»¶
     if (noImprovementCount >= earlyStopThreshold && bestResult.score > 80) {
       break;
     }
 
-    // 如果已经找到很好的解，缩小搜索范围
+    // å¦‚æžœå·²ç»æ‰¾åˆ°å¾ˆå¥½çš„è§£ï¼Œç¼©å°æœç´¢èŒƒå›?
     if (bestResult.score > 90) {
       currentMaxIterations = Math.min(currentMaxIterations, i + 10);
     }
@@ -348,25 +501,38 @@ export function optimizePIDParams(
     convergenceHistory,
   } satisfies Omit<OptimizationResult, 'replay'>;
 
+  const replayScenario: OptimizerReplayScenario = {
+    id: scenario.scenarioId,
+    duration: scenario.duration,
+    referenceCompletedAt: scenario.referenceCompletedAt,
+    headingSchedule: scenario.headingSchedule,
+    start: scenario.startPos,
+    ...(scenario.runtimeVersion === 'simulation-optimizer-runtime-v2' ? { maxRudderRateDegPerSec: 5 } : {}),
+  };
+
   return {
     ...result,
-    replay: buildSimulationReplayMetadata(runContext, {
-      bestParams: result.bestParams,
-      score: result.score,
-      metrics: result.metrics,
-      iterations: result.iterations,
-      convergenceHistory: result.convergenceHistory,
-    }),
+    replay: {
+      ...buildSimulationReplayMetadata(runContext, {
+        scenario: replayScenario,
+        bestParams: result.bestParams,
+        score: result.score,
+        metrics: result.metrics,
+        iterations: result.iterations,
+        convergenceHistory: result.convergenceHistory,
+      }),
+      scenario: replayScenario,
+    },
   };
 }
 
 /**
- * 默认优化配置
+ * é»˜è®¤ä¼˜åŒ–é…ç½®
  */
 export const DEFAULT_CONSTRAINTS: OptimizationConstraints = {
   kpRange: [0.5, 3.0],
   kiRange: [0.001, 0.1],
-  kdRange: [0.1, 2.0],
+  kdRange: [0.1, 5.0],
 };
 
 export const DEFAULT_TARGET: OptimizationTarget = {
@@ -374,5 +540,10 @@ export const DEFAULT_TARGET: OptimizationTarget = {
   maxError: 150,
   maxRudderRate: 5.0,
   maxOvershoot: 20,
+  minSettlingTime: 90,
+};
+
+export const LEGACY_SCENE_TRACE_TARGET: OptimizationTarget = {
+  ...DEFAULT_TARGET,
   minSettlingTime: 60,
 };

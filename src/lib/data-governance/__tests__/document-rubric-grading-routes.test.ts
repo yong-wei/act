@@ -159,6 +159,27 @@ function rubric(): RubricDefinition {
   };
 }
 
+function standardRubric(): RubricDefinition {
+  return {
+    id: 'rubric-standard-v2',
+    title: '评分标准',
+    version: '2026.07',
+    schemaVersion: 'assignment-scoring-rubric.v2',
+    maxScore: 4,
+    criteria: [{
+      id: 'modeling',
+      label: '模型表达',
+      weight: 1,
+      maxPoints: 4,
+      scoringStandard: '依据阻尼比证据的正确性和完整性评分。',
+      detailedRubricEnabled: false,
+      evidenceRequirement: 'damping ratio',
+      goalDimension: 'controlModeling',
+      levels: [],
+    }],
+  };
+}
+
 async function gradingDraft() {
   const asset = createSubmissionAsset({
     id: 'asset-1',
@@ -189,6 +210,53 @@ async function gradingDraft() {
     now,
   });
   return persistedDraft({ asset, convertedDocument, run, rubric: rubric() });
+}
+
+async function standardGradingDraft() {
+  const submission = createSubmissionAsset({
+    id: 'asset-standard-1',
+    studentId: 'student-1',
+    classId: 'class-1',
+    assignmentId: 'report-1',
+    fileName: 'standard-report.md',
+    mimeType: 'text/markdown',
+    bytes: 'Root locus design explains damping ratio and settling time.',
+    uploadedAt: now.toISOString(),
+  });
+  const convertedDocument = await convertSubmissionDocument({
+    asset: submission,
+    adapter: createMarkItDownConversionAdapter({
+      now,
+      preserveSpanMapping: true,
+      runner: (asset) => textFixtureMarkItDownRunner(asset, true),
+    }),
+    now,
+  });
+  const standardRubricDefinition = standardRubric();
+  const draft = createDraftRubricGrading({
+    convertedDocument,
+    rubric: standardRubricDefinition,
+    evaluatorOutput: {
+      evaluatorId: 'fixture-v2',
+      evaluatorVersion: 'v2',
+      assessments: [{
+        criterionId: 'modeling',
+        levelId: null,
+        score: 3.1,
+        rationale: 'The submitted evidence identifies the damping ratio clearly.',
+        confidence: 0.9,
+        evidenceBlockIds: [convertedDocument.blocks[0].id],
+        limitationState: 'none',
+      }],
+    },
+    now,
+  });
+  return persistedDraft({
+    asset: submission,
+    convertedDocument,
+    run: draft,
+    rubric: standardRubricDefinition,
+  });
 }
 
 function persistedDraft(input: {
@@ -462,6 +530,29 @@ describe('document rubric grading routes', () => {
     expect(createInput.data.provenance.conversion).toEqual(expect.objectContaining({
       status: 'converted',
       referencePrecision: 'span',
+    }));
+  });
+
+  it('accepts a standard v2 rubric without detailed levels at the submission boundary', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'standard-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio and settling time.',
+      rubric: standardRubric(),
+    });
+    const createInput = mocks.prisma.learningEvidenceDraft.create.mock.calls[0][0];
+
+    expect(response.status).toBe(201);
+    expect(createInput.data.summary.run.draftGrades[0]).toEqual(expect.objectContaining({
+      criterionId: 'modeling',
+      levelId: null,
     }));
   });
 
@@ -1698,6 +1789,45 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.$transaction.mock.calls.at(-1)?.[1]).toEqual({ isolationLevel: 'Serializable' });
   });
 
+  it('approves two-decimal teacher edits against a frozen v1 rubric', async () => {
+    const run = pipelineRun();
+    run.questionSnapshot.rubric.criteria[0].levels[0].minPoints = 0;
+    run.questionSnapshot.rubric.criteria[1].levels[0].minPoints = 0;
+    run.rubricSnapshot.criteria[0].levels[0].minPoints = 0;
+    run.rubricSnapshot.criteria[1].levels[0].minPoints = 0;
+    run.inputHash = sha256(stableStringify({
+      questionSnapshot: run.questionSnapshot,
+      evidence: {
+        id: run.answerEvidence.id,
+        version: run.answerEvidence.version,
+        sourceHash: run.answerEvidence.sourceHash,
+        anchorVersion: run.answerEvidence.anchorVersion,
+      },
+      evaluator: { provider: run.evaluatorId, version: run.evaluatorVersion },
+    }));
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.gradingRun.findUnique.mockResolvedValue(run);
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'profile-1' });
+    mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 2 });
+
+    const response = await postJson({
+      gradingRunId: run.id,
+      decision: 'approved',
+      edits: [
+        { criterionId: 'controlModeling', levelId: 'full-model', score: 3.55, comment: '保留历史精度' },
+        { criterionId: 'custom-proof', levelId: 'full-proof', score: 5.25, comment: '保留历史精度' },
+      ],
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.gradingCriterionAssessment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ teacherScore: 3.55 }),
+    }));
+    expect(mocks.prisma.gradingCriterionAssessment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ teacherScore: 5.25 }),
+    }));
+  });
+
   it('replays the same native approval request and rejects different edits after approval', async () => {
     const run = pipelineRun();
     const edits = [
@@ -1734,6 +1864,45 @@ describe('document rubric grading routes', () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({ error: '评分编辑无效' });
     expect(mocks.prisma.gradingRun.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('accepts a null level identity at the route boundary for standard-only grading edits', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.gradingRun.findUnique.mockResolvedValue(null);
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(null);
+    const response = await postJson({
+      gradingRunId: 'missing-standard-run',
+      edits: [{ criterionId: 'quality', levelId: null, score: 4.1, comment: '依据评分标准确认。' }],
+    });
+    expect(response.status).toBe(404);
+    expect(mocks.prisma.gradingRun.findUnique).toHaveBeenCalled();
+    await expect(response.json()).resolves.toEqual({ error: '评分草稿不存在' });
+  });
+
+  it('previews standard-only grading edits with a null level identity', async () => {
+    const draft = await standardGradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.gradingRun.findUnique.mockResolvedValue(null);
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postPreviewJson({
+      gradingRunId: draft.id,
+      edits: [{
+        criterionId: 'modeling',
+        levelId: null,
+        score: 3.9,
+        comment: '教师依据完整证据调整分数。',
+      }],
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(expect.objectContaining({
+      status: 'preview',
+      wouldCreateFacts: 1,
+      blockedFacts: 0,
+    }));
   });
 
   it('blocks native writeback for missing governed dimensions or course ownership without clearing cache', async () => {

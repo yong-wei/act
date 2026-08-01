@@ -10,8 +10,8 @@ const mocks = vi.hoisted(() => ({
   isAdaptiveLearnerStateServiceEnabled: vi.fn(),
   readAdaptiveLearnerState: vi.fn(),
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
-  loadAllTextbookRuntimeResourceCatalogEntries: vi.fn(),
-  loadAllTextbookRuntimeSearchDocuments: vi.fn(),
+  loadAllTextbookStructureRuntimeCatalogEntries: vi.fn(),
+  loadAllTextbookStructureUnitProjections: vi.fn(),
   loadRuntimeResourceProjectionInputs: vi.fn(),
   getAllRegisteredResourceMetadata: vi.fn(),
   buildResourceNodeRegistryFromTeachingResources: vi.fn(),
@@ -43,9 +43,9 @@ vi.mock('@/lib/resource-registry-metadata', () => ({
   getAllRegisteredResourceMetadata: mocks.getAllRegisteredResourceMetadata,
 }));
 
-vi.mock('@/lib/textbook-runtime-resources', () => ({
-  loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments: mocks.loadAllTextbookRuntimeSearchDocuments,
+vi.mock('@/lib/structured-textbook-runtime', () => ({
+  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections: mocks.loadAllTextbookStructureUnitProjections,
 }));
 
 vi.mock('@/lib/teacher-resource-node-data', () => ({
@@ -70,8 +70,8 @@ describe('graph center production sources', () => {
     mocks.isAdaptiveLearnerStateServiceEnabled.mockReturnValue(true);
     mocks.teachingResourceFindMany.mockResolvedValue([]);
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
-    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([]);
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([]);
+    mocks.loadAllTextbookStructureRuntimeCatalogEntries.mockResolvedValue([]);
+    mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue([]);
     mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
     mocks.getAllRegisteredResourceMetadata.mockReturnValue([]);
     mocks.buildResourceNodeRegistryFromTeachingResources.mockReturnValue({ resources: {}, nodes: {} });

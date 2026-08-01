@@ -134,6 +134,7 @@ export function useKonlingSession({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content,
+          pageContext,
           teachingAssistantModeId: konlingEntryPoint?.mode,
           modeClientContextHints: konlingEntryPoint?.serverContext,
           classId: konlingEntryPoint?.serverContext.classId,
@@ -159,7 +160,7 @@ export function useKonlingSession({
       setLocalMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
       throw err;
     }
-  }, [sessionId, createSession, konlingEntryPoint, mutate]);
+  }, [sessionId, createSession, konlingEntryPoint, mutate, pageContext]);
 
   // 清空会话
   const clearSession = useCallback(async () => {

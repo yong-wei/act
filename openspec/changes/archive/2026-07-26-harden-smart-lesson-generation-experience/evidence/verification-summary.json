@@ -1,0 +1,69 @@
+{
+  "evidenceVersion": "smart-lesson-generation-verification.v1",
+  "sourceRevision": "3e18888770e8739838ca2236aab6d97ca6bc3ff6",
+  "sourceBinding": {
+    "workspaceCleanAtRealProviderStart": true,
+    "status": "valid"
+  },
+  "realProvider": {
+    "provider": "siliconflow",
+    "model": "deepseek-ai/DeepSeek-V4-Flash",
+    "fixtureTokenPresent": false,
+    "routeInterception": false,
+    "result": "passed",
+    "jobState": "COMPLETED",
+    "stageCount": 7,
+    "recovery": "outline-confirmation-pause-resume-with-completed-action-state-and-api-output",
+    "evidenceFile": "real-provider-full-boppps.json"
+  },
+  "checks": [
+    {
+      "command": "node --import tsx scripts/tests/run-smart-lesson-real-e2e.ts --real-provider",
+      "scope": "clean revision, fresh PostgreSQL schema, real browser, public APIs and workers",
+      "result": "passed",
+      "tests": 1
+    },
+    {
+      "command": "node --import tsx scripts/tests/run-smart-lesson-real-e2e.ts",
+      "scope": "fixture browser, API, worker, Source Pack and approval",
+      "result": "passed",
+      "tests": 1
+    },
+    {
+      "command": "npx vitest run --config src/lib/smart-lesson-plan/vitest.config.ts",
+      "result": "passed",
+      "testFiles": 9,
+      "tests": 83
+    },
+    {
+      "command": "npx vitest run src/app/api/teacher/smart-lesson-tasks/__tests__/route.test.ts src/lib/__tests__/smart-lesson-plan-workspace.test.ts src/features/teacher/__tests__/smart-lesson-plan-workspace-contract.test.ts",
+      "result": "passed",
+      "testFiles": 3,
+      "tests": 41
+    },
+    {
+      "command": "npm run test:provider-runtime-smoke",
+      "result": "passed",
+      "checks": 5
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "openspec validate --specs --strict",
+      "result": "passed",
+      "items": 182
+    },
+    {
+      "command": "openspec validate --changes --strict",
+      "result": "passed",
+      "items": 26
+    }
+  ],
+  "privacy": {
+    "includesProviderSecret": false,
+    "includesRawPromptOrResponse": false,
+    "includesUserPayload": false
+  }
+}

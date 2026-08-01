@@ -86,6 +86,7 @@ async function fetchDeepSeekV4Flash(
   init: RequestInit | undefined,
   apiKey: string
 ): Promise<Response> {
+  if (init?.signal?.aborted) throw siliconFlowAbortError();
   const rawBody = typeof init?.body === 'string' ? init.body : undefined;
   const requestBody = rawBody ? JSON.parse(rawBody) as Record<string, unknown> : undefined;
   const providerBody = JSON.stringify({
@@ -125,7 +126,11 @@ async function fetchDeepSeekV4Flash(
           `${marker}%{http_code}`,
           String(input),
         ],
-        { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 }
+        {
+          encoding: 'utf8',
+          maxBuffer: 4 * 1024 * 1024,
+          signal: init?.signal ?? undefined,
+        }
       );
       const markerIndex = result.stdout.lastIndexOf(marker);
       if (markerIndex < 0) {
@@ -137,15 +142,18 @@ async function fetchDeepSeekV4Flash(
       responseBody = status >= 400 ? rawResponseBody : normalizeSiliconFlowCompletion(rawResponseBody);
       break;
     } catch (error) {
+      if (init?.signal?.aborted || (error instanceof Error && error.name === 'AbortError')) {
+        throw siliconFlowAbortError();
+      }
       lastError = error;
     }
   }
 
   if (!responseBody) {
-    const message = lastError instanceof Error
-      ? lastError.message.replace(/Bearer\s+\S+/g, 'Bearer ***')
-      : 'unknown error';
-    throw new Error(`SiliconFlow DeepSeek request failed after retries: ${message}`);
+    const failureType = lastError instanceof Error && lastError.name
+      ? lastError.name
+      : 'UnknownError';
+    throw new Error(`SiliconFlow DeepSeek request failed after retries (${failureType}).`);
   }
 
   const isStreamRequest = requestBody?.stream === true;
@@ -160,6 +168,12 @@ async function fetchDeepSeekV4Flash(
     status,
     headers: { 'Content-Type': 'text/event-stream; charset=utf-8' },
   });
+}
+
+function siliconFlowAbortError(): Error {
+  const error = new Error('SiliconFlow DeepSeek request was aborted.');
+  error.name = 'AbortError';
+  return error;
 }
 
 function prepareSiliconFlowRequestBody(

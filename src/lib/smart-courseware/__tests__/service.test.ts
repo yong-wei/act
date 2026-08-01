@@ -27,6 +27,7 @@ describe('smart courseware service', () => {
     const content = validPlanFixture();
     const revision = {
       id: 'plan-revision-1', ownerId: teacher.id, revisionNumber: 3,
+      taskRevision: 4, task: { revision: 4 },
       content, contentHash: contentHash(content),
     };
     const created = {
@@ -47,6 +48,7 @@ describe('smart courseware service', () => {
     })).resolves.toBe(created);
     expect(db.smartLessonRevision.findFirst).toHaveBeenCalledWith({
       where: { id: revision.id, ownerId: teacher.id },
+      include: { task: { select: { revision: true } } },
     });
     expect(db.smartCoursewareDraft.create).toHaveBeenCalledWith({
       data: expect.objectContaining({

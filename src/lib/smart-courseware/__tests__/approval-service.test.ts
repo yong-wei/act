@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
+const adoptionMocks = vi.hoisted(() => ({ adopt: vi.fn() }));
+vi.mock('@/lib/course-basis/service', () => ({
+  adoptCourseBasisVersion: adoptionMocks.adopt,
+}));
+
 import { contentHash } from '@/lib/smart-lesson-plan/domain';
 import { sourceBindingFixture, validPlanFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures';
 
@@ -42,13 +47,15 @@ describe('smart courseware whole-course approval', () => {
       approvalIdempotencyKey: 'approve-courseware-1',
       approvedById: actor.id,
     }) });
-    expect(createLinks).toHaveBeenCalledWith({
-      data: [{
-        versionId: sourceBindingFixture.sourceVersionId,
-        referenceType: 'COURSEWARE_REVISION',
-        referenceId: revision.id,
+    expect(createLinks).not.toHaveBeenCalled();
+    expect(adoptionMocks.adopt).toHaveBeenCalledWith(expect.anything(), {
+      actor,
+      versionId: sourceBindingFixture.sourceVersionId,
+      adopter: { referenceType: 'COURSEWARE_REVISION', referenceId: revision.id },
+      anchors: [{
+        stableAnchor: sourceBindingFixture.anchor,
+        contentHash: sourceBindingFixture.contentHash,
       }],
-      skipDuplicates: true,
     });
     expect(updateDraft).toHaveBeenCalledWith(expect.objectContaining({ data: { state: 'ACCEPTED' } }));
     expect((db as Record<string, unknown>).courseBasisAcknowledgement).toBeUndefined();

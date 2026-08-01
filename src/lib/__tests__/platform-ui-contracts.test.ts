@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { PageFloatingControlsProvider } from '@/components/shared/page-floating-controls';
+import { PLATFORM_LAYERS, platformLayerStyle } from '@/components/platform/platform-layers';
 import {
   FORBIDDEN_SHARED_UI_IMPORT_PREFIXES,
   PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX,
@@ -836,7 +837,9 @@ describe('platform UI contracts', () => {
     expect(knowledgeResourcePanelSource).not.toContain('bg-[#091540]');
     expect(knowledgeResourcePanelSource).not.toContain('bg-[#0c1d4f]');
     expect(adaptivePracticeSource).toContain('data-commercial-entry-intent="practice"');
-    expect(adaptivePracticeSource).toContain('data-learning-path-options-slot="three-style"');
+    expect(adaptivePracticeSource).toContain(
+      "data-learning-path-options-slot={hasGeneratedPathOptions ? 'three-style' : 'starter-examples'}",
+    );
     expect(adaptivePracticeSource).toContain('data-learning-path-history-slot="selection-history"');
     expect(adaptivePracticeSource).toContain('data-konling-citation-slot="cited-explanation"');
     expect(adaptivePracticeSource).toContain('data-adaptive-path-local-command="path-management"');
@@ -1839,6 +1842,25 @@ describe('platform UI contracts', () => {
     expect(pageFloatingControlsSource).toContain("behavior === 'hidden'");
     expect(pageFloatingControlsSource).toContain('data-platform-floating-dock=');
     expect(pageFloatingControlsSource).toContain('data-page-floating-controls="true"');
+  });
+
+  it('keeps account, overlay, dock, and Konling surfaces on one ordered platform layer contract', () => {
+    const globalAiSidebarSource = readSource('src/components/ai/global-ai-sidebar.tsx');
+    const pageFloatingControlsSource = readSource('src/components/shared/page-floating-controls.tsx');
+    const userMenuSource = readSource('src/components/shared/user-menu.tsx');
+
+    expect(PLATFORM_LAYERS.account).toBeLessThan(PLATFORM_LAYERS.overlay);
+    expect(PLATFORM_LAYERS.overlay).toBeLessThan(PLATFORM_LAYERS.floatingDock);
+    expect(PLATFORM_LAYERS.floatingDock).toBeLessThan(PLATFORM_LAYERS.konlingSide);
+    expect(PLATFORM_LAYERS.konlingSide).toBeLessThan(PLATFORM_LAYERS.konlingWorkspace);
+    expect(platformLayerStyle('konlingWorkspace')).toEqual({
+      zIndex: PLATFORM_LAYERS.konlingWorkspace,
+    });
+    expect(globalAiSidebarSource).toContain("platformLayerStyle(isMaximized ? 'konlingWorkspace' : 'konlingSide')");
+    expect(pageFloatingControlsSource).toContain("platformLayerStyle('floatingDock')");
+    expect(pageFloatingControlsSource).toContain("workspaceDockSuppressed ? 'hidden' : routeDockBehavior");
+    expect(userMenuSource).toContain("platformLayerStyle('account')");
+    expect(userMenuSource).toContain("platformLayerStyle('overlay')");
   });
 
   it('registers simulation Konling through the shared dock without covering local controls', () => {

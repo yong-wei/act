@@ -8,19 +8,28 @@ SKIP_BUILD="${SKIP_BUILD:-0}"
 SSH_TARGET="${SSH_TARGET:-root@121.40.124.135}"
 REMOTE_PROJECT_DIR="${REMOTE_PROJECT_DIR:-/home/projects/act}"
 LOCAL_IMAGE_TAR="${LOCAL_IMAGE_TAR:-deploy/images/act-obe.tar}"
+LOCAL_PROVENANCE_FILE="${LOCAL_PROVENANCE_FILE:-${LOCAL_IMAGE_TAR}.provenance.json}"
 REMOTE_IMAGES_DIR="${REMOTE_IMAGES_DIR:-${REMOTE_PROJECT_DIR}/images}"
 REMOTE_IMAGE_TAR="${REMOTE_IMAGE_TAR:-${REMOTE_IMAGES_DIR}/act-obe.tar}"
+REMOTE_PROVENANCE_FILE="${REMOTE_PROVENANCE_FILE:-${REMOTE_IMAGE_TAR}.provenance.json}"
 LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
 REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
-TEXTBOOK_RUNTIME_BOOK_ID="${TEXTBOOK_RUNTIME_BOOK_ID:-hu-shousong-exercise-analysis-3rd}"
-LOCAL_TEXTBOOK_RUNTIME_DIR="${LOCAL_RUNTIME_DIR}/resources/textbooks/${TEXTBOOK_RUNTIME_BOOK_ID}"
-REMOTE_TEXTBOOK_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks/${TEXTBOOK_RUNTIME_BOOK_ID}"
+LOCAL_TEXTBOOK_V2_RUNTIME_DIR="${LOCAL_RUNTIME_DIR}/resources/textbooks-v2"
+REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
+LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-retrieval"
+REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-retrieval"
+REMOTE_RUNTIME_STAGING_DIR="${REMOTE_RUNTIME_DIR}.staging"
+TEXTBOOK_V2_BOOK_IDS="control-encyclopedia dorf-modern-control-systems feedback-control-of-dynamic-systems hu-shousong-auto-control-7th hu-shousong-auto-control-8th hu-shousong-exercise-analysis-3rd liu-sheng-auto-control-2015"
+TEXTBOOK_V2_REQUIRED_FILES="manifest.json navigation.json units.jsonl anchors.jsonl windows.jsonl anomalies.jsonl samples.jsonl"
+TEXTBOOK_RETRIEVAL_REQUIRED_FILES="manifest.json windows.jsonl bodies.utf8 vectors.f32 lexical-terms.jsonl lexical-postings.bin build-report.json"
 LOCAL_APP_DEPLOY_SCRIPT="${LOCAL_APP_DEPLOY_SCRIPT:-${ROOT_DIR}/deploy/podman/deploy.sh}"
 REMOTE_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/4-deploy.sh}"
 LOCAL_SERVICE_SCRIPT="${LOCAL_SERVICE_SCRIPT:-${ROOT_DIR}/deploy/podman/configure-service.sh}"
 REMOTE_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/5-configure-service.sh}"
 LOCAL_START_WRAPPER_SCRIPT="${LOCAL_START_WRAPPER_SCRIPT:-${ROOT_DIR}/deploy/podman/container-start-wrapper.sh}"
 REMOTE_START_WRAPPER_SCRIPT="${REMOTE_START_WRAPPER_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/container-start-wrapper.sh}"
+LOCAL_PROVENANCE_HELPER="${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs"
+REMOTE_PROVENANCE_HELPER="${REMOTE_PROJECT_DIR}/scripts/textbook-runtime-v2-provenance.mjs"
 REMOTE_EXPORT_DB_SCRIPT="${REMOTE_EXPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/1-export-db.sh}"
 REMOTE_LOAD_IMAGES_SCRIPT="${REMOTE_LOAD_IMAGES_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/2-load-images.sh}"
 REMOTE_IMPORT_DB_SCRIPT="${REMOTE_IMPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/3-import-db.sh}"
@@ -34,10 +43,13 @@ GC_NAME_HINT="${GC_NAME_HINT:-act-obe-submission-gc}"
 REMOTE_APP_IMAGE="${REMOTE_APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"
 
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
+REMOTE_TMP_PROVENANCE_FILE="${REMOTE_PROVENANCE_FILE}.tmp"
+REMOTE_TMP_PROVENANCE_HELPER="${REMOTE_PROVENANCE_HELPER}.tmp"
 REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
 REMOTE_TMP_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT}.tmp"
 REMOTE_TMP_START_WRAPPER_SCRIPT="${REMOTE_START_WRAPPER_SCRIPT}.tmp"
 REMOTE_LOG_FILE="${REMOTE_LOG_FILE:-/tmp/act-obe-one-key.log}"
+CUTOVER_STARTED=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -100,6 +112,94 @@ remote() {
 
 remote_sha256() {
   remote "if command -v sha256sum >/dev/null 2>&1; then sha256sum '${1}' | awk '{print \$1}'; else shasum -a 256 '${1}' | awk '{print \$1}'; fi"
+}
+
+check_remote_textbook_v2_files() {
+  local runtime_dir="${1:-${REMOTE_RUNTIME_DIR}}"
+  remote "bash -lc '
+set -euo pipefail
+runtime_root=\"${runtime_dir}/resources/textbooks-v2\"
+index_root=\"${runtime_dir}/resources/textbook-retrieval\"
+found=0
+for candidate in \"\${runtime_root}\"/*; do
+  [ -d \"\${candidate}\" ] || continue
+  book_id=\$(basename \"\${candidate}\")
+  case \"\${book_id}\" in
+    control-encyclopedia|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-auto-control-7th|hu-shousong-auto-control-8th|hu-shousong-exercise-analysis-3rd|liu-sheng-auto-control-2015) ;;
+    *) echo \"ERROR: unexpected textbook v2 runtime directory: \${book_id}\" >&2; exit 1 ;;
+  esac
+  found=\$((found + 1))
+done
+[ \"\${found}\" -eq 7 ]
+for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
+  for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
+    test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
+  done
+  grep -q \"schemaVersion.*structured-textbook-runtime.v2\" \"\${runtime_root}/\${book_id}/manifest.json\"
+  grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION:-__preflight_pending__}\" \"\${runtime_root}/\${book_id}/manifest.json\"
+done
+for file_name in ${TEXTBOOK_RETRIEVAL_REQUIRED_FILES}; do
+  test -f \"\${index_root}/\${file_name}\"
+done
+grep -q \"formatVersion.*textbook-hybrid-retrieval.v1\" \"\${index_root}/manifest.json\"
+grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION:-__preflight_pending__}\" \"\${index_root}/manifest.json\"
+'"
+}
+
+check_container_textbook_v2_files() {
+  remote "podman exec '${APP_NAME_HINT}' sh -lc '
+set -eu
+runtime_root=/app/course-content/runtime/resources/textbooks-v2
+index_root=/app/course-content/runtime/resources/textbook-retrieval
+found=0
+for candidate in \"\${runtime_root}\"/*; do
+  [ -d \"\${candidate}\" ] || continue
+  book_id=\$(basename \"\${candidate}\")
+  case \"\${book_id}\" in
+    control-encyclopedia|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-auto-control-7th|hu-shousong-auto-control-8th|hu-shousong-exercise-analysis-3rd|liu-sheng-auto-control-2015) ;;
+    *) echo \"ERROR: unexpected mounted textbook v2 runtime directory: \${book_id}\" >&2; exit 1 ;;
+  esac
+  found=\$((found + 1))
+done
+[ \"\${found}\" -eq 7 ]
+for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
+  for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
+    test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
+  done
+  grep -q \"schemaVersion.*structured-textbook-runtime.v2\" \"\${runtime_root}/\${book_id}/manifest.json\"
+  grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION}\" \"\${runtime_root}/\${book_id}/manifest.json\"
+done
+for file_name in ${TEXTBOOK_RETRIEVAL_REQUIRED_FILES}; do
+  test -f \"\${index_root}/\${file_name}\"
+done
+grep -q \"formatVersion.*textbook-hybrid-retrieval.v1\" \"\${index_root}/manifest.json\"
+grep -q \"sourceRevision.*${PROVENANCE_APP_REVISION}\" \"\${index_root}/manifest.json\"
+'"
+}
+
+stop_remote_runtime_consumers() {
+  remote "bash -lc '
+set -euo pipefail
+for container in \
+  \"${APP_NAME_HINT}\" \
+  \"${WORKER_NAME_HINT}\" \
+  \"${GC_NAME_HINT}\" \
+  act-obe-submission-scanner; do
+  if podman container exists \"\${container}\"; then
+    podman stop -t 30 \"\${container}\" >/dev/null
+  fi
+done
+for container in \
+  \"${APP_NAME_HINT}\" \
+  \"${WORKER_NAME_HINT}\" \
+  \"${GC_NAME_HINT}\" \
+  act-obe-submission-scanner; do
+  if podman ps --format \"{{.Names}}\" | grep -Fxq \"\${container}\"; then
+    echo \"ERROR: runtime consumer still running: \${container}\" >&2
+    exit 1
+  fi
+done
+'"
 }
 
 wait_for_remote_http() {
@@ -215,15 +315,38 @@ print_remote_diagnostics() {
   remote "systemctl --no-pager --full status nginx || true" || true
 }
 
-on_error() {
-  local exit_code=$?
+handle_failure() {
+  local exit_code="$1"
   log
   log "部署流程失败，退出码: ${exit_code}"
-  print_remote_diagnostics
+  if [[ "${CUTOVER_STARTED}" == "1" ]]; then
+    log "保持教材 runtime 消费者停止"
+    stop_remote_runtime_consumers || true
+    print_remote_diagnostics
+  else
+    log "本地预检未通过，尚未开始远端 runtime 切换"
+  fi
+}
+
+on_error() {
+  local exit_code=$?
+  trap - ERR EXIT
+  handle_failure "${exit_code}"
+  exit "${exit_code}"
+}
+
+on_exit() {
+  local exit_code=$?
+  if [[ "${exit_code}" -eq 0 ]]; then
+    return
+  fi
+  trap - ERR EXIT
+  handle_failure "${exit_code}"
   exit "${exit_code}"
 }
 
 trap on_error ERR
+trap on_exit EXIT
 
 require_cmd bash
 require_cmd ssh
@@ -231,15 +354,58 @@ require_cmd scp
 require_cmd curl
 require_cmd rsync
 require_cmd python3
+require_cmd node
 
 log "[1/5] 本地构建"
 if [[ "${SKIP_BUILD}" == "1" ]]; then
   log "已启用 --skip-build，跳过本地构建，直接使用现有镜像产物"
 else
-  bash "${ROOT_DIR}/scripts/build.sh"
+  OUTPUT_TAR="${LOCAL_IMAGE_TAR}" IMAGE_TAG="${REMOTE_APP_IMAGE}" \
+    bash "${ROOT_DIR}/scripts/build.sh"
 fi
 
 [[ -s "${LOCAL_IMAGE_TAR}" ]] || fail "本地镜像产物不存在或为空: ${LOCAL_IMAGE_TAR}"
+[[ -f "${LOCAL_PROVENANCE_FILE}" ]] || fail "本地镜像缺少 provenance sidecar: ${LOCAL_PROVENANCE_FILE}"
+[[ -f "${LOCAL_PROVENANCE_HELPER}" ]] || fail "本地教材 runtime provenance helper 不存在"
+
+node "${LOCAL_PROVENANCE_HELPER}" verify-image \
+  --image-tar "${LOCAL_IMAGE_TAR}" \
+  --sidecar "${LOCAL_PROVENANCE_FILE}"
+node "${LOCAL_PROVENANCE_HELPER}" verify-runtime \
+  --runtime-root "${LOCAL_TEXTBOOK_V2_RUNTIME_DIR}" \
+  --index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
+  --sidecar "${LOCAL_PROVENANCE_FILE}"
+PROVENANCE_APP_REVISION="$(
+  node "${LOCAL_PROVENANCE_HELPER}" print-field \
+    --sidecar "${LOCAL_PROVENANCE_FILE}" \
+    --field appRevision
+)"
+PROVENANCE_RUNTIME_REVISION="$(
+  node "${LOCAL_PROVENANCE_HELPER}" print-field \
+    --sidecar "${LOCAL_PROVENANCE_FILE}" \
+    --field runtimeSourceRevision
+)"
+PROVENANCE_RUNTIME_DIGEST="$(
+  node "${LOCAL_PROVENANCE_HELPER}" print-field \
+    --sidecar "${LOCAL_PROVENANCE_FILE}" \
+    --field runtimeDigest
+)"
+PROVENANCE_INDEX_REVISION="$(
+  node "${LOCAL_PROVENANCE_HELPER}" print-field \
+    --sidecar "${LOCAL_PROVENANCE_FILE}" \
+    --field indexSourceRevision
+)"
+PROVENANCE_INDEX_DIGEST="$(
+  node "${LOCAL_PROVENANCE_HELPER}" print-field \
+    --sidecar "${LOCAL_PROVENANCE_FILE}" \
+    --field indexDigest
+)"
+
+log "- 校验七套外置教材 v2 runtime"
+node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
+  --runtime-root "${LOCAL_TEXTBOOK_V2_RUNTIME_DIR}" \
+  --index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
+  --expected-source-revision "${PROVENANCE_RUNTIME_REVISION}"
 
 LOCAL_SHA="$(local_sha256 "${LOCAL_IMAGE_TAR}")"
 log "本地镜像: ${LOCAL_IMAGE_TAR}"
@@ -248,14 +414,48 @@ log "本地 SHA256: ${LOCAL_SHA}"
 log
 log "[2/5] 同步运行时资源与部署脚本"
 [[ -d "${LOCAL_RUNTIME_DIR}" ]] || fail "本地 runtime 目录不存在: ${LOCAL_RUNTIME_DIR}"
-[[ -f "${LOCAL_TEXTBOOK_RUNTIME_DIR}/manifest.json" ]] || fail "本地教材 runtime 导出缺少 manifest: ${LOCAL_TEXTBOOK_RUNTIME_DIR}/manifest.json"
-[[ -f "${LOCAL_TEXTBOOK_RUNTIME_DIR}/search-documents.jsonl" ]] || fail "本地教材 runtime 导出缺少 search-documents: ${LOCAL_TEXTBOOK_RUNTIME_DIR}/search-documents.jsonl"
+[[ -f "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}/manifest.json" ]] || fail "本地教材检索索引缺少 manifest"
 [[ -f "${LOCAL_APP_DEPLOY_SCRIPT}" ]] || fail "本地应用部署脚本不存在: ${LOCAL_APP_DEPLOY_SCRIPT}"
 [[ -f "${LOCAL_SERVICE_SCRIPT}" ]] || fail "本地 systemd 配置脚本不存在: ${LOCAL_SERVICE_SCRIPT}"
 [[ -f "${LOCAL_START_WRAPPER_SCRIPT}" ]] || fail "本地容器启动包装脚本不存在: ${LOCAL_START_WRAPPER_SCRIPT}"
 
-remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")'"
-rsync -az --delete -e "ssh -o BatchMode=yes" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_DIR}/"
+remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")'"
+
+scp -q "${LOCAL_PROVENANCE_FILE}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_FILE}"
+remote "mv '${REMOTE_TMP_PROVENANCE_FILE}' '${REMOTE_PROVENANCE_FILE}'"
+scp -q "${LOCAL_PROVENANCE_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_HELPER}"
+remote "mv '${REMOTE_TMP_PROVENANCE_HELPER}' '${REMOTE_PROVENANCE_HELPER}'"
+
+log "- 停止所有教材 runtime 消费者"
+CUTOVER_STARTED=1
+stop_remote_runtime_consumers
+
+remote "rm -rf '${REMOTE_RUNTIME_STAGING_DIR}' && mkdir -p '${REMOTE_RUNTIME_STAGING_DIR}'"
+rsync -az --delete -e "ssh -o BatchMode=yes" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_STAGING_DIR}/"
+check_remote_textbook_v2_files "${REMOTE_RUNTIME_STAGING_DIR}"
+remote "command -v node >/dev/null"
+remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
+  --runtime-root '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbooks-v2' \
+  --index-dir '${REMOTE_RUNTIME_STAGING_DIR}/resources/textbook-retrieval' \
+  --sidecar '${REMOTE_PROVENANCE_FILE}'"
+remote "bash -lc '
+set -euo pipefail
+previous=\"${REMOTE_RUNTIME_DIR}.previous\"
+rm -rf \"\${previous}\"
+if [ -d \"${REMOTE_RUNTIME_DIR}\" ]; then
+  mv \"${REMOTE_RUNTIME_DIR}\" \"\${previous}\"
+fi
+if ! mv \"${REMOTE_RUNTIME_STAGING_DIR}\" \"${REMOTE_RUNTIME_DIR}\"; then
+  [ ! -d \"${REMOTE_RUNTIME_DIR}\" ] && [ -d \"\${previous}\" ] && mv \"\${previous}\" \"${REMOTE_RUNTIME_DIR}\"
+  exit 1
+fi
+rm -rf \"\${previous}\"
+'"
+check_remote_textbook_v2_files
+remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
+  --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
+  --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
+  --sidecar '${REMOTE_PROVENANCE_FILE}'"
 
 scp -q "${LOCAL_APP_DEPLOY_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_APP_DEPLOY_SCRIPT}"
 remote "chmod +x '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' && mv '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' '${REMOTE_APP_DEPLOY_SCRIPT}'"
@@ -300,6 +500,9 @@ fi
 
 log "远端镜像路径: ${REMOTE_IMAGE_TAR}"
 log "远端 SHA256: ${REMOTE_FINAL_SHA}"
+remote "node '${REMOTE_PROVENANCE_HELPER}' verify-image \
+  --image-tar '${REMOTE_IMAGE_TAR}' \
+  --sidecar '${REMOTE_PROVENANCE_FILE}'"
 
 log
 log "[4/5] 远端部署"
@@ -309,6 +512,11 @@ remote "bash -lc 'set -euo pipefail
   \"${REMOTE_EXPORT_DB_SCRIPT}\"
   echo \"[remote-deploy] Step 2/7: 装载镜像\"
   \"${REMOTE_LOAD_IMAGES_SCRIPT}\"
+  IMAGE_REVISION=\$(podman image inspect \"${REMOTE_APP_IMAGE}\" --format \"{{ index .Labels \\\"org.opencontainers.image.revision\\\" }}\")
+  if [ \"\${IMAGE_REVISION}\" != \"${PROVENANCE_APP_REVISION}\" ]; then
+    echo \"ERROR: loaded image revision mismatch: expected=${PROVENANCE_APP_REVISION} actual=\${IMAGE_REVISION}\" >&2
+    exit 1
+  fi
   echo \"[remote-deploy] Step 3/7: 启动数据库容器\"
   APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --db-only
   echo \"[remote-deploy] Step 4/7: 导入最新数据库\"
@@ -328,11 +536,15 @@ log "[5/5] 部署验证"
 
 log "- 校验远端镜像文件"
 remote "test -s '${REMOTE_IMAGE_TAR}'"
+remote "test -f '${REMOTE_PROVENANCE_FILE}'"
 
 log "- 校验远端 runtime 目录"
 remote "test -d '${REMOTE_PROJECT_DIR}/course-content/runtime'"
-remote "test -f '${REMOTE_TEXTBOOK_RUNTIME_DIR}/manifest.json'"
-remote "test -f '${REMOTE_TEXTBOOK_RUNTIME_DIR}/search-documents.jsonl'"
+check_remote_textbook_v2_files
+remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
+  --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
+  --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
+  --sidecar '${REMOTE_PROVENANCE_FILE}'"
 
 log "- 校验远端应用部署脚本已更新 runtime 挂载"
 remote "grep -q '/app/course-content/runtime:ro' '${REMOTE_APP_DEPLOY_SCRIPT}'"
@@ -356,6 +568,9 @@ remote "podman ps --format '{{.Names}}' | grep -qx '${REDIS_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}' | grep -qx '${WORKER_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}\t{{.Status}}' | grep -E '^${DB_NAME_HINT}[[:space:]].*healthy'"
 
+log "- 校验应用容器只读挂载中的七套教材 v2 runtime"
+check_container_textbook_v2_files
+
 log "- 校验数据库连通性"
 remote "bash -lc '
 set -euo pipefail
@@ -371,6 +586,9 @@ DB_PASSWORD_REAL=\${DB_PASSWORD:-\${POSTGRES_PASSWORD:-}}
 export PGPASSWORD=\"\${DB_PASSWORD_REAL}\"
 podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tAc \"select 1;\" | grep -qx 1
 '"
+
+log "- 核验 ActKG Release 与 CourseCoverage Overlay 部署投影"
+remote "podman exec '${APP_NAME_HINT}' npm run db:verify-authoritative-knowledge-deployment"
 
 log "- 校验 runtime 知识图谱已同步到数据库"
 remote "bash -lc '
@@ -470,3 +688,8 @@ log "远端部署完成并验证通过"
 log "  公网地址: ${PUBLIC_URL}"
 log "  远端镜像: ${REMOTE_IMAGE_TAR}"
 log "  SHA256: ${REMOTE_FINAL_SHA}"
+log "  应用修订: ${PROVENANCE_APP_REVISION}"
+log "  教材 runtime 修订: ${PROVENANCE_RUNTIME_REVISION}"
+log "  教材 runtime digest: ${PROVENANCE_RUNTIME_DIGEST}"
+log "  教材检索索引修订: ${PROVENANCE_INDEX_REVISION}"
+log "  教材检索索引 digest: ${PROVENANCE_INDEX_DIGEST}"

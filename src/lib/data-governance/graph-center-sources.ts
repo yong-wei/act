@@ -9,11 +9,11 @@ import {
 } from '@/lib/course-runtime';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import {
-  loadAllTextbookRuntimeResourceCatalogEntries,
-  loadAllTextbookRuntimeSearchDocuments,
-  type TextbookRuntimeResourceCatalogEntry,
-  type TextbookRuntimeSearchDocument,
-} from '@/lib/textbook-runtime-resources';
+  loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections,
+  type TextbookStructureRuntimeCatalogEntry,
+  type TextbookStructureUnitProjection,
+} from '@/lib/structured-textbook-runtime';
 import {
   buildResourceNodeRegistryFromTeachingResources,
   loadRuntimeResourceProjectionInputs,
@@ -25,7 +25,7 @@ import {
   readAdaptiveLearnerState,
   type AdaptiveLearnerStateRole,
 } from './adaptive-learner-state-service';
-import { textbookSearchDocumentsToLearningEvidenceCorpus } from './graph-center-evidence';
+import { textbookStructureUnitsToLearningEvidenceCorpus } from './graph-center-evidence';
 import {
   canReadGraphCenterClassOverlay,
   canReadGraphCenterLearnerOverlay,
@@ -80,12 +80,12 @@ export async function buildGraphCenterCoverageSources(input: {
   requestedLearnerId?: string | null;
   requestedClassId?: string | null;
 }): Promise<GraphCenterCoverageSources> {
-  const [teachingResources, runtimeLessons, runtimeTextbooks, runtimeResourceProjections, textbookDocuments, overlays] = await Promise.all([
+  const [teachingResources, runtimeLessons, runtimeTextbooks, runtimeResourceProjections, textbookUnits, overlays] = await Promise.all([
     loadTeachingResourcesForGraphCenter(input.viewerRole, input.viewerUserId),
     loadAllLessonRuntimeResourceCatalogEntries().catch((): RuntimeLessonResourceCatalogEntry[] => []),
-    loadAllTextbookRuntimeResourceCatalogEntries().catch((): TextbookRuntimeResourceCatalogEntry[] => []),
+    loadAllTextbookStructureRuntimeCatalogEntries().catch((): TextbookStructureRuntimeCatalogEntry[] => []),
     loadRuntimeResourceProjectionInputs(),
-    loadAllTextbookRuntimeSearchDocuments().catch((): TextbookRuntimeSearchDocument[] => []),
+    loadAllTextbookStructureUnitProjections().catch((): TextbookStructureUnitProjection[] => []),
     buildGraphCenterOverlaySources(input),
   ]);
   const registeredResources = getAllRegisteredResourceMetadata();
@@ -98,7 +98,7 @@ export async function buildGraphCenterCoverageSources(input: {
       runtimeTextbooks,
       runtimeResourceProjections,
     ),
-    evidenceCorpus: textbookSearchDocumentsToLearningEvidenceCorpus(textbookDocuments),
+    evidenceCorpus: textbookStructureUnitsToLearningEvidenceCorpus(textbookUnits),
     resourceFieldCompletionSummary: loadResourceFieldCompletionSummary(),
     ...overlays,
   };

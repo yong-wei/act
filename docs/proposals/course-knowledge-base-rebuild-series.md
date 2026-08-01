@@ -1,4 +1,13 @@
-# 课程知识基座重建两阶段系列
+# 课程知识基座重建两阶段系列（已退役）
+
+> 状态：2026-07-27 被 ActKG 权威发布体系和 ACT 迁移系列
+> [#1105](https://github.com/yong-wei/act/issues/1105) 取代。
+>
+> 本文仅保留为历史设计记录，不再构成活动 OpenSpec、迁移门禁或实施依赖。
+> 已完成的输入调查仍可作为历史证据，但身份、领域、语义分块和工程关系治理归属
+> ActKG；ACT 的课程覆盖、资源绑定、RAG、SAR、KAQ、学习路径和事实身份迁移以
+> `openspec/changes/*authoritative*` 及 #1105 子项为准。旧系列未按原计划完成，
+> 不得通过 `openspec archive` 将其 delta 合入正式规范。
 
 课程知识基座重建采用两阶段 Buddy propose。共同来源为课程知识上下文、`docs/adr/README.md` 的 ADR 0015–0045 真实逐文件索引、版本化现状审计、[来源与派生契约](course-knowledge-base-governance-source-derivation-contract.md)和[机器可读来源注册表](course-knowledge-base-governance-source-registry.yaml)。
 

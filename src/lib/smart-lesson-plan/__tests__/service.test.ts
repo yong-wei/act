@@ -4,14 +4,25 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const sourcePackMocks = vi.hoisted(() => ({
   sar: vi.fn(),
   pack: vi.fn(),
+  textbookBindings: vi.fn(),
+  validateTextbookRanges: vi.fn(),
 }));
+const adoptionMocks = vi.hoisted(() => ({ adopt: vi.fn(), sync: vi.fn() }));
 
 vi.mock('../../course-basis/lesson-design-source-pack', () => ({
   buildCourseBasisLessonDesignSar: sourcePackMocks.sar,
   buildCourseBasisLessonDesignSourcePack: sourcePackMocks.pack,
 }));
+vi.mock('../../course-basis/service', () => ({
+  adoptCourseBasisVersion: adoptionMocks.adopt,
+  synchronizeCourseBasisAdopterVersions: adoptionMocks.sync,
+}));
+vi.mock('../textbook-resource-pack', () => ({
+  retrieveConfirmedTextbookBindings: sourcePackMocks.textbookBindings,
+  validateConfirmedTextbookRanges: sourcePackMocks.validateTextbookRanges,
+}));
 
-import { contentHash, smartLessonGenerationInputHash } from '../domain';
+import { contentHash, SmartLessonPlanError, smartLessonGenerationInputHash } from '../domain';
 import { teacherCourseBasisCitationTargetId } from '../../source-pack/teacher-course-basis';
 import {
   approveSmartLessonDraft,
@@ -19,14 +30,18 @@ import {
   createSmartLessonTask,
   deriveDraftFromRevision,
   failGenerationStage,
+  listSmartLessonTaskSummaries,
   listSmartLessonTasks,
   recordAdvisoryReview,
   resumeGenerationJob,
   retryGenerationJob,
+  setGenerationStageActionState,
   startGenerationJob,
   updateSmartLessonDraft,
   updatePausedGenerationOutline,
   updateSmartLessonTask,
+  deriveSmartLessonSourceState,
+  sourceBindingEvidenceKey,
 } from '../service';
 import { validPlanFixture } from './fixtures';
 
@@ -54,8 +69,8 @@ function generationTaskFixture(overrides: Record<string, unknown> = {}) {
     }],
     goals: [{
       id: 'goal-1', lineageId: 'goal-lineage-1', content: '判断闭环系统稳定性', contentHash: contentHash('判断闭环系统稳定性'),
-      sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [], sourceBindingSetHash: contentHash([]),
-      gapIdentity: `smart-goal-gap:${'b'.repeat(64)}`, standardsMappings: [],
+      sourceState: 'VERIFIED', sourceBindings: [binding], sourceBindingSetHash: contentHash([binding]),
+      gapIdentity: null, standardsMappings: [],
     }],
     ...overrides,
   };
@@ -89,6 +104,7 @@ function generationTransitionFixture(state: 'CANCELLED' | 'FAILED' | 'RETRYABLE'
       findFirst: vi.fn(async () => ({ id: 'stage-1', kind: 'OUTLINE', state })),
       update: vi.fn(async () => ({})),
     },
+    smartLessonTask: { updateMany: vi.fn(async () => ({ count: 1 })) },
     smartLessonGenerationCommand: { create: vi.fn(async () => ({})) },
   };
   return {
@@ -129,7 +145,10 @@ function taskRevisionFixture(options: {
       contentHash: contentHash('判断稳定性'), sourceState: 'TEACHER_CREATED_SOURCE_PENDING',
       sourceBindings: [], sourceBindingSetHash: contentHash([]), standardsMappings: [],
     }],
-    drafts: [{ jobs: options.terminalState ? [{ id: 'job-1', state: options.terminalState }] : [] }],
+    drafts: [{
+      contentHash: null,
+      jobs: options.terminalState ? [{ id: 'job-1', state: options.terminalState, stages: [] }] : [],
+    }],
   };
   const updatedTask = { ...task, revision: 3, drafts: [], revisions: [] };
   const tx = {
@@ -176,13 +195,15 @@ describe('smart lesson aggregate service', () => {
     vi.clearAllMocks();
     sourcePackMocks.sar.mockResolvedValue({ candidateRefs: { retrievalChunkIds: [] } });
     sourcePackMocks.pack.mockResolvedValue({ retrieval: { pack: { items: [] } } });
+    sourcePackMocks.textbookBindings.mockResolvedValue([]);
+    sourcePackMocks.validateTextbookRanges.mockImplementation(async (ranges) => ranges);
   });
 
   it('loads the latest persisted job, stages, and reviews when reopening the workspace', async () => {
     const findMany = vi.fn(async () => []);
     await listSmartLessonTasks({ smartLessonTask: { findMany } } as never, teacher);
     expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { ownerId: teacher.id },
+      where: { ownerId: teacher.id, archivedAt: null },
       include: expect.objectContaining({
         drafts: expect.objectContaining({
           take: 1,
@@ -195,9 +216,32 @@ describe('smart lesson aggregate service', () => {
     }));
   });
 
-  it('creates a task only from owner-scoped confirmed sources and persists canonical item state', async () => {
+  it('queries bounded archived task summaries with only projection facts', async () => {
+    const findMany = vi.fn(async () => []);
+    await listSmartLessonTaskSummaries({ smartLessonTask: { findMany } } as never, teacher, {
+      archived: true,
+      query: '闭环',
+    });
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        ownerId: teacher.id,
+        archivedAt: { not: null },
+        topic: { contains: '闭环', mode: 'insensitive' },
+      },
+      take: 50,
+      select: expect.objectContaining({
+        sources: expect.any(Object),
+        knowledgePoints: expect.any(Object),
+        goals: expect.any(Object),
+        coursewarePublicationSeries: expect.any(Object),
+      }),
+    }));
+  });
+
+  it('creates a task from owner-scoped sources without requiring a textbook validator for an empty range', async () => {
     let createData: Record<string, unknown> | undefined;
     const db = {
+      user: { findUnique: vi.fn(async () => ({ defaultTeachingClassId: null })) },
       courseBasis: {
         findFirst: vi.fn(async ({ where }) => {
           expect(where).toEqual({ id: 'basis-1', ownerId: teacher.id });
@@ -208,7 +252,8 @@ describe('smart lesson aggregate service', () => {
         findMany: vi.fn(async ({ where }) => {
           expect(where).toMatchObject({
             id: { in: ['version-1'] },
-            reviewState: 'CONFIRMED',
+            extractionState: 'EXTRACTED',
+            reviewState: { in: ['PENDING', 'CONFIRMED'] },
             retiredAt: null,
             document: { courseBasisId: 'basis-1', courseBasis: { ownerId: teacher.id } },
           });
@@ -236,6 +281,7 @@ describe('smart lesson aggregate service', () => {
       audience: '自动化专业本科生',
       durationMinutes: 45,
       sourceVersionIds: ['version-1', 'version-1'],
+      textbookRanges: [],
       confirmScope: true,
       confirmGoals: true,
       knowledgePoints: [{ content: '稳定性判据', origin: 'SUGGESTED', sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [] }],
@@ -270,6 +316,7 @@ describe('smart lesson aggregate service', () => {
     });
     let createData: Record<string, any> | undefined;
     const db = {
+      user: { findUnique: vi.fn(async () => ({ defaultTeachingClassId: null })) },
       courseBasis: { findFirst: vi.fn(async () => ({ id: 'basis-1', ownerId: teacher.id })) },
       courseBasisDocumentVersion: { findMany: vi.fn(async () => [{ id: 'version-1' }]) },
       courseBasisProjection: { findMany: vi.fn(async () => [{ versionId: 'version-1', segment: { stableAnchor: binding.anchor, contentHash: binding.contentHash } }]) },
@@ -287,7 +334,138 @@ describe('smart lesson aggregate service', () => {
     expect(createData?.knowledgePoints.create[0]).toMatchObject({
       sourceState: 'VERIFIED',
       gapIdentity: null,
-      sourceBindings: [{ ...binding, citationId: expect.stringContaining('teacher-course-basis-citation:') }],
+      sourceBindings: [{ ...binding, citationId: 'citation-server' }],
+    });
+    expect(adoptionMocks.adopt).toHaveBeenCalledWith(db, expect.objectContaining({
+      actor: teacher,
+      versionId: binding.sourceVersionId,
+      adopter: expect.objectContaining({ referenceType: 'SMART_LESSON_KNOWLEDGE_POINT' }),
+      anchors: [{ stableAnchor: binding.anchor, contentHash: binding.contentHash }],
+    }));
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(db, {
+      referenceType: 'SMART_LESSON_KNOWLEDGE_POINT',
+      referenceId: expect.any(String),
+      retainedVersionIds: [binding.sourceVersionId],
+    });
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(db, {
+      referenceType: 'SMART_LESSON_GOAL',
+      referenceId: expect.any(String),
+      retainedVersionIds: [binding.sourceVersionId],
+    });
+  });
+
+  it('creates and grounds a task from a confirmed textbook range without uploaded versions', async () => {
+    const textbookBinding = {
+      citationId: 'textbook-v2:unit:section-1',
+      sourceVersionId: 'textbook-v2:book-1:8:revision-1',
+      anchor: 'section-1',
+      contentHash: 'c'.repeat(64),
+      sourceKind: 'textbook' as const,
+      title: '稳定性判据',
+      structuralPath: ['chapter-1', 'section-1'],
+      snippet: '稳定性判据的教材依据',
+    };
+    const textbookRanges = [{
+      bookId: 'book-1',
+      level: 'SECTION' as const,
+      unitId: 'section-1',
+      structuralPath: ['chapter-1', 'section-1'],
+    }];
+    sourcePackMocks.textbookBindings.mockResolvedValue([textbookBinding]);
+    let createData: Record<string, any> | undefined;
+    const db = {
+      user: { findUnique: vi.fn(async () => ({ defaultTeachingClassId: null })) },
+      courseBasis: { findFirst: vi.fn(async () => ({ id: 'basis-1', ownerId: teacher.id })) },
+      courseBasisDocumentVersion: { findMany: vi.fn(async () => []) },
+      smartLessonTask: { create: vi.fn(async ({ data }) => { createData = data; return data; }) },
+    };
+
+    await createSmartLessonTask(db as never, {
+      actor: teacher,
+      courseBasisId: 'basis-1',
+      topic: '闭环稳定性',
+      audience: '自动化专业本科生',
+      durationMinutes: 45,
+      sourceVersionIds: [],
+      textbookRanges,
+      confirmScope: true,
+      confirmGoals: true,
+      knowledgePoints: [{
+        content: '稳定性判据',
+        origin: 'TEACHER_CREATED',
+        sourceState: 'TEACHER_CREATED_SOURCE_PENDING',
+        sourceBindings: [],
+      }],
+      goals: [{
+        content: '判断闭环系统稳定性',
+        sourceState: 'TEACHER_CREATED_SOURCE_PENDING',
+        sourceBindings: [],
+      }],
+    });
+
+    expect(sourcePackMocks.sar).not.toHaveBeenCalled();
+    expect(sourcePackMocks.textbookBindings).toHaveBeenCalledWith('稳定性判据', textbookRanges);
+    expect(createData).toMatchObject({
+      textbookRanges,
+      sources: { create: [] },
+      knowledgePoints: {
+        create: [expect.objectContaining({
+          sourceState: 'VERIFIED',
+          sourceBindings: [textbookBinding],
+        })],
+      },
+    });
+  });
+
+  it('preserves an explicit no-source decision instead of auto-attaching a candidate', async () => {
+    sourcePackMocks.pack.mockResolvedValue({
+      retrieval: {
+        pack: {
+          items: [{
+            citationTargetId: 'citation-server',
+            metadata: {
+              versionId: binding.sourceVersionId,
+              stableAnchor: binding.anchor,
+              contentHash: binding.contentHash,
+            },
+          }],
+        },
+      },
+    });
+    let createData: Record<string, any> | undefined;
+    const db = {
+      user: { findUnique: vi.fn(async () => ({ defaultTeachingClassId: null })) },
+      courseBasis: { findFirst: vi.fn(async () => ({ id: 'basis-1', ownerId: teacher.id })) },
+      courseBasisDocumentVersion: { findMany: vi.fn(async () => [{ id: 'version-1' }]) },
+      smartLessonTask: { create: vi.fn(async ({ data }) => { createData = data; return data; }) },
+    };
+
+    await createSmartLessonTask(db as never, {
+      actor: teacher,
+      courseBasisId: 'basis-1',
+      topic: '稳定性',
+      audience: '本科生',
+      durationMinutes: 45,
+      sourceVersionIds: ['version-1'],
+      knowledgePoints: [{
+        content: '稳定性判据',
+        origin: 'TEACHER_CREATED',
+        sourceState: 'NO_RELIABLE_SOURCE',
+        sourceBindings: [],
+        sourceConfirmed: true,
+        gapReason: '现有材料未覆盖该判据',
+      }],
+      goals: [{
+        content: '判断稳定性',
+        sourceState: 'TEACHER_CREATED_SOURCE_PENDING',
+        sourceBindings: [],
+      }],
+    });
+
+    expect(createData?.knowledgePoints.create[0]).toMatchObject({
+      sourceState: 'NO_RELIABLE_SOURCE',
+      sourceBindings: [],
+      gapReason: '现有材料未覆盖该判据',
     });
   });
 
@@ -354,7 +532,7 @@ describe('smart lesson aggregate service', () => {
 
     await expect(updateSmartLessonTask(db as never, {
       actor: teacher, taskId: 'task-1', expectedRevision: 2, confirmingTurnId: 'turn-22',
-      courseBasisId: 'basis-2', aggregateClassContextRef: { classId: 'class-1', diagnosisRef: 'diagnosis-1' },
+      courseBasisId: 'basis-2', selectedClassId: 'class-1',
       topic: '新主题', audience: '本科生', durationMinutes: 45, sourceVersionIds: ['version-2'],
       knowledgePoints: [
         { id: 'kp-1', content: '新知识点', title: '新知识点', origin: 'TEACHER_CREATED', sourceState: 'TEACHER_CREATED_SOURCE_PENDING', sourceBindings: [] },
@@ -367,7 +545,7 @@ describe('smart lesson aggregate service', () => {
       confirmScope: true, confirmGoals: true,
     })).resolves.toMatchObject({ id: 'task-1', revision: 3 });
     expect(tx.smartLessonTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'task-1', ownerId: teacher.id, revision: 2 }, data: expect.objectContaining({ courseBasisId: 'basis-2', aggregateClassContextRef: 'diagnosis-1', revision: { increment: 1 } }),
+      where: { id: 'task-1', ownerId: teacher.id, revision: 2 }, data: expect.objectContaining({ courseBasisId: 'basis-2', selectedClassId: 'class-1', revision: { increment: 1 } }),
     }));
     expect(createToolRun).toHaveBeenCalledWith({ data: expect.objectContaining({
       agentSessionId: 'history-session', correlationId: 'turn-22', toolName: 'smart_lesson_task_confirm',
@@ -382,6 +560,16 @@ describe('smart lesson aggregate service', () => {
     expect(recreatedGoal.id).not.toBe('goal-removed');
     expect(recreatedGoal.lineageId).not.toBe('goal-removed-lineage');
     expect(recreatedGoal.gapIdentity).not.toBeNull();
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(tx, {
+      referenceType: 'SMART_LESSON_KNOWLEDGE_POINT',
+      referenceId: 'kp-removed',
+      retainedVersionIds: [],
+    });
+    expect(adoptionMocks.sync).toHaveBeenCalledWith(tx, {
+      referenceType: 'SMART_LESSON_GOAL',
+      referenceId: 'goal-removed',
+      retainedVersionIds: [],
+    });
   });
 
   it('preserves a server-verified item across an unrelated edit without trusting the client state', async () => {
@@ -402,7 +590,8 @@ describe('smart lesson aggregate service', () => {
     expect(fixture.tx.courseBasisDocumentVersion.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
         id: { in: ['version-1'] },
-        reviewState: 'CONFIRMED',
+        extractionState: 'EXTRACTED',
+        reviewState: { in: ['PENDING', 'CONFIRMED'] },
         OR: [{ retiredAt: null }, { id: { in: ['version-1'] } }],
       }),
     }));
@@ -478,8 +667,8 @@ describe('smart lesson aggregate service', () => {
     };
     await expect(createSmartLessonTask(db as never, {
       ...base,
-      aggregateClassContextRef: { classId: 'foreign-class', diagnosisRef: 'aggregate-1' },
-    })).rejects.toMatchObject({ code: 'aggregate-class-context-not-authorized' });
+      selectedClassId: 'foreign-class',
+    })).rejects.toMatchObject({ code: 'selected-class-not-authorized' });
 
     await expect(createSmartLessonTask({ ...db, class: { findFirst: vi.fn(async () => ({ id: 'class-1' })) } } as never, {
       ...base,
@@ -487,31 +676,23 @@ describe('smart lesson aggregate service', () => {
     })).rejects.toMatchObject({ code: 'source-binding-not-selected' });
   });
 
-  it('builds aggregate context only from an authorized persisted diagnosis snapshot', async () => {
+  it('persists the selected class identity without reading a historical diagnosis snapshot', async () => {
     let createData: Record<string, any> | undefined;
     const db = {
       courseBasis: { findFirst: vi.fn(async () => ({ id: 'basis-1', ownerId: teacher.id })) },
       courseBasisDocumentVersion: { findMany: vi.fn(async () => [{ id: 'version-1' }]) },
-      class: { findFirst: vi.fn(async () => ({ id: 'class-1', _count: { students: 24 } })) },
-      diagnosisReportSnapshot: { findFirst: vi.fn(async () => ({
-        id: 'diagnosis-1', generatedAt: new Date('2026-07-19T00:00:00.000Z'),
-        snapshot: { dimensions: [{ dimensionId: 'stability', judgment: 'developing', confidence: 'medium' }], limitations: [{ message: '样本窗口有限' }] },
-      })) },
+      class: { findFirst: vi.fn(async () => ({ id: 'class-1' })) },
       smartLessonTask: { create: vi.fn(async ({ data }) => { createData = data; return data; }) },
     };
     await createSmartLessonTask(db as never, {
       actor: teacher, courseBasisId: 'basis-1', topic: '稳定性', audience: '本科生', durationMinutes: 45,
-      sourceVersionIds: ['version-1'], aggregateClassContextRef: { classId: 'class-1', diagnosisRef: 'diagnosis-1' },
+      sourceVersionIds: ['version-1'], selectedClassId: 'class-1',
       knowledgePoints: [{ content: '稳定性', origin: 'TEACHER_CREATED', sourceState: 'TEACHER_CREATED_SOURCE_PENDING', sourceBindings: [] }],
       goals: [{ content: '判断稳定性', sourceState: 'TEACHER_CREATED_SOURCE_PENDING', sourceBindings: [] }],
     });
-    expect(db.diagnosisReportSnapshot.findFirst).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'diagnosis-1', classId: 'class-1', subjectKind: 'class' },
-    }));
-    expect(createData?.aggregateClassContext).toMatchObject({
-      classId: 'class-1', diagnosisRef: 'diagnosis-1', cohortSize: 24,
-      dimensions: [{ key: 'stability', level: 'MEDIUM', confidence: 0.65 }],
-      constraints: ['样本窗口有限'],
+    expect(createData).toMatchObject({
+      selectedClassId: 'class-1',
+      aggregateClassContextRef: null,
     });
   });
 
@@ -629,6 +810,119 @@ describe('smart lesson aggregate service', () => {
         version: expect.not.objectContaining({ retiredAt: null }),
       }),
     }));
+  });
+
+  it('saves and approves a generated plan grounded in a confirmed textbook-v2 range', async () => {
+    const textbookBinding = {
+      citationId: 'textbook-v2:unit:section-1',
+      sourceVersionId: 'textbook-v2:book-1:8:revision-1',
+      anchor: 'section-1',
+      contentHash: 'c'.repeat(64),
+      sourceKind: 'textbook' as const,
+      title: '稳定性判据',
+      structuralPath: ['chapter-1', 'section-1'],
+      snippet: '稳定性判据的教材依据',
+      href: '/textbooks/book-1/section-1',
+    };
+    sourcePackMocks.textbookBindings.mockResolvedValue([textbookBinding]);
+    const plan = validPlanFixture();
+    plan.sources = [textbookBinding];
+    plan.knowledgePoints[0].sourceBindings = [textbookBinding];
+    for (const stage of Object.values(plan.boppps)) {
+      stage.steps[0].sourceBindings = [textbookBinding];
+    }
+    const task = {
+      id: 'task-1',
+      ownerId: teacher.id,
+      courseBasisId: 'basis-1',
+      revision: 1,
+      durationMinutes: 30,
+      topic: '闭环稳定性',
+      audience: '自动化专业本科生',
+      prerequisites: '复数与传递函数',
+      aggregateClassContextRef: null,
+      textbookRanges: [{
+        bookId: 'book-1',
+        level: 'SECTION',
+        unitId: 'section-1',
+        structuralPath: ['chapter-1', 'section-1'],
+      }],
+      courseBasis: { title: '自动控制原理' },
+      sources: [{ sourceVersionId: 'version-1' }],
+      knowledgePoints: [{
+        id: 'kp-1',
+        title: '稳定性判据',
+        sourceState: 'VERIFIED',
+        sourceBindings: [textbookBinding],
+        gapIdentity: null,
+      }],
+      goals: [{
+        id: 'goal-1',
+        content: '判断闭环系统稳定性',
+        sourceState: 'AI_GENERATED_SOURCE_PENDING',
+        sourceBindings: [],
+        gapIdentity: `smart-goal-gap:${'b'.repeat(64)}`,
+      }],
+    };
+    const draft: Record<string, any> = {
+      id: 'draft-1',
+      ownerId: teacher.id,
+      taskId: task.id,
+      state: 'READY',
+      version: 1,
+      content: null,
+      contentHash: null,
+      task,
+      jobs: [],
+    };
+    const revisionCreate = vi.fn(async ({ data }) => ({ id: 'revision-1', ...data }));
+    const draftStore = {
+      findFirst: vi.fn(async () => draft),
+      updateMany: vi.fn(async ({ data }) => {
+        Object.assign(draft, data, { version: draft.version + 1 });
+        return { count: 1 };
+      }),
+      findUniqueOrThrow: vi.fn(async () => draft),
+      update: vi.fn(async ({ data }) => {
+        Object.assign(draft, data);
+        return draft;
+      }),
+    };
+    const tx = {
+      smartLessonDraft: draftStore,
+      smartLessonGenerationJob: { updateMany: vi.fn(async () => ({ count: 0 })) },
+      smartLessonRevision: {
+        findFirst: vi.fn(async () => null),
+        create: revisionCreate,
+      },
+      courseBasisProjection: { findMany: vi.fn(async () => []) },
+    };
+    const db = {
+      smartLessonDraft: draftStore,
+      smartLessonRevision: { findFirst: vi.fn(async () => null) },
+      courseBasisProjection: tx.courseBasisProjection,
+      $transaction: vi.fn(async (run) => run(tx)),
+    };
+
+    expect(deriveSmartLessonSourceState(
+      'SUGGESTED',
+      'AI_GENERATED_SOURCE_PENDING',
+      [textbookBinding],
+      new Set([sourceBindingEvidenceKey(textbookBinding)]),
+    )).toBe('VERIFIED');
+    await expect(updateSmartLessonDraft(db as never, {
+      actor: teacher,
+      draftId: draft.id,
+      expectedVersion: 1,
+      content: plan,
+    })).resolves.toMatchObject({ contentHash: contentHash(plan) });
+    await expect(approveSmartLessonDraft(db as never, {
+      actor: teacher,
+      draftId: draft.id,
+      idempotencyKey: 'approve-textbook-001',
+    })).resolves.toMatchObject({ id: 'revision-1' });
+    expect(revisionCreate).toHaveBeenCalledTimes(1);
+    expect(adoptionMocks.adopt).not.toHaveBeenCalled();
   });
 
   it('atomically supersedes recoverable old jobs after a draft edit without touching a concurrent queued job', async () => {
@@ -771,12 +1065,21 @@ describe('smart lesson aggregate service', () => {
     const commands: Array<{ ownerId: string; action: string; idempotencyKey: string; requestHash: string; jobId: string }> = [];
     const jobs = new Map<string, Record<string, unknown>>();
     const tx = {
+      smartLessonTask: { update: vi.fn(async () => ({})) },
       smartLessonDraft: {
         findFirst: vi.fn(async () => ({
           id: 'draft-1',
           ownerId: teacher.id,
           state: 'EDITABLE',
-          task: generationTaskFixture(),
+          task: generationTaskFixture({
+            sources: [],
+            textbookRanges: [{
+              bookId: 'book-1',
+              level: 'SECTION',
+              unitId: 'section-1',
+              structuralPath: ['chapter-1', 'section-1'],
+            }],
+          }),
         })),
         update: vi.fn(async () => ({})),
       },
@@ -838,13 +1141,66 @@ describe('smart lesson aggregate service', () => {
 
   it('binds resume to the persisted task input and advances an independent delivery generation', async () => {
     const fixture = generationTransitionFixture('CANCELLED');
+    const completedOutline = {
+      id: 'stage-1',
+      kind: 'OUTLINE',
+      state: 'COMPLETED',
+      actionState: 'WAITING_CONFIRMATION',
+      output: { outline: [{ title: '稳定性判据' }] },
+    };
+    const incompleteBridgeIn = {
+      id: 'stage-2',
+      kind: 'BRIDGE_IN',
+      state: 'CANCELLED',
+      actionState: 'CANCELLED',
+      output: null,
+    };
+    fixture.tx.smartLessonGenerationStage.findFirst.mockResolvedValue(incompleteBridgeIn as never);
+    fixture.tx.smartLessonGenerationStage.updateMany.mockImplementation(async (...args: unknown[]) => {
+      const { where, data } = args[0] as {
+        where: { state?: string | { in: string[] } };
+        data: Record<string, unknown>;
+      };
+      if (where.state === 'COMPLETED') Object.assign(completedOutline, data);
+      if (typeof where.state === 'object' && where.state.in.includes(incompleteBridgeIn.state)) {
+        Object.assign(incompleteBridgeIn, data);
+      }
+      return { count: 1 };
+    });
     const resumed = await resumeGenerationJob(fixture.db as never, {
       actor: teacher, jobId: 'job-1', idempotencyKey: 'resume-request-001',
     });
 
     expect(resumed).toMatchObject({ state: 'QUEUED', deliveryGeneration: 2 });
+    expect(completedOutline).toEqual({
+      id: 'stage-1',
+      kind: 'OUTLINE',
+      state: 'COMPLETED',
+      actionState: 'COMPLETED',
+      output: { outline: [{ title: '稳定性判据' }] },
+    });
+    expect(incompleteBridgeIn).toMatchObject({
+      state: 'PENDING',
+      actionState: 'WAITING',
+      output: null,
+    });
+    expect(fixture.tx.smartLessonGenerationStage.updateMany).toHaveBeenNthCalledWith(1, {
+      where: { jobId: 'job-1', state: 'COMPLETED' },
+      data: { actionState: 'COMPLETED' },
+    });
+    expect(fixture.tx.smartLessonGenerationStage.updateMany).toHaveBeenNthCalledWith(2, {
+      where: { jobId: 'job-1', state: { in: ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] } },
+      data: { state: 'PENDING', actionState: 'WAITING', startedAt: null },
+    });
+    expect(fixture.tx.smartLessonTask.updateMany).toHaveBeenCalledWith({
+      where: { drafts: { some: { id: 'draft-1' } } },
+      data: { classContextStaleAt: null, classContextStaleReason: null },
+    });
     expect(fixture.updateJob).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ deliveryGeneration: { increment: 1 } }),
+      data: expect.objectContaining({
+        deliveryGeneration: { increment: 1 },
+        firstIncompleteStage: 'BRIDGE_IN',
+      }),
     }));
 
     const changed = generationTransitionFixture('CANCELLED', generationTaskFixture({ revision: 2, topic: '已修改主题' }));
@@ -852,6 +1208,32 @@ describe('smart lesson aggregate service', () => {
       actor: teacher, jobId: 'job-1', idempotencyKey: 'resume-request-002',
     })).rejects.toMatchObject({ code: 'generation-input-changed' });
     expect(changed.updateJob).not.toHaveBeenCalled();
+  });
+
+  it('does not let pre-claim evidence preparation overwrite a concurrently cancelled stage', async () => {
+    const updateMany = vi.fn(async ({ where }) => ({
+      count: where.state === 'PENDING'
+        && where.job?.state?.in?.includes('QUEUED')
+        ? 0
+        : 1,
+    }));
+    const db = { smartLessonGenerationStage: { updateMany } };
+
+    await expect(setGenerationStageActionState(db as never, {
+      actor: teacher,
+      jobId: 'job-1',
+      stage: 'OUTLINE',
+      actionState: 'PREPARING_EVIDENCE',
+    })).rejects.toMatchObject({ code: 'generation-stage-action-state-conflict', status: 409 });
+    expect(updateMany).toHaveBeenCalledWith({
+      where: {
+        jobId: 'job-1',
+        kind: 'OUTLINE',
+        state: 'PENDING',
+        job: { ownerId: teacher.id, state: { in: ['QUEUED', 'RUNNING'] } },
+      },
+      data: { actionState: 'PREPARING_EVIDENCE' },
+    });
   });
 
   it('advances delivery generation when retrying a failed stage', async () => {
@@ -863,6 +1245,10 @@ describe('smart lesson aggregate service', () => {
     expect(retried).toMatchObject({ state: 'QUEUED', deliveryGeneration: 2, firstIncompleteStage: 'OUTLINE' });
     expect(fixture.updateJob).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ deliveryGeneration: { increment: 1 } }),
+    }));
+    expect(fixture.tx.smartLessonGenerationStage.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'stage-1' },
+      data: expect.objectContaining({ providerAttemptGeneration: { increment: 1 } }),
     }));
   });
 
@@ -906,7 +1292,7 @@ describe('smart lesson aggregate service', () => {
     };
     const first = await beginProviderAttempt(db as never, input);
     const duplicate = await beginProviderAttempt(db as never, input);
-    expect(first).toMatchObject({ claimed: true, attempt: { attemptNumber: 1, idempotencyKey: 'smart-lesson-stage:stage-1:1' } });
+    expect(first).toMatchObject({ claimed: true, attempt: { attemptNumber: 1, idempotencyKey: 'smart-lesson-stage:stage-1:generation:1' } });
     expect(duplicate).toMatchObject({ claimed: false, attempt: { id: 'attempt-1' } });
     expect(tx.smartLessonProviderAttempt.create).toHaveBeenCalledTimes(1);
     expect(tx.smartLessonProviderAttempt.create).toHaveBeenCalledWith({ data: expect.objectContaining({
@@ -923,7 +1309,7 @@ describe('smart lesson aggregate service', () => {
     };
     const attempt: Record<string, any> = {
       id: 'attempt-1', stageId: stage.id, attemptNumber: 1,
-      idempotencyKey: 'smart-lesson-stage:stage-1:1', outcome: 'RETRYABLE_FAILURE',
+      idempotencyKey: 'smart-lesson-stage:stage-1:generation:1', outcome: 'RETRYABLE_FAILURE',
       serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1',
       promptVersion: 'prompt.v1', schemaVersion: 'outline.v1', requestHash: contentHash(request),
       finishedAt: new Date(),
@@ -954,7 +1340,7 @@ describe('smart lesson aggregate service', () => {
       promptVersion: 'prompt.v1', schemaVersion: 'outline.v1',
     });
 
-    expect(result).toMatchObject({ claimed: true, attempt: { id: 'attempt-1', idempotencyKey: 'smart-lesson-stage:stage-1:1', outcome: 'RUNNING' } });
+    expect(result).toMatchObject({ claimed: true, attempt: { id: 'attempt-1', idempotencyKey: 'smart-lesson-stage:stage-1:generation:1', outcome: 'RUNNING' } });
     expect(stage.attemptGeneration).toBe(2);
     expect(tx.smartLessonProviderAttempt.create).not.toHaveBeenCalled();
   });
@@ -1009,7 +1395,88 @@ describe('smart lesson aggregate service', () => {
     expect(generate).toHaveBeenCalledTimes(1);
   });
 
-  it('registers every approved source version as a lesson-plan revision reference', async () => {
+  it.each([
+    'advisory-provider-timeout',
+    'advisory-provider-schema-invalid',
+    'advisory-provider-upstream-failed',
+    'structured-provider-unavailable',
+  ])('persists and returns the advisory failure classification %s', async (failureCode) => {
+    let review: Record<string, any> | null = null;
+    const update = vi.fn(async ({ data }) => {
+      review = { ...review, ...data };
+      return review;
+    });
+    const db = {
+      smartLessonDraft: {
+        findFirst: vi.fn(async () => ({
+          id: 'draft-1',
+          ownerId: teacher.id,
+          contentHash: 'plan-hash',
+          content: { topic: '稳定性' },
+        })),
+      },
+      smartLessonAdvisoryReview: {
+        findFirst: vi.fn(async () => review),
+        create: vi.fn(async ({ data }) => {
+          review = { id: 'review-1', ...data };
+          return review;
+        }),
+        update,
+      },
+    };
+    const generate = vi.fn(async () => {
+      throw new SmartLessonPlanError(failureCode, 503);
+    });
+
+    await expect(recordAdvisoryReview(
+      db as never,
+      { actor: teacher, draftId: 'draft-1', idempotencyKey: `review-${failureCode}` },
+      generate as never,
+    )).rejects.toMatchObject({ code: failureCode, status: 503 });
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ state: 'FAILED', failureCode }),
+    }));
+  });
+
+  it('maps an unclassified advisory provider exception to upstream-failed', async () => {
+    let review: Record<string, any> | null = null;
+    const update = vi.fn(async ({ data }) => {
+      review = { ...review, ...data };
+      return review;
+    });
+    const db = {
+      smartLessonDraft: {
+        findFirst: vi.fn(async () => ({
+          id: 'draft-1',
+          ownerId: teacher.id,
+          contentHash: 'plan-hash',
+          content: { topic: '稳定性' },
+        })),
+      },
+      smartLessonAdvisoryReview: {
+        findFirst: vi.fn(async () => review),
+        create: vi.fn(async ({ data }) => {
+          review = { id: 'review-1', ...data };
+          return review;
+        }),
+        update,
+      },
+    };
+
+    await expect(recordAdvisoryReview(
+      db as never,
+      { actor: teacher, draftId: 'draft-1', idempotencyKey: 'review-unknown-error' },
+      vi.fn(async () => { throw new Error('socket reset'); }) as never,
+    )).rejects.toMatchObject({ code: 'advisory-provider-upstream-failed', status: 503 });
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        failureCode: 'advisory-provider-upstream-failed',
+      }),
+    }));
+  });
+
+  it('registers only actually adopted plan bindings as lesson-plan revision references', async () => {
     const plan = validPlanFixture();
     const canonicalBinding = {
       ...binding,
@@ -1018,7 +1485,6 @@ describe('smart lesson aggregate service', () => {
     plan.sources[0].citationId = canonicalBinding.citationId;
     plan.knowledgePoints[0].sourceBindings[0].citationId = canonicalBinding.citationId;
     for (const stage of Object.values(plan.boppps)) stage.steps[0].sourceBindings[0].citationId = canonicalBinding.citationId;
-    const createReferences = vi.fn(async () => ({ count: 2 }));
     const createRevision = vi.fn(async ({ data }) => ({ id: 'revision-1', ...data }));
     const attempt = {
       id: 'attempt-1', attemptNumber: 1, idempotencyKey: 'provider-attempt-1',
@@ -1050,7 +1516,6 @@ describe('smart lesson aggregate service', () => {
         findFirst: vi.fn(async () => null),
         create: createRevision,
       },
-      courseBasisReferenceLink: { createMany: createReferences },
       courseBasisProjection: { findMany: vi.fn(async () => [{ versionId: 'version-1', segment: { stableAnchor: 'chapter-1', contentHash: 'a'.repeat(64) } }]) },
     };
     const db = {
@@ -1062,13 +1527,13 @@ describe('smart lesson aggregate service', () => {
       actor: teacher, draftId: 'draft-1', idempotencyKey: 'approve-request-001',
     });
 
-    expect(createReferences).toHaveBeenCalledWith({
-      data: [
-        { versionId: 'version-1', referenceType: 'LESSON_PLAN_REVISION', referenceId: 'revision-1' },
-        { versionId: 'version-2', referenceType: 'LESSON_PLAN_REVISION', referenceId: 'revision-1' },
-      ],
-      skipDuplicates: true,
-    });
+    expect(adoptionMocks.adopt).toHaveBeenCalledTimes(1);
+    expect(adoptionMocks.adopt).toHaveBeenCalledWith(tx, expect.objectContaining({
+      actor: teacher,
+      versionId: 'version-1',
+      adopter: { referenceType: 'LESSON_PLAN_REVISION', referenceId: 'revision-1' },
+      anchors: [{ stableAnchor: 'chapter-1', contentHash: 'a'.repeat(64) }],
+    }));
     expect(createRevision).toHaveBeenCalledWith({ data: expect.objectContaining({
       provenanceSnapshot: {
         generationJobId: 'job-1',

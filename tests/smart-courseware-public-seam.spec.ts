@@ -171,8 +171,9 @@ test('builds the approved plan and generated courseware through ordinary APIs an
     const version = await api(`/api/teacher/course-bases/documents/${document.document.id}/versions`, json({
       sourceType: 'PASTED_TEXT', sourceName: '根轨迹课程依据.txt', mimeType: 'text/plain', content: sourceText,
     }));
-    await api(`/api/teacher/course-bases/versions/${version.version.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'confirm' }) });
     const preview = await api(`/api/teacher/course-bases/versions/${version.version.id}`);
+    const editor = await api(`/api/teacher/course-bases/versions/${version.version.id}?mode=editor`);
+    if (editor.document.lifecycle.label !== '可编辑') throw new Error(`expected-editable:${JSON.stringify(editor.document.lifecycle)}`);
     const chat = await api('/api/ai/sessions', json({ courseId: basis.courseBasis.id, pageId: '/teacher/smart-prep', title: '根轨迹共创验收' }));
     return { basisId: basis.courseBasis.id, versionId: version.version.id, preview: preview.preview, chatId: chat.id };
   }, {

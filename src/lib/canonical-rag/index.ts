@@ -1,0 +1,122 @@
+export {
+  assertProductionSelectorUnchanged,
+  assertShadowCannotActivateCutover,
+  canonicalExpansionEnabled,
+  legacyFallbackPermitted,
+  productionAnswerUsesLegacy,
+  RagCutoverActivationError,
+  resolveRagAuthorityMode,
+  selectRagAuthority,
+  tryActivateCanonicalCutover,
+  type CutoverVerificationFailure,
+  type SelectRagAuthorityOptions,
+} from './authority';
+export {
+  emitNumberedCitations,
+  evaluateFinalEvidenceCandidate,
+  rejectGraphOwnedEvidence,
+} from './citation-ownership';
+export {
+  assertCandidateContextFingerprint,
+  attachCandidateContext,
+  buildCandidateContextFingerprint,
+  CANDIDATE_CONTEXT_FIELD_KEYS,
+  CandidateContextError,
+  computeContextDigest,
+  membershipMatchesContext,
+  pickContextFingerprint,
+  type CandidateContextFields,
+  type CandidateContextFingerprint,
+} from './context-fingerprint';
+export {
+  CANONICAL_RAG_CONSUMER_ID,
+  CANONICAL_RAG_SCHEMA_VERSION,
+  RAG_CONSUMER_SEMANTIC_SUPPORT,
+  RAG_CUTOVER_AUTHORITY_SCHEMA_VERSION,
+  RAG_EXPANSION_DEFAULTS,
+  RAG_SUPPORTED_OBJECT_TYPES,
+  RAG_SUPPORTED_PREDICATES,
+  type ActCrosswalkTarget,
+  type ActStructuralCitationTarget,
+  type CanonicalRagCoverageEntry,
+  type CanonicalRagObject,
+  type CanonicalRagRelation,
+  type CanonicalRagReleaseContext,
+  type CanonicalRagShadowDiagnostics,
+  type CanonicalRagShadowInput,
+  type CanonicalRagShadowResult,
+  type CanonicalRagShadowStatus,
+  type CrosswalkResolutionDiagnostic,
+  type CrosswalkResolutionOutcome,
+  type CrosswalkResolutionStatus,
+  type EntityAlignmentHit,
+  type EntityAlignmentMatchKind,
+  type ExpansionSkipReason,
+  type FinalEvidenceCandidate,
+  type FinalEvidenceKind,
+  type NumberedCitation,
+  type RagAuthorityConsumer,
+  type RagAuthorityMode,
+  type RagAuthoritySelector,
+  type RagCutoverAuthorityReceipt,
+  type RagSupportedObjectType,
+  type RagSupportedPredicate,
+  type RelationExpansionResult,
+  type RelationExpansionStep,
+  type UpstreamRagReferenceSeed,
+  type VersionBoundCrosswalk,
+  type VersionBoundMembership,
+} from './contracts';
+export {
+  isCompleteValidatedCrosswalk,
+  matchStructuralEndpoint,
+  resolveUpstreamSeeds,
+  resolveUpstreamThroughActCrosswalk,
+} from './crosswalk-resolution';
+export {
+  admittedCoverageIds,
+  alignCanonicalEntities,
+} from './entity-alignment';
+export {
+  coverageEntriesFromRecords,
+  deriveStructuralTargetFromObservations,
+  loadActCrosswalkTargets,
+  objectsFromProjectionNodes,
+  relationsFromProjectionLinks,
+  releaseContextFromAuthoritativeSnapshot,
+  StructuralObservationError,
+  upstreamSeedsFromCrosswalks,
+  wrapCrosswalksFromAuthoritativeSnapshot,
+  type InventoryResourceSegmentObservation,
+} from './loaders';
+export {
+  buildOfflineShadowInput,
+  CANONICAL_RAG_OFFLINE_SAMPLE_ID,
+  offlineCoverage,
+  offlineCrosswalks,
+  offlineObjects,
+  offlineRelations,
+  offlineRelease,
+  offlineSampleCases,
+  offlineStructuralUnits,
+  offlineUpstreamByCanonicalId,
+} from './offline-samples';
+export {
+  getRagPredicateAdapter,
+  RAG_PREDICATE_ADAPTERS,
+  resolveExpansionNeighbor,
+} from './predicate-adapters';
+export { expandCanonicalRelations } from './relation-expansion';
+export {
+  runCanonicalRagShadow,
+  toRetrievalGraphNodeRefs,
+} from './shadow-retrieval';
+export {
+  assertCompleteReleaseContext,
+  assertVersionClosedShadowInput,
+  bindCandidateContextForFixtureOnly,
+  CanonicalRagVersionContextError,
+  isCompleteReleaseContext,
+  membershipMatchesRelease,
+  type VersionContextFailureCode,
+} from './version-context';

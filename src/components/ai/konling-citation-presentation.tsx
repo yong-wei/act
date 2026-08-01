@@ -50,6 +50,8 @@ type CitationLike = {
   evidenceRef?: string | null;
   sourceWindow?: string | null;
   privacyScope?: string | null;
+  displayNumber?: number | null;
+  canonicalKey?: string | null;
 };
 
 type KonlingCitationGuardLike = {
@@ -60,6 +62,8 @@ type KonlingCitationGuardLike = {
   lowConfidenceReasons?: string[];
   diagnosticReasons?: string[];
   missingContext?: string[];
+  verificationStatus?: 'verified' | 'partial' | 'unverified';
+  userNotice?: '部分引用未能核验' | '引用未能核验' | null;
   studyQuestion?: {
     intent?: string;
     requiredSections?: string[];
@@ -165,18 +169,24 @@ export function normalizeKonlingCitationPresentation(metadata: unknown): Konling
     ...(Array.isArray(guard.lowConfidenceReasons) ? guard.lowConfidenceReasons : []),
     ...(Array.isArray(guard.missingContext) ? guard.missingContext.map((item) => `missing-context:${item}`) : []),
   ];
-  const status = citations.length === 0
-    ? 'missing'
-    : guard.status === 'verified'
-      ? 'verified'
-      : 'limited';
+  const status = guard.verificationStatus === 'unverified'
+    ? 'unverified'
+    : guard.verificationStatus === 'partial'
+      ? 'limited'
+      : citations.length === 0
+        ? 'missing'
+        : guard.status === 'verified'
+          ? 'verified'
+          : 'limited';
   return {
     summary: {
       status,
       diagnostics,
       missingReasons,
     },
-    items: citations.map((citation, index) => ({ ...citation, displayIndex: index + 1 })),
+    items: citations.map((citation, index) => citation.displayIndex > 0
+      ? citation
+      : { ...citation, displayIndex: index + 1 }),
     studyQuestion: guard.studyQuestion ?? null,
     answerUnits: normalizeAnswerUnitBindings(guard.answerUnits, citations),
   };
@@ -224,7 +234,9 @@ function normalizePresentationCitation(citation: CitationLike): PresentationCita
   return {
     id: stringValue(citation.id) || null,
     key: buildCitationKey(sourceType, citation, href),
-    displayIndex: 0,
+    displayIndex: Number.isInteger(citation.displayNumber) && Number(citation.displayNumber) > 0
+      ? Number(citation.displayNumber)
+      : 0,
     sourceType,
     title: stringValue(citation.displayTitle ?? citation.title ?? citation.citationChip?.displayTitle, '未命名引用'),
     href,
@@ -242,6 +254,7 @@ function normalizeSourceType(value: unknown) {
 
 function buildCitationKey(sourceType: string, citation: CitationLike, href: string | null) {
   const identity = firstString([
+    citation.canonicalKey,
     ...sourceTypeIdentities(sourceType, citation),
     citation.citationChip?.chunkId,
     citation.key,
@@ -402,8 +415,8 @@ function limitationLabel(value: string | null) {
 
 function citationPanelTitle(status: KonlingCitationPresentationStatus) {
   if (status === 'verified') return '已验证引用';
-  if (status === 'limited') return '引用核验有限';
-  if (status === 'unverified') return '引用待核验';
+  if (status === 'limited') return '部分引用未能核验';
+  if (status === 'unverified') return '引用未能核验';
   return '未找到可验证引用';
 }
 
@@ -462,8 +475,10 @@ export function KonlingCitationPanel({ metadata }: { metadata: unknown }) {
         </div>
       ) : (
         <div className="text-[11px] text-amber-200" data-konling-citation-missing>
-          未找到可验证引用
-          {presentation.summary.missingReasons.length > 0 ? `：${presentation.summary.missingReasons.slice(0, 3).join('；')}` : ''}
+          {presentation.summary.status === 'unverified' ? '引用未能核验' : '未找到可验证引用'}
+          {process.env.NODE_ENV !== 'production' && presentation.summary.missingReasons.length > 0
+            ? `：${presentation.summary.missingReasons.slice(0, 3).join('；')}`
+            : ''}
         </div>
       )}
       {presentation.studyQuestion ? (
