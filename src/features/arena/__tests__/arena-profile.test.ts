@@ -356,9 +356,12 @@ describe('arena student portfolio', () => {
     expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskIds: arenaTaskIds })');
     expect(routeSource).toContain('buildArenaStudentPortfolio(');
     expect(routeSource).toContain('userArenaVirtualSimulationRunCount');
+    expect(routeSource).toContain('where: {\n      userId,');
     expect(routeSource).toContain("orderBy: [{ createdAt: 'desc' }, { id: 'desc' }]");
-    expect(routeSource).toContain('cursor: { id: cursorId }');
-    expect(routeSource).toContain('skip: 1');
+    expect(routeSource).toContain('const ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT = 100;');
+    expect(routeSource).toContain('take: ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT');
+    expect(routeSource).not.toContain('cursor: { id: cursorId }');
+    expect(routeSource).not.toContain('skip: 1');
     expect(routeSource).toContain('arenaPortfolio:');
     expect(pageSource).toContain('arenaPortfolio');
     expect(pageSource).toContain('竞技场画像');

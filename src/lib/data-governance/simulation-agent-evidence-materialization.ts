@@ -21,6 +21,8 @@ const SIMULATION_SUMMARY_METRIC_KEYS = [
   'identificationFit',
 ] as const;
 
+const PREVIEW_REPLAY_CONFIDENCE_CAP = 0.45;
+
 export type SimulationAgentEvidenceSourceType = 'simulation_run' | 'agent_tool_run';
 export type SimulationAgentEvidenceReviewerState = 'auto_approved' | 'review_required' | 'approved';
 
@@ -232,7 +234,7 @@ function buildSimulationRunEvidenceDraft(
       traceReference: traceId ? `SimulationTrace:${traceId}` : `SimulationRun:${runId}`,
     }),
     provenance,
-    confidence: resolveSimulationConfidence(summary, trace),
+    confidence: resolveSimulationConfidence(summary, trace, preview),
     privacyScope,
     dedupeKey,
     reviewerState: 'auto_approved',
@@ -607,11 +609,20 @@ function hasCompletePreviewAttribution(summary: Prisma.InputJsonObject): boolean
     && readString(trace.protocolVersion) !== undefined;
 }
 
-function resolveSimulationConfidence(summary: JsonRecord, trace: JsonRecord | null): number {
+function resolveSimulationConfidence(
+  summary: JsonRecord,
+  trace: JsonRecord | null,
+  preview: boolean,
+): number {
   const explicit = readNumber(summary.replayConfidence);
+  if (preview) {
+    return explicit === undefined
+      ? PREVIEW_REPLAY_CONFIDENCE_CAP
+      : Math.min(clamp01(explicit), PREVIEW_REPLAY_CONFIDENCE_CAP);
+  }
   if (explicit !== undefined) return clamp01(explicit);
   if (trace && readString(trace.checksum) && readString(trace.protocolVersion)) return 0.8;
-  return 0.45;
+  return PREVIEW_REPLAY_CONFIDENCE_CAP;
 }
 
 function isPreviewRun(run: JsonRecord, summary: JsonRecord = {}): boolean {
