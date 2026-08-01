@@ -1,25 +1,25 @@
 {
   "status": "passed",
-  "capturedAt": "2026-08-01T12:56:08.796Z",
+  "capturedAt": "2026-08-01T13:50:38.327Z",
   "generatorPath": "tests/arena-training-profile-1040.spec.ts",
-  "generatorSha256": "85a934d6abea9b80cd1c33bfecf6856a2e0348adcf56c686eb6c7d3292c4b9dc",
-  "sourceRevision": "e5a875076da16343155305e15e3eb368da0033ab",
+  "generatorSha256": "6e663935c7f16c2dc2a42055f9d8e8ba8666959cb7a409c43221d3015c263bef",
+  "sourceRevision": "21362d71628cba192840b3aa8eec410cc9a64ef1",
   "sourceFiles": {
-    "src/app/(main)/profile/page.tsx": "3a0a389ac861241b71af2eae26a3de470672972005d3dc480795311ab87f92ee",
-    "src/app/api/user/profile/route.ts": "bf8239e6784c7d6034600549f3c0fec6ebef1417277bdf37bb9d438de7128424",
-    "src/features/arena/profile.ts": "1ef7d2be71233a7a8f7abd495fb454179f6348ca86b611ed0226585f7f6f3c34",
+    "src/app/(main)/profile/page.tsx": "57c28973c6621b212677f92b8a50c20ea5177b0d4a76366419d4b98086e43996",
+    "src/app/api/user/profile/route.ts": "653bd4285482ba5fbc86f956fd3a8f57bbc8e4eb5639614c09d32cf234e18816",
+    "src/features/arena/profile.ts": "9485c5df0ebea944215fdbee6f3f4363a08fc6376cf109fb8add66796656d37d",
     "src/features/arena/blackbox/controller-preview.ts": "723385e9df02ad3b27ccf696d126b842289df9421293346b9d720d1df460c15b",
     "src/lib/data-governance/simulation-agent-evidence-materialization.ts": "19c454dfa676413d9624e0dc4013c67bc2cf7d26b64030442f787e7ccc7a7dd0"
   },
   "fixtureAuthority": "deterministic profile API projection; backend behavior separately verified by profile-route.test.ts",
   "route": "/profile",
   "role": "STUDENT",
-  "captureBeforeHead": "e5a875076da16343155305e15e3eb368da0033ab",
-  "captureAfterHead": "e5a875076da16343155305e15e3eb368da0033ab",
+  "captureBeforeHead": "21362d71628cba192840b3aa8eec410cc9a64ef1",
+  "captureAfterHead": "21362d71628cba192840b3aa8eec410cc9a64ef1",
   "screenshots": [
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-complete-1440x1000.png",
-      "sha256": "cb5b0f93cea779fb28781a22f048d788a987fcae45ed67df6fb34d6c17e013cc",
+      "sha256": "d4f5f685fa62f28f09e9cc1ed7e01ef8e45a3d731e1d9dfcb8ab7f3518f33095",
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -32,7 +32,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-complete-320x900.png",
-      "sha256": "9811cb0e88d6c6fdb40c4ea9b4553e4c40d0ad142dfcb7e5cd12ee657a093712",
+      "sha256": "92270812c538612c0c32275d6c80a5b0c53cce515e809c44852c797a97e4ae86",
       "viewport": {
         "width": 320,
         "height": 900
@@ -45,7 +45,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-damaged-320x900.png",
-      "sha256": "426c747ce79457b4ba13fa845698e5f9bda7b89f34b4f1aba8980aa7845025be",
+      "sha256": "f91ec7b6f5ad2575b8a49c2c6477f0b1a0baf99a60a8b52ee8f1d71a41f03278",
       "viewport": {
         "width": 320,
         "height": 900
@@ -93,6 +93,7 @@
       "officialEvidenceEmpty:1440x1000": true,
       "trainingCard:1440x1000": true,
       "previewAndUnofficial:1440x1000": true,
+      "lowConfidence:1440x1000": true,
       "navigationState:desktop-collapsible": true,
       "completeQualityMetrics:1440x1000": true,
       "noUndefined:1440x1000": true,
@@ -102,6 +103,7 @@
       "officialEvidenceEmpty:320x900": true,
       "trainingCard:320x900": true,
       "previewAndUnofficial:320x900": true,
+      "lowConfidence:320x900": true,
       "navigationState:mobile-drawer": true,
       "completeQualityMetrics:320x900": true,
       "noUndefined:320x900": true,
@@ -113,6 +115,7 @@
       "officialEvidenceEmpty:320x900": true,
       "trainingCard:320x900": true,
       "previewAndUnofficial:320x900": true,
+      "lowConfidence:320x900": true,
       "unavailableQualitySummary:320x900": true,
       "noRawQualityMetricLabels:320x900": true,
       "noUndefined:320x900": true,
