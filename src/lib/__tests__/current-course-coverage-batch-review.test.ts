@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
 
 import {
   assertCurrentCourseCoverageProductionBoundaryBundle,
@@ -15,6 +16,10 @@ import {
   type CurrentCourseCoverageStageReview,
 } from '../aggregate-governance/current-course-coverage-batch-review';
 import { publishCurrentCourseCoverageBatchBundle } from '../../../scripts/course-coverage/review-current-course-coverage-batch';
+import {
+  validateCurrentCourseCoverageStageSource,
+  validateStageProvenanceBinding,
+} from '../../../scripts/course-coverage/review-current-course-coverage-batch';
 import {
   buildCurrentCourseCoverageWorklist,
   buildCurrentReviewBatchManifest,
@@ -180,6 +185,13 @@ function stageReview(input: {
       sessionId: input.sessionId,
       promptVersion,
     },
+    sourceArtifactBinding: {
+      artifactPath: `fixtures/${input.stage.toLowerCase()}-source.json`,
+      artifactSha256: SHA_C,
+      schemaVersion: 'fixture-course-coverage-source/v1',
+      stage: input.stage,
+      writerSessionId: input.sessionId,
+    },
     reviewInputDigest,
     decisions: ids.map((canonicalId) => {
       const item = byId.get(canonicalId)!;
@@ -219,6 +231,40 @@ function receipt(input = documents()) {
     challenger: input.challenger,
     productionBoundaryProof: productionBoundaryProof(),
   });
+}
+
+function sourceFor(document: CurrentCourseCoverageStageReview): { document: CurrentCourseCoverageStageReview; bytes: string } {
+  const bytes = JSON.stringify({
+    schemaVersion: 'fixture-course-coverage-source/v1',
+    stage: document.stage,
+    batchBinding: {
+      batchId: document.batchBinding.batchId,
+      manifestBatchIndex: document.batchBinding.manifestBatchIndex,
+      sequence: document.batchBinding.sequence,
+      group: document.batchBinding.semanticGroupKey,
+      memberCount: document.batchBinding.memberCount,
+      memberDigest: document.batchBinding.memberDigest,
+      manifestDigest: document.batchBinding.manifestDigest,
+    },
+    members: document.decisions.map((decision, ordinal) => ({
+      ordinal,
+      canonicalId: decision.canonicalId,
+      canonicalRevision: decision.canonicalRevision,
+      stageConclusion: decision.conclusion,
+      rationale: decision.rationale,
+      evidenceRefs: decision.evidenceSelectors.map((selector) => `fixture|aggregate|${selector}|evidence`),
+    })),
+  });
+  return {
+    document: {
+      ...document,
+      sourceArtifactBinding: {
+        ...document.sourceArtifactBinding,
+        artifactSha256: createHash('sha256').update(bytes).digest('hex'),
+      },
+    },
+    bytes,
+  };
 }
 
 function attestationFor(inputReceipt = receipt()): CurrentCourseCoverageProductionBoundaryAttestation {
@@ -659,5 +705,37 @@ describe('current CourseCoverage batch review receipt', () => {
     expect(() => receipt({ ...input, primary: decisionTamper })).toThrow(/decisionDigest mismatch/iu);
     const documentTamper = { ...input.primary, documentDigest: SHA_A };
     expect(() => receipt({ ...input, primary: documentTamper })).toThrow(/document digest mismatch/iu);
+  });
+
+  it('fails closed when an independent source is changed or its binding is swapped', () => {
+    const bound = sourceFor(documents().primary);
+    expect(() => validateCurrentCourseCoverageStageSource({ document: bound.document, sourceBytes: bound.bytes })).not.toThrow();
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: bound.document,
+      sourceBytes: `${bound.bytes} `,
+    })).toThrow(/SHA-256 mismatch/iu);
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: {
+        ...bound.document,
+        sourceArtifactBinding: { ...bound.document.sourceArtifactBinding, artifactSha256: SHA_A },
+      },
+      sourceBytes: bound.bytes,
+    })).toThrow(/SHA-256 mismatch/iu);
+    expect(() => validateStageProvenanceBinding(bound.document, {
+      primary: {
+        sourceArtifact: 'primary-source.json',
+        sourceArtifactSha256: bound.document.sourceArtifactBinding.artifactSha256,
+        sourceArtifactBinding: bound.document.sourceArtifactBinding,
+        normalizedDocumentDigest: bound.document.documentDigest,
+      },
+    })).not.toThrow();
+    expect(() => validateStageProvenanceBinding(bound.document, {
+      primary: {
+        sourceArtifact: 'primary-source.json',
+        sourceArtifactSha256: SHA_A,
+        sourceArtifactBinding: { ...bound.document.sourceArtifactBinding, artifactSha256: SHA_A },
+        normalizedDocumentDigest: bound.document.documentDigest,
+      },
+    })).toThrow(/provenance\/source binding drift|identity drift/iu);
   });
 });

@@ -35,6 +35,14 @@ export type CourseCoverageReviewStage = 'PRIMARY' | 'CHALLENGER' | 'THIRD';
 export type CourseCoverageStageConclusion = 'INCLUDE' | 'EXCLUDE' | 'DEFER';
 export type CourseCoverageEvidenceSufficiency = 'SUFFICIENT' | 'INSUFFICIENT';
 
+export interface CurrentCourseCoverageStageSourceBinding {
+  artifactPath: string;
+  artifactSha256: string;
+  schemaVersion: string;
+  stage: CourseCoverageReviewStage;
+  writerSessionId: string;
+}
+
 export interface CurrentCourseCoverageBatchBinding {
   batchId: string;
   manifestBatchIndex: number;
@@ -69,6 +77,7 @@ export interface CurrentCourseCoverageStageReview {
     sessionId: string;
     promptVersion: string;
   };
+  sourceArtifactBinding: CurrentCourseCoverageStageSourceBinding;
   reviewInputDigest: string;
   decisions: CurrentCourseCoverageStageDecision[];
   documentDigest: string;
@@ -417,6 +426,19 @@ function validateStage(input: {
   requiredString(reviewer.provider, `${expectedStage}.reviewer.provider`);
   requiredString(reviewer.sessionId, `${expectedStage}.reviewer.sessionId`);
   requiredString(reviewer.promptVersion, `${expectedStage}.reviewer.promptVersion`);
+  const sourceBinding = document.sourceArtifactBinding;
+  if (!sourceBinding) {
+    throw new Error(`Current batch review rejected: ${expectedStage} source artifact binding is required`);
+  }
+  requiredString(sourceBinding.artifactPath, `${expectedStage}.sourceArtifactBinding.artifactPath`);
+  assertSha(sourceBinding.artifactSha256, `${expectedStage}.sourceArtifactBinding.artifactSha256`);
+  requiredString(sourceBinding.schemaVersion, `${expectedStage}.sourceArtifactBinding.schemaVersion`);
+  if (sourceBinding.stage !== expectedStage) {
+    throw new Error(`Current batch review rejected: ${expectedStage} source artifact stage mismatch`);
+  }
+  if (sourceBinding.writerSessionId !== reviewer.sessionId) {
+    throw new Error(`Current batch review rejected: ${expectedStage} source writer/session mismatch`);
+  }
   const expectedInputDigest = stageInputDigest({
     binding,
     stage: expectedStage,

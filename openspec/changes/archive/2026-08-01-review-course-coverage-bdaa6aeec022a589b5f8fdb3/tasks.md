@@ -5,8 +5,9 @@
 
 ## 2. Produce independent conclusions
 
-- [x] Primary reviews each exact member against current course evidence and records a rationale.
-- [x] Challenger independently reviews profileOnly/new/changed/highRisk members and records a separate rationale.
+- [x] The independent Primary source writer reviews each exact member against current course evidence and writes `primary-independent-stage-source.json` with member-specific rationales and evidence references.
+- [x] The independent Challenger source writer reviews each exact member without reading Primary or any Challenger/Primary artifact and writes `challenger-independent-stage-source.json` with member-specific rationales and evidence references.
+- [x] Normalize both source artifacts deterministically into the stage review documents, preserving source conclusions and rationales while adding only runtime-required canonical digests.
 - [x] Route every Primary/Challenger conflict to Third and require a terminal Third conclusion; preserve an agreed DEFER as `DEFERRED_EVIDENCE_BLOCKED` without assigning a CourseCoverage role.
 
 ## 3. Assemble the review receipt

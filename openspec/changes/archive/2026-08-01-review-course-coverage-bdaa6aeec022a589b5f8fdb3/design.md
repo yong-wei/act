@@ -4,9 +4,10 @@ This change is a bounded execution unit for `bdaa6aeec022a589b5f8fdb3` (`ctr:rel
 
 ### Independent stages
 
-1. Primary produces an independent per-member conclusion and rationale.
-2. Challenger independently reviews every member when any member is profileOnly, new, changed, or highRisk; otherwise it follows the manifest policy and remains available for admitted primary exceptions.
-3. Any disagreement is routed to Third. Third's conclusion is terminal and must identify the conflict and rationale.
+1. An independent Primary source writer reviews every exact member and writes `primary-independent-stage-source.json` with an ordinal, member identity, conclusion, member-specific rationale, and evidence references.
+2. An independent Challenger source writer reviews every member when any member is profileOnly, new, changed, or highRisk; it writes `challenger-independent-stage-source.json` without reading Primary or any other stage artifact. The source artifacts are the semantic stage authority; they are not assembled from a batch-level policy.
+3. The assembler normalizes each source artifact into its stage review document, preserving the source conclusion, rationale, and evidence references while adding only runtime-required canonical decision/document digests.
+4. Any disagreement is routed to Third. Third's conclusion is terminal and must identify the conflict and rationale.
 
 No stage may reuse another stage's conclusion as its own evidence. The receipt records stage identity, input digests, per-member conclusion, rationale, and final review-stage status. Primary, Challenger, and Third use distinct reviewer and session identities.
 

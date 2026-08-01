@@ -50,6 +50,30 @@ export interface ProductionAuthoritySnapshot {
 
 type Publication = 'published' | 'identical';
 
+interface IndependentStageSourceMember {
+  ordinal: number;
+  canonicalId: string;
+  canonicalRevision: string;
+  stageConclusion: string;
+  rationale: string;
+  evidenceRefs: string[];
+}
+
+interface IndependentStageSource {
+  schemaVersion: string;
+  stage: string;
+  batchBinding: {
+    batchId: string;
+    manifestBatchIndex: number;
+    sequence: number;
+    group: string;
+    memberCount: number;
+    memberDigest: string;
+    manifestDigest: string;
+  };
+  members: IndependentStageSourceMember[];
+}
+
 interface CliOptions {
   worklist: string;
   manifest: string;
@@ -199,6 +223,88 @@ function productionBoundaryProof(
 
 async function json<T>(input: string): Promise<T> {
   return JSON.parse(await readFile(absolute(input), 'utf8')) as T;
+}
+
+function sourceEvidenceSelector(value: string, index: number): string {
+  const parts = value.split('|');
+  if (parts.length !== 4 || !parts[2]) {
+    throw new Error(`Current batch review rejected: source evidenceRefs[${index}] is malformed`);
+  }
+  return parts[2]!;
+}
+
+export function validateCurrentCourseCoverageStageSource(input: {
+  document: CurrentCourseCoverageStageReview;
+  sourceBytes: string | Buffer;
+}): void {
+  const binding = input.document.sourceArtifactBinding;
+  let source: IndependentStageSource;
+  try {
+    source = JSON.parse(input.sourceBytes.toString()) as IndependentStageSource;
+  } catch {
+    throw new Error('Current batch review rejected: source artifact is not valid JSON');
+  }
+  if (sha256(input.sourceBytes) !== binding.artifactSha256) {
+    throw new Error(`Current batch review rejected: ${input.document.stage} source artifact SHA-256 mismatch`);
+  }
+  if (source.schemaVersion !== binding.schemaVersion || source.stage !== binding.stage
+    || source.stage !== input.document.stage) {
+    throw new Error(`Current batch review rejected: ${input.document.stage} source schema/stage binding mismatch`);
+  }
+  const sourceBinding = source.batchBinding;
+  const documentBinding = input.document.batchBinding;
+  if (sourceBinding.batchId !== documentBinding.batchId
+    || sourceBinding.manifestBatchIndex !== documentBinding.manifestBatchIndex
+    || sourceBinding.sequence !== documentBinding.sequence
+    || sourceBinding.group !== documentBinding.semanticGroupKey
+    || sourceBinding.memberCount !== documentBinding.memberCount
+    || sourceBinding.memberDigest !== documentBinding.memberDigest
+    || sourceBinding.manifestDigest !== documentBinding.manifestDigest) {
+    throw new Error(`Current batch review rejected: ${input.document.stage} source batch binding drift`);
+  }
+  if (!Array.isArray(source.members) || source.members.length !== input.document.decisions.length) {
+    throw new Error(`Current batch review rejected: ${input.document.stage} source member count/order drift`);
+  }
+  for (const [index, decision] of input.document.decisions.entries()) {
+    const member = source.members[index];
+    if (!member || member.ordinal !== index || member.canonicalId !== decision.canonicalId
+      || member.canonicalRevision !== decision.canonicalRevision
+      || member.stageConclusion !== decision.conclusion
+      || member.rationale !== decision.rationale
+      || !Array.isArray(member.evidenceRefs)) {
+      throw new Error(`Current batch review rejected: ${input.document.stage} source semantic closure mismatch at member ${index}`);
+    }
+    const selectors = member.evidenceRefs.map(sourceEvidenceSelector);
+    if (stableStringify(selectors) !== stableStringify(decision.evidenceSelectors)) {
+      throw new Error(`Current batch review rejected: ${input.document.stage} source evidence closure mismatch at member ${index}`);
+    }
+  }
+}
+
+async function validateStageSourceFile(document: CurrentCourseCoverageStageReview): Promise<void> {
+  const artifactPath = absolute(document.sourceArtifactBinding.artifactPath);
+  const normalizedArtifactPath = repoRelative(artifactPath);
+  if (normalizedArtifactPath !== document.sourceArtifactBinding.artifactPath.replaceAll('\\', '/')) {
+    throw new Error(`Current batch review rejected: ${document.stage} source artifact path must be repository-relative`);
+  }
+  const sourceBytes = await readFile(artifactPath);
+  validateCurrentCourseCoverageStageSource({ document, sourceBytes });
+}
+
+export function validateStageProvenanceBinding(
+  document: CurrentCourseCoverageStageReview,
+  provenance: Record<string, unknown>,
+): void {
+  const record = provenance[document.stage.toLowerCase()] as Record<string, unknown> | undefined;
+  const sourceBinding = record?.sourceArtifactBinding;
+  if (!sourceBinding || stableStringify(sourceBinding) !== stableStringify(document.sourceArtifactBinding)) {
+    throw new Error(`Current batch review rejected: ${document.stage} provenance/source binding drift`);
+  }
+  if (record?.sourceArtifact !== path.basename(document.sourceArtifactBinding.artifactPath)
+    || record?.sourceArtifactSha256 !== document.sourceArtifactBinding.artifactSha256
+    || record?.normalizedDocumentDigest !== document.documentDigest) {
+    throw new Error(`Current batch review rejected: ${document.stage} provenance/source identity drift`);
+  }
 }
 
 async function exists(input: string): Promise<boolean> {
@@ -413,6 +519,20 @@ async function main(): Promise<void> {
     ? await json<CurrentCourseCoverageStageReview>(input.challenger)
     : null;
   const third = input.third ? await json<CurrentCourseCoverageStageReview>(input.third) : null;
+  const provenancePath = path.join(path.dirname(absolute(input.primary)), 'review-provenance.json');
+  const provenance = await exists(provenancePath)
+    ? await json<Record<string, unknown>>(provenancePath)
+    : null;
+  await validateStageSourceFile(primary);
+  if (provenance) validateStageProvenanceBinding(primary, provenance);
+  if (challenger) {
+    await validateStageSourceFile(challenger);
+    if (provenance) validateStageProvenanceBinding(challenger, provenance);
+  }
+  if (third) {
+    await validateStageSourceFile(third);
+    if (provenance) validateStageProvenanceBinding(third, provenance);
+  }
   const receipt = buildCurrentCourseCoverageBatchReceipt({
     worklist,
     manifest,
