@@ -69,6 +69,25 @@ describe('CourseBasisWorkspace pagination', () => {
     expect([...container.querySelectorAll('button')].filter((item) => item.textContent?.includes('basis-51'))).toHaveLength(1);
   });
 
+  it('keeps a targeted basis outside the first page without shifting the next page offset', async () => {
+    const firstPage = Array.from({ length: 50 }, (_, index) => basis(`basis-${index + 1}`));
+    const targeted = basis('basis-75');
+    const fetch = vi.fn(() => response([basis('basis-51')]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, {
+      initialCourseBases: [...firstPage, targeted],
+      initialSelectedId: targeted.id,
+      initialBaseOffset: 50,
+      initialHasMoreBases: true,
+    })));
+
+    expect(container.querySelector('[class*="border-primary"]')?.textContent).toContain('basis-75');
+    await act(async () => button('加载更多课程依据').click());
+
+    expect(fetch).toHaveBeenCalledWith('/api/teacher/course-bases?offset=50&limit=50', { cache: 'no-store' });
+    expect(container.textContent).toContain('basis-51');
+  });
+
   it('keeps expanded history when switching away and back', async () => {
     const expanded = basis('basis-1', [basisDocument('document-1'), basisDocument('document-21')]);
     const fetch = vi.fn()
@@ -124,6 +143,74 @@ describe('CourseBasisWorkspace pagination', () => {
 
     await act(async () => buttonWithin('document-2', '重试为新版本').click());
     expect(container.textContent).toContain('version-21.txt');
+  });
+
+  it('requires explicit confirmation before a permanent delete request', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockImplementationOnce(() => response([basis('basis-1', [basisDocument('document-1', [])])]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, {
+      initialCourseBases: [basis('basis-1')],
+    })));
+
+    await act(async () => buttonWithin('version-1.txt', '永久删除').click());
+    expect(confirm).toHaveBeenCalledOnce();
+    expect(fetch).not.toHaveBeenCalled();
+
+    confirm.mockReturnValue(true);
+    await act(async () => buttonWithin('version-1.txt', '永久删除').click());
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/teacher/course-bases/versions/version-1', {
+      method: 'DELETE',
+    });
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/teacher/course-bases?courseBasisId=basis-1',
+      { cache: 'no-store' },
+    );
+    expect(container.textContent).not.toContain('version-1.txt');
+  });
+
+  it('reloads the unfiltered collection after deleting the selected course basis', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockImplementationOnce(() => response([basis('basis-2')]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, {
+      initialCourseBases: [basis('basis-1'), basis('basis-2')],
+    })));
+
+    await act(async () => button('删除课程依据').click());
+
+    expect(fetch).toHaveBeenNthCalledWith(2, '/api/teacher/course-bases', { cache: 'no-store' });
+    expect(container.textContent).not.toContain('basis-1');
+    expect(container.textContent).toContain('basis-2');
+  });
+
+  it('resets the pagination offset after an unfiltered delete refresh', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const initial = Array.from({ length: 51 }, (_, index) => basis(`basis-${index + 1}`));
+    const refreshed = Array.from({ length: 50 }, (_, index) => basis(`basis-${index + 2}`));
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ courseBases: refreshed, pagination: { hasMore: true } }),
+      } as Response)
+      .mockImplementationOnce(() => response([basis('basis-52')]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, {
+      initialCourseBases: initial,
+      initialBaseOffset: 51,
+      initialHasMoreBases: true,
+    })));
+
+    await act(async () => button('删除课程依据').click());
+    await act(async () => button('加载更多课程依据').click());
+
+    expect(fetch).toHaveBeenNthCalledWith(3, '/api/teacher/course-bases?offset=50&limit=50', { cache: 'no-store' });
   });
 
   function button(label: string) {

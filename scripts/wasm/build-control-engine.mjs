@@ -13,10 +13,10 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 const repoRoot = process.cwd();
+const controlEngineRoot = path.join(repoRoot, 'rust/control-engine');
 const wasmOutDir = path.join(repoRoot, 'src/resources/control-system/wasm/control_engine');
 const wasmPackageFiles = ['index.js', 'index_bg.wasm', 'index.d.ts'];
 const wasmBuildHashFile = path.join(wasmOutDir, '.build-hash');
@@ -31,7 +31,7 @@ if (process.env.SKIP_WASM_BUILD === '1') {
 }
 
 const rustupBin = '/opt/homebrew/opt/rustup/bin';
-const basePath = `${rustupBin}:${process.env.PATH ?? ''}`;
+const basePath = [rustupBin, process.env.PATH].filter(Boolean).join(path.delimiter);
 
 const resolveRustToolchainBin = () => {
   const candidates = [
@@ -60,10 +60,10 @@ const resolveRustToolchainBin = () => {
 const rustToolchainBin = resolveRustToolchainBin();
 const env = {
   ...process.env,
-  PATH: [rustToolchainBin, rustupBin, process.env.PATH].filter(Boolean).join(':'),
+  PATH: [rustToolchainBin, rustupBin, process.env.PATH].filter(Boolean).join(path.delimiter),
 };
 
-if (!existsSync(path.join(repoRoot, 'rust/control-engine/Cargo.toml'))) {
+if (!existsSync(path.join(controlEngineRoot, 'Cargo.toml'))) {
   throw new Error('缺少 rust/control-engine/Cargo.toml，无法构建控制分析 Wasm。');
 }
 
@@ -130,21 +130,27 @@ if (process.env.FORCE_WASM_BUILD !== '1' && hasCompleteWasmPackage() && previous
   process.exit(0);
 }
 
-const wasmBuildOutDir = mkdtempSync(path.join(tmpdir(), 'control-engine-wasm-pack-'));
+const wasmBuildOutDir = mkdtempSync(path.join(controlEngineRoot, '.wasm-pack-'));
+const wasmPackArgs = [
+  'build',
+  'rust/control-engine',
+  '--target',
+  'web',
+  '--release',
+  '--out-dir',
+  path.relative(controlEngineRoot, wasmBuildOutDir),
+  '--out-name',
+  'index',
+];
+
+if (readCommandVersion('wasm-opt --version') === 'unknown') {
+  console.warn('[wasm] wasm-opt 不可用，跳过额外二进制优化。');
+  wasmPackArgs.push('--no-opt');
+}
 
 execFileSync(
   'wasm-pack',
-  [
-    'build',
-    'rust/control-engine',
-    '--target',
-    'web',
-    '--release',
-    '--out-dir',
-    wasmBuildOutDir,
-    '--out-name',
-    'index',
-  ],
+  wasmPackArgs,
   {
     cwd: repoRoot,
     env,

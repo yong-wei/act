@@ -15,7 +15,6 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { sanitizeAiVisibleContent } from '@/lib/ai-task-boundary-contracts';
-import { isModelAuthoredFootnoteHref } from './konling-citation-presentation';
 
 interface AIMessageContentProps {
   content: string;
@@ -131,20 +130,8 @@ export function AIMessageContent({ content, className = '', sanitizeContent = tr
             return <hr className="my-4 border-slate-700" />;
           },
           // 链接
-          a({ children, href }) {
-            if (isModelAuthoredFootnoteHref(href)) {
-              return <span data-suppressed-model-footnote-link>{children}</span>;
-            }
-            return (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-amber-400 underline hover:text-amber-300"
-              >
-                {children}
-              </a>
-            );
+          a({ children }) {
+            return <span data-suppressed-model-link>{children}</span>;
           },
         }}
       >
@@ -162,6 +149,14 @@ export function sanitizeVerifiedCitationMarkdown(content: string): string {
     .replace(/\[([^\]\n]+)\]\((?:\/knowledge)?#user-content-fn(?:ref)?[^)]*\)/gi, '')
     .replace(/\[\^[^\]\n]+\]/g, '')
     .replace(/[ \t]*\[证据:\s*[A-Za-z0-9:_-]+\]/g, '')
+    .replace(/[ \t]*\[content:\s*[^\]\n]+\]/gi, '')
+    .replace(/\[([^\]\n]+)\]\([^)]*\)/g, '$1')
+    .replace(/https?:\/\/[^\s)\]}，。；、]+/gi, '')
+    .replace(/["']?(?:canonicalKey|bookId|edition|sourceRevision|unitId|fragmentId|structuralPath|identity)["']?\s*[:=]\s*(?:\{[^}\n]*\}|\[[^\]\n]*\]|"[^"\n]*"|'[^'\n]*'|[^\s,，。；;)\]}]+)/gi, '')
+    .replace(/\b(?:textbook-(?:unit|fragment|window)|textbook):[^\s,，。；;)\]}]+/gi, '')
+    .replace(/\b(?:hu-shousong-auto-control-(?:7th|8th)|liu-sheng-auto-control-2015|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-exercise-analysis-3rd|control-encyclopedia)\b/gi, '')
+    .replace(/\b(?:chapter|section)-[a-z0-9._-]+\b/gi, '')
+    .replace(/(?:file:\/\/|\/(?:Users|home|workspace|course-content|src|var|tmp)\/)[^\s)\]}]+/gi, '')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();

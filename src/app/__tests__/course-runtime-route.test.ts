@@ -21,9 +21,7 @@ describe('course-runtime asset route', () => {
     mockedReadFile.mockReset();
   });
 
-  it('serves textbook section markdown with a text markdown content type', async () => {
-    mockedReadFile.mockResolvedValueOnce(Buffer.from('# Bode 图频域响应示例', 'utf-8'));
-
+  it('does not serve removed textbook section markdown', async () => {
     const response = await requestRuntimeAsset([
       'resources',
       'textbooks',
@@ -32,12 +30,8 @@ describe('course-runtime asset route', () => {
       'ch08-example-0801.md',
     ]);
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('text/markdown; charset=utf-8');
-    await expect(response.text()).resolves.toContain('Bode 图频域响应示例');
-    expect(mockedReadFile).toHaveBeenCalledWith(expect.stringContaining(
-      'course-content/runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md'
-    ));
+    expect(response.status).toBe(404);
+    expect(mockedReadFile).not.toHaveBeenCalled();
   });
 
   it('serves textbook image assets with an image content type', async () => {
@@ -57,6 +51,43 @@ describe('course-runtime asset route', () => {
     expect(mockedReadFile).toHaveBeenCalledWith(expect.stringContaining(
       'course-content/runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-08/fig-08-01.png'
     ));
+  });
+
+  it('does not expose structured textbook v2 records through the raw asset route', async () => {
+    const response = await requestRuntimeAsset([
+      'resources',
+      'textbooks-v2',
+      'dorf-modern-control-systems',
+      'units.jsonl',
+    ]);
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: 'Asset not found' });
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
+  it('does not expose structured textbook v2 records through case or backslash variants', async () => {
+    const [caseResponse, backslashResponse] = await Promise.all([
+      requestRuntimeAsset(['Resources', 'Textbooks-V2', 'dorf-modern-control-systems', 'anchors.jsonl']),
+      requestRuntimeAsset(['resources\\textbooks-v2\\dorf-modern-control-systems\\navigation.json']),
+    ]);
+
+    expect(caseResponse.status).toBe(404);
+    expect(backslashResponse.status).toBe(404);
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
+  it('does not expose textbook retrieval indexes through the raw asset route', async () => {
+    const [directResponse, caseResponse, backslashResponse] = await Promise.all([
+      requestRuntimeAsset(['resources', 'textbook-retrieval', 'bodies.utf8']),
+      requestRuntimeAsset(['Resources', 'Textbook-Retrieval', 'windows.jsonl']),
+      requestRuntimeAsset(['resources\\textbook-retrieval\\metadata.json']),
+    ]);
+
+    expect(directResponse.status).toBe(404);
+    expect(caseResponse.status).toBe(404);
+    expect(backslashResponse.status).toBe(404);
+    expect(mockedReadFile).not.toHaveBeenCalled();
   });
 
   it('returns 404 when a runtime asset is missing', async () => {

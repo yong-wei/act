@@ -1097,6 +1097,39 @@ fn cross_track_error(x: f64, z: f64, guide_path: &[QuickPoint]) -> f64 {
     min_dist_sq.sqrt()
 }
 
+fn scheduled_heading(request: &Value, sim_time: f64, target_heading: f64, target_switch_time: f64) -> f64 {
+    let Some(points) = request.get("headingSchedule").and_then(Value::as_array) else {
+        return if sim_time < target_switch_time { 0.0 } else { target_heading };
+    };
+    let Some(first_point) = points.first() else {
+        return if sim_time < target_switch_time { 0.0 } else { target_heading };
+    };
+
+    let mut previous_time = num(first_point, "time", 0.0);
+    let mut previous_heading = num(first_point, "headingDeg", 0.0);
+    if sim_time <= previous_time {
+        return previous_heading;
+    }
+
+    for point in points.iter().skip(1) {
+        let point_time = num(point, "time", previous_time);
+        let point_heading = num(point, "headingDeg", previous_heading);
+        if sim_time <= point_time {
+            let span = point_time - previous_time;
+            let progress = if span > 1e-9 {
+                ((sim_time - previous_time) / span).clamp(0.0, 1.0)
+            } else {
+                1.0
+            };
+            return previous_heading + (point_heading - previous_heading) * progress;
+        }
+        previous_time = point_time;
+        previous_heading = point_heading;
+    }
+
+    previous_heading
+}
+
 fn compute_nomoto_quick_sim(request: &Value) -> Result<String, String> {
     let dt = num(request, "dt", 0.5);
     if dt <= 0.0 || dt > 1.0 {
@@ -1112,6 +1145,7 @@ fn compute_nomoto_quick_sim(request: &Value) -> Result<String, String> {
     let t_nomoto = num(nomoto, "T", 55.0).max(1e-6);
     let target_heading = num(request, "targetHeadingDeg", 90.0);
     let target_switch_time = num(request, "targetSwitchTime", 60.0);
+    let max_rudder_rate_limit = num(nomoto, "maxRudderRateDegPerSec", 0.0);
 
     let guide_path: Vec<QuickPoint> = request
         .get("guidePath")
@@ -1134,7 +1168,7 @@ fn compute_nomoto_quick_sim(request: &Value) -> Result<String, String> {
     let mut integral = 0.0;
     let mut prev_error = 0.0;
     let mut prev_rudder = 0.0;
-    let mut max_rudder_rate: f64 = 0.0;
+    let mut max_observed_rudder_rate: f64 = 0.0;
     let mut total_error = 0.0;
     let mut error_count = 0.0;
     let integral_limit = if num(pid, "ki", 0.0).abs() > 1e-9 {
@@ -1152,11 +1186,7 @@ fn compute_nomoto_quick_sim(request: &Value) -> Result<String, String> {
 
     let mut sim_time = 0.0;
     while sim_time <= duration + 1e-9 {
-        let desired = if sim_time < target_switch_time {
-            0.0
-        } else {
-            target_heading
-        };
+        let desired = scheduled_heading(request, sim_time, target_heading, target_switch_time);
         let current_heading = normalize_heading_deg(rad_to_deg(heading));
         let error_rad = deg_to_rad(angle_delta_deg(desired, current_heading));
         integral = clamp(integral + error_rad * dt, -integral_limit, integral_limit);
@@ -1164,7 +1194,13 @@ fn compute_nomoto_quick_sim(request: &Value) -> Result<String, String> {
         let output_rad = num(pid, "kp", 0.0) * error_rad
             + num(pid, "ki", 0.0) * integral
             + num(pid, "kd", 0.0) * derivative;
-        let rudder = clamp(rad_to_deg(output_rad), -max_rudder, max_rudder);
+        let commanded_rudder = clamp(rad_to_deg(output_rad), -max_rudder, max_rudder);
+        let rudder = if max_rudder_rate_limit > 0.0 {
+            let max_delta = max_rudder_rate_limit * dt;
+            clamp(commanded_rudder, prev_rudder - max_delta, prev_rudder + max_delta)
+        } else {
+            commanded_rudder
+        };
         prev_error = error_rad;
 
         let rudder_rad = deg_to_rad(rudder);
@@ -1176,7 +1212,7 @@ fn compute_nomoto_quick_sim(request: &Value) -> Result<String, String> {
 
         total_error += cross_track_error(x, z, &guide_path);
         error_count += 1.0;
-        max_rudder_rate = max_rudder_rate.max((rudder - prev_rudder).abs() / dt);
+        max_observed_rudder_rate = max_observed_rudder_rate.max((rudder - prev_rudder).abs() / dt);
         prev_rudder = rudder;
 
         times.push(round2(sim_time));
@@ -1206,7 +1242,7 @@ fn compute_nomoto_quick_sim(request: &Value) -> Result<String, String> {
         },
         "metrics": {
             "avgError": if error_count > 0.0 { total_error / error_count } else { 0.0 },
-            "maxRudderRate": max_rudder_rate
+            "maxRudderRate": max_observed_rudder_rate
         }
     }))
     .map_err(|error| error.to_string())

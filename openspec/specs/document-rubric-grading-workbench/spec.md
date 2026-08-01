@@ -4,14 +4,19 @@
 TBD - created by archiving change add-document-rubric-grading-workbench. Update Purpose after archive.
 ## Requirements
 ### Requirement: Documents are converted before grading
-The system SHALL convert uploaded assignment documents into analysis-ready artifacts before rubric grading.
+The system SHALL convert uploaded grading documents into analysis-ready artifacts before rubric grading, except that binary attachments bound to unified assignment responses SHALL use the governed Mathpix-only understanding route.
 
 #### Scenario: Document is converted
-- **WHEN** a teacher or authorized service uploads a PDF or supported office document for grading
-- **THEN** the system SHALL create a submission asset record, run a conversion adapter such as MarkItDown, store Markdown or structured blocks, preserve checksum, page or block references, and report conversion confidence.
+- **WHEN** a teacher or authorized service uploads a PDF or supported office document outside the unified assignment-response attachment path
+- **THEN** the system SHALL create a submission asset record, run an eligible governed conversion adapter such as MarkItDown, store Markdown or structured blocks, preserve checksum, page or block references, and report conversion confidence.
+
+#### Scenario: Unified assignment-response binary attachment is converted
+- **WHEN** a PDF, DOC, DOCX, PPTX, PNG, or JPEG is bound to a sealed unified assignment response
+- **THEN** grading understanding SHALL use the governed Mathpix route when policy permits
+- **AND** MarkItDown, OOXML extraction, local OCR, or another local semantic result SHALL NOT enter the new evaluator, batch, approval, or writeback chain.
 
 #### Scenario: Conversion loses precise layout
-- **WHEN** the converter cannot produce reliable bbox or span mapping
+- **WHEN** an eligible converter cannot produce reliable bbox or span mapping
 - **THEN** the grading UI SHALL fall back to page-level or block-level references
 - **AND** it SHALL NOT pretend to offer precise inline PDF evidence.
 
@@ -28,11 +33,21 @@ The system SHALL keep a human teacher in the loop for document grading.
 - **AND** unapproved machine drafts SHALL NOT update competency profiles as high-confidence evidence.
 
 ### Requirement: Grading UI is part of the workflow
-The grading workbench SHALL support professional teacher review states.
+The grading workbench SHALL support professional teacher review states while keeping the student's original response separate from AI-understanding artifacts.
 
 #### Scenario: Teacher opens grading workbench
 - **WHEN** a teacher opens a grading draft
 - **THEN** the UI SHALL show converted document precision, evaluator limitations, criterion-level AI draft, teacher-edit controls, evidence anchors, approval state, and writeback preview.
+
+#### Scenario: Teacher opens assignment grading workbench
+- **WHEN** a teacher opens a grading draft for a question response
+- **THEN** the UI SHALL show the rendered unified sealed-answer text and the exact sealed attachment identities in frozen submission order, the criterion-level AI draft, teacher-edit controls, approval state, and writeback preview
+- **AND** the original-response region SHALL NOT show conversion text, provider status, technical error codes, or background processing details.
+
+#### Scenario: Teacher reviews non-assignment document grading
+- **WHEN** another governed document-grading workflow requires conversion precision, evaluator limitations, or evidence anchors
+- **THEN** the workbench MAY retain those workflow-specific review details
+- **AND** it SHALL NOT use them to replace the original assignment-response presentation contract.
 
 ### Requirement: Document grading persists first-class artifacts
 The system SHALL persist document submissions, conversion artifacts, rubric assessments, and annotation anchors as durable grading workflow records.
@@ -48,15 +63,25 @@ The system SHALL persist document submissions, conversion artifacts, rubric asse
 - **AND** conversion precision SHALL be visible to downstream grading and UI consumers.
 
 ### Requirement: Draft rubric grading is anchor-backed
-Draft rubric grading SHALL evaluate document quality through schema-validated criterion assessments rather than fixed scaffold scores.
+Draft rubric grading SHALL evaluate document quality through schema-validated scoring-item assessments selected from the frozen rubric version rather than fixed scaffold scores.
 
 #### Scenario: Draft criterion grade is produced
-- **WHEN** a converted control-correction document is evaluated
-- **THEN** each rubric criterion SHALL include criterion id, selected level, score, rationale, confidence, evidence anchors, and limitation state
-- **AND** the selected level SHALL be derived from document content, rubric evidence requirements, and evaluator reasoning rather than a fixed middle level.
+- **WHEN** a converted document is evaluated against its frozen rubric
+- **THEN** each scoring-item assessment SHALL include the fields required by that rubric version and detailed-rubric mode
+- **AND** its score and optional selected level SHALL be derived from document content, rubric requirements, and evaluator reasoning rather than a fixed scaffold value.
+
+#### Scenario: Scoring-standard-only draft is produced
+- **WHEN** an answer is evaluated against a frozen scoring item whose detailed rubric is disabled
+- **THEN** its assessment SHALL include scoring-item id, one-decimal score within zero and the scoring-item maximum, rationale, confidence, evidence anchors, and limitation state
+- **AND** it SHALL NOT require or infer a selected evaluation-level identity.
+
+#### Scenario: Detailed-rubric draft is produced
+- **WHEN** an answer is evaluated against a frozen scoring item whose detailed rubric is enabled
+- **THEN** its assessment SHALL include scoring-item id, selected evaluation-level identity, suggested score, rationale, confidence, evidence anchors, and limitation state
+- **AND** the selected level SHALL belong to that frozen scoring item and the AI suggested score SHALL be clamped to the selected level's legal one-decimal interval.
 
 #### Scenario: Evaluator output is invalid
-- **WHEN** evaluator output is malformed, references unsupported criteria, lacks evidence anchors, or violates safety constraints
+- **WHEN** evaluator output is malformed, uses the wrong schema for the frozen detailed-rubric flag, references unsupported scoring items, levels, or evidence anchors, exceeds the applicable score range, or violates safety constraints
 - **THEN** the draft SHALL NOT be approved or written back automatically
 - **AND** the workbench SHALL expose a retry or blocked-evaluator state for teacher review.
 
@@ -64,13 +89,19 @@ Draft rubric grading SHALL evaluate document quality through schema-validated cr
 Teacher review SHALL remain the governing step for student feedback and learner-profile writeback.
 
 #### Scenario: Teacher edits a criterion assessment
-- **WHEN** a teacher changes score, level, rationale, or evidence anchor before approval
+- **WHEN** a teacher changes score, rationale, evidence anchor, or an applicable detailed-rubric level before approval
 - **THEN** the system SHALL preserve AI draft values and teacher-approved values
 - **AND** it SHALL record the diff for quality metrics and audit.
 
+#### Scenario: Teacher edits a scoring-item assessment
+- **WHEN** a teacher changes score, rationale, evidence anchor, or an applicable detailed-rubric level before approval
+- **THEN** the teacher score SHALL require one decimal place and remain between zero and the scoring-item maximum
+- **AND** it SHALL NOT be clamped to the AI-selected level interval
+- **AND** the system SHALL preserve AI draft values, teacher-approved values, and their diff for quality metrics and audit.
+
 #### Scenario: Student feedback is generated
 - **WHEN** grading is approved for student feedback
-- **THEN** the student feedback SHALL include criterion results, evidence anchors, teacher-approved comments, and remediation action cards
+- **THEN** the student feedback SHALL include scoring-item results, evidence anchors, teacher-approved comments, and remediation action cards
 - **AND** each action card SHALL link to a valid learner-record, path, resource, or practice destination.
 
 ### Requirement: Grading writeback is idempotent and auditable
@@ -82,20 +113,31 @@ Writeback SHALL include grading quality metadata.
 - **AND** repeated writeback SHALL NOT duplicate learner facts.
 
 ### Requirement: Submitted answers normalize into immutable grading evidence
-The system SHALL normalize each submitted question answer attempt into versioned `AnswerEvidence` with answer hash, source kind, canonical Markdown or blocks, anchor map, precision, readiness, and limitations.
+The system SHALL normalize each submitted question answer attempt into versioned `AnswerEvidence` with answer hash, source kind, canonical Markdown or blocks, ordered source manifest, anchor map, precision, readiness, and limitations.
 
 #### Scenario: Submitted text answer is normalized
-- **WHEN** a text answer attempt is formally submitted
+- **WHEN** a question attempt containing text is formally submitted
 - **THEN** the system SHALL create immutable canonical Markdown with stable block/span anchors directly from the sealed text snapshot
-- **AND** the answer SHALL enter manual or eligible AI grading without requiring a document conversion.
+- **AND** the answer SHALL enter manual or eligible AI grading without requiring document conversion.
+
+#### Scenario: Embedded image is normalized
+- **WHEN** a sealed text snapshot references an eligible embedded image
+- **THEN** its governed Mathpix result SHALL be inserted at that image's Markdown position
+- **AND** a missing result SHALL retain an explicit limitation at that position rather than silently removing the image.
+
+#### Scenario: Ordered attachments are normalized
+- **WHEN** one or more independent attachments reach a terminal understanding state
+- **THEN** successful canonical content and explicit missing-understanding entries SHALL be appended after the student text in the student's persisted attachment order
+- **AND** the source manifest SHALL bind every segment or limitation to the exact sealed asset identity.
 
 #### Scenario: Submitted document answer is normalized
-- **WHEN** a document conversion completes successfully
-- **THEN** the resulting canonical blocks and anchor map SHALL become the immutable grading evidence for that exact answer attempt.
+- **WHEN** all terminal understanding results for a sealed answer attempt are assembled
+- **THEN** the resulting ordered canonical blocks, source manifest, and anchor map SHALL become a new immutable grading evidence identity for that exact answer attempt
+- **AND** any prior evidence identity SHALL remain unchanged.
 
 #### Scenario: Answer version changes
 - **WHEN** a later answer attempt is submitted
-- **THEN** the system SHALL create a new evidence identity and preserve prior evidence, runs, and review lineage.
+- **THEN** the system SHALL create a new evidence identity and preserve prior evidence, runs, source order, and review lineage.
 
 ### Requirement: Question documents use immutable protected source assets
 The system SHALL process only finalized question-bound submission assets that preserve object reference, ownership, assignment revision, question answer attempt, MIME, size, checksum, scan state, and timestamps.
@@ -109,20 +151,37 @@ The system SHALL process only finalized question-bound submission assets that pr
 - **THEN** conversion SHALL be rejected before document content is read by a converter or external provider.
 
 ### Requirement: Mathematical document conversion is asynchronous and adapter-driven
-The system SHALL convert supported question documents through asynchronous, versioned adapters and SHALL route formula- or image-heavy content to Mathpix when provider policy permits.
+The system SHALL process supported binary question attachments asynchronously through the versioned Mathpix adapter when the frozen external-processing policy permits, and SHALL process Markdown and plain-text attachments through the governed direct-text reader.
+
+#### Scenario: Supported binary attachment is processed
+- **WHEN** a finalized PDF, DOC, DOCX, PPTX, PNG, or JPEG belongs to a submitted question answer and policy permits external answer conversion
+- **THEN** the pipeline SHALL invoke Mathpix with the authorized immutable source asset and record provider routing, version, request lineage, and declared limitations
+- **AND** MarkItDown, OOXML extraction, local OCR, or another local semantic result SHALL NOT be used as grading-understanding fallback.
 
 #### Scenario: Formula-heavy DOCX is converted
-- **WHEN** a DOCX contains mathematical or image content requiring layout-aware recognition
-- **THEN** the pipeline SHALL preserve an authorized rendered representation, extract available document structure, invoke the configured Mathpix adapter as needed, and record converter routing and versions.
+- **WHEN** a formula-heavy DOCX is outside the unified assignment-response path
+- **THEN** the canonical document pipeline MAY preserve an authorized rendered representation, extract available structure, invoke Mathpix as policy permits, and record converter routing and versions
+- **AND** a unified assignment-response DOCX SHALL use the Mathpix-only understanding route.
 
 #### Scenario: Local conversion is sufficient
-- **WHEN** a supported document can produce reliable canonical content through an approved local adapter
-- **THEN** the pipeline SHALL use the local result and record its adapter id, version, confidence, and limitations.
+- **WHEN** a supported document outside the unified assignment-response path can produce reliable canonical content through an approved local adapter
+- **THEN** the pipeline SHALL use the local result and record its adapter id, version, confidence, and limitations
+- **AND** that local result SHALL NOT be reused as unified assignment-response binary evidence.
+
+#### Scenario: Markdown or plain-text attachment is processed
+- **WHEN** a finalized Markdown or plain-text attachment belongs to a submitted question answer
+- **THEN** the pipeline SHALL verify persisted asset integrity and read it directly through the bounded text adapter
+- **AND** it SHALL NOT send that attachment to Mathpix.
+
+#### Scenario: Mathpix is disallowed or finally fails
+- **WHEN** the frozen external-processing policy disallows Mathpix or retry policy reaches a terminal unusable result
+- **THEN** the attachment SHALL enter an explicit understanding-unavailable state while preserving the original asset for authorized manual review
+- **AND** the pipeline SHALL NOT claim conversion success or substitute local binary semantic extraction.
 
 #### Scenario: External provider is disabled or fails
-- **WHEN** Mathpix is disabled by policy, unavailable, or returns an unusable result
-- **THEN** the pipeline SHALL use an eligible fallback or enter a visible blocked-conversion state
-- **AND** it SHALL NOT discard the original asset or claim conversion success without adequate output.
+- **WHEN** Mathpix is disabled or finally fails for a unified assignment-response binary attachment
+- **THEN** the attachment SHALL enter an explicit understanding-unavailable state and preserve the original asset for authorized manual review
+- **AND** eligible fallback remains available only to non-assignment canonical document conversion.
 
 ### Requirement: Canonical conversion artifacts preserve honest anchor precision
 Every completed conversion SHALL persist canonical Markdown or structured blocks with source checksum, converter metadata, page/block/span mapping, optional bounding boxes, confidence, precision, warnings, and timestamps.
@@ -158,25 +217,44 @@ Every production AI grading run SHALL bind one submitted question answer attempt
 - **THEN** the evaluator SHALL treat it as untrusted answer data, use no tools or external retrieval, and remain scoped to the frozen question evidence.
 
 ### Requirement: Evaluator drafts are schema-validated and evidence-anchored
-The system SHALL accept an AI grading draft only when every criterion assessment and annotation satisfies the frozen rubric, score scale, and conversion anchor schema.
+The system SHALL accept an AI grading draft only when every scoring-item assessment and annotation satisfies the schema selected by the frozen rubric version, the applicable score scale, and the conversion anchor schema.
 
 #### Scenario: Evaluator returns a valid draft
-- **WHEN** output includes known criterion ids, in-range scores, selected levels or bands, rationale, confidence, supported evidence anchors, location-aware annotations, limitations, and overall comment
+- **WHEN** output satisfies the schema selected by the frozen rubric version and includes supported evidence anchors, rationale, confidence, limitations, and overall comment
+- **THEN** the system SHALL persist the draft as awaiting teacher review.
+
+#### Scenario: Evaluator returns a valid scoring-standard-only draft
+- **WHEN** detailed rubric is disabled and output includes known scoring-item ids, in-range one-decimal scores, rationale, confidence, supported evidence anchors, location-aware annotations, limitations, and overall comment without requiring selected levels
+- **THEN** the system SHALL persist the draft as awaiting teacher review.
+
+#### Scenario: Evaluator returns a valid detailed-rubric draft
+- **WHEN** detailed rubric is enabled and output includes known scoring-item ids, valid frozen level identities, level-clamped one-decimal scores, rationale, confidence, supported evidence anchors, location-aware annotations, limitations, and overall comment
 - **THEN** the system SHALL persist the draft as awaiting teacher review.
 
 #### Scenario: Evaluator output is invalid
-- **WHEN** output references unknown criteria or anchors, exceeds score ranges, lacks required evidence, contains malformed annotations, or violates safety constraints
+- **WHEN** output uses a schema inconsistent with the frozen rubric version or detailed-rubric flag, references unknown scoring items, levels, or anchors, exceeds score ranges, lacks required evidence, contains malformed annotations, or violates safety constraints
 - **THEN** the run SHALL enter a retryable or blocked-evaluator state
 - **AND** no draft SHALL be approved, shown to students, or written back as governed evidence.
 
 ### Requirement: Batch grading is observable, resumable, and failure-isolated
-The system SHALL support question-scoped grading batches with durable progress, per-answer item state, cancellation, retry, deduplication, and provider limitation reporting.
+The system SHALL support question-scoped grading batches with durable progress, per-answer item state, cancellation, retry, deduplication, provider limitation reporting, and source-aware conversion routing.
 
 #### Scenario: Teacher grades one question across a class
 - **WHEN** an authorized teacher starts a batch for eligible submitted answers to one assignment question
-- **THEN** the batch SHALL freeze assignment question, rubric, evaluator, the rubric-grading policy, and an optional separate answer-conversion policy
-- **AND** when no answer-conversion policy is frozen, document conversion SHALL use the governed local path and SHALL NOT pass the rubric-grading policy to Mathpix
-- **AND** it SHALL create independent item states and grading runs for each answer.
+- **THEN** the batch SHALL freeze assignment question, rubric, evaluator, rubric-grading policy, answer-conversion policy state, and independent item states
+- **AND** each unified-response binary attachment SHALL use Mathpix only when the frozen answer-conversion policy permits.
+
+#### Scenario: Teacher grades unified assignment responses across a class
+- **WHEN** an authorized teacher starts a batch for eligible submitted answers to one assignment question
+- **THEN** the batch SHALL freeze assignment question, rubric, evaluator, the rubric-grading policy, and the answer-conversion policy state
+- **AND** a binary unified-response attachment SHALL use Mathpix only when the frozen answer-conversion policy permits and otherwise become understanding-unavailable
+- **AND** it SHALL NOT use the governed local document path as fallback for that binary attachment
+- **AND** the batch SHALL create independent item states and grading runs for each answer.
+
+#### Scenario: Teacher batches non-assignment grading documents
+- **WHEN** an authorized workflow starts a batch for grading documents that are not bound to unified assignment responses
+- **THEN** the batch MAY continue to use the canonical governed local conversion path
+- **AND** this assignment attachment exception SHALL NOT change that route.
 
 #### Scenario: One batch item fails
 - **WHEN** one answer conversion or evaluator call fails
@@ -196,20 +274,20 @@ The system SHALL apply a versioned external-processing policy to Mathpix and AI 
 
 #### Scenario: Mathpix processes a student document
 - **WHEN** the frozen answer-conversion policy confirms purpose `answer-conversion`, data category, minimized scope, institution/class permission, processing region and agreement version, training-use prohibition, provider retention window, deletion capability, and credential version
-- **THEN** credentials SHALL remain in rotatable server-side secret management, payload SHALL be limited to the selected answer, and audit SHALL record safe pseudonymous provider/request/policy metadata without answer content, signed URLs, or secret values.
+- **THEN** credentials SHALL remain in rotatable server-side secret management, payload SHALL be limited to the selected attachment, and audit SHALL record safe pseudonymous provider/request/policy metadata without answer content, signed URLs, or secret values.
 
 #### Scenario: AI evaluator processes answer evidence
 - **WHEN** the frozen rubric-grading policy confirms purpose `rubric-grading` and permits model evaluation
-- **THEN** only the selected question, rubric, reference answer, minimized AnswerEvidence, and declared limitations SHALL be sent under the approved purpose.
+- **THEN** only the selected question, rubric, reference answer, minimized ordered AnswerEvidence, and declared limitations SHALL be sent under the approved purpose.
 
 #### Scenario: Provider policy is absent or incomplete
 - **WHEN** any required Mathpix or evaluator policy field is missing, disallows the class/data/purpose, or cannot confirm retention or training-use constraints
-- **THEN** the system SHALL use an eligible local path or enter an explicit blocked state
-- **AND** it SHALL NOT send student content to that provider.
+- **THEN** binary attachment understanding or model evaluation SHALL enter an explicit blocked or unavailable state
+- **AND** the system SHALL NOT send student content to that provider or substitute an unapproved semantic path.
 
 #### Scenario: Unauthorized actor requests an artifact
 - **WHEN** an actor lacks role, class, assignment, answer, or review authorization
-- **THEN** the system SHALL deny access to original assets, rendered pages, Markdown, anchors, model payloads, and grading drafts.
+- **THEN** the system SHALL deny access to original assets, direct-text content, Mathpix artifacts, anchors, model payloads, and grading drafts.
 
 ### Requirement: Grading data follows a versioned retention and deletion lifecycle
 The system SHALL classify quarantine objects, source assets, rendered pages, Markdown/anchors, provider metadata, model inputs/outputs, AI drafts, approved derivatives, audit, and evidence records under a versioned lifecycle policy with explicit finite retention or governed record rules.
@@ -605,3 +683,93 @@ When `lineageRetained = false`, a terminal delete-content tombstone SHALL not ex
 - **WHEN** a quarantined upload is past its quarantine deadline but its source-asset retention expiry is in the future
 - **THEN** quarantine GC SHALL delete the quarantined object and write a delete-content tombstone
 - **AND** it SHALL not remain permanently blocked waiting for source retention.
+
+### Requirement: Incomplete attachment evidence requires teacher confirmation
+The system SHALL distinguish complete grading evidence from evidence where one or more attachments were not understood and SHALL prevent an incomplete-evidence suggestion from becoming a grade without teacher confirmation.
+
+#### Scenario: Some answer evidence remains usable
+- **WHEN** student text or at least one attachment is usable but another attachment is understanding-unavailable
+- **THEN** the evaluator MAY produce an `EVIDENCE_INCOMPLETE` draft using only the usable ordered evidence
+- **AND** the draft SHALL list each omitted attachment by its safe display name and preserve the declared limitation.
+
+#### Scenario: Teacher has not confirmed incomplete evidence
+- **WHEN** an `EVIDENCE_INCOMPLETE` draft awaits review
+- **THEN** approval, final score persistence, student feedback, and governed evidence writeback SHALL remain blocked
+- **AND** conversion completion alone SHALL NOT satisfy the confirmation.
+
+#### Scenario: Teacher confirms after checking originals
+- **WHEN** an authorized teacher explicitly confirms the incomplete-evidence draft after reviewing available originals
+- **THEN** the grading workflow MAY form the teacher-approved grade
+- **AND** the audit SHALL record the confirmation and omitted asset identities without storing original content.
+
+#### Scenario: No gradable evidence is available
+- **WHEN** the response has no usable text or successfully understood attachment
+- **THEN** AI grading SHALL remain blocked
+- **AND** the original submission SHALL remain available for authorized manual grading.
+
+### Requirement: Legacy local binary assignment evidence is migrated fail closed
+The system SHALL provide idempotent dry-run and apply modes for legacy local-binary conversion chains bound to unified assignment responses, preserving approved history while preventing unapproved local semantic artifacts from new grading consumption.
+
+#### Scenario: Dry-run classifies legacy chains
+- **WHEN** dry-run inspects local-binary conversions bound to assignment response attachments
+- **THEN** it SHALL report each conversion, AnswerEvidence, grading run, batch item, queue job, approval state, and evaluator/writeback readiness
+- **AND** it SHALL make no data mutation.
+
+#### Scenario: Legacy grading is already approved
+- **WHEN** a local-binary grading result has an authoritative teacher-approved state
+- **THEN** apply SHALL preserve its historical feedback, score, evidence writeback, lineage, and audit
+- **AND** it SHALL NOT reinterpret that historical result as Mathpix-derived.
+
+#### Scenario: Legacy local-binary chain is not approved
+- **WHEN** a local-binary conversion, evidence, run, batch item, or queue job has no authoritative teacher approval
+- **THEN** apply SHALL mark the chain `legacy-ineligible`, `BLOCKED`, or the model-equivalent non-consumable state
+- **AND** it SHALL clear new evaluator and writeback readiness and stop active queue consumption without deleting the original submission asset.
+
+#### Scenario: Migration or new consumption is repeated
+- **WHEN** apply is rerun or a new evaluator, batch, approval, or writeback consumer inspects the migrated chain
+- **THEN** the same terminal eligibility result SHALL remain stable
+- **AND** no local binary adapter output SHALL enter the new assignment grading consumption chain.
+
+### Requirement: Assignment review presents original evidence by format
+The assignment grading workbench SHALL consume the unified response projection and present its sealed response body, exact attachment identities, frozen submission order and provenance through authorized, integrity-verified reads.
+
+#### Scenario: Response body contains Markdown, formulas, or images
+- **WHEN** the teacher opens the original response
+- **THEN** the workbench SHALL render the saved body without changing its content order
+- **AND** embedded images SHALL appear at their saved Markdown positions.
+
+#### Scenario: Original attachment is PNG or JPEG
+- **WHEN** an authorized teacher reviews the attachment
+- **THEN** the workbench SHALL display the original image directly through the protected asset-read contract.
+
+#### Scenario: Original attachment is PDF
+- **WHEN** an authorized teacher reviews the attachment
+- **THEN** the workbench SHALL provide an isolated inline PDF reader and an authorized open or download fallback.
+
+#### Scenario: Original attachment is DOC, DOCX, or PPTX
+- **WHEN** an authorized teacher reviews the attachment
+- **THEN** the workbench SHALL display a numbered file card with an authorized open or download action
+- **AND** it SHALL NOT display converted Markdown or extracted text as the student's original.
+
+#### Scenario: Original attachment is Markdown or plain text
+- **WHEN** an authorized teacher reviews the attachment
+- **THEN** the workbench SHALL use the existing protected original-file card or direct-preview capability
+- **AND** it SHALL NOT introduce a new complex reader or substitute grading-conversion output for the original.
+
+### Requirement: Incomplete AI suggestions use non-technical review guidance
+The workbench SHALL place evidence-incomplete guidance beside the affected AI suggestion, collect teacher confirmation, and submit the govern-owned approval parameters without implementing a parallel approval gate.
+
+#### Scenario: Some attachments were not included in the suggestion
+- **WHEN** a grading draft declares one or more understanding-unavailable attachments
+- **THEN** the AI suggestion region SHALL state `部分附件未纳入本次建议，请结合原件核对` or equivalent non-technical wording
+- **AND** it SHALL list the corresponding safe attachment names without provider names, conversion states, or error codes.
+
+#### Scenario: Original answer has attachment-understanding failure
+- **WHEN** the teacher views the student's original response
+- **THEN** the response body, attachment order, and original-file controls SHALL remain unchanged
+- **AND** the original-response region SHALL NOT annotate the attachment with conversion failure details.
+
+#### Scenario: Teacher approves an incomplete-evidence suggestion
+- **WHEN** the teacher attempts approval for an incomplete-evidence suggestion
+- **THEN** the workbench SHALL require explicit confirmation and submit the current draft revision plus omitted attachment identities to the governed approval contract
+- **AND** it SHALL present missing-confirmation or stale-revision rejection returned by that contract without implementing another server-side gate or audit path.

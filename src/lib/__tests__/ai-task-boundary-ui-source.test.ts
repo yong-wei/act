@@ -32,13 +32,15 @@ describe('ai task boundary UI source contracts', () => {
     expect(sharedRenderer).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
     expect(sharedRenderer).toContain('summarizeAiToolResult(tool.toolName)');
     expect(sharedRenderer).toContain('flex-[0_1_75%]');
-    expect(sharedRenderer).toContain('called ${tools.length}');
+    expect(sharedRenderer).toContain('已调用 {tools.length} 项辅助能力');
+    expect(sharedRenderer).not.toContain('called ${tools.length}');
+    expect(sharedRenderer).not.toContain('called ${tool.toolName}');
     expect(globalSidebar).toContain("role={isOpen ? 'dialog' : undefined}");
     expect(globalSidebar).toContain("aria-modal={isOpen ? 'true' : undefined}");
     expect(globalSidebar).toContain("aria-hidden={isOpen ? undefined : 'true'}");
     expect(globalSidebar).toContain('inert={!isOpen}');
     expect(globalSidebar).toContain('data-ai-task-status="global-sidebar"');
-    expect(globalSidebar).toContain('<KonlingChatMessageList messages={messages} styles={styles} />');
+    expect(globalSidebar).toContain('<KonlingChatMessageList messages={messages} styles={styles} onStructuredAction={handleStructuredAction} />');
     expect(globalSidebar).toContain('konlingPromptInputClassName');
     expect(globalSidebar).toContain('发送 AI 问题');
     expect(copilot).toContain('<KonlingChatMessageList messages={messages} />');

@@ -2093,7 +2093,7 @@ export function KnowledgeGraphCanvas({
       });
     }
     return true;
-  }, [ambientFlowSelection, getLinkAppearance, height, hoveredNode?.id, laneCurvatureByLinkKey, motionEnvironmentActive, motionMarkerEdgeIdSet, presentation, reducedMotion, selectedCorridorEmphasis, selectedNode?.id, structuralForegroundEdgeIdSet, width]);
+  }, [ambientFlowEdgeIdSet, ambientFlowSelection, getLinkAppearance, height, hoveredNode?.id, laneCurvatureByLinkKey, motionEnvironmentActive, motionMarkerEdgeIdSet, presentation, reducedMotion, selectedCorridorEmphasis, selectedNode?.id, structuralForegroundEdgeIdSet, width]);
   const updatePresentationLinkObjectRef = useRef(updatePresentationLinkObjectImpl);
   updatePresentationLinkObjectRef.current = updatePresentationLinkObjectImpl;
   const updatePresentationLinkObject = useCallback((

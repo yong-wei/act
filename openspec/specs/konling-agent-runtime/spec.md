@@ -609,3 +609,293 @@ personalizing explanations, scope, style, and evidence diagnostics.
 - **THEN** Konling SHALL still answer with available content citations
 - **AND** it SHALL treat portrait incompleteness as a personalization limitation rather than a retrieval failure.
 
+### Requirement: Konling conversations belong to the authenticated user
+Readable Konling conversations SHALL be owned by one authenticated user and SHALL remain available across supported pages until the user deletes them or existing global retention governance removes them.
+
+#### Scenario: Owner lists conversations
+- **WHEN** an authenticated user opens the Konling conversation library
+- **THEN** the system SHALL return only that user's readable conversations ordered by pinned state and recent activity.
+
+#### Scenario: Another user requests a conversation
+- **WHEN** a user requests a conversation owned by another user without an authorized governance role
+- **THEN** the system SHALL deny access to its title, messages, context records, and tool runs.
+
+#### Scenario: Conversation produces a structured task action
+- **WHEN** a conversation proposes or applies a smart-preparation task change
+- **THEN** the proposal, tool run, and applied artifact SHALL retain exact task and task-revision lineage
+- **AND** user-level conversation ownership SHALL NOT replace domain artifact ownership or revision binding.
+
+### Requirement: Conversation library supports deliberate organization
+The library SHALL support new conversation, title search, manual rename, pin or unpin, and confirmed deletion.
+
+#### Scenario: First exchange completes
+- **WHEN** the first complete user question and assistant answer are persisted and the title has not been manually edited
+- **THEN** the system SHALL assign an automatic title derived from the exchange
+- **AND** it SHALL fall back to a bounded form of the first user prompt when naming cannot complete.
+
+#### Scenario: Manually named conversation receives later messages
+- **WHEN** a user has renamed a conversation
+- **THEN** automatic naming SHALL NOT overwrite the manual title.
+
+#### Scenario: User searches titles
+- **WHEN** the user enters a search term
+- **THEN** the library SHALL filter by conversation title
+- **AND** full message-content search SHALL NOT be required.
+
+#### Scenario: Current conversation is deleted
+- **WHEN** the user confirms deletion of the active conversation
+- **THEN** the conversation and its owned message and tool-run records SHALL be removed according to retention rules
+- **AND** the UI SHALL open a new blank conversation while independently persisted platform artifacts remain.
+
+### Requirement: Cross-page continuation appends context without rewriting history
+The runtime SHALL preserve the initiating page context and SHALL append one server-authored current-page context record immediately before a new user message when the conversation continues from a materially different page context.
+
+#### Scenario: Conversation continues on the same page context
+- **WHEN** the current authorized page-context identity matches the latest recorded context
+- **THEN** the runtime SHALL append only the new user message
+- **AND** it SHALL NOT duplicate the page-context record.
+
+#### Scenario: Conversation continues on another page
+- **WHEN** the current authorized page-context identity differs from the latest recorded context
+- **THEN** the runtime SHALL append the new current-page context record and then the user message in that order
+- **AND** it SHALL NOT rewrite the system prefix, initiating context, prior context records, or prior messages.
+
+#### Scenario: Client supplies unauthorized context
+- **WHEN** client hints contain data outside the user's current authorized page scope
+- **THEN** the server SHALL omit or reject those fields before persisting the context record.
+
+### Requirement: Existing usable conversations migrate into the library
+The system SHALL migrate existing readable Konling sessions idempotently while preserving chronological messages, readable tool records, and original timestamps.
+
+#### Scenario: Existing session has usable history
+- **WHEN** a session contains at least one readable exchange or meaningful tool record and is not expired
+- **THEN** it SHALL appear as one owner-scoped library conversation with an automatic title when needed.
+
+#### Scenario: Existing session is not usable
+- **WHEN** a session is expired, empty, or contains only failed initialization
+- **THEN** it SHALL be excluded from the conversation library migration.
+
+#### Scenario: Migration runs again
+- **WHEN** the migration is rerun
+- **THEN** it SHALL reuse prior migration identity
+- **AND** it SHALL NOT duplicate conversations, messages, or tool runs.
+
+### Requirement: Konling supports side and maximized presentation modes
+Konling SHALL open in the existing side-panel mode by default and SHALL provide controls to maximize into a full-screen workspace and restore to the side panel.
+
+#### Scenario: User maximizes Konling
+- **WHEN** the user activates maximize from the side panel
+- **THEN** the assistant SHALL animate into a full-screen workspace
+- **AND** the workspace SHALL show the conversation library on the left and the active conversation on the right at desktop width.
+
+#### Scenario: User restores the side panel
+- **WHEN** the user activates restore
+- **THEN** Konling SHALL return to the side-panel geometry
+- **AND** the active conversation SHALL remain selected.
+
+### Requirement: Presentation changes preserve conversation continuity
+Changing Konling presentation mode SHALL preserve active conversation state.
+
+#### Scenario: Mode changes during an active conversation
+- **WHEN** the user maximizes or restores while messages, draft input, streaming output, scroll position, or focus state exist
+- **THEN** those states SHALL remain associated with the same conversation
+- **AND** the runtime SHALL NOT create a new session or duplicate the active response.
+
+#### Scenario: Reduced motion is requested
+- **WHEN** the user's system requests reduced motion
+- **THEN** the mode transition SHALL avoid nonessential animation while preserving the same layout result.
+
+### Requirement: Maximized Konling remains usable on mobile
+The maximized assistant SHALL provide mobile access to both conversation history and the active conversation.
+
+#### Scenario: Maximized mode renders on a narrow screen
+- **WHEN** the viewport cannot fit the history rail and conversation together
+- **THEN** history SHALL be available through a drawer or equivalent compact navigation
+- **AND** the message list and composer SHALL remain reachable without horizontal page scrolling.
+
+### Requirement: Konling exposes textbook retrieval through page tool contracts
+Konling SHALL register textbook RAG as a shared read-only tool and SHALL expose it only when the server-owned page, mode, and role contract permits course-knowledge retrieval.
+
+#### Scenario: Page contract permits textbook retrieval
+- **WHEN** a learning surface exposes the textbook tool and the model determines that the current question needs textbook support
+- **THEN** the model MAY call the tool with the current question
+- **AND** the runtime SHALL apply the page's existing server-owned context without introducing a knowledge-graph-only context path.
+
+#### Scenario: Tool is exposed but unused
+- **WHEN** the model answers without calling the available textbook tool
+- **THEN** the runtime SHALL treat that as a normal model decision
+- **AND** it SHALL NOT mark the answer degraded solely because the tool was unused.
+
+### Requirement: Konling uses server-assigned visible citation numbers
+Konling SHALL use one server-assigned citation sequence for textbook content and authorized learning evidence and SHALL reject model-authored URLs or new identifiers.
+
+#### Scenario: Citation table is prepared
+- **WHEN** eligible content and evidence sources are ready before answer generation
+- **THEN** the server SHALL deduplicate them and assign `[1]`, `[2]` display numbers
+- **AND** the prompt SHALL allow only those assigned numbers.
+
+#### Scenario: Model emits internal citation syntax
+- **WHEN** model prose contains a raw citation id, `[content: ...]`, an unknown number, or a model-authored citation URL
+- **THEN** that syntax SHALL NOT become a verified visible citation or link.
+
+### Requirement: Konling repairs unknown citation markers once
+Konling SHALL deterministically normalize known citation forms and SHALL permit at most one model repair call for remaining unknown or ambiguous markers.
+
+#### Scenario: Deterministic normalization succeeds
+- **WHEN** a marker contains an assigned number, a complete known citation id, or a uniquely matching source title
+- **THEN** the server SHALL map it without an additional model call.
+
+#### Scenario: Unknown markers remain
+- **WHEN** deterministic normalization leaves unresolved markers
+- **THEN** one repair call SHALL receive the original question, frozen server context, assigned citation table, original answer, and all unresolved markers
+- **AND** it SHALL return mappings only without rewriting prose or adding sources.
+
+#### Scenario: Repair still fails
+- **WHEN** markers remain unresolved after the repair call
+- **THEN** production output SHALL remove their raw syntax and invalid links, preserve the answer prose, and show the applicable safe verification notice
+- **AND** detailed reasons SHALL remain available only in development diagnostics.
+
+### Requirement: Konling supports soft-timeout textbook optimization
+Konling SHALL start a fallback-grounded answer after the configured foreground retrieval wait while allowing bounded external retrieval to continue.
+
+#### Scenario: External retrieval exceeds foreground wait
+- **WHEN** embedding and reranking have not completed after approximately two seconds
+- **THEN** Konling SHALL answer from lexical or local fused candidates
+- **AND** production UI SHALL show `正在后台优化响应` without provider, timeout, or error details.
+
+#### Scenario: Background evidence is equivalent
+- **WHEN** external retrieval completes before the experiment-derived P95 cap and the preferred source and used citation-unit set are unchanged
+- **THEN** the UI SHALL end the optimization status without regenerating the answer.
+
+#### Scenario: Background evidence materially changes
+- **WHEN** external retrieval completes before the cap and changes the preferred source or used citation-unit set
+- **THEN** Konling SHALL regenerate from the frozen question and final evidence and replace the same message revision
+- **AND** it SHALL NOT append a second assistant response.
+
+#### Scenario: Background retrieval reaches its cap
+- **WHEN** the external work has not completed by the experiment-derived P95 limit
+- **THEN** the fallback-grounded answer SHALL remain final
+- **AND** the optimization status SHALL end with operational diagnostics kept outside production prose.
+
+### Requirement: Konling final messages replace provisional revisions
+The shared chat experience SHALL support one visible message identity whose body, citations, and final state can be replaced after citation repair or material background optimization.
+
+#### Scenario: Citation mapping is corrected
+- **WHEN** the single citation repair call resolves provisional markers
+- **THEN** the corrected body and citation presentation SHALL replace the current message revision
+- **AND** the provisional and corrected variants SHALL NOT remain as separate visible messages.
+
+### Requirement: Provider tool-call syntax never renders as assistant prose
+The Konling runtime SHALL normalize streamed and final provider events into text, tool-call, tool-result, citation, and terminal events before user-visible rendering.
+
+#### Scenario: Provider returns DSML tool syntax
+- **WHEN** a provider emits a complete recognized DSML or provider-specific tool-call envelope
+- **THEN** the runtime SHALL parse it into a structured tool call
+- **AND** the envelope SHALL NOT appear in the assistant's visible text.
+
+#### Scenario: Structured syntax is malformed
+- **WHEN** deterministic parsing cannot safely classify a possible tool-call envelope
+- **THEN** the runtime SHALL withhold the raw syntax and enter bounded correction or an actionable failure state
+- **AND** it SHALL NOT present the markup as a successful answer.
+
+### Requirement: Tool runs and structured actions persist with their assistant turn
+Each structured action SHALL be linked to a persisted assistant turn and tool-run identity so reopening a conversation restores the same card and state.
+
+#### Scenario: Tool call completes
+- **WHEN** a permitted tool call succeeds or fails
+- **THEN** its redacted input summary, output or error summary, status, timestamps, and idempotency identity SHALL be persisted
+- **AND** the message renderer SHALL reconstruct its action or status card from server records.
+
+#### Scenario: Conversation is reopened
+- **WHEN** the user reopens a conversation containing structured actions
+- **THEN** applied, ignored, failed, and pending action states SHALL render consistently
+- **AND** reopening SHALL NOT rerun a completed tool automatically.
+
+### Requirement: Smart-preparation proposals render as in-message action cards
+The `propose_smart_lesson_task_change` result SHALL render inside the responsible assistant message with `应用` and `忽略` actions.
+
+#### Scenario: Proposal card is presented
+- **WHEN** a structured task proposal is persisted
+- **THEN** the card SHALL show a teacher-readable summary of the proposed changes before any task mutation
+- **AND** no proposal SHALL apply until the teacher selects `应用`.
+
+#### Scenario: Teacher applies a current proposal
+- **WHEN** the teacher selects `应用` and the task revision still matches
+- **THEN** the structured task service SHALL apply the proposed diff once
+- **AND** the affected smart-preparation accordion stage SHALL update, highlight the accepted change briefly, and then return to its ordinary presentation.
+
+#### Scenario: Proposal conflicts with a newer task revision
+- **WHEN** the task changed after the proposal was created
+- **THEN** the action card SHALL report the conflict and offer refresh or a new proposal
+- **AND** it SHALL NOT overwrite the newer task.
+
+#### Scenario: Teacher ignores a proposal
+- **WHEN** the teacher selects `忽略`
+- **THEN** the card SHALL persist the ignored state
+- **AND** the task SHALL remain unchanged.
+
+#### Scenario: Proposal application fails
+- **WHEN** an authorized proposal cannot be applied for a reason other than a stale revision
+- **THEN** the original card SHALL persist an actionable failure state
+- **AND** the task SHALL remain unchanged and a duplicate click SHALL not apply the proposal twice.
+
+### Requirement: Page-specific Konling tools remain focused
+Each page or assistant mode SHALL continue to expose only its authorized focused tool set while retaining the project's existing context injection.
+
+#### Scenario: Conversation opens in a new page context
+- **WHEN** an existing conversation continues on another page
+- **THEN** the runtime SHALL use that page's permitted tools for the new turn
+- **AND** it SHALL not retroactively alter tools or context recorded for prior turns.
+
+### Requirement: Tool-call correction consumes the shared message-revision contract
+Konling tool-call correction SHALL reuse the provisional-message identity, `正在后台优化响应` state, same-message replacement, and bounded p95 wait defined by `integrate-konling-textbook-rag`.
+
+#### Scenario: Tool-call correction is required
+- **WHEN** deterministic normalization withholds malformed structured syntax and starts the single permitted correction
+- **THEN** the correction SHALL update the existing provisional message through the shared message-revision contract
+- **AND** this change SHALL NOT create a second visible answer, wait controller, or message replacement implementation.
+
+### Requirement: Konling uses candidate Canonical page context
+When Konling is invoked from the candidate graph, it MUST receive the aggregate ReleaseSet identity and projection digest, selected Canonical Object, graph filters, actual candidate coverage, release tier, and explicit teaching-semantics availability state.
+
+#### Scenario: Selected candidate object is explained
+- **WHEN** the user asks about a selected Canonical Object in `control-theory-engineering-v0.2`
+- **THEN** Konling SHALL use its Canonical ID, aggregate ReleaseSet, exact typed relations, and available public provenance rather than searching Legacy nodes by label
+
+#### Scenario: Teaching semantics are unavailable
+- **WHEN** the aggregate release does not yet provide prerequisite, containment, or related formal Teaching Projection semantics required by the request
+- **THEN** Konling SHALL expose that limitation and SHALL NOT infer those relations from display order, Legacy graph, or resource similarity
+
+#### Scenario: Historical candidate context is encountered
+- **WHEN** a stored conversation turn references the prior root-locus ReleaseSet
+- **THEN** the runtime SHALL retain that turn as history but SHALL bind a new candidate-graph turn to the current aggregate ReleaseSet without merging their objects or provenance
+
+### Requirement: Candidate graph exposes a focused read-only tool set
+The candidate graph context SHALL expose Repository-backed Canonical search, node detail, and bounded neighbor tools, and SHALL exclude state-changing knowledge actions.
+
+#### Scenario: Model searches neighbors
+- **WHEN** Konling requests related candidate objects
+- **THEN** the tool SHALL return precise predicate, direction, governance level, and ReleaseSet provenance
+
+#### Scenario: Model attempts a state-changing action
+- **WHEN** a candidate response attempts to create a learning fact, execute a path, or update learner state
+- **THEN** the server SHALL reject the action and preserve the candidate context as read-only
+
+### Requirement: Candidate context does not replace platform context injection
+The candidate graph additions MUST extend the existing page-scoped context contract without creating a graph-only assistant mode.
+
+#### Scenario: Conversation continues on another page
+- **WHEN** the same user opens the conversation elsewhere and sends a new message
+- **THEN** the runtime SHALL append the new page context before the message while retaining the prior conversation structure
+
+### Requirement: Candidate graph public activation waits for Konling acceptance
+The system MUST keep the candidate graph unavailable to ordinary users until its Canonical context, focused tools, diagnostics, and no-side-effect gates all pass acceptance.
+
+#### Scenario: Candidate Konling acceptance passes
+- **WHEN** V2 graph acceptance and all candidate Konling read-only tests pass on the same ReleaseSet
+- **THEN** the system SHALL open the candidate view to all existing graph users and set it as the migration-period default
+
+#### Scenario: Candidate Konling acceptance fails
+- **WHEN** any candidate context, provenance, or side-effect test fails
+- **THEN** the public activation gate SHALL remain closed and users SHALL continue on the Legacy graph
+

@@ -156,6 +156,7 @@ export interface LearningEvidenceCorpusChunk {
     versionId?: string | null;
     documentSourceType?: string | null;
     reviewState?: string | null;
+    lifecycleState?: string | null;
     versionState?: string | null;
   };
   spanRef: {

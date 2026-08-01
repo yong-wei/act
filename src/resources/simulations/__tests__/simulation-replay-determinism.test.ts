@@ -125,4 +125,30 @@ describe('simulation replay determinism', () => {
     expect(first.convergenceHistory).toEqual(second.convergenceHistory);
     expect(first.replay?.checksum).toBe(second.replay?.checksum);
   });
+
+  it('keeps the calibrated PID turn candidate above the passing score', () => {
+    const config: SimpleSimConfig = {
+      nomotoK: 0.08,
+      nomotoT: 55,
+      shipSpeed: 15,
+    };
+    const calibratedConstraints = {
+      kpRange: [3, 3] as [number, number],
+      kiRange: [0.001, 0.001] as [number, number],
+      kdRange: [5, 5] as [number, number],
+    };
+
+    const result = optimizePIDParams(
+      config,
+      DEFAULT_TARGET,
+      calibratedConstraints,
+      0,
+      20,
+      { runContext: context },
+    );
+
+    expect(result.score).toBeGreaterThanOrEqual(60);
+    expect(result.metrics.maxRudderRate).toBeLessThanOrEqual(5);
+    expect(result.metrics.settlingTime).toBeLessThanOrEqual(90);
+  });
 });

@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { SUBMISSION_LIMITS, SubmissionError } from './submission-domain';
+import {
+  ALLOWED_ASSIGNMENT_ASSET_FORMATS,
+  SUBMISSION_LIMITS,
+  SubmissionError,
+} from './submission-domain';
 
 export async function requireStudentActor() {
   const session = await getServerAuthSession();
@@ -35,7 +39,41 @@ export async function readBoundedSubmissionJson(request: Request) {
 }
 
 export function submissionErrorResponse(error: unknown) {
-  if (error instanceof SubmissionError) return NextResponse.json({ error: error.code }, { status: error.status });
-  if (error && typeof error === 'object' && 'issues' in error) return NextResponse.json({ error: 'invalid-payload' }, { status: 400 });
+  const allowedFormats = [...ALLOWED_ASSIGNMENT_ASSET_FORMATS];
+  if (error instanceof SubmissionError) return NextResponse.json({
+    error: error.code,
+    message: submissionErrorMessage(error.code),
+    metadata: error.code === 'unsupported-assignment-asset-format'
+      ? { ...error.metadata, allowedFormats }
+      : error.metadata ?? {},
+  }, { status: error.status });
+  if (error && typeof error === 'object' && 'issues' in error) {
+    const issues = (error as { issues?: Array<{ path?: PropertyKey[]; message?: string }> }).issues ?? [];
+    const hasFormatIssue = issues.some((issue) =>
+      ['fileName', 'mimeType'].includes(String(issue.path?.[0] ?? ''))
+      || issue.message === 'unsupported-assignment-asset-format');
+    return NextResponse.json({
+      error: 'invalid-payload',
+      message: '提交内容不符合要求。',
+      metadata: {
+        ...(hasFormatIssue ? { allowedFormats } : {}),
+        fields: issues.map((issue) => ({
+          field: issue.path?.map(String).join('.') ?? '',
+          code: issue.message ?? 'invalid',
+        })),
+      },
+    }, { status: 400 });
+  }
   return NextResponse.json({ error: 'submission-operation-failed' }, { status: 500 });
+}
+
+function submissionErrorMessage(code: string): string {
+  const messages: Record<string, string> = {
+    'answer-asset-limit-exceeded': '每题最多可包含 10 个图片或附件。',
+    'unsupported-assignment-asset-format': '附件格式不受支持。',
+    'answer-version-conflict': '答案已在其他位置更新，请刷新后重试。',
+    'asset-order-set-mismatch': '附件列表已变化，请刷新后重新排序。',
+    'answer-evidence-required': '请填写答案正文或添加至少一个附件。',
+  };
+  return messages[code] ?? '提交操作未完成，请重试。';
 }

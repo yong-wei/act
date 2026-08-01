@@ -15,7 +15,7 @@ import {
   type TeachingResourceNodeInput,
 } from './resource-node-registry';
 import type { RuntimeLessonResourceCatalogEntry } from './course-runtime';
-import type { TextbookRuntimeResourceCatalogEntry } from './textbook-runtime-resources';
+import type { TextbookStructureRuntimeCatalogEntry } from './structured-textbook-runtime';
 import {
   RESOURCE_NODE_REGISTRY_VERSION,
   RESOURCE_SEMANTIC_PROJECTION_VERSION,
@@ -72,7 +72,7 @@ export function buildResourceNodeRegistryFromTeachingResources(
   resources: readonly ResourceWithKnowledgeNodes[],
   registeredResources: readonly RegisteredResourceNodeInput[] = [],
   runtimeLessons: readonly RuntimeLessonResourceCatalogEntry[] = [],
-  runtimeTextbooks: readonly TextbookRuntimeResourceCatalogEntry[] = [],
+  runtimeTextbooks: readonly TextbookStructureRuntimeCatalogEntry[] = [],
   runtimeResourceProjections: readonly RuntimeResourceProjectionInput[] = [],
   extraInput: ResourceNodeRegistryInput = {},
 ): ResourceNodeRegistry {
@@ -134,7 +134,7 @@ export function buildResourceNodeRegistryFromTeachingResources(
       ...(extraInput.textbooks ?? []),
     ],
     textbookSections: [
-      ...runtimeTextbooks.flatMap(toTextbookSectionNodeInputs),
+      ...runtimeTextbooks.flatMap(toTextbookUnitNodeInputs),
       ...(extraInput.textbookSections ?? []),
     ],
   }));
@@ -237,12 +237,19 @@ function mergeRegisteredPlanningOverride(
   };
 }
 
-export function toTextbookSectionNodeInputs(
-  entry: TextbookRuntimeResourceCatalogEntry,
+export function toTextbookUnitNodeInputs(
+  entry: TextbookStructureRuntimeCatalogEntry,
 ): Array<TextbookSectionResourceNodeInput & { bookId: TextbookResourceNodeInput['bookId'] }> {
-  return entry.sections.map((section) => ({
-    ...section,
+  return entry.units.map((unit) => ({
     bookId: entry.textbook.bookId,
+    sectionId: unit.unitId,
+    title: unit.title,
+    citationHref: unit.citationHref,
+    sourceHash: unit.sourceHash,
+    sourceVersionRef: unit.sourceVersionRef,
+    knowledgeNodeIds: unit.knowledgeNodeIds,
+    capabilityTargetIds: unit.capabilityTargetIds,
+    estimatedTimeMinutes: unit.estimatedTimeMinutes,
   }));
 }
 

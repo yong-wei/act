@@ -1,3 +1,6 @@
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+
 import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
 import { EvidenceTimelineBrowser } from '@/features/data-governance/evidence-timeline-browser';
@@ -17,6 +20,7 @@ interface StudentEvidencePageProps {
   searchParams?: Promise<{
     lessonId?: string | string[];
     sessionId?: string | string[];
+    node?: string | string[];
   } & FeedbackTaskQuery>;
 }
 
@@ -30,6 +34,7 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
   const session = await getServerAuthSession();
   const initialLessonId = readSingleSearchParam(params?.lessonId);
   const initialSessionId = readSingleSearchParam(params?.sessionId);
+  const initialNodeId = readSingleSearchParam(params?.node);
   const verifiedTeacherInterventionId = await resolveVerifiedTeacherInterventionId({
     db: prisma,
     userId: session?.user?.id,
@@ -37,7 +42,10 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
     assignment: params?.assignment,
   });
   const feedbackContext = buildFeedbackTaskContext(params ?? {}, { verifiedTeacherInterventionId });
-
+  const backHref = initialNodeId
+    ? `/knowledge?node=${encodeURIComponent(initialNodeId)}`
+    : '/profile/growth';
+  const backLabel = initialNodeId ? '返回知识图谱' : '返回成长中心';
   return (
     <AppShell
       viewerRole="student"
@@ -58,10 +66,20 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
         data-knowledge-data-map-surface="evidence-browser"
         data-evidence-map-semantics="source-quality freshness privacy confidence status"
       >
+        <div className="mb-4">
+          <Link
+            href={backHref}
+            className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm"
+            data-evidence-back-link="source-context"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            {backLabel}
+          </Link>
+        </div>
         <StudentFeedbackTaskPanel context={feedbackContext} surface="evidence" className="mb-6" />
         <EvidenceTimelineBrowser
           apiPath={feedbackContext ? '/api/learning-evidence' : '/api/student/evidence'}
-          backHref="/profile/growth"
+          backHref={backHref}
           chrome="embedded"
           initialLessonId={initialLessonId}
           initialSessionId={initialSessionId}

@@ -29,22 +29,22 @@ test('uses the real browser, API, worker, Source Pack and fixture provider throu
   await page.getByLabel('生成提纲后暂停确认').check();
   await page.getByRole('button', { name: '确认并创建单课任务' }).click();
   await expect(page.getByRole('status').filter({ hasText: '单课任务已确认' })).toBeVisible();
+  await page.reload();
 
   const card = page.locator('article').filter({ has: page.getByRole('heading', { name: topic }) });
   await expect(card).toContainText('教师创建，来源待补');
   await card.getByRole('button', { name: '开始生成' }).click();
   await expect(page.getByRole('status').filter({ hasText: '生成任务已进入队列' })).toBeVisible();
-  await refreshUntil(card, '任务 PAUSED');
-  await expect(card).toContainText('OUTLINE: COMPLETED');
+  await refreshUntil(card, '提纲：等待教师确认');
+  await expect(card).toContainText('提纲已持久化');
   await expect(card).toContainText('闭环特征方程与稳定性判据');
 
   await card.getByRole('button', { name: '确认当前提纲并继续' }).click();
   await expect(page.getByRole('status').filter({ hasText: '生成任务已恢复' })).toBeVisible();
-  await refreshUntil(card, '任务 COMPLETED');
+  await refreshUntil(card, '总结：已完成');
   await expect(card.getByRole('button', { name: '开始生成' })).toBeEnabled();
   await card.getByText('查看完整教案').click();
-  await expect(card).toContainText('smart-lesson-plan.boppps.v1');
-  await expect(card).toContainText('PARTICIPATORY_LEARNING: COMPLETED');
+  await expect(card).toContainText('参与式学习：已完成');
 
   await card.getByRole('button', { name: 'AI 建议' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'AI 建议已生成' })).toBeVisible();

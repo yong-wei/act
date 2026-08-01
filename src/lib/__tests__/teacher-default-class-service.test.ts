@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { Prisma } from '@prisma/client';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
@@ -31,6 +32,18 @@ describe('teacher default class persistence', () => {
     expect(migration).toContain('ON DELETE SET NULL ON UPDATE CASCADE');
     expect(migration).not.toContain('"ClassSession"');
     expect(migration).not.toMatch(/^\s*(UPDATE|DELETE FROM)\b/im);
+  });
+
+  it('requires application-managed smart lesson detachment before deleting a class', () => {
+    const schema = readFileSync(join(process.cwd(), 'prisma/schema.prisma'), 'utf8');
+    const migration = readFileSync(join(
+      process.cwd(),
+      'prisma/migrations/20260726190000_ground_smart_preparation_sources/migration.sql',
+    ), 'utf8');
+
+    expect(schema).toMatch(/selectedClass\s+Class\?.*onDelete:\s*Restrict/);
+    expect(migration).toContain('ON DELETE RESTRICT ON UPDATE CASCADE');
+    expect(migration).not.toContain('ON DELETE SET NULL ON UPDATE CASCADE');
   });
 });
 
@@ -224,6 +237,77 @@ describe('teacher default class service', () => {
     });
   });
 
+  it('marks generated smart-preparation tasks sticky stale before deleting the selected class', async () => {
+    const updateTasks = vi.fn().mockResolvedValue({ count: 1 });
+    const updateDrafts = vi.fn().mockResolvedValue({ count: 1 });
+    const deleteClass = vi.fn().mockResolvedValue(activeClass);
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn().mockResolvedValue({ defaultTeachingClassId: null }),
+        update: vi.fn(),
+      },
+      class: {
+        findFirst: vi.fn().mockResolvedValue(activeClass),
+        delete: deleteClass,
+      },
+      classSession: { findFirst: vi.fn().mockResolvedValue(null) },
+      studentProfile: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
+      smartLessonTask: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'task-generated',
+            revision: 4,
+            drafts: [{ contentHash: 'plan-hash', jobs: [] }],
+          },
+          {
+            id: 'task-empty',
+            revision: 2,
+            drafts: [{ contentHash: null, jobs: [{ stages: [{ outputHash: null }] }] }],
+          },
+        ]),
+        updateMany: updateTasks,
+      },
+      smartLessonDraft: { updateMany: updateDrafts },
+    });
+
+    await createTeacherDefaultClassService(database(tx) as never)
+      .deleteClass(teacher.id, activeClass.id);
+
+    expect(updateTasks).toHaveBeenNthCalledWith(1, {
+      where: {
+        id: 'task-generated',
+        ownerId: teacher.id,
+        selectedClassId: activeClass.id,
+        revision: 4,
+      },
+      data: {
+        selectedClassId: null,
+        revision: { increment: 1 },
+        classContextStaleAt: expect.any(Date),
+        classContextStaleReason: 'CLASS_REMOVED',
+      },
+    });
+    expect(updateTasks).toHaveBeenNthCalledWith(2, {
+      where: {
+        id: 'task-empty',
+        ownerId: teacher.id,
+        selectedClassId: activeClass.id,
+        revision: 2,
+      },
+      data: {
+        selectedClassId: null,
+        revision: { increment: 1 },
+        aggregateClassContext: Prisma.JsonNull,
+        aggregateClassContextRef: null,
+        classContextStaleAt: null,
+        classContextStaleReason: null,
+      },
+    });
+    expect(updateDrafts).toHaveBeenCalledTimes(1);
+    expect(updateTasks.mock.invocationCallOrder[0]).toBeLessThan(deleteClass.mock.invocationCallOrder[0]);
+  });
+
   it('rejects deletion when any session references the class without changing membership or default', async () => {
     const userUpdate = vi.fn();
     const studentUpdate = vi.fn();
@@ -320,6 +404,8 @@ function transaction(overrides: Record<string, unknown>) {
     class: {},
     classSession: {},
     studentProfile: {},
+    smartLessonTask: { findMany: vi.fn().mockResolvedValue([]), updateMany: vi.fn() },
+    smartLessonDraft: { updateMany: vi.fn() },
     ...overrides,
   } as any;
 }

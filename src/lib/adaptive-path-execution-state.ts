@@ -22,6 +22,18 @@ export type AdaptivePathContextLoadState =
   | 'missing'
   | 'failed';
 
+export type AdaptiveLearnerStateLoadState =
+  | 'idle'
+  | 'loading'
+  | 'ready'
+  | 'failed';
+
+export type AdaptivePathLandingState =
+  | 'loading'
+  | 'active'
+  | 'cold-start'
+  | 'failed';
+
 export type AdaptivePathContextRecoveryReason =
   | 'none'
   | 'loading'
@@ -35,6 +47,37 @@ export interface AdaptivePathContextRecoveryState {
   reason: AdaptivePathContextRecoveryReason;
   title: string;
   detail: string;
+}
+
+export function resolveAdaptivePathLandingState(input: {
+  authStatus: 'authenticated' | 'loading' | 'unauthenticated';
+  learnerStateLoadState: AdaptiveLearnerStateLoadState;
+  pathContextLoadState: AdaptivePathContextLoadState;
+  hasLoadedPathContext: boolean;
+}): AdaptivePathLandingState {
+  if (
+    input.learnerStateLoadState === 'failed' ||
+    input.pathContextLoadState === 'failed' ||
+    input.authStatus === 'unauthenticated'
+  ) {
+    return 'failed';
+  }
+
+  if (
+    input.authStatus === 'loading' ||
+    input.learnerStateLoadState === 'idle' ||
+    input.learnerStateLoadState === 'loading' ||
+    input.pathContextLoadState === 'idle' ||
+    input.pathContextLoadState === 'loading'
+  ) {
+    return 'loading';
+  }
+
+  if (input.hasLoadedPathContext && input.pathContextLoadState === 'ready') {
+    return 'active';
+  }
+
+  return 'cold-start';
 }
 
 export function resolveAdaptivePathExecutionNodeStatus(input: {

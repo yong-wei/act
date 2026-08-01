@@ -29,6 +29,7 @@ describe('path constraint repair', () => {
 
     expect(repair.status).toBe('repaired');
     expect(repair.repairedNodeIds).toEqual(['intro', 'terminal']);
+    expect(repair.minimumExecutableDurationMinutes).toBe(25);
     expect(repair.removedNodeIds).toEqual(['heavy-lab']);
     expect(repair.repairedConstraints).toEqual(expect.arrayContaining(['time-budget']));
     expect(repair.limitations).toContain('removed-optional-node:heavy-lab');

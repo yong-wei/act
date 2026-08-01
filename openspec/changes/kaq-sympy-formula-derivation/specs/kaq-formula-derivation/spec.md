@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Math calculation API returns SymPy results with steps
-The system SHALL expose `POST /api/math/calculate` for authenticated users. The endpoint SHALL accept a LaTeX or SymPy-style expression string and return the SymPy calculation result in LaTeX together with ordered intermediate steps.
+The system SHALL expose `POST /api/math/calculate` for authenticated users. The endpoint SHALL accept a LaTeX or SymPy-style expression string and return the SymPy calculation result in LaTeX together with ordered intermediate steps. Each step SHALL contain `step`, `description`, `operation`, `input`, and `output` fields.
 
 #### Scenario: Student or tool requests a Laplace transform
 - **WHEN** an authenticated caller posts `{ "expression": "1", "operation": "laplace" }`

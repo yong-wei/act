@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  resolveAdaptivePathLandingState,
   resolveAdaptivePathContextRecoveryState,
   resolveAdaptivePathExecutionNodeStatus,
 } from '../adaptive-path-execution-state';
@@ -96,5 +97,57 @@ describe('resolveAdaptivePathContextRecoveryState', () => {
       hasLoadedPathContext: true,
       loadState: 'ready',
     }).shouldRecover).toBe(false);
+  });
+});
+
+describe('resolveAdaptivePathLandingState', () => {
+  it('keeps cold-start content hidden until learner and path data are both ready', () => {
+    expect(resolveAdaptivePathLandingState({
+      authStatus: 'authenticated',
+      learnerStateLoadState: 'loading',
+      pathContextLoadState: 'loading',
+      hasLoadedPathContext: false,
+    })).toBe('loading');
+
+    expect(resolveAdaptivePathLandingState({
+      authStatus: 'authenticated',
+      learnerStateLoadState: 'ready',
+      pathContextLoadState: 'loading',
+      hasLoadedPathContext: false,
+    })).toBe('loading');
+  });
+
+  it('shows the active path only after its context has loaded', () => {
+    expect(resolveAdaptivePathLandingState({
+      authStatus: 'authenticated',
+      learnerStateLoadState: 'ready',
+      pathContextLoadState: 'ready',
+      hasLoadedPathContext: true,
+    })).toBe('active');
+  });
+
+  it('shows cold-start content only after both sources confirm there is no path', () => {
+    expect(resolveAdaptivePathLandingState({
+      authStatus: 'authenticated',
+      learnerStateLoadState: 'ready',
+      pathContextLoadState: 'missing',
+      hasLoadedPathContext: false,
+    })).toBe('cold-start');
+  });
+
+  it('keeps load failures distinct from a confirmed missing path', () => {
+    expect(resolveAdaptivePathLandingState({
+      authStatus: 'authenticated',
+      learnerStateLoadState: 'failed',
+      pathContextLoadState: 'missing',
+      hasLoadedPathContext: false,
+    })).toBe('failed');
+
+    expect(resolveAdaptivePathLandingState({
+      authStatus: 'authenticated',
+      learnerStateLoadState: 'ready',
+      pathContextLoadState: 'failed',
+      hasLoadedPathContext: false,
+    })).toBe('failed');
   });
 });

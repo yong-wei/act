@@ -23,10 +23,13 @@ export const MATH_CALC_OPERATIONS = [
 
 export type MathCalcOperation = (typeof MATH_CALC_OPERATIONS)[number];
 
+const MATH_CALC_EXPRESSION_PATTERN = /^[A-Za-z0-9+\-*/^().,\s\\{}\[\]]+$/;
+const MATH_CALC_VARIABLE_PATTERN = /^[A-Za-z][A-Za-z0-9]{0,9}$/;
+
 export const mathCalculateRequestSchema = z.object({
-  expression: z.string().trim().min(1).max(300),
+  expression: z.string().trim().min(1).max(300).regex(MATH_CALC_EXPRESSION_PATTERN, '表达式包含不允许的字符'),
   operation: z.enum(MATH_CALC_OPERATIONS).optional(),
-  variable: z.string().min(1).max(10).optional(),
+  variable: z.string().min(1).max(10).regex(MATH_CALC_VARIABLE_PATTERN, '变量包含不允许的字符').optional(),
 });
 
 export type MathCalculateRequest = z.infer<typeof mathCalculateRequestSchema>;
@@ -34,6 +37,7 @@ export type MathCalculateRequest = z.infer<typeof mathCalculateRequestSchema>;
 export interface MathCalculateStep {
   step: number;
   description: string;
+  operation: string;
   input: string;
   output: string;
 }
@@ -74,8 +78,9 @@ function isErrnoError(error: unknown): error is NodeJS.ErrnoException {
  * MathCalculateUnavailableError，调用方应投影为 503。
  */
 export async function runMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {
+  const validatedInput = mathCalculateRequestSchema.parse(input);
   const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
-  const payload = JSON.stringify(input);
+  const payload = JSON.stringify(validatedInput);
 
   return new Promise<MathCalculateResponse>((resolve, reject) => {
     const child = spawn(pythonCommand, [MATH_CALC_SCRIPT_PATH], {

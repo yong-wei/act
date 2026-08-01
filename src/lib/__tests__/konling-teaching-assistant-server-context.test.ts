@@ -53,6 +53,72 @@ describe('Konling teaching-assistant server context', () => {
     restoreEnv('AUTH_SECRET', originalAuthSecret);
   });
 
+  it('resolves a diagnosis attempt only from the authenticated student answer', async () => {
+    const questionSnapshot = {
+      version: 'adaptive-question-snapshot.v1',
+      prompt: '单位负反馈系统的稳态误差由什么决定？',
+      options: [
+        { key: 'A', label: 'A', text: '系统型别与输入类型', explanation: '正确。' },
+        { key: 'B', label: 'B', text: '只由带宽决定', explanation: '忽略了低频增益。' },
+      ],
+      correctOptionKey: 'A',
+      explanation: '应同时检查系统型别和输入类型。',
+      knowledgeTags: ['steady-state-error'],
+      misconceptionTags: ['bandwidth-only'],
+      remediationResources: [],
+    };
+    const answer = {
+      id: 'answer-1', userId: 'student-1', sessionId: 'session-1', questionId: 'question-1',
+      selectedOptionKey: 'B', correctOptionKey: 'A', isCorrect: false, answeredAt: new Date('2026-07-28T00:00:00.000Z'),
+      session: { id: 'session-1', userId: 'student-1', sessionKey: 'practice-1' },
+      questionRef: { knowledgeTags: ['steady-state-error'], metadata: { questionSnapshot } },
+    };
+    const db = {
+      adaptiveAssessmentAnswer: {
+        findFirst: vi.fn().mockResolvedValue(answer),
+        findMany: vi.fn().mockResolvedValue([answer]),
+      },
+    };
+
+    const context = await resolveKonlingTeachingAssistantServerModeContext({
+      db,
+      modeId: 'diagnosis-explainer',
+      scope: scope({
+        authenticatedUserId: 'student-1', targetUserId: 'student-1', role: 'student',
+        pageId: 'adaptive-practice', privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+      clientContextHints: { answerId: 'answer-1' },
+    });
+
+    expect(db.adaptiveAssessmentAnswer.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'answer-1', userId: 'student-1' },
+    }));
+    expect(context.adaptiveAttempt).toMatchObject({ answerId: 'answer-1', selectedOptionKey: 'B', question: questionSnapshot });
+  });
+
+  it('fails closed when diagnosis attempt context cannot be verified', async () => {
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {
+        adaptiveAssessmentAnswer: {
+          findFirst: vi.fn().mockResolvedValue(null),
+          findMany: vi.fn(),
+        },
+      },
+      modeId: 'diagnosis-explainer',
+      scope: scope({
+        authenticatedUserId: 'student-1', targetUserId: 'student-1', role: 'student',
+        pageId: 'adaptive-practice', privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+      clientContextHints: { answerId: 'answer-other-user' },
+    })).rejects.toMatchObject({
+      name: 'KonlingAdaptiveAttemptContextError',
+      status: 409,
+      message: 'KONLING_ADAPTIVE_ATTEMPT_CONTEXT_UNAVAILABLE',
+    });
+  });
+
   it('accepts signed class summarizer context tokens as server-owned context', async () => {
     const modeContextToken = createKonlingTeachingAssistantServerContextToken({
       mode: 'class-summarizer',
@@ -715,6 +781,15 @@ describe('Konling teaching-assistant server context', () => {
       topic: '频域稳定裕度',
       audience: '自动化专业本科生',
       durationMinutes: 45,
+      selectedClassId: 'class-1',
+      textbookRanges: [{
+        bookId: 'book-1',
+        level: 'SECTION',
+        unitId: 'section-1',
+        structuralPath: ['chapter-1', 'section-1'],
+      }],
+      aggregateClassContextRef: 'legacy-diagnosis-ref',
+      aggregateClassContext: { classId: 'class-legacy' },
       scopeConfirmedAt: new Date('2026-07-19T03:10:00.000Z'),
       goalsConfirmedAt: new Date('2026-07-19T03:11:00.000Z'),
       sources: [{
@@ -744,7 +819,17 @@ describe('Konling teaching-assistant server context', () => {
       citationState: 'verified',
       reviewState: 'confirmed',
       clarificationReadiness: { status: 'ready', canGenerate: true },
+      currentTask: {
+        selectedClassId: 'class-1',
+        textbookRanges: [{
+          bookId: 'book-1',
+          level: 'SECTION',
+          unitId: 'section-1',
+          structuralPath: ['chapter-1', 'section-1'],
+        }],
+      },
     });
+    expect(context.smartPreparation?.currentTask).not.toHaveProperty('aggregateClassContextRef');
     expect(context.smartPreparation?.confirmedDecisions).toEqual(expect.arrayContaining([
       expect.objectContaining({ field: 'scope', confirmedBy: 'teacher-1' }),
       expect.objectContaining({ field: 'goals', value: ['goal-1'] }),

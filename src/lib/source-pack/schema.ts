@@ -47,6 +47,7 @@ export const sourcePackProfileSchema = z.enum([
   'konling-answer',
   'lesson-authoring',
   'lesson-design',
+  'smart-preparation',
   'homework-authoring',
   'konling',
   'path-planning',
@@ -158,6 +159,8 @@ function isGovernedRelativeHref(href: string): boolean {
       || parsed.pathname.startsWith('/course-runtime/')
       || parsed.pathname === '/resources'
       || parsed.pathname.startsWith('/resources/')
+      || parsed.pathname === '/textbooks'
+      || parsed.pathname.startsWith('/textbooks/')
     );
   } catch {
     return false;

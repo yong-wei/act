@@ -46,6 +46,7 @@ describe('POST /api/math/calculate', () => {
         {
           step: 1,
           description: '原始表达式',
+          operation: 'identify',
           input: '1',
           output: '1',
         },
@@ -68,6 +69,12 @@ describe('POST /api/math/calculate', () => {
 
     const oversized = await POST(createPostRequest({ expression: 'x'.repeat(301) }));
     expect(oversized.status).toBe(400);
+
+    const illegalCharacters = await POST(createPostRequest({ expression: 'x.__class__' }));
+    expect(illegalCharacters.status).toBe(400);
+
+    const illegalVariable = await POST(createPostRequest({ expression: 'x', variable: 's.__class__' }));
+    expect(illegalVariable.status).toBe(400);
 
     const wrongType = await POST(createPostRequest({ expression: '1', operation: 'eval' }));
     expect(wrongType.status).toBe(400);

@@ -25,6 +25,12 @@ function fact(overrides: Partial<LearningFact> = {}): LearningFact {
     courseId: overrides.courseId ?? 'automatic-control',
     lessonId: overrides.lessonId ?? 'unit-5-2-phase-plane-disturbance-boundary',
     contextJson: overrides.contextJson ?? {},
+    knowledgeIdentityNamespace: overrides.knowledgeIdentityNamespace ?? null,
+    canonicalObjectId: overrides.canonicalObjectId ?? null,
+    aggregateReleaseSetId: overrides.aggregateReleaseSetId ?? null,
+    aggregateReleaseId: overrides.aggregateReleaseId ?? null,
+    knowledgeProjectionId: overrides.knowledgeProjectionId ?? null,
+    knowledgeRevisionRef: overrides.knowledgeRevisionRef ?? null,
     createdAt: overrides.createdAt ?? new Date('2026-05-21T08:05:01.000Z'),
   };
 }

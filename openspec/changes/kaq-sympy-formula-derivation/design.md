@@ -30,7 +30,7 @@ KAQ 运行时（`src/lib/konling-agent-runtime.ts`）通过 `KONLING_TOOL_REGIST
 
 ### 受限解析与资源边界
 
-表达式只允许 ASCII 数学字符且长度 ≤300；`parse_latex` 不做 eval，`parse_expr` 使用 `__builtins__` 置空的受限命名空间；Python 进程内设置 `RLIMIT_CPU`；API 侧 4 并发 + 8 排队，超限 429；子进程 10 秒超时。
+表达式只允许 ASCII 数学字符且长度 ≤300，变量只允许 ASCII 标识符；TypeScript 在 `spawn` 前执行与 Python 一致的白名单校验；`parse_latex` 不做 eval，`parse_expr` 使用 `__builtins__` 置空的受限命名空间；Python 进程内设置 `RLIMIT_CPU`；API 侧 4 并发 + 8 排队，超限 429；子进程 10 秒超时。每个步骤固定包含 `step`、`description`、`operation`、`input`、`output` 五字段。
 
 ### 工具权限为 analyze
 
