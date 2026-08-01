@@ -18,3 +18,5 @@
 - [x] 3.1 Run the focused Rust runtime tests and focused simulation replay tests.
 - [x] 3.2 Run strict OpenSpec validation for `calibrate-pid-turn-scenario`.
 - [x] 3.3 Inspect the diff to verify that Arena official evaluation, leaderboards, task progress, learning evidence, and unrelated Buddy cache files remain untouched.
+- [x] 3.4 Bind the evidence route and capture generator to a clean full Git revision, hash the production source and WASM batch, and fail closed on pre/post capture drift.
+- [ ] 3.5 From the stable code checkpoint, start the bound application instance and regenerate the 1440px/320px evidence as an evidence-only commit.

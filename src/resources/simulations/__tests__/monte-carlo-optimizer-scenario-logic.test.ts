@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   optimizePIDParams,
   getLegacySceneLogic,
@@ -170,7 +170,7 @@ describe('PID optimizer scenario rudder rate isolation', () => {
   it('legacy v1 runtime request does NOT include maxRudderRateDegPerSec', async () => {
     const { mockNomotoRequests } = await import(
       '@/resources/simulations/rust/control-engine-server-runtime'
-    ) as { mockNomotoRequests: unknown[] };
+    ) as unknown as { mockNomotoRequests: unknown[] };
     const legacyScenario = getLegacySceneLogic('turn90', DEFAULT_TARGET.targetHeading);
 
     expect(legacyScenario.runtimeVersion).toBe('simulation-optimizer-runtime-v1');
@@ -196,7 +196,7 @@ describe('PID optimizer scenario rudder rate isolation', () => {
   it('calibrated v2 runtime request DOES include maxRudderRateDegPerSec: 5', async () => {
     const { mockNomotoRequests } = await import(
       '@/resources/simulations/rust/control-engine-server-runtime'
-    ) as { mockNomotoRequests: unknown[] };
+    ) as unknown as { mockNomotoRequests: unknown[] };
     mockNomotoRequests.length = 0;
 
     const v2Scenario = getScenarioLogic('turn90', DEFAULT_TARGET.targetHeading);
@@ -217,7 +217,7 @@ describe('PID optimizer scenario rudder rate isolation', () => {
       const req = request as Record<string, unknown>;
       const nomoto = req.nomoto as Record<string, unknown> | undefined;
       expect(nomoto).toBeDefined();
-      expect(nomoto.maxRudderRateDegPerSec).toBe(5);
+      expect(nomoto?.maxRudderRateDegPerSec).toBe(5);
     }
   });
 

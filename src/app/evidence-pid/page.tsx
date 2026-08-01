@@ -14,8 +14,13 @@ export default function PidRecommendationEvidencePage() {
     notFound();
   }
 
+  const appRevision = process.env.APP_REVISION ?? '';
+
   return (
-    <main className="min-h-screen bg-slate-950 px-3 py-6 text-slate-100 sm:px-6 lg:px-10">
+    <main
+      className="min-h-screen bg-slate-950 px-3 py-6 text-slate-100 sm:px-6 lg:px-10"
+      data-app-revision={appRevision}
+    >
       <div className="mx-auto max-w-5xl space-y-5">
         <header className="rounded-xl border border-slate-700 bg-slate-900 p-4 sm:p-6">
           <p className="text-xs font-medium text-amber-300">Control Workbench / PID turn calibration</p>

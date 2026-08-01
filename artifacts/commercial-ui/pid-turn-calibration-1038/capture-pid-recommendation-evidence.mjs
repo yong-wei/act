@@ -2,25 +2,69 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+
+import {
+  assertCaptureCompletedWithoutDrift,
+  assertCleanCaptureStart,
+  assertServedRevision,
+} from './evidence-contract.mjs';
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 const baseUrl = process.env.PID_EVIDENCE_BASE_URL ?? 'http://localhost:3012';
 const outputDirectory = currentDirectory;
+const repositoryRoot = resolve(currentDirectory, '../../..');
 const route = '/evidence-pid';
 const viewports = [
   { width: 1440, height: 1000, name: '1440' },
   { width: 320, height: 900, name: '320' },
 ];
 
-const gitSha = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+const git = (args) => execSync(`git ${args}`, {
+  cwd: repositoryRoot,
+  encoding: 'utf-8',
+  stdio: ['ignore', 'pipe', 'pipe'],
+}).trim();
+const gitStatus = () => execSync('git status --porcelain=v1 -z --untracked-files=all', {
+  cwd: repositoryRoot,
+  encoding: 'utf-8',
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
+const captureRevision = git('rev-parse HEAD');
+const preCaptureStatus = gitStatus();
+
+assertCleanCaptureStart({ head: captureRevision, status: preCaptureStatus });
+
+const boundInputs = [
+  'artifacts/commercial-ui/pid-turn-calibration-1038/capture-pid-recommendation-evidence.mjs',
+  'artifacts/commercial-ui/pid-turn-calibration-1038/evidence-contract.mjs',
+  'src/app/evidence-pid/page.tsx',
+  'src/app/api/simulation/optimize/route.ts',
+  'src/resources/simulations/ai-recommend-panel.tsx',
+  'src/resources/simulations/lib/monte-carlo-optimizer.ts',
+  'rust/control-engine/src/virtual_simulation_runtime.rs',
+  'src/resources/control-system/wasm/control_engine/index.d.ts',
+  'src/resources/control-system/wasm/control_engine/index.js',
+  'src/resources/control-system/wasm/control_engine/index_bg.wasm',
+  'src/resources/control-system/wasm/control_engine/index_bg.wasm.d.ts',
+];
+
+async function hashBoundInputs() {
+  return Object.fromEntries(await Promise.all(boundInputs.map(async (path) => {
+    const bytes = await readFile(join(repositoryRoot, path));
+    return [path, createHash('sha256').update(bytes).digest('hex')];
+  })));
+}
+
+const sourceHashes = await hashBoundInputs();
 
 await mkdir(outputDirectory, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const captures = [];
+let servedRevision;
 
 // ---- API-based authentication helper ----
 async function authenticateContext(page) {
@@ -72,6 +116,13 @@ try {
     });
 
     await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle' });
+    const viewportServedRevision = await page.locator('[data-app-revision]').getAttribute('data-app-revision');
+    assertServedRevision({ captureRevision, servedRevision: viewportServedRevision });
+    if (servedRevision === undefined) {
+      servedRevision = viewportServedRevision;
+    } else {
+      assert.equal(viewportServedRevision, servedRevision, '不同视口连接到了不同运行修订');
+    }
     await page.getByRole('button', { name: '智能推荐' }).click();
 
     try {
@@ -136,7 +187,9 @@ try {
       apiResponse,
       apiResponseError,
       consoleErrors,
-      gitSha,
+      captureRevision,
+      servedRevision,
+      sourceHashes,
       screenshotSha256,
       ...metrics,
     }, null, 2));
@@ -156,13 +209,36 @@ try {
   await browser.close();
 }
 
+const postRevision = git('rev-parse HEAD');
+const postSourceHashes = await hashBoundInputs();
+const postCaptureStatus = gitStatus();
+const changedPaths = assertCaptureCompletedWithoutDrift({
+  captureRevision,
+  postRevision,
+  postStatus: postCaptureStatus,
+  beforeHashes: sourceHashes,
+  afterHashes: postSourceHashes,
+});
+const recordedChangedPaths = [...new Set([
+  ...changedPaths,
+  relative(repositoryRoot, join(outputDirectory, 'browser-evidence.json')),
+])].sort();
+
 await writeFile(join(outputDirectory, 'browser-evidence.json'), JSON.stringify({
   change: 'calibrate-pid-turn-scenario',
   capturedAt: new Date().toISOString(),
   server: baseUrl,
   browser: 'Playwright Chromium',
   evidenceMode: 'COMMERCIAL_UI_EVIDENCE=1',
-  gitSha,
+  captureRevision,
+  servedRevision,
+  sourceHashes,
+  drift: {
+    preCaptureClean: true,
+    postCaptureHeadUnchanged: true,
+    boundInputsUnchanged: true,
+    changedPaths: recordedChangedPaths,
+  },
   route: {
     productionSurface: 'src/resources/simulations/ai-recommend-panel.tsx',
     testHarnessRoute: route,
@@ -178,3 +254,14 @@ await writeFile(join(outputDirectory, 'browser-evidence.json'), JSON.stringify({
   ],
   captures,
 }, null, 2));
+
+const finalRevision = git('rev-parse HEAD');
+const finalSourceHashes = await hashBoundInputs();
+const finalStatus = gitStatus();
+assertCaptureCompletedWithoutDrift({
+  captureRevision,
+  postRevision: finalRevision,
+  postStatus: finalStatus,
+  beforeHashes: sourceHashes,
+  afterHashes: finalSourceHashes,
+});
