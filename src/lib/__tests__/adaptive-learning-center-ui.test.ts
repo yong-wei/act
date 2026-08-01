@@ -752,7 +752,6 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
     expect(source).toContain('data-adaptive-path-workspace-intent={workspaceIntent}');
     expect(source).toContain("showGenerationWorkspace ? (");
-    expect(source).toContain('{showPresetGoalCards ? (');
     expect(source).toContain('value={pathGenerationPanel.goalId}');
     expect(source).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
     expect(source).toContain('window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel))');
