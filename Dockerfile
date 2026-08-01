@@ -2,7 +2,8 @@
 FROM node:20-alpine AS base
 ARG APK_MIRROR=https://mirrors.aliyun.com/alpine
 RUN sed -i "s|https://dl-cdn.alpinelinux.org/alpine|${APK_MIRROR}|g" /etc/apk/repositories \
-  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip
+  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip \
+  && pip install --no-cache-dir --break-system-packages "sympy==1.13.3"
 
 # Dependencies stage
 FROM base AS deps
@@ -122,6 +123,10 @@ COPY --from=builder /app/course-content/authoring/knowledge/releases ./course-co
 COPY --from=builder /app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage
 COPY --from=builder /app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl
 COPY --from=builder /app/.app-revision ./.app-revision
+COPY --from=builder /app/scripts/math-calc ./scripts/math-calc
+
+# 验证公式推导依赖在生产镜像内可执行。
+RUN python3 -c "import sympy; assert sympy.__version__ == '1.13.3', sympy.__version__"
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
