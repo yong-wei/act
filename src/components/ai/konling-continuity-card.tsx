@@ -18,68 +18,76 @@ export function KonlingContinuityCard(props: {
 }) {
   const { snapshot } = props;
   const [question, setQuestion] = useState<PracticeQuestion | null>(null);
-  const [practiceStatus, setPracticeStatus] = useState<'idle' | 'loading' | 'unavailable' | 'submitting' | 'complete'>('idle');
+  const [practiceStatus, setPracticeStatus] = useState<'idle' | 'loading' | 'unavailable' | 'failed' | 'submitting' | 'complete'>('idle');
   const [feedback, setFeedback] = useState<string | null>(null);
 
   async function startReview() {
-    if (!snapshot.recentMistake || practiceStatus !== 'idle') return;
+    if (!snapshot.recentMistake || (practiceStatus !== 'idle' && practiceStatus !== 'failed')) return;
     setPracticeStatus('loading');
-    const response = await fetch('/api/assessment/next-question', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: `konling-continuity:${snapshot.snapshotId}`,
-        goalId: snapshot.recentMistake.knowledgeId,
-        continuity: {
-          origin: 'konling-companion-practice',
-          snapshotId: snapshot.snapshotId,
-          targetKnowledgeId: snapshot.recentMistake.knowledgeId,
-          structuredCauseId: snapshot.recentMistake.structuredCauseId,
-        },
-      }),
-    });
-    if (!response.ok) {
-      setPracticeStatus('unavailable');
-      return;
+    try {
+      const response = await fetch('/api/assessment/next-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: `konling-continuity:${snapshot.snapshotId}`,
+          goalId: snapshot.recentMistake.knowledgeId,
+          continuity: {
+            origin: 'konling-companion-practice',
+            snapshotId: snapshot.snapshotId,
+            targetKnowledgeId: snapshot.recentMistake.knowledgeId,
+            structuredCauseId: snapshot.recentMistake.structuredCauseId,
+          },
+        }),
+      });
+      if (!response.ok) {
+        setPracticeStatus('unavailable');
+        return;
+      }
+      const payload = await response.json() as { question?: PracticeQuestion };
+      if (!payload.question) {
+        setPracticeStatus('unavailable');
+        return;
+      }
+      setQuestion(payload.question);
+      setPracticeStatus('idle');
+    } catch {
+      setPracticeStatus('failed');
     }
-    const payload = await response.json() as { question?: PracticeQuestion };
-    if (!payload.question) {
-      setPracticeStatus('unavailable');
-      return;
-    }
-    setQuestion(payload.question);
-    setPracticeStatus('idle');
   }
 
   async function submitReview(selectedOption: string) {
-    if (!question || !snapshot.recentMistake || practiceStatus !== 'idle') return;
+    if (!question || !snapshot.recentMistake || (practiceStatus !== 'idle' && practiceStatus !== 'failed')) return;
     setPracticeStatus('submitting');
-    const response = await fetch('/api/assessment/submit-answer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: `konling-continuity:${snapshot.snapshotId}`,
-        questionId: question.id,
-        selectedOption,
-        timeSpent: 0,
-        continuity: {
-          origin: 'konling-companion-practice',
-          snapshotId: snapshot.snapshotId,
-          targetKnowledgeId: snapshot.recentMistake.knowledgeId,
-          structuredCauseId: snapshot.recentMistake.structuredCauseId,
-        },
-      }),
-    });
-    if (!response.ok) {
-      setPracticeStatus('unavailable');
-      return;
+    try {
+      const response = await fetch('/api/assessment/submit-answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: `konling-continuity:${snapshot.snapshotId}`,
+          questionId: question.id,
+          selectedOption,
+          timeSpent: 0,
+          continuity: {
+            origin: 'konling-companion-practice',
+            snapshotId: snapshot.snapshotId,
+            targetKnowledgeId: snapshot.recentMistake.knowledgeId,
+            structuredCauseId: snapshot.recentMistake.structuredCauseId,
+          },
+        }),
+      });
+      if (!response.ok) {
+        setPracticeStatus('unavailable');
+        return;
+      }
+      const result = await response.json() as { isCorrect?: boolean; recommendedFocus?: string[] };
+      const instability = result.recommendedFocus?.[0];
+      setFeedback(result.isCorrect
+        ? `本题已正确${instability ? `；累计状态仍建议关注：${instability}` : '。单次正确不代表稳定掌握。'} 下一次可继续做一道陪伴练习。`
+        : `本题尚未通过${instability ? `；仍需关注：${instability}` : '。'} 下一次可先重新讲解，再做陪伴练习。`);
+      setPracticeStatus('complete');
+    } catch {
+      setPracticeStatus('failed');
     }
-    const result = await response.json() as { isCorrect?: boolean; recommendedFocus?: string[] };
-    const instability = result.recommendedFocus?.[0];
-    setFeedback(result.isCorrect
-      ? `本题已正确${instability ? `；累计状态仍建议关注：${instability}` : '。单次正确不代表稳定掌握。'} 下一次可继续做一道陪伴练习。`
-      : `本题尚未通过${instability ? `；仍需关注：${instability}` : '。'} 下一次可先重新讲解，再做陪伴练习。`);
-    setPracticeStatus('complete');
   }
   if (snapshot.state === 'unfinished_task' && snapshot.unfinishedTask) {
     return (
@@ -126,8 +134,9 @@ export function KonlingContinuityCard(props: {
         )}
         {feedback && <p className="mt-3 text-xs" role="status">{feedback}</p>}
         {practiceStatus === 'unavailable' && <p className="mt-3 text-xs" role="alert">当前没有符合条件的正式检查题，可先选择重新讲解。</p>}
+        {practiceStatus === 'failed' && <p className="mt-3 text-xs" role="alert">检查题请求失败，请重试或选择重新讲解。</p>}
         <div className="mt-3 flex flex-wrap gap-2">
-          {!question && practiceStatus !== 'complete' && <Button size="sm" disabled={practiceStatus === 'loading'} onClick={() => void startReview()}>{practiceStatus === 'loading' ? '正在获取…' : '做一道检查题'}</Button>}
+          {!question && practiceStatus !== 'complete' && practiceStatus !== 'unavailable' && <Button size="sm" disabled={practiceStatus === 'loading'} onClick={() => void startReview()}>{practiceStatus === 'loading' ? '正在获取…' : practiceStatus === 'failed' ? '重新获取检查题' : '做一道检查题'}</Button>}
           <Button size="sm" variant="secondary" onClick={props.onReExplain}>重新讲解</Button>
           <Button size="sm" variant="ghost" onClick={props.onDismiss}>暂时跳过</Button>
         </div>

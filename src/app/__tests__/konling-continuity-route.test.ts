@@ -37,4 +37,3 @@ describe('Konling continuity route', () => {
     expect(mocks.resolveSnapshot).toHaveBeenCalledWith(expect.anything(), { userId: 'student-1' });
   });
 });
-

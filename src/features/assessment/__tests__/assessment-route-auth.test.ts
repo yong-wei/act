@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   getDiagnosticWithPersistenceFallback: vi.fn(),
   getAbilityReportWithPersistenceFallback: vi.fn(),
   verifyCompanionPracticeMetadata: vi.fn(),
+  verifyCompanionPracticeSubmissionMetadata: vi.fn(),
   prisma: {
     learningPath: {
       findFirst: vi.fn(),
@@ -31,6 +32,7 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/konling-continuity-assessment', () => ({
   verifyCompanionPracticeMetadata: mocks.verifyCompanionPracticeMetadata,
+  verifyCompanionPracticeSubmissionMetadata: mocks.verifyCompanionPracticeSubmissionMetadata,
 }));
 
 import { POST as submitAnswer } from '@/app/api/assessment/submit-answer/route';
@@ -92,6 +94,7 @@ describe('assessment API auth boundaries', () => {
     });
     mocks.prisma.learningPath.findFirst.mockResolvedValue(null);
     mocks.verifyCompanionPracticeMetadata.mockResolvedValue(undefined);
+    mocks.verifyCompanionPracticeSubmissionMetadata.mockResolvedValue(undefined);
   });
 
   it('rejects unauthenticated adaptive answer submissions before persistence', async () => {
@@ -378,7 +381,6 @@ describe('assessment API auth boundaries', () => {
       goalId: 'root-locus',
       continuity: { ...verified, snapshotId: 'client-value-is-revalidated' },
     });
-
     expect(response.status).toBe(200);
     expect(mocks.verifyCompanionPracticeMetadata).toHaveBeenCalledWith(expect.anything(), {
       userId: 'student-1',
@@ -391,6 +393,34 @@ describe('assessment API auth boundaries', () => {
       questionScope: 'practice',
       continuity: verified,
     });
+  });
+
+  it('uses persisted companion authority for a completed submission retry', async () => {
+    const verified = {
+      origin: 'konling-companion-practice',
+      snapshotId: 'continuity:before-result',
+      targetKnowledgeId: 'root-locus',
+      structuredCauseId: null,
+    } as const;
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.verifyCompanionPracticeSubmissionMetadata.mockResolvedValue(verified);
+
+    const response = await submitRequest({
+      sessionId: 'konling-continuity:continuity:before-result',
+      questionId: 'preset-q-01',
+      selectedOption: 'A',
+      timeSpent: 10,
+      continuity: verified,
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.verifyCompanionPracticeSubmissionMetadata).toHaveBeenCalledWith(expect.anything(), {
+      userId: 'student-1',
+      sessionId: 'konling-continuity:continuity:before-result',
+      questionId: 'preset-q-01',
+      continuity: verified,
+    });
+    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({ continuity: verified }));
   });
 
   it('rejects companion practice when the session is not bound to the verified snapshot', async () => {

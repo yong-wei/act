@@ -98,8 +98,10 @@ type AdaptiveAssessmentPersistenceTx = {
     findUnique(args: Record<string, unknown>): Promise<{
       id: string;
       userId: string;
+      questionRefId?: string;
       questionId: string;
       selectedOptionKey: string;
+      correctOptionKey?: string;
       isCorrect: boolean;
       score: number;
       responseTimeSeconds: number;
@@ -110,7 +112,10 @@ type AdaptiveAssessmentPersistenceTx = {
     upsert(args: Record<string, unknown>): Promise<{
       id: string;
       userId: string;
+      questionRefId?: string;
       questionId: string;
+      selectedOptionKey?: string;
+      correctOptionKey?: string;
       isCorrect: boolean;
       score: number;
       responseTimeSeconds: number;
@@ -214,6 +219,17 @@ function assertSelectedCompanionQuestion(
   if (selectedQuestionIds.length !== 1 || selectedQuestionIds[0] !== questionId) {
     throw new Error('Companion-practice answer does not match the selected question.');
   }
+}
+
+function selectedOptionValueFromKey(
+  details: SubmittedAnswerDetails,
+  selectedOptionKey: string | undefined,
+): string {
+  if (!selectedOptionKey) return details.record.selectedOption;
+  const optionIndex = selectedOptionKey.length === 1
+    ? selectedOptionKey.charCodeAt(0) - 'A'.charCodeAt(0)
+    : Number.parseInt(selectedOptionKey.replace('OPTION_', ''), 10) - 1;
+  return details.question.options[optionIndex]?.label ?? details.record.selectedOption;
 }
 
 function questionSource(questionId: string): string {
@@ -876,27 +892,45 @@ async function persistAdaptiveAssessmentSubmission(
   });
   const createdAnswer = !existingAnswer && answer.answeredAt.getTime() === answeredAt.getTime();
   if (!createdAnswer) {
+    const replayDetails = {
+      ...effectiveDetails,
+      record: {
+        ...effectiveDetails.record,
+        isCorrect: answer.isCorrect,
+        timeSpent: answer.responseTimeSeconds,
+        selectedOption: selectedOptionValueFromKey(effectiveDetails, answer.selectedOptionKey),
+        createdAt: answer.answeredAt.getTime(),
+      },
+      selectedOptionKey: answer.selectedOptionKey ?? effectiveDetails.selectedOptionKey,
+      correctOptionKey: answer.correctOptionKey ?? effectiveDetails.correctOptionKey,
+    };
+    const replayHistory = persistedAnswerRecords
+      .filter((record) => record.createdAt <= answer.answeredAt.getTime());
+    if (!replayHistory.some((record) => record.sessionId === replayDetails.record.sessionId && record.questionId === answer.questionId)) {
+      replayHistory.push(replayDetails.record);
+    }
+    const replayResult = buildSubmitAnswerResult(replayDetails, replayHistory);
     const kaqQuizEvidence = materializeKaqQuizOutcomeEvidence({
-      question: effectiveDetails.question,
-      sessionId: effectiveDetails.record.sessionId,
+      question: replayDetails.question,
+      sessionId: replayDetails.record.sessionId,
       answerId: answer.id,
-      isCorrect: effectiveDetails.record.isCorrect,
-      score,
+      isCorrect: answer.isCorrect,
+      score: answer.score,
       scoringVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-      occurredAt: answeredAt.toISOString(),
+      occurredAt: answer.answeredAt.toISOString(),
     });
     return {
       durableSessionId: session.id,
       durableAnswerId: answer.id,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       masteryUpdateCount: 0,
-      result,
+      result: replayResult,
       adaptiveAssessmentRef: buildAdaptiveAssessmentOutcomeRef({
-        details: effectiveDetails,
+        details: { ...replayDetails, result: replayResult },
         answerId: answer.id,
-        questionRefId: questionRef.id,
-        score,
-        answeredAt,
+        questionRefId: answer.questionRefId ?? questionRef.id,
+        score: answer.score,
+        answeredAt: answer.answeredAt,
         catalogSnapshot,
         kaqQuizEvidence,
       }),

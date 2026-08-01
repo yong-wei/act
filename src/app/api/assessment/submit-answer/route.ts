@@ -4,8 +4,8 @@ import { submitAnswerWithPersistenceFallback } from '@/features/assessment/adapt
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
-import { verifyCompanionPracticeMetadata } from '@/lib/konling-continuity-assessment';
-import type { ContinuityDb } from '@/lib/konling-learning-continuity';
+import { verifyCompanionPracticeSubmissionMetadata } from '@/lib/konling-continuity-assessment';
+import type { CompanionPracticeSubmissionDb } from '@/lib/konling-continuity-assessment';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +36,12 @@ export async function POST(request: Request) {
 
     const userId = session.user.id;
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
-    const continuity = await verifyCompanionPracticeMetadata(prisma as unknown as ContinuityDb, { userId, continuity: body.continuity });
+    const continuity = await verifyCompanionPracticeSubmissionMetadata(prisma as unknown as CompanionPracticeSubmissionDb, {
+      userId,
+      sessionId,
+      questionId: body.questionId,
+      continuity: body.continuity,
+    });
     if (sessionId.startsWith('konling-continuity:') && !continuity) {
       throw new Error('Companion-practice metadata is required for the reserved session.');
     }

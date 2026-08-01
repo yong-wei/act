@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { resolveKonlingContinuitySnapshot } from '@/lib/konling-learning-continuity';
-import { verifyCompanionPracticeMetadata } from '@/lib/konling-continuity-assessment';
+import { verifyCompanionPracticeMetadata, verifyCompanionPracticeSubmissionMetadata } from '@/lib/konling-continuity-assessment';
 
 function db(input?: {
   path?: { id: string; title: string; currentNodeId: string; updatedAt: Date } | null;
@@ -106,5 +106,39 @@ describe('Konling learning continuity', () => {
       nextAction: '继续做一道陪伴练习',
     });
     expect(snapshot.snapshotId).not.toContain('answer-1');
+  });
+
+  it('accepts a completed submission retry after the result changes the current snapshot', async () => {
+    const continuity = {
+      origin: 'konling-companion-practice',
+      snapshotId: 'continuity:before-result',
+      targetKnowledgeId: 'root-locus',
+      structuredCauseId: null,
+    } as const;
+    const store = {
+      ...db({
+        latest: {
+          id: 'answer-2',
+          answeredAt: new Date('2026-08-01T10:00:00Z'),
+          isCorrect: true,
+          session: { metadata: continuity },
+          questionRef: { knowledgeTags: ['root-locus'], metadata: {} },
+        },
+      }),
+      adaptiveAssessmentSession: {
+        findUnique: vi.fn().mockResolvedValue({
+          selectedQuestionIds: ['preset-q-01'],
+          metadata: continuity,
+          answers: [{ id: 'answer-2' }],
+        }),
+      },
+    };
+
+    await expect(verifyCompanionPracticeSubmissionMetadata(store, {
+      userId: 'student-1',
+      sessionId: 'konling-continuity:continuity:before-result',
+      questionId: 'preset-q-01',
+      continuity,
+    })).resolves.toEqual(continuity);
   });
 });
