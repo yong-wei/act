@@ -6,20 +6,18 @@ import path from 'node:path';
 import { canonicalJson } from './authoritative-release';
 import {
   CTKG_SCHEMA_VERSION,
-  isBundleContractSupported,
   isSchemaIdentitySupported,
 } from './bundle-compatibility-registry';
+import {
+  validateAggregateManifestIntegrity,
+  type AggregateIntegrityArtifact,
+} from './public-bundle-aggregate-integrity';
 
 const SHA256 = /^[0-9a-f]{64}$/u;
 const COMMIT = /^[0-9a-f]{40}$/u;
 const LEGACY_ROOT_CLOSURE_CONTRACT = 'actkg-legacy-predecessor-root-closure/1';
 const LEGACY_ROOT_CLOSURE_ALGORITHM = 'sha256sums-legacy-exact-root/1';
 const LEGACY_ROOT_CLOSURE_AUTHORITY_PROTOCOL = 'ctkg-m1k-v1d-predecessor-closure/1';
-const LEGACY_ROOT_BUNDLE_ID = 'ctb:control-theory-engineering-v0.3:r1';
-const LEGACY_ROOT_RELEASE_VERSION = 'control-theory-engineering-v0.3';
-const LEGACY_CHAIN_HEAD_BUNDLE_ID = 'ctb:control-theory-engineering-v0.3:r2';
-const DEFAULT_LEGACY_ROOT_CLOSURE_PATH =
-  'docs/coordination/m1j/v0.3-r1-predecessor-closure.json';
 const LEGACY_ROOT_CLOSURE_GATES = [
   'BUNDLE_ID_BINDING_GATE',
   'CONSUMER_PREDECESSOR_BINDING_GATE',
@@ -27,6 +25,7 @@ const LEGACY_ROOT_CLOSURE_GATES = [
   'MEMBER_CHECKSUM_GATE',
   'SHA256SUMS_RAW_BINDING_GATE',
 ] as const;
+const ADMISSION_BRIDGE_CONTRACT = 'actkg-admission-bridge-release-diff/1';
 
 type JsonObject = Record<string, unknown>;
 
@@ -34,6 +33,20 @@ export interface PreviousBundle {
   bundle_id: string;
   kind: string;
   sha256sums_sha256: string;
+}
+
+/**
+ * Identity of the ACT-owned accepted endpoint used as the comparison base.
+ * The exact #1125 endpoint has no standard Bundle identity, so additional
+ * evidence fields are intentionally preserved as opaque stable JSON values.
+ */
+export interface LatestStableAggregateAdmittedEndpoint extends JsonObject {
+  releaseSetId: string;
+  releaseId: string;
+  releaseVersion: string;
+  releaseHash: string;
+  sourceDatasetHash: string;
+  [key: string]: unknown;
 }
 
 interface StableAggregateManifest {
@@ -101,6 +114,32 @@ interface PredecessorRootClosureBinding {
   authorityProtocol: string;
 }
 
+export interface AdmissionBridgeReleaseDiffBinding {
+  path: string;
+  contractVersion: string;
+  bridgeId: string;
+  artifactHash: string;
+  releaseDiffDigest: string;
+  admittedEndpointExternalAnchor: {
+    repository: string;
+    commit: string;
+    introducedCommit: string;
+    path: string;
+    sha256: string;
+  };
+  baseReleaseId: string;
+  baseReleaseVersion: string;
+  baseReleaseHash: string;
+  targetReleaseId: string;
+  targetReleaseVersion: string;
+  targetReleaseHash: string;
+  targetBundleId: string;
+  targetBundleDigest: string;
+  targetManifestSha256: string;
+  targetProjectionId: string;
+  targetProjectionDigest: string;
+}
+
 export interface LatestStableAggregateBinding extends JsonObject {
   protocol: 'act-latest-stable-aggregate-binding/1';
   selectionPolicy: 'LATEST_STABLE_AGGREGATE';
@@ -127,6 +166,14 @@ export interface LatestStableAggregateBinding extends JsonObject {
   statistics: JsonObject;
   bundlePath: string;
   predecessorRootClosure: PredecessorRootClosureBinding | null;
+  admissionBridgeReleaseDiff?: AdmissionBridgeReleaseDiffBinding;
+  /** ACT-owned accepted comparison base; absent only on historical receipts. */
+  admittedEndpoint?: LatestStableAggregateAdmittedEndpoint;
+  /**
+   * Observation metadata for this resolver invocation. This remains optional
+   * so receipts created before the field was introduced stay readable.
+   */
+  resolvedAt?: string;
   resolutionDigest: string;
 }
 
@@ -190,6 +237,34 @@ function hash(value: unknown, label: string): string {
   return result;
 }
 
+function parseAdmittedEndpoint(
+  value: unknown,
+  label = 'admitted endpoint',
+): LatestStableAggregateAdmittedEndpoint {
+  const row = object(value, label);
+  const endpoint = structuredClone(row) as LatestStableAggregateAdmittedEndpoint;
+  endpoint.releaseSetId = string(row.releaseSetId, `${label}.releaseSetId`);
+  endpoint.releaseId = string(row.releaseId, `${label}.releaseId`);
+  endpoint.releaseVersion = string(row.releaseVersion, `${label}.releaseVersion`);
+  endpoint.releaseHash = hash(row.releaseHash, `${label}.releaseHash`);
+  endpoint.sourceDatasetHash = hash(row.sourceDatasetHash, `${label}.sourceDatasetHash`);
+  if (row.candidateState !== undefined && row.candidateState !== 'CANDIDATE' && row.candidateState !== 'ACCEPTED_CANDIDATE') {
+    fail(`${label}.candidateState is not an accepted ACT candidate state`);
+  }
+  return endpoint;
+}
+
+export async function loadLatestStableAggregateAdmittedEndpoint(
+  filePath: string,
+): Promise<LatestStableAggregateAdmittedEndpoint> {
+  const bytes = await readFile(filePath);
+  const raw = object(JSON.parse(bytes.toString('utf8')), filePath);
+  const value = raw.admittedEndpoint && typeof raw.admittedEndpoint === 'object'
+    ? raw.admittedEndpoint
+    : raw;
+  return parseAdmittedEndpoint(value, filePath);
+}
+
 function positiveInteger(value: unknown, label: string): number {
   if (
     typeof value !== 'number'
@@ -249,6 +324,247 @@ async function listRegularFiles(directory: string): Promise<string[]> {
   };
   await walk(directory, '');
   return files.sort();
+}
+
+async function discoverPredecessorRootClosurePath(root: string): Promise<string> {
+  const matches: string[] = [];
+  const walk = async (current: string, relative: string): Promise<void> => {
+    for (const entry of await readdir(current, { withFileTypes: true })) {
+      const childRelative = relative ? `${relative}/${entry.name}` : entry.name;
+      const child = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        await walk(child, childRelative);
+      } else if (entry.isFile() && /predecessor[-_].*closure\.json$/u.test(entry.name)) {
+        matches.push(childRelative);
+      }
+    }
+  };
+  await walk(root, '');
+  if (matches.length !== 1) {
+    fail(`predecessor root closure input is ambiguous or missing (${matches.length} matches)`);
+  }
+  return matches[0]!;
+}
+
+async function validateAdmissionBridgeReleaseDiff(input: {
+  actkgRoot: string;
+  actRepoRoot: string;
+  mainRef: string;
+  bridgePath: string;
+  admittedEndpoint: LatestStableAggregateAdmittedEndpoint;
+  firstCandidate: Candidate;
+}): Promise<AdmissionBridgeReleaseDiffBinding> {
+  const bridgeRelativePath = normalizedRelativePath(
+    input.bridgePath,
+    'admission bridge path',
+  );
+  const bridgePath = containedPath(
+    input.actkgRoot,
+    bridgeRelativePath,
+    'admission bridge path',
+  );
+  const bridgeBytes = await readFile(bridgePath).catch(() => null);
+  if (!bridgeBytes) fail(`admission bridge is missing: ${bridgeRelativePath}`);
+  let capturedBytes: Buffer;
+  try {
+    capturedBytes = gitBytes(input.actkgRoot, [
+      'show',
+      `${input.mainRef}:${bridgeRelativePath}`,
+    ]);
+  } catch {
+    fail(`admission bridge ${bridgeRelativePath} is missing from ${input.mainRef}`);
+  }
+  if (!capturedBytes.equals(bridgeBytes)) {
+    fail(`admission bridge ${bridgeRelativePath} bytes drift from ${input.mainRef}`);
+  }
+
+  const raw = object(JSON.parse(bridgeBytes.toString('utf8')), bridgePath);
+  const contractVersion = string(raw.contract_version, 'admission bridge contract_version');
+  if (contractVersion !== ADMISSION_BRIDGE_CONTRACT) {
+    fail('admission bridge contract_version is unsupported');
+  }
+  if (raw.status !== 'PASS') fail('admission bridge status is not PASS');
+  const gates = object(raw.gates, 'admission bridge gates');
+  if (Object.keys(gates).length === 0 || Object.entries(gates).some(([, value]) => value !== 'PASS')) {
+    fail('admission bridge contains a non-PASS gate');
+  }
+  const scope = object(raw.scope, 'admission bridge scope');
+  if (
+    scope.mutates_release_packages !== false
+    || scope.extends_bundle_chain !== false
+    || scope.productionAuthoritative !== false
+  ) {
+    fail('admission bridge scope exceeds bundle-external evidence');
+  }
+  const artifactHash = hash(raw.artifact_hash, 'admission bridge artifact_hash');
+  const body = { ...raw };
+  delete body.artifact_hash;
+  if (sha256(canonicalJson(body)) !== artifactHash) {
+    fail('admission bridge artifact_hash mismatch');
+  }
+  const releaseDiff = object(raw.release_diff, 'admission bridge release_diff');
+  const releaseDiffDigest = hash(
+    raw.release_diff_digest,
+    'admission bridge release_diff_digest',
+  );
+  if (sha256(canonicalJson(releaseDiff)) !== releaseDiffDigest) {
+    fail('admission bridge release_diff_digest mismatch');
+  }
+
+  const bridgeEndpoint = parseAdmittedEndpoint(
+    raw.admitted_endpoint,
+    'admission bridge admitted_endpoint',
+  );
+  if (!equivalentJson(bridgeEndpoint, input.admittedEndpoint)) {
+    fail('admission bridge admitted endpoint differs from ACT exact endpoint');
+  }
+  const baseRelease = object(releaseDiff.base_release, 'admission bridge base_release');
+  if (
+    baseRelease.release_id !== bridgeEndpoint.releaseId
+    || baseRelease.release_version !== bridgeEndpoint.releaseVersion
+    || baseRelease.release_hash !== bridgeEndpoint.releaseHash
+  ) {
+    fail('admission bridge base_release differs from ACT exact endpoint');
+  }
+
+  const target = object(raw.target, 'admission bridge target');
+  const targetRelease = object(releaseDiff.target_release, 'admission bridge target_release');
+  const candidate = input.firstCandidate;
+  if (
+    target.bundle_id !== candidate.manifest.bundle_id
+    || target.bundle_digest !== candidate.manifest.bundle_digest
+    || target.release_id !== candidate.manifest.release.release_id
+    || target.release_version !== candidate.manifest.release.release_version
+    || target.release_hash !== candidate.manifest.release.release_hash
+    || target.source_dataset_hash !== candidate.manifest.release.source_dataset_hash
+    || targetRelease.release_id !== candidate.manifest.release.release_id
+    || targetRelease.release_version !== candidate.manifest.release.release_version
+    || targetRelease.release_hash !== candidate.manifest.release.release_hash
+  ) {
+    fail('admission bridge target differs from the dynamic first candidate');
+  }
+  const targetManifest = object(target.manifest, 'admission bridge target manifest');
+  if (targetManifest.sha256 !== candidate.manifestSha256) {
+    fail('admission bridge target Manifest digest mismatch');
+  }
+  const targetProjection = object(target.projection, 'admission bridge target projection');
+  const projectionPath = string(targetProjection.path, 'admission bridge target projection path');
+  const projectionSha256 = hash(targetProjection.sha256, 'admission bridge target projection sha256');
+  const artifacts = Array.isArray(candidate.manifestRaw.artifacts)
+    ? candidate.manifestRaw.artifacts
+    : [];
+  const projectionArtifact = artifacts
+    .map((value, index) => object(value, `first candidate artifact ${index}`))
+    .find((value) => value.path === path.posix.basename(projectionPath));
+  if (!projectionArtifact || projectionArtifact.sha256 !== projectionSha256) {
+    fail('admission bridge target Projection artifact mismatch');
+  }
+  const candidateProjectionPath = path.join(
+    candidate.bundleDir,
+    path.posix.basename(projectionPath),
+  );
+  const candidateProjection = object(
+    JSON.parse(await readFile(candidateProjectionPath, 'utf8')),
+    'dynamic first candidate target Projection',
+  );
+  if (
+    candidateProjection.id !== targetProjection.id
+    || candidateProjection.version_digest !== targetProjection.version_digest
+    || candidateProjection.source_release !== targetProjection.source_release
+    || candidateProjection.source_release_hash !== targetProjection.source_release_hash
+    || candidateProjection.source_dataset_hash !== targetProjection.source_dataset_hash
+  ) {
+    fail('admission bridge target Projection identity differs from the dynamic first candidate');
+  }
+
+  const anchor = object(
+    raw.admitted_endpoint_external_anchor,
+    'admission bridge external anchor',
+  );
+  if (
+    anchor.consumer_must_verify_blob !== true
+    || anchor.blob_verification_status !== 'DELEGATED_TO_ACT_CONSUMER'
+  ) {
+    fail('admission bridge external anchor is not delegated to ACT');
+  }
+  const anchorRepository = string(anchor.repository, 'admission bridge anchor repository');
+  const actualRepository = git(input.actRepoRoot, ['remote', 'get-url', 'origin']);
+  if (actualRepository.toLowerCase() !== anchorRepository.toLowerCase()) {
+    fail('admission bridge anchor repository differs from ACT origin');
+  }
+  const anchorCommit = string(anchor.commit, 'admission bridge anchor commit');
+  const introducedCommit = string(
+    anchor.introduced_commit,
+    'admission bridge anchor introduced_commit',
+  );
+  if (!COMMIT.test(anchorCommit) || !COMMIT.test(introducedCommit)) {
+    fail('admission bridge anchor commit is not a full Git commit');
+  }
+  const anchorPath = normalizedRelativePath(
+    anchor.path,
+    'admission bridge anchor path',
+  );
+  const anchorSha256 = hash(anchor.sha256, 'admission bridge anchor sha256');
+  let anchorBytes: Buffer;
+  let introducedBytes: Buffer;
+  try {
+    anchorBytes = gitBytes(input.actRepoRoot, ['show', `${anchorCommit}:${anchorPath}`]);
+    introducedBytes = gitBytes(input.actRepoRoot, [
+      'show',
+      `${introducedCommit}:${anchorPath}`,
+    ]);
+    git(input.actRepoRoot, [
+      'merge-base',
+      '--is-ancestor',
+      introducedCommit,
+      anchorCommit,
+    ]);
+  } catch {
+    fail('admission bridge anchor blob is unavailable from the declared ACT commit');
+  }
+  if (
+    sha256(anchorBytes) !== anchorSha256
+    || sha256(introducedBytes) !== anchorSha256
+    || !introducedBytes.equals(anchorBytes)
+  ) {
+    fail('admission bridge anchor blob SHA-256 mismatch');
+  }
+  const anchorEndpoint = parseAdmittedEndpoint(
+    JSON.parse(anchorBytes.toString('utf8')),
+    'admission bridge anchor blob',
+  );
+  if (!equivalentJson(anchorEndpoint, bridgeEndpoint)) {
+    fail('admission bridge anchor blob differs from the embedded endpoint');
+  }
+
+  return {
+    path: bridgeRelativePath,
+    contractVersion,
+    bridgeId: string(raw.bridge_id, 'admission bridge bridge_id'),
+    artifactHash,
+    releaseDiffDigest,
+    admittedEndpointExternalAnchor: {
+      repository: anchorRepository,
+      commit: anchorCommit,
+      introducedCommit,
+      path: anchorPath,
+      sha256: anchorSha256,
+    },
+    baseReleaseId: string(baseRelease.release_id, 'admission bridge base release_id'),
+    baseReleaseVersion: string(baseRelease.release_version, 'admission bridge base release_version'),
+    baseReleaseHash: hash(baseRelease.release_hash, 'admission bridge base release_hash'),
+    targetReleaseId: string(targetRelease.release_id, 'admission bridge target release_id'),
+    targetReleaseVersion: string(targetRelease.release_version, 'admission bridge target release_version'),
+    targetReleaseHash: hash(targetRelease.release_hash, 'admission bridge target release_hash'),
+    targetBundleId: string(target.bundle_id, 'admission bridge target bundle_id'),
+    targetBundleDigest: hash(target.bundle_digest, 'admission bridge target bundle_digest'),
+    targetManifestSha256: hash(targetManifest.sha256, 'admission bridge target manifest sha256'),
+    targetProjectionId: string(targetProjection.id, 'admission bridge target projection id'),
+    targetProjectionDigest: hash(
+      targetProjection.version_digest,
+      'admission bridge target projection version_digest',
+    ),
+  };
 }
 
 function git(root: string, args: string[]): string {
@@ -385,15 +701,6 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
   );
   if (!manifest) return null;
 
-  // Candidate discovery is also an integrity gate.  A package can have a
-  // perfectly self-consistent SHA256SUMS file while its declared Bundle
-  // contract, Schema identity, or Bundle digest is not one ACT supports.  The
-  // formal public-Bundle loader performs the same checks for the ACT tree; the
-  // resolver runs against an ActKG checkout, so repeat these storage-neutral
-  // checks before freezing a candidate.
-  if (!isBundleContractSupported(manifest.bundle_contract_version)) {
-    fail(`${manifest.bundle_id} uses an unregistered bundle contract ${manifest.bundle_contract_version}`);
-  }
   if (
     manifest.schema.version !== CTKG_SCHEMA_VERSION
     || !isSchemaIdentitySupported(manifest.schema.version, manifest.schema.sha256)
@@ -403,16 +710,6 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
       + `${manifest.schema.version}/${manifest.schema.sha256}`,
     );
   }
-  const digestBody = structuredClone(manifestRaw);
-  delete digestBody.bundle_digest;
-  const recomputedBundleDigest = sha256(canonicalJson(digestBody));
-  if (manifest.bundle_digest !== recomputedBundleDigest) {
-    fail(
-      `${manifest.bundle_id} bundle_digest mismatch: `
-      + `declared ${manifest.bundle_digest}, recomputed ${recomputedBundleDigest}`,
-    );
-  }
-
   const sumsPath = path.join(bundleDir, 'SHA256SUMS');
   const sumsBytes = await readFile(sumsPath);
   const sums = parseSums(sumsBytes.toString('utf8'), sumsPath);
@@ -422,6 +719,7 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
   }
   const artifactPaths = new Set<string>();
   const foldedArtifacts = new Map<string, string>();
+  const artifactInputs: AggregateIntegrityArtifact[] = [];
   for (const [index, value] of manifestRaw.artifacts.entries()) {
     const artifact = object(value, `${manifest.bundle_id}.artifacts[${index}]`);
     const artifactPath = bundleMemberPath(
@@ -457,6 +755,33 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
     if (artifactRecordCount(bytes, mediaType) !== recordCount) {
       fail(`${manifest.bundle_id} Artifact record count drift: ${artifactPath}`);
     }
+    artifactInputs.push({
+      descriptor: {
+        role: string(artifact.role, `${manifest.bundle_id}.artifacts[${index}].role`),
+        contractVersion: string(
+          artifact.contract_version,
+          `${manifest.bundle_id}.artifacts[${index}].contract_version`,
+        ),
+        required: artifact.required === true,
+        path: artifactPath,
+        mediaType,
+        sha256: declaredHash,
+        byteLength: bytes.byteLength,
+        recordCount,
+      },
+      bytes,
+    });
+  }
+  try {
+    validateAggregateManifestIntegrity({
+      manifest: manifestRaw,
+      manifestBytes,
+      artifacts: artifactInputs,
+      expectedRelease: manifest.release,
+      requireStable: true,
+    });
+  } catch (error) {
+    fail(`${manifest.bundle_id} ${error instanceof Error ? error.message : String(error)}`);
   }
   const manifestClosedFiles = ['bundle-manifest.json', ...artifactPaths].sort();
   if (canonicalJson(files) !== canonicalJson(manifestClosedFiles)) {
@@ -638,20 +963,11 @@ async function validateLegacyRootClosure(input: {
       fail(`legacy root closure gate ${gate} is not PASS`);
     }
   }
-  if (closure.bundle_id !== LEGACY_ROOT_BUNDLE_ID) {
-    fail('legacy root closure bundle_id is not the v0.3 r1 root');
-  }
-  if (closure.release_version !== LEGACY_ROOT_RELEASE_VERSION) {
-    fail('legacy root closure release_version is not v0.3');
-  }
   if (closure.reference_kind !== 'legacy_exact') {
     fail('legacy root closure reference_kind is not legacy_exact');
   }
-  if (input.candidate.manifest.bundle_id !== LEGACY_CHAIN_HEAD_BUNDLE_ID) {
-    fail('only the v0.3 r2 chain head may use a legacy root closure');
-  }
   if (!input.candidate.manifest.previous_bundle) {
-    fail('v0.3 r2 chain head has no previous_bundle to close');
+    fail('chain head has no previous_bundle to close');
   }
   if (
     input.candidate.manifest.previous_bundle.bundle_id !== closure.bundle_id
@@ -775,6 +1091,11 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
   releasesPath?: string;
   mainRef?: string;
   legacyRootClosurePath?: string;
+  predecessorRootClosurePath?: string;
+  admittedEndpoint?: LatestStableAggregateAdmittedEndpoint;
+  admittedEndpointPath?: string;
+  admissionBridgeReleaseDiffPath?: string;
+  actRepoRoot?: string;
 }): Promise<LatestStableAggregateResolution> {
   const actkgRoot = path.resolve(options.actkgRoot);
   const releasesRoot = path.resolve(
@@ -782,6 +1103,11 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
     options.releasesPath ?? 'releases',
   );
   const mainRef = options.mainRef ?? 'origin/main';
+  const admittedEndpoint = options.admittedEndpointPath
+    ? await loadLatestStableAggregateAdmittedEndpoint(path.resolve(options.admittedEndpointPath))
+    : options.admittedEndpoint
+      ? parseAdmittedEndpoint(options.admittedEndpoint)
+      : undefined;
   const candidates = (
     await Promise.all(
       (await readdir(releasesRoot, { withFileTypes: true }))
@@ -847,11 +1173,6 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
       if (!previous) {
         fail(`${candidate.manifest.bundle_id} previous_bundle is missing`);
       }
-      if (candidate.manifest.bundle_id !== LEGACY_CHAIN_HEAD_BUNDLE_ID) {
-        fail(
-          `${candidate.manifest.bundle_id} previous_bundle ${previous.bundle_id} is missing from the stable Aggregate candidate set`,
-        );
-      }
       continue;
     }
     referenced.add(previous.bundle_id);
@@ -871,7 +1192,9 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
       actkgRoot,
       mainRef,
       candidate: missingPredecessors[0]!,
-      closurePath: options.legacyRootClosurePath ?? DEFAULT_LEGACY_ROOT_CLOSURE_PATH,
+      closurePath: options.predecessorRootClosurePath
+        ?? options.legacyRootClosurePath
+        ?? await discoverPredecessorRootClosurePath(actkgRoot),
     });
   }
   const endpoints = candidates.filter(
@@ -896,6 +1219,19 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
   if (visited.size !== activeCandidates.length) {
     fail('stable Aggregate manifests do not form one closed chain');
   }
+
+  const admissionBridgeReleaseDiff = options.admissionBridgeReleaseDiffPath
+    ? admittedEndpoint
+      ? await validateAdmissionBridgeReleaseDiff({
+          actkgRoot,
+          actRepoRoot: path.resolve(options.actRepoRoot ?? process.cwd()),
+          mainRef,
+          bridgePath: options.admissionBridgeReleaseDiffPath,
+          admittedEndpoint,
+          firstCandidate: chain[0]!,
+        })
+      : fail('admission bridge requires the ACT admitted endpoint')
+    : undefined;
 
   const endpoint = endpoints[0];
   const manifest = endpoint.manifest;
@@ -1032,9 +1368,15 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
     statistics: manifest.statistics,
     bundlePath: bundleRelativePath,
     predecessorRootClosure,
+    ...(admissionBridgeReleaseDiff ? { admissionBridgeReleaseDiff } : {}),
+    ...(admittedEndpoint ? { admittedEndpoint } : {}),
   };
+  // `resolvedAt` records when this observation completed. It is deliberately
+  // kept outside `body` so the digest remains deterministic across reruns.
+  const resolvedAt = new Date().toISOString();
   const binding: LatestStableAggregateBinding = {
     ...body,
+    resolvedAt,
     resolutionDigest: sha256(canonicalJson(body)),
   };
   const candidatesWithIdentities: LatestStableAggregateCandidate[] = chain.map((candidate) => {
@@ -1073,6 +1415,11 @@ export async function resolveLatestStableAggregate(options: {
   releasesPath?: string;
   mainRef?: string;
   legacyRootClosurePath?: string;
+  predecessorRootClosurePath?: string;
+  admittedEndpoint?: LatestStableAggregateAdmittedEndpoint;
+  admittedEndpointPath?: string;
+  admissionBridgeReleaseDiffPath?: string;
+  actRepoRoot?: string;
 }): Promise<LatestStableAggregateBinding> {
   const { binding } = await resolveLatestStableAggregateWithCandidates(options);
   return binding;
