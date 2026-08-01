@@ -8,7 +8,7 @@ This change is a bounded execution unit for `ccaed21f450591f642fa7ef7` (`ctr:rel
 2. Challenger independently reviews every member when any member is profileOnly, new, changed, or highRisk; otherwise it follows the manifest policy and remains available for admitted primary exceptions.
 3. Any disagreement is routed to Third. Third's conclusion is terminal and must identify the conflict and rationale.
 
-No stage may reuse another stage's verdict as its own evidence. The receipt records stage identity, input digests, per-member outcome, rationale, and final terminal status.
+No stage may reuse another stage's verdict as its own evidence. The receipt records stage identity, input digests, per-member outcome, rationale, and review-stage terminal status. A `DEFER` conclusion is terminal only for this review stage: it remains role-free, leaves CourseCoverage authority unresolved, and blocks the aggregate coverage gate.
 
 ### Drift and authority fence
 

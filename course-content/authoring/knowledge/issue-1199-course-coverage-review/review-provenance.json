@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "ccaed21f450591f642fa7ef7",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "1f7c6e97-70fc-40f3-bc18-e2f1b4df9670",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "4900636442fddd835507c0d34502cfa2b97d994c9a6201781a042557e416bc31",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedDocumentDigest": "3c16d75b3787e2ad5aed72189765650ed0f53afac77e92f02b0875620ced9a20",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 96
+    },
+    "structuredTranscription": "The primary orchestrator preserved conclusions and rationales, normalized frozen evidence selectors, and added runtime-required binding and digests."
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "0de09b36-8ad6-4a8f-9f75-19d7e86d7585",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "b259ee4801d1807175bc6e1f32c4511af47ba5441007503fc93c4baff0acd55a",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedDocumentDigest": "84d38bd740b9699b327440366288c3f687c0d0107e65b6cd96060f0c58b074ed",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 96
+    },
+    "structuredTranscription": "The primary orchestrator preserved conclusions and rationales, normalized frozen evidence selectors, and added runtime-required binding and digests."
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}
