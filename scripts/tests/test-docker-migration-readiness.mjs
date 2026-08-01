@@ -530,8 +530,8 @@ function main() {
   );
   assert.match(
     resourceBindingImportCli,
-    /buildResourceBindingInventory\(observations\)/,
-    '资源绑定 CLI 必须从同一捕获身份的 observation 生成完整逐项清单',
+    /buildCurrentInventory\(db\)/,
+    '资源绑定 CLI 必须使用共享实现从同一捕获身份生成完整逐项清单',
   );
   assert.match(
     prismaSchema,
