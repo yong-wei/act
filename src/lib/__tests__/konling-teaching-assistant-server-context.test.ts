@@ -4,6 +4,7 @@ import { createHmac } from 'node:crypto';
 vi.mock('server-only', () => ({}));
 
 import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import { adaptiveAssessmentItemContentHash } from '@/features/assessment/adaptive-assessment-item-content-hash';
 import {
   createKonlingTeachingAssistantServerContextToken,
   resolveKonlingTeachingAssistantSignedGraphNodeId,
@@ -68,7 +69,7 @@ describe('Konling teaching-assistant server context', () => {
       misconceptionTags: ['bandwidth-only'],
       remediationResources: [],
     };
-    const contentHash = 'a'.repeat(64);
+    let contentHash = '';
     const catalogContentHash = 'c'.repeat(64);
     const reviewDecisionWithoutHash = {
       catalogItemId: 'catalog-item-1',
@@ -101,8 +102,16 @@ describe('Konling teaching-assistant server context', () => {
         id: 'item-ref-1',
         questionId: 'question-1',
         contentHash,
+        source: 'preset',
+        questionType: 'multiple-choice',
+        domains: ['frequency-domain'],
         knowledgeTags: ['steady-state-error'],
+        difficulty: 0.5,
+        optionCount: 2,
         metadata: {
+          kaq: {
+            immutableContentHash: 'kaq-content-hash-v1',
+          },
           questionSnapshot,
           adaptiveAssessmentItemRef: {
             catalogBacked: true,
@@ -152,6 +161,18 @@ describe('Konling teaching-assistant server context', () => {
         },
       },
     };
+    contentHash = adaptiveAssessmentItemContentHash({
+      source: answer.questionRef.source,
+      questionType: answer.questionRef.questionType,
+      domains: answer.questionRef.domains,
+      knowledgeTags: answer.questionRef.knowledgeTags,
+      difficulty: answer.questionRef.difficulty,
+      optionCount: answer.questionRef.optionCount,
+      kaqImmutableContentHash: answer.questionRef.metadata.kaq.immutableContentHash,
+      adaptiveAssessmentItemRef: answer.questionRef.metadata.adaptiveAssessmentItemRef,
+      questionSnapshot: answer.questionRef.metadata.questionSnapshot,
+    });
+    answer.questionRef.contentHash = contentHash;
     const db = {
       adaptiveAssessmentAnswer: {
         findFirst: vi.fn().mockResolvedValue(answer),

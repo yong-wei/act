@@ -1,5 +1,3 @@
-import { createHash } from 'node:crypto';
-
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
@@ -20,6 +18,7 @@ import {
   isAssessmentSnapshotBeforeEnforcementEpoch,
   type AssessmentEvidenceCatalogSnapshot,
 } from '@/features/adaptive-assessment/assessment-evidence-authority';
+import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-content-hash';
 
 import {
   buildSubmitAnswerResult,
@@ -194,23 +193,21 @@ function questionMetadataContentHash(
 ): string {
   const question = details.question;
   const kaqMetadata = buildKaqQuizQuestionMetadata(question);
-  const snapshot = {
+  return adaptiveAssessmentItemContentHash({
     source: questionSource(question.id),
     questionType: question.type,
-    domains: [...question.domains].sort(),
-    knowledgeTags: [...question.knowledgeTags].sort(),
-    difficulty: Number(question.difficulty.toFixed(6)),
+    domains: question.domains,
+    knowledgeTags: question.knowledgeTags,
+    difficulty: question.difficulty,
     optionCount: question.options.length,
-    kaq: kaqMetadata.immutableContentHash,
+    kaqImmutableContentHash: kaqMetadata.immutableContentHash,
     adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
       kaqMetadata,
       catalogSnapshot,
       generatedMetadata: question.generatedMetadata,
     }),
     questionSnapshot: buildAdaptiveQuestionSnapshot(details, kaqMetadata, catalogSnapshot),
-  };
-
-  return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+  });
 }
 
 function buildAdaptiveAssessmentItemRefMetadata(params: {

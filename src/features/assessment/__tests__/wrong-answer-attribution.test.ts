@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 
 import { resolveAdaptiveDiagnosisContext } from '../adaptive-diagnosis-context';
+import { adaptiveAssessmentItemContentHash } from '../adaptive-assessment-item-content-hash';
 import { attributeWrongAnswerEvidence } from '../wrong-answer-attribution';
 
 const RAW_PROMPT = 'RAW_PRIVATE_PROMPT';
@@ -10,7 +11,6 @@ const RAW_SELECTED_ANSWER = 'RAW_SELECTED_ANSWER';
 const RAW_CORRECT_ANSWER = 'RAW_CORRECT_ANSWER';
 
 function answer(overrides: Record<string, unknown> = {}) {
-  const itemContentHash = 'a'.repeat(64);
   const catalogContentHash = 'c'.repeat(64);
   const reviewDecisionWithoutHash = {
     catalogItemId: 'catalog-item-1',
@@ -35,7 +35,7 @@ function answer(overrides: Record<string, unknown> = {}) {
     ...reviewDecisionWithoutHash,
     reviewSourceHash: assessmentItemSemanticReviewSourceHash(reviewDecisionWithoutHash),
   };
-  return {
+  const row = {
     id: 'answer-1',
     userId: 'student-1',
     sessionId: 'session-1',
@@ -52,8 +52,17 @@ function answer(overrides: Record<string, unknown> = {}) {
     questionRef: {
       id: 'item-ref-1',
       questionId: 'question-1',
-      contentHash: itemContentHash,
+      contentHash: '',
+      source: 'preset',
+      questionType: 'multiple-choice',
+      domains: ['frequency-domain'],
+      knowledgeTags: ['steady-state-error'],
+      difficulty: 0.5,
+      optionCount: 2,
       metadata: {
+        kaq: {
+          immutableContentHash: 'kaq-content-hash-v1',
+        },
         questionSnapshot: {
           version: 'adaptive-question-snapshot.v1',
           prompt: RAW_PROMPT,
@@ -114,8 +123,24 @@ function answer(overrides: Record<string, unknown> = {}) {
         },
       },
     },
-    ...overrides,
   };
+  rehashItemContent(row);
+  return { ...row, ...overrides };
+}
+
+function rehashItemContent(row: any) {
+  const metadata = row.questionRef.metadata;
+  row.questionRef.contentHash = adaptiveAssessmentItemContentHash({
+    source: row.questionRef.source,
+    questionType: row.questionRef.questionType,
+    domains: row.questionRef.domains,
+    knowledgeTags: row.questionRef.knowledgeTags,
+    difficulty: row.questionRef.difficulty,
+    optionCount: row.questionRef.optionCount,
+    kaqImmutableContentHash: metadata.kaq.immutableContentHash,
+    adaptiveAssessmentItemRef: metadata.adaptiveAssessmentItemRef,
+    questionSnapshot: metadata.questionSnapshot,
+  });
 }
 
 function persisted(overrides: Record<string, unknown> = {}) {
@@ -219,6 +244,34 @@ describe('attributeWrongAnswerEvidence', () => {
   ])('does not write or project attribution for %s', async (_label, damage) => {
     const row = answer();
     damage((row.questionRef.metadata as any).adaptiveAssessmentItemRef);
+    rehashItemContent(row);
+    const db = dbFor(row);
+
+    await expect(attributeWrongAnswerEvidence({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: 'answer-1',
+    })).resolves.toBeNull();
+    expect(db.wrongAnswerAttribution.upsert).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['semantic references', (metadata: any) => {
+      const item = metadata.adaptiveAssessmentItemRef;
+      item.semanticRefs.graphNodeIds = ['knowledge-node-tampered'];
+      item.reviewDecision.selectedGraphNodeIds = ['knowledge-node-tampered'];
+      rehashReviewDecision(item);
+    }],
+    ['review decision', (metadata: any) => {
+      metadata.adaptiveAssessmentItemRef.reviewDecision.notes = 'Tampered after the answer was recorded.';
+      rehashReviewDecision(metadata.adaptiveAssessmentItemRef);
+    }],
+    ['question snapshot', (metadata: any) => {
+      metadata.questionSnapshot.prompt = 'TAMPERED_AFTER_ANSWER';
+    }],
+  ])('fails closed when persisted %s drift without a new item content hash', async (_label, damage) => {
+    const row = answer();
+    damage(row.questionRef.metadata);
     const db = dbFor(row);
 
     await expect(attributeWrongAnswerEvidence({
@@ -294,6 +347,7 @@ describe('attributeWrongAnswerEvidence', () => {
       'knowledge-node-2',
     ];
     rehashReviewDecision(metadata.adaptiveAssessmentItemRef);
+    rehashItemContent(ambiguous);
     const stored = persisted({
       state: 'UNCERTAIN',
       knowledgeNodeIds: ['knowledge-node-1', 'knowledge-node-2'],
@@ -323,6 +377,7 @@ describe('attributeWrongAnswerEvidence', () => {
     const metadata = incomplete.questionRef.metadata as any;
     metadata.adaptiveAssessmentItemRef.semanticRefs.misconceptionTags = [];
     metadata.questionSnapshot.misconceptionTags = [];
+    rehashItemContent(incomplete);
     const stored = persisted({
       state: 'UNCERTAIN',
       misconceptionTags: [],

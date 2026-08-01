@@ -3,6 +3,7 @@ import {
   type AssessmentEvidenceCatalogSnapshot,
 } from '@/features/adaptive-assessment/assessment-evidence-authority';
 import type { AdaptiveAssessmentCatalogStage } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-content-hash';
 
 export const WRONG_ANSWER_ATTRIBUTION_VERSION = 'wrong-answer-attribution.v1';
 
@@ -27,6 +28,12 @@ interface WrongAnswerRow {
     id: string;
     questionId: string;
     contentHash: string;
+    source: string;
+    questionType: string;
+    domains: string[];
+    knowledgeTags: string[];
+    difficulty: number;
+    optionCount: number;
     metadata: unknown;
   };
 }
@@ -165,12 +172,18 @@ function parseGovernedEvidence(
   }
 
   const metadata = record(answer.questionRef.metadata);
+  const kaqMetadata = record(metadata?.kaq);
   const questionSnapshot = record(metadata?.questionSnapshot);
   const itemSnapshot = record(metadata?.adaptiveAssessmentItemRef);
   const semanticRefs = record(itemSnapshot?.semanticRefs);
   const relationship = record(itemSnapshot?.relationship);
   const catalogContentHash = nonEmptyString(itemSnapshot?.contentHash);
   const itemContentHash = nonEmptyString(answer.questionRef.contentHash);
+  const source = nonEmptyString(answer.questionRef.source);
+  const questionType = nonEmptyString(answer.questionRef.questionType);
+  const domains = stringArray(answer.questionRef.domains);
+  const knowledgeTags = stringArray(answer.questionRef.knowledgeTags);
+  const kaqImmutableContentHash = nonEmptyString(kaqMetadata?.immutableContentHash);
   const snapshotCorrectOptionKey = nonEmptyString(questionSnapshot?.correctOptionKey);
   const snapshotMisconceptionTags = stringArray(questionSnapshot?.misconceptionTags);
   const graphNodeIds = stringArray(semanticRefs?.graphNodeIds);
@@ -196,6 +209,14 @@ function parseGovernedEvidence(
     !/^[a-f0-9]{64}$/.test(catalogContentHash) ||
     !itemContentHash ||
     !/^[a-f0-9]{64}$/.test(itemContentHash) ||
+    !source ||
+    !questionType ||
+    !domains ||
+    !knowledgeTags ||
+    !Number.isFinite(answer.questionRef.difficulty) ||
+    !Number.isInteger(answer.questionRef.optionCount) ||
+    answer.questionRef.optionCount < 0 ||
+    !kaqImmutableContentHash ||
     !snapshotCorrectOptionKey ||
     snapshotCorrectOptionKey !== answer.correctOptionKey ||
     !snapshotMisconceptionTags ||
@@ -212,6 +233,19 @@ function parseGovernedEvidence(
   ) {
     return null;
   }
+
+  const recomputedItemContentHash = adaptiveAssessmentItemContentHash({
+    source,
+    questionType,
+    domains,
+    knowledgeTags,
+    difficulty: answer.questionRef.difficulty,
+    optionCount: answer.questionRef.optionCount,
+    kaqImmutableContentHash,
+    adaptiveAssessmentItemRef: itemSnapshot,
+    questionSnapshot,
+  });
+  if (recomputedItemContentHash !== itemContentHash) return null;
 
   const optionKeys = questionSnapshot.options.map((value) => nonEmptyString(record(value)?.key));
   if (
@@ -326,7 +360,18 @@ export async function attributeWrongAnswerEvidence(input: {
         select: { id: true, userId: true },
       },
       questionRef: {
-        select: { id: true, questionId: true, contentHash: true, metadata: true },
+        select: {
+          id: true,
+          questionId: true,
+          contentHash: true,
+          source: true,
+          questionType: true,
+          domains: true,
+          knowledgeTags: true,
+          difficulty: true,
+          optionCount: true,
+          metadata: true,
+        },
       },
     },
   });
