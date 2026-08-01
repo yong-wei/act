@@ -15,7 +15,18 @@ const mocks = vi.hoisted(() => ({
   loadAllTextbookStructureUnitProjections: vi.fn(),
   loadRuntimeResourceProjectionInputs: vi.fn(),
   retrieveTextbookSourcePackV2Progressive: vi.fn(),
+  runMathCalculate: vi.fn(),
+  MathCalculateCapacityError: class MathCalculateCapacityError extends Error {},
 }));
+
+vi.mock('@/lib/math-calc', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/math-calc')>('@/lib/math-calc');
+  return {
+    ...actual,
+    MathCalculateCapacityError: mocks.MathCalculateCapacityError,
+    runMathCalculate: mocks.runMathCalculate,
+  };
+});
 
 vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
   const actual = await vi.importActual<typeof import('@/lib/data-governance/adaptive-learner-state-service')>(
@@ -6929,6 +6940,59 @@ describe('konling agent runtime', () => {
     expect(tools).toHaveProperty('apply_controller_patch');
     expect((tools.run_virtual_simulation.inputSchema as any).shape).toHaveProperty('idempotencyKey');
     expect((tools.apply_controller_patch.inputSchema as any).shape).toHaveProperty('idempotencyKey');
+  });
+
+  it('registers calculate in the KAQ tool registry and generic-chat mode', () => {
+    expect(KONLING_TOOL_REGISTRY.calculate).toMatchObject({
+      permissionTier: 'analyze',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'none',
+    });
+    expect(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY['generic-chat'].permittedTools).toContain('calculate');
+
+    const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
+    expect(tools).toHaveProperty('calculate');
+  });
+
+  it('runs SymPy calculation through the calculate tool', async () => {
+    mocks.runMathCalculate.mockResolvedValue({
+      status: 'ok',
+      result: '\\frac{1}{s}',
+      steps: [{ step: 1, description: '原始表达式', operation: 'identify', input: '1', output: '1' }],
+    });
+
+    const runtime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope(),
+      context: createRuntimeContext({ permittedTools: ['calculate'] }),
+      permittedTools: ['calculate'],
+    });
+
+    const output = await runtime.calculate({ expression: '1', operation: 'laplace' });
+
+    expect(mocks.runMathCalculate).toHaveBeenCalledWith({
+      expression: '1',
+      operation: 'laplace',
+    });
+    expect(output).toMatchObject({
+      expression: '1',
+      result: '\\frac{1}{s}',
+      steps: [{ step: 1 }],
+    });
+  });
+
+  it('projects shared calculation capacity errors through the KAQ tool boundary', async () => {
+    mocks.runMathCalculate.mockRejectedValue(new mocks.MathCalculateCapacityError());
+    const runtime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope(),
+      context: createRuntimeContext({ permittedTools: ['calculate'] }),
+      permittedTools: ['calculate'],
+    });
+
+    await expect(runtime.calculate({ expression: '1' })).rejects.toMatchObject({
+      status: 429,
+    });
   });
 
   it('resolves simulation context from persisted runs with student owner isolation and no global state dependency', async () => {

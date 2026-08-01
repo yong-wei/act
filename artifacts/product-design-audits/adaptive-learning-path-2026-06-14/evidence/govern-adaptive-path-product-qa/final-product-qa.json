@@ -1,13 +1,13 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-08-01T12:21:21.241Z",
-  "sourceCommit": "worktree:dd1ce90d23503d9b185013a7",
+  "generatedAt": "2026-08-01T19:07:58.326Z",
+  "sourceCommit": "worktree:21bc1adb02834a581845d024",
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
   "handoffMatrixSha256": "4518ad34dc92bf23554dc6c7d59a7c1662424a73ef96269546fb06775d06468f",
   "captureManifest": "artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json",
-  "captureManifestSha256": "2706991ddc8f225e8e2569133f86d8eeece118006022c2a4a33eac5f3145f4b0",
+  "captureManifestSha256": "5577124e7f7e404fef6797bb9efda91e683869b2b82b43988b43cc38245bea98",
   "visualSignals": "artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json",
   "visualSignalsSha256": "e493334ad5620680cf7364500cfd4321521ad2ac9221a3ee86012fcdf0b8e087",
   "conceptImages": [
@@ -84,7 +84,7 @@
       "pageState": "generation main",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-mobile-dark.png",
-      "screenshotSha256": "6cb1023ddc28743646d28fee37fbb9cf1670709069d57f9803885b714417e13c",
+      "screenshotSha256": "df3531aa0da347aa8d79b3adb61659275ef82a9105d2782bcc62d1bb6a65940e",
       "result": "passed"
     },
     {
@@ -100,7 +100,7 @@
       "pageState": "disabled shared Konling dock in demo mode",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
-      "screenshotSha256": "d807ee9d2a93c32a9c1562caf732c47a4adc85cd1607577f734e363b57500796",
+      "screenshotSha256": "8cb8247fefafadd4a387039bf1c9af9034abb44340ef7bbbc8b30d9652dd4c20",
       "result": "passed"
     },
     {
@@ -116,7 +116,7 @@
       "pageState": "cold-start starter paths",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/cold-start-starter-paths-mobile-light.png",
-      "screenshotSha256": "5d3ea47494f1964a75378732451b1a5391254b2701fdbb656585def709d999c0",
+      "screenshotSha256": "ddfe529858cc94f69ed620127df94815a2d48cf2a212690a264e46b12cec79bb",
       "result": "passed"
     },
     {
@@ -166,7 +166,7 @@
       "pageState": "active path execution",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-desktop-light.png",
-      "screenshotSha256": "4028dc2d8831d35a919c9c97407e7882d878eae238dbd9841debec48092388b9",
+      "screenshotSha256": "1ab026df47f1935b8e03609214240e2c2dda6e25f1f28b67562b516051f8653f",
       "result": "passed"
     },
     {
@@ -182,7 +182,7 @@
       "pageState": "active path execution",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-mobile-dark.png",
-      "screenshotSha256": "4ea75c12b823a8b05c96f01ef3c2733e79ec8d769f75295fc72da67c2a33c0e6",
+      "screenshotSha256": "f2b2c22bd72d6888ea98cf3ebb0031126b3532248d12f042b29eb5eb045e7758",
       "result": "passed"
     },
     {
@@ -264,7 +264,7 @@
       "pageState": "AppShell and dock stress state",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/app-shell-expanded-dock-desktop-dark.png",
-      "screenshotSha256": "7f64b2eec4905162d2b9660cdccd753703ca2857bb1bbda5956616c80dd305d0",
+      "screenshotSha256": "497b363935d1b68ef644e6fabe0a11577bfcf0eaa5787fc47c09bd5e3f197190",
       "result": "passed"
     }
   ],
@@ -283,7 +283,7 @@
       "theme": "dark",
       "viewport": "mobile",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-mobile-dark.png",
-      "screenshotSha256": "6cb1023ddc28743646d28fee37fbb9cf1670709069d57f9803885b714417e13c"
+      "screenshotSha256": "df3531aa0da347aa8d79b3adb61659275ef82a9105d2782bcc62d1bb6a65940e"
     },
     {
       "id": "konling-parameter-panel-desktop-dark",
@@ -291,7 +291,7 @@
       "theme": "dark",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
-      "screenshotSha256": "d807ee9d2a93c32a9c1562caf732c47a4adc85cd1607577f734e363b57500796"
+      "screenshotSha256": "8cb8247fefafadd4a387039bf1c9af9034abb44340ef7bbbc8b30d9652dd4c20"
     },
     {
       "id": "cold-start-starter-paths-mobile-light",
@@ -299,7 +299,7 @@
       "theme": "light",
       "viewport": "mobile",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/cold-start-starter-paths-mobile-light.png",
-      "screenshotSha256": "5d3ea47494f1964a75378732451b1a5391254b2701fdbb656585def709d999c0"
+      "screenshotSha256": "ddfe529858cc94f69ed620127df94815a2d48cf2a212690a264e46b12cec79bb"
     },
     {
       "id": "path-comparison-desktop-light",
@@ -323,7 +323,7 @@
       "theme": "light",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-desktop-light.png",
-      "screenshotSha256": "4028dc2d8831d35a919c9c97407e7882d878eae238dbd9841debec48092388b9"
+      "screenshotSha256": "1ab026df47f1935b8e03609214240e2c2dda6e25f1f28b67562b516051f8653f"
     },
     {
       "id": "active-path-execution-mobile-dark",
@@ -331,7 +331,7 @@
       "theme": "dark",
       "viewport": "mobile",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-mobile-dark.png",
-      "screenshotSha256": "4ea75c12b823a8b05c96f01ef3c2733e79ec8d769f75295fc72da67c2a33c0e6"
+      "screenshotSha256": "f2b2c22bd72d6888ea98cf3ebb0031126b3532248d12f042b29eb5eb045e7758"
     },
     {
       "id": "node-detail-desktop-light",
@@ -371,14 +371,14 @@
       "theme": "dark",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/app-shell-expanded-dock-desktop-dark.png",
-      "screenshotSha256": "7f64b2eec4905162d2b9660cdccd753703ca2857bb1bbda5956616c80dd305d0"
+      "screenshotSha256": "497b363935d1b68ef644e6fabe0a11577bfcf0eaa5787fc47c09bd5e3f197190"
     }
   ],
   "independentVisualReview": {
     "status": "passed",
     "reviewer": "ui-flow-reviewer",
     "report": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/independent-visual-review.md",
-    "reportSha256": "3d1305461e653c4850571e570cbd9870d2afe1f14414e393b62cab488bc22801"
+    "reportSha256": "e0d94ba6b69874685f962f0e9aa3c8983aedef56426ae78e8425d7d900c0c057"
   },
   "functionalGates": {
     "coldStartGeneratesSelectablePaths": true,

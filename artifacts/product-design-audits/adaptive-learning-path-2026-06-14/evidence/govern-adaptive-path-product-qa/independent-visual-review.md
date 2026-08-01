@@ -1,12 +1,24 @@
 # Independent Visual Review
 
+Review status: passed — the refreshed 13-state capture has completed independent Grok visual review.
+
 Change: `govern-adaptive-path-product-qa`
 
-Reviewer: `ui-flow-reviewer`
+Reviewer: use-grok high
 
-Reviewer session: `019eccd3-4a79-71d1-be53-df4f89c4f334`
+Reviewer session: `4b80d9bf-38d2-4f7e-a138-0e50bc5cb019`
 
-Final verdict: PASS
+Final verdict: PASS — no P0/P1 blocking findings.
+
+## Current refresh
+
+The 13-state PNG matrix, capture manifest, visual signals, and final product evidence were regenerated against clean source HEAD `7a059c80459d65de5b45e0fb658e9fb020062373`. Independent review verified 13/13 screenshot hashes against both manifest and final evidence, all provenance hashes, theme signals, and the absence of horizontal overflow or forbidden diagnostics. Desktop and 320px mobile states cover generation, cold start, comparison, execution, node detail, skip confirmation, history, and the shared dock across light and dark themes.
+
+Blocking findings: none.
+
+No unresolved BLOCK findings remain.
+
+Non-blocking residuals are limited to the product-facing generation dependency bar, the demo dock remaining collapsed, the mobile selector-crop dock signal, and the lack of a dedicated formula-capacity-error UI frame. The source change is bound through the current `konling-agent-runtime.ts` hash; no sensitive runtime diagnostic, overlap, or visual regression was observed.
 
 ## 2026-08-01 PR #1152 Refresh
 

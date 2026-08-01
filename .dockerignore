@@ -60,6 +60,8 @@ course-content/runtime/resource-governance/*
 scripts/
 !scripts/
 scripts/*
+!scripts/math-calc/
+!scripts/math-calc/**
 !scripts/build-next-with-trace-check.mjs
 !scripts/prune-next-trace-boundary.mjs
 !scripts/assets/

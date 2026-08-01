@@ -139,6 +139,11 @@ import {
   projectGovernedSummaryToSar,
   type GovernedSummaryEntityRef,
 } from '@/lib/data-governance/sar-projection';
+import {
+  MATH_CALC_OPERATIONS,
+  MathCalculateCapacityError,
+  runMathCalculate,
+} from '@/lib/math-calc';
 
 export const KONLING_SEMANTIC_MEMORY_FEATURE_FLAG = 'KONLING_SEMANTIC_MEMORY_ENABLED';
 export const KONLING_STRATEGY_MEMORY_FEATURE_FLAG = 'KONLING_STRATEGY_MEMORY_ENABLED';
@@ -174,6 +179,7 @@ export type KonlingToolName =
   | 'analyze_attempt'
   | 'get_student_risk_flags'
   | 'get_class_competency_summary'
+  | 'calculate'
   | 'get_student_knowledge_progress';
 
 export type KonlingMemoryType = 'working-summary' | 'session-summary' | 'episodic' | 'intervention-outcome';
@@ -643,6 +649,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
       'apply_controller_patch',
       'record_intervention_result',
       'analyze_attempt',
+      'calculate',
     ],
     citationClasses: ['content', 'learner-state', 'path-execution', 'memory'],
     payload: 'student-visible-summary',
@@ -2041,6 +2048,7 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'apply_controller_patch',
   'record_intervention_result',
   'analyze_attempt',
+  'calculate',
 ];
 
 export const KONLING_CANDIDATE_READ_TOOLS: KonlingToolName[] = [
@@ -2406,6 +2414,7 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   explain_learning_path_tradeoff: toolRegistryEntry('explain_learning_path_tradeoff', 'analyze', 'none', 'reuse'),
   record_path_adjustment_outcome: toolRegistryEntry('record_path_adjustment_outcome', 'write', 'none', 'reuse'),
   propose_smart_lesson_task_change: toolRegistryEntry('propose_smart_lesson_task_change', 'analyze'),
+  calculate: toolRegistryEntry('calculate', 'analyze'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
   get_student_risk_flags: toolRegistryEntry('get_student_risk_flags', 'read'),
   get_class_competency_summary: toolRegistryEntry('get_class_competency_summary', 'read'),
@@ -2612,6 +2621,11 @@ const applyControllerPatchParameters = z.object({
   simulationRunId: z.string().min(1),
   patch: controllerPatchParameters,
   rationale: z.string().min(1).optional(),
+});
+
+const calculateToolParameters = z.object({
+  expression: z.string().min(1).max(300),
+  operation: z.enum(MATH_CALC_OPERATIONS).optional(),
 });
 
 const adaptivePathToolBaseParameters = z.object({
@@ -3631,6 +3645,30 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     },
     analyzeAttempt: async (args: { studentState: StudentState }) =>
       runKonlingRuntimeTool(input, 'analyze_attempt', args, async () => analyzeKonlingAttempt(args.studentState)),
+    calculate: async (args: { expression: string; operation?: (typeof MATH_CALC_OPERATIONS)[number] }) =>
+      runKonlingRuntimeTool(input, 'calculate', args, async () => {
+        const parsed = calculateToolParameters.parse(args);
+        let result;
+        try {
+          result = await runMathCalculate({
+            expression: parsed.expression,
+            ...(parsed.operation ? { operation: parsed.operation } : {}),
+          });
+        } catch (error) {
+          if (error instanceof MathCalculateCapacityError) {
+            throw new KonlingRuntimeScopeError(429, error.message);
+          }
+          throw error;
+        }
+        if (result.status === 'error') {
+          throw new KonlingRuntimeScopeError(400, result.error ?? '公式计算失败');
+        }
+        return {
+          expression: parsed.expression,
+          result: result.result,
+          steps: result.steps,
+        };
+      }),
   };
 }
 
@@ -7147,6 +7185,11 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       }),
       execute: (args) => runtime.analyzeAttempt(args as { studentState: StudentState }),
     }),
+    calculate: tool({
+      description: '使用 SymPy 符号计算引擎求解数学表达式，返回 LaTeX 结果与中间步骤；支持化简、展开、因式分解、部分分式展开、求导、积分、拉普拉斯变换与逆变换。推导关键代数步骤时应调用本工具确认真实结果。',
+      inputSchema: calculateToolParameters,
+      execute: (args) => runtime.calculate(args),
+    }),
   };
   if (!('permittedTools' in runtime)) {
     return tools;
@@ -9503,7 +9546,7 @@ function toIsoOrNull(value: unknown): string | null {
 
 export class KonlingRuntimeScopeError extends Error {
   constructor(
-    readonly status: 400 | 403 | 404 | 409,
+    readonly status: 400 | 403 | 404 | 409 | 429,
     message: string,
   ) {
     super(message);
