@@ -1,11 +1,14 @@
 {
-  "capturedAt": "2026-07-31T06:21:22.656Z",
-  "commitSha": "63133daf5bc1afa9fe186ecab532ca717d091b9d",
-  "route": "/assessment/adaptive-practice?goal=control-correction",
+  "capturedAt": "2026-08-01T11:18:07.658Z",
+  "commitSha": "b9d5adbd70ebdbda9975d955d50bedd1111a1507",
+  "routes": [
+    "/assessment/adaptive-practice?goal=control-correction",
+    "/assessment/adaptive-practice"
+  ],
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "3fbd783c3f71312e2a12668d33e610a0ab534a4fc190443905dbcf173f0410eb",
+    "src/app/assessment/adaptive-practice/page.tsx": "5fda88d0b24b22bc12039871b0a7c8b3d917f2e886b1de63dd1ea3308382063e",
     "src/lib/adaptive-path-execution-state.ts": "df3cd8a6233c94ba7aba212c0e4ecfc5ea638d981c81d7209d86039b3ebba081",
-    "tests/adaptive-path-landing-retry.spec.ts": "b46bf74018703f9b0372e3ddc8f6bd05ded9472aa1a53ed1e6b25d3a61ff5269"
+    "tests/adaptive-path-landing-retry.spec.ts": "015b5ca9771e15bac75b87f5066c072641dd6b24d59d5e09331784713448ad08"
   },
   "assertions": [
     {
@@ -15,7 +18,8 @@
       "checks": [
         "failed state",
         "retry loading state",
-        "cold-start recovery"
+        "cold-start recovery",
+        "no-goal target selection visible"
       ]
     },
     {
@@ -37,7 +41,8 @@
       "checks": [
         "failed state",
         "retry loading state",
-        "cold-start recovery"
+        "cold-start recovery",
+        "no-goal target selection visible"
       ]
     },
     {
@@ -68,7 +73,7 @@
       "width": 1440,
       "height": 1000,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-loading.png",
-      "sha256": "66333450197b312c449fd382a697fe1d73d7201db4231ed57372baff1462d5f7",
+      "sha256": "682d71077b3bb8609f40627e06b509d2d147e280b1856e08fd60f9e432f698b0",
       "state": "loading",
       "noHorizontalOverflow": true
     },
@@ -77,7 +82,7 @@
       "width": 1440,
       "height": 1000,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-recovered.png",
-      "sha256": "35f653f7693770148fa28afd6bb76ab871942d2b171f5c732891b19f595f86e3",
+      "sha256": "7dd0bfbe7c4dec5598d22104770d58503fb64560cc6bc02ceaf91d9cc1574f34",
       "state": "recovered",
       "noHorizontalOverflow": true
     },
@@ -86,7 +91,7 @@
       "width": 1440,
       "height": 1000,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/desktop-1440-active-loading.png",
-      "sha256": "a68245cf99b60cf67185a2820609c53566a61ec59b835e53ff963043a4d42030",
+      "sha256": "c7215e233d9413dc6a9240cab7b07c6c32a7f17ea1d4a9d3df96497fd933271e",
       "state": "active-loading",
       "noHorizontalOverflow": true
     },
@@ -113,7 +118,7 @@
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-loading.png",
-      "sha256": "0b7e84106df1f61b5870978b178ef8f77cbc8d8987802970ae88c8bfaba3a183",
+      "sha256": "13790f55cb4db0b72f383fa34103c487004c2f226dc0d3da41eb7601407c5501",
       "state": "loading",
       "noHorizontalOverflow": true
     },
@@ -122,7 +127,7 @@
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-recovered.png",
-      "sha256": "4cc41199a6d3749be4a6b7d69f7dbf971b25e26e4c4153ce23cf9b28336c011c",
+      "sha256": "8e66d1544bd51d657c5f8efedd6280a69f98a4d7807700b95cc7b7961e548c9d",
       "state": "recovered",
       "noHorizontalOverflow": true
     },
@@ -131,7 +136,7 @@
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-active-loading.png",
-      "sha256": "c603e286ec39247ecc9eb1faaeb528cbfe2f8b9d0574eafbbb35bc455fc682a6",
+      "sha256": "0c8e02f5dee47d31b8eb0380d6517c7a0bb2ec0f0ffacc6b4ec753c55d5f0a3b",
       "state": "active-loading",
       "noHorizontalOverflow": true
     },
@@ -140,7 +145,7 @@
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1141-adaptive-path-landing/mobile-320-active.png",
-      "sha256": "6004f2015210c21299830dd0104229e8d3d6b1a3de5ec54fe62f8cc391c7ad89",
+      "sha256": "a633cbe8067b7406d303d5f75281d6bb4d409cf20051014796e77af6b6c168d3",
       "state": "active",
       "noHorizontalOverflow": true
     }
