@@ -1,9 +1,9 @@
 {
-  "capturedAt": "2026-08-01T07:07:33.587Z",
-  "commitSha": "28c54a54265f19af693209c5e5c2edbff8e53349",
+  "capturedAt": "2026-08-01T08:42:38.594Z",
+  "commitSha": "58d3f60aa6860f83fccd0527420d626226af41d1",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=path-difference-evidence-1160",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "b7534ee8b1653d3f96e89f47c3a4fffde43918b3b88a10db62178363636d95dd",
+    "src/app/assessment/adaptive-practice/page.tsx": "c42371c35209a544dfe8877e697f390f2794b9622258e2e84bd2eb4ebd27c6c6",
     "src/app/assessment/adaptive-practice/layout.tsx": "c079dc059609bf222c52179ceac5801707eb8f570f1d244a1002e9fedb0467db",
     "src/features/adaptive/path-advisor-entrypoint-bridge.tsx": "ca094f8f013b803e45c44d8b2e3a758d72d91e614c54f6b8b4be3b58b96253f1",
     "src/lib/konling-agent-runtime.ts": "2e1a9ba84e1435e7d2f533c88d1504c9fa93049b5fedfe56711381d4d6e70dbe",
