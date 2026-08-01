@@ -304,6 +304,46 @@ export function GlobalAISidebar() {
     onResponse: handleChatResponse,
   });
 
+  useEffect(() => {
+    if (assistantEntryPoint?.mode !== 'path-advisor') return;
+    const handlePathGenerationStatus = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        message?: unknown;
+        requestId?: unknown;
+        status?: unknown;
+      }>).detail;
+      if (
+        !detail ||
+        typeof detail.message !== 'string' ||
+        detail.message.length === 0 ||
+        typeof detail.requestId !== 'string' ||
+        typeof detail.status !== 'string'
+      ) return;
+      const statusMessage = detail.message;
+      const messageId = `path-generation:${detail.requestId}:${detail.status}`;
+      setMessages((current) => {
+        const existingMessage = current.find((message) => message.id === messageId);
+        if (existingMessage) {
+          return current.map((message) => message.id === messageId
+            ? {
+                ...message,
+                content: statusMessage,
+                parts: [{ type: 'text', text: statusMessage }],
+              }
+            : message);
+        }
+        return [...current, {
+            id: messageId,
+            role: 'assistant',
+            content: statusMessage,
+            parts: [{ type: 'text', text: statusMessage }],
+          }];
+      });
+    };
+    window.addEventListener('konling:path-generation-status', handlePathGenerationStatus);
+    return () => window.removeEventListener('konling:path-generation-status', handlePathGenerationStatus);
+  }, [assistantEntryPoint?.mode, setMessages]);
+
   const handledAssistantRequestIdRef = useRef<number | null>(null);
   useEffect(() => {
     if (!pendingAssistantRequest || handledAssistantRequestIdRef.current === pendingAssistantRequest.id) return;
