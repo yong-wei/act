@@ -134,6 +134,13 @@ The review receipt MUST be keyed by every batch binding digest, preserve exact o
 - **WHEN** the immutable receipt is published, the CLI captures a true post-receipt snapshot, publishes its deterministic sibling attestation, and replays an identical artifact set
 - **THEN** the attestation SHALL bind the receipt digest, pre- and post-publication Git and protected-path snapshots, and its own digest; replay SHALL load and validate the receipt/attestation closure, and any failure after a new receipt is published SHALL attempt cleanup and surface cleanup failure
 
+The current publication boundary SHALL use the v3 proof and v2 detached-attestation schemas. The v3 proof and attestation MUST persist the ordered per-path protected-authority digests and bind those rows to both snapshot digests. A v3 replay MUST compare every current protected-path byte and clean status with the persisted rows and MUST NOT require the capture commit object or call capture-commit ancestry/blob lookup; it MAY continue from a descendant commit or a squash/content-equivalent commit. Legacy v2 proof/v1 attestation pairs MAY replay only through the legacy readable capture-commit ancestry and blob checks. A missing source-artifact binding is tolerated only while replaying an already published legacy pair; new publication remains fail-closed when the binding is absent.
+
+#### Scenario: Squash or content-equivalent continuation is replayed
+
+- **WHEN** a v3 receipt/attestation pair is replayed from a commit whose protected paths are clean and byte-identical to the persisted ordered rows, but whose capture commit is not an ancestor or is unavailable locally
+- **THEN** replay SHALL return the immutable pair without recomputing it; any protected-path byte or status drift SHALL fail closed
+
 ### Requirement: Batch c3fa63179e847ed1f2e2b6c1 has an immutable review boundary
 
 The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/1/members`, binding batchId `c3fa63179e847ed1f2e2b6c1`, sequence `0`, semanticGroupKey `ctr:release:classical-control-design-engineering-v0.1::entityType:Formula`, member count `98`, memberDigest `ceebf1c62b71689304b36603dbd3da2e76a5b15ac08102f969441021c7f3d933`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.

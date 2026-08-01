@@ -20858,10 +20858,10 @@
     "writerFenceChanged": false
   },
   "productionBoundaryProof": {
-    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v2",
+    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
     "receiptPath": "course-content/authoring/knowledge/issue-1192-course-coverage-review/batch-receipt.json",
     "attestationPath": "course-content/authoring/knowledge/issue-1192-course-coverage-review/batch-boundary-attestation.json",
-    "headBefore": "6017ce90a472180f7bb6abf77f3b7cfd3b3e837f",
+    "headBefore": "9ed42a18f09a188982143ad2239a758875ea7f44",
     "protectedPaths": [
       "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
       "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
@@ -20870,8 +20870,40 @@
       "src/lib/canonical-learning-fact-identity/capability.ts",
       "src/lib/canonical-learning-fact-identity/writer.ts"
     ],
+    "protectedPathSnapshots": [
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+        "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+        "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+      },
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+        "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+        "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+      },
+      {
+        "relativePath": "src/lib/canonical-rag/authority.ts",
+        "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+        "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+        "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+        "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+        "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+        "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+        "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+        "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+      }
+    ],
     "statusBefore": [],
-    "authoritySnapshotBeforeDigest": "3a20248cdb9278e95f2e9f707a5d9d98220ded4bf67dab56cfecc090d981edd3",
+    "authoritySnapshotBeforeDigest": "f31ef3e95ea5fabcdbcfbab665d818dc306257300a9af3f7edd67d6a2ad3ab85",
     "gitDiffCheck": "PASS",
     "mutationFlags": {
       "currentCoverageDecisionWritten": false,
@@ -20880,5 +20912,5 @@
       "writerFenceChanged": false
     }
   },
-  "receiptDigest": "1547dd5a912a4d2645024d7751fb5aa164f1df1c66343d6ce00904c02f71c179"
+  "receiptDigest": "d2972b3edeb69fbbbee80315bf467a1e2fd2f240188b148f4410b916e6e94130"
 }
