@@ -1953,7 +1953,7 @@ export default function AdaptivePracticePage() {
     : null, [activeGoal, activeGoalLabel, activeLearnerState, activePathPlan, error, questionState, routeIntent]);
   const pathOptions = useMemo(() => getPathOptions(adaptivePathCenter), [adaptivePathCenter]);
   const pathOptionVersionKey = useMemo(() => [
-    activePathRound?.id ?? activePathPlan?.id ?? 'path-option-version-empty',
+    activePathRound?.id ?? activePathPlan?.id ?? 'no-path',
     ...pathOptions.map((option) => `${option.optionId}:${option.nodeIds?.join(',') ?? ''}`),
   ].join('|'), [activePathPlan?.id, activePathRound?.id, pathOptions]);
   const pathOptionVersionKeyRef = useRef(pathOptionVersionKey);
