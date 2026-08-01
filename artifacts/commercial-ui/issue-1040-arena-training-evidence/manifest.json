@@ -1,21 +1,21 @@
 {
   "status": "passed",
-  "capturedAt": "2026-08-01T13:50:38.327Z",
+  "capturedAt": "2026-08-01T14:23:21.069Z",
   "generatorPath": "tests/arena-training-profile-1040.spec.ts",
-  "generatorSha256": "6e663935c7f16c2dc2a42055f9d8e8ba8666959cb7a409c43221d3015c263bef",
-  "sourceRevision": "21362d71628cba192840b3aa8eec410cc9a64ef1",
+  "generatorSha256": "6ed878a5e291ae5087ef84532cfd46468b05e519968afdd5e631cf44c8a18dc8",
+  "sourceRevision": "2c5ddaa4f4b4f07523c2b8713cd352c0901ee827",
   "sourceFiles": {
     "src/app/(main)/profile/page.tsx": "57c28973c6621b212677f92b8a50c20ea5177b0d4a76366419d4b98086e43996",
-    "src/app/api/user/profile/route.ts": "653bd4285482ba5fbc86f956fd3a8f57bbc8e4eb5639614c09d32cf234e18816",
+    "src/app/api/user/profile/route.ts": "4cc74084b83f5a92a28c20ab57b725241a22da2776ce2203be7a34fcb0497650",
     "src/features/arena/profile.ts": "9485c5df0ebea944215fdbee6f3f4363a08fc6376cf109fb8add66796656d37d",
     "src/features/arena/blackbox/controller-preview.ts": "723385e9df02ad3b27ccf696d126b842289df9421293346b9d720d1df460c15b",
-    "src/lib/data-governance/simulation-agent-evidence-materialization.ts": "19c454dfa676413d9624e0dc4013c67bc2cf7d26b64030442f787e7ccc7a7dd0"
+    "src/lib/data-governance/simulation-agent-evidence-materialization.ts": "6d8ce875d459b8788ac70822e8fde00b8628a7ab008338b537766fc8aa87eeb5"
   },
   "fixtureAuthority": "deterministic profile API projection; backend behavior separately verified by profile-route.test.ts",
   "route": "/profile",
   "role": "STUDENT",
-  "captureBeforeHead": "21362d71628cba192840b3aa8eec410cc9a64ef1",
-  "captureAfterHead": "21362d71628cba192840b3aa8eec410cc9a64ef1",
+  "captureBeforeHead": "2c5ddaa4f4b4f07523c2b8713cd352c0901ee827",
+  "captureAfterHead": "2c5ddaa4f4b4f07523c2b8713cd352c0901ee827",
   "screenshots": [
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-complete-1440x1000.png",
@@ -32,7 +32,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-complete-320x900.png",
-      "sha256": "92270812c538612c0c32275d6c80a5b0c53cce515e809c44852c797a97e4ae86",
+      "sha256": "1d143fee7d8ff9d67848c9ff4e44b0970cc893704be30d5cf7b346d09f518aaf",
       "viewport": {
         "width": 320,
         "height": 900
@@ -45,7 +45,7 @@
     },
     {
       "path": "artifacts/commercial-ui/issue-1040-arena-training-evidence/profile-training-damaged-320x900.png",
-      "sha256": "f91ec7b6f5ad2575b8a49c2c6477f0b1a0baf99a60a8b52ee8f1d71a41f03278",
+      "sha256": "be318115687c1aeb8b1924bb6247e73c03ce0236b804f70692cc57882a788309",
       "viewport": {
         "width": 320,
         "height": 900
