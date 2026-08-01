@@ -82,16 +82,21 @@ function prepareCapture(): CaptureState {
   return readSourceHashes(beforeHead);
 }
 
-function assertOnlyExpectedScreenshotUntracked(expectedPaths: readonly string[]): void {
-  const expected = new Set(expectedPaths.map((path) => `?? ${path}`));
+function assertOnlyExpectedScreenshotChanges(expectedPaths: readonly string[]): void {
+  const expected = new Set(expectedPaths);
   const statusLines = git(['status', '--porcelain', '--untracked-files=all'])
     .toString('utf8')
     .split('\n')
     .map((line) => line.trimEnd())
     .filter(Boolean);
-  const unexpected = statusLines.filter((line) => !expected.has(line));
-  if (unexpected.length > 0 || statusLines.length !== expected.size) {
-    throw new Error(`after screenshot capture only expected untracked screenshots are allowed: ${statusLines.join(' | ')}`);
+  const actualPaths = new Set(statusLines.map((line) => line.slice(3)));
+  const unexpected = statusLines.filter((line) => {
+    const status = line.slice(0, 2);
+    return (status !== '??' && status !== ' M') || !expected.has(line.slice(3));
+  });
+  if (unexpected.length > 0 || actualPaths.size !== expected.size
+    || [...expected].some((path) => !actualPaths.has(path))) {
+    throw new Error(`after screenshot capture only expected screenshot changes are allowed: ${statusLines.join(' | ')}`);
   }
 }
 
@@ -373,7 +378,7 @@ test('Issue 1040 profile exposes training-only Arena evidence at desktop and mob
     }
 
     if (captureState) {
-      assertOnlyExpectedScreenshotUntracked(screenshots.map((screenshot) => screenshot.path));
+      assertOnlyExpectedScreenshotChanges(screenshots.map((screenshot) => screenshot.path));
       const captureAfterHead = currentHead();
       if (captureAfterHead !== captureState.sourceRevision) {
         throw new Error('capture HEAD changed during browser verification');
