@@ -90,7 +90,6 @@ export async function runMathCalculate(input: MathCalculateRequest): Promise<Mat
     });
 
     let stdout = '';
-    let stderr = '';
     let settled = false;
 
     const timeout = setTimeout(() => {
@@ -110,7 +109,8 @@ export async function runMathCalculate(input: MathCalculateRequest): Promise<Mat
       stdout += chunk.toString('utf8');
     });
     child.stderr.on('data', (chunk: Buffer) => {
-      stderr += chunk.toString('utf8');
+      // Consume stderr without exposing provider or runtime details to callers.
+      void chunk;
     });
 
     child.on('error', (error) => {
@@ -130,12 +130,7 @@ export async function runMathCalculate(input: MathCalculateRequest): Promise<Mat
       settled = true;
 
       if (code !== 0) {
-        resolve({
-          status: 'error',
-          result: '',
-          steps: [],
-          error: stderr.trim() || `SymPy 计算失败（退出码 ${code ?? 'unknown'}）`,
-        });
+        reject(new MathCalculateUnavailableError('公式计算运行时不可用'));
         return;
       }
 

@@ -30,8 +30,13 @@ except ImportError:  # Windows 开发环境
     resource = None
 
 from sympy import (
+    Add,
     E,
+    Float,
     I,
+    Integer,
+    Mul,
+    Pow,
     Rational,
     Symbol,
     apart,
@@ -60,7 +65,6 @@ from sympy.integrals.transforms import (
 )
 from sympy.parsing.latex import parse_latex
 from sympy.parsing.sympy_parser import (
-    auto_symbol,
     convert_xor,
     implicit_multiplication_application,
     parse_expr,
@@ -74,11 +78,7 @@ CPU_LIMIT_SECONDS = 5
 EXPRESSION_PATTERN = re.compile(r"^[a-zA-Z0-9+\-*/^().,\s\\{}[\]]+$")
 VARIABLE_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9]{0,9}$")
 
-TRANSFORMATIONS = standard_transformations + (
-    convert_xor,
-    implicit_multiplication_application,
-    auto_symbol,
-)
+TRANSFORMATIONS = standard_transformations + (convert_xor, implicit_multiplication_application)
 
 # 受限命名空间：仅暴露白名单 SymPy 名称与常用变量。
 LOCAL_NAMESPACE = {
@@ -103,8 +103,17 @@ LOCAL_NAMESPACE = {
     "y": symbols("y"),
 }
 
-# 显式清空内建函数，防止属性链逃逸。
-GLOBAL_NAMESPACE = {"__builtins__": {}}
+# 显式清空内建函数，防止属性链逃逸；这些构造器仅用于 parse_expr 的数字和运算符。
+GLOBAL_NAMESPACE = {
+    "__builtins__": {},
+    "Add": Add,
+    "Float": Float,
+    "Integer": Integer,
+    "Mul": Mul,
+    "Pow": Pow,
+    "Rational": Rational,
+    "Symbol": Symbol,
+}
 
 
 def _step(seq: int, description: str, operation: str, inp: str, out: str) -> dict:
@@ -131,17 +140,17 @@ def _parse_expression(expression: str):
     if not EXPRESSION_PATTERN.fullmatch(expression):
         raise ValueError("表达式包含不允许的字符")
 
-    # parse_latex 不做 eval，优先使用；失败时回退到受限 parse_expr。
-    try:
-        return parse_latex(expression)
-    except Exception:
-        return parse_expr(
-            expression,
-            local_dict=LOCAL_NAMESPACE,
-            global_dict=GLOBAL_NAMESPACE,
-            transformations=TRANSFORMATIONS,
-            evaluate=True,
-        )
+    # 明确的 LaTeX 标记只允许严格 LaTeX 解析；纯 SymPy 风格表达式只走受限 parse_expr。
+    if re.search(r"[\\{}]", expression):
+        return parse_latex(expression, strict=True)
+
+    return parse_expr(
+        expression,
+        local_dict=LOCAL_NAMESPACE,
+        global_dict=GLOBAL_NAMESPACE,
+        transformations=TRANSFORMATIONS,
+        evaluate=True,
+    )
 
 
 def _pick_variable(expr, preferred: str | None) -> Symbol:

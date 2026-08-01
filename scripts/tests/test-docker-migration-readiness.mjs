@@ -123,6 +123,27 @@ function main() {
 
   assert.match(
     dockerfile,
+    /COPY --from=builder \/app\/scripts\/math-calc \.\/scripts\/math-calc/,
+    'Dockerfile 必须把 math-calc 计算脚本从 builder 复制到运行镜像',
+  );
+  assert.match(
+    dockerfile,
+    /RUN python3 -c '[\s\S]*scripts\/math-calc\/calc\.py[\s\S]*payload\["status"\] == "ok"[\s\S]*payload\["steps"\]\[0\]\["operation"\] == "identify"[\s\S]*'/,
+    'Dockerfile 必须在 runner 阶段执行 calc.py 的真实 SymPy/LaTeX 烟测',
+  );
+  assert.match(
+    dockerfile,
+    /"sympy==1\.13\.3"/,
+    'Dockerfile 必须固定安装 SymPy 1.13.3',
+  );
+  assert.match(
+    dockerfile,
+    /"antlr4-python3-runtime==4\.11\.1"/,
+    'Dockerfile 必须固定安装 antlr4-python3-runtime 4.11.1',
+  );
+
+  assert.match(
+    dockerfile,
     /COPY --from=builder \/app\/scripts\/db \.\/scripts\/db/,
     'Dockerfile 必须把生产数据回填脚本复制到运行镜像'
   );
@@ -254,6 +275,16 @@ function main() {
     dockerignore,
     /!scripts\/lib\//,
     '.dockerignore 必须保留 scripts/lib Prisma 工厂进入镜像构建上下文'
+  );
+  assert.match(
+    dockerignore,
+    /!scripts\/math-calc\//,
+    '.dockerignore 必须保留 scripts/math-calc 目录进入镜像构建上下文',
+  );
+  assert.match(
+    dockerignore,
+    /!scripts\/math-calc\/\*\*/,
+    '.dockerignore 必须保留 scripts/math-calc 下的计算脚本与依赖清单进入镜像构建上下文',
   );
   for (const requiredPath of [
     '!scripts/actkg-release/**',

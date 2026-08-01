@@ -12,6 +12,12 @@ The system SHALL expose `POST /api/math/calculate` for authenticated users. The 
 - **THEN** the API SHALL reject the request with a client error
 - **AND** the SymPy subprocess SHALL NOT be invoked with unvalidated input.
 
+#### Scenario: LaTeX and SymPy expressions use deterministic parsers
+- **WHEN** an expression contains explicit LaTeX markers such as a backslash or braces
+- **THEN** the calculator SHALL use `parse_latex(strict=True)` only and SHALL NOT fall back to SymPy parsing
+- **WHEN** an expression has no explicit LaTeX markers
+- **THEN** the calculator SHALL use the restricted SymPy parser only and SHALL reject malformed input such as `x -`
+
 #### Scenario: Caller is not authenticated
 - **WHEN** an unauthenticated caller posts to the endpoint
 - **THEN** the API SHALL return 401
@@ -27,6 +33,10 @@ The system SHALL bound SymPy subprocess execution with a CPU time limit, a proce
 #### Scenario: Subprocess exceeds timeout
 - **WHEN** a SymPy calculation exceeds the configured timeout
 - **THEN** the API SHALL terminate the subprocess and return a timeout error.
+
+#### Scenario: Calculator exits unexpectedly
+- **WHEN** the calculator process exits with a non-zero status
+- **THEN** the shared executor SHALL return a stable unavailable-runtime error without exposing stderr contents
 
 ### Requirement: KAQ exposes the calculate tool for formula derivation
 The KAQ runtime SHALL register `calculate` in its tool registry and expose it in generic-chat mode so the LLM can call it for formula-derivation answers.
