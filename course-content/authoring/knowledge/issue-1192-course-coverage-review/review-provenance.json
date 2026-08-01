@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "bdaa6aeec022a589b5f8fdb3",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "stageArtifactsExistedDuringReviews": false,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "fb3a6d79-b315-4ead-a8b3-a4da1d52a9f1",
+    "permission": "read-only",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 500
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The primary orchestrator mechanically transcribed the primary reviewer explicit all-500 DEFER policy into exact ordered per-member records and added only canonical digests."
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "d6ae2529-9244-4fe3-8f69-f487bea14be7",
+    "permission": "read-only",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 500
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The primary orchestrator mechanically transcribed the challenger reviewer explicit all-500 DEFER policy into exact ordered per-member records and added only canonical digests."
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}
