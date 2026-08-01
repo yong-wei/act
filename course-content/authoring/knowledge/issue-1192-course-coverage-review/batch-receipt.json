@@ -20861,7 +20861,7 @@
     "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v2",
     "receiptPath": "course-content/authoring/knowledge/issue-1192-course-coverage-review/batch-receipt.json",
     "attestationPath": "course-content/authoring/knowledge/issue-1192-course-coverage-review/batch-boundary-attestation.json",
-    "headBefore": "c0f6cecb72ef7bbd624886bb4108466ea5296198",
+    "headBefore": "6017ce90a472180f7bb6abf77f3b7cfd3b3e837f",
     "protectedPaths": [
       "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
       "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
@@ -20871,7 +20871,7 @@
       "src/lib/canonical-learning-fact-identity/writer.ts"
     ],
     "statusBefore": [],
-    "authoritySnapshotBeforeDigest": "cae7c51d8440086ffd84b99c07eb4b456aadf8c8752c13d3c7bfc176da5e9c28",
+    "authoritySnapshotBeforeDigest": "3a20248cdb9278e95f2e9f707a5d9d98220ded4bf67dab56cfecc090d981edd3",
     "gitDiffCheck": "PASS",
     "mutationFlags": {
       "currentCoverageDecisionWritten": false,
@@ -20880,5 +20880,5 @@
       "writerFenceChanged": false
     }
   },
-  "receiptDigest": "6ab68ad5a8344fa5f5dd0fb99df353aa8f321cf374b87a6b23fef7c336cc1dbc"
+  "receiptDigest": "1547dd5a912a4d2645024d7751fb5aa164f1df1c66343d6ce00904c02f71c179"
 }
