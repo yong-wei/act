@@ -19,4 +19,4 @@
 
 - [x] 4.1 Add planner tests for request precedence, feasible contrasting configuration effects, free-text mapping, sequential option diversity, and reduced-option fallback.
 - [x] 4.2 Add runtime or UI contract coverage for sanitized fulfillment and low-budget messaging.
-- [ ] 4.3 Run focused tests, `npm run typecheck`, OpenSpec strict validation, and independent diff review.
+- [x] 4.3 Run focused tests, `npm run typecheck`, OpenSpec strict validation, and independent diff review.

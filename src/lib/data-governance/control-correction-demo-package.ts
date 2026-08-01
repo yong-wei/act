@@ -659,6 +659,7 @@ export function buildControlCorrectionDemoPlanPostBody(
         selectedReasons: ['demo path follows resource, simulation, and Arena validation order'],
         rejectedAlternatives: [],
         fallbackReasons: [],
+        configurationFulfillment: [],
       },
       executionStatus: {
         adopted: true,

@@ -236,6 +236,7 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
       selectedReasons: ['low-mastery-target'],
       rejectedAlternatives: [],
       fallbackReasons: [],
+      configurationFulfillment: [],
     },
     executionStatus: {
       adopted: true,
@@ -1575,7 +1576,11 @@ describe('adaptive learning center UI contracts', () => {
             estimatedEffortByPolicy: { 'foundation-remediation': 15 },
             terminalValidationDifference: 0,
           },
-          fallbackReasons: ['path-diversity-insufficient', 'terminal-validation-diversity-insufficient'],
+          fallbackReasons: [
+            'path-diversity-insufficient',
+            'terminal-validation-diversity-insufficient',
+            'policy-option-diversity-unavailable',
+          ],
         },
         feedbackEvents: [
           {
@@ -1605,7 +1610,7 @@ describe('adaptive learning center UI contracts', () => {
       ],
       pathOptionFallback: {
         status: 'low-resource-fallback',
-        fallbackReasons: ['路径差异不足', '终点检验差异不足'],
+        fallbackReasons: ['路径差异不足', '终点检验差异不足', '当前资源只能形成单一推荐方案'],
         diversity: {
           resourceOverlap: 1,
           modalityDistance: 0,
@@ -2230,6 +2235,7 @@ describe('adaptive learning center UI contracts', () => {
           selectedReasons: [],
           rejectedAlternatives: [],
           fallbackReasons: ['learner-state-missing'],
+          configurationFulfillment: [],
         },
       }),
     });

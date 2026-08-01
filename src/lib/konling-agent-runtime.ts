@@ -4038,7 +4038,12 @@ async function buildAdaptivePathToolOutput(
     });
   }
   const pathOptions = hasPersistablePath ? buildStudentSafePathOptions(plan) : [];
-  const fallbackReasons = plan.explanations.fallbackReasons;
+  const fallbackReasons = uniqueStringList([
+    ...plan.explanations.fallbackReasons,
+    ...(plan.policyBundle?.fallbackReasons ?? []),
+  ]);
+  const singleOptionDiversityUnavailable = pathOptions.length === 1
+    && fallbackReasons.includes('policy-option-diversity-unavailable');
   return {
     operation,
     scope: toolScope,
@@ -4065,7 +4070,9 @@ async function buildAdaptivePathToolOutput(
     comparison: {
       optionCount: pathOptions.length,
       message: hasPersistablePath
-        ? '已根据你的学习证据生成可比较的路径方案。'
+        ? singleOptionDiversityUnavailable
+          ? '当前资源只能形成单一推荐方案。'
+          : '已根据你的学习证据生成可比较的路径方案。'
         : buildBlockedAdaptivePathGenerationMessage(fallbackReasons),
     },
     limitations: uniqueStringList([...fallbackReasons, ...candidatePoolLimitationCodes]),
@@ -4210,14 +4217,17 @@ interface AdaptivePathIntentMapping {
   difficultyRhythm?: 'gentle' | 'steady' | 'challenge';
   checkpointPreference?: 'light' | 'standard' | 'dense';
   allowExternalResources?: boolean;
+  /** Canonical values passed to the planner as mapping evidence. */
   matchedTerms: string[];
+  /** Source words matched in the learner's text, used only for clause consumption. */
+  matchedSourceTerms: string[];
   limitationCode?: string;
 }
 
-function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): AdaptivePathIntentMapping {
+export function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): AdaptivePathIntentMapping {
   const value = typeof intent === 'string' ? intent.trim().toLowerCase() : '';
   if (!value) {
-    return { resourcePreferences: [], matchedTerms: [] };
+    return { resourcePreferences: [], matchedTerms: [], matchedSourceTerms: [] };
   }
   const resourceMappings: Array<{ type: ResourceNode['type']; terms: string[] }> = [
     { type: 'knowledge_card', terms: ['知识卡', '知识卡片'] },
@@ -4231,44 +4241,66 @@ function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): AdaptiveP
     { type: 'reflection', terms: ['反思', '复盘'] },
   ];
   const matchedTerms: string[] = [];
+  const matchedSourceTerms: string[] = [];
   const resourcePreferences = resourceMappings.flatMap(({ type, terms }) => {
     const matched = terms.filter((term) => value.includes(term));
-    matchedTerms.push(...matched);
+    if (matched.length > 0) {
+      matchedTerms.push(type);
+      matchedSourceTerms.push(...matched);
+    }
     return matched.length > 0 ? [type] : [];
   });
+  const difficultySourceTerms = ['挑战', '高难', '轻松', '循序', '基础'].filter((term) => value.includes(term));
   const difficultyRhythm = value.includes('挑战') || value.includes('高难')
     ? 'challenge'
     : value.includes('轻松') || value.includes('循序') || value.includes('基础')
       ? 'gentle'
       : undefined;
-  if (difficultyRhythm) matchedTerms.push(difficultyRhythm);
+  if (difficultyRhythm) {
+    matchedTerms.push(difficultyRhythm);
+    matchedSourceTerms.push(...difficultySourceTerms);
+  }
+  const checkpointSourceTerms = ['密集检查', '多检查点', '少检查', '轻量检查']
+    .filter((term) => value.includes(term));
   const checkpointPreference = value.includes('密集检查') || value.includes('多检查点')
     ? 'dense'
     : value.includes('少检查') || value.includes('轻量检查')
       ? 'light'
       : undefined;
-  if (checkpointPreference) matchedTerms.push(checkpointPreference);
+  if (checkpointPreference) {
+    matchedTerms.push(checkpointPreference);
+    matchedSourceTerms.push(...checkpointSourceTerms);
+  }
   const allowExternalResources = value.includes('不使用外部') || value.includes('不要外部')
     ? false
     : value.includes('外部资源') || value.includes('参考资料') || value.includes('外部链接')
       ? true
       : undefined;
-  if (allowExternalResources !== undefined) matchedTerms.push('external-resources');
+  if (allowExternalResources !== undefined) {
+    const externalResourceSourceTerms = (allowExternalResources
+      ? ['外部资源', '参考资料', '外部链接']
+      : ['不使用外部', '不要外部'])
+      .filter((term) => value.includes(term));
+    matchedTerms.push('external-resources');
+    matchedSourceTerms.push(...externalResourceSourceTerms);
+  }
   const uniqueMatchedTerms = Array.from(new Set(matchedTerms));
-  const hasUnconsumedClause = detectUnconsumedIntentClauses(value, uniqueMatchedTerms);
+  const uniqueMatchedSourceTerms = Array.from(new Set(matchedSourceTerms));
+  const hasUnconsumedClause = detectUnconsumedIntentClauses(value, uniqueMatchedSourceTerms);
   const result = {
     resourcePreferences: Array.from(new Set(resourcePreferences)),
     difficultyRhythm,
     checkpointPreference,
     allowExternalResources,
     matchedTerms: uniqueMatchedTerms,
+    matchedSourceTerms: uniqueMatchedSourceTerms,
     ...(uniqueMatchedTerms.length === 0
       ? { limitationCode: 'natural-language-intent-unsupported' }
       : hasUnconsumedClause
         ? { limitationCode: 'natural-language-intent-partially-unmapped' }
         : {}
     ),
-  };
+  } satisfies AdaptivePathIntentMapping;
   return result;
 }
 /**
@@ -4276,13 +4308,13 @@ function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): AdaptiveP
  * that have no consumed mapping terms. When some terms match but other sub-clauses
  * remain unmapped, the intent is only partially actionable.
  */
-function detectUnconsumedIntentClauses(value: string, matchedTerms: string[]): boolean {
+function detectUnconsumedIntentClauses(value: string, matchedSourceTerms: string[]): boolean {
   const clauses = value
     .split(/[，。、；：；,.!:;?？\n]+/)
     .map((c) => c.trim())
     .filter((c) => c.length > 0);
   const unconsumedClauses = clauses.filter((clause) =>
-    !matchedTerms.some((term) => clause.includes(term))
+    !matchedSourceTerms.some((term) => clause.includes(term))
   );
   return unconsumedClauses.length > 0;
 }

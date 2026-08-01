@@ -114,6 +114,7 @@ function samplePlan(): AdaptiveLearningPathPlan {
       selectedReasons: ['matches-knowledge-deficit'],
       rejectedAlternatives: [],
       fallbackReasons: [],
+      configurationFulfillment: [],
     },
     executionStatus: {
       adopted: false,
@@ -201,6 +202,7 @@ function frequencyResponsePlan(): AdaptiveLearningPathPlan {
       selectedReasons: ['matches-knowledge-deficit'],
       rejectedAlternatives: [],
       fallbackReasons: ['learner-evidence-low-confidence'],
+      configurationFulfillment: [],
     },
     executionStatus: {
       adopted: false,
@@ -527,6 +529,7 @@ describe('control-correction path rounds', () => {
         selectedReasons: ['matches-knowledge-deficit'],
         rejectedAlternatives: [],
         fallbackReasons: ['learner-evidence-low-confidence'],
+        configurationFulfillment: [],
       },
       executionStatus: {
         adopted: false,
