@@ -30,7 +30,7 @@ KAQ 运行时（`src/lib/konling-agent-runtime.ts`）通过 `KONLING_TOOL_REGIST
 
 ### 受限解析与资源边界
 
-表达式只允许 ASCII 数学字符且长度 ≤300；`parse_latex` 不做 eval，`parse_expr` 使用 `__builtins__` 置空的受限命名空间；Python 进程内设置 `RLIMIT_CPU`；API 侧 4 并发 + 8 排队，超限 429；子进程 10 秒超时。
+表达式只允许 ASCII 数学字符且长度 ≤300；共享执行器在启动子进程前重复执行 Zod 白名单校验；`parse_latex` 不做 eval，`parse_expr` 使用 `__builtins__` 置空的受限命名空间；Python 进程内设置 `RLIMIT_CPU`；共享执行器统一限制 4 并发 + 8 排队，超限由 API 投影为 429、由 KAQ 投影为受治理工具错误；子进程 10 秒超时。
 
 ### 工具权限为 analyze
 
@@ -38,9 +38,9 @@ KAQ 运行时（`src/lib/konling-agent-runtime.ts`）通过 `KONLING_TOOL_REGIST
 
 ## Risks / Trade-offs
 
-- [子进程每个请求 fork，CPU 与内存成本] → 并发限制、排队上限、CPU 时间限制和超时兜底。
+- [子进程每个请求 fork，CPU 与内存成本] → API 与 KAQ 共用并发限制、排队上限、CPU 时间限制和超时兜底。
 - [`parse_expr` 仍可能被属性链利用] → 字符白名单禁用下划线/引号/分号，命名空间无内建函数，优先 `parse_latex`。
-- [生产镜像缺 Python/SymPy] → Dockerfile 固定安装并断言版本，entrypoint 启动检查，API 在缺失时返回 503。
+- [生产镜像缺 Python/SymPy/ANTLR 或脚本语法无效] → Dockerfile 固定安装依赖、执行 `py_compile` 与真实 LaTeX 解析探针，entrypoint 重复解析探针，API 在运行时缺失 Python 时返回 503。
 
 ## Migration Plan
 

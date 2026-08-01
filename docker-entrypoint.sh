@@ -1,12 +1,12 @@
 #!/bin/sh
 set -eu
 
-# 公式推导依赖就绪检查：SymPy 缺失时 /api/math/calculate 将返回 503。
+# 公式推导依赖就绪检查：SymPy 或 LaTeX 解析器缺失时返回 503。
 if command -v python3 >/dev/null 2>&1; then
-  if python3 -c "import sympy" >/dev/null 2>&1; then
-    echo "[entrypoint] SymPy 公式推导依赖可用。"
+  if python3 -c "from sympy.parsing.latex import parse_latex; assert str(parse_latex(r'\\frac{1}{s}')) == '1/s'" >/dev/null 2>&1; then
+    echo "[entrypoint] SymPy 与 LaTeX 公式推导依赖可用。"
   else
-    echo "[entrypoint] WARNING: SymPy 不可用，/api/math/calculate 将返回 503。"
+    echo "[entrypoint] WARNING: SymPy 或 LaTeX 解析器不可用，/api/math/calculate 将返回 503。"
   fi
 else
   echo "[entrypoint] WARNING: python3 不可用，/api/math/calculate 将返回 503。"
