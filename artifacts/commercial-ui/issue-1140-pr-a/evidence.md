@@ -1,36 +1,31 @@
 # Issue 1140 PR A Browser Evidence
 
-## Revision
+## Successful Lifecycle Evidence
 
-- Code commit: `bcdfd262d65b04ca21dcd2011558bbf4fc781827`
-- Desktop captured at: `2026-07-31T11:52:53.7270329Z`
-- Mobile recaptured at: `2026-07-31T12:13:42Z`
-- Mobile screenshot correction commit: `a96fc43c9d40f62c97bc7f805f794e3e69c199f2`
-- Route: `/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&pathTime=90&pathRhythm=steady&pathResources=knowledge_card%2Cadaptive_quiz%2Csimulation&pathCheckpoint=standard`
-
-## Screenshots
+- Code checkpoint: `73b1af2d34d07391249bfcfddbed2786b3644639`
+- Captured at: `2026-08-01T04:14:02.936Z`
+- Route: `/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation`
+- Fixture authority: authenticated demo learner with Playwright route fixtures scoped to the registered `control-correction` goal.
+- Machine-readable record: `lifecycle-manifest.json`
 
 | Viewport | File | SHA-256 |
 | --- | --- | --- |
-| 1440px desktop | `fail-closed-generation-desktop-1440.png` | `6F85EC7E5FBB6DDA76336A489D46EA87761A03F703422BE94A2AEEDF87653F2A` |
-| 320px mobile viewport (305x763 content bitmap after scrollbar) | `fail-closed-generation-mobile-320.png` | `EEF8B3DB5845F3DCDAF3D506DEED625CE694022EC636FC167E27D14113C36E73` |
+| 1440 x 1000 desktop | `lifecycle-success-desktop-1440.png` | `651a466a7edb3201ed4d478fbfa2a34afd5757de78fec81cc3a2c17ec88fa72a` |
+| 320 x 900 mobile | `lifecycle-success-mobile-320.png` | `0d15c0f2b6fd6fa5e2a59bf69a3043dc9289168e0a713d4babff51719dec20ac` |
 
-## Browser Observation
+The production page and Konling sidebar wiring were exercised in both viewports. Each run observed four POST requests. The first three requests used the same ID across a lost response, a running result, and a definitive failed result. The fourth explicit generation used a new ID and succeeded. The test also verified synchronous duplicate admission, pending and running target lock, all four sidebar lifecycle states, unchanged page URL, and learner-state plus path refreshes after success.
 
-The authenticated local student page rendered at both target widths. The mobile artifact is a single 320px viewport capture rather than a scrolling full-page composite, so sticky controls are not duplicated during capture. It remained fail-closed with the generation action disabled because the local historical student data could not produce a governed learner-safe summary. The server reported `Portrait v2 derivation must use a governed learner-safe summary.` No database state was changed and no successful browser generation request was fabricated.
+The manifest records the exact request IDs, refresh counts, source hashes, screenshot hashes, capture time, route, and code checkpoint. A non-update Playwright run verifies that these sources and screenshots remain bound to the recorded checkpoint.
 
-These screenshots therefore prove the real responsive fail-closed state, not a successful end-to-end generation. Successful request identity behavior is covered by automated tests:
+## Supplemental Fail-Closed Evidence
 
-- rapid duplicate activation admits only one request;
-- repeated running callbacks reuse the same request ID;
-- an unexpected 500 or lost response retains the same request ID for retry;
-- a definitive failure or success causes an explicit later generation to receive a new request ID.
+The earlier `fail-closed-generation-desktop-1440.png` and `fail-closed-generation-mobile-320.png` captures remain as supplemental evidence of the real learner-safe failure state. They are not used as proof of successful generation.
 
 ## Verification
 
-- `vitest` lifecycle and route tests: 14 passed.
-- Targeted adaptive learning center UI contracts: 2 passed, 55 skipped.
+- Lifecycle browser test and evidence binding: 3 passed at 1440px and 320px.
+- Focused Vitest route, lifecycle, and adaptive learning center contracts: 71 passed.
 - ESLint on changed source and tests: passed.
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck`: passed with exit code 0.
 - OpenSpec strict validation: passed.
-- `git diff --check bcdfd262^..HEAD`: passed after removing trailing blank lines from the OpenSpec requirement files.
-- Full TypeScript check: blocked by existing integration-branch errors in `global-ai-sidebar.tsx`, missing Tiptap and Radix packages plus resulting implicit-any errors, and the missing `teacher-diagnosis` conversation-library entry. No error remains in the Issue 1140 changed files.
+- `git diff --check`: passed.

@@ -1,0 +1,78 @@
+{
+  "capturedAt": "2026-08-01T04:14:02.936Z",
+  "commitSha": "73b1af2d34d07391249bfcfddbed2786b3644639",
+  "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
+  "fixtureAuthority": "Playwright route fixtures scoped to the authenticated demo learner and control-correction goal",
+  "sourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "5fda88d0b24b22bc12039871b0a7c8b3d917f2e886b1de63dd1ea3308382063e",
+    "src/components/ai/global-ai-sidebar.tsx": "b0e5b446cafaf12accdb30c02dfccf6f1cffb872a4c25aca97a5c3c2b40003d4",
+    "src/lib/path-generation-request-lifecycle.ts": "a157e706fee2e8d8d50092c629c4649d0a76c4685d118f714b1229b15b73e3e5",
+    "tests/adaptive-path-one-click-generation.spec.ts": "414ac3f7206cb34650072bc0a5b48d568a0bf5a34e179210321ce52148cb2be8"
+  },
+  "requestObservations": [
+    {
+      "viewport": "desktop-1440",
+      "requestCount": 4,
+      "requestIds": [
+        "01a30ead-f7de-452a-86b6-0d49dc000ad0",
+        "01a30ead-f7de-452a-86b6-0d49dc000ad0",
+        "01a30ead-f7de-452a-86b6-0d49dc000ad0",
+        "aabdcf00-168f-4a9d-85c3-2655fde52dce"
+      ],
+      "duplicateActivationCount": 1,
+      "unknownOutcomeReusedId": true,
+      "runningRetryReusedId": true,
+      "definitiveTerminalCreatedNewId": true,
+      "lifecycleStatusesObserved": [
+        "pending",
+        "failed-unknown",
+        "running",
+        "failed-definitive",
+        "succeeded"
+      ],
+      "learnerStateRefreshesAfterSuccess": 2,
+      "pathRefreshesAfterSuccess": 2
+    },
+    {
+      "viewport": "mobile-320",
+      "requestCount": 4,
+      "requestIds": [
+        "c88f7d2c-c71a-4083-8ec6-05b9a427ce12",
+        "c88f7d2c-c71a-4083-8ec6-05b9a427ce12",
+        "c88f7d2c-c71a-4083-8ec6-05b9a427ce12",
+        "a20cebb5-a6bb-48f0-a767-ccc7d37bead2"
+      ],
+      "duplicateActivationCount": 1,
+      "unknownOutcomeReusedId": true,
+      "runningRetryReusedId": true,
+      "definitiveTerminalCreatedNewId": true,
+      "lifecycleStatusesObserved": [
+        "pending",
+        "failed-unknown",
+        "running",
+        "failed-definitive",
+        "succeeded"
+      ],
+      "learnerStateRefreshesAfterSuccess": 2,
+      "pathRefreshesAfterSuccess": 2
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "artifacts/commercial-ui/issue-1140-pr-a/lifecycle-success-desktop-1440.png",
+      "sha256": "651a466a7edb3201ed4d478fbfa2a34afd5757de78fec81cc3a2c17ec88fa72a",
+      "width": 1440,
+      "height": 1000,
+      "state": "succeeded-with-konling-visible",
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1140-pr-a/lifecycle-success-mobile-320.png",
+      "sha256": "0d15c0f2b6fd6fa5e2a59bf69a3043dc9289168e0a713d4babff51719dec20ac",
+      "width": 320,
+      "height": 900,
+      "state": "succeeded-with-konling-visible",
+      "noHorizontalOverflow": true
+    }
+  ]
+}
