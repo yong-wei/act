@@ -1,20 +1,35 @@
 import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 
 import {
   assertCurrentCourseCoverageProductionBoundaryBundle,
   buildCurrentCourseCoverageBatchReceipt,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
+  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
+  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
+  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
   currentCourseCoverageStageInputDigest,
   sealCurrentCourseCoverageProductionBoundaryAttestation,
   sealCurrentCourseCoverageStageReview,
   type CourseCoverageReviewStage,
   type CurrentCourseCoverageBatchBinding,
+  type CurrentCourseCoverageProtectedPathSnapshot,
   type CurrentCourseCoverageProductionBoundaryAttestation,
   type CurrentCourseCoverageProductionBoundaryProof,
+  type CurrentCourseCoverageProductionBoundaryProofV3,
+  type CurrentCourseCoverageProductionBoundaryProofV2,
   type CurrentCourseCoverageStageReview,
 } from '../aggregate-governance/current-course-coverage-batch-review';
 import { publishCurrentCourseCoverageBatchBundle } from '../../../scripts/course-coverage/review-current-course-coverage-batch';
+import {
+  assertGitAncestor,
+  assertPublishedReplaySnapshot,
+  validateCurrentCourseCoverageStageSource,
+  validateStageProvenanceBinding,
+  classifyPublishedReplayMode,
+} from '../../../scripts/course-coverage/review-current-course-coverage-batch';
 import {
   buildCurrentCourseCoverageWorklist,
   buildCurrentReviewBatchManifest,
@@ -23,6 +38,7 @@ import {
   type CurrentCourseCoverageWorklist,
   type CurrentReviewBatchManifest,
 } from '../aggregate-governance/current-course-coverage-review';
+import { sha256Canonical } from '../aggregate-governance/hash';
 
 const SHA_A = 'a'.repeat(64);
 const SHA_B = 'b'.repeat(64);
@@ -30,16 +46,46 @@ const SHA_C = 'c'.repeat(64);
 const COMMIT = 'd'.repeat(40);
 
 function productionBoundaryProof(
-  overrides: Partial<CurrentCourseCoverageProductionBoundaryProof> = {},
-): CurrentCourseCoverageProductionBoundaryProof {
+  overrides: Partial<CurrentCourseCoverageProductionBoundaryProofV2> = {},
+): CurrentCourseCoverageProductionBoundaryProofV2 {
   return {
-    verificationProtocol: 'git-head-and-production-authority-pre-publication-snapshot/v2',
+    verificationProtocol: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
     receiptPath: 'course-content/authoring/knowledge/issue-1190-course-coverage-review/batch-receipt.json',
     attestationPath: 'course-content/authoring/knowledge/issue-1190-course-coverage-review/batch-boundary-attestation.json',
     headBefore: COMMIT,
     protectedPaths: ['src/lib/canonical-rag/authority.ts'],
     statusBefore: [],
     authoritySnapshotBeforeDigest: SHA_A,
+    gitDiffCheck: 'PASS',
+    mutationFlags: {
+      currentCoverageDecisionWritten: false,
+      productionSelectorChanged: false,
+      graphRagSelectorChanged: false,
+      writerFenceChanged: false,
+    },
+    ...overrides,
+  };
+}
+
+const V3_PROTECTED_PATH = 'src/lib/canonical-rag/authority.ts';
+const V3_PROTECTED_ROWS: CurrentCourseCoverageProtectedPathSnapshot[] = [{
+  relativePath: V3_PROTECTED_PATH,
+  workingTreeDigest: SHA_A,
+  headDigest: SHA_A,
+}];
+
+function productionBoundaryProofV3(
+  overrides: Partial<CurrentCourseCoverageProductionBoundaryProofV3> = {},
+): CurrentCourseCoverageProductionBoundaryProofV3 {
+  return {
+    verificationProtocol: 'git-head-and-production-authority-pre-publication-snapshot/v3',
+    receiptPath: 'course-content/authoring/knowledge/issue-1192-course-coverage-review/batch-receipt.json',
+    attestationPath: 'course-content/authoring/knowledge/issue-1192-course-coverage-review/batch-boundary-attestation.json',
+    headBefore: COMMIT,
+    protectedPaths: [V3_PROTECTED_PATH],
+    protectedPathSnapshots: structuredClone(V3_PROTECTED_ROWS),
+    statusBefore: [],
+    authoritySnapshotBeforeDigest: sha256Canonical({ head: COMMIT, rows: V3_PROTECTED_ROWS }),
     gitDiffCheck: 'PASS',
     mutationFlags: {
       currentCoverageDecisionWritten: false,
@@ -180,6 +226,13 @@ function stageReview(input: {
       sessionId: input.sessionId,
       promptVersion,
     },
+    sourceArtifactBinding: {
+      artifactPath: `fixtures/${input.stage.toLowerCase()}-source.json`,
+      artifactSha256: SHA_C,
+      schemaVersion: 'fixture-course-coverage-source/v1',
+      stage: input.stage,
+      writerSessionId: input.sessionId,
+    },
     reviewInputDigest,
     decisions: ids.map((canonicalId) => {
       const item = byId.get(canonicalId)!;
@@ -209,7 +262,11 @@ function documents(input = fixture()) {
   };
 }
 
-function receipt(input = documents()) {
+function receipt(
+  input = documents(),
+  productionBoundary: CurrentCourseCoverageProductionBoundaryProof = productionBoundaryProof(),
+  allowLegacySourceArtifactBinding = false,
+) {
   return buildCurrentCourseCoverageBatchReceipt({
     worklist: input.worklist,
     manifest: input.manifest,
@@ -217,12 +274,70 @@ function receipt(input = documents()) {
     observedManifestArtifactSha256: SHA_C,
     primary: input.primary,
     challenger: input.challenger,
-    productionBoundaryProof: productionBoundaryProof(),
+    productionBoundaryProof: productionBoundary,
+    allowLegacySourceArtifactBinding,
   });
+}
+
+function sourceFor(document: CurrentCourseCoverageStageReview): { document: CurrentCourseCoverageStageReview; bytes: string } {
+  const bytes = JSON.stringify({
+    schemaVersion: 'fixture-course-coverage-source/v1',
+    stage: document.stage,
+    batchBinding: {
+      batchId: document.batchBinding.batchId,
+      manifestBatchIndex: document.batchBinding.manifestBatchIndex,
+      sequence: document.batchBinding.sequence,
+      group: document.batchBinding.semanticGroupKey,
+      memberCount: document.batchBinding.memberCount,
+      memberDigest: document.batchBinding.memberDigest,
+      manifestDigest: document.batchBinding.manifestDigest,
+    },
+    members: document.decisions.map((decision, ordinal) => ({
+      ordinal,
+      canonicalId: decision.canonicalId,
+      canonicalRevision: decision.canonicalRevision,
+      stageConclusion: decision.conclusion,
+      rationale: decision.rationale,
+      evidenceRefs: decision.evidenceSelectors.map((selector) => `fixture|aggregate|${selector}|evidence`),
+    })),
+  });
+  return {
+    document: {
+      ...document,
+      sourceArtifactBinding: {
+        ...document.sourceArtifactBinding,
+        artifactSha256: createHash('sha256').update(bytes).digest('hex'),
+      },
+    },
+    bytes,
+  };
 }
 
 function attestationFor(inputReceipt = receipt()): CurrentCourseCoverageProductionBoundaryAttestation {
   const proof = inputReceipt.productionBoundaryProof;
+  return sealCurrentCourseCoverageProductionBoundaryAttestation({
+    schemaVersion: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
+    protocol: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1,
+    receiptPath: proof.receiptPath,
+    attestationPath: proof.attestationPath,
+    receiptDigest: inputReceipt.receiptDigest,
+    batchId: inputReceipt.batchBinding.batchId,
+    headBefore: proof.headBefore,
+    headAfter: proof.headBefore,
+    protectedPaths: [...proof.protectedPaths],
+    statusBefore: [...proof.statusBefore],
+    statusAfter: [],
+    authoritySnapshotBeforeDigest: proof.authoritySnapshotBeforeDigest,
+    authoritySnapshotAfterDigest: proof.authoritySnapshotBeforeDigest,
+    gitDiffCheck: 'PASS',
+  });
+}
+
+function attestationV2For(inputReceipt: ReturnType<typeof receipt>): CurrentCourseCoverageProductionBoundaryAttestation {
+  const proof = inputReceipt.productionBoundaryProof;
+  if (proof.verificationProtocol !== 'git-head-and-production-authority-pre-publication-snapshot/v3') {
+    throw new Error('fixture requires v3 proof');
+  }
   return sealCurrentCourseCoverageProductionBoundaryAttestation({
     schemaVersion: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
     protocol: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
@@ -237,6 +352,8 @@ function attestationFor(inputReceipt = receipt()): CurrentCourseCoverageProducti
     statusAfter: [],
     authoritySnapshotBeforeDigest: proof.authoritySnapshotBeforeDigest,
     authoritySnapshotAfterDigest: proof.authoritySnapshotBeforeDigest,
+    protectedPathSnapshotsBefore: structuredClone(proof.protectedPathSnapshots),
+    protectedPathSnapshotsAfter: structuredClone(proof.protectedPathSnapshots),
     gitDiffCheck: 'PASS',
   });
 }
@@ -350,6 +467,44 @@ describe('current CourseCoverage batch review receipt', () => {
     ]);
     expect(result.attestation.receiptDigest).toBe(inputReceipt.receiptDigest);
     expect(result.attestation.authoritySnapshotAfterDigest).toBe(beforeSnapshot.snapshotDigest);
+  });
+
+  it('publishes v3 protected path rows and binds the detached attestation', async () => {
+    const inputReceipt = receipt(documents(), productionBoundaryProofV3());
+    const proof = inputReceipt.productionBoundaryProof;
+    if (proof.verificationProtocol !== 'git-head-and-production-authority-pre-publication-snapshot/v3') {
+      throw new Error('fixture requires v3 proof');
+    }
+    const beforeSnapshot = {
+      head: proof.headBefore,
+      status: [...proof.statusBefore],
+      rows: structuredClone(proof.protectedPathSnapshots),
+      snapshotDigest: proof.authoritySnapshotBeforeDigest,
+    };
+    const files = new Map<string, string>();
+    const result = await publishCurrentCourseCoverageBatchBundle({
+      receiptOutput: proof.receiptPath,
+      attestationOutput: proof.attestationPath,
+      receiptPath: proof.receiptPath,
+      attestationPath: proof.attestationPath,
+      receipt: inputReceipt,
+      receiptBytes: `${JSON.stringify(inputReceipt, null, 2)}\n`,
+      beforeSnapshot,
+      captureSnapshot: async () => beforeSnapshot,
+      publishArtifact: async (output, bytes) => {
+        files.set(output, bytes);
+        return 'published';
+      },
+      readArtifact: async (output) => files.get(output) ?? '',
+      existsArtifact: async (output) => files.has(output),
+      unlinkArtifact: async (output) => { files.delete(output); },
+    });
+    expect(result.attestation.schemaVersion).toBe(CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION);
+    expect('protectedPathSnapshotsBefore' in result.attestation).toBe(true);
+    if ('protectedPathSnapshotsBefore' in result.attestation) {
+      expect(result.attestation.protectedPathSnapshotsBefore).toEqual(proof.protectedPathSnapshots);
+      expect(result.attestation.protectedPathSnapshotsAfter).toEqual(proof.protectedPathSnapshots);
+    }
   });
 
   it('fails closed when HEAD or protected authority drifts after receipt publication', async () => {
@@ -659,5 +814,136 @@ describe('current CourseCoverage batch review receipt', () => {
     expect(() => receipt({ ...input, primary: decisionTamper })).toThrow(/decisionDigest mismatch/iu);
     const documentTamper = { ...input.primary, documentDigest: SHA_A };
     expect(() => receipt({ ...input, primary: documentTamper })).toThrow(/document digest mismatch/iu);
+  });
+
+  it('fails closed when an independent source is changed or its binding is swapped', () => {
+    const bound = sourceFor(documents().primary);
+    expect(() => validateCurrentCourseCoverageStageSource({ document: bound.document, sourceBytes: bound.bytes })).not.toThrow();
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: bound.document,
+      sourceBytes: `${bound.bytes} `,
+    })).toThrow(/SHA-256 mismatch/iu);
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: {
+        ...bound.document,
+        sourceArtifactBinding: { ...bound.document.sourceArtifactBinding, artifactSha256: SHA_A },
+      },
+      sourceBytes: bound.bytes,
+    })).toThrow(/SHA-256 mismatch/iu);
+    expect(() => validateStageProvenanceBinding(bound.document, {
+      primary: {
+        sourceArtifact: 'primary-source.json',
+        sourceArtifactSha256: bound.document.sourceArtifactBinding.artifactSha256,
+        sourceArtifactBinding: bound.document.sourceArtifactBinding,
+        normalizedDocumentDigest: bound.document.documentDigest,
+      },
+    })).not.toThrow();
+    expect(() => validateStageProvenanceBinding(bound.document, {
+      primary: {
+        sourceArtifact: 'primary-source.json',
+        sourceArtifactSha256: SHA_A,
+        sourceArtifactBinding: { ...bound.document.sourceArtifactBinding, artifactSha256: SHA_A },
+        normalizedDocumentDigest: bound.document.documentDigest,
+      },
+    })).toThrow(/provenance\/source binding drift|identity drift/iu);
+  });
+
+  it('keeps source binding strict for new receipts while allowing legacy replay records', () => {
+    const input = documents();
+    const legacyPrimary = structuredClone(input.primary);
+    const legacyChallenger = structuredClone(input.challenger);
+    delete (legacyPrimary as { sourceArtifactBinding?: unknown }).sourceArtifactBinding;
+    delete (legacyChallenger as { sourceArtifactBinding?: unknown }).sourceArtifactBinding;
+    legacyPrimary.documentDigest = sha256Canonical((({ documentDigest: _, ...withoutDigest }) => withoutDigest)(legacyPrimary));
+    legacyChallenger.documentDigest = sha256Canonical((({ documentDigest: _, ...withoutDigest }) => withoutDigest)(legacyChallenger));
+    const legacyInput = { ...input, primary: legacyPrimary, challenger: legacyChallenger };
+    expect(() => receipt(legacyInput)).toThrow(/source artifact binding is required/iu);
+    expect(() => receipt(legacyInput, productionBoundaryProof(), true)).not.toThrow();
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: legacyPrimary,
+      sourceBytes: '{}',
+    })).toThrow(/source artifact binding is required/iu);
+  });
+
+  it('rejects missing source binding for v3 proof and v2 attestation replay', () => {
+    const input = documents();
+    const legacyPrimary = structuredClone(input.primary);
+    const legacyChallenger = structuredClone(input.challenger);
+    delete (legacyPrimary as { sourceArtifactBinding?: unknown }).sourceArtifactBinding;
+    delete (legacyChallenger as { sourceArtifactBinding?: unknown }).sourceArtifactBinding;
+    legacyPrimary.documentDigest = sha256Canonical((({ documentDigest: _, ...withoutDigest }) => withoutDigest)(legacyPrimary));
+    legacyChallenger.documentDigest = sha256Canonical((({ documentDigest: _, ...withoutDigest }) => withoutDigest)(legacyChallenger));
+    expect(() => receipt(
+      { ...input, primary: legacyPrimary, challenger: legacyChallenger },
+      productionBoundaryProofV3(),
+      true,
+    )).toThrow(/source artifact binding is required/iu);
+  });
+
+  it('binds v3 boundary rows and rejects a v3/v1 protocol mismatch', () => {
+    const inputReceipt = receipt(documents(), productionBoundaryProofV3());
+    const attestation = attestationV2For(inputReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: inputReceipt,
+      attestation,
+      receiptPath: inputReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: inputReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: inputReceipt,
+      attestation: attestationFor(inputReceipt),
+      receiptPath: inputReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: inputReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/proof\/attestation version mismatch/iu);
+  });
+
+  it('accepts descendant and content-equivalent replay rows but rejects protected drift', () => {
+    expect(classifyPublishedReplayMode({
+      captureHeadIsAncestor: true,
+      currentRows: V3_PROTECTED_ROWS,
+      expectedRows: V3_PROTECTED_ROWS,
+    })).toBe('descendant');
+    expect(classifyPublishedReplayMode({
+      captureHeadIsAncestor: false,
+      currentRows: V3_PROTECTED_ROWS,
+      expectedRows: V3_PROTECTED_ROWS,
+    })).toBe('content-equivalent');
+    expect(() => classifyPublishedReplayMode({
+      captureHeadIsAncestor: false,
+      currentRows: [{ ...V3_PROTECTED_ROWS[0]!, workingTreeDigest: SHA_B }],
+      expectedRows: V3_PROTECTED_ROWS,
+    })).toThrow(/protected authority bytes drifted/iu);
+  });
+
+  it('accepts descendant replay and rejects non-ancestor or protected-path drift', () => {
+    const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+    const parent = execFileSync('git', ['rev-parse', 'HEAD^'], { encoding: 'utf8' }).trim();
+    expect(() => assertGitAncestor(parent, head)).not.toThrow();
+    expect(() => assertGitAncestor(head, parent)).toThrow(/not an ancestor/iu);
+
+    const protectedPaths = [
+      'course-content/authoring/knowledge/course-coverage/active/automatic-control.json',
+      'course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json',
+      'src/lib/canonical-rag/authority.ts',
+      'src/lib/canonical-learning-fact-identity/authority.ts',
+      'src/lib/canonical-learning-fact-identity/capability.ts',
+      'src/lib/canonical-learning-fact-identity/writer.ts',
+    ];
+    const replayReceipt = receipt();
+    replayReceipt.productionBoundaryProof.protectedPaths = protectedPaths;
+    const replayAttestation = attestationFor(replayReceipt);
+    const snapshot = {
+      currentHead: head,
+      status: [],
+      snapshotDigest: replayAttestation.authoritySnapshotBeforeDigest,
+    };
+    expect(() => assertPublishedReplaySnapshot(replayReceipt, replayAttestation, snapshot)).not.toThrow();
+    expect(() => assertPublishedReplaySnapshot(replayReceipt, replayAttestation, {
+      ...snapshot,
+      snapshotDigest: SHA_B,
+    })).toThrow(/snapshot drifted/iu);
+    replayReceipt.productionBoundaryProof.protectedPaths = ['src/lib/canonical-rag/authority.ts'];
+    expect(() => assertPublishedReplaySnapshot(replayReceipt, replayAttestation, snapshot))
+      .toThrow(/protected authority path set drifted/iu);
   });
 });

@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "4fe2a9542cff584574ec2299",
+    "manifestBatchIndex": 4,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:classical-control-design-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 13,
+    "memberDigest": "1483d702fd4044daee524cca5c6487c72db1048bcbe87765b8e998bfcbb87bef",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-primary-issue-1194",
+    "provider": "grok-4.5-build",
+    "sessionId": "f5182b08-dddc-4d3e-a4b5-49e7aefb82e6",
+    "promptVersion": "course-coverage-primary/1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1194-course-coverage-review/primary-independent-stage-source.json",
+    "artifactSha256": "0cc3d0eb69c9af987bbc48568a10cc7b6268c649037d08da3c8882a595514bcd",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "PRIMARY",
+    "writerSessionId": "f5182b08-dddc-4d3e-a4b5-49e7aefb82e6"
+  },
+  "reviewInputDigest": "71c5608b1fa3ed7be88d7b687f62e3c60a7ff782a3508a6b953224216232b9fe",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-0340c4126dd6cf5ee092c557",
+      "canonicalRevision": "ca86c8ea32d2e86c1a6da2a689e6df0d6f575df7fd5c0957674637f439daa826",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b969df644b707f00c0420ec9",
+        "canonicalId:ctkg:v3e-object-0340c4126dd6cf5ee092c557"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-0340c4126dd6cf5ee092c557 preferredLabel「G0(s)=10/[s(s+1)]」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-b969df644b707f00c0420ec9(evidenceId=6a85c51060d3abbec0fea376fe4b5513,sourceDigest=f1aa44fd21fca181…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-0340c4126dd6cf5ee092c557(evidenceId=c0d981939bbbeb0309d1adf0648d95d5,sourceDigest=ca86c8ea32d2e86c…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "b6bdf74e59655e46c35afe903c5c14b117c2a2e62765cda2503257b6ce90bf80"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0f0f3ed73c4d47ee9fbba83b",
+      "canonicalRevision": "d0deef8a43785d2c6c086fc4c0b37e2cd0ad88d2af079ff09d5f8013b8fe07ee",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-90d7370b966c73fbfb798d2e",
+        "canonicalId:ctkg:v3e-object-0f0f3ed73c4d47ee9fbba83b"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-0f0f3ed73c4d47ee9fbba83b preferredLabel「K G(s) = K / ((1/0.5 s + 1)(s + 1)(1/2 s + 1))」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-90d7370b966c73fbfb798d2e(evidenceId=cde0c8ee6f7e78eb472664fec1c32e4d,sourceDigest=47481909cc040d0b…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-0f0f3ed73c4d47ee9fbba83b(evidenceId=5ec9a41fbdf2af771cc28cb23cb2b098,sourceDigest=d0deef8a43785d2c…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "66fb781c76030affc49712f92cc95462f458aea138fb7ad06ed845f9b80e5640"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-147dc989f3aa462bb9df6780",
+      "canonicalRevision": "8366ad0139b24a14b312010aed8a101923f3e8f42161ee2315be7e867594459c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3a5da864b3f9297f71e9705b",
+        "evidence:ctkg:v3e-evidence-43363d34252ee8c829d610b3",
+        "canonicalId:ctkg:v3e-object-147dc989f3aa462bb9df6780"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-147dc989f3aa462bb9df6780 preferredLabel「A single-loop feedback control system as shown in Figure 10.1(a) with G(s)=10/s^2 and H(s…」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=2；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-3a5da864b3f9297f71e9705b(evidenceId=2095b6cc7fc17bbe3812ccc19688c239,sourceDigest=ee6a8548835a145e…,sourcePath=aggregate-projection)；aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-43363d34252ee8c829d610b3(evidenceId=cec0e435dd9f83ea5b632c3a2d56481e,sourceDigest=410fcaf7417ba8aa…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-147dc989f3aa462bb9df6780(evidenceId=fcb89998204e2e3cc0b92aab04700461,sourceDigest=8366ad0139b24a14…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "692554549e3d118c3201d514d96cd410bc6acf7b11caae7ed546bd8353267985"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-313988aea27586c38b520c26",
+      "canonicalRevision": "8d94a1696bf6892bc30aadc02b773355aa121e114e2b01d71849f85931257bbd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-510b2bc6001d1c2162802f25",
+        "canonicalId:ctkg:v3e-object-313988aea27586c38b520c26"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-313988aea27586c38b520c26 preferredLabel「a Gc(s) G0(s)=10(1+0.456s)/[s(1+0.114s)(1+s)]」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-510b2bc6001d1c2162802f25(evidenceId=b18af703e93e72fb2ea269a7d72b7aad,sourceDigest=ab911230f561f45c…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-313988aea27586c38b520c26(evidenceId=1adb316d4004674bab192bf4f365d824,sourceDigest=8d94a1696bf6892b…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "4b8ef1ac8203da5284729dd058338df894dc7b722ea703aa756563642928c9da"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-64603cebe7ad39ae27863c19",
+      "canonicalRevision": "654765159823559a356b6989df155cc695dab8f477d5a4d2842566d4116d789b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5ea5871067465b45d39ff680",
+        "evidence:ctkg:v3e-evidence-a6c55dc0b7eb89e22d3a9600",
+        "evidence:ctkg:v3e-evidence-f1e7148800b063b57d0039dd",
+        "canonicalId:ctkg:v3e-object-64603cebe7ad39ae27863c19"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-64603cebe7ad39ae27863c19 preferredLabel「带有PD控制器的磁盘驱动器控制系统，忽略电机磁场影响，建模为二阶系统。」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=3；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-5ea5871067465b45d39ff680(evidenceId=af888ddd8908e734c0ee76bbcd933c45,sourceDigest=0ae9b93e1554eace…,sourcePath=aggregate-projection)；aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-a6c55dc0b7eb89e22d3a9600(evidenceId=a53462021bc1eb84521c87c7947c4d49,sourceDigest=f524b90512d84254…,sourcePath=aggregate-projection)；aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-f1e7148800b063b57d0039dd(evidenceId=34afad601a71a64f651d266a5ff0b9fd,sourceDigest=a93efa8ca85daa2d…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-64603cebe7ad39ae27863c19(evidenceId=51fe998f672e1bdaf39701a964061565,sourceDigest=654765159823559a…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "b11cc317330d6cc46f258a5f515e7230403c12dcbea3dac93ad2213e5697deb5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-77f83a68b59fb8b3c385e201",
+      "canonicalRevision": "5a16ad9c2ee088bf4a0c4b5ac4dab39c1c01a63f2e4a9893a63b378b11ca6e64",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b2f9b41a7bb19048c14c672c",
+        "canonicalId:ctkg:v3e-object-77f83a68b59fb8b3c385e201"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-77f83a68b59fb8b3c385e201 preferredLabel「Gc(s)=(1+3.7s)/(1+41s)」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-b2f9b41a7bb19048c14c672c(evidenceId=a639caf0f94a3bb66ce40b2ffddcc215,sourceDigest=b3f8cb3ae37dfecc…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-77f83a68b59fb8b3c385e201(evidenceId=8dcd6ec469fe0bdfe776a685fca87e5b,sourceDigest=5a16ad9c2ee088bf…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "24d62196242c4855ed82534f81a244fa989051153ac343f58c0b621d7e960672"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-98aaaa0e400a39cffd4f1215",
+      "canonicalRevision": "a95fdd5b2514cad0357d20941685bf720ab10218e179c6c5e9a66321f008bcc8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bd2efd6ba7dfbe2b416982e5",
+        "canonicalId:ctkg:v3e-object-98aaaa0e400a39cffd4f1215"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-98aaaa0e400a39cffd4f1215 preferredLabel「G0(s)=Kv/[s(1/6 s+1)(1/2 s+1)]」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-bd2efd6ba7dfbe2b416982e5(evidenceId=8f740be67de3c71ae9037af9df8a6de3,sourceDigest=cfce7f20e32f9613…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-98aaaa0e400a39cffd4f1215(evidenceId=427feb8b264842a4fca5c98170883c78,sourceDigest=a95fdd5b2514cad0…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "3824abd608bbf4bb0b282efe25d0f09125fc81271b0c456436eef8fe7436e23b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a72b6c0849fed126c6cfa4da",
+      "canonicalRevision": "d116d8c8d666e6010eaf7109cdce5353d8a769beec3b7425649232d985364b94",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-55f590a34f83384cb632efd1",
+        "canonicalId:ctkg:v3e-object-a72b6c0849fed126c6cfa4da"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-a72b6c0849fed126c6cfa4da preferredLabel「Gc(s)G0(s)=180(1+1.28s)/[s(1+0.167s)(1+64s)(1+0.01s)]」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-55f590a34f83384cb632efd1(evidenceId=fcdc473c9ab780045c1adc33656cba48,sourceDigest=c00118e02f6c3ff2…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-a72b6c0849fed126c6cfa4da(evidenceId=2500e6921b2c6aefccb9d10e496cc86c,sourceDigest=d116d8c8d666e601…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "4cfeb4ba50681ce2db5be9ce305011060e1c63769b83e6c67225f2399f7250a6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a8faaa2a0cc93288cdd92b43",
+      "canonicalRevision": "c9231620d0cfde5c53cec0f40ae068222a4eb932a1ee3b920a812b40deb83d64",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-af5d93e5679ab34bb993b826",
+        "canonicalId:ctkg:v3e-object-a8faaa2a0cc93288cdd92b43"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-a8faaa2a0cc93288cdd92b43 preferredLabel「G0(s)=30/[s(1+0.1s)(1+0.2s)]」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-af5d93e5679ab34bb993b826(evidenceId=eccd25a62511b12f0f441dcd20fe6fb6,sourceDigest=cfcf70ca72db0462…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-a8faaa2a0cc93288cdd92b43(evidenceId=919c315c76011bd578c0b728bc7278ee,sourceDigest=c9231620d0cfde5c…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "5895a883ce187ef75b0a4123ecb3147fea189e4c1efb93499ac0fb1262e1402a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b82ef9d91e8e489ea0326005",
+      "canonicalRevision": "78e6a3a1a64b3516f6a2471907afa004b3fc1b9234ddc88d8304881080563884",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-bd2708c9cf2f185a3e7d33df",
+        "canonicalId:ctkg:v3e-object-b82ef9d91e8e489ea0326005"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-b82ef9d91e8e489ea0326005 preferredLabel「Gc(s)=(1+1.28s)(1+0.5s)/[(1+64s)(1+0.01s)]」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-bd2708c9cf2f185a3e7d33df(evidenceId=1b9e92bab9adde75a54a4725e7889fed,sourceDigest=c8a8a0b0c89ec7d8…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-b82ef9d91e8e489ea0326005(evidenceId=6d2ab349bc872107c97b053f538a06db,sourceDigest=78e6a3a1a64b3516…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "9fb879727c8b8ec08761d2196d0ef0417b19df78d9e0c2e2b8c22c4f5dc5cdd4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d0e4ed55b4a44e0c7702dd9f",
+      "canonicalRevision": "6f26b2a485545e85242fa052162938a6f1ac0a53ed20f9d8e9de7b2884112400",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-213665353129dae01c4a614f",
+        "canonicalId:ctkg:v3e-object-d0e4ed55b4a44e0c7702dd9f"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-d0e4ed55b4a44e0c7702dd9f preferredLabel「K G(s) = K * 10 / (s(s/2.5 + 1)(s/6 + 1))」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-213665353129dae01c4a614f(evidenceId=0ec191f7f537f5262c209855c76bbed3,sourceDigest=b84993a658cd02d5…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-d0e4ed55b4a44e0c7702dd9f(evidenceId=4fb24ef21f1df5b00e4d5651f2e827f7,sourceDigest=6f26b2a485545e85…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "ca02bbf888d5419fa293ce824218817ac2cbed97692e19ad39892a7f16f47aba"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dd817489c6bdc3c7c1850e29",
+      "canonicalRevision": "04aa006def8a1d79bb31afa4e45f3dc0cc0c6fbc6c71fd4558d1b916a1b5105c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6d15d3cefe62b51c96e013b6",
+        "evidence:ctkg:v3e-evidence-dd48ea177f1021d5ed97b46a",
+        "canonicalId:ctkg:v3e-object-dd817489c6bdc3c7c1850e29"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-dd817489c6bdc3c7c1850e29 preferredLabel「A unity feedback control system with loop transfer function L(s)=40/(s(s+2)).」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=silver,upstreamEvidenceCount=2；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-6d15d3cefe62b51c96e013b6(evidenceId=8fc6abb19cb234897e61017ce75afb3e,sourceDigest=6b972c2b561d3a14…,sourcePath=aggregate-projection)；aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-dd48ea177f1021d5ed97b46a(evidenceId=cd791aa921398593be7c045d654cd186,sourceDigest=3b3930276fd1ba45…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-dd817489c6bdc3c7c1850e29(evidenceId=dfce3f309fe7b7b63e072411235f0a1d,sourceDigest=04aa006def8a1d79…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "16b227e9a0a232d590822ad5b5d61cca9640196285fe7cdbe764efe193d33f84"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f6b3c0a2ea7fe88d6a946f44",
+      "canonicalRevision": "1df00be28f79dd50bc815e1c7d3bb4682a670ab1e11ab86e4bdbcc0056a733e3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-01a4eda8496aaf494bfb3725",
+        "canonicalId:ctkg:v3e-object-f6b3c0a2ea7fe88d6a946f44"
+      ],
+      "rationale": "DEFER+INSUFFICIENT：canonicalId=ctkg:v3e-object-f6b3c0a2ea7fe88d6a946f44 preferredLabel「具有PID控制器的系统结构图，PID控制是通过对误差的比例、积分和微分线性组合，构成控制量对被控对象进行调节。」；entityType=SystemModel；moduleMembership=[ctr:release:classical-control-design-engineering-v0.1]；profileOnly=True highRisk=True riskReasons=high-risk,profile-only；priorDecisionRefs=empty；sourceCoverage=count=1,releaseTier=gold,upstreamEvidenceCount=1；冻结 evidenceRefs 仅 boundary={aggregate,profile} kind={aggregate-evidence,canonical-profile}，sourcePath={aggregate-projection}，无 independent-course / lesson-authoring / syllabus-blueprint 证据，不能 INCLUDE/EXCLUDE；role=null。仓库 authoring/lessons 与 syllabus-refactor 对 canonicalId 零命中。实际证据：aggregate-evidence/aggregate:evidence:ctkg:v3e-evidence-01a4eda8496aaf494bfb3725(evidenceId=64a8e11283d996526c48f3fe2373200a,sourceDigest=34bd26eaa79bc2c2…,sourcePath=aggregate-projection)；canonical-profile/profile:canonicalId:ctkg:v3e-object-f6b3c0a2ea7fe88d6a946f44(evidenceId=dbd450333089524d589bf37a28831ecb,sourceDigest=1df00be28f79dd50…,sourcePath=aggregate-projection)。",
+      "decisionDigest": "a9077fdf280e0cbefd0c06dd4ff1d3da7d5d4ec93ae007212f7a75d892bec4ba"
+    }
+  ],
+  "documentDigest": "b813227e43ec766f28ea7f9e2a1139aa48c3a15f8eba2c54d64a92a0e8f754b5"
+}

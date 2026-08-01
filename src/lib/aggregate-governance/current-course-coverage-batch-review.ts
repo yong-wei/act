@@ -17,12 +17,18 @@ export const CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION =
   'current-course-coverage-stage-review/v1' as const;
 export const CURRENT_COURSE_COVERAGE_BATCH_RECEIPT_SCHEMA_VERSION =
   'current-course-coverage-batch-receipt/v1' as const;
-export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL =
+export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2 =
   'git-head-and-production-authority-pre-publication-snapshot/v2' as const;
-export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION =
+export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL =
+  'git-head-and-production-authority-pre-publication-snapshot/v3' as const;
+export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1 =
   'current-course-coverage-production-boundary-attestation/v1' as const;
-export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL =
+export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION =
+  'current-course-coverage-production-boundary-attestation/v2' as const;
+export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1 =
   'git-head-and-production-authority-detached-post-publication-attestation/v1' as const;
+export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL =
+  'git-head-and-production-authority-detached-post-publication-attestation/v2' as const;
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const ACTIVE_ROLES = new Set<CourseCoverageRole>([
@@ -34,6 +40,14 @@ const ACTIVE_ROLES = new Set<CourseCoverageRole>([
 export type CourseCoverageReviewStage = 'PRIMARY' | 'CHALLENGER' | 'THIRD';
 export type CourseCoverageStageConclusion = 'INCLUDE' | 'EXCLUDE' | 'DEFER';
 export type CourseCoverageEvidenceSufficiency = 'SUFFICIENT' | 'INSUFFICIENT';
+
+export interface CurrentCourseCoverageStageSourceBinding {
+  artifactPath: string;
+  artifactSha256: string;
+  schemaVersion: string;
+  stage: CourseCoverageReviewStage;
+  writerSessionId: string;
+}
 
 export interface CurrentCourseCoverageBatchBinding {
   batchId: string;
@@ -59,6 +73,12 @@ export interface CurrentCourseCoverageStageDecision {
   decisionDigest: string;
 }
 
+export interface CurrentCourseCoverageProtectedPathSnapshot {
+  relativePath: string;
+  workingTreeDigest: string;
+  headDigest: string;
+}
+
 export interface CurrentCourseCoverageStageReview {
   schemaVersion: typeof CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION;
   batchBinding: CurrentCourseCoverageBatchBinding;
@@ -69,13 +89,13 @@ export interface CurrentCourseCoverageStageReview {
     sessionId: string;
     promptVersion: string;
   };
+  sourceArtifactBinding: CurrentCourseCoverageStageSourceBinding;
   reviewInputDigest: string;
   decisions: CurrentCourseCoverageStageDecision[];
   documentDigest: string;
 }
 
-export interface CurrentCourseCoverageProductionBoundaryProof {
-  verificationProtocol: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL;
+interface CurrentCourseCoverageProductionBoundaryProofBase {
   receiptPath: string;
   attestationPath: string;
   headBefore: string;
@@ -91,9 +111,22 @@ export interface CurrentCourseCoverageProductionBoundaryProof {
   };
 }
 
-export interface CurrentCourseCoverageProductionBoundaryAttestation {
-  schemaVersion: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION;
-  protocol: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL;
+export interface CurrentCourseCoverageProductionBoundaryProofV2
+  extends CurrentCourseCoverageProductionBoundaryProofBase {
+  verificationProtocol: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2;
+}
+
+export interface CurrentCourseCoverageProductionBoundaryProofV3
+  extends CurrentCourseCoverageProductionBoundaryProofBase {
+  verificationProtocol: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL;
+  protectedPathSnapshots: CurrentCourseCoverageProtectedPathSnapshot[];
+}
+
+export type CurrentCourseCoverageProductionBoundaryProof =
+  | CurrentCourseCoverageProductionBoundaryProofV2
+  | CurrentCourseCoverageProductionBoundaryProofV3;
+
+interface CurrentCourseCoverageProductionBoundaryAttestationBase {
   receiptPath: string;
   attestationPath: string;
   receiptDigest: string;
@@ -108,6 +141,28 @@ export interface CurrentCourseCoverageProductionBoundaryAttestation {
   gitDiffCheck: 'PASS';
   attestationDigest: string;
 }
+
+export interface CurrentCourseCoverageProductionBoundaryAttestationV1
+  extends CurrentCourseCoverageProductionBoundaryAttestationBase {
+  schemaVersion: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1;
+  protocol: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1;
+}
+
+export interface CurrentCourseCoverageProductionBoundaryAttestationV2
+  extends CurrentCourseCoverageProductionBoundaryAttestationBase {
+  schemaVersion: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION;
+  protocol: typeof CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL;
+  protectedPathSnapshotsBefore: CurrentCourseCoverageProtectedPathSnapshot[];
+  protectedPathSnapshotsAfter: CurrentCourseCoverageProtectedPathSnapshot[];
+}
+
+export type CurrentCourseCoverageProductionBoundaryAttestation =
+  | CurrentCourseCoverageProductionBoundaryAttestationV1
+  | CurrentCourseCoverageProductionBoundaryAttestationV2;
+
+type CurrentCourseCoverageProductionBoundaryAttestationWithoutDigest =
+  | Omit<CurrentCourseCoverageProductionBoundaryAttestationV1, 'attestationDigest'>
+  | Omit<CurrentCourseCoverageProductionBoundaryAttestationV2, 'attestationDigest'>;
 
 export type CurrentCourseCoverageReceiptStageRecord = CurrentCourseCoverageStageReview;
 
@@ -170,6 +225,49 @@ function assertSha(value: string, field: string): void {
   if (!SHA256.test(value)) throw new Error(`Current batch review rejected: ${field} must be a SHA-256`);
 }
 
+function validateProtectedPathSnapshots(
+  rows: unknown,
+  protectedPaths: readonly string[],
+  field: string,
+): asserts rows is CurrentCourseCoverageProtectedPathSnapshot[] {
+  if (!Array.isArray(rows) || rows.length !== protectedPaths.length) {
+    throw new Error(`Current batch review rejected: ${field} must cover every protected authority path`);
+  }
+  const seen = new Set<string>();
+  rows.forEach((row, index) => {
+    if (!row || typeof row !== 'object') {
+      throw new Error(`Current batch review rejected: ${field}[${index}] is invalid`);
+    }
+    const snapshot = row as Record<string, unknown>;
+    const relativePath = requiredString(snapshot.relativePath, `${field}[${index}].relativePath`);
+    if (relativePath !== protectedPaths[index] || seen.has(relativePath)) {
+      throw new Error(`Current batch review rejected: ${field} path set drift`);
+    }
+    seen.add(relativePath);
+    const workingTreeDigest = requiredString(
+      snapshot.workingTreeDigest,
+      `${field}[${index}].workingTreeDigest`,
+    );
+    const headDigest = requiredString(snapshot.headDigest, `${field}[${index}].headDigest`);
+    assertSha(workingTreeDigest, `${field}[${index}].workingTreeDigest`);
+    assertSha(headDigest, `${field}[${index}].headDigest`);
+    if (workingTreeDigest !== headDigest) {
+      throw new Error(`Current batch review rejected: ${field}[${index}] differs between working tree and capture HEAD`);
+    }
+  });
+}
+
+function assertSnapshotDigest(input: {
+  head: string;
+  rows: readonly CurrentCourseCoverageProtectedPathSnapshot[];
+  digest: string;
+  field: string;
+}): void {
+  if (sha256Canonical({ head: input.head, rows: input.rows }) !== input.digest) {
+    throw new Error(`Current batch review rejected: ${input.field} digest mismatch`);
+  }
+}
+
 function assertCommit(value: string, field: string): void {
   if (!/^[a-f0-9]{40}$/u.test(value)) {
     throw new Error(`Current batch review rejected: ${field} must be a 40-hex Git revision`);
@@ -179,7 +277,8 @@ function assertCommit(value: string, field: string): void {
 function validateProductionBoundaryProof(
   proof: CurrentCourseCoverageProductionBoundaryProof,
 ): void {
-  if (proof.verificationProtocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
+  if (proof.verificationProtocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL
+    && proof.verificationProtocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2) {
     throw new Error('Current batch review rejected: production boundary verification protocol mismatch');
   }
   requiredString(proof.receiptPath, 'productionBoundaryProof.receiptPath');
@@ -195,6 +294,19 @@ function validateProductionBoundaryProof(
   assertSha(proof.authoritySnapshotBeforeDigest, 'productionBoundaryProof.authoritySnapshotBeforeDigest');
   if (proof.gitDiffCheck !== 'PASS') {
     throw new Error('Current batch review rejected: production boundary git diff check failed');
+  }
+  if (proof.verificationProtocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
+    validateProtectedPathSnapshots(
+      proof.protectedPathSnapshots,
+      proof.protectedPaths,
+      'productionBoundaryProof.protectedPathSnapshots',
+    );
+    assertSnapshotDigest({
+      head: proof.headBefore,
+      rows: proof.protectedPathSnapshots,
+      digest: proof.authoritySnapshotBeforeDigest,
+      field: 'productionBoundaryProof.authoritySnapshotBeforeDigest',
+    });
   }
   const flags = proof.mutationFlags;
   if (!flags || flags.currentCoverageDecisionWritten || flags.productionSelectorChanged
@@ -214,7 +326,7 @@ function assertAttestationDigest(
 }
 
 export function sealCurrentCourseCoverageProductionBoundaryAttestation(
-  attestation: Omit<CurrentCourseCoverageProductionBoundaryAttestation, 'attestationDigest'>,
+  attestation: CurrentCourseCoverageProductionBoundaryAttestationWithoutDigest,
 ): CurrentCourseCoverageProductionBoundaryAttestation {
   return { ...attestation, attestationDigest: sha256Canonical(attestation) };
 }
@@ -236,9 +348,16 @@ export function assertCurrentCourseCoverageProductionBoundaryBundle(input: {
   if (proof.receiptPath !== input.receiptPath || proof.attestationPath !== input.attestationPath) {
     throw new Error('Current batch review rejected: receipt/attestation path binding mismatch');
   }
-  if (attestation.schemaVersion !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION
-    || attestation.protocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL) {
+  const isLegacyAttestation = attestation.schemaVersion === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1
+    && attestation.protocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1;
+  const isCurrentAttestation = attestation.schemaVersion === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION
+    && attestation.protocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL;
+  if (!isLegacyAttestation && !isCurrentAttestation) {
     throw new Error('Current batch review rejected: production boundary attestation protocol mismatch');
+  }
+  const isCurrentProof = proof.verificationProtocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL;
+  if (isCurrentProof !== isCurrentAttestation) {
+    throw new Error('Current batch review rejected: production boundary proof/attestation version mismatch');
   }
   if (attestation.receiptPath !== input.receiptPath || attestation.attestationPath !== input.attestationPath) {
     throw new Error('Current batch review rejected: attestation path binding mismatch');
@@ -257,6 +376,39 @@ export function assertCurrentCourseCoverageProductionBoundaryBundle(input: {
   if (attestation.headAfter !== attestation.headBefore
     || attestation.authoritySnapshotAfterDigest !== attestation.authoritySnapshotBeforeDigest) {
     throw new Error('Current batch review rejected: production authority drifted across receipt publication');
+  }
+  if (isCurrentAttestation) {
+    validateProtectedPathSnapshots(
+      attestation.protectedPathSnapshotsBefore,
+      proof.protectedPaths,
+      'productionBoundaryAttestation.protectedPathSnapshotsBefore',
+    );
+    validateProtectedPathSnapshots(
+      attestation.protectedPathSnapshotsAfter,
+      proof.protectedPaths,
+      'productionBoundaryAttestation.protectedPathSnapshotsAfter',
+    );
+    if (proof.verificationProtocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL
+      || sha256Canonical(attestation.protectedPathSnapshotsBefore)
+        !== sha256Canonical(proof.protectedPathSnapshots)) {
+      throw new Error('Current batch review rejected: production boundary path snapshot mismatch');
+    }
+    if (sha256Canonical(attestation.protectedPathSnapshotsAfter)
+      !== sha256Canonical(attestation.protectedPathSnapshotsBefore)) {
+      throw new Error('Current batch review rejected: production boundary path snapshot drifted');
+    }
+    assertSnapshotDigest({
+      head: attestation.headBefore,
+      rows: attestation.protectedPathSnapshotsBefore,
+      digest: attestation.authoritySnapshotBeforeDigest,
+      field: 'productionBoundaryAttestation.authoritySnapshotBeforeDigest',
+    });
+    assertSnapshotDigest({
+      head: attestation.headAfter,
+      rows: attestation.protectedPathSnapshotsAfter,
+      digest: attestation.authoritySnapshotAfterDigest,
+      field: 'productionBoundaryAttestation.authoritySnapshotAfterDigest',
+    });
   }
   if (!Array.isArray(attestation.statusBefore) || !Array.isArray(attestation.statusAfter)) {
     throw new Error('Current batch review rejected: attestation status snapshots are invalid');
@@ -404,8 +556,17 @@ function validateStage(input: {
   batch: CurrentReviewBatch;
   items: ReadonlyMap<string, CurrentCourseCoverageWorklistItem>;
   requiredIds: readonly string[];
+  allowLegacySourceArtifactBinding?: boolean;
 }): Map<string, CurrentCourseCoverageStageDecision> {
-  const { document, expectedStage, binding, batch, items, requiredIds } = input;
+  const {
+    document,
+    expectedStage,
+    binding,
+    batch,
+    items,
+    requiredIds,
+    allowLegacySourceArtifactBinding = false,
+  } = input;
   const requiredSet = new Set(requiredIds);
   if (document.schemaVersion !== CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION) {
     throw new Error(`Current batch review rejected: ${expectedStage} schema mismatch`);
@@ -417,6 +578,21 @@ function validateStage(input: {
   requiredString(reviewer.provider, `${expectedStage}.reviewer.provider`);
   requiredString(reviewer.sessionId, `${expectedStage}.reviewer.sessionId`);
   requiredString(reviewer.promptVersion, `${expectedStage}.reviewer.promptVersion`);
+  const sourceBinding = document.sourceArtifactBinding;
+  if (!sourceBinding && !allowLegacySourceArtifactBinding) {
+    throw new Error(`Current batch review rejected: ${expectedStage} source artifact binding is required`);
+  }
+  if (sourceBinding) {
+    requiredString(sourceBinding.artifactPath, `${expectedStage}.sourceArtifactBinding.artifactPath`);
+    assertSha(sourceBinding.artifactSha256, `${expectedStage}.sourceArtifactBinding.artifactSha256`);
+    requiredString(sourceBinding.schemaVersion, `${expectedStage}.sourceArtifactBinding.schemaVersion`);
+    if (sourceBinding.stage !== expectedStage) {
+      throw new Error(`Current batch review rejected: ${expectedStage} source artifact stage mismatch`);
+    }
+    if (sourceBinding.writerSessionId !== reviewer.sessionId) {
+      throw new Error(`Current batch review rejected: ${expectedStage} source writer/session mismatch`);
+    }
+  }
   const expectedInputDigest = stageInputDigest({
     binding,
     stage: expectedStage,
@@ -483,6 +659,7 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
   challenger?: CurrentCourseCoverageStageReview | null;
   third?: CurrentCourseCoverageStageReview | null;
   productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof;
+  allowLegacySourceArtifactBinding?: boolean;
 }): CurrentCourseCoverageBatchReceipt {
   const {
     worklistDigest: storedWorklistDigest,
@@ -490,6 +667,9 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
     ...withoutWorklistDigests
   } = input.worklist;
   validateProductionBoundaryProof(input.productionBoundaryProof);
+  const allowLegacySourceArtifactBinding = input.allowLegacySourceArtifactBinding === true
+    && input.productionBoundaryProof.verificationProtocol
+      === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2;
   if (computeCurrentWorklistInputDigest(withoutWorklistDigests) !== storedWorklistInputDigest) {
     throw new Error('Current batch review rejected: worklist input digest mismatch');
   }
@@ -522,9 +702,25 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
   const riskIds = batch.members
     .filter((member) => member.profileOnly || member.riskFlags.new || member.riskFlags.changed || member.riskFlags.highRisk)
     .map((member) => member.canonicalId);
-  const primary = validateStage({ document: input.primary, expectedStage: 'PRIMARY', binding, batch, items, requiredIds: allIds });
+  const primary = validateStage({
+    document: input.primary,
+    expectedStage: 'PRIMARY',
+    binding,
+    batch,
+    items,
+    requiredIds: allIds,
+    allowLegacySourceArtifactBinding,
+  });
   const challenger = input.challenger
-    ? validateStage({ document: input.challenger, expectedStage: 'CHALLENGER', binding, batch, items, requiredIds: riskIds })
+    ? validateStage({
+      document: input.challenger,
+      expectedStage: 'CHALLENGER',
+      binding,
+      batch,
+      items,
+      requiredIds: riskIds,
+      allowLegacySourceArtifactBinding,
+    })
     : new Map<string, CurrentCourseCoverageStageDecision>();
   if (riskIds.length > 0 && !input.challenger) throw new Error('Current batch review rejected: Challenger is required for risk members');
   if (input.challenger) {
@@ -537,7 +733,15 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
     if (!sameSemanticConclusion(primary.get(id)!, challenger.get(id)!)) conflictIds.push(id);
   }
   const third = input.third
-    ? validateStage({ document: input.third, expectedStage: 'THIRD', binding, batch, items, requiredIds: conflictIds })
+    ? validateStage({
+      document: input.third,
+      expectedStage: 'THIRD',
+      binding,
+      batch,
+      items,
+      requiredIds: conflictIds,
+      allowLegacySourceArtifactBinding,
+    })
     : new Map<string, CurrentCourseCoverageStageDecision>();
   if (conflictIds.length > 0 && !input.third) throw new Error('Current batch review rejected: Third is required for conflicts');
   if (conflictIds.length === 0 && input.third) throw new Error('Current batch review rejected: Third is forbidden without conflicts');

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "4fe2a9542cff584574ec2299",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "stageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "f5182b08-dddc-4d3e-a4b5-49e7aefb82e6",
+    "permission": "workspace",
+    "reviewSessionId": "f5182b08-dddc-4d3e-a4b5-49e7aefb82e6",
+    "reviewSessionScope": "act:issue-1194:primary-source-writer",
+    "sourceWriterSessionId": "f5182b08-dddc-4d3e-a4b5-49e7aefb82e6",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1194:primary-source-writer",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "0cc3d0eb69c9af987bbc48568a10cc7b6268c649037d08da3c8882a595514bcd",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedDocumentDigest": "b813227e43ec766f28ea7f9e2a1139aa48c3a15f8eba2c54d64a92a0e8f754b5",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 13
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "Independent PRIMARY source writer reviewed all 13 frozen members and authored member-specific conclusions and rationales.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1194-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "0cc3d0eb69c9af987bbc48568a10cc7b6268c649037d08da3c8882a595514bcd",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "f5182b08-dddc-4d3e-a4b5-49e7aefb82e6"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "1fbf0c8c-84b4-4283-b5f2-0c9cc1afba9b",
+    "permission": "workspace",
+    "reviewSessionId": "1fbf0c8c-84b4-4283-b5f2-0c9cc1afba9b",
+    "reviewSessionScope": "act:issue-1194:challenger-source-writer",
+    "sourceWriterSessionId": "1fbf0c8c-84b4-4283-b5f2-0c9cc1afba9b",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1194:challenger-source-writer",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "230abb2d57f78feccc5afac8b670eee416fa5c4a53335699481b6cbc96efdf43",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedDocumentDigest": "7e854e469f927b3d9383bdc7d06b4de80535141d1005258838a744cc2b9a3fdf",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 13
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "Independent CHALLENGER source writer reviewed all 13 frozen members and authored member-specific conclusions and rationales.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1194-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "230abb2d57f78feccc5afac8b670eee416fa5c4a53335699481b6cbc96efdf43",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "1fbf0c8c-84b4-4283-b5f2-0c9cc1afba9b"
+    }
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}
