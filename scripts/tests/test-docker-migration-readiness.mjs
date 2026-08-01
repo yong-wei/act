@@ -175,8 +175,20 @@ function main() {
 
   assert.match(
     dockerfile,
-    /ENV NODE_OPTIONS=--max-old-space-size=4096/,
-    'Dockerfile builder 阶段必须提高 Node heap，避免容器内 Next 构建因默认堆内存不足失败'
+    /ARG NODE_MAX_OLD_SPACE_SIZE=8192/,
+    'Dockerfile builder 阶段必须提供可传入的 Node heap 默认值，避免容器内 Next 构建因默认堆内存不足失败'
+  );
+
+  assert.match(
+    dockerfile,
+    /ENV NODE_OPTIONS=--max-old-space-size=\$\{NODE_MAX_OLD_SPACE_SIZE\}/,
+    'Dockerfile builder 阶段必须将 Node heap build arg 应用于 NODE_OPTIONS'
+  );
+
+  assert.match(
+    dockerfile,
+    /ENV NODE_MAX_OLD_SPACE_SIZE=\$\{NODE_MAX_OLD_SPACE_SIZE\}/,
+    'Dockerfile builder 阶段必须将 Node heap build arg 传给统一构建脚本'
   );
 
   const packageBuildScript = packageJson.scripts.build;
@@ -445,6 +457,18 @@ function main() {
     localImageBuildScript,
     /--build-arg "APP_REVISION=\$\{APP_REVISION\}"/,
     'release build 必须向镜像传递已验证的 APP_REVISION',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /NODE_MAX_OLD_SPACE_SIZE="\$\{NODE_MAX_OLD_SPACE_SIZE:-8192\}"/,
+    'release build 必须为本地与容器构建设置一致的默认 Node heap',
+  );
+
+  assert.match(
+    localImageBuildScript,
+    /--build-arg "NODE_MAX_OLD_SPACE_SIZE=\$\{NODE_MAX_OLD_SPACE_SIZE\}"/,
+    'release build 必须向 Docker builder 传递 Node heap build arg',
   );
 
   assert.match(

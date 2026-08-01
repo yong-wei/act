@@ -9,7 +9,13 @@ OUTPUT_TAR="${OUTPUT_TAR:-deploy/images/act-obe.tar}"
 PLATFORM="${PLATFORM:-linux/amd64}"
 NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"
 PRISMA_ENGINES_MIRROR="${PRISMA_ENGINES_MIRROR:-https://registry.npmmirror.com/-/binary/prisma}"
+export NODE_MAX_OLD_SPACE_SIZE="${NODE_MAX_OLD_SPACE_SIZE:-8192}"
 CACHE_MODE="${CACHE_MODE:-min}"
+
+if [[ ! "${NODE_MAX_OLD_SPACE_SIZE}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "ERROR: NODE_MAX_OLD_SPACE_SIZE 必须是正整数。" >&2
+  exit 1
+fi
 
 CACHE_ROOT="${CACHE_ROOT:-.cache/buildx}"
 CACHE_FROM_DIR="${CACHE_FROM_DIR:-${CACHE_ROOT}/cache}"
@@ -74,6 +80,7 @@ fi
 
 BUILD_ARGS=(
   --build-arg "APP_REVISION=${APP_REVISION}"
+  --build-arg "NODE_MAX_OLD_SPACE_SIZE=${NODE_MAX_OLD_SPACE_SIZE}"
   --build-arg "NPM_REGISTRY=${NPM_REGISTRY}"
   --build-arg "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}"
 )
