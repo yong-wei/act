@@ -41,7 +41,7 @@
         },
         "searchInfo": {
           "iterations": 9,
-          "timeMs": 53,
+          "timeMs": 58,
           "convergenceHistory": [
             {
               "iteration": 0,
@@ -137,29 +137,47 @@
           "checksum": "sha256:0d5f7d11e6f20d9f67731c6035f5f3e45faff7a60551a2420012f4359735d776"
         }
       },
-      "advice": "推荐参数达到良好水平，可在此基础上微调。 舵角速度接近安全限制，建议适当减小 Kp 或增大 Kd。 存在明显超调，建议增大 Kd 以增加阻尼。 调节时间较长，可适当增大 Kp 加快响应。"
+      "advice": "推荐参数达到良好水平，可在此基础上微调。 舵角速度接近安全限制，建议适当减小 Kp 或增大 Kd。 存在明显超调，建议增大 Kd 以增加阻尼。 调节时间较长，可适当增大 Kp 加快响应。",
+      "evidenceBuildSourceHashes": {
+        "src/app/review/pid-turn-calibration-1039/page.tsx": "ba3627f331636774457d467a91b013644377c9cbd90e9f3f608d484965d36d03",
+        "src/app/api/simulation/optimize/route.ts": "750168951e90c4bad1191b82f299e90326b329e21f16159f0d5d66bb8b91a31a",
+        "src/resources/simulations/ai-recommend-panel.tsx": "0fd39b9f8f1bd7db4cc253e38bbe655328f54b4c9e9ef0489ffa58dde8047921",
+        "src/resources/simulations/lib/monte-carlo-optimizer.ts": "577c701521f0c85f1ec607a0373fc3cd9d4a0c27063f0c9b8f455a2120b0ef0b",
+        "src/resources/simulations/rust/control-engine-server-runtime.ts": "565e42931934930f2f50cbc76ed52138f95187fd9ec993774e46736db8baf10e",
+        "src/resources/simulations/core/seeded-rng.ts": "81a67814986e27fd711fbe0fb8203c07c7c0013b5723c76fbda320961686bb8e",
+        "src/resources/simulations/lib/replay-checksum.ts": "f1aadcd6fa982da95f1bd3e0af28359e3c12e1151dd4f8cb997210749e84dffb",
+        "src/lib/pid-evidence-runtime-attestation.ts": "e2bdcb159e9ccf9fbb0fd087c48ad22bcffc0b005359fda3d647d25602a9b4f8",
+        "rust/control-engine/src/virtual_simulation_runtime.rs": "0500c8257ac9bc80aa36f97b063d10eb974208899c106a5cf5aea50bee1cee31",
+        "src/resources/control-system/wasm/control_engine/index.d.ts": "8760847ef56477d823a4038d166252c79267f4cec9d87f17fb7c7c83ccf6e84f",
+        "src/resources/control-system/wasm/control_engine/index.js": "f034d1b247fc4aac06748c041144f1f7aa40c4e06efe4384bacebf229e3c7bfe",
+        "src/resources/control-system/wasm/control_engine/index_bg.wasm": "54f3afcbbda658f27bd0fb87aff4c4b25142e7c2d16bd591fb1ab332675ea399",
+        "src/resources/control-system/wasm/control_engine/index_bg.wasm.d.ts": "53fbffe06bcff31b3c038bc9750fc9bf8b0dda579b294499e4687023e376ca09"
+      }
     }
   },
   "apiResponseError": null,
   "consoleErrors": [],
-  "captureRevision": "17bb8ee268a927512478b6d066a5fae420fb8941",
-  "servedRevision": "17bb8ee268a927512478b6d066a5fae420fb8941",
+  "captureRevision": "0138d3bf0270344b5713bbc4a1aa5392ae49a7a6",
+  "servedRevision": "0138d3bf0270344b5713bbc4a1aa5392ae49a7a6",
   "sourceHashes": {
-    "artifacts/commercial-ui/pid-turn-calibration-1038/capture-pid-recommendation-evidence.mjs": "afa0ff18b421c9ede9832c697825a2d09f17c1d87bc8b4083afb6a2390cd3559",
+    "artifacts/commercial-ui/pid-turn-calibration-1038/capture-pid-recommendation-evidence.mjs": "11728d2f42113ddfd758f5ff91ec221c30826f0413353e3094a5f50a7e9379dd",
     "artifacts/commercial-ui/pid-turn-calibration-1038/evidence-contract.mjs": "55357fd95ed091345c37b28038517e76f3960265ddc06d51c369b07f5f32fc8d",
     "src/app/review/pid-turn-calibration-1039/page.tsx": "ba3627f331636774457d467a91b013644377c9cbd90e9f3f608d484965d36d03",
-    "src/app/api/simulation/optimize/route.ts": "fa7542ee806ce40a2a57e28c3025f1a132de491492fb9032f6fb583fcc8f3a5d",
+    "src/app/api/simulation/optimize/route.ts": "750168951e90c4bad1191b82f299e90326b329e21f16159f0d5d66bb8b91a31a",
     "src/resources/simulations/ai-recommend-panel.tsx": "0fd39b9f8f1bd7db4cc253e38bbe655328f54b4c9e9ef0489ffa58dde8047921",
     "src/resources/simulations/lib/monte-carlo-optimizer.ts": "577c701521f0c85f1ec607a0373fc3cd9d4a0c27063f0c9b8f455a2120b0ef0b",
-    "src/lib/pid-evidence-runtime-attestation.ts": "f7820e2ad5e223413b1facbe19886f3f6ee169f2ab944a7a966cc52610a6f87e",
-    "src/lib/pid-evidence-runtime-manifest.generated.ts": "23453615603adb6f81f7c5cceb938e72dcc19a38b21feb3087527080dbc6e418",
+    "src/resources/simulations/rust/control-engine-server-runtime.ts": "565e42931934930f2f50cbc76ed52138f95187fd9ec993774e46736db8baf10e",
+    "src/resources/simulations/core/seeded-rng.ts": "81a67814986e27fd711fbe0fb8203c07c7c0013b5723c76fbda320961686bb8e",
+    "src/resources/simulations/lib/replay-checksum.ts": "f1aadcd6fa982da95f1bd3e0af28359e3c12e1151dd4f8cb997210749e84dffb",
+    "src/lib/pid-evidence-runtime-attestation.ts": "e2bdcb159e9ccf9fbb0fd087c48ad22bcffc0b005359fda3d647d25602a9b4f8",
+    "src/lib/pid-evidence-runtime-manifest.generated.ts": "07c8b85401db67972db27d0aaf15b5a514ffafd04925baab8131dd95c4f27fad",
     "rust/control-engine/src/virtual_simulation_runtime.rs": "0500c8257ac9bc80aa36f97b063d10eb974208899c106a5cf5aea50bee1cee31",
     "src/resources/control-system/wasm/control_engine/index.d.ts": "8760847ef56477d823a4038d166252c79267f4cec9d87f17fb7c7c83ccf6e84f",
     "src/resources/control-system/wasm/control_engine/index.js": "f034d1b247fc4aac06748c041144f1f7aa40c4e06efe4384bacebf229e3c7bfe",
     "src/resources/control-system/wasm/control_engine/index_bg.wasm": "54f3afcbbda658f27bd0fb87aff4c4b25142e7c2d16bd591fb1ab332675ea399",
     "src/resources/control-system/wasm/control_engine/index_bg.wasm.d.ts": "53fbffe06bcff31b3c038bc9750fc9bf8b0dda579b294499e4687023e376ca09"
   },
-  "screenshotSha256": "9e830a5d61c8b0a6016915b29b88fc0789793aac2bbc07c3cf25f79133b9a0b0",
+  "screenshotSha256": "2c9d470e0a4a83d816401dc51c3d385777e46bfa1bf2b3099c33daa006f61e14",
   "documentScrollWidth": 1440,
   "viewportWidth": 1440,
   "panelVisible": true,
