@@ -2,10 +2,10 @@
   "schemaVersion": "commercial-ui-evidence.v1",
   "status": "passed",
   "backendE2EStatus": "blocked-by-local-schema-drift",
-  "capturedAt": "2026-08-01T08:58:36.055Z",
-  "sourceRevision": "2380ce52617835950d6c1d1104da99473059cead",
+  "capturedAt": "2026-08-01T09:11:48.420Z",
+  "sourceRevision": "2b30ce6d644d4a61b0c8728db7ebe00b392ccd0d",
   "generator": "artifacts/commercial-ui/pr1133-adaptive-path/capture-ui-evidence.mjs",
-  "generatorSha256": "c00cf0b7c55146dd22536b418b864e8f9a14c038bafe4452fa220ea71b47099b",
+  "generatorSha256": "289dd40636e978c92718da3220d254e59cc457983e9438a653b38522153baa72",
   "sourceFiles": {
     "src/app/assessment/adaptive-practice/page.tsx": "066666c61d7d2b7b7d4919e63b02648fd9f2306c968b20a65278d52ddc0f68e3",
     "src/features/adaptive/adaptive-learning-center-contracts.ts": "1726d5ae0a711ee858ce85cfb9dc8144eece62043a49aa7ac60f091118ddd659",
@@ -73,28 +73,16 @@
       },
       "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
       "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/real-backend-blocked-1440.png",
-      "screenshotSha256": "1b0d53ebb618a5ea5252c46bcd2c39dcda89cac00c80607b7e063ba2941b7820",
+      "screenshotSha256": "711ee086e5f14017cee964474268a4aa06e098301e1e8545006b8be652858172",
       "responses": [
         {
           "url": "/api/adaptive/path-advisor-context?goal=control-correction",
           "status": 403
-        },
-        {
-          "url": "/api/adaptive/learner-state?goal=control-correction",
-          "status": 500
-        },
-        {
-          "url": "/api/adaptive/path-advisor-context?goal=control-correction",
-          "status": 403
-        },
-        {
-          "url": "/api/adaptive/learner-state?goal=control-correction",
-          "status": 500
         }
       ],
       "textIncludes": {
-        "missingClassBinding": true,
-        "learnerStateUnavailable": false
+        "missingClassBinding": false,
+        "learnerStateUnavailable": true
       },
       "geometry": {
         "viewportWidth": 1440,
@@ -135,7 +123,7 @@
       },
       "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
       "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/real-backend-blocked-320.png",
-      "screenshotSha256": "4802ff0329b36f31c08e08e8777438f5c578917915b57d02f17c45487f647c75",
+      "screenshotSha256": "2dcdfd060507f625f4fde99161864032d2f20a40a35696a6965f65db7ffe4013",
       "responses": [
         {
           "url": "/api/adaptive/path-advisor-context?goal=control-correction",

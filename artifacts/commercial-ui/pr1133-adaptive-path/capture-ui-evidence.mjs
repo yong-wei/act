@@ -18,6 +18,40 @@ const sourceFiles = [
 const realHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';
 const fixtureHref = '/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=pr1133-ui-fixture-path';
 const lowBudgetHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&pathTime=30';
+const requiredUiEvidenceCounts = new Map([
+  ['current-head-ui-projection-fixture', 2],
+  ['current-head-low-budget-blocked-generation-fixture', 2],
+]);
+
+function deriveUiEvidenceStatus(results) {
+  const allRequiredUiEvidencePassed = [...requiredUiEvidenceCounts.entries()].every(([mode, expectedCount]) => {
+    const modeResults = results.filter((result) => result.mode === mode);
+    return modeResults.length === expectedCount && modeResults.every((result) => result.passed === true);
+  });
+  return allRequiredUiEvidencePassed ? 'passed' : 'blocked';
+}
+
+function runUiEvidenceStatusSelfTest() {
+  const passingUiResults = [
+    { mode: 'current-head-ui-projection-fixture', passed: true },
+    { mode: 'current-head-ui-projection-fixture', passed: true },
+    { mode: 'current-head-low-budget-blocked-generation-fixture', passed: true },
+    { mode: 'current-head-low-budget-blocked-generation-fixture', passed: true },
+  ];
+  if (deriveUiEvidenceStatus(passingUiResults) !== 'passed') {
+    throw new Error('UI evidence status self-test expected passing required fixtures to produce passed');
+  }
+  if (deriveUiEvidenceStatus([...passingUiResults, { mode: 'real-backend', passed: false }]) !== 'passed') {
+    throw new Error('UI evidence status self-test expected backend-only failure to remain independent');
+  }
+  const failedUiResults = passingUiResults.map((result, index) => index === 2 ? { ...result, passed: false } : result);
+  if (deriveUiEvidenceStatus(failedUiResults) !== 'blocked') {
+    throw new Error('UI evidence status self-test expected a failed required fixture to block status');
+  }
+  if (deriveUiEvidenceStatus([{ mode: 'real-backend', passed: true }]) !== 'blocked') {
+    throw new Error('UI evidence status self-test expected missing required fixtures to fail closed');
+  }
+}
 
 const learnerStateFixture = {
   userId: 'student-1',
@@ -247,7 +281,7 @@ async function main() {
   const generator = 'artifacts/commercial-ui/pr1133-adaptive-path/capture-ui-evidence.mjs';
   const manifest = {
     schemaVersion: 'commercial-ui-evidence.v1',
-    status: 'passed',
+    status: deriveUiEvidenceStatus(results),
     backendE2EStatus: 'blocked-by-local-schema-drift',
     capturedAt: captureAt,
     sourceRevision,
@@ -292,4 +326,14 @@ async function main() {
   if (manifest.status !== 'passed') process.exitCode = 2;
 }
 
-main().catch((error) => { console.error(error); process.exitCode = 1; });
+if (process.argv.includes('--self-test')) {
+  try {
+    runUiEvidenceStatusSelfTest();
+    console.log('UI evidence status self-test passed');
+  } catch (error) {
+    console.error(error);
+    process.exitCode = 1;
+  }
+} else {
+  main().catch((error) => { console.error(error); process.exitCode = 1; });
+}
