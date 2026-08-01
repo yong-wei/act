@@ -7,9 +7,19 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { canonicalJson } from '../../../scripts/actkg-release/authoritative-release';
+import { computeCanonicalReleaseHash } from '../../../scripts/actkg-release/actkg-canonical-digests';
 import { CTKG_SCHEMA_RAW_SHA256 } from '../../../scripts/actkg-release/bundle-compatibility-registry';
 import { prepareLatestActkgIntake } from '../../../scripts/knowledge-cutover/prepare-latest-actkg-intake';
 import { resolveLatestStableAggregate } from '../../../scripts/actkg-release/latest-stable-aggregate';
+
+const ADMITTED_ENDPOINT = {
+  releaseSetId: 'actkg-authoritative-candidate-v2',
+  releaseId: 'control-theory-engineering-v0.2',
+  releaseVersion: 'control-theory-engineering-v0.2',
+  releaseHash: '1'.repeat(64),
+  sourceDatasetHash: '2'.repeat(64),
+  candidateState: 'CANDIDATE',
+} as const;
 
 function sha256(value: Buffer | string): string {
   return createHash('sha256').update(value).digest('hex');
@@ -44,8 +54,34 @@ async function fixtureRepo(options?: {
 
   const bundleDir = path.join(root, 'releases', 'control-theory-engineering-v0.3-r2');
   await mkdir(bundleDir, { recursive: true });
-  const aggregateReportBytes = Buffer.from('{"result":"PASS"}\n');
-  await writeFile(path.join(bundleDir, 'validation-report.json'), aggregateReportBytes);
+  const aggregateReleaseVersion = options?.aggregateReleaseVersion ?? 'control-theory-engineering-v0.3';
+  const aggregateReleaseId = 'ctr:release:control-theory-engineering-v0.3';
+  const aggregateReleasePayload: Record<string, unknown> = {
+    id: aggregateReleaseId,
+    release_version: aggregateReleaseVersion,
+    source_dataset_hash: sha256('source-dataset'),
+    lifecycle_status: 'accepted',
+    publication_status: 'published',
+    entries: [],
+    included_entities: [],
+    component_releases: [],
+  };
+  aggregateReleasePayload.release_hash = computeCanonicalReleaseHash(aggregateReleasePayload);
+  const aggregateArtifacts = [
+    { role: 'release_notes', contract_version: 'actkg-release-notes/1', path: 'RELEASE-NOTES.md', media_type: 'text/markdown', bytes: Buffer.from('fixture\n') },
+    { role: 'projection', contract_version: 'ctkg-graph-projection/0.2', path: 'act-projection.json', media_type: 'application/json', bytes: Buffer.from('{}') },
+    { role: 'projection', contract_version: 'ctkg-graph-projection/0.2', path: 'domain-projection.json', media_type: 'application/json', bytes: Buffer.from('{}') },
+    { role: 'projection', contract_version: 'ctkg-graph-projection/0.2', path: 'review-projection.json', media_type: 'application/json', bytes: Buffer.from('{}') },
+    { role: 'component_manifest', contract_version: 'actkg-component-manifest/1', path: 'component-releases.json', media_type: 'application/json', bytes: Buffer.from('{"components":[]}') },
+    { role: 'ctkg_schema', contract_version: 'ctkg-json-schema/0.2', path: 'ctkg.schema.json', media_type: 'application/schema+json', bytes: Buffer.from('{"version":"0.2.0"}') },
+    { role: 'projection_link_metadata', contract_version: 'actkg-projection-link-metadata/1', path: 'projection-link-metadata.jsonl', media_type: 'application/x-ndjson', bytes: Buffer.from('{}\n') },
+    { role: 'rag_crosswalk', contract_version: 'actkg-rag-crosswalk/1', path: 'rag-crosswalk.jsonl', media_type: 'application/x-ndjson', bytes: Buffer.from('{}\n') },
+    { role: 'validation_report', contract_version: 'actkg-validation-report/1', path: 'validation-report.json', media_type: 'application/json', bytes: Buffer.from('{"result":"PASS"}') },
+    { role: 'release', contract_version: 'ctkg-release/0.2', path: 'release.json', media_type: 'application/json', bytes: Buffer.from(JSON.stringify(aggregateReleasePayload)) },
+  ];
+  for (const artifact of aggregateArtifacts) {
+    await writeFile(path.join(bundleDir, artifact.path), artifact.bytes);
+  }
   const componentDir = path.join(root, 'releases', 'component-v1');
   await mkdir(componentDir, { recursive: true });
   await writeFile(path.join(componentDir, 'component.json'), '{"component":true}\n');
@@ -101,10 +137,10 @@ async function fixtureRepo(options?: {
       sha256sums_sha256: sha256(legacySums),
     },
     release: {
-      release_hash: sha256('release'),
-      release_id: 'ctr:release:control-theory-engineering-v0.3',
-      release_version: options?.aggregateReleaseVersion ?? 'control-theory-engineering-v0.3',
-      source_dataset_hash: sha256('source-dataset'),
+      release_hash: aggregateReleasePayload.release_hash,
+      release_id: aggregateReleaseId,
+      release_version: aggregateReleaseVersion,
+      source_dataset_hash: aggregateReleasePayload.source_dataset_hash,
     },
     release_stage: 'stable',
     schema: { sha256: CTKG_SCHEMA_RAW_SHA256, version: '0.2.0' },
@@ -117,16 +153,16 @@ async function fixtureRepo(options?: {
       bundle_digest: componentManifest.bundle_digest,
       manifest_sha256: sha256(componentManifestBytes),
     }],
-    artifacts: [{
-      role: 'validation_report',
-      contract_version: 'ctkg-validation-report/0.2',
+    artifacts: aggregateArtifacts.map((artifact) => ({
+      role: artifact.role,
+      contract_version: artifact.contract_version,
       required: true,
-      path: 'validation-report.json',
-      media_type: 'application/json',
-      sha256: sha256(aggregateReportBytes),
-      byte_length: aggregateReportBytes.byteLength,
-      record_count: null,
-    }],
+      path: artifact.path,
+      media_type: artifact.media_type,
+      sha256: sha256(artifact.bytes),
+      byte_length: artifact.bytes.byteLength,
+      record_count: artifact.media_type.includes('ndjson') ? 1 : null,
+    })),
   };
   const digestBody = { ...manifest };
   delete digestBody.bundle_digest;
@@ -136,7 +172,7 @@ async function fixtureRepo(options?: {
     `${JSON.stringify(manifest)}\n`,
   );
   const sums = (await Promise.all(
-    ['bundle-manifest.json', 'validation-report.json']
+    ['bundle-manifest.json', ...aggregateArtifacts.map((artifact) => artifact.path)]
       .map(async (name) => `${sha256(await readFile(path.join(bundleDir, name)))}  ${name}`),
   )).join('\n');
   await writeFile(path.join(bundleDir, 'SHA256SUMS'), `${sums}\n`);
@@ -254,23 +290,67 @@ describe('prepareLatestActkgIntake', () => {
     }
   });
 
+  it('re-resolves after staging and removes the temporary root on live drift', async () => {
+    const actkgRoot = await fixtureRepo();
+    const workRoot = await mkdtemp(path.join(tmpdir(), 'act-intake-output-'));
+    const outputRoot = path.join(workRoot, 'attempt-live-drift');
+    const bindingPath = path.join(workRoot, 'binding.json');
+    const endpointPath = path.join(workRoot, 'admitted-endpoint.json');
+    const sourceReleasePath = path.join(
+      actkgRoot,
+      'releases/control-theory-engineering-v0.3-r2/release.json',
+    );
+    try {
+      const binding = await resolveLatestStableAggregate({
+        actkgRoot,
+        mainRef: 'main',
+        admittedEndpoint: ADMITTED_ENDPOINT,
+        predecessorRootClosurePath: 'docs/coordination/m1j/v0.3-r1-predecessor-closure.json',
+      });
+      await writeFile(bindingPath, `${JSON.stringify(binding, null, 2)}\n`);
+      await writeFile(endpointPath, `${JSON.stringify(ADMITTED_ENDPOINT)}\n`);
+      await expect(prepareLatestActkgIntake({
+        actkgRoot,
+        bindingPath,
+        outputRoot,
+        mainRef: 'main',
+        admittedEndpointPath: endpointPath,
+        predecessorRootClosurePath: 'docs/coordination/m1j/v0.3-r1-predecessor-closure.json',
+        beforeFinalResolution: async () => {
+          const sourceBytes = await readFile(sourceReleasePath);
+          await writeFile(sourceReleasePath, Buffer.concat([sourceBytes, Buffer.from('\n')]));
+        },
+      })).rejects.toThrow(/Artifact hash drift|live ActKG resolution drifted during staging/u);
+      await expect(lstat(outputRoot)).rejects.toMatchObject({ code: 'ENOENT' });
+    } finally {
+      await rm(actkgRoot, { recursive: true, force: true });
+      await rm(workRoot, { recursive: true, force: true });
+    }
+  });
+
   it('creates a fresh immutable attempt and rejects reruns', async () => {
     const actkgRoot = await fixtureRepo();
     const workRoot = await mkdtemp(path.join(tmpdir(), 'act-intake-output-'));
     const outputRoot = path.join(workRoot, 'attempt-1');
     const bindingPath = path.join(workRoot, 'binding.json');
+    const admittedEndpointPath = path.join(workRoot, 'admitted-endpoint.json');
     try {
       const binding = await resolveLatestStableAggregate({
         actkgRoot,
         mainRef: 'main',
+        admittedEndpoint: ADMITTED_ENDPOINT,
+        predecessorRootClosurePath: 'docs/coordination/m1j/v0.3-r1-predecessor-closure.json',
       });
       await writeFile(bindingPath, `${JSON.stringify(binding, null, 2)}\n`);
+      await writeFile(admittedEndpointPath, `${JSON.stringify(ADMITTED_ENDPOINT)}\n`);
 
       const receipt = await prepareLatestActkgIntake({
         actkgRoot,
         bindingPath,
         outputRoot,
         mainRef: 'main',
+        admittedEndpointPath,
+        predecessorRootClosurePath: 'docs/coordination/m1j/v0.3-r1-predecessor-closure.json',
       });
       expect(receipt).toMatchObject({
         protocol: 'act-latest-stable-aggregate-intake/1',
@@ -282,6 +362,8 @@ describe('prepareLatestActkgIntake', () => {
           bindingPath,
           outputRoot,
           mainRef: 'main',
+          admittedEndpointPath,
+          predecessorRootClosurePath: 'docs/coordination/m1j/v0.3-r1-predecessor-closure.json',
         }),
       ).rejects.toThrow('intake output root already exists');
       await expect(

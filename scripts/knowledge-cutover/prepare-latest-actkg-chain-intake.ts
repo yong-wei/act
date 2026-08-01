@@ -25,7 +25,9 @@ import {
 } from '../actkg-release/bundle-compatibility-registry';
 import {
   resolveLatestStableAggregateWithCandidates,
+  loadLatestStableAggregateAdmittedEndpoint,
   type LatestStableAggregateBinding,
+  type LatestStableAggregateAdmittedEndpoint,
   type LatestStableAggregateCandidate,
 } from '../actkg-release/latest-stable-aggregate';
 
@@ -108,6 +110,8 @@ function parseArgs(argv: string[]): {
   bindingPath: string;
   repoRoot: string;
   outputRoot: string;
+  admittedEndpointPath?: string;
+  predecessorRootClosurePath?: string;
 } {
   const values = new Map<string, string>();
   for (let index = 0; index < argv.length; index += 2) {
@@ -125,6 +129,8 @@ function parseArgs(argv: string[]): {
     '--binding',
     '--repo-root',
     '--output-root',
+    '--admitted-endpoint',
+    '--predecessor-closure',
   ]);
   for (const key of values.keys()) {
     if (!allowed.has(key)) fail(`unknown option ${key}`);
@@ -140,6 +146,12 @@ function parseArgs(argv: string[]): {
     bindingPath: path.resolve(required('--binding')),
     repoRoot: path.resolve(required('--repo-root')),
     outputRoot: path.resolve(required('--output-root')),
+    admittedEndpointPath: values.has('--admitted-endpoint')
+      ? path.resolve(required('--admitted-endpoint'))
+      : undefined,
+    predecessorRootClosurePath: values.has('--predecessor-closure')
+      ? sourceRelative(values.get('--predecessor-closure'), '--predecessor-closure')
+      : undefined,
   };
 }
 
@@ -582,6 +594,8 @@ export type PrepareLatestActkgChainIntakeOptions = {
   bindingPath: string;
   repoRoot: string;
   outputRoot: string;
+  admittedEndpointPath?: string;
+  predecessorRootClosurePath?: string;
 };
 
 export async function prepareLatestActkgChainIntake(
@@ -593,16 +607,26 @@ export async function prepareLatestActkgChainIntake(
   const bindingPath = path.resolve(options.bindingPath);
   await assertOutputRoot(repoRoot, outputRoot);
   const frozen = await loadFrozenBinding(bindingPath);
+  const admittedEndpoint: LatestStableAggregateAdmittedEndpoint | undefined = options.admittedEndpointPath
+    ? await loadLatestStableAggregateAdmittedEndpoint(path.resolve(options.admittedEndpointPath))
+    : frozen.binding.admittedEndpoint;
+  const predecessorRootClosurePath = options.predecessorRootClosurePath
+    ?? frozen.binding.predecessorRootClosure?.path;
   const start = await resolveLatestStableAggregateWithCandidates({
     actkgRoot,
     mainRef: options.mainRef,
+    admittedEndpoint,
+    predecessorRootClosurePath,
   });
   assertBindingMatches(frozen.binding, start.binding);
-  if (start.activeCandidates.length < 2 || start.activeCandidates[0]?.releaseVersion
-    !== 'control-theory-engineering-v0.3' || start.activeCandidates[0]?.bundleRevision !== 2) {
-    fail('active candidate chain does not start at the frozen v0.3-r2 baseline');
+  const admittedBundleId = start.binding.admittedEndpoint?.bundleId;
+  const admittedIndex = admittedBundleId === undefined
+    ? -1
+    : start.activeCandidates.findIndex((candidate) => candidate.bundleId === admittedBundleId);
+  if (admittedBundleId !== undefined && admittedIndex < 0) {
+    fail(`admitted endpoint bundleId is not an active candidate: ${admittedBundleId}`);
   }
-  const candidates = start.activeCandidates.slice(1);
+  const candidates = start.activeCandidates.slice(admittedIndex >= 0 ? admittedIndex + 1 : 1);
   if (candidates.length === 0) fail('no post-baseline candidates to stage');
   if (start.binding.candidateChain.length !== start.activeCandidates.length) {
     fail('binding candidateChain does not match verified activeCandidates');
@@ -657,6 +681,8 @@ export async function prepareLatestActkgChainIntake(
     const end = await resolveLatestStableAggregateWithCandidates({
       actkgRoot,
       mainRef: options.mainRef,
+      admittedEndpoint,
+      predecessorRootClosurePath,
     });
     assertBindingMatches(frozen.binding, end.binding);
     for (const { lockName, lock } of locks) {

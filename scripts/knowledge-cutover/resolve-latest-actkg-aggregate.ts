@@ -3,7 +3,10 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { resolveLatestStableAggregate } from '../actkg-release/latest-stable-aggregate';
+import {
+  loadLatestStableAggregateAdmittedEndpoint,
+  resolveLatestStableAggregate,
+} from '../actkg-release/latest-stable-aggregate';
 
 function fail(message: string): never {
   throw new Error(`resolve-latest-actkg-aggregate: ${message}`);
@@ -14,6 +17,8 @@ function parseArgs(argv: string[]): {
   mainRef: string;
   outputJson: string;
   outputMarkdown: string;
+  admittedEndpointPath?: string;
+  predecessorRootClosurePath?: string;
 } {
   const values = new Map<string, string>();
   for (let index = 0; index < argv.length; index += 2) {
@@ -30,6 +35,8 @@ function parseArgs(argv: string[]): {
     '--main-ref',
     '--output-json',
     '--output-markdown',
+    '--admitted-endpoint',
+    '--predecessor-closure',
   ]);
   for (const key of values.keys()) {
     if (!allowed.has(key)) fail(`unknown option ${key}`);
@@ -44,6 +51,8 @@ function parseArgs(argv: string[]): {
     mainRef: values.get('--main-ref') ?? 'origin/main',
     outputJson: required('--output-json'),
     outputMarkdown: required('--output-markdown'),
+    admittedEndpointPath: values.get('--admitted-endpoint'),
+    predecessorRootClosurePath: values.get('--predecessor-closure'),
   };
 }
 
@@ -62,6 +71,10 @@ async function main(): Promise<void> {
   const binding = await resolveLatestStableAggregate({
     actkgRoot: args.actkgRoot,
     mainRef: args.mainRef,
+    admittedEndpoint: args.admittedEndpointPath
+      ? await loadLatestStableAggregateAdmittedEndpoint(path.resolve(args.admittedEndpointPath))
+      : undefined,
+    predecessorRootClosurePath: args.predecessorRootClosurePath,
   });
   const artifact = {
     status: 'PASS',
@@ -109,6 +122,7 @@ candidate_chain_endpoints=${JSON.stringify(binding.candidateChainEndpoints)}
 statistics=${JSON.stringify(binding.statistics)}
 bundle_path=${binding.bundlePath}
 predecessor_root_closure=${JSON.stringify(binding.predecessorRootClosure)}
+admitted_endpoint=${JSON.stringify(binding.admittedEndpoint ?? null)}
 resolved_at=${binding.resolvedAt}
 resolution_digest=${binding.resolutionDigest}
 \`\`\`

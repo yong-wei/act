@@ -6,20 +6,18 @@ import path from 'node:path';
 import { canonicalJson } from './authoritative-release';
 import {
   CTKG_SCHEMA_VERSION,
-  isBundleContractSupported,
   isSchemaIdentitySupported,
 } from './bundle-compatibility-registry';
+import {
+  validateAggregateManifestIntegrity,
+  type AggregateIntegrityArtifact,
+} from './public-bundle-aggregate-integrity';
 
 const SHA256 = /^[0-9a-f]{64}$/u;
 const COMMIT = /^[0-9a-f]{40}$/u;
 const LEGACY_ROOT_CLOSURE_CONTRACT = 'actkg-legacy-predecessor-root-closure/1';
 const LEGACY_ROOT_CLOSURE_ALGORITHM = 'sha256sums-legacy-exact-root/1';
 const LEGACY_ROOT_CLOSURE_AUTHORITY_PROTOCOL = 'ctkg-m1k-v1d-predecessor-closure/1';
-const LEGACY_ROOT_BUNDLE_ID = 'ctb:control-theory-engineering-v0.3:r1';
-const LEGACY_ROOT_RELEASE_VERSION = 'control-theory-engineering-v0.3';
-const LEGACY_CHAIN_HEAD_BUNDLE_ID = 'ctb:control-theory-engineering-v0.3:r2';
-const DEFAULT_LEGACY_ROOT_CLOSURE_PATH =
-  'docs/coordination/m1j/v0.3-r1-predecessor-closure.json';
 const LEGACY_ROOT_CLOSURE_GATES = [
   'BUNDLE_ID_BINDING_GATE',
   'CONSUMER_PREDECESSOR_BINDING_GATE',
@@ -34,6 +32,20 @@ export interface PreviousBundle {
   bundle_id: string;
   kind: string;
   sha256sums_sha256: string;
+}
+
+/**
+ * Identity of the ACT-owned accepted endpoint used as the comparison base.
+ * The exact #1125 endpoint has no standard Bundle identity, so additional
+ * evidence fields are intentionally preserved as opaque stable JSON values.
+ */
+export interface LatestStableAggregateAdmittedEndpoint extends JsonObject {
+  releaseSetId: string;
+  releaseId: string;
+  releaseVersion: string;
+  releaseHash: string;
+  sourceDatasetHash: string;
+  [key: string]: unknown;
 }
 
 interface StableAggregateManifest {
@@ -127,6 +139,8 @@ export interface LatestStableAggregateBinding extends JsonObject {
   statistics: JsonObject;
   bundlePath: string;
   predecessorRootClosure: PredecessorRootClosureBinding | null;
+  /** ACT-owned accepted comparison base; absent only on historical receipts. */
+  admittedEndpoint?: LatestStableAggregateAdmittedEndpoint;
   /**
    * Observation metadata for this resolver invocation. This remains optional
    * so receipts created before the field was introduced stay readable.
@@ -195,6 +209,34 @@ function hash(value: unknown, label: string): string {
   return result;
 }
 
+function parseAdmittedEndpoint(
+  value: unknown,
+  label = 'admitted endpoint',
+): LatestStableAggregateAdmittedEndpoint {
+  const row = object(value, label);
+  const endpoint = structuredClone(row) as LatestStableAggregateAdmittedEndpoint;
+  endpoint.releaseSetId = string(row.releaseSetId, `${label}.releaseSetId`);
+  endpoint.releaseId = string(row.releaseId, `${label}.releaseId`);
+  endpoint.releaseVersion = string(row.releaseVersion, `${label}.releaseVersion`);
+  endpoint.releaseHash = hash(row.releaseHash, `${label}.releaseHash`);
+  endpoint.sourceDatasetHash = hash(row.sourceDatasetHash, `${label}.sourceDatasetHash`);
+  if (row.candidateState !== undefined && row.candidateState !== 'CANDIDATE' && row.candidateState !== 'ACCEPTED_CANDIDATE') {
+    fail(`${label}.candidateState is not an accepted ACT candidate state`);
+  }
+  return endpoint;
+}
+
+export async function loadLatestStableAggregateAdmittedEndpoint(
+  filePath: string,
+): Promise<LatestStableAggregateAdmittedEndpoint> {
+  const bytes = await readFile(filePath);
+  const raw = object(JSON.parse(bytes.toString('utf8')), filePath);
+  const value = raw.admittedEndpoint && typeof raw.admittedEndpoint === 'object'
+    ? raw.admittedEndpoint
+    : raw;
+  return parseAdmittedEndpoint(value, filePath);
+}
+
 function positiveInteger(value: unknown, label: string): number {
   if (
     typeof value !== 'number'
@@ -254,6 +296,26 @@ async function listRegularFiles(directory: string): Promise<string[]> {
   };
   await walk(directory, '');
   return files.sort();
+}
+
+async function discoverPredecessorRootClosurePath(root: string): Promise<string> {
+  const matches: string[] = [];
+  const walk = async (current: string, relative: string): Promise<void> => {
+    for (const entry of await readdir(current, { withFileTypes: true })) {
+      const childRelative = relative ? `${relative}/${entry.name}` : entry.name;
+      const child = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        await walk(child, childRelative);
+      } else if (entry.isFile() && /predecessor[-_].*closure\.json$/u.test(entry.name)) {
+        matches.push(childRelative);
+      }
+    }
+  };
+  await walk(root, '');
+  if (matches.length !== 1) {
+    fail(`predecessor root closure input is ambiguous or missing (${matches.length} matches)`);
+  }
+  return matches[0]!;
 }
 
 function git(root: string, args: string[]): string {
@@ -390,15 +452,6 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
   );
   if (!manifest) return null;
 
-  // Candidate discovery is also an integrity gate.  A package can have a
-  // perfectly self-consistent SHA256SUMS file while its declared Bundle
-  // contract, Schema identity, or Bundle digest is not one ACT supports.  The
-  // formal public-Bundle loader performs the same checks for the ACT tree; the
-  // resolver runs against an ActKG checkout, so repeat these storage-neutral
-  // checks before freezing a candidate.
-  if (!isBundleContractSupported(manifest.bundle_contract_version)) {
-    fail(`${manifest.bundle_id} uses an unregistered bundle contract ${manifest.bundle_contract_version}`);
-  }
   if (
     manifest.schema.version !== CTKG_SCHEMA_VERSION
     || !isSchemaIdentitySupported(manifest.schema.version, manifest.schema.sha256)
@@ -408,16 +461,6 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
       + `${manifest.schema.version}/${manifest.schema.sha256}`,
     );
   }
-  const digestBody = structuredClone(manifestRaw);
-  delete digestBody.bundle_digest;
-  const recomputedBundleDigest = sha256(canonicalJson(digestBody));
-  if (manifest.bundle_digest !== recomputedBundleDigest) {
-    fail(
-      `${manifest.bundle_id} bundle_digest mismatch: `
-      + `declared ${manifest.bundle_digest}, recomputed ${recomputedBundleDigest}`,
-    );
-  }
-
   const sumsPath = path.join(bundleDir, 'SHA256SUMS');
   const sumsBytes = await readFile(sumsPath);
   const sums = parseSums(sumsBytes.toString('utf8'), sumsPath);
@@ -427,6 +470,7 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
   }
   const artifactPaths = new Set<string>();
   const foldedArtifacts = new Map<string, string>();
+  const artifactInputs: AggregateIntegrityArtifact[] = [];
   for (const [index, value] of manifestRaw.artifacts.entries()) {
     const artifact = object(value, `${manifest.bundle_id}.artifacts[${index}]`);
     const artifactPath = bundleMemberPath(
@@ -462,6 +506,33 @@ async function loadCandidate(bundleDir: string): Promise<Candidate | null> {
     if (artifactRecordCount(bytes, mediaType) !== recordCount) {
       fail(`${manifest.bundle_id} Artifact record count drift: ${artifactPath}`);
     }
+    artifactInputs.push({
+      descriptor: {
+        role: string(artifact.role, `${manifest.bundle_id}.artifacts[${index}].role`),
+        contractVersion: string(
+          artifact.contract_version,
+          `${manifest.bundle_id}.artifacts[${index}].contract_version`,
+        ),
+        required: artifact.required === true,
+        path: artifactPath,
+        mediaType,
+        sha256: declaredHash,
+        byteLength: bytes.byteLength,
+        recordCount,
+      },
+      bytes,
+    });
+  }
+  try {
+    validateAggregateManifestIntegrity({
+      manifest: manifestRaw,
+      manifestBytes,
+      artifacts: artifactInputs,
+      expectedRelease: manifest.release,
+      requireStable: true,
+    });
+  } catch (error) {
+    fail(`${manifest.bundle_id} ${error instanceof Error ? error.message : String(error)}`);
   }
   const manifestClosedFiles = ['bundle-manifest.json', ...artifactPaths].sort();
   if (canonicalJson(files) !== canonicalJson(manifestClosedFiles)) {
@@ -643,20 +714,11 @@ async function validateLegacyRootClosure(input: {
       fail(`legacy root closure gate ${gate} is not PASS`);
     }
   }
-  if (closure.bundle_id !== LEGACY_ROOT_BUNDLE_ID) {
-    fail('legacy root closure bundle_id is not the v0.3 r1 root');
-  }
-  if (closure.release_version !== LEGACY_ROOT_RELEASE_VERSION) {
-    fail('legacy root closure release_version is not v0.3');
-  }
   if (closure.reference_kind !== 'legacy_exact') {
     fail('legacy root closure reference_kind is not legacy_exact');
   }
-  if (input.candidate.manifest.bundle_id !== LEGACY_CHAIN_HEAD_BUNDLE_ID) {
-    fail('only the v0.3 r2 chain head may use a legacy root closure');
-  }
   if (!input.candidate.manifest.previous_bundle) {
-    fail('v0.3 r2 chain head has no previous_bundle to close');
+    fail('chain head has no previous_bundle to close');
   }
   if (
     input.candidate.manifest.previous_bundle.bundle_id !== closure.bundle_id
@@ -780,6 +842,9 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
   releasesPath?: string;
   mainRef?: string;
   legacyRootClosurePath?: string;
+  predecessorRootClosurePath?: string;
+  admittedEndpoint?: LatestStableAggregateAdmittedEndpoint;
+  admittedEndpointPath?: string;
 }): Promise<LatestStableAggregateResolution> {
   const actkgRoot = path.resolve(options.actkgRoot);
   const releasesRoot = path.resolve(
@@ -787,6 +852,11 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
     options.releasesPath ?? 'releases',
   );
   const mainRef = options.mainRef ?? 'origin/main';
+  const admittedEndpoint = options.admittedEndpointPath
+    ? await loadLatestStableAggregateAdmittedEndpoint(path.resolve(options.admittedEndpointPath))
+    : options.admittedEndpoint
+      ? parseAdmittedEndpoint(options.admittedEndpoint)
+      : undefined;
   const candidates = (
     await Promise.all(
       (await readdir(releasesRoot, { withFileTypes: true }))
@@ -852,11 +922,6 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
       if (!previous) {
         fail(`${candidate.manifest.bundle_id} previous_bundle is missing`);
       }
-      if (candidate.manifest.bundle_id !== LEGACY_CHAIN_HEAD_BUNDLE_ID) {
-        fail(
-          `${candidate.manifest.bundle_id} previous_bundle ${previous.bundle_id} is missing from the stable Aggregate candidate set`,
-        );
-      }
       continue;
     }
     referenced.add(previous.bundle_id);
@@ -876,7 +941,9 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
       actkgRoot,
       mainRef,
       candidate: missingPredecessors[0]!,
-      closurePath: options.legacyRootClosurePath ?? DEFAULT_LEGACY_ROOT_CLOSURE_PATH,
+      closurePath: options.predecessorRootClosurePath
+        ?? options.legacyRootClosurePath
+        ?? await discoverPredecessorRootClosurePath(actkgRoot),
     });
   }
   const endpoints = candidates.filter(
@@ -1037,6 +1104,7 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
     statistics: manifest.statistics,
     bundlePath: bundleRelativePath,
     predecessorRootClosure,
+    ...(admittedEndpoint ? { admittedEndpoint } : {}),
   };
   // `resolvedAt` records when this observation completed. It is deliberately
   // kept outside `body` so the digest remains deterministic across reruns.
@@ -1082,6 +1150,9 @@ export async function resolveLatestStableAggregate(options: {
   releasesPath?: string;
   mainRef?: string;
   legacyRootClosurePath?: string;
+  predecessorRootClosurePath?: string;
+  admittedEndpoint?: LatestStableAggregateAdmittedEndpoint;
+  admittedEndpointPath?: string;
 }): Promise<LatestStableAggregateBinding> {
   const { binding } = await resolveLatestStableAggregateWithCandidates(options);
   return binding;

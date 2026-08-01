@@ -1,7 +1,7 @@
 ## 1. Freeze the latest stable binding
 
-- [ ] 1.1 Extend the latest-stable resolver and CLI output to bind the full ActKG main, packaging, source/tag, Release, Bundle, Manifest, Schema, dataset and predecessor identities without fixed version constants.
-- [ ] 1.2 Add unique-selection, no-fallback, missing-object and pre/post-resolution drift tests.
+- [x] 1.1 Extend the latest-stable resolver and CLI output to bind the full ActKG main, packaging, source/tag, Release, Bundle, Manifest, Schema, dataset and predecessor identities without fixed version constants.
+- [x] 1.2 Add unique-selection, no-fallback, missing-object and pre/post-resolution drift tests.
 
 ## 2. Verify and stage the successor chain
 
