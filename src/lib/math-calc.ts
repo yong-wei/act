@@ -71,6 +71,48 @@ function isErrnoError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && 'code' in error;
 }
 
+function isMathCalculateStep(value: unknown): value is MathCalculateStep {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as Record<string, unknown>;
+  return Number.isInteger(record.step)
+    && typeof record.description === 'string'
+    && typeof record.operation === 'string'
+    && typeof record.input === 'string'
+    && typeof record.output === 'string';
+}
+
+function parseMathCalculateResponse(stdout: string): MathCalculateResponse | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(stdout);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  const record = parsed as Record<string, unknown>;
+  if ((record.status !== 'ok' && record.status !== 'error')
+    || typeof record.result !== 'string'
+    || !Array.isArray(record.steps)
+    || !record.steps.every(isMathCalculateStep)) {
+    return null;
+  }
+  if (record.status === 'error') {
+    if (typeof record.error !== 'string' || !record.error.trim()) return null;
+    return {
+      status: 'error',
+      result: record.result,
+      steps: record.steps,
+      error: record.error,
+    };
+  }
+  return {
+    status: 'ok',
+    result: record.result,
+    steps: record.steps,
+  };
+}
+
 /**
  * 执行一次 SymPy 计算。
  *
@@ -121,7 +163,7 @@ export async function runMathCalculate(input: MathCalculateRequest): Promise<Mat
         reject(new MathCalculateUnavailableError('Python 运行时不可用'));
         return;
       }
-      reject(error);
+      reject(new MathCalculateUnavailableError('公式计算运行时不可用'));
     });
 
     child.on('close', (code) => {
@@ -129,47 +171,21 @@ export async function runMathCalculate(input: MathCalculateRequest): Promise<Mat
       if (settled) return;
       settled = true;
 
+      const parsed = parseMathCalculateResponse(stdout);
       if (code !== 0) {
+        if (parsed?.status === 'error') {
+          resolve(parsed);
+          return;
+        }
         reject(new MathCalculateUnavailableError('公式计算运行时不可用'));
         return;
       }
 
-      try {
-        const parsed: unknown = JSON.parse(stdout);
-        if (!parsed || typeof parsed !== 'object') {
-          resolve({
-            status: 'error',
-            result: '',
-            steps: [],
-            error: 'SymPy 返回了无法解析的结果',
-          });
-          return;
-        }
-
-        const record = parsed as Record<string, unknown>;
-        if (record.status === 'ok') {
-          resolve({
-            status: 'ok',
-            result: typeof record.result === 'string' ? record.result : '',
-            steps: Array.isArray(record.steps) ? (record.steps as MathCalculateStep[]) : [],
-          });
-          return;
-        }
-
-        resolve({
-          status: 'error',
-          result: typeof record.result === 'string' ? record.result : '',
-          steps: Array.isArray(record.steps) ? (record.steps as MathCalculateStep[]) : [],
-          error: typeof record.error === 'string' ? record.error : 'SymPy 计算失败',
-        });
-      } catch {
-        resolve({
-          status: 'error',
-          result: '',
-          steps: [],
-          error: 'SymPy 返回了无法解析的结果',
-        });
+      if (!parsed) {
+        reject(new MathCalculateUnavailableError('公式计算运行时不可用'));
+        return;
       }
+      resolve(parsed);
     });
 
     child.stdin.on('error', () => {

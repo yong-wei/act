@@ -6,7 +6,7 @@
 
 ## 2. API 路由与共享执行器
 
-- [x] 2.1 新增 `src/lib/math-calc.ts`，在 `spawn` 前执行与 Python 一致的表达式/变量白名单校验；子进程非零退出投影为稳定 unavailable 错误（不泄露 stderr），封装 10 秒超时与结构化结果解析。
+- [x] 2.1 新增 `src/lib/math-calc.ts`，在 `spawn` 前执行与 Python 一致的表达式/变量白名单校验；保留非零退出携带的合法结构化计算错误，仅将无合法错误信封的异常退出投影为稳定 unavailable 错误（不泄露 stderr），并封装 10 秒超时与结构化结果解析。
 - [x] 2.2 新增 `POST /api/math/calculate`，强制登录、Zod 校验、并发限制（4 并发 + 8 排队，超限 429）。
 - [x] 2.3 覆盖 401/400/200/422/503/429 的 route 测试。
 

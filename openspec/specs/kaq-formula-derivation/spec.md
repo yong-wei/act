@@ -38,8 +38,13 @@ The system SHALL bound SymPy subprocess execution with a CPU time limit, a proce
 - **THEN** the API SHALL terminate the subprocess and return a timeout error.
 
 #### Scenario: Calculator exits unexpectedly
-- **WHEN** the calculator process exits with a non-zero status
+- **WHEN** the calculator process exits with a non-zero status without a valid structured calculator error
 - **THEN** the shared executor SHALL return a stable unavailable-runtime error without exposing stderr contents
+
+#### Scenario: Calculator reports a structured expression error
+- **WHEN** the calculator process exits with a valid structured error for an expression or operation failure
+- **THEN** the shared executor SHALL preserve the calculator error so the API can return a client error
+- **AND** stderr contents SHALL NOT be exposed
 
 ### Requirement: KAQ exposes the calculate tool for formula derivation
 The KAQ runtime SHALL register `calculate` in its tool registry and expose it in generic-chat mode so the LLM can call it for formula-derivation answers.

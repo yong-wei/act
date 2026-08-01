@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   spawn: vi.fn(),
@@ -33,11 +33,37 @@ function createChildProcessMock() {
 }
 
 describe('runMathCalculate', () => {
+  beforeEach(() => {
+    mocks.spawn.mockReset();
+  });
+
+  it('returns a structured calculator error even when the process exits non-zero', async () => {
+    const child = createChildProcessMock();
+    mocks.spawn.mockReturnValue(child);
+
+    const pending = runMathCalculate({ expression: 'x -', operation: 'simplify' });
+    child.stdout.emit('data', JSON.stringify({
+      status: 'error',
+      result: '',
+      steps: [],
+      error: 'invalid syntax',
+    }));
+    child.emit('close', 2);
+
+    await expect(pending).resolves.toEqual({
+      status: 'error',
+      result: '',
+      steps: [],
+      error: 'invalid syntax',
+    });
+  });
+
   it('projects a non-zero calculator exit into the stable unavailable error', async () => {
     const child = createChildProcessMock();
     mocks.spawn.mockReturnValue(child);
 
     const pending = runMathCalculate({ expression: 'x', operation: 'simplify' });
+    child.stderr.emit('data', 'private runtime details');
     child.emit('close', 2);
 
     const error = await pending.catch((reason: unknown) => reason);
