@@ -142,6 +142,34 @@ describe('Konling conversation library', () => {
           graphNodeId: 'node-1',
           modeContextToken: 'signed-token',
         },
+    });
+  });
+
+  it('persists teacher diagnosis while discarding every client hint', () => {
+    const binding = normalizeKonlingConversationAssistantBinding({
+      modeId: 'teacher-diagnosis',
+      clientContextHints: {
+        classId: 'forged-class',
+        answerId: 'forged-answer',
+        arbitraryPayload: 'discard-me',
+      },
+    });
+    expect(binding).toEqual({
+      teachingAssistantModeId: 'teacher-diagnosis',
+      modeClientContextHints: {},
+    });
+
+    const prepared = prepareKonlingConversationTurn({
+      conversation: conversation(),
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'user-1', role: 'user', content: '查看班级诊断' },
+      assistantBinding: binding,
+    });
+
+    expect(serializeKonlingConversation(conversation({ messages: prepared.modelMessages as never })).assistantBinding)
+      .toEqual({
+        teachingAssistantModeId: 'teacher-diagnosis',
+        modeClientContextHints: {},
       });
   });
 
