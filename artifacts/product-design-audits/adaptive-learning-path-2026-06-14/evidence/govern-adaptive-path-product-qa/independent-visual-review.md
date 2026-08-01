@@ -8,6 +8,12 @@ Reviewer session: `019eccd3-4a79-71d1-be53-df4f89c4f334`
 
 Final verdict: PASS
 
+## 2026-08-01 PR #1152 Refresh
+
+The 13-state adaptive-path matrix was recaptured after the cold-start explanation change. The reviewer confirmed that the recommendation basis and improvement guidance remain readable at desktop and 320px widths, the mobile navigation entry is visible, all mobile signals remain free of horizontal overflow, and the existing comparison, execution, skip-confirmation, and learning-record states remain usable. No P0/P1 regression introduced by PR #1152 was found.
+
+The initial concern that the `contextual-recommendation` demo showed an unavailable path-advisor dependency was rejected as a PR blocker: that external demo dependency state predates this change, PR #1152 does not modify path generation, and its declared scope is the student-facing cold-start explanation. The dedicated checkout-bound `cold-start-1151` capture separately verifies that the landing-intent generation action is visible and enabled at 1440px and 320px. Expanding the mobile navigation drawer and exercising a real backend generation-to-execution journey remain non-blocking acceptance gaps outside this display-only change.
+
 ## 2026-07-11 Source Refresh
 
 The official 13-state capture matrix was rerun against the current worktree on a fresh local server. The matrix now records the normalized one-route comparison, inline node detail, skip confirmation, and the explicitly disabled demo-mode dock state instead of claiming an unavailable Konling parameter panel. Desktop light and mobile dark active-path states were inspected directly: route progress, current-node emphasis, checkpoint evidence, actions, responsive stacking, and the right-bottom shared dock remain legible and collision-free. No new BLOCK finding was observed.
