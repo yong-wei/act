@@ -1,5 +1,5 @@
 {
-  "route": "/evidence-pid",
+  "route": "/review/pid-turn-calibration-1039",
   "viewport": {
     "width": 1440,
     "height": 1000,
@@ -41,7 +41,7 @@
         },
         "searchInfo": {
           "iterations": 9,
-          "timeMs": 52,
+          "timeMs": 56,
           "convergenceHistory": [
             {
               "iteration": 0,
@@ -142,12 +142,12 @@
   },
   "apiResponseError": null,
   "consoleErrors": [],
-  "captureRevision": "820fcd80491baad344523aab8294bbe641b0955e",
-  "servedRevision": "820fcd80491baad344523aab8294bbe641b0955e",
+  "captureRevision": "75da73b75e185bb0207266f40d0c857c6065c98f",
+  "servedRevision": "75da73b75e185bb0207266f40d0c857c6065c98f",
   "sourceHashes": {
-    "artifacts/commercial-ui/pid-turn-calibration-1038/capture-pid-recommendation-evidence.mjs": "426eab3515d68d09f293772ab746b03c7ece834c7d8df84e55a26997b470fdbe",
+    "artifacts/commercial-ui/pid-turn-calibration-1038/capture-pid-recommendation-evidence.mjs": "fcaf29f4efdf6385dfe1f99fe7faf1afd0dd028556bb9400aad7e5ce56d4caa0",
     "artifacts/commercial-ui/pid-turn-calibration-1038/evidence-contract.mjs": "92b1d684f36289293d96a6d660802e8c9397c94cfa7d3d070729d73abe102f9c",
-    "src/app/evidence-pid/page.tsx": "fd1e1dda8aa2ef6b1e209196096e3779b9eb362a0a68dc6f5bdac5970baae4c9",
+    "src/app/review/pid-turn-calibration-1039/page.tsx": "4e5d42a6b6016746e3355916317691efae77a856f7848a0af485e0cda3e9bc2b",
     "src/app/api/simulation/optimize/route.ts": "fa7542ee806ce40a2a57e28c3025f1a132de491492fb9032f6fb583fcc8f3a5d",
     "src/resources/simulations/ai-recommend-panel.tsx": "0fd39b9f8f1bd7db4cc253e38bbe655328f54b4c9e9ef0489ffa58dde8047921",
     "src/resources/simulations/lib/monte-carlo-optimizer.ts": "40e4d07f47614447c620885fab0d14f839cbd5575518852ae3e2f53e932c0614",
@@ -157,7 +157,7 @@
     "src/resources/control-system/wasm/control_engine/index_bg.wasm": "54f3afcbbda658f27bd0fb87aff4c4b25142e7c2d16bd591fb1ab332675ea399",
     "src/resources/control-system/wasm/control_engine/index_bg.wasm.d.ts": "53fbffe06bcff31b3c038bc9750fc9bf8b0dda579b294499e4687023e376ca09"
   },
-  "screenshotSha256": "19cdfde7d96fb2078a222b9c7298a3fbb5331af0851d821d65ea36f3efca8e5a",
+  "screenshotSha256": "1435c85d72b10a29d74e6b140747dda7b60da72ad478c225d9791b455ec05831",
   "documentScrollWidth": 1440,
   "viewportWidth": 1440,
   "panelVisible": true,
