@@ -7,7 +7,7 @@
  */
 export interface ColdStartDetectionInput {
   /** learner state API 加载状态 */
-  learnerStateLoadState: 'idle' | 'loading' | 'ready';
+  learnerStateLoadState: 'idle' | 'loading' | 'ready' | 'failed';
   /** learner state 中的证据计数；缺失时必须 fail closed */
   evidenceCount: number | null | undefined;
 }

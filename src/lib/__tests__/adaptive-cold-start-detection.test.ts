@@ -22,6 +22,11 @@ describe('isColdStartLearner', () => {
     expect(isColdStartLearner({ learnerStateLoadState: 'idle', evidenceCount: 3 })).toBe(false);
   });
 
+  it('returns false when learner state loading failed regardless of evidenceCount', () => {
+    expect(isColdStartLearner({ learnerStateLoadState: 'failed', evidenceCount: 0 })).toBe(false);
+    expect(isColdStartLearner({ learnerStateLoadState: 'failed', evidenceCount: null })).toBe(false);
+  });
+
   it('returns false when learner state is ready but evidenceCount is null/undefined', () => {
     expect(isColdStartLearner({ learnerStateLoadState: 'ready', evidenceCount: null })).toBe(false);
     expect(isColdStartLearner({ learnerStateLoadState: 'ready', evidenceCount: undefined })).toBe(false);
