@@ -2,11 +2,19 @@
 
 Change: `govern-adaptive-path-product-qa`
 
-Reviewer: `ui-flow-reviewer`
+Reviewer: `use-grok high`
 
-Reviewer session: `019eccd3-4a79-71d1-be53-df4f89c4f334`
+Reviewer session: `c1ad5d65-7963-4c87-8c9b-5f01cf357e5a`
 
 Final verdict: PASS
+
+## 2026-08-01 PR #1155 Refresh
+
+Grok high reviewed all 13/13 PNG captures and their associated visual signals. The recorded result is `passed` with `blockingFindings=[]`; all 13 screenshot hashes matched the current matrix. The calculate/integration refresh introduced no visual regression.
+
+Final verdict: PASS. No unresolved block findings remain.
+
+Non-blocking residuals are limited to the demo dock remaining collapsed, the generation dependency bar, and the mobile zero-size dock signal. These signals do not block the visual acceptance result.
 
 ## 2026-08-01 PR #1152 Refresh
 
