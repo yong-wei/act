@@ -37,6 +37,14 @@ artifacts/interactive-learning/visual-stage-runtime-561/*
 .idea
 codex
 .codex
+.codegraph
+.code-review-graph
+.playwright-cli
+.serena
+.skillopt-sleep
+.tmp
+.wolf
+.worktrees
 .playwright-mcp
 .cache
 .cache/*
