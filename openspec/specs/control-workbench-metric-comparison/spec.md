@@ -1,7 +1,8 @@
 # control-workbench-metric-comparison Specification
 
 ## Purpose
-TBD - created by archiving change add-control-workbench-metric-comparison. Update Purpose after archive.
+Define how the classic control workbench presents a read-only, unit-aware comparison of existing analysis metrics for the current design and visible design snapshots, including baseline differences, availability states, responsive access, and official-submission isolation.
+
 ## Requirements
 ### Requirement: Workbench compares existing control metrics across visible designs
 The classic four-view workbench SHALL display the current editable design and every visible design snapshot as identifiable columns in a key-performance-metric comparison. The comparison SHALL use only metrics already returned by each design's control analysis and SHALL include overshoot, rise time, settling time, peak time, final value, phase margin, gain margin, gain crossover frequency, phase crossover frequency, and bandwidth.
