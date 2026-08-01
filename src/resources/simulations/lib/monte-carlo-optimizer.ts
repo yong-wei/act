@@ -50,7 +50,20 @@ export interface OptimizationResult {
     score: number;
     params: { kp: number; ki: number; kd: number };
   }>;
-  replay?: SimulationReplayMetadata;
+  replay?: OptimizerReplayMetadata;
+}
+
+export interface OptimizerReplayScenario {
+  id: string;
+  duration: number;
+  referenceCompletedAt: number;
+  headingSchedule: Array<{ time: number; headingDeg: number }>;
+  start: { x: number; z: number; headingDeg: number };
+  maxRudderRateDegPerSec?: number;
+}
+
+export interface OptimizerReplayMetadata extends SimulationReplayMetadata {
+  scenario: OptimizerReplayScenario;
 }
 
 export interface OptimizePIDParamsOptions {
@@ -488,23 +501,28 @@ export function optimizePIDParams(
     convergenceHistory,
   } satisfies Omit<OptimizationResult, 'replay'>;
 
+  const replayScenario: OptimizerReplayScenario = {
+    id: scenario.scenarioId,
+    duration: scenario.duration,
+    referenceCompletedAt: scenario.referenceCompletedAt,
+    headingSchedule: scenario.headingSchedule,
+    start: scenario.startPos,
+    ...(scenario.runtimeVersion === 'simulation-optimizer-runtime-v2' ? { maxRudderRateDegPerSec: 5 } : {}),
+  };
+
   return {
     ...result,
-    replay: buildSimulationReplayMetadata(runContext, {
-      scenario: {
-        id: scenario.scenarioId,
-        duration: scenario.duration,
-        referenceCompletedAt: scenario.referenceCompletedAt,
-        headingSchedule: scenario.headingSchedule,
-        start: scenario.startPos,
-        ...(scenario.runtimeVersion === 'simulation-optimizer-runtime-v2' ? { maxRudderRateDegPerSec: 5 } : {}),
-      },
-      bestParams: result.bestParams,
-      score: result.score,
-      metrics: result.metrics,
-      iterations: result.iterations,
-      convergenceHistory: result.convergenceHistory,
-    }),
+    replay: {
+      ...buildSimulationReplayMetadata(runContext, {
+        scenario: replayScenario,
+        bestParams: result.bestParams,
+        score: result.score,
+        metrics: result.metrics,
+        iterations: result.iterations,
+        convergenceHistory: result.convergenceHistory,
+      }),
+      scenario: replayScenario,
+    },
   };
 }
 

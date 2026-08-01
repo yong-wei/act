@@ -54,6 +54,19 @@ describe('PID turn scenario calibration', () => {
     expect(result.replay).toMatchObject({
       scenarioId: 'turn90-calibrated-v1',
       runtimeVersion: 'simulation-optimizer-runtime-v2',
+      scenario: {
+        id: 'turn90-calibrated-v1',
+        duration: 240,
+        referenceCompletedAt: 150,
+        start: { x: 0, z: 0, headingDeg: 0 },
+        maxRudderRateDegPerSec: 5,
+        headingSchedule: [
+          { time: 0, headingDeg: 0 },
+          { time: 60, headingDeg: 0 },
+          { time: 150, headingDeg: 90 },
+          { time: 240, headingDeg: 90 },
+        ],
+      },
     });
     expect(computeVirtualSimulationServerStepMock).toHaveBeenCalledWith(expect.objectContaining({
       duration: 240,
