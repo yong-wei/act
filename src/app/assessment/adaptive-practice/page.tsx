@@ -603,6 +603,55 @@ const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
   },
 } as unknown as AdaptiveLearningPathPlan;
 
+const DEMO_LOW_EVIDENCE_PATH_PLAN = {
+  ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
+  confidence: {
+    level: 'high',
+    score: 0.82,
+    sourceCoverage: 0.72,
+  },
+  visualization: {
+    ...DEMO_CONTROL_CORRECTION_PATH_PLAN.visualization,
+    evidence: {
+      ...DEMO_CONTROL_CORRECTION_PATH_PLAN.visualization.evidence,
+      learnerStateDeficits: [
+        ...DEMO_CONTROL_CORRECTION_PATH_PLAN.visualization.evidence.learnerStateDeficits,
+        {
+          targetId: 'parameterDesign',
+          kind: 'competency',
+          value: 0.38,
+          confidence: 0.4,
+          evidenceCount: 1,
+          reasonCode: 'low-confidence-competency',
+        },
+      ],
+    },
+  },
+} as unknown as AdaptiveLearningPathPlan;
+
+const DEMO_LEGACY_PATH_PLAN = {
+  ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
+  visualization: {
+    ...DEMO_CONTROL_CORRECTION_PATH_PLAN.visualization,
+    evidence: undefined,
+  },
+} as unknown as AdaptiveLearningPathPlan;
+
+type RecommendationProvenanceFixture = 'sufficient' | 'low' | 'legacy';
+
+function resolveRecommendationProvenanceFixture(value: string | null): RecommendationProvenanceFixture {
+  if (value === 'low' || value === 'legacy') return value;
+  return 'sufficient';
+}
+
+function demoRecommendationProvenancePlan(
+  fixture: RecommendationProvenanceFixture,
+): AdaptiveLearningPathPlan {
+  if (fixture === 'low') return DEMO_LOW_EVIDENCE_PATH_PLAN;
+  if (fixture === 'legacy') return DEMO_LEGACY_PATH_PLAN;
+  return DEMO_CONTROL_CORRECTION_PATH_PLAN;
+}
+
 const DEMO_CONTROL_CORRECTION_PATH_ROUND = {
   id: 'demo-control-correction-round',
   userId: 'demo-student',
@@ -1931,6 +1980,9 @@ export default function AdaptivePracticePage() {
   const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
   const isArenaJourneyDemo = isDemoMode && searchParams.get('arenaJourneyFixture') === '1';
+  const recommendationProvenanceFixture = resolveRecommendationProvenanceFixture(
+    searchParams.get('provenanceFixture'),
+  );
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
   const localFeedbackContext = buildFeedbackTaskContext({
@@ -2460,7 +2512,9 @@ export default function AdaptivePracticePage() {
     setSelectedOption(demoData.defaultSelectedOption);
     setFeedback(demoData.feedback);
     setActivePathPlan(activeGoal === 'control-correction'
-      ? (isArenaJourneyDemo ? DEMO_ARENA_JOURNEY_PATH_PLAN : DEMO_CONTROL_CORRECTION_PATH_PLAN)
+      ? (isArenaJourneyDemo
+          ? DEMO_ARENA_JOURNEY_PATH_PLAN
+          : demoRecommendationProvenancePlan(recommendationProvenanceFixture))
       : null);
     setActivePathRound(activeGoal === 'control-correction'
       ? (isArenaJourneyDemo ? DEMO_ARENA_JOURNEY_PATH_ROUND : DEMO_CONTROL_CORRECTION_PATH_ROUND)
@@ -2468,7 +2522,7 @@ export default function AdaptivePracticePage() {
     setQuestionStartAt(Date.now());
     setLoading(false);
     setError(null);
-  }, [activeGoal, isArenaJourneyDemo]);
+  }, [activeGoal, isArenaJourneyDemo, recommendationProvenanceFixture]);
 
   const loadDiagnostic = useCallback(async () => {
     const response = await fetch('/api/assessment/diagnostic');

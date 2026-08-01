@@ -99,6 +99,37 @@ describe('adaptive path recommendation provenance', () => {
     expect(provenance.nextAction).toBe('完成诊断或练习，补充有效学习证据。');
   });
 
+  it('downgrades the path summary when any included deficit has low-confidence evidence', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [
+        {
+          targetId: 'kn-bode',
+          kind: 'knowledge',
+          value: 0.32,
+          confidence: 0.8,
+          evidenceCount: 6,
+          reasonCode: 'supported-deficit',
+        },
+        {
+          targetId: 'parameterDesign',
+          kind: 'competency',
+          value: 0.4,
+          confidence: 0.4,
+          evidenceCount: 1,
+          reasonCode: 'low-evidence-deficit',
+        },
+      ],
+      confidence: 'high',
+    });
+
+    expect(provenance.confidence).toBe('low');
+    expect(provenance.summary).toContain('课程结构、先修规则和可用资源');
+    expect(provenance.limitations).toContain('部分判断的有效证据仍然不足。');
+    expect(provenance.nextAction).toBe('完成诊断或练习，补充有效学习证据。');
+  });
+
   it('persists recommendation provenance with serialized candidate options', () => {
     const record = serializeLearningPathPlan(buildAdaptiveLearningPathPlan(plannerInput()));
     const provenance = record.payload.pathOptions?.[0]?.recommendationProvenance;

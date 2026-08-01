@@ -5063,7 +5063,7 @@ export function buildAdaptivePathRecommendationProvenance(input: {
   const hasUnmatchedEntry = entries.some((entry) =>
     entry.confidence !== 'low' && entry.affectedResourceTitles.length === 0
   );
-  const confidence = input.confidence === 'low' || entries.length === 0
+  const confidence = input.confidence === 'low' || entries.length === 0 || hasLowConfidenceEntry
     ? 'low'
     : input.confidence;
   const limitations = unique([
