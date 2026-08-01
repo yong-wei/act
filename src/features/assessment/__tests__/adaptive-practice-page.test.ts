@@ -107,9 +107,9 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('data-adaptive-path-status-region={showSelectionWorkspace ? \'reserved\' : \'inline\'}');
     expect(source).toContain('pathChoiceMessage ? (');
     expect(source).toContain("showEvidenceWorkspace ? (");
-    expect(source).toContain("intent: 'path-selection'");
-    expect(source).toContain('const generatedPathId = typeof payload.result?.pathId ===');
-    expect(source).toContain("if (generatedPathId) selectionQuery.set('pathId', generatedPathId)");
+    expect(source).toContain('await refreshLatestLearningPathAfterKonling()');
+    expect(source).toContain("settlePathGenerationRequest(");
+    expect(source).toContain("publishPathGenerationStatus('succeeded', generationRequestId, '学习路径已生成，请比较候选方案。')");
     expect(source).toContain("intent: 'path-execution'");
     expect(source).toContain("optionId: option.optionId");
     expect(source).toContain("const activeOptionId = searchParams.get('optionId')");

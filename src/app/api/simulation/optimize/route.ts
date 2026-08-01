@@ -7,6 +7,7 @@
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { PID_EVIDENCE_BUILD_SOURCE_HASHES } from '@/lib/pid-evidence-runtime-manifest.generated';
 import {
   createSimulationRunContext,
   normalizeSeed,
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
           sceneId: 'simulation/optimizer/nomoto-quick-sim',
           scenarioId: 'turn90',
           seed: replaySeed,
-          runtimeVersion: 'simulation-optimizer-runtime-v1',
+          runtimeVersion: 'simulation-optimizer-runtime-v2',
           modelVersion: 'nomoto-quick-sim-v1',
         }),
       }
@@ -106,6 +107,9 @@ export async function POST(request: Request) {
         replay: result.replay,
       },
       advice: generateAdvice(result.score, result.metrics),
+      ...(process.env.COMMERCIAL_UI_EVIDENCE === '1'
+        ? { evidenceBuildSourceHashes: PID_EVIDENCE_BUILD_SOURCE_HASHES }
+        : {}),
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
