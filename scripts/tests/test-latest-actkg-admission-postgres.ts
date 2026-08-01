@@ -24,6 +24,7 @@ import {
 const root = process.cwd();
 const bindingPath = process.env.ACTKG_ADMISSION_BINDING;
 const chainReceiptPath = process.env.ACTKG_ADMISSION_CHAIN_RECEIPT;
+const captureRoot = path.resolve(process.env.ACTKG_ADMISSION_CAPTURE_ROOT ?? root);
 const sourceUrl = process.env.DATABASE_URL;
 
 if (!sourceUrl || !bindingPath || !chainReceiptPath) {
@@ -35,7 +36,7 @@ if (!sourceUrl || !bindingPath || !chainReceiptPath) {
 
 async function main(): Promise<void> {
   const captureRevision = execFileSync('git', ['rev-parse', 'HEAD'], {
-    cwd: root,
+    cwd: captureRoot,
     encoding: 'utf8',
   }).trim();
   assert.match(captureRevision, /^[a-f0-9]{40}$/u);
@@ -49,11 +50,21 @@ async function main(): Promise<void> {
       chainReceiptPath,
       outputRoot,
       captureRevision,
-      captureRoot: root,
+      captureRoot,
       db: isolated.db,
     });
     assert.equal(result.status, 'PASS');
-    assert.ok(result.deltaReceipts.length > 0);
+    assert.equal(result.deltaReceipts.length, 7);
+    assert.equal(result.deltaReceipts[0]?.upstreamSource, 'admission_bridge');
+    assert.equal(
+      result.deltaReceipts[0]?.upstreamDiffDigest,
+      '3f3f2ec94a1aa82ccd9022a058f79e75a4f27173d6fa703067d00e7441a5e70e',
+    );
+    for (const [index, receipt] of result.deltaReceipts.entries()) {
+      assert.equal(receipt.computed.upstream.status, 'AGREED');
+      assert.equal(receipt.persisted.upstreamCrosscheckStatus, 'AGREED');
+      if (index > 0) assert.equal(receipt.upstreamSource, 'bundle_artifact');
+    }
     assert.equal(result.gates.PRODUCTION_SELECTOR_CHANGE, 0);
     assert.equal(result.gates.GRAPH_RAG_SELECTOR_CHANGE, 0);
     assert.equal(result.gates.CANONICAL_LEARNING_FACT_WRITER_FENCE_CHANGE, 0);

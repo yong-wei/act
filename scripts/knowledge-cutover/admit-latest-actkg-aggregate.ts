@@ -82,6 +82,10 @@ export interface ChainAdmissionReceipt {
   bindingPath: string;
   predecessorClosurePath: string;
   predecessorClosureArtifactHash: string;
+  admissionBridgePath: string;
+  admissionBridgeFileSha256: string;
+  admissionBridgeArtifactHash: string;
+  admissionBridgeReleaseDiffDigest: string;
   resolutionDigest: string;
   chain: ChainAdmissionEntry[];
 }
@@ -128,6 +132,7 @@ export interface AdmissionPlan {
   binding: LatestStableAggregateBinding;
   receipt: ChainAdmissionReceipt;
   hops: AdmissionHopPlan[];
+  admissionBridgeReleaseDiff: JsonObject;
 }
 
 export interface AdmissionOptions {
@@ -156,6 +161,8 @@ export interface AdmissionOptions {
 
 export interface AdmissionDeltaReceipt {
   order: number;
+  upstreamSource: 'admission_bridge' | 'bundle_artifact';
+  upstreamDiffDigest: string;
   base: DeltaEvidenceRef;
   candidate: DeltaEvidenceRef;
   persisted: PersistedDeltaReceiptResult;
@@ -274,6 +281,12 @@ export function parseBinding(row: JsonObject): LatestStableAggregateBinding {
     hash(endpoint.sourceDatasetHash, 'binding.admittedEndpoint.sourceDatasetHash');
     if (endpoint.bundleId !== undefined) string(endpoint.bundleId, 'binding.admittedEndpoint.bundleId');
   }
+  const bridge = object(row.admissionBridgeReleaseDiff, 'binding.admissionBridgeReleaseDiff');
+  string(bridge.path, 'binding.admissionBridgeReleaseDiff.path');
+  hash(bridge.artifactHash, 'binding.admissionBridgeReleaseDiff.artifactHash');
+  hash(bridge.releaseDiffDigest, 'binding.admissionBridgeReleaseDiff.releaseDiffDigest');
+  string(bridge.targetBundleId, 'binding.admissionBridgeReleaseDiff.targetBundleId');
+  hash(bridge.targetBundleDigest, 'binding.admissionBridgeReleaseDiff.targetBundleDigest');
   return row as unknown as LatestStableAggregateBinding;
 }
 
@@ -311,6 +324,22 @@ function parseChainReceipt(row: JsonObject): ChainAdmissionReceipt {
     predecessorClosureArtifactHash: hash(
       row.predecessorClosureArtifactHash,
       'chain receipt predecessorClosureArtifactHash',
+    ),
+    admissionBridgePath: normalizedRelativePath(
+      row.admissionBridgePath,
+      'chain receipt admissionBridgePath',
+    ),
+    admissionBridgeFileSha256: hash(
+      row.admissionBridgeFileSha256,
+      'chain receipt admissionBridgeFileSha256',
+    ),
+    admissionBridgeArtifactHash: hash(
+      row.admissionBridgeArtifactHash,
+      'chain receipt admissionBridgeArtifactHash',
+    ),
+    admissionBridgeReleaseDiffDigest: hash(
+      row.admissionBridgeReleaseDiffDigest,
+      'chain receipt admissionBridgeReleaseDiffDigest',
     ),
     resolutionDigest: row.resolutionDigest as string,
     chain,
@@ -365,8 +394,17 @@ export function buildAdmissionPlan(input: {
   receipt: ChainAdmissionReceipt;
   locks: readonly ChainAdmissionLock[];
   manifests: readonly JsonObject[];
+  admissionBridgeReleaseDiff?: JsonObject;
 }): AdmissionPlan {
   const { binding, receipt, locks, manifests } = input;
+  const bridgeBinding = binding.admissionBridgeReleaseDiff;
+  if (!bridgeBinding) fail('frozen binding does not contain the admission bridge');
+  if (
+    receipt.admissionBridgeArtifactHash !== bridgeBinding.artifactHash
+    || receipt.admissionBridgeReleaseDiffDigest !== bridgeBinding.releaseDiffDigest
+  ) {
+    fail('chain receipt admission bridge identity differs from frozen binding');
+  }
   if (receipt.resolutionDigest !== binding.resolutionDigest) {
     fail('chain receipt and frozen binding resolutionDigest differ');
   }
@@ -395,6 +433,12 @@ export function buildAdmissionPlan(input: {
   if (expectedChain.length === 0) fail('chain receipt has no post-admission candidates');
   if (receipt.chain[0]!.bundleId !== FIRST_STAGED_BUNDLE_ID || receipt.chain[0]!.releaseId !== FIRST_STAGED_RELEASE_ID) {
     fail('first Delta candidate must be the staged v0.3:r2 Bundle');
+  }
+  if (
+    bridgeBinding.targetBundleId !== receipt.chain[0]!.bundleId
+    || bridgeBinding.targetBundleDigest !== receipt.chain[0]!.bundleDigest
+  ) {
+    fail('admission bridge target differs from the first staged candidate');
   }
 
   const hops: AdmissionHopPlan[] = [];
@@ -458,7 +502,12 @@ export function buildAdmissionPlan(input: {
           },
     });
   }
-  return { binding, receipt, hops };
+  return {
+    binding,
+    receipt,
+    hops,
+    admissionBridgeReleaseDiff: input.admissionBridgeReleaseDiff ?? {},
+  };
 }
 
 async function loadAdmissionPlan(repoRoot: string, bindingPath: string, chainReceiptPath: string): Promise<AdmissionPlan> {
@@ -478,6 +527,34 @@ async function loadAdmissionPlan(repoRoot: string, bindingPath: string, chainRec
   if (receipt.outputRoot !== relativeOutputRoot) {
     fail('chain receipt outputRoot does not contain the chain receipt');
   }
+  const bridgePath = resolvePath(repoRoot, receipt.admissionBridgePath, 'admission bridge path');
+  const bridgeBytes = await readFile(bridgePath);
+  if (sha256(bridgeBytes) !== receipt.admissionBridgeFileSha256) {
+    fail('staged admission bridge file bytes drift');
+  }
+  const bridgeEnvelope = parseJson(bridgeBytes, 'staged admission bridge');
+  const claimedArtifactHash = hash(
+    bridgeEnvelope.artifact_hash,
+    'staged admission bridge artifact_hash',
+  );
+  const bridgeBody = { ...bridgeEnvelope };
+  delete bridgeBody.artifact_hash;
+  if (
+    sha256(canonicalJson(bridgeBody)) !== claimedArtifactHash
+    || claimedArtifactHash !== receipt.admissionBridgeArtifactHash
+  ) {
+    fail('staged admission bridge artifact_hash mismatch');
+  }
+  const bridgeReleaseDiff = object(
+    bridgeEnvelope.release_diff,
+    'staged admission bridge release_diff',
+  );
+  if (
+    sha256(canonicalJson(bridgeReleaseDiff)) !== receipt.admissionBridgeReleaseDiffDigest
+    || bridgeEnvelope.release_diff_digest !== receipt.admissionBridgeReleaseDiffDigest
+  ) {
+    fail('staged admission bridge release_diff_digest mismatch');
+  }
   const expectedReceiptPath = path.resolve(repoRoot, receipt.outputRoot, 'chain-intake-receipt.json');
   if (expectedReceiptPath !== path.resolve(chainReceiptPath)) {
     fail('chain receipt path is not the immutable chain-intake-receipt.json');
@@ -495,7 +572,14 @@ async function loadAdmissionPlan(repoRoot: string, bindingPath: string, chainRec
     locks.push(lock);
     manifests.push(parseJson(manifestBytes, `candidate Manifest ${entry.bundleId}`));
   }
-  return buildAdmissionPlan({ repoRoot, binding, receipt, locks, manifests });
+  return buildAdmissionPlan({
+    repoRoot,
+    binding,
+    receipt,
+    locks,
+    manifests,
+    admissionBridgeReleaseDiff: bridgeReleaseDiff,
+  });
 }
 
 const SELECTOR_FENCE_PATHS = [
@@ -558,9 +642,17 @@ export function compareSelectorGateSnapshots(
   };
 }
 
-function deltaReceipt(order: number, computed: ComputedReleaseSetDelta, persisted: PersistedDeltaReceiptResult): AdmissionDeltaReceipt {
+function deltaReceipt(
+  order: number,
+  computed: ComputedReleaseSetDelta,
+  persisted: PersistedDeltaReceiptResult,
+  upstreamSource: 'admission_bridge' | 'bundle_artifact',
+  upstreamDiffDigest: string,
+): AdmissionDeltaReceipt {
   return {
     order,
+    upstreamSource,
+    upstreamDiffDigest,
     base: computed.baseEvidence,
     candidate: computed.candidateEvidence,
     persisted,
@@ -706,7 +798,27 @@ export async function admitLatestActkgAggregate(options: AdmissionOptions): Prom
     if (base.evidence.releaseId !== hop.base.releaseId || (hop.base.bundleId !== null && base.evidence.bundleId !== hop.base.bundleId)) {
       fail(`explicit predecessor identity drift at order ${hop.order}`);
     }
-    const upstream = await loadUpstreamCrosscheck(options.db, candidate, loadRawUpstream);
+    const upstream = hop.order === 1
+      ? await (async () => {
+          const rawBundle = await loadRawUpstream(options.db, candidate);
+          if (rawBundle.raw !== null || rawBundle.required || rawBundle.parseError !== null) {
+            fail('first admission hop has conflicting in-bundle Release Diff evidence');
+          }
+          try {
+            return {
+              upstreamDiff: parseUpstreamReleaseDiff(plan.admissionBridgeReleaseDiff),
+              upstreamParseError: null,
+              upstreamRequired: true,
+            };
+          } catch (error) {
+            return {
+              upstreamDiff: null,
+              upstreamParseError: error instanceof Error ? error.message : String(error),
+              upstreamRequired: true,
+            };
+          }
+        })()
+      : await loadUpstreamCrosscheck(options.db, candidate, loadRawUpstream);
     if (!upstream.upstreamRequired) {
       fail(`upstream Release Diff is required for admission hop ${hop.order}`);
     }
@@ -731,7 +843,15 @@ export async function admitLatestActkgAggregate(options: AdmissionOptions): Prom
     if (computed.authorizationState !== 'ACCEPTED') {
       fail(`Delta authorization rejected at order ${hop.order}: ${computed.authorizationState}`);
     }
-    receipts.push(deltaReceipt(hop.order, computed, persisted));
+    receipts.push(deltaReceipt(
+      hop.order,
+      computed,
+      persisted,
+      hop.order === 1 ? 'admission_bridge' : 'bundle_artifact',
+      hop.order === 1
+        ? plan.receipt.admissionBridgeReleaseDiffDigest
+        : sha256(canonicalJson(upstream.upstreamDiff)),
+    ));
     base = candidate;
   }
 

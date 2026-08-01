@@ -127,7 +127,20 @@ async function writeBundle(input: {
   const artifactBytes: Array<{ role: string; contract_version: string; path: string; media_type: string; bytes: Buffer; profile?: string; profiles?: string[] }> = [
     { role: 'release_notes', contract_version: 'actkg-release-notes/1', path: 'RELEASE-NOTES.md', media_type: 'text/markdown', bytes: Buffer.from('fixture\n') },
     { role: 'projection', contract_version: 'ctkg-graph-projection/0.2', path: 'act-projection.json', profile: 'runtime', media_type: 'application/json', bytes: Buffer.from('{}') },
-    { role: 'projection', contract_version: 'ctkg-graph-projection/0.2', path: 'domain-projection.json', profile: 'domain', media_type: 'application/json', bytes: Buffer.from('{}') },
+    {
+      role: 'projection',
+      contract_version: 'ctkg-graph-projection/0.2',
+      path: 'domain-projection.json',
+      profile: 'domain',
+      media_type: 'application/json',
+      bytes: Buffer.from(JSON.stringify({
+        id: `ctr:projection:${releaseVersion}:domain`,
+        version_digest: sha256(`projection:${releaseId}`),
+        source_release: releaseId,
+        source_release_hash: releasePayload.release_hash,
+        source_dataset_hash: releasePayload.source_dataset_hash,
+      })),
+    },
     { role: 'projection', contract_version: 'ctkg-graph-projection/0.2', path: 'review-projection.json', profile: 'review', media_type: 'application/json', bytes: Buffer.from('{}') },
     { role: 'component_manifest', contract_version: 'actkg-component-manifest/1', path: 'component-releases.json', media_type: 'application/json', bytes: Buffer.from('{"components":[]}') },
     { role: 'ctkg_schema', contract_version: 'ctkg-json-schema/0.2', path: 'ctkg.schema.json', media_type: 'application/schema+json', bytes: Buffer.from('{"version":"0.2.0"}') },
@@ -329,7 +342,137 @@ async function writeValidChain(
   return { legacySums, endpointName };
 }
 
+async function writeAdmissionBridgeFixture(root: string): Promise<string> {
+  const endpointPath = 'course-content/authoring/knowledge/endpoint.json';
+  await mkdir(path.join(root, path.dirname(endpointPath)), { recursive: true });
+  const endpointBytes = Buffer.from(JSON.stringify(ADMITTED_ENDPOINT));
+  await writeFile(path.join(root, endpointPath), endpointBytes);
+  git(root, ['add', endpointPath]);
+  git(root, ['commit', '-m', 'freeze admitted endpoint']);
+  const anchorCommit = git(root, ['rev-parse', 'HEAD']);
+  git(root, ['remote', 'add', 'origin', 'https://example.invalid/act.git']);
+
+  const targetRoot = path.join(root, 'releases/control-theory-engineering-v0.3-r2');
+  const targetManifest = JSON.parse(
+    await readFile(path.join(targetRoot, 'bundle-manifest.json'), 'utf8'),
+  ) as Record<string, any>;
+  const targetRelease = targetManifest.release as Record<string, string>;
+  const projectionPath = 'releases/control-theory-engineering-v0.3-r2/domain-projection.json';
+  const targetProjection = JSON.parse(
+    await readFile(path.join(root, projectionPath), 'utf8'),
+  ) as Record<string, string>;
+  const releaseDiff = {
+    contract_version: 'actkg-release-diff/1',
+    base_release: {
+      release_id: ADMITTED_ENDPOINT.releaseId,
+      release_version: ADMITTED_ENDPOINT.releaseVersion,
+      release_hash: ADMITTED_ENDPOINT.releaseHash,
+    },
+    target_release: {
+      release_id: targetRelease.release_id,
+      release_version: targetRelease.release_version,
+      release_hash: targetRelease.release_hash,
+    },
+    objects: { added: [], removed: [], changed: [] },
+    relations: { added: [], removed: [], changed: [] },
+    crosswalk: { added_count: 0, removed_count: 0 },
+    components: { added: [], removed: [] },
+  };
+  const body = {
+    contract_version: 'actkg-admission-bridge-release-diff/1',
+    bridge_id: 'actkg:admission-bridge:test',
+    admitted_endpoint: ADMITTED_ENDPOINT,
+    admitted_endpoint_external_anchor: {
+      repository: 'https://example.invalid/act.git',
+      commit: anchorCommit,
+      introduced_commit: anchorCommit,
+      path: endpointPath,
+      sha256: sha256(endpointBytes),
+      consumer_must_verify_blob: true,
+      blob_verification_status: 'DELEGATED_TO_ACT_CONSUMER',
+    },
+    target: {
+      bundle_id: targetManifest.bundle_id,
+      bundle_digest: targetManifest.bundle_digest,
+      release_id: targetRelease.release_id,
+      release_version: targetRelease.release_version,
+      release_hash: targetRelease.release_hash,
+      source_dataset_hash: targetRelease.source_dataset_hash,
+      manifest: { sha256: sha256(await readFile(path.join(targetRoot, 'bundle-manifest.json'))) },
+      projection: {
+        path: projectionPath,
+        sha256: sha256(await readFile(path.join(root, projectionPath))),
+        ...targetProjection,
+      },
+    },
+    release_diff: releaseDiff,
+    release_diff_digest: sha256(canonicalJson(releaseDiff)),
+    gates: { BRIDGE_FIXTURE_GATE: 'PASS' },
+    scope: {
+      mutates_release_packages: false,
+      extends_bundle_chain: false,
+      productionAuthoritative: false,
+    },
+    status: 'PASS',
+  };
+  const bridgePath = 'docs/coordination/m1j/admission-bridge.json';
+  await writeFile(
+    path.join(root, bridgePath),
+    JSON.stringify({ ...body, artifact_hash: sha256(canonicalJson(body)) }),
+  );
+  git(root, ['add', bridgePath]);
+  git(root, ['commit', '-m', 'add admission bridge']);
+  return bridgePath;
+}
+
 describe('resolveLatestStableAggregate', () => {
+  it('binds a canonical admission bridge and verifies its ACT Git anchor', async () => {
+    const { root, sourceCommit } = await initRepo();
+    await writeValidChain(root, sourceCommit, { successor: true });
+    const bridgePath = await writeAdmissionBridgeFixture(root);
+
+    const result = await resolveLatestStableAggregate({
+      actkgRoot: root,
+      actRepoRoot: root,
+      mainRef: 'main',
+      admittedEndpoint: ADMITTED_ENDPOINT,
+      predecessorRootClosurePath: CLOSURE_PATH,
+      admissionBridgeReleaseDiffPath: bridgePath,
+    });
+
+    expect(result.admissionBridgeReleaseDiff).toMatchObject({
+      path: bridgePath,
+      targetBundleId: CHAIN_HEAD_ID,
+      baseReleaseId: ADMITTED_ENDPOINT.releaseId,
+      admittedEndpointExternalAnchor: {
+        repository: 'https://example.invalid/act.git',
+        sha256: sha256(Buffer.from(JSON.stringify(ADMITTED_ENDPOINT))),
+      },
+    });
+  });
+
+  it('rejects a rehashed admission bridge with a misbound ACT anchor', async () => {
+    const { root, sourceCommit } = await initRepo();
+    await writeValidChain(root, sourceCommit, { successor: true });
+    const bridgePath = await writeAdmissionBridgeFixture(root);
+    const bridge = JSON.parse(await readFile(path.join(root, bridgePath), 'utf8')) as Record<string, any>;
+    bridge.admitted_endpoint_external_anchor.sha256 = 'f'.repeat(64);
+    delete bridge.artifact_hash;
+    bridge.artifact_hash = sha256(canonicalJson(bridge));
+    await writeFile(path.join(root, bridgePath), JSON.stringify(bridge));
+    git(root, ['add', bridgePath]);
+    git(root, ['commit', '-m', 'tamper admission bridge anchor']);
+
+    await expect(resolveLatestStableAggregate({
+      actkgRoot: root,
+      actRepoRoot: root,
+      mainRef: 'main',
+      admittedEndpoint: ADMITTED_ENDPOINT,
+      predecessorRootClosurePath: CLOSURE_PATH,
+      admissionBridgeReleaseDiffPath: bridgePath,
+    })).rejects.toThrow('anchor blob SHA-256 mismatch');
+  });
+
   it('selects the unique stable Aggregate chain endpoint', async () => {
     const { root, sourceCommit } = await initRepo();
     await writeValidChain(root, sourceCommit, { successor: true });

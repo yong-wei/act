@@ -19,6 +19,8 @@ function parseArgs(argv: string[]): {
   outputMarkdown: string;
   admittedEndpointPath?: string;
   predecessorRootClosurePath?: string;
+  admissionBridgeReleaseDiffPath: string;
+  actRepoRoot?: string;
 } {
   const values = new Map<string, string>();
   for (let index = 0; index < argv.length; index += 2) {
@@ -37,6 +39,8 @@ function parseArgs(argv: string[]): {
     '--output-markdown',
     '--admitted-endpoint',
     '--predecessor-closure',
+    '--admission-bridge',
+    '--act-repo-root',
   ]);
   for (const key of values.keys()) {
     if (!allowed.has(key)) fail(`unknown option ${key}`);
@@ -53,6 +57,8 @@ function parseArgs(argv: string[]): {
     outputMarkdown: required('--output-markdown'),
     admittedEndpointPath: values.get('--admitted-endpoint'),
     predecessorRootClosurePath: values.get('--predecessor-closure'),
+    admissionBridgeReleaseDiffPath: required('--admission-bridge'),
+    actRepoRoot: values.get('--act-repo-root'),
   };
 }
 
@@ -75,6 +81,8 @@ async function main(): Promise<void> {
       ? await loadLatestStableAggregateAdmittedEndpoint(path.resolve(args.admittedEndpointPath))
       : undefined,
     predecessorRootClosurePath: args.predecessorRootClosurePath,
+    admissionBridgeReleaseDiffPath: args.admissionBridgeReleaseDiffPath,
+    actRepoRoot: args.actRepoRoot,
   });
   const artifact = {
     status: 'PASS',
@@ -122,6 +130,7 @@ candidate_chain_endpoints=${JSON.stringify(binding.candidateChainEndpoints)}
 statistics=${JSON.stringify(binding.statistics)}
 bundle_path=${binding.bundlePath}
 predecessor_root_closure=${JSON.stringify(binding.predecessorRootClosure)}
+admission_bridge_release_diff=${JSON.stringify(binding.admissionBridgeReleaseDiff ?? null)}
 admitted_endpoint=${JSON.stringify(binding.admittedEndpoint ?? null)}
 resolved_at=${binding.resolvedAt}
 resolution_digest=${binding.resolutionDigest}

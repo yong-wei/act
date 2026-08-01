@@ -53,6 +53,31 @@ function binding(candidateChain: string[], admittedEndpoint?: string): LatestSta
     statistics: {},
     bundlePath: 'releases/control-theory-engineering-v0.3-r2',
     predecessorRootClosure: null,
+    admissionBridgeReleaseDiff: {
+      path: 'docs/coordination/m1j/bridge.json',
+      contractVersion: 'actkg-admission-bridge-release-diff/1',
+      bridgeId: 'actkg:admission-bridge:test',
+      artifactHash: digest('c'),
+      releaseDiffDigest: digest('d'),
+      admittedEndpointExternalAnchor: {
+        repository: 'https://github.com/yong-wei/act.git',
+        commit: 'a'.repeat(40),
+        introducedCommit: 'b'.repeat(40),
+        path: 'endpoint.json',
+        sha256: digest('e'),
+      },
+      baseReleaseId: 'control-theory-engineering-v0.2',
+      baseReleaseVersion: 'control-theory-engineering-v0.2',
+      baseReleaseHash: digest('1'),
+      targetReleaseId: FIRST_STAGED_RELEASE_ID,
+      targetReleaseVersion: 'control-theory-engineering-v0.3',
+      targetReleaseHash: digest('e'),
+      targetBundleId: FIRST_STAGED_BUNDLE_ID,
+      targetBundleDigest: digest('f'),
+      targetManifestSha256: digest('9'),
+      targetProjectionId: 'projection:v0.3',
+      targetProjectionDigest: digest('a'),
+    },
     resolutionDigest: digest('8'),
     ...(admittedEndpoint ? { admittedEndpoint: { bundleId: admittedEndpoint } } : {}),
   } as LatestStableAggregateBinding;
@@ -98,6 +123,10 @@ function receipt(entries: ChainAdmissionReceipt['chain']): ChainAdmissionReceipt
     bindingPath: 'tmp/chain/metadata/latest-stable-aggregate-binding.json',
     predecessorClosurePath: 'tmp/chain/metadata/predecessor-closure.json',
     predecessorClosureArtifactHash: digest('c'),
+    admissionBridgePath: 'tmp/chain/metadata/admission-bridge-release-diff.json',
+    admissionBridgeFileSha256: digest('b'),
+    admissionBridgeArtifactHash: digest('c'),
+    admissionBridgeReleaseDiffDigest: digest('d'),
     resolutionDigest: digest('8'),
     chain: entries,
   };
@@ -274,7 +303,7 @@ describe('admission selector gates', () => {
     }
   });
 
-  it('fails the first hop without an upstream Release Diff and leaves gates/output unchanged', async () => {
+  it('rejects a legacy chain receipt whose staged admission bridge is missing', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'actkg-admission-test-'));
     const outputRoot = path.join(root, 'final-admission');
     const first = {
@@ -401,9 +430,9 @@ describe('admission selector gates', () => {
         }) as never,
         persistDelta: async () => ({ mode: 'created', receiptId: 'delta-1', classification: 'SEMANTIC_CONTENT_UPDATE', authorizationState: 'ACCEPTED', inputDigest: digest('1'), outputDigest: digest('2'), naturalKey: 'delta-1', signalCount: 0, upstreamCrosscheckStatus: 'NOT_REQUIRED', selectorsUnchanged: true }),
         verifyDelta: async (_db, computed) => ({ mode: 'verify-only', receiptId: 'delta-1', classification: computed.classification, authorizationState: computed.authorizationState, inputDigest: computed.inputDigest, outputDigest: computed.outputDigest, naturalKey: computed.naturalKey, signalCount: 0, upstreamCrosscheckStatus: 'NOT_REQUIRED', selectorsUnchanged: true }),
-      })).rejects.toThrow('upstream Release Diff is required for admission hop 1');
+      })).rejects.toThrow(/admission-bridge-release-diff\.json/u);
       await expect(stat(outputRoot)).rejects.toMatchObject({ code: 'ENOENT' });
-      expect(selectorCalls).toBe(1);
+      expect(selectorCalls).toBe(0);
       expect(stable).toEqual(snapshot);
       expect(await readdir(path.dirname(outputRoot))).not.toContain('.admission.tmp-');
     } finally {
