@@ -635,7 +635,7 @@ export default function ProfilePage() {
                       <div className="flex shrink-0 flex-wrap gap-2 text-xs">
                         <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">预览</span>
                         <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">非官方</span>
-                        <span className="rounded-full bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300">低置信度学习观察</span>
+                        <span className="rounded-full border border-border bg-accent/70 px-3 py-1 text-foreground">低置信度学习观察</span>
                       </div>
                     </div>
                     {profile.arenaPortfolio.trainingSummary.recentRuns.length === 0 ? (
