@@ -1,8 +1,5 @@
-# arena-learning-evidence-consumption Specification
+## MODIFIED Requirements
 
-## Purpose
-Define how persisted Arena submissions and Arena learning-fact context are consumed by student profiles and teacher class insights without reconstructing official evaluation meaning in the front end.
-## Requirements
 ### Requirement: Student profile consumes Arena summaries
 The student profile API SHALL expose official Arena summary fields derived from persisted official submissions and a separate training summary derived from governed Arena virtual simulation runs and Arena LearningFact context. Training summary fields SHALL not alter official best score, valid submission rate, ranking, or official capability claims.
 
@@ -18,17 +15,6 @@ The student profile API SHALL expose official Arena summary fields derived from 
 #### Scenario: Student without Arena submissions
 - **WHEN** a student has no Arena official submissions
 - **THEN** `/api/user/profile` MUST return an empty official Arena summary without failing the profile response
-
-### Requirement: Teacher class insights consume Arena summaries
-Teacher class insight APIs SHALL expose Arena summary fields derived from class-scoped persisted official submissions and Arena LearningFact context.
-
-#### Scenario: Class Arena summary
-- **WHEN** a teacher requests class insights for a class with Arena activity
-- **THEN** the response MUST include task achievement rate, average score, hard-constraint failure distribution, weak metric distribution, method distribution, and non-submission counts where publication context is available
-
-#### Scenario: Cross-class data protection
-- **WHEN** Arena submissions from another class exist for the same task
-- **THEN** a teacher class insight response MUST NOT include those submissions in the requested class summary
 
 ### Requirement: Arena evidence aggregation is backend-owned
 Arena profile and class insight summaries SHALL be computed by backend analytics modules, not by front-end reconstruction. Backend aggregation SHALL preserve the distinction between official submissions and preview training evidence.

@@ -95,7 +95,7 @@ function profilePayload() {
     missionProgress: { total: 0, completed: 0, unlocked: 0, locked: 0 },
     personalizedReinforcement: { resources: [], adaptivePractice: { estimatedAbility: null, confidenceInterval: null, weakAreas: [], recommendedFocus: [], questionCount: 0, actionUrl: '/assessment/adaptive-practice?intent=practice' } },
     evidenceStatus: { state: 'missing', confidence: { state: 'missing', level: 'low', score: 0, evidenceCount: 0, sourceCompleteness: 0 }, evidenceWindow: { daysCovered: 0 }, sourceCounts: {}, statusMarkers: ['missing-source'], restrictedReason: null, staleReason: null, refreshedAt: null, generatedAt: new Date(0).toISOString() },
-    arenaPortfolio: { controllerCount: 0, identificationModels: [], submissionSummary: { total: 0, valid: 0, invalid: 0, pending: 0 }, personalBestByTask: [], frequentFailureObjects: [], improvingMetrics: [], growth: { capabilityCoverage: { covered: 0, total: 0 }, evidenceAvailable: false, weakCapabilities: [], improvingCapabilities: [], strongCapabilities: [], nextChallenges: [] } },
+    arenaPortfolio: { controllerCount: 0, identificationModels: [], submissionSummary: { total: 0, valid: 0, invalid: 0, pending: 0 }, personalBestByTask: [], frequentFailureObjects: [], improvingMetrics: [], growth: { capabilityCoverage: { covered: 0, total: 0 }, evidenceAvailable: false, weakCapabilities: [], improvingCapabilities: [], strongCapabilities: [], nextChallenges: [] }, trainingSummary: { total: 0, previewCount: 0, recentRuns: [] } },
   };
 }
 

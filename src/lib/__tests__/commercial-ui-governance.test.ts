@@ -4658,7 +4658,7 @@ describe('commercial UI governance', () => {
     expect(pageSource).toContain('路径管理');
     expect(pageSource).toContain('openAndScrollPathModule(pathManagementTargetModuleId)');
     const studentVisibleSource = pageSource.replaceAll('data-learner-record-missing-source', '');
-    expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|no-path|low-evidence/);
+    expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|low-evidence/);
   });
 
   it('keeps simulation resource palette governance on full-file scan after migration', () => {

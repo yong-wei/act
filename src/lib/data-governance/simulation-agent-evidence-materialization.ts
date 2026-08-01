@@ -21,6 +21,8 @@ const SIMULATION_SUMMARY_METRIC_KEYS = [
   'identificationFit',
 ] as const;
 
+const PREVIEW_REPLAY_CONFIDENCE_CAP = 0.45;
+
 export type SimulationAgentEvidenceSourceType = 'simulation_run' | 'agent_tool_run';
 export type SimulationAgentEvidenceReviewerState = 'auto_approved' | 'review_required' | 'approved';
 
@@ -194,15 +196,19 @@ function buildSimulationRunEvidenceDraft(
   const agentSessionId = readString(summary.agentSessionId) ?? readString(summaryProvenance.agentSessionId);
   const agentToolRunId = readString(summary.agentToolRunId) ?? readString(summaryProvenance.agentToolRunId);
   const protocolVersion = readString(run.protocolVersion) ?? 'unknown';
+  const preview = isPreviewRun(run, summary);
   const provenance = compactObject({
     sourceDomain: readString(run.sourceDomain),
     runKind: readString(run.runKind),
-    preview: isPreviewRun(run),
-    official: isOfficialRun(run, summary),
+    preview,
+    official: preview ? false : isOfficialRun(run, summary),
     courseLaunched: isCourseLaunchedRun(run),
     standalone: !isCourseLaunchedRun(run),
     agentAssisted: runIsAgentAssisted(run, summary),
   });
+  const safeSummary = preview
+    ? forcePreviewBoundary(buildSafeSimulationSummary(summary, trace))
+    : buildSafeSimulationSummary(summary, trace);
   const privacyScope = readString(run.classId) ? 'student-visible' : 'student-visible';
   const occurredAt = readDate(run.completedAt) ?? readDate(run.startedAt) ?? now;
   const dedupeKey = `simulation_run:${runId}:${protocolVersion}`;
@@ -217,17 +223,18 @@ function buildSimulationRunEvidenceDraft(
       agentToolRunId,
     }),
     factType: 'simulation',
-    summary: buildSafeSimulationSummary(summary, trace),
+    summary: safeSummary,
     evidenceRefs: compactObject({
       simulationRunId: runId,
       simulationTraceId: traceId,
       agentSessionId,
       agentToolRunId,
       taskSpecId: readString(run.taskSpecId),
+      taskId: readString(safeSummary.taskId),
       traceReference: traceId ? `SimulationTrace:${traceId}` : `SimulationRun:${runId}`,
     }),
     provenance,
-    confidence: resolveSimulationConfidence(summary, trace),
+    confidence: resolveSimulationConfidence(summary, trace, preview),
     privacyScope,
     dedupeKey,
     reviewerState: 'auto_approved',
@@ -350,6 +357,13 @@ function draftToLearningFactInput(
             agentAssisted: draft.provenance.agentAssisted === true,
             preview: draft.provenance.preview === true,
             official: draft.provenance.official === true,
+            taskId: readString(draft.summary.taskId),
+            scenarioId: readString(draft.summary.scenarioId),
+            evaluationVisibility: readString(draft.summary.evaluationVisibility),
+            officialEligible: readBoolean(draft.summary.officialEligible),
+            arenaTraining: Object.keys(readObject(draft.summary.arenaTraining)).length > 0
+              ? readObject(draft.summary.arenaTraining)
+              : undefined,
             launchMode: draft.provenance.standalone === true ? 'standalone' : 'course-resource',
             governanceContext: compactObject({
               classId: draft.classId,
@@ -464,11 +478,17 @@ function draftToOutboxEvent(
 
 function buildSafeSimulationSummary(summary: JsonRecord, trace: JsonRecord | null): Prisma.InputJsonObject {
   const metrics = resolveSimulationSummaryMetrics(summary);
+  const arenaTraining = buildSafeArenaTrainingSummary(summary);
   return compactObject({
     score: readNumber(summary.score) ?? deriveSimulationSummaryScore(metrics),
     valid: typeof summary.valid === 'boolean' ? summary.valid : deriveSimulationSummaryValid(metrics),
     replayConfidence: readNumber(summary.replayConfidence),
     durationSeconds: readNumber(summary.durationSeconds),
+    taskId: readString(arenaTraining.taskId),
+    scenarioId: readString(arenaTraining.scenarioId),
+    evaluationVisibility: readString(arenaTraining.evaluationVisibility),
+    officialEligible: readBoolean(arenaTraining.officialEligible),
+    arenaTraining: Object.keys(arenaTraining).length > 0 ? arenaTraining : undefined,
     metrics,
     satisfaction: sanitizeObject(readObject(summary.satisfaction)),
     weakMetrics: sanitizeArray(summary.weakMetrics),
@@ -479,6 +499,42 @@ function buildSafeSimulationSummary(summary: JsonRecord, trace: JsonRecord | nul
       sampleCadence: readNumber(trace.sampleCadence),
       summaryMetrics: sanitizeObject(readObject(trace.summaryMetrics)),
     }) : undefined,
+  });
+}
+
+function buildSafeArenaTrainingSummary(summary: JsonRecord): Prisma.InputJsonObject {
+  const arenaTraining = readObject(summary.arenaTraining);
+  const previewBoundary = readObject(summary.previewBoundary);
+  const replay = readObject(arenaTraining.replay);
+
+  return compactObject({
+    taskId: readString(arenaTraining.taskId),
+    scenarioId: readString(arenaTraining.scenarioId),
+    evaluationVisibility: readString(arenaTraining.evaluationVisibility) ?? readString(previewBoundary.evaluationVisibility),
+    officialEligible: readBoolean(arenaTraining.officialEligible) ?? readBoolean(previewBoundary.officialEligible),
+    replay: Object.keys(replay).length > 0
+      ? compactObject({
+          sceneId: readString(replay.sceneId),
+          scenarioId: readString(replay.scenarioId),
+          checksum: readString(replay.checksum),
+          protocolVersion: readString(replay.protocolVersion),
+        })
+      : undefined,
+  });
+}
+
+function forcePreviewBoundary(summary: Prisma.InputJsonObject): Prisma.InputJsonObject {
+  const existingArenaTraining = readObject(summary.arenaTraining);
+  const arenaTraining = compactObject({
+    ...existingArenaTraining,
+    evaluationVisibility: 'preview',
+    officialEligible: false,
+  });
+  return compactObject({
+    ...summary,
+    evaluationVisibility: 'preview',
+    officialEligible: false,
+    arenaTraining,
   });
 }
 
@@ -528,24 +584,52 @@ function resolveFactTimeSpent(draft: SimulationAgentEvidenceDraft): number | und
 }
 
 function resolveCompetencyContribution(draft: SimulationAgentEvidenceDraft): Prisma.InputJsonValue {
+  if (draft.provenance.preview === true && !hasCompletePreviewAttribution(draft.summary)) {
+    return {
+      parameterDesign: 0,
+      systemAnalysis: 0,
+    };
+  }
   const score = readNumber(draft.summary.score);
-  const contribution = score === undefined ? 0.2 : Math.max(Math.min((score - 50) / 100, 0.6), -0.3);
+  const baseContribution = score === undefined ? 0.2 : Math.max(Math.min((score - 50) / 100, 0.6), -0.3);
+  const contribution = draft.provenance.preview === true ? baseContribution * 0.33 : baseContribution;
   return {
     parameterDesign: round(contribution),
     systemAnalysis: round(contribution * 0.8),
   };
 }
 
-function resolveSimulationConfidence(summary: JsonRecord, trace: JsonRecord | null): number {
-  const explicit = readNumber(summary.replayConfidence);
-  if (explicit !== undefined) return clamp01(explicit);
-  if (trace && readString(trace.checksum) && readString(trace.protocolVersion)) return 0.8;
-  return 0.45;
+function hasCompletePreviewAttribution(summary: Prisma.InputJsonObject): boolean {
+  const trace = readObject(summary.trace);
+  return readString(summary.taskId) !== undefined
+    && readString(summary.scenarioId) !== undefined
+    && readString(summary.evaluationVisibility) === 'preview'
+    && readBoolean(summary.officialEligible) === false
+    && readString(trace.checksum) !== undefined
+    && readString(trace.protocolVersion) !== undefined;
 }
 
-function isPreviewRun(run: JsonRecord): boolean {
+function resolveSimulationConfidence(
+  summary: JsonRecord,
+  trace: JsonRecord | null,
+  preview: boolean,
+): number {
+  const explicit = readNumber(summary.replayConfidence);
+  if (preview) {
+    return explicit === undefined
+      ? PREVIEW_REPLAY_CONFIDENCE_CAP
+      : Math.min(clamp01(explicit), PREVIEW_REPLAY_CONFIDENCE_CAP);
+  }
+  if (explicit !== undefined) return clamp01(explicit);
+  if (trace && readString(trace.checksum) && readString(trace.protocolVersion)) return 0.8;
+  return PREVIEW_REPLAY_CONFIDENCE_CAP;
+}
+
+function isPreviewRun(run: JsonRecord, summary: JsonRecord = {}): boolean {
   return readString(run.runKind)?.includes('preview') === true ||
-    readString(run.sourceDomain)?.includes('preview') === true;
+    readString(run.sourceDomain)?.includes('preview') === true ||
+    readString(readObject(summary.arenaTraining).evaluationVisibility) === 'preview' ||
+    readString(readObject(summary.previewBoundary).evaluationVisibility) === 'preview';
 }
 
 function isOfficialRun(run: JsonRecord, summary: JsonRecord): boolean {
@@ -580,6 +664,10 @@ function readString(value: unknown): string | undefined {
 
 function readNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function readBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
 }
 
 function readDate(value: unknown): Date | undefined {
