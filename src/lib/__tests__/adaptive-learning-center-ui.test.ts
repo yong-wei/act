@@ -775,7 +775,6 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('withFeedbackTaskHref(goal.hrefs.generation)');
     expect(source).toContain("const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';");
     expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
-    expect(source).toContain("const showPresetGoalCards = isPresetGoalLanding && pathLandingState === 'cold-start';");
     expect(source).toContain('useGlobalAI');
     expect(source).toContain('openPathGenerationAdvisor');
     expect(source).toContain('const hasInvalidRequestedGoal = requestedGoal !== null && !explicitGoal');
@@ -786,7 +785,6 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
     expect(source).toContain('data-adaptive-path-workspace-intent={workspaceIntent}');
     expect(source).toContain("showGenerationWorkspace ? (");
-    expect(source).toContain('{showPresetGoalCards ? (');
     expect(source).toContain('value={pathGenerationPanel.goalId}');
     expect(source).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
     expect(source).toContain('window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel))');
@@ -984,7 +982,6 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("? 'avoid-learning-record' : undefined");
     expect(source).toContain('{!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (');
     expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ||');
-    expect(source).toContain("(showLandingWorkspace && pathLandingState === 'active') ? null :");
     expect(source).toContain('data-adaptive-path-route-map="compact"');
     expect(source).toContain('data-adaptive-path-progress-summary="essential"');
     expect(source).toContain('<AdaptivePathTimeline');

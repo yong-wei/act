@@ -17,3 +17,5 @@ export * from './pipeline';
 export * from './repository';
 export * from './review-workflow';
 export * from './latest-aggregate-authority';
+export * from './current-course-coverage-review';
+export * from './current-course-coverage-review-io';
