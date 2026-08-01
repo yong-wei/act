@@ -146,7 +146,7 @@
         "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json"
       ],
       "forbiddenAuthorityPathsDigest": "361f10bc87422a72bdb0b7f0906147120aaaf7eddbf7ea9aed72cfe70b23eb40",
-      "outsideAllowedWriteSetDigest": "3e86c6a83545076480e048a51a6dd2e7fb58678edd61a7c9300d3a47b5aac722",
+      "outsideAllowedWriteSetDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
       "forbiddenAuthorityStatusDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
       "selectorSnapshotDigest": "d9d4aa28db3f5d8c59708e08ac879b7d89c43b1befcf83e92fd3be1763ddfba8",
       "selectorWorkingTreeDigest": "adea58f7ce273463d0739c23615ac4ef4eace8d43301e19b1bcac7ea38c15238",
