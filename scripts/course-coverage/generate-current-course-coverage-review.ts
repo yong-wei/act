@@ -548,6 +548,9 @@ async function captureBoundarySnapshot(root: string, expectedCoverageDigest: str
     .filter(Boolean);
   const outside = status.filter((line) => !isAllowedOutput(statusPath(line)));
   const forbidden = status.filter((line) => FORBIDDEN_AUTHORITY_PATHS.some((prefix) => hasPathPrefix(statusPath(line), prefix)));
+  if (outside.length > 0) {
+    throw new Error(`Current review rejected: working tree has changes outside the allowed output set: ${outside.join(', ')}`);
+  }
   return {
     coverageDigest,
     outsideAllowedWriteSetDigest: digestLines(outside),
