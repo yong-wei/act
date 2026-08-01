@@ -36,7 +36,22 @@ function createDb(overrides: Partial<DiagnosisPersistenceDb> = {}): DiagnosisPer
     },
     diagnosisReport: {
       create: vi.fn().mockResolvedValue({ id: 'report-1' }),
-      findMany: vi.fn().mockResolvedValue([{ id: 'report-1' }]),
+      findMany: vi.fn().mockResolvedValue([{
+        id: 'report-1',
+        scopeType: 'class',
+        scopeId: 'class-1',
+        classId: 'class-1',
+        targetUserId: null,
+        reportBody,
+        riskSummary: {
+          total: 1,
+          byType: { stagnation: 0, constraint: 1, cross_domain: 0 },
+          bySeverity: { low: 0, medium: 1, high: 0 },
+        },
+        evidenceCutoff: new Date(reportBody.evidenceCutoff),
+        generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
+        generatedAt: new Date('2026-07-30T08:01:00.000Z'),
+      }]),
     },
     ...overrides,
   };

@@ -1,0 +1,20 @@
+{
+  "name": "student-history-390-dark",
+  "routePath": "/review/diagnosis-report-history-1177?scope=student",
+  "fixture": "temporary local review route rendering the production report component",
+  "targetIntegrationRoute": "/teacher/classes/[classId]/students/[studentId]",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "colorScheme": "dark",
+  "scope": "student",
+  "degraded": true,
+  "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/student-history-390-dark.png",
+  "assertions": {
+    "visible": true,
+    "rawEvidenceIdentifiersHidden": true,
+    "consoleErrors": 0,
+    "pageErrors": 0
+  }
+}

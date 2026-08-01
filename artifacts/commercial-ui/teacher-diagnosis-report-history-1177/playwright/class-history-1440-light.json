@@ -1,0 +1,20 @@
+{
+  "name": "class-history-1440-light",
+  "routePath": "/review/diagnosis-report-history-1177?scope=class",
+  "fixture": "temporary local review route rendering the production report component",
+  "targetIntegrationRoute": "/teacher/classes/[classId]",
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "colorScheme": "light",
+  "scope": "class",
+  "degraded": false,
+  "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-history-1440-light.png",
+  "assertions": {
+    "visible": true,
+    "rawEvidenceIdentifiersHidden": true,
+    "consoleErrors": 0,
+    "pageErrors": 0
+  }
+}

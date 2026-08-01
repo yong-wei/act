@@ -7,10 +7,23 @@ import {
   diagnosisReportWriteSchema,
   persistDiagnosisReport,
   readDiagnosisReports,
+  type DiagnosisReportReadModel,
 } from '@/lib/diagnosis-persistence';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
+
+export type DiagnosisReportApiItem = Omit<
+  DiagnosisReportReadModel,
+  'evidenceCutoff' | 'generatedAt'
+> & {
+  evidenceCutoff: string;
+  generatedAt: string;
+};
+
+export interface DiagnosisReportsPayload {
+  reports: DiagnosisReportApiItem[];
+}
 
 function scopeErrorResponse(error: unknown) {
   if (error instanceof DiagnosisReportScopeError) {
@@ -50,7 +63,14 @@ export async function GET(
       targetStudentId,
       limit,
     });
-    return NextResponse.json({ reports });
+    const payload: DiagnosisReportsPayload = {
+      reports: reports.map((report) => ({
+        ...report,
+        evidenceCutoff: report.evidenceCutoff.toISOString(),
+        generatedAt: report.generatedAt.toISOString(),
+      })),
+    };
+    return NextResponse.json(payload);
   } catch (error) {
     rethrowIfNextDynamicError(error);
     const scopeResponse = scopeErrorResponse(error);
