@@ -13,6 +13,7 @@ import {
   buildAdmissionPlan,
   compareSelectorGateSnapshots,
   parseBinding,
+  writeVerifiedJson,
   type ChainAdmissionLock,
   type ChainAdmissionReceipt,
   type SelectorGateSnapshot,
@@ -257,6 +258,20 @@ describe('admission selector gates', () => {
       ...snapshot,
       canonicalWriterFenceDigest: digest('5'),
     })).toThrow(/selector.*changed/u);
+  });
+
+  it('writes and round-trip verifies an array delta receipt payload', async () => {
+    const root = await mkdtemp(path.join(tmpdir(), 'actkg-admission-json-'));
+    const target = path.join(root, 'delta-receipts.json');
+    const receipt = [{ order: 1, persisted: { receiptId: 'delta-1' } }];
+    try {
+      await writeVerifiedJson(target, receipt);
+      const bytes = await readFile(target, 'utf8');
+      expect(bytes).toBe(`${JSON.stringify(receipt, null, 2)}\n`);
+      expect(JSON.parse(bytes)).toEqual(receipt);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it('cleans up after an injected mid-chain failure without mutating the gate snapshot', async () => {

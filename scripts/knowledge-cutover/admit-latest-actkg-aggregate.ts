@@ -219,13 +219,17 @@ function normalizedRelativePath(value: unknown, label: string): string {
   return normalized;
 }
 
-function parseJson(bytes: Buffer, label: string): JsonObject {
+function parseJsonValue(bytes: Buffer, label: string): unknown {
   try {
-    return object(JSON.parse(bytes.toString('utf8')), label);
+    return JSON.parse(bytes.toString('utf8')) as unknown;
   } catch (error) {
     if (error instanceof SyntaxError) fail(`${label} is not valid JSON`);
     throw error;
   }
+}
+
+function parseJson(bytes: Buffer, label: string): JsonObject {
+  return object(parseJsonValue(bytes, label), label);
 }
 
 async function readJson(filePath: string, label: string): Promise<JsonObject> {
@@ -584,12 +588,12 @@ async function requireAbsent(target: string, label: string): Promise<void> {
   }
 }
 
-async function writeVerifiedJson(target: string, value: unknown): Promise<void> {
+export async function writeVerifiedJson(target: string, value: unknown): Promise<void> {
   const bytes = `${JSON.stringify(value, null, 2)}\n`;
   await writeFile(target, bytes);
   const roundTrip = await readFile(target, 'utf8');
   if (roundTrip !== bytes) fail(`post-write verification failed for ${target}`);
-  parseJson(Buffer.from(roundTrip), target);
+  parseJsonValue(Buffer.from(roundTrip), target);
 }
 
 function assertEvidenceCaptureRevision(
