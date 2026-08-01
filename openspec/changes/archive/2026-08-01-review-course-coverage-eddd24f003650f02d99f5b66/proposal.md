@@ -7,7 +7,8 @@ The current CourseCoverage review denominator is frozen in a deterministic manif
 - Review only this manifest batch with independent Primary and Challenger conclusions.
 - Route every disagreement to a Third reviewer; Third MUST produce the terminal conclusion.
 - Require Challenger for profileOnly, new, changed, or highRisk members.
-- Emit a machine-mergeable batch decision receipt and preserve all input digests.
+- Emit a machine-mergeable batch review receipt and preserve all input digests.
+- Treat `DEFERRED_EVIDENCE_BLOCKED` as a review-stage terminal conclusion only; it leaves CourseCoverage authority unresolved and keeps the aggregate gate blocked.
 - Fail closed on any member, digest, or revision drift.
 
 ## Batch Binding
@@ -29,12 +30,12 @@ The manifest slice above is the sole member source; this proposal does not copy 
 
 ## Scope
 
-Only the exact ordered members in the frozen slice are eligible. Each member keeps its canonical ID and canonical revision from the slice. Primary and Challenger review the same ordered slice independently; conflicts go to terminal Third review. The decision receipt is keyed by all fields above.
+Only the exact ordered members in the frozen slice are eligible. Each member keeps its canonical ID and canonical revision from the slice. Primary and Challenger review the same ordered slice independently; conflicts go to terminal Third review. The review receipt is keyed by all fields above. `INCLUDE` and `EXCLUDE` may carry a CourseCoverage role only when independent current-course evidence is sufficient. `DEFER` carries no role and becomes `DEFERRED_EVIDENCE_BLOCKED` in the receipt.
 
 ## Out of Scope
 
-No other batch, no aggregate denominator rewrite, no production selector or writer-fence change, no automatic CURRENT decision, and no GitHub relationship mutation in this child.
+No other batch, no aggregate denominator rewrite, no production selector or writer-fence change, no automatic CURRENT decision, no generated semantic conclusion, and no GitHub relationship mutation in this child.
 
 ## Impact
 
-Adds one review-child contract and its decision receipt shape. It does not mutate production CourseCoverage authority.
+Adds one review-child contract and a reusable batch-review receipt validator for later frozen batches. It does not mutate production CourseCoverage authority.

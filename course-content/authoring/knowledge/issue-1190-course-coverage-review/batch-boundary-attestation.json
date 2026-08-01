@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "current-course-coverage-production-boundary-attestation/v1",
+  "protocol": "git-head-and-production-authority-detached-post-publication-attestation/v1",
+  "receiptPath": "course-content/authoring/knowledge/issue-1190-course-coverage-review/batch-receipt.json",
+  "attestationPath": "course-content/authoring/knowledge/issue-1190-course-coverage-review/batch-boundary-attestation.json",
+  "receiptDigest": "6cd7dc9bd484f5bb79a63db294917a0ff94ea767b37f5a7df030d76532c155dd",
+  "batchId": "eddd24f003650f02d99f5b66",
+  "headBefore": "8e988ff217f6905b7fc836d12eea7d3eebc8546d",
+  "headAfter": "8e988ff217f6905b7fc836d12eea7d3eebc8546d",
+  "protectedPaths": [
+    "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+    "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+    "src/lib/canonical-rag/authority.ts",
+    "src/lib/canonical-learning-fact-identity/authority.ts",
+    "src/lib/canonical-learning-fact-identity/capability.ts",
+    "src/lib/canonical-learning-fact-identity/writer.ts"
+  ],
+  "statusBefore": [],
+  "statusAfter": [],
+  "authoritySnapshotBeforeDigest": "dea89adad69f23f5d16ccc9c6f8e973036135112052869dc6620407702788da9",
+  "authoritySnapshotAfterDigest": "dea89adad69f23f5d16ccc9c6f8e973036135112052869dc6620407702788da9",
+  "gitDiffCheck": "PASS",
+  "attestationDigest": "26c49c525e8862eea19ec17ef9c28187a24b2b8e507f2cf1e9592c3cdc11fadf"
+}

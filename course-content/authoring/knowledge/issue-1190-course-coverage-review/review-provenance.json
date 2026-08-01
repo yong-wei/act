@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "eddd24f003650f02d99f5b66",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "stageArtifactsExistedDuringReviews": false,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "fba587fc-786a-4cef-ba43-5f1143c4702c",
+    "permission": "read-only",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 96
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The primary orchestrator transcribed the reviewer's explicit per-batch policy into exact ordered per-member records and added only canonical digests."
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "f7455d99-033e-4a29-acf0-027438afe412",
+    "permission": "read-only",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 96
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The primary orchestrator transcribed the reviewer's explicit per-batch policy into exact ordered per-member records and added only canonical digests."
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}

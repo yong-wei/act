@@ -110,6 +110,7 @@
     "db:run-aggregate-course-resource-governance": "tsx ./scripts/db/run-aggregate-course-resource-governance.ts",
     "db:import-course-coverage-overlay": "tsx ./scripts/db/import-course-coverage-overlay.ts",
     "course-coverage:current-review": "tsx ./scripts/course-coverage/generate-current-course-coverage-review.ts",
+    "course-coverage:review-batch": "tsx ./scripts/course-coverage/review-current-course-coverage-batch.ts",
     "db:import-canonical-resource-binding-shadow": "tsx ./scripts/db/import-canonical-resource-binding-shadow.ts",
     "db:verify-authoritative-knowledge-deployment": "tsx ./scripts/db/import-authoritative-actkg-release.ts --verify-only && tsx ./scripts/db/import-course-coverage-overlay.ts --verify-only && tsx ./scripts/db/import-canonical-resource-binding-shadow.ts --verify-only",
     "verify:canonical-learning-fact-identity": "tsx ./scripts/data-governance/verify-canonical-learning-fact-identity.mjs",
