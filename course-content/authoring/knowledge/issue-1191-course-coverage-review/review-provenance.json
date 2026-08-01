@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "c3fa63179e847ed1f2e2b6c1",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "stageArtifactsExistedDuringReviews": false,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "7fa4de90-5d8a-4978-8e65-6682951cf4ac",
+    "permission": "read-only",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "da6fe286910d2450cc2b2e16c5054e00e2b69bc22912b663515f8804b40df094",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedDocumentDigest": "85c80549beb6bae023cce4b0793fe24d540838a4009f60909e1239785232cb87",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 98
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The primary orchestrator preserved the independent reviewer conclusions and rationales, normalized evidence selectors from the frozen worklist, and added only runtime-required canonical digests."
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "f4d81ae5-4016-480c-ac81-6b0a7d0731d1",
+    "permission": "read-only",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "2871d078ba96b8474b7d0cc8b3f5a79cbb83a139153e85b5c6de602557ea1b1a",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedDocumentDigest": "679dbbd664b4dbdbaa01e984ff06020703430961c4786bbba6c5f1cafe7f23d2",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 98
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The primary orchestrator preserved the independent reviewer conclusions and rationales, normalized evidence selectors from the frozen worklist, and added only runtime-required canonical digests."
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}
