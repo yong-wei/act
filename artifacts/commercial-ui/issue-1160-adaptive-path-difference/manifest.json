@@ -1,13 +1,14 @@
 {
-  "capturedAt": "2026-08-01T08:42:38.594Z",
-  "commitSha": "58d3f60aa6860f83fccd0527420d626226af41d1",
+  "capturedAt": "2026-08-01T11:08:59.829Z",
+  "commitSha": "030f2edadad8e88cc27aff3078b24a4bd28dd6a3",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=path-difference-evidence-1160",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "c42371c35209a544dfe8877e697f390f2794b9622258e2e84bd2eb4ebd27c6c6",
+    "src/app/assessment/adaptive-practice/page.tsx": "7fda5341bc82443d67aae23fa26e99a3ca4115230d55e9b6ddebb61726562711",
     "src/app/assessment/adaptive-practice/layout.tsx": "c079dc059609bf222c52179ceac5801707eb8f570f1d244a1002e9fedb0467db",
+    "src/app/api/adaptive/path-advisor-tool/route.ts": "f5b978f8741dd01ae4e66dd7dc74c59420c9b94cd724233742a46fad0ab6f23f",
     "src/features/adaptive/path-advisor-entrypoint-bridge.tsx": "ca094f8f013b803e45c44d8b2e3a758d72d91e614c54f6b8b4be3b58b96253f1",
-    "src/lib/konling-agent-runtime.ts": "2e1a9ba84e1435e7d2f533c88d1504c9fa93049b5fedfe56711381d4d6e70dbe",
-    "tests/adaptive-path-difference-evidence.spec.ts": "b4b62bc2865d112aefb9d26903e30c04daa5848a444b7ea6295677845f300b3d"
+    "src/lib/konling-agent-runtime.ts": "dfcb92a7c8ea656f611e22909e657a4cb5629a229222b15d43c4c58c0b22c62c",
+    "tests/adaptive-path-difference-evidence.spec.ts": "f797bca80b5604f3da7b716237cfebc9576538ea8417e6057bf4104b92185409"
   },
   "assertions": [
     {
@@ -20,6 +21,7 @@
         "insufficient data",
         "advisor route request contract",
         "candidate group invalidates stale explanation",
+        "in-flight stale response discarded",
         "no horizontal overflow"
       ]
     },
@@ -33,6 +35,7 @@
         "insufficient data",
         "advisor route request contract",
         "candidate group invalidates stale explanation",
+        "in-flight stale response discarded",
         "no horizontal overflow"
       ]
     }
@@ -43,7 +46,7 @@
       "width": 1440,
       "height": 1000,
       "file": "artifacts/commercial-ui/issue-1160-adaptive-path-difference/desktop-1440-ready.png",
-      "sha256": "6e3181e853a96e3386b91ce1480c96ab90b659053532a6dd140f5ca214001bf5",
+      "sha256": "269fe7ed6538b6cd0f388e260ea7a95ccc4d89c9b3d84bd4b2b75b5c378c7f0f",
       "state": "ready",
       "noHorizontalOverflow": true
     },
@@ -52,7 +55,7 @@
       "width": 320,
       "height": 900,
       "file": "artifacts/commercial-ui/issue-1160-adaptive-path-difference/mobile-320-ready.png",
-      "sha256": "80b331d2859b1d3a1b23770b601ed377225f4e583cc05967ed798ff2fda9d9ec",
+      "sha256": "70371364de336cf307f71acfacb03ed25a30987ae84ba891ddfccdd70593c8e0",
       "state": "ready",
       "noHorizontalOverflow": true
     }
