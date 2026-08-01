@@ -2,8 +2,8 @@
   "schemaVersion": "commercial-ui-evidence.v1",
   "status": "passed",
   "backendE2EStatus": "blocked-by-local-schema-drift",
-  "capturedAt": "2026-08-01T09:11:48.420Z",
-  "sourceRevision": "2b30ce6d644d4a61b0c8728db7ebe00b392ccd0d",
+  "capturedAt": "2026-08-01T09:23:08.156Z",
+  "sourceRevision": "31a4bb90a8fede96ad1a4382e4e0a1beda7a7aa4",
   "generator": "artifacts/commercial-ui/pr1133-adaptive-path/capture-ui-evidence.mjs",
   "generatorSha256": "289dd40636e978c92718da3220d254e59cc457983e9438a653b38522153baa72",
   "sourceFiles": {
@@ -73,7 +73,7 @@
       },
       "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
       "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/real-backend-blocked-1440.png",
-      "screenshotSha256": "711ee086e5f14017cee964474268a4aa06e098301e1e8545006b8be652858172",
+      "screenshotSha256": "6c43d5296242ed2c5024c72b488c2f20ff8d7a8374b705b9713201bbb957c08f",
       "responses": [
         {
           "url": "/api/adaptive/path-advisor-context?goal=control-correction",
@@ -123,7 +123,7 @@
       },
       "url": "http://127.0.0.1:3063/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
       "screenshot": "artifacts/commercial-ui/pr1133-adaptive-path/real-backend-blocked-320.png",
-      "screenshotSha256": "2dcdfd060507f625f4fde99161864032d2f20a40a35696a6965f65db7ffe4013",
+      "screenshotSha256": "4802ff0329b36f31c08e08e8777438f5c578917915b57d02f17c45487f647c75",
       "responses": [
         {
           "url": "/api/adaptive/path-advisor-context?goal=control-correction",

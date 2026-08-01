@@ -1,6 +1,6 @@
 ## Commercial UI Evidence — PR #1133
 
-- Capture revision: `2b30ce6d644d4a61b0c8728db7ebe00b392ccd0d`
+- Capture revision: `31a4bb90a8fede96ad1a4382e4e0a1beda7a7aa4`
 - Capture target: `http://127.0.0.1:3063/assessment/adaptive-practice`
 - UI evidence: **passed** for current-head component rendering at 1440/320, including configuration applied/unmet text, fewer-option explanation, route actions, low-budget blocked-generation message, and overflow checks.
 - Backend E2E: **blocked-by-local-schema-drift** and recorded. The authenticated fixed demo account has no class binding; after a temporary local binding was restored, learner-state still returned HTTP 500 because the local database lacks current-head columns.
