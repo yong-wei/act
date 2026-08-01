@@ -571,7 +571,7 @@ export default function ProfilePage() {
                   <p className="text-sm text-subtle">暂无竞技场提交记录。</p>
                 ) : (
                   <>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <ArenaStat label="控制器" value={profile.arenaPortfolio.controllerCount} />
                       <ArenaStat label="辨识模型" value={profile.arenaPortfolio.identificationModels.length} />
                       <ArenaStat label="有效提交" value={profile.arenaPortfolio.submissionSummary.valid} />
@@ -621,6 +621,47 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </>
+                )}
+
+                {profile.arenaPortfolio.trainingSummary.total > 0 && (
+                  <div className="border-t border-border/70 pt-4">
+                    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs text-subtle">虚拟训练</p>
+                        <p className="mt-1 break-words text-sm text-foreground">
+                          已记录 {profile.arenaPortfolio.trainingSummary.total} 次预览训练
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 flex-wrap gap-2 text-xs">
+                        <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">预览</span>
+                        <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">非官方</span>
+                      </div>
+                    </div>
+                    {profile.arenaPortfolio.trainingSummary.recentRuns.length === 0 ? (
+                      <p className="mt-3 rounded-lg border border-border/60 p-3 text-sm text-subtle">
+                        暂无可展示的完整训练质量摘要
+                      </p>
+                    ) : (
+                      <div className="mt-3 grid gap-2">
+                        {profile.arenaPortfolio.trainingSummary.recentRuns.map((run) => (
+                          <div key={run.id} className="min-w-0 rounded-lg border border-border/60 p-3 text-sm">
+                            <p className="break-words font-medium text-foreground">{run.taskTitle}</p>
+                            <p className="mt-1 break-words text-xs text-subtle">
+                              场景 {run.scenarioId} · {formatDateTime(run.trainedAt)}
+                            </p>
+                            <p className="mt-1 break-words text-xs text-subtle">
+                              跟踪误差 {run.qualityMetrics.trackingError} · 最大偏差 {run.qualityMetrics.maxDeviation}
+                              {' · '}控制能量 {run.qualityMetrics.controlEnergy}
+                            </p>
+                            <p className="mt-1 break-words text-xs text-subtle">
+                              安全违规 {run.qualityMetrics.safetyViolations} · 平滑度 {run.qualityMetrics.smoothness}
+                              {' · '}预览训练 · 非官方
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 <div className="surface-card-soft p-4">

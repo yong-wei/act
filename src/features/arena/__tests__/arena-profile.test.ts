@@ -71,6 +71,31 @@ function submission(input: {
   };
 }
 
+function virtualTraining(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'training-1',
+    userId: targetUserId,
+    taskId: 'task-cruise-roll-blackbox-identification',
+    scenarioId: 'cruise-roll-controller-preview',
+    simulationRunId: 'canonical-run-1',
+    payload: {
+      summary: {
+        trackingError: 0.2,
+        maxDeviation: 0.3,
+        controlEnergy: 0.4,
+        safetyViolations: 0,
+        smoothness: 0.8,
+      },
+      metadata: {
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+      },
+    },
+    createdAt: '2026-05-11T08:45:00.000Z',
+    ...overrides,
+  };
+}
+
 describe('arena student portfolio', () => {
   it('summarizes controllers, identification models, ranks, failures, and metric improvement from real submissions', () => {
     const earlyPid = submission({
@@ -329,13 +354,108 @@ describe('arena student portfolio', () => {
 
     expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ userId })');
     expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskIds: arenaTaskIds })');
-    expect(routeSource).toContain('buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId)');
+    expect(routeSource).toContain('buildArenaStudentPortfolio(');
+    expect(routeSource).toContain('userArenaVirtualSimulationRunCount');
     expect(routeSource).toContain('arenaPortfolio:');
     expect(pageSource).toContain('arenaPortfolio');
     expect(pageSource).toContain('竞技场画像');
     expect(pageSource).toContain('能力成长');
     expect(pageSource).toContain('下一项挑战');
     expect(pageSource).toContain('growth.nextChallenges');
+    expect(pageSource).toContain('暂无可展示的完整训练质量摘要');
+  });
+
+  it('keeps virtual training separate, uses persisted quality, and fails closed on damaged rows', () => {
+    const official = submission({
+      id: 'official-1',
+      taskId: 'task-second-order-lead-pid',
+      userId: targetUserId,
+      studentLabel: '目标学生',
+      artifact: artifact({ id: 'official-1', taskId: 'task-second-order-lead-pid' }),
+      score: 86,
+      valid: true,
+      submittedAt: '2026-05-11T08:30:00.000Z',
+    });
+    const portfolio = buildArenaStudentPortfolio(
+      [official],
+      targetUserId,
+      [
+        virtualTraining(),
+        virtualTraining({
+          id: 'training-damaged',
+          payload: { summary: { trackingError: Number.NaN } },
+          createdAt: '2026-05-11T08:46:00.000Z',
+        }),
+        virtualTraining({
+          id: 'training-peer',
+          userId: 'student-peer',
+          createdAt: '2026-05-11T08:47:00.000Z',
+        }),
+      ],
+    );
+
+    expect(portfolio.submissionSummary).toEqual({
+      total: 1,
+      valid: 1,
+      invalid: 0,
+      latestSubmittedAt: '2026-05-11T08:30:00.000Z',
+    });
+    expect(portfolio.personalBestByTask).toHaveLength(1);
+    expect(portfolio.trainingSummary).toMatchObject({
+      total: 2,
+      previewCount: 2,
+      latestTrainedAt: '2026-05-11T08:45:00.000Z',
+      recentRuns: [expect.objectContaining({
+        id: 'training-1',
+        taskId: 'task-cruise-roll-blackbox-identification',
+        scenarioId: 'cruise-roll-controller-preview',
+        qualityMetrics: {
+          trackingError: 0.2,
+          maxDeviation: 0.3,
+          controlEnergy: 0.4,
+          safetyViolations: 0,
+          smoothness: 0.8,
+        },
+        preview: true,
+        officialEligible: false,
+      })],
+    });
+
+    const officialOnly = buildArenaStudentPortfolio([official], targetUserId);
+    const officialWithTraining = buildArenaStudentPortfolio([official], targetUserId, [virtualTraining()]);
+    const { trainingSummary: _withoutTraining, ...officialFields } = officialOnly;
+    const { trainingSummary: _withTraining, ...officialFieldsWithTraining } = officialWithTraining;
+    expect(officialFieldsWithTraining).toEqual(officialFields);
+  });
+
+  it('uses canonical completion time when available and persisted row time for historical fallback', () => {
+    const canonical = virtualTraining({
+      id: 'training-canonical-time',
+      createdAt: '2026-05-11T08:45:00.000Z',
+      simulationRun: {
+        status: 'completed',
+        completedAt: '2026-05-11T08:55:00.000Z',
+        summary: {
+          trackingError: 0.2,
+          maxDeviation: 0.3,
+          controlEnergy: 0.4,
+          safetyViolations: 0,
+          smoothness: 0.8,
+        },
+      },
+    });
+    const historical = virtualTraining({
+      id: 'training-historical-time',
+      createdAt: '2026-05-11T09:05:00.000Z',
+      simulationRun: { status: 'completed', completedAt: null, summary: null },
+    });
+
+    const summary = buildArenaStudentPortfolio([], targetUserId, [canonical, historical]).trainingSummary;
+
+    expect(summary.recentRuns.map((run) => [run.id, run.trainedAt])).toEqual([
+      ['training-historical-time', '2026-05-11T09:05:00.000Z'],
+      ['training-canonical-time', '2026-05-11T08:55:00.000Z'],
+    ]);
   });
 
   it('returns an empty portfolio without inventing controller or leaderboard data', () => {

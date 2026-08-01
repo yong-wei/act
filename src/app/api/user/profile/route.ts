@@ -30,7 +30,11 @@ import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
 } from '@/features/assessment/adaptive-persistence';
-import { buildArenaStudentPortfolio, type ArenaStudentPortfolio } from '@/features/arena/profile';
+import {
+  buildArenaStudentPortfolio,
+  type ArenaStudentPortfolio,
+  type ArenaVirtualTrainingRunRecord,
+} from '@/features/arena/profile';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import {
   buildArenaStudentEvidenceSummary,
@@ -295,6 +299,8 @@ export async function GET() {
       learningFacts,
       studentStates,
       userArenaSubmissions,
+      userArenaVirtualSimulationRunCount,
+      userArenaVirtualSimulationRuns,
     ] = await Promise.all([
       prisma.studentProfile.findUnique({
         where: { userId },
@@ -387,6 +393,30 @@ export async function GET() {
         },
       }),
       prismaArenaSubmissionStore.listSubmissions({ userId }),
+      prisma.arenaVirtualSimulationRun.count({
+        where: { userId },
+      }),
+      prisma.arenaVirtualSimulationRun.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: {
+          id: true,
+          userId: true,
+          taskId: true,
+          scenarioId: true,
+          simulationRunId: true,
+          payload: true,
+          createdAt: true,
+          simulationRun: {
+            select: {
+              status: true,
+              completedAt: true,
+              summary: true,
+            },
+          },
+        },
+      }),
     ]);
 
     const arenaTaskIds = Array.from(new Set(userArenaSubmissions.map((submission) => submission.taskId)));
@@ -591,7 +621,12 @@ export async function GET() {
           recommendedFocus: adaptiveDiagnostic?.recommendedFocus ?? [],
         }),
       },
-      arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId),
+      arenaPortfolio: buildArenaStudentPortfolio(
+        arenaPortfolioSubmissions,
+        userId,
+        userArenaVirtualSimulationRuns as ArenaVirtualTrainingRunRecord[],
+        userArenaVirtualSimulationRunCount,
+      ),
       arenaSummary: buildArenaStudentEvidenceSummary({
         userId,
         submissions: userArenaSubmissions,
