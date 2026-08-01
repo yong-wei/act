@@ -1,7 +1,7 @@
 ## 1. Conversation binding contract
 
-- [x] 1.1 Add the explicit zero-hint `teacher-diagnosis` entry to the exhaustive binding policy.
-- [x] 1.2 Add a regression test that discards arbitrary browser hints while retaining the teacher diagnosis mode identity.
+- [x] 1.1 Confirm that `integration` contains the explicit zero-hint `teacher-diagnosis` entry in the exhaustive binding policy.
+- [x] 1.2 Confirm that `integration` covers mode identity persistence while discarding arbitrary browser hints.
 
 ## 2. Verification
 

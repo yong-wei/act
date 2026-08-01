@@ -1,12 +1,11 @@
 ## Why
 
-`teacher-diagnosis` 已注册为控灵教师助手模式，但会话绑定的模式提示键表遗漏该模式。该表是覆盖所有非通用模式的 TypeScript `Record`，因此当前 integration 无法通过类型检查，教师诊断会话也没有明确的持久化绑定契约。
+`teacher-diagnosis` 会话绑定曾遗漏零提示字段策略，导致完整的非通用模式策略表出现重复键。生产修复与端到端持久化回归测试现已进入 `integration`；本变更保留该契约的决策记录，防止后续将浏览器范围误作持久化授权范围。
 
 ## What Changes
 
-- 为教师学情诊断模式声明零客户端提示字段的会话绑定。
-- 为该绑定增加回归测试，证明浏览器输入不会写入教师、班级或学生范围。
-- 记录本次会话绑定与服务端授权边界。
+- 记录教师学情诊断模式的零客户端提示字段会话绑定契约。
+- 明确浏览器输入不会成为教师、班级或学生范围的持久化授权来源。
 
 ## Capabilities
 
@@ -20,6 +19,5 @@
 
 ## Impact
 
-- `src/lib/konling-conversation-library.ts`
-- `src/lib/__tests__/konling-conversation-library.test.ts`
-- 控灵会话绑定的类型检查与教师诊断会话恢复
+- `openspec/specs/konling-agent-runtime/spec.md`
+- 控灵会话绑定与服务端授权边界的后续维护

@@ -173,22 +173,6 @@ describe('Konling conversation library', () => {
       });
   });
 
-  it('persists teacher diagnosis identity without browser-provided scope hints', () => {
-    const binding = normalizeKonlingConversationAssistantBinding({
-      modeId: 'teacher-diagnosis',
-      clientContextHints: {
-        classId: 'forged-class',
-        teacherId: 'forged-teacher',
-        studentId: 'forged-student',
-      },
-    });
-
-    expect(binding).toEqual({
-      teachingAssistantModeId: 'teacher-diagnosis',
-      modeClientContextHints: {},
-    });
-  });
-
   it('safely compresses an orphaned persisted tool call before a reloaded continuation', async () => {
     const persisted = conversation({
       messages: [

@@ -1,14 +1,13 @@
 ## Context
 
-`KonlingTeachingAssistantModeId` is the source type for every assistant mode. Conversation persistence deliberately keeps only a small mode identity plus allowlisted client context hints. Adding `teacher-diagnosis` to the source union without adding it to the complete hint-key record breaks the compile-time contract.
+`KonlingTeachingAssistantModeId` is the source type for every assistant mode. Conversation persistence deliberately keeps only a small mode identity plus allowlisted client context hints. The production fix and its complete persistence regression test are already present in `integration`; this change records the resulting contract so later changes preserve the same authorization boundary.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Register the teacher diagnosis mode with an explicit empty client-hint allowlist.
-- Preserve the mode identity while discarding all browser-provided scope values.
-- Cover that behavior with a focused unit test.
+- Preserve the established explicit empty client-hint allowlist for teacher diagnosis.
+- Preserve the established server-side authorization boundary for teacher, class, and student scope.
 
 **Non-Goals:**
 
@@ -17,7 +16,7 @@
 
 ## Decisions
 
-- Use `teacher-diagnosis: []` in the existing exhaustive record. This maintains the existing per-mode binding design and makes any future mode registration fail type checking until its persistence policy is chosen.
+- `integration` uses `teacher-diagnosis: []` in the existing exhaustive record. This maintains the existing per-mode binding design and makes any future mode registration fail type checking until its persistence policy is chosen.
 - Treat all browser context as untrusted for this mode. The existing diagnosis tools reauthorize teacher, active class, and target student on every request, so duplicating those values in stored conversation metadata would create a misleading scope source.
 
 ## Risks / Trade-offs
