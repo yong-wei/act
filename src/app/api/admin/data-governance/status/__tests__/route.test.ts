@@ -36,6 +36,9 @@ const mocks = vi.hoisted(() => ({
     simulationSession: {
       findMany: vi.fn(),
     },
+    simulationRun: {
+      findMany: vi.fn(),
+    },
     simulationLog: {
       findMany: vi.fn(),
     },
@@ -336,6 +339,19 @@ describe('GET /api/admin/data-governance/status', () => {
         createdAt: new Date('2026-05-20T08:11:00.000Z'),
       },
     ]);
+    mocks.prisma.simulationRun.findMany.mockResolvedValue([
+      {
+        id: 'simulation-run-real',
+        ownerUserId: 'student-1',
+        resourceId: 'sim-pid-v1',
+        taskSpecId: 'task-spec-1',
+        taskSpecSnapshot: { sceneId: 'sim/cruise' },
+        sourceDomain: 'interactive',
+        sourceRefId: 'simulation-run-source-1',
+        summary: { metrics: { settlingTime: 3.2 } },
+        completedAt: new Date('2026-05-20T08:11:30.000Z'),
+      },
+    ]);
     mocks.prisma.simulationLog.findMany.mockResolvedValue([]);
     mocks.prisma.userAnswer.findMany.mockResolvedValue([]);
     mocks.prisma.abilityAssessment.findMany.mockResolvedValue([]);
@@ -470,7 +486,7 @@ describe('GET /api/admin/data-governance/status', () => {
 
     expect(response.status).toBe(200);
     expect(payload.sourceCatalog).toMatchObject({
-      totalSources: 13,
+      totalSources: 14,
       coverageCommand: 'npm run db:evidence-source-coverage -- --text',
     });
     expect(payload.sourceCatalog.sources).toEqual(
@@ -528,8 +544,8 @@ describe('GET /api/admin/data-governance/status', () => {
     );
     expect(payload.sourceCoverage).toMatchObject({
       totals: {
-        totalRows: 8,
-        eligibleRows: 5,
+        totalRows: 9,
+        eligibleRows: 6,
         excludedRows: 2,
         unsupportedRows: 1,
       },

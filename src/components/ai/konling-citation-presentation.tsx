@@ -50,6 +50,8 @@ type CitationLike = {
   evidenceRef?: string | null;
   sourceWindow?: string | null;
   privacyScope?: string | null;
+  displayNumber?: number | null;
+  canonicalKey?: string | null;
 };
 
 type KonlingCitationGuardLike = {
@@ -60,6 +62,19 @@ type KonlingCitationGuardLike = {
   lowConfidenceReasons?: string[];
   diagnosticReasons?: string[];
   missingContext?: string[];
+  verificationStatus?: 'verified' | 'partial' | 'unverified';
+  userNotice?: '部分引用未能核验' | '引用未能核验' | null;
+  studyQuestion?: {
+    intent?: string;
+    requiredSections?: string[];
+    normativeGuidance?: 'not-applicable' | 'verified' | 'verification-required';
+  } | null;
+  answerUnits?: Array<{
+    unit?: string;
+    citationId?: string;
+    citationTargetId?: string | null;
+    limitation?: string | null;
+  }>;
 };
 
 export type KonlingCitationPresentationMetadata = {
@@ -67,6 +82,7 @@ export type KonlingCitationPresentationMetadata = {
 };
 
 type PresentationCitation = {
+  id: string | null;
   key: string;
   displayIndex: number;
   sourceType: string;
@@ -77,6 +93,15 @@ type PresentationCitation = {
   limitation: string | null;
 };
 
+type PresentationAnswerUnit = {
+  unit: string;
+  citationId: string;
+  citationTargetId: string | null;
+  citationTitle: string;
+  href: string | null;
+  limitation: string | null;
+};
+
 export type KonlingCitationPresentation = {
   summary: {
     status: KonlingCitationPresentationStatus;
@@ -84,6 +109,8 @@ export type KonlingCitationPresentation = {
     missingReasons: string[];
   };
   items: PresentationCitation[];
+  studyQuestion: NonNullable<KonlingCitationGuardLike['studyQuestion']> | null;
+  answerUnits: PresentationAnswerUnit[];
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -126,6 +153,8 @@ export function normalizeKonlingCitationPresentation(metadata: unknown): Konling
   if (!guard) return {
     summary: { status: 'missing', diagnostics: [], missingReasons: [] },
     items: [],
+    studyQuestion: null,
+    answerUnits: [],
   };
 
   const rawCitations = Array.isArray(guard.citations) && guard.citations.length > 0
@@ -140,19 +169,50 @@ export function normalizeKonlingCitationPresentation(metadata: unknown): Konling
     ...(Array.isArray(guard.lowConfidenceReasons) ? guard.lowConfidenceReasons : []),
     ...(Array.isArray(guard.missingContext) ? guard.missingContext.map((item) => `missing-context:${item}`) : []),
   ];
-  const status = citations.length === 0
-    ? 'missing'
-    : guard.status === 'verified'
-      ? 'verified'
-      : 'limited';
+  const status = guard.verificationStatus === 'unverified'
+    ? 'unverified'
+    : guard.verificationStatus === 'partial'
+      ? 'limited'
+      : citations.length === 0
+        ? 'missing'
+        : guard.status === 'verified'
+          ? 'verified'
+          : 'limited';
   return {
     summary: {
       status,
       diagnostics,
       missingReasons,
     },
-    items: citations.map((citation, index) => ({ ...citation, displayIndex: index + 1 })),
+    items: citations.map((citation, index) => citation.displayIndex > 0
+      ? citation
+      : { ...citation, displayIndex: index + 1 }),
+    studyQuestion: guard.studyQuestion ?? null,
+    answerUnits: normalizeAnswerUnitBindings(guard.answerUnits, citations),
   };
+}
+
+function normalizeAnswerUnitBindings(
+  answerUnits: KonlingCitationGuardLike['answerUnits'],
+  citations: PresentationCitation[],
+): PresentationAnswerUnit[] {
+  if (!Array.isArray(answerUnits)) return [];
+  const seen = new Set<string>();
+  return answerUnits.flatMap((answerUnit) => {
+    const unit = stringValue(answerUnit.unit);
+    const citationId = stringValue(answerUnit.citationId);
+    const citation = citations.find((item) => item.id === citationId);
+    if (!unit || !citation || seen.has(`${unit}:${citationId}`)) return [];
+    seen.add(`${unit}:${citationId}`);
+    return [{
+      unit,
+      citationId,
+      citationTargetId: typeof answerUnit.citationTargetId === 'string' ? answerUnit.citationTargetId : null,
+      citationTitle: citation.title,
+      href: citation.href,
+      limitation: answerUnit.limitation ?? citation.limitation,
+    }];
+  });
 }
 
 function dedupePresentationCitations(citations: CitationLike[]): PresentationCitation[] {
@@ -172,8 +232,11 @@ function normalizePresentationCitation(citation: CitationLike): PresentationCita
   const href = safeCitationHref(citation.displayHref ?? citation.citationChip?.displayHref ?? citation.href);
   const confidence = confidenceValue(citation.confidence ?? citation.citationChip?.confidence);
   return {
+    id: stringValue(citation.id) || null,
     key: buildCitationKey(sourceType, citation, href),
-    displayIndex: 0,
+    displayIndex: Number.isInteger(citation.displayNumber) && Number(citation.displayNumber) > 0
+      ? Number(citation.displayNumber)
+      : 0,
     sourceType,
     title: stringValue(citation.displayTitle ?? citation.title ?? citation.citationChip?.displayTitle, '未命名引用'),
     href,
@@ -191,6 +254,7 @@ function normalizeSourceType(value: unknown) {
 
 function buildCitationKey(sourceType: string, citation: CitationLike, href: string | null) {
   const identity = firstString([
+    citation.canonicalKey,
     ...sourceTypeIdentities(sourceType, citation),
     citation.citationChip?.chunkId,
     citation.key,
@@ -351,8 +415,8 @@ function limitationLabel(value: string | null) {
 
 function citationPanelTitle(status: KonlingCitationPresentationStatus) {
   if (status === 'verified') return '已验证引用';
-  if (status === 'limited') return '引用核验有限';
-  if (status === 'unverified') return '引用待核验';
+  if (status === 'limited') return '部分引用未能核验';
+  if (status === 'unverified') return '引用未能核验';
   return '未找到可验证引用';
 }
 
@@ -411,10 +475,36 @@ export function KonlingCitationPanel({ metadata }: { metadata: unknown }) {
         </div>
       ) : (
         <div className="text-[11px] text-amber-200" data-konling-citation-missing>
-          未找到可验证引用
-          {presentation.summary.missingReasons.length > 0 ? `：${presentation.summary.missingReasons.slice(0, 3).join('；')}` : ''}
+          {presentation.summary.status === 'unverified' ? '引用未能核验' : '未找到可验证引用'}
+          {process.env.NODE_ENV !== 'production' && presentation.summary.missingReasons.length > 0
+            ? `：${presentation.summary.missingReasons.slice(0, 3).join('；')}`
+            : ''}
         </div>
       )}
+      {presentation.studyQuestion ? (
+        <div className="mt-2 text-[11px] text-foreground" data-konling-study-question-contract>
+          <span className="font-medium">回答方式：</span>
+          {presentation.studyQuestion.intent}
+          {presentation.studyQuestion.requiredSections?.length
+            ? ` · ${presentation.studyQuestion.requiredSections.join('、')}`
+            : ''}
+          {presentation.studyQuestion.normativeGuidance === 'verification-required'
+            ? ' · 规范内容需核验'
+            : presentation.studyQuestion.normativeGuidance === 'verified'
+              ? ' · 规范来源已验证'
+              : ''}
+        </div>
+      ) : null}
+      {presentation.answerUnits.length > 0 ? (
+        <div className="mt-1 text-[11px] text-muted-foreground" data-konling-answer-unit-bindings>
+          {presentation.answerUnits.map((answerUnit) => (
+            <div key={`${answerUnit.unit}:${answerUnit.citationId}`}>
+              {answerUnit.unit} → {answerUnit.citationTitle}
+              {answerUnit.limitation ? `（${limitationLabel(answerUnit.limitation)}）` : ''}
+            </div>
+          ))}
+        </div>
+      ) : null}
       {process.env.NODE_ENV !== 'production' && presentation.summary.diagnostics.length > 0 ? (
         <div className="mt-1 text-[10px] text-slate-500" data-konling-citation-diagnostics>
           开发模式诊断：{presentation.summary.diagnostics.slice(0, 2).join('；')}

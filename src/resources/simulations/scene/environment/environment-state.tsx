@@ -2,6 +2,10 @@
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
+import { CloudSun } from 'lucide-react';
+
+import { ChromePopoverButton } from '../chrome';
+
 import {
   DEFAULT_ENVIRONMENT_PRESET_ID,
   getEnvironmentPreset,
@@ -15,6 +19,9 @@ interface SceneEnvironmentContextValue {
   readonly presetId: SceneEnvironmentPresetId;
   readonly presets: readonly SceneEnvironmentPreset[];
   readonly setPresetId: (id: SceneEnvironmentPresetId) => void;
+  /** 尾迹粒子场可见性（环境菜单内开关，默认开）。 */
+  readonly wakeVisible: boolean;
+  readonly setWakeVisible: (visible: boolean) => void;
 }
 
 const SceneEnvironmentContext = createContext<SceneEnvironmentContextValue | null>(null);
@@ -28,14 +35,17 @@ export function SceneEnvironmentProvider({
   readonly defaultPresetId?: SceneEnvironmentPresetId;
 }) {
   const [presetId, setPresetId] = useState<SceneEnvironmentPresetId>(defaultPresetId);
+  const [wakeVisible, setWakeVisible] = useState(true);
   const value = useMemo<SceneEnvironmentContextValue>(
     () => ({
       preset: getEnvironmentPreset(presetId),
       presetId,
       presets: SCENE_ENVIRONMENT_PRESETS,
       setPresetId,
+      wakeVisible,
+      setWakeVisible,
     }),
-    [presetId]
+    [presetId, wakeVisible]
   );
   return (
     <SceneEnvironmentContext.Provider value={value}>
@@ -50,33 +60,37 @@ export function useSceneEnvironment(): SceneEnvironmentContextValue {
   return value;
 }
 
-/** 场景 chrome 中的手动环境预设切换器（ pill 按钮组）。 */
+/** 场景 chrome 中的手动环境预设切换器（底部 chrome 家族弹出式按钮；尾流开关在菜单内）。 */
 export function EnvironmentPresetSwitcher({ className }: { readonly className?: string }) {
-  const { presetId, presets, setPresetId } = useSceneEnvironment();
+  const { presetId, presets, setPresetId, wakeVisible, setWakeVisible } = useSceneEnvironment();
+  const current = presets.find((preset) => preset.id === presetId);
   return (
-    <div
-      className={className}
-      role="radiogroup"
-      aria-label="环境预设"
-      data-scene-environment-switcher="true"
-    >
-      {presets.map((preset) => (
-        <button
-          key={preset.id}
-          type="button"
-          role="radio"
-          aria-checked={preset.id === presetId}
-          data-environment-preset={preset.id}
-          onClick={() => setPresetId(preset.id)}
-          className={
-            preset.id === presetId
-              ? 'rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-primary'
-              : 'rounded-md border border-transparent px-2 py-1 text-xs text-platform-fg-muted hover:text-platform-fg-primary'
-          }
-        >
-          {preset.label}
-        </button>
-      ))}
+    <div className={className} data-scene-environment-switcher="true">
+      <ChromePopoverButton
+        icon={<CloudSun className="h-4 w-4" />}
+        label="环境"
+        currentLabel={current?.label ?? ''}
+        tooltip={`环境预设：切换海况、天空与光照（当前：${current?.label ?? ''}；尾流：${wakeVisible ? '开' : '关'}）`}
+        options={presets.map((preset) => ({ id: preset.id, label: preset.label }))}
+        currentId={presetId}
+        onSelect={setPresetId}
+        dataHook="environment"
+        ariaLabel="环境预设"
+        optionDataHook="environment-preset"
+        tail={(
+          <button
+            type="button"
+            role="switch"
+            aria-checked={wakeVisible}
+            data-wake-toggle={wakeVisible}
+            onClick={() => setWakeVisible(!wakeVisible)}
+            className="mt-1 flex w-full items-center justify-between border-t border-platform-border px-2 py-1 text-xs text-platform-fg-muted hover:text-platform-fg-primary"
+          >
+            <span>尾流</span>
+            <span className={wakeVisible ? 'font-medium text-platform-fg-primary' : ''}>{wakeVisible ? '开' : '关'}</span>
+          </button>
+        )}
+      />
     </div>
   );
 }

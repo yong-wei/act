@@ -15,6 +15,9 @@ CACHE_ROOT="${CACHE_ROOT:-.cache/buildx}"
 CACHE_FROM_DIR="${CACHE_FROM_DIR:-${CACHE_ROOT}/cache}"
 CACHE_TO_DIR="${CACHE_TO_DIR:-${CACHE_ROOT}/cache-new}"
 EXTERNAL_RUNTIME_DIR="${EXTERNAL_RUNTIME_DIR:-course-content/runtime}"
+TEXTBOOK_V2_RUNTIME_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbooks-v2"
+TEXTBOOK_RETRIEVAL_INDEX_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbook-retrieval"
+PROVENANCE_FILE="${OUTPUT_TAR}.provenance.json"
 DATABASE_URL_FOR_BUILD="${DATABASE_URL:-}"
 if [[ -z "${DATABASE_URL_FOR_BUILD}" && -f .env ]]; then
   DATABASE_URL_FOR_BUILD="$(node -e 'require("dotenv").config({ path: ".env", quiet: true }); process.stdout.write(process.env.DATABASE_URL || "");')"
@@ -24,12 +27,33 @@ if ! grep -qx "${EXTERNAL_RUNTIME_DIR}" .dockerignore; then
   echo "ERROR: .dockerignore 必须排除 ${EXTERNAL_RUNTIME_DIR}，避免运行时资源进入镜像构建上下文。" >&2
   exit 1
 fi
-for required_script in scripts/build-next-with-trace-check.mjs scripts/prune-next-trace-boundary.mjs; do
+for required_script in scripts/build-next-with-trace-check.mjs scripts/prune-next-trace-boundary.mjs scripts/assets/validate-optimized-models.mjs; do
   if ! grep -qx "!${required_script}" .dockerignore; then
     echo "ERROR: .dockerignore 必须放行 ${required_script}，否则 Docker builder 阶段 npm run build 会缺少构建脚本。" >&2
     exit 1
   fi
 done
+
+if [[ -n "$(git status --porcelain=v1 --untracked-files=normal)" ]]; then
+  echo "ERROR: release build 要求 tracked/untracked 可见工作树干净；ignored runtime 不计入检查。" >&2
+  git status --short --untracked-files=normal >&2
+  exit 1
+fi
+APP_REVISION="$(git rev-parse HEAD)"
+if [[ ! "${APP_REVISION}" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "ERROR: 无法取得有效的 40 位 Git HEAD。" >&2
+  exit 1
+fi
+
+echo "[preflight] 校验 CourseCoverage Overlay"
+APP_REVISION="${APP_REVISION}" ./node_modules/.bin/tsx \
+  scripts/db/import-course-coverage-overlay.ts --validate-only
+
+echo "[preflight] 校验七套外置教材 v2 runtime"
+node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
+  --runtime-root "${TEXTBOOK_V2_RUNTIME_DIR}" \
+  --index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
+  --expected-source-revision "${APP_REVISION}"
 
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
 rm -rf "${ROOT_DIR}/.next"
@@ -49,6 +73,7 @@ else
 fi
 
 BUILD_ARGS=(
+  --build-arg "APP_REVISION=${APP_REVISION}"
   --build-arg "NPM_REGISTRY=${NPM_REGISTRY}"
   --build-arg "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}"
 )
@@ -64,6 +89,7 @@ DATABASE_URL="${DATABASE_URL_FOR_BUILD}" docker buildx build \
   "${BUILD_ARGS[@]}" \
   "${CACHE_ARGS[@]}" \
   -t "${IMAGE_TAG}" \
+  --label "org.opencontainers.image.revision=${APP_REVISION}" \
   --output="type=docker,dest=${OUTPUT_TAR}" \
   .
 
@@ -73,9 +99,17 @@ if [[ "${CACHE_TO_DIR}" != "${CACHE_FROM_DIR}" && -d "${CACHE_TO_DIR}" ]]; then
   echo "[cache] 已更新缓存到: ${CACHE_FROM_DIR}"
 fi
 
+node "${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs" write-sidecar \
+  --runtime-root "${TEXTBOOK_V2_RUNTIME_DIR}" \
+  --index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
+  --image-tar "${OUTPUT_TAR}" \
+  --app-revision "${APP_REVISION}" \
+  --output "${PROVENANCE_FILE}"
+
 echo "构建完成"
 echo "  镜像标签: ${IMAGE_TAG}"
 echo "  导出文件: ${OUTPUT_TAR}"
+echo "  溯源文件: ${PROVENANCE_FILE}"
 if command -v shasum >/dev/null 2>&1; then
   echo "  SHA256: $(shasum -a 256 "${OUTPUT_TAR}" | awk '{print $1}')"
 fi

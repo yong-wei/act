@@ -316,7 +316,23 @@ describe('question-scoped grading batch orchestration', () => {
       conversionPolicyId: null, conversionPolicySnapshot: conversionBundle, conversionPolicySnapshotHash: sha256(stableStringify(conversionBundle)), conversionPolicy: null,
       items: [item, documentItem], question: {},
     };
-    const evidence = { id: 'evidence-policy-routing', version: 1, sourceHash: 'sha256:evidence', readiness: 'READY', blocks: [] };
+    const evidence = {
+      id: 'evidence-policy-routing',
+      version: 1,
+      sourceHash: 'sha256:evidence',
+      readiness: 'READY',
+      blocks: [{
+        id: 'conversion-block',
+        blockIndex: 0,
+        pageNumber: 2,
+        text: 'converted',
+        markdown: 'converted',
+        bbox: [0.1, 0.2, 0.3, 0.4],
+        coordinateProvenance: { origin: 'top-left', unit: 'normalized' },
+        precision: 'PAGE',
+        confidence: 0.9,
+      }],
+    };
     const db: any = {
       gradingBatch: { findUnique: async () => batch, updateMany: async ({ data }: any) => { Object.assign(batch, data); return { count: 1 }; } },
       gradingBatchItem: { updateMany: async ({ where, data }: any) => { const target = where.id === documentItem.id ? documentItem : item; Object.assign(target, data); return { count: 1 }; }, update: async ({ where, data }: any) => { const target = where.id === documentItem.id ? documentItem : item; Object.assign(target, data); return target; }, groupBy: async () => [{ state: 'SUCCEEDED', _count: { _all: 2 } }] },
@@ -324,16 +340,66 @@ describe('question-scoped grading batch orchestration', () => {
       submissionAttempt: { findUnique: async ({ where }: any) => ({ id: where.id, answerVersion: 1, answer: { assets: [{ id: `asset-${where.id}`, mimeType: where.id === documentItem.attemptId ? 'application/pdf' : 'image/png' }], question: { contentHash: 'sha256:question' } } }) },
       answerEvidence: { findUnique: async () => null, findFirst: async () => evidence },
     };
-    const conversion = vi.spyOn(gradingPersistence, 'enqueueDocumentConversion').mockResolvedValue({ conversion: { id: 'conversion-policy-routing', state: 'QUEUED' }, job: { id: 'conversion-job-policy-routing' }, replay: false } as any);
-    const conversionWorker = vi.spyOn(gradingPersistence, 'processDocumentConversionJob').mockResolvedValue({ conversion: { id: 'conversion-policy-routing', state: 'SUCCEEDED' }, evidence } as any);
+    const conversion = vi.spyOn(gradingPersistence, 'enqueueDocumentConversion').mockImplementation(async (input: any) => ({
+      conversion: { id: `conversion:${input.assetId}`, state: 'QUEUED' },
+      job: { id: `conversion-job:${input.assetId}` },
+      replay: false,
+    }) as any);
+    const conversionWorker = vi.spyOn(gradingPersistence, 'processDocumentConversionJob').mockImplementation(async ({ jobId }: any) =>
+      jobId.includes(item.attemptId)
+        ? {
+            conversion: {
+              id: 'conversion-policy-routing-image',
+              state: 'FAILED',
+              canonicalMarkdown: null,
+              normalizedBlocks: [],
+              failureCode: 'assignment-mathpix-only',
+              warningCodes: ['understanding-unavailable-policy'],
+            },
+            evidence: null,
+          } as any
+        : {
+            conversion: {
+              id: 'conversion-policy-routing-document',
+              state: 'SUCCEEDED',
+              canonicalMarkdown: 'converted',
+              normalizedBlocks: evidence.blocks,
+              precision: 'PAGE',
+              confidence: 0.9,
+            },
+            evidence,
+          } as any);
+    const materializeEvidence = vi.spyOn(gradingPersistence, 'materializeAssignmentAnswerEvidence').mockResolvedValue({ evidence, replay: false } as any);
     const grading = vi.spyOn(gradingPersistence, 'enqueueGradingRun').mockResolvedValue({ run: { id: 'run-policy-routing', inputHash: 'sha256:input', state: 'QUEUED' }, job: { id: 'grading-job-policy-routing' }, replay: false } as any);
     vi.spyOn(gradingPersistence, 'processGradingRunJob').mockResolvedValue({ run: { id: 'run-policy-routing', state: 'AWAITING_REVIEW' }, draft: {} } as any);
     await processQuestionGradingBatch({ db, batchId: batch.id, store: {} as any, mathpix: {} as any, now });
-    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: imagePolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/text' }), policySnapshotHash: externalProcessingPolicyHash(imagePolicy) }));
-    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: documentPolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/pdf' }), policySnapshotHash: externalProcessingPolicyHash(documentPolicy) }));
+    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: imagePolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/text' }), policySnapshotHash: externalProcessingPolicyHash(imagePolicy), allowDefaultPolicyDiscovery: false }));
+    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: documentPolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/pdf' }), policySnapshotHash: externalProcessingPolicyHash(documentPolicy), allowDefaultPolicyDiscovery: false }));
     expect(conversion).not.toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-ai' }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ mathpix: expect.anything() }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ writeRendered: expect.any(Function) }));
+    expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ persistEvidence: false }));
+    expect(materializeEvidence).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      sourceManifest: expect.objectContaining({
+        sources: expect.arrayContaining([
+          expect.objectContaining({
+            assetId: `asset-${item.attemptId}`,
+            state: 'UNDERSTANDING_UNAVAILABLE_POLICY',
+          }),
+        ]),
+      }),
+    }));
+    expect(materializeEvidence).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      normalized: expect.objectContaining({
+        blocks: expect.arrayContaining([
+          expect.objectContaining({
+            pageNumber: 2,
+            bbox: [0.1, 0.2, 0.3, 0.4],
+            precision: 'page',
+          }),
+        ]),
+      }),
+    }));
     expect(grading).toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-ai', policySnapshotHash: batch.policySnapshotHash }));
   });
 

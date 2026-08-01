@@ -10,6 +10,10 @@ const approveSchema = z.object({
   reviewId: z.string().trim().min(1).max(160),
   expectedVersion: z.number().int().positive(),
   idempotencyKey: z.string().trim().min(8).max(160).regex(/^[A-Za-z0-9._:-]+$/),
+  confirmIncompleteEvidence: z.boolean().optional().default(false),
+  omittedAssetIds: z.array(z.string().trim().min(1).max(160)).max(10)
+    .refine((ids) => new Set(ids).size === ids.length, 'duplicate-omitted-asset-id')
+    .optional(),
 }).strict();
 
 export async function POST(request: Request, context: { params: Promise<{ assignmentId: string; submissionId: string }> }) {

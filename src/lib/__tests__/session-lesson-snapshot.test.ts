@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveRuntimeLessonKeyFromRouteSegment, summarizeRuntimeLessonManifest } from '../session-lesson-snapshot';
+import {
+  loadRuntimeLessonManifestSnapshot,
+  resolveRuntimeLessonKeyFromRouteSegment,
+  summarizeRuntimeLessonManifest,
+} from '../session-lesson-snapshot';
 
 describe('session lesson snapshot helpers', () => {
   it('resolves unit route segments to runtime lesson keys', () => {
@@ -26,5 +30,12 @@ describe('session lesson snapshot helpers', () => {
       totalSteps: 2,
     });
     expect(snapshot.manifestHash).toHaveLength(64);
+  });
+
+  it('loads a runtime manifest only through a registered runtime lesson directory', () => {
+    const loaded = loadRuntimeLessonManifestSnapshot('1-4');
+    expect(loaded?.snapshot.manifestHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(loaded?.manifest).toMatchObject({ lesson_id: '1-4' });
+    expect(loadRuntimeLessonManifestSnapshot('../1-4')).toBeNull();
   });
 });

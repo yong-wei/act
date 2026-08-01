@@ -6,6 +6,7 @@ export interface EventIngestionJob {
 export interface StudentSnapshotJob {
   userId?: string;
   coordinator?: boolean;
+  simulationTaskCatalogRefresh?: boolean;
   fullRebuild?: boolean;
   /** @deprecated Ignored by the cumulative worker; retained until old producers are removed. */
   rebuildGeneration?: number;
@@ -17,6 +18,7 @@ export interface StudentSnapshotJob {
   reconciliationRequestGeneration?: number;
   reconciliationClaimToken?: string;
   reconciliationClassIds?: string[];
+  simulationTaskExpectedInputDigest?: string;
 }
 
 export interface ClassSnapshotJob {
@@ -45,9 +47,16 @@ export interface EvidenceFeatureCacheJob {
   rebuildAll?: boolean;
 }
 
+export interface RiskFlagScanJob {
+  coordinator?: boolean;
+  pageSize?: number;
+  maxStudents?: number;
+}
+
 export type WorkerJobData =
   | EventIngestionJob
   | StudentSnapshotJob
   | ClassSnapshotJob
   | SessionReportJob
-  | EvidenceFeatureCacheJob;
+  | EvidenceFeatureCacheJob
+  | RiskFlagScanJob;

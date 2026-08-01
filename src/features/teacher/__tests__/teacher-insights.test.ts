@@ -17,6 +17,10 @@ const classDetailSource = readFileSync(
   join(process.cwd(), 'src/app/teacher/classes/[classId]/page.tsx'),
   'utf8',
 );
+const teacherLauncherSource = readFileSync(
+  join(process.cwd(), 'src/features/teacher/teacher-classroom-launcher.tsx'),
+  'utf8',
+);
 const classAnalyticsSource = readFileSync(
   join(process.cwd(), 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx'),
   'utf8',
@@ -169,14 +173,14 @@ describe('teacher-insights helpers', () => {
     expect(classroomReviewSource).toContain('data-teacher-report-delivery="mobile-fixed-actions"');
     expect(classroomReviewSource).toContain('data-teacher-grading-handoff-link="classroom-review"');
     expect(classroomReviewSource).toContain("source: 'classroom-review'");
-    expect(classDetailSource).toContain('role="dialog" aria-modal="true"');
-    expect(classDetailSource).toContain('ref={startDialogRef}');
-    expect(classDetailSource).toContain(`event.key === 'Escape'`);
-    expect(classDetailSource).toContain('document.activeElement === dialog');
-    expect(classDetailSource).toContain('getStartDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus()');
-    expect(classDetailSource).toContain('const [startDialogError, setStartDialogError] = useState');
-    expect(classDetailSource).toContain('role="alert"');
-    expect(classDetailSource).toContain('aria-describedby={startDialogError ? startDialogErrorId : undefined}');
+    expect(classDetailSource).toContain('useTeacherClassroomLauncher');
+    expect(classDetailSource).toContain('{teacherLauncher.dialog}');
+    expect(teacherLauncherSource).toContain('<DialogContent');
+    expect(teacherLauncherSource).toContain('<DialogTitle>');
+    expect(teacherLauncherSource).toContain('onOpenAutoFocus={(event) =>');
+    expect(teacherLauncherSource).toContain('launchElementRef.current.focus()');
+    expect(teacherLauncherSource).toContain("role={conflict ? 'alert' : 'status'}");
+    expect(teacherLauncherSource).toContain("aria-live={conflict ? 'assertive' : 'polite'}");
     expect(classDetailSource).toContain('data-label="证据状态"');
     expect(globalsSource).toContain('table[data-teacher-mobile-cards="true"]');
     expect(globalsSource).toContain('content: attr(data-label)');

@@ -28,7 +28,15 @@ function main() {
   const appPrismaClientFactory = read('src/lib/prisma-client.ts');
   const scriptPrismaClientFactory = read('scripts/lib/prisma-client.mjs');
   const prismaConfig = read('prisma.config.ts');
+  const prismaSchema = read('prisma/schema.prisma');
   const packageJson = JSON.parse(read('package.json'));
+  const entrypointScript = read('docker-entrypoint.sh');
+  const releaseImportCli = read('scripts/db/import-authoritative-actkg-release.ts');
+  const standardBundleImportCli = read('scripts/db/import-compatible-actkg-public-bundle.ts');
+  const standardBundleImporter = read('scripts/actkg-release/standard-bundle-import.ts');
+  const coverageImportCli = read('scripts/db/import-course-coverage-overlay.ts');
+  const resourceBindingImportCli = read('scripts/db/import-canonical-resource-binding-shadow.ts');
+  const remoteDeployScript = read('scripts/remote-deploy.sh');
   const migrationSql = fs
     .readdirSync(path.join(root, 'prisma', 'migrations'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
@@ -39,6 +47,30 @@ function main() {
     dockerfile,
     /COPY --from=builder \/app\/prisma \.\/prisma/,
     'Dockerfile 必须把 prisma 迁移目录复制到运行镜像'
+  );
+
+  for (const requiredCopy of [
+    '/app/scripts/actkg-release ./scripts/actkg-release',
+    '/app/scripts/course-coverage ./scripts/course-coverage',
+    '/app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases',
+    '/app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage',
+    '/app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+    '/app/.app-revision ./.app-revision',
+  ]) {
+    assert.ok(
+      dockerfile.includes(requiredCopy),
+      `Docker runner 必须包含权威知识部署输入: ${requiredCopy}`,
+    );
+  }
+  assert.match(
+    dockerfile,
+    /ARG APP_REVISION[\s\S]*printf '%s\\n' "\$\{APP_REVISION\}" > \/app\/\.app-revision/,
+    'Docker builder 必须把 APP_REVISION 写入不可变镜像修订文件',
+  );
+  assert.match(
+    dockerfile,
+    /ENV APP_REVISION=\$\{APP_REVISION\}/,
+    'Docker runner 必须公开与不可变修订文件一致的 APP_REVISION',
   );
 
   assert.match(
@@ -211,14 +243,36 @@ function main() {
     /!scripts\/lib\//,
     '.dockerignore 必须保留 scripts/lib Prisma 工厂进入镜像构建上下文'
   );
+  for (const requiredPath of [
+    '!scripts/actkg-release/**',
+    '!scripts/course-coverage/**',
+    '!course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+  ]) {
+    assert.ok(
+      dockerignore.includes(requiredPath),
+      `.dockerignore 必须放行 ${requiredPath}`,
+    );
+  }
 
   const entrypointPath = path.join(root, 'docker-entrypoint.sh');
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
-  const entrypointScript = read('docker-entrypoint.sh');
   assert.match(
     entrypointScript,
     /migrate deploy --config \.\/prisma\.config\.ts/,
     'docker-entrypoint.sh 必须通过 Prisma 7 config 执行 migrate deploy'
+  );
+  const migrateIndex = entrypointScript.indexOf('migrate deploy --config ./prisma.config.ts');
+  const releaseImportIndex = entrypointScript.indexOf('import-authoritative-actkg-release.ts');
+  const coverageImportIndex = entrypointScript.indexOf('import-course-coverage-overlay.ts');
+  const resourceBindingImportIndex = entrypointScript.indexOf(
+    'import-canonical-resource-binding-shadow.ts',
+  );
+  assert.ok(
+    migrateIndex >= 0
+      && releaseImportIndex > migrateIndex
+      && coverageImportIndex > releaseImportIndex
+      && resourceBindingImportIndex > coverageImportIndex,
+    'entrypoint 必须仅在启动迁移分支内按 migrate → Release → Overlay → 资源绑定影子清单顺序执行',
   );
 
   assert.match(
@@ -382,6 +436,16 @@ function main() {
     /rm -rf "\$\{ROOT_DIR\}\/\.next"/,
     '构建脚本应在本地 Next 构建前清理 .next，避免增量产物导致部署构建卡住'
   );
+  assert.match(
+    localImageBuildScript,
+    /import-course-coverage-overlay\.ts --validate-only/,
+    'release build 必须在干净 Git HEAD 上预校验 CourseCoverage Overlay',
+  );
+  assert.match(
+    localImageBuildScript,
+    /--build-arg "APP_REVISION=\$\{APP_REVISION\}"/,
+    'release build 必须向镜像传递已验证的 APP_REVISION',
+  );
 
   assert.match(
     localImageBuildScript,
@@ -423,6 +487,81 @@ function main() {
     localImageBuildScript,
     /--build-arg "DATABASE_URL=/,
     '构建脚本不得把真实 DATABASE_URL 作为 Docker build arg 传递'
+  );
+  for (const [name, source] of [
+    ['Release CLI', releaseImportCli],
+    ['Overlay CLI', coverageImportCli],
+  ]) {
+    assert.match(
+      source,
+      /APP_REVISION_FILE \?\? '\.app-revision'/,
+      `${name} 必须在无 .git 的容器中读取不可变镜像修订文件`,
+    );
+    assert.match(
+      source,
+      /select: \{ captureRevision: true \}/,
+      `${name} 必须优先读取既有数据库投影的 captureRevision 进行幂等核验`,
+    );
+    assert.match(
+      source,
+      /--verify-only/,
+      `${name} 必须支持只读部署后核验`,
+    );
+  }
+  assert.match(
+    releaseImportCli,
+    /persisted ActKG Release round-trip hash mismatch/,
+    'Release CLI 必须核验 canonical round-trip hash',
+  );
+  assert.match(
+    releaseImportCli,
+    /result\.status !== 'available' \|\| result\.diagnostics\.length !== 0/,
+    'Release CLI 必须核验 receipt/count/hash Repository 诊断为空',
+  );
+  assert.match(
+    coverageImportCli,
+    /readCourseCoverage\(selector\(validated\.overlay\)\)/,
+    'Overlay CLI 必须通过显式 selector 读取 CourseCoverage',
+  );
+  assert.match(
+    coverageImportCli,
+    /result\.status !== 'available' \|\| result\.diagnostics\.length !== 0/,
+    'Overlay CLI 必须要求 available 且无 diagnostics',
+  );
+  assert.match(
+    resourceBindingImportCli,
+    /buildResourceBindingInventory\(observations\)/,
+    '资源绑定 CLI 必须从同一捕获身份的 observation 生成完整逐项清单',
+  );
+  assert.match(
+    prismaSchema,
+    /release\s+ActkgRelease\s+@relation\(fields: \[releaseSetId, releaseId\], references: \[releaseSetId, id\]/,
+    'binding decision 的 Prisma Release relation 必须与迁移中的复合外键一致',
+  );
+  assert.match(
+    prismaSchema,
+    /evidence\s+ActkgEvidenceSegment\?\s+@relation\(fields: \[releaseId, evidenceId\], references: \[releaseId, evidenceId\]/,
+    'binding decision 的 Prisma Evidence relation 必须与迁移中的可选复合外键一致',
+  );
+  assert.match(
+    migrationSql,
+    /"CanonicalResourceBindingDecision_releaseSetId_releaseId_fkey"[\s\S]*FOREIGN KEY \("releaseSetId", "releaseId"\)[\s\S]*REFERENCES "ActkgRelease"\("releaseSetId", "id"\)/,
+    'binding decision migration 必须声明复合 Release 外键',
+  );
+  assert.match(
+    migrationSql,
+    /"CanonicalResourceBindingDecision_releaseId_evidenceId_fkey"[\s\S]*FOREIGN KEY \("releaseId", "evidenceId"\)[\s\S]*REFERENCES "ActkgEvidenceSegment"\("releaseId", "evidenceId"\)/,
+    'binding decision migration 必须声明复合 Evidence 外键',
+  );
+  assert.match(
+    resourceBindingImportCli,
+    /cutoverReady:\s*false/,
+    '资源绑定部署核验必须保持 Canonical cutover fail closed',
+  );
+  assert.match(
+    remoteDeployScript,
+    /podman exec '\$\{APP_NAME_HINT\}' npm run db:verify-authoritative-knowledge-deployment/,
+    'remote-deploy 最终阶段必须核验 Release roundtrip/receipt/count/hash 与 Overlay selector/receipt',
   );
 
   assert.match(
@@ -480,6 +619,132 @@ function main() {
     migrationSql,
     /ALTER TABLE "InteractionLog" ALTER COLUMN "resourceKey" DROP NOT NULL/,
     'Prisma 迁移必须包含 InteractionLog.resourceKey 可空变更'
+  );
+
+  for (const tableName of [
+    'ActkgReleaseArtifact',
+    'ActkgReleaseComponent',
+    'ActkgReleaseEntry',
+    'ActkgProjectionNode',
+    'ActkgProjectionLink',
+    'ActkgUpstreamRagReference',
+  ]) {
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TABLE "${tableName}"`),
+      `Prisma 迁移必须包含 CTKG 0.2 聚合发布表 ${tableName}`
+    );
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TRIGGER "${tableName}_immutable"`),
+      `Prisma 迁移必须为 ${tableName} 声明 immutable 触发器`
+    );
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TRIGGER "${tableName}_sealed_insert"`),
+      `Prisma 迁移必须为 ${tableName} 声明 sealed_insert 触发器`
+    );
+  }
+
+  assert.match(
+    releaseImportCli,
+    /importValidatedAggregateRelease/u,
+    'Release CLI 必须通过聚合 adapter 导入 CTKG 0.2 发布'
+  );
+  assert.match(
+    releaseImportCli,
+    /reconstructAggregateArtifacts/u,
+    'Release CLI 必须核验聚合公开 artifact 的字节级往返',
+  );
+
+  for (const tableName of [
+    'ActkgBundleReceipt',
+    'ActkgBundleArtifact',
+    'ActkgProjectionIdentity',
+    'ActkgProjectionLinkMetadata',
+  ]) {
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TABLE "${tableName}"`),
+      `Prisma 迁移必须包含标准 Bundle 候选表 ${tableName}`,
+    );
+  }
+  // Bundle receipt allows the sole STAGED→ACCEPTED transition; other tables are fully immutable.
+  assert.match(
+    migrationSql,
+    /CREATE TRIGGER "ActkgBundleReceipt_mutation_guard"/,
+    'Prisma 迁移必须为 ActkgBundleReceipt 声明 mutation_guard 触发器',
+  );
+  for (const tableName of [
+    'ActkgBundleArtifact',
+    'ActkgProjectionIdentity',
+    'ActkgProjectionLinkMetadata',
+  ]) {
+    assert.match(
+      migrationSql,
+      new RegExp(`CREATE TRIGGER "${tableName}_immutable"`),
+      `Prisma 迁移必须为 ${tableName} 声明 immutable 触发器`,
+    );
+  }
+  assert.match(
+    migrationSql,
+    /ADD COLUMN "bundleContractVersion" TEXT/,
+    'Prisma 迁移必须扩展 ActkgImportReceipt 的标准 Bundle 合同字段',
+  );
+  assert.match(
+    migrationSql,
+    /ADD COLUMN "role" TEXT/,
+    'Prisma 迁移必须扩展 ActkgReleaseArtifact 的标准 Artifact 角色字段',
+  );
+  assert.match(
+    standardBundleImporter,
+    /assertValidatedActKGBundleInput|importValidatedActKGBundle|STAGED_CANDIDATE_STATE|ACCEPTED_CANDIDATE_STATE/u,
+    '标准 Bundle importer 必须只消费 ValidatedActKGBundle，并经 STAGED→ACCEPTED 转换',
+  );
+  assert.match(
+    migrationSql,
+    /candidateState.*STAGED.*ACCEPTED_CANDIDATE|STAGED.*ACCEPTED_CANDIDATE/u,
+    'Prisma 迁移必须允许 Bundle receipt STAGED 与 ACCEPTED_CANDIDATE',
+  );
+  assert.match(
+    migrationSql,
+    /artifactCount/u,
+    'Prisma 迁移必须为 Bundle receipt 声明 packaging artifactCount',
+  );
+  assert.match(
+    migrationSql,
+    /actkg_bundle_receipt_mutation_guard|STAGED→ACCEPTED/u,
+    'Prisma 迁移必须限制 Bundle receipt 只能 STAGED→ACCEPTED',
+  );
+  assert.match(
+    migrationSql,
+    /CREATE TRIGGER "ActkgBundleReceipt_insert_guard"/,
+    'Prisma 迁移必须为 ActkgBundleReceipt 声明 INSERT guard',
+  );
+  assert.match(
+    migrationSql,
+    /actkg_bundle_receipt_insert_guard|INSERT requires candidateState=STAGED/u,
+    'Prisma 迁移必须拒绝直接 INSERT ACCEPTED_CANDIDATE Bundle receipt',
+  );
+  assert.doesNotMatch(
+    standardBundleImporter,
+    /loadAndValidatePublicBundleV1|bundle-manifest\.json|readdir/u,
+    '标准 Bundle 数据库层不得重新发现文件或解析 Manifest',
+  );
+  assert.match(
+    standardBundleImportCli,
+    /importValidatedActKGBundle|loadAndValidatePublicBundleV1/u,
+    '标准 Bundle CLI 必须先走兼容层验证再导入',
+  );
+  assert.match(
+    prismaSchema,
+    /model ActkgBundleReceipt/,
+    'Prisma schema 必须声明 ActkgBundleReceipt',
+  );
+  assert.match(
+    packageJson.scripts?.['db:import-compatible-actkg-public-bundle'] ?? '',
+    /import-compatible-actkg-public-bundle/,
+    'package.json 必须暴露标准 Bundle 导入脚本',
   );
 
   console.log('docker migration readiness test passed');

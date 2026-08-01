@@ -88,11 +88,12 @@ export function LessonRuntimeShell({
   const courseHref = `/interactive-learning/courses/${routeSegment}`;
   const runtimeReturnHref = pathLaunchContext?.returnHref ?? courseHref;
   const runtimeReturnLabel = pathLaunchContext ? '返回学习路径' : '返回课程入口';
+  const showRuntimeReturnAction = !pathLaunchContext;
   const breadcrumbs: readonly AppBreadcrumbItem[] = pathLaunchContext
     ? [
         { label: '学习', href: '/dashboard' },
         { label: '互动学习', href: '/interactive-learning' },
-        { label: runtimeReturnLabel, href: runtimeReturnHref },
+        { label: '学习路径' },
         { label: title },
         { label: getModeLabel(mode) },
       ]
@@ -150,12 +151,14 @@ export function LessonRuntimeShell({
             <BookOpen className="h-10 w-10 text-platform-action-primary" />
             <h1 className="mt-5 text-2xl font-semibold text-platform-fg-primary">{invalidTitle}</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-platform-fg-secondary">{invalidDescription}</p>
-            <Link
-              href={runtimeReturnHref}
-              className="mt-6 inline-flex h-10 items-center rounded-md bg-platform-action-primary px-4 text-sm font-medium text-platform-action-primary-fg"
-            >
-              {runtimeReturnLabel}
-            </Link>
+            {showRuntimeReturnAction ? (
+              <Link
+                href={runtimeReturnHref}
+                className="mt-6 inline-flex h-10 items-center rounded-md bg-platform-action-primary px-4 text-sm font-medium text-platform-action-primary-fg"
+              >
+                {runtimeReturnLabel}
+              </Link>
+            ) : null}
           </PlatformSurface>
         ) : (
           <>

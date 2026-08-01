@@ -8,6 +8,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 
+const persistControlWorkbenchRun = vi.hoisted(() => vi.fn());
+
+vi.mock('@/resources/simulations/persisted-run-client', () => ({
+  persistControlWorkbenchRun,
+}));
+
 const ANALYSIS_RESULT: ControlAnalysisResult = {
   metrics: {
     overshootPct: 0,
@@ -79,6 +85,8 @@ describe('unit 1-4 shared control-workbench submission', () => {
   let root: Root;
 
   beforeEach(() => {
+    persistControlWorkbenchRun.mockReset();
+    persistControlWorkbenchRun.mockResolvedValue({ simulationRunId: 'run-1' });
     (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement('div');
     document.body.appendChild(container);

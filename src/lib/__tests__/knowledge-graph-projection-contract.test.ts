@@ -42,6 +42,17 @@ const originalActkgGate = process.env[ACTKG_GATE_ENV];
 const originalRuntimeRoot = process.env.KNOWLEDGE_RUNTIME_ROOT;
 const temporaryRoots: string[] = [];
 
+// 历史 CTKG 0.1 精确适配器只接受与固定合同语义一致的投影。上游 vendored 夹具中
+// ctl:L000004 故意声明了冲突方向，用于失败关闭测试；历史可读性用例使用语义一致
+// 的修正副本，不再依赖运行时方向改写。
+const historicalActkgProjectionFixture = buildActkgProjectionDocument({
+  links: (actkgGraphProjectionFixture.links ?? []).map((link) => (
+    link.id === 'ctl:L000004'
+      ? { ...link, direction: 'parent_to_child' as const }
+      : link
+  )),
+});
+
 afterEach(async () => {
   resetKnowledgeGraphSourceCacheForTests();
   if (originalActkgGate === undefined) delete process.env[ACTKG_GATE_ENV];
@@ -198,7 +209,7 @@ describe('ActKG projection adapter', () => {
   });
 
   it('maps a valid projection into the unified payload with projection-shaped fields', async () => {
-    await installActkgGate(actkgGraphProjectionFixture);
+    await installActkgGate(historicalActkgProjectionFixture);
 
     const graph = await loadKnowledgeGraphData();
 
@@ -252,7 +263,7 @@ describe('ActKG projection adapter', () => {
   });
 
   it('passes relation-contract and coverage validation through the existing pipeline', async () => {
-    await installActkgGate(actkgGraphProjectionFixture);
+    await installActkgGate(historicalActkgProjectionFixture);
 
     const graph = await loadKnowledgeGraphData();
 
@@ -266,7 +277,7 @@ describe('ActKG projection adapter', () => {
   });
 
   it('binds version_digest and release identity to graph version and shard identity', async () => {
-    await installActkgGate(actkgGraphProjectionFixture);
+    await installActkgGate(historicalActkgProjectionFixture);
     const graph = await loadKnowledgeGraphData();
 
     expect(graph.versionDigest).toBe(
@@ -287,7 +298,7 @@ describe('ActKG projection adapter', () => {
   });
 
   it('invalidates stale shards and cached state through the existing version-change path', async () => {
-    await installActkgGate(actkgGraphProjectionFixture);
+    await installActkgGate(historicalActkgProjectionFixture);
     const graphV1 = await loadKnowledgeGraphData();
 
     let cache = buildInitialGraphCache([], []);
@@ -300,7 +311,10 @@ describe('ActKG projection adapter', () => {
     expect(cache.domainNodeIdsByDomainId['chapter-node:未分章']?.length).toBeGreaterThan(0);
 
     const graphV2Promise = (async () => {
-      await installActkgGate(buildActkgProjectionDocument({ version_digest: 'sha256:fixture-digest-v2' }));
+      await installActkgGate(buildActkgProjectionDocument({
+        ...historicalActkgProjectionFixture,
+        version_digest: 'sha256:fixture-digest-v2',
+      }));
       return loadKnowledgeGraphData();
     })();
     const graphV2 = await graphV2Promise;
@@ -322,24 +336,38 @@ describe('ActKG projection adapter', () => {
     expect(staleMerge).toBe(reloaded);
   });
 
-  it('lets the canonical contract win projected direction conflicts and records the override', async () => {
+  it('fails closed on projected direction conflicts instead of repairing them at runtime', async () => {
+    // 上游夹具中 ctl:L000004 声明 contains + unordered，与固定合同
+    // contains → parent-to-child 冲突；历史适配器必须失败关闭，
+    // 不得改写方向后继续，也不得伪造修正后的关系。
     await installActkgGate(actkgGraphProjectionFixture);
+
+    const failure = await loadKnowledgeGraphData().catch((error: unknown) => error);
+
+    expect(failure).toBeInstanceOf(RuntimeKnowledgeRelationCoverageError);
+    const diagnostics = (failure as RuntimeKnowledgeRelationCoverageError).report.diagnostics;
+    expect(diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'ACTKG_DIRECTION_CONFLICT', blocking: true }),
+    ]));
+    expect(diagnostics[0]?.message).toContain('ctl:L000004');
+    expect(diagnostics[0]?.message).toContain('unordered');
+    expect(diagnostics[0]?.message).toContain('parent-to-child');
+  });
+
+  it('keeps consistent historical projections readable without any direction rewrite', async () => {
+    await installActkgGate(historicalActkgProjectionFixture);
     const graph = await loadKnowledgeGraphData();
 
-    const conflictLink = (graph.inspectionLinks ?? []).find((link) => link.id === 'ctl:L000004');
-    expect(conflictLink).toBeDefined();
-    expect(conflictLink!.provenance.rawRelation.projectedDirection).toBe('unordered');
-
     const detail = buildKnowledgeNodeDetailFromGraph(graph, 'ctc:C100001');
-    const conflictItem = detail?.relatedNodes.find((item) => item.relationId === 'ctl:L000004');
-    expect(conflictItem).toMatchObject({
+    const consistentItem = detail?.relatedNodes.find((item) => item.relationId === 'ctl:L000004');
+    expect(consistentItem).toMatchObject({
       canonicalType: 'contains',
       direction: 'parent-to-child',
     });
 
-    const agreementLink = (graph.inspectionLinks ?? []).find((link) => link.id === 'ctl:L000002');
-    expect(agreementLink).toBeDefined();
-    expect('projectedDirection' in agreementLink!.provenance.rawRelation).toBe(false);
+    for (const link of graph.inspectionLinks ?? []) {
+      expect('projectedDirection' in link.provenance.rawRelation).toBe(false);
+    }
   });
 
   it('fails closed with a descriptive error when the gated document is missing', async () => {
@@ -385,7 +413,7 @@ describe('ActKG projection adapter', () => {
   });
 
   it.each([
-    ['missing version_digest', { ...actkgGraphProjectionFixture, version_digest: undefined } as unknown as ActkgGraphProjectionDocument],
+    ['missing version_digest', { ...historicalActkgProjectionFixture, version_digest: undefined } as unknown as ActkgGraphProjectionDocument],
     ['unknown relation_type', buildActkgProjectionDocument({
       links: [{
         id: 'ctl:L999999',
@@ -427,7 +455,7 @@ describe('ActKG projection adapter', () => {
     expect(schema.$defs.GraphProjection?.required).toEqual(expect.arrayContaining([
       'id', 'projection_profile', 'source_dataset_hash', 'version_digest', 'lifecycle_status', 'schema_version',
     ]));
-    expect(actkgGraphProjectionFixture.schema_version).toBe('0.1.0');
+    expect(historicalActkgProjectionFixture.schema_version).toBe('0.1.0');
   });
 });
 

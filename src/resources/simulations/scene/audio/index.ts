@@ -1,14 +1,15 @@
 export {
   AMBIENCE_PROGRAMS,
   createSoundscapeBus,
-  readSoundscapeMutedPreference,
-  writeSoundscapeMutedPreference,
+  readSoundChannelPreference,
+  writeSoundChannelPreference,
 } from './soundscape-bus';
 export type {
   AlertKind,
   AmbienceKey,
   AmbienceProgram,
   FeedbackKind,
+  SoundChannel,
   SoundscapeAudioContextLike,
   SoundscapeBus,
 } from './soundscape-bus';

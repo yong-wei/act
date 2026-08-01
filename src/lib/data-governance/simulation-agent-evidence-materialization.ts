@@ -1,5 +1,12 @@
 import type { Prisma } from '@prisma/client';
 
+import {
+  selectLearningFactAuthority,
+  writeKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
+import { resolveActiveKnowledgeRevision } from './knowledge-truth-revision';
+
 type JsonRecord = Record<string, unknown>;
 
 const SIMULATION_SUMMARY_METRIC_KEYS = [
@@ -144,15 +151,31 @@ export async function persistSimulationAgentEvidenceMaterialization(
     };
   }
 
-  const created = await db.learningFact.createMany({
-    data: result.learningFacts,
-    skipDuplicates: true,
-  });
+  const selector = selectLearningFactAuthority('FORMAL_PRODUCTION');
+  const activeRevision = await resolveActiveKnowledgeRevision(db as never);
+  const created = await writeKnowledgeScopedLearningFacts(
+    {
+      learningFact: {
+        createMany: async (args) => db.learningFact.createMany({
+          data: [...args.data] as Prisma.LearningFactCreateManyInput[],
+          skipDuplicates: args.skipDuplicates,
+        }),
+      },
+    },
+    {
+      rows: result.learningFacts as LearningFactWriteRow[],
+      knowledgeScoped: true,
+    },
+    {
+      selector,
+      knowledgeRevisionRef: activeRevision.id,
+    },
+  );
 
   return {
     ...result,
-    created: created.count,
-    skipped: created.count === 0,
+    created: created.written,
+    skipped: created.written === 0,
   };
 }
 

@@ -6,7 +6,9 @@ import { recordPathIntervention } from '@/lib/control-correction-path-rounds';
 import {
   assertCanReadPath,
   assertCanWritePathIntervention,
+  assertPathMutableForWrite,
   getLearningPathRequester,
+  learningPathMutationBlockedResponse,
   readPathForAccess,
   refreshPathEvidenceFeatureCache,
   requireIdempotencyKey,
@@ -28,6 +30,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (denied) return denied;
     const writeDenied = assertCanWritePathIntervention(requester);
     if (writeDenied) return writeDenied;
+    const stopped = assertPathMutableForWrite(path);
+    if (stopped) return stopped;
 
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
@@ -64,6 +68,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     return NextResponse.json({ intervention: toInterventionWriteView(intervention), cacheRefresh });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    const blocked = learningPathMutationBlockedResponse(error);
+    if (blocked) return blocked;
     console.error('[LearningPathIntervention] Error:', error);
     return NextResponse.json({ error: '记录路径干预失败' }, { status: 500 });
   }

@@ -18,8 +18,10 @@ export const dynamic = 'force-dynamic'
 
 export default async function RootLayout({
   children,
+  textbookModal,
 }: {
   children: React.ReactNode
+  textbookModal: React.ReactNode
 }) {
   const session = await getServerAuthSession()
 
@@ -34,6 +36,7 @@ export default async function RootLayout({
             <GlobalAIProvider>
               <PageFloatingControlsProvider>
                 {children}
+                {textbookModal}
                 <GlobalAIFloatingButton />
                 <GlobalAISidebar />
               </PageFloatingControlsProvider>

@@ -17,8 +17,9 @@ import {
 import { useSearchParams } from 'next/navigation';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { Video, Orbit, Undo2, ArrowDownFromLine } from 'lucide-react';
+import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
 import { SimulationClock } from '@/lib/simulation';
+import { persistSceneTraceRun } from '../persisted-run-client';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -26,32 +27,30 @@ import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder
 import { SimulationTopBar, SimulationDock, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
-  EnvironmentPresetSwitcher,
   EnvironmentScene,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
+  useSceneEnvironment,
 } from '../scene/environment';
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
-  SoundscapeMuteToggle,
 } from '../scene/audio';
 import {
   TeachingAnnotationsProvider,
-  TeachingAnnotationsToggle,
   useTeachingAnnotations,
 } from '../scene/annotations';
 import {
   SceneQualityDriver,
   SceneQualityProvider,
-  SceneQualitySelect,
   useSceneQuality,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { cruiseAdoraSceneVisual } from '../profiles/cruise-adora-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
+import { WaterHuggingLine } from '../scene/lines';
 
 import type {
   ControlMode,
@@ -417,42 +416,28 @@ useGLTF.preload(OPTIMIZED_MODEL_URL);
 // ============ 航迹线组件 ============
 
 function TrajectoryLine({ points }: { points: Vector2[] }) {
-  const linePoints = useMemo(() => {
-    return points.map((p) => [p.x, 0.5, p.z] as [number, number, number]);
-  }, [points]);
-
-  if (linePoints.length < 2) return null;
-
-  return (
-    <Line
-      points={linePoints}
-      color={CRUISE_HEADING_PRIMARY}
-      lineWidth={2.4}
-      dashed={false}
-    />
-  );
+  if (points.length < 2) return null;
+  return <WaterHuggingLine points={points} color={CRUISE_HEADING_PRIMARY} lineWidth={2.4} />;
 }
 
 function DesiredRouteLine({ points }: { points: Vector2[] }) {
-  const linePoints = useMemo(() => points.map((p) => [p.x, 1.2, p.z] as [number, number, number]), [points]);
-  const arrowStart = linePoints.length > 1 ? linePoints[linePoints.length - 2] : null;
-  const arrowEnd = linePoints.length > 1 ? linePoints[linePoints.length - 1] : null;
-  if (linePoints.length < 2) {
+  const arrowStart = points.length > 1 ? points[points.length - 2] : null;
+  const arrowEnd = points.length > 1 ? points[points.length - 1] : null;
+  if (points.length < 2) {
     return null;
   }
 
   return (
     <>
-      <Line
-        points={linePoints}
-        color={CRUISE_HEADING_SECONDARY}
-        lineWidth={2.2}
-        dashed
-        dashSize={36}
-        gapSize={16}
-      />
+      <WaterHuggingLine points={points} color={CRUISE_HEADING_SECONDARY} lineWidth={2.2} dashed dashSize={36} gapSize={16} />
       {arrowStart && arrowEnd ? (
-        <DirectionArrow start={arrowStart} end={arrowEnd} color={CRUISE_HEADING_SECONDARY} dashed={false} lineWidth={2.2} />
+        <DirectionArrow
+          start={[arrowStart.x, 1.2, arrowStart.z]}
+          end={[arrowEnd.x, 1.2, arrowEnd.z]}
+          color={CRUISE_HEADING_SECONDARY}
+          dashed={false}
+          lineWidth={2.2}
+        />
       ) : null}
     </>
   );
@@ -771,6 +756,7 @@ function ControllerPanel({
       <div className="flex gap-2">
         {!state.isRunning ? (
           <button type="button"
+            data-sound-start
             onClick={onStart}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
           >
@@ -1390,7 +1376,7 @@ function SceneShell({ children }: { children: React.ReactNode }) {
 const CAMERA_SHOT_VIEWS = [
   { id: SCENE_CAMERA_SHOTS.chase.id, label: '跟船', shortLabel: '跟', icon: Video, description: SCENE_CAMERA_SHOTS.chase.description },
   { id: SCENE_CAMERA_SHOTS.orbit.id, label: '环绕', shortLabel: '环', icon: Orbit, description: SCENE_CAMERA_SHOTS.orbit.description },
-  { id: SCENE_CAMERA_SHOTS.retreat.id, label: '退却', shortLabel: '退', icon: Undo2, description: SCENE_CAMERA_SHOTS.retreat.description },
+  { id: SCENE_CAMERA_SHOTS.tactical.id, label: '战术', shortLabel: '战', icon: Compass, description: SCENE_CAMERA_SHOTS.tactical.description },
   { id: SCENE_CAMERA_SHOTS.topDown.id, label: '顶视', shortLabel: '顶', icon: ArrowDownFromLine, description: SCENE_CAMERA_SHOTS.topDown.description },
 ];
 
@@ -1420,7 +1406,7 @@ function CruiseWater({ state }: { state: CruiseSimulationState }) {
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
-      foamColor="#f4fbff"
+      foamColor={simulationScenePalette.waterFoam}
     />
   );
 }
@@ -1435,17 +1421,18 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
 }) {
+  const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const waterYRef = useRef(0);
+  const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [state.position.x, 0, state.position.z];
     transformRef.current.heading = platformHeadingToSceneRad(state.heading);
-    const time = frameState.clock.getElapsedTime();
-    waterYRef.current = -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], 0, 0, time).y;
+    timeRef.current = frameState.clock.getElapsedTime();
   });
 
+  if (!wakeVisible) return null;
   return (
     <WakeTrail
       key={resetToken}
@@ -1453,7 +1440,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={() => waterYRef.current}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
       worldSpeedSampler={() => state.speed}
     />
   );
@@ -1490,6 +1477,7 @@ function VisualizationLayer({
   controlsRef,
   onRequestFreeMode,
   resetToken,
+  resetSignal,
 }: {
   state: CruiseSimulationState;
   virtualModeEnabled: boolean;
@@ -1501,6 +1489,7 @@ function VisualizationLayer({
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
   onRequestFreeMode: () => void;
   resetToken: number;
+  resetSignal: number;
 }) {
   return (
     <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
@@ -1564,6 +1553,7 @@ function VisualizationLayer({
         headingSampler={() => platformHeadingToSceneRad(state.heading)}
         shipLength={cruiseAdoraSceneVisual.shipLengthMeters}
         controlsRef={controlsRef}
+      resetSignal={resetSignal}
       />
       <ScenePostEffects />
     </Canvas>
@@ -1627,6 +1617,32 @@ function TelemetryBridge({
 
     emittedRunIdRef.current = runId;
     window.dispatchEvent(new CustomEvent<CruiseTelemetryBridgeSummary>('simulation:trace-summary', { detail: summary }));
+    const query = new URLSearchParams(window.location.search);
+    void persistSceneTraceRun({
+      traceSummary: summary,
+      launchContext: {
+        classId: query.get('classId') ?? undefined,
+        courseId: query.get('courseId') ?? undefined,
+        lessonId: query.get('lessonPlanId') ?? undefined,
+        publicationId: query.get('publicationId') ?? undefined,
+        registryId: query.get('registryId') ?? undefined,
+        resourceId: query.get('resourceId') ?? undefined,
+        sessionId: query.get('sessionId') ?? undefined,
+      },
+    }).then(({ simulationRunId }) => {
+      const completionChannelId = query.get('completionChannelId');
+      if (!completionChannelId || typeof BroadcastChannel === 'undefined') return;
+      const channel = new BroadcastChannel(`simulation-run:${completionChannelId}`);
+      channel.postMessage({
+        type: 'simulation-run-persisted',
+        sceneId: 'cruise',
+        simulationRunId,
+      });
+      channel.close();
+    }).catch((error) => {
+      emittedRunIdRef.current = null;
+      console.error('[Cruise Simulation] Failed to persist completed run:', error);
+    });
     if (window.parent && window.parent !== window) {
       window.parent.postMessage(
         {
@@ -1678,6 +1694,7 @@ export default function CruiseSimulation() {
   const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [resetCount, setResetCount] = useState(0);
+  const [viewResetCount, setViewResetCount] = useState(0);
   const [speedScale, setSpeedScale] = useState(1);
   const [virtualModeEnabled, setVirtualModeEnabled] = useState(true);
   const sceneTheme = useSimulationSceneTheme();
@@ -2247,11 +2264,13 @@ export default function CruiseSimulation() {
         controlsRef={controlsRef}
         onRequestFreeMode={() => setCameraMode('free')}
         resetToken={resetCount}
+          resetSignal={viewResetCount}
       />
 
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        onViewReset={() => setViewResetCount((previous) => previous + 1)}
         views={CAMERA_SHOT_VIEWS}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
@@ -2350,11 +2369,6 @@ export default function CruiseSimulation() {
           知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)
         </div>
       </div>
-
-      <EnvironmentPresetSwitcher className="absolute bottom-32 left-1/2 z-20 flex -translate-x-1/2 gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
-      <SoundscapeMuteToggle className="absolute bottom-32 right-4 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
-      <TeachingAnnotationsToggle className="absolute bottom-32 right-24 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
-      <SceneQualitySelect className="absolute bottom-32 left-4 z-20 flex gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
     </SceneShell>
     </SceneQualityProvider>
     </TeachingAnnotationsProvider>

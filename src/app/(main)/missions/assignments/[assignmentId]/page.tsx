@@ -1,6 +1,7 @@
 import { StudentAssignmentWorkspace } from '@/features/assignments/student-assignment-workspace';
 
-export default async function StudentAssignmentPage({ params }: { params: Promise<{ assignmentId: string }> }) {
+export default async function StudentAssignmentPage({ params, searchParams }: { params: Promise<{ assignmentId: string }>; searchParams: Promise<{ revisionId?: string }> }) {
   const { assignmentId } = await params;
-  return <StudentAssignmentWorkspace assignmentId={assignmentId} />;
+  const { revisionId } = await searchParams;
+  return <StudentAssignmentWorkspace assignmentId={assignmentId} revisionId={revisionId} />;
 }

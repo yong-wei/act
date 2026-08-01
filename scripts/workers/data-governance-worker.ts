@@ -21,6 +21,12 @@ import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance
 import {
   eventToLearningFactInput,
 } from '@/lib/data-governance/learning-fact-materialization';
+import {
+  selectLearningFactAuthority,
+  writeKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import {
   rebuildStudentEvidenceFeatureCache,
@@ -41,14 +47,19 @@ import {
   failCumulativeLearnerReconciliation,
   readActiveCumulativePublicationFence as readActiveCumulativePublicationFenceOrNull,
   renewCumulativeLearnerReconciliation,
+  requestCumulativeLearnerReconciliation,
   type ActiveCumulativePublicationFence,
   type CumulativeLearnerReconciliationClaim,
 } from '@/lib/data-governance/cumulative-snapshot-jobs';
+import { SimulationTaskInputDriftError } from '@/lib/data-governance/simulation-task-portrait-projection';
+import { scheduleSimulationTaskCatalogRefresh } from '@/lib/data-governance/simulation-task-reconciliation';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
+import { scanAllStudentRisks, type RiskScannerDb } from '@/lib/risk-scanner';
 import type {
   ClassSnapshotJob,
   EventIngestionJob,
   EvidenceFeatureCacheJob,
+  RiskFlagScanJob,
   SessionReportJob,
   StudentSnapshotJob,
 } from './types';
@@ -91,11 +102,13 @@ let studentQueue: Queue<StudentSnapshotJob> | null = null;
 let classQueue: Queue<ClassSnapshotJob> | null = null;
 let reportQueue: Queue<SessionReportJob> | null = null;
 let evidenceFeatureCacheQueue: Queue<EvidenceFeatureCacheJob> | null = null;
+let riskFlagQueue: Queue<RiskFlagScanJob> | null = null;
 let eventIngestionWorker: Worker<EventIngestionJob> | null = null;
 let studentSnapshotWorker: Worker<StudentSnapshotJob> | null = null;
 let classSnapshotWorker: Worker<ClassSnapshotJob> | null = null;
 let sessionReportWorker: Worker<SessionReportJob> | null = null;
 let evidenceFeatureCacheWorker: Worker<EvidenceFeatureCacheJob> | null = null;
+let riskFlagWorker: Worker<RiskFlagScanJob> | null = null;
 let mathDocumentGradingController: Awaited<ReturnType<typeof createMathDocumentGradingWorker>> | null = null;
 let teacherAssignmentReviewController: ReturnType<typeof createTeacherAssignmentReviewOutboxWorker> | null = null;
 let isShuttingDown = false;
@@ -198,6 +211,30 @@ function formatError(error: unknown): string {
   } catch {
     return String(error);
   }
+}
+
+type JsonSafe<T> =
+  T extends bigint ? string :
+  T extends Date ? string :
+  T extends readonly (infer Item)[] ? Array<JsonSafe<Item>> :
+  T extends object ? { [Key in keyof T]: JsonSafe<T[Key]> } :
+  T;
+
+function toJsonSafeWorkerResult<T>(value: T): JsonSafe<T> {
+  if (typeof value === 'bigint') return value.toString() as JsonSafe<T>;
+  if (value instanceof Date) return value.toISOString() as JsonSafe<T>;
+  if (Array.isArray(value)) {
+    return value.map((item) => toJsonSafeWorkerResult(item)) as JsonSafe<T>;
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        toJsonSafeWorkerResult(item),
+      ]),
+    ) as JsonSafe<T>;
+  }
+  return value as JsonSafe<T>;
 }
 
 function isInfrastructureError(error: unknown): boolean {
@@ -366,6 +403,10 @@ function studentPublicationJobData(
       reconciliationRequestGeneration: options.reconciliationClaim.generation,
       reconciliationClaimToken: options.reconciliationClaim.claimToken,
       reconciliationClassIds: options.reconciliationClaim.classIds,
+      ...(options.reconciliationClaim.simulationTaskInput ? {
+        simulationTaskExpectedInputDigest:
+          options.reconciliationClaim.simulationTaskInput.inputDigest,
+      } : {}),
     } : {}),
   };
 }
@@ -558,11 +599,29 @@ export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
 
   let factsCreated = 0;
   if (facts.length > 0) {
-    const result = await db.learningFact.createMany({
-      data: facts as Prisma.LearningFactCreateManyInput[],
-      skipDuplicates: true,
-    });
-    factsCreated = result.count;
+    // Realtime knowledge-scoped facts must resolve the active authority selector
+    // and write through the fixed-identity adapter (pre-cutover: LEGACY).
+    const selector = selectLearningFactAuthority('FORMAL_PRODUCTION');
+    const activeRevision = await resolveActiveKnowledgeRevision(db);
+    const result = await writeKnowledgeScopedLearningFacts(
+      {
+        learningFact: {
+          createMany: async (args) => db.learningFact.createMany({
+            data: args.data as Prisma.LearningFactCreateManyInput[],
+            skipDuplicates: args.skipDuplicates,
+          }),
+        },
+      },
+      {
+        rows: facts as LearningFactWriteRow[],
+        knowledgeScoped: true,
+      },
+      {
+        selector,
+        knowledgeRevisionRef: activeRevision.id,
+      },
+    );
+    factsCreated = result.written;
     const triggerId = String(job.id ?? batchDate);
     const fence = await readActiveCumulativePublicationFence(db);
     for (const userId of new Set(facts.map((fact) => fact.userId))) {
@@ -673,6 +732,9 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   if (job.data.coordinator) {
     const db = getPrismaClient();
     const fence = await readActiveCumulativePublicationFence(db);
+    const catalogRefresh = job.data.simulationTaskCatalogRefresh
+      ? await scheduleSimulationTaskCatalogRefresh(db as any)
+      : null;
     const claims = await claimCumulativeLearnerReconciliations(db as any, fence);
     let requestFailed = 0;
     for (const claim of claims) {
@@ -716,6 +778,7 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
       scheduled: regularStudentIds.length + claims.length - requestFailed,
       reconciliationScheduled: claims.length - requestFailed,
       reconciliationFailed: requestFailed,
+      catalogRefresh,
     };
   }
 
@@ -750,6 +813,9 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
       now: new Date(),
       fullRebuild: reconciliationClaim ? true : job.data.fullRebuild,
       publication: expectation,
+      simulationTaskInput: job.data.simulationTaskExpectedInputDigest ? {
+        expectedInputDigest: job.data.simulationTaskExpectedInputDigest,
+      } : undefined,
     });
     if (portraitV2.mappingIssues.length > 0) {
       logWithThrottle(
@@ -784,16 +850,39 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
         skipped: true,
         reason: 'stale_reconciliation_claim',
         userId,
-        portraitV2,
+        portraitV2: toJsonSafeWorkerResult(portraitV2),
       };
     }
     return {
       skipped: !portraitV2.written,
       reason: portraitV2.written ? 'cumulative_portrait_materialized' : 'no_portrait_state_change',
       userId,
-      portraitV2,
+      portraitV2: toJsonSafeWorkerResult(portraitV2),
     };
   } catch (error) {
+    if (reconciliationClaim && error instanceof SimulationTaskInputDriftError) {
+      try {
+        const generation = await requestCumulativeLearnerReconciliation(db as any, {
+          userId,
+          classIds: reconciliationClaim.classIds,
+          reason: 'simulation-task-input-drift',
+          simulationTaskInput: error.actualInput,
+        });
+        return {
+          skipped: true,
+          reason: 'simulation_task_input_drift_requeued',
+          userId,
+          reconciliationRequestGeneration: generation,
+        };
+      } catch (rescheduleError) {
+        await failCumulativeLearnerReconciliation(
+          db as any,
+          reconciliationClaim,
+          'simulation-task-input-drift-reschedule-failed',
+        );
+        throw rescheduleError;
+      }
+    }
     if (reconciliationClaim) {
       await failCumulativeLearnerReconciliation(
         db as any,
@@ -846,10 +935,11 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
   if (!matchesClassFence(expectation, fence)) {
     return { skipped: true, reason: 'stale_cumulative_publication_fence', classId };
   }
-  return materializeCumulativeClassPortrait(db as any, classId, {
+  const result = await materializeCumulativeClassPortrait(db as any, classId, {
     now: new Date(),
     publication: expectation,
   });
+  return toJsonSafeWorkerResult(result);
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {
@@ -880,6 +970,40 @@ async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>)
 
   await refreshStudentEvidenceFeatureCache(db as any, job.data.userId);
   return { userId: job.data.userId, refreshed: true };
+}
+
+export async function processRiskFlagScanJob(job: Job<RiskFlagScanJob>) {
+  if (!job.data.coordinator) {
+    throw new Error('risk-flag-scan job must be a coordinator job');
+  }
+
+  const results = await scanAllStudentRisks({
+    db: getPrismaClient() as unknown as RiskScannerDb,
+    pageSize: job.data.pageSize,
+    maxStudents: job.data.maxStudents,
+  });
+  const totals = results.reduce(
+    (summary, result) => ({
+      created: summary.created + result.flagsCreated,
+      updated: summary.updated + result.flagsUpdated,
+      resolved: summary.resolved + result.flagsResolved,
+      unchanged: summary.unchanged + result.unchanged,
+      failures: summary.failures + result.failures,
+    }),
+    { created: 0, updated: 0, resolved: 0, unchanged: 0, failures: 0 },
+  );
+  logWithThrottle(
+    'risk-flag-scan:coordinator',
+    'info',
+    `[RiskFlagScan] Processed ${results.length} students: `
+      + `${totals.created} created, ${totals.updated} updated, `
+      + `${totals.resolved} resolved, ${totals.unchanged} unchanged, `
+      + `${totals.failures} failed rules`,
+  );
+  return {
+    processedStudents: results.length,
+    ...totals,
+  };
 }
 
 async function startWorkers() {
@@ -933,6 +1057,7 @@ async function startWorkers() {
   classQueue = new Queue<ClassSnapshotJob>('snapshot-class', { connection: redis });
   reportQueue = new Queue<SessionReportJob>('session-report', { connection: redis });
   evidenceFeatureCacheQueue = new Queue<EvidenceFeatureCacheJob>('evidence-feature-cache', { connection: redis });
+  riskFlagQueue = new Queue<RiskFlagScanJob>('risk-flag-scan', { connection: redis });
 
   eventIngestionWorker = new Worker<EventIngestionJob>('event-ingestion', processEventIngestionJob, {
     connection: redis,
@@ -954,12 +1079,17 @@ async function startWorkers() {
     connection: redis,
     concurrency: 1,
   });
+  riskFlagWorker = new Worker<RiskFlagScanJob>('risk-flag-scan', processRiskFlagScanJob, {
+    connection: redis,
+    concurrency: 1,
+  });
 
   registerWorkerHandlers('EventIngestion', eventIngestionWorker);
   registerWorkerHandlers('StudentSnapshot', studentSnapshotWorker);
   registerWorkerHandlers('ClassSnapshot', classSnapshotWorker);
   registerWorkerHandlers('SessionReport', sessionReportWorker);
   registerWorkerHandlers('EvidenceFeatureCache', evidenceFeatureCacheWorker);
+  registerWorkerHandlers('RiskFlagScan', riskFlagWorker);
 
   process.on('SIGTERM', () => {
     void shutdown(0);
@@ -1001,6 +1131,7 @@ async function shutdown(exitCode: number) {
   if (classSnapshotWorker) cleanupTasks.push(classSnapshotWorker.close());
   if (sessionReportWorker) cleanupTasks.push(sessionReportWorker.close());
   if (evidenceFeatureCacheWorker) cleanupTasks.push(evidenceFeatureCacheWorker.close());
+  if (riskFlagWorker) cleanupTasks.push(riskFlagWorker.close());
   if (mathDocumentGradingController) cleanupTasks.push(mathDocumentGradingController.close());
   if (teacherAssignmentReviewController) cleanupTasks.push(teacherAssignmentReviewController.close());
   cleanupTasks.push(closeCoursewareGenerationWorker());
@@ -1009,6 +1140,7 @@ async function shutdown(exitCode: number) {
   if (classQueue) cleanupTasks.push(classQueue.close());
   if (reportQueue) cleanupTasks.push(reportQueue.close());
   if (evidenceFeatureCacheQueue) cleanupTasks.push(evidenceFeatureCacheQueue.close());
+  if (riskFlagQueue) cleanupTasks.push(riskFlagQueue.close());
   if (prisma) cleanupTasks.push(prisma.$disconnect());
   if (redis) {
     cleanupTasks.push(

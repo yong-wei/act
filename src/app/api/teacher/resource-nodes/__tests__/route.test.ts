@@ -4,13 +4,13 @@ const mocks = vi.hoisted(() => {
   const getServerSession = vi.fn();
   const teachingResourceFindMany = vi.fn();
   const loadAllLessonRuntimeResourceCatalogEntries = vi.fn();
-  const loadAllTextbookRuntimeResourceCatalogEntries = vi.fn();
+  const loadAllTextbookStructureRuntimeCatalogEntries = vi.fn();
   const loadRuntimeResourceProjectionInputs = vi.fn();
 
   return {
     getServerSession,
     loadAllLessonRuntimeResourceCatalogEntries,
-    loadAllTextbookRuntimeResourceCatalogEntries,
+    loadAllTextbookStructureRuntimeCatalogEntries,
     loadRuntimeResourceProjectionInputs,
     prisma: {
       teachingResource: {
@@ -36,8 +36,8 @@ vi.mock('@/lib/course-runtime', () => ({
   loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
 }));
 
-vi.mock('@/lib/textbook-runtime-resources', () => ({
-  loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
+vi.mock('@/lib/structured-textbook-runtime', () => ({
+  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
 }));
 
 vi.mock('@/lib/teacher-resource-node-data', async (importOriginal) => {
@@ -124,7 +124,7 @@ describe('GET /api/teacher/resource-nodes', () => {
     });
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource]);
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
-    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([]);
+    mocks.loadAllTextbookStructureRuntimeCatalogEntries.mockResolvedValue([]);
     mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
   });
 
@@ -352,40 +352,32 @@ describe('GET /api/teacher/resource-nodes', () => {
     ]);
   });
 
-  it('includes runtime textbook containers and sections as read-only resource nodes', async () => {
-    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([
+  it('includes structured textbook containers and units as read-only resource nodes', async () => {
+    mocks.loadAllTextbookStructureRuntimeCatalogEntries.mockResolvedValue([
       {
         textbook: {
           bookId: 'dorf-modern-control-systems',
           title: 'Modern Control Systems',
-          sourceHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems',
+          sourceHref: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition',
         },
-        sections: [
+        units: [
           {
             bookId: 'dorf-modern-control-systems',
-            sectionId: 'ch10-sec01',
+            unitId: 'ch10-sec01',
             title: '根轨迹校正设计',
-            citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+            citationHref: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-10/section-10.1',
             knowledgeNodeIds: ['kn-bode'],
             capabilityTargetIds: ['parameterDesign'],
             estimatedTimeMinutes: 18,
-            planningOverride: reviewedPathPlanningOverride(
-              'textbook_section',
-              'dorf-modern-control-systems:ch10-sec01',
-            ),
           },
           {
             bookId: 'dorf-modern-control-systems',
-            sectionId: 'ch01-preview-001',
+            unitId: 'ch01-preview-001',
             title: 'Preview',
-            citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-preview-001.md',
+            citationHref: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-01/unnumbered-preview',
             knowledgeNodeIds: [],
             capabilityTargetIds: [],
             estimatedTimeMinutes: 2,
-            planningOverride: {
-              teacherPolicy: 'blocked',
-              terminalConstraints: ['textbook-section-not-path-eligible'],
-            },
           },
         ],
       },
@@ -408,8 +400,8 @@ describe('GET /api/teacher/resource-nodes', () => {
         id: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
         type: 'textbook_section',
         editable: false,
-        pathEligible: true,
-        renderTarget: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+        pathEligible: false,
+        renderTarget: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-10/section-10.1',
       }),
       expect.objectContaining({
         id: 'textbook-section:dorf-modern-control-systems:ch01-preview-001',

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "act-course-coverage-overlay/v1",
+  "overlayId": "automatic-control-root-locus-coverage-v1",
+  "overlayVersion": "1",
+  "courseId": "automatic-control",
+  "releaseSetId": "actkg-authoritative-candidate-v1",
+  "releaseId": "root-locus-engineering-v0.1",
+  "authoringRevision": "92200167b9f56af7f6bc25db3d895a6fdf62fc9c",
+  "sourceHash": "92fe9cb9491743a783bb7e158c84733dcce25ff29ad7407bbbf8204c2afdd6b9",
+  "releaseHash": "8b1e3832f10d4142db0c395c3b6b2188af6f400faab56f0870502e39c9493e74",
+  "lockRawHash": "1b4f40d2a5987a55bf4b14f27a7866dd379d9683f3f92fe8d3e88f22ff4d4fe3",
+  "entries": [
+    {
+      "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+      "role": "formal_objective"
+    }
+  ]
+}

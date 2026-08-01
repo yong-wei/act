@@ -1,0 +1,1254 @@
+/**
+ * Real PostgreSQL integration for ACT ReleaseSet Delta (#1132).
+ *
+ * Covers:
+ * - #1125 v0.2 → standard v0.3 candidate comparison
+ * - packaging-only revision (empty semantic changes/signals)
+ * - repeated/concurrent computation idempotency
+ * - natural-key conflict fail-closed
+ * - immutable receipts + signals
+ * - candidate/active/Legacy selectors unchanged
+ */
+import 'dotenv/config';
+
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+
+import { Client } from 'pg';
+
+import {
+  CURRENT_AGGREGATE_RELEASE_ID,
+  CURRENT_AGGREGATE_RELEASE_SET_ID,
+  STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+} from '../../src/lib/authoritative-knowledge';
+import { createPrismaClient } from '../../src/lib/prisma-client';
+import {
+  importValidatedAggregateRelease,
+  loadAndValidateAggregateRelease,
+} from '../actkg-release/ctkg-0-2-aggregate-release';
+import { loadAndValidatePublicBundleV1 } from '../actkg-release/public-bundle-v1';
+import {
+  computeAndPersistReleaseSetDelta,
+  computeReleaseSetDelta,
+  loadExactAcceptedEvidence,
+  loadStandardAcceptedEvidence,
+  persistReleaseSetDelta,
+  recomputeReleaseSetDelta,
+} from '../actkg-release/release-set-delta';
+import {
+  ACCEPTED_CANDIDATE_STATE,
+  importValidatedActKGBundle,
+} from '../actkg-release/standard-bundle-import';
+import type { ValidatedActKGBundle } from '../actkg-release/public-bundle-types';
+import { actkgPostgresSkipExitCode } from '../actkg-release/actkg-postgres-harness-policy';
+
+const sourceUrl = process.env.DATABASE_URL;
+if (!sourceUrl) {
+  if (process.env.ACTKG_POSTGRES_REQUIRED === '1') throw new Error('DATABASE_URL is required');
+  console.log('ActKG ReleaseSet Delta PostgreSQL integration skipped: DATABASE_URL is unavailable');
+  process.exit(actkgPostgresSkipExitCode(false));
+}
+
+const schemaName = `actkg_delta_${process.pid}_${Date.now()}`;
+const root = process.cwd();
+const LOCK_V3 = 'course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.3-r2.json';
+
+const checkoutRevision = spawnSync('git', ['rev-parse', 'HEAD'], {
+  cwd: root,
+  encoding: 'utf8',
+}).stdout.trim();
+assert.match(checkoutRevision, /^[a-f0-9]{40}$/u);
+
+let admin: Client | null = null;
+let db: ReturnType<typeof createPrismaClient> | null = null;
+let testUrl = '';
+
+function withSchema(url: string, schema: string): string {
+  const parsed = new URL(url);
+  parsed.searchParams.set('schema', schema);
+  return parsed.toString();
+}
+
+async function ensureIsolatedDatabaseUrl(): Promise<{ url: string; mode: 'database' | 'schema' }> {
+  admin = new Client({ connectionString: sourceUrl });
+  await admin.connect();
+  const databaseName = schemaName;
+  try {
+    await admin.query(`CREATE DATABASE "${databaseName}"`);
+    const url = new URL(sourceUrl!);
+    url.pathname = `/${databaseName}`;
+    url.searchParams.delete('schema');
+    return { url: url.toString(), mode: 'database' };
+  } catch (error) {
+    if ((error as { code?: string }).code !== '42501') throw error;
+  }
+  await admin.query(`CREATE SCHEMA "${schemaName}"`);
+  return { url: withSchema(sourceUrl!, schemaName), mode: 'schema' };
+}
+
+function migrate(url: string): void {
+  const result = spawnSync(process.execPath, ['node_modules/prisma/build/index.js', 'migrate', 'deploy'], {
+    cwd: root,
+    env: { ...process.env, DATABASE_URL: url },
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+}
+
+async function buildValidatedV03(): Promise<ValidatedActKGBundle> {
+  return loadAndValidatePublicBundleV1({
+    lockPath: LOCK_V3,
+    captureRevision: checkoutRevision,
+    gitRoot: root,
+  });
+}
+
+function sha256(value: string): string {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+/** Intentional end-of-tx marker so outer code can prove the tier clone rolled back. */
+const TIER_CLONE_ROLLBACK = 'ACTKG_DELTA_TIER_CLONE_ROLLBACK';
+
+async function main(): Promise<void> {
+  const isolated = await ensureIsolatedDatabaseUrl();
+  testUrl = isolated.url;
+  migrate(testUrl);
+  process.env.DATABASE_URL = testUrl;
+  db = createPrismaClient({ log: ['warn', 'error'] });
+
+  // 1) Import frozen #1125 exact v0.2.
+  const validatedExact = await loadAndValidateAggregateRelease({ captureRevision: checkoutRevision });
+  try {
+    await importValidatedAggregateRelease(db, validatedExact);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (
+      isolated.mode === 'schema'
+      && /ActkgImportReceipt does not exist|does not exist in the current database/u.test(message)
+    ) {
+      const required = process.env.ACTKG_POSTGRES_REQUIRED === '1';
+      const exitCode = actkgPostgresSkipExitCode(required);
+      console.log(JSON.stringify({
+        ok: false,
+        mode: isolated.mode,
+        schema: schemaName,
+        code: 'SCHEMA_ISOLATION_UNSUPPORTED',
+        required,
+        exitCode,
+        error: message.replace(/\s+/gu, ' ').slice(0, 240),
+      }));
+      // Required mode must not fake green when Delta DB assertions did not run.
+      process.exitCode = exitCode;
+      if (required) {
+        throw new Error(
+          'SCHEMA_ISOLATION_UNSUPPORTED while ACTKG_POSTGRES_REQUIRED=1: Delta PostgreSQL assertions did not run',
+        );
+      }
+      return;
+    }
+    throw error;
+  }
+
+  // Empty-installation BASELINE: only possible before any accepted anchor.
+  // We already imported v0.2, so separately prove BASELINE via pure compute is covered
+  // by unit tests. Here prove first standard candidate uses v0.2 as base.
+
+  // 2) Import standard v0.3 r2.
+  const validatedV03 = await buildValidatedV03();
+  const imported = await importValidatedActKGBundle(db, validatedV03);
+  assert.equal(imported.mode, 'content');
+
+  const defaultCandidateBefore = await db.actkgReleaseSet.findUniqueOrThrow({
+    where: { id: CURRENT_AGGREGATE_RELEASE_SET_ID },
+  });
+
+  // 3) Compute delta: v0.2 → v0.3
+  const first = await computeAndPersistReleaseSetDelta(db, {
+    candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+    candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
+    expectedCaptureRevision: checkoutRevision,
+
+  });
+
+  assert.equal(first.computed.classification, 'SEMANTIC_CONTENT_UPDATE');
+  assert.equal(first.computed.authorizationState, 'ACCEPTED');
+  assert.equal(first.computed.baseEvidence.kind, 'exact_import');
+  assert.equal(first.computed.baseEvidence.releaseId, CURRENT_AGGREGATE_RELEASE_ID);
+  assert.equal(first.computed.baseEvidence.releaseSetId, CURRENT_AGGREGATE_RELEASE_SET_ID);
+  assert.equal(first.computed.candidateEvidence.kind, 'standard_bundle');
+  assert.equal(first.computed.candidateEvidence.releaseId, validatedV03.releaseIdentity.releaseId);
+  assert.ok(first.computed.candidateEvidence.bundleId);
+  assert.equal(typeof first.computed.candidateEvidence.bundleRevision, 'number');
+  assert.ok(first.computed.candidateEvidence.releaseVersion);
+  assert.ok(first.computed.candidateSemanticSnapshotDigest);
+  assert.ok(first.computed.baseSemanticSnapshotDigest);
+  assert.equal(first.computed.captureRevision, checkoutRevision);
+  // v0.3 adds curated cross-module relations; nodes stay 744.
+  assert.equal(first.computed.details.objects.added.length, 0);
+  assert.equal(first.computed.details.objects.removed.length, 0);
+  assert.ok(first.computed.details.relations.added.length > 0);
+  assert.equal(first.persisted.mode, 'created');
+  assert.ok(first.persisted.signalCount > 0);
+  assert.equal(first.persisted.selectorsUnchanged, true);
+
+  const persistedRow = await db.actkgReleaseSetDeltaReceipt.findUniqueOrThrow({
+    where: { id: first.persisted.receiptId },
+  });
+  assert.equal(persistedRow.candidateBundleId, first.computed.candidateEvidence.bundleId);
+  assert.equal(persistedRow.candidateBundleRevision, first.computed.candidateEvidence.bundleRevision);
+  assert.equal(persistedRow.candidateReleaseVersion, first.computed.candidateEvidence.releaseVersion);
+  assert.equal(persistedRow.candidateSemanticSnapshotDigest, first.computed.candidateSemanticSnapshotDigest);
+  assert.equal(persistedRow.baseSemanticSnapshotDigest, first.computed.baseSemanticSnapshotDigest);
+  assert.equal(persistedRow.baseEvidenceCaptureRevision, first.computed.baseEvidence.evidenceCaptureRevision);
+  assert.equal(
+    persistedRow.candidateEvidenceCaptureRevision,
+    first.computed.candidateEvidence.evidenceCaptureRevision,
+  );
+  assert.ok(Array.isArray(persistedRow.identityViolations));
+
+  // 3b) Relation releaseTier authority through public DB evidence loaders
+  // (exact = ReleaseEntry only; standard = Entry + LinkMetadata agreement).
+  const exactLoaded = await loadExactAcceptedEvidence(db, CURRENT_AGGREGATE_RELEASE_ID);
+  const standardLoaded = await loadStandardAcceptedEvidence(
+    db,
+    first.computed.candidateEvidence.bundleReceiptId!,
+  );
+  assert.ok(exactLoaded.snapshot.relations.length > 0);
+  assert.ok(standardLoaded.snapshot.relations.length > 0);
+
+  const exactEntryRows = await db.actkgReleaseEntry.findMany({
+    where: { releaseId: CURRENT_AGGREGATE_RELEASE_ID, entityRole: 'relation' },
+  });
+  const exactEntryTier = new Map(exactEntryRows.map((row) => [row.entityId, row.releaseTier]));
+  assert.equal(await db.actkgProjectionLinkMetadata.count({
+    where: { releaseId: CURRENT_AGGREGATE_RELEASE_ID },
+  }), 0);
+  for (const relation of exactLoaded.snapshot.relations) {
+    assert.notEqual(relation.releaseTier, 'unknown');
+    assert.match(relation.releaseTier, /^(gold|silver|support)$/u);
+    assert.equal(relation.releaseTier, exactEntryTier.get(relation.relationId));
+  }
+
+  const standardEntryRows = await db.actkgReleaseEntry.findMany({
+    where: {
+      releaseId: validatedV03.releaseIdentity.releaseId,
+      entityRole: 'relation',
+    },
+  });
+  const standardMetaRows = await db.actkgProjectionLinkMetadata.findMany({
+    where: { releaseId: validatedV03.releaseIdentity.releaseId },
+  });
+  const standardEntryTier = new Map(standardEntryRows.map((row) => [row.entityId, row.releaseTier]));
+  const standardMetaTier = new Map(standardMetaRows.map((row) => [row.relationId, row.releaseTier]));
+  assert.equal(standardMetaRows.length, standardLoaded.snapshot.relations.length);
+  for (const relation of standardLoaded.snapshot.relations) {
+    assert.notEqual(relation.releaseTier, 'unknown');
+    assert.match(relation.releaseTier, /^(gold|silver|support)$/u);
+    assert.equal(relation.releaseTier, standardEntryTier.get(relation.relationId));
+    assert.equal(relation.releaseTier, standardMetaTier.get(relation.relationId));
+  }
+
+  // 3c) Tier-only change via rolled-back clone of accepted standard v0.3.
+  // Clone rebinds release/set/bundle identity and rewrites one relation's
+  // ReleaseEntry + LinkMetadata tiers; sealed original rows are never mutated.
+  const sourceReleaseId = validatedV03.releaseIdentity.releaseId;
+  const sourceBundleReceiptId = first.computed.candidateEvidence.bundleReceiptId!;
+  const tierTarget = standardLoaded.snapshot.relations[0]!;
+  const originalTier = tierTarget.releaseTier;
+  const mutatedTier = originalTier === 'gold' ? 'silver' : 'gold';
+  const cloneSetId = 'actkg-delta-tier-clone';
+  const cloneReleaseId = 'ctr:release:delta-tier-clone';
+  const cloneBundleReceiptId = 'bundle-receipt:delta-tier-clone';
+
+  try {
+    await db.$transaction(async (tx) => {
+      const srcRelease = await tx.actkgRelease.findUniqueOrThrow({ where: { id: sourceReleaseId } });
+      const srcSet = await tx.actkgReleaseSet.findUniqueOrThrow({ where: { id: srcRelease.releaseSetId } });
+      const srcImport = await tx.actkgImportReceipt.findUniqueOrThrow({ where: { releaseId: sourceReleaseId } });
+      const srcBundle = await tx.actkgBundleReceipt.findUniqueOrThrow({ where: { id: sourceBundleReceiptId } });
+      const [
+        entries,
+        nodes,
+        links,
+        crosswalk,
+        components,
+        identities,
+        linkMeta,
+      ] = await Promise.all([
+        tx.actkgReleaseEntry.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgProjectionNode.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgProjectionLink.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgUpstreamRagReference.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgReleaseComponent.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgProjectionIdentity.findMany({ where: { releaseId: sourceReleaseId } }),
+        tx.actkgProjectionLinkMetadata.findMany({ where: { releaseId: sourceReleaseId } }),
+      ]);
+
+      const {
+        id: _releaseId,
+        createdAt: _releaseCreatedAt,
+        releaseSetId: _releaseSetId,
+        ...releaseScalars
+      } = srcRelease;
+      const cloneReleaseHash = sha256(`tier-clone-release:${srcRelease.releaseHash}`);
+      const cloneSourceDatasetHash = sha256(`tier-clone-source:${srcRelease.sourceDatasetHash}`);
+      const cloneBundleDigest = sha256(`tier-clone-bundle:${srcBundle.bundleDigest}`);
+
+      await tx.actkgReleaseSet.create({
+        data: {
+          id: cloneSetId,
+          controlledPath: `${srcSet.controlledPath}/delta-tier-clone`,
+          lockVersion: srcSet.lockVersion,
+          candidateState: 'CANDIDATE',
+        },
+      });
+      await tx.actkgRelease.create({
+        data: {
+          ...releaseScalars,
+          id: cloneReleaseId,
+          releaseSetId: cloneSetId,
+          releaseVersion: `${srcRelease.releaseVersion}-delta-tier-clone`,
+          releaseHash: cloneReleaseHash,
+          sourceDatasetHash: cloneSourceDatasetHash,
+        },
+      });
+
+      // Semantic rows before ImportReceipt (sealed-insert). Only the chosen
+      // relation's entry/metadata tiers differ from the source snapshot.
+      await tx.actkgReleaseEntry.createMany({
+        data: entries.map(({ releaseId: _rid, ...row }) => ({
+          ...row,
+          releaseId: cloneReleaseId,
+          releaseTier: row.entityId === tierTarget.relationId && row.entityRole === 'relation'
+            ? mutatedTier
+            : row.releaseTier,
+        })),
+      });
+      await tx.actkgProjectionNode.createMany({
+        data: nodes.map(({ releaseId: _rid, ...row }) => ({ ...row, releaseId: cloneReleaseId })),
+      });
+      await tx.actkgProjectionLink.createMany({
+        data: links.map(({ releaseId: _rid, ...row }) => ({ ...row, releaseId: cloneReleaseId })),
+      });
+      await tx.actkgUpstreamRagReference.createMany({
+        data: crosswalk.map(({ releaseId: _rid, ...row }) => ({ ...row, releaseId: cloneReleaseId })),
+      });
+      await tx.actkgReleaseComponent.createMany({
+        data: components.map(({ releaseId: _rid, ...row }) => ({ ...row, releaseId: cloneReleaseId })),
+      });
+      await tx.actkgProjectionIdentity.createMany({
+        data: identities.map(({ releaseId: _rid, bundleReceiptId: _bid, ...row }) => ({
+          ...row,
+          releaseId: cloneReleaseId,
+          bundleReceiptId: null,
+        })),
+      });
+      await tx.actkgProjectionLinkMetadata.createMany({
+        data: linkMeta.map(({ releaseId: _rid, bundleReceiptId: _bid, ...row }) => ({
+          ...row,
+          releaseId: cloneReleaseId,
+          bundleReceiptId: null,
+          releaseTier: row.relationId === tierTarget.relationId ? mutatedTier : row.releaseTier,
+        })),
+      });
+
+      const {
+        id: _importId,
+        importedAt: _importImportedAt,
+        releaseSetId: _importSetId,
+        releaseId: _importReleaseId,
+        ...importScalars
+      } = srcImport;
+      await tx.actkgImportReceipt.create({
+        data: {
+          ...importScalars,
+          id: `receipt:${cloneReleaseId}`,
+          releaseSetId: cloneSetId,
+          releaseId: cloneReleaseId,
+          sourceDatasetHash: cloneSourceDatasetHash,
+          bundleDigest: cloneBundleDigest,
+          candidateState: ACCEPTED_CANDIDATE_STATE,
+        },
+      });
+
+      const {
+        id: _bundleId,
+        importedAt: _bundleImportedAt,
+        candidateState: _bundleState,
+        ...bundleScalars
+      } = srcBundle;
+      await tx.actkgBundleReceipt.create({
+        data: {
+          ...bundleScalars,
+          id: cloneBundleReceiptId,
+          bundleId: `${srcBundle.bundleId}:delta-tier-clone`,
+          bundleRevision: srcBundle.bundleRevision + 1000,
+          bundleDigest: cloneBundleDigest,
+          controlledPath: `${srcBundle.controlledPath}/delta-tier-clone`,
+          publicationTag: `${srcBundle.publicationTag}-delta-tier-clone`,
+          sourceTag: `${srcBundle.sourceTag}-delta-tier-clone`,
+          releaseSetId: cloneSetId,
+          releaseId: cloneReleaseId,
+          releaseHash: cloneReleaseHash,
+          sourceDatasetHash: cloneSourceDatasetHash,
+          candidateState: 'STAGED',
+        },
+      });
+      await tx.actkgBundleReceipt.update({
+        where: { id: cloneBundleReceiptId },
+        data: {
+          candidateState: ACCEPTED_CANDIDATE_STATE,
+          importedAt: new Date(srcBundle.importedAt.getTime() + 60_000),
+        },
+      });
+
+      const baseLoadedClone = await loadStandardAcceptedEvidence(tx, sourceBundleReceiptId);
+      const candidateLoadedClone = await loadStandardAcceptedEvidence(tx, cloneBundleReceiptId);
+      assert.equal(
+        candidateLoadedClone.snapshot.relations.find((row) => row.relationId === tierTarget.relationId)?.releaseTier,
+        mutatedTier,
+      );
+      assert.equal(
+        baseLoadedClone.snapshot.relations.find((row) => row.relationId === tierTarget.relationId)?.releaseTier,
+        originalTier,
+      );
+
+      const tierOnlyDelta = computeReleaseSetDelta({
+        candidateSnapshot: candidateLoadedClone.snapshot,
+        candidateEvidence: candidateLoadedClone.evidence,
+        baseSnapshot: baseLoadedClone.snapshot,
+        baseEvidence: baseLoadedClone.evidence,
+        captureRevision: checkoutRevision,
+      });
+      assert.equal(tierOnlyDelta.classification, 'SEMANTIC_CONTENT_UPDATE');
+      assert.equal(tierOnlyDelta.authorizationState, 'ACCEPTED');
+      assert.deepEqual(tierOnlyDelta.details.relations.tierChanged, [tierTarget.relationId]);
+      assert.deepEqual(tierOnlyDelta.details.relations.added, []);
+      assert.deepEqual(tierOnlyDelta.details.relations.removed, []);
+      assert.deepEqual(tierOnlyDelta.details.relations.predicateChanged, []);
+      assert.deepEqual(tierOnlyDelta.details.relations.directionChanged, []);
+      assert.deepEqual(tierOnlyDelta.details.relations.endpointChanged, []);
+      assert.equal(tierOnlyDelta.details.objects.added.length, 0);
+      assert.equal(tierOnlyDelta.details.objects.removed.length, 0);
+      assert.equal(tierOnlyDelta.details.objects.tierChanged.length, 0);
+      assert.equal(tierOnlyDelta.details.components.added.length, 0);
+      assert.equal(tierOnlyDelta.details.components.removed.length, 0);
+      assert.equal(tierOnlyDelta.details.components.changed.length, 0);
+      assert.ok(tierOnlyDelta.signals.some((row) => (
+        row.scope === 'relation'
+        && row.identity === tierTarget.relationId
+        && row.reason === 'tier_changed'
+      )));
+      assert.equal(tierOnlyDelta.summary.relationTierChanged, 1);
+
+      throw new Error(TIER_CLONE_ROLLBACK);
+    }, { maxWait: 60_000, timeout: 180_000 });
+    assert.fail('expected 3c clone transaction to roll back via sentinel');
+  } catch (error) {
+    assert.equal(
+      error instanceof Error ? error.message : String(error),
+      TIER_CLONE_ROLLBACK,
+      `3c expected rollback sentinel, got: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  assert.equal(await db.actkgRelease.count({ where: { id: cloneReleaseId } }), 0);
+  assert.equal(await db.actkgBundleReceipt.count({ where: { id: cloneBundleReceiptId } }), 0);
+  assert.equal(
+    await db.actkgProjectionLinkMetadata.count({ where: { releaseId: sourceReleaseId } }),
+    standardLoaded.snapshot.relations.length,
+  );
+
+  // 4) Idempotent recompute + concurrent persist.
+  const second = await computeAndPersistReleaseSetDelta(db, {
+    candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+    candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
+    expectedCaptureRevision: checkoutRevision,
+
+  });
+  assert.equal(second.persisted.mode, 'idempotent');
+  assert.equal(second.persisted.receiptId, first.persisted.receiptId);
+  assert.equal(second.persisted.outputDigest, first.persisted.outputDigest);
+  assert.equal(second.persisted.naturalKey, first.persisted.naturalKey);
+
+  const concurrent = await Promise.all([
+    computeAndPersistReleaseSetDelta(db, {
+      candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+      candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
+      expectedCaptureRevision: checkoutRevision,
+
+    }),
+    computeAndPersistReleaseSetDelta(db, {
+      candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+      candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
+      expectedCaptureRevision: checkoutRevision,
+
+    }),
+  ]);
+  assert.ok(concurrent.every((row) => row.persisted.receiptId === first.persisted.receiptId));
+  assert.equal(await db.actkgReleaseSetDeltaReceipt.count({
+    where: { naturalKey: first.persisted.naturalKey },
+  }), 1);
+
+  // 5) verify-only succeeds against the persisted receipt.
+  const verified = await computeAndPersistReleaseSetDelta(db, {
+    candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+    candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
+    verifyOnly: true,
+    expectedCaptureRevision: checkoutRevision,
+  });
+  assert.equal(verified.persisted.mode, 'verify-only');
+
+  // 6) Packaging revision of v0.3 → COMPATIBLE_PACKAGING_REVISION, no signals.
+  const packaging: ValidatedActKGBundle = {
+    ...validatedV03,
+    bundleIdentity: {
+      ...validatedV03.bundleIdentity,
+      bundleRevision: validatedV03.bundleIdentity.bundleRevision + 1,
+      bundleDigest: sha256(`packaging-delta:${validatedV03.bundleIdentity.bundleDigest}`),
+      // Keep semantic identities identical.
+    },
+    compatibility: {
+      code: 'COMPATIBLE_PACKAGING_REVISION',
+      reasons: ['manifest-only packaging revision for delta test'],
+      matchedIdentities: validatedV03.compatibility.matchedIdentities,
+    },
+  };
+  // Mutate raw artifact path digests is not required for importer packaging path
+  // when release/hash/sourceDataset/projection digests match — importer treats as packaging.
+  // But bundleDigest uniqueness requires a new digest; importer also requires matching
+  // reconstructed artifacts. Use the importer's packaging path by changing only
+  // packaging-level identity fields already present on the validated object and
+  // reusing the same rawArtifacts (importer allows packaging when semantic matches).
+  const packagingImport = await importValidatedActKGBundle(db, packaging);
+  assert.ok(packagingImport.mode === 'packaging' || packagingImport.mode === 'idempotent');
+
+  const packagingDelta = await computeAndPersistReleaseSetDelta(db, {
+    candidateReleaseId: packaging.releaseIdentity.releaseId,
+    candidateBundleDigest: packaging.bundleIdentity.bundleDigest,
+
+    expectedCaptureRevision: checkoutRevision,
+
+  });
+  assert.equal(packagingDelta.computed.classification, 'COMPATIBLE_PACKAGING_REVISION');
+  assert.equal(packagingDelta.computed.authorizationState, 'ACCEPTED');
+  assert.equal(packagingDelta.computed.signals.length, 0);
+  assert.deepEqual(packagingDelta.computed.details.objects.added, []);
+  assert.deepEqual(packagingDelta.computed.details.relations.added, []);
+  assert.equal(packagingDelta.persisted.signalCount, 0);
+  assert.notEqual(packagingDelta.persisted.receiptId, first.persisted.receiptId);
+
+  // 6b) After a later packaging receipt exists, recompute the original content
+  // candidate still freezes the same previous base and naturalKey/receipt.
+  const recomputeAfterFuture = await computeAndPersistReleaseSetDelta(db, {
+    candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+    candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
+    expectedCaptureRevision: checkoutRevision,
+
+  });
+  assert.equal(recomputeAfterFuture.computed.baseEvidence.releaseId, CURRENT_AGGREGATE_RELEASE_ID);
+  assert.equal(recomputeAfterFuture.computed.baseEvidence.kind, 'exact_import');
+  assert.equal(recomputeAfterFuture.persisted.naturalKey, first.persisted.naturalKey);
+  assert.equal(recomputeAfterFuture.persisted.receiptId, first.persisted.receiptId);
+  assert.equal(recomputeAfterFuture.persisted.mode, 'idempotent');
+
+  // 6c) Future *different Release* accepted anchor must not rewrite the old
+  // candidate base/naturalKey/receipt. Build a minimal standard evidence set
+  // with strictly later acceptedAt (via STAGED→ACCEPTED transition).
+  const futureReleaseId = 'ctr:release:delta-future-anchor-v9';
+  const futureReleaseSetId = 'actkg-delta-future-anchor-v9';
+  const futureDigest = sha256(`future-anchor:${futureReleaseId}:${checkoutRevision}`);
+  const futureImportedAt = new Date(
+    Math.max(
+      Date.now(),
+      (await db.actkgBundleReceipt.findFirst({
+        where: { candidateState: ACCEPTED_CANDIDATE_STATE },
+        orderBy: { importedAt: 'desc' },
+        select: { importedAt: true },
+      }))!.importedAt.getTime() + 10_000,
+    ),
+  );
+  await db.actkgReleaseSet.create({
+    data: {
+      id: futureReleaseSetId,
+      controlledPath: 'course-content/authoring/knowledge/releases/delta-future-anchor-v9',
+      lockVersion: 'actkg-release-set-lock/v3',
+      candidateState: 'CANDIDATE',
+    },
+  });
+  await db.actkgRelease.create({
+    data: {
+      id: futureReleaseId,
+      releaseSetId: futureReleaseSetId,
+      releaseVersion: 'delta-future-anchor-v9',
+      releaseStatus: 'RELEASED',
+      protocol: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      authority: 'ActKG',
+      scope: 'delta-future-anchor',
+      contractHash: 'c'.repeat(64),
+      releaseHash: 'd'.repeat(64),
+      schemaRawHash: 'c'.repeat(64),
+      releaseRawHash: 'e'.repeat(64),
+      notesRawHash: 'f'.repeat(64),
+      captureRevision: checkoutRevision,
+      lockRawHash: '1'.repeat(64),
+      schemaVersion: '0.2.0',
+      upstreamReleaseId: futureReleaseId,
+      projectionId: 'ctr:projection:delta-future:act-v2',
+      projectionDigest: '2'.repeat(64),
+      sourceDatasetHash: '3'.repeat(64),
+    },
+  });
+  await db.actkgImportReceipt.create({
+    data: {
+      id: `receipt:${futureReleaseId}`,
+      releaseSetId: futureReleaseSetId,
+      releaseId: futureReleaseId,
+      captureRevision: checkoutRevision,
+      lockRawHash: '1'.repeat(64),
+      ctkgDatasetAvailability: 'UNAVAILABLE',
+      revisionRegistryAvailability: 'UNAVAILABLE',
+      objectCount: 0,
+      sourceMappingCount: 0,
+      goldRelationCount: 0,
+      silverRelationCount: 0,
+      sourceObjectCount: 0,
+      evidenceSegmentCount: 0,
+      candidateState: ACCEPTED_CANDIDATE_STATE,
+      schemaVersion: '0.2.0',
+      upstreamReleaseId: futureReleaseId,
+      projectionId: 'ctr:projection:delta-future:act-v2',
+      projectionDigest: '2'.repeat(64),
+      sourceDatasetHash: '3'.repeat(64),
+      releaseEntryCount: 0,
+      projectionNodeCount: 0,
+      projectionLinkCount: 0,
+      upstreamRagReferenceCount: 0,
+      componentCount: 0,
+      artifactCount: 0,
+    },
+  });
+  const futureBundleReceiptId = `bundle-receipt:${futureDigest}`;
+  await db.actkgBundleReceipt.create({
+    data: {
+      id: futureBundleReceiptId,
+      bundleId: 'ctb:delta-future-anchor-v9:r1',
+      bundleRevision: 1,
+      bundleDigest: futureDigest,
+      bundleKind: 'aggregate',
+      releaseStage: 'stable',
+      bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      controlledPath: 'course-content/authoring/knowledge/releases/delta-future-anchor-v9',
+      manifestRawSha256: '4'.repeat(64),
+      normalization: 'actkg-public-bundle-manifest/1',
+      publicationTag: 'delta-future',
+      sourceCommit: checkoutRevision,
+      sourceTag: 'delta-future',
+      releaseSetId: futureReleaseSetId,
+      releaseId: futureReleaseId,
+      releaseHash: 'd'.repeat(64),
+      sourceDatasetHash: '3'.repeat(64),
+      schemaVersion: '0.2.0',
+      schemaRawSha256: 'c'.repeat(64),
+      lockVersion: 'actkg-release-set-lock/v3',
+      lockPath: 'course-content/authoring/knowledge/releases/delta-future.lock.json',
+      lockRawSha256: '1'.repeat(64),
+      captureRevision: checkoutRevision,
+      candidateState: 'STAGED',
+      compatibilityCode: 'COMPATIBLE_CONTENT_UPDATE',
+      runtimeProjectionId: 'ctr:projection:delta-future:act-v2',
+      runtimeProjectionProfile: 'runtime',
+      runtimeProjectionDigest: '2'.repeat(64),
+      artifactCount: 0,
+      statistics: {},
+    },
+  });
+  await db.actkgBundleReceipt.update({
+    where: { id: futureBundleReceiptId },
+    data: {
+      candidateState: ACCEPTED_CANDIDATE_STATE,
+      importedAt: futureImportedAt,
+    },
+  });
+
+  // Equal-timestamp spoof: different Release with the same importedAt as v0.3
+  // must not reverse into a prior (strict < only).
+  const v03AcceptedAt = (await db.actkgBundleReceipt.findUniqueOrThrow({
+    where: { bundleDigest: validatedV03.bundleIdentity.bundleDigest },
+    select: { importedAt: true },
+  })).importedAt;
+  const equalTsReleaseId = 'aaa:release:equal-ts-spoof';
+  const equalTsSetId = 'actkg-equal-ts-spoof';
+  const equalTsDigest = sha256(`equal-ts:${equalTsReleaseId}`);
+  await db.actkgReleaseSet.create({
+    data: {
+      id: equalTsSetId,
+      controlledPath: 'course-content/authoring/knowledge/releases/equal-ts-spoof',
+      lockVersion: 'actkg-release-set-lock/v3',
+      candidateState: 'CANDIDATE',
+    },
+  });
+  await db.actkgRelease.create({
+    data: {
+      id: equalTsReleaseId,
+      releaseSetId: equalTsSetId,
+      releaseVersion: 'equal-ts-spoof-v1',
+      releaseStatus: 'RELEASED',
+      protocol: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      authority: 'ActKG',
+      scope: 'equal-ts-spoof',
+      contractHash: '7'.repeat(64),
+      releaseHash: '8'.repeat(64),
+      schemaRawHash: '7'.repeat(64),
+      releaseRawHash: '9'.repeat(64),
+      notesRawHash: 'a'.repeat(64),
+      captureRevision: checkoutRevision,
+      lockRawHash: 'b'.repeat(64),
+      schemaVersion: '0.2.0',
+      upstreamReleaseId: equalTsReleaseId,
+      projectionId: 'ctr:projection:equal-ts:act-v2',
+      projectionDigest: 'c'.repeat(64),
+      sourceDatasetHash: 'd'.repeat(64),
+    },
+  });
+  await db.actkgImportReceipt.create({
+    data: {
+      id: `receipt:${equalTsReleaseId}`,
+      releaseSetId: equalTsSetId,
+      releaseId: equalTsReleaseId,
+      captureRevision: checkoutRevision,
+      lockRawHash: 'b'.repeat(64),
+      ctkgDatasetAvailability: 'UNAVAILABLE',
+      revisionRegistryAvailability: 'UNAVAILABLE',
+      objectCount: 0,
+      sourceMappingCount: 0,
+      goldRelationCount: 0,
+      silverRelationCount: 0,
+      sourceObjectCount: 0,
+      evidenceSegmentCount: 0,
+      candidateState: ACCEPTED_CANDIDATE_STATE,
+      schemaVersion: '0.2.0',
+      upstreamReleaseId: equalTsReleaseId,
+      projectionId: 'ctr:projection:equal-ts:act-v2',
+      projectionDigest: 'c'.repeat(64),
+      sourceDatasetHash: 'd'.repeat(64),
+      releaseEntryCount: 0,
+      projectionNodeCount: 0,
+      projectionLinkCount: 0,
+      upstreamRagReferenceCount: 0,
+      componentCount: 0,
+      artifactCount: 0,
+    },
+  });
+  const equalBundleId = `bundle-receipt:${equalTsDigest}`;
+  await db.actkgBundleReceipt.create({
+    data: {
+      id: equalBundleId,
+      bundleId: 'ctb:equal-ts-spoof:r1',
+      bundleRevision: 1,
+      bundleDigest: equalTsDigest,
+      bundleKind: 'aggregate',
+      releaseStage: 'stable',
+      bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      controlledPath: 'course-content/authoring/knowledge/releases/equal-ts-spoof',
+      manifestRawSha256: 'e'.repeat(64),
+      normalization: 'actkg-public-bundle-manifest/1',
+      publicationTag: 'equal-ts',
+      sourceCommit: checkoutRevision,
+      sourceTag: 'equal-ts',
+      releaseSetId: equalTsSetId,
+      releaseId: equalTsReleaseId,
+      releaseHash: '8'.repeat(64),
+      sourceDatasetHash: 'd'.repeat(64),
+      schemaVersion: '0.2.0',
+      schemaRawSha256: '7'.repeat(64),
+      lockVersion: 'actkg-release-set-lock/v3',
+      lockPath: 'course-content/authoring/knowledge/releases/equal-ts.lock.json',
+      lockRawSha256: 'b'.repeat(64),
+      captureRevision: checkoutRevision,
+      candidateState: 'STAGED',
+      compatibilityCode: 'COMPATIBLE_CONTENT_UPDATE',
+      runtimeProjectionId: 'ctr:projection:equal-ts:act-v2',
+      runtimeProjectionProfile: 'runtime',
+      runtimeProjectionDigest: 'c'.repeat(64),
+      artifactCount: 0,
+      statistics: {},
+    },
+  });
+  await db.actkgBundleReceipt.update({
+    where: { id: equalBundleId },
+    data: {
+      candidateState: ACCEPTED_CANDIDATE_STATE,
+      importedAt: v03AcceptedAt,
+    },
+  });
+
+  const recomputeAfterDifferentRelease = await computeAndPersistReleaseSetDelta(db, {
+    candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+    candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
+    expectedCaptureRevision: checkoutRevision,
+
+  });
+  assert.equal(
+    recomputeAfterDifferentRelease.computed.baseEvidence.releaseId,
+    CURRENT_AGGREGATE_RELEASE_ID,
+  );
+  assert.equal(recomputeAfterDifferentRelease.computed.baseEvidence.kind, 'exact_import');
+  assert.equal(recomputeAfterDifferentRelease.persisted.naturalKey, first.persisted.naturalKey);
+  assert.equal(recomputeAfterDifferentRelease.persisted.receiptId, first.persisted.receiptId);
+  assert.equal(recomputeAfterDifferentRelease.persisted.mode, 'idempotent');
+
+  // 7) Immutable receipt guard.
+  await assert.rejects(
+    () => db!.actkgReleaseSetDeltaReceipt.update({
+      where: { id: first.persisted.receiptId },
+      data: { classification: 'BASELINE' },
+    }),
+    /immutable/i,
+  );
+  await assert.rejects(
+    () => db!.actkgReleaseSetDeltaReceipt.delete({
+      where: { id: first.persisted.receiptId },
+    }),
+    /immutable/i,
+  );
+  const signal = await db.actkgReleaseSetDeltaSignal.findFirst({
+    where: { receiptId: first.persisted.receiptId },
+  });
+  if (signal) {
+    await assert.rejects(
+      () => db!.actkgReleaseSetDeltaSignal.update({
+        where: { id: signal.id },
+        data: { reason: 'changed' },
+      }),
+      /immutable/i,
+    );
+  }
+
+  // 7b) Accepted receipt signal set is sealed: direct INSERT after completion fails.
+  const sealedReceipt = await db.actkgReleaseSetDeltaReceipt.findUniqueOrThrow({
+    where: { id: first.persisted.receiptId },
+    include: { _count: { select: { signals: true } } },
+  });
+  assert.equal(sealedReceipt.expectedSignalCount, sealedReceipt._count.signals);
+  assert.ok(sealedReceipt.expectedSignalCount > 0);
+  await assert.rejects(
+    () => db!.actkgReleaseSetDeltaSignal.create({
+      data: {
+        id: `delta-signal:forged:${first.persisted.receiptId}`,
+        receiptId: first.persisted.receiptId,
+        scope: 'object',
+        identity: 'ctc:forged-after-seal',
+        action: 'candidate',
+        reason: 'added',
+        signalDigest: 'f'.repeat(64),
+      },
+    }),
+    /sealed|expected|signal set/i,
+  );
+  assert.equal(
+    await db.actkgReleaseSetDeltaSignal.count({ where: { receiptId: first.persisted.receiptId } }),
+    sealedReceipt.expectedSignalCount,
+  );
+
+  // 7c) Zero-signal ACCEPTED packaging receipt is sealed immediately.
+  const packagingReceiptRow = await db.actkgReleaseSetDeltaReceipt.findUniqueOrThrow({
+    where: { id: packagingDelta.persisted.receiptId },
+  });
+  assert.equal(packagingReceiptRow.expectedSignalCount, 0);
+  await assert.rejects(
+    () => db!.actkgReleaseSetDeltaSignal.create({
+      data: {
+        id: `delta-signal:forged-zero:${packagingDelta.persisted.receiptId}`,
+        receiptId: packagingDelta.persisted.receiptId,
+        scope: 'object',
+        identity: 'ctc:forged-zero',
+        action: 'candidate',
+        reason: 'added',
+        signalDigest: 'e'.repeat(64),
+      },
+    }),
+    /sealed|zero expected signals/i,
+  );
+
+  // 7d) Incomplete Receipt (expectedSignalCount>0, zero signals) fails at COMMIT
+  // via DEFERRABLE constraint trigger — not only the max-count INSERT guard.
+  const incompleteId = `delta-receipt:incomplete-${Date.now()}`;
+  await assert.rejects(
+    () => db!.$transaction(async (tx) => {
+      await tx.actkgReleaseSetDeltaReceipt.create({
+        data: {
+          id: incompleteId,
+          algorithmVersion: first.computed.algorithmVersion,
+          captureRevision: checkoutRevision,
+          classification: 'SEMANTIC_CONTENT_UPDATE',
+          authorizationState: 'ACCEPTED',
+          baseEvidenceKind: first.computed.baseEvidence.kind,
+          baseReleaseSetId: first.computed.baseEvidence.releaseSetId,
+          baseReleaseId: first.computed.baseEvidence.releaseId,
+          baseReleaseVersion: first.computed.baseEvidence.releaseVersion,
+          baseReleaseHash: first.computed.baseEvidence.releaseHash,
+          baseSourceDatasetHash: first.computed.baseEvidence.sourceDatasetHash,
+          baseImportReceiptId: first.computed.baseEvidence.importReceiptId,
+          baseBundleReceiptId: first.computed.baseEvidence.bundleReceiptId,
+          baseBundleId: first.computed.baseEvidence.bundleId,
+          baseBundleRevision: first.computed.baseEvidence.bundleRevision,
+          baseBundleDigest: first.computed.baseEvidence.bundleDigest,
+          baseRuntimeProjectionId: first.computed.baseEvidence.runtimeProjectionId,
+          baseRuntimeProjectionDigest: first.computed.baseEvidence.runtimeProjectionDigest,
+          baseEvidenceCaptureRevision: first.computed.baseEvidence.evidenceCaptureRevision,
+          baseSemanticSnapshotDigest: first.computed.baseSemanticSnapshotDigest,
+          candidateEvidenceKind: first.computed.candidateEvidence.kind,
+          candidateReleaseSetId: first.computed.candidateEvidence.releaseSetId!,
+          candidateReleaseId: first.computed.candidateEvidence.releaseId!,
+          candidateReleaseVersion: first.computed.candidateEvidence.releaseVersion!,
+          candidateReleaseHash: first.computed.candidateEvidence.releaseHash!,
+          candidateSourceDatasetHash: first.computed.candidateEvidence.sourceDatasetHash!,
+          candidateImportReceiptId: first.computed.candidateEvidence.importReceiptId,
+          candidateBundleReceiptId: first.computed.candidateEvidence.bundleReceiptId,
+          candidateBundleId: first.computed.candidateEvidence.bundleId,
+          candidateBundleRevision: first.computed.candidateEvidence.bundleRevision,
+          candidateBundleDigest: first.computed.candidateEvidence.bundleDigest,
+          candidateRuntimeProjectionId: first.computed.candidateEvidence.runtimeProjectionId,
+          candidateRuntimeProjectionDigest: first.computed.candidateEvidence.runtimeProjectionDigest,
+          candidateEvidenceCaptureRevision: first.computed.candidateEvidence.evidenceCaptureRevision!,
+          candidateSemanticSnapshotDigest: first.computed.candidateSemanticSnapshotDigest,
+          inputDigest: '9'.repeat(64),
+          outputDigest: '8'.repeat(64),
+          details: {},
+          summary: {},
+          identityViolations: [],
+          expectedSignalCount: 1,
+          upstreamCrosscheckStatus: 'NOT_REQUIRED',
+          naturalKey: `incomplete-natural-key-${Date.now()}`,
+        },
+      });
+      // Intentionally omit signals — deferred trigger must fail at commit.
+    }),
+    /signal count must equal expectedSignalCount|expectedSignalCount/i,
+  );
+  assert.equal(
+    await db.actkgReleaseSetDeltaReceipt.count({ where: { id: incompleteId } }),
+    0,
+    'incomplete receipt must not survive a failed commit',
+  );
+
+  // 8) Natural-key conflict with different output digest fails closed.
+  const recomputed = await recomputeReleaseSetDelta(db, {
+    candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+    candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
+    expectedCaptureRevision: checkoutRevision,
+
+  });
+  const conflicting = {
+    ...recomputed,
+    outputDigest: 'f'.repeat(64),
+  };
+  await assert.rejects(
+    async () => {
+      await persistReleaseSetDelta(db!, conflicting);
+    },
+    (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      return /conflicting input\/output digests|different delta output|natural key already exists|expectedSignalCount/i.test(message);
+    },
+  );
+
+  // 8b) Ordinary idempotent persist fails closed when recomputed signal set drifts.
+  const driftedSignals = {
+    ...recomputed,
+    signals: [
+      ...recomputed.signals,
+      {
+        scope: 'object' as const,
+        identity: 'ctc:drifted',
+        action: 'candidate' as const,
+        reason: 'added' as const,
+        signalDigest: 'd'.repeat(64),
+      },
+    ],
+    summary: {
+      ...recomputed.summary,
+      signalCount: recomputed.signals.length + 1,
+    },
+  };
+  await assert.rejects(
+    async () => {
+      await persistReleaseSetDelta(db!, driftedSignals);
+    },
+    (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      return /signal set|signalDigest|expectedSignalCount|drift/i.test(message);
+    },
+  );
+
+  // 9) Selectors unchanged.
+  const defaultCandidateAfter = await db.actkgReleaseSet.findUniqueOrThrow({
+    where: { id: CURRENT_AGGREGATE_RELEASE_SET_ID },
+  });
+  assert.equal(defaultCandidateAfter.id, defaultCandidateBefore.id);
+  assert.equal(defaultCandidateAfter.candidateState, defaultCandidateBefore.candidateState);
+  assert.equal(defaultCandidateAfter.candidateState, 'CANDIDATE');
+
+  // active/legacy still absent as production selectors in this candidate-only mirror.
+  assert.equal(
+    await db.actkgReleaseSet.count({ where: { id: CURRENT_AGGREGATE_RELEASE_SET_ID } }),
+    1,
+  );
+
+  // 10) Signals never mention forbidden domains.
+  const signals = await db.actkgReleaseSetDeltaSignal.findMany({
+    where: { receiptId: first.persisted.receiptId },
+  });
+  for (const row of signals) {
+    const text = JSON.stringify(row);
+    assert.doesNotMatch(text, /courseRole|resourceRole|teachingRelation|selectorMutation/i);
+    assert.ok(['object', 'relation', 'crosswalk', 'component', 'projection', 'vocabulary'].includes(row.scope));
+  }
+
+  // 11) Determinism across DB load.
+  const recomputedAgain = await recomputeReleaseSetDelta(db, {
+    candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+    candidateBundleDigest: validatedV03.bundleIdentity.bundleDigest,
+
+    expectedCaptureRevision: checkoutRevision,
+
+  });
+  assert.equal(recomputedAgain.inputDigest, first.computed.inputDigest);
+  assert.equal(recomputedAgain.outputDigest, first.computed.outputDigest);
+  assert.equal(recomputedAgain.naturalKey, first.computed.naturalKey);
+  assert.equal(recomputedAgain.baseEvidence.releaseId, CURRENT_AGGREGATE_RELEASE_ID);
+
+  // 12) DB evidence-shape CHECKs reject illegal receipt rows.
+  const exactImportId = (await db.actkgImportReceipt.findUniqueOrThrow({
+    where: { releaseId: CURRENT_AGGREGATE_RELEASE_ID },
+  })).id;
+  const standardImportId = (await db.actkgImportReceipt.findUniqueOrThrow({
+    where: { releaseId: validatedV03.releaseIdentity.releaseId },
+  })).id;
+  const standardBundleId = (await db.actkgBundleReceipt.findUniqueOrThrow({
+    where: { bundleDigest: validatedV03.bundleIdentity.bundleDigest },
+  })).id;
+  const exactRelease = await db.actkgRelease.findUniqueOrThrow({
+    where: { id: CURRENT_AGGREGATE_RELEASE_ID },
+    select: {
+      releaseHash: true,
+      sourceDatasetHash: true,
+      projectionId: true,
+      projectionDigest: true,
+    },
+  });
+  const standardRelease = await db.actkgRelease.findUniqueOrThrow({
+    where: { id: validatedV03.releaseIdentity.releaseId },
+    select: {
+      releaseHash: true,
+      sourceDatasetHash: true,
+      projectionId: true,
+      projectionDigest: true,
+    },
+  });
+
+  // non-BASELINE + baseEvidenceKind=none must fail (baseline_iff_none).
+  await assert.rejects(
+    () => db!.$executeRawUnsafe(`
+      INSERT INTO "ActkgReleaseSetDeltaReceipt" (
+        "id", "algorithmVersion", "captureRevision", "classification", "authorizationState",
+        "baseEvidenceKind",
+        "candidateEvidenceKind", "candidateReleaseSetId", "candidateReleaseId",
+        "candidateReleaseVersion", "candidateReleaseHash", "candidateSourceDatasetHash",
+        "candidateImportReceiptId", "candidateBundleReceiptId", "candidateBundleId",
+        "candidateBundleRevision", "candidateBundleDigest",
+        "candidateRuntimeProjectionId", "candidateRuntimeProjectionDigest",
+        "candidateEvidenceCaptureRevision", "candidateSemanticSnapshotDigest",
+        "inputDigest", "outputDigest", "details", "summary", "identityViolations",
+        "expectedSignalCount",
+        "upstreamCrosscheckStatus", "naturalKey"
+      ) VALUES (
+        'bad-non-baseline-none', 'actkg-release-set-delta/1', $1, 'SEMANTIC_CONTENT_UPDATE', 'ACCEPTED',
+        'none',
+        'standard_bundle', $2, $3,
+        'v0.3', $4, $5,
+        $6, $7, $8,
+        1, $9,
+        $10, $11,
+        $1, $12,
+        $13, $14, '{}'::jsonb, '{}'::jsonb, '[]'::jsonb,
+        0,
+        'NOT_REQUIRED', 'bad-non-baseline-none-key'
+      )
+    `,
+    checkoutRevision,
+    validatedV03.releaseSetIdentity.releaseSetId,
+    validatedV03.releaseIdentity.releaseId,
+    standardRelease.releaseHash,
+    standardRelease.sourceDatasetHash,
+    standardImportId,
+    standardBundleId,
+    validatedV03.bundleIdentity.bundleId,
+    validatedV03.bundleIdentity.bundleDigest,
+    standardRelease.projectionId,
+    standardRelease.projectionDigest,
+    'a'.repeat(64),
+    'b'.repeat(64),
+    'c'.repeat(64)),
+    /violates check constraint|baseline_iff_none/i,
+  );
+
+  // standard_bundle candidate without bundle identity fields must fail.
+  await assert.rejects(
+    () => db!.$executeRawUnsafe(`
+      INSERT INTO "ActkgReleaseSetDeltaReceipt" (
+        "id", "algorithmVersion", "captureRevision", "classification", "authorizationState",
+        "baseEvidenceKind", "baseReleaseSetId", "baseReleaseId", "baseReleaseVersion",
+        "baseReleaseHash", "baseSourceDatasetHash", "baseImportReceiptId",
+        "baseRuntimeProjectionId", "baseRuntimeProjectionDigest",
+        "baseEvidenceCaptureRevision", "baseSemanticSnapshotDigest",
+        "candidateEvidenceKind", "candidateReleaseSetId", "candidateReleaseId",
+        "candidateReleaseVersion", "candidateReleaseHash", "candidateSourceDatasetHash",
+        "candidateImportReceiptId",
+        "candidateRuntimeProjectionId", "candidateRuntimeProjectionDigest",
+        "candidateEvidenceCaptureRevision", "candidateSemanticSnapshotDigest",
+        "inputDigest", "outputDigest", "details", "summary", "identityViolations",
+        "expectedSignalCount",
+        "upstreamCrosscheckStatus", "naturalKey"
+      ) VALUES (
+        'bad-standard-shape', 'actkg-release-set-delta/1', $1, 'SEMANTIC_CONTENT_UPDATE', 'ACCEPTED',
+        'exact_import', $2, $3, 'v0.2',
+        $4, $5, $6,
+        $7, $8,
+        $1, $9,
+        'standard_bundle', $10, $11,
+        'v0.3', $12, $13,
+        $14,
+        $15, $16,
+        $1, $17,
+        $18, $19, '{}'::jsonb, '{}'::jsonb, '[]'::jsonb,
+        0,
+        'NOT_REQUIRED', 'bad-standard-shape-key'
+      )
+    `,
+    checkoutRevision,
+    CURRENT_AGGREGATE_RELEASE_SET_ID,
+    CURRENT_AGGREGATE_RELEASE_ID,
+    exactRelease.releaseHash,
+    exactRelease.sourceDatasetHash,
+    exactImportId,
+    exactRelease.projectionId,
+    exactRelease.projectionDigest,
+    '3'.repeat(64),
+    validatedV03.releaseSetIdentity.releaseSetId,
+    validatedV03.releaseIdentity.releaseId,
+    standardRelease.releaseHash,
+    standardRelease.sourceDatasetHash,
+    standardImportId,
+    standardRelease.projectionId,
+    standardRelease.projectionDigest,
+    '6'.repeat(64),
+    '7'.repeat(64),
+    '8'.repeat(64)),
+    /violates check constraint|candidate_standard_shape/i,
+  );
+
+  // standard_bundle candidate with packaging but missing runtime Projection must fail.
+  await assert.rejects(
+    () => db!.$executeRawUnsafe(`
+      INSERT INTO "ActkgReleaseSetDeltaReceipt" (
+        "id", "algorithmVersion", "captureRevision", "classification", "authorizationState",
+        "baseEvidenceKind", "baseReleaseSetId", "baseReleaseId", "baseReleaseVersion",
+        "baseReleaseHash", "baseSourceDatasetHash", "baseImportReceiptId",
+        "baseRuntimeProjectionId", "baseRuntimeProjectionDigest",
+        "baseEvidenceCaptureRevision", "baseSemanticSnapshotDigest",
+        "candidateEvidenceKind", "candidateReleaseSetId", "candidateReleaseId",
+        "candidateReleaseVersion", "candidateReleaseHash", "candidateSourceDatasetHash",
+        "candidateImportReceiptId", "candidateBundleReceiptId", "candidateBundleId",
+        "candidateBundleRevision", "candidateBundleDigest",
+        "candidateEvidenceCaptureRevision", "candidateSemanticSnapshotDigest",
+        "inputDigest", "outputDigest", "details", "summary", "identityViolations",
+        "expectedSignalCount",
+        "upstreamCrosscheckStatus", "naturalKey"
+      ) VALUES (
+        'bad-missing-projection', 'actkg-release-set-delta/1', $1, 'SEMANTIC_CONTENT_UPDATE', 'ACCEPTED',
+        'exact_import', $2, $3, 'v0.2',
+        $4, $5, $6,
+        $7, $8,
+        $1, $9,
+        'standard_bundle', $10, $11,
+        'v0.3', $12, $13,
+        $14, $15, $16,
+        1, $17,
+        $1, $18,
+        $19, $20, '{}'::jsonb, '{}'::jsonb, '[]'::jsonb,
+        0,
+        'NOT_REQUIRED', 'bad-missing-projection-key'
+      )
+    `,
+    checkoutRevision,
+    CURRENT_AGGREGATE_RELEASE_SET_ID,
+    CURRENT_AGGREGATE_RELEASE_ID,
+    exactRelease.releaseHash,
+    exactRelease.sourceDatasetHash,
+    exactImportId,
+    exactRelease.projectionId,
+    exactRelease.projectionDigest,
+    '3'.repeat(64),
+    validatedV03.releaseSetIdentity.releaseSetId,
+    validatedV03.releaseIdentity.releaseId,
+    standardRelease.releaseHash,
+    standardRelease.sourceDatasetHash,
+    standardImportId,
+    standardBundleId,
+    validatedV03.bundleIdentity.bundleId,
+    validatedV03.bundleIdentity.bundleDigest,
+    '6'.repeat(64),
+    '7'.repeat(64),
+    '8'.repeat(64)),
+    /violates check constraint|candidate_standard_shape/i,
+  );
+
+  console.log(JSON.stringify({
+    ok: true,
+    isolationMode: isolated.mode,
+    schema: schemaName,
+    baseReleaseId: CURRENT_AGGREGATE_RELEASE_ID,
+    candidateReleaseId: validatedV03.releaseIdentity.releaseId,
+    contentDeltaReceiptId: first.persisted.receiptId,
+    packagingDeltaReceiptId: packagingDelta.persisted.receiptId,
+    futureReleaseId,
+    equalTsReleaseId,
+    relationAdded: first.computed.details.relations.added.length,
+    signalCount: first.persisted.signalCount,
+    packagingSignalCount: packagingDelta.persisted.signalCount,
+    defaultCandidateUnchanged: true,
+  }));
+}
+
+main()
+  .catch((error: unknown) => {
+    console.error(error instanceof Error ? error.stack ?? error.message : error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    if (db) await db.$disconnect().catch(() => undefined);
+    if (admin) {
+      try {
+        await admin.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);
+      } catch {
+        // best-effort
+      }
+      try {
+        await admin.query(`DROP DATABASE IF EXISTS "${schemaName}" WITH (FORCE)`);
+      } catch {
+        // best-effort
+      }
+      await admin.end().catch(() => undefined);
+    }
+  });

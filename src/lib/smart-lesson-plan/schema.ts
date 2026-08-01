@@ -7,10 +7,16 @@ export const sourceBindingSchema = z.object({
   sourceVersionId: z.string().trim().min(1).max(200),
   anchor: z.string().trim().min(1).max(500),
   contentHash: z.string().trim().min(16).max(128),
+  sourceKind: z.enum(['upload', 'textbook']).optional(),
+  title: z.string().trim().min(1).max(500).optional(),
+  structuralPath: z.array(z.string().trim().min(1).max(200)).max(20).optional(),
+  snippet: z.string().trim().min(1).max(1000).optional(),
+  href: z.string().trim().min(1).max(2000).optional(),
 }).strict();
 
 export const sourceStateSchema = z.enum([
   'VERIFIED',
+  'NO_RELIABLE_SOURCE',
   'AI_GENERATED_SOURCE_PENDING',
   'TEACHER_CREATED_SOURCE_PENDING',
 ]);
@@ -44,6 +50,7 @@ export const smartLessonAdvisoryReviewSchema = z.object({
     severity: z.enum(['INFO', 'SUGGESTION', 'WARNING']),
     message: z.string().trim().min(1).max(2000),
     path: z.string().trim().min(1).max(500).nullable(),
+    proposedReplacement: z.string().trim().min(1).max(10_000).nullable().optional(),
   }).strict()).max(100),
   suggestions: z.array(z.string().trim().min(1).max(2000)).max(100),
 }).strict();
@@ -115,6 +122,13 @@ export function createSourceBindingSchemaForAllowedBindings(bindings: Array<z.in
       sourceVersionId: z.literal(binding.sourceVersionId),
       anchor: z.literal(binding.anchor),
       contentHash: z.literal(binding.contentHash),
+      ...(binding.sourceKind === undefined ? {} : { sourceKind: z.literal(binding.sourceKind) }),
+      ...(binding.title === undefined ? {} : { title: z.literal(binding.title) }),
+      ...(binding.structuralPath === undefined ? {} : {
+        structuralPath: z.array(z.string()).length(binding.structuralPath.length),
+      }),
+      ...(binding.snippet === undefined ? {} : { snippet: z.literal(binding.snippet) }),
+      ...(binding.href === undefined ? {} : { href: z.literal(binding.href) }),
     }).strict(),
   ])).values()];
   const bindingSchema = variants.length === 0

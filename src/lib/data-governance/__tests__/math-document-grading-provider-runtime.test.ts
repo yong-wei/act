@@ -50,7 +50,7 @@ function question(): FrozenQuestionContract {
     prompt: 'Explain the evidence.',
     referenceAnswer: 'Cite the evidence.',
     contentHash: 'sha256:question',
-    rubric: { schemaVersion: 'rubric.v1', id: 'rubric-1', version: 'rubric.v1', maxScore: 1, criteria: [{ id: 'criterion-1', label: 'Evidence', goalDimension: 'controlModeling', maxPoints: 1, evidenceDescription: 'evidence', feedbackGuidance: 'cite', levels: [{ id: 'full', label: 'Full', minPoints: 1, maxPoints: 1, description: 'full' }] }] },
+    rubric: { schemaVersion: 'assignment-analytic-rubric.v1', id: 'rubric-1', version: 'rubric.v1', maxScore: 1, criteria: [{ id: 'criterion-1', label: 'Evidence', goalDimension: 'controlModeling', maxPoints: 1, evidenceDescription: 'evidence', feedbackGuidance: 'cite', levels: [{ id: 'full', label: 'Full', minPoints: 1, maxPoints: 1, description: 'full' }] }] },
   };
 }
 

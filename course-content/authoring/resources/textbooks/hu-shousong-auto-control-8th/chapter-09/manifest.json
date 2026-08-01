@@ -1,0 +1,580 @@
+{
+  "id": "chapter-09",
+  "number": 9,
+  "title": "线性系统的状态空间分析与综合",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/chapter-09.md",
+  "sourceQa": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/chapter-09.qa.json",
+  "sourcePageStart": 455,
+  "sourcePageEnd": 560,
+  "sourcePageCount": 106,
+  "imageCount": 56,
+  "figureDescriptionCount": 55,
+  "markdownSha256": "ae50c43cda14a1cd0649ce8f90d3758956e0f990e7352ab3981cee4b250d51a0",
+  "sourceImageManifest": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/chapter-09.local.md.images.json",
+  "sourceImageManifestCount": 55,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0455-01-300dpi.png",
+      "exportPath": "assets/fig-09-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0455-01-300dpi.png",
+      "caption": "图9－1 系统的方框图表示",
+      "sourcePdfPage": 455,
+      "sha256": "a983d253144a166710bc2befa27d9ed49a50832ab9a86f95bc9af3858651c2b4",
+      "bytes": 41688
+    },
+    {
+      "index": 2,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0457-01-300dpi.png",
+      "exportPath": "assets/fig-09-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0457-01-300dpi.png",
+      "caption": "图9－2 线性连续时间系统结构图",
+      "sourcePdfPage": 457,
+      "sha256": "934c454ddcd4f2bb749e8b3e0f9ba4325c2255bc9d93be8a573a6a2698ba8f32",
+      "bytes": 80885
+    },
+    {
+      "index": 3,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0457-02-300dpi.png",
+      "exportPath": "assets/fig-09-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0457-02-300dpi.png",
+      "caption": "图9－3 线性离散时间系统结构图",
+      "sourcePdfPage": 457,
+      "sha256": "9222f76bea87c1e32383506fa56590741e4fa14df9b975663f246f35e737f94c",
+      "bytes": 90023
+    },
+    {
+      "index": 4,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0458-01-300dpi.png",
+      "exportPath": "assets/fig-09-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0458-01-300dpi.png",
+      "caption": "图9－4 RLC 网络",
+      "sourcePdfPage": 458,
+      "sha256": "3fcbfc3493b7b503b337c4eecabac7040d8390fd1495f484fe005adb8c4f7f9e",
+      "bytes": 45802
+    },
+    {
+      "index": 5,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0460-01-300dpi.png",
+      "exportPath": "assets/fig-09-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0460-01-300dpi.png",
+      "caption": "图9－5 输人量中不含导数顶时的系统状态变量图",
+      "sourcePdfPage": 460,
+      "sha256": "b41fae6774282fd70f23a8d5eab3bc71e1dc7aa9f1ec51e8a3db7dac5a383a7d",
+      "bytes": 199933
+    },
+    {
+      "index": 6,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0462-01-300dpi.png",
+      "exportPath": "assets/fig-09-06.png",
+      "originalRelativePath": "assets/mathpix-source-page-0462-01-300dpi.png",
+      "caption": "图9－6 输入量中含有导数项时的系统状态变量图",
+      "sourcePdfPage": 462,
+      "sha256": "a033c234af25610c88c4a8a860e355ce7ca3a37d9051c6392756da57796899fa",
+      "bytes": 223541
+    },
+    {
+      "index": 7,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0463-figure-9-7-manual-300dpi.png",
+      "exportPath": "assets/fig-09-07.png",
+      "originalRelativePath": "assets/mathpix-source-page-0463-figure-9-7-manual-300dpi.png",
+      "caption": "图 9－7 $\\frac{N(s)}{D(s)}$ 的串联分解",
+      "sourcePdfPage": 463,
+      "sha256": "4203d5f8703af20031f533faff10f9f4cf51a684ae0b4b431a4bc567a75e3dac",
+      "bytes": 55492
+    },
+    {
+      "index": 8,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0464-01-300dpi.png",
+      "exportPath": "assets/fig-09-08.png",
+      "originalRelativePath": "assets/mathpix-source-page-0464-01-300dpi.png",
+      "caption": "图9－8 $\\frac{N(s)}{D(s)}$ 串联分解时系统的可控标准型状念变最图",
+      "sourcePdfPage": 464,
+      "sha256": "27ca86cf68410a48a4c176a643c56ecf87730b6068acd3fd0aadba173b6e3df2",
+      "bytes": 266729
+    },
+    {
+      "index": 9,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0466-01-300dpi.png",
+      "exportPath": "assets/fig-09-09.png",
+      "originalRelativePath": "assets/mathpix-source-page-0466-01-300dpi.png",
+      "caption": "图9－9 例9－3系统可控标准型状态变量图",
+      "sourcePdfPage": 466,
+      "sha256": "2a63b62a8a271cf79db898932070bbb7c16cb60993eeab776e97b7d9cd3e74f2",
+      "bytes": 95202
+    },
+    {
+      "index": 10,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0466-02-300dpi.png",
+      "exportPath": "assets/fig-09-10.png",
+      "originalRelativePath": "assets/mathpix-source-page-0466-02-300dpi.png",
+      "caption": "图9－10 例9－3系统可观测标准型状态变量图",
+      "sourcePdfPage": 466,
+      "sha256": "22cafee727543de1bc7e5f2cdefea342a3329d3953b127091dba3041461b74a5",
+      "bytes": 92589
+    },
+    {
+      "index": 11,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0467-01-300dpi.png",
+      "exportPath": "assets/fig-09-11.png",
+      "originalRelativePath": "assets/mathpix-source-page-0467-01-300dpi.png",
+      "caption": "图9－11 系统对角型动态方程的状态变量图",
+      "sourcePdfPage": 467,
+      "sha256": "c94b080f6d4a1787428892522eff08e2093bac75e20515ff8e73e2f9a75f4ceb",
+      "bytes": 248637
+    },
+    {
+      "index": 12,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0468-01-300dpi.png",
+      "exportPath": "assets/fig-09-12.png",
+      "originalRelativePath": "assets/mathpix-source-page-0468-01-300dpi.png",
+      "caption": "图9－12 系统约筑型动态方辟的状态变量图",
+      "sourcePdfPage": 468,
+      "sha256": "9d87bb97833ac90aa9a030faf3ed580c1441a869ac9e15fe210c4ebbcf36b79d",
+      "bytes": 552874
+    },
+    {
+      "index": 13,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0471-01-300dpi.png",
+      "exportPath": "assets/fig-09-13.png",
+      "originalRelativePath": "assets/mathpix-source-page-0471-01-300dpi.png",
+      "caption": "图9－13 状态转移矩阵性质6）的图示",
+      "sourcePdfPage": 471,
+      "sha256": "0a4d7c32ad44a7e9081350dcfdd447f3344fad7ca82ae05fced8c8c0efe264a5",
+      "bytes": 107836
+    },
+    {
+      "index": 14,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0475-01-300dpi.png",
+      "exportPath": "assets/fig-09-14.png",
+      "originalRelativePath": "assets/mathpix-source-page-0475-01-300dpi.png",
+      "caption": "图9－14 多输人－多输出系统结构图",
+      "sourcePdfPage": 475,
+      "sha256": "05fd5bfd4296ae3cb34427c82a4fa8ee7191dc4c120d27040173d5b4e70dae5e",
+      "bytes": 67014
+    },
+    {
+      "index": 15,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0476-01-300dpi.png",
+      "exportPath": "assets/fig-09-15.png",
+      "originalRelativePath": "assets/mathpix-source-page-0476-01-300dpi.png",
+      "caption": "图9－15",
+      "sourcePdfPage": 476,
+      "sha256": "cbbf72bc49a2c9bba9221219612b38a8b76dc831588febc566c45e8560ac5a0f",
+      "bytes": 71956
+    },
+    {
+      "index": 16,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0476-02-300dpi.png",
+      "exportPath": "assets/fig-09-16.png",
+      "originalRelativePath": "assets/mathpix-source-page-0476-02-300dpi.png",
+      "caption": "图9－16 用前馈补倊器实现解耦的系统结构图",
+      "sourcePdfPage": 476,
+      "sha256": "57c154060a182b606836afc71e0e63f095eade652e54403c6b52bbf88c785168",
+      "bytes": 61826
+    },
+    {
+      "index": 17,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0476-03-300dpi.png",
+      "exportPath": "assets/fig-09-17.png",
+      "originalRelativePath": "assets/mathpix-source-page-0476-03-300dpi.png",
+      "caption": "图9－17 例 9－7 已知双输入－双输出单位反馈系统结构图如图9－17所示。试列写原系统的开、闭环传递矩阵，并求串联补偿器和前馈补偿器，使解耦系统的闭环传递矩阵为",
+      "sourcePdfPage": 476,
+      "sha256": "03b08ff6c8b359c6b10a205a2e1667692c36f6ea848a0086fc4171d192064721",
+      "bytes": 82150
+    },
+    {
+      "index": 18,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0478-01-300dpi.png",
+      "exportPath": "assets/fig-09-18.png",
+      "originalRelativePath": "assets/mathpix-source-page-0478-01-300dpi.png",
+      "caption": "图9－18 例9－7用串联补偿器实现解耦的系统结构图",
+      "sourcePdfPage": 478,
+      "sha256": "db6f52f6bc8e1db295f79a9843aa4d3fec6b1bc7209a9ac2f8e0f4e98719d63b",
+      "bytes": 169152
+    },
+    {
+      "index": 19,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0479-01-300dpi.png",
+      "exportPath": "assets/fig-09-19.png",
+      "originalRelativePath": "assets/mathpix-source-page-0479-01-300dpi.png",
+      "caption": "图9－19 例9－7用前馈补偿器实现解粴的系统结构图",
+      "sourcePdfPage": 479,
+      "sha256": "eef14db0d74c14a1f3fceb7bd69ff3145538c4525a30da29802dc6d101ca0084",
+      "bytes": 164746
+    },
+    {
+      "index": 20,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0490-01-300dpi.png",
+      "exportPath": "assets/fig-09-20.png",
+      "originalRelativePath": "assets/mathpix-source-page-0490-01-300dpi.png",
+      "caption": "图9－20 桥式网络电路图",
+      "sourcePdfPage": 490,
+      "sha256": "9900f98f895fee15949409a06afd9e0a0617d38f3dfe69fab27546a0f0196fbc",
+      "bytes": 94048
+    },
+    {
+      "index": 21,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0512-01-300dpi.png",
+      "exportPath": "assets/fig-09-21.png",
+      "originalRelativePath": "assets/mathpix-source-page-0512-01-300dpi.png",
+      "caption": "图9－21 系统可控性规范分解方框图",
+      "sourcePdfPage": 512,
+      "sha256": "2e75c96a1b63b5163e40ebee456b66328636fbc7e0039414d4ca3d32fb13c1f0",
+      "bytes": 154586
+    },
+    {
+      "index": 22,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0515-01-300dpi.png",
+      "exportPath": "assets/fig-09-22.png",
+      "originalRelativePath": "assets/mathpix-source-page-0515-01-300dpi.png",
+      "caption": "图9－22 系统可观测性规范分解方框图",
+      "sourcePdfPage": 515,
+      "sha256": "101878530389c3b216c348e47eb8ad318e42b9a110f29e686ac4e5b073d74939",
+      "bytes": 157037
+    },
+    {
+      "index": 23,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0517-01-300dpi.png",
+      "exportPath": "assets/fig-09-23.png",
+      "originalRelativePath": "assets/mathpix-source-page-0517-01-300dpi.png",
+      "caption": "图9－23 有关稳定性的平而几何表示",
+      "sourcePdfPage": 517,
+      "sha256": "061fd592611b0a826696c4f9a2d6a8d7f84ae9c03eec62a4bcd45095dab437a4",
+      "bytes": 305476
+    },
+    {
+      "index": 24,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0525-01-300dpi.png",
+      "exportPath": "assets/fig-09-24.png",
+      "originalRelativePath": "assets/mathpix-source-page-0525-01-300dpi.png",
+      "caption": "图9－24 加入状态反馈后系统方框图",
+      "sourcePdfPage": 525,
+      "sha256": "3c9f4aed92c8f82be1c8ed8a1cb94a9afdbf676859693ab5c620bcb7f324048a",
+      "bytes": 109591
+    },
+    {
+      "index": 25,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0526-01-300dpi.png",
+      "exportPath": "assets/fig-09-25.png",
+      "originalRelativePath": "assets/mathpix-source-page-0526-01-300dpi.png",
+      "caption": "图9－25 输出量反馈至状态微分系统方框图 将输出量反馈至参考输人系统方框图如图 9－26 所示。当将系统的控制量 $\\boldsymbol{u}$ 取为输出$y$ 的线性函数",
+      "sourcePdfPage": 526,
+      "sha256": "fce6b09df1f8b1774a4453e6cc8f5c32160b2cb33e16c2b13fcd8739ea8789bd",
+      "bytes": 111905
+    },
+    {
+      "index": 26,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0526-02-300dpi.png",
+      "exportPath": "assets/fig-09-26.png",
+      "originalRelativePath": "assets/mathpix-source-page-0526-02-300dpi.png",
+      "caption": "图9－26 输出量反馈至参考输入系统方框图",
+      "sourcePdfPage": 526,
+      "sha256": "0588323cb67f16824c5f441b123c80f5956906f132c659ecc08de0f2ee349a08",
+      "bytes": 104474
+    },
+    {
+      "index": 27,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0535-01-300dpi.png",
+      "exportPath": "assets/fig-09-27.png",
+      "originalRelativePath": "assets/mathpix-source-page-0535-01-300dpi.png",
+      "caption": "图9－27 状态观测器及其实现状态反馈的系统方相图",
+      "sourcePdfPage": 535,
+      "sha256": "9404d8cc9b5b9bbcd0b07fee0ca31cdbedfbd6861760ffc218602c3fb0092258",
+      "bytes": 265559
+    },
+    {
+      "index": 28,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0537-01-300dpi.png",
+      "exportPath": "assets/fig-09-28.png",
+      "originalRelativePath": "assets/mathpix-source-page-0537-01-300dpi.png",
+      "caption": "图9－28 全维状态观测器及被控对像组合系统的状态变量图 当用全维状态观测器提供的状态估值 $\\hat{x}$ 代替真实状态 $x$ 来实现状态反馈时，为保持系统的期望特征值，其状态反馈阵 $\\boldsymbol{K}$ 是否需要重新设计？当观测器被引人系统以后，状态反馈系统部分是否会改变已经设计好的观测器极点配置，其观测器输出反馈阵 $\\boldsymbol{H}$ 是否需要重新设计？为此需要对引入观测器的状态反馈系统作进一步分析。整个系统的结构图如图9－27所示，是一个 $2 n$ 维的复合系统，其中",
+      "sourcePdfPage": 537,
+      "sha256": "8a19c9a5d74c9326f4a7b72a250124a0f017944235aa8e91386dd08cad06de3b",
+      "bytes": 309998
+    },
+    {
+      "index": 29,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0540-01-300dpi.png",
+      "exportPath": "assets/fig-09-29.png",
+      "originalRelativePath": "assets/mathpix-source-page-0540-01-300dpi.png",
+      "caption": "图9－29 阶跃输入的内模设计系统结阿图",
+      "sourcePdfPage": 540,
+      "sha256": "ce01b42857c3065dce473c239554953468673983ab8978636c7b3df28c45c3e8",
+      "bytes": 144215
+    },
+    {
+      "index": 30,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0541-01-300dpi.png",
+      "exportPath": "assets/fig-09-30.png",
+      "originalRelativePath": "assets/mathpix-source-page-0541-01-300dpi.png",
+      "caption": "图9－30 单位阶跃输人内模控制系统结构图 显然，本例设计的内模控制系统是渐近稳定的。对任意初始跟踪误差 $e(0)$ ，反馈控制信号都可以保证在 $t \\rightarrow \\infty$ 时，$e(t) \\rightarrow 0$ 。在 MATLAB 的 Simulink 环境下，根据结构图9－30搭建内模控制系统模型，运行后可得图9－31，其直观地表明了系统在单位阶跃参考输入时，跟踪误差的渐近收敛性。",
+      "sourcePdfPage": 541,
+      "sha256": "d4b5911a88f89684eba4c542a1f70cba63229f29975acc7d5fcc011a4a1414c7",
+      "bytes": 157312
+    },
+    {
+      "index": 31,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0541-02-300dpi.png",
+      "exportPath": "assets/fig-09-31.png",
+      "originalRelativePath": "assets/mathpix-source-page-0541-02-300dpi.png",
+      "caption": "图9－31 单位阶跃输入下内模控制系统的跟踪误郜响应（MATLAB）",
+      "sourcePdfPage": 541,
+      "sha256": "9545fe5a9643f024069644b538031ec088fe0f9c1d366cc0d2e9281c3880e9b4",
+      "bytes": 296494
+    },
+    {
+      "index": 32,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0543-01-300dpi.png",
+      "exportPath": "assets/fig-09-32.png",
+      "originalRelativePath": "assets/mathpix-source-page-0543-01-300dpi.png",
+      "caption": "图9－32 斜坡输人的内模设计系统框图 在计算机外围设备中，常用的低价位打印机都配有皮带驱动器，用于驱动打印头沿打印页面横向移动。打印头可能是喷墨式或针式的。图9－33是一个装有直流电机的皮带驱动式打印机，其光传感器用来测定打印头的位置，皮带张力变化用于调节皮带的实际弹性状态。",
+      "sourcePdfPage": 543,
+      "sha256": "8d5910a6f3262ae6a9f5313a4ab8c9de49940a6a407bc06cc84454c18b63d86e",
+      "bytes": 140775
+    },
+    {
+      "index": 33,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0543-02-300dpi.png",
+      "exportPath": "assets/fig-09-33.png",
+      "originalRelativePath": "assets/mathpix-source-page-0543-02-300dpi.png",
+      "caption": "图9－33 打印机皮带驱动系统",
+      "sourcePdfPage": 543,
+      "sha256": "996424636d0e7456b4c7d1c19ea486365c47872dd4dec8c4ea4072de7344d40a",
+      "bytes": 307243
+    },
+    {
+      "index": 34,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0544-01-300dpi.png",
+      "exportPath": "assets/fig-09-34.png",
+      "originalRelativePath": "assets/mathpix-source-page-0544-01-300dpi.png",
+      "caption": "图9－34 打印机皮带驱动模型",
+      "sourcePdfPage": 544,
+      "sha256": "7099dab4481e5b8afae32590949eaa1bd4611e4eac5fc6100b7d6567c735e631",
+      "bytes": 259441
+    },
+    {
+      "index": 35,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0545-01-300dpi.png",
+      "exportPath": "assets/fig-09-35.png",
+      "originalRelativePath": "assets/mathpix-source-page-0545-01-300dpi.png",
+      "caption": "图9－35 打印机皮带驱动系统的信号流图 2）皮带弹性系数的影响。为了研究如何抑制 $M_{d}$ 对系统性能的影响，可由图9－35确定传递函数 $X_{1}(s) / M_{d}(s)$ 。利用梅森增益公式，可得",
+      "sourcePdfPage": 545,
+      "sha256": "edfc7e164123959162903e883db2a9c6e560d2cd759c6073868b52be86aa3be9",
+      "bytes": 166674
+    },
+    {
+      "index": 36,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0547-01-300dpi.png",
+      "exportPath": "assets/fig-09-36.png",
+      "originalRelativePath": "assets/mathpix-source-page-0547-01-300dpi.png",
+      "caption": "图9－36 打印头位移差 $x_{1}(t)$ 对阶跃扰动的响应（ $k=20$ ，MATLAB）",
+      "sourcePdfPage": 547,
+      "sha256": "f3bbd92ae9033ef8eb5df7d0ef9f431e47a9cc102b194fac0a0da71f144c6845",
+      "bytes": 479085
+    },
+    {
+      "index": 37,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0548-01-300dpi.png",
+      "exportPath": "assets/fig-09-37.png",
+      "originalRelativePath": "assets/mathpix-source-page-0548-01-300dpi.png",
+      "caption": "图9－37 自幼检测系统示意图 该自动检测系统利用直流电机上的编码器来测量电压和探针的位置，如图9－38所示。其结构图模型如图9－39所示，其中 $K_{a}$ 为所需要的功率放大系数。",
+      "sourcePdfPage": 548,
+      "sha256": "e92db0e11488eb116866d29df39fb54b3d876c104c7939037b769b041c2e5392",
+      "bytes": 242913
+    },
+    {
+      "index": 38,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0548-02-300dpi.png",
+      "exportPath": "assets/fig-09-38.png",
+      "originalRelativePath": "assets/mathpix-source-page-0548-02-300dpi.png",
+      "caption": "图9－38 装有编码轮睢的直流电机示意图",
+      "sourcePdfPage": 548,
+      "sha256": "d37eb25cfcb631e0542f6778b3b8a267551e9509cf049cd456eefa1d157142e8",
+      "bytes": 305899
+    },
+    {
+      "index": 39,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0548-03-300dpi.png",
+      "exportPath": "assets/fig-09-39.png",
+      "originalRelativePath": "assets/mathpix-source-page-0548-03-300dpi.png",
+      "caption": "图9－39 直流电机结构图模型 设状态变量选择为：$x_{1}=\\theta, x_{2}=\\mathrm{d} \\theta / \\mathrm{d} t, x_{3}=i_{f}$ ；假定这些状态变量均可测，且能用于反馈。图9－40所示为其闭环系统，其中控制律",
+      "sourcePdfPage": 548,
+      "sha256": "4b26f0b419c5d6f962ef13fb044a7aa9f7b658bd65908ed9decd4c91783df320",
+      "bytes": 105825
+    },
+    {
+      "index": 40,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0549-01-300dpi.png",
+      "exportPath": "assets/fig-09-40.png",
+      "originalRelativePath": "assets/mathpix-source-page-0549-01-300dpi.png",
+      "caption": "图9－40 自动检测反馈控制系统信号流图",
+      "sourcePdfPage": 549,
+      "sha256": "8b80cf3dc148d65497d4035837fa8ace83e5fbacafe7774f0be6ff344cadd3c0",
+      "bytes": 115421
+    },
+    {
+      "index": 41,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0549-02-300dpi.png",
+      "exportPath": "assets/fig-09-41.png",
+      "originalRelativePath": "assets/mathpix-source-page-0549-02-300dpi.png",
+      "caption": "则系统希望主导极点在复平面上的有效取值区域，如图9－41（a）中阴影线区域所示。",
+      "sourcePdfPage": 549,
+      "sha256": "8e0f0e49aec47202f7499c228c51926beed2c2caee20ef32a7d8496224896b31",
+      "bytes": 376172
+    },
+    {
+      "index": 42,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0550-01-300dpi.png",
+      "exportPath": "assets/fig-09-42.png",
+      "originalRelativePath": "assets/mathpix-source-page-0550-01-300dpi.png",
+      "caption": "图9－42 自动检测系统的单位阶跃响应（MATLAB） 当不考虑磁场电感影响时，磁头控制系统的二阶开环模型如图9－43所示，采用状态反馈控制器后的闭环系统如图 9－44 所示。设计要求：",
+      "sourcePdfPage": 550,
+      "sha256": "b8037f7e167582d748e30d58b7a8fc899b10d19291e0c38379548d29b86138f2",
+      "bytes": 200009
+    },
+    {
+      "index": 43,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0551-01-300dpi.png",
+      "exportPath": "assets/fig-09-43.png",
+      "originalRelativePath": "assets/mathpix-source-page-0551-01-300dpi.png",
+      "caption": "图9－43 磁头控制系统的二阶开环模型",
+      "sourcePdfPage": 551,
+      "sha256": "4022362c0e761b421ddcd22b81f9fc0f661db52cdecf0948257daecdb2fc3c97",
+      "bytes": 121312
+    },
+    {
+      "index": 44,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0551-02-300dpi.png",
+      "exportPath": "assets/fig-09-44.png",
+      "originalRelativePath": "assets/mathpix-source-page-0551-02-300dpi.png",
+      "caption": "图9－44 具有两条状态变量反馈回路的闭环系统信号流图",
+      "sourcePdfPage": 551,
+      "sha256": "a421fabf1114bd80c15587b8e09b251ed875e56651759875eb31e375e0fcd745",
+      "bytes": 117125
+    },
+    {
+      "index": 45,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0552-01-300dpi.png",
+      "exportPath": "assets/fig-09-45.png",
+      "originalRelativePath": "assets/mathpix-source-page-0552-01-300dpi.png",
+      "caption": "图9－45 碳盘驱动系统三阶模型的时间响应（MATLAB）",
+      "sourcePdfPage": 552,
+      "sha256": "1209ca1200e9131762447b0bfa55748514b3b06207b0d064a1fff7d4bd465839",
+      "bytes": 304139
+    },
+    {
+      "index": 46,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0553-01-300dpi.png",
+      "exportPath": "assets/fig-09-46.png",
+      "originalRelativePath": "assets/mathpix-source-page-0553-01-300dpi.png",
+      "caption": "图9－46 系统结构图",
+      "sourcePdfPage": 553,
+      "sha256": "ebd1b2709e5504d1f42f366eb4583a6c456f9433e201e836531d7db56ac5747f",
+      "bytes": 83390
+    },
+    {
+      "index": 47,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0557-01-300dpi.png",
+      "exportPath": "assets/fig-09-47.png",
+      "originalRelativePath": "assets/mathpix-source-page-0557-01-300dpi.png",
+      "caption": "图9－47 工业机器人示意图 9－36 为了完成空间站装配、卫星捕获等空间操作，航天飞机的货舱内装备了一种可膨胀机械臂的遥操作系统，如图9－48（a）所示。柔性机械臂的模型如图9－48（b）所示，其中 $J$ 是驱动电机的转动惯量，$u$为电机驱动转矩，$\\theta_{1}$ 和 $\\theta_{2}$ 为柔性臂转角，$k$ 为柔性臂的弹性系数，$M$ 和 $I$ 分别为负载质量与转动惯量，$l$为机械臂在负载上的作用点到负载重心的距离。若选取状态变量为 $x_{1}=\\theta_{1}, x_{2}=\\dot{\\theta}_{1}, x_{3}=\\theta_{2}, x_{4}=\\dot{\\theta}_{2}$ ，试列写柔性机械臂系统的线性化状态方程。 9－37 设磁悬浮试验系统如图9－49所示。在该系统上方装有一个电磁铁，产生电磁吸力 $F$ ，以便将铁球悬浮于空中。系统的下方装有一个间隙测量传感器，以测量铁球的悬浮间隙。由于没有引人反馈，该磁悬浮试验系统不能稳定工作。",
+      "sourcePdfPage": 557,
+      "sha256": "2b22967b8f051f7fbb9a53c16b6488ad20a81cad490919ed9c0b776942a8fc5b",
+      "bytes": 115156
+    },
+    {
+      "index": 48,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0558-01-300dpi.png",
+      "exportPath": "assets/img-chapter-09-048.png",
+      "originalRelativePath": "assets/mathpix-source-page-0558-01-300dpi.png",
+      "caption": null,
+      "sourcePdfPage": 558,
+      "sha256": "64e4337ce87a1069a66b7dadb83c6c1a0c13e096ddaf87ffaadf65b7191b85e9",
+      "bytes": 360994
+    },
+    {
+      "index": 49,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0558-02-300dpi.png",
+      "exportPath": "assets/fig-09-48.png",
+      "originalRelativePath": "assets/mathpix-source-page-0558-02-300dpi.png",
+      "caption": "图9－48 遲操作系统示意图",
+      "sourcePdfPage": 558,
+      "sha256": "7a3e937cc376536d522a8bac911026e1873fb6591651fe61800ca43c1a6ed51f",
+      "bytes": 160833
+    },
+    {
+      "index": 50,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0558-03-300dpi.png",
+      "exportPath": "assets/fig-09-49.png",
+      "originalRelativePath": "assets/mathpix-source-page-0558-03-300dpi.png",
+      "caption": "图9－49 磁息滛系统示意图 9－38 在大功率高性能的摩托车中，常采用图9－50所示的弹簧－质量－阻尼器系统作为减震器。若已知减震器的基本参数取为质量 $m=1 \\mathrm{~kg}$ ，摩擦系数 $f=9 \\mathrm{~kg} \\cdot \\mathrm{~m} \\cdot \\mathrm{~s}$ ，弹簧系数 $k=20 \\mathrm{~kg} / \\mathrm{m}, u(t)$ 为力输入，$y(t)$为位移输出。要求完成：",
+      "sourcePdfPage": 558,
+      "sha256": "3b87ae6ba7d64feed200027de2e1911563237b51fd2b65787de8c538c37c2fa5",
+      "bytes": 246955
+    },
+    {
+      "index": 51,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0558-04-300dpi.png",
+      "exportPath": "assets/fig-09-50.png",
+      "originalRelativePath": "assets/mathpix-source-page-0558-04-300dpi.png",
+      "caption": "图9－50 弹簧－质量－阻尼器系统示意图 9－40 在图9－52（a）所示的新型游船上，采用了浮桥和稳定器来减少波浪对游船摇摆的影响，游船摇摆控制系统如图9－52（b）所示。图中，$X_{1} 、 X_{2}$ 和 $X_{3}$ 为状态变量，$K_{2}$ 和 $K_{3}$ 为状态反馈增益。试确定",
+      "sourcePdfPage": 558,
+      "sha256": "0a20f3fe5dae963393c922f73d60ad866180688b727dd80bc6f5b766694a8313",
+      "bytes": 130114
+    },
+    {
+      "index": 52,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0559-01-300dpi.png",
+      "exportPath": "assets/fig-09-51.png",
+      "originalRelativePath": "assets/mathpix-source-page-0559-01-300dpi.png",
+      "caption": "图9－51 汽车悬架控制系统结构图",
+      "sourcePdfPage": 559,
+      "sha256": "f962d1ccd99357c8470e203f353f5e0bf463a0058cfa6778e3e845769595d73b",
+      "bytes": 157751
+    },
+    {
+      "index": 53,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0559-02-300dpi.png",
+      "exportPath": "assets/fig-09-51-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0559-02-300dpi.png",
+      "caption": "图9－51 汽车悬架控制系统结构图",
+      "sourcePdfPage": 559,
+      "sha256": "c4a217d98c3099efc4f9ed29749c2b5db235af34b290510f43a582846967444e",
+      "bytes": 657898
+    },
+    {
+      "index": 54,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0559-03-300dpi.png",
+      "exportPath": "assets/fig-09-52.png",
+      "originalRelativePath": "assets/mathpix-source-page-0559-03-300dpi.png",
+      "caption": "图9－52 游船摇摇控制系统",
+      "sourcePdfPage": 559,
+      "sha256": "49ddb270e257f9de7191a55b8542b0ba80f805fde8197dea4141a8b7b070761e",
+      "bytes": 156211
+    },
+    {
+      "index": 55,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0559-04-300dpi.png",
+      "exportPath": "assets/fig-09-53.png",
+      "originalRelativePath": "assets/mathpix-source-page-0559-04-300dpi.png",
+      "caption": "图9－53 内模控制系统结构图",
+      "sourcePdfPage": 559,
+      "sha256": "8da46208c34da54b69a012d2321266c55718a04a5029e3ba7e08759bbbaca847",
+      "bytes": 109195
+    },
+    {
+      "index": 56,
+      "sourcePath": "document-conversion/outputs/hu-shousong-auto-control-8th/chapter-09-mathpix/assets/mathpix-source-page-0560-01-300dpi.png",
+      "exportPath": "assets/fig-09-54.png",
+      "originalRelativePath": "assets/mathpix-source-page-0560-01-300dpi.png",
+      "caption": "图9－54 单位斜坡内模控制系统结构图",
+      "sourcePdfPage": 560,
+      "sha256": "4b99a8f9d10171b8f3da5fbdf8f259918a2cf7d04e62e4586d2e415274f95e84",
+      "bytes": 160442
+    }
+  ]
+}

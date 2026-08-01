@@ -6,7 +6,7 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 # agent-evolver
 
 ## Overview
-本技能负责治理本仓库的项目级 Codex custom agents，而不是替代它们执行业务任务。核心原则是先看运行质量台账，再调模型、推理强度和行为边界，避免凭印象修改 `.codex/agents/*.toml`。
+本技能负责治理本仓库的项目级 Codex custom agents，而不是替代它们执行业务任务。核心原则是先看运行质量台账和全局成本—能力路由，再调模型、推理强度和行为边界，避免凭印象修改 `.codex/agents/*.toml`。
 
 ## When to Use
 - 需要新增、删除或重命名项目级 custom agent
@@ -51,7 +51,7 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 |------|----------|
 | 看到一次超时就直接换模型 | 先看是否是任务分派错误或推理强度过重 |
 | 把 custom agents 与 skill 内 `agents/openai.yaml` 混为一谈 | 项目级 custom agents 只管 Codex 子代理，skill agent prompt 只是技能入口提示 |
-| 因模型统一就扩大简单编码任务 | `spark-coder` 虽使用 Sol low，仍必须保持窄任务边界 |
+| 因 Luna 价格降低就扩大简单编码任务 | `spark-coder` 仍必须保持窄任务边界，模型经济性不能替代范围控制 |
 | 只看子代理昵称就认为命名角色生效 | 核对运行元数据中的 `agent_role`、模型和推理强度 |
 | 没看台账就改 `developer_instructions` | 先记录症状，再改约束 |
 
@@ -60,7 +60,8 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 - 一次同时改模型、推理强度和行为边界
 - 把项目 custom agents 的问题归因到 repo-local skill 本身
 - 让 `critical-reviewer` 或 `deep-debugger` 去承担普通读扫任务
-- 使用 Sol 之外的模型，或使用 `xhigh`、`max`、`ultra`
+- 偏离全局模型路由且没有质量或风险证据
+- 使用 `ultra`
 - 存在匹配命名角色时仍使用继承主线程配置的自由派发
 
 这些都意味着应先停下，回到台账与校验结果。

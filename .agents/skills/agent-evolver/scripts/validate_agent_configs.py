@@ -7,7 +7,9 @@ from pathlib import Path
 
 
 MODEL_REASONING_EFFORTS = {
-    "gpt-5.6-sol": {"low", "medium", "high"},
+    "gpt-5.6-luna": {"high", "xhigh", "max"},
+    "gpt-5.6-terra": {"xhigh", "max"},
+    "gpt-5.6-sol": {"medium", "high"},
 }
 ALLOWED_SANDBOX = {"read-only", "workspace-write", "danger-full-access"}
 CATALOG_START = "# project-agent-catalog:start"

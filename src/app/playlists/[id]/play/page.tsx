@@ -81,6 +81,7 @@ export default async function PlaylistPlayPage(props: PageProps) {
         intent={searchParams?.intent ?? null}
         editHref={editHref}
         canStartClass={canStartClass}
+        launchActor={viewerRole === UserRole.TEACHER ? 'teacher' : 'admin'}
       />
     </PlaylistAppShell>
   );

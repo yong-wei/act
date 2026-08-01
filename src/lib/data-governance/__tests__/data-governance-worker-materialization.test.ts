@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
     mappingIssues: [],
     evidenceCount: 1,
     affectedDimensions: ['modeling'],
+    stateWatermark: BigInt(23),
   })),
   classPortrait: vi.fn(async () => ({
     written: true,
@@ -14,9 +15,16 @@ const mocks = vi.hoisted(() => ({
     memberSetDigest: 'member-digest',
     activeStudentCount: 1,
     totalStudentCount: 1,
+    diagnosticFence: BigInt(29),
   })),
   events: [] as Array<{ id: string; userId: string }>,
   markEventsProcessed: vi.fn(async () => undefined),
+  catalogRefresh: vi.fn(async () => ({
+    catalogDigest: 'a'.repeat(64),
+    candidateLearners: 0,
+    scheduledLearners: 0,
+    targetGenerations: [],
+  })),
 }));
 
 vi.mock('../portrait-v2-materialization', () => ({
@@ -36,6 +44,9 @@ vi.mock('../student-evidence-feature-cache', () => ({
   rebuildStudentEvidenceFeatureCache: vi.fn(),
   refreshStudentEvidenceFeatureCache: vi.fn(),
 }));
+vi.mock('../simulation-task-reconciliation', () => ({
+  scheduleSimulationTaskCatalogRefresh: mocks.catalogRefresh,
+}));
 
 import {
   configureDataGovernanceWorkerForTest,
@@ -43,6 +54,10 @@ import {
   processEventIngestionJob,
   processStudentSnapshotJob,
 } from '../../../../scripts/workers/data-governance-worker';
+import {
+  buildSimulationTaskInputIdentity,
+  SimulationTaskInputDriftError,
+} from '../simulation-task-portrait-projection';
 
 const publication = {
   calculationVersion: 'portrait-v2.cumulative.v2',
@@ -208,6 +223,23 @@ describe('data governance cumulative materialization worker', () => {
     );
   });
 
+  it('returns a JSON-safe student completion payload to BullMQ', async () => {
+    const db = dbWithFence({
+      studentProfile: {
+        findUnique: vi.fn(async () => ({ classId: null })),
+      },
+    });
+    configureDataGovernanceWorkerForTest({ db });
+
+    const result = await processStudentSnapshotJob({
+      id: 'student-json-safe',
+      data: { userId: 'student-1', ...publication },
+    } as any);
+
+    expect(() => JSON.stringify(result)).not.toThrow();
+    expect((result as any).portraitV2.stateWatermark).toBe('23');
+  });
+
   it('rejects the removed recent class scope without reading the cutover fence', async () => {
     const db = dbWithFence();
     configureDataGovernanceWorkerForTest({ db });
@@ -256,6 +288,23 @@ describe('data governance cumulative materialization worker', () => {
         },
       }),
     );
+  });
+
+  it('returns a JSON-safe class completion payload to BullMQ', async () => {
+    const db = dbWithFence();
+    configureDataGovernanceWorkerForTest({ db });
+
+    const result = await processClassSnapshotJob({
+      id: 'class-json-safe',
+      data: {
+        classId: 'class-1',
+        scope: 'cumulative',
+        ...publication,
+      },
+    } as any);
+
+    expect(() => JSON.stringify(result)).not.toThrow();
+    expect((result as any).diagnosticFence).toBe('29');
   });
 
   it('coordinators only create fully fenced cumulative jobs', async () => {
@@ -307,7 +356,26 @@ describe('data governance cumulative materialization worker', () => {
     );
   });
 
+  it('runs drift-only catalog refresh from the scheduled student coordinator', async () => {
+    const db = dbWithFence({
+      interactionLog: { findMany: vi.fn(async () => []) },
+      learningFact: { findMany: vi.fn(async () => []) },
+    });
+    configureDataGovernanceWorkerForTest({ db });
+
+    await processStudentSnapshotJob({
+      data: { coordinator: true, simulationTaskCatalogRefresh: true },
+    } as any);
+
+    expect(mocks.catalogRefresh).toHaveBeenCalledWith(db);
+  });
+
   it('claims a durable cumulative request, dispatches its fenced generation, and completes it after class enqueue', async () => {
+    const simulationTaskInput = buildSimulationTaskInputIdentity({
+      factWatermark: BigInt(4),
+      catalogDigest: 'a'.repeat(64),
+      historicalCandidatePlanDigest: 'plan-1029',
+    });
     let request: any = {
       userId: 'student-1',
       classIds: ['class-1'],
@@ -321,6 +389,7 @@ describe('data governance cumulative materialization worker', () => {
       generation: 3,
       attemptCount: 0,
       updatedAt: new Date('2026-07-23T00:00:00Z'),
+      simulationTaskInput,
     };
     const requestDelegate = {
       findMany: vi.fn(async () => [request]),
@@ -373,15 +442,74 @@ describe('data governance cumulative materialization worker', () => {
       reconciliationRequestGeneration: 3,
       reconciliationClaimToken: expect.any(String),
       reconciliationClassIds: ['class-1'],
+      simulationTaskExpectedInputDigest: expect.any(String),
     });
 
     await processStudentSnapshotJob({ id: 'request-job-3', data: learnerJob } as any);
 
+    expect(mocks.portrait).toHaveBeenCalledWith(
+      db,
+      'student-1',
+      expect.objectContaining({
+        simulationTaskInput: {
+          expectedInputDigest: simulationTaskInput.inputDigest,
+        },
+      }),
+    );
     expect(classAdd).toHaveBeenCalled();
     expect(request).toMatchObject({
       status: 'COMPLETED',
       generation: 3,
       claimToken: null,
     });
+  });
+
+  it('requeues a new generation when the worker observes expected task input drift', async () => {
+    const expected = buildSimulationTaskInputIdentity({
+      factWatermark: BigInt(4),
+      catalogDigest: 'a'.repeat(64),
+      historicalCandidatePlanDigest: 'plan-old',
+    });
+    const actual = buildSimulationTaskInputIdentity({
+      factWatermark: BigInt(4),
+      catalogDigest: 'b'.repeat(64),
+      historicalCandidatePlanDigest: 'plan-old',
+    });
+    mocks.portrait.mockRejectedValueOnce(new SimulationTaskInputDriftError(actual));
+    const updateMany = vi.fn(async () => ({ count: 1 }));
+    const db = dbWithFence({
+      learningMaterializationGeneration: {
+        upsert: vi.fn(async () => ({ generation: 4 })),
+      },
+      learningMaterializationRebuildRequest: {
+        findMany: vi.fn(async () => []),
+        findUnique: vi.fn(async () => ({ generation: 3, classIds: [] })),
+        updateMany,
+      },
+    });
+    configureDataGovernanceWorkerForTest({ db });
+
+    await expect(processStudentSnapshotJob({
+      data: {
+        userId: 'student-drift',
+        ...publication,
+        reconciliationRequestGeneration: 3,
+        reconciliationClaimToken: 'claim-3',
+        reconciliationClassIds: [],
+        simulationTaskExpectedInputDigest: expected.inputDigest,
+        simulationTaskHistoricalCandidatePlanDigest: 'plan-old',
+      },
+    } as any)).resolves.toMatchObject({
+      skipped: true,
+      reason: 'simulation_task_input_drift_requeued',
+      reconciliationRequestGeneration: 4,
+    });
+    expect(updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        generation: 4,
+        status: 'PENDING',
+        simulationTaskInput: actual,
+      }),
+    }));
   });
 });

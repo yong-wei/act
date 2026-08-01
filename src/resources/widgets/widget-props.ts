@@ -46,7 +46,7 @@ export interface BaseWidgetProps {
   onStateChange?: (state: WidgetState) => void;
 
   /** Callback when widget completes (for BOPPPS progression) */
-  onComplete?: (result?: WidgetResult) => void;
+  onComplete?: (result?: WidgetResult) => void | Promise<void>;
 
   /** Lesson context from ContextInjector (auto-injected when embedded) */
   lessonContext?: LessonContext;

@@ -7,12 +7,20 @@ import { useTexture } from '@react-three/drei';
 
 import { GERSTNER_WAVE_SETS } from './gerstner-waves';
 import { createGerstnerWaterMaterial } from './gerstner-water-material';
+import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
+import { simulationScenePalette } from '../../components/simulation-theme';
 
 const RESOLUTION_BY_TIER = {
   high: 256,
   medium: 128,
   low: 64,
 } as const;
+
+/** 水面网格的世界基准高度（mesh position.y）：贴水覆盖层（折线/尾迹）必须叠加同一基准。 */
+export const GERSTNER_WATER_BASE_Y = -1;
+
+/** 未显式传色时的默认水色组：与默认环境预设（开阔海）同一真源，不再各自硬编码。 */
+const DEFAULT_WATER_COLORS = getEnvironmentPreset(DEFAULT_ENVIRONMENT_PRESET_ID).water;
 
 export interface GerstnerWaterProps {
   /** 质量档位：波分量数与网格细分随之缩放。 */
@@ -39,10 +47,10 @@ export function GerstnerWater({
   positionSampler,
   size = 60000,
   seaState = 3,
-  waterColor = '#1a5f86',
-  deepColor = '#0b2f47',
-  horizonColor = '#9fc3d8',
-  foamColor = '#f4fbff',
+  waterColor = DEFAULT_WATER_COLORS.waterColor,
+  deepColor = DEFAULT_WATER_COLORS.deepColor,
+  horizonColor = DEFAULT_WATER_COLORS.horizonColor,
+  foamColor = simulationScenePalette.waterFoam,
   sunDirection = new THREE.Vector3(0.45, 0.75, 0.35),
 }: GerstnerWaterProps) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -87,7 +95,7 @@ export function GerstnerWater({
       geometry={geometry}
       material={material}
       rotation={[-Math.PI / 2, 0, 0]}
-      position={[0, -1, 0]}
+      position={[0, GERSTNER_WATER_BASE_Y, 0]}
     />
   );
 }

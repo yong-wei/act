@@ -4,6 +4,7 @@ import {
   CRUISE_ARENA_OBJECT_ID,
   CRUISE_TRACE_SCENE_ID,
   buildCruiseTelemetryBridgeSummary,
+  validateCruiseTelemetryBridgeSummary,
   type CruiseTelemetryBridgeInput,
 } from '../simulations/cruise/telemetry-bridge';
 
@@ -104,5 +105,16 @@ describe('cruise telemetry bridge', () => {
 
     expect(first.trace.envelope.checksum).toBe(second.trace.envelope.checksum);
     expect(first.trace.envelope.checksum).not.toBe(changed.trace.envelope.checksum);
+    expect(validateCruiseTelemetryBridgeSummary(first)).toBe(true);
+    expect(validateCruiseTelemetryBridgeSummary({
+      ...first,
+      trace: {
+        ...first.trace,
+        summary: {
+          ...first.trace.summary,
+          durationSeconds: 999,
+        },
+      },
+    })).toBe(false);
   });
 });

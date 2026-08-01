@@ -39,7 +39,11 @@ describe('sample experiment annotation wiring', () => {
       path.join(process.cwd(), 'src/resources/simulations/simulations/destroyer-simulation.tsx'), 'utf8'
     );
     expect(destroyer).toContain('<ActualPathTrail');
-    expect(destroyer).toContain('TeachingAnnotationsToggle');
+    expect(destroyer).toContain('<CameraViewSwitcher');
+    const switcher = readFileSync(
+      path.join(process.cwd(), 'src/resources/simulations/components/camera-view-switcher.tsx'), 'utf8'
+    );
+    expect(switcher).toContain('<AnnotationsGridToggle');
     expect(destroyer).toContain('showAnnotations');
     expect(destroyer).toContain('<TeachingAnnotations');
     expect(destroyer).not.toContain('function ShipTrail(');

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import * as adaptiveAssessmentCatalogSelector from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import {
   checkpointAuthoredQuestionRuntimeId,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
@@ -10,6 +11,7 @@ import {
 } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
+import * as resourceRegistryMetadata from '@/lib/resource-registry-metadata';
 import { generateQuestion, getAdaptiveQuestionById } from '../adaptive-engine';
 import {
   getAbilityReportWithPersistenceFallback,
@@ -843,6 +845,36 @@ describe('submitAnswerDurably', () => {
     const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
+    const catalogSnapshot = adaptiveAssessmentCatalogSelector.findAdaptiveAssessmentCatalogSnapshot(question.id);
+    expect(catalogSnapshot).toBeTruthy();
+    const catalogSnapshotSpy = vi.spyOn(adaptiveAssessmentCatalogSelector, 'findAdaptiveAssessmentCatalogSnapshot').mockReturnValue({
+      ...catalogSnapshot!,
+      reviewDecision: {
+        ...catalogSnapshot!.reviewDecision,
+        remediationRefs: [
+          'registry:valid-remediation',
+          'registry:unresolvable-remediation',
+          'registry:missing-render-target',
+        ],
+      },
+    });
+    const resourceMetadataSpy = vi.spyOn(resourceRegistryMetadata, 'getRegisteredResourceMetadataByNodeId').mockImplementation((id) => {
+      if (id === 'registry:valid-remediation') {
+        return {
+          id: 'valid-remediation',
+          label: 'Canonical remediation title',
+          renderTarget: '/interactive-learning/resources/canonical-remediation',
+        } as ReturnType<typeof resourceRegistryMetadata.getRegisteredResourceMetadataByNodeId>;
+      }
+      if (id === 'registry:missing-render-target') {
+        return {
+          id: 'missing-render-target',
+          label: 'Resource without target',
+          renderTarget: null,
+        } as ReturnType<typeof resourceRegistryMetadata.getRegisteredResourceMetadataByNodeId>;
+      }
+      return undefined;
+    });
 
     await submitAnswerDurably({
       userId: 'student-snapshot',
@@ -851,6 +883,8 @@ describe('submitAnswerDurably', () => {
       selectedOption: correctOptionText!,
       timeSpent: 24,
     }, db);
+    catalogSnapshotSpy.mockRestore();
+    resourceMetadataSpy.mockRestore();
 
     expect(db.adaptiveAssessmentItemRef.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: {
@@ -860,7 +894,8 @@ describe('submitAnswerDurably', () => {
           contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         },
       },
-      update: expect.objectContaining({
+      update: {},
+      create: expect.objectContaining({
         metadata: expect.objectContaining({
           kaq: expect.objectContaining({
             immutableContentHash: expect.any(String),
@@ -869,9 +904,27 @@ describe('submitAnswerDurably', () => {
             catalogBacked: expect.any(Boolean),
             snapshotVersion: 'adaptive-assessment-item-ref.v1',
           }),
+          questionSnapshot: {
+            version: 'adaptive-question-snapshot.v1',
+            prompt: question.stem,
+            options: question.options.map((option, index) => ({
+              key: String.fromCharCode(65 + index),
+              label: option.label,
+              text: option.text,
+              explanation: option.explanation,
+            })),
+            correctOptionKey: String.fromCharCode(65 + question.options.findIndex((option) => option.isCorrect)),
+            explanation: question.options.find((option) => option.isCorrect)?.explanation,
+            knowledgeTags: question.knowledgeTags,
+            misconceptionTags: expect.any(Array),
+            remediationResources: [{
+              id: 'registry:valid-remediation',
+              title: 'Canonical remediation title',
+              href: '/interactive-learning/resources/canonical-remediation',
+              governanceState: 'reviewed',
+            }],
+          },
         }),
-      }),
-      create: expect.objectContaining({
         contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         questionType: question.type,
         domains: question.domains,

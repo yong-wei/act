@@ -2514,6 +2514,21 @@ export function getRegisteredResourceMetadata(registryId: string): RegisteredRes
     return metadata ? withDefaultResourceTarget(metadata) : undefined;
 }
 
+export function getRegisteredResourceMetadataByNodeId(resourceNodeId: string): RegisteredResourceMetadata | undefined {
+    if (resourceNodeId.startsWith('registry:')) {
+        return getRegisteredResourceMetadata(resourceNodeId.slice('registry:'.length));
+    }
+    if (!resourceNodeId.startsWith('arena-task:')) return undefined;
+
+    const arenaTaskId = resourceNodeId.slice('arena-task:'.length);
+    const metadata = Object.values(registeredResourceMetadata).find((candidate) => (
+        candidate.type === 'SIMULATION_APP'
+        && candidate.defaultConfig?.resourceKind === 'arena-workbench'
+        && candidate.defaultConfig?.arenaTaskId === arenaTaskId
+    ));
+    return metadata ? withDefaultResourceTarget(metadata) : undefined;
+}
+
 export function getAllRegisteredResourceMetadata() {
     return Object.values(registeredResourceMetadata).map(withDefaultResourceTarget);
 }

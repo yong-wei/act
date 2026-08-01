@@ -57,6 +57,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/teacher/classes`：班级管理、学生导入、课堂记录和班级学情入口。
 - `/teacher/classes/[classId]/analytics-v2`：班级学情总览。
 - `/teacher/classes/[classId]/students/[studentId]`：学生个体学情与证据视图。
+- `/teacher/assignments`：作业列表、单页编辑工作台、受治理题库选题、评分项编排、保存状态与发布校验入口。
 - `/teacher/arena`：Arena 任务配置、预览、发布管理和发布报告。
 - `/teacher/grading-workbench`：文档 rubric 批改与反馈工作台。
 
@@ -158,6 +159,14 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 
 正式排名只消费服务端官方评测写入的 `ArenaSubmission`。`LearningFact` 中的 Arena 上下文只作为辅助证据，不代表官方提交。黑箱任务必须校验数据集归属、hash、预算和隐藏模型边界。
 
+## 智能备课文档
+
+教师智能备课以课程依据、六阶段 BOPPPS 教案和互动课件为三个受治理文档域。三类文档共用全屏编辑外壳、保存状态、结构导航和 AI 建议区域，但各自保留原有 schema、校验、版本、批准与发布契约。课程依据以 Markdown 为规范编辑格式，未使用版本可原位更新，已确认、引用或投影的版本通过后继版本继续编辑；教案固定六个顶层 BOPPPS 阶段，只允许编辑内部步骤；互动课件继续由 manifest 和共享 slide runtime 校验。
+
+富文本文档适配器位于 `src/features/teacher/preparation-document-editor/`，当前使用固定版本的 Tiptap 与 Markdown、表格、公式扩展，也为作业题面和参考答案提供嵌入模式。自动保存和显式保存都携带乐观修订，冲突与失败保留浏览器本地副本。AI 建议的接受与忽略属于普通编辑操作，不会执行教师批准。
+
+智能教案生成使用受治理的备课资源包：教师可以组合已授权上传资料与确认到章节、节的教材范围，系统为知识点、目标和生成内容保留可检查、可替换、可移除的来源绑定。默认班级读取当前累积画像；班级改变或语义内容改变会使既有生成结果失效，缺少可靠来源时必须由教师确认原因。真实结构化模型按 BOPPPS 阶段生成并记录可恢复的尝试，失败恢复不会覆盖已完成阶段。教师可在统一编辑器中保存教案、获取 AI 建议、重新打开任务，并删除未发布任务。桌面与窄屏工作区使用同一业务流程。
+
 ## 数据治理、学习路径与智能助教
 
 数据治理位于 `src/lib/data-governance/`，负责把互动日志和后台事件转成可解释的学习证据。
@@ -168,6 +177,8 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 - `LearningEventBatch`：二级事件批处理存储。
 - `EventDictionary`：核心事件词典和能力映射。
 - `LearningFact`：从事件中物化的统一学习事实。
+- 仿真任务证据：虚拟仿真、控制工作台、Arena 与控制奥德赛的合格学生产物按稳定任务键和不透明产物键写入零画像权重的不可变 `LearningFact`；Arena 只接受有效官方提交，其他运行必须绑定学生所有的持久化结果。
+- 仿真任务画像：`simulationValidationEvidence` 以当前发布的全局任务目录为统一分母，只统计带明确完成权威的满分任务；历史候选通过防篡改计划逐学生增量应用，目录变化通过 fenced reconciliation 刷新个人画像和当前 roster 班级均值，无合格证据时保持不可用而不填零。
 - `StudentPortraitV2Snapshot`：学生七维 portrait v2 主画像快照；`StudentCompetencySnapshot` 仅作为历史兼容输入。
 - `StudentEvidenceFeatureCache`：受治理证据缓存，包含带 authority 标记的 portrait v2 主画像和兼容快照。
 - `StudentProfileSummary`：面向 AI 和页面展示的学生画像摘要。
@@ -184,7 +195,7 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 
 学习证据采集 -> 能力画像更新 -> 定性/定量诊断 -> 多路径推荐 -> 资源执行 -> 作业/试题批改 -> 下次课增强包 -> 控灵伴学解释与追踪。
 
-文档/PDF 批改能力应把 MarkItDown 视为 PDF/Office 到 Markdown 的转换适配器，不把它当作评分系统或高保真 PDF 阅读器。评分、教师审核、学生反馈、证据引用和画像回写需要独立契约。
+文档/PDF 批改能力应把 MarkItDown 视为非统一作答文档的 PDF/Office 到 Markdown 转换适配器，不把它当作评分系统或高保真 PDF 阅读器。统一作答中的 PDF、Office 文档和图片采用受外部处理政策约束的 Mathpix-only 理解路径，不允许本地二进制语义进入 evaluator、batch、批准或写回链；Markdown 与纯文本附件在校验对象完整性后由平台限量直读。部分附件无法理解时，系统保留原件和缺失清单，AI 结果保持为待教师确认的证据不完整建议。评分、教师审核、学生反馈、证据引用和画像回写需要独立契约。
 
 ## AI 与控灵
 
@@ -198,6 +209,18 @@ AI 能力嵌入多个教学场景：
 - 管理员 `/admin/config`：AI 供应商、模型、启用状态与响应测试。
 
 AI 可以解释、提示、总结和建议，但不能伪造学习事实、不能代替官方评测器给出 Arena 成绩、不能跳过课堂契约直接改变课程步骤。未来 Konling 模式需要按诊断、路径建议、资源辅导、批改反馈、班级摘要和备课共创分别声明上下文、工具、引用类别、隐私边界和 fallback。
+
+## 权威知识候选与 ActKG 协议变基
+
+当前候选权威知识底座锁定为 ActKG CTKG 0.2 聚合工程包 `control-theory-engineering-v0.2`：841 个 release entries、744 个投影节点、97 条投影关系和 1302 条唯一上游 RAG crosswalk，谓词词表共九种。两个组件发布只用于校验聚合包声明的血缘与哈希，不作为并列导入项。
+
+公共 bundle 按原始字节完整导入，可逐字节重构并校验 SHA-256；ActKG 私有 CTKGDataset 明确不可用，平台不导入、不推断、不重建其内容。CTKG 0.1 仅保留为历史精确适配器，用于审计与回归，不再参与当前候选准入；Legacy 图谱仍是生产权威，本变更不切换生产 selector。
+
+候选 Repository、三项投影（`act.canvas.v2`、`act.node-detail.v2`、`act.migration-review.v1`）、候选图谱与候选态控灵绑定同一聚合 ReleaseSet、`projectionDigest` 与 `sourceDatasetHash`，不混入旧 root-locus 行；方向或谓词与固定合同冲突时在导入或投影契约处失败关闭，不再运行时改写。旧发布身份下的 inventory、crosswalk、candidate、decision 与 binding 输出只保留为 historical/stale 审计记录，不充当当前 readiness。
+
+标准 public Bundle 可经兼容校验后作为显式非生产候选导入（#1131）；导入完成后 ACT 从已往返验证的数据库快照复算 `ReleaseSetDeltaReceipt`（#1132）。当前环境首个标准候选以已接受的 #1125 v0.2 为冻结 base；仅当安装内完全没有已接受 ReleaseSet 时才标记 `BASELINE`。上游 `release-diff` 只作交叉验证，分歧时不落 accepted 信号；纯包装修订只记录 Bundle 身份、不产生语义 signals。通用失效/增量信号只描述对象/关系/Crosswalk/组件/Projection/词表身份与原因，不决定课程角色、资源角色、教学关系，也不移动 candidate/active/Legacy selector。
+
+下游 CourseCoverage 与 ACT structural-unit crosswalk、资源教学角色、RAG/KAQ/SAR、学习路径、学习事实和最终生产权威切换仍受后续依赖门禁约束，不在 Delta 计算边界内接线。
 
 ## OpenSpec 与工作树协作
 

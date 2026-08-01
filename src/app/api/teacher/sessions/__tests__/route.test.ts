@@ -61,7 +61,7 @@ describe('GET /api/teacher/sessions', () => {
     );
   });
 
-  it('returns inferred class attribution for direct-start sessions without a session classId', async () => {
+  it('returns classless direct-start sessions as unattributed history', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'teacher-1', role: 'TEACHER' },
     });
@@ -85,22 +85,17 @@ describe('GET /api/teacher/sessions', () => {
         classSessionReports: [],
       },
     ]);
-    mocks.prisma.class.findMany.mockResolvedValue([
-      { id: 'class-1', name: '启航班' },
-      { id: 'class-2', name: '旁听班' },
-    ]);
-
     const response = await GET(new Request('http://localhost/api/teacher/sessions'));
     const payload = await response.json();
 
     expect(payload[0]).toMatchObject({
       id: 'session-1',
-      classId: 'class-1',
-      className: '启航班',
+      classId: null,
+      className: null,
       classAttribution: {
-        classId: 'class-1',
-        mode: 'inferred',
-        confidence: 2 / 3,
+        classId: null,
+        mode: 'unassigned',
+        confidence: 0,
       },
     });
   });

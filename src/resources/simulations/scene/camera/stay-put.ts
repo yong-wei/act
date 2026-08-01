@@ -29,7 +29,7 @@ export const ZERO_ORBIT_OFFSET: ViewOrbitOffset = {
   targetDelta: new THREE.Vector3(0, 0, 0),
 };
 
-/** 各视角的偏移存储：只提供 get/capture，不提供 reset——停留语义的核心。 */
+/** 各视角的偏移存储：只提供 get/capture 与显式 clear——停留语义的核心；不存在自动 reset。 */
 export function createViewOffsetStore() {
   const offsets = new Map<string, ViewOrbitOffset>();
   return {
@@ -45,6 +45,10 @@ export function createViewOffsetStore() {
       const offset = captureOrbitOffset(presetFrame, currentPosition, currentTarget);
       offsets.set(view, offset);
       return offset;
+    },
+    /** 显式复位（再次点选当前视图）：仅清空该视角的用户偏移，其他视角不受影响。 */
+    clear(view: string): void {
+      offsets.delete(view);
     },
   };
 }

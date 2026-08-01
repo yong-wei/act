@@ -1,6 +1,11 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import {
+  readAdaptiveAttemptContext,
+  type AdaptiveAttemptContextDb,
+} from '@/features/assessment/adaptive-attempt-context';
+
+import {
   parsePersistedDocumentRubricGradingDraft,
   validateDocumentRubricGradingDraftInvariants,
   type PersistedDocumentRubricGradingDraft,
@@ -103,6 +108,16 @@ export interface KonlingTeachingAssistantServerContextDb {
   smartLessonTask?: SmartLessonTaskContextReader;
   courseBasis?: CourseBasisContextReader;
   diagnosisReportSnapshot?: DiagnosisReportSnapshotReader;
+  adaptiveAssessmentAnswer?: any;
+}
+
+export class KonlingAdaptiveAttemptContextError extends Error {
+  readonly status = 409;
+
+  constructor() {
+    super('KONLING_ADAPTIVE_ATTEMPT_CONTEXT_UNAVAILABLE');
+    this.name = 'KonlingAdaptiveAttemptContextError';
+  }
 }
 
 interface ResolvedDocumentGradingDraft {
@@ -143,6 +158,26 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
 
   if (mode.id === 'resource-coach') {
     return resolveResourceCoachModeContext(input);
+  }
+  const adaptiveAttemptAnswerId = stringHint(input.clientContextHints, 'answerId');
+  if (mode.id === 'diagnosis-explainer' && adaptiveAttemptAnswerId) {
+    if (
+      input.scope.role !== 'student' ||
+      input.scope.authenticatedUserId !== input.scope.targetUserId ||
+      !input.db.adaptiveAssessmentAnswer
+    ) {
+      throw new KonlingAdaptiveAttemptContextError();
+    }
+    const adaptiveAttempt = await readAdaptiveAttemptContext({
+      db: input.db as AdaptiveAttemptContextDb,
+      authenticatedUserId: input.scope.authenticatedUserId,
+      answerId: adaptiveAttemptAnswerId,
+    });
+    if (!adaptiveAttempt) throw new KonlingAdaptiveAttemptContextError();
+    return {
+      'adaptive-attempt': true,
+      adaptiveAttempt,
+    };
   }
   if (mode.id === 'path-advisor') {
     return resolvePathAdvisorModeContext({
@@ -577,9 +612,8 @@ function projectSmartLessonTaskContext(value: unknown, ownerUserId: string) {
       durationMinutes: task.durationMinutes,
       outlineConfirmationRequired: task.outlineConfirmationRequired === true,
       sourceVersionIds: selectedCourseBasisVersions.map((source) => source.versionId),
-      aggregateClassContextRef: recordString(task, 'aggregateClassContextRef') && recordString(recordValue(task.aggregateClassContext) ?? {}, 'classId')
-        ? { classId: recordString(recordValue(task.aggregateClassContext) ?? {}, 'classId'), diagnosisRef: recordString(task, 'aggregateClassContextRef') }
-        : null,
+      textbookRanges: recordArray(task.textbookRanges),
+      selectedClassId: recordString(task, 'selectedClassId') || null,
       knowledgePoints: knowledgePoints.map((item) => ({
         id: recordString(item, 'id'), lineageId: recordString(item, 'lineageId'), title: recordString(item, 'title'), content: recordString(item, 'title'),
         origin: recordString(item, 'origin'), sourceState: publicSmartLessonSourceState(recordString(item, 'sourceState')),
@@ -605,6 +639,7 @@ function projectSmartLessonTaskContext(value: unknown, ownerUserId: string) {
 
 function publicSmartLessonSourceState(value: string) {
   if (value === 'VERIFIED') return 'verified';
+  if (value === 'NO_RELIABLE_SOURCE') return 'no_reliable_source';
   if (value === 'AI_GENERATED_SOURCE_PENDING') return 'ai_generated_source_pending';
   return 'teacher_created_source_pending';
 }

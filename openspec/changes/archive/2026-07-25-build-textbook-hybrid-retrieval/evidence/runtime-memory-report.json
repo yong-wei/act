@@ -1,0 +1,231 @@
+{
+  "recordType": "textbook-hybrid-runtime-memory-benchmark",
+  "manifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+  "model": "BAAI/bge-m3",
+  "dimension": 1024,
+  "runs": [
+    {
+      "recordType": "textbook-hybrid-runtime-memory-run",
+      "run": 1,
+      "manifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+      "model": "BAAI/bge-m3",
+      "dimension": 1024,
+      "baseline": {
+        "rss": 85540864,
+        "heapTotal": 18235392,
+        "heapUsed": 8397608,
+        "external": 3565147,
+        "arrayBuffers": 1191475
+      },
+      "loaded": {
+        "rss": 236404736,
+        "heapTotal": 92700672,
+        "heapUsed": 31591648,
+        "external": 66642969,
+        "arrayBuffers": 64269110
+      },
+      "delta": {
+        "rss": 150863872,
+        "heapTotal": 74465280,
+        "heapUsed": 23194040,
+        "external": 63077822,
+        "arrayBuffers": 63077635
+      },
+      "resourceUsage": {
+        "maxRSSKiB": 230864,
+        "maxRSSBytes": 236404736
+      },
+      "loaderStats": {
+        "artifactBytes": 133271373,
+        "residentArtifactBytes": 86511505,
+        "residentArtifactBudgetBytes": 157286400,
+        "residentArtifactPassed": true,
+        "bodyResidentBytes": 0,
+        "lexicalTermsBytes": 8553767,
+        "lexicalPostingsBytes": 8747083,
+        "windows": 13292,
+        "dimensions": 1024
+      }
+    },
+    {
+      "recordType": "textbook-hybrid-runtime-memory-run",
+      "run": 2,
+      "manifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+      "model": "BAAI/bge-m3",
+      "dimension": 1024,
+      "baseline": {
+        "rss": 76218368,
+        "heapTotal": 18235392,
+        "heapUsed": 8141392,
+        "external": 3451451,
+        "arrayBuffers": 1077747
+      },
+      "loaded": {
+        "rss": 199213056,
+        "heapTotal": 65961984,
+        "heapUsed": 31344616,
+        "external": 66642969,
+        "arrayBuffers": 64269078
+      },
+      "delta": {
+        "rss": 122994688,
+        "heapTotal": 47726592,
+        "heapUsed": 23203224,
+        "external": 63191518,
+        "arrayBuffers": 63191331
+      },
+      "resourceUsage": {
+        "maxRSSKiB": 194544,
+        "maxRSSBytes": 199213056
+      },
+      "loaderStats": {
+        "artifactBytes": 133271373,
+        "residentArtifactBytes": 86511505,
+        "residentArtifactBudgetBytes": 157286400,
+        "residentArtifactPassed": true,
+        "bodyResidentBytes": 0,
+        "lexicalTermsBytes": 8553767,
+        "lexicalPostingsBytes": 8747083,
+        "windows": 13292,
+        "dimensions": 1024
+      }
+    },
+    {
+      "recordType": "textbook-hybrid-runtime-memory-run",
+      "run": 3,
+      "manifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+      "model": "BAAI/bge-m3",
+      "dimension": 1024,
+      "baseline": {
+        "rss": 75923456,
+        "heapTotal": 18235392,
+        "heapUsed": 8141112,
+        "external": 3451451,
+        "arrayBuffers": 1077747
+      },
+      "loaded": {
+        "rss": 198934528,
+        "heapTotal": 65961984,
+        "heapUsed": 31344368,
+        "external": 66642969,
+        "arrayBuffers": 64269078
+      },
+      "delta": {
+        "rss": 123011072,
+        "heapTotal": 47726592,
+        "heapUsed": 23203256,
+        "external": 63191518,
+        "arrayBuffers": 63191331
+      },
+      "resourceUsage": {
+        "maxRSSKiB": 194272,
+        "maxRSSBytes": 198934528
+      },
+      "loaderStats": {
+        "artifactBytes": 133271373,
+        "residentArtifactBytes": 86511505,
+        "residentArtifactBudgetBytes": 157286400,
+        "residentArtifactPassed": true,
+        "bodyResidentBytes": 0,
+        "lexicalTermsBytes": 8553767,
+        "lexicalPostingsBytes": 8747083,
+        "windows": 13292,
+        "dimensions": 1024
+      }
+    },
+    {
+      "recordType": "textbook-hybrid-runtime-memory-run",
+      "run": 4,
+      "manifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+      "model": "BAAI/bge-m3",
+      "dimension": 1024,
+      "baseline": {
+        "rss": 75202560,
+        "heapTotal": 18235392,
+        "heapUsed": 8144632,
+        "external": 3451451,
+        "arrayBuffers": 1077747
+      },
+      "loaded": {
+        "rss": 197754880,
+        "heapTotal": 65961984,
+        "heapUsed": 31353272,
+        "external": 66642969,
+        "arrayBuffers": 64269078
+      },
+      "delta": {
+        "rss": 122552320,
+        "heapTotal": 47726592,
+        "heapUsed": 23208640,
+        "external": 63191518,
+        "arrayBuffers": 63191331
+      },
+      "resourceUsage": {
+        "maxRSSKiB": 197888,
+        "maxRSSBytes": 202637312
+      },
+      "loaderStats": {
+        "artifactBytes": 133271373,
+        "residentArtifactBytes": 86511505,
+        "residentArtifactBudgetBytes": 157286400,
+        "residentArtifactPassed": true,
+        "bodyResidentBytes": 0,
+        "lexicalTermsBytes": 8553767,
+        "lexicalPostingsBytes": 8747083,
+        "windows": 13292,
+        "dimensions": 1024
+      }
+    },
+    {
+      "recordType": "textbook-hybrid-runtime-memory-run",
+      "run": 5,
+      "manifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+      "model": "BAAI/bge-m3",
+      "dimension": 1024,
+      "baseline": {
+        "rss": 74579968,
+        "heapTotal": 17711104,
+        "heapUsed": 8142008,
+        "external": 3451451,
+        "arrayBuffers": 1077747
+      },
+      "loaded": {
+        "rss": 197853184,
+        "heapTotal": 65961984,
+        "heapUsed": 31346800,
+        "external": 66642969,
+        "arrayBuffers": 64269078
+      },
+      "delta": {
+        "rss": 123273216,
+        "heapTotal": 48250880,
+        "heapUsed": 23204792,
+        "external": 63191518,
+        "arrayBuffers": 63191331
+      },
+      "resourceUsage": {
+        "maxRSSKiB": 193216,
+        "maxRSSBytes": 197853184
+      },
+      "loaderStats": {
+        "artifactBytes": 133271373,
+        "residentArtifactBytes": 86511505,
+        "residentArtifactBudgetBytes": 157286400,
+        "residentArtifactPassed": true,
+        "bodyResidentBytes": 0,
+        "lexicalTermsBytes": 8553767,
+        "lexicalPostingsBytes": 8747083,
+        "windows": 13292,
+        "dimensions": 1024
+      }
+    }
+  ],
+  "rssDeltaBytes": {
+    "max": 150863872,
+    "p95": 150863872
+  },
+  "maxRssDeltaBytes": 150863872,
+  "p95RssDeltaBytes": 150863872,
+  "budgetBytes": 157286400,
+  "passed": true
+}

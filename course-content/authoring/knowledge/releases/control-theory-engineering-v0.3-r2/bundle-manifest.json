@@ -1,0 +1,189 @@
+{
+  "artifacts": [
+    {
+      "byte_length": 1053,
+      "contract_version": "actkg-release-notes/1",
+      "media_type": "text/markdown",
+      "path": "RELEASE-NOTES.md",
+      "record_count": null,
+      "required": true,
+      "role": "release_notes",
+      "sha256": "ade861685514e1b5b4cec568f55b10ec6dcb2f3ad3f7fd487e5d1a87a7e22802"
+    },
+    {
+      "byte_length": 805,
+      "contract_version": "actkg-component-manifest/1",
+      "media_type": "application/json",
+      "path": "component-releases.json",
+      "record_count": null,
+      "required": true,
+      "role": "component_manifest",
+      "sha256": "34528a0ca3666963fe7df43ca089a8223ef07c7f8485f6bc0ffe8d88a79e6a58"
+    },
+    {
+      "byte_length": 606982,
+      "contract_version": "ctkg-graph-projection/0.2",
+      "media_type": "application/json",
+      "path": "control-theory-engineering-v0.3.act-projection.json",
+      "profile": "runtime",
+      "record_count": null,
+      "required": true,
+      "role": "projection",
+      "sha256": "6ae23dc3ed20fc77590d8a99cc961341aa5aa57d4436a49cc998d7503353f572"
+    },
+    {
+      "byte_length": 606988,
+      "contract_version": "ctkg-graph-projection/0.2",
+      "media_type": "application/json",
+      "path": "control-theory-engineering-v0.3.domain-projection.json",
+      "profile": "domain",
+      "record_count": null,
+      "required": true,
+      "role": "projection",
+      "sha256": "e3f4993e782a14ec4ec31ab2459521bee2eee385b34237b46735cb8926bbe3be"
+    },
+    {
+      "byte_length": 73238,
+      "contract_version": "actkg-projection-link-metadata/1",
+      "media_type": "application/x-ndjson",
+      "path": "control-theory-engineering-v0.3.projection-link-metadata.jsonl",
+      "profiles": [
+        "runtime",
+        "domain",
+        "review"
+      ],
+      "record_count": 130,
+      "required": true,
+      "role": "projection_link_metadata",
+      "sha256": "253fe51f14c81adffaa901ec0785f273ae6a522908b9f0ab7d433ce29ca51476"
+    },
+    {
+      "byte_length": 237888,
+      "contract_version": "actkg-rag-crosswalk/1",
+      "media_type": "application/x-ndjson",
+      "path": "control-theory-engineering-v0.3.rag-crosswalk.jsonl",
+      "record_count": 1361,
+      "required": true,
+      "role": "rag_crosswalk",
+      "sha256": "540831be1876f7b6ff13e5b1f3ccf3f10658c19bdade6188cf952b23963f7b38"
+    },
+    {
+      "byte_length": 250797,
+      "contract_version": "ctkg-release/0.2",
+      "media_type": "application/json",
+      "path": "control-theory-engineering-v0.3.release.json",
+      "record_count": null,
+      "required": true,
+      "role": "release",
+      "sha256": "9067150d18f8cdc546c0b8cb27aeca8bbac95acdb407931834b8baee3cb78211"
+    },
+    {
+      "byte_length": 606988,
+      "contract_version": "ctkg-graph-projection/0.2",
+      "media_type": "application/json",
+      "path": "control-theory-engineering-v0.3.review-projection.json",
+      "profile": "review",
+      "record_count": null,
+      "required": true,
+      "role": "projection",
+      "sha256": "733530bae1fbde2704f12cdc9f79191725ac139df4bc11b3c2f1179ecdd210e2"
+    },
+    {
+      "byte_length": 227205,
+      "contract_version": "ctkg-json-schema/0.2",
+      "media_type": "application/schema+json",
+      "path": "ctkg.schema.json",
+      "record_count": null,
+      "required": true,
+      "role": "ctkg_schema",
+      "sha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de"
+    },
+    {
+      "byte_length": 4661,
+      "contract_version": "actkg-validation-report/1",
+      "media_type": "application/json",
+      "path": "validation-report.json",
+      "record_count": null,
+      "required": true,
+      "role": "validation_report",
+      "sha256": "60e9fc2c04786ff56b1d3925d4867954e318a924cdcb752019e250df91e10c5f"
+    }
+  ],
+  "bundle_contract_version": "actkg-public-bundle/1",
+  "bundle_digest": "ab6c33fb06d4beefda1c23f8329619caf4e572e252ddd69ba443d2a48364acb9",
+  "bundle_id": "ctb:control-theory-engineering-v0.3:r2",
+  "bundle_kind": "aggregate",
+  "bundle_revision": 2,
+  "components": [
+    {
+      "component_path": "releases/root-locus-engineering-v0.1/root-locus-engineering-v0.1.json",
+      "component_role": "module",
+      "reference_kind": "legacy_exact",
+      "release_hash": "8b1e3832f10d4142db0c395c3b6b2188af6f400faab56f0870502e39c9493e74",
+      "release_id": "ctr:root-locus-engineering-v0.1",
+      "release_raw_sha256": "9a88ce87b4b728c36291b923f69e0647722f1e191501306c33c2c1fed2654eae",
+      "release_version": "root-locus-engineering-v0.1",
+      "source_revision": {
+        "commit": "c3a5f8b494586d36260627bf3853700c1820a82e"
+      }
+    },
+    {
+      "component_path": "releases/system-modeling-engineering-v0.1/system-modeling-engineering-v0.1.release.json",
+      "component_role": "module",
+      "reference_kind": "legacy_exact",
+      "release_hash": "90746513ec47be545e3b7c011450d0fc6542781998a7779797b825e91e17775b",
+      "release_id": "ctr:release:system-modeling-engineering-v0.1",
+      "release_raw_sha256": "b94417c7598982f144612496114d4c205dc797f622c556e931c64d26cb6974de",
+      "release_version": "system-modeling-engineering-v0.1",
+      "source_revision": {
+        "commit": "7ab6041201f3c23963a8ddb2685256a5418ad532"
+      }
+    },
+    {
+      "component_path": "releases/control-theory-integration-v0.1/control-theory-integration-v0.1.release.json",
+      "component_role": "integration",
+      "reference_kind": "legacy_exact",
+      "release_hash": "86050f45ebcec4140dcf6fe29ba83d949527aa98aedce6df467317bee8200b5f",
+      "release_id": "ctr:release:control-theory-integration-v0.1",
+      "release_raw_sha256": "8d3ea123c3a1b85b899d6687a097181c652c21e589d533ab48ea2eb92ec161c4",
+      "release_version": "control-theory-integration-v0.1",
+      "source_revision": {
+        "commit": "5240c0c16378c4f8aa2bfbf2dd1d73c94f28f718"
+      }
+    }
+  ],
+  "normalization": "canonical-json/rfc8785-subset-v1",
+  "previous_bundle": {
+    "bundle_id": "ctb:control-theory-engineering-v0.3:r1",
+    "kind": "legacy_exact",
+    "sha256sums_sha256": "f600413e68f2bcb69416b4a76ac2dabcf0838f76dc0a7a483ab1e43abbc9dc95"
+  },
+  "publication": {
+    "tag": "control-theory-engineering-v0.3-r2"
+  },
+  "release": {
+    "release_hash": "13fc60a0a4e1706095f4db89f0a0db4cba10525f4cd6e9ec08b7d44acd7a4ffc",
+    "release_id": "ctr:release:control-theory-engineering-v0.3",
+    "release_version": "control-theory-engineering-v0.3",
+    "source_dataset_hash": "7ada10dbb5862ea1fa0102453bceff31c7b62c9045b2f14a1aba29bf5762911c"
+  },
+  "release_stage": "stable",
+  "schema": {
+    "sha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de",
+    "version": "0.2.0"
+  },
+  "source_revision": {
+    "commit": "5240c0c16378c4f8aa2bfbf2dd1d73c94f28f718",
+    "tag": "control-theory-engineering-v0.3-source"
+  },
+  "statistics": {
+    "component_count": 3,
+    "knowledge_nodes": 744,
+    "projection_links": 130,
+    "projection_nodes": 744,
+    "published_relations": 130,
+    "rag_crosswalk_rows": 1361,
+    "relation_type_count": 9,
+    "release_entries": 966
+  }
+}

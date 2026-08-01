@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   generateUniqueJoinCode: vi.fn(),
   loadSessionLessonSnapshot: vi.fn(),
+  loadRuntimeLessonManifestSnapshot: vi.fn(),
   logClassroomEvent: vi.fn(),
   enqueueSessionFinalizationEventIngestion: vi.fn(),
   enqueueSessionFinalizationEvidenceFeatureCacheRefresh: vi.fn(),
@@ -21,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   prisma: {
     user: { findUnique: vi.fn() },
     class: { findUnique: vi.fn() },
+    platformSetting: { findUnique: vi.fn() },
     classSession: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),
@@ -28,6 +30,7 @@ const mocks = vi.hoisted(() => ({
       update: vi.fn(),
       updateMany: vi.fn(),
     },
+    $executeRaw: vi.fn(),
     smartCoursewarePublicationRevision: { findUnique: vi.fn() },
     classSessionIntegrityIncident: { upsert: vi.fn() },
     lessonPlan: {
@@ -58,6 +61,7 @@ vi.mock('@/lib/join-code', () => ({
 
 vi.mock('@/lib/session-lesson-snapshot', () => ({
   loadSessionLessonSnapshot: mocks.loadSessionLessonSnapshot,
+  loadRuntimeLessonManifestSnapshot: mocks.loadRuntimeLessonManifestSnapshot,
 }));
 
 vi.mock('@/lib/classroom-observability', () => ({
@@ -96,6 +100,7 @@ describe('lesson plan empty-item guards', () => {
     mocks.generateUniqueJoinCode.mockResolvedValue('123456');
     mocks.prisma.classSession.findFirst.mockResolvedValue(null);
     mocks.prisma.smartCoursewarePublicationRevision.findUnique.mockResolvedValue(null);
+    mocks.prisma.platformSetting.findUnique.mockResolvedValue(null);
     mocks.redisClient.isReady.mockReturnValue(false);
     mocks.redisClient.getSessionState.mockResolvedValue(null);
     mocks.classroomRateLimiter.check.mockReturnValue({ allowed: true });
@@ -104,6 +109,7 @@ describe('lesson plan empty-item guards', () => {
       manifestHash: 'hash',
       totalSteps: 1,
     });
+    mocks.loadRuntimeLessonManifestSnapshot.mockReturnValue(null);
   });
 
   it('rejects creating zero-item lesson plans before creating a record', async () => {
@@ -119,7 +125,7 @@ describe('lesson plan empty-item guards', () => {
   });
 
   it('rejects updates that would leave a lesson plan with zero items', async () => {
-    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({ authorId: 'teacher-1' });
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({ authorId: 'teacher-1', items: [] });
 
     const response = await updateLessonPlan(
       new Request('http://localhost/api/lesson-plans/plan-1', {
@@ -133,6 +139,135 @@ describe('lesson plan empty-item guards', () => {
     expect(response.status).toBe(400);
     expect(payload.error).toContain('至少 1 个环节');
     expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('preserves server-owned runtime binding across reorder and override replacement', async () => {
+    const binding = {
+      schemaVersion: 'preset-runtime-step-binding-v1',
+      sourcePresetKey: 'unit-1-4-time-frequency-views-v1',
+      runtimeLessonId: '1-4',
+      runtimeStepId: 'step-01',
+    };
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      authorId: 'teacher-1',
+      items: [{
+        id: 'item-1',
+        overrideConfig: {
+          titleOverride: '原标题',
+          __presetRuntimeBinding: binding,
+        },
+      }],
+    });
+    mocks.prisma.$transaction.mockImplementation(async (operation) => operation(mocks.prisma));
+    mocks.prisma.lessonPlan.update.mockResolvedValue({ id: 'plan-1', items: [] });
+
+    const response = await updateLessonPlan(
+      new Request('http://localhost/api/lesson-plans/plan-1', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          title: '改名后的教案',
+          items: [{
+            id: 'item-1',
+            itemType: 'RESOURCE',
+            resourceId: 'resource-1',
+            stage: 'SUMMARY',
+            order: 1,
+            duration: 5,
+            overrideConfig: {
+              titleOverride: '新标题',
+              __presetRuntimeBinding: {
+                ...binding,
+                runtimeStepId: 'forged-step',
+              },
+            },
+          }],
+        }),
+      }),
+      { params: Promise.resolve({ id: 'plan-1' }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.lessonPlan.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        title: '改名后的教案',
+        items: {
+          create: [expect.objectContaining({
+            stage: 'SUMMARY',
+            overrideConfig: {
+              titleOverride: '新标题',
+              __presetRuntimeBinding: binding,
+            },
+          })],
+        },
+      }),
+    }));
+  });
+
+  it('rejects a lesson item id that does not belong to the edited plan', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      authorId: 'teacher-1',
+      items: [{ id: 'item-1', overrideConfig: {} }],
+    });
+
+    const response = await updateLessonPlan(
+      new Request('http://localhost/api/lesson-plans/plan-1', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          title: '教案',
+          items: [{
+            id: 'item-from-another-plan',
+            itemType: 'RESOURCE',
+            resourceId: 'resource-1',
+            stage: 'BRIDGE_IN',
+            order: 1,
+            duration: 5,
+            overrideConfig: {},
+          }],
+        }),
+      }),
+      { params: Promise.resolve({ id: 'plan-1' }) },
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('strips client-forged runtime binding when creating a lesson plan', async () => {
+    mocks.prisma.lessonPlan.create.mockResolvedValue({ id: 'plan-1' });
+
+    const response = await createLessonPlan(new Request('http://localhost/api/lesson-plans', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: '新教案',
+        items: [{
+          itemType: 'RESOURCE',
+          resourceId: 'resource-1',
+          stage: 'BRIDGE_IN',
+          order: 1,
+          duration: 5,
+          overrideConfig: {
+            titleOverride: '标题',
+            __presetRuntimeBinding: {
+              schemaVersion: 'preset-runtime-step-binding-v1',
+              sourcePresetKey: 'forged',
+              runtimeLessonId: '1-4',
+              runtimeStepId: 'step-01',
+            },
+          },
+        }],
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.lessonPlan.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        items: {
+          create: [expect.objectContaining({
+            overrideConfig: { titleOverride: '标题' },
+          })],
+        },
+      }),
+    }));
   });
 
   it('rejects direct launch for a zero-item lesson plan', async () => {
@@ -166,6 +301,28 @@ describe('lesson plan empty-item guards', () => {
 
     expect(response.status).toBe(403);
     expect(payload.error).toContain('教师或管理员');
+    expect(mocks.prisma.lessonPlan.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects teacher temporary classroom creation after the binding gates are recorded', async () => {
+    mocks.prisma.platformSetting.findUnique.mockResolvedValue({
+      value: {
+        version: 1,
+        enabled: true,
+        invariantVerifiedAt: '2026-07-24T00:00:00.000Z',
+        producerInventoryVerifiedAt: '2026-07-24T00:00:00.000Z',
+      },
+    });
+
+    const response = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({ planId: 'public-plan' }),
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toContain('请选择一个已启用的班级');
     expect(mocks.prisma.lessonPlan.findUnique).not.toHaveBeenCalled();
     expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
   });
@@ -291,6 +448,82 @@ describe('lesson plan empty-item guards', () => {
     expect(mocks.prisma.classSession.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
       planId: 'projection-v1', coursewarePublicationRevisionId: 'publication-v1', manifestHash: 'manifest-v1',
     }) }));
+  });
+
+  it('loads a renamed preset clone session snapshot from server-owned runtime binding', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      title: '教师改名后的课堂',
+      authorId: 'teacher-1',
+      isPublic: false,
+      items: [{
+        overrideConfig: {
+          __presetRuntimeBinding: {
+            schemaVersion: 'preset-runtime-step-binding-v1',
+            sourcePresetKey: 'unit-1-4-time-frequency-views-v1',
+            runtimeLessonId: '1-4',
+            runtimeStepId: 'step-01',
+          },
+        },
+      }],
+      _count: { items: 1 },
+    });
+    mocks.loadRuntimeLessonManifestSnapshot.mockReturnValue({
+      manifest: {},
+      snapshot: {
+        lessonVersion: 'runtime-v2',
+        manifestHash: 'runtime-hash',
+        totalSteps: 14,
+      },
+    });
+    mocks.prisma.classSession.create.mockResolvedValue({
+      id: 'session-runtime-bound',
+      joinCode: '123456',
+      classId: null,
+      startTime: new Date('2026-07-25T08:00:00.000Z'),
+      plan: { title: '教师改名后的课堂' },
+      class: null,
+    });
+
+    const response = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({ planId: 'plan-runtime-bound' }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.loadRuntimeLessonManifestSnapshot).toHaveBeenCalledWith('1-4');
+    expect(mocks.loadSessionLessonSnapshot).not.toHaveBeenCalled();
+    expect(mocks.prisma.classSession.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        lessonVersion: 'runtime-v2',
+        manifestHash: 'runtime-hash',
+        totalSteps: 14,
+      }),
+    }));
+  });
+
+  it('fails closed when a normal lesson plan contains malformed runtime binding', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      title: '绑定损坏的课堂',
+      authorId: 'teacher-1',
+      isPublic: false,
+      items: [{
+        overrideConfig: {
+          __presetRuntimeBinding: {
+            schemaVersion: 'unknown-version',
+          },
+        },
+      }],
+      _count: { items: 1 },
+    });
+
+    const response = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({ planId: 'plan-malformed-binding' }),
+    }));
+
+    expect(response.status).toBe(409);
+    expect(mocks.loadSessionLessonSnapshot).not.toHaveBeenCalled();
+    expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
   });
 
   it('creates temporary classrooms with a shared identity payload', async () => {
@@ -446,11 +679,72 @@ describe('lesson plan empty-item guards', () => {
     expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
   });
 
+  it('preflights and deduplicates class-bound preset classrooms by preset title', async () => {
+    const preset = ALL_PRESETS[0];
+    mocks.prisma.classSession.findFirst.mockResolvedValue({
+      id: 'class-session-existing',
+      joinCode: '654321',
+      classId: 'class-1',
+      status: 'ACTIVE',
+      plan: { title: `${preset.title} (副本)` },
+      class: { name: '2026 控制班' },
+    });
+
+    const preflightResponse = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({
+        classId: 'class-1',
+        sourcePresetKey: preset.key,
+      }),
+    }));
+    const preflightPayload = await preflightResponse.json();
+
+    expect(preflightResponse.status).toBe(409);
+    expect(preflightPayload).toMatchObject({
+      existingSessionId: 'class-session-existing',
+      requiresExplicitChoice: true,
+      classroomIdentity: { kind: 'class-bound', classId: 'class-1' },
+    });
+    expect(mocks.prisma.classSession.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        classId: 'class-1',
+        plan: { is: { title: `${preset.title} (副本)` } },
+      }),
+    }));
+    expect(mocks.prisma.lessonPlan.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
+
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      title: `${preset.title} (副本)`,
+      authorId: 'teacher-1',
+      isPublic: false,
+      _count: { items: 2 },
+    });
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      teacherId: 'teacher-1',
+      isActive: true,
+    });
+    mocks.prisma.$transaction.mockImplementation(async (operation) => operation(mocks.prisma));
+    const createResponse = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({
+        planId: 'new-clone-plan',
+        classId: 'class-1',
+        sourcePresetKey: preset.key,
+      }),
+    }));
+
+    expect(createResponse.status).toBe(409);
+    expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
+  });
+
   it('creates class-bound sessions with class identity and duplicate override', async () => {
     mocks.prisma.class.findUnique.mockResolvedValue({
       id: 'class-1',
       teacherId: 'teacher-1',
       name: '2026 控制班',
+      isActive: true,
     });
     mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
       title: '班级课堂教案',
@@ -466,6 +760,7 @@ describe('lesson plan empty-item guards', () => {
       plan: { title: '班级课堂教案' },
       class: { name: '2026 控制班' },
     });
+    mocks.prisma.$transaction.mockImplementation(async (operation) => operation(mocks.prisma));
 
     const response = await startSession(new Request('http://localhost/api/session', {
       method: 'POST',

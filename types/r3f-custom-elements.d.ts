@@ -9,26 +9,8 @@ type WaterShaderMaterialProps = ThreeElement<typeof THREE.ShaderMaterial> & {
   uWaveAmplitude?: number;
 };
 
-declare module 'react' {
-  namespace JSX {
-    interface IntrinsicElements {
-      waterShaderMaterial: WaterShaderMaterialProps;
-    }
-  }
-}
-
-declare module 'react/jsx-runtime' {
-  namespace JSX {
-    interface IntrinsicElements {
-      waterShaderMaterial: WaterShaderMaterialProps;
-    }
-  }
-}
-
-declare module 'react/jsx-dev-runtime' {
-  namespace JSX {
-    interface IntrinsicElements {
-      waterShaderMaterial: WaterShaderMaterialProps;
-    }
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    waterShaderMaterial: WaterShaderMaterialProps;
   }
 }

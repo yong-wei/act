@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { assignmentDraftSchema } from '@/lib/assignments/assignment-domain';
+import { assignmentDraftPersistenceSchema } from '@/lib/assignments/assignment-domain';
 import { assignmentErrorResponse, readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
 import { deleteDraftRevision, updateAssignmentDraft } from '@/lib/assignments/assignment-service';
 import { prisma } from '@/lib/prisma';
@@ -9,7 +9,7 @@ import { prisma } from '@/lib/prisma';
 const updateSchema = z.object({
   revisionId: z.string().trim().min(1).max(120),
   expectedVersion: z.number().int().positive(),
-  draft: assignmentDraftSchema,
+  draft: assignmentDraftPersistenceSchema,
 }).strict();
 
 const deleteSchema = z.object({

@@ -1239,15 +1239,16 @@ describe('platform role navigation', () => {
     expect(resourceSource).toContain('data-route-source={sourceContext.href}');
     expect(resourceSource).toContain('resolveAdaptivePathLaunchReturnContext(searchParams)');
     expect(resourceSource).toContain('buildAdaptivePathCompletionRequest');
-    expect(resourceSource).toContain('onComplete={handlePathResourceComplete}');
+    expect(resourceSource).toContain('selectResourceCompletionHandler');
+    expect(resourceSource).toContain('onComplete={resourceCompletionHandler}');
     expect(resourceSource).toContain("label: '学习路径'");
-    expect(resourceSource).toContain('breadcrumbs={[');
+    expect(resourceSource).toContain('breadcrumbs={breadcrumbs}');
     expect(resourceSource).toContain('h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)]');
     expect(readSource('src/features/interactive/shared/lesson-runtime-shell.tsx')).toContain(
       'const runtimeReturnLabel = pathLaunchContext ?',
     );
     expect(readSource('src/features/interactive/shared/lesson-runtime-shell.tsx')).toContain(
-      '{ label: runtimeReturnLabel, href: runtimeReturnHref }',
+      "{ label: '学习路径' }",
     );
     expect(coursesSource).toContain('data-learning-entry-map="course-module-progression"');
     expect(coursesSource).toContain('data-entry-current-work-priority="recommended-course"');
@@ -1326,7 +1327,8 @@ describe('platform role navigation', () => {
 
     expect(teacherNewClassSource).toContain('useSearchParams');
     expect(teacherNewClassSource).toContain('resolveScopedReturnTarget(');
-    expect(teacherClassDetailSource).toContain('returnTo=${encodeURIComponent(`/teacher/classes/${classId}`)}');
+    expect(teacherClassDetailSource).toContain('currentClassId: classId');
+    expect(teacherClassDetailSource).toContain('router.push(`/classroom/teacher/${sessionId}`)');
     expect(teacherLessonPlansSource).toContain('/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans');
     expect(teacherNewLessonPlanSource).toContain('returnPath={returnTarget}');
     expect(teacherNewLessonPlanSource).toContain('workbenchReturnLabel={getTeacherReturnLabel(returnTarget)}');

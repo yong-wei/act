@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { requestClassroomConflictChoice } from '@/features/classroom/classroom-lifecycle-dialog';
+import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
 import { AuthoringApiTaskStrip } from '@/features/teacher/resources/authoring-api-task-strip';
 import { buildLessonPlanAuthoringTasks } from '@/lib/authoring-api-task-consumption';
 import { EMPTY_LESSON_PLAN_MESSAGE } from '@/lib/lesson-plan-readiness';
@@ -22,6 +23,7 @@ interface LessonPlanListProps {
   basePath?: string; // 默认 /admin/lesson-plans
   currentUserId?: string;
   returnTo?: string;
+  launchActor?: 'teacher' | 'admin';
 }
 
 const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
@@ -37,8 +39,9 @@ function formatStableDate(value: string | Date) {
   return dateFormatter.format(date);
 }
 
-export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId, returnTo }: LessonPlanListProps) {
+export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId, returnTo, launchActor = 'admin' }: LessonPlanListProps) {
   const router = useRouter();
+  const teacherLauncher = useTeacherClassroomLauncher();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [localPlans, setLocalPlans] = useState(plans);
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,7 +65,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
     ].filter(Boolean).join(' ').toLowerCase().includes(keyword));
   }, [localPlans, searchQuery]);
 
-  const startSession = async (planId: string) => {
+  const startTemporarySession = async (planId: string) => {
     setLoadingId(planId);
     setOperationMessage(null);
     try {
@@ -112,6 +115,17 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
       setOperationMessage(e instanceof Error ? e.message : '无法开始上课');
       setLoadingId(null);
     }
+  };
+
+  const startSession = (planId: string, launchElement: HTMLElement) => {
+    if (launchActor === 'teacher') {
+      teacherLauncher.launch({
+        planId,
+        onSessionReady: (sessionId) => router.push(`/classroom/teacher/${sessionId}`),
+      }, launchElement);
+      return;
+    }
+    void startTemporarySession(planId);
   };
 
   const handleDeleteConfirm = async () => {
@@ -260,15 +274,24 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
                       编辑
                   </button>
                 )}
-                <button type="button"
-                    onClick={() => canStart ? startSession(plan.id) : setOperationMessage(EMPTY_LESSON_PLAN_MESSAGE)}
-                    disabled={!!loadingId || !canStart}
-                    className="flex items-center gap-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
-                    title={!canStart ? EMPTY_LESSON_PLAN_MESSAGE : undefined}
-                >
-                    {loadingId === plan.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
-                    开始上课
-                </button>
+                <div className="flex flex-col items-end gap-1">
+                  <button type="button"
+                      onClick={(event) => canStart
+                        ? startSession(plan.id, event.currentTarget)
+                        : setOperationMessage(EMPTY_LESSON_PLAN_MESSAGE)}
+                      disabled={!!loadingId || !canStart}
+                      className="flex items-center gap-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
+                      title={!canStart ? EMPTY_LESSON_PLAN_MESSAGE : undefined}
+                  >
+                      {loadingId === plan.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+                      {launchActor === 'admin' ? '开始临时课堂' : '开始上课'}
+                  </button>
+                  {launchActor === 'admin' ? (
+                    <p className="max-w-40 text-right text-[11px] leading-4 text-slate-500">
+                      不绑定班级的临时课堂
+                    </p>
+                  ) : null}
+                </div>
              </div>
           </div>
         </div>
@@ -322,6 +345,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {teacherLauncher.dialog}
     </div>
   );
 }

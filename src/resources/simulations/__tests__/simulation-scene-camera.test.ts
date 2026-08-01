@@ -89,11 +89,15 @@ describe('cinematic shot presets', () => {
     expect(shot.position.y).toBeGreaterThan(ship.shipLength);
   });
 
-  it('retreat frames ahead of the ship looking back', () => {
-    const shot = shots.retreat.frame(ship);
+  it('tactical frames behind and to starboard of the ship at elevation', () => {
+    const shot = shots.tactical.frame(ship);
     const forward = new THREE.Vector3(Math.sin(ship.headingRad), 0, Math.cos(ship.headingRad));
+    const up = new THREE.Vector3(0, 1, 0);
+    const starboard = new THREE.Vector3().crossVectors(forward, up);
     const toCamera = shot.position.clone().sub(new THREE.Vector3(ship.shipX, 0, ship.shipZ));
-    expect(toCamera.dot(forward)).toBeGreaterThan(0);
+    expect(toCamera.dot(forward)).toBeLessThan(0);
+    expect(toCamera.dot(starboard)).toBeGreaterThan(0);
+    expect(shot.position.y).toBeGreaterThan(0);
   });
 
   it('perspectiveTargetForScreenPoint places the ship at the requested screen point', () => {
@@ -138,11 +142,13 @@ describe('sample experiment camera wiring', () => {
     expect(destroyer).toContain('SCENE_CAMERA_SHOTS');
   });
 
-  it('keeps no offset-reset semantics in the pipeline camera module', () => {
+  it('resets offsets only through an explicit re-click clear, never automatically', () => {
     for (const file of ['stay-put.ts', 'stay-put-camera-controller.tsx', 'camera-shots.ts']) {
       const source = readFileSync(path.join(CAMERA_DIR, file), 'utf8');
       expect(source).not.toContain('shouldResetPresetOffset');
     }
+    const store = readFileSync(path.join(CAMERA_DIR, 'stay-put.ts'), 'utf8');
+    expect(store).toContain('clear(view: string)');
   });
 
   it('ends drag interaction on pointer up so offsets capture on the dominant drag path', () => {

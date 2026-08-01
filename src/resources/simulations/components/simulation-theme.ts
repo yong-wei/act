@@ -89,7 +89,20 @@ export const simulationScenePalette = {
   successSurface: 'rgba(34, 197, 94, 0.1)',
   headingSurface: 'rgba(59, 130, 246, 0.1)',
   warningSurface: 'rgba(245, 158, 11, 0.1)',
+  /** Gerstner 水面泡沫高光（七实验共享的固定泡沫色）。 */
+  waterFoam: '#f4fbff',
+  /** 尾流粒子材质基色。 */
+  wakeFoam: '#f5fcff',
 } as const;
+
+/** 将调色板十六进制颜色展开为 canvas 可用的 rgba() 字符串；alpha 由调用方按渐变档位给出。 */
+export function simulationColorWithAlpha(hexColor: string, alpha: number): string {
+  const normalized = hexColor.replace('#', '');
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 export const simulationThemeEvidenceContract = {
   resourceInternalTheme: {

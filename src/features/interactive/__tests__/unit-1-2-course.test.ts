@@ -834,6 +834,7 @@ describe('unit 1-2 modeling from object to system course', () => {
       step: step11,
       module: step11Module,
       submittedAt: 1778550644901,
+      derivedResultRefs: [{ kind: 'SimulationRun', id: 'run-step-11' }],
       submissionValues: {
         selected_ship: 'B',
         time_scale: 3,
@@ -846,6 +847,9 @@ describe('unit 1-2 modeling from object to system course', () => {
       simulation_interaction_count: 4,
     });
     expect(step11Draft?.payload.parameterSnapshot).not.toHaveProperty('gain.k');
+    expect(step11Draft?.payload.derivedResultRefs).toEqual([
+      { kind: 'SimulationRun', id: 'run-step-11' },
+    ]);
   });
 
   it('maps step 10 pole controls into a reactive shared control workbench request', () => {

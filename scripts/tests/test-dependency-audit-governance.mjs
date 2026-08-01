@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 
 import assert from 'node:assert/strict';
-import { evaluateGovernance, printReport } from '../security/audit-governance.mjs';
+import { evaluateGovernance, npmAuditArgs, printReport } from '../security/audit-governance.mjs';
+
+assert.deepEqual(npmAuditArgs(), [
+  'audit',
+  '--json',
+  '--registry',
+  'https://registry.npmjs.org',
+]);
 
 const packageJson = {
   dependencies: {

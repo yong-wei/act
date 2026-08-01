@@ -6,7 +6,7 @@ import {
 } from '../lesson-design-source-pack';
 
 describe('course-basis lesson-design production chain', () => {
-  it('turns a confirmed governed projection into a bounded lesson-design pack', async () => {
+  it('turns an editable governed projection into a bounded lesson-design pack without freezing it', async () => {
     const corpusSourceId = 'teacher-course-basis:basis-1:version-1:root%2Fparagraph%3A1';
     const projection = {
       corpusSourceId,
@@ -18,7 +18,7 @@ describe('course-basis lesson-design production chain', () => {
         orderIndex: 0,
       },
       version: {
-        id: 'version-1', reviewState: 'CONFIRMED', retiredAt: null,
+        id: 'version-1', reviewState: 'PENDING', retiredAt: null,
         createdAt: new Date('2026-07-19T00:00:00Z'),
         document: {
           id: 'document-1', title: '自动控制原理课程标准', kind: 'STANDARD',
@@ -48,8 +48,9 @@ describe('course-basis lesson-design production chain', () => {
 
     expect(sar.candidateRefs.retrievalChunkIds).toEqual([corpusSourceId]);
     expect(result.chunks).toHaveLength(1);
-    expect(result.retrieval.pack.profile).toBe('lesson-design');
+    expect(result.retrieval.pack.profile).toBe('smart-preparation');
     expect(result.retrieval.pack.items).toHaveLength(1);
     expect(result.retrieval.pack.items[0].retrievalChunkId).toBe(corpusSourceId);
+    expect(result.chunks[0].sourceRef.lifecycleState).toBe('editable');
   });
 });

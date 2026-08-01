@@ -85,7 +85,11 @@ export default async function SmartCoursewareEditorPage({
       aiReview: null,
       generationAudit: [],
     };
-    return <SmartCoursewareEditor initialEnvelope={initialEnvelope} initialJob={initialJob} />;
+    return <SmartCoursewareEditor
+      initialEnvelope={initialEnvelope}
+      initialJob={initialJob}
+      returnTaskId={draft.planRevision.taskId}
+    />;
   }
 
   const teacherProjection = await getSmartCoursewareTeacherProjection(prisma, { actor, draftId });
@@ -107,6 +111,7 @@ export default async function SmartCoursewareEditorPage({
       stalePlan={stalePlan}
       initialJob={initialJob}
       sourceRevisionId={approvedCoursewareRevision?.id ?? null}
+      returnTaskId={draft.planRevision.taskId}
     />
   );
 }
