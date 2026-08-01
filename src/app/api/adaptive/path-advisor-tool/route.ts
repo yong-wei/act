@@ -273,9 +273,13 @@ export async function POST(request: Request) {
 
 function readPathGenerationRequestStatus(result: unknown): PathGenerationRequestStatus {
   if (!result || typeof result !== 'object') return 'succeeded';
-  const generationStatus = (result as Record<string, unknown>).generationStatus;
+  const resultRecord = result as Record<string, unknown>;
+  const generationStatus = resultRecord.generationStatus;
   if (generationStatus === 'pending' || generationStatus === 'running') return 'running';
   if (generationStatus === 'blocked' || generationStatus === 'failed') return 'failed';
+  const toolRunStatus = resultRecord.status;
+  if (toolRunStatus === 'pending' || toolRunStatus === 'running' || toolRunStatus === 'awaiting_approval') return 'running';
+  if (toolRunStatus === 'failed') return 'failed';
   return 'succeeded';
 }
 

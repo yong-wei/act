@@ -279,6 +279,27 @@ describe('path advisor tool route readiness', () => {
     });
   });
 
+  it('keeps a reused running tool request active', async () => {
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn().mockResolvedValue({
+        toolRunReused: true,
+        status: 'running',
+      }),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({ generationRequestId: 'stable-request-1' });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      generationRequest: {
+        id: 'stable-request-1',
+        status: 'running',
+      },
+    });
+  });
+
   it('resolves selected fallback pathOptions before path advisor explain calls', async () => {
     const explainLearningPathTradeoff = vi.fn().mockResolvedValue({ explanation: 'ok' });
     mocks.learningPathFindFirst.mockResolvedValue({
