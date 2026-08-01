@@ -47,9 +47,16 @@ export interface EvidenceFeatureCacheJob {
   rebuildAll?: boolean;
 }
 
+export interface RiskFlagScanJob {
+  coordinator?: boolean;
+  pageSize?: number;
+  maxStudents?: number;
+}
+
 export type WorkerJobData =
   | EventIngestionJob
   | StudentSnapshotJob
   | ClassSnapshotJob
   | SessionReportJob
-  | EvidenceFeatureCacheJob;
+  | EvidenceFeatureCacheJob
+  | RiskFlagScanJob;

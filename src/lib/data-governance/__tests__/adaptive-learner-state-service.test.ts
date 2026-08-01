@@ -16,6 +16,7 @@ import {
   createPortraitV2Payload,
   PORTRAIT_V2_CALCULATION_VERSION,
 } from '../portrait-v2-model';
+import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
 
 const snapshotVector: CompetencyVector = {
   controlModeling: { score: 78, trend: 'up', confidence: 0.82, evidenceCount: 8, lastUpdated: '2026-05-20T00:00:00.000Z' },
@@ -63,7 +64,7 @@ function createDb(overrides: Record<string, unknown> = {}) {
     studentEvidenceFeatureCache: {
       findUnique: async () => ({
         userId: 'student-1',
-        payloadVersion: 'student-evidence-features.v4',
+        payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
         refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
         evidenceWindow: {
           firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -894,7 +895,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-03-01T00:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: { LearningFact: 1 },
@@ -1782,7 +1783,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -1888,7 +1889,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -2099,7 +2100,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2235,7 +2236,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2299,7 +2300,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2407,7 +2408,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -2534,7 +2535,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -2632,7 +2633,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2705,7 +2706,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-04-01T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-03-01T00:00:00.000Z',
@@ -2787,7 +2788,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-04-01T02:00:00.000Z'),
           evidenceWindow: {
             firstStartedAt: '2026-03-01T00:00:00.000Z',
@@ -2877,7 +2878,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {
@@ -2966,7 +2967,7 @@ describe('adaptive learner state service', () => {
       studentEvidenceFeatureCache: {
         findUnique: async () => ({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v4',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
           evidenceWindow: evidenceWindow(),
           sourceCounts: {

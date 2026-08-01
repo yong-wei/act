@@ -1851,14 +1851,18 @@ export async function loadAndValidatePublicBundleV1(options: {
       provenanceArtifacts[0]!.descriptor.path,
     );
     const graphRagRuntimeIntake = provenance.graph_rag_runtime_intake;
-    if (graphRagRuntimeIntake !== undefined && graphRagRuntimeIntake !== 'BLOCKED') {
+    if (
+      graphRagRuntimeIntake !== undefined
+      && graphRagRuntimeIntake !== 'BLOCKED'
+      && graphRagRuntimeIntake !== 'UNCHANGED_BLOCKED'
+    ) {
       integrity(
-        `provenance graph_rag_runtime_intake must remain BLOCKED, received ${String(graphRagRuntimeIntake)}`,
+        `provenance graph_rag_runtime_intake must remain fail-closed, received ${String(graphRagRuntimeIntake)}`,
       );
     }
   }
   // Older compatible Bundles may omit the explicit disposition. They remain
-  // fail-closed, and a supplied disposition is accepted only when BLOCKED.
+  // fail-closed. BLOCKED and M1K's UNCHANGED_BLOCKED both prohibit intake.
   const graphRagRuntimeIntakeBlocked = true as const;
 
   const reportArtifacts = byRole.get('validation_report') ?? [];

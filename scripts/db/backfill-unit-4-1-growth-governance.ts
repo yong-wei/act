@@ -2,6 +2,10 @@ import { createPrismaClient } from '../../src/lib/prisma-client';
 import { type Prisma } from '@prisma/client';
 
 import {
+  writeLegacyKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
+import {
   calculateCompetencyVector,
   calculateTrendVector,
   generateEvidenceSummary,
@@ -12,6 +16,7 @@ import {
   type CompetencyVector,
 } from '@/lib/data-governance/competency-model';
 import { refreshStudentGrowthEvaluation } from '@/lib/data-governance/growth-evaluation';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import { buildUNIT41SubmissionTelemetry } from '@/lib/data-governance/unit-4-1-submission-telemetry';
 import { parseUnit41BackfillOptions } from './backfill-unit-4-1-growth-options';
 
@@ -364,18 +369,30 @@ async function main() {
       continue;
     }
 
-    await prisma.learningFact.create({
-      data: {
+    const activeRevision = await resolveActiveKnowledgeRevision(prisma);
+    await writeLegacyKnowledgeScopedLearningFacts(
+      {
+        learningFact: {
+          createMany: async (args) => prisma.learningFact.createMany({
+            data: [...args.data] as Prisma.LearningFactCreateManyInput[],
+            skipDuplicates: args.skipDuplicates,
+          }),
+        },
+      },
+      [{
         userId: log.userId,
         factType: 'question',
         sessionId,
         startedAt: new Date(response.submittedAt),
         finishedAt: new Date(response.submittedAt),
+        outcome: (factData as { outcome?: string }).outcome ?? 'partial',
+        competencyContribution: (factData as { competencyContribution?: unknown }).competencyContribution ?? {},
         sourceEventId,
         courseId: null,
         ...factData,
-      },
-    });
+      } as LearningFactWriteRow],
+      { knowledgeRevisionRef: activeRevision.id },
+    );
   }
 
   const updatedLogs = await prisma.interactionLog.findMany({

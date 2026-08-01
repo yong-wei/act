@@ -6,6 +6,11 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 
 import {
+  selectLearningFactAuthority,
+  writeKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
+import {
   COMPETENCY_DIMENSIONS,
   type CompetencyDimension,
 } from './competency-model';
@@ -17,6 +22,7 @@ import {
   roundUpToOneDecimal,
   teacherScoreIsValid,
 } from '@/lib/assignments/assignment-rubric-contract';
+import { resolveActiveKnowledgeRevision } from './knowledge-truth-revision';
 
 const execFileAsync = promisify(execFile);
 
@@ -924,12 +930,31 @@ export async function writeApprovedGradingEvidence(input: {
       facts: [],
     };
   }
-  const result = await input.db.learningFact.createMany({ data: facts, skipDuplicates: true });
+  const selector = selectLearningFactAuthority('FORMAL_PRODUCTION');
+  const activeRevision = await resolveActiveKnowledgeRevision(input.db as never);
+  const result = await writeKnowledgeScopedLearningFacts(
+    {
+      learningFact: {
+        createMany: async (args) => input.db.learningFact.createMany({
+          data: args.data as unknown as Array<Record<string, unknown>>,
+          skipDuplicates: args.skipDuplicates,
+        }),
+      },
+    },
+    {
+      rows: facts as LearningFactWriteRow[],
+      knowledgeScoped: true,
+    },
+    {
+      selector,
+      knowledgeRevisionRef: activeRevision.id,
+    },
+  );
   await input.db.studentEvidenceFeatureCache?.deleteMany({ where: { userId: input.studentId } });
   return {
     status: 'written',
-    created: result.count,
-    skipped: Math.max(facts.length - result.count, 0),
+    created: result.written,
+    skipped: Math.max(facts.length - result.written, 0),
     blocked: 0,
     facts,
   };

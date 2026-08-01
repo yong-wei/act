@@ -43,12 +43,15 @@ async function main(): Promise<void> {
   const lockPathArg = process.argv.find((arg) => arg.startsWith('--lock-path='));
   const lockPath = lockPathArg?.slice('--lock-path='.length)
     ?? 'course-content/authoring/knowledge/releases/release-set.lock.v3.control-theory-engineering-v0.3-r2.json';
+  const root = process.cwd();
 
   const db = createPrismaClient({ log: ['warn', 'error'] });
   try {
     const captureRevision = await imageRevision();
     const validated = await loadAndValidatePublicBundleV1({
+      root,
       lockPath,
+      gitRoot: root,
       ...(captureRevision ? { captureRevision } : {}),
     });
 

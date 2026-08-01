@@ -1,0 +1,76 @@
+{
+  "capturedAt": "2026-07-31T04:30:34.691Z",
+  "gitRevision": "59a9a4990bcb78e8dc04e3a7098139dace1d48da",
+  "representativeRoute": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
+  "evidenceBoundary": "Real Next.js page, authenticated student, persisted adaptive answer, and persisted diagnosis conversation; only the first conversation failure and model stream are deterministic browser intercepts.",
+  "entries": [
+    {
+      "name": "correct-secondary-320",
+      "viewport": 320,
+      "screenshot": "correct-secondary-320.png",
+      "screenshotSha256": "8d8900f7c5f88bd427462b77f8e1bb4bb7142742fcfcc348bc60f40a8465b882",
+      "metrics": "correct-secondary-320-metrics.json",
+      "assertions": {
+        "answerPersisted": true,
+        "hierarchy": "secondary"
+      }
+    },
+    {
+      "name": "incorrect-primary-320",
+      "viewport": 320,
+      "screenshot": "incorrect-primary-320.png",
+      "screenshotSha256": "cf0309d6e1ae6b99201a8d3c3c9a56f0a044a51560e5addedbb1ec9dbc7b1263",
+      "metrics": "incorrect-primary-320-metrics.json",
+      "assertions": {
+        "answerPersisted": true,
+        "hierarchy": "primary"
+      }
+    },
+    {
+      "name": "correct-secondary-1440",
+      "viewport": 1440,
+      "screenshot": "correct-secondary-1440.png",
+      "screenshotSha256": "3854f49f215854e94e9cc1ff20433264003bcc18b50adb42b038741905da4603",
+      "metrics": "correct-secondary-1440-metrics.json",
+      "assertions": {
+        "answerPersisted": true,
+        "hierarchy": "secondary"
+      }
+    },
+    {
+      "name": "incorrect-primary-1440",
+      "viewport": 1440,
+      "screenshot": "incorrect-primary-1440.png",
+      "screenshotSha256": "e0058d4eb7b76c2b2198077be453fe8a83520a391c4d7e5e7b0edf2272bb258e",
+      "metrics": "incorrect-primary-1440-metrics.json",
+      "assertions": {
+        "answerPersisted": true,
+        "hierarchy": "primary"
+      }
+    },
+    {
+      "name": "retryable-error-1440",
+      "viewport": 1440,
+      "screenshot": "retryable-error-1440.png",
+      "screenshotSha256": "794471ec0e93df5f0e69177356a51c5abce086025f02b6c7f6ca102ecba4963f",
+      "metrics": "retryable-error-1440-metrics.json",
+      "assertions": {
+        "firstCreateStatus": 503,
+        "retryAvailable": true
+      }
+    },
+    {
+      "name": "path-advisor-entry-1440",
+      "viewport": 1440,
+      "screenshot": "path-advisor-entry-1440.png",
+      "screenshotSha256": "3fb8d6265c2742780dcb8d1cc7b60470356aa3a69274f689ecd80348535f263c",
+      "metrics": "path-advisor-entry-1440-metrics.json",
+      "assertions": {
+        "persistedAnswerId": "cms8g2eii0014hov69msyx587",
+        "persistedConversationId": "4fd4bd21-bfa8-481d-860d-617a82d994cc",
+        "initialDiagnosisRequestSent": true,
+        "pathAdvisorAvailable": true
+      }
+    }
+  ]
+}

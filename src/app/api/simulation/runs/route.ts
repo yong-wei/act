@@ -14,8 +14,8 @@ import { prisma } from '@/lib/prisma';
 import { computeControlAnalysisServer } from '@/resources/control-system/analysis/control-engine-server-runtime';
 import type { ControlAnalysisRequest } from '@/resources/control-system/analysis/types';
 import {
-  DEFAULT_TARGET,
   evaluatePIDParams,
+  LEGACY_SCENE_TRACE_TARGET,
 } from '@/resources/simulations/lib/monte-carlo-optimizer';
 import {
   validateCruiseTelemetryBridgeSummary,
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
             registryId: 'sim-scene-cruise',
           },
         },
-        (controller) => evaluatePIDParams(controller, { shipSpeed: 15 }, DEFAULT_TARGET),
+        (controller) => evaluatePIDParams(controller, { shipSpeed: 15 }, LEGACY_SCENE_TRACE_TARGET),
       );
       return NextResponse.json(result);
     }

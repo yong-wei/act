@@ -52,6 +52,7 @@ import {
   buildAdaptiveLearningPathPlan,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathGraphContextInput,
+  type AdaptiveLearningPathConfigurationRequest,
   type AdaptiveLearningPathPolicyFamily,
   type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
@@ -170,7 +171,10 @@ export type KonlingToolName =
   | 'explain_learning_path_tradeoff'
   | 'record_path_adjustment_outcome'
   | 'propose_smart_lesson_task_change'
-  | 'analyze_attempt';
+  | 'analyze_attempt'
+  | 'get_student_risk_flags'
+  | 'get_class_competency_summary'
+  | 'get_student_knowledge_progress';
 
 export type KonlingMemoryType = 'working-summary' | 'session-summary' | 'episodic' | 'intervention-outcome';
 export type KonlingInterventionFeedback =
@@ -202,7 +206,8 @@ export type KonlingTeachingAssistantModeId =
   | 'grading-assistant'
   | 'feedback-explainer'
   | 'class-summarizer'
-  | 'prep-coauthor';
+  | 'prep-coauthor'
+  | 'teacher-diagnosis';
 export type KonlingTeachingAssistantMountSurface =
   | 'generic-chat'
   | 'student-learning-overview'
@@ -211,10 +216,12 @@ export type KonlingTeachingAssistantMountSurface =
   | 'teacher-grading-workbench'
   | 'student-feedback'
   | 'teacher-class-report'
+  | 'teacher-dashboard-diagnosis'
   | 'teacher-prep-pack';
 export type KonlingTeachingAssistantContextKey =
   | 'student-path-center'
   | 'diagnosis-view'
+  | 'adaptive-attempt'
   | 'learner-state-summary'
   | 'evidence-citations'
   | 'path-execution-context'
@@ -316,6 +323,7 @@ export interface KonlingTeachingAssistantRuntimeContract {
   privacyPolicy: KonlingTeachingAssistantModeContract['privacyPolicy'];
   outputContract: KonlingTeachingAssistantModeContract['outputContract'];
   smartPreparation: KonlingSmartPreparationServerContext | null;
+  adaptiveAttempt: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext | null;
   clientHintsAccepted: string[];
   clientHintsRejected: string[];
 }
@@ -363,6 +371,7 @@ export interface KonlingSmartPreparationServerContext {
 
 export type KonlingTeachingAssistantServerModeContext = Partial<Record<KonlingTeachingAssistantContextKey, boolean>> & {
   smartPreparation?: KonlingSmartPreparationServerContext;
+  adaptiveAttempt?: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext;
 };
 
 export interface KonlingTeachingAssistantEntryPoint {
@@ -646,7 +655,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     supportedRoles: ['student', 'teacher'],
     mountingSurfaces: ['student-learning-overview'],
     requiredContext: ['diagnosis-view', 'learner-state-summary', 'evidence-citations'],
-    optionalContext: ['path-execution-context'],
+    optionalContext: ['adaptive-attempt', 'path-execution-context'],
     permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
     citationClasses: ['learner-state', 'path-execution', 'content'],
     payload: 'aggregate-and-redacted-only',
@@ -731,6 +740,24 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     payload: 'teacher-scoped-summary',
     outputStatus: 'advisory-only',
     requiredCitationOwners: ['answer', 'report-explanation'],
+  }),
+  'teacher-diagnosis': teachingAssistantMode({
+    id: 'teacher-diagnosis',
+    label: '教师学情诊断',
+    supportedRoles: ['teacher'],
+    mountingSurfaces: ['teacher-dashboard-diagnosis'],
+    requiredContext: ['evidence-citations'],
+    optionalContext: ['class-report', 'diagnosis-view', 'learner-state-summary', 'resource-node'],
+    permittedTools: [
+      'get_student_risk_flags',
+      'get_class_competency_summary',
+      'get_student_knowledge_progress',
+    ],
+    citationClasses: ['learner-state', 'path-execution', 'intervention'],
+    payload: 'teacher-scoped-summary',
+    outputStatus: 'draft-only',
+    requiredCitationOwners: ['answer', 'report-explanation'],
+    forbiddenActions: ['auto-publish-diagnosis', 'auto-apply-teaching-action'],
   }),
   'prep-coauthor': teachingAssistantMode({
     id: 'prep-coauthor',
@@ -819,7 +846,12 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const smartPreparation = mode.id === 'prep-coauthor' && input.scope.role === 'teacher'
     ? input.serverModeContext?.smartPreparation ?? null
     : null;
-  const requiredContext = smartPreparation
+  const adaptiveAttempt = mode.id === 'diagnosis-explainer'
+    ? input.serverModeContext?.adaptiveAttempt ?? null
+    : null;
+  const requiredContext = adaptiveAttempt
+    ? ['adaptive-attempt'] satisfies KonlingTeachingAssistantContextKey[]
+    : smartPreparation
     ? smartPreparation.bootstrap
       ? [
           'prep-pack',
@@ -837,7 +869,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
         'clarification-readiness',
         ] satisfies KonlingTeachingAssistantContextKey[]
     : mode.requiredContext;
-  const requiredCitationClasses = smartPreparation ? [] : mode.citationClasses;
+  const requiredCitationClasses = smartPreparation || adaptiveAttempt ? [] : mode.citationClasses;
   const missingRequiredContext = mode.id === 'generic-chat'
     ? []
     : requiredContext.flatMap((contextKey) =>
@@ -941,6 +973,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     privacyPolicy: mode.privacyPolicy,
     outputContract: mode.outputContract,
     smartPreparation,
+    adaptiveAttempt,
     clientHintsAccepted: [],
     clientHintsRejected,
   };
@@ -1494,6 +1527,8 @@ function isKonlingModeContextAvailable(
     case 'diagnosis-view':
     case 'learner-state-summary':
       return Boolean(runtimeContext.learnerState) && !runtimeContext.missingContext.includes('learner-state');
+    case 'adaptive-attempt':
+      return Boolean(serverModeContext?.adaptiveAttempt);
     case 'evidence-citations':
       return mode.citationClasses.every((citationClass) =>
         hasKonlingCitationClass(citationClass, runtimeContext.citationContext)
@@ -1900,6 +1935,7 @@ export interface KonlingRuntimeDb {
   studentProfile?: {
     findFirst?: (args: any) => Promise<unknown | null>;
     findMany?: (args: any) => Promise<unknown[]>;
+    count?: (args: any) => Promise<number>;
   };
   class?: {
     findUnique?: (args: any) => Promise<unknown | null>;
@@ -1952,8 +1988,12 @@ export interface KonlingRuntimeDb {
   knowledgeNode?: {
     findMany?: (args: any) => Promise<unknown[]>;
   };
+  knowledgeProgress?: {
+    findMany?: (args: any) => Promise<unknown[]>;
+  };
   studentCompetencySnapshot?: {
     findFirst?: (args: any) => Promise<unknown | null>;
+    findMany?: (args: any) => Promise<unknown[]>;
   };
   studentProfileSummary?: {
     findUnique?: (args: any) => Promise<unknown | null>;
@@ -2034,6 +2074,307 @@ const candidateCanonicalNeighborsParameters = z.object({
   predicate: z.string().trim().min(1).max(160).optional(),
   governance: z.enum(['CORE', 'EXTENSION']).optional(),
 });
+const teacherDiagnosisStudentParameters = z.object({
+  studentId: z.string().trim().min(1).max(200).optional(),
+}).strict();
+const teacherDiagnosisClassParameters = z.object({}).strict();
+
+function safeRiskEvidenceSummary(value: unknown) {
+  const evidence = readRecord(value);
+  return {
+    ...(typeof evidence.lowProgressNodeCount === 'number'
+      ? { lowProgressNodeCount: evidence.lowProgressNodeCount }
+      : {}),
+    ...(typeof evidence.avgProgress === 'number' ? { averageProgress: evidence.avgProgress } : {}),
+    ...(typeof evidence.stuckNodeCount === 'number' ? { stuckNodeCount: evidence.stuckNodeCount } : {}),
+    ...(typeof evidence.standardDeviation === 'number' ? { standardDeviation: evidence.standardDeviation } : {}),
+    ...(typeof evidence.dimensionCount === 'number' ? { dimensionCount: evidence.dimensionCount } : {}),
+    ...(typeof evidence.evidenceCutoff === 'string' ? { evidenceCutoff: evidence.evidenceCutoff } : {}),
+  };
+}
+
+async function assertTeacherDiagnosisClassScope(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+) {
+  if (scope.role !== 'teacher' || !scope.classId) {
+    throw new KonlingRuntimeScopeError(403, '教师学情诊断工具需要已授权的班级范围。');
+  }
+  if (!db.class?.findUnique) {
+    throw new KonlingRuntimeScopeError(409, '班级授权数据暂不可用。');
+  }
+  const classRow = await db.class.findUnique({
+    where: { id: scope.classId },
+    select: { id: true, teacherId: true, isActive: true },
+  });
+  if (!classRow) throw new KonlingRuntimeScopeError(404, '班级不存在。');
+  if (getString(classRow, 'teacherId') !== scope.authenticatedUserId) {
+    throw new KonlingRuntimeScopeError(403, '无权读取该班级的学情诊断。');
+  }
+  if (getValue(classRow, 'isActive') === false) {
+    throw new KonlingRuntimeScopeError(409, '班级已停用，不能生成新的学情诊断。');
+  }
+  return scope.classId;
+}
+
+async function resolveTeacherDiagnosisStudentIds(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  requestedStudentId?: string,
+) {
+  const classId = await assertTeacherDiagnosisClassScope(db, scope);
+  if (!db.studentProfile?.findFirst || !db.studentProfile.findMany) {
+    throw new KonlingRuntimeScopeError(409, '班级成员数据暂不可用。');
+  }
+
+  const scopedStudentId = scope.targetUserId !== scope.authenticatedUserId
+    ? scope.targetUserId
+    : null;
+  if (requestedStudentId && scopedStudentId && requestedStudentId !== scopedStudentId) {
+    throw new KonlingRuntimeScopeError(403, '学生诊断会话不能切换到其他学生。');
+  }
+  const targetStudentId = requestedStudentId ?? scopedStudentId;
+  if (targetStudentId) {
+    const member = await db.studentProfile.findFirst({
+      where: { userId: targetStudentId, classId },
+      select: { userId: true },
+    });
+    if (!member) throw new KonlingRuntimeScopeError(403, '目标学生不属于当前授权班级。');
+    return {
+      studentIds: [targetStudentId],
+      totalMembers: 1,
+      truncated: false,
+    };
+  }
+
+  const members = await db.studentProfile.findMany({
+    where: { classId },
+    orderBy: { userId: 'asc' },
+    take: 501,
+    select: { userId: true },
+  });
+  const studentIds = arrayOfRecords(members)
+    .map((member) => getString(member, 'userId'))
+    .filter(Boolean);
+  const totalMembers = db.studentProfile.count
+    ? await db.studentProfile.count({ where: { classId } })
+    : studentIds.length;
+  return {
+    studentIds,
+    totalMembers,
+    truncated: totalMembers > studentIds.length,
+  };
+}
+
+async function readTeacherScopedRiskFlags(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  args: z.infer<typeof teacherDiagnosisStudentParameters>,
+) {
+  const parsed = teacherDiagnosisStudentParameters.parse(args);
+  const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
+  const { studentIds } = memberScope;
+  if (!db.studentRiskFlag?.findMany) {
+    throw new KonlingRuntimeScopeError(409, '学生风险数据暂不可用。');
+  }
+  if (studentIds.length === 0) {
+    return {
+      classId: scope.classId,
+      students: [],
+      sourceCoverage: { classMembers: memberScope.totalMembers, includedStudents: 0 },
+      confidence: 'unavailable',
+      limitations: memberScope.truncated
+        ? ['class-members-truncated-at-500']
+        : ['class-has-no-current-members'],
+      privacyClass: 'teacher-scoped',
+    };
+  }
+
+  const rows = arrayOfRecords(await db.studentRiskFlag.findMany({
+    where: {
+      userId: { in: studentIds },
+      isResolved: false,
+      flagType: { in: ['constraint', 'stagnation', 'cross_domain'] },
+    },
+    orderBy: { triggeredAt: 'desc' },
+    take: 500,
+    select: {
+      id: true,
+      userId: true,
+      flagType: true,
+      severity: true,
+      description: true,
+      evidenceJson: true,
+      triggeredAt: true,
+    },
+  }));
+  const truncated = rows.length > 500;
+  const flags = rows.slice(0, 500).map((row) => ({
+    studentId: getString(row, 'userId'),
+    type: getString(row, 'flagType'),
+    severity: getString(row, 'severity'),
+    summary: getString(row, 'description'),
+    triggeredAt: toIsoOrNull(getValue(row, 'triggeredAt')),
+    evidenceSummary: safeRiskEvidenceSummary(getValue(row, 'evidenceJson')),
+    evidenceCutoff: getString(readRecord(getValue(row, 'evidenceJson')), 'evidenceCutoff') || null,
+    evidenceRefs: getString(row, 'id') ? [`student-risk-flag:${getString(row, 'id')}`] : [],
+  }));
+  return {
+    classId: scope.classId,
+    students: studentIds,
+    flags,
+    evidenceCutoff: flags.map((flag) => flag.evidenceCutoff).filter(Boolean).sort().at(-1) ?? null,
+    evidenceRefs: flags.flatMap((flag) => flag.evidenceRefs),
+    sourceCoverage: {
+      classMembers: memberScope.totalMembers,
+      includedStudents: new Set(flags.map((flag) => flag.studentId).filter(Boolean)).size,
+    },
+    confidence: rows.length > 0 ? 'medium' : 'unavailable',
+    limitations: [
+      ...(rows.length > 0 ? [] : ['no-current-governed-risk-flags']),
+      ...(memberScope.truncated ? ['class-members-truncated-at-500'] : []),
+      ...(truncated ? ['risk-flags-truncated-at-500'] : []),
+    ],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+async function readTeacherScopedClassCompetencySummary(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+) {
+  const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope);
+  const { studentIds } = memberScope;
+  if (!db.studentCompetencySnapshot?.findMany) {
+    throw new KonlingRuntimeScopeError(409, '班级能力快照暂不可用。');
+  }
+  const rows = arrayOfRecords(await db.studentCompetencySnapshot.findMany({
+    where: { userId: { in: studentIds } },
+    orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
+    distinct: ['userId'],
+    take: Math.max(studentIds.length, 1),
+    select: {
+      id: true,
+      userId: true,
+      snapshotAt: true,
+      competencyVector: true,
+    },
+  }));
+  const latestByStudent = new Map<string, Record<string, unknown>>();
+  for (const row of rows) {
+    const studentId = getString(row, 'userId');
+    if (studentId && !latestByStudent.has(studentId)) latestByStudent.set(studentId, row);
+  }
+
+  const totals = new Map<string, { sum: number; count: number }>();
+  for (const row of latestByStudent.values()) {
+    for (const [dimension, value] of Object.entries(readRecord(row.competencyVector))) {
+      if (typeof value !== 'number' || !Number.isFinite(value)) continue;
+      const current = totals.get(dimension) ?? { sum: 0, count: 0 };
+      current.sum += value;
+      current.count += 1;
+      totals.set(dimension, current);
+    }
+  }
+  const dimensions = Object.fromEntries(
+    [...totals.entries()].sort(([left], [right]) => left.localeCompare(right)).map(
+      ([dimension, value]) => [
+        dimension,
+        {
+          mean: Math.round((value.sum / value.count) * 100) / 100,
+          evidencedMembers: value.count,
+          missingMembers: Math.max(memberScope.totalMembers - value.count, 0),
+        },
+      ],
+    ),
+  );
+  const coverage = memberScope.totalMembers === 0
+    ? 0
+    : latestByStudent.size / memberScope.totalMembers;
+  return {
+    classId: scope.classId,
+    dimensions,
+    evidenceCutoff: [...latestByStudent.values()]
+      .map((row) => toIsoOrNull(row.snapshotAt))
+      .filter(Boolean)
+      .sort()
+      .at(-1) ?? null,
+    sourceCoverage: {
+      classMembers: memberScope.totalMembers,
+      includedStudents: latestByStudent.size,
+      coverage,
+    },
+    confidence: coverage >= 0.8 && latestByStudent.size >= 5
+      ? 'high'
+      : coverage > 0
+        ? 'medium'
+        : 'unavailable',
+    evidenceRefs: [...latestByStudent.values()].flatMap((row) => (
+      getString(row, 'id') ? [`student-competency-snapshot:${getString(row, 'id')}`] : []
+    )),
+    limitations: [
+      ...(coverage === 0 ? ['no-current-competency-snapshots'] : []),
+      ...(memberScope.truncated ? ['class-members-truncated-at-500'] : []),
+    ],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+async function readTeacherScopedKnowledgeProgress(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  args: z.infer<typeof teacherDiagnosisStudentParameters>,
+) {
+  const parsed = teacherDiagnosisStudentParameters.parse(args);
+  const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
+  const { studentIds } = memberScope;
+  if (!db.knowledgeProgress?.findMany) {
+    throw new KonlingRuntimeScopeError(409, '知识点进度数据暂不可用。');
+  }
+  const rows = arrayOfRecords(await db.knowledgeProgress.findMany({
+    where: { userId: { in: studentIds } },
+    orderBy: [{ userId: 'asc' }, { lastVisited: 'desc' }],
+    take: 1_001,
+    select: {
+      id: true,
+      userId: true,
+      nodeId: true,
+      status: true,
+      progress: true,
+      timeSpent: true,
+      lastVisited: true,
+    },
+  }));
+  const truncated = rows.length > 1_000;
+  const progress = rows.slice(0, 1_000).map((row) => ({
+    studentId: getString(row, 'userId'),
+    knowledgeNodeId: getString(row, 'nodeId'),
+    status: getString(row, 'status'),
+    progress: getNumber(row, 'progress'),
+    timeSpentSeconds: getNumber(row, 'timeSpent'),
+    lastVisitedAt: toIsoOrNull(getValue(row, 'lastVisited')),
+    evidenceRefs: getString(row, 'id') ? [`knowledge-progress:${getString(row, 'id')}`] : [],
+  }));
+  return {
+    classId: scope.classId,
+    students: studentIds,
+    progress,
+    evidenceCutoff: progress.map((item) => item.lastVisitedAt).filter(Boolean).sort().at(-1) ?? null,
+    evidenceRefs: progress.flatMap((item) => item.evidenceRefs),
+    sourceCoverage: {
+      classMembers: memberScope.totalMembers,
+      includedStudents: new Set(progress.map((item) => item.studentId).filter(Boolean)).size,
+      progressRows: progress.length,
+    },
+    confidence: progress.length > 0 ? 'medium' : 'unavailable',
+    limitations: [
+      ...(progress.length > 0 ? [] : ['no-knowledge-progress-evidence']),
+      ...(memberScope.truncated ? ['class-members-truncated-at-500'] : []),
+      ...(truncated ? ['knowledge-progress-truncated-at-1000'] : []),
+    ],
+    privacyClass: 'teacher-scoped',
+  };
+}
 
 export const KONLING_TOOL_PERMISSION_TIERS: KonlingToolPermissionTier[] = ['read', 'analyze', 'run', 'write', 'publish'];
 
@@ -2066,6 +2407,9 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   record_path_adjustment_outcome: toolRegistryEntry('record_path_adjustment_outcome', 'write', 'none', 'reuse'),
   propose_smart_lesson_task_change: toolRegistryEntry('propose_smart_lesson_task_change', 'analyze'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
+  get_student_risk_flags: toolRegistryEntry('get_student_risk_flags', 'read'),
+  get_class_competency_summary: toolRegistryEntry('get_class_competency_summary', 'read'),
+  get_student_knowledge_progress: toolRegistryEntry('get_student_knowledge_progress', 'read'),
 };
 
 const KONLING_IDEMPOTENCY_KEY_PARAMETER = z.string().min(1).max(128).optional();
@@ -2707,9 +3051,20 @@ export async function buildKonlingRuntimeContext(
   const permitsTextbookRetrieval = Boolean(registeredPageContext)
     && citationMode.supportedRoles.includes(scope.role)
     && citationMode.citationClasses.includes('content');
-  const runtimePermittedTools: KonlingToolName[] = citationMode.id === 'prep-coauthor'
-    ? [...DEFAULT_TOOLS, ...(permitsTextbookRetrieval ? ['search_textbook' as const] : []), 'propose_smart_lesson_task_change']
-    : [...DEFAULT_TOOLS, ...(permitsTextbookRetrieval ? ['search_textbook' as const] : [])];
+  const modeSpecificTools: KonlingToolName[] = citationMode.id === 'prep-coauthor'
+    ? ['propose_smart_lesson_task_change']
+    : citationMode.id === 'teacher-diagnosis'
+      ? [
+          'get_student_risk_flags',
+          'get_class_competency_summary',
+          'get_student_knowledge_progress',
+        ]
+      : [];
+  const runtimePermittedTools: KonlingToolName[] = [
+    ...DEFAULT_TOOLS,
+    ...(permitsTextbookRetrieval ? ['search_textbook' as const] : []),
+    ...modeSpecificTools,
+  ];
   const preCitationRuntimeContext: KonlingRuntimeContext = {
     pageContext,
     userProfile,
@@ -2959,6 +3314,17 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         };
       }),
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
+    getStudentRiskFlags: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
+      runKonlingRuntimeTool(input, 'get_student_risk_flags', args, async () =>
+        readTeacherScopedRiskFlags(input.db, input.scope, args)),
+    getClassCompetencySummary: async (args: z.infer<typeof teacherDiagnosisClassParameters>) =>
+      runKonlingRuntimeTool(input, 'get_class_competency_summary', args, async () => {
+        teacherDiagnosisClassParameters.parse(args);
+        return readTeacherScopedClassCompetencySummary(input.db, input.scope);
+      }),
+    getStudentKnowledgeProgress: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
+      runKonlingRuntimeTool(input, 'get_student_knowledge_progress', args, async () =>
+        readTeacherScopedKnowledgeProgress(input.db, input.scope, args)),
     getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
     searchLearningMemory: async (args: { query?: string; limit?: number } = {}) =>
       runKonlingRuntimeTool(input, 'search_learning_memory', args, async () => searchKonlingMemory(input.db, {
@@ -3475,9 +3841,101 @@ async function buildAdaptivePathToolOutput(
     throw new KonlingRuntimeScopeError(404, '当前页面目标没有可生成的学习路径。');
   }
   const { registry, diagnostics: candidatePoolDiagnostics } = await resolveAdaptivePathGenerationRegistry(input, goalId);
-  const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
-  const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
+  // Use the legacy bounded generation cap when the learner omitted one. This
+  // cap only controls candidate generation; the minimum executable duration is
+  // derived from the repaired plan below and never raises an explicit request.
+  const planningTimeBudgetMinutes = args.timeBudgetMinutes ?? resolveAdaptivePathPlanningBudget(registeredGoal);
+  const intentMapping = mapAdaptivePathNaturalLanguageIntent(args.naturalLanguageIntent);
+  const explicitResourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference);
+  const resourcePreferences = explicitResourcePreferences
+    ?? (intentMapping.resourcePreferences.length > 0 ? intentMapping.resourcePreferences : undefined)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
+  const resourcePreferenceSource = explicitResourcePreferences
+    ? 'request'
+    : intentMapping.resourcePreferences.length > 0
+      ? 'intent'
+      : 'fallback';
+  const difficultyRhythm = args.difficultyRhythm
+    ?? (intentMapping.conflictDimensions.includes('difficulty')
+      ? undefined
+      : intentMapping.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm);
+  const difficultyRhythmSource = args.difficultyRhythm
+    ? 'request'
+    : intentMapping.difficultyRhythm
+      ? 'intent'
+      : 'fallback';
+  const checkpointPreference = args.checkpointPreference
+    ?? (intentMapping.conflictDimensions.includes('checkpoint')
+      ? undefined
+      : intentMapping.checkpointPreference ?? 'standard');
+  const checkpointPreferenceSource = args.checkpointPreference
+    ? 'request'
+    : intentMapping.checkpointPreference
+      ? 'intent'
+      : 'fallback';
+  const allowExternalResources = args.allowExternalResources
+    ?? (intentMapping.conflictDimensions.includes('external-resource')
+      ? undefined
+      : intentMapping.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources);
+  const allowExternalResourcesSource = typeof args.allowExternalResources === 'boolean'
+    ? 'request'
+    : intentMapping.allowExternalResources !== undefined
+      ? 'intent'
+      : 'fallback';
+  const configurationRequests: AdaptiveLearningPathConfigurationRequest[] = [
+    ...(explicitResourcePreferences ? [{
+      key: 'resource-preferences' as const,
+      source: 'request' as const,
+      value: explicitResourcePreferences,
+    }] : intentMapping.resourcePreferences.length > 0 ? [{
+      key: 'resource-preferences' as const,
+      source: 'intent' as const,
+      value: intentMapping.resourcePreferences,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(args.difficultyRhythm ? [{
+      key: 'difficulty-rhythm' as const,
+      source: 'request' as const,
+      value: args.difficultyRhythm,
+    }] : intentMapping.difficultyRhythm ? [{
+      key: 'difficulty-rhythm' as const,
+      source: 'intent' as const,
+      value: intentMapping.difficultyRhythm,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(args.checkpointPreference ? [{
+      key: 'checkpoint-preference' as const,
+      source: 'request' as const,
+      value: args.checkpointPreference,
+    }] : intentMapping.checkpointPreference ? [{
+      key: 'checkpoint-preference' as const,
+      source: 'intent' as const,
+      value: intentMapping.checkpointPreference,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(typeof args.allowExternalResources === 'boolean' ? [{
+      key: 'external-resources' as const,
+      source: 'request' as const,
+      value: args.allowExternalResources,
+    }] : intentMapping.allowExternalResources !== undefined ? [{
+      key: 'external-resources' as const,
+      source: 'intent' as const,
+      value: intentMapping.allowExternalResources,
+      mappedTerms: intentMapping.matchedTerms,
+    }] : []),
+    ...(typeof args.timeBudgetMinutes === 'number' ? [{
+      key: 'time-budget' as const,
+      source: 'request' as const,
+      value: args.timeBudgetMinutes,
+    }] : []),
+    ...(typeof args.naturalLanguageIntent === 'string' && args.naturalLanguageIntent.trim() ? [{
+      key: 'natural-language-intent' as const,
+      source: 'request' as const,
+      value: 'mapped-intent',
+      mappedTerms: intentMapping.matchedTerms,
+      limitationCode: intentMapping.limitationCode,
+    }] : []),
+  ];
   const plannerRevisionPreference = operation === 'revised'
     ? buildAdaptivePathRevisionPlannerPreference(args, registeredGoal)
     : buildAdaptivePathGenerationPlannerPreference(registeredGoal);
@@ -3491,15 +3949,20 @@ async function buildAdaptivePathToolOutput(
     registry,
     graphContext,
     constraints: {
-      timeBudgetMinutes: timeBudget.effectiveMinutes,
+      timeBudgetMinutes: planningTimeBudgetMinutes,
       privacyScopes: ['student-visible'],
       completedNodeIds: input.context.planContext?.completedNodeIds ?? [],
       currentNodeId: input.context.planContext?.activeNodeId ?? null,
     },
-    difficultyRhythm: args.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm,
+    difficultyRhythm,
+    difficultyRhythmSource,
     resourcePreferences,
-    checkpointPreference: args.checkpointPreference ?? 'standard',
-    allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
+    resourcePreferenceSource,
+    checkpointPreference,
+    checkpointPreferenceSource,
+    allowExternalResources,
+    allowExternalResourcesSource,
+    configurationRequests,
     sourcePackCandidates: sourcePackInput.items,
     sourcePackLimitations: sourcePackInput.limitations,
     candidatePoolDiagnostics,
@@ -3510,14 +3973,21 @@ async function buildAdaptivePathToolOutput(
     requestedAt: args.requestedAt,
     now: new Date(),
   });
+  const timeBudget = resolveAdaptivePathTimeBudget(
+    args.timeBudgetMinutes,
+    plan,
+    planningTimeBudgetMinutes,
+  );
   const toolScope = buildAdaptivePathToolScope(input, goalId, args.pathId);
   const requestSnapshot = redactSensitivePayload({
     requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
     effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
-    difficultyRhythm: args.difficultyRhythm ?? null,
+    minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+    timeBudgetInsufficient: timeBudget.insufficient,
+    difficultyRhythm,
     resourcePreference: resourcePreferences,
-    checkpointPreference: args.checkpointPreference ?? null,
-    allowExternalResources: args.allowExternalResources ?? false,
+    checkpointPreference,
+    allowExternalResources,
     graphNodeId: args.graphNodeId ?? null,
     intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
     excludedNodeIds: args.excludedNodeIds ?? [],
@@ -3551,6 +4021,10 @@ async function buildAdaptivePathToolOutput(
         candidatePoolLimited,
         candidatePoolLimitationCodes,
         candidatePoolStatus,
+        configurationFulfillment: plan.explanations.configurationFulfillment,
+        requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
+        minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+        timeBudgetInsufficient: timeBudget.insufficient,
       },
     });
   }
@@ -3579,7 +4053,12 @@ async function buildAdaptivePathToolOutput(
     });
   }
   const pathOptions = hasPersistablePath ? buildStudentSafePathOptions(plan) : [];
-  const fallbackReasons = plan.explanations.fallbackReasons;
+  const fallbackReasons = uniqueStringList([
+    ...plan.explanations.fallbackReasons,
+    ...(plan.policyBundle?.fallbackReasons ?? []),
+  ]);
+  const singleOptionDiversityUnavailable = pathOptions.length === 1
+    && fallbackReasons.includes('policy-option-diversity-unavailable');
   return {
     operation,
     scope: toolScope,
@@ -3588,10 +4067,12 @@ async function buildAdaptivePathToolOutput(
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
       timeBudgetAdjusted: timeBudget.adjusted,
-      difficultyRhythm: args.difficultyRhythm ?? null,
+      minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
+      timeBudgetInsufficient: timeBudget.insufficient,
+      difficultyRhythm,
       resourcePreference: resourcePreferences,
-      checkpointPreference: args.checkpointPreference ?? null,
-      allowExternalResources: args.allowExternalResources ?? false,
+      checkpointPreference,
+      allowExternalResources,
       graphNodeId: args.graphNodeId ?? null,
       intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
       excludedNodeIds: args.excludedNodeIds ?? [],
@@ -3600,10 +4081,15 @@ async function buildAdaptivePathToolOutput(
     },
     pathId: hasPersistablePath ? plan.id : null,
     pathOptions,
+    configurationFulfillment: plan.explanations.configurationFulfillment.map(
+      toStudentConfigurationFulfillment,
+    ),
     comparison: {
       optionCount: pathOptions.length,
       message: hasPersistablePath
-        ? '已根据你的学习证据生成可比较的路径方案。'
+        ? singleOptionDiversityUnavailable
+          ? '当前资源只能形成单一推荐方案。'
+          : '已根据你的学习证据生成可比较的路径方案。'
         : buildBlockedAdaptivePathGenerationMessage(fallbackReasons),
     },
     limitations: uniqueStringList([...fallbackReasons, ...candidatePoolLimitationCodes]),
@@ -3614,8 +4100,19 @@ async function buildAdaptivePathToolOutput(
     studentSafeRationale: [
       '路径会依据你的当前目标、学习证据和可用时间生成。',
       '证据不足时会先给出可开始的基础路径，并提示需要补充的学习记录。',
-      ...(timeBudget.adjusted ? ['当前目标需要包含终端验证，系统已按最小可行学习时长生成路径。'] : []),
+      ...(timeBudget.insufficient ? [`当前学习时长不足以覆盖必需验证，至少需要 ${timeBudget.minimumMinutes} 分钟。`] : []),
     ],
+  };
+}
+
+function toStudentConfigurationFulfillment(
+  fulfillment: AdaptiveLearningPathPlan['explanations']['configurationFulfillment'][number],
+) {
+  return {
+    key: fulfillment.key,
+    status: fulfillment.status,
+    effect: fulfillment.effect,
+    message: fulfillment.message,
   };
 }
 
@@ -3729,16 +4226,199 @@ function adaptivePathPolicyFamilyFromStyleId(styleId: string | null | undefined)
   return null;
 }
 
-function resolveAdaptivePathTimeBudget(
+function resolveAdaptivePathPlanningBudget(
   registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
-  requestedMinutes: number | undefined,
 ) {
-  const minimumMinutes = registeredGoal.checkpointPolicy.requiresTerminalValidation ? 90 : 45;
-  const effectiveMinutes = Math.max(requestedMinutes ?? minimumMinutes, minimumMinutes);
+  return registeredGoal.checkpointPolicy.requiresTerminalValidation ? 90 : 45;
+}
+
+function resolveAdaptivePathTimeBudget(
+  requestedMinutes: number | undefined,
+  plan: AdaptiveLearningPathPlan,
+  planningBudgetMinutes: number,
+) {
+  const minimumMinutes = deriveMinimumExecutableDurationMinutes(plan);
+  const insufficient = typeof requestedMinutes === 'number' &&
+    minimumMinutes !== null &&
+    requestedMinutes < minimumMinutes;
   return {
-    effectiveMinutes,
-    adjusted: typeof requestedMinutes === 'number' && requestedMinutes < minimumMinutes,
+    effectiveMinutes: requestedMinutes ?? planningBudgetMinutes,
+    minimumMinutes,
+    insufficient,
+    adjusted: false,
   };
+}
+
+function deriveMinimumExecutableDurationMinutes(plan: AdaptiveLearningPathPlan): number | null {
+  const repairFoundInsufficientBudget = plan.constraintRepair?.infeasibleReasons
+    .some((reason) => reason.code === 'time-budget-insufficient') ?? false;
+  if (plan.mainPath.length === 0 && !repairFoundInsufficientBudget) return null;
+  const repairedMinimum = plan.constraintRepair?.minimumExecutableDurationMinutes;
+  if (typeof repairedMinimum === 'number' && Number.isFinite(repairedMinimum)) {
+    return Math.max(0, Math.ceil(repairedMinimum));
+  }
+  const remaining = plan.mainPath.reduce((sum, node) =>
+    sum + (node.status === 'completed' ? 0 : node.estimatedTimeMinutes), 0);
+  return Number.isFinite(remaining) ? Math.max(0, Math.ceil(remaining)) : null;
+}
+
+interface AdaptivePathIntentMapping {
+  resourcePreferences: ResourceNode['type'][];
+  difficultyRhythm?: 'gentle' | 'steady' | 'challenge';
+  checkpointPreference?: 'light' | 'standard' | 'dense';
+  allowExternalResources?: boolean;
+  /** Canonical values passed to the planner as mapping evidence. */
+  matchedTerms: string[];
+  /** Source words matched in the learner's text, used only for clause consumption. */
+  matchedSourceTerms: string[];
+  conflictDimensions: Array<'difficulty' | 'checkpoint' | 'external-resource'>;
+  limitationCode?: string;
+}
+
+export function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): AdaptivePathIntentMapping {
+  const value = typeof intent === 'string' ? intent.trim().toLowerCase() : '';
+  if (!value) {
+    return { resourcePreferences: [], matchedTerms: [], matchedSourceTerms: [], conflictDimensions: [] };
+  }
+  const resourceMappings: Array<{ type: ResourceNode['type']; terms: string[] }> = [
+    { type: 'knowledge_card', terms: ['知识卡', '知识卡片'] },
+    { type: 'textbook_section', terms: ['教材', '课本', '参考章节'] },
+    { type: 'lesson_step', terms: ['互动课', '课程步骤'] },
+    { type: 'quiz', terms: ['测验', '小测'] },
+    { type: 'adaptive_quiz', terms: ['自适应测验', '诊断测验'] },
+    { type: 'simulation', terms: ['仿真', 'simulation'] },
+    { type: 'arena_task', terms: ['arena', '竞技场', '挑战任务'] },
+    { type: 'control_workbench', terms: ['工作台', 'control workbench'] },
+    { type: 'reflection', terms: ['反思', '复盘'] },
+  ];
+  const matchedTerms: string[] = [];
+  const matchedSourceTerms: string[] = [];
+  const intentClauses = value
+    .split(/[，。、；：；,.!:;?？\n]+/)
+    .map((clause) => clause.trim())
+    .filter((clause) => clause.length > 0);
+  const hasPositiveTerm = (term: string, negationPrefixes: string[]) => intentClauses.some((clause) => {
+    let offset = 0;
+    while (offset < clause.length) {
+      const index = clause.indexOf(term, offset);
+      if (index < 0) return false;
+      const negated = negationPrefixes.some((prefix) =>
+        clause.slice(Math.max(0, index - prefix.length), index) === prefix
+      );
+      if (!negated) return true;
+      offset = index + term.length;
+    }
+    return false;
+  });
+  const resourcePreferences = resourceMappings.flatMap(({ type, terms }) => {
+    const matched = terms.filter((term) => value.includes(term));
+    if (matched.length > 0) {
+      matchedTerms.push(type);
+      matchedSourceTerms.push(...matched);
+    }
+    return matched.length > 0 ? [type] : [];
+  });
+  const difficultyNegationPrefixes = ['不要'];
+  const difficultySourceTerms = ['挑战', '高难', '轻松', '循序', '基础'].filter((term) => value.includes(term));
+  const challengeTerms = ['挑战', '高难'].filter((term) => hasPositiveTerm(term, difficultyNegationPrefixes));
+  const gentleTerms = ['轻松', '循序', '基础'].filter((term) => hasPositiveTerm(term, difficultyNegationPrefixes));
+  const difficultyConflict = challengeTerms.length > 0 && gentleTerms.length > 0;
+  const difficultyRhythm = difficultyConflict
+    ? undefined
+    : challengeTerms.length > 0
+    ? 'challenge'
+    : gentleTerms.length > 0
+      ? 'gentle'
+      : undefined;
+  if (difficultyConflict) {
+    matchedSourceTerms.push(...difficultySourceTerms);
+  } else if (difficultyRhythm) {
+    matchedTerms.push(difficultyRhythm);
+    matchedSourceTerms.push(...difficultySourceTerms);
+  }
+  const checkpointSourceTerms = ['密集检查', '多检查点', '少检查', '轻量检查']
+    .filter((term) => value.includes(term));
+  const checkpointNegationPrefixes = ['不要'];
+  const denseCheckpointTerms = ['密集检查', '多检查点'].filter((term) => hasPositiveTerm(term, checkpointNegationPrefixes));
+  const lightCheckpointTerms = ['少检查', '轻量检查'].filter((term) => hasPositiveTerm(term, checkpointNegationPrefixes));
+  const checkpointConflict = denseCheckpointTerms.length > 0 && lightCheckpointTerms.length > 0;
+  const checkpointPreference = checkpointConflict
+    ? undefined
+    : denseCheckpointTerms.length > 0
+    ? 'dense'
+    : lightCheckpointTerms.length > 0
+      ? 'light'
+      : undefined;
+  if (checkpointConflict) {
+    matchedSourceTerms.push(...checkpointSourceTerms);
+  } else if (checkpointPreference) {
+    matchedTerms.push(checkpointPreference);
+    matchedSourceTerms.push(...checkpointSourceTerms);
+  }
+  const externalResourceNegationPrefixes = ['不要使用', '不使用', '不允许', '禁止使用', '不要'];
+  const denyExternalResourceTerms = [
+    '不使用外部',
+    '不要外部',
+    '不要使用外部',
+    '不允许外部',
+    '禁止使用外部',
+  ].filter((term) => value.includes(term));
+  const allowExternalResourceTerms = ['外部资源', '参考资料', '外部链接']
+    .filter((term) => hasPositiveTerm(term, externalResourceNegationPrefixes));
+  const externalResourceConflict = denyExternalResourceTerms.length > 0 && allowExternalResourceTerms.length > 0;
+  const allowExternalResources = externalResourceConflict
+    ? undefined
+    : denyExternalResourceTerms.length > 0
+    ? false
+    : allowExternalResourceTerms.length > 0
+      ? true
+      : undefined;
+  if (externalResourceConflict) {
+    matchedSourceTerms.push(...denyExternalResourceTerms, ...allowExternalResourceTerms);
+  } else if (allowExternalResources !== undefined) {
+    matchedTerms.push('external-resources');
+    matchedSourceTerms.push(...(allowExternalResources ? allowExternalResourceTerms : denyExternalResourceTerms));
+  }
+  const uniqueMatchedTerms = Array.from(new Set(matchedTerms));
+  const uniqueMatchedSourceTerms = Array.from(new Set(matchedSourceTerms));
+  const hasUnconsumedClause = detectUnconsumedIntentClauses(value, uniqueMatchedSourceTerms);
+  const conflictDimensions: AdaptivePathIntentMapping['conflictDimensions'] = [];
+  if (difficultyConflict) conflictDimensions.push('difficulty');
+  if (checkpointConflict) conflictDimensions.push('checkpoint');
+  if (externalResourceConflict) conflictDimensions.push('external-resource');
+  const result = {
+    resourcePreferences: Array.from(new Set(resourcePreferences)),
+    difficultyRhythm,
+    checkpointPreference,
+    allowExternalResources,
+    matchedTerms: uniqueMatchedTerms,
+    matchedSourceTerms: uniqueMatchedSourceTerms,
+    conflictDimensions,
+    ...(conflictDimensions.length > 0
+      ? { limitationCode: 'natural-language-intent-conflict' }
+      : uniqueMatchedTerms.length === 0
+      ? { limitationCode: 'natural-language-intent-unsupported' }
+      : hasUnconsumedClause
+        ? { limitationCode: 'natural-language-intent-partially-unmapped' }
+        : {}
+    ),
+  } satisfies AdaptivePathIntentMapping;
+  return result;
+}
+/**
+ * Detect whether the intent text contains sub-clauses (separated by punctuation)
+ * that have no consumed mapping terms. When some terms match but other sub-clauses
+ * remain unmapped, the intent is only partially actionable.
+ */
+function detectUnconsumedIntentClauses(value: string, matchedSourceTerms: string[]): boolean {
+  const clauses = value
+    .split(/[，。、；：；,.!:;?？\n]+/)
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0);
+  const unconsumedClauses = clauses.filter((clause) =>
+    !matchedSourceTerms.some((term) => clause.includes(term))
+  );
+  return unconsumedClauses.length > 0;
 }
 
 function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]): AdaptiveLearningPathLearnerState {
@@ -5976,6 +6656,21 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       inputSchema: z.object({}),
       execute: () => runtime.getLearnerState(),
     }),
+    get_student_risk_flags: tool({
+      description: '读取当前教师授权班级内的受治理风险摘要；不返回原始证据载荷。',
+      inputSchema: teacherDiagnosisStudentParameters,
+      execute: (args) => runtime.getStudentRiskFlags(args),
+    }),
+    get_class_competency_summary: tool({
+      description: '读取当前教师授权班级的能力聚合、成员分母、证据覆盖与置信度。',
+      inputSchema: teacherDiagnosisClassParameters,
+      execute: (args) => runtime.getClassCompetencySummary(args),
+    }),
+    get_student_knowledge_progress: tool({
+      description: '读取当前教师授权班级成员的知识点进度摘要与证据引用。',
+      inputSchema: teacherDiagnosisStudentParameters,
+      execute: (args) => runtime.getStudentKnowledgeProgress(args),
+    }),
     get_plan_context: tool({
       description: '读取当前学习路径与下一步节点上下文。',
       inputSchema: z.object({}),
@@ -6729,9 +7424,10 @@ function summarizeRuntimeToolError(error: unknown): Record<string, unknown> {
 }
 
 function assertToolResult(input: KonlingToolRuntimeInput, toolName: KonlingToolName, result: unknown) {
-  const permittedTools = input.agentSessionId
-    ? normalizeKonlingToolNames(input.permittedTools ?? input.context.permittedTools)
-    : DEFAULT_TOOLS;
+  const permittedTools = normalizeKonlingToolNames(
+    input.permittedTools
+      ?? (input.agentSessionId ? input.context.permittedTools : DEFAULT_TOOLS),
+  );
   if (!permittedTools.includes(toolName)) {
     throw new KonlingRuntimeScopeError(403, `Konling 工具 ${toolName} 未授权。`);
   }
@@ -6804,9 +7500,6 @@ async function readPlanContext(db: KonlingRuntimeDb, scope: KonlingRuntimeScope)
 
 function readPathOptionContext(pathPayload: Record<string, unknown>): KonlingPathOptionContext[] {
   const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
-  if (getString(policyBundle, 'status') && getString(policyBundle, 'status') !== 'ready') {
-    return [];
-  }
   const pathOptions = arrayOfRecords(getValue(policyBundle, 'paths')).length > 0
     ? arrayOfRecords(getValue(policyBundle, 'paths'))
     : arrayOfRecords(getValue(pathPayload, 'pathOptions'));

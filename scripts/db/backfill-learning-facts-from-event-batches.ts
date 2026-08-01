@@ -1,11 +1,16 @@
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import { type Prisma } from '@prisma/client';
 
+import {
+  writeLegacyKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
   eventToLearningFactInput,
   resolveLearningFactActionType,
 } from '@/lib/data-governance/learning-fact-materialization';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 
 const prisma = createPrismaClient();
 const isDryRun = process.argv.includes('--dry-run');
@@ -72,12 +77,21 @@ async function main() {
     return;
   }
 
-  await prisma.learningFact.createMany({
-    data: factsToInsert,
-    skipDuplicates: true,
-  });
+  const activeRevision = await resolveActiveKnowledgeRevision(prisma);
+  const writeResult = await writeLegacyKnowledgeScopedLearningFacts(
+    {
+      learningFact: {
+        createMany: async (args) => prisma.learningFact.createMany({
+          data: [...args.data] as Prisma.LearningFactCreateManyInput[],
+          skipDuplicates: args.skipDuplicates,
+        }),
+      },
+    },
+    factsToInsert as LearningFactWriteRow[],
+    { knowledgeRevisionRef: activeRevision.id },
+  );
 
-  console.log(`[BackfillFacts] inserted=${factsToInsert.length}`);
+  console.log(`[BackfillFacts] inserted=${writeResult.written}`);
 
 }
 

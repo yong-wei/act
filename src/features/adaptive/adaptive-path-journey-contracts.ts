@@ -1,5 +1,5 @@
 import { buildAdaptivePathLaunchHref } from './adaptive-learning-center-contracts';
-import { isStudentVisiblePathTarget } from '@/lib/control-correction-path-rounds';
+import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
 import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 
 export type AdaptivePathJourneyNextActionState = 'ready' | 'blocked' | 'pending-result' | 'path-complete';

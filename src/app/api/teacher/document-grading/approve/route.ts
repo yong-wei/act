@@ -4,6 +4,11 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import {
+  selectLearningFactAuthority,
+  writeKnowledgeScopedLearningFacts,
+  type LearningFactWriteRow,
+} from '@/lib/canonical-learning-fact-identity';
+import {
   approveGradingRun,
   editCriterionGrade,
   parsePersistedDocumentRubricGradingDraft,
@@ -30,6 +35,7 @@ import { gradingRequestScope, pseudonymousAuditId, sha256, stableStringify } fro
 import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import { hasAtMostOneDecimal } from '@/lib/assignments/assignment-rubric-contract';
 import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 
 export const dynamic = 'force-dynamic';
 
@@ -382,7 +388,29 @@ async function approvePipelineRun(input: {
     }
     const pendingFacts = facts.filter((fact: any) => !existingBySource.has(fact.sourceEventId));
     const written = pendingFacts.length > 0
-      ? await tx.learningFact.createMany({ data: pendingFacts as Prisma.LearningFactCreateManyInput[] })
+      ? await (async () => {
+          const selector = selectLearningFactAuthority('FORMAL_PRODUCTION');
+          const activeRevision = await resolveActiveKnowledgeRevision(tx as never);
+          const result = await writeKnowledgeScopedLearningFacts(
+            {
+              learningFact: {
+                createMany: async (args) => tx.learningFact.createMany({
+                  data: args.data as Prisma.LearningFactCreateManyInput[],
+                  skipDuplicates: args.skipDuplicates,
+                }),
+              },
+            },
+            {
+              rows: pendingFacts as LearningFactWriteRow[],
+              knowledgeScoped: true,
+            },
+            {
+              selector,
+              knowledgeRevisionRef: activeRevision.id,
+            },
+          );
+          return { count: result.written };
+        })()
       : { count: 0 };
     if (facts.length > 0) {
       if (!scope.studentId || !scope.classId) throw new GradingMutationError('grading-review-scope-changed', 409);
