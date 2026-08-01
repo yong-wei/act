@@ -1,0 +1,57 @@
+{
+  "status": "PASS",
+  "iteration": 1,
+  "protocol": "act-latest-stable-aggregate-binding/1",
+  "selectionPolicy": "LATEST_STABLE_AGGREGATE",
+  "actkgMainCommit": "034ee80a76a88562ada10d23f4b406f86cc0193a",
+  "sourceCommit": "ef432d0faebb012b19382d71264d9b3e6a83440e",
+  "sourceTag": "control-theory-engineering-v0.7-source",
+  "packagingCommit": "b1287a277735af9809c6c14e6daf881b716015be",
+  "stableTag": "control-theory-engineering-v0.7",
+  "releaseId": "ctr:release:control-theory-engineering-v0.7",
+  "releaseVersion": "control-theory-engineering-v0.7",
+  "releaseHash": "e46f854d7a05fd4ec840c5eaff69288e7ce34cb2119da501913cbf457ce91f8e",
+  "sourceDatasetHash": "21e957c750c29efaae3b7ec5d70f8155cc33221dae5faec24f3fda1d59c4f31c",
+  "bundleId": "ctb:control-theory-engineering-v0.7:r1",
+  "bundleDigest": "ad33ec039239fc89ff6d74aaa48daedab826344b84742d2a6563f6ae2a9ef1bc",
+  "manifestSha256": "14a54e0abd1bc1b7f7f35b0da6304b51dc364481ba194c0a81ca17fa5a0dc44d",
+  "sha256sumsSha256": "ccadc2fe58d6492d1a7c2a4819081ccd1f75e1c2f21e74f4dbfce8d093d15a4f",
+  "validationReportSha256": "7b380e304a8717e6b4c76b6070a090ce6f2a8dee874143134cf8120ed8f83960",
+  "schemaVersion": "0.2.0",
+  "schemaSha256": "3598f0c89f1f32ff1812e823454a17502873ccb5e9577656e6485a7e030233de",
+  "predecessorBundleId": "ctb:control-theory-engineering-v0.6:r1",
+  "candidateChain": [
+    "ctb:control-theory-engineering-v0.3:r2",
+    "ctb:control-theory-engineering-v0.4:r1",
+    "ctb:control-theory-engineering-v0.5:r1",
+    "ctb:control-theory-engineering-v0.6:r1",
+    "ctb:control-theory-engineering-v0.7:r1"
+  ],
+  "candidateChainEndpoints": [
+    "ctb:control-theory-engineering-v0.7:r1"
+  ],
+  "statistics": {
+    "component_count": 7,
+    "knowledge_nodes": 2990,
+    "projection_links": 1356,
+    "projection_nodes": 2990,
+    "published_relations": 1356,
+    "rag_crosswalk_rows": 5724,
+    "relation_type_count": 9,
+    "release_entries": 4463
+  },
+  "bundlePath": "releases/control-theory-engineering-v0.7",
+  "resolutionDigest": "91cfe889f8c5329e6c26fc146062498e1fe8157f3e7887f92da943a8c9febc7f",
+  "gates": {
+    "LATEST_STABLE_AGGREGATE_RESOLUTION_GATE": "PASS",
+    "LATEST_BUNDLE_INTEGRITY_GATE": "PASS",
+    "LATEST_CANDIDATE_IMPORT_GATE": "NOT_RUN",
+    "LATEST_DELTA_RECEIPT_ALIGNMENT_GATE": "NOT_RUN",
+    "LATEST_COURSE_COVERAGE_ALIGNMENT_GATE": "NOT_RUN",
+    "PRODUCTION_SELECTOR_CHANGE": 0,
+    "GRAPH_RAG_SELECTOR_CHANGE": 0,
+    "TEACHING_RELATION_GENERATION": "NOT_RUN",
+    "PROJECTION_GENERATION": "NOT_RUN",
+    "ATTESTATION_GENERATION": "NOT_RUN"
+  }
+}
