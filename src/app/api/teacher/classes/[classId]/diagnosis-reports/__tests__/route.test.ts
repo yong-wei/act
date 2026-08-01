@@ -1,20 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({
-  getServerAuthSession: vi.fn(),
-  readDiagnosisReports: vi.fn(),
-}));
+const mocks = vi.hoisted(() => {
+  class DiagnosisReportScopeError extends Error {
+    constructor(readonly status: number, message: string) {
+      super(message);
+    }
+  }
+  return {
+    DiagnosisReportScopeError,
+    getServerAuthSession: vi.fn(),
+    readDiagnosisReports: vi.fn(),
+  };
+});
 
 vi.mock('@/lib/auth', () => ({
   getServerAuthSession: mocks.getServerAuthSession,
 }));
 
 vi.mock('@/lib/diagnosis-persistence', () => ({
-  DiagnosisReportScopeError: class DiagnosisReportScopeError extends Error {
-    constructor(readonly status: number, message: string) {
-      super(message);
-    }
-  },
+  DiagnosisReportScopeError: mocks.DiagnosisReportScopeError,
   diagnosisReportWriteSchema: { parse: vi.fn() },
   persistDiagnosisReport: vi.fn(),
   readDiagnosisReports: mocks.readDiagnosisReports,
@@ -92,5 +96,19 @@ describe('GET teacher diagnosis reports', () => {
     expect(unauthenticated.status).toBe(401);
     expect(forbidden.status).toBe(403);
     expect(mocks.readDiagnosisReports).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when the teacher does not own the class or the student is not a current member', async () => {
+    mocks.readDiagnosisReports.mockRejectedValueOnce(
+      new mocks.DiagnosisReportScopeError(404, '班级或学生范围不可用'),
+    );
+
+    const response = await GET(
+      new Request('http://localhost/api/teacher/classes/class-other/diagnosis-reports?studentId=student-departed'),
+      { params: Promise.resolve({ classId: 'class-other' }) },
+    );
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: '班级或学生范围不可用' });
   });
 });

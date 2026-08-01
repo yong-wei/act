@@ -269,7 +269,7 @@ function ReportDetail({ report }: { report: DiagnosisReportApiItem }) {
           </div>
           <p className="mt-4 text-base leading-7 text-foreground">{report.reportBody.summary}</p>
         </div>
-        <dl className="grid min-w-[17rem] grid-cols-2 gap-2 text-sm">
+        <dl className="grid min-w-0 grid-cols-2 gap-2 text-sm sm:min-w-[17rem]">
           <Metric label="生成时间" value={formatReportTime(report.generatedAt)} />
           <Metric label="证据截止" value={formatReportTime(report.evidenceCutoff)} />
           <Metric label="证据引用" value={`${evidenceCount} 条`} />
