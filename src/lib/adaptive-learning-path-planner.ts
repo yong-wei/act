@@ -4875,7 +4875,7 @@ function selectPolicySupportNodes(
     return picked;
   }
 
-  const preferredTypes = input.learnerState?.resourcePreference?.preferredModalities ?? [];
+  const preferredTypes = Array.from(buildPlannerPreferenceContext(input).resourceTypes);
   const preferenceRank = new Map(preferredTypes.map((type, index) => [type, index]));
   addCandidates(input.registry.nodes
       .filter((node) => preferenceRank.has(node.type))

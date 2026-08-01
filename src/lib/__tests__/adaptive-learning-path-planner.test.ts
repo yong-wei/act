@@ -7238,6 +7238,48 @@ describe('adaptive learning path planner', () => {
     }));
   });
 
+  it('uses the current explicit resource preference for preference-matched support nodes', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      },
+      learnerState: {
+        ...plannerInput().learnerState!,
+        resourcePreference: { preferredModalities: ['video'] },
+      },
+      constraints: {
+        timeBudgetMinutes: 180,
+        privacyScopes: ['student-visible'],
+      },
+      resourcePreferences: ['knowledge_card'],
+      resourcePreferenceSource: 'request',
+      policyBundle: {
+        families: ['preference-matched'],
+        overlapThreshold: 0.6,
+      },
+    }));
+
+    const preferenceOption = plan.policyBundle?.paths.find((path) => path.policyFamily === 'preference-matched');
+    const supportNodes = preferenceOption?.planNodes?.filter((node) =>
+      node.reasonCodes.includes('policy-preference-matched-support')
+    ) ?? [];
+
+    expect(preferenceOption).toBeDefined();
+    expect(supportNodes).not.toContainEqual(expect.objectContaining({
+      nodeId: 'runtime-media:3-6:design-map-video',
+    }));
+    expect(preferenceOption?.nodeIds).toContain('knowledge-card:control-correction-time-domain-targets');
+  });
+
   it('stops policy active node collection at locked readiness gates', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [
