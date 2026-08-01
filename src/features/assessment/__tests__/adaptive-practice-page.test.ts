@@ -222,17 +222,18 @@ describe('adaptive practice page entry states', () => {
   it('keeps demo path state available for execution and visual QA routes', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
-    const learnerStateEffectStart = source.indexOf("if (!activeGoal) {\n      setActiveLearnerState(null);");
+    const learnerStateEffectStart = source.indexOf('if (isDemoMode) {\n      setActiveLearnerState(null);');
     const learnerStateEffect = source.slice(
       learnerStateEffectStart,
       source.indexOf("if (authStatus === 'loading')", learnerStateEffectStart),
     );
+    const missingGoalBranch = learnerStateEffect.indexOf("if (!activeGoal) {\n      setActiveLearnerState(null);");
 
     expect(learnerStateEffectStart).toBeGreaterThan(-1);
-    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setActiveLearnerState(null);');
     expect(learnerStateEffect).toContain("setLearnerStateLoadState('ready');");
     expect(learnerStateEffect).toContain("setPathContextLoadState('ready');");
     expect(learnerStateEffect).toContain('setLoadedPathContextKey(requestedPathContextKey);');
+    expect(missingGoalBranch).toBeGreaterThan(-1);
     expect(source).not.toContain('if (!activeGoal || isDemoMode) {\n      setActiveLearnerState(null);');
     expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathPlan(null);');
     expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathRound(null);');
