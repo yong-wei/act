@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-08-01T04:14:02.936Z",
-  "commitSha": "73b1af2d34d07391249bfcfddbed2786b3644639",
+  "capturedAt": "2026-08-01T05:39:57.673Z",
+  "commitSha": "f20b93346a104124f9c33ae8d8338f8a9b168215",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation",
   "fixtureAuthority": "Playwright route fixtures scoped to the authenticated demo learner and control-correction goal",
   "sourceSha256": {
@@ -14,10 +14,10 @@
       "viewport": "desktop-1440",
       "requestCount": 4,
       "requestIds": [
-        "01a30ead-f7de-452a-86b6-0d49dc000ad0",
-        "01a30ead-f7de-452a-86b6-0d49dc000ad0",
-        "01a30ead-f7de-452a-86b6-0d49dc000ad0",
-        "aabdcf00-168f-4a9d-85c3-2655fde52dce"
+        "1a909521-ffc8-4a85-bfcc-34fbbaa90ff2",
+        "1a909521-ffc8-4a85-bfcc-34fbbaa90ff2",
+        "1a909521-ffc8-4a85-bfcc-34fbbaa90ff2",
+        "f2d6cbee-c83f-48a4-86df-797acb3d8808"
       ],
       "duplicateActivationCount": 1,
       "unknownOutcomeReusedId": true,
@@ -37,10 +37,10 @@
       "viewport": "mobile-320",
       "requestCount": 4,
       "requestIds": [
-        "c88f7d2c-c71a-4083-8ec6-05b9a427ce12",
-        "c88f7d2c-c71a-4083-8ec6-05b9a427ce12",
-        "c88f7d2c-c71a-4083-8ec6-05b9a427ce12",
-        "a20cebb5-a6bb-48f0-a767-ccc7d37bead2"
+        "3d4ad449-a693-4a51-8eae-52d1c76d3bd5",
+        "3d4ad449-a693-4a51-8eae-52d1c76d3bd5",
+        "3d4ad449-a693-4a51-8eae-52d1c76d3bd5",
+        "20783ebb-89ad-4525-a708-03e4c80b978d"
       ],
       "duplicateActivationCount": 1,
       "unknownOutcomeReusedId": true,
@@ -68,7 +68,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1140-pr-a/lifecycle-success-mobile-320.png",
-      "sha256": "0d15c0f2b6fd6fa5e2a59bf69a3043dc9289168e0a713d4babff51719dec20ac",
+      "sha256": "3529e162f07b60da5d863876b51e125427a7d13c6416fb1cb9bb634c847c42a5",
       "width": 320,
       "height": 900,
       "state": "succeeded-with-konling-visible",
