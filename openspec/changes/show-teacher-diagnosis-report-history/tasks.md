@@ -13,5 +13,5 @@
 ## 3. Verification
 
 - [x] 3.1 Add report projection and component rendering regressions.
-- [ ] 3.2 Run targeted tests, typecheck, lint, strict OpenSpec validation, and diff checks.
+- [x] 3.2 Run targeted tests, typecheck, lint, strict OpenSpec validation, and diff checks.
 - [x] 3.3 Capture responsive commercial UI browser evidence for class and student states.
