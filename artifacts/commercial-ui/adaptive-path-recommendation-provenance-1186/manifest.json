@@ -1,0 +1,149 @@
+{
+  "capturedAt": "2026-08-01T17:58:29.029Z",
+  "commitSha": "59f7cd8e94c759835207b994f86b03bb442e648c",
+  "generator": {
+    "file": "tests/adaptive-path-recommendation-provenance-evidence.spec.ts",
+    "sha256": "b5ae74ec017dbeedb7a4fc0231f2505eb83593a1a36d8b2bccec02b1560d8298"
+  },
+  "productionSourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "dcb4b91c72672aee89012b8113cc6ced96061c5d11efc1a2fc2106d229bdfb0f",
+    "src/features/adaptive/adaptive-learning-center-contracts.ts": "fac23633e0e028bb19830f8012a523e69d7dcaa0d68a4c670add6df126a29344",
+    "src/lib/adaptive-learning-path-planner.ts": "de959766310af2fd6729ddd6c86cc4c1794e92a3175a5fd278ccadd25ac9f464",
+    "src/lib/adaptive-path-option-display.ts": "83076ca25c25ac059b0b041c1216cfe6b65ea024e2824480c46f644a8665e6d5"
+  },
+  "routes": [
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=sufficient",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=low",
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=legacy"
+  ],
+  "assertions": [
+    {
+      "viewport": "desktop-1440",
+      "fixture": "sufficient",
+      "passed": true,
+      "checks": [
+        "aggregate recommendation basis visible",
+        "keyboard disclosure",
+        "evidence link keyboard focus",
+        "governed learning-record href",
+        "affected resources visible",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "fixture": "low",
+      "passed": true,
+      "checks": [
+        "aggregate recommendation basis visible",
+        "keyboard disclosure",
+        "evidence link keyboard focus",
+        "governed learning-record href",
+        "mixed evidence downgrades path confidence",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "fixture": "legacy",
+      "passed": true,
+      "checks": [
+        "legacy fallback remains usable",
+        "no synthesized provenance",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "fixture": "sufficient",
+      "passed": true,
+      "checks": [
+        "aggregate recommendation basis visible",
+        "keyboard disclosure",
+        "evidence link keyboard focus",
+        "governed learning-record href",
+        "affected resources visible",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "fixture": "low",
+      "passed": true,
+      "checks": [
+        "aggregate recommendation basis visible",
+        "keyboard disclosure",
+        "evidence link keyboard focus",
+        "governed learning-record href",
+        "mixed evidence downgrades path confidence",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "fixture": "legacy",
+      "passed": true,
+      "checks": [
+        "legacy fallback remains usable",
+        "no synthesized provenance",
+        "no horizontal overflow"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "fixture": "sufficient",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-sufficient.png",
+      "sha256": "fe889eab27bf125432e49d1509e8a571537c0c65567bc7dad505e615f88e786c",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "low",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-low.png",
+      "sha256": "8a5f4232825e4fb449805dd2580b176249b3f0f5d7d95080bd1ddc56d1168aa9",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "legacy",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-legacy.png",
+      "sha256": "192fbe8054e4a8a51a94da71022ad8ac1066afcbdc2d4fcaa0c30223271a7bf0",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "sufficient",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-sufficient.png",
+      "sha256": "2afe8a9a0f70075948b2a4dcbf59da3146573673fa31214e36431d2d6bf4b2f2",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "low",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-low.png",
+      "sha256": "e3473522e3788f419cfc9fd10445d824f6cf3abcc7fa05ffe7f3aa03e806bc75",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "legacy",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-legacy.png",
+      "sha256": "605596ceec393da01e0301e0c8db9cded88f62c8fd93caab0adc5ff2a482827e",
+      "noHorizontalOverflow": true
+    }
+  ]
+}
