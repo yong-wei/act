@@ -146,6 +146,24 @@ describe('resolveCanonicalResourceBindingCaptureRevision', () => {
     })).resolves.toBe(revision);
   });
 
+  it('falls back to .app-revision when Git is unavailable on PATH', async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'binding-capture-runtime-'));
+    roots.push(root);
+    const revision = '1'.repeat(40);
+    write(root, '.app-revision', `${revision}\n`);
+    const previousPath = process.env.PATH;
+    process.env.PATH = path.join(root, 'without-git');
+
+    try {
+      await expect(resolveCanonicalResourceBindingCaptureRevision({
+        cwd: root,
+        env: { APP_REVISION: revision },
+      })).resolves.toBe(revision);
+    } finally {
+      process.env.PATH = previousPath;
+    }
+  });
+
   it('accepts an explicit non-Git revision path only when it resolves to cwd/.app-revision', async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), 'binding-capture-runtime-'));
     roots.push(root);

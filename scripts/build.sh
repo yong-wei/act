@@ -9,7 +9,27 @@ OUTPUT_TAR="${OUTPUT_TAR:-deploy/images/act-obe.tar}"
 PLATFORM="${PLATFORM:-linux/amd64}"
 NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"
 PRISMA_ENGINES_MIRROR="${PRISMA_ENGINES_MIRROR:-https://registry.npmmirror.com/-/binary/prisma}"
+export NODE_MAX_OLD_SPACE_SIZE="${NODE_MAX_OLD_SPACE_SIZE:-12288}"
 CACHE_MODE="${CACHE_MODE:-min}"
+
+if [[ ! "${NODE_MAX_OLD_SPACE_SIZE}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "ERROR: NODE_MAX_OLD_SPACE_SIZE 必须是正整数。" >&2
+  exit 1
+fi
+
+DOCKER_MIN_MEMORY_BYTES=$((20 * 1024 * 1024 * 1024))
+if ! DOCKER_MEMORY_BYTES="$(docker info --format '{{.MemTotal}}' 2>/dev/null)"; then
+  echo "ERROR: 无法读取 Docker VM 内存；请将 Docker Desktop 配置为至少 24 GiB 内存。" >&2
+  exit 1
+fi
+if [[ ! "${DOCKER_MEMORY_BYTES}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "ERROR: Docker VM 内存信息不是正整数；请将 Docker Desktop 配置为至少 24 GiB 内存。" >&2
+  exit 1
+fi
+if (( DOCKER_MEMORY_BYTES < DOCKER_MIN_MEMORY_BYTES )); then
+  echo "ERROR: Docker VM 内存不足（${DOCKER_MEMORY_BYTES} bytes），至少需要 20 GiB；请将 Docker Desktop 配置为至少 24 GiB 内存。" >&2
+  exit 1
+fi
 
 CACHE_ROOT="${CACHE_ROOT:-.cache/buildx}"
 CACHE_FROM_DIR="${CACHE_FROM_DIR:-${CACHE_ROOT}/cache}"
@@ -74,6 +94,7 @@ fi
 
 BUILD_ARGS=(
   --build-arg "APP_REVISION=${APP_REVISION}"
+  --build-arg "NODE_MAX_OLD_SPACE_SIZE=${NODE_MAX_OLD_SPACE_SIZE}"
   --build-arg "NPM_REGISTRY=${NPM_REGISTRY}"
   --build-arg "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}"
 )

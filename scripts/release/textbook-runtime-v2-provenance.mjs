@@ -48,6 +48,15 @@ function sha256File(filePath) {
   return createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
 
+async function sha256FileStream(filePath) {
+  const hash = createHash('sha256');
+  const stream = fs.createReadStream(filePath);
+  for await (const chunk of stream) {
+    hash.update(chunk);
+  }
+  return hash.digest('hex');
+}
+
 function assertRevision(value, fieldName) {
   if (typeof value !== 'string' || !REVISION_PATTERN.test(value)) {
     throw new Error(`textbook-v2-${fieldName}-invalid:${String(value)}`);
@@ -400,7 +409,7 @@ function requireOption(options, name) {
   return value;
 }
 
-function writeSidecar(options) {
+async function writeSidecar(options) {
   const runtimeRoot = path.resolve(requireOption(options, 'runtime-root'));
   const indexRoot = path.resolve(requireOption(options, 'index-dir'));
   const imageTar = path.resolve(requireOption(options, 'image-tar'));
@@ -419,7 +428,7 @@ function writeSidecar(options) {
   const sidecar = {
     schemaVersion: TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION,
     appRevision,
-    imageTarSha256: sha256File(imageTar),
+    imageTarSha256: await sha256FileStream(imageTar),
     runtimeSourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
     runtimeInputDigest: runtime.inputDigest,
@@ -432,9 +441,9 @@ function writeSidecar(options) {
   process.stdout.write(`${JSON.stringify(sidecar, null, 2)}\n`);
 }
 
-function verifyImage(options) {
+async function verifyImage(options) {
   const sidecar = readSidecar(path.resolve(requireOption(options, 'sidecar')));
-  const actual = sha256File(path.resolve(requireOption(options, 'image-tar')));
+  const actual = await sha256FileStream(path.resolve(requireOption(options, 'image-tar')));
   if (actual !== sidecar.imageTarSha256) {
     throw new Error(
       `textbook-v2-image-tar-sha256-mismatch:expected=${sidecar.imageTarSha256} actual=${actual}`,
@@ -502,7 +511,7 @@ function printField(options) {
   process.stdout.write(`${sidecar[field]}\n`);
 }
 
-function main() {
+async function main() {
   const { command, options } = parseArgs(process.argv.slice(2));
   if (command === 'write-sidecar') return writeSidecar(options);
   if (command === 'verify-image') return verifyImage(options);
@@ -512,10 +521,8 @@ function main() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  try {
-    main();
-  } catch (error) {
+  main().catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     process.exitCode = 1;
-  }
+  });
 }

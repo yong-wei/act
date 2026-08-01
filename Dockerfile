@@ -56,6 +56,7 @@ RUN --mount=type=cache,target=/root/.npm \
 FROM base AS builder
 WORKDIR /app
 ARG APP_REVISION
+ARG NODE_MAX_OLD_SPACE_SIZE=12288
 RUN apk add --no-cache python3
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -67,8 +68,8 @@ RUN case "${APP_REVISION}" in \
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS=--max-old-space-size=4096
-ENV NODE_MAX_OLD_SPACE_SIZE=4096
+ENV NODE_OPTIONS=--max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE}
+ENV NODE_MAX_OLD_SPACE_SIZE=${NODE_MAX_OLD_SPACE_SIZE}
 ENV SKIP_WASM_BUILD=1
 
 # Build the application

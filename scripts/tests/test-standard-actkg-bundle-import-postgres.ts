@@ -70,6 +70,10 @@ function sha256(bytes: Buffer | string): string {
 function withSchema(url: string, schema: string): string {
   const parsed = new URL(url);
   parsed.searchParams.set('schema', schema);
+  // PrismaPg uses the schema option for generated relation names, while raw
+  // trigger SQL still follows PostgreSQL search_path. Keep both paths inside
+  // the isolated schema so public receipts cannot contaminate the harness.
+  parsed.searchParams.set('options', `-csearch_path=${schema},public`);
   return parsed.toString();
 }
 
@@ -354,8 +358,10 @@ async function main(): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     if (
       isolated.mode === 'schema'
-      && /ActkgImportReceipt does not exist|does not exist in the current database/u.test(message)
+      && /ActkgImportReceipt does not exist|does not exist in the current database|ActKG authoritative candidate content is sealed by its import receipt/u.test(message)
     ) {
+      const required = process.env.ACTKG_POSTGRES_REQUIRED === '1';
+      const exitCode = required ? 1 : 0;
       console.log(JSON.stringify({
         ok: false,
         mode: isolated.mode,
@@ -363,8 +369,15 @@ async function main(): Promise<void> {
         code: 'SCHEMA_ISOLATION_UNSUPPORTED',
         error: message.replace(/\s+/gu, ' ').slice(0, 240),
         note: 'Prisma schema isolation is incompatible with unqualified sealed-trigger lookups; CREATEDB is unavailable and initdb is disabled',
+        required,
+        exitCode,
       }));
-      process.exitCode = 0;
+      process.exitCode = exitCode;
+      if (required) {
+        throw new Error(
+          'SCHEMA_ISOLATION_UNSUPPORTED while ACTKG_POSTGRES_REQUIRED=1: standard Bundle PostgreSQL assertions did not run',
+        );
+      }
       return;
     }
     throw error;
