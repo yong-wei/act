@@ -23,10 +23,19 @@ export const MATH_CALC_OPERATIONS = [
 
 export type MathCalcOperation = (typeof MATH_CALC_OPERATIONS)[number];
 
+const MATH_CALC_EXPRESSION_PATTERN = /^[A-Za-z0-9+\-*/^().,\s\\{}\[\]]+$/;
+const MATH_CALC_VARIABLE_PATTERN = /^[A-Za-z][A-Za-z0-9]*$/;
+
 export const mathCalculateRequestSchema = z.object({
-  expression: z.string().trim().min(1).max(300),
+  expression: z.string().trim().min(1).max(300).regex(
+    MATH_CALC_EXPRESSION_PATTERN,
+    '表达式包含不允许的字符'
+  ),
   operation: z.enum(MATH_CALC_OPERATIONS).optional(),
-  variable: z.string().min(1).max(10).optional(),
+  variable: z.string().trim().min(1).max(10).regex(
+    MATH_CALC_VARIABLE_PATTERN,
+    '变量名称包含不允许的字符'
+  ).optional(),
 });
 
 export type MathCalculateRequest = z.infer<typeof mathCalculateRequestSchema>;
@@ -55,12 +64,46 @@ export type MathCalculateResponse = MathCalculateSuccess | MathCalculateFailure;
 
 const MATH_CALC_SCRIPT_PATH = join(process.cwd(), 'scripts', 'math-calc', 'calc.py');
 const MATH_CALC_TIMEOUT_MS = 10_000;
+const MAX_CONCURRENT_CALCULATIONS = 4;
+const MAX_QUEUED_CALCULATIONS = 8;
+
+let activeCalculations = 0;
+const releaseQueue: Array<() => void> = [];
 
 export class MathCalculateUnavailableError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'MathCalculateUnavailableError';
   }
+}
+
+export class MathCalculateCapacityError extends Error {
+  constructor() {
+    super('公式计算并发超限，请稍后重试');
+    this.name = 'MathCalculateCapacityError';
+  }
+}
+
+async function acquireCalculationSlot(): Promise<void> {
+  if (activeCalculations < MAX_CONCURRENT_CALCULATIONS) {
+    activeCalculations += 1;
+    return;
+  }
+  if (releaseQueue.length >= MAX_QUEUED_CALCULATIONS) {
+    throw new MathCalculateCapacityError();
+  }
+  await new Promise<void>((resolve) => {
+    releaseQueue.push(resolve);
+  });
+}
+
+function releaseCalculationSlot(): void {
+  const next = releaseQueue.shift();
+  if (next) {
+    next();
+    return;
+  }
+  activeCalculations = Math.max(0, activeCalculations - 1);
 }
 
 function isErrnoError(error: unknown): error is NodeJS.ErrnoException {
@@ -73,7 +116,7 @@ function isErrnoError(error: unknown): error is NodeJS.ErrnoException {
  * 子进程 10 秒超时；Python 或脚本缺失时抛出
  * MathCalculateUnavailableError，调用方应投影为 503。
  */
-export async function runMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {
+async function executeMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {
   const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
   const payload = JSON.stringify(input);
 
@@ -178,4 +221,14 @@ export async function runMathCalculate(input: MathCalculateRequest): Promise<Mat
     child.stdin.write(payload, 'utf8');
     child.stdin.end();
   });
+}
+
+export async function runMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {
+  const parsedInput = mathCalculateRequestSchema.parse(input);
+  await acquireCalculationSlot();
+  try {
+    return await executeMathCalculate(parsedInput);
+  } finally {
+    releaseCalculationSlot();
+  }
 }

@@ -16,12 +16,14 @@ const mocks = vi.hoisted(() => ({
   loadRuntimeResourceProjectionInputs: vi.fn(),
   retrieveTextbookSourcePackV2Progressive: vi.fn(),
   runMathCalculate: vi.fn(),
+  MathCalculateCapacityError: class MathCalculateCapacityError extends Error {},
 }));
 
 vi.mock('@/lib/math-calc', async () => {
   const actual = await vi.importActual<typeof import('@/lib/math-calc')>('@/lib/math-calc');
   return {
     ...actual,
+    MathCalculateCapacityError: mocks.MathCalculateCapacityError,
     runMathCalculate: mocks.runMathCalculate,
   };
 });
@@ -6976,6 +6978,20 @@ describe('konling agent runtime', () => {
       expression: '1',
       result: '\\frac{1}{s}',
       steps: [{ step: 1 }],
+    });
+  });
+
+  it('projects shared calculation capacity errors through the KAQ tool boundary', async () => {
+    mocks.runMathCalculate.mockRejectedValue(new mocks.MathCalculateCapacityError());
+    const runtime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope(),
+      context: createRuntimeContext({ permittedTools: ['calculate'] }),
+      permittedTools: ['calculate'],
+    });
+
+    await expect(runtime.calculate({ expression: '1' })).rejects.toMatchObject({
+      status: 429,
     });
   });
 
