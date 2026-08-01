@@ -19,7 +19,7 @@
 ## Decisions
 
 1. **从发布事实解析，不从目录名解析。** 候选必须同时具有稳定标签、授权状态、Release/Bundle/Schema 身份和可读取的 Git 对象。版本字符串只作为展示字段。
-2. **冻结完整 binding。** binding 包含 ActKG main/packaging/source 修订、stable/source tag、Release、Bundle、Manifest、Schema、数据集、前驱和 `resolutionDigest`；任一字段变化都使后续操作失效。
+2. **冻结完整 binding。** binding 包含 ActKG main/packaging/source 修订、stable/source tag、Release、Bundle、Manifest、Schema、数据集、前驱、`resolvedAt` 观察时间和 `resolutionDigest`。`resolvedAt` 只记录本次解析观测时间，不参与确定性摘要；任一身份字段变化都使后续操作失效。
 3. **兼容链相对当前已接纳端点验证。** 新候选必须给出连续 successor/predecessor 和可验证 Release Diff；不得跳过缺口或自动退回旧端点。
 4. **先原子暂存，再隔离导入。** 所有成员复制到临时目录后重新验证字节、路径和 manifest，最后原子 rename。数据库使用隔离 schema 和一致快照，不接触生产 selector。
 5. **上游 Delta 与 ACT 重算互证。** 两者在成员、身份和语义摘要上必须一致；差异进入拒绝凭据，而不是由一侧覆盖另一侧。

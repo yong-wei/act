@@ -289,13 +289,26 @@ describe('resolveLatestStableAggregate', () => {
       protocol: 'actkg-legacy-predecessor-root-closure/1',
       algorithm: 'sha256sums-legacy-exact-root/1',
     });
-    expect(result.resolutionDigest).toMatch(/^[0-9a-f]{64}$/u);
+    const { resolutionDigest, resolvedAt, ...digestInput } = result;
+    expect(resolvedAt).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u,
+    );
+    expect(resolutionDigest).toMatch(/^[0-9a-f]{64}$/u);
+    expect(sha256(canonicalJson(digestInput))).toBe(resolutionDigest);
 
     const resolved = await resolveLatestStableAggregateWithCandidates({
       actkgRoot: root,
       mainRef: 'main',
     });
-    expect(resolved.binding).toEqual(result);
+    const {
+      resolutionDigest: _resolvedDigest,
+      resolvedAt: _resolvedAt,
+      ...resolvedIdentity
+    } = resolved.binding;
+    expect(resolvedIdentity).toEqual(digestInput);
+    expect(resolved.binding.resolvedAt).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u,
+    );
     expect(resolved.activeCandidates.map((candidate) => candidate.bundleId)).toEqual([
       CHAIN_HEAD_ID,
       'ctb:control-theory-engineering-v0.4:r2',
@@ -463,7 +476,7 @@ describe('resolveLatestStableAggregate', () => {
     ).rejects.toThrow('predecessor SHA256SUMS drift');
   });
 
-  it('fails closed when the stable tag omits the current package SHA256SUMS', async () => {
+  it('fails closed on an incomplete newer endpoint without falling back to the old endpoint', async () => {
     const { root, sourceCommit } = await initRepo();
     await writeValidChain(root, sourceCommit, {
       successor: true,

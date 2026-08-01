@@ -195,7 +195,11 @@ async function assertOutputRoot(repoRoot: string, outputRoot: string): Promise<v
 }
 
 function bindingIdentity(binding: LatestStableAggregateBinding): JsonObject {
-  const { resolutionDigest: _resolutionDigest, ...body } = binding;
+  const {
+    resolutionDigest: _resolutionDigest,
+    resolvedAt: _resolvedAt,
+    ...body
+  } = binding;
   return body;
 }
 

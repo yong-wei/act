@@ -76,7 +76,11 @@ function parseArgs(argv: string[]): {
 }
 
 function bindingIdentity(binding: LatestStableAggregateBinding): JsonObject {
-  const { resolutionDigest: _, ...body } = binding;
+  const {
+    resolutionDigest: _resolutionDigest,
+    resolvedAt: _resolvedAt,
+    ...body
+  } = binding;
   return body;
 }
 

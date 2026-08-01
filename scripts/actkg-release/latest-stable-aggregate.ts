@@ -127,6 +127,11 @@ export interface LatestStableAggregateBinding extends JsonObject {
   statistics: JsonObject;
   bundlePath: string;
   predecessorRootClosure: PredecessorRootClosureBinding | null;
+  /**
+   * Observation metadata for this resolver invocation. This remains optional
+   * so receipts created before the field was introduced stay readable.
+   */
+  resolvedAt?: string;
   resolutionDigest: string;
 }
 
@@ -1033,8 +1038,12 @@ export async function resolveLatestStableAggregateWithCandidates(options: {
     bundlePath: bundleRelativePath,
     predecessorRootClosure,
   };
+  // `resolvedAt` records when this observation completed. It is deliberately
+  // kept outside `body` so the digest remains deterministic across reruns.
+  const resolvedAt = new Date().toISOString();
   const binding: LatestStableAggregateBinding = {
     ...body,
+    resolvedAt,
     resolutionDigest: sha256(canonicalJson(body)),
   };
   const candidatesWithIdentities: LatestStableAggregateCandidate[] = chain.map((candidate) => {

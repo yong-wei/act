@@ -1,11 +1,11 @@
 ## ADDED Requirements
 
 ### Requirement: Latest stable Aggregate is resolved from authoritative release facts
-The system MUST uniquely resolve the latest stable and authorized ActKG Aggregate from pinned Git objects and release metadata. The binding MUST include the ActKG main, packaging, source and tag revisions; Release, Bundle, Manifest, Schema and dataset identities; predecessor identity; resolution time; and a deterministic resolution digest. Directory order, lexical version comparison, fixed version constants and silent fallback MUST NOT select the candidate.
+The system MUST uniquely resolve the latest stable and authorized ActKG Aggregate from pinned Git objects and release metadata. The binding MUST include the ActKG main, packaging, source and tag revisions; Release, Bundle, Manifest, Schema and dataset identities; predecessor identity; an ISO-8601 UTC resolution time observation; and a deterministic resolution digest. The resolution digest MUST cover only stable identity fields and MUST exclude the resolution time observation. Directory order, lexical version comparison, fixed version constants and silent fallback MUST NOT select the candidate.
 
 #### Scenario: One current stable Aggregate is admissible
 - **WHEN** exactly one stable authorized Aggregate has a complete release identity at the captured ActKG revision
-- **THEN** the resolver SHALL emit one binding whose digest covers every required identity field
+- **THEN** the resolver SHALL emit one binding whose digest covers every required identity field while excluding its resolution time observation
 
 #### Scenario: Latest release cannot be uniquely admitted
 - **WHEN** the newest release is ambiguous, incomplete, unauthorized or unreadable from the captured Git objects
