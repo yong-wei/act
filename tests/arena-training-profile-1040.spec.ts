@@ -179,6 +179,7 @@ function buildProfileFixture() {
       trainingSummary: {
         total: 1,
         previewCount: 1,
+        evidenceConfidence: 'low',
         latestTrainedAt: '2026-08-01T01:02:03.000Z',
         recentRuns: [{
           id: 'training-run-1040',
@@ -195,6 +196,7 @@ function buildProfileFixture() {
           },
           preview: true,
           officialEligible: false,
+          confidence: 'low',
           trainedAt: '2026-08-01T01:02:03.000Z',
         }],
       },
@@ -211,6 +213,7 @@ function buildDamagedProfileFixture() {
       trainingSummary: {
         total: 1,
         previewCount: 1,
+        evidenceConfidence: 'low',
         recentRuns: [],
       },
     },
@@ -302,6 +305,7 @@ test('Issue 1040 profile exposes training-only Arena evidence at desktop and mob
         await expect(page.getByText('虚拟训练', { exact: true })).toBeVisible();
         await expect(page.getByText('预览', { exact: true })).toBeVisible();
         await expect(page.getByText('非官方', { exact: true })).toBeVisible();
+        await expect(page.getByText('低置信度学习观察', { exact: true })).toBeVisible();
 
         const key = `${viewport.width}x${viewport.height}`;
         scenarioAssertions[`profileVisible:${key}`] = true;
@@ -309,6 +313,7 @@ test('Issue 1040 profile exposes training-only Arena evidence at desktop and mob
         scenarioAssertions[`officialEvidenceEmpty:${key}`] = true;
         scenarioAssertions[`trainingCard:${key}`] = true;
         scenarioAssertions[`previewAndUnofficial:${key}`] = true;
+        scenarioAssertions[`lowConfidence:${key}`] = true;
 
         if (scenario.id === 'complete') {
           if (viewport.width === 1440) {

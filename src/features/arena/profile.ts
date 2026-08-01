@@ -12,7 +12,7 @@ import type { ArenaTrainingCapabilityId, ArenaTrainingStageId, ChallengeObjectSo
 
 const FAILURE_SCORE_THRESHOLD = 50;
 const IMPROVEMENT_THRESHOLD = 0.15;
-const PORTFOLIO_RECENT_LIMIT = 5;
+export const ARENA_PORTFOLIO_RECENT_LIMIT = 5;
 const PORTFOLIO_SIGNAL_LIMIT = 3;
 const STRONG_CAPABILITY_SCORE = 80;
 const WEAK_CAPABILITY_SCORE = 60;
@@ -145,12 +145,14 @@ export interface ArenaPortfolioRecentTrainingRun {
   qualityMetrics: ArenaTrainingRunQualityMetrics;
   preview: true;
   officialEligible: false;
+  confidence: 'low';
   trainedAt: string;
 }
 
 export interface ArenaPortfolioTrainingSummary {
   total: number;
   previewCount: number;
+  evidenceConfidence: 'low';
   latestTrainedAt?: string;
   recentRuns: ArenaPortfolioRecentTrainingRun[];
 }
@@ -277,6 +279,34 @@ function resolveQualityMetrics(run: ArenaVirtualTrainingRunRecord): {
   return null;
 }
 
+export function projectArenaPortfolioRecentTrainingRun(
+  run: ArenaVirtualTrainingRunRecord,
+): ArenaPortfolioRecentTrainingRun | null {
+  if (!isCompletedVirtualRun(run)) return null;
+
+  const taskId = readNonEmptyString(run.taskId);
+  const scenarioId = readNonEmptyString(run.scenarioId);
+  const trainedAt = toPersistedIso(run.simulationRun?.completedAt ?? null)
+    ?? toPersistedIso(run.createdAt);
+  const boundary = resolveArenaTrainingBoundary(run);
+  const qualityMetrics = resolveQualityMetrics(run);
+  if (!taskId || !scenarioId || !trainedAt || !qualityMetrics) return null;
+  if (boundary.evaluationVisibility !== 'preview' || boundary.officialEligible !== false) return null;
+
+  return {
+    id: run.id,
+    taskId,
+    taskTitle: taskTitle(taskId),
+    scenarioId,
+    simulationRunId: run.simulationRunId ?? null,
+    qualityMetrics,
+    preview: true,
+    officialEligible: false,
+    confidence: 'low',
+    trainedAt,
+  } satisfies ArenaPortfolioRecentTrainingRun;
+}
+
 function buildTrainingSummary(
   trainingRuns: readonly ArenaVirtualTrainingRunRecord[],
   userId: string,
@@ -284,36 +314,15 @@ function buildTrainingSummary(
 ): ArenaPortfolioTrainingSummary {
   const recentRuns = trainingRuns
     .filter((run) => run.userId === userId)
-    .filter((run) => isCompletedVirtualRun(run))
-    .map((run) => {
-      const taskId = readNonEmptyString(run.taskId);
-      const scenarioId = readNonEmptyString(run.scenarioId);
-      const trainedAt = toPersistedIso(run.simulationRun?.completedAt ?? null)
-        ?? toPersistedIso(run.createdAt);
-      const boundary = resolveArenaTrainingBoundary(run);
-      const qualityMetrics = resolveQualityMetrics(run);
-      if (!taskId || !scenarioId || !trainedAt || !qualityMetrics) return null;
-      if (boundary.evaluationVisibility !== 'preview' || boundary.officialEligible !== false) return null;
-
-      return {
-        id: run.id,
-        taskId,
-        taskTitle: taskTitle(taskId),
-        scenarioId,
-        simulationRunId: run.simulationRunId ?? null,
-        qualityMetrics,
-        preview: true as const,
-        officialEligible: false as const,
-        trainedAt,
-      } satisfies ArenaPortfolioRecentTrainingRun;
-    })
+    .map(projectArenaPortfolioRecentTrainingRun)
     .filter((run): run is ArenaPortfolioRecentTrainingRun => Boolean(run))
     .sort((left, right) => Date.parse(right.trainedAt) - Date.parse(left.trainedAt));
   return {
     total: persistedTrainingCount,
     previewCount: persistedTrainingCount,
+    evidenceConfidence: 'low',
     latestTrainedAt: recentRuns[0]?.trainedAt,
-    recentRuns: recentRuns.slice(0, PORTFOLIO_RECENT_LIMIT),
+    recentRuns: recentRuns.slice(0, ARENA_PORTFOLIO_RECENT_LIMIT),
   };
 }
 
@@ -705,7 +714,7 @@ export function buildArenaStudentPortfolio(
     recentSubmissions: userSubmissions
       .slice()
       .sort(sortBySubmittedAtDesc)
-      .slice(0, PORTFOLIO_RECENT_LIMIT)
+      .slice(0, ARENA_PORTFOLIO_RECENT_LIMIT)
       .map((submission) => ({
         id: submission.id,
         taskId: submission.taskId,

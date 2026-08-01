@@ -31,7 +31,9 @@ import {
   getDiagnosticWithPersistenceFallback,
 } from '@/features/assessment/adaptive-persistence';
 import {
+  ARENA_PORTFOLIO_RECENT_LIMIT,
   buildArenaStudentPortfolio,
+  projectArenaPortfolioRecentTrainingRun,
   type ArenaStudentPortfolio,
   type ArenaVirtualTrainingRunRecord,
 } from '@/features/arena/profile';
@@ -43,6 +45,8 @@ import {
 import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
 
 export const dynamic = 'force-dynamic';
+
+const ARENA_PORTFOLIO_TRAINING_PAGE_SIZE = 20;
 
 export interface UserProfileResponse {
   user: {
@@ -127,6 +131,53 @@ export interface UserProfileResponse {
   };
   arenaPortfolio: ArenaStudentPortfolio;
   arenaSummary: ArenaStudentEvidenceSummary;
+}
+
+async function readArenaPortfolioTrainingRuns(userId: string): Promise<ArenaVirtualTrainingRunRecord[]> {
+  const collected: ArenaVirtualTrainingRunRecord[] = [];
+  let cursorId: string | null = null;
+
+  while (collected.length < ARENA_PORTFOLIO_RECENT_LIMIT) {
+    const page: ArenaVirtualTrainingRunRecord[] = await prisma.arenaVirtualSimulationRun.findMany({
+      where: { userId },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: ARENA_PORTFOLIO_TRAINING_PAGE_SIZE,
+      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+      select: {
+        id: true,
+        userId: true,
+        taskId: true,
+        scenarioId: true,
+        simulationRunId: true,
+        payload: true,
+        createdAt: true,
+        simulationRun: {
+          select: {
+            status: true,
+            completedAt: true,
+            summary: true,
+          },
+        },
+      },
+    }) as ArenaVirtualTrainingRunRecord[];
+
+    if (page.length === 0) break;
+
+    for (const run of page) {
+      if (projectArenaPortfolioRecentTrainingRun(run)) collected.push(run);
+      if (collected.length >= ARENA_PORTFOLIO_RECENT_LIMIT) break;
+    }
+
+    if (collected.length >= ARENA_PORTFOLIO_RECENT_LIMIT || page.length < ARENA_PORTFOLIO_TRAINING_PAGE_SIZE) {
+      break;
+    }
+
+    const nextCursorId: string | undefined = page[page.length - 1]?.id;
+    if (!nextCursorId || nextCursorId === cursorId) break;
+    cursorId = nextCursorId;
+  }
+
+  return collected;
 }
 
 function describeFactOutcome(outcome: string) {
@@ -396,27 +447,7 @@ export async function GET() {
       prisma.arenaVirtualSimulationRun.count({
         where: { userId },
       }),
-      prisma.arenaVirtualSimulationRun.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-        select: {
-          id: true,
-          userId: true,
-          taskId: true,
-          scenarioId: true,
-          simulationRunId: true,
-          payload: true,
-          createdAt: true,
-          simulationRun: {
-            select: {
-              status: true,
-              completedAt: true,
-              summary: true,
-            },
-          },
-        },
-      }),
+      readArenaPortfolioTrainingRuns(userId),
     ]);
 
     const arenaTaskIds = Array.from(new Set(userArenaSubmissions.map((submission) => submission.taskId)));

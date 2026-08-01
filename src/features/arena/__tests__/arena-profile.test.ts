@@ -356,6 +356,9 @@ describe('arena student portfolio', () => {
     expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskIds: arenaTaskIds })');
     expect(routeSource).toContain('buildArenaStudentPortfolio(');
     expect(routeSource).toContain('userArenaVirtualSimulationRunCount');
+    expect(routeSource).toContain("orderBy: [{ createdAt: 'desc' }, { id: 'desc' }]");
+    expect(routeSource).toContain('cursor: { id: cursorId }');
+    expect(routeSource).toContain('skip: 1');
     expect(routeSource).toContain('arenaPortfolio:');
     expect(pageSource).toContain('arenaPortfolio');
     expect(pageSource).toContain('竞技场画像');
@@ -363,6 +366,7 @@ describe('arena student portfolio', () => {
     expect(pageSource).toContain('下一项挑战');
     expect(pageSource).toContain('growth.nextChallenges');
     expect(pageSource).toContain('暂无可展示的完整训练质量摘要');
+    expect(pageSource).toContain('低置信度学习观察');
   });
 
   it('keeps virtual training separate, uses persisted quality, and fails closed on damaged rows', () => {
@@ -404,6 +408,7 @@ describe('arena student portfolio', () => {
     expect(portfolio.trainingSummary).toMatchObject({
       total: 2,
       previewCount: 2,
+      evidenceConfidence: 'low',
       latestTrainedAt: '2026-05-11T08:45:00.000Z',
       recentRuns: [expect.objectContaining({
         id: 'training-1',
@@ -418,6 +423,7 @@ describe('arena student portfolio', () => {
         },
         preview: true,
         officialEligible: false,
+        confidence: 'low',
       })],
     });
 
@@ -426,6 +432,25 @@ describe('arena student portfolio', () => {
     const { trainingSummary: _withoutTraining, ...officialFields } = officialOnly;
     const { trainingSummary: _withTraining, ...officialFieldsWithTraining } = officialWithTraining;
     expect(officialFieldsWithTraining).toEqual(officialFields);
+  });
+
+  it('keeps training confidence explicitly low even when no complete preview row is displayable', () => {
+    const summary = buildArenaStudentPortfolio(
+      [],
+      targetUserId,
+      [virtualTraining({
+        id: 'training-damaged-only',
+        payload: { summary: { trackingError: Number.NaN } },
+      })],
+      1,
+    ).trainingSummary;
+
+    expect(summary).toMatchObject({
+      total: 1,
+      previewCount: 1,
+      evidenceConfidence: 'low',
+      recentRuns: [],
+    });
   });
 
   it('uses canonical completion time when available and persisted row time for historical fallback', () => {
@@ -488,5 +513,11 @@ describe('arena student portfolio', () => {
     expect(portfolio.growth.nextChallenges.length).toBeGreaterThan(0);
     expect(portfolio.growth.nextChallenges.every((item) => item.evidenceLevel === 'beginner-safe')).toBe(true);
     expect(portfolio.growth.nextChallenges[0].reason).toContain('暂无官方 Arena 提交证据');
+    expect(portfolio.trainingSummary).toMatchObject({
+      total: 0,
+      previewCount: 0,
+      evidenceConfidence: 'low',
+      recentRuns: [],
+    });
   });
 });

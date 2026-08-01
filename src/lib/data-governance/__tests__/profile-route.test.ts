@@ -203,6 +203,47 @@ function arenaSubmission(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function arenaTrainingRun(overrides: Record<string, unknown> = {}) {
+  const id = typeof overrides.id === 'string' ? overrides.id : 'arena-training-1';
+  return {
+    id,
+    userId: 'student-1',
+    taskId: 'task-cruise-roll-blackbox-identification',
+    scenarioId: 'cruise-roll-controller-preview',
+    simulationRunId: 'canonical-run-1',
+    payload: {
+      summary: {
+        trackingError: 0.2,
+        maxDeviation: 0.3,
+        controlEnergy: 0.4,
+        safetyViolations: 0,
+        smoothness: 0.8,
+      },
+      metadata: {
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+      },
+    },
+    createdAt: new Date('2026-05-16T08:40:00.000Z'),
+    ...overrides,
+  };
+}
+
+function damagedArenaTrainingRun(overrides: Record<string, unknown> = {}) {
+  return arenaTrainingRun({
+    payload: {
+      summary: {
+        trackingError: Number.NaN,
+      },
+      metadata: {
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+      },
+    },
+    ...overrides,
+  });
+}
+
 function profileEvidenceCache(overrides: Record<string, unknown> = {}) {
   return {
     userId: 'student-1',
@@ -603,29 +644,7 @@ describe('GET /api/user/profile', () => {
       }),
     ]);
 
-    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValue([
-      {
-        id: 'arena-training-1',
-        userId: 'student-1',
-        taskId: 'task-cruise-roll-blackbox-identification',
-        scenarioId: 'cruise-roll-controller-preview',
-        simulationRunId: 'canonical-run-1',
-        payload: {
-          summary: {
-            trackingError: 0.2,
-            maxDeviation: 0.3,
-            controlEnergy: 0.4,
-            safetyViolations: 0,
-            smoothness: 0.8,
-          },
-          metadata: {
-            evaluationVisibility: 'preview',
-            officialEligible: false,
-          },
-        },
-        createdAt: new Date('2026-05-16T08:40:00.000Z'),
-      },
-    ]);
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValue([arenaTrainingRun()]);
     mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(1);
 
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(profileEvidenceCache());
@@ -830,7 +849,7 @@ describe('GET /api/user/profile', () => {
     });
     expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith({
       where: { userId: 'student-1' },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: 20,
       select: {
         id: true,
@@ -852,6 +871,7 @@ describe('GET /api/user/profile', () => {
     expect(body.arenaPortfolio.trainingSummary).toMatchObject({
       total: 1,
       previewCount: 1,
+      evidenceConfidence: 'low',
       recentRuns: [expect.objectContaining({
         taskId: 'task-cruise-roll-blackbox-identification',
         qualityMetrics: {
@@ -863,6 +883,7 @@ describe('GET /api/user/profile', () => {
         },
         preview: true,
         officialEligible: false,
+        confidence: 'low',
       })],
     });
     expect(body.arenaPortfolio.growth).toMatchObject({
@@ -891,6 +912,121 @@ describe('GET /api/user/profile', () => {
     expect(mocks.prisma.studentProfileSummary.findUnique).not.toHaveBeenCalled();
     expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).not.toHaveBeenCalled();
     expect(mocks.generateRecommendations).not.toHaveBeenCalled();
+  });
+
+  it('continues past the first twenty damaged training rows to find a complete twenty-first row', async () => {
+    const firstPage = Array.from({ length: 20 }, (_, index) => damagedArenaTrainingRun({
+      id: `training-damaged-${index + 1}`,
+      createdAt: new Date('2026-05-16T08:40:00.000Z'),
+    }));
+    const twentyFirst = arenaTrainingRun({
+      id: 'training-complete-21',
+      createdAt: new Date('2026-05-16T08:40:00.000Z'),
+    });
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(21);
+    mocks.prisma.arenaVirtualSimulationRun.findMany
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce([twentyFirst]);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary.recentRuns).toEqual([
+      expect.objectContaining({ id: 'training-complete-21', confidence: 'low' }),
+    ]);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(2);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany.mock.calls[0]?.[0]).toMatchObject({
+      where: { userId: 'student-1' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 20,
+    });
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany.mock.calls[1]?.[0]).toMatchObject({
+      where: { userId: 'student-1' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 20,
+      cursor: { id: 'training-damaged-20' },
+      skip: 1,
+    });
+  });
+
+  it('stops after collecting five complete displayable training rows', async () => {
+    const page = [
+      ...Array.from({ length: 15 }, (_, index) => damagedArenaTrainingRun({
+        id: `training-damaged-${index + 1}`,
+      })),
+      ...Array.from({ length: 5 }, (_, index) => arenaTrainingRun({
+        id: `training-complete-${index + 1}`,
+      })),
+    ];
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(20);
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValueOnce(page);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary.recentRuns).toHaveLength(5);
+    expect(body.arenaPortfolio.trainingSummary.recentRuns.every(
+      (run: { confidence: string }) => run.confidence === 'low',
+    )).toBe(true);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops at data exhaustion when every scanned training row is damaged', async () => {
+    const firstPage = Array.from({ length: 20 }, (_, index) => damagedArenaTrainingRun({
+      id: `training-damaged-${index + 1}`,
+    }));
+    const finalPage = Array.from({ length: 3 }, (_, index) => damagedArenaTrainingRun({
+      id: `training-damaged-${index + 21}`,
+    }));
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(23);
+    mocks.prisma.arenaVirtualSimulationRun.findMany
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce(finalPage);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary).toMatchObject({
+      total: 23,
+      previewCount: 23,
+      evidenceConfidence: 'low',
+      recentRuns: [],
+    });
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses the unique id cursor when createdAt ties and does not repeat rows', async () => {
+    const tiedCreatedAt = new Date('2026-05-16T08:40:00.000Z');
+    const firstPage = Array.from({ length: 20 }, (_, index) => damagedArenaTrainingRun({
+      id: `training-tied-${String(index + 1).padStart(2, '0')}`,
+      createdAt: tiedCreatedAt,
+    }));
+    const secondPage = [arenaTrainingRun({
+      id: 'training-tied-21',
+      createdAt: tiedCreatedAt,
+    })];
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(21);
+    mocks.prisma.arenaVirtualSimulationRun.findMany
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce(secondPage);
+
+    const response = await GET();
+    const body = await response.json();
+    const ids = body.arenaPortfolio.trainingSummary.recentRuns.map((run: { id: string }) => run.id);
+
+    expect(response.status).toBe(200);
+    expect(ids).toEqual(['training-tied-21']);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany.mock.calls[1]?.[0]).toMatchObject({
+      where: { userId: 'student-1' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 20,
+      cursor: { id: 'training-tied-20' },
+      skip: 1,
+    });
   });
 
   it('keeps a historical cumulative portrait visible after more than 30 days without new facts', async () => {
