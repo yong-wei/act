@@ -201,6 +201,9 @@ interface LearningPathRoundResponse {
 type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
+type PathRecommendationProvenanceEntry = NonNullable<
+  AdaptivePathOptionWriteOption['recommendationProvenance']
+>['entries'][number];
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
 type PathDifferenceStatus = 'ready' | 'no-material-difference' | 'insufficient-data';
 
@@ -576,6 +579,27 @@ const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
     graph: { nodes: [], edges: [] },
     timeline: { generatedAt: '2026-06-16T09:00:00+08:00', items: [] },
     badges: [],
+    evidence: {
+      evidenceBasis: 'adaptive-learner-state',
+      confidence: {
+        level: 'medium',
+        score: 0.76,
+        sourceCoverage: 0.68,
+      },
+      sourceCoverage: {},
+      learnerStateDeficits: [{
+        targetId: '相位裕度',
+        kind: 'knowledge',
+        value: 0.42,
+        confidence: 0.68,
+        evidenceCount: 3,
+        reasonCode: 'low-mastery-target',
+      }],
+      capabilityEvidence: [],
+      prerequisiteReasons: [],
+      teacherPolicy: [],
+      alternatives: [],
+    },
   },
 } as unknown as AdaptiveLearningPathPlan;
 
@@ -717,6 +741,80 @@ const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = 
   checkpoint: Flag,
   konling: MessageSquare,
 };
+
+function recommendationConfidenceLabel(confidence: 'low' | 'medium' | 'high'): string {
+  if (confidence === 'high') return '高置信度';
+  if (confidence === 'medium') return '中等置信度';
+  return '低置信度';
+}
+
+function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDisplay }) {
+  const provenance = option.recommendationProvenance;
+  if (!option.isGenerated || !provenance) return null;
+
+  return (
+    <section
+      className="mt-3 min-w-0 rounded-lg border border-primary/25 bg-primary/5 p-3"
+      data-learning-path-recommendation-provenance={option.id}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-semibold text-foreground">推荐依据</p>
+        <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
+          {recommendationConfidenceLabel(provenance.confidence)}
+        </span>
+      </div>
+      <p className="mt-2 break-words text-sm leading-6 text-foreground">{provenance.summary}</p>
+      <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-recommendation-disclosure={option.id}>
+        <summary className="cursor-pointer font-medium text-foreground">查看推荐依据</summary>
+        <div className="mt-3 grid min-w-0 gap-3">
+          {provenance.entries.map((entry, index) => (
+            <article
+              key={`${option.id}:${entry.targetLabel}:${index}`}
+              className="min-w-0 rounded-lg border border-border bg-background/65 p-3"
+              data-learning-path-recommendation-entry={entry.targetKind}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="break-words text-sm font-semibold text-foreground">{entry.targetLabel}</h4>
+                <span className="text-xs text-subtle">{recommendationConfidenceLabel(entry.confidence)}</span>
+              </div>
+              <dl className="mt-3 grid min-w-0 gap-2 text-xs leading-5">
+                <div>
+                  <dt className="font-medium text-foreground">学习证据</dt>
+                  <dd className="mt-1 break-words text-subtle">{entry.evidenceSummary}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-foreground">能力判断与路径影响</dt>
+                  <dd className="mt-1 break-words text-subtle">{entry.judgment}</dd>
+                </div>
+                {entry.affectedResourceTitles.length > 0 ? (
+                  <div>
+                    <dt className="font-medium text-foreground">受影响的推荐资源</dt>
+                    <dd className="mt-1 break-words text-subtle">{entry.affectedResourceTitles.join('、')}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </article>
+          ))}
+          {provenance.limitations.length > 0 ? (
+            <div className="rounded-lg border border-border bg-muted/35 p-3 text-xs leading-5 text-subtle">
+              {provenance.limitations.map((limitation) => <p key={limitation}>{limitation}</p>)}
+            </div>
+          ) : null}
+          {provenance.nextAction ? (
+            <p className="break-words text-xs leading-5 text-foreground">下一步：{provenance.nextAction}</p>
+          ) : null}
+          <Link
+            href={provenance.evidenceReviewHref}
+            className="inline-flex w-fit max-w-full items-center gap-1 break-words text-xs font-medium text-primary hover:underline"
+          >
+            查看学习记录并复核证据
+            <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
+          </Link>
+        </div>
+      </details>
+    </section>
+  );
+}
 
 function PathOptionRoutePreview({ option }: { option: AdaptivePathOptionDisplay }) {
   if (!option.isGenerated) return null;
@@ -1118,8 +1216,52 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       },
       expectedTargetLift: typeof option.expectedTargetLift === 'number' ? option.expectedTargetLift : undefined,
       limitations: getStringArray(option.limitations),
+      recommendationProvenance: getPathRecommendationProvenance(option.recommendationProvenance),
     };
   });
+}
+
+function getPathRecommendationProvenance(
+  value: unknown,
+): AdaptivePathOptionWriteOption['recommendationProvenance'] {
+  const provenance = getRecord(value);
+  const confidence = provenance.confidence;
+  if (typeof provenance.summary !== 'string' ||
+    (confidence !== 'low' && confidence !== 'medium' && confidence !== 'high') ||
+    provenance.evidenceReviewHref !== '/profile/evidence') {
+    return undefined;
+  }
+  const entries = (Array.isArray(provenance.entries) ? provenance.entries : [])
+    .map(getRecord)
+    .map((entry): PathRecommendationProvenanceEntry | null => {
+      const entryConfidence = entry.confidence;
+      const targetKind = entry.targetKind;
+      if (typeof entry.targetLabel !== 'string' ||
+        typeof entry.evidenceSummary !== 'string' ||
+        typeof entry.judgment !== 'string' ||
+        (entryConfidence !== 'low' && entryConfidence !== 'medium' && entryConfidence !== 'high') ||
+        (targetKind !== 'knowledge' && targetKind !== 'competency')) {
+        return null;
+      }
+      return {
+        targetLabel: entry.targetLabel,
+        targetKind,
+        confidence: entryConfidence,
+        evidenceSummary: entry.evidenceSummary,
+        judgment: entry.judgment,
+        affectedNodeIds: getStringArray(entry.affectedNodeIds),
+        affectedResourceTitles: getStringArray(entry.affectedResourceTitles),
+      };
+    })
+    .filter((entry): entry is PathRecommendationProvenanceEntry => entry !== null);
+  return {
+    summary: provenance.summary,
+    confidence,
+    entries,
+    evidenceReviewHref: '/profile/evidence',
+    limitations: getStringArray(provenance.limitations),
+    nextAction: typeof provenance.nextAction === 'string' ? provenance.nextAction : null,
+  };
 }
 
 function getPathSelectionHistory(view: ControlCorrectionLearningCenterView | null): PathSelectionHistoryView[] {
@@ -4160,6 +4302,7 @@ export default function AdaptivePracticePage() {
                     ) : null}
                   </div>
                   <PathOptionRoutePreview option={option} />
+                  <PathRecommendationProvenance option={option} />
                   <div className="mt-3 grid gap-2 text-sm">
                     {[
                       ['预计时长', option.estimatedTime],
@@ -4329,6 +4472,7 @@ export default function AdaptivePracticePage() {
                     </span>
                   </div>
                   <PathOptionRoutePreview option={option} />
+                  <PathRecommendationProvenance option={option} />
                   <div className="mt-3 space-y-2 rounded-lg border border-border bg-background/60 p-3 text-sm">
                     <p className="leading-6 text-foreground">{option.reason}</p>
                     <div className="flex flex-wrap gap-1.5 text-xs text-subtle">

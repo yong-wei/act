@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   buildAdaptiveLearningPathPlan,
+  buildAdaptivePathRecommendationProvenance,
   buildControlCorrectionThreeStylePathBundle,
   getLearningGoal,
   isRegisteredAdaptiveLearningPathGoal,
@@ -41,6 +42,74 @@ import {
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources } from '../teacher-resource-node-data';
 import type { SourcePackItem } from '../source-pack';
+
+describe('adaptive path recommendation provenance', () => {
+  it('connects generation-time evidence summaries to affected resources without internal reason codes', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [{
+        targetId: 'kn-bode',
+        kind: 'knowledge',
+        value: 0.32,
+        confidence: 0.7,
+        evidenceCount: 3,
+        reasonCode: 'internal-low-mastery-target',
+      }],
+      confidence: 'medium',
+    });
+
+    expect(provenance).toMatchObject({
+      confidence: 'medium',
+      evidenceReviewHref: '/profile/evidence',
+      entries: [expect.objectContaining({
+        targetLabel: 'Bode 图基础',
+        targetKind: 'knowledge',
+        confidence: 'medium',
+        evidenceSummary: '掌握状态 32%，来自 3 条有效证据，置信度 70%。',
+      })],
+    });
+    expect(provenance.entries[0]?.affectedResourceTitles.length).toBeGreaterThan(0);
+    expect(JSON.stringify(provenance)).not.toContain('internal-low-mastery-target');
+    expect(JSON.stringify(provenance)).not.toContain('targetId');
+  });
+
+  it('uses course structure language instead of treating missing evidence as a confirmed weakness', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [{
+        targetId: 'kn-bode',
+        kind: 'knowledge',
+        value: 0,
+        confidence: 0,
+        evidenceCount: 0,
+        reasonCode: 'missing-evidence',
+      }],
+      confidence: 'low',
+    });
+
+    expect(provenance.summary).toContain('课程结构、先修规则和可用资源');
+    expect(provenance.entries[0]).toMatchObject({
+      confidence: 'low',
+      affectedNodeIds: [],
+      affectedResourceTitles: [],
+    });
+    expect(provenance.entries[0]?.judgment).toContain('暂不能确认该项为稳定薄弱点');
+    expect(provenance.nextAction).toBe('完成诊断或练习，补充有效学习证据。');
+  });
+
+  it('persists recommendation provenance with serialized candidate options', () => {
+    const record = serializeLearningPathPlan(buildAdaptiveLearningPathPlan(plannerInput()));
+    const provenance = record.payload.pathOptions?.[0]?.recommendationProvenance;
+
+    expect(provenance).toEqual(expect.objectContaining({
+      summary: expect.any(String),
+      evidenceReviewHref: '/profile/evidence',
+      entries: expect.any(Array),
+    }));
+  });
+});
 
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
   const registry = buildResourceNodeRegistry({

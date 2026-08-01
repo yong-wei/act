@@ -322,6 +322,50 @@ describe('adaptive learning center UI contracts', () => {
     });
   });
 
+  it('projects generation-time recommendation provenance without internal diagnostic fields', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: pathPlan(),
+    });
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    const pathOptions = (currentPath?.payload as { pathOptions?: Array<Record<string, unknown>> })?.pathOptions ?? [];
+    const provenance = pathOptions[0]?.recommendationProvenance;
+
+    expect(provenance).toEqual(expect.objectContaining({
+      confidence: 'low',
+      evidenceReviewHref: '/profile/evidence',
+      nextAction: '完成诊断或练习，补充有效学习证据。',
+      entries: [expect.objectContaining({
+        evidenceSummary: '掌握状态 42%，来自 3 条有效证据，置信度 60%。',
+        affectedResourceTitles: ['相位裕度映射练习'],
+      })],
+    }));
+    expect(JSON.stringify(provenance)).not.toContain('low-mastery-target');
+    expect(JSON.stringify(provenance)).not.toContain('targetId');
+  });
+
+  it('keeps legacy generated paths without an evidence snapshot usable', () => {
+    const plan = pathPlan();
+    const legacyPlan = {
+      ...plan,
+      visualization: {
+        ...plan.visualization,
+        evidence: undefined,
+      },
+    } as unknown as AdaptiveLearningPathPlan;
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: legacyPlan,
+    });
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    const pathOptions = (currentPath?.payload as { pathOptions?: Array<Record<string, unknown>> })?.pathOptions ?? [];
+
+    expect(pathOptions[0]).toMatchObject({ targetDeficits: [] });
+    expect(pathOptions[0]?.recommendationProvenance).toBeUndefined();
+  });
+
   it('defines the unified center regions and keeps legacy surfaces available when the feature flag is disabled', () => {
     expect(ADAPTIVE_LEARNING_CENTER_REGIONS).toEqual([
       'overview',
@@ -468,6 +512,11 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-adaptive-path-status-region={showSelectionWorkspace ?');
     expect(source).toContain('data-learning-path-option-feedback={option.writeOption.optionId}');
     expect(source).toContain('data-learning-path-route-preview');
+    expect(source).toContain('data-learning-path-recommendation-provenance');
+    expect(source).toContain('data-learning-path-recommendation-disclosure');
+    expect(source).toContain('查看学习记录并复核证据');
+    expect(source).toContain('min-w-0');
+    expect(source).toContain('break-words');
     expect(source).toContain('data-learning-path-diversity-notice="limited"');
     expect(source).toContain('data-learning-path-example={option.isGenerated ? undefined : option.id}');
   });
@@ -528,6 +577,22 @@ describe('adaptive learning center UI contracts', () => {
         terminalValidationNodeIds: ['arena-task:terminal'],
         terminalValidationStrategy: { summary: 'official Arena validation' },
         limitations: [],
+        recommendationProvenance: {
+          summary: '依据相位裕度的学习证据安排本路径。',
+          confidence: 'medium',
+          entries: [{
+            targetLabel: '相位裕度',
+            targetKind: 'knowledge',
+            confidence: 'medium',
+            evidenceSummary: '掌握状态 42%，来自 3 条有效证据，置信度 60%。',
+            judgment: '当前状态仍有提升空间，因此优先安排相位裕度知识卡。',
+            affectedNodeIds: ['card:phase-margin'],
+            affectedResourceTitles: ['相位裕度知识卡'],
+          }],
+          evidenceReviewHref: '/profile/evidence',
+          limitations: [],
+          nextAction: null,
+        },
       },
       {
         optionId: 'foundation-remediation-route',
@@ -558,6 +623,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(displays[1].writeOption).toBe(options[1]);
     expect(displays[0].id).toBe('rules-plus-graph-search-route');
     expect(displays[0].resources.map((resource) => resource.label)).toEqual(['知识卡', 'Arena']);
+    expect(displays[0].recommendationProvenance).toBe(options[0].recommendationProvenance);
+    expect(displays[1].recommendationProvenance).toBeUndefined();
     expect(displays[1].readiness).toBe('包含后续解锁节点');
     expect(preview).toHaveLength(3);
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
