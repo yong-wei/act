@@ -879,7 +879,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain("reason: 'advisor-forbidden'");
     expect(routeSource).toContain('graphNodeId: signedGraphNodeId');
     expect(routeSource).toContain('readPathOptionStyleLookup');
-    expect(routeSource).toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
+    expect(routeSource).not.toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
     expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
     expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
     expect(routeSource).toContain('requestedAt: typeof body.requestedAt');
@@ -899,6 +899,33 @@ describe('adaptive learning center UI contracts', () => {
       .toContain('currentNodeId: input.context.planContext?.activeNodeId ?? null');
     expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
       .toContain('selectedGraphNodeIds: normalizeAdaptivePathSelectedGraphNodeIds');
+  });
+
+  it('renders server-owned path difference facts and invalidates stale explanations', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const runtimeSource = readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8');
+
+    expect(pageSource).toContain('readPathDifferenceExplanation(payload.result?.comparison)');
+    expect(pageSource).toContain('data-learning-path-difference-explanation={explanation.pathId}');
+    expect(pageSource).toContain('正在比较：{left.label} ↔ {right.label}');
+    expect(pageSource).toContain('共同节点');
+    expect(pageSource).toContain('独有节点');
+    expect(pageSource).toContain('顺序差异');
+    expect(pageSource).toContain('方案取舍');
+    expect(pageSource).toContain('比较限制');
+    expect(pageSource).toContain('const pathOptionVersionKey = useMemo');
+    expect(pageSource).toContain('const pathOptionVersionKeyRef = useRef(pathOptionVersionKey)');
+    expect(pageSource).toContain('explanationRequestVersionKey !== pathOptionVersionKeyRef.current');
+    expect(pageSource).toContain('differenceExplanation.pathId !== currentPathId');
+    expect(pageSource).toContain('setPathDifferenceExplanations({})');
+    expect(pageSource).toContain('准备度明细');
+    expect(pageSource).toContain('terminalValidationNodeIds: getStringArray(metrics.terminalValidationNodeIds)');
+    expect(pageSource).toContain('min-w-0 space-y-3');
+    expect(pageSource).toContain('break-words');
+    expect(runtimeSource).toContain('buildAdaptivePathDifferenceExplanation(path.id, selectedOption, comparedOption)');
+    expect(runtimeSource).toContain("'insufficient-data'");
+    expect(runtimeSource).toContain("'no-material-difference'");
+    expect(runtimeSource).not.toContain('路径差异主要来自学习时间、资源类型、检查点密度和当前证据覆盖。');
   });
 
   it('preserves empty path generation resource preference through goal-change URLs', () => {
@@ -955,6 +982,7 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
     expect(source).toContain("? 'avoid-learning-record' : undefined");
+    expect(source).toContain('{!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (');
     expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ||');
     expect(source).toContain("(showLandingWorkspace && pathLandingState === 'active') ? null :");
     expect(source).toContain('data-adaptive-path-route-map="compact"');
