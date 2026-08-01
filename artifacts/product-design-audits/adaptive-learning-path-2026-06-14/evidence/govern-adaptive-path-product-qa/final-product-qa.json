@@ -1,13 +1,13 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-08-01T17:38:51.312Z",
-  "sourceCommit": "worktree:fbf2947e04e12bed5ed03dc5",
+  "generatedAt": "2026-08-01T19:07:58.326Z",
+  "sourceCommit": "worktree:21bc1adb02834a581845d024",
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
   "handoffMatrixSha256": "4518ad34dc92bf23554dc6c7d59a7c1662424a73ef96269546fb06775d06468f",
   "captureManifest": "artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json",
-  "captureManifestSha256": "83a61323445e33811e398846952dabefa2d8acc7181da67ca81524950956e96e",
+  "captureManifestSha256": "5577124e7f7e404fef6797bb9efda91e683869b2b82b43988b43cc38245bea98",
   "visualSignals": "artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json",
   "visualSignalsSha256": "e493334ad5620680cf7364500cfd4321521ad2ac9221a3ee86012fcdf0b8e087",
   "conceptImages": [
@@ -68,7 +68,7 @@
       "pageState": "generation main",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-desktop-light.png",
-      "screenshotSha256": "834f45adffe969f3493943db1141d536cb8a44703e16ce5891d3943acea3b98c",
+      "screenshotSha256": "56ec292affc6887a2fb226ff50a44d7847048bca6da72ff8a10bb3426322c006",
       "result": "passed"
     },
     {
@@ -275,7 +275,7 @@
       "theme": "light",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-desktop-light.png",
-      "screenshotSha256": "834f45adffe969f3493943db1141d536cb8a44703e16ce5891d3943acea3b98c"
+      "screenshotSha256": "56ec292affc6887a2fb226ff50a44d7847048bca6da72ff8a10bb3426322c006"
     },
     {
       "id": "generation-main-mobile-dark",
@@ -378,7 +378,7 @@
     "status": "passed",
     "reviewer": "ui-flow-reviewer",
     "report": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/independent-visual-review.md",
-    "reportSha256": "79c4a2afe66037748ab06ac91fb2e09528955795e25d4de947c586aa4c120e98"
+    "reportSha256": "e0d94ba6b69874685f962f0e9aa3c8983aedef56426ae78e8425d7d900c0c057"
   },
   "functionalGates": {
     "coldStartGeneratesSelectablePaths": true,

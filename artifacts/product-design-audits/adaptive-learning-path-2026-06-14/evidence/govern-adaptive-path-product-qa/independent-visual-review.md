@@ -1,20 +1,24 @@
 # Independent Visual Review
 
+Review status: passed — the refreshed 13-state capture has completed independent Grok visual review.
+
 Change: `govern-adaptive-path-product-qa`
 
-Reviewer: `use-grok high`
+Reviewer: use-grok high
 
-Reviewer session: `c1ad5d65-7963-4c87-8c9b-5f01cf357e5a`
+Reviewer session: `4b80d9bf-38d2-4f7e-a138-0e50bc5cb019`
 
-Final verdict: PASS
+Final verdict: PASS — no P0/P1 blocking findings.
 
-## 2026-08-01 PR #1155 Refresh
+## Current refresh
 
-Grok high reviewed all 13/13 PNG captures and their associated visual signals. The recorded result is `passed` with `blockingFindings=[]`; all 13 screenshot hashes matched the current matrix. The calculate/integration refresh introduced no visual regression.
+The 13-state PNG matrix, capture manifest, visual signals, and final product evidence were regenerated against clean source HEAD `7a059c80459d65de5b45e0fb658e9fb020062373`. Independent review verified 13/13 screenshot hashes against both manifest and final evidence, all provenance hashes, theme signals, and the absence of horizontal overflow or forbidden diagnostics. Desktop and 320px mobile states cover generation, cold start, comparison, execution, node detail, skip confirmation, history, and the shared dock across light and dark themes.
 
-Final verdict: PASS. No unresolved block findings remain.
+Blocking findings: none.
 
-Non-blocking residuals are limited to the demo dock remaining collapsed, the generation dependency bar, and the mobile zero-size dock signal. These signals do not block the visual acceptance result.
+No unresolved BLOCK findings remain.
+
+Non-blocking residuals are limited to the product-facing generation dependency bar, the demo dock remaining collapsed, the mobile selector-crop dock signal, and the lack of a dedicated formula-capacity-error UI frame. The source change is bound through the current `konling-agent-runtime.ts` hash; no sensitive runtime diagnostic, overlap, or visual regression was observed.
 
 ## 2026-08-01 PR #1152 Refresh
 
