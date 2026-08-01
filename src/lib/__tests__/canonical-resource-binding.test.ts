@@ -974,6 +974,36 @@ describe('publication, human, and authority gates', () => {
 });
 
 describe('repository persistence guards', () => {
+  it('uses an extended timeout for first inventory persistence', async () => {
+    const inventory = buildResourceBindingInventory([observation('persist')]);
+    const transaction = {
+      $queryRawUnsafe: vi.fn(async () => []),
+      resourceBindingInventoryRun: {
+        findUnique: vi.fn(async () => null),
+        create: vi.fn(async () => ({})),
+      },
+      resourceBindingInventoryItem: {
+        createMany: vi.fn(async () => ({})),
+      },
+    };
+    const database = {
+      $transaction: vi.fn(async (
+        callback: (tx: typeof transaction) => Promise<unknown>,
+      ) => callback(transaction)),
+    } as unknown as CanonicalResourceBindingDatabase;
+    const repository = new CanonicalResourceBindingRepository(database);
+
+    await expect(repository.persistInventory(inventory)).resolves.toEqual({
+      runId: inventory.runId,
+      itemCount: inventory.items.length,
+      reused: false,
+    });
+    expect(database.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: 'ReadCommitted',
+      timeout: 30_000,
+    });
+  });
+
   function repositoryCrosswalk(): EvidenceStructuralUnitCrosswalk {
     const projection = {
       releaseId: 'release',

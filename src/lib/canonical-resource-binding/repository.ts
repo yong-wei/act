@@ -51,7 +51,10 @@ export interface CanonicalResourceBindingTransaction {
 export interface CanonicalResourceBindingDatabase {
   $transaction<T>(
     callback: (transaction: CanonicalResourceBindingTransaction) => Promise<T>,
-    options: { isolationLevel: 'Serializable' | 'RepeatableRead' | 'ReadCommitted' },
+    options: {
+      isolationLevel: 'Serializable' | 'RepeatableRead' | 'ReadCommitted';
+      timeout?: number;
+    },
   ): Promise<T>;
 }
 
@@ -182,7 +185,7 @@ export class CanonicalResourceBindingRepository {
         data: inventory.items.map((item) => ({ runId: inventory.runId, ...item })),
       });
       return { runId: inventory.runId, itemCount: inventory.items.length, reused: false };
-    }, { isolationLevel: 'ReadCommitted' });
+    }, { isolationLevel: 'ReadCommitted', timeout: 30_000 });
   }
 
   async readEvidenceCrosswalks(

@@ -998,7 +998,6 @@ async function resolveFencedAdaptivePortrait(
         snapshotAt: input.now.toISOString(),
         sourceFamily: null,
         vector: createEmptyCompetencyVector(),
-        limitations: [`cumulative-portrait-${current.availabilityReason}`],
         now: input.now,
       }), input.consumer, { now: input.now });
   return {

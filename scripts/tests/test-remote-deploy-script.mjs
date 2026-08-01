@@ -156,6 +156,20 @@ function verifyCutoverFailureGate() {
 function main() {
   const script = read('scripts/remote-deploy.sh');
   const buildScript = read('scripts/build.sh');
+  const remoteRuntimeCheck = script.slice(
+    script.indexOf('check_remote_textbook_v2_files()'),
+    script.indexOf('check_container_textbook_v2_files()'),
+  );
+  const containerRuntimeCheck = script.slice(
+    script.indexOf('check_container_textbook_v2_files()'),
+    script.indexOf('stop_remote_runtime_consumers()'),
+  );
+
+  assert.equal(
+    remoteRuntimeCheck.includes("grep -q '") || containerRuntimeCheck.includes("grep -q '"),
+    false,
+    'bash -lc 单引号脚本内的 runtime grep 不得再嵌套单引号，否则远端 shell 会提前截断',
+  );
 
   assert.equal(
     buildScript.includes('IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:20260301-amd64}"'),

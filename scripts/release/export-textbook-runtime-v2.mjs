@@ -146,6 +146,28 @@ export function captureCleanTextbookInputRevision({
   return revision;
 }
 
+export function normalizeRuntimeDirectoryPermissions(
+  roots,
+  {
+    lstatSync = fs.lstatSync,
+    readdirSync = fs.readdirSync,
+    chmodSync = fs.chmodSync,
+  } = {},
+) {
+  const normalizeDirectory = (directory) => {
+    const stat = lstatSync(directory);
+    if (!stat.isDirectory()) return;
+    chmodSync(directory, (stat.mode & 0o7777) | 0o755);
+    for (const entry of readdirSync(directory)) {
+      normalizeDirectory(path.join(directory, entry));
+    }
+  };
+
+  for (const root of roots) {
+    normalizeDirectory(root);
+  }
+}
+
 export function replaceRuntimeDirectories(
   replacements,
   {
@@ -154,6 +176,7 @@ export function replaceRuntimeDirectories(
     rmSync = fs.rmSync,
   } = {},
 ) {
+  normalizeRuntimeDirectoryPermissions(replacements.map(({ staged }) => staged));
   const states = replacements.map(({ staged, target }) => ({
     staged,
     target,

@@ -15,6 +15,8 @@ description: Use when this repository needs server-side operations, online fault
 
 - 部署模式固定为“本机构建镜像或镜像包，再在远端执行装载与启停”；不得改为远端源码构建、远端常驻代码目录构建或任何临时改变部署模式的做法。
 - 本地镜像打包必须使用本机 Docker 守护进程执行 `scripts/build.sh` 中的 `docker buildx build`；若 Docker 未运行，应先启动 Docker 并验证 `docker info`，不得擅自切换到 Colima、Podman、Lima 或其他构建运行时，也不得用旧镜像包替代本次构建。
+- 发布构建固定使用 Docker Desktop 24 GiB 内存、8 GiB Swap 和 `NODE_MAX_OLD_SPACE_SIZE=12288`；`docker info --format '{{.MemTotal}}'` 低于 20 GiB 时必须停止，不能在不足内存的 VM 中反复降低或试探 Node heap。
+- 当前构建必须自然结束后才能重启或退出 Docker Desktop；远端部署及最终验收完成、确认没有其他获授权的本地构建后，必须退出 Docker Desktop 释放 VM 内存，不能只停止 builder 容器。
 - 远端 `/home/projects/act` 只允许保留运维脚本、环境变量文件与 `course-content/runtime`；不得上传业务源码、测试、文档、记忆文件或其他代码目录。
 - 禁止在远端执行 `podman build`、`docker build`、`npm run build`、`next build` 或任何等价的源码构建命令。
 - 若发现远端已有源码残留，应优先清理为最小运维壳层，再继续后续排障或部署。
@@ -46,3 +48,4 @@ description: Use when this repository needs server-side operations, online fault
 - 涉及数据库覆盖导入时，先做本地备份
 - 涉及远端服务重启时，保留前后状态与关键日志
 - 验收至少覆盖容器状态、核心接口、关键环境变量和日志摘要
+- 图谱或权威数据发布必须先在本地验证迁移、导入与 revision/provenance 闭合；Candidate、Shadow 与 Legacy 可以并存，除非用户明确授权且 cutover gate 通过，不得把部署等同于 authority cutover

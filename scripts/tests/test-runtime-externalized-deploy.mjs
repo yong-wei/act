@@ -291,6 +291,55 @@ for (const failAtInstall of [2, 3]) {
   }
 }
 
+{
+  const permissionRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'textbook-runtime-permissions-'),
+  );
+  try {
+    fs.mkdirSync(path.join(permissionRoot, 'current'), { recursive: true });
+    const replacements = ['runtime', 'index', 'assets'].map((label) => {
+      const staged = path.join(permissionRoot, 'staged', label);
+      const nested = path.join(staged, 'nested', 'deeper');
+      fs.mkdirSync(nested, { recursive: true });
+      for (const directory of [staged, path.dirname(nested), nested]) {
+        fs.chmodSync(directory, 0o700);
+      }
+      const filePath = path.join(nested, `${label}.txt`);
+      fs.writeFileSync(filePath, `content-${label}`);
+      fs.chmodSync(filePath, 0o600);
+      return {
+        staged,
+        target: path.join(permissionRoot, 'current', label),
+      };
+    });
+
+    replaceRuntimeDirectories(replacements);
+
+    for (const replacement of replacements) {
+      for (const directory of [
+        replacement.target,
+        path.join(replacement.target, 'nested'),
+        path.join(replacement.target, 'nested', 'deeper'),
+      ]) {
+        const mode = fs.statSync(directory).mode & 0o777;
+        assert.equal(mode & 0o055, 0o055, `${directory} 必须允许 group/other 读取和遍历`);
+      }
+      assert.equal(
+        fs.readFileSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`), 'utf8'),
+        `content-${path.basename(replacement.target)}`,
+        '目录权限规范化不得改变文件内容',
+      );
+      assert.equal(
+        fs.statSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`)).mode & 0o777,
+        0o600,
+        '目录权限规范化不得改变文件权限',
+      );
+    }
+  } finally {
+    fs.rmSync(permissionRoot, { recursive: true, force: true });
+  }
+}
+
 assert.equal(
   textbookV2BookIds.every((bookId) => textbookV2ProvenanceHelper.includes(`'${bookId}'`)) &&
     textbookV2RequiredFiles.every((fileName) => textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&

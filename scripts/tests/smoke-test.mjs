@@ -76,6 +76,9 @@ if (!ciWorkflowContent.includes('targets: wasm32-unknown-unknown')) {
 if (!ciWorkflowContent.includes('cargo install wasm-pack --locked --version 0.15.0')) {
   throw new Error('CI workflow must install wasm-pack 0.15.0 before npm run build.');
 }
+if (!/- name: Build\s+env:\s+NODE_MAX_OLD_SPACE_SIZE: 12288\s+run: npm run build/.test(ciWorkflowContent)) {
+  throw new Error('CI build must use a 12288 MiB Node old-space heap.');
+}
 
 const wasmBuildScriptPath = path.join(rootDir, 'scripts', 'wasm', 'build-control-engine.mjs');
 const wasmBuildScriptContent = fs.readFileSync(wasmBuildScriptPath, 'utf8');
