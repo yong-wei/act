@@ -129,6 +129,7 @@ const KONLING_ASSISTANT_BINDING_HINT_KEYS: Record<
   'grading-assistant': ['gradingRunId'],
   'feedback-explainer': ['gradingRunId'],
   'class-summarizer': ['goalId', 'classReportId', 'modeContextToken'],
+  'teacher-diagnosis': [],
   'prep-coauthor': ['smartTaskId', 'smartTaskRevision', 'goalId', 'prepPackId', 'modeContextToken'],
   'teacher-diagnosis': [],
 };
