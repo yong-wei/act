@@ -3,7 +3,10 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { resolveLatestStableAggregate } from '../actkg-release/latest-stable-aggregate';
+import {
+  loadLatestStableAggregateAdmittedEndpoint,
+  resolveLatestStableAggregate,
+} from '../actkg-release/latest-stable-aggregate';
 
 function fail(message: string): never {
   throw new Error(`resolve-latest-actkg-aggregate: ${message}`);
@@ -14,6 +17,10 @@ function parseArgs(argv: string[]): {
   mainRef: string;
   outputJson: string;
   outputMarkdown: string;
+  admittedEndpointPath?: string;
+  predecessorRootClosurePath?: string;
+  admissionBridgeReleaseDiffPath: string;
+  actRepoRoot?: string;
 } {
   const values = new Map<string, string>();
   for (let index = 0; index < argv.length; index += 2) {
@@ -30,6 +37,10 @@ function parseArgs(argv: string[]): {
     '--main-ref',
     '--output-json',
     '--output-markdown',
+    '--admitted-endpoint',
+    '--predecessor-closure',
+    '--admission-bridge',
+    '--act-repo-root',
   ]);
   for (const key of values.keys()) {
     if (!allowed.has(key)) fail(`unknown option ${key}`);
@@ -44,6 +55,10 @@ function parseArgs(argv: string[]): {
     mainRef: values.get('--main-ref') ?? 'origin/main',
     outputJson: required('--output-json'),
     outputMarkdown: required('--output-markdown'),
+    admittedEndpointPath: values.get('--admitted-endpoint'),
+    predecessorRootClosurePath: values.get('--predecessor-closure'),
+    admissionBridgeReleaseDiffPath: required('--admission-bridge'),
+    actRepoRoot: values.get('--act-repo-root'),
   };
 }
 
@@ -62,10 +77,15 @@ async function main(): Promise<void> {
   const binding = await resolveLatestStableAggregate({
     actkgRoot: args.actkgRoot,
     mainRef: args.mainRef,
+    admittedEndpoint: args.admittedEndpointPath
+      ? await loadLatestStableAggregateAdmittedEndpoint(path.resolve(args.admittedEndpointPath))
+      : undefined,
+    predecessorRootClosurePath: args.predecessorRootClosurePath,
+    admissionBridgeReleaseDiffPath: args.admissionBridgeReleaseDiffPath,
+    actRepoRoot: args.actRepoRoot,
   });
   const artifact = {
     status: 'PASS',
-    iteration: 1,
     ...binding,
     gates: {
       LATEST_STABLE_AGGREGATE_RESOLUTION_GATE: 'PASS',
@@ -81,19 +101,16 @@ async function main(): Promise<void> {
     },
   };
   const json = `${JSON.stringify(artifact, null, 2)}\n`;
-  const markdown = `# Issue #1117 Recovery Iteration 1：最新稳定 Aggregate 解析
+  const markdown = `# Issue #1179：最新稳定 ActKG Aggregate binding
 
 \`\`\`text
 status=PASS
+protocol=${binding.protocol}
 selection_policy=${binding.selectionPolicy}
 release_id=${binding.releaseId}
+release_version=${binding.releaseVersion}
+bundle_revision=${binding.bundleRevision}
 bundle_id=${binding.bundleId}
-resolution_digest=${binding.resolutionDigest}
-\`\`\`
-
-## 不可变身份
-
-\`\`\`text
 actkg_main_commit=${binding.actkgMainCommit}
 source_commit=${binding.sourceCommit}
 source_tag=${binding.sourceTag}
@@ -105,9 +122,19 @@ bundle_digest=${binding.bundleDigest}
 manifest_sha256=${binding.manifestSha256}
 sha256sums_sha256=${binding.sha256sumsSha256}
 validation_report_sha256=${binding.validationReportSha256}
+schema_version=${binding.schemaVersion}
+schema_sha256=${binding.schemaSha256}
+predecessor_bundle_id=${binding.predecessorBundleId}
+candidate_chain=${JSON.stringify(binding.candidateChain)}
+candidate_chain_endpoints=${JSON.stringify(binding.candidateChainEndpoints)}
+statistics=${JSON.stringify(binding.statistics)}
+bundle_path=${binding.bundlePath}
+predecessor_root_closure=${JSON.stringify(binding.predecessorRootClosure)}
+admission_bridge_release_diff=${JSON.stringify(binding.admissionBridgeReleaseDiff ?? null)}
+admitted_endpoint=${JSON.stringify(binding.admittedEndpoint ?? null)}
+resolved_at=${binding.resolvedAt}
+resolution_digest=${binding.resolutionDigest}
 \`\`\`
-
-候选链：${binding.candidateChain.map((item) => `\`${item}\``).join(' → ')}
 
 ## 门禁
 

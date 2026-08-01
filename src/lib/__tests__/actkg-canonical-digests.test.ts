@@ -11,6 +11,7 @@ import {
   computeCanonicalReleaseHash,
   computeProjectionVersionDigest,
 } from '../../../scripts/actkg-release/actkg-canonical-digests';
+import { PROJECTION_AGGREGATION_POLICIES } from '../../../scripts/actkg-release/bundle-compatibility-registry';
 import type { JsonObject } from '../../../scripts/actkg-release/public-bundle-types';
 
 const root = process.cwd();
@@ -18,6 +19,7 @@ const R2 = 'course-content/authoring/knowledge/releases/control-theory-engineeri
 const V3E_MODULE =
   'course-content/authoring/knowledge/releases/time-domain-analysis-engineering-v0.1';
 const V4 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.4';
+const V9 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.9';
 
 describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
   it('recomputes the vendored r2 Release self-hash', async () => {
@@ -113,6 +115,42 @@ describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
         'm1g-v1e-release-tier-preserving',
       ),
     ).not.toBe('1b7df5ec9857489ed955695c82cddf209199c8441cc9e48a5ff0e11c1b19c7ed');
+  });
+
+  it('recomputes all vendored v0.9 projection digests with the registered M1L policy', async () => {
+    const aggregationPolicy = 'm1l-v1s-release-tier-preserving';
+    expect(PROJECTION_AGGREGATION_POLICIES).toContain(aggregationPolicy);
+    const cases: Array<{ file: string; profile: string; expectedDigest: string }> = [
+      {
+        file: 'act-projection.json',
+        profile: 'runtime',
+        expectedDigest: 'e691104ef37e5ec3f46d2a2857cb176ad4248feb6c9c4e95ce409619acff2117',
+      },
+      {
+        file: 'domain-projection.json',
+        profile: 'domain',
+        expectedDigest: 'a003a637a431b6735c94c38814bc888a36ffdb81ad431f948c0e9b209a952840',
+      },
+      {
+        file: 'review-projection.json',
+        profile: 'review',
+        expectedDigest: 'eccc55a7d9b641ecba5c7ea0f2ab6022ebd364911867bce22961782e86016e8c',
+      },
+    ];
+    for (const entry of cases) {
+      const projection = JSON.parse(
+        await readFile(path.join(root, V9, entry.file), 'utf8'),
+      ) as JsonObject;
+      expect(projection.version_digest).toBe(entry.expectedDigest);
+      expect(
+        computeProjectionVersionDigest(
+          projection,
+          null,
+          entry.profile,
+          aggregationPolicy,
+        ),
+      ).toBe(entry.expectedDigest);
+    }
   });
 
   it('changes projection version_digest when nodes, links, or hidden_entities change', async () => {

@@ -1,0 +1,13 @@
+{
+  "final_decisions_sha256": "ab8ddd28d556167bb06b7aed03e7680482806fc1c6f2e25d74e2d32991183d10",
+  "implementation_binding_hash": "3734b0bf76ea81a8eaba58255d344f007f8532a025508e6f76a695c699238b18",
+  "modeling": {
+    "release_hash": "90746513ec47be545e3b7c011450d0fc6542781998a7779797b825e91e17775b",
+    "release_version": "system-modeling-engineering-v0.1"
+  },
+  "protocol": "ctkg-m1e-v1b-root-locus-modeling-bridge-release-v1",
+  "root": {
+    "release_hash": "8b1e3832f10d4142db0c395c3b6b2188af6f400faab56f0870502e39c9493e74",
+    "release_version": "root-locus-engineering-v0.1"
+  }
+}

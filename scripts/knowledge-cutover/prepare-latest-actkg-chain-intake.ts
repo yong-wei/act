@@ -25,7 +25,9 @@ import {
 } from '../actkg-release/bundle-compatibility-registry';
 import {
   resolveLatestStableAggregateWithCandidates,
+  loadLatestStableAggregateAdmittedEndpoint,
   type LatestStableAggregateBinding,
+  type LatestStableAggregateAdmittedEndpoint,
   type LatestStableAggregateCandidate,
 } from '../actkg-release/latest-stable-aggregate';
 
@@ -108,6 +110,9 @@ function parseArgs(argv: string[]): {
   bindingPath: string;
   repoRoot: string;
   outputRoot: string;
+  admittedEndpointPath?: string;
+  predecessorRootClosurePath?: string;
+  admissionBridgeReleaseDiffPath?: string;
 } {
   const values = new Map<string, string>();
   for (let index = 0; index < argv.length; index += 2) {
@@ -125,6 +130,9 @@ function parseArgs(argv: string[]): {
     '--binding',
     '--repo-root',
     '--output-root',
+    '--admitted-endpoint',
+    '--predecessor-closure',
+    '--admission-bridge',
   ]);
   for (const key of values.keys()) {
     if (!allowed.has(key)) fail(`unknown option ${key}`);
@@ -140,6 +148,15 @@ function parseArgs(argv: string[]): {
     bindingPath: path.resolve(required('--binding')),
     repoRoot: path.resolve(required('--repo-root')),
     outputRoot: path.resolve(required('--output-root')),
+    admittedEndpointPath: values.has('--admitted-endpoint')
+      ? path.resolve(required('--admitted-endpoint'))
+      : undefined,
+    predecessorRootClosurePath: values.has('--predecessor-closure')
+      ? sourceRelative(values.get('--predecessor-closure'), '--predecessor-closure')
+      : undefined,
+    admissionBridgeReleaseDiffPath: values.has('--admission-bridge')
+      ? sourceRelative(values.get('--admission-bridge'), '--admission-bridge')
+      : undefined,
   };
 }
 
@@ -195,7 +212,11 @@ async function assertOutputRoot(repoRoot: string, outputRoot: string): Promise<v
 }
 
 function bindingIdentity(binding: LatestStableAggregateBinding): JsonObject {
-  const { resolutionDigest: _resolutionDigest, ...body } = binding;
+  const {
+    resolutionDigest: _resolutionDigest,
+    resolvedAt: _resolvedAt,
+    ...body
+  } = binding;
   return body;
 }
 
@@ -578,6 +599,9 @@ export type PrepareLatestActkgChainIntakeOptions = {
   bindingPath: string;
   repoRoot: string;
   outputRoot: string;
+  admittedEndpointPath?: string;
+  predecessorRootClosurePath?: string;
+  admissionBridgeReleaseDiffPath?: string;
 };
 
 export async function prepareLatestActkgChainIntake(
@@ -589,16 +613,32 @@ export async function prepareLatestActkgChainIntake(
   const bindingPath = path.resolve(options.bindingPath);
   await assertOutputRoot(repoRoot, outputRoot);
   const frozen = await loadFrozenBinding(bindingPath);
+  const admittedEndpoint: LatestStableAggregateAdmittedEndpoint | undefined = options.admittedEndpointPath
+    ? await loadLatestStableAggregateAdmittedEndpoint(path.resolve(options.admittedEndpointPath))
+    : frozen.binding.admittedEndpoint;
+  const predecessorRootClosurePath = options.predecessorRootClosurePath
+    ?? frozen.binding.predecessorRootClosure?.path;
+  const admissionBridgeReleaseDiffPath = options.admissionBridgeReleaseDiffPath
+    ?? frozen.binding.admissionBridgeReleaseDiff?.path;
   const start = await resolveLatestStableAggregateWithCandidates({
     actkgRoot,
     mainRef: options.mainRef,
+    admittedEndpoint,
+    predecessorRootClosurePath,
+    admissionBridgeReleaseDiffPath,
+    actRepoRoot: repoRoot,
   });
   assertBindingMatches(frozen.binding, start.binding);
-  if (start.activeCandidates.length < 2 || start.activeCandidates[0]?.releaseVersion
-    !== 'control-theory-engineering-v0.3' || start.activeCandidates[0]?.bundleRevision !== 2) {
-    fail('active candidate chain does not start at the frozen v0.3-r2 baseline');
+  const admittedBundleId = start.binding.admittedEndpoint?.bundleId;
+  const admittedIndex = admittedBundleId === undefined
+    ? -1
+    : start.activeCandidates.findIndex((candidate) => candidate.bundleId === admittedBundleId);
+  if (admittedBundleId !== undefined && admittedIndex < 0) {
+    fail(`admitted endpoint bundleId is not an active candidate: ${admittedBundleId}`);
   }
-  const candidates = start.activeCandidates.slice(1);
+  const candidates = admittedBundleId === undefined
+    ? start.activeCandidates
+    : start.activeCandidates.slice(admittedIndex + 1);
   if (candidates.length === 0) fail('no post-baseline candidates to stage');
   if (start.binding.candidateChain.length !== start.activeCandidates.length) {
     fail('binding candidateChain does not match verified activeCandidates');
@@ -610,6 +650,14 @@ export async function prepareLatestActkgChainIntake(
     'predecessorRootClosure.path',
   ));
   const closureBytes = await readFile(closureSource);
+  const bridge = start.binding.admissionBridgeReleaseDiff;
+  const bridgeSource = bridge
+    ? path.resolve(actkgRoot, sourceRelative(
+        bridge.path,
+        'admissionBridgeReleaseDiff.path',
+      ))
+    : null;
+  const bridgeBytes = bridgeSource ? await readFile(bridgeSource) : null;
   const bindingBytes = frozen.bytes;
   const plans = new Map<string, SourcePlan>();
   const locks: Array<{ candidate: LatestStableAggregateCandidate; lock: ChainLock; lockName: string }> = [];
@@ -625,6 +673,7 @@ export async function prepareLatestActkgChainIntake(
   try {
     const closureTarget = path.join(stagingRoot, 'metadata', 'predecessor-closure.json');
     const bindingTarget = path.join(stagingRoot, 'metadata', 'latest-stable-aggregate-binding.json');
+    const bridgeTarget = path.join(stagingRoot, 'metadata', 'admission-bridge-release-diff.json');
     await mkdir(path.join(stagingRoot, 'releases'), { recursive: false });
     await mkdir(path.join(stagingRoot, 'metadata'), { recursive: false });
     for (const plan of [...plans.values()].sort((left, right) => left.targetRelative.localeCompare(right.targetRelative))) {
@@ -640,19 +689,35 @@ export async function prepareLatestActkgChainIntake(
       if (await directoryDigest(plan.source) !== plan.digest) fail(`source drift during copying ${plan.label}`);
     }
     await cp(closureSource, closureTarget, { force: false, errorOnExist: true });
+    if (bridgeSource) {
+      await cp(bridgeSource, bridgeTarget, { force: false, errorOnExist: true });
+    }
     await cp(bindingPath, bindingTarget, { force: false, errorOnExist: true });
     for (const plan of plans.values()) {
       if (await directoryDigest(plan.source) !== plan.digest) fail(`source drift after copying ${plan.label}`);
     }
-    if (!(await readFile(bindingPath)).equals(bindingBytes) || !(await readFile(closureSource)).equals(closureBytes)) {
-      fail('frozen binding or predecessor closure drifted during intake');
+    if (
+      !(await readFile(bindingPath)).equals(bindingBytes)
+      || !(await readFile(closureSource)).equals(closureBytes)
+      || (bridgeSource !== null && bridgeBytes !== null
+        && !(await readFile(bridgeSource)).equals(bridgeBytes))
+    ) {
+      fail('frozen binding, predecessor closure, or admission bridge drifted during intake');
     }
-    if (!(await readFile(bindingTarget)).equals(bindingBytes) || !(await readFile(closureTarget)).equals(closureBytes)) {
-      fail('staged binding or predecessor closure bytes drifted during intake');
+    if (
+      !(await readFile(bindingTarget)).equals(bindingBytes)
+      || !(await readFile(closureTarget)).equals(closureBytes)
+      || (bridgeBytes !== null && !(await readFile(bridgeTarget)).equals(bridgeBytes))
+    ) {
+      fail('staged binding, predecessor closure, or admission bridge bytes drifted during intake');
     }
     const end = await resolveLatestStableAggregateWithCandidates({
       actkgRoot,
       mainRef: options.mainRef,
+      admittedEndpoint,
+      predecessorRootClosurePath,
+      admissionBridgeReleaseDiffPath,
+      actRepoRoot: repoRoot,
     });
     assertBindingMatches(frozen.binding, end.binding);
     for (const { lockName, lock } of locks) {
@@ -683,6 +748,16 @@ export async function prepareLatestActkgChainIntake(
         'receipt predecessorClosurePath',
       ),
       predecessorClosureArtifactHash: closure.artifactHash,
+      ...(bridge && bridgeBytes ? {
+        admissionBridgePath: repoRelative(
+          repoRoot,
+          path.join(outputRoot, 'metadata', 'admission-bridge-release-diff.json'),
+          'receipt admissionBridgePath',
+        ),
+        admissionBridgeFileSha256: sha256(bridgeBytes),
+        admissionBridgeArtifactHash: bridge.artifactHash,
+        admissionBridgeReleaseDiffDigest: bridge.releaseDiffDigest,
+      } : {}),
       resolutionDigest: end.binding.resolutionDigest,
       chain: entries,
     };
