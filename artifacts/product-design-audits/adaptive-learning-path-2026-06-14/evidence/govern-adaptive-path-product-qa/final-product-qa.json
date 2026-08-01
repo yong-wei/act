@@ -1,15 +1,15 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-07-26T21:10:00.000+08:00",
-  "sourceCommit": "worktree:integrate-konling-textbook-rag+textbook-tool-source-only",
+  "generatedAt": "2026-07-30T08:50:00.000+08:00",
+  "sourceCommit": "worktree:issue-1112-migrate-rag-to-canonical-knowledge+konling-shadow-diagnostic-source-only",
   "currentSourceRefresh": {
-    "capturedAt": "2026-07-26T21:10:00.000+08:00",
+    "capturedAt": "2026-07-30T08:50:00.000+08:00",
     "sourcePath": "src/lib/konling-agent-runtime.ts",
-    "sourceSha256": "4b2874ed0d00586561ebaae21e45d62f27cbd8b0514aff0b7a5274ca561bfac1",
+    "sourceSha256": "026e62cdfed2b4ce28a8189f32d44affb4602706f768c1b20b2954b6f623bb9a",
     "classification": "source-only",
     "visualImpact": "none",
-    "reason": "The shared Konling runtime now registers a server-side textbook retrieval tool and unified citations on registered course pages; it does not change adaptive-path DOM structure, visual styling, responsive geometry, or existing path actions.",
-    "targetedTest": "npm exec vitest run src/lib/__tests__/konling-agent-runtime.test.ts src/lib/__tests__/textbook-v2-adapter.test.ts"
+    "reason": "Issue #1112 adds an optional server-side Canonical RAG shadow diagnostic on searchTextbook: when canonicalRagShadow is supplied, the runtime records a comparison of the real Legacy TextbookV2 production foreground identities against a separated Canonical graph-seed + Source Pack adjudication sidecar. Default production remains Legacy-only; the diagnostic field is not projected into adaptive-path DOM, style, layout, screenshots, or user actions.",
+    "targetedTest": "rtk npm run test:unit -- src/lib/__tests__/canonical-rag.test.ts src/lib/__tests__/konling-agent-runtime.test.ts"
   },
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",

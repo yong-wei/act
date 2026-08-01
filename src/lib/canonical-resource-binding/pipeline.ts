@@ -323,7 +323,7 @@ export async function runIndependentReview(input: {
   try {
     const review = await input.review(reviewerInput);
     assertExactKeys(review as Record<string, unknown>, ['outcome', 'provider'], 'review decision');
-    if (!['GPT', 'FIXTURE'].includes(review.provider)) {
+    if (!['GPT', 'FIXTURE', 'GROK'].includes(review.provider)) {
       throw new Error('review provider is not supported');
     }
     if (!['ACCEPT', 'REJECT', 'DISPUTE'].includes(review.outcome)) {

@@ -1,0 +1,250 @@
+// Storage-independent types for ActKG public Bundle compatibility.
+// These types intentionally avoid Prisma, Repository, and runtime DTO imports.
+
+export type JsonObject = Record<string, unknown>;
+
+export type CompatibilityCode =
+  | 'COMPATIBLE_CONTENT_UPDATE'
+  | 'COMPATIBLE_PACKAGING_REVISION'
+  | 'COMPATIBLE_OPTIONAL_EXTENSION'
+  | 'ADAPTER_UPDATE_REQUIRED'
+  | 'SCHEMA_REVIEW_REQUIRED'
+  | 'INTEGRITY_REJECTED';
+
+export interface MatchedContractIdentity {
+  kind: 'bundle_contract' | 'schema' | 'artifact_contract' | 'lock' | 'bundle' | 'release';
+  id: string;
+  version?: string;
+  sha256?: string;
+}
+
+export interface CompatibilityAssessment {
+  code: CompatibilityCode;
+  reasons: string[];
+  matchedIdentities: MatchedContractIdentity[];
+}
+
+export interface BundleIdentity {
+  bundleId: string;
+  bundleRevision: number;
+  bundleDigest: string;
+  bundleKind: 'module' | 'integration' | 'aggregate';
+  releaseStage: 'candidate' | 'stable';
+  bundleContractVersion: string;
+  controlledPath: string;
+  manifestRawSha256: string;
+  normalization: string;
+  publicationTag: string;
+  sourceCommit: string;
+  sourceTag: string;
+}
+
+export interface ReleaseIdentity {
+  releaseId: string;
+  releaseVersion: string;
+  releaseHash: string;
+  sourceDatasetHash: string;
+}
+
+export interface SchemaIdentity {
+  version: string;
+  rawSha256: string;
+}
+
+export interface ReleaseSetIdentity {
+  releaseSetId: string;
+  lockVersion: 'actkg-release-set-lock/v3';
+  lockPath: string;
+  lockRawSha256: string;
+}
+
+export interface ProjectionIdentity {
+  projectionId: string;
+  profile: string;
+  projectionProfile: string;
+  versionDigest: string;
+  sourceRelease: string;
+  sourceReleaseHash: string;
+  sourceDatasetHash: string;
+  nodeCount: number;
+  linkCount: number;
+  artifactPath: string;
+  artifactSha256: string;
+}
+
+export interface ArtifactDescriptor {
+  role: string;
+  profile?: string;
+  profiles?: string[];
+  contractVersion: string;
+  required: boolean;
+  path: string;
+  mediaType: string;
+  sha256: string;
+  byteLength: number;
+  recordCount: number | null;
+  known: boolean;
+  semanticsEnabled: boolean;
+}
+
+export interface ValidatedRawArtifact {
+  descriptor: ArtifactDescriptor;
+  bytes: Buffer;
+}
+
+export interface ProjectionLinkMetadataRow {
+  relationId: string;
+  releaseTier: string;
+  sourceRelease: string;
+  sourceReleaseHash: string;
+  evidenceRefs: string[];
+  sourceComponentRelease?: string;
+  targetComponentRelease?: string;
+  relationComponentRelease?: string;
+  payload: JsonObject;
+}
+
+export interface CrosswalkRow {
+  publishedEntityId: string;
+  retrievalChunkId: string;
+  citationTargetId: string;
+}
+
+export interface ValidatedComponentReference {
+  releaseId: string;
+  releaseVersion: string;
+  releaseHash: string;
+  componentRole: string;
+  referenceKind: 'legacy_exact' | 'standard_bundle';
+  controlledPath: string;
+  /** Present for legacy_exact component packages. */
+  releaseJsonName?: string;
+  /** Present for legacy_exact component packages (raw Release JSON hash). */
+  releaseRawSha256?: string;
+  /** Present for standard_bundle component packages. */
+  bundleId?: string;
+  /** Present for standard_bundle component packages. */
+  bundleDigest?: string;
+  /** Present for standard_bundle component packages (raw Manifest hash). */
+  manifestSha256?: string;
+  sourceCommit?: string;
+}
+
+export interface RecomputedStatistics {
+  releaseEntries: number;
+  knowledgeNodes: number;
+  publishedRelations: number;
+  projectionNodes: number;
+  projectionLinks: number;
+  ragCrosswalkRows: number;
+  componentCount: number;
+  relationTypeCount: number;
+  [key: string]: number;
+}
+
+export interface ValidatedActKGBundle {
+  /** Trusted ACT capture Git revision bound to this validation result. */
+  captureRevision: string;
+  /**
+   * Governance disposition only. A true value does not enable Graph-RAG
+   * consumption; it records that runtime intake remains blocked.
+   */
+  graphRagRuntimeIntakeBlocked: true;
+  bundleIdentity: BundleIdentity;
+  releaseIdentity: ReleaseIdentity;
+  releaseSetIdentity: ReleaseSetIdentity;
+  schemaIdentity: SchemaIdentity;
+  selectedRuntimeProjection: {
+    identity: ProjectionIdentity;
+    payload: JsonObject;
+  };
+  preservedProjections: Array<{
+    identity: ProjectionIdentity;
+    payload: JsonObject;
+  }>;
+  runtimeLinkMetadata: ProjectionLinkMetadataRow[];
+  allLinkMetadata: Array<{
+    profiles: string[];
+    path: string;
+    rows: ProjectionLinkMetadataRow[];
+  }>;
+  crosswalk: CrosswalkRow[];
+  components: ValidatedComponentReference[];
+  /**
+   * Complete public package bytes for packaging persistence and round-trip.
+   * Includes every Manifest-declared Artifact plus reserved
+   * `bundle-manifest.json` and `SHA256SUMS` (with descriptors).
+   */
+  rawArtifacts: ValidatedRawArtifact[];
+  release: JsonObject;
+  schema: JsonObject;
+  statistics: RecomputedStatistics;
+  compatibility: CompatibilityAssessment;
+  unknownOptionalArtifacts: ArtifactDescriptor[];
+}
+
+/**
+ * Lock v3 component entries.
+ *
+ * - Omitted `reference_kind` is treated as legacy_exact for backward compatibility
+ *   with the reviewed v0.3 r2 lock data (no lock rewrite required).
+ * - standard_bundle locks the controlled path plus Manifest raw hash / bundle id /
+ *   digest; it does not require a Release JSON path.
+ */
+export interface ReleaseSetLockV3LegacyComponent {
+  reference_kind?: 'legacy_exact';
+  release_id: string;
+  controlled_path: string;
+  release_json_name: string;
+  release_raw_sha256: string;
+}
+
+export interface ReleaseSetLockV3StandardBundleComponent {
+  reference_kind: 'standard_bundle';
+  release_id: string;
+  controlled_path: string;
+  bundle_id: string;
+  bundle_digest: string;
+  manifest_raw_sha256: string;
+}
+
+export type ReleaseSetLockV3Component =
+  | ReleaseSetLockV3LegacyComponent
+  | ReleaseSetLockV3StandardBundleComponent;
+
+export interface ReleaseSetLockV3 {
+  lock_version: 'actkg-release-set-lock/v3';
+  release_set_id: string;
+  bundle: {
+    controlled_path: string;
+    bundle_id: string;
+    bundle_revision: number;
+    bundle_digest: string;
+    manifest_raw_sha256: string;
+  };
+  release: {
+    release_id: string;
+    release_version: string;
+    release_hash: string;
+    source_dataset_hash: string;
+  };
+  compatibility: {
+    bundle_contract_version: string;
+    schema_version: string;
+    schema_sha256: string;
+  };
+  source_revision: {
+    commit: string;
+    tag: string;
+  };
+  components: ReleaseSetLockV3Component[];
+}
+
+export type PublicBundleRouteKind = 'legacy-exact-v0.2' | 'actkg-public-bundle/1';
+
+export interface PublicBundleRouteDecision {
+  kind: PublicBundleRouteKind;
+  controlledPath: string;
+  hasManifest: boolean;
+  reason: string;
+}

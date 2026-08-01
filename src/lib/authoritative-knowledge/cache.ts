@@ -30,9 +30,16 @@ export function buildProjectionCacheKey(input: {
   nodeId?: string;
   /** GraphProjection V2 version_digest; empty for historical CTKG 0.1 reads. */
   projectionDigest?: string | null;
+  /**
+   * Runtime Projection id/profile for standard public Bundle candidates only.
+   * When both are omitted/undefined, the key matches the pre-#1131 exact shape
+   * (no extra segments). Do not pass null placeholders for exact #1125.
+   */
+  runtimeProjectionId?: string;
+  runtimeProjectionProfile?: string;
   support: ConsumerSemanticSupport;
 }): string {
-  return [
+  const parts: string[] = [
     input.projectionVersion,
     input.authorityState,
     input.releaseSetId,
@@ -40,10 +47,22 @@ export function buildProjectionCacheKey(input: {
     input.releaseHash ?? '',
     input.sourceDatasetHash ?? '',
     input.projectionDigest ?? '',
+  ];
+  // Append the pair only when a standard candidate explicitly supplies them.
+  // Omitting both keeps the exact #1125 key identical to origin/integration.
+  if (
+    typeof input.runtimeProjectionId === 'string'
+    || typeof input.runtimeProjectionProfile === 'string'
+  ) {
+    parts.push(input.runtimeProjectionId ?? '');
+    parts.push(input.runtimeProjectionProfile ?? '');
+  }
+  parts.push(
     input.role,
     input.nodeId ?? '',
     consumerSupportDigest(input.support),
-  ].join('|');
+  );
+  return parts.join('|');
 }
 
 export class AuthoritativeProjectionCache {

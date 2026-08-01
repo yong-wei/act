@@ -11,6 +11,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   useCallback,
   useMemo,
@@ -25,6 +26,12 @@ import {
   type ResolvedContext,
 } from '@/lib/ai-context-resolver';
 import { useSession } from 'next-auth/react';
+
+export interface PendingAssistantRequest {
+  id: number;
+  entryPoint: KonlingTeachingAssistantEntryPoint;
+  message: string;
+}
 
 interface GlobalAIContextValue {
   /** 当前页面上下文 */
@@ -69,6 +76,10 @@ interface GlobalAIContextValue {
   clearDynamicPageContext: () => void;
   /** 打开指定教学助理模式 */
   openAssistantEntryPoint: (entryPoint: KonlingTeachingAssistantEntryPoint) => void;
+  pendingAssistantRequest: PendingAssistantRequest | null;
+  startAssistantConversation: (entryPoint: KonlingTeachingAssistantEntryPoint, message: string) => Promise<void>;
+  completeAssistantRequest: (requestId: number) => void;
+  failAssistantRequest: (requestId: number, cause: unknown) => void;
   /** 当前路径名 */
   pathname: string;
   /** 是否应该显示AI按钮 */
@@ -117,6 +128,12 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [pendingAssistantRequest, setPendingAssistantRequest] = useState<PendingAssistantRequest | null>(null);
+  const assistantRequestIdRef = useRef(0);
+  const assistantRequestCallbacksRef = useRef(new Map<number, {
+    resolve: () => void;
+    reject: (cause: unknown) => void;
+  }>());
 
   // 解析用户画像
   const userProfile = useMemo<UserProfile | null>(() => {
@@ -231,6 +248,35 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     setUnreadCount(0);
   }, []);
 
+  const startAssistantConversation = useCallback((
+    entryPoint: KonlingTeachingAssistantEntryPoint,
+    message: string,
+  ) => {
+    const id = assistantRequestIdRef.current + 1;
+    assistantRequestIdRef.current = id;
+    openAssistantEntryPoint(entryPoint);
+    setPendingAssistantRequest({ id, entryPoint, message });
+    return new Promise<void>((resolve, reject) => {
+      assistantRequestCallbacksRef.current.set(id, { resolve, reject });
+    });
+  }, [openAssistantEntryPoint]);
+
+  const completeAssistantRequest = useCallback((requestId: number) => {
+    const callbacks = assistantRequestCallbacksRef.current.get(requestId);
+    if (!callbacks) return;
+    assistantRequestCallbacksRef.current.delete(requestId);
+    setPendingAssistantRequest((current) => current?.id === requestId ? null : current);
+    callbacks.resolve();
+  }, []);
+
+  const failAssistantRequest = useCallback((requestId: number, cause: unknown) => {
+    const callbacks = assistantRequestCallbacksRef.current.get(requestId);
+    if (!callbacks) return;
+    assistantRequestCallbacksRef.current.delete(requestId);
+    setPendingAssistantRequest((current) => current?.id === requestId ? null : current);
+    callbacks.reject(cause);
+  }, []);
+
   // 合并基础上下文和动态上下文
   const mergedPageContext = useMemo<PageContext | null>(() => {
     if (!resolvedContext.pageContext) return null;
@@ -289,6 +335,10 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     updatePageContext,
     clearDynamicPageContext,
     openAssistantEntryPoint,
+    pendingAssistantRequest,
+    startAssistantConversation,
+    completeAssistantRequest,
+    failAssistantRequest,
     pathname,
     shouldShowButton,
   };

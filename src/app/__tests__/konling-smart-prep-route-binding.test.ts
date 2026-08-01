@@ -932,6 +932,7 @@ describe('Konling smart-prep production routes', () => {
     expect(persistedMessages.map((message: { role: string }) => message.role)).toEqual([
       'system',
       'system',
+      'system',
       'user',
       'assistant',
     ]);

@@ -1,4 +1,6 @@
 import type { LearningFact } from '@prisma/client';
+import type { LearningFactServingIdentity } from '@/lib/canonical-learning-fact-identity/contracts';
+import { projectLearningFactServingIdentity } from '@/lib/canonical-learning-fact-identity/serving';
 import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   isRegisteredAdaptiveLearningPathGoal,
@@ -13,7 +15,7 @@ import {
   type PortraitV2PayloadShape,
 } from './portrait-v2-model';
 
-export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v4';
+export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v5';
 export const STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS = 30;
 
@@ -36,6 +38,13 @@ export const STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT = {
   courseId: true,
   lessonId: true,
   contextJson: true,
+  // #1116 knowledge identity columns (nullable for historical rows)
+  knowledgeIdentityNamespace: true,
+  canonicalObjectId: true,
+  aggregateReleaseSetId: true,
+  aggregateReleaseId: true,
+  knowledgeProjectionId: true,
+  knowledgeRevisionRef: true,
 } satisfies Record<keyof StudentEvidenceFeatureLearningFact, true>;
 
 export const STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS = [
@@ -49,7 +58,53 @@ export type StudentEvidenceRawReadException =
   typeof STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS[number];
 
 export type StudentEvidenceCoverageState = 'available' | 'partial' | 'missing';
-export type StudentEvidenceStatusMarker = 'stale' | 'partial' | 'low-confidence' | 'missing-source';
+export type StudentEvidenceStatusMarker =
+  | 'stale'
+  | 'partial'
+  | 'low-confidence'
+  | 'missing-source'
+  | 'mixed-knowledge-identity';
+
+/**
+ * Multi-era LearningFact identity coverage (#1116).
+ * Aggregated competency scores may still sum raw contributions for continuity,
+ * but mixed-namespace/revision diagnostics prevent recommendation from treating
+ * the merged score as single-version evidence.
+ */
+export interface StudentEvidenceKnowledgeIdentityCoverage {
+  totalFacts: number;
+  byNamespace: Record<LearningFactServingIdentity['identityNamespace'], number>;
+  distinctRevisionRefs: string[];
+  mixedNamespaces: boolean;
+  mixedRevisions: boolean;
+  /** False when more than one namespace or more than one revision is present. */
+  singleVersionComparable: boolean;
+  availability: 'single-version' | 'mixed-version' | 'empty';
+}
+
+/**
+ * Per-identity-layer aggregate: facts grouped by identityNamespace + revision.
+ * Deterministic sort: namespace order, then revision ref.
+ */
+export interface StudentEvidenceKnowledgeIdentityLayer {
+  layerKey: string;
+  identityNamespace: LearningFactServingIdentity['identityNamespace'];
+  knowledgeRevisionRef: string;
+  factCount: number;
+  evidenceWindow: StudentEvidenceWindow;
+  activity: StudentEvidenceActivitySummary;
+  competencyContributions: StudentEvidenceCompetencyContributions;
+}
+
+export interface StudentEvidenceMergedAggregateComparability {
+  /**
+   * True only when merged activity/competency fields are single-version safe.
+   * When false, consumers must use knowledgeIdentityLayers for attribution.
+   */
+  singleVersionComparable: boolean;
+  reason: 'single-layer' | 'mixed-layers' | 'empty';
+  layerCount: number;
+}
 export type StudentSimulationArenaEvidenceSource = 'simulation' | 'arena';
 export type StudentSimulationArenaEvidenceMarker =
   | 'low-confidence'
@@ -234,6 +289,18 @@ export interface StudentEvidenceFeaturePayload {
     sourceCompleteness: number;
   };
   statusMarkers: StudentEvidenceStatusMarker[];
+  /** Multi-era identity diagnostics for LearningFact aggregation. */
+  knowledgeIdentityCoverage: StudentEvidenceKnowledgeIdentityCoverage;
+  /**
+   * Deterministic per-namespace+revision aggregates. Use these for attribution
+   * when mergedAggregateComparability.singleVersionComparable is false.
+   */
+  knowledgeIdentityLayers: StudentEvidenceKnowledgeIdentityLayer[];
+  /**
+   * Marks whether merged activity/competency fields are single-version safe.
+   * Merged fields remain for compatibility but are not comparable across layers.
+   */
+  mergedAggregateComparability: StudentEvidenceMergedAggregateComparability;
   features: {
     activity: StudentEvidenceActivitySummary;
     activity30d: StudentEvidenceActivitySummary;
@@ -268,6 +335,10 @@ export interface StudentEvidenceFeaturePayload {
         trendDirection: string;
       } | null;
     };
+    /** Duplicated into features for Prisma JSON persistence (no schema migration). */
+    knowledgeIdentityCoverage: StudentEvidenceKnowledgeIdentityCoverage;
+    knowledgeIdentityLayers: StudentEvidenceKnowledgeIdentityLayer[];
+    mergedAggregateComparability: StudentEvidenceMergedAggregateComparability;
   };
 }
 
@@ -453,6 +524,17 @@ export function buildStudentEvidenceFeaturePayload(
   } satisfies StudentEvidenceFeaturePayload['sourceCoverage'];
   const confidence = buildConfidence(facts, factsWithSource.length);
   const combinedConfidence = mergeConfidence(confidence, pathExecution.allTime.evidenceCount);
+  const knowledgeIdentityCoverage = buildKnowledgeIdentityCoverage(facts);
+  const knowledgeIdentityLayers = buildKnowledgeIdentityLayers(facts);
+  const mergedAggregateComparability: StudentEvidenceMergedAggregateComparability = {
+    singleVersionComparable: knowledgeIdentityCoverage.singleVersionComparable,
+    reason: facts.length === 0
+      ? 'empty'
+      : knowledgeIdentityCoverage.singleVersionComparable
+        ? 'single-layer'
+        : 'mixed-layers',
+    layerCount: knowledgeIdentityLayers.length,
+  };
   const statusMarkers = buildStatusMarkers({
     facts,
     pathEvidenceCount: pathExecution.allTime.evidenceCount,
@@ -462,6 +544,14 @@ export function buildStudentEvidenceFeaturePayload(
     now,
     staleAfterDays,
   });
+  if (!knowledgeIdentityCoverage.singleVersionComparable && facts.length > 0) {
+    if (!statusMarkers.includes('mixed-knowledge-identity')) {
+      statusMarkers.push('mixed-knowledge-identity');
+    }
+    if (!statusMarkers.includes('partial')) {
+      statusMarkers.push('partial');
+    }
+  }
   const adaptiveLearnerState = buildAdaptiveLearnerStateFeature({
     facts,
     recentFacts,
@@ -489,7 +579,13 @@ export function buildStudentEvidenceFeaturePayload(
     sourceCoverage,
     confidence: combinedConfidence,
     statusMarkers,
+    knowledgeIdentityCoverage,
+    knowledgeIdentityLayers,
+    mergedAggregateComparability,
     features: {
+      // Merged fields retained for compatibility. When
+      // mergedAggregateComparability.singleVersionComparable is false they are
+      // NOT single-version comparable — use knowledgeIdentityLayers instead.
       activity: activityAll,
       activity30d,
       activityAll,
@@ -512,6 +608,7 @@ export function buildStudentEvidenceFeaturePayload(
       approvedAggregates: {
         latestSnapshot: input.latestSnapshot
           ? {
+              // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: retained only for historical compatibility reads.
               authority: 'legacy-compatibility-only',
               snapshotAt: input.latestSnapshot.snapshotAt.toISOString(),
               factCount: input.latestSnapshot.factCount,
@@ -529,6 +626,11 @@ export function buildStudentEvidenceFeaturePayload(
             }
           : null,
       },
+      // Persist identity diagnostics inside features JSON so the existing Prisma
+      // StudentEvidenceFeatureCache.features column carries them without a migration.
+      knowledgeIdentityCoverage,
+      knowledgeIdentityLayers,
+      mergedAggregateComparability,
     },
   };
 }
@@ -1237,6 +1339,117 @@ function pathDedupeKey(sourceType: StudentPathEvidenceSourceType, row: Record<st
   const pathId = stringValue(row.pathId) ?? 'unknown-path';
   const idempotencyKey = stringValue(row.idempotencyKey);
   return idempotencyKey ? `${sourceType}:${pathId}:${idempotencyKey}` : `${sourceType}:${fallbackId}`;
+}
+
+const KNOWLEDGE_IDENTITY_NAMESPACE_ORDER: LearningFactServingIdentity['identityNamespace'][] = [
+  'LEGACY_UNVERSIONED',
+  'LEGACY',
+  'CANONICAL',
+];
+
+function servingIdentityForFeatureFact(
+  fact: StudentEvidenceFeatureLearningFact,
+): LearningFactServingIdentity {
+  return projectLearningFactServingIdentity({
+    id: fact.id,
+    knowledgeIdentityNamespace: fact.knowledgeIdentityNamespace,
+    canonicalObjectId: fact.canonicalObjectId,
+    aggregateReleaseSetId: fact.aggregateReleaseSetId,
+    aggregateReleaseId: fact.aggregateReleaseId,
+    knowledgeProjectionId: fact.knowledgeProjectionId,
+    knowledgeRevisionRef: fact.knowledgeRevisionRef,
+    contextJson: fact.contextJson,
+  });
+}
+
+function knowledgeIdentityLayerKey(
+  identity: Pick<LearningFactServingIdentity, 'identityNamespace' | 'knowledgeRevisionRef'>,
+): string {
+  return `${identity.identityNamespace}\u001f${identity.knowledgeRevisionRef}`;
+}
+
+export function buildKnowledgeIdentityCoverage(
+  facts: readonly StudentEvidenceFeatureLearningFact[],
+): StudentEvidenceKnowledgeIdentityCoverage {
+  const byNamespace: StudentEvidenceKnowledgeIdentityCoverage['byNamespace'] = {
+    LEGACY: 0,
+    CANONICAL: 0,
+    LEGACY_UNVERSIONED: 0,
+  };
+  const revisionRefs = new Set<string>();
+  for (const fact of facts) {
+    const identity = servingIdentityForFeatureFact(fact);
+    byNamespace[identity.identityNamespace] += 1;
+    revisionRefs.add(identity.knowledgeRevisionRef);
+  }
+  const activeNamespaces = (Object.entries(byNamespace) as Array<
+    [LearningFactServingIdentity['identityNamespace'], number]
+  >).filter(([, count]) => count > 0);
+  const mixedNamespaces = activeNamespaces.length > 1;
+  const mixedRevisions = revisionRefs.size > 1;
+  const singleVersionComparable = facts.length > 0 && !mixedNamespaces && !mixedRevisions;
+  return {
+    totalFacts: facts.length,
+    byNamespace,
+    distinctRevisionRefs: [...revisionRefs].sort(),
+    mixedNamespaces,
+    mixedRevisions,
+    singleVersionComparable,
+    availability: facts.length === 0
+      ? 'empty'
+      : singleVersionComparable
+        ? 'single-version'
+        : 'mixed-version',
+  };
+}
+
+/**
+ * Group facts by serving identity namespace + revision and aggregate each layer
+ * with the same activity/competency helpers used for merged fields.
+ */
+export function buildKnowledgeIdentityLayers(
+  facts: readonly StudentEvidenceFeatureLearningFact[],
+): StudentEvidenceKnowledgeIdentityLayer[] {
+  const groups = new Map<string, {
+    identityNamespace: LearningFactServingIdentity['identityNamespace'];
+    knowledgeRevisionRef: string;
+    facts: StudentEvidenceFeatureLearningFact[];
+  }>();
+
+  for (const fact of facts) {
+    const identity = servingIdentityForFeatureFact(fact);
+    const layerKey = knowledgeIdentityLayerKey(identity);
+    const existing = groups.get(layerKey);
+    if (existing) {
+      existing.facts.push(fact);
+      continue;
+    }
+    groups.set(layerKey, {
+      identityNamespace: identity.identityNamespace,
+      knowledgeRevisionRef: identity.knowledgeRevisionRef,
+      facts: [fact],
+    });
+  }
+
+  const layers = [...groups.entries()].map(([layerKey, group]) => {
+    const orderedFacts = [...group.facts].sort(compareFacts);
+    return {
+      layerKey,
+      identityNamespace: group.identityNamespace,
+      knowledgeRevisionRef: group.knowledgeRevisionRef,
+      factCount: orderedFacts.length,
+      evidenceWindow: buildFactsWindow(orderedFacts),
+      activity: buildActivitySummary(orderedFacts),
+      competencyContributions: buildCompetencyContributions(orderedFacts),
+    } satisfies StudentEvidenceKnowledgeIdentityLayer;
+  });
+
+  return layers.sort((left, right) => {
+    const namespaceOrder = KNOWLEDGE_IDENTITY_NAMESPACE_ORDER.indexOf(left.identityNamespace)
+      - KNOWLEDGE_IDENTITY_NAMESPACE_ORDER.indexOf(right.identityNamespace);
+    if (namespaceOrder !== 0) return namespaceOrder;
+    return left.knowledgeRevisionRef.localeCompare(right.knowledgeRevisionRef);
+  });
 }
 
 function buildPathEventWindow(events: PathEvidenceEvent[]): StudentEvidenceWindow {

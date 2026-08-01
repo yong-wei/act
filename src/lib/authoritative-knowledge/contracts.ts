@@ -8,6 +8,10 @@ export type AuthorityState = 'candidate' | 'active' | 'legacy';
 export const CURRENT_AGGREGATE_RELEASE_SET_ID = 'actkg-authoritative-candidate-v2';
 export const CURRENT_AGGREGATE_RELEASE_ID = 'control-theory-engineering-v0.2';
 export const CTKG_0_2_AGGREGATE_PROTOCOL = 'ctkg-0.2-aggregate-engineering-release-v1';
+/** Standard public Bundle protocol persisted by the compatible-import path. */
+export const STANDARD_PUBLIC_BUNDLE_PROTOCOL = 'actkg-public-bundle/1';
+export const STAGED_CANDIDATE_STATE = 'STAGED';
+export const ACCEPTED_CANDIDATE_STATE = 'ACCEPTED_CANDIDATE';
 export const CTKG_0_2_SCHEMA_VERSION = '0.2.0';
 export const HISTORICAL_ROOT_LOCUS_RELEASE_SET_ID = 'actkg-authoritative-candidate-v1';
 
@@ -78,8 +82,22 @@ export const CTKG_0_2_RELEASE_TIERS = [
   'support',
 ] as const;
 
-export function isAggregateReleaseProtocol(protocol: string): boolean {
+/** Frozen #1125 exact CTKG 0.2 aggregate protocol. */
+export function isExactAggregateReleaseProtocol(protocol: string): boolean {
   return protocol === CTKG_0_2_AGGREGATE_PROTOCOL;
+}
+
+/** Standard public Bundle candidate protocol (#1131). */
+export function isStandardPublicBundleProtocol(protocol: string): boolean {
+  return protocol === STANDARD_PUBLIC_BUNDLE_PROTOCOL;
+}
+
+/**
+ * True for any candidate that stores runtime Projection rows in the aggregate
+ * public tables (exact #1125 or standard Bundle). Historical CTKG 0.1 is false.
+ */
+export function isAggregateReleaseProtocol(protocol: string): boolean {
+  return isExactAggregateReleaseProtocol(protocol) || isStandardPublicBundleProtocol(protocol);
 }
 
 export type AuthoritySelector =
@@ -115,7 +133,11 @@ export interface RepositoryDiagnostic {
     | 'capture-revision-mismatch'
     | 'capture-revision-invalid'
     | 'lock-hash-mismatch'
-    | 'hash-invalid';
+    | 'hash-invalid'
+    | 'bundle-receipt-missing'
+    | 'bundle-identity-mismatch'
+    | 'projection-identity-mismatch'
+    | 'mixed-candidate-snapshot';
   field: string;
   expected: string | number;
   actual: string | number | null;
@@ -270,6 +292,12 @@ export interface AuthoritativeReleaseArtifactRecord {
   mediaType: string;
   sha256: string;
   byteLength: number;
+  /** Standard Artifact role; unavailable (null) for #1125 historical rows. */
+  role?: string | null;
+  profile?: string | null;
+  contractVersion?: string | null;
+  required?: boolean | null;
+  recordCount?: number | null;
 }
 
 export interface AuthoritativeReleaseComponentRecord {
@@ -280,8 +308,13 @@ export interface AuthoritativeReleaseComponentRecord {
   protocol: string;
   controlledPath: string;
   releaseHash: string;
-  releaseRawSha256: string;
-  sha256sumsSha256: string;
+  releaseRawSha256: string | null;
+  sha256sumsSha256: string | null;
+  referenceKind?: string | null;
+  componentRole?: string | null;
+  componentBundleId?: string | null;
+  componentBundleDigest?: string | null;
+  componentManifestSha256?: string | null;
   payload: unknown;
 }
 
@@ -326,6 +359,98 @@ export interface AuthoritativeImportReceiptRecord {
   upstreamRagReferenceCount?: number | null;
   artifactCount?: number | null;
   componentCount?: number | null;
+  // Standard public Bundle identities. Explicitly unavailable for #1125.
+  bundleContractVersion?: string | null;
+  bundleId?: string | null;
+  bundleRevision?: number | null;
+  bundleDigest?: string | null;
+  bundleKind?: string | null;
+  releaseStage?: string | null;
+  manifestRawSha256?: string | null;
+  schemaContractVersion?: string | null;
+}
+
+export interface AuthoritativeBundleReceiptRecord {
+  id: string;
+  bundleId: string;
+  bundleRevision: number;
+  bundleDigest: string;
+  bundleKind: string;
+  releaseStage: string;
+  bundleContractVersion: string;
+  controlledPath: string;
+  manifestRawSha256: string;
+  normalization: string;
+  publicationTag: string;
+  sourceCommit: string;
+  sourceTag: string;
+  releaseSetId: string;
+  releaseId: string;
+  releaseHash: string;
+  sourceDatasetHash: string;
+  schemaVersion: string;
+  schemaRawSha256: string;
+  lockVersion: string;
+  lockPath: string;
+  lockRawSha256: string;
+  captureRevision: string;
+  candidateState: string;
+  compatibilityCode: string;
+  runtimeProjectionId: string;
+  runtimeProjectionProfile: string;
+  runtimeProjectionDigest: string;
+  /** Packaging-scoped public Artifact count for this Bundle receipt. */
+  artifactCount: number;
+  statistics: unknown;
+  importedAt: Date;
+}
+
+export interface AuthoritativeBundleArtifactRecord {
+  bundleReceiptId: string;
+  relativePath: string;
+  ordinal: number;
+  mediaType: string;
+  sha256: string;
+  byteLength: number;
+  role: string;
+  profile: string | null;
+  contractVersion: string;
+  required: boolean;
+  recordCount: number | null;
+}
+
+export interface AuthoritativeProjectionIdentityRecord {
+  releaseId: string;
+  projectionId: string;
+  ordinal: number;
+  profile: string;
+  projectionProfile: string;
+  versionDigest: string;
+  sourceRelease: string;
+  sourceReleaseHash: string;
+  sourceDatasetHash: string;
+  nodeCount: number;
+  linkCount: number;
+  artifactPath: string;
+  artifactSha256: string;
+  isRuntime: boolean;
+  bundleReceiptId: string | null;
+}
+
+export interface AuthoritativeProjectionLinkMetadataRecord {
+  releaseId: string;
+  relationId: string;
+  ordinal: number;
+  releaseTier: string;
+  sourceRelease: string;
+  sourceReleaseHash: string;
+  evidenceRefs: unknown;
+  sourceComponentRelease: string | null;
+  targetComponentRelease: string | null;
+  relationComponentRelease: string | null;
+  profiles: unknown;
+  payload: unknown;
+  bundleReceiptId: string | null;
 }
 
 export interface AuthoritativeKnowledgeSnapshot {
@@ -341,14 +466,20 @@ export interface AuthoritativeKnowledgeSnapshot {
   sourceMappings: AuthoritativeSourceMappingRecord[];
   sourceObjects: AuthoritativeSourceObjectRecord[];
   evidence: AuthoritativeEvidenceRecord[];
-  // CTKG 0.2 aggregate rows; populated only for pinned aggregate releases,
-  // never mixed with the historical CTKG 0.1 rows above.
+  // CTKG 0.2 aggregate / standard public Bundle rows; never mixed with the
+  // historical CTKG 0.1 object/relation tables above.
   releaseEntries?: AuthoritativeReleaseEntryRecord[];
   projectionNodes?: AuthoritativeProjectionNodeRecord[];
   projectionLinks?: AuthoritativeProjectionLinkRecord[];
   upstreamRagReferences?: AuthoritativeUpstreamRagReferenceRecord[];
   releaseArtifacts?: AuthoritativeReleaseArtifactRecord[];
   releaseComponents?: AuthoritativeReleaseComponentRecord[];
+  // Standard Bundle packaging and multi-Projection records. Explicitly absent
+  // for #1125 exact candidates.
+  bundleReceipt?: AuthoritativeBundleReceiptRecord | null;
+  bundleArtifacts?: AuthoritativeBundleArtifactRecord[];
+  projectionIdentities?: AuthoritativeProjectionIdentityRecord[];
+  linkMetadata?: AuthoritativeProjectionLinkMetadataRecord[];
 }
 
 export type RepositoryResult =
@@ -392,6 +523,13 @@ export interface ProjectionIdentity {
   projectionDigest?: string | null;
   /** Upstream source dataset hash; null for CTKG 0.1 history. */
   sourceDatasetHash?: string | null;
+  /**
+   * Runtime Projection identity for standard public Bundle candidates.
+   * Optional and absent for exact #1125 / historical CTKG 0.1 rows.
+   */
+  runtimeProjectionId?: string | null;
+  /** Runtime Projection profile id; optional for exact #1125 compatibility. */
+  runtimeProjectionProfile?: string | null;
 }
 
 export interface SemanticSupportMark {

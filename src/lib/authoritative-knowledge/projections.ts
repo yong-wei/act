@@ -13,6 +13,8 @@ import {
   CURRENT_AGGREGATE_RELEASE_SET_ID,
   HISTORICAL_ROOT_LOCUS_RELEASE_SET_ID,
   isAggregateReleaseProtocol,
+  isExactAggregateReleaseProtocol,
+  isStandardPublicBundleProtocol,
   type AuthoritySelector,
   type AuthoritativeKnowledgeSnapshot,
   type ConsumerSemanticSupport,
@@ -49,7 +51,7 @@ function stringOrNull(value: unknown): string | null {
 }
 
 function identity(snapshot: AuthoritativeKnowledgeSnapshot): ProjectionIdentity {
-  return {
+  const base: ProjectionIdentity = {
     authorityState: snapshot.authorityState,
     releaseSetId: snapshot.releaseSet.id,
     releaseId: snapshot.release.id,
@@ -60,6 +62,88 @@ function identity(snapshot: AuthoritativeKnowledgeSnapshot): ProjectionIdentity 
     projectionDigest: snapshot.release.projectionDigest ?? null,
     sourceDatasetHash: snapshot.release.sourceDatasetHash ?? null,
   };
+  // Exact #1125 and historical CTKG 0.1 must not grow own-keys for the new
+  // runtime Projection fields — response JSON and Object.keys must match pre-#1131.
+  if (!isStandardPublicBundleProtocol(snapshot.release.protocol)) {
+    return base;
+  }
+  const runtimeIdentity = (snapshot.projectionIdentities ?? []).find((row) => row.isRuntime)
+    ?? null;
+  return {
+    ...base,
+    runtimeProjectionId: runtimeIdentity?.projectionId
+      ?? snapshot.bundleReceipt?.runtimeProjectionId
+      ?? null,
+    runtimeProjectionProfile: runtimeIdentity?.projectionProfile
+      ?? snapshot.bundleReceipt?.runtimeProjectionProfile
+      ?? null,
+  };
+}
+
+function projectionCacheBinding(snapshot: AuthoritativeKnowledgeSnapshot): {
+  releaseSetId: string;
+  releaseId: string;
+  releaseHash: string | null;
+  sourceDatasetHash: string | null;
+  projectionDigest: string | null;
+  runtimeProjectionId?: string;
+  runtimeProjectionProfile?: string;
+} {
+  const source = identity(snapshot);
+  const binding: {
+    releaseSetId: string;
+    releaseId: string;
+    releaseHash: string | null;
+    sourceDatasetHash: string | null;
+    projectionDigest: string | null;
+    runtimeProjectionId?: string;
+    runtimeProjectionProfile?: string;
+  } = {
+    releaseSetId: source.releaseSetId,
+    releaseId: source.releaseId,
+    releaseHash: source.releaseHash ?? null,
+    sourceDatasetHash: source.sourceDatasetHash ?? null,
+    projectionDigest: source.projectionDigest ?? null,
+  };
+  // Only standard candidates append runtime segments to cache keys.
+  if (isStandardPublicBundleProtocol(snapshot.release.protocol)) {
+    if (typeof source.runtimeProjectionId === 'string') {
+      binding.runtimeProjectionId = source.runtimeProjectionId;
+    }
+    if (typeof source.runtimeProjectionProfile === 'string') {
+      binding.runtimeProjectionProfile = source.runtimeProjectionProfile;
+    }
+  }
+  return binding;
+}
+
+/**
+ * Expected Artifact count for migration-review ingest.
+ * Exact #1125: semantic import receipt.artifactCount (null → 0 for historical shape).
+ * Standard Bundle: packaging BundleReceipt.artifactCount only. Missing accepted
+ * Bundle receipt / non-numeric artifactCount is fail-closed — never invent 0
+ * or sentinel negatives in governance responses.
+ */
+function expectedArtifactCountForMigrationReview(
+  snapshot: AuthoritativeKnowledgeSnapshot,
+): number {
+  if (isStandardPublicBundleProtocol(snapshot.release.protocol)) {
+    const count = snapshot.bundleReceipt?.artifactCount;
+    if (!snapshot.bundleReceipt || typeof count !== 'number' || !Number.isFinite(count)) {
+      throw new TypeError(
+        'standard public Bundle migration-review requires an accepted Bundle receipt with numeric artifactCount',
+      );
+    }
+    return count;
+  }
+  return snapshot.receipt?.artifactCount ?? 0;
+}
+
+function actualArtifactCount(snapshot: AuthoritativeKnowledgeSnapshot): number {
+  if (isStandardPublicBundleProtocol(snapshot.release.protocol)) {
+    return snapshot.bundleArtifacts?.length ?? 0;
+  }
+  return snapshot.releaseArtifacts?.length ?? 0;
 }
 
 function safeLabel(payload: JsonObject, fallback: string): string {
@@ -151,6 +235,54 @@ export function assertPinnedAggregateProjectionContract(
       `CTKG 0.2 projection violates the pinned consumer contract: ${shown}${rest}`,
     );
   }
+}
+
+/**
+ * Structural fail-closed checks for standard public Bundle runtime Projections.
+ * Registered contracts were enforced at import; unregistered but structurally
+ * valid types/predicates remain available for generic read-only consumers.
+ */
+export function assertStandardRuntimeProjectionStructure(
+  snapshot: AuthoritativeKnowledgeSnapshot,
+): void {
+  const conflicts: string[] = [];
+  const nodes = snapshot.projectionNodes ?? [];
+  const links = snapshot.projectionLinks ?? [];
+  if (nodes.length === 0) {
+    throw new AggregateProjectionContractError(
+      'standard runtime Projection is empty or missing',
+    );
+  }
+  if (
+    !snapshot.release.projectionDigest
+    || (snapshot.bundleReceipt
+      && snapshot.bundleReceipt.runtimeProjectionDigest !== snapshot.release.projectionDigest)
+  ) {
+    throw new AggregateProjectionContractError(
+      'standard runtime Projection digest is missing or disagrees with the accepted Bundle receipt',
+    );
+  }
+  const nodeIds = new Set(nodes.map((node) => node.nodeId));
+  for (const link of links) {
+    if (!nodeIds.has(link.sourceId) || !nodeIds.has(link.targetId)) {
+      conflicts.push(`link ${link.linkId} has an endpoint outside the projection node set`);
+    }
+  }
+  if (conflicts.length > 0) {
+    const shown = conflicts.slice(0, 8).join('; ');
+    const rest = conflicts.length > 8 ? `; … and ${conflicts.length - 8} more conflicts` : '';
+    throw new AggregateProjectionContractError(
+      `standard runtime Projection is structurally invalid: ${shown}${rest}`,
+    );
+  }
+}
+
+function assertCandidateRuntimeProjection(snapshot: AuthoritativeKnowledgeSnapshot): void {
+  if (isExactAggregateReleaseProtocol(snapshot.release.protocol)) {
+    assertPinnedAggregateProjectionContract(snapshot);
+    return;
+  }
+  assertStandardRuntimeProjectionStructure(snapshot);
 }
 
 function aggregateTierByEntityId(
@@ -340,7 +472,7 @@ function buildAggregateCanvasProjection(
   snapshot: AuthoritativeKnowledgeSnapshot,
   support: ConsumerSemanticSupport,
 ): CanvasProjection {
-  assertPinnedAggregateProjectionContract(snapshot);
+  assertCandidateRuntimeProjection(snapshot);
   const supportedTypes = new Set(support.supportedObjectTypes);
   const supportedPredicates = new Set(support.supportedPredicates);
   const tierByEntityId = aggregateTierByEntityId(snapshot);
@@ -843,7 +975,7 @@ function buildAggregateNodeDetailProjection(
   support: ConsumerSemanticSupport,
   diagnostics: RepositoryDiagnostic[],
 ): NodeDetailProjection | null {
-  assertPinnedAggregateProjectionContract(snapshot);
+  assertCandidateRuntimeProjection(snapshot);
   const row = (snapshot.projectionNodes ?? []).find((item) => item.nodeId === nodeId);
   if (!row) return null;
   const payload = object(row.payload);
@@ -947,6 +1079,20 @@ export interface MigrationReviewProjection {
     disposition: 'stale';
     currentReleaseSetId: string;
   }>;
+  /**
+   * Downstream consumer readiness after aggregate governance (#1126).
+   * RAG needs valid ACT Crosswalks; KAQ needs CourseCoverage; SAR needs
+   * reviewed bindings. Teaching Projection / path / facts / cutover remain blocked.
+   */
+  downstreamReadiness: {
+    rag: { consumes: 'valid-act-structural-unit-crosswalk'; blockedWithout: true };
+    kaq: { consumes: 'course-coverage'; blockedWithout: true };
+    sar: { consumes: 'reviewed-bindings-and-kaq'; blockedWithout: true };
+    teachingProjection: { ready: false; blocked: true; reason: 'formal-teaching-projection-not-available' };
+    path: { ready: false; blocked: true; reason: 'awaits-formal-teaching-projection' };
+    facts: { ready: false; blocked: true; reason: 'awaits-formal-teaching-projection' };
+    cutover: { ready: false; blocked: true; reason: 'production-selectors-remain-legacy' };
+  };
   legacyArchive: 'not-ready';
   activeConsumerRebinding: 'not-started';
   readOnly: true;
@@ -967,10 +1113,37 @@ const MIGRATION_REVIEW_FIELDS: ProjectionFieldDeclaration = {
     'ingest.actualCounts',
     'ingest.drift',
     'staleShadowOutputs',
+    'downstreamReadiness',
     'legacyArchive',
     'activeConsumerRebinding',
   ],
   hidden: ['artifact.bytes'],
+};
+
+const AGGREGATE_DOWNSTREAM_READINESS: MigrationReviewProjection['downstreamReadiness'] = {
+  rag: { consumes: 'valid-act-structural-unit-crosswalk', blockedWithout: true },
+  kaq: { consumes: 'course-coverage', blockedWithout: true },
+  sar: { consumes: 'reviewed-bindings-and-kaq', blockedWithout: true },
+  teachingProjection: {
+    ready: false,
+    blocked: true,
+    reason: 'formal-teaching-projection-not-available',
+  },
+  path: {
+    ready: false,
+    blocked: true,
+    reason: 'awaits-formal-teaching-projection',
+  },
+  facts: {
+    ready: false,
+    blocked: true,
+    reason: 'awaits-formal-teaching-projection',
+  },
+  cutover: {
+    ready: false,
+    blocked: true,
+    reason: 'production-selectors-remain-legacy',
+  },
 };
 
 export function buildMigrationReviewProjection(
@@ -979,6 +1152,7 @@ export function buildMigrationReviewProjection(
 ): MigrationReviewProjection {
   const receipt = snapshot.receipt;
   const aggregate = isAggregateReleaseProtocol(snapshot.release.protocol);
+  const expectedArtifacts = expectedArtifactCountForMigrationReview(snapshot);
   return {
     projectionVersion: MIGRATION_REVIEW_PROJECTION_VERSION,
     source: { ...identity(snapshot), controlledPath: snapshot.releaseSet.controlledPath },
@@ -994,7 +1168,7 @@ export function buildMigrationReviewProjection(
               projectionNodes: receipt.projectionNodeCount ?? 0,
               projectionLinks: receipt.projectionLinkCount ?? 0,
               upstreamRagReferences: receipt.upstreamRagReferenceCount ?? 0,
-              artifacts: receipt.artifactCount ?? 0,
+              artifacts: expectedArtifacts,
               components: receipt.componentCount ?? 0,
             }
           : {
@@ -1012,7 +1186,7 @@ export function buildMigrationReviewProjection(
             projectionNodes: snapshot.projectionNodes?.length ?? 0,
             projectionLinks: snapshot.projectionLinks?.length ?? 0,
             upstreamRagReferences: snapshot.upstreamRagReferences?.length ?? 0,
-            artifacts: snapshot.releaseArtifacts?.length ?? 0,
+            artifacts: actualArtifactCount(snapshot),
             components: snapshot.releaseComponents?.length ?? 0,
           }
         : {
@@ -1031,6 +1205,7 @@ export function buildMigrationReviewProjection(
       disposition: 'stale' as const,
       currentReleaseSetId: CURRENT_AGGREGATE_RELEASE_SET_ID,
     })),
+    downstreamReadiness: AGGREGATE_DOWNSTREAM_READINESS,
     legacyArchive: 'not-ready',
     activeConsumerRebinding: 'not-started',
     readOnly: true,
@@ -1073,11 +1248,7 @@ export class AuthoritativeKnowledgeProjectionService {
     const key = buildProjectionCacheKey({
       projectionVersion: CANVAS_PROJECTION_VERSION,
       authorityState: selector.authorityState,
-      releaseSetId: result.snapshot.releaseSet.id,
-      releaseId: result.snapshot.release.id,
-      releaseHash: result.snapshot.release.releaseHash,
-      sourceDatasetHash: result.snapshot.release.sourceDatasetHash ?? null,
-      projectionDigest: result.snapshot.release.projectionDigest ?? null,
+      ...projectionCacheBinding(result.snapshot),
       role: 'NONE',
       support,
     });
@@ -1102,11 +1273,7 @@ export class AuthoritativeKnowledgeProjectionService {
     const key = buildProjectionCacheKey({
       projectionVersion: NODE_DETAIL_PROJECTION_VERSION,
       authorityState: selector.authorityState,
-      releaseSetId: result.snapshot.releaseSet.id,
-      releaseId: result.snapshot.release.id,
-      releaseHash: result.snapshot.release.releaseHash,
-      sourceDatasetHash: result.snapshot.release.sourceDatasetHash ?? null,
-      projectionDigest: result.snapshot.release.projectionDigest ?? null,
+      ...projectionCacheBinding(result.snapshot),
       role,
       nodeId,
       support,
@@ -1141,7 +1308,7 @@ export class AuthoritativeKnowledgeProjectionService {
     const limit = Math.min(Math.max(options.limit ?? 8, 1), 20);
     const supportedTypes = new Set(support.supportedObjectTypes);
     if (isAggregateReleaseProtocol(result.snapshot.release.protocol)) {
-      assertPinnedAggregateProjectionContract(result.snapshot);
+      assertCandidateRuntimeProjection(result.snapshot);
       const results = (result.snapshot.projectionNodes ?? [])
         .filter((row) => !options.canonicalType || row.entityType === options.canonicalType)
         .filter((row) => options.governance !== 'CORE' || row.releaseTier === 'gold')
@@ -1164,6 +1331,7 @@ export class AuthoritativeKnowledgeProjectionService {
             label: row.displayName || row.semanticName || row.nodeId,
             description: stringOrNull(payload.description),
             governanceTier: governanceTierFromReleaseTier(row.releaseTier),
+            // Unregistered types remain available for generic read-only use.
             semanticSupport: semanticSupport(supportedTypes.has(row.entityType)),
             releaseTier: row.releaseTier,
           };
@@ -1242,7 +1410,7 @@ export class AuthoritativeKnowledgeProjectionService {
       return { status: 'drift', selector: result.selector, diagnostics: result.diagnostics };
     }
     if (isAggregateReleaseProtocol(result.snapshot.release.protocol)) {
-      assertPinnedAggregateProjectionContract(result.snapshot);
+      assertCandidateRuntimeProjection(result.snapshot);
       const nodes = result.snapshot.projectionNodes ?? [];
       if (!nodes.some((row) => row.nodeId === nodeId)) {
         return { status: 'unavailable', reason: 'node-not-found', selector, diagnostics: result.diagnostics };
@@ -1354,11 +1522,7 @@ export class AuthoritativeKnowledgeProjectionService {
     const key = buildProjectionCacheKey({
       projectionVersion: MIGRATION_REVIEW_PROJECTION_VERSION,
       authorityState: selector.authorityState,
-      releaseSetId: result.snapshot.releaseSet.id,
-      releaseId: result.snapshot.release.id,
-      releaseHash: result.snapshot.release.releaseHash,
-      sourceDatasetHash: result.snapshot.release.sourceDatasetHash ?? null,
-      projectionDigest: result.snapshot.release.projectionDigest ?? null,
+      ...projectionCacheBinding(result.snapshot),
       role,
       support,
     });
