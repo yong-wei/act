@@ -20,6 +20,15 @@ const V3E_MODULE =
   'course-content/authoring/knowledge/releases/time-domain-analysis-engineering-v0.1';
 const V4 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.4';
 const V9 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.9';
+const V10 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.10';
+
+// Verified from vendored control-theory-engineering-v0.10 projections under
+// m1m-v2n-release-tier-preserving public profile reconstruction.
+const V10_PROJECTION_DIGESTS = {
+  runtime: 'f2270fd9ce9b4db55769cf53174ccdae70c57c3847984a372c809ba2c9607b30',
+  domain: '1a3dd4f4c25180aa874c37aebcbd8af054f0ef32594e2581938e4a918f8c2db9',
+  review: '50a7d07619d2334345931e324a7826ad2d79ee8524a372b7ad47d229779996fd',
+} as const;
 
 describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
   it('recomputes the vendored r2 Release self-hash', async () => {
@@ -150,6 +159,54 @@ describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
           aggregationPolicy,
         ),
       ).toBe(entry.expectedDigest);
+    }
+  });
+
+  it('recomputes vendored v0.10 projection digests with m1m-v2n policy and rejects prior policy', async () => {
+    expect(PROJECTION_AGGREGATION_POLICIES).toContain('m1m-v2n-release-tier-preserving');
+    const cases: Array<{
+      file: string;
+      profile: 'runtime' | 'domain' | 'review';
+      expectedDigest: string;
+    }> = [
+      {
+        file: 'act-projection.json',
+        profile: 'runtime',
+        expectedDigest: V10_PROJECTION_DIGESTS.runtime,
+      },
+      {
+        file: 'domain-projection.json',
+        profile: 'domain',
+        expectedDigest: V10_PROJECTION_DIGESTS.domain,
+      },
+      {
+        file: 'review-projection.json',
+        profile: 'review',
+        expectedDigest: V10_PROJECTION_DIGESTS.review,
+      },
+    ];
+    for (const entry of cases) {
+      const projection = JSON.parse(
+        await readFile(path.join(root, V10, entry.file), 'utf8'),
+      ) as JsonObject;
+      // Pin expected digests to the vendored payload values, not only recomputation.
+      expect(String(projection.version_digest)).toBe(entry.expectedDigest);
+      expect(
+        computeProjectionVersionDigest(
+          projection,
+          null,
+          entry.profile,
+          'm1m-v2n-release-tier-preserving',
+        ),
+      ).toBe(entry.expectedDigest);
+      expect(
+        computeProjectionVersionDigest(
+          projection,
+          null,
+          entry.profile,
+          'm1k-v1d-release-tier-preserving',
+        ),
+      ).not.toBe(entry.expectedDigest);
     }
   });
 
