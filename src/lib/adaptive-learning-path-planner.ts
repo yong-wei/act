@@ -364,6 +364,33 @@ export interface AdaptiveLearningPathConstraints {
   requireRiskIntervention?: boolean;
 }
 
+export type AdaptiveLearningPathConfigurationKey =
+  | 'resource-preferences'
+  | 'difficulty-rhythm'
+  | 'checkpoint-preference'
+  | 'external-resources'
+  | 'natural-language-intent'
+  | 'time-budget';
+
+export type AdaptiveLearningPathConfigurationSource = 'request' | 'intent' | 'fallback';
+
+export interface AdaptiveLearningPathConfigurationRequest {
+  key: AdaptiveLearningPathConfigurationKey;
+  source: AdaptiveLearningPathConfigurationSource;
+  value: string | string[] | boolean | number;
+  mappedTerms?: string[];
+  limitationCode?: string;
+}
+
+export interface AdaptiveLearningPathConfigurationFulfillment {
+  key: AdaptiveLearningPathConfigurationKey;
+  status: 'applied' | 'unmet';
+  source: AdaptiveLearningPathConfigurationSource;
+  effect: string;
+  message: string;
+  limitationCode?: string;
+}
+
 export type AdaptiveLearningPathReadinessState = 'ready' | 'needs-preparation' | 'locked' | 'evidence-needed';
 
 export interface AdaptiveLearningPathNodeReadiness {
@@ -391,10 +418,16 @@ export interface AdaptiveLearningPathPlannerInput {
     overlapThreshold?: number;
   };
   difficultyRhythm?: 'gentle' | 'steady' | 'challenge';
+  difficultyRhythmSource?: AdaptiveLearningPathConfigurationSource;
   resourcePreferences?: ResourceNode['type'][];
+  resourcePreferenceSource?: AdaptiveLearningPathConfigurationSource;
   checkpointPreference?: 'light' | 'standard' | 'dense';
+  checkpointPreferenceSource?: AdaptiveLearningPathConfigurationSource;
   allowExternalResources?: boolean;
+  allowExternalResourcesSource?: AdaptiveLearningPathConfigurationSource;
+  configurationRequests?: AdaptiveLearningPathConfigurationRequest[];
   excludedNodeIds?: string[];
+  diversityAvoidNodeIds?: string[];
   preferredStyleId?: string;
   sourcePackCandidates?: readonly SourcePackItem[];
   sourcePackLimitations?: readonly SourcePackLimitation[];
@@ -482,6 +515,7 @@ export interface AdaptiveLearningPathExplanation {
   selectedReasons: string[];
   rejectedAlternatives: AdaptiveLearningPathAlternative[];
   fallbackReasons: string[];
+  configurationFulfillment: AdaptiveLearningPathConfigurationFulfillment[];
   associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
 }
 
@@ -1877,6 +1911,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const requestedCompletedNodeIds = input.constraints.completedNodeIds ?? [];
   const preferenceContext = buildPlannerPreferenceContext(input);
   const excludedNodeIds = new Set(input.excludedNodeIds ?? []);
+  const diversityAvoidNodeIds = new Set(input.diversityAvoidNodeIds ?? []);
   const { eligible, blocked } = partitionResourceNodes(input.registry.nodes, input.constraints);
   const pathEligible = eligible
     .filter((node) => !excludedNodeIds.has(node.id))
@@ -1940,15 +1975,19 @@ function buildAdaptiveLearningPathPlanInternal(
     .map((node) => {
       const scoredNode = scoreNode(node, deficits, input.learnerState, input.constraints, policyFamily, preferenceContext);
       const resourceRanker = rankerByNodeId.get(node.id);
-      const score = resourceRanker
+      const baseScore = resourceRanker
         ? round(scoredNode.score + resourceRanker.score, 3)
         : scoredNode.score;
+      const score = diversityAvoidNodeIds.has(node.id)
+        ? round(baseScore - 100, 3)
+        : baseScore;
       return {
         ...scoredNode,
         score,
         resourceRanker,
         reasonCodes: unique([
           ...scoredNode.reasonCodes,
+          ...(diversityAvoidNodeIds.has(node.id) ? ['policy-bundle-diversity-avoidance'] : []),
           ...(sarCandidates?.acceptedNodeIds.has(node.id) ? ['sar-associated-candidate'] : []),
           ...(resourceRanker?.featureContributions
             .filter((contribution) => contribution.value > 0)
@@ -1959,7 +1998,12 @@ function buildAdaptiveLearningPathPlanInternal(
         ]),
       };
     })
-    .sort((left, right) => right.score - left.score || left.node.id.localeCompare(right.node.id));
+    .sort((left, right) =>
+      configurationSelectionPriority(right.node, preferenceContext, input.constraints) -
+        configurationSelectionPriority(left.node, preferenceContext, input.constraints) ||
+      right.score - left.score ||
+      left.node.id.localeCompare(right.node.id)
+    );
   const mainPathNodes = buildFeasiblePath(
     scored,
     input.registry,
@@ -2002,7 +2046,7 @@ function buildAdaptiveLearningPathPlanInternal(
     candidates: repairCandidates,
     constraints: {
       timeBudgetMinutes: input.constraints.timeBudgetMinutes,
-      requiredCheckpointCount: registeredGoal?.checkpointPolicy.minCheckpoints ?? 0,
+      requiredCheckpointCount: requiredCheckpointCountForPreference(registeredGoal, preferenceContext),
       terminalValidationRequired: requiresTerminalValidation(input.goal),
       requiredCoverageTargetIds: goalTargetsCoveredByNodes(
         mainPathNodes.map((entry) => entry.node),
@@ -2086,6 +2130,7 @@ function buildAdaptiveLearningPathPlanInternal(
     selectedReasons: mainPath.flatMap((node) => node.reasonCodes),
     rejectedAlternatives: alternatives.filter((item) => item.blocked || !mainPath.some((node) => node.nodeId === item.nodeId)),
     fallbackReasons: uniqueFallbackReasons,
+    configurationFulfillment: buildConfigurationFulfillment(input, mainPath, uniqueFallbackReasons),
     associativeRetrieval: sarCandidates
       ? buildAssociativeRetrievalBasis(sarCandidates, mainPath)
       : undefined,
@@ -3015,7 +3060,10 @@ function scoreNode(
     return sum + impact * (1 - deficit.value);
   }, 0);
   const modalityBoost = preferenceContext.resourceTypes.has(node.type) ? 0.45 : 0;
-  const learnerModalityBoost = learnerState?.resourcePreference?.preferredModalities?.includes(node.type) ? 0.2 : 0;
+  const learnerModalityBoost = !preferenceContext.usesExplicitResourcePreferences &&
+    learnerState?.resourcePreference?.preferredModalities?.includes(node.type)
+    ? 0.2
+    : 0;
   const fatiguePenalty = Math.max(0, planningUnit.estimatedTimeMinutes - constraints.timeBudgetMinutes / 2) / 100;
   const riskBoost = constraints.requireRiskIntervention && (node.type === 'ai_intervention' || node.type === 'reflection') ? 0.25 : 0;
   const difficultyBoost = difficultyRhythmScoreBoost(node, preferenceContext.difficultyRhythm, constraints);
@@ -3038,20 +3086,118 @@ interface AdaptiveLearningPathPreferenceContext {
   resourceTypes: Set<ResourceNode['type']>;
   difficultyRhythm: NonNullable<AdaptiveLearningPathPlannerInput['difficultyRhythm']>;
   checkpointPreference: NonNullable<AdaptiveLearningPathPlannerInput['checkpointPreference']>;
+  usesExplicitResourcePreferences: boolean;
+  usesExplicitDifficultyRhythm: boolean;
+  usesExplicitCheckpointPreference: boolean;
 }
 
 function buildPlannerPreferenceContext(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPreferenceContext {
-  const resourceTypes = unique([
-    ...(input.learnerState?.resourcePreference?.preferredModalities ?? []),
-    ...(input.resourcePreferences ?? []),
-  ]).filter((type): type is ResourceNode['type'] =>
+  const usesExplicitResourcePreferences = input.resourcePreferenceSource
+    ? input.resourcePreferenceSource !== 'fallback'
+    : input.resourcePreferences !== undefined;
+  const resourceTypes = unique(usesExplicitResourcePreferences
+    ? input.resourcePreferences ?? []
+    : [
+      ...(input.learnerState?.resourcePreference?.preferredModalities ?? []),
+      ...(input.resourcePreferences ?? []),
+    ]).filter((type): type is ResourceNode['type'] =>
     input.registry.supportedTypes.includes(type as ResourceNode['type'])
   );
   return {
     resourceTypes: new Set(resourceTypes),
     difficultyRhythm: input.difficultyRhythm ?? 'steady',
     checkpointPreference: input.checkpointPreference ?? 'standard',
+    usesExplicitResourcePreferences,
+    usesExplicitDifficultyRhythm: input.difficultyRhythmSource
+      ? input.difficultyRhythmSource !== 'fallback'
+      : input.difficultyRhythm !== undefined,
+    usesExplicitCheckpointPreference: input.checkpointPreferenceSource
+      ? input.checkpointPreferenceSource !== 'fallback'
+      : input.checkpointPreference !== undefined,
   };
+}
+
+function buildConfigurationFulfillment(
+  input: AdaptiveLearningPathPlannerInput,
+  mainPath: AdaptiveLearningPathPlanNode[],
+  fallbackReasons: readonly string[],
+): AdaptiveLearningPathConfigurationFulfillment[] {
+  const requests = input.configurationRequests ?? [];
+  const selectedTypes = new Set(mainPath.map((node) => node.type));
+  const selectedReasons = new Set(mainPath.flatMap((node) => node.reasonCodes));
+  const checkpointCount = mainPath.filter((node) => node.checkpoint || node.type === 'checkpoint').length;
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const fulfillmentByKey = new Map<AdaptiveLearningPathConfigurationKey, AdaptiveLearningPathConfigurationFulfillment>();
+
+  for (const request of requests) {
+    if (request.source === 'fallback') continue;
+    let fulfilled = mainPath.length > 0;
+    let effect = '';
+    let message = '';
+    if (request.key === 'resource-preferences') {
+      const requestedTypes = Array.isArray(request.value) ? request.value : [];
+      fulfilled = requestedTypes.some((type) => selectedTypes.has(type as ResourceNode['type']));
+      effect = fulfilled ? '已优先选择匹配的资源类型。' : '没有可满足的匹配资源类型。';
+      message = fulfilled ? effect : '当前目标和约束下没有可替代的匹配资源。';
+    } else if (request.key === 'difficulty-rhythm') {
+      const rhythm = typeof request.value === 'string' ? request.value : 'steady';
+      fulfilled = selectedReasons.has(`matches-${rhythm}-rhythm`);
+      effect = fulfilled ? '已按所选学习节奏编排资源。' : '没有可满足该节奏的可执行资源组合。';
+      message = fulfilled ? effect : '当前目标和约束下无法满足所选学习节奏。';
+    } else if (request.key === 'checkpoint-preference') {
+      const preference = typeof request.value === 'string' ? request.value : 'standard';
+      const requiredCheckpoints = registeredGoal?.checkpointPolicy.minCheckpoints ?? 0;
+      if (preference === 'dense') {
+        fulfilled = checkpointCount >= Math.max(requiredCheckpoints, 2);
+        effect = fulfilled ? '已按所选检查点密度编排路径。' : '可用检查点不足以满足所选密度。';
+        message = fulfilled ? effect : '当前资源不足以满足所选检查点密度。';
+      } else if (preference === 'light') {
+        fulfilled = requiredCheckpoints <= 1;
+        effect = fulfilled ? '已按所选检查点密度编排路径。' : '目标要求的必需检查点数量高于轻量设置。';
+        message = fulfilled ? effect : '当前目标要求保留更多必需检查点，因此未按轻量设置减少检查点。';
+      } else {
+        fulfilled = mainPath.length > 0;
+        effect = fulfilled ? '已按所选检查点密度编排路径。' : '可用检查点不足以满足所选密度。';
+        message = fulfilled ? effect : '当前资源不足以满足所选检查点密度。';
+      }
+    } else if (request.key === 'external-resources') {
+      const allowed = request.value === true;
+      fulfilled = allowed || !mainPath.some((node) => node.type === 'external_resource');
+      effect = allowed ? '已允许在可用时选用外部资源。' : '路径未使用外部资源。';
+      message = effect;
+    } else if (request.key === 'natural-language-intent') {
+      const mappedFulfillments = requests
+        .filter((candidate) => candidate.source === 'intent' && candidate.key !== 'natural-language-intent')
+        .map((candidate) => fulfillmentByKey.get(candidate.key));
+      fulfilled = !request.limitationCode &&
+        mappedFulfillments.length > 0 &&
+        mappedFulfillments.every((candidate) => candidate?.status === 'applied');
+      effect = fulfilled ? '已将可识别意图映射为路径配置。' : '识别到的意图未能全部落实到可执行路径。';
+      message = fulfilled
+        ? effect
+        : request.limitationCode === 'natural-language-intent-partially-unmapped'
+          ? '部分意图未能识别为可执行配置，请补充资源类型、节奏、检查点或目标相关的明确表达。'
+          : request.limitationCode === 'natural-language-intent-conflict'
+            ? '同一配置包含相互冲突的表达，系统未自动选择任一项。请在挑战或轻松、密集或轻量检查、允许或不使用外部资源中各选一项后重试。'
+          : request.limitationCode
+            ? '请使用资源类型、节奏、检查点、外部资源或目标相关的明确表达。'
+            : '请调整明确配置或可用资源后重试。';
+    } else if (request.key === 'time-budget') {
+      fulfilled = !fallbackReasons.includes('time-budget-insufficient');
+      effect = fulfilled ? '已按所选学习时长生成路径。' : '所选学习时长不足以覆盖必需验证。';
+      message = fulfilled ? effect : '请增加学习时长后重试。';
+    }
+    fulfillmentByKey.set(request.key, {
+      key: request.key,
+      status: fulfilled ? 'applied' : 'unmet',
+      source: request.source,
+      effect,
+      message,
+      ...(fulfilled || !request.limitationCode ? {} : { limitationCode: request.limitationCode }),
+    });
+  }
+
+  return Array.from(fulfillmentByKey.values());
 }
 
 function difficultyRhythmScoreBoost(
@@ -3091,6 +3237,37 @@ function checkpointPreferenceScoreBoost(
   return isCheckpoint ? 0.16 : 0;
 }
 
+function configurationSelectionPriority(
+  node: ResourceNode,
+  preferenceContext: AdaptiveLearningPathPreferenceContext,
+  constraints: AdaptiveLearningPathConstraints,
+): number {
+  let priority = 0;
+  if (preferenceContext.usesExplicitResourcePreferences && preferenceContext.resourceTypes.has(node.type)) {
+    priority += 4;
+  }
+  if (preferenceContext.usesExplicitDifficultyRhythm &&
+    difficultyRhythmScoreBoost(node, preferenceContext.difficultyRhythm, constraints) > 0) {
+    priority += 2;
+  }
+  if (preferenceContext.usesExplicitCheckpointPreference &&
+    checkpointPreferenceScoreBoost(node, preferenceContext.checkpointPreference) > 0) {
+    priority += 1;
+  }
+  return priority;
+}
+
+export function requiredCheckpointCountForPreference(
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+  preferenceContext: AdaptiveLearningPathPreferenceContext,
+): number {
+  const required = registeredGoal?.checkpointPolicy.minCheckpoints ?? 0;
+  if (!preferenceContext.usesExplicitCheckpointPreference) return required;
+  if (preferenceContext.checkpointPreference === 'dense') return Math.max(required, 2);
+  if (preferenceContext.checkpointPreference === 'light') return required;
+  return required;
+}
+
 function policyScoreBoost(
   node: ResourceNode,
   policyFamily: AdaptiveLearningPathPolicyFamily,
@@ -3126,7 +3303,8 @@ function policyScoreBoost(
   }
   if (policyFamily === 'preference-matched') {
     const preferenceBoost = preferenceContext.resourceTypes.has(node.type) ||
-      learnerState?.resourcePreference?.preferredModalities?.includes(node.type)
+      (!preferenceContext.usesExplicitResourcePreferences &&
+        learnerState?.resourcePreference?.preferredModalities?.includes(node.type))
       ? 0.75
       : 0;
     const pacingBoost = estimatedMinutes <= Math.max(15, constraints.timeBudgetMinutes / 3) ? 0.18 : 0;
@@ -4356,6 +4534,24 @@ function buildPlanScore(
   };
 }
 
+function differentiablePolicyNodeIds(mainPath: AdaptiveLearningPathPlanNode[]): string[] {
+  return mainPath
+    .filter((node) =>
+      node.terminalConstraints.length === 0 &&
+      node.pathNodeType !== 'checkpoint' &&
+      !node.reasonCodes.includes('checkpoint-required')
+    )
+    .map((node) => node.nodeId);
+}
+
+function differentiablePolicyModalityMix(mainPath: AdaptiveLearningPathPlanNode[]): Record<string, number> {
+  return buildModalityMix(mainPath.filter((node) =>
+    node.terminalConstraints.length === 0 &&
+    node.pathNodeType !== 'checkpoint' &&
+    !node.reasonCodes.includes('checkpoint-required')
+  ));
+}
+
 function buildPolicyBundle(
   input: AdaptiveLearningPathPlannerInput,
   primaryPolicyFamily: AdaptiveLearningPathPolicyFamily,
@@ -4370,22 +4566,39 @@ function buildPolicyBundle(
   const terminalValidationRequired = registeredGoal?.checkpointPolicy.requiresTerminalValidation ?? false;
   const deficits = inferDeficits(input.goal, input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
-  const basePaths = families.map((policyFamily) => {
+  const omittedPolicyReasons: string[] = [];
+  const avoidedDifferentiableNodeIds = new Set(input.excludedNodeIds ?? []);
+  const basePaths = families.reduce<AdaptiveLearningPathPolicyBundle['paths']>((paths, policyFamily) => {
     const plan = buildAdaptiveLearningPathPlanInternal(
       {
         ...input,
         policyFamily,
         policyBundle: undefined,
+        diversityAvoidNodeIds: Array.from(avoidedDifferentiableNodeIds),
       },
       false,
     );
     const mainPath = shapePolicyBundlePath(plan.mainPath, policyFamily, input);
+    const differentiableNodeIds = differentiablePolicyNodeIds(mainPath);
+    const retainedDifferentiableNodeIds = new Set(paths.flatMap((path) =>
+      differentiablePolicyNodeIds(path.planNodes ?? [])
+    ));
+    if (mainPath.length === 0) {
+      omittedPolicyReasons.push(paths.length > 0 ? 'policy-option-diversity-unavailable' : 'policy-path-resource-missing');
+      return paths;
+    }
+    if (paths.length > 0 &&
+      (differentiableNodeIds.length === 0 || differentiableNodeIds.every((nodeId) => retainedDifferentiableNodeIds.has(nodeId)))) {
+      omittedPolicyReasons.push('policy-option-diversity-unavailable');
+      return paths;
+    }
+    differentiableNodeIds.forEach((nodeId) => avoidedDifferentiableNodeIds.add(nodeId));
     const modalityMix = buildModalityMix(mainPath);
     const terminalValidationNodeIds = mainPath
       .filter((node) => node.terminalConstraints.includes('terminal-validation'))
       .map((node) => node.nodeId);
     const checkpointNodeIds = selectCheckpointNodeIds(mainPath, registeredGoal);
-    return {
+    paths.push({
       styleId: styleIdForPolicyFamily(policyFamily),
       policyFamily,
       label: styleLabelForPolicyFamily(policyFamily),
@@ -4420,8 +4633,9 @@ function buildPolicyBundle(
       },
       checkpointNodeIds,
       limitations: buildPathOptionLimitations(plan, terminalValidationNodeIds, deficits, terminalValidationRequired),
-    };
-  });
+    });
+    return paths;
+  }, []);
   const pairwiseResourceOverlap = buildPairwiseResourceOverlap(basePaths);
   const paths = basePaths.map((path) => ({
     ...path,
@@ -4448,14 +4662,11 @@ function buildPolicyBundle(
     paths.map((path) => [path.policyFamily, path.estimatedMinutes]),
   );
   const terminalValidationDifference = minTerminalValidationDifference;
-  const emptyPathCount = paths.filter((path) => path.nodeIds.length === 0).length;
   const terminalValidationMissing = terminalValidationRequired &&
     paths.some((path) => path.terminalValidationNodeIds.length === 0);
   const fallbackReasons = unique([
-    emptyPathCount > 0 ? 'policy-path-resource-missing' : null,
+    ...omittedPolicyReasons,
     maxResourceOverlap > overlapThreshold ? 'path-diversity-insufficient' : null,
-    minModalityDistance === 0 ? 'path-modality-diversity-insufficient' : null,
-    minEstimatedEffortDifference === 0 ? 'path-effort-diversity-insufficient' : null,
     terminalValidationMissing ? 'terminal-validation-diversity-insufficient' : null,
     new Set(paths.map((path) => path.nodeIds.join('|'))).size < Math.min(paths.length, 2)
       ? 'policy-paths-identical'
@@ -4664,7 +4875,7 @@ function selectPolicySupportNodes(
     return picked;
   }
 
-  const preferredTypes = input.learnerState?.resourcePreference?.preferredModalities ?? [];
+  const preferredTypes = Array.from(buildPlannerPreferenceContext(input).resourceTypes);
   const preferenceRank = new Map(preferredTypes.map((type, index) => [type, index]));
   addCandidates(input.registry.nodes
       .filter((node) => preferenceRank.has(node.type))
@@ -4811,7 +5022,10 @@ function buildPairwiseResourceOverlap(paths: AdaptiveLearningPathPolicyBundle['p
       overlaps.push({
         left: left.policyFamily,
         right: right.policyFamily,
-        overlap: resourceOverlap(left.nodeIds, right.nodeIds),
+        overlap: resourceOverlap(
+          differentiablePolicyNodeIds(left.planNodes ?? []),
+          differentiablePolicyNodeIds(right.planNodes ?? []),
+        ),
       });
     }
   }
@@ -4827,7 +5041,10 @@ function buildPairwiseModalityDistance(paths: AdaptiveLearningPathPolicyBundle['
       distances.push({
         left: left.policyFamily,
         right: right.policyFamily,
-        distance: setDistance(Object.keys(left.modalityMix), Object.keys(right.modalityMix)),
+        distance: setDistance(
+          Object.keys(differentiablePolicyModalityMix(left.planNodes ?? [])),
+          Object.keys(differentiablePolicyModalityMix(right.planNodes ?? [])),
+        ),
       });
     }
   }

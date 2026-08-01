@@ -1042,8 +1042,8 @@ export function toControlCorrectionPathRoundView(path: any) {
     pathStatus: path.pathStatus,
     currentNodeId: path.currentNodeId,
     classId: path.classId,
-    pathPayload: derivePathPayloadExecutionState(path),
-    explanationPayload: path.explanationPayload,
+    pathPayload: toStudentSafePathPayload(derivePathPayloadExecutionState(path)),
+    explanationPayload: toStudentSafePathPayload(path.explanationPayload),
     alternativePayload: path.alternativePayload,
     entryNodeId: path.entryNodeId,
     terminalValidation: path.terminalValidation,
@@ -1084,6 +1084,32 @@ export function toControlCorrectionPathRoundView(path: any) {
         }))
       : [],
   };
+}
+
+function toStudentSafePathPayload(payload: unknown): unknown {
+  if (payload === null || payload === undefined) return payload;
+  const record = toRecord(payload);
+  const sanitized: Record<string, unknown> = { ...record };
+  if (Array.isArray(record.configurationFulfillment)) {
+    sanitized.configurationFulfillment = toStudentConfigurationFulfillment(record.configurationFulfillment);
+  }
+  const explanations = toRecord(record.explanations);
+  if (Object.keys(explanations).length > 0 && Array.isArray(explanations.configurationFulfillment)) {
+    sanitized.explanations = {
+      ...explanations,
+      configurationFulfillment: toStudentConfigurationFulfillment(explanations.configurationFulfillment),
+    };
+  }
+  return sanitized;
+}
+
+function toStudentConfigurationFulfillment(value: unknown): Array<Record<string, unknown>> {
+  return arrayOfRecords(value).map((entry) => ({
+    key: typeof entry.key === 'string' ? entry.key : 'configuration',
+    status: entry.status === 'unmet' ? 'unmet' : 'applied',
+    effect: typeof entry.effect === 'string' ? entry.effect : '',
+    message: typeof entry.message === 'string' ? entry.message : '',
+  }));
 }
 
 function derivePathPayloadExecutionState(path: any): unknown {

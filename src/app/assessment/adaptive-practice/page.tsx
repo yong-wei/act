@@ -997,6 +997,43 @@ function getPathOptionFallback(view: ControlCorrectionLearningCenterView | null)
   return Object.keys(fallback).length > 0 ? fallback : null;
 }
 
+type PathConfigurationFulfillmentView = {
+  key: string;
+  status: 'applied' | 'unmet';
+  effect: string;
+  message: string;
+};
+
+function getPathConfigurationFulfillment(view: ControlCorrectionLearningCenterView | null): PathConfigurationFulfillmentView[] {
+  const currentPath = view?.panels.find((panel) => panel.region === 'current-path');
+  const payload = getRecord(currentPath?.payload);
+  return (Array.isArray(payload.configurationFulfillment) ? payload.configurationFulfillment : [])
+    .map(getRecord)
+    .map((entry) => ({
+      key: typeof entry.key === 'string' ? entry.key : 'configuration',
+      status: entry.status === 'unmet' ? 'unmet' as const : 'applied' as const,
+      effect: typeof entry.effect === 'string' ? entry.effect : '',
+      message: typeof entry.message === 'string' ? entry.message : '',
+    }))
+    .filter((entry) => entry.effect || entry.message);
+}
+
+function getPathBudgetLimitation(view: ControlCorrectionLearningCenterView | null) {
+  const currentPath = view?.panels.find((panel) => panel.region === 'current-path');
+  const payload = getRecord(currentPath?.payload);
+  const requestedMinutes = typeof payload.requestedTimeBudgetMinutes === 'number'
+    ? payload.requestedTimeBudgetMinutes
+    : null;
+  const minimumMinutes = typeof payload.minimumTimeBudgetMinutes === 'number'
+    ? payload.minimumTimeBudgetMinutes
+    : null;
+  return {
+    insufficient: payload.timeBudgetInsufficient === true,
+    requestedMinutes,
+    minimumMinutes,
+  };
+}
+
 function hasPathComparisonDiversityLimitation(fallback: Record<string, unknown> | null): boolean {
   const studentVisibleReasons = new Set([
     '路径差异不足',
@@ -1635,6 +1672,11 @@ export default function AdaptivePracticePage() {
     [activeOptionId, pathOptions],
   );
   const pathSelectionHistory = useMemo(() => getPathSelectionHistory(adaptivePathCenter), [adaptivePathCenter]);
+  const pathConfigurationFulfillment = useMemo(
+    () => getPathConfigurationFulfillment(adaptivePathCenter),
+    [adaptivePathCenter],
+  );
+  const pathBudgetLimitation = useMemo(() => getPathBudgetLimitation(adaptivePathCenter), [adaptivePathCenter]);
   const evidenceReadiness = useMemo(() => (
     showGenerationWorkspace &&
       !isDemoMode &&
@@ -2436,7 +2478,18 @@ export default function AdaptivePracticePage() {
         return;
       }
       if (payload.result?.generationStatus === 'blocked') {
-        const blockedMessage = typeof payload.result.comparison?.message === 'string'
+        const budgetRequest = getRecord(payload.result?.request);
+        const requestedMinutes = typeof budgetRequest.requestedTimeBudgetMinutes === 'number'
+          ? budgetRequest.requestedTimeBudgetMinutes
+          : null;
+        const minimumMinutes = typeof budgetRequest.minimumTimeBudgetMinutes === 'number'
+          ? budgetRequest.minimumTimeBudgetMinutes
+          : null;
+        const blockedMessage = budgetRequest.timeBudgetInsufficient === true &&
+          requestedMinutes !== null &&
+          minimumMinutes !== null
+          ? `你选择了 ${requestedMinutes} 分钟，完成必需验证至少需要 ${minimumMinutes} 分钟。请调整学习时长后重试。`
+          : typeof payload.result.comparison?.message === 'string'
           ? payload.result.comparison.message
           : '当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。';
         setPathChoiceMessage(blockedMessage);
@@ -3684,6 +3737,35 @@ export default function AdaptivePracticePage() {
               data-learning-path-options-slot={hasGeneratedPathOptions ? 'three-style' : 'starter-examples'}
               data-learning-path-options-layout="route-modules"
             >
+            {pathConfigurationFulfillment.length > 0 || pathBudgetLimitation.insufficient || Boolean(pathOptionFallback) ? (
+              <section
+                className="mt-4 rounded-lg border border-border bg-background/55 p-3 text-sm"
+                data-adaptive-path-configuration-fulfillment="visible"
+              >
+                <p className="font-medium text-foreground">本次配置如何影响路径</p>
+                <div className="mt-2 grid gap-2">
+                  {pathConfigurationFulfillment.map((entry) => (
+                    <p key={entry.key} className="leading-6 text-subtle">
+                      <span className="font-medium text-foreground">{entry.status === 'applied' ? '已应用：' : '未满足：'}</span>
+                      {entry.status === 'applied' ? entry.effect : entry.message}
+                    </p>
+                  ))}
+                  {pathBudgetLimitation.insufficient &&
+                    pathBudgetLimitation.requestedMinutes !== null &&
+                    pathBudgetLimitation.minimumMinutes !== null ? (
+                    <p className="leading-6 text-subtle">
+                      <span className="font-medium text-foreground">学习时长不足：</span>
+                      你选择了 {pathBudgetLimitation.requestedMinutes} 分钟，完成必需验证至少需要 {pathBudgetLimitation.minimumMinutes} 分钟。
+                    </p>
+                  ) : null}
+                  {pathOptionFallback && visiblePathOptions.length < 3 ? (
+                    <p className="leading-6 text-subtle">
+                      当前可用资源不足以形成更多真正不同的方案，因此仅展示 {visiblePathOptions.length} 条可执行路径。
+                    </p>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
             {hasGeneratedPathOptions && pathComparisonDiversityLimited ? (
               <p
                 className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm leading-6 text-foreground"

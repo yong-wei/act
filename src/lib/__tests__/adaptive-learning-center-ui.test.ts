@@ -236,6 +236,7 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
       selectedReasons: ['low-mastery-target'],
       rejectedAlternatives: [],
       fallbackReasons: [],
+      configurationFulfillment: [],
     },
     executionStatus: {
       adopted: true,
@@ -289,6 +290,38 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
 }
 
 describe('adaptive learning center UI contracts', () => {
+  it('projects configuration fulfillment into the current-path panel', () => {
+    const plan = pathPlan();
+    plan.explanations.configurationFulfillment = [{
+      key: 'resource-preferences',
+      status: 'applied',
+      source: 'request',
+      effect: '已优先选择匹配的资源类型。',
+      message: '已优先选择匹配的资源类型。',
+      limitationCode: 'internal-only-code',
+    }];
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: plan,
+    });
+
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    expect(currentPath?.payload).toMatchObject({
+      configurationFulfillment: [
+        expect.objectContaining({ key: 'resource-preferences', status: 'applied' }),
+      ],
+    });
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('internal-only-code');
+    expect((currentPath?.payload as { configurationFulfillment?: Array<Record<string, unknown>> })
+      .configurationFulfillment?.[0]).toEqual({
+      key: 'resource-preferences',
+      status: 'applied',
+      effect: '已优先选择匹配的资源类型。',
+      message: '已优先选择匹配的资源类型。',
+    });
+  });
+
   it('defines the unified center regions and keeps legacy surfaces available when the feature flag is disabled', () => {
     expect(ADAPTIVE_LEARNING_CENTER_REGIONS).toEqual([
       'overview',
@@ -1569,7 +1602,11 @@ describe('adaptive learning center UI contracts', () => {
             estimatedEffortByPolicy: { 'foundation-remediation': 15 },
             terminalValidationDifference: 0,
           },
-          fallbackReasons: ['path-diversity-insufficient', 'terminal-validation-diversity-insufficient'],
+          fallbackReasons: [
+            'path-diversity-insufficient',
+            'terminal-validation-diversity-insufficient',
+            'policy-option-diversity-unavailable',
+          ],
         },
         feedbackEvents: [
           {
@@ -1599,7 +1636,7 @@ describe('adaptive learning center UI contracts', () => {
       ],
       pathOptionFallback: {
         status: 'low-resource-fallback',
-        fallbackReasons: ['路径差异不足', '终点检验差异不足'],
+        fallbackReasons: ['路径差异不足', '终点检验差异不足', '当前资源只能形成单一推荐方案'],
         diversity: {
           resourceOverlap: 1,
           modalityDistance: 0,
@@ -2224,6 +2261,7 @@ describe('adaptive learning center UI contracts', () => {
           selectedReasons: [],
           rejectedAlternatives: [],
           fallbackReasons: ['learner-state-missing'],
+          configurationFulfillment: [],
         },
       }),
     });

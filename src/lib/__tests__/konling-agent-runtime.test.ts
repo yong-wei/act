@@ -103,6 +103,7 @@ import {
   getOrCreateKonlingAgentSession,
   buildKonlingTeachingAssistantRuntimeContract,
   getKonlingTeachingAssistantMountContracts,
+  mapAdaptivePathNaturalLanguageIntent,
   KONLING_TOOL_REGISTRY,
   KONLING_CANDIDATE_READ_TOOLS,
   mergeCandidateAssignedCitations,
@@ -712,6 +713,116 @@ describe('konling agent runtime', () => {
         activeFlags: [],
       },
     });
+  });
+
+  it('separates canonical intent values from source terms used to consume clauses', () => {
+    const cases = [
+      {
+        intent: '先补相位裕度，再做仿真验证',
+        matchedTerms: ['simulation'],
+        matchedSourceTerms: ['仿真'],
+        limitationCode: 'natural-language-intent-partially-unmapped',
+      },
+      {
+        intent: '挑战，仿真',
+        matchedTerms: ['simulation', 'challenge'],
+        matchedSourceTerms: ['仿真', '挑战'],
+        limitationCode: undefined,
+      },
+      {
+        intent: '轻量检查',
+        matchedTerms: ['light'],
+        matchedSourceTerms: ['轻量检查'],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不要外部'],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要挑战，循序推进',
+        matchedTerms: ['gentle'],
+        matchedSourceTerms: ['挑战', '循序'],
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要密集检查，只要轻量检查',
+        matchedTerms: ['light'],
+        matchedSourceTerms: ['密集检查', '轻量检查'],
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要使用外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不要使用外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不允许外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不允许外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '禁止使用外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['禁止使用外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '挑战但要轻松推进，并完成仿真',
+        matchedTerms: ['simulation'],
+        matchedSourceTerms: ['仿真', '挑战', '轻松'],
+        conflictDimensions: ['difficulty'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '密集检查，同时只要轻量检查',
+        matchedTerms: [],
+        matchedSourceTerms: ['密集检查', '轻量检查'],
+        conflictDimensions: ['checkpoint'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '允许外部资源，但不使用外部资源',
+        matchedTerms: [],
+        matchedSourceTerms: ['不使用外部', '外部资源'],
+        conflictDimensions: ['external-resource'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '先补相位裕度',
+        matchedTerms: [],
+        matchedSourceTerms: [],
+        limitationCode: 'natural-language-intent-unsupported',
+      },
+    ] as const;
+
+    for (const expected of cases) {
+      const mapping = mapAdaptivePathNaturalLanguageIntent(expected.intent);
+      expect(mapping).toMatchObject({
+        resourcePreferences: expected.matchedTerms.filter((term) => term === 'simulation'),
+        matchedTerms: expected.matchedTerms,
+        matchedSourceTerms: expected.matchedSourceTerms,
+      });
+      if ('conflictDimensions' in expected) {
+        expect(mapping.conflictDimensions).toEqual(expected.conflictDimensions);
+      }
+      if ('allowExternalResources' in expected) {
+        expect(mapping.allowExternalResources).toBe(expected.allowExternalResources);
+      }
+      expect(mapping.limitationCode).toBe(expected.limitationCode);
+    }
   });
 
   it('enforces student and teacher runtime scope before tools can run', async () => {
@@ -9093,6 +9204,7 @@ describe('konling agent runtime', () => {
       generationStatus: string;
       pathId: string | null;
       pathOptions: Array<Record<string, unknown>>;
+      configurationFulfillment: Array<{ key: string; status: string; message: string }>;
       comparison: { optionCount: number; message: string };
       limitations: string[];
       diagnostics: {
@@ -9127,6 +9239,12 @@ describe('konling agent runtime', () => {
       limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
     });
     expect(result.pathOptions.length).toBeGreaterThan(0);
+    expect(result.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'difficulty-rhythm', status: 'applied' }),
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', message: expect.any(String) }),
+    ]));
+    expect(result.configurationFulfillment.find((item) => item.key === 'natural-language-intent')).not.toHaveProperty('limitationCode');
+    expect(JSON.stringify(result.configurationFulfillment)).not.toContain('我想先补相位裕度');
     expect(mocks.loadRuntimeResourceProjectionInputs).toHaveBeenCalled();
     expect(result.diagnostics.candidatePool).toMatchObject({
       registryVersion: 'resource-node-registry.v1',
@@ -9169,6 +9287,9 @@ describe('konling agent runtime', () => {
         }),
       }),
     });
+    expect(createdPath.pathPayload.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', limitationCode: 'natural-language-intent-partially-unmapped' }),
+    ]));
     expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         status: 'succeeded',
@@ -9178,6 +9299,32 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
+
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...createdRun, idempotencyKey: 'path-gen-low-budget' });
+    const lowBudgetResult = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-low-budget',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
+      timeBudgetMinutes: 30,
+    }) as {
+      generationStatus: string;
+      request: {
+        effectiveTimeBudgetMinutes: number;
+        minimumTimeBudgetMinutes: number;
+        timeBudgetInsufficient: boolean;
+      };
+    };
+
+    expect(lowBudgetResult).toMatchObject({
+      generationStatus: 'blocked',
+      request: {
+        effectiveTimeBudgetMinutes: 30,
+        minimumTimeBudgetMinutes: 32,
+        timeBudgetInsufficient: true,
+      },
+    });
     expect(JSON.stringify(result)).not.toMatch(/stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
@@ -10763,20 +10910,27 @@ describe('konling agent runtime', () => {
       timeBudgetMinutes: 90,
       difficultyRhythm: 'challenge',
       checkpointPreference: 'dense',
-      naturalLanguageIntent: '我希望减少讲解，先完成仿真和 Arena。',
+      naturalLanguageIntent: '优先完成仿真和 Arena。',
       rejectedStyleIds: ['foundation-remediation'],
       selectedStyleId: 'arena-simulation-sprint',
     });
     expect(result).toMatchObject({
       operation: 'revised',
       generationStatus: 'persisted',
-      limitations: [],
+      limitations: expect.arrayContaining(['policy-option-diversity-unavailable']),
       pathOptions: expect.any(Array),
+      comparison: {
+        optionCount: 1,
+        message: '当前资源只能形成单一推荐方案。',
+      },
     });
-    expect((result as { pathOptions: unknown[] }).pathOptions.length).toBeGreaterThanOrEqual(3);
+    expect((result as { pathOptions: unknown[] }).pathOptions).toHaveLength(1);
     const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
     expect(revisedCreate.pathPayload.graphContext).toBeNull();
-    expect(revisedCreate.pathPayload.pathOptions.length).toBeGreaterThanOrEqual(3);
+    expect(revisedCreate.pathPayload.pathOptions).toHaveLength(1);
+    expect(revisedCreate.pathPayload.policyBundle.fallbackReasons).toEqual(
+      expect.arrayContaining(['policy-option-diversity-unavailable']),
+    );
     expect(revisedCreate.explanationPayload.selectedReasons).toEqual(
       expect.arrayContaining(['policy-simulation-driven']),
     );
@@ -10805,8 +10959,8 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
-    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('我希望减少讲解');
-    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我希望减少讲解');
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('优先完成仿真和 Arena');
+    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('优先完成仿真和 Arena');
   });
 
   it('rejects adaptive path generation when client hints try to expand the scoped goal', async () => {
