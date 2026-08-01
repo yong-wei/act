@@ -1,7 +1,7 @@
 # pid-turn-scenario-calibration Specification
 
 ## Purpose
-TBD - created by archiving change calibrate-pid-turn-scenario. Update Purpose after archive.
+规定默认 90 度 PID 转向推荐场景的参考航向、舵机速率、持续稳定时间与可行评分边界，确保推荐结果与实际仿真运行时采用一致且可验证的校准语义。
 ## Requirements
 ### Requirement: Calibrated turn scenario uses one reference definition
 
@@ -54,4 +54,3 @@ TBD - created by archiving change calibrate-pid-turn-scenario. Update Purpose af
 - **THEN** 结果 SHALL 具有不超过 5 度每秒的最大实际舵速
 - **AND** 结果 SHALL 具有不超过 90 秒的持续稳定时间
 - **AND** 推荐评分 SHALL 不低于 60 分
-

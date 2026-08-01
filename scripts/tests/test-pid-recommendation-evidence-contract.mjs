@@ -18,12 +18,21 @@ assert.throws(
 );
 
 assert.throws(
-  () => assertServedRevision({ captureRevision: revision, servedRevision: undefined }),
+  () => assertServedRevision({ captureRevision: revision, servedRevision: undefined, sourceHashes: hashes, servedSourceHashes: hashes }),
   /未公开完整 APP_REVISION/,
 );
 assert.throws(
-  () => assertServedRevision({ captureRevision: revision, servedRevision: 'c'.repeat(40) }),
+  () => assertServedRevision({ captureRevision: revision, servedRevision: 'c'.repeat(40), sourceHashes: hashes, servedSourceHashes: hashes }),
   /运行实例修订与采集提交不一致/,
+);
+assert.throws(
+  () => assertServedRevision({
+    captureRevision: revision,
+    servedRevision: revision,
+    sourceHashes: hashes,
+    servedSourceHashes: { ...hashes, forged: 'c'.repeat(64) },
+  }),
+  /运行实例源码或 WASM 哈希/,
 );
 
 assert.doesNotThrow(() => assertCaptureCompletedWithoutDrift({

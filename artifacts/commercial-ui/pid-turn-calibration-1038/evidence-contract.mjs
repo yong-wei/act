@@ -34,9 +34,10 @@ export function assertCleanCaptureStart({ head, status }) {
   assert.deepEqual(parsePorcelainPaths(status), [], '采集必须从干净工作区开始');
 }
 
-export function assertServedRevision({ captureRevision, servedRevision }) {
+export function assertServedRevision({ captureRevision, servedRevision, sourceHashes, servedSourceHashes }) {
   assert.match(servedRevision ?? '', COMMIT_SHA_PATTERN, '运行实例未公开完整 APP_REVISION');
   assert.equal(servedRevision, captureRevision, '运行实例修订与采集提交不一致');
+  assert.deepEqual(servedSourceHashes, sourceHashes, '运行实例源码或 WASM 哈希与采集 checkout 不一致');
 }
 
 export function assertCaptureCompletedWithoutDrift({

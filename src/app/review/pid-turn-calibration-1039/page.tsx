@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation';
 
+import { resolvePidEvidenceRuntimeAttestation } from '@/lib/pid-evidence-runtime-attestation';
 import { AIRecommendPanel } from '@/resources/simulations/ai-recommend-panel';
+
+export const dynamic = 'force-dynamic';
 
 const envelope = [
   { time: 0, heading: 0, tolerance: 10 },
@@ -9,17 +12,18 @@ const envelope = [
   { time: 180, heading: 90, tolerance: 10 },
 ];
 
-export default function PidRecommendationEvidencePage() {
+export default async function PidRecommendationEvidencePage() {
   if (process.env.COMMERCIAL_UI_EVIDENCE !== '1') {
     notFound();
   }
 
-  const appRevision = process.env.APP_REVISION ?? '';
+  const attestation = await resolvePidEvidenceRuntimeAttestation();
 
   return (
     <main
       className="surface-page"
-      data-app-revision={appRevision}
+      data-app-revision={attestation.revision}
+      data-runtime-source-hashes={JSON.stringify(attestation.sourceHashes)}
     >
       <div className="space-y-5">
         <header className="surface-card p-4 sm:p-6">

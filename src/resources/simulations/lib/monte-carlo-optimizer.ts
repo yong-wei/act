@@ -173,6 +173,75 @@ interface RustQuickSimResult {
   };
 }
 
+export function evaluatePIDParams(
+  params: { kp: number; ki: number; kd: number },
+  simConfig: SimpleSimConfig,
+  target: OptimizationTarget,
+): { score: number; metrics: OptimizationResult['metrics'] } {
+  const duration = 120;
+  const speed = simConfig.shipSpeed || 15;
+  const legacyLogic: ScenarioLogic = {
+    scenarioId: 'turn90',
+    runtimeVersion: 'simulation-optimizer-runtime-v1',
+    duration,
+    referenceCompletedAt: 60,
+    headingSchedule: [],
+    startPos: { x: -6000, z: 0, headingDeg: 0 },
+    getDesiredHeading: (time: number) => (time < 60 ? 0 : 90),
+  };
+  const guidePath = generateGuidePath(legacyLogic, duration, speed);
+  const result = computeVirtualSimulationServerStep<RustQuickSimResult>({
+    modelId: 'nomoto_quick_sim',
+    duration,
+    dt: 0.5,
+    start: { x: 0, z: 0, headingDeg: 0 },
+    targetHeadingDeg: target.targetHeading,
+    targetSwitchTime: 60,
+    pid: params,
+    nomoto: {
+      K: simConfig.nomotoK || 0.08,
+      T: simConfig.nomotoT || 55,
+      speedMps: speed,
+      maxRudderDeg: 35,
+    },
+    guidePath,
+  });
+
+  let overshoot = 0;
+  let settlingTime = duration;
+  for (let index = 0; index < result.chartData.time.length; index += 1) {
+    const heading = result.chartData.actualHeading[index];
+    const time = result.chartData.time[index];
+    if (time > 60) {
+      overshoot = Math.max(overshoot, heading - target.targetHeading);
+      if (Math.abs(heading - target.targetHeading) <= 2) {
+        settlingTime = Math.min(settlingTime, time - 60);
+      }
+    }
+  }
+
+  const errorScore = Math.max(0, 100 - (result.metrics.avgError / target.maxError) * 100);
+  const rudderScore = result.metrics.maxRudderRate <= target.maxRudderRate
+    ? 100
+    : Math.max(0, 100 - ((result.metrics.maxRudderRate - target.maxRudderRate) / target.maxRudderRate) * 100);
+  const overshootScore = target.maxOvershoot === undefined || overshoot <= target.maxOvershoot
+    ? 100
+    : Math.max(0, 100 - ((overshoot - target.maxOvershoot) / target.maxOvershoot) * 100);
+  const settlingScore = target.minSettlingTime === undefined || settlingTime <= target.minSettlingTime
+    ? 100
+    : Math.max(0, 100 - ((settlingTime - target.minSettlingTime) / target.minSettlingTime) * 50);
+
+  return {
+    score: errorScore * 0.4 + rudderScore * 0.3 + overshootScore * 0.2 + settlingScore * 0.1,
+    metrics: {
+      avgError: result.metrics.avgError,
+      maxRudderRate: result.metrics.maxRudderRate,
+      settlingTime,
+      overshoot,
+    },
+  };
+}
+
 function evaluateWithRustRuntime(
   params: { kp: number; ki: number; kd: number },
   logic: ScenarioLogic,
@@ -204,38 +273,12 @@ function evaluateWithRustRuntime(
 /**
  * è¯„ä¼°å‚æ•°ç»„åˆçš„å¾—åˆ?
  */
-// 3-parameter legacy overload: scene-trace route compatibility
-export function evaluateParams(
-  params: { kp: number; ki: number; kd: number },
-  simConfig: SimpleSimConfig,
-  target: OptimizationTarget,
-): { score: number; metrics: OptimizationResult['metrics'] };
-// 4-parameter calibrated overload: optimizer and tests
 export function evaluateParams(
   params: { kp: number; ki: number; kd: number },
   logic: ScenarioLogic,
   simConfig: SimpleSimConfig,
   target: OptimizationTarget,
-): { score: number; metrics: OptimizationResult['metrics'] };
-export function evaluateParams(
-  params: { kp: number; ki: number; kd: number },
-  logicOrSimConfig: ScenarioLogic | SimpleSimConfig,
-  simConfigOrTarget: SimpleSimConfig | OptimizationTarget,
-  maybeTarget?: OptimizationTarget,
 ): { score: number; metrics: OptimizationResult['metrics'] } {
-  let logic: ScenarioLogic;
-  let simConfig: SimpleSimConfig;
-  let target: OptimizationTarget;
-  if (maybeTarget !== undefined) {
-    logic = logicOrSimConfig as ScenarioLogic;
-    simConfig = simConfigOrTarget as SimpleSimConfig;
-    target = maybeTarget;
-  } else {
-    // 3-param legacy: (params, simConfig, target)
-    simConfig = logicOrSimConfig as SimpleSimConfig;
-    target = simConfigOrTarget as OptimizationTarget;
-    logic = getLegacySceneLogic('turn90', target.targetHeading);
-  }
   const speed = simConfig.shipSpeed || 15;
   const guidePath = generateGuidePath(logic, logic.duration, speed);
   const result = evaluateWithRustRuntime(params, logic, guidePath, speed, simConfig, target);

@@ -15,7 +15,7 @@ import { computeControlAnalysisServer } from '@/resources/control-system/analysi
 import type { ControlAnalysisRequest } from '@/resources/control-system/analysis/types';
 import {
   DEFAULT_TARGET,
-  evaluateParams,
+  evaluatePIDParams,
 } from '@/resources/simulations/lib/monte-carlo-optimizer';
 import {
   validateCruiseTelemetryBridgeSummary,
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
             registryId: 'sim-scene-cruise',
           },
         },
-        (controller) => evaluateParams(controller, { shipSpeed: 15 }, DEFAULT_TARGET),
+        (controller) => evaluatePIDParams(controller, { shipSpeed: 15 }, DEFAULT_TARGET),
       );
       return NextResponse.json(result);
     }

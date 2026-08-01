@@ -44,6 +44,7 @@ const boundInputs = [
   'src/app/api/simulation/optimize/route.ts',
   'src/resources/simulations/ai-recommend-panel.tsx',
   'src/resources/simulations/lib/monte-carlo-optimizer.ts',
+  'src/lib/pid-evidence-runtime-attestation.ts',
   'rust/control-engine/src/virtual_simulation_runtime.rs',
   'src/resources/control-system/wasm/control_engine/index.d.ts',
   'src/resources/control-system/wasm/control_engine/index.js',
@@ -59,6 +60,9 @@ async function hashBoundInputs() {
 }
 
 const sourceHashes = await hashBoundInputs();
+const runtimeSourceHashes = Object.fromEntries(
+  Object.entries(sourceHashes).filter(([path]) => !path.startsWith('artifacts/commercial-ui/')),
+);
 
 await mkdir(outputDirectory, { recursive: true });
 
@@ -117,7 +121,14 @@ try {
 
     await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle' });
     const viewportServedRevision = await page.locator('[data-app-revision]').getAttribute('data-app-revision');
-    assertServedRevision({ captureRevision, servedRevision: viewportServedRevision });
+    const servedSourceHashesJson = await page.locator('[data-app-revision]').getAttribute('data-runtime-source-hashes');
+    const servedSourceHashes = JSON.parse(servedSourceHashesJson ?? 'null');
+    assertServedRevision({
+      captureRevision,
+      servedRevision: viewportServedRevision,
+      sourceHashes: runtimeSourceHashes,
+      servedSourceHashes,
+    });
     if (servedRevision === undefined) {
       servedRevision = viewportServedRevision;
     } else {

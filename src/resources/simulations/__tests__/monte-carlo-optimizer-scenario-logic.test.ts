@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   optimizePIDParams,
+  evaluatePIDParams,
   getLegacySceneLogic,
   getScenarioLogic,
   DEFAULT_TARGET,
@@ -191,6 +192,25 @@ describe('PID optimizer scenario rudder rate isolation', () => {
       expect(nomoto).toBeDefined();
       expect(nomoto).not.toHaveProperty('maxRudderRateDegPerSec');
     }
+  });
+
+  it('keeps scene-trace legacy scoring and guide-path semantics unchanged', async () => {
+    const runtime = await import(
+      '@/resources/simulations/rust/control-engine-server-runtime'
+    ) as unknown as { mockNomotoRequests: unknown[] };
+    runtime.mockNomotoRequests.length = 0;
+
+    const result = evaluatePIDParams(
+      { kp: 0, ki: 0, kd: 0 },
+      { shipSpeed: 15 },
+      DEFAULT_TARGET,
+    );
+
+    expect(result.metrics.settlingTime).toBe(120);
+    const request = runtime.mockNomotoRequests.at(-1) as Record<string, unknown>;
+    expect(request).not.toHaveProperty('headingSchedule');
+    expect(request.start).toEqual({ x: 0, z: 0, headingDeg: 0 });
+    expect((request.guidePath as Array<{ x: number }>)[0].x).toBe(-6000);
   });
 
   it('calibrated v2 runtime request DOES include maxRudderRateDegPerSec: 5', async () => {
