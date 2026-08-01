@@ -1,13 +1,13 @@
 {
-  "capturedAt": "2026-07-31T13:35:20.177Z",
-  "commitSha": "90e9b4767eb759e52f24cb6ca1390b475203c6e4",
+  "capturedAt": "2026-08-01T07:07:33.587Z",
+  "commitSha": "28c54a54265f19af693209c5e5c2edbff8e53349",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&pathId=path-difference-evidence-1160",
   "sourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "b7534ee8b1653d3f96e89f47c3a4fffde43918b3b88a10db62178363636d95dd",
     "src/app/assessment/adaptive-practice/layout.tsx": "c079dc059609bf222c52179ceac5801707eb8f570f1d244a1002e9fedb0467db",
     "src/features/adaptive/path-advisor-entrypoint-bridge.tsx": "ca094f8f013b803e45c44d8b2e3a758d72d91e614c54f6b8b4be3b58b96253f1",
     "src/lib/konling-agent-runtime.ts": "2e1a9ba84e1435e7d2f533c88d1504c9fa93049b5fedfe56711381d4d6e70dbe",
-    "tests/adaptive-path-difference-evidence.spec.ts": "2795a4b162ff3873e2f594063403e8620dd432077988df501282c0395c3f84f0"
+    "tests/adaptive-path-difference-evidence.spec.ts": "b4b62bc2865d112aefb9d26903e30c04daa5848a444b7ea6295677845f300b3d"
   },
   "assertions": [
     {
