@@ -319,14 +319,26 @@ export function GlobalAISidebar() {
         typeof detail.requestId !== 'string' ||
         typeof detail.status !== 'string'
       ) return;
+      const statusMessage = detail.message;
       const messageId = `path-generation:${detail.requestId}:${detail.status}`;
-      setMessages((current) => current.some((message) => message.id === messageId)
-        ? current
-        : [...current, {
+      setMessages((current) => {
+        const existingMessage = current.find((message) => message.id === messageId);
+        if (existingMessage) {
+          return current.map((message) => message.id === messageId
+            ? {
+                ...message,
+                content: statusMessage,
+                parts: [{ type: 'text', text: statusMessage }],
+              }
+            : message);
+        }
+        return [...current, {
             id: messageId,
             role: 'assistant',
-            content: detail.message as string,
-          }]);
+            content: statusMessage,
+            parts: [{ type: 'text', text: statusMessage }],
+          }];
+      });
     };
     window.addEventListener('konling:path-generation-status', handlePathGenerationStatus);
     return () => window.removeEventListener('konling:path-generation-status', handlePathGenerationStatus);
