@@ -1,19 +1,20 @@
 {
   "change": "calibrate-pid-turn-scenario",
-  "capturedAt": "2026-08-01T06:14:50.343Z",
-  "server": "http://localhost:3012",
+  "capturedAt": "2026-08-01T06:25:38.802Z",
+  "server": "http://localhost:3001",
   "browser": "Playwright Chromium",
   "evidenceMode": "COMMERCIAL_UI_EVIDENCE=1",
-  "captureRevision": "3b782434a954b1b6e635b261327a5e220d7fa393",
-  "servedRevision": "3b782434a954b1b6e635b261327a5e220d7fa393",
+  "captureRevision": "17bb8ee268a927512478b6d066a5fae420fb8941",
+  "servedRevision": "17bb8ee268a927512478b6d066a5fae420fb8941",
   "sourceHashes": {
-    "artifacts/commercial-ui/pid-turn-calibration-1038/capture-pid-recommendation-evidence.mjs": "6ddd646e7797dcbfbccc527d6b1d2902d7378ebd96a0eba8cca0b67b95fea544",
+    "artifacts/commercial-ui/pid-turn-calibration-1038/capture-pid-recommendation-evidence.mjs": "afa0ff18b421c9ede9832c697825a2d09f17c1d87bc8b4083afb6a2390cd3559",
     "artifacts/commercial-ui/pid-turn-calibration-1038/evidence-contract.mjs": "55357fd95ed091345c37b28038517e76f3960265ddc06d51c369b07f5f32fc8d",
     "src/app/review/pid-turn-calibration-1039/page.tsx": "ba3627f331636774457d467a91b013644377c9cbd90e9f3f608d484965d36d03",
     "src/app/api/simulation/optimize/route.ts": "fa7542ee806ce40a2a57e28c3025f1a132de491492fb9032f6fb583fcc8f3a5d",
     "src/resources/simulations/ai-recommend-panel.tsx": "0fd39b9f8f1bd7db4cc253e38bbe655328f54b4c9e9ef0489ffa58dde8047921",
-    "src/resources/simulations/lib/monte-carlo-optimizer.ts": "86413775ecc5adc4ebb56648d63d43383eef741a50c0e83b70f9356eee6570e2",
-    "src/lib/pid-evidence-runtime-attestation.ts": "5454595db0dfd1a72df8e2dac595bfe8f965fe7f4dea8e7fcf3f77a1e8559fa1",
+    "src/resources/simulations/lib/monte-carlo-optimizer.ts": "577c701521f0c85f1ec607a0373fc3cd9d4a0c27063f0c9b8f455a2120b0ef0b",
+    "src/lib/pid-evidence-runtime-attestation.ts": "f7820e2ad5e223413b1facbe19886f3f6ee169f2ab944a7a966cc52610a6f87e",
+    "src/lib/pid-evidence-runtime-manifest.generated.ts": "23453615603adb6f81f7c5cceb938e72dcc19a38b21feb3087527080dbc6e418",
     "rust/control-engine/src/virtual_simulation_runtime.rs": "0500c8257ac9bc80aa36f97b063d10eb974208899c106a5cf5aea50bee1cee31",
     "src/resources/control-system/wasm/control_engine/index.d.ts": "8760847ef56477d823a4038d166252c79267f4cec9d87f17fb7c7c83ccf6e84f",
     "src/resources/control-system/wasm/control_engine/index.js": "f034d1b247fc4aac06748c041144f1f7aa40c4e06efe4384bacebf229e3c7bfe",
@@ -50,7 +51,7 @@
       "viewport": 1440,
       "screenshot": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-1440.png",
       "metrics": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-1440-metrics.json",
-      "screenshotSha256": "5281778a5e13f614412d7d1201386a0ac8f624a734528d2eb807f05966238e39",
+      "screenshotSha256": "9e830a5d61c8b0a6016915b29b88fc0789793aac2bbc07c3cf25f79133b9a0b0",
       "apiStatus": 200,
       "apiResponseBody": {
         "success": true,
@@ -69,7 +70,7 @@
           },
           "searchInfo": {
             "iterations": 9,
-            "timeMs": 57,
+            "timeMs": 53,
             "convergenceHistory": [
               {
                 "iteration": 0,
@@ -173,7 +174,7 @@
       "viewport": 320,
       "screenshot": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-320.png",
       "metrics": "artifacts/commercial-ui/pid-turn-calibration-1038/pid-recommendation-320-metrics.json",
-      "screenshotSha256": "89277a854aa64d36ce95e78891fb35c7b4bceb6d524c02a3ffddd2fd2ec13bc9",
+      "screenshotSha256": "0a5bba3c6e425e2091bb21734dd8e31c366ae045caddb25b99cfbcd500ce1e6e",
       "apiStatus": 200,
       "apiResponseBody": {
         "success": true,
@@ -192,7 +193,7 @@
           },
           "searchInfo": {
             "iterations": 9,
-            "timeMs": 40,
+            "timeMs": 45,
             "convergenceHistory": [
               {
                 "iteration": 0,
