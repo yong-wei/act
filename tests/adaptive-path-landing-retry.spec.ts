@@ -232,6 +232,13 @@ async function expectColdStartContentHidden(page: Page) {
   await expect(page.getByText('入门诊断', { exact: true })).toHaveCount(0);
 }
 
+async function expectColdStartGoalSelectionVisible(page: Page) {
+  await expect(page.locator('[data-adaptive-path-cold-start]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-module="learning-overview"]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-module="goal-selection"]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-module="current-path"]')).toHaveCount(0);
+}
+
 async function capture(page: Page, viewport: { name: string; width: number; height: number }, state: string) {
   if (!updateEvidence) return;
   mkdirSync(evidenceDir, { recursive: true });
@@ -337,16 +344,22 @@ for (const viewport of [
     await capture(page, viewport, 'loading');
     releaseRetry();
 
-    await expect(workspace).toHaveAttribute('data-adaptive-path-landing-state', /^(active|cold-start)$/);
+    await expect(workspace).toHaveAttribute('data-adaptive-path-landing-state', 'cold-start');
     await expect(page.locator('[data-adaptive-path-retry="landing"]')).toHaveCount(0);
+    await expect(page.locator('[data-adaptive-path-cold-start]')).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-module="current-path"]')).toHaveCount(0);
     expect(learnerCalls).toBe(2);
     expect(pathCalls).toBeGreaterThanOrEqual(2);
+
+    await page.goto('/assessment/adaptive-practice', { waitUntil: 'domcontentloaded' });
+    await expect(workspace).toHaveAttribute('data-adaptive-path-landing-state', 'cold-start');
+    await expectColdStartGoalSelectionVisible(page);
     await capture(page, viewport, 'recovered');
     assertions.push({
       viewport: viewport.name,
       scenario: 'failed-retry-cold-start',
       passed: true,
-      checks: ['failed state', 'retry loading state', 'cold-start recovery'],
+      checks: ['failed state', 'retry loading state', 'cold-start recovery', 'no-goal target selection visible'],
     });
   });
 
@@ -430,7 +443,10 @@ test.afterAll(() => {
   writeFileSync(manifestPath, `${JSON.stringify({
     capturedAt: new Date().toISOString(),
     commitSha,
-    route: '/assessment/adaptive-practice?goal=control-correction',
+    routes: [
+      '/assessment/adaptive-practice?goal=control-correction',
+      '/assessment/adaptive-practice',
+    ],
     sourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)])),
     assertions,
     screenshots,
