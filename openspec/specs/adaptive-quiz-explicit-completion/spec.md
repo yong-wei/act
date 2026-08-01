@@ -1,3 +1,7 @@
+## Purpose
+
+Ensure the series-precheck terminal step is an explicit, observable, and idempotent learner action, so completion evidence is written only after the learner confirms submission and failures can be retried.
+
 ## Requirements
 
 ### Requirement: Series precheck uses an explicit completion action
