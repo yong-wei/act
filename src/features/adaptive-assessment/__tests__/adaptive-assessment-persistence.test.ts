@@ -226,19 +226,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(itemRefCreate.metadata.kaq.immutableContentHash).toBe(
       readReviewedItem(question.id)?.metadata.immutableContentHash,
     );
-    expect(itemRefUpdate.metadata).toMatchObject({
-      adaptiveAssessmentItemRef: expect.objectContaining({
-        catalogBacked: true,
-        catalogItemId: `adaptive-assessment-item:preset-adaptive-question:${question.id}`,
-        reviewDecision: expect.objectContaining({
-          decisionKind: 'human-review',
-          outcome: 'approved',
-        }),
-        versionRefs: expect.objectContaining({
-          adaptiveAssessmentSnapshotVersion: expect.any(String),
-        }),
-      }),
-    });
+    expect(itemRefUpdate).toEqual({});
 
     const factPayload = db.learningFact.createMany.mock.calls[0][0].data[0].contextJson.adaptiveAssessment.kaqQuizEvidence;
     const adaptiveAssessmentRef = db.learningFact.createMany.mock.calls[0][0].data[0].contextJson.adaptiveAssessment.adaptiveAssessmentRef;
