@@ -16,7 +16,7 @@ const currentDirectory = dirname(fileURLToPath(import.meta.url));
 const baseUrl = process.env.PID_EVIDENCE_BASE_URL ?? 'http://localhost:3012';
 const outputDirectory = currentDirectory;
 const repositoryRoot = resolve(currentDirectory, '../../..');
-const route = '/evidence-pid';
+const route = '/review/pid-turn-calibration-1039';
 const viewports = [
   { width: 1440, height: 1000, name: '1440' },
   { width: 320, height: 900, name: '320' },
@@ -40,7 +40,7 @@ assertCleanCaptureStart({ head: captureRevision, status: preCaptureStatus });
 const boundInputs = [
   'artifacts/commercial-ui/pid-turn-calibration-1038/capture-pid-recommendation-evidence.mjs',
   'artifacts/commercial-ui/pid-turn-calibration-1038/evidence-contract.mjs',
-  'src/app/evidence-pid/page.tsx',
+  'src/app/review/pid-turn-calibration-1039/page.tsx',
   'src/app/api/simulation/optimize/route.ts',
   'src/resources/simulations/ai-recommend-panel.tsx',
   'src/resources/simulations/lib/monte-carlo-optimizer.ts',

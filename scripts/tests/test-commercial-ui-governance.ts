@@ -786,6 +786,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'src/app/review/generated-slide-runtime-938/[projection]/page.tsx',
     'issue 938 generated slide runtime is an authenticated internal validation surface, not a primary product route',
   ],
+  [
+    'src/app/review/pid-turn-calibration-1039/page.tsx',
+    'issue 1039 PID turn calibration is an environment-gated internal evidence surface, not a primary product route',
+  ],
 ]);
 
 function appPageRouteHref(file: string) {
