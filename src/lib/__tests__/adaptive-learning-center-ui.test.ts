@@ -741,7 +741,6 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-adaptive-path-generation-ready="catalog"');
     expect(source).toContain('withFeedbackTaskHref(goal.hrefs.generation)');
     expect(source).toContain("const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';");
-    expect(source).toContain("pathLandingState === 'cold-start'");
     expect(source).toContain('const isPresetGoalLanding = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain("const showPresetGoalCards = isPresetGoalLanding && pathLandingState === 'cold-start';");
     expect(source).toContain('useGlobalAI');
@@ -923,7 +922,6 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
     expect(source).toContain("? 'avoid-learning-record' : undefined");
-    expect(source).toContain("pathLandingState === 'active'");
     expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ||');
     expect(source).toContain("(showLandingWorkspace && pathLandingState === 'active') ? null :");
     expect(source).toContain('data-adaptive-path-route-map="compact"');

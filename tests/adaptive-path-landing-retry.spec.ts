@@ -232,6 +232,13 @@ async function expectColdStartContentHidden(page: Page) {
   await expect(page.getByText('入门诊断', { exact: true })).toHaveCount(0);
 }
 
+async function expectColdStartContentVisible(page: Page) {
+  await expect(page.locator('[data-adaptive-path-cold-start]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-module="learning-overview"]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-generation-action]')).toHaveCount(1);
+  await expect(page.locator('[data-adaptive-path-module="current-path"]')).toHaveCount(0);
+}
+
 async function capture(page: Page, viewport: { name: string; width: number; height: number }, state: string) {
   if (!updateEvidence) return;
   mkdirSync(evidenceDir, { recursive: true });
@@ -337,8 +344,9 @@ for (const viewport of [
     await capture(page, viewport, 'loading');
     releaseRetry();
 
-    await expect(workspace).toHaveAttribute('data-adaptive-path-landing-state', /^(active|cold-start)$/);
+    await expect(workspace).toHaveAttribute('data-adaptive-path-landing-state', 'cold-start');
     await expect(page.locator('[data-adaptive-path-retry="landing"]')).toHaveCount(0);
+    await expectColdStartContentVisible(page);
     expect(learnerCalls).toBe(2);
     expect(pathCalls).toBeGreaterThanOrEqual(2);
     await capture(page, viewport, 'recovered');
