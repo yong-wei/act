@@ -1297,10 +1297,23 @@ function currentPathPanel(pathPlan: AdaptiveLearningPathPlan | null): AdaptiveLe
           alternatives: pathPlan.alternatives.map(toStudentPathAlternative),
           pathOptions: buildPathOptionSummaries(pathPlan),
           pathOptionFallback: buildPathOptionFallback(pathPlan),
-          configurationFulfillment: pathPlan.explanations.configurationFulfillment,
+          configurationFulfillment: (pathPlan.explanations.configurationFulfillment ?? []).map(
+            toStudentConfigurationFulfillment,
+          ),
           selectionHistory: buildPathSelectionHistory(pathPlan),
         }
       : null,
+  };
+}
+
+function toStudentConfigurationFulfillment(
+  fulfillment: AdaptiveLearningPathPlan['explanations']['configurationFulfillment'][number],
+) {
+  return {
+    key: fulfillment.key,
+    status: fulfillment.status,
+    effect: fulfillment.effect,
+    message: fulfillment.message,
   };
 }
 

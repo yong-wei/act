@@ -298,6 +298,7 @@ describe('adaptive learning center UI contracts', () => {
       source: 'request',
       effect: '已优先选择匹配的资源类型。',
       message: '已优先选择匹配的资源类型。',
+      limitationCode: 'internal-only-code',
     }];
     const view = buildControlCorrectionLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
@@ -310,6 +311,14 @@ describe('adaptive learning center UI contracts', () => {
       configurationFulfillment: [
         expect.objectContaining({ key: 'resource-preferences', status: 'applied' }),
       ],
+    });
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('internal-only-code');
+    expect((currentPath?.payload as { configurationFulfillment?: Array<Record<string, unknown>> })
+      .configurationFulfillment?.[0]).toEqual({
+      key: 'resource-preferences',
+      status: 'applied',
+      effect: '已优先选择匹配的资源类型。',
+      message: '已优先选择匹配的资源类型。',
     });
   });
 

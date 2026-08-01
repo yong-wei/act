@@ -3177,6 +3177,8 @@ function buildConfigurationFulfillment(
         ? effect
         : request.limitationCode === 'natural-language-intent-partially-unmapped'
           ? '部分意图未能识别为可执行配置，请补充资源类型、节奏、检查点或目标相关的明确表达。'
+          : request.limitationCode === 'natural-language-intent-conflict'
+            ? '同一配置包含相互冲突的表达，系统未自动选择任一项。请在挑战或轻松、密集或轻量检查、允许或不使用外部资源中各选一项后重试。'
           : request.limitationCode
             ? '请使用资源类型、节奏、检查点、外部资源或目标相关的明确表达。'
             : '请调整明确配置或可用资源后重试。';

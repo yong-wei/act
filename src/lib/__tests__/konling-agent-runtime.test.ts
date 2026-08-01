@@ -742,6 +742,65 @@ describe('konling agent runtime', () => {
         limitationCode: undefined,
       },
       {
+        intent: '不要挑战，循序推进',
+        matchedTerms: ['gentle'],
+        matchedSourceTerms: ['挑战', '循序'],
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要密集检查，只要轻量检查',
+        matchedTerms: ['light'],
+        matchedSourceTerms: ['密集检查', '轻量检查'],
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不要使用外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不要使用外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '不允许外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['不允许外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '禁止使用外部资源',
+        matchedTerms: ['external-resources'],
+        matchedSourceTerms: ['禁止使用外部'],
+        allowExternalResources: false,
+        conflictDimensions: [],
+        limitationCode: undefined,
+      },
+      {
+        intent: '挑战但要轻松推进，并完成仿真',
+        matchedTerms: ['simulation'],
+        matchedSourceTerms: ['仿真', '挑战', '轻松'],
+        conflictDimensions: ['difficulty'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '密集检查，同时只要轻量检查',
+        matchedTerms: [],
+        matchedSourceTerms: ['密集检查', '轻量检查'],
+        conflictDimensions: ['checkpoint'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
+        intent: '允许外部资源，但不使用外部资源',
+        matchedTerms: [],
+        matchedSourceTerms: ['不使用外部', '外部资源'],
+        conflictDimensions: ['external-resource'],
+        limitationCode: 'natural-language-intent-conflict',
+      },
+      {
         intent: '先补相位裕度',
         matchedTerms: [],
         matchedSourceTerms: [],
@@ -756,6 +815,12 @@ describe('konling agent runtime', () => {
         matchedTerms: expected.matchedTerms,
         matchedSourceTerms: expected.matchedSourceTerms,
       });
+      if ('conflictDimensions' in expected) {
+        expect(mapping.conflictDimensions).toEqual(expected.conflictDimensions);
+      }
+      if ('allowExternalResources' in expected) {
+        expect(mapping.allowExternalResources).toBe(expected.allowExternalResources);
+      }
       expect(mapping.limitationCode).toBe(expected.limitationCode);
     }
   });
@@ -9176,8 +9241,9 @@ describe('konling agent runtime', () => {
     expect(result.pathOptions.length).toBeGreaterThan(0);
     expect(result.configurationFulfillment).toEqual(expect.arrayContaining([
       expect.objectContaining({ key: 'difficulty-rhythm', status: 'applied' }),
-      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', limitationCode: 'natural-language-intent-partially-unmapped' }),
+      expect.objectContaining({ key: 'natural-language-intent', status: 'unmet', message: expect.any(String) }),
     ]));
+    expect(result.configurationFulfillment.find((item) => item.key === 'natural-language-intent')).not.toHaveProperty('limitationCode');
     expect(JSON.stringify(result.configurationFulfillment)).not.toContain('我想先补相位裕度');
     expect(mocks.loadRuntimeResourceProjectionInputs).toHaveBeenCalled();
     expect(result.diagnostics.candidatePool).toMatchObject({
@@ -9255,7 +9321,7 @@ describe('konling agent runtime', () => {
       generationStatus: 'blocked',
       request: {
         effectiveTimeBudgetMinutes: 30,
-        minimumTimeBudgetMinutes: 90,
+        minimumTimeBudgetMinutes: 32,
         timeBudgetInsufficient: true,
       },
     });

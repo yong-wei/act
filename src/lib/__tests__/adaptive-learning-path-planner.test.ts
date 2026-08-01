@@ -2393,6 +2393,7 @@ describe('adaptive learning path planner', () => {
         status: 'infeasible',
         draftNodeIds: repairInput.draftNodeIds,
         repairedNodeIds: [repairedNodeId],
+        minimumExecutableDurationMinutes: null,
         insertedNodeIds: [],
         removedNodeIds: [],
         checkpointNodeIds: [],
@@ -3010,6 +3011,25 @@ describe('adaptive learning path planner', () => {
       expect.objectContaining({ key: 'resource-preferences', status: 'unmet' }),
       expect.objectContaining({ key: 'natural-language-intent', status: 'unmet' }),
     ]));
+  });
+
+  it('explains conflicting natural-language intent without selecting a typed value', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      configurationRequests: [{
+        key: 'natural-language-intent',
+        source: 'request',
+        value: 'mapped-intent',
+        mappedTerms: [],
+        limitationCode: 'natural-language-intent-conflict',
+      }],
+    }));
+
+    expect(plan.explanations.configurationFulfillment).toContainEqual(expect.objectContaining({
+      key: 'natural-language-intent',
+      status: 'unmet',
+      limitationCode: 'natural-language-intent-conflict',
+      message: expect.stringContaining('相互冲突'),
+    }));
   });
 
   it('prioritizes teacher-assigned resources only when teacher policy allows them', () => {
@@ -4391,6 +4411,7 @@ describe('adaptive learning path planner', () => {
     expect(plan.explanations.fallbackReasons).toContain('time-budget-insufficient');
     expect(plan.constraintRepair).toMatchObject({
       status: 'infeasible',
+      minimumExecutableDurationMinutes: expect.any(Number),
       repairedNodeIds: expect.arrayContaining([
         'simulation:coverage-only-simulation',
         'simulation:coverage-terminal-simulation',
@@ -4399,6 +4420,7 @@ describe('adaptive learning path planner', () => {
         expect.objectContaining({ code: 'time-budget-insufficient' }),
       ]),
     });
+    expect(plan.constraintRepair?.minimumExecutableDurationMinutes).toBeGreaterThan(20);
     expect(plan.constraintRepair?.removedNodeIds).not.toContain('simulation:coverage-only-simulation');
   });
 
@@ -5131,6 +5153,7 @@ describe('adaptive learning path planner', () => {
         status: 'infeasible',
         draftNodeIds: repairInput.draftNodeIds,
         repairedNodeIds: [repairedNodeId],
+        minimumExecutableDurationMinutes: null,
         insertedNodeIds: [],
         removedNodeIds: [],
         checkpointNodeIds: [],
