@@ -25,8 +25,9 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 
 #### Scenario: Batch 6cd127ac1e695df52b4dbaa5 has no conflict
 
-- **WHEN** required stages agree and all members are resolved
-- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+- **WHEN** required stages agree and every member has a review-stage terminal conclusion
+- **THEN** the receipt SHALL preserve each stage's independent rationale and conclusion
+- **AND** any `DEFER` conclusion SHALL remain role-free, leave CourseCoverage authority unresolved, and produce `DEFERRED_EVIDENCE_BLOCKED` with the aggregate coverage gate blocked
 
 ### Requirement: Batch 6cd127ac1e695df52b4dbaa5 emits a machine-mergeable receipt
 
