@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "6cd127ac1e695df52b4dbaa5",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "4ee2808f-234f-4fdd-b61a-931e19cefbb3",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "a1e47a70b1c7db07ed343c8698ceee780714569bbca430217b59b2038a54b1aa",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedDocumentDigest": "67b99d55db9f4059e852f0a66d53fcc8229c0eb09423cd7789ed356490d88948",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 407
+    },
+    "structuredTranscription": "Conclusions and rationales preserved; frozen selectors and runtime digests normalized."
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "805f6bcb-6a8b-4ced-8ef8-828698f7c63d",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "d6ab563e81c97ad2837090e9e1acabf55d2551bc193ffec704d4723d03204ceb",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedDocumentDigest": "7833d87ceecbd0d44988dae2398a803c49243c11bdfd50c465dc3c7f8559d1bf",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 407
+    },
+    "structuredTranscription": "Conclusions and rationales preserved; frozen selectors and runtime digests normalized."
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}
