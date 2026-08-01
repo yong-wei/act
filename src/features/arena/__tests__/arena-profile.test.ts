@@ -355,7 +355,7 @@ describe('arena student portfolio', () => {
     expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ userId })');
     expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskIds: arenaTaskIds })');
     expect(routeSource).toContain('buildArenaStudentPortfolio(');
-    expect(routeSource).toContain('userArenaVirtualSimulationRunCount');
+    expect(routeSource).toContain('userArenaVirtualSimulationSnapshot');
     expect(routeSource).toContain('where: {\n      userId,');
     expect(routeSource).toContain("orderBy: [{ createdAt: 'desc' }, { id: 'desc' }]");
     expect(routeSource).toContain('const ARENA_PORTFOLIO_TRAINING_SCAN_LIMIT = 100;');

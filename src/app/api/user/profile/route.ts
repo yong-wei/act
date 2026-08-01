@@ -5,6 +5,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
@@ -134,9 +135,17 @@ export interface UserProfileResponse {
   arenaSummary: ArenaStudentEvidenceSummary;
 }
 
-async function readArenaPortfolioTrainingRuns(userId: string): Promise<ArenaVirtualTrainingRunRecord[]> {
+interface ArenaPortfolioTrainingSnapshot {
+  total: number;
+  runs: ArenaVirtualTrainingRunRecord[];
+}
+
+async function readArenaPortfolioTrainingRuns(
+  tx: Prisma.TransactionClient,
+  userId: string,
+): Promise<ArenaVirtualTrainingRunRecord[]> {
   const collected: ArenaVirtualTrainingRunRecord[] = [];
-  const candidates: ArenaVirtualTrainingRunRecord[] = await prisma.arenaVirtualSimulationRun.findMany({
+  const candidates: ArenaVirtualTrainingRunRecord[] = await tx.arenaVirtualSimulationRun.findMany({
     where: {
       userId,
       taskId: { not: '' },
@@ -200,6 +209,16 @@ async function readArenaPortfolioTrainingRuns(userId: string): Promise<ArenaVirt
   }
 
   return collected;
+}
+
+async function readArenaPortfolioTrainingSnapshot(userId: string): Promise<ArenaPortfolioTrainingSnapshot> {
+  return prisma.$transaction(async (tx) => {
+    const [total, runs] = await Promise.all([
+      tx.arenaVirtualSimulationRun.count({ where: { userId } }),
+      readArenaPortfolioTrainingRuns(tx, userId),
+    ]);
+    return { total, runs };
+  }, { isolationLevel: 'RepeatableRead' });
 }
 
 function describeFactOutcome(outcome: string) {
@@ -372,8 +391,7 @@ export async function GET() {
       learningFacts,
       studentStates,
       userArenaSubmissions,
-      userArenaVirtualSimulationRunCount,
-      userArenaVirtualSimulationRuns,
+      userArenaVirtualSimulationSnapshot,
     ] = await Promise.all([
       prisma.studentProfile.findUnique({
         where: { userId },
@@ -466,10 +484,7 @@ export async function GET() {
         },
       }),
       prismaArenaSubmissionStore.listSubmissions({ userId }),
-      prisma.arenaVirtualSimulationRun.count({
-        where: { userId },
-      }),
-      readArenaPortfolioTrainingRuns(userId),
+      readArenaPortfolioTrainingSnapshot(userId),
     ]);
 
     const arenaTaskIds = Array.from(new Set(userArenaSubmissions.map((submission) => submission.taskId)));
@@ -677,8 +692,8 @@ export async function GET() {
       arenaPortfolio: buildArenaStudentPortfolio(
         arenaPortfolioSubmissions,
         userId,
-        userArenaVirtualSimulationRuns as ArenaVirtualTrainingRunRecord[],
-        userArenaVirtualSimulationRunCount,
+        userArenaVirtualSimulationSnapshot.runs,
+        userArenaVirtualSimulationSnapshot.total,
       ),
       arenaSummary: buildArenaStudentEvidenceSummary({
         userId,

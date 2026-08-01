@@ -951,6 +951,44 @@ describe('GET /api/user/profile', () => {
     expect(mocks.generateRecommendations).not.toHaveBeenCalled();
   });
 
+  it('reads Arena training count and bounded runs from one RepeatableRead transaction snapshot', async () => {
+    const transactionClient = {
+      arenaVirtualSimulationRun: {
+        count: vi.fn().mockResolvedValue(17),
+        findMany: vi.fn().mockResolvedValue([arenaTrainingRun()]),
+      },
+    };
+    mocks.prisma.$transaction.mockImplementationOnce(async (callback, options) => {
+      expect(options).toEqual({ isolationLevel: 'RepeatableRead' });
+      return callback(transactionClient);
+    });
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.arenaPortfolio.trainingSummary).toMatchObject({
+      total: 17,
+      previewCount: 17,
+      recentRuns: [expect.objectContaining({ id: 'arena-training-1' })],
+    });
+    expect(mocks.prisma.$transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { isolationLevel: 'RepeatableRead' },
+    );
+    expect(transactionClient.arenaVirtualSimulationRun.count).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+    });
+    expect(transactionClient.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: 'student-1' }),
+        take: 100,
+      }),
+    );
+    expect(mocks.prisma.arenaVirtualSimulationRun.count).not.toHaveBeenCalled();
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).not.toHaveBeenCalled();
+  });
+
   it('bounds the scan to the first one hundred candidates and keeps the total count independent', async () => {
     const firstHundred = Array.from({ length: 100 }, (_, index) => damagedArenaTrainingRun({
       id: `training-damaged-${index + 1}`,
