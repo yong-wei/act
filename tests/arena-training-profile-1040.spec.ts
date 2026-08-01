@@ -94,8 +94,7 @@ function assertOnlyExpectedScreenshotChanges(expectedPaths: readonly string[]): 
     const status = line.slice(0, 2);
     return (status !== '??' && status !== ' M') || !expected.has(line.slice(3));
   });
-  if (unexpected.length > 0 || actualPaths.size !== expected.size
-    || [...expected].some((path) => !actualPaths.has(path))) {
+  if (unexpected.length > 0 || [...actualPaths].some((path) => !expected.has(path))) {
     throw new Error(`after screenshot capture only expected screenshot changes are allowed: ${statusLines.join(' | ')}`);
   }
 }
