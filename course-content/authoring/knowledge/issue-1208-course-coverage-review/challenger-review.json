@@ -1,0 +1,2539 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v2",
+  "batchBinding": {
+    "batchId": "ab975de2df4837f43038c81d",
+    "manifestBatchIndex": 18,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 149,
+    "memberDigest": "6f4d39856a11b3fa82cd5117ba5ad941c54e2f7a792cd60c5d474cd97df76cd5",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "CHALLENGER",
+  "reviewer": {
+    "identity": "grok-independent-challenger",
+    "provider": "grok-4.5-build",
+    "sessionId": "801c5aa5-3309-40fc-a2ee-9c404caa6f3b",
+    "promptVersion": "issue-1208-challenger-v1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1208-course-coverage-review/challenger-independent-stage-source.json",
+    "artifactSha256": "6ac9531a0948471cf988d3aeffabdd718822fa54c2d03f46592051f510bded14",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "CHALLENGER",
+    "writerSessionId": "801c5aa5-3309-40fc-a2ee-9c404caa6f3b"
+  },
+  "reviewInputDigest": "43407d2aad90f23db1f05133cdb44468c1410f3347957ca1d3b4954c0fa0ce2d",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-02f9f0ab62cde123ae7dcc9a",
+      "canonicalRevision": "ddb249046bbf4207e6a2706d0bec16e7f29f9e406fb7bc3f603c4a2c0570bd22",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c9a6c7a901d34e3cbffb9789",
+        "canonicalId:ctkg:v3e-object-02f9f0ab62cde123ae7dcc9a"
+      ],
+      "evidenceIds": [
+        "31b2c03213a8e5afd5279418dac757ea",
+        "79adbef4ac89a3b15983f8146e65f9f9"
+      ],
+      "rationale": "Frozen evidence for Left Companion Matrix contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "9ae9cda83843762a2ae5e16f5252bd8acece7286d38a06983d5418dbdc8fcf4b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "canonicalRevision": "0b1ee5e671e7f3c39ce4c2fc15f522bb7495eb1b100edfcc01c274b895a5814c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0cfdd67bc438a8e5130729f2",
+        "canonicalId:ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c"
+      ],
+      "evidenceIds": [
+        "1478212989b50629c802a522620d2262",
+        "359a641ff3a4c019303344c6a8176f16"
+      ],
+      "rationale": "Frozen evidence for Eigenvalue contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "d4fce0f2055e94fe4364115b76c5787e3049114e38f7457e66bf8ee0c854b708"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0bb7941e989275e607a110d0",
+      "canonicalRevision": "c5fff48bfb822b34be7e712822a98accfc63eb523f1bce1d4f5e6e68792d9680",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2c1d9da0d404d6774fbfa964",
+        "canonicalId:ctkg:v3e-object-0bb7941e989275e607a110d0"
+      ],
+      "evidenceIds": [
+        "fac4e59ab5a2e833a731b111a39c3df5",
+        "5c0ab0a7e53da08193770cab9aa7572a"
+      ],
+      "rationale": "Frozen evidence for Using ss2tf to compute transfer function from state-space model contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "777fb92e6554336e5ca60cfa2af731d0d4748b6e44fb9e5d631d3b89cabc6783"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0fb119433b4fd68aebe1b4f8",
+      "canonicalRevision": "5ce3e35b97def8a2a78ada021dd30a1dd768c73d4501b0f610a1cca975aabe44",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f34ff6da7aa06ee19e363cdd",
+        "canonicalId:ctkg:v3e-object-0fb119433b4fd68aebe1b4f8"
+      ],
+      "evidenceIds": [
+        "11d5583f56ce9759ade7c086922c3d62",
+        "7392ed18300a5a327e60fef0408ad5cf"
+      ],
+      "rationale": "Frozen evidence for 离散系统的可控性矩阵 (discrete-time controllability matrix S1) contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "cbf0d2f03933329176364bfad03a72f783a6d840ebb3fccbe70a208d4d91447d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0ffd784a046b2ff6fc583d23",
+      "canonicalRevision": "af88f2d7893003e5ae9be631dadf1be5c5cf981f67c6d9d21c46d7bdd8bc1d33",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c124db3afc3098fd14c2a1bb",
+        "canonicalId:ctkg:v3e-object-0ffd784a046b2ff6fc583d23"
+      ],
+      "evidenceIds": [
+        "21ae03d825c3119b808e82fef704cc99",
+        "48cdcfce75f9823311597fb4913c47af"
+      ],
+      "rationale": "Frozen evidence for Duality-Based Estimator Design contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "49488dad7891cedec29f8dee1b8e7975551611e27266b1ea2adf3f2ffea92d81"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-11feec6295c98da3e56a7832",
+      "canonicalRevision": "b25a92a7e69fb966cc1125f3e14fe52fea6b962dd982ec32f38608d78fcaa87f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9d1d1605d9f98339775ec356",
+        "canonicalId:ctkg:v3e-object-11feec6295c98da3e56a7832"
+      ],
+      "evidenceIds": [
+        "73f27199220f8f7753ef76096803cb4b",
+        "f0965145abebb36674d7cd4f68aec7dc"
+      ],
+      "rationale": "Frozen evidence for Estimator Gain Selection via Coefficient Comparison contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "03da5dd95aa2fa25b206c80ada41cdb977dcb5c687ff96a183bf0d486efda3e1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "canonicalRevision": "59e1355c6bd4cf9af524f3e7cbfbb8884044e318d0a9f85566ed3b100b3da537",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3319a9116ab87e6841c69063",
+        "canonicalId:ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f"
+      ],
+      "evidenceIds": [
+        "75b7c98b6339b5af85c4305d125e4012",
+        "b5defb7e0f1b8e1e4fae0ce2654a5420"
+      ],
+      "rationale": "Frozen evidence for Reference input contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "9c926fcd7ce9c932dcff123cb5aa33478344e9ff16f6b08b8b25c0b90ed15766"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "canonicalRevision": "692e53de604007ed18dc85bed5d5fc1d648e6d5ec4dad44adb6d9a694543be93",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c2e0bffe95339087638b9e26",
+        "evidence:ctr:m1l-v1s-release-evidence-ac0a1bed66a894da0bb16c90",
+        "canonicalId:ctkg:v3e-object-133c90435f61b9a83b7d4aaf"
+      ],
+      "evidenceIds": [
+        "eff028b515b445fa9d6dfcaa26519383",
+        "7052489fddcda6ff5dbf3f8178c2edbb",
+        "62ca36ac3c75dc07f34d79a6aabffed7"
+      ],
+      "rationale": "Frozen evidence for Controllability contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "29f833c7d68efab6690434b4a8b648867cec780992c854d98bcc0e0c3caec1e4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1405f7f72c012a10e7cf60bc",
+      "canonicalRevision": "39a9613d19cdc491781776fe3b323a0952481354d3b2bd5feb3eaa85b109c685",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7ddde6090f6e08871808995a",
+        "evidence:ctr:m1l-v1s-release-evidence-22fd33d8890456e6d908d7c7",
+        "canonicalId:ctkg:v3e-object-1405f7f72c012a10e7cf60bc"
+      ],
+      "evidenceIds": [
+        "3fc07e38e97ac1aa38bc836e81ccfa19",
+        "49b8f72fc0c664d03966e6aebecea35c",
+        "fcf17d8d35e11d953bbeb5e090edfff9"
+      ],
+      "rationale": "Frozen evidence for Nonminimum-Phase Compensator contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "709e37f4254df4727869cf38d12aeffcee714625975f5bc7ad5b58a8b09d3ce6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+      "canonicalRevision": "e25dbeecf402365906e3ab7ee6562ed5aea63f6f3c00ab4b0f043952ad690fcb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b94ec2ba7500e771d48ad48b",
+        "evidence:ctkg:v3e-evidence-bbdd327825d6cb05207ce087",
+        "canonicalId:ctkg:v3e-object-1724fe5a62311ceb13ab05bd"
+      ],
+      "evidenceIds": [
+        "da98192eb0bde7f6ab3b8b982d0e1e91",
+        "fe9c5dbdca82c6e15e6ee0c925de5d6c",
+        "3e0ccf181aa948fffafa7452f00131c9"
+      ],
+      "rationale": "Frozen evidence for 格拉姆矩阵判据 contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "557384e8b6636802de4418ef1d77cd38cc59dafccb4962113b810bcb41ed81c5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1946643d6912e8d8aeb2decb",
+      "canonicalRevision": "5650aa93c17251d700db4ae1170fd4d2cc190803ba5e77776d3c69556a7f63ca",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-567fcb9942ef2800dc6d6d68",
+        "canonicalId:ctkg:v3e-object-1946643d6912e8d8aeb2decb"
+      ],
+      "evidenceIds": [
+        "6370369ee47e0ae36581fb5033afeb0c",
+        "2fa3f8e09d5c8b7a8752eb39a4247b01"
+      ],
+      "rationale": "Frozen evidence for Internal Model Principle contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "bc57831f965793aea8b78c9010e3a33cef959e7890db71a03fad340a75fb47f0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1e13d3d21a22463755b103b2",
+      "canonicalRevision": "07321aa1894ce56e9120949d0579f466ccf26676e1cf56a713f77207d715c508",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-20d2f2881105eb8d05ca7eaa",
+        "evidence:ctkg:v3e-evidence-51eceaf578980780d0100448",
+        "canonicalId:ctkg:v3e-object-1e13d3d21a22463755b103b2"
+      ],
+      "evidenceIds": [
+        "47b97c124060e465d3d35ae4e0600d64",
+        "935b2f68ee223986f9325d0149a1c6d0",
+        "61b20de352c3981f81826bd43b8a2b3d"
+      ],
+      "rationale": "Frozen evidence for Ackermann's Formula for Estimator contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "c5210b04803eae526e60db3c935f50d6e686b1ab65d1240052ae17e72af4b6a0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1ef3d6dbbf9b4f1ecd79f80b",
+      "canonicalRevision": "43f0b9f4bcb1de7ac9c501f457b94ca6ebb5dae9986c0d469c88071acce346e7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8aa1b7f396dfa8e2441bdfea",
+        "canonicalId:ctkg:v3e-object-1ef3d6dbbf9b4f1ecd79f80b"
+      ],
+      "evidenceIds": [
+        "582100abf8c4bd214cc0f3823e594a6c",
+        "6b1aa439d871c9e149f629f9eedb20a8"
+      ],
+      "rationale": "Frozen evidence for 系统不完全可控 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "ed7b954fdb223d9caa2073d1cee8c748fb6dfe6460202c6ad6bcf4bb6fd3df63"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
+      "canonicalRevision": "c99560e3fc09e11b80206972570d6cb7a7ad99919110e001e68a76c0174e3273",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b3cab9f367f580892a616b7a",
+        "canonicalId:ctkg:v3e-object-1f331a007aa3ca6c2c95d297"
+      ],
+      "evidenceIds": [
+        "7070a507f9ca6bfdb059b0794e12a430",
+        "40f09d0564a016fc2d8ed159e75997c6"
+      ],
+      "rationale": "Frozen evidence for Estimation error contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "fa5ddf8bc6b3a7b05c1254819e98461c6fee4540559b23e8215c97c4168c9dd1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1f9eb1e90b66894a079a56de",
+      "canonicalRevision": "64194ef1565e927d729fcde0ad11ee7e5f9eeb15a02e21bffb52bcad6e2c0d19",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1ebda6d2bdd938afe782d86e",
+        "evidence:ctkg:v3e-evidence-62e68c5d416d8b4118d7d432",
+        "canonicalId:ctkg:v3e-object-1f9eb1e90b66894a079a56de"
+      ],
+      "evidenceIds": [
+        "066cfd1ecc5cee7e54e5699c89077002",
+        "d427432c84aaa2e857bfdfecd042729a",
+        "d438a6f3df5b5eb3d2e03fd378efffac"
+      ],
+      "rationale": "Frozen evidence for Dominant Second-Order Poles Method contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "23efb3f9ec9fc704e45a62658f5fd1ddea1f2524dba9d2051a01c9635270a2e5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2025acc5e7afefa0ece210e2",
+      "canonicalRevision": "00379d3c12a1bb0ca0a1e767bb7535253b01cf6b301217d7789fac53e4efe56d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-441e2d6d547f0f23f042c869",
+        "evidence:ctkg:v3e-evidence-85fa18fb5a7d8241b335bc9c",
+        "canonicalId:ctkg:v3e-object-2025acc5e7afefa0ece210e2"
+      ],
+      "evidenceIds": [
+        "367cf4598c5001c72945fcec51466823",
+        "f315107a6fda2d219abfe5c45bdc8d60",
+        "6a898caa92846fd90d4971e61b5e4565"
+      ],
+      "rationale": "Frozen evidence for Estimator Error contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "1770b6a5687b968ea4b6c70e3cac03ad6e8bb703b6a3d56189862398851f6724"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+      "canonicalRevision": "81aaadba776f00ba5505602b0fe01af9c30b62d577660fc3fbcd213e4154bd98",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cdf212dc3e26966eca4a9061",
+        "evidence:ctkg:v3e-evidence-e24e8c60f13a0eaffcd9ce9c",
+        "canonicalId:ctkg:v3e-object-224a99f37dc359e50c070e54"
+      ],
+      "evidenceIds": [
+        "a8ea4b740023949c2cbaefdc562c79da",
+        "e51af4430e5104f2b70fbee63f66202d",
+        "356e6da7c70a52b33074c204e12db36a"
+      ],
+      "rationale": "Frozen evidence for Tracking error contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "322f03a6d7ceb607a0550fc30bb0510a6fbd1778c70ffcd43865055315787ff3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-22d70476ed16c55e186daa40",
+      "canonicalRevision": "b0aac663aeadb5d4afc39d767655493f6353e1cbc996eedc48a5616ee56b5b91",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d11488c7c1939bad267183b1",
+        "canonicalId:ctkg:v3e-object-22d70476ed16c55e186daa40"
+      ],
+      "evidenceIds": [
+        "552b491c6f5936e3c0f27d5503ee9c43",
+        "bdfec170fab69ea73fe043a28d6ab5a4"
+      ],
+      "rationale": "Frozen evidence for Using roots to compute poles from denominator polynomial contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "0fa2f03829c68bc1d7409c5ce99ebf25a3da66efe47bf2c13c6db389bcd84449"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+      "canonicalRevision": "b6163953e4d8521577594ea85b55dfcc0cbce0a690efeff1abb90a18a6178e77",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-040c8b94ea76c8641567bb1d",
+        "canonicalId:ctkg:v3e-object-239fecfdb347e1a48fb9d7cc"
+      ],
+      "evidenceIds": [
+        "9ae9c3c17050ed0ac9ea70238feb219e",
+        "c13cda2e806906bef7e7f00a28f6210d"
+      ],
+      "rationale": "Frozen evidence for 完全可达 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "394bf6be92d3dad612d2985707b119f39535ff9ba5e1e64476b060f37841b368"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+      "canonicalRevision": "39c948f2281ef233498e43a89bdb03967ba21f76e2b0934d8367d5f6f5a47957",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-02454c2fc49491818c253102",
+        "canonicalId:ctkg:v3e-object-23a1c9229387ded552fbdbb3"
+      ],
+      "evidenceIds": [
+        "fdad56494d8068267d8321ffc9d53316",
+        "cd6a249757204a6b034dfea94756bd72"
+      ],
+      "rationale": "Frozen evidence for PBH秩判据 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "4bbfae85312f70f0ae26b5a4236acea8bb6af927b797d155bfd599097fbcfe89"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "canonicalRevision": "0ff7baee2c1ff1972b4c1f1fe74c96629060f276e362f304f9a18a7238534f38",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-54efd861c69672346dac4ab3",
+        "canonicalId:ctkg:v3e-object-23ce934816d236fcc2836d27"
+      ],
+      "evidenceIds": [
+        "494b5b6c1fafacb7ba7091fe0cfb28d2",
+        "53cc4038caa19ac53007a2e8b5b3c752"
+      ],
+      "rationale": "Frozen evidence for Dominant poles contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "0283ec98ee7f6bd8ee1c592e98536ffd9663fd90bbb170a4c05e39c6fbeebd3b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2496ae999e2b3f64959076f2",
+      "canonicalRevision": "a1472e146814a3faff4330c4d41fe7a69bdfbfa519298f5e1a6217b3d83545ca",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e5d92ca2e1110457fd36e2b6",
+        "canonicalId:ctkg:v3e-object-2496ae999e2b3f64959076f2"
+      ],
+      "evidenceIds": [
+        "1df3cfaadd37de57c2d2c7a57884753a",
+        "97a0f9690154ee81716aacc2d7f0f89f"
+      ],
+      "rationale": "Frozen evidence for Graph determinant in signal-flow graph contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "3f7ec9d144c4a9262432d65b40e29253e337f551abcba7adab36efb2f89cf835"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-24abf351ed0af6684efdb4b7",
+      "canonicalRevision": "f5996241ba3d305f32c253571ec31da5688097b3c44cab29427296ad648f0940",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-046fd3f4216c70518aa40883",
+        "canonicalId:ctkg:v3e-object-24abf351ed0af6684efdb4b7"
+      ],
+      "evidenceIds": [
+        "6fa4115101a6b929038992f1bd8f8559",
+        "bae8026cd0e98d6f392f109937bc21d3"
+      ],
+      "rationale": "Frozen evidence for 非齐次状态方程 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "449788c90f9dc113982b49dbd46a3ab6ef61dc74591ebfe5a3780da6744be3ad"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+      "canonicalRevision": "bf8df297ee49f675ee2e8f815c757aecceaf31060bb6a957862e4aa9d86ea441",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-62a3d1772672912f9341ea04",
+        "canonicalId:ctkg:v3e-object-2be71df1c8c0152ac5f69c1b"
+      ],
+      "evidenceIds": [
+        "dc4baee81412421094011e3f63a73879",
+        "30f85e4918ced2196638a76894764840"
+      ],
+      "rationale": "Frozen evidence for Steady-state tracking error contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "2fba019315b8193c275c63ca0d794eed3b630dfbf2825026d62909d8fdd67dc3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-302e66995736fab70bde0338",
+      "canonicalRevision": "fc872fb5e02af72b2ea9f2e3067cce594f096b792439e9f1a2479977e14479b8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-295a5dc672bc976034421762",
+        "canonicalId:ctkg:v3e-object-302e66995736fab70bde0338"
+      ],
+      "evidenceIds": [
+        "30306c0488d68a11d9039ca2b1b16f91",
+        "c04d48beeb70e0df459aeb56dbf0e4ef"
+      ],
+      "rationale": "Frozen evidence for Observability rank test method contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "d1d39ff0540ac1944def820450746975766c21212215d95328c1662159a3df21"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-31596a5fab1911f024a4b8db",
+      "canonicalRevision": "065b59b7d16c3aaf3ccc4a2446bcde0e80399f6b756894c3cdf627754fcbb849",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6ab2cee03b570575fe6de631",
+        "evidence:ctr:m1l-v1s-release-evidence-ad9140e9494123555249065d",
+        "canonicalId:ctkg:v3e-object-31596a5fab1911f024a4b8db"
+      ],
+      "evidenceIds": [
+        "b5b459af8eb58bcb2b6d241b9e39f9b5",
+        "afb9840117a5d66caa7c39227a53b789",
+        "66b4ec94e4a86469c59dbb248fa43fe5"
+      ],
+      "rationale": "Frozen evidence for Symmetric Root Locus (SRL) contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "c21b2764899f35876419da468d91712261aac14352b5cc0400a1fd312305b87b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-331ee4b283af66a85a6bfa1c",
+      "canonicalRevision": "014cb0c7cc0a18520dda54c113f043b49c33d404cbc0446f5de76cbfc37ee7c6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fee9c786301a6338defafccb",
+        "canonicalId:ctkg:v3e-object-331ee4b283af66a85a6bfa1c"
+      ],
+      "evidenceIds": [
+        "33e8e0ecf8200c78f4fd8a2a33764aed",
+        "da1b02ea2d158964fe1c21e895932c71"
+      ],
+      "rationale": "Frozen evidence for Open-Loop Estimator contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "f7b9d7a6f4bbdf5a267278f1dc437ac1a517f1279bf6fbba60dbc171375c39d8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-35264ec175b811e30fa55aab",
+      "canonicalRevision": "545d38d9a426edb7fafc5fb7c6be2c82a5091011eeaea83414240ee510020bdb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1df2db6f04fdf0765dab1235",
+        "evidence:ctkg:v3e-evidence-45518ebefcddcd5635bf307d",
+        "canonicalId:ctkg:v3e-object-35264ec175b811e30fa55aab"
+      ],
+      "evidenceIds": [
+        "5ea78c43bc6516d6fc89227be8e44412",
+        "ef2f93c09405b5875d51f1d729ccfdd8",
+        "22e3d0e5c06abc74d47b5f17c3852281"
+      ],
+      "rationale": "Frozen evidence for Method 2: Using tracking error as compensator input contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "52b0f81b430a1ad64e446f02847b09265567664ee7370a9a39a6eec31fd5b46a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-368b8560c68e643a92671358",
+      "canonicalRevision": "a4a3bcec962268c946e279079bf5fb8e69f6fc76ccd0ab4067805d472f4129e3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1cae4f5df4688035294c37f4",
+        "canonicalId:ctkg:v3e-object-368b8560c68e643a92671358"
+      ],
+      "evidenceIds": [
+        "14b9cbb15f5c5feb5dce446a3216a85b",
+        "ac25004bfecdfa57c504d92f5844235a"
+      ],
+      "rationale": "Frozen evidence for Matrix Exponential Method for Solving State Equations contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "04de279ffeee93d52d994f3918b831a8863716bc636ceb915615c1cd2057600e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3784992e294bb2f120cdc0df",
+      "canonicalRevision": "30ee9dd72613aa5f4c90646a9a8feb258613a93f7bb16b7c537e5b629359a7b2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1734f1e226094335994864ee",
+        "evidence:ctr:m1l-v1s-release-evidence-311896242176e12a6be2c81f",
+        "evidence:ctr:m1l-v1s-release-evidence-4b61d105b47614cb33e40344",
+        "canonicalId:ctkg:v3e-object-3784992e294bb2f120cdc0df"
+      ],
+      "evidenceIds": [
+        "8302ab53ecca480cb6cb910f1964abea",
+        "b4ef7607cd35d08f44d87933e14c6ca5",
+        "218eb1e58c13258a95176bbd66bcb0e3",
+        "35da80648fd4b87b66603129383cd9bf"
+      ],
+      "rationale": "Frozen evidence for Controllability matrix contains only aggregate, profile boundary refs (4 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "46878062124c6e336f218f7d9f1e35a040976ef8afa30f445dfea48a064c2d32"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-385e97c5f142fee4c5791b7f",
+      "canonicalRevision": "4c8dc0b2cb94926283f5ff8c5cb6736ff930e7229dc8322375c932a47982b538",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a00474a3bd79ff0732948b79",
+        "canonicalId:ctkg:v3e-object-385e97c5f142fee4c5791b7f"
+      ],
+      "evidenceIds": [
+        "bc94640a8040a74dacd7f05fce2bfb18",
+        "0705561d7cf80308193467698879b4ef"
+      ],
+      "rationale": "Frozen evidence for 幂级数法求解齐次状态方程 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "988de0c58c0643d17e6b2433c96167f13c243e3630c99ac94c6a9904c08f5f99"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3973827146163f9a2a059307",
+      "canonicalRevision": "5fd9580fdbade004c98ef971df06f2361ae2d50b945d4d463eb935d41e112035",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-08f8e6ac5394c0d9287fafbe",
+        "canonicalId:ctkg:v3e-object-3973827146163f9a2a059307"
+      ],
+      "evidenceIds": [
+        "9ec209333e6e977259ae9e24b84b409f",
+        "4566dd9d7aa45e9efa3df772ea4ef5a1"
+      ],
+      "rationale": "Frozen evidence for Desired closed-loop poles location contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "8643ef069d9a7b499ba25e6e304bf3490f351227f979beea3547c754ea46decb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3dcfcc93901edd979be43f5c",
+      "canonicalRevision": "3f44f2a3e12b74b810b2820c16311d6dba34986790c336430658b815c5b2ed71",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5217f176e3ea691ef7ab0445",
+        "canonicalId:ctkg:v3e-object-3dcfcc93901edd979be43f5c"
+      ],
+      "evidenceIds": [
+        "5d105e2aa5ca335dfb58629ccb6041ec",
+        "4743939bf3b4733c95005b0a80c00481"
+      ],
+      "rationale": "Frozen evidence for Diagonal canonical form controllability criterion contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "7971156696e73ff02737a8d03bc7394963c8d863de3cf4fe8c59750f93591b7d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-401d4e9068e3907ca0e6ccc5",
+      "canonicalRevision": "8acca87fdcf3ae835b496fab35572335d2f8514efad2c641732466374d5f5203",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0bff422e2e9ad1ccbe8a70a1",
+        "canonicalId:ctkg:v3e-object-401d4e9068e3907ca0e6ccc5"
+      ],
+      "evidenceIds": [
+        "8cd6d9a29778ee20d38c00f5aa0b01e6",
+        "7fb6ba2ffb6782e6ad7094de984c767a"
+      ],
+      "rationale": "Frozen evidence for Using tzero to compute transmission zeros contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "419bfd45c02a9d94a7de758ca40965d7813ed089c8b7737857f9fce8786ca734"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-42be29933b0ae43fc424465b",
+      "canonicalRevision": "0d01434a99235babf15eacfdc27b80ea70145d12bdfad430ebdea59d824f0020",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-08a4ba61a52568a351ceebf3",
+        "evidence:ctkg:v3e-evidence-a850a75d0bd5138cfcfce654",
+        "canonicalId:ctkg:v3e-object-42be29933b0ae43fc424465b"
+      ],
+      "evidenceIds": [
+        "92fdfa6ca863d506f1db5f1573be45d0",
+        "19e8b22a54b2d007abb073b870909f07",
+        "7fece973fbfea5422b143d6902382d8b"
+      ],
+      "rationale": "Frozen evidence for Estimator Error Poles contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "060e998345e26651eaccb519a6ec4d69c3f03ad0110cffc7d78e976fdb577db1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4442a6f7404caafa6d0ab8e7",
+      "canonicalRevision": "0c8ca0e7396727789c04e7aba5c0426ac88ad4d25c9c92ab2b122b073c0cb129",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d64f7cbcd8de2205fef6f5a0",
+        "canonicalId:ctkg:v3e-object-4442a6f7404caafa6d0ab8e7"
+      ],
+      "evidenceIds": [
+        "3b0f20578cfab001409d5f81d911d835",
+        "8f7072f9cb505dc9932746a4e8918165"
+      ],
+      "rationale": "Frozen evidence for Transmission zero contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "7c33d158cfe8c94b50d74216450e6ee312e3ac76e046a8fb4cd33d9e2e23e8e4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-49224bdecd0196394fb8008a",
+      "canonicalRevision": "663491dbee7f4867159b456bd6fb536527ed542d9e1b835374cd86e6d62e7394",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b68ef3c49d5f210003ef18b5",
+        "canonicalId:ctkg:v3e-object-49224bdecd0196394fb8008a"
+      ],
+      "evidenceIds": [
+        "dfd079bfb17918989fc4559968e3259c",
+        "da2187ae42574a8623a758d908df5ac4"
+      ],
+      "rationale": "Frozen evidence for Controllability Gramian matrix criterion method contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "8fd703a9f4da557e0180dce5b5a74a3b7c8f7fe97f2e993faefde8f2ecee18cf"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4b7254aa73329cdcc5057159",
+      "canonicalRevision": "2dbba99e00c4546cfc2e20cf4ac516f68d314bd71ed9868b484d4ebd71643300",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-45bbc5882d5b32ee69d79b9a",
+        "evidence:ctr:m1l-v1s-release-evidence-68ab7b635ef0f9834ab5dff2",
+        "canonicalId:ctkg:v3e-object-4b7254aa73329cdcc5057159"
+      ],
+      "evidenceIds": [
+        "0101099bbe3455d6820ee77ac1912153",
+        "1b7fb9c99821dd8aa2ae8562f1159bf1",
+        "d4f236ae77a0bcf51fc99eaa204f05c4"
+      ],
+      "rationale": "Frozen evidence for Separation principle contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "a090dac9c207bc6d970fe2e83e9e14f4fdd0f789aba90fc778403d51d8a6e027"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4c3c3615b8526799e61d3615",
+      "canonicalRevision": "fe9c4cf23eb5f1c66a22c4bf15cb7b42c195dcdff0e2e0d8868669a0672a6c27",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-88f65115a29a097923032a2e",
+        "evidence:ctkg:v3e-evidence-b9f6f347052e6e70832e45ad",
+        "canonicalId:ctkg:v3e-object-4c3c3615b8526799e61d3615"
+      ],
+      "evidenceIds": [
+        "faf820d86e17b4fdf79f4682fa9ae347",
+        "52ae3bcf46d8553fc1ee727ba8e4d48b",
+        "e028a41465a9e47717aae076e06ecf59"
+      ],
+      "rationale": "Frozen evidence for Closed-Loop Estimator contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "706b76bf52e95da5813f13a08cf65cf4aa293ef4ef53569561a67b2264644a4b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4d4f55b60c7a23596a921468",
+      "canonicalRevision": "68f9c84619bff942d649430b129377f5bd1e73833a4c854d78b84a60b0fb51a5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-76e1c44077575c8e228018c9",
+        "canonicalId:ctkg:v3e-object-4d4f55b60c7a23596a921468"
+      ],
+      "evidenceIds": [
+        "fc3cb78aa04c31ceef896414d7a77bcf",
+        "7800789dea0ab9008fa675b089799ca1"
+      ],
+      "rationale": "Frozen evidence for Zerodegree root locus contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "4fc0d4c888545ead42db46410107bb521a9ce7c3e114f028363648c1a65f135e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4f050a1dd9ee29fe0988036d",
+      "canonicalRevision": "8d08106408ed193645275650fc1e2e729825102392d6ffa9bcbecb67410f6f24",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8fbbb711d05b63cb8b665a5c",
+        "evidence:ctkg:v3e-evidence-e37402ac9930ecadde9ea8df",
+        "canonicalId:ctkg:v3e-object-4f050a1dd9ee29fe0988036d"
+      ],
+      "evidenceIds": [
+        "82cc3453a5b839719b55d15010e1a430",
+        "036562842d080a739d8331ebf750321a",
+        "d68e90a356d0b2f9cda3a6b2b97ed0a8"
+      ],
+      "rationale": "Frozen evidence for 增广系统可控性 contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "8a452c56da9ee6bf32c5ddc4f4d9569281d2a34512050bf02e9b4c37249ae774"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-51398ddba323aa3beeb5d89a",
+      "canonicalRevision": "52d2d8a748c1e70416b9f0655f66a69a53dd29660376005c653bbe010800e09b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-dd8800e9e440eabda3d675f5",
+        "canonicalId:ctkg:v3e-object-51398ddba323aa3beeb5d89a"
+      ],
+      "evidenceIds": [
+        "79457c4f1348c9cb32c403fccabc90fe",
+        "11b1826d3524cb06941ed7587be4e4c2"
+      ],
+      "rationale": "Frozen evidence for Zero-assignment estimator contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "9f0e7ec4007e4eb28143a372cae34446232a43ecf5fd8d52d1bcc705fc381aaa"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-542c371afb4374a5f7b7be5f",
+      "canonicalRevision": "775ec98d697966d9e0cf529d00d461d3888f0d5eff66d117797d856f35a1e1b8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e9bee48ae8063b3584c99860",
+        "canonicalId:ctkg:v3e-object-542c371afb4374a5f7b7be5f"
+      ],
+      "evidenceIds": [
+        "82c255e9b744038abee645186c4715a4",
+        "764e1ae742b5207d324d4e3f706df8f5"
+      ],
+      "rationale": "Frozen evidence for 矩阵指数函数 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "e7f126d59086a23b309df9544af1650338072c7be19a0ac53098b6e3faaa2f47"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "canonicalRevision": "b96efe510d715f74bb9dac0d44230ac71b00ed7e4d2d89b457ceaad75c292369",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ca4a9c58815fa5d69e10fe01",
+        "evidence:ctr:m1l-v1s-release-evidence-adcdee0f9b31390595029d45",
+        "canonicalId:ctkg:v3e-object-5592624b3ec200b86f7b744d"
+      ],
+      "evidenceIds": [
+        "566c6a52fe1457d596475e4345ef56f5",
+        "5f6763f66279c40ec651c419300f547a",
+        "b3b6dad6d6bdf044b7542fd6c74f2ac6"
+      ],
+      "rationale": "Frozen evidence for Observability contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "71bddf98b01d04729e9d7f49c14b78271d3f5e6ec2a88a1ccfceaff7b6e0ff27"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-567eb255d7d82d8b4e029f6d",
+      "canonicalRevision": "fb37dfdeaa7573e9e6d643ccd81c5f2843edea2339a04b67804faaa75fefbab8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ff2c146ce224bcb2ac8b609b",
+        "canonicalId:ctkg:v3e-object-567eb255d7d82d8b4e029f6d"
+      ],
+      "evidenceIds": [
+        "20ce67a50047508e635eeb73160c8dcc",
+        "c23bd5009fc02be963c01993a2e0d5e4"
+      ],
+      "rationale": "Frozen evidence for 状态可达 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "c585ebe42257792b0857fb24058e99980cd37a23e508f371b79bb281dcf52fb7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-58432d31be025457910862bc",
+      "canonicalRevision": "69f883f763248e60f46f25c9b9a80f532244e38dc1bfce37f93df907c364b257",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-acd0949a621aa53b1c7cf694",
+        "evidence:ctkg:v3e-evidence-b8a4398088fabb00140e1363",
+        "canonicalId:ctkg:v3e-object-58432d31be025457910862bc"
+      ],
+      "evidenceIds": [
+        "529e2805320d85db50ad42aebcc773c2",
+        "d43c002c793689b64ce89684525d9586",
+        "579fc17b9267bc69af43cee44c9467b1"
+      ],
+      "rationale": "Frozen evidence for 离散系统的可控性与可达性 contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "49a38b2f9ca825e2cf63b57437abfaf4ed283ff8c02c8ef5710aba6bcad58fa1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-59f5159cc11cb67f131e14a1",
+      "canonicalRevision": "db10a2d92226fbb7c7ae949d9b3da7a30e280904160bffb2c30255344a212b5a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ad6734f56965e0d2f12cad5a",
+        "evidence:ctkg:v3e-evidence-ec4061ed396b0f7fdd0a90a8",
+        "canonicalId:ctkg:v3e-object-59f5159cc11cb67f131e14a1"
+      ],
+      "evidenceIds": [
+        "5c8017b9a4d70dd7f04c2cc7c065a9cb",
+        "971a2c979012e5c38246e0f661b074ed",
+        "5c1531e8599f2930261476282eea91f1"
+      ],
+      "rationale": "Frozen evidence for Transformation to modal form using eigenvectors contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "b3e073f2526af51ce1dcdeee4312d41d17e5f71d48cdeaad8233ae7fccef0284"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5aa119c1211318de57450e5b",
+      "canonicalRevision": "2fc1bfea6ebe297e2600684ee42bedd0951e2a0f0d1973c1164ad26983503f83",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2f7ee18f5c68853065598309",
+        "canonicalId:ctkg:v3e-object-5aa119c1211318de57450e5b"
+      ],
+      "evidenceIds": [
+        "bbad4e93f04122ffede0531aaba981dc",
+        "8b81325f9a5d68015289384507a1f4d3"
+      ],
+      "rationale": "Frozen evidence for Eigenvector contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "3040d925fcef985dd52c4471c9ff15b7fdcb3d7f99426f15ab0fd06f0eca83a5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5d994cbb7a93157b1cb02932",
+      "canonicalRevision": "c81aa976503dba360b884e636e7c22ebcbe574632fa5427c9141a898a40f0be7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aaee8a7c71c1b95f960abde0",
+        "canonicalId:ctkg:v3e-object-5d994cbb7a93157b1cb02932"
+      ],
+      "evidenceIds": [
+        "ff98a024c4627d45bacdb0b27ac526bf",
+        "e460348d550fb26ecb3cb8fc5759b8a9"
+      ],
+      "rationale": "Frozen evidence for Path cofactor in signal-flow graph contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "d08b8028e44bbcfa4e86e0b9ebc663634891989b23101ea1cdd5f32b1295c337"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+      "canonicalRevision": "933bee7a5ad6074b1cd31692955d76b097a2b7798843e1f0b7ae2bf97465f13f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d4f32a198c164d0c4e485c78",
+        "canonicalId:ctkg:v3e-object-5e3ecb030d6a454633f0a09a"
+      ],
+      "evidenceIds": [
+        "e8656b28b0d1b6a937a2bdc35123813d",
+        "9da0ca598ae1ef258e43f244b80a593d"
+      ],
+      "rationale": "Frozen evidence for 内模控制器 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "093e5876426bb4a18ec615fe1b8096cb7c6d758899820e3b7a423a24f837c8b4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5e75417369e6729db63a90a6",
+      "canonicalRevision": "2fdd77531e286154c93e2efa0161e730e0ccce698771f2e13a9728cb7ba6b385",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9e944aeaec5f0c50aac3fe02",
+        "canonicalId:ctkg:v3e-object-5e75417369e6729db63a90a6"
+      ],
+      "evidenceIds": [
+        "f0713e17ea0347920496cf55f382c348",
+        "97bff62bb72d8c7e19330530a1f08b38"
+      ],
+      "rationale": "Frozen evidence for Modal form contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "8e59226b46273a2390b57a3ba6e5d40bbdbca6447a9d8c33b560bd92ef157e25"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-63e0a0d95493513e939f9acd",
+      "canonicalRevision": "45e83c28c9bd0f96711bcfe5ea579148d59d212766c5bb4895cfff52c9d03792",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d2d9bce0d03af0dedc7b29d7",
+        "canonicalId:ctkg:v3e-object-63e0a0d95493513e939f9acd"
+      ],
+      "evidenceIds": [
+        "d1749290afcf3f1aa3d27e4077b3be5a",
+        "5240be5508095f5da35fd8ccdfb8f1f7"
+      ],
+      "rationale": "Frozen evidence for State transition matrix in Laplace domain contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "3878a0618e4fa8322e3d8b4bcdc20d33f636bb717c129fc7810abe7ed4fc74b5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+      "canonicalRevision": "f68b5f97e4053c7d58e2ebf6bdb11b4d47d7ae842ada3a2c5491f419e2a86332",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-84367106c22ca5ddaada0109",
+        "evidence:ctkg:v3e-evidence-d80434e8da892ee033c7b4ad",
+        "canonicalId:ctkg:v3e-object-64dfc92ef15f84903e6cdd8a"
+      ],
+      "evidenceIds": [
+        "c279c14c935a4ecab02412d1b3e0bf45",
+        "08fdcc3ece5920ca8807eeb1929e4b7f",
+        "ac2e6bc986b55ab936a016f196e93b95"
+      ],
+      "rationale": "Frozen evidence for Compensator Design via Pole Placement contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "72892db4a841aa387454361a60222d87899b10085b42910724e54307b7e59a3e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-65968c0bbb3a54d4c9247dd0",
+      "canonicalRevision": "5b2bae9b668ba7498ae9deb5b89736c08b66c66343580b92720f1f51141ffa60",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f879e819743eb9bc0aaf46b4",
+        "evidence:ctr:m1l-v1s-release-evidence-2f62b865ed5ab1c5834a4b19",
+        "evidence:ctr:m1l-v1s-release-evidence-8ce609cb7f3c3db585f40e95",
+        "canonicalId:ctkg:v3e-object-65968c0bbb3a54d4c9247dd0"
+      ],
+      "evidenceIds": [
+        "f3b40a1c932890d64de7ddaf82b7ee43",
+        "b0fa9d75b324e887415a0a8fb6bf1a70",
+        "c0b1dcd13eb7b57f71973f7dee6ee8b9",
+        "e129ceeae02307801da60931d59ef04a"
+      ],
+      "rationale": "Frozen evidence for Internal model design contains only aggregate, profile boundary refs (4 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "a04bca01771c184e0abce0b45c3e9805436a59832ec84542af5f24e91629ef3d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-670bb910ee2a73c3ebcc0c39",
+      "canonicalRevision": "0ae37bfb0974f4c720dabbb5e82b9f5d9d2b3e1df52e4dd5ab61fa50872f74f9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8c42352862e1496ac778a3dc",
+        "evidence:ctkg:v3e-evidence-8c472a2d5794304457b669a5",
+        "canonicalId:ctkg:v3e-object-670bb910ee2a73c3ebcc0c39"
+      ],
+      "evidenceIds": [
+        "1f965211a89c238dfc2c904f5cb1336d",
+        "4f15b657b489a842e34ed97e57e17b8d",
+        "7f56cb52214b25c01cf9532924a96637"
+      ],
+      "rationale": "Frozen evidence for Weak controllability contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "ebe82420bec7547f5e2e43d41211daa9e0618dcd4e5ede0683f5ced62969cb67"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-673ca3fc1e1f241021746105",
+      "canonicalRevision": "cc12451d6cf7ea5ac127972ffb6efd1af2a2546046736a5516238a98105424c2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4c11195a8704a649199729c4",
+        "evidence:ctkg:v3e-evidence-b3f0ce08ab51cd17f421ffaf",
+        "canonicalId:ctkg:v3e-object-673ca3fc1e1f241021746105"
+      ],
+      "evidenceIds": [
+        "3603808d241a35013731f4c68f5fc4cd",
+        "2d72f43f0724c279a1b78e624cf2a132",
+        "072249c87f5b6e25c0560772d802cc52"
+      ],
+      "rationale": "Frozen evidence for Observer Canonical Form contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "5c069ab98ef712429ce5b7a91c0059b489dd7d11a0d1719089095369cb020105"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-68b0b2f3295bb357fcb48d7d",
+      "canonicalRevision": "75e98440fd59b81bbf480a35e4a47bc7bb04154fbc977fda7a893ea4e5ef3a20",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a68cf44a72e272262dd96cab",
+        "canonicalId:ctkg:v3e-object-68b0b2f3295bb357fcb48d7d"
+      ],
+      "evidenceIds": [
+        "b396f62a50ea0e6a8e67bb5a768990df",
+        "11386ed8efdf86d34a9f4eb9727b2422"
+      ],
+      "rationale": "Frozen evidence for Reduced-order observer contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "1a9fa7a3300a2a3709712d7f2a3a38eea77aa623a57e1670dd087a0c3a544b60"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-68df257f762f259aef82b607",
+      "canonicalRevision": "0d02c0b0d9b35597f62829c3729ea9bf99e24d3b0c347a17748d7fac9b8f7639",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8b6c7b058d7af710f8de4b53",
+        "evidence:ctkg:v3e-evidence-c781f2395faa7aa7e2b9f3de",
+        "canonicalId:ctkg:v3e-object-68df257f762f259aef82b607"
+      ],
+      "evidenceIds": [
+        "4252c1d482b8287855d25618b99403c2",
+        "a66ec745936f9809e84cf234dd8142d2",
+        "c8acc1823803ebca9a3923bd9d06e193"
+      ],
+      "rationale": "Frozen evidence for Full-Order Estimator contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "52911fe529db8790565f4cff8cf34986ae00b08ee495716f053e4f42ecde7594"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-695b9c7d4ee82924a8d65b12",
+      "canonicalRevision": "5c52043597447258f531f767a39047587caf390ccf8b2583ab03be84596648ae",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-21af36057a6de6227c95182a",
+        "evidence:ctkg:v3e-evidence-8d51305423b538b830baf51f",
+        "canonicalId:ctkg:v3e-object-695b9c7d4ee82924a8d65b12"
+      ],
+      "evidenceIds": [
+        "6bd7ecb6501928613f0f5bf07f9f15bc",
+        "888a3e51828615d1a69f0d8a8cf9504e",
+        "483c6ac5646de79826b04ed9ba9e0063"
+      ],
+      "rationale": "Frozen evidence for Pole placement by coefficient matching in control canonical form contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "3e3f4a4c02ab3091ad9c955fb257f442496e32fe373fe346c7bd8d7bc838d2d6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6a408c0b64c072f7bea3db47",
+      "canonicalRevision": "588c47e5c2f547db0d3831254c237215824d32daa790aa0002e1f72179f69f7e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-32146a67ef9e69b1ecd2f525",
+        "canonicalId:ctkg:v3e-object-6a408c0b64c072f7bea3db47"
+      ],
+      "evidenceIds": [
+        "f3d52575cc13be60e439444291c1cbe8",
+        "3fd5fec21f40c7b6c72655a7be434528"
+      ],
+      "rationale": "Frozen evidence for Dominant second-order pole locations contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "638aa836d26e9f4d9e2df2e36219327b809c91dd645f9ddcae1a059bef31f0c6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6e5d7c7223f605f9c16bda61",
+      "canonicalRevision": "75437eeec1b667289f332928757208fe3a0ce336ec39240579689063d4aefe90",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-03feacb366980577dc1d0f02",
+        "canonicalId:ctkg:v3e-object-6e5d7c7223f605f9c16bda61"
+      ],
+      "evidenceIds": [
+        "3ae6bd3528e79ab9bbc5257289a64875",
+        "4cfac260bbbe2f19bfb9817bd5f0751b"
+      ],
+      "rationale": "Frozen evidence for Regulator contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "6239055a464d4e9e196ffde56dfc0220277bc625cc3b807f2d8ac45cf89346fa"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6f45ed4aa09cbebb25093412",
+      "canonicalRevision": "38dabf69ff9ee5aec27be7b4c4d733ff2c568bb38cb6df2538127c38d8d3eaa5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-62c9c6a3d443f367c7f35e59",
+        "canonicalId:ctkg:v3e-object-6f45ed4aa09cbebb25093412"
+      ],
+      "evidenceIds": [
+        "2d7b394fea1ed8cba1a4eedfe2b54b95",
+        "01f85e561768f5b95ccda5647ded327e"
+      ],
+      "rationale": "Frozen evidence for Using roots to compute zeros from numerator polynomial contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "79daa159da1f8fc50711a176a2260ed5b60a99a30b07f4d85ac0a79ff9a3d321"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-701047b791dcb064a8224082",
+      "canonicalRevision": "a8c93f9ac9ec2a2e9639b6435afc5c23ee1db378bf4905d12424da839753b083",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1c9be09886e358a6c5b52aec",
+        "canonicalId:ctkg:v3e-object-701047b791dcb064a8224082"
+      ],
+      "evidenceIds": [
+        "b5b679a70f6c29b5c2a90643e274f55f",
+        "ae41f37dcbad835f17f8665ba7b3f675"
+      ],
+      "rationale": "Frozen evidence for Bryson's Rule contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "e5820a463648eccc49a4f00a43940f6be6dee065b2c17babd24434d00dde79eb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-70598dd5728797c1595207c9",
+      "canonicalRevision": "990c1eb571f94df224ef6655d30aa502aeec7a88f89b421e61ddda7b3fe0384d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-29e47cf0d4f356ce1cd6228a",
+        "canonicalId:ctkg:v3e-object-70598dd5728797c1595207c9"
+      ],
+      "evidenceIds": [
+        "104b4ee7d6e284ebad74e6e612f28358",
+        "56fedf97a976b926d1b3e167ac0aa098"
+      ],
+      "rationale": "Frozen evidence for Kalman filter contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "8f83c49c41ba219a09dce145109e1d1e70ea84ae1e01232ad92166dc6522bfc7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+      "canonicalRevision": "545132e53f0f6ff193a1a0185643519c4dbb0744263d48ad21f0def3f65016cd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-40bc328a7224d40cecf8d765",
+        "evidence:ctkg:v3e-evidence-b4007f200bb944a1f46b68d4",
+        "canonicalId:ctkg:v3e-object-710cc7b05bccac04bdf10d66"
+      ],
+      "evidenceIds": [
+        "419d2d880808f52c4909b50f63367e71",
+        "f00e32cbe3ce06a96480250f62c29192",
+        "3b5649dd535e56ed43582b3d024a76e0"
+      ],
+      "rationale": "Frozen evidence for Asymptotic tracking contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "4263e2153766121fa818f83ea618261305cdbcbab37fb0f2e4a56bbac06dddde"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7555b4760da0d42ee2e4c36a",
+      "canonicalRevision": "1a3b6d45a8c3148833738eed67682061efa929ec640444a57011939a18ae095c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6876700f0259f230304d3140",
+        "canonicalId:ctkg:v3e-object-7555b4760da0d42ee2e4c36a"
+      ],
+      "evidenceIds": [
+        "f100b9eab95776a893c9c7c2b20ea8ac",
+        "470a029446d26026b44cc0b3c7a3bbfc"
+      ],
+      "rationale": "Frozen evidence for 积分法求解非齐次状态方程 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "7b920d686df35988d1aba8a60210b82911bceb1153d31edaa1d70518aa9e91ef"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-757a3f48777c318642e275e3",
+      "canonicalRevision": "f8858346d93f9e91cc49c78c065fc42b096a7176f7a856bdee3ea560361c2428",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b2b6f88412111ad937aa82dc",
+        "evidence:ctkg:v3e-evidence-ed4a5fcafb4edc20e7a21684",
+        "canonicalId:ctkg:v3e-object-757a3f48777c318642e275e3"
+      ],
+      "evidenceIds": [
+        "ea5cd5caf69dc2205d62ee8b9a86573e",
+        "aac3b2781eba6dbea7f0ed5ba0669c94",
+        "d376736c4d1827cbbbe96bafc60b30c5"
+      ],
+      "rationale": "Frozen evidence for Estimator Gain Selection via Pole Placement contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "922d646178cd903e7fe699f02cd8cca8005756d8987b8acce77a9d2020018d48"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7669cc1cb18986463cbcfdf6",
+      "canonicalRevision": "4e8575ce5dc3c61d349d74bf35f0b060c6f21ec2568e56132fdca8156a34f732",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a0bf591325eb252176f998e0",
+        "canonicalId:ctkg:v3e-object-7669cc1cb18986463cbcfdf6"
+      ],
+      "evidenceIds": [
+        "1a94681c0a33fd7e98b0b7db9eb26196",
+        "7c472b09c8564f29846f074317b0c4cf"
+      ],
+      "rationale": "Frozen evidence for 可观测性规范分解 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "4773883e2e573c2cbd9dd7fa1ae94d8455b03419e2e59b8aea3f5916b7774229"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-79a7b9064a607526e69fb64b",
+      "canonicalRevision": "20da58f18775368e1927c93ba9e9d4e00415e8c9a969121bdb27832d104c0c5f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a017c82b4908f82d4d4b26dc",
+        "evidence:ctkg:v3e-evidence-a7e7af8ace3d27ae2e43ae34",
+        "evidence:ctkg:v3e-evidence-c4662c0ed58087bf7400c9c2",
+        "evidence:ctkg:v3e-evidence-d4cf43ab12030a3d445d0b64",
+        "canonicalId:ctkg:v3e-object-79a7b9064a607526e69fb64b"
+      ],
+      "evidenceIds": [
+        "c1ab90c094fa84822a856a6058f1c52e",
+        "4cff3b7c4716f8339d8c54458fb200f4",
+        "c134d0bf08511b22e444c40e65ab15d2",
+        "4ada42091e26d6a17c2f16c27c536d00",
+        "2febd6b2308ca8c1526820d8dc323185"
+      ],
+      "rationale": "Frozen evidence for 内模控制器设计方法 contains only aggregate, profile boundary refs (5 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "39577235f38aea46c5ffab407f0e0f235b73b4e8b55371a731f5a0a6dfd61e9f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-79d38366402d1a9806e1ed46",
+      "canonicalRevision": "dc0a6077d74a0b9e75c884221aac86b0f9708eaa4473e4545e258a9e8372a0a6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-57bdb466d58f0655620ef2c2",
+        "canonicalId:ctkg:v3e-object-79d38366402d1a9806e1ed46"
+      ],
+      "evidenceIds": [
+        "88535fe7926885a4c0d4b18b9e88ef46",
+        "2a84618710f29a3aaecfb4fd60aef316"
+      ],
+      "rationale": "Frozen evidence for 输出可控性矩阵 (output controllability matrix) contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "d93e080e13106b491ca6ffcbe62d57fe00148672cf7f634ad6f6d2fc65b90e21"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "canonicalRevision": "fd7a5eb5355259106c564f17bd107e537eabef6a7d84fd1504521e63ede3b7d9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a67fa9fdd5814bcb33e86ce8",
+        "evidence:ctkg:v3e-evidence-af77b014f27d066c2609b02f",
+        "evidence:ctr:m1l-v1s-release-evidence-56e48d79fda3165946ec6401",
+        "canonicalId:ctkg:v3e-object-7aeaea4f1aef78c48c3e8340"
+      ],
+      "evidenceIds": [
+        "1cd1f75592820773ae123fb0371c13d0",
+        "1345e2f4e50674eecd2db257fc292b40",
+        "f33baa183be4b63baff64762d38adf2b",
+        "25caf82dc4fdb771986c8328e33f4215"
+      ],
+      "rationale": "Frozen evidence for Ackermann's formula contains only aggregate, profile boundary refs (4 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "ea642bbddba7c1409a7a1c577f14527bfa053fd36cefbdee336dd219cdca6061"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d0f4558ea9feb4c470dd47b",
+      "canonicalRevision": "17b47ef6c0e555d83ba7ed682e456a7e0147613b33706abff6e45a92ae2b8fc5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1e0083e152bdc1fb3a6d7b95",
+        "canonicalId:ctkg:v3e-object-7d0f4558ea9feb4c470dd47b"
+      ],
+      "evidenceIds": [
+        "5498ab2971e2e28d2ca6587d32ebc200",
+        "8b06d14c4ec86d16974e034a192a2da0"
+      ],
+      "rationale": "Frozen evidence for 系统完全可观测 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "6f352e04d36b3ba294d7767a55a4d80780bf4438a1ba4e94ddb6839cb5049874"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7e0291af0b752655e0d98328",
+      "canonicalRevision": "13aaf2d33ff4014b01a2d981c593936ba56390e39981dea37d2eab79b3443078",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-78efb6e15e65931b86ed7b9c",
+        "canonicalId:ctkg:v3e-object-7e0291af0b752655e0d98328"
+      ],
+      "evidenceIds": [
+        "e1bf89aabfed32fe431133978bcfd0f0",
+        "dbedfdee6c15d6375b1a32784fde7b93"
+      ],
+      "rationale": "Frozen evidence for 一致可达 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "7f31677d796cbf6472cc209f20fe3a2adb296d92350325ff55c7dfd59ad30da8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7e19f05879897a5e2d7c3e97",
+      "canonicalRevision": "88243588c172c379144b8cf79c8e21b0f9dd3dc07b8b1d08ccea7705d92de208",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-52226c15ccf70a4b1779b04c",
+        "evidence:ctkg:v3e-evidence-6cb45ac734110916ad975a21",
+        "evidence:ctkg:v3e-evidence-b63fe8561926eccdd94077ed",
+        "evidence:ctkg:v3e-evidence-b90c84144fc3f8c91265c20e",
+        "canonicalId:ctkg:v3e-object-7e19f05879897a5e2d7c3e97"
+      ],
+      "evidenceIds": [
+        "7fd6b601ab4c62cb0182586ab7b17e39",
+        "a0ee66879c4b0e48aeb0751e3d784356",
+        "47b4c088f8bfccee697050e095de072f",
+        "791921ea90618e47c708092ac3e4818f",
+        "c5b970dd26cfb3d2c3378cb58cd7c6f3"
+      ],
+      "rationale": "Frozen evidence for Ackermann's formula for state feedback gain contains only aggregate, profile boundary refs (5 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "63380e11ef8c519bb7c309862e602ee60e0a35890ecc3fc76245d47e2eaf8575"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7ec200eb09dcb2beb627f1eb",
+      "canonicalRevision": "3dca40eaa1e4f5b94c3830434bb8ef53b3611d645a368310f01e59a8778e9c75",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-033ff672864ad086e7c24103",
+        "evidence:ctkg:v3e-evidence-864bdb90a384220f4a23848a",
+        "canonicalId:ctkg:v3e-object-7ec200eb09dcb2beb627f1eb"
+      ],
+      "evidenceIds": [
+        "6fb043a08fc800a01005b1798bc0438f",
+        "f50f14e5c3cf9c9e4b8a2d66e778a0ff",
+        "ee9a49bae93c3391710db1b87da4a15d"
+      ],
+      "rationale": "Frozen evidence for Duality-Based Estimator Design Using acker/place contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "4cc063375e6ac19044d17fed2639da03d46678d287dd08344509e8770b4fc93b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7f0c681f4f5c2b69597b6f4c",
+      "canonicalRevision": "b40850b957e369fc754329f0f908064ca1684c14893567a707e5964c0c9394fc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cbda47c1e569401bee5d373f",
+        "canonicalId:ctkg:v3e-object-7f0c681f4f5c2b69597b6f4c"
+      ],
+      "evidenceIds": [
+        "5ca6eac6d072a0c7c4d5f81d2ee59290",
+        "b113c6070a420d4160043842a8e93f3b"
+      ],
+      "rationale": "Frozen evidence for 系统不完全可观测 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "e15010343d45f92efcfbc7619baf315dba86cc2f1c07a6f412d634c691e566f7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-801c2bf7fd001c355296f342",
+      "canonicalRevision": "a113ce7c549c272793d372e30f81cf0ec6444b992d5213bac1f88d5c161efc4b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e423d0b06a9e452c489bfee0",
+        "canonicalId:ctkg:v3e-object-801c2bf7fd001c355296f342"
+      ],
+      "evidenceIds": [
+        "deef746eda8027dd862b11a65acd94f4",
+        "13687de47db103601cff704eb128a1f2"
+      ],
+      "rationale": "Frozen evidence for Transformation to Observer Canonical Form contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "4f4917a88abaaf76a461427395a55836726fcb840d441e4dddf6056618d7f23f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-820fb2c5830d5ebc1878a753",
+      "canonicalRevision": "20551f0e35a97a8fa97e43edd6c4134624f560843d17731cf1a34d6050916ba4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-64fbb611288b38636b112ab8",
+        "evidence:ctkg:v3e-evidence-6d1bad2c6b7d659bd069490f",
+        "evidence:ctkg:v3e-evidence-f9c4cd32fafc2621fd1b136b",
+        "canonicalId:ctkg:v3e-object-820fb2c5830d5ebc1878a753"
+      ],
+      "evidenceIds": [
+        "af056a563cb06113179e44ae48504248",
+        "5c1cc4d96cba126b9ed51526fae541ea",
+        "3446aab009cc2da1f291d81594ca3c5f",
+        "df186e5cd53e8ff9603de6ef5455dc4e"
+      ],
+      "rationale": "Frozen evidence for Reduced-order estimator design method contains only aggregate, profile boundary refs (4 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "7ad7368eaf273c37729a90839d16e8306f72a175ce61fcd4910f2d46fdf2bd95"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-82a3bb18a814af1836288fe0",
+      "canonicalRevision": "dfee5977913d0be20551ea1118685e64364f1b88012eef8fb54ea5aba55b6c05",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2f3315a31abd075690fcf552",
+        "canonicalId:ctkg:v3e-object-82a3bb18a814af1836288fe0"
+      ],
+      "evidenceIds": [
+        "4a864d1c70095b2784f8453f476656c4",
+        "9c27fb535878c78ddb2ef286c7c97d07"
+      ],
+      "rationale": "Frozen evidence for Extraneous roots contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "1510c1bdf94300b1829f5f7922cd3d5bb80cf2257a927347129ecdff99767178"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8c3a7904cf80848febaed676",
+      "canonicalRevision": "4209b494737912013fdb7b126528e0b720b3088e7a56b4026f9426adf9ddab21",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b0907a58bc12b015f65a56e0",
+        "canonicalId:ctkg:v3e-object-8c3a7904cf80848febaed676"
+      ],
+      "evidenceIds": [
+        "e2ea3f0570e354d0b01a0fc8ba4bc962",
+        "3c92f768671a34495f28fe318d4b0afd"
+      ],
+      "rationale": "Frozen evidence for Open-loop system poles location contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "48f18c83902cf9c70c5412d4894d1240c4774077e190acc4d57f96ac102f4a09"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8d8c5b1f62747c3d046a53cb",
+      "canonicalRevision": "beddf6bc83b0277aceb4f459d7558ec746d9e338733151021d79952133d3861d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-dc7c172cb84f796442599419",
+        "canonicalId:ctkg:v3e-object-8d8c5b1f62747c3d046a53cb"
+      ],
+      "evidenceIds": [
+        "b0a43834112ad1f843548e06b0c0e45f",
+        "42810f779821b6c8d52fc3707c32b05f"
+      ],
+      "rationale": "Frozen evidence for 系统不可观测 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "13d9eb6635620dac328183af642fd1c5a91b6f7bcd8f68f046488c8b210bca5e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+      "canonicalRevision": "bc251001d5aacdec72f347566b4e471f2ac876084fa632512e518b5184086cac",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-658a56b9b71d330e68f5295c",
+        "evidence:ctkg:v3e-evidence-c88ce039290c18ff8fee0a44",
+        "canonicalId:ctkg:v3e-object-8ecd4d6352467b3444880809"
+      ],
+      "evidenceIds": [
+        "5e6d40512fc122ec325bd3506570ba55",
+        "32c73b7816048530bb41919742620c81",
+        "a909bbf9b33bcb2353baf0dfef4c5d62"
+      ],
+      "rationale": "Frozen evidence for Reduced-Order Estimator contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "80478180ed0252c8e842155963d9ae55959f5b360e6407fe983f0032de993b9b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8eef39678d2ca15d781ee16d",
+      "canonicalRevision": "351284c74915b9115e8a181a64eafe1ab0c1f6293486ca84a0f73414f657fa88",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d7d2a69567aa030bc88d40ee",
+        "canonicalId:ctkg:v3e-object-8eef39678d2ca15d781ee16d"
+      ],
+      "evidenceIds": [
+        "cb8fe8e4fa8e45f90026e852e58a8f13",
+        "815546e5ec48c5c799cdcc6497e539c7"
+      ],
+      "rationale": "Frozen evidence for Observer poles contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "e36ac86aaf45e33cd7fb6b503d2a492f9864f99a1bb6968c25bf2bad31c785ed"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-902a7486fad0f7f8ea7accb9",
+      "canonicalRevision": "2752efcd445cac0305fa87b7810d4c37e1d7bf4137c7fe1192782b0f4bbc38ab",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-27328b7a2a0e401e75e7f483",
+        "canonicalId:ctkg:v3e-object-902a7486fad0f7f8ea7accb9"
+      ],
+      "evidenceIds": [
+        "210fefbd513d51adf0196bc2d4980269",
+        "89dbb1cdf8409ebb070e7995dbabbe29"
+      ],
+      "rationale": "Frozen evidence for 状态完全可达 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "3a33c7e386951ba144801313634b9d60d3de70cd0685014c846c69f2a1898352"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-90a70b314d799971df539598",
+      "canonicalRevision": "a8fdc0a6c62f991c277ab383c96680d0e77db8095534173d313fc7d1da4750f3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6e064035329864c77c4d8fa3",
+        "evidence:ctkg:v3e-evidence-dd132f514a27df3190615f2b",
+        "canonicalId:ctkg:v3e-object-90a70b314d799971df539598"
+      ],
+      "evidenceIds": [
+        "b60ccd27199a860100e5adaac3cba979",
+        "3661602be49801b16f80440d70660c7f",
+        "1d8ed57455922f5c7b4dddac5b6ee40a"
+      ],
+      "rationale": "Frozen evidence for Output controllability rank test contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "9c0e2b2ee41b07a9a98d783cff32e7888913a9f22d7204b69be96f3858948906"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-90b61fb22c14c7c7328d0283",
+      "canonicalRevision": "1f54f4d0fc91672eb407f6bfc606f66633c8af9ed878c400a86d76025912411e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-745086fbeb35e584acc2cce2",
+        "evidence:ctkg:v3e-evidence-d2e78c41513ab9a71a13fa87",
+        "canonicalId:ctkg:v3e-object-90b61fb22c14c7c7328d0283"
+      ],
+      "evidenceIds": [
+        "e4815771286a6d8de89cd60012118f74",
+        "89e7db7ec4e270d652f278d6620a63fd",
+        "4124cfe492cbf75aec16c6c75efb2cd5"
+      ],
+      "rationale": "Frozen evidence for Evaluation of state transition matrix via signal-flow graph contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "10f899637c08f61206a92220cb152b3411a5b9de33ae2d521ea3e1eb1c6af74e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-92036a27c9d71cee9eb07bf5",
+      "canonicalRevision": "e838662096569fecae5b68f6fe26885c0c65265d0d309681138eaf3f354c5521",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d0f0eeec90d90624dbe18df1",
+        "canonicalId:ctkg:v3e-object-92036a27c9d71cee9eb07bf5"
+      ],
+      "evidenceIds": [
+        "d55c61cd7ecd4e59a910c6f475b998a2",
+        "2b3c7265702e9bd5a0479e7a2690cc72"
+      ],
+      "rationale": "Frozen evidence for 格拉姆矩阵判据 (Gramian matrix criterion for observability) contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "cdc8c45d7e42c2090ff1eb6acad288e7fec279a10f0c9777505ab74e6d75d910"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-938404536c1bcf749b8cda6d",
+      "canonicalRevision": "83d2ae45ba1b89087fe7ffeadd1122fabddc391a12bb08148648e946cb6c8107",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fb7a617a5afdf696768ffd24",
+        "canonicalId:ctkg:v3e-object-938404536c1bcf749b8cda6d"
+      ],
+      "evidenceIds": [
+        "575a57aa3b7ae8f5ceb3750b8a210abb",
+        "d02f4a08e401749c9ffc5e81ce55a5a3"
+      ],
+      "rationale": "Frozen evidence for 格拉姆矩阵判据 (Gramian matrix criterion for controllability) contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "f079ecb0759d030100c62f9caad320c4de52e5e49ac736f9f0d01ab272dc8e38"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-97fe46ae03d1bbad4abbc906",
+      "canonicalRevision": "2d71de96fa3cec96b78430f917bf5af4d120d71250e8885d5e95d8794541d0eb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a313d063e070aa7cf7a55016",
+        "canonicalId:ctkg:v3e-object-97fe46ae03d1bbad4abbc906"
+      ],
+      "evidenceIds": [
+        "5efcf5ecbb770aeaa81417d170f1429d",
+        "c7e9d0ee65713084c3cb47ba63893e47"
+      ],
+      "rationale": "Frozen evidence for 系统可控 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "b6a93899f1b570d391e7a5d76fed2f038f42393fed5f9267162679e3ea29328f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-98863d255f5bdc0c59c9b50b",
+      "canonicalRevision": "33058c4c291c8a3d6ad699e295c69771bd35e1a1e97ca74b25179b8ef63ee4f8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a8faddf533cb55b5884bc437",
+        "canonicalId:ctkg:v3e-object-98863d255f5bdc0c59c9b50b"
+      ],
+      "evidenceIds": [
+        "5eaa6e49c836e9a9c4b87b6faf41302f",
+        "9a21ce6c69157735dc5d80eedae35336"
+      ],
+      "rationale": "Frozen evidence for PBH rank test method for observability contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "98d2362e2f781ace96d10cc5d5c621849a5ce002f73e63b64860238c65ca6452"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9a0b2bbcc18b62af283ab92d",
+      "canonicalRevision": "0a1c10f99693d76c0a48e687d7fdd30428632c621b131143eab52ef7dc67549e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0faff0d32c7330fec40aec99",
+        "canonicalId:ctkg:v3e-object-9a0b2bbcc18b62af283ab92d"
+      ],
+      "evidenceIds": [
+        "704eba971da7cfcfe4f9250ea239ddcc",
+        "21b976a97b2ea0325a259ad24e35dfbe"
+      ],
+      "rationale": "Frozen evidence for Computing zeros via determinant condition contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "57b4d74b3c13ff3f91074e0aa9cb3461980a6a8e600e65d6fd2af8e99f28c0a2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+      "canonicalRevision": "838a266e6b2518480304f359f2c581aa0198e3909ac3949f791aef4d59a07978",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7b8a252e879c8714cd4c0c54",
+        "canonicalId:ctkg:v3e-object-9a4c8dc9963685a6c39a5653"
+      ],
+      "evidenceIds": [
+        "4496c13ae54398135913d39893dcabed",
+        "e4046cece78999a157e54539f9529eb8"
+      ],
+      "rationale": "Frozen evidence for 容许控制 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "a189c9bc1453e590f141a89bb3339175d24d3587fbe265af85e85e0176a6e2a5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+      "canonicalRevision": "bdf4c2537d351e6749096441c29488cbc90832edc2928a379dc8ba2bf35961f9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-657035a89cb32df954e0162d",
+        "evidence:ctkg:v3e-evidence-87662d023b5c23f2e674ea3d",
+        "canonicalId:ctkg:v3e-object-9b795692bacd0f13270cc086"
+      ],
+      "evidenceIds": [
+        "adcd994a3470a7b1f263492bb4b8348f",
+        "9522ee7eb6c93ee196fb6b3ad690f2dd",
+        "01ad00fad74d7b1cc99f49f5899882fc"
+      ],
+      "rationale": "Frozen evidence for 秩判据 contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "958f2f5c515925fd0ae2b96ea43a75c464c9a50a38226a5fe164db86347ec3cd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+      "canonicalRevision": "d015c82eb16afb678e97a56b60bc9e87a583152f3706a6479f3b9fe7c5c1b605",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-13473f1dcc96a34233b33d70",
+        "evidence:ctkg:v3e-evidence-2f5a5bf96c17f4eeda6ddfe0",
+        "evidence:ctkg:v3e-evidence-ccb8294b2c1ea094a367f201",
+        "canonicalId:ctkg:v3e-object-9b91b4b29c27f8d8916d9626"
+      ],
+      "evidenceIds": [
+        "bdc65d29e117e4c0c5e3e2dc85c3ec39",
+        "9cce05bbed42045b953c782b8d47823f",
+        "8432bdaeb970d5cebd32385b5ac346bd",
+        "5675b471551925de4c21868c29866401"
+      ],
+      "rationale": "Frozen evidence for Full-state observer contains only aggregate, profile boundary refs (4 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "f7bdfa3ced80861b0645b0035de9d0031268dd7718b63eb97fcf1b7045a9e3b9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9dd164e548b83a92f3777044",
+      "canonicalRevision": "44057ba6b06559f7a0ebddacadf5ec74e43d0aa2b4ea3951bcb54cb33f99da50",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-fc542d275d1e99c655aecc8f",
+        "canonicalId:ctkg:v3e-object-9dd164e548b83a92f3777044"
+      ],
+      "evidenceIds": [
+        "d2be9cfeed674643e6aeba911cadb735",
+        "88bf5a1a91ebb66e5c1fa35e8a053fb8"
+      ],
+      "rationale": "Frozen evidence for Diagonal canonical form observability criterion contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "50e3caf72e82fa34cc81b604dc7c887e108ced730b438187375ec6a1f1e855d9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9e88045efd51f4067f98fe34",
+      "canonicalRevision": "4f55a4180d3d778b37cd9db50732eb737355b2bafda5f43ed7e16f45080d1cf4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c51cd775541cbb519ef2e5e2",
+        "canonicalId:ctkg:v3e-object-9e88045efd51f4067f98fe34"
+      ],
+      "evidenceIds": [
+        "67a250c473b0ccecfb3b5eedfcbe7393",
+        "53eb780780e0f4d307210761fcd00dea"
+      ],
+      "rationale": "Frozen evidence for tf2ss: transfer function to state-space conversion contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "b311edbaecaea33c4798d4daecaa0bec99a2acaad0eb3a609e7341e63c86dfbd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a1d3ebe12a90c2bf346948ab",
+      "canonicalRevision": "3a6decc2df26100d30a5b258460dedc111366f8a34ea4358d7508b6277a913e9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9614e213d17ca07dba51c469",
+        "canonicalId:ctkg:v3e-object-a1d3ebe12a90c2bf346948ab"
+      ],
+      "evidenceIds": [
+        "dbb804028d711adc37f03241f6a9b3fc",
+        "64a4235d7a65629abf62864ae65d6e9d"
+      ],
+      "rationale": "Frozen evidence for Matrix Exponential contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "eddbd69fda5d09ba4ea67b1ad4c59a475f4dd56e1cb82f1846aa288d42c83571"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a6fbcdc8f28199ec0f54ceeb",
+      "canonicalRevision": "6f078261719bd7ae117dd6b5d8086880bc7eafd3438f50459a546f4ea23e7918",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b0547704e2a245c53ce16e46",
+        "evidence:ctkg:v3e-evidence-c123f2e56033c308b113984b",
+        "canonicalId:ctkg:v3e-object-a6fbcdc8f28199ec0f54ceeb"
+      ],
+      "evidenceIds": [
+        "8105df2e2c131afcbef2989397b06f05",
+        "67a6b6b5439faf967a3c64c1fcbf1f26",
+        "5819d755afd2efec698736a45c59d558"
+      ],
+      "rationale": "Frozen evidence for Method 1: Decoupling estimation error from reference input contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "a640bfa3f88b5f3cd86f653c3960cfbf948f0b366382252c63226d842f1ed343"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a98f424dd074fcab4c1d1f23",
+      "canonicalRevision": "9a2ea6349b82ea8fd77dd9c80df03cdd93d878779caa4bedc1acf43f826be09f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6964a1aed1a057d491f255ea",
+        "evidence:ctkg:v3e-evidence-b5be0b1981c55d6a75e778b7",
+        "evidence:ctkg:v3e-evidence-f4c45cf20af520d829cba21d",
+        "canonicalId:ctkg:v3e-object-a98f424dd074fcab4c1d1f23"
+      ],
+      "evidenceIds": [
+        "02698b944640c94829f61a62c53038b6",
+        "8660fa3f8be6742904e945741ba338cf",
+        "a41778a4105b7dd0f6c541fd9ef63f2f",
+        "025dfbc863cd05fc9f489467c6a1413f"
+      ],
+      "rationale": "Frozen evidence for Symmetric Root Locus (SRL) Method contains only aggregate, profile boundary refs (4 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "3e18fdd0cc8a7284046a1a4e5af72e4a99225d6798ab8fe9e1cbb051a4432944"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+      "canonicalRevision": "64a43e4d3c53d01183031702f7c555afd5471aa561a4291182df83ef14353352",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8122744435773bef65f2e6e3",
+        "evidence:ctkg:v3e-evidence-902ccfa1bf40ff87a229cc8d",
+        "canonicalId:ctkg:v3e-object-ab4dc18aac53ac6636d05ca5"
+      ],
+      "evidenceIds": [
+        "7207858a1a6138638b8cf65fc7de65ba",
+        "990d5623d9789d590312bd99875aab1f",
+        "0cb5c8bf61cb9104d99b15b79a936b4d"
+      ],
+      "rationale": "Frozen evidence for Full-state feedback design procedure contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "5b3fb9a7cf100a2c8f35f1b18f20f13e03e71e9e575daf3c36ef95c4e80a4d8c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ac356855cd7f28c6cbacea72",
+      "canonicalRevision": "c170c6abf4c5a5ee66d09ee5577c4d990c789bae62865b1bfa65a2cff0c55b9a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-59ddac059ab0fda9e6ae50b5",
+        "evidence:ctkg:v3e-evidence-8f6af99847c979326e86ec42",
+        "canonicalId:ctkg:v3e-object-ac356855cd7f28c6cbacea72"
+      ],
+      "evidenceIds": [
+        "927c678c0c856b0c85f6ee02db710846",
+        "05a1f886ee0348773d8048eb0ef9bbba",
+        "79e4a8182186b796f4ee4c408970c4cb"
+      ],
+      "rationale": "Frozen evidence for Signal-flow graph state model contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "de5dce0ae947770385461893d03bc8f9a431f92b1a96108d372275013a1066dd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-adb78e525721874d42e70f67",
+      "canonicalRevision": "975f7b7f363eca30ac6f698e06d4606f1862b32336a6acbfb2cb46793ac15490",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ed47bf479a28446bf091c2e4",
+        "canonicalId:ctkg:v3e-object-adb78e525721874d42e70f67"
+      ],
+      "evidenceIds": [
+        "b818ab059ce99b4877a942a871cb5ec7",
+        "650cf4f2cca8a1e10c14bfad680a8f1a"
+      ],
+      "rationale": "Frozen evidence for SRL estimator design method contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "de228299a9c9b8a8b5d001d406793d121182bd97f5bd3d7f5d7a340192115ca6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ade57f97833b42fe6394301d",
+      "canonicalRevision": "5ddf2a89583a003337e2873cf19a4e10765567a6e75c6e1ea5fcf99115d7aa29",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2210bdd26c90910ac867d07f",
+        "canonicalId:ctkg:v3e-object-ade57f97833b42fe6394301d"
+      ],
+      "evidenceIds": [
+        "0ceb635e88594d50d0e53a9c1587b258",
+        "88b4e74d8df05435a299d203d47b826f"
+      ],
+      "rationale": "Frozen evidence for PBH rank test method for controllability contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "9a9b1a84a61c9f40d0d2503760425c85b555b56bca885bf9fd8c97c48cc8b8b2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae46ad7afbc5b4cd102501c7",
+      "canonicalRevision": "4e5122c58a80701be6647845872f1684f283a5e2d7a38f17f5ea7238a40dd5b7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-96744b537abca21d8c975996",
+        "evidence:ctkg:v3e-evidence-9819eedabc5a043a1c42511d",
+        "canonicalId:ctkg:v3e-object-ae46ad7afbc5b4cd102501c7"
+      ],
+      "evidenceIds": [
+        "1de70960f039f578a8e3e0efc7764e08",
+        "a9ec1992fbad81d89974f3ce4103c11e",
+        "6fcf3cdb5679d52c3471efd240cd2aa6"
+      ],
+      "rationale": "Frozen evidence for 可观测性规范分解方法 contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "501df084e2e71003c4ce17af924cefe2b76b858bc24890470cc4c0ec39deaf07"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aee09af112d5234757265089",
+      "canonicalRevision": "153bf08928bdd0d695910596470e98a0fbdde366859629b40319a7ce6eaf0e54",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2960af1c808cf7a4d9b96fd0",
+        "canonicalId:ctkg:v3e-object-aee09af112d5234757265089"
+      ],
+      "evidenceIds": [
+        "50a332d46eb732038e5d00c788d0c746",
+        "1754d14c88ae3c5fdc8b9614726da03a"
+      ],
+      "rationale": "Frozen evidence for Duality contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "d4e2e2ece856a8fb3e8717c32aef72b6ec1697bbfd1f85f1d468ad545ccffa6f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+      "canonicalRevision": "4406ac664f21aa95efb59bee38f670d05eb2a2192e4ed089a3bff0f32fdb1f89",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9d80a4f6ed4505b5342a7a0e",
+        "evidence:ctkg:v3e-evidence-ce40c72b1d2f6ec9831a8344",
+        "canonicalId:ctkg:v3e-object-b1568607de5e6fd3cba5663f"
+      ],
+      "evidenceIds": [
+        "96cc9b3454054cc742d60382e397a0ae",
+        "ec82ce6326e2ef0bc026438a23652786",
+        "2fb40ee288b7a80ea9e9694efb29e866"
+      ],
+      "rationale": "Frozen evidence for State transition matrix contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "a625aada3e5dfce1c76f6273b8db8d8203a69b1fea8cdba2c4019e533f311535"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b193b69b94a9f4a6cc656cff",
+      "canonicalRevision": "34ffc1cfb43eee6ff9b5877586a1219fe08a277b580f8df337e0af17f275c50a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4cd9ffefb9f5398ab3b3e1f7",
+        "evidence:ctkg:v3e-evidence-720102baad3746cda76c9e96",
+        "canonicalId:ctkg:v3e-object-b193b69b94a9f4a6cc656cff"
+      ],
+      "evidenceIds": [
+        "649759f0f363704424f04810adabaa76",
+        "54fbae5be2af009fd32852631c5c2cb8",
+        "2e835adb915eea1c17f1514deb4de9d1"
+      ],
+      "rationale": "Frozen evidence for Zero steady-state error contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "db6de8f18edc494a4c2f23025d3a1388e6d4d0a541288bc96508a3bad2986822"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b202af6c06c27c558d00e9f4",
+      "canonicalRevision": "ec04278d2f0cf1607a95ee3ffa3b38377aeaf024ad0221735d4ce74a0ae27870",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c1af6d4a2fc5c380f38ca8cb",
+        "canonicalId:ctkg:v3e-object-b202af6c06c27c558d00e9f4"
+      ],
+      "evidenceIds": [
+        "4dce3e52fafcf3a28da0681bb488e39d",
+        "b0ce10ee5bffa8583734230619800565"
+      ],
+      "rationale": "Frozen evidence for 拉普拉斯变换法求解非齐次状态方程 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "be4b840b371df01b44ef0aa9bea3c351ab1610853ae457cfb82c3887ab4b369f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b3598aaee3272eb677b2c47e",
+      "canonicalRevision": "5820de899aef32a54491657f98268db7be411a8d197fcbbcca307e1e19f1421c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-25a12e918bc5a11a2e34ac98",
+        "canonicalId:ctkg:v3e-object-b3598aaee3272eb677b2c47e"
+      ],
+      "evidenceIds": [
+        "6a234d835e81d53da6b012eb9856a683",
+        "9c9732176729d538e948f62877ba2729"
+      ],
+      "rationale": "Frozen evidence for 离散系统的可控性矩阵 (discrete-time controllability matrix S1') contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "0996a17bc0172ad00eaf027487b55060d9be0d7d660ffdcd27be2baf580dcf50"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b43972ad376b62e88a817ba1",
+      "canonicalRevision": "c93a71273353548afe3aeeff02ed3567dc0a01b0ce5721655ea5dd48764f0663",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ca703050fb1a81ffb30d8249",
+        "canonicalId:ctkg:v3e-object-b43972ad376b62e88a817ba1"
+      ],
+      "evidenceIds": [
+        "b160ad8dbd4c49292f1b21a81bd265ed",
+        "c986bec21bda6c1ef682d556831fe8fe"
+      ],
+      "rationale": "Frozen evidence for Desired closed-loop poles contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "c02293d6c62bc9344d2ad687e49ae90ca09b5ef00313277fd8222b0ab51f8e31"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b667b9f8df2202d92a43a966",
+      "canonicalRevision": "53ee712c707d2d54f706f71f6ab3ee307fcb15f2236ee0f991da008811aca249",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-442a64f15cc3a6325e47caa1",
+        "canonicalId:ctkg:v3e-object-b667b9f8df2202d92a43a966"
+      ],
+      "evidenceIds": [
+        "0fca649d7de81d089c9cb3dec4ec2fb6",
+        "678634e841f491a88a2be6c7cd2fb0c0"
+      ],
+      "rationale": "Frozen evidence for 可观测性阵 (observability matrix) contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "0b752bff72e1c02de9c5ffe0ec08879866671c964cc59c24c9d000d97288e558"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+      "canonicalRevision": "7dfed8ee82777c83d95a69f5931507e3da51d96ca5df0d4d8372fb8261d186bf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-45f72208e6b08b36482b2c98",
+        "canonicalId:ctkg:v3e-object-b84a9a5a29d23a93ad44adc8"
+      ],
+      "evidenceIds": [
+        "8c93abe4447709c2fa7f0ea80ab61893",
+        "cdb21d6cfa30cd8c1ff4c85266789597"
+      ],
+      "rationale": "Frozen evidence for Integral Control contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "f5e12270d4ac514781c524084913383d837d0e21a84bd99b56e29b6c55c01104"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b8d0052e096e5047cdccb00e",
+      "canonicalRevision": "44debc718a7202f4f64212fcea45dcd1ac571276a5535fad0e86707aeda0227c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5be68c38d2353a4ef3b183ee",
+        "evidence:ctkg:v3e-evidence-e416b7bc2d1778ee79b4e54a",
+        "canonicalId:ctkg:v3e-object-b8d0052e096e5047cdccb00e"
+      ],
+      "evidenceIds": [
+        "92b2705f62d4dc86aee051e7d501f2b7",
+        "4630aef5784fdf7de2201c5bd5b1b02c",
+        "7d78a2ca85a7d7269a361a7044db5ced"
+      ],
+      "rationale": "Frozen evidence for Linear Quadratic Regulator (LQR) contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "b80746bf80a51b1860d2c5e738fcadd8ab9115896600cfae83cfb948f50fb5a3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b95f9fc61d2a3ef440ed8fff",
+      "canonicalRevision": "3022842ef62cfe91736d0c060e07cfc94f0116ce3ecbf7c157ba55f665d9ee11",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-697adaf90e22e3f5937bfbc7",
+        "evidence:ctkg:v3e-evidence-cf0f23f34502604626ba9559",
+        "canonicalId:ctkg:v3e-object-b95f9fc61d2a3ef440ed8fff"
+      ],
+      "evidenceIds": [
+        "6c1b6dbaa80b70b5983d97bf47833608",
+        "28ee5cd19e1ff6a7ef1bf3a60f6c6b6c",
+        "808c6af1d0684e09fbd910fa93c31317"
+      ],
+      "rationale": "Frozen evidence for Truncating numerator polynomial to remove extraneous roots contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "7ae0d9066162136c925456deb5530fbb649f516d89220dc00d0f6e17767ee391"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ba2eb78058c4284d923a28eb",
+      "canonicalRevision": "0eb49d3a0fb2f77c3b83b4550d76d838e58a2c53a13cb7baaad96461226b34ec",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-83239efc338994f761330d2a",
+        "evidence:ctkg:v3e-evidence-84a14ff0e1e9c61ca7371978",
+        "canonicalId:ctkg:v3e-object-ba2eb78058c4284d923a28eb"
+      ],
+      "evidenceIds": [
+        "fbf264cb041322258d34e8fec8785856",
+        "f279f8cacfe05703400a0a756162b004",
+        "63d7c2a9a0784d2dcdef16ef39aca422"
+      ],
+      "rationale": "Frozen evidence for Ackermann's formula for observer gain contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "740484dc0c298aba8540283fc1b509c92532dca6c0ea174b3e49ab7ac25a9c88"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bb17295c711f6c4ef4ffd134",
+      "canonicalRevision": "193de8bd8ab453f6eebef623e35ba3735d75633bbbafe0e0f10f7fd8ee408fd6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c0858b0673b1a5f3db016e7f",
+        "canonicalId:ctkg:v3e-object-bb17295c711f6c4ef4ffd134"
+      ],
+      "evidenceIds": [
+        "b2ff065b5cd132a5eb74b4ce39f16ae5",
+        "ab5f3d3d136472a60d935a32badb8130"
+      ],
+      "rationale": "Frozen evidence for Pole placement using place() function contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "ae648cfcbc0a8a43a0379ba54f6403b6669dba4b84df67d6fffee1c2c6bdeb1e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bb3ac0bfaa166046c6c19f8f",
+      "canonicalRevision": "00dca671c105e105c872ed57610eaba0575feeceeed234c7d6d21cf10e9a8fed",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-229de452c1cc38cbd46f431d",
+        "canonicalId:ctkg:v3e-object-bb3ac0bfaa166046c6c19f8f"
+      ],
+      "evidenceIds": [
+        "62a1df4b9f63b9b4f28d4924852926e1",
+        "5e4489667a707a81d76984fb781edb3c"
+      ],
+      "rationale": "Frozen evidence for Regulator problem contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "9ff31620143fc1a0282d7b619c1e9548e4e37129ebff996a5d17c337ef0a276e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bbde87998fe5c58705383e29",
+      "canonicalRevision": "75bbf9ec71dd284638928ca4a9ad7bf6a276f0041943f7a5da904ad6a6b9a177",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6e5c686098a5ac3d533eb0d0",
+        "canonicalId:ctkg:v3e-object-bbde87998fe5c58705383e29"
+      ],
+      "evidenceIds": [
+        "c49961bab9e3f842996f3e0a1068092c",
+        "ef9a01657035da766ef606a42d44486f"
+      ],
+      "rationale": "Frozen evidence for 可控性判别阵 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "8be5d03613ff609845d7d5d3bcfc45c7319507ac7d615c44bc1b98461392c7dc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bf30e8212ba68b5629f44826",
+      "canonicalRevision": "42cc94fbbc65abcca64fc1c100c1914ca31895ea14ac415928f82796ac9c5f16",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5a14d0765349e4a1fdd2e34e",
+        "canonicalId:ctkg:v3e-object-bf30e8212ba68b5629f44826"
+      ],
+      "evidenceIds": [
+        "237aa2bd2720bdcc877612bb62e10e9c",
+        "c8f902d41b90a5b687148ad8bdc43f52"
+      ],
+      "rationale": "Frozen evidence for 状态可控 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "b03834b872c156b8d0f97d1f362b24ee0621dfa3928228b67738159aef0cb3a3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c37dc9f35581438ab89f7f7c",
+      "canonicalRevision": "e67602ee95b842c050d46ea15f9fe6c62d84533771f8b66ce8850dceee5d9120",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5f2024fb1bb968143ced99fa",
+        "canonicalId:ctkg:v3e-object-c37dc9f35581438ab89f7f7c"
+      ],
+      "evidenceIds": [
+        "9a26af6eb253a6a6375bfe83b2b422dd",
+        "72e873bed3c2ed0b0353944df0a1a222"
+      ],
+      "rationale": "Frozen evidence for Observability Gramian matrix criterion method contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "e307c7c0c684cbd8fdb22f896c4f81f56c33ee0f731c319ef24e542964902670"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c48bcd580d97376ade8dda83",
+      "canonicalRevision": "9760431f7965cb0a00ffe23913a41df8f9a8d080a0dfca9e87f471e83b3bc5f6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2b6bced817482133beea0f7e",
+        "canonicalId:ctkg:v3e-object-c48bcd580d97376ade8dda83"
+      ],
+      "evidenceIds": [
+        "354f4c087c170113d3d5cd5b1a6a0a20",
+        "065d170b043a3c0ba97e46c0074dc61b"
+      ],
+      "rationale": "Frozen evidence for 状态反馈镇定 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "eb7369c1fd9692a1b57369870745fe5c0e58d2d2db2cc1d62f993180a39a6aa1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c7bd7c6faa85c19988a82491",
+      "canonicalRevision": "6fd12b217d5963eec108023079e1c6ce4794f759d782523a9d5bb82d609528e6",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1ed6c01373cad8f799f769c2",
+        "canonicalId:ctkg:v3e-object-c7bd7c6faa85c19988a82491"
+      ],
+      "evidenceIds": [
+        "23e8d67e24a964cd55ebfd6b8d9436c2",
+        "363772571f9736d70399b10686c04267"
+      ],
+      "rationale": "Frozen evidence for 内模 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "507cb4f25aabe92851085eb07ecce79115e4a10bf3b5db524827c06827efd954"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cb18c47f552c6b128f9b52c8",
+      "canonicalRevision": "56152cd2055a29ebe1b87c2612442bde0b40cb3ebfc36e8ee5df55e4630f7c98",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b1a3352d6a34fea179f0b240",
+        "canonicalId:ctkg:v3e-object-cb18c47f552c6b128f9b52c8"
+      ],
+      "evidenceIds": [
+        "06a17df909d06e9fffd015259619db3a",
+        "3b69fe6f2bec799a58a6aada77bec6db"
+      ],
+      "rationale": "Frozen evidence for Detectability contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "1e37c1420328eb74d105e7628ad86ad4a21ad4c5fa8764e96e37571b788611c9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd815451e75b895951dd747e",
+      "canonicalRevision": "07dcfa718a43f102e6d44ec6fb25e9626c43830db51445199b04311923428669",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0817909af4f6525574d9833b",
+        "evidence:ctkg:v3e-evidence-fe76941cf6a3587db2056d0c",
+        "canonicalId:ctkg:v3e-object-cd815451e75b895951dd747e"
+      ],
+      "evidenceIds": [
+        "789666081c33fa7596db8b4eb45e4143",
+        "e8807bf1b96d4df6bd61ebfcd40a0d09",
+        "5ef05e09f77441cdc48d56b44a9af025"
+      ],
+      "rationale": "Frozen evidence for Evaluation of state transition matrix via matrix inversion contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "05140d0df392cfbdaf60b34bf70526b33fae43f37760efa779c8755dfa186b28"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd935c229d64107e30b8c1a7",
+      "canonicalRevision": "506271944cbea2ba134dae7f9eb74565c6688bbbe77d83eeb1157fe38121d392",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-9e60f1ef318f74318b3b17da",
+        "evidence:ctkg:v3e-evidence-a04d874cecdea1a2ff7fc65f",
+        "canonicalId:ctkg:v3e-object-cd935c229d64107e30b8c1a7"
+      ],
+      "evidenceIds": [
+        "3a093225633f6baaa44ca036386653a7",
+        "937457e32c59e15a5c917b156a97c0eb",
+        "72e200c3c6c7a52d4d95cd1453996f45"
+      ],
+      "rationale": "Frozen evidence for 增广系统 contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "6c5cdac7506b7a7d403c035f95ca6e0e26442c71335379a3c38eaf2164473730"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d1834c74e0aa9ac9d84af39e",
+      "canonicalRevision": "313ae64bad4f710f19af10db4b7e4365a0fe5ca465bce5ea74cc26e1b338d29a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7702d20f9b60616572fce6aa",
+        "canonicalId:ctkg:v3e-object-d1834c74e0aa9ac9d84af39e"
+      ],
+      "evidenceIds": [
+        "bc414aea05f9bc8c5765f622f8c37ce2",
+        "1d0b2133704c9a5f608ce61fd38d9043"
+      ],
+      "rationale": "Frozen evidence for Autonomous estimator contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "1d331ac68ed05592493ae72c690d03318e9a60942c982b5cd285aecf1a2e288a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d36def50dedc036b5c5db035",
+      "canonicalRevision": "fc64d9122f26a109fd5fdce0bcbd3b9184cb4e2232a23d0ee59cee745e1edf26",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-669de57177d67259fe129170",
+        "canonicalId:ctkg:v3e-object-d36def50dedc036b5c5db035"
+      ],
+      "evidenceIds": [
+        "3e1280fea8fbf79cf11afa922c1f3a47",
+        "95b5faa18faf772d4af2ec9d2931fc60"
+      ],
+      "rationale": "Frozen evidence for Pole placement contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "7e1c5f382c22c912b4f5a3cd6615315293d511176e3475c52b816501e4ca320f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d564eeb57b51d635721c5e78",
+      "canonicalRevision": "8d80ab7672e0c265fc3bba534c120b156a139402d1a3347f4c5db2e2d11e977f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-19363e3166fe5aa0b114abc2",
+        "canonicalId:ctkg:v3e-object-d564eeb57b51d635721c5e78"
+      ],
+      "evidenceIds": [
+        "ed33d1b6424d74edba32a983db3b9fbb",
+        "b5dd42dfffde3bc5c2959ec4846561f5"
+      ],
+      "rationale": "Frozen evidence for Tracking-error estimator contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "169e6aa3b64ddf4401acaa01add6a00882d20aeebb2625ceabbce6ec6d0b6387"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d9716ac7221be94d7e69f7d3",
+      "canonicalRevision": "e013c99279f29f7506012353e588074b48173b13ef4339a4253d381eefa3f19f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7bcb8a283a679b758311ac79",
+        "evidence:ctkg:v3e-evidence-85d7817debec39fe5e683dea",
+        "canonicalId:ctkg:v3e-object-d9716ac7221be94d7e69f7d3"
+      ],
+      "evidenceIds": [
+        "6e27e13784308c8c5de14215cd27d10a",
+        "6d64e589741fec309a5550846186a1cf",
+        "d7b3e516545916b1e25704ef64dbc86d"
+      ],
+      "rationale": "Frozen evidence for Kalman state-space decomposition contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "f8e6dbeb435bcd5bc0e80686785e50f9d60720fcbe114579778c0cb0f5e8de5c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-da8cedbf0ebbeecfe0b184b6",
+      "canonicalRevision": "7af03dce19958ba9984139be2da7d5da3f712193bd015dbe0bf15d24190e6176",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d2121470bf130b28c64deb4a",
+        "canonicalId:ctkg:v3e-object-da8cedbf0ebbeecfe0b184b6"
+      ],
+      "evidenceIds": [
+        "f5b1896c1c7c71e6316323ed5db0050e",
+        "4de11f7f330f286698ff48524ab10efb"
+      ],
+      "rationale": "Frozen evidence for 拉普拉斯变换法求解齐次状态方程 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "f14d94ac9f3fd548ecda14510ed7e2a926d42a1c836a3cfcc04ead30781c6ea2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-dc824b634d98afec12f44ff1",
+      "canonicalRevision": "6470b83b3a98141f60f4273a5fc3802cd5010e031c17d361c7cd559f3e907d35",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-26b6b6bcab0547f2a548a1d4",
+        "evidence:ctkg:v3e-evidence-412a1598a495061a56c17342",
+        "evidence:ctkg:v3e-evidence-eea21eb58c6ed610448a0bcf",
+        "canonicalId:ctkg:v3e-object-dc824b634d98afec12f44ff1"
+      ],
+      "evidenceIds": [
+        "ee2dea98e779c55dec8f59be34aa2e5e",
+        "7ed51cda51b626ac2c3a572f2b420787",
+        "fa4763910705741e61fed0822c3d31f0",
+        "64a0172700f02d210210ec4c2c690e03"
+      ],
+      "rationale": "Frozen evidence for Control canonical form contains only aggregate, profile boundary refs (4 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "f1c097c0916c350c84147a5cf68670b387bdd345447f2b95c54baaae546b6be2"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-de1fcfcdabd2e7cb8d74e01a",
+      "canonicalRevision": "8dc14344a6f2bf5c8cb7cf9c5196c6e12e4b92bed9538acc5ef7cb8fa628e003",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cfb64886aae6dd38ec1c8e4c",
+        "canonicalId:ctkg:v3e-object-de1fcfcdabd2e7cb8d74e01a"
+      ],
+      "evidenceIds": [
+        "835330094b7e866f6634a863a6bee98e",
+        "44ac09da702cb09a6376ab6727f698b9"
+      ],
+      "rationale": "Frozen evidence for 齐次状态方程 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "e515ce83636f87e9d583f6590d9b42a259084fa179d83c9d613001710037a2f9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-df836fc47a815d82f963b7a8",
+      "canonicalRevision": "3fc3f42eb9e4b9bd75304ad21aee3dc93f0ab491fd8bd1adb8ef782b1b5aad12",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-68f0d8bf5ebffea189089c3d",
+        "canonicalId:ctkg:v3e-object-df836fc47a815d82f963b7a8"
+      ],
+      "evidenceIds": [
+        "5de2ecde0a844f0c1b7bd96cc44a8f5e",
+        "e5015c00bedeca548a0a57b659a584f9"
+      ],
+      "rationale": "Frozen evidence for Zero assignment using Truxal's formula for lag compensation contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "c22b640aa74e910405a1b63bc412e42f89ce8933f959d27c65319923494280d4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+      "canonicalRevision": "3091d2830e2ad6f5b8d84013f39ec247209c644ebb4cc4671af5f61778c20d3b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cee4f6212057170561cf7432",
+        "canonicalId:ctkg:v3e-object-e28c6b3ef5b1335c8a086f34"
+      ],
+      "evidenceIds": [
+        "1cd80b1cb08eeec2f2652b7105e8a8b4",
+        "8ec224d94ca8763dd2775f154bdf9dbc"
+      ],
+      "rationale": "Frozen evidence for Full-state feedback contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "0a6a97391c0cb4b5db4f0bc08aa6ff7682ce69b45448bb4195cbad2871c73da5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e43a521f65d1388d6cf5a06e",
+      "canonicalRevision": "4d364062108fae05e793acb0726293824d6c8f7986545c2f026b99cfe8f3a369",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-95bc2b0c8a0190c192268b14",
+        "canonicalId:ctkg:v3e-object-e43a521f65d1388d6cf5a06e"
+      ],
+      "evidenceIds": [
+        "40294490d2ca04d4b34f7a3a3c0e292f",
+        "2ccb8c5c5c83418c3393619f490429d7"
+      ],
+      "rationale": "Frozen evidence for Open-loop system poles contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "b385ea9c2829c2c169835035a9320a55ba9a44603f51844f2fbdaee46abd7d5a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e70e153907f2fa8a69ad2c62",
+      "canonicalRevision": "bb839954715572156319affca2c0e41c590352d741d506f4759b12c75d90a050",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-c893f8242ad3b54f47bba2d5",
+        "canonicalId:ctkg:v3e-object-e70e153907f2fa8a69ad2c62"
+      ],
+      "evidenceIds": [
+        "7f46e8fb85193ca3645251a05faf17ea",
+        "f509cd5a3c8db68b80d8cb1c0d84b62b"
+      ],
+      "rationale": "Frozen evidence for Observer poles location contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "2c682dca029e812e7b3c854f2359d86b343300f5fd61c13f30bd2b04f5878c86"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-eb888786c5eb738a65d705f7",
+      "canonicalRevision": "56737f0be30e21baf7e3ce79dda1bd43f7c1cc9985b6b52a738ec0f0920fc757",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-48618049f5f12807d5439bc1",
+        "canonicalId:ctkg:v3e-object-eb888786c5eb738a65d705f7"
+      ],
+      "evidenceIds": [
+        "679262e409a4171176e06b00660bf98a",
+        "9f54f2eb5c7624e52a4dfbbb487e5b85"
+      ],
+      "rationale": "Frozen evidence for Stabilizability contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "88e9cfb10d03c68d4a8df695633de72a23c012f47d8ed1721dceef8c4adf3892"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ee34b938a6fb68864ccf4aa7",
+      "canonicalRevision": "ff114e3a3c21f42f19789b2298300303b77566ff6462603953a132f2484a7018",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ee0507a8bbed504ebb40c4e5",
+        "canonicalId:ctkg:v3e-object-ee34b938a6fb68864ccf4aa7"
+      ],
+      "evidenceIds": [
+        "34dd2310ea374090dc5d68a707a6429a",
+        "5f1cc8153d91d0ac824f125f759fe874"
+      ],
+      "rationale": "Frozen evidence for Command following contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "f44f6a6a0e0903daa816610d212f6ee5833ea950d7cadf307f3a9e4feb5dcea4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ef115a405fa43a15296f00ed",
+      "canonicalRevision": "012524e29c34e321a0e6a07a3e895a20dcdb0149daf5235f38869bb838e19a8d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-8bd605e7b18865cc00a9f46e",
+        "canonicalId:ctkg:v3e-object-ef115a405fa43a15296f00ed"
+      ],
+      "evidenceIds": [
+        "eb6c81f401b5dc650c206d6acfd1111f",
+        "df10b36a246ef85def0349b0c4ade155"
+      ],
+      "rationale": "Frozen evidence for Composite gain Nbar contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "64bc1e194404e166950afa96337c2743f531ab4cd4fb02a46ad1df61912edeb6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ef5734bee71ec75e999c13bf",
+      "canonicalRevision": "7bfdb3cf7ee750636a93e0f03f4f0fca5145e97b7106f085437cf1bcf9edfaa2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-68f2267149b5d9c602a189a2",
+        "canonicalId:ctkg:v3e-object-ef5734bee71ec75e999c13bf"
+      ],
+      "evidenceIds": [
+        "a2df0555178faed1537667211541810e",
+        "ca01b072c9b67d3ff6f87f4a9369b72b"
+      ],
+      "rationale": "Frozen evidence for Computing poles via characteristic equation contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "636d43f6d4eae25c538a78e24e8f91639101cecf63261ea0b50511b8da84ca10"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1582fd7cc28d16eb111854d",
+      "canonicalRevision": "21a4c34c9c018b49b0557ef79a178c27e1725536ba00ef839929ed9c34aa50cf",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-74b91a0becb978c087ba9063",
+        "canonicalId:ctkg:v3e-object-f1582fd7cc28d16eb111854d"
+      ],
+      "evidenceIds": [
+        "ea0b6e757378c481c39be53e9e53432d",
+        "c624952f00a5d0dcc5c2e0a4da5cfeef"
+      ],
+      "rationale": "Frozen evidence for 可控性 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "25d9ca820c471f66dae96807b8cd2d270f1f9a781d42a9b77e60fdc9f7787ee6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1c8cab76dae17e688eaa668",
+      "canonicalRevision": "df5620a6d857c7f8b788eafd3fb72694ea32938da51fcdc873a3cd160bb7fb43",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e34dcfc10eef0f8ddcafc6a0",
+        "canonicalId:ctkg:v3e-object-f1c8cab76dae17e688eaa668"
+      ],
+      "evidenceIds": [
+        "148bccb234203d4be6bdee727363c71f",
+        "e693600c04da47c8677f92f24ee56d23"
+      ],
+      "rationale": "Frozen evidence for Discrete-time controllability rank test contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "f7727d7018435ba8619f3f007cb511218ce13d7117507bdbd188eb76bc3de7ee"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "canonicalRevision": "168220f6f9d11ea3df8bea664a7a7f9ea9116922780a80aaf5bbaba07b6ce94a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-541b077d4f74b1408022eecb",
+        "canonicalId:ctkg:v3e-object-f1ec085ab5a77428affa50eb"
+      ],
+      "evidenceIds": [
+        "4d6797a238a501f03f7db11bacb779b7",
+        "ab81f110f9205afa1a0da215f20b5bd4"
+      ],
+      "rationale": "Frozen evidence for 极点配置 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "9c80024c6bf63aa2a9304b2965ccad72ea8be1171b18d25ab3f17302cf6787b0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+      "canonicalRevision": "34f28ad099d7d8aeef1ee31b16c989a2afa33cefe6074fd93ff106ad32051a16",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e517a3cfc80168d350f565b7",
+        "canonicalId:ctkg:v3e-object-f2f59dc7fc5571446872d432"
+      ],
+      "evidenceIds": [
+        "e2425b82485750a219dc68d6d33464cd",
+        "c9554f8796189a24e3d0768876c466b3"
+      ],
+      "rationale": "Frozen evidence for 系统完全可控 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "3b87b58d95406a6869e918dfa45507bbca44209dbc8d7876d3266bfce92b7922"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "canonicalRevision": "3b08fa042e90420ea3e7a79304e7905368cf9ad0f84b571555a5b9f9a5d745a9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3f819a362545464526c2a6eb",
+        "canonicalId:ctkg:v3e-object-f5e744188b4f574f567a1a8e"
+      ],
+      "evidenceIds": [
+        "b7d314e3c463b711fa61e5e2693b1927",
+        "edacd7fa0db88bc6ac195c70c2b3ef33"
+      ],
+      "rationale": "Frozen evidence for 状态转移矩阵 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "d295611516c57a83ed4212f66af9579fed0ff0de5e726b10d4b551e7a3ef6100"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+      "canonicalRevision": "38e04b90b123d07ea7e3159c5423670cad7803d2a021d1a600a5f3fc42939e81",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1bf8f5ad5576b59f4b6a368b",
+        "evidence:ctkg:v3e-evidence-c280844cf274cc7c8df01d7e",
+        "canonicalId:ctkg:v3e-object-fac170446815fe168f9a5469"
+      ],
+      "evidenceIds": [
+        "b9874dd20295dc84a70dbd1c56f76c46",
+        "425acb137e8f668c83f6d4082258ead5",
+        "2a74f12d9c16c254413489d92bf437d3"
+      ],
+      "rationale": "Frozen evidence for 对角线规范型判据 contains only aggregate, profile boundary refs (3 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "7dad2127bcb8831ec89ea81c74244cfe27c10daa7648ce662ca673f3b24a804a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fac828826746b38462ac91ba",
+      "canonicalRevision": "9af90c9b37b519a4db174712ce6228239d276f5b8a996ea526e390934493d29e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-04205fbdaeaa74f7fabf5dd9",
+        "canonicalId:ctkg:v3e-object-fac828826746b38462ac91ba"
+      ],
+      "evidenceIds": [
+        "855f255cd2425dc571e48d6afb7d03f5",
+        "aa1b3ff602ed154922f4ed53053eed16"
+      ],
+      "rationale": "Frozen evidence for 系统不可控 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "33e1ceb411b43c014b9d59be29b0b6e8ede172c1253bcfe98aa3a8cc739badab"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fc04597b173e68c152f0c971",
+      "canonicalRevision": "0c1c3e6d941607340c923e42bf05b0b2bb9789f8e3e9cf4d0df2baecfa26dd73",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2aa0ce110b20b814abff1fe0",
+        "canonicalId:ctkg:v3e-object-fc04597b173e68c152f0c971"
+      ],
+      "evidenceIds": [
+        "fdb600ae0fe84f8bafd89f79a21821fa",
+        "83d9163576540be74a0946a8a62ed4ce"
+      ],
+      "rationale": "Frozen evidence for 可观测性 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "c964c598bbae0aa041893c06acfafdd30616012eb57724d74577f149be937527"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+      "canonicalRevision": "59f8b1951e72ab77ebdaf7ab6fee3c5de9d7f3322e2215f67481d9e56c4fc96e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3e50a4abf404c938fbbfd7a3",
+        "canonicalId:ctkg:v3e-object-ff560d5d53d578d0bc57baeb"
+      ],
+      "evidenceIds": [
+        "1c12294d7a1faa4741849dbaa7d0ca73",
+        "e86b12a711b79276d00e894b24e3290f"
+      ],
+      "rationale": "Frozen evidence for 输出可控性 contains only aggregate, profile boundary refs (2 total); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE cannot be issued under frozen-evidence rules.",
+      "decisionDigest": "d97544b045d6863ef92236f34e3c89000c069e75ec594f0b5973afaf8783a6e1"
+    }
+  ],
+  "documentDigest": "29abfb12bcfe7d044132c13879b9dc60687e0a237e4485be6a75e5540a814f48"
+}
