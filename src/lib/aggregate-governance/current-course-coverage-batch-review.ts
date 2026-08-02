@@ -69,6 +69,8 @@ export interface CurrentCourseCoverageStageDecision {
   role?: CourseCoverageRole;
   evidenceSufficiency: CourseCoverageEvidenceSufficiency;
   evidenceSelectors: string[];
+  /** Exact frozen evidence identities for selectors that are not unique. */
+  evidenceIds?: string[];
   rationale: string;
   decisionDigest: string;
 }
@@ -514,16 +516,47 @@ function assertConclusion(
   if (!Array.isArray(decision.evidenceSelectors) || decision.evidenceSelectors.length === 0) {
     throw new Error(`Current batch review rejected: ${field}.evidenceSelectors must be non-empty`);
   }
-  const available = new Map(item.evidenceRefs.map((ref) => [ref.selector, ref]));
-  const seen = new Set<string>();
+  const byEvidenceId = new Map(item.evidenceRefs.map((ref) => [ref.evidenceId, ref]));
+  const bySelector = new Map<string, typeof item.evidenceRefs>();
+  for (const ref of item.evidenceRefs) {
+    const refs = bySelector.get(ref.selector) ?? [];
+    refs.push(ref);
+    bySelector.set(ref.selector, refs);
+  }
   const citedEvidence = [];
-  for (const selector of decision.evidenceSelectors) {
-    const normalized = requiredString(selector, `${field}.evidenceSelectors`);
-    const cited = available.get(normalized);
-    if (!cited) throw new Error(`Current batch review rejected: ${field} cites unknown evidence`);
-    if (seen.has(normalized)) throw new Error(`Current batch review rejected: ${field} repeats evidence selector`);
-    seen.add(normalized);
-    citedEvidence.push(cited);
+  if (decision.evidenceIds !== undefined) {
+    const evidenceIds = decision.evidenceIds;
+    if (!Array.isArray(evidenceIds) || evidenceIds.length !== decision.evidenceSelectors.length) {
+      throw new Error(`Current batch review rejected: ${field}.evidenceIds must align with evidenceSelectors`);
+    }
+    const seenIds = new Set<string>();
+    decision.evidenceSelectors.forEach((selector, index) => {
+      const normalizedSelector = requiredString(selector, `${field}.evidenceSelectors`);
+      const evidenceId = requiredString(evidenceIds[index], `${field}.evidenceIds`);
+      const cited = byEvidenceId.get(evidenceId);
+      if (!cited) throw new Error(`Current batch review rejected: ${field} cites unknown evidence identity`);
+      if (seenIds.has(evidenceId)) {
+        throw new Error(`Current batch review rejected: ${field} repeats evidence identity`);
+      }
+      if (cited.selector !== normalizedSelector) {
+        throw new Error(`Current batch review rejected: ${field} evidence identity/selector mismatch`);
+      }
+      seenIds.add(evidenceId);
+      citedEvidence.push(cited);
+    });
+  } else {
+    const seenSelectors = new Set<string>();
+    for (const selector of decision.evidenceSelectors) {
+      const normalized = requiredString(selector, `${field}.evidenceSelectors`);
+      const matches = bySelector.get(normalized) ?? [];
+      if (matches.length === 0) throw new Error(`Current batch review rejected: ${field} cites unknown evidence`);
+      if (matches.length > 1) {
+        throw new Error(`Current batch review rejected: ${field} evidence selector is ambiguous; evidenceIds are required`);
+      }
+      if (seenSelectors.has(normalized)) throw new Error(`Current batch review rejected: ${field} repeats evidence selector`);
+      seenSelectors.add(normalized);
+      citedEvidence.push(matches[0]!);
+    }
   }
   requiredString(decision.rationale, `${field}.rationale`);
   if (decision.conclusion === 'INCLUDE') {

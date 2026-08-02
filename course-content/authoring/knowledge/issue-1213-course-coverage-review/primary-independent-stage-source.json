@@ -251,6 +251,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "edfeec69133242bc63095c50b0fbb786",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:微分方程",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "0d3fbd50e4d48e3730896e0abb350ea3",
           "sourcePath": "aggregate-projection",
           "selector": "canonicalId:ctc:90af7a0497e616bbe6249c30",
@@ -1043,6 +1052,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "27a509b9d98bc1e78c0b69c26bad7829",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:微分方程",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "efec3626faabaac0f8b1d5114e9ed923",
           "sourcePath": "aggregate-projection",
           "selector": "canonicalId:ctc:modeling-1687db68b267504e01f6f2b4",
@@ -1576,6 +1594,15 @@
           "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
           "selector": "heading:微分方程",
           "sourceDigest": "cf7996e9829d7783115864dc73bc749d4c68302d7bbf3179a706375bdccf81a7",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
+          "evidenceId": "3145ed1f78c0b3f90b50d99b796d8138",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:微分方程",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
           "boundary": "independent-course",
           "kind": "course-authoring-evidence",
           "digestSemantics": "raw-bytes"
@@ -2535,6 +2562,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "49f2bdcc3cf963d7f5e083c3fb5b8589",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:微分方程",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "9767a5ba39da3062f84b746d3c236ead",
           "sourcePath": "aggregate-projection",
           "selector": "canonicalId:ctc:modeling-3b82234a76ee637f43e7eb31",
@@ -3368,6 +3404,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "f8812be3c29bdb7cfb1b42a6f6026d81",
+          "sourcePath": "course-content/syllabus-refactor/main.md",
+          "selector": "cjk-term:非线性",
+          "sourceDigest": "fa37ddb2199a04d67631d6d9172421f3778d982a28d7b6579ff2ce2ce10a538f",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "6ec8cca8593f1c7f0e99ee67df64f4e5",
           "sourcePath": "aggregate-projection",
           "selector": "canonicalId:ctc:modeling-4fe8840f2c796861bf5d2dae",
@@ -3622,6 +3667,15 @@
           "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
           "selector": "heading:微分方程",
           "sourceDigest": "cf7996e9829d7783115864dc73bc749d4c68302d7bbf3179a706375bdccf81a7",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
+          "evidenceId": "9d93d5efdd8ca31f56f217cc2780974c",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:微分方程",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
           "boundary": "independent-course",
           "kind": "course-authoring-evidence",
           "digestSemantics": "raw-bytes"
@@ -3939,6 +3993,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "c82891e88a1d4af65b724e44ad628879",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:微分方程",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "e3483798247b0d0f6ee6313c147d8fb9",
           "sourcePath": "aggregate-projection",
           "selector": "canonicalId:ctc:modeling-5727d74e4587f60fe7b011ae",
@@ -4035,6 +4098,15 @@
           "sourcePath": "course-content/syllabus-refactor/blueprint.md",
           "selector": "cjk-term:非线性",
           "sourceDigest": "0f4bf57e53ad7d132de89740a6055ef853aa586a9c45a0301b98ad43e25d6e2d",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
+          "evidenceId": "0ef0fa01c9ac63b6b745785a5f4cbd72",
+          "sourcePath": "course-content/syllabus-refactor/main.md",
+          "selector": "cjk-term:非线性",
+          "sourceDigest": "fa37ddb2199a04d67631d6d9172421f3778d982a28d7b6579ff2ce2ce10a538f",
           "boundary": "independent-course",
           "kind": "course-authoring-evidence",
           "digestSemantics": "raw-bytes"
@@ -4882,6 +4954,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "922c75a29e80f1f5da49c982e553d8e2",
+          "sourcePath": "course-content/authoring/lessons/2-2/design/2-2-handout-refine.md",
+          "selector": "heading:时间常数",
+          "sourceDigest": "9469d4564c3b53c7f0f84a6f906146c82d110b3ed9a09bfd65ec808fcdf4ca20",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "798007a853e8620d36f7e71b55c2c9e9",
           "sourcePath": "course-content/authoring/lessons/2-2/design/2-2-handout.md",
           "selector": "heading:时间常数",
@@ -5400,6 +5481,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "92e97788901b5b13b0332fe183bd8bf8",
+          "sourcePath": "course-content/syllabus-refactor/main.md",
+          "selector": "cjk-term:非线性",
+          "sourceDigest": "fa37ddb2199a04d67631d6d9172421f3778d982a28d7b6579ff2ce2ce10a538f",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "286e18d4766e9218f69f0f8da54fbe9d",
           "sourcePath": "aggregate-projection",
           "selector": "canonicalId:ctc:modeling-80022cac122c3cd819ff4f51",
@@ -5709,6 +5799,15 @@
           "sourcePath": "course-content/authoring/lessons/1-5/notes/interactive-implementation.md",
           "selector": "heading:当前状态",
           "sourceDigest": "6d23f1aa03b01770cf5bc025f9786dc86c9ca351b58ff2dee842cc2b117fd10f",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
+          "evidenceId": "bd483d0ae03c7be19afcd7bb6ee93c22",
+          "sourcePath": "course-content/authoring/lessons/2-2/notes/progress.md",
+          "selector": "heading:当前状态",
+          "sourceDigest": "87edd8d1425a9dc9e8e2ce5bf484c6a100f5478c08fa612dc2da5f6162f65904",
           "boundary": "independent-course",
           "kind": "course-authoring-evidence",
           "digestSemantics": "raw-bytes"
@@ -6106,6 +6205,15 @@
           "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
           "selector": "heading:微分方程",
           "sourceDigest": "cf7996e9829d7783115864dc73bc749d4c68302d7bbf3179a706375bdccf81a7",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
+          "evidenceId": "b106af8b3986f55588ef3063f6109654",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:微分方程",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
           "boundary": "independent-course",
           "kind": "course-authoring-evidence",
           "digestSemantics": "raw-bytes"
@@ -6789,6 +6897,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "3b9eac4e064698ab58d3169f932d9736",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:传递函数",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "07ebe216484078ee0f2dc2349d8e85ab",
           "sourcePath": "aggregate-projection",
           "selector": "canonicalId:ctc:modeling-a18617af9cc8138f30c71543",
@@ -7201,6 +7318,15 @@
           "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
           "selector": "heading:传递函数",
           "sourceDigest": "cf7996e9829d7783115864dc73bc749d4c68302d7bbf3179a706375bdccf81a7",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
+          "evidenceId": "a1be46e9ef16aca3eb246ef3d9e03377",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:传递函数",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
           "boundary": "independent-course",
           "kind": "course-authoring-evidence",
           "digestSemantics": "raw-bytes"
@@ -7770,6 +7896,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "15c463e2f8bb8883a99f79d536bcfba8",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:传递函数",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "28474a4c05004e6813b6fe1bb66d2c53",
           "sourcePath": "aggregate-projection",
           "selector": "canonicalId:ctc:modeling-bddaef2510e39cbb62d60df2",
@@ -7930,6 +8065,15 @@
           "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
           "selector": "heading:微分方程",
           "sourceDigest": "cf7996e9829d7783115864dc73bc749d4c68302d7bbf3179a706375bdccf81a7",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
+          "evidenceId": "f9866c1c08d2a460afe0f9adcb9ffdbc",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:微分方程",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
           "boundary": "independent-course",
           "kind": "course-authoring-evidence",
           "digestSemantics": "raw-bytes"
@@ -8493,6 +8637,15 @@
           "sourcePath": "course-content/syllabus-refactor/blueprint.md",
           "selector": "cjk-term:非线性",
           "sourceDigest": "0f4bf57e53ad7d132de89740a6055ef853aa586a9c45a0301b98ad43e25d6e2d",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
+          "evidenceId": "d57e355c5b0494b576bf9c8c3ee2018c",
+          "sourcePath": "course-content/syllabus-refactor/main.md",
+          "selector": "cjk-term:非线性",
+          "sourceDigest": "fa37ddb2199a04d67631d6d9172421f3778d982a28d7b6579ff2ce2ce10a538f",
           "boundary": "independent-course",
           "kind": "course-authoring-evidence",
           "digestSemantics": "raw-bytes"
@@ -9394,6 +9547,15 @@
           "digestSemantics": "raw-bytes"
         },
         {
+          "evidenceId": "bfb3ac7e9f861d9e87eb0d91b958dd9c",
+          "sourcePath": "course-content/syllabus-refactor/main.md",
+          "selector": "cjk-term:拉氏变换",
+          "sourceDigest": "fa37ddb2199a04d67631d6d9172421f3778d982a28d7b6579ff2ce2ce10a538f",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
           "evidenceId": "3adaf1b2134a4989c1b88d1c371430d5",
           "sourcePath": "aggregate-projection",
           "selector": "canonicalId:ctc:modeling-e4ceb6ad3afccdbda0ae3d91",
@@ -9759,6 +9921,15 @@
           "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
           "selector": "heading:微分方程",
           "sourceDigest": "cf7996e9829d7783115864dc73bc749d4c68302d7bbf3179a706375bdccf81a7",
+          "boundary": "independent-course",
+          "kind": "course-authoring-evidence",
+          "digestSemantics": "raw-bytes"
+        },
+        {
+          "evidenceId": "3d0bdceb8406df1e1080de8dd3428bfe",
+          "sourcePath": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+          "selector": "heading:微分方程",
+          "sourceDigest": "452f0cd524d16e8cdd6a58836711b1027e48b06bda0dccdfd1c8f65824bf5bfa",
           "boundary": "independent-course",
           "kind": "course-authoring-evidence",
           "digestSemantics": "raw-bytes"

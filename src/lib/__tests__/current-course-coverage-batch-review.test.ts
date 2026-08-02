@@ -162,11 +162,15 @@ function courseEvidence(id: string): CurrentCourseCoverageEvidenceRef {
   };
 }
 
-function fixture(options: { independent?: boolean; members?: string[] } = {}) {
+function fixture(options: {
+  independent?: boolean;
+  members?: string[];
+  independentEvidence?: Map<string, CurrentCourseCoverageEvidenceRef[]>;
+} = {}) {
   const ids = options.members ?? ['a', 'b'];
-  const independentEvidence = options.independent
+  const independentEvidence = options.independentEvidence ?? (options.independent
     ? new Map(ids.map((id) => [id, [courseEvidence(id)]]))
-    : undefined;
+    : undefined);
   const worklist = buildCurrentCourseCoverageWorklist({
     courseId: 'automatic-control',
     authority: authority(),
@@ -204,6 +208,7 @@ function stageReview(input: {
   role?: 'formal_objective' | 'excluded_with_rationale';
   ids?: string[];
   citeIndependent?: boolean;
+  evidenceSelectors?: string[];
 }): CurrentCourseCoverageStageReview {
   const promptVersion = `${input.stage.toLowerCase()}-fixture/v1`;
   const reviewInputDigest = currentCourseCoverageStageInputDigest({
@@ -245,12 +250,35 @@ function stageReview(input: {
         conclusion,
         ...(input.role ? { role: input.role } : {}),
         evidenceSufficiency: conclusion === 'DEFER' ? 'INSUFFICIENT' as const : 'SUFFICIENT' as const,
-        evidenceSelectors: [selectedEvidence.selector],
+        evidenceSelectors: input.evidenceSelectors ?? [selectedEvidence.selector],
         rationale: conclusion === 'DEFER'
           ? 'The frozen evidence packet has no independent current-course evidence.'
           : 'The cited independent course evidence supports this bounded conclusion.',
       };
     }),
+  });
+}
+
+function stageReviewWithEvidenceIds(input: {
+  worklist: CurrentCourseCoverageWorklist;
+  manifest: CurrentReviewBatchManifest;
+  binding: CurrentCourseCoverageBatchBinding;
+  stage: CourseCoverageReviewStage;
+  identity: string;
+  sessionId: string;
+  evidenceIds: string[];
+}): CurrentCourseCoverageStageReview {
+  const document = stageReview({ ...input, conclusion: 'DEFER', ids: ['a'] });
+  const byId = new Map(input.worklist.items[0]!.evidenceRefs.map((ref) => [ref.evidenceId, ref]));
+  const evidenceSelectors = input.evidenceIds.map((evidenceId) => byId.get(evidenceId)!.selector);
+  const { documentDigest: _, ...withoutDocumentDigest } = document;
+  return sealCurrentCourseCoverageStageReview({
+    ...withoutDocumentDigest,
+    decisions: document.decisions.map(({ decisionDigest: __, ...decision }) => ({
+      ...decision,
+      evidenceIds: [...input.evidenceIds],
+      evidenceSelectors,
+    })),
   });
 }
 
@@ -260,6 +288,20 @@ function documents(input = fixture()) {
     primary: stageReview({ ...input, stage: 'PRIMARY', identity: 'primary', sessionId: 'primary-session' }),
     challenger: stageReview({ ...input, stage: 'CHALLENGER', identity: 'challenger', sessionId: 'challenger-session' }),
   };
+}
+
+function duplicateSelectorFixture() {
+  const first = courseEvidence('a');
+  const second = {
+    ...courseEvidence('a'),
+    evidenceId: 'course:a:duplicate',
+    sourcePath: 'course-content/authoring/lessons/fixture-duplicate.md',
+    sourceDigest: SHA_B,
+  };
+  return fixture({
+    members: ['a'],
+    independentEvidence: new Map([['a', [first, second]]]),
+  });
 }
 
 function receipt(
@@ -301,10 +343,10 @@ function sourceFor(
       canonicalRevision: decision.canonicalRevision,
       stageConclusion: decision.conclusion,
       rationale: decision.rationale,
-      evidenceRefs: decision.evidenceSelectors.map((selector) => evidenceRefMode === 'string'
+      evidenceRefs: decision.evidenceSelectors.map((selector, evidenceIndex) => evidenceRefMode === 'string'
         ? `fixture|aggregate|${selector}|evidence`
         : {
-          evidenceId: 'fixture-evidence',
+          evidenceId: decision.evidenceIds?.[evidenceIndex] ?? 'fixture-evidence',
           sourcePath: 'fixture',
           selector,
           sourceDigest: SHA_A,
@@ -827,6 +869,98 @@ describe('current CourseCoverage batch review receipt', () => {
     expect(() => receipt({ ...input, primary: decisionTamper })).toThrow(/decisionDigest mismatch/iu);
     const documentTamper = { ...input.primary, documentDigest: SHA_A };
     expect(() => receipt({ ...input, primary: documentTamper })).toThrow(/document digest mismatch/iu);
+  });
+
+  it('rejects selector-only citations when frozen evidence selectors are ambiguous', () => {
+    const input = duplicateSelectorFixture();
+    const selector = input.worklist.items[0]!.evidenceRefs.find(
+      (ref) => ref.sourcePath === 'course-content/authoring/lessons/fixture.md',
+    )!.selector;
+    const primary = stageReview({
+      ...input,
+      stage: 'PRIMARY',
+      identity: 'primary',
+      sessionId: 'primary-session',
+      evidenceSelectors: [selector],
+    });
+    const challenger = stageReview({
+      ...input,
+      stage: 'CHALLENGER',
+      identity: 'challenger',
+      sessionId: 'challenger-session',
+      evidenceSelectors: [selector],
+    });
+    expect(() => receipt({ ...input, primary, challenger })).toThrow(/ambiguous.*evidenceIds/iu);
+  });
+
+  it('resolves duplicate selectors by evidenceIds and preserves both references in the receipt', () => {
+    const input = duplicateSelectorFixture();
+    const duplicateRefs = input.worklist.items[0]!.evidenceRefs.filter(
+      (ref) => ref.selector === 'heading:a',
+    );
+    expect(duplicateRefs).toHaveLength(2);
+    const evidenceIds = duplicateRefs.map((ref) => ref.evidenceId);
+    const primary = stageReviewWithEvidenceIds({
+      ...input,
+      stage: 'PRIMARY',
+      identity: 'primary',
+      sessionId: 'primary-session',
+      evidenceIds,
+    });
+    const challenger = stageReviewWithEvidenceIds({
+      ...input,
+      stage: 'CHALLENGER',
+      identity: 'challenger',
+      sessionId: 'challenger-session',
+      evidenceIds,
+    });
+    const result = receipt({ ...input, primary, challenger });
+    expect(result.stageRecords.primary.decisions[0]!.evidenceIds).toEqual(evidenceIds);
+    expect(result.stageRecords.primary.decisions[0]!.evidenceSelectors).toEqual(['heading:a', 'heading:a']);
+    expect(result.terminalMembers[0]!.stageDecisionDigests).toHaveLength(2);
+  });
+
+  it('rejects structured source evidence identity drift against normalized evidenceIds', () => {
+    const input = duplicateSelectorFixture();
+    const evidenceIds = input.worklist.items[0]!.evidenceRefs
+      .filter((ref) => ref.selector === 'heading:a')
+      .map((ref) => ref.evidenceId);
+    const primary = stageReviewWithEvidenceIds({
+      ...input,
+      stage: 'PRIMARY',
+      identity: 'primary',
+      sessionId: 'primary-session',
+      evidenceIds,
+    });
+    const bound = sourceFor(primary, 'object');
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: bound.document,
+      sourceBytes: bound.bytes,
+    })).not.toThrow();
+    const malformed = JSON.parse(bound.bytes) as { members: Array<{ evidenceRefs: Array<Record<string, unknown>> }> };
+    malformed.members[0]!.evidenceRefs[0]!.evidenceId = 'wrong-evidence-id';
+    const bytes = JSON.stringify(malformed);
+    const rebound = {
+      ...bound.document,
+      sourceArtifactBinding: {
+        ...bound.document.sourceArtifactBinding,
+        artifactSha256: createHash('sha256').update(bytes).digest('hex'),
+      },
+    };
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: rebound,
+      sourceBytes: bytes,
+    })).toThrow(/evidence identity closure mismatch/iu);
+  });
+
+  it('continues accepting legacy unique selector citations and four-segment source refs', () => {
+    const input = documents();
+    const bound = sourceFor(input.primary, 'string');
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: bound.document,
+      sourceBytes: bound.bytes,
+    })).not.toThrow();
+    expect(() => receipt(input)).not.toThrow();
   });
 
   it('fails closed when an independent source is changed or its binding is swapped', () => {

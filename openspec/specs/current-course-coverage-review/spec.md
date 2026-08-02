@@ -860,7 +860,7 @@ The review child MUST process only the exact ordered members at `batch-manifest.
 
 ### Requirement: Batch f699aa47a9afaf3057d4bc0e produces independent terminal decisions
 
-Primary MUST issue independent conclusions for all 265 ordered members. Challenger MUST issue independent conclusions for the 224 members whose frozen manifest risk surface has `profileOnly=true` or `riskFlags.highRisk=true`. The Primary raw source MUST be preserved byte-for-byte at `course-content/authoring/knowledge/issue-1213-course-coverage-review/primary-independent-stage-source.json` and bound to session `170364f7-6d6e-44d5-b936-96f8b6553af5` with SHA-256 `6660b119a1fec34754cb77a88b566e749be66e4025be223f222097fc067a620b`; the Challenger raw source MUST be preserved byte-for-byte at `course-content/authoring/knowledge/issue-1213-course-coverage-review/challenger-independent-stage-source.json` and bound to session `4d714ca0-a746-4df4-939f-65a3a13dec78` with SHA-256 `36b9de0e261662e5c98d699d67c72756e33bf4c4398f9091be0de0857c3b0b54`. Each normalized stage document MUST bind its raw source path, SHA-256, schema, stage, and writer session through `review-provenance.json`. Published artifacts MUST use logical repository-relative identifiers only and MUST NOT contain machine-local absolute paths. A conflict would require Third to be terminal; this batch has zero conflicts, so no Third source or normalized artifact is permitted.
+Primary MUST issue independent conclusions for all 265 ordered members. Challenger MUST issue independent conclusions for the 224 members whose frozen manifest risk surface has `profileOnly=true` or `riskFlags.highRisk=true`. The Primary raw source MUST be preserved byte-for-byte at `course-content/authoring/knowledge/issue-1213-course-coverage-review/primary-independent-stage-source.json` and bound to session `170364f7-6d6e-44d5-b936-96f8b6553af5` with SHA-256 `7fa6c344c126a3ab608e2ebd72f92dd2bca8a978d87b3aa075228be0b3d58ee1`; the Challenger raw source MUST be preserved byte-for-byte at `course-content/authoring/knowledge/issue-1213-course-coverage-review/challenger-independent-stage-source.json` and bound to session `4d714ca0-a746-4df4-939f-65a3a13dec78` with SHA-256 `36b9de0e261662e5c98d699d67c72756e33bf4c4398f9091be0de0857c3b0b54`. Each normalized stage document MUST bind its raw source path, SHA-256, schema, stage, and writer session through `review-provenance.json`; Primary's normalized digest is `36e89f247d2924a4b72b9d05746fe11c0026c91f2d40ce227fd7dede1a1c2b04` and Challenger's is `7801070f4a3af787a0cbaf05e99b0ae95efd16250796e071cd3ae99073719366`. Published artifacts MUST use logical repository-relative identifiers only and MUST NOT contain machine-local absolute paths. Every decision MUST preserve raw evidence-reference order as aligned `evidenceSelectors` and exact frozen `evidenceIds`; repeated selectors MUST be disambiguated by evidenceId, and selector-only ambiguity MUST NOT overwrite or collapse a distinct frozen reference. A conflict would require Third to be terminal; this batch has zero conflicts, so no Third source or normalized artifact is permitted.
 
 #### Scenario: Batch f699aa47a9afaf3057d4bc0e has no conflict
 
@@ -868,6 +868,11 @@ Primary MUST issue independent conclusions for all 265 ordered members. Challeng
 - **THEN** the receipt SHALL preserve both independent rationales, evidence selectors, stage decision digests, and document digests with no Third stage; all 224 agreed terminal members SHALL remain role-free `DEFER` with `INSUFFICIENT` evidence
 - **AND** the five non-risk Primary-only members SHALL preserve their valid `INCLUDE` roles and `SUFFICIENT` evidence
 - **AND** the review stage SHALL be `DEFERRED_EVIDENCE_BLOCKED`, CourseCoverage authority SHALL remain unresolved, and the aggregate gate SHALL remain `BLOCKED_UNRESOLVED_EVIDENCE`
+
+#### Scenario: Frozen evidence identity governs repeated selectors
+
+- **WHEN** a member has repeated raw selectors or another selector is ambiguous in the frozen worklist
+- **THEN** the normalized decision and receipt SHALL preserve the one-to-one raw order of `evidenceSelectors` and `evidenceIds`, and selector-only lookup SHALL fail closed rather than overwrite or collapse a frozen evidence reference
 
 #### Scenario: Frozen evidence boundaries govern admission
 
@@ -886,7 +891,7 @@ Primary MUST issue independent conclusions for all 265 ordered members. Challeng
 
 ### Requirement: Batch f699aa47a9afaf3057d4bc0e emits a machine-mergeable receipt
 
-The decision receipt MUST be keyed by every batch binding digest, preserve the exact ordered member references, bind both raw stage-source artifacts through normalized documents and `review-provenance.json`, and prove that no out-of-slice member or production authority was written. The first publication MUST use the v3 production-boundary proof and v2 detached-attestation schemas, with receiptDigest `dbabe180d9fade7aba9848633c21ed7a74feb608f13e4a15442df8bf5cb367ee` and attestationDigest `4c75d82a53e54b8489b8cadfaceea12f96f5df6c625fb40297e68fadd67f16d7`.
+The decision receipt MUST be keyed by every batch binding digest, preserve the exact ordered member references, bind both raw stage-source artifacts through normalized documents and `review-provenance.json`, retain every `evidenceId`/selector pair, and prove that no out-of-slice member or production authority was written. Primary contributes 856 raw evidence references, including 19 duplicate-selector groups (38 references) and 60 independent-course references; Challenger contributes 659 identity-bound references. The first publication MUST use the v3 production-boundary proof and v2 detached-attestation schemas, with receiptDigest `0aa13e81b6b322c43f0565b8a0e53c7e18e48e5fbad3d1972198e56f69ebc66e` and attestationDigest `c1d7eed3423cab07a55273742c108eb462f04f83a1f20dafd15bea3f2210bed7`.
 
 #### Scenario: Receipt for batch f699aa47a9afaf3057d4bc0e is assembled
 

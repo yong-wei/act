@@ -71,7 +71,7 @@ interface IndependentStageSourceMember {
   canonicalRevision: string;
   stageConclusion: string;
   rationale: string;
-  evidenceRefs: Array<string | { selector: string }>;
+  evidenceRefs: Array<string | { selector: string; evidenceId?: string }>;
 }
 
 interface IndependentStageSource {
@@ -351,13 +351,16 @@ async function json<T>(input: string): Promise<T> {
   return JSON.parse(await readFile(absolute(input), 'utf8')) as T;
 }
 
-function sourceEvidenceSelector(value: unknown, index: number): string {
+function sourceEvidenceRef(value: unknown, index: number): { selector: string; evidenceId?: string } {
   if (typeof value === 'string') {
     const parts = value.split('|');
-    if (parts.length === 4 && parts[2]) return parts[2];
+    if (parts.length === 4 && parts[2]) return { selector: parts[2] };
   } else if (value && typeof value === 'object'
     && 'selector' in value && typeof value.selector === 'string' && value.selector) {
-    return value.selector;
+    const evidenceId = 'evidenceId' in value
+      ? (typeof value.evidenceId === 'string' && value.evidenceId ? value.evidenceId : null)
+      : undefined;
+    if (evidenceId !== null) return { selector: value.selector, evidenceId };
   }
   throw new Error(`Current batch review rejected: source evidenceRefs[${index}] is malformed`);
 }
@@ -406,9 +409,17 @@ export function validateCurrentCourseCoverageStageSource(input: {
       || !Array.isArray(member.evidenceRefs)) {
       throw new Error(`Current batch review rejected: ${input.document.stage} source semantic closure mismatch at member ${index}`);
     }
-    const selectors = member.evidenceRefs.map(sourceEvidenceSelector);
+    const sourceRefs = member.evidenceRefs.map(sourceEvidenceRef);
+    const selectors = sourceRefs.map((ref) => ref.selector);
     if (stableStringify(selectors) !== stableStringify(decision.evidenceSelectors)) {
       throw new Error(`Current batch review rejected: ${input.document.stage} source evidence closure mismatch at member ${index}`);
+    }
+    if (decision.evidenceIds !== undefined) {
+      const evidenceIds = sourceRefs.map((ref) => ref.evidenceId);
+      if (evidenceIds.some((evidenceId) => evidenceId === undefined)
+        || stableStringify(evidenceIds) !== stableStringify(decision.evidenceIds)) {
+        throw new Error(`Current batch review rejected: ${input.document.stage} source evidence identity closure mismatch at member ${index}`);
+      }
     }
   }
 }
