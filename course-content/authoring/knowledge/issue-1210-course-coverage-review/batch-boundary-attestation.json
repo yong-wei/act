@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "current-course-coverage-production-boundary-attestation/v2",
+  "protocol": "git-head-and-production-authority-detached-post-publication-attestation/v2",
+  "receiptPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/batch-receipt.json",
+  "attestationPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/batch-boundary-attestation.json",
+  "receiptDigest": "eaf06a0180e0d4b8acd4e35283a3d7baa546cef318a99855c03260a5beb12c65",
+  "batchId": "c5f6b20a3a7cf9408e153b08",
+  "headBefore": "12cfa8e9cbe32dcb386899238a3754b81bc7566f",
+  "headAfter": "12cfa8e9cbe32dcb386899238a3754b81bc7566f",
+  "protectedPaths": [
+    "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+    "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+    "src/lib/canonical-rag/authority.ts",
+    "src/lib/canonical-learning-fact-identity/authority.ts",
+    "src/lib/canonical-learning-fact-identity/capability.ts",
+    "src/lib/canonical-learning-fact-identity/writer.ts"
+  ],
+  "statusBefore": [],
+  "statusAfter": [],
+  "authoritySnapshotBeforeDigest": "45e3f6c4f9d345bbed8c66c5db93468a7e64baee2541c2d1d678223f1c358ed3",
+  "authoritySnapshotAfterDigest": "45e3f6c4f9d345bbed8c66c5db93468a7e64baee2541c2d1d678223f1c358ed3",
+  "protectedPathSnapshotsBefore": [
+    {
+      "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+      "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+      "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+    },
+    {
+      "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+      "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+      "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+    },
+    {
+      "relativePath": "src/lib/canonical-rag/authority.ts",
+      "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+      "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+    },
+    {
+      "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+      "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+      "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+    },
+    {
+      "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+      "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+      "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+    },
+    {
+      "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+      "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+      "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+    }
+  ],
+  "protectedPathSnapshotsAfter": [
+    {
+      "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+      "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+      "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+    },
+    {
+      "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+      "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+      "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+    },
+    {
+      "relativePath": "src/lib/canonical-rag/authority.ts",
+      "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+      "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+    },
+    {
+      "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+      "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+      "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+    },
+    {
+      "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+      "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+      "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+    },
+    {
+      "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+      "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+      "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+    }
+  ],
+  "gitDiffCheck": "PASS",
+  "attestationDigest": "a5fe78541257603d477145aa7fe89056ad2f38c884d15b8ad2a0cd7052944066"
+}
