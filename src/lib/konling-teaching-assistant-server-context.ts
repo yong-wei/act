@@ -1,9 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import {
-  readAdaptiveAttemptContext,
-  type AdaptiveAttemptContextDb,
-} from '@/features/assessment/adaptive-attempt-context';
+  resolveAdaptiveDiagnosisContext,
+} from '@/features/assessment/adaptive-diagnosis-context';
 
 import {
   parsePersistedDocumentRubricGradingDraft,
@@ -109,6 +108,7 @@ export interface KonlingTeachingAssistantServerContextDb {
   courseBasis?: CourseBasisContextReader;
   diagnosisReportSnapshot?: DiagnosisReportSnapshotReader;
   adaptiveAssessmentAnswer?: any;
+  wrongAnswerAttribution?: any;
 }
 
 export class KonlingAdaptiveAttemptContextError extends Error {
@@ -168,15 +168,21 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
     ) {
       throw new KonlingAdaptiveAttemptContextError();
     }
-    const adaptiveAttempt = await readAdaptiveAttemptContext({
-      db: input.db as AdaptiveAttemptContextDb,
+    const adaptiveDiagnosisContext = await resolveAdaptiveDiagnosisContext({
+      db: {
+        adaptiveAssessmentAnswer: input.db.adaptiveAssessmentAnswer,
+        wrongAnswerAttribution: input.db.wrongAnswerAttribution,
+      },
       authenticatedUserId: input.scope.authenticatedUserId,
       answerId: adaptiveAttemptAnswerId,
     });
-    if (!adaptiveAttempt) throw new KonlingAdaptiveAttemptContextError();
+    if (!adaptiveDiagnosisContext) throw new KonlingAdaptiveAttemptContextError();
     return {
       'adaptive-attempt': true,
-      adaptiveAttempt,
+      adaptiveAttempt: adaptiveDiagnosisContext.adaptiveAttempt,
+      ...(adaptiveDiagnosisContext.wrongAnswerAttribution
+        ? { wrongAnswerAttribution: adaptiveDiagnosisContext.wrongAnswerAttribution }
+        : {}),
     };
   }
   if (mode.id === 'path-advisor') {

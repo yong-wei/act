@@ -36,3 +36,7 @@ The decision receipt MUST be keyed by every batch binding digest, preserve exact
 
 - **WHEN** all required stages are terminal and drift checks pass
 - **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `bbd99e29d4339410c06d0528`
+
+The recorded Primary and Challenger raw sources are bound by SHA-256 to Grok sessions `991b94cc-94d8-435e-b99a-4eceec7280c2` and `7aa9a3b2-4780-435f-817f-cdc585543b53`; provenance states that Challenger did not read Primary. Both sessions preserve `0 INCLUDE / 0 EXCLUDE / 1 DEFER`, `evidenceSufficiency=INSUFFICIENT`, `role=null`, and `reFreezeRequired=true`. Their diagnostic course candidates remain non-authoritative and are not copied into frozen `evidenceSelectors`.
+
+The receipt is `DEFERRED_EVIDENCE_BLOCKED` with one deferred member, zero conflicts, no Third stage, and all production mutation flags false. Its stage records retain `reFreezeRequired=true`; the detached boundary attestation retains the same marker and uses the v2 schema/protocol paired with the v3 proof. Ordered protected-path snapshots are byte-stable, and replay with the same relative inputs returns `publication=identical`, `attestationPublication=identical`, and `replayMode=content-equivalent`. No ACTIVE decision, production selector, or writer fence is written.
