@@ -882,3 +882,156 @@ The decision receipt MUST be keyed by every batch binding digest, preserve the e
 - **WHEN** all required stages are terminal and drift checks pass
 - **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `beffdbc7a6d3d2c54714760b`
 - **AND** a second CLI replay SHALL report identical receipt and attestation bytes with `replayMode=content-equivalent` when protected-path bytes and clean status match the persisted ordered rows
+
+### Requirement: Batch f699aa47a9afaf3057d4bc0e has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/23/members`, binding batchId `f699aa47a9afaf3057d4bc0e`, sequence `0`, semanticGroupKey `ctr:release:system-modeling-engineering-v0.1::entityType:DomainConcept`, member count `265`, memberDigest `e026fadcfcdfdd5798b11f76bf9e7e5eed23f548756457850e344909782fd852`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`, and raw manifest artifact SHA-256 `786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8`.
+
+#### Scenario: Frozen batch f699aa47a9afaf3057d4bc0e is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch f699aa47a9afaf3057d4bc0e drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch b354cb02317e7a7f534c0208 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/24/members`, binding batchId `b354cb02317e7a7f534c0208`, sequence `0`, semanticGroupKey `ctr:release:system-modeling-engineering-v0.1::entityType:Formula`, member count `204`, memberDigest `2f9178a55173b126c348544ebf05dac5b41553da630f95bc67366d0df618179e`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch b354cb02317e7a7f534c0208 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch b354cb02317e7a7f534c0208 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch f699aa47a9afaf3057d4bc0e produces independent terminal decisions
+
+Primary MUST issue independent conclusions for all 265 ordered members. Challenger MUST issue independent conclusions for the 224 members whose frozen manifest risk surface has `profileOnly=true` or `riskFlags.highRisk=true`. The Primary raw source MUST be preserved byte-for-byte at `course-content/authoring/knowledge/issue-1213-course-coverage-review/primary-independent-stage-source.json` and bound to session `170364f7-6d6e-44d5-b936-96f8b6553af5` with SHA-256 `7fa6c344c126a3ab608e2ebd72f92dd2bca8a978d87b3aa075228be0b3d58ee1`; the Challenger raw source MUST be preserved byte-for-byte at `course-content/authoring/knowledge/issue-1213-course-coverage-review/challenger-independent-stage-source.json` and bound to session `4d714ca0-a746-4df4-939f-65a3a13dec78` with SHA-256 `36b9de0e261662e5c98d699d67c72756e33bf4c4398f9091be0de0857c3b0b54`. Each normalized stage document MUST use `current-course-coverage-stage-review/v2` and bind its raw source path, SHA-256, schema, stage, and writer session through `review-provenance.json`; `v1` remains accepted only for replay after an existing persisted receipt/attestation pair passes bundle assertion and the rebuilt receipt equals that verified receipt exactly. First publication, incomplete pairs, and invalid bundles MUST reject `v1`; newly assembled stage documents MUST use `v2`, with exact `evidenceIds` required whenever a v2 document contains repeated selectors. Primary's normalized digest is `c34537f9f429a7a9e2d2c9c8636f7b91d85afa0c172133c0e2a33f59e9cd33b7` and Challenger's is `47ed0e2ba256599dc85c0d4d351210598e50997dcc07ddec90d6e18c00389bc5`. Published artifacts MUST use logical repository-relative identifiers only and MUST NOT contain machine-local absolute paths. Every decision MUST preserve raw evidence-reference order as aligned `evidenceSelectors` and exact frozen `evidenceIds`; repeated selectors MUST be disambiguated by evidenceId, and selector-only ambiguity MUST NOT overwrite or collapse a distinct frozen reference. A conflict would require Third to be terminal; this batch has zero conflicts, so no Third source or normalized artifact is permitted.
+
+#### Scenario: Batch f699aa47a9afaf3057d4bc0e has no conflict
+
+- **WHEN** Primary and required Challenger independently agree on all 224 required members
+- **THEN** the receipt SHALL preserve both independent rationales, evidence selectors, stage decision digests, and document digests with no Third stage; all 224 agreed terminal members SHALL remain role-free `DEFER` with `INSUFFICIENT` evidence
+- **AND** the five non-risk Primary-only members SHALL preserve their valid `INCLUDE` roles and `SUFFICIENT` evidence
+- **AND** the review stage SHALL be `DEFERRED_EVIDENCE_BLOCKED`, CourseCoverage authority SHALL remain unresolved, and the aggregate gate SHALL remain `BLOCKED_UNRESOLVED_EVIDENCE`
+
+#### Scenario: Frozen evidence identity governs repeated selectors
+
+- **WHEN** a member has repeated raw selectors or another selector is ambiguous in the frozen worklist
+- **THEN** the normalized decision and receipt SHALL preserve the one-to-one raw order of `evidenceSelectors` and `evidenceIds`, and selector-only lookup SHALL fail closed rather than overwrite or collapse a frozen evidence reference
+
+#### Scenario: Frozen evidence boundaries govern admission
+
+- **WHEN** a member lacks sufficient frozen `independent-course` evidence for a role decision
+- **THEN** neither stage SHALL use aggregate/profile evidence, prior decisions, labels, or unfrozen semantic candidates as current CourseCoverage authority
+
+#### Scenario: Unfrozen semantic candidates are diagnostic only
+
+- **WHEN** Primary observes semantically related course-authoring material outside the frozen `evidenceRefs`
+- **THEN** the observation SHALL remain diagnostic only; upstream issue `#1180` MUST bind and classify accepted candidates as `independent-course` evidence and regenerate the frozen worklist/manifest before any later `INCLUDE`/`EXCLUDE` re-review
+
+#### Scenario: DEFER is review-stage terminal only
+
+- **WHEN** Primary and required Challenger agree on role-free `DEFER` with insufficient evidence
+- **THEN** the receipt SHALL use `DEFERRED_EVIDENCE_BLOCKED`, set `thirdRequired=false`, preserve zero conflicts and zero Third reviews, leave CourseCoverage authority unresolved, keep the aggregate gate `BLOCKED_UNRESOLVED_EVIDENCE`, and SHALL NOT write `ACTIVE`, authority, selector, or writer state
+
+### Requirement: Batch f699aa47a9afaf3057d4bc0e emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve the exact ordered member references, bind both raw stage-source artifacts through normalized documents and `review-provenance.json`, retain every `evidenceId`/selector pair, and prove that no out-of-slice member or production authority was written. Primary contributes 856 raw evidence references, including 19 duplicate-selector groups (38 references) and 60 independent-course references; Challenger contributes 659 identity-bound references. The first publication MUST use the v3 production-boundary proof and v2 detached-attestation schemas, with receiptDigest `eb3451fbf5b5938676f69eb9e25577bd02e6ce9435dff53b52dee4dbefdaca08` and attestationDigest `efcf9c750c644673b69038a16e84a5ad1056817785556ae5b20de075207bec32`.
+
+#### Scenario: Receipt for batch f699aa47a9afaf3057d4bc0e is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `f699aa47a9afaf3057d4bc0e`
+- **AND** a second CLI replay SHALL report identical receipt and attestation bytes with `replayMode=content-equivalent` when protected-path bytes and clean status match the persisted ordered rows
+
+### Requirement: Batch b354cb02317e7a7f534c0208 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for the shared risk slice selected by `profileOnly || new || changed || highRisk` members. Every conflict MUST enter Third, and Third MUST be terminal. For batch `b354cb02317e7a7f534c0208`, Primary reviewed all `204` members and Challenger reviewed `202` risk members; frozen non-risk ordinals `2` and `24` are omitted from Challenger stage decisions while remaining bound by the full receipt.
+
+#### Scenario: Conflict occurs in batch b354cb02317e7a7f534c0208
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch b354cb02317e7a7f534c0208 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+#### Scenario: Batch b354cb02317e7a7f534c0208 has unresolved evidence
+
+- **WHEN** Primary and Challenger both return `DEFER` with insufficient evidence and no semantic conflict
+- **THEN** the receipt SHALL be `DEFERRED_EVIDENCE_BLOCKED`, contain `204` terminal deferred members, omit Third, and keep all production mutation flags false
+
+### Requirement: Batch b354cb02317e7a7f534c0208 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch b354cb02317e7a7f534c0208 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `b354cb02317e7a7f534c0208`
+
+#### Scenario: Batch b354cb02317e7a7f534c0208 is replayed
+
+- **WHEN** the same CLI inputs and protected authority snapshot are replayed
+- **THEN** publication SHALL be `identical`, the detached attestation SHALL be `identical`, and no production authority path SHALL change
+
+### Requirement: Batch a03e2ae08fe2a1d92c88b660 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/28/members`, binding batchId `a03e2ae08fe2a1d92c88b660`, sequence `0`, semanticGroupKey `ctr:release:time-domain-analysis-engineering-v0.1::entityType:KnowledgeStatement`, member count `313`, memberDigest `9da6428fe743e960c735d9f060d6193e27bb98e1f90ba1d2b53d62c5f2d36aa6`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch a03e2ae08fe2a1d92c88b660 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch a03e2ae08fe2a1d92c88b660 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch a03e2ae08fe2a1d92c88b660 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch a03e2ae08fe2a1d92c88b660
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch a03e2ae08fe2a1d92c88b660 has no conflict
+
+- **WHEN** required stages agree and every member remains evidence-insufficient
+- **THEN** the receipt SHALL preserve each stage's independent source binding, rationale, unique selectors, decision digests, and terminal outcome
+- **AND** the terminal status SHALL be `DEFERRED_EVIDENCE_BLOCKED`
+- **AND** no member SHALL receive a CourseCoverage role or production selector/writer-fence mutation
+
+### Requirement: Batch a03e2ae08fe2a1d92c88b660 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, bind both normalized stage documents to their raw independent sources, and prove that no out-of-slice member or production authority was written. The detached boundary attestation MUST be published with the receipt and preserve protected-path snapshots for deterministic replay.
+
+#### Scenario: Receipt for batch a03e2ae08fe2a1d92c88b660 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `a03e2ae08fe2a1d92c88b660`
+- **AND** first publication SHALL produce a receipt and detached attestation with all production mutation flags false
+- **AND** replay with identical inputs SHALL report identical artifacts and a content-equivalent replay mode
+
+### Requirement: Batch a03e2ae08fe2a1d92c88b660 preserves independent raw-source closure
+
+The normalized Primary and Challenger documents MUST be sealed from the two independent raw stage sources. Their source SHA-256, writer session IDs, stage input digests, and all `313 + 313 = 626` decision digests MUST be independently verifiable against the raw bytes and frozen batch binding.
+
+#### Scenario: Raw source closure is verified
+
+- **WHEN** the raw sources, normalized documents, worklist, and manifest are reread
+- **THEN** source bindings, canonical IDs/revisions, conclusions, rationales, and selectors SHALL match in order
+- **AND** all 626 decision digests SHALL be valid SHA-256 values

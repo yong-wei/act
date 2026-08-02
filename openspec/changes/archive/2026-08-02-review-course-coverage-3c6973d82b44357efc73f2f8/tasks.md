@@ -31,3 +31,9 @@
 - [x] Compare the complete batch binding, ordered protected paths, fixed stage sessions/scopes, and provenance SHA without fixing receipt or attestation digests.
 - [x] Preserve historical no-binding allowlists, non-#1200 general bound subset behavior, external provenance boundaries, and immutable receipt artifacts.
 - [x] Verify with focused Vitest, TypeScript typecheck, strict OpenSpec change validation, and `git diff --check`.
+
+## 6. Current-head Sol medium O2 accepted integration decision
+
+- [x] Semantically merge the advanced integration contracts with the local #1200 frozen closure; retain both instead of choosing either branch wholesale.
+- [x] Keep #1200 exact-path v3 provenance/audit closure local, retain integration stage-v2 evidence identity and persisted v1-stage replay, and confine each legacy admission rule to its verified compatibility boundary.
+- [x] Verify the merged focused receipt suite, TypeScript typecheck, and `git diff --check` without changing immutable review artifacts or historical allowlists.

@@ -25,3 +25,7 @@ The frozen public-boundary policy is activated only after `assertCurrentCourseCo
 The reason for this O1 decision is to close resealed public receipts that preserve valid internal digests while changing the immutable #1200 admission identity or production-authority boundary. Non-goals are changing historical no-binding allowlists, general bound-receipt Challenger subset rules, receipt or attestation digest constants, external provenance reads, or production artifacts.
 
 Verification is limited to the direct receipt unit tests, TypeScript typecheck, strict OpenSpec change validation, and `git diff --check`; the frozen receipt artifacts remain unchanged.
+
+### Current-head Sol medium O2 accepted integration decision
+
+When the #1200 branch was non-rewriting merged with the advanced `integration` baseline, the overlapping CourseCoverage contracts were semantically combined rather than choosing either side wholesale. The #1200 exact-path v3 provenance/audit closure remains local and frozen, while the integrated stage-v2 evidence identity rules and persisted v1-stage replay compatibility remain available to their published batches. Legacy stage schema admission is enabled only after the persisted receipt/attestation pair has passed production-boundary validation; legacy source-artifact admission remains limited to the existing v2/v1 compatibility classification. This decision does not alter receipt artifacts, historical allowlists, or non-#1200 general rules.

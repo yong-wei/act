@@ -74,7 +74,7 @@ interface IndependentStageSourceMember {
   canonicalRevision: string;
   stageConclusion: string;
   rationale: string;
-  evidenceRefs: Array<string | { selector: string }>;
+  evidenceRefs: Array<string | { selector: string; evidenceId?: string }>;
 }
 
 interface IndependentStageSource {
@@ -354,13 +354,16 @@ async function json<T>(input: string): Promise<T> {
   return JSON.parse(await readFile(absolute(input), 'utf8')) as T;
 }
 
-function sourceEvidenceSelector(value: unknown, index: number): string {
+function sourceEvidenceRef(value: unknown, index: number): { selector: string; evidenceId?: string } {
   if (typeof value === 'string') {
     const parts = value.split('|');
-    if (parts.length === 4 && parts[2]) return parts[2];
+    if (parts.length === 4 && parts[2]) return { selector: parts[2] };
   } else if (value && typeof value === 'object'
     && 'selector' in value && typeof value.selector === 'string' && value.selector) {
-    return value.selector;
+    const evidenceId = 'evidenceId' in value
+      ? (typeof value.evidenceId === 'string' && value.evidenceId ? value.evidenceId : null)
+      : undefined;
+    if (evidenceId !== null) return { selector: value.selector, evidenceId };
   }
   throw new Error(`Current batch review rejected: source evidenceRefs[${index}] is malformed`);
 }
@@ -409,9 +412,17 @@ export function validateCurrentCourseCoverageStageSource(input: {
       || !Array.isArray(member.evidenceRefs)) {
       throw new Error(`Current batch review rejected: ${input.document.stage} source semantic closure mismatch at member ${index}`);
     }
-    const selectors = member.evidenceRefs.map(sourceEvidenceSelector);
+    const sourceRefs = member.evidenceRefs.map(sourceEvidenceRef);
+    const selectors = sourceRefs.map((ref) => ref.selector);
     if (stableStringify(selectors) !== stableStringify(decision.evidenceSelectors)) {
       throw new Error(`Current batch review rejected: ${input.document.stage} source evidence closure mismatch at member ${index}`);
+    }
+    if (decision.evidenceIds !== undefined) {
+      const evidenceIds = sourceRefs.map((ref) => ref.evidenceId);
+      if (evidenceIds.some((evidenceId) => evidenceId === undefined)
+        || stableStringify(evidenceIds) !== stableStringify(decision.evidenceIds)) {
+        throw new Error(`Current batch review rejected: ${input.document.stage} source evidence identity closure mismatch at member ${index}`);
+      }
     }
   }
 }
@@ -743,6 +754,7 @@ async function main(): Promise<void> {
   let persistedAttestation: CurrentCourseCoverageProductionBoundaryAttestation | null = null;
   let allowLegacySourceArtifactBinding = false;
   let persistedCompatibility: ReturnType<typeof classifyCurrentCourseCoverageReceiptCompatibility> | null = null;
+  let allowLegacyStageSchema = false;
   if (receiptExists && attestationExists) {
     persistedReceipt = JSON.parse(await readFile(receiptOutput, 'utf8')) as CurrentCourseCoverageBatchReceipt;
     persistedAttestation = JSON.parse(await readFile(attestationOutput, 'utf8')) as CurrentCourseCoverageProductionBoundaryAttestation;
@@ -752,6 +764,9 @@ async function main(): Promise<void> {
       receiptPath,
       attestationPath,
     });
+    // Legacy stage schemas are admissible only for a persisted pair that has
+    // already passed the complete production-boundary bundle validation.
+    allowLegacyStageSchema = true;
     allowLegacySourceArtifactBinding = persistedCompatibility === 'LEGACY_V2_V1';
   }
   const defaultProvenancePath = path.join(path.dirname(absolute(input.primary)), 'review-provenance.json');
@@ -836,6 +851,7 @@ async function main(): Promise<void> {
   const buildReceipt = (
     productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof,
     allowLegacy = false,
+    allowLegacySchema = false,
   ): CurrentCourseCoverageBatchReceipt =>
     buildCurrentCourseCoverageBatchReceipt({
       worklist,
@@ -848,12 +864,17 @@ async function main(): Promise<void> {
       productionBoundaryProof,
       reviewProvenanceBinding,
       allowLegacySourceArtifactBinding: allowLegacy,
+      allowLegacyStageSchema: allowLegacySchema,
     });
 
   if (receiptExists && attestationExists) {
     const replayReceipt = persistedReceipt!;
     const replayAttestation = persistedAttestation!;
-    const rebuiltReceipt = buildReceipt(replayReceipt.productionBoundaryProof, allowLegacySourceArtifactBinding);
+    const rebuiltReceipt = buildReceipt(
+      replayReceipt.productionBoundaryProof,
+      allowLegacySourceArtifactBinding,
+      allowLegacyStageSchema,
+    );
     if (stableStringify(rebuiltReceipt) !== stableStringify(replayReceipt)) {
       throw new Error('Current batch review rejected: published receipt source/stage closure differs from current inputs');
     }
