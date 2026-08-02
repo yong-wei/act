@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "88b4b69695891faeed019fb2",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "5b170129-e739-41d1-95c6-3fd74dc51dd4",
+    "permission": "workspace",
+    "reviewSessionId": "5b170129-e739-41d1-95c6-3fd74dc51dd4",
+    "reviewSessionScope": "act:issue-1219:primary-review",
+    "sourceWriterSessionId": "5b170129-e739-41d1-95c6-3fd74dc51dd4",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1219:primary-review",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1219-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "2acd159be66bb549bdaf730cbedcc29f8ce93eb67c743b4d312aa83bcc81e9cf",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1219-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "5720e6ae709dc00eb3dc332c1cb4a51dd3eeb8bdfa728522cc552ec672335a1f",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 25
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored PRIMARY conclusions without producing semantic conclusions.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1219-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "2acd159be66bb549bdaf730cbedcc29f8ce93eb67c743b4d312aa83bcc81e9cf",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "5b170129-e739-41d1-95c6-3fd74dc51dd4"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "799e0153-998c-43f7-a296-8c9b0d338dd8",
+    "permission": "workspace",
+    "reviewSessionId": "799e0153-998c-43f7-a296-8c9b0d338dd8",
+    "reviewSessionScope": "act:issue-1219:challenger-review",
+    "sourceWriterSessionId": "799e0153-998c-43f7-a296-8c9b0d338dd8",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1219:challenger-review",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1219-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "47047bdf0c2dafbdf79035f3078682db61ff779f22c22e6c0bf35a76251ff678",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1219-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "934af513d0a5f40b3b7b0960f976f6078d01f55dde6c75a485aff4dc4cdb0eaa",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 25
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored CHALLENGER conclusions without producing semantic conclusions.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1219-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "47047bdf0c2dafbdf79035f3078682db61ff779f22c22e6c0bf35a76251ff678",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "799e0153-998c-43f7-a296-8c9b0d338dd8"
+    },
+    "didNotReadPrimaryArtifact": true,
+    "sessionAuditPrimaryPathMentions": 0
+  }
+}
