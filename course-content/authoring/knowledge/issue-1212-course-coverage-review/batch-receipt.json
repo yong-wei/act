@@ -1,0 +1,2707 @@
+{
+  "schemaVersion": "current-course-coverage-batch-receipt/v1",
+  "protocol": "current-course-coverage-batch-review/1",
+  "status": "DEFERRED_EVIDENCE_BLOCKED",
+  "batchBinding": {
+    "batchId": "58d1670455782297bdaf8a19",
+    "manifestBatchIndex": 22,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 50,
+    "memberDigest": "9db24aec2aff29ab79542c398dd4c65782b573635c4e7f944714d951bcfbf964",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "orderedMembers": [
+    {
+      "canonicalId": "ctkg:v3e-object-07d0901e1f1d4d60f34507a8",
+      "canonicalRevision": "34f43f97fed76c426ff81563bb72bcf4a2b6d24be5ab8a4a618548e8a63f6a2f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0f224eb8388293b64baf7bef",
+      "canonicalRevision": "6223b4306367fbaf72a3eb91a5a84c994bb4f2ed0f04ecc4e27b2d3127ea5bd4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+      "canonicalRevision": "a7ae9060d4cb424d2554bdd26b6f439689c083adcc0bbdbbeaf4454b30f31ec5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-14841fb286867e13c55e0190",
+      "canonicalRevision": "d0b2ba826ec4ad50df5840a0f0097cbc8795a67384ce92b70bb7bdfcdf552f19"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-17ec6f5bba991857bbe35f3c",
+      "canonicalRevision": "ee15e6dd95ea19b211b247ee10731942b7f79138ddd917d3209e58981459cf87"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1d2a1d7e325ba626faf93ab5",
+      "canonicalRevision": "62200d78bc79c73fde15d807743a258ff061cb32da5e3472e504fd5f281d44ac"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-20f672e45f634ba04881526b",
+      "canonicalRevision": "df5435168a7ae0b1ecf22a3ce944104e931002f70a8a3e5e5985a75623a7531e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-22f6b04371dfdb4a30972659",
+      "canonicalRevision": "b22330c43e59bd621359d4d48acbad5cc14d482cc1fa21b585498c120a78d4bd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2e79ef7774133bdad1c88d21",
+      "canonicalRevision": "b831bdd6ea9ccc807858cf487fae46031043ade8a92884f951559c62663b8cb7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-38a77e20eec796109bd1793f",
+      "canonicalRevision": "17cc881ce527b93d19c802dd528b6ccf437f92de0c002d5aa094e8487f809aa9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-391f0fb6ec3666a2ce191891",
+      "canonicalRevision": "098d3cfea577998dfc260466406f7c1496270c0f623f32ba79c3e5ed38ea5d60"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3dddd29ea79a726ff9294909",
+      "canonicalRevision": "7baa62b5971c16e8758ed8d8ef1ce97a43a3e92b82ddbe503417edaa3b1b1d03"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca",
+      "canonicalRevision": "ef1e2b13ed9a9aa0d4baee34f71832e9cba11c0078c647bc7d19cca19b23c006"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+      "canonicalRevision": "3b80f4d6f29b9aab74db6c19398a1a334f311c3496f87c43aa0d28e6b3b4981e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4a23750bb1520504403f7aa4",
+      "canonicalRevision": "33a141c0d162baaa123de5f6a03e3f31d0d4bc0071cf9c11e0b3e82381add1c9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-61be5094c4245cc8bd3fa0b2",
+      "canonicalRevision": "0a28ca43dc725ea710878f01afb75357c63a6a60a6235facd2dccad754b94bc7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-62b50d2d7fbb060bd58fe7f5",
+      "canonicalRevision": "c5b76672ca42ec05f27584b4711ea8431875d58531684ce4515319be35a0527d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-659317594d3f3e5d41a80a57",
+      "canonicalRevision": "2c50f98db9aad43d8479adf4967fc011b8d095bea0a983e12072751b32797015"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6752b348406951a18f3c041d",
+      "canonicalRevision": "e435b4224e08d7a7cf466994a55257045475b3a17f69d4777f0817d902c83c2a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d6f500f9839e964c6f15163",
+      "canonicalRevision": "298f167ea158d1ec48a95930085693b6e9004e57d781d49231ca7979ad690cbd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7eab83363cc1ae2584439aad",
+      "canonicalRevision": "8dfc2ee2b5083d454f9bf430ed0777d374f258feb38b36429377d34595183447"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-81b011029a6f0d8278513e00",
+      "canonicalRevision": "793196ca4f3311974411dea1cd36a889a99df01eb6e2c0a652952d7223b2f359"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8852ec91627844d2b3ab75e3",
+      "canonicalRevision": "b567d19f380773fe0a6b5ad8bb541ad5a590eee91167cb451e4bcd4cdbf1e8bb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-89acff8dd9d045ce368bb017",
+      "canonicalRevision": "0db82a4a8a8a84c4a40ffc7fc415ef275c5a5b00f0dc5bfde728f37635351650"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8b3db8f5ab28587a80b0a989",
+      "canonicalRevision": "faa27b449e6bf158f4b3e8f9c6facc65a279e93c4d801a51c44e3887f5835dfa"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8e8245d98aacc48574cbd41a",
+      "canonicalRevision": "7e23d51e848fba499d93f303a19b6e185d042c714b2285e306eb93fddf584d4b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-99c11bd300baace02c9f883a",
+      "canonicalRevision": "3b920cb2b056af963c53544307cc9894f6797da9f769d231081b9108645fb8e1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9aac02e883a543e43b255294",
+      "canonicalRevision": "bb6049695efec560023c832f9f480105df9a8855df325ad02749ede4183df5f1"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b033c1214c9b9dce46bf8b3",
+      "canonicalRevision": "9885c3bbbf7ed9f16b89757eaa33cfa3170c9c35942b74a00d252ada8d3e83bc"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9cba2e0a1c543ae840961ac7",
+      "canonicalRevision": "da5936a9b087a685293bba92f497c2143a508db9796a0ee079035447c44f42a8"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a5a0082ecac6ee90f76ca1af",
+      "canonicalRevision": "40e27f800fcc0d2f6e4ba213c362b39b1b9cffc1596633195b0cfcc52fe0a194"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a7e6b499c7e257c3d64ab6c8",
+      "canonicalRevision": "0b71b00330065ef448fd94e98d17b0025efdafcd0f2b89c91b9ebd8ba6477aa3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a801b9509d0e105d9982661c",
+      "canonicalRevision": "3f78a1f75c03f7a00cde748fd3c379d2f99a6ca57be877f6d6babf82621044c7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae3b1e3f138047694684c11b",
+      "canonicalRevision": "1ea6c50d5a7f4cebce7caf935d936007eb5fbb83cadbceab68244d7dc7ce391e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae92b4c835d9596a7e75dabd",
+      "canonicalRevision": "bf3296b4c954b6c1ae35020e22b4156e0ed269676027066c7e912c17272187cf"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b02f0601aaa89fcada0f5ba2",
+      "canonicalRevision": "1a72937cf6340a8fd438de58ca96120d2da20c0f96a7254ddeec01a8f46a99ad"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b8cfc0ef9f55be5362eff1ec",
+      "canonicalRevision": "e6cc653adcd7a7886e33636ed910a5e5ffdd58f9ae77bac80fd03847c9babb5f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-be88a296d0549e375d475f51",
+      "canonicalRevision": "c57c8b3186d424629ef8bac606ed8c429498f8fea65deab290de57857141294d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c00ba45bcb61d901d427008d",
+      "canonicalRevision": "f0b362d20a373953e5d93f40fc4576cef6f3f2df739f131a48a64f5dedd09bf9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c651a5483e68f1f0e3aabe2e",
+      "canonicalRevision": "1694137002a50c138af36ac37d44643e464172b71dbd376104d81e6d2c96235a"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d57c7f77aae186e5e85db076",
+      "canonicalRevision": "ed8fcd49669efda4aedabeb7f350748ca4cbd309121af51418dd9ab9e2bdaa0b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e0f1baecfeb11e984843fb7f",
+      "canonicalRevision": "5308a06adac8289af30ad2327fea80d756aa14763e01729f01ff8d9047f134e6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e16a01d3f5feeacf8ee8f42e",
+      "canonicalRevision": "cf1150023c30da40c39b724d78dae7a1a43b1d45af97486c195f40578c54f2b3"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e248ec663f44a2e66180b8e5",
+      "canonicalRevision": "0ce19b82c5e1f5ebcaf48af110150294be9f35be4f5781baab45386965dd66d0"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e5b2e93a259fe14ede9eab41",
+      "canonicalRevision": "99d14aaa9e791ce4417c4782f33fb647be33e96611a451a2164eea740bc42736"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ed8f70c40680d24a27839e48",
+      "canonicalRevision": "26b4c563e0470d970547d3551c6ed2e316bc1af8fc14a4ccffaf177ef64311d7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f109a1072fd5ec7c9a7a94cb",
+      "canonicalRevision": "69d587cca3c011be78229e294fcfafaff434fe044374fca5266c617209f61034"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fcaf359ef3993f8e4e179f36",
+      "canonicalRevision": "9929b52e98e14114e48b364df787912bdc69673c18415345e7f47d5ed2a34226"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ffad75acbd9eb90347d29a10",
+      "canonicalRevision": "75c4cc2b93e47841f7caeeed5fd9053ad4a71e1a306b124a091bafde838f376d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fffc8da83a5258ec01126edc",
+      "canonicalRevision": "e2d33c224179336a07c08b542f092d08340f0dea3b5a121455a16944a7f4c80a"
+    }
+  ],
+  "stageDocuments": {
+    "primaryDigest": "7c3ab5b29910885d4201c5cf0cc3405fd6f8e3af943d6d5a43e4a5b14df6eb32",
+    "challengerDigest": "274068d06b1e6ec5b7e5aa74cec8d7061073ce79653538301640258f88032bfc",
+    "thirdDigest": null
+  },
+  "stageRecords": {
+    "primary": {
+      "schemaVersion": "current-course-coverage-stage-review/v2",
+      "batchBinding": {
+        "batchId": "58d1670455782297bdaf8a19",
+        "manifestBatchIndex": 22,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:SystemModel",
+        "memberCount": 50,
+        "memberDigest": "9db24aec2aff29ab79542c398dd4c65782b573635c4e7f944714d951bcfbf964",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "PRIMARY",
+      "reviewer": {
+        "identity": "grok-independent-primary",
+        "provider": "grok-4.5-build",
+        "sessionId": "1b269d47-dd00-4387-8df7-75e7c5e1b8dc",
+        "promptVersion": "issue-1212-primary-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/primary-independent-stage-source.json",
+        "artifactSha256": "52d645362c4840c316faa3b070f120b9d928f4f2bd920942cad777cd75c06a8f",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "PRIMARY",
+        "writerSessionId": "1b269d47-dd00-4387-8df7-75e7c5e1b8dc"
+      },
+      "reviewInputDigest": "9204e01da07e75ea607e509b62306d619692953d7d54c05f3145d25b715cee92",
+      "decisions": [
+        {
+          "canonicalId": "ctkg:v3e-object-07d0901e1f1d4d60f34507a8",
+          "canonicalRevision": "34f43f97fed76c426ff81563bb72bcf4a2b6d24be5ab8a4a618548e8a63f6a2f",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-3bda1e064634d3edf234bb6a",
+            "canonicalId:ctkg:v3e-object-07d0901e1f1d4d60f34507a8"
+          ],
+          "evidenceIds": [
+            "cc45e8d1b18424477e0b86aaead130a9",
+            "7300767c35011d42dcba839febb60e93"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "2966929350206618c788c8f2d70244c407629dae0451aea659ce51767d73dedd"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-0f224eb8388293b64baf7bef",
+          "canonicalRevision": "6223b4306367fbaf72a3eb91a5a84c994bb4f2ed0f04ecc4e27b2d3127ea5bd4",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-1b9e42839130a22adf11b4c6",
+            "evidence:ctkg:v3e-evidence-6adc4ac7d1d09edfaa6ec776",
+            "evidence:ctkg:v3e-evidence-b5e90eeba08a034da3c864df",
+            "canonicalId:ctkg:v3e-object-0f224eb8388293b64baf7bef"
+          ],
+          "evidenceIds": [
+            "90402643d7dce10845fa9f7e209033eb",
+            "b31ca9839264f9f054efaf22eeb024d7",
+            "9fd93863a1d839ee9cb40c241783692c",
+            "c749fb8cb4859c21b090d208090dacf4"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "666091117b38e030d66daaa69bdd86539da6e4a4ba2edd0e922d9e46d20e2dcc"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+          "canonicalRevision": "a7ae9060d4cb424d2554bdd26b6f439689c083adcc0bbdbbeaf4454b30f31ec5",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4975dff902e34fe836c14fce",
+            "canonicalId:ctkg:v3e-object-0ff6d79ac8229bca531ca366"
+          ],
+          "evidenceIds": [
+            "5c76ddcc31abe602609890600b5ade3e",
+            "b2e0b9ce4c1cda84ce68611c6bcb159a"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "cba6db0bbde4aeeff33039402b51ceb1de767e24d4c787a71c480249f37653c1"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-14841fb286867e13c55e0190",
+          "canonicalRevision": "d0b2ba826ec4ad50df5840a0f0097cbc8795a67384ce92b70bb7bdfcdf552f19",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-6515ea89857a61796690f0df",
+            "evidence:ctkg:v3e-evidence-a389da85c1d88c00313f05d7",
+            "canonicalId:ctkg:v3e-object-14841fb286867e13c55e0190"
+          ],
+          "evidenceIds": [
+            "eab993974940956f968d32434922826e",
+            "87d502e0b4b24c4eae76bcc60b8f9a93",
+            "ff23739d2ec39abd030710da1377c9cb"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "367ab76bc8762f0b0e0941e27aba418293c119ca14339ad48968265a510c9b85"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-17ec6f5bba991857bbe35f3c",
+          "canonicalRevision": "ee15e6dd95ea19b211b247ee10731942b7f79138ddd917d3209e58981459cf87",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4d1cb2760a9d5ab12abdb402",
+            "evidence:ctkg:v3e-evidence-ee51db0783f507a948185e2a",
+            "canonicalId:ctkg:v3e-object-17ec6f5bba991857bbe35f3c"
+          ],
+          "evidenceIds": [
+            "362a5008b4288021ed5ebfbc3240a8db",
+            "a58f7ac0d983933647191bdef642eeee",
+            "0dce5ec578703179922ec9657de142df"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "a6ed6f8af856817c5799560ef6be2dce473f3661f1d159d95a5633563a0bd67e"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-1d2a1d7e325ba626faf93ab5",
+          "canonicalRevision": "62200d78bc79c73fde15d807743a258ff061cb32da5e3472e504fd5f281d44ac",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-e925f6ff27c2872bcfed5ac1",
+            "canonicalId:ctkg:v3e-object-1d2a1d7e325ba626faf93ab5"
+          ],
+          "evidenceIds": [
+            "5aafd31aeaceabe764f4b0c1b0a5cc11",
+            "ad4872cb1e4113917868ac7c47900c1f"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "5d81f04cb064fc431ebf8f37fe76e7c70ac383ffe08df268fca47002644bbc28"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-20f672e45f634ba04881526b",
+          "canonicalRevision": "df5435168a7ae0b1ecf22a3ce944104e931002f70a8a3e5e5985a75623a7531e",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-b5654e28b42b2724b0f77a02",
+            "canonicalId:ctkg:v3e-object-20f672e45f634ba04881526b"
+          ],
+          "evidenceIds": [
+            "8c8423bf45547246e10db66fb34d4a60",
+            "050acbdb37f7b0e22497c7352747ca3f"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "4a3ad9dddf295d98c5840369fd4373431d78ce9be69070f2910e3cf4756614f9"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-22f6b04371dfdb4a30972659",
+          "canonicalRevision": "b22330c43e59bd621359d4d48acbad5cc14d482cc1fa21b585498c120a78d4bd",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-b477e8184cdd4d2c6efef994",
+            "canonicalId:ctkg:v3e-object-22f6b04371dfdb4a30972659"
+          ],
+          "evidenceIds": [
+            "62bb81ba0a428b5a80e74c91dd05ffee",
+            "448a036f0a3971488f4596e78b63154b"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "64a27f355b80568d214597b873de78c7e0d8cc53a4f9c0fda8f806ee80be9867"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-2e79ef7774133bdad1c88d21",
+          "canonicalRevision": "b831bdd6ea9ccc807858cf487fae46031043ade8a92884f951559c62663b8cb7",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-a8fbb98758e7e80c50ae178f",
+            "evidence:ctkg:v3e-evidence-c2771c9ca23e3af517f87268",
+            "canonicalId:ctkg:v3e-object-2e79ef7774133bdad1c88d21"
+          ],
+          "evidenceIds": [
+            "b1a9e8747a0227ab2e37afebc3d55778",
+            "3231b5884f883ef6419ee11deabc8789",
+            "36b500e05410795209af525103c33ef5"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "57bb704963b91b6edaa19a588bc131f55bf9f25149592080e3f4e3ca3220d3bf"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-38a77e20eec796109bd1793f",
+          "canonicalRevision": "17cc881ce527b93d19c802dd528b6ccf437f92de0c002d5aa094e8487f809aa9",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-5d29671343990fe98e14a1c0",
+            "canonicalId:ctkg:v3e-object-38a77e20eec796109bd1793f"
+          ],
+          "evidenceIds": [
+            "b8c6fac89771d97ca7db0748b9a04be1",
+            "02d327fb876c322985b1e7908b2e06e0"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "1a66a893770aeab7469d770b4c1e7b6842a5eea15f23461bb2f5bd1cda774176"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-391f0fb6ec3666a2ce191891",
+          "canonicalRevision": "098d3cfea577998dfc260466406f7c1496270c0f623f32ba79c3e5ed38ea5d60",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-0c4ec20a8d253df13ba40aee",
+            "canonicalId:ctkg:v3e-object-391f0fb6ec3666a2ce191891"
+          ],
+          "evidenceIds": [
+            "9d50d1cd3f4e50a6e78881cb6b9d5e3a",
+            "f2feed6f621552047184331e5bdfee19"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "ee94a35d382ffef911cb56c63317b5145699a241370618a95a22bd68db6fcc86"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-3dddd29ea79a726ff9294909",
+          "canonicalRevision": "7baa62b5971c16e8758ed8d8ef1ce97a43a3e92b82ddbe503417edaa3b1b1d03",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4f489afc88759f6f875f9a39",
+            "evidence:ctkg:v3e-evidence-74779ba853a9b55cc5c1465a",
+            "canonicalId:ctkg:v3e-object-3dddd29ea79a726ff9294909"
+          ],
+          "evidenceIds": [
+            "cc768bec16384f15d76b030debed060c",
+            "4734ee482f9101d9e74e8e818fe74978",
+            "ddbd9006d6df1f7792497e0f10f19924"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "571f305c5fef783eece4c4cd2ec60587c896c4cb7ae244dab1f915b52a7e4c3b"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca",
+          "canonicalRevision": "ef1e2b13ed9a9aa0d4baee34f71832e9cba11c0078c647bc7d19cca19b23c006",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-0852d78d9248db31f64f7743",
+            "canonicalId:ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca"
+          ],
+          "evidenceIds": [
+            "0d637a1cdff434840efdb903dcef24a9",
+            "cacdec6ad1c426cb53c86befe8f7c0cd"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "bd932a24c39375c8f69897e411ef45c2898c56ee978468cc072b1cd623021ef7"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+          "canonicalRevision": "3b80f4d6f29b9aab74db6c19398a1a334f311c3496f87c43aa0d28e6b3b4981e",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-3aa74cb98bd89f20a88f2380",
+            "canonicalId:ctkg:v3e-object-448b68ef8a03fa29e7eed365"
+          ],
+          "evidenceIds": [
+            "39ec2479f90630783dbef9ab4a34160c",
+            "d46ff50eb7c13ab42d69e9b479212778"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "57a7a0007cbdebc9ec2a308930ebbef7f315d5a883b2477f0548def52c6cd0ce"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-4a23750bb1520504403f7aa4",
+          "canonicalRevision": "33a141c0d162baaa123de5f6a03e3f31d0d4bc0071cf9c11e0b3e82381add1c9",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-ad049482038aba9316106555",
+            "canonicalId:ctkg:v3e-object-4a23750bb1520504403f7aa4"
+          ],
+          "evidenceIds": [
+            "76f3c8c226da8ec24c41cead31539d2d",
+            "9f6963433a7bad9423216a1223d9ce84"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "c34b0bdbc7c67584123fab6a9c15c9ea43366067d9c36ef7cfe513a9860be4ee"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-61be5094c4245cc8bd3fa0b2",
+          "canonicalRevision": "0a28ca43dc725ea710878f01afb75357c63a6a60a6235facd2dccad754b94bc7",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-be32f04fa58e055d7782bdcb",
+            "canonicalId:ctkg:v3e-object-61be5094c4245cc8bd3fa0b2"
+          ],
+          "evidenceIds": [
+            "7261d5a168995bbc1c2f6f9acf426edf",
+            "da94319c8278173c5685cfda985766f0"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "7ddad47dc4cd969991b378a432251cde2f9e6f1c9a15133f31dade416767071d"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-62b50d2d7fbb060bd58fe7f5",
+          "canonicalRevision": "c5b76672ca42ec05f27584b4711ea8431875d58531684ce4515319be35a0527d",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-bc0421a985244c1765ff7570",
+            "canonicalId:ctkg:v3e-object-62b50d2d7fbb060bd58fe7f5"
+          ],
+          "evidenceIds": [
+            "d2b9393f5b7f4f02478ee023e5cddb21",
+            "a31e9031a9210dd6f869b63ae69c7508"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "563bd75478e40cd173717901dbeb6bd72fe49af5002b58c240a2e3e517ea81ea"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-659317594d3f3e5d41a80a57",
+          "canonicalRevision": "2c50f98db9aad43d8479adf4967fc011b8d095bea0a983e12072751b32797015",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-ecc03494d226ef1fef448d8d",
+            "canonicalId:ctkg:v3e-object-659317594d3f3e5d41a80a57"
+          ],
+          "evidenceIds": [
+            "8bb6a9b2cfc10afc2a49add23b589807",
+            "f84fc8729dfa90c87a09ece7dbf747f1"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "200d4e0c458968ae08d18674965c004909d14d0bcfe182e042572a7330a491e2"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-6752b348406951a18f3c041d",
+          "canonicalRevision": "e435b4224e08d7a7cf466994a55257045475b3a17f69d4777f0817d902c83c2a",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-b8bb51ad52893afe69bea563",
+            "canonicalId:ctkg:v3e-object-6752b348406951a18f3c041d"
+          ],
+          "evidenceIds": [
+            "cc6dde58272d0e29d70dd8b41e670e2c",
+            "6b2439ae5feb77e45b7770195568a1ee"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "c5c605de1ddbe78c0cdde18b8cb1ca6bb1b8825f2b916843bf01bf1cfca099bb"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-7d6f500f9839e964c6f15163",
+          "canonicalRevision": "298f167ea158d1ec48a95930085693b6e9004e57d781d49231ca7979ad690cbd",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-614149f80245579a8f0d6ae2",
+            "canonicalId:ctkg:v3e-object-7d6f500f9839e964c6f15163"
+          ],
+          "evidenceIds": [
+            "a9d43bc9ddf8a72549e205a832b131ca",
+            "28d2ccf60e030dd0e22c67b4beea509b"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "878d3067ff83751c8a1a6b3ff48df6d5c2edd311371ba9e66c927b180e811ca2"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-7eab83363cc1ae2584439aad",
+          "canonicalRevision": "8dfc2ee2b5083d454f9bf430ed0777d374f258feb38b36429377d34595183447",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-ded18ca68c1ee0b58a13a18e",
+            "canonicalId:ctkg:v3e-object-7eab83363cc1ae2584439aad"
+          ],
+          "evidenceIds": [
+            "881dfc16f9cee06edc140c96401803d9",
+            "85184367ebed6c916ea1745d4811d2f0"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "fbab154c4e6efafdbdb717e48b2f137fac5cbf420b32e6a18e35278de82afe23"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-81b011029a6f0d8278513e00",
+          "canonicalRevision": "793196ca4f3311974411dea1cd36a889a99df01eb6e2c0a652952d7223b2f359",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-2c08242daa7b2663f26044f0",
+            "evidence:ctkg:v3e-evidence-82bc8b8dac791db8dde4bb83",
+            "canonicalId:ctkg:v3e-object-81b011029a6f0d8278513e00"
+          ],
+          "evidenceIds": [
+            "bc9a6092ea227ef7cc81c6a8cc46ad17",
+            "d1bc0b53215c654e7a96034e2ada7c50",
+            "2da719b3630aa468e1690f0c7c211b7b"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "b38077ad44bb6c391eea94ddaf0e653c875f723f9533f1d3baa668fcb01633c7"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-8852ec91627844d2b3ab75e3",
+          "canonicalRevision": "b567d19f380773fe0a6b5ad8bb541ad5a590eee91167cb451e4bcd4cdbf1e8bb",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-be15e2e4853b44e21f0b5996",
+            "canonicalId:ctkg:v3e-object-8852ec91627844d2b3ab75e3"
+          ],
+          "evidenceIds": [
+            "923f1902223a10e531e7cb23d2786650",
+            "0762d7906bcf0673e353efdf91bae673"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "85574878b6de43666a9688a3864c352948a81f526a28e65b20c094eaa9854df6"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-89acff8dd9d045ce368bb017",
+          "canonicalRevision": "0db82a4a8a8a84c4a40ffc7fc415ef275c5a5b00f0dc5bfde728f37635351650",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-d9c9940b1744534bd92ab513",
+            "canonicalId:ctkg:v3e-object-89acff8dd9d045ce368bb017"
+          ],
+          "evidenceIds": [
+            "9c782d32552a26830402ec46f25c941d",
+            "3ceb32f5c20498b660785010f429ef16"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "083b8d39ea4db01273e41051c285002d8428d0926562fe9409ea0a07adeb0c55"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-8b3db8f5ab28587a80b0a989",
+          "canonicalRevision": "faa27b449e6bf158f4b3e8f9c6facc65a279e93c4d801a51c44e3887f5835dfa",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-fc3e9ac5715d1c9dfb713d1b",
+            "canonicalId:ctkg:v3e-object-8b3db8f5ab28587a80b0a989"
+          ],
+          "evidenceIds": [
+            "20cf642c7421be40911dc5598dfef78d",
+            "44df51f6df922358e486731737914921"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "4b6c0462c538c44494d2d53361b8f9eef8a96d4cae4e0ff8c20877a5cb48a141"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-8e8245d98aacc48574cbd41a",
+          "canonicalRevision": "7e23d51e848fba499d93f303a19b6e185d042c714b2285e306eb93fddf584d4b",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-fbdf882eb8c335a19ebf270e",
+            "canonicalId:ctkg:v3e-object-8e8245d98aacc48574cbd41a"
+          ],
+          "evidenceIds": [
+            "7e08cd6f3f37ce933f82eb6f13363785",
+            "17a46ae9ddbb263f4ab87386c0c35f47"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "76a2c5580220203a61bd294234251be074a269d143139763bba76964d9289aae"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-99c11bd300baace02c9f883a",
+          "canonicalRevision": "3b920cb2b056af963c53544307cc9894f6797da9f769d231081b9108645fb8e1",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-38a421eaa1d47521f7a6b680",
+            "canonicalId:ctkg:v3e-object-99c11bd300baace02c9f883a"
+          ],
+          "evidenceIds": [
+            "014c2ed82c786de84801b80ae390e82f",
+            "bd656d0c5627fb9d62333ece94e6ac79"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "e6b8abd69068eaf1288c9b5cc7a73e8be52d23233ed65b2e84c4b2f4596b73e0"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-9aac02e883a543e43b255294",
+          "canonicalRevision": "bb6049695efec560023c832f9f480105df9a8855df325ad02749ede4183df5f1",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-accd24556c8d1b9437165a74",
+            "canonicalId:ctkg:v3e-object-9aac02e883a543e43b255294"
+          ],
+          "evidenceIds": [
+            "813c737b2075be17c936f3e747b260a8",
+            "275de02bd5332461881bad5a5af9efcd"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "96f51570123d0fadc2703a344c1d8b90d95a3b112cc927c0822c6479a043a300"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-9b033c1214c9b9dce46bf8b3",
+          "canonicalRevision": "9885c3bbbf7ed9f16b89757eaa33cfa3170c9c35942b74a00d252ada8d3e83bc",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-5bb40fea0a2748420d68e8f3",
+            "canonicalId:ctkg:v3e-object-9b033c1214c9b9dce46bf8b3"
+          ],
+          "evidenceIds": [
+            "38a7349b6d7e38ca7760ee543377941d",
+            "a290413c79380182e3d62f76fa081fa8"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "eef8b5a246ee0207dbcaa12b00c1f661679bac8ca683b63a0ec17d88fde468c7"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-9cba2e0a1c543ae840961ac7",
+          "canonicalRevision": "da5936a9b087a685293bba92f497c2143a508db9796a0ee079035447c44f42a8",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-d18eceb4de2c4f0ae70a18e7",
+            "canonicalId:ctkg:v3e-object-9cba2e0a1c543ae840961ac7"
+          ],
+          "evidenceIds": [
+            "56e8e8f07ba3fe765fe156b023d469d8",
+            "357b8170dea5c7503541ff4037bc1a51"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "9c7e4ca7cff7a3785a193603a2ca8fcaf9b5aa43b503a17a5bbb037704101076"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-a5a0082ecac6ee90f76ca1af",
+          "canonicalRevision": "40e27f800fcc0d2f6e4ba213c362b39b1b9cffc1596633195b0cfcc52fe0a194",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4fae3a633720d08181249d33",
+            "evidence:ctkg:v3e-evidence-e20f61e15509e4271b82c647",
+            "canonicalId:ctkg:v3e-object-a5a0082ecac6ee90f76ca1af"
+          ],
+          "evidenceIds": [
+            "757cbadb204cb1d25825ab343e00d681",
+            "c278f255e5d1e511d8df8bafa7e697ae",
+            "3078df9f3d26c4c0f7cff7ff92c051e8"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "1e3496fdd96a68113ab86ebc4ca3ee48959e13120a48172352b01d6188bd08b5"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-a7e6b499c7e257c3d64ab6c8",
+          "canonicalRevision": "0b71b00330065ef448fd94e98d17b0025efdafcd0f2b89c91b9ebd8ba6477aa3",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4c5e2401dfbc031a03fd860c",
+            "canonicalId:ctkg:v3e-object-a7e6b499c7e257c3d64ab6c8"
+          ],
+          "evidenceIds": [
+            "e1a3fbc03db133f4b94f24060c073acb",
+            "63db913e5dbcc1efa2618f7a251549b4"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "f6a3cd2410a5bc692c72026ba4cff302ba07be3746f25eb5f67f082d53ca321c"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-a801b9509d0e105d9982661c",
+          "canonicalRevision": "3f78a1f75c03f7a00cde748fd3c379d2f99a6ca57be877f6d6babf82621044c7",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-91166ba630a9b5b72dd3b3d6",
+            "canonicalId:ctkg:v3e-object-a801b9509d0e105d9982661c"
+          ],
+          "evidenceIds": [
+            "faa5880ed38df251613a39a0f1fa8154",
+            "06c28f29202ee104240c7b900eb721c3"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "ee6cbe58795885141552c195f1c59ee2137d915a30ffaa2c2b0bd8009f1025b6"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-ae3b1e3f138047694684c11b",
+          "canonicalRevision": "1ea6c50d5a7f4cebce7caf935d936007eb5fbb83cadbceab68244d7dc7ce391e",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-3693c19cebf3e51fbb064bfd",
+            "canonicalId:ctkg:v3e-object-ae3b1e3f138047694684c11b"
+          ],
+          "evidenceIds": [
+            "203921d2952dda4285fed22ef99796b8",
+            "39a6efb99767ae3e0ce4a95546d124ff"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "37fc7dc1ecc7f1e5690bf6f2525be0c66c0cada5d3d78d7fb1b753c0b06907b6"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-ae92b4c835d9596a7e75dabd",
+          "canonicalRevision": "bf3296b4c954b6c1ae35020e22b4156e0ed269676027066c7e912c17272187cf",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-0b7376eaa28d7c05fd797497",
+            "evidence:ctkg:v3e-evidence-4a11210d089143e03c9c5276",
+            "canonicalId:ctkg:v3e-object-ae92b4c835d9596a7e75dabd"
+          ],
+          "evidenceIds": [
+            "4d929935e125526c2fdbe164e3ba3e17",
+            "ce3e308eb4c9bf4e205a954243cf27ba",
+            "f4b719ecb4da5b0a8c3f2ca3112dee4a"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "ab66a720d467245984df165c8c83cb751ab3d80248bcc024599d0a5cb886a21f"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-b02f0601aaa89fcada0f5ba2",
+          "canonicalRevision": "1a72937cf6340a8fd438de58ca96120d2da20c0f96a7254ddeec01a8f46a99ad",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-e6416de07a44a906ae5f3436",
+            "canonicalId:ctkg:v3e-object-b02f0601aaa89fcada0f5ba2"
+          ],
+          "evidenceIds": [
+            "126ec5d33efcc39c5f1b097bbb821ada",
+            "11bf1d8126faa3ff93e35b35334b1e54"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "0b7e2dd41f954ff27ca65f26c60e3623fbbe8b09781375c4e9239bdb8c5029fc"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-b8cfc0ef9f55be5362eff1ec",
+          "canonicalRevision": "e6cc653adcd7a7886e33636ed910a5e5ffdd58f9ae77bac80fd03847c9babb5f",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-69bca000e690b9d1f80364c6",
+            "canonicalId:ctkg:v3e-object-b8cfc0ef9f55be5362eff1ec"
+          ],
+          "evidenceIds": [
+            "866136d2621bcec8c8c23939b3a9cdf7",
+            "6d494184aebea2571f9d722a53ac5202"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "4e3265ed14d632b7f80bcd7fd0b81ac779eea9914192a6ec67b242b77386bef2"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-be88a296d0549e375d475f51",
+          "canonicalRevision": "c57c8b3186d424629ef8bac606ed8c429498f8fea65deab290de57857141294d",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-d1e7e21fe9820d9660826473",
+            "canonicalId:ctkg:v3e-object-be88a296d0549e375d475f51"
+          ],
+          "evidenceIds": [
+            "07f6aec5bf2f73a1326ce2e30fe551f6",
+            "792ccdf623ff2a9b339a12f885f56ab0"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "59eb5253964b0aa73db0f5356f756ccabfab4aa3b276d3cc6a8d191fa3b3a0b4"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-c00ba45bcb61d901d427008d",
+          "canonicalRevision": "f0b362d20a373953e5d93f40fc4576cef6f3f2df739f131a48a64f5dedd09bf9",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-c3def720cc54bcbd6b3348f7",
+            "evidence:ctkg:v3e-evidence-df237bfd6ce9a959f8a0988f",
+            "canonicalId:ctkg:v3e-object-c00ba45bcb61d901d427008d"
+          ],
+          "evidenceIds": [
+            "ffad43771034c6ab64867eb3fca291a4",
+            "2033b5d473ba07df288a59992257125d",
+            "f76bab9928abedea3038a7967f0cc5a9"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "65e8793972aab6bd92857608efdeafb09a2d8aca696e1c1cb1c5decead6018bd"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-c651a5483e68f1f0e3aabe2e",
+          "canonicalRevision": "1694137002a50c138af36ac37d44643e464172b71dbd376104d81e6d2c96235a",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-bd3ffff56b1c4549deb80c9e",
+            "canonicalId:ctkg:v3e-object-c651a5483e68f1f0e3aabe2e"
+          ],
+          "evidenceIds": [
+            "eefee7db22018fb7c9daa4b596223b25",
+            "cb23bb5e2320861c50a832a9872b1c69"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "208a9e5b1b846513817663e5e14cf75094444b59156cbe4c1a33f6e1aeabdc1d"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-d57c7f77aae186e5e85db076",
+          "canonicalRevision": "ed8fcd49669efda4aedabeb7f350748ca4cbd309121af51418dd9ab9e2bdaa0b",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-13979e5311f3e3ac685c613f",
+            "canonicalId:ctkg:v3e-object-d57c7f77aae186e5e85db076"
+          ],
+          "evidenceIds": [
+            "b6c730c3acf0d53be44115b3d58986b7",
+            "f4ebea278698f06e1e07784136d97734"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "1648da4596b68e48ffe5c75bba8f84b0c88041a2863de4630987eefe331962c6"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-e0f1baecfeb11e984843fb7f",
+          "canonicalRevision": "5308a06adac8289af30ad2327fea80d756aa14763e01729f01ff8d9047f134e6",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4fd38968651c73cf043d0059",
+            "canonicalId:ctkg:v3e-object-e0f1baecfeb11e984843fb7f"
+          ],
+          "evidenceIds": [
+            "cb1aaba41f49be6516826f25af72e71f",
+            "c7c4304abf9c718cc11c5254c35c630b"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "0d5b98d5c9601a738637032bad02a9cce4e03e9a5fa49e25f651c0dda23d4bd4"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-e16a01d3f5feeacf8ee8f42e",
+          "canonicalRevision": "cf1150023c30da40c39b724d78dae7a1a43b1d45af97486c195f40578c54f2b3",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-1a3225a4cca61f4857d31370",
+            "evidence:ctkg:v3e-evidence-b0629610bd86d73d9bc18d62",
+            "canonicalId:ctkg:v3e-object-e16a01d3f5feeacf8ee8f42e"
+          ],
+          "evidenceIds": [
+            "281b89c2f88364e3706af57f51ed5c97",
+            "cd7f569353b96c8f014a68570336c701",
+            "4727ebb79a2f116666cda2757b439c9f"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "8211d9ba7c5d962de9f126d8a1aac1b76a16fcb5f33ec0ed01746b55fdc4bab1"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-e248ec663f44a2e66180b8e5",
+          "canonicalRevision": "0ce19b82c5e1f5ebcaf48af110150294be9f35be4f5781baab45386965dd66d0",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-02bf67e51173c4dec69f4f32",
+            "canonicalId:ctkg:v3e-object-e248ec663f44a2e66180b8e5"
+          ],
+          "evidenceIds": [
+            "284b99f54600e81fe9c9ea30976e1c34",
+            "7efce66c5a43cbd63bdf975d7c502c5d"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "0853c426f42b0cb90fa3784adefda85b00b5ce02716567b2bc67f456d551575a"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-e5b2e93a259fe14ede9eab41",
+          "canonicalRevision": "99d14aaa9e791ce4417c4782f33fb647be33e96611a451a2164eea740bc42736",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-89c08262bdafac9469413d38",
+            "canonicalId:ctkg:v3e-object-e5b2e93a259fe14ede9eab41"
+          ],
+          "evidenceIds": [
+            "dafa2e9c0b940dee301cc83ca6397289",
+            "9ed6447fc72e4b2f8babbba5f2ebf9b6"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "c3f2456d7781067121d419868ffed14d2d20363a33e6ccac7ac7fa18db11395d"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-ed8f70c40680d24a27839e48",
+          "canonicalRevision": "26b4c563e0470d970547d3551c6ed2e316bc1af8fc14a4ccffaf177ef64311d7",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-797dd1b5320a934baff4fc49",
+            "evidence:ctkg:v3e-evidence-fa5c91e7775c7f0da6c0249c",
+            "canonicalId:ctkg:v3e-object-ed8f70c40680d24a27839e48"
+          ],
+          "evidenceIds": [
+            "97043493f2400fd6bcc4a2da35489dbc",
+            "071b23b5880a41971ef6b314c006e8b0",
+            "f322c782e25b339be1c4933ff3b70cb2"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "4ee54f3e6d819a369c6f0791a814ba797b73c771bbd2fdb48b229de3a4f1cf87"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-f109a1072fd5ec7c9a7a94cb",
+          "canonicalRevision": "69d587cca3c011be78229e294fcfafaff434fe044374fca5266c617209f61034",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-5d16bdf697c708375b558a9b",
+            "canonicalId:ctkg:v3e-object-f109a1072fd5ec7c9a7a94cb"
+          ],
+          "evidenceIds": [
+            "b386104a9ca4253c24dad90b034a0d47",
+            "8c27f4c58e008d640a84a4aac2f4718f"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "eb21f8fd2f9c56c3ef128bb64e1d5238222f0e281b15a15cf0faecd948f54dcc"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-fcaf359ef3993f8e4e179f36",
+          "canonicalRevision": "9929b52e98e14114e48b364df787912bdc69673c18415345e7f47d5ed2a34226",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-582dfade3afa16fe47d06a31",
+            "canonicalId:ctkg:v3e-object-fcaf359ef3993f8e4e179f36"
+          ],
+          "evidenceIds": [
+            "63df39e00738908589c0925ee57612ec",
+            "fea6ec2db6d4f1299b037f6a58d0ad25"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "a244aaf5761c36e2315f2760f9194e77ec40b7e88eee7962f02024aa933e4226"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-ffad75acbd9eb90347d29a10",
+          "canonicalRevision": "75c4cc2b93e47841f7caeeed5fd9053ad4a71e1a306b124a091bafde838f376d",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-dceb471b8e83e893b203d570",
+            "canonicalId:ctkg:v3e-object-ffad75acbd9eb90347d29a10"
+          ],
+          "evidenceIds": [
+            "116bc83858fdd0a00bff10b494e0dc80",
+            "425d07fe75806f34f6d6d908bc99237d"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "19e70047178a2234dfa917d408b68b8713ab6dc374e3a8f5cab8f9150acd41ad"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-fffc8da83a5258ec01126edc",
+          "canonicalRevision": "e2d33c224179336a07c08b542f092d08340f0dea3b5a121455a16944a7f4c80a",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-20eb0d3f72d53511fe532fd2",
+            "canonicalId:ctkg:v3e-object-fffc8da83a5258ec01126edc"
+          ],
+          "evidenceIds": [
+            "45c563f74a7a80e803f0998166203169",
+            "bf4b8a48bfbd2e4408f6da27d7c77c89"
+          ],
+          "rationale": "冻结条目为 profile-only 新成员，证据仅含 aggregate 与 canonical-profile，无 lesson/syllabus 等独立课程证据；现行 CourseCoverage authority 亦无该 canonicalId 终态角色，故审查阶段 DEFER 且证据不足。",
+          "decisionDigest": "21b9ae6e8c5d69a8e0e999c6a118fd28158172da02bafa05c94e6e6b26ba15c9"
+        }
+      ],
+      "documentDigest": "7c3ab5b29910885d4201c5cf0cc3405fd6f8e3af943d6d5a43e4a5b14df6eb32"
+    },
+    "challenger": {
+      "schemaVersion": "current-course-coverage-stage-review/v2",
+      "batchBinding": {
+        "batchId": "58d1670455782297bdaf8a19",
+        "manifestBatchIndex": 22,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:SystemModel",
+        "memberCount": 50,
+        "memberDigest": "9db24aec2aff29ab79542c398dd4c65782b573635c4e7f944714d951bcfbf964",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "CHALLENGER",
+      "reviewer": {
+        "identity": "grok-independent-challenger",
+        "provider": "grok-4.5-build",
+        "sessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304",
+        "promptVersion": "issue-1212-challenger-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/challenger-independent-stage-source.json",
+        "artifactSha256": "d12e5a925f24bd86fed1722370850f89fe201733c22314752bed95324c402375",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "CHALLENGER",
+        "writerSessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304"
+      },
+      "reviewInputDigest": "ee59cf5bd66dd5fff3b590272178ef924b62483291b6374cd68f4c912a1a2986",
+      "decisions": [
+        {
+          "canonicalId": "ctkg:v3e-object-07d0901e1f1d4d60f34507a8",
+          "canonicalRevision": "34f43f97fed76c426ff81563bb72bcf4a2b6d24be5ab8a4a618548e8a63f6a2f",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-3bda1e064634d3edf234bb6a",
+            "canonicalId:ctkg:v3e-object-07d0901e1f1d4d60f34507a8"
+          ],
+          "evidenceIds": [
+            "cc45e8d1b18424477e0b86aaead130a9",
+            "7300767c35011d42dcba839febb60e93"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "458409505ddb8bb89dcae1a6ac1d8392367b99f3cafba89821c6686807de6439"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-0f224eb8388293b64baf7bef",
+          "canonicalRevision": "6223b4306367fbaf72a3eb91a5a84c994bb4f2ed0f04ecc4e27b2d3127ea5bd4",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-1b9e42839130a22adf11b4c6",
+            "evidence:ctkg:v3e-evidence-6adc4ac7d1d09edfaa6ec776",
+            "evidence:ctkg:v3e-evidence-b5e90eeba08a034da3c864df",
+            "canonicalId:ctkg:v3e-object-0f224eb8388293b64baf7bef"
+          ],
+          "evidenceIds": [
+            "90402643d7dce10845fa9f7e209033eb",
+            "b31ca9839264f9f054efaf22eeb024d7",
+            "9fd93863a1d839ee9cb40c241783692c",
+            "c749fb8cb4859c21b090d208090dacf4"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "7c416a6f4ac74bc32dbb528c06d9b2351280fe10c7957c7233d07e5408b6965d"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+          "canonicalRevision": "a7ae9060d4cb424d2554bdd26b6f439689c083adcc0bbdbbeaf4454b30f31ec5",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4975dff902e34fe836c14fce",
+            "canonicalId:ctkg:v3e-object-0ff6d79ac8229bca531ca366"
+          ],
+          "evidenceIds": [
+            "5c76ddcc31abe602609890600b5ade3e",
+            "b2e0b9ce4c1cda84ce68611c6bcb159a"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "af7d3d2ddaf1184861a4d7661d972ad90090d27da1b1786e1ee8e4057443766f"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-14841fb286867e13c55e0190",
+          "canonicalRevision": "d0b2ba826ec4ad50df5840a0f0097cbc8795a67384ce92b70bb7bdfcdf552f19",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-6515ea89857a61796690f0df",
+            "evidence:ctkg:v3e-evidence-a389da85c1d88c00313f05d7",
+            "canonicalId:ctkg:v3e-object-14841fb286867e13c55e0190"
+          ],
+          "evidenceIds": [
+            "eab993974940956f968d32434922826e",
+            "87d502e0b4b24c4eae76bcc60b8f9a93",
+            "ff23739d2ec39abd030710da1377c9cb"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "4efb9df753e876e1dd38f3a52176aa1bb67f88557211449de963d4370728577d"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-17ec6f5bba991857bbe35f3c",
+          "canonicalRevision": "ee15e6dd95ea19b211b247ee10731942b7f79138ddd917d3209e58981459cf87",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4d1cb2760a9d5ab12abdb402",
+            "evidence:ctkg:v3e-evidence-ee51db0783f507a948185e2a",
+            "canonicalId:ctkg:v3e-object-17ec6f5bba991857bbe35f3c"
+          ],
+          "evidenceIds": [
+            "362a5008b4288021ed5ebfbc3240a8db",
+            "a58f7ac0d983933647191bdef642eeee",
+            "0dce5ec578703179922ec9657de142df"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "36324bd933be3713a4c37e1bd2d04b417ae91becf3fa5c7574804708789b7ee3"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-1d2a1d7e325ba626faf93ab5",
+          "canonicalRevision": "62200d78bc79c73fde15d807743a258ff061cb32da5e3472e504fd5f281d44ac",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-e925f6ff27c2872bcfed5ac1",
+            "canonicalId:ctkg:v3e-object-1d2a1d7e325ba626faf93ab5"
+          ],
+          "evidenceIds": [
+            "5aafd31aeaceabe764f4b0c1b0a5cc11",
+            "ad4872cb1e4113917868ac7c47900c1f"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "476966caf5ca51f49c574a442633f64e1bd634aa950ffce25cd3aee60066cce1"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-20f672e45f634ba04881526b",
+          "canonicalRevision": "df5435168a7ae0b1ecf22a3ce944104e931002f70a8a3e5e5985a75623a7531e",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-b5654e28b42b2724b0f77a02",
+            "canonicalId:ctkg:v3e-object-20f672e45f634ba04881526b"
+          ],
+          "evidenceIds": [
+            "8c8423bf45547246e10db66fb34d4a60",
+            "050acbdb37f7b0e22497c7352747ca3f"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "0b444092443e655109684a1247ab7ae32f1a6263cf55a6d12c0629f20f215f17"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-22f6b04371dfdb4a30972659",
+          "canonicalRevision": "b22330c43e59bd621359d4d48acbad5cc14d482cc1fa21b585498c120a78d4bd",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-b477e8184cdd4d2c6efef994",
+            "canonicalId:ctkg:v3e-object-22f6b04371dfdb4a30972659"
+          ],
+          "evidenceIds": [
+            "62bb81ba0a428b5a80e74c91dd05ffee",
+            "448a036f0a3971488f4596e78b63154b"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "4ee92c4a3cf43366d96ebd860b176e782ea1cf44cf1694c57b0fd8f84e480c4a"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-2e79ef7774133bdad1c88d21",
+          "canonicalRevision": "b831bdd6ea9ccc807858cf487fae46031043ade8a92884f951559c62663b8cb7",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-a8fbb98758e7e80c50ae178f",
+            "evidence:ctkg:v3e-evidence-c2771c9ca23e3af517f87268",
+            "canonicalId:ctkg:v3e-object-2e79ef7774133bdad1c88d21"
+          ],
+          "evidenceIds": [
+            "b1a9e8747a0227ab2e37afebc3d55778",
+            "3231b5884f883ef6419ee11deabc8789",
+            "36b500e05410795209af525103c33ef5"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "5196c2149663ecf681010cf6ec63f43f81dcb678066c6d2e7f0f4b125737594f"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-38a77e20eec796109bd1793f",
+          "canonicalRevision": "17cc881ce527b93d19c802dd528b6ccf437f92de0c002d5aa094e8487f809aa9",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-5d29671343990fe98e14a1c0",
+            "canonicalId:ctkg:v3e-object-38a77e20eec796109bd1793f"
+          ],
+          "evidenceIds": [
+            "b8c6fac89771d97ca7db0748b9a04be1",
+            "02d327fb876c322985b1e7908b2e06e0"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "af862b762c3f793e7eb12efb94d47ea4554b2164a49daee856d97bcecb335ba9"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-391f0fb6ec3666a2ce191891",
+          "canonicalRevision": "098d3cfea577998dfc260466406f7c1496270c0f623f32ba79c3e5ed38ea5d60",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-0c4ec20a8d253df13ba40aee",
+            "canonicalId:ctkg:v3e-object-391f0fb6ec3666a2ce191891"
+          ],
+          "evidenceIds": [
+            "9d50d1cd3f4e50a6e78881cb6b9d5e3a",
+            "f2feed6f621552047184331e5bdfee19"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "22ca9adf4e32f9f3be21de5a708fb062cd51a73ce48d247a81a02d5b5fbcb109"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-3dddd29ea79a726ff9294909",
+          "canonicalRevision": "7baa62b5971c16e8758ed8d8ef1ce97a43a3e92b82ddbe503417edaa3b1b1d03",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4f489afc88759f6f875f9a39",
+            "evidence:ctkg:v3e-evidence-74779ba853a9b55cc5c1465a",
+            "canonicalId:ctkg:v3e-object-3dddd29ea79a726ff9294909"
+          ],
+          "evidenceIds": [
+            "cc768bec16384f15d76b030debed060c",
+            "4734ee482f9101d9e74e8e818fe74978",
+            "ddbd9006d6df1f7792497e0f10f19924"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "836ea2ad5dfd7f3c1bcbb4c0506425862258945b8012b8da501b5bc383c3d560"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca",
+          "canonicalRevision": "ef1e2b13ed9a9aa0d4baee34f71832e9cba11c0078c647bc7d19cca19b23c006",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-0852d78d9248db31f64f7743",
+            "canonicalId:ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca"
+          ],
+          "evidenceIds": [
+            "0d637a1cdff434840efdb903dcef24a9",
+            "cacdec6ad1c426cb53c86befe8f7c0cd"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "0dc647e835aae63cf73ef7c16f121e4080443777bde268763f21e36b4a8e1ac9"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+          "canonicalRevision": "3b80f4d6f29b9aab74db6c19398a1a334f311c3496f87c43aa0d28e6b3b4981e",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-3aa74cb98bd89f20a88f2380",
+            "canonicalId:ctkg:v3e-object-448b68ef8a03fa29e7eed365"
+          ],
+          "evidenceIds": [
+            "39ec2479f90630783dbef9ab4a34160c",
+            "d46ff50eb7c13ab42d69e9b479212778"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "914f68c409a27b0f33c2bd556bf5cc262bfa254e04cf34a9706a23043fda25b3"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-4a23750bb1520504403f7aa4",
+          "canonicalRevision": "33a141c0d162baaa123de5f6a03e3f31d0d4bc0071cf9c11e0b3e82381add1c9",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-ad049482038aba9316106555",
+            "canonicalId:ctkg:v3e-object-4a23750bb1520504403f7aa4"
+          ],
+          "evidenceIds": [
+            "76f3c8c226da8ec24c41cead31539d2d",
+            "9f6963433a7bad9423216a1223d9ce84"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "a2ec153396f53111e21056d1ad5bc794fa0b4c68d4e2085b1d251649e8c7c73c"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-61be5094c4245cc8bd3fa0b2",
+          "canonicalRevision": "0a28ca43dc725ea710878f01afb75357c63a6a60a6235facd2dccad754b94bc7",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-be32f04fa58e055d7782bdcb",
+            "canonicalId:ctkg:v3e-object-61be5094c4245cc8bd3fa0b2"
+          ],
+          "evidenceIds": [
+            "7261d5a168995bbc1c2f6f9acf426edf",
+            "da94319c8278173c5685cfda985766f0"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "87bf6fcd5d420dc7616bd237baafb6cb4f077247d80dff8445cdfa116deba26f"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-62b50d2d7fbb060bd58fe7f5",
+          "canonicalRevision": "c5b76672ca42ec05f27584b4711ea8431875d58531684ce4515319be35a0527d",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-bc0421a985244c1765ff7570",
+            "canonicalId:ctkg:v3e-object-62b50d2d7fbb060bd58fe7f5"
+          ],
+          "evidenceIds": [
+            "d2b9393f5b7f4f02478ee023e5cddb21",
+            "a31e9031a9210dd6f869b63ae69c7508"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "08849ab4def94c401a2eed7bf63c4d21b7895567e5797c206686af39a7b5744f"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-659317594d3f3e5d41a80a57",
+          "canonicalRevision": "2c50f98db9aad43d8479adf4967fc011b8d095bea0a983e12072751b32797015",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-ecc03494d226ef1fef448d8d",
+            "canonicalId:ctkg:v3e-object-659317594d3f3e5d41a80a57"
+          ],
+          "evidenceIds": [
+            "8bb6a9b2cfc10afc2a49add23b589807",
+            "f84fc8729dfa90c87a09ece7dbf747f1"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "e44649b52ed5c1371d7060ea339410f3ac13a3507d9693e09dfbf726c101bcb9"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-6752b348406951a18f3c041d",
+          "canonicalRevision": "e435b4224e08d7a7cf466994a55257045475b3a17f69d4777f0817d902c83c2a",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-b8bb51ad52893afe69bea563",
+            "canonicalId:ctkg:v3e-object-6752b348406951a18f3c041d"
+          ],
+          "evidenceIds": [
+            "cc6dde58272d0e29d70dd8b41e670e2c",
+            "6b2439ae5feb77e45b7770195568a1ee"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "2e5d8bb6c05c7c4cbdb5709f6b07de756b6260d0bc04aa327b3de1025f9dca47"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-7d6f500f9839e964c6f15163",
+          "canonicalRevision": "298f167ea158d1ec48a95930085693b6e9004e57d781d49231ca7979ad690cbd",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-614149f80245579a8f0d6ae2",
+            "canonicalId:ctkg:v3e-object-7d6f500f9839e964c6f15163"
+          ],
+          "evidenceIds": [
+            "a9d43bc9ddf8a72549e205a832b131ca",
+            "28d2ccf60e030dd0e22c67b4beea509b"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "8b81505722c80355724847d906d02e256c9ac2cdbf0267a76caae8b645499638"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-7eab83363cc1ae2584439aad",
+          "canonicalRevision": "8dfc2ee2b5083d454f9bf430ed0777d374f258feb38b36429377d34595183447",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-ded18ca68c1ee0b58a13a18e",
+            "canonicalId:ctkg:v3e-object-7eab83363cc1ae2584439aad"
+          ],
+          "evidenceIds": [
+            "881dfc16f9cee06edc140c96401803d9",
+            "85184367ebed6c916ea1745d4811d2f0"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "fa8d64ffb0651fee0f435296e5888fb9353801b75b23f7b9c23cb1233720f14c"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-81b011029a6f0d8278513e00",
+          "canonicalRevision": "793196ca4f3311974411dea1cd36a889a99df01eb6e2c0a652952d7223b2f359",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-2c08242daa7b2663f26044f0",
+            "evidence:ctkg:v3e-evidence-82bc8b8dac791db8dde4bb83",
+            "canonicalId:ctkg:v3e-object-81b011029a6f0d8278513e00"
+          ],
+          "evidenceIds": [
+            "bc9a6092ea227ef7cc81c6a8cc46ad17",
+            "d1bc0b53215c654e7a96034e2ada7c50",
+            "2da719b3630aa468e1690f0c7c211b7b"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "a2ec253ef38e8e1e009092245e6744bf7de49082caa35972a252fb52b6c806db"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-8852ec91627844d2b3ab75e3",
+          "canonicalRevision": "b567d19f380773fe0a6b5ad8bb541ad5a590eee91167cb451e4bcd4cdbf1e8bb",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-be15e2e4853b44e21f0b5996",
+            "canonicalId:ctkg:v3e-object-8852ec91627844d2b3ab75e3"
+          ],
+          "evidenceIds": [
+            "923f1902223a10e531e7cb23d2786650",
+            "0762d7906bcf0673e353efdf91bae673"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "bca5bfe74a63e11c444d189d5bf2347f4a79b8c285c367b7a341ce0a24bde126"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-89acff8dd9d045ce368bb017",
+          "canonicalRevision": "0db82a4a8a8a84c4a40ffc7fc415ef275c5a5b00f0dc5bfde728f37635351650",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-d9c9940b1744534bd92ab513",
+            "canonicalId:ctkg:v3e-object-89acff8dd9d045ce368bb017"
+          ],
+          "evidenceIds": [
+            "9c782d32552a26830402ec46f25c941d",
+            "3ceb32f5c20498b660785010f429ef16"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "09a61a2e6667204040c40f29bdfff53a69f5de06a42d7d4a6babca24d91c633f"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-8b3db8f5ab28587a80b0a989",
+          "canonicalRevision": "faa27b449e6bf158f4b3e8f9c6facc65a279e93c4d801a51c44e3887f5835dfa",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-fc3e9ac5715d1c9dfb713d1b",
+            "canonicalId:ctkg:v3e-object-8b3db8f5ab28587a80b0a989"
+          ],
+          "evidenceIds": [
+            "20cf642c7421be40911dc5598dfef78d",
+            "44df51f6df922358e486731737914921"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "24b8ec095b2e1a40b0d71c5238b9cc54f64ff767f40f0614a2314eb7d497b564"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-8e8245d98aacc48574cbd41a",
+          "canonicalRevision": "7e23d51e848fba499d93f303a19b6e185d042c714b2285e306eb93fddf584d4b",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-fbdf882eb8c335a19ebf270e",
+            "canonicalId:ctkg:v3e-object-8e8245d98aacc48574cbd41a"
+          ],
+          "evidenceIds": [
+            "7e08cd6f3f37ce933f82eb6f13363785",
+            "17a46ae9ddbb263f4ab87386c0c35f47"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "c62aa7283c0bd46427846e9efd5d63858a805f2236568f4a4f10499ff2b3bf1d"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-99c11bd300baace02c9f883a",
+          "canonicalRevision": "3b920cb2b056af963c53544307cc9894f6797da9f769d231081b9108645fb8e1",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-38a421eaa1d47521f7a6b680",
+            "canonicalId:ctkg:v3e-object-99c11bd300baace02c9f883a"
+          ],
+          "evidenceIds": [
+            "014c2ed82c786de84801b80ae390e82f",
+            "bd656d0c5627fb9d62333ece94e6ac79"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "e34239d8949806dbd94ed69bc4d1d56e667b9805a7c8998f3c6fe3d9a96d951d"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-9aac02e883a543e43b255294",
+          "canonicalRevision": "bb6049695efec560023c832f9f480105df9a8855df325ad02749ede4183df5f1",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-accd24556c8d1b9437165a74",
+            "canonicalId:ctkg:v3e-object-9aac02e883a543e43b255294"
+          ],
+          "evidenceIds": [
+            "813c737b2075be17c936f3e747b260a8",
+            "275de02bd5332461881bad5a5af9efcd"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "ad9249a46b4b6d6d8caa94abfcaff342c63ae5f14494d9a3124b69c1c360bbd3"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-9b033c1214c9b9dce46bf8b3",
+          "canonicalRevision": "9885c3bbbf7ed9f16b89757eaa33cfa3170c9c35942b74a00d252ada8d3e83bc",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-5bb40fea0a2748420d68e8f3",
+            "canonicalId:ctkg:v3e-object-9b033c1214c9b9dce46bf8b3"
+          ],
+          "evidenceIds": [
+            "38a7349b6d7e38ca7760ee543377941d",
+            "a290413c79380182e3d62f76fa081fa8"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "605fd4b5f2298e0ab7b3fe04b942090670139aac6067bb4d2239451d7d4bee0a"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-9cba2e0a1c543ae840961ac7",
+          "canonicalRevision": "da5936a9b087a685293bba92f497c2143a508db9796a0ee079035447c44f42a8",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-d18eceb4de2c4f0ae70a18e7",
+            "canonicalId:ctkg:v3e-object-9cba2e0a1c543ae840961ac7"
+          ],
+          "evidenceIds": [
+            "56e8e8f07ba3fe765fe156b023d469d8",
+            "357b8170dea5c7503541ff4037bc1a51"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "00cbe61290184d587dc59d137a83e4bc8ebf117bc80513c5acba56a2d17e4eae"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-a5a0082ecac6ee90f76ca1af",
+          "canonicalRevision": "40e27f800fcc0d2f6e4ba213c362b39b1b9cffc1596633195b0cfcc52fe0a194",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4fae3a633720d08181249d33",
+            "evidence:ctkg:v3e-evidence-e20f61e15509e4271b82c647",
+            "canonicalId:ctkg:v3e-object-a5a0082ecac6ee90f76ca1af"
+          ],
+          "evidenceIds": [
+            "757cbadb204cb1d25825ab343e00d681",
+            "c278f255e5d1e511d8df8bafa7e697ae",
+            "3078df9f3d26c4c0f7cff7ff92c051e8"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "4cdaf79c9bfb67e338c23b6d252a9e9b2cd2da7b36ce693832fe704bf73865ab"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-a7e6b499c7e257c3d64ab6c8",
+          "canonicalRevision": "0b71b00330065ef448fd94e98d17b0025efdafcd0f2b89c91b9ebd8ba6477aa3",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4c5e2401dfbc031a03fd860c",
+            "canonicalId:ctkg:v3e-object-a7e6b499c7e257c3d64ab6c8"
+          ],
+          "evidenceIds": [
+            "e1a3fbc03db133f4b94f24060c073acb",
+            "63db913e5dbcc1efa2618f7a251549b4"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "78941c6def346ff26f9c249666e714d010eaab5734e95579b6185db2946a98ab"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-a801b9509d0e105d9982661c",
+          "canonicalRevision": "3f78a1f75c03f7a00cde748fd3c379d2f99a6ca57be877f6d6babf82621044c7",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-91166ba630a9b5b72dd3b3d6",
+            "canonicalId:ctkg:v3e-object-a801b9509d0e105d9982661c"
+          ],
+          "evidenceIds": [
+            "faa5880ed38df251613a39a0f1fa8154",
+            "06c28f29202ee104240c7b900eb721c3"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "ae8b74012c069ed90a8ee13e86f033c57a4cd5e04fce50a02c342d02c6725d2a"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-ae3b1e3f138047694684c11b",
+          "canonicalRevision": "1ea6c50d5a7f4cebce7caf935d936007eb5fbb83cadbceab68244d7dc7ce391e",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-3693c19cebf3e51fbb064bfd",
+            "canonicalId:ctkg:v3e-object-ae3b1e3f138047694684c11b"
+          ],
+          "evidenceIds": [
+            "203921d2952dda4285fed22ef99796b8",
+            "39a6efb99767ae3e0ce4a95546d124ff"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "63ca7d0bd7ac3649a21e57f4e1a25263fee4adfc90495835e78a39b780390d36"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-ae92b4c835d9596a7e75dabd",
+          "canonicalRevision": "bf3296b4c954b6c1ae35020e22b4156e0ed269676027066c7e912c17272187cf",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-0b7376eaa28d7c05fd797497",
+            "evidence:ctkg:v3e-evidence-4a11210d089143e03c9c5276",
+            "canonicalId:ctkg:v3e-object-ae92b4c835d9596a7e75dabd"
+          ],
+          "evidenceIds": [
+            "4d929935e125526c2fdbe164e3ba3e17",
+            "ce3e308eb4c9bf4e205a954243cf27ba",
+            "f4b719ecb4da5b0a8c3f2ca3112dee4a"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "19cbf9511a871df26542546699d844ca16741b63cbf8b2a116499929c4ddfaee"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-b02f0601aaa89fcada0f5ba2",
+          "canonicalRevision": "1a72937cf6340a8fd438de58ca96120d2da20c0f96a7254ddeec01a8f46a99ad",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-e6416de07a44a906ae5f3436",
+            "canonicalId:ctkg:v3e-object-b02f0601aaa89fcada0f5ba2"
+          ],
+          "evidenceIds": [
+            "126ec5d33efcc39c5f1b097bbb821ada",
+            "11bf1d8126faa3ff93e35b35334b1e54"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "d8099aa25704b6d7ae29e968734ba431b5d90e0844599efce738aaeaf5feb7dc"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-b8cfc0ef9f55be5362eff1ec",
+          "canonicalRevision": "e6cc653adcd7a7886e33636ed910a5e5ffdd58f9ae77bac80fd03847c9babb5f",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-69bca000e690b9d1f80364c6",
+            "canonicalId:ctkg:v3e-object-b8cfc0ef9f55be5362eff1ec"
+          ],
+          "evidenceIds": [
+            "866136d2621bcec8c8c23939b3a9cdf7",
+            "6d494184aebea2571f9d722a53ac5202"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "f904ba457c991d170c3a9cf4d1ac9724aef6cc20232c826d3fcd540c52c5f02f"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-be88a296d0549e375d475f51",
+          "canonicalRevision": "c57c8b3186d424629ef8bac606ed8c429498f8fea65deab290de57857141294d",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-d1e7e21fe9820d9660826473",
+            "canonicalId:ctkg:v3e-object-be88a296d0549e375d475f51"
+          ],
+          "evidenceIds": [
+            "07f6aec5bf2f73a1326ce2e30fe551f6",
+            "792ccdf623ff2a9b339a12f885f56ab0"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "dc757f521b207b5f685551f550db6bd696f1894a91153434af958233fdd564ab"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-c00ba45bcb61d901d427008d",
+          "canonicalRevision": "f0b362d20a373953e5d93f40fc4576cef6f3f2df739f131a48a64f5dedd09bf9",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-c3def720cc54bcbd6b3348f7",
+            "evidence:ctkg:v3e-evidence-df237bfd6ce9a959f8a0988f",
+            "canonicalId:ctkg:v3e-object-c00ba45bcb61d901d427008d"
+          ],
+          "evidenceIds": [
+            "ffad43771034c6ab64867eb3fca291a4",
+            "2033b5d473ba07df288a59992257125d",
+            "f76bab9928abedea3038a7967f0cc5a9"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "f489391f91c932dc223f82dbeed60ddd12a4a816a153307a046a5edc83198e85"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-c651a5483e68f1f0e3aabe2e",
+          "canonicalRevision": "1694137002a50c138af36ac37d44643e464172b71dbd376104d81e6d2c96235a",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-bd3ffff56b1c4549deb80c9e",
+            "canonicalId:ctkg:v3e-object-c651a5483e68f1f0e3aabe2e"
+          ],
+          "evidenceIds": [
+            "eefee7db22018fb7c9daa4b596223b25",
+            "cb23bb5e2320861c50a832a9872b1c69"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "886fece5077fa4e8228682873fafdba81457dbecc3eda48aaa70028ddf7fbfd7"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-d57c7f77aae186e5e85db076",
+          "canonicalRevision": "ed8fcd49669efda4aedabeb7f350748ca4cbd309121af51418dd9ab9e2bdaa0b",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-13979e5311f3e3ac685c613f",
+            "canonicalId:ctkg:v3e-object-d57c7f77aae186e5e85db076"
+          ],
+          "evidenceIds": [
+            "b6c730c3acf0d53be44115b3d58986b7",
+            "f4ebea278698f06e1e07784136d97734"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "cf709232d5f8feadb8a972b225fc01370824ba215052c0c23518bcf1461c1a6d"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-e0f1baecfeb11e984843fb7f",
+          "canonicalRevision": "5308a06adac8289af30ad2327fea80d756aa14763e01729f01ff8d9047f134e6",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-4fd38968651c73cf043d0059",
+            "canonicalId:ctkg:v3e-object-e0f1baecfeb11e984843fb7f"
+          ],
+          "evidenceIds": [
+            "cb1aaba41f49be6516826f25af72e71f",
+            "c7c4304abf9c718cc11c5254c35c630b"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "f0867e126df6d535f636d7290beaca4c1833d3753bbdb821b2dd6e4482b519a5"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-e16a01d3f5feeacf8ee8f42e",
+          "canonicalRevision": "cf1150023c30da40c39b724d78dae7a1a43b1d45af97486c195f40578c54f2b3",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-1a3225a4cca61f4857d31370",
+            "evidence:ctkg:v3e-evidence-b0629610bd86d73d9bc18d62",
+            "canonicalId:ctkg:v3e-object-e16a01d3f5feeacf8ee8f42e"
+          ],
+          "evidenceIds": [
+            "281b89c2f88364e3706af57f51ed5c97",
+            "cd7f569353b96c8f014a68570336c701",
+            "4727ebb79a2f116666cda2757b439c9f"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "790a250dbd5646dafe4cb98d55e5e7367395145ae127b0f2bff27ad129845b13"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-e248ec663f44a2e66180b8e5",
+          "canonicalRevision": "0ce19b82c5e1f5ebcaf48af110150294be9f35be4f5781baab45386965dd66d0",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-02bf67e51173c4dec69f4f32",
+            "canonicalId:ctkg:v3e-object-e248ec663f44a2e66180b8e5"
+          ],
+          "evidenceIds": [
+            "284b99f54600e81fe9c9ea30976e1c34",
+            "7efce66c5a43cbd63bdf975d7c502c5d"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "d194d6be6601a5fca54b5fa6af3a083f031cc04062a0b474b91107b2ac11b377"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-e5b2e93a259fe14ede9eab41",
+          "canonicalRevision": "99d14aaa9e791ce4417c4782f33fb647be33e96611a451a2164eea740bc42736",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-89c08262bdafac9469413d38",
+            "canonicalId:ctkg:v3e-object-e5b2e93a259fe14ede9eab41"
+          ],
+          "evidenceIds": [
+            "dafa2e9c0b940dee301cc83ca6397289",
+            "9ed6447fc72e4b2f8babbba5f2ebf9b6"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "139d3dd2226bbec2c0a10bb63b207d3eaf793c80a8a00ac8276f5a6301eae75a"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-ed8f70c40680d24a27839e48",
+          "canonicalRevision": "26b4c563e0470d970547d3551c6ed2e316bc1af8fc14a4ccffaf177ef64311d7",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-797dd1b5320a934baff4fc49",
+            "evidence:ctkg:v3e-evidence-fa5c91e7775c7f0da6c0249c",
+            "canonicalId:ctkg:v3e-object-ed8f70c40680d24a27839e48"
+          ],
+          "evidenceIds": [
+            "97043493f2400fd6bcc4a2da35489dbc",
+            "071b23b5880a41971ef6b314c006e8b0",
+            "f322c782e25b339be1c4933ff3b70cb2"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "edb315d8650e9cb45162a3bc358a4097c6fe0fa8d839e3d7d0356bb4474bc3b4"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-f109a1072fd5ec7c9a7a94cb",
+          "canonicalRevision": "69d587cca3c011be78229e294fcfafaff434fe044374fca5266c617209f61034",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-5d16bdf697c708375b558a9b",
+            "canonicalId:ctkg:v3e-object-f109a1072fd5ec7c9a7a94cb"
+          ],
+          "evidenceIds": [
+            "b386104a9ca4253c24dad90b034a0d47",
+            "8c27f4c58e008d640a84a4aac2f4718f"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "2381edd3e77001c23f108a357e00d1ac8e5849ecc82e37fcb6c06bbbdafadd6b"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-fcaf359ef3993f8e4e179f36",
+          "canonicalRevision": "9929b52e98e14114e48b364df787912bdc69673c18415345e7f47d5ed2a34226",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-582dfade3afa16fe47d06a31",
+            "canonicalId:ctkg:v3e-object-fcaf359ef3993f8e4e179f36"
+          ],
+          "evidenceIds": [
+            "63df39e00738908589c0925ee57612ec",
+            "fea6ec2db6d4f1299b037f6a58d0ad25"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "b9e19f3eac424cc06c11067a2bfb957390f030a532901a837d5ac57c949d993f"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-ffad75acbd9eb90347d29a10",
+          "canonicalRevision": "75c4cc2b93e47841f7caeeed5fd9053ad4a71e1a306b124a091bafde838f376d",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-dceb471b8e83e893b203d570",
+            "canonicalId:ctkg:v3e-object-ffad75acbd9eb90347d29a10"
+          ],
+          "evidenceIds": [
+            "116bc83858fdd0a00bff10b494e0dc80",
+            "425d07fe75806f34f6d6d908bc99237d"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "48e9a05d5540e28241851e4397f35c1753c724de13dc44573240d135472f7c96"
+        },
+        {
+          "canonicalId": "ctkg:v3e-object-fffc8da83a5258ec01126edc",
+          "canonicalRevision": "e2d33c224179336a07c08b542f092d08340f0dea3b5a121455a16944a7f4c80a",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctkg:v3e-evidence-20eb0d3f72d53511fe532fd2",
+            "canonicalId:ctkg:v3e-object-fffc8da83a5258ec01126edc"
+          ],
+          "evidenceIds": [
+            "45c563f74a7a80e803f0998166203169",
+            "bf4b8a48bfbd2e4408f6da27d7c77c89"
+          ],
+          "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+          "decisionDigest": "966165c754ae143cd7ca1d390085826d8ab341d5468af7f6495705f51edc6c56"
+        }
+      ],
+      "documentDigest": "274068d06b1e6ec5b7e5aa74cec8d7061073ce79653538301640258f88032bfc"
+    },
+    "third": null
+  },
+  "terminalMembers": [
+    {
+      "canonicalId": "ctkg:v3e-object-07d0901e1f1d4d60f34507a8",
+      "canonicalRevision": "34f43f97fed76c426ff81563bb72bcf4a2b6d24be5ab8a4a618548e8a63f6a2f",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "2966929350206618c788c8f2d70244c407629dae0451aea659ce51767d73dedd",
+        "458409505ddb8bb89dcae1a6ac1d8392367b99f3cafba89821c6686807de6439"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0f224eb8388293b64baf7bef",
+      "canonicalRevision": "6223b4306367fbaf72a3eb91a5a84c994bb4f2ed0f04ecc4e27b2d3127ea5bd4",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "666091117b38e030d66daaa69bdd86539da6e4a4ba2edd0e922d9e46d20e2dcc",
+        "7c416a6f4ac74bc32dbb528c06d9b2351280fe10c7957c7233d07e5408b6965d"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+      "canonicalRevision": "a7ae9060d4cb424d2554bdd26b6f439689c083adcc0bbdbbeaf4454b30f31ec5",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "cba6db0bbde4aeeff33039402b51ceb1de767e24d4c787a71c480249f37653c1",
+        "af7d3d2ddaf1184861a4d7661d972ad90090d27da1b1786e1ee8e4057443766f"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-14841fb286867e13c55e0190",
+      "canonicalRevision": "d0b2ba826ec4ad50df5840a0f0097cbc8795a67384ce92b70bb7bdfcdf552f19",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "367ab76bc8762f0b0e0941e27aba418293c119ca14339ad48968265a510c9b85",
+        "4efb9df753e876e1dd38f3a52176aa1bb67f88557211449de963d4370728577d"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-17ec6f5bba991857bbe35f3c",
+      "canonicalRevision": "ee15e6dd95ea19b211b247ee10731942b7f79138ddd917d3209e58981459cf87",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "a6ed6f8af856817c5799560ef6be2dce473f3661f1d159d95a5633563a0bd67e",
+        "36324bd933be3713a4c37e1bd2d04b417ae91becf3fa5c7574804708789b7ee3"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1d2a1d7e325ba626faf93ab5",
+      "canonicalRevision": "62200d78bc79c73fde15d807743a258ff061cb32da5e3472e504fd5f281d44ac",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "5d81f04cb064fc431ebf8f37fe76e7c70ac383ffe08df268fca47002644bbc28",
+        "476966caf5ca51f49c574a442633f64e1bd634aa950ffce25cd3aee60066cce1"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-20f672e45f634ba04881526b",
+      "canonicalRevision": "df5435168a7ae0b1ecf22a3ce944104e931002f70a8a3e5e5985a75623a7531e",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "4a3ad9dddf295d98c5840369fd4373431d78ce9be69070f2910e3cf4756614f9",
+        "0b444092443e655109684a1247ab7ae32f1a6263cf55a6d12c0629f20f215f17"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-22f6b04371dfdb4a30972659",
+      "canonicalRevision": "b22330c43e59bd621359d4d48acbad5cc14d482cc1fa21b585498c120a78d4bd",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "64a27f355b80568d214597b873de78c7e0d8cc53a4f9c0fda8f806ee80be9867",
+        "4ee92c4a3cf43366d96ebd860b176e782ea1cf44cf1694c57b0fd8f84e480c4a"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-2e79ef7774133bdad1c88d21",
+      "canonicalRevision": "b831bdd6ea9ccc807858cf487fae46031043ade8a92884f951559c62663b8cb7",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "57bb704963b91b6edaa19a588bc131f55bf9f25149592080e3f4e3ca3220d3bf",
+        "5196c2149663ecf681010cf6ec63f43f81dcb678066c6d2e7f0f4b125737594f"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-38a77e20eec796109bd1793f",
+      "canonicalRevision": "17cc881ce527b93d19c802dd528b6ccf437f92de0c002d5aa094e8487f809aa9",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "1a66a893770aeab7469d770b4c1e7b6842a5eea15f23461bb2f5bd1cda774176",
+        "af862b762c3f793e7eb12efb94d47ea4554b2164a49daee856d97bcecb335ba9"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-391f0fb6ec3666a2ce191891",
+      "canonicalRevision": "098d3cfea577998dfc260466406f7c1496270c0f623f32ba79c3e5ed38ea5d60",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "ee94a35d382ffef911cb56c63317b5145699a241370618a95a22bd68db6fcc86",
+        "22ca9adf4e32f9f3be21de5a708fb062cd51a73ce48d247a81a02d5b5fbcb109"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3dddd29ea79a726ff9294909",
+      "canonicalRevision": "7baa62b5971c16e8758ed8d8ef1ce97a43a3e92b82ddbe503417edaa3b1b1d03",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "571f305c5fef783eece4c4cd2ec60587c896c4cb7ae244dab1f915b52a7e4c3b",
+        "836ea2ad5dfd7f3c1bcbb4c0506425862258945b8012b8da501b5bc383c3d560"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca",
+      "canonicalRevision": "ef1e2b13ed9a9aa0d4baee34f71832e9cba11c0078c647bc7d19cca19b23c006",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "bd932a24c39375c8f69897e411ef45c2898c56ee978468cc072b1cd623021ef7",
+        "0dc647e835aae63cf73ef7c16f121e4080443777bde268763f21e36b4a8e1ac9"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+      "canonicalRevision": "3b80f4d6f29b9aab74db6c19398a1a334f311c3496f87c43aa0d28e6b3b4981e",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "57a7a0007cbdebc9ec2a308930ebbef7f315d5a883b2477f0548def52c6cd0ce",
+        "914f68c409a27b0f33c2bd556bf5cc262bfa254e04cf34a9706a23043fda25b3"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-4a23750bb1520504403f7aa4",
+      "canonicalRevision": "33a141c0d162baaa123de5f6a03e3f31d0d4bc0071cf9c11e0b3e82381add1c9",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "c34b0bdbc7c67584123fab6a9c15c9ea43366067d9c36ef7cfe513a9860be4ee",
+        "a2ec153396f53111e21056d1ad5bc794fa0b4c68d4e2085b1d251649e8c7c73c"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-61be5094c4245cc8bd3fa0b2",
+      "canonicalRevision": "0a28ca43dc725ea710878f01afb75357c63a6a60a6235facd2dccad754b94bc7",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "7ddad47dc4cd969991b378a432251cde2f9e6f1c9a15133f31dade416767071d",
+        "87bf6fcd5d420dc7616bd237baafb6cb4f077247d80dff8445cdfa116deba26f"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-62b50d2d7fbb060bd58fe7f5",
+      "canonicalRevision": "c5b76672ca42ec05f27584b4711ea8431875d58531684ce4515319be35a0527d",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "563bd75478e40cd173717901dbeb6bd72fe49af5002b58c240a2e3e517ea81ea",
+        "08849ab4def94c401a2eed7bf63c4d21b7895567e5797c206686af39a7b5744f"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-659317594d3f3e5d41a80a57",
+      "canonicalRevision": "2c50f98db9aad43d8479adf4967fc011b8d095bea0a983e12072751b32797015",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "200d4e0c458968ae08d18674965c004909d14d0bcfe182e042572a7330a491e2",
+        "e44649b52ed5c1371d7060ea339410f3ac13a3507d9693e09dfbf726c101bcb9"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6752b348406951a18f3c041d",
+      "canonicalRevision": "e435b4224e08d7a7cf466994a55257045475b3a17f69d4777f0817d902c83c2a",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "c5c605de1ddbe78c0cdde18b8cb1ca6bb1b8825f2b916843bf01bf1cfca099bb",
+        "2e5d8bb6c05c7c4cbdb5709f6b07de756b6260d0bc04aa327b3de1025f9dca47"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7d6f500f9839e964c6f15163",
+      "canonicalRevision": "298f167ea158d1ec48a95930085693b6e9004e57d781d49231ca7979ad690cbd",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "878d3067ff83751c8a1a6b3ff48df6d5c2edd311371ba9e66c927b180e811ca2",
+        "8b81505722c80355724847d906d02e256c9ac2cdbf0267a76caae8b645499638"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7eab83363cc1ae2584439aad",
+      "canonicalRevision": "8dfc2ee2b5083d454f9bf430ed0777d374f258feb38b36429377d34595183447",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "fbab154c4e6efafdbdb717e48b2f137fac5cbf420b32e6a18e35278de82afe23",
+        "fa8d64ffb0651fee0f435296e5888fb9353801b75b23f7b9c23cb1233720f14c"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-81b011029a6f0d8278513e00",
+      "canonicalRevision": "793196ca4f3311974411dea1cd36a889a99df01eb6e2c0a652952d7223b2f359",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "b38077ad44bb6c391eea94ddaf0e653c875f723f9533f1d3baa668fcb01633c7",
+        "a2ec253ef38e8e1e009092245e6744bf7de49082caa35972a252fb52b6c806db"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8852ec91627844d2b3ab75e3",
+      "canonicalRevision": "b567d19f380773fe0a6b5ad8bb541ad5a590eee91167cb451e4bcd4cdbf1e8bb",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "85574878b6de43666a9688a3864c352948a81f526a28e65b20c094eaa9854df6",
+        "bca5bfe74a63e11c444d189d5bf2347f4a79b8c285c367b7a341ce0a24bde126"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-89acff8dd9d045ce368bb017",
+      "canonicalRevision": "0db82a4a8a8a84c4a40ffc7fc415ef275c5a5b00f0dc5bfde728f37635351650",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "083b8d39ea4db01273e41051c285002d8428d0926562fe9409ea0a07adeb0c55",
+        "09a61a2e6667204040c40f29bdfff53a69f5de06a42d7d4a6babca24d91c633f"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8b3db8f5ab28587a80b0a989",
+      "canonicalRevision": "faa27b449e6bf158f4b3e8f9c6facc65a279e93c4d801a51c44e3887f5835dfa",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "4b6c0462c538c44494d2d53361b8f9eef8a96d4cae4e0ff8c20877a5cb48a141",
+        "24b8ec095b2e1a40b0d71c5238b9cc54f64ff767f40f0614a2314eb7d497b564"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8e8245d98aacc48574cbd41a",
+      "canonicalRevision": "7e23d51e848fba499d93f303a19b6e185d042c714b2285e306eb93fddf584d4b",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "76a2c5580220203a61bd294234251be074a269d143139763bba76964d9289aae",
+        "c62aa7283c0bd46427846e9efd5d63858a805f2236568f4a4f10499ff2b3bf1d"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-99c11bd300baace02c9f883a",
+      "canonicalRevision": "3b920cb2b056af963c53544307cc9894f6797da9f769d231081b9108645fb8e1",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "e6b8abd69068eaf1288c9b5cc7a73e8be52d23233ed65b2e84c4b2f4596b73e0",
+        "e34239d8949806dbd94ed69bc4d1d56e667b9805a7c8998f3c6fe3d9a96d951d"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9aac02e883a543e43b255294",
+      "canonicalRevision": "bb6049695efec560023c832f9f480105df9a8855df325ad02749ede4183df5f1",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "96f51570123d0fadc2703a344c1d8b90d95a3b112cc927c0822c6479a043a300",
+        "ad9249a46b4b6d6d8caa94abfcaff342c63ae5f14494d9a3124b69c1c360bbd3"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9b033c1214c9b9dce46bf8b3",
+      "canonicalRevision": "9885c3bbbf7ed9f16b89757eaa33cfa3170c9c35942b74a00d252ada8d3e83bc",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "eef8b5a246ee0207dbcaa12b00c1f661679bac8ca683b63a0ec17d88fde468c7",
+        "605fd4b5f2298e0ab7b3fe04b942090670139aac6067bb4d2239451d7d4bee0a"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9cba2e0a1c543ae840961ac7",
+      "canonicalRevision": "da5936a9b087a685293bba92f497c2143a508db9796a0ee079035447c44f42a8",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "9c7e4ca7cff7a3785a193603a2ca8fcaf9b5aa43b503a17a5bbb037704101076",
+        "00cbe61290184d587dc59d137a83e4bc8ebf117bc80513c5acba56a2d17e4eae"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a5a0082ecac6ee90f76ca1af",
+      "canonicalRevision": "40e27f800fcc0d2f6e4ba213c362b39b1b9cffc1596633195b0cfcc52fe0a194",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "1e3496fdd96a68113ab86ebc4ca3ee48959e13120a48172352b01d6188bd08b5",
+        "4cdaf79c9bfb67e338c23b6d252a9e9b2cd2da7b36ce693832fe704bf73865ab"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a7e6b499c7e257c3d64ab6c8",
+      "canonicalRevision": "0b71b00330065ef448fd94e98d17b0025efdafcd0f2b89c91b9ebd8ba6477aa3",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "f6a3cd2410a5bc692c72026ba4cff302ba07be3746f25eb5f67f082d53ca321c",
+        "78941c6def346ff26f9c249666e714d010eaab5734e95579b6185db2946a98ab"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a801b9509d0e105d9982661c",
+      "canonicalRevision": "3f78a1f75c03f7a00cde748fd3c379d2f99a6ca57be877f6d6babf82621044c7",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "ee6cbe58795885141552c195f1c59ee2137d915a30ffaa2c2b0bd8009f1025b6",
+        "ae8b74012c069ed90a8ee13e86f033c57a4cd5e04fce50a02c342d02c6725d2a"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae3b1e3f138047694684c11b",
+      "canonicalRevision": "1ea6c50d5a7f4cebce7caf935d936007eb5fbb83cadbceab68244d7dc7ce391e",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "37fc7dc1ecc7f1e5690bf6f2525be0c66c0cada5d3d78d7fb1b753c0b06907b6",
+        "63ca7d0bd7ac3649a21e57f4e1a25263fee4adfc90495835e78a39b780390d36"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ae92b4c835d9596a7e75dabd",
+      "canonicalRevision": "bf3296b4c954b6c1ae35020e22b4156e0ed269676027066c7e912c17272187cf",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "ab66a720d467245984df165c8c83cb751ab3d80248bcc024599d0a5cb886a21f",
+        "19cbf9511a871df26542546699d844ca16741b63cbf8b2a116499929c4ddfaee"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b02f0601aaa89fcada0f5ba2",
+      "canonicalRevision": "1a72937cf6340a8fd438de58ca96120d2da20c0f96a7254ddeec01a8f46a99ad",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "0b7e2dd41f954ff27ca65f26c60e3623fbbe8b09781375c4e9239bdb8c5029fc",
+        "d8099aa25704b6d7ae29e968734ba431b5d90e0844599efce738aaeaf5feb7dc"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b8cfc0ef9f55be5362eff1ec",
+      "canonicalRevision": "e6cc653adcd7a7886e33636ed910a5e5ffdd58f9ae77bac80fd03847c9babb5f",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "4e3265ed14d632b7f80bcd7fd0b81ac779eea9914192a6ec67b242b77386bef2",
+        "f904ba457c991d170c3a9cf4d1ac9724aef6cc20232c826d3fcd540c52c5f02f"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-be88a296d0549e375d475f51",
+      "canonicalRevision": "c57c8b3186d424629ef8bac606ed8c429498f8fea65deab290de57857141294d",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "59eb5253964b0aa73db0f5356f756ccabfab4aa3b276d3cc6a8d191fa3b3a0b4",
+        "dc757f521b207b5f685551f550db6bd696f1894a91153434af958233fdd564ab"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c00ba45bcb61d901d427008d",
+      "canonicalRevision": "f0b362d20a373953e5d93f40fc4576cef6f3f2df739f131a48a64f5dedd09bf9",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "65e8793972aab6bd92857608efdeafb09a2d8aca696e1c1cb1c5decead6018bd",
+        "f489391f91c932dc223f82dbeed60ddd12a4a816a153307a046a5edc83198e85"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c651a5483e68f1f0e3aabe2e",
+      "canonicalRevision": "1694137002a50c138af36ac37d44643e464172b71dbd376104d81e6d2c96235a",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "208a9e5b1b846513817663e5e14cf75094444b59156cbe4c1a33f6e1aeabdc1d",
+        "886fece5077fa4e8228682873fafdba81457dbecc3eda48aaa70028ddf7fbfd7"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d57c7f77aae186e5e85db076",
+      "canonicalRevision": "ed8fcd49669efda4aedabeb7f350748ca4cbd309121af51418dd9ab9e2bdaa0b",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "1648da4596b68e48ffe5c75bba8f84b0c88041a2863de4630987eefe331962c6",
+        "cf709232d5f8feadb8a972b225fc01370824ba215052c0c23518bcf1461c1a6d"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e0f1baecfeb11e984843fb7f",
+      "canonicalRevision": "5308a06adac8289af30ad2327fea80d756aa14763e01729f01ff8d9047f134e6",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "0d5b98d5c9601a738637032bad02a9cce4e03e9a5fa49e25f651c0dda23d4bd4",
+        "f0867e126df6d535f636d7290beaca4c1833d3753bbdb821b2dd6e4482b519a5"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e16a01d3f5feeacf8ee8f42e",
+      "canonicalRevision": "cf1150023c30da40c39b724d78dae7a1a43b1d45af97486c195f40578c54f2b3",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "8211d9ba7c5d962de9f126d8a1aac1b76a16fcb5f33ec0ed01746b55fdc4bab1",
+        "790a250dbd5646dafe4cb98d55e5e7367395145ae127b0f2bff27ad129845b13"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e248ec663f44a2e66180b8e5",
+      "canonicalRevision": "0ce19b82c5e1f5ebcaf48af110150294be9f35be4f5781baab45386965dd66d0",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "0853c426f42b0cb90fa3784adefda85b00b5ce02716567b2bc67f456d551575a",
+        "d194d6be6601a5fca54b5fa6af3a083f031cc04062a0b474b91107b2ac11b377"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e5b2e93a259fe14ede9eab41",
+      "canonicalRevision": "99d14aaa9e791ce4417c4782f33fb647be33e96611a451a2164eea740bc42736",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "c3f2456d7781067121d419868ffed14d2d20363a33e6ccac7ac7fa18db11395d",
+        "139d3dd2226bbec2c0a10bb63b207d3eaf793c80a8a00ac8276f5a6301eae75a"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ed8f70c40680d24a27839e48",
+      "canonicalRevision": "26b4c563e0470d970547d3551c6ed2e316bc1af8fc14a4ccffaf177ef64311d7",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "4ee54f3e6d819a369c6f0791a814ba797b73c771bbd2fdb48b229de3a4f1cf87",
+        "edb315d8650e9cb45162a3bc358a4097c6fe0fa8d839e3d7d0356bb4474bc3b4"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-f109a1072fd5ec7c9a7a94cb",
+      "canonicalRevision": "69d587cca3c011be78229e294fcfafaff434fe044374fca5266c617209f61034",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "eb21f8fd2f9c56c3ef128bb64e1d5238222f0e281b15a15cf0faecd948f54dcc",
+        "2381edd3e77001c23f108a357e00d1ac8e5849ecc82e37fcb6c06bbbdafadd6b"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fcaf359ef3993f8e4e179f36",
+      "canonicalRevision": "9929b52e98e14114e48b364df787912bdc69673c18415345e7f47d5ed2a34226",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "a244aaf5761c36e2315f2760f9194e77ec40b7e88eee7962f02024aa933e4226",
+        "b9e19f3eac424cc06c11067a2bfb957390f030a532901a837d5ac57c949d993f"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ffad75acbd9eb90347d29a10",
+      "canonicalRevision": "75c4cc2b93e47841f7caeeed5fd9053ad4a71e1a306b124a091bafde838f376d",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "19e70047178a2234dfa917d408b68b8713ab6dc374e3a8f5cab8f9150acd41ad",
+        "48e9a05d5540e28241851e4397f35c1753c724de13dc44573240d135472f7c96"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-fffc8da83a5258ec01126edc",
+      "canonicalRevision": "e2d33c224179336a07c08b542f092d08340f0dea3b5a121455a16944a7f4c80a",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "21b9ae6e8c5d69a8e0e999c6a118fd28158172da02bafa05c94e6e6b26ba15c9",
+        "966165c754ae143cd7ca1d390085826d8ab341d5468af7f6495705f51edc6c56"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    }
+  ],
+  "counts": {
+    "members": 50,
+    "included": 0,
+    "excluded": 0,
+    "deferredEvidenceBlocked": 50,
+    "conflicts": 0,
+    "thirdReviewed": 0
+  },
+  "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+  "productionBoundaries": {
+    "currentCoverageDecisionWritten": false,
+    "productionSelectorChanged": false,
+    "graphRagSelectorChanged": false,
+    "writerFenceChanged": false
+  },
+  "productionBoundaryProof": {
+    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
+    "receiptPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/batch-receipt.json",
+    "attestationPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/batch-boundary-attestation.json",
+    "headBefore": "698a1a8e5c53a65fa1529749972135bd4d409646",
+    "protectedPaths": [
+      "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+      "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+      "src/lib/canonical-rag/authority.ts",
+      "src/lib/canonical-learning-fact-identity/authority.ts",
+      "src/lib/canonical-learning-fact-identity/capability.ts",
+      "src/lib/canonical-learning-fact-identity/writer.ts"
+    ],
+    "protectedPathSnapshots": [
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+        "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+        "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+      },
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+        "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+        "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+      },
+      {
+        "relativePath": "src/lib/canonical-rag/authority.ts",
+        "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+        "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+        "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+        "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+        "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+        "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+        "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+        "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+      }
+    ],
+    "statusBefore": [],
+    "authoritySnapshotBeforeDigest": "dadf20b9700a9a3763a079509c46bb945807c1d711eafe92ec9c68f17652e9d0",
+    "gitDiffCheck": "PASS",
+    "mutationFlags": {
+      "currentCoverageDecisionWritten": false,
+      "productionSelectorChanged": false,
+      "graphRagSelectorChanged": false,
+      "writerFenceChanged": false
+    }
+  },
+  "reviewProvenanceBinding": {
+    "provenancePath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/review-provenance.json",
+    "provenanceSha256": "dd37099d4fc1aed64ba0cd264552a1dd0cf9c968f632e011e9111b2722f43d7f",
+    "independenceAudit": {
+      "protocol": {
+        "primaryCouldReadChallengerArtifact": false,
+        "challengerCouldReadPrimaryArtifact": false,
+        "normalizedStageArtifactsExistedDuringReviews": false,
+        "sourceArtifactsCreatedByIndependentWriters": true,
+        "sourceArtifactsBoundToNormalizedReviews": true,
+        "semanticConclusionsGeneratedByAssembler": false
+      },
+      "primary": {
+        "stage": "PRIMARY",
+        "provider": "grok-4.5-build",
+        "sessionId": "1b269d47-dd00-4387-8df7-75e7c5e1b8dc",
+        "reviewSessionId": "1b269d47-dd00-4387-8df7-75e7c5e1b8dc",
+        "reviewSessionScope": "act:issue-1212:primary-review",
+        "sourceWriterSessionId": "1b269d47-dd00-4387-8df7-75e7c5e1b8dc",
+        "sourceWriterScope": "act:issue-1212:primary-review",
+        "sourceArtifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/primary-independent-stage-source.json",
+        "sourceArtifactSha256": "52d645362c4840c316faa3b070f120b9d928f4f2bd920942cad777cd75c06a8f",
+        "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/primary-review.json",
+        "normalizedDocumentDigest": "7c3ab5b29910885d4201c5cf0cc3405fd6f8e3af943d6d5a43e4a5b14df6eb32"
+      },
+      "challenger": {
+        "stage": "CHALLENGER",
+        "provider": "grok-4.5-build",
+        "sessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304",
+        "reviewSessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304",
+        "reviewSessionScope": "act:issue-1212:challenger-review",
+        "sourceWriterSessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304",
+        "sourceWriterScope": "act:issue-1212:challenger-review",
+        "sourceArtifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/challenger-independent-stage-source.json",
+        "sourceArtifactSha256": "d12e5a925f24bd86fed1722370850f89fe201733c22314752bed95324c402375",
+        "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/challenger-review.json",
+        "normalizedDocumentDigest": "274068d06b1e6ec5b7e5aa74cec8d7061073ce79653538301640258f88032bfc",
+        "didNotReadPrimaryArtifact": true,
+        "sessionAuditPrimaryPathMentions": 0
+      },
+      "third": null
+    }
+  },
+  "receiptDigest": "f0de14d9f28b9a0b397fc18cc84a677cc52834537028038a51a81cde773c8dae"
+}
