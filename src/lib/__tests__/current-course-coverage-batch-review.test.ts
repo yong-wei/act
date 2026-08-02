@@ -53,6 +53,7 @@ const SHA_A = 'a'.repeat(64);
 const SHA_B = 'b'.repeat(64);
 const SHA_C = 'c'.repeat(64);
 const COMMIT = 'd'.repeat(40);
+const ISSUE_1200_RECEIPT_PATH = 'course-content/authoring/knowledge/issue-1200-course-coverage-review/batch-receipt.json';
 
 function productionBoundaryProof(
   overrides: Partial<CurrentCourseCoverageProductionBoundaryProofV2> = {},
@@ -307,6 +308,10 @@ function receipt(
   });
 }
 
+function issue1200Receipt(): ReturnType<typeof receipt> {
+  return JSON.parse(readFileSync(ISSUE_1200_RECEIPT_PATH, 'utf8')) as ReturnType<typeof receipt>;
+}
+
 function threeStageDocuments() {
   const base = fixture({ independent: true, members: ['a'] });
   const primary = stageReview({
@@ -508,6 +513,71 @@ function resealReceipt(inputReceipt: ReturnType<typeof receipt>): ReturnType<typ
   };
 }
 
+function resealStageRecord(inputRecord: CurrentCourseCoverageStageReview): CurrentCourseCoverageStageReview {
+  const { documentDigest: _documentDigest, decisions, ...withoutDocumentDigest } = inputRecord;
+  return sealCurrentCourseCoverageStageReview({
+    ...withoutDocumentDigest,
+    decisions: decisions.map(({ decisionDigest: _decisionDigest, ...decision }) => decision),
+  });
+}
+
+function synchronizeReceiptAfterChallengerMutation(inputReceipt: ReturnType<typeof receipt>): void {
+  const binding = inputReceipt.reviewProvenanceBinding;
+  if (!binding) throw new Error('fixture requires review provenance binding');
+  const challenger = inputReceipt.stageRecords.challenger;
+  if (challenger) {
+    const resealedChallenger = resealStageRecord(challenger);
+    inputReceipt.stageRecords.challenger = resealedChallenger;
+    inputReceipt.stageDocuments.challengerDigest = resealedChallenger.documentDigest;
+    const challengerAudit = binding.independenceAudit.challenger;
+    if (!challengerAudit) throw new Error('fixture requires Challenger provenance audit');
+    challengerAudit.normalizedDocumentDigest = resealedChallenger.documentDigest;
+  } else {
+    inputReceipt.stageDocuments.challengerDigest = null;
+    binding.independenceAudit.challenger = null;
+  }
+  const primaryById = new Map(
+    inputReceipt.stageRecords.primary.decisions.map((decision) => [decision.canonicalId, decision]),
+  );
+  const challengerById = new Map(
+    challenger?.decisions.map((decision) => [decision.canonicalId, decision]) ?? [],
+  );
+  inputReceipt.terminalMembers = inputReceipt.terminalMembers.map((member) => {
+    const primaryDecision = primaryById.get(member.canonicalId);
+    if (!primaryDecision) throw new Error(`fixture is missing Primary decision for ${member.canonicalId}`);
+    const challengerDecision = challengerById.get(member.canonicalId);
+    return {
+      ...member,
+      conclusion: primaryDecision.conclusion,
+      role: primaryDecision.role ?? null,
+      evidenceSufficiency: primaryDecision.evidenceSufficiency,
+      terminalSource: challengerDecision ? 'CONSENSUS' as const : 'PRIMARY' as const,
+      stageDecisionDigests: [
+        primaryDecision.decisionDigest,
+        ...(challengerDecision ? [challengerDecision.decisionDigest] : []),
+      ],
+      coverageAuthorityState: primaryDecision.conclusion === 'DEFER'
+        ? 'UNRESOLVED_BLOCKING' as const
+        : 'REVIEWED_NOT_CURRENT' as const,
+    };
+  });
+  const conflicts = [...challengerById.values()].filter((challengerDecision) => {
+    const primaryDecision = primaryById.get(challengerDecision.canonicalId);
+    return Boolean(primaryDecision
+      && (primaryDecision.conclusion !== challengerDecision.conclusion
+        || (primaryDecision.role ?? null) !== (challengerDecision.role ?? null)
+        || primaryDecision.evidenceSufficiency !== challengerDecision.evidenceSufficiency));
+  }).length;
+  inputReceipt.counts = {
+    members: inputReceipt.terminalMembers.length,
+    included: inputReceipt.terminalMembers.filter((member) => member.conclusion === 'INCLUDE').length,
+    excluded: inputReceipt.terminalMembers.filter((member) => member.conclusion === 'EXCLUDE').length,
+    deferredEvidenceBlocked: inputReceipt.terminalMembers.filter((member) => member.conclusion === 'DEFER').length,
+    conflicts,
+    thirdReviewed: inputReceipt.stageRecords.third?.decisions.length ?? 0,
+  };
+}
+
 describe('current CourseCoverage batch review receipt', () => {
   it('derives a stable provenance binding into the receipt digest', () => {
     const input = documents();
@@ -654,6 +724,52 @@ describe('current CourseCoverage batch review receipt', () => {
       receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
       attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
     })).toThrow(/challenger stage\/provenance closure mismatch/iu);
+  });
+
+  it.each([
+    ['Challenger stage removed', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.stageRecords.challenger = null;
+    }],
+    ['Challenger decisions emptied', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      const challenger = tamperedReceipt.stageRecords.challenger;
+      if (!challenger) throw new Error('fixture requires Challenger stage record');
+      challenger.decisions = [];
+    }],
+    ['Challenger decisions partially covered', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      const challenger = tamperedReceipt.stageRecords.challenger;
+      if (!challenger) throw new Error('fixture requires Challenger stage record');
+      challenger.decisions = challenger.decisions.slice(0, 1);
+    }],
+  ] as const)('rejects a fully resealed bound receipt when Challenger is not a full ordered review: %s', (_label, mutate) => {
+    const boundReceipt = issue1200Receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    mutate(tamperedReceipt);
+    synchronizeReceiptAfterChallengerMutation(tamperedReceipt);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/bound Challenger stage is required|bound challenger must cover orderedMembers exactly/iu);
+  });
+
+  it('accepts a general bound receipt with an ordered Challenger subset when no conflict exists', () => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    const challenger = tamperedReceipt.stageRecords.challenger;
+    if (!challenger) throw new Error('fixture requires Challenger stage record');
+    challenger.decisions = challenger.decisions.slice(0, 1);
+    synchronizeReceiptAfterChallengerMutation(tamperedReceipt);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
   });
 
   it.each([
@@ -1021,6 +1137,255 @@ describe('current CourseCoverage batch review receipt', () => {
       receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
       attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
     })).toThrow(/reviewer\.(identity|sessionId) must be a non-empty string/iu);
+  });
+
+  it.each([
+    ['ordered member pop', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.orderedMembers.pop();
+    }],
+    ['memberCount drift', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.memberCount += 1;
+    }],
+    ['memberDigest drift', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.memberDigest = SHA_A;
+    }],
+    ['ordered member order drift', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      [tamperedReceipt.orderedMembers[0], tamperedReceipt.orderedMembers[1]] = [
+        tamperedReceipt.orderedMembers[1]!,
+        tamperedReceipt.orderedMembers[0]!,
+      ];
+    }],
+  ] as const)('rejects a fully resealed bound bundle when ordered-member closure drifts: %s', (_label, mutate) => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    mutate(tamperedReceipt);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/orderedMembers|memberDigest|batch binding/iu);
+  });
+
+  it('rejects a fully resealed bound bundle when terminalMembers is truncated', () => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    tamperedReceipt.terminalMembers.pop();
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/terminalMembers closure drift/iu);
+  });
+
+  it.each([
+    ['members', 'members'],
+    ['included', 'included'],
+    ['excluded', 'excluded'],
+    ['deferredEvidenceBlocked', 'deferredEvidenceBlocked'],
+    ['conflicts', 'conflicts'],
+    ['thirdReviewed', 'thirdReviewed'],
+  ] as const)('rejects a fully resealed bound bundle when counts.%s drifts', (_label, field) => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    tamperedReceipt.counts[field] += 1;
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/counts closure drift/iu);
+  });
+
+  it.each([
+    ['status', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.status = tamperedReceipt.status === 'PASS'
+        ? 'DEFERRED_EVIDENCE_BLOCKED'
+        : 'PASS';
+    }],
+    ['aggregateCoverageGate', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.aggregateCoverageGate = tamperedReceipt.aggregateCoverageGate === 'BLOCKED_PENDING_ALL_BATCHES'
+        ? 'BLOCKED_UNRESOLVED_EVIDENCE'
+        : 'BLOCKED_PENDING_ALL_BATCHES';
+    }],
+  ] as const)('rejects a fully resealed bound bundle when %s is inconsistent', (_label, mutate) => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    mutate(tamperedReceipt);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/status\/aggregate gate closure drift/iu);
+  });
+
+  it('rejects a fully resealed bound bundle when a resealed Primary conclusion disagrees with terminalMembers', () => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    const primary = tamperedReceipt.stageRecords.primary;
+    primary.decisions = primary.decisions.map((primaryDecision) => ({
+      ...primaryDecision,
+      conclusion: 'INCLUDE',
+      role: 'formal_objective',
+      evidenceSufficiency: 'SUFFICIENT',
+      rationale: 'Resealed semantic drift must not change terminal closure.',
+    }));
+    const challenger = tamperedReceipt.stageRecords.challenger;
+    if (!challenger) throw new Error('fixture requires Challenger stage record');
+    challenger.decisions = challenger.decisions.map((challengerDecision) => ({
+      ...challengerDecision,
+      conclusion: 'INCLUDE',
+      role: 'formal_objective',
+      evidenceSufficiency: 'SUFFICIENT',
+      rationale: 'Resealed semantic drift must not change terminal closure.',
+    }));
+    tamperedReceipt.stageRecords.primary = resealStageRecord(primary);
+    tamperedReceipt.stageRecords.challenger = resealStageRecord(challenger);
+    tamperedReceipt.stageDocuments.primaryDigest = tamperedReceipt.stageRecords.primary.documentDigest;
+    tamperedReceipt.stageDocuments.challengerDigest = tamperedReceipt.stageRecords.challenger.documentDigest;
+    tamperedReceipt.reviewProvenanceBinding!.independenceAudit.primary.normalizedDocumentDigest =
+      tamperedReceipt.stageRecords.primary.documentDigest;
+    tamperedReceipt.reviewProvenanceBinding!.independenceAudit.challenger!.normalizedDocumentDigest =
+      tamperedReceipt.stageRecords.challenger.documentDigest;
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/terminalMembers closure drift/iu);
+  });
+
+  it.each([
+    ['stale decisionDigest', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.stageRecords.primary.decisions[0]!.rationale = 'stale decision digest';
+    }],
+    ['stale documentDigest', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.stageRecords.primary.documentDigest = SHA_A;
+      tamperedReceipt.stageDocuments.primaryDigest = SHA_A;
+      tamperedReceipt.reviewProvenanceBinding!.independenceAudit.primary.normalizedDocumentDigest = SHA_A;
+    }],
+  ] as const)('rejects a fully resealed bound bundle with %s', (_label, mutate) => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    mutate(tamperedReceipt);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/decisionDigest mismatch|documentDigest mismatch/iu);
+  });
+
+  it('rejects a fully resealed bound bundle when a stage batchBinding drifts', () => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    tamperedReceipt.stageRecords.primary.batchBinding.batchId = 'drifted-batch-id';
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/stage\/batch binding drift/iu);
+  });
+
+  it('rejects a fully resealed bound bundle when productionBoundaries drift from proof flags', () => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    (tamperedReceipt.productionBoundaries as unknown as Record<string, boolean>).currentCoverageDecisionWritten = true;
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/production boundary mutation closure drift/iu);
+  });
+
+  it('rejects a fully resealed bound bundle with a pseudo-Third when Primary and Challenger agree', () => {
+    const { receipt: boundReceipt } = threeStageReceipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    const challenger = tamperedReceipt.stageRecords.challenger;
+    if (!challenger || !tamperedReceipt.stageRecords.third) throw new Error('fixture requires three stages');
+    const primaryDecision = tamperedReceipt.stageRecords.primary.decisions[0]!;
+    const challengerDecision = challenger.decisions[0]!;
+    challenger.decisions[0] = {
+      ...challengerDecision,
+      conclusion: primaryDecision.conclusion,
+      role: primaryDecision.role,
+      evidenceSufficiency: primaryDecision.evidenceSufficiency,
+      evidenceSelectors: [...primaryDecision.evidenceSelectors],
+      rationale: primaryDecision.rationale,
+    };
+    tamperedReceipt.stageRecords.challenger = resealStageRecord(challenger);
+    tamperedReceipt.stageDocuments.challengerDigest = tamperedReceipt.stageRecords.challenger.documentDigest;
+    tamperedReceipt.reviewProvenanceBinding!.independenceAudit.challenger!.normalizedDocumentDigest =
+      tamperedReceipt.stageRecords.challenger.documentDigest;
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/Third is forbidden|conflicts/iu);
+  });
+
+  it('rejects a fully resealed bound bundle when Third is deleted despite Primary/Challenger conflict', () => {
+    const { receipt: boundReceipt } = threeStageReceipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    tamperedReceipt.stageRecords.third = null;
+    tamperedReceipt.stageDocuments.thirdDigest = null;
+    tamperedReceipt.reviewProvenanceBinding!.independenceAudit.third = null;
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/Third is required|conflicts/iu);
+  });
+
+  it('rejects a fully resealed bound bundle with an incorrect terminalSource', () => {
+    const { receipt: boundReceipt } = threeStageReceipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    tamperedReceipt.terminalMembers[0]!.terminalSource = 'PRIMARY';
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/terminalMembers closure drift/iu);
+  });
+
+  it('accepts a self-consistent bound receipt through the internal closure validator', () => {
+    const boundReceipt = receipt();
+    const attestation = attestationV2For(boundReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: boundReceipt,
+      attestation,
+      receiptPath: boundReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: boundReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
   });
 
   it('assembles deterministic blocking receipt without production authority writes', () => {

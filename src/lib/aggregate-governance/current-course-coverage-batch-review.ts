@@ -1009,6 +1009,272 @@ function assertBoundStageRecordClosure(receipt: CurrentCourseCoverageBatchReceip
   }
 }
 
+function receiptRequiredString(value: unknown, field: string): string {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(`Current batch review rejected: ${field} must be a non-empty string`);
+  }
+  return value;
+}
+
+function assertReceiptDecisionContract(
+  value: unknown,
+  field: string,
+): asserts value is CurrentCourseCoverageStageDecision {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Current batch review rejected: ${field} is invalid`);
+  }
+  const decision = value as CurrentCourseCoverageStageDecision;
+  if (!['INCLUDE', 'EXCLUDE', 'DEFER'].includes(decision.conclusion)) {
+    throw new Error(`Current batch review rejected: ${field}.conclusion is invalid`);
+  }
+  if (!['SUFFICIENT', 'INSUFFICIENT'].includes(decision.evidenceSufficiency)) {
+    throw new Error(`Current batch review rejected: ${field}.evidenceSufficiency is invalid`);
+  }
+  if (!Array.isArray(decision.evidenceSelectors) || decision.evidenceSelectors.length === 0) {
+    throw new Error(`Current batch review rejected: ${field}.evidenceSelectors must be non-empty`);
+  }
+  const selectors = new Set<string>();
+  for (const [index, selector] of decision.evidenceSelectors.entries()) {
+    const normalized = receiptRequiredString(selector, `${field}.evidenceSelectors[${index}]`);
+    if (selectors.has(normalized)) {
+      throw new Error(`Current batch review rejected: ${field} repeats evidence selector`);
+    }
+    selectors.add(normalized);
+  }
+  receiptRequiredString(decision.rationale, `${field}.rationale`);
+  if (decision.conclusion === 'INCLUDE') {
+    if (!decision.role || !ACTIVE_ROLES.has(decision.role)) {
+      throw new Error(`Current batch review rejected: ${field} INCLUDE requires an active role`);
+    }
+    if (decision.evidenceSufficiency !== 'SUFFICIENT') {
+      throw new Error(`Current batch review rejected: ${field} INCLUDE requires sufficient evidence`);
+    }
+  } else if (decision.conclusion === 'EXCLUDE') {
+    if (decision.role !== 'excluded_with_rationale' || decision.evidenceSufficiency !== 'SUFFICIENT') {
+      throw new Error(`Current batch review rejected: ${field} EXCLUDE requires excluded_with_rationale and sufficient evidence`);
+    }
+  } else if (decision.role !== undefined || decision.evidenceSufficiency !== 'INSUFFICIENT') {
+    throw new Error(`Current batch review rejected: ${field} DEFER must remain role-free and evidence-insufficient`);
+  }
+}
+
+const CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING = {
+  batchId: '3c6973d82b44357efc73f2f8',
+  sequence: 0,
+  semanticGroupKey: 'ctr:release:frequency-domain-analysis-engineering-v0.1::entityType:Formula',
+  memberCount: 232,
+  memberDigest: '321f283c747e5068c1de2dcb0e69939afe0991c6154dc3d8db3e9f853f0455c8',
+} as const;
+
+function isCurrentCourseCoverageIssue1200FrozenBatchBinding(
+  binding: CurrentCourseCoverageBatchBinding,
+): boolean {
+  return binding.batchId === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.batchId
+    && binding.sequence === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.sequence
+    && binding.semanticGroupKey === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.semanticGroupKey
+    && binding.memberCount === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.memberCount
+    && binding.memberDigest === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.memberDigest;
+}
+
+function assertCurrentCourseCoverageBatchReceiptInternalClosure(
+  receipt: CurrentCourseCoverageBatchReceipt,
+): void {
+  if (receipt.schemaVersion !== CURRENT_COURSE_COVERAGE_BATCH_RECEIPT_SCHEMA_VERSION
+    || receipt.protocol !== 'current-course-coverage-batch-review/1') {
+    throw new Error('Current batch review rejected: bound receipt schema/protocol mismatch');
+  }
+  const orderedMembers = receipt.orderedMembers;
+  if (!Array.isArray(orderedMembers)) {
+    throw new Error('Current batch review rejected: orderedMembers is invalid');
+  }
+  const orderedIndex = new Map<string, number>();
+  const orderedRevisions = new Map<string, string>();
+  const normalizedOrderedMembers = orderedMembers.map((member, index) => {
+    if (!member || typeof member !== 'object' || Array.isArray(member)) {
+      throw new Error(`Current batch review rejected: orderedMembers[${index}] is invalid`);
+    }
+    const row = member as Record<string, unknown>;
+    const canonicalId = receiptRequiredString(row.canonicalId, `orderedMembers[${index}].canonicalId`);
+    const canonicalRevision = receiptRequiredString(
+      row.canonicalRevision,
+      `orderedMembers[${index}].canonicalRevision`,
+    );
+    assertSha(canonicalRevision, `orderedMembers[${index}].canonicalRevision`);
+    if (orderedIndex.has(canonicalId)) {
+      throw new Error(`Current batch review rejected: orderedMembers repeats ${canonicalId}`);
+    }
+    orderedIndex.set(canonicalId, index);
+    orderedRevisions.set(canonicalId, canonicalRevision);
+    return { canonicalId, canonicalRevision };
+  });
+  if (orderedMembers.length !== receipt.batchBinding.memberCount) {
+    throw new Error('Current batch review rejected: orderedMembers/memberCount closure drift');
+  }
+  if (receipt.batchBinding.memberDigest !== sha256Canonical(normalizedOrderedMembers)) {
+    throw new Error('Current batch review rejected: orderedMembers memberDigest mismatch');
+  }
+  if (sha256Canonical(orderedMembers) !== sha256Canonical(normalizedOrderedMembers)) {
+    throw new Error('Current batch review rejected: orderedMembers shape drift');
+  }
+
+  const validateStageRecord = (
+    expectedStage: CourseCoverageReviewStage,
+    record: CurrentCourseCoverageReceiptStageRecord | null,
+    requireFullOrderedMembers = expectedStage === 'PRIMARY',
+  ): Map<string, CurrentCourseCoverageStageDecision> => {
+    if (!record) return new Map();
+    const stageLabel = expectedStage.toLowerCase();
+    if (record.schemaVersion !== CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} stage schema mismatch`);
+    }
+    if (record.stage !== expectedStage || !sameBinding(receipt.batchBinding, record.batchBinding)) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} stage/batch binding drift`);
+    }
+    if (!Array.isArray(record.decisions)) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} decisions are invalid`);
+    }
+    const decisionsById = new Map<string, CurrentCourseCoverageStageDecision>();
+    let previousOrderedIndex = -1;
+    for (const [index, value] of record.decisions.entries()) {
+      const field = `bound ${stageLabel}.decisions[${index}]`;
+      assertReceiptDecisionContract(value, field);
+      const decision = value;
+      const canonicalId = receiptRequiredString(decision.canonicalId, `${field}.canonicalId`);
+      const canonicalRevision = receiptRequiredString(
+        decision.canonicalRevision,
+        `${field}.canonicalRevision`,
+      );
+      assertSha(canonicalRevision, `${field}.canonicalRevision`);
+      const expectedRevision = orderedRevisions.get(canonicalId);
+      const memberIndex = orderedIndex.get(canonicalId);
+      if (expectedRevision === undefined || memberIndex === undefined
+        || canonicalRevision !== expectedRevision) {
+        throw new Error(`Current batch review rejected: ${field} member closure drift`);
+      }
+      if (memberIndex <= previousOrderedIndex || decisionsById.has(canonicalId)) {
+        throw new Error(`Current batch review rejected: bound ${stageLabel} decision order/uniqueness drift`);
+      }
+      previousOrderedIndex = memberIndex;
+      const { decisionDigest: storedDecisionDigest, ...withoutDecisionDigest } = decision;
+      assertSha(storedDecisionDigest, `${field}.decisionDigest`);
+      if (storedDecisionDigest !== decisionDigest({
+        stage: expectedStage,
+        reviewer: record.reviewer,
+        reviewInputDigest: record.reviewInputDigest,
+        decision: withoutDecisionDigest,
+      })) {
+        throw new Error(`Current batch review rejected: ${field}.decisionDigest mismatch`);
+      }
+      decisionsById.set(canonicalId, decision);
+    }
+    if (requireFullOrderedMembers) {
+      if (record.decisions.length !== normalizedOrderedMembers.length) {
+        throw new Error(`Current batch review rejected: bound ${stageLabel} must cover orderedMembers exactly`);
+      }
+      for (const [index, member] of normalizedOrderedMembers.entries()) {
+        const decision = record.decisions[index]!;
+        if (decision.canonicalId !== member.canonicalId
+          || decision.canonicalRevision !== member.canonicalRevision) {
+          throw new Error(`Current batch review rejected: bound ${stageLabel} decision order drift`);
+        }
+      }
+    }
+    const { documentDigest: storedDocumentDigest, ...withoutDocumentDigest } = record;
+    assertSha(storedDocumentDigest, `bound ${stageLabel}.documentDigest`);
+    if (storedDocumentDigest !== sha256Canonical(withoutDocumentDigest)) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} documentDigest mismatch`);
+    }
+    return decisionsById;
+  };
+
+  const primary = validateStageRecord('PRIMARY', receipt.stageRecords.primary);
+  const challengerMustCoverFullBatch = isCurrentCourseCoverageIssue1200FrozenBatchBinding(receipt.batchBinding);
+  const challengerRecord = receipt.stageRecords.challenger;
+  if (challengerMustCoverFullBatch && !challengerRecord) {
+    throw new Error('Current batch review rejected: bound Challenger stage is required for frozen issue-1200 batch');
+  }
+  const challenger = validateStageRecord(
+    'CHALLENGER',
+    challengerRecord,
+    challengerMustCoverFullBatch,
+  );
+  const third = validateStageRecord('THIRD', receipt.stageRecords.third);
+  const conflictIds = normalizedOrderedMembers
+    .map((member) => member.canonicalId)
+    .filter((canonicalId) => {
+      const primaryDecision = primary.get(canonicalId);
+      const challengerDecision = challenger.get(canonicalId);
+      return Boolean(primaryDecision && challengerDecision
+        && !sameSemanticConclusion(primaryDecision, challengerDecision));
+    });
+  if (conflictIds.length > 0 && !receipt.stageRecords.challenger) {
+    throw new Error('Current batch review rejected: bound Challenger is required for conflicts');
+  }
+  if (conflictIds.length === 0 && receipt.stageRecords.third) {
+    throw new Error('Current batch review rejected: bound Third is forbidden without conflicts');
+  }
+  const thirdIds = [...third.keys()];
+  if (sha256Canonical(thirdIds) !== sha256Canonical(conflictIds)) {
+    throw new Error('Current batch review rejected: bound Third decision set does not match conflicts');
+  }
+
+  const expectedTerminalMembers = normalizedOrderedMembers.map((member) => {
+    const primaryDecision = primary.get(member.canonicalId);
+    if (!primaryDecision) {
+      throw new Error('Current batch review rejected: bound primary decision set is incomplete');
+    }
+    const challengerDecision = challenger.get(member.canonicalId);
+    const thirdDecision = third.get(member.canonicalId);
+    const terminal = thirdDecision ?? primaryDecision;
+    const stageDecisionDigests = [
+      primaryDecision.decisionDigest,
+      challengerDecision?.decisionDigest,
+      thirdDecision?.decisionDigest,
+    ].filter((value): value is string => Boolean(value));
+    return {
+      canonicalId: member.canonicalId,
+      canonicalRevision: member.canonicalRevision,
+      conclusion: terminal.conclusion,
+      role: terminal.role ?? null,
+      evidenceSufficiency: terminal.evidenceSufficiency,
+      terminalSource: thirdDecision ? 'THIRD' as const : challengerDecision ? 'CONSENSUS' as const : 'PRIMARY' as const,
+      stageDecisionDigests,
+      coverageAuthorityState: terminal.conclusion === 'DEFER'
+        ? 'UNRESOLVED_BLOCKING' as const
+        : 'REVIEWED_NOT_CURRENT' as const,
+    };
+  });
+  if (!Array.isArray(receipt.terminalMembers)
+    || sha256Canonical(receipt.terminalMembers) !== sha256Canonical(expectedTerminalMembers)) {
+    throw new Error('Current batch review rejected: terminalMembers closure drift');
+  }
+  const expectedCounts = {
+    members: expectedTerminalMembers.length,
+    included: expectedTerminalMembers.filter((member) => member.conclusion === 'INCLUDE').length,
+    excluded: expectedTerminalMembers.filter((member) => member.conclusion === 'EXCLUDE').length,
+    deferredEvidenceBlocked: expectedTerminalMembers.filter((member) => member.conclusion === 'DEFER').length,
+    conflicts: conflictIds.length,
+    thirdReviewed: third.size,
+  };
+  if (sha256Canonical(receipt.counts) !== sha256Canonical(expectedCounts)) {
+    throw new Error('Current batch review rejected: counts closure drift');
+  }
+  const expectedStatus = expectedCounts.deferredEvidenceBlocked > 0
+    ? 'DEFERRED_EVIDENCE_BLOCKED'
+    : 'PASS';
+  const expectedGate = expectedCounts.deferredEvidenceBlocked > 0
+    ? 'BLOCKED_UNRESOLVED_EVIDENCE'
+    : 'BLOCKED_PENDING_ALL_BATCHES';
+  if (receipt.status !== expectedStatus || receipt.aggregateCoverageGate !== expectedGate) {
+    throw new Error('Current batch review rejected: status/aggregate gate closure drift');
+  }
+  if (!receipt.productionBoundaryProof.mutationFlags
+    || sha256Canonical(receipt.productionBoundaries) !== sha256Canonical(receipt.productionBoundaryProof.mutationFlags)
+    || Object.values(receipt.productionBoundaryProof.mutationFlags).some(Boolean)) {
+    throw new Error('Current batch review rejected: production boundary mutation closure drift');
+  }
+}
+
 function validateProtectedPathSnapshots(
   rows: unknown,
   protectedPaths: readonly string[],
@@ -1174,6 +1440,7 @@ export function assertCurrentCourseCoverageProductionBoundaryBundle(input: {
     }
     assertCurrentCourseCoverageReviewProvenanceBinding(receipt.reviewProvenanceBinding);
     assertBoundStageRecordClosure(receipt);
+    assertCurrentCourseCoverageBatchReceiptInternalClosure(receipt);
   }
   const proof = receipt.productionBoundaryProof;
   validateProductionBoundaryProof(proof);
