@@ -38,7 +38,7 @@ export interface CurrentCourseCoverageHistoricalNoBindingDigestPair {
 }
 
 /**
- * These are the twelve tracked receipts captured before provenance binding
+ * These are the fifteen tracked receipts captured before provenance binding
  * became part of the receipt contract. The values are copied from the tracked
  * receipt and detached-attestation artifacts and are intentionally exact.
  */
@@ -114,6 +114,24 @@ export const CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS = [
     attestationPath: 'course-content/authoring/knowledge/issue-1205-course-coverage-review/batch-boundary-attestation.json',
     receiptDigest: '5e5fb4fcf1213b874676478478d1295f5e8ccc46e22c3c366d5e0349413c77a6',
     attestationDigest: 'adca425b41e6a80781de8f3d6f8d3ad49c4e8bb05e9758e06ac4e2c7feb2a5c0',
+  },
+  {
+    receiptPath: 'course-content/authoring/knowledge/issue-1198-course-coverage-review/batch-receipt.json',
+    attestationPath: 'course-content/authoring/knowledge/issue-1198-course-coverage-review/batch-boundary-attestation.json',
+    receiptDigest: 'f86165449d3216c5d4b4ad5360b7383adeb7e7042fb526e101980251095b58e5',
+    attestationDigest: '5b3d39dbecf1e39470219c43225ea572846b8b6b5d2186a1db39ed54a63ee0f5',
+  },
+  {
+    receiptPath: 'course-content/authoring/knowledge/issue-1202-course-coverage-review/batch-receipt.json',
+    attestationPath: 'course-content/authoring/knowledge/issue-1202-course-coverage-review/batch-boundary-attestation.json',
+    receiptDigest: '1df6f45facd6a452f00ac2c7616f69750434ffa37630574c5736dd7ceb1067bc',
+    attestationDigest: 'c71e8312beef5626a25cf3934f587b4a7103790998828171d55b0a4b339af253',
+  },
+  {
+    receiptPath: 'course-content/authoring/knowledge/issue-1207-course-coverage-review/batch-receipt.json',
+    attestationPath: 'course-content/authoring/knowledge/issue-1207-course-coverage-review/batch-boundary-attestation.json',
+    receiptDigest: 'a84fb2a44cbf963b807b037fe9ce3822db193658b370c184eb44ffd5145dbf60',
+    attestationDigest: '00a905992060e60289bc06b3c5a6331a102ae2998eca66d17f8e84873125d211',
   },
 ] as const satisfies readonly CurrentCourseCoverageHistoricalNoBindingDigestPair[];
 
@@ -916,15 +934,6 @@ export function classifyCurrentCourseCoverageReceiptCompatibility(input: {
   receiptPath: string;
   attestationPath: string;
 }): CurrentCourseCoverageReceiptCompatibility {
-  const hasBinding = Boolean(input.receipt.reviewProvenanceBinding);
-  if (!hasBinding && !isCurrentCourseCoverageHistoricalNoBindingPair({
-    receiptPath: input.receiptPath,
-    attestationPath: input.attestationPath,
-    receiptDigest: input.receipt.receiptDigest,
-    attestationDigest: input.attestation.attestationDigest,
-  })) {
-    throw new Error('Current batch review rejected: receipt without provenance binding is not an allowlisted historical artifact');
-  }
   const proofProtocol = input.receipt.productionBoundaryProof.verificationProtocol;
   const isCurrentProof = proofProtocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL;
   const isLegacyProof = proofProtocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2;
@@ -938,7 +947,20 @@ export function classifyCurrentCourseCoverageReceiptCompatibility(input: {
     || isCurrentProof !== isCurrentAttestation || isLegacyProof !== isLegacyAttestation) {
     throw new Error('Current batch review rejected: production boundary proof/attestation version mismatch');
   }
-  if (hasBinding) return 'BOUND_PROVENANCE';
+  if (input.receipt.reviewProvenanceBinding) {
+    if (!isCurrentProof || !isCurrentAttestation) {
+      throw new Error('Current batch review rejected: review provenance binding requires the current v3/v2 boundary pair');
+    }
+    return 'BOUND_PROVENANCE';
+  }
+  if (!isCurrentCourseCoverageHistoricalNoBindingPair({
+    receiptPath: input.receiptPath,
+    attestationPath: input.attestationPath,
+    receiptDigest: input.receipt.receiptDigest,
+    attestationDigest: input.attestation.attestationDigest,
+  })) {
+    throw new Error('Current batch review rejected: receipt without provenance binding is not an allowlisted historical artifact');
+  }
   return isCurrentProof ? 'HISTORICAL_V3_NO_BINDING' : 'LEGACY_V2_V1';
 }
 
@@ -1297,6 +1319,10 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
       === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2;
   if (input.reviewProvenanceBinding) {
     assertCurrentCourseCoverageReviewProvenanceBinding(input.reviewProvenanceBinding);
+    if (input.productionBoundaryProof.verificationProtocol
+      !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
+      throw new Error('Current batch review rejected: review provenance binding requires the current v3 boundary proof');
+    }
   }
   if (computeCurrentWorklistInputDigest(withoutWorklistDigests) !== storedWorklistInputDigest) {
     throw new Error('Current batch review rejected: worklist input digest mismatch');

@@ -12,6 +12,7 @@ import {
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
+  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
   CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS,
   isCurrentCourseCoverageHistoricalNoBindingPair,
@@ -103,6 +104,15 @@ function productionBoundaryProofV3(
     },
     ...overrides,
   };
+}
+
+function protectedRowsFor(
+  proof: CurrentCourseCoverageProductionBoundaryProof,
+): CurrentCourseCoverageProtectedPathSnapshot[] {
+  if (proof.verificationProtocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
+    throw new Error('fixture requires v3 proof');
+  }
+  return structuredClone(proof.protectedPathSnapshots);
 }
 
 function authority(): CurrentCourseCoverageAuthority {
@@ -273,7 +283,7 @@ function documents(input = fixture()) {
 
 function receipt(
   input = documents(),
-  productionBoundary: CurrentCourseCoverageProductionBoundaryProof = productionBoundaryProof(),
+  productionBoundary: CurrentCourseCoverageProductionBoundaryProof = productionBoundaryProofV3(),
   allowLegacySourceArtifactBinding = false,
   reviewProvenanceBinding?: CurrentCourseCoverageReviewProvenanceBinding,
 ) {
@@ -402,6 +412,14 @@ function provenanceFor(input: ReturnType<typeof documents>): {
 }
 
 function attestationFor(inputReceipt = receipt()): CurrentCourseCoverageProductionBoundaryAttestation {
+  if (inputReceipt.productionBoundaryProof.verificationProtocol
+    === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
+    return attestationV2For(inputReceipt);
+  }
+  return attestationV1For(inputReceipt);
+}
+
+function attestationV1For(inputReceipt: ReturnType<typeof receipt>): CurrentCourseCoverageProductionBoundaryAttestation {
   const proof = inputReceipt.productionBoundaryProof;
   return sealCurrentCourseCoverageProductionBoundaryAttestation({
     schemaVersion: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
@@ -450,8 +468,8 @@ describe('current CourseCoverage batch review receipt', () => {
   it('derives a stable provenance binding into the receipt digest', () => {
     const input = documents();
     const { binding } = provenanceFor(input);
-    const first = receipt(input, productionBoundaryProof(), false, binding);
-    const second = receipt(input, productionBoundaryProof(), false, binding);
+    const first = receipt(input, productionBoundaryProofV3(), false, binding);
+    const second = receipt(input, productionBoundaryProofV3(), false, binding);
     expect(first.reviewProvenanceBinding).toEqual(binding);
     expect(first.receiptDigest).toBe(second.receiptDigest);
     expect(() => assertCurrentCourseCoverageReviewProvenanceBinding(binding)).not.toThrow();
@@ -513,7 +531,7 @@ describe('current CourseCoverage batch review receipt', () => {
       binding,
       provenanceBytes: `${bytes} `,
     })).toThrow(/SHA-256 drift/iu);
-    const inputReceipt = receipt(input, productionBoundaryProof(), false, binding);
+    const inputReceipt = receipt(input, productionBoundaryProofV3(), false, binding);
     const attestation = attestationFor(inputReceipt);
     expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
       receipt: inputReceipt,
@@ -565,7 +583,7 @@ describe('current CourseCoverage batch review receipt', () => {
       challenger,
       third,
     });
-    expect(() => receipt(input, productionBoundaryProof(), false, readableBinding)).not.toThrow();
+    expect(() => receipt(input, productionBoundaryProofV3(), false, readableBinding)).not.toThrow();
     const tampered = structuredClone(readableThird) as Record<string, any>;
     tampered.third.normalizedDocumentDigest = SHA_A;
     expect(() => buildCurrentCourseCoverageReviewProvenanceBinding({
@@ -646,6 +664,7 @@ describe('current CourseCoverage batch review receipt', () => {
     const beforeSnapshot = {
       head: proof.headBefore,
       status: [...proof.statusBefore],
+      rows: protectedRowsFor(proof),
       snapshotDigest: proof.authoritySnapshotBeforeDigest,
     };
     const files = new Map<string, string>();
@@ -697,7 +716,7 @@ describe('current CourseCoverage batch review receipt', () => {
     const beforeSnapshot = {
       head: proof.headBefore,
       status: [...proof.statusBefore],
-      rows: structuredClone(proof.protectedPathSnapshots),
+      rows: protectedRowsFor(proof),
       snapshotDigest: proof.authoritySnapshotBeforeDigest,
     };
     const files = new Map<string, string>();
@@ -732,6 +751,7 @@ describe('current CourseCoverage batch review receipt', () => {
     const beforeSnapshot = {
       head: proof.headBefore,
       status: [...proof.statusBefore],
+      rows: protectedRowsFor(proof),
       snapshotDigest: proof.authoritySnapshotBeforeDigest,
     };
     const files = new Map<string, string>();
@@ -776,6 +796,7 @@ describe('current CourseCoverage batch review receipt', () => {
     const beforeSnapshot = {
       head: proof.headBefore,
       status: [...proof.statusBefore],
+      rows: protectedRowsFor(proof),
       snapshotDigest: proof.authoritySnapshotBeforeDigest,
     };
     await expect(publishCurrentCourseCoverageBatchBundle({
@@ -921,7 +942,7 @@ describe('current CourseCoverage batch review receipt', () => {
       primary,
       challenger,
       third,
-      productionBoundaryProof: productionBoundaryProof(),
+      productionBoundaryProof: productionBoundaryProofV3(),
       reviewProvenanceBinding: provenanceFor({ ...base, primary, challenger, third }).binding,
     });
     expect(result.terminalMembers[0]).toMatchObject({
@@ -1140,14 +1161,14 @@ describe('current CourseCoverage batch review receipt', () => {
     })).not.toThrow();
     expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
       receipt: inputReceipt,
-      attestation: attestationFor(inputReceipt),
+      attestation: attestationV1For(inputReceipt),
       receiptPath: inputReceipt.productionBoundaryProof.receiptPath,
       attestationPath: inputReceipt.productionBoundaryProof.attestationPath,
     })).toThrow(/proof\/attestation version mismatch/iu);
   });
 
-  it('accepts only the twelve tracked historical receipts without provenance binding', () => {
-    expect(CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS).toHaveLength(12);
+  it('accepts only the fifteen tracked historical receipts without provenance binding', () => {
+    expect(CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS).toHaveLength(15);
     for (const pair of CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS) {
       const historicalReceipt = JSON.parse(readFileSync(pair.receiptPath, 'utf8')) as ReturnType<typeof receipt>;
       const historicalAttestation = JSON.parse(
@@ -1214,8 +1235,7 @@ describe('current CourseCoverage batch review receipt', () => {
     const input = documents();
     const boundReceipt = receipt(input, productionBoundaryProofV3());
     const boundProof = boundReceipt.productionBoundaryProof;
-    if (boundProof.verificationProtocol
-      !== 'git-head-and-production-authority-pre-publication-snapshot/v3') {
+    if (boundProof.verificationProtocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
       throw new Error('fixture requires v3 proof');
     }
     const { reviewProvenanceBinding: _binding, receiptDigest: _digest, ...withoutBinding } = boundReceipt;
@@ -1241,6 +1261,74 @@ describe('current CourseCoverage batch review receipt', () => {
       receiptPath: strippedReceipt.productionBoundaryProof.receiptPath,
       attestationPath: strippedReceipt.productionBoundaryProof.attestationPath,
     })).toThrow(/receipt without provenance binding is not an allowlisted historical artifact/iu);
+  });
+
+  it('rejects a retained binding after downgrading the boundary pair and resealing both digests', () => {
+    const input = documents();
+    const boundReceipt = receipt(input, productionBoundaryProofV3());
+    const boundBinding = boundReceipt.reviewProvenanceBinding;
+    if (!boundBinding) throw new Error('fixture requires review provenance binding');
+    const boundAttestation = attestationV2For(boundReceipt);
+    expect(classifyCurrentCourseCoverageReceiptCompatibility({
+      receipt: boundReceipt,
+      attestation: boundAttestation,
+      receiptPath: boundReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: boundReceipt.productionBoundaryProof.attestationPath,
+    })).toBe('BOUND_PROVENANCE');
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: boundReceipt,
+      attestation: boundAttestation,
+      receiptPath: boundReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: boundReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
+    expect(() => buildCurrentCourseCoverageBatchReceipt({
+      worklist: input.worklist,
+      manifest: input.manifest,
+      expectedBinding: input.binding,
+      observedManifestArtifactSha256: SHA_C,
+      primary: input.primary,
+      challenger: input.challenger,
+      productionBoundaryProof: productionBoundaryProofV3(),
+      reviewProvenanceBinding: boundBinding,
+    })).not.toThrow();
+
+    const boundProof = boundReceipt.productionBoundaryProof;
+    if (boundProof.verificationProtocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
+      throw new Error('fixture requires v3 proof');
+    }
+    const { protectedPathSnapshots: _snapshots, ...v2Proof } = boundProof;
+    const downgradedReceipt = {
+      ...boundReceipt,
+      productionBoundaryProof: {
+        ...v2Proof,
+        verificationProtocol: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
+      },
+    } as ReturnType<typeof receipt>;
+    const { receiptDigest: _downgradedDigest, ...withoutDowngradedDigest } = downgradedReceipt;
+    downgradedReceipt.receiptDigest = sha256Canonical(withoutDowngradedDigest);
+    const downgradedAttestation = attestationFor(downgradedReceipt);
+    expect(() => classifyCurrentCourseCoverageReceiptCompatibility({
+      receipt: downgradedReceipt,
+      attestation: downgradedAttestation,
+      receiptPath: downgradedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: downgradedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/review provenance binding requires the current v3\/v2 boundary pair/iu);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: downgradedReceipt,
+      attestation: downgradedAttestation,
+      receiptPath: downgradedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: downgradedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/review provenance binding requires the current v3\/v2 boundary pair/iu);
+    expect(() => buildCurrentCourseCoverageBatchReceipt({
+      worklist: input.worklist,
+      manifest: input.manifest,
+      expectedBinding: input.binding,
+      observedManifestArtifactSha256: SHA_C,
+      primary: input.primary,
+      challenger: input.challenger,
+      productionBoundaryProof: downgradedReceipt.productionBoundaryProof,
+      reviewProvenanceBinding: boundBinding,
+    })).toThrow(/review provenance binding requires the current v3 boundary proof/iu);
   });
 
   it('keeps the v2/v1 legacy protocol matrix compatible', () => {
@@ -1295,12 +1383,21 @@ describe('current CourseCoverage batch review receipt', () => {
       'src/lib/canonical-learning-fact-identity/capability.ts',
       'src/lib/canonical-learning-fact-identity/writer.ts',
     ];
-    const replayReceipt = receipt();
-    replayReceipt.productionBoundaryProof.protectedPaths = protectedPaths;
+    const protectedRows = protectedPaths.map((relativePath) => ({
+      relativePath,
+      workingTreeDigest: SHA_A,
+      headDigest: SHA_A,
+    }));
+    const replayReceipt = receipt(documents(), productionBoundaryProofV3({
+      protectedPaths,
+      protectedPathSnapshots: protectedRows,
+      authoritySnapshotBeforeDigest: sha256Canonical({ head: COMMIT, rows: protectedRows }),
+    }));
     const replayAttestation = attestationFor(replayReceipt);
     const snapshot = {
       currentHead: head,
       status: [],
+      rows: protectedRows,
       snapshotDigest: replayAttestation.authoritySnapshotBeforeDigest,
     };
     expect(() => assertPublishedReplaySnapshot(replayReceipt, replayAttestation, snapshot)).not.toThrow();
@@ -1308,7 +1405,7 @@ describe('current CourseCoverage batch review receipt', () => {
       ...snapshot,
       snapshotDigest: SHA_B,
     })).toThrow(/snapshot drifted/iu);
-    replayReceipt.productionBoundaryProof.protectedPaths = ['src/lib/canonical-rag/authority.ts'];
+    replayReceipt.productionBoundaryProof.protectedPaths = ['src/lib/canonical-learning-fact-identity/writer.ts'];
     expect(() => assertPublishedReplaySnapshot(replayReceipt, replayAttestation, snapshot))
       .toThrow(/protected authority path set drifted/iu);
   });
