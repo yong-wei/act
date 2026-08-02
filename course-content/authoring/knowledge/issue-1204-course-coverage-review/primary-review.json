@@ -1,0 +1,631 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v2",
+  "batchBinding": {
+    "batchId": "ccfbcd4d501ae459305602a6",
+    "manifestBatchIndex": 14,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1::entityType:Formula",
+    "memberCount": 37,
+    "memberDigest": "1157b6af80c506dc595d8b7b60dfed8bc22ef97ce506eb67db0b55b2f2ff5902",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "PRIMARY",
+  "reviewer": {
+    "identity": "grok-independent-primary",
+    "provider": "grok-4.5-build",
+    "sessionId": "87a2e80e-43d8-497b-92c2-a7a7ed0e6486",
+    "promptVersion": "issue-1204-primary-v1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1204-course-coverage-review/primary-independent-stage-source.json",
+    "artifactSha256": "dbcb46628f4f8198048e89eabf3b7ebb61ed9a3a236d7ecf90a3aff56912aaf8",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "PRIMARY",
+    "writerSessionId": "87a2e80e-43d8-497b-92c2-a7a7ed0e6486"
+  },
+  "reviewInputDigest": "e29bb3ee4129fee5a7b45cfb27426546b6fcff3cd2c4a7451094c859cc06dbfe",
+  "decisions": [
+    {
+      "canonicalId": "ctkg:v3e-object-0674245bbf1762695193cfa8",
+      "canonicalRevision": "abeb87c84ac6772c18219b76f9aeac87bb10ca8fe44ba5be34e30cfe80aca9ed",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-ebaf7854b23eb30b4eec82dc",
+        "canonicalId:ctkg:v3e-object-0674245bbf1762695193cfa8"
+      ],
+      "evidenceIds": [
+        "d17d72cc3a79f9cded19ae839221ad2e",
+        "19fa228b15d04322460320c409f02a52"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "f4885e9bf8f275e9fc85ce7e4933402a1c3881a431defe8677c54a5cbf1f6e16"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-0f0a952947b11d14d329702e",
+      "canonicalRevision": "05fb742522371b33c0a6232086b8df38bd7204cb79cce9111546d684be46653d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e4679407a19ceccefd3a64f4",
+        "canonicalId:ctkg:v3e-object-0f0a952947b11d14d329702e"
+      ],
+      "evidenceIds": [
+        "c17b9d44666d6a4ff7380b4ca4c47212",
+        "dd9de45ebdeb046329a740f249851ab6"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "959bcbd72b1a32f19733be5db04263eff7b9d0a77c371f9f90ba3cde3d001dcb"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+      "canonicalRevision": "b72e0922ea6a8b3a37b8a6f84a967d6eaf42fe800c842bc0d6733c03a9d58fd2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a6975864b8167638a059a165",
+        "canonicalId:ctkg:v3e-object-1211ad963441a60ba9ae6bde"
+      ],
+      "evidenceIds": [
+        "a7e97a0f06e684a62b64821f4b7bc45e",
+        "1537455d3c872c34f8f025583fb564ae"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "f697f7e34529bfd243c06b9c35f6501e6ea13eb67ab376f96381d82573172663"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-27b68e7bc42b98de2b3890f3",
+      "canonicalRevision": "1fecdbad9c8019f4ab457cf0238057c8aaf86425d80debd737e6ee9d026b836f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-0e1455268b960471e9c9bda0",
+        "evidence:ctr:m1g-release-evidence-281c7f9dfc71267691ab8946",
+        "canonicalId:ctkg:v3e-object-27b68e7bc42b98de2b3890f3"
+      ],
+      "evidenceIds": [
+        "ffa64be1d26ad7b3fb538611d4877eec",
+        "939193fcadbfe3fd14c1810a0060c55b",
+        "b446fa2ad5aeb301328a72bd1d0521a6"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (3 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "e4027735183700775c953c6e0171ae5cae11f0baa756f32fdd4024c9b79a7c2f"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-368b6d1024a140b22eb94a7b",
+      "canonicalRevision": "e74ae0e326ea70698b14b911e9de21f6dd117676f17564f57f6b9c58b154ed28",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5061b62f6c39d27461d9b02e",
+        "evidence:ctr:m1g-release-evidence-87f1835b74911623b44a1f30",
+        "canonicalId:ctkg:v3e-object-368b6d1024a140b22eb94a7b"
+      ],
+      "evidenceIds": [
+        "c5c8efd0a514abc84f46cd81c8b011fe",
+        "1e782b851ee2b283798a7ce91fef6375",
+        "39bc64cefdac8d59458323b9219c90c7"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (3 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "1c3bd0c67830840833c76a5db889804f87b6f700d515cfc91297d331ac4c4705"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-400aa145c81b92ce9b0664ef",
+      "canonicalRevision": "03508bd0941dd46bdcb5e3882cc84c94d2ad11d1ecbc240c073b100fa78bbe78",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-46c4b282ded7b59377512828",
+        "canonicalId:ctkg:v3e-object-400aa145c81b92ce9b0664ef"
+      ],
+      "evidenceIds": [
+        "0edca9e617a13587fbd09f054abf4bce",
+        "227234a7cbfbd8dba9cefa22b6f321b7"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "f84fa1884e2c14c82a6cb0f70a66745c2270f1925db8b1f8497ac2fb669e8f0e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-416bc5396a07b8895bd8f184",
+      "canonicalRevision": "add6feb47304fb57137fbc3eb475a0ab9d97fb35623a9aea5f8b6058b1a4a8da",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-d7e7b0b999b985a50b418f51",
+        "canonicalId:ctkg:v3e-object-416bc5396a07b8895bd8f184"
+      ],
+      "evidenceIds": [
+        "834027166c8b51cd8b81487795b5c12b",
+        "6602e4ce7ab4aaf86bf3b4a46bf46179"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "f8808e1ed38c50bb290487f57829b73d5c1b7adea61c13f56e56b489d57457dd"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-46830a97b093d5250e8bf713",
+      "canonicalRevision": "1c9d679a408ffe47a85ddb64fedd1e239a6763271dd391e4819cbd8db7be39d5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-b875b9bd4e47dd1a92d0d77b",
+        "canonicalId:ctkg:v3e-object-46830a97b093d5250e8bf713"
+      ],
+      "evidenceIds": [
+        "e69d2629dd80213b06fe9a11c04cd609",
+        "36735a532a4bd72bfb3f3e5840112198"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "419c7d278a71e9e404ff609f90718260492cfde02778ae262e398e3378e51e60"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-55d9257b6c74ab5202eb2229",
+      "canonicalRevision": "0d15acad2be848269be1e13947d76bb5323e303348ee16e0a789a9cf6b20e8ae",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-05368cd8ea1c8a17bab756e2",
+        "canonicalId:ctkg:v3e-object-55d9257b6c74ab5202eb2229"
+      ],
+      "evidenceIds": [
+        "3548ec2135e2bf8e871f836483840969",
+        "4c98f57365df131a455f51244ea059bd"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "3b0ddd2911f951388fa10919c8ac8d28e10715905ef587785d170808df63f490"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5ebe9605f472c8470c156abf",
+      "canonicalRevision": "2934508019bd439c081938176635aa095eae82af61bbca6772be1e35e05d473b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1338735c582620b1fb1264f6",
+        "canonicalId:ctkg:v3e-object-5ebe9605f472c8470c156abf"
+      ],
+      "evidenceIds": [
+        "db52145700d06e9d6acee025bb2a1785",
+        "7de5c2f910653038636f729074e2d8d4"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "1bee8c5d9fd08d47e5a2d77f2cce2e566e262ed79e589632f347a5b947b47341"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6ab46bf62c3e7fe105d56351",
+      "canonicalRevision": "25380737fd08058ac228a3044051b60c9db9a7ec0b2870a733446907f2fac50c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3c667e970bc8f6d0986ddbf5",
+        "evidence:ctr:m1g-release-evidence-7101c06a7ea0fdb35f2d3861",
+        "canonicalId:ctkg:v3e-object-6ab46bf62c3e7fe105d56351"
+      ],
+      "evidenceIds": [
+        "b33b7f4e745f3f59e24169e3054e0ff0",
+        "9bc3e155ad409a8ef6ca513835aae438",
+        "ecdf0cc09db6e7be894e32c081954a03"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (3 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "84a4b9b5c3625e77e0639739551391f9be6a54838dbda841610657bb3f4fc65b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-6bb62eff295daf3b6280eecb",
+      "canonicalRevision": "09f86763341e61debfb8bd6c9fd5f3b44e19a0af0583dd88547ee8d7fcf9717a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-29c7bd12f62aa94151d4e4a7",
+        "canonicalId:ctkg:v3e-object-6bb62eff295daf3b6280eecb"
+      ],
+      "evidenceIds": [
+        "a8539a7133b33b528d147a6c9fa00a7f",
+        "17408b89c23f22f81cd0bf46ad65e566"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "83f828a114a0fc02197d83572a87e96b06b68a07a80ae7857d462777f47cefe4"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7113590a392d062c1ef7f80d",
+      "canonicalRevision": "6e41806227d3c78a649373c8953720ee6c64dcac2783c0adb56ec6ff6c5ebe46",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-e3a84b08ba751fb0ca91156b",
+        "canonicalId:ctkg:v3e-object-7113590a392d062c1ef7f80d"
+      ],
+      "evidenceIds": [
+        "d125c81c870217c4d6b913260aa4d5e5",
+        "1ea17c33d77084255a413c361f1a74c7"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "18989975f507b3987400e01d599dc43c5531ff0d543c36d66edd2aabdeb51942"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-78aab6b7276d4a7234c395c3",
+      "canonicalRevision": "8f8cc68b1ad484c9fc7201d71563114b7d8fbd55e4c0c056055067c76f2fba90",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-cdfdb658e81fe43d9a6b1445",
+        "canonicalId:ctkg:v3e-object-78aab6b7276d4a7234c395c3"
+      ],
+      "evidenceIds": [
+        "bb50536799183ecd4d12024828c7d8a3",
+        "50ceb921a37dd7df1599510e770d3d24"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "d92eb41c63510d5c716b96dabbbde029a6c855c07574c0bd63a9b298343245b9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+      "canonicalRevision": "cf10f30bb2667634cc551d5350f82cefb4f4059458018be24d828c5d4fef33d9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-1a899adec1ea63d989abbe25",
+        "canonicalId:ctkg:v3e-object-7dffa1be35907d0dc039fb60"
+      ],
+      "evidenceIds": [
+        "af15c1614c1befd24a7a57ff177c278d",
+        "ebb7d19d8c860249f8a0aee27b60ba10"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "de792a6c735cc91892cd4878166829b706835e6610088c915793be37fedd85e6"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7e93787bebbb427bd59b0d98",
+      "canonicalRevision": "8c99a9e910ddf42afb225369809d27326594e47f7fd0fbb978418c9a71fe40f2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2046d260192ba06965335db2",
+        "canonicalId:ctkg:v3e-object-7e93787bebbb427bd59b0d98"
+      ],
+      "evidenceIds": [
+        "683cd3fae190169fb504df04b6aca33f",
+        "0fa279dd63993d6c42fd62f0b2b3995e"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "693f9c73da9fa18fc835873e539f8f7459ff74dcb81ad1b5d5542130bf753c41"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+      "canonicalRevision": "44f08e840437dcbbc4c33211e44962b4a9af1adb6ff120cc1b26aa836d23d9d7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-3b769709d291c56e7b4679fb",
+        "canonicalId:ctkg:v3e-object-7fbb56489c4331aa88c6dd62"
+      ],
+      "evidenceIds": [
+        "7abe6081166c2c35bbab3b6e04c747fe",
+        "2b96de98f4d30c66616cef446d42cb10"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "30ab581dccd31f5ca0153a6b357e805c49cd1e819f2169199836eb8e95a51333"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-84490159b28143a9c04cea1d",
+      "canonicalRevision": "e02a0b4fc997a3d8ea2006918ad4b44c6c3fc55ab6da6a507a0dd6a89c348733",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-324e7198376885fa63de8be4",
+        "canonicalId:ctkg:v3e-object-84490159b28143a9c04cea1d"
+      ],
+      "evidenceIds": [
+        "e57058b785e45c867efb31e00fc66b4f",
+        "19dceb70075be3286998f53ab2f08af6"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "5c50fa9ebb4bf98208f935efd6c8f0d48dbccd02dc7e947cda475e978d4b73f9"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+      "canonicalRevision": "a2f57bd0ebb3917ed31987adaf073f11b7e8cd8b3698305da74574ce6b2c0fa4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-a51a6f3ce93b3edc42ff3bd9",
+        "canonicalId:ctkg:v3e-object-85afdc741cce3b1a5bfc94ef"
+      ],
+      "evidenceIds": [
+        "3f7e141b27253adb676883390ae2e649",
+        "47bc6b5234256ee984cbc4182a887853"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "47e09b597ea1654c1e97b733eaed091a442d8373f287c024b8c32e7696197a23"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8a33a28289dbd5b5abd9daa5",
+      "canonicalRevision": "9496ba240712f3ef27a514c27df756519a1bef21b03d39ee62c27dede4c62f98",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-51defc8860a1e3d3f3463591",
+        "canonicalId:ctkg:v3e-object-8a33a28289dbd5b5abd9daa5"
+      ],
+      "evidenceIds": [
+        "1a5105cfd79322ece43304c33bc345df",
+        "288c464c46a86d927c945ada56769415"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "27dba05e51f008f1603c5122f3fc8a7ff043066e1a55660b30524e1b4c475b7d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8bdb501223cebaa22efc5b7f",
+      "canonicalRevision": "3e4c384843d7c19748ff9997782cbd9104995ed87a9e2e69ed1680ed4a10313d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-f21c57cf4496382052b6bf33",
+        "canonicalId:ctkg:v3e-object-8bdb501223cebaa22efc5b7f"
+      ],
+      "evidenceIds": [
+        "68cbf77107fa0224fcd56747b3f60427",
+        "d4263bbb18402bd3bd5f5e88e5d105ac"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "1703dd46cd57d1a1c49615aead4517aced083e8d58e45ea5543d7aaa0f7f2d6b"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-904f40c2ad21dd880b1653db",
+      "canonicalRevision": "6eb1acaa8ccbd84ddedb610c72e9879e16857033e30029f8a254739e3f6dc66c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-da1c6f5c4c37135bddbc83dc",
+        "canonicalId:ctkg:v3e-object-904f40c2ad21dd880b1653db"
+      ],
+      "evidenceIds": [
+        "05719845d108f47efdd4558a36d01964",
+        "c83822e2737519ba332cc2da90b0e6a8"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "e6600cea3529d3dfdd9b494576b065058cda2b97016dc3e5c2c608bdd2bbeece"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-930475fd096df1a1fe75674d",
+      "canonicalRevision": "491acaff9966b1a76b10d6c669cc7035275aff37ae21ee957d38ea9996ea355c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-543215c09979e5bfa93c4a39",
+        "canonicalId:ctkg:v3e-object-930475fd096df1a1fe75674d"
+      ],
+      "evidenceIds": [
+        "506cdccd2853068d48ab7af0dc8c3c50",
+        "2f95904dad6e5a888b6d49ff1ef3f6ee"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "db0ae4fcf6422bef947d1ea61ef3201e31bc66628117a9526cb2c63738fd10f5"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-996f8cfb90886bae3eecad26",
+      "canonicalRevision": "99cd75d76c3f11ff572bb0611ea4e344137218db32ec63a55e651704a816a705",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-825a6cdf2b34861c1ef8ab6f",
+        "canonicalId:ctkg:v3e-object-996f8cfb90886bae3eecad26"
+      ],
+      "evidenceIds": [
+        "f9e51b1249d1358ee2d904324ee1b944",
+        "52553556e0f3f912c7bc4cbe90215937"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "ed087d2b7a1e85f1e3fea7cce58fe56835e6be2fe9d79590f64cd155dff7b8ab"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-997018715efe8ecb7bcddbd6",
+      "canonicalRevision": "d3edc6658a2ad2c04bc8c38ac54173707016171fbc7b789d442feb43ea94df2a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-5410f430d39efa4f78ee61dc",
+        "canonicalId:ctkg:v3e-object-997018715efe8ecb7bcddbd6"
+      ],
+      "evidenceIds": [
+        "c74c3a317fddff131972c9f329c8986d",
+        "e83984e6f630fcc28ac6954b8047bb3b"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "2f9f73c2e49a33f7209ca9af6d89d246dee83f01612fea934017c7cbb892f18e"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a03703a178c7496c8acaee87",
+      "canonicalRevision": "6559eb4bf0829936f8fe795d4d16f928707e22c117cb5386f3ad1eca143cdea3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-2069c5cc5edcbb8023e9fe54",
+        "canonicalId:ctkg:v3e-object-a03703a178c7496c8acaee87"
+      ],
+      "evidenceIds": [
+        "0b5274fc09237ace4ab4630340fb13b2",
+        "a30502700a2090c9748ae81bcf47768b"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "bfc9f403cc64746ff12713496aaa44004c45a5509d06e1b71dff34c303a7ba4c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-a4841c0774ad75c2aecb88a6",
+      "canonicalRevision": "3a984723fca7ea3a86ef7b0c3f9da8d41a132d758ff2179249945d740484942d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-4ccd694ef3b404a0995f46b2",
+        "canonicalId:ctkg:v3e-object-a4841c0774ad75c2aecb88a6"
+      ],
+      "evidenceIds": [
+        "ff196ab5da8788d9bde0015fce8b0ecd",
+        "bbf4b9d16b7bfd3e0131be082e003e58"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "18a4156843945ff2e575e2cfc8a59b4713ae5e37be108d3c39f65992437ea971"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ac40802813262332cb115daf",
+      "canonicalRevision": "ba23ad789664234eff8929234174ef5483094b60684616d2a14cd41873325c73",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-301bcaa6bfb7040d354b1d60",
+        "canonicalId:ctkg:v3e-object-ac40802813262332cb115daf"
+      ],
+      "evidenceIds": [
+        "18d2795572f64d1ba555306f819778dc",
+        "431c4bc0ef98cd3fceefe5e6268c759f"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "a48ce2b50bb1cf78e749c32260a3bb3a96f2fa6367bb70da9a40cca74dd0ab26"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b3b49089c68e2b5af62f0cd2",
+      "canonicalRevision": "d2968e5e5f1a85f08bf258f74a23ea36ed4383f0baca30892772fd4f6bc6b009",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-12aac2facaf9d60b697d64e7",
+        "canonicalId:ctkg:v3e-object-b3b49089c68e2b5af62f0cd2"
+      ],
+      "evidenceIds": [
+        "a5b438cae23463139957a341a5b51efd",
+        "aa5731a3eaa4c2ce45b6ddef18af0a18"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "6bf31a15156265d38a65295bb750d40b2288ecf4f71188048e17c7d39d77fb11"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+      "canonicalRevision": "9a1e9b5076a33cb08fd5d14d7757c6a22da511b3c052440499fc3a234977238e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-89fbfe967a0d604eabf575bc",
+        "canonicalId:ctkg:v3e-object-c8d2465e3e80b37b0bdf9897"
+      ],
+      "evidenceIds": [
+        "0991485d04c86edeb0c619dfb868883a",
+        "3d4952d7f26c94f8d18d51e372c0d3f8"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "80132a65113498a54b0a6392d6e0349cd7977228c900369f4db6f3188e6898e7"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c8e6b61daf10f74a94a58710",
+      "canonicalRevision": "43664be23905066e2180f199999fb69431f7020374919a44e8c44af9f2fe3e6c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-aa8dbba7bf7ab299ce1f412a",
+        "canonicalId:ctkg:v3e-object-c8e6b61daf10f74a94a58710"
+      ],
+      "evidenceIds": [
+        "52c9bb19e04625cf608be52e8281f171",
+        "55ba33cd85c3e250171b4025c81412f3"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "394bf064b2cadcbbd6e9ae65b8384569ef944db28c9a2e3fef8221709ac0f1ab"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d6bbb218a10c1417b5be167b",
+      "canonicalRevision": "c0f8d717c15198291af8a681ff9ece5ee8ebf9238a8944e68aede6a74e3f526f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-6ef319149bf617b0dc02cb2c",
+        "canonicalId:ctkg:v3e-object-d6bbb218a10c1417b5be167b"
+      ],
+      "evidenceIds": [
+        "bb89b4eaa14ed30999bdb7032ea4b1e7",
+        "8eaea73985924250882f51e06468f276"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "fc231bcf67cec9a96a735e949708da4153ad42b574da6b7e786f8ba28c3a11ba"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d936710484645940b76063d6",
+      "canonicalRevision": "e03cb6e13b1c01ada3cb44a6b0ed0bd37c891729c32345211766c4e0c3cb7463",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-669ef67eed9e5ad132a5f76e",
+        "canonicalId:ctkg:v3e-object-d936710484645940b76063d6"
+      ],
+      "evidenceIds": [
+        "985f77accd64dea351e1d6998b75481b",
+        "9067adbdd91b94e083090e00490a991a"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "2c591b91bfb25b34e04d01c41c9f219d12ff58a5df11177b8accd45bc278496d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e1f57376b170eab299d1a9ad",
+      "canonicalRevision": "6ed54f8c2205918dc1cd4c19cecf38e99933a409e289b67e45924d792ea5df76",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-28bf6c1a6deae65496c61bf8",
+        "canonicalId:ctkg:v3e-object-e1f57376b170eab299d1a9ad"
+      ],
+      "evidenceIds": [
+        "c6ef227a25a5999e46041a4da7b4368c",
+        "1f59c135ee5db5f6ae6b38ff5e1bb684"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "267f52914d44bd2851eb832dee7697ee6a56865557cf719e9510649b58041511"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e20f487306737e032e4c7b61",
+      "canonicalRevision": "184558962acede08cd60c6a6237884a669f08ef1525ca5240983c1ab4754add2",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-07ca2b42af897c0ee76596aa",
+        "canonicalId:ctkg:v3e-object-e20f487306737e032e4c7b61"
+      ],
+      "evidenceIds": [
+        "d616f63ff7434b542193493a57611555",
+        "0bbe8b7e74892a6bc6eb65e104709bab"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "7d0dc514840046a2d451c716d34dcc6cbab223cdfa17e78ab2fde3811833481d"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e251935a976e8aa1a362f196",
+      "canonicalRevision": "42023c06884db7de9d2032263892df23cf72404b7b223f4d93b15080e7138d98",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-7c202928f7eba2d57609faf5",
+        "canonicalId:ctkg:v3e-object-e251935a976e8aa1a362f196"
+      ],
+      "evidenceIds": [
+        "ba620caa580e9d0800c69ad90cefd888",
+        "89a0231f73638ee71b599cd1eeeac94b"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "c9b113c01a923fc3fbe5925e38a2d10da3c0e469302e09273c9d31549c110736"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e98b6c6fe22f236d8eed9b3e",
+      "canonicalRevision": "3deabbd8cddd9f3833cfb0d8628dc44ee60257911449d1100bad1e5179c927e8",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctkg:v3e-evidence-771c4c8e444e2d80f8e9802a",
+        "canonicalId:ctkg:v3e-object-e98b6c6fe22f236d8eed9b3e"
+      ],
+      "evidenceIds": [
+        "5a18f5e8ad2870882275ea7ecab5cf0d",
+        "ab7c23cd7ee02b75796bc5f6297c49b2"
+      ],
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile artifacts (2 refs); no boundary=independent-course reference is present, so INCLUDE/EXCLUDE cannot be issued under course-coverage independent-course evidence rules.",
+      "decisionDigest": "859108e5f3e3f0aa6abbb4fec845b5b00e3a30f7bb81787ea31c1ff69d48f19a"
+    }
+  ],
+  "documentDigest": "1e8f1ece16b915dc5ed55abc07683eac0dca9a95532497fd38e4f3c73991adc4"
+}
