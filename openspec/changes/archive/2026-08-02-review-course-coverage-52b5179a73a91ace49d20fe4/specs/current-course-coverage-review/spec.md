@@ -16,11 +16,11 @@ The review child MUST process only the exact ordered members at `batch-manifest.
 
 ### Requirement: Batch 52b5179a73a91ace49d20fe4 produces independent terminal decisions
 
-Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict within the required Challenger slice MUST enter Third, and Third MUST be terminal.
 
 #### Scenario: Conflict occurs in batch 52b5179a73a91ace49d20fe4
 
-- **WHEN** Primary and Challenger conclusions differ for a member
+- **WHEN** Primary and Challenger conclusions differ for a required Challenger member
 - **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
 
 #### Scenario: Batch 52b5179a73a91ace49d20fe4 has no conflict
