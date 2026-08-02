@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "PRIMARY",
+  "sessionIndependence": "PRIMARY-only independent session for issue-1207 batch f8917af6bf755caf058c5358 batches[17]; did not read /tmp/issue-1207-challenger-stage.json, /tmp/issue-1207-third-stage.json, or any other stage artifact, Challenger/Third conclusions, receipts, attestations, or non-allowed stage outputs; conclusions derived solely from frozen worklist/batch-manifest digests (memberDigest 7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270, manifestDigest 2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818, worklistDigest bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489, worklistInputDigest 55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2, manifestArtifactSha256 786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8) plus archived current-course-coverage-review requirements and this child OpenSpec change binding (review-course-coverage-f8917af6bf755caf058c5358).",
+  "batchBinding": {
+    "batchId": "f8917af6bf755caf058c5358",
+    "manifestBatchIndex": 17,
+    "sequence": 0,
+    "group": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+    "memberCount": 1,
+    "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+      "stageConclusion": "DEFER",
+      "rationale": "PRIMARY independent review of Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\\\int_{-\\\\infty}^{\\\\infty} h(\\\\tau) u(t-\\\\tau) d \\\\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen batch f8917af6bf755caf058c5358 / batches[17] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1, ctr:release:system-modeling-engineering-v0.1]; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=1 but sourcePath=course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json selector=entries[418] releaseId=ctr:release:control-theory-engineering-v0.3 (historical aggregate Coverage cannot authorize a current CourseCoverage role). Semantic note: preferredLabel is the continuous-time convolution integral, a Formula candidate spanning system-modeling and stability-analysis modules, but preferredLabel/profile/aggregate metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-f8917af6bf755caf058c5358: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profileOnly/highRisk with only aggregate/profile evidence is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "evidenceRefs": [
+        {
+          "evidenceId": "076bb4ccae11c8a2093caca5ec0a2cbb",
+          "sourcePath": "aggregate-projection",
+          "selector": "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
+          "sourceDigest": "7a5b57dc865e9024e9efcd342d4c5fdfefc4042b8e95ef988f7b924f8fa4326c",
+          "boundary": "aggregate",
+          "kind": "aggregate-evidence",
+          "digestSemantics": "selector-evidence"
+        },
+        {
+          "evidenceId": "61175e5617e4067b2f53312b91c05449",
+          "sourcePath": "aggregate-projection",
+          "selector": "canonicalId:ctf:55e4737318f3b1e2d5f90372",
+          "sourceDigest": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+          "boundary": "profile",
+          "kind": "canonical-profile",
+          "digestSemantics": "semantic-payload"
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "members": 1,
+    "byConclusion": {
+      "DEFER": 1
+    },
+    "DEFER": 1,
+    "INCLUDE": 0,
+    "EXCLUDE": 0
+  },
+  "driftCheck": {
+    "batchIdMatch": true,
+    "memberCountMatch": true,
+    "memberOrderMatch": true,
+    "memberDigestMatch": true,
+    "manifestDigestMatch": true,
+    "worklistDigestMatch": true,
+    "worklistInputDigestMatch": true,
+    "canonicalRevisionMatch": true,
+    "result": "PASS"
+  }
+}

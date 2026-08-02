@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "f8917af6bf755caf058c5358",
+    "manifestBatchIndex": 17,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+    "memberCount": 1,
+    "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "CHALLENGER",
+  "reviewer": {
+    "identity": "grok-independent-challenger",
+    "provider": "grok-4.5-build",
+    "sessionId": "68f51aff-e853-48f2-9848-d99a27c3e6ae",
+    "promptVersion": "issue-1207-challenger-v1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/challenger-independent-stage-source.json",
+    "artifactSha256": "e324989c7a9673e24f85bb0242a059c63a39f91f9fd630ce598db93041745c33",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "CHALLENGER",
+    "writerSessionId": "68f51aff-e853-48f2-9848-d99a27c3e6ae"
+  },
+  "reviewInputDigest": "1fefefab6a824875ae62c9ed5479f0f75693507f03058fad2eea12ae3e2cd056",
+  "decisions": [
+    {
+      "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
+        "canonicalId:ctf:55e4737318f3b1e2d5f90372"
+      ],
+      "rationale": "CHALLENGER independent CourseCoverage review for Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\int_{-\\infty}^{\\infty} h(\\tau) u(t-\\tau) d \\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen binding: batchId=f8917af6bf755caf058c5358 batches[17] ordinal=0; group=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; sequence=0; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1', 'ctr:release:system-modeling-engineering-v0.1']; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist risk surface: profileOnly=True, riskFlags.new=False, riskFlags.changed=False, riskFlags.highRisk=True, reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs_count=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection', 'aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']. Evidence-boundary audit: every cited worklist evidenceRef is confined to aggregate-projection aggregate-evidence and/or canonical-profile payload; no independent-course boundary ref is present. priorDecisionRefs (if any) point only at aggregate active coverage history and are not independent course evidence; they cannot authorize INCLUDE/EXCLUDE and cannot be inherited as a role. Independent course boundary search: literal canonicalId and canonicalRevision have zero hits under course-content/authoring/lessons/** and course-content/syllabus-refactor/**. CourseCoverage authority gate: INCLUDE/EXCLUDE may be issued only when independent course evidence is sufficient to support a coverage authority decision. This member is profileOnly+highRisk and the visible evidence boundary is exclusively aggregate/profile with no independent course evidence; Challenger therefore refuses to promote or exclude it under CourseCoverage authority. stageConclusion=DEFER. Challenger does not assign ACTIVE/authority/selector/writer roles and makes no production semantic decision for this member.",
+      "decisionDigest": "875e75b23f61ba051b80851e66d3c6e5b4aa94567132c0a548bcb76180ff649a"
+    }
+  ],
+  "documentDigest": "3ef4c6a524bb8dd449dab659048afbcbf74199030100c5e3bc9a182725fb283e"
+}

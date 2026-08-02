@@ -1,0 +1,207 @@
+{
+  "schemaVersion": "current-course-coverage-batch-receipt/v1",
+  "protocol": "current-course-coverage-batch-review/1",
+  "status": "DEFERRED_EVIDENCE_BLOCKED",
+  "batchBinding": {
+    "batchId": "f8917af6bf755caf058c5358",
+    "manifestBatchIndex": 17,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+    "memberCount": 1,
+    "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "orderedMembers": [
+    {
+      "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f"
+    }
+  ],
+  "stageDocuments": {
+    "primaryDigest": "4d87ecacc7b00ee74fcd5f5891c387fed10acf095e420d2e427ecadb6fa8d428",
+    "challengerDigest": "3ef4c6a524bb8dd449dab659048afbcbf74199030100c5e3bc9a182725fb283e",
+    "thirdDigest": null
+  },
+  "stageRecords": {
+    "primary": {
+      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "batchBinding": {
+        "batchId": "f8917af6bf755caf058c5358",
+        "manifestBatchIndex": 17,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+        "memberCount": 1,
+        "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "PRIMARY",
+      "reviewer": {
+        "identity": "grok-independent-primary",
+        "provider": "grok-4.5-build",
+        "sessionId": "015411ef-a0ce-4741-9adc-8f17062aac32",
+        "promptVersion": "issue-1207-primary-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/primary-independent-stage-source.json",
+        "artifactSha256": "8a0b0695abc83d0c259b70a8041b3e95fbdc12ecc95a1f1e2e6f488a51af0cd2",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "PRIMARY",
+        "writerSessionId": "015411ef-a0ce-4741-9adc-8f17062aac32"
+      },
+      "reviewInputDigest": "7f3c28cd90b977e59df6e7aa34ccb8e1bb4a2d6b052b1967db740e5c32a3d019",
+      "decisions": [
+        {
+          "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+          "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
+            "canonicalId:ctf:55e4737318f3b1e2d5f90372"
+          ],
+          "rationale": "PRIMARY independent review of Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\\\int_{-\\\\infty}^{\\\\infty} h(\\\\tau) u(t-\\\\tau) d \\\\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen batch f8917af6bf755caf058c5358 / batches[17] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1, ctr:release:system-modeling-engineering-v0.1]; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=1 but sourcePath=course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json selector=entries[418] releaseId=ctr:release:control-theory-engineering-v0.3 (historical aggregate Coverage cannot authorize a current CourseCoverage role). Semantic note: preferredLabel is the continuous-time convolution integral, a Formula candidate spanning system-modeling and stability-analysis modules, but preferredLabel/profile/aggregate metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-f8917af6bf755caf058c5358: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profileOnly/highRisk with only aggregate/profile evidence is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+          "decisionDigest": "976d1022d94886e53a7a35585dae6fee990e97b2518f8a5c148cc5366d83d587"
+        }
+      ],
+      "documentDigest": "4d87ecacc7b00ee74fcd5f5891c387fed10acf095e420d2e427ecadb6fa8d428"
+    },
+    "challenger": {
+      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "batchBinding": {
+        "batchId": "f8917af6bf755caf058c5358",
+        "manifestBatchIndex": 17,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+        "memberCount": 1,
+        "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "CHALLENGER",
+      "reviewer": {
+        "identity": "grok-independent-challenger",
+        "provider": "grok-4.5-build",
+        "sessionId": "68f51aff-e853-48f2-9848-d99a27c3e6ae",
+        "promptVersion": "issue-1207-challenger-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/challenger-independent-stage-source.json",
+        "artifactSha256": "e324989c7a9673e24f85bb0242a059c63a39f91f9fd630ce598db93041745c33",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "CHALLENGER",
+        "writerSessionId": "68f51aff-e853-48f2-9848-d99a27c3e6ae"
+      },
+      "reviewInputDigest": "1fefefab6a824875ae62c9ed5479f0f75693507f03058fad2eea12ae3e2cd056",
+      "decisions": [
+        {
+          "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+          "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
+            "canonicalId:ctf:55e4737318f3b1e2d5f90372"
+          ],
+          "rationale": "CHALLENGER independent CourseCoverage review for Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\int_{-\\infty}^{\\infty} h(\\tau) u(t-\\tau) d \\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen binding: batchId=f8917af6bf755caf058c5358 batches[17] ordinal=0; group=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; sequence=0; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1', 'ctr:release:system-modeling-engineering-v0.1']; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist risk surface: profileOnly=True, riskFlags.new=False, riskFlags.changed=False, riskFlags.highRisk=True, reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs_count=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection', 'aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']. Evidence-boundary audit: every cited worklist evidenceRef is confined to aggregate-projection aggregate-evidence and/or canonical-profile payload; no independent-course boundary ref is present. priorDecisionRefs (if any) point only at aggregate active coverage history and are not independent course evidence; they cannot authorize INCLUDE/EXCLUDE and cannot be inherited as a role. Independent course boundary search: literal canonicalId and canonicalRevision have zero hits under course-content/authoring/lessons/** and course-content/syllabus-refactor/**. CourseCoverage authority gate: INCLUDE/EXCLUDE may be issued only when independent course evidence is sufficient to support a coverage authority decision. This member is profileOnly+highRisk and the visible evidence boundary is exclusively aggregate/profile with no independent course evidence; Challenger therefore refuses to promote or exclude it under CourseCoverage authority. stageConclusion=DEFER. Challenger does not assign ACTIVE/authority/selector/writer roles and makes no production semantic decision for this member.",
+          "decisionDigest": "875e75b23f61ba051b80851e66d3c6e5b4aa94567132c0a548bcb76180ff649a"
+        }
+      ],
+      "documentDigest": "3ef4c6a524bb8dd449dab659048afbcbf74199030100c5e3bc9a182725fb283e"
+    },
+    "third": null
+  },
+  "terminalMembers": [
+    {
+      "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "976d1022d94886e53a7a35585dae6fee990e97b2518f8a5c148cc5366d83d587",
+        "875e75b23f61ba051b80851e66d3c6e5b4aa94567132c0a548bcb76180ff649a"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    }
+  ],
+  "counts": {
+    "members": 1,
+    "included": 0,
+    "excluded": 0,
+    "deferredEvidenceBlocked": 1,
+    "conflicts": 0,
+    "thirdReviewed": 0
+  },
+  "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+  "productionBoundaries": {
+    "currentCoverageDecisionWritten": false,
+    "productionSelectorChanged": false,
+    "graphRagSelectorChanged": false,
+    "writerFenceChanged": false
+  },
+  "productionBoundaryProof": {
+    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
+    "receiptPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/batch-receipt.json",
+    "attestationPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/batch-boundary-attestation.json",
+    "headBefore": "907c0721eb4bf233c6e84ce516068fbe6c727b92",
+    "protectedPaths": [
+      "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+      "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+      "src/lib/canonical-rag/authority.ts",
+      "src/lib/canonical-learning-fact-identity/authority.ts",
+      "src/lib/canonical-learning-fact-identity/capability.ts",
+      "src/lib/canonical-learning-fact-identity/writer.ts"
+    ],
+    "protectedPathSnapshots": [
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+        "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+        "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+      },
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+        "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+        "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+      },
+      {
+        "relativePath": "src/lib/canonical-rag/authority.ts",
+        "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+        "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+        "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+        "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+        "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+        "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+        "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+        "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+      }
+    ],
+    "statusBefore": [],
+    "authoritySnapshotBeforeDigest": "20b90a08bfb78b7c6e4f022c7c5b3d0749e69a8ea0732a1fe4a8509364af9291",
+    "gitDiffCheck": "PASS",
+    "mutationFlags": {
+      "currentCoverageDecisionWritten": false,
+      "productionSelectorChanged": false,
+      "graphRagSelectorChanged": false,
+      "writerFenceChanged": false
+    }
+  },
+  "receiptDigest": "77e1effb9170221a8634e8e863140baed67e6b1fb4bc3f41d26f38f754921e3d"
+}

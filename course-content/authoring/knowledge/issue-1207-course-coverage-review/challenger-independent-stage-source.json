@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "sessionIndependence": {
+    "readPrimaryStage": false,
+    "readThirdStage": false,
+    "readPrimaryThirdReceiptOrAttestationArtifacts": false,
+    "readOtherBatchConclusions": false,
+    "readForbiddenTmpPrimaryArtifact": false,
+    "statement": "Issue #1207 CHALLENGER-only independent session for batch f8917af6bf755caf058c5358 batches[17] (group=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula). Did not read, open, probe, or infer from /tmp/issue-1207-primary-stage.json, any PRIMARY stage artifact, any Third stage artifact, Primary/Third conclusions, receipts, attestations, or other-batch review outputs. Conclusions derived solely from frozen worklist.json + batch-manifest.json#/batches/17/members (memberDigest=7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270, worklistDigest=bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489, worklistInputDigest=55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2, manifestDigest=2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818, manifestArtifactSha256=786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8) and CourseCoverage independent-stage rules: INCLUDE/EXCLUDE only with independent course evidence; profileOnly/highRisk with aggregate/profile-only evidence must DEFER. No ACTIVE/authority/selector/writer role assumed."
+  },
+  "batchBinding": {
+    "batchId": "f8917af6bf755caf058c5358",
+    "manifestBatchIndex": 17,
+    "sequence": 0,
+    "group": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+    "memberCount": 1,
+    "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "driftCheck": {
+    "batchIdMatch": true,
+    "sequenceMatch": true,
+    "groupMatch": true,
+    "memberCountMatch": true,
+    "memberOrderMatch": true,
+    "memberDigestMatch": true,
+    "manifestDigestMatch": true,
+    "worklistDigestMatch": true,
+    "worklistInputDigestMatch": true,
+    "manifestArtifactSha256Match": true,
+    "canonicalRevisionMatch": true,
+    "missingWorklistMembers": [],
+    "result": "PASS"
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+      "stageConclusion": "DEFER",
+      "rationale": "CHALLENGER independent CourseCoverage review for Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\int_{-\\infty}^{\\infty} h(\\tau) u(t-\\tau) d \\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen binding: batchId=f8917af6bf755caf058c5358 batches[17] ordinal=0; group=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; sequence=0; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1', 'ctr:release:system-modeling-engineering-v0.1']; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist risk surface: profileOnly=True, riskFlags.new=False, riskFlags.changed=False, riskFlags.highRisk=True, reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs_count=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection', 'aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']. Evidence-boundary audit: every cited worklist evidenceRef is confined to aggregate-projection aggregate-evidence and/or canonical-profile payload; no independent-course boundary ref is present. priorDecisionRefs (if any) point only at aggregate active coverage history and are not independent course evidence; they cannot authorize INCLUDE/EXCLUDE and cannot be inherited as a role. Independent course boundary search: literal canonicalId and canonicalRevision have zero hits under course-content/authoring/lessons/** and course-content/syllabus-refactor/**. CourseCoverage authority gate: INCLUDE/EXCLUDE may be issued only when independent course evidence is sufficient to support a coverage authority decision. This member is profileOnly+highRisk and the visible evidence boundary is exclusively aggregate/profile with no independent course evidence; Challenger therefore refuses to promote or exclude it under CourseCoverage authority. stageConclusion=DEFER. Challenger does not assign ACTIVE/authority/selector/writer roles and makes no production semantic decision for this member.",
+      "evidenceRefs": [
+        {
+          "evidenceId": "076bb4ccae11c8a2093caca5ec0a2cbb",
+          "sourcePath": "aggregate-projection",
+          "selector": "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
+          "sourceDigest": "7a5b57dc865e9024e9efcd342d4c5fdfefc4042b8e95ef988f7b924f8fa4326c",
+          "boundary": "aggregate",
+          "kind": "aggregate-evidence",
+          "digestSemantics": "selector-evidence"
+        },
+        {
+          "evidenceId": "61175e5617e4067b2f53312b91c05449",
+          "sourcePath": "aggregate-projection",
+          "selector": "canonicalId:ctf:55e4737318f3b1e2d5f90372",
+          "sourceDigest": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+          "boundary": "profile",
+          "kind": "canonical-profile",
+          "digestSemantics": "semantic-payload"
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "members": 1,
+    "byConclusion": {
+      "DEFER": 1,
+      "INCLUDE": 0,
+      "EXCLUDE": 0
+    },
+    "DEFER": 1,
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "profileOnly": 1,
+    "highRisk": 1,
+    "new": 0,
+    "changed": 0,
+    "independentCourseEvidenceMembers": 0,
+    "priorDecisionRefsNonEmpty": 1,
+    "evidenceBoundaryAggregateProfileOnly": 1
+  }
+}

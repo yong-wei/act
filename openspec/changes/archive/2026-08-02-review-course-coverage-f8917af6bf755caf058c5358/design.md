@@ -10,10 +10,12 @@ This change is a bounded execution unit for `f8917af6bf755caf058c5358` (`ctr:rel
 
 No stage may reuse another stage's verdict as its own evidence. The receipt records stage identity, input digests, per-member outcome, rationale, and final terminal status.
 
+For this batch, the member has one `priorDecisionRef` into aggregate active history. That reference is retained as provenance only: it is not independent course evidence, it cannot be inherited as a role or verdict, and it cannot authorize `INCLUDE` or `EXCLUDE`. With only aggregate/profile evidence, both independent stages therefore remain role-free `DEFER` with `INSUFFICIENT` evidence.
+
 ### Drift and authority fence
 
 Before review and before receipt assembly, reread the manifest slice and compare batchId, sequence, semanticGroupKey, member count/order, memberDigest, worklistInputDigest, worklistDigest, and manifestDigest. Any mismatch or canonical-revision drift fails closed. This child does not alter production selectors, writer fences, or unrelated batches.
 
 ### Receipt
 
-The receipt is deterministic and machine-mergeable: it contains the exact batch binding, ordered member references, Primary/Challenger/Third stage outcomes, conflict resolutions, terminal per-member decisions, and proof that no out-of-slice member was written.
+The receipt is deterministic and machine-mergeable: it contains the exact batch binding, ordered member references, Primary/Challenger/Third stage outcomes, conflict resolutions, terminal per-member decisions, and proof that no out-of-slice member was written. `DEFER` is terminal for the review stage only; it maps to `DEFERRED_EVIDENCE_BLOCKED`, leaves CourseCoverage authority unresolved, keeps the aggregate gate `BLOCKED_UNRESOLVED_EVIDENCE`, and never writes `ACTIVE`, authority, selector, or writer state.
