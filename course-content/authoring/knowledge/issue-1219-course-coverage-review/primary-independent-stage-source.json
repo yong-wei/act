@@ -1,0 +1,606 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "PRIMARY",
+  "sessionIndependence": {
+    "role": "PRIMARY",
+    "sessionId": "5b170129-e739-41d1-95c6-3fd74dc51dd4",
+    "scope": "act:issue-1219:primary-review",
+    "readOtherStageConclusions": false,
+    "statement": "PRIMARY only read the frozen manifest/worklist and independent course evidence; it did not read another stage conclusion or artifact.",
+    "sourceOrderCanonicalized": false
+  },
+  "batchBinding": {
+    "batchId": "88b4b69695891faeed019fb2",
+    "manifestBatchIndex": 29,
+    "sequence": 0,
+    "group": "ctr:release:time-domain-analysis-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 25,
+    "memberDigest": "d3da297e9f913499949a12a9622615455ed95a206ed2ffca144d29e0de49a36a",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818"
+  },
+  "counts": {
+    "members": 25,
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 25
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-canonical-02165faf8385e2530f3f0685",
+      "canonicalRevision": "d5ca0fbb1ad852249cb330d6765ded37f5195b968f08c354a6d46f2f01ad23df",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-07f05cf7bc2e39804a9b5c8b",
+          "evidenceId": "0d0a77c4e2bd4818a3950b4fc40e21de"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-982e2e140eb6d89ef1bcfcd0",
+          "evidenceId": "23da4b0b5b0cf0ed463ebac89f69eb80"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-02165faf8385e2530f3f0685",
+          "evidenceId": "42e64cdc22f27df1f445be0fbe790479"
+        }
+      ]
+    },
+    {
+      "ordinal": 1,
+      "canonicalId": "ctkg:v3e-canonical-15f16cf19254e1e64fc7a4df",
+      "canonicalRevision": "53336b64855d7b20d907960e1488bf72e46bc3b48b4ebc38a97e07f6db95c8d8",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-249ef1d33b11a07d0939aa36",
+          "evidenceId": "a60a78161e70789c7281c5aa007a2440"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-15f16cf19254e1e64fc7a4df",
+          "evidenceId": "e70ac63c5af21aac42af4830e9d1a1fd"
+        }
+      ]
+    },
+    {
+      "ordinal": 2,
+      "canonicalId": "ctkg:v3e-canonical-21d02c6e4eb58e4a45390a63",
+      "canonicalRevision": "03607031ba54c74fe4b45b50f328353025022df6cb2f2ab20ff8ed4ab693e1d5",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-1084a6d65aff1314a0017f25",
+          "evidenceId": "b824d85792f1a7c4379a77deb060d9ab"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-4510b2fa2132a63177ac7351",
+          "evidenceId": "c10d3b1a9d516afa48d1af396fa27c05"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-7a4085d4a051f82d8e120659",
+          "evidenceId": "65d312652728452c7aaf45ac4bf4e5c4"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-f99eda326dd6eedefa558edd",
+          "evidenceId": "2ee4ac4bf229ec423044e025a16ccc91"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-21d02c6e4eb58e4a45390a63",
+          "evidenceId": "4dc9668adb07965292b543031d918946"
+        }
+      ]
+    },
+    {
+      "ordinal": 3,
+      "canonicalId": "ctkg:v3e-canonical-255ef7205cf29c1358b7b4ee",
+      "canonicalRevision": "12ec3e1f9e50db3d6033e2d5409be5426adb74e60afe0c9ee9bb59e60f725727",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-86ed5800c94f3449fad446a1",
+          "evidenceId": "7aac1046db6dbe3fdec0bd2ccfa7fe43"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-255ef7205cf29c1358b7b4ee",
+          "evidenceId": "148157df33c08e050149e0967afea75d"
+        }
+      ]
+    },
+    {
+      "ordinal": 4,
+      "canonicalId": "ctkg:v3e-canonical-263f386cc44b05e343c3a02b",
+      "canonicalRevision": "960cb21ce599ee62089ef6a37b80e3f7c5ce11ac83cc272bf88e7f4c7ee6df48",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-03280a5e82cc4c5daa1ab55b",
+          "evidenceId": "fe809577c6cbf18336823937a0565d6c"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-12450c1051549a5959a5f261",
+          "evidenceId": "ed0625107334b8a814d7669731c4ef61"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-e8b4ed4dcb40e55361f1ca28",
+          "evidenceId": "e260f2bd029c98bc19d6fbc64ce952a6"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-ee7cc2c0356bd86abacd4eef",
+          "evidenceId": "52b67c29b7143b98ce0f55ddf5778789"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-263f386cc44b05e343c3a02b",
+          "evidenceId": "ba17604c3586c51e5a3091ff7e15c021"
+        }
+      ]
+    },
+    {
+      "ordinal": 5,
+      "canonicalId": "ctkg:v3e-canonical-2aeef85201f7ca79ad300f59",
+      "canonicalRevision": "f9ed9cb195db5bf0b745b089ed30248068d556d0fea4c05cc651974b92e1237b",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-0771f52f675866cafdb2d934",
+          "evidenceId": "dabe84c9cda9d1116535971cb845e684"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-2d4d3239bfd7c7949233c225",
+          "evidenceId": "d734279db1fe6df2fc95d5a5eeb6698c"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-5abf6fe0abe5caf2d2f36210",
+          "evidenceId": "f7d0247745bfdc6cbf3d67f044872014"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-66e50365cf06740956ff1e0b",
+          "evidenceId": "2ccfec938fff43b74e02fa9626723325"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-7b38ec48c10b87e5f41076d0",
+          "evidenceId": "b73e3503721e72f41b0498084f35a633"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-9aa6d3c15cd96cceacdb0e09",
+          "evidenceId": "4bb4b03ea1d759f3cc6d75f296be8873"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-a15a4693e5d9f3bd89cff19f",
+          "evidenceId": "d42a20068d9da5720b2d561b47b2f05c"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-a4e7793ac5004e2e2aa61fa0",
+          "evidenceId": "f0d7c175a0268af7b82a17546b768308"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-c7b381cc45d10d8fb467c038",
+          "evidenceId": "6e4cc0edfc1c8fb77205b1807de6638b"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-cd99cde90a1738d3a09423f9",
+          "evidenceId": "37a491faa5a20b2540fdd4698955b0a8"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-2aeef85201f7ca79ad300f59",
+          "evidenceId": "f0b3f92ca5ba1fcfc94809852ef9bc88"
+        }
+      ]
+    },
+    {
+      "ordinal": 6,
+      "canonicalId": "ctkg:v3e-canonical-34b8c6024dd15c0080a713f2",
+      "canonicalRevision": "4db28056614cbb7192cbde169f349f44fd6e7dfbe12f635a62b160cb54acc993",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-100cc0c8346135a6b13d3c6e",
+          "evidenceId": "9e12135bed37cc7574b5ad582aad76ea"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-9b24e5208a06a88b1fd758b8",
+          "evidenceId": "09f2d562931e5a51dfdc93276b7c3df8"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-b92ae1ad27da15fdf0d9e31b",
+          "evidenceId": "d8923cc68a2231b256e89a57c4c634bc"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-d8d811c2e3a244d20920cc19",
+          "evidenceId": "ccf5518fe362bb75aacc2adeee4f2b41"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-f552fcdea0b75911645d4333",
+          "evidenceId": "eee80e3067a53303587590374aab0407"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-34b8c6024dd15c0080a713f2",
+          "evidenceId": "16b1ce49ea61c79e771aaeab1e44c4d6"
+        }
+      ]
+    },
+    {
+      "ordinal": 7,
+      "canonicalId": "ctkg:v3e-canonical-3882105ff53f84e0589837ce",
+      "canonicalRevision": "016ef7b2eb866a023bafce176e35a36e101a3f2fbc114d630babe6a6af1cc836",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-672d0733c3961193533ae39d",
+          "evidenceId": "d8b4883d1ce7ba5ffcf09c1cb7af999d"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-bf3968dab3f3ba50f6e9ba1a",
+          "evidenceId": "72eb35cfcff2ef33be75268c9ba14feb"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-e86af6f80ce2118bd96f578f",
+          "evidenceId": "27fed21d85444d8f9c8baffc3dc91f68"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-3882105ff53f84e0589837ce",
+          "evidenceId": "57681bd783a996a9785a30d09804e27b"
+        }
+      ]
+    },
+    {
+      "ordinal": 8,
+      "canonicalId": "ctkg:v3e-canonical-43ffa4fd3e95ea0b3d3500ae",
+      "canonicalRevision": "9d73ffd7f0011cd63a01439c52347fe030c6baee427db29c60209332a29a4f1b",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-41690677eb3cfa638c057ad8",
+          "evidenceId": "64797992c210696323291512d5fa28f8"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-bce394782ebf2d7daa9b960e",
+          "evidenceId": "9e69643f7971a354a8aa319d57cfa464"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-43ffa4fd3e95ea0b3d3500ae",
+          "evidenceId": "dafcef2b119c94595996803a753c6e3d"
+        }
+      ]
+    },
+    {
+      "ordinal": 9,
+      "canonicalId": "ctkg:v3e-canonical-468e431a71a092ae0762b573",
+      "canonicalRevision": "c12c3073f90af12542a223b13deca2c2ab52a1f0eb257a1b85e11fcff231d94c",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-109af836acd4d2187996f1a5",
+          "evidenceId": "c35950be8752fcbcf016d25c0bf849c5"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-6c52abb89b100f2063d68f4c",
+          "evidenceId": "b86cf1b8f2398e3f646163c2fe81e961"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-b66daca15bfb0ba0fb737868",
+          "evidenceId": "8f96222bb5ff1f6d88f6a3a990b821d5"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-468e431a71a092ae0762b573",
+          "evidenceId": "0bebdae7505185efbd03e6c085c900e9"
+        }
+      ]
+    },
+    {
+      "ordinal": 10,
+      "canonicalId": "ctkg:v3e-canonical-4f1cb30e74bf6d7122ca7721",
+      "canonicalRevision": "e84b4fc3f6fec8957b6ff095b95e3d2549d0e26a60429a776c17bf021c829438",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-41969bf5e61bfd7c06bc70fd",
+          "evidenceId": "297d12535ffc2be07da85f70641b4bed"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-a8eed9213c0dc517fc62b9ae",
+          "evidenceId": "2ba3dd474a165a52a86f6147ba1eb72b"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-4f1cb30e74bf6d7122ca7721",
+          "evidenceId": "32704e0ed7c8d59ac118e00ac741c0d8"
+        }
+      ]
+    },
+    {
+      "ordinal": 11,
+      "canonicalId": "ctkg:v3e-canonical-59d77ba1b394f063dcdb3ccf",
+      "canonicalRevision": "963ad663f82762d10a424567ae288ba0f52d2296c5cb972714416037d23e0f52",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-9dfd8f4f71b9907e9c43ab5c",
+          "evidenceId": "e3ba77fe57584d31b305013ef715fdf7"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-59d77ba1b394f063dcdb3ccf",
+          "evidenceId": "0fdb7c5bb7a02959a5f73b6206a0fbce"
+        }
+      ]
+    },
+    {
+      "ordinal": 12,
+      "canonicalId": "ctkg:v3e-canonical-63d45377c6f93c1474d059f1",
+      "canonicalRevision": "03f07dddfcc5d1a44682835f94ed59dd6c7942ef9518ae545ab148989c9f9c90",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-e5acb764c8fe9668c4c9c3b6",
+          "evidenceId": "77796b4399e48ff184454c8c07221c2b"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-63d45377c6f93c1474d059f1",
+          "evidenceId": "cf2f6b947f076ffd9c03e27ce7183406"
+        }
+      ]
+    },
+    {
+      "ordinal": 13,
+      "canonicalId": "ctkg:v3e-canonical-678ce46b895e65138c77e3c5",
+      "canonicalRevision": "65944b3540009da98800794bbeee7f8a460ba22ce7dc3998250a34e8d1f2de10",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-16f72d6198cf47b2f2d46344",
+          "evidenceId": "3e4604631f1c768c3cd71607ff977bc7"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-7687a6fda98e1650a1f9caeb",
+          "evidenceId": "181fb6f2e19167ec3c45f85b426fe83a"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-fb09a7365dcccab76dee8f12",
+          "evidenceId": "61b005c31c1981a0d3cfe6138ac1deaa"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-678ce46b895e65138c77e3c5",
+          "evidenceId": "db37d2304ebcd0c82df7564a183e27a8"
+        }
+      ]
+    },
+    {
+      "ordinal": 14,
+      "canonicalId": "ctkg:v3e-canonical-6c5a73e69845036b55baa345",
+      "canonicalRevision": "1875e75cffe0a5258d013c6a56725764f7cee98bfe8ef7143858808240b6e5c2",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-0b8afe830cacd32575de7a05",
+          "evidenceId": "4958ea896945fcf85caaf736a5906468"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-34086165d027f8aa95c010eb",
+          "evidenceId": "13c01444c1b90989901708a103deb307"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-4e02f7061715a26df1928d4c",
+          "evidenceId": "3024e9c962d02fa36070c3ee8afa4000"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-6c5a73e69845036b55baa345",
+          "evidenceId": "b2fa76dcb4df7165e506ef1695679a2d"
+        }
+      ]
+    },
+    {
+      "ordinal": 15,
+      "canonicalId": "ctkg:v3e-canonical-70cc30805daade6a77025d7b",
+      "canonicalRevision": "e354417af10d1bff99837d422e5fa8f5972c95b10a2f5bf6b3153098222666dd",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-2c55f622ebb4688c6b9f07c8",
+          "evidenceId": "25cee78a85bbd5071e091a6fedb9c257"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-81da41c8f2a65f908fbd2335",
+          "evidenceId": "dbec8bae9df57faf45a39da396c353a1"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-70cc30805daade6a77025d7b",
+          "evidenceId": "998da81cdfe3a86b6996bc8aa68fb42f"
+        }
+      ]
+    },
+    {
+      "ordinal": 16,
+      "canonicalId": "ctkg:v3e-canonical-917d20a472ae86691d29da30",
+      "canonicalRevision": "4df2b0a13122e462ea7c2db35a2ad109a742b661fc5d3786dae484e050d01ecc",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-ffc2686301ef5bf11bd96425",
+          "evidenceId": "867895706d8fc44f6c10583053a8ed95"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-917d20a472ae86691d29da30",
+          "evidenceId": "31ca7d48fad80603222c185289e40461"
+        }
+      ]
+    },
+    {
+      "ordinal": 17,
+      "canonicalId": "ctkg:v3e-canonical-984545d6479a48019f92abf4",
+      "canonicalRevision": "e98376e11043d9fdd3d283555500a54d907b5fca21faed52a11233cdd2fb96aa",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-e687f9554ace2c2e9f9dd957",
+          "evidenceId": "d63258338099aae85d18d5585492d476"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-984545d6479a48019f92abf4",
+          "evidenceId": "55bb82d65b496692416df1e8af75d00c"
+        }
+      ]
+    },
+    {
+      "ordinal": 18,
+      "canonicalId": "ctkg:v3e-canonical-9a8be8016e17b541ee8018eb",
+      "canonicalRevision": "986266f2352a76b430d899378c44bb68f45d1c42e58ea130e338f4bbaaf59563",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-1abb4e03cea15d2c8aa19e8b",
+          "evidenceId": "946896142986b3225df1ddd4e194342d"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-f13ca2daae8ce8101848dd02",
+          "evidenceId": "c52fd215e6a04368570d697635d8691c"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-9a8be8016e17b541ee8018eb",
+          "evidenceId": "cfc118c369642bb3004646bc3c1e949f"
+        }
+      ]
+    },
+    {
+      "ordinal": 19,
+      "canonicalId": "ctkg:v3e-canonical-9f3a0c7ab442c640a14da11f",
+      "canonicalRevision": "4df5e8a2618a8c5a887a0a96bfef179307ad785e173485c9cdfe6c09c470b5d7",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-3af8fc2402bd74b71b99cd91",
+          "evidenceId": "c5cc84a5ad59597045464b13f23b324b"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-deb985a9b8930eb5f37feac9",
+          "evidenceId": "d63e7f0f8b95bbf9f4b057ee42d4c592"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-9f3a0c7ab442c640a14da11f",
+          "evidenceId": "c3f1a3762547097dc502deda153f46b7"
+        }
+      ]
+    },
+    {
+      "ordinal": 20,
+      "canonicalId": "ctkg:v3e-canonical-b25c8e8f2952cee077a798b2",
+      "canonicalRevision": "bbeee1b5bf4146da8ee2f0df85bc6c2ac657a47f4bc3a07459ff447d7eea4087",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-88853f4090ff4664e8d1280a",
+          "evidenceId": "9c11d7ab74f836c66b6fb6eb5d519491"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-b25c8e8f2952cee077a798b2",
+          "evidenceId": "8c9b82a426de023b3f50a3b2c59ce9b5"
+        }
+      ]
+    },
+    {
+      "ordinal": 21,
+      "canonicalId": "ctkg:v3e-canonical-b2d0351204a462c1de01cc9a",
+      "canonicalRevision": "cdcdf1a90fe92d1f7095b59116f321bd3a6498b55adf6f4390f6a45bd35b2cab",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-d200553ca7ae6e03b2d67597",
+          "evidenceId": "89d33de1b51b206b7cd1f69199c46632"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-b2d0351204a462c1de01cc9a",
+          "evidenceId": "56bf682d9573ea1896f4c092274d74c1"
+        }
+      ]
+    },
+    {
+      "ordinal": 22,
+      "canonicalId": "ctkg:v3e-canonical-b70f639a07a9339377576b36",
+      "canonicalRevision": "d961b108cc86929d2c0a56e68073ed185effa3d5c10ff336846fce624e9b0469",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-f7dab2d12b39f6d9daf2c82a",
+          "evidenceId": "9626ac7fd57324f4076a70f53d7a9f75"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-b70f639a07a9339377576b36",
+          "evidenceId": "9c04e0d6c32637ef913d49c1fef5ea82"
+        }
+      ]
+    },
+    {
+      "ordinal": 23,
+      "canonicalId": "ctkg:v3e-canonical-b97eb48852e5e64da6a03dae",
+      "canonicalRevision": "6ee93f24934beacd3144eed66cb20e3f82d7d874bec5c6250b069c32156fcb7b",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-04da9b01fcd04ef0f1b018c3",
+          "evidenceId": "990f9e8a4e3907832b03120d5b10174a"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-6824c3436a59d825efba78d1",
+          "evidenceId": "aa6ede29d3ea04454490fed1b1f7462e"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-b97eb48852e5e64da6a03dae",
+          "evidenceId": "70169d7f82b807bf0158a6b3f31af54c"
+        }
+      ]
+    },
+    {
+      "ordinal": 24,
+      "canonicalId": "ctkg:v3e-canonical-d5f71d77c04a8545f7436d9f",
+      "canonicalRevision": "6f39c21c6b5dcde2fe48709e0d0dce0c5d335b1f73b9b053748278f9e4c43ee1",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结材料仅为 profileOnly/highRisk，证据仅含聚合投影与规范 profile，无独立课程权威证据，无法判定教学角色。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-05efce5c1e038765bc38231b",
+          "evidenceId": "db69db720f9d24f97a2baa0ddf228219"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-1de2fc7897a7c5e838234124",
+          "evidenceId": "617debee1c3d0e965465c1075b1aabb9"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-36347bf12839e6e6eb2d9573",
+          "evidenceId": "221b043d0e13a6cd1cf0e0ca29a7136f"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-cec67a4131a52f6912ccf2a7",
+          "evidenceId": "6a50e36fc1b0d16a257d9d4529ac4b68"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-release-evidence-ddba09095fbd7c3e5773c9db",
+          "evidenceId": "01c42b9d588e2255655836f1a76f307b"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-canonical-d5f71d77c04a8545f7436d9f",
+          "evidenceId": "98024f69a69125c1b7364ef085a3ba03"
+        }
+      ]
+    }
+  ]
+}
