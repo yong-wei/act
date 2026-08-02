@@ -1,0 +1,927 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "sessionIndependence": {
+    "role": "CHALLENGER",
+    "sessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304",
+    "scope": "act:issue-1212:challenger-review",
+    "readOtherStageConclusions": false,
+    "statement": "CHALLENGER only read the frozen manifest/worklist and independent course evidence; it did not read another stage conclusion or artifact.",
+    "sourceOrderCanonicalized": false
+  },
+  "batchBinding": {
+    "batchId": "58d1670455782297bdaf8a19",
+    "manifestBatchIndex": 22,
+    "sequence": 0,
+    "group": "ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 50,
+    "memberDigest": "9db24aec2aff29ab79542c398dd4c65782b573635c4e7f944714d951bcfbf964",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818"
+  },
+  "counts": {
+    "members": 50,
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 50
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-object-07d0901e1f1d4d60f34507a8",
+      "canonicalRevision": "34f43f97fed76c426ff81563bb72bcf4a2b6d24be5ab8a4a618548e8a63f6a2f",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-3bda1e064634d3edf234bb6a",
+          "evidenceId": "cc45e8d1b18424477e0b86aaead130a9"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-07d0901e1f1d4d60f34507a8",
+          "evidenceId": "7300767c35011d42dcba839febb60e93"
+        }
+      ]
+    },
+    {
+      "ordinal": 1,
+      "canonicalId": "ctkg:v3e-object-0f224eb8388293b64baf7bef",
+      "canonicalRevision": "6223b4306367fbaf72a3eb91a5a84c994bb4f2ed0f04ecc4e27b2d3127ea5bd4",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-1b9e42839130a22adf11b4c6",
+          "evidenceId": "90402643d7dce10845fa9f7e209033eb"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-6adc4ac7d1d09edfaa6ec776",
+          "evidenceId": "b31ca9839264f9f054efaf22eeb024d7"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-b5e90eeba08a034da3c864df",
+          "evidenceId": "9fd93863a1d839ee9cb40c241783692c"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-0f224eb8388293b64baf7bef",
+          "evidenceId": "c749fb8cb4859c21b090d208090dacf4"
+        }
+      ]
+    },
+    {
+      "ordinal": 2,
+      "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+      "canonicalRevision": "a7ae9060d4cb424d2554bdd26b6f439689c083adcc0bbdbbeaf4454b30f31ec5",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-4975dff902e34fe836c14fce",
+          "evidenceId": "5c76ddcc31abe602609890600b5ade3e"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+          "evidenceId": "b2e0b9ce4c1cda84ce68611c6bcb159a"
+        }
+      ]
+    },
+    {
+      "ordinal": 3,
+      "canonicalId": "ctkg:v3e-object-14841fb286867e13c55e0190",
+      "canonicalRevision": "d0b2ba826ec4ad50df5840a0f0097cbc8795a67384ce92b70bb7bdfcdf552f19",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-6515ea89857a61796690f0df",
+          "evidenceId": "eab993974940956f968d32434922826e"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-a389da85c1d88c00313f05d7",
+          "evidenceId": "87d502e0b4b24c4eae76bcc60b8f9a93"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-14841fb286867e13c55e0190",
+          "evidenceId": "ff23739d2ec39abd030710da1377c9cb"
+        }
+      ]
+    },
+    {
+      "ordinal": 4,
+      "canonicalId": "ctkg:v3e-object-17ec6f5bba991857bbe35f3c",
+      "canonicalRevision": "ee15e6dd95ea19b211b247ee10731942b7f79138ddd917d3209e58981459cf87",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-4d1cb2760a9d5ab12abdb402",
+          "evidenceId": "362a5008b4288021ed5ebfbc3240a8db"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-ee51db0783f507a948185e2a",
+          "evidenceId": "a58f7ac0d983933647191bdef642eeee"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-17ec6f5bba991857bbe35f3c",
+          "evidenceId": "0dce5ec578703179922ec9657de142df"
+        }
+      ]
+    },
+    {
+      "ordinal": 5,
+      "canonicalId": "ctkg:v3e-object-1d2a1d7e325ba626faf93ab5",
+      "canonicalRevision": "62200d78bc79c73fde15d807743a258ff061cb32da5e3472e504fd5f281d44ac",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-e925f6ff27c2872bcfed5ac1",
+          "evidenceId": "5aafd31aeaceabe764f4b0c1b0a5cc11"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-1d2a1d7e325ba626faf93ab5",
+          "evidenceId": "ad4872cb1e4113917868ac7c47900c1f"
+        }
+      ]
+    },
+    {
+      "ordinal": 6,
+      "canonicalId": "ctkg:v3e-object-20f672e45f634ba04881526b",
+      "canonicalRevision": "df5435168a7ae0b1ecf22a3ce944104e931002f70a8a3e5e5985a75623a7531e",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-b5654e28b42b2724b0f77a02",
+          "evidenceId": "8c8423bf45547246e10db66fb34d4a60"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-20f672e45f634ba04881526b",
+          "evidenceId": "050acbdb37f7b0e22497c7352747ca3f"
+        }
+      ]
+    },
+    {
+      "ordinal": 7,
+      "canonicalId": "ctkg:v3e-object-22f6b04371dfdb4a30972659",
+      "canonicalRevision": "b22330c43e59bd621359d4d48acbad5cc14d482cc1fa21b585498c120a78d4bd",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-b477e8184cdd4d2c6efef994",
+          "evidenceId": "62bb81ba0a428b5a80e74c91dd05ffee"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-22f6b04371dfdb4a30972659",
+          "evidenceId": "448a036f0a3971488f4596e78b63154b"
+        }
+      ]
+    },
+    {
+      "ordinal": 8,
+      "canonicalId": "ctkg:v3e-object-2e79ef7774133bdad1c88d21",
+      "canonicalRevision": "b831bdd6ea9ccc807858cf487fae46031043ade8a92884f951559c62663b8cb7",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-a8fbb98758e7e80c50ae178f",
+          "evidenceId": "b1a9e8747a0227ab2e37afebc3d55778"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-c2771c9ca23e3af517f87268",
+          "evidenceId": "3231b5884f883ef6419ee11deabc8789"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-2e79ef7774133bdad1c88d21",
+          "evidenceId": "36b500e05410795209af525103c33ef5"
+        }
+      ]
+    },
+    {
+      "ordinal": 9,
+      "canonicalId": "ctkg:v3e-object-38a77e20eec796109bd1793f",
+      "canonicalRevision": "17cc881ce527b93d19c802dd528b6ccf437f92de0c002d5aa094e8487f809aa9",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-5d29671343990fe98e14a1c0",
+          "evidenceId": "b8c6fac89771d97ca7db0748b9a04be1"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-38a77e20eec796109bd1793f",
+          "evidenceId": "02d327fb876c322985b1e7908b2e06e0"
+        }
+      ]
+    },
+    {
+      "ordinal": 10,
+      "canonicalId": "ctkg:v3e-object-391f0fb6ec3666a2ce191891",
+      "canonicalRevision": "098d3cfea577998dfc260466406f7c1496270c0f623f32ba79c3e5ed38ea5d60",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-0c4ec20a8d253df13ba40aee",
+          "evidenceId": "9d50d1cd3f4e50a6e78881cb6b9d5e3a"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-391f0fb6ec3666a2ce191891",
+          "evidenceId": "f2feed6f621552047184331e5bdfee19"
+        }
+      ]
+    },
+    {
+      "ordinal": 11,
+      "canonicalId": "ctkg:v3e-object-3dddd29ea79a726ff9294909",
+      "canonicalRevision": "7baa62b5971c16e8758ed8d8ef1ce97a43a3e92b82ddbe503417edaa3b1b1d03",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-4f489afc88759f6f875f9a39",
+          "evidenceId": "cc768bec16384f15d76b030debed060c"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-74779ba853a9b55cc5c1465a",
+          "evidenceId": "4734ee482f9101d9e74e8e818fe74978"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-3dddd29ea79a726ff9294909",
+          "evidenceId": "ddbd9006d6df1f7792497e0f10f19924"
+        }
+      ]
+    },
+    {
+      "ordinal": 12,
+      "canonicalId": "ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca",
+      "canonicalRevision": "ef1e2b13ed9a9aa0d4baee34f71832e9cba11c0078c647bc7d19cca19b23c006",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-0852d78d9248db31f64f7743",
+          "evidenceId": "0d637a1cdff434840efdb903dcef24a9"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca",
+          "evidenceId": "cacdec6ad1c426cb53c86befe8f7c0cd"
+        }
+      ]
+    },
+    {
+      "ordinal": 13,
+      "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+      "canonicalRevision": "3b80f4d6f29b9aab74db6c19398a1a334f311c3496f87c43aa0d28e6b3b4981e",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-3aa74cb98bd89f20a88f2380",
+          "evidenceId": "39ec2479f90630783dbef9ab4a34160c"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+          "evidenceId": "d46ff50eb7c13ab42d69e9b479212778"
+        }
+      ]
+    },
+    {
+      "ordinal": 14,
+      "canonicalId": "ctkg:v3e-object-4a23750bb1520504403f7aa4",
+      "canonicalRevision": "33a141c0d162baaa123de5f6a03e3f31d0d4bc0071cf9c11e0b3e82381add1c9",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-ad049482038aba9316106555",
+          "evidenceId": "76f3c8c226da8ec24c41cead31539d2d"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-4a23750bb1520504403f7aa4",
+          "evidenceId": "9f6963433a7bad9423216a1223d9ce84"
+        }
+      ]
+    },
+    {
+      "ordinal": 15,
+      "canonicalId": "ctkg:v3e-object-61be5094c4245cc8bd3fa0b2",
+      "canonicalRevision": "0a28ca43dc725ea710878f01afb75357c63a6a60a6235facd2dccad754b94bc7",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-be32f04fa58e055d7782bdcb",
+          "evidenceId": "7261d5a168995bbc1c2f6f9acf426edf"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-61be5094c4245cc8bd3fa0b2",
+          "evidenceId": "da94319c8278173c5685cfda985766f0"
+        }
+      ]
+    },
+    {
+      "ordinal": 16,
+      "canonicalId": "ctkg:v3e-object-62b50d2d7fbb060bd58fe7f5",
+      "canonicalRevision": "c5b76672ca42ec05f27584b4711ea8431875d58531684ce4515319be35a0527d",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-bc0421a985244c1765ff7570",
+          "evidenceId": "d2b9393f5b7f4f02478ee023e5cddb21"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-62b50d2d7fbb060bd58fe7f5",
+          "evidenceId": "a31e9031a9210dd6f869b63ae69c7508"
+        }
+      ]
+    },
+    {
+      "ordinal": 17,
+      "canonicalId": "ctkg:v3e-object-659317594d3f3e5d41a80a57",
+      "canonicalRevision": "2c50f98db9aad43d8479adf4967fc011b8d095bea0a983e12072751b32797015",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-ecc03494d226ef1fef448d8d",
+          "evidenceId": "8bb6a9b2cfc10afc2a49add23b589807"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-659317594d3f3e5d41a80a57",
+          "evidenceId": "f84fc8729dfa90c87a09ece7dbf747f1"
+        }
+      ]
+    },
+    {
+      "ordinal": 18,
+      "canonicalId": "ctkg:v3e-object-6752b348406951a18f3c041d",
+      "canonicalRevision": "e435b4224e08d7a7cf466994a55257045475b3a17f69d4777f0817d902c83c2a",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-b8bb51ad52893afe69bea563",
+          "evidenceId": "cc6dde58272d0e29d70dd8b41e670e2c"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-6752b348406951a18f3c041d",
+          "evidenceId": "6b2439ae5feb77e45b7770195568a1ee"
+        }
+      ]
+    },
+    {
+      "ordinal": 19,
+      "canonicalId": "ctkg:v3e-object-7d6f500f9839e964c6f15163",
+      "canonicalRevision": "298f167ea158d1ec48a95930085693b6e9004e57d781d49231ca7979ad690cbd",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-614149f80245579a8f0d6ae2",
+          "evidenceId": "a9d43bc9ddf8a72549e205a832b131ca"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-7d6f500f9839e964c6f15163",
+          "evidenceId": "28d2ccf60e030dd0e22c67b4beea509b"
+        }
+      ]
+    },
+    {
+      "ordinal": 20,
+      "canonicalId": "ctkg:v3e-object-7eab83363cc1ae2584439aad",
+      "canonicalRevision": "8dfc2ee2b5083d454f9bf430ed0777d374f258feb38b36429377d34595183447",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-ded18ca68c1ee0b58a13a18e",
+          "evidenceId": "881dfc16f9cee06edc140c96401803d9"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-7eab83363cc1ae2584439aad",
+          "evidenceId": "85184367ebed6c916ea1745d4811d2f0"
+        }
+      ]
+    },
+    {
+      "ordinal": 21,
+      "canonicalId": "ctkg:v3e-object-81b011029a6f0d8278513e00",
+      "canonicalRevision": "793196ca4f3311974411dea1cd36a889a99df01eb6e2c0a652952d7223b2f359",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-2c08242daa7b2663f26044f0",
+          "evidenceId": "bc9a6092ea227ef7cc81c6a8cc46ad17"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-82bc8b8dac791db8dde4bb83",
+          "evidenceId": "d1bc0b53215c654e7a96034e2ada7c50"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-81b011029a6f0d8278513e00",
+          "evidenceId": "2da719b3630aa468e1690f0c7c211b7b"
+        }
+      ]
+    },
+    {
+      "ordinal": 22,
+      "canonicalId": "ctkg:v3e-object-8852ec91627844d2b3ab75e3",
+      "canonicalRevision": "b567d19f380773fe0a6b5ad8bb541ad5a590eee91167cb451e4bcd4cdbf1e8bb",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-be15e2e4853b44e21f0b5996",
+          "evidenceId": "923f1902223a10e531e7cb23d2786650"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-8852ec91627844d2b3ab75e3",
+          "evidenceId": "0762d7906bcf0673e353efdf91bae673"
+        }
+      ]
+    },
+    {
+      "ordinal": 23,
+      "canonicalId": "ctkg:v3e-object-89acff8dd9d045ce368bb017",
+      "canonicalRevision": "0db82a4a8a8a84c4a40ffc7fc415ef275c5a5b00f0dc5bfde728f37635351650",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-d9c9940b1744534bd92ab513",
+          "evidenceId": "9c782d32552a26830402ec46f25c941d"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-89acff8dd9d045ce368bb017",
+          "evidenceId": "3ceb32f5c20498b660785010f429ef16"
+        }
+      ]
+    },
+    {
+      "ordinal": 24,
+      "canonicalId": "ctkg:v3e-object-8b3db8f5ab28587a80b0a989",
+      "canonicalRevision": "faa27b449e6bf158f4b3e8f9c6facc65a279e93c4d801a51c44e3887f5835dfa",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-fc3e9ac5715d1c9dfb713d1b",
+          "evidenceId": "20cf642c7421be40911dc5598dfef78d"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-8b3db8f5ab28587a80b0a989",
+          "evidenceId": "44df51f6df922358e486731737914921"
+        }
+      ]
+    },
+    {
+      "ordinal": 25,
+      "canonicalId": "ctkg:v3e-object-8e8245d98aacc48574cbd41a",
+      "canonicalRevision": "7e23d51e848fba499d93f303a19b6e185d042c714b2285e306eb93fddf584d4b",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-fbdf882eb8c335a19ebf270e",
+          "evidenceId": "7e08cd6f3f37ce933f82eb6f13363785"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-8e8245d98aacc48574cbd41a",
+          "evidenceId": "17a46ae9ddbb263f4ab87386c0c35f47"
+        }
+      ]
+    },
+    {
+      "ordinal": 26,
+      "canonicalId": "ctkg:v3e-object-99c11bd300baace02c9f883a",
+      "canonicalRevision": "3b920cb2b056af963c53544307cc9894f6797da9f769d231081b9108645fb8e1",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-38a421eaa1d47521f7a6b680",
+          "evidenceId": "014c2ed82c786de84801b80ae390e82f"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-99c11bd300baace02c9f883a",
+          "evidenceId": "bd656d0c5627fb9d62333ece94e6ac79"
+        }
+      ]
+    },
+    {
+      "ordinal": 27,
+      "canonicalId": "ctkg:v3e-object-9aac02e883a543e43b255294",
+      "canonicalRevision": "bb6049695efec560023c832f9f480105df9a8855df325ad02749ede4183df5f1",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-accd24556c8d1b9437165a74",
+          "evidenceId": "813c737b2075be17c936f3e747b260a8"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-9aac02e883a543e43b255294",
+          "evidenceId": "275de02bd5332461881bad5a5af9efcd"
+        }
+      ]
+    },
+    {
+      "ordinal": 28,
+      "canonicalId": "ctkg:v3e-object-9b033c1214c9b9dce46bf8b3",
+      "canonicalRevision": "9885c3bbbf7ed9f16b89757eaa33cfa3170c9c35942b74a00d252ada8d3e83bc",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-5bb40fea0a2748420d68e8f3",
+          "evidenceId": "38a7349b6d7e38ca7760ee543377941d"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-9b033c1214c9b9dce46bf8b3",
+          "evidenceId": "a290413c79380182e3d62f76fa081fa8"
+        }
+      ]
+    },
+    {
+      "ordinal": 29,
+      "canonicalId": "ctkg:v3e-object-9cba2e0a1c543ae840961ac7",
+      "canonicalRevision": "da5936a9b087a685293bba92f497c2143a508db9796a0ee079035447c44f42a8",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-d18eceb4de2c4f0ae70a18e7",
+          "evidenceId": "56e8e8f07ba3fe765fe156b023d469d8"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-9cba2e0a1c543ae840961ac7",
+          "evidenceId": "357b8170dea5c7503541ff4037bc1a51"
+        }
+      ]
+    },
+    {
+      "ordinal": 30,
+      "canonicalId": "ctkg:v3e-object-a5a0082ecac6ee90f76ca1af",
+      "canonicalRevision": "40e27f800fcc0d2f6e4ba213c362b39b1b9cffc1596633195b0cfcc52fe0a194",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-4fae3a633720d08181249d33",
+          "evidenceId": "757cbadb204cb1d25825ab343e00d681"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-e20f61e15509e4271b82c647",
+          "evidenceId": "c278f255e5d1e511d8df8bafa7e697ae"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-a5a0082ecac6ee90f76ca1af",
+          "evidenceId": "3078df9f3d26c4c0f7cff7ff92c051e8"
+        }
+      ]
+    },
+    {
+      "ordinal": 31,
+      "canonicalId": "ctkg:v3e-object-a7e6b499c7e257c3d64ab6c8",
+      "canonicalRevision": "0b71b00330065ef448fd94e98d17b0025efdafcd0f2b89c91b9ebd8ba6477aa3",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-4c5e2401dfbc031a03fd860c",
+          "evidenceId": "e1a3fbc03db133f4b94f24060c073acb"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-a7e6b499c7e257c3d64ab6c8",
+          "evidenceId": "63db913e5dbcc1efa2618f7a251549b4"
+        }
+      ]
+    },
+    {
+      "ordinal": 32,
+      "canonicalId": "ctkg:v3e-object-a801b9509d0e105d9982661c",
+      "canonicalRevision": "3f78a1f75c03f7a00cde748fd3c379d2f99a6ca57be877f6d6babf82621044c7",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-91166ba630a9b5b72dd3b3d6",
+          "evidenceId": "faa5880ed38df251613a39a0f1fa8154"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-a801b9509d0e105d9982661c",
+          "evidenceId": "06c28f29202ee104240c7b900eb721c3"
+        }
+      ]
+    },
+    {
+      "ordinal": 33,
+      "canonicalId": "ctkg:v3e-object-ae3b1e3f138047694684c11b",
+      "canonicalRevision": "1ea6c50d5a7f4cebce7caf935d936007eb5fbb83cadbceab68244d7dc7ce391e",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-3693c19cebf3e51fbb064bfd",
+          "evidenceId": "203921d2952dda4285fed22ef99796b8"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-ae3b1e3f138047694684c11b",
+          "evidenceId": "39a6efb99767ae3e0ce4a95546d124ff"
+        }
+      ]
+    },
+    {
+      "ordinal": 34,
+      "canonicalId": "ctkg:v3e-object-ae92b4c835d9596a7e75dabd",
+      "canonicalRevision": "bf3296b4c954b6c1ae35020e22b4156e0ed269676027066c7e912c17272187cf",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-0b7376eaa28d7c05fd797497",
+          "evidenceId": "4d929935e125526c2fdbe164e3ba3e17"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-4a11210d089143e03c9c5276",
+          "evidenceId": "ce3e308eb4c9bf4e205a954243cf27ba"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-ae92b4c835d9596a7e75dabd",
+          "evidenceId": "f4b719ecb4da5b0a8c3f2ca3112dee4a"
+        }
+      ]
+    },
+    {
+      "ordinal": 35,
+      "canonicalId": "ctkg:v3e-object-b02f0601aaa89fcada0f5ba2",
+      "canonicalRevision": "1a72937cf6340a8fd438de58ca96120d2da20c0f96a7254ddeec01a8f46a99ad",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-e6416de07a44a906ae5f3436",
+          "evidenceId": "126ec5d33efcc39c5f1b097bbb821ada"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-b02f0601aaa89fcada0f5ba2",
+          "evidenceId": "11bf1d8126faa3ff93e35b35334b1e54"
+        }
+      ]
+    },
+    {
+      "ordinal": 36,
+      "canonicalId": "ctkg:v3e-object-b8cfc0ef9f55be5362eff1ec",
+      "canonicalRevision": "e6cc653adcd7a7886e33636ed910a5e5ffdd58f9ae77bac80fd03847c9babb5f",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-69bca000e690b9d1f80364c6",
+          "evidenceId": "866136d2621bcec8c8c23939b3a9cdf7"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-b8cfc0ef9f55be5362eff1ec",
+          "evidenceId": "6d494184aebea2571f9d722a53ac5202"
+        }
+      ]
+    },
+    {
+      "ordinal": 37,
+      "canonicalId": "ctkg:v3e-object-be88a296d0549e375d475f51",
+      "canonicalRevision": "c57c8b3186d424629ef8bac606ed8c429498f8fea65deab290de57857141294d",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-d1e7e21fe9820d9660826473",
+          "evidenceId": "07f6aec5bf2f73a1326ce2e30fe551f6"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-be88a296d0549e375d475f51",
+          "evidenceId": "792ccdf623ff2a9b339a12f885f56ab0"
+        }
+      ]
+    },
+    {
+      "ordinal": 38,
+      "canonicalId": "ctkg:v3e-object-c00ba45bcb61d901d427008d",
+      "canonicalRevision": "f0b362d20a373953e5d93f40fc4576cef6f3f2df739f131a48a64f5dedd09bf9",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-c3def720cc54bcbd6b3348f7",
+          "evidenceId": "ffad43771034c6ab64867eb3fca291a4"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-df237bfd6ce9a959f8a0988f",
+          "evidenceId": "2033b5d473ba07df288a59992257125d"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-c00ba45bcb61d901d427008d",
+          "evidenceId": "f76bab9928abedea3038a7967f0cc5a9"
+        }
+      ]
+    },
+    {
+      "ordinal": 39,
+      "canonicalId": "ctkg:v3e-object-c651a5483e68f1f0e3aabe2e",
+      "canonicalRevision": "1694137002a50c138af36ac37d44643e464172b71dbd376104d81e6d2c96235a",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-bd3ffff56b1c4549deb80c9e",
+          "evidenceId": "eefee7db22018fb7c9daa4b596223b25"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-c651a5483e68f1f0e3aabe2e",
+          "evidenceId": "cb23bb5e2320861c50a832a9872b1c69"
+        }
+      ]
+    },
+    {
+      "ordinal": 40,
+      "canonicalId": "ctkg:v3e-object-d57c7f77aae186e5e85db076",
+      "canonicalRevision": "ed8fcd49669efda4aedabeb7f350748ca4cbd309121af51418dd9ab9e2bdaa0b",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-13979e5311f3e3ac685c613f",
+          "evidenceId": "b6c730c3acf0d53be44115b3d58986b7"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-d57c7f77aae186e5e85db076",
+          "evidenceId": "f4ebea278698f06e1e07784136d97734"
+        }
+      ]
+    },
+    {
+      "ordinal": 41,
+      "canonicalId": "ctkg:v3e-object-e0f1baecfeb11e984843fb7f",
+      "canonicalRevision": "5308a06adac8289af30ad2327fea80d756aa14763e01729f01ff8d9047f134e6",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-4fd38968651c73cf043d0059",
+          "evidenceId": "cb1aaba41f49be6516826f25af72e71f"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-e0f1baecfeb11e984843fb7f",
+          "evidenceId": "c7c4304abf9c718cc11c5254c35c630b"
+        }
+      ]
+    },
+    {
+      "ordinal": 42,
+      "canonicalId": "ctkg:v3e-object-e16a01d3f5feeacf8ee8f42e",
+      "canonicalRevision": "cf1150023c30da40c39b724d78dae7a1a43b1d45af97486c195f40578c54f2b3",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-1a3225a4cca61f4857d31370",
+          "evidenceId": "281b89c2f88364e3706af57f51ed5c97"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-b0629610bd86d73d9bc18d62",
+          "evidenceId": "cd7f569353b96c8f014a68570336c701"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-e16a01d3f5feeacf8ee8f42e",
+          "evidenceId": "4727ebb79a2f116666cda2757b439c9f"
+        }
+      ]
+    },
+    {
+      "ordinal": 43,
+      "canonicalId": "ctkg:v3e-object-e248ec663f44a2e66180b8e5",
+      "canonicalRevision": "0ce19b82c5e1f5ebcaf48af110150294be9f35be4f5781baab45386965dd66d0",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-02bf67e51173c4dec69f4f32",
+          "evidenceId": "284b99f54600e81fe9c9ea30976e1c34"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-e248ec663f44a2e66180b8e5",
+          "evidenceId": "7efce66c5a43cbd63bdf975d7c502c5d"
+        }
+      ]
+    },
+    {
+      "ordinal": 44,
+      "canonicalId": "ctkg:v3e-object-e5b2e93a259fe14ede9eab41",
+      "canonicalRevision": "99d14aaa9e791ce4417c4782f33fb647be33e96611a451a2164eea740bc42736",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-89c08262bdafac9469413d38",
+          "evidenceId": "dafa2e9c0b940dee301cc83ca6397289"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-e5b2e93a259fe14ede9eab41",
+          "evidenceId": "9ed6447fc72e4b2f8babbba5f2ebf9b6"
+        }
+      ]
+    },
+    {
+      "ordinal": 45,
+      "canonicalId": "ctkg:v3e-object-ed8f70c40680d24a27839e48",
+      "canonicalRevision": "26b4c563e0470d970547d3551c6ed2e316bc1af8fc14a4ccffaf177ef64311d7",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-797dd1b5320a934baff4fc49",
+          "evidenceId": "97043493f2400fd6bcc4a2da35489dbc"
+        },
+        {
+          "selector": "evidence:ctkg:v3e-evidence-fa5c91e7775c7f0da6c0249c",
+          "evidenceId": "071b23b5880a41971ef6b314c006e8b0"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-ed8f70c40680d24a27839e48",
+          "evidenceId": "f322c782e25b339be1c4933ff3b70cb2"
+        }
+      ]
+    },
+    {
+      "ordinal": 46,
+      "canonicalId": "ctkg:v3e-object-f109a1072fd5ec7c9a7a94cb",
+      "canonicalRevision": "69d587cca3c011be78229e294fcfafaff434fe044374fca5266c617209f61034",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-5d16bdf697c708375b558a9b",
+          "evidenceId": "b386104a9ca4253c24dad90b034a0d47"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-f109a1072fd5ec7c9a7a94cb",
+          "evidenceId": "8c27f4c58e008d640a84a4aac2f4718f"
+        }
+      ]
+    },
+    {
+      "ordinal": 47,
+      "canonicalId": "ctkg:v3e-object-fcaf359ef3993f8e4e179f36",
+      "canonicalRevision": "9929b52e98e14114e48b364df787912bdc69673c18415345e7f47d5ed2a34226",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-582dfade3afa16fe47d06a31",
+          "evidenceId": "63df39e00738908589c0925ee57612ec"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-fcaf359ef3993f8e4e179f36",
+          "evidenceId": "fea6ec2db6d4f1299b037f6a58d0ad25"
+        }
+      ]
+    },
+    {
+      "ordinal": 48,
+      "canonicalId": "ctkg:v3e-object-ffad75acbd9eb90347d29a10",
+      "canonicalRevision": "75c4cc2b93e47841f7caeeed5fd9053ad4a71e1a306b124a091bafde838f376d",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-dceb471b8e83e893b203d570",
+          "evidenceId": "116bc83858fdd0a00bff10b494e0dc80"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-ffad75acbd9eb90347d29a10",
+          "evidenceId": "425d07fe75806f34f6d6d908bc99237d"
+        }
+      ]
+    },
+    {
+      "ordinal": 49,
+      "canonicalId": "ctkg:v3e-object-fffc8da83a5258ec01126edc",
+      "canonicalRevision": "e2d33c224179336a07c08b542f092d08340f0dea3b5a121455a16944a7f4c80a",
+      "stageConclusion": "DEFER",
+      "rationale": "条目为 profileOnly/new/highRisk 的 SystemModel；冻结 evidenceRefs 仅含 aggregate 与 profile 边界，无 independent-course 课程权威证据，priorDecisionRefs 为空，无法判定纳入或排除，故 DEFER。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-20eb0d3f72d53511fe532fd2",
+          "evidenceId": "45c563f74a7a80e803f0998166203169"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-fffc8da83a5258ec01126edc",
+          "evidenceId": "bf4b8a48bfbd2e4408f6da27d7c77c89"
+        }
+      ]
+    }
+  ]
+}
