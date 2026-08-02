@@ -21,7 +21,7 @@
   },
   "sourceArtifactBinding": {
     "artifactPath": "course-content/authoring/knowledge/issue-1213-course-coverage-review/challenger-independent-stage-source.json",
-    "artifactSha256": "9eb4b1c0c5d7e858672d33a3ecabb700fb91f0b902dd203e6fcb3f051c161fe9",
+    "artifactSha256": "36b9de0e261662e5c98d699d67c72756e33bf4c4398f9091be0de0857c3b0b54",
     "schemaVersion": "course-coverage-independent-stage-preparation/v0",
     "stage": "CHALLENGER",
     "writerSessionId": "4d714ca0-a746-4df4-939f-65a3a13dec78"
@@ -2928,5 +2928,5 @@
       "decisionDigest": "e66b7c64077b22984a4deae6a206e02674bc890df872fe0ecdd51fa1fd6312b8"
     }
   ],
-  "documentDigest": "4ac550a256b2466afb23e129f01d30368c6deaf6af7459bbcec6b6bc64818421"
+  "documentDigest": "e68b330622ff733bb3389996eeccc0294a1cebb4d15da5e4c8fff71d6216038c"
 }

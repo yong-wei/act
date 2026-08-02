@@ -1078,7 +1078,7 @@
   ],
   "stageDocuments": {
     "primaryDigest": "275585aefd1c563555cf2e2d7aca075a013e70ca203dc21b7253c13ac2afc0f7",
-    "challengerDigest": "4ac550a256b2466afb23e129f01d30368c6deaf6af7459bbcec6b6bc64818421",
+    "challengerDigest": "e68b330622ff733bb3389996eeccc0294a1cebb4d15da5e4c8fff71d6216038c",
     "thirdDigest": null
   },
   "stageRecords": {
@@ -4630,7 +4630,7 @@
       },
       "sourceArtifactBinding": {
         "artifactPath": "course-content/authoring/knowledge/issue-1213-course-coverage-review/challenger-independent-stage-source.json",
-        "artifactSha256": "9eb4b1c0c5d7e858672d33a3ecabb700fb91f0b902dd203e6fcb3f051c161fe9",
+        "artifactSha256": "36b9de0e261662e5c98d699d67c72756e33bf4c4398f9091be0de0857c3b0b54",
         "schemaVersion": "course-coverage-independent-stage-preparation/v0",
         "stage": "CHALLENGER",
         "writerSessionId": "4d714ca0-a746-4df4-939f-65a3a13dec78"
@@ -7537,7 +7537,7 @@
           "decisionDigest": "e66b7c64077b22984a4deae6a206e02674bc890df872fe0ecdd51fa1fd6312b8"
         }
       ],
-      "documentDigest": "4ac550a256b2466afb23e129f01d30368c6deaf6af7459bbcec6b6bc64818421"
+      "documentDigest": "e68b330622ff733bb3389996eeccc0294a1cebb4d15da5e4c8fff71d6216038c"
     },
     "third": null
   },
@@ -10966,7 +10966,7 @@
     "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
     "receiptPath": "course-content/authoring/knowledge/issue-1213-course-coverage-review/batch-receipt.json",
     "attestationPath": "course-content/authoring/knowledge/issue-1213-course-coverage-review/batch-boundary-attestation.json",
-    "headBefore": "43e27483fb55bfe81a2692f9121cbe8757b252fb",
+    "headBefore": "df38e5c34ab4f5d6cee9fb5bcfc289d7c8aec263",
     "protectedPaths": [
       "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
       "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
@@ -11008,7 +11008,7 @@
       }
     ],
     "statusBefore": [],
-    "authoritySnapshotBeforeDigest": "22859ea0b00d9735eaac8e35087a10890bb63dc005e25827894249417fcc85d9",
+    "authoritySnapshotBeforeDigest": "5dbfbdeb3a18cc9be79641c0c87b3523b02b9f3ed0f5ae3e342c5313104e1db3",
     "gitDiffCheck": "PASS",
     "mutationFlags": {
       "currentCoverageDecisionWritten": false,
@@ -11017,5 +11017,5 @@
       "writerFenceChanged": false
     }
   },
-  "receiptDigest": "212e67d8400ac94e85c2dfedfa2c658f09d2516a9fc3e5e5f2db46d38fb55b8b"
+  "receiptDigest": "dbabe180d9fade7aba9848633c21ed7a74feb608f13e4a15442df8bf5cb367ee"
 }

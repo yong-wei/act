@@ -27,7 +27,7 @@ The current CourseCoverage review denominator is frozen in a deterministic manif
 - `primarySessionId`: `170364f7-6d6e-44d5-b936-96f8b6553af5`
 - `primaryRawSha256`: `6660b119a1fec34754cb77a88b566e749be66e4025be223f222097fc067a620b`
 - `challengerSessionId`: `4d714ca0-a746-4df4-939f-65a3a13dec78`
-- `challengerRawSha256`: `9eb4b1c0c5d7e858672d33a3ecabb700fb91f0b902dd203e6fcb3f051c161fe9`
+- `challengerRawSha256`: `36b9de0e261662e5c98d699d67c72756e33bf4c4398f9091be0de0857c3b0b54`
 
 The manifest slice above is the sole member source; this proposal does not copy the full member list into prose.
 
