@@ -1223,7 +1223,7 @@ The decision receipt MUST be keyed by every batch binding digest, preserve exact
 
 ### Requirement: Batch 88b4b69695891faeed019fb2 has an immutable review boundary
 
-The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/29/members`, binding batchId `88b4b69695891faeed019fb2`, sequence `0`, semanticGroupKey `ctr:release:time-domain-analysis-engineering-v0.1::entityType:SystemModel`, member count `25`, memberDigest `d3da297e9f913499949a12a9622615455ed95a206ed2ffca144d29e0de49a36a`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a2a6c818`.
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/29/members`, binding batchId `88b4b69695891faeed019fb2`, sequence `0`, semanticGroupKey `ctr:release:time-domain-analysis-engineering-v0.1::entityType:SystemModel`, member count `25`, memberDigest `d3da297e9f913499949a12a9622615455ed95a206ed2ffca144d29e0de49a36a`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
 
 #### Scenario: Frozen batch 88b4b69695891faeed019fb2 is unchanged
 
