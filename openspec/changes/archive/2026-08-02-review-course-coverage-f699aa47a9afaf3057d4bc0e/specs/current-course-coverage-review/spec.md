@@ -42,7 +42,7 @@ Primary MUST issue independent conclusions for all 265 ordered members. Challeng
 
 ### Requirement: Batch f699aa47a9afaf3057d4bc0e emits a machine-mergeable receipt
 
-The decision receipt MUST be keyed by every batch binding digest, preserve the exact ordered member references, bind both raw stage-source artifacts through normalized documents and `review-provenance.json`, and prove that no out-of-slice member or production authority was written. The first publication MUST use the v3 production-boundary proof and v2 detached-attestation schemas, with receiptDigest `212e67d8400ac94e85c2dfedfa2c658f09d2516a9fc3e5e5f2db46d38fb55b8b` and attestationDigest `cb43e8a1bc76c7b2d6660435f76f5b727c52688a27f027edd92356f9208568be`.
+The decision receipt MUST be keyed by every batch binding digest, preserve the exact ordered member references, bind both raw stage-source artifacts through normalized documents and `review-provenance.json`, and prove that no out-of-slice member or production authority was written. The first publication MUST use the v3 production-boundary proof and v2 detached-attestation schemas, with receiptDigest `dbabe180d9fade7aba9848633c21ed7a74feb608f13e4a15442df8bf5cb367ee` and attestationDigest `4c75d82a53e54b8489b8cadfaceea12f96f5df6c625fb40297e68fadd67f16d7`.
 
 #### Scenario: Receipt for batch f699aa47a9afaf3057d4bc0e is assembled
 
