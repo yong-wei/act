@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "edaaa5e622fe34eac8d7a53c",
+  "batchBinding": {
+    "batchId": "edaaa5e622fe34eac8d7a53c",
+    "manifestBatchIndex": 32,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement",
+    "memberCount": 1,
+    "memberDigest": "c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "independenceProtocol": {
+    "primaryDidNotReadChallenger": true,
+    "challengerDidNotReadPrimary": true,
+    "thirdRequired": false,
+    "reason": "The two independently sealed stage documents agree on DEFER."
+  },
+  "frozenEvidenceBoundary": {
+    "aggregate": 2,
+    "profile": 1,
+    "independentCourse": 0,
+    "rule": "A non-DEFER role requires a cited frozen independent-course evidence reference."
+  },
+  "courseAuthorityCandidate": {
+    "semanticConclusion": "3-3 法则 1 的普通根轨迹起点和终点说明与 canonical root-locus statement 语义等价。",
+    "sources": [
+      { "path": "course-content/runtime/lessons/3-3/3-3-handout.md", "selector": "### 法则 1：起点与终点" },
+      { "path": "course-content/authoring/lessons/3-3/design/3-3-handout.md", "selector": "### 法则 1：起点与终点" },
+      { "path": "course-content/syllabus-refactor/decisions.md", "selector": "2026-03-30 | 单元 3-3 / 3-4 中度重构校正" }
+    ],
+    "disposition": "candidate-only-pending-issue-1180-bind-classify-refreeze",
+    "reason": "The sources are absent from the frozen worklist evidenceRefs and cannot be cited for an active role by this batch receipt."
+  },
+  "terminalDecision": {
+    "conclusion": "DEFER",
+    "role": null,
+    "evidenceSufficiency": "INSUFFICIENT",
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+    "decisionRecord": "profileOnly/highRisk triggers independent review rather than automatic denial, but no role is activated before #1180 binds, classifies, and re-freezes the candidate course sources."
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "sessionId": "ef43ce41-469e-4bfa-b19e-e74492a3e235",
+    "reviewSessionId": "ef43ce41-469e-4bfa-b19e-e74492a3e235",
+    "reviewSessionScope": "act:issue-1222:primary-review",
+    "sourceWriterSessionId": "ef43ce41-469e-4bfa-b19e-e74492a3e235",
+    "sourceWriterPermission": "read-only",
+    "sourceWriterScope": "act:issue-1222:primary-review",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "eb1afbceb121b41fc52b72d8aeb091985bec61b1459ccc5e7f2a784781200dd2",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "4a62d4d39def06b23c6720bd1cb8dd1cd7cd2327c12a0e99de5ffc1dbccf82f0",
+    "reviewInputDigest": "08c9da63b95cc6c318143f3f1f987aea942279504e70c9b172badc69689b9021",
+    "stageMemberCount": 1,
+    "conclusionCounts": { "INCLUDE": 0, "EXCLUDE": 0, "DEFER": 1 },
+    "structuredTranscription": "Raw independent conclusion and frozen selectors are sealed without assembler-generated semantic conclusions.",
+    "reFreezeRequired": true,
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "eb1afbceb121b41fc52b72d8aeb091985bec61b1459ccc5e7f2a784781200dd2",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "ef43ce41-469e-4bfa-b19e-e74492a3e235"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "sessionId": "72789962-1b59-4657-b64b-e8e768c522ab",
+    "reviewSessionId": "72789962-1b59-4657-b64b-e8e768c522ab",
+    "reviewSessionScope": "act:issue-1222:challenger-review",
+    "sourceWriterSessionId": "72789962-1b59-4657-b64b-e8e768c522ab",
+    "sourceWriterPermission": "read-only",
+    "sourceWriterScope": "act:issue-1222:challenger-review",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "b5d7adb54c147082c36a9ec0acaf760adff06bf6228b26ad50e04107f92310ae",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "73c0bbdd311f4083c71488697717db6409c829419670a149f5e41ab314f1efb7",
+    "reviewInputDigest": "6cffdfde26a071a8298bd0b1f967fc8aaa2696d167968a2f9f29ef258cdee485",
+    "stageMemberCount": 1,
+    "conclusionCounts": { "INCLUDE": 0, "EXCLUDE": 0, "DEFER": 1 },
+    "structuredTranscription": "Raw independent conclusion and frozen selectors are sealed without assembler-generated semantic conclusions.",
+    "reFreezeRequired": true,
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "b5d7adb54c147082c36a9ec0acaf760adff06bf6228b26ad50e04107f92310ae",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "72789962-1b59-4657-b64b-e8e768c522ab"
+    }
+  },
+  "comparison": {
+    "primary": "DEFER",
+    "challenger": "DEFER",
+    "conflicts": 0,
+    "third": null
+  },
+  "commandsRun": [
+    {
+      "command": "npx tsx /tmp/generate-1222-stage-reviews.ts",
+      "result": "PASS; sealed PRIMARY and CHALLENGER normalized documents from the bound raw stage sources."
+    },
+    {
+      "command": "npx tsx scripts/course-coverage/review-current-course-coverage-batch.ts --primary issue-1222/.../primary-review.json --challenger issue-1222/.../challenger-review.json --output issue-1222/.../batch-receipt.json --expected-batch-id edaaa5e622fe34eac8d7a53c --batch-index 32 --sequence 0 --semantic-group-key ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement --member-count 1 --member-digest c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8 --worklist-input-digest 55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2 --worklist-digest bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489 --manifest-digest 2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818 --manifest-artifact-sha256 786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8",
+      "result": "PASS; publication=published; status=DEFERRED_EVIDENCE_BLOCKED."
+    },
+    {
+      "command": "same bounded review-current-course-coverage-batch command",
+      "result": "PASS; receiptPublication=identical; attestationPublication=identical; replayMode=content-equivalent."
+    },
+    {
+      "command": "npm exec vitest run src/lib/__tests__/current-course-coverage-batch-review.test.ts",
+      "result": "PASS; 30/30."
+    },
+    {
+      "command": "npx openspec validate review-course-coverage-edaaa5e622fe34eac8d7a53c --type change --strict",
+      "result": "PASS."
+    },
+    {
+      "command": "npx tsx /tmp/verify-1222-review.ts",
+      "result": "PASS; raw-to-normalized source closure, exact binding/order/revision, receipt/attestation bundle, session independence, and sensitive-path scan."
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "PASS."
+    },
+    {
+      "command": "npm run test",
+      "result": "PASS; smart-courseware 227, teacher smart-courseware 45, smoke, Arena, and commercial UI governance."
+    }
+  ],
+  "artifactClosure": {
+    "primaryRawSha256": "eb1afbceb121b41fc52b72d8aeb091985bec61b1459ccc5e7f2a784781200dd2",
+    "challengerRawSha256": "b5d7adb54c147082c36a9ec0acaf760adff06bf6228b26ad50e04107f92310ae",
+    "primaryNormalizedDocumentDigest": "4a62d4d39def06b23c6720bd1cb8dd1cd7cd2327c12a0e99de5ffc1dbccf82f0",
+    "challengerNormalizedDocumentDigest": "73c0bbdd311f4083c71488697717db6409c829419670a149f5e41ab314f1efb7",
+    "receiptDigest": "1a30568369f368ac2c934ec93091b6d83868a5434dc85bd90f0d78943b013f03",
+    "attestationDigest": "db53f13d4f751222df40d392b3ec87bb52303c2461e4dafcd64508b82d58e123",
+    "receiptPublication": "published",
+    "attestationPublication": "published",
+    "replay": "identical/content-equivalent"
+  }
+}

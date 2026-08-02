@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "batchBinding": {
+    "batchId": "edaaa5e622fe34eac8d7a53c",
+    "manifestBatchIndex": 32,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement",
+    "memberCount": 1,
+    "memberDigest": "c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "CHALLENGER",
+  "reviewer": {
+    "identity": "grok-independent-challenger",
+    "provider": "grok-4.5-build",
+    "sessionId": "72789962-1b59-4657-b64b-e8e768c522ab",
+    "promptVersion": "issue-1222-challenger-v1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-independent-stage-source.json",
+    "artifactSha256": "b5d7adb54c147082c36a9ec0acaf760adff06bf6228b26ad50e04107f92310ae",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "CHALLENGER",
+    "writerSessionId": "72789962-1b59-4657-b64b-e8e768c522ab"
+  },
+  "reviewInputDigest": "6cffdfde26a071a8298bd0b1f967fc8aaa2696d167968a2f9f29ef258cdee485",
+  "decisions": [
+    {
+      "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+      "canonicalRevision": "8c339f0697b375665b3f09de708bf3e1f4790cd27b4f22ac7abd857412b25465",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:4bea63c0ac4a09c3606550af",
+        "evidence:ctr:86523c17c42be030895f844f",
+        "canonicalId:ctk:v11g-9840f883d2655d2a1322fb60"
+      ],
+      "rationale": "CHALLENGER DEFER：冻结 worklist 的 evidenceRefs 仅有 aggregate/profile 边界，当前 batch protocol 禁止用工作清单之外的新课程路径直接作 INCLUDE/EXCLUDE。CHALLENGER 独立发现 3-3 作者态与运行态“法则 1：起点与终点”、BOPPPS/互动页以及课程大纲的 3-3/3-4 职责段均支持该 canonical 根轨迹起点与终点语义；但这些路径尚未由 #1180 bind/classify/re-freeze 写入冻结 worklist，故只能记录为候选课程 authority，不能改写 frozen evidence boundary。旧 aggregate excluded 记录仅为 priorDecisionRef，未作为本轮依据。终态 DEFER，等待 #1180 将上述课程证据绑定、分类并重新冻结后复审。",
+      "decisionDigest": "72ebdff373c34ffce1a44e5126115629089a6aa4b74e505d9f3e937ac3f88ff4"
+    }
+  ],
+  "documentDigest": "73c0bbdd311f4083c71488697717db6409c829419670a149f5e41ab314f1efb7"
+}

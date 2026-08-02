@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "current-course-coverage-batch-receipt/v1",
+  "protocol": "current-course-coverage-batch-review/1",
+  "status": "DEFERRED_EVIDENCE_BLOCKED",
+  "batchBinding": {
+    "batchId": "edaaa5e622fe34eac8d7a53c",
+    "manifestBatchIndex": 32,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement",
+    "memberCount": 1,
+    "memberDigest": "c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "orderedMembers": [
+    {
+      "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+      "canonicalRevision": "8c339f0697b375665b3f09de708bf3e1f4790cd27b4f22ac7abd857412b25465"
+    }
+  ],
+  "stageDocuments": {
+    "primaryDigest": "4a62d4d39def06b23c6720bd1cb8dd1cd7cd2327c12a0e99de5ffc1dbccf82f0",
+    "challengerDigest": "73c0bbdd311f4083c71488697717db6409c829419670a149f5e41ab314f1efb7",
+    "thirdDigest": null
+  },
+  "stageRecords": {
+    "primary": {
+      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "batchBinding": {
+        "batchId": "edaaa5e622fe34eac8d7a53c",
+        "manifestBatchIndex": 32,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement",
+        "memberCount": 1,
+        "memberDigest": "c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "PRIMARY",
+      "reviewer": {
+        "identity": "grok-independent-primary",
+        "provider": "grok-4.5-build",
+        "sessionId": "ef43ce41-469e-4bfa-b19e-e74492a3e235",
+        "promptVersion": "issue-1222-primary-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/primary-independent-stage-source.json",
+        "artifactSha256": "eb1afbceb121b41fc52b72d8aeb091985bec61b1459ccc5e7f2a784781200dd2",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "PRIMARY",
+        "writerSessionId": "ef43ce41-469e-4bfa-b19e-e74492a3e235"
+      },
+      "reviewInputDigest": "08c9da63b95cc6c318143f3f1f987aea942279504e70c9b172badc69689b9021",
+      "decisions": [
+        {
+          "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+          "canonicalRevision": "8c339f0697b375665b3f09de708bf3e1f4790cd27b4f22ac7abd857412b25465",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctr:4bea63c0ac4a09c3606550af",
+            "evidence:ctr:86523c17c42be030895f844f",
+            "canonicalId:ctk:v11g-9840f883d2655d2a1322fb60"
+          ],
+          "rationale": "PRIMARY DEFER：冻结 worklist 的 evidenceRefs 仅有 aggregate/profile 边界，当前 batch protocol 禁止用工作清单之外的新课程路径直接作 INCLUDE/EXCLUDE。PRIMARY 独立发现 3-3 运行态与作者态“法则 1：起点与终点”及课程大纲的 3-3/3-4 职责段，均支持该 canonical 根轨迹起点与终点语义；但这些路径尚未由 #1180 bind/classify/re-freeze 写入冻结 worklist，故只能记录为候选课程 authority，不能改写 frozen evidence boundary。旧 aggregate excluded 记录仅为 priorDecisionRef，未作为本轮依据。终态 DEFER，等待 #1180 将上述课程证据绑定、分类并重新冻结后复审。",
+          "decisionDigest": "c7632cc19fffecdf71d7b670cb47aa99c1f4d9ad9d0cccd910fc8aa8368bcdc2"
+        }
+      ],
+      "documentDigest": "4a62d4d39def06b23c6720bd1cb8dd1cd7cd2327c12a0e99de5ffc1dbccf82f0"
+    },
+    "challenger": {
+      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "batchBinding": {
+        "batchId": "edaaa5e622fe34eac8d7a53c",
+        "manifestBatchIndex": 32,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement",
+        "memberCount": 1,
+        "memberDigest": "c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "CHALLENGER",
+      "reviewer": {
+        "identity": "grok-independent-challenger",
+        "provider": "grok-4.5-build",
+        "sessionId": "72789962-1b59-4657-b64b-e8e768c522ab",
+        "promptVersion": "issue-1222-challenger-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-independent-stage-source.json",
+        "artifactSha256": "b5d7adb54c147082c36a9ec0acaf760adff06bf6228b26ad50e04107f92310ae",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "CHALLENGER",
+        "writerSessionId": "72789962-1b59-4657-b64b-e8e768c522ab"
+      },
+      "reviewInputDigest": "6cffdfde26a071a8298bd0b1f967fc8aaa2696d167968a2f9f29ef258cdee485",
+      "decisions": [
+        {
+          "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+          "canonicalRevision": "8c339f0697b375665b3f09de708bf3e1f4790cd27b4f22ac7abd857412b25465",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctr:4bea63c0ac4a09c3606550af",
+            "evidence:ctr:86523c17c42be030895f844f",
+            "canonicalId:ctk:v11g-9840f883d2655d2a1322fb60"
+          ],
+          "rationale": "CHALLENGER DEFER：冻结 worklist 的 evidenceRefs 仅有 aggregate/profile 边界，当前 batch protocol 禁止用工作清单之外的新课程路径直接作 INCLUDE/EXCLUDE。CHALLENGER 独立发现 3-3 作者态与运行态“法则 1：起点与终点”、BOPPPS/互动页以及课程大纲的 3-3/3-4 职责段均支持该 canonical 根轨迹起点与终点语义；但这些路径尚未由 #1180 bind/classify/re-freeze 写入冻结 worklist，故只能记录为候选课程 authority，不能改写 frozen evidence boundary。旧 aggregate excluded 记录仅为 priorDecisionRef，未作为本轮依据。终态 DEFER，等待 #1180 将上述课程证据绑定、分类并重新冻结后复审。",
+          "decisionDigest": "72ebdff373c34ffce1a44e5126115629089a6aa4b74e505d9f3e937ac3f88ff4"
+        }
+      ],
+      "documentDigest": "73c0bbdd311f4083c71488697717db6409c829419670a149f5e41ab314f1efb7"
+    },
+    "third": null
+  },
+  "terminalMembers": [
+    {
+      "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+      "canonicalRevision": "8c339f0697b375665b3f09de708bf3e1f4790cd27b4f22ac7abd857412b25465",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "c7632cc19fffecdf71d7b670cb47aa99c1f4d9ad9d0cccd910fc8aa8368bcdc2",
+        "72ebdff373c34ffce1a44e5126115629089a6aa4b74e505d9f3e937ac3f88ff4"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    }
+  ],
+  "counts": {
+    "members": 1,
+    "included": 0,
+    "excluded": 0,
+    "deferredEvidenceBlocked": 1,
+    "conflicts": 0,
+    "thirdReviewed": 0
+  },
+  "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+  "productionBoundaries": {
+    "currentCoverageDecisionWritten": false,
+    "productionSelectorChanged": false,
+    "graphRagSelectorChanged": false,
+    "writerFenceChanged": false
+  },
+  "productionBoundaryProof": {
+    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
+    "receiptPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/batch-receipt.json",
+    "attestationPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/batch-boundary-attestation.json",
+    "headBefore": "0c897c06c0d5df713927cd4d4536aafef93972df",
+    "protectedPaths": [
+      "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+      "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+      "src/lib/canonical-rag/authority.ts",
+      "src/lib/canonical-learning-fact-identity/authority.ts",
+      "src/lib/canonical-learning-fact-identity/capability.ts",
+      "src/lib/canonical-learning-fact-identity/writer.ts"
+    ],
+    "protectedPathSnapshots": [
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+        "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+        "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+      },
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+        "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+        "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+      },
+      {
+        "relativePath": "src/lib/canonical-rag/authority.ts",
+        "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+        "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+        "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+        "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+        "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+        "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+        "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+        "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+      }
+    ],
+    "statusBefore": [],
+    "authoritySnapshotBeforeDigest": "bbc6f17a353c418a4d0643a8aa5f62280a559b912213501886125fc8f38d7335",
+    "gitDiffCheck": "PASS",
+    "mutationFlags": {
+      "currentCoverageDecisionWritten": false,
+      "productionSelectorChanged": false,
+      "graphRagSelectorChanged": false,
+      "writerFenceChanged": false
+    }
+  },
+  "receiptDigest": "1a30568369f368ac2c934ec93091b6d83868a5434dc85bd90f0d78943b013f03"
+}

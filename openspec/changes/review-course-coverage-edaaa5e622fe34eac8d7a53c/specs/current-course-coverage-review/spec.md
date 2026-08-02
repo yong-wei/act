@@ -28,6 +28,15 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 - **WHEN** required stages agree and all members are resolved
 - **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
 
+### Requirement: New course evidence cannot silently extend a frozen evidence boundary
+
+An independently discovered current-course source that is absent from the frozen worklist's `independent-course` evidence references MUST be recorded only as a candidate. It MUST NOT create an active CourseCoverage role in this child.
+
+#### Scenario: Candidate authority is found after the batch is frozen
+
+- **WHEN** the reviewers find a semantically supporting current-course source but the frozen member cites only aggregate or profile evidence
+- **THEN** the child SHALL emit `DEFER`, retain the candidate source paths in its rationale/provenance, and require #1180 to bind, classify, and re-freeze the source before a later role decision
+
 ### Requirement: Batch edaaa5e622fe34eac8d7a53c emits a machine-mergeable receipt
 
 The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.

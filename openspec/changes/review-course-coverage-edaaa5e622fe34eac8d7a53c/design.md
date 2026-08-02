@@ -17,3 +17,9 @@ Before review and before receipt assembly, reread the manifest slice and compare
 ### Receipt
 
 The receipt is deterministic and machine-mergeable: it contains the exact batch binding, ordered member references, Primary/Challenger/Third stage outcomes, conflict resolutions, terminal per-member decisions, and proof that no out-of-slice member was written.
+
+### Decision record: discovered course authority remains outside the frozen boundary
+
+Both independent stages found that the 3-3 authoring and runtime handouts' `法则 1：起点与终点`, together with the 3-3/3-4 syllabus responsibility decision, independently support the root-locus statement. That evidence is semantically sufficient for a future inclusion decision, and `profileOnly`/`highRisk` are review triggers rather than automatic denial rules.
+
+It is not, however, one of this frozen worklist item's `independent-course` evidence references. The current receipt validator permits a non-`DEFER` CourseCoverage role only when it cites such a frozen reference. This child therefore records the three course paths as candidate authority and produces `DEFER` without an active role. Issue #1180 must bind, classify, and re-freeze those sources before this canonical revision can receive an `INCLUDE` decision. The old aggregate `excluded` decision remains a prior reference only.
