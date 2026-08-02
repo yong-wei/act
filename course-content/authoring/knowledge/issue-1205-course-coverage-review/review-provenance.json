@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "99ffc86682c95d2c087c8754",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "9c2e7740-5e03-41a6-8bbe-c46542640782",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "a6af4ddcb14ba981164fb46156de35ad70f1dc8699d406156310fe5c01bd8165",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedDocumentDigest": "88f8b46ad1a2dbe31451fd65da0ecd4170b5cb0dfa2c579e969f37dbd082d266",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 174
+    },
+    "structuredTranscription": "Conclusions and rationales preserved; frozen selectors and runtime digests normalized.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1205-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "a6af4ddcb14ba981164fb46156de35ad70f1dc8699d406156310fe5c01bd8165",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "9c2e7740-5e03-41a6-8bbe-c46542640782"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "0432ed3c-658c-4101-982e-866634312810",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "b7a6c10d9ed136f9d560962732346978e8e6feaccf146fd2ebb20d9c0f789c62",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedDocumentDigest": "4e5c7df87ad7bc07c87509ca361a3c3ab39a4e9a44a398cefa7b7a8aa0f71291",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 174
+    },
+    "structuredTranscription": "Conclusions and rationales preserved; frozen selectors and runtime digests normalized.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1205-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "b7a6c10d9ed136f9d560962732346978e8e6feaccf146fd2ebb20d9c0f789c62",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "0432ed3c-658c-4101-982e-866634312810"
+    }
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}
