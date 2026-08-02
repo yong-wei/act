@@ -1,0 +1,207 @@
+{
+  "schemaVersion": "current-course-coverage-batch-receipt/v1",
+  "protocol": "current-course-coverage-batch-review/1",
+  "status": "DEFERRED_EVIDENCE_BLOCKED",
+  "batchBinding": {
+    "batchId": "f8917af6bf755caf058c5358",
+    "manifestBatchIndex": 17,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+    "memberCount": 1,
+    "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "orderedMembers": [
+    {
+      "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f"
+    }
+  ],
+  "stageDocuments": {
+    "primaryDigest": "f0a2cca688d4cce0776f9b6056e924d6ab553e594f6c0f4fd87dac3ea43fd816",
+    "challengerDigest": "59b4bdca0014d51aab6a07428f7880fb70981bd5bc39e5055df8911d60e099f8",
+    "thirdDigest": null
+  },
+  "stageRecords": {
+    "primary": {
+      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "batchBinding": {
+        "batchId": "f8917af6bf755caf058c5358",
+        "manifestBatchIndex": 17,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+        "memberCount": 1,
+        "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "PRIMARY",
+      "reviewer": {
+        "identity": "grok-independent-primary",
+        "provider": "grok-4.5-build",
+        "sessionId": "015411ef-a0ce-4741-9adc-8f17062aac32",
+        "promptVersion": "issue-1207-primary-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/primary-independent-stage-source.json",
+        "artifactSha256": "cb7838d76ac97c1cff8e513507173051e6e83fda8e8bf252c5d79fde7709ff8b",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "PRIMARY",
+        "writerSessionId": "015411ef-a0ce-4741-9adc-8f17062aac32"
+      },
+      "reviewInputDigest": "7f3c28cd90b977e59df6e7aa34ccb8e1bb4a2d6b052b1967db740e5c32a3d019",
+      "decisions": [
+        {
+          "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+          "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
+            "canonicalId:ctf:55e4737318f3b1e2d5f90372"
+          ],
+          "rationale": "PRIMARY independent re-review of Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\\\int_{-\\\\infty}^{\\\\infty} h(\\\\tau) u(t-\\\\tau) d \\\\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen batch f8917af6bf755caf058c5358 / batches[17] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1, ctr:release:system-modeling-engineering-v0.1]; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. Frozen evidenceRefs=2 (order preserved) boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']; zero frozen refs have boundary=independent-course. priorDecisionRefs count=1 is historical aggregate Coverage (course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json entries[418], releaseId=ctr:release:control-theory-engineering-v0.3) and cannot authorize a current CourseCoverage role. Unfrozen semantic-candidate course materials observed outside this frozen worklist item.evidenceRefs: course-content/authoring/lessons/3-1/design/3-1-handout.md ~L331-340 teaches the causal LTI convolution y(t)=∫_0^t g(t-τ)u(τ)dτ; course-content/authoring/lessons/3-1/design/3-1-interactive-page.md:449 carries the same form. Under causal zero-state assumptions these are the same Formula family as the canonical bilateral convolution, but those paths are NOT present in frozen evidenceRefs; frozen selectors remain only aggregate/profile. Current validator forbids non-DEFER conclusions that cite unknown or non-independent-course frozen evidence; module3 unit-design-details is also not a classifier-accepted independent-course path. Therefore the unfrozen candidate materials cannot change admission for this frozen batch slice: they are diagnostic only. Upstream issue #1180 must bind independent-course evidence into the worklist and re-freeze the batch before any re-adjudication toward INCLUDE/EXCLUDE can be considered. Per current-course-coverage-review and child OpenSpec review-course-coverage-f8917af6bf755caf058c5358, INCLUDE/EXCLUDE require sufficient independent current-course evidence admitted on the frozen item; profileOnly/highRisk with only aggregate/profile frozen evidence is insufficient. stageConclusion remains role-free DEFER; CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+          "decisionDigest": "9b5843a29df218c4444b5468f4dcc9a801055c306d6ef067da8b5fde74093ae8"
+        }
+      ],
+      "documentDigest": "f0a2cca688d4cce0776f9b6056e924d6ab553e594f6c0f4fd87dac3ea43fd816"
+    },
+    "challenger": {
+      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "batchBinding": {
+        "batchId": "f8917af6bf755caf058c5358",
+        "manifestBatchIndex": 17,
+        "sequence": 0,
+        "semanticGroupKey": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+        "memberCount": 1,
+        "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+        "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+        "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+        "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+        "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+      },
+      "stage": "CHALLENGER",
+      "reviewer": {
+        "identity": "grok-independent-challenger",
+        "provider": "grok-4.5-build",
+        "sessionId": "68f51aff-e853-48f2-9848-d99a27c3e6ae",
+        "promptVersion": "issue-1207-challenger-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/challenger-independent-stage-source.json",
+        "artifactSha256": "c2df655e0644997d1464c85a72ec44ecfca5af76a69f14696ec8799e14669340",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "CHALLENGER",
+        "writerSessionId": "68f51aff-e853-48f2-9848-d99a27c3e6ae"
+      },
+      "reviewInputDigest": "1fefefab6a824875ae62c9ed5479f0f75693507f03058fad2eea12ae3e2cd056",
+      "decisions": [
+        {
+          "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+          "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+          "conclusion": "DEFER",
+          "evidenceSufficiency": "INSUFFICIENT",
+          "evidenceSelectors": [
+            "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
+            "canonicalId:ctf:55e4737318f3b1e2d5f90372"
+          ],
+          "rationale": "CHALLENGER independent CourseCoverage review for Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\int_{-\\infty}^{\\infty} h(\\tau) u(t-\\tau) d \\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen binding: batchId=f8917af6bf755caf058c5358 batches[17] ordinal=0; group=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; sequence=0; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1', 'ctr:release:system-modeling-engineering-v0.1']; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist risk surface: profileOnly=True, riskFlags.new=False, riskFlags.changed=False, riskFlags.highRisk=True, reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs_count=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']. Frozen/admitted evidence-boundary audit: every cited #1180 worklist evidenceRef remains confined to aggregate-projection aggregate-evidence and/or canonical-profile payload; no independent-course boundary ref is admitted for this canonicalId/revision in the frozen worklist/manifest. Candidate authoring observation (not admitted): semantically equivalent causal LTI convolution content exists at course-content/authoring/lessons/3-1/design/3-1-handout.md around lines 331-340 (y(t)=∫_0^t g(t-τ)u(τ)dτ and step-response integral form) and at course-content/authoring/lessons/3-1/design/3-1-interactive-page.md around line 449 (convolution-formula-card static payload with the same causal convolution/step forms). These candidate paths are authoring-side semantic matches only; they are not frozen/admitted independent-course evidenceSelectors in the #1180 worklist/manifest for this member, and they do not rewrite the frozen evidence boundary for this review slice. priorDecisionRefs point only at aggregate active coverage history and are not independent course evidence; they cannot authorize INCLUDE/EXCLUDE and cannot be inherited as a role. CourseCoverage authority gate: INCLUDE/EXCLUDE may be issued only when independent course evidence is sufficient and admitted under the frozen denominator. Because this profileOnly+highRisk member still has only aggregate/profile frozen evidence, Challenger keeps stageConclusion=DEFER for the current frozen review. Upstream Issue #1180 must bind/classify the candidate 3-1 handout/interactive-page evidence into the worklist/manifest independent-course evidence boundary and regenerate the frozen worklist/manifest before any INCLUDE/EXCLUDE re-review of this Formula. Challenger does not assign ACTIVE/authority/selector/writer roles and makes no production semantic decision for this member.",
+          "decisionDigest": "8e357bc4a5ab95871da2b83f4ff0ebacc58f72753be2de6c18603271765ae703"
+        }
+      ],
+      "documentDigest": "59b4bdca0014d51aab6a07428f7880fb70981bd5bc39e5055df8911d60e099f8"
+    },
+    "third": null
+  },
+  "terminalMembers": [
+    {
+      "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+      "conclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "terminalSource": "CONSENSUS",
+      "stageDecisionDigests": [
+        "9b5843a29df218c4444b5468f4dcc9a801055c306d6ef067da8b5fde74093ae8",
+        "8e357bc4a5ab95871da2b83f4ff0ebacc58f72753be2de6c18603271765ae703"
+      ],
+      "coverageAuthorityState": "UNRESOLVED_BLOCKING"
+    }
+  ],
+  "counts": {
+    "members": 1,
+    "included": 0,
+    "excluded": 0,
+    "deferredEvidenceBlocked": 1,
+    "conflicts": 0,
+    "thirdReviewed": 0
+  },
+  "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+  "productionBoundaries": {
+    "currentCoverageDecisionWritten": false,
+    "productionSelectorChanged": false,
+    "graphRagSelectorChanged": false,
+    "writerFenceChanged": false
+  },
+  "productionBoundaryProof": {
+    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
+    "receiptPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/batch-receipt.json",
+    "attestationPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/batch-boundary-attestation.json",
+    "headBefore": "8a5b07da164a2f38435b6c05dcb7794ff078dc8b",
+    "protectedPaths": [
+      "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+      "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+      "src/lib/canonical-rag/authority.ts",
+      "src/lib/canonical-learning-fact-identity/authority.ts",
+      "src/lib/canonical-learning-fact-identity/capability.ts",
+      "src/lib/canonical-learning-fact-identity/writer.ts"
+    ],
+    "protectedPathSnapshots": [
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+        "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+        "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+      },
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+        "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+        "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+      },
+      {
+        "relativePath": "src/lib/canonical-rag/authority.ts",
+        "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+        "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+        "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+        "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+        "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+        "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+        "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+        "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+      }
+    ],
+    "statusBefore": [],
+    "authoritySnapshotBeforeDigest": "7eabbdb625a8fc85900a22cedeb07513a76e1559b55603f1d8b21232e9afffa2",
+    "gitDiffCheck": "PASS",
+    "mutationFlags": {
+      "currentCoverageDecisionWritten": false,
+      "productionSelectorChanged": false,
+      "graphRagSelectorChanged": false,
+      "writerFenceChanged": false
+    }
+  },
+  "receiptDigest": "a84fb2a44cbf963b807b037fe9ce3822db193658b370c184eb44ffd5145dbf60"
+}
