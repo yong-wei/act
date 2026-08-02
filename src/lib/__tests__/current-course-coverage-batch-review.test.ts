@@ -2355,8 +2355,8 @@ describe('current CourseCoverage batch review receipt', () => {
     })).toThrow(/proof\/attestation version mismatch/iu);
   });
 
-  it('accepts only the fifteen tracked historical receipts without provenance binding', () => {
-    expect(CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS).toHaveLength(15);
+  it('accepts only the eighteen tracked historical receipts without provenance binding', () => {
+    expect(CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS).toHaveLength(18);
     for (const pair of CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS) {
       const historicalReceipt = JSON.parse(readFileSync(pair.receiptPath, 'utf8')) as ReturnType<typeof receipt>;
       const historicalAttestation = JSON.parse(
@@ -2383,6 +2383,73 @@ describe('current CourseCoverage batch review receipt', () => {
         receiptPath: pair.receiptPath,
         attestationPath: pair.attestationPath,
       })).not.toThrow();
+    }
+  });
+
+  it('classifies the newly published issue-1213/1214/1218 pairs as v3 historical no-binding', () => {
+    for (const issue of ['1213', '1214', '1218'] as const) {
+      const pair = CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS.find(
+        (candidate) => candidate.receiptPath.includes(`/issue-${issue}-`),
+      );
+      expect(pair).toBeDefined();
+      const historicalReceipt = JSON.parse(readFileSync(pair!.receiptPath, 'utf8')) as ReturnType<typeof receipt>;
+      const historicalAttestation = JSON.parse(
+        readFileSync(pair!.attestationPath, 'utf8'),
+      ) as CurrentCourseCoverageProductionBoundaryAttestation;
+      expect(historicalReceipt.reviewProvenanceBinding).toBeUndefined();
+      expect(classifyCurrentCourseCoverageReceiptCompatibility({
+        receipt: historicalReceipt,
+        attestation: historicalAttestation,
+        receiptPath: pair!.receiptPath,
+        attestationPath: pair!.attestationPath,
+      })).toBe('HISTORICAL_V3_NO_BINDING');
+    }
+  });
+
+  it('rejects path and digest drift for every newly published historical pair', () => {
+    for (const issue of ['1213', '1214', '1218'] as const) {
+      const pair = CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS.find(
+        (candidate) => candidate.receiptPath.includes(`/issue-${issue}-`),
+      );
+      expect(pair).toBeDefined();
+      const historicalReceipt = JSON.parse(readFileSync(pair!.receiptPath, 'utf8')) as ReturnType<typeof receipt>;
+      const historicalAttestation = JSON.parse(
+        readFileSync(pair!.attestationPath, 'utf8'),
+      ) as CurrentCourseCoverageProductionBoundaryAttestation;
+      const exactPair: {
+        receiptPath: string;
+        attestationPath: string;
+        receiptDigest: string;
+        attestationDigest: string;
+      } = {
+        ...pair!,
+        receiptDigest: historicalReceipt.receiptDigest,
+        attestationDigest: historicalAttestation.attestationDigest,
+      };
+      const assertRejected = (
+        candidate: typeof exactPair,
+        candidateReceipt: ReturnType<typeof receipt> = historicalReceipt,
+        candidateAttestation: CurrentCourseCoverageProductionBoundaryAttestation = historicalAttestation,
+      ) => {
+        expect(isCurrentCourseCoverageHistoricalNoBindingPair(candidate)).toBe(false);
+        expect(() => classifyCurrentCourseCoverageReceiptCompatibility({
+          receipt: candidateReceipt,
+          attestation: candidateAttestation,
+          receiptPath: candidate.receiptPath,
+          attestationPath: candidate.attestationPath,
+        })).toThrow(/allowlisted historical artifact/iu);
+      };
+      assertRejected({ ...exactPair, receiptPath: `${exactPair.receiptPath}.drift` });
+      assertRejected({ ...exactPair, attestationPath: `${exactPair.attestationPath}.drift` });
+      assertRejected(
+        { ...exactPair, receiptDigest: SHA_A },
+        { ...historicalReceipt, receiptDigest: SHA_A },
+      );
+      assertRejected(
+        { ...exactPair, attestationDigest: SHA_A },
+        historicalReceipt,
+        { ...historicalAttestation, attestationDigest: SHA_A },
+      );
     }
   });
 

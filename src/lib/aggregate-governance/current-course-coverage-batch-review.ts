@@ -40,7 +40,7 @@ export interface CurrentCourseCoverageHistoricalNoBindingDigestPair {
 }
 
 /**
- * These are the fifteen tracked receipts captured before provenance binding
+ * These are the eighteen tracked receipts captured before provenance binding
  * became part of the receipt contract. The values are copied from the tracked
  * receipt and detached-attestation artifacts and are intentionally exact.
  */
@@ -134,6 +134,24 @@ export const CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS = [
     attestationPath: 'course-content/authoring/knowledge/issue-1207-course-coverage-review/batch-boundary-attestation.json',
     receiptDigest: 'a84fb2a44cbf963b807b037fe9ce3822db193658b370c184eb44ffd5145dbf60',
     attestationDigest: '00a905992060e60289bc06b3c5a6331a102ae2998eca66d17f8e84873125d211',
+  },
+  {
+    receiptPath: 'course-content/authoring/knowledge/issue-1213-course-coverage-review/batch-receipt.json',
+    attestationPath: 'course-content/authoring/knowledge/issue-1213-course-coverage-review/batch-boundary-attestation.json',
+    receiptDigest: 'eb3451fbf5b5938676f69eb9e25577bd02e6ce9435dff53b52dee4dbefdaca08',
+    attestationDigest: 'efcf9c750c644673b69038a16e84a5ad1056817785556ae5b20de075207bec32',
+  },
+  {
+    receiptPath: 'course-content/authoring/knowledge/issue-1214-course-coverage-review/batch-receipt.json',
+    attestationPath: 'course-content/authoring/knowledge/issue-1214-course-coverage-review/batch-boundary-attestation.json',
+    receiptDigest: 'ddde95cd1ead7719aba464043941f05b096eff3c76f80500e94f768e7f7e9b66',
+    attestationDigest: '9fdce2d23a9fb9b3003bdb6c9d7cf36119597d2eae8d7afa46b09744b018ccd0',
+  },
+  {
+    receiptPath: 'course-content/authoring/knowledge/issue-1218-course-coverage-review/batch-receipt.json',
+    attestationPath: 'course-content/authoring/knowledge/issue-1218-course-coverage-review/batch-boundary-attestation.json',
+    receiptDigest: 'e1b9d7068dc1dd7fd46ceef2ed9529bc8c52b4b27455c66008079c7f5c9967cb',
+    attestationDigest: '10dba7b507141c025a7f28c8019f52ac60b65c4d48937178f3dc914271bcaa04',
   },
 ] as const satisfies readonly CurrentCourseCoverageHistoricalNoBindingDigestPair[];
 
