@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "PRIMARY",
+  "sessionIndependence": "PRIMARY-only independent session for issue-1207 batch f8917af6bf755caf058c5358 batches[17]; did not read /tmp/issue-1207-challenger-stage.json, /tmp/issue-1207-third-stage.json, or any other stage artifact, Challenger/Third conclusions, receipts, attestations, or non-allowed stage outputs; conclusions derived solely from frozen worklist/batch-manifest digests (memberDigest 7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270, manifestDigest 2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818, worklistDigest bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489, worklistInputDigest 55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2, manifestArtifactSha256 786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8) plus archived current-course-coverage-review requirements and this child OpenSpec change binding (review-course-coverage-f8917af6bf755caf058c5358).",
+  "batchBinding": {
+    "batchId": "f8917af6bf755caf058c5358",
+    "manifestBatchIndex": 17,
+    "sequence": 0,
+    "group": "ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula",
+    "memberCount": 1,
+    "memberDigest": "7e993c72b856c79dd49c277dc2afcb45621f157666eaf1a582b246bfe77a2270",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalRevision": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+      "stageConclusion": "DEFER",
+      "rationale": "PRIMARY independent re-review of Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\\\int_{-\\\\infty}^{\\\\infty} h(\\\\tau) u(t-\\\\tau) d \\\\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen batch f8917af6bf755caf058c5358 / batches[17] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1, ctr:release:system-modeling-engineering-v0.1]; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. Frozen evidenceRefs=2 (order preserved) boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']; zero frozen refs have boundary=independent-course. priorDecisionRefs count=1 is historical aggregate Coverage (course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json entries[418], releaseId=ctr:release:control-theory-engineering-v0.3) and cannot authorize a current CourseCoverage role. Unfrozen semantic-candidate course materials observed outside this frozen worklist item.evidenceRefs: course-content/authoring/lessons/3-1/design/3-1-handout.md ~L331-340 teaches the causal LTI convolution y(t)=∫_0^t g(t-τ)u(τ)dτ; course-content/authoring/lessons/3-1/design/3-1-interactive-page.md:449 carries the same form. Under causal zero-state assumptions these are the same Formula family as the canonical bilateral convolution, but those paths are NOT present in frozen evidenceRefs; frozen selectors remain only aggregate/profile. Current validator forbids non-DEFER conclusions that cite unknown or non-independent-course frozen evidence; module3 unit-design-details is also not a classifier-accepted independent-course path. Therefore the unfrozen candidate materials cannot change admission for this frozen batch slice: they are diagnostic only. Upstream issue #1180 must bind independent-course evidence into the worklist and re-freeze the batch before any re-adjudication toward INCLUDE/EXCLUDE can be considered. Per current-course-coverage-review and child OpenSpec review-course-coverage-f8917af6bf755caf058c5358, INCLUDE/EXCLUDE require sufficient independent current-course evidence admitted on the frozen item; profileOnly/highRisk with only aggregate/profile frozen evidence is insufficient. stageConclusion remains role-free DEFER; CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+      "evidenceRefs": [
+        {
+          "evidenceId": "076bb4ccae11c8a2093caca5ec0a2cbb",
+          "sourcePath": "aggregate-projection",
+          "selector": "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
+          "sourceDigest": "7a5b57dc865e9024e9efcd342d4c5fdfefc4042b8e95ef988f7b924f8fa4326c",
+          "boundary": "aggregate",
+          "kind": "aggregate-evidence",
+          "digestSemantics": "selector-evidence"
+        },
+        {
+          "evidenceId": "61175e5617e4067b2f53312b91c05449",
+          "sourcePath": "aggregate-projection",
+          "selector": "canonicalId:ctf:55e4737318f3b1e2d5f90372",
+          "sourceDigest": "81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f",
+          "boundary": "profile",
+          "kind": "canonical-profile",
+          "digestSemantics": "semantic-payload"
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "members": 1,
+    "byConclusion": {
+      "DEFER": 1
+    },
+    "DEFER": 1,
+    "INCLUDE": 0,
+    "EXCLUDE": 0
+  },
+  "driftCheck": {
+    "batchIdMatch": true,
+    "memberCountMatch": true,
+    "memberOrderMatch": true,
+    "memberDigestMatch": true,
+    "manifestDigestMatch": true,
+    "worklistDigestMatch": true,
+    "worklistInputDigestMatch": true,
+    "canonicalRevisionMatch": true,
+    "result": "PASS"
+  }
+}

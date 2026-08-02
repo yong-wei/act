@@ -1,0 +1,31 @@
+{
+  "subject": {
+    "issue": 1202,
+    "change_id": "review-course-coverage-6826bdc48609e08a6af5efcb"
+  },
+  "truth": {
+    "problem_reproduced": "not-applicable",
+    "evidence": [
+      "The frozen batch manifest binds batches[12] to batchId 6826bdc48609e08a6af5efcb with 10 ordered SystemModel members and memberDigest 5068327c96f60c3e017a6634e032a6727b2879c376f33ada8abc34ada005e41f.",
+      "The active OpenSpec proposal, design, tasks, and spec delta define an isolated deterministic review child that does not mutate production selectors or writer fences."
+    ]
+  },
+  "duplication": {
+    "existing_implementation": "none",
+    "conflicting_specs": [],
+    "active_changes": [
+      "review-course-coverage-6826bdc48609e08a6af5efcb"
+    ],
+    "superseded_by": null
+  },
+  "readiness": {
+    "information": "sufficient",
+    "disposition": "executable",
+    "reason": "The issue now records the complete frozen binding, the batch is disjoint from the other manifest slices, and the repository contains the shared review runtime and active OpenSpec contract needed to execute it."
+  },
+  "binding": {
+    "issue_updated_at": "2026-08-02T02:11:55Z",
+    "base_sha": "f61c41c4cf024951f138c17d922e00df08c16394",
+    "generated_at": "2026-08-02T02:13:09Z"
+  }
+}

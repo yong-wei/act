@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "batchBinding": {
+    "batchId": "0bc82e9dcca813c8a75f11bd",
+    "manifestBatchIndex": 8,
+    "sequence": 0,
+    "group": "ctr:release:discrete-time-control-analysis-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 4,
+    "memberDigest": "463c5396f60d309f07ce3405d690e70e00b3ce70dbdbef5f8ce3bcad67b933ec",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818"
+  },
+  "sessionIndependence": "CHALLENGER-independent session act:issue-1198:course-coverage-challenger/batch-0bc82e9dcca813c8a75f11bd; did not read Primary/Third/normalized review/provenance/receipt/attestation under issue-1198-course-coverage-review, nor other-batch semantic conclusions; authority limited to issue-1180 batch-manifest.json#/batches/8, worklist.json rows for exact ordered members, and independent-course evidence scope course-content/authoring/lessons/** + course-content/syllabus-refactor/** only (aggregate/profile metadata not treated as independent course evidence). sessionId=challenger-1198-0bc82e9d-seq0-systemmodel-discrete-time.",
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-object-1bfd421743563c336736e28c",
+      "canonicalRevision": "681cab6b1dcf024ec25fabf7193488b4daf65f9d36617ca4c00198b2437aeae3",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=0 canonicalId=ctkg:v3e-object-1bfd421743563c336736e28c canonicalRevision=681cab6b1dcf024ec25fabf7193488b4daf65f9d36617ca4c00198b2437aeae3：entityType=SystemModel，preferredLabel「The system under consideration in Section 13.6, consisting of a process G_p(s) = K/(s(τs+1)) with a zero-order hold, as shown in Figure 13.18.」，moduleMembership=['ctr:release:discrete-time-control-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=2；descriptionDigest=2470b082ef7f5e9ae62a394e51f7d8261ed2ca89b1e27402758880c818cfd2d4；evidenceDigest=7a4bfb3cae7c5e24076be0441f00ab6ada8bc76815984bc7aeeb76a8a1fb1756。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共3条：kind分布={'aggregate-evidence': 2, 'canonical-profile': 1} boundary分布={'aggregate': 2, 'profile': 1} sourcePath分布={'aggregate-projection': 3}；selector摘要=['evidence:ctkg:v3e-evidence-bff608a1ce955eefcc672', 'evidence:ctkg:v3e-evidence-d1d6063696ab40b46fce2']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=Section13.6 plant G_p(s)=K/(s(τs+1)) + ZOH (Figure 13.18)。课程侧独立探测：lessons/**+syllabus-refactor/** 对 canonicalId 零命中；对「零阶保持/ZOH/zero-order hold/图13.18/G_p(s)=K/(s(τs+1))」等专指短语无独立课程绑定；5-1/5-4 仅有数字实现边界与采样周期工程语境，不覆盖本教材 Section13.6 系统模型。aggregate/profile 元数据与 gold/silver releaseTier 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-bff608a1ce955eefcc67276f|49fcab1170f7f9d7ebb861843f44247d",
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-d1d6063696ab40b46fce2d76|9fd2b2f3040ef7d147f0d3931135cd40",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-1bfd421743563c336736e28c|50819290888c33bacbd180824977c5b6"
+      ]
+    },
+    {
+      "ordinal": 1,
+      "canonicalId": "ctkg:v3e-object-3c2da5dd1150bed8271d5906",
+      "canonicalRevision": "dc7a057e44ef60e1c52661e69b04bbe39e069acd078e63745bba4d66ea5449af",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=1 canonicalId=ctkg:v3e-object-3c2da5dd1150bed8271d5906 canonicalRevision=dc7a057e44ef60e1c52661e69b04bbe39e069acd078e63745bba4d66ea5449af：entityType=SystemModel，preferredLabel「典型离散系统结构图（图7-25）」，moduleMembership=['ctr:release:discrete-time-control-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=1；descriptionDigest=b094d5c4e7b9968ec9b7542f6f99da725b56c48f26376bf0bd95f4c5a70c55d2；evidenceDigest=b34511e67106c7c6607612fd1c8d085cf1d66fd35354b899b12709dcbcbdebec。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共2条：kind分布={'aggregate-evidence': 1, 'canonical-profile': 1} boundary分布={'aggregate': 1, 'profile': 1} sourcePath分布={'aggregate-projection': 2}；selector摘要=['evidence:ctkg:v3e-evidence-5e62e37f84f72b63859bb', 'canonicalId:ctkg:v3e-object-3c2da5dd1150bed8271d']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=典型离散系统结构图（图7-25）。课程侧独立探测：lessons/**+syllabus-refactor/** 对 canonicalId 零命中；对「典型离散系统结构图/图7-25」字面零命中；module5.md/decisions.md 明确禁止把模块5压回离散系统补充章，且 5-2/5-3 资源表将 8.1-8.3 离散案例排除出正文主线，边界声明不足以对该 SystemModel 签发 INCLUDE/EXCLUDE。aggregate/profile 元数据与 gold/silver releaseTier 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-5e62e37f84f72b63859bb99e|693216249d93e4860ac6417d05f53c91",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-3c2da5dd1150bed8271d5906|d7ed623fdfd55a7d05a15d9bfafea927"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "canonicalId": "ctkg:v3e-object-543b7b61949d2561feb5420f",
+      "canonicalRevision": "8451b5775074437f87a39369338d9e6e099a4d15c3e6b4922810579ba19867c8",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=2 canonicalId=ctkg:v3e-object-543b7b61949d2561feb5420f canonicalRevision=8451b5775074437f87a39369338d9e6e099a4d15c3e6b4922810579ba19867c8：entityType=SystemModel，preferredLabel「A continuous system with reference input r(t), error e(t), continuous compensation D_c(s), plant G(s), and sensor with gain 1.」，moduleMembership=['ctr:release:discrete-time-control-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=silver upstreamEvidenceCount=1；descriptionDigest=849c38cad6dbbf0ebcb53a84a9d7ff6139ce1824eb83713c36b4d87d2cd712e4；evidenceDigest=b527522611735b79e746fd5a0d0068edf2f9973c8378063cdd008d34e7bd025f。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共2条：kind分布={'aggregate-evidence': 1, 'canonical-profile': 1} boundary分布={'aggregate': 1, 'profile': 1} sourcePath分布={'aggregate-projection': 2}；selector摘要=['evidence:ctkg:v3e-evidence-07a7b78763a35574ac4b2', 'canonicalId:ctkg:v3e-object-543b7b61949d2561feb5']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=continuous plant with continuous compensation D_c(s), unit sensor gain。课程侧独立探测：lessons/**+syllabus-refactor/** 对 canonicalId 零命中；对「D_c(s)/continuous compensation/连续补偿」专指短语零命中；既有连续结构图课次（如 2-1/3-7）讨论 G_c(s)/G_p(s)/H(s) 通用闭环，未绑定本 SystemModel 的 D_c(s)+传感器增益1 离散分析对照架构。aggregate/profile 元数据与 gold/silver releaseTier 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-07a7b78763a35574ac4b266a|28b3b66f93cf34d5f0d7bbdec5ec7351",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-543b7b61949d2561feb5420f|6317021e68b46d059215aa0007309d6e"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "canonicalId": "ctkg:v3e-object-8456d832ad12432f2acb6ab0",
+      "canonicalRevision": "f3115e03df57d2834c4c1bb7aa543a92f9e8b229637544a6f3c35ab7dd7dc176",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "Challenger独立审阅 ordinal=3 canonicalId=ctkg:v3e-object-8456d832ad12432f2acb6ab0 canonicalRevision=f3115e03df57d2834c4c1bb7aa543a92f9e8b229637544a6f3c35ab7dd7dc176：entityType=SystemModel，preferredLabel「A digital system with sampling intervals T, A/D converters, discrete error e(kT), difference equations, clock, D/A and ZOH hold, and plant G(s).」，moduleMembership=['ctr:release:discrete-time-control-analysis-engineering-v0.1']，sourceCoverage.count=1 releaseTier=gold upstreamEvidenceCount=1；descriptionDigest=d8b4a6ec8b8cc6da331b34a84c44a6010da1386b318ae35fcc7d2dafc21488a3；evidenceDigest=948641673b206cd7f2b23bf23fac179353a74c609d24ea347b3c81d5b2fdf299。冻结worklist观察 profileOnly=True riskFlags.reasons=['high-risk', 'profile-only'] (highRisk=True new=False changed=False)，仅作审查义务提示，不得单独驱动结论。evidenceRefs共2条：kind分布={'aggregate-evidence': 1, 'canonical-profile': 1} boundary分布={'aggregate': 1, 'profile': 1} sourcePath分布={'aggregate-projection': 2}；selector摘要=['evidence:ctkg:v3e-evidence-9e66af0212aba5a96a92e', 'canonicalId:ctkg:v3e-object-8456d832ad12432f2acb']；全部为aggregate-projection下的aggregate-evidence/canonical-profile，无 lessons/** 或 syllabus-refactor/** 路径的 independent-course 引用；priorDecisionRefs为空(0条)且不得继承历史角色。SystemModel主题=digital sampling chain T/A-D/e(kT)/difference-eq/clock/D-A+ZOH/G(s)。课程侧独立探测：lessons/**+syllabus-refactor/** 对 canonicalId 零命中；对「A/D、D/A、e(kT)、差分方程、采样间隔+ZOH 完整数字系统链」专指短语零命中；5-4 离散模型 x_{k+1}=f(...) 服务于方法迁移/MPC，不构成对本数字采样闭环 SystemModel 的独立课程覆盖绑定。aggregate/profile 元数据与 gold/silver releaseTier 不能充当独立课程证据。因此独立课程证据不足以支持对本SystemModel作出INCLUDE或EXCLUDE，stageConclusion=DEFER，role=null，evidenceSufficiency=INSUFFICIENT。",
+      "evidenceRefs": [
+        "aggregate-evidence|aggregate|evidence:ctkg:v3e-evidence-9e66af0212aba5a96a92ed1e|1038634bcd42ed918b20def7a7af1660",
+        "canonical-profile|profile|canonicalId:ctkg:v3e-object-8456d832ad12432f2acb6ab0|aea551c2c35292f29e85ad6f77927562"
+      ]
+    }
+  ],
+  "counts": {
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 4,
+    "memberCount": 4,
+    "profileOnly": 4,
+    "highRisk": 4,
+    "independentCourseEvidenceMembers": 0,
+    "priorDecisionRefsNonEmpty": 0,
+    "roleNull": 4,
+    "evidenceSufficiencyINSUFFICIENT": 4
+  },
+  "unresolvedRisks": [
+    "全部4个 SystemModel 成员经 Challenger 逐项独立检查均为 DEFER+INSUFFICIENT+role=null：冻结 evidenceRefs 仅 aggregate-projection 的 aggregate-evidence/canonical-profile，无 independent-course 证据，CourseCoverage authority 未解析，须保持全局 Coverage gate 阻断。",
+    "profileOnly/highRisk 与 gold/silver releaseTier、模块归属 discrete-time-control-analysis-engineering-v0.1 不得替代 lessons/** 或 syllabus-refactor 独立课程证据，也不得自动生成 INCLUDE/EXCLUDE。",
+    "syllabus-refactor/unit-design-details/module5.md 与 decisions.md 明确禁止将模块5压回离散控制补充章；5-1/5-2/5-3/5-4 的数字实现边界/采样/离散状态语境与本批 SystemModel（Section13.6+ZOH、图7-25、连续D_c(s)对照架构、A/D–D/A–ZOH 数字链）无 canonical 绑定，边界声明本身不足以签发 EXCLUDE。",
+    "读取路径: issue-1180 batch-manifest#/batches/8/members, worklist.json; 独立课程探测: course-content/authoring/lessons/** + course-content/syllabus-refactor/**；4 个 canonicalId 字面零命中。"
+  ]
+}
