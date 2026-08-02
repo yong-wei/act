@@ -13,8 +13,10 @@ import {
   type CurrentReviewBatchManifest,
 } from './current-course-coverage-review';
 
-export const CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION =
+export const CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1 =
   'current-course-coverage-stage-review/v1' as const;
+export const CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION =
+  'current-course-coverage-stage-review/v2' as const;
 export const CURRENT_COURSE_COVERAGE_BATCH_RECEIPT_SCHEMA_VERSION =
   'current-course-coverage-batch-receipt/v1' as const;
 export const CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2 =
@@ -82,7 +84,9 @@ export interface CurrentCourseCoverageProtectedPathSnapshot {
 }
 
 export interface CurrentCourseCoverageStageReview {
-  schemaVersion: typeof CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION;
+  schemaVersion:
+    | typeof CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1
+    | typeof CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION;
   batchBinding: CurrentCourseCoverageBatchBinding;
   stage: CourseCoverageReviewStage;
   reviewer: {
@@ -495,7 +499,11 @@ export function sealCurrentCourseCoverageStageReview(
       decision,
     }),
   }));
-  const withoutDocumentDigest = { ...document, decisions };
+  const withoutDocumentDigest = {
+    ...document,
+    schemaVersion: CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION,
+    decisions,
+  };
   return {
     ...withoutDocumentDigest,
     documentDigest: sha256Canonical(withoutDocumentDigest),
@@ -506,6 +514,7 @@ function assertConclusion(
   decision: CurrentCourseCoverageStageDecision,
   item: CurrentCourseCoverageWorklistItem,
   field: string,
+  schemaVersion: CurrentCourseCoverageStageReview['schemaVersion'],
 ): void {
   if (!['INCLUDE', 'EXCLUDE', 'DEFER'].includes(decision.conclusion)) {
     throw new Error(`Current batch review rejected: ${field}.conclusion is invalid`);
@@ -517,12 +526,12 @@ function assertConclusion(
     throw new Error(`Current batch review rejected: ${field}.evidenceSelectors must be non-empty`);
   }
   const byEvidenceId = new Map(item.evidenceRefs.map((ref) => [ref.evidenceId, ref]));
-  const bySelector = new Map<string, typeof item.evidenceRefs>();
-  for (const ref of item.evidenceRefs) {
-    const refs = bySelector.get(ref.selector) ?? [];
-    refs.push(ref);
-    bySelector.set(ref.selector, refs);
-  }
+  // Only v1 stage records receive the historical deterministic last-wins
+  // selector lookup. Current v2 records must disambiguate frozen references
+  // with evidenceIds when a selector is not unique.
+  const legacyBySelector = schemaVersion === CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1
+    ? new Map(item.evidenceRefs.map((ref) => [ref.selector, ref]))
+    : undefined;
   const citedEvidence = [];
   if (decision.evidenceIds !== undefined) {
     const evidenceIds = decision.evidenceIds;
@@ -548,14 +557,18 @@ function assertConclusion(
     const seenSelectors = new Set<string>();
     for (const selector of decision.evidenceSelectors) {
       const normalized = requiredString(selector, `${field}.evidenceSelectors`);
-      const matches = bySelector.get(normalized) ?? [];
-      if (matches.length === 0) throw new Error(`Current batch review rejected: ${field} cites unknown evidence`);
-      if (matches.length > 1) {
-        throw new Error(`Current batch review rejected: ${field} evidence selector is ambiguous; evidenceIds are required`);
-      }
       if (seenSelectors.has(normalized)) throw new Error(`Current batch review rejected: ${field} repeats evidence selector`);
       seenSelectors.add(normalized);
-      citedEvidence.push(matches[0]!);
+      let cited = legacyBySelector?.get(normalized);
+      if (!legacyBySelector) {
+        const matches = item.evidenceRefs.filter((ref) => ref.selector === normalized);
+        if (matches.length > 1) {
+          throw new Error(`Current batch review rejected: ${field} evidence selector is ambiguous; evidenceIds are required`);
+        }
+        cited = matches[0];
+      }
+      if (!cited) throw new Error(`Current batch review rejected: ${field} cites unknown evidence`);
+      citedEvidence.push(cited);
     }
   }
   requiredString(decision.rationale, `${field}.rationale`);
@@ -601,7 +614,8 @@ function validateStage(input: {
     allowLegacySourceArtifactBinding = false,
   } = input;
   const requiredSet = new Set(requiredIds);
-  if (document.schemaVersion !== CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION) {
+  if (document.schemaVersion !== CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION
+    && document.schemaVersion !== CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1) {
     throw new Error(`Current batch review rejected: ${expectedStage} schema mismatch`);
   }
   if (document.stage !== expectedStage) throw new Error(`Current batch review rejected: expected ${expectedStage} stage`);
@@ -645,7 +659,7 @@ function validateStage(input: {
     if (decision.canonicalRevision !== item.canonicalRevision) {
       throw new Error(`Current batch review rejected: ${expectedStage} canonical revision drift`);
     }
-    assertConclusion(decision, item, field);
+    assertConclusion(decision, item, field, document.schemaVersion);
     const { decisionDigest: storedDecisionDigest, ...withoutDecisionDigest } = decision;
     assertSha(storedDecisionDigest, `${field}.decisionDigest`);
     if (storedDecisionDigest !== decisionDigest({

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "schemaVersion": "current-course-coverage-stage-review/v2",
   "batchBinding": {
     "batchId": "f699aa47a9afaf3057d4bc0e",
     "manifestBatchIndex": 23,
@@ -4926,5 +4926,5 @@
       "decisionDigest": "25c4873cf314cb9a47349222805bfcaeae126d747f6a742abf5978ba0bb7bbd2"
     }
   ],
-  "documentDigest": "36e89f247d2924a4b72b9d05746fe11c0026c91f2d40ce227fd7dede1a1c2b04"
+  "documentDigest": "c34537f9f429a7a9e2d2c9c8636f7b91d85afa0c172133c0e2a33f59e9cd33b7"
 }

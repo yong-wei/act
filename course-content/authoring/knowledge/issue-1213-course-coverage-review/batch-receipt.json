@@ -1077,13 +1077,13 @@
     }
   ],
   "stageDocuments": {
-    "primaryDigest": "36e89f247d2924a4b72b9d05746fe11c0026c91f2d40ce227fd7dede1a1c2b04",
-    "challengerDigest": "7801070f4a3af787a0cbaf05e99b0ae95efd16250796e071cd3ae99073719366",
+    "primaryDigest": "c34537f9f429a7a9e2d2c9c8636f7b91d85afa0c172133c0e2a33f59e9cd33b7",
+    "challengerDigest": "47ed0e2ba256599dc85c0d4d351210598e50997dcc07ddec90d6e18c00389bc5",
     "thirdDigest": null
   },
   "stageRecords": {
     "primary": {
-      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "schemaVersion": "current-course-coverage-stage-review/v2",
       "batchBinding": {
         "batchId": "f699aa47a9afaf3057d4bc0e",
         "manifestBatchIndex": 23,
@@ -6010,10 +6010,10 @@
           "decisionDigest": "25c4873cf314cb9a47349222805bfcaeae126d747f6a742abf5978ba0bb7bbd2"
         }
       ],
-      "documentDigest": "36e89f247d2924a4b72b9d05746fe11c0026c91f2d40ce227fd7dede1a1c2b04"
+      "documentDigest": "c34537f9f429a7a9e2d2c9c8636f7b91d85afa0c172133c0e2a33f59e9cd33b7"
     },
     "challenger": {
-      "schemaVersion": "current-course-coverage-stage-review/v1",
+      "schemaVersion": "current-course-coverage-stage-review/v2",
       "batchBinding": {
         "batchId": "f699aa47a9afaf3057d4bc0e",
         "manifestBatchIndex": 23,
@@ -10049,7 +10049,7 @@
           "decisionDigest": "2362fe22ca6d50f0943dbbd297367ab29ad3532b2d20466ecbf72c115fdd55fe"
         }
       ],
-      "documentDigest": "7801070f4a3af787a0cbaf05e99b0ae95efd16250796e071cd3ae99073719366"
+      "documentDigest": "47ed0e2ba256599dc85c0d4d351210598e50997dcc07ddec90d6e18c00389bc5"
     },
     "third": null
   },
@@ -13478,7 +13478,7 @@
     "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
     "receiptPath": "course-content/authoring/knowledge/issue-1213-course-coverage-review/batch-receipt.json",
     "attestationPath": "course-content/authoring/knowledge/issue-1213-course-coverage-review/batch-boundary-attestation.json",
-    "headBefore": "597ffda1c541ef0fd62accbe31923ab4b7d91aaf",
+    "headBefore": "258fdffd1ffde9d5c593177a4a116a42e2a9a37d",
     "protectedPaths": [
       "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
       "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
@@ -13520,7 +13520,7 @@
       }
     ],
     "statusBefore": [],
-    "authoritySnapshotBeforeDigest": "1a10180cb3fc68f446443a4fd969749412cb95d96721a32d97e7df1c13ea08b3",
+    "authoritySnapshotBeforeDigest": "cc47932d4702a4eff47e31fafb9a6ecebcfdc4726c91e12cfe7579415ccd2217",
     "gitDiffCheck": "PASS",
     "mutationFlags": {
       "currentCoverageDecisionWritten": false,
@@ -13529,5 +13529,5 @@
       "writerFenceChanged": false
     }
   },
-  "receiptDigest": "0aa13e81b6b322c43f0565b8a0e53c7e18e48e5fbad3d1972198e56f69ebc66e"
+  "receiptDigest": "eb3451fbf5b5938676f69eb9e25577bd02e6ce9435dff53b52dee4dbefdaca08"
 }

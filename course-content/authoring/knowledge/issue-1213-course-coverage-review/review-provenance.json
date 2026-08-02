@@ -19,7 +19,7 @@
     "sourceArtifact": "primary-independent-stage-source.json",
     "sourceArtifactSha256": "7fa6c344c126a3ab608e2ebd72f92dd2bca8a978d87b3aa075228be0b3d58ee1",
     "normalizedStageArtifact": "primary-review.json",
-    "normalizedDocumentDigest": "36e89f247d2924a4b72b9d05746fe11c0026c91f2d40ce227fd7dede1a1c2b04",
+    "normalizedDocumentDigest": "c34537f9f429a7a9e2d2c9c8636f7b91d85afa0c172133c0e2a33f59e9cd33b7",
     "conclusionCounts": {
       "INCLUDE": 5,
       "EXCLUDE": 0,
@@ -46,7 +46,7 @@
     "sourceArtifact": "challenger-independent-stage-source.json",
     "sourceArtifactSha256": "36b9de0e261662e5c98d699d67c72756e33bf4c4398f9091be0de0857c3b0b54",
     "normalizedStageArtifact": "challenger-review.json",
-    "normalizedDocumentDigest": "7801070f4a3af787a0cbaf05e99b0ae95efd16250796e071cd3ae99073719366",
+    "normalizedDocumentDigest": "47ed0e2ba256599dc85c0d4d351210598e50997dcc07ddec90d6e18c00389bc5",
     "conclusionCounts": {
       "INCLUDE": 0,
       "EXCLUDE": 0,

@@ -28,10 +28,11 @@ The current CourseCoverage review denominator is frozen in a deterministic manif
 - `primaryRawSha256`: `7fa6c344c126a3ab608e2ebd72f92dd2bca8a978d87b3aa075228be0b3d58ee1`
 - `challengerSessionId`: `4d714ca0-a746-4df4-939f-65a3a13dec78`
 - `challengerRawSha256`: `36b9de0e261662e5c98d699d67c72756e33bf4c4398f9091be0de0857c3b0b54`
-- `primaryNormalizedDigest`: `36e89f247d2924a4b72b9d05746fe11c0026c91f2d40ce227fd7dede1a1c2b04`
-- `challengerNormalizedDigest`: `7801070f4a3af787a0cbaf05e99b0ae95efd16250796e071cd3ae99073719366`
-- `receiptDigest`: `0aa13e81b6b322c43f0565b8a0e53c7e18e48e5fbad3d1972198e56f69ebc66e`
-- `attestationDigest`: `c1d7eed3423cab07a55273742c108eb462f04f83a1f20dafd15bea3f2210bed7`
+- `normalizedStageSchema`: `current-course-coverage-stage-review/v2`
+- `primaryNormalizedDigest`: `c34537f9f429a7a9e2d2c9c8636f7b91d85afa0c172133c0e2a33f59e9cd33b7`
+- `challengerNormalizedDigest`: `47ed0e2ba256599dc85c0d4d351210598e50997dcc07ddec90d6e18c00389bc5`
+- `receiptDigest`: `eb3451fbf5b5938676f69eb9e25577bd02e6ce9435dff53b52dee4dbefdaca08`
+- `attestationDigest`: `efcf9c750c644673b69038a16e84a5ad1056817785556ae5b20de075207bec32`
 
 The manifest slice above is the sole member source; this proposal does not copy the full member list into prose.
 
@@ -41,7 +42,7 @@ Only the exact ordered members in the frozen slice are eligible. Each member kee
 
 The assembled outcome is five Primary-only `INCLUDE` decisions for non-risk members and 260 Primary `DEFER` decisions. The required Challenger stage independently agrees on all 224 risk members as role-free `DEFER` with `INSUFFICIENT` evidence. There are zero semantic conflicts and no Third stage. Frozen aggregate/profile evidence remains non-authoritative; any semantically related authoring material outside the frozen references is diagnostic only. CourseCoverage authority remains unresolved and the aggregate gate remains blocked pending upstream issue `#1180`.
 
-Normalized decisions preserve every raw `evidenceRefs` entry in order as paired `evidenceSelectors` and exact frozen `evidenceIds`. When a selector repeats within one member, the receipt MUST use the evidence ID to identify the intended frozen reference; selector-only ambiguity MUST NOT overwrite or collapse evidence identity. Primary contains 856 frozen references, including 19 duplicate-selector groups (38 references) and 60 independent-course references; Challenger contains 659 identity-bound frozen references.
+Normalized decisions use `current-course-coverage-stage-review/v2` and preserve every raw `evidenceRefs` entry in order as paired `evidenceSelectors` and exact frozen `evidenceIds`. `v1` remains accepted only for replay of existing published artifacts; newly assembled stage documents MUST use `v2`, and `v2` documents with repeated selectors MUST carry exact `evidenceIds`. When a selector repeats within one member, the receipt MUST use the evidence ID to identify the intended frozen reference; selector-only ambiguity MUST NOT overwrite or collapse evidence identity. Primary contains 856 frozen references, including 19 duplicate-selector groups (38 references) and 60 independent-course references; Challenger contains 659 identity-bound frozen references.
 
 ## Out of Scope
 

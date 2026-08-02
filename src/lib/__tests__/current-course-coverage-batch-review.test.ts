@@ -10,6 +10,8 @@ import {
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
+  CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION,
+  CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1,
   currentCourseCoverageStageInputDigest,
   sealCurrentCourseCoverageProductionBoundaryAttestation,
   sealCurrentCourseCoverageStageReview,
@@ -222,7 +224,7 @@ function stageReview(input: {
   const ids = input.ids ?? input.manifest.batches[0]!.members.map((member) => member.canonicalId);
   const conclusion = input.conclusion ?? 'DEFER';
   return sealCurrentCourseCoverageStageReview({
-    schemaVersion: 'current-course-coverage-stage-review/v1',
+    schemaVersion: CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION,
     batchBinding: input.binding,
     stage: input.stage,
     reviewer: {
@@ -257,6 +259,18 @@ function stageReview(input: {
       };
     }),
   });
+}
+
+function legacyStageReview(document: CurrentCourseCoverageStageReview): CurrentCourseCoverageStageReview {
+  const { documentDigest: _, ...withoutDigest } = document;
+  const withoutDocumentDigest = {
+    ...withoutDigest,
+    schemaVersion: CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1,
+  };
+  return {
+    ...withoutDocumentDigest,
+    documentDigest: sha256Canonical(withoutDocumentDigest),
+  };
 }
 
 function stageReviewWithEvidenceIds(input: {
@@ -871,7 +885,7 @@ describe('current CourseCoverage batch review receipt', () => {
     expect(() => receipt({ ...input, primary: documentTamper })).toThrow(/document digest mismatch/iu);
   });
 
-  it('rejects selector-only citations when frozen evidence selectors are ambiguous', () => {
+  it('rejects a v2 single-selector citation when frozen selectors are ambiguous', () => {
     const input = duplicateSelectorFixture();
     const selector = input.worklist.items[0]!.evidenceRefs.find(
       (ref) => ref.sourcePath === 'course-content/authoring/lessons/fixture.md',
@@ -891,6 +905,51 @@ describe('current CourseCoverage batch review receipt', () => {
       evidenceSelectors: [selector],
     });
     expect(() => receipt({ ...input, primary, challenger })).toThrow(/ambiguous.*evidenceIds/iu);
+  });
+
+  it('replays a v1 single-selector citation when frozen selectors are ambiguous', () => {
+    const input = duplicateSelectorFixture();
+    const selector = input.worklist.items[0]!.evidenceRefs.find(
+      (ref) => ref.sourcePath === 'course-content/authoring/lessons/fixture.md',
+    )!.selector;
+    const primary = legacyStageReview(stageReview({
+      ...input,
+      stage: 'PRIMARY',
+      identity: 'primary',
+      sessionId: 'primary-session',
+      evidenceSelectors: [selector],
+    }));
+    const challenger = legacyStageReview(stageReview({
+      ...input,
+      stage: 'CHALLENGER',
+      identity: 'challenger',
+      sessionId: 'challenger-session',
+      evidenceSelectors: [selector],
+    }));
+    expect(primary.schemaVersion).toBe(CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1);
+    expect(() => receipt({ ...input, primary, challenger })).not.toThrow();
+  });
+
+  it('rejects selector-only decisions that repeat an ambiguous selector', () => {
+    const input = duplicateSelectorFixture();
+    const selector = input.worklist.items[0]!.evidenceRefs.find(
+      (ref) => ref.sourcePath === 'course-content/authoring/lessons/fixture.md',
+    )!.selector;
+    const primary = stageReview({
+      ...input,
+      stage: 'PRIMARY',
+      identity: 'primary',
+      sessionId: 'primary-session',
+      evidenceSelectors: [selector, selector],
+    });
+    const challenger = stageReview({
+      ...input,
+      stage: 'CHALLENGER',
+      identity: 'challenger',
+      sessionId: 'challenger-session',
+      evidenceSelectors: [selector, selector],
+    });
+    expect(() => receipt({ ...input, primary, challenger })).toThrow(/ambiguous.*evidenceIds|repeats evidence selector/iu);
   });
 
   it('resolves duplicate selectors by evidenceIds and preserves both references in the receipt', () => {
@@ -955,12 +1014,14 @@ describe('current CourseCoverage batch review receipt', () => {
 
   it('continues accepting legacy unique selector citations and four-segment source refs', () => {
     const input = documents();
-    const bound = sourceFor(input.primary, 'string');
+    const primary = legacyStageReview(input.primary);
+    const challenger = legacyStageReview(input.challenger);
+    const bound = sourceFor(primary, 'string');
     expect(() => validateCurrentCourseCoverageStageSource({
       document: bound.document,
       sourceBytes: bound.bytes,
     })).not.toThrow();
-    expect(() => receipt(input)).not.toThrow();
+    expect(() => receipt({ ...input, primary, challenger })).not.toThrow();
   });
 
   it('fails closed when an independent source is changed or its binding is swapped', () => {
