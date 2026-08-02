@@ -603,6 +603,7 @@ function validateStage(input: {
   items: ReadonlyMap<string, CurrentCourseCoverageWorklistItem>;
   requiredIds: readonly string[];
   allowLegacySourceArtifactBinding?: boolean;
+  allowLegacyStageSchema?: boolean;
 }): Map<string, CurrentCourseCoverageStageDecision> {
   const {
     document,
@@ -612,11 +613,16 @@ function validateStage(input: {
     items,
     requiredIds,
     allowLegacySourceArtifactBinding = false,
+    allowLegacyStageSchema = false,
   } = input;
   const requiredSet = new Set(requiredIds);
-  if (document.schemaVersion !== CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION
-    && document.schemaVersion !== CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1) {
+  const isCurrentStageSchema = document.schemaVersion === CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION;
+  const isLegacyStageSchema = document.schemaVersion === CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1;
+  if (!isCurrentStageSchema && !isLegacyStageSchema) {
     throw new Error(`Current batch review rejected: ${expectedStage} schema mismatch`);
+  }
+  if (isLegacyStageSchema && !allowLegacyStageSchema) {
+    throw new Error(`Current batch review rejected: ${expectedStage} legacy stage schema requires replay compatibility`);
   }
   if (document.stage !== expectedStage) throw new Error(`Current batch review rejected: expected ${expectedStage} stage`);
   if (!sameBinding(binding, document.batchBinding)) throw new Error(`Current batch review rejected: ${expectedStage} binding drift`);
@@ -707,6 +713,7 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
   third?: CurrentCourseCoverageStageReview | null;
   productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof;
   allowLegacySourceArtifactBinding?: boolean;
+  allowLegacyStageSchema?: boolean;
 }): CurrentCourseCoverageBatchReceipt {
   const {
     worklistDigest: storedWorklistDigest,
@@ -717,6 +724,7 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
   const allowLegacySourceArtifactBinding = input.allowLegacySourceArtifactBinding === true
     && input.productionBoundaryProof.verificationProtocol
       === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2;
+  const allowLegacyStageSchema = input.allowLegacyStageSchema === true;
   if (computeCurrentWorklistInputDigest(withoutWorklistDigests) !== storedWorklistInputDigest) {
     throw new Error('Current batch review rejected: worklist input digest mismatch');
   }
@@ -757,6 +765,7 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
     items,
     requiredIds: allIds,
     allowLegacySourceArtifactBinding,
+    allowLegacyStageSchema,
   });
   const challenger = input.challenger
     ? validateStage({
@@ -767,6 +776,7 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
       items,
       requiredIds: riskIds,
       allowLegacySourceArtifactBinding,
+      allowLegacyStageSchema,
     })
     : new Map<string, CurrentCourseCoverageStageDecision>();
   if (riskIds.length > 0 && !input.challenger) throw new Error('Current batch review rejected: Challenger is required for risk members');
@@ -788,6 +798,7 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
       items,
       requiredIds: conflictIds,
       allowLegacySourceArtifactBinding,
+      allowLegacyStageSchema,
     })
     : new Map<string, CurrentCourseCoverageStageDecision>();
   if (conflictIds.length > 0 && !input.third) throw new Error('Current batch review rejected: Third is required for conflicts');

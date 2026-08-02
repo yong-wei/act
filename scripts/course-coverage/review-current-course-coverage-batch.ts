@@ -716,6 +716,7 @@ async function main(): Promise<void> {
   let persistedReceipt: CurrentCourseCoverageBatchReceipt | null = null;
   let persistedAttestation: CurrentCourseCoverageProductionBoundaryAttestation | null = null;
   let allowLegacySourceArtifactBinding = false;
+  let allowLegacyStageSchema = false;
   if (receiptExists && attestationExists) {
     persistedReceipt = JSON.parse(await readFile(receiptOutput, 'utf8')) as CurrentCourseCoverageBatchReceipt;
     persistedAttestation = JSON.parse(await readFile(attestationOutput, 'utf8')) as CurrentCourseCoverageProductionBoundaryAttestation;
@@ -725,6 +726,7 @@ async function main(): Promise<void> {
       receiptPath,
       attestationPath,
     });
+    allowLegacyStageSchema = true;
     allowLegacySourceArtifactBinding = persistedReceipt.productionBoundaryProof.verificationProtocol
       === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2
       && persistedAttestation.schemaVersion === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1
@@ -744,6 +746,7 @@ async function main(): Promise<void> {
   const buildReceipt = (
     productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof,
     allowLegacy = false,
+    allowLegacySchema = false,
   ): CurrentCourseCoverageBatchReceipt =>
     buildCurrentCourseCoverageBatchReceipt({
       worklist,
@@ -755,12 +758,17 @@ async function main(): Promise<void> {
       third,
       productionBoundaryProof,
       allowLegacySourceArtifactBinding: allowLegacy,
+      allowLegacyStageSchema: allowLegacySchema,
     });
 
   if (receiptExists && attestationExists) {
     const replayReceipt = persistedReceipt!;
     const replayAttestation = persistedAttestation!;
-    const rebuiltReceipt = buildReceipt(replayReceipt.productionBoundaryProof, allowLegacySourceArtifactBinding);
+    const rebuiltReceipt = buildReceipt(
+      replayReceipt.productionBoundaryProof,
+      allowLegacySourceArtifactBinding,
+      allowLegacyStageSchema,
+    );
     if (stableStringify(rebuiltReceipt) !== stableStringify(replayReceipt)) {
       throw new Error('Current batch review rejected: published receipt source/stage closure differs from current inputs');
     }

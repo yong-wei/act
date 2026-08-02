@@ -322,6 +322,7 @@ function receipt(
   input = documents(),
   productionBoundary: CurrentCourseCoverageProductionBoundaryProof = productionBoundaryProof(),
   allowLegacySourceArtifactBinding = false,
+  allowLegacyStageSchema = false,
 ) {
   return buildCurrentCourseCoverageBatchReceipt({
     worklist: input.worklist,
@@ -332,6 +333,7 @@ function receipt(
     challenger: input.challenger,
     productionBoundaryProof: productionBoundary,
     allowLegacySourceArtifactBinding,
+    allowLegacyStageSchema,
   });
 }
 
@@ -927,7 +929,9 @@ describe('current CourseCoverage batch review receipt', () => {
       evidenceSelectors: [selector],
     }));
     expect(primary.schemaVersion).toBe(CURRENT_COURSE_COVERAGE_STAGE_REVIEW_SCHEMA_VERSION_V1);
-    expect(() => receipt({ ...input, primary, challenger })).not.toThrow();
+    const legacyInput = { ...input, primary, challenger };
+    expect(() => receipt(legacyInput)).toThrow(/legacy stage schema|schema mismatch/iu);
+    expect(() => receipt(legacyInput, productionBoundaryProof(), false, true)).not.toThrow();
   });
 
   it('rejects selector-only decisions that repeat an ambiguous selector', () => {
@@ -1021,7 +1025,7 @@ describe('current CourseCoverage batch review receipt', () => {
       document: bound.document,
       sourceBytes: bound.bytes,
     })).not.toThrow();
-    expect(() => receipt({ ...input, primary, challenger })).not.toThrow();
+    expect(() => receipt({ ...input, primary, challenger }, productionBoundaryProof(), false, true)).not.toThrow();
   });
 
   it('fails closed when an independent source is changed or its binding is swapped', () => {
