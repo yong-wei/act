@@ -15,6 +15,7 @@
 - [x] Emit a deterministic machine-mergeable receipt keyed by batchId and every binding digest.
 - [x] Bind the Primary/Challenger raw source paths and SHA-256 values, normalized stage documents, writer sessions, and provenance closure.
 - [x] Seal the provenance path, raw-byte SHA-256, distinct sessions/scopes, source/document bindings, and Challenger non-read audit into `reviewProvenanceBinding` and the receipt digest.
+- [x] Reject stripped, protocol-downgraded, and resealed provenance bindings while preserving only the twelve exact tracked historical receipt/attestation path-and-digest pairs.
 - [x] Prove the receipt contains no member outside the frozen ordered slice and no production selector/writer-fence mutation.
 - [x] Close the v3 production-boundary proof and v2 detached attestation with `receiptDigest` `2309285ee5acef97d6076135c8d9da29fbd642d1053e314b8f867e737a83c347` and `attestationDigest` `1fdf6b0398f01aa590f01e83cb48d834191d8ba9958fad77b603dc0b6a8c5d83`, including identical content-equivalent replay.
 

@@ -13,7 +13,7 @@ import {
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL,
-  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
+  classifyCurrentCourseCoverageReceiptCompatibility,
   deriveCurrentCourseCoverageReviewProvenanceBinding,
   sealCurrentCourseCoverageProductionBoundaryAttestation,
   type CurrentCourseCoverageBatchBinding,
@@ -742,32 +742,24 @@ async function main(): Promise<void> {
   let persistedReceipt: CurrentCourseCoverageBatchReceipt | null = null;
   let persistedAttestation: CurrentCourseCoverageProductionBoundaryAttestation | null = null;
   let allowLegacySourceArtifactBinding = false;
+  let persistedCompatibility: ReturnType<typeof classifyCurrentCourseCoverageReceiptCompatibility> | null = null;
   if (receiptExists && attestationExists) {
     persistedReceipt = JSON.parse(await readFile(receiptOutput, 'utf8')) as CurrentCourseCoverageBatchReceipt;
     persistedAttestation = JSON.parse(await readFile(attestationOutput, 'utf8')) as CurrentCourseCoverageProductionBoundaryAttestation;
-    assertCurrentCourseCoverageProductionBoundaryBundle({
+    persistedCompatibility = assertCurrentCourseCoverageProductionBoundaryBundle({
       receipt: persistedReceipt,
       attestation: persistedAttestation,
       receiptPath,
       attestationPath,
     });
-    allowLegacySourceArtifactBinding = persistedReceipt.productionBoundaryProof.verificationProtocol
-      === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2
-      && persistedAttestation.schemaVersion === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1
-      && persistedAttestation.protocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1;
+    allowLegacySourceArtifactBinding = persistedCompatibility === 'LEGACY_V2_V1';
   }
   const defaultProvenancePath = path.join(path.dirname(absolute(input.primary)), 'review-provenance.json');
   let provenancePath: string | null = null;
   let provenanceBytes: Buffer | null = null;
   let provenance: Record<string, unknown> | null = null;
   let reviewProvenanceBinding: CurrentCourseCoverageReviewProvenanceBinding | undefined;
-  const persistedHasReviewProvenanceBinding = persistedReceipt
-    ? Object.prototype.hasOwnProperty.call(persistedReceipt, 'reviewProvenanceBinding')
-    : false;
-  if (persistedHasReviewProvenanceBinding) {
-    if (!persistedReceipt?.reviewProvenanceBinding) {
-      throw new Error('Current batch review rejected: persisted review provenance binding is invalid');
-    }
+  if (persistedReceipt?.reviewProvenanceBinding) {
     assertCurrentCourseCoverageReviewProvenanceBinding(persistedReceipt.reviewProvenanceBinding);
     const storedPath = persistedReceipt.reviewProvenanceBinding.provenancePath;
     const normalizedStoredPath = repoRelative(storedPath);

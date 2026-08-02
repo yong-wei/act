@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 import {
   assertCurrentCourseCoverageProductionBoundaryBundle,
   assertCurrentCourseCoverageReviewProvenanceBinding,
   buildCurrentCourseCoverageBatchReceipt,
+  classifyCurrentCourseCoverageReceiptCompatibility,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
+  CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS,
+  isCurrentCourseCoverageHistoricalNoBindingPair,
   currentCourseCoverageStageInputDigest,
   type CurrentCourseCoverageReviewProvenanceBinding,
   sealCurrentCourseCoverageProductionBoundaryAttestation,
@@ -273,6 +277,12 @@ function receipt(
   allowLegacySourceArtifactBinding = false,
   reviewProvenanceBinding?: CurrentCourseCoverageReviewProvenanceBinding,
 ) {
+  const effectiveReviewProvenanceBinding = reviewProvenanceBinding
+    ?? (Boolean(input.primary.sourceArtifactBinding)
+      && (!input.challenger || Boolean(input.challenger.sourceArtifactBinding))
+      && (!input.third || Boolean(input.third.sourceArtifactBinding))
+      ? provenanceFor(input).binding
+      : undefined);
   return buildCurrentCourseCoverageBatchReceipt({
     worklist: input.worklist,
     manifest: input.manifest,
@@ -282,7 +292,7 @@ function receipt(
     challenger: input.challenger,
     third: input.third,
     productionBoundaryProof: productionBoundary,
-    reviewProvenanceBinding,
+    reviewProvenanceBinding: effectiveReviewProvenanceBinding,
     allowLegacySourceArtifactBinding,
   });
 }
@@ -445,7 +455,7 @@ describe('current CourseCoverage batch review receipt', () => {
     expect(first.reviewProvenanceBinding).toEqual(binding);
     expect(first.receiptDigest).toBe(second.receiptDigest);
     expect(() => assertCurrentCourseCoverageReviewProvenanceBinding(binding)).not.toThrow();
-    expect(receipt(input).reviewProvenanceBinding).toBeUndefined();
+    expect(receipt(input).reviewProvenanceBinding).toEqual(provenanceFor(input).binding);
   });
 
   it.each([
@@ -912,6 +922,7 @@ describe('current CourseCoverage batch review receipt', () => {
       challenger,
       third,
       productionBoundaryProof: productionBoundaryProof(),
+      reviewProvenanceBinding: provenanceFor({ ...base, primary, challenger, third }).binding,
     });
     expect(result.terminalMembers[0]).toMatchObject({
       terminalSource: 'THIRD',
@@ -1095,7 +1106,8 @@ describe('current CourseCoverage batch review receipt', () => {
     legacyChallenger.documentDigest = sha256Canonical((({ documentDigest: _, ...withoutDigest }) => withoutDigest)(legacyChallenger));
     const legacyInput = { ...input, primary: legacyPrimary, challenger: legacyChallenger };
     expect(() => receipt(legacyInput)).toThrow(/source artifact binding is required/iu);
-    expect(() => receipt(legacyInput, productionBoundaryProof(), true)).not.toThrow();
+    expect(() => receipt(legacyInput, productionBoundaryProof(), true))
+      .toThrow(/receipt without provenance binding is not an allowlisted historical artifact/iu);
     expect(() => validateCurrentCourseCoverageStageSource({
       document: legacyPrimary,
       sourceBytes: '{}',
@@ -1132,6 +1144,123 @@ describe('current CourseCoverage batch review receipt', () => {
       receiptPath: inputReceipt.productionBoundaryProof.receiptPath,
       attestationPath: inputReceipt.productionBoundaryProof.attestationPath,
     })).toThrow(/proof\/attestation version mismatch/iu);
+  });
+
+  it('accepts only the twelve tracked historical receipts without provenance binding', () => {
+    expect(CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS).toHaveLength(12);
+    for (const pair of CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS) {
+      const historicalReceipt = JSON.parse(readFileSync(pair.receiptPath, 'utf8')) as ReturnType<typeof receipt>;
+      const historicalAttestation = JSON.parse(
+        readFileSync(pair.attestationPath, 'utf8'),
+      ) as CurrentCourseCoverageProductionBoundaryAttestation;
+      expect(historicalReceipt.reviewProvenanceBinding).toBeUndefined();
+      expect(isCurrentCourseCoverageHistoricalNoBindingPair({
+        ...pair,
+        receiptDigest: historicalReceipt.receiptDigest,
+        attestationDigest: historicalAttestation.attestationDigest,
+      })).toBe(true);
+      expect(classifyCurrentCourseCoverageReceiptCompatibility({
+        receipt: historicalReceipt,
+        attestation: historicalAttestation,
+        receiptPath: pair.receiptPath,
+        attestationPath: pair.attestationPath,
+      })).toBe(historicalReceipt.productionBoundaryProof.verificationProtocol
+        === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2
+        ? 'LEGACY_V2_V1'
+        : 'HISTORICAL_V3_NO_BINDING');
+      expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+        receipt: historicalReceipt,
+        attestation: historicalAttestation,
+        receiptPath: pair.receiptPath,
+        attestationPath: pair.attestationPath,
+      })).not.toThrow();
+    }
+  });
+
+  it.each([
+    ['v2/v1', productionBoundaryProof()],
+    ['v3/v2', productionBoundaryProofV3()],
+  ] as const)('rejects a %s receipt without binding unless its digest is an allowlisted historical result', (_label, proof) => {
+    const input = documents();
+    expect(() => buildCurrentCourseCoverageBatchReceipt({
+      worklist: input.worklist,
+      manifest: input.manifest,
+      expectedBinding: input.binding,
+      observedManifestArtifactSha256: SHA_C,
+      primary: input.primary,
+      challenger: input.challenger,
+      productionBoundaryProof: proof,
+    })).toThrow(/receipt without provenance binding is not an allowlisted historical artifact/iu);
+  });
+
+  it('rejects stripping a binding and resealing both v3/v2 digests', () => {
+    const input = documents();
+    const boundReceipt = receipt(input, productionBoundaryProofV3());
+    const { reviewProvenanceBinding: _binding, receiptDigest: _digest, ...withoutBinding } = boundReceipt;
+    const strippedReceipt = {
+      ...withoutBinding,
+      receiptDigest: sha256Canonical(withoutBinding),
+    } as ReturnType<typeof receipt>;
+    const strippedAttestation = attestationV2For(strippedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: strippedReceipt,
+      attestation: strippedAttestation,
+      receiptPath: strippedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: strippedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/allowlisted historical artifact/iu);
+  });
+
+  it('rejects stripping v3 binding, downgrading to v2/v1, removing snapshots, and resealing both digests', () => {
+    const input = documents();
+    const boundReceipt = receipt(input, productionBoundaryProofV3());
+    const boundProof = boundReceipt.productionBoundaryProof;
+    if (boundProof.verificationProtocol
+      !== 'git-head-and-production-authority-pre-publication-snapshot/v3') {
+      throw new Error('fixture requires v3 proof');
+    }
+    const { reviewProvenanceBinding: _binding, receiptDigest: _digest, ...withoutBinding } = boundReceipt;
+    const { protectedPathSnapshots: _snapshots, ...v2Proof } = boundProof;
+    const strippedReceipt = {
+      ...withoutBinding,
+      productionBoundaryProof: {
+        ...v2Proof,
+        verificationProtocol: CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
+      },
+    } as ReturnType<typeof receipt>;
+    strippedReceipt.receiptDigest = sha256Canonical(strippedReceipt);
+    const strippedAttestation = attestationFor(strippedReceipt);
+    expect(() => classifyCurrentCourseCoverageReceiptCompatibility({
+      receipt: strippedReceipt,
+      attestation: strippedAttestation,
+      receiptPath: strippedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: strippedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/receipt without provenance binding is not an allowlisted historical artifact/iu);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: strippedReceipt,
+      attestation: strippedAttestation,
+      receiptPath: strippedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: strippedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/receipt without provenance binding is not an allowlisted historical artifact/iu);
+  });
+
+  it('keeps the v2/v1 legacy protocol matrix compatible', () => {
+    const legacyPair = CURRENT_COURSE_COVERAGE_HISTORICAL_NO_BINDING_DIGEST_PAIRS[0]!;
+    const legacyReceipt = JSON.parse(readFileSync(legacyPair.receiptPath, 'utf8')) as ReturnType<typeof receipt>;
+    const legacyAttestation = JSON.parse(
+      readFileSync(legacyPair.attestationPath, 'utf8'),
+    ) as CurrentCourseCoverageProductionBoundaryAttestation;
+    expect(classifyCurrentCourseCoverageReceiptCompatibility({
+      receipt: legacyReceipt,
+      attestation: legacyAttestation,
+      receiptPath: legacyPair.receiptPath,
+      attestationPath: legacyPair.attestationPath,
+    })).toBe('LEGACY_V2_V1');
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: legacyReceipt,
+      attestation: legacyAttestation,
+      receiptPath: legacyPair.receiptPath,
+      attestationPath: legacyPair.attestationPath,
+    })).not.toThrow();
   });
 
   it('accepts descendant and content-equivalent replay rows but rejects protected drift', () => {
