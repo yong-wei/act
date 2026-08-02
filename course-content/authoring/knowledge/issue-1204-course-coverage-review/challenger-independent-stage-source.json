@@ -1,0 +1,670 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "sessionIndependence": {
+    "role": "CHALLENGER",
+    "sessionId": "ef3755f6-20e8-494e-bfc8-630c580b7623",
+    "scope": "act:issue-1204:challenger-review",
+    "readOtherStageConclusions": false,
+    "statement": "CHALLENGER only read the frozen manifest/worklist and independent course evidence; it did not read another stage conclusion or artifact.",
+    "sourceOrderCanonicalized": false
+  },
+  "batchBinding": {
+    "batchId": "ccfbcd4d501ae459305602a6",
+    "manifestBatchIndex": 14,
+    "sequence": 0,
+    "group": "ctr:release:stability-analysis-engineering-v0.1::entityType:Formula",
+    "memberCount": 37,
+    "memberDigest": "1157b6af80c506dc595d8b7b60dfed8bc22ef97ce506eb67db0b55b2f2ff5902",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818"
+  },
+  "counts": {
+    "members": 37,
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 37
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-object-0674245bbf1762695193cfa8",
+      "canonicalRevision": "abeb87c84ac6772c18219b76f9aeac87bb10ca8fe44ba5be34e30cfe80aca9ed",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-ebaf7854b23eb30b4eec82dc",
+          "evidenceId": "d17d72cc3a79f9cded19ae839221ad2e"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-0674245bbf1762695193cfa8",
+          "evidenceId": "19fa228b15d04322460320c409f02a52"
+        }
+      ]
+    },
+    {
+      "ordinal": 1,
+      "canonicalId": "ctkg:v3e-object-0f0a952947b11d14d329702e",
+      "canonicalRevision": "05fb742522371b33c0a6232086b8df38bd7204cb79cce9111546d684be46653d",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-e4679407a19ceccefd3a64f4",
+          "evidenceId": "c17b9d44666d6a4ff7380b4ca4c47212"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-0f0a952947b11d14d329702e",
+          "evidenceId": "dd9de45ebdeb046329a740f249851ab6"
+        }
+      ]
+    },
+    {
+      "ordinal": 2,
+      "canonicalId": "ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+      "canonicalRevision": "b72e0922ea6a8b3a37b8a6f84a967d6eaf42fe800c842bc0d6733c03a9d58fd2",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-a6975864b8167638a059a165",
+          "evidenceId": "a7e97a0f06e684a62b64821f4b7bc45e"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+          "evidenceId": "1537455d3c872c34f8f025583fb564ae"
+        }
+      ]
+    },
+    {
+      "ordinal": 3,
+      "canonicalId": "ctkg:v3e-object-27b68e7bc42b98de2b3890f3",
+      "canonicalRevision": "1fecdbad9c8019f4ab457cf0238057c8aaf86425d80debd737e6ee9d026b836f",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-0e1455268b960471e9c9bda0",
+          "evidenceId": "ffa64be1d26ad7b3fb538611d4877eec"
+        },
+        {
+          "selector": "evidence:ctr:m1g-release-evidence-281c7f9dfc71267691ab8946",
+          "evidenceId": "939193fcadbfe3fd14c1810a0060c55b"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-27b68e7bc42b98de2b3890f3",
+          "evidenceId": "b446fa2ad5aeb301328a72bd1d0521a6"
+        }
+      ]
+    },
+    {
+      "ordinal": 4,
+      "canonicalId": "ctkg:v3e-object-368b6d1024a140b22eb94a7b",
+      "canonicalRevision": "e74ae0e326ea70698b14b911e9de21f6dd117676f17564f57f6b9c58b154ed28",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-5061b62f6c39d27461d9b02e",
+          "evidenceId": "c5c8efd0a514abc84f46cd81c8b011fe"
+        },
+        {
+          "selector": "evidence:ctr:m1g-release-evidence-87f1835b74911623b44a1f30",
+          "evidenceId": "1e782b851ee2b283798a7ce91fef6375"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-368b6d1024a140b22eb94a7b",
+          "evidenceId": "39bc64cefdac8d59458323b9219c90c7"
+        }
+      ]
+    },
+    {
+      "ordinal": 5,
+      "canonicalId": "ctkg:v3e-object-400aa145c81b92ce9b0664ef",
+      "canonicalRevision": "03508bd0941dd46bdcb5e3882cc84c94d2ad11d1ecbc240c073b100fa78bbe78",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-46c4b282ded7b59377512828",
+          "evidenceId": "0edca9e617a13587fbd09f054abf4bce"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-400aa145c81b92ce9b0664ef",
+          "evidenceId": "227234a7cbfbd8dba9cefa22b6f321b7"
+        }
+      ]
+    },
+    {
+      "ordinal": 6,
+      "canonicalId": "ctkg:v3e-object-416bc5396a07b8895bd8f184",
+      "canonicalRevision": "add6feb47304fb57137fbc3eb475a0ab9d97fb35623a9aea5f8b6058b1a4a8da",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-d7e7b0b999b985a50b418f51",
+          "evidenceId": "834027166c8b51cd8b81487795b5c12b"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-416bc5396a07b8895bd8f184",
+          "evidenceId": "6602e4ce7ab4aaf86bf3b4a46bf46179"
+        }
+      ]
+    },
+    {
+      "ordinal": 7,
+      "canonicalId": "ctkg:v3e-object-46830a97b093d5250e8bf713",
+      "canonicalRevision": "1c9d679a408ffe47a85ddb64fedd1e239a6763271dd391e4819cbd8db7be39d5",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-b875b9bd4e47dd1a92d0d77b",
+          "evidenceId": "e69d2629dd80213b06fe9a11c04cd609"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-46830a97b093d5250e8bf713",
+          "evidenceId": "36735a532a4bd72bfb3f3e5840112198"
+        }
+      ]
+    },
+    {
+      "ordinal": 8,
+      "canonicalId": "ctkg:v3e-object-55d9257b6c74ab5202eb2229",
+      "canonicalRevision": "0d15acad2be848269be1e13947d76bb5323e303348ee16e0a789a9cf6b20e8ae",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-05368cd8ea1c8a17bab756e2",
+          "evidenceId": "3548ec2135e2bf8e871f836483840969"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-55d9257b6c74ab5202eb2229",
+          "evidenceId": "4c98f57365df131a455f51244ea059bd"
+        }
+      ]
+    },
+    {
+      "ordinal": 9,
+      "canonicalId": "ctkg:v3e-object-5ebe9605f472c8470c156abf",
+      "canonicalRevision": "2934508019bd439c081938176635aa095eae82af61bbca6772be1e35e05d473b",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-1338735c582620b1fb1264f6",
+          "evidenceId": "db52145700d06e9d6acee025bb2a1785"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-5ebe9605f472c8470c156abf",
+          "evidenceId": "7de5c2f910653038636f729074e2d8d4"
+        }
+      ]
+    },
+    {
+      "ordinal": 10,
+      "canonicalId": "ctkg:v3e-object-6ab46bf62c3e7fe105d56351",
+      "canonicalRevision": "25380737fd08058ac228a3044051b60c9db9a7ec0b2870a733446907f2fac50c",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-3c667e970bc8f6d0986ddbf5",
+          "evidenceId": "b33b7f4e745f3f59e24169e3054e0ff0"
+        },
+        {
+          "selector": "evidence:ctr:m1g-release-evidence-7101c06a7ea0fdb35f2d3861",
+          "evidenceId": "9bc3e155ad409a8ef6ca513835aae438"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-6ab46bf62c3e7fe105d56351",
+          "evidenceId": "ecdf0cc09db6e7be894e32c081954a03"
+        }
+      ]
+    },
+    {
+      "ordinal": 11,
+      "canonicalId": "ctkg:v3e-object-6bb62eff295daf3b6280eecb",
+      "canonicalRevision": "09f86763341e61debfb8bd6c9fd5f3b44e19a0af0583dd88547ee8d7fcf9717a",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-29c7bd12f62aa94151d4e4a7",
+          "evidenceId": "a8539a7133b33b528d147a6c9fa00a7f"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-6bb62eff295daf3b6280eecb",
+          "evidenceId": "17408b89c23f22f81cd0bf46ad65e566"
+        }
+      ]
+    },
+    {
+      "ordinal": 12,
+      "canonicalId": "ctkg:v3e-object-7113590a392d062c1ef7f80d",
+      "canonicalRevision": "6e41806227d3c78a649373c8953720ee6c64dcac2783c0adb56ec6ff6c5ebe46",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-e3a84b08ba751fb0ca91156b",
+          "evidenceId": "d125c81c870217c4d6b913260aa4d5e5"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-7113590a392d062c1ef7f80d",
+          "evidenceId": "1ea17c33d77084255a413c361f1a74c7"
+        }
+      ]
+    },
+    {
+      "ordinal": 13,
+      "canonicalId": "ctkg:v3e-object-78aab6b7276d4a7234c395c3",
+      "canonicalRevision": "8f8cc68b1ad484c9fc7201d71563114b7d8fbd55e4c0c056055067c76f2fba90",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-cdfdb658e81fe43d9a6b1445",
+          "evidenceId": "bb50536799183ecd4d12024828c7d8a3"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-78aab6b7276d4a7234c395c3",
+          "evidenceId": "50ceb921a37dd7df1599510e770d3d24"
+        }
+      ]
+    },
+    {
+      "ordinal": 14,
+      "canonicalId": "ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+      "canonicalRevision": "cf10f30bb2667634cc551d5350f82cefb4f4059458018be24d828c5d4fef33d9",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-1a899adec1ea63d989abbe25",
+          "evidenceId": "af15c1614c1befd24a7a57ff177c278d"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+          "evidenceId": "ebb7d19d8c860249f8a0aee27b60ba10"
+        }
+      ]
+    },
+    {
+      "ordinal": 15,
+      "canonicalId": "ctkg:v3e-object-7e93787bebbb427bd59b0d98",
+      "canonicalRevision": "8c99a9e910ddf42afb225369809d27326594e47f7fd0fbb978418c9a71fe40f2",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-2046d260192ba06965335db2",
+          "evidenceId": "683cd3fae190169fb504df04b6aca33f"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-7e93787bebbb427bd59b0d98",
+          "evidenceId": "0fa279dd63993d6c42fd62f0b2b3995e"
+        }
+      ]
+    },
+    {
+      "ordinal": 16,
+      "canonicalId": "ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+      "canonicalRevision": "44f08e840437dcbbc4c33211e44962b4a9af1adb6ff120cc1b26aa836d23d9d7",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-3b769709d291c56e7b4679fb",
+          "evidenceId": "7abe6081166c2c35bbab3b6e04c747fe"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+          "evidenceId": "2b96de98f4d30c66616cef446d42cb10"
+        }
+      ]
+    },
+    {
+      "ordinal": 17,
+      "canonicalId": "ctkg:v3e-object-84490159b28143a9c04cea1d",
+      "canonicalRevision": "e02a0b4fc997a3d8ea2006918ad4b44c6c3fc55ab6da6a507a0dd6a89c348733",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-324e7198376885fa63de8be4",
+          "evidenceId": "e57058b785e45c867efb31e00fc66b4f"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-84490159b28143a9c04cea1d",
+          "evidenceId": "19dceb70075be3286998f53ab2f08af6"
+        }
+      ]
+    },
+    {
+      "ordinal": 18,
+      "canonicalId": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+      "canonicalRevision": "a2f57bd0ebb3917ed31987adaf073f11b7e8cd8b3698305da74574ce6b2c0fa4",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-a51a6f3ce93b3edc42ff3bd9",
+          "evidenceId": "3f7e141b27253adb676883390ae2e649"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+          "evidenceId": "47bc6b5234256ee984cbc4182a887853"
+        }
+      ]
+    },
+    {
+      "ordinal": 19,
+      "canonicalId": "ctkg:v3e-object-8a33a28289dbd5b5abd9daa5",
+      "canonicalRevision": "9496ba240712f3ef27a514c27df756519a1bef21b03d39ee62c27dede4c62f98",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-51defc8860a1e3d3f3463591",
+          "evidenceId": "1a5105cfd79322ece43304c33bc345df"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-8a33a28289dbd5b5abd9daa5",
+          "evidenceId": "288c464c46a86d927c945ada56769415"
+        }
+      ]
+    },
+    {
+      "ordinal": 20,
+      "canonicalId": "ctkg:v3e-object-8bdb501223cebaa22efc5b7f",
+      "canonicalRevision": "3e4c384843d7c19748ff9997782cbd9104995ed87a9e2e69ed1680ed4a10313d",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-f21c57cf4496382052b6bf33",
+          "evidenceId": "68cbf77107fa0224fcd56747b3f60427"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-8bdb501223cebaa22efc5b7f",
+          "evidenceId": "d4263bbb18402bd3bd5f5e88e5d105ac"
+        }
+      ]
+    },
+    {
+      "ordinal": 21,
+      "canonicalId": "ctkg:v3e-object-904f40c2ad21dd880b1653db",
+      "canonicalRevision": "6eb1acaa8ccbd84ddedb610c72e9879e16857033e30029f8a254739e3f6dc66c",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-da1c6f5c4c37135bddbc83dc",
+          "evidenceId": "05719845d108f47efdd4558a36d01964"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-904f40c2ad21dd880b1653db",
+          "evidenceId": "c83822e2737519ba332cc2da90b0e6a8"
+        }
+      ]
+    },
+    {
+      "ordinal": 22,
+      "canonicalId": "ctkg:v3e-object-930475fd096df1a1fe75674d",
+      "canonicalRevision": "491acaff9966b1a76b10d6c669cc7035275aff37ae21ee957d38ea9996ea355c",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-543215c09979e5bfa93c4a39",
+          "evidenceId": "506cdccd2853068d48ab7af0dc8c3c50"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-930475fd096df1a1fe75674d",
+          "evidenceId": "2f95904dad6e5a888b6d49ff1ef3f6ee"
+        }
+      ]
+    },
+    {
+      "ordinal": 23,
+      "canonicalId": "ctkg:v3e-object-996f8cfb90886bae3eecad26",
+      "canonicalRevision": "99cd75d76c3f11ff572bb0611ea4e344137218db32ec63a55e651704a816a705",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-825a6cdf2b34861c1ef8ab6f",
+          "evidenceId": "f9e51b1249d1358ee2d904324ee1b944"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-996f8cfb90886bae3eecad26",
+          "evidenceId": "52553556e0f3f912c7bc4cbe90215937"
+        }
+      ]
+    },
+    {
+      "ordinal": 24,
+      "canonicalId": "ctkg:v3e-object-997018715efe8ecb7bcddbd6",
+      "canonicalRevision": "d3edc6658a2ad2c04bc8c38ac54173707016171fbc7b789d442feb43ea94df2a",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-5410f430d39efa4f78ee61dc",
+          "evidenceId": "c74c3a317fddff131972c9f329c8986d"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-997018715efe8ecb7bcddbd6",
+          "evidenceId": "e83984e6f630fcc28ac6954b8047bb3b"
+        }
+      ]
+    },
+    {
+      "ordinal": 25,
+      "canonicalId": "ctkg:v3e-object-a03703a178c7496c8acaee87",
+      "canonicalRevision": "6559eb4bf0829936f8fe795d4d16f928707e22c117cb5386f3ad1eca143cdea3",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-2069c5cc5edcbb8023e9fe54",
+          "evidenceId": "0b5274fc09237ace4ab4630340fb13b2"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-a03703a178c7496c8acaee87",
+          "evidenceId": "a30502700a2090c9748ae81bcf47768b"
+        }
+      ]
+    },
+    {
+      "ordinal": 26,
+      "canonicalId": "ctkg:v3e-object-a4841c0774ad75c2aecb88a6",
+      "canonicalRevision": "3a984723fca7ea3a86ef7b0c3f9da8d41a132d758ff2179249945d740484942d",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-4ccd694ef3b404a0995f46b2",
+          "evidenceId": "ff196ab5da8788d9bde0015fce8b0ecd"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-a4841c0774ad75c2aecb88a6",
+          "evidenceId": "bbf4b9d16b7bfd3e0131be082e003e58"
+        }
+      ]
+    },
+    {
+      "ordinal": 27,
+      "canonicalId": "ctkg:v3e-object-ac40802813262332cb115daf",
+      "canonicalRevision": "ba23ad789664234eff8929234174ef5483094b60684616d2a14cd41873325c73",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-301bcaa6bfb7040d354b1d60",
+          "evidenceId": "18d2795572f64d1ba555306f819778dc"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-ac40802813262332cb115daf",
+          "evidenceId": "431c4bc0ef98cd3fceefe5e6268c759f"
+        }
+      ]
+    },
+    {
+      "ordinal": 28,
+      "canonicalId": "ctkg:v3e-object-b3b49089c68e2b5af62f0cd2",
+      "canonicalRevision": "d2968e5e5f1a85f08bf258f74a23ea36ed4383f0baca30892772fd4f6bc6b009",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-12aac2facaf9d60b697d64e7",
+          "evidenceId": "a5b438cae23463139957a341a5b51efd"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-b3b49089c68e2b5af62f0cd2",
+          "evidenceId": "aa5731a3eaa4c2ce45b6ddef18af0a18"
+        }
+      ]
+    },
+    {
+      "ordinal": 29,
+      "canonicalId": "ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+      "canonicalRevision": "9a1e9b5076a33cb08fd5d14d7757c6a22da511b3c052440499fc3a234977238e",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-89fbfe967a0d604eabf575bc",
+          "evidenceId": "0991485d04c86edeb0c619dfb868883a"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+          "evidenceId": "3d4952d7f26c94f8d18d51e372c0d3f8"
+        }
+      ]
+    },
+    {
+      "ordinal": 30,
+      "canonicalId": "ctkg:v3e-object-c8e6b61daf10f74a94a58710",
+      "canonicalRevision": "43664be23905066e2180f199999fb69431f7020374919a44e8c44af9f2fe3e6c",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-aa8dbba7bf7ab299ce1f412a",
+          "evidenceId": "52c9bb19e04625cf608be52e8281f171"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-c8e6b61daf10f74a94a58710",
+          "evidenceId": "55ba33cd85c3e250171b4025c81412f3"
+        }
+      ]
+    },
+    {
+      "ordinal": 31,
+      "canonicalId": "ctkg:v3e-object-d6bbb218a10c1417b5be167b",
+      "canonicalRevision": "c0f8d717c15198291af8a681ff9ece5ee8ebf9238a8944e68aede6a74e3f526f",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-6ef319149bf617b0dc02cb2c",
+          "evidenceId": "bb89b4eaa14ed30999bdb7032ea4b1e7"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-d6bbb218a10c1417b5be167b",
+          "evidenceId": "8eaea73985924250882f51e06468f276"
+        }
+      ]
+    },
+    {
+      "ordinal": 32,
+      "canonicalId": "ctkg:v3e-object-d936710484645940b76063d6",
+      "canonicalRevision": "e03cb6e13b1c01ada3cb44a6b0ed0bd37c891729c32345211766c4e0c3cb7463",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-669ef67eed9e5ad132a5f76e",
+          "evidenceId": "985f77accd64dea351e1d6998b75481b"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-d936710484645940b76063d6",
+          "evidenceId": "9067adbdd91b94e083090e00490a991a"
+        }
+      ]
+    },
+    {
+      "ordinal": 33,
+      "canonicalId": "ctkg:v3e-object-e1f57376b170eab299d1a9ad",
+      "canonicalRevision": "6ed54f8c2205918dc1cd4c19cecf38e99933a409e289b67e45924d792ea5df76",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-28bf6c1a6deae65496c61bf8",
+          "evidenceId": "c6ef227a25a5999e46041a4da7b4368c"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-e1f57376b170eab299d1a9ad",
+          "evidenceId": "1f59c135ee5db5f6ae6b38ff5e1bb684"
+        }
+      ]
+    },
+    {
+      "ordinal": 34,
+      "canonicalId": "ctkg:v3e-object-e20f487306737e032e4c7b61",
+      "canonicalRevision": "184558962acede08cd60c6a6237884a669f08ef1525ca5240983c1ab4754add2",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-07ca2b42af897c0ee76596aa",
+          "evidenceId": "d616f63ff7434b542193493a57611555"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-e20f487306737e032e4c7b61",
+          "evidenceId": "0bbe8b7e74892a6bc6eb65e104709bab"
+        }
+      ]
+    },
+    {
+      "ordinal": 35,
+      "canonicalId": "ctkg:v3e-object-e251935a976e8aa1a362f196",
+      "canonicalRevision": "42023c06884db7de9d2032263892df23cf72404b7b223f4d93b15080e7138d98",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-7c202928f7eba2d57609faf5",
+          "evidenceId": "ba620caa580e9d0800c69ad90cefd888"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-e251935a976e8aa1a362f196",
+          "evidenceId": "89a0231f73638ee71b599cd1eeeac94b"
+        }
+      ]
+    },
+    {
+      "ordinal": 36,
+      "canonicalId": "ctkg:v3e-object-e98b6c6fe22f236d8eed9b3e",
+      "canonicalRevision": "3deabbd8cddd9f3833cfb0d8628dc44ee60257911449d1100bad1e5179c927e8",
+      "stageConclusion": "DEFER",
+      "rationale": "Frozen evidenceRefs contain only aggregate/profile boundaries (aggregate, profile); no boundary=independent-course reference is available, so INCLUDE/EXCLUDE is not permitted and the member is deferred with insufficient course-boundary evidence.",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctkg:v3e-evidence-771c4c8e444e2d80f8e9802a",
+          "evidenceId": "5a18f5e8ad2870882275ea7ecab5cf0d"
+        },
+        {
+          "selector": "canonicalId:ctkg:v3e-object-e98b6c6fe22f236d8eed9b3e",
+          "evidenceId": "ab7c23cd7ee02b75796bc5f6297c49b2"
+        }
+      ]
+    }
+  ]
+}

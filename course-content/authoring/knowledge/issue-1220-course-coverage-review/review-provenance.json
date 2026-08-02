@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "course-coverage-stage-review-provenance/v1",
+  "batchBinding": {
+    "batchId": "ea058c5dde3d58d06f734bd5",
+    "manifestBatchIndex": 30,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 85,
+    "memberDigest": "82dc61a2382bf7e7f671343a191e364c4380a6f3f94b3e20c7765bd6c28efca2",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "independenceProtocol": {
+    "primaryDidNotReadOtherStages": true,
+    "challengerDidNotReadOtherStages": true,
+    "thirdRequired": false
+  },
+  "conflictIds": [],
+  "deterministicEvidenceCompletion": {
+    "stage": "CHALLENGER",
+    "affectedDecisions": 70,
+    "rule": "For a DEFER with no model-supplied citation, preserve the decision and cite that member's complete frozen worklist evidenceRefs to satisfy the stage contract."
+  },
+  "deterministicEvidenceIdentityCorrections": [
+    {
+      "stage": "PRIMARY",
+      "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "selector": "canonicalId:ctc:v11g-4bb347d0f2aa8859a18073de",
+      "reportedEvidenceId": "9ce0371e3402b35d7861d4d39d4068",
+      "frozenEvidenceId": "9ce0371e3402b35d7861d4d7d39d4068"
+    }
+  ],
+  "deterministicScopeProjection": {
+    "stage": "CHALLENGER",
+    "includedRiskMembers": 70,
+    "omittedNonRiskModelDecisions": 15,
+    "rule": "The receipt admits Challenger conclusions only for profileOnly/new/changed/highRisk members selected by the frozen manifest policy."
+  },
+  "primary": {
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "42380a73e39e4e141ea1c257f76d22cc9fbdb2980f01f1fd6aace0649a17d26a",
+    "normalizedDocumentDigest": "a4a02d523dcd6429ff7d3bffb1525d0278e98958193a57ea333c434a068da428",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1220-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "42380a73e39e4e141ea1c257f76d22cc9fbdb2980f01f1fd6aace0649a17d26a",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "dda2f591-992d-40f7-a531-7886b59dc0ee"
+    }
+  },
+  "challenger": {
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "54ef6b449c556b15a4cc74a92417b7db978635f5a8c878659a73d0f766304f56",
+    "normalizedDocumentDigest": "657063a9c4e522ba572a4a2ab2fdefe49782fe584f1a05c05e7b6404cf23e39b",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1220-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "54ef6b449c556b15a4cc74a92417b7db978635f5a8c878659a73d0f766304f56",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "399d3ad6-93f1-463c-a31d-4a9b0a54c832"
+    }
+  }
+}

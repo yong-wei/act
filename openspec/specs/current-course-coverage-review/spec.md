@@ -496,6 +496,45 @@ The decision receipt MUST be keyed by every batch binding digest, preserve exact
 - **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `babc4b83475400c53b2f46d7`, with `receiptDigest` `a6736d12049c2132a2d22fce2d7619e533200fec561e56eaf2809ae87d04cc6a` and detached `attestationDigest` `5888a709321f639dd5473f8ddc9c40b3df1851d015d0ae9387daa471e0ee28e7`
 - **AND** replay SHALL accept a squash/content-equivalent continuation when protected-path bytes and clean status match the persisted ordered rows, without requiring capture-commit ancestry or deriving any semantic conclusion
 
+### Requirement: Batch 3c6973d82b44357efc73f2f8 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/10/members`, binding batchId `3c6973d82b44357efc73f2f8`, sequence `0`, semanticGroupKey `ctr:release:frequency-domain-analysis-engineering-v0.1::entityType:Formula`, member count `232`, memberDigest `321f283c747e5068c1de2dcb0e69939afe0991c6154dc3d8db3e9f853f0455c8`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`, and raw manifest artifact SHA-256 `786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8`.
+
+#### Scenario: Frozen batch 3c6973d82b44357efc73f2f8 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch 3c6973d82b44357efc73f2f8 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch 3c6973d82b44357efc73f2f8 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch 3c6973d82b44357efc73f2f8
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch 3c6973d82b44357efc73f2f8 has no conflict
+
+- **WHEN** Primary and required Challenger independently agree on all 232 ordered members and no conflict is present
+- **THEN** the receipt SHALL preserve each stage's independent source binding, rationale, evidence selectors, canonical decision digests, and document digest, with no Third stage
+- **AND** every member SHALL remain a role-free `DEFER` with insufficient evidence and review-stage terminal state `DEFERRED_EVIDENCE_BLOCKED`; CourseCoverage authority SHALL remain unresolved and the global gate SHALL remain blocked
+
+### Requirement: Batch 3c6973d82b44357efc73f2f8 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and bind the Primary and Challenger raw source artifacts and normalized stage documents through `review-provenance.json`. The receipt MUST seal the provenance repository-relative path, raw-byte SHA-256, distinct stage sessions/scopes, source/document bindings, and Challenger non-read audit into `reviewProvenanceBinding`; any receipt with that binding MUST use the current v3 proof and v2 detached-attestation pair, and replay MUST fail closed if the provenance or binding is absent or any binding or audit field drifts. Any historical receipt without provenance binding, whether v2/v1 or v3/v2, MUST require an exact match of the tracked receipt path and digest plus detached-attestation path and digest; compatibility is limited to the eighteen tracked pairs from Issues 1190–1199, 1201–1203, 1205, 1207, 1213, 1214, and 1218. Field absence, batch identity, self-reported protocol version, or a recomputed digest MUST NOT grant compatibility. The Primary writer session MUST be `42eca660-ca20-49d4-b9df-93d9651ad3f2`; the Challenger writer session MUST be `37cc1c54-54d1-4cc0-a174-c440ed0294fe`, and the bound provenance SHA-256 MUST be `eee0d6dcbccab41287492f2feb7348a0419b62478d0be0565c509a9e97122a18`. Provenance MUST state and audit that Challenger did not read Primary. The receipt MUST also prove that no out-of-slice member or production authority was written. The current publication boundary MUST use the v3 proof and v2 detached-attestation schemas and preserve ordered protected-path digests for squash-safe content-equivalent replay.
+
+#### Scenario: Receipt for batch 3c6973d82b44357efc73f2f8 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `3c6973d82b44357efc73f2f8`, with `receiptDigest` `2309285ee5acef97d6076135c8d9da29fbd642d1053e314b8f867e737a83c347` and detached `attestationDigest` `1fdf6b0398f01aa590f01e83cb48d834191d8ba9958fad77b603dc0b6a8c5d83`
+- **AND** replay SHALL accept an identical squash/content-equivalent continuation when protected-path bytes and clean status match the persisted ordered rows, without requiring capture-commit ancestry or deriving any semantic conclusion
+
 ### Requirement: Batch 0bc82e9dcca813c8a75f11bd has an immutable review boundary
 
 The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/8/members`, binding batchId `0bc82e9dcca813c8a75f11bd`, sequence `0`, semanticGroupKey `ctr:release:discrete-time-control-analysis-engineering-v0.1::entityType:SystemModel`, member count `4`, memberDigest `463c5396f60d309f07ce3405d690e70e00b3ce70dbdbef5f8ce3bcad67b933ec`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`, and raw manifest artifact SHA-256 `786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8`.
@@ -844,6 +883,20 @@ The decision receipt MUST be keyed by every batch binding digest, preserve the e
 - **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `beffdbc7a6d3d2c54714760b`
 - **AND** a second CLI replay SHALL report identical receipt and attestation bytes with `replayMode=content-equivalent` when protected-path bytes and clean status match the persisted ordered rows
 
+### Requirement: Batch f699aa47a9afaf3057d4bc0e has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/23/members`, binding batchId `f699aa47a9afaf3057d4bc0e`, sequence `0`, semanticGroupKey `ctr:release:system-modeling-engineering-v0.1::entityType:DomainConcept`, member count `265`, memberDigest `e026fadcfcdfdd5798b11f76bf9e7e5eed23f548756457850e344909782fd852`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`, and raw manifest artifact SHA-256 `786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8`.
+
+#### Scenario: Frozen batch f699aa47a9afaf3057d4bc0e is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch f699aa47a9afaf3057d4bc0e drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
 ### Requirement: Batch b354cb02317e7a7f534c0208 has an immutable review boundary
 
 The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/24/members`, binding batchId `b354cb02317e7a7f534c0208`, sequence `0`, semanticGroupKey `ctr:release:system-modeling-engineering-v0.1::entityType:Formula`, member count `204`, memberDigest `2f9178a55173b126c348544ebf05dac5b41553da630f95bc67366d0df618179e`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
@@ -857,6 +910,47 @@ The review child MUST process only the exact ordered members at `batch-manifest.
 
 - **WHEN** any member, order, digest, or revision differs
 - **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch f699aa47a9afaf3057d4bc0e produces independent terminal decisions
+
+Primary MUST issue independent conclusions for all 265 ordered members. Challenger MUST issue independent conclusions for the 224 members whose frozen manifest risk surface has `profileOnly=true` or `riskFlags.highRisk=true`. The Primary raw source MUST be preserved byte-for-byte at `course-content/authoring/knowledge/issue-1213-course-coverage-review/primary-independent-stage-source.json` and bound to session `170364f7-6d6e-44d5-b936-96f8b6553af5` with SHA-256 `7fa6c344c126a3ab608e2ebd72f92dd2bca8a978d87b3aa075228be0b3d58ee1`; the Challenger raw source MUST be preserved byte-for-byte at `course-content/authoring/knowledge/issue-1213-course-coverage-review/challenger-independent-stage-source.json` and bound to session `4d714ca0-a746-4df4-939f-65a3a13dec78` with SHA-256 `36b9de0e261662e5c98d699d67c72756e33bf4c4398f9091be0de0857c3b0b54`. Each normalized stage document MUST use `current-course-coverage-stage-review/v2` and bind its raw source path, SHA-256, schema, stage, and writer session through `review-provenance.json`; `v1` remains accepted only for replay after an existing persisted receipt/attestation pair passes bundle assertion and the rebuilt receipt equals that verified receipt exactly. First publication, incomplete pairs, and invalid bundles MUST reject `v1`; newly assembled stage documents MUST use `v2`, with exact `evidenceIds` required whenever a v2 document contains repeated selectors. Primary's normalized digest is `c34537f9f429a7a9e2d2c9c8636f7b91d85afa0c172133c0e2a33f59e9cd33b7` and Challenger's is `47ed0e2ba256599dc85c0d4d351210598e50997dcc07ddec90d6e18c00389bc5`. Published artifacts MUST use logical repository-relative identifiers only and MUST NOT contain machine-local absolute paths. Every decision MUST preserve raw evidence-reference order as aligned `evidenceSelectors` and exact frozen `evidenceIds`; repeated selectors MUST be disambiguated by evidenceId, and selector-only ambiguity MUST NOT overwrite or collapse a distinct frozen reference. A conflict would require Third to be terminal; this batch has zero conflicts, so no Third source or normalized artifact is permitted.
+
+#### Scenario: Batch f699aa47a9afaf3057d4bc0e has no conflict
+
+- **WHEN** Primary and required Challenger independently agree on all 224 required members
+- **THEN** the receipt SHALL preserve both independent rationales, evidence selectors, stage decision digests, and document digests with no Third stage; all 224 agreed terminal members SHALL remain role-free `DEFER` with `INSUFFICIENT` evidence
+- **AND** the five non-risk Primary-only members SHALL preserve their valid `INCLUDE` roles and `SUFFICIENT` evidence
+- **AND** the review stage SHALL be `DEFERRED_EVIDENCE_BLOCKED`, CourseCoverage authority SHALL remain unresolved, and the aggregate gate SHALL remain `BLOCKED_UNRESOLVED_EVIDENCE`
+
+#### Scenario: Frozen evidence identity governs repeated selectors
+
+- **WHEN** a member has repeated raw selectors or another selector is ambiguous in the frozen worklist
+- **THEN** the normalized decision and receipt SHALL preserve the one-to-one raw order of `evidenceSelectors` and `evidenceIds`, and selector-only lookup SHALL fail closed rather than overwrite or collapse a frozen evidence reference
+
+#### Scenario: Frozen evidence boundaries govern admission
+
+- **WHEN** a member lacks sufficient frozen `independent-course` evidence for a role decision
+- **THEN** neither stage SHALL use aggregate/profile evidence, prior decisions, labels, or unfrozen semantic candidates as current CourseCoverage authority
+
+#### Scenario: Unfrozen semantic candidates are diagnostic only
+
+- **WHEN** Primary observes semantically related course-authoring material outside the frozen `evidenceRefs`
+- **THEN** the observation SHALL remain diagnostic only; upstream issue `#1180` MUST bind and classify accepted candidates as `independent-course` evidence and regenerate the frozen worklist/manifest before any later `INCLUDE`/`EXCLUDE` re-review
+
+#### Scenario: DEFER is review-stage terminal only
+
+- **WHEN** Primary and required Challenger agree on role-free `DEFER` with insufficient evidence
+- **THEN** the receipt SHALL use `DEFERRED_EVIDENCE_BLOCKED`, set `thirdRequired=false`, preserve zero conflicts and zero Third reviews, leave CourseCoverage authority unresolved, keep the aggregate gate `BLOCKED_UNRESOLVED_EVIDENCE`, and SHALL NOT write `ACTIVE`, authority, selector, or writer state
+
+### Requirement: Batch f699aa47a9afaf3057d4bc0e emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve the exact ordered member references, bind both raw stage-source artifacts through normalized documents and `review-provenance.json`, retain every `evidenceId`/selector pair, and prove that no out-of-slice member or production authority was written. Primary contributes 856 raw evidence references, including 19 duplicate-selector groups (38 references) and 60 independent-course references; Challenger contributes 659 identity-bound references. The first publication MUST use the v3 production-boundary proof and v2 detached-attestation schemas, with receiptDigest `eb3451fbf5b5938676f69eb9e25577bd02e6ce9435dff53b52dee4dbefdaca08` and attestationDigest `efcf9c750c644673b69038a16e84a5ad1056817785556ae5b20de075207bec32`.
+
+#### Scenario: Receipt for batch f699aa47a9afaf3057d4bc0e is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `f699aa47a9afaf3057d4bc0e`
+- **AND** a second CLI replay SHALL report identical receipt and attestation bytes with `replayMode=content-equivalent` when protected-path bytes and clean status match the persisted ordered rows
 
 ### Requirement: Batch b354cb02317e7a7f534c0208 produces independent terminal decisions
 
@@ -941,3 +1035,300 @@ The normalized Primary and Challenger documents MUST be sealed from the two inde
 - **WHEN** the raw sources, normalized documents, worklist, and manifest are reread
 - **THEN** source bindings, canonical IDs/revisions, conclusions, rationales, and selectors SHALL match in order
 - **AND** all 626 decision digests SHALL be valid SHA-256 values
+
+### Requirement: Batch b8c877df21b1ebb0ce5c6356 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/25/members`, binding batchId `b8c877df21b1ebb0ce5c6356`, sequence `0`, semanticGroupKey `ctr:release:system-modeling-engineering-v0.1::entityType:KnowledgeStatement`, member count `171`, memberDigest `e5d637bbe468048744a6ff80ecd54d973c9924423d456324a281d66a9e819e56`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch b8c877df21b1ebb0ce5c6356 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch b8c877df21b1ebb0ce5c6356 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch b8c877df21b1ebb0ce5c6356 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. For this frozen batch, Primary's byte-preserved remediation source is `course-content/authoring/knowledge/issue-1215-course-coverage-review/primary-independent-stage-source.json` with SHA-256 `cbda7f5c7122f5d0b457a63de56a6cbc9bf7b199f1cad4833dc1e2b37e826044`, session `e0bc3434-6424-4782-88b5-a78fc7e18bf2`, and normalized v2 digest `162ac8b0a4c5f3569bec61da996deffb6ba3c2e6936c0b92253963104c5ca59a`. That independent Primary remediation accepted PR #1253 P1 and re-audited only ordinals `69,109,132,137,142` against their frozen selectors without reading Challenger/Third artifacts; all five became role-free `DEFER`. Challenger's byte-preserved source is `course-content/authoring/knowledge/issue-1215-course-coverage-review/challenger-independent-stage-source.json` with SHA-256 `5a7521ced17491a3e325dd321468e3afe73074e194e53e031dd539192e5edc23`, session `74224160-f779-4995-bf7e-6ae8e8105f26`, and normalized v2 digest `f8c5ab643f335e77a681ceadc85c3c32a1eeb607e6c241a09fce3b4825ad65cc`. Both v2 stages preserve raw frozen evidence order as aligned `evidenceSelectors` and exact `evidenceIds`; repeated selectors are disambiguated by evidenceId. Primary records 0 `INCLUDE`, 171 `DEFER`, and 0 `EXCLUDE`; Challenger records 137 role-free `DEFER`. Every conflict MUST enter Third, and Third MUST be terminal; their required risk-slice conclusions agree, so this batch has zero conflicts and MUST NOT contain Third artifacts.
+
+#### Scenario: Conflict occurs in batch b8c877df21b1ebb0ce5c6356
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch b8c877df21b1ebb0ce5c6356 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch b8c877df21b1ebb0ce5c6356 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written. This batch's receipt digest is `07ec146b188d5930d4df9a949d936aef97c32392f11bac25acfe496f9924b22a` and its boundary-attestation digest is `b97daff16ed3dbea169586e7a824304f184f168436d4d40db73bd6131af12f77`; it is `DEFERRED_EVIDENCE_BLOCKED`, leaves all 171 members unresolved, and keeps the aggregate gate `BLOCKED_UNRESOLVED_EVIDENCE`.
+
+#### Scenario: Receipt for batch b8c877df21b1ebb0ce5c6356 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `b8c877df21b1ebb0ce5c6356`
+
+### Requirement: Batch ea058c5dde3d58d06f734bd5 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/30/members`, binding batchId `ea058c5dde3d58d06f734bd5`, sequence `0`, semanticGroupKey `ctr:root-locus-engineering-v0.1::entityType:DomainConcept`, member count `85`, memberDigest `82dc61a2382bf7e7f671343a191e364c4380a6f3f94b3e20c7765bd6c28efca2`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch ea058c5dde3d58d06f734bd5 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch ea058c5dde3d58d06f734bd5 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch ea058c5dde3d58d06f734bd5 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict within the required Challenger slice MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch ea058c5dde3d58d06f734bd5
+
+- **WHEN** Primary and Challenger conclusions differ for a required Challenger member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch ea058c5dde3d58d06f734bd5 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch ea058c5dde3d58d06f734bd5 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch ea058c5dde3d58d06f734bd5 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `ea058c5dde3d58d06f734bd5`
+
+### Requirement: Batch ccfbcd4d501ae459305602a6 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/14/members`, binding batchId `ccfbcd4d501ae459305602a6`, sequence `0`, semanticGroupKey `ctr:release:stability-analysis-engineering-v0.1::entityType:Formula`, member count `37`, memberDigest `1157b6af80c506dc595d8b7b60dfed8bc22ef97ce506eb67db0b55b2f2ff5902`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch ccfbcd4d501ae459305602a6 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch ccfbcd4d501ae459305602a6 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch ccfbcd4d501ae459305602a6 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch ccfbcd4d501ae459305602a6
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch ccfbcd4d501ae459305602a6 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch ccfbcd4d501ae459305602a6 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch ccfbcd4d501ae459305602a6 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `ccfbcd4d501ae459305602a6`
+
+### Requirement: Batch ab975de2df4837f43038c81d has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/18/members`, binding batchId `ab975de2df4837f43038c81d`, sequence `0`, semanticGroupKey `ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:DomainConcept`, member count `149`, memberDigest `6f4d39856a11b3fa82cd5117ba5ad941c54e2f7a792cd60c5d474cd97df76cd5`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch ab975de2df4837f43038c81d is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch ab975de2df4837f43038c81d drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch ab975de2df4837f43038c81d produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch ab975de2df4837f43038c81d
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch ab975de2df4837f43038c81d has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch ab975de2df4837f43038c81d emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch ab975de2df4837f43038c81d is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `ab975de2df4837f43038c81d`
+
+### Requirement: Batch 58d1670455782297bdaf8a19 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/22/members`, binding batchId `58d1670455782297bdaf8a19`, sequence `0`, semanticGroupKey `ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:SystemModel`, member count `50`, memberDigest `9db24aec2aff29ab79542c398dd4c65782b573635c4e7f944714d951bcfbf964`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch 58d1670455782297bdaf8a19 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch 58d1670455782297bdaf8a19 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch 58d1670455782297bdaf8a19 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch 58d1670455782297bdaf8a19
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch 58d1670455782297bdaf8a19 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch 58d1670455782297bdaf8a19 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch 58d1670455782297bdaf8a19 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `58d1670455782297bdaf8a19`
+
+### Requirement: Batch 88b4b69695891faeed019fb2 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/29/members`, binding batchId `88b4b69695891faeed019fb2`, sequence `0`, semanticGroupKey `ctr:release:time-domain-analysis-engineering-v0.1::entityType:SystemModel`, member count `25`, memberDigest `d3da297e9f913499949a12a9622615455ed95a206ed2ffca144d29e0de49a36a`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch 88b4b69695891faeed019fb2 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch 88b4b69695891faeed019fb2 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch 88b4b69695891faeed019fb2 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch 88b4b69695891faeed019fb2
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch 88b4b69695891faeed019fb2 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch 88b4b69695891faeed019fb2 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch 88b4b69695891faeed019fb2 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `88b4b69695891faeed019fb2`
+- **AND** replay with identical inputs SHALL report identical artifacts and a content-equivalent replay mode
+
+### Requirement: Batch 52b5179a73a91ace49d20fe4 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/31/members`, binding batchId `52b5179a73a91ace49d20fe4`, sequence `0`, semanticGroupKey `ctr:root-locus-engineering-v0.1::entityType:Formula`, member count `16`, memberDigest `4d8fab8e323a5677ce8cb93cd4d0d8a15b0d27deee747978d36304659abd4b8c`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch 52b5179a73a91ace49d20fe4 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch 52b5179a73a91ace49d20fe4 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch 52b5179a73a91ace49d20fe4 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict within the required Challenger slice MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch 52b5179a73a91ace49d20fe4
+
+- **WHEN** Primary and Challenger conclusions differ for a required Challenger member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch 52b5179a73a91ace49d20fe4 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch 52b5179a73a91ace49d20fe4 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch 52b5179a73a91ace49d20fe4 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `52b5179a73a91ace49d20fe4`
+
+### Requirement: Batch 84aa72597e8fe1d9ee6f0602 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/33/members`, binding batchId `84aa72597e8fe1d9ee6f0602`, sequence `0`, semanticGroupKey `ctr:root-locus-engineering-v0.1::entityType:SystemModel`, member count `1`, memberDigest `8ee4109996fc05d510290a3620c6172e8107421e9695a1aa79c13e5cbe4040e4`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch 84aa72597e8fe1d9ee6f0602 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch 84aa72597e8fe1d9ee6f0602 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch 84aa72597e8fe1d9ee6f0602 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict within the required Challenger slice MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch 84aa72597e8fe1d9ee6f0602
+
+- **WHEN** Primary and Challenger conclusions differ for a required Challenger member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch 84aa72597e8fe1d9ee6f0602 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch 84aa72597e8fe1d9ee6f0602 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch 84aa72597e8fe1d9ee6f0602 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `84aa72597e8fe1d9ee6f0602`

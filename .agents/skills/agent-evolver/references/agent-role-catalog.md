@@ -8,12 +8,12 @@
 
 ## Terra：长上下文、复合规划和领域审查
 
-- Terra `xhigh`：`agent-router`、`spec-planner`、`ui-flow-reviewer`、`retro-analyst`、`course-pedagogy-reviewer`、`performance-reviewer`、`ai-context-reviewer`、`simulation-domain-reviewer`。
-- Terra `max`：`long-context-investigator`，仅用于上下文规模与任务歧义同时显著的调查。
+- Terra `xhigh`：`agent-router`、`spec-planner`、`ui-flow-reviewer`、`retro-analyst`、`course-pedagogy-reviewer`、`performance-reviewer`、`ai-context-reviewer`、`data-governance-reviewer`、`simulation-domain-reviewer`。
+- Terra `max`：`deep-debugger`、`long-context-investigator`；前者负责复杂证据和根因定位，后者仅用于上下文规模与任务歧义同时显著的调查。
 
 ## Sol：困难风险判断与独立终审
 
-- Sol `medium`：`deep-debugger`、`data-governance-reviewer`、`security-reviewer`、`release-sentinel`、`independent-reviewer`。
+- Sol `medium`：`decision-advisor`、`security-reviewer`、`release-sentinel`、`independent-reviewer`。
 - Sol `high`：`critical-reviewer`，只用于仍未解决的安全、隐私、数据丢失、发布或架构关键风险。
 
 所有角色均不使用 `ultra`。

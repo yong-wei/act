@@ -6,19 +6,22 @@ import { pathToFileURL } from 'node:url';
 
 import {
   assertCurrentCourseCoverageProductionBoundaryBundle,
+  assertCurrentCourseCoverageReviewProvenanceBinding,
   buildCurrentCourseCoverageBatchReceipt,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL,
-  CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
+  classifyCurrentCourseCoverageReceiptCompatibility,
+  deriveCurrentCourseCoverageReviewProvenanceBinding,
   sealCurrentCourseCoverageProductionBoundaryAttestation,
   type CurrentCourseCoverageBatchBinding,
   type CurrentCourseCoverageBatchReceipt,
   type CurrentCourseCoverageProtectedPathSnapshot,
   type CurrentCourseCoverageProductionBoundaryAttestation,
   type CurrentCourseCoverageProductionBoundaryProof,
+  type CurrentCourseCoverageReviewProvenanceBinding,
   type CurrentCourseCoverageStageReview,
 } from '../../src/lib/aggregate-governance/current-course-coverage-batch-review';
 import { stableStringify } from '../../src/lib/aggregate-governance/hash';
@@ -71,7 +74,7 @@ interface IndependentStageSourceMember {
   canonicalRevision: string;
   stageConclusion: string;
   rationale: string;
-  evidenceRefs: Array<string | { selector: string }>;
+  evidenceRefs: Array<string | { selector: string; evidenceId?: string }>;
 }
 
 interface IndependentStageSource {
@@ -351,13 +354,16 @@ async function json<T>(input: string): Promise<T> {
   return JSON.parse(await readFile(absolute(input), 'utf8')) as T;
 }
 
-function sourceEvidenceSelector(value: unknown, index: number): string {
+function sourceEvidenceRef(value: unknown, index: number): { selector: string; evidenceId?: string } {
   if (typeof value === 'string') {
     const parts = value.split('|');
-    if (parts.length === 4 && parts[2]) return parts[2];
+    if (parts.length === 4 && parts[2]) return { selector: parts[2] };
   } else if (value && typeof value === 'object'
     && 'selector' in value && typeof value.selector === 'string' && value.selector) {
-    return value.selector;
+    const evidenceId = 'evidenceId' in value
+      ? (typeof value.evidenceId === 'string' && value.evidenceId ? value.evidenceId : null)
+      : undefined;
+    if (evidenceId !== null) return { selector: value.selector, evidenceId };
   }
   throw new Error(`Current batch review rejected: source evidenceRefs[${index}] is malformed`);
 }
@@ -406,9 +412,17 @@ export function validateCurrentCourseCoverageStageSource(input: {
       || !Array.isArray(member.evidenceRefs)) {
       throw new Error(`Current batch review rejected: ${input.document.stage} source semantic closure mismatch at member ${index}`);
     }
-    const selectors = member.evidenceRefs.map(sourceEvidenceSelector);
+    const sourceRefs = member.evidenceRefs.map(sourceEvidenceRef);
+    const selectors = sourceRefs.map((ref) => ref.selector);
     if (stableStringify(selectors) !== stableStringify(decision.evidenceSelectors)) {
       throw new Error(`Current batch review rejected: ${input.document.stage} source evidence closure mismatch at member ${index}`);
+    }
+    if (decision.evidenceIds !== undefined) {
+      const evidenceIds = sourceRefs.map((ref) => ref.evidenceId);
+      if (evidenceIds.some((evidenceId) => evidenceId === undefined)
+        || stableStringify(evidenceIds) !== stableStringify(decision.evidenceIds)) {
+        throw new Error(`Current batch review rejected: ${input.document.stage} source evidence identity closure mismatch at member ${index}`);
+      }
     }
   }
 }
@@ -450,6 +464,44 @@ export function validateStageProvenanceBinding(
     || record?.sourceArtifactSha256 !== document.sourceArtifactBinding.artifactSha256
     || record?.normalizedDocumentDigest !== document.documentDigest) {
     throw new Error(`Current batch review rejected: ${document.stage} provenance/source identity drift`);
+  }
+}
+
+export function buildCurrentCourseCoverageReviewProvenanceBinding(input: {
+  provenancePath: string;
+  provenanceBytes: string | Buffer;
+  batchId: string;
+  primary: CurrentCourseCoverageStageReview;
+  challenger?: CurrentCourseCoverageStageReview | null;
+  third?: CurrentCourseCoverageStageReview | null;
+}): CurrentCourseCoverageReviewProvenanceBinding {
+  const normalizedPath = repoRelative(input.provenancePath);
+  let provenance: unknown;
+  try {
+    provenance = JSON.parse(input.provenanceBytes.toString('utf8')) as unknown;
+  } catch {
+    throw new Error('Current batch review rejected: review provenance is not valid JSON');
+  }
+  const binding = deriveCurrentCourseCoverageReviewProvenanceBinding({
+    provenancePath: normalizedPath,
+    provenanceSha256: sha256(input.provenanceBytes),
+    provenance,
+    batchId: input.batchId,
+    primary: input.primary,
+    challenger: input.challenger,
+    third: input.third,
+  });
+  assertCurrentCourseCoverageReviewProvenanceBinding(binding);
+  return binding;
+}
+
+export function assertCurrentCourseCoverageReviewProvenanceBytes(input: {
+  binding: CurrentCourseCoverageReviewProvenanceBinding;
+  provenanceBytes: string | Buffer;
+}): void {
+  assertCurrentCourseCoverageReviewProvenanceBinding(input.binding);
+  if (sha256(input.provenanceBytes) !== input.binding.provenanceSha256) {
+    throw new Error('Current batch review rejected: persisted review provenance SHA-256 drift');
   }
 }
 
@@ -693,10 +745,6 @@ async function main(): Promise<void> {
     ? await json<CurrentCourseCoverageStageReview>(input.challenger)
     : null;
   const third = input.third ? await json<CurrentCourseCoverageStageReview>(input.third) : null;
-  const provenancePath = path.join(path.dirname(absolute(input.primary)), 'review-provenance.json');
-  const provenance = await exists(provenancePath)
-    ? await json<Record<string, unknown>>(provenancePath)
-    : null;
   const receiptExists = await exists(receiptOutput);
   const attestationExists = await exists(attestationOutput);
   if (receiptExists !== attestationExists) {
@@ -705,19 +753,86 @@ async function main(): Promise<void> {
   let persistedReceipt: CurrentCourseCoverageBatchReceipt | null = null;
   let persistedAttestation: CurrentCourseCoverageProductionBoundaryAttestation | null = null;
   let allowLegacySourceArtifactBinding = false;
+  let persistedCompatibility: ReturnType<typeof classifyCurrentCourseCoverageReceiptCompatibility> | null = null;
+  let allowLegacyStageSchema = false;
   if (receiptExists && attestationExists) {
     persistedReceipt = JSON.parse(await readFile(receiptOutput, 'utf8')) as CurrentCourseCoverageBatchReceipt;
     persistedAttestation = JSON.parse(await readFile(attestationOutput, 'utf8')) as CurrentCourseCoverageProductionBoundaryAttestation;
-    assertCurrentCourseCoverageProductionBoundaryBundle({
+    persistedCompatibility = assertCurrentCourseCoverageProductionBoundaryBundle({
       receipt: persistedReceipt,
       attestation: persistedAttestation,
       receiptPath,
       attestationPath,
     });
-    allowLegacySourceArtifactBinding = persistedReceipt.productionBoundaryProof.verificationProtocol
-      === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2
-      && persistedAttestation.schemaVersion === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1
-      && persistedAttestation.protocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1;
+    // Legacy stage schemas are admissible only for a persisted pair that has
+    // already passed the complete production-boundary bundle validation.
+    allowLegacyStageSchema = true;
+    allowLegacySourceArtifactBinding = persistedCompatibility === 'LEGACY_V2_V1';
+  }
+  const defaultProvenancePath = path.join(path.dirname(absolute(input.primary)), 'review-provenance.json');
+  let provenancePath: string | null = null;
+  let provenanceBytes: Buffer | null = null;
+  let provenance: Record<string, unknown> | null = null;
+  let reviewProvenanceBinding: CurrentCourseCoverageReviewProvenanceBinding | undefined;
+  if (persistedReceipt?.reviewProvenanceBinding) {
+    assertCurrentCourseCoverageReviewProvenanceBinding(persistedReceipt.reviewProvenanceBinding);
+    const storedPath = persistedReceipt.reviewProvenanceBinding.provenancePath;
+    const normalizedStoredPath = repoRelative(storedPath);
+    if (normalizedStoredPath !== storedPath.replaceAll('\\', '/')) {
+      throw new Error('Current batch review rejected: persisted provenance path must be repository-relative');
+    }
+    provenancePath = absolute(normalizedStoredPath);
+    if (!(await exists(provenancePath))) {
+      throw new Error('Current batch review rejected: persisted review provenance is missing');
+    }
+    provenanceBytes = await readFile(provenancePath);
+    assertCurrentCourseCoverageReviewProvenanceBytes({
+      binding: persistedReceipt.reviewProvenanceBinding,
+      provenanceBytes,
+    });
+    try {
+      provenance = JSON.parse(provenanceBytes.toString('utf8')) as Record<string, unknown>;
+    } catch {
+      throw new Error('Current batch review rejected: persisted review provenance is not valid JSON');
+    }
+    reviewProvenanceBinding = buildCurrentCourseCoverageReviewProvenanceBinding({
+      provenancePath,
+      provenanceBytes,
+      batchId: persistedReceipt.batchBinding.batchId,
+      primary,
+      challenger,
+      third,
+    });
+    if (stableStringify(reviewProvenanceBinding) !== stableStringify(persistedReceipt.reviewProvenanceBinding)) {
+      throw new Error('Current batch review rejected: persisted review provenance binding differs from current provenance');
+    }
+  } else if (!receiptExists) {
+    provenancePath = defaultProvenancePath;
+    if (!(await exists(provenancePath))) {
+      throw new Error('Current batch review rejected: new publication requires review-provenance.json');
+    }
+    provenanceBytes = await readFile(provenancePath);
+    try {
+      provenance = JSON.parse(provenanceBytes.toString('utf8')) as Record<string, unknown>;
+    } catch {
+      throw new Error('Current batch review rejected: review provenance is not valid JSON');
+    }
+    reviewProvenanceBinding = buildCurrentCourseCoverageReviewProvenanceBinding({
+      provenancePath,
+      provenanceBytes,
+      batchId: input.expectedBinding.batchId,
+      primary,
+      challenger,
+      third,
+    });
+  } else if (await exists(defaultProvenancePath)) {
+    provenancePath = defaultProvenancePath;
+    provenanceBytes = await readFile(provenancePath);
+    try {
+      provenance = JSON.parse(provenanceBytes.toString('utf8')) as Record<string, unknown>;
+    } catch {
+      throw new Error('Current batch review rejected: review provenance is not valid JSON');
+    }
   }
   await validateStageSourceFile(primary, allowLegacySourceArtifactBinding);
   if (provenance) validateStageProvenanceBinding(primary, provenance);
@@ -729,10 +844,14 @@ async function main(): Promise<void> {
     await validateStageSourceFile(third, allowLegacySourceArtifactBinding);
     if (provenance) validateStageProvenanceBinding(third, provenance);
   }
+  if (!receiptExists && !reviewProvenanceBinding) {
+    throw new Error('Current batch review rejected: new publication requires review provenance binding');
+  }
 
   const buildReceipt = (
     productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof,
     allowLegacy = false,
+    allowLegacySchema = false,
   ): CurrentCourseCoverageBatchReceipt =>
     buildCurrentCourseCoverageBatchReceipt({
       worklist,
@@ -743,13 +862,19 @@ async function main(): Promise<void> {
       challenger,
       third,
       productionBoundaryProof,
+      reviewProvenanceBinding,
       allowLegacySourceArtifactBinding: allowLegacy,
+      allowLegacyStageSchema: allowLegacySchema,
     });
 
   if (receiptExists && attestationExists) {
     const replayReceipt = persistedReceipt!;
     const replayAttestation = persistedAttestation!;
-    const rebuiltReceipt = buildReceipt(replayReceipt.productionBoundaryProof, allowLegacySourceArtifactBinding);
+    const rebuiltReceipt = buildReceipt(
+      replayReceipt.productionBoundaryProof,
+      allowLegacySourceArtifactBinding,
+      allowLegacyStageSchema,
+    );
     if (stableStringify(rebuiltReceipt) !== stableStringify(replayReceipt)) {
       throw new Error('Current batch review rejected: published receipt source/stage closure differs from current inputs');
     }

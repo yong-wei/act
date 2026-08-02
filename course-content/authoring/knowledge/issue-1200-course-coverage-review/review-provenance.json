@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "3c6973d82b44357efc73f2f8",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "42eca660-ca20-49d4-b9df-93d9651ad3f2",
+    "permission": "workspace",
+    "reviewSessionId": "42eca660-ca20-49d4-b9df-93d9651ad3f2",
+    "reviewSessionScope": "act:issue-1200:course-coverage-primary",
+    "sourceWriterSessionId": "42eca660-ca20-49d4-b9df-93d9651ad3f2",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1200:course-coverage-primary",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "b87cb874276365b73a5ec0f2f76c421c1b19f131c273f4e7d857656c8b6bc595",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "5b82a078bec844b7a7667ecca28550b79c4304db3f054a16038ed2cd120f03e3",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 232
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored PRIMARY conclusions, rationales, and frozen evidence selectors without deriving semantic conclusions.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "b87cb874276365b73a5ec0f2f76c421c1b19f131c273f4e7d857656c8b6bc595",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "42eca660-ca20-49d4-b9df-93d9651ad3f2"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "37cc1c54-54d1-4cc0-a174-c440ed0294fe",
+    "permission": "workspace",
+    "reviewSessionId": "37cc1c54-54d1-4cc0-a174-c440ed0294fe",
+    "reviewSessionScope": "act:issue-1200:course-coverage-challenger",
+    "sourceWriterSessionId": "37cc1c54-54d1-4cc0-a174-c440ed0294fe",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1200:course-coverage-challenger",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "769f144e5649e3a9b6cfa5facc07ebb74c47c8e03ea77484d7a166daccbad2ff",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "0bd763a9a28b7d6cc8bbae3691f76d2f88bc2e3bb2931c2d4734fab2bdcde035",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 232
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored CHALLENGER conclusions, rationales, and frozen evidence selectors without deriving semantic conclusions.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "769f144e5649e3a9b6cfa5facc07ebb74c47c8e03ea77484d7a166daccbad2ff",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "37cc1c54-54d1-4cc0-a174-c440ed0294fe"
+    },
+    "didNotReadPrimaryArtifact": true,
+    "sessionAuditPrimaryPathMentions": 0
+  },
+  "third": null
+}

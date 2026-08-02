@@ -1,0 +1,501 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "PRIMARY",
+  "sessionIndependence": {
+    "role": "PRIMARY",
+    "sessionId": "87e9f5e7-efad-40fe-bcc4-cb12c4884ffb",
+    "scope": "act:issue-1221:primary-review",
+    "readOtherStageConclusions": false,
+    "statement": "PRIMARY only read the frozen manifest/worklist and independent course evidence; it did not read another stage conclusion or artifact.",
+    "sourceOrderCanonicalized": false
+  },
+  "batchBinding": {
+    "batchId": "52b5179a73a91ace49d20fe4",
+    "manifestBatchIndex": 31,
+    "sequence": 0,
+    "group": "ctr:root-locus-engineering-v0.1::entityType:Formula",
+    "memberCount": 16,
+    "memberDigest": "4d8fab8e323a5677ce8cb93cd4d0d8a15b0d27deee747978d36304659abd4b8c",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818"
+  },
+  "counts": {
+    "members": 16,
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 16
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctf:v11g-25bef73ca6c64f3148fe711c",
+      "canonicalRevision": "80135150e80d2048808670ca33b93ad84a3bf1126e0954d86b2345b4f2440d00",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:3e8210cee7634a434dbcca76",
+          "evidenceId": "0c504e476c77906edafffbbb8bc09d96"
+        },
+        {
+          "selector": "evidence:ctr:9c8254b78d1f1bfbec13b6a2",
+          "evidenceId": "971ba918ce436371d58b96abd860b13a"
+        },
+        {
+          "selector": "topic:transfer function",
+          "evidenceId": "1e6df525f8483c1de1f629914ead2b23"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-25bef73ca6c64f3148fe711c",
+          "evidenceId": "d0ffbf6d56172d9ebe56fd53699075ca"
+        }
+      ]
+    },
+    {
+      "ordinal": 1,
+      "canonicalId": "ctf:v11g-3cca6763977003965dc8eb7d",
+      "canonicalRevision": "e58ede47bf37f5b1e99b3a2b2925d71db5e72b74a4581abfeb33648b238841dc",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:27da36b7166c7498cdd7eb32",
+          "evidenceId": "59613084acf1689139efd062f9161b29"
+        },
+        {
+          "selector": "evidence:ctr:c5112932c19059caaae6f3eb",
+          "evidenceId": "c78b1a25443ddba6fbf1a46208417517"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-3cca6763977003965dc8eb7d",
+          "evidenceId": "bd33f81533eee6e67d815c8762158f15"
+        }
+      ]
+    },
+    {
+      "ordinal": 2,
+      "canonicalId": "ctf:v11g-52b608fbcb40fa90981fb845",
+      "canonicalRevision": "61c291cad4a9b6dd7a77ca84f028cb3c5c5e1c96275e041240362ac57547546c",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:2f4bc8d19bed28201532a45b",
+          "evidenceId": "19ec374431970f8ff12a58d33ffd43c7"
+        },
+        {
+          "selector": "evidence:ctr:d6cdb777eb970f3b5ebd1bdb",
+          "evidenceId": "6adca5b8296dda3dad8c93df23b8eaee"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-52b608fbcb40fa90981fb845",
+          "evidenceId": "40f834f7f8147a103630d352024db988"
+        }
+      ]
+    },
+    {
+      "ordinal": 3,
+      "canonicalId": "ctf:v11g-5acd63248314e82b98bb4baa",
+      "canonicalRevision": "1518b4dfddf1ce1449ec3cffaa32ca326f0b8d9ca880fd2928f5dfc45d2c5ef3",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:1ffc2d5d430b163abcaebe80",
+          "evidenceId": "019e1ac5df9663a21c86a304e90d87a1"
+        },
+        {
+          "selector": "evidence:ctr:4275e9161dff4dcccb05a004",
+          "evidenceId": "5230fd167328d236f82e151fdd29159b"
+        },
+        {
+          "selector": "evidence:ctr:dc70adbbc27846f1ee444d25",
+          "evidenceId": "508bac0ae7c28bff3d3363bf5258b98d"
+        },
+        {
+          "selector": "evidence:ctr:e758137836b81a103c82b047",
+          "evidenceId": "c31873ba923f61da182aa342d16dbb7c"
+        },
+        {
+          "selector": "topic:transfer function",
+          "evidenceId": "32bf29d222cff4f30c3cca3f68332054"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-5acd63248314e82b98bb4baa",
+          "evidenceId": "0af46ea473c002c7082b7a32da2f5cc9"
+        }
+      ]
+    },
+    {
+      "ordinal": 4,
+      "canonicalId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "canonicalRevision": "69919b5f3b6641ba0f426fa7d8d1105f8e53e1195bba6d418e3cb10ae1d577b4",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:c631c59f90379f9468944e9f",
+          "evidenceId": "e3737c707b0e1577e5f7ed95068a8dae"
+        },
+        {
+          "selector": "evidence:ctr:e5db94ec19942558eb51088c",
+          "evidenceId": "323c862e4a0a85f9af273d9434c54461"
+        },
+        {
+          "selector": "topic:closed loop",
+          "evidenceId": "64ad627e05942e6cb2a41cfe4934eefc"
+        },
+        {
+          "selector": "topic:transfer function",
+          "evidenceId": "ef3d6a2b04e8c6c67dce10e772b40f7b"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-674d0e9c80b987a1aa5eaef1",
+          "evidenceId": "5f19a9c975cbff3f69828972c64bbcdb"
+        }
+      ]
+    },
+    {
+      "ordinal": 5,
+      "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "canonicalRevision": "9b85c00d6a3c50f0c0545b133f80d46209c18e6eea852d2ad99513c176194aff",
+      "stageConclusion": "DEFER",
+      "rationale": "虽有 independent-course 引用（course-content/authoring/lessons/1-2/design/1-2-handout.md#heading:传递函数），但与本 Formula 语义未形成可判定的精确/等价绑定，课程证据不充分，不得 INCLUDE/EXCLUDE。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:67d28e62dcc701b3aca5cc88",
+          "evidenceId": "127c47f603ddbc67048c1ed86dcc48aa"
+        },
+        {
+          "selector": "evidence:ctr:eb8fed465fa513e3ae5b91e6",
+          "evidenceId": "050e53a5aaf2ef8916943a79cd80415d"
+        },
+        {
+          "selector": "node:传递函数_1_5b0faf8b",
+          "evidenceId": "4da3c9c4822d12ed617a80e76a036915"
+        },
+        {
+          "selector": "node:闭环传递函数_2_5399c369",
+          "evidenceId": "eafe93771b6a53f63b4d648b1e47dc9f"
+        },
+        {
+          "selector": "heading:传递函数",
+          "evidenceId": "b144bff52cb65ca5f7ffa2120de8c884"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-6826fb07390eb229d7ee6726",
+          "evidenceId": "cc5ceac8b4654f1b47d61a2e66dfdda1"
+        }
+      ]
+    },
+    {
+      "ordinal": 6,
+      "canonicalId": "ctf:v11g-6b7bc9dcc5becb0100393c44",
+      "canonicalRevision": "08c08033baa89bc44e450d3bcc642277246fced29779e780e45055a8043659d6",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:04a78b3a84edb1b9b85e1992",
+          "evidenceId": "e3ae5325a3fd6ac4fb9ed3586c00914d"
+        },
+        {
+          "selector": "evidence:ctr:101500438db7cecfe6035e3f",
+          "evidenceId": "c88f13bff156ead06d1320c32366244c"
+        },
+        {
+          "selector": "evidence:ctr:5bd5b664b1e3af33d8126c6e",
+          "evidenceId": "ea73024d1a9bedccdc952b6fc60865c3"
+        },
+        {
+          "selector": "evidence:ctr:676a00f013701df85bb7a8c0",
+          "evidenceId": "d8d0d1d66eb1baa2d6ddfa342836dd8a"
+        },
+        {
+          "selector": "evidence:ctr:872faf182b4a178099b5cf43",
+          "evidenceId": "1039780e04a9ab6775066f83d5e5abda"
+        },
+        {
+          "selector": "evidence:ctr:91474771d34d27554e1a0475",
+          "evidenceId": "bc9d0bd5be518bbdca21417d05791555"
+        },
+        {
+          "selector": "evidence:ctr:94c16b4a6182791519d4efef",
+          "evidenceId": "19e68a27adcb56eb4d5fefb687f34665"
+        },
+        {
+          "selector": "evidence:ctr:be2176818a42b745dcc49fec",
+          "evidenceId": "7fa3d0dcd7b87443b84ed9fe8e9b16b5"
+        },
+        {
+          "selector": "topic:root locus",
+          "evidenceId": "b0238ed088bab6ce097a223a7ef96e0e"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-6b7bc9dcc5becb0100393c44",
+          "evidenceId": "be599561d6600e952538dcc446af924d"
+        }
+      ]
+    },
+    {
+      "ordinal": 7,
+      "canonicalId": "ctf:v11g-8115508e073d25a13b9578ca",
+      "canonicalRevision": "f50504b8a0abcaa9c7d25bfd60bdd7ce11bd037a6d9920890f99373e7578af57",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:2020e76aa823f19193fb1099",
+          "evidenceId": "609ed8bb2a535a04100c7864a6ebccfe"
+        },
+        {
+          "selector": "evidence:ctr:a750630431c3d0c2ac1a994a",
+          "evidenceId": "60b6d370133f650391e0b7e215644d13"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-8115508e073d25a13b9578ca",
+          "evidenceId": "81a2e74e59270f51f7dccda0ad602bdd"
+        }
+      ]
+    },
+    {
+      "ordinal": 8,
+      "canonicalId": "ctf:v11g-9812fcdb6565adbecc0367f1",
+      "canonicalRevision": "5020575100272ab57ee9d68ce73d10581b4ab772cac495cf58c5d56ce5cbfec1",
+      "stageConclusion": "DEFER",
+      "rationale": "虽有 independent-course 引用（course-content/authoring/lessons/1-2/design/1-2-handout.md#heading:传递函数），但与本 Formula 语义未形成可判定的精确/等价绑定，课程证据不充分，不得 INCLUDE/EXCLUDE。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:26455e16e967df452e2a80b2",
+          "evidenceId": "1eaaaa38168f3decfe4865014c93a665"
+        },
+        {
+          "selector": "evidence:ctr:a7c47bb461c8922bebc4713f",
+          "evidenceId": "9ff3e3fa4f3c70e97b71d5c31fadd89f"
+        },
+        {
+          "selector": "node:传递函数_1_5b0faf8b",
+          "evidenceId": "9b725680a2b9570b06ee89fc9d407910"
+        },
+        {
+          "selector": "node:前向通路_1_7d1c792e",
+          "evidenceId": "b95439e62d12eb293c223fd2f2dd6bc3"
+        },
+        {
+          "selector": "heading:传递函数",
+          "evidenceId": "8a599c366fd57a6f7647f65d0567f44a"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-9812fcdb6565adbecc0367f1",
+          "evidenceId": "b17f93f04468d38cdcf6a5f81d29574b"
+        }
+      ]
+    },
+    {
+      "ordinal": 9,
+      "canonicalId": "ctf:v11g-aecffbe88aa384070ea681b8",
+      "canonicalRevision": "d5e444a9c8f22b1d9dca3ebef6ccfd3e8624133915f20c491f084e923567b4c9",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:6796a359cc107e9367ff4bbd",
+          "evidenceId": "e24e593de333caeef75765a01d44f391"
+        },
+        {
+          "selector": "evidence:ctr:c9863d4fdc5bb0826193f068",
+          "evidenceId": "21da39a4722f62bbedfd3216ed5f6322"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-aecffbe88aa384070ea681b8",
+          "evidenceId": "885ba52a8847dbb3ec9f7b391fcd0064"
+        }
+      ]
+    },
+    {
+      "ordinal": 10,
+      "canonicalId": "ctf:v11g-f561e570652bc9be7eaa051b",
+      "canonicalRevision": "23ed4ae05c5e54d986824bf400d3d056342de98fa6d6bb198bb07ac5d9dc27b5",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:208f7f0e08afe46b6446fb74",
+          "evidenceId": "f418291f05df9864bb19310d5e230b83"
+        },
+        {
+          "selector": "topic:root locus",
+          "evidenceId": "db26b506d95cf2a4467afea72c9e8d26"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-f561e570652bc9be7eaa051b",
+          "evidenceId": "4f48a339486d15da0fc5a1003c703f2c"
+        }
+      ]
+    },
+    {
+      "ordinal": 11,
+      "canonicalId": "ctf:v11g-f8084b28976c8ace6316b1d4",
+      "canonicalRevision": "2495031f83c403b581eaa0638439a128aaa737d4da4fcef2c7bef944b53431bd",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:4adca24a5b23be2a362cdb93",
+          "evidenceId": "e3e7c0fb10ab5196fa638d73b59a053a"
+        },
+        {
+          "selector": "evidence:ctr:6101abd864559438f0d2c563",
+          "evidenceId": "ff48f9e304799f0b4476ec55b22d4080"
+        },
+        {
+          "selector": "topic:transfer function",
+          "evidenceId": "2ac4c6369f5557507bdc4c48b30e7817"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-f8084b28976c8ace6316b1d4",
+          "evidenceId": "5d61daf4f0a1b7fb39f8661f5d5eee57"
+        }
+      ]
+    },
+    {
+      "ordinal": 12,
+      "canonicalId": "ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+      "canonicalRevision": "eafdf0531e03f7bf6bdaf8e40f24ca66b0a01bcba1acd3fc890dec251cff7d73",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:053085835573eef2b0a17e3d",
+          "evidenceId": "34b6659f125d55e2f2a19e6e66c13d46"
+        },
+        {
+          "selector": "evidence:ctr:606d1fcb7a3205c23fc6b360",
+          "evidenceId": "8377abc17e701142a47ffa2ec0b531ae"
+        },
+        {
+          "selector": "topic:transfer function",
+          "evidenceId": "1ad19a51d7ce99340bf0009c01b33611"
+        },
+        {
+          "selector": "canonicalId:ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+          "evidenceId": "a0eead1e8de22a86eba9aaad03e62de7"
+        }
+      ]
+    },
+    {
+      "ordinal": 13,
+      "canonicalId": "ctf:v12g-421039c1eb7bf803ef9de317",
+      "canonicalRevision": "bd1615923105dd68be881512f11173f5212488b7c7e813d17be85eb8f8d8cf29",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:05f7b4375b6185b7c05a7022",
+          "evidenceId": "2687729939cefcefa41ae6d53f4601b4"
+        },
+        {
+          "selector": "evidence:ctr:6b73b6d8c7024e93bcb79849",
+          "evidenceId": "f25e584759d15479feb8eefe2cc9c991"
+        },
+        {
+          "selector": "evidence:ctr:971968fed35fa3b5f1f75d23",
+          "evidenceId": "d7780442470ae9bbffd96c5f0ade955f"
+        },
+        {
+          "selector": "evidence:ctr:b894babe1b06d92675d751e6",
+          "evidenceId": "590dbe98ac5927da30cb107afdb068d1"
+        },
+        {
+          "selector": "topic:root locus",
+          "evidenceId": "87c98f05c0dc924ca42ce485a274d36e"
+        },
+        {
+          "selector": "canonicalId:ctf:v12g-421039c1eb7bf803ef9de317",
+          "evidenceId": "b72fd9ec9f2114f8177449082dc1867a"
+        }
+      ]
+    },
+    {
+      "ordinal": 14,
+      "canonicalId": "ctf:v12g-455f0e568ad226bb8b617760",
+      "canonicalRevision": "4068c9f1a0c8db493b22fdd8eff92d6e7bb2b063236d301fedda265c43bea91f",
+      "stageConclusion": "DEFER",
+      "rationale": "冻结证据仅有 aggregate/profile（及主题词表）边界，无 independent-course 课程权威证据，不足以判定收纳或排除。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:6453ce61a174e416d074048d",
+          "evidenceId": "e0624ecb8049db8f0972a64b882160f2"
+        },
+        {
+          "selector": "evidence:ctr:be0dd99a2cde7af4e80c5d0e",
+          "evidenceId": "0ca023bef0267acf4320326e728abcc8"
+        },
+        {
+          "selector": "evidence:ctr:ef4e33e1204ce5ea204f379f",
+          "evidenceId": "e713c28005682c287d6614b43a5dfa60"
+        },
+        {
+          "selector": "topic:compensator",
+          "evidenceId": "19287657295922384665b4847a04c82b"
+        },
+        {
+          "selector": "topic:transfer function",
+          "evidenceId": "7c3a23db72072a1524069d360fc41bce"
+        },
+        {
+          "selector": "canonicalId:ctf:v12g-455f0e568ad226bb8b617760",
+          "evidenceId": "06fe90cc842aa3df66f810da2bcd5368"
+        }
+      ]
+    },
+    {
+      "ordinal": 15,
+      "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "canonicalRevision": "b29b06c2806ca1268b675252b607a2d20d0803c5de9b56d194dae448d9de4231",
+      "stageConclusion": "DEFER",
+      "rationale": "虽有 independent-course 引用（course-content/syllabus-refactor/blueprint.md#en-term:feedback），但与本 Formula 语义未形成可判定的精确/等价绑定，课程证据不充分，不得 INCLUDE/EXCLUDE。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:0e155f79ac281770325b81ca",
+          "evidenceId": "4f60730358a95420b14c1af6ec877438"
+        },
+        {
+          "selector": "evidence:ctr:2be52f6a403ea83c13f2498b",
+          "evidenceId": "e08e6f0c45b63e52ced6722c137dfa82"
+        },
+        {
+          "selector": "evidence:ctr:6bc5fce4f89476521cfe61db",
+          "evidenceId": "044a1fb51ed438395e3b991c5a268e52"
+        },
+        {
+          "selector": "evidence:ctr:7359e0419e29801a0b9eb838",
+          "evidenceId": "b52f290c02a59b2e65a64b662ab6c911"
+        },
+        {
+          "selector": "evidence:ctr:9a2db15abd7e933ac45fac3d",
+          "evidenceId": "7a65ab026ba8373870a59df7396a65be"
+        },
+        {
+          "selector": "evidence:ctr:b8e3222bd9db8e24b71f7f3d",
+          "evidenceId": "88218b53ff7bec47481a6da66b1d3375"
+        },
+        {
+          "selector": "evidence:ctr:f7244d8d61f7ac1483105543",
+          "evidenceId": "d2b409c5d60a1d61120f05c6edca4e73"
+        },
+        {
+          "selector": "topic:closed loop",
+          "evidenceId": "0cdce758777a31766999670e1d0eb798"
+        },
+        {
+          "selector": "en-term:feedback",
+          "evidenceId": "d82bef5be53c4890a08039298b9d4f46"
+        },
+        {
+          "selector": "canonicalId:ctf:v12g-dd0153d825ac2148a0e821a1",
+          "evidenceId": "1c80c631e35db08ca0deef06b8942385"
+        }
+      ]
+    }
+  ]
+}
