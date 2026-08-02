@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "b8c877df21b1ebb0ce5c6356",
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5",
+    "permission": "workspace",
+    "independentCourseEvidenceCount": 34,
+    "evidenceRefCount": 566,
+    "independentCourseEvidenceRefCount": 55,
+    "duplicateSelectorGroupCount": 21,
+    "duplicateSelectorRefCount": 42,
+    "sessionId": "7b6f443d-fdf5-4e75-8764-6e7ab0e06341",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactSha256": "18d2f61bce52e53ae3ddf5c1b7ee13738283111dc88f00d11b80118fb0ab8315",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedDocumentDigest": "3a7bac2e60f16bec46c35600702c4c43cd0d50d3c7fd05a9a79f1e12efd62526",
+    "conclusionCounts": {
+      "INCLUDE": 5,
+      "EXCLUDE": 0,
+      "DEFER": 166
+    },
+    "structuredTranscription": "The independent Primary session preserved conclusions, rationales, roles, evidence sufficiency, frozen evidence selectors, and exact evidence IDs in raw order; the v2 stage digests were sealed from that normalized representation.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1215-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "18d2f61bce52e53ae3ddf5c1b7ee13738283111dc88f00d11b80118fb0ab8315",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "7b6f443d-fdf5-4e75-8764-6e7ab0e06341"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "workspace",
+    "independentCourseEvidenceCount": 0,
+    "evidenceRefCount": 393,
+    "independentCourseEvidenceRefCount": 0,
+    "duplicateSelectorGroupCount": 0,
+    "duplicateSelectorRefCount": 0,
+    "sessionId": "74224160-f779-4995-bf7e-6ae8e8105f26",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "5a7521ced17491a3e325dd321468e3afe73074e194e53e031dd539192e5edc23",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedDocumentDigest": "f8c5ab643f335e77a681ceadc85c3c32a1eeb607e6c241a09fce3b4825ad65cc",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 137
+    },
+    "structuredTranscription": "The independent Challenger session preserved conclusions, rationales, explicit evidence sufficiency, frozen evidence selectors, and exact evidence IDs in raw order; every required risk member remains role-free DEFER with insufficient evidence.",
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1215-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "5a7521ced17491a3e325dd321468e3afe73074e194e53e031dd539192e5edc23",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "74224160-f779-4995-bf7e-6ae8e8105f26"
+    }
+  },
+  "frozenEvidenceBoundary": {
+    "memberCount": 171,
+    "profileOnlyHighRiskMemberCount": 137,
+    "aggregateEvidenceRefCount": 340,
+    "profileEvidenceRefCount": 171,
+    "independentCourseEvidenceMemberCount": 34,
+    "admittedBoundaries": [
+      "aggregate",
+      "profile",
+      "independent-course"
+    ],
+    "diagnosticCandidatesAreNotAdmitted": true,
+    "diagnosticCandidatesRequireUpstreamIssue": "#1180"
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}

@@ -16,7 +16,7 @@ The review child MUST process only the exact ordered members at `batch-manifest.
 
 ### Requirement: Batch b8c877df21b1ebb0ce5c6356 produces independent terminal decisions
 
-Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. For this frozen batch, Primary's byte-preserved source is `course-content/authoring/knowledge/issue-1215-course-coverage-review/primary-independent-stage-source.json` with SHA-256 `18d2f61bce52e53ae3ddf5c1b7ee13738283111dc88f00d11b80118fb0ab8315`, session `7b6f443d-fdf5-4e75-8764-6e7ab0e06341`, and normalized v2 digest `3a7bac2e60f16bec46c35600702c4c43cd0d50d3c7fd05a9a79f1e12efd62526`; Challenger's byte-preserved source is `course-content/authoring/knowledge/issue-1215-course-coverage-review/challenger-independent-stage-source.json` with SHA-256 `5a7521ced17491a3e325dd321468e3afe73074e194e53e031dd539192e5edc23`, session `74224160-f779-4995-bf7e-6ae8e8105f26`, and normalized v2 digest `f8c5ab643f335e77a681ceadc85c3c32a1eeb607e6c241a09fce3b4825ad65cc`. Both v2 stages preserve raw frozen evidence order as aligned `evidenceSelectors` and exact `evidenceIds`; repeated selectors are disambiguated by evidenceId. Primary records 5 `INCLUDE`, 166 `DEFER`, and 0 `EXCLUDE`; Challenger records 137 role-free `DEFER`. Every conflict MUST enter Third, and Third MUST be terminal; their required risk-slice conclusions agree, so this batch has zero conflicts and MUST NOT contain Third artifacts.
 
 #### Scenario: Conflict occurs in batch b8c877df21b1ebb0ce5c6356
 
@@ -30,7 +30,7 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 
 ### Requirement: Batch b8c877df21b1ebb0ce5c6356 emits a machine-mergeable receipt
 
-The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written. This batch's receipt digest is `69e717d7e04a5df90d6bc8ca4d3345730e6f5a2c09138875092f2bc622464366` and its boundary-attestation digest is `9dd7e4cbe523c21512bc308f6437729c861e2d667e53500e225bc96e9f54d131`; it is `DEFERRED_EVIDENCE_BLOCKED`, leaves CourseCoverage unresolved, and keeps the aggregate gate `BLOCKED_UNRESOLVED_EVIDENCE`.
 
 #### Scenario: Receipt for batch b8c877df21b1ebb0ce5c6356 is assembled
 
