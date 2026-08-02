@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "c5f6b20a3a7cf9408e153b08",
+  "batchBinding": {
+    "manifestBatchIndex": 20,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:KnowledgeStatement",
+    "memberCount": 500,
+    "memberDigest": "81fedba91c18ba7fbb40e3575e96445135485bfbd6af9c1c8fc5bd82bfba5f49",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "stageArtifactsExistedDuringReviews": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "9abcc13d-1c7e-4e95-9664-9a9996876d16",
+    "reviewSessionId": "9abcc13d-1c7e-4e95-9664-9a9996876d16",
+    "reviewSessionScope": "act:issue-1210:primary-wrapper",
+    "sourceWriterSessionId": "9abcc13d-1c7e-4e95-9664-9a9996876d16",
+    "sourceWriterPermission": "read-only",
+    "sourceWriterScope": "act:issue-1210:primary-wrapper",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "1d73b98132805025405c1317ddc9e6129d71bee9e635799d37c672b378002260",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "0dbd967a30fd761ec4dedc7228db4dd42f0bb028e8c58d9223c9f4cf62b1733c",
+    "reviewInputDigest": "fd2584e5493bb3edb8d6b74d18302ced846db3c602ee8733dcf74747c815d722",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 500
+    },
+    "structuredTranscription": "Conclusions, rationales, frozen evidence selectors, and DEFER semantics were preserved; normalized document digests were sealed without assembler-generated semantic conclusions.",
+    "diagnosticCandidatesAuthority": "diagnostic-only",
+    "diagnosticCandidates": [
+      "course-content/authoring/knowledge/cards/nodes/状态空间表达式_9_477dfe0d.md",
+      "course-content/authoring/knowledge/cards/nodes/状态观测器_9_3e80b75f.md",
+      "course-content/authoring/knowledge/cards/nodes/可控性_9_b22a45c8.md",
+      "course-content/authoring/knowledge/cards/nodes/可观测性_9_b26c542c.md",
+      "course-content/authoring/knowledge/cards/nodes/状态反馈_9_ccacb9f8.md",
+      "course-content/authoring/knowledge/cards/nodes/极点配置_9_b5578c51.md",
+      "course-content/authoring/knowledge/cards/nodes/无限时间定常状态调节器_10_93c59c51.md",
+      "course-content/authoring/knowledge/cards/nodes/全维状态观测器_9_43aece41.md"
+    ],
+    "semanticExactMatchCandidates": 0,
+    "semanticNearMatchCandidates": 63,
+    "semanticFamilyDiagnosticMembers": 159,
+    "reFreezeRequired": true,
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "1d73b98132805025405c1317ddc9e6129d71bee9e635799d37c672b378002260",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "9abcc13d-1c7e-4e95-9664-9a9996876d16"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "read-only",
+    "independentCourseEvidenceCount": 0,
+    "sessionId": "7dc9f9ac-f9ac-4192-887e-393b9f555c7d",
+    "reviewSessionId": "7dc9f9ac-f9ac-4192-887e-393b9f555c7d",
+    "reviewSessionScope": "act:issue-1210:challenger-wrapper",
+    "sourceWriterSessionId": "7dc9f9ac-f9ac-4192-887e-393b9f555c7d",
+    "sourceWriterPermission": "read-only",
+    "sourceWriterScope": "act:issue-1210:challenger-wrapper",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "8d6888c4e45955f10f67be5226129c7e4bd774d39325449df8d2a022d52d8449",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "af3c16c1414c71731a5dc2e48da648f7b7f13fd647662c99fcbe5c9e7aa6ea49",
+    "reviewInputDigest": "a4a590fad6dfdd9b1485ff7e921c208112e2ad309b5ec2759ca4c718f4f287ae",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 500
+    },
+    "structuredTranscription": "Conclusions, rationales, frozen evidence selectors, and DEFER semantics were preserved; normalized document digests were sealed without assembler-generated semantic conclusions.",
+    "diagnosticCandidatesAuthority": "diagnostic-only",
+    "diagnosticCandidates": [
+      "course-content/authoring/lessons/5-4/design/5-4-handout.md",
+      "course-content/authoring/lessons/5-1/design/5-1-handout.md#L35",
+      "course-content/authoring/lessons/5-5/design/5-5-handout.md#L26",
+      "course-content/authoring/lessons/4-2/design/4-2-handout.md",
+      "course-content/authoring/lessons/5-6/design/5-6-interactive-page.md",
+      "course-content/syllabus-refactor/homework-framework.md",
+      "course-content/syllabus-refactor/blueprint.md",
+      "course-content/authoring/lessons/5-2/design/5-2-handout.md",
+      "course-content/syllabus-refactor/main.md",
+      "course-content/authoring/lessons/5-5/design/5-5-teacher-handout.md",
+      "course-content/authoring/lessons/5-6/design/5-6-interactive-contract.yaml"
+    ],
+    "semanticExactMatchCandidates": 0,
+    "semanticNearMatchCandidates": 0,
+    "semanticFamilyDiagnosticMembers": 500,
+    "reFreezeRequired": true,
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "8d6888c4e45955f10f67be5226129c7e4bd774d39325449df8d2a022d52d8449",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "7dc9f9ac-f9ac-4192-887e-393b9f555c7d"
+    }
+  },
+  "frozenEvidenceBoundary": {
+    "memberCount": 500,
+    "profileOnlyHighRiskMemberCount": 500,
+    "aggregateEvidenceRefCount": 729,
+    "profileEvidenceRefCount": 500,
+    "totalFrozenEvidenceRefCount": 1229,
+    "independentCourseEvidenceMemberCount": 0,
+    "admittedBoundaries": [
+      "aggregate",
+      "profile"
+    ],
+    "diagnosticCandidatesAreNotAdmitted": true,
+    "diagnosticCandidatesRequireUpstreamIssue": "#1180"
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE",
+    "challengerDidNotReadPrimary": true,
+    "unresolvedIndependentCourseEvidence": true,
+    "diagnosticCandidatesExcludedFromAuthority": true,
+    "reFreezeRequired": true,
+    "reFreezeReason": "All 500 KnowledgeStatement members have only frozen aggregate/profile evidence. Upstream #1180 must bind/classify independent-course evidence and re-freeze worklist/manifest before any later INCLUDE/EXCLUDE re-review."
+  },
+  "reFreezeRequired": true,
+  "reFreezeReason": "Primary and Challenger each found 0 independent-course evidence members; semantically adjacent course materials remain diagnostic-only until #1180 bind/classify/re-freeze.",
+  "commandsRun": [
+    "npx tsx -e 'import { readFile } from \"node:fs/promises\"; import { createHash } from \"node:crypto\"; import { currentCourseCoverageStageInputDigest, sealCurrentCourseCoverageStageReview } from \"./src/lib/aggregate-governance/current-course-coverage-batch-review.ts\"; import { validateCurrentCourseCoverageStageSource } from \"./scripts/course-coverage/review-current-course-coverage-batch.ts\"; import { stableStringify } from \"./src/lib/aggregate-governance/hash.ts\"; function sha(v){return createHash(\"sha256\").update(v).digest(\"hex\")} (async function(){const d=\"course-content/authoring/knowledge/issue-1210-course-coverage-review\"; const mb=await readFile(\"course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json\"); const m=JSON.parse(mb.toString()); const w=JSON.parse(await readFile(\"course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json\",\"utf8\")); const b=m.batches[20]; const binding={batchId:b.batchId,manifestBatchIndex:20,sequence:b.sequence,semanticGroupKey:b.semanticGroupKey,memberCount:b.members.length,memberDigest:b.memberDigest,worklistInputDigest:w.worklistInputDigest,worklistDigest:w.worklistDigest,manifestDigest:m.manifestDigest,manifestArtifactSha256:sha(mb)}; if(binding.batchId!==\"c5f6b20a3a7cf9408e153b08\"||binding.memberCount!==500||binding.memberDigest!==\"81fedba91c18ba7fbb40e3575e96445135485bfbd6af9c1c8fc5bd82bfba5f49\"||binding.manifestArtifactSha256!==\"786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8\")throw new Error(\"frozen binding drift\"); for(const x of [{s:\"PRIMARY\",i:\"grok-independent-primary\",u:\"9abcc13d-1c7e-4e95-9664-9a9996876d16\",p:\"issue-1210-primary-v1\",r:\"primary-independent-stage-source.json\",n:\"primary-review.json\"},{s:\"CHALLENGER\",i:\"grok-independent-challenger\",u:\"7dc9f9ac-f9ac-4192-887e-393b9f555c7d\",p:\"issue-1210-challenger-v1\",r:\"challenger-independent-stage-source.json\",n:\"challenger-review.json\"}]){const raw=await readFile(`${d}/${x.r}`);const source=JSON.parse(raw.toString());if(source.members.length!==500||source.members.some(function(z,i){return z.ordinal!==i||z.canonicalId!==b.members[i].canonicalId||z.canonicalRevision!==b.members[i].canonicalRevision}))throw new Error(`${x.s} frozen order drift`);const doc=JSON.parse(await readFile(`${d}/${x.n}`,\"utf8\"));const expected=sealCurrentCourseCoverageStageReview({schemaVersion:\"current-course-coverage-stage-review/v1\",batchBinding:binding,stage:x.s,reviewer:{identity:x.i,provider:\"grok-4.5-build\",sessionId:x.u,promptVersion:x.p},sourceArtifactBinding:{artifactPath:`${d}/${x.r}`,artifactSha256:sha(raw),schemaVersion:source.schemaVersion,stage:x.s,writerSessionId:x.u},reviewInputDigest:currentCourseCoverageStageInputDigest({worklist:w,manifest:m,binding,stage:x.s,promptVersion:x.p}),decisions:source.members.map(function(z){return {canonicalId:z.canonicalId,canonicalRevision:z.canonicalRevision,conclusion:\"DEFER\",evidenceSufficiency:\"INSUFFICIENT\",evidenceSelectors:z.evidenceRefs.map(function(q){return q.selector}),rationale:z.rationale}})});if(stableStringify(doc)!==stableStringify(expected))throw new Error(`${x.s} normalized digest drift`);validateCurrentCourseCoverageStageSource({document:doc,sourceBytes:raw});if(doc.reviewInputDigest!==currentCourseCoverageStageInputDigest({worklist:w,manifest:m,binding,stage:x.s,promptVersion:x.p})||doc.reviewer.identity!==x.i||doc.reviewer.sessionId!==x.u||doc.reviewer.promptVersion!==x.p||doc.sourceArtifactBinding.artifactSha256!==sha(raw)||doc.sourceArtifactBinding.writerSessionId!==x.u)throw new Error(`${x.s} normalization closure drift`)} console.log(\"PASS raw-to-normalized closure\")})().catch(function(e){console.error(e);process.exitCode=1})'",
+    "npm run course-coverage:review-batch -- --worklist course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json --manifest course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json --primary course-content/authoring/knowledge/issue-1210-course-coverage-review/primary-review.json --challenger course-content/authoring/knowledge/issue-1210-course-coverage-review/challenger-review.json --output course-content/authoring/knowledge/issue-1210-course-coverage-review/batch-receipt.json --expected-batch-id c5f6b20a3a7cf9408e153b08 --batch-index 20 --sequence 0 --semantic-group-key ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:KnowledgeStatement --member-count 500 --member-digest 81fedba91c18ba7fbb40e3575e96445135485bfbd6af9c1c8fc5bd82bfba5f49 --worklist-input-digest 55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2 --worklist-digest bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489 --manifest-digest 2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818 --manifest-artifact-sha256 786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8",
+    "npm run course-coverage:review-batch -- --worklist course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json --manifest course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json --primary course-content/authoring/knowledge/issue-1210-course-coverage-review/primary-review.json --challenger course-content/authoring/knowledge/issue-1210-course-coverage-review/challenger-review.json --output course-content/authoring/knowledge/issue-1210-course-coverage-review/batch-receipt.json --expected-batch-id c5f6b20a3a7cf9408e153b08 --batch-index 20 --sequence 0 --semantic-group-key ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:KnowledgeStatement --member-count 500 --member-digest 81fedba91c18ba7fbb40e3575e96445135485bfbd6af9c1c8fc5bd82bfba5f49 --worklist-input-digest 55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2 --worklist-digest bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489 --manifest-digest 2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818 --manifest-artifact-sha256 786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8",
+    "npm exec vitest run src/lib/__tests__/current-course-coverage-batch-review.test.ts",
+    "openspec validate review-course-coverage-c5f6b20a3a7cf9408e153b08 --type change --strict",
+    "python3 -c 'import hashlib,json,pathlib,subprocess; root=pathlib.Path(\".\"); d=root/\"course-content/authoring/knowledge/issue-1210-course-coverage-review\"; mp=root/\"course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json\"; wp=root/\"course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json\"; m=json.loads(mp.read_text()); w=json.loads(wp.read_text()); e={\"batchId\":\"c5f6b20a3a7cf9408e153b08\",\"manifestBatchIndex\":20,\"sequence\":0,\"semanticGroupKey\":\"ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:KnowledgeStatement\",\"memberCount\":500,\"memberDigest\":\"81fedba91c18ba7fbb40e3575e96445135485bfbd6af9c1c8fc5bd82bfba5f49\",\"worklistInputDigest\":\"55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2\",\"worklistDigest\":\"bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489\",\"manifestDigest\":\"2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818\",\"manifestArtifactSha256\":hashlib.sha256(mp.read_bytes()).hexdigest()}; assert e[\"manifestArtifactSha256\"]==\"786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8\"; assert hashlib.sha256((d/\"primary-independent-stage-source.json\").read_bytes()).hexdigest()==\"1d73b98132805025405c1317ddc9e6129d71bee9e635799d37c672b378002260\" and hashlib.sha256((d/\"challenger-independent-stage-source.json\").read_bytes()).hexdigest()==\"8d6888c4e45955f10f67be5226129c7e4bd774d39325449df8d2a022d52d8449\"; b=m[\"batches\"][20]; assert b[\"batchId\"]==e[\"batchId\"] and b[\"sequence\"]==e[\"sequence\"] and b[\"semanticGroupKey\"]==e[\"semanticGroupKey\"] and len(b[\"members\"])==500 and b[\"memberDigest\"]==e[\"memberDigest\"] and m[\"manifestDigest\"]==e[\"manifestDigest\"] and w[\"worklistInputDigest\"]==e[\"worklistInputDigest\"] and w[\"worklistDigest\"]==e[\"worklistDigest\"]; order=[{\"canonicalId\":x[\"canonicalId\"],\"canonicalRevision\":x[\"canonicalRevision\"]} for x in b[\"members\"]]; docs=[json.loads((d/x).read_text()) for x in [\"primary-review.json\",\"challenger-review.json\"]]; assert docs[0][\"documentDigest\"]==\"0dbd967a30fd761ec4dedc7228db4dd42f0bb028e8c58d9223c9f4cf62b1733c\" and docs[1][\"documentDigest\"]==\"af3c16c1414c71731a5dc2e48da648f7b7f13fd647662c99fcbe5c9e7aa6ea49\" and docs[0][\"reviewInputDigest\"]==\"fd2584e5493bb3edb8d6b74d18302ced846db3c602ee8733dcf74747c815d722\" and docs[1][\"reviewInputDigest\"]==\"a4a590fad6dfdd9b1485ff7e921c208112e2ad309b5ec2759ca4c718f4f287ae\"; assert all(x[\"batchBinding\"]==e and len(x[\"decisions\"])==500 and [{\"canonicalId\":z[\"canonicalId\"],\"canonicalRevision\":z[\"canonicalRevision\"]} for z in x[\"decisions\"]]==order and {z[\"conclusion\"] for z in x[\"decisions\"]}=={\"DEFER\"} for x in docs); r=json.loads((d/\"batch-receipt.json\").read_text()); a=json.loads((d/\"batch-boundary-attestation.json\").read_text()); p=json.loads((d/\"review-provenance.json\").read_text()); assert r[\"receiptDigest\"]==\"eaf06a0180e0d4b8acd4e35283a3d7baa546cef318a99855c03260a5beb12c65\" and a[\"attestationDigest\"]==\"a5fe78541257603d477145aa7fe89056ad2f38c884d15b8ad2a0cd7052944066\"; assert r[\"batchBinding\"]==e and r[\"orderedMembers\"]==order and r[\"counts\"]=={\"members\":500,\"included\":0,\"excluded\":0,\"deferredEvidenceBlocked\":500,\"conflicts\":0,\"thirdReviewed\":0} and r[\"stageRecords\"][\"third\"] is None and r[\"productionBoundaryProof\"][\"verificationProtocol\"]==\"git-head-and-production-authority-pre-publication-snapshot/v3\" and a[\"schemaVersion\"]==\"current-course-coverage-production-boundary-attestation/v2\" and all(not v for v in r[\"productionBoundaries\"].values()) and p[\"artifactClosure\"][\"receiptDigest\"]==r[\"receiptDigest\"] and p[\"artifactClosure\"][\"attestationDigest\"]==a[\"attestationDigest\"]; canon=lambda v:json.dumps(v,ensure_ascii=False,separators=(\",\",\":\"),sort_keys=True); sha=lambda v:hashlib.sha256(v.encode()).hexdigest(); assert r[\"receiptDigest\"]==sha(canon({k:v for k,v in r.items() if k!=\"receiptDigest\"})) and a[\"attestationDigest\"]==sha(canon({k:v for k,v in a.items() if k!=\"attestationDigest\"})); files=list(d.glob(\"*.json\")); bad=\"/\"+\"Users\"+\"/\"; assert all(bad not in x.read_text() and \"file:\"+\"//\" not in x.read_text() and all(line.rstrip()==line for line in x.read_text().splitlines()) for x in files); subprocess.run([\"git\",\"diff\",\"--check\",\"--\",\"course-content/authoring/knowledge/issue-1210-course-coverage-review\",\"openspec/changes/review-course-coverage-c5f6b20a3a7cf9408e153b08\"],check=True); print(\"PASS JSON/order/binding/digest/no-absolute-path/trailing-whitespace/git-diff-check\")'"
+  ],
+  "artifactClosure": {
+    "receiptPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/batch-receipt.json",
+    "receiptDigest": "eaf06a0180e0d4b8acd4e35283a3d7baa546cef318a99855c03260a5beb12c65",
+    "attestationPath": "course-content/authoring/knowledge/issue-1210-course-coverage-review/batch-boundary-attestation.json",
+    "attestationDigest": "a5fe78541257603d477145aa7fe89056ad2f38c884d15b8ad2a0cd7052944066",
+    "productionBoundaryProof": "git-head-and-production-authority-pre-publication-snapshot/v3",
+    "productionBoundaryAttestation": "current-course-coverage-production-boundary-attestation/v2",
+    "reFreezeRequired": true
+  }
+}
