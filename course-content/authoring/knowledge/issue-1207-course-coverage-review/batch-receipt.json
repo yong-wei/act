@@ -21,8 +21,8 @@
     }
   ],
   "stageDocuments": {
-    "primaryDigest": "4d87ecacc7b00ee74fcd5f5891c387fed10acf095e420d2e427ecadb6fa8d428",
-    "challengerDigest": "3ef4c6a524bb8dd449dab659048afbcbf74199030100c5e3bc9a182725fb283e",
+    "primaryDigest": "f0a2cca688d4cce0776f9b6056e924d6ab553e594f6c0f4fd87dac3ea43fd816",
+    "challengerDigest": "59b4bdca0014d51aab6a07428f7880fb70981bd5bc39e5055df8911d60e099f8",
     "thirdDigest": null
   },
   "stageRecords": {
@@ -49,7 +49,7 @@
       },
       "sourceArtifactBinding": {
         "artifactPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/primary-independent-stage-source.json",
-        "artifactSha256": "8a0b0695abc83d0c259b70a8041b3e95fbdc12ecc95a1f1e2e6f488a51af0cd2",
+        "artifactSha256": "cb7838d76ac97c1cff8e513507173051e6e83fda8e8bf252c5d79fde7709ff8b",
         "schemaVersion": "course-coverage-independent-stage-preparation/v0",
         "stage": "PRIMARY",
         "writerSessionId": "015411ef-a0ce-4741-9adc-8f17062aac32"
@@ -65,11 +65,11 @@
             "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
             "canonicalId:ctf:55e4737318f3b1e2d5f90372"
           ],
-          "rationale": "PRIMARY independent review of Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\\\int_{-\\\\infty}^{\\\\infty} h(\\\\tau) u(t-\\\\tau) d \\\\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen batch f8917af6bf755caf058c5358 / batches[17] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1, ctr:release:system-modeling-engineering-v0.1]; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']. Evidence audit: every cited ref is aggregate-projection with boundary in {aggregate,profile} and kind in {aggregate-evidence,canonical-profile}; zero refs have boundary=independent-course; zero selectors resolve to course-content/authoring/lessons/* or syllabus blueprint/main paths. priorDecisionRefs count=1 but sourcePath=course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json selector=entries[418] releaseId=ctr:release:control-theory-engineering-v0.3 (historical aggregate Coverage cannot authorize a current CourseCoverage role). Semantic note: preferredLabel is the continuous-time convolution integral, a Formula candidate spanning system-modeling and stability-analysis modules, but preferredLabel/profile/aggregate metadata alone is non-authoritative. Per current-course-coverage-review and child OpenSpec review-course-coverage-f8917af6bf755caf058c5358: INCLUDE/EXCLUDE require sufficient independent current-course evidence and a CourseCoverage role; profileOnly/highRisk with only aggregate/profile evidence is insufficient. Therefore stageConclusion=DEFER (role-free); CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
-          "decisionDigest": "976d1022d94886e53a7a35585dae6fee990e97b2518f8a5c148cc5366d83d587"
+          "rationale": "PRIMARY independent re-review of Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\\\int_{-\\\\infty}^{\\\\infty} h(\\\\tau) u(t-\\\\tau) d \\\\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen batch f8917af6bf755caf058c5358 / batches[17] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; moduleMembership=[ctr:release:stability-analysis-engineering-v0.1, ctr:release:system-modeling-engineering-v0.1]; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist flags observed: profileOnly=True, riskFlags.highRisk=True, risk reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1. Frozen evidenceRefs=2 (order preserved) boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']; zero frozen refs have boundary=independent-course. priorDecisionRefs count=1 is historical aggregate Coverage (course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json entries[418], releaseId=ctr:release:control-theory-engineering-v0.3) and cannot authorize a current CourseCoverage role. Unfrozen semantic-candidate course materials observed outside this frozen worklist item.evidenceRefs: course-content/authoring/lessons/3-1/design/3-1-handout.md ~L331-340 teaches the causal LTI convolution y(t)=∫_0^t g(t-τ)u(τ)dτ; course-content/authoring/lessons/3-1/design/3-1-interactive-page.md:449 carries the same form. Under causal zero-state assumptions these are the same Formula family as the canonical bilateral convolution, but those paths are NOT present in frozen evidenceRefs; frozen selectors remain only aggregate/profile. Current validator forbids non-DEFER conclusions that cite unknown or non-independent-course frozen evidence; module3 unit-design-details is also not a classifier-accepted independent-course path. Therefore the unfrozen candidate materials cannot change admission for this frozen batch slice: they are diagnostic only. Upstream issue #1180 must bind independent-course evidence into the worklist and re-freeze the batch before any re-adjudication toward INCLUDE/EXCLUDE can be considered. Per current-course-coverage-review and child OpenSpec review-course-coverage-f8917af6bf755caf058c5358, INCLUDE/EXCLUDE require sufficient independent current-course evidence admitted on the frozen item; profileOnly/highRisk with only aggregate/profile frozen evidence is insufficient. stageConclusion remains role-free DEFER; CourseCoverage authority remains unresolved; review-stage maps to DEFERRED_EVIDENCE_BLOCKED at assembly.",
+          "decisionDigest": "9b5843a29df218c4444b5468f4dcc9a801055c306d6ef067da8b5fde74093ae8"
         }
       ],
-      "documentDigest": "4d87ecacc7b00ee74fcd5f5891c387fed10acf095e420d2e427ecadb6fa8d428"
+      "documentDigest": "f0a2cca688d4cce0776f9b6056e924d6ab553e594f6c0f4fd87dac3ea43fd816"
     },
     "challenger": {
       "schemaVersion": "current-course-coverage-stage-review/v1",
@@ -94,7 +94,7 @@
       },
       "sourceArtifactBinding": {
         "artifactPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/challenger-independent-stage-source.json",
-        "artifactSha256": "e324989c7a9673e24f85bb0242a059c63a39f91f9fd630ce598db93041745c33",
+        "artifactSha256": "c2df655e0644997d1464c85a72ec44ecfca5af76a69f14696ec8799e14669340",
         "schemaVersion": "course-coverage-independent-stage-preparation/v0",
         "stage": "CHALLENGER",
         "writerSessionId": "68f51aff-e853-48f2-9848-d99a27c3e6ae"
@@ -110,11 +110,11 @@
             "evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e",
             "canonicalId:ctf:55e4737318f3b1e2d5f90372"
           ],
-          "rationale": "CHALLENGER independent CourseCoverage review for Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\int_{-\\infty}^{\\infty} h(\\tau) u(t-\\tau) d \\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen binding: batchId=f8917af6bf755caf058c5358 batches[17] ordinal=0; group=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; sequence=0; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1', 'ctr:release:system-modeling-engineering-v0.1']; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist risk surface: profileOnly=True, riskFlags.new=False, riskFlags.changed=False, riskFlags.highRisk=True, reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs_count=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection', 'aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']. Evidence-boundary audit: every cited worklist evidenceRef is confined to aggregate-projection aggregate-evidence and/or canonical-profile payload; no independent-course boundary ref is present. priorDecisionRefs (if any) point only at aggregate active coverage history and are not independent course evidence; they cannot authorize INCLUDE/EXCLUDE and cannot be inherited as a role. Independent course boundary search: literal canonicalId and canonicalRevision have zero hits under course-content/authoring/lessons/** and course-content/syllabus-refactor/**. CourseCoverage authority gate: INCLUDE/EXCLUDE may be issued only when independent course evidence is sufficient to support a coverage authority decision. This member is profileOnly+highRisk and the visible evidence boundary is exclusively aggregate/profile with no independent course evidence; Challenger therefore refuses to promote or exclude it under CourseCoverage authority. stageConclusion=DEFER. Challenger does not assign ACTIVE/authority/selector/writer roles and makes no production semantic decision for this member.",
-          "decisionDigest": "875e75b23f61ba051b80851e66d3c6e5b4aa94567132c0a548bcb76180ff649a"
+          "rationale": "CHALLENGER independent CourseCoverage review for Formula ctf:55e4737318f3b1e2d5f90372 (preferredLabel='y(t)=\\int_{-\\infty}^{\\infty} h(\\tau) u(t-\\tau) d \\tau') at canonicalRevision=81a29134d977bd0822ddc4bf913e92d5924d9878217be3dc6b0997359853c26f. Frozen binding: batchId=f8917af6bf755caf058c5358 batches[17] ordinal=0; group=ctr:release:stability-analysis-engineering-v0.1|ctr:release:system-modeling-engineering-v0.1::entityType:Formula; sequence=0; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1', 'ctr:release:system-modeling-engineering-v0.1']; entityType=Formula; releaseId=ctr:release:control-theory-engineering-v0.9. Worklist risk surface: profileOnly=True, riskFlags.new=False, riskFlags.changed=False, riskFlags.highRisk=True, reasons=['high-risk', 'profile-only']; sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs_count=1. evidenceRefs=2 boundaries=['aggregate', 'profile'] kinds=['aggregate-evidence', 'canonical-profile'] sourcePaths=['aggregate-projection']; selectors=['evidence:ctr:m1g-release-evidence-c0fbf6d86f1b5fbc1435b85e', 'canonicalId:ctf:55e4737318f3b1e2d5f90372']. Frozen/admitted evidence-boundary audit: every cited #1180 worklist evidenceRef remains confined to aggregate-projection aggregate-evidence and/or canonical-profile payload; no independent-course boundary ref is admitted for this canonicalId/revision in the frozen worklist/manifest. Candidate authoring observation (not admitted): semantically equivalent causal LTI convolution content exists at course-content/authoring/lessons/3-1/design/3-1-handout.md around lines 331-340 (y(t)=∫_0^t g(t-τ)u(τ)dτ and step-response integral form) and at course-content/authoring/lessons/3-1/design/3-1-interactive-page.md around line 449 (convolution-formula-card static payload with the same causal convolution/step forms). These candidate paths are authoring-side semantic matches only; they are not frozen/admitted independent-course evidenceSelectors in the #1180 worklist/manifest for this member, and they do not rewrite the frozen evidence boundary for this review slice. priorDecisionRefs point only at aggregate active coverage history and are not independent course evidence; they cannot authorize INCLUDE/EXCLUDE and cannot be inherited as a role. CourseCoverage authority gate: INCLUDE/EXCLUDE may be issued only when independent course evidence is sufficient and admitted under the frozen denominator. Because this profileOnly+highRisk member still has only aggregate/profile frozen evidence, Challenger keeps stageConclusion=DEFER for the current frozen review. Upstream Issue #1180 must bind/classify the candidate 3-1 handout/interactive-page evidence into the worklist/manifest independent-course evidence boundary and regenerate the frozen worklist/manifest before any INCLUDE/EXCLUDE re-review of this Formula. Challenger does not assign ACTIVE/authority/selector/writer roles and makes no production semantic decision for this member.",
+          "decisionDigest": "8e357bc4a5ab95871da2b83f4ff0ebacc58f72753be2de6c18603271765ae703"
         }
       ],
-      "documentDigest": "3ef4c6a524bb8dd449dab659048afbcbf74199030100c5e3bc9a182725fb283e"
+      "documentDigest": "59b4bdca0014d51aab6a07428f7880fb70981bd5bc39e5055df8911d60e099f8"
     },
     "third": null
   },
@@ -127,8 +127,8 @@
       "evidenceSufficiency": "INSUFFICIENT",
       "terminalSource": "CONSENSUS",
       "stageDecisionDigests": [
-        "976d1022d94886e53a7a35585dae6fee990e97b2518f8a5c148cc5366d83d587",
-        "875e75b23f61ba051b80851e66d3c6e5b4aa94567132c0a548bcb76180ff649a"
+        "9b5843a29df218c4444b5468f4dcc9a801055c306d6ef067da8b5fde74093ae8",
+        "8e357bc4a5ab95871da2b83f4ff0ebacc58f72753be2de6c18603271765ae703"
       ],
       "coverageAuthorityState": "UNRESOLVED_BLOCKING"
     }
@@ -152,7 +152,7 @@
     "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
     "receiptPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/batch-receipt.json",
     "attestationPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/batch-boundary-attestation.json",
-    "headBefore": "907c0721eb4bf233c6e84ce516068fbe6c727b92",
+    "headBefore": "8a5b07da164a2f38435b6c05dcb7794ff078dc8b",
     "protectedPaths": [
       "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
       "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
@@ -194,7 +194,7 @@
       }
     ],
     "statusBefore": [],
-    "authoritySnapshotBeforeDigest": "20b90a08bfb78b7c6e4f022c7c5b3d0749e69a8ea0732a1fe4a8509364af9291",
+    "authoritySnapshotBeforeDigest": "7eabbdb625a8fc85900a22cedeb07513a76e1559b55603f1d8b21232e9afffa2",
     "gitDiffCheck": "PASS",
     "mutationFlags": {
       "currentCoverageDecisionWritten": false,
@@ -203,5 +203,5 @@
       "writerFenceChanged": false
     }
   },
-  "receiptDigest": "77e1effb9170221a8634e8e863140baed67e6b1fb4bc3f41d26f38f754921e3d"
+  "receiptDigest": "a84fb2a44cbf963b807b037fe9ce3822db193658b370c184eb44ffd5145dbf60"
 }

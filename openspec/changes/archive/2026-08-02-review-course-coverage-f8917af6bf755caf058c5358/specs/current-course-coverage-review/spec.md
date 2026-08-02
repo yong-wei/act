@@ -16,7 +16,7 @@ The review child MUST process only the exact ordered members at `batch-manifest.
 
 ### Requirement: Batch f8917af6bf755caf058c5358 produces independent terminal decisions
 
-Primary and Challenger MUST issue independent conclusions; Challenger MUST run for this profileOnly/highRisk member. The Primary source MUST be bound to session `015411ef-a0ce-4741-9adc-8f17062aac32` and SHA-256 `8a0b0695abc83d0c259b70a8041b3e95fbdc12ecc95a1f1e2e6f488a51af0cd2`; the Challenger source MUST be bound to session `68f51aff-e853-48f2-9848-d99a27c3e6ae` and SHA-256 `e324989c7a9673e24f85bb0242a059c63a39f91f9fd630ce598db93041745c33`. Every conflict MUST enter Third, and Third MUST be terminal.
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for this profileOnly/highRisk member. The Primary source MUST be bound to session `015411ef-a0ce-4741-9adc-8f17062aac32` and SHA-256 `cb7838d76ac97c1cff8e513507173051e6e83fda8e8bf252c5d79fde7709ff8b`; the Challenger source MUST be bound to session `68f51aff-e853-48f2-9848-d99a27c3e6ae` and SHA-256 `c2df655e0644997d1464c85a72ec44ecfca5af76a69f14696ec8799e14669340`. Every conflict MUST enter Third, and Third MUST be terminal.
 
 #### Scenario: Conflict occurs in batch f8917af6bf755caf058c5358
 
@@ -27,6 +27,11 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 
 - **WHEN** the member has one `priorDecisionRef` into aggregate active history but no independent-course evidence
 - **THEN** Primary and Challenger SHALL preserve that reference as provenance only, keep the conclusion role-free `DEFER` with `INSUFFICIENT` evidence, and SHALL NOT inherit its historical role or verdict
+
+#### Scenario: Semantically equivalent authoring candidates are not frozen admissions
+
+- **WHEN** `course-content/authoring/lessons/3-1/design/3-1-handout.md` around lines 331-340 and `course-content/authoring/lessons/3-1/design/3-1-interactive-page.md` around line 449 express semantically equivalent causal LTI convolution forms but are absent from the frozen `#1180` worklist/manifest `evidenceRefs`
+- **THEN** those candidates SHALL remain diagnostic only; this frozen review SHALL keep the role-free `DEFER` with `INSUFFICIENT` evidence, and upstream `#1180` MUST bind/classify the candidates as independent-course evidence and regenerate the frozen worklist/manifest before any `INCLUDE`/`EXCLUDE` re-review
 
 #### Scenario: DEFER is review-stage terminal only
 
@@ -40,5 +45,5 @@ The decision receipt MUST be keyed by every batch binding digest, preserve the e
 #### Scenario: Receipt for batch f8917af6bf755caf058c5358 is assembled
 
 - **WHEN** all required stages are terminal and drift checks pass
-- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `f8917af6bf755caf058c5358`, with `receiptDigest` `77e1effb9170221a8634e8e863140baed67e6b1fb4bc3f41d26f38f754921e3d` and detached `attestationDigest` `b756186519078586675af08e5e9274ed53fb1f38b82f9e4d440fcc22c331529b`
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `f8917af6bf755caf058c5358`, with `receiptDigest` `a84fb2a44cbf963b807b037fe9ce3822db193658b370c184eb44ffd5145dbf60` and detached `attestationDigest` `00a905992060e60289bc06b3c5a6331a102ae2998eca66d17f8e84873125d211`
 - **AND** replay SHALL accept a squash/content-equivalent continuation when protected-path bytes and clean status match the persisted ordered rows, without requiring capture-commit ancestry or deriving any semantic conclusion

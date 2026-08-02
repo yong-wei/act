@@ -13,9 +13,9 @@
     "independentCourseEvidenceCount": 0,
     "sessionId": "015411ef-a0ce-4741-9adc-8f17062aac32",
     "sourceArtifact": "primary-independent-stage-source.json",
-    "sourceArtifactSha256": "8a0b0695abc83d0c259b70a8041b3e95fbdc12ecc95a1f1e2e6f488a51af0cd2",
+    "sourceArtifactSha256": "cb7838d76ac97c1cff8e513507173051e6e83fda8e8bf252c5d79fde7709ff8b",
     "normalizedStageArtifact": "primary-review.json",
-    "normalizedDocumentDigest": "4d87ecacc7b00ee74fcd5f5891c387fed10acf095e420d2e427ecadb6fa8d428",
+    "normalizedDocumentDigest": "f0a2cca688d4cce0776f9b6056e924d6ab553e594f6c0f4fd87dac3ea43fd816",
     "conclusionCounts": {
       "INCLUDE": 0,
       "EXCLUDE": 0,
@@ -24,7 +24,7 @@
     "structuredTranscription": "Conclusions and rationales preserved; frozen selectors and runtime digests normalized.",
     "sourceArtifactBinding": {
       "artifactPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/primary-independent-stage-source.json",
-      "artifactSha256": "8a0b0695abc83d0c259b70a8041b3e95fbdc12ecc95a1f1e2e6f488a51af0cd2",
+      "artifactSha256": "cb7838d76ac97c1cff8e513507173051e6e83fda8e8bf252c5d79fde7709ff8b",
       "schemaVersion": "course-coverage-independent-stage-preparation/v0",
       "stage": "PRIMARY",
       "writerSessionId": "015411ef-a0ce-4741-9adc-8f17062aac32"
@@ -36,9 +36,9 @@
     "independentCourseEvidenceCount": 0,
     "sessionId": "68f51aff-e853-48f2-9848-d99a27c3e6ae",
     "sourceArtifact": "challenger-independent-stage-source.json",
-    "sourceArtifactSha256": "e324989c7a9673e24f85bb0242a059c63a39f91f9fd630ce598db93041745c33",
+    "sourceArtifactSha256": "c2df655e0644997d1464c85a72ec44ecfca5af76a69f14696ec8799e14669340",
     "normalizedStageArtifact": "challenger-review.json",
-    "normalizedDocumentDigest": "3ef4c6a524bb8dd449dab659048afbcbf74199030100c5e3bc9a182725fb283e",
+    "normalizedDocumentDigest": "59b4bdca0014d51aab6a07428f7880fb70981bd5bc39e5055df8911d60e099f8",
     "conclusionCounts": {
       "INCLUDE": 0,
       "EXCLUDE": 0,
@@ -47,7 +47,7 @@
     "structuredTranscription": "Conclusions and rationales preserved; frozen selectors and runtime digests normalized.",
     "sourceArtifactBinding": {
       "artifactPath": "course-content/authoring/knowledge/issue-1207-course-coverage-review/challenger-independent-stage-source.json",
-      "artifactSha256": "e324989c7a9673e24f85bb0242a059c63a39f91f9fd630ce598db93041745c33",
+      "artifactSha256": "c2df655e0644997d1464c85a72ec44ecfca5af76a69f14696ec8799e14669340",
       "schemaVersion": "course-coverage-independent-stage-preparation/v0",
       "stage": "CHALLENGER",
       "writerSessionId": "68f51aff-e853-48f2-9848-d99a27c3e6ae"

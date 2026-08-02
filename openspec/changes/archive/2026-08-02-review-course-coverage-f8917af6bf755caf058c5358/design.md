@@ -12,6 +12,8 @@ No stage may reuse another stage's verdict as its own evidence. The receipt reco
 
 For this batch, the member has one `priorDecisionRef` into aggregate active history. That reference is retained as provenance only: it is not independent course evidence, it cannot be inherited as a role or verdict, and it cannot authorize `INCLUDE` or `EXCLUDE`. With only aggregate/profile evidence, both independent stages therefore remain role-free `DEFER` with `INSUFFICIENT` evidence.
 
+The independent re-review also observed semantically equivalent causal LTI convolution material in `course-content/authoring/lessons/3-1/design/3-1-handout.md` around lines 331-340 and `course-content/authoring/lessons/3-1/design/3-1-interactive-page.md` around line 449. Those authoring-side paths are diagnostic candidates only: they are absent from the frozen `#1180` worklist/manifest `evidenceRefs`, and the module3 unit-design-details path is not a classifier-accepted independent-course boundary. They therefore cannot change this frozen denominator or conclusion. Upstream `#1180` must bind and classify the candidates as independent-course evidence and regenerate the frozen worklist/manifest before a later `INCLUDE`/`EXCLUDE` re-review.
+
 ### Drift and authority fence
 
 Before review and before receipt assembly, reread the manifest slice and compare batchId, sequence, semanticGroupKey, member count/order, memberDigest, worklistInputDigest, worklistDigest, and manifestDigest. Any mismatch or canonical-revision drift fails closed. This child does not alter production selectors, writer fences, or unrelated batches.
