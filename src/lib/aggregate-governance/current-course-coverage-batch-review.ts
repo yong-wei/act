@@ -1092,6 +1092,30 @@ const CURRENT_COURSE_COVERAGE_ISSUE_1200_PRIMARY_SCOPE =
   'act:issue-1200:course-coverage-primary';
 const CURRENT_COURSE_COVERAGE_ISSUE_1200_CHALLENGER_SCOPE =
   'act:issue-1200:course-coverage-challenger';
+// Covers the complete persisted provenance/audit and stage binding metadata;
+// decisions remain governed by the receipt closure below.
+const CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_PROVENANCE_CLOSURE_DIGEST =
+  '1fceae2e88e1f18c4fb695c4b4f8aa3864d0834fd13e59887e42592baa79769b';
+
+function issue1200ProvenanceClosureDigest(
+  receipt: CurrentCourseCoverageBatchReceipt,
+): string {
+  const stages = ['primary', 'challenger', 'third'] as const;
+  return sha256Canonical({
+    reviewProvenanceBinding: receipt.reviewProvenanceBinding,
+    stageRecords: Object.fromEntries(stages.map((stage) => {
+      const record = receipt.stageRecords[stage];
+      return [stage, record ? {
+        schemaVersion: record.schemaVersion,
+        stage: record.stage,
+        reviewer: record.reviewer,
+        sourceArtifactBinding: record.sourceArtifactBinding,
+        reviewInputDigest: record.reviewInputDigest,
+        documentDigest: record.documentDigest,
+      } : null];
+    })),
+  });
+}
 
 function assertCurrentCourseCoverageIssue1200FrozenContract(
   receipt: CurrentCourseCoverageBatchReceipt,
@@ -1134,6 +1158,10 @@ function assertCurrentCourseCoverageIssue1200FrozenContract(
   }
   if (audit.challenger.sourceWriterScope !== CURRENT_COURSE_COVERAGE_ISSUE_1200_CHALLENGER_SCOPE) {
     throw new Error('Current batch review rejected: frozen issue-1200 Challenger sourceWriterScope drift');
+  }
+  if (issue1200ProvenanceClosureDigest(receipt)
+    !== CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_PROVENANCE_CLOSURE_DIGEST) {
+    throw new Error('Current batch review rejected: frozen issue-1200 provenance/audit closure drift');
   }
 }
 
@@ -1250,9 +1278,6 @@ function assertCurrentCourseCoverageBatchReceiptInternalClosure(
   };
 
   const primary = validateStageRecord('PRIMARY', receipt.stageRecords.primary);
-  if (issue1200FrozenPolicy) {
-    assertCurrentCourseCoverageIssue1200FrozenContract(receipt);
-  }
   const challengerMustCoverFullBatch = issue1200FrozenPolicy;
   const challengerRecord = receipt.stageRecords.challenger;
   if (challengerMustCoverFullBatch && !challengerRecord) {
@@ -1263,6 +1288,9 @@ function assertCurrentCourseCoverageBatchReceiptInternalClosure(
     challengerRecord,
     challengerMustCoverFullBatch,
   );
+  if (issue1200FrozenPolicy) {
+    assertCurrentCourseCoverageIssue1200FrozenContract(receipt);
+  }
   const third = validateStageRecord('THIRD', receipt.stageRecords.third);
   const conflictIds = normalizedOrderedMembers
     .map((member) => member.canonicalId)

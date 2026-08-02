@@ -851,6 +851,33 @@ describe('current CourseCoverage batch review receipt', () => {
     })).toThrow(/frozen issue-1200 provenance SHA drift/iu);
   });
 
+  it('accepts the original frozen #1200 receipt provenance closure', () => {
+    const frozenReceipt = issue1200Receipt();
+    const attestation = attestationV2For(frozenReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: frozenReceipt,
+      attestation,
+      receiptPath: frozenReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: frozenReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
+  });
+
+  it('rejects synchronized #1200 Primary provider drift after resealing receipt and attestation', () => {
+    const tamperedReceipt = issue1200Receipt();
+    tamperedReceipt.stageRecords.primary.reviewer.provider = 'drift-primary-provider';
+    tamperedReceipt.reviewProvenanceBinding!.independenceAudit.primary.provider =
+      'drift-primary-provider';
+    synchronizeReceiptAfterStageMutation(tamperedReceipt);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/frozen issue-1200 provenance\/audit closure drift/iu);
+  });
+
   it.each([
     ['Primary', 'primary', 'drift-primary-session'],
     ['Challenger', 'challenger', 'drift-challenger-session'],
