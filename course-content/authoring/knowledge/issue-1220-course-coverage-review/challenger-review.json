@@ -1,0 +1,1369 @@
+{
+  "schemaVersion": "current-course-coverage-stage-review/v2",
+  "batchBinding": {
+    "batchId": "ea058c5dde3d58d06f734bd5",
+    "manifestBatchIndex": 30,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:root-locus-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 85,
+    "memberDigest": "82dc61a2382bf7e7f671343a191e364c4380a6f3f94b3e20c7765bd6c28efca2",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "stage": "CHALLENGER",
+  "reviewer": {
+    "identity": "grok-independent-challenger",
+    "provider": "grok-4.5-build",
+    "sessionId": "399d3ad6-93f1-463c-a31d-4a9b0a54c832",
+    "promptVersion": "issue-1220-challenger-v1"
+  },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1220-course-coverage-review/challenger-independent-stage-source.json",
+    "artifactSha256": "54ef6b449c556b15a4cc74a92417b7db978635f5a8c878659a73d0f766304f56",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "CHALLENGER",
+    "writerSessionId": "399d3ad6-93f1-463c-a31d-4a9b0a54c832"
+  },
+  "reviewInputDigest": "37288d6b48026da043670881d144b5ed2d00557e86296fb0917d848ed07079a7",
+  "decisions": [
+    {
+      "canonicalId": "ctc:v11g-046d539f3b7005bb49884851",
+      "canonicalRevision": "23b714f026836e2160c5c3233c952569da027b5fc8d3fe8b98f76aaedc0e6509",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:163f205873dbba9c43b84df4",
+        "evidence:ctr:2ed01ec9004117fb5828fd43",
+        "topic:signal flow",
+        "canonicalId:ctc:v11g-046d539f3b7005bb49884851"
+      ],
+      "evidenceIds": [
+        "5241f0c8931ddfd485f41fb4c9925912",
+        "b3f17d9b727b537bf344d6a33796df23",
+        "052c2c5f81b668fdf15fceffbba4d3a1",
+        "85234dc4848834cb3de489c77d3589e7"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "4e23ecfa6bd2db4e946f2c600603b27cb3eb6c0c5294525a869408811babb043"
+    },
+    {
+      "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+      "canonicalRevision": "8f6cb6b7a027eb85395f2c5c51b545663196df483deaa45e573fba3bdada61c5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:d4b0114646abe846ba3a9d66",
+        "node:单位阶跃响应_2_6a2a83b9",
+        "node:闭环极点_3_f9432bf3",
+        "node:阶跃响应_10_47ad4df2",
+        "canonicalId:ctc:v11g-11d00d2120a83f5e05efdb6e"
+      ],
+      "evidenceIds": [
+        "aaf6d2a02ff1f2c90a4270a94707372f",
+        "0503854e04bad807de5fea9589f4b556",
+        "5958b23551bab70d896faff606666a9c",
+        "2b915de7b24afb2158f6d4c3576e1baa",
+        "3ad6d2eb4eab4decf76a66bbe113cc05"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "29fe9bef4bb3e29e69923ea787cc9aed875d5b6faeabe39e9d43e5e5a27735af"
+    },
+    {
+      "canonicalId": "ctc:v11g-160c78d3827065aca5585f55",
+      "canonicalRevision": "81c2c8afaf54a929351972e5b6de4d4b648ebbfd01fccf298ac71497e64ab81c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:a520d0390ac7d4729667d827",
+        "evidence:ctr:c201778d2a375e97d27b605e",
+        "canonicalId:ctc:v11g-160c78d3827065aca5585f55"
+      ],
+      "evidenceIds": [
+        "713e60a13340f12da7a89c5b52f98c50",
+        "7ba2279102a681b16065da0ae13fcc05",
+        "d5da8743b0e88762e59bec45a7a70f8f"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "4e3b61a75c85b25f67a7d213b3cf4d78da00377b1eefd614330bdcc2ea8c6601"
+    },
+    {
+      "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "canonicalRevision": "b19e927f91c3c9f9420247109b869271eb3f7b9bed059630320892f1179dbf2d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:183296215dda179b1f4e57e6",
+        "evidence:ctr:fd38edd3419c908ad2dd0444",
+        "canonicalId:ctc:v11g-1c9f955b68fd25e1f4ad86f6"
+      ],
+      "evidenceIds": [
+        "007ed8cc68237ee69d9b40bf7e392b2f",
+        "1b31fd5b750a6fa931965f97429ceb96",
+        "934ad8072d7850c0e121eda8103c6f68"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "59407c8c315fca872dd32cd520ffe04e175acc9fe3016d62a166c6e6e20d95ca"
+    },
+    {
+      "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+      "canonicalRevision": "af1310ba05cc2cd203bcfabc46d0ea3059bc1a2951591396418b04126187e868",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:083f42850541bd8c0396fb75",
+        "canonicalId:ctc:v11g-1ebbddfa13931f700f437271"
+      ],
+      "evidenceIds": [
+        "9c98b79affd8117334621d7e595f216b",
+        "9a14287bcc7cd4d0127ea0fc3c3bdae1"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "6cd4f825dabf195ac9f4ed728019353b57379beed06d37ac58863a3666932acb"
+    },
+    {
+      "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+      "canonicalRevision": "4f3ebeed071bf9ec3aa2863a032db1fdafedc857c039fb2171d9747ffb1dfc1d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:e19654ace9176e131ca2f39d",
+        "topic:steady state",
+        "canonicalId:ctc:v11g-21fba199a9fdef15887d600f"
+      ],
+      "evidenceIds": [
+        "1ca2088ab2706a9b54b2e899fe731516",
+        "62180d55937c9500da64aa799e0af43e",
+        "b8716d70c6b4abdba1fc4fd5b9d1e469"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "9ae52636ab008a645f7460f21e9b85a35e2773e0487063bc6ee800dfb60c8027"
+    },
+    {
+      "canonicalId": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+      "canonicalRevision": "04225fb0d29ab6c8bbb34b364181eb40940f8a867efc98119b8d789084e51aad",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:49907f3dbd79e9723f26ad64",
+        "canonicalId:ctc:v11g-24c15d67a9c0976814a4d3c2"
+      ],
+      "evidenceIds": [
+        "ed82a21be14ec9d2ebad74a5b69d7924",
+        "5fda4204ba8729c8e3823deaa24c8b78"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "2beced9caf176a3449ffd47c62221dcebff6523dbebe256ce4c0feaea81d0be0"
+    },
+    {
+      "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+      "canonicalRevision": "1d0bf659c82d54cf5c5203be4ff66a196eb655b8c2c03cc2bf6da23f590150af",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:7e9db02c33225d1078534122",
+        "evidence:ctr:88e0a8890bede03fe5bdde82",
+        "topic:root locus",
+        "canonicalId:ctc:v11g-2628d227495a3860151a16c1"
+      ],
+      "evidenceIds": [
+        "916cb88b68947f754e9180abc6fbc196",
+        "e59d48e8e04c41ab4c11d2d49524d706",
+        "7340a2f13c817b514e1e17af8a715064",
+        "7b67ec5d34806baf5c7e539748b5ab20"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ab0f9fc4e8c142102763e58a10b0802982fa22b9648c9c931f2e2e09d6d9814b"
+    },
+    {
+      "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+      "canonicalRevision": "c2045af644fbe4f887e5cc169a67a93f8036cdd0df2c44d756498a1b1576203f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:c9225e4754fcd4f4e05eb96b",
+        "topic:transfer function",
+        "canonicalId:ctc:v11g-29bcae62e44c52ed219e6687"
+      ],
+      "evidenceIds": [
+        "37abe42fba99230820ebb14a752700a7",
+        "7a6721d036ca9b38d680f0bd81c653bf",
+        "2349aa6d578aa798246ec87eff97765e"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "9d4eb8262b690cffa58eb77f6365cd4521e2ab0bd2bffbb444c8bea069b8604d"
+    },
+    {
+      "canonicalId": "ctc:v11g-2c9038984a34b530385c3e4a",
+      "canonicalRevision": "4e0a67d1d4633b53083e0a895120159877bdc8955e288e05761c111d100f367c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:7cba1338ee5d092feef99b71",
+        "evidence:ctr:a6516612a20eed082e7942f9",
+        "canonicalId:ctc:v11g-2c9038984a34b530385c3e4a"
+      ],
+      "evidenceIds": [
+        "57dd46c77d35b4b937c7312de3ec941b",
+        "3e361d97072eb52f2c3ed80db732759b",
+        "d01ce65e1049542e39eb1d36332f8f1d"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f4648a6c4514a364ffdcdbaab4c15e56ad94ffa9dedeb3e1896c57b0988dce10"
+    },
+    {
+      "canonicalId": "ctc:v11g-35bacac12472ebce3fd8ca03",
+      "canonicalRevision": "7f377ed372345d05d0af18e747205d8ffcee587e7112292d4789ed961e3eaee4",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:b32cd2ba217eeaa2f4dcd6c3",
+        "canonicalId:ctc:v11g-35bacac12472ebce3fd8ca03"
+      ],
+      "evidenceIds": [
+        "00f9a8e9974d4ce9ebd6d48613caa8a9",
+        "9f510730b07f23b011df1b76862edac1"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "c4c4e1b272c0a895e826ecf3088e0ef3dcea14d5246cb87a1192b6a5ed7824dd"
+    },
+    {
+      "canonicalId": "ctc:v11g-3919da0292885d130aff2c77",
+      "canonicalRevision": "136e6f39bf6d27a69435a2bdce5bf34fc4a68a89c189a8cbbce23cc5f837c091",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:b36f46e5d801da3f3cf13e1e",
+        "evidence:ctr:bd0d1aec626a6bb0c39e51b3",
+        "canonicalId:ctc:v11g-3919da0292885d130aff2c77"
+      ],
+      "evidenceIds": [
+        "83f420504070ffe346e3f6bce26be4b8",
+        "821cae70affe60b5b6e0850ffc558b72",
+        "29d9b0c528367b351b9f60971f8d96a2"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a4eb6f158e315f13423801f953ef751b77a0298049bb27c85fe475610d3d3c09"
+    },
+    {
+      "canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+      "canonicalRevision": "d436330553440f896a64d86305c3629afad9c1f2b4034429e0b8073b3a6fdced",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:0087b324e5b22e4819df4064",
+        "evidence:ctr:a12429a9f8b91aa165284e37",
+        "topic:root locus",
+        "canonicalId:ctc:v11g-3a468572771e0b54e23a6ef5"
+      ],
+      "evidenceIds": [
+        "b033caadf8ed9c4c734396385b871db3",
+        "6a86931af99129b91937d8c753f49e8b",
+        "9aaa604952b7dbf6f575f7d7670c9db9",
+        "74ce1705280d0c360557ec56af6446e9"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "c9e68d84c7308f506046940d35a88789869a2654350d85f6cb5e6840f675fdb3"
+    },
+    {
+      "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "canonicalRevision": "73124c86a238ed739685a7054ac7f5e453c84ef6cc73af848814820a60f49886",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:e5d5a23aa55f7991c366418a",
+        "evidence:ctr:fcec6e5c7f3f4ddae9957f98",
+        "canonicalId:ctc:v11g-40ac1517fc1bfb398dd75afe"
+      ],
+      "evidenceIds": [
+        "4112fa6b584812e250be5236bcbb6bec",
+        "e60a461446b44bc34b674c910a6fe3f4",
+        "1087617e05e0b620ee4d573b3fc7ee3f"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "9fc792ff4bfab848806de46b9368952bf6a1c17cb0d2e1c2bfcb0ea6c36acd9c"
+    },
+    {
+      "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+      "canonicalRevision": "91bd3327d1de7edd7bc4977dedb2048ada9eb028aaf6c3445a0c3fec76f7bd0c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:26973780ca6e5e12a7a60ad0",
+        "topic:root locus",
+        "canonicalId:ctc:v11g-40aced4eb1298f7db801690b"
+      ],
+      "evidenceIds": [
+        "7b5244a3db66ab257a7aab0d344cc13a",
+        "1b46ad245c1c3e1b2968ab089ac053d1",
+        "e1dc1a2d8f01c503e06ca954b6f56f7c"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "11da4dd873b995c9dcaea39639cbbe93539f7ff945023d06a1e2221fcad367c6"
+    },
+    {
+      "canonicalId": "ctc:v11g-44d931dcd9405d845e782f87",
+      "canonicalRevision": "e6d9c44999c992033168a9184252c1ba07ec261537379ed11513bc2d6f1de783",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:6ea7181f9b6275582d62beb0",
+        "evidence:ctr:b83511208fd10a82f8f8e261",
+        "canonicalId:ctc:v11g-44d931dcd9405d845e782f87"
+      ],
+      "evidenceIds": [
+        "d2eab63b5782663d5bdbad337c597b5d",
+        "9692fcfe29ed932a7439fea9fefe1aa6",
+        "71a5296914d6c2bd7d8c9993aeed1024"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "0827010a85572986276b06a7ee783f3d5e4b4d19fc11c80f42187ecac45925c3"
+    },
+    {
+      "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+      "canonicalRevision": "fc8ddf996f3604ca7f139a5299bb4eae3eeef9db5fb61087eb75ef4013780669",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:571d51a8a3149fcca3ffb971",
+        "evidence:ctr:789d7e4afc8d0cc4d2359e7b",
+        "evidence:ctr:ab646df0b5f4ffb8f2c66cf5",
+        "evidence:ctr:db9d4dc15f9cfce23a3ae7d8",
+        "topic:root locus",
+        "canonicalId:ctc:v11g-462227b4794133f894bdd0a8"
+      ],
+      "evidenceIds": [
+        "31366ee849d5ce5965b6976feaa0d4cc",
+        "8ba2c6b324ce56a98bd0bc3338aa9d4b",
+        "07c7b2097633a6491ab6c02dca2adbab",
+        "08c78547975c385637322df836a1c835",
+        "aface3e4677854059cc862d79ac9c6f1",
+        "bd1d8e41e3bc00691333e582d4d416bb"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ffc86e3160cf50a8b7233a8b3b8a0bb72278c23ca4d88de7d212eea1337ec58b"
+    },
+    {
+      "canonicalId": "ctc:v11g-485febfa90a27cfcedd997ff",
+      "canonicalRevision": "19b190fe8cb3a5122f32872d421d29ac17a1eceb3119cb95b5a27c2fe81f2f1c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:3ae84d7c7ba2af7f12a53d90",
+        "evidence:ctr:9e92dd4e6b7afd587f3275fb",
+        "canonicalId:ctc:v11g-485febfa90a27cfcedd997ff"
+      ],
+      "evidenceIds": [
+        "877b570853897f47c695de35d1f11974",
+        "335e86d36b9127fb00cf3c03389ef4a8",
+        "75a04359c15116b5cd79c0f511ed1ed9"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "1d1667d17e9502cde81890195475fe0636e4aa34dc3a58c289831dfcc36cd96e"
+    },
+    {
+      "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "canonicalRevision": "9a983a5f09515940ad929263b242c298b2bbf2c13fe274e6edc5e894c130b006",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:62a64052307d4d7def219949",
+        "evidence:ctr:c0603fe7334f6357af48cdf9",
+        "topic:root locus",
+        "topic:transfer function",
+        "canonicalId:ctc:v11g-4aec82cd79a002c70fb185b3"
+      ],
+      "evidenceIds": [
+        "c196f668c2c08080401fe9962e8d80eb",
+        "40b9485d416333f9719c1389362dce4b",
+        "ca5833d1efa4abb70f72146ba24523f5",
+        "ee673319c6ee788abd1e5f0fee749130",
+        "d91e56fbb187cbc90f7c345d3eb2e460"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a9a79e567b55ef9c3484ae8e60c378d606fd82f2e33994e20985fb559e7a0cfc"
+    },
+    {
+      "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "canonicalRevision": "8391416f3d8c5afff9e4f400b4ce8ee9ce709d3f7ee5d7fd676b1c4e42c4e2af",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:1dcbf670ab06be78f0ce4b29",
+        "evidence:ctr:2b044ce4f60bed70259304c2",
+        "evidence:ctr:76da7b45f5620a8853bcda17",
+        "evidence:ctr:f089462925f01764fadddce9",
+        "topic:root locus",
+        "canonicalId:ctc:v11g-4bb347d0f2aa8859a18073de"
+      ],
+      "evidenceIds": [
+        "1e50e3a76bc0775622b63e4baaca662c",
+        "511521ca6a0e74f6cbb0c06529f41560",
+        "b4592fe5ec6ede2425d1a60875242fd9",
+        "112c71fd6e2d356fa20dd0c58d60a047",
+        "f4bb18d9ce2c9ef4721982aa6595875f",
+        "9ce0371e3402b35d7861d4d7d39d4068"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "14ba1da0116a4d6313db5c8b08aa663b621b75b07d1a12bb05e0a1e98f2d3ac6"
+    },
+    {
+      "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+      "canonicalRevision": "30e4c40418892d62ba8bd270eef730aeeb922384ad8fb007230c0012183c8d03",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:7103eb45f512a5e9afe90b94",
+        "evidence:ctr:908b275f489e6103c87aeb96",
+        "topic:root locus",
+        "canonicalId:ctc:v11g-4c152561a989c34245c538b6"
+      ],
+      "evidenceIds": [
+        "87bab40ea61b9cd24690c2d833f7b83f",
+        "274133d53ba245dd19013ffba7cae875",
+        "e782cb2d569c9519f55466726845fb0a",
+        "23f879b9fd397d398c07ba1f3207c490"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "4d8732aa4fe52193ca471931b24135d547edc48f3ddccdd7b5b4ea74791dc9d0"
+    },
+    {
+      "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+      "canonicalRevision": "5e30fca60050d2a2bf01f69279269cb3fd1fa696e4f80809cdacbda3ef94cdd7",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:bbc45a152f1a8eb5477ba607",
+        "topic:transfer function",
+        "canonicalId:ctc:v11g-5322cdb3c781cb7b9828732a"
+      ],
+      "evidenceIds": [
+        "ec2bcc3526612d35317147c0c6379969",
+        "809ade469c613b948f353a5beace0020",
+        "bdf9899c75b6b666a0ec2ee608d3af19"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "5b86ce2074276a029d48cc0ed2040ac3f64a52094db7aed9ce1e58dfdef3c43d"
+    },
+    {
+      "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+      "canonicalRevision": "5de23df1c80b08e74472300029b5d2b34b59a62ffc5ce744ea910b41ed99083d",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:032db9eaf8ac87ba78f6a932",
+        "evidence:ctr:9def57cef274e6d41e7625b8",
+        "topic:root locus",
+        "canonicalId:ctc:v11g-546566f01ae374379ec78c1e"
+      ],
+      "evidenceIds": [
+        "613a1dbc4627cc89a7eb03c717e62172",
+        "342b5cb7a264f540babf8b0c60bb039b",
+        "7d512493f006dddc15456d3ac4e733fd",
+        "f3e424c9bbf7048998582809ed21d42c"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "bcae8728db0098b937ad2b16234d082d9e2624e0f4301af66c6c4e196133504b"
+    },
+    {
+      "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+      "canonicalRevision": "b0d34d5612229e23848e0ab0335ac45aafa58c18514a6cf657f1a8ffadfb5856",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:83f8eb6e84864b28d61c157a",
+        "canonicalId:ctc:v11g-5845390ded447e37f06ea222"
+      ],
+      "evidenceIds": [
+        "d68e397c5d0d2e55f109a9f1da2428ce",
+        "878d939e1c8be9f43df48ca2529326ff"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "5a9db0bc6428c6f07d53b6dda74cd2a38d43de38d5819f81965825bb97996197"
+    },
+    {
+      "canonicalId": "ctc:v11g-67c03c5207c095a08e761361",
+      "canonicalRevision": "d22d5a7fc4a7bf0a2357db47559b79b538c93e52fbaaffcae7763ec45faf55c0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:73e6a5f6af060cecb6dcd1f7",
+        "node:单位阶跃响应_2_6a2a83b9",
+        "node:闭环极点_3_f9432bf3",
+        "node:阶跃响应_10_47ad4df2",
+        "canonicalId:ctc:v11g-67c03c5207c095a08e761361"
+      ],
+      "evidenceIds": [
+        "006f02c42c97d2211ee1dada467f7aa5",
+        "fb575fdd46e42bf3a632534f4702476f",
+        "2988d045bc7bff4bc75020ca5d8e0c75",
+        "59154a24ee0756f95bbd81aee38cc4ea",
+        "40f3d65de1a3bf6e87f98dfbe587e558"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "b6b0a1feb00c77f53ea403bed2ccd870d573e9695be5bdf2f5046c1da8d54785"
+    },
+    {
+      "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+      "canonicalRevision": "75e873b621ffa70e9e38c47c64512ad76292e7a539f2a5f2d97a2206e5ad1a43",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:88ff53ea7cd772f19cb639c7",
+        "evidence:ctr:bfcb2271e47c48ad0eab84e8",
+        "topic:closed loop",
+        "topic:transfer function",
+        "canonicalId:ctc:v11g-69118dc66489d66b1732901b"
+      ],
+      "evidenceIds": [
+        "8b4913c1ee4aa5eafa63031be8f39427",
+        "1443a2f3e9aaeb659e4be7a924f2051d",
+        "110e3505d2fcaaba2cb491156d8bb976",
+        "7621cd999ab4da2c1634193c03c57cc8",
+        "b507429e0a0812c83c6c947c720f5c29"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "9f2e5ad50d7038d368b786e33078c69625d66d93dd0847ab649ee9869ac03093"
+    },
+    {
+      "canonicalId": "ctc:v11g-6b04c8283d317cd809eae369",
+      "canonicalRevision": "dd584d71e0afc7a6ddf10d28dca49f5a4c8eba52b15825cfb47a0aa895363bb1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:0733ade44ba3965a57691f66",
+        "topic:stability",
+        "canonicalId:ctc:v11g-6b04c8283d317cd809eae369"
+      ],
+      "evidenceIds": [
+        "d5a0509c3228e5e6f7b69b5be44a400b",
+        "0a17ff452c5cd95005261e64ad5928a9",
+        "4bedfe0dd7e385928e145d19dcd680d3"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "c915f122dc091b794eb03e972e8bfae2a9f0e4cdd09586b559ed668f1ac1b1f3"
+    },
+    {
+      "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+      "canonicalRevision": "de4ccdf450888bfa07e76696135c8c8d15c381a85b7684a20790c04071596d7e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:14288831a0326315e8b14c50",
+        "topic:closed loop",
+        "topic:open loop",
+        "canonicalId:ctc:v11g-6bfefff084f66202b9af9dd4"
+      ],
+      "evidenceIds": [
+        "7c018c5d5b54fc4242811779a5a7ec99",
+        "1f698b1d0ac405424d8f95761ccdfe17",
+        "fd97da6fbe8430669328dfd33a080fab",
+        "7176948d141f384b1b899be143061bc3"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "21de619745e83b39126cd4cfe59808e4d9e4034a080d525fa0f3ef3d40308e06"
+    },
+    {
+      "canonicalId": "ctc:v11g-6c5064d654265c2b32389beb",
+      "canonicalRevision": "5de55111a76a2754bfced0a857c977a65bc97acb69b8cd100cb26ea14cda4de0",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:74574f2c58cecdb9a49fac44",
+        "canonicalId:ctc:v11g-6c5064d654265c2b32389beb"
+      ],
+      "evidenceIds": [
+        "5b4ef32a36be9d4fa07069a2714587d8",
+        "0fca0425ef93793f8a34d086b72b6676"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "8f80dbec7fb8172a6a8957c96626c5b8401aa72699601574a632cbc78fc1772a"
+    },
+    {
+      "canonicalId": "ctc:v11g-73552d8da29fbd2073b5f21a",
+      "canonicalRevision": "7b8cd12beacb82ddcdb3c02fda4c51993cce0db84f4e35dd27a594fa1fa3765b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:821a24a8039c53b2a667d922",
+        "node:传递函数_1_5b0faf8b",
+        "node:前向通路_1_7d1c792e",
+        "node:时间常数_2_68356eae",
+        "canonicalId:ctc:v11g-73552d8da29fbd2073b5f21a"
+      ],
+      "evidenceIds": [
+        "388641f5c4bbe763daf6d7c48c7092ea",
+        "007c923000489a6d10bc76e152f12681",
+        "2f89b756886a404ac7f352c733014e53",
+        "bb332dfc242298b0e9753884b5802e61",
+        "9b555be870135a72a6a6407697fae426"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "dd89e482fc4769e2230b15388cf02c9311ac46b7b7b384257ffbbd0421c9f520"
+    },
+    {
+      "canonicalId": "ctc:v11g-79840533ef35fdf38b995397",
+      "canonicalRevision": "c112312793b8d37cc72740828e2f785f44f511f860fb1c9123a62821dfd3805b",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:bedccaf75ff62b9813662cfa",
+        "evidence:ctr:bee4310da0828629a71193ea",
+        "canonicalId:ctc:v11g-79840533ef35fdf38b995397"
+      ],
+      "evidenceIds": [
+        "191282c2a4d915c562f6c420fa1997d1",
+        "aef3d5f1e0ec8a61f2fc6b4ecf3f3488",
+        "c6b1284e3c34e1f9a2cb18871edd7d48"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "bda70ffc5c519e6245d9e3392612626e301749f1a8ed7d8746ca50fad05ca1b5"
+    },
+    {
+      "canonicalId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+      "canonicalRevision": "8282e9183456a599c7ce870e5a7944ebb0e6e907132fd003cc0883d2747ddddc",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:25b937d94dfef16ebdc82365",
+        "evidence:ctr:5963d71ffbddf551ee1bc3d3",
+        "canonicalId:ctc:v11g-7b077c33b2c8dde2b1980d10"
+      ],
+      "evidenceIds": [
+        "a7364abd3c66d2933e725b9b06e93887",
+        "89313d90d08440a90366c0c963f2456d",
+        "1e266a29ba6f2e5e8e279c621133c944"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "2c85f8bb56ada2b2a150c6407c80b47f7bf7999f42d2d55b1e11cee164b5fd7f"
+    },
+    {
+      "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+      "canonicalRevision": "f76f007d9383513a1f42b3fe9c7b3b520a7ff830ca88ae8e862b82c7a696f502",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:10440aa9cab2ad805a1dd2aa",
+        "evidence:ctr:7febbcec5b2ab96366533177",
+        "evidence:ctr:b7fbe962a1d178d4b9328b2b",
+        "topic:root locus",
+        "canonicalId:ctc:v11g-843da2b954f4e9b0d550f09a"
+      ],
+      "evidenceIds": [
+        "36d938a7955a03402f2d93d7aa1f722b",
+        "95a0ef7c76026bb4a00d766be61646fa",
+        "f46de0f2007872c361039c59ef7a6056",
+        "f0196df99ad96681d5fe9a018be68fd4",
+        "bd8561a9866d590df8aefe9f9a69110a"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "3e5e755320ded32e31a54c1850ea600377338404e59c5b205a34a7f50329587d"
+    },
+    {
+      "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+      "canonicalRevision": "e4e04e7042bc2ecd00f87e6c23aa0b5f84f46bb38785a4103e56c56392148ef9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:971fd16fbbe2901be7d1996e",
+        "canonicalId:ctc:v11g-91ad9d6426185f59dea4a418"
+      ],
+      "evidenceIds": [
+        "73f409d5b327b13ca88cad442099d2a1",
+        "165602fba8df5ae0ecafa69d015d94ad"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "602c1386561af3756522d5508f6829a169739e43f59339278dfc463938b80366"
+    },
+    {
+      "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+      "canonicalRevision": "b1bf78b67eef4b8e358ff6e9ce9df02195f3b4100449f655783420a03bab15c3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:184bab86e6ff08a1f967a44c",
+        "evidence:ctr:ef542c25c0c09492deab810f",
+        "topic:pid",
+        "canonicalId:ctc:v11g-93b322aec104af4eb69aa152"
+      ],
+      "evidenceIds": [
+        "ffef0604bfa70a2015580bd2a94feb78",
+        "19bf27b76e12fee9552a7e24da5cdbd3",
+        "3976ddb6b10d885e8f499f6890dcbd90",
+        "0ede3c36c6c99523c5605eb8ba7d2895"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "5dfdd8c895e3359405c3df24f7adef2f0fbabf4cfa73c6ac0a8152fc7303eb5e"
+    },
+    {
+      "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+      "canonicalRevision": "099be3ebbdb53d56262ecd89cb1b21a181096177d8a65f6a8e4a0b1472f27f55",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:4d800c53b82224244ecd521e",
+        "evidence:ctr:fba45cf64c1aca56e930efa7",
+        "node:传递函数_1_5b0faf8b",
+        "node:根轨迹_4_c19f8854",
+        "node:根轨迹法_2_e3f6c0c1",
+        "canonicalId:ctc:v11g-95859dcad651c20058bf8726"
+      ],
+      "evidenceIds": [
+        "40c053b9062c02a320a13585cfb3e178",
+        "67764750304b241cc8a43b124e5984a3",
+        "d00471ab9cb29ca758ef1b7fec9aaac6",
+        "2a054db70fee450aa0e633ca9d12b96d",
+        "e04ac8361653fc345e9a4f03af72bd4f",
+        "3fac0f0de993942dcc63e91b953f6200"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "97bce61fed7ecb9329f98012543d21654ef0f52c34b88b8026cc727e5fc88c76"
+    },
+    {
+      "canonicalId": "ctc:v11g-97c34f1eca6199404a4ccf79",
+      "canonicalRevision": "2a3a08722db1897a3eb3a66578e2d7a67f84d0d54ab3c51a03f31e4531e046d5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:6da8994af8f238945bd7e207",
+        "evidence:ctr:767f60ada5198459d61482fc",
+        "evidence:ctr:d5e64dc1a01cf52a8f5e8668",
+        "topic:open loop",
+        "canonicalId:ctc:v11g-97c34f1eca6199404a4ccf79"
+      ],
+      "evidenceIds": [
+        "fa681c8e90d16f42369d121f04653837",
+        "76da9362ca07ab0423cc6642ef5ce547",
+        "79a6a574283fb0bf75177d34eb27836a",
+        "b9364a7787ce3ef6f2c20a41e690cac0",
+        "e6c13efbad02f9e05785a563103369b8"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "a8b600981f040fcdfc8bd7df931773e06a7367f349a38b65a0b9118e27a5ba06"
+    },
+    {
+      "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+      "canonicalRevision": "083f6c845f7a732156691d678cca82173f737a14e52e889534852454363c5ffd",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:821552ed2ca044e54c524e0b",
+        "canonicalId:ctc:v11g-991f1cc82c973b44856c40f1"
+      ],
+      "evidenceIds": [
+        "8238ed01ed70de14e5775fd62b47d777",
+        "72d9a6b1b7bf43a0152eca7b2ea098ea"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "d41017d7472184b71fab6ddb507da068ab86ebae790a976b67d068f0434a4b9d"
+    },
+    {
+      "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+      "canonicalRevision": "63f73b95aa33bd92da43e43407905c5bed54bc39733d49e4bab85368f3e6058c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:7f950bc9d62ccc1fd701b1de",
+        "evidence:ctr:dffaf521f0caa3ba61140207",
+        "evidence:ctr:e2fd594a644618b8e7ea46eb",
+        "topic:damping",
+        "canonicalId:ctc:v11g-9c541f3aa2bc9db1fe6a6c02"
+      ],
+      "evidenceIds": [
+        "554743b8e3102098152c1accb1b07b71",
+        "4e84036b700ff42fa9ab95dfe81425d0",
+        "b6af2924c419e523e183979a825959a9",
+        "2bd377fd436a4ac1a7cc1f3c0bc7b9ef",
+        "e5edc19dbff975d35f7f4881aa4ad4a6"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ca3e3712420cd3954dc08283be9b8a5a74e782a4dc3c6a92c2b006ab29c0c7c4"
+    },
+    {
+      "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+      "canonicalRevision": "897f6c45bca14f975cf4251771cf3e3977f3fbfbd54d36b404d379a783ccdaf1",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:8aac7081357087d8a6099192",
+        "canonicalId:ctc:v11g-9dfc90c240d6bf3ebc285faf"
+      ],
+      "evidenceIds": [
+        "444a0e38fe412f1f96dd569522a5968c",
+        "8fb2390c4065122211d6d1f83610a79a"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "17f500284167bd1ea341a1220b928fe7453fddee745c91ef5b9a4af536bca128"
+    },
+    {
+      "canonicalId": "ctc:v11g-a066f5e5a1852fcde776a250",
+      "canonicalRevision": "bcbebf079b1d300431996ee07eb2091bc391ce6e5c1d1afe6742f53243921df3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:2b3af4bf4c5de66116526a58",
+        "node:单位阶跃响应_2_6a2a83b9",
+        "node:阶跃响应_10_47ad4df2",
+        "canonicalId:ctc:v11g-a066f5e5a1852fcde776a250"
+      ],
+      "evidenceIds": [
+        "5e8cb817cf230325cb235b14f0151a61",
+        "0ae48223ae940c14199c1288044e1b5f",
+        "17710d88a0872efe98059c469c200432",
+        "0044fdb7bdd72039b66a917123cd69e2"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "1634323ed0f29b99eb3f3576afa05bd70848e2c7123ca66c7cbaf1107c710424"
+    },
+    {
+      "canonicalId": "ctc:v11g-a8b5ea28f2d127b68833e809",
+      "canonicalRevision": "d9dc3c73edef4865bd6c4493d008a9ed12a71130b248abd94f14b1fa0a1dee79",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:47b508ff7a6ce87d685384d1",
+        "canonicalId:ctc:v11g-a8b5ea28f2d127b68833e809"
+      ],
+      "evidenceIds": [
+        "b9be2e5fab61941b8f30ead62bcb3be8",
+        "883351fc79e0cac36a60825e0c7a09d5"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f6e1b8c84220a44a2cdd4d24816a086b5f758206124d9ee688230f9adb242e9f"
+    },
+    {
+      "canonicalId": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+      "canonicalRevision": "6de9185c2bf50bbf46047132b063874c895240dd0a2b28e94c4d4ecec4727bb3",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:0776d41633a36d9c9f8291eb",
+        "evidence:ctr:e4affef04b8e5f00f7538f57",
+        "evidence:ctr:e62629494fcf7f6c500447df",
+        "canonicalId:ctc:v11g-ab8978b79838ecaf3e856d0f"
+      ],
+      "evidenceIds": [
+        "7f8800893e667be39430d13f7a9d74fc",
+        "cb95650e0b85c56569e935c8d89c566f",
+        "2eb48624482d9d05a43ca6ac969cb8b1",
+        "0ddd6f2aa1d278dca5d0a3c7fc9991dc"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "74dfebebfb55c3fd973f8ba57e4602076c5a45534109601c93100ccc8543304f"
+    },
+    {
+      "canonicalId": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+      "canonicalRevision": "48d3dbee4df69bf7ad1415eb3bb91c22860458339266bd1ae1a1cf57ae71fbce",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:bd9250b986d07b969623494f",
+        "canonicalId:ctc:v11g-b6a581c8f216ccd9cdccb66a"
+      ],
+      "evidenceIds": [
+        "3a212dfcc05369bf534b569972ec1cd3",
+        "035d3915b14ad1b9425af1aca9a9c2dd"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "b8cba4c8d0771e2a5a45bc8f2ad202d04b558847837417eab858adb8862f769e"
+    },
+    {
+      "canonicalId": "ctc:v11g-b79da91dde120d5d6d3721cd",
+      "canonicalRevision": "e0ef517787c5a2003631090afee4625f0766ef0c688752726b37f789a68dd06f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:c1c68b90c4efed708b628087",
+        "canonicalId:ctc:v11g-b79da91dde120d5d6d3721cd"
+      ],
+      "evidenceIds": [
+        "0204a81785de9450491eacc2ca154850",
+        "c5deded659a9c5a2d4dbdcd0f95bdf14"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "9804d0d245b8232b10183fcb0859a1d8475b48ef91dc4920ec54a260f71b643f"
+    },
+    {
+      "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+      "canonicalRevision": "8219d5ebd09a971166639d0c0268a96ca03dbd4e511f9dda96836a784350043c",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:105358a78f22a37b9b0e3e48",
+        "evidence:ctr:c9d591f4a02c10f436b7a80a",
+        "canonicalId:ctc:v11g-b9ec91385b0eff9dbbb78681"
+      ],
+      "evidenceIds": [
+        "56e76f29bf5fb757d7f87d358dab9791",
+        "017fd8aa2a60b9016d6933902bd87d7b",
+        "223edf374f904d9f03e91fdecd07c94c"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "99141686c30cd948151a07e331406f75499e473e167eae47f752f7b90b8002f7"
+    },
+    {
+      "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "canonicalRevision": "608fd83b524213ccc491df770934d42ce6292277d553abf0b358ca4614c6ca84",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:15866ed3bf8dca38b15f171f",
+        "evidence:ctr:1782fcbe0616dca549d66b91",
+        "evidence:ctr:a64e8a7a56a3b5cb821a39e3",
+        "canonicalId:ctc:v11g-bc5c0019cf8dd79ee47861ea"
+      ],
+      "evidenceIds": [
+        "b7701c407e4ce0cfbdd6734fb0fe74c9",
+        "cf1778d52912bf681d389ddaebf1be68",
+        "3771de33a86c8c5f33fdcc678de9ea37",
+        "123653ad47892516f68df7d482db05e1"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "223208b1fe568ac88242cf7a7577d8423e686250769f61b1de3774b72e2ec066"
+    },
+    {
+      "canonicalId": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+      "canonicalRevision": "d38b2351c5ddd78ae4e1d9ddd9fc56f71a071ca5094c63ef4e511de4665b9efb",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:bbd16f9a38ce38c56ee6902b",
+        "canonicalId:ctc:v11g-bd59ac156c37a1e319ab71c8"
+      ],
+      "evidenceIds": [
+        "ddbd0b03acb6f622f920c505d6fcb6dc",
+        "36543a9a921a0eea285cde76802026fa"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "da417fad55931e17299f09fb4c093cbd430fc941bcab6dd2fa5bfe09f204f8d8"
+    },
+    {
+      "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+      "canonicalRevision": "cd8a91fb7d488ca17bb6fc6a75f8aba47f62f5edc0cd4a473f5753f5159d44be",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:72ca5084a4f46facf8711bde",
+        "node:传递函数_1_5b0faf8b",
+        "node:时间常数_2_68356eae",
+        "node:根轨迹_4_c19f8854",
+        "canonicalId:ctc:v11g-c3abeee0067f823ed190d79e"
+      ],
+      "evidenceIds": [
+        "23f8bb3b466b526e364ad667b784c376",
+        "79009e795f5a282b08f3f1e2cf85de59",
+        "5c63694244c691a89a19e9e09f168eea",
+        "cc9838478d85dfd5149d713e376da3f6",
+        "8235373a6f0249a3746fdbcc589969ef"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "390afe75f66ae70b8294ddaba9fd35c92085c544e1cadf0897f5ae3f96b1be0b"
+    },
+    {
+      "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+      "canonicalRevision": "f6de2696096c6023732a05d30b69229c8ee3708f0a20552de7555df6cca71eee",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:27c70625ec8d3f93ab9c72f5",
+        "topic:transfer function",
+        "canonicalId:ctc:v11g-c8c8aef0d010e68842be7236"
+      ],
+      "evidenceIds": [
+        "3ab8cf3422edff88b84d0029dffa202d",
+        "fcbbe3b0b02b43dd860c5bf039ba46a0",
+        "53c0837b98c67135a32899bb1c192bc1"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "59767bb53c1be0b2868203b834444db4242305174a535491bbdeb3e0dc54c960"
+    },
+    {
+      "canonicalId": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+      "canonicalRevision": "1ada05ea16b18ffb66a86ad3ce9e610a75c3b9351907843f11d90887a2369299",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:f07fe61eecc85bfdf8cbd147",
+        "topic:root locus",
+        "canonicalId:ctc:v11g-ca75f7e80d0a7ffd93fcbae5"
+      ],
+      "evidenceIds": [
+        "46480c9fce0ec09d37d8f631c668fdc2",
+        "dd78a45df16b5c533c0be86744ec7507",
+        "34cbeeb6f41dba38f843eedcb868836a"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "bdf75f06981e95f170a2f01abb4a102efd6b47c0bffa047d873db4d43f53f82f"
+    },
+    {
+      "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+      "canonicalRevision": "21dd934ae03089d71751b6ab414ab02807d0c65af5846476436d37d2f12798ad",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:c8640e3c33ea492ac4001b41",
+        "canonicalId:ctc:v11g-caa20b325717f0a3c570f16b"
+      ],
+      "evidenceIds": [
+        "3562cdd8cb47b0f83d6ed6980669b5eb",
+        "414d46da4ee3ba07c52637889f25a0bb"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "9459cefa1c3b2b69881e69fa2535b86393f84a5548069b7539886df70ad5b4ef"
+    },
+    {
+      "canonicalId": "ctc:v11g-cd72ae39f59955a649bff662",
+      "canonicalRevision": "a4f1b8f154148985e19b9d888ef4060f289466e33e440e0498d6f067572131e5",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:66666f93ca9b608f167780ad",
+        "canonicalId:ctc:v11g-cd72ae39f59955a649bff662"
+      ],
+      "evidenceIds": [
+        "82dd84a8480835d2d3aa7c6d4087db91",
+        "22c82e464df0f57d151920731fdb367e"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "c64eaf99b98a19dab4af6677404f60e2cc543d823d9c578dac31d6ea03fd4d47"
+    },
+    {
+      "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+      "canonicalRevision": "4410685158da03eae6099ef30ae2de05129af6b0bfbf11f562687a14f3b533b9",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:11ed9f9f669b8e9ec2346915",
+        "evidence:ctr:2a7b11b80f26699a71e95721",
+        "node:传递函数_1_5b0faf8b",
+        "node:根轨迹_4_c19f8854",
+        "node:闭环特征方程_3_87c88e19",
+        "canonicalId:ctc:v11g-d20816e0005b7c325c7f4477"
+      ],
+      "evidenceIds": [
+        "bcc13fcd8e5ab0f4dc282d51e12ca51e",
+        "21f50b04ecd7d899743d39f555e7c10c",
+        "96bd20c75ab170a8101b137a5613ad19",
+        "a18278c82b4666575c4399cc48aeaf44",
+        "3e63ea9b48691e3db01ca609d8260f8c",
+        "7c184eeb8479f293ceecabe6f32b70cd"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "c2602f8df78b0f3e0e16722b18f475c8b0a51cbdfbf661de46e0dc0d861e813a"
+    },
+    {
+      "canonicalId": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+      "canonicalRevision": "d730043f4db6eee6ac81b6cf8215f5b9edf3ee9814b994a4cc2f379adf88a85e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:a00e57045e817b176667ad55",
+        "canonicalId:ctc:v11g-d33302c76f8fb40aa020b7aa"
+      ],
+      "evidenceIds": [
+        "135527a44a18763880d957560d6125dd",
+        "bde280daa6033d3088c039e357f7e4fb"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "42f0b68d00893115c5bb33b23c3209e1ad4c756341af422bce76d4027df0d70d"
+    },
+    {
+      "canonicalId": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+      "canonicalRevision": "b416ab59a4d69cd63ee55cbd92b89efcc3bd8d4d16471667e7862982bc32870f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:df4826c976cc141a0fa7d48d",
+        "canonicalId:ctc:v11g-d71c2fc537d5d1aa270768ec"
+      ],
+      "evidenceIds": [
+        "5dbaa6f2b0f854f0a715af9f2f6cff28",
+        "6183b158bfa5cc0fec35e17dbb0b121d"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "7c3231b07e833d7b2d027bbf9c620343129225620e8c85837e3ec58befeb8e3f"
+    },
+    {
+      "canonicalId": "ctc:v11g-d81f72b09d08ab1f36c29305",
+      "canonicalRevision": "d42072f351b3f2e21fc6903e0521dd3282d02d96b98428576340556a06eec9aa",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:80652690442868b5f754c6bb",
+        "evidence:ctr:c1b0c5e5ecb40dc7d749213a",
+        "topic:极点",
+        "topic:闭环",
+        "canonicalId:ctc:v11g-d81f72b09d08ab1f36c29305"
+      ],
+      "evidenceIds": [
+        "2d32ebdaed942de5418cbc739d820bc4",
+        "6b7a10b8a15da67ece6a611f02e9c9e7",
+        "a822c0767611563a1efab35389998241",
+        "e447a1c1c6d8dd3052fc7a33a3e9d251",
+        "ffd33dff93c9fa1ef52963fd73423ca9"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "472e7049d68e498238878aa0eb050ebabf36f46caeab2472350fd36817267077"
+    },
+    {
+      "canonicalId": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+      "canonicalRevision": "559175ab0e190f9265853b521111b98f96a610ef84d9d2348bb6fedce2560913",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:055e1afb13e44d412f602fb5",
+        "evidence:ctr:7063538606215bbd2eef0526",
+        "canonicalId:ctc:v11g-d8b2b97adf60410d7cbf4b0f"
+      ],
+      "evidenceIds": [
+        "3a663b7b562f1799147ef6cac74b2966",
+        "e9cbdca1f78397382a3d63ad5e9a231b",
+        "2e9f190810728da2c82f867873011a79"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ce87f9a354096933401996969be5fc6e497e7ae2bec9cbf7e0073cc567cbdd53"
+    },
+    {
+      "canonicalId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+      "canonicalRevision": "5f690897f410d56cc5e89954e11773464e126a69e81d6cbb5d07d47c0cd97c5e",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:7ce3aaaf9c7a01048d972cbc",
+        "evidence:ctr:e01e0e04edebdf8bc3b0189e",
+        "canonicalId:ctc:v11g-daefb900250d1b7d86e36bdd"
+      ],
+      "evidenceIds": [
+        "114bada6a357770c12af851250aa3985",
+        "f3389d6604d4b0127cf84ec254cd20b4",
+        "b15f5b51608ae05a7805f93ac8fb027a"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "057a1196bd836aedd6c3fddaca9cd8ee1b6d3095a895558ff4978a33257cbdba"
+    },
+    {
+      "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+      "canonicalRevision": "12301f1f919756cedac480cbdaeb45fa2391b6833e9a982a5289b51bf05be675",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:8d1401e6d904564d51fdbeb4",
+        "evidence:ctr:d2212efbc8069d59948ec315",
+        "canonicalId:ctc:v11g-e00aa88647adaaf1c5d57462"
+      ],
+      "evidenceIds": [
+        "8305e13a4d83e90588aa93741ec76114",
+        "4c643f055dd6d8203beb3a2335c50695",
+        "950c80dba7f9b3cb6249403b65cf07cf"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "64f4af53e6aac4e4c6a09eb64c0101b22f03036bcee696db5bad496448af87ad"
+    },
+    {
+      "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "canonicalRevision": "65a641f699b795bb67040d3f17d91b83232a75d4bb81bc6559356f89751c1b94",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:cb573379446a9c41e723ab7c",
+        "topic:overshoot",
+        "canonicalId:ctc:v11g-e85c0145d63244c46853c9cf"
+      ],
+      "evidenceIds": [
+        "0784867193ca0bbfdcc284741be73aa0",
+        "d3959214cca78df63fa7bdd06c375bf6",
+        "3b6109021107c42908e7bd8bba4bcd79"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "f64eea317725e4df20ffa51019e62f3e4b8783470d3c00741eb380a403ac9e68"
+    },
+    {
+      "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "canonicalRevision": "2ed31e1ff192fb47ced7a6153d3fc39c3eedbb390b4f78322bbfcf79bf8c3cac",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:01cc290e1339203c1b3deb4e",
+        "evidence:ctr:088fb9a6e59c119d6a07e5bb",
+        "evidence:ctr:6eeb0f214910dcbe82cf0b69",
+        "evidence:ctr:8743ccfabeb59a7d3cdcb579",
+        "evidence:ctr:94d8f3efd90841c32c8bd746",
+        "canonicalId:ctc:v11g-e8d4b4f1c63aa5a052b15538"
+      ],
+      "evidenceIds": [
+        "0946fa50f24059792b1c79dbabae65a1",
+        "b53a441199ca489edc8b0f05ade1c2cc",
+        "4a61a333b758e22e9d210a91cf271d8d",
+        "4afe0339ba2af000a95a4faffd842603",
+        "9f18511bd04f2e6ddb1166ba84e19874",
+        "af5e0c170f039f94c7e53d899893a0e6"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "d26d058c0070929679d4728ca0d50697de4ba87a530fe78e6ad359b5e884ecb0"
+    },
+    {
+      "canonicalId": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+      "canonicalRevision": "c0f11eae4e3ec9345c8b80a9c4ab66e3d837bdf310528376a38b1649ac8e3794",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:0bccda6c55161c3ade301679",
+        "evidence:ctr:5647034e528a0b7d6a0179d3",
+        "canonicalId:ctc:v11g-eae7ec2310ca8844d0af49bb"
+      ],
+      "evidenceIds": [
+        "03a0558714699e6a9ec062f62fc336fb",
+        "be7b611fe38ed82b6c579214c3990248",
+        "0290f285c45c375280563164bf079dd4"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "33164b46ee8e7e502ba10edfed56b646297b369b74fa3bddb10c7e88104c5b28"
+    },
+    {
+      "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "canonicalRevision": "6bf3851652fca21afef0e91455a47bf81a63adde5b8d5875323d7a03c10951fa",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:a2ec5eaba48da8707d198954",
+        "evidence:ctr:f152c4f662d35da238d473c5",
+        "node:传递函数_1_5b0faf8b",
+        "node:根轨迹_4_c19f8854",
+        "node:根轨迹法_2_e3f6c0c1",
+        "canonicalId:ctc:v11g-f0a551cbfb667c38018a1aa9"
+      ],
+      "evidenceIds": [
+        "305c749f04048714126917b584728acc",
+        "f7de9b915da4510529a1af88d2753a7f",
+        "2da0b9e1ee5ce8ba5158485598a7afcf",
+        "add14d7c922cb8418f154c91a3f9d2d5",
+        "5e66d5c9984132e687a219adecf8745e",
+        "e2eccf647dc76ce153b6568348f59cbf"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "92b54e1c4e76570ecf7a0a7f74c4656a76e7db3cf29b938c879a7b3133e7b1c8"
+    },
+    {
+      "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+      "canonicalRevision": "114e35b247c11b2369cbaf429af6d14e46f1f605aae35a67089fee73fe396610",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:42a689b9a1f57b6849a29ec6",
+        "topic:pid",
+        "canonicalId:ctc:v11g-f3a9655898917afa28e9c600"
+      ],
+      "evidenceIds": [
+        "26b5b07932ed8cbc91da41a152f8175d",
+        "1edcbac980e795b90388cfbd47ba556b",
+        "88bfd412fed0900e251ac631e6979d8a"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "eb2d99454af2d7fa17175eb326670290eb4fb5cbefb681610002a1d4b747771b"
+    },
+    {
+      "canonicalId": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+      "canonicalRevision": "ab62742950035a4661a0bd5ee7d6dd2bad2802ede3c1910de0f93660a2cfa61f",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:6da6cad4d709d2053e4e1682",
+        "evidence:ctr:74fc6bf9b2ac3e617ee3d2f3",
+        "evidence:ctr:a808f7e9da915b50f2fa72d1",
+        "canonicalId:ctc:v12g-8f6f1a49cc2cbdfe216e5204"
+      ],
+      "evidenceIds": [
+        "ab9fcc366cdad0f7e2ab87984971749b",
+        "fffa0573a3d4b323b2efe5d9e65a67fb",
+        "c6a794d1d4e440406a8d14410eca71ac",
+        "4ed8f932eb53fcff4c54c32262154cf7"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "606831cf4aa848e7ed8486f5e6ddcb19dc21f6586e8bf9067b6ff7fb217543e4"
+    },
+    {
+      "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+      "canonicalRevision": "0214310eae5aaca3c64f6ae21899d740f222b3490ed8627fd1e1cfc6cab66929",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:50aa733b4a075df712a25376",
+        "evidence:ctr:8cad1053a16273a38292113a",
+        "evidence:ctr:cd7888c7ad25ad48412379a7",
+        "canonicalId:ctc:v12g-b536959708e2d0fe3c8c791a"
+      ],
+      "evidenceIds": [
+        "20c90058b43fcf2081740c671871dce2",
+        "ccb0dd76d98979552a1b5e0dc76765da",
+        "198f54277d44f898650ba1bd088a15b9",
+        "9af8d5d791b77e57ef136f40910c7494"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ec9cf6902fef80aa92bb5f87d71193bd3d2196e8a1b1682f7b2420727d30cf0e"
+    },
+    {
+      "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "canonicalRevision": "51b02233a035712e1ab3efc699e82ad1f959d14b48609973fe517f56b514091a",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:eaeb9493d71ca276c983504e",
+        "topic:root locus",
+        "canonicalId:ctc:v12g-b6ec19cda5342874277159e7"
+      ],
+      "evidenceIds": [
+        "3d23266bdab75d157856a620b7fc4e17",
+        "9e391ce0a45ee293d7418c47d0b9b16c",
+        "531ac9c9a075357d4bad48f48a428887"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "3f72e21e7cb6e1ce3874517da8dbdb1f924ca72651445ffa87a07c4b7d43e9e9"
+    },
+    {
+      "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+      "canonicalRevision": "020f0210b0d8ec8daced71a37c541877357f4c8e34ccf54f98707818fb6f0103",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:45be9a7fe00efb33a86122a6",
+        "evidence:ctr:f76f3763101f7eb6dfd39692",
+        "topic:root locus",
+        "canonicalId:ctc:v12g-d1e6f12e1e95f6477c66bdc1"
+      ],
+      "evidenceIds": [
+        "1d3470da3da4477593c9e31a0cc229d7",
+        "975cdab7df14dc747f54d7f4e24720d2",
+        "6f86c67a5a60f35ed8934637b6856db5",
+        "7dafbb2935e5712fdd5f31cb3acd964c"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "442543ef99e5b2a9f9c177391e079ee2cc7270f21c20e1bc0dfef18f57ff40de"
+    },
+    {
+      "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "canonicalRevision": "fe7e50e02794e5ec5368e1ec24a328317256ad0d2bb87997e0d813b099832d59",
+      "conclusion": "DEFER",
+      "evidenceSufficiency": "INSUFFICIENT",
+      "evidenceSelectors": [
+        "evidence:ctr:2a025e96ccf4b37f676e3178",
+        "evidence:ctr:85ea160407ce2ff53c37bce8",
+        "evidence:ctr:d9f66aeee25ce45ee8e8c39c",
+        "evidence:ctr:ef0bbba5dcaa10038a12c892",
+        "topic:root locus",
+        "canonicalId:ctc:v12g-e3580535c0a12b79e0509f97"
+      ],
+      "evidenceIds": [
+        "f514d94a9a307cbaff5d2e3869c423e2",
+        "80a8f84ae68b63312943e6cea8e99a33",
+        "56ea3bf3212143b7dec3575888749fc2",
+        "70223ec7665f9d9e5f033686148a06bd",
+        "30e4f7b662e29623b0d6a9192bdc1ebc",
+        "5bb8b353ab83c3d6f7b6f980206a4d78"
+      ],
+      "rationale": "冻结 evidenceRefs 无 boundary=independent-course 的可引用课程作者态/大纲证据（仅 aggregate/profile 等）；按 fail-closed 规则不得 INCLUDE/EXCLUDE，role-free DEFER。",
+      "decisionDigest": "ac34804ee6297715961b6ea75af62330f513078a66e0a154aa80839541c3f533"
+    }
+  ],
+  "documentDigest": "657063a9c4e522ba572a4a2ab2fdefe49782fe584f1a05c05e7b6404cf23e39b"
+}
