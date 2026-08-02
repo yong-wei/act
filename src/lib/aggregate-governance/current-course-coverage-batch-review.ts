@@ -644,6 +644,31 @@ function assertAuditStagesIndependent(
   }
 }
 
+function stageReviewersAreIndependent(
+  left: Pick<CurrentCourseCoverageStageReview, 'reviewer'>,
+  right: Pick<CurrentCourseCoverageStageReview, 'reviewer'>,
+): boolean {
+  return left.reviewer.identity !== right.reviewer.identity
+    && left.reviewer.sessionId !== right.reviewer.sessionId;
+}
+
+function assertBoundStageReviewerIdentityAndSession(
+  record: CurrentCourseCoverageStageReview,
+  stageLabel: string,
+): void {
+  const reviewer = record.reviewer as unknown;
+  if (!reviewer || typeof reviewer !== 'object') {
+    throw new Error(`Current batch review rejected: bound ${stageLabel} reviewer must be an object`);
+  }
+  const reviewerRecord = reviewer as Record<string, unknown>;
+  if (typeof reviewerRecord.identity !== 'string' || reviewerRecord.identity.trim() === '') {
+    throw new Error(`Current batch review rejected: bound ${stageLabel} reviewer.identity must be a non-empty string`);
+  }
+  if (typeof reviewerRecord.sessionId !== 'string' || reviewerRecord.sessionId.trim() === '') {
+    throw new Error(`Current batch review rejected: bound ${stageLabel} reviewer.sessionId must be a non-empty string`);
+  }
+}
+
 function deriveProvenanceProtocol(
   provenance: UnknownRecord,
 ): CurrentCourseCoverageReviewProvenanceIndependenceAudit['protocol'] {
@@ -849,6 +874,7 @@ function assertBoundStageRecordClosure(receipt: CurrentCourseCoverageBatchReceip
     audit: CurrentCourseCoverageReviewProvenanceStageAudit,
   ): void => {
     const stageLabel = expectedStage.toLowerCase();
+    assertBoundStageReviewerIdentityAndSession(record, stageLabel);
     if (record.stage !== expectedStage || audit.stage !== expectedStage) {
       throw new Error(`Current batch review rejected: bound ${stageLabel} stage slot closure drift`);
     }
@@ -873,6 +899,18 @@ function assertBoundStageRecordClosure(receipt: CurrentCourseCoverageBatchReceip
     if (audit.sourceArtifactPath !== sourceBinding.artifactPath
       || audit.sourceArtifactSha256 !== sourceBinding.artifactSha256) {
       throw new Error(`Current batch review rejected: bound ${stageLabel} source artifact closure drift`);
+    }
+  };
+  const assertBoundStageReviewerIndependence = (
+    leftStage: CourseCoverageReviewStage,
+    leftRecord: CurrentCourseCoverageStageReview,
+    rightStage: CourseCoverageReviewStage,
+    rightRecord: CurrentCourseCoverageStageReview,
+  ): void => {
+    if (!stageReviewersAreIndependent(leftRecord, rightRecord)) {
+      throw new Error(
+        `Current batch review rejected: bound ${leftStage.toLowerCase()}/${rightStage.toLowerCase()} reviewer independence closure drift`,
+      );
     }
   };
   assertBoundStageSlot('PRIMARY', stageRecords.primary, binding.independenceAudit.primary);
@@ -913,6 +951,30 @@ function assertBoundStageRecordClosure(receipt: CurrentCourseCoverageBatchReceip
     binding.independenceAudit.third,
     stageDocuments.thirdDigest,
   );
+  if (stageRecords.challenger) {
+    assertBoundStageReviewerIndependence(
+      'PRIMARY',
+      stageRecords.primary,
+      'CHALLENGER',
+      stageRecords.challenger,
+    );
+  }
+  if (stageRecords.third) {
+    assertBoundStageReviewerIndependence(
+      'PRIMARY',
+      stageRecords.primary,
+      'THIRD',
+      stageRecords.third,
+    );
+    if (stageRecords.challenger) {
+      assertBoundStageReviewerIndependence(
+        'CHALLENGER',
+        stageRecords.challenger,
+        'THIRD',
+        stageRecords.third,
+      );
+    }
+  }
 }
 
 function validateProtectedPathSnapshots(
@@ -1477,9 +1539,9 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
     : new Map<string, CurrentCourseCoverageStageDecision>();
   if (riskIds.length > 0 && !input.challenger) throw new Error('Current batch review rejected: Challenger is required for risk members');
   if (input.challenger) {
-    const sameIdentity = input.primary.reviewer.identity === input.challenger.reviewer.identity
-      || input.primary.reviewer.sessionId === input.challenger.reviewer.sessionId;
-    if (sameIdentity) throw new Error('Current batch review rejected: Primary and Challenger are not independent');
+    if (!stageReviewersAreIndependent(input.primary, input.challenger)) {
+      throw new Error('Current batch review rejected: Primary and Challenger are not independent');
+    }
   }
   const conflictIds: string[] = [];
   for (const id of riskIds) {
@@ -1499,9 +1561,8 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
   if (conflictIds.length > 0 && !input.third) throw new Error('Current batch review rejected: Third is required for conflicts');
   if (conflictIds.length === 0 && input.third) throw new Error('Current batch review rejected: Third is forbidden without conflicts');
   if (input.third) {
-    const identities = [input.primary.reviewer.identity, input.challenger?.reviewer.identity];
-    const sessions = [input.primary.reviewer.sessionId, input.challenger?.reviewer.sessionId];
-    if (identities.includes(input.third.reviewer.identity) || sessions.includes(input.third.reviewer.sessionId)) {
+    if (!stageReviewersAreIndependent(input.primary, input.third)
+      || (input.challenger && !stageReviewersAreIndependent(input.challenger, input.third))) {
       throw new Error('Current batch review rejected: Third is not independent');
     }
   }

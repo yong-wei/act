@@ -861,6 +861,73 @@ describe('current CourseCoverage batch review receipt', () => {
     })).toThrow(/closure drift/iu);
   });
 
+  it.each([
+    ['Challenger reuses Primary identity', 'challenger', 'primary'],
+    ['Third reuses Primary identity', 'third', 'primary'],
+    ['Third reuses Challenger identity', 'third', 'challenger'],
+  ] as const)('rejects a fully resealed bound bundle when reviewer identity is reused: %s', (_label, target, source) => {
+    const { receipt: boundReceipt } = threeStageReceipt();
+    const baselineAttestation = attestationV2For(boundReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: boundReceipt,
+      attestation: baselineAttestation,
+      receiptPath: boundReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: boundReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
+
+    const tamperedReceipt = structuredClone(boundReceipt);
+    const targetRecord = tamperedReceipt.stageRecords[target];
+    const sourceRecord = tamperedReceipt.stageRecords[source];
+    if (!targetRecord || !sourceRecord) throw new Error(`fixture requires ${target} and ${source} stage records`);
+    targetRecord.reviewer.identity = sourceRecord.reviewer.identity;
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/reviewer independence closure drift/iu);
+  });
+
+  it.each([
+    ['P/C identity as structurally equal objects', 'identity', 'object'],
+    ['P/C identity as empty strings', 'identity', 'empty'],
+    ['P/C sessionId as structurally equal objects', 'sessionId', 'object'],
+    ['P/C sessionId as empty strings', 'sessionId', 'empty'],
+  ] as const)('rejects a fully resealed bound bundle with invalid reviewer fields: %s', (_label, field, valueKind) => {
+    const { receipt: boundReceipt } = threeStageReceipt();
+    const baselineAttestation = attestationV2For(boundReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: boundReceipt,
+      attestation: baselineAttestation,
+      receiptPath: boundReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: boundReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
+
+    const tamperedReceipt = structuredClone(boundReceipt);
+    const challengerRecord = tamperedReceipt.stageRecords.challenger;
+    if (!challengerRecord) throw new Error('fixture requires Challenger stage record');
+    const primaryReviewer = tamperedReceipt.stageRecords.primary.reviewer as unknown as Record<string, unknown>;
+    const challengerReviewer = challengerRecord.reviewer as unknown as Record<string, unknown>;
+    if (valueKind === 'object') {
+      primaryReviewer[field] = { reviewer: 'same-reviewer' };
+      challengerReviewer[field] = { reviewer: 'same-reviewer' };
+    } else {
+      primaryReviewer[field] = '   ';
+      challengerReviewer[field] = '   ';
+    }
+    const persistedReceipt = JSON.parse(JSON.stringify(tamperedReceipt)) as ReturnType<typeof receipt>;
+    const resealedReceipt = resealReceipt(persistedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/reviewer\.(identity|sessionId) must be a non-empty string/iu);
+  });
+
   it('assembles deterministic blocking receipt without production authority writes', () => {
     const input = documents();
     const first = receipt(input);
