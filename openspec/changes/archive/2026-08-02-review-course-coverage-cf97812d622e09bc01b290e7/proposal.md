@@ -26,9 +26,9 @@ The current CourseCoverage review denominator is frozen in a deterministic manif
 - `manifestArtifactSha256`: `786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8`
 - `exactOrderedMembers`: `batch-manifest.json#/batches/19/members`
 - `primarySessionId`: `1d8f2d19-41db-4479-a854-d7284f16fbe0`
-- `primaryRawSha256`: `dcd30ca426b42ef2f8fa00215aada83a6c35234d8756c8e96279127aead1fbcb`
+- `primaryRawSha256`: `ae90d30f43316821c7f8a8d57a3f8b8e63f807a5d104fe4fd0bd23e461463f1a`
 - `challengerSessionId`: `ac434809-5488-46f9-a5ee-810a159ea56b`
-- `challengerRawSha256`: `2e15a7477f3c8b8f34dd1166ae21f47ba1dd18ba524090f88187b76897027320`
+- `challengerRawSha256`: `f7f7257d2cee95cd904530cda5fd055019d17602d3736453afdaeaf9a16d5a8d`
 
 The manifest slice above is the sole member source; this proposal does not copy the full member list into prose.
 
@@ -36,7 +36,7 @@ The manifest slice above is the sole member source; this proposal does not copy 
 
 Only the exact ordered members in the frozen slice are eligible. Each member keeps its canonical ID and canonical revision from the slice. Primary and Challenger review the same ordered slice independently; conflicts go to terminal Third review. The decision receipt is keyed by all fields above.
 
-The assembled outcome is 299 role-free `DEFER` decisions from Primary and 299 independently authored `DEFER` decisions from Challenger, with zero semantic conflicts and no Third stage. Every frozen evidence reference is limited to the `aggregate` or `profile` boundary; no member has admitted independent-course evidence. Any semantically related authoring material found by either reviewer is diagnostic only. Upstream issue `#1180` must bind and classify such candidates as independent-course evidence and re-freeze the worklist/manifest before a later review can change this result.
+The assembled outcome is 299 role-free `DEFER` decisions from Primary and 299 independently authored `DEFER` decisions from Challenger, with zero semantic conflicts and no Third stage. Every frozen evidence reference is limited to the `aggregate` or `profile` boundary; no member has admitted independent-course evidence. Any semantically related authoring material found by either reviewer is diagnostic only. Upstream issue `#1180` must bind and classify such candidates as independent-course evidence and re-freeze the worklist/manifest before a later review can change this result. Published artifacts use logical repository-relative identifiers only; they MUST NOT expose machine-local absolute paths.
 
 ## Out of Scope
 

@@ -21,7 +21,7 @@
   },
   "sourceArtifactBinding": {
     "artifactPath": "course-content/authoring/knowledge/issue-1209-course-coverage-review/primary-independent-stage-source.json",
-    "artifactSha256": "dcd30ca426b42ef2f8fa00215aada83a6c35234d8756c8e96279127aead1fbcb",
+    "artifactSha256": "ae90d30f43316821c7f8a8d57a3f8b8e63f807a5d104fe4fd0bd23e461463f1a",
     "schemaVersion": "course-coverage-independent-stage-preparation/v0",
     "stage": "PRIMARY",
     "writerSessionId": "1d8f2d19-41db-4479-a854-d7284f16fbe0"
@@ -3643,5 +3643,5 @@
       "decisionDigest": "81c46dd2633043d2507bcb439ef8ba595ec8bf0690c3453f4792c2bb896c8bdc"
     }
   ],
-  "documentDigest": "02bcf86065f01db30f325a9ae8ba46a0c6cad590fa7dcc18c2c6d3943b29d629"
+  "documentDigest": "14efb806cca59882534b65bb0b4aa4af33378b7ac4371889e3c9939603f7b7ca"
 }

@@ -28,7 +28,7 @@
     "readOtherStageConclusions": false,
     "inferredOtherStageConclusions": false,
     "statement": "本 PRIMARY 会话仅读取 frozen batch-manifest/worklist、仓库内公开策略/类型定义与课程作者态语义材料；未读取、未打开、未推测任何 #1209 Challenger/Third 工件、结论或 sibling decision。",
-    "workspaceNote": "read-only review on branch review-course-coverage-cf97812d622e09bc01b290e7; no production/authority/selector/writer roles assumed; output written only to /tmp/issue-1209-primary-stage.json."
+    "workspaceNote": "read-only review on branch review-course-coverage-cf97812d622e09bc01b290e7; no production/authority/selector/writer roles assumed; output written only to issue-1209 PRIMARY stage artifact."
   },
   "driftCheck": {
     "status": "PASS",
