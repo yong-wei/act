@@ -307,6 +307,42 @@ function receipt(
   });
 }
 
+function threeStageDocuments() {
+  const base = fixture({ independent: true, members: ['a'] });
+  const primary = stageReview({
+    ...base,
+    stage: 'PRIMARY',
+    identity: 'primary',
+    sessionId: 'primary-session',
+    conclusion: 'INCLUDE',
+    role: 'formal_objective',
+  });
+  const challenger = stageReview({
+    ...base,
+    stage: 'CHALLENGER',
+    identity: 'challenger',
+    sessionId: 'challenger-session',
+    conclusion: 'EXCLUDE',
+    role: 'excluded_with_rationale',
+  });
+  const third = stageReview({
+    ...base,
+    stage: 'THIRD',
+    identity: 'third',
+    sessionId: 'third-session',
+    conclusion: 'DEFER',
+  });
+  return { ...base, primary, challenger, third };
+}
+
+function threeStageReceipt() {
+  const input = threeStageDocuments();
+  return {
+    input,
+    receipt: receipt(input, productionBoundaryProofV3(), false, provenanceFor(input).binding),
+  };
+}
+
 function sourceFor(
   document: CurrentCourseCoverageStageReview,
   evidenceRefMode: 'string' | 'object' = 'string',
@@ -364,8 +400,8 @@ function provenanceFor(input: ReturnType<typeof documents>): {
     const scope = `act:fixture:${stage.toLowerCase()}`;
     return {
       provider: document.reviewer.provider,
-      sessionId: `${stage.toLowerCase()}-orchestrator-session`,
-      reviewSessionId: `${stage.toLowerCase()}-orchestrator-session`,
+      sessionId: document.reviewer.sessionId,
+      reviewSessionId: document.reviewer.sessionId,
       reviewSessionScope: scope,
       sourceWriterSessionId: sourceBinding.writerSessionId,
       sourceWriterScope: scope,
@@ -756,6 +792,73 @@ describe('current CourseCoverage batch review receipt', () => {
       receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
       attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
     })).toThrow(/third stage\/provenance closure mismatch/iu);
+  });
+
+  it.each([
+    ['primary audit stage', 'primary', 'audit', 'THIRD'],
+    ['challenger audit stage', 'challenger', 'audit', 'PRIMARY'],
+    ['third audit stage', 'third', 'audit', 'PRIMARY'],
+    ['primary record stage', 'primary', 'record', 'THIRD'],
+    ['challenger record stage', 'challenger', 'record', 'PRIMARY'],
+    ['third record stage', 'third', 'record', 'PRIMARY'],
+    ['primary source binding stage', 'primary', 'source', 'CHALLENGER'],
+    ['challenger source binding stage', 'challenger', 'source', 'PRIMARY'],
+    ['third source binding stage', 'third', 'source', 'PRIMARY'],
+  ] as const)('rejects a resealed bound bundle when stage slot is mislabeled: %s', (_label, slot, target, wrongStage) => {
+    const { receipt: boundReceipt } = threeStageReceipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    if (target === 'audit') {
+      const audit = tamperedReceipt.reviewProvenanceBinding!.independenceAudit[slot];
+      if (!audit) throw new Error(`fixture requires ${slot} provenance audit`);
+      audit.stage = wrongStage;
+    } else if (target === 'source') {
+      const record = tamperedReceipt.stageRecords[slot];
+      if (!record) throw new Error(`fixture requires ${slot} stage record`);
+      record.sourceArtifactBinding.stage = wrongStage;
+    } else {
+      const record = tamperedReceipt.stageRecords[slot];
+      if (!record) throw new Error(`fixture requires ${slot} stage record`);
+      record.stage = wrongStage;
+    }
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    const expectedError = target === 'source'
+      ? /source stage closure drift/iu
+      : /stage slot closure drift/iu;
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(expectedError);
+  });
+
+  it.each([
+    ['primary provider', 'primary', 'provider'],
+    ['challenger session', 'challenger', 'session'],
+    ['third reviewSession', 'third', 'reviewSession'],
+    ['primary writer', 'primary', 'writer'],
+    ['challenger path', 'challenger', 'path'],
+    ['third sha', 'third', 'sha'],
+  ] as const)('rejects a resealed bound bundle when stage closure field drifts: %s', (_label, slot, field) => {
+    const { receipt: boundReceipt } = threeStageReceipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    const audit = tamperedReceipt.reviewProvenanceBinding!.independenceAudit[slot];
+    if (!audit) throw new Error(`fixture requires ${slot} provenance audit`);
+    if (field === 'provider') audit.provider = 'drift-provider';
+    if (field === 'session') audit.sessionId = 'drift-session';
+    if (field === 'reviewSession') audit.reviewSessionId = 'drift-review-session';
+    if (field === 'writer') audit.sourceWriterSessionId = 'drift-writer-session';
+    if (field === 'path') audit.sourceArtifactPath = 'fixtures/drift-source.json';
+    if (field === 'sha') audit.sourceArtifactSha256 = SHA_A;
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/closure drift/iu);
   });
 
   it('assembles deterministic blocking receipt without production authority writes', () => {

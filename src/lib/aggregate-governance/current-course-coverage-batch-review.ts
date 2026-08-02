@@ -843,8 +843,42 @@ function assertBoundStageRecordClosure(receipt: CurrentCourseCoverageBatchReceip
   if (binding.independenceAudit.primary.normalizedDocumentDigest !== stageRecords.primary.documentDigest) {
     throw new Error('Current batch review rejected: bound primary provenance normalized document closure drift');
   }
+  const assertBoundStageSlot = (
+    expectedStage: CourseCoverageReviewStage,
+    record: CurrentCourseCoverageStageReview,
+    audit: CurrentCourseCoverageReviewProvenanceStageAudit,
+  ): void => {
+    const stageLabel = expectedStage.toLowerCase();
+    if (record.stage !== expectedStage || audit.stage !== expectedStage) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} stage slot closure drift`);
+    }
+    if (audit.provider !== record.reviewer.provider) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} provider closure drift`);
+    }
+    if (audit.sessionId !== record.reviewer.sessionId
+      || audit.reviewSessionId !== record.reviewer.sessionId
+      || audit.sessionId !== audit.reviewSessionId) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} session closure drift`);
+    }
+    const sourceBinding = record.sourceArtifactBinding;
+    if (!sourceBinding) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} source artifact binding is missing`);
+    }
+    if (sourceBinding.stage !== expectedStage) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} source stage closure drift`);
+    }
+    if (audit.sourceWriterSessionId !== sourceBinding.writerSessionId) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} writer session closure drift`);
+    }
+    if (audit.sourceArtifactPath !== sourceBinding.artifactPath
+      || audit.sourceArtifactSha256 !== sourceBinding.artifactSha256) {
+      throw new Error(`Current batch review rejected: bound ${stageLabel} source artifact closure drift`);
+    }
+  };
+  assertBoundStageSlot('PRIMARY', stageRecords.primary, binding.independenceAudit.primary);
   const assertOptionalStageClosure = (
     stage: 'challenger' | 'third',
+    expectedStage: 'CHALLENGER' | 'THIRD',
     record: CurrentCourseCoverageStageReview | null | undefined,
     audit: CurrentCourseCoverageReviewProvenanceStageAudit | null | undefined,
     digest: string | null | undefined,
@@ -860,18 +894,21 @@ function assertBoundStageRecordClosure(receipt: CurrentCourseCoverageBatchReceip
     if (recordPresent && audit && audit.normalizedDocumentDigest !== record.documentDigest) {
       throw new Error(`Current batch review rejected: bound ${stage} provenance normalized document closure drift`);
     }
+    if (recordPresent && audit) assertBoundStageSlot(expectedStage, record, audit);
     if (!recordPresent && digest !== null) {
       throw new Error(`Current batch review rejected: bound ${stage} stage document must be null when stage is absent`);
     }
   };
   assertOptionalStageClosure(
     'challenger',
+    'CHALLENGER',
     stageRecords.challenger,
     binding.independenceAudit.challenger,
     stageDocuments.challengerDigest,
   );
   assertOptionalStageClosure(
     'third',
+    'THIRD',
     stageRecords.third,
     binding.independenceAudit.third,
     stageDocuments.thirdDigest,
