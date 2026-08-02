@@ -3,10 +3,10 @@
   "protocol": "git-head-and-production-authority-detached-post-publication-attestation/v2",
   "receiptPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/batch-receipt.json",
   "attestationPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/batch-boundary-attestation.json",
-  "receiptDigest": "3ffd11e1a41aa8cdb9e8f915db81ff619c8b7f39332815d88adbc3aa338f62a6",
+  "receiptDigest": "f0de14d9f28b9a0b397fc18cc84a677cc52834537028038a51a81cde773c8dae",
   "batchId": "58d1670455782297bdaf8a19",
-  "headBefore": "72457a2d3227e71ae4ccddfdefa9088f56f23117",
-  "headAfter": "72457a2d3227e71ae4ccddfdefa9088f56f23117",
+  "headBefore": "698a1a8e5c53a65fa1529749972135bd4d409646",
+  "headAfter": "698a1a8e5c53a65fa1529749972135bd4d409646",
   "protectedPaths": [
     "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
     "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
@@ -17,8 +17,8 @@
   ],
   "statusBefore": [],
   "statusAfter": [],
-  "authoritySnapshotBeforeDigest": "f4701a5666c7684a49880050e2a71b87226364714d268da200a824b30f114011",
-  "authoritySnapshotAfterDigest": "f4701a5666c7684a49880050e2a71b87226364714d268da200a824b30f114011",
+  "authoritySnapshotBeforeDigest": "dadf20b9700a9a3763a079509c46bb945807c1d711eafe92ec9c68f17652e9d0",
+  "authoritySnapshotAfterDigest": "dadf20b9700a9a3763a079509c46bb945807c1d711eafe92ec9c68f17652e9d0",
   "protectedPathSnapshotsBefore": [
     {
       "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
@@ -84,5 +84,5 @@
     }
   ],
   "gitDiffCheck": "PASS",
-  "attestationDigest": "1946c2cb36f1e7b54d0280230ed2a94c5b404420824dd50e9bb5e6a6b50add74"
+  "attestationDigest": "478df10397227d1ba543ea6ee04b5e4974c95d6c7276f6edb48a6c704f4d28c4"
 }

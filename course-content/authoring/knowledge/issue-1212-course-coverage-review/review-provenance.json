@@ -1,27 +1,36 @@
 {
-  "schemaVersion": "course-coverage-stage-review-provenance/v1",
-  "batchBinding": {
-    "batchId": "58d1670455782297bdaf8a19",
-    "manifestBatchIndex": 22,
-    "sequence": 0,
-    "semanticGroupKey": "ctr:release:state-space-control-analysis-and-design-engineering-v0.1::entityType:SystemModel",
-    "memberCount": 50,
-    "memberDigest": "9db24aec2aff29ab79542c398dd4c65782b573635c4e7f944714d951bcfbf964",
-    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
-    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
-    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
-    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
-  },
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "58d1670455782297bdaf8a19",
   "independenceProtocol": {
-    "primaryDidNotReadOtherStages": true,
-    "challengerDidNotReadOtherStages": true,
-    "thirdRequired": false
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
   },
-  "conflictIds": [],
   "primary": {
+    "provider": "grok-4.5-build",
+    "sessionId": "1b269d47-dd00-4387-8df7-75e7c5e1b8dc",
+    "permission": "workspace",
+    "reviewSessionId": "1b269d47-dd00-4387-8df7-75e7c5e1b8dc",
+    "reviewSessionScope": "act:issue-1212:primary-review",
+    "sourceWriterSessionId": "1b269d47-dd00-4387-8df7-75e7c5e1b8dc",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1212:primary-review",
     "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/primary-independent-stage-source.json",
     "sourceArtifactSha256": "52d645362c4840c316faa3b070f120b9d928f4f2bd920942cad777cd75c06a8f",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/primary-review.json",
     "normalizedDocumentDigest": "7c3ab5b29910885d4201c5cf0cc3405fd6f8e3af943d6d5a43e4a5b14df6eb32",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 50
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored PRIMARY conclusions without producing semantic conclusions.",
     "sourceArtifactBinding": {
       "artifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/primary-independent-stage-source.json",
       "artifactSha256": "52d645362c4840c316faa3b070f120b9d928f4f2bd920942cad777cd75c06a8f",
@@ -31,15 +40,35 @@
     }
   },
   "challenger": {
+    "provider": "grok-4.5-build",
+    "sessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304",
+    "permission": "workspace",
+    "reviewSessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304",
+    "reviewSessionScope": "act:issue-1212:challenger-review",
+    "sourceWriterSessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1212:challenger-review",
     "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/challenger-independent-stage-source.json",
     "sourceArtifactSha256": "d12e5a925f24bd86fed1722370850f89fe201733c22314752bed95324c402375",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/challenger-review.json",
     "normalizedDocumentDigest": "274068d06b1e6ec5b7e5aa74cec8d7061073ce79653538301640258f88032bfc",
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 50
+    },
+    "independentCourseEvidenceCount": 0,
+    "structuredTranscription": "The deterministic orchestrator preserved the independently authored CHALLENGER conclusions without producing semantic conclusions.",
     "sourceArtifactBinding": {
       "artifactPath": "course-content/authoring/knowledge/issue-1212-course-coverage-review/challenger-independent-stage-source.json",
       "artifactSha256": "d12e5a925f24bd86fed1722370850f89fe201733c22314752bed95324c402375",
       "schemaVersion": "course-coverage-independent-stage-preparation/v0",
       "stage": "CHALLENGER",
       "writerSessionId": "c2c5d056-edca-4486-9caa-99ad07aa3304"
-    }
+    },
+    "didNotReadPrimaryArtifact": true,
+    "sessionAuditPrimaryPathMentions": 0
   }
 }
