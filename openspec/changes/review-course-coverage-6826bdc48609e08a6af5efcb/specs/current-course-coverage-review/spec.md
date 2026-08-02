@@ -30,15 +30,11 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 
 ### Requirement: Batch 6826bdc48609e08a6af5efcb emits a machine-mergeable receipt
 
-The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, bind the Primary and Challenger raw source artifacts and normalized stage documents through `review-provenance.json`, and prove that no out-of-slice member or production authority was written. The Primary writer session MUST be `be3478ca-c446-46e6-b802-8faeb9079a93`; the Challenger writer session MUST be `72b3fcd8-acb6-49a9-a30f-3bd0147e5ba9`, and provenance MUST state that Challenger did not read Primary. Provenance MUST retain `reFreezeRequired=true` for semantically adjacent course materials that were not present in frozen `evidenceRefs`. The publication boundary MUST use the v3 proof and v2 detached-attestation schemas and preserve ordered protected-path digests for squash-safe content-equivalent replay.
 
 #### Scenario: Receipt for batch 6826bdc48609e08a6af5efcb is assembled
 
 - **WHEN** all required stages are terminal and drift checks pass
-- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `6826bdc48609e08a6af5efcb`
-
-### Recorded implementation evidence
-
-- The Primary and Challenger raw sources are bound by SHA-256 (`f8c69b836f4f6da30ea2f73df97ffe66b6c279747e79cc77ca87df407c71bbf5` and `52103ed1d7f63bba65428bed3f8d9fe4eaa69c53b5ac66420295e53784ace93c`) and by provenance to wrapper sessions `be3478ca-c446-46e6-b802-8faeb9079a93` and `72b3fcd8-acb6-49a9-a30f-3bd0147e5ba9`; Challenger did not read Primary. The source/provenance record retains the unresolved re-freeze risk for semantically adjacent course materials not present in frozen `evidenceRefs`.
-- The assembled receipt records 10 `DEFER`, 0 `INCLUDE`, 0 `EXCLUDE`, 0 conflicts, and no Third review, with status `DEFERRED_EVIDENCE_BLOCKED`, `aggregateCoverageGate=BLOCKED_UNRESOLVED_EVIDENCE`, and all production mutation flags false. Receipt digest: `1df6f45facd6a452f00ac2c7616f69750434ffa37630574c5736dd7ceb1067bc`.
-- The detached attestation uses schema/protocol v2 and is paired with the receipt by digest `c71e8312beef5626a25cf3934f587b4a7103790998828171d55b0a4b339af253`. Replaying the same content produced `publication=identical`, identical attestation, and `replayMode=content-equivalent`. These artifacts do not resolve global CourseCoverage authority or unblock the aggregate gate.
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `6826bdc48609e08a6af5efcb`, with first-publication `receiptDigest` `1df6f45facd6a452f00ac2c7616f69750434ffa37630574c5736dd7ceb1067bc` and detached `attestationDigest` `c71e8312beef5626a25cf3934f587b4a7103790998828171d55b0a4b339af253`
+- **AND** the receipt SHALL record 10 role-free `DEFER`, 0 `INCLUDE`, 0 `EXCLUDE`, 0 conflicts, no Third review, `DEFERRED_EVIDENCE_BLOCKED`, and `aggregateCoverageGate=BLOCKED_UNRESOLVED_EVIDENCE`, with all production mutation flags false
+- **AND** the v3 proof/v2 detached attestation SHALL support squash/content-equivalent replay when protected-path bytes and clean status match the persisted ordered rows, without resolving global CourseCoverage authority or unblocking the aggregate gate
