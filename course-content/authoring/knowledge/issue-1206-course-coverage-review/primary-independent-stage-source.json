@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "PRIMARY",
+  "batchBinding": {
+    "batchId": "bbd99e29d4339410c06d0528",
+    "manifestBatchIndex": 16,
+    "sequence": 0,
+    "group": "ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel",
+    "memberCount": 1,
+    "memberDigest": "bbf983851280ba71a7ae3ffd4dd5e3923bb68a2b5fad50031ffad0bc54662417",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "sessionId": "991b94cc-94d8-435e-b99a-4eceec7280c2",
+  "writerSessionId": "991b94cc-94d8-435e-b99a-4eceec7280c2",
+  "reviewSessionId": "991b94cc-94d8-435e-b99a-4eceec7280c2",
+  "sessionIndependence": "PRIMARY-only independent session for issue-1206 batch bbd99e29d4339410c06d0528 batches[16]; did not read Challenger/Third/normalized review/receipt/attestation artifacts or other-batch semantic conclusions. Conclusions are limited to the frozen issue-1180 batch-manifest.json#/batches/16/members, worklist.json row, and independent-course evidence scope course-content/authoring/lessons/** plus course-content/syllabus-refactor/**. The Grok session ended in structured terminal state with 0 INCLUDE, 0 EXCLUDE, 1 DEFER and evidenceSufficiency=INSUFFICIENT.",
+  "diagnosticCandidates": [
+    {
+      "path": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
+      "kind": "authoring-handout",
+      "authority": "diagnostic-only",
+      "observation": "1-2 handout is a nearby block-diagram source but is not a frozen evidenceRef for this member."
+    },
+    {
+      "path": "course-content/authoring/lessons/legacy/1-2/design/1-2-handout.md",
+      "kind": "legacy-handout",
+      "authority": "diagnostic-only",
+      "observation": "Legacy 1-2 handout is a nearby block-diagram source but is not a frozen evidenceRef for this member."
+    },
+    {
+      "path": "course-content/authoring/lessons/3-2/design/3-2-handout.md",
+      "kind": "authoring-handout",
+      "authority": "diagnostic-only",
+      "observation": "3-2 handout is a neighboring stability source but is not a frozen evidenceRef for this member."
+    },
+    {
+      "path": "course-content/syllabus-refactor/unit-design-details/module2.md",
+      "kind": "syllabus-blueprint",
+      "authority": "diagnostic-only",
+      "observation": "Module 2 block-diagram section is a neighboring syllabus source but is not a frozen evidenceRef for this member."
+    }
+  ],
+  "reFreezeRequired": true,
+  "reFreezeReason": "Issue #1180 must bind and classify any diagnostic course candidates into independent-course evidence, re-freeze the ordered batch, and then rerun this review; candidates cannot upgrade the current DEFER.",
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+      "canonicalRevision": "007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe",
+      "stageConclusion": "DEFER",
+      "role": null,
+      "evidenceSufficiency": "INSUFFICIENT",
+      "rationale": "PRIMARY independent review of SystemModel ctkg:v3e-object-8febbacce7243f4fa8086290 (preferredLabel='A block diagram of a welding head positioning system is shown in Figure 6.5. The welding head is moved to different positions on the auto body, and a rapid, accurate response is required.') at canonicalRevision=007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe. Frozen batch bbd99e29d4339410c06d0528 / batches[16] ordinal=0; semanticGroupKey=ctr:release:stability-analysis-engineering-v0.1::entityType:SystemModel; moduleMembership=['ctr:release:stability-analysis-engineering-v0.1']; profileOnly=true and riskFlags.highRisk=true (reasons=['high-risk','profile-only']); sourceCoverage count=1 releaseTier=silver upstreamEvidenceCount=1; priorDecisionRefs is empty. The two frozen evidenceRefs are aggregate-projection only: aggregate-evidence selector evidence:ctkg:v3e-evidence-e7e840270dcfa4baab7a1b68 and canonical-profile selector canonicalId:ctkg:v3e-object-8febbacce7243f4fa8086290; no frozen ref has boundary=independent-course. Primary diagnostic inspection found nearby block-diagram/stability material in the 1-2 handout, legacy 1-2 handout, 3-2 handout, and syllabus-refactor module2 block-diagram section, but these are explicitly non-authoritative diagnosticCandidates and were not promoted into evidenceRefs. With no admitted independent-course evidence, INCLUDE/EXCLUDE and any CourseCoverage role are unsupported. Therefore stageConclusion=DEFER, role=null, evidenceSufficiency=INSUFFICIENT; Issue #1180 must bind/classify the candidates, re-freeze the batch, and rerun before any upgrade.",
+      "evidenceRefs": [
+        {
+          "evidenceId": "154c2c083ece93b107cda1df482ff2bc",
+          "sourcePath": "aggregate-projection",
+          "selector": "evidence:ctkg:v3e-evidence-e7e840270dcfa4baab7a1b68",
+          "sourceDigest": "a71b0999c3880d163499b7acdabb28d0bc86dc343ea2b3a82a29c3e5dce1fdfc",
+          "boundary": "aggregate",
+          "kind": "aggregate-evidence",
+          "digestSemantics": "selector-evidence"
+        },
+        {
+          "evidenceId": "7044cf4802d1461e1d25059f6c38d769",
+          "sourcePath": "aggregate-projection",
+          "selector": "canonicalId:ctkg:v3e-object-8febbacce7243f4fa8086290",
+          "sourceDigest": "007dfcdcf699ca0d312e160c9b5cbeacc238a8dde18598864cfe5ff0c21775fe",
+          "boundary": "profile",
+          "kind": "canonical-profile",
+          "digestSemantics": "semantic-payload"
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 1
+  },
+  "unresolvedRisks": [
+    "Frozen evidenceRefs are aggregate/profile only; no independent-course selector is admitted, so CourseCoverage authority remains unresolved.",
+    "The four nearby course files are diagnosticCandidates only and must not be copied into frozen evidenceRefs or used to upgrade this batch.",
+    "reFreezeRequired=true: Issue #1180 must bind/classify the candidates and re-freeze before a later re-review."
+  ]
+}

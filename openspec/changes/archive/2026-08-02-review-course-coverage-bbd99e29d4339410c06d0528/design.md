@@ -17,3 +17,7 @@ Before review and before receipt assembly, reread the manifest slice and compare
 ### Receipt
 
 The receipt is deterministic and machine-mergeable: it contains the exact batch binding, ordered member references, Primary/Challenger/Third stage outcomes, conflict resolutions, terminal per-member decisions, and proof that no out-of-slice member was written.
+
+The recorded execution keeps the two independent terminal Grok sessions bound to their raw sources: Primary `991b94cc-94d8-435e-b99a-4eceec7280c2` and Challenger `7aa9a3b2-4780-435f-817f-cdc585543b53`. Both sessions returned `0 INCLUDE / 0 EXCLUDE / 1 DEFER`, `evidenceSufficiency=INSUFFICIENT`, `role=null`, and no conflict. The source artifacts retain only repository-relative paths and preserve the ordered aggregate-evidence and canonical-profile selectors; diagnostic course candidates remain explicitly non-authoritative.
+
+The normalized stage documents retain `reFreezeRequired=true` and the diagnostic-only candidate lists. The receipt carries the same re-freeze marker through both stage records, while the detached v2 attestation carries it directly. The v3 production-boundary proof records ordered protected-path snapshots, all production mutation flags false, and no ACTIVE or selector/writer-fence mutation. A second invocation with the same relative inputs returned `publication=identical`, `attestationPublication=identical`, and `replayMode=content-equivalent`.
