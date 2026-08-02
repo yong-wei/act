@@ -330,6 +330,7 @@ export interface KonlingTeachingAssistantRuntimeContract {
   outputContract: KonlingTeachingAssistantModeContract['outputContract'];
   smartPreparation: KonlingSmartPreparationServerContext | null;
   adaptiveAttempt: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext | null;
+  wrongAnswerAttribution: import('@/features/assessment/wrong-answer-attribution').WrongAnswerAttributionProjection | null;
   clientHintsAccepted: string[];
   clientHintsRejected: string[];
 }
@@ -378,6 +379,7 @@ export interface KonlingSmartPreparationServerContext {
 export type KonlingTeachingAssistantServerModeContext = Partial<Record<KonlingTeachingAssistantContextKey, boolean>> & {
   smartPreparation?: KonlingSmartPreparationServerContext;
   adaptiveAttempt?: import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext;
+  wrongAnswerAttribution?: import('@/features/assessment/wrong-answer-attribution').WrongAnswerAttributionProjection;
 };
 
 export interface KonlingTeachingAssistantEntryPoint {
@@ -856,6 +858,9 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const adaptiveAttempt = mode.id === 'diagnosis-explainer'
     ? input.serverModeContext?.adaptiveAttempt ?? null
     : null;
+  const wrongAnswerAttribution = mode.id === 'diagnosis-explainer'
+    ? input.serverModeContext?.wrongAnswerAttribution ?? null
+    : null;
   const requiredContext = adaptiveAttempt
     ? ['adaptive-attempt'] satisfies KonlingTeachingAssistantContextKey[]
     : smartPreparation
@@ -981,6 +986,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     outputContract: mode.outputContract,
     smartPreparation,
     adaptiveAttempt,
+    wrongAnswerAttribution,
     clientHintsAccepted: [],
     clientHintsRejected,
   };
