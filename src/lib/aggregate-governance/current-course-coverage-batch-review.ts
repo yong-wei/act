@@ -499,6 +499,15 @@ function assertStageAuditShape(
   }
 }
 
+function assertChallengerPrimaryArtifactAudit(
+  audit: Pick<CurrentCourseCoverageReviewProvenanceStageAudit, 'didNotReadPrimaryArtifact' | 'sessionAuditPrimaryPathMentions'>,
+  field: string,
+): void {
+  if (audit.didNotReadPrimaryArtifact !== true || audit.sessionAuditPrimaryPathMentions !== 0) {
+    throw new Error(`Current batch review rejected: ${field} primary artifact audit is not closed`);
+  }
+}
+
 function deriveProvenanceStageAudit(input: {
   stage: CourseCoverageReviewStage;
   document: CurrentCourseCoverageStageReview;
@@ -617,9 +626,7 @@ function deriveProvenanceStageAudit(input: {
     audit.sessionAuditChallengerPathMentions = sessionAuditChallengerPathMentions;
   }
   if (stage === 'CHALLENGER') {
-    if (audit.didNotReadPrimaryArtifact !== true || audit.sessionAuditPrimaryPathMentions !== 0) {
-      throw new Error(`Current batch review rejected: ${stage} primary artifact audit is not closed`);
-    }
+    assertChallengerPrimaryArtifactAudit(audit, stage);
   }
   return audit;
 }
@@ -798,6 +805,10 @@ export function assertCurrentCourseCoverageReviewProvenanceBinding(
       'reviewProvenanceBinding.independenceAudit.challenger',
     ) as unknown as CurrentCourseCoverageReviewProvenanceStageAudit;
     assertStageAuditShape(challenger, 'reviewProvenanceBinding.independenceAudit.challenger');
+    assertChallengerPrimaryArtifactAudit(
+      challenger,
+      'reviewProvenanceBinding.independenceAudit.challenger',
+    );
     assertAuditStagesIndependent(primary, challenger);
   }
   if (audit.third !== null && audit.third !== undefined) {
@@ -815,6 +826,56 @@ export function assertCurrentCourseCoverageReviewProvenanceBinding(
       assertAuditStagesIndependent(challenger, third);
     }
   }
+}
+
+function assertBoundStageRecordClosure(receipt: CurrentCourseCoverageBatchReceipt): void {
+  const binding = receipt.reviewProvenanceBinding;
+  const stageRecords = receipt.stageRecords;
+  const stageDocuments = receipt.stageDocuments;
+  if (!binding || !stageRecords || typeof stageRecords !== 'object'
+    || !stageDocuments || typeof stageDocuments !== 'object'
+    || !stageRecords.primary || !binding.independenceAudit.primary) {
+    throw new Error('Current batch review rejected: bound primary stage closure is incomplete');
+  }
+  if (stageDocuments.primaryDigest !== stageRecords.primary.documentDigest) {
+    throw new Error('Current batch review rejected: bound primary stage document closure drift');
+  }
+  if (binding.independenceAudit.primary.normalizedDocumentDigest !== stageRecords.primary.documentDigest) {
+    throw new Error('Current batch review rejected: bound primary provenance normalized document closure drift');
+  }
+  const assertOptionalStageClosure = (
+    stage: 'challenger' | 'third',
+    record: CurrentCourseCoverageStageReview | null | undefined,
+    audit: CurrentCourseCoverageReviewProvenanceStageAudit | null | undefined,
+    digest: string | null | undefined,
+  ): void => {
+    const recordPresent = record !== null && record !== undefined;
+    const auditPresent = audit !== null && audit !== undefined;
+    if (recordPresent !== auditPresent) {
+      throw new Error(`Current batch review rejected: bound ${stage} stage/provenance closure mismatch`);
+    }
+    if (recordPresent && digest !== record.documentDigest) {
+      throw new Error(`Current batch review rejected: bound ${stage} stage document closure drift`);
+    }
+    if (recordPresent && audit && audit.normalizedDocumentDigest !== record.documentDigest) {
+      throw new Error(`Current batch review rejected: bound ${stage} provenance normalized document closure drift`);
+    }
+    if (!recordPresent && digest !== null) {
+      throw new Error(`Current batch review rejected: bound ${stage} stage document must be null when stage is absent`);
+    }
+  };
+  assertOptionalStageClosure(
+    'challenger',
+    stageRecords.challenger,
+    binding.independenceAudit.challenger,
+    stageDocuments.challengerDigest,
+  );
+  assertOptionalStageClosure(
+    'third',
+    stageRecords.third,
+    binding.independenceAudit.third,
+    stageDocuments.thirdDigest,
+  );
 }
 
 function validateProtectedPathSnapshots(
@@ -981,6 +1042,7 @@ export function assertCurrentCourseCoverageProductionBoundaryBundle(input: {
       throw new Error('Current batch review rejected: review provenance binding is invalid');
     }
     assertCurrentCourseCoverageReviewProvenanceBinding(receipt.reviewProvenanceBinding);
+    assertBoundStageRecordClosure(receipt);
   }
   const proof = receipt.productionBoundaryProof;
   validateProductionBoundaryProof(proof);
