@@ -3,6 +3,8 @@ import { createHmac } from 'node:crypto';
 
 vi.mock('server-only', () => ({}));
 
+import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import { adaptiveAssessmentItemContentHash } from '@/features/assessment/adaptive-assessment-item-content-hash';
 import {
   createKonlingTeachingAssistantServerContextToken,
   resolveKonlingTeachingAssistantSignedGraphNodeId,
@@ -67,16 +69,139 @@ describe('Konling teaching-assistant server context', () => {
       misconceptionTags: ['bandwidth-only'],
       remediationResources: [],
     };
+    let contentHash = '';
+    const catalogContentHash = 'c'.repeat(64);
+    const reviewDecisionWithoutHash = {
+      catalogItemId: 'catalog-item-1',
+      decisionKind: 'human-review' as const,
+      outcome: 'approved' as const,
+      reviewerId: 'reviewer:test',
+      reviewedAt: '2026-07-27T23:00:00.000Z',
+      reviewBatchId: 'konling-context-test.v1',
+      sourceContentHash: catalogContentHash,
+      selectedLearningGoalIds: ['learning-goal-1'],
+      selectedKaqObjectiveIds: ['kaq-objective-1'],
+      selectedGraphNodeIds: ['knowledge-node-1'],
+      selectedStagePurpose: 'checkpoint' as const,
+      difficulty: 0.5,
+      cognitiveLevel: 'apply',
+      misconceptionRefs: ['bandwidth-only'],
+      remediationRefs: ['remediation-node-1'],
+      metadataVersionRefs: { semanticReviewVersion: 'v1' },
+      notes: 'Reviewed diagnosis attribution boundary and evidence snapshot.',
+    };
+    const reviewDecision = {
+      ...reviewDecisionWithoutHash,
+      reviewSourceHash: assessmentItemSemanticReviewSourceHash(reviewDecisionWithoutHash),
+    };
     const answer = {
-      id: 'answer-1', userId: 'student-1', sessionId: 'session-1', questionId: 'question-1',
+      id: 'answer-1', userId: 'student-1', sessionId: 'session-1', questionRefId: 'item-ref-1', questionId: 'question-1',
       selectedOptionKey: 'B', correctOptionKey: 'A', isCorrect: false, answeredAt: new Date('2026-07-28T00:00:00.000Z'),
       session: { id: 'session-1', userId: 'student-1', sessionKey: 'practice-1' },
-      questionRef: { knowledgeTags: ['steady-state-error'], metadata: { questionSnapshot } },
+      questionRef: {
+        id: 'item-ref-1',
+        questionId: 'question-1',
+        contentHash,
+        source: 'preset',
+        questionType: 'multiple-choice',
+        domains: ['frequency-domain'],
+        knowledgeTags: ['steady-state-error'],
+        difficulty: 0.5,
+        optionCount: 2,
+        metadata: {
+          kaq: {
+            immutableContentHash: 'kaq-content-hash-v1',
+          },
+          questionSnapshot,
+          adaptiveAssessmentItemRef: {
+            catalogBacked: true,
+            catalogItemId: 'catalog-item-1',
+            snapshotVersion: 'adaptive-assessment-item-ref.v1',
+            reviewState: 'path-eligible',
+            eligibilityState: 'path-eligible',
+            contentHash: catalogContentHash,
+            contentHashAlgorithm: 'sha256',
+            sourceFamily: 'preset-adaptive-question',
+            sourceId: 'question-1',
+            sourceAnchor: 'test:question-1',
+            sourceLineage: {
+              sourceFamily: 'preset-adaptive-question',
+              sourceId: 'question-1',
+              sourcePath: 'test/questions.ts',
+              sourceHash: catalogContentHash,
+            },
+            allowedStages: ['checkpoint'],
+            questionRefs: {
+              stem: questionSnapshot.prompt,
+              answerKey: [questionSnapshot.correctOptionKey],
+              rubricRef: 'rubric:test',
+            },
+            semanticRefs: {
+              learningGoalIds: ['learning-goal-1'],
+              kaqObjectiveIds: ['kaq-objective-1'],
+              graphNodeIds: ['knowledge-node-1'],
+              knowledgeTags: ['steady-state-error'],
+              misconceptionTags: ['bandwidth-only'],
+              remediationResourceNodeIds: ['remediation-node-1'],
+              difficulty: 0.5,
+              cognitiveLevel: 'apply',
+              assessmentStage: 'checkpoint',
+            },
+            limitations: [],
+            reviewDecision,
+            versionRefs: { semanticReviewVersion: 'v1' },
+            relationship: {
+              relationship: 'answer-time-snapshot',
+              immutable: true,
+              mayReferenceCatalogItemId: true,
+              mayReferenceContentHash: true,
+              catalogUpdatesRewriteHistoricalAnswers: false,
+            },
+          },
+        },
+      },
     };
+    contentHash = adaptiveAssessmentItemContentHash({
+      source: answer.questionRef.source,
+      questionType: answer.questionRef.questionType,
+      domains: answer.questionRef.domains,
+      knowledgeTags: answer.questionRef.knowledgeTags,
+      difficulty: answer.questionRef.difficulty,
+      optionCount: answer.questionRef.optionCount,
+      kaqImmutableContentHash: answer.questionRef.metadata.kaq.immutableContentHash,
+      adaptiveAssessmentItemRef: answer.questionRef.metadata.adaptiveAssessmentItemRef,
+      questionSnapshot: answer.questionRef.metadata.questionSnapshot,
+    });
+    answer.questionRef.contentHash = contentHash;
     const db = {
       adaptiveAssessmentAnswer: {
         findFirst: vi.fn().mockResolvedValue(answer),
         findMany: vi.fn().mockResolvedValue([answer]),
+      },
+      wrongAnswerAttribution: {
+        upsert: vi.fn().mockResolvedValue({
+          id: 'attribution-1',
+          answerId: 'answer-1',
+          attributionVersion: 'wrong-answer-attribution.v1',
+          sessionId: 'session-1',
+          questionRefId: 'item-ref-1',
+          itemContentHash: contentHash,
+          state: 'ATTRIBUTED',
+          knowledgeNodeIds: ['knowledge-node-1'],
+          misconceptionTags: ['bandwidth-only'],
+          evidenceSummary: {
+            version: 'wrong-answer-evidence-summary.v1',
+            outcome: 'incorrect',
+            answeredAt: '2026-07-28T00:00:00.000Z',
+            knowledgeNodeCount: 1,
+            misconceptionCandidateCount: 1,
+          },
+          evidenceRefs: [],
+          confidence: 1,
+          limitations: [],
+          nextAction: 'NONE',
+          createdAt: new Date('2026-07-28T00:01:00.000Z'),
+        }),
       },
     };
 
@@ -95,6 +220,13 @@ describe('Konling teaching-assistant server context', () => {
       where: { id: 'answer-1', userId: 'student-1' },
     }));
     expect(context.adaptiveAttempt).toMatchObject({ answerId: 'answer-1', selectedOptionKey: 'B', question: questionSnapshot });
+    expect(context.wrongAnswerAttribution).toMatchObject({
+      state: 'ATTRIBUTED',
+      attribution: {
+        knowledgeNodeId: 'knowledge-node-1',
+        misconceptionTag: 'bandwidth-only',
+      },
+    });
   });
 
   it('fails closed when diagnosis attempt context cannot be verified', async () => {
