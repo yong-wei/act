@@ -143,6 +143,17 @@ function rehashItemContent(row: any) {
   });
 }
 
+function reverseObjectKeyOrder(value: any): any {
+  if (Array.isArray(value)) return value.map(reverseObjectKeyOrder);
+  if (value === null || typeof value !== 'object') return value;
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .reverse()
+      .map(([key, entryValue]) => [key, reverseObjectKeyOrder(entryValue)]),
+  );
+}
+
 function persisted(overrides: Record<string, unknown> = {}) {
   return {
     id: 'attribution-1',
@@ -280,6 +291,19 @@ describe('attributeWrongAnswerEvidence', () => {
       answerId: 'answer-1',
     })).resolves.toBeNull();
     expect(db.wrongAnswerAttribution.upsert).not.toHaveBeenCalled();
+  });
+
+  it('accepts a semantically equivalent JSONB snapshot with reordered object keys', async () => {
+    const row = answer();
+    row.questionRef.metadata = reverseObjectKeyOrder(row.questionRef.metadata);
+    const db = dbFor(row);
+
+    await expect(attributeWrongAnswerEvidence({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: 'answer-1',
+    })).resolves.toMatchObject({ state: 'ATTRIBUTED' });
+    expect(db.wrongAnswerAttribution.upsert).toHaveBeenCalledOnce();
   });
 
   it('persists and projects a deterministic governed attribution', async () => {
