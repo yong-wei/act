@@ -25,14 +25,16 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 
 #### Scenario: Batch 00617fd6a22c8b84c2e91142 has no conflict
 
-- **WHEN** required stages agree and all members are resolved
-- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+- **WHEN** Primary and required Challenger independently agree on all 147 ordered members and no conflict is present
+- **THEN** the receipt SHALL preserve each stage's independent raw-source binding, rationale, evidence selectors, exact evidence IDs, canonical decision digests, and normalized document digest, with no Third stage
+- **AND** every member SHALL remain a role-free `DEFER` with insufficient evidence and review-stage terminal state `DEFERRED_EVIDENCE_BLOCKED`; CourseCoverage authority SHALL remain unresolved and the global gate SHALL remain blocked
 
 ### Requirement: Batch 00617fd6a22c8b84c2e91142 emits a machine-mergeable receipt
 
-The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written. It MUST bind `review-provenance.json` through `reviewProvenanceBinding`, including repository-relative source paths, raw-byte SHA-256 values, distinct Primary and Challenger writer sessions/scopes, normalized v2 stage documents, and Challenger's `didNotReadPrimaryArtifact=true` audit. The Primary source writer session MUST be `b76983ed-6bbe-448a-a688-0d320e8a85c2`; the Challenger source writer session MUST be `f068c4e1-ee97-4b4b-a448-02bc1a0f476a`; the bound provenance SHA-256 MUST be `0a98d12f41dcc3045c007d4bb226ec8e23c31a280da66d5e87f62177c585d27a`. This new publication MUST use the v3 production-boundary proof and v2 detached-attestation pair, and content-equivalent replay MUST fail closed if provenance or protected-path bindings drift.
 
 #### Scenario: Receipt for batch 00617fd6a22c8b84c2e91142 is assembled
 
 - **WHEN** all required stages are terminal and drift checks pass
-- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `00617fd6a22c8b84c2e91142`
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `00617fd6a22c8b84c2e91142`, with `receiptDigest` `96aac13889ab93e08b88217964564a72f2b41ce96f5806b083253a29479d7728` and detached `attestationDigest` `de22a1e620e0c4f12cbe1a67b49319bfc861e274a8bd12388033e57dcac29647`
+- **AND** replay SHALL accept only an identical content-equivalent continuation when the persisted protected-path rows and clean status still match

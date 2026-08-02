@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "current-course-coverage-review-provenance/v1",
+  "batchId": "00617fd6a22c8b84c2e91142",
+  "batchBinding": {
+    "batchId": "00617fd6a22c8b84c2e91142",
+    "manifestBatchIndex": 26,
+    "sequence": 0,
+    "semanticGroupKey": "ctr:release:time-domain-analysis-engineering-v0.1::entityType:DomainConcept",
+    "memberCount": 147,
+    "memberDigest": "362665fd1a4c18baad85eb8b44407dfd87b3720ce1dd3e607749f525adac0ea7",
+    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
+    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
+    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8"
+  },
+  "independenceProtocol": {
+    "primaryCouldReadChallengerArtifact": false,
+    "challengerCouldReadPrimaryArtifact": false,
+    "normalizedStageArtifactsExistedDuringReviews": false,
+    "sourceArtifactsCreatedByIndependentWriters": true,
+    "sourceArtifactsBoundToNormalizedReviews": true,
+    "semanticConclusionsGeneratedByAssembler": false
+  },
+  "primary": {
+    "provider": "grok-4.5-build",
+    "permission": "workspace",
+    "sessionId": "b76983ed-6bbe-448a-a688-0d320e8a85c2",
+    "reviewSessionId": "b76983ed-6bbe-448a-a688-0d320e8a85c2",
+    "reviewSessionScope": "act:issue-1216:course-coverage-primary",
+    "sourceWriterSessionId": "b76983ed-6bbe-448a-a688-0d320e8a85c2",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1216:course-coverage-primary",
+    "sourceArtifact": "primary-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/primary-independent-stage-source.json",
+    "sourceArtifactSha256": "badd7133b6def73105ac3460fa3bc2b4e6e109351adab6526dcaf08b17e30d24",
+    "normalizedStageArtifact": "primary-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/primary-review.json",
+    "normalizedDocumentDigest": "1323fd52dc19a15987d312ea1f246a6f1d63f2a2116e85047e5a4f481875f4bd",
+    "reviewInputDigest": "1c225623b873f631ca5f1ae2f93b289bd995f7c28c724a0b97d150fd7753b786",
+    "stageMemberCount": 147,
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 147
+    },
+    "independentCourseEvidenceCount": 0,
+    "evidenceRefCount": 337,
+    "independentCourseEvidenceRefCount": 0,
+    "duplicateSelectorGroupCount": 0,
+    "duplicateSelectorRefCount": 0,
+    "structuredTranscription": "The deterministic assembler preserved independently authored PRIMARY conclusions, rationales, evidence sufficiency, frozen evidence selectors, and exact evidence IDs in raw order without deriving semantic conclusions.",
+    "allowedIndependentEvidenceScope": [
+      "course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json#/batches/26/members",
+      "course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json (exact ordered member rows only)",
+      "course-content/authoring/lessons/**",
+      "course-content/syllabus-refactor/**"
+    ],
+    "disallowedAsIndependentCourseEvidence": [
+      "aggregate membership",
+      "profile membership",
+      "module membership"
+    ],
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/primary-independent-stage-source.json",
+      "artifactSha256": "badd7133b6def73105ac3460fa3bc2b4e6e109351adab6526dcaf08b17e30d24",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "PRIMARY",
+      "writerSessionId": "b76983ed-6bbe-448a-a688-0d320e8a85c2"
+    }
+  },
+  "challenger": {
+    "provider": "grok-4.5-build",
+    "permission": "workspace",
+    "sessionId": "f068c4e1-ee97-4b4b-a448-02bc1a0f476a",
+    "reviewSessionId": "f068c4e1-ee97-4b4b-a448-02bc1a0f476a",
+    "reviewSessionScope": "act:issue-1216:course-coverage-challenger",
+    "sourceWriterSessionId": "f068c4e1-ee97-4b4b-a448-02bc1a0f476a",
+    "sourceWriterPermission": "workspace",
+    "sourceWriterScope": "act:issue-1216:course-coverage-challenger",
+    "sourceArtifact": "challenger-independent-stage-source.json",
+    "sourceArtifactPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/challenger-independent-stage-source.json",
+    "sourceArtifactSha256": "396a10272b989ddffb45bd7e8c9a3af2a9edc68e941fa8f644a6ae6a2b89906f",
+    "normalizedStageArtifact": "challenger-review.json",
+    "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/challenger-review.json",
+    "normalizedDocumentDigest": "384e2c8b1fde72482d3e8d7a9202246394e4e88b59a09a0603d8d1a43e2dddfd",
+    "reviewInputDigest": "7ae96a8c7eb50b13048a60dc89fb6b9bb307453125b23657f8c78cd658f2dc3b",
+    "stageMemberCount": 147,
+    "conclusionCounts": {
+      "INCLUDE": 0,
+      "EXCLUDE": 0,
+      "DEFER": 147
+    },
+    "independentCourseEvidenceCount": 0,
+    "evidenceRefCount": 337,
+    "independentCourseEvidenceRefCount": 0,
+    "duplicateSelectorGroupCount": 0,
+    "duplicateSelectorRefCount": 0,
+    "structuredTranscription": "The deterministic assembler preserved independently authored CHALLENGER conclusions, rationales, evidence sufficiency, frozen evidence selectors, and exact evidence IDs in raw order without deriving semantic conclusions; every risk member remains role-free DEFER with insufficient evidence.",
+    "allowedIndependentEvidenceScope": [
+      "course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json#/batches/26",
+      "course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json (exact ordered member rows for batch 00617fd6a22c8b84c2e91142)",
+      "course-content/authoring/lessons/**",
+      "course-content/syllabus-refactor/**"
+    ],
+    "disallowedAsIndependentCourseEvidence": [
+      "aggregate membership",
+      "profile membership",
+      "module membership"
+    ],
+    "sourceArtifactBinding": {
+      "artifactPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/challenger-independent-stage-source.json",
+      "artifactSha256": "396a10272b989ddffb45bd7e8c9a3af2a9edc68e941fa8f644a6ae6a2b89906f",
+      "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+      "stage": "CHALLENGER",
+      "writerSessionId": "f068c4e1-ee97-4b4b-a448-02bc1a0f476a"
+    },
+    "didNotReadPrimaryArtifact": true,
+    "sessionAuditPrimaryPathMentions": 0
+  },
+  "third": null,
+  "frozenEvidenceBoundary": {
+    "memberCount": 147,
+    "profileOnlyHighRiskMemberCount": 147,
+    "aggregateEvidenceRefCount": 190,
+    "profileEvidenceRefCount": 147,
+    "independentCourseEvidenceMemberCount": 0,
+    "admittedBoundaries": [
+      "aggregate",
+      "profile"
+    ],
+    "diagnosticCandidatesAreNotAdmitted": true,
+    "diagnosticCandidatesRequireUpstreamIssue": "#1180"
+  },
+  "comparison": {
+    "semanticConflicts": 0,
+    "thirdRequired": false,
+    "terminalReviewStageStatus": "DEFERRED_EVIDENCE_BLOCKED",
+    "courseCoverageAuthorityResolved": false,
+    "aggregateCoverageGate": "BLOCKED_UNRESOLVED_EVIDENCE"
+  }
+}
