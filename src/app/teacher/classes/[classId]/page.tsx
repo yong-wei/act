@@ -39,6 +39,7 @@ import {
 } from '@/features/teacher/teacher-insights';
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
+import { TeacherDiagnosisReportHistory } from '@/features/teacher/teacher-diagnosis-report-history';
 
 interface Student {
   id: string;
@@ -534,7 +535,7 @@ export default function ClassDetailPage() {
         </div>
       </section>
 
-      <section className="mb-8 grid gap-4 lg:grid-cols-4">
+      <section className="mb-8 grid gap-4 lg:grid-cols-5">
         <Link href={buildTeacherClassInsightsHref(classId)} className="teacher-insight-entry">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -592,6 +593,17 @@ export default function ClassDetailPage() {
               </p>
             </div>
             <BookOpen className="h-5 w-5 text-violet-500" />
+          </div>
+        </Link>
+        <Link href="#diagnosis-report-history" className="teacher-insight-entry">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">学情诊断报告</p>
+              <p className="mt-2 text-sm text-subtle">
+                查看班级范围的历史报告、证据覆盖与受治理发现项。
+              </p>
+            </div>
+            <Database className="h-5 w-5 text-sky-500 dark:text-sky-300" />
           </div>
         </Link>
       </section>
@@ -661,6 +673,13 @@ export default function ClassDetailPage() {
           )}
         </section>
       )}
+
+      <div className="mb-8">
+        <TeacherDiagnosisReportHistory
+          classId={classId}
+          subjectLabel={`${classData.name} · 班级范围`}
+        />
+      </div>
 
       {/* 进行中的课堂 */}
       {activeSession && (

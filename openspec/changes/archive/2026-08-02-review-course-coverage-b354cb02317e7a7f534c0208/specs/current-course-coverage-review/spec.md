@@ -16,7 +16,7 @@ The review child MUST process only the exact ordered members at `batch-manifest.
 
 ### Requirement: Batch b354cb02317e7a7f534c0208 produces independent terminal decisions
 
-Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for the shared risk slice selected by `profileOnly || new || changed || highRisk` members. Every conflict MUST enter Third, and Third MUST be terminal. For batch `b354cb02317e7a7f534c0208`, Primary reviewed all `204` members and Challenger reviewed `202` risk members; frozen non-risk ordinals `2` and `24` are omitted from Challenger stage decisions while remaining bound by the full receipt.
 
 #### Scenario: Conflict occurs in batch b354cb02317e7a7f534c0208
 
@@ -28,6 +28,11 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 - **WHEN** required stages agree and all members are resolved
 - **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
 
+#### Scenario: Batch b354cb02317e7a7f534c0208 has unresolved evidence
+
+- **WHEN** Primary and Challenger both return `DEFER` with insufficient evidence and no semantic conflict
+- **THEN** the receipt SHALL be `DEFERRED_EVIDENCE_BLOCKED`, contain `204` terminal deferred members, omit Third, and keep all production mutation flags false
+
 ### Requirement: Batch b354cb02317e7a7f534c0208 emits a machine-mergeable receipt
 
 The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
@@ -36,3 +41,8 @@ The decision receipt MUST be keyed by every batch binding digest, preserve exact
 
 - **WHEN** all required stages are terminal and drift checks pass
 - **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `b354cb02317e7a7f534c0208`
+
+#### Scenario: Batch b354cb02317e7a7f534c0208 is replayed
+
+- **WHEN** the same CLI inputs and protected authority snapshot are replayed
+- **THEN** publication SHALL be `identical`, the detached attestation SHALL be `identical`, and no production authority path SHALL change
