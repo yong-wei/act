@@ -22,6 +22,11 @@ const diagnosisFindingSchema = z.object({
   confidence: z.enum(['high', 'medium', 'low', 'unavailable']).optional(),
 }).strict();
 
+export type DiagnosisReportFindingInput = z.output<typeof diagnosisFindingSchema>;
+export type DiagnosisReportFinding = DiagnosisReportFindingInput & {
+  prepLink?: string;
+};
+
 const diagnosisSourceCoverageSchema = z.object({
   classMembers: z.number().int().nonnegative().optional(),
   includedStudents: z.number().int().nonnegative().optional(),
@@ -41,6 +46,37 @@ export const diagnosisReportBodySchema = z.object({
   confidence: z.enum(['high', 'medium', 'low', 'unavailable']),
   limitations: z.array(z.string().trim().min(1).max(500)).default([]),
 }).strict();
+
+export type DiagnosisReportBody = Omit<z.output<typeof diagnosisReportBodySchema>, 'findings'> & {
+  findings: DiagnosisReportFinding[];
+};
+
+export interface DiagnosisRiskSummary {
+  total: number;
+  byType: {
+    stagnation: number;
+    constraint: number;
+    cross_domain: number;
+  };
+  bySeverity: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+}
+
+export interface DiagnosisReportReadModel {
+  id: string;
+  scopeType: 'class' | 'student';
+  scopeId: string;
+  classId: string;
+  targetUserId: string | null;
+  reportBody: DiagnosisReportBody;
+  riskSummary: DiagnosisRiskSummary;
+  evidenceCutoff: Date;
+  generatorVersion: string;
+  generatedAt: Date;
+}
 
 export const diagnosisReportWriteSchema = z.object({
   targetStudentId: z.string().trim().min(1).max(200).nullable().optional(),
@@ -85,7 +121,7 @@ export interface DiagnosisPersistenceDb {
   };
   diagnosisReport: {
     create(args: Record<string, unknown>): Promise<unknown>;
-    findMany(args: Record<string, unknown>): Promise<unknown[]>;
+    findMany(args: Record<string, unknown>): Promise<DiagnosisReportReadModel[]>;
   };
 }
 

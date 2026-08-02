@@ -80,6 +80,8 @@
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
     "test:runtime-log-delta": "node ./scripts/tests/test-runtime-log-delta.mjs",
     "test:commercial-ui-governance": "npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",
+    "test:teacher-diagnosis-report-history-evidence": "npx --yes tsx ./scripts/tests/teacher-diagnosis-report-history-evidence.ts",
+    "capture:teacher-diagnosis-report-history-evidence": "cross-env TEACHER_DIAGNOSIS_REPORT_EVIDENCE_CAPTURE=1 NEXTAUTH_SECRET=teacher-diagnosis-evidence-secret NEXTAUTH_URL=http://127.0.0.1:3200 playwright test tests/teacher-diagnosis-report-history-evidence.spec.ts --workers=1",
     "test:simulation-runtime-noise": "npx --yes tsx ./scripts/tests/capture-simulation-runtime-noise.ts",
     "test:react-doctor:ui-errors": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .",
     "test:react-doctor:owned-errors": "node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=errors",
