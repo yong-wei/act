@@ -24,3 +24,10 @@
 - [x] Run strict OpenSpec validation for this change.
 - [x] Run JSON/source-binding/order/revision checks, confirm zero conflicts, and verify canonical stage/document digests.
 - [x] Run focused receipt/manifest checks, identical content-equivalent replay, and `git diff --check`.
+
+## 5. Current-head Sol medium O1 accepted decision
+
+- [x] Activate the frozen policy only for the exact #1200 receipt path after public-boundary path binding is verified.
+- [x] Compare the complete batch binding, ordered protected paths, fixed stage sessions/scopes, and provenance SHA without fixing receipt or attestation digests.
+- [x] Preserve historical no-binding allowlists, non-#1200 general bound subset behavior, external provenance boundaries, and immutable receipt artifacts.
+- [x] Verify with focused Vitest, TypeScript typecheck, strict OpenSpec change validation, and `git diff --check`.

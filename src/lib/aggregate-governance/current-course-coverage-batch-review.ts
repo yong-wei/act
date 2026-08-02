@@ -1080,6 +1080,18 @@ const CURRENT_COURSE_COVERAGE_ISSUE_1200_CHALLENGER_SESSION_ID =
   '37cc1c54-54d1-4cc0-a174-c440ed0294fe';
 const CURRENT_COURSE_COVERAGE_ISSUE_1200_PROVENANCE_SHA256 =
   'eee0d6dcbccab41287492f2feb7348a0419b62478d0be0565c509a9e97122a18';
+const CURRENT_COURSE_COVERAGE_ISSUE_1200_PROTECTED_PATHS = [
+  'course-content/authoring/knowledge/course-coverage/active/automatic-control.json',
+  'course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json',
+  'src/lib/canonical-rag/authority.ts',
+  'src/lib/canonical-learning-fact-identity/authority.ts',
+  'src/lib/canonical-learning-fact-identity/capability.ts',
+  'src/lib/canonical-learning-fact-identity/writer.ts',
+] as const;
+const CURRENT_COURSE_COVERAGE_ISSUE_1200_PRIMARY_SCOPE =
+  'act:issue-1200:course-coverage-primary';
+const CURRENT_COURSE_COVERAGE_ISSUE_1200_CHALLENGER_SCOPE =
+  'act:issue-1200:course-coverage-challenger';
 
 function assertCurrentCourseCoverageIssue1200FrozenContract(
   receipt: CurrentCourseCoverageBatchReceipt,
@@ -1102,6 +1114,26 @@ function assertCurrentCourseCoverageIssue1200FrozenContract(
     || receipt.reviewProvenanceBinding.provenanceSha256
       !== CURRENT_COURSE_COVERAGE_ISSUE_1200_PROVENANCE_SHA256) {
     throw new Error('Current batch review rejected: frozen issue-1200 provenance SHA drift');
+  }
+  const protectedPaths = receipt.productionBoundaryProof.protectedPaths;
+  if (!Array.isArray(protectedPaths)
+    || protectedPaths.length !== CURRENT_COURSE_COVERAGE_ISSUE_1200_PROTECTED_PATHS.length
+    || protectedPaths.some((path, index) => path !== CURRENT_COURSE_COVERAGE_ISSUE_1200_PROTECTED_PATHS[index])) {
+    throw new Error('Current batch review rejected: frozen issue-1200 protected-path drift');
+  }
+  const audit = receipt.reviewProvenanceBinding.independenceAudit;
+  if (audit.primary.reviewSessionScope !== CURRENT_COURSE_COVERAGE_ISSUE_1200_PRIMARY_SCOPE) {
+    throw new Error('Current batch review rejected: frozen issue-1200 Primary reviewSessionScope drift');
+  }
+  if (!audit.challenger
+    || audit.challenger.reviewSessionScope !== CURRENT_COURSE_COVERAGE_ISSUE_1200_CHALLENGER_SCOPE) {
+    throw new Error('Current batch review rejected: frozen issue-1200 Challenger reviewSessionScope drift');
+  }
+  if (audit.primary.sourceWriterScope !== CURRENT_COURSE_COVERAGE_ISSUE_1200_PRIMARY_SCOPE) {
+    throw new Error('Current batch review rejected: frozen issue-1200 Primary sourceWriterScope drift');
+  }
+  if (audit.challenger.sourceWriterScope !== CURRENT_COURSE_COVERAGE_ISSUE_1200_CHALLENGER_SCOPE) {
+    throw new Error('Current batch review rejected: frozen issue-1200 Challenger sourceWriterScope drift');
   }
 }
 

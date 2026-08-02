@@ -876,6 +876,48 @@ describe('current CourseCoverage batch review receipt', () => {
     })).toThrow(/frozen issue-1200 (Primary|Challenger) session drift/iu);
   });
 
+  it('rejects a fully synchronized #1200 receipt when protected paths are reduced', () => {
+    const tamperedReceipt = issue1200Receipt();
+    const proof = tamperedReceipt.productionBoundaryProof;
+    if (proof.verificationProtocol !== CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL) {
+      throw new Error('fixture requires v3 proof');
+    }
+    proof.protectedPaths = [proof.protectedPaths[0]!];
+    proof.protectedPathSnapshots = [proof.protectedPathSnapshots[0]!];
+    proof.authoritySnapshotBeforeDigest = sha256Canonical({
+      head: proof.headBefore,
+      rows: proof.protectedPathSnapshots,
+    });
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/frozen issue-1200 protected-path drift/iu);
+  });
+
+  it.each([
+    ['Primary reviewSessionScope', 'primary', 'reviewSessionScope', 'drift-primary-review-scope'],
+    ['Challenger reviewSessionScope', 'challenger', 'reviewSessionScope', 'drift-challenger-review-scope'],
+    ['Primary sourceWriterScope', 'primary', 'sourceWriterScope', 'drift-primary-writer-scope'],
+    ['Challenger sourceWriterScope', 'challenger', 'sourceWriterScope', 'drift-challenger-writer-scope'],
+  ] as const)('rejects a fully synchronized #1200 receipt when %s drifts', (_label, stage, field, value) => {
+    const tamperedReceipt = issue1200Receipt();
+    const audit = tamperedReceipt.reviewProvenanceBinding!.independenceAudit[stage];
+    if (!audit) throw new Error(`fixture requires ${stage} provenance audit`);
+    audit[field] = value;
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/frozen issue-1200 (Primary|Challenger) (?:reviewSessionScope|sourceWriterScope) drift/iu);
+  });
+
   it('accepts a non-#1200 path with the general bound subset rules', () => {
     const tamperedReceipt = issue1200Receipt();
     const challenger = tamperedReceipt.stageRecords.challenger;
