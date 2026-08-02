@@ -5,7 +5,7 @@ This change is a bounded execution unit for `52b5179a73a91ace49d20fe4` (`ctr:roo
 ### Independent stages
 
 1. Primary produces an independent per-member conclusion and rationale.
-2. Challenger independently reviews every member when any member is profileOnly, new, changed, or highRisk; otherwise it follows the manifest policy and remains available for admitted primary exceptions.
+2. Challenger independently reviews the 13 members that are profileOnly, new, changed, or highRisk; it does not decide the three non-risk members.
 3. Any disagreement is routed to Third. Third's conclusion is terminal and must identify the conflict and rationale.
 
 No stage may reuse another stage's verdict as its own evidence. The receipt records stage identity, input digests, per-member outcome, rationale, and final terminal status.
@@ -17,3 +17,7 @@ Before review and before receipt assembly, reread the manifest slice and compare
 ### Receipt
 
 The receipt is deterministic and machine-mergeable: it contains the exact batch binding, ordered member references, Primary/Challenger/Third stage outcomes, conflict resolutions, terminal per-member decisions, and proof that no out-of-slice member was written.
+
+### Execution result
+
+The independent Primary session `87e9f5e7-efad-40fe-bcc4-cb12c4884ffb` produced 16 role-free `DEFER` decisions. The independent Challenger session `4802eede-3ae9-4095-9af6-1b3948d80e40` produced matching role-free `DEFER` decisions for the 13 required risk members; its broader raw review was deterministically restricted to that contract-required ordered subset before sealing. No semantic conflict required a Third review. The sealed receipt is `11e6c6dc5b35b172167f0a2c293ac9d9a4bd05681ba62d292cc89d1def7a7b66`; its detached attestation is `119e6304bc1ab308fa4169e2039077705c592ce455550abba912e99ea54eafb6`. The second publication was content-equivalent identical replay. The terminal review stage is `DEFERRED_EVIDENCE_BLOCKED`; CourseCoverage authority remains unresolved and no production selector or writer fence changed.
