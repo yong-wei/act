@@ -520,6 +520,68 @@ describe('current CourseCoverage batch review receipt', () => {
     expect(receipt(input).reviewProvenanceBinding).toEqual(provenanceFor(input).binding);
   });
 
+  it('requires and normalizes the fixed normalized-stage protocol field', () => {
+    const input = documents();
+    const { provenance } = provenanceFor(input);
+    const buildBinding = (candidate: Record<string, any>) => buildCurrentCourseCoverageReviewProvenanceBinding({
+      provenancePath: 'course-content/authoring/knowledge/issue-1200-course-coverage-review/review-provenance.json',
+      provenanceBytes: JSON.stringify(candidate),
+      batchId: input.binding.batchId,
+      primary: input.primary,
+      challenger: input.challenger,
+      third: input.third,
+    });
+
+    const missing = structuredClone(provenance) as Record<string, any>;
+    delete missing.independenceProtocol.normalizedStageArtifactsExistedDuringReviews;
+    delete missing.independenceProtocol.stageArtifactsExistedDuringReviews;
+    expect(() => buildBinding(missing)).toThrow(/normalizedStageArtifactsExistedDuringReviews.*must be false/iu);
+
+    const legacy = structuredClone(provenance) as Record<string, any>;
+    delete legacy.independenceProtocol.normalizedStageArtifactsExistedDuringReviews;
+    legacy.independenceProtocol.stageArtifactsExistedDuringReviews = false;
+    const normalized = buildBinding(legacy);
+    expect(normalized.independenceAudit.protocol.normalizedStageArtifactsExistedDuringReviews).toBe(false);
+
+    for (const useLegacy of [false, true]) {
+      const invalid = structuredClone(provenance) as Record<string, any>;
+      if (useLegacy) {
+        delete invalid.independenceProtocol.normalizedStageArtifactsExistedDuringReviews;
+        invalid.independenceProtocol.stageArtifactsExistedDuringReviews = true;
+      } else {
+        invalid.independenceProtocol.normalizedStageArtifactsExistedDuringReviews = true;
+      }
+      expect(() => buildBinding(invalid)).toThrow(/stageArtifactsExistedDuringReviews.*must be false/iu);
+    }
+  });
+
+  it.each([
+    ['normalized protocol missing', (protocol: Record<string, unknown>) => {
+      delete protocol.normalizedStageArtifactsExistedDuringReviews;
+      delete protocol.stageArtifactsExistedDuringReviews;
+    }],
+    ['legacy-only normalized protocol', (protocol: Record<string, unknown>) => {
+      delete protocol.normalizedStageArtifactsExistedDuringReviews;
+      protocol.stageArtifactsExistedDuringReviews = false;
+    }],
+    ['normalized protocol true', (protocol: Record<string, unknown>) => {
+      protocol.normalizedStageArtifactsExistedDuringReviews = true;
+    }],
+  ] as const)('rejects a fully resealed bound bundle when fixed protocol closure drifts: %s', (_label, mutate) => {
+    const boundReceipt = receipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    const protocol = tamperedReceipt.reviewProvenanceBinding!.independenceAudit.protocol as unknown as Record<string, unknown>;
+    mutate(protocol);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/normalizedStageArtifactsExistedDuringReviews.*must be false/iu);
+  });
+
   it.each([
     ['didNotReadPrimaryArtifact=false', (challenger: Record<string, any>) => {
       challenger.didNotReadPrimaryArtifact = false;
@@ -859,6 +921,39 @@ describe('current CourseCoverage batch review receipt', () => {
       receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
       attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
     })).toThrow(/closure drift/iu);
+  });
+
+  it.each([
+    ['primary schemaVersion missing', 'primary', 'missing'],
+    ['challenger schemaVersion empty', 'challenger', 'empty'],
+    ['third writer follows audit but not reviewer', 'third', 'writer'],
+  ] as const)('rejects a fully resealed bound bundle when source binding closure drifts: %s', (_label, slot, mutation) => {
+    const { receipt: boundReceipt } = threeStageReceipt();
+    const tamperedReceipt = structuredClone(boundReceipt);
+    const record = tamperedReceipt.stageRecords[slot];
+    if (!record) throw new Error(`fixture requires ${slot} stage record`);
+    const sourceBinding = record.sourceArtifactBinding as unknown as Record<string, unknown>;
+    if (mutation === 'missing') {
+      delete sourceBinding.schemaVersion;
+    } else if (mutation === 'empty') {
+      sourceBinding.schemaVersion = '   ';
+    } else {
+      const audit = tamperedReceipt.reviewProvenanceBinding!.independenceAudit[slot];
+      if (!audit) throw new Error(`fixture requires ${slot} provenance audit`);
+      audit.sourceWriterSessionId = 'detached-third-writer';
+      sourceBinding.writerSessionId = audit.sourceWriterSessionId;
+    }
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    const expectedError = mutation === 'writer'
+      ? /source writer\/session mismatch/iu
+      : /sourceArtifactBinding\.schemaVersion/iu;
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(expectedError);
   });
 
   it.each([
