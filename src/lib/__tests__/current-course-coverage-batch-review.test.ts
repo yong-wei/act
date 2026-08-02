@@ -279,7 +279,10 @@ function receipt(
   });
 }
 
-function sourceFor(document: CurrentCourseCoverageStageReview): { document: CurrentCourseCoverageStageReview; bytes: string } {
+function sourceFor(
+  document: CurrentCourseCoverageStageReview,
+  evidenceRefMode: 'string' | 'object' = 'string',
+): { document: CurrentCourseCoverageStageReview; bytes: string } {
   const bytes = JSON.stringify({
     schemaVersion: 'fixture-course-coverage-source/v1',
     stage: document.stage,
@@ -298,7 +301,17 @@ function sourceFor(document: CurrentCourseCoverageStageReview): { document: Curr
       canonicalRevision: decision.canonicalRevision,
       stageConclusion: decision.conclusion,
       rationale: decision.rationale,
-      evidenceRefs: decision.evidenceSelectors.map((selector) => `fixture|aggregate|${selector}|evidence`),
+      evidenceRefs: decision.evidenceSelectors.map((selector) => evidenceRefMode === 'string'
+        ? `fixture|aggregate|${selector}|evidence`
+        : {
+          evidenceId: 'fixture-evidence',
+          sourcePath: 'fixture',
+          selector,
+          sourceDigest: SHA_A,
+          boundary: 'aggregate',
+          kind: 'fixture-evidence',
+          digestSemantics: 'selector-evidence',
+        }),
     })),
   });
   return {
@@ -846,6 +859,34 @@ describe('current CourseCoverage batch review receipt', () => {
         normalizedDocumentDigest: bound.document.documentDigest,
       },
     })).toThrow(/provenance\/source binding drift|identity drift/iu);
+  });
+
+  it('accepts string and structured source evidenceRefs but rejects malformed selectors', () => {
+    const input = documents();
+    const structured = sourceFor(input.primary, 'object');
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: structured.document,
+      sourceBytes: structured.bytes,
+    })).not.toThrow();
+
+    const malformed = JSON.parse(structured.bytes) as { members: Array<{ evidenceRefs: unknown[] }> };
+    malformed.members[0]!.evidenceRefs = [{ evidenceId: 'missing-selector' }];
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: structured.document,
+      sourceBytes: JSON.stringify(malformed),
+    })).toThrow(/SHA-256 mismatch/iu);
+
+    const rebound = {
+      ...structured.document,
+      sourceArtifactBinding: {
+        ...structured.document.sourceArtifactBinding,
+        artifactSha256: createHash('sha256').update(JSON.stringify(malformed)).digest('hex'),
+      },
+    };
+    expect(() => validateCurrentCourseCoverageStageSource({
+      document: rebound,
+      sourceBytes: JSON.stringify(malformed),
+    })).toThrow(/source evidenceRefs\[0\] is malformed/iu);
   });
 
   it('keeps source binding strict for new receipts while allowing legacy replay records', () => {
