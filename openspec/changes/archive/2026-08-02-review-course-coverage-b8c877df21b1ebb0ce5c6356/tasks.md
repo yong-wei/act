@@ -18,3 +18,8 @@
 
 - [x] Run strict OpenSpec validation for this change.
 - [x] Run focused receipt/manifest checks and `git diff --check`.
+
+## 5. Current-head remediation for PR #1253
+
+- [x] Independently re-audit all five prior Primary `INCLUDE` decisions against their frozen selectors and change each insufficient result to role-free `DEFER`.
+- [x] Reseal Primary, republish the receipt and detached attestation, and retain the same frozen batch binding, Challenger source, zero conflicts, and no-Third outcome.
