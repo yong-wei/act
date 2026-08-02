@@ -25,14 +25,28 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 
 #### Scenario: Batch a03e2ae08fe2a1d92c88b660 has no conflict
 
-- **WHEN** required stages agree and all members are resolved
-- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+- **WHEN** required stages agree and every member remains evidence-insufficient
+- **THEN** the receipt SHALL preserve each stage's independent source binding, rationale, unique selectors, decision digests, and terminal outcome
+- **AND** the terminal status SHALL be `DEFERRED_EVIDENCE_BLOCKED`
+- **AND** no member SHALL receive a CourseCoverage role or production selector/writer-fence mutation
 
 ### Requirement: Batch a03e2ae08fe2a1d92c88b660 emits a machine-mergeable receipt
 
-The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, bind both normalized stage documents to their raw independent sources, and prove that no out-of-slice member or production authority was written. The detached boundary attestation MUST be published with the receipt and preserve protected-path snapshots for deterministic replay.
 
 #### Scenario: Receipt for batch a03e2ae08fe2a1d92c88b660 is assembled
 
 - **WHEN** all required stages are terminal and drift checks pass
 - **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `a03e2ae08fe2a1d92c88b660`
+- **AND** first publication SHALL produce a receipt and detached attestation with all production mutation flags false
+- **AND** replay with identical inputs SHALL report identical artifacts and a content-equivalent replay mode
+
+### Requirement: Batch a03e2ae08fe2a1d92c88b660 preserves independent raw-source closure
+
+The normalized Primary and Challenger documents MUST be sealed from the two independent raw stage sources. Their source SHA-256, writer session IDs, stage input digests, and all `313 + 313 = 626` decision digests MUST be independently verifiable against the raw bytes and frozen batch binding.
+
+#### Scenario: Raw source closure is verified
+
+- **WHEN** the raw sources, normalized documents, worklist, and manifest are reread
+- **THEN** source bindings, canonical IDs/revisions, conclusions, rationales, and selectors SHALL match in order
+- **AND** all 626 decision digests SHALL be valid SHA-256 values
