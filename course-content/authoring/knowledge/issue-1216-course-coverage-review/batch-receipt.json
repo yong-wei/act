@@ -605,7 +605,7 @@
     }
   ],
   "stageDocuments": {
-    "primaryDigest": "1323fd52dc19a15987d312ea1f246a6f1d63f2a2116e85047e5a4f481875f4bd",
+    "primaryDigest": "6a3af7a2120a72b9d6157916ed9fb6d7557ea494e860a60db82b8ad8276c60ae",
     "challengerDigest": "384e2c8b1fde72482d3e8d7a9202246394e4e88b59a09a0603d8d1a43e2dddfd",
     "thirdDigest": null
   },
@@ -633,7 +633,7 @@
       },
       "sourceArtifactBinding": {
         "artifactPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/primary-independent-stage-source.json",
-        "artifactSha256": "badd7133b6def73105ac3460fa3bc2b4e6e109351adab6526dcaf08b17e30d24",
+        "artifactSha256": "f928ed20cc1ee22ab286474000e77df591f35d9487d78a589cbed3f916c79d5e",
         "schemaVersion": "course-coverage-independent-stage-preparation/v0",
         "stage": "PRIMARY",
         "writerSessionId": "b76983ed-6bbe-448a-a688-0d320e8a85c2"
@@ -3079,7 +3079,7 @@
           "decisionDigest": "426b0377c46cabeeac5dbd6c9afcf5a3d25a779cf55866b190ced52dd6fbf684"
         }
       ],
-      "documentDigest": "1323fd52dc19a15987d312ea1f246a6f1d63f2a2116e85047e5a4f481875f4bd"
+      "documentDigest": "6a3af7a2120a72b9d6157916ed9fb6d7557ea494e860a60db82b8ad8276c60ae"
     },
     "challenger": {
       "schemaVersion": "current-course-coverage-stage-review/v2",
@@ -7486,7 +7486,7 @@
     "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
     "receiptPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/batch-receipt.json",
     "attestationPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/batch-boundary-attestation.json",
-    "headBefore": "ebea6a19fb19b5eef26b4c621b7a7d1e25308033",
+    "headBefore": "d48c8e12f8cf5c8c240243c2fc0e1bab6d447720",
     "protectedPaths": [
       "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
       "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
@@ -7528,7 +7528,7 @@
       }
     ],
     "statusBefore": [],
-    "authoritySnapshotBeforeDigest": "d3e86a9331a128bffecb48e234536bfaec0ac67308ac80b27f957e5a0c7610be",
+    "authoritySnapshotBeforeDigest": "68d982afc5877d3fdb7805d3afd895d6dc8e91d59399d21aa7737900e993be37",
     "gitDiffCheck": "PASS",
     "mutationFlags": {
       "currentCoverageDecisionWritten": false,
@@ -7539,7 +7539,7 @@
   },
   "reviewProvenanceBinding": {
     "provenancePath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/review-provenance.json",
-    "provenanceSha256": "0a98d12f41dcc3045c007d4bb226ec8e23c31a280da66d5e87f62177c585d27a",
+    "provenanceSha256": "fa63ac5ad7f3f09073157f21fae39146bc8f90fa0d2dabe28d96c1727f533f2e",
     "independenceAudit": {
       "protocol": {
         "primaryCouldReadChallengerArtifact": false,
@@ -7558,9 +7558,9 @@
         "sourceWriterSessionId": "b76983ed-6bbe-448a-a688-0d320e8a85c2",
         "sourceWriterScope": "act:issue-1216:course-coverage-primary",
         "sourceArtifactPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/primary-independent-stage-source.json",
-        "sourceArtifactSha256": "badd7133b6def73105ac3460fa3bc2b4e6e109351adab6526dcaf08b17e30d24",
+        "sourceArtifactSha256": "f928ed20cc1ee22ab286474000e77df591f35d9487d78a589cbed3f916c79d5e",
         "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1216-course-coverage-review/primary-review.json",
-        "normalizedDocumentDigest": "1323fd52dc19a15987d312ea1f246a6f1d63f2a2116e85047e5a4f481875f4bd"
+        "normalizedDocumentDigest": "6a3af7a2120a72b9d6157916ed9fb6d7557ea494e860a60db82b8ad8276c60ae"
       },
       "challenger": {
         "stage": "CHALLENGER",
@@ -7580,5 +7580,5 @@
       "third": null
     }
   },
-  "receiptDigest": "96aac13889ab93e08b88217964564a72f2b41ce96f5806b083253a29479d7728"
+  "receiptDigest": "ff36f047f9d1558dfddcfa6c8cf15d886216bda3ec812b801a7e3bf88ba8294f"
 }

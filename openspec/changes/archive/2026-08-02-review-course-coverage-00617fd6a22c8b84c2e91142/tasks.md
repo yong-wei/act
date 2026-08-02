@@ -15,6 +15,7 @@
 - [x] Emit a deterministic machine-mergeable receipt keyed by batchId and every binding digest.
 - [x] Bind raw-source byte digests, distinct writer sessions/scopes, normalized v2 documents, and the Challenger non-read audit through `review-provenance.json`.
 - [x] Publish the v3 receipt and v2 detached attestation, then run an identical content-equivalent replay.
+- [x] Remove the accepted P1 local absolute-path disclosure, then rebind the Primary source, normalized stage, provenance, receipt, and detached attestation before an identical content-equivalent replay.
 - [x] Prove the receipt contains no member outside the frozen ordered slice and no production selector/writer-fence mutation.
 
 ## 4. Validate

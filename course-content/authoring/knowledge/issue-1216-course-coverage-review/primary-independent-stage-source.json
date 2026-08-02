@@ -28,7 +28,7 @@
     "sessionId": "b76983ed-6bbe-448a-a688-0d320e8a85c2",
     "sessionIdSource": "~/.grok/use-grok-sessions.json",
     "branch": "review-course-coverage-00617fd6a22c8b84c2e91142",
-    "cwd": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn",
+    "cwd": ".",
     "readChallengerArtifacts": false,
     "readThirdArtifacts": false,
     "readNormalizedStage": false,
