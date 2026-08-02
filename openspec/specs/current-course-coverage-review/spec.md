@@ -1033,3 +1033,78 @@ The decision receipt MUST be keyed by every batch binding digest, preserve exact
 
 - **WHEN** all required stages are terminal and drift checks pass
 - **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `b8c877df21b1ebb0ce5c6356`
+
+### Requirement: Batch ea058c5dde3d58d06f734bd5 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/30/members`, binding batchId `ea058c5dde3d58d06f734bd5`, sequence `0`, semanticGroupKey `ctr:root-locus-engineering-v0.1::entityType:DomainConcept`, member count `85`, memberDigest `82dc61a2382bf7e7f671343a191e364c4380a6f3f94b3e20c7765bd6c28efca2`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch ea058c5dde3d58d06f734bd5 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch ea058c5dde3d58d06f734bd5 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch ea058c5dde3d58d06f734bd5 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict within the required Challenger slice MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch ea058c5dde3d58d06f734bd5
+
+- **WHEN** Primary and Challenger conclusions differ for a required Challenger member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch ea058c5dde3d58d06f734bd5 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch ea058c5dde3d58d06f734bd5 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch ea058c5dde3d58d06f734bd5 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `ea058c5dde3d58d06f734bd5`
+
+### Requirement: Batch ccfbcd4d501ae459305602a6 has an immutable review boundary
+
+The review child MUST process only the exact ordered members at `batch-manifest.json#/batches/14/members`, binding batchId `ccfbcd4d501ae459305602a6`, sequence `0`, semanticGroupKey `ctr:release:stability-analysis-engineering-v0.1::entityType:Formula`, member count `37`, memberDigest `1157b6af80c506dc595d8b7b60dfed8bc22ef97ce506eb67db0b55b2f2ff5902`, worklistInputDigest `55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2`, worklistDigest `bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489`, and manifestDigest `2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818`.
+
+#### Scenario: Frozen batch ccfbcd4d501ae459305602a6 is unchanged
+
+- **WHEN** all bound fields and canonical revisions match the manifest slice
+- **THEN** the child SHALL admit exactly that ordered member set and no other member
+
+#### Scenario: Batch ccfbcd4d501ae459305602a6 drifts
+
+- **WHEN** any member, order, digest, or revision differs
+- **THEN** review and receipt assembly SHALL fail closed without changing production selector or writer fence
+
+### Requirement: Batch ccfbcd4d501ae459305602a6 produces independent terminal decisions
+
+Primary and Challenger MUST issue independent conclusions; Challenger MUST run for profileOnly, new, changed, or highRisk members. Every conflict MUST enter Third, and Third MUST be terminal.
+
+#### Scenario: Conflict occurs in batch ccfbcd4d501ae459305602a6
+
+- **WHEN** Primary and Challenger conclusions differ for a member
+- **THEN** Third SHALL record the terminal conclusion and rationale in the receipt
+
+#### Scenario: Batch ccfbcd4d501ae459305602a6 has no conflict
+
+- **WHEN** required stages agree and all members are resolved
+- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+
+### Requirement: Batch ccfbcd4d501ae459305602a6 emits a machine-mergeable receipt
+
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+
+#### Scenario: Receipt for batch ccfbcd4d501ae459305602a6 is assembled
+
+- **WHEN** all required stages are terminal and drift checks pass
+- **THEN** the receipt SHALL be deterministic, machine-mergeable, and scoped to `ccfbcd4d501ae459305602a6`
+
