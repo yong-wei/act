@@ -95,6 +95,44 @@ export interface CurrentCourseCoverageStageReview {
   documentDigest: string;
 }
 
+export interface CurrentCourseCoverageReviewProvenanceStageAudit {
+  stage: CourseCoverageReviewStage;
+  provider: string;
+  sessionId: string;
+  reviewSessionId: string;
+  reviewSessionScope: string;
+  sourceWriterSessionId: string;
+  sourceWriterScope: string;
+  sourceArtifactPath: string;
+  sourceArtifactSha256: string;
+  normalizedStageArtifactPath: string;
+  normalizedDocumentDigest: string;
+  didNotReadPrimaryArtifact?: boolean;
+  sessionAuditPrimaryPathMentions?: number;
+  didNotReadChallengerArtifact?: boolean;
+  sessionAuditChallengerPathMentions?: number;
+}
+
+export interface CurrentCourseCoverageReviewProvenanceIndependenceAudit {
+  protocol: {
+    primaryCouldReadChallengerArtifact: false;
+    challengerCouldReadPrimaryArtifact: false;
+    normalizedStageArtifactsExistedDuringReviews?: false;
+    sourceArtifactsCreatedByIndependentWriters: true;
+    sourceArtifactsBoundToNormalizedReviews: true;
+    semanticConclusionsGeneratedByAssembler: false;
+  };
+  primary: CurrentCourseCoverageReviewProvenanceStageAudit;
+  challenger: CurrentCourseCoverageReviewProvenanceStageAudit | null;
+  third: CurrentCourseCoverageReviewProvenanceStageAudit | null;
+}
+
+export interface CurrentCourseCoverageReviewProvenanceBinding {
+  provenancePath: string;
+  provenanceSha256: string;
+  independenceAudit: CurrentCourseCoverageReviewProvenanceIndependenceAudit;
+}
+
 interface CurrentCourseCoverageProductionBoundaryProofBase {
   receiptPath: string;
   attestationPath: string;
@@ -208,6 +246,7 @@ export interface CurrentCourseCoverageBatchReceipt {
     writerFenceChanged: false;
   };
   productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof;
+  reviewProvenanceBinding?: CurrentCourseCoverageReviewProvenanceBinding;
   receiptDigest: string;
 }
 
@@ -223,6 +262,437 @@ function requiredString(value: unknown, field: string): string {
 
 function assertSha(value: string, field: string): void {
   if (!SHA256.test(value)) throw new Error(`Current batch review rejected: ${field} must be a SHA-256`);
+}
+
+type UnknownRecord = Record<string, unknown>;
+
+function provenanceObject(value: unknown, field: string): UnknownRecord {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Current batch review rejected: ${field} is invalid`);
+  }
+  return value as UnknownRecord;
+}
+
+function provenanceRequiredString(value: unknown, field: string): string {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(`Current batch review rejected: ${field} is required`);
+  }
+  return value.trim();
+}
+
+function provenanceRequiredBoolean(value: unknown, field: string, expected: boolean): boolean {
+  if (value !== expected) {
+    throw new Error(`Current batch review rejected: ${field} must be ${String(expected)}`);
+  }
+  return expected;
+}
+
+function provenanceOptionalBoolean(
+  record: UnknownRecord,
+  field: string,
+): boolean | undefined {
+  if (!Object.prototype.hasOwnProperty.call(record, field)) return undefined;
+  if (typeof record[field] !== 'boolean') {
+    throw new Error(`Current batch review rejected: ${field} must be boolean`);
+  }
+  return record[field] as boolean;
+}
+
+function provenanceOptionalCount(
+  record: UnknownRecord,
+  field: string,
+): number | undefined {
+  if (!Object.prototype.hasOwnProperty.call(record, field)) return undefined;
+  const value = record[field];
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
+    throw new Error(`Current batch review rejected: ${field} must be a non-negative integer`);
+  }
+  return value;
+}
+
+function assertRepoRelativeProvenancePath(value: string, field: string): string {
+  const normalized = value.replaceAll('\\', '/');
+  const parts = normalized.split('/');
+  if (!normalized || normalized.startsWith('/') || parts.includes('..') || parts.includes('.')) {
+    throw new Error(`Current batch review rejected: ${field} must be repository-relative`);
+  }
+  return normalized;
+}
+
+function pathBasename(value: string): string {
+  return value.replaceAll('\\', '/').split('/').at(-1) ?? '';
+}
+
+function provenanceStageRecord(
+  provenance: UnknownRecord,
+  stage: CourseCoverageReviewStage,
+  required: boolean,
+): UnknownRecord | null {
+  const field = stage.toLowerCase();
+  const value = provenance[field];
+  if (value === null || value === undefined) {
+    if (required) throw new Error(`Current batch review rejected: provenance.${field} is required`);
+    return null;
+  }
+  return provenanceObject(value, `provenance.${field}`);
+}
+
+function assertStageAuditShape(
+  audit: CurrentCourseCoverageReviewProvenanceStageAudit,
+  field: string,
+): void {
+  if (!['PRIMARY', 'CHALLENGER', 'THIRD'].includes(audit.stage)) {
+    throw new Error(`Current batch review rejected: ${field}.stage is invalid`);
+  }
+  provenanceRequiredString(audit.provider, `${field}.provider`);
+  provenanceRequiredString(audit.sessionId, `${field}.sessionId`);
+  provenanceRequiredString(audit.reviewSessionId, `${field}.reviewSessionId`);
+  provenanceRequiredString(audit.reviewSessionScope, `${field}.reviewSessionScope`);
+  provenanceRequiredString(audit.sourceWriterSessionId, `${field}.sourceWriterSessionId`);
+  provenanceRequiredString(audit.sourceWriterScope, `${field}.sourceWriterScope`);
+  assertRepoRelativeProvenancePath(audit.sourceArtifactPath, `${field}.sourceArtifactPath`);
+  assertSha(audit.sourceArtifactSha256, `${field}.sourceArtifactSha256`);
+  assertRepoRelativeProvenancePath(
+    audit.normalizedStageArtifactPath,
+    `${field}.normalizedStageArtifactPath`,
+  );
+  assertSha(audit.normalizedDocumentDigest, `${field}.normalizedDocumentDigest`);
+  if (audit.didNotReadPrimaryArtifact !== undefined
+    && typeof audit.didNotReadPrimaryArtifact !== 'boolean') {
+    throw new Error(`Current batch review rejected: ${field}.didNotReadPrimaryArtifact is invalid`);
+  }
+  if (audit.sessionAuditPrimaryPathMentions !== undefined
+    && (!Number.isInteger(audit.sessionAuditPrimaryPathMentions)
+      || audit.sessionAuditPrimaryPathMentions < 0)) {
+    throw new Error(`Current batch review rejected: ${field}.sessionAuditPrimaryPathMentions is invalid`);
+  }
+  if (audit.didNotReadChallengerArtifact !== undefined
+    && typeof audit.didNotReadChallengerArtifact !== 'boolean') {
+    throw new Error(`Current batch review rejected: ${field}.didNotReadChallengerArtifact is invalid`);
+  }
+  if (audit.sessionAuditChallengerPathMentions !== undefined
+    && (!Number.isInteger(audit.sessionAuditChallengerPathMentions)
+      || audit.sessionAuditChallengerPathMentions < 0)) {
+    throw new Error(`Current batch review rejected: ${field}.sessionAuditChallengerPathMentions is invalid`);
+  }
+}
+
+function deriveProvenanceStageAudit(input: {
+  stage: CourseCoverageReviewStage;
+  document: CurrentCourseCoverageStageReview;
+  record: UnknownRecord;
+}): CurrentCourseCoverageReviewProvenanceStageAudit {
+  const { stage, document, record } = input;
+  const field = `provenance.${stage.toLowerCase()}`;
+  const provider = provenanceRequiredString(record.provider, `${field}.provider`);
+  if (provider !== document.reviewer.provider) {
+    throw new Error(`Current batch review rejected: ${stage} provenance provider/session closure drift`);
+  }
+  const sessionId = provenanceRequiredString(record.sessionId, `${field}.sessionId`);
+  const reviewSessionId = provenanceRequiredString(record.reviewSessionId, `${field}.reviewSessionId`);
+  if (reviewSessionId !== sessionId) {
+    throw new Error(`Current batch review rejected: ${stage} review session identity drift`);
+  }
+  const reviewSessionScope = provenanceRequiredString(
+    record.reviewSessionScope,
+    `${field}.reviewSessionScope`,
+  );
+  const sourceWriterSessionId = provenanceRequiredString(
+    record.sourceWriterSessionId,
+    `${field}.sourceWriterSessionId`,
+  );
+  const sourceWriterScope = provenanceRequiredString(
+    record.sourceWriterScope,
+    `${field}.sourceWriterScope`,
+  );
+  const sourceBinding = document.sourceArtifactBinding;
+  if (!sourceBinding) {
+    throw new Error(`Current batch review rejected: ${stage} source artifact binding is required for provenance`);
+  }
+  if (sourceBinding.writerSessionId !== sourceWriterSessionId) {
+    throw new Error(`Current batch review rejected: ${stage} source writer/session closure drift`);
+  }
+  const provenanceSourceBinding = provenanceObject(
+    record.sourceArtifactBinding,
+    `${field}.sourceArtifactBinding`,
+  );
+  if (sha256Canonical(provenanceSourceBinding) !== sha256Canonical(sourceBinding)) {
+    throw new Error(`Current batch review rejected: ${stage} provenance/source binding drift`);
+  }
+  const sourceArtifactPath = assertRepoRelativeProvenancePath(
+    provenanceRequiredString(record.sourceArtifactPath, `${field}.sourceArtifactPath`),
+    `${field}.sourceArtifactPath`,
+  );
+  const sourceArtifact = provenanceRequiredString(record.sourceArtifact, `${field}.sourceArtifact`);
+  if (sourceArtifact !== pathBasename(sourceArtifactPath)
+    || sourceArtifactPath !== assertRepoRelativeProvenancePath(
+      sourceBinding.artifactPath,
+      `${stage}.sourceArtifactBinding.artifactPath`,
+    )) {
+    throw new Error(`Current batch review rejected: ${stage} provenance source artifact path drift`);
+  }
+  const sourceArtifactSha256 = provenanceRequiredString(
+    record.sourceArtifactSha256,
+    `${field}.sourceArtifactSha256`,
+  );
+  assertSha(sourceArtifactSha256, `${field}.sourceArtifactSha256`);
+  if (sourceArtifactSha256 !== sourceBinding.artifactSha256) {
+    throw new Error(`Current batch review rejected: ${stage} provenance source artifact SHA drift`);
+  }
+  const normalizedStageArtifactPath = assertRepoRelativeProvenancePath(
+    provenanceRequiredString(record.normalizedStageArtifactPath, `${field}.normalizedStageArtifactPath`),
+    `${field}.normalizedStageArtifactPath`,
+  );
+  const normalizedStageArtifact = provenanceRequiredString(
+    record.normalizedStageArtifact,
+    `${field}.normalizedStageArtifact`,
+  );
+  if (normalizedStageArtifact !== pathBasename(normalizedStageArtifactPath)) {
+    throw new Error(`Current batch review rejected: ${stage} normalized artifact path drift`);
+  }
+  const normalizedDocumentDigest = provenanceRequiredString(
+    record.normalizedDocumentDigest,
+    `${field}.normalizedDocumentDigest`,
+  );
+  assertSha(normalizedDocumentDigest, `${field}.normalizedDocumentDigest`);
+  if (normalizedDocumentDigest !== document.documentDigest) {
+    throw new Error(`Current batch review rejected: ${stage} normalized document digest drift`);
+  }
+  const audit: CurrentCourseCoverageReviewProvenanceStageAudit = {
+    stage,
+    provider,
+    sessionId,
+    reviewSessionId,
+    reviewSessionScope,
+    sourceWriterSessionId,
+    sourceWriterScope,
+    sourceArtifactPath,
+    sourceArtifactSha256,
+    normalizedStageArtifactPath,
+    normalizedDocumentDigest,
+  };
+  const didNotReadPrimaryArtifact = provenanceOptionalBoolean(record, `${'didNotReadPrimaryArtifact'}`);
+  const sessionAuditPrimaryPathMentions = provenanceOptionalCount(
+    record,
+    'sessionAuditPrimaryPathMentions',
+  );
+  const didNotReadChallengerArtifact = provenanceOptionalBoolean(
+    record,
+    'didNotReadChallengerArtifact',
+  );
+  const sessionAuditChallengerPathMentions = provenanceOptionalCount(
+    record,
+    'sessionAuditChallengerPathMentions',
+  );
+  if (didNotReadPrimaryArtifact !== undefined) audit.didNotReadPrimaryArtifact = didNotReadPrimaryArtifact;
+  if (sessionAuditPrimaryPathMentions !== undefined) {
+    audit.sessionAuditPrimaryPathMentions = sessionAuditPrimaryPathMentions;
+  }
+  if (didNotReadChallengerArtifact !== undefined) {
+    audit.didNotReadChallengerArtifact = didNotReadChallengerArtifact;
+  }
+  if (sessionAuditChallengerPathMentions !== undefined) {
+    audit.sessionAuditChallengerPathMentions = sessionAuditChallengerPathMentions;
+  }
+  if (stage === 'CHALLENGER') {
+    if (audit.didNotReadPrimaryArtifact !== true || audit.sessionAuditPrimaryPathMentions !== 0) {
+      throw new Error(`Current batch review rejected: ${stage} primary artifact audit is not closed`);
+    }
+  }
+  return audit;
+}
+
+function assertAuditStagesIndependent(
+  left: CurrentCourseCoverageReviewProvenanceStageAudit,
+  right: CurrentCourseCoverageReviewProvenanceStageAudit,
+): void {
+  if (left.sessionId === right.sessionId
+    || left.reviewSessionId === right.reviewSessionId
+    || left.sourceWriterSessionId === right.sourceWriterSessionId
+    || left.reviewSessionScope === right.reviewSessionScope
+    || left.sourceWriterScope === right.sourceWriterScope) {
+    throw new Error('Current batch review rejected: provenance stage sessions/scopes are not independent');
+  }
+}
+
+function deriveProvenanceProtocol(
+  provenance: UnknownRecord,
+): CurrentCourseCoverageReviewProvenanceIndependenceAudit['protocol'] {
+  const protocol = provenanceObject(provenance.independenceProtocol, 'provenance.independenceProtocol');
+  const normalizedStageArtifactsExistedDuringReviews = Object.prototype.hasOwnProperty.call(
+    protocol,
+    'normalizedStageArtifactsExistedDuringReviews',
+  )
+    ? provenanceRequiredBoolean(
+      protocol.normalizedStageArtifactsExistedDuringReviews,
+      'provenance.independenceProtocol.normalizedStageArtifactsExistedDuringReviews',
+      false,
+    )
+    : Object.prototype.hasOwnProperty.call(protocol, 'stageArtifactsExistedDuringReviews')
+      ? provenanceRequiredBoolean(
+        protocol.stageArtifactsExistedDuringReviews,
+        'provenance.independenceProtocol.stageArtifactsExistedDuringReviews',
+        false,
+      )
+      : undefined;
+  const audit = {
+    primaryCouldReadChallengerArtifact: provenanceRequiredBoolean(
+      protocol.primaryCouldReadChallengerArtifact,
+      'provenance.independenceProtocol.primaryCouldReadChallengerArtifact',
+      false,
+    ),
+    challengerCouldReadPrimaryArtifact: provenanceRequiredBoolean(
+      protocol.challengerCouldReadPrimaryArtifact,
+      'provenance.independenceProtocol.challengerCouldReadPrimaryArtifact',
+      false,
+    ),
+    ...(normalizedStageArtifactsExistedDuringReviews === false
+      ? { normalizedStageArtifactsExistedDuringReviews: false as const }
+      : {}),
+    sourceArtifactsCreatedByIndependentWriters: provenanceRequiredBoolean(
+      protocol.sourceArtifactsCreatedByIndependentWriters,
+      'provenance.independenceProtocol.sourceArtifactsCreatedByIndependentWriters',
+      true,
+    ),
+    sourceArtifactsBoundToNormalizedReviews: provenanceRequiredBoolean(
+      protocol.sourceArtifactsBoundToNormalizedReviews,
+      'provenance.independenceProtocol.sourceArtifactsBoundToNormalizedReviews',
+      true,
+    ),
+    semanticConclusionsGeneratedByAssembler: provenanceRequiredBoolean(
+      protocol.semanticConclusionsGeneratedByAssembler,
+      'provenance.independenceProtocol.semanticConclusionsGeneratedByAssembler',
+      false,
+    ),
+  } as CurrentCourseCoverageReviewProvenanceIndependenceAudit['protocol'];
+  return audit;
+}
+
+export function deriveCurrentCourseCoverageReviewProvenanceBinding(input: {
+  provenancePath: string;
+  provenanceSha256: string;
+  provenance: unknown;
+  batchId: string;
+  primary: CurrentCourseCoverageStageReview;
+  challenger?: CurrentCourseCoverageStageReview | null;
+  third?: CurrentCourseCoverageStageReview | null;
+}): CurrentCourseCoverageReviewProvenanceBinding {
+  const provenance = provenanceObject(input.provenance, 'provenance');
+  const provenancePath = assertRepoRelativeProvenancePath(input.provenancePath, 'provenancePath');
+  assertSha(input.provenanceSha256, 'provenanceSha256');
+  const provenanceBatchId = provenanceRequiredString(provenance.batchId, 'provenance.batchId');
+  if (provenanceBatchId !== input.batchId) {
+    throw new Error('Current batch review rejected: provenance batchId drift');
+  }
+  const primaryRecord = provenanceStageRecord(provenance, 'PRIMARY', true)!;
+  const challengerRecord = provenanceStageRecord(provenance, 'CHALLENGER', Boolean(input.challenger));
+  const thirdRecord = provenanceStageRecord(provenance, 'THIRD', Boolean(input.third));
+  if (!input.challenger && provenance.challenger !== null && provenance.challenger !== undefined) {
+    throw new Error('Current batch review rejected: provenance Challenger closure drift');
+  }
+  if (!input.third && provenance.third !== null && provenance.third !== undefined) {
+    throw new Error('Current batch review rejected: provenance Third closure drift');
+  }
+  const primary = deriveProvenanceStageAudit({ stage: 'PRIMARY', document: input.primary, record: primaryRecord });
+  const challenger = input.challenger && challengerRecord
+    ? deriveProvenanceStageAudit({ stage: 'CHALLENGER', document: input.challenger, record: challengerRecord })
+    : null;
+  const third = input.third && thirdRecord
+    ? deriveProvenanceStageAudit({ stage: 'THIRD', document: input.third, record: thirdRecord })
+    : null;
+  if (challenger) assertAuditStagesIndependent(primary, challenger);
+  if (third) {
+    assertAuditStagesIndependent(primary, third);
+    if (challenger) assertAuditStagesIndependent(challenger, third);
+  }
+  return {
+    provenancePath,
+    provenanceSha256: input.provenanceSha256,
+    independenceAudit: {
+      protocol: deriveProvenanceProtocol(provenance),
+      primary,
+      challenger,
+      third,
+    },
+  };
+}
+
+export function assertCurrentCourseCoverageReviewProvenanceBinding(
+  binding: CurrentCourseCoverageReviewProvenanceBinding,
+): void {
+  if (!binding || typeof binding !== 'object') {
+    throw new Error('Current batch review rejected: review provenance binding is invalid');
+  }
+  assertRepoRelativeProvenancePath(binding.provenancePath, 'reviewProvenanceBinding.provenancePath');
+  assertSha(binding.provenanceSha256, 'reviewProvenanceBinding.provenanceSha256');
+  const audit = provenanceObject(
+    binding.independenceAudit,
+    'reviewProvenanceBinding.independenceAudit',
+  ) as unknown as CurrentCourseCoverageReviewProvenanceIndependenceAudit;
+  const protocol = provenanceObject(
+    audit.protocol,
+    'reviewProvenanceBinding.independenceAudit.protocol',
+  ) as unknown as CurrentCourseCoverageReviewProvenanceIndependenceAudit['protocol'];
+  provenanceRequiredBoolean(
+    protocol.primaryCouldReadChallengerArtifact,
+    'reviewProvenanceBinding.independenceAudit.protocol.primaryCouldReadChallengerArtifact',
+    false,
+  );
+  provenanceRequiredBoolean(
+    protocol.challengerCouldReadPrimaryArtifact,
+    'reviewProvenanceBinding.independenceAudit.protocol.challengerCouldReadPrimaryArtifact',
+    false,
+  );
+  if (protocol.normalizedStageArtifactsExistedDuringReviews !== undefined) {
+    provenanceRequiredBoolean(
+      protocol.normalizedStageArtifactsExistedDuringReviews,
+      'reviewProvenanceBinding.independenceAudit.protocol.normalizedStageArtifactsExistedDuringReviews',
+      false,
+    );
+  }
+  provenanceRequiredBoolean(
+    protocol.sourceArtifactsCreatedByIndependentWriters,
+    'reviewProvenanceBinding.independenceAudit.protocol.sourceArtifactsCreatedByIndependentWriters',
+    true,
+  );
+  provenanceRequiredBoolean(
+    protocol.sourceArtifactsBoundToNormalizedReviews,
+    'reviewProvenanceBinding.independenceAudit.protocol.sourceArtifactsBoundToNormalizedReviews',
+    true,
+  );
+  provenanceRequiredBoolean(
+    protocol.semanticConclusionsGeneratedByAssembler,
+    'reviewProvenanceBinding.independenceAudit.protocol.semanticConclusionsGeneratedByAssembler',
+    false,
+  );
+  const primary = provenanceObject(
+    audit.primary,
+    'reviewProvenanceBinding.independenceAudit.primary',
+  ) as unknown as CurrentCourseCoverageReviewProvenanceStageAudit;
+  assertStageAuditShape(primary, 'reviewProvenanceBinding.independenceAudit.primary');
+  if (audit.challenger !== null && audit.challenger !== undefined) {
+    const challenger = provenanceObject(
+      audit.challenger,
+      'reviewProvenanceBinding.independenceAudit.challenger',
+    ) as unknown as CurrentCourseCoverageReviewProvenanceStageAudit;
+    assertStageAuditShape(challenger, 'reviewProvenanceBinding.independenceAudit.challenger');
+    assertAuditStagesIndependent(primary, challenger);
+  }
+  if (audit.third !== null && audit.third !== undefined) {
+    const third = provenanceObject(
+      audit.third,
+      'reviewProvenanceBinding.independenceAudit.third',
+    ) as unknown as CurrentCourseCoverageReviewProvenanceStageAudit;
+    assertStageAuditShape(third, 'reviewProvenanceBinding.independenceAudit.third');
+    assertAuditStagesIndependent(primary, third);
+    if (audit.challenger !== null && audit.challenger !== undefined) {
+      const challenger = provenanceObject(
+        audit.challenger,
+        'reviewProvenanceBinding.independenceAudit.challenger',
+      ) as unknown as CurrentCourseCoverageReviewProvenanceStageAudit;
+      assertAuditStagesIndependent(challenger, third);
+    }
+  }
 }
 
 function validateProtectedPathSnapshots(
@@ -342,6 +812,12 @@ export function assertCurrentCourseCoverageProductionBoundaryBundle(input: {
   assertSha(receiptDigest, 'receiptDigest');
   if (receiptDigest !== sha256Canonical(withoutReceiptDigest)) {
     throw new Error('Current batch review rejected: receipt digest mismatch');
+  }
+  if (Object.prototype.hasOwnProperty.call(receipt, 'reviewProvenanceBinding')) {
+    if (!receipt.reviewProvenanceBinding) {
+      throw new Error('Current batch review rejected: review provenance binding is invalid');
+    }
+    assertCurrentCourseCoverageReviewProvenanceBinding(receipt.reviewProvenanceBinding);
   }
   const proof = receipt.productionBoundaryProof;
   validateProductionBoundaryProof(proof);
@@ -659,6 +1135,7 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
   challenger?: CurrentCourseCoverageStageReview | null;
   third?: CurrentCourseCoverageStageReview | null;
   productionBoundaryProof: CurrentCourseCoverageProductionBoundaryProof;
+  reviewProvenanceBinding?: CurrentCourseCoverageReviewProvenanceBinding;
   allowLegacySourceArtifactBinding?: boolean;
 }): CurrentCourseCoverageBatchReceipt {
   const {
@@ -670,6 +1147,9 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
   const allowLegacySourceArtifactBinding = input.allowLegacySourceArtifactBinding === true
     && input.productionBoundaryProof.verificationProtocol
       === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2;
+  if (input.reviewProvenanceBinding) {
+    assertCurrentCourseCoverageReviewProvenanceBinding(input.reviewProvenanceBinding);
+  }
   if (computeCurrentWorklistInputDigest(withoutWorklistDigests) !== storedWorklistInputDigest) {
     throw new Error('Current batch review rejected: worklist input digest mismatch');
   }
@@ -802,6 +1282,9 @@ export function buildCurrentCourseCoverageBatchReceipt(input: {
       : 'BLOCKED_PENDING_ALL_BATCHES' as const,
     productionBoundaries: input.productionBoundaryProof.mutationFlags,
     productionBoundaryProof: structuredClone(input.productionBoundaryProof),
+    ...(input.reviewProvenanceBinding
+      ? { reviewProvenanceBinding: structuredClone(input.reviewProvenanceBinding) }
+      : {}),
   };
   return { ...withoutReceiptDigest, receiptDigest: sha256Canonical(withoutReceiptDigest) };
 }

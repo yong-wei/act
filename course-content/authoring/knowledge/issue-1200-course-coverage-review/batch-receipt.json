@@ -9625,7 +9625,7 @@
     "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
     "receiptPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/batch-receipt.json",
     "attestationPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/batch-boundary-attestation.json",
-    "headBefore": "1eae54cca3bfb175089de15c595f6dc8fb61fc7e",
+    "headBefore": "994b33a8bc3b38a2baee5809b01626dc3e1697f6",
     "protectedPaths": [
       "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
       "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
@@ -9667,7 +9667,7 @@
       }
     ],
     "statusBefore": [],
-    "authoritySnapshotBeforeDigest": "b8a19a921f69d63aa1c12d434e1aeaef21679e75c223c4d5313b5ea2b90899a8",
+    "authoritySnapshotBeforeDigest": "83988be5fa4ed6398cf031dde469cf15fdd6acc5999ddb1179dfc6200b288ef8",
     "gitDiffCheck": "PASS",
     "mutationFlags": {
       "currentCoverageDecisionWritten": false,
@@ -9676,5 +9676,48 @@
       "writerFenceChanged": false
     }
   },
-  "receiptDigest": "09162ee3c9fdd879bd345f75e3ff67a61fcbf1c469bab109b3b20fee61fb5ac1"
+  "reviewProvenanceBinding": {
+    "provenancePath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/review-provenance.json",
+    "provenanceSha256": "eee0d6dcbccab41287492f2feb7348a0419b62478d0be0565c509a9e97122a18",
+    "independenceAudit": {
+      "protocol": {
+        "primaryCouldReadChallengerArtifact": false,
+        "challengerCouldReadPrimaryArtifact": false,
+        "normalizedStageArtifactsExistedDuringReviews": false,
+        "sourceArtifactsCreatedByIndependentWriters": true,
+        "sourceArtifactsBoundToNormalizedReviews": true,
+        "semanticConclusionsGeneratedByAssembler": false
+      },
+      "primary": {
+        "stage": "PRIMARY",
+        "provider": "grok-4.5-build",
+        "sessionId": "42eca660-ca20-49d4-b9df-93d9651ad3f2",
+        "reviewSessionId": "42eca660-ca20-49d4-b9df-93d9651ad3f2",
+        "reviewSessionScope": "act:issue-1200:course-coverage-primary",
+        "sourceWriterSessionId": "42eca660-ca20-49d4-b9df-93d9651ad3f2",
+        "sourceWriterScope": "act:issue-1200:course-coverage-primary",
+        "sourceArtifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/primary-independent-stage-source.json",
+        "sourceArtifactSha256": "b87cb874276365b73a5ec0f2f76c421c1b19f131c273f4e7d857656c8b6bc595",
+        "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/primary-review.json",
+        "normalizedDocumentDigest": "5b82a078bec844b7a7667ecca28550b79c4304db3f054a16038ed2cd120f03e3"
+      },
+      "challenger": {
+        "stage": "CHALLENGER",
+        "provider": "grok-4.5-build",
+        "sessionId": "37cc1c54-54d1-4cc0-a174-c440ed0294fe",
+        "reviewSessionId": "37cc1c54-54d1-4cc0-a174-c440ed0294fe",
+        "reviewSessionScope": "act:issue-1200:course-coverage-challenger",
+        "sourceWriterSessionId": "37cc1c54-54d1-4cc0-a174-c440ed0294fe",
+        "sourceWriterScope": "act:issue-1200:course-coverage-challenger",
+        "sourceArtifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/challenger-independent-stage-source.json",
+        "sourceArtifactSha256": "769f144e5649e3a9b6cfa5facc07ebb74c47c8e03ea77484d7a166daccbad2ff",
+        "normalizedStageArtifactPath": "course-content/authoring/knowledge/issue-1200-course-coverage-review/challenger-review.json",
+        "normalizedDocumentDigest": "0bd763a9a28b7d6cc8bbae3691f76d2f88bc2e3bb2931c2d4734fab2bdcde035",
+        "didNotReadPrimaryArtifact": true,
+        "sessionAuditPrimaryPathMentions": 0
+      },
+      "third": null
+    }
+  },
+  "receiptDigest": "2309285ee5acef97d6076135c8d9da29fbd642d1053e314b8f867e737a83c347"
 }

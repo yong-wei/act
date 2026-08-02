@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 
 import {
   assertCurrentCourseCoverageProductionBoundaryBundle,
+  assertCurrentCourseCoverageReviewProvenanceBinding,
   buildCurrentCourseCoverageBatchReceipt,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1,
@@ -11,6 +12,7 @@ import {
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
   currentCourseCoverageStageInputDigest,
+  type CurrentCourseCoverageReviewProvenanceBinding,
   sealCurrentCourseCoverageProductionBoundaryAttestation,
   sealCurrentCourseCoverageStageReview,
   type CourseCoverageReviewStage,
@@ -26,7 +28,9 @@ import { publishCurrentCourseCoverageBatchBundle } from '../../../scripts/course
 import {
   assertGitAncestor,
   assertPublishedReplaySnapshot,
+  assertCurrentCourseCoverageReviewProvenanceBytes,
   validateCurrentCourseCoverageStageSource,
+  buildCurrentCourseCoverageReviewProvenanceBinding,
   validateStageProvenanceBinding,
   classifyPublishedReplayMode,
 } from '../../../scripts/course-coverage/review-current-course-coverage-batch';
@@ -259,6 +263,7 @@ function documents(input = fixture()) {
     ...input,
     primary: stageReview({ ...input, stage: 'PRIMARY', identity: 'primary', sessionId: 'primary-session' }),
     challenger: stageReview({ ...input, stage: 'CHALLENGER', identity: 'challenger', sessionId: 'challenger-session' }),
+    third: null as CurrentCourseCoverageStageReview | null,
   };
 }
 
@@ -266,6 +271,7 @@ function receipt(
   input = documents(),
   productionBoundary: CurrentCourseCoverageProductionBoundaryProof = productionBoundaryProof(),
   allowLegacySourceArtifactBinding = false,
+  reviewProvenanceBinding?: CurrentCourseCoverageReviewProvenanceBinding,
 ) {
   return buildCurrentCourseCoverageBatchReceipt({
     worklist: input.worklist,
@@ -274,7 +280,9 @@ function receipt(
     observedManifestArtifactSha256: SHA_C,
     primary: input.primary,
     challenger: input.challenger,
+    third: input.third,
     productionBoundaryProof: productionBoundary,
+    reviewProvenanceBinding,
     allowLegacySourceArtifactBinding,
   });
 }
@@ -326,6 +334,63 @@ function sourceFor(
   };
 }
 
+function provenanceFor(input: ReturnType<typeof documents>): {
+  binding: CurrentCourseCoverageReviewProvenanceBinding;
+  bytes: string;
+  provenance: Record<string, unknown>;
+} {
+  const stageRecord = (document: CurrentCourseCoverageStageReview, stage: CourseCoverageReviewStage) => {
+    const sourceBinding = document.sourceArtifactBinding!;
+    const scope = `act:fixture:${stage.toLowerCase()}`;
+    return {
+      provider: document.reviewer.provider,
+      sessionId: `${stage.toLowerCase()}-orchestrator-session`,
+      reviewSessionId: `${stage.toLowerCase()}-orchestrator-session`,
+      reviewSessionScope: scope,
+      sourceWriterSessionId: sourceBinding.writerSessionId,
+      sourceWriterScope: scope,
+      sourceArtifact: sourceBinding.artifactPath.split('/').at(-1),
+      sourceArtifactPath: sourceBinding.artifactPath,
+      sourceArtifactSha256: sourceBinding.artifactSha256,
+      normalizedStageArtifact: `${stage.toLowerCase()}-review.json`,
+      normalizedStageArtifactPath: `fixtures/${stage.toLowerCase()}-review.json`,
+      normalizedDocumentDigest: document.documentDigest,
+      sourceArtifactBinding: sourceBinding,
+      ...(stage === 'CHALLENGER' || stage === 'THIRD'
+        ? { didNotReadPrimaryArtifact: true, sessionAuditPrimaryPathMentions: 0 }
+        : {}),
+      ...(stage === 'THIRD'
+        ? { didNotReadChallengerArtifact: true, sessionAuditChallengerPathMentions: 0 }
+        : {}),
+    };
+  };
+  const provenance = {
+    schemaVersion: 'current-course-coverage-review-provenance/v1',
+    batchId: input.binding.batchId,
+    independenceProtocol: {
+      primaryCouldReadChallengerArtifact: false,
+      challengerCouldReadPrimaryArtifact: false,
+      normalizedStageArtifactsExistedDuringReviews: false,
+      sourceArtifactsCreatedByIndependentWriters: true,
+      sourceArtifactsBoundToNormalizedReviews: true,
+      semanticConclusionsGeneratedByAssembler: false,
+    },
+    primary: stageRecord(input.primary, 'PRIMARY'),
+    challenger: input.challenger ? stageRecord(input.challenger, 'CHALLENGER') : null,
+    third: input.third ? stageRecord(input.third, 'THIRD') : null,
+  };
+  const bytes = JSON.stringify(provenance);
+  const binding = buildCurrentCourseCoverageReviewProvenanceBinding({
+    provenancePath: 'course-content/authoring/knowledge/issue-1200-course-coverage-review/review-provenance.json',
+    provenanceBytes: bytes,
+    batchId: input.binding.batchId,
+    primary: input.primary,
+    challenger: input.challenger,
+    third: input.third,
+  });
+  return { binding, bytes, provenance };
+}
+
 function attestationFor(inputReceipt = receipt()): CurrentCourseCoverageProductionBoundaryAttestation {
   const proof = inputReceipt.productionBoundaryProof;
   return sealCurrentCourseCoverageProductionBoundaryAttestation({
@@ -372,6 +437,137 @@ function attestationV2For(inputReceipt: ReturnType<typeof receipt>): CurrentCour
 }
 
 describe('current CourseCoverage batch review receipt', () => {
+  it('derives a stable provenance binding into the receipt digest', () => {
+    const input = documents();
+    const { binding } = provenanceFor(input);
+    const first = receipt(input, productionBoundaryProof(), false, binding);
+    const second = receipt(input, productionBoundaryProof(), false, binding);
+    expect(first.reviewProvenanceBinding).toEqual(binding);
+    expect(first.receiptDigest).toBe(second.receiptDigest);
+    expect(() => assertCurrentCourseCoverageReviewProvenanceBinding(binding)).not.toThrow();
+    expect(receipt(input).reviewProvenanceBinding).toBeUndefined();
+  });
+
+  it.each([
+    ['didNotReadPrimaryArtifact=false', (provenance: Record<string, any>) => {
+      provenance.challenger.didNotReadPrimaryArtifact = false;
+      return provenance;
+    }, /primary artifact audit/iu],
+    ['sessionAuditPrimaryPathMentions>0', (provenance: Record<string, any>) => {
+      provenance.challenger.sessionAuditPrimaryPathMentions = 1;
+      return provenance;
+    }, /primary artifact audit/iu],
+    ['same challenger session and scope', (provenance: Record<string, any>) => {
+      provenance.challenger.sessionId = provenance.primary.sessionId;
+      provenance.challenger.reviewSessionId = provenance.primary.reviewSessionId;
+      provenance.challenger.reviewSessionScope = provenance.primary.reviewSessionScope;
+      provenance.challenger.sourceWriterSessionId = provenance.primary.sourceWriterSessionId;
+      provenance.challenger.sourceWriterScope = provenance.primary.sourceWriterScope;
+      return provenance;
+    }, /source writer\/session closure|sessions\/scopes are not independent/iu],
+    ['source artifact SHA drift', (provenance: Record<string, any>) => {
+      provenance.primary.sourceArtifactSha256 = SHA_A;
+      return provenance;
+    }, /source artifact SHA drift/iu],
+    ['normalized document digest drift', (provenance: Record<string, any>) => {
+      provenance.primary.normalizedDocumentDigest = SHA_A;
+      return provenance;
+    }, /normalized document digest drift/iu],
+  ] as const)('rejects %s in a new provenance binding', (_label, mutate, expected) => {
+    const input = documents();
+    const { provenance } = provenanceFor(input);
+    const tampered = structuredClone(provenance) as Record<string, any>;
+    mutate(tampered);
+    const bytes = JSON.stringify(tampered);
+    expect(() => buildCurrentCourseCoverageReviewProvenanceBinding({
+      provenancePath: 'course-content/authoring/knowledge/issue-1200-course-coverage-review/review-provenance.json',
+      provenanceBytes: bytes,
+      batchId: input.binding.batchId,
+      primary: input.primary,
+      challenger: input.challenger,
+      third: input.third,
+    })).toThrow(expected);
+  });
+
+  it('requires provenance JSON and closes a new-style replay binding', () => {
+    const input = documents();
+    expect(() => buildCurrentCourseCoverageReviewProvenanceBinding({
+      provenancePath: 'course-content/authoring/knowledge/issue-1200-course-coverage-review/review-provenance.json',
+      provenanceBytes: '{}',
+      batchId: input.binding.batchId,
+      primary: input.primary,
+      challenger: input.challenger,
+    })).toThrow(/provenance\.batchId|independenceProtocol/iu);
+    const { binding, bytes } = provenanceFor(input);
+    expect(() => assertCurrentCourseCoverageReviewProvenanceBytes({
+      binding,
+      provenanceBytes: `${bytes} `,
+    })).toThrow(/SHA-256 drift/iu);
+    const inputReceipt = receipt(input, productionBoundaryProof(), false, binding);
+    const attestation = attestationFor(inputReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: inputReceipt,
+      attestation,
+      receiptPath: inputReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: inputReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
+  });
+
+  it('closes an independent Third provenance record when present', () => {
+    const base = fixture({ independent: true, members: ['a'] });
+    const primary = stageReview({
+      ...base,
+      stage: 'PRIMARY',
+      identity: 'primary',
+      sessionId: 'primary-session',
+      conclusion: 'INCLUDE',
+      role: 'formal_objective',
+    });
+    const challenger = stageReview({
+      ...base,
+      stage: 'CHALLENGER',
+      identity: 'challenger',
+      sessionId: 'challenger-session',
+      conclusion: 'EXCLUDE',
+      role: 'excluded_with_rationale',
+    });
+    const third = stageReview({
+      ...base,
+      stage: 'THIRD',
+      identity: 'third',
+      sessionId: 'third-session',
+      conclusion: 'DEFER',
+    });
+    const input = { ...base, primary, challenger, third };
+    const { provenance } = provenanceFor(input);
+    const readableThird = structuredClone(provenance) as Record<string, any>;
+    readableThird.third.didNotReadPrimaryArtifact = false;
+    readableThird.third.sessionAuditPrimaryPathMentions = 2;
+    readableThird.third.didNotReadChallengerArtifact = false;
+    readableThird.third.sessionAuditChallengerPathMentions = 1;
+    readableThird.independenceProtocol.thirdCouldReadPrimaryArtifact = true;
+    readableThird.independenceProtocol.thirdCouldReadChallengerArtifact = true;
+    const readableBinding = buildCurrentCourseCoverageReviewProvenanceBinding({
+      provenancePath: 'course-content/authoring/knowledge/issue-1200-course-coverage-review/review-provenance.json',
+      provenanceBytes: JSON.stringify(readableThird),
+      batchId: input.binding.batchId,
+      primary,
+      challenger,
+      third,
+    });
+    expect(() => receipt(input, productionBoundaryProof(), false, readableBinding)).not.toThrow();
+    const tampered = structuredClone(readableThird) as Record<string, any>;
+    tampered.third.normalizedDocumentDigest = SHA_A;
+    expect(() => buildCurrentCourseCoverageReviewProvenanceBinding({
+      provenancePath: 'course-content/authoring/knowledge/issue-1200-course-coverage-review/review-provenance.json',
+      provenanceBytes: JSON.stringify(tampered),
+      batchId: input.binding.batchId,
+      primary,
+      challenger,
+      third,
+    })).toThrow(/normalized document digest drift/iu);
+  });
+
   it('assembles deterministic blocking receipt without production authority writes', () => {
     const input = documents();
     const first = receipt(input);

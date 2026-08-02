@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 
 import {
   assertCurrentCourseCoverageProductionBoundaryBundle,
+  assertCurrentCourseCoverageReviewProvenanceBinding,
   buildCurrentCourseCoverageBatchReceipt,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1,
@@ -13,12 +14,14 @@ import {
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL,
   CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_PROTOCOL_V2,
+  deriveCurrentCourseCoverageReviewProvenanceBinding,
   sealCurrentCourseCoverageProductionBoundaryAttestation,
   type CurrentCourseCoverageBatchBinding,
   type CurrentCourseCoverageBatchReceipt,
   type CurrentCourseCoverageProtectedPathSnapshot,
   type CurrentCourseCoverageProductionBoundaryAttestation,
   type CurrentCourseCoverageProductionBoundaryProof,
+  type CurrentCourseCoverageReviewProvenanceBinding,
   type CurrentCourseCoverageStageReview,
 } from '../../src/lib/aggregate-governance/current-course-coverage-batch-review';
 import { stableStringify } from '../../src/lib/aggregate-governance/hash';
@@ -453,6 +456,44 @@ export function validateStageProvenanceBinding(
   }
 }
 
+export function buildCurrentCourseCoverageReviewProvenanceBinding(input: {
+  provenancePath: string;
+  provenanceBytes: string | Buffer;
+  batchId: string;
+  primary: CurrentCourseCoverageStageReview;
+  challenger?: CurrentCourseCoverageStageReview | null;
+  third?: CurrentCourseCoverageStageReview | null;
+}): CurrentCourseCoverageReviewProvenanceBinding {
+  const normalizedPath = repoRelative(input.provenancePath);
+  let provenance: unknown;
+  try {
+    provenance = JSON.parse(input.provenanceBytes.toString('utf8')) as unknown;
+  } catch {
+    throw new Error('Current batch review rejected: review provenance is not valid JSON');
+  }
+  const binding = deriveCurrentCourseCoverageReviewProvenanceBinding({
+    provenancePath: normalizedPath,
+    provenanceSha256: sha256(input.provenanceBytes),
+    provenance,
+    batchId: input.batchId,
+    primary: input.primary,
+    challenger: input.challenger,
+    third: input.third,
+  });
+  assertCurrentCourseCoverageReviewProvenanceBinding(binding);
+  return binding;
+}
+
+export function assertCurrentCourseCoverageReviewProvenanceBytes(input: {
+  binding: CurrentCourseCoverageReviewProvenanceBinding;
+  provenanceBytes: string | Buffer;
+}): void {
+  assertCurrentCourseCoverageReviewProvenanceBinding(input.binding);
+  if (sha256(input.provenanceBytes) !== input.binding.provenanceSha256) {
+    throw new Error('Current batch review rejected: persisted review provenance SHA-256 drift');
+  }
+}
+
 async function exists(input: string): Promise<boolean> {
   try {
     await stat(input);
@@ -693,10 +734,6 @@ async function main(): Promise<void> {
     ? await json<CurrentCourseCoverageStageReview>(input.challenger)
     : null;
   const third = input.third ? await json<CurrentCourseCoverageStageReview>(input.third) : null;
-  const provenancePath = path.join(path.dirname(absolute(input.primary)), 'review-provenance.json');
-  const provenance = await exists(provenancePath)
-    ? await json<Record<string, unknown>>(provenancePath)
-    : null;
   const receiptExists = await exists(receiptOutput);
   const attestationExists = await exists(attestationOutput);
   if (receiptExists !== attestationExists) {
@@ -719,6 +756,77 @@ async function main(): Promise<void> {
       && persistedAttestation.schemaVersion === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1
       && persistedAttestation.protocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1;
   }
+  const defaultProvenancePath = path.join(path.dirname(absolute(input.primary)), 'review-provenance.json');
+  let provenancePath: string | null = null;
+  let provenanceBytes: Buffer | null = null;
+  let provenance: Record<string, unknown> | null = null;
+  let reviewProvenanceBinding: CurrentCourseCoverageReviewProvenanceBinding | undefined;
+  const persistedHasReviewProvenanceBinding = persistedReceipt
+    ? Object.prototype.hasOwnProperty.call(persistedReceipt, 'reviewProvenanceBinding')
+    : false;
+  if (persistedHasReviewProvenanceBinding) {
+    if (!persistedReceipt?.reviewProvenanceBinding) {
+      throw new Error('Current batch review rejected: persisted review provenance binding is invalid');
+    }
+    assertCurrentCourseCoverageReviewProvenanceBinding(persistedReceipt.reviewProvenanceBinding);
+    const storedPath = persistedReceipt.reviewProvenanceBinding.provenancePath;
+    const normalizedStoredPath = repoRelative(storedPath);
+    if (normalizedStoredPath !== storedPath.replaceAll('\\', '/')) {
+      throw new Error('Current batch review rejected: persisted provenance path must be repository-relative');
+    }
+    provenancePath = absolute(normalizedStoredPath);
+    if (!(await exists(provenancePath))) {
+      throw new Error('Current batch review rejected: persisted review provenance is missing');
+    }
+    provenanceBytes = await readFile(provenancePath);
+    assertCurrentCourseCoverageReviewProvenanceBytes({
+      binding: persistedReceipt.reviewProvenanceBinding,
+      provenanceBytes,
+    });
+    try {
+      provenance = JSON.parse(provenanceBytes.toString('utf8')) as Record<string, unknown>;
+    } catch {
+      throw new Error('Current batch review rejected: persisted review provenance is not valid JSON');
+    }
+    reviewProvenanceBinding = buildCurrentCourseCoverageReviewProvenanceBinding({
+      provenancePath,
+      provenanceBytes,
+      batchId: persistedReceipt.batchBinding.batchId,
+      primary,
+      challenger,
+      third,
+    });
+    if (stableStringify(reviewProvenanceBinding) !== stableStringify(persistedReceipt.reviewProvenanceBinding)) {
+      throw new Error('Current batch review rejected: persisted review provenance binding differs from current provenance');
+    }
+  } else if (!receiptExists) {
+    provenancePath = defaultProvenancePath;
+    if (!(await exists(provenancePath))) {
+      throw new Error('Current batch review rejected: new publication requires review-provenance.json');
+    }
+    provenanceBytes = await readFile(provenancePath);
+    try {
+      provenance = JSON.parse(provenanceBytes.toString('utf8')) as Record<string, unknown>;
+    } catch {
+      throw new Error('Current batch review rejected: review provenance is not valid JSON');
+    }
+    reviewProvenanceBinding = buildCurrentCourseCoverageReviewProvenanceBinding({
+      provenancePath,
+      provenanceBytes,
+      batchId: input.expectedBinding.batchId,
+      primary,
+      challenger,
+      third,
+    });
+  } else if (await exists(defaultProvenancePath)) {
+    provenancePath = defaultProvenancePath;
+    provenanceBytes = await readFile(provenancePath);
+    try {
+      provenance = JSON.parse(provenanceBytes.toString('utf8')) as Record<string, unknown>;
+    } catch {
+      throw new Error('Current batch review rejected: review provenance is not valid JSON');
+    }
+  }
   await validateStageSourceFile(primary, allowLegacySourceArtifactBinding);
   if (provenance) validateStageProvenanceBinding(primary, provenance);
   if (challenger) {
@@ -728,6 +836,9 @@ async function main(): Promise<void> {
   if (third) {
     await validateStageSourceFile(third, allowLegacySourceArtifactBinding);
     if (provenance) validateStageProvenanceBinding(third, provenance);
+  }
+  if (!receiptExists && !reviewProvenanceBinding) {
+    throw new Error('Current batch review rejected: new publication requires review provenance binding');
   }
 
   const buildReceipt = (
@@ -743,6 +854,7 @@ async function main(): Promise<void> {
       challenger,
       third,
       productionBoundaryProof,
+      reviewProvenanceBinding,
       allowLegacySourceArtifactBinding: allowLegacy,
     });
 
