@@ -19,3 +19,10 @@
 
 - [x] Run strict OpenSpec validation for this change.
 - [x] Run focused receipt/manifest checks, receipt/attestation replay, full test, typecheck, and `git diff --check`.
+
+## 5. Recover rejected provenance chain
+
+- [x] Establish that the retained raw sessions and their claimed independent source artifacts have incompatible terminal conclusions.
+- [x] Obtain new independent PRIMARY and CHALLENGER reviews against the unchanged frozen binding and receiver boundary.
+- [x] Rebuild v2 stage artifacts and provenance, then replace the rejected receipt/attestation with the current publisher.
+- [x] Re-run deterministic replay and the complete final verification set.

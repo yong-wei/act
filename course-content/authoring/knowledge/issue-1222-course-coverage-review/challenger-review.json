@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "current-course-coverage-stage-review/v1",
+  "schemaVersion": "current-course-coverage-stage-review/v2",
   "batchBinding": {
     "batchId": "edaaa5e622fe34eac8d7a53c",
     "manifestBatchIndex": 32,
@@ -16,17 +16,17 @@
   "reviewer": {
     "identity": "grok-independent-challenger",
     "provider": "grok-4.5-build",
-    "sessionId": "72789962-1b59-4657-b64b-e8e768c522ab",
-    "promptVersion": "issue-1222-challenger-v1"
+    "sessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad",
+    "promptVersion": "issue-1222-challenger-recovery-v2"
   },
   "sourceArtifactBinding": {
     "artifactPath": "course-content/authoring/knowledge/issue-1222-course-coverage-review/challenger-independent-stage-source.json",
-    "artifactSha256": "b5d7adb54c147082c36a9ec0acaf760adff06bf6228b26ad50e04107f92310ae",
+    "artifactSha256": "84a27e0daf6c1c0dbc3eab0d316ba7ee51142312c6642690c3f8edf62879038f",
     "schemaVersion": "course-coverage-independent-stage-preparation/v0",
     "stage": "CHALLENGER",
-    "writerSessionId": "72789962-1b59-4657-b64b-e8e768c522ab"
+    "writerSessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad"
   },
-  "reviewInputDigest": "6cffdfde26a071a8298bd0b1f967fc8aaa2696d167968a2f9f29ef258cdee485",
+  "reviewInputDigest": "ee0eae07d08967b93d648befbcf7552fd65e3cb48dd0941562d27d373a80c620",
   "decisions": [
     {
       "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
@@ -38,9 +38,14 @@
         "evidence:ctr:86523c17c42be030895f844f",
         "canonicalId:ctk:v11g-9840f883d2655d2a1322fb60"
       ],
-      "rationale": "CHALLENGER DEFER：冻结 worklist 的 evidenceRefs 仅有 aggregate/profile 边界，当前 batch protocol 禁止用工作清单之外的新课程路径直接作 INCLUDE/EXCLUDE。CHALLENGER 独立发现 3-3 作者态与运行态“法则 1：起点与终点”、BOPPPS/互动页以及课程大纲的 3-3/3-4 职责段均支持该 canonical 根轨迹起点与终点语义；但这些路径尚未由 #1180 bind/classify/re-freeze 写入冻结 worklist，故只能记录为候选课程 authority，不能改写 frozen evidence boundary。旧 aggregate excluded 记录仅为 priorDecisionRef，未作为本轮依据。终态 DEFER，等待 #1180 将上述课程证据绑定、分类并重新冻结后复审。",
-      "decisionDigest": "72ebdff373c34ffce1a44e5126115629089a6aa4b74e505d9f3e937ac3f88ff4"
+      "evidenceIds": [
+        "0d75ef1eabff67d440f4a492286165e3",
+        "c6cd1f9d524f1359268435c783e14629",
+        "923732b4fbbf19b21fbd2dd26e5fed0d"
+      ],
+      "rationale": "已精确核验冻结绑定：batch-manifest#/batches/32 的 batchId=edaaa5e622fe34eac8d7a53c、sequence=0、semanticGroupKey=ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement、memberCount=1、memberDigest=c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8，以及 worklistInputDigest/worklistDigest/manifestDigest 与成员 canonicalId/canonicalRevision 全部与冻结值一致。从冻结 worklist 读取该成员完整 evidenceRefs（原序 3 条）：boundary 分别为 aggregate、aggregate、profile，independent-course 计数为 0；profileOnly=true 且 highRisk=true。按 receiver 不变量，非 DEFER 结论必须引用 boundary=independent-course 的冻结 evidenceRef，本成员不具备该边界证据。priorDecisionRefs 与课程材料仅可作解释性/诊断上下文，不得替代或新增冻结 evidenceRef，也不能继承历史角色或裁决。因此 fail closed：结论为 role-free DEFER，evidenceSufficiency=INSUFFICIENT，完整保留冻结 evidenceSelectors/evidenceIds 原序身份；不激活 CourseCoverage 角色，不改变 production authority/selector/writer fence。",
+      "decisionDigest": "c853b191889c07c9e91e7edde142b79d7e5aeb10d1444bc63680af57062559c2"
     }
   ],
-  "documentDigest": "73c0bbdd311f4083c71488697717db6409c829419670a149f5e41ab314f1efb7"
+  "documentDigest": "c0d87524a7c950e135385e2e2af6c3266b39aa72431b0c30e773bf806c5343e0"
 }

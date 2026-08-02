@@ -3,14 +3,11 @@
   "stage": "CHALLENGER",
   "sessionIndependence": {
     "role": "CHALLENGER",
-    "sessionId": "72789962-1b59-4657-b64b-e8e768c522ab",
-    "scope": "act:issue-1222:challenger-review",
-    "readPrimaryArtifacts": false,
-    "readThirdArtifacts": false,
+    "sessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad",
+    "scope": "act:issue-1222:challenger-recovery-review",
     "readOtherStageConclusions": false,
-    "inferredOtherStageConclusions": false,
-    "statement": "本 CHALLENGER 会话仅读取冻结 batch-manifest/worklist、当前 automatic-control 课程的作者态与运行态材料以及课程大纲；未读取任何 #1222 PRIMARY/Third 工件、会话或结论。",
-    "workspaceNote": "read-only independent CHALLENGER review; no production selector, writer fence, or CourseCoverage authority mutation was performed."
+    "statement": "CHALLENGER read only the frozen manifest/worklist and independent course evidence; it did not read any other stage conclusion or #1222 artifact.",
+    "sourceOrderCanonicalized": false
   },
   "batchBinding": {
     "batchId": "edaaa5e622fe34eac8d7a53c",
@@ -19,18 +16,7 @@
     "group": "ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement",
     "memberCount": 1,
     "memberDigest": "c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8",
-    "worklistInputDigest": "55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2",
-    "worklistDigest": "bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489",
-    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818",
-    "manifestArtifactSha256": "786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8",
-    "manifestPath": "course-content/authoring/knowledge/issue-1180-current-course-coverage-review/batch-manifest.json",
-    "worklistPath": "course-content/authoring/knowledge/issue-1180-current-course-coverage-review/worklist.json",
-    "courseId": "automatic-control",
-    "authoringRevision": "1b9a90159cae0971b9653e28ee8f559ce0181d2e",
-    "entityTypeUniform": "KnowledgeStatement",
-    "moduleMembershipUniform": [
-      "ctr:root-locus-engineering-v0.1"
-    ]
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818"
   },
   "counts": {
     "members": 1,
@@ -38,48 +24,26 @@
     "EXCLUDE": 0,
     "DEFER": 1
   },
-  "driftCheck": {
-    "status": "PASS",
-    "checks": [
-      { "check": "batchId", "pass": true },
-      { "check": "manifestBatchIndex", "pass": true },
-      { "check": "sequence", "pass": true },
-      { "check": "semanticGroupKey", "pass": true },
-      { "check": "memberCount", "pass": true },
-      { "check": "memberDigest", "pass": true },
-      { "check": "canonicalRevision", "pass": true },
-      { "check": "worklistInputDigest", "pass": true },
-      { "check": "worklistDigest", "pass": true },
-      { "check": "manifestDigest", "pass": true },
-      { "check": "manifestArtifactSha256", "pass": true }
-    ]
-  },
-  "reviewSummary": {
-    "policyApplied": "当前 receiver 要求非 DEFER 决定仅可引用冻结 worklist 内 boundary=independent-course 的证据；本批冻结 worklist 只有 aggregate/profile 证据。",
-    "courseAuthorityCandidate": {
-      "semanticConclusion": "当前 3-3 作者态、运行态和大纲独立支持根轨迹起点与终点法则，与 canonical profile 语义等价。",
-      "sources": [
-        "course-content/runtime/lessons/3-3/3-3-handout.md#法则 1：起点与终点",
-        "course-content/authoring/lessons/3-3/design/3-3-handout.md#法则 1：起点与终点",
-        "course-content/syllabus-refactor/decisions.md#2026-03-30 单元 3-3 / 3-4"
-      ],
-      "admissionState": "candidate-only-pending-issue-1180-bind-classify-refreeze"
-    },
-    "noActiveRoleAssigned": true,
-    "noProductionSemanticDecision": true,
-    "reFreezeRequiredMembers": 1
-  },
   "members": [
     {
       "ordinal": 0,
       "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
       "canonicalRevision": "8c339f0697b375665b3f09de708bf3e1f4790cd27b4f22ac7abd857412b25465",
       "stageConclusion": "DEFER",
-      "rationale": "CHALLENGER DEFER：冻结 worklist 的 evidenceRefs 仅有 aggregate/profile 边界，当前 batch protocol 禁止用工作清单之外的新课程路径直接作 INCLUDE/EXCLUDE。CHALLENGER 独立发现 3-3 作者态与运行态“法则 1：起点与终点”、BOPPPS/互动页以及课程大纲的 3-3/3-4 职责段均支持该 canonical 根轨迹起点与终点语义；但这些路径尚未由 #1180 bind/classify/re-freeze 写入冻结 worklist，故只能记录为候选课程 authority，不能改写 frozen evidence boundary。旧 aggregate excluded 记录仅为 priorDecisionRef，未作为本轮依据。终态 DEFER，等待 #1180 将上述课程证据绑定、分类并重新冻结后复审。",
+      "rationale": "已精确核验冻结绑定：batch-manifest#/batches/32 的 batchId=edaaa5e622fe34eac8d7a53c、sequence=0、semanticGroupKey=ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement、memberCount=1、memberDigest=c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8，以及 worklistInputDigest/worklistDigest/manifestDigest 与成员 canonicalId/canonicalRevision 全部与冻结值一致。从冻结 worklist 读取该成员完整 evidenceRefs（原序 3 条）：boundary 分别为 aggregate、aggregate、profile，independent-course 计数为 0；profileOnly=true 且 highRisk=true。按 receiver 不变量，非 DEFER 结论必须引用 boundary=independent-course 的冻结 evidenceRef，本成员不具备该边界证据。priorDecisionRefs 与课程材料仅可作解释性/诊断上下文，不得替代或新增冻结 evidenceRef，也不能继承历史角色或裁决。因此 fail closed：结论为 role-free DEFER，evidenceSufficiency=INSUFFICIENT，完整保留冻结 evidenceSelectors/evidenceIds 原序身份；不激活 CourseCoverage 角色，不改变 production authority/selector/writer fence。",
       "evidenceRefs": [
-        { "evidenceId": "0d75ef1eabff67d440f4a492286165e3", "sourcePath": "aggregate-projection", "selector": "evidence:ctr:4bea63c0ac4a09c3606550af", "sourceDigest": "1f07f7feeae16222efd4416fe21b706d72e3ef487aecbac5f4bb1fd0338140dc", "boundary": "aggregate", "kind": "aggregate-evidence", "digestSemantics": "selector-evidence" },
-        { "evidenceId": "c6cd1f9d524f1359268435c783e14629", "sourcePath": "aggregate-projection", "selector": "evidence:ctr:86523c17c42be030895f844f", "sourceDigest": "a12a38b4c143387fa81d5af514f9765a32d15252bbacf11efbdb8996d210c953", "boundary": "aggregate", "kind": "aggregate-evidence", "digestSemantics": "selector-evidence" },
-        { "evidenceId": "923732b4fbbf19b21fbd2dd26e5fed0d", "sourcePath": "aggregate-projection", "selector": "canonicalId:ctk:v11g-9840f883d2655d2a1322fb60", "sourceDigest": "8c339f0697b375665b3f09de708bf3e1f4790cd27b4f22ac7abd857412b25465", "boundary": "profile", "kind": "canonical-profile", "digestSemantics": "semantic-payload" }
+        {
+          "selector": "evidence:ctr:4bea63c0ac4a09c3606550af",
+          "evidenceId": "0d75ef1eabff67d440f4a492286165e3"
+        },
+        {
+          "selector": "evidence:ctr:86523c17c42be030895f844f",
+          "evidenceId": "c6cd1f9d524f1359268435c783e14629"
+        },
+        {
+          "selector": "canonicalId:ctk:v11g-9840f883d2655d2a1322fb60",
+          "evidenceId": "923732b4fbbf19b21fbd2dd26e5fed0d"
+        }
       ]
     }
   ]
