@@ -21,6 +21,7 @@ const V3E_MODULE =
 const V4 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.4';
 const V9 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.9';
 const V10 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.10';
+const V11 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.11';
 
 // Verified from vendored control-theory-engineering-v0.10 projections under
 // m1m-v2n-release-tier-preserving public profile reconstruction.
@@ -28,6 +29,14 @@ const V10_PROJECTION_DIGESTS = {
   runtime: 'f2270fd9ce9b4db55769cf53174ccdae70c57c3847984a372c809ba2c9607b30',
   domain: '1a3dd4f4c25180aa874c37aebcbd8af054f0ef32594e2581938e4a918f8c2db9',
   review: '50a7d07619d2334345931e324a7826ad2d79ee8524a372b7ad47d229779996fd',
+} as const;
+
+// Verified from vendored control-theory-engineering-v0.11 projections under
+// m1n-v1l-release-tier-preserving public profile reconstruction.
+const V11_PROJECTION_DIGESTS = {
+  runtime: '1ff0966c76d21e9961d828485849a4921a037b81144b4448c4fa6ece4f7d6de3',
+  domain: '98ece18efeea479dd25288f67e6b6be8381a8d3856e2a6b748b66c8b207f1019',
+  review: 'dcb32b9d914433679578a34ddcfe039e0d1edcd23f8c3b8e2d7544dfe567befc',
 } as const;
 
 describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
@@ -205,6 +214,53 @@ describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
           null,
           entry.profile,
           'm1k-v1d-release-tier-preserving',
+        ),
+      ).not.toBe(entry.expectedDigest);
+    }
+  });
+
+  it('recomputes vendored v0.11 projection digests with m1n-v1l policy and rejects prior policy', async () => {
+    expect(PROJECTION_AGGREGATION_POLICIES).toContain('m1n-v1l-release-tier-preserving');
+    const cases: Array<{
+      file: string;
+      profile: 'runtime' | 'domain' | 'review';
+      expectedDigest: string;
+    }> = [
+      {
+        file: 'act-projection.json',
+        profile: 'runtime',
+        expectedDigest: V11_PROJECTION_DIGESTS.runtime,
+      },
+      {
+        file: 'domain-projection.json',
+        profile: 'domain',
+        expectedDigest: V11_PROJECTION_DIGESTS.domain,
+      },
+      {
+        file: 'review-projection.json',
+        profile: 'review',
+        expectedDigest: V11_PROJECTION_DIGESTS.review,
+      },
+    ];
+    for (const entry of cases) {
+      const projection = JSON.parse(
+        await readFile(path.join(root, V11, entry.file), 'utf8'),
+      ) as JsonObject;
+      expect(String(projection.version_digest)).toBe(entry.expectedDigest);
+      expect(
+        computeProjectionVersionDigest(
+          projection,
+          null,
+          entry.profile,
+          'm1n-v1l-release-tier-preserving',
+        ),
+      ).toBe(entry.expectedDigest);
+      expect(
+        computeProjectionVersionDigest(
+          projection,
+          null,
+          entry.profile,
+          'm1m-v2n-release-tier-preserving',
         ),
       ).not.toBe(entry.expectedDigest);
     }
