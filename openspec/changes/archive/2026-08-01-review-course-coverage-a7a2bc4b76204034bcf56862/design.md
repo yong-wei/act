@@ -16,4 +16,4 @@ Before review and before receipt assembly, reread the manifest slice and compare
 
 ### Receipt
 
-The receipt is deterministic and machine-mergeable: it contains the exact batch binding, ordered member references, Primary/Challenger/Third stage outcomes, conflict resolutions, terminal per-member decisions, and proof that no out-of-slice member was written.
+The receipt is deterministic and machine-mergeable: it contains the exact batch binding, ordered member references, Primary/Challenger/Third stage outcomes, conflict resolutions, terminal per-member decisions, and proof that no out-of-slice member was written. Each normalized stage document binds the immutable independent source artifact path, SHA-256, schema, stage, and writer session. Its v3 production-boundary proof and v2 detached attestation persist ordered protected-path digests so identical replay remains verifiable after a squash merge without weakening the production authority fence.

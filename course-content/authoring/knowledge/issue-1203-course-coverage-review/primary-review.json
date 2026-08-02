@@ -19,6 +19,13 @@
     "sessionId": "c6c52a77-de78-4cf1-b27e-8e3b4cb84c57",
     "promptVersion": "issue-1203-primary-v2"
   },
+  "sourceArtifactBinding": {
+    "artifactPath": "course-content/authoring/knowledge/issue-1203-course-coverage-review/primary-independent-stage-source.json",
+    "artifactSha256": "7c8ca7c7610922fe0fea4da15dd91c4254ba33de27327b2ac7442e9698f4644f",
+    "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+    "stage": "PRIMARY",
+    "writerSessionId": "c6c52a77-de78-4cf1-b27e-8e3b4cb84c57"
+  },
   "reviewInputDigest": "2e19497c240d7b88ece0b2cad88a0741691f240589a18bb46dfe428604746d37",
   "decisions": [
     {
@@ -399,5 +406,5 @@
       "decisionDigest": "ff5c4ff835afe6e7f5dacb7eab480fd43eb000eb45f42fa82b6a97c5f6e86cc3"
     }
   ],
-  "documentDigest": "9d39ee21ca3cf83fa1af029e943eee70d0ec24f554b45ed5ffa55876ceeaed4b"
+  "documentDigest": "fc4571033ae974a536ea7c0a32fbb7c9f66f71bee1ef2ed12ff8e430d4d1af23"
 }

@@ -13,6 +13,8 @@
 
 - [x] Emit a deterministic machine-mergeable receipt keyed by batchId and every binding digest.
 - [x] Prove the receipt contains no member outside the frozen ordered slice and no production selector/writer-fence mutation.
+- [x] Bind each normalized Primary/Challenger stage document and provenance record to its immutable independent source artifact.
+- [x] Publish the v3 protected-path proof and v2 detached attestation, then verify identical replay by ordered protected-path digests.
 
 ## 4. Validate
 

@@ -141,8 +141,8 @@
     }
   ],
   "stageDocuments": {
-    "primaryDigest": "9d39ee21ca3cf83fa1af029e943eee70d0ec24f554b45ed5ffa55876ceeaed4b",
-    "challengerDigest": "2be970bea13f14ca550e7a61fac6b4af4f15aebccb2430c196f1c0263ae291a7",
+    "primaryDigest": "fc4571033ae974a536ea7c0a32fbb7c9f66f71bee1ef2ed12ff8e430d4d1af23",
+    "challengerDigest": "90121025ee5acca0f83a052f86be3484410aac4d303f8e9021b19ab43916b5ff",
     "thirdDigest": null
   },
   "stageRecords": {
@@ -166,6 +166,13 @@
         "provider": "grok-4.5-build",
         "sessionId": "c6c52a77-de78-4cf1-b27e-8e3b4cb84c57",
         "promptVersion": "issue-1203-primary-v2"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1203-course-coverage-review/primary-independent-stage-source.json",
+        "artifactSha256": "7c8ca7c7610922fe0fea4da15dd91c4254ba33de27327b2ac7442e9698f4644f",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "PRIMARY",
+        "writerSessionId": "c6c52a77-de78-4cf1-b27e-8e3b4cb84c57"
       },
       "reviewInputDigest": "2e19497c240d7b88ece0b2cad88a0741691f240589a18bb46dfe428604746d37",
       "decisions": [
@@ -547,7 +554,7 @@
           "decisionDigest": "ff5c4ff835afe6e7f5dacb7eab480fd43eb000eb45f42fa82b6a97c5f6e86cc3"
         }
       ],
-      "documentDigest": "9d39ee21ca3cf83fa1af029e943eee70d0ec24f554b45ed5ffa55876ceeaed4b"
+      "documentDigest": "fc4571033ae974a536ea7c0a32fbb7c9f66f71bee1ef2ed12ff8e430d4d1af23"
     },
     "challenger": {
       "schemaVersion": "current-course-coverage-stage-review/v1",
@@ -569,6 +576,13 @@
         "provider": "grok-4.5-build",
         "sessionId": "49f51ab9-bbf4-479f-903e-42207dbdb835",
         "promptVersion": "issue-1203-challenger-v1"
+      },
+      "sourceArtifactBinding": {
+        "artifactPath": "course-content/authoring/knowledge/issue-1203-course-coverage-review/challenger-independent-stage-source.json",
+        "artifactSha256": "496272546d98889478085b9a2cce9fa4b0c81a13ff1475cd52c63e13d7ff9ada",
+        "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+        "stage": "CHALLENGER",
+        "writerSessionId": "49f51ab9-bbf4-479f-903e-42207dbdb835"
       },
       "reviewInputDigest": "684c4c2cfc95c19845d28cf4b3e3bdd930a30851dc7bc12e6662d0cd7d2f4240",
       "decisions": [
@@ -950,7 +964,7 @@
           "decisionDigest": "b831219dc10768ab8178e7d0269775f5fe753180c0d48595400bd5153dfde004"
         }
       ],
-      "documentDigest": "2be970bea13f14ca550e7a61fac6b4af4f15aebccb2430c196f1c0263ae291a7"
+      "documentDigest": "90121025ee5acca0f83a052f86be3484410aac4d303f8e9021b19ab43916b5ff"
     },
     "third": null
   },
@@ -1375,10 +1389,10 @@
     "writerFenceChanged": false
   },
   "productionBoundaryProof": {
-    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v2",
+    "verificationProtocol": "git-head-and-production-authority-pre-publication-snapshot/v3",
     "receiptPath": "course-content/authoring/knowledge/issue-1203-course-coverage-review/batch-receipt.json",
     "attestationPath": "course-content/authoring/knowledge/issue-1203-course-coverage-review/batch-boundary-attestation.json",
-    "headBefore": "c2af3ad822a8037642845d97b0b98e1966655aae",
+    "headBefore": "c8a69b47af2af1b881e60c40ec6f9e648f877d29",
     "protectedPaths": [
       "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
       "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
@@ -1387,8 +1401,40 @@
       "src/lib/canonical-learning-fact-identity/capability.ts",
       "src/lib/canonical-learning-fact-identity/writer.ts"
     ],
+    "protectedPathSnapshots": [
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/active/automatic-control.json",
+        "workingTreeDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277",
+        "headDigest": "77a5f54b8601bb2c7695754eb1f7b679e030bfda4ca05dcbd7b86d211319f277"
+      },
+      {
+        "relativePath": "course-content/authoring/knowledge/course-coverage/aggregate/active/automatic-control.json",
+        "workingTreeDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d",
+        "headDigest": "0493e50c8f490c0c2c4f255c60c9b0823cd15114bf7e6eb21bbcc696f490813d"
+      },
+      {
+        "relativePath": "src/lib/canonical-rag/authority.ts",
+        "workingTreeDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708",
+        "headDigest": "55747c12e8811102edca6bf775ef805b69a0f221030b6603e2f45489cc5cd708"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/authority.ts",
+        "workingTreeDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455",
+        "headDigest": "d5f874966503060bfb9b5af3afd693bb806ba48d67203c4b9a63c8a3e6585455"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/capability.ts",
+        "workingTreeDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c",
+        "headDigest": "3204fc842adda8bc82fe8ff3a3ea2f714df9a837988e284fd2a2a4ee7aa7b38c"
+      },
+      {
+        "relativePath": "src/lib/canonical-learning-fact-identity/writer.ts",
+        "workingTreeDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78",
+        "headDigest": "7a841104e08408f4259036f6c3c22183843d92d03f8027d51f84bd85f6bfbd78"
+      }
+    ],
     "statusBefore": [],
-    "authoritySnapshotBeforeDigest": "dffbc5a091b3a142c9d5834dff3e38818e283ea1c480890f92bb8a9b8fce80f3",
+    "authoritySnapshotBeforeDigest": "5cbaf910cfa861e13ba3d3d2a1f1acf6284d3ffe3f68df7a7912000e8cdf87d2",
     "gitDiffCheck": "PASS",
     "mutationFlags": {
       "currentCoverageDecisionWritten": false,
@@ -1397,5 +1443,5 @@
       "writerFenceChanged": false
     }
   },
-  "receiptDigest": "005cf37a262f26d90897c7f11f35efca1630101ae3c102328a47b019e058550b"
+  "receiptDigest": "23df4096c560a8d99ca5eabb407fb69e311977090f8894cdde0afa00d6b4fcab"
 }

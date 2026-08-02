@@ -71,7 +71,7 @@ interface IndependentStageSourceMember {
   canonicalRevision: string;
   stageConclusion: string;
   rationale: string;
-  evidenceRefs: string[];
+  evidenceRefs: Array<string | { selector: string }>;
 }
 
 interface IndependentStageSource {
@@ -351,12 +351,15 @@ async function json<T>(input: string): Promise<T> {
   return JSON.parse(await readFile(absolute(input), 'utf8')) as T;
 }
 
-function sourceEvidenceSelector(value: string, index: number): string {
-  const parts = value.split('|');
-  if (parts.length !== 4 || !parts[2]) {
-    throw new Error(`Current batch review rejected: source evidenceRefs[${index}] is malformed`);
+function sourceEvidenceSelector(value: unknown, index: number): string {
+  if (typeof value === 'string') {
+    const parts = value.split('|');
+    if (parts.length === 4 && parts[2]) return parts[2];
+  } else if (value && typeof value === 'object'
+    && 'selector' in value && typeof value.selector === 'string' && value.selector) {
+    return value.selector;
   }
-  return parts[2]!;
+  throw new Error(`Current batch review rejected: source evidenceRefs[${index}] is malformed`);
 }
 
 export function validateCurrentCourseCoverageStageSource(input: {
