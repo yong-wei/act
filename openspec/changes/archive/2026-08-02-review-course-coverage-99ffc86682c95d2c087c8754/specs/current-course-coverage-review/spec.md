@@ -25,12 +25,13 @@ Primary and Challenger MUST issue independent conclusions; Challenger MUST run f
 
 #### Scenario: Batch 99ffc86682c95d2c087c8754 has no conflict
 
-- **WHEN** required stages agree and all members are resolved
-- **THEN** the receipt SHALL preserve each stage's independent rationale and terminal outcome
+- **WHEN** required stages agree and every member has a review-stage terminal conclusion
+- **THEN** the receipt SHALL preserve each stage's independent rationale and review-stage terminal conclusion
+- **AND** any `DEFER` conclusion SHALL remain role-free, leave CourseCoverage authority unresolved, and produce `DEFERRED_EVIDENCE_BLOCKED` with the aggregate coverage gate blocked
 
 ### Requirement: Batch 99ffc86682c95d2c087c8754 emits a machine-mergeable receipt
 
-The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, and prove that no out-of-slice member or production authority was written.
+The decision receipt MUST be keyed by every batch binding digest, preserve exact ordered member references, bind the independent Primary/Challenger stage-source artifacts through each normalized stage document and provenance record, and prove that no out-of-slice member or production authority was written. Its v3 production-boundary proof and v2 detached attestation MUST preserve ordered protected-path digests for squash-safe identical replay.
 
 #### Scenario: Receipt for batch 99ffc86682c95d2c087c8754 is assembled
 
