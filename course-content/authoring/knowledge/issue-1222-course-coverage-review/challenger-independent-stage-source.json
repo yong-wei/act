@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "course-coverage-independent-stage-preparation/v0",
+  "stage": "CHALLENGER",
+  "sessionIndependence": {
+    "role": "CHALLENGER",
+    "sessionId": "79bdf40d-dc98-4492-8218-3d9a298670ad",
+    "scope": "act:issue-1222:challenger-recovery-review",
+    "readOtherStageConclusions": false,
+    "statement": "CHALLENGER read only the frozen manifest/worklist and independent course evidence; it did not read any other stage conclusion or #1222 artifact.",
+    "sourceOrderCanonicalized": false
+  },
+  "batchBinding": {
+    "batchId": "edaaa5e622fe34eac8d7a53c",
+    "manifestBatchIndex": 32,
+    "sequence": 0,
+    "group": "ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement",
+    "memberCount": 1,
+    "memberDigest": "c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8",
+    "manifestDigest": "2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818"
+  },
+  "counts": {
+    "members": 1,
+    "INCLUDE": 0,
+    "EXCLUDE": 0,
+    "DEFER": 1
+  },
+  "members": [
+    {
+      "ordinal": 0,
+      "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+      "canonicalRevision": "8c339f0697b375665b3f09de708bf3e1f4790cd27b4f22ac7abd857412b25465",
+      "stageConclusion": "DEFER",
+      "rationale": "已精确核验冻结绑定：batch-manifest#/batches/32 的 batchId=edaaa5e622fe34eac8d7a53c、sequence=0、semanticGroupKey=ctr:root-locus-engineering-v0.1::entityType:KnowledgeStatement、memberCount=1、memberDigest=c600712a595a2eece7471c52d228698d15c35d2f375dfd7f44f86b63d8f4ddc8，以及 worklistInputDigest/worklistDigest/manifestDigest 与成员 canonicalId/canonicalRevision 全部与冻结值一致。从冻结 worklist 读取该成员完整 evidenceRefs（原序 3 条）：boundary 分别为 aggregate、aggregate、profile，independent-course 计数为 0；profileOnly=true 且 highRisk=true。按 receiver 不变量，非 DEFER 结论必须引用 boundary=independent-course 的冻结 evidenceRef，本成员不具备该边界证据。priorDecisionRefs 与课程材料仅可作解释性/诊断上下文，不得替代或新增冻结 evidenceRef，也不能继承历史角色或裁决。因此 fail closed：结论为 role-free DEFER，evidenceSufficiency=INSUFFICIENT，完整保留冻结 evidenceSelectors/evidenceIds 原序身份；不激活 CourseCoverage 角色，不改变 production authority/selector/writer fence。",
+      "evidenceRefs": [
+        {
+          "selector": "evidence:ctr:4bea63c0ac4a09c3606550af",
+          "evidenceId": "0d75ef1eabff67d440f4a492286165e3"
+        },
+        {
+          "selector": "evidence:ctr:86523c17c42be030895f844f",
+          "evidenceId": "c6cd1f9d524f1359268435c783e14629"
+        },
+        {
+          "selector": "canonicalId:ctk:v11g-9840f883d2655d2a1322fb60",
+          "evidenceId": "923732b4fbbf19b21fbd2dd26e5fed0d"
+        }
+      ]
+    }
+  ]
+}
