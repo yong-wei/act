@@ -521,42 +521,57 @@ function resealStageRecord(inputRecord: CurrentCourseCoverageStageReview): Curre
   });
 }
 
-function synchronizeReceiptAfterChallengerMutation(inputReceipt: ReturnType<typeof receipt>): void {
+function synchronizeReceiptAfterStageMutation(inputReceipt: ReturnType<typeof receipt>): void {
   const binding = inputReceipt.reviewProvenanceBinding;
   if (!binding) throw new Error('fixture requires review provenance binding');
-  const challenger = inputReceipt.stageRecords.challenger;
-  if (challenger) {
-    const resealedChallenger = resealStageRecord(challenger);
-    inputReceipt.stageRecords.challenger = resealedChallenger;
-    inputReceipt.stageDocuments.challengerDigest = resealedChallenger.documentDigest;
-    const challengerAudit = binding.independenceAudit.challenger;
-    if (!challengerAudit) throw new Error('fixture requires Challenger provenance audit');
-    challengerAudit.normalizedDocumentDigest = resealedChallenger.documentDigest;
-  } else {
-    inputReceipt.stageDocuments.challengerDigest = null;
-    binding.independenceAudit.challenger = null;
+  for (const stage of ['primary', 'challenger', 'third'] as const) {
+    const record = inputReceipt.stageRecords[stage];
+    const digestField = `${stage}Digest` as 'primaryDigest' | 'challengerDigest' | 'thirdDigest';
+    const audit = binding.independenceAudit[stage];
+    if (!record) {
+      if (stage === 'primary') throw new Error('fixture requires Primary stage record');
+      if (stage === 'challenger') {
+        inputReceipt.stageDocuments.challengerDigest = null;
+        binding.independenceAudit.challenger = null;
+      } else {
+        inputReceipt.stageDocuments.thirdDigest = null;
+        binding.independenceAudit.third = null;
+      }
+      continue;
+    }
+    const resealedRecord = resealStageRecord(record);
+    inputReceipt.stageRecords[stage] = resealedRecord;
+    inputReceipt.stageDocuments[digestField] = resealedRecord.documentDigest;
+    if (!audit) throw new Error(`fixture requires ${stage} provenance audit`);
+    audit.normalizedDocumentDigest = resealedRecord.documentDigest;
   }
   const primaryById = new Map(
     inputReceipt.stageRecords.primary.decisions.map((decision) => [decision.canonicalId, decision]),
   );
   const challengerById = new Map(
-    challenger?.decisions.map((decision) => [decision.canonicalId, decision]) ?? [],
+    inputReceipt.stageRecords.challenger?.decisions.map((decision) => [decision.canonicalId, decision]) ?? [],
+  );
+  const thirdById = new Map(
+    inputReceipt.stageRecords.third?.decisions.map((decision) => [decision.canonicalId, decision]) ?? [],
   );
   inputReceipt.terminalMembers = inputReceipt.terminalMembers.map((member) => {
     const primaryDecision = primaryById.get(member.canonicalId);
     if (!primaryDecision) throw new Error(`fixture is missing Primary decision for ${member.canonicalId}`);
     const challengerDecision = challengerById.get(member.canonicalId);
+    const thirdDecision = thirdById.get(member.canonicalId);
+    const terminalDecision = thirdDecision ?? primaryDecision;
     return {
       ...member,
-      conclusion: primaryDecision.conclusion,
-      role: primaryDecision.role ?? null,
-      evidenceSufficiency: primaryDecision.evidenceSufficiency,
-      terminalSource: challengerDecision ? 'CONSENSUS' as const : 'PRIMARY' as const,
+      conclusion: terminalDecision.conclusion,
+      role: terminalDecision.role ?? null,
+      evidenceSufficiency: terminalDecision.evidenceSufficiency,
+      terminalSource: thirdDecision ? 'THIRD' as const : challengerDecision ? 'CONSENSUS' as const : 'PRIMARY' as const,
       stageDecisionDigests: [
         primaryDecision.decisionDigest,
         ...(challengerDecision ? [challengerDecision.decisionDigest] : []),
+        ...(thirdDecision ? [thirdDecision.decisionDigest] : []),
       ],
-      coverageAuthorityState: primaryDecision.conclusion === 'DEFER'
+      coverageAuthorityState: terminalDecision.conclusion === 'DEFER'
         ? 'UNRESOLVED_BLOCKING' as const
         : 'REVIEWED_NOT_CURRENT' as const,
     };
@@ -574,8 +589,20 @@ function synchronizeReceiptAfterChallengerMutation(inputReceipt: ReturnType<type
     excluded: inputReceipt.terminalMembers.filter((member) => member.conclusion === 'EXCLUDE').length,
     deferredEvidenceBlocked: inputReceipt.terminalMembers.filter((member) => member.conclusion === 'DEFER').length,
     conflicts,
-    thirdReviewed: inputReceipt.stageRecords.third?.decisions.length ?? 0,
+    thirdReviewed: thirdById.size,
   };
+}
+
+function synchronizeReceiptAfterChallengerMutation(inputReceipt: ReturnType<typeof receipt>): void {
+  synchronizeReceiptAfterStageMutation(inputReceipt);
+}
+
+function synchronizeReceiptAfterBatchBindingMutation(inputReceipt: ReturnType<typeof receipt>): void {
+  for (const stage of ['primary', 'challenger', 'third'] as const) {
+    const record = inputReceipt.stageRecords[stage];
+    if (record) record.batchBinding = structuredClone(inputReceipt.batchBinding);
+  }
+  synchronizeReceiptAfterStageMutation(inputReceipt);
 }
 
 describe('current CourseCoverage batch review receipt', () => {
@@ -752,7 +779,7 @@ describe('current CourseCoverage batch review receipt', () => {
       attestation: tamperedAttestation,
       receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
       attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
-    })).toThrow(/bound Challenger stage is required|bound challenger must cover orderedMembers exactly/iu);
+    })).toThrow(/(?:bound Challenger stage is required|frozen issue-1200 Challenger stage is required|bound challenger must cover orderedMembers exactly)/iu);
   });
 
   it('accepts a general bound receipt with an ordered Challenger subset when no conflict exists', () => {
@@ -762,6 +789,103 @@ describe('current CourseCoverage batch review receipt', () => {
     if (!challenger) throw new Error('fixture requires Challenger stage record');
     challenger.decisions = challenger.decisions.slice(0, 1);
     synchronizeReceiptAfterChallengerMutation(tamperedReceipt);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).not.toThrow();
+  });
+
+  it.each([
+    ['manifestBatchIndex', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.manifestBatchIndex += 1;
+    }],
+    ['worklistInputDigest', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.worklistInputDigest = SHA_A;
+    }],
+    ['worklistDigest', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.worklistDigest = SHA_A;
+    }],
+    ['manifestDigest', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.manifestDigest = SHA_A;
+    }],
+    ['manifestArtifactSha256', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.manifestArtifactSha256 = SHA_A;
+    }],
+    ['sequence', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.sequence += 1;
+    }],
+    ['semanticGroupKey', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.semanticGroupKey = 'drifted-semantic-group';
+    }],
+    ['batchId', (tamperedReceipt: ReturnType<typeof receipt>) => {
+      tamperedReceipt.batchBinding.batchId = 'drifted-batch-id';
+    }],
+  ] as const)('rejects a fully synchronized #1200 receipt when frozen binding %s drifts', (_label, mutate) => {
+    const tamperedReceipt = issue1200Receipt();
+    mutate(tamperedReceipt);
+    synchronizeReceiptAfterBatchBindingMutation(tamperedReceipt);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/frozen issue-1200 binding closure drift/iu);
+  });
+
+  it('rejects a fully synchronized #1200 receipt when provenance SHA drifts', () => {
+    const tamperedReceipt = issue1200Receipt();
+    tamperedReceipt.reviewProvenanceBinding!.provenanceSha256 = SHA_A;
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/frozen issue-1200 provenance SHA drift/iu);
+  });
+
+  it.each([
+    ['Primary', 'primary', 'drift-primary-session'],
+    ['Challenger', 'challenger', 'drift-challenger-session'],
+  ] as const)('rejects a fully synchronized #1200 receipt when %s session drifts', (_label, stage, sessionId) => {
+    const tamperedReceipt = issue1200Receipt();
+    const record = tamperedReceipt.stageRecords[stage];
+    if (!record) throw new Error(`fixture requires ${stage} stage record`);
+    record.reviewer.sessionId = sessionId;
+    record.sourceArtifactBinding.writerSessionId = sessionId;
+    const audit = tamperedReceipt.reviewProvenanceBinding!.independenceAudit[stage];
+    if (!audit) throw new Error(`fixture requires ${stage} provenance audit`);
+    audit.sessionId = sessionId;
+    audit.reviewSessionId = sessionId;
+    audit.sourceWriterSessionId = sessionId;
+    synchronizeReceiptAfterStageMutation(tamperedReceipt);
+    const resealedReceipt = resealReceipt(tamperedReceipt);
+    const tamperedAttestation = attestationV2For(resealedReceipt);
+    expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({
+      receipt: resealedReceipt,
+      attestation: tamperedAttestation,
+      receiptPath: resealedReceipt.productionBoundaryProof.receiptPath,
+      attestationPath: resealedReceipt.productionBoundaryProof.attestationPath,
+    })).toThrow(/frozen issue-1200 (Primary|Challenger) session drift/iu);
+  });
+
+  it('accepts a non-#1200 path with the general bound subset rules', () => {
+    const tamperedReceipt = issue1200Receipt();
+    const challenger = tamperedReceipt.stageRecords.challenger;
+    if (!challenger) throw new Error('fixture requires Challenger stage record');
+    challenger.decisions = challenger.decisions.slice(0, 1);
+    tamperedReceipt.productionBoundaryProof.receiptPath =
+      'course-content/authoring/knowledge/issue-1201-course-coverage-review/batch-receipt.json';
+    tamperedReceipt.productionBoundaryProof.attestationPath =
+      'course-content/authoring/knowledge/issue-1201-course-coverage-review/batch-boundary-attestation.json';
+    synchronizeReceiptAfterStageMutation(tamperedReceipt);
     const resealedReceipt = resealReceipt(tamperedReceipt);
     const tamperedAttestation = attestationV2For(resealedReceipt);
     expect(() => assertCurrentCourseCoverageProductionBoundaryBundle({

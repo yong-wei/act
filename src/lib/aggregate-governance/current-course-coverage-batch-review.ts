@@ -1058,26 +1058,56 @@ function assertReceiptDecisionContract(
   }
 }
 
+const CURRENT_COURSE_COVERAGE_ISSUE_1200_RECEIPT_PATH =
+  'course-content/authoring/knowledge/issue-1200-course-coverage-review/batch-receipt.json';
+
 const CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING = {
   batchId: '3c6973d82b44357efc73f2f8',
+  manifestBatchIndex: 10,
   sequence: 0,
   semanticGroupKey: 'ctr:release:frequency-domain-analysis-engineering-v0.1::entityType:Formula',
   memberCount: 232,
   memberDigest: '321f283c747e5068c1de2dcb0e69939afe0991c6154dc3d8db3e9f853f0455c8',
-} as const;
+  worklistInputDigest: '55d9a896cccc5e55d0cb754187ccdc06ef8f6a845b5152f0c0106620039662c2',
+  worklistDigest: 'bd80f5e20ad0713dd4203e5336328b5c919d44b98a376d8b5d3cf6835a398489',
+  manifestDigest: '2f5fa8f4b9e1d7fa75c7d2be5f2629be792e0fb35907e678f8ff3a3fa2a6c818',
+  manifestArtifactSha256: '786a305f3c6de217c6cc561a4e5200517615a651e346bf4bff73c9bdb54593e8',
+} as const satisfies CurrentCourseCoverageBatchBinding;
 
-function isCurrentCourseCoverageIssue1200FrozenBatchBinding(
-  binding: CurrentCourseCoverageBatchBinding,
-): boolean {
-  return binding.batchId === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.batchId
-    && binding.sequence === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.sequence
-    && binding.semanticGroupKey === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.semanticGroupKey
-    && binding.memberCount === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.memberCount
-    && binding.memberDigest === CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING.memberDigest;
+const CURRENT_COURSE_COVERAGE_ISSUE_1200_PRIMARY_SESSION_ID =
+  '42eca660-ca20-49d4-b9df-93d9651ad3f2';
+const CURRENT_COURSE_COVERAGE_ISSUE_1200_CHALLENGER_SESSION_ID =
+  '37cc1c54-54d1-4cc0-a174-c440ed0294fe';
+const CURRENT_COURSE_COVERAGE_ISSUE_1200_PROVENANCE_SHA256 =
+  'eee0d6dcbccab41287492f2feb7348a0419b62478d0be0565c509a9e97122a18';
+
+function assertCurrentCourseCoverageIssue1200FrozenContract(
+  receipt: CurrentCourseCoverageBatchReceipt,
+): void {
+  if (!sameBinding(receipt.batchBinding, CURRENT_COURSE_COVERAGE_ISSUE_1200_FROZEN_BATCH_BINDING)) {
+    throw new Error('Current batch review rejected: frozen issue-1200 binding closure drift');
+  }
+  if (receipt.stageRecords.primary.reviewer.sessionId
+    !== CURRENT_COURSE_COVERAGE_ISSUE_1200_PRIMARY_SESSION_ID) {
+    throw new Error('Current batch review rejected: frozen issue-1200 Primary session drift');
+  }
+  if (!receipt.stageRecords.challenger) {
+    throw new Error('Current batch review rejected: frozen issue-1200 Challenger stage is required');
+  }
+  if (receipt.stageRecords.challenger.reviewer.sessionId
+    !== CURRENT_COURSE_COVERAGE_ISSUE_1200_CHALLENGER_SESSION_ID) {
+    throw new Error('Current batch review rejected: frozen issue-1200 Challenger session drift');
+  }
+  if (!receipt.reviewProvenanceBinding
+    || receipt.reviewProvenanceBinding.provenanceSha256
+      !== CURRENT_COURSE_COVERAGE_ISSUE_1200_PROVENANCE_SHA256) {
+    throw new Error('Current batch review rejected: frozen issue-1200 provenance SHA drift');
+  }
 }
 
 function assertCurrentCourseCoverageBatchReceiptInternalClosure(
   receipt: CurrentCourseCoverageBatchReceipt,
+  issue1200FrozenPolicy = false,
 ): void {
   if (receipt.schemaVersion !== CURRENT_COURSE_COVERAGE_BATCH_RECEIPT_SCHEMA_VERSION
     || receipt.protocol !== 'current-course-coverage-batch-review/1') {
@@ -1188,7 +1218,10 @@ function assertCurrentCourseCoverageBatchReceiptInternalClosure(
   };
 
   const primary = validateStageRecord('PRIMARY', receipt.stageRecords.primary);
-  const challengerMustCoverFullBatch = isCurrentCourseCoverageIssue1200FrozenBatchBinding(receipt.batchBinding);
+  if (issue1200FrozenPolicy) {
+    assertCurrentCourseCoverageIssue1200FrozenContract(receipt);
+  }
+  const challengerMustCoverFullBatch = issue1200FrozenPolicy;
   const challengerRecord = receipt.stageRecords.challenger;
   if (challengerMustCoverFullBatch && !challengerRecord) {
     throw new Error('Current batch review rejected: bound Challenger stage is required for frozen issue-1200 batch');
@@ -1434,18 +1467,24 @@ export function assertCurrentCourseCoverageProductionBoundaryBundle(input: {
   if (receiptDigest !== sha256Canonical(withoutReceiptDigest)) {
     throw new Error('Current batch review rejected: receipt digest mismatch');
   }
-  if (Object.prototype.hasOwnProperty.call(receipt, 'reviewProvenanceBinding')) {
+  const hasBoundReviewProvenance = Object.prototype.hasOwnProperty.call(receipt, 'reviewProvenanceBinding');
+  if (hasBoundReviewProvenance) {
     if (!receipt.reviewProvenanceBinding) {
       throw new Error('Current batch review rejected: review provenance binding is invalid');
     }
     assertCurrentCourseCoverageReviewProvenanceBinding(receipt.reviewProvenanceBinding);
     assertBoundStageRecordClosure(receipt);
-    assertCurrentCourseCoverageBatchReceiptInternalClosure(receipt);
   }
   const proof = receipt.productionBoundaryProof;
   validateProductionBoundaryProof(proof);
   if (proof.receiptPath !== input.receiptPath || proof.attestationPath !== input.attestationPath) {
     throw new Error('Current batch review rejected: receipt/attestation path binding mismatch');
+  }
+  if (hasBoundReviewProvenance) {
+    assertCurrentCourseCoverageBatchReceiptInternalClosure(
+      receipt,
+      input.receiptPath === CURRENT_COURSE_COVERAGE_ISSUE_1200_RECEIPT_PATH,
+    );
   }
   const isLegacyAttestation = attestation.schemaVersion === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_SCHEMA_VERSION_V1
     && attestation.protocol === CURRENT_COURSE_COVERAGE_PRODUCTION_BOUNDARY_ATTESTATION_PROTOCOL_V1;
