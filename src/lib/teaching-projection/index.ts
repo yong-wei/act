@@ -4,4 +4,5 @@ export * from './contracts';
 export * from './gate';
 export * from './hash';
 export * from './identity';
+export * from './rebase';
 export * from './store';
