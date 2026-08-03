@@ -23,6 +23,10 @@ import {
   type TeachingResourceRuntime,
 } from '@/lib/teaching-projection/contracts';
 import { resolveTeachingProjectionStorePaths } from '@/lib/teaching-projection/store';
+import {
+  projectionPinsFromSelection,
+  resolveCourseRuntimeProductionSelection,
+} from '@/lib/versioned-knowledge-activation';
 
 import type {
   LayeredGraphPayload,
@@ -273,6 +277,26 @@ export function resolveCoursePageLayeredGraphContext(
         ?? resolveConfiguredTeachingProjectionRoot(repoRoot),
     );
 
+  // #1276 course-runtime consumer activation: replacing consumer current.json
+  // changes the Authority/Projection combination used by course pages.
+  const courseActivation = resolveCourseRuntimeProductionSelection({ repoRoot });
+  const coursePins = projectionPinsFromSelection(courseActivation);
+  let pinnedProjectionId = input.pinnedProjectionId;
+  let pinnedProjectionHash = input.pinnedProjectionHash;
+  let candidateProjectionId = input.candidateProjectionId ?? null;
+  if (courseActivation.mode === 'use-combination' && coursePins.projectionId) {
+    // READY combination: load the selected projection explicitly.
+    candidateProjectionId = candidateProjectionId ?? coursePins.projectionId;
+    pinnedProjectionId = pinnedProjectionId ?? coursePins.projectionId;
+    pinnedProjectionHash = pinnedProjectionHash ?? coursePins.projectionHash;
+  } else if (
+    courseActivation.mode === 'pin-combination'
+    && coursePins.projectionId
+  ) {
+    pinnedProjectionId = pinnedProjectionId ?? coursePins.projectionId;
+    pinnedProjectionHash = pinnedProjectionHash ?? coursePins.projectionHash;
+  }
+
   const allowLegacyFallback = input.allowLegacyFallback !== false;
   const legacyProjection =
     allowLegacyFallback && input.lessonRuntime
@@ -286,9 +310,9 @@ export function resolveCoursePageLayeredGraphContext(
     authorityPaths,
     projectionPaths,
     scope: input.scope,
-    pinnedProjectionId: input.pinnedProjectionId,
-    pinnedProjectionHash: input.pinnedProjectionHash,
-    candidateProjectionId: input.candidateProjectionId,
+    pinnedProjectionId,
+    pinnedProjectionHash,
+    candidateProjectionId,
     allowLegacyFallback: Boolean(legacyProjection),
     legacyProjection,
   });

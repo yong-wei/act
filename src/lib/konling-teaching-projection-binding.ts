@@ -22,6 +22,10 @@ import {
 } from '@/lib/layered-graph/course-page-context';
 import type { LayeredGraphPayload, LayeredGraphScope } from '@/lib/layered-graph/contracts';
 import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
+import {
+  projectionPinsFromSelection,
+  resolveKonlingProductionSelection,
+} from '@/lib/versioned-knowledge-activation';
 
 import type { KonlingTeachingProjectionClientHints } from '@/lib/konling-teaching-projection-context';
 
@@ -232,13 +236,32 @@ export function resolveKonlingTeachingProjectionBinding(input: {
     };
   }
 
+  // #1276 konling consumer activation: pin / select Authority+Projection from
+  // the activation pointer so replacing current.json changes Konling reads.
+  const konlingActivation = resolveKonlingProductionSelection({ repoRoot });
+  const konlingPins = projectionPinsFromSelection(konlingActivation);
+  let pinnedProjectionId = input.pinnedProjectionId;
+  let pinnedProjectionHash = input.pinnedProjectionHash;
+  let candidateProjectionId = input.candidateProjectionId ?? null;
+  if (konlingActivation.mode === 'use-combination' && konlingPins.projectionId) {
+    candidateProjectionId = candidateProjectionId ?? konlingPins.projectionId;
+    pinnedProjectionId = pinnedProjectionId ?? konlingPins.projectionId;
+    pinnedProjectionHash = pinnedProjectionHash ?? konlingPins.projectionHash;
+  } else if (
+    konlingActivation.mode === 'pin-combination'
+    && konlingPins.projectionId
+  ) {
+    pinnedProjectionId = pinnedProjectionId ?? konlingPins.projectionId;
+    pinnedProjectionHash = pinnedProjectionHash ?? konlingPins.projectionHash;
+  }
+
   try {
     const context = resolveCoursePageLayeredGraphContext({
       scope,
       allowLegacyFallback: input.allowLegacyFallback ?? true,
-      pinnedProjectionId: input.pinnedProjectionId,
-      pinnedProjectionHash: input.pinnedProjectionHash,
-      candidateProjectionId: input.candidateProjectionId,
+      pinnedProjectionId,
+      pinnedProjectionHash,
+      candidateProjectionId,
       repoRoot,
       authorityRoot,
       projectionRoot,
@@ -251,9 +274,14 @@ export function resolveKonlingTeachingProjectionBinding(input: {
       source: 'course-page-layered-graph',
       authorityRoot,
       projectionRoot,
-      reasons: context.hasTeachingProjection
-        ? ['teaching-projection-resolved', 'production-default-store-paths']
-        : ['teaching-projection-absent-or-fallback-only', 'production-default-store-paths'],
+      reasons: [
+        ...(context.hasTeachingProjection
+          ? ['teaching-projection-resolved', 'production-default-store-paths']
+          : ['teaching-projection-absent-or-fallback-only', 'production-default-store-paths']),
+        ...(konlingActivation.mode !== 'absent'
+          ? [`konling-activation:${konlingActivation.mode}`]
+          : []),
+      ],
     };
   } catch (error) {
     return {

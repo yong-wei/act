@@ -4,7 +4,16 @@
  * Hard edges: ACT_TEACHING REQUIRED only.
  * RECOMMENDED: advisory annotations.
  * Engineering relations: optional context only, never hard edges.
+ *
+ * When a learning-path consumer-activation pointer is present (#1276), the
+ * planner binds to that Authority/Projection combination (or its pin).
  */
+
+import {
+  projectionPinsFromSelection,
+  resolveLearningPathProductionSelection,
+  type ConsumerProductionSelection,
+} from '@/lib/versioned-knowledge-activation';
 
 import { selectAccessibleProjectedResources } from './resource-selection';
 import {
@@ -425,11 +434,107 @@ function buildEmptyResult(
 }
 
 /**
+ * Bind planner projection identity to the learning-path consumer activation
+ * when present. Replacing consumer-activation current.json changes the
+ * Authority/Projection combination used for formal path planning.
+ */
+export function applyLearningPathConsumerActivation(
+  projection: ActPathPlannerInput['projection'],
+  options: {
+    repoRoot?: string;
+    activationSelection?: ConsumerProductionSelection;
+  } = {},
+): {
+  projection: ActPathPlannerInput['projection'];
+  activationMode: ConsumerProductionSelection['mode'];
+  reasons: string[];
+} {
+  const selection =
+    options.activationSelection
+    ?? resolveLearningPathProductionSelection({ repoRoot: options.repoRoot });
+  const pins = projectionPinsFromSelection(selection);
+  if (selection.mode === 'absent' || selection.mode === 'unavailable') {
+    return {
+      projection,
+      activationMode: selection.mode,
+      reasons: selection.reasons,
+    };
+  }
+  if (!pins.projectionId || !pins.authorityReleaseId) {
+    return {
+      projection,
+      activationMode: selection.mode,
+      reasons: [
+        ...selection.reasons,
+        'learning-path-activation-incomplete-combination',
+      ],
+    };
+  }
+  if (!projection) {
+    return {
+      projection: {
+        authorityReleaseId: pins.authorityReleaseId,
+        projectionId: pins.projectionId,
+        projectionHash: pins.projectionHash,
+        scopeId: selection.combination?.scopeId ?? 'unscoped',
+      },
+      activationMode: selection.mode,
+      reasons: [...selection.reasons, 'learning-path-activation-applied'],
+    };
+  }
+  // Fail closed on identity drift between caller and activation selection.
+  if (
+    projection.projectionId
+    && pins.projectionId
+    && projection.projectionId !== pins.projectionId
+    && (selection.mode === 'use-combination' || selection.mode === 'pin-combination')
+  ) {
+    // Prefer activation combination for production consistency.
+    return {
+      projection: {
+        ...projection,
+        authorityReleaseId: pins.authorityReleaseId,
+        projectionId: pins.projectionId,
+        projectionHash: pins.projectionHash ?? projection.projectionHash,
+      },
+      activationMode: selection.mode,
+      reasons: [
+        ...selection.reasons,
+        'learning-path-activation-overrides-caller-projection',
+      ],
+    };
+  }
+  return {
+    projection: {
+      ...projection,
+      authorityReleaseId: pins.authorityReleaseId ?? projection.authorityReleaseId,
+      projectionId: pins.projectionId ?? projection.projectionId,
+      projectionHash: pins.projectionHash ?? projection.projectionHash,
+    },
+    activationMode: selection.mode,
+    reasons: [...selection.reasons, 'learning-path-activation-merged'],
+  };
+}
+
+/**
  * Plan a Projection-bound path over ACT REQUIRED prerequisites.
  */
 export function planActPrerequisitePath(
-  input: ActPathPlannerInput,
+  rawInput: ActPathPlannerInput & {
+    repoRoot?: string;
+    activationSelection?: ConsumerProductionSelection;
+  },
 ): ActPathPlanResult {
+  const activated = applyLearningPathConsumerActivation(rawInput.projection, {
+    repoRoot: rawInput.repoRoot,
+    activationSelection: rawInput.activationSelection,
+  });
+  // Activation-aware view used by the rest of the planner.
+  const input: ActPathPlannerInput = {
+    ...rawInput,
+    projection: activated.projection,
+  };
+
   const goalCanonicalId = input.goalCanonicalId?.trim() ?? '';
   const mastered = new Set(
     (input.masteredCanonicalIds ?? [])

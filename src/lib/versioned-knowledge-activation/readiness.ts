@@ -27,6 +27,11 @@ export interface StagedActivationArtifactSet {
     captureRevision: string | null;
     /** File digests under the authority release (manifest, engineering, …). */
     artifactHashes: Record<string, string>;
+    /**
+     * Real staged file paths keyed like artifactHashes. Staging rehashes these
+     * against declared digests; missing paths for required artifacts fail closed.
+     */
+    artifactPaths?: Record<string, string>;
   } | null;
   projection: {
     present: boolean;
@@ -37,6 +42,11 @@ export interface StagedActivationArtifactSet {
     gatePassed: boolean;
     /** File digests under the projection release. */
     artifactHashes: Record<string, string>;
+    /**
+     * Real staged file paths keyed like artifactHashes. Staging rehashes these
+     * against declared digests; missing paths for required artifacts fail closed.
+     */
+    artifactPaths?: Record<string, string>;
     hasResources: boolean;
     hasCardsIndex: boolean;
     hasPrerequisites: boolean;

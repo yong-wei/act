@@ -45,6 +45,8 @@ import {
   verifyActivationManifest,
   type BuildStagedActivationManifestInput,
 } from './stage';
+// consumersBlockedByShadow is applied inside buildStagedActivationManifest via
+// shadowReport; stageConsumerActivation always forwards the report body.
 
 export const consumerActivationStoreFs = {
   renameSync,
@@ -146,14 +148,15 @@ export interface StagedConsumerActivationFiles {
  */
 export function stageConsumerActivation(
   paths: ConsumerActivationStorePaths,
-  input: BuildStagedActivationManifestInput & {
-    shadowReport?: ConsumerActivationShadowReport | null;
-  },
+  input: BuildStagedActivationManifestInput,
 ): StagedConsumerActivationFiles {
   ensureConsumerActivationStore(paths);
 
+  // Always forward shadowReport so material discrepancies auto-block consumers
+  // even when the caller omits an explicit shadowConsumerIds list.
   const built = buildStagedActivationManifest({
     ...input,
+    shadowReport: input.shadowReport ?? null,
     shadowReportHash:
       input.shadowReportHash
       ?? input.shadowReport?.reportHash
@@ -709,7 +712,10 @@ export interface RollbackConsumerActivationResult {
 }
 
 /**
- * Digest-checked one-pointer rollback. Release directories remain immutable.
+ * Digest-checked one-pointer rollback to the sole prior activation recorded on
+ * the current manifest. Release directories remain immutable. Arbitrary staged
+ * releases (even with a matching digest) are rejected when they are not the
+ * current list's priorActivationId/priorActivationHash.
  */
 export function rollbackConsumerActivation(
   paths: ConsumerActivationStorePaths,
@@ -738,16 +744,109 @@ export function rollbackConsumerActivation(
     });
   }
 
-  let target: StagedConsumerActivationFiles;
+  if (!current) {
+    return failRollback({
+      paths,
+      rollbackReceiptId,
+      from: null,
+      toActivationId: input.toActivationId,
+      toActivationHash: input.toActivationHash ?? '0'.repeat(64),
+      rolledBackAt,
+      reasons: ['current-pointer-missing'],
+    });
+  }
+
+  // Sole allowed rollback target is the prior activation recorded on the
+  // currently active manifest (not any arbitrary staged release).
+  let currentManifest: ConsumerActivationManifest;
   try {
-    target = loadStagedConsumerActivation(paths, input.toActivationId);
+    const active = resolveActiveConsumerActivation(paths);
+    if (active.status !== 'available' || !active.manifest) {
+      return failRollback({
+        paths,
+        rollbackReceiptId,
+        from: current,
+        toActivationId: input.toActivationId,
+        toActivationHash: input.toActivationHash ?? current.activationHash,
+        rolledBackAt,
+        reasons: [
+          'current-activation-unavailable',
+          active.detail ?? 'active-manifest-missing',
+        ],
+      });
+    }
+    currentManifest = active.manifest;
   } catch (error) {
     return failRollback({
       paths,
       rollbackReceiptId,
       from: current,
       toActivationId: input.toActivationId,
+      toActivationHash: input.toActivationHash ?? current.activationHash,
+      rolledBackAt,
+      reasons: [
+        'current-activation-unreadable',
+        error instanceof Error ? error.message : 'current activation unreadable',
+      ],
+    });
+  }
+
+  const allowedPriorId = currentManifest.priorActivationId;
+  const allowedPriorHash = currentManifest.priorActivationHash;
+  if (!allowedPriorId || !allowedPriorHash || !isSha256Hex(allowedPriorHash)) {
+    return failRollback({
+      paths,
+      rollbackReceiptId,
+      from: current,
+      toActivationId: input.toActivationId,
       toActivationHash: input.toActivationHash ?? '0'.repeat(64),
+      rolledBackAt,
+      reasons: ['no-prior-activation-recorded'],
+    });
+  }
+
+  if (input.toActivationId !== allowedPriorId) {
+    return failRollback({
+      paths,
+      rollbackReceiptId,
+      from: current,
+      toActivationId: input.toActivationId,
+      toActivationHash: input.toActivationHash ?? allowedPriorHash,
+      rolledBackAt,
+      reasons: [
+        'rollback-target-not-prior',
+        `allowed:${allowedPriorId}`,
+        `requested:${input.toActivationId}`,
+      ],
+    });
+  }
+
+  // Explicit caller hash (when provided) must match the recorded prior hash.
+  if (
+    input.toActivationHash
+    && input.toActivationHash !== allowedPriorHash
+  ) {
+    return failRollback({
+      paths,
+      rollbackReceiptId,
+      from: current,
+      toActivationId: allowedPriorId,
+      toActivationHash: allowedPriorHash,
+      rolledBackAt,
+      reasons: ['rollback-target-digest-mismatch'],
+    });
+  }
+
+  let target: StagedConsumerActivationFiles;
+  try {
+    target = loadStagedConsumerActivation(paths, allowedPriorId);
+  } catch (error) {
+    return failRollback({
+      paths,
+      rollbackReceiptId,
+      from: current,
+      toActivationId: allowedPriorId,
+      toActivationHash: allowedPriorHash,
       rolledBackAt,
       reasons: [
         'rollback-target-missing',
@@ -756,10 +855,8 @@ export function rollbackConsumerActivation(
     });
   }
 
-  if (
-    input.toActivationHash
-    && input.toActivationHash !== target.activationHash
-  ) {
+  // Always enforce the recorded prior digest against the immutable release.
+  if (target.activationHash !== allowedPriorHash) {
     return failRollback({
       paths,
       rollbackReceiptId,
@@ -767,7 +864,7 @@ export function rollbackConsumerActivation(
       toActivationId: target.activationId,
       toActivationHash: target.activationHash,
       rolledBackAt,
-      reasons: ['rollback-target-digest-mismatch'],
+      reasons: ['rollback-target-digest-mismatch', 'prior-hash-release-drift'],
     });
   }
 
@@ -782,13 +879,17 @@ export function rollbackConsumerActivation(
   const receipt: ConsumerActivationRollbackReceipt = {
     contract: CONSUMER_ACTIVATION_ROLLBACK_RECEIPT_CONTRACT,
     receiptId: rollbackReceiptId,
-    fromActivationId: current?.activationId ?? null,
-    fromActivationHash: current?.activationHash ?? null,
+    fromActivationId: current.activationId,
+    fromActivationHash: current.activationHash,
     toActivationId: target.activationId,
     toActivationHash: target.activationHash,
     rolledBackAt,
     status: 'rolled-back',
-    reasons: ['one-pointer-rollback', 'prior-activation-immutable'],
+    reasons: [
+      'one-pointer-rollback',
+      'prior-activation-immutable',
+      'prior-activation-from-current-manifest',
+    ],
   };
 
   try {

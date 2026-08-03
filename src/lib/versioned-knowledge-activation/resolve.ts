@@ -222,3 +222,170 @@ export function resolveConsumerCombinationOrNull(
   }
   return null;
 }
+
+/**
+ * Production selection derived from the consumer activation pointer.
+ *
+ * - `absent`: no activation pointer / store — callers fall back to legacy
+ *   global Authority/Projection current pointers.
+ * - `use-combination`: READY consumers use the staged combination as the
+ *   production Authority/Projection pair.
+ * - `pin-combination`: PINNED / SHADOW / BLOCKED consumers read only their
+ *   safe prior (or recorded) combination; they never claim a new activation.
+ * - `unavailable`: activation exists but is unusable (unknown id, drift).
+ */
+export type ConsumerProductionSelectionMode =
+  | 'absent'
+  | 'use-combination'
+  | 'pin-combination'
+  | 'unavailable';
+
+export interface ConsumerProductionSelection {
+  mode: ConsumerProductionSelectionMode;
+  consumerId: ConsumerActivationId | string;
+  combination: ConsumerVersionCombination | null;
+  resolved: ResolvedConsumerActivation;
+  reasons: string[];
+}
+
+export function resolveConsumerProductionSelection(
+  resolved: ResolvedConsumerActivation,
+): ConsumerProductionSelection {
+  if (resolved.status === 'unavailable') {
+    const absent =
+      resolved.reasons.some(
+        (reason) =>
+          reason === 'current-pointer-missing'
+          || reason === 'activation-unavailable'
+          || reason.includes('current pointer')
+          || reason.includes('pointer-missing')
+          || reason.includes('no matching activation'),
+      )
+      || resolved.activationId === null;
+    if (absent && !resolved.reasons.some((r) => r.startsWith('unknown-consumer'))) {
+      return {
+        mode: 'absent',
+        consumerId: resolved.consumerId,
+        combination: null,
+        resolved,
+        reasons: resolved.reasons,
+      };
+    }
+    return {
+      mode: 'unavailable',
+      consumerId: resolved.consumerId,
+      combination: null,
+      resolved,
+      reasons: resolved.reasons,
+    };
+  }
+
+  if (resolved.status === 'ready') {
+    return {
+      mode: 'use-combination',
+      consumerId: resolved.consumerId,
+      combination: resolved.combination,
+      resolved,
+      reasons: resolved.reasons,
+    };
+  }
+
+  // PINNED / SHADOW / BLOCKED: never advance to a new combination as production.
+  const combination =
+    resolved.priorCombination
+    ?? resolved.combination
+    ?? null;
+  return {
+    mode: 'pin-combination',
+    consumerId: resolved.consumerId,
+    combination,
+    resolved,
+    reasons: resolved.reasons,
+  };
+}
+
+/**
+ * Resolve a named consumer's production selection from the configured
+ * activation store (or an explicit paths override).
+ */
+export function resolveNamedConsumerProductionSelection(
+  consumerId: ConsumerActivationId,
+  options: {
+    repoRoot?: string;
+    activationPaths?: ConsumerActivationStorePaths;
+  } = {},
+): ConsumerProductionSelection {
+  const paths =
+    options.activationPaths
+    ?? resolveDefaultConsumerActivationStorePaths(options.repoRoot);
+  return resolveConsumerProductionSelection(
+    resolveConsumerActivation(paths, consumerId),
+  );
+}
+
+/** Convenience production selections for the six named consumers. */
+export function resolveEngineeringGraphProductionSelection(
+  options?: Parameters<typeof resolveNamedConsumerProductionSelection>[1],
+): ConsumerProductionSelection {
+  return resolveNamedConsumerProductionSelection('engineering-graph', options);
+}
+
+export function resolveEngineeringRagProductionSelection(
+  options?: Parameters<typeof resolveNamedConsumerProductionSelection>[1],
+): ConsumerProductionSelection {
+  return resolveNamedConsumerProductionSelection('engineering-rag', options);
+}
+
+export function resolveCourseRuntimeProductionSelection(
+  options?: Parameters<typeof resolveNamedConsumerProductionSelection>[1],
+): ConsumerProductionSelection {
+  return resolveNamedConsumerProductionSelection('course-runtime', options);
+}
+
+export function resolveKonlingProductionSelection(
+  options?: Parameters<typeof resolveNamedConsumerProductionSelection>[1],
+): ConsumerProductionSelection {
+  return resolveNamedConsumerProductionSelection('konling', options);
+}
+
+export function resolveTeachingResourceRagProductionSelection(
+  options?: Parameters<typeof resolveNamedConsumerProductionSelection>[1],
+): ConsumerProductionSelection {
+  return resolveNamedConsumerProductionSelection(
+    'teaching-resource-rag',
+    options,
+  );
+}
+
+export function resolveLearningPathProductionSelection(
+  options?: Parameters<typeof resolveNamedConsumerProductionSelection>[1],
+): ConsumerProductionSelection {
+  return resolveNamedConsumerProductionSelection('learning-path', options);
+}
+
+/**
+ * Projection pin fields derived from a production selection.
+ * Callers merge these into layered-graph / Konling / path requests.
+ */
+export function projectionPinsFromSelection(
+  selection: ConsumerProductionSelection,
+): {
+  projectionId: string | null;
+  projectionHash: string | null;
+  authorityReleaseId: string | null;
+  authoritySnapshotId: string | null;
+  authoritySnapshotHash: string | null;
+  mode: ConsumerProductionSelectionMode;
+  reasons: string[];
+} {
+  const combination = selection.combination;
+  return {
+    projectionId: combination?.projectionId ?? null,
+    projectionHash: combination?.projectionHash ?? null,
+    authorityReleaseId: combination?.authorityReleaseId ?? null,
+    authoritySnapshotId: combination?.authoritySnapshotId ?? null,
+    authoritySnapshotHash: combination?.authoritySnapshotHash ?? null,
+    mode: selection.mode,
+    reasons: selection.reasons,
+  };
+}

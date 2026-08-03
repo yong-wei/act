@@ -5,6 +5,8 @@
  * readiness before any pointer replacement.
  */
 
+import { existsSync, readFileSync } from 'node:fs';
+
 import {
   CONSUMER_ACTIVATION_CONTRACT,
   CONSUMER_ACTIVATION_STAGE_RECEIPT_CONTRACT,
@@ -12,21 +14,32 @@ import {
   isConsumerActivationStatus,
   type ConsumerActivationManifest,
   type ConsumerActivationRecord,
+  type ConsumerActivationShadowReport,
   type ConsumerActivationStageReceipt,
+  type ConsumerActivationId,
 } from './contracts';
-import { activationDigest, isSha256Hex } from './hash';
+import { activationDigest, activationSha256, isSha256Hex } from './hash';
 import {
   evaluateConsumerReadiness,
   summarizeImpact,
   type EvaluateConsumerReadinessInput,
   type StagedActivationArtifactSet,
 } from './readiness';
+import {
+  assertShadowNoWriteInvariants,
+  consumersBlockedByShadow,
+} from './shadow';
 
 export interface BuildStagedActivationManifestInput {
   artifacts: StagedActivationArtifactSet;
   priorConsumers?: EvaluateConsumerReadinessInput['priorConsumers'];
   preferPinOnBlock?: boolean;
   shadowConsumerIds?: EvaluateConsumerReadinessInput['shadowConsumerIds'];
+  /**
+   * When present, material shadow discrepancies auto-merge into shadowConsumerIds
+   * and the report hash is verified against the report body.
+   */
+  shadowReport?: ConsumerActivationShadowReport | null;
   shadowReportHash?: string | null;
   priorActivationId?: string | null;
   priorActivationHash?: string | null;
@@ -53,6 +66,119 @@ function assertKnownStatuses(consumers: readonly ConsumerActivationRecord[]): vo
       );
     }
   }
+}
+
+/**
+ * Rehash a real staged file and compare against a declared digest.
+ * Missing files and digest mismatches fail closed.
+ */
+export function verifyArtifactFileHash(
+  filePath: string | null | undefined,
+  declaredHash: string | null | undefined,
+  label: string,
+): string | null {
+  if (!filePath) {
+    return `${label}-path-missing`;
+  }
+  if (!declaredHash || !isSha256Hex(declaredHash)) {
+    return `${label}-hash-invalid`;
+  }
+  if (!existsSync(filePath)) {
+    return `${label}-file-missing`;
+  }
+  try {
+    const actual = activationSha256(readFileSync(filePath));
+    if (actual !== declaredHash) {
+      return `${label}-hash-mismatch`;
+    }
+  } catch {
+    return `${label}-file-unreadable`;
+  }
+  return null;
+}
+
+/**
+ * When artifact file paths are supplied, recompute digests against declared
+ * hashes. Callers that only pass hash strings without paths get a hard fail
+ * for required artifact keys so malformed/missing/cross-capture files cannot
+ * become READY.
+ */
+export function validateArtifactFileDigests(
+  artifacts: StagedActivationArtifactSet,
+): string[] {
+  const reasons: string[] = [];
+  const authority = artifacts.authority;
+  if (authority?.present) {
+    const required = ['manifest.json', 'engineering.json'] as const;
+    for (const name of required) {
+      const declared = authority.artifactHashes[name];
+      const filePath = authority.artifactPaths?.[name];
+      if (!declared || !isSha256Hex(declared)) {
+        reasons.push(`authority-${name.replace('.', '-')}-hash-missing`);
+        continue;
+      }
+      // Require a real path for declared hashes so inventing hex digests alone
+      // cannot stage READY consumers.
+      if (!filePath) {
+        reasons.push(`authority-${name.replace('.', '-')}-path-missing`);
+        continue;
+      }
+      const failure = verifyArtifactFileHash(
+        filePath,
+        declared,
+        `authority-${name.replace('.', '-')}`,
+      );
+      if (failure) reasons.push(failure);
+    }
+    // Any additional declared hashes with paths are also rehashed.
+    for (const [name, declared] of Object.entries(authority.artifactHashes)) {
+      if ((required as readonly string[]).includes(name)) continue;
+      const filePath = authority.artifactPaths?.[name];
+      if (!filePath) continue;
+      const failure = verifyArtifactFileHash(
+        filePath,
+        declared,
+        `authority-${name.replace(/[^a-z0-9]+/gi, '-')}`,
+      );
+      if (failure) reasons.push(failure);
+    }
+  }
+
+  const projection = artifacts.projection;
+  if (projection?.present) {
+    const required = ['projection-manifest.json'] as const;
+    for (const name of required) {
+      const declared = projection.artifactHashes[name];
+      const filePath = projection.artifactPaths?.[name];
+      if (!declared || !isSha256Hex(declared)) {
+        reasons.push(`projection-${name.replace('.', '-')}-hash-missing`);
+        continue;
+      }
+      if (!filePath) {
+        reasons.push(`projection-${name.replace('.', '-')}-path-missing`);
+        continue;
+      }
+      const failure = verifyArtifactFileHash(
+        filePath,
+        declared,
+        `projection-${name.replace('.', '-')}`,
+      );
+      if (failure) reasons.push(failure);
+    }
+    for (const [name, declared] of Object.entries(projection.artifactHashes)) {
+      if ((required as readonly string[]).includes(name)) continue;
+      const filePath = projection.artifactPaths?.[name];
+      if (!filePath) continue;
+      const failure = verifyArtifactFileHash(
+        filePath,
+        declared,
+        `projection-${name.replace(/[^a-z0-9]+/gi, '-')}`,
+      );
+      if (failure) reasons.push(failure);
+    }
+  }
+
+  return reasons;
 }
 
 /**
@@ -118,16 +244,63 @@ export function validateStagedArtifactSet(
     reasons.push(...artifacts.identityDriftReasons);
   }
 
+  reasons.push(...validateArtifactFileDigests(artifacts));
+
   // Hard fail: tampered / mixed capture that claims both sides present.
   const hardFail = reasons.some((r) =>
     r.includes('mismatch')
     || r.includes('drift')
     || r.includes('invalid')
     || r.includes('hash-missing')
-    || r.includes('id-missing'),
+    || r.includes('id-missing')
+    || r.includes('path-missing')
+    || r.includes('file-missing')
+    || r.includes('file-unreadable'),
   );
 
   return { ok: !hardFail, reasons };
+}
+
+function mergeShadowConsumerIds(input: {
+  shadowConsumerIds?: readonly ConsumerActivationId[];
+  shadowReport?: ConsumerActivationShadowReport | null;
+}): {
+  shadowConsumerIds: ConsumerActivationId[];
+  shadowReportHash: string | null;
+  reasons: string[];
+} {
+  const reasons: string[] = [];
+  const ids = new Set<ConsumerActivationId>(input.shadowConsumerIds ?? []);
+  let shadowReportHash: string | null = null;
+
+  if (input.shadowReport) {
+    try {
+      assertShadowNoWriteInvariants(input.shadowReport);
+    } catch (error) {
+      reasons.push(
+        error instanceof Error
+          ? `shadow-report-invariant:${error.message}`
+          : 'shadow-report-invariant-failed',
+      );
+    }
+    // Recompute digest over the report body (without reportHash) to detect
+    // tampered shadow evidence.
+    const { reportHash: declared, ...body } = input.shadowReport;
+    const recomputed = activationDigest(body);
+    if (declared !== recomputed) {
+      reasons.push('shadow-report-hash-mismatch');
+    }
+    shadowReportHash = declared;
+    for (const consumerId of consumersBlockedByShadow(input.shadowReport)) {
+      ids.add(consumerId);
+    }
+  }
+
+  return {
+    shadowConsumerIds: [...ids].sort(),
+    shadowReportHash,
+    reasons,
+  };
 }
 
 /**
@@ -140,12 +313,20 @@ export function buildStagedActivationManifest(
   const stagedAt = input.stagedAt ?? new Date().toISOString();
   const receiptId = `stage-${stagedAt.replace(/[:.]/g, '-')}`;
   const validation = validateStagedArtifactSet(input.artifacts);
+  const shadowMerge = mergeShadowConsumerIds({
+    shadowConsumerIds: input.shadowConsumerIds,
+    shadowReport: input.shadowReport,
+  });
+  const shadowReportHash =
+    input.shadowReportHash
+    ?? shadowMerge.shadowReportHash
+    ?? null;
 
   const consumers = evaluateConsumerReadiness({
     artifacts: input.artifacts,
     priorConsumers: input.priorConsumers,
     preferPinOnBlock: input.preferPinOnBlock,
-    shadowConsumerIds: input.shadowConsumerIds,
+    shadowConsumerIds: shadowMerge.shadowConsumerIds,
     activatedAt: stagedAt,
   });
 
@@ -173,11 +354,13 @@ export function buildStagedActivationManifest(
     };
   }
 
-  // Fail closed when staging validation hard-fails (mixed/tampered).
-  if (!validation.ok) {
+  // Fail closed when staging validation hard-fails (mixed/tampered) or shadow
+  // report integrity fails.
+  if (!validation.ok || shadowMerge.reasons.length > 0) {
     const reasons = [
-      'staged-artifact-set-invalid',
+      ...(validation.ok ? [] : ['staged-artifact-set-invalid']),
       ...validation.reasons,
+      ...shadowMerge.reasons,
     ];
     return {
       status: 'failed',
@@ -216,7 +399,7 @@ export function buildStagedActivationManifest(
     stagedAt,
     consumers,
     impact,
-    shadowReportHash: input.shadowReportHash ?? null,
+    shadowReportHash,
     priorActivationId: input.priorActivationId ?? null,
     priorActivationHash: input.priorActivationHash ?? null,
   };
